@@ -52,7 +52,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
 | C1 | Autenticació a cada endpoint | Per defecte tot exigeix sessió i permís; només es marquen com a públics els endpoints que ho són | Prova automàtica que recorre totes les rutes sense sessió | 1 |
-| C2 | Doble factor | Obligatori per a administradors i tresorer | No es pot accedir sense segon factor | 2 |
+| C2 | Doble factor | Obligatori (TOTP) per a administrador, tresorer i secretaria (qualsevol rol amb accés a diners o dades de socis) i per als comptes d'emergència; codis de recuperació guardats fora de línia [pendent de validació de la junta; vegeu docs/decisions/003-autenticacio-doble-factor.md] | No es pot accedir sense segon factor | 2 |
 | C3 | Limitació de peticions | Inici de sessió, recuperació de contrasenya, formularis públics i API | Prova de càrrega i bloqueig temporal | 2 |
 | C4 | Restabliment de contrasenya | Enllaç d'un sol ús amb caducitat, sense revelar si el correu existeix | Prova de principi a fi | 1 |
 | C5 | Verificació de correu | Els comptes nous queden pendents fins confirmar | Prova de principi a fi | 1 |
