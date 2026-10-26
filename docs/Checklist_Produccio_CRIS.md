@@ -1,0 +1,126 @@
+# Checklist de producció — Plataforma C.R.I.S.
+
+Aquest fitxer és la llista de comprovació que ha de seguir qualsevol persona o assistent que desenvolupi la plataforma. Cap mòdul es dona per acabat fins que passa les portes que li corresponen.
+
+## 1. Decisió: primer web, després app
+Es construeix primer una app-web (web responsive instal·lable com a PWA). L'app nativa o d'escriptori no entra a l'abast actual.
+
+Motius:
+- Una sola base de codi per a ordinador, tauleta i mòbil, sense passar per botigues d'aplicacions.
+- Les funcions que necessita el club (carnet digital amb QR, passar llista, assignar material, pagar, consultar) no exigeixen accés profund al dispositiu.
+- Una PWA s'instal·la a Android i a iOS; a iOS les notificacions push només funcionen si l'usuari l'ha afegida a la pantalla d'inici i ha donat permís.
+- Més endavant, la mateixa web es pot empaquetar per a les botigues si cal.
+
+Quan reconsiderar-ho: si fan falta notificacions fiables a iOS sense instal·lació, funcions de maquinari (Bluetooth, NFC, càmera avançada) o presència a les botigues.
+
+Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència disponibles amb poca cobertura (al moll sovint n'hi ha poca).
+
+## 2. Portes (quan s'ha de complir cada cosa)
+- Porta 0 — abans del primer codi: repositori, README, secrets, ambients, esquelet de CI.
+- Porta 1 — abans d'ensenyar una demo a la junta: staging, domini i SSL, pàgines d'error, proves bàsiques, autenticació a cada endpoint, còpies.
+- Porta 2 — abans de dades reals de socis: RGPD, política de privacitat, doble factor, prova de restauració, limitació de peticions, auditoria de dependències, registres, esborrat de compte.
+- Porta 3 — abans d'obrir-ho als socis: monitoratge, alertes, SEO, correu, proves en dispositius i xarxes lentes, pla de marxa enrere provat, cookies, accessibilitat.
+- Continu: auditoria de dependències cada mes, prova de restauració cada trimestre, rotació de claus cada any o davant d'una filtració.
+
+## 3. Llista per categories
+
+### A. Repositori i lliurament
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| A1 | CI/CD | Pipeline que a cada canvi executa proves, anàlisi estàtica i auditoria de dependències; desplega a staging automàticament i a producció amb aprovació | El pipeline és verd abans de fusionar | 0 |
+| A2 | Ambients | Local, staging (còpia de producció amb dades inventades) i producció | Tres configuracions separades i documentades | 0 |
+| A3 | Secrets fora del repositori | Claus, contrasenyes i tokens en variables d'entorn o gestor de secrets | Escaneig de secrets al CI; cap secret a l'historial | 0 |
+| A4 | Rotar claus filtrades | Procediment escrit; si una clau surt al repositori, es rota i es revisa l'historial | Simulacre una vegada | 2 |
+| A5 | README | Com instal·lar, executar, provar, desplegar, fer una còpia i restaurar; qui és responsable | Una persona nova ho posa en marxa seguint-lo | 0 |
+| A6 | Pla de marxa enrere | Cada desplegament es pot revertir; migracions de base de dades compatibles amb la versió anterior | Reversió provada a staging | 3 |
+| A7 | Domini propi i SSL | Domini existent del club, certificat renovat automàticament, redirecció a HTTPS | Alerta de caducitat; prova externa de SSL | 1 |
+
+### B. Proves
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| B1 | Proves unitàries | Prioritat màxima: càlcul del marge, quotes, canvi de simpatitzant a ple dret, preus de llicències, llista d'espera, imputació de material | Cobertura mínima dels càlculs econòmics del 100% | 1 |
+| B2 | Proves de fum | Després de cada desplegament: inici de sessió, carnet, inscripció, pagament de prova, pàgina d'inici | S'executen automàticament a staging i producció | 1 |
+| B3 | Proves de regressió | Cada error corregit deixa una prova que l'evita | Llista d'errors amb prova associada | 2 |
+| B4 | Proves de permisos | Per a cada rol: què pot i què no pot; el soci només veu el seu, l'instructor només les seves sessions | Matriu de rols convertida en proves | 1 |
+| B5 | Proves en diversos dispositius | Mòbil (Android i iOS), tauleta i ordinador; navegadors principals | Llista de dispositius provats i resultat | 3 |
+| B6 | Proves amb xarxa lenta | Carnet i llista d'assistència amb poca cobertura; estats de càrrega i errors clars | Emulació de 3G i mode sense connexió | 3 |
+| B7 | Estats reals | Pàgines 404 i 500 pròpies, estats buits («encara no hi ha inscripcions») i estats de càrrega | Revisió de cada pantalla | 1 |
+| B8 | Accessibilitat | Contrast, navegació amb teclat, etiquetes de formulari, text alternatiu, mida de lletra; objectiu WCAG 2.2 AA | Auditoria automàtica i revisió manual | 3 |
+| B9 | Proves d'importació | Importació de socis i de l'extracte bancari amb casos incorrectes, duplicats i fitxers buits | Fitxers de prova | 2 |
+
+### C. Seguretat
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| C1 | Autenticació a cada endpoint | Per defecte tot exigeix sessió i permís; només es marquen com a públics els endpoints que ho són | Prova automàtica que recorre totes les rutes sense sessió | 1 |
+| C2 | Doble factor | Obligatori per a administradors i tresorer | No es pot accedir sense segon factor | 2 |
+| C3 | Limitació de peticions | Inici de sessió, recuperació de contrasenya, formularis públics i API | Prova de càrrega i bloqueig temporal | 2 |
+| C4 | Restabliment de contrasenya | Enllaç d'un sol ús amb caducitat, sense revelar si el correu existeix | Prova de principi a fi | 1 |
+| C5 | Verificació de correu | Els comptes nous queden pendents fins confirmar | Prova de principi a fi | 1 |
+| C6 | Auditoria de dependències | Pipeline que falla amb vulnerabilitats greus; revisió mensual | Informe a cada execució | 2 |
+| C7 | Configuració de producció | Mode de depuració desactivat, secret fora del repositori i capçaleres de seguretat; si es fa servir Django, executar la comprovació de desplegament | La comprovació no mostra avisos | 2 |
+| C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
+| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador | Proves amb notificacions repetides i falsificades | 2 |
+| C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
+
+### D. Dades i continuïtat
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| D1 | Còpies de la base de dades | Diàries, fora del servidor principal, també dels documents pujats | Alerta si falla una còpia | 1 |
+| D2 | Prova de restauració | Restaurar l'última còpia en un entorn net i comprovar que es pot entrar i que les dades són coherents | Informe de cada prova, cada trimestre | 2 |
+| D3 | Límits de despesa i alertes de facturació | Límit mensual al proveïdor d'allotjament, correu i pagaments, amb avís al responsable | Alerta configurada i provada | 1 |
+| D4 | Allotjament a la UE | Servidor i còpies dins la UE | Documentat | 1 |
+| D5 | Migracions | Les migracions es proven amb dades de staging abans de producció | Pipeline | 1 |
+
+### E. Observabilitat
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| E1 | Registres | Estructurats, sense contrasenyes ni dades personals innecessàries | Revisió d'exemples | 2 |
+| E2 | Seguiment d'errors | Avís amb la traça cada vegada que hi ha un error en producció | Error provocat a staging | 2 |
+| E3 | Monitoratge de disponibilitat | Comprovació externa cada pocs minuts de la web i del carnet | Alerta quan cau | 3 |
+| E4 | Alertes | Qui rep què: errors, caiguda, còpia fallida, certificat a punt de caducar, despesa | Simulacre | 3 |
+| E5 | Monitoratge de rendimiento | Temps de resposta i consultes lentes; objectiu de càrrega de pàgina raonable en mòbil | Informe mensual | 3 |
+| E6 | Analítica | Només la que es pugui justificar. Segons l'AEPD, les cookies d'audiència només estan exemptes de consentiment si només mesuren l'audiència en nom de l'editor, donen dades anònimes i agregades i no es creuen amb altres tractaments ni permeten seguir l'usuari entre llocs. Una opció és una eina pròpia o sense cookies | Revisió de les quatre condicions | 3 |
+
+### F. Web pública i SEO
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| F1 | Sitemap i robots.txt | Només pàgines públiques; l'àrea de socis i l'administració queden excloses | Prova automàtica | 3 |
+| F2 | Dades estructurades | Organització, esdeveniments (cursos, sortides, conferències) i preguntes freqüents | Validador de dades estructurades | 3 |
+| F3 | AEO (respostes de cercadors i assistents) | Pàgines de preguntes freqüents clares, textos que responen directament i dades de contacte coherents | Revisió manual | 3 |
+| F4 | Imatges OG i favicon | Logotip del club per a previsualitzacions en xarxes i icona de l'app | Prova en xarxes | 3 |
+| F5 | Optimització d'imatges | Formats moderns, mides adaptades i càrrega diferida | Informe de rendiment | 3 |
+| F6 | Memòria cau | Memòria cau del navegador per a recursos estàtics i del servidor per a pàgines públiques | Capçaleres comprovades | 3 |
+| F7 | Idioma | Català i, si es decideix, castellà i anglès amb etiquetes d'idioma | Revisió | 3 |
+
+### G. Correu
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa | Comprovador de correu | 2 |
+| G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
+
+### H. Legal i privacitat
+| ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
+|---|---|---|---|---|
+| H1 | Política de privacitat i condicions | Redactades amb la junta; qui és el responsable, per a què es fan servir les dades i quant de temps es guarden | Publicades i enllaçades als formularis | 2 |
+| H2 | Consentiment de cookies | Si hi ha cookies no tècniques: consentiment previ i opció de rebutjar tan visible com la d'acceptar | Revisió amb la pàgina oberta per primera vegada | 3 |
+| H3 | Esborrat de compte i de dades | Un soci pot demanar l'esborrat i l'exportació de les seves dades; es conserven només les dades que obliga la llei (per exemple, factures) | Prova de principi a fi | 2 |
+| H4 | Dades de salut | No es guarden a la plataforma | Revisió del model de dades | 1 |
+| H5 | Protocol per a menors | Si hi ha menors, protocol i persona de referència fora de l'app | Confirmar amb la junta | 3 |
+
+### I. Funcions d'IA (només si s'afegeixen)
+No aplica a l'abast actual. Si més endavant s'afegeix una funció amb un model d'IA (per exemple, identificar espècies), cal: avaluacions amb casos reals, proves contra injecció de prompts, alternativa quan el servei no respongui, gestió dels límits de context i límit de despesa.
+
+## 4. Elements de la llista original que s'han descartat
+- Les línies «ТОВ ЭНТАЗЯВ» i «rotate any keys that leaked C» eren text sobrant; la rotació de claus s'ha inclòs com a A4.
+
+## 5. Extres propis del C.R.I.S.
+- Carnet digital i llista d'assistència amb mode sense connexió.
+- Càlcul del marge amb proves que comparin el resultat de la plataforma amb el càlcul manual d'una sortida real.
+- Importació de Cluber i del banc amb previsualització i opció de desfer.
+- Dades de prova inventades a staging; mai dades reals fora de producció.
+- Responsable de manteniment nomenat a la junta i calendari de tasques periòdiques.
+
+## 6. Com s'ha de treballar
+- Abans de començar un mòdul, copiar les files que li afecten a un issue com a criteris d'acceptació.
+- No es fusiona cap canvi si el pipeline falla.
+- A cada porta, es revisa la llista i es deixa constància de què s'ha complert, què no i per què.

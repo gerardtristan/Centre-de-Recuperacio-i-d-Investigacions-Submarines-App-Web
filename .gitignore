@@ -1,0 +1,29 @@
+# Secrets i variables d'entorn
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials*.json
+
+# Dades reals (mai al repositori)
+dades-reals/
+*.dump
+*.sql.gz
+*.backup
+
+# Documents amb possibles dades personals [A validar fins que s'anonimitzin]
+Entrevistes.docx
+docs/context/entrevistes.docx
+
+# Fitxers grans
+*.mp4
+
+# Sistema i editor
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
