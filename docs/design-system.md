@@ -317,7 +317,11 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 
 Comprovat sobre `#08131e` i sobre `#062a47`: els contorns i el text blancs es llegeixen bé i «DES DE 1954» manté el contorn blanc. El canvi es fa amb les classes `logo-clar` i `logo-fosc`.
 
-**Nom del club:** «Centre de Recuperació i d'Investigacions Submarines» (C.R.I.S.). És el que fan servir els títols de pàgina, els textos i el text alternatiu dels logotips de les tres zones: «Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines». Els logotips decoratius, com el del carnet, porten `alt=""`. És el nom oficial, en singular i amb «d'», com al logotip, la Viquipèdia, l'Enciclopèdia Catalana i cris.barcelona.
+**Nom del club:** «Centre de Recuperació i d'Investigacions Submarines» (C.R.I.S.). És el que fan servir els títols de pàgina, els textos i el text alternatiu dels logotips de les tres zones: «Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines». Els logotips decoratius, com el del carnet, porten `alt=""`.
+
+**Regla del text alternatiu del logotip:**
+- Si el logotip va al costat del nom en text, com a la capçalera pública, porta `alt=""`. Així el lector de pantalla no llegeix el nom dues vegades.
+- Si el logotip no hi va acompanyat, com al peu, a les capçaleres dels socis i a la barra de l'administració, porta el text alternatiu complet. És el nom oficial, en singular i amb «d'», com al logotip, la Viquipèdia, l'Enciclopèdia Catalana i cris.barcelona.
 
 **Regla: la capçalera pública porta el nom sencer** al costat del logotip, mai l'abreviatura «C.R.I.S.». Va en Barlow Condensed 600:
 - al mòbil, en 3 línies de 12 px («Centre de Recuperació» / «i d'Investigacions» / «Submarines»);
