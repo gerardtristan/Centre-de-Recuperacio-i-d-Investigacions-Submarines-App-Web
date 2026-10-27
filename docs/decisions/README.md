@@ -56,5 +56,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [046](046-interficie-django-htmx-servida-des-del-vps.md) | Interfície amb plantilles de Django i HTMX, servida des del VPS (HTMX sense CDN) | Acceptada (substitueix la part de frontend de la 002; resol la pila del frontend de la 030) |
 | [047](047-planning-font-unica-de-l-especificacio.md) | `docs/planning.md` és la font única de l'especificació de cada mòdul | Acceptada (amplia la 008) |
 | [048](048-reobrir-carrec-retornat.md) | Reobrir un càrrec retornat (retornat → pendent) en reintentar-lo o oferir l'alternativa | Acceptada (amplia RN-67 de la spec 00) |
+| [049](049-peces-noves-a-moduls-aprovats-per-al-02.md) | Dues peces noves a mòduls aprovats per al 02: lectura de la llicència (01) i esdeveniment «càrrec pagat» (05b) | Acceptada (amplia el M01 i el M05b sense canviar-ne les regles) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
