@@ -14,9 +14,9 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 | Entrevistes i funcionalitats | Fetes. Al .docx de funcionalitats encara falten els textos de substitució de [pendents.md](docs/decisions/pendents.md) (P-22) |
 | Metodologia (SDD) i checklist de producció | Definides; checklist actualitzada (C2, C4, C5, C9, G1) |
 | Arquitectura d'integracions | Acceptada, v3: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
-| Decisions | 001-023 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, convidats, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat), mandats (escenari base B, provisional) |
-| Pendents de la junta | [pendents.md](docs/decisions/pendents.md): creditor i cost de Cluber (P-21, P-27), calendari de quotes (P-29), llicències a Cluber (P-28), ordre revisat (P-26), accés al DNS (P-25) i altres |
-| Especificacions de mòduls (`specs/`) | No començades. **Proposta pendent d'aprovació:** abast mínim per substituir Cluber i ordre 00 → 01 → 04 mínim → 05 (arquitectura, §9) |
+| Decisions | 001-024 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, convidats, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat), mandats (escenari base B, provisional) |
+| Pendents de la junta | [pendents.md](docs/decisions/pendents.md): creditor i cost de Cluber (P-21, P-27), calendari de quotes (P-29), llicències a Cluber (P-28), mode real del 05a (P-30), accés al DNS (P-25) i altres |
+| Especificacions de mòduls (`specs/`) | No començades. Ordre aprovat ([decisió 024](docs/decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)): 00 → 01 → 04 mínim → 05a → 05b; després, 02, 03, resta de la 04, 06, 07, 08 |
 | Codi (`backend/`, `frontend/`) | No començat (no s'hi crea res fins que hi hagi una spec revisada) |
 | Comptes de proveïdors | No creats. Tasques amb temps d'espera que han de començar ja: compte de Stripe en mode de proves i verificació, Bizum, exportació de prova de Cluber, comunicació als socis (arquitectura, §9.3) |
 | Entrada en producció | Quan el mòdul 05 (pagaments) estigui acabat i provat; llavors es migra Cluber una sola vegada. Objectiu orientatiu, no compromès: finals de gener o principis de febrer de 2027 |

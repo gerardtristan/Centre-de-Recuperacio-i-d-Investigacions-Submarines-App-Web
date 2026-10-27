@@ -27,8 +27,14 @@ No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 4. Si canvia una regla, actualitza primer la spec i després el codi.
 5. Formalitat segons risc: spec completa per a finances, pagaments, autenticació, permisos, RGPD i importacions; spec d'una pàgina per a contingut web, dashboard i conferències; només ticket per a errors petits.
 
-## Mòduls (ordre de construcció)
-0 Base comuna, 1 Socis i carnet, 2 Activitats (cursos i sortides), 3 Material, 4 Tresoreria i marge, 5 Pagaments, 6 Llicències, 7 Web pública, 8 Dashboard. Botiga en línia: fora d'abast ara.
+## Mòduls (ordre de construcció, decisió 024)
+Mòduls: 0 Base comuna, 1 Socis i carnet, 2 Activitats (cursos i sortides), 3 Material, 4 Tresoreria i marge, 5 Pagaments (5a alta del mètode de pagament i mandats; 5b cobraments), 6 Llicències, 7 Web pública, 8 Dashboard. Botiga en línia: fora d'abast ara.
+
+**Ordre de construcció:**
+- **Fase 1, abast mínim per deixar Cluber:** 00 Base comuna → 01 Socis i carnet (amb registre mínim de llicència: tipus, data d'alta i de caducitat) → 04 Tresoreria, part mínima → 05a Alta del mètode de pagament i signatura de mandats en mode real → 05b Cobraments, remeses, retornats, devolucions i conciliació.
+- **Fase 2:** 02 Activitats → 03 Material → resta de la 04 (marge, despeses amb factura, ajuts, facturació) → 06 Llicències → 07 Web pública → 08 Dashboard.
+
+Detall de l'abast mínim: `docs/arquitectura-integracions.md` §9.
 Tresoreria (04) va abans de pagaments (05): el model de càrrec, pagament i ingrés viu a 04; la integració amb la passarel·la (Stripe) és a 05.
 Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls); vegeu `docs/decisions/pendents.md`.
 
@@ -47,8 +53,8 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Secrets fora del repositori. Cap clau ni contrasenya al codi, als registres ni als exemples.
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisió 017): quotes amb domiciliació SEPA (per defecte), targeta, Bizum o transferència; inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
-- Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05.
-- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: escenari base B, campanya de mandats nous (decisió 022; arquitectura §4.9). L'abast mínim per substituir Cluber i l'ordre revisat (00 → 01 → 04 mínim → 05) són una proposta pendent d'aprovació (arquitectura §9, P-26): fins que s'aprovi, l'ordre vigent és el d'aquesta secció.
+- Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
+- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: escenari base B, campanya de mandats nous al 05a (decisions 022 i 024; arquitectura §4.9). Que el 05a funcioni en mode real abans d'acabar el 05b està pendent de decisió (P-30); fins llavors, Stripe continua en mode de proves.
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 

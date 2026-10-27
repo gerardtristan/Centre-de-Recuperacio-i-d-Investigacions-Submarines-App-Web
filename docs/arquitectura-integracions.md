@@ -1,9 +1,9 @@
 # Arquitectura d'integracions — Plataforma C.R.I.S.
 
-- **Versió:** 4 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [023](decisions/023-gestio-del-dns.md). El §9 (abast mínim per substituir Cluber) és una **proposta pendent d'aprovació**.
+- **Versió:** 5 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md). El §9 (abast mínim per substituir Cluber i ordre de construcció) està **aprovat**.
 - **Domini de la plataforma:** cris1954.cat ([019](decisions/019-domini-i-correu.md)).
 - **Estat:** acceptada per l'equip; els punts marcats [A validar] i els de [decisions/pendents.md](decisions/pendents.md) continuen oberts.
-- **Entrada en producció:** mòdul 05 (pagaments) acabat i provat; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
+- **Entrada en producció:** mòdul 05 (pagaments) acabat i provat; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)). Amb la divisió en 05a i 05b ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)), el mode real del 05a abans del 05b està pendent (P-30).
 - **Abast:** com es connecta la plataforma amb els serveis externs (allotjament, base de dades, fitxers, correu, pagaments, còpies, DNS, monitoratge). No és una especificació de mòdul: cada mòdul afectat tindrà la seva a `specs/`.
 - **Volum de referència:** uns 150 socis i uns 300 subscriptors del butlletí [A validar amb dades reals].
 - **Decisions relacionades:** [002](decisions/002-pila-tecnologica.md) a [013](decisions/013-imputacio-comissions.md).
@@ -259,7 +259,7 @@ Avui Cluber gestiona els rebuts domiciliats. Stripe té un procediment oficial d
 
 **Escenari base: B** ([022](decisions/022-mandats-sepa-escenari-base-b.md)). Segons tresoreria (27/10/2026), Cluber cobra els rebuts pel seu compte i ingressa al club l'import menys un percentatge: el creditor seria Cluber [A validar amb un rebut o la documentació de Cluber]. L'escenari A només s'aplica si Stripe confirma per escrit que accepta migrar mandats en aquest cas. Cluber exporta socis, IBAN i referències (format [A validar]). En l'escenari B no cal importar IBAN a la plataforma.
 
-**Condició de calendari:** els mandats signats en mode de proves de Stripe no serveixen. La campanya B només pot començar amb Stripe en producció, és a dir, amb el mòdul 05 acabat i provat ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)). A més, ha d'acabar abans de la propera remesa de quotes (P-29).
+**Condició de calendari:** els mandats signats en mode de proves de Stripe no serveixen. La campanya B es fa al **05a**, amb Stripe en mode real ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)). Activar el mode real per al 05a abans d'acabar el 05b està pendent de decisió (P-30); fins llavors mana la [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md). Si es poden recollir mandats abans d'acabar el 05a és [A validar amb Stripe]. A més, la campanya ha d'acabar abans de la propera remesa de quotes (P-29).
 
 | | **Escenari A: migració a Stripe** | **Escenari B: mandats nous** |
 |---|---|---|
@@ -277,9 +277,11 @@ En tots dos casos, els socis han de rebre un avís si canvien el creditor o la r
 3. En quin moment de l'any es cobren les quotes anuals.
 4. Si Stripe accepta migrar mandats amb un tercer com a creditor (escenari A).
 
-**A preveure a la spec 05:**
+**A preveure a la spec 05a:**
 - Campanya de signatura de mandats nous (escenari base B): enviament d'enllaços, seguiment, recordatoris i alternativa de pagament per a qui no signi.
 - Importació de mandats (només si s'aplica l'escenari A): previsualització, validació, correspondència per soci i opció de desfer, com les altres importacions.
+
+**A preveure a la spec 05b:**
 - Avís previ amb data, import, referència del mandat i ID de creditor.
 
 ---
@@ -402,12 +404,12 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] **DNS:** anotar qui té l'accés concret al registrador i al DNS de cris1954.cat i de cris.es [A validar]; guardar les credencials en un gestor compartit amb dues persones; fer inventari dels registres de cris1954.cat; decidir si es redirigeix **cris.barcelona** (P-25, [023](decisions/023-gestio-del-dns.md)).
 - [ ] ⏳ **Stripe:** obrir el compte de Stripe del club **en mode de proves** i iniciar la verificació de l'entitat (NIF, estatuts, representant legal, compte bancari).
 - [ ] ⏳ **Bizum:** demanar a Stripe si es pot activar al compte del club i amb quines condicions.
-- [ ] ⏳ **Stripe, mandats:** preguntar si accepta migrar mandats on el creditor és un tercer (Cluber); només llavors, escenari A (§4.9).
+- [ ] ⏳ **Stripe, mandats:** preguntar si accepta migrar mandats on el creditor és un tercer (Cluber), i només llavors s'aplica l'escenari A (§4.9). Preguntar també si es poden recollir mandats en mode real abans d'acabar el 05a (per exemple, amb un formulari allotjat de Stripe) [A validar amb Stripe].
 - [ ] ⏳ **Cluber, exportació:** demanar una exportació de prova (socis i referències; sense IBAN si s'aplica l'escenari B), anonimitzada, per conèixer el format (P-21).
 - [ ] **Cluber, creditor i cost:** confirmar amb un rebut o la documentació de Cluber qui és el creditor i quin percentatge descompta (P-21, P-27).
 - [ ] **Tresoreria:** confirmar en quin moment de l'any es cobren les quotes anuals (P-29).
 - [ ] ⏳ **Comunicació als socis:** preparar amb la junta l'avís del canvi de domiciliació (nou creditor, mandat nou a signar, calendari, alternatives de pagament). S'envia quan hi hagi data de campanya.
-- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24 i P-26 a P-29) i aplicar al .docx els textos de P-22.
+- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-30) i aplicar al .docx els textos de P-22.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
@@ -470,9 +472,9 @@ Resolts el 27/10/2026:
 
 ---
 
-## 9. Abast mínim per substituir Cluber i ordre d'especificació — PROPOSTA
+## 9. Abast mínim per substituir Cluber i ordre d'especificació
 
-> **Estat: proposta pendent d'aprovació (27/10/2026).** No modifica l'ordre de construcció de CLAUDE.md ni de la metodologia fins que s'aprovi (P-26).
+> **Estat: aprovat el 27/10/2026, amb canvis** ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), resol P-26). Mòdul 05 dividit en 05a i 05b; registre mínim de llicència al 01. CLAUDE.md i la metodologia ja recullen aquest ordre.
 >
 > **Objectiu orientatiu de canvi de Cluber:** finals de gener o principis de febrer de 2027. **No és una data compromesa.** Mana la [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md): Cluber només es deixa quan el mòdul 05 estigui acabat i provat. Sense contracte, el canvi es pot posposar sense cost ([020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md)).
 
@@ -482,44 +484,47 @@ Criteri: només el que avui fa Cluber (socis, quotes, cobraments domiciliats, ca
 | Dins de l'abast mínim | Què inclou | Què es deixa fora d'aquest abast |
 |---|---|---|
 | **00 Base comuna** | Perfil únic, comptes de soci i d'administrador, convidats amb enllaç segur ([021](decisions/021-persones-no-socies-com-a-convidades.md)), rols i permisos, doble factor, registre d'activitat, RGPD (consentiments, exportar i esborrar), importacions (Cluber i extracte bancari), correu (annex), fitxers (annex), còpies i entorns | Duplicar activitats (va amb el 02) |
-| **01 Socis i carnet** | Alta (presencial per la secretaria; el formulari web es pot afegir després [A validar]), baixa, canvi de tipus, generació de quotes anuals, impagats, carnet digital amb QR i verificació, fitxa i historial, àrea de socis (perfil, carnet, quotes, rebuts) | Avatars, antiguitat corregible (es pot fer després), informes avançats |
+| **01 Socis i carnet** | Alta (presencial per la secretaria; el formulari web es pot afegir després [A validar]), baixa, canvi de tipus, generació de quotes anuals, impagats, carnet digital amb QR i verificació, fitxa i historial, àrea de socis (perfil, carnet, quotes, rebuts). **Registre mínim de llicència:** tipus, data d'alta i data de caducitat, perquè no es perdin dades en deixar Cluber | Avatars, antiguitat corregible (es pot fer després), informes avançats; el procés complet de llicències va al 06 |
 | **04 Tresoreria, part mínima** | Càrrec genèric i estats, pagaments, moviments immutables, departaments i centres de cost, comptes (banc, caixa, trànsit Stripe), ingressos automàtics, comissions, devolucions com a moviments nous, conciliació amb l'extracte en CSV | Marge per activitat, despeses amb factura obligatòria, ajuts i justificació, facturació Verifactu (P-02), tancament de període |
-| **05 Pagaments** | Stripe (domiciliació SEPA, targeta, Bizum), campanya de mandats nous (escenari B) i, si cal, importació de mandats (A), avís previ, reintent controlat, alternativa de pagament, retornats, webhooks, transferència amb referència, registre manual | — |
-| **Importació única de Cluber** | Socis, dates d'alta, quotes, rebuts i referències; sense IBAN en l'escenari B. Previsualització, validació i opció de desfer | — |
+| **05a Pagaments: alta del mètode i mandats** | Alta del mètode de pagament del soci; signatura de mandats SEPA en mode real (campanya de mandats nous, escenari B); importació de mandats si s'aplica l'escenari A; webhooks de mandats (signat, revocat) | Cobraments |
+| **05b Pagaments: cobraments** | Cobraments amb domiciliació, targeta, Bizum, transferència amb referència i registre manual; remeses de quotes; avís previ; reintent controlat; alternativa de pagament; retornats; devolucions; conciliació; webhooks i idempotència | — |
+| **Importació única de Cluber** | Socis, dates d'alta, quotes, rebuts, referències i llicències (tipus, data d'alta i de caducitat); sense IBAN en l'escenari B. Previsualització, validació i opció de desfer | — |
 
-**Queda per a després:** 02 Activitats (cursos i sortides), 03 Material, la resta de la 04 (marge, despeses amb factura, ajuts, facturació), 06 Llicències, 07 Web pública i butlletí, 08 Dashboard.
+**Queda per a després:** 02 Activitats (cursos i sortides), 03 Material, la resta de la 04 (marge, despeses amb factura, ajuts, facturació), 06 Llicències (preus, renovacions, recordatoris, no socis, exportació a la federació), 07 Web pública i butlletí, 08 Dashboard.
 
-**Atenció:** segons el document incremental §1.2, avui les llicències federatives es gestionen amb «Cluber i federació». Cal saber què fa Cluber amb les llicències abans de deixar-lo (P-28).
+**Llicències:** segons el document incremental §1.2, avui es gestionen amb «Cluber i federació». El registre mínim del 01 evita perdre dades; què fa Cluber amb les llicències i com es tramiten entre la baixa de Cluber i el 06 continua pendent (P-28).
 
-### 9.2 Ordre d'especificació revisat (proposta)
+### 9.2 Ordre d'especificació (aprovat)
 | Ordre | Especificació | Formalitat | Per què | Depèn de |
 |---|---|---|---|---|
 | 1 | **00 Base comuna**: perfil únic, comptes de soci i d'administrador amb diversos rols, convidats amb enllaç segur i compte opcional, permisos per rol i objecte, TOTP obligatori a l'entrada d'administració, restabliment sense correu per als administradors, registre d'activitat per compte, RGPD, importacions, entorns, cua de tasques, còpies | **Completa** | Tot la fa servir ([015](decisions/015-doble-factor-i-comptes-administrador.md), [018](decisions/018-perfil-comptes-i-rols.md), [021](decisions/021-persones-no-socies-com-a-convidades.md)) | P-04 |
 | 1a | 00 · annex **Fitxers** | **Lleugera** | Carnet en PDF, rebuts i justificants | 00 |
 | 1b | 00 · annex **Correu**: plantilles, registre, comptador i reserva diària, tandes, avís al 80 %, remitent a cris1954.cat | **Lleugera** | Avisos previs, recordatoris i campanya de mandats | 00 |
-| 2 | **01 Socis i carnet** (abast mínim) | **Completa** (dades personals i RGPD) | Defineix els socis i les quotes que la 05 ha de cobrar | 00; preguntes de la junta de funcionalitats §3 (canvi a ple dret, impagats, número de soci) |
-| 3 | **04 Tresoreria**, part mínima | **Completa** (finances) | Model de càrrec, pagament i ingrés; la 05 hi escriu a través de serveis | 00, 01; P-02 només per a la part de facturació (fora del mínim) |
-| 4 | **05 Pagaments** | **Completa** (pagaments). Criteri d'entrada en producció | Depèn de la 01 (quotes) i de la 04 (model) | 01, 04; P-12, P-21, P-24, P-29 |
-| 5 | Resta en l'ordre de CLAUDE.md: 02, 03, resta de la 04, 06, 07, 08 | Segons CLAUDE.md | Després de deixar Cluber | — |
+| 2 | **01 Socis i carnet** (abast mínim, amb registre mínim de llicència) | **Completa** (dades personals i RGPD) | Defineix els socis i les quotes que la 05b ha de cobrar | 00; preguntes de la junta de funcionalitats §3 (canvi a ple dret, impagats, número de soci); P-28 |
+| 3 | **04 Tresoreria**, part mínima | **Completa** (finances) | Model de càrrec, pagament i ingrés; el 05 hi escriu a través de serveis | 00, 01; P-02 només per a la part de facturació (fora del mínim) |
+| 4 | **05a Alta del mètode de pagament i mandats** | **Completa** (pagaments) | Permet començar la campanya de mandats nous abans d'acabar els cobraments | 01, 04; P-21, P-30; [A validar amb Stripe] recollida de mandats abans d'acabar el 05a |
+| 5 | **05b Cobraments, remeses, retornats, devolucions i conciliació** | **Completa** (pagaments). Criteri per deixar Cluber ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md); vegeu P-30) | Fa servir els mandats del 05a | 05a; P-12, P-24, P-29 |
+| 6 | Fase 2: 02, 03, resta de la 04, 06, 07, 08 | Segons CLAUDE.md | Després de deixar Cluber | — |
 
 Cada especificació completa segueix la plantilla de [metodologia-sdd.md](metodologia-sdd.md) §5 i acaba amb les preguntes obertes, el responsable i la data.
 
 ### 9.3 Riscos del calendari i tasques que han de començar ja
-Del 27/10/2026 a finals de gener de 2027 hi ha unes 13 setmanes, amb les vacances de Nadal pel mig. Calen quatre especificacions completes (00, 01, 04 mínim i 05). La metodologia limita a una spec revisada per setmana i persona. A més, cal construir-les, provar-les i fer la migració.
+Del 27/10/2026 a finals de gener de 2027 hi ha unes 13 setmanes, amb les vacances de Nadal pel mig. Calen cinc especificacions completes (00, 01, 04 mínim, 05a i 05b). La metodologia limita a una spec revisada per setmana i persona. A més, cal construir-les, provar-les i fer la migració.
 
 | Risc | Per què | Efecte | Mitigació |
 |---|---|---|---|
-| La campanya de mandats depèn de tenir Stripe en producció | Els mandats de proves no són vàlids; la campanya B només comença amb el 05 acabat i provat i l'autorització de la junta | Si la remesa de quotes cau abans, no hi ha temps de recollir mandats | Saber ja quan es cobren les quotes (P-29). Si la remesa és abans del canvi, es cobra amb Cluber i la campanya es fa per a la remesa següent |
+| La campanya de mandats depèn de tenir Stripe en mode real | Els mandats de proves no són vàlids; la campanya B es fa al 05a, però activar-hi el mode real abans del 05b està pendent (P-30) | Si la remesa de quotes cau abans, no hi ha temps de recollir mandats | Dividir el 05 (05a/05b) per avançar la campanya; consultar Stripe sobre la recollida anticipada; saber ja quan es cobren les quotes (P-29). Si la remesa és abans del canvi, es cobra amb Cluber i la campanya es fa per a la remesa següent |
+| Llicències | Cluber en porta una part (P-28) | Pèrdua de dades | Registre mínim de llicència al 01 i importació des de Cluber |
 | Verificació de l'entitat a Stripe i activació de Bizum | Depèn de documents del club (estatuts, NIF, representant) i de la resposta de Stripe | Retarda les proves reals de pagament | Començar-les ja (en mode de proves no hi ha cap risc) |
 | Format d'exportació de Cluber desconegut | Sense una mostra no es pot especificar la importació | Retarda la 00 (importacions) i la 01 | Demanar ja una exportació de prova anonimitzada |
 | Respostes de la junta | Les preguntes de la 01 (impagats, canvi a ple dret) i la 05 (retornats, reintents) bloquegen parts de les specs | Specs aturades | Llista de preguntes per sessió de junta; data límit de resposta |
 | Disponibilitat dels voluntaris i dels estudiants | Nadal i tancament del semestre | Menys capacitat a desembre i gener | Objectiu no compromès; es pot posposar sense cost |
 | Comunicació als socis | Els socis han de saber que canvia el creditor i que han de signar un mandat nou | Rebuts retornats o socis sense mandat | Preparar ja l'avís amb la junta; enviar-lo quan hi hagi data |
-| Llicències gestionades a Cluber | Si Cluber en porta una part (P-28) i el 06 queda per a després | Funció perduda en deixar Cluber | Aclarir-ho ara; si cal, solució provisional (registre manual) |
+| Procés de llicències sense mòdul 06 | Si Cluber en tramita una part (P-28) i el 06 queda per a després | Tramitació manual mentre no hi hagi 06 | Aclarir-ho ara; registre mínim al 01 i tramitació manual provisional |
 
 **Tasques amb temps d'espera que han de començar ja** (també a §7, «Ara»):
 1. Compte de Stripe en mode de proves i verificació de l'entitat.
-2. Petició d'activació de Bizum (i consulta sobre la migració de mandats).
+2. Petició d'activació de Bizum, i consulta sobre la migració de mandats i la recollida de mandats abans d'acabar el 05a.
 3. Exportació de prova de les dades de Cluber (format).
 4. Comunicació als socis sobre el canvi de domiciliació (redacció amb la junta).
 5. Confirmar amb tresoreria quan es cobren les quotes i quin percentatge descompta Cluber.
