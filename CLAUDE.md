@@ -60,7 +60,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Stripe en mode de proves excepte en els dos nivells de producció, cadascun amb autorització expressa de la junta (decisió 025):
   - **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real **només per recollir mandats**; **cap cobrament real**. Cal haver passat les portes 0-2 (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i, de la porta 3, els punts del flux de mandats marcats «N1» a la checklist (A6, E3, E4, B5, B8, G3).
   - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals. És el criteri per deixar Cluber, que es migra una sola vegada i sense restricció de data (decisions 014 i 020).
-- La plataforma no guarda mai l'IBAN: Stripe en té la custòdia; la plataforma només guarda identificadors de Stripe i la referència del mandat. Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
+- IBAN: la plataforma només el guarda **xifrat al mandat i només per a la domiciliació de quotes** (decisió 044, camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats); mai en cap altre camp, pantalla, registre ni exportació. Stripe està descartat pel requisit de dades dins la UE (042). Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 

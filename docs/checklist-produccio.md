@@ -31,7 +31,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
   - B8 accessibilitat bàsica del flux;
   - G3 correu de confirmació del mandat.
 - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals i baixa de Cluber. Requereix l'autorització expressa de la junta i les portes 0 a 3 completes: la resta de la porta 3 (B6, E5, E6, F1-F7, H2, H5) i la part de nivell 2 de B5, B8, E3 i E4.
-- En tots dos nivells, la plataforma no guarda l'IBAN; Stripe en té la custòdia.
+- En tots dos nivells, la plataforma només guarda l'IBAN xifrat al mandat, per a la domiciliació (decisió 044, que substitueix la custòdia de Stripe després de la 042).
 
 ## 3. Llista per categories
 
@@ -70,7 +70,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | C6 | Auditoria de dependències | Pipeline que falla amb vulnerabilitats greus; revisió mensual | Informe a cada execució | 2 |
 | C7 | Configuració de producció | Mode de depuració desactivat, secret fora del repositori i capçaleres de seguretat; si es fa servir Django, executar la comprovació de desplegament | La comprovació no mostra avisos | 2 |
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
-| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fora dels dos nivells de producció (decisió 025). Al nivell 1 (05a), mode real només per a mandats i cap cobrament real; al nivell 2 (05b), producció completa. La plataforma no guarda l'IBAN (custòdia de Stripe) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat; prova que al nivell 1 no es pot crear cap cobrament real; revisió del model de dades sense camp d'IBAN | 2 |
+| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fora dels dos nivells de producció (decisió 025). Al nivell 1 (05a), mode real només per a mandats i cap cobrament real; al nivell 2 (05b), producció completa. La plataforma no guarda l'IBAN, excepte xifrat al mandat (044) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat; prova que al nivell 1 no es pot crear cap cobrament real; revisió del model de dades: l'únic camp amb IBAN és el xifrat del mandat (044) | 2 |
 | C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
 
 ### D. Dades i continuïtat

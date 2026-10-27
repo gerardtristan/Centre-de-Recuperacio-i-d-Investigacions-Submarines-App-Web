@@ -1322,7 +1322,7 @@ T-M04-13 és l'única tasca que depèn del proveïdor; la resta es pot fer abans
 
 **Fonts:** decisions [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); arquitectura §4.2, §4.3 i §4.9 (on diu Stripe, s'aplica la 042); [`integracio-paylands.md`](integracio-paylands.md); checklist (C9, G3 i els punts «N1»).
 
-**Proveïdor.** Tot el que toca el proveïdor de pagaments passa per l'**adaptador** ([M05a-8](#M05a-8-serveis)). El proveïdor concret no està triat (P-44, P-45): tot el que en depèn porta **[A verificar]**. La domiciliació es planifica amb la **044** (IBAN i mandat xifrats a la plataforma), que és **Proposada**: si el banc custodia els mandats o es tria un proveïdor amb domiciliació (alternatives 1 i 2 de la 044), canvia només la custòdia ([M05a-13](#M05a-13-riscos)).
+**Proveïdor.** Tot el que toca el proveïdor de pagaments passa per l'**adaptador** ([M05a-8](#M05a-8-serveis)). El proveïdor concret no està triat (P-44, P-45): tot el que en depèn porta **[A verificar]**. La domiciliació es planifica amb la **044** (IBAN i mandat xifrats a la plataforma), **acceptada com a camí per defecte**: si el banc custodia els mandats o es tria un proveïdor amb domiciliació (alternatives 1 i 2 de la 044), canvia només la custòdia ([M05a-13](#M05a-13-riscos)).
 
 <a id="M05a-resum"></a>
 **Resum d'una pàgina**
@@ -1331,8 +1331,8 @@ T-M04-13 és l'única tasca que depèn del proveïdor; la resta es pot fer abans
 | **Intenció** | Que cada soci tingui un mètode per pagar la quota abans de la primera remesa de la plataforma: recollir mandats SEPA nous en producció al nivell 1 (dades reals, cap cobrament), amb l'IBAN xifrat (044) i el proveïdor de targeta darrere de l'adaptador. |
 | **Processos que cobreix** | P-M05a-A Triar el mètode de pagament · P-M05a-B Signar el mandat · P-M05a-C Canviar l'IBAN o revocar · P-M05a-D Guardar una targeta (condicional) · P-M05a-E Campanya de mandats · P-M05a-F Pas al nivell 1 · P-M05a-G Rotació de la clau |
 | **Tasques** | 21 (T-M05a-01 a T-M05a-21) |
-| **Què el bloqueja** | La confirmació de l'ampliació de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (T-M05a-07 a T-M05a-10). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
-| **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden la confirmació de la 044, els textos (junta) i l'autorització del nivell 1 (junta) |
+| **Què el bloqueja** | Res de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (acceptada). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
+| **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden els textos (junta) i l'autorització del nivell 1 (junta). La 044 és acceptada |
 
 <a id="M05a-1-intencio"></a>
 ## M05a-1 Intenció, abast i fora d'abast
@@ -1705,7 +1705,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 |---|---|---|---|
 | **Mandats vigents de Cluber** (risc de [M01-13](#M01-13-riscos)): no se sap si es poden traspassar al club | Alt: decideix si cal la campanya per a tothom | Preguntar al banc o a la gestoria. El 05a es construeix per a la campanya (022, provisional) i **no** inclou cap importació de mandats fins que hi hagi resposta. Si la resposta és que sí, cal una decisió nova i tasques noves | Tresorer |
 | Proveïdor no confirmat (P-44) | Alt per a T-M05a-05 i T-M05a-12 | Adaptador amb `FakeProvider`; la resta del 05a no en depèn | Tresorer (amb el banc) |
-| La 044 és Proposada | Alt: si el banc custodia els mandats, part del model sobra | Custòdia aïllada a `MandateBankAccount` i `mandates_for_remittance`; canviar-la no toca la resta | Junta i banc |
+| La 044 és el camí per defecte, però revisable | Alt: si el banc custodia els mandats, part del model sobra | Custòdia aïllada a `MandateBankAccount` i `mandates_for_remittance`; canviar-la no toca la resta | Junta i banc |
 | Validesa del mandat signat electrònicament | Alt: si el banc no l'admet, cal una altra forma de signatura | Preguntar-ho al banc abans de T-M05a-09 | Banc (via tresorer) |
 | Identificador de creditor del club | Bloqueja la producció de la campanya | P-45 punt 5 | Banc |
 | Poca resposta a la campanya | Mitjà | Recordatoris, avís a l'app, ajuda presencial de la secretaria; alternativa de pagament (022) | Tresorer |
@@ -1732,7 +1732,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 
 **Revisió de dubtes (aplicada a mà)**
 1. **El «mode real només per a mandats» de la 025 pensava en Stripe.** Amb la 044, signar un mandat no necessita el proveïdor: el nivell 1 vol dir «dades reals a producció, cap cobrament ni remesa». La salvaguarda es manté (RN-M05a-11). Propietari: responsable del projecte.
-2. **CLAUDE.md diu que la plataforma no guarda mai l'IBAN; la 044 (Proposada) diu que sí, xifrat.** No es pot programar T-M05a-07 a T-M05a-09 fins que la 044 s'accepti o es triï una alternativa. Propietari: junta i banc.
+2. **CLAUDE.md deia que la plataforma no guarda mai l'IBAN; la 044 diu que sí, xifrat.** **Resolt:** la 044 és acceptada (27/10/2026) i CLAUDE.md i la checklist (C9) s'hi han alineat. Propietari: cap.
 3. **El text del mandat i el correu G3 porten l'identificador de creditor,** que encara no tenim. Bloqueja la producció, no el desenvolupament. Propietari: banc.
 4. **La targeta guardada pot fer que alguns socis no domiciliïn.** La 017 diu que la domiciliació és el mètode per defecte, no l'únic; l'opció apareix només si el proveïdor la permet. Propietari: junta.
 5. **Socis sense compte personal activat** (molts dels importats de Cluber): la campanya passa primer per activar el compte; pot ser una barrera. Alternativa a valorar: enllaç segur de la 00 per signar sense compte [A validar: junta]. Propietari: junta.
@@ -1742,7 +1742,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 ## M05a-14 Què cal aprovar abans de començar
 
 **Aprovat el 27/10/2026** pel responsable del projecte. Queda:
-1. **La 044** (IBAN i mandat xifrats). El responsable del projecte la vol acceptar «com a camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats». Abans s'hi ha afegit la norma del fitxer de la remesa i s'han fet explícites la rotació i la prova de restauració de la clau; **falta que el responsable del projecte confirmi l'ampliació** per marcar-la acceptada. Fins llavors, T-M05a-07 a T-M05a-10 no es comencen.
+1. ~~La 044~~ **Acceptada** el 27/10/2026 «com a camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats», amb l'ampliació (clau amb rotació i prova de restauració, ningú no veu l'IBAN complet, norma d'esborrat del fitxer de la remesa) i la millora opcional de l'enllaç de descàrrega d'un sol ús. T-M05a-07 a T-M05a-10 ja es poden començar. La conservació continua [A validar: gestoria, Q-14].
 2. **Textos** del mandat, la invitació i el correu G3 (junta), quan hi hagi l'identificador de creditor [A verificar: banc].
 3. **Format de la referència del mandat** [A verificar: banc] i **titular diferent del soci** [A validar: junta i banc].
 4. **Proveïdor** (P-44, P-45) [A verificar: PaynoPain]: només bloqueja T-M05a-05 i T-M05a-12.
@@ -2159,7 +2159,7 @@ App `payments` (la mateixa del 05a).
 
 - **Targetes:** mai a l'app; camp o pàgina del proveïdor; CSP que només permet el domini del proveïdor.
 - **Confirmació al servidor:** firma o empremta, IP, idempotència, comprovació d'import; mai pel navegador.
-- **Fitxer de remesa:** conté IBAN; generat a demanda, no desat, descàrrega amb sessió d'administració i TOTP, empremta i registre. Norma d'esborrat del dispositiu del tresorer: [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md), ampliació (el mateix dia, sense correu ni carpetes sincronitzades); en marcar la remesa com a enviada, el tresorer confirma que l'ha esborrat.
+- **Fitxer de remesa:** conté IBAN; generat a demanda, no desat, descàrrega amb sessió d'administració i TOTP, empremta i registre. Norma d'esborrat del dispositiu del tresorer: [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md), ampliació (el mateix dia, sense correu ni carpetes sincronitzades); en marcar la remesa com a enviada, el tresorer confirma que l'ha esborrat. **Millora opcional (044):** l'enllaç de descàrrega és d'un sol ús i caduca [A validar: tresorer, quant de temps].
 - **Secrets:** claus del proveïdor per entorn en variables d'entorn; claus de producció només al nivell 2.
 - **Enllaços de convidat:** caducitat, limitació d'intents i testimoni que no apareix als registres (00).
 - **Mínim de dades:** el proveïdor no rep noms ni DNI; els conceptes porten el número de soci o la referència.
@@ -3316,7 +3316,7 @@ Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls
 | S-M05a-07 | Calendari de recordatoris de la campanya | — |
 | S-M05b-10 | Recordatori de transferència als 30 dies | — |
 | S-M05b-11 | Format del número de rebut (també gestoria) | — |
-| 044 | Norma d'esborrat del fitxer de la remesa al seu dispositiu | — |
+| 044 | Norma d'esborrat del fitxer de la remesa al seu dispositiu; caducitat de l'enllaç de descàrrega d'un sol ús (millora opcional) | — |
 | S-M02-02 | Termini de pagament d'una inscripció (72 hores) | — |
 
 <a id="preguntes-junta"></a>
@@ -3387,7 +3387,6 @@ Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls
 **Responsable del projecte**
 | ID | Pregunta | Bloqueja |
 |---|---|---|
-| 044 | Confirmar l'ampliació (clau, IBAN, fitxer de la remesa) per marcar-la acceptada | 05a: T-M05a-07 a T-M05a-10 |
 | M02-14 punt 2 | Servei `members.licence_record` al 01 (aprovat) | 02: T-M02-23 |
 | M02-14 punt 3 | Avís del 05b al mòdul d'origen de cada càrrec (00 i 05b aprovats) | 02: T-M02-10 i la inscripció |
 | RN-M03-10 | El lloguer entra al marge com a despesa amb factura | 09 |

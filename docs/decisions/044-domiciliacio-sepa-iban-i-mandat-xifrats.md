@@ -1,7 +1,7 @@
 # 044 — Domiciliació SEPA pròpia: IBAN i mandat xifrats, només per a aquest ús
 
 - **Data:** 27/10/2026
-- **Estat:** Proposada. És una **excepció** a la RN-70 de la spec 00 («cap camp guarda un IBAN») i a la condició sobre l'IBAN de la [025](025-dos-nivells-de-produccio.md); la spec 00 no s'edita. Pendent de verificar amb el banc (identificador de creditor i remeses, P-45) i amb la gestoria i el responsable de protecció de dades (conservació).
+- **Estat:** Acceptada el 27/10/2026 pel responsable del projecte com a **camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats** (alternatives 1 i 2), amb l'ampliació de més avall. És una **excepció** a la RN-70 de la spec 00 («cap camp guarda un IBAN») i a la condició sobre l'IBAN de la [025](025-dos-nivells-de-produccio.md); la spec 00 no s'edita. Pendent de verificar amb el banc (identificador de creditor i remeses, P-45) i amb la gestoria i el responsable de protecció de dades (conservació).
 
 ## Context
 - Amb Stripe descartat ([042](042-proveidors-substituits-pel-requisit-ue.md)), ningú no custodia l'IBAN i el mandat en nom del club.
@@ -28,6 +28,8 @@ Afegida perquè la revisió prèvia a l'acceptació va trobar que faltava una no
 - **Clau de xifratge:** fora de la base de dades i del repositori, amb versió; **rotació** provada (es torna a xifrar cada IBAN amb la clau nova i es retira la vella) i **prova de restauració** d'una còpia amb la clau, abans del nivell 1 de producció i després de cada rotació. Hi ha una còpia de la clau guardada fora del servidor per les persones que fixi la junta.
 - **Ningú no veu l'IBAN complet a cap pantalla**, cap correu, cap registre ni cap exportació. L'única sortida en clar és el fitxer de la remesa, que necessita el banc.
 - **Fitxer de la remesa (pain.008):** la plataforma el genera a demanda, no el desa i en registra l'empremta i qui l'ha descarregat. **Norma per al tresorer:** el descarrega només en un dispositiu del club o personal amb bloqueig de pantalla i disc xifrat; no l'envia per correu ni el desa en cap carpeta sincronitzada ni compartida; el puja al banc i **l'esborra del dispositiu el mateix dia** (també de la paperera i de les baixades). Si l'ha de tornar a pujar, el torna a generar. La plataforma recorda la norma en cada descàrrega i demana confirmar que s'ha esborrat en marcar la remesa com a enviada [A validar: tresorer].
+- **Millora opcional (afegida en acceptar-la):** l'enllaç de descàrrega del fitxer de la remesa és **d'un sol ús** i **caduca** al cap d'un temps curt [A validar: tresorer, quant]; per tornar-lo a baixar, se'n genera un de nou, que també queda al registre.
+- **Conservació:** continua [A validar: gestoria, Q-14] fins que respongui la gestoria.
 
 ## Conseqüències
 - Una prova automàtica comprova que l'IBAN només és en el camp xifrat del mandat (substitueix CA-15.6 per a aquest camp).
