@@ -32,6 +32,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [022](022-mandats-sepa-escenari-base-b.md) | Mandats SEPA: escenari base B (mandats nous) | Acceptada provisionalment (creditor [A validar]) |
 | [023](023-gestio-del-dns.md) | Gestió del DNS i de les credencials dels dominis | Proposada |
 | [024](024-abast-minim-i-ordre-per-deixar-cluber.md) | Abast mínim i ordre de construcció per deixar Cluber (05a/05b) | Acceptada (mode real del 05a: vegeu 025) |
-| [025](025-dos-nivells-de-produccio.md) | Dos nivells de producció: mandats (05a) i producció completa (05b) | Acceptada (porta 3 al nivell 1 [A validar], P-31) |
+| [025](025-dos-nivells-de-produccio.md) | Dos nivells de producció: mandats (05a) i producció completa (05b) | Acceptada (porta 3 per nivells fixada; clau del nivell 1 [A validar amb Stripe]) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

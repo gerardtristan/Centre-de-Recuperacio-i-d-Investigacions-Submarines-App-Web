@@ -413,7 +413,7 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] **Cluber, creditor i cost:** confirmar amb un rebut o la documentació de Cluber qui és el creditor i quin percentatge descompta (P-21, P-27).
 - [ ] **Tresoreria:** confirmar en quin moment de l'any es cobren les quotes anuals (P-29).
 - [ ] ⏳ **Comunicació als socis:** preparar amb la junta l'avís del canvi de domiciliació (nou creditor, mandat nou a signar, calendari, alternatives de pagament). S'envia quan hi hagi data de campanya.
-- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-31) i aplicar al .docx els textos de P-22.
+- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-33) i aplicar al .docx els textos de P-22.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
@@ -438,7 +438,8 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] Fer i documentar la primera prova de restauració.
 
 ### Abans del nivell 1 de producció (mandats, [025](decisions/025-dos-nivells-de-produccio.md))
-- [ ] Comprovar que el 05a està acabat i provat, i que les portes 0-2 estan superades (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat); punts de la porta 3 segons P-31.
+- [ ] Comprovar que el 05a està acabat i provat, que les portes 0-2 estan superades (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i que els punts «N1» de la porta 3 també (A6, E3, E4, B5, B8, G3).
+- [ ] Preguntar al club si hi ha socis menors d'edat; si n'hi ha, el mandat l'ha de signar el titular del compte bancari (P-33).
 - [ ] Comprovar que `STRIPE_LIVE_CHARGES_ALLOWED` és fals i que la prova de «cap cobrament real» passa.
 - [ ] Autorització expressa de la junta per al nivell 1.
 - [ ] Enviar la comunicació als socis i obrir la campanya de mandats nous.

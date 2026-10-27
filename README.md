@@ -15,7 +15,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 | Metodologia (SDD) i checklist de producció | Definides; checklist actualitzada (C2, C4, C5, C9, G1) |
 | Arquitectura d'integracions | Acceptada, v3: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
 | Decisions | 001-025 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, convidats, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat), mandats (escenari base B, provisional) |
-| Pendents de la junta | [pendents.md](docs/decisions/pendents.md): creditor i cost de Cluber (P-21, P-27), calendari de quotes (P-29), llicències a Cluber (P-28), porta 3 al nivell 1 de producció (P-31), accés al DNS (P-25) i altres |
+| Pendents de la junta | [pendents.md](docs/decisions/pendents.md): creditor i cost de Cluber (P-21, P-27), calendari de quotes (P-29), llicències a Cluber (P-28), socis menors (P-33), accés al DNS (P-25) i altres |
 | Especificacions de mòduls (`specs/`) | No començades. Ordre aprovat ([decisió 024](docs/decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)): 00 → 01 → 04 mínim → 05a → 05b; després, 02, 03, resta de la 04, 06, 07, 08 |
 | Codi (`backend/`, `frontend/`) | No començat (no s'hi crea res fins que hi hagi una spec revisada) |
 | Comptes de proveïdors | No creats. Tasques amb temps d'espera que han de començar ja: compte de Stripe en mode de proves i verificació, Bizum, exportació de prova de Cluber, comunicació als socis (arquitectura, §9.3) |

@@ -1,7 +1,7 @@
 # 025 — Dos nivells de producció: mandats (05a) i producció completa (05b)
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (resol P-30; refina la [014](014-migracio-cluber-i-entrada-en-produccio.md)). Quines comprovacions de la porta 3 s'apliquen a la producció de mandats és [A validar] (P-31).
+- **Estat:** Acceptada (resol P-30; refina la [014](014-migracio-cluber-i-entrada-en-produccio.md)). Les comprovacions de la porta 3 per nivell es van fixar el 27/10/2026 (resol P-31 i P-32). La restricció de la clau del nivell 1 a permisos de mandats continua [A validar amb Stripe].
 
 ## Context
 La [024](024-abast-minim-i-ordre-per-deixar-cluber.md) fa que el 05a reculli mandats SEPA en mode real abans del 05b. La [014](014-migracio-cluber-i-entrada-en-produccio.md) i CLAUDE.md, en canvi, mantenien Stripe en mode de proves fins que el 05 estigués acabat i provat. Els mandats signats en mode de proves no serveixen ([022](022-mandats-sepa-escenari-base-b.md)).
@@ -16,7 +16,7 @@ La [024](024-abast-minim-i-ordre-per-deixar-cluber.md) fa que el 05a reculli man
 | Quan | 05a acabat i provat | 05b acabat i provat |
 | Què s'hi pot fer | Stripe en mode real **només per recollir mandats** (alta del mètode de pagament) | Cobraments reals amb tots els mètodes |
 | Cobraments reals | **Cap** | Sí |
-| Requisits | Autorització **expressa** de la junta per a aquest nivell. Portes de la checklist aplicables a producció superades: HTTPS (A7), secrets fora del repositori (A3), còpies i prova de restauració (D1, D2), RGPD i consentiments (H1, H3; text del mandat), registre d'activitat (C8). Com que hi ha dades reals de socis, s'aplica tota la porta 2 | Autorització expressa de la junta per a la producció completa; portes 0-3 |
+| Requisits | Autorització **expressa** de la junta per a aquest nivell. Portes de la checklist aplicables a producció superades: HTTPS (A7), secrets fora del repositori (A3), còpies i prova de restauració (D1, D2), RGPD i consentiments (H1, H3; text del mandat), registre d'activitat (C8). Com que hi ha dades reals de socis, s'aplica tota la porta 2 (inclosos G1 i G2: SPF, DKIM, DMARC i plantilles). **De la porta 3, només el que afecta el flux de signatura de mandats:** A6 marxa enrere; E3 monitoratge de la web i l'API del flux; E4 alertes de caiguda, errors, certificat i còpia fallida; B5 flux en mòbil i navegadors habituals; B8 accessibilitat bàsica del flux; G3 correu de confirmació del mandat | Autorització expressa de la junta per a la producció completa; portes 0-3 completes (la resta de la porta 3: B6, E5, E6, F1-F7, H2, H5, i la part de nivell 2 de B5, B8, E3 i E4) |
 | Cluber | Continua cobrant | **Criteri per deixar Cluber** (migració única, [014](014-migracio-cluber-i-entrada-en-produccio.md) i [020](020-baixa-de-cluber-sense-restriccio-de-data.md)) |
 
 **Condició sobre l'IBAN (escenari B):**
@@ -31,7 +31,9 @@ La [024](024-abast-minim-i-ordre-per-deixar-cluber.md) fa que el 05a reculli man
 ## Conseqüències
 - La [014](014-migracio-cluber-i-entrada-en-produccio.md) es manté: «entrada en producció» passa a voler dir **producció completa** (05b acabat i provat). El nivell 1 és una excepció limitada.
 - CLAUDE.md, la checklist (§2 i C9) i l'arquitectura s'alineen amb aquests dos nivells.
-- El nivell 1 obre la plataforma als socis (signatura de mandats). Quines comprovacions de la porta 3 («abans d'obrir-ho als socis»: monitoratge, alertes, correu, dispositius, marxa enrere, cookies, accessibilitat) s'hi apliquen està [A validar] (P-31).
+- El nivell 1 obre la plataforma als socis (signatura de mandats). Per això s'hi exigeix la part de la porta 3 que afecta aquest flux; la classificació punt per punt és a la checklist (columna Porta: «N1» o «N2»).
+- **Menors (H5):** si el club té socis menors d'edat, el mandat SEPA de la seva quota l'ha de signar el titular del compte bancari. Si n'hi ha és [A validar] amb el club (P-33).
+- Si les cookies del flux són només tècniques, H2 no s'aplica al nivell 1. Si se n'hi afegeixen de no tècniques, el consentiment és obligatori igualment.
 
 ## Fonts
 - Resolució de P-30 comunicada per l'equip el 27/10/2026

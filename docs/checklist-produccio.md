@@ -19,12 +19,18 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 - Porta 0 — abans del primer codi: repositori, README, secrets, ambients, esquelet de CI.
 - Porta 1 — abans d'ensenyar una demo a la junta: staging, domini i SSL, pàgines d'error, proves bàsiques, autenticació a cada endpoint, còpies.
 - Porta 2 — abans de dades reals de socis: RGPD, política de privacitat, doble factor, prova de restauració, limitació de peticions, auditoria de dependències, registres, esborrat de compte.
-- Porta 3 — abans d'obrir-ho als socis: monitoratge, alertes, SEO, correu, proves en dispositius i xarxes lentes, pla de marxa enrere provat, cookies, accessibilitat.
+- Porta 3 — abans d'obrir-ho als socis: monitoratge, alertes, SEO, proves en dispositius i xarxes lentes, pla de marxa enrere provat, cookies, accessibilitat, correu de confirmació del mandat (G3). SPF, DKIM, DMARC i plantilles (G1, G2) són de la porta 2.
 - Continu: auditoria de dependències cada mes, prova de restauració cada trimestre, rotació de claus cada any o davant d'una filtració.
 
 **Dos nivells de producció** (decisió 025):
-- **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real només per recollir mandats, **sense cap cobrament real**. Requereix l'autorització expressa de la junta i les portes 0, 1 i 2 superades, en particular HTTPS (A7), secrets (A3), còpies i restauració (D1, D2), RGPD i consentiments (H1, H3, text del mandat) i registre d'activitat (C8). Quins punts de la porta 3 s'hi apliquen és [A validar] (P-31).
-- **Nivell 2, producció completa** (05b acabat i provat): cobraments reals i baixa de Cluber. Requereix l'autorització expressa de la junta i les portes 0 a 3.
+- **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real només per recollir mandats, **sense cap cobrament real**. Requereix l'autorització expressa de la junta i les portes 0, 1 i 2 superades, en particular HTTPS (A7), secrets (A3), còpies i restauració (D1, D2), RGPD i consentiments (H1, H3, text del mandat) i registre d'activitat (C8). De la porta 3, només el que afecta el flux de signatura de mandats (marcat «N1» a la columna Porta):
+  - A6 pla de marxa enrere;
+  - E3 monitoratge de la web i l'API del flux;
+  - E4 alertes de caiguda, errors, certificat i còpia fallida;
+  - B5 flux en mòbil (Android, iOS) i navegadors habituals;
+  - B8 accessibilitat bàsica del flux;
+  - G3 correu de confirmació del mandat.
+- **Nivell 2, producció completa** (05b acabat i provat): cobraments reals i baixa de Cluber. Requereix l'autorització expressa de la junta i les portes 0 a 3 completes: la resta de la porta 3 (B6, E5, E6, F1-F7, H2, H5) i la part de nivell 2 de B5, B8, E3 i E4.
 - En tots dos nivells, la plataforma no guarda l'IBAN; Stripe en té la custòdia.
 
 ## 3. Llista per categories
@@ -37,7 +43,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | A3 | Secrets fora del repositori | Claus, contrasenyes i tokens en variables d'entorn o gestor de secrets | Escaneig de secrets al CI; cap secret a l'historial | 0 |
 | A4 | Rotar claus filtrades | Procediment escrit; si una clau surt al repositori, es rota i es revisa l'historial | Simulacre una vegada | 2 |
 | A5 | README | Com instal·lar, executar, provar, desplegar, fer una còpia i restaurar; qui és responsable | Una persona nova ho posa en marxa seguint-lo | 0 |
-| A6 | Pla de marxa enrere | Cada desplegament es pot revertir; migracions de base de dades compatibles amb la versió anterior | Reversió provada a staging | 3 |
+| A6 | Pla de marxa enrere | Cada desplegament es pot revertir; migracions de base de dades compatibles amb la versió anterior | Reversió provada a staging | 3 · N1 |
 | A7 | Domini propi i SSL | Domini existent del club, certificat renovat automàticament, redirecció a HTTPS | Alerta de caducitat; prova externa de SSL | 1 |
 
 ### B. Proves
@@ -47,10 +53,10 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | B2 | Proves de fum | Després de cada desplegament: inici de sessió, carnet, inscripció, pagament de prova, pàgina d'inici | S'executen automàticament a staging i producció | 1 |
 | B3 | Proves de regressió | Cada error corregit deixa una prova que l'evita | Llista d'errors amb prova associada | 2 |
 | B4 | Proves de permisos | Per a cada rol: què pot i què no pot; el soci només veu el seu, l'instructor només les seves sessions | Matriu de rols convertida en proves | 1 |
-| B5 | Proves en diversos dispositius | Mòbil (Android i iOS), tauleta i ordinador; navegadors principals | Llista de dispositius provats i resultat | 3 |
+| B5 | Proves en diversos dispositius | Mòbil (Android i iOS), tauleta i ordinador; navegadors principals | Llista de dispositius provats i resultat | 3 · N1: flux de mandat en mòbil (Android, iOS) i navegadors habituals · N2: la resta de pantalles i la tauleta |
 | B6 | Proves amb xarxa lenta | Carnet i llista d'assistència amb poca cobertura; estats de càrrega i errors clars | Emulació de 3G i mode sense connexió | 3 |
 | B7 | Estats reals | Pàgines 404 i 500 pròpies, estats buits («encara no hi ha inscripcions») i estats de càrrega | Revisió de cada pantalla | 1 |
-| B8 | Accessibilitat | Contrast, navegació amb teclat, etiquetes de formulari, text alternatiu, mida de lletra; objectiu WCAG 2.2 AA | Auditoria automàtica i revisió manual | 3 |
+| B8 | Accessibilitat | Contrast, navegació amb teclat, etiquetes de formulari, text alternatiu, mida de lletra; objectiu WCAG 2.2 AA | Auditoria automàtica i revisió manual | 3 · N1: bàsica del flux de mandat (contrast, teclat, etiquetes, errors clars) · N2: WCAG 2.2 AA completa |
 | B9 | Proves d'importació | Importació de socis i de l'extracte bancari amb casos incorrectes, duplicats i fitxers buits | Fitxers de prova | 2 |
 
 ### C. Seguretat
@@ -81,8 +87,8 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 |---|---|---|---|---|
 | E1 | Registres | Estructurats, sense contrasenyes ni dades personals innecessàries | Revisió d'exemples | 2 |
 | E2 | Seguiment d'errors | Avís amb la traça cada vegada que hi ha un error en producció | Error provocat a staging | 2 |
-| E3 | Monitoratge de disponibilitat | Comprovació externa cada pocs minuts de la web i del carnet | Alerta quan cau | 3 |
-| E4 | Alertes | Qui rep què: errors, caiguda, còpia fallida, certificat a punt de caducar, despesa | Simulacre | 3 |
+| E3 | Monitoratge de disponibilitat | Comprovació externa cada pocs minuts de la web i del carnet | Alerta quan cau | 3 · N1: web i API del flux de mandat · N2: carnet |
+| E4 | Alertes | Qui rep què: errors, caiguda, còpia fallida, certificat a punt de caducar, despesa | Simulacre | 3 · N1: caiguda, errors, certificat, còpia fallida · N2: la resta (despesa) |
 | E5 | Monitoratge de rendimiento | Temps de resposta i consultes lentes; objectiu de càrrega de pàgina raonable en mòbil | Informe mensual | 3 |
 | E6 | Analítica | Només la que es pugui justificar. Segons l'AEPD, les cookies d'audiència només estan exemptes de consentiment si només mesuren l'audiència en nom de l'editor, donen dades anònimes i agregades i no es creuen amb altres tractaments ni permeten seguir l'usuari entre llocs. Una opció és una eina pròpia o sense cookies | Revisió de les quatre condicions | 3 |
 
@@ -102,6 +108,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 |---|---|---|---|---|
 | G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a cris1954.cat (domini remitent); les respostes van a cris@cris.es (decisió 019) | Comprovador de correu | 2 |
 | G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
+| G3 | Correu de confirmació del mandat | En signar un mandat, el soci rep un correu des de cris1954.cat (resposta a cris@cris.es) amb la referència del mandat, l'ID de creditor, la data de signatura i com revocar-lo. Si l'envia Stripe o la plataforma és [A validar] | Prova de principi a fi en mode de proves; revisió del text amb la junta | 3 · N1 |
 
 ### H. Legal i privacitat
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
@@ -110,7 +117,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | H2 | Consentiment de cookies | Si hi ha cookies no tècniques: consentiment previ i opció de rebutjar tan visible com la d'acceptar | Revisió amb la pàgina oberta per primera vegada | 3 |
 | H3 | Esborrat de compte i de dades | Un soci pot demanar l'esborrat i l'exportació de les seves dades; es conserven només les dades que obliga la llei (per exemple, factures) | Prova de principi a fi | 2 |
 | H4 | Dades de salut | No es guarden a la plataforma | Revisió del model de dades | 1 |
-| H5 | Protocol per a menors | Si hi ha menors, protocol i persona de referència fora de l'app | Confirmar amb la junta | 3 |
+| H5 | Protocol per a menors | Si hi ha menors, protocol i persona de referència fora de l'app. Si hi ha socis menors, el mandat SEPA de la seva quota l'ha de signar el titular del compte bancari. [A validar: el club té socis menors d'edat?] | Confirmar amb la junta | 3 · N2 |
 
 ### I. Funcions d'IA (només si s'afegeixen)
 No aplica a l'abast actual. Si més endavant s'afegeix una funció amb un model d'IA (per exemple, identificar espècies), cal: avaluacions amb casos reals, proves contra injecció de prompts, alternativa quan el servei no respongui, gestió dels límits de context i límit de despesa.

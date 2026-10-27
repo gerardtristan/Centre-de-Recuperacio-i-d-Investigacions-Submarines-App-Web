@@ -55,7 +55,7 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Mètodes (decisió 017): quotes amb domiciliació SEPA (per defecte), targeta, Bizum o transferència; inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
 - Stripe en mode de proves excepte en els dos nivells de producció, cadascun amb autorització expressa de la junta (decisió 025):
-  - **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real **només per recollir mandats**; **cap cobrament real**. Cal haver passat les portes aplicables (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat; porta 2 completa).
+  - **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real **només per recollir mandats**; **cap cobrament real**. Cal haver passat les portes 0-2 (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i, de la porta 3, els punts del flux de mandats marcats «N1» a la checklist (A6, E3, E4, B5, B8, G3).
   - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals. És el criteri per deixar Cluber, que es migra una sola vegada i sense restricció de data (decisions 014 i 020).
 - La plataforma no guarda mai l'IBAN: Stripe en té la custòdia; la plataforma només guarda identificadors de Stripe i la referència del mandat. Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
