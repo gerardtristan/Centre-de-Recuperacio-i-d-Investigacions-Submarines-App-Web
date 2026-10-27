@@ -2,7 +2,7 @@
 
 Un fitxer per decisió, numerat (`NNN-nom.md`). Format: data, estat, context, alternatives, decisió, conseqüències i fonts.
 
-Estats: **Acceptada** (es pot aplicar), **Proposada** (pendent de validació de la junta; no s'implementa la part afectada), **Substituïda** (indica per quina).
+Estats: **Acceptada** (es pot aplicar), **Proposada** (pendent de validació de la junta; no s'implementa la part afectada), **Substituïda** (indica per quina), **Descartada** (s'ha valorat i no es fa; es registra perquè no es torni a plantejar sense motius nous).
 
 Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix, i a l'antiga es marca l'estat «Substituïda per NNN».
 
@@ -40,6 +40,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [030](030-sistema-de-disseny.md) | Sistema de disseny: tokens en dos temes, colors per zona, tipografia, punts de canvi i logotips | Acceptada (ampliada per 031 i 032; fletxes, logotip, fonts i pila del frontend [A validar]) · ampliada per 034 |
 | [031](031-estil-neumorfic-limitat.md) | Estil neumòrfic limitat (selector de tema, avatars, carnet i pastilla de navegació pública) | Acceptada (amplia la 030; abast als socis ajustat per 032) · ampliada per 034 |
 | [032](032-immersio-socis-i-centre.md) | Immersió al compte personal, logotip més gran i secció del Centre a la web pública | Acceptada (amplia la 030; bitàcola, carnet i textos del Centre [A validar]) · ampliada per 034 |
+| [033](033-migracio-nextjs-once-ui.md) | Migrar els wireframes a Next.js i Once UI Core | Descartada (es mantenen HTML i CSS plans; vegeu 034) |
 | [034](034-patrons-magic-portfolio.md) | Patrons de Magic Portfolio com a referència visual (sense codi): sortida destacada, memòries de projectes, notícies amb data, galeria i butlletí | Acceptada (amplia la 030, 031 i 032; contingut, fotos, butlletí i manteniment [A validar]) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
