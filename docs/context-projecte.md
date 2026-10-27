@@ -131,7 +131,7 @@ Per mòduls i passos, seguint [metodologia-sdd.md](metodologia-sdd.md):
 3. Especificació de cada mòdul en l'ordre de CLAUDE.md, amb les preguntes obertes resoltes.
 4. Pla, tasques i implementació de cada mòdul.
 5. Cas pràctic amb una sortida real i comparació del marge.
-6. Entrada en producció quan el mòdul 05 estigui acabat i provat; migració única de Cluber i campanya de mandats nous. Objectiu orientatiu: finals de gener o principis de febrer de 2027. No és una data compromesa: es pot posposar sense cost. L'abast mínim i l'ordre aprovats (00 → 01 → 04 mínim → 05a → 05b) són a l'[arquitectura, §9](arquitectura-integracions.md) i a la [decisió 024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md).
+6. Producció en dos nivells ([025](decisions/025-dos-nivells-de-produccio.md)). Nivell 1 (05a): campanya de mandats nous, sense cobraments reals. Nivell 2 (05b acabat i provat): producció completa i migració única de Cluber. Objectiu orientatiu: finals de gener o principis de febrer de 2027. No és una data compromesa: es pot posposar sense cost. L'abast mínim i l'ordre aprovats (00 → 01 → 04 mínim → 05a → 05b) són a l'[arquitectura, §9](arquitectura-integracions.md) i a la [decisió 024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md).
 7. Business case, pla de manteniment, memòria i presentació (lliuraments de l'assignatura).
 
 ## 12. Convencions de treball

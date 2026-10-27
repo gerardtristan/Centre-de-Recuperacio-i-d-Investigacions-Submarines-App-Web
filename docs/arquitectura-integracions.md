@@ -1,9 +1,12 @@
 # Arquitectura d'integracions — Plataforma C.R.I.S.
 
-- **Versió:** 5 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md). El §9 (abast mínim per substituir Cluber i ordre de construcció) està **aprovat**.
+- **Versió:** 6 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [025](decisions/025-dos-nivells-de-produccio.md). El §9 (abast mínim per substituir Cluber i ordre de construcció) està **aprovat**.
 - **Domini de la plataforma:** cris1954.cat ([019](decisions/019-domini-i-correu.md)).
 - **Estat:** acceptada per l'equip; els punts marcats [A validar] i els de [decisions/pendents.md](decisions/pendents.md) continuen oberts.
-- **Entrada en producció:** mòdul 05 (pagaments) acabat i provat; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)). Amb la divisió en 05a i 05b ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)), el mode real del 05a abans del 05b està pendent (P-30).
+- **Producció en dos nivells** ([025](decisions/025-dos-nivells-de-produccio.md)), cadascun amb autorització expressa de la junta:
+  - **Nivell 1, mandats** (05a acabat i provat): Stripe en mode real només per recollir mandats; cap cobrament real.
+  - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
+- **IBAN:** la plataforma no el guarda; Stripe en té la custòdia.
 - **Abast:** com es connecta la plataforma amb els serveis externs (allotjament, base de dades, fitxers, correu, pagaments, còpies, DNS, monitoratge). No és una especificació de mòdul: cada mòdul afectat tindrà la seva a `specs/`.
 - **Volum de referència:** uns 150 socis i uns 300 subscriptors del butlletí [A validar amb dades reals].
 - **Decisions relacionades:** [002](decisions/002-pila-tecnologica.md) a [013](decisions/013-imputacio-comissions.md).
@@ -259,7 +262,7 @@ Avui Cluber gestiona els rebuts domiciliats. Stripe té un procediment oficial d
 
 **Escenari base: B** ([022](decisions/022-mandats-sepa-escenari-base-b.md)). Segons tresoreria (27/10/2026), Cluber cobra els rebuts pel seu compte i ingressa al club l'import menys un percentatge: el creditor seria Cluber [A validar amb un rebut o la documentació de Cluber]. L'escenari A només s'aplica si Stripe confirma per escrit que accepta migrar mandats en aquest cas. Cluber exporta socis, IBAN i referències (format [A validar]). En l'escenari B no cal importar IBAN a la plataforma.
 
-**Condició de calendari:** els mandats signats en mode de proves de Stripe no serveixen. La campanya B es fa al **05a**, amb Stripe en mode real ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)). Activar el mode real per al 05a abans d'acabar el 05b està pendent de decisió (P-30); fins llavors mana la [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md). Si es poden recollir mandats abans d'acabar el 05a és [A validar amb Stripe]. A més, la campanya ha d'acabar abans de la propera remesa de quotes (P-29).
+**Condició de calendari:** els mandats signats en mode de proves de Stripe no serveixen. La campanya B es fa al **05a**, al **nivell 1 de producció**: Stripe en mode real només per recollir mandats, sense cap cobrament real i amb autorització expressa de la junta ([024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md)). La plataforma no guarda l'IBAN; Stripe en té la custòdia. Si es poden recollir mandats abans d'acabar el 05a és [A validar amb Stripe]. A més, la campanya ha d'acabar abans de la propera remesa de quotes (P-29).
 
 | | **Escenari A: migració a Stripe** | **Escenari B: mandats nous** |
 |---|---|---|
@@ -334,7 +337,8 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 |---|---|
 | `STRIPE_SECRET_KEY` | Clau restringida amb els permisos mínims |
 | `STRIPE_WEBHOOK_SECRET` | Verificació de la signatura dels webhooks |
-| `STRIPE_LIVE_MODE_ALLOWED` | Fals per defecte; només la junta autoritza posar-lo a cert |
+| `STRIPE_LIVE_MODE_ALLOWED` | Fals per defecte; cert només amb l'autorització de la junta per al nivell 1 o 2 ([025](decisions/025-dos-nivells-de-produccio.md)) |
+| `STRIPE_LIVE_CHARGES_ALLOWED` | Fals fins al nivell 2 (producció completa). Mentre sigui fals, la plataforma no pot crear cap cobrament en mode real |
 | `STRIPE_API_VERSION` | Versió de l'API fixada |
 | `CLUB_IBAN_TRANSFERENCIES` | IBAN que es mostra per a les transferències |
 | `TRANSFER_REFERENCE_PREFIX` | Prefix de les referències (per exemple, `CRIS`) |
@@ -409,7 +413,7 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] **Cluber, creditor i cost:** confirmar amb un rebut o la documentació de Cluber qui és el creditor i quin percentatge descompta (P-21, P-27).
 - [ ] **Tresoreria:** confirmar en quin moment de l'any es cobren les quotes anuals (P-29).
 - [ ] ⏳ **Comunicació als socis:** preparar amb la junta l'avís del canvi de domiciliació (nou creditor, mandat nou a signar, calendari, alternatives de pagament). S'envia quan hi hagi data de campanya.
-- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-30) i aplicar al .docx els textos de P-22.
+- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md) (sobretot P-24, P-27 a P-29 i P-31) i aplicar al .docx els textos de P-22.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
@@ -433,9 +437,15 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] Guardar fora de línia la clau de xifratge de les còpies i els codis de recuperació del doble factor (dos llocs).
 - [ ] Fer i documentar la primera prova de restauració.
 
-### Abans de producció
-- [ ] Comprovar que el mòdul 05 està acabat i provat (criteri d'entrada, [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
-- [ ] Autorització escrita de la junta per activar Stripe en producció.
+### Abans del nivell 1 de producció (mandats, [025](decisions/025-dos-nivells-de-produccio.md))
+- [ ] Comprovar que el 05a està acabat i provat, i que les portes 0-2 estan superades (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat); punts de la porta 3 segons P-31.
+- [ ] Comprovar que `STRIPE_LIVE_CHARGES_ALLOWED` és fals i que la prova de «cap cobrament real» passa.
+- [ ] Autorització expressa de la junta per al nivell 1.
+- [ ] Enviar la comunicació als socis i obrir la campanya de mandats nous.
+
+### Abans del nivell 2 de producció (producció completa)
+- [ ] Comprovar que el 05b està acabat i provat (criteri per deixar Cluber, [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) refinada per [025](decisions/025-dos-nivells-de-produccio.md)) i que les portes 0-3 estan superades.
+- [ ] Autorització expressa de la junta per a la producció completa (activar `STRIPE_LIVE_CHARGES_ALLOWED`).
 - [ ] Fer la migració única de Cluber (funcionalitats §9.13) i la campanya de mandats nous (escenari base B, §4.9) abans de la propera remesa de quotes. Decidir si es fa la campanya de quotes en paral·lel, que és opcional ([020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md)), i donar de baixa Cluber (no hi ha contracte ni data límit).
 - [ ] Decidir si es contracta Brevo Starter (preu a confirmar en aquell moment).
 
@@ -502,8 +512,8 @@ Criteri: només el que avui fa Cluber (socis, quotes, cobraments domiciliats, ca
 | 1b | 00 · annex **Correu**: plantilles, registre, comptador i reserva diària, tandes, avís al 80 %, remitent a cris1954.cat | **Lleugera** | Avisos previs, recordatoris i campanya de mandats | 00 |
 | 2 | **01 Socis i carnet** (abast mínim, amb registre mínim de llicència) | **Completa** (dades personals i RGPD) | Defineix els socis i les quotes que la 05b ha de cobrar | 00; preguntes de la junta de funcionalitats §3 (canvi a ple dret, impagats, número de soci); P-28 |
 | 3 | **04 Tresoreria**, part mínima | **Completa** (finances) | Model de càrrec, pagament i ingrés; el 05 hi escriu a través de serveis | 00, 01; P-02 només per a la part de facturació (fora del mínim) |
-| 4 | **05a Alta del mètode de pagament i mandats** | **Completa** (pagaments) | Permet començar la campanya de mandats nous abans d'acabar els cobraments | 01, 04; P-21, P-30; [A validar amb Stripe] recollida de mandats abans d'acabar el 05a |
-| 5 | **05b Cobraments, remeses, retornats, devolucions i conciliació** | **Completa** (pagaments). Criteri per deixar Cluber ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md); vegeu P-30) | Fa servir els mandats del 05a | 05a; P-12, P-24, P-29 |
+| 4 | **05a Alta del mètode de pagament i mandats** | **Completa** (pagaments). Acabat i provat, habilita el **nivell 1 de producció** (només mandats, cap cobrament real) | Permet començar la campanya de mandats nous abans d'acabar els cobraments | 01, 04; P-21, P-31; [A validar amb Stripe] recollida de mandats abans d'acabar el 05a |
+| 5 | **05b Cobraments, remeses, retornats, devolucions i conciliació** | **Completa** (pagaments). Acabat i provat, habilita el **nivell 2, producció completa**: criteri per deixar Cluber ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md), [025](decisions/025-dos-nivells-de-produccio.md)) | Fa servir els mandats del 05a | 05a; P-12, P-24, P-29 |
 | 6 | Fase 2: 02, 03, resta de la 04, 06, 07, 08 | Segons CLAUDE.md | Després de deixar Cluber | — |
 
 Cada especificació completa segueix la plantilla de [metodologia-sdd.md](metodologia-sdd.md) §5 i acaba amb les preguntes obertes, el responsable i la data.
@@ -513,7 +523,7 @@ Del 27/10/2026 a finals de gener de 2027 hi ha unes 13 setmanes, amb les vacance
 
 | Risc | Per què | Efecte | Mitigació |
 |---|---|---|---|
-| La campanya de mandats depèn de tenir Stripe en mode real | Els mandats de proves no són vàlids; la campanya B es fa al 05a, però activar-hi el mode real abans del 05b està pendent (P-30) | Si la remesa de quotes cau abans, no hi ha temps de recollir mandats | Dividir el 05 (05a/05b) per avançar la campanya; consultar Stripe sobre la recollida anticipada; saber ja quan es cobren les quotes (P-29). Si la remesa és abans del canvi, es cobra amb Cluber i la campanya es fa per a la remesa següent |
+| La campanya de mandats depèn de tenir Stripe en mode real | Els mandats de proves no són vàlids; la campanya B es fa al nivell 1 de producció (05a), que exigeix les portes 0-2 i l'autorització de la junta | Si la remesa de quotes cau abans, no hi ha temps de recollir mandats | Nivell 1 de producció per avançar la campanya ([025](decisions/025-dos-nivells-de-produccio.md)); consultar Stripe sobre la recollida anticipada; saber ja quan es cobren les quotes (P-29). Si la remesa és abans del canvi, es cobra amb Cluber i la campanya es fa per a la remesa següent |
 | Llicències | Cluber en porta una part (P-28) | Pèrdua de dades | Registre mínim de llicència al 01 i importació des de Cluber |
 | Verificació de l'entitat a Stripe i activació de Bizum | Depèn de documents del club (estatuts, NIF, representant) i de la resposta de Stripe | Retarda les proves reals de pagament | Començar-les ja (en mode de proves no hi ha cap risc) |
 | Format d'exportació de Cluber desconegut | Sense una mostra no es pot especificar la importació | Retarda la 00 (importacions) i la 01 | Demanar ja una exportació de prova anonimitzada |

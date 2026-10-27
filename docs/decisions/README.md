@@ -21,7 +21,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [011](011-monitoratge-i-errors.md) | Monitoratge de disponibilitat i seguiment d'errors | Acceptada (regió del seguiment d'errors [A validar]) |
 | [012](012-cua-de-tasques.md) | Cua de tasques sobre PostgreSQL | Acceptada |
 | [013](013-imputacio-comissions.md) | Imputació de comissions per departament | Acceptada (llicències [A validar]) |
-| [014](014-migracio-cluber-i-entrada-en-produccio.md) | Migració única de Cluber i criteri d'entrada en producció | Acceptada (concretada per 020) |
+| [014](014-migracio-cluber-i-entrada-en-produccio.md) | Migració única de Cluber i criteri d'entrada en producció | Acceptada (concretada per 020; refinada per 025) |
 | [015](015-doble-factor-i-comptes-administrador.md) | Doble factor i comptes d'administrador separats | Acceptada (concretada per 018; domini per 019) |
 | [016](016-pressupost-produccio-minima.md) | Pressupost: començar amb la producció mínima | Acceptada |
 | [017](017-pagaments-metodes-i-domiciliacions.md) | Pagaments: mètodes per cobrament i domiciliacions | Acceptada (registre manual [A validar]) |
@@ -31,6 +31,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [021](021-persones-no-socies-com-a-convidades.md) | Persones no sòcies com a convidades | Acceptada |
 | [022](022-mandats-sepa-escenari-base-b.md) | Mandats SEPA: escenari base B (mandats nous) | Acceptada provisionalment (creditor [A validar]) |
 | [023](023-gestio-del-dns.md) | Gestió del DNS i de les credencials dels dominis | Proposada |
-| [024](024-abast-minim-i-ordre-per-deixar-cluber.md) | Abast mínim i ordre de construcció per deixar Cluber (05a/05b) | Acceptada (mode real del 05a pendent, P-30) |
+| [024](024-abast-minim-i-ordre-per-deixar-cluber.md) | Abast mínim i ordre de construcció per deixar Cluber (05a/05b) | Acceptada (mode real del 05a: vegeu 025) |
+| [025](025-dos-nivells-de-produccio.md) | Dos nivells de producció: mandats (05a) i producció completa (05b) | Acceptada (porta 3 al nivell 1 [A validar], P-31) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

@@ -54,7 +54,10 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisió 017): quotes amb domiciliació SEPA (per defecte), targeta, Bizum o transferència; inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
-- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: escenari base B, campanya de mandats nous al 05a (decisions 022 i 024; arquitectura §4.9). Que el 05a funcioni en mode real abans d'acabar el 05b està pendent de decisió (P-30); fins llavors, Stripe continua en mode de proves.
+- Stripe en mode de proves excepte en els dos nivells de producció, cadascun amb autorització expressa de la junta (decisió 025):
+  - **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real **només per recollir mandats**; **cap cobrament real**. Cal haver passat les portes aplicables (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat; porta 2 completa).
+  - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals. És el criteri per deixar Cluber, que es migra una sola vegada i sense restricció de data (decisions 014 i 020).
+- La plataforma no guarda mai l'IBAN: Stripe en té la custòdia; la plataforma només guarda identificadors de Stripe i la referència del mandat. Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 

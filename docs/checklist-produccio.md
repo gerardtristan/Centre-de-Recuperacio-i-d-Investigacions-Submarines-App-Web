@@ -22,6 +22,11 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 - Porta 3 — abans d'obrir-ho als socis: monitoratge, alertes, SEO, correu, proves en dispositius i xarxes lentes, pla de marxa enrere provat, cookies, accessibilitat.
 - Continu: auditoria de dependències cada mes, prova de restauració cada trimestre, rotació de claus cada any o davant d'una filtració.
 
+**Dos nivells de producció** (decisió 025):
+- **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real només per recollir mandats, **sense cap cobrament real**. Requereix l'autorització expressa de la junta i les portes 0, 1 i 2 superades, en particular HTTPS (A7), secrets (A3), còpies i restauració (D1, D2), RGPD i consentiments (H1, H3, text del mandat) i registre d'activitat (C8). Quins punts de la porta 3 s'hi apliquen és [A validar] (P-31).
+- **Nivell 2, producció completa** (05b acabat i provat): cobraments reals i baixa de Cluber. Requereix l'autorització expressa de la junta i les portes 0 a 3.
+- En tots dos nivells, la plataforma no guarda l'IBAN; Stripe en té la custòdia.
+
 ## 3. Llista per categories
 
 ### A. Repositori i lliurament
@@ -59,7 +64,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | C6 | Auditoria de dependències | Pipeline que falla amb vulnerabilitats greus; revisió mensual | Informe a cada execució | 2 |
 | C7 | Configuració de producció | Mode de depuració desactivat, secret fora del repositori i capçaleres de seguretat; si es fa servir Django, executar la comprovació de desplegament | La comprovació no mostra avisos | 2 |
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
-| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fins a l'autorització escrita de la junta; entrada en producció només amb el mòdul 05 acabat i provat (decisions 014 i 017) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat | 2 |
+| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fora dels dos nivells de producció (decisió 025). Al nivell 1 (05a), mode real només per a mandats i cap cobrament real; al nivell 2 (05b), producció completa. La plataforma no guarda l'IBAN (custòdia de Stripe) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat; prova que al nivell 1 no es pot crear cap cobrament real; revisió del model de dades sense camp d'IBAN | 2 |
 | C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
 
 ### D. Dades i continuïtat

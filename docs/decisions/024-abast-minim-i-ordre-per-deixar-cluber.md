@@ -1,7 +1,7 @@
 # 024 — Abast mínim i ordre de construcció per deixar Cluber
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (resol P-26). L'ús de Stripe en mode real per al 05a abans d'acabar el 05b està pendent (P-30).
+- **Estat:** Acceptada (resol P-26). L'ús de Stripe en mode real per al 05a el regula la [025](025-dos-nivells-de-produccio.md) (resol P-30).
 
 ## Context
 La proposta de l'arquitectura §9 (commit 103fe66) definia l'abast mínim per substituir Cluber i un ordre revisat (00 → 01 → 04 mínim → 05). Aquest ordre contradeia l'ordre de construcció de CLAUDE.md i de la metodologia (P-26). A més, la campanya de mandats nous només es pot fer amb Stripe en mode real ([022](022-mandats-sepa-escenari-base-b.md)).
