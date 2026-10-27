@@ -20,12 +20,12 @@
 .capcalera-soci {
   display: flex; align-items: center; gap: var(--e-2);
   min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
-  background: var(--c-superficie);
+  background: var(--c-fons);   /* fons de pàgina: hi va el selector neumòrfic */
   border-bottom: var(--v-activa) solid var(--c-zona);
 }
 .capcalera-soci img { width: var(--logo-capcalera); height: auto; }
 .capcalera-soci .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); margin: 0; }
-.capcalera-soci .boto-tema { margin-left: auto; }
+.capcalera-soci .selector-tema { margin-left: auto; }
 
 /* navegacio-soci: barra inferior al mòbil */
 .navegacio-soci {
@@ -69,22 +69,26 @@
 .targeta h2 { margin-bottom: var(--e-3); }
 .peu-targeta { margin-top: var(--e-3); }
 
-/* salutacio */
+/* salutacio: directament sobre el fons, amb avatar neumòrfic */
+.salutacio-cap { display: flex; align-items: center; gap: var(--e-4); margin-bottom: var(--e-3); }
+#salutacio h1 { font-size: var(--t-2xl); margin: 0; }
+#salutacio p { margin: 0; }
 .resum-rapid { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: var(--e-3) 0 0; list-style: none; }
 
-/* carnet */
+/* carnet: directament sobre el fons, amb relleu neumòrfic suau */
+.bloc-carnet h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
 .carnet {
   display: grid; gap: var(--e-2);
   padding: var(--e-4);
-  border: var(--v-fina) solid var(--c-zona); border-top: var(--v-activa) solid var(--c-zona);
-  border-radius: var(--r-l); background: var(--c-zona-fons);
+  border-radius: var(--r-l);
+  border-top: var(--v-activa) solid var(--c-zona);   /* identitat de zona, també amb més contrast */
 }
 .carnet p { margin: 0; }
 .carnet-cap { display: flex; align-items: center; gap: var(--e-2); flex-wrap: wrap; }
 .carnet-cap img { width: var(--logo-capcalera); height: auto; }
 .carnet-cap .estat { margin-left: auto; }
 .carnet-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
-.carnet-numero { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); }
+.carnet-numero { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); color: var(--c-text); }
 .caixa-qr { min-height: calc(var(--e-8) * 2); }
 .desplegable { margin-top: var(--e-3); border-top: var(--v-fina) solid var(--c-linia); }
 .desplegable summary {
@@ -223,14 +227,24 @@
         <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
       </span>
       <p class="titol-zona">Compte personal</p>
-      <button class="boto boto-petit boto-tema" type="button" data-boto-tema><span aria-hidden="true">◐</span> <span data-nom-tema>Sistema</span></button>
+      <fieldset class="selector-tema neu-selector">
+        <legend class="visualment-amagat">Tema</legend>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+      </fieldset>
     </header>
 
     <main id="contingut" class="graella-soci">
 
-      <section id="salutacio" class="targeta" aria-labelledby="salutacio-titol">
-        <span class="etiqueta-seccio">Inici</span>
-        <h1 id="salutacio-titol">Hola, Marta</h1>
+      <section id="salutacio" aria-labelledby="salutacio-titol">
+        <div class="salutacio-cap">
+          <span class="avatar neu-anell" aria-hidden="true">MP</span>
+          <div>
+            <span class="etiqueta-seccio">Inici</span>
+            <h1 id="salutacio-titol">Hola, Marta</h1>
+          </div>
+        </div>
         <p class="nomes-soci">Soci de ple dret · número de soci <span class="codi">0427</span></p>
         <p class="nomes-no-soci">Tens un compte personal, però no ets soci. <a href="publica.html#fer-se-soci">Fes-te soci</a></p>
         <ul class="resum-rapid">
@@ -240,10 +254,10 @@
         </ul>
       </section>
 
-      <section id="carnet" class="targeta" aria-labelledby="carnet-titol">
+      <section id="carnet" class="bloc-carnet" aria-labelledby="carnet-titol">
         <h2 id="carnet-titol">Carnet</h2>
         <div class="nomes-soci">
-          <div class="carnet">
+          <div class="carnet neu-relleu">
             <div class="carnet-cap">
               <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
               <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
@@ -338,10 +352,8 @@
 </div>
 
 <script>
-/* Tema: Sistema → Clar → Fosc; es recorda a localStorage («cris-tema») */
+/* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
 (function () {
-  var ordre = ['sistema', 'light', 'dark'];
-  var noms = { sistema: 'Sistema', light: 'Clar', dark: 'Fosc' };
   var arrel = document.documentElement;
   function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
   function aplica(t) {
@@ -349,13 +361,10 @@
       if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
       else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
     } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
-    document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-      b.querySelector('[data-nom-tema]').textContent = noms[t];
-      b.setAttribute('aria-label', 'Tema: ' + noms[t] + '. Prem per canviar-lo');
-    });
+    document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
   }
-  document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-    b.addEventListener('click', function () { aplica(ordre[(ordre.indexOf(actual()) + 1) % ordre.length]); });
+  document.querySelectorAll('.selector-tema input').forEach(function (i) {
+    i.addEventListener('change', function () { if (i.checked) aplica(i.value); });
   });
   aplica(actual());
 })();

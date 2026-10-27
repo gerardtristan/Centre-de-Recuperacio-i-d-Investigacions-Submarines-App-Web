@@ -1,7 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1 (27/10/2026), etapa 3: sistema de disseny i wireframes de baixa fidelitat.
-- **Decisió:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009).
+- **Versió:** 1.1 (27/10/2026), etapa 3: sistema de disseny i wireframes de baixa fidelitat. La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
+- **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md).
 - **Fitxers:** `design/wireframes/tokens.css` (font de veritat dels valors), `publica.html`, `socis.html` i `admin.html`.
 - **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4) ni cap polit visual o animació.
 
@@ -90,7 +90,8 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 ## 4. Espaiat, formes i mides
 - **Espaiat:** `--e-1` a `--e-8` = 4, 8, 12, 16, 24, 32, 48 i 64 px. No se'n fan servir d'altres.
 - **Radis:** `--r-s` 4, `--r-m` 8, `--r-l` 12 i `--r-pastilla` (forma de pastilla).
-- **Vores:** `--v-fina` 1 px; `--v-activa` 3 px (element actiu i vora de zona); `--v-focus` 3 px.
+- **Vores:** `--v-fina` 1 px; `--v-activa` 3 px (element actiu i vora de zona); `--v-focus` 3 px; `--v-plena` 2 px (peces neumòrfiques amb més contrast).
+- **Avatar:** `--avatar` 56 px.
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
 - **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-soci` 200 px, `--lateral-carril` 72 px (tauleta), `--columna-dreta` 22rem, `--capcalera-alcada` i `--barra-inferior-alcada` 64 px.
 
@@ -107,7 +108,7 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 **Pública (`publica.html`)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| `capcalera` | Logotip, tema i «Menú» (hamburguesa, s'obre amb un clic) | Navegació en forma de pastilla amb 3 enllaços i «Més», tema i «Fes-te soci» | Pastilla amb tots els enllaços, tema, «Àrea de socis» i «Fes-te soci» |
+| `capcalera` (sobre el fons de pàgina) | Logotip, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» | Dues files: logotip, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb tots els enllaços |
 | `portada` | Text i, a sota, la imatge | Igual | 2 columnes |
 | `properes-activitats` | 1 columna de targetes | 2 columnes | 3 columnes |
 | `qui-som`, `medi-ambient` | Text i, a sota, la imatge | Igual, xifres en 3 columnes | 2 columnes; la imatge canvia de costat |
@@ -119,8 +120,8 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
 | Navegació | Barra inferior fixa de 5 botons | Carril fosc de 72 px (icona i text curt) | Barra lateral fosca de 200 px amb etiquetes |
-| `salutacio` | 1a targeta | Amplada sencera | 2 columnes |
-| `carnet` | 2a targeta | Amplada sencera | Columna dreta, al costat de 2 files |
+| `salutacio` (sobre el fons, amb avatar) | 1r bloc | Amplada sencera | 2 columnes |
+| `carnet` (sobre el fons, amb relleu) | 2n bloc | Amplada sencera | Columna dreta, al costat de 2 files |
 | `pagaments-pendents`, `proximes-activitats` | Una a sota de l'altra | 2 columnes | 2 columnes |
 | `llicencia`, `avisos` | Una a sota de l'altra | 2 columnes | `llicencia` a l'esquerra i `avisos` a la columna dreta |
 
@@ -140,7 +141,9 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Component | Classe | Regles |
 |---|---|---|
 | Botó | `boto`, `boto-principal`, `boto-text`, `boto-petit` | Mínim 44 × 44 px. Un sol `boto-principal` per vista o bloc. Els desactivats porten `aria-disabled` i vora discontínua |
-| Botó de tema | `boto-tema` amb `data-boto-tema` | Vegeu §7 |
+| Selector de tema | `selector-tema` (+ `neu-selector` a la pública i als socis; + `selector-lateral` a la barra fosca de l'administració) | Control segmentat amb botons de ràdio; vegeu §7 |
+| Avatar | `avatar` (+ `neu-anell`) | Inicials en Barlow Condensed 700 i `--c-text`; és decoratiu (`aria-hidden`), perquè el nom ja hi és en text |
+| Peces neumòrfiques | `neu-relleu`, `neu-selector`, `neu-pastilla`, `neu-anell` | Només als llocs de §6.4 |
 | Targeta | `targeta` | Superfície, vora i radi gran |
 | Etiqueta de secció | `etiqueta-seccio` | Majúscules de 12 px en el color de text de la zona |
 | Estat | `estat` + `estat-ok`, `estat-avis`, `estat-error`, `estat-info`, `estat-sistema`, `estat-neutre` | Símbol (`aria-hidden`) + text + color + vora |
@@ -188,11 +191,42 @@ A la fitxa d'una sortida:
 | Cancel·lat, Completa, Sense llicència | ✕ | `estat-error` |
 | Sistema (missatge automàtic) | ⚙ | `estat-sistema` |
 
+### 6.4 Estil neumòrfic limitat (decisió 031)
+El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fons) és un detall d'identitat en molt pocs llocs. **No** és l'estil general.
+
+**Tokens** (un joc per tema: les ombres es recalculen per a cada fons, no s'inverteixen):
+
+| Token | Clar | Fosc | Ús |
+|---|---|---|---|
+| `--neu-superficie` | `#f2f5f8` | `#08131e` | Igual que `--c-fons`, el fons on es posen les peces |
+| `--neu-ombra-fosca` | `#c3ced9` | `#01060b` | El mateix to, més fosc (a baix i a la dreta) |
+| `--neu-ombra-clara` | `#ffffff` | `#15293d` | El mateix to, més clar (a dalt i a l'esquerra) |
+| `--neu-vora` | `#7a8b9b` (3,2:1) | `#5a7590` (3,9:1) | Vora de cada peça, ≥3:1 sobre la superfície |
+| `--neu-relleu`, `--neu-relleu-petit`, `--neu-enfonsat` | compostos | compostos | Ombra en relleu (4 px / 10 px), relleu petit (2 px / 5 px) i ombra interior |
+
+**On sí:**
+| Peça | Pàgina | Com |
+|---|---|---|
+| Selector de tema | `publica.html`, `socis.html` | Contenidor en relleu petit; l'opció activa porta **ombra interior + negreta + ✓** |
+| Avatar | `socis.html` (`salutacio`) | Anell tou (relleu petit i ombra interior); inicials amb `--c-text` (15,7:1 i 15,8:1) |
+| Carnet de soci | `socis.html` (`carnet`) | Relleu suau i vora superior del color de zona; el número de soci en JetBrains Mono 500 i `--c-text` |
+| Pastilla de navegació | `publica.html`, de la tauleta en amunt | Contenidor en relleu petit; l'enllaç actiu porta **ombra interior + negreta + barra groga** i `aria-current`. Al mòbil, el menú desplegat és pla |
+
+**On no:** `admin.html` (tot, inclòs el selector de tema, que hi és pla), taules, formularis i camps, avisos, estats, targetes generals, botons principals («Fes-te soci», «Paga ara», «Inscriu-t'hi»), barra lateral i barra inferior.
+
+**Regles:**
+- Les peces neumòrfiques només es posen sobre `--c-fons`. Per això, la capçalera de la pública i la del compte personal, `salutacio` i `carnet` van sobre el fons de pàgina i no dins de targetes blanques. Al tema clar, damunt de `#ffffff` no pot haver-hi cap ombra més clara que el fons, i l'efecte no funcionaria.
+- Cada peça té vora `--neu-vora` (≥3:1), focus visible (`--c-focus`: 6,3:1 i 9,65:1) i text ≥4,5:1 (`--c-text-2` sobre la superfície: 5,4:1 i 7,6:1).
+- **Cap estat s'indica només amb l'ombra:** l'element actiu sempre porta també negreta i una marca (✓ o la barra) i el seu estat a l'HTML (`checked` o `aria-current`). Les ombres tenen un contrast baix a propòsit (1,5:1 i 1,3:1) i són decoratives.
+- **`prefers-contrast: more`** (l'usuari demana més contrast al sistema): les ombres desapareixen i passen a vora plena de 2 px en `--c-text`. L'opció activa del selector es mostra invertida (`--c-fons` sobre `--c-text`, 15,7:1) i l'enllaç actiu de la pastilla porta una barra en `--c-text`.
+- En mode de colors forçats (alt contrast de Windows), el navegador treu les ombres i l'estat continua indicat per la ✓, la negreta i la barra.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
-- El botó de tema té tres estats: **Sistema → Clar → Fosc**. Desa la tria a `localStorage` amb la clau `cris-tema`, amb el valor `light` o `dark`; en mode «Sistema» la clau s'esborra.
-- Un petit script al `<head>` aplica el tema desat abans de pintar la pàgina, perquè no es vegi el canvi. Si `localStorage` no està disponible, el botó funciona igual però no se'n recorda.
-- El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el botó.
+- El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes) i cada opció fa 44 px com a mínim. Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.
+- Desa la tria a `localStorage` amb la clau `cris-tema` (`light` o `dark`); a «Sistema», la clau s'esborra. Si una pàgina té més d'un selector (l'administració en té un a la barra lateral del mòbil i un a la barra superior), tots dos queden sincronitzats.
+- Un petit script al `<head>` aplica el tema desat abans de pintar la pàgina, perquè no es vegi el canvi. Si `localStorage` no està disponible, el selector funciona igual però no se'n recorda.
+- El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el selector.
 
 ## 8. Logotips
 | On | Fitxer |
@@ -215,6 +249,7 @@ Falta [A validar]:
 - Estats mai només amb color (§6.3); els símbols porten `aria-hidden` i el text és el que es llegeix.
 - Enllaç «Salta al contingut», `lang="ca"`, etiquetes visibles als camps, `caption` a la taula i `aria-live` al recompte de resultats i a la descripció del rol.
 - `prefers-reduced-motion`: no hi ha animacions, i si n'hi ha mai, s'anul·len.
+- `prefers-contrast: more`: les peces neumòrfiques passen a vores plenes (§6.4).
 - Pendent: revisió WCAG 2.2 AA amb eina i lector de pantalla (checklist B8), quan es faci el disseny final.
 
 ## 10. Referències (només estructura, components i estil)
@@ -240,7 +275,7 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 
 ## 13. Com provar els wireframes
 1. Obrir `design/wireframes/publica.html`, `socis.html` o `admin.html` directament al navegador (no cal servidor).
-2. **Tema:** prémer el botó ◐ de la capçalera (Sistema → Clar → Fosc). La tria es manté en recarregar i en canviar de pàgina. Per provar el mode «Sistema», cal canviar el tema del sistema operatiu o, a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-color-scheme*.
+2. **Tema:** triar Sistema, Clar o Fosc al selector de la capçalera (a `admin.html` al mòbil, dins de «Menú»). La tria es manté en recarregar i en canviar de pàgina. **Més contrast:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-contrast: more*. Per provar el mode «Sistema», cal canviar el tema del sistema operatiu o, a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-color-scheme*.
 3. **Mides:** a les eines de desenvolupament (F12), activar el mode de dispositiu (Ctrl+Maj+M) i provar 390 px (mòbil), 820 px (tauleta) i 1440 px (escriptori).
 4. **Demostració:** a `socis.html`, triar «Persona no sòcia amb compte»; a `admin.html`, canviar «Veure com» per veure els menús i blocs de cada rol.
 

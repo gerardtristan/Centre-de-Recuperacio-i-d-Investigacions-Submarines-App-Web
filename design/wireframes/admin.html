@@ -58,7 +58,14 @@
 .barra-mobil img { width: var(--logo-capcalera); height: auto; }
 .barra-mobil .text-lateral { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
 .barra-mobil .boto { background: transparent; color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); }
-.barra-mobil .boto-tema { margin-left: auto; }
+.barra-mobil .boto-menu { margin-left: auto; }
+
+/* Selector de tema pla (l'administració no fa servir neumorfisme). Variant per a la barra lateral fosca */
+.selector-lateral { background: var(--c-lateral-fons-2); border-color: var(--c-lateral-text-2); }
+.selector-lateral .opcio { color: var(--c-lateral-text-2); }
+.selector-lateral input:checked + .opcio { background: var(--c-lateral-fons); color: var(--c-lateral-text); }
+.selector-lateral input:checked + .opcio .marca-activa { color: var(--c-lateral-zona); }
+.selector-lateral input:focus-visible + .opcio { outline-color: var(--c-lateral-focus); }
 .barra-mobil :focus-visible { outline-color: var(--c-lateral-focus); }
 
 /* barra-superior (tauleta i escriptori) */
@@ -143,18 +150,18 @@
     display: flex; position: sticky; top: 0; height: 100vh;
     padding: var(--e-3) var(--e-1); gap: var(--e-3);
   }
-  .barra-mobil, .boto-tanca-menu, .text-lateral, .lateral-compte .text-2 { display: none; }
+  .barra-mobil, .boto-tanca-menu, .text-lateral, .lateral-compte .text-2, .selector-lateral { display: none; }
   .lateral-cap { justify-content: center; }
   .lateral-cap img { width: var(--logo-capcalera); }
   .lateral-nav a { flex-direction: column; justify-content: center; gap: var(--e-1); padding: var(--e-1); min-height: calc(var(--tactil) + var(--e-4)); font-size: var(--t-xs); text-align: center; }
   .lateral-compte { justify-items: center; font-size: var(--t-xs); }
 
   .barra-superior {
-    display: flex; align-items: center; gap: var(--e-3);
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3);
     min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-5);
     background: var(--c-superficie); border-bottom: var(--v-activa) solid var(--c-zona);
   }
-  .barra-superior .boto-tema { margin-left: auto; }
+  .barra-superior .selector-tema { margin-left: auto; }
 
   .fitxa-contenidor { padding: var(--e-5); }
   .capcalera-fitxa { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
@@ -228,6 +235,12 @@
       </ul>
     </nav>
     <div class="lateral-compte">
+      <fieldset class="selector-tema selector-lateral">
+        <legend class="visualment-amagat">Tema</legend>
+        <label><input class="visualment-amagat" type="radio" name="tema-lateral" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-lateral" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-lateral" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+      </fieldset>
       <span class="codi">jordi.adm</span>
       <span class="text-2">Compte d'administrador · TOTP actiu</span>
       <a href="publica.html">Surt</a>
@@ -239,7 +252,6 @@
     <header class="barra-mobil">
       <img class="logo-sempre-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
       <span class="text-lateral">Administració</span>
-      <button class="boto boto-petit boto-tema" type="button" data-boto-tema><span aria-hidden="true">◐</span> <span data-nom-tema>Sistema</span></button>
       <button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="barra-lateral"><span aria-hidden="true">☰</span> Menú</button>
     </header>
 
@@ -251,7 +263,12 @@
           <li><span class="codi" aria-current="page">SRT-2026-014</span></li>
         </ol>
       </nav>
-      <button class="boto boto-petit boto-tema" type="button" data-boto-tema><span aria-hidden="true">◐</span> <span data-nom-tema>Sistema</span></button>
+      <fieldset class="selector-tema">
+        <legend class="visualment-amagat">Tema</legend>
+        <label><input class="visualment-amagat" type="radio" name="tema-superior" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-superior" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-superior" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+      </fieldset>
     </header>
 
     <div class="demo" role="group" aria-labelledby="demo-rol-titol">
@@ -494,10 +511,8 @@
 </div>
 
 <script>
-/* Tema: Sistema → Clar → Fosc; es recorda a localStorage («cris-tema») */
+/* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
 (function () {
-  var ordre = ['sistema', 'light', 'dark'];
-  var noms = { sistema: 'Sistema', light: 'Clar', dark: 'Fosc' };
   var arrel = document.documentElement;
   function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
   function aplica(t) {
@@ -505,13 +520,10 @@
       if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
       else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
     } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
-    document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-      b.querySelector('[data-nom-tema]').textContent = noms[t];
-      b.setAttribute('aria-label', 'Tema: ' + noms[t] + '. Prem per canviar-lo');
-    });
+    document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
   }
-  document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-    b.addEventListener('click', function () { aplica(ordre[(ordre.indexOf(actual()) + 1) % ordre.length]); });
+  document.querySelectorAll('.selector-tema input').forEach(function (i) {
+    i.addEventListener('change', function () { if (i.checked) aplica(i.value); });
   });
   aplica(actual());
 })();

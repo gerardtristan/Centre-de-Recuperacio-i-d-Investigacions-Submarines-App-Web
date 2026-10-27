@@ -24,7 +24,7 @@
 /* ---------- capcalera ---------- */
 .capcalera {
   position: sticky; top: 0; z-index: 10;
-  background: var(--c-superficie);
+  background: var(--c-fons);   /* fons de pàgina: hi van peces neumòrfiques */
   border-bottom: var(--v-activa) solid var(--c-zona);
 }
 .capcalera-interior {
@@ -53,6 +53,8 @@
 }
 .boto-mes { display: none; }
 .nav-sub { list-style: none; display: grid; gap: var(--e-1); }
+/* Al mòbil la llista és un panell vertical pla: la pastilla neumòrfica només hi és a partir de tauleta */
+@media (max-width: 599px) { .nav-llista.neu-pastilla { background: transparent; border: 0; box-shadow: none; } }
 .nomes-escriptori, .no-mobil { display: none; }
 
 /* ---------- portada ---------- */
@@ -101,19 +103,22 @@
 /* ==================== Tauleta: 600–1023 px ==================== */
 @media (min-width: 600px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-5); padding-right: var(--e-5); }
-  .capcalera-interior { flex-wrap: nowrap; }
-  #navegacio-publica { order: 0; flex-basis: auto; margin-left: auto; }
+  /* Dues files: marca i accions a dalt; la pastilla de navegació, centrada a sota */
+  .capcalera-interior { padding-top: var(--e-3); padding-bottom: var(--e-3); row-gap: var(--e-3); }
+  #navegacio-publica { display: flex; justify-content: center; }
   .boto-menu { display: none; }
   .no-mobil { display: inline-flex; }
-  .capcalera-accions { margin-left: 0; }
 
   .nav-llista, .capcalera.menu-obert .nav-llista {
     display: flex; align-items: center; gap: var(--e-1); padding: var(--e-1);
-    border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-pastilla);
-    background: var(--c-superficie-2);
+    border-radius: var(--r-pastilla);
   }
   .nav-llista a, .boto-mes { border-radius: var(--r-pastilla); }
-  .nav-llista a[aria-current="page"] { box-shadow: inset 0 calc(-1 * var(--v-activa)) 0 var(--c-accent); }
+  /* Element actiu dins la pastilla: ombra interior + negreta + barra groga */
+  .nav-llista a[aria-current="page"] {
+    background: var(--neu-superficie);
+    box-shadow: var(--neu-enfonsat), inset 0 calc(-1 * var(--v-activa)) 0 var(--c-accent);
+  }
   .nav-mes { position: relative; }
   .boto-mes { display: flex; }
   .nav-sub {
@@ -136,7 +141,6 @@
 /* ==================== Escriptori: 1024 px o més ==================== */
 @media (min-width: 1024px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-6); padding-right: var(--e-6); }
-  #navegacio-publica { margin-left: auto; margin-right: auto; }
   .nav-mes, .nav-sub, .nav-mes.obert .nav-sub { display: contents; }
   .boto-mes, .nav-socis { display: none; }
   .nomes-escriptori { display: inline-flex; }
@@ -147,6 +151,11 @@
   .bloc-invers > :first-child { order: 2; }
   .graella-quotes { max-width: calc(var(--amplada-max) * 2 / 3); }
   .peu-graella { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Més contrast: l'element actiu de la pastilla, sense ombra i amb barra plena */
+@media (prefers-contrast: more) and (min-width: 600px) {
+  .nav-llista a[aria-current="page"] { box-shadow: inset 0 calc(-1 * var(--v-activa)) 0 var(--c-text); }
 }
 </style>
 </head>
@@ -163,7 +172,7 @@
     </a>
 
     <nav id="navegacio-publica" aria-label="Navegació principal">
-      <ul class="nav-llista" id="nav-llista">
+      <ul class="nav-llista neu-pastilla" id="nav-llista">
         <li><a href="#portada" aria-current="page">Inici</a></li>
         <li><a href="#properes-activitats">Activitats</a></li>
         <li><a href="#qui-som">Qui som</a></li>
@@ -180,10 +189,15 @@
     </nav>
 
     <div class="capcalera-accions">
-      <button class="boto boto-petit boto-tema" type="button" data-boto-tema><span aria-hidden="true">◐</span> <span data-nom-tema>Sistema</span></button>
+      <fieldset class="selector-tema neu-selector">
+        <legend class="visualment-amagat">Tema</legend>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+      </fieldset>
       <a class="boto boto-petit boto-text nomes-escriptori" href="socis.html">Àrea de socis</a>
       <a class="boto boto-petit boto-principal no-mobil" href="#fer-se-soci">Fes-te soci</a>
-      <button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="nav-llista"><span aria-hidden="true">☰</span> Menú</button>
+      <button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="nav-llista"><span aria-hidden="true">☰</span><span class="visualment-amagat">Menú</span></button>
     </div>
   </div>
 </header>
@@ -376,10 +390,8 @@
 </footer>
 
 <script>
-/* Tema: Sistema → Clar → Fosc; es recorda a localStorage («cris-tema») */
+/* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
 (function () {
-  var ordre = ['sistema', 'light', 'dark'];
-  var noms = { sistema: 'Sistema', light: 'Clar', dark: 'Fosc' };
   var arrel = document.documentElement;
   function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
   function aplica(t) {
@@ -387,13 +399,10 @@
       if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
       else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
     } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
-    document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-      b.querySelector('[data-nom-tema]').textContent = noms[t];
-      b.setAttribute('aria-label', 'Tema: ' + noms[t] + '. Prem per canviar-lo');
-    });
+    document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
   }
-  document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
-    b.addEventListener('click', function () { aplica(ordre[(ordre.indexOf(actual()) + 1) % ordre.length]); });
+  document.querySelectorAll('.selector-tema input').forEach(function (i) {
+    i.addEventListener('change', function () { if (i.checked) aplica(i.value); });
   });
   aplica(actual());
 })();

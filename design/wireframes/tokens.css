@@ -52,6 +52,27 @@
 
   --ombra: 0 1px 2px rgba(6, 42, 71, .06), 0 6px 20px rgba(6, 42, 71, .07);
 
+  /* Neumorfisme limitat (decisió 031): només sobre --c-fons.
+     La superfície és igual que el fons; les dues ombres es calculen per a cada tema. */
+  --neu-superficie: #f2f5f8;     /* = --c-fons */
+  --neu-ombra-fosca: #c3ced9;    /* el mateix to, més fosc */
+  --neu-ombra-clara: #ffffff;    /* el mateix to, més clar */
+  --neu-vora: #7a8b9b;           /* 3,2:1 sobre la superfície */
+  --neu-desplac: 4px;
+  --neu-difuminat: 10px;
+  --neu-desplac-petit: 2px;
+  --neu-difuminat-petit: 5px;
+  /* Ombres compostes: es resolen amb les variables del tema actiu */
+  --neu-relleu:
+    var(--neu-desplac) var(--neu-desplac) var(--neu-difuminat) var(--neu-ombra-fosca),
+    calc(-1 * var(--neu-desplac)) calc(-1 * var(--neu-desplac)) var(--neu-difuminat) var(--neu-ombra-clara);
+  --neu-relleu-petit:
+    var(--neu-desplac-petit) var(--neu-desplac-petit) var(--neu-difuminat-petit) var(--neu-ombra-fosca),
+    calc(-1 * var(--neu-desplac-petit)) calc(-1 * var(--neu-desplac-petit)) var(--neu-difuminat-petit) var(--neu-ombra-clara);
+  --neu-enfonsat:
+    inset var(--neu-desplac-petit) var(--neu-desplac-petit) var(--neu-difuminat-petit) var(--neu-ombra-fosca),
+    inset calc(-1 * var(--neu-desplac-petit)) calc(-1 * var(--neu-desplac-petit)) var(--neu-difuminat-petit) var(--neu-ombra-clara);
+
   /* Tipografia (igual als dos temes) */
   --f-titol: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
   --f-text: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -83,8 +104,10 @@
   --v-fina: 1px;
   --v-activa: 3px;   /* barra de l'element actiu */
   --v-focus: 3px;
+  --v-plena: 2px;    /* vores plenes amb prefers-contrast: more */
 
   /* Mides d'estructura */
+  --avatar: 56px;
   --tactil: 44px;                 /* objectiu tàctil mínim */
   --amplada-max: 1200px;
   --amplada-text: 68ch;
@@ -130,6 +153,10 @@
     --c-info: #74c4ea;     --c-info-text: #74c4ea;     --c-info-fons: #0f2c40;
     --c-sistema: #b3a6ef;  --c-sistema-text: #b3a6ef;  --c-sistema-fons: #231e3d;
     --ombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+    --neu-superficie: #08131e;
+    --neu-ombra-fosca: #01060b;
+    --neu-ombra-clara: #15293d;
+    --neu-vora: #5a7590;
   }
 }
 
@@ -162,6 +189,10 @@
   --c-info: #74c4ea;     --c-info-text: #74c4ea;     --c-info-fons: #0f2c40;
   --c-sistema: #b3a6ef;  --c-sistema-text: #b3a6ef;  --c-sistema-fons: #231e3d;
   --ombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+  --neu-superficie: #08131e;
+  --neu-ombra-fosca: #01060b;
+  --neu-ombra-clara: #15293d;
+  --neu-vora: #5a7590;
 }
 
 /* ---------- Zona activa: cada pàgina posa la classe al <body> ---------- */
@@ -255,8 +286,76 @@ img { max-width: 100%; display: block; }
 .boto-petit { min-height: var(--tactil); padding: var(--e-1) var(--e-3); font-size: var(--t-s); }
 .boto[aria-disabled="true"] { color: var(--c-text-2); border-style: dashed; cursor: not-allowed; }
 
-/* Botó de tema: Sistema → Clar → Fosc */
-.boto-tema { font-size: var(--t-s); }
+/* Selector de tema: control segmentat Sistema / Clar / Fosc (botons de ràdio) */
+.selector-tema {
+  display: inline-flex; gap: var(--e-1);
+  margin: 0; padding: var(--e-1); min-inline-size: 0;
+  border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-pastilla);
+  background: var(--c-superficie);
+}
+.selector-tema label { display: flex; }
+.selector-tema .opcio {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--e-1);
+  min-height: var(--tactil); min-width: var(--tactil); padding: 0 var(--e-2);
+  border-radius: var(--r-pastilla);
+  color: var(--c-text-2); font-size: var(--t-s); font-weight: var(--p-semi); cursor: pointer;
+}
+.selector-tema .marca-activa { display: none; }
+/* Opció activa: negreta + marca ✓ + fons (mai només color o ombra) */
+.selector-tema input:checked + .opcio { color: var(--c-text); font-weight: var(--p-negreta); background: var(--c-zona-fons); }
+.selector-tema input:checked + .opcio .marca-activa { display: inline; color: var(--c-zona-text); }
+.selector-tema input:focus-visible + .opcio { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--v-fina); }
+/* Mòbil: només icones; el text continua disponible per al lector de pantalla */
+.selector-tema .text-opcio { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 600px) {
+  .selector-tema .opcio { padding: 0 var(--e-3); }
+  .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+}
+
+/* ==========================================================================
+   Neumorfisme limitat (decisió 031)
+   Només: selector de tema, avatars, carnet de soci i pastilla de navegació
+   de la web pública. Sempre sobre --c-fons (la superfície és igual que el fons).
+   Mai a l'administració, taules, formularis, avisos ni botons principals.
+   ========================================================================== */
+.neu-relleu {
+  background: var(--neu-superficie);
+  border: var(--v-fina) solid var(--neu-vora);
+  box-shadow: var(--neu-relleu);
+}
+.neu-selector, .neu-pastilla {
+  background: var(--neu-superficie);
+  border: var(--v-fina) solid var(--neu-vora);
+  box-shadow: var(--neu-relleu-petit);
+}
+.neu-selector input:checked + .opcio { background: var(--neu-superficie); box-shadow: var(--neu-enfonsat); }
+
+/* Avatar amb anell tou; inicials en alt contrast */
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: var(--avatar); height: var(--avatar);
+  border-radius: var(--r-pastilla);
+  background: var(--c-superficie); color: var(--c-text);
+  font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl);
+}
+.neu-anell {
+  background: var(--neu-superficie);
+  border: var(--v-fina) solid var(--neu-vora);
+  box-shadow: var(--neu-relleu-petit), var(--neu-enfonsat);
+}
+
+/* Més contrast: l'efecte passa a vores plenes */
+@media (prefers-contrast: more) {
+  .neu-relleu, .neu-selector, .neu-pastilla, .neu-anell {
+    box-shadow: none;
+    border: var(--v-plena) solid var(--c-text);
+  }
+  .neu-selector input:checked + .opcio {
+    box-shadow: none;
+    background: var(--c-text); color: var(--c-fons);
+  }
+  .neu-selector input:checked + .opcio .marca-activa { color: var(--c-fons); }
+}
 
 /* Etiqueta de secció (color de zona) */
 .etiqueta-seccio {
