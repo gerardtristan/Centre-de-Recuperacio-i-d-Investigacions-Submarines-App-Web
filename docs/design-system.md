@@ -155,7 +155,7 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 **Pública (`publica.html`)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| `capcalera` (sobre el fons de pàgina) | Logotip de 52 px, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip de 72 px, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» (El Centre, Medi ambient, Fer-se soci, Contacte, Àrea de socis) | Dues files: logotip de 72 px, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb els 7 enllaços |
+| `capcalera` (sobre el fons de pàgina; amb el nom sencer al costat del logotip, mai l'abreviatura) | Logotip de 52 px i el nom en 3 línies de 12 px, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» (El Centre, Medi ambient, Fer-se soci, Contacte, Àrea de socis) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb els 7 enllaços |
 | `portada` | Text i, a sota, la imatge | Igual | 2 columnes |
 | `properes-activitats` | 1 columna de targetes | 2 columnes | 3 columnes |
 | `qui-som`, `medi-ambient` | Text i, a sota, la imatge | Igual, xifres en 3 columnes | 2 columnes; la imatge canvia de costat |
@@ -317,7 +317,13 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 
 Comprovat sobre `#08131e` i sobre `#062a47`: els contorns i el text blancs es llegeixen bé i «DES DE 1954» manté el contorn blanc. El canvi es fa amb les classes `logo-clar` i `logo-fosc`.
 
-**Nom del club:** «Centre de Recuperacions i d'Investigacions Submarines» (C.R.I.S.). És el que fan servir els títols de pàgina, els textos i el text alternatiu dels logotips de les tres zones: «Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines». Els logotips decoratius, com el del carnet, porten `alt=""`.
+**Nom del club:** «Centre de Recuperació i d'Investigacions Submarines» (C.R.I.S.). És el que fan servir els títols de pàgina, els textos i el text alternatiu dels logotips de les tres zones: «Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines». Els logotips decoratius, com el del carnet, porten `alt=""`. És el nom oficial, en singular i amb «d'», com al logotip, la Viquipèdia, l'Enciclopèdia Catalana i cris.barcelona.
+
+**Regla: la capçalera pública porta el nom sencer** al costat del logotip, mai l'abreviatura «C.R.I.S.». Va en Barlow Condensed 600:
+- al mòbil, en 3 línies de 12 px («Centre de Recuperació» / «i d'Investigacions» / «Submarines»);
+- a partir de tauleta, en 2 línies de 14 px.
+
+El nom pot fer més línies si cal i no es talla mai: amb el text al 200 %, la capçalera passa a més files. Per fer-hi lloc al mòbil, l'espai entre el selector i el menú passa a 4 px, i les àrees tàctils continuen de 44 px. Les capçaleres dels socis i de l'administració no canvien.
 
 **Mides (decisió 032):** a la web pública, el logotip fa 52 px a la capçalera del mòbil (la capçalera queda en uns 68 px d'alçada), 72 px a partir de la tauleta i 120 px al peu. A 72 px, el text circular comença a ser llegible a la pantalla de l'ordinador. Als socis i a l'administració es manté en 40 px.
 

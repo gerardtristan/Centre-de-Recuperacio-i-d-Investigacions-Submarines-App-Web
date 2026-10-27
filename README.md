@@ -1,6 +1,6 @@
 # Plataforma C.R.I.S.
 
-Plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i Investigacions Submarines, club de busseig sense ànim de lucre fundat el 1954). Centralitza socis, cursos, sortides, material, tresoreria, llicències, web pública i dashboard en una sola base de dades, i calcula sola el marge de cada activitat.
+Plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i d'Investigacions Submarines, club de busseig sense ànim de lucre fundat el 1954). Centralitza socis, cursos, sortides, material, tresoreria, llicències, web pública i dashboard en una sola base de dades, i calcula sola el marge de cada activitat.
 
 Projecte de l'assignatura Emprenedoria Digital (Grau en Empresa i Tecnologia, UAB, curs 26-27) amb client real. Domini de la plataforma: cris1954.cat. Es treballa per mòduls i passos.
 

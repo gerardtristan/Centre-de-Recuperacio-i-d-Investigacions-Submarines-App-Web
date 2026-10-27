@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>C.R.I.S. · Centre de Recuperacions i d'Investigacions Submarines — web pública (wireframe)</title>
+<title>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines — web pública (wireframe)</title>
 <script>
 /* Tema desat: s'aplica abans de pintar la pàgina */
 (function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -32,10 +32,16 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2);
   min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
 }
-.marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); color: var(--c-text); text-decoration: none; }
-.marca img { width: var(--logo-publica-mobil); height: auto; }
-.marca-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
-.capcalera-accions { display: flex; align-items: center; gap: var(--e-2); margin-left: auto; }
+.marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); min-width: 0; color: var(--c-text); text-decoration: none; }
+.marca img { width: var(--logo-publica-mobil); height: auto; flex: none; }
+/* Nom sencer al costat del logotip: 3 línies al mòbil, 2 a partir de tauleta (mai l'abreviatura) */
+.marca-nom {
+  min-width: 0; overflow-wrap: anywhere;
+  font-family: var(--f-titol); font-weight: var(--p-semi); font-size: var(--t-xs); line-height: var(--a-titol);
+}
+.marca-nom .linia { display: block; }
+/* Mòbil: menys espai entre selector i menú; el tàctil continua de 44 px */
+.capcalera-accions { display: flex; align-items: center; gap: var(--e-1); margin-left: auto; }
 #navegacio-publica { order: 3; flex-basis: 100%; }
 
 .nav-llista { display: none; list-style: none; }
@@ -119,6 +125,9 @@
   .capcalera-interior { padding-top: var(--e-3); padding-bottom: var(--e-3); row-gap: var(--e-3); }
   #navegacio-publica { display: flex; justify-content: center; }
   .marca img { width: var(--logo-publica); }
+  .marca-nom { font-size: var(--t-s); }
+  .marca-nom .linia-mobil { display: inline; }   /* «i d'Investigacions Submarines» en una línia */
+  .capcalera-accions { gap: var(--e-2); }
   .seccio { scroll-margin-top: calc(var(--logo-publica) + var(--tactil) + var(--e-6)); }  /* dues files de capçalera */
   .boto-menu { display: none; }
   .no-mobil { display: inline-flex; }
@@ -182,9 +191,9 @@
 <header id="capcalera" class="capcalera">
   <div class="capcalera-interior">
     <a class="marca" href="#portada">
-      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
-      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
-      <span class="marca-nom">C.R.I.S.</span>
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
+      <span class="marca-nom"><span class="linia">Centre de Recuperació</span> <span class="linia">i d'Investigacions <span class="linia linia-mobil">Submarines</span></span></span>
     </a>
 
     <nav id="navegacio-publica" aria-label="Navegació principal">
@@ -303,9 +312,9 @@
   <section id="centre-recuperacio-investigacio" class="seccio seccio-alterna" aria-labelledby="centre-titol">
     <div class="contenidor">
       <span class="etiqueta-seccio">El Centre</span>
-      <h2 id="centre-titol">Centre de Recuperacions i d'Investigacions Submarines</h2>
+      <h2 id="centre-titol">Centre de Recuperació i d'Investigacions Submarines</h2>
       <p class="text-llarg">Text d'exemple: el nom del club explica què fem. Bussegem per recuperar, investigar i donar a conèixer el patrimoni i el medi submarí. <span class="a-validar">A validar</span></p>
-      <p class="text-2">C.R.I.S. són les inicials del nom del club, que també apareix al voltant del logotip.</p>
+      <p class="text-2">El nom coincideix amb el del logotip del club.</p>
       <ul class="ambits">
         <li class="targeta ambit">
           <span class="ambit-icona" aria-hidden="true">⚓&#xFE0E;</span>
@@ -407,9 +416,9 @@
   <div class="contenidor">
     <div class="peu-graella">
       <div class="peu-marca">
-        <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
-        <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
-        <p>Centre de Recuperacions i d'Investigacions Submarines</p>
+        <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
+        <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
+        <p>Centre de Recuperació i d'Investigacions Submarines</p>
       </div>
       <div>
         <h2>Navega</h2>

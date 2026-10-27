@@ -1,12 +1,12 @@
 # 032 — Immersió al compte personal, logotip més gran i secció del Centre
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (bitàcola, contingut del darrere del carnet i textos de la secció [A validar]; el nom del club es va fixar el 27/10/2026: «Centre de Recuperacions i d'Investigacions Submarines»). Amplia la [030](030-sistema-de-disseny.md) i ajusta l'abast de la [031](031-estil-neumorfic-limitat.md) al compte personal.
+- **Estat:** Acceptada (bitàcola, contingut del darrere del carnet i textos de la secció [A validar]; el nom del club es va fixar el 27/10/2026: «Centre de Recuperació i d'Investigacions Submarines»). Amplia la [030](030-sistema-de-disseny.md) i ajusta l'abast de la [031](031-estil-neumorfic-limitat.md) al compte personal.
 
 ## Context
 L'equip vol refinar l'estructura de dues zones:
 - **Compte personal:** ha de ser clarament diferent de l'administració i ha de tenir un caràcter propi, amb la metàfora d'una immersió.
-- **Web pública:** ha de donar més pes al logotip i explicar què vol dir el nom del club (Centre de Recuperació i Investigacions Submarines).
+- **Web pública:** ha de donar més pes al logotip i explicar què vol dir el nom del club (Centre de Recuperació i d'Investigacions Submarines).
 
 L'administració no canvia.
 
@@ -39,7 +39,7 @@ L'administració no canvia.
 - `docs/design-system.md` §2.6, §4, §4.1, §5.1, §6.4, §6.5 i §8 recullen els canvis.
 - L'id `pagaments-pendents` dels socis passa a `franja-estat`. El detall dels pagaments anirà a la pantalla de Pagaments.
 - Cal validar amb el club:
-  - ~~el nom oficial~~: fixat el 27/10/2026 («Centre de Recuperacions i d'Investigacions Submarines»);
+  - ~~el nom oficial~~: fixat el 27/10/2026 («Centre de Recuperació i d'Investigacions Submarines»);
   - els textos del Centre;
   - d'on surten les dades de la bitàcola, i si es volen insígnies;
   - què va al darrere del carnet.

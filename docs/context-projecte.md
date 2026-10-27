@@ -9,7 +9,7 @@
 > Les contradiccions amb altres documents que encara no s'han resolt són a [decisions/pendents.md](decisions/pendents.md).
 
 ## 1. Meta del projecte
-Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i Investigacions Submarines). La plataforma ha de centralitzar la gestió de socis, cursos, sortides, material, tresoreria i pagaments, i calcular automàticament el marge de cada activitat. S'ha de deixar documentada perquè el club en pugui continuar el desenvolupament i el manteniment.
+Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i d'Investigacions Submarines). La plataforma ha de centralitzar la gestió de socis, cursos, sortides, material, tresoreria i pagaments, i calcular automàticament el marge de cada activitat. S'ha de deixar documentada perquè el club en pugui continuar el desenvolupament i el manteniment.
 
 El treball s'organitza per mòduls i passos (especificació, aclariment, pla, tasques, implementació), no per setmanes. El calendari de l'assignatura és una restricció acadèmica (§2), no el pla de construcció.
 
