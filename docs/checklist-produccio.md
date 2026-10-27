@@ -52,14 +52,14 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
 | C1 | Autenticació a cada endpoint | Per defecte tot exigeix sessió i permís; només es marquen com a públics els endpoints que ho són | Prova automàtica que recorre totes les rutes sense sessió | 1 |
-| C2 | Doble factor | Obligatori (TOTP) per a administrador, tresorer i secretaria (qualsevol rol amb accés a diners o dades de socis) i per als comptes d'emergència; codis de recuperació guardats fora de línia [pendent de validació de la junta; vegeu docs/decisions/003-autenticacio-doble-factor.md] | No es pot accedir sense segon factor | 2 |
+| C2 | Doble factor i comptes d'administrador | TOTP obligatori per a tots els rols amb accés a diners o dades de socis i per als comptes d'emergència (llista exacta de rols [A validar]). Cada administrador té dos comptes: soci (correu únic) i administrador (nom d'usuari únic, entrada separada, correu no únic només per a notificacions, sense recuperació per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció. Vegeu docs/decisions/015-doble-factor-i-comptes-administrador.md | No es pot accedir a l'administració sense segon factor; el compte d'administrador no té cap enllaç de recuperació per correu; proves de restabliment per un altre administrador i amb codi de recuperació | 2 |
 | C3 | Limitació de peticions | Inici de sessió, recuperació de contrasenya, formularis públics i API | Prova de càrrega i bloqueig temporal | 2 |
 | C4 | Restabliment de contrasenya | Enllaç d'un sol ús amb caducitat, sense revelar si el correu existeix | Prova de principi a fi | 1 |
 | C5 | Verificació de correu | Els comptes nous queden pendents fins confirmar | Prova de principi a fi | 1 |
 | C6 | Auditoria de dependències | Pipeline que falla amb vulnerabilitats greus; revisió mensual | Informe a cada execució | 2 |
 | C7 | Configuració de producció | Mode de depuració desactivat, secret fora del repositori i capçaleres de seguretat; si es fa servir Django, executar la comprovació de desplegament | La comprovació no mostra avisos | 2 |
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
-| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador | Proves amb notificacions repetides i falsificades | 2 |
+| C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fins a l'autorització escrita de la junta; entrada en producció només amb el mòdul 05 acabat i provat (decisions 014 i 017) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat | 2 |
 | C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
 
 ### D. Dades i continuïtat

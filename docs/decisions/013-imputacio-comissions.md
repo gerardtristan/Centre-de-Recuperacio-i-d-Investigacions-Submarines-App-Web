@@ -1,7 +1,7 @@
 # 013 — Imputació de comissions per departament
 
 - **Data:** 27/10/2026
-- **Estat:** Proposada: pendent de validació de la junta (P-08)
+- **Estat:** Acceptada el 27/10/2026 (resol P-08). La imputació de les comissions de llicències continua [A validar].
 
 ## Context
 El document de funcionalitats (§7) diu que «la comissió del cobrament es registra com a despesa de la mateixa activitat». Però les quotes de soci són ingrés general i no entren al marge de cap activitat (§3, Regles). Una comissió de quota no té cap activitat on anar.
@@ -23,4 +23,4 @@ El document de funcionalitats (§7) diu que «la comissió del cobrament es regi
 
 ## Fonts
 - `docs/funcionalitats-processos/funcionalitats-processos.pdf`, §3 «Regles», §7 i §8.1
-- Recomanació de l'equip del 27/10/2026
+- Recomanació de l'equip del 27/10/2026; resolució de P-08 comunicada per l'equip el 27/10/2026

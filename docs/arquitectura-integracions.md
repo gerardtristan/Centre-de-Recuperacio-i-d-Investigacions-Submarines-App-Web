@@ -1,7 +1,8 @@
 # Arquitectura d'integracions — Plataforma C.R.I.S.
 
-- **Versió:** 1 · 27/10/2026
-- **Estat:** proposta acceptada per l'equip; els punts marcats [A validar] i els de [decisions/pendents.md](decisions/pendents.md) estan pendents de la junta.
+- **Versió:** 2 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [017](decisions/017-pagaments-metodes-i-domiciliacions.md).
+- **Estat:** acceptada per l'equip; els punts marcats [A validar] i els de [decisions/pendents.md](decisions/pendents.md) continuen oberts.
+- **Entrada en producció:** mòdul 05 (pagaments) acabat i provat; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
 - **Abast:** com es connecta la plataforma amb els serveis externs (allotjament, base de dades, fitxers, correu, pagaments, còpies, DNS, monitoratge). No és una especificació de mòdul: cada mòdul afectat tindrà la seva a `specs/`.
 - **Volum de referència:** uns 150 socis i uns 300 subscriptors del butlletí [A validar amb dades reals].
 - **Decisions relacionades:** [002](decisions/002-pila-tecnologica.md) a [013](decisions/013-imputacio-comissions.md).
@@ -103,9 +104,11 @@ Cap eina de la decisió inicial canvia. Les tres peces afegides passen els crite
 
 ## 3. Cost mensual estimat
 
-### Cost fix (sense IVA)
+**Escenari aprovat: producció mínima** ([016](decisions/016-pressupost-produccio-minima.md)). La junta coneix el cost. Substitueix la previsió anterior de 100-120 €/any (context v3 §9; document incremental §4.2).
 
-| Partida | Ara (desenvolupament) | Producció mínima | Producció recomanada |
+### Cost fix (sense IVA, preus consultats el 27/10/2026)
+
+| Partida | Ara (desenvolupament) | **Producció mínima (aprovada)** | Producció recomanada (si cal créixer) |
 |---|---|---|---|
 | VPS producció | — | CX23: 5,99 € | CX33: 8,99 € |
 | Còpies de Hetzner (≈20 %) | — | 1,20 € | 1,80 € |
@@ -117,8 +120,18 @@ Cap eina de la decisió inicial canvia. Les tres peces afegides passen els crite
 | **Total aproximat** | **≈6-7 €/mes** | **≈13 €/mes (≈160 €/any)** | **≈29,50 €/mes (≈355 €/any)** |
 | Total amb IVA del 21 %, si el club no el recupera [A validar amb la gestoria] | ≈8 €/mes | ≈16 €/mes | ≈36 €/mes |
 
-- No inclou el domini (cost actual del club [A validar]).
-- **Contradicció amb el pressupost:** els documents d'origen preveuen 100-120 €/any de servidor i còpies. Els dos escenaris de producció el superen, sobretot pel correu de pagament, el VPS de proves i el destí de còpies creuades. Vegeu P-06 a [pendents.md](decisions/pendents.md). Com a referència, Cluber costa des de 599 €/any segons el document incremental; si es deixa de fer servir (P-01), aquest estalvi supera el cost de qualsevol dels dos escenaris.
+- No inclou el domini (cost actual del club [A validar]; domini a confirmar, P-15).
+- **Respecte a la previsió anterior:** els documents d'origen preveien 100-120 €/any. La producció mínima costa ≈160 €/any sense IVA (≈195 €/any amb IVA del 21 %), perquè hi suma la segona destinació de còpies i el VPS de proves.
+
+### Comparació amb Cluber
+
+| | Plataforma (producció mínima) | Cluber |
+|---|---|---|
+| Cost fix | ≈160 €/any sense IVA (consultat el 27/10/2026) | Des de 599 €/any, pla fins a 200 esportistes (preu publicat segons el document incremental §4.2). Pla i factura reals del club [A validar] |
+| Cost variable | Comissions de Stripe (vegeu la taula següent): ≈53-110 €/any per a les quotes, més ≈1,9 % del que es cobri per targeta o Bizum | Comissions de cobrament de Cluber [A validar] |
+| Total orientatiu, quotes incloses | ≈215-270 €/any sense IVA | ≥599 €/any més comissions |
+
+Cluber es deixa en entrar en producció ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)). Fins llavors els dos costos conviuen.
 - **CX23 o CX33:** Coolify, Django, PostgreSQL i el treballador de tasques poden funcionar amb 4 GB, però amb poc marge. Proposta: començar amb CX23 i ampliar si cal (a Hetzner es pot ampliar sense reinstal·lar) [A validar amb una prova de càrrega a proves].
 
 ### Cost variable: comissions de Stripe
@@ -130,14 +143,15 @@ Tarifes de la pàgina oficial de Stripe Espanya (consultada el 27/10/2026):
 | Apple Pay / Google Pay | La pàgina no en dona un preu propi; s'espera el de la targeta [A validar] | — |
 | Bizum | 1,5 % + 0,25 € | Inscripció de 60 € → 1,15 € |
 | Domiciliació SEPA | 0,35 € per cobrament | Quota de 90 € → 0,35 € |
-| SEPA fallit | 3,50 € | Rebut sense fons |
-| SEPA en disputa (retornat pel soci) | 15,00 € | Retorn d'un rebut |
+| SEPA fallit | 3,50 € [A validar a la font oficial] | Rebut sense fons; cada reintent fallit pot tornar a cobrar-la |
+| SEPA en disputa (retornat pel soci) | 15,00 € [A validar a la font oficial] | Retorn d'un rebut |
 | Transferència (fora de Stripe) | 0 € de Stripe; comissions del banc [A validar] | — |
 | Efectiu (fora de Stripe) | 0 € | — |
 
-**Estimació anual de les quotes** (hipòtesi [A validar]: 150 quotes amb una mitjana de 70 €):
+**Estimació anual de les quotes** (hipòtesi [A validar]: 150 quotes amb una mitjana de 70 €; la domiciliació és el mètode per defecte):
 - Totes per SEPA: 150 × 0,35 € ≈ **53 €/any**.
 - 60 % per SEPA i 40 % per targeta o Bizum: 90 × 0,35 € + 60 × 1,30 € ≈ **110 €/any**.
+- No inclou rebuts fallits ni retornats (vegeu la taula).
 
 **Inscripcions i llicències:** ≈1,9 % de l'import cobrat per targeta o Bizum (per exemple, 100 inscripcions de 60 € ≈ 115 €/any). El volum real és [A validar].
 
@@ -166,13 +180,17 @@ Les devolucions no retornen la comissió: la despesa es manté.
 8. Les crides cap a Stripe (crear pagaments i devolucions) porten una clau d'idempotència basada en l'identificador intern.
 9. L'aplicació rebutja les claus de producció de Stripe si `STRIPE_LIVE_MODE_ALLOWED` no és cert.
 
-### 4.3 Domiciliació SEPA (només quotes)
+### 4.3 Domiciliació SEPA (només pagaments recurrents: quotes; mètode per defecte)
+Requisits per a la spec del mòdul 05 ([017](decisions/017-pagaments-metodes-i-domiciliacions.md)): avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides.
+
 | Pas | Què passa | Esdeveniments de Stripe (orientatius) |
 |---|---|---|
 | **Alta de mandat** | El soci accepta el mandat al formulari allotjat de Stripe (IBAN i acceptació). Es guarden només els identificadors del client, del mètode de pagament i del mandat, mai l'IBAN complet. | `checkout.session.completed` (mode configuració), `setup_intent.succeeded`; `mandate.updated` si es revoca |
-| **Prenotificació** | Abans de cada cobrament s'avisa el soci de l'import i la data [A validar: si ho envia Stripe o la plataforma, i amb quanta antelació] | — |
-| **Cobrament** | A la data fixada, una tasca crea el cobrament de cada quota amb el mandat. El càrrec queda «pendent» fins a la confirmació, que triga uns dies hàbils [A validar] | `payment_intent.processing` → `payment_intent.succeeded` (→ `pagat`, ingrés i comissió de 0,35 €) o `payment_intent.payment_failed` (es manté `pendent`, despesa de 3,50 €, avís al soci i al tresorer) |
-| **Retornat** | El soci pot retornar el rebut fins a 8 setmanes sense motiu (13 mesos si no l'havia autoritzat). El càrrec passa a `retornat`, es crea un moviment negatiu i la despesa de 15 €; s'avisa el tresorer. Les conseqüències sobre el soci (impagat, carnet) són [A validar] | `charge.dispute.created`, `charge.dispute.closed` |
+| **Avís previ** | Abans de cada cobrament s'avisa el soci de l'import i la data [A validar: si ho envia Stripe o la plataforma, i amb quanta antelació] | — |
+| **Cobrament** | A la data fixada, una tasca crea el cobrament de cada quota amb el mandat. El càrrec queda «pendent» fins a la confirmació, que triga uns dies hàbils [A validar] | `payment_intent.processing` → `payment_intent.succeeded` (→ `pagat`, ingrés i comissió de 0,35 €) o `payment_intent.payment_failed` |
+| **Fallada i reintent controlat** | Si falla, el càrrec continua `pendent`, es registra la comissió de fallada [A validar l'import a la font oficial] i s'avisa el soci i el tresorer. Es reintenta fins a un màxim d'intents i amb uns dies entre intents [A validar tots dos valors]; mai de manera indefinida | `payment_intent.payment_failed` |
+| **Alternativa de pagament** | Després de la fallada (o en esgotar els reintents), el soci rep un enllaç per pagar la quota amb targeta, Bizum o transferència. Pot canviar de mètode per a les quotes següents | Com a 4.4-4.6 |
+| **Retornat** | El soci pot retornar el rebut fins a 8 setmanes sense motiu (13 mesos si no l'havia autoritzat). El càrrec passa a `retornat`, es crea un moviment negatiu i la comissió de retorn [A validar l'import a la font oficial]; s'avisa el tresorer. Les conseqüències (impagat, carnet, qui assumeix la comissió) s'han de definir a la spec 05 [A validar] | `charge.dispute.created`, `charge.dispute.closed` |
 | **Devolució** (la inicia el club) | El tresorer la demana des de la plataforma amb motiu; és un moviment nou | `charge.refunded`, `refund.updated` |
 | **Conciliació** | La liquidació de Stripe arriba al banc agrupada. La plataforma casa la línia del CSV amb la liquidació i aquesta amb els cobraments que conté | `payout.paid`, `payout.failed` |
 
@@ -209,9 +227,11 @@ Cal confirmar l'activació al compte de Stripe del club [A validar]. El flux és
 ### 4.8 Quin mètode per a cada cobrament
 | Cobrament | SEPA | Targeta / Apple / Google Pay | Bizum | Transferència | Manual |
 |---|---|---|---|---|---|
-| Quota anual | Sí | [A validar, P-09] | [A validar, P-09] | [A validar, P-09] | Sí (amb motiu) |
-| Inscripció | No | Sí | Sí | Sí | Sí (amb motiu) |
-| Llicència | No | Sí | Sí | Sí | Sí (amb motiu) |
+| Quota anual | Sí (per defecte) | Sí | Sí | Sí | Sí, amb motiu [A validar, P-12] |
+| Inscripció | No | Sí | Sí | Sí | Sí, amb motiu [A validar, P-12] |
+| Llicència | No | Sí | Sí | Sí | Sí, amb motiu [A validar, P-12] |
+
+Font: [017](decisions/017-pagaments-metodes-i-domiciliacions.md). La domiciliació només s'aplica a pagaments recurrents.
 
 ---
 
@@ -307,9 +327,10 @@ Tot el que es posa a la compilació de la web és públic: mai s'hi posa cap sec
 | R7 | Rebuts SEPA retornats o en disputa (15 € cadascun) | Mitjana / mitjà | Mandat i prenotificació clars; avís immediat al tresorer; política d'impagats [A validar] | Tresorer |
 | R8 | Bizum no disponible al compte del club | Mitjana / baix | Targeta i transferència com a alternatives | Tresorer |
 | R9 | Caiguda del VPS únic | Mitjana / alt | UptimeRobot; còpies de Hetzner per recuperar ràpid; temps màxim de recuperació acordat [A validar] | Responsable de manteniment |
-| R10 | Compte d'administració compromès | Baixa / molt alt | TOTP obligatori, limitació d'intents, registre d'activitat, comptes d'emergència | Administrador |
+| R10 | Compte d'administració compromès | Baixa / molt alt | Comptes d'administrador separats dels de soci, amb nom d'usuari i sense recuperació per correu; TOTP obligatori; limitació d'intents; registre d'activitat per compte; comptes d'emergència ([015](decisions/015-doble-factor-i-comptes-administrador.md)) | Administrador |
+| R10b | Pèrdua d'accés de tots els administradors (sense recuperació per correu) | Baixa / alt | Com a mínim dos administradors actius, dos comptes d'emergència i codis de recuperació fora de línia en dos llocs; procediment de restabliment escrit | Presidència + responsable de manteniment |
 | R11 | Dades personals en registres o errors | Mitjana / mitjà | Filtres als registres; enviament a GlitchTip o Sentry sense dades personals; revisió d'exemples (E1) | Equip de desenvolupament |
-| R12 | Cost per sobre del pressupost aprovat | Alta / mitjà | Escenari mínim disponible; límits i alertes de facturació a cada proveïdor (D3); decisió de la junta (P-06) | Tresorer |
+| R12 | Cost per sobre del pressupost aprovat (producció mínima, [016](decisions/016-pressupost-produccio-minima.md)) | Mitjana / mitjà | Límits i alertes de facturació a cada proveïdor (D3); qualsevol pas a l'escenari recomanat es decideix i es registra | Tresorer |
 | R13 | Dependència de Stripe | Baixa / mitjà | Model de pagaments propi i independent del proveïdor; transferència i efectiu com a alternatives; exportació periòdica | Tresorer + equip de desenvolupament |
 | R14 | Una actualització de Coolify o del sistema trenca el desplegament | Mitjana / mitjà | Instantània abans d'actualitzar; versió fixada; primer a proves | Responsable de manteniment |
 | R15 | Canviar els servidors de noms a Cloudflare trenca el correu actual del club | Mitjana / alt | Inventari previ de tots els registres DNS (MX, SPF actuals) abans del canvi | Responsable d'informàtica |
@@ -325,8 +346,9 @@ No s'ha creat cap compte. Cada compte ha de ser **del club** (correu del club, d
 - [ ] Decidir el responsable de manteniment a la junta i el segon administrador de tots els comptes.
 - [ ] Crear l'organització del repositori (GitHub o GitLab) amb dos propietaris i doble factor.
 - [ ] Triar un gestor de contrasenyes del club per guardar credencials i codis de recuperació [A validar quin].
-- [ ] Esbrinar qui controla el domini cris.barcelona (registrador i accés) i fer inventari dels registres DNS actuals (web WordPress, correu).
-- [ ] Respondre o portar a la junta els punts de [pendents.md](decisions/pendents.md), sobretot P-01 (abast dels cobraments) i P-06 (pressupost).
+- [ ] Esbrinar quin és el domini actiu del club (cris.es o cris.barcelona, P-15), qui el controla (registrador i accés) i com està gestionat el correu actual; fer inventari dels registres DNS (web WordPress, correu). Necessari per decidir els àlies dels comptes d'administrador ([015](decisions/015-doble-factor-i-comptes-administrador.md)).
+- [ ] **Stripe:** obrir el compte de Stripe del club **en mode de proves**, iniciar la verificació de l'entitat (NIF, estatuts, representant legal, compte bancari) i comprovar que s'hi pot activar **Bizum**. Es fa ara perquè la verificació pot trigar.
+- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md), sobretot P-15 a P-20.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
@@ -337,8 +359,8 @@ No s'ha creat cap compte. Cada compte ha de ser **del club** (correu del club, d
 - [ ] Confirmar per escrit la regió de dades de **GlitchTip** o **Sentry**; si és Sentry, triar la regió UE en crear l'organització (no es pot canviar després).
 
 ### Abans d'integrar els pagaments
-- [ ] Obrir el compte de **Stripe** a nom del club (NIF, estatuts, representant legal, compte bancari). **Només mode de proves.**
-- [ ] Demanar a Stripe l'activació de **Bizum** i de la **domiciliació SEPA** per al compte del club, i confirmar les condicions.
+- [ ] Completar la verificació de l'entitat a **Stripe** (iniciada a la fase «Ara») i continuar **només en mode de proves**.
+- [ ] Demanar a Stripe l'activació de **Bizum** i de la **domiciliació SEPA** per al compte del club, i confirmar a la font oficial les comissions de cobrament fallit i de rebut retornat.
 - [ ] Confirmar amb la gestoria IVA, Verifactu i la informació de cobraments per Bizum a l'Agència Tributària.
 - [ ] Confirmar l'IBAN del club per a les transferències i el format d'exportació CSV de l'extracte del banc (enviar-ne un d'anonimitzat).
 - [ ] Crear el VPS de proves separat.
@@ -351,19 +373,23 @@ No s'ha creat cap compte. Cada compte ha de ser **del club** (correu del club, d
 - [ ] Fer i documentar la primera prova de restauració.
 
 ### Abans de producció
+- [ ] Comprovar que el mòdul 05 està acabat i provat (criteri d'entrada, [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
 - [ ] Autorització escrita de la junta per activar Stripe en producció.
+- [ ] Fer la migració única de Cluber (funcionalitats §9.13) i decidir la data de baixa de Cluber (P-20).
 - [ ] Decidir si es contracta Brevo Starter (preu a confirmar en aquell moment).
 
 ---
 
 ## 8. Preguntes obertes [A validar]
 
-1. **Abast dels cobraments:** el club deixa Cluber i cobra amb Stripe, o Cluber continua per a les quotes? (P-01)
-2. **Pressupost:** quin escenari de cost s'aprova (mínim ≈13 €/mes o recomanat ≈29,50 €/mes, sense IVA)? (P-06)
-3. **Quotes:** es poden pagar també amb targeta, Bizum o transferència, o només amb domiciliació i registre manual? (P-09)
+Resolts el 27/10/2026: abast dels cobraments (P-01 → [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)), pressupost (P-06 → [016](decisions/016-pressupost-produccio-minima.md)) i mètodes de les quotes (P-09 → [017](decisions/017-pagaments-metodes-i-domiciliacions.md)).
+
+1. **Domini:** cris.es o cris.barcelona, i qui el gestiona? (P-15)
+2. **Comptes i doble factor:** quins rols compten com a «administrador» (dos comptes) i quins tenen doble factor obligatori? (P-16, P-17)
+3. **Cluber:** es manté la campanya de quotes en paral·lel? Quan venç el contracte? (P-20)
 4. **Bizum:** està disponible al compte de Stripe del club? És un mètode síncron o asíncron a Stripe?
-5. **SEPA:** qui envia la prenotificació (Stripe o la plataforma) i amb quanta antelació? Quant triga a confirmar-se un cobrament?
-6. **Rebut retornat:** què passa amb el soci (impagat, carnet desactivat, recàrrec de 15 €)? Termini d'impagat.
+5. **SEPA:** qui envia l'avís previ (Stripe o la plataforma) i amb quanta antelació? Quant triga a confirmar-se un cobrament? Quants reintents i amb quants dies entre ells? Comissions de fallada i de retorn a la font oficial.
+6. **Rebut retornat:** què passa amb el soci (impagat, carnet desactivat, qui assumeix la comissió)? Termini d'impagat.
 7. **Devolucions parcials:** es permeten? Qui les autoritza?
 8. **Registre manual:** quins rols el poden fer i quin justificant cal? (P-12)
 9. **Transferència:** termini per pagar i què passa si no arriba.
@@ -384,15 +410,15 @@ Correu i fitxers no són mòduls propis a CLAUDE.md: són serveis de la base com
 
 | Ordre | Especificació | Formalitat | Per què en aquest ordre | Depèn de |
 |---|---|---|---|---|
-| 1 | **00 Base comuna**: usuaris, rols, permisos per rol i objecte, TOTP, registre d'activitat, RGPD, entorns, cua de tasques, còpies | **Completa** (autenticació, permisos i RGPD) | Tot la fa servir; fixa els rols (P-04) i el doble factor (P-05) | P-04, P-05 |
+| 1 | **00 Base comuna**: persones i comptes (soci i administrador separats), rols, permisos per rol i objecte, TOTP, restabliment sense correu per als administradors, registre d'activitat per compte, RGPD, entorns, cua de tasques, còpies | **Completa** (autenticació, permisos i RGPD) | Tot la fa servir; fixa els rols i els comptes ([015](decisions/015-doble-factor-i-comptes-administrador.md)) | P-04, P-16, P-17, P-18 |
 | 1a | 00 · annex **Fitxers** (`specs/00-base-comuna/fitxers.md`): pujada, validació, URL signades, permisos | **Lleugera** | Servei transversal sense regles de negoci pròpies | 00 |
 | 1b | 00 · annex **Correu** (`specs/00-base-comuna/correu.md`): plantilles, registre d'enviaments, comptador i reserva diària, tandes, avís al 80 % | **Lleugera** (el butlletí i els consentiments de màrqueting es completen a la 07) | Necessari per a les notificacions de tots els mòduls | 00 |
-| 2 | **04 Tresoreria**: càrrecs, estats, moviments immutables, departaments, comptes (banc, caixa, trànsit Stripe), comissions, devolucions com a moviments, conciliació amb CSV, tancament d'activitat | **Completa** (finances) | El model de càrrec, pagament i ingrés viu aquí; pagaments hi escriu a través de serveis | 00; P-08, P-02 |
-| 3 | **05 Pagaments**: integració amb Stripe (sessions, mandats SEPA, webhooks, idempotència, reconciliació diària), transferència amb referència i registre manual | **Completa** (pagaments) | Depèn del model de la 04 | 04; P-01, P-09, P-12 |
+| 2 | **04 Tresoreria**: càrrecs, estats, moviments immutables, departaments, comptes (banc, caixa, trànsit Stripe), comissions, devolucions com a moviments, conciliació amb CSV, tancament d'activitat | **Completa** (finances) | El model de càrrec, pagament i ingrés viu aquí; pagaments hi escriu a través de serveis. Comissions per departament ([013](decisions/013-imputacio-comissions.md)) | 00; P-02 |
+| 3 | **05 Pagaments**: integració amb Stripe (sessions, mandats SEPA amb avís previ, reintent controlat, alternativa de pagament i estat «retornat», webhooks, idempotència, reconciliació diària), transferència amb referència i registre manual | **Completa** (pagaments). És el criteri d'entrada en producció ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)) | Depèn del model de la 04 | 04; P-12, P-20 |
 
 Notes:
 - Les **quotes** (generació anual, remeses) són del mòdul 01 i les **inscripcions**, del 02. La 04 defineix el càrrec genèric que fan servir totes dues. Si la junta vol cobrar quotes abans de tenir el 02, es pot especificar la 01 abans de la 05.
-- Mentre P-01 estigui obert, la 05 es pot especificar per a inscripcions i llicències sense la part de quotes.
+- Com que la 05 inclou les quotes domiciliades i és el criteri d'entrada en producció, la 01 (socis i quotes) s'ha d'especificar abans que la 05.
 - Cada especificació completa segueix la plantilla de [metodologia-sdd.md](metodologia-sdd.md) §5 i acaba amb les preguntes obertes, el responsable i la data.
 
 ---

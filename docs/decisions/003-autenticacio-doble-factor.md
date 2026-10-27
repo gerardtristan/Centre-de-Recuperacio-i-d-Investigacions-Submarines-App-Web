@@ -1,7 +1,7 @@
 # 003 — Autenticació i doble factor
 
 - **Data:** 27/10/2026
-- **Estat:** Proposada: el mecanisme és acceptat; l'abast dels rols amb doble factor obligatori està pendent de validació de la junta (P-05)
+- **Estat:** Substituïda per [015](015-doble-factor-i-comptes-administrador.md) (27/10/2026)
 
 ## Context
 La plataforma guarda dades de socis i diners. Els documents d'origen no coincideixen en qui ha de fer servir doble factor:

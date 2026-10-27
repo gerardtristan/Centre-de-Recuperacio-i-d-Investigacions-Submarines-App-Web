@@ -1,7 +1,7 @@
 # 007 — Pagaments amb Stripe, més transferència i registre manual
 
 - **Data:** 27/10/2026
-- **Estat:** Proposada: l'abast dels cobraments contradiu el context v3 i el document incremental (P-01). No es posa res en producció sense autorització escrita.
+- **Estat:** Substituïda per [017](017-pagaments-metodes-i-domiciliacions.md) (mètodes i domiciliacions) i [014](014-migracio-cluber-i-entrada-en-produccio.md) (abast de Cluber), el 27/10/2026
 
 ## Context
 El document de funcionalitats preveu que el club deixi Cluber i cobri dins l'app (targeta, Bizum i rebut domiciliat). El context v3 i el document incremental deixen fora d'abast substituir els cobraments de Cluber.
