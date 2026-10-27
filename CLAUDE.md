@@ -17,7 +17,7 @@ Català per a documents, interfície i comentaris de cara a l'usuari. Noms de co
 - `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
-- `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada; `specs/04-tresoreria/spec.md` és la font de la secció M04 i passa a l'arxiu quan aquesta s'aprova.
+- `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada. La spec 04 v2 és a l'arxiu (`docs/arxiu/spec-04-tresoreria-v2-2026-10-27.md`) des que es va aprovar la secció M04.
 No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 
 ## Com es treballa (Spec-Driven Development)
@@ -28,16 +28,17 @@ No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 5. Formalitat segons risc: spec completa per a finances, pagaments, autenticació, permisos, RGPD i importacions; spec d'una pàgina per a contingut web, dashboard i conferències; només ticket per a errors petits.
 
 ## Mòduls (ordre de construcció, decisió 024)
-Mòduls: 0 Base comuna, 1 Socis i carnet, 2 Activitats (cursos i sortides), 3 Material, 4 Tresoreria i marge, 5 Pagaments (5a alta del mètode de pagament i mandats; 5b cobraments), 6 Llicències, 7 Web pública, 8 Dashboard. Botiga en línia: fora d'abast ara.
+Numeració fixa (`docs/planning.md#estat`): 00 Base comuna, 01 Socis i carnet digital, 02 Activitats (cursos i sortides), 03 Material, 04 Tresoreria (part mínima), 05a Alta del mètode de pagament i mandats, 05b Cobraments, 06 Llicències, 07 Web pública, 08 Dashboard, 09 Marge, despeses, ajuts i facturació (abans «resta de la 04»), 10 Missatges i xat per activitat, 11 Departament d'Història i conferències, 12 Idees noves (avatars de fauna marina i bitàcola), 13 Botiga en línia (fora d'abast ara). Cap mòdul no canvia de número; un de nou s'afegeix al final. El número no és l'ordre de construcció.
 
 **Ordre de construcció:**
 - **Fase 1, abast mínim per deixar Cluber:** 00 Base comuna → 01 Socis i carnet (amb registre mínim de llicència: tipus, data d'alta i de caducitat) → 04 Tresoreria, part mínima → 05a Alta del mètode de pagament i signatura de mandats en mode real → 05b Cobraments, remeses, retornats, devolucions i conciliació.
-- **Fase 2:** 02 Activitats → 03 Material → resta de la 04 (marge, despeses amb factura, ajuts, facturació) → 06 Llicències → 07 Web pública → 08 Dashboard.
+- **Fase 2:** 02 Activitats → 03 Material → 09 Marge, despeses, ajuts i facturació → 06 Llicències → 07 Web pública → 08 Dashboard.
+- **Després:** 10, 11 i 12.
 
 Detall de l'abast mínim: `docs/arquitectura-integracions.md` §9.
 Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i pagament (cèntims, estats, mètodes, departament, cap IBAN); la tresoreria (04) hi construeix al damunt (moviments, ingressos, comissions, comptes i conciliació) i va abans de pagaments (05); la integració amb la passarel·la (Stripe) és a 05.
 Duplicar activitats és un servei comú previst a la 00 que es construeix al mòdul 02 (decisió 026).
-Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls); vegeu `docs/decisions/pendents.md`.
+Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00–M12) fan servir altres numeracions; la correspondència és a `docs/planning.md#numeracio`.
 
 ## Regles que sempre s'han de complir
 - Diners en cèntims (enter), moviments immutables; les correccions són anul·lacions amb motiu. Marge d'una activitat = ingressos - despeses - cost de material.

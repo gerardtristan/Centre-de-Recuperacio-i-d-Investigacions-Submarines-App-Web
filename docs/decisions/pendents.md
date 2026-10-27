@@ -8,8 +8,8 @@ Llegenda: **R** = l'equip ja hi ha fet una recomanació; **—** = només es con
 
 | ID | Tema | Què diu cada document | Recomanació de l'equip | Afecta | Estat |
 |---|---|---|---|---|---|
-| P-02 | Facturació | Context §6: «Could; cal confirmar IVA i programa». Funcionalitats §7: facturació via servei homologat Verifactu dins la tresoreria (imprescindible). | — (depèn de la gestoria: IVA i Verifactu) | 04 | Obert |
-| P-03 | Numeració dels mòduls | CLAUDE.md i metodologia: 0-8 (2 = cursos i sortides; 4 = tresoreria; 5 = pagaments). Funcionalitats: 0-11 (2 = cursos, 3 = sortides, 5 = tresoreria amb pagaments, 8 = Dept. d'Història, 10 = idees, 11 = botiga). | Fer servir la numeració de CLAUDE.md per a `specs/` i afegir-hi una taula d'equivalències | `specs/` | Obert |
+| P-02 | Facturació | Context §6: «Could; cal confirmar IVA i programa». Funcionalitats §7: facturació via servei homologat Verifactu dins la tresoreria (imprescindible). | — (depèn de la gestoria: IVA i Verifactu) | 09 (abans «resta de la 04») | Obert |
+| P-03 | Numeració dels mòduls | CLAUDE.md i metodologia: 0-8 (2 = cursos i sortides; 4 = tresoreria; 5 = pagaments). Funcionalitats: 0-11 (2 = cursos, 3 = sortides, 5 = tresoreria amb pagaments, 8 = Dept. d'Història, 10 = idees, 11 = botiga). | Fer servir la numeració de CLAUDE.md per a `specs/` i afegir-hi una taula d'equivalències | `specs/` | Resolt (27/10/2026): numeració fixa 00–13 i correspondència a [planning.md#numeracio](../planning.md#numeracio) |
 | P-04 | Rols | Context v3 §7: 6 rols. Funcionalitats §2: 8 rols (afegeix instructor i Departament d'Història). El context v4 ja recull els 8, però la matriu de permisos no està validada. | — | 00 (permisos) | Obert |
 | P-07 | Data de validesa del certificat mèdic | Funcionalitats §2: «com a molt, es guarda la data fins a la qual és vàlid el certificat mèdic» [A validar]. CLAUDE.md: cap dada de salut. | — (cal criteri del responsable de protecció de dades) | 01, 02 | Obert |
 | P-11 | Constitució | Metodologia §2-4: fitxer `constitution.md`. CLAUDE.md fa aquesta funció. | Mantenir CLAUDE.md com a constitució i no duplicar | Documentació | Obert |

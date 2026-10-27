@@ -501,7 +501,7 @@ Criteri: només el que avui fa Cluber (socis, quotes, cobraments domiciliats, ca
 | **05b Pagaments: cobraments** | Cobraments amb domiciliació, targeta, Bizum, transferència amb referència i registre manual; remeses de quotes; avís previ; reintent controlat; alternativa de pagament; retornats; devolucions; conciliació; webhooks i idempotència | — |
 | **Importació única de Cluber** | Socis, dates d'alta, quotes, rebuts, referències i llicències (tipus, data d'alta i de caducitat); sense IBAN en l'escenari B. Previsualització, validació i opció de desfer | — |
 
-**Queda per a després:** 02 Activitats (cursos i sortides), 03 Material, la resta de la 04 (marge, despeses amb factura, ajuts, facturació), 06 Llicències (preus, renovacions, recordatoris, no socis, exportació a la federació), 07 Web pública i butlletí, 08 Dashboard.
+**Queda per a després:** 02 Activitats (cursos i sortides), 03 Material, 09 Marge, despeses, ajuts i facturació (abans «resta de la 04»), 06 Llicències (preus, renovacions, recordatoris, no socis, exportació a la federació), 07 Web pública i butlletí, 08 Dashboard.
 
 **Llicències:** segons el document incremental §1.2, avui es gestionen amb «Cluber i federació». El registre mínim del 01 evita perdre dades; què fa Cluber amb les llicències i com es tramiten entre la baixa de Cluber i el 06 continua pendent (P-28).
 
@@ -515,7 +515,7 @@ Criteri: només el que avui fa Cluber (socis, quotes, cobraments domiciliats, ca
 | 3 | **04 Tresoreria**, part mínima | **Completa** (finances) | Model de càrrec, pagament i ingrés; el 05 hi escriu a través de serveis | 00, 01; P-02 només per a la part de facturació (fora del mínim) |
 | 4 | **05a Alta del mètode de pagament i mandats** | **Completa** (pagaments). Acabat i provat, habilita el **nivell 1 de producció** (només mandats, cap cobrament real) | Permet començar la campanya de mandats nous abans d'acabar els cobraments | 01, 04; P-21, P-31; [A validar amb Stripe] recollida de mandats abans d'acabar el 05a |
 | 5 | **05b Cobraments, remeses, retornats, devolucions i conciliació** | **Completa** (pagaments). Acabat i provat, habilita el **nivell 2, producció completa**: criteri per deixar Cluber ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md), [025](decisions/025-dos-nivells-de-produccio.md)) | Fa servir els mandats del 05a | 05a; P-12, P-24, P-29 |
-| 6 | Fase 2: 02, 03, resta de la 04, 06, 07, 08 | Segons CLAUDE.md | Després de deixar Cluber | — |
+| 6 | Fase 2: 02, 03, 09, 06, 07, 08 (numeració de `planning.md#estat`) | Segons CLAUDE.md | Després de deixar Cluber | — |
 
 Cada especificació completa segueix la plantilla de [metodologia-sdd.md](metodologia-sdd.md) §5 i acaba amb les preguntes obertes, el responsable i la data.
 

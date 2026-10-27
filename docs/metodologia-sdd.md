@@ -76,7 +76,7 @@ Spec-Driven Development (SDD) vol dir escriure primer una especificació clara i
 ## 8. Ordre d'especificació
 Ordre vigent des del 27/10/2026 ([decisió 024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)):
 - **Fase 1, abast mínim per deixar Cluber:** 00 base comuna → 01 socis i carnet (amb registre mínim de llicència) → 04 tresoreria, part mínima → 05a alta del mètode de pagament i mandats → 05b cobraments.
-- **Fase 2:** 02 activitats (cursos i sortides) → 03 material → resta de la 04 (marge, despeses, ajuts, facturació) → 06 llicències → 07 web pública → 08 dashboard.
+- **Fase 2:** 02 activitats (cursos i sortides) → 03 material → 09 marge, despeses, ajuts i facturació (abans «resta de la 04») → 06 llicències → 07 web pública → 08 dashboard.
 
 Ordre anterior (substituït): 00 → 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08.
 

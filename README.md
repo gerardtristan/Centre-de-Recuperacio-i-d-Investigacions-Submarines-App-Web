@@ -16,7 +16,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 | Arquitectura d'integracions | Acceptada, v3: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
 | Decisions | 001-025 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, convidats, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat), mandats (escenari base B, provisional) |
 | Pendents de la junta | [pendents.md](docs/decisions/pendents.md): creditor i cost de Cluber (P-21, P-27), calendari de quotes (P-29), llicències a Cluber (P-28), socis menors (P-33), accés al DNS (P-25) i altres |
-| Especificacions de mòduls | Font única: [`docs/planning.md`](docs/planning.md) ([decisió 047](docs/decisions/047-planning-font-unica-de-l-especificacio.md)). 01 aprovat; 04, 05a i 05b escrits. Spec 00 v2 a `specs/`. Ordre ([decisió 024](docs/decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)): 00 → 01 → 04 mínim → 05a → 05b; després, 02, 03, resta de la 04, 06, 07, 08 |
+| Especificacions de mòduls | Font única: [`docs/planning.md`](docs/planning.md) ([decisió 047](docs/decisions/047-planning-font-unica-de-l-especificacio.md)). Numeració fixa 00–13. 01, 04, 05a i 05b aprovats; 02 i 03 escrits. Spec 00 v2 a `specs/`; la spec 04 v2, a l'arxiu. Ordre ([decisió 024](docs/decisions/024-abast-minim-i-ordre-per-deixar-cluber.md)): 00 → 01 → 04 → 05a → 05b; després, 02, 03, 09, 06, 07, 08 |
 | Codi (`backend/`, `frontend/`) | No començat (no s'hi crea res fins que hi hagi una spec revisada) |
 | Comptes de proveïdors | No creats. Tasques amb temps d'espera que han de començar ja: compte de Stripe en mode de proves i verificació, Bizum, exportació de prova de Cluber, comunicació als socis (arquitectura, §9.3) |
 | Entrada en producció | Dos nivells ([decisió 025](docs/decisions/025-dos-nivells-de-produccio.md)). Nivell 1 (05a): només recollida de mandats, sense cobraments reals. Nivell 2 (05b acabat i provat): producció completa i migració única de Cluber. Objectiu orientatiu, no compromès: finals de gener o principis de febrer de 2027 |
@@ -36,7 +36,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   context/                     fonts originals (instruccions; entrevistes fora de Git)
   entregues/                   lliuraments de l'assignatura
   arxiu/                       versions antigues (mai s'esborren), p. ex. context v3
-/specs/                        specs anteriors a la 047 (00 vigent; 04 fins que s'aprovi el M04)
+/specs/                        spec 00 (vigent fins que el 00 tingui secció a planning.md; la 04 és a l'arxiu)
 /design/                       mapa de la plataforma i arbre de processos (HTML)
 /assets/marca/                 logotips del club
 ```

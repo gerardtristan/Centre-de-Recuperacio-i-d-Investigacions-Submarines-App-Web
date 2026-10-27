@@ -2,41 +2,65 @@
 
 - **Què és:** l'únic fitxer del pla de tots els mòduls i la **font única de la seva especificació** ([047](decisions/047-planning-font-unica-de-l-especificacio.md)). S'hi afegeixen mòduls amb la mateixa estructura de 14 seccions. Cap altre fitxer en copia el contingut: s'hi enllaça per l'àncora.
 - **Data de la versió:** 27/10/2026 (la data només identifica la versió; el pla no té calendari, [038](decisions/038-planificar-sense-dates.md)).
-- **Com s'aprova:** cada secció de mòdul passa d'«escrit» a «aprovat» quan el responsable del projecte l'aprova. Cap mòdul nou s'afegeix fins que l'anterior està aprovat, excepte quan el responsable del projecte en demana diversos alhora perquè depenen entre ells (04, 05a i 05b).
+- **Com s'aprova:** cada secció de mòdul passa d'«escrit» a «aprovat» quan el responsable del projecte l'aprova. Cap mòdul nou s'afegeix fins que l'anterior està aprovat, excepte quan el responsable del projecte en demana diversos alhora perquè depenen entre ells (04, 05a i 05b; 02 i 03).
 
 <a id="estat"></a>
-## 1. Estat dels mòduls
+## 1. Estat i numeració dels mòduls
 
-Numeració de la sèrie B (CLAUDE.md). Ordre de fases segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md). «Estat» és l'estat de la secció d'aquest pla, no del codi.
+«Estat» és l'estat de la secció d'aquest pla, no del codi: **pendent** (no escrita), **escrit** (per aprovar), **aprovat**. Ordre de construcció segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md): fase 1, 00 → 01 → 04 → 05a → 05b; fase 2, 02 → 03 → 09 → 06 → 07 → 08; després, 10, 11 i 12. **El número identifica el mòdul, no l'ordre de construcció.**
 
-| Fase | Mòdul | Depèn de | Spec | Estat al pla |
-|---|---|---|---|---|
-| 1 | **00** Base comuna | — | [spec 00](../specs/00-base-comuna/spec.md) v2 | pendent (el M01 en defineix la part que necessita) |
-| 1 | **01** Socis i carnet digital | 00 | Aquest pla ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | **aprovat** |
-| 1 | **04** Tresoreria, part mínima | 00, 01 | Aquest pla; integra la [spec 04](../specs/04-tresoreria/spec.md) v2, que passa a l'arxiu quan s'aprovi la secció (047) | **escrit** |
-| 1 | **05a** Alta del mètode de pagament i mandats | 01, 04 | Aquest pla | **escrit** |
-| 1 | **05b** Cobraments (targeta, Bizum, domiciliació, transferència) | 05a | Aquest pla | **escrit** |
-| 2 | **02** Activitats (cursos i sortides) | 01, 04 | — | pendent |
-| 2 | **03** Material | 02 | — | pendent |
-| 2 | **04** Resta (marge, despeses, ajuts, facturació) | 02, 03, 05b | — | pendent |
-| 2 | **06** Llicències | 01, 05b | — | pendent |
-| 2 | **07** Web pública | 01, 02 | — | pendent |
-| 2 | **08** Dashboard | 02, 04 | — | pendent |
-| Sense número | Missatges i xat per activitat | 01, 02 | — | pendent [A validar número] |
-| Sense número | Departament d'Història i conferències | 01, 07 | — | pendent [A validar si va dins el 02] |
-| Sense número | Idees noves (avatars de fauna marina, bitàcola) | 01, 03 | — | pendent |
-| — | Botiga en línia | — | Fora d'abast ara | — |
+| Núm. | Mòdul | Fase | Depèn de | Font de l'especificació | Estat al pla |
+|---|---|---|---|---|---|
+| **00** | Base comuna | 1 | — | [spec 00](../specs/00-base-comuna/spec.md) v2 (fins que el 00 tingui secció aquí) | pendent (el 01 en defineix la part que necessita) |
+| **01** | [Socis i carnet digital](#M01) | 1 | 00 | Aquest pla ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | **aprovat** |
+| **02** | [Activitats (cursos i sortides)](#M02) | 2 | 00, 01, 04, 05b | Aquest pla | **escrit** |
+| **03** | [Material](#M03) | 2 | 00, 02 | Aquest pla | **escrit** |
+| **04** | [Tresoreria, part mínima](#M04) | 1 | 00, 01 | Aquest pla (la spec 04 v2 és a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md)) | **aprovat** |
+| **05a** | [Alta del mètode de pagament i mandats](#M05a) | 1 | 01, 04 | Aquest pla | **aprovat** |
+| **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** |
+| **06** | Llicències | 2 | 01, 05b | — | pendent |
+| **07** | Web pública | 2 | 01, 02 | — | pendent |
+| **08** | Dashboard | 2 | 01, 02, 04, 09 | — | pendent |
+| **09** | Marge, despeses, ajuts i facturació (abans «resta de la 04») | 2 | 02, 03, 04, 05b | — | pendent |
+| **10** | Missatges i xat per activitat | després de la 2 | 01, 02 | — | pendent |
+| **11** | Departament d'Història i conferències | després de la 2 | 01, 02, 07 | — | pendent |
+| **12** | Idees noves (avatars de fauna marina i bitàcola) | després de la 2 | 01, 02, 03 | — | pendent |
+| **13** | Botiga en línia | — | — | Fora d'abast ara | — |
 
-La web instal·lable ([041](decisions/041-web-installable-i-avisos-sense-push.md)) no és un mòdul: va amb la interfície des del M01. Detall de la correspondència amb el mapa v8: [mapa-de-moduls.md](mapa-de-moduls.md).
+**Regles de la numeració** (fixada el 27/10/2026 pel responsable del projecte)
+- Cap mòdul no canvia de número. Un mòdul nou s'afegeix al final (14, 15…).
+- La web instal·lable ([041](decisions/041-web-installable-i-avisos-sense-push.md)) no és un mòdul: va amb la interfície des del 01.
+- Les decisions existents no s'editen. On diguin «resta de la 04» (per exemple, la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), la [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) o la spec 04 arxivada), vol dir el **09**. On diguin «mòdul 05» sense lletra, vol dir el 05a i el 05b junts.
+
+<a id="numeracio"></a>
+**Correspondència amb altres numeracions**
+| Aquest pla | Mapa de la plataforma v8 | Document de funcionalitats (0–11, P-03) | Textos antics |
+|---|---|---|---|
+| 00 Base comuna | M00 Base | 0 Base comuna | — |
+| 01 Socis i carnet digital | M01 Socis i carnet | 1 Socis i carnet | — |
+| 02 Activitats | M02 Cursos i M03 Sortides | 2 Cursos i 3 Sortides | — |
+| 03 Material | M04 Material | 4 Material i cost per participant | — |
+| 04 Tresoreria, part mínima | M05a Tresoreria: nucli | part de 5 Tresoreria | «04 mínim»; «M05a, tresoreria: nucli» (repositori anterior) |
+| 05a Alta del mètode de pagament i mandats | part de M05b Pagaments | part de 5 Tresoreria | «mòdul 05» |
+| 05b Cobraments | part de M05b Pagaments | part de 5 Tresoreria | «mòdul 05» |
+| 06 Llicències | M06 Llicències | 6 Llicències | — |
+| 07 Web pública | M07a Web i M07b Ajuda | 7 Web pública (i ajuda) | — |
+| 08 Dashboard | M09 Dashboard | 9 Dashboard | — |
+| 09 Marge, despeses, ajuts i facturació | M05c Marge, factures i ajuts | part de 5 Tresoreria | «resta de la 04» |
+| 10 Missatges i xat per activitat | M07c Missatges | part de 7 (missatges) | — |
+| 11 Departament d'Història i conferències | M08 Història | 8 Departament d'Història | — |
+| 12 Idees noves | M11 Idees | 10 Comunitat i idees | — |
+| 13 Botiga en línia | M10 Botiga | 11 Botiga en línia | — |
+| (no és mòdul) | M12 PWA | — | Web instal·lable (041) |
 
 <a id="index"></a>
 ## 2. Índex
-1. [Estat dels mòduls](#estat)
+1. [Estat i numeració dels mòduls](#estat) · [correspondència](#numeracio)
 2. [Índex](#index)
 3. [Regles generals](#regles)
 4. [Glossari](#glossari)
-5. [Plantilla de secció de mòdul](#plantilla)
-6. [Mòdul 01 — Socis i carnet digital](#M01)
+5. [Plantilla de secció de mòdul](#plantilla) (l'ordre del fitxer és l'ordre en què s'han escrit els mòduls, no el número)
+6. [Mòdul 01 — Socis i carnet digital](#M01) · [resum](#M01-resum)
    1. [Intenció, abast i fora d'abast](#M01-1-intencio)
    2. [Dependències](#M01-2-dependencies)
    3. [Capacitats i històries d'usuari](#M01-3-capacitats)
@@ -51,15 +75,22 @@ La web instal·lable ([041](decisions/041-web-installable-i-avisos-sense-push.md
    12. [Seguretat i RGPD](#M01-12-seguretat)
    13. [Riscos, supòsits i dubtes](#M01-13-riscos)
    14. [Què cal aprovar abans de començar](#M01-14-aprovar)
-7. [Mòdul 04 — Tresoreria, part mínima](#M04)
+7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
-8. [Mòdul 05a — Alta del mètode de pagament i mandats](#M05a)
+8. [Mòdul 05a — Alta del mètode de pagament i mandats](#M05a) · [resum](#M05a-resum)
    1. [Intenció](#M05a-1-intencio) · 2. [Dependències](#M05a-2-dependencies) · 3. [Capacitats](#M05a-3-capacitats) · 4. [Rols](#M05a-4-rols) · 5. [Processos](#M05a-5-processos) · 6. [Entitats](#M05a-6-entitats) · 7. [Regles](#M05a-7-regles)
    8. [Serveis](#M05a-8-serveis) · 9. [Criteris](#M05a-9-criteris) · 10. [Tasques](#M05a-10-tasques) · 11. [Proves](#M05a-11-proves) · 12. [Seguretat](#M05a-12-seguretat) · 13. [Riscos](#M05a-13-riscos) · 14. [Aprovar](#M05a-14-aprovar)
-9. [Mòdul 05b — Cobraments](#M05b)
+9. [Mòdul 05b — Cobraments](#M05b) · [resum](#M05b-resum)
    1. [Intenció](#M05b-1-intencio) · 2. [Dependències](#M05b-2-dependencies) · 3. [Capacitats](#M05b-3-capacitats) · 4. [Rols](#M05b-4-rols) · 5. [Processos](#M05b-5-processos) · 6. [Entitats](#M05b-6-entitats) · 7. [Regles](#M05b-7-regles)
    8. [Serveis](#M05b-8-serveis) · 9. [Criteris](#M05b-9-criteris) · 10. [Tasques](#M05b-10-tasques) · 11. [Proves](#M05b-11-proves) · 12. [Seguretat](#M05b-12-seguretat) · 13. [Riscos](#M05b-13-riscos) · 14. [Aprovar](#M05b-14-aprovar)
+10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum)
+   1. [Intenció](#M02-1-intencio) · 2. [Dependències](#M02-2-dependencies) · 3. [Capacitats](#M02-3-capacitats) · 4. [Rols](#M02-4-rols) · 5. [Processos](#M02-5-processos) · 6. [Entitats](#M02-6-entitats) · 7. [Regles](#M02-7-regles)
+   8. [Serveis](#M02-8-serveis) · 9. [Criteris](#M02-9-criteris) · 10. [Tasques](#M02-10-tasques) · 11. [Proves](#M02-11-proves) · 12. [Seguretat](#M02-12-seguretat) · 13. [Riscos](#M02-13-riscos) · 14. [Aprovar](#M02-14-aprovar)
+11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum)
+   1. [Intenció](#M03-1-intencio) · 2. [Dependències](#M03-2-dependencies) · 3. [Capacitats](#M03-3-capacitats) · 4. [Rols](#M03-4-rols) · 5. [Processos](#M03-5-processos) · 6. [Entitats](#M03-6-entitats) · 7. [Regles](#M03-7-regles)
+   8. [Serveis](#M03-8-serveis) · 9. [Criteris](#M03-9-criteris) · 10. [Tasques](#M03-10-tasques) · 11. [Proves](#M03-11-proves) · 12. [Seguretat](#M03-12-seguretat) · 13. [Riscos](#M03-13-riscos) · 14. [Aprovar](#M03-14-aprovar)
+12. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable)
 
 <a id="regles"></a>
 ## 3. Regles generals (valen per a tots els mòduls)
@@ -99,7 +130,7 @@ La web instal·lable ([041](decisions/041-web-installable-i-avisos-sense-push.md
 - Sistema de disseny de les decisions [030](decisions/030-sistema-de-disseny.md) a [034](decisions/034-patrons-magic-portfolio.md): tokens, dos temes, estats amb símbol, text i color, objectiu WCAG 2.2 AA (checklist B8).
 
 **Metodologia aplicada**
-Les skills que es van demanar (spec-driven-development, product-capability, intent-driven-development, planning-and-task-breakdown, blueprint, contract-first, security-and-hardening, django-patterns, django-security, postgres-patterns, documentation-and-adrs, doubt-driven-development i accessibility) **no estan instal·lades**. La plantilla de la secció 5 n'aplica l'estructura a mà: intenció i capacitats (1, 3), contracte primer (8), blueprint de dades (6), tasques per dependències (10), seguretat (12) i revisió de dubtes (13). El mateix val per als mòduls 04, 05a i 05b.
+Les skills que es van demanar (spec-driven-development, product-capability, intent-driven-development, planning-and-task-breakdown, blueprint, contract-first, security-and-hardening, django-patterns, django-security, postgres-patterns, documentation-and-adrs, doubt-driven-development i accessibility) **no estan instal·lades**. La plantilla de la secció 5 n'aplica l'estructura a mà: intenció i capacitats (1, 3), contracte primer (8), blueprint de dades (6), tasques per dependències (10), seguretat (12) i revisió de dubtes (13). El mateix val per als mòduls 04, 05a, 05b, 02 i 03.
 
 <a id="glossari"></a>
 ## 4. Glossari
@@ -140,11 +171,36 @@ S'amplia a cada mòdul. Els termes de la spec 00 (persona, compte personal, comp
 | Devolució | Retorn de diners que inicia el club (total o parcial). És un moviment nou; la comissió no es recupera | Spec 04, RN-T11 |
 | Rebut (justificant) | Document que rep qui paga, amb referència, concepte, import, departament, data i mètode. No és una factura (P-47) | Spec 04, annex D |
 | Nivells de producció | Nivell 1: dades reals només per recollir el mètode de pagament i els mandats, cap cobrament real. Nivell 2: cobraments reals | [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) |
+| Activitat | Curs (una convocatòria d'un curs o d'una especialitat) o sortida. Té departament, places, preus i estat ([M02-5](#M02-5-processos)). Les conferències s'hi afegiran amb l'11 | F §4 i §5 |
+| Catàleg de cursos / d'especialitats | Dos catàlegs separats de fitxes reutilitzables amb preu de soci i de no soci. Els cursos són formació per nivells; les especialitats, formacions concretes que s'afegeixen a un nivell | F §4 |
+| Convocatòria | Cada edició d'un curs o d'una especialitat, amb dates, places, preu i sessions | F §4 |
+| Sessió | Classe d'un curs: teoria (aula), piscina o mar, amb lloc, hora i instructors. Se n'hi poden afegir quan calgui | F §4 |
+| Classe de reforç | Sessió extra per a un alumne que no assoleix el nivell, sense moure el grup. Té cost i és un ús nou de material | F 9.17; resposta del 22/10/2026 |
+| Inscripció | Lligam d'una persona (sòcia o convidada) amb una activitat, amb el seu preu i el seu càrrec. Estats a [M02-5](#M02-5-processos) | F §4 i §5 |
+| Llista d'espera i oferta de plaça | Inscripcions sense plaça, per ordre. Quan se n'allibera una, el primer rep una oferta amb un termini per acceptar-la | F §4 |
+| Programa del dia | Blocs horaris d'una sortida (trobada, briefing, immersió, dinar, tornada) | F §5 |
+| Tipus i subtipus de sortida | Tipus: immersió, medi ambient, Sèniors, jornada oberta. Subtipus (només medi ambient): la mena d'acció, per exemple una neteja; la llista és ampliable | F §5; resposta del 22/10/2026 |
+| Projecte de medi ambient | Agrupa sortides, resultats i, amb el 09, factures i ajuts | F §5 |
+| Resultats ambientals | Residus (en grams), espècies, observacions i fotos d'una sortida de medi ambient | F §5 |
+| Titulació | Nivell de busseig d'una persona (agència, nivell, número), declarat o obtingut en un curs del club. No és una dada de salut | [M02-6](#M02-6-entitats) |
+| Certificat del club | PDF amb número que rep l'alumne apte. No substitueix la titulació oficial | RN-M02-16 |
+| Duplicar | Crear una activitat nova a partir d'una d'anterior, sense inscrits ni pagaments ([026](decisions/026-duplicar-activitats-al-modul-02.md)) | RN-M02-21 |
+| Peça | Cada unitat de material del club, amb codi, tipus, talla o litres i estat | F §6 |
+| Tipus de material | Aletes, màscara, tub, neoprè, escarpins, ploms, jaquet, regulador, ordinador, brúixola, boia, llanterna, ganivet de seguretat i ampolla (litres lliures). Llista ampliable | F §6 |
+| Stock | Recompte de peces per tipus, talla i estat en una data | F §6 |
+| Origen del material | Propi del participant, del club o llogat a un centre de busseig | F §6 |
+| Assignació | Material concret d'un participant per a una activitat (o una classe de reforç), amb origen, cost i estat | [M03-6](#M03-6-entitats) |
+| Centre de busseig i tarifa | Centre amb què treballa el club; per a cada equip o servei, preu de cost i preu per al soci. La diferència és el marge del lloguer | F §6 |
+| Llista de lloguer | Llista per centre del material que s'ha de llogar per a una activitat | F §6 |
+| Cost d'ús | Cost per dia del material del club (amortització o tarifa fixa, [A validar]) | F §6 |
+| Material típic | Plantilla del material que cal per a un curs, una especialitat o un tipus de sortida | F §6 |
+| Revisió | Manteniment o prova periòdica d'una peça; mentre dura, la peça no es pot assignar | F 9.7 |
+| Registre d'immersió | Per a cada activitat a què una persona ha assistit, el material que ha fet servir. La bitàcola completa és del 12 | F §5 i §6 |
 
 <a id="plantilla"></a>
 ## 5. Plantilla de secció de mòdul
 
-Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`, i té aquestes 14 seccions amb ancores estables `MNN-<número>-<nom>`:
+Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de l'estat i les fonts hi ha un **resum d'una pàgina** (àncora `MNN-resum`): intenció, processos que cobreix, quantes tasques té, què el bloqueja i què cal aprovar. Després venen aquestes 14 seccions amb ancores estables `MNN-<número>-<nom>`:
 
 | # | Secció | Ancora | Què hi va |
 |---|---|---|---|
@@ -173,6 +229,16 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`, i té aquestes 1
 **Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar).
 
 **Fonts integrades:** el pla M01 del repositori anterior (aprovat amb respostes el 27/10/2026), la [spec 00](../specs/00-base-comuna/spec.md) v2, el document de funcionalitats (F §3 i processos 9.2 a 9.5 i 9.13), el mapa de la plataforma v8 i les decisions 035–047. Per la [047](decisions/047-planning-font-unica-de-l-especificacio.md), aquesta secció **és** l'especificació del M01: no hi ha cap `specs/01-…`.
+
+<a id="M01-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Tenir els socis, les quotes anuals i el carnet digital a la plataforma, perquè la secretaria deixi Excel i correu, cada soci vegi les seves dades i el seu carnet, i Cluber es pugui deixar. Cap altre mòdul no funciona sense aquest. |
+| **Processos que cobreix** | P-M01-A Alta de soci · P-M01-B Canvi de tipus · P-M01-C Baixa i readmissió · P-M01-D Renovació anual de quotes · P-M01-E Carnet i verificació pública · P-M01-F RGPD: exportar i esborrar · P-M01-G Importació de Cluber en dues fases (F 9.2 a 9.5 i 9.13) |
+| **Tasques** | 29 (T-M01-01 a T-M01-29), incloses les peces de la 00 que el 01 necessita |
+| **Què el bloqueja** | Res per començar. La importació final espera el 05a (nivell 1) i la mostra anonimitzada de Cluber [A validar: tresorer, S-M01-16] |
+| **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). Continua obert sense bloquejar: la matriu dels 13 rols (junta, P-04) i els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
 
 <a id="M01-1-intencio"></a>
 ## M01-1 Intenció, abast i fora d'abast
@@ -209,7 +275,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`, i té aquestes 1
 - Moviments de tresoreria, comissions i conciliació (04).
 - Llicències completes: preus, renovacions, no socis, tramitació (06, [036](decisions/036-fecdas-alia.md)).
 - **Avatars de fauna marina:** part futura (Could). El M01 només en deixa preparada la llavor (vegeu RN-M01-30).
-- Bitàcola i insígnies (P-38). Missatges. Botigues d'apps i notificacions push ([041](decisions/041-web-installable-i-avisos-sense-push.md)).
+- Bitàcola i insígnies (12; P-38). Missatges (10). Botigues d'apps i notificacions push ([041](decisions/041-web-installable-i-avisos-sense-push.md)).
 - Dades de salut, incloent-hi la data del certificat mèdic (P-07).
 - Data de naixement i relació amb tutors, fins que es respongui P-33 / Q-09.
 
@@ -244,7 +310,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`, i té aquestes 1
 | 02 | Saber si una persona és sòcia (preu de soci) |
 | 07 | Botó «Fer-se soci» de la web pública |
 | 08 | Recomptes de socis per tipus i estat |
-| Idees noves | Llavor de l'avatar fixada en l'alta |
+| 12 Idees noves | Llavor de l'avatar fixada en l'alta |
 
 <a id="M01-3-capacitats"></a>
 ## M01-3 Capacitats i històries d'usuari
@@ -773,11 +839,21 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 <a id="M04"></a>
 # Mòdul 04 — Tresoreria, part mínima
 
-**Estat: escrit**, pendent d'aprovació.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M04-14](#M04-14-aprovar)).
 
-**Fonts integrades:** la [spec 04](../specs/04-tresoreria/spec.md) v2 (aprovada amb canvis el 27/10/2026), les decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md), l'arquitectura §4 i §9.1 i la [spec 00](../specs/00-base-comuna/spec.md) (RN-60 a RN-76, HU-21). Quan aquesta secció s'aprovi, la spec 04 passa a l'arxiu ([047](decisions/047-planning-font-unica-de-l-especificacio.md)).
+**Fonts integrades:** la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) v2 (aprovada amb canvis el 27/10/2026), les decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md), l'arquitectura §4 i §9.1 i la [spec 00](../specs/00-base-comuna/spec.md) (RN-60 a RN-76, HU-21). La spec 04 v2 és a l'arxiu des de l'aprovació d'aquesta secció ([047](decisions/047-planning-font-unica-de-l-especificacio.md)).
 
 **Identificadors.** Es mantenen els de la spec 04 (HU-T, CA-T, RN-T, LT, VT, QT) perquè ja els citen la 045 i `pendents.md`. Els nous continuen la numeració (RN-T24, CA-T16…). Els requisits d'experiència de pagament de l'annex D de la spec 04 passen al [M05b](#M05b-5-processos).
+
+<a id="M04-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Que el tresorer sàpiga en tot moment quant hi ha a cada compte, de quin departament és cada euro, què ha arribat al banc i que cap moviment s'ha modificat ni esborrat. És la base dels pagaments (05a i 05b) i del marge (09). |
+| **Processos que cobreix** | P-M04-A Cobrament confirmat → ingrés · P-M04-B Devolució o retorn · P-M04-C Anul·lar un moviment · P-M04-D Traspàs i arqueig · P-M04-E Conciliar l'extracte · P-M04-F Liquidació del proveïdor o de la remesa · P-M04-G Exportar per a la gestoria |
+| **Tasques** | 19 (T-M04-01 a T-M04-19) |
+| **Què el bloqueja** | T-M04-13 (liquidacions) espera el format de PaynoPain (P-45 punt 9) [A verificar]. La conciliació real espera el format de l'extracte [A verificar: banc]; es construeix amb el supòsit CSV |
+| **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-T24 i RN-T25 ([M04-14](#M04-14-aprovar)). Els departaments [A validar: junta] no bloquegen |
 
 <a id="M04-1-intencio"></a>
 ## M04-1 Intenció, abast i fora d'abast
@@ -804,11 +880,11 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 - Exportació CSV per a la gestoria.
 
 **Fora d'abast.**
-- Resta de la 04 (fase 2): marge per activitat, despeses amb factura, ajuts i justificació, facturació i Verifactu (P-02, P-47), tancament de període, pressupostos.
+- **09** (fase 2): marge per activitat, despeses amb factura, ajuts i justificació, facturació i Verifactu (P-02, P-47), tancament de període, pressupostos.
 - Integració amb el proveïdor, notificacions, mandats, remeses, pantalles de pagament (05a i 05b). La 04 només ofereix els serveis de [M04-8](#M04-8-serveis).
 - Registre manual de cobraments: bloquejat per P-12 (RN-72 de la 00).
 - Connexió directa amb el banc (PSD2 o agregadors): l'extracte entra en fitxer.
-- Despeses que no són comissions: s'exclouen amb motiu fins a la resta de la 04.
+- Despeses que no són comissions: s'exclouen amb motiu fins al 09.
 - Monedes que no siguin l'euro.
 
 <a id="M04-2-dependencies"></a>
@@ -826,7 +902,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | 01 | Referència de transferència per mostrar com pagar una quota; estat de la quota (T11) |
 | 05a | Crear el compte de trànsit del proveïdor quan es configura (`treasury.create_transit_account`) |
 | 05b | Registrar ingressos, comissions, devolucions, retorns i liquidacions; referència de transferència |
-| Resta de la 04 | Moviments, comptes i departaments com a base del marge i de les despeses |
+| 09 | Moviments, comptes i departaments com a base del marge i de les despeses |
 | 08 | Saldos i moviments (només lectura) |
 
 <a id="M04-3-capacitats"></a>
@@ -1027,8 +1103,8 @@ Regles de la 00 que la 04 no canvia (027, RN-76): RN-60 a RN-73.
 | RN-T21 | **[A verificar: PaynoPain, P-45 punt 9]** Una liquidació té brut, comissions, net, data i la llista de cobraments. Si el proveïdor no en dona el detall, el tresorer casa la línia del banc amb els cobraments del període | 043; `integracio-paylands.md` §7 |
 | RN-T22 | Dos nivells: departament i centre de cost (VT-02) | 013; Q-17 |
 | RN-T23 | La llista de departaments i centres de cost la fixa la junta; d'inici només hi ha les de CA-T14.1 | RN-74 |
-| **RN-T24** | **Nova.** Amb la domiciliació pròpia ([044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md)), el «proveïdor» de les domiciliacions és el servei de remeses del banc. Té el seu compte de trànsit («Remeses SEPA») i cada abonament d'una remesa es tracta com una liquidació (RN-T21) amb els rebuts que conté. Si el banc abona rebut a rebut o la remesa sencera és [A verificar: banc, P-45 punt 5] | 043 (e); 044 |
-| **RN-T25** | **Nova.** «Anul·lat» d'un moviment és un estat **derivat**: un moviment està anul·lat si té un contramoviment que el referencia. Així no cal cap UPDATE a la taula de moviments | RNF-T2; dubte 1 de [M04-13](#M04-13-riscos) |
+| **RN-T24** | **Nova, aprovada.** Amb la domiciliació pròpia ([044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md)), el «proveïdor» de les domiciliacions és el servei de remeses del banc. Té el seu compte de trànsit («Remeses SEPA») i cada abonament d'una remesa es tracta com una liquidació (RN-T21) amb els rebuts que conté. Si el banc abona rebut a rebut o la remesa sencera és [A verificar: banc, P-45 punt 5] | 043 (e); 044 |
+| **RN-T25** | **Nova, aprovada.** «Anul·lat» d'un moviment és un estat **derivat**: un moviment està anul·lat si té un contramoviment que el referencia. Així no cal cap UPDATE a la taula de moviments | RNF-T2; dubte 1 de [M04-13](#M04-13-riscos) |
 
 **Valors proposats (spec 04, §10.1).** VT-01 comptes inicials «Caixa» i «Banc principal»; VT-02 dos nivells; VT-03 referència `PREFIX-XXXXX-C` amb cinc caràcters de l'alfabet sense 0, O, 1 ni I i un caràcter de control (Luhn mod N); VT-04 «General / Llicències» provisional; VT-05 repartiment proporcional i el cèntim que sobra al cobrament més gran; VT-06 ajust d'arqueig a «General / Ajustos de caixa» amb motiu.
 
@@ -1229,21 +1305,34 @@ T-M04-13 és l'única tasca que depèn del proveïdor; la resta es pot fer abans
 <a id="M04-14-aprovar"></a>
 ## M04-14 Què cal aprovar abans de començar
 
-1. **Aquesta secció del M04** (responsable del projecte). En aprovar-la, la spec 04 v2 passa a l'arxiu (047).
-2. **RN-T24** (trànsit «Remeses SEPA» i remesa com a liquidació) i **RN-T25** (anul·lat derivat): són regles noves respecte de la spec 04 (responsable del projecte i tresorer).
-3. **S-M04-01 i S-M04-07** no bloquegen: es comença només amb «General».
-4. **T-M04-13** espera la resposta de P-45 punt 9; la resta de tasques no.
+**Aprovat el 27/10/2026** pel responsable del projecte:
+| # | Punt | Resposta |
+|---|---|---|
+| 1 | Aquesta secció del M04 | Aprovada. La spec 04 v2 passa a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md) (047) |
+| 2 | RN-T24 (trànsit «Remeses SEPA») i RN-T25 (anul·lat derivat) | Aprovades |
+| 3 | S-M04-01 i S-M04-07 | No bloquegen: es comença només amb «General» |
+| 4 | T-M04-13 | Continua esperant P-45 punt 9 [A verificar: PaynoPain] |
 
 ---
 
 <a id="M05a"></a>
 # Mòdul 05a — Alta del mètode de pagament i mandats
 
-**Estat: escrit**, pendent d'aprovació.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar].
 
 **Fonts:** decisions [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); arquitectura §4.2, §4.3 i §4.9 (on diu Stripe, s'aplica la 042); [`integracio-paylands.md`](integracio-paylands.md); checklist (C9, G3 i els punts «N1»).
 
 **Proveïdor.** Tot el que toca el proveïdor de pagaments passa per l'**adaptador** ([M05a-8](#M05a-8-serveis)). El proveïdor concret no està triat (P-44, P-45): tot el que en depèn porta **[A verificar]**. La domiciliació es planifica amb la **044** (IBAN i mandat xifrats a la plataforma), que és **Proposada**: si el banc custodia els mandats o es tria un proveïdor amb domiciliació (alternatives 1 i 2 de la 044), canvia només la custòdia ([M05a-13](#M05a-13-riscos)).
+
+<a id="M05a-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Que cada soci tingui un mètode per pagar la quota abans de la primera remesa de la plataforma: recollir mandats SEPA nous en producció al nivell 1 (dades reals, cap cobrament), amb l'IBAN xifrat (044) i el proveïdor de targeta darrere de l'adaptador. |
+| **Processos que cobreix** | P-M05a-A Triar el mètode de pagament · P-M05a-B Signar el mandat · P-M05a-C Canviar l'IBAN o revocar · P-M05a-D Guardar una targeta (condicional) · P-M05a-E Campanya de mandats · P-M05a-F Pas al nivell 1 · P-M05a-G Rotació de la clau |
+| **Tasques** | 21 (T-M05a-01 a T-M05a-21) |
+| **Què el bloqueja** | La confirmació de l'ampliació de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (T-M05a-07 a T-M05a-10). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
+| **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden la confirmació de la 044, els textos (junta) i l'autorització del nivell 1 (junta) |
 
 <a id="M05a-1-intencio"></a>
 ## M05a-1 Intenció, abast i fora d'abast
@@ -1652,23 +1741,33 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 <a id="M05a-14-aprovar"></a>
 ## M05a-14 Què cal aprovar abans de començar
 
-1. **Aquesta secció del 05a** (responsable del projecte).
-2. **La 044** (IBAN i mandat xifrats): acceptar-la, o triar l'alternativa 1 o 2. Bloqueja T-M05a-07 a T-M05a-10 (junta, amb la resposta del banc).
-3. **Textos** del mandat, la invitació i el correu G3 (junta), quan hi hagi l'identificador de creditor.
-4. **Format de la referència del mandat** (banc) i **titular diferent del soci** (junta i banc).
-5. **Proveïdor** (P-44, P-45): només bloqueja T-M05a-05 i T-M05a-12.
-6. **Autorització del nivell 1** (junta, 025): quan el 05a estigui acabat i provat, no ara.
+**Aprovat el 27/10/2026** pel responsable del projecte. Queda:
+1. **La 044** (IBAN i mandat xifrats). El responsable del projecte la vol acceptar «com a camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats». Abans s'hi ha afegit la norma del fitxer de la remesa i s'han fet explícites la rotació i la prova de restauració de la clau; **falta que el responsable del projecte confirmi l'ampliació** per marcar-la acceptada. Fins llavors, T-M05a-07 a T-M05a-10 no es comencen.
+2. **Textos** del mandat, la invitació i el correu G3 (junta), quan hi hagi l'identificador de creditor [A verificar: banc].
+3. **Format de la referència del mandat** [A verificar: banc] i **titular diferent del soci** [A validar: junta i banc].
+4. **Proveïdor** (P-44, P-45) [A verificar: PaynoPain]: només bloqueja T-M05a-05 i T-M05a-12.
+5. **Autorització del nivell 1** (junta, 025): quan el 05a estigui acabat i provat.
 
 ---
 
 <a id="M05b"></a>
 # Mòdul 05b — Cobraments: targeta, Bizum, domiciliació i transferència
 
-**Estat: escrit**, pendent d'aprovació.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar].
 
-**Fonts:** decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [025](decisions/025-dos-nivells-de-produccio.md), [040](decisions/040-impagat-es-marca-a-ma.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md); annex D de la [spec 04](../specs/04-tresoreria/spec.md) (experiència de pagament, que passa aquí); arquitectura §4.2 a §4.8; [`integracio-paylands.md`](integracio-paylands.md); spec 00 (RN-30 a RN-33, RN-60 a RN-73).
+**Fonts:** decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [025](decisions/025-dos-nivells-de-produccio.md), [040](decisions/040-impagat-es-marca-a-ma.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md); annex D de la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) (experiència de pagament, que passa aquí); arquitectura §4.2 a §4.8; [`integracio-paylands.md`](integracio-paylands.md); spec 00 (RN-30 a RN-33, RN-60 a RN-73).
 
 **Proveïdor.** Targeta i Bizum passen per l'**adaptador** del [05a](#M05a-8-serveis). Tot el que depèn del proveïdor porta **[A verificar]** (P-44, P-45). La domiciliació es fa amb **remeses pain.008** que la plataforma genera i el tresorer puja al banc (043 (e), 044): l'app no mou mai diners sola.
+
+<a id="M05b-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Cobrar dins l'app quotes, inscripcions i llicències amb targeta, Bizum, domiciliació i transferència, sense donar mai res per pagat pel navegador i quadrant-ho tot amb la tresoreria. És el criteri per deixar Cluber (nivell 2). |
+| **Processos que cobreix** | P-M05b-A Targeta · P-M05b-B Bizum · P-M05b-C Transferència · P-M05b-D Notificació del proveïdor · P-M05b-E Remesa de quotes · P-M05b-F Retornat, reintent i alternativa · P-M05b-G Devolució · P-M05b-H Liquidació del proveïdor · P-M05b-I Pas al nivell 2 |
+| **Tasques** | 20 (T-M05b-01 a T-M05b-20) |
+| **Què el bloqueja** | Remeses (T-M05b-10 i T-M05b-11): resposta del banc (P-45 punt 5) [A verificar]. Targeta i Bizum contra un proveïdor real i liquidacions (T-M05b-14): PaynoPain (P-44, P-45) [A verificar]; amb `FakeProvider` es pot avançar |
+| **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-M05b-14 ([048](decisions/048-reobrir-carrec-retornat.md)) i RN-M05b-15 ([M05b-14](#M05b-14-aprovar)). Queden RN-M05b-16 i RN-M05b-18 (junta, configurables) i l'autorització del nivell 2 (junta). El 02 proposa una ampliació petita del seu contracte ([M02-14](#M02-14-aprovar)) |
 
 <a id="M05b-1-intencio"></a>
 ## M05b-1 Intenció, abast i fora d'abast
@@ -1701,7 +1800,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 **Fora d'abast.**
 - Registre manual i efectiu (P-12, RN-72 de la 00).
 - Facturació i Verifactu (P-02, P-47).
-- Pagaments sortints en fitxer pain.001 (P-45 punt 12; resta de la 04).
+- Pagaments sortints en fitxer pain.001 (P-45 punt 12; 09).
 - Iniciació de transferència per PSD2 [A verificar: P-45 punt 14].
 - Pagaments parcials i saldo a favor (QT-05). L'operativa `PARTIAL_AUTHORIZATION` de Paylands no es fa servir.
 
@@ -1717,7 +1816,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 | 05a | Adaptador, notificacions, `fee_payment_method`, `active_mandate`, `mandates_for_remittance`, `record_collection`, targetes guardades, salvaguarda del nivell |
 | Externes | Proveïdor: ordres, notificacions, devolucions, liquidacions [A verificar: P-45]. Banc: format pain.008, terminis de presentació, comissions per rebut i per retornat, fitxer de retornats [A verificar: P-45 punt 5] |
 
-**Què depèn del 05b.** El nivell 2 de producció i la baixa de Cluber (025); els mòduls 02 i 06 (cobrar inscripcions i llicències); la resta de la 04 (comissions per activitat); el 08 (cobraments i pendents).
+**Què depèn del 05b.** El nivell 2 de producció i la baixa de Cluber (025); els mòduls 02 i 06 (cobrar inscripcions i llicències); el 09 (comissions per activitat); el 08 (cobraments i pendents).
 
 <a id="M05b-3-capacitats"></a>
 ## M05b-3 Capacitats i històries d'usuari
@@ -1821,7 +1920,7 @@ Com la targeta, amb aquestes diferències:
 | 3 | Tresorer | Confirma. Es crea la remesa en esborrany, un rebut per quota (amb identificador d'extrem a extrem únic) i un intent «enviat al banc» per càrrec | — |
 | 4 | Sistema | Envia l'**avís previ** a cada deutor: data, import, referència del mandat i identificador de creditor (017) | Correu i `socis.html#avisos` |
 | 5 | Tresorer | Quan toca presentar-la [A verificar: termini del banc], **descarrega el fitxer pain.008**. El fitxer es genera en aquell moment amb els IBAN desxifrats (`mandates_for_remittance`), no es desa, i se'n registra l'empremta | `/gestio/pagaments/remeses/{id}` |
-| 6 | Tresorer | El puja a la banca en línia del banc i marca la remesa com a «enviada al banc» | — |
+| 6 | Tresorer | El puja a la banca en línia del banc, l'esborra del dispositiu (norma de la 044) i marca la remesa com a «enviada al banc», confirmant l'esborrat | — |
 | 7 | Sistema | Registra la remesa a la 04 com a liquidació pendent del trànsit «Remeses SEPA» (RN-T24) | — |
 | 8 | Tresorer | Quan arriba l'abonament a l'extracte, el concilia (P-M04-F): cada càrrec passa a «pagat», ingrés i comissió per rebut [A verificar: banc], `members.on_fee_paid`, `payments.record_collection`, rebut al soci | `/gestio/tresoreria/conciliacio` |
 
@@ -1918,8 +2017,8 @@ App `payments` (la mateixa del 05a).
 | RN-M05b-11 | Avís previ a cada deutor almenys **14 dies naturals** abans de la data de cobrament, si el text del mandat no fixa un termini més curt [A verificar: banc; A validar: tresorer]. Porta data, import, referència del mandat i identificador de creditor | 017; reglament SEPA |
 | RN-M05b-12 | El fitxer pain.008 es genera a demanda, no es desa; se'n registra l'empremta i qui l'ha descarregat. La versió de l'esquema i el termini de presentació són del banc [A verificar: P-45 punt 5] | 044 |
 | RN-M05b-13 | Una remesa enviada es concilia a la 04 com a liquidació del trànsit «Remeses SEPA» (RN-T24). Els càrrecs passen a «pagat» en confirmar la conciliació | RN-T24; RN-71 |
-| RN-M05b-14 | **Després de «retornat»** (Q-22 de la 00, que la 00 deixa a aquesta secció): el càrrec passa «retornat → pendent» quan el tresorer confirma un reintent o l'alternativa de pagament, amb motiu i registre. El retorn i la seva comissió ja són a la tresoreria; el nou pagament genera un ingrés nou | RN-67 de la 00; proposta [A validar: tresorer] |
-| RN-M05b-15 | Reintent controlat segons el codi de motiu [A verificar: banc, quins codis arriben]: **fons insuficients** (per exemple AM04) → un reintent a la remesa següent; **refús del deutor** (per exemple MS02, MD06) → cap reintent, alternativa de pagament; **compte tancat o sense mandat** (per exemple AC04, MD01) → mandat «bloquejat», alternativa i petició de mandat nou. Màxim 2 intents per domiciliació per càrrec (`max_direct_debit_attempts`) [A validar: tresorer] | 017 («mai de manera indefinida») |
+| RN-M05b-14 | **Després de «retornat»** (Q-22 de la 00): el càrrec passa «retornat → pendent» quan el tresorer confirma un reintent o l'alternativa de pagament, amb motiu i registre. El retorn i la seva comissió ja són a la tresoreria; el nou pagament genera un ingrés nou | **Aprovada:** [048](decisions/048-reobrir-carrec-retornat.md) |
+| RN-M05b-15 | Reintent controlat segons el codi de motiu [A verificar: banc, quins codis arriben]: **fons insuficients** (per exemple AM04) → un reintent a la remesa següent; **refús del deutor** (per exemple MS02, MD06) → cap reintent, alternativa de pagament; **compte tancat o sense mandat** (per exemple AC04, MD01) → mandat «bloquejat», alternativa i petició de mandat nou. Màxim 2 intents per domiciliació per càrrec (`max_direct_debit_attempts`). Els codis concrets que arriben, [A verificar: banc] | 017; **aprovada i validada pel tresorer** |
 | RN-M05b-16 | Qui assumeix la comissió de retorn: el club, a «General / Quotes de socis» (013), mentre la junta no decideixi una altra cosa [A validar: junta] | 013; 017 punt 4 |
 | RN-M05b-17 | Devolució total → càrrec «anul·lat» (RN-67) i rebut anul·lat; devolució parcial → el càrrec continua «pagat» i el rebut porta la devolució anotada. La comissió no es recupera; la suma de devolucions no supera l'import (RN-T11) | RN-67; 013; Q-22 |
 | RN-M05b-18 | Conseqüències d'un retorn al soci: avís al tresorer (`members.on_fee_returned`); l'impagat el marca el tresorer a mà (040). Mentre el càrrec no sigui «pagat», el carnet deixa de ser vàlid per RN-M01-18 [A validar: junta] | 040; M01 |
@@ -2060,7 +2159,7 @@ App `payments` (la mateixa del 05a).
 
 - **Targetes:** mai a l'app; camp o pàgina del proveïdor; CSP que només permet el domini del proveïdor.
 - **Confirmació al servidor:** firma o empremta, IP, idempotència, comprovació d'import; mai pel navegador.
-- **Fitxer de remesa:** conté IBAN; generat a demanda, no desat, descàrrega amb sessió d'administració i TOTP, empremta i registre; el tresorer l'ha d'esborrar del seu dispositiu després de pujar-lo [A validar: tresorer].
+- **Fitxer de remesa:** conté IBAN; generat a demanda, no desat, descàrrega amb sessió d'administració i TOTP, empremta i registre. Norma d'esborrat del dispositiu del tresorer: [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md), ampliació (el mateix dia, sense correu ni carpetes sincronitzades); en marcar la remesa com a enviada, el tresorer confirma que l'ha esborrat.
 - **Secrets:** claus del proveïdor per entorn en variables d'entorn; claus de producció només al nivell 2.
 - **Enllaços de convidat:** caducitat, limitació d'intents i testimoni que no apareix als registres (00).
 - **Mínim de dades:** el proveïdor no rep noms ni DNI; els conceptes porten el número de soci o la referència.
@@ -2090,7 +2189,7 @@ App `payments` (la mateixa del 05a).
 | S-M05b-04 | Devolucions de Bizum per API (P-45 punt 7) | No; transferència des del banc | PaynoPain |
 | S-M05b-05 | Versió pain.008, terminis de presentació, comissions per rebut i per retornat, fitxer de retornats (P-45 punt 5) | pain.008 estàndard; retornats a l'extracte | Banc |
 | S-M05b-06 | Termini de l'avís previ (RN-M05b-11) | 14 dies naturals | Banc i tresorer |
-| S-M05b-07 | Regles de reintent per codi i màxim d'intents (RN-M05b-15) | Les de la taula; 2 intents | Tresorer |
+| S-M05b-07 | Regles de reintent per codi i màxim d'intents (RN-M05b-15) | **Resolt:** validades pel tresorer | — |
 | S-M05b-08 | Comissió de retorn (RN-M05b-16) | La paga el club | Junta |
 | S-M05b-09 | Carnet amb una quota retornada (RN-M05b-18) | No vàlid fins que es pagui | Junta |
 | S-M05b-10 | Recordatori de transferència (30 dies) | Sí | Tresorer |
@@ -2104,15 +2203,1194 @@ App `payments` (la mateixa del 05a).
 3. **Retorns després del «pagat»:** és el cas normal amb remeses (el banc abona i després carrega els retornats). Per això el retorn és «pagat → retornat», com preveu RN-67. Propietari: cap (coherent).
 4. **El carnet depèn de la quota pagada (RN-M01-18) però l'impagat és manual (040):** un retorn fa el carnet no vàlid abans que el tresorer marqui res. Pot ser el que vol el club o no. Propietari: junta.
 5. **Pagament duplicat** (transferència i Bizum alhora): l'app no ho pot evitar del tot perquè la transferència no té notificació. Es detecta i es retorna (RN-M05b-08). Propietari: tresorer.
-6. **El fitxer de remesa surt de la plataforma amb IBAN en clar** cap al dispositiu del tresorer. És inevitable si el banc no té API; cal una norma d'esborrat al dispositiu. Propietari: tresorer.
+6. **El fitxer de remesa surt de la plataforma amb IBAN en clar** cap al dispositiu del tresorer. És inevitable si el banc no té API; la norma d'esborrat és a l'ampliació de la 044. Propietari: tresorer.
 7. **Comissió il·lustrativa** feta amb les tarifes públiques de l'opció (d); no s'ha de llegir com la tarifa del club. Propietari: tresorer.
 
 <a id="M05b-14-aprovar"></a>
 ## M05b-14 Què cal aprovar abans de començar
 
-1. **Aquesta secció del 05b** (responsable del projecte).
-2. **RN-M05b-14** («retornat → pendent» en reintentar o oferir l'alternativa) i **RN-M05b-15** (reintent per codi, màxim 2) (tresorer).
-3. **RN-M05b-16** (qui paga la comissió de retorn) i **RN-M05b-18** (carnet amb una quota retornada) (junta). No bloquegen el codi: són valors configurables.
-4. **Resposta del banc** sobre remeses (P-45 punt 5): bloqueja T-M05b-10 i T-M05b-11.
-5. **Proveïdor** (P-44, P-45): bloqueja T-M05b-04 contra un proveïdor real; amb `FakeProvider` es pot avançar.
-6. **Autorització del nivell 2** (junta, 025): quan el 05b estigui acabat i provat, no ara.
+**Aprovat el 27/10/2026** pel responsable del projecte, amb RN-M05b-14 ([048](decisions/048-reobrir-carrec-retornat.md)) i RN-M05b-15 (validada pel tresorer). Queda:
+1. **RN-M05b-16** (qui paga la comissió de retorn) i **RN-M05b-18** (carnet amb una quota retornada) [A validar: junta]. No bloquegen el codi: són valors configurables.
+2. **Resposta del banc** sobre remeses (P-45 punt 5) [A verificar: banc]: bloqueja T-M05b-10 i T-M05b-11.
+3. **Proveïdor** (P-44, P-45) [A verificar: PaynoPain]: bloqueja T-M05b-04 contra un proveïdor real; amb `FakeProvider` es pot avançar.
+4. **Autorització del nivell 2** (junta, 025): quan el 05b estigui acabat i provat.
+
+---
+
+<a id="M02"></a>
+# Mòdul 02 — Activitats (cursos i sortides)
+
+**Estat: escrit**, per aprovar pel responsable del projecte.
+
+**Fonts:** document de funcionalitats (F §4 Cursos, §5 Sortides, processos 9.1, 9.17 i 9.18), mapa de la plataforma v8 (M02 Cursos i M03 Sortides), respostes del responsable del projecte del 20/10/2026 i del 22/10/2026 (catàlegs separats i editables, classes de reforç amb cost, subtipus de medi ambient ampliables, preus configurables amb nota obligatòria en canviar-los, duplicar com a plantilla), decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (RN-30 a RN-33, RN-43, RN-60 a RN-73, V-02); seccions aprovades [M01](#M01), [M04](#M04) i [M05b](#M05b).
+
+**Proveïdor de pagaments.** El 02 no parla mai amb el proveïdor: crea el càrrec d'inscripció (00) i el cobra amb els serveis del [05b](#M05b-8-serveis), que hi parla a través de l'adaptador. Inscripcions: targeta, Bizum o transferència, mai domiciliació (017; RN-69 de la 00).
+
+<a id="M02-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Organitzar cursos i sortides de principi a fi en un sol lloc: catàlegs i preus, convocatòries i sortides (o duplicar-ne una d'anterior), inscripció i pagament dins l'app, places i llista d'espera, llista des del mòbil, avaluació, classes de reforç i certificat als cursos, i resultats ambientals i projectes a les sortides de medi ambient. Deixa cada activitat a punt perquè el 09 en calculi i en congeli el marge. |
+| **Processos que cobreix** | P-M02-A Catàlegs i preus · P-M02-B Crear o duplicar una activitat · P-M02-C Publicar i inscriure's (soci, convidat i presencial) · P-M02-D Places, llista d'espera i cancel·lacions · P-M02-E El dia de l'activitat: llista i incidències · P-M02-F Avaluació, reforç i certificat · P-M02-G Resultats ambientals i projectes · P-M02-H Fi de l'activitat i comprovacions de tancament (F 9.1, 9.17 i 9.18) |
+| **Tasques** | 27 (T-M02-01 a T-M02-27) |
+| **Què el bloqueja** | Per construir: el 05b (cobrar inscripcions) i dues peces petites de mòduls aprovats ([M02-14](#M02-14-aprovar), punts 2 i 3). Per entrar en producció: el catàleg amb preus i la política de cancel·lació [A validar: junta]. La resta són supòsits configurables ([M02-13](#M02-13-riscos)) |
+| **Què cal aprovar** | Aquesta secció; les dues ampliacions de contracte de mòduls aprovats; els supòsits S-M02-01 a S-M02-06, que fixen el comportament per defecte ([M02-14](#M02-14-aprovar)) |
+
+<a id="M02-1-intencio"></a>
+## M02-1 Intenció, abast i fora d'abast
+
+**Per què.** Avui els cursos i les sortides es munten amb Excel, correu i WhatsApp: les places, els pagaments, la llista del dia i qui necessita reforç es creuen a mà. Cap programa comercial cobreix el reforç individual sense moure el grup, ni les sortides de medi ambient amb subtipus, projectes i resultats (F §4 i §5).
+
+**Resultat esperat.**
+- El responsable de cursos i sortides crea una convocatòria o una sortida, o en duplica una d'anterior, i la publica en pocs minuts.
+- Socis i no socis s'inscriuen i paguen dins l'app; ningú no supera les places i l'excedent va a la llista d'espera.
+- L'instructor passa llista i avalua cada alumne des del mòbil; els alumnes que ho necessiten tenen classes de reforç sense moure l'horari de la resta.
+- Les sortides de medi ambient acumulen els seus resultats al seu projecte.
+- Cada activitat acaba «realitzada» amb tot el que el 09 necessita per al marge.
+
+**Com sabrem que funciona.**
+- Una sortida es fa de principi a fi (crear, inscriure, pagar, passar llista, resultats) sense cap full de càlcul.
+- Mai hi ha més inscripcions vàlides que places, tampoc amb dues inscripcions alhora (prova de concurrència).
+- Cada inscripció pagada té exactament un càrrec «pagat» i el seu ingrés a l'activitat i al departament correctes (RN-T10).
+- Un instructor no veu cap dada d'una sessió on no fa classe.
+
+**Dins de l'abast.**
+- Catàleg de cursos i catàleg d'especialitats, separats, amb preus de soci i de no soci editables.
+- Tipus de sortida, subtipus de medi ambient (ampliables) i projectes de medi ambient.
+- Activitats de dos tipus: **curs** (una convocatòria d'un curs o d'una especialitat, amb sessions) i **sortida** (amb programa del dia).
+- Duplicar una activitat ([026](decisions/026-duplicar-activitats-al-modul-02.md)); el servei queda a punt perquè l'11 el faci servir per a les conferències.
+- Inscripció del soci (compte personal), del no soci (convidat amb enllaç segur, [021](decisions/021-persones-no-socies-com-a-convidades.md)) i presencial; càrrec d'inscripció i pagament amb el 05b.
+- Places, termini de pagament, llista d'espera i ofertes de plaça; cancel·lacions i proposta de devolució al tresorer.
+- Requisits: titulació mínima i llicència vigent (avís o bloqueig, [A validar: junta, S-M02-01]).
+- Assistència per sessió o per dia, incidències operatives, avaluació per pràctica, classes de reforç amb cost, resultat apte o no apte i certificat del club en PDF.
+- Resultats ambientals (residus, espècies, observacions i fotos) i fitxa de projecte amb els acumulats.
+- Avisos per correu i a l'app (sense push, [041](decisions/041-web-installable-i-avisos-sense-push.md)): confirmació, recordatoris, canvi de programa i missatge als inscrits; horari descarregable al calendari del mòbil.
+- «Les meves activitats»: inscripcions, horari, progrés, certificats i historial.
+- Informes operatius: participants, horari imprimible, ocupació.
+
+**Fora d'abast.**
+- **Material** (necessitats, assignació, lloguer, cost): mòdul [03](#M03). El 02 només ofereix els punts d'extensió perquè el 03 s'hi enganxi.
+- **Marge, despeses amb factura (embarcació, aire, lloguer), ajuts i tancament econòmic:** mòdul 09. El 02 deixa l'activitat «realitzada» i diu què impedeix tancar-la.
+- **Xat per activitat i grups:** mòdul 10. El 02 només envia missatges d'un sentit (correu i avís).
+- **Conferències:** mòdul 11 (fa servir el servei de duplicar del 02).
+- **Llicències** (tramitar-ne, llicència d'un dia per a no socis): mòdul 06. El 02 només llegeix si la llicència és vigent.
+- **Bitàcola, hores d'immersió i insígnies:** mòdul 12 (P-38). El 02 en guarda l'assistència, que n'és la base.
+- **Web pública** (portada, pàgines de projectes): mòdul 07. El 02 ofereix el llistat i el detall de les activitats publicades.
+- Pujar observacions a Minka (F §5) i incrustar la previsió marítima d'un tercer: fora d'abast ara (vegeu RN-M02-24 i [M02-12](#M02-12-seguretat)).
+- Qualsevol dada de salut, incloent-hi certificats mèdics i aptituds (P-07).
+- Edat mínima: no hi ha data de naixement fins que es respongui P-33.
+
+<a id="M02-2-dependencies"></a>
+## M02-2 Dependències
+
+**De què depèn.**
+| Mòdul | Què en fa servir el 02 |
+|---|---|
+| 00 | Persona i dades mínimes del convidat; enllaços de convidat (V-02, RN-30 a RN-33); càrrec de tipus «inscripció» amb activitat i departament (RN-60 a RN-73); departaments; permisos per rol i per objecte (RN-43: l'instructor només veu les seves sessions); registre d'activitat; correu (annex A) i avisos; fitxers privats (annex B) |
+| 01 | `members.is_member(person, on=date)` per al preu de soci; **registre mínim de llicència** per comprovar si és vigent (cal un servei de lectura nou, [M02-14](#M02-14-aprovar)) |
+| 04 | Res directament: l'ingrés i les comissions de cada inscripció els crea el 05b amb l'activitat i el departament del càrrec (RN-T10) |
+| 05b | `payments.start_payment`, `payments.payment_status`, rebut; devolucions fetes pel tresorer (`payments.refund`, B5); avís al 02 quan un càrrec d'inscripció es paga, es retorna o es torna (cal ampliar-ho, [M02-14](#M02-14-aprovar)) |
+
+**Peces de mòduls aprovats que el 02 necessita i no hi són** (no s'editen les seccions aprovades fins que s'aprovin aquests punts):
+1. **01:** `members.licence_record(person)` (només lectura): tipus i data de caducitat del registre mínim de llicència.
+2. **00 i 05b:** quan un càrrec canvia a «pagat», «retornat» o «anul·lat», el 05b avisa el **mòdul d'origen** del càrrec (camp «mòdul d'origen» de la 00). Avui el 05b crida directament `members.on_fee_paid` (01). Proposta: un registre de la 00, `charges.register_handler(origin, handler)`, que el 05b crida per a qualsevol origen; el 01 hi passa a ser un origen més. No canvia cap regla del 05b.
+
+**Què depèn del 02.**
+| Mòdul | Què necessita |
+|---|---|
+| 03 | Activitats, dates, inscripcions i participants; senyals d'inscripció, de duplicat i de fi; punts d'extensió del formulari i del tancament |
+| 09 | Activitat, departament, estat «realitzada», comprovacions de tancament; ingressos per activitat (via 04); projectes de medi ambient per justificar ajuts |
+| 06 | Avís de llicència no vigent i enllaç per tramitar-la |
+| 07 | Llistat i detall de les activitats publicades; projectes i resultats ambientals (només els que es publiquin) |
+| 08 | Ocupació, inscripcions i assistència |
+| 10 | Inscrits d'una activitat per al xat |
+| 11 | Servei de duplicar i, si s'hi decideix, el mateix model d'inscripció |
+| 12 | Assistència de cada persona per a la bitàcola |
+
+**Dependència circular 02 ↔ 03.** El 03 necessita les activitats; el 02 necessita saber si hi ha material pendent per tancar. Es resol sense que el 02 importi el 03: el 02 emet senyals i ofereix punts d'extensió on el 03 es registra ([M02-8](#M02-8-serveis)).
+
+<a id="M02-3-capacitats"></a>
+## M02-3 Capacitats i històries d'usuari
+
+| # | Capacitat | Qui | Pantalles (mapa v8 i proposta) | Wireframe |
+|---|---|---|---|---|
+| C1 | Mantenir els catàlegs de cursos i d'especialitats, amb preus | Resp. cursos i sortides | Gestió de cursos | Falta |
+| C2 | Mantenir tipus de sortida, subtipus de medi ambient i projectes | Resp. cursos i sortides | Gestió de sortides; Projectes | Falta |
+| C3 | Crear, editar, publicar, cancel·lar i duplicar activitats | Resp. cursos i sortides | Convocatòria; Gestió de sortides | `admin.html#fitxa` (fitxa d'activitat) |
+| C4 | Sessions dels cursos i programa del dia de les sortides | Resp. cursos i sortides | Convocatòria; Programa del dia | `admin.html#programa-i-notes` |
+| C5 | Veure activitats publicades i el seu detall | Tothom | Cursos; Sortides; Detall | `publica.html#properes-activitats`; `socis.html#proximes-activitats` |
+| C6 | Inscriure's i pagar | Soci; convidat | Inscriure'm | Falta |
+| C7 | Inscripció presencial | Resp. cursos i sortides; secretaria [A validar: junta, S-M02-16] | Participants | `admin.html#participants` |
+| C8 | Places, llista d'espera i ofertes | Sistema; Resp. cursos i sortides | Participants | `admin.html#participants` |
+| C9 | Cancel·lar una inscripció o una activitat | Participant; Resp. cursos i sortides | Les meves inscripcions; Fitxa | Falta |
+| C10 | Passar llista i registrar incidències des del mòbil | Instructor; Resp. cursos i sortides | Passar llista | Falta |
+| C11 | Avaluar cada pràctica i veure el progrés | Instructor; alumne (el seu) | Avaluació; El meu progrés | Falta |
+| C12 | Proposar i confirmar classes de reforç | Instructor; Resp. cursos i sortides | Classes de reforç | Falta |
+| C13 | Resultat i certificat | Instructor; Resp. cursos i sortides | Certificats | Falta |
+| C14 | Resultats ambientals i projectes | Resp. cursos i sortides | Resultats ambientals; Projecte | Falta |
+| C15 | Avisos i missatge als inscrits; horari al calendari | Sistema; Resp. cursos i sortides | — | `socis.html#avisos` |
+| C16 | Les meves activitats: inscripcions, horari, progrés, certificats i historial | Soci; convidat (el seu) | Les meves inscripcions; Horari | `socis.html#proximes-activitats` |
+| C17 | Informes operatius | Resp. cursos i sortides | Informes | Falta |
+
+**Històries d'usuari**
+- **HU-M02-01.** Com a responsable de cursos i sortides, vull afegir un curs o una especialitat al seu catàleg i canviar-ne els preus sense tocar res més.
+- **HU-M02-02.** Com a responsable, vull afegir un subtipus de medi ambient nou quan calgui, per poder agrupar despeses i buscar ajuts per subtipus.
+- **HU-M02-03.** Com a responsable, vull crear una convocatòria a partir del catàleg, amb sessions de teoria, piscina i mar, i afegir-hi sessions quan calgui.
+- **HU-M02-04.** Com a responsable, vull duplicar una sortida de l'any passat i canviar-ne només la data, per no tornar-la a escriure.
+- **HU-M02-05.** Com a responsable, si canvio el preu que ve del catàleg, vull escriure el motiu i que el tresorer ho sàpiga.
+- **HU-M02-06.** Com a soci, vull veure les places lliures, el preu que pagaré i els requisits, i inscriure'm i pagar al moment.
+- **HU-M02-07.** Com a persona no sòcia, vull inscriure'm amb un enllaç segur sense haver de crear un compte.
+- **HU-M02-08.** Com a soci en llista d'espera, vull rebre un avís quan s'alliberi una plaça i poder-la acceptar.
+- **HU-M02-09.** Com a participant, vull cancel·lar la meva inscripció i saber què em tornaran.
+- **HU-M02-10.** Com a responsable, vull cancel·lar una sortida per mal temps i que tots els inscrits ho sàpiguen i el tresorer en tingui les devolucions preparades.
+- **HU-M02-11.** Com a instructor, vull passar llista des del mòbil al costat de la piscina, amb botons grans i encara que la cobertura sigui dolenta.
+- **HU-M02-12.** Com a instructor, vull marcar a cada pràctica si l'alumne ho ha assolit, no ho ha assolit o necessita reforç, amb una observació.
+- **HU-M02-13.** Com a instructor, vull proposar classes de reforç per a un alumne sense moure l'horari del grup.
+- **HU-M02-14.** Com a alumne, vull veure el meu progrés, les classes de reforç i el seu preu, i descarregar el certificat quan sigui apte.
+- **HU-M02-15.** Com a responsable de medi ambient, vull registrar els quilos de residus, les espècies i les fotos d'una neteja i veure'n l'acumulat al projecte.
+- **HU-M02-16.** Com a inscrit, vull rebre el programa i un recordatori, i saber-ho si el programa canvia.
+- **HU-M02-17.** Com a responsable, vull saber per què una activitat encara no es pot tancar (pagaments o material pendents).
+
+<a id="M02-4-rols"></a>
+## M02-4 Rols i permisos
+
+Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propietari vol dir **junta** (Q-01, P-04). «Les seves» vol dir les sessions on l'instructor fa classe (RN-43 de la 00).
+
+| # | Acció | Visitant | Part. no soci | Soci | Instructor | Secretaria | Resp. cursos i sortides | Resp. material | Tresorer | Resp. comunicació | Dept. Història | Junta | Administrador | Resp. botiga |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AC1 | Veure les activitats publicades i el seu detall | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí |
+| AC2 | Inscriure's i pagar | — | Propi (enllaç de convidat) | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
+| AC3 | Veure les seves inscripcions, horari, progrés i certificats | — | Propi (enllaç o compte opcional) | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
+| AC4 | Cancel·lar la seva inscripció | — | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
+| AC5 | Inscriure presencialment una altra persona | — | — | — | — | [A validar] | Sí | — | — | — | — | — | Sí | — |
+| AC6 | Mantenir catàlegs, tipus, subtipus, projectes i preus | — | — | — | — | — | Sí | — | Consulta | — | — | [A validar] | Sí | — |
+| AC7 | Crear, editar, publicar, cancel·lar i duplicar activitats | — | — | — | — | — | Sí | — | — | — | — | — | Sí | — |
+| AC8 | Llista de participants amb requisits | — | — | — | Les seves | — | Sí | Consulta | Consulta (estat de pagament) | — | — | — | Sí | — |
+| AC9 | Passar llista i registrar incidències | — | — | — | Les seves | — | Sí | — | — | — | — | — | Sí | — |
+| AC10 | Avaluar pràctiques i proposar reforç | — | — | — | Les seves | — | [A validar] | — | — | — | — | — | — | — |
+| AC11 | Confirmar o rebutjar reforç | — | — | — | — | — | Sí | — | — | — | — | — | Sí | — |
+| AC12 | Registrar apte o no apte | — | — | — | Les seves | — | — | — | — | — | — | — | — | — |
+| AC13 | Emetre el certificat | — | — | — | [A validar] | — | Sí | — | — | — | — | — | Sí | — |
+| AC14 | Resultats ambientals i fitxa de projecte | — | — | — | — | — | Sí | — | — | Consulta [A validar] | — | Consulta | Sí | — |
+| AC15 | Missatge als inscrits (correu i avís) | — | — | — | Les seves [A validar] | — | Sí | — | — | [A validar] | — | — | Sí | — |
+| AC16 | Gestionar la llista d'espera a mà (ordre, oferir) | — | — | — | — | — | Sí | — | — | — | — | — | Sí | — |
+| AC17 | Proposar una devolució per cancel·lació | — | — | — | — | — | Sí | — | — | — | — | — | Sí | — |
+| AC18 | Fer la devolució | — | — | — | — | — | — | — | Sí (B5 del 05b) | — | — | — | [A validar] | — |
+| AC19 | Veure els imports cobrats d'una activitat | — | — | — | — | — | Consulta [A validar: Q-01] | — | Sí | — | — | [A validar] | Sí | — |
+| AC20 | Informes operatius | — | — | — | Les seves | — | Sí | Consulta | Consulta | — | — | Consulta | Sí | — |
+
+**Com es llegeix amb els comptes.** Com al [M01-4](#M01-4-rols): les files «Propi» amb el compte personal (o amb l'enllaç de convidat); les de gestió amb el compte d'administrador, el rol i TOTP. Un instructor sempre entra per l'administració per passar llista (RN-20 de la 00).
+
+**Per objecte.**
+- **Instructor:** només les sessions on fa classe i els alumnes inscrits a aquestes sessions. Dels alumnes veu nom i cognoms, titulació, si la llicència és vigent (sí o no, no la data), l'assistència i les avaluacions. **No veu** document, adreça, correu, telèfon ni pagaments [A validar: junta, Q-01]. Fora de les seves sessions, «no trobat» i registre.
+- **Responsable de material:** participants i necessitats de material (03), sense pagaments.
+- **Tresorer:** estat de pagament de les inscripcions, sense avaluacions ni incidències.
+- **Participant:** només les seves inscripcions; mai la llista d'altres inscrits (tampoc noms a la web pública).
+- **Un sol tresorer:** cap acció del 02 necessita doble aprovació (P-48). El responsable proposa la devolució i el tresorer la fa.
+- **Conflicte d'interès:** un instructor no pot registrar-se apte a ell mateix si és alumne d'una activitat; es rebutja i es registra.
+
+<a id="M02-5-processos"></a>
+## M02-5 Processos pas per pas
+
+**Wireframes existents:** `admin.html#fitxa` (fitxa d'una sortida amb resum econòmic, participants amb cerca i filtres, material assignat, activitat recent i programa i notes), `publica.html#properes-activitats` i `socis.html#proximes-activitats` (targetes d'activitat). **Falten** (T-M02-01): catàlegs, formulari d'activitat i de sessions, inscripció en quatre estats, llista d'espera, «Les meves inscripcions», passar llista al mòbil, avaluació i progrés, reforç, certificat, resultats ambientals i projecte.
+
+**Estats d'una activitat**
+| Estat | Curs (F §4) | Sortida (F §5) | Qui hi passa |
+|---|---|---|---|
+| `draft` | esborrany | esborrany | Responsable |
+| `open` | obert | oberta | Responsable (publicar) |
+| `registration_closed` | tancat a inscripcions | tancada a inscripcions | Sistema (places plenes o data límit) o responsable |
+| `in_progress` | en curs | — (no s'usa) | Sistema (primera sessió) |
+| `done` | finalitzat | realitzada | Responsable |
+| `closed` | tancat econòmicament | tancada econòmicament | **Només el 09** (`margins.close_activity`). Fins que existeixi el 09, cap activitat hi arriba |
+| `cancelled` | cancel·lat | cancel·lada | Responsable, amb motiu |
+
+**Estats d'una inscripció**
+| Estat | Què vol dir | Ocupa plaça |
+|---|---|---|
+| `pending_payment` | Inscrit, càrrec creat, dins el termini de pagament | Sí |
+| `confirmed` | Càrrec pagat (o activitat gratuïta) | Sí |
+| `waitlisted` | A la llista d'espera, amb ordre | No |
+| `offered` | Se li ha ofert una plaça i té un termini per acceptar-la | Sí |
+| `cancelled` | Cancel·lada pel participant o pel club, amb motiu | No |
+| `expired` | No ha pagat a temps o no ha acceptat l'oferta | No |
+
+### P-M02-A Catàlegs i preus
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Responsable | Obre «Catàleg de cursos» o «Catàleg d'especialitats» (dues pantalles separades) i afegeix o edita una fitxa: nom, nivell, descripció, requisits, places per defecte, preu de soci, preu de no soci, departament |
+| 2 | Sistema | Desa i registra el valor anterior. Els canvis de preu s'apliquen a les activitats noves, no a les que ja tenen inscripcions (RN-M02-05) |
+| 3 | Responsable | A «Tipus de sortida» i «Subtipus de medi ambient» afegeix o desactiva valors; a «Projectes», crea un projecte amb nom i objectiu |
+
+### P-M02-B Crear o duplicar una activitat (F 9.1 passos 1-2; 9.18)
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Responsable | **Curs:** tria la fitxa del catàleg; es copien places, preus i requisits. **Sortida:** tria tipus i, si és de medi ambient, subtipus i projecte. Omple títol, objectiu, dates, lloc, departament, places, data límit d'inscripció i responsable |
+| 2 | Responsable | **Curs:** afegeix sessions (teoria, piscina o mar) amb data, hora, lloc i instructors; se'n poden afegir més tard. **Sortida:** afegeix el programa del dia per blocs (trobada, briefing, immersió, dinar, tornada) |
+| 3 | Responsable | Si canvia un preu respecte del catàleg, escriu el motiu (obligatori). El sistema avisa el tresorer (RN-M02-06) |
+| 4 | Responsable | **Duplicar:** obre una activitat anterior, tria «Duplicar» i una data d'inici nova. El sistema copia el que diu RN-M02-21, desplaça sessions i dates i en deixa la còpia en esborrany |
+| 5 | Responsable | Publica: l'activitat passa a `open`, surt al llistat públic i, si ho tria, s'envia l'anunci als socis (correu i avís, RN-M02-19) |
+
+### P-M02-C Publicar i inscriure's (F 9.1 pas 4)
+| Pas | Qui | Què passa | Pantalla |
+|---|---|---|---|
+| 1 | Participant | Obre el detall: descripció, programa o sessions, lloc, preu que li correspon, places lliures (només el número), requisits i, a les sortides, l'enllaç a la previsió marítima | Detall |
+| 2 | Participant | **Soci:** «Inscriure'm» amb el compte personal. **No soci:** «Inscriure'm sense compte» → dades mínimes i consentiment (00) → rep un enllaç de convidat al correu (V-02). **Presencial:** el responsable ho fa per ell | Inscriure'm |
+| 3 | Participant | Respon les preguntes que hi afegeixin altres mòduls (el 03 hi posa el material que porta i el que necessita) | Inscriure'm |
+| 4 | Sistema | Comprova requisits (RN-M02-10). Si no els compleix: avís (supòsit) o bloqueig [A validar: junta, S-M02-01] | — |
+| 5 | Sistema | Bloqueja la fila de l'activitat i compta les places (RN-M02-07). Si n'hi ha: inscripció `pending_payment` i càrrec «inscripció» amb l'import que toca, l'activitat i el departament. Si no: `waitlisted` | — |
+| 6 | Participant | Paga amb targeta, Bizum o transferència (P-M05b-A a C). Activitat gratuïta: `confirmed` sense càrrec | Pantalla de pagament (05b) |
+| 7 | Sistema | Quan el 05b avisa que el càrrec és «pagat», la inscripció passa a `confirmed` i el participant rep la confirmació amb l'horari i el fitxer per al calendari | — |
+
+### P-M02-D Places, llista d'espera i cancel·lacions
+1. **Termini de pagament.** Una inscripció `pending_payment` que no s'ha pagat dins el termini (RN-M02-08) passa a `expired`, el càrrec s'anul·la amb motiu i la plaça s'ofereix.
+2. **Oferta de plaça.** Quan s'allibera una plaça, el primer de la llista passa a `offered` i rep un correu i un avís amb un termini per acceptar-la (RN-M02-09). Si l'accepta, es crea el càrrec com al pas 5 de P-M02-C. Si no, `expired` i es passa al següent.
+3. **Cancel·lació del participant.** Abans de la data límit (RN-M02-12). La inscripció passa a `cancelled` amb motiu. Si estava pagada, el sistema crea una **proposta de devolució** amb l'import que diu la política [A validar: junta] i l'envia a la llista del tresorer, que la fa amb el 05b.
+4. **Cancel·lació de l'activitat** (per exemple, per meteorologia). El responsable tria «Cancel·lar» i el motiu. L'activitat passa a `cancelled`, totes les inscripcions a `cancelled`, els càrrecs pendents s'anul·len, es creen propostes de devolució per als pagats (RN-M02-13) i s'avisa tots els inscrits i la llista d'espera.
+5. **Tancar inscripcions.** Automàtic quan s'arriba a la data límit; amb les places plenes, l'activitat continua `open` amb llista d'espera fins a la data límit.
+
+### P-M02-E El dia de l'activitat: llista i incidències (F 9.1 pas 8)
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Instructor o responsable | Obre «Passar llista» al mòbil: llista dels inscrits `confirmed` de la sessió (curs) o del dia (sortida), amb titulació i llicència vigent sí o no |
+| 2 | Instructor | Marca present o absent amb un toc. Cada canvi s'envia sol (HTMX) i, si no hi ha cobertura, es reintenta i es mostra «pendent d'enviar» |
+| 3 | Instructor | Registra incidències **operatives** (retard, embarcació, material, meteorologia). Mai dades de salut (RN-M02-17) |
+| 4 | Sistema | Un participant `pending_payment` el dia de l'activitat surt marcat perquè el responsable ho resolgui |
+
+### P-M02-F Avaluació, reforç i certificat (F 9.17)
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Instructor | A cada sessió pràctica, avalua cada alumne: **assolit**, **no assolit** o **necessita reforç**, amb una observació curta (sense dades de salut) |
+| 2 | Instructor | Si un alumne no assoleix el nivell o no se sent preparat, proposa una o més classes de reforç |
+| 3 | Responsable | Confirma o rebutja la proposta. En confirmar-la, crea les sessions de reforç d'aquell alumne (data, lloc i instructor) sense moure el grup |
+| 4 | Sistema | Crea un càrrec «inscripció» per al reforç amb el preu del catàleg (RN-M02-15), lligat a la mateixa activitat; l'alumne rep l'avís amb data i preu i paga com al pas 6 de P-M02-C |
+| 5 | Instructor | Quan l'alumne està preparat, registra **apte** (o **no apte** al final, amb motiu) |
+| 6 | Responsable | Emet el certificat del club en PDF amb número (RN-M02-16). L'alumne el descarrega des de «Les meves activitats». Si cal llicència, l'avís enllaça amb el 06 |
+
+### P-M02-G Resultats ambientals i projectes (F 9.1 pas 9)
+1. Després d'una sortida de medi ambient, el responsable obre «Resultats»: quilos de residus (amb decimals, es desen en grams), espècies observades, observacions i fotos.
+2. Les fotos van als fitxers privats de la 00 amb autor i permís d'ús; cap foto no es publica sense això (P-41).
+3. La fitxa del projecte mostra les seves sortides, la suma de residus, les espècies i les fotos. Les factures i l'ajut del projecte hi apareixen quan existeixi el 09.
+
+### P-M02-H Fi de l'activitat i comprovacions de tancament (F 9.1 passos 10-11)
+1. El responsable marca l'activitat com a `done` quan s'ha fet (cursos: quan totes les sessions del grup s'han fet; el reforç individual pot continuar, RN-M02-14).
+2. «Què falta per tancar» mostra la llista de `closing_blockers`: inscripcions sense pagar, propostes de devolució sense fer (05b) i material pendent (03, quan existeixi).
+3. El tancament econòmic i el marge són del 09.
+
+<a id="M02-6-entitats"></a>
+## M02-6 Entitats i camps
+
+App Django `activities` (nova). Noms de codi en anglès. Imports en cèntims (`PositiveIntegerField`). Cap camp de dades de salut, de targeta ni d'IBAN. Les persones són de la 00 (FK `Person`, PROTECT).
+
+### TrainingCatalogueEntry (fitxa de curs o d'especialitat)
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `kind` | `course`, `speciality` | Dos catàlegs separats a la interfície (dues pantalles i dos llistats) |
+| `name` | `CharField(120)` | Únic per `kind` |
+| `level` | `CharField(60)` | Nivell que dona o requereix [A verificar: FECDAS, llista de nivells] |
+| `description`, `requirements` | `TextField` | — |
+| `default_places` | `PositiveSmallIntegerField` | > 0 |
+| `price_member_cents`, `price_non_member_cents` | `PositiveIntegerField` | ≥ 0 |
+| `reinforcement_price_cents` | `PositiveIntegerField` null | Preu d'una classe de reforç [A validar: junta] |
+| `open_to_non_members` | `BooleanField` | [A validar: junta] |
+| `department` | FK departament (00) | Obligatori |
+| `active` | `BooleanField` | No s'esborra si té activitats |
+
+### OutingType, EnvironmentalSubtype, EnvironmentalProject
+- `OutingType`: `name` (únic), `is_environmental` (bool), `default_department` (FK), `active`. Dades inicials: «Immersió», «Medi ambient» (`is_environmental`), «Sèniors» i «Jornada oberta» [A validar: junta, si són tipus propis].
+- `EnvironmentalSubtype`: `name` (únic), `active`. Dades inicials: «Neteja» (F §5); la resta, la llista del responsable del projecte [A validar: responsable del projecte, S-M02-13].
+- `EnvironmentalProject`: `name` (únic), `objective` (`TextField`), `status` (`active`, `finished`), `department` (FK). No s'esborra si té sortides.
+
+### Activity (activitat)
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `kind` | `course`, `outing` | `conference` s'hi afegirà amb l'11 |
+| `title` | `CharField(140)` | — |
+| `description` | `TextField` | Objectiu (sortides) o descripció (cursos) |
+| `catalogue_entry` | FK TrainingCatalogueEntry null | Obligatori si `kind = course` (`CHECK`) |
+| `outing_type` | FK OutingType null | Obligatori si `kind = outing` (`CHECK`) |
+| `subtype`, `project` | FK null | Només si el tipus és de medi ambient (validació de servei) |
+| `department` | FK departament (00) | Obligatori (RN-62 de la 00) |
+| `cost_centre` | FK CostCentre (04) null | Del mateix departament |
+| `status` | estats de [M02-5](#M02-5-processos) | Transicions de RN-M02-02 |
+| `starts_on`, `ends_on` | `DateField` | `ends_on ≥ starts_on` |
+| `location`, `meeting_point` | `CharField(140)` | — |
+| `max_places` | `PositiveSmallIntegerField` | > 0 |
+| `registration_closes_at` | `DateTimeField` | ≤ inici |
+| `payment_window_hours` | `PositiveSmallIntegerField` | RN-M02-08 |
+| `price_member_cents`, `price_non_member_cents` | `PositiveIntegerField` | Còpia del catàleg en crear-la |
+| `price_override_note` | `TextField` | Obligatori si algun preu difereix del catàleg (validació de servei) |
+| `open_to_non_members` | `BooleanField` | — |
+| `required_level` | `CharField(60)` | Opcional |
+| `licence_required` | `BooleanField` | — |
+| `requirements_mode` | `warn`, `block` | RN-M02-10 |
+| `responsible` | FK Person | Persona responsable de l'activitat |
+| `forecast_url` | `URLField` | Enllaç a la previsió marítima (RN-M02-24) |
+| `duplicated_from` | FK self null | RN-M02-21 |
+| `cancellation_reason` | `TextField` | Obligatori si `cancelled` |
+| `published_at`, `done_at` | `DateTimeField` null | — |
+**Índexs:** `(status, starts_on)`, `(kind, starts_on)`, `(project)`.
+
+### Session (sessió d'un curs) i ProgrammeBlock (bloc del programa d'una sortida)
+- `Session`: `activity` (FK), `kind` (`theory`, `pool`, `sea`), `starts_at`, `ends_at` (`CHECK ends_at > starts_at`), `location`, `instructors` (M2M a Person, amb el rol instructor), `is_practice` (bool), `reinforcement_for` (FK Enrolment null: si no és null, és una classe de reforç d'aquell alumne), `cancelled` (bool) i `cancellation_reason`.
+- `ProgrammeBlock`: `activity` (FK), `order`, `starts_at` (`TimeField`), `ends_at` null, `label` (`CharField(80)`), `location`, `responsible_label` (`CharField(80)`, rol o funció, mai dades de contacte).
+
+### Enrolment (inscripció)
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `activity` | FK Activity (PROTECT) | — |
+| `person` | FK Person (00) | — |
+| `status` | estats de [M02-5](#M02-5-processos) | Transicions de RN-M02-03 |
+| `channel` | `account`, `guest`, `desk` | — |
+| `price_kind` | `member`, `non_member` | Fixat en inscriure's (RN-M02-04) |
+| `price_cents` | `PositiveIntegerField` | Còpia del preu en inscriure's |
+| `charge` | FK càrrec (00) null | Null si és gratuïta o en llista d'espera |
+| `waitlist_position` | `PositiveIntegerField` null | Només `waitlisted` |
+| `payment_due_at`, `offer_expires_at` | `DateTimeField` null | — |
+| `requirements_warning` | `TextField` | Què no complia en inscriure's |
+| `cancelled_reason`, `cancelled_by` | text, FK compte null | Obligatori si `cancelled` |
+| `created_by` | FK compte null | Null = el mateix participant o el seu enllaç |
+**Restriccions:** únic parcial `(activity, person) WHERE status NOT IN ('cancelled','expired')` (una inscripció viva per persona i activitat). Índex `(activity, status)`.
+
+### Attendance, Incident, PracticeAssessment, ReinforcementRequest, CourseOutcome
+- `Attendance`: `enrolment` (FK), `session` (FK null: null = el dia de la sortida), `present` (bool), `recorded_by`, `recorded_at`. Únic `(enrolment, session)`. Es pot corregir; cada canvi va al registre d'activitat.
+- `Incident`: `activity`, `session` null, `kind` (`delay`, `boat`, `equipment`, `weather`, `other`), `description` (`TextField`, màx. 1000), `recorded_by`, `recorded_at`. Només s'hi afegeix. Text d'ajuda: «Sense dades de salut».
+- `PracticeAssessment`: `session` (pràctica), `enrolment`, `result` (`achieved`, `not_achieved`, `needs_reinforcement`), `notes` (màx. 500, sense dades de salut), `recorded_by`. Únic `(session, enrolment)`.
+- `ReinforcementRequest`: `enrolment`, `proposed_by`, `reason` (pedagògic, màx. 500), `status` (`proposed`, `confirmed`, `rejected`), `decided_by`, `price_cents`, `charge` (FK null).
+- `RefundProposal`: `enrolment`, `charge`, `amount_cents` (≤ pagat), `reason`, `proposed_by` (null = sistema), `status` (`proposed`, `done`, `rejected`), `refund` (FK a la devolució del 05b, null), `decided_by`, `decision_reason`. El tresorer les veu a la seva llista; només ell les fa o les rebutja amb motiu.
+- `CourseOutcome`: `enrolment` (OneToOne), `result` (`pass`, `fail`), `decided_by` (instructor), `decided_at`, `reason` (obligatori si `fail`), `certificate_number` (únic, null), `certificate_issued_by`, `certificate_issued_at`. El PDF es genera a demanda (annex B de la 00).
+
+### DiverCertification (titulació)
+`person` (FK), `agency` (`CharField(60)`) [A verificar: FECDAS, llista d'agències], `level` (`CharField(60)`), `number` (`CharField(40)`, opcional), `issued_on` (null), `source` (`club_course`, `declared`, `imported`), `verified_by` (FK compte null), `verified_at`. Cap foto ni escaneig del carnet de titulació.
+
+### EnvironmentalResult i EnvironmentalPhoto
+- `EnvironmentalResult`: `activity` (OneToOne, només sortides de medi ambient), `waste_grams` (`PositiveIntegerField` null), `species` (`TextField`: una espècie per línia) [A validar: junta, quines dades], `observations` (`TextField`), `recorded_by`, `recorded_at`.
+- `EnvironmentalPhoto`: `result` (FK), `file` (fitxer privat de la 00), `author` (`CharField(120)`), `usage_permission` (bool), `shows_people` (bool), `people_consent` (bool). Si `shows_people` i no hi ha consentiment, no es pot marcar com a publicable (P-41).
+
+### Ampliacions de la 00 (sense canviar-ne les regles)
+- El càrrec ja té `activity` (opcional, «quan existeixi la 02»): el 02 l'omple.
+- Registre de gestors per mòdul d'origen (`charges.register_handler`), si s'aprova ([M02-14](#M02-14-aprovar)).
+
+**Migracions:** reversibles; dades inicials (tipus de sortida, subtipus «Neteja») en una migració de dades; cap dada personal a les migracions.
+
+<a id="M02-7-regles"></a>
+## M02-7 Regles de negoci i càlculs
+
+| ID | Regla | Font |
+|---|---|---|
+| RN-M02-01 | Cursos i especialitats són dos catàlegs separats; cadascun amb preus de soci i de no soci editables pel responsable sense tocar res més | F §4; resposta del 22/10/2026 |
+| RN-M02-02 | Transicions de l'activitat: `draft → open → registration_closed → in_progress → done → closed`; `open → done` i `registration_closed → done` (sortides); qualsevol estat abans de `done` → `cancelled` amb motiu. `closed` només el fa el 09. Cap transició enrere excepte `registration_closed → open` (el responsable reobre inscripcions abans de l'inici) | F §4 i §5 |
+| RN-M02-03 | Transicions de la inscripció: `pending_payment → confirmed / expired / cancelled`; `waitlisted → offered / cancelled / expired`; `offered → pending_payment / expired`; `confirmed → cancelled`. Una inscripció `confirmed` no torna a `pending_payment` | Proposta |
+| RN-M02-04 | Preu: soci si `members.is_member(person, on=data d'inscripció)`; si no, el de no soci. Es copia a la inscripció i no canvia encara que canviï el catàleg o l'estat de soci. Simpatitzants i ple dret paguen el preu de soci [A validar: junta, S-M01-11] | F §4; S-M02-04 |
+| RN-M02-05 | Canviar un preu del catàleg no canvia les activitats ja creades | Proposta |
+| RN-M02-06 | Si el preu d'una activitat difereix del catàleg, la nota del motiu és obligatòria i s'avisa el tresorer (correu i avís a l'app). El canvi i el valor anterior van al registre | Resposta del 22/10/2026 |
+| RN-M02-07 | Places ocupades = inscripcions `pending_payment` + `confirmed` + `offered`. Mai més que `max_places`: el recompte i la inscripció es fan dins una transacció amb la fila de l'activitat bloquejada (`SELECT … FOR UPDATE`) | F §4 i §5 |
+| RN-M02-08 | Termini de pagament: `payment_window_hours` des de la inscripció (o des d'acceptar l'oferta), amb un valor per defecte de 72 hores [A validar: responsable de cursos i sortides i tresorer, S-M02-02]. Un pagament en curs (intent del 05b «en curs») allarga el termini fins que acaba. Una transferència anunciada no l'allarga | Proposta |
+| RN-M02-09 | Llista d'espera per ordre d'arribada; el responsable pot reordenar-la amb motiu. Oferta de plaça amb 48 hores per acceptar-la [A validar, S-M02-03]. Si queden menys de 48 hores per a la data límit, el termini acaba a la data límit | F §4 i §5 |
+| RN-M02-10 | Requisits: titulació mínima (`required_level`, contra les titulacions de la persona) i llicència vigent (registre mínim del 01) a la data de l'activitat. `requirements_mode = warn` (supòsit per defecte): es pot inscriure, veu l'avís i el responsable ho veu marcat. `block`: no es pot inscriure [A validar: junta, S-M02-01] | F §5 |
+| RN-M02-11 | Un no soci només es pot inscriure si l'activitat té `open_to_non_members`; s'inscriu com a convidat amb dades mínimes i consentiment i paga amb l'enllaç (021; RN-30 de la 00) | F §4; 021 |
+| RN-M02-12 | Cancel·lació del participant: només abans de la data límit d'inscripció. L'import a tornar el fixa la política del club [A validar: junta, S-M02-05]; mentre no hi sigui, la proposta de devolució és de l'import pagat i el tresorer decideix | F §4 |
+| RN-M02-13 | Cancel·lació de l'activitat pel club (també per meteorologia): proposta de devolució del **100 %** de l'import pagat a cada inscrit [A validar: junta, S-M02-05]. La comissió del proveïdor no es recupera i queda com a despesa de l'activitat (RN-T11, 013) | F §5 |
+| RN-M02-14 | Un curs pot passar a `done` amb alumnes en reforç: les seves sessions de reforç continuen lligades a la mateixa activitat (resposta del 22/10/2026: lligades al curs actiu de l'alumne) | Resposta del 22/10/2026 |
+| RN-M02-15 | Les classes de reforç tenen cost per a l'alumne (resposta del 22/10/2026). Preu: `reinforcement_price_cents` del catàleg, per proposta confirmada [A validar: junta, import i si és per classe o per proposta]. Càrrec «inscripció» a la mateixa activitat i departament | F 9.17; resposta del 22/10/2026 |
+| RN-M02-16 | Un alumne no rep el certificat fins que l'instructor el registra apte. El certificat és del club, en PDF, amb número únic `C-AAAA-NNNN` [A validar: junta]; la titulació oficial de la federació o l'agència es tramita fora de la plataforma [A verificar: FECDAS]. En emetre'l es crea la titulació de la persona amb `source = club_course` | F §4 |
+| RN-M02-17 | Ni incidències, ni observacions, ni avaluacions no poden contenir dades de salut. Un accident segueix el protocol del club fora de la plataforma [A validar: junta] | CLAUDE.md; P-07 |
+| RN-M02-18 | Qualsevol canvi del programa del dia, de les sessions, del lloc o de l'hora d'una activitat `open` o posterior avisa automàticament els inscrits `confirmed`, `pending_payment` i `offered` | F §5 |
+| RN-M02-19 | Avisos per correu i a la safata de l'app, mai push (041): confirmació, recordatori (supòsit: 2 dies abans de cada sessió o sortida [A validar: secretaria, S-M02-15]), canvi de programa, oferta de plaça, termini de pagament, cancel·lació i missatge del responsable | F §4 i §5; 041 |
+| RN-M02-20 | Una activitat no es pot marcar `done` abans de la data de l'última sessió (curs) o de la sortida | Proposta |
+| RN-M02-21 | **Duplicar** (026): copia títol, descripció, tipus, subtipus, projecte, catàleg, departament, centre de cost, places, preus (i la nota), requisits, termini de pagament, programa del dia, sessions del grup (no les de reforç) amb instructors, i el material típic (via senyal, 03). Desplaça totes les dates i hores per la diferència entre la data d'inici nova i l'antiga. **No copia:** inscripcions, llista d'espera, pagaments, assistència, avaluacions, resultats, incidències ni fotos. La còpia és `draft` i guarda `duplicated_from` | F 9.18; 026 |
+| RN-M02-22 | Comprovacions de tancament (`closing_blockers`): inscripcions `pending_payment` o `offered`, càrrecs de reforç sense pagar, propostes de devolució sense fer i les que registrin altres mòduls (material pendent, 03) | F §5 («no es pot tancar amb cobraments o material pendents») |
+| RN-M02-23 | Les fotos i els resultats ambientals no es publiquen enlloc des del 02. La publicació és del 07 i només amb autor, permís i consentiment de les persones que hi surtin (P-41) | P-41 |
+| RN-M02-24 | Previsió marítima: només un **enllaç** a la pàgina pública del servei (per exemple, Meteocat), sense incrustar-ne cap giny ni carregar-ne cap script (046) | F §5; 046 |
+| RN-M02-25 | L'horari descarregable (fitxer de calendari) només conté les sessions o la sortida de qui el descarrega, sense dades d'altres persones | Proposta |
+
+**Exemples numèrics (imports inventats)**
+- **Places (RN-M02-07):** sortida amb 12 places i preu de soci de **4500** cèntims. 10 `confirmed` + 2 `pending_payment` → plena; la 13a inscripció va a la llista d'espera (posició 1). Una de les dues pendents no paga en 72 hores → `expired`, el seu càrrec s'anul·la, la posició 1 passa a `offered` amb 48 hores.
+- **Cancel·lació per meteorologia (RN-M02-13):** 10 inscrits pagats amb targeta → 10 propostes de devolució de 4500 = **45.000** cèntims. Si la comissió de targeta fos de 1,80 % + 25 cèntims (tarifa pública il·lustrativa, M05b-7), cada pagament n'hauria costat 81 + 25 = 106, i les **1060** cèntims de comissions queden com a despesa de l'activitat.
+- **Reforç (RN-M02-15):** curs amb `reinforcement_price_cents = 3000` (inventat). L'instructor proposa 2 classes per a un alumne; el responsable confirma la proposta → un càrrec de **3000** (si el preu és per proposta) o de **6000** (si és per classe) [A validar: junta].
+- **Duplicar (RN-M02-21):** original del 14 al 15 de juny amb sessions el 14 a les 9:00 i el 15 a les 10:00; data d'inici nova, 13 de juny de l'any següent → sessions el 13 a les 9:00 i el 14 a les 10:00, data límit d'inscripció desplaçada el mateix.
+
+<a id="M02-8-serveis"></a>
+## M02-8 Serveis i interfícies (contracte)
+
+Cap altra app escriu als models del 02. Errors com a excepcions de domini amb missatge en català.
+
+**Ofereix**
+| Servei | Entrada | Sortida | Errors | Qui el fa servir |
+|---|---|---|---|---|
+| `activities.get_activity(id)`, `activities.public_list(filters)` | — | dades públiques (sense noms d'inscrits) | `NotFound` | 07, 03, 09 |
+| `activities.enrol(activity, person, channel, actor, answers)` | activitat, persona, canal, respostes del formulari | `Enrolment` (amb càrrec o en llista d'espera) | `ActivityNotOpen`, `AlreadyEnrolled`, `NonMembersNotAllowed`, `RequirementsNotMet` (si `block`) | Vistes |
+| `activities.cancel_enrolment(enrolment, reason, actor)` | — | proposta de devolució si estava pagada | `CancellationClosed` | Vistes |
+| `activities.cancel_activity(activity, reason, actor)` | — | — | `InvalidTransition` | Vistes |
+| `activities.duplicate(activity, new_start, actor)` | — | activitat nova en `draft` | `NotAllowed` | Vistes; 11 (conferències) |
+| `activities.enrolments(activity, statuses)` | — | inscripcions i persona (dades mínimes) | — | 03, 10 |
+| `activities.attendance_for(person)` | persona | activitats a què ha assistit, amb dates | — | 12 (bitàcola); «Les meves activitats» |
+| `activities.closing_blockers(activity)` | — | llista de motius | — | 09; fitxa de l'activitat |
+| `activities.mark_closed(activity, actor)` | — | — | `ClosingBlocked` | Només 09 |
+| `activities.on_charge_event(charge, event)` | càrrec, `paid` / `returned` / `cancelled` | actualitza la inscripció o el reforç | — | 05b, a través del registre de la 00 ([M02-14](#M02-14-aprovar)) |
+| `activities.export_personal_data(person)`, `activities.anonymise(person)` | persona | — | — | 00 (RGPD) |
+
+**Punts d'extensió i senyals** (perquè el 03 i altres mòduls s'hi enganxin sense que el 02 els importi)
+| Nom | Tipus | Per a què |
+|---|---|---|
+| `activities.register_enrolment_section(section)` | registre | Afegir preguntes al formulari d'inscripció (el 03 hi posa el material) |
+| `activities.register_closing_check(check)` | registre | Afegir motius que impedeixen tancar (el 03 hi posa «material pendent») |
+| `activities.register_detail_section(section)` | registre | Afegir un bloc a «Les meves activitats» i a la fitxa d'administració (el 03 hi posa el material assignat) |
+| `enrolment_confirmed`, `enrolment_cancelled`, `activity_duplicated(original, copy)`, `activity_done`, `activity_cancelled` | senyals | Avisar el 03 (assignacions, material típic) i, més endavant, el 10 i el 12 |
+
+**Consumeix**
+| Servei | Mòdul | Per a què |
+|---|---|---|
+| `persons.create_or_get(data)`, `guest_links.create(person, obj, purpose)`, `guest_links.resolve(token)` | 00 | No socis i enllaços (V-02) |
+| `charges.create_charge(person, kind="inscripció", amount_cents, department, concept, origin="activities", activity)`, `charges.cancel(charge, reason)` | 00 | Inscripcions i reforç |
+| `charges.register_handler("activities", activities.on_charge_event)` | 00 (nou, [M02-14](#M02-14-aprovar)) | Saber quan es paga |
+| `members.is_member(person, on)` | 01 | Preu |
+| `members.licence_record(person)` | 01 (nou, [M02-14](#M02-14-aprovar)) | Requisit de llicència |
+| `payments.start_payment`, `payments.payment_status`, `payments.receipt_pdf` | 05b | Pagar i rebut |
+| `payments.refund(attempt, amount_cents, reason, actor)` | 05b | El tresorer fa la devolució des de la proposta del 02 (B5 del 05b); el 02 no la crida mai sol |
+| `files.render_private_pdf`, `files.store_private`, `mail.send`, `notices.post`, `audit.record`, `permissions.require` | 00 | Certificat, fotos, avisos, registre, permisos |
+
+**Rutes.** Públiques (declarades): `/activitats`, `/activitats/{id}`, `/activitats/{id}/inscripcio` (inici del convidat). Compte personal: `/socis/activitats`, `/socis/activitats/{inscripcio}`, `/socis/activitats/{inscripcio}/calendari.ics`, `/socis/activitats/{inscripcio}/certificat`. Convidat: `/convidat/{enllaç}` (de la 00). Administració: `/gestio/activitats`, `/gestio/activitats/{id}`, `/gestio/activitats/{id}/participants`, `/gestio/activitats/{id}/llista` (mòbil), `/gestio/activitats/{id}/avaluacio`, `/gestio/activitats/{id}/resultats`, `/gestio/cataleg/cursos`, `/gestio/cataleg/especialitats`, `/gestio/sortides/tipus`, `/gestio/projectes`, `/gestio/projectes/{id}`.
+
+<a id="M02-9-criteris"></a>
+## M02-9 Criteris d'acceptació i casos límit
+
+**Catàleg i activitats**
+- **CA-M02-01** Donat un curs al catàleg, quan el responsable en canvia el preu de soci, llavors les activitats ja creades conserven el preu anterior i el canvi queda al registre amb el valor anterior.
+- **CA-M02-02** Donat una activitat amb el preu diferent del catàleg, quan es desa sense nota, llavors es rebutja; amb nota, es desa i el tresorer rep l'avís.
+- **CA-M02-03** Donat una sortida de medi ambient, quan es desa sense subtipus, llavors es rebutja; donat una d'immersió, quan es desa amb subtipus, llavors es rebutja.
+- **CA-M02-04** Donat una activitat amb 2 sessions i 3 blocs de programa, quan es duplica amb una data d'inici 364 dies després, llavors la còpia és `draft`, té les mateixes sessions i blocs desplaçats 364 dies, cap inscripció ni pagament, i `duplicated_from` apunta a l'original.
+- **CA-M02-05** Donat una activitat `draft`, quan un visitant demana el detall, llavors rep «no trobat».
+
+**Inscripció i places**
+- **CA-M02-06** Donat un soci actiu i una activitat oberta amb places, quan s'inscriu, llavors la inscripció és `pending_payment`, el càrrec és «inscripció» amb el preu de soci, l'activitat i el departament de l'activitat, i veu la pantalla de pagament.
+- **CA-M02-07** Donat el càrrec pagat (notificació verificada al 05b), quan el 05b avisa el 02, llavors la inscripció és `confirmed`, el participant rep la confirmació amb el calendari i l'ingrés és a l'activitat (CA-T03.1, RN-T10).
+- **CA-M02-08** Donat una activitat amb 1 plaça lliure, quan dues persones s'inscriuen alhora, llavors una queda `pending_payment` i l'altra `waitlisted` (prova de concurrència).
+- **CA-M02-09** Donat una inscripció `pending_payment` sense pagar en el termini, quan passa el termini, llavors queda `expired`, el càrrec s'anul·la amb motiu i el primer de la llista d'espera rep l'oferta.
+- **CA-M02-10** Donat una persona no sòcia i una activitat no oberta a no socis, quan s'hi vol inscriure, llavors es rebutja amb un missatge que diu com fer-se soci.
+- **CA-M02-11** Donat una persona no sòcia i una activitat oberta a no socis, quan s'inscriu, llavors paga el preu de no soci amb un enllaç de convidat i cap pantalla no li mostra dades d'altres persones (CA-02.2 de la 00).
+- **CA-M02-12** Donat `requirements_mode = warn` i un participant sense llicència vigent, quan s'inscriu, llavors pot fer-ho, veu l'avís i el responsable el veu marcat; amb `block`, es rebutja.
+- **CA-M02-13** Donat un participant ja inscrit, quan s'hi torna a inscriure, llavors es rebutja (`AlreadyEnrolled`).
+
+**Cancel·lacions**
+- **CA-M02-14** Donat una inscripció pagada, quan el participant la cancel·la abans de la data límit, llavors queda `cancelled` i el tresorer té una proposta de devolució; cap devolució no es fa sense el tresorer.
+- **CA-M02-15** Donat una sortida amb 10 inscrits pagats i 2 pendents, quan el responsable la cancel·la per meteorologia, llavors l'activitat és `cancelled`, hi ha 10 propostes de devolució del 100 %, els 2 càrrecs pendents s'anul·len i els 12 i la llista d'espera reben l'avís.
+
+**El dia, avaluació i certificat**
+- **CA-M02-16** Donat un instructor I1 de la sessió S1, quan obre la llista de S2 (d'un altre instructor), llavors rep «no trobat» i l'intent queda al registre (CA-12.1 de la 00).
+- **CA-M02-17** Donat la llista al mòbil sense cobertura, quan l'instructor marca un alumne, llavors la marca es mostra «pendent d'enviar» i s'envia sola en tornar la connexió, sense duplicar-se.
+- **CA-M02-18** Donat un alumne avaluat «necessita reforç», quan l'instructor proposa 2 classes i el responsable les confirma, llavors l'alumne té 2 sessions noves només seves, l'horari del grup no canvia i hi ha un càrrec de reforç a la mateixa activitat.
+- **CA-M02-19** Donat un alumne sense resultat apte, quan es vol emetre el certificat, llavors es rebutja; quan és apte, el certificat té un número únic i l'alumne el pot descarregar.
+- **CA-M02-20** Donat un canvi d'hora d'una sessió d'una activitat oberta, quan es desa, llavors tots els inscrits vius reben l'avís (RN-M02-18).
+
+**Medi ambient, tancament i permisos**
+- **CA-M02-21** Donat 3 sortides d'un projecte amb 12,5 kg, 8 kg i 4,25 kg de residus, quan s'obre la fitxa del projecte, llavors el total és **24,75 kg** (24.750 grams).
+- **CA-M02-22** Donat una foto marcada «hi surten persones» sense consentiment, quan es vol marcar com a publicable, llavors es rebutja.
+- **CA-M02-23** Donat una activitat amb una inscripció `pending_payment`, quan es demana `closing_blockers`, llavors la llista la conté; quan el 09 crida `mark_closed`, es rebutja.
+- **CA-M02-24** Donat cada cel·la de [M02-4](#M02-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M02-25** Donat una revisió del model, quan s'executa, llavors cap camp del 02 guarda dades de salut, de targeta ni d'IBAN.
+
+**Casos límit**
+| # | Cas | Comportament |
+|---|---|---|
+| L-M02-01 | El participant paga just quan la inscripció caduca | Si el pagament es confirma després de `expired`, el càrrec ja és anul·lat: el 05b el marca «a revisar» com a duplicat (RN-M05b-08) i es fa la devolució; si encara hi ha plaça, el responsable el pot reinscriure |
+| L-M02-02 | El soci es dona de baixa amb una inscripció de soci | Manté el preu de soci (RN-M02-04) |
+| L-M02-03 | Es redueixen les places per sota de les ocupades | Es rebutja; primer s'han de cancel·lar inscripcions |
+| L-M02-04 | Es canvia la data d'una activitat amb inscripcions pagades | S'avisa (RN-M02-18); qui no pugui venir pot cancel·lar amb la regla de RN-M02-13 [A validar: junta] |
+| L-M02-05 | Un instructor deixa de tenir el rol | Les seves sessions futures queden sense instructor i surten marcades al responsable |
+| L-M02-06 | Activitat gratuïta | Sense càrrec; `confirmed` directament; la llista d'espera funciona igual |
+| L-M02-07 | Esborrat RGPD d'un participant | Inscripcions i assistència anonimitzades; càrrecs i pagaments bloquejats fins al termini legal (028); els recomptes de places i de residus no canvien |
+| L-M02-08 | Un menor vol inscriure's | No hi ha data de naixement (P-33): el responsable ho resol fora de la plataforma fins que es decideixi |
+| L-M02-09 | Cap activitat publicada | «Ara no hi ha cap activitat oberta» i enllaç per rebre el butlletí (07) |
+| L-M02-10 | Duplicar una activitat cancel·lada | Permès: la còpia és `draft` i neta |
+
+<a id="M02-10-tasques"></a>
+## M02-10 Tasques (per dependències, sense dates)
+
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M02-01 | Wireframes que falten (vegeu [M02-5](#M02-5-processos)) | M | `design/wireframes/` | — | Revisats; contrast, estats amb símbol i botons grans al mòbil |
+| T-M02-02 | Models de catàleg, tipus, subtipus i projectes; dades inicials | M | `apps/activities/models.py`, migracions | T-M01-09 (càrrec i departament de la 00) | RN-M02-01; CA-M02-03 |
+| T-M02-03 | Model `Activity`, `Session`, `ProgrammeBlock` i transicions | L | `models.py`, `apps/activities/states.py` | T-M02-02 | RN-M02-02, 20 |
+| T-M02-04 | Permisos del 02 per rol i per objecte (instructor → les seves sessions) | M | `apps/activities/permissions.py` | T-M02-03; permisos de la 00 | CA-M02-16, 24 |
+| T-M02-05 | Catàlegs a l'administració i avís de canvi de preu | M | vistes, plantilles | T-M02-02 | CA-M02-01, 02 |
+| T-M02-06 | Crear, editar, publicar i cancel·lar activitats; sessions i programa | M | vistes | T-M02-03, T-M02-04 | CA-M02-03, 05 |
+| T-M02-07 | Duplicar (026) | M | `apps/activities/duplicate.py` | T-M02-06 | CA-M02-04; L-M02-10 |
+| T-M02-08 | Llistat i detall públics; enllaç de previsió; calendari descarregable | M | vistes públiques | T-M02-06 | RN-M02-24, 25 |
+| T-M02-09 | Punts d'extensió i senyals (formulari, tancament, blocs de pantalla) | S | `apps/activities/extensions.py` | T-M02-03 | Prova amb un mòdul fals |
+| T-M02-10 | Gestor del càrrec pagat (`on_charge_event`) i registre de la 00 | S | `apps/activities/charges.py`, `apps/core/charges.py` | Aprovació de [M02-14](#M02-14-aprovar) punt 3; T-M05b-05 | CA-M02-07 |
+| T-M02-11 | Inscripció del soci amb preu, requisits i càrrec | L | `apps/activities/enrolment.py` | T-M02-09, T-M02-10, T-M02-23 | CA-M02-06, 12, 13 |
+| T-M02-12 | Control de places amb bloqueig i llista d'espera | L | `enrolment.py` | T-M02-11 | CA-M02-08 |
+| T-M02-13 | Terminis de pagament, ofertes i caducitat (tasques a la cua) | M | `apps/activities/tasks.py` | T-M02-12 | CA-M02-09; L-M02-01 |
+| T-M02-14 | Inscripció de convidat i inscripció presencial | M | vistes | T-M02-11; enllaços de convidat de la 00 | CA-M02-10, 11 |
+| T-M02-15 | Cancel·lacions i propostes de devolució | M | `apps/activities/cancellation.py` | T-M02-12; T-M05b-13 | CA-M02-14, 15 |
+| T-M02-16 | Passar llista des del mòbil (HTMX, reintent sense cobertura) i incidències | M | vistes, plantilles | T-M02-04 | CA-M02-17 |
+| T-M02-17 | Avaluació per pràctica i «El meu progrés» | M | `apps/activities/assessment.py` | T-M02-16 | HU-M02-12, 14 |
+| T-M02-18 | Classes de reforç: proposta, confirmació, sessions i càrrec | L | `apps/activities/reinforcement.py` | T-M02-17, T-M02-10 | CA-M02-18 |
+| T-M02-19 | Resultat, certificat en PDF i titulació del club | M | `apps/activities/certificates.py` | T-M02-17 | CA-M02-19 |
+| T-M02-20 | Resultats ambientals, fotos amb permís i fitxa de projecte | M | `apps/activities/environment.py` | T-M02-06 | CA-M02-21, 22 |
+| T-M02-21 | Avisos: confirmació, recordatoris, canvi de programa, missatge als inscrits | M | `apps/activities/notifications.py` | T-M02-11 | CA-M02-20; RN-M02-19 |
+| T-M02-22 | «Les meves activitats», `attendance_for` i comprovacions de tancament | M | vistes, `services.py` | T-M02-16, T-M02-09 | CA-M02-23 |
+| T-M02-23 | Titulacions de la persona (declarades i del club) i servei de llicència del 01 | M | `models.py`; `apps/members/services.py` | Aprovació de [M02-14](#M02-14-aprovar) punt 2 | RN-M02-10 |
+| T-M02-24 | Informes operatius: participants, horari imprimible, ocupació (CSV i impressió) | S | vistes | T-M02-12 | Proves de permisos |
+| T-M02-25 | Dades de prova inventades: catàlegs, activitats, inscrits, avaluacions | S | `apps/activities/fixtures/` | T-M02-20 | Es carreguen amb una ordre |
+| T-M02-26 | Proves de principi a fi amb `FakeProvider` | L | `tests/` | T-M02-11 a T-M02-22 | Totes en verd |
+| T-M02-27 | Guia del responsable i de l'instructor; ajuda per inscriure's | S | `docs/` | T-M02-26 | Revisades |
+
+<a id="M02-11-proves"></a>
+## M02-11 Pla de proves
+
+- **Unitàries (B1):** transicions d'activitat i d'inscripció; preu de soci o no soci; desplaçament de dates en duplicar; places ocupades; terminis i ofertes; requisits en mode avís i bloqueig; suma de residus en grams.
+- **Concurrència:** dues i deu inscripcions alhora a l'última plaça; oferta i nova inscripció alhora.
+- **Integració:** inscripció → pagament amb `FakeProvider` → `on_charge_event` → `confirmed` → ingrés a l'activitat (04); cancel·lació per meteorologia → propostes → devolució pel tresorer (05b); reforç → càrrec → pagament.
+- **Permisos (B4):** una prova per cel·la de [M02-4](#M02-4-rols); instructor fora de les seves sessions; convidat només la seva inscripció.
+- **Contracte:** serveis i senyals de [M02-8](#M02-8-serveis) amb un mòdul fals que s'hi registra.
+- **Accessibilitat i dispositius (B5, B6, B8):** passar llista al mòbil amb xarxa lenta i sense connexió; botons d'almenys 44 × 44 px; estats amb símbol, text i color; anuncis amb `role="status"`.
+- **Dades:** només inventades; cap nom real ni foto real.
+
+<a id="M02-12-seguretat"></a>
+## M02-12 Seguretat i RGPD
+
+- **Mínim de dades:** el públic veu només el nombre de places lliures; l'instructor, el que diu [M02-4](#M02-4-rols); ningú no veu els altres inscrits des de l'àrea de socis.
+- **Sense dades de salut** (P-07): ni certificats mèdics, ni aptituds, ni accidents. Text d'ajuda als camps lliures i revisió a les proves; risc a [M02-13](#M02-13-riscos).
+- **Convidats:** enllaç de la 00 (V-02): caducitat, límit d'intents, testimoni fora dels registres.
+- **Fotos:** fitxers privats (annex B de la 00) a la UE; autor, permís i consentiment abans de publicar (P-41). Les metadades de geolocalització de les fotos s'eliminen en pujar-les.
+- **Tercers:** cap giny ni script de la previsió marítima ni de Minka (046); només enllaços. Cap dada personal no surt cap a aquests serveis (035).
+- **Pagaments:** el 02 no veu mai targetes ni IBAN; el càrrec el cobra el 05b.
+- **Registre:** inscripcions, cancel·lacions, canvis de preu, assistència, avaluacions, resultats i certificats queden al registre d'activitat amb el valor anterior.
+- **Conservació:** inscripcions i assistència es conserven mentre la persona no en demani l'esborrat; els càrrecs i pagaments, fins al termini legal (028) [A validar: gestoria, Q-14].
+
+<a id="M02-13-riscos"></a>
+## M02-13 Riscos, supòsits i dubtes
+
+**Riscos**
+| Risc | Impacte | Mitigació | Propietari |
+|---|---|---|---|
+| Catàleg, preus i política de cancel·lació no fixats | Alt per entrar en producció | Tot és configurable; els supòsits de sota fan funcionar el codi | Junta |
+| Notes lliures (incidències, avaluacions) amb dades de salut | Alt (RGPD, P-07) | Text d'ajuda, límits de llargada, formació a la guia, revisió periòdica pel responsable | Junta |
+| Termini de pagament curt per a qui paga per transferència | Mitjà (inscripcions que caduquen) | RN-M02-08 configurable per activitat; avís abans que caduqui | Tresorer |
+| Les dues ampliacions de contracte de mòduls aprovats no s'aproven | Alt: sense la del 05b, el 02 no sap quan es paga | Alternativa: el 02 consulta l'estat del càrrec a la cua cada pocs minuts (pitjor: retard i més càrrega) | Responsable del projecte |
+| Concurrència a l'última plaça | Mitjà | Bloqueig de fila i prova de concurrència (CA-M02-08) | Informàtica |
+
+**Supòsits [A validar] i dades [A verificar]**
+| ID | Què | Supòsit mentre tant | Propietari |
+|---|---|---|---|
+| S-M02-01 | Llicència no vigent o titulació insuficient: avís o bloqueig (RN-M02-10) | Avís | Junta |
+| S-M02-02 | Termini de pagament d'una inscripció (RN-M02-08) | 72 hores | Tresorer |
+| S-M02-03 | Termini per acceptar una oferta de plaça (RN-M02-09) | 48 hores | Junta |
+| S-M02-04 | Simpatitzants i ple dret paguen el mateix preu de soci (RN-M02-04) | Sí | Junta |
+| S-M02-05 | Política de cancel·lació i devolució, també per meteorologia (RN-M02-12, 13) | El tresorer decideix cas per cas; 100 % si cancel·la el club | Junta |
+| S-M02-06 | Els no socis es poden apuntar i a quin preu (F §4) | Sí, si l'activitat ho permet, al preu de no soci | Junta |
+| S-M02-07 | Llista de cursos i d'especialitats amb preus de soci i de no soci | Catàleg buit; dades inventades a les proves | Junta |
+| S-M02-08 | Preu de les classes de reforç: per classe o per proposta (RN-M02-15) | Per proposta confirmada | Junta |
+| S-M02-09 | Qui emet el certificat i en quin format; numeració `C-AAAA-NNNN` (RN-M02-16) | Certificat del club signat pel responsable | Junta |
+| S-M02-10 | Relació entre el certificat del club i la titulació oficial (federació o agència) | Es tramita fora de la plataforma | FECDAS |
+| S-M02-11 | Llista de nivells i d'agències de titulació | Text lliure | FECDAS |
+| S-M02-12 | Tipus de sortida: Sèniors i jornades obertes són tipus propis (F §5) | Sí, com a dades inicials desactivables | Junta |
+| S-M02-13 | Llista de subtipus de medi ambient i projectes actuals | Només «Neteja»; cap projecte | Responsable del projecte |
+| S-M02-14 | Dades ambientals que s'han de registrar (F §5) | Residus en kg, espècies, observacions i fotos | Junta |
+| S-M02-15 | Dies del recordatori (RN-M02-19) | 2 dies abans | Secretaria |
+| S-M02-16 | La secretaria pot fer inscripcions presencials (AC5) | No; només el responsable i l'administrador | Junta |
+| S-M02-17 | Dades dels alumnes que veu l'instructor ([M02-4](#M02-4-rols); Q-01) | Nom, titulació, llicència sí o no, assistència i avaluacions | Junta |
+| S-M02-18 | El responsable veu els imports cobrats de totes les activitats o només de les seves (AC19; Q-01) | Totes | Junta |
+| S-M02-19 | Requisits d'edat i socis menors (P-33) | No es comproven | Junta |
+| S-M02-20 | Protocol d'accidents i contacte d'emergència dels participants | Fora de la plataforma | Junta |
+| S-M02-21 | Servei de previsió marítima enllaçat (RN-M02-24) | Meteocat, només enllaç | Responsable del projecte |
+| S-M02-22 | Pujar observacions a Minka | Fora d'abast; caldrà saber si les dades queden dins la UE | Responsable del projecte |
+| S-M02-23 | Les propostes de devolució viuen al 02 (`RefundProposal`) i el tresorer les fa amb el 05b | Sí; si més endavant el 05b en té una llista general, s'hi mouen | Informàtica |
+
+**Revisió de dubtes (aplicada a mà)**
+1. **El 05b (aprovat) només avisa el 01 quan es paga un càrrec.** Sense un registre per mòdul d'origen, el 02 no sap quan una inscripció és pagada. És la peça que més bloqueja. Propietari: responsable del projecte (aprovar-la).
+2. **El 01 (aprovat) guarda la llicència però no ofereix cap servei per llegir-la.** És una lectura petita, però canvia el contracte d'un mòdul aprovat. Propietari: responsable del projecte.
+3. **«Tancada econòmicament» és un estat del 02, però el tancament és del 09, que es construeix després.** Fins que existeixi el 09, les activitats queden `done`. Si el club vol tancar-les abans, caldria avançar una part del 09. Propietari: tresorer.
+4. **Reforç després del tancament econòmic:** si un alumne necessita reforç quan el 09 ja ha congelat el marge del curs, el càrrec nou no hi entraria. Proposta per al 09: no tancar un curs amb reforç en curs, o imputar-lo al període següent. Propietari: tresorer.
+5. **F §4 deia que el responsable de cursos confirma el reforç i F §5 parla d'un «responsable de sortides i medi ambient»;** la spec 00 té un sol rol «responsable de cursos i sortides». Si són persones diferents amb permisos diferents, cal un rol nou (P-04). Propietari: junta.
+6. **«Grup de comunicació» de F §5 vs. el xat del 10:** el 02 només envia missatges d'un sentit; si el club vol substituir el grup de WhatsApp des del primer dia, el 10 s'ha d'avançar. Propietari: junta.
+7. **Pagar amb Bizum una inscripció que caduca mentre s'espera la confirmació:** RN-M02-08 allarga el termini mentre l'intent és «en curs»; si el proveïdor no informa mai, la caducitat del 05b ho acaba resolent. Propietari: informàtica.
+8. **El material llogat el paga el participant** (F §6) però el 02 cobra la inscripció abans de saber si es lloga. Es resol al 03 amb un càrrec a part ([M03-7](#M03-7-regles)). Propietari: junta i tresorer.
+
+<a id="M02-14-aprovar"></a>
+## M02-14 Què cal aprovar abans de començar
+
+1. **Aquesta secció del 02**, amb els estats, la plantilla de duplicar (RN-M02-21) i la separació 02 ↔ 03 per senyals i punts d'extensió.
+2. **Ampliació del contracte del 01** (aprovat): servei de només lectura `members.licence_record(person)` (tipus i data de caducitat). Bloqueja T-M02-23.
+3. **Ampliació del contracte de la 00 i del 05b** (aprovats): registre `charges.register_handler(origin, handler)` i que el 05b avisi el mòdul d'origen de cada càrrec pagat, retornat o anul·lat (el 01 hi passa a ser un origen més). No canvia cap regla del 05b. Bloqueja T-M02-10 i, per tant, la inscripció.
+4. **Supòsits per defecte** S-M02-01 (avís), S-M02-02 (72 hores), S-M02-04 (mateix preu de soci), S-M02-05 (devolució decidida pel tresorer; 100 % si cancel·la el club) i S-M02-06 (no socis si l'activitat ho permet) [A validar: junta i tresorer]. No bloquegen el codi: són valors configurables.
+5. **Per entrar en producció** (no per començar): catàleg amb preus (S-M02-07) i política de cancel·lació (S-M02-05) [A validar: junta].
+
+---
+
+<a id="M03"></a>
+# Mòdul 03 — Material
+
+**Estat: escrit**, per aprovar pel responsable del projecte.
+
+**Fonts:** document de funcionalitats (F §6 Material i cost per participant, processos 9.6 i 9.7), mapa de la plataforma v8 (M04 Material), respostes del responsable del projecte del 20/10/2026 (llista de tipus, ampolla amb litres lliures, stock de tot el material, material al registre d'immersió, tarifes per centre amb marge propi) i del 22/10/2026 (les classes de reforç són un ús nou de material), decisions [013](decisions/013-imputacio-comissions.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [035](decisions/035-dades-nomes-dins-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (càrrec, importacions, fitxers); secció [M02](#M02).
+
+**Proveïdor de pagaments.** El 03 no cobra res directament. Si s'aprova que el participant paga el lloguer a part (RN-M03-11), el 03 crea un càrrec de la 00 i el cobra el [05b](#M05b-8-serveis) a través de l'adaptador.
+
+<a id="M03-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Respondre per a cada activitat què fa servir cada participant, d'on surt (propi, del club o llogat a un centre de busseig) i quant costa; portar l'inventari de tot el material del club peça per peça, amb stock i revisions; i donar al 09 el cost de material i el marge dels lloguers. |
+| **Processos que cobreix** | P-M03-A Inventari, tipus i stock · P-M03-B Centres de busseig i tarifes · P-M03-C Necessitats a la inscripció · P-M03-D Assignar, llogar, lliurar i retornar (F 9.6) · P-M03-E Quantitats reals, registre d'immersió i cost per participant · P-M03-F Revisions (F 9.7) · P-M03-G Càrrega inicial de l'inventari |
+| **Tasques** | 21 (T-M03-01 a T-M03-21) |
+| **Què el bloqueja** | Per construir: el 02 (activitats, inscripcions i punts d'extensió). Per entrar en producció: centres i tarifes, peces actuals del club i regla del cost d'ús [A validar: junta]; qui paga el material llogat [A validar: junta i tresorer] |
+| **Què cal aprovar** | Aquesta secció; la regla que evita comptar dues vegades el lloguer al marge (RN-M03-10); els supòsits S-M03-01 a S-M03-04 ([M03-14](#M03-14-aprovar)) |
+
+<a id="M03-1-intencio"></a>
+## M03-1 Intenció, abast i fora d'abast
+
+**Per què.** Avui el material es porta amb Excel: qui porta què, què es lloga i a quin centre, i quant costa. És una de les peces que cap programa comercial cobreix (F §6), i sense ella el marge de cada activitat no és real.
+
+**Resultat esperat.**
+- El responsable de material sap en tot moment quantes peces hi ha de cada tipus i talla, i quantes estan disponibles, assignades, en ús o en revisió.
+- Per a cada activitat, sap què necessita cada participant, què li assigna el club i què s'ha de llogar a cada centre, amb la llista per enviar.
+- Cap peça no s'assigna a dues activitats el mateix dia, ni si està en revisió.
+- Cada participant veu al seu historial el material que ha fet servir a cada activitat.
+- El 09 rep el cost de material de cada activitat i el marge de cada lloguer sense tornar a escriure res.
+
+**Com sabrem que funciona.**
+- L'stock surt de l'inventari i quadra amb un recompte físic.
+- Una assignació que solapa dies amb una altra de la mateixa peça es rebutja, també des de la base de dades.
+- El cost per participant d'una activitat de prova coincideix amb el càlcul a mà de l'exemple de [M03-7](#M03-7-regles).
+- Cap revisió no passa de data sense que el responsable n'hagi rebut l'avís.
+
+**Dins de l'abast.**
+- Tipus de material i inventari peça per peça (codi, tipus, talla o litres, estat, compra, propera revisió, historial).
+- Stock per tipus, talla i estat a una data.
+- Centres de busseig i tarifes (preu de cost i preu per al soci) amb versions.
+- Material típic per curs, especialitat o tipus de sortida, que s'aplica a l'activitat i es copia en duplicar.
+- Necessitats del participant al formulari d'inscripció del 02 («porto el meu» o «necessito», amb talla).
+- Assignació per participant: propi, del club o llogat; lliurament, retorn i peces a revisió.
+- Llista de lloguer per centre, exportable i imprimible.
+- Càrrec del lloguer al participant, si s'aprova (RN-M03-11).
+- Quantitats reals després de l'activitat, material al registre d'immersió i cost per participant i per activitat.
+- Revisions: calendari, avisos, registre i cost.
+- Càrrega inicial de l'inventari amb la importació de la 00.
+
+**Fora d'abast.**
+- **Factures dels centres i despeses de revisió:** són despeses amb factura del 09. El 03 en dona les dades per casar-les.
+- **Marge de l'activitat:** el calcula i el congela el 09 amb el cost que li dona el 03.
+- **Bitàcola** (hores, profunditat, insígnies): mòdul 12. El 03 dona el material de cada activitat.
+- **Botiga i venda de material:** mòdul 13, fora d'abast.
+- Lectura de codis de barres o QR de les peces: idea per a més endavant (el codi de la peça ja hi és).
+- Dades del cos (pes, alçada) per triar ploms o talles: no es guarden; la persona tria la talla.
+
+<a id="M03-2-dependencies"></a>
+## M03-2 Dependències
+
+**De què depèn.**
+| Mòdul | Què en fa servir el 03 |
+|---|---|
+| 00 | Càrrec (lloguer al participant, si s'aprova); importacions (càrrega inicial); permisos; registre d'activitat; correu i avisos |
+| 02 | Activitats, dates i sessions de reforç; inscripcions; senyals `enrolment_confirmed`, `enrolment_cancelled`, `activity_duplicated`, `activity_done`, `activity_cancelled`; punts d'extensió del formulari d'inscripció, del tancament i de les pantalles ([M02-8](#M02-8-serveis)) |
+| 05b | Cobrar el càrrec de lloguer (si s'aprova RN-M03-11), com qualsevol càrrec d'inscripció |
+
+**Què depèn del 03.**
+| Mòdul | Què necessita |
+|---|---|
+| 02 | Motiu «material pendent» per no tancar; material típic a la còpia; bloc de material a «Les meves activitats» i a la fitxa |
+| 09 | Cost de material per activitat i per participant; lloguers per centre per casar la factura; marge dels lloguers; cost de les revisions |
+| 08 | Stock, material més usat, revisions properes |
+| 12 | Material fet servir a cada activitat (bitàcola) |
+
+<a id="M03-3-capacitats"></a>
+## M03-3 Capacitats i històries d'usuari
+
+| # | Capacitat | Qui | Pantalla (proposta) | Wireframe |
+|---|---|---|---|---|
+| C1 | Mantenir tipus de material i inventari | Resp. material | Inventari; Fitxa de la peça | Falta |
+| C2 | Veure l'stock per tipus, talla i estat | Resp. material | Stock | Falta |
+| C3 | Mantenir centres de busseig i tarifes | Resp. material | Centres i tarifes | Falta |
+| C4 | Material típic per curs, especialitat o tipus de sortida | Resp. cursos i sortides; Resp. material | Material típic | Falta |
+| C5 | Indicar què porta i què necessita | Participant | Inscriure'm (bloc del 03 dins el formulari del 02) | Falta |
+| C6 | Assignar, marcar llogat, lliurar i retornar | Resp. material | Material de l'activitat | `admin.html#material-assignat` |
+| C7 | Llista de lloguer per centre | Resp. material | Llista de lloguer | Falta |
+| C8 | Quantitats reals i cost per participant | Resp. material | Material de l'activitat; Cost per participant | Falta |
+| C9 | Revisions i avisos | Resp. material | Revisions | Falta |
+| C10 | Veure el seu material per activitat | Participant | Les meves activitats (bloc del 03) | Falta |
+| C11 | Càrrega inicial de l'inventari | Resp. material; Administrador | Importar inventari | Falta |
+
+**Històries d'usuari**
+- **HU-M03-01.** Com a responsable de material, vull donar d'alta cada peça amb un codi, el tipus, la talla (o els litres, a les ampolles) i la propera revisió, per saber què tenim.
+- **HU-M03-02.** Com a responsable de material, vull veure quants jaquets de talla M hi ha disponibles el dia d'una sortida.
+- **HU-M03-03.** Com a responsable de material, vull guardar per a cada centre el preu de cost i el preu per al soci de cada equip, i que el marge surti sol.
+- **HU-M03-04.** Com a participant, vull marcar peça per peça si porto el meu material o el necessito, amb la talla, quan m'inscric.
+- **HU-M03-05.** Com a responsable de material, vull assignar peces de l'inventari i que la plataforma no em deixi posar la mateixa peça a dues activitats el mateix dia.
+- **HU-M03-06.** Com a responsable de material, vull marcar el que s'ha de llogar i treure la llista per a cada centre, per enviar-la abans de la sortida.
+- **HU-M03-07.** Com a responsable de material, vull registrar què ha tornat i què ha d'anar a revisió.
+- **HU-M03-08.** Com a responsable de material, vull rebre un avís abans de cada revisió i que una peça en revisió no es pugui assignar.
+- **HU-M03-09.** Com a responsable de cursos i sortides, vull que cada tipus de sortida porti el seu material típic, i que es copiï quan dupliqui una activitat.
+- **HU-M03-10.** Com a tresorer, vull veure el cost de material de cada participant i de cada activitat, i el marge dels lloguers.
+- **HU-M03-11.** Com a soci, vull veure el material que vaig fer servir a cada immersió.
+
+<a id="M03-4-rols"></a>
+## M03-4 Rols i permisos
+
+Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propietari vol dir **junta** (Q-01, P-04).
+
+| # | Acció | Visitant | Part. no soci | Soci | Instructor | Secretaria | Resp. cursos i sortides | Resp. material | Tresorer | Resp. comunicació | Dept. Història | Junta | Administrador | Resp. botiga |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MT1 | Indicar què porta i què necessita (inscripció) | — | Propi (enllaç) | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
+| MT2 | Veure el seu material per activitat | — | Propi (enllaç) | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
+| MT3 | Mantenir tipus i inventari; donar de baixa una peça | — | — | — | — | — | — | Sí | — | — | — | — | Sí | — |
+| MT4 | Veure l'stock | — | — | — | — | — | Consulta | Sí | Consulta | — | — | Consulta | Sí | — |
+| MT5 | Material típic | — | — | — | — | — | Sí | Sí | — | — | — | — | Sí | — |
+| MT6 | Assignar, marcar llogat, lliurar i retornar | — | — | — | — | — | [A validar] | Sí | — | — | — | — | Sí | — |
+| MT7 | Veure el material dels participants d'una activitat | — | — | — | Les seves | — | Sí | Sí | — | — | — | — | Sí | — |
+| MT8 | Centres de busseig i tarifes | — | — | — | — | — | Consulta | Sí | Consulta | — | — | [A validar] | Sí | — |
+| MT9 | Llista de lloguer: generar, exportar i marcar enviada | — | — | — | — | — | Sí | Sí | — | — | — | — | Sí | — |
+| MT10 | Quantitats reals després de l'activitat | — | — | — | [A validar] | — | — | Sí | — | — | — | — | Sí | — |
+| MT11 | Revisions | — | — | — | — | — | — | Sí | — | — | — | — | Sí | — |
+| MT12 | Cost per participant i per activitat; marge dels lloguers | — | — | — | — | — | Consulta [A validar: Q-01] | Sí | Sí | — | — | Consulta | Sí | — |
+| MT13 | Càrrega inicial de l'inventari | — | — | — | — | — | — | Sí | — | — | — | — | Sí | — |
+
+**Per objecte.**
+- **Participant:** només les seves necessitats i el seu material; ni el material ni les talles d'altres persones.
+- **Instructor:** el material assignat als alumnes de les seves sessions (per comprovar-lo abans d'entrar a l'aigua), sense costos.
+- **Responsable de material:** tot l'inventari i totes les assignacions; dels participants veu nom, talles i necessitats, no pagaments ni dades de contacte.
+- **Tresorer:** costos, tarifes i marges; no les talles.
+
+<a id="M03-5-processos"></a>
+## M03-5 Processos pas per pas
+
+**Wireframes existents:** `admin.html#material-assignat` (llista de peces assignades a una activitat amb codi, participant, import i estat «Lliurat» o «Per recollir»). **Falten** (T-M03-01): inventari i fitxa de la peça, stock, centres i tarifes, material típic, bloc del formulari d'inscripció, material de l'activitat amb els tres orígens, llista de lloguer, cost per participant, revisions i càrrega inicial.
+
+**Estat d'una peça del club.** F §6 parla de «disponible → assignada → en ús → retornada, i en revisió». Com que una mateixa peça pot estar assignada a activitats de dies diferents, la peça només guarda l'estat operatiu i la resta surt de les assignacions:
+| Estat que es veu | D'on surt |
+|---|---|
+| **Disponible** (en una data) | Peça `available` sense cap assignació viva que inclogui aquella data |
+| **Assignada** | Assignació `planned` que inclou la data |
+| **En ús** | Assignació `delivered` (lliurada i no retornada) |
+| **Retornada** | Esdeveniment de l'assignació (`returned`); la peça torna a `available` o passa a `in_review` |
+| **En revisió** | Peça `in_review` |
+| **De baixa** | Peça `retired`, amb motiu (perduda, trencada, revisió fallida) |
+
+### P-M03-A Inventari, tipus i stock
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Resp. material | Revisa els tipus (aletes, màscara, tub, neoprè, escarpins, ploms, jaquet, regulador, ordinador, brúixola, boia, llanterna, ganivet de seguretat, ampolla) i n'afegeix si cal |
+| 2 | Resp. material | Dona d'alta una peça: codi (proposat pel sistema, `MAT-NNNN`), tipus, talla o litres, data i cost de compra (opcionals), propera revisió |
+| 3 | Sistema | La fitxa de la peça mostra l'historial: assignacions, revisions, canvis d'estat |
+| 4 | Resp. material | Obre «Stock» per a una data: recompte per tipus i talla (o litres) i per estat |
+
+### P-M03-B Centres de busseig i tarifes
+1. El responsable crea el centre (nom, adreça, contacte del centre) i, per a cada equip o servei, el **preu de cost** i el **preu per al soci** (i, si cal, el de no soci) [A validar: junta, S-M03-01].
+2. El sistema mostra el marge de cada línia. Canviar una tarifa crea una versió nova amb data d'inici; les assignacions anteriors conserven la tarifa que tenien (RN-M03-06).
+
+### P-M03-C Necessitats a la inscripció (F 9.6 pas 1)
+1. El formulari d'inscripció del 02 mostra el bloc del 03 amb el **material típic** de l'activitat: per a cada peça, «porto el meu» o «necessito», i la talla.
+2. Les respostes es desen com a necessitats de la inscripció. Una inscripció a la llista d'espera també les guarda.
+
+### P-M03-D Assignar, llogar, lliurar i retornar (F 9.6 passos 2-5)
+| Pas | Qui | Què passa | Pantalla |
+|---|---|---|---|
+| 1 | Resp. material | Obre «Material de l'activitat»: per a cada participant `confirmed`, el que porta, el que necessita i el que ja té assignat | Material de l'activitat |
+| 2 | Resp. material | **Del club:** tria una peça disponible de la talla; el sistema només n'ofereix de disponibles aquells dies i rebutja el solapament (RN-M03-02, 03) | ídem |
+| 3 | Resp. material | **Llogat:** tria el centre i la línia de tarifa; es copien el preu de cost i el preu per al participant (RN-M03-06) | ídem |
+| 4 | Sistema | Si s'aprova RN-M03-11, crea el càrrec del lloguer al participant i l'avisa | — |
+| 5 | Resp. material | Genera la **llista de lloguer** de cada centre (agrupada per tipus i talla, amb una referència per participant), l'exporta o l'imprimeix, l'envia pel canal del club i la marca «enviada» | Llista de lloguer |
+| 6 | Resp. material | El dia de l'activitat marca cada peça del club com a **lliurada** | ídem |
+| 7 | Resp. material | En tornar, marca cada peça com a **retornada** i tria «disponible» o «a revisió» | ídem |
+
+### P-M03-E Quantitats reals, registre d'immersió i cost (F 9.6 passos 4 i 6)
+1. Després de l'activitat, el responsable confirma què s'ha fet servir de veritat: una assignació pot quedar «no s'ha fet servir» (per exemple, un participant que no ha vingut).
+2. El material fet servir passa al registre de la persona per a aquella activitat (`equipment.used_by`).
+3. El sistema calcula el cost per participant i per activitat (RN-M03-08 a 10) i el deixa a punt per al 09.
+
+### P-M03-F Revisions (F 9.7)
+| Pas | Qui | Què passa |
+|---|---|---|
+| 1 | Sistema | Cada dia, avisa el responsable (correu i avís a l'app) de les peces amb la revisió a menys de 30 dies [A validar: junta, S-M03-06] i de les vençudes |
+| 2 | Resp. material | Envia la peça a revisió: passa a `in_review` i no es pot assignar. Si tenia assignacions futures, surten marcades per canviar-les |
+| 3 | Resp. material | En tornar, registra la data, el resultat, el proveïdor, el cost i la propera revisió. Si és correcta, `available`; si no, `retired` amb motiu |
+| 4 | Sistema | El cost queda a la revisió perquè el 09 el casi amb la factura (despesa amb factura) |
+
+### P-M03-G Càrrega inicial de l'inventari
+1. El responsable puja un CSV (codi, tipus, talla o litres, data de compra, propera revisió) amb la importació de la 00: lot, validació sense escriure res, confirmació i opció de desfer.
+2. En desenvolupament i proves, només amb dades inventades.
+
+<a id="M03-6-entitats"></a>
+## M03-6 Entitats i camps
+
+App Django `equipment` (nova). Noms de codi en anglès. Imports en cèntims. Les FK cap a models del 02 són només de lectura: el 03 no hi escriu mai.
+
+### EquipmentType (tipus de material)
+`name` (`CharField(60)`, únic), `sizing` (`size`, `litres`, `none`), `requires_review` (bool), `active`. Dades inicials: els 14 tipus de F §6. Ampolla: `sizing = litres`.
+
+### EquipmentItem (peça)
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `code` | `CharField(20)` | Únic. Proposta `MAT-NNNN` |
+| `type` | FK EquipmentType (PROTECT) | — |
+| `size` | `CharField(10)` | Obligatori si `sizing = size` |
+| `litres` | `DecimalField(4,1)` | Obligatori i > 0 si `sizing = litres`; nul altrament (`CHECK`) |
+| `status` | `available`, `in_review`, `retired` | RN-M03-04 |
+| `purchased_on` | `DateField` null | — |
+| `purchase_cost_cents` | `PositiveIntegerField` null | Per a l'amortització, si s'aprova (RN-M03-08) |
+| `next_review_on` | `DateField` null | Obligatori si `requires_review` |
+| `retired_reason` | `TextField` | Obligatori si `retired` |
+| `notes` | `TextField` | — |
+**Índexs:** `(type, size, litres, status)`. Una peça amb assignacions no s'esborra; es dona de baixa.
+
+### DiveCentre i CentreRate (centre i tarifa)
+- `DiveCentre`: `name` (únic), `address`, `contact_email`, `contact_phone` (del centre, no de persones), `active`.
+- `CentreRate`: `centre` (FK), `label` (`CharField(80)`, equip o servei), `equipment_type` (FK null), `cost_cents`, `member_price_cents`, `non_member_price_cents` (null) [A validar: junta, S-M03-01], `valid_from` (`DateField`), `superseded_by` (FK self null). Una tarifa usada en una assignació no es modifica: es crea una versió nova.
+
+### ActivityTypicalEquipment i TypicalEquipmentTemplate (material típic)
+- `TypicalEquipmentTemplate`: `catalogue_entry` (FK 02 null) o `outing_type` (FK 02 null) (exactament un, `CHECK`), `equipment_type`, `quantity_per_participant` (`PositiveSmallIntegerField`).
+- `ActivityTypicalEquipment`: `activity` (FK 02), `equipment_type`, `quantity_per_participant`. Es crea en crear l'activitat a partir de la plantilla i es copia en duplicar.
+
+### EquipmentNeed (necessitat del participant)
+`enrolment` (FK 02), `equipment_type`, `brings_own` (bool), `size` (`CharField(10)`), `litres` (null). Únic `(enrolment, equipment_type)`.
+
+### EquipmentAssignment (assignació)
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `activity` | FK Activity (02) | — |
+| `enrolment` | FK Enrolment (02) | Participant |
+| `session` | FK Session (02) null | Només per a classes de reforç (ús nou de material) |
+| `equipment_type` | FK EquipmentType | — |
+| `origin` | `own`, `club`, `rented` | — |
+| `item` | FK EquipmentItem null | Obligatori si `origin = club`; nul altrament (`CHECK`) |
+| `centre`, `rate` | FK null | Obligatoris si `origin = rented` (`CHECK`) |
+| `period` | `DateRangeField` | Dies de l'activitat (o de la sessió de reforç) |
+| `cost_cents` | `PositiveIntegerField` | Còpia: 0 si propi; cost d'ús si del club; preu de cost si llogat |
+| `participant_price_cents` | `PositiveIntegerField` | Còpia: preu per al participant (lloguer) o 0 |
+| `status` | `planned`, `delivered`, `returned`, `not_used`, `cancelled` | RN-M03-12 |
+| `delivered_at`, `returned_at` | `DateTimeField` null | — |
+| `charge` | FK càrrec (00) null | Si s'aprova RN-M03-11 |
+**Restricció d'exclusió (PostgreSQL, `btree_gist`):** `EXCLUDE USING gist (item WITH =, period WITH &&) WHERE (item IS NOT NULL AND status IN ('planned','delivered'))`. És la garantia de RN-M03-02 encara que dues persones assignin alhora.
+
+### RentalList (llista de lloguer)
+`activity`, `centre`, `generated_by`, `generated_at`, `fingerprint` (empremta del contingut), `sent_at` null, `sent_by` null. El contingut es genera a demanda a partir de les assignacions i no es desa (com el fitxer de la remesa del 05b).
+
+### EquipmentReview (revisió)
+`item` (FK), `kind` (`hydrostatic_test`, `visual_inspection`, `regulator_service`, `other`), `due_on`, `sent_on` null, `done_on` null, `provider` (`CharField(120)`), `result` (`ok`, `failed`, null), `cost_cents` null, `next_review_on` null, `notes`, `recorded_by`. Només s'hi afegeix un cop tancada.
+
+### UsageRate (cost d'ús del material del club)
+`equipment_type`, `cost_per_day_cents`, `valid_from`. Sense cap fila, el cost d'ús és 0 (RN-M03-08).
+
+**Migracions:** reversibles; extensió `btree_gist` i restricció d'exclusió en una migració pròpia amb prova; tipus inicials en una migració de dades; cap dada personal.
+
+<a id="M03-7-regles"></a>
+## M03-7 Regles de negoci i càlculs
+
+| ID | Regla | Font |
+|---|---|---|
+| RN-M03-01 | Tres orígens del material: **propi** (cost 0 per al club), **del club** (cost d'ús) i **llogat** a un centre (preu de cost de la tarifa) | F §6 |
+| RN-M03-02 | Una peça del club no es pot assignar a dues activitats amb dies que es toquin. Ho garanteix la restricció d'exclusió de la base de dades, no només la pantalla | F §6 i 9.6 |
+| RN-M03-03 | No es pot assignar una peça `in_review` o `retired`, ni una que tingui la revisió vençuda abans de l'últim dia de l'activitat | F 9.7; proposta |
+| RN-M03-04 | Estats de la peça: `available ⇄ in_review`; `available → retired`; `in_review → retired`. «Assignada», «en ús» i «retornada» surten de les assignacions ([M03-5](#M03-5-processos)) | F §6 |
+| RN-M03-05 | Ampolla: capacitat en litres com a número lliure positiu amb un decimal com a màxim (10, 12, 15 o el que sigui). La resta de tipus, talla en text curt o res | F §6; resposta del 20/10/2026 |
+| RN-M03-06 | Tarifes per centre amb versions: un canvi crea una versió nova amb data d'inici. En assignar un lloguer, es copien el preu de cost i el preu per al participant de la versió vigent el primer dia de l'activitat | F §6 |
+| RN-M03-07 | Marge d'un lloguer = preu per al participant − preu de cost. Si és negatiu, es pot desar però surt marcat al tresorer | F §6; resposta del 20/10/2026 |
+| RN-M03-08 | Cost d'ús d'una peça del club = dies de l'assignació × `cost_per_day_cents` del seu tipus vigent. Sense tarifa, 0. La fórmula (amortització o tarifa fixa per tipus) la fixa la junta [A validar: junta i tresorer, S-M03-02] | F §6 |
+| RN-M03-09 | Cost de material d'un participant = suma del `cost_cents` de les seves assignacions fetes servir (`returned` o `delivered`); `not_used` i `cancelled` no compten | F §6 |
+| RN-M03-10 | **Per al marge del 09:** el «cost de material» de la fórmula de CLAUDE.md és el cost d'ús del material del club (RN-M03-08). El lloguer entra al marge com a **despesa** quan es registra la factura del centre (09); mentre no hi és, el 09 fa servir el cost estimat de les tarifes. Mai totes dues coses alhora, per no comptar el lloguer dues vegades | CLAUDE.md; F §6 i §7 |
+| RN-M03-11 | El participant paga el material llogat al preu per al participant de la tarifa (F §6). Supòsit: quan el responsable confirma un lloguer, es crea un **càrrec a part** de tipus «inscripció» amb aquest preu, l'activitat i el departament de l'activitat, i es cobra amb el 05b [A validar: junta i tresorer, S-M03-03]. El material del club no es cobra al participant mentre la junta no en fixi un preu | F §6; [M02-13](#M02-13-riscos), dubte 8 |
+| RN-M03-12 | Transicions de l'assignació: `planned → delivered → returned`; `planned → not_used / cancelled`; `delivered → not_used` (no s'ha fet servir). En retornar, la peça passa a `available` o `in_review` | F 9.6 |
+| RN-M03-13 | «Material pendent» (motiu per no tancar l'activitat, registrat al 02): assignacions `planned` o `delivered` després de l'activitat, necessitats «necessito» sense assignació, lloguers sense quantitat real confirmada i llistes de lloguer no marcades «enviades» | F §5 i §6 |
+| RN-M03-14 | Una peça lliurada que no s'ha retornat 7 dies després de l'activitat [A validar: junta, S-M03-06] surt a l'avís diari del responsable | Proposta |
+| RN-M03-15 | Avís de revisió 30 dies abans de `next_review_on` [A validar: junta, S-M03-06] i cada dia mentre estigui vençuda. La plataforma no calcula terminis legals: la data la posa el responsable segons la normativa o el fabricant [A verificar: normativa d'equips a pressió per a les ampolles; fabricant per als reguladors] | F 9.7 |
+| RN-M03-16 | Stock en una data: per tipus i talla (o litres), recompte de peces disponibles, assignades, en ús i en revisió. Les peces `retired` no hi compten | F §6 |
+| RN-M03-17 | Material típic: en crear una activitat, es copia la plantilla del curs, de l'especialitat o del tipus de sortida; en duplicar-la, es copia el de l'original (026, RN-M02-21) | F §6; 026 |
+| RN-M03-18 | Llista de lloguer: agrupada per tipus i talla, amb una referència per participant (número d'inscripció i inicials), no el nom complet ni el contacte [A validar: junta, S-M03-04]. Es genera a demanda, no es desa, i queda al registre amb l'empremta | Proposta; RGPD |
+| RN-M03-19 | Una classe de reforç és un ús nou de material: té les seves assignacions, amb el període de la sessió (resposta del 22/10/2026) | Resposta del 22/10/2026 |
+| RN-M03-20 | Si s'esborra una inscripció (cancel·lació), les seves assignacions `planned` passen a `cancelled` i les peces queden lliures; si hi havia un càrrec de lloguer pendent, s'anul·la; si estava pagat, es proposa la devolució amb la mateixa regla del 02 | RN-M02-12, 13 |
+
+**Exemples numèrics (imports inventats)**
+- **Solapament (RN-M03-02):** l'ampolla `MAT-0007` està assignada a una sortida del 14 al 15 de juny. Assignar-la a un curs el 15 de juny → rebutjat per la base de dades; el 16 de juny → acceptat.
+- **Lloguer i marge (RN-M03-06, 07):** al centre A, «equip complet» té preu de cost **2500** i preu per al soci **3000** → marge **500** per lloguer. Quatre lloguers: ingrés 12.000, cost 10.000, marge **2000**.
+- **Cost d'ús (RN-M03-08):** si la junta fixa 200 cèntims per dia per a les ampolles, sis ampolles en una sortida d'un dia → **1200**. Sense tarifa → 0.
+- **Cost per participant (RN-M03-09):** P1 porta tot el seu material → **0**. P2 fa servir una ampolla del club (200) i un equip llogat al centre A (2500) → **2700**. P3 tenia una ampolla assignada però no ha vingut (`not_used`) → **0**.
+- **Sense duplicar el lloguer (RN-M03-10):** amb els quatre lloguers de l'exemple, abans de la factura el 09 resta 10.000 d'estimat; quan es registra la factura del centre (per exemple, 10.000), resta la factura i deixa de restar l'estimat. Si la factura diu 10.400, la diferència de 400 es veu com a desviació.
+
+<a id="M03-8-serveis"></a>
+## M03-8 Serveis i interfícies (contracte)
+
+Cap altra app escriu als models del 03.
+
+**Ofereix**
+| Servei | Entrada | Sortida | Errors | Qui el fa servir |
+|---|---|---|---|---|
+| Bloc del formulari d'inscripció (registrat amb `activities.register_enrolment_section`) | activitat, inscripció | preguntes i desament de les necessitats | `InvalidSize` | 02 |
+| Comprovació de tancament (registrada amb `activities.register_closing_check`) | activitat | motius de RN-M03-13 | — | 02 → 09 |
+| Bloc de material a «Les meves activitats» i a la fitxa (registrat amb `activities.register_detail_section`) | inscripció o activitat | fragment HTML | — | 02 |
+| `equipment.activity_material_cost(activity)` | activitat | `{club_use_cents, rental_cost_estimated_cents, rental_participant_cents, rental_margin_cents, per_participant: […]}` | — | 09 |
+| `equipment.rentals_for(activity, centre)` | — | línies de lloguer per casar la factura | — | 09 |
+| `equipment.reviews_with_cost(period)` | — | revisions amb cost, per casar factures | — | 09 |
+| `equipment.used_by(person)` | persona | per activitat, el material fet servir (tipus, talla o litres, origen) | — | 02 (bloc), 12 |
+| `equipment.stock(on=date, filters)` | — | recomptes | — | 08 |
+| `equipment.export_personal_data(person)`, `equipment.anonymise(person)` | persona | — | — | 00 (RGPD) |
+
+**Consumeix**
+| Servei o senyal | Mòdul | Per a què |
+|---|---|---|
+| `activities.get_activity`, `activities.enrolments(activity, statuses)` | 02 | Participants i dates |
+| `enrolment_confirmed`, `enrolment_cancelled`, `activity_duplicated`, `activity_done`, `activity_cancelled` | 02 (senyals) | Preparar l'assignació, alliberar peces, copiar el material típic, demanar quantitats reals |
+| `activities.register_enrolment_section`, `register_closing_check`, `register_detail_section` | 02 | Punts d'extensió |
+| `charges.create_charge(person, kind="inscripció", …, origin="equipment", activity)`, `charges.cancel` | 00 | Càrrec del lloguer (si s'aprova RN-M03-11) |
+| `imports.create_batch(kind="equipment", …)` | 00 | Càrrega inicial |
+| `mail.send`, `notices.post`, `audit.record`, `permissions.require` | 00 | Avisos, registre, permisos |
+
+**Rutes (administració):** `/gestio/material`, `/gestio/material/peces/{codi}`, `/gestio/material/stock`, `/gestio/material/centres`, `/gestio/material/centres/{id}`, `/gestio/material/tipic`, `/gestio/material/revisions`, `/gestio/material/importar`, `/gestio/activitats/{id}/material`, `/gestio/activitats/{id}/material/lloguer/{centre}`. Compte personal: el bloc dins `/socis/activitats/{inscripcio}`. Cap ruta pública.
+
+<a id="M03-9-criteris"></a>
+## M03-9 Criteris d'acceptació i casos límit
+
+- **CA-M03-01** Donat el tipus «Ampolla», quan es dona d'alta una peça sense litres o amb 0, llavors es rebutja; amb 12, s'accepta; amb 11,5, s'accepta.
+- **CA-M03-02** Donat la peça `MAT-0007` assignada del 14 al 15 de juny, quan s'assigna a una altra activitat el 15 de juny (també des de dues sessions alhora), llavors es rebutja; el 16 de juny, s'accepta.
+- **CA-M03-03** Donat una peça `in_review`, quan es vol assignar, llavors no surt a la llista i, si es força la petició, es rebutja.
+- **CA-M03-04** Donat una peça amb la revisió vençuda abans de l'últim dia de l'activitat, quan es vol assignar, llavors es rebutja amb el motiu.
+- **CA-M03-05** Donat una tarifa usada en una assignació, quan el responsable en canvia el preu, llavors es crea una versió nova i l'assignació conserva els imports anteriors.
+- **CA-M03-06** Donat una inscripció amb «necessito jaquet, talla M», quan el responsable obre el material de l'activitat, llavors la necessitat hi surt i només s'hi ofereixen jaquets M disponibles aquells dies.
+- **CA-M03-07** Donat quatre lloguers al centre A, quan es genera la llista, llavors agrupa per tipus i talla, porta referències i no noms complets ni contactes, no es desa i queda al registre amb l'empremta.
+- **CA-M03-08** Donat els exemples de [M03-7](#M03-7-regles), quan es demana `activity_material_cost`, llavors el cost de P1, P2 i P3 és 0, 2700 i 0; i, a l'activitat amb quatre lloguers al centre A, el marge dels lloguers és 2000.
+- **CA-M03-09** Donat una activitat amb una peça lliurada i no retornada, quan el 02 demana les comprovacions de tancament, llavors hi surt «material pendent».
+- **CA-M03-10** Donat una activitat duplicada, quan es crea la còpia, llavors té el mateix material típic i cap assignació.
+- **CA-M03-11** Donat una peça amb revisió d'aquí a 30 dies, quan s'executa l'avís diari, llavors el responsable rep un correu i un avís a l'app (sense push).
+- **CA-M03-12** Donat una revisió fallida, quan es registra, llavors la peça passa a `retired` amb el motiu i les seves assignacions futures surten marcades.
+- **CA-M03-13** Donat un lloguer confirmat i RN-M03-11 aprovada, quan es confirma, llavors el participant té un càrrec del preu per al participant a la mateixa activitat i departament, i el pot pagar amb el 05b.
+- **CA-M03-14** Donat una inscripció cancel·lada amb una peça `planned`, quan es cancel·la, llavors l'assignació passa a `cancelled` i la peça torna a estar disponible aquells dies.
+- **CA-M03-15** Donat el stock d'una data, quan es compara amb les peces, llavors disponibles + assignades + en ús + en revisió = total de peces no `retired`.
+- **CA-M03-16** Donat cada cel·la de [M03-4](#M03-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M03-17** Donat un CSV d'inventari amb una fila sense tipus, quan es valida, llavors la fila surt amb l'error i no s'escriu res fins a confirmar.
+
+**Casos límit**
+| # | Cas | Comportament |
+|---|---|---|
+| L-M03-01 | No hi ha prou peces de la talla | Es pot marcar «llogat» o assignar una altra talla amb nota |
+| L-M03-02 | El centre canvia la tarifa després d'enviar la llista | L'assignació manté la tarifa copiada; la diferència apareixerà en registrar la factura (09) |
+| L-M03-03 | Una peça es perd durant l'activitat | Assignació `returned` amb nota i peça `retired` amb motiu «perduda»; qui en paga el cost: [A validar: junta] |
+| L-M03-04 | Un participant porta el seu material però el dia en necessita | Assignació nova el mateix dia; si és llogat, càrrec nou (si s'aprova RN-M03-11) |
+| L-M03-05 | L'activitat es cancel·la | Totes les assignacions `cancelled`; les llistes de lloguer ja enviades surten marcades per avisar el centre |
+| L-M03-06 | Una ampolla de 2 × 7 litres (bibotella) | Es desa com a 14 litres amb nota [A validar: junta] |
+| L-M03-07 | Esborrat RGPD d'un participant | Necessitats i assignacions anonimitzades; els costos de l'activitat no canvien |
+| L-M03-08 | Cap peça a l'inventari | «Encara no hi ha cap peça» i enllaç a la càrrega inicial |
+
+<a id="M03-10-tasques"></a>
+## M03-10 Tasques (per dependències, sense dates)
+
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M03-01 | Wireframes que falten (vegeu [M03-5](#M03-5-processos)) | M | `design/wireframes/` | — | Revisats; contrast i estats amb símbol |
+| T-M03-02 | Tipus de material i dades inicials | S | `apps/equipment/models.py`, migracions | T-M02-02 | RN-M03-05; CA-M03-01 |
+| T-M03-03 | Inventari de peces, estats, baixa i historial | M | `models.py`, vistes | T-M03-02 | RN-M03-04 |
+| T-M03-04 | Stock en una data | S | `apps/equipment/stock.py` | T-M03-08 | CA-M03-15 |
+| T-M03-05 | Centres de busseig i tarifes amb versions | M | `models.py`, vistes | T-M03-02 | CA-M03-05 |
+| T-M03-06 | Material típic: plantilles, còpia a l'activitat i en duplicar | S | `apps/equipment/typical.py` | T-M02-07, T-M02-09 | CA-M03-10 |
+| T-M03-07 | Bloc del formulari d'inscripció i necessitats | M | `apps/equipment/enrolment.py` | T-M02-09, T-M02-11 | HU-M03-04 |
+| T-M03-08 | Assignació amb la restricció d'exclusió (`btree_gist`) | L | `models.py`, migració, `assignments.py` | T-M03-03, T-M03-07 | CA-M03-02, 03, 04, 06 |
+| T-M03-09 | Lliurament, retorn i pas a revisió | S | `assignments.py`, vistes | T-M03-08 | RN-M03-12 |
+| T-M03-10 | Llista de lloguer per centre (CSV i impressió, sense desar-la) | M | `apps/equipment/rentals.py` | T-M03-05, T-M03-08 | CA-M03-07 |
+| T-M03-11 | Càrrec del lloguer al participant (condicional) | M | `rentals.py` | T-M03-10; aprovació de RN-M03-11; T-M02-10 | CA-M03-13 |
+| T-M03-12 | Quantitats reals i servei `used_by` | S | `assignments.py` | T-M03-09 | HU-M03-11 |
+| T-M03-13 | Cost per participant i per activitat; servei per al 09 | M | `apps/equipment/costs.py` | T-M03-12 | CA-M03-08; RN-M03-10 |
+| T-M03-14 | Revisions: registre, avisos diaris a la cua, peces vençudes | M | `apps/equipment/reviews.py`, tasques | T-M03-03 | CA-M03-11, 12 |
+| T-M03-15 | Comprovació de tancament i bloc de «Les meves activitats» | S | `apps/equipment/extensions.py` | T-M03-12, T-M02-22 | CA-M03-09 |
+| T-M03-16 | Cancel·lacions: alliberar peces i anul·lar càrrecs de lloguer | S | `assignments.py` | T-M03-08, T-M03-11 | CA-M03-14 |
+| T-M03-17 | Càrrega inicial de l'inventari amb la importació de la 00 | M | `apps/equipment/imports.py` | T-M03-03 | CA-M03-17 |
+| T-M03-18 | Permisos per rol i per objecte | S | `apps/equipment/permissions.py` | T-M03-03 | CA-M03-16 |
+| T-M03-19 | Informes: cost per participant i activitat, material més usat, revisions properes | S | vistes | T-M03-13, T-M03-14 | Proves de permisos |
+| T-M03-20 | Dades inventades i proves de principi a fi (inscripció → necessitat → assignació → lliurament → retorn → cost) | L | `apps/equipment/fixtures/`, `tests/` | T-M03-08 a T-M03-17 | Totes en verd |
+| T-M03-21 | Guia del responsable de material | S | `docs/` | T-M03-20 | Revisada |
+
+<a id="M03-11-proves"></a>
+## M03-11 Pla de proves
+
+- **Unitàries (B1):** litres i talles; transicions de peça i d'assignació; versions de tarifa; marge del lloguer; cost d'ús per dies; cost per participant; avís de revisió; stock en una data.
+- **Base de dades:** la restricció d'exclusió amb assignacions simultànies i dies que es toquen (el darrer dia d'una i el primer de l'altra).
+- **Integració amb el 02:** inscripció amb necessitats; cancel·lació que allibera peces; duplicat amb material típic; tancament bloquejat per material pendent.
+- **Integració amb el 05b:** càrrec del lloguer pagat amb `FakeProvider` (si s'aprova RN-M03-11).
+- **Contracte per al 09:** `activity_material_cost` amb l'exemple de [M03-7](#M03-7-regles), inclòs el cas sense factura i amb factura (RN-M03-10).
+- **Permisos (B4):** una prova per cel·la de [M03-4](#M03-4-rols); el participant no veu el material d'altres.
+- **Accessibilitat i dispositius (B5, B8):** pantalla de lliurament i retorn usable al mòbil; estats amb símbol, text i color.
+- **Dades:** només inventades.
+
+<a id="M03-12-seguretat"></a>
+## M03-12 Seguretat i RGPD
+
+- **Mínim de dades:** el 03 només guarda talles i necessitats lligades a la inscripció; cap dada del cos (pes, alçada) ni de salut.
+- **Llista de lloguer:** surt cap a un tercer (el centre). Només referències i talles; si el centre necessita noms (per exemple, per a la seva assegurança), cal decidir-ho i informar-ne els participants [A validar: junta, S-M03-04]. Es genera a demanda i no es desa.
+- **Centres:** si un centre rep dades personals, ha de ser dins la UE ([035](decisions/035-dades-nomes-dins-ue.md)) i cal un acord de tractament [A validar: gestoria].
+- **Registre:** altes, baixes, assignacions, lliuraments, retorns, tarifes i revisions queden al registre amb el valor anterior.
+- **Imports:** cap dada de pagament; el càrrec del lloguer el cobra el 05b.
+
+<a id="M03-13-riscos"></a>
+## M03-13 Riscos, supòsits i dubtes
+
+**Riscos**
+| Risc | Impacte | Mitigació | Propietari |
+|---|---|---|---|
+| Inventari inicial desconegut | Alt per a l'stock i les assignacions | Càrrega en CSV; recompte físic abans de producció | Junta |
+| Centres i tarifes no recollits | Alt per al marge dels lloguers | Tarifes configurables; el marge surt quan s'hi posen | Junta |
+| Comptar el lloguer dues vegades al marge (tarifa i factura) | Alt per al marge | RN-M03-10 i prova de contracte amb el 09 | Tresorer |
+| Assignacions fetes fora de la plataforma el dia de l'activitat | Mitjà (stock incorrecte) | Pantalla mòbil de lliurament; avís de peces no retornades | Junta |
+| Cost d'ús sense fórmula | Mitjà (marge incomplet) | Cost 0 fins que la junta decideixi | Junta i tresorer |
+
+**Supòsits [A validar] i dades [A verificar]**
+| ID | Què | Supòsit mentre tant | Propietari |
+|---|---|---|---|
+| S-M03-01 | Centres de busseig amb què treballa el club, preu de cost i preu per al soci de cadascun; si hi ha preu de no soci | Cap centre; tarifes inventades a les proves | Junta |
+| S-M03-02 | S'imputa un cost d'ús al material del club; amortització o tarifa fixa per tipus (RN-M03-08) | Cost 0 | Junta i tresorer |
+| S-M03-03 | El material llogat es cobra en un càrrec a part o inclòs al preu de la inscripció (RN-M03-11) | Càrrec a part en confirmar el lloguer | Junta i tresorer |
+| S-M03-04 | Dades que rep el centre a la llista de lloguer (RN-M03-18) | Referència i inicials, sense nom complet | Junta |
+| S-M03-05 | Peces de cada tipus i talla que té avui el club | Inventari buit; càrrega en CSV | Junta |
+| S-M03-06 | Dies d'antelació de l'avís de revisió i de peces no retornades (RN-M03-14, 15) | 30 i 7 dies | Junta |
+| S-M03-07 | Periodicitat legal de les revisions (ampolles i reguladors) | La data la posa el responsable | Informàtica (consultar la normativa i els fabricants) |
+| S-M03-08 | Qui paga una peça perduda o trencada per un participant (L-M03-03) | Ningú automàticament; el responsable ho anota | Junta |
+| S-M03-09 | Bibotelles i equips compostos (L-M03-06) | Una peça amb els litres totals | Junta |
+| S-M03-10 | El responsable de cursos i sortides també assigna material (MT6) | No | Junta |
+| S-M03-11 | Format dels codis de les peces | `MAT-NNNN`; si ja tenen etiquetes, es respecten | Junta |
+
+**Revisió de dubtes (aplicada a mà)**
+1. **F §6 diu que el participant paga el lloguer, però el 02 cobra la inscripció abans de saber si es lloga.** El càrrec a part (RN-M03-11) ho resol, però dona dos pagaments per activitat. L'alternativa és cobrar un preu de material fix a la inscripció. Propietari: junta i tresorer.
+2. **«Retornada» com a estat de la peça** (F §6) no funciona si la peça té assignacions a dies diferents. Es tracta com un esdeveniment de l'assignació. Propietari: cap (coherent amb F 9.6 pas 4).
+3. **El marge de CLAUDE.md** (ingressos − despeses − cost de material) no diu si el lloguer és despesa o cost de material. RN-M03-10 el fa despesa (factura) i deixa el cost de material per al del club. El 09 ho ha de respectar. Propietari: tresorer.
+4. **Dades del centre:** si el centre necessita el nom i el document de cada persona per a la seva assegurança, la plataforma passaria dades a un tercer; cal base legal i informar-ne. Propietari: junta.
+5. **Revisions amb terminis legals:** les ampolles tenen proves periòdiques obligatòries; la plataforma no les calcula perquè no les tenim confirmades. Si el club vol que les calculi, cal la norma exacta. Propietari: informàtica.
+6. **Ploms:** es compten per peces (cinturons o blocs) i no per quilos. Si el club els porta per quilos, el tipus necessita una unitat diferent. Propietari: junta.
+
+<a id="M03-14-aprovar"></a>
+## M03-14 Què cal aprovar abans de començar
+
+1. **Aquesta secció del 03**, amb l'estat de la peça derivat de les assignacions ([M03-5](#M03-5-processos)) i la restricció d'exclusió.
+2. **RN-M03-10** (el lloguer entra al marge com a despesa amb factura; el cost de material és el del club), perquè el 09 hi quedi lligat.
+3. **Supòsits per defecte** S-M03-02 (cost d'ús 0), S-M03-03 (càrrec a part del lloguer) i S-M03-04 (referència i inicials a la llista) [A validar: junta i tresorer]. No bloquegen el codi.
+4. **Per entrar en producció** (no per començar): centres i tarifes (S-M03-01) i inventari inicial (S-M03-05) [A validar: junta].
+
+---
+
+<a id="preguntes"></a>
+# Apèndix — Preguntes per propietari
+
+Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls d'aquest pla, agrupades per qui les ha de respondre. La pregunta completa i el supòsit vigent són a la secció de l'ID. **«Bloqueja»** diu quin mòdul o quina tasca no es pot acabar sense la resposta; «—» vol dir que hi ha un supòsit i el codi no s'atura. Quan es respon una pregunta, s'actualitza la secció del mòdul i se'n treu la fila d'aquí.
+
+<a id="preguntes-banc"></a>
+**Banc**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| P-44 | Quin és el banc del club i si ofereix TPV virtual (amb PaynoPain) a una associació | 05a i 05b: proveïdor real (amb `FakeProvider` es pot avançar) |
+| P-45 punt 5; S-M05a-01 | Admet remeses pain.008? Quin és l'identificador de creditor del club? Admet mandats signats electrònicament? Pot custodiar els mandats (044)? | 05a: producció de la campanya; 05b: T-M05b-10 i T-M05b-11 |
+| S-M05b-05 | Versió de pain.008, terminis de presentació, comissió per rebut i per retornat, fitxer de retornats | 05b: T-M05b-10 |
+| S-M04-03; P-45 punt 10 | Format de l'extracte (CSV o Norma 43) i una mostra anonimitzada | — (supòsit CSV); conciliació real del 04 |
+| S-M04-08 | Abona les remeses rebut a rebut o en total? | — |
+| S-M05a-04 | Format de la referència del mandat | — |
+| S-M05a-05 | Admet un titular del compte diferent del soci? (també junta) | — |
+| S-M05a-06 | Admet IBAN de fora d'Espanya? | — |
+| S-M05a-11 | Caducitat d'un mandat sense cobraments (36 mesos) | — |
+| S-M05b-06 | Termini de l'avís previ (14 dies) segons el text del mandat (també tresorer) | — |
+| S-M01-25; S-M05a-14 | Es poden traspassar al club els mandats vigents de Cluber? (pregunta del tresorer, al banc o a la gestoria) | — (decideix l'abast de la campanya del 05a) |
+
+<a id="preguntes-paynopain"></a>
+**PaynoPain**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| P-45 punts 1 i 2 | Qui contracta el TPV i amb quines comissions (targeta, Bizum, devolucions, contracàrrecs) | 05b: producció |
+| P-45 punt 3 | On són els servidors, quins subencarregats hi ha i si signen contracte d'encarregat; cap transferència fora de la UE (035) | 05b: producció |
+| S-M05b-01; P-45 punt 4 | Camp de targeta incrustat o redirecció | — (l'adaptador admet tots dos) |
+| S-M05b-02; P-45 punt 13 | Bizum per redirecció o sol·licitud a l'app; caducitat i reintents de les notificacions | — |
+| S-M05b-03 | Es poden consultar les ordres (xarxa de seguretat)? | — |
+| S-M05b-04; P-45 punt 7 | Devolucions per API, també de Bizum | — (supòsit: transferència des del banc) |
+| S-M05a-02; P-45 punt 6 | Tokenització per a renovacions | 05a: T-M05a-12 |
+| S-M05a-03; P-45 punt 8 | Entorn de proves i com es demana | — (`FakeProvider`) |
+| S-M04-05 | La liquidació detalla la comissió de cada cobrament? | — (repartiment proporcional) |
+| P-45 punt 9 | Format de les liquidacions (agrupades o per operació, brutes o netes) | 04: T-M04-13; 05b: T-M05b-14 |
+
+<a id="preguntes-tresorer"></a>
+**Tresorer**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| P-29; S-M01-03 | En quin moment de l'any es cobren les quotes i quan és la propera remesa | 05a: calendari de la campanya |
+| S-M01-16 (Q-23) | Mostra anonimitzada de l'exportació de Cluber | 01: importació final real |
+| P-28 | Què fa avui Cluber amb les llicències | — |
+| P-12 | Registre manual de cobraments (efectiu): qui el pot fer i quin justificant cal (també junta) | Registre manual (RN-72 de la 00) |
+| S-M01-04 | Dies dels recordatoris de quota | — |
+| S-M01-05 | Quotes pendents en una baixa | — |
+| S-M01-24 | Validesa del carnet dels socis importats amb la quota pagada a Cluber | — |
+| S-M04-02 | Comptes bancaris del club | — |
+| S-M04-04 | Caixa en efectiu i arqueig | — |
+| S-M05a-07 | Calendari de recordatoris de la campanya | — |
+| S-M05b-10 | Recordatori de transferència als 30 dies | — |
+| S-M05b-11 | Format del número de rebut (també gestoria) | — |
+| 044 | Norma d'esborrat del fitxer de la remesa al seu dispositiu | — |
+| S-M02-02 | Termini de pagament d'una inscripció (72 hores) | — |
+
+<a id="preguntes-junta"></a>
+**Junta**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| P-04; S-M01-23 | Matriu dels 13 rols i rols nous (Junta, Resp. comunicació, Resp. botiga) | — (permisos configurables) |
+| S-M01-01, 02 | Import del canvi a ple dret; quota sencera a mig any | — |
+| S-M01-06, 07, 08 | Verificació pública del carnet (dígits, nom) i darrere del carnet | — |
+| S-M01-09, 10, 11 | Soci clàssic, antiguitat en una readmissió, drets del simpatitzant | — |
+| S-M01-12, 13, 14, 22 | Compte després de la baixa, socis menors (P-33), qui atén l'RGPD, conflicte d'interès | — |
+| S-M04-01, 06, 07, 09 | Departaments i centres de cost (Q-17), ingrés de quotes, comissions de llicències, qui desfà conciliacions | — |
+| S-M05a-09, 13 | Qui guarda la còpia de la clau; què veu la secretaria del mètode de pagament | 05a: nivell 1 (còpia de la clau) |
+| M05a-14 punt 2 | Textos del mandat, la invitació i el correu G3 | 05a: producció |
+| 025 | Autoritzacions del nivell 1 i del nivell 2 | Producció del 05a i del 05b |
+| S-M05b-08, 09, 13 | Comissió de retorn, carnet amb una quota retornada, qui reenvia l'alternativa | — |
+| P-48 | Doble aprovació (opcional i futura) | — |
+| S-M02-01, 03, 04, 06 | Avís o bloqueig per requisits, termini de l'oferta, preu dels simpatitzants, no socis | — |
+| S-M02-05 | Política de cancel·lació i devolució, també per meteorologia | 02: producció |
+| S-M02-07 | Catàleg de cursos i d'especialitats amb preus | 02: producció |
+| S-M02-08, 09 | Preu del reforç (per classe o per proposta); qui emet el certificat i com es numera | — |
+| S-M02-12, 14 | Tipus de sortida propis (Sèniors, jornades obertes); dades ambientals | — |
+| S-M02-16, 17, 18 | Inscripció presencial de la secretaria; dades que veu l'instructor; imports que veu el responsable (Q-01) | — |
+| S-M02-19, 20 | Requisits d'edat; protocol d'accidents i contacte d'emergència | — |
+| S-M03-01 | Centres de busseig i tarifes | 03: producció |
+| S-M03-02, 03 | Cost d'ús del material del club; lloguer en càrrec a part (també tresorer) | — |
+| S-M03-04 | Dades que rep el centre a la llista de lloguer | — |
+| S-M03-05 | Inventari actual per tipus i talla | 03: producció |
+| S-M03-06, 08, 09, 10, 11 | Dies dels avisos, peces perdudes, bibotelles, qui assigna, codis de les peces | — |
+
+<a id="preguntes-gestoria"></a>
+**Gestoria**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| S-M01-15 (Q-14) | Terminis de conservació de quotes, rebuts i pagaments | — (es bloquegen fins que es digui) |
+| S-M05b-12; P-47; P-02 | Què s'ha de facturar, IVA i obligació de Verifactu | 09 |
+| M05b-12 | Informació a Hisenda dels cobraments per Bizum | — |
+| S-M05a-08 | Proves de la signatura electrònica del mandat (també banc) | — |
+| M03-12 | Acord de tractament amb els centres de busseig si reben dades personals | 03: llista de lloguer amb noms |
+
+<a id="preguntes-fecdas"></a>
+**FECDAS**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| S-M01-17 | Tipus de llicència | 06 |
+| S-M02-10 | Relació entre el certificat del club i la titulació oficial | — |
+| S-M02-11 | Llista de nivells i d'agències de titulació | — |
+
+<a id="preguntes-secretaria"></a>
+**Secretaria**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| S-M01-18 | Data d'alta dels socis que Cluber no té | — |
+| S-M02-15 | Dies del recordatori d'una activitat | — |
+
+<a id="preguntes-informatica"></a>
+**Informàtica**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| S-M01-19; P-46 | Remitent dels correus i proveïdor de correu (subencarregats de Brevo dins la UE) | 00: correu en producció |
+| S-M01-20 | Eina d'auditoria d'accessibilitat | — |
+| S-M05a-10 | Biblioteca de xifratge i rols de PostgreSQL separats | — |
+| S-M05a-12 | Temps per tornar a demanar la contrasenya | — |
+| S-M02-23 | On viuen les propostes de devolució | — |
+| S-M03-07 | Periodicitat legal de les revisions d'ampolles i reguladors | — |
+
+<a id="preguntes-responsable"></a>
+**Responsable del projecte**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| 044 | Confirmar l'ampliació (clau, IBAN, fitxer de la remesa) per marcar-la acceptada | 05a: T-M05a-07 a T-M05a-10 |
+| M02-14 punt 2 | Servei `members.licence_record` al 01 (aprovat) | 02: T-M02-23 |
+| M02-14 punt 3 | Avís del 05b al mòdul d'origen de cada càrrec (00 i 05b aprovats) | 02: T-M02-10 i la inscripció |
+| RN-M03-10 | El lloguer entra al marge com a despesa amb factura | 09 |
+| S-M02-13 | Llista de subtipus de medi ambient i projectes actuals | — |
+| S-M02-21, 22 | Servei de previsió marítima enllaçat; pujar observacions a Minka | — |
+| M02, M03 | Aprovar les seccions dels mòduls 02 i 03 | 02 i 03 |

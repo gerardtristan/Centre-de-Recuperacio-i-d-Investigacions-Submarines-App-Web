@@ -51,9 +51,10 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [041](041-web-installable-i-avisos-sense-push.md) | Web instal·lable i avisos dins l'app i per correu, sense push | Acceptada com a camí per defecte (botigues: pendent de la junta) |
 | [042](042-proveidors-substituits-pel-requisit-ue.md) | Proveïdors substituïts pel requisit UE: Cloudflare, Sentry, Brevo (condicional) i Stripe | Acceptada (substitueix en part 002, 007, 011, 017 i 023) |
 | [043](043-proveidor-de-pagaments-dins-la-ue.md) | Proveïdor de pagaments dins la UE i pagament sense sortir de l'app | Acceptat l'ordre de recomanació; proveïdor pendent de verificar (P-44, P-45) |
-| [044](044-domiciliacio-sepa-iban-i-mandat-xifrats.md) | Domiciliació SEPA pròpia: IBAN i mandat xifrats, només per a aquest ús | Proposada (excepció a RN-70 de la spec 00) |
+| [044](044-domiciliacio-sepa-iban-i-mandat-xifrats.md) | Domiciliació SEPA pròpia: IBAN i mandat xifrats, només per a aquest ús | Proposada (excepció a RN-70 de la spec 00); ampliada el 27/10/2026 abans d'acceptar-la, pendent de confirmació |
 | [045](045-correccio-transferencia-conciliada-per-error.md) | Corregir una transferència conciliada amb el càrrec equivocat (pagat → pendent) | Acceptada (amplia RN-67 de la spec 00) |
 | [046](046-interficie-django-htmx-servida-des-del-vps.md) | Interfície amb plantilles de Django i HTMX, servida des del VPS (HTMX sense CDN) | Acceptada (substitueix la part de frontend de la 002; resol la pila del frontend de la 030) |
 | [047](047-planning-font-unica-de-l-especificacio.md) | `docs/planning.md` és la font única de l'especificació de cada mòdul | Acceptada (amplia la 008) |
+| [048](048-reobrir-carrec-retornat.md) | Reobrir un càrrec retornat (retornat → pendent) en reintentar-lo o oferir l'alternativa | Acceptada (amplia RN-67 de la spec 00) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
