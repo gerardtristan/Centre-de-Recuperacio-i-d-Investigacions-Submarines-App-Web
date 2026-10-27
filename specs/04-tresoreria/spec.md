@@ -1,13 +1,22 @@
 # Especificació 04 — Tresoreria, part mínima
 
-- **Versió:** 1 · 27/10/2026 · esborrany per a l'aprovació de gery
-- **Estat:** proposada. No es fa `plan.md`, `data-model.md` ni `tasks.md` definitius fins que s'aprovi; l'annex C n'és un esborrany perquè es vegi l'ordre de la feina.
+- **Versió:** 2 · 27/10/2026
+- **Estat:** la versió 1 es va aprovar amb canvis el 27/10/2026; aquesta versió els incorpora. L'annex C és l'esborrany de `tasks.md`; `plan.md` i `data-model.md` són el pas següent.
 - **Formalitat:** completa, perquè són finances (metodologia §7).
-- **Revisió:** el tresorer o la persona de la junta responsable [A validar qui: QT-01] i l'equip (metodologia §6).
+- **Revisió:** el tresorer i l'equip (metodologia §6).
 - **Ordre:** tercer mòdul de la fase 1 segons la [decisió 024](../../docs/decisions/024-abast-minim-i-ordre-per-deixar-cluber.md): 00 → 01 → **04 mínim** → 05a → 05b. Al pla del repositori anterior es deia «M05a, tresoreria: nucli».
 - **Abast:** el de l'arquitectura §9.1 per a la 04: comptes (banc, caixa, trànsit del proveïdor), moviments immutables, ingressos automàtics, comissions, devolucions i retorns com a moviments nous, departaments i centres de cost, i conciliació amb l'extracte en CSV.
 
-> **Avís: requisit nou de dades dins la UE.** gery ha fixat el 27/10/2026 que totes les dades es tracten només dins la UE (proposta de decisió 035, vegeu `docs/plans/02-reconciliacio-decisions.md` del repositori anterior). Això xoca amb Stripe (017, 022, 024, 025). Aquesta spec **no depèn de quin proveïdor de cobrament es triï**: parla de «proveïdor de cobrament» i d'un «compte de trànsit» per proveïdor. Funciona igual amb Stripe que amb el TPV virtual i les remeses del banc del club. Els llocs on el proveïdor canvia alguna cosa porten la marca **[Proveïdor]**.
+> **Proveïdor de cobrament.** Totes les dades es tracten només dins la UE ([035](../../docs/decisions/035-dades-nomes-dins-ue.md)) i Stripe queda descartat ([042](../../docs/decisions/042-proveidors-substituits-pel-requisit-ue.md)). El proveïdor es tria segons la [043](../../docs/decisions/043-proveidor-de-pagaments-dins-la-ue.md): primer el TPV virtual del banc del club (CaixaGuissona via PaynoPain [A verificar]); si no, la millor alternativa verificada. Aquesta spec parla de «proveïdor de cobrament» i d'un «compte de trànsit» per proveïdor, i no en depèn. Els llocs on el proveïdor canvia alguna cosa porten la marca **[Proveïdor]**.
+
+**Canvis respecte a la versió 1**
+1. Revisor: el tresorer. Hi ha un sol rol de tresorer i es tracta com una sola persona; no hi ha doble aprovació de pagaments (queda com a pregunta opcional futura, P-48).
+2. QT-02 (proveïdor) se substitueix per la decisió 043. La tasca T13 (liquidacions) és obligatòria.
+3. QT-04 resolta: transició «pagat → pendent» només per a transferències conciliades amb el càrrec equivocat ([045](../../docs/decisions/045-correccio-transferencia-conciliada-per-error.md)).
+4. QT-05 resolta: l'excés d'una transferència es retorna pel banc; no hi ha saldo a favor ni pagaments parcials.
+5. La matriu de rols inclou els rols del mapa v8 que no són a la spec 00 (§2.1).
+6. Annex D nou: requisits d'experiència de pagament per a la spec 05b.
+7. Domiciliació SEPA pròpia: si s'aplica la [044](../../docs/decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md), la plataforma guarda l'IBAN xifrat al mandat (mòdul 05a), mai a la 04.
 
 ## Com llegir aquesta spec
 
@@ -40,6 +49,7 @@ Serveis, no accés directe als models (CLAUDE, «una app no escriu als models d'
 | `registrar_comissio(pagament o liquidació, import)` | 05b i la 04 (en conciliar una liquidació) | Crea la despesa de comissió al departament de la [decisió 013](../../docs/decisions/013-imputacio-comissions.md) |
 | `registrar_devolucio(pagament, import, motiu)` i `registrar_retorn(pagament)` | 05b | Crea el moviment de signe contrari i, si n'hi ha, la comissió |
 | `referencia_transferencia(càrrec)` | 05b (pantalla de pagament per transferència) | Retorna la referència única del càrrec (RN-T20) |
+| `registrar_liquidacio(proveïdor, dades)` | 05b (notificació o fitxer de liquidació del proveïdor) | Crea la liquidació i la llista dels cobraments que conté (RN-T21) |
 | `saldo(compte, data)` i `moviments(filtres)` | 08 Dashboard i 01 (rebuts) | Consultes només de lectura |
 
 ---
@@ -62,6 +72,19 @@ Matriu provisional, igual que la de la 00 (P-04, Q-01). **Sí** = pot fer-ho; **
 | T10 | Veure la llista «a revisar» | — | — | — | — | — | Sí | — | Sí | ARQ §4.2, punt 4 |
 | T11 | Veure l'estat de les quotes (pagada o no) sense imports de tresoreria | — | — | Consulta | — | — | Sí | — | Sí | F §2 (secretaria: altes i baixes) |
 | T12 | Veure els seus càrrecs, pagaments i rebuts | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | 00, §2.5 (compte personal) |
+
+### 2.1 Rols del mapa v8 que no són a la spec 00
+La spec 00 té 8 rols (P-04). El mapa de la plataforma v8 en té més. Per a aquesta spec no tenen cap permís:
+
+| Rol del mapa v8 | T1-T11 | T12 | Nota |
+|---|---|---|---|
+| Visitant (sense sessió) | — | — | Cap endpoint de tresoreria és públic |
+| Participant no soci (convidat, decisió 021) | — | Propi, només amb l'enllaç de convidat | 00, §2.5 |
+| Junta | — | — | Si ha de veure saldos o el dashboard: P-04 [A validar] |
+| Resp. comunicació | — | — | — |
+| Resp. botiga | — | — | Botiga fora d'abast ara |
+
+Hi ha **un sol rol de tresorer** i es tracta com una sola persona. Cap acció d'aquesta spec no necessita una segona aprovació; si la junta la volgués més endavant (per exemple, per a devolucions a partir d'un import), és la pregunta opcional P-48.
 
 **Per objecte:** el tresorer veu les dades de les persones que calen per cobrar i conciliar (nom, número de soci, concepte i import), no el perfil sencer (00, §2.5; Q-01). L'extracte bancari pot portar noms de persones que no són del club (per exemple, qui fa una transferència en nom d'un altre): aquestes dades només es veuen a la pantalla de conciliació.
 
@@ -140,7 +163,9 @@ Matriu provisional, igual que la de la 00 (P-04, Q-01). **Sí** = pot fer-ho; **
 - **CA-T10.1** Donat una línia proposada amb una transferència, quan el tresorer la confirma, llavors el càrrec passa a «pagat», es crea el pagament amb el mètode transferència i l'ingrés al compte bancari, i queda al registre d'activitat qui ho ha confirmat.
 - **CA-T10.2** Donat una línia que paga diversos càrrecs (per exemple, dues quotes d'una família amb una sola transferència), quan el tresorer la casa amb aquests càrrecs i la suma coincideix exactament, llavors es pot confirmar; si no coincideix, no.
 - **CA-T10.3** Donat una línia ja conciliada, quan es vol fer servir per a un altre càrrec, llavors es rebutja.
-- **CA-T10.4** Donat una conciliació confirmada que no ha canviat l'estat de cap càrrec (per exemple, una liquidació), quan el tresorer la desfà amb motiu, llavors la línia torna a «pendent» i queda al registre. Si la conciliació va passar un càrrec a «pagat», es rebutja (vegeu QT-04).
+- **CA-T10.4** Donat una conciliació confirmada que no ha canviat l'estat de cap càrrec (per exemple, una liquidació), quan el tresorer la desfà amb motiu, llavors la línia torna a «pendent» i queda al registre.
+- **CA-T10.5** Donat una transferència conciliada amb el càrrec equivocat, quan el tresorer ho corregeix amb motiu, llavors el càrrec passa de «pagat» a «pendent», el pagament queda anul·lat amb el mateix motiu, l'ingrés es compensa amb un contramoviment i la línia torna a «pendent»; tot queda al registre i res s'esborra ([045](../../docs/decisions/045-correccio-transferencia-conciliada-per-error.md)).
+- **CA-T10.6** Donat un càrrec pagat amb targeta, Bizum o domiciliació, quan es demana «pagat → pendent», llavors es rebutja: es corregeix amb una devolució.
 - **CA-T11.1** Donat una liquidació del proveïdor (abonament agrupat), quan la línia del banc té l'import net de la liquidació, llavors es proposa casar-la i, en confirmar-ho, es crea el traspàs del compte de trànsit al banc i, si cal, la comissió (CA-T04.4).
 - **CA-T11.2** Donat una liquidació amb cobraments que no són a la plataforma, quan es concilia, llavors es marca «a revisar» i no es confirma fins que el tresorer ho resol.
 - **CA-T12.1** Donat una línia de l'extracte que no és de l'abast mínim, quan el tresorer l'exclou, llavors cal un motiu, la línia passa a «exclosa» i no crea cap moviment.
@@ -183,10 +208,11 @@ Matriu provisional, igual que la de la 00 (P-04, Q-01). **Sí** = pot fer-ho; **
 | RN-T15 | Estats d'una línia: **pendent** → **proposada** → **conciliada**; **pendent** → **exclosa** (amb motiu). Tots els estats poden passar a «a revisar», que és una marca, no un estat | Proposta |
 | RN-T16 | Només el tresorer confirma una conciliació. La plataforma només proposa; mai concilia sola | ARQ §4.6; RN-71 |
 | RN-T17 | Una línia es concilia una sola vegada. Pot casar amb un o més càrrecs, un o més moviments o una liquidació, sempre que la suma coincideixi exactament | Proposta |
+| RN-T17b | **Pagaments de més o de menys per transferència:** no hi ha saldo a favor ni pagaments parcials. L'excés es retorna pel banc (transferència sortint registrada com a devolució amb motiu); un pagament de menys queda «a revisar» i el tresorer demana la diferència o retorna l'import | Aprovació de la v1 (QT-05) |
 | RN-T18 | Una transferència només posa un càrrec en «pagat» si coincideixen la referència i l'import. Qualsevol altra coincidència és «a revisar» | ARQ §4.6 |
-| RN-T19 | Una conciliació que ha passat un càrrec a «pagat» no es pot desfer des de la 04, perquè RN-67 no admet «pagat → pendent». Correcció: QT-04 | RN-67; RN-76 |
+| RN-T19 | Una conciliació que ha passat un càrrec a «pagat» només es desfà amb la transició «pagat → pendent» de la 045: només per a transferències, amb motiu i registre | 045; RN-67 |
 | RN-T20 | **Referència de transferència:** una per càrrec, única, amb el prefix `TRANSFER_REFERENCE_PREFIX` i un dígit de control, per exemple `CRIS-7K3Q9-4` (VT-03). Es genera la primera vegada que es demana i no canvia | ARQ §4.6 i §5 |
-| RN-T21 | **[Proveïdor]** Una liquidació és l'abonament agrupat que el proveïdor fa al banc. Té import brut, comissions, import net, data i la llista de cobraments. Amb Stripe arriba per webhook (`payout.paid`); amb el TPV del banc, per l'extracte o per un fitxer del banc [A validar amb el banc] | ARQ §4.3 i §4.4 |
+| RN-T21 | **[Proveïdor]** Una liquidació és l'abonament agrupat que el proveïdor fa al banc. Té import brut, comissions, import net, data i la llista de cobraments. Com arriba (notificació, fitxer o només l'extracte) no consta a la documentació pública de Paylands [A verificar: P-45]. Si el proveïdor no en dona el detall, el tresorer casa la línia del banc amb els cobraments del període | 043; `docs/integracio-paylands.md` §7 |
 
 ### 5.4 Departaments i centres de cost
 | ID | Regla | Font |
@@ -222,11 +248,11 @@ La 04 hi afegeix, sense canviar les regles de la 00 (027): al **càrrec**, el ce
 |---|---|---|---|
 | LT1 | La confirmació del proveïdor arriba dues vegades | Un sol ingrés (CA-T03.2) | RN-T09 |
 | LT2 | Un soci fa una transferència sense referència | La línia queda «a revisar»; el tresorer la casa a mà amb el càrrec | CA-T09.3 |
-| LT3 | Un soci paga per transferència més del que deu | «A revisar». Què es fa amb l'excés (devolució o saldo a favor) és QT-05 | Proposta |
-| LT4 | Un soci paga per transferència menys del que deu | «A revisar». La 00 no admet pagaments parcials d'un càrrec (QT-05) | RN-67 |
+| LT3 | Un soci paga per transferència més del que deu | «A revisar». El tresorer concilia el càrrec i retorna l'excés pel banc; la devolució es registra amb motiu | RN-T17b |
+| LT4 | Un soci paga per transferència menys del que deu | «A revisar». No es concilia: el tresorer demana la diferència (una segona transferència que sumi l'import exacte es casa amb les dues línies) o retorna l'import | RN-T17b; RN-67 |
 | LT5 | Una família paga dues quotes amb una transferència | Una línia, dos càrrecs (CA-T10.2) | RN-T17 |
 | LT6 | Un soci paga per transferència un càrrec que ja s'ha pagat amb targeta | «A revisar». El tresorer fa una devolució de la transferència des del banc i la registra (ARQ §4.6) | RN-T18 |
-| LT7 | El tresorer s'equivoca i concilia una transferència amb el càrrec d'una altra persona | No es pot desfer des de la 04 (RN-T19). Proposta a QT-04 | RN-67 |
+| LT7 | El tresorer s'equivoca i concilia una transferència amb el càrrec d'una altra persona | Es corregeix amb la transició de la 045 (CA-T10.5) | 045 |
 | LT8 | El proveïdor envia una liquidació amb un cobrament que no es troba | Liquidació «a revisar» (CA-T11.2) | ARQ §4.2, punt 4 |
 | LT9 | Una comissió de liquidació no es pot repartir en cèntims exactes | El cèntim que sobra va al cobrament més gran (VT-05) | Proposta |
 | LT10 | Es desactiva un departament amb càrrecs pendents | Els càrrecs existents el conserven; no es pot triar per a càrrecs nous | RN-75 |
@@ -243,7 +269,7 @@ La 04 hi afegeix, sense canviar les regles de la 00 (027): al **càrrec**, el ce
 - **RNF-T2 Immutabilitat.** Els moviments, les conciliacions i els arqueigs només s'afegeixen. A més de la regla a l'aplicació, la base de dades rebutja UPDATE i DELETE a la taula de moviments (activador o permisos de l'usuari de l'aplicació). Prova que una consulta directa falla (CK C8).
 - **RNF-T3 Traçabilitat.** Des de qualsevol moviment s'arriba al seu origen (pagament, càrrec, liquidació, línia de l'extracte o moviment anul·lat), i a l'inrevés.
 - **RNF-T4 Mínim de dades.** El concepte d'un moviment no porta el nom de la persona, només el número de soci o la referència. L'exportació CSV no porta cap altra dada personal.
-- **RNF-T5 Dades dins la UE.** La base de dades, les còpies i els fitxers de l'extracte es tracten només a la UE (proposta de decisió 035). Cap dada de tresoreria s'envia a serveis de fora de la UE (seguiment d'errors inclòs, decisió 011).
+- **RNF-T5 Dades dins la UE.** La base de dades, les còpies i els fitxers de l'extracte es tracten només a la UE ([035](../../docs/decisions/035-dades-nomes-dins-ue.md)). Cap dada de tresoreria s'envia a serveis de fora de la UE (seguiment d'errors inclòs, decisió 011).
 - **RNF-T6 Seguretat.** Permís per rol i per objecte a cada endpoint (CK C1). Tresorer i administrador entren amb TOTP (015). Cap acció de diners pel navegador sense sessió d'administració, excepte les consultes del compte personal (T12).
 - **RNF-T7 Rendiment.** Volum esperat: uns quants milers de moviments a l'any. El saldo d'un compte es calcula en menys d'un segon amb 50.000 moviments (prova amb dades inventades).
 - **RNF-T8 Accessibilitat i ús.** Pantalles d'administració segons el sistema de disseny (030): imports amb tipografia monoespaiada, alineats a la dreta i amb signe i color; els estats sempre amb símbol, text i color.
@@ -275,20 +301,24 @@ La 04 hi afegeix, sense canviar les regles de la 00 (027): al **càrrec**, el ce
 | VT-06 | Ajust d'arqueig | Departament «General», centre de cost «Ajustos de caixa», amb motiu obligatori |
 
 ### 10.2 Preguntes obertes
-**gery i junta**
+**Resoltes a la revisió de la v1**
+| ID | Pregunta | Resolució |
+|---|---|---|
+| QT-01 | Qui revisa la spec | El tresorer |
+| QT-02 | Proveïdor de cobrament | Substituïda per la [043](../../docs/decisions/043-proveidor-de-pagaments-dins-la-ue.md) |
+| QT-04 | Corregir una transferència conciliada amb el càrrec equivocat | [045](../../docs/decisions/045-correccio-transferencia-conciliada-per-error.md) |
+| QT-05 | Pagaments de més o de menys per transferència | RN-T17b |
+
+**Junta**
 | ID | Pregunta | Abans de |
 |---|---|---|
-| QT-01 | Qui de la junta revisa aquesta spec (el tresorer?) | Aprovar la spec |
-| QT-02 | **Proveïdor de cobrament** dins la UE (Stripe xoca amb la proposta 035): Stripe amb excepció escrita, o TPV virtual i remeses del banc del club. Afecta les liquidacions (RN-T21), el compte de trànsit i el detall de les comissions | Pla de la 04 (afecta poc) i spec 05a (afecta molt) |
 | QT-03 | Llista de departaments i centres de cost (Q-17) | Dades reals |
-| QT-04 | Com es corregeix una transferència conciliada amb el càrrec equivocat. Proposta: una transició nova «pagat → pendent» només per a aquest cas, amb motiu i registre. Cal canviar abans la RN-67 de la spec 00 (RN-76) | Pla |
-| QT-05 | Què es fa amb els pagaments de més o de menys per transferència: devolució de l'excés, saldo a favor o pagaments parcials | Pla |
 
 **Tresoreria**
 | ID | Pregunta | Abans de |
 |---|---|---|
 | QT-06 | Quants comptes bancaris té el club i a quin banc | Dades reals |
-| QT-07 | Format de l'extracte CSV del banc (Q-24 de la 00) i si el banc dona un fitxer de liquidacions del TPV | Pla |
+| QT-07 | Format de l'extracte (CSV o Norma 43, Q-24 de la 00) i fitxer de liquidacions del TPV: vegeu les preguntes al banc, P-45 | Pla |
 | QT-08 | Si hi ha caixa en efectiu i cada quant es fa l'arqueig | Implementar HU-T08 |
 
 ---
@@ -313,7 +343,7 @@ La 04 hi afegeix, sense canviar les regles de la 00 (027): al **càrrec**, el ce
 
 | Dubte | Supòsit mentre no es decideix | Com es comprova | Risc si és erroni |
 |---|---|---|---|
-| Proveïdor de cobrament (QT-02) | La 04 es fa sense dependre'n: trànsit genèric | Decisió de gery | Baix per a la 04; alt per a la 05a |
+| Proveïdor de cobrament (043) | La 04 es fa sense dependre'n: trànsit genèric | Respostes del banc i de PaynoPain (P-45) | Baix per a la 04; alt per a la 05a i la 05b |
 | El proveïdor detalla la comissió de cada cobrament? | Si no, repartiment proporcional (VT-05) | Documentació del proveïdor o del banc | Mitjà: imputació aproximada per departament |
 | Format del CSV del banc | Columnes data, concepte, import i saldo (V-06 de la 00) | Mostra anonimitzada de l'extracte | Alt per a la conciliació |
 | L'ingrés de la quota va a «General / Quotes de socis» (Q-18) | Sí | Junta | Baix |
@@ -345,12 +375,43 @@ Esborrany perquè es vegi l'ordre. Es farà `plan.md` i `tasks.md` definitius qu
 | T09 | Traspassos i arqueig | T03 | CA-T07.x, CA-T08.1 |
 | T10 | Referència de transferència amb dígit de control | 00 (càrrec) | RN-T20; VT-03 |
 | T11 | Estats de conciliació de les línies i propostes per referència i import | T05, T10; HU-21 de la 00 | CA-T09.x |
-| T12 | Confirmar i desfer conciliacions de transferències (una i diverses) | T11 | CA-T10.x |
-| T13 | Liquidacions del proveïdor i repartiment de comissions | T06, T11; **QT-02** | CA-T04.4; CA-T11.x |
+| T12 | Confirmar i desfer conciliacions de transferències (una i diverses) i correcció de la 045 | T11 | CA-T10.x |
+| T13 | Liquidacions del proveïdor i repartiment de comissions (**obligatòria**) | T06, T11; format de la liquidació (P-45) | CA-T04.4; CA-T11.x |
 | T14 | Exclusions i llista «a revisar» | T11 | CA-T12.1; CA-T13.1 |
 | T15 | Pantalles de tresoreria (comptes, moviments, conciliació, a revisar) segons el sistema de disseny | T04, T12, T14 | Proves de permisos (§2) i revisió d'accessibilitat |
 | T16 | Exportació CSV | T04 | CA-T15.1 |
 | T17 | Dades de prova inventades (moviments, extractes, liquidacions) | T13 | Es carreguen amb una ordre |
 | T18 | Guia curta per al tresorer | T15 | Document al repositori |
 
-T13 és l'única tasca que depèn de quin proveïdor es triï (QT-02). La resta es pot fer abans.
+T13 és obligatòria: la liquidació agrupada del proveïdor és la que permet quadrar el compte de trànsit amb el banc. És l'única tasca que depèn del proveïdor (043); la resta es pot fer abans.
+
+## Annex D — Experiència de pagament (requisits per a la spec 05b)
+
+Requisits aprovats el 27/10/2026. La 04 no fa les pantalles de pagament, però n'ha de poder donar les dades.
+
+**Pagar sense sortir de l'app**
+- El soci paga la quota i les inscripcions **dins l'app**, amb targeta o Bizum, al camp o la pàgina segura del proveïdor (per exemple, un `iframe`). L'app no veu ni guarda mai el número de la targeta (043).
+- Sempre hi ha el camí de reserva: transferència amb la referència única del càrrec (RN-T20), l'IBAN del club i l'import, amb un botó per copiar-los.
+
+**Estats visibles**
+| Estat que veu el soci | Què vol dir | Estat a la 00 |
+|---|---|---|
+| **Pendent** | Encara no s'ha intentat pagar | Càrrec «pendent», sense pagament en curs |
+| **En curs** | S'ha començat a pagar i s'espera la confirmació del proveïdor. Amb Bizum: «Esperant confirmació a l'app del teu banc» | Càrrec «pendent», pagament amb estat al proveïdor «en curs» |
+| **Pagat** | El proveïdor ho ha confirmat al servidor | Càrrec «pagat» |
+| **Fallit** | L'últim intent no s'ha pogut completar. Es pot tornar a provar o pagar d'una altra manera | Càrrec «pendent», pagament amb estat «fallit» |
+
+Cada estat es mostra amb símbol, text i color (030) i un missatge que diu què ha de fer el soci.
+
+**Bizum**
+- Estat «Esperant confirmació» mentre el soci no ha confirmat al seu banc.
+- **Caducitat:** si no es confirma dins el temps que fixi el proveïdor [A verificar: P-45], l'intent passa a «fallit» amb el missatge «No s'ha confirmat a temps» i es pot tornar a provar. El càrrec continua pendent.
+- **Abandonament:** si el soci tanca la pantalla, el càrrec continua pendent i l'intent caduca sol; en tornar, veu l'estat real.
+
+**Confirmació**
+- El càrrec només passa a «pagat» quan el proveïdor ho confirma **al servidor** (notificació verificada), **mai** des del navegador (RN-71). La tornada del navegador només diu «Estem confirmant el pagament».
+- **Idempotència:** una confirmació repetida no crea cap segon pagament ni cap segon ingrés (CA-T03.2).
+
+**Rebut**
+- En confirmar-se el pagament, el soci veu i pot descarregar **de seguida** un **rebut** amb: referència, concepte, import, departament, data i mètode.
+- De moment el justificant és un **rebut**, no una factura. Si cada tipus d'ingrés s'ha de facturar, ho ha de dir la gestoria (P-47; P-02, Verifactu).

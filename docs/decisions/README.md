@@ -42,5 +42,16 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [032](032-immersio-socis-i-centre.md) | Immersió al compte personal, logotip més gran i secció del Centre a la web pública | Acceptada (amplia la 030; bitàcola, carnet i textos del Centre [A validar]) · ampliada per 034 |
 | [033](033-migracio-nextjs-once-ui.md) | Migrar els wireframes a Next.js i Once UI Core | Descartada (es mantenen HTML i CSS plans; vegeu 034) |
 | [034](034-patrons-magic-portfolio.md) | Patrons de Magic Portfolio com a referència visual (sense codi): sortida destacada, memòries de projectes, notícies amb data, galeria i butlletí | Acceptada (amplia la 030, 031 i 032; contingut, fotos, butlletí i manteniment [A validar]) |
+| [035](035-dades-nomes-dins-ue.md) | Totes les dades personals es tracten només dins la UE | Acceptada (afecta 002, 004, 007, 011, 017, 022, 023, 024 i 025; vegeu 042) |
+| [036](036-fecdas-alia.md) | La FECDAS és un aliat, sense acord d'integració ni de finançament | Acceptada |
+| [037](037-pressupost-amb-web-installable.md) | Pressupost amb web instal·lable i proveïdors dins la UE (≈160 €/any sense IVA) | Proposada, pendent de la junta (amplia 016) |
+| [038](038-planificar-sense-dates.md) | Planificar per dependències i valor, sense dates | Acceptada |
+| [039](039-numeros-de-soci-no-es-reutilitzen.md) | Els números de soci no es reutilitzen | Acceptada de manera provisional |
+| [040](040-impagat-es-marca-a-ma.md) | L'impagat es marca a mà | Acceptada de manera provisional |
+| [041](041-web-installable-i-avisos-sense-push.md) | Web instal·lable i avisos dins l'app i per correu, sense push | Acceptada com a camí per defecte (botigues: pendent de la junta) |
+| [042](042-proveidors-substituits-pel-requisit-ue.md) | Proveïdors substituïts pel requisit UE: Cloudflare, Sentry, Brevo (condicional) i Stripe | Acceptada (substitueix en part 002, 007, 011, 017 i 023) |
+| [043](043-proveidor-de-pagaments-dins-la-ue.md) | Proveïdor de pagaments dins la UE i pagament sense sortir de l'app | Acceptat l'ordre de recomanació; proveïdor pendent de verificar (P-44, P-45) |
+| [044](044-domiciliacio-sepa-iban-i-mandat-xifrats.md) | Domiciliació SEPA pròpia: IBAN i mandat xifrats, només per a aquest ús | Proposada (excepció a RN-70 de la spec 00) |
+| [045](045-correccio-transferencia-conciliada-per-error.md) | Corregir una transferència conciliada amb el càrrec equivocat (pagat → pendent) | Acceptada (amplia RN-67 de la spec 00) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
