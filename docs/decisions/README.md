@@ -60,5 +60,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [050](050-addenda-tresoreria-despeses-ingressos-i-periodes.md) | Addenda de la 04: despeses, altres ingressos, anul·lació i bloqueig de període tancat | Acceptada (addenda del M04 sense canviar-ne les regles) |
 | [051](051-abast-de-la-044-i-documents-de-justificacio.md) | Abast de la 044 i documents de justificació amb IBAN (còpia emmascarada) | Acceptada (aclareix la 044 sense modificar-la) |
 | [052](052-llicencia-font-unica-al-06.md) | La llicència té una sola font, el 06; el 01 en guarda una còpia de lectura | Acceptada (addenda del M01 sense canviar-ne les regles) |
+| [053](053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) | Addenda a la 050: el bloqueig de període tancat només afecta els moviments del 09; els d'origen extern entren al període obert | Acceptada (precisa RN-T28 sense canviar cap altra regla) |
+| [054](054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) | Addenda a la 052: versió dels esdeveniments de llicència i comprovació diària de la còpia del 01 | Acceptada (addenda del M01 sense canviar-ne les regles) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
