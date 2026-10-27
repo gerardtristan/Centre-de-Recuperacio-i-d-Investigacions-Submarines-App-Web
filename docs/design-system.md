@@ -1,9 +1,11 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.1 (27/10/2026), etapa 3: sistema de disseny i wireframes de baixa fidelitat. La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
-- **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md).
+- **Versió:** 1.2 (27/10/2026), etapa 3: sistema de disseny i wireframes de baixa fidelitat.
+  - La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
+  - La 1.2 afegeix l'estructura d'immersió del compte personal (§6.5), els tokens de profunditat, carnet i moviment (§2.6 i §4.1), el logotip més gran a la pública i la secció `centre-recuperacio-investigacio`.
+- **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md) i per la [032](decisions/032-immersio-socis-i-centre.md).
 - **Fitxers:** `design/wireframes/tokens.css` (font de veritat dels valors), `publica.html`, `socis.html` i `admin.html`.
-- **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4) ni cap polit visual o animació.
+- **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4). L'únic moviment és el del compte personal (§4.1).
 
 ## 1. Principis
 1. Tres zones amb la mateixa identitat i estructura diferent: **pública** (escriptori primer), **compte personal** (mòbil primer) i **administració** (escriptori primer, densa).
@@ -72,6 +74,19 @@ La interpretació és correcta i és la que apliquen els tokens. Falta que la va
 - **Element actiu:** **barra groga de 3 px + negreta + fons de zona**. Al tema clar, el groc com a vora dona uns 1,6:1, i per això mai indica l'element actiu tot sol.
 - **Estats:** sempre amb símbol i text (§6.3). «Sistema» es fa servir per als missatges automàtics (notificacions verificades, recordatoris, avisos previs).
 
+### 2.6 Profunditat i carnet (compte personal, decisió 032)
+El compte personal fa servir la metàfora d'una immersió: la portada és la superfície i la pàgina es fa més fonda a mesura que es baixa.
+
+| Token | Clar | Fosc | Ús |
+|---|---|---|---|
+| `--c-ocea-1` a `--c-ocea-4` | `#e2f4f6` → `#c4e6ee` → `#a6d6e3` → `#8cc7d8` | `#0f3a4a` → `#0c2c40` → `#0a1f33` → `#08131e` | Degradats per profunditat: portada (1→2), ona (3), resta de la pàgina (3→4) |
+| `--c-ocea-text` / `--c-ocea-text-2` | `#0f1c2a` / `#2f4152` | `#e4edf5` / `#a9bccc` | Text sobre els degradats (≥9,2:1 i ≥5,6:1 en totes les parades) |
+| `--c-carnet-1` / `--c-carnet-2` | `#0b4f74` / `#062a47` | igual | Carnet: sempre fosc, com una targeta física |
+| `--c-carnet-text` / `--c-carnet-text-2` | `#f2f5f8` / `#b9cfe0` | igual | Text del carnet (≥8:1 i ≥5,5:1) |
+| `--c-carnet-zona` | `#e2b04f` | igual | Franja superior del carnet i anell del dock. **Decoratiu**: 4,4:1, no es fa servir per a text |
+
+Al tema clar, el color de text de la zona soci (`#85590a`) baixa a 3,3:1 a la part fonda del degradat. Per això, a la portada les etiquetes fan servir `--c-ocea-text-2`.
+
 ## 3. Tipografia
 Igual als dos temes.
 
@@ -93,7 +108,22 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 - **Vores:** `--v-fina` 1 px; `--v-activa` 3 px (element actiu i vora de zona); `--v-focus` 3 px; `--v-plena` 2 px (peces neumòrfiques amb més contrast).
 - **Avatar:** `--avatar` 56 px.
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
-- **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-soci` 200 px, `--lateral-carril` 72 px (tauleta), `--columna-dreta` 22rem, `--capcalera-alcada` i `--barra-inferior-alcada` 64 px.
+- **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-carril` 72 px (tauleta, administració), `--capcalera-alcada` 64 px. `--lateral-soci`, `--columna-dreta` i `--barra-inferior-alcada` són de l'estructura anterior dels socis; ara no es fan servir, però es conserven fins que es validi la nova.
+- **Logotip:** `--logo-capcalera` 40 px (socis i administració), `--logo-publica-mobil` 52 px i `--logo-publica` 72 px (capçalera pública), `--logo-peu` 120 px (peu de la pública).
+- **Compte personal:** `--portada-alcada` 90svh (el 90 % de l'alçada visible de la pantalla), `--carnet-amplada` 22rem (×1,25 a l'escriptori), `--carnet-proporcio` 1,586 (la d'una targeta física), `--dock-alcada` 64 px, `--dock-carnet` 60 px, `--tactil-gran` 56 px (accions crítiques: pagar), `--carril-targeta` 85 % (targetes del carril al mòbil) i `--ona-alcada` 48 px.
+
+### 4.1 Moviment (decisió 032)
+Només a tres llocs del compte personal i mai en accions crítiques:
+
+| Token | Valor | On |
+|---|---|---|
+| `--m-entrada` | 700 ms | Entrada de la portada (apareix i puja 24 px), una sola vegada |
+| `--m-gir` | 600 ms | Gir del carnet |
+| `--m-ona` × `--m-ona-repeticions` | 2,4 s × 2 | Ona de la portada. S'atura sola abans de 5 s, així que no cal cap botó de pausa (WCAG 2.2.2) |
+| `--m-rapid` | 150 ms | Reserva per a transicions petites; encara no es fa servir |
+| `--m-corba` | `cubic-bezier(.2, .7, .2, 1)` | Corba comuna |
+
+Amb `prefers-reduced-motion: reduce` (l'usuari demana menys moviment al sistema), els tokens passen a 0 i `tokens.css` atura qualsevol animació i transició. La portada apareix directament, l'ona queda quieta i el carnet es gira a l'instant.
 
 ## 5. Punts de canvi
 | Nom | Amplada | Consulta CSS |
@@ -108,22 +138,25 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 **Pública (`publica.html`)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| `capcalera` (sobre el fons de pàgina) | Logotip, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» | Dues files: logotip, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb tots els enllaços |
+| `capcalera` (sobre el fons de pàgina) | Logotip de 52 px, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip de 72 px, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» (El Centre, Medi ambient, Fer-se soci, Contacte, Àrea de socis) | Dues files: logotip de 72 px, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb els 7 enllaços |
 | `portada` | Text i, a sota, la imatge | Igual | 2 columnes |
 | `properes-activitats` | 1 columna de targetes | 2 columnes | 3 columnes |
 | `qui-som`, `medi-ambient` | Text i, a sota, la imatge | Igual, xifres en 3 columnes | 2 columnes; la imatge canvia de costat |
+| `centre-recuperacio-investigacio` (entre `qui-som` i `medi-ambient`) | Introducció, 3 àmbits un a sota de l'altre (Recuperació, Investigació, Divulgació) i una crida a col·laborar | Àmbits en 3 columnes; crida amb el botó a la dreta | Igual que la tauleta. Tot el text és d'exemple i va marcat [A validar] |
 | `fer-se-soci` | 1 targeta per fila | 2 targetes | 2 targetes en 2/3 de l'amplada |
 | `contacte` | Dades i, a sota, el formulari | 2 columnes | 2 columnes |
-| `peu` | 1 columna | 2 columnes | 4 columnes |
+| `peu` | 1 columna; logotip de 120 px | 2 columnes | 4 columnes |
 
-**Compte personal (`socis.html`)**
+**Compte personal (`socis.html`, estructura d'immersió, §6.5)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| Navegació | Barra inferior fixa de 5 botons | Carril fosc de 72 px (icona i text curt) | Barra lateral fosca de 200 px amb etiquetes |
-| `salutacio` (sobre el fons, amb avatar) | 1r bloc | Amplada sencera | 2 columnes |
-| `carnet` (sobre el fons, amb relleu) | 2n bloc | Amplada sencera | Columna dreta, al costat de 2 files |
-| `pagaments-pendents`, `proximes-activitats` | Una a sota de l'altra | 2 columnes | 2 columnes |
-| `llicencia`, `avisos` | Una a sota de l'altra | 2 columnes | `llicencia` a l'esquerra i `avisos` a la columna dreta |
+| `capcalera-soci` + `navegacio-soci` | Logotip i selector de tema a dalt; navegació en un **dock flotant** a baix (Inici, Sortides, **Carnet** al centre i més gran, Pagaments, Perfil) | Sense barra lateral: logotip i selector a la primera fila, i a sota la navegació en text | Una sola fila: logotip, navegació i selector |
+| `portada` (amb `salutacio` i `carnet`) | Gairebé tota la pantalla: avatar, salutació i carnet gran, un a sota de l'altre; ona a baix | Igual, centrat | 2 columnes: salutació a l'esquerra, carnet a la dreta (×1,25) |
+| `franja-estat` | Franja plana a tota l'amplada, amb el botó a sota | Botó a la dreta | Igual que la tauleta |
+| `avisos`, `proximes-activitats`, `bitacola`, `llicencia` | Una columna, en aquest ordre (els avisos primer, perquè són crítics) | Bento de 2 columnes: avisos i llicència; carril a tota l'amplada; bitàcola a tota l'amplada | **Bento asimètrica** de 12 columnes: carril (8) i avisos (4); bitàcola (7) i llicència (5) |
+| Carril de `proximes-activitats` | Una targeta del 85 % i un tros de la següent; scroll-snap horitzontal | 2 targetes visibles | 2 targetes visibles dins de les 8 columnes |
+
+Canvis d'id respecte a la 1.1: `pagaments-pendents` passa a `franja-estat` (el detall de cada pagament anirà a la pantalla de Pagaments). Es mantenen `salutacio`, `carnet`, `proximes-activitats`, `llicencia` i `avisos`, i són nous `portada` i `bitacola`.
 
 **Administració (`admin.html`, fitxa d'una sortida)**
 | Bloc | Mòbil (llegible) | Tauleta (utilitzable) | Escriptori |
@@ -142,7 +175,12 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 |---|---|---|
 | Botó | `boto`, `boto-principal`, `boto-text`, `boto-petit` | Mínim 44 × 44 px. Un sol `boto-principal` per vista o bloc. Els desactivats porten `aria-disabled` i vora discontínua |
 | Selector de tema | `selector-tema` (+ `neu-selector` a la pública i als socis; + `selector-lateral` a la barra fosca de l'administració) | Control segmentat amb botons de ràdio; vegeu §7 |
-| Avatar | `avatar` (+ `neu-anell`) | Inicials en Barlow Condensed 700 i `--c-text`; és decoratiu (`aria-hidden`), perquè el nom ja hi és en text |
+| Avatar | `avatar` (+ `neu-anell` només sobre `--c-fons`; + `avatar-portada` sobre el degradat) | Inicials en Barlow Condensed 700 i `--c-text`; és decoratiu (`aria-hidden`), perquè el nom ja hi és en text |
+| Carnet giratori | `carnet-giratori`, `cara-davant`, `cara-darrere` | Vegeu §6.5 |
+| Dock | `navegacio-soci`, `dock-carnet` | Només al mòbil; vegeu §6.5 |
+| Franja d'estat | `franja-estat` (+ `franja-ok`) | Plana, sense efectes; vegeu §6.5 |
+| Carril | `carril` | Scroll-snap horitzontal, es pot enfocar amb el teclat (`tabindex="0"`) |
+| Insígnia | `insignia` (+ `insignia-pendent`) | Sempre amb text d'estat («✓ Aconseguida» o «◌ Falten N») |
 | Peces neumòrfiques | `neu-relleu`, `neu-selector`, `neu-pastilla`, `neu-anell` | Només als llocs de §6.4 |
 | Targeta | `targeta` | Superfície, vora i radi gran |
 | Etiqueta de secció | `etiqueta-seccio` | Majúscules de 12 px en el color de text de la zona |
@@ -157,7 +195,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 
 ### 6.1 Navegació
 - Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc.
-- Compte personal: barra inferior al mòbil (Inici, Activitats, Carnet, Pagaments, Perfil) i barra lateral fosca a partir de la tauleta.
+- Compte personal: dock flotant al mòbil (Inici, Sortides, Carnet, Pagaments, Perfil, amb el carnet al centre) i navegació a la capçalera a partir de la tauleta. No té barra lateral, i així es distingeix de l'administració.
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
 
@@ -208,8 +246,10 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 | Peça | Pàgina | Com |
 |---|---|---|
 | Selector de tema | `publica.html`, `socis.html` | Contenidor en relleu petit; l'opció activa porta **ombra interior + negreta + ✓** |
-| Avatar | `socis.html` (`salutacio`) | Anell tou (relleu petit i ombra interior); inicials amb `--c-text` (15,7:1 i 15,8:1) |
-| Carnet de soci | `socis.html` (`carnet`) | Relleu suau i vora superior del color de zona; el número de soci en JetBrains Mono 500 i `--c-text` |
+| Avatar (component `neu-anell`) | Disponible per a qualsevol avatar sobre `--c-fons` | Anell tou (relleu petit i ombra interior); inicials amb `--c-text` (15,7:1 i 15,8:1) |
+| Carnet (component `neu-relleu`) | Disponible sobre `--c-fons` | Relleu suau i vora |
+
+**Ajust de la 032:** a la nova portada dels socis, l'avatar i el carnet van sobre un degradat oceànic. La superfície ja no és igual que el fons, i per tant **ja no són neumòrfics**. L'avatar porta un anell pla del color de zona i el carnet és una targeta fosca amb degradat (§6.5). Als socis, l'únic element neumòrfic és el selector de tema.
 | Pastilla de navegació | `publica.html`, de la tauleta en amunt | Contenidor en relleu petit; l'enllaç actiu porta **ombra interior + negreta + barra groga** i `aria-current`. Al mòbil, el menú desplegat és pla |
 
 **On no:** `admin.html` (tot, inclòs el selector de tema, que hi és pla), taules, formularis i camps, avisos, estats, targetes generals, botons principals («Fes-te soci», «Paga ara», «Inscriu-t'hi»), barra lateral i barra inferior.
@@ -220,6 +260,28 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 - **Cap estat s'indica només amb l'ombra:** l'element actiu sempre porta també negreta i una marca (✓ o la barra) i el seu estat a l'HTML (`checked` o `aria-current`). Les ombres tenen un contrast baix a propòsit (1,5:1 i 1,3:1) i són decoratives.
 - **`prefers-contrast: more`** (l'usuari demana més contrast al sistema): les ombres desapareixen i passen a vora plena de 2 px en `--c-text`. L'opció activa del selector es mostra invertida (`--c-fons` sobre `--c-text`, 15,7:1) i l'enllaç actiu de la pastilla porta una barra en `--c-text`.
 - En mode de colors forçats (alt contrast de Windows), el navegador treu les ombres i l'estat continua indicat per la ✓, la negreta i la barra.
+
+### 6.5 Compte personal: estructura d'immersió (decisió 032)
+**Regla principal:** el «wow» (degradats, ona, gir del carnet, insígnies) només és a les peces no crítiques. **Pagar i els avisos són sempre plans, grans i amb contrast ≥4,5:1**, sense degradat, ombra ni moviment.
+
+- **Portada:** fa el 90 % de l'alçada visible i té un degradat de superfície (`--c-ocea-1` → `--c-ocea-2`). Hi ha l'avatar, la salutació i el carnet gran. A baix, una ona (SVG decoratiu, `aria-hidden`) marca l'inici de la profunditat.
+- **Carnet giratori:**
+  - Mida de targeta física (proporció 1,586), sempre fosc i amb la versió del logotip per a fons fosc.
+  - Davant: nom, número de soci en JetBrains Mono 500 de 32 px (`--c-carnet-text`, 8:1 o més), validesa i estat «✓ Vigent».
+  - Darrere: QR [A validar], tipus, data d'alta, quota i llicència.
+  - Es gira amb un botó visible, «Mostra el darrere» o «Mostra el davant», amb `aria-pressed`. La cara amagada porta `aria-hidden`.
+  - Sense moviment, el gir és instantani.
+- **No soci:** en lloc del carnet, una invitació a fer-se soci (targeta plana amb les quotes d'exemple [A validar] i el botó principal «Fes-te soci»).
+- **Franja d'estat:**
+  - Plana, gran i a tota l'amplada, just sota la portada.
+  - Amb pendents: «◷ N pagaments pendents», el detall i el botó «Paga ara» de 56 px d'alçada. El text fa 15,2:1 i 12,3:1, i el botó 8,1:1 i 9,8:1.
+  - Sense pendents: «✓ Tot al dia» i un enllaç a l'historial.
+  - Porta `role="status"`.
+- **Properes sortides:** targetes grans en un carril horitzontal amb scroll-snap. El carril es pot enfocar i desplaçar amb el teclat, i una pista de text («Llisca per veure'n més») hi indica que n'hi ha més.
+- **Bitàcola** [A validar: d'on surten les dades i si el club vol insígnies]: sortides de l'any, hores sota l'aigua i anys de soci, i insígnies per fites. Cada insígnia diu el seu estat en text («✓ Aconseguida», «◌ Falten 11»). No hi ha cap dada de salut.
+- **Dock (mòbil):** flotant a baix, en forma de pastilla, amb el botó del carnet al centre (60 px, fosc amb anell de zona) que sobresurt. L'element actiu porta barra groga, negreta i fons de zona.
+- **Escriptori:** sense barra lateral; capçalera superior i graella bento asimètrica (§5.1).
+- **Més contrast:** desapareixen els degradats, l'ona i les ombres; el fons és pla i les vores plenes de 2 px en `--c-text`.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
@@ -233,10 +295,12 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 |---|---|
 | Tema clar | `assets/marca/CRIS_SenseFons.png` (text i contorns negres, fons transparent) |
 | Tema fosc | `assets/marca/CRIS_Blanc_per fons Negre (Blanc).png` (text i contorns blancs, fons transparent), directament sobre el fons fosc |
-| Barra lateral (fosca als dos temes) | La versió per a fons fosc (`logo-sempre-fosc`) |
+| Barra lateral (fosca als dos temes) i carnet de soci (sempre fosc) | La versió per a fons fosc (`logo-sempre-fosc`) |
 | Versió amb fons blanc | `assets/marca/CRIS_AmbFons.jpg` (no es fa servir als wireframes) |
 
 Comprovat sobre `#08131e` i sobre `#062a47`: els contorns i el text blancs es llegeixen bé i «DES DE 1954» manté el contorn blanc. El canvi es fa amb les classes `logo-clar` i `logo-fosc`.
+
+**Mides (decisió 032):** a la web pública, el logotip fa 52 px a la capçalera del mòbil (la capçalera queda en uns 68 px d'alçada), 72 px a partir de la tauleta i 120 px al peu. A 72 px, el text circular comença a ser llegible a la pantalla de l'ordinador. Als socis i a l'administració es manté en 40 px.
 
 Falta [A validar]:
 - **Versió reduïda per a la capçalera del mòbil i per a la icona de la PWA** (només les ampolles i «CRIS», sense el text circular). A 40-48 px, el text «Centre de Recuperació i d'Investigacions Submarines» no es llegeix en cap de les dues versions.
@@ -248,8 +312,11 @@ Falta [A validar]:
 - Objectius tàctils de 44 px com a mínim. Cap acció depèn de passar el ratolí per sobre: els menús i els desplegables s'obren amb un clic o amb el teclat.
 - Estats mai només amb color (§6.3); els símbols porten `aria-hidden` i el text és el que es llegeix.
 - Enllaç «Salta al contingut», `lang="ca"`, etiquetes visibles als camps, `caption` a la taula i `aria-live` al recompte de resultats i a la descripció del rol.
-- `prefers-reduced-motion`: no hi ha animacions, i si n'hi ha mai, s'anul·len.
-- `prefers-contrast: more`: les peces neumòrfiques passen a vores plenes (§6.4).
+- `prefers-reduced-motion`: el moviment del compte personal (entrada, ona i gir) s'anul·la (§4.1). Cap informació depèn del moviment.
+- L'ona dura menys de 5 s i s'atura sola (WCAG 2.2.2).
+- `prefers-contrast: more`: les peces neumòrfiques passen a vores plenes (§6.4) i, al compte personal, desapareixen els degradats, l'ona i les ombres (§6.5).
+- Accions crítiques (pagar i avisos): sempre planes, grans i amb contrast ≥4,5:1.
+- En saltar a una secció de la pública, el títol no queda amagat sota la capçalera fixa (`scroll-margin-top`).
 - Pendent: revisió WCAG 2.2 AA amb eina i lector de pantalla (checklist B8), quan es faci el disseny final.
 
 ## 10. Referències (només estructura, components i estil)
@@ -257,7 +324,7 @@ No se n'ha copiat codi, imatges, logotips ni textos. Tampoc no s'ha fet servir l
 
 | Referència | Zona | Què se n'ha agafat | Llicència |
 |---|---|---|---|
-| [Card Stack Portfolio](https://21st.dev/@kedhareswer/templates/card-stack-portfolio-website-template) (Kedhareswer Naidu) | Socis | Pila de targetes que es despleguen; navegació persistent (aquí, la barra inferior) | No indica cap llicència [A validar si se'n volgués reutilitzar codi] |
+| [Card Stack Portfolio](https://21st.dev/@kedhareswer/templates/card-stack-portfolio-website-template) (Kedhareswer Naidu) | Socis | Targetes grans i navegació persistent (aquí, el dock). El moviment del carnet és disseny propi, en CSS | No indica cap llicència [A validar si se'n volgués reutilitzar codi] |
 | [Saasly](https://21st.dev/@tailgrids/templates/tailgrids-saasly) (TailGrids) | Admin i pública | Xifres en targetes, jerarquia neta, targetes de preu per a `fer-se-soci`. Nota: és una pàgina de presentació, no un panell, i la barra lateral i la taula són disseny propi | Llicència TailGrids: ús comercial i en projectes de clients permès; **no** es pot revendre, redistribuir ni fer servir en generadors d'interfícies [A validar si se'n reutilitzés codi] |
 | [Magic Portfolio](https://21st.dev/@larsen66/templates/magic-portfolio-for-next-js) (Once UI) | Admin i pública | Barra de navegació en forma de pastilla, botó de tema a la capçalera, etiquetes de secció i xips | **CC BY-NC 4.0**: cal citar l'autor i no se'n permet l'ús comercial. No en copiem codi; si mai se'n volgués reutilitzar, cal validar si l'ús del club és «no comercial» [A validar] |
 
@@ -267,7 +334,7 @@ No se n'ha copiat codi, imatges, logotips ni textos. Tampoc no s'ha fet servir l
 
 ## 12. Pila del frontend: idees que només es podrien fer amb React i Tailwind [A validar]
 No s'han implementat i no es decideixen aquí:
-- El retrat que segueix el punter i les targetes animades de Card Stack: requereixen animació, i aquesta etapa no en vol.
+- El retrat que segueix el punter de Card Stack (depèn del ratolí; no s'implementa). El gir del carnet i l'ona ja es fan amb CSS pur (§4.1), sense dependències.
 - La instal·lació de components amb el CLI de shadcn o de 21st (React i Tailwind).
 - Una llibreria de components reutilitzables com a font del sistema de disseny, en lloc d'aquest CSS amb tokens.
 
@@ -277,7 +344,8 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 1. Obrir `design/wireframes/publica.html`, `socis.html` o `admin.html` directament al navegador (no cal servidor).
 2. **Tema:** triar Sistema, Clar o Fosc al selector de la capçalera (a `admin.html` al mòbil, dins de «Menú»). La tria es manté en recarregar i en canviar de pàgina. **Més contrast:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-contrast: more*. Per provar el mode «Sistema», cal canviar el tema del sistema operatiu o, a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-color-scheme*.
 3. **Mides:** a les eines de desenvolupament (F12), activar el mode de dispositiu (Ctrl+Maj+M) i provar 390 px (mòbil), 820 px (tauleta) i 1440 px (escriptori).
-4. **Demostració:** a `socis.html`, triar «Persona no sòcia amb compte»; a `admin.html`, canviar «Veure com» per veure els menús i blocs de cada rol.
+4. **Demostració:** a `socis.html`, triar «Soci amb pagaments pendents», «Soci al dia» o «Persona no sòcia (alumne)», i prémer «Mostra el darrere» per girar el carnet. A `admin.html`, canviar «Veure com» per veure els menús i blocs de cada rol.
+5. **Reduir moviment:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-reduced-motion: reduce*. Cal recarregar la pàgina per veure-hi la portada sense animació d'entrada.
 
 ## 14. Pendents [A validar]
 - Que el club validi la paleta, la regla de les fletxes i els ajustos de §2.3.
@@ -288,3 +356,5 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 - Versions del logotip (reduïda i SVG) i nom del fitxer de la versió fosca (§8).
 - Allotjament i llicència de les fonts (§3).
 - Pila del frontend (§12) i convenció de noms del codi (§11).
+- Compte personal (032): la bitàcola (d'on surten les sortides i les hores, i si el club vol insígnies) i el contingut del darrere del carnet.
+- Web pública (032): el nom oficial del Centre (el títol diu «i Investigacions», el logotip «i d'Investigacions») i tots els textos de `centre-recuperacio-investigacio`.

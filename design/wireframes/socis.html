@@ -13,343 +13,459 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="tokens.css">
 <style>
-/* ---------- Mòbil primer: una columna de targetes i barra inferior ---------- */
-.principal { padding-bottom: calc(var(--barra-inferior-alcada) + var(--e-5) + env(safe-area-inset-bottom)); }
+/* ==========================================================================
+   Compte personal: metàfora d'immersió (decisió 032). Mòbil primer.
+   El «wow» (degradat, ona, gir del carnet) només és a peces no crítiques;
+   pagar i avisos són sempre plans, grans i amb contrast ≥ 4,5:1.
+   ========================================================================== */
+.contenidor { max-width: var(--amplada-max); margin: 0 auto; padding: 0 var(--e-4); }
+body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inset-bottom)); }
 
-/* capcalera-soci */
-.capcalera-soci {
-  display: flex; align-items: center; gap: var(--e-2);
+/* ---------- capcalera-soci (sobre el fons: hi va el selector neumòrfic) ---------- */
+.capcalera-soci { background: var(--c-fons); border-bottom: var(--v-activa) solid var(--c-zona); }
+.capcalera-interior {
+  max-width: var(--amplada-max); margin: 0 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3);
   min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
-  background: var(--c-fons);   /* fons de pàgina: hi va el selector neumòrfic */
-  border-bottom: var(--v-activa) solid var(--c-zona);
 }
-.capcalera-soci img { width: var(--logo-capcalera); height: auto; }
-.capcalera-soci .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); margin: 0; }
+.marca-soci { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); color: var(--c-text); text-decoration: none; }
+.marca-soci img { width: var(--logo-capcalera); height: auto; }
+.titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
 .capcalera-soci .selector-tema { margin-left: auto; }
 
-/* navegacio-soci: barra inferior al mòbil */
+/* ---------- navegacio-soci: dock flotant al mòbil, amb el carnet al centre ---------- */
 .navegacio-soci {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  position: fixed; z-index: 10;
+  left: var(--e-3); right: var(--e-3); bottom: calc(var(--e-3) + env(safe-area-inset-bottom));
   background: var(--c-superficie);
-  border-top: var(--v-fina) solid var(--c-linia);
-  padding-bottom: env(safe-area-inset-bottom);
+  border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-pastilla);
+  box-shadow: var(--ombra);
 }
-.navegacio-soci ul { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.navegacio-soci ul { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; }
 .navegacio-soci a {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--e-1);
-  min-height: var(--barra-inferior-alcada); min-width: var(--tactil);
-  color: var(--c-text-2); text-decoration: none;
-  font-size: var(--t-xs); font-weight: var(--p-semi);
+  min-height: var(--dock-alcada); min-width: var(--tactil);
+  border-radius: var(--r-pastilla);
+  color: var(--c-text-2); text-decoration: none; font-size: var(--t-xs); font-weight: var(--p-semi);
 }
 .navegacio-soci .icona { font-size: var(--icona); line-height: 1; }
 /* Element actiu: barra groga + negreta + fons de zona */
 .navegacio-soci a[aria-current="page"] {
-  color: var(--c-zona-text); font-weight: var(--p-negreta);
-  background: var(--c-zona-fons);
-  box-shadow: inset 0 var(--v-activa) 0 var(--c-accent);
+  color: var(--c-zona-text); font-weight: var(--p-negreta); background: var(--c-zona-fons);
+  box-shadow: inset 0 calc(-1 * var(--v-activa)) 0 var(--c-accent);
 }
-.navegacio-soci .marca-lateral, .navegacio-soci .sortir { display: none; }
-.marca-lateral .text-marca { display: none; }
-.logo-capcalera { display: flex; }
-.logo-capcalera img { width: var(--logo-capcalera); height: auto; }
-
-/* Graella de targetes */
-.graella-soci {
-  display: grid; gap: var(--e-4);
-  padding: var(--e-4);
-  grid-template-areas: "salutacio" "carnet" "pagaments" "activitats" "llicencia" "avisos";
+/* Botó central del carnet: sobresurt del dock */
+.dock-carnet a {
+  width: var(--dock-carnet); height: var(--dock-carnet); min-height: var(--dock-carnet); margin: 0 auto;
+  transform: translateY(calc(-1 * var(--e-4)));
+  background: var(--c-carnet-2); color: var(--c-carnet-text);
+  border: var(--v-activa) solid var(--c-carnet-zona);
 }
-#salutacio { grid-area: salutacio; }
-#carnet { grid-area: carnet; }
-#pagaments-pendents { grid-area: pagaments; }
-#proximes-activitats { grid-area: activitats; }
-#llicencia { grid-area: llicencia; }
-#avisos { grid-area: avisos; }
-.targeta h1 { font-size: var(--t-2xl); margin-bottom: var(--e-2); }
-.targeta h2 { margin-bottom: var(--e-3); }
-.peu-targeta { margin-top: var(--e-3); }
 
-/* salutacio: directament sobre el fons, amb avatar neumòrfic */
-.salutacio-cap { display: flex; align-items: center; gap: var(--e-4); margin-bottom: var(--e-3); }
-#salutacio h1 { font-size: var(--t-2xl); margin: 0; }
-#salutacio p { margin: 0; }
-.resum-rapid { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: var(--e-3) 0 0; list-style: none; }
+/* ---------- portada: immersió (superfície → profunditat) ---------- */
+.portada {
+  position: relative;
+  min-height: var(--portada-alcada);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: var(--e-6) 0 calc(var(--ona-alcada) + var(--e-6));
+  background: linear-gradient(to bottom, var(--c-ocea-1), var(--c-ocea-2));
+  color: var(--c-ocea-text);
+  overflow: hidden;
+}
+.portada-contingut { width: 100%; display: grid; gap: var(--e-5); justify-items: center; text-align: center; animation: entrada var(--m-entrada) var(--m-corba) both; }
+@keyframes entrada { from { opacity: 0; transform: translateY(var(--e-5)); } }
+.salutacio-cap { display: grid; gap: var(--e-2); justify-items: center; }
+.salutacio-cap .etiqueta-seccio { color: var(--c-ocea-text-2); }
+.portada h1 { margin: 0; font-size: var(--t-3xl); }
+.salutacio-cap p { margin: 0; color: var(--c-ocea-text-2); }
+.avatar-portada { box-shadow: 0 0 0 var(--v-activa) var(--c-zona); }
+.ona { position: absolute; left: 0; right: 0; bottom: 0; height: var(--ona-alcada); overflow: hidden; line-height: 0; }
+.ona svg { width: 200%; height: 100%; fill: var(--c-ocea-3); animation: ona var(--m-ona) ease-in-out var(--m-ona-repeticions) alternate; }
+@keyframes ona { to { transform: translateX(-50%); } }
 
-/* carnet: directament sobre el fons, amb relleu neumòrfic suau */
-.bloc-carnet h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
-.carnet {
-  display: grid; gap: var(--e-2);
+/* ---------- carnet: es gira per veure'n el darrere ---------- */
+.bloc-carnet { display: grid; gap: var(--e-3); justify-items: center; width: 100%; }
+.carnet-giratori { width: 100%; max-width: var(--carnet-amplada); perspective: calc(var(--e-8) * 16); }
+.carnet-interior {
+  position: relative; aspect-ratio: var(--carnet-proporcio);
+  transform-style: preserve-3d;
+  transition: transform var(--m-gir) var(--m-corba);
+}
+.carnet-giratori.girat .carnet-interior { transform: rotateY(180deg); }
+.cara {
+  position: absolute; inset: 0;
+  display: grid; align-content: space-between; gap: var(--e-1);
   padding: var(--e-4);
+  backface-visibility: hidden;
   border-radius: var(--r-l);
-  border-top: var(--v-activa) solid var(--c-zona);   /* identitat de zona, també amb més contrast */
+  border: var(--v-fina) solid var(--c-carnet-text-2);
+  background: linear-gradient(135deg, var(--c-carnet-1), var(--c-carnet-2));
+  color: var(--c-carnet-text); text-align: left;
+  box-shadow: var(--ombra);
 }
-.carnet p { margin: 0; }
-.carnet-cap { display: flex; align-items: center; gap: var(--e-2); flex-wrap: wrap; }
+.cara::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: var(--v-activa); background: var(--c-carnet-zona); border-radius: var(--r-l) var(--r-l) 0 0; }
+.cara p { margin: 0; }
+.cara-darrere { transform: rotateY(180deg); }
+.carnet-cap { display: flex; align-items: center; gap: var(--e-2); }
 .carnet-cap img { width: var(--logo-capcalera); height: auto; }
-.carnet-cap .estat { margin-left: auto; }
-.carnet-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
-.carnet-numero { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); color: var(--c-text); }
-.caixa-qr { min-height: calc(var(--e-8) * 2); }
-.desplegable { margin-top: var(--e-3); border-top: var(--v-fina) solid var(--c-linia); }
-.desplegable summary {
-  display: flex; align-items: center; min-height: var(--tactil);
-  font-weight: var(--p-semi); color: var(--c-enllac); cursor: pointer;
+.carnet-cap .estat { margin-left: auto; color: var(--c-carnet-text); background: transparent; }
+.carnet-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); line-height: var(--a-titol); }
+.carnet-numero { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-2xl); line-height: var(--a-titol); color: var(--c-carnet-text); letter-spacing: var(--ll-etiqueta); }
+.carnet-petit { font-size: var(--t-s); color: var(--c-carnet-text-2); }
+.carnet-dades { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 var(--e-3); margin: 0; font-size: var(--t-s); }
+.carnet-dades dt { color: var(--c-carnet-text-2); }
+.carnet-dades dd { margin: 0; font-weight: var(--p-semi); }
+.cara-darrere { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--e-4); }
+.caixa-qr { min-height: 0; aspect-ratio: 1; width: calc(var(--e-8) + var(--e-6)); padding: var(--e-1); font-size: var(--t-xs); }
+
+/* No soci: invitació en lloc del carnet */
+.invitacio { width: 100%; max-width: var(--carnet-amplada); display: grid; gap: var(--e-3); text-align: left; }
+.invitacio h2 { font-size: var(--t-xl); margin: 0; }
+.invitacio p { margin: 0; color: var(--c-text-2); }
+
+/* ---------- Profunditat: la resta de la pàgina, cada cop més fonda ---------- */
+.profunditat { background: linear-gradient(to bottom, var(--c-ocea-3), var(--c-ocea-4)); color: var(--c-ocea-text); padding: var(--e-5) 0 var(--e-7); }
+
+/* franja-estat: plana i gran, sense efectes */
+.franja-estat {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3) var(--e-5);
+  padding: var(--e-4) var(--e-5);
+  border: var(--v-plena) solid var(--c-avis); border-radius: var(--r-m);
+  background: var(--c-avis-fons); color: var(--c-text);
 }
-.dades { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-1) var(--e-4); margin: 0; }
+.franja-estat .franja-text { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); line-height: var(--a-titol); margin: 0; }
+.franja-estat .franja-detall { margin: 0; color: var(--c-text); }
+.franja-estat .boto { min-height: var(--tactil-gran); padding: 0 var(--e-6); font-size: var(--t-l); margin-left: auto; }
+.franja-ok { border-color: var(--c-ok); background: var(--c-ok-fons); }
+
+/* Graella bento */
+.graella-bento {
+  display: grid; gap: var(--e-5); margin-top: var(--e-5);
+  grid-template-areas: "avisos" "sortides" "bitacola" "llicencia";
+}
+#avisos { grid-area: avisos; }
+#proximes-activitats { grid-area: sortides; min-width: 0; }
+#bitacola { grid-area: bitacola; }
+#llicencia { grid-area: llicencia; }
+.graella-bento h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
+
+/* avisos: crítics, plans i grans */
+.llista-avisos { list-style: none; display: grid; gap: var(--e-3); }
+.llista-avisos .avis { font-size: var(--t-l); background: var(--c-superficie); }
+.llista-avisos .avis-sistema { background: var(--c-sistema-fons); }
+
+/* proximes-activitats: carril horitzontal amb scroll-snap */
+.cap-bloc { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--e-2); }
+.carril {
+  list-style: none;
+  display: grid; grid-auto-flow: column; grid-auto-columns: var(--carril-targeta); gap: var(--e-4);
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  padding: var(--e-1) var(--e-1) var(--e-3);
+}
+.carril:focus-visible { outline-offset: var(--e-1); }
+.carril > li { scroll-snap-align: start; display: flex; }
+.sortida { display: grid; gap: var(--e-2); align-content: start; padding: 0; overflow: hidden; width: 100%; }
+.sortida .caixa-imatge { min-height: calc(var(--e-8) * 2.5); border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
+.sortida-cos { display: grid; gap: var(--e-2); padding: 0 var(--e-4) var(--e-4); }
+.sortida-cos h3, .sortida-cos p { margin: 0; }
+.fila-meta { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.pista-carril { font-size: var(--t-s); color: var(--c-ocea-text-2); margin: 0; }
+
+/* bitacola: sortides, hores i insígnies */
+.xifres-bitacola { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-3); margin-bottom: var(--e-4); }
+.xifres-bitacola li { display: grid; gap: var(--e-1); padding: var(--e-3); border-radius: var(--r-m); background: var(--c-superficie-2); font-size: var(--t-s); color: var(--c-text-2); }
+.xifra-gran { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); color: var(--c-text); line-height: var(--a-titol); }
+.insignies { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3); }
+.insignia { display: grid; justify-items: center; text-align: center; gap: var(--e-1); padding: var(--e-3); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); font-size: var(--t-s); }
+.insignia-icona {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--avatar); height: var(--avatar); border-radius: var(--r-pastilla);
+  font-size: var(--t-xl); color: var(--c-carnet-text);
+  background: linear-gradient(135deg, var(--c-carnet-1), var(--c-carnet-2));
+  box-shadow: 0 0 0 var(--v-activa) var(--c-zona);
+}
+.insignia-pendent .insignia-icona { background: transparent; color: var(--c-text-2); box-shadow: none; border: var(--v-plena) dashed var(--c-linia-forta); }
+
+/* llicencia */
+.dades { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-1) var(--e-4); margin: 0 0 var(--e-3); }
 .dades dt { color: var(--c-text-2); }
 .dades dd { margin: 0; font-weight: var(--p-semi); }
 
-/* Llistes de files (pagaments, activitats) */
-.llista-files { list-style: none; display: grid; }
-.fila {
-  display: grid; gap: var(--e-2); align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: var(--e-3) 0; border-bottom: var(--v-fina) solid var(--c-linia);
-}
-.fila:last-child { border-bottom: 0; }
-.fila-text strong, .fila-text span { display: block; }
-.fila-text span { color: var(--c-text-2); font-size: var(--t-s); }
-.fila-xifres { display: grid; justify-items: end; gap: var(--e-1); }
-.fila .boto { grid-column: 1 / -1; }
-.subtitol { margin: var(--e-4) 0 0; font-size: var(--t-s); font-weight: var(--p-negreta); color: var(--c-text-2); }
-
-/* proximes-activitats */
-.fila-activitat { grid-template-columns: auto minmax(0, 1fr); }
-.data-activitat {
-  display: grid; justify-items: center; align-content: center;
-  min-width: calc(var(--e-7) + var(--e-2)); padding: var(--e-1);
-  border: var(--v-fina) solid var(--c-zona); border-radius: var(--r-m);
-  color: var(--c-zona-text); font-size: var(--t-xs); font-weight: var(--p-negreta); text-transform: uppercase;
-}
-.data-activitat .dia { font-family: var(--f-titol); font-size: var(--t-xl); line-height: var(--a-titol); }
-.fila-activitat .estat { grid-column: 2; justify-self: start; }
-
-/* avisos */
-.llista-avisos { list-style: none; display: grid; gap: var(--e-3); }
-
-/* Persona no sòcia: es veu amb el selector de demostració */
-.nomes-no-soci { display: none; }
+/* Persona (selector de demostració) */
+.nomes-no-soci, .si-al-dia, .si-no-soci { display: none; }
 [data-persona="no-soci"] .nomes-soci { display: none; }
-[data-persona="no-soci"] .nomes-no-soci { display: block; }
+[data-persona="no-soci"] .nomes-no-soci { display: grid; }
+[data-persona="soci-al-dia"] .si-pendent { display: none; }
+[data-persona="soci-al-dia"] .si-al-dia { display: flex; }
+[data-persona="no-soci"] .si-pendent-soci { display: none; }
+[data-persona="no-soci"] .si-no-soci { display: inline; }
 
 /* ==================== Tauleta: 600–1023 px ==================== */
 @media (min-width: 600px) {
-  .app { display: grid; grid-template-columns: var(--lateral-carril) minmax(0, 1fr); min-height: 100vh; }
-  .principal { padding-bottom: 0; }
-
-  /* Barra lateral estreta (carril), fosca als dos temes */
+  body { padding-bottom: 0; }
+  .contenidor, .capcalera-interior { padding-left: var(--e-5); padding-right: var(--e-5); }
+  /* Sense barra lateral: la navegació va a la capçalera, en una segona fila */
   .navegacio-soci {
-    position: sticky; top: 0; bottom: auto; height: 100vh;
-    display: flex; flex-direction: column; gap: var(--e-3);
-    padding: var(--e-3) 0;
-    background: var(--c-lateral-fons); border-top: 0;
+    position: static; order: 3; flex-basis: 100%;
+    background: transparent; border: 0; border-radius: 0; box-shadow: none;
   }
-  .navegacio-soci ul { grid-template-columns: minmax(0, 1fr); gap: var(--e-1); }
-  .navegacio-soci a { color: var(--c-lateral-text-2); min-height: calc(var(--tactil) + var(--e-4)); }
-  .navegacio-soci a[aria-current="page"] {
-    color: var(--c-lateral-zona); background: var(--c-lateral-fons-2);
-    box-shadow: inset var(--v-activa) 0 0 var(--c-accent);
-  }
-  .navegacio-soci :focus-visible { outline-color: var(--c-lateral-focus); }
-  .navegacio-soci .marca-lateral { display: flex; justify-content: center; min-height: var(--tactil); }
-  .marca-lateral img { width: var(--logo-capcalera); height: auto; }
-  .navegacio-soci .sortir { display: flex; margin-top: auto; }
-  .logo-capcalera { display: none; }  /* el logotip ja és al carril */
+  .navegacio-soci ul { display: flex; flex-wrap: wrap; gap: var(--e-1); }
+  .navegacio-soci a { flex-direction: row; gap: var(--e-2); min-height: var(--tactil); padding: 0 var(--e-3); border-radius: var(--r-m); font-size: var(--t-m); }
+  .navegacio-soci .icona { display: none; }   /* a la capçalera, enllaços de text */
+  .dock-carnet a { width: auto; height: auto; min-height: var(--tactil); margin: 0; transform: none; background: transparent; color: var(--c-text-2); border: 0; }
+  .dock-carnet a[aria-current="page"] { color: var(--c-zona-text); background: var(--c-zona-fons); }
 
-  .graella-soci {
+  .carril { grid-auto-columns: calc((100% - var(--e-4)) / 2); }
+  .graella-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      "salutacio salutacio"
-      "carnet carnet"
-      "pagaments activitats"
-      "llicencia avisos";
-    padding: var(--e-5);
-    gap: var(--e-5);
+    grid-template-areas: "avisos llicencia" "sortides sortides" "bitacola bitacola";
   }
+  .insignies { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* ==================== Escriptori: 1024 px o més ==================== */
 @media (min-width: 1024px) {
-  .app { grid-template-columns: var(--lateral-soci) minmax(0, 1fr); }
-  .navegacio-soci { padding: var(--e-4) var(--e-3); }
-  .navegacio-soci a {
-    flex-direction: row; justify-content: flex-start; gap: var(--e-3);
-    min-height: var(--tactil); padding: 0 var(--e-3);
-    border-radius: var(--r-m); font-size: var(--t-m);
-  }
-  .marca-lateral { justify-content: flex-start; align-items: center; gap: var(--e-2); padding: 0 var(--e-3); color: var(--c-lateral-text); text-decoration: none; font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
-  .marca-lateral .text-marca { display: inline; }
-  .capcalera-soci { padding: var(--e-2) var(--e-6); }
-  .navegacio-soci .sortir { flex-direction: row; justify-content: flex-start; }
+  .contenidor, .capcalera-interior { padding-left: var(--e-6); padding-right: var(--e-6); }
+  .capcalera-interior { flex-wrap: nowrap; }
+  .navegacio-soci { order: 0; flex-basis: auto; margin-left: auto; }
+  .capcalera-soci .selector-tema { margin-left: 0; }
 
-  .graella-soci {
-    max-width: var(--amplada-max);
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--columna-dreta);
+  .portada-contingut { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); justify-items: start; text-align: left; align-items: center; }
+  .salutacio-cap { justify-items: start; }
+  .portada h1 { font-size: calc(var(--t-3xl) * 1.3); }
+  .carnet-giratori, .invitacio { max-width: calc(var(--carnet-amplada) * 1.25); }
+  .bloc-carnet { justify-items: end; }
+
+  /* Bento asimètrica */
+  .graella-bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-template-areas:
-      "salutacio salutacio carnet"
-      "pagaments activitats carnet"
-      "llicencia activitats avisos";
+      "sortides sortides sortides sortides sortides sortides sortides sortides avisos avisos avisos avisos"
+      "bitacola bitacola bitacola bitacola bitacola bitacola bitacola llicencia llicencia llicencia llicencia llicencia";
     align-items: start;
-    padding: var(--e-6);
   }
+  .insignies { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ==================== Més contrast: sense degradats ni ombres ==================== */
+@media (prefers-contrast: more) {
+  .portada, .profunditat { background: var(--c-fons); color: var(--c-text); }
+  .salutacio-cap .etiqueta-seccio, .salutacio-cap p, .pista-carril { color: var(--c-text); }
+  .ona { display: none; }
+  .cara { background: var(--c-carnet-2); border: var(--v-plena) solid var(--c-text); box-shadow: none; }
+  .insignia-icona { background: var(--c-carnet-2); box-shadow: none; border: var(--v-plena) solid var(--c-text); }
+  .targeta, .navegacio-soci { box-shadow: none; border: var(--v-plena) solid var(--c-text); }
 }
 </style>
 </head>
-<body class="zona-soci" data-persona="soci">
+<body class="zona-soci" data-persona="soci-pendent">
 <a class="salt" href="#contingut">Salta al contingut</a>
-
-<div class="app">
-  <nav id="navegacio-soci" class="navegacio-soci" aria-label="Compte personal">
-    <a class="marca-lateral" href="#salutacio">
-      <img class="logo-sempre-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
-      <span class="text-marca">C.R.I.S.</span>
-    </a>
-    <ul>
-      <li><a href="#salutacio" aria-current="page"><span class="icona" aria-hidden="true">⌂</span><span>Inici</span></a></li>
-      <li><a href="#proximes-activitats"><span class="icona" aria-hidden="true">▦</span><span>Activitats</span></a></li>
-      <li><a href="#carnet"><span class="icona" aria-hidden="true">▭</span><span>Carnet</span></a></li>
-      <li><a href="#pagaments-pendents"><span class="icona" aria-hidden="true">€</span><span>Pagaments</span></a></li>
-      <li><a href="#"><span class="icona" aria-hidden="true">◯</span><span>Perfil</span></a></li>
-    </ul>
-    <a class="sortir" href="publica.html"><span class="icona" aria-hidden="true">⇥</span><span>Surt</span></a>
-  </nav>
-
-  <div class="principal">
-    <p class="nota-wireframe">Wireframe de baixa fidelitat · estructura, no disseny final · dades inventades</p>
-    <div class="demo" role="group" aria-labelledby="demo-persona">
-      <span class="demo-titol" id="demo-persona">Demostració · veure com:</span>
-      <label><input type="radio" name="persona" value="soci" checked> Soci</label>
-      <label><input type="radio" name="persona" value="no-soci"> Persona no sòcia amb compte (alumne)</label>
-    </div>
-    <header id="capcalera-soci" class="capcalera-soci">
-      <span class="logo-capcalera">
-        <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
-        <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
-      </span>
-      <p class="titol-zona">Compte personal</p>
-      <fieldset class="selector-tema neu-selector">
-        <legend class="visualment-amagat">Tema</legend>
-        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
-        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
-        <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
-      </fieldset>
-    </header>
-
-    <main id="contingut" class="graella-soci">
-
-      <section id="salutacio" aria-labelledby="salutacio-titol">
-        <div class="salutacio-cap">
-          <span class="avatar neu-anell" aria-hidden="true">MP</span>
-          <div>
-            <span class="etiqueta-seccio">Inici</span>
-            <h1 id="salutacio-titol">Hola, Marta</h1>
-          </div>
-        </div>
-        <p class="nomes-soci">Soci de ple dret · número de soci <span class="codi">0427</span></p>
-        <p class="nomes-no-soci">Tens un compte personal, però no ets soci. <a href="publica.html#fer-se-soci">Fes-te soci</a></p>
-        <ul class="resum-rapid">
-          <li class="nomes-soci"><span class="estat estat-avis"><span aria-hidden="true">◷</span> 2 pagaments pendents</span></li>
-          <li class="nomes-no-soci"><span class="estat estat-avis"><span aria-hidden="true">◷</span> 1 pagament pendent</span></li>
-          <li><span class="estat estat-info"><span aria-hidden="true">▦</span> 2 activitats properes</span></li>
-        </ul>
-      </section>
-
-      <section id="carnet" class="bloc-carnet" aria-labelledby="carnet-titol">
-        <h2 id="carnet-titol">Carnet</h2>
-        <div class="nomes-soci">
-          <div class="carnet neu-relleu">
-            <div class="carnet-cap">
-              <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
-              <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
-              <strong>C.R.I.S.</strong>
-              <span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span>
-            </div>
-            <p class="carnet-nom">Marta Puig Ferrer</p>
-            <p>Número de soci <span class="carnet-numero">0427</span></p>
-            <p class="text-2">Vàlid fins al 31/12/2026</p>
-            <div class="caixa-imatge caixa-qr">Codi QR del carnet <span class="a-validar">A validar</span></div>
-          </div>
-          <details class="desplegable">
-            <summary>Detall del carnet</summary>
-            <dl class="dades">
-              <dt>Tipus</dt><dd>Ple dret</dd>
-              <dt>Data d'alta</dt><dd>12/03/2019</dd>
-              <dt>Quota 2026</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></dd>
-            </dl>
-          </details>
-        </div>
-        <div class="avis nomes-no-soci">
-          <strong>Sense carnet</strong>
-          Només els socis tenen carnet. <a href="publica.html#fer-se-soci">Com fer-se soci</a>
-        </div>
-      </section>
-
-      <section id="pagaments-pendents" class="targeta" aria-labelledby="pagaments-titol">
-        <h2 id="pagaments-titol">Pagaments pendents</h2>
-        <ul class="llista-files">
-          <li class="fila nomes-soci">
-            <div class="fila-text"><strong>Quota anual 2027</strong><span>Domiciliació SEPA · es cobrarà el 05/01/2027</span></div>
-            <div class="fila-xifres"><span class="import">90,00 €</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></div>
-          </li>
-          <li class="fila">
-            <div class="fila-text"><strong>Sortida Illes Medes</strong><span>Targeta, Bizum o transferència</span></div>
-            <div class="fila-xifres"><span class="import">45,00 €</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></div>
-            <a class="boto boto-principal" href="#">Paga ara</a>
-          </li>
-        </ul>
-        <p class="subtitol">Darrers moviments</p>
-        <ul class="llista-files">
-          <li class="fila">
-            <div class="fila-text"><strong>Curs de nitrox</strong><span>Targeta · 02/10/2026</span></div>
-            <div class="fila-xifres"><span class="import">120,00 €</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></div>
-          </li>
-          <li class="fila">
-            <div class="fila-text"><strong>Sortida Cadaqués</strong><span>Bizum · 14/09/2026</span></div>
-            <div class="fila-xifres"><span class="import">40,00 €</span><span class="estat estat-error"><span aria-hidden="true">✕</span> Cancel·lat</span></div>
-          </li>
-        </ul>
-        <a class="boto boto-text peu-targeta" href="#">Tot l'historial</a>
-      </section>
-
-      <section id="proximes-activitats" class="targeta" aria-labelledby="activitats-titol">
-        <h2 id="activitats-titol">Pròximes activitats</h2>
-        <ul class="llista-files">
-          <li class="fila fila-activitat">
-            <span class="data-activitat"><span class="dia">15</span>nov</span>
-            <div class="fila-text"><strong>Illes Medes</strong><span>Sortida · L'Estartit · 08:00</span></div>
-            <span class="estat estat-avis"><span aria-hidden="true">◷</span> Pagament pendent</span>
-          </li>
-          <li class="fila fila-activitat">
-            <span class="data-activitat"><span class="dia">20</span>nov</span>
-            <div class="fila-text"><strong>Curs d'iniciació</strong><span>Curs · Piscina · 19:30</span></div>
-            <span class="estat estat-ok"><span aria-hidden="true">✓</span> Inscripció confirmada</span>
-          </li>
-        </ul>
-        <a class="boto peu-targeta" href="publica.html#properes-activitats">Busca activitats</a>
-      </section>
-
-      <section id="llicencia" class="targeta" aria-labelledby="llicencia-titol">
-        <h2 id="llicencia-titol">Llicència</h2>
-        <dl class="dades">
-          <dt>Tipus</dt><dd>Federativa anual <span class="a-validar">A validar</span></dd>
-          <dt>Data d'alta</dt><dd>01/01/2026</dd>
-          <dt>Caducitat</dt><dd>31/12/2026</dd>
-        </dl>
-        <p class="peu-targeta"><span class="estat estat-avis"><span aria-hidden="true">!</span> Caduca d'aquí a 65 dies</span></p>
-        <a class="boto" href="#" aria-disabled="true">Renova (mòdul 06, fase 2)</a>
-      </section>
-
-      <section id="avisos" class="targeta" aria-labelledby="avisos-titol">
-        <h2 id="avisos-titol">Avisos</h2>
-        <ul class="llista-avisos">
-          <li class="avis avis-sistema nomes-soci"><strong>Missatge automàtic</strong>Avís previ: el 05/01/2027 es cobrarà la quota per domiciliació.</li>
-          <li class="avis"><strong>Del club</strong>El local tanca el 8 de desembre.</li>
-        </ul>
-      </section>
-
-    </main>
-  </div>
+<p class="nota-wireframe">Wireframe de baixa fidelitat · estructura, no disseny final · dades inventades</p>
+<div class="demo" role="group" aria-labelledby="demo-persona">
+  <span class="demo-titol" id="demo-persona">Demostració · veure com:</span>
+  <label><input type="radio" name="persona" value="soci-pendent" checked> Soci amb pagaments pendents</label>
+  <label><input type="radio" name="persona" value="soci-al-dia"> Soci al dia</label>
+  <label><input type="radio" name="persona" value="no-soci"> Persona no sòcia (alumne)</label>
 </div>
+
+<header id="capcalera-soci" class="capcalera-soci">
+  <div class="capcalera-interior">
+    <a class="marca-soci" href="#portada">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <span class="titol-zona">Compte personal</span>
+    </a>
+    <nav id="navegacio-soci" class="navegacio-soci" aria-label="Compte personal">
+      <ul>
+        <li><a href="#portada" aria-current="page"><span class="icona" aria-hidden="true">⌂</span><span>Inici</span></a></li>
+        <li><a href="#proximes-activitats"><span class="icona" aria-hidden="true">▦</span><span>Sortides</span></a></li>
+        <li class="dock-carnet"><a href="#carnet"><span class="icona" aria-hidden="true">▭</span><span>Carnet</span></a></li>
+        <li><a href="#franja-estat"><span class="icona" aria-hidden="true">€</span><span>Pagaments</span></a></li>
+        <li><a href="#"><span class="icona" aria-hidden="true">◯</span><span>Perfil</span></a></li>
+      </ul>
+    </nav>
+    <fieldset class="selector-tema neu-selector">
+      <legend class="visualment-amagat">Tema</legend>
+      <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+    </fieldset>
+  </div>
+</header>
+
+<main id="contingut">
+
+  <section id="portada" class="portada" aria-labelledby="salutacio-titol">
+    <div class="contenidor portada-contingut">
+      <div id="salutacio" class="salutacio-cap">
+        <span class="avatar avatar-portada" aria-hidden="true">MP</span>
+        <span class="etiqueta-seccio">Inici</span>
+        <h1 id="salutacio-titol">Hola, Marta</h1>
+        <p class="nomes-soci">Soci de ple dret · número de soci <span class="codi">0427</span></p>
+        <p class="nomes-no-soci">Tens un compte personal, però encara no ets soci.</p>
+      </div>
+
+      <div id="carnet" class="bloc-carnet">
+        <div class="nomes-soci bloc-carnet">
+          <h2 class="visualment-amagat">Carnet de soci</h2>
+          <div class="carnet-giratori" id="carnet-giratori">
+            <div class="carnet-interior">
+              <div class="cara cara-davant" id="carnet-davant">
+                <div class="carnet-cap">
+                  <img class="logo-sempre-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
+                  <strong>C.R.I.S.</strong>
+                  <span class="estat"><span aria-hidden="true">✓</span> Vigent</span>
+                </div>
+                <p class="carnet-nom">Marta Puig Ferrer</p>
+                <div>
+                  <p class="carnet-petit">Número de soci</p>
+                  <p class="carnet-numero">0427</p>
+                </div>
+                <p class="carnet-petit">Vàlid fins al 31/12/2026</p>
+              </div>
+              <div class="cara cara-darrere" id="carnet-darrere" aria-hidden="true">
+                <div class="caixa-imatge caixa-qr">QR <span class="a-validar">A validar</span></div>
+                <dl class="carnet-dades">
+                  <dt>Tipus</dt><dd>Ple dret</dd>
+                  <dt>Alta</dt><dd>12/03/2019</dd>
+                  <dt>Quota 2026</dt><dd>✓ Pagada</dd>
+                  <dt>Llicència</dt><dd>Fins al 31/12/2026</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <button class="boto" type="button" id="gira-carnet" aria-pressed="false" aria-controls="carnet-giratori">
+            <span aria-hidden="true">⟲</span> <span id="gira-text">Mostra el darrere</span>
+          </button>
+        </div>
+
+        <div class="targeta invitacio nomes-no-soci">
+          <span class="etiqueta-seccio">Fes-te soci</span>
+          <h2>Uneix-te al club</h2>
+          <p>Amb el carnet de soci tens preus de soci a les sortides i cursos <span class="a-validar">A validar</span>.</p>
+          <p>Simpatitzant <span class="import">35 €</span> l'any · ple dret <span class="import">90 €</span> l'any <span class="a-validar">A validar</span></p>
+          <a class="boto boto-principal" href="publica.html#fer-se-soci">Fes-te soci</a>
+        </div>
+      </div>
+    </div>
+    <div class="ona" aria-hidden="true">
+      <svg viewBox="0 0 2400 48" preserveAspectRatio="none" focusable="false"><path d="M0 24 Q150 0 300 24 T600 24 T900 24 T1200 24 T1500 24 T1800 24 T2100 24 T2400 24 V48 H0 Z"/></svg>
+    </div>
+  </section>
+
+  <div class="profunditat">
+    <div class="contenidor">
+
+      <section id="franja-estat" aria-labelledby="franja-titol">
+        <h2 id="franja-titol" class="visualment-amagat">Estat dels pagaments</h2>
+        <div class="franja-estat si-pendent" role="status">
+          <div>
+            <p class="franja-text"><span aria-hidden="true">◷</span> <span class="si-pendent-soci">2 pagaments pendents</span><span class="si-no-soci">1 pagament pendent</span></p>
+            <p class="franja-detall"><span class="si-pendent-soci">Sortida Illes Medes <span class="import">45,00 €</span> · quota 2027 <span class="import">90,00 €</span> (domiciliació, 05/01/2027)</span><span class="si-no-soci">Curs d'iniciació <span class="import">120,00 €</span></span></p>
+          </div>
+          <a class="boto boto-principal" href="#">Paga ara</a>
+        </div>
+        <div class="franja-estat franja-ok si-al-dia" role="status">
+          <p class="franja-text"><span aria-hidden="true">✓</span> Tot al dia</p>
+          <p class="franja-detall">No tens cap pagament pendent.</p>
+          <a class="boto" href="#">Historial de pagaments</a>
+        </div>
+      </section>
+
+      <div class="graella-bento">
+
+        <section id="avisos" class="targeta" aria-labelledby="avisos-titol">
+          <h2 id="avisos-titol">Avisos</h2>
+          <ul class="llista-avisos">
+            <li class="avis avis-sistema nomes-soci"><strong>Missatge automàtic</strong>Avís previ: el 05/01/2027 es cobrarà la quota per domiciliació.</li>
+            <li class="avis"><strong>Del club</strong>El local tanca el 8 de desembre.</li>
+          </ul>
+        </section>
+
+        <section id="proximes-activitats" aria-labelledby="sortides-titol">
+          <div class="cap-bloc">
+            <h2 id="sortides-titol">Properes sortides</h2>
+            <p class="pista-carril">Llisca per veure'n més <span aria-hidden="true">→</span></p>
+          </div>
+          <ul class="carril" tabindex="0" aria-labelledby="sortides-titol">
+            <li>
+              <article class="targeta sortida">
+                <div class="caixa-imatge">Imatge de la sortida</div>
+                <div class="sortida-cos">
+                  <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pagament pendent</span></div>
+                  <h3>Illes Medes</h3>
+                  <p class="text-2">Dissabte 15/11 · L'Estartit · 08:00</p>
+                  <a class="boto" href="#">Detall</a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="targeta sortida">
+                <div class="caixa-imatge">Imatge de la sortida</div>
+                <div class="sortida-cos">
+                  <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Inscripció confirmada</span></div>
+                  <h3>Cap de Creus</h3>
+                  <p class="text-2">Diumenge 23/11 · Cadaqués · 09:00</p>
+                  <a class="boto" href="#">Detall</a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="targeta sortida">
+                <div class="caixa-imatge">Imatge de la sortida</div>
+                <div class="sortida-cos">
+                  <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-info"><span aria-hidden="true">+</span> Places lliures</span></div>
+                  <h3>Nocturna a Tossa</h3>
+                  <p class="text-2">Divendres 05/12 · Tossa de Mar · 19:00</p>
+                  <a class="boto" href="#">Inscriu-t'hi</a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="targeta sortida">
+                <div class="caixa-imatge">Imatge de la sortida</div>
+                <div class="sortida-cos">
+                  <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-error"><span aria-hidden="true">✕</span> Completa</span></div>
+                  <h3>Illes Formigues</h3>
+                  <p class="text-2">Dissabte 13/12 · Palamós · 08:30</p>
+                  <a class="boto" href="#" aria-disabled="true">Sense places</a>
+                </div>
+              </article>
+            </li>
+          </ul>
+        </section>
+
+        <section id="bitacola" class="targeta" aria-labelledby="bitacola-titol">
+          <h2 id="bitacola-titol">Bitàcola <span class="a-validar">A validar</span></h2>
+          <ul class="xifres-bitacola">
+            <li><span class="xifra-gran">14</span> sortides el 2026</li>
+            <li><span class="xifra-gran">21 h</span> sota l'aigua</li>
+            <li class="nomes-soci"><span class="xifra-gran">7</span> anys de soci</li>
+          </ul>
+          <h3 class="visualment-amagat">Insígnies</h3>
+          <ul class="insignies">
+            <li class="insignia"><span class="insignia-icona" aria-hidden="true">✦</span><strong>10 sortides</strong><span class="estat estat-ok"><span aria-hidden="true">✓</span> Aconseguida</span></li>
+            <li class="insignia"><span class="insignia-icona" aria-hidden="true">☾</span><strong>Primera nocturna</strong><span class="estat estat-ok"><span aria-hidden="true">✓</span> Aconseguida</span></li>
+            <li class="insignia nomes-soci"><span class="insignia-icona" aria-hidden="true">5</span><strong>5 anys de soci</strong><span class="estat estat-ok"><span aria-hidden="true">✓</span> Aconseguida</span></li>
+            <li class="insignia insignia-pendent"><span class="insignia-icona" aria-hidden="true">25</span><strong>25 sortides</strong><span class="estat estat-neutre"><span aria-hidden="true">◌</span> Falten 11</span></li>
+          </ul>
+        </section>
+
+        <section id="llicencia" class="targeta" aria-labelledby="llicencia-titol">
+          <h2 id="llicencia-titol">Llicència</h2>
+          <dl class="dades">
+            <dt>Tipus</dt><dd>Federativa anual <span class="a-validar">A validar</span></dd>
+            <dt>Data d'alta</dt><dd>01/01/2026</dd>
+            <dt>Caducitat</dt><dd>31/12/2026</dd>
+          </dl>
+          <p><span class="estat estat-avis"><span aria-hidden="true">!</span> Caduca d'aquí a 65 dies</span></p>
+          <a class="boto" href="#" aria-disabled="true">Renova (mòdul 06, fase 2)</a>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</main>
 
 <script>
 /* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
@@ -369,15 +485,28 @@
   aplica(actual());
 })();
 
-/* Demostració: soci o persona no sòcia */
+/* Demostració: soci amb pendents, soci al dia o persona no sòcia */
 document.querySelectorAll('input[name="persona"]').forEach(function (r) {
   r.addEventListener('change', function () { document.body.setAttribute('data-persona', r.value); });
 });
 
+/* Carnet: es gira amb un botó; la cara amagada no es llegeix */
+(function () {
+  var carnet = document.getElementById('carnet-giratori');
+  var boto = document.getElementById('gira-carnet');
+  boto.addEventListener('click', function () {
+    var girat = carnet.classList.toggle('girat');
+    boto.setAttribute('aria-pressed', String(girat));
+    document.getElementById('gira-text').textContent = girat ? 'Mostra el davant' : 'Mostra el darrere';
+    document.getElementById('carnet-davant').setAttribute('aria-hidden', String(girat));
+    document.getElementById('carnet-darrere').setAttribute('aria-hidden', String(!girat));
+  });
+})();
+
 /* Navegació: marca l'element actiu en fer clic */
-document.querySelectorAll('.navegacio-soci ul a').forEach(function (a) {
+document.querySelectorAll('.navegacio-soci a').forEach(function (a) {
   a.addEventListener('click', function () {
-    document.querySelectorAll('.navegacio-soci ul a').forEach(function (x) { x.removeAttribute('aria-current'); });
+    document.querySelectorAll('.navegacio-soci a').forEach(function (x) { x.removeAttribute('aria-current'); });
     a.setAttribute('aria-current', 'page');
   });
 });

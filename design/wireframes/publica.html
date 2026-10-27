@@ -15,7 +15,7 @@
 <style>
 /* ---------- Estructura general (mòbil primer en CSS; disseny pensat per a escriptori) ---------- */
 .contenidor { max-width: var(--amplada-max); margin: 0 auto; padding: 0 var(--e-4); }
-.seccio { padding: var(--e-7) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
+.seccio { padding: var(--e-7) 0; border-bottom: var(--v-fina) solid var(--c-linia); scroll-margin-top: calc(var(--logo-publica-mobil) + var(--e-4)); }
 .seccio-alterna { background: var(--c-superficie-2); }
 .grup-botons { display: flex; flex-wrap: wrap; gap: var(--e-3); margin-top: var(--e-4); }
 .entradeta { font-size: var(--t-l); color: var(--c-text-2); max-width: var(--amplada-text); }
@@ -33,7 +33,7 @@
   min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
 }
 .marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); color: var(--c-text); text-decoration: none; }
-.marca img { width: var(--logo-capcalera); height: auto; }
+.marca img { width: var(--logo-publica-mobil); height: auto; }
 .marca-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
 .capcalera-accions { display: flex; align-items: center; gap: var(--e-2); margin-left: auto; }
 #navegacio-publica { order: 3; flex-basis: 100%; }
@@ -76,6 +76,18 @@
 .xifres strong { display: block; font-family: var(--f-titol); font-size: var(--t-xl); }
 .llista-punts { padding-left: var(--e-5); display: grid; gap: var(--e-2); }
 
+/* ---------- centre-recuperacio-investigacio ---------- */
+.ambits { list-style: none; display: grid; gap: var(--e-4); margin-top: var(--e-5); }
+.ambit { display: grid; gap: var(--e-2); align-content: start; border-top: var(--v-activa) solid var(--c-zona); }
+.ambit h3 { margin: 0; }
+.ambit p { margin: 0; }
+.ambit-icona { font-size: var(--t-2xl); line-height: 1; color: var(--c-zona-text); }
+.crida {
+  display: grid; gap: var(--e-3); margin-top: var(--e-5); padding: var(--e-5);
+  border: var(--v-fina) solid var(--c-zona); border-radius: var(--r-l); background: var(--c-zona-fons);
+}
+.crida h3, .crida p { margin: 0; }
+
 /* ---------- fer-se-soci ---------- */
 .graella-quotes { display: grid; gap: var(--e-4); margin-top: var(--e-5); }
 .quota { display: grid; gap: var(--e-3); border-top: var(--v-activa) solid var(--c-zona); }
@@ -106,6 +118,8 @@
   /* Dues files: marca i accions a dalt; la pastilla de navegació, centrada a sota */
   .capcalera-interior { padding-top: var(--e-3); padding-bottom: var(--e-3); row-gap: var(--e-3); }
   #navegacio-publica { display: flex; justify-content: center; }
+  .marca img { width: var(--logo-publica); }
+  .seccio { scroll-margin-top: calc(var(--logo-publica) + var(--tactil) + var(--e-6)); }  /* dues files de capçalera */
   .boto-menu { display: none; }
   .no-mobil { display: inline-flex; }
 
@@ -133,6 +147,8 @@
   .seccio { padding: var(--e-8) 0; }
   .graella-activitats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .xifres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ambits { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .crida { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .graella-quotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graella-contacte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .peu-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -179,6 +195,7 @@
         <li class="nav-mes">
           <button class="boto-mes" type="button" aria-expanded="false" aria-controls="nav-sub">Més <span aria-hidden="true">▾</span></button>
           <ul class="nav-sub" id="nav-sub">
+            <li><a href="#centre-recuperacio-investigacio">El Centre</a></li>
             <li><a href="#medi-ambient">Medi ambient</a></li>
             <li><a href="#fer-se-soci">Fer-se soci</a></li>
             <li><a href="#contacte">Contacte</a></li>
@@ -283,7 +300,40 @@
     </div>
   </section>
 
-  <section id="medi-ambient" class="seccio seccio-alterna" aria-labelledby="medi-titol">
+  <section id="centre-recuperacio-investigacio" class="seccio seccio-alterna" aria-labelledby="centre-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">El Centre</span>
+      <h2 id="centre-titol">Centre de Recuperació i Investigacions Submarines</h2>
+      <p class="text-llarg">Text d'exemple: el nom del club explica què fem. Bussegem per recuperar, investigar i donar a conèixer el patrimoni i el medi submarí. <span class="a-validar">A validar</span></p>
+      <p class="text-2">Nom oficial: el logotip diu «Centre de Recuperació i d'Investigacions Submarines». <span class="a-validar">A validar</span></p>
+      <ul class="ambits">
+        <li class="targeta ambit">
+          <span class="ambit-icona" aria-hidden="true">⚓&#xFE0E;</span>
+          <h3>Recuperació</h3>
+          <p>Text d'exemple: recuperació d'objectes i restes del fons marí amb els permisos corresponents. <span class="a-validar">A validar</span></p>
+        </li>
+        <li class="targeta ambit">
+          <span class="ambit-icona" aria-hidden="true">◎</span>
+          <h3>Investigació</h3>
+          <p>Text d'exemple: col·laboració en estudis del fons marí i del patrimoni submergit. <span class="a-validar">A validar</span></p>
+        </li>
+        <li class="targeta ambit">
+          <span class="ambit-icona" aria-hidden="true">✎&#xFE0E;</span>
+          <h3>Divulgació</h3>
+          <p>Text d'exemple: conferències, exposicions i arxiu històric del club. <span class="a-validar">A validar</span></p>
+        </li>
+      </ul>
+      <div class="crida">
+        <div>
+          <h3>Vols col·laborar amb el Centre?</h3>
+          <p>Text d'exemple: entitats, investigadors i voluntaris hi són benvinguts. <span class="a-validar">A validar</span></p>
+        </div>
+        <a class="boto" href="#contacte">Parlem-ne</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="medi-ambient" class="seccio" aria-labelledby="medi-titol">
     <div class="contenidor bloc-mitja bloc-invers">
       <div>
         <span class="etiqueta-seccio">Compromís</span>
@@ -299,7 +349,7 @@
     </div>
   </section>
 
-  <section id="fer-se-soci" class="seccio" aria-labelledby="soci-titol">
+  <section id="fer-se-soci" class="seccio seccio-alterna" aria-labelledby="soci-titol">
     <div class="contenidor">
       <span class="etiqueta-seccio">Quotes</span>
       <h2 id="soci-titol">Fes-te soci</h2>
@@ -326,7 +376,7 @@
     </div>
   </section>
 
-  <section id="contacte" class="seccio seccio-alterna" aria-labelledby="contacte-titol">
+  <section id="contacte" class="seccio" aria-labelledby="contacte-titol">
     <div class="contenidor">
       <span class="etiqueta-seccio">Parlem</span>
       <h2 id="contacte-titol">Contacte</h2>
@@ -366,6 +416,7 @@
         <ul>
           <li><a href="#properes-activitats">Activitats</a></li>
           <li><a href="#qui-som">Qui som</a></li>
+          <li><a href="#centre-recuperacio-investigacio">El Centre</a></li>
           <li><a href="#fer-se-soci">Fer-se soci</a></li>
         </ul>
       </div>

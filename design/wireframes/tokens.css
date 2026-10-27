@@ -119,8 +119,42 @@
   --columna-dreta: 22rem;         /* compte personal, escriptori */
   --logo-capcalera: 40px;
   --logo-lateral: 48px;
-  --logo-peu: 64px;
+  --logo-peu: 120px;              /* web pública (decisió 032) */
+  --logo-publica-mobil: 52px;     /* capçalera pública, mòbil */
+  --logo-publica: 72px;           /* capçalera pública, tauleta i escriptori */
   --icona: 1.25rem;
+
+  /* Compte personal: immersió (decisió 032) */
+  --portada-alcada: 90svh;        /* portada a pantalla gairebé completa */
+  --carnet-amplada: 22rem;
+  --carnet-proporcio: 1.586;      /* proporció d'una targeta física (85,6 × 54 mm) */
+  --dock-alcada: 64px;
+  --dock-carnet: 60px;            /* botó central del carnet al dock */
+  --tactil-gran: 56px;            /* accions crítiques: pagar */
+  --carril-targeta: 85%;          /* amplada de cada targeta del carril (mòbil) */
+  --ona-alcada: 48px;
+
+  /* Profunditat (compte personal): de la superfície a l'abisme */
+  --c-ocea-1: #e2f4f6;
+  --c-ocea-2: #c4e6ee;
+  --c-ocea-3: #a6d6e3;
+  --c-ocea-4: #8cc7d8;
+  --c-ocea-text: #0f1c2a;
+  --c-ocea-text-2: #2f4152;
+  /* Carnet: sempre fosc, com una targeta física (igual als dos temes) */
+  --c-carnet-1: #0b4f74;
+  --c-carnet-2: #062a47;
+  --c-carnet-text: #f2f5f8;
+  --c-carnet-text-2: #b9cfe0;
+  --c-carnet-zona: #e2b04f;
+
+  /* Moviment: només portada (entrada), gir del carnet i ona */
+  --m-rapid: 150ms;
+  --m-entrada: 700ms;
+  --m-gir: 600ms;
+  --m-ona: 2400ms;
+  --m-ona-repeticions: 2;         /* 4,8 s en total: s'atura sola abans de 5 s */
+  --m-corba: cubic-bezier(.2, .7, .2, 1);
 }
 
 /* ---------- Tema fosc: preferència del sistema ---------- */
@@ -157,6 +191,12 @@
     --neu-ombra-fosca: #01060b;
     --neu-ombra-clara: #15293d;
     --neu-vora: #5a7590;
+    --c-ocea-1: #0f3a4a;
+    --c-ocea-2: #0c2c40;
+    --c-ocea-3: #0a1f33;
+    --c-ocea-4: #08131e;
+    --c-ocea-text: #e4edf5;
+    --c-ocea-text-2: #a9bccc;
   }
 }
 
@@ -193,6 +233,12 @@
   --neu-ombra-fosca: #01060b;
   --neu-ombra-clara: #15293d;
   --neu-vora: #5a7590;
+  --c-ocea-1: #0f3a4a;
+  --c-ocea-2: #0c2c40;
+  --c-ocea-3: #0a1f33;
+  --c-ocea-4: #08131e;
+  --c-ocea-text: #e4edf5;
+  --c-ocea-text-2: #a9bccc;
 }
 
 /* ---------- Zona activa: cada pàgina posa la classe al <body> ---------- */
@@ -230,7 +276,11 @@ a { color: var(--c-enllac); }
 img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
 :focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* Reduir moviment: els tokens de moviment passen a 0 i s'atura qualsevol animació */
+@media (prefers-reduced-motion: reduce) {
+  :root { --m-rapid: 0ms; --m-entrada: 0ms; --m-gir: 0ms; --m-ona: 0ms; --m-ona-repeticions: 0; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
 
 .visualment-amagat {
   position: absolute; width: 1px; height: 1px; overflow: hidden;

@@ -1,7 +1,7 @@
 # 031 — Estil neumòrfic limitat
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada. Amplia la [030](030-sistema-de-disseny.md), que continua vigent.
+- **Estat:** Acceptada. Amplia la [030](030-sistema-de-disseny.md), que continua vigent. L'abast al compte personal l'ajusta la [032](032-immersio-socis-i-centre.md): l'avatar i el carnet ja no hi són neumòrfics.
 
 ## Context
 L'equip vol afegir al sistema de disseny un detall d'identitat neumòrfic, amb relleu tou fet d'una ombra fosca i una de clara del mateix to que el fons. Ha de ser limitat i no pot perjudicar el contrast ni la llegibilitat. És un estil que sol tenir problemes d'accessibilitat: vores poc visibles i estats indicats només per l'ombra.
