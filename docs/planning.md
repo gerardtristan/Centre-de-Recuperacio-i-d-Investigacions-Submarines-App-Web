@@ -896,7 +896,7 @@ Aprovada el 27/10/2026. **No canvia cap regla del M01** ni cap fila aprovada de 
 **Tasca**
 | # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
 |---|---|---|---|---|---|
-| T-M01-31 | Còpia de lectura de la llicència: camps nous (també `source_version`), subscriptor dels esdeveniments del 06 que ignora els més vells, comprovació diària amb registre i fi de l'edició manual quan el 06 estigui actiu ([052](decisions/052-llicencia-font-unica-al-06.md), [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)) | M | `apps/members/licences.py`, `apps/members/tasks.py`, migració | T-M01-30, T-M05b-21 (mecanisme d'esdeveniments), T-M06-15 | CA-M01-26 a 33; proves del M01 en verd |
+| T-M01-31 | Còpia de lectura de la llicència: camps nous (també `source_version`), subscriptor dels esdeveniments del 06 que ignora els més vells, comprovació diària amb registre i fi de l'edició manual quan el 06 estigui actiu ([052](decisions/052-llicencia-font-unica-al-06.md), [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)) | M | `apps/members/licences.py`, `apps/members/tasks.py`, migració | T-M01-30, T-M05b-21 (mecanisme d'esdeveniments), T-M06-15 | CA-M01-26 a 34; proves del M01 en verd |
 
 <a id="M01-addenda-054"></a>
 ## M01 — Addenda de la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md): versió dels esdeveniments i comprovació diària
@@ -923,6 +923,13 @@ Aprovada el 27/10/2026. Completa l'[addenda de la 052](#M01-addenda-052) **sense
 - **CA-M01-31** Donat `licence.renewed` (versió 2) lliurat abans que `licence.issued` (versió 1), quan arriben tots dos, llavors la còpia queda amb les dades de la renovació.
 - **CA-M01-32** Donat una còpia amb una data de caducitat diferent de la del 06, quan corre la comprovació diària, llavors la fila queda igual que al 06 i el registre d'activitat guarda el valor anterior i l'actor «comprovació diària»; si corre una altra vegada, no corregeix res.
 - **CA-M01-33** Donat cap font registrada, quan corre la comprovació diària, llavors no fa cap canvi; donat una fila amb un `licence_ref` que el 06 no té, llavors no s'esborra i surt a la llista per revisar.
+
+**Precisió** (addenda mínima, aprovada el 27/10/2026; no canvia cap regla anterior)
+| ID | Regla |
+|---|---|
+| RN-M01-44 | Si la font del 06 falla, no respon o torna una llista buida mentre el 01 té còpies amb `licence_ref`, la comprovació **se salta sencera**: no corregeix, no cancel·la ni esborra res, ho anota al registre de la tasca i avisa (destinatari [A validar: informàtica], com RN-M01-43). Una llicència només es marca cancel·lada si el 06 la torna cancel·lada, mai perquè falti a la llista |
+
+- **CA-M01-34** Donat una còpia amb llicències vigents, quan la font del 06 dona error o torna una llista buida, llavors cap fila canvia, el registre de la tasca diu «comprovació saltada» i s'envia l'avís.
 
 ---
 
