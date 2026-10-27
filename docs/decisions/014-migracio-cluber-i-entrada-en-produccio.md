@@ -1,7 +1,7 @@
 # 014 — Migració única de Cluber i criteri d'entrada en producció
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (resol P-01). Contradiu el context v3 i el document incremental: els canvis proposats a aquests documents estan pendents d'aprovació (P-19).
+- **Estat:** Acceptada (resol P-01). Concretada per [020](020-baixa-de-cluber-sense-restriccio-de-data.md) (sense restricció de data). El context v4 ja ho recull; el document incremental s'ha d'actualitzar a la propera versió (P-14).
 
 ## Context
 - Context v3 (§6-7) i document incremental (§2.3, §4.3, §4.5): Cluber continua per als cobraments al principi; substituir-los queda fora d'abast.

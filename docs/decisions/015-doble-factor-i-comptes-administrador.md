@@ -1,7 +1,7 @@
 # 015 — Doble factor i comptes d'administrador separats
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (resol P-05; substitueix [003](003-autenticacio-doble-factor.md)). L'abast exacte dels rols (P-17), la relació amb la checklist C4 i C5 (P-18) i el domini dels àlies (P-15) estan [A validar].
+- **Estat:** Acceptada (resol P-05; substitueix [003](003-autenticacio-doble-factor.md)). Concretada per [018](018-perfil-comptes-i-rols.md) (rols, doble factor per entrada, C4 i C5) i per [019](019-domini-i-correu.md) (domini dels àlies).
 
 ## Context
 Els documents d'origen no coincidien en qui havia de fer servir el doble factor (vegeu 003). A més, si una mateixa persona és sòcia i, alhora, administradora, un sol compte amb recuperació per correu fa que qui controli el seu correu personal pugui controlar també l'administració.

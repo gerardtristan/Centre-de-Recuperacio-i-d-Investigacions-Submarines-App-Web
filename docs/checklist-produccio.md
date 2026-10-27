@@ -52,10 +52,10 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
 | C1 | Autenticació a cada endpoint | Per defecte tot exigeix sessió i permís; només es marquen com a públics els endpoints que ho són | Prova automàtica que recorre totes les rutes sense sessió | 1 |
-| C2 | Doble factor i comptes d'administrador | TOTP obligatori per a tots els rols amb accés a diners o dades de socis i per als comptes d'emergència (llista exacta de rols [A validar]). Cada administrador té dos comptes: soci (correu únic) i administrador (nom d'usuari únic, entrada separada, correu no únic només per a notificacions, sense recuperació per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció. Vegeu docs/decisions/015-doble-factor-i-comptes-administrador.md | No es pot accedir a l'administració sense segon factor; el compte d'administrador no té cap enllaç de recuperació per correu; proves de restabliment per un altre administrador i amb codi de recuperació | 2 |
+| C2 | Doble factor i comptes d'administrador | TOTP obligatori per a qualsevol compte que entri per l'administració (inclosos instructor i Departament d'Història) i per als comptes d'emergència; opcional per als comptes de soci. Cada persona té un únic perfil; un administrador té dos comptes: soci (correu únic) i administrador (nom d'usuari únic, entrada separada, diversos rols possibles, correu no únic només per a notificacions, sense recuperació per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció. Vegeu docs/decisions/015 i 018 | No es pot accedir a l'administració sense segon factor; el compte d'administrador no té cap enllaç de recuperació per correu; proves de restabliment per un altre administrador i amb codi de recuperació | 2 |
 | C3 | Limitació de peticions | Inici de sessió, recuperació de contrasenya, formularis públics i API | Prova de càrrega i bloqueig temporal | 2 |
-| C4 | Restabliment de contrasenya | Enllaç d'un sol ús amb caducitat, sense revelar si el correu existeix | Prova de principi a fi | 1 |
-| C5 | Verificació de correu | Els comptes nous queden pendents fins confirmar | Prova de principi a fi | 1 |
+| C4 | Restabliment de contrasenya | **Comptes de soci:** enllaç per correu d'un sol ús amb caducitat, sense revelar si el correu existeix. **Comptes d'administrador:** cap restabliment per correu; el fa un altre administrador (queda al registre d'activitat) o s'entra amb un codi de recuperació d'un sol ús guardat fora de línia (decisió 018) | Prova de principi a fi per a cada tipus de compte; comprovar que l'entrada d'administració no ofereix cap enllaç de recuperació per correu | 1 |
+| C5 | Verificació de correu | **Comptes de soci:** queden pendents fins a confirmar el correu. **Comptes d'administrador:** els crea un administrador i no es verifiquen per correu (el correu no és únic i només serveix per a notificacions) | Prova de principi a fi | 1 |
 | C6 | Auditoria de dependències | Pipeline que falla amb vulnerabilitats greus; revisió mensual | Informe a cada execució | 2 |
 | C7 | Configuració de producció | Mode de depuració desactivat, secret fora del repositori i capçaleres de seguretat; si es fa servir Django, executar la comprovació de desplegament | La comprovació no mostra avisos | 2 |
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
@@ -95,7 +95,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 ### G. Correu
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
-| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa | Comprovador de correu | 2 |
+| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a cris1954.cat (domini remitent); les respostes van a cris@cris.es (decisió 019) | Comprovador de correu | 2 |
 | G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
 
 ### H. Legal i privacitat

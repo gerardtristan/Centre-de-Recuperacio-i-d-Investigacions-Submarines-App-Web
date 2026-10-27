@@ -8,13 +8,13 @@ Català per a documents, interfície i comentaris de cara a l'usuari. Noms de co
 
 ## On és cada cosa
 - `README.md`: estat del projecte i mapa de carpetes.
-- `docs/context-projecte.md`: context del club, processos i decisions (versió Markdown del context v3; original a `docs/context/context-projecte.pdf`).
+- `docs/context-projecte.md`: context del club, processos i decisions (v4, 27/10/2026; el v3 original és a `docs/arxiu/context-projecte-v3-2026-10-20.pdf`).
 - `docs/funcionalitats-processos/funcionalitats-processos.pdf` (i `.docx` editable): funcionalitats i processos per mòdul.
 - `docs/checklist-produccio.md`: portes de qualitat 0 a 3. Consulta-la abans de donar un mòdul per acabat.
 - `docs/metodologia-sdd.md`: com es treballa amb especificacions.
 - `docs/arquitectura-integracions.md`: components, proveïdors externs, fluxos de pagament, variables d'entorn i riscos.
 - `docs/decisions/`: una decisió per fitxer (NNN-nom.md). `docs/decisions/pendents.md`: contradiccions i decisions que ha de validar la junta.
-- `docs/context/`: fonts originals (context, instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
+- `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
 - `specs/NN-modul/`: spec.md, plan.md, data-model.md, tasks.md de cada mòdul.
@@ -40,14 +40,15 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Mai dades reals de socis fora de producció: només dades inventades.
 - Cada endpoint exigeix autenticació i permís per defecte; els públics s'han de declarar de manera explícita.
 - Permisos en dos nivells: rol i objecte (el soci només veu el seu; l'instructor només les seves sessions).
-- Doble factor (TOTP) obligatori per a tots els rols amb accés a diners o dades de socis i per als comptes d'emergència (decisió 015; llista exacta de rols [A validar], P-17).
-- Cada administrador té dos comptes lligats a la mateixa persona: soci (entra amb correu únic, recupera per correu) i administrador (entra amb nom d'usuari únic per l'entrada separada; correu no únic i només per a notificacions; **mai** recupera la contrasenya per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció.
+- Cada persona té un únic perfil. Un administrador té dos comptes lligats al perfil: soci (entra amb correu únic, recupera i verifica per correu) i administrador (entra amb nom d'usuari únic per l'entrada separada; pot tenir diversos rols; correu no únic i només per a notificacions; **mai** recupera la contrasenya per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció (decisions 015 i 018).
+- Doble factor (TOTP) obligatori per a qualsevol compte que entri per l'administració (inclosos instructor i Departament d'Història) i per als comptes d'emergència; opcional per als comptes de soci.
+- Domini de la plataforma: cris1954.cat. Remitent dels correus a cris1954.cat amb resposta a cris@cris.es (decisió 019).
 - Registre d'activitat (qui, quan, què, valor anterior) en dades de socis i diners.
 - Secrets fora del repositori. Cap clau ni contrasenya al codi, als registres ni als exemples.
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisió 017): quotes amb domiciliació SEPA (per defecte), targeta, Bizum o transferència; inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05.
-- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors (decisió 014).
+- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: migració a Stripe o campanya de mandats nous (arquitectura §4.9).
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 

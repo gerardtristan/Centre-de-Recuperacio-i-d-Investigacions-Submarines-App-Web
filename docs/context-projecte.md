@@ -1,18 +1,24 @@
 # Context del projecte — Emprenedoria Digital · C.R.I.S.
 
-> **Font:** `docs/context/context-projecte.pdf` (context v3, 20/10/2026). Transcripció a Markdown del 27/10/2026.
-> El contingut és el de l'original. Les notes marcades amb **⚠ Contradicció** no són a l'original: indiquen on un altre document diu una cosa diferent. No es resolen aquí; es llisten a [decisions/pendents.md](decisions/pendents.md).
+> **Versió 4 · 27/10/2026.** Parteix del context v3 (20/10/2026), que es conserva a `docs/arxiu/context-projecte-v3-2026-10-20.pdf`, i hi incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [019](decisions/019-domini-i-correu.md).
+>
+> **Canvis respecte a la v3:** abast dels cobraments i Cluber (§6-7), domini (§3 i §7), doble factor i comptes (§9), pressupost (§9) i forma de treballar per mòduls (§1 i §11).
+>
+> Les contradiccions amb altres documents que encara no s'han resolt són a [decisions/pendents.md](decisions/pendents.md).
 
 ## 1. Meta del projecte
-Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i Investigacions Submarines) que centralitzi la gestió de socis, cursos, sortides, material i tresoreria i calculi automàticament el marge de cada activitat, dins de les 15 setmanes de l'assignatura Emprenedoria Digital (Grau en Empresa i Tecnologia, UAB, curs 26-27), i deixar-la documentada perquè el club en pugui continuar el desenvolupament i el manteniment.
+Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i Investigacions Submarines). La plataforma ha de centralitzar la gestió de socis, cursos, sortides, material, tresoreria i pagaments, i calcular automàticament el marge de cada activitat. S'ha de deixar documentada perquè el club en pugui continuar el desenvolupament i el manteniment.
+
+El treball s'organitza per mòduls i passos (especificació, aclariment, pla, tasques, implementació), no per setmanes. El calendari de l'assignatura és una restricció acadèmica (§2), no el pla de construcció.
 
 ## 2. L'assignatura (restriccions acadèmiques)
+- Emprenedoria Digital, Grau en Empresa i Tecnologia, UAB, curs 26-27: 15 setmanes lectives.
 - Aprenentatge basat en reptes reals, format consultoria amb client real. Metodologia AS-IS / TO-BE.
 - 8 lliuraments: proposta de repte (10 %), tria i justificació del repte (10 %), establiment d'objectiu i planificació (10 %), desenvolupament del pla (10 %), proposta de valor i pressupost (10 %), pla de millora d'aplicacions i processos (10 %), seguiment i control (10 %), memòria final i presentació (30 %).
 - Competències: CM14 (proposta de valor), CM29 (impacte de la innovació), CM30 (pla d'empresa), KM27 (tecnologies), SM08 (presentacions orals), SM10 (impacte en sistemes de gestió).
 - El lliurable principal és un business case (diagnòstic AS-IS, proposta TO-BE, cas pràctic comparatiu d'una sortida real, cost-benefici) amb una prova de concepte funcional i una presentació.
 - El codi és la prova de concepte, no tota la nota: la part de consultoria (entrevistes, rànquing, cost-benefici, seguiment, memòria) pesa molt. Cal dedicar-hi temps.
-- Document incremental: es revisa cada dijous. Es manté en versions (v3 a 20/10/2026).
+- Document incremental: es revisa cada dijous. Es manté en versions (v3 a 20/10/2026). La propera versió ha de recollir els canvis d'aquest context v4 (vegeu P-14 a [pendents.md](decisions/pendents.md)).
 
 ## 3. El client: C.R.I.S.
 - Club esportiu de busseig fundat el 26/04/1954 a Barcelona, pioner a la península. Entitat sense ànim de lucre gestionada per una junta. Seu: Moll de la Vela, 1, Sant Adrià de Besòs.
@@ -20,11 +26,15 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 - Ara: club de busseig esportiu i recreatiu amb cursos, sortides, sortides de medi ambient, conferències gratuïtes (branca històrica), llicències federatives (FECDAS) i carnet digital.
 - Rumb: reposicionament cap a la conservació del medi marí (sortides ambientals, línia de ciència ciutadana Minka [A validar]) i modernització digital.
 - Socis: simpatitzant 35 €/any; ple dret 90 €/any.
-- Contactes de la fitxa: tres persones de la junta (noms a la font original; no es transcriuen aquí per minimitzar dades personals al repositori; càrrec de cadascuna a confirmar).
-- Volum de referència (encàrrec del 26/10/2026): uns 150 socis i uns 300 subscriptors del butlletí [A validar amb dades reals].
+- Volum de referència: uns 150 socis i uns 300 subscriptors del butlletí [A validar amb dades reals].
+- Contactes de la fitxa: tres persones de la junta. Els noms són a la font original i no es transcriuen per minimitzar dades personals al repositori; el càrrec de cadascuna està per confirmar.
+- Dominis i correu ([019](decisions/019-domini-i-correu.md)):
+  - **cris1954.cat**: domini de la plataforma i de la web nova, ja pagat pel club.
+  - **cris@cris.es**: adreça de contacte del club.
+  - **cris.barcelona**: web actual (WordPress). Redirecció cap a la web nova [A validar].
 
 ## 4. Situació actual (AS-IS)
-- Cluber: socis, quotes, alguns cobraments, carnet.
+- Cluber: socis, quotes, alguns cobraments (inclosos els rebuts domiciliats actuals) i carnet. No hi ha contracte amb Cluber: el club el pot deixar quan vulgui.
 - App del banc, càlculs a mà i Excel: ingressos, despeses, marge de cada activitat, recompte de sortides i de material.
 - Gmail i WhatsApp (grup per sortida i grup general de socis): comunicació.
 - Web cris.barcelona (WordPress): informació i conferències.
@@ -45,67 +55,76 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 2. Cursos i sortides (Must)
 3. Material per participant i cost (Must)
 4. Tresoreria: ingressos, despeses, marge per activitat i per departament, justificació d'ajuts (Must)
-5. Web pública i anuncis (Should)
-6. Llicències federatives: registre i recordatoris (Should)
-7. Dashboard amb KPI (Should)
-8. Facturació (Could; cal confirmar IVA i programa)
-9. Conferències (Could)
-10. Botiga en línia (Won't ara)
+5. Pagaments integrats: domiciliació SEPA, targeta, Bizum i transferència (Must; és el criteri d'entrada en producció, [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md))
+6. Web pública i anuncis (Should)
+7. Llicències federatives: registre i recordatoris (Should)
+8. Dashboard amb KPI (Should)
+9. Facturació (Could; cal confirmar IVA i programa)
+10. Conferències (Could)
+11. Botiga en línia (Won't ara)
 
-Fora d'abast: substituir els cobraments de Cluber, dades de salut, integració directa amb la federació.
+Fora d'abast: dades de salut i integració directa amb la federació.
 
-> **⚠ Contradicció (cobraments).** El context v3 i el document incremental (§2.3, §4.5) deixen fora d'abast substituir els cobraments de Cluber. El document de funcionalitats (§1, §2, §7) diu que «Cluber es deixa de fer servir» i que els pagaments (targeta, Bizum, rebut domiciliat) s'integren a l'app. L'encàrrec d'arquitectura del 26/10/2026 inclou Stripe. Vegeu P-01 a [pendents.md](decisions/pendents.md).
->
+**Cluber** ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) i [020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md)):
+- Es migra una sola vegada (socis, dates d'alta, rebuts i mandats si es poden exportar).
+- Es deixa quan la plataforma estigui activa amb els pagaments inclosos, és a dir, amb el mòdul 05 acabat i provat. No hi ha restricció de data perquè no hi ha contracte.
+- La campanya de quotes en paral·lel que preveu el document de funcionalitats (§9.13) és opcional.
+
 > **⚠ Contradicció (facturació).** Aquí és «Could»; al document de funcionalitats (§7) la facturació via servei homologat Verifactu forma part de la tresoreria, que és imprescindible. Vegeu P-02.
 >
 > **⚠ Contradicció (numeració de mòduls).** CLAUDE.md i la metodologia fan servir 9 mòduls (0-8); el document de funcionalitats en fa servir 12 (0-11) amb una altra numeració. Vegeu P-03.
 
 ## 7. Arquitectura
 - Una sola base de dades i un sol backend; tres zones: web pública, àrea de socis i panell d'administració (entrada separada, doble factor).
-- Rols: soci, tresorer, secretaria, responsable de cursos i sortides, responsable de material, administrador. Permisos per rol (RBAC) i registre d'activitat.
+- Rols: soci, instructor, secretaria, responsable de cursos i sortides, responsable de material, tresorer, Departament d'Història, administrador. Permisos per rol (RBAC) i per objecte, i registre d'activitat. Els rols instructor i Departament d'Història surten del document de funcionalitats §2 (vegeu P-04).
 - Primer web (responsive i instal·lable com a PWA); app d'escriptori només més endavant si cal.
-- Cluber continua per als cobraments al principi; la plataforma importa CSV de Cluber i de l'extracte bancari.
+- Cobraments dins la plataforma amb Stripe: domiciliació SEPA (quotes, per defecte), targeta i Bizum. Fora de Stripe: transferència amb referència i registre manual ([017](decisions/017-pagaments-metodes-i-domiciliacions.md)). La plataforma importa una sola vegada les dades de Cluber i, de manera periòdica, l'extracte bancari en CSV.
 - Cap registre econòmic s'esborra: s'anul·la amb motiu. Numeració de factures correlativa.
 - Marge d'activitat = ingressos menys despeses menys cost de material.
-
-> **⚠ Contradicció (rols).** El document de funcionalitats (§2) afegeix dos rols: instructor i Departament d'Història. Vegeu P-04.
->
-> Detall tècnic actual de la pila i les integracions: [arquitectura-integracions.md](arquitectura-integracions.md).
+- Domini de la plataforma: cris1954.cat ([019](decisions/019-domini-i-correu.md)). Detall tècnic de la pila i les integracions: [arquitectura-integracions.md](arquitectura-integracions.md).
 
 ## 8. Decisions pendents (no programar sense confirmar)
 - Canvi de simpatitzant a ple dret: diferència (55 €), import complet o prorrata.
 - Número de soci: reutilitzar els de les baixes?
-- Impagats: termini i conseqüències.
+- Impagats: termini i conseqüències (inclosos els rebuts domiciliats retornats).
 - Material llogat: el paga el club o el participant? Cost d'ús del material propi.
 - Llicència no vigent: avís o bloqueig.
 - Cancel·lacions i devolucions.
-- IVA i programa de facturació. Pla real de Cluber.
+- IVA i programa de facturació.
+- Mandats SEPA actuals: ID de creditor i si Cluber els pot exportar (P-21).
 - Relació amb CRIS-UTH i abast de medicina hiperbàrica.
 
 ## 9. Requisits no funcionals
 - RGPD: consentiments amb data i versió, exportar i esborrar dades d'un soci, mínim de dades, dades de salut fora d'abast.
-- Seguretat: doble factor a administradors, comptes d'emergència, còpies de seguretat provades, secrets fora del repositori.
+- Seguretat ([015](decisions/015-doble-factor-i-comptes-administrador.md) i [018](decisions/018-perfil-comptes-i-rols.md)):
+  - Cada persona té un únic perfil.
+  - Un administrador té dos comptes: soci i administrador.
+  - Doble factor obligatori per a qualsevol compte que entri per l'administració; opcional per als comptes de soci.
+  - Els comptes d'administrador no recuperen la contrasenya per correu.
+  - Comptes d'emergència amb doble factor, còpies de seguretat provades i secrets fora del repositori.
 - Dades de prova (inventades) fins que el tractament estigui resolt.
 - Manteniment: responsable a la junta, documentació, repositori amb dos accessos, calendari de manteniment.
-- Pressupost: zero en llicències. Cost directe orientatiu 100-120 €/any (servidor, còpies), domini existent.
+- Pressupost ([016](decisions/016-pressupost-produccio-minima.md)): zero en llicències.
+  - La junta coneix el cost i s'ha començat amb la producció mínima: uns 160 €/any sense IVA (preus consultats el 27/10/2026), sense cost addicional de domini (cris1954.cat ja està pagat).
+  - Les comissions de Stripe són la part variable: uns 53-110 €/any per a les quotes, més un 1,9 % aproximat del que es cobri per targeta o Bizum.
+  - Referència: Cluber costa des de 599 €/any.
+  - Substitueix la previsió anterior de 100-120 €/any.
 
-> **⚠ Contradicció (doble factor).** Aquí: «administradors». Funcionalitats §2: administradors i com a mínim dos comptes d'emergència. Checklist C2 (abans del 27/10/2026): administradors i tresorer. Recomanació del 27/10/2026: administrador, tresorer, secretaria i comptes d'emergència. Vegeu P-05.
->
-> **⚠ Contradicció (pressupost).** L'arquitectura del 27/10/2026 estima un cost fix superior als 100-120 €/any quan s'hi afegeixen el correu de pagament, el VPS de proves i el destí de còpies creuades. Vegeu P-06 i [arquitectura-integracions.md §3](arquitectura-integracions.md#3-cost-mensual-estimat).
->
 > **⚠ Dada de salut.** Funcionalitats §2 planteja guardar com a molt la data de validesa del certificat mèdic [A validar]. Cal confirmar si aquesta data es considera dada de salut. Vegeu P-07.
 
 ## 10. Anàlisi de mercat (resum)
 - Alternatives: Cluber (des de 599 €/any), programari genèric per a clubs (Clupik, SportEasy, Playoff) i programari de busseig (Dive Admin, Anolla, Kananas). Les funcions de material per participant, marge per activitat i justificació d'ajuts per departament no consten a les ofertes consultades (a verificar amb demostració).
 - Justificació de construir: encaix, una sola font de dades, propietat de dades i codi, cost sostenible, creixement per mòduls. Risc principal: manteniment i dependència de persones.
 
-## 11. Pla de 15 setmanes
-- 1-3: entrevistes (tresoreria; cursos, sortides, medi ambient i socis; informàtica) i mapa AS-IS.
-- 4-5: rànquing (impacte, esforç, RICE) i tall MoSCoW validats amb la junta.
-- 6-8: disseny (rols, model de dades, processos, pantalles).
-- 9-12: construcció dels mòduls Must.
-- 13: cas pràctic amb una sortida real i comparativa del marge.
-- 14-15: business case, pla de manteniment, memòria i presentació.
+## 11. Com s'avança
+Per mòduls i passos, seguint [metodologia-sdd.md](metodologia-sdd.md):
+1. Entrevistes i mapa AS-IS (fet).
+2. Rànquing i tall MoSCoW validats amb la junta.
+3. Especificació de cada mòdul en l'ordre de CLAUDE.md, amb les preguntes obertes resoltes.
+4. Pla, tasques i implementació de cada mòdul.
+5. Cas pràctic amb una sortida real i comparació del marge.
+6. Entrada en producció quan el mòdul 05 estigui acabat i provat; migració única de Cluber.
+7. Business case, pla de manteniment, memòria i presentació (lliuraments de l'assignatura).
 
 ## 12. Convencions de treball
 - Idioma: català per a documents i interfície; codi i noms tècnics en anglès o català coherent (decidir-ho una vegada).

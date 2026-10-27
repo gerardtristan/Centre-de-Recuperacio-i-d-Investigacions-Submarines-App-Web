@@ -2,7 +2,7 @@
 
 Plataforma web pròpia per al C.R.I.S. (Centre de Recuperació i Investigacions Submarines, club de busseig sense ànim de lucre fundat el 1954). Centralitza socis, cursos, sortides, material, tresoreria, llicències, web pública i dashboard en una sola base de dades, i calcula sola el marge de cada activitat.
 
-Projecte de l'assignatura Emprenedoria Digital (Grau en Empresa i Tecnologia, UAB, curs 26-27) amb client real.
+Projecte de l'assignatura Emprenedoria Digital (Grau en Empresa i Tecnologia, UAB, curs 26-27) amb client real. Domini de la plataforma: cris1954.cat. Es treballa per mòduls i passos.
 
 ## Objectiu
 Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plataforma que substitueixi el creuament manual entre Cluber, el banc, Excel, Gmail i WhatsApp, i deixar-la documentada perquè el club en pugui continuar el desenvolupament i el manteniment. Context complet: [docs/context-projecte.md](docs/context-projecte.md).
@@ -10,28 +10,31 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 ## Estat actual (27/10/2026)
 | Àmbit | Estat |
 |---|---|
-| Context, entrevistes i funcionalitats | Fets; funcionalitats pendents de validació de la junta |
-| Metodologia (SDD) i checklist de producció | Definides |
-| Arquitectura d'integracions | Proposada: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
-| Decisions | Registrades a [docs/decisions/](docs/decisions/); contradiccions a [pendents.md](docs/decisions/pendents.md) |
-| Especificacions de mòduls (`specs/`) | No començades. Ordre proposat a l'arquitectura, §9 |
+| Context | v4 del 27/10/2026 a [docs/context-projecte.md](docs/context-projecte.md); el v3 és a `docs/arxiu/` |
+| Entrevistes i funcionalitats | Fetes. Al .docx de funcionalitats encara falten els textos de substitució de [pendents.md](docs/decisions/pendents.md) (P-22) |
+| Metodologia (SDD) i checklist de producció | Definides; checklist actualitzada (C2, C4, C5, C9, G1) |
+| Arquitectura d'integracions | Acceptada, v3: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
+| Decisions | 001-020 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat) |
+| Pendents de la junta | [pendents.md](docs/decisions/pendents.md): mandats SEPA actuals (P-21, P-24), control del DNS (P-25), persones no sòcies (P-23) i altres |
+| Especificacions de mòduls (`specs/`) | No començades. Ordre: 00 base comuna → 04 tresoreria → 05 pagaments (arquitectura, §9) |
 | Codi (`backend/`, `frontend/`) | No començat (no s'hi crea res fins que hi hagi una spec revisada) |
-| Comptes de proveïdors | No creats. Llista de tasques manuals a l'arquitectura, §7 |
+| Comptes de proveïdors | No creats. Primera tasca: compte de Stripe en mode de proves i verificació de l'entitat (arquitectura, §7) |
+| Entrada en producció | Quan el mòdul 05 (pagaments) estigui acabat i provat; llavors es migra Cluber una sola vegada |
 
 ## Mapa de carpetes
 ```
 /README.md                     aquest fitxer
 /CLAUDE.md                     instruccions per a l'assistent (constitució del projecte)
 /docs/
-  context-projecte.md          context del club (Markdown del context v3)
+  context-projecte.md          context del club (v4)
   checklist-produccio.md       portes de qualitat 0-3
   metodologia-sdd.md           com es treballa amb especificacions
   arquitectura-integracions.md components, proveïdors, fluxos de pagament, riscos
   decisions/                   una decisió per fitxer (NNN-nom.md) i pendents.md
   funcionalitats-processos/    funcionalitats i processos per mòdul (.pdf i .docx)
-  context/                     fonts originals (context, instruccions; entrevistes fora de Git)
+  context/                     fonts originals (instruccions; entrevistes fora de Git)
   entregues/                   lliuraments de l'assignatura
-  arxiu/                       versions antigues (mai s'esborren)
+  arxiu/                       versions antigues (mai s'esborren), p. ex. context v3
 /specs/                        una carpeta per mòdul (NN-modul/)
 /design/                       mapa de la plataforma i arbre de processos (HTML)
 /assets/marca/                 logotips del club

@@ -1,6 +1,7 @@
 # Arquitectura d'integracions — Plataforma C.R.I.S.
 
-- **Versió:** 2 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [017](decisions/017-pagaments-metodes-i-domiciliacions.md).
+- **Versió:** 3 · 27/10/2026. Incorpora les decisions [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md) a [020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md).
+- **Domini de la plataforma:** cris1954.cat ([019](decisions/019-domini-i-correu.md)).
 - **Estat:** acceptada per l'equip; els punts marcats [A validar] i els de [decisions/pendents.md](decisions/pendents.md) continuen oberts.
 - **Entrada en producció:** mòdul 05 (pagaments) acabat i provat; llavors es migra Cluber una sola vegada i es deixa ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
 - **Abast:** com es connecta la plataforma amb els serveis externs (allotjament, base de dades, fitxers, correu, pagaments, còpies, DNS, monitoratge). No és una especificació de mòdul: cada mòdul afectat tindrà la seva a `specs/`.
@@ -83,13 +84,15 @@
 | **Coolify** | Desplegaments, variables d'entorn, bolcats programats | Al mateix VPS | 0 € (autoallotjat, codi obert) | — | Actualitzacions a càrrec del club | Fitxers Docker Compose estàndard |
 | **PostgreSQL** | Base de dades única i cua de tasques | Al VPS | 0 € | — | Ha de tenir RAM suficient al mateix VPS | `pg_dump` estàndard |
 | **Scaleway Object Storage** | Fitxers privats (factures, justificants, fotos, PDF) i bucket de còpies | França (París) | ≈0,0146 €/GB/mes (Standard Multi-AZ); per a uns 20 GB, < 1 € | — | Sortida de dades gratuïta fins a 75 GB/mes | API S3: es migra amb rclone a qualsevol proveïdor compatible |
-| **Cloudflare Pages + DNS** | Web pública i PWA estàtiques; DNS del domini | Xarxa global; empresa dels EUA (transferència documentada, marc UE-EUA) [A validar] | 0 € | — | Pages no ha d'allotjar dades personals | HTML estàtic: qualsevol allotjament estàtic; DNS exportable en fitxer de zona |
-| **Brevo** | Correu transaccional i butlletí | França / UE | Gratuït: 0 € · Starter: des d'uns 9 $/mes (5.000 correus/mes, sense límit diari) [A validar a brevo.com] | Cap | Gratuït: 300 enviaments/dia sumant-ho tot; marca de Brevo als correus | Plantilles i llista de subscriptors viuen a la plataforma; canviar de proveïdor = canviar credencials SMTP/API |
+| **Cloudflare Pages + DNS** | Web pública i PWA estàtiques; DNS de cris1954.cat (si el club en controla el DNS, P-25). Opció futura: Email Routing per als àlies d'administrador | Xarxa global; empresa dels EUA (transferència documentada, marc UE-EUA) [A validar] | 0 € | — | Pages no ha d'allotjar dades personals | HTML estàtic: qualsevol allotjament estàtic; DNS exportable en fitxer de zona |
+| **Brevo** | Correu transaccional i butlletí. Remitent a cris1954.cat amb resposta a cris@cris.es | França / UE | Gratuït: 0 € · Starter: des d'uns 9 $/mes (5.000 correus/mes, sense límit diari) [A validar a brevo.com] | Cap | Gratuït: 300 enviaments/dia sumant-ho tot; marca de Brevo als correus | Plantilles i llista de subscriptors viuen a la plataforma; canviar de proveïdor = canviar credencials SMTP/API |
 | **Stripe** | Targeta, Apple Pay, Google Pay, Bizum, domiciliació SEPA | Entitat contractant a la UE (Irlanda); possibles transferències als EUA (documentades) [A validar al DPA] | 0 € fix; comissions per cobrament (§3) | Cap | Bizum s'ha d'activar al compte del club [A validar]; SEPA: devolucions sense motiu fins a 8 setmanes | Exportació de clients i pagaments; migració de mandats SEPA a demanar a Stripe [A validar] |
 | **Transferència bancària** | Cobrament sense comissió de passarel·la | Banc del club | 0 € (comissions del banc [A validar]) | Compte existent | Conciliació amb CSV, no instantània | Independent de qualsevol proveïdor |
 | **UptimeRobot** | Avís de caiguda de la web i l'API | Fora del VPS; ubicació de l'empresa [A validar] | 0 € (pla gratuït) | Cap | Només comprova URL públiques; no rep dades de socis | Qualsevol altre monitor extern |
 | **GlitchTip o Sentry** | Seguiment d'errors amb traça | Sentry: Frankfurt (empresa dels EUA); GlitchTip: instància a la UE segons la seva web [A validar totes dues] | 0 € (GlitchTip: 1.000 esdeveniments/mes; Sentry: pla Developer) | Cap | La regió de Sentry no es pot canviar un cop creada l'organització | Tots dos fan servir el mateix SDK; GlitchTip es pot autoallotjar |
-| **Domini** (cris.barcelona) | Web i correu | — | Cost actual del club [A validar] | Existent | Cal saber qui controla el registrador | Transferible |
+| **Domini cris1954.cat** | Plataforma, web nova i remitent dels correus | — | 0 € addicionals (ja pagat pel club) | Existent | Control del DNS [A validar, P-25] | Transferible a qualsevol registrador |
+| **cris.es** | Adreça de contacte cris@cris.es (resposta dels correus) | — | No canvia | Existent | La plataforma no en toca el DNS | — |
+| **cris.barcelona** | Web WordPress actual | — | No canvia | Existent | Redirecció cap a la web nova [A validar, P-25] | — |
 
 ### Afegits avaluats amb els cinc criteris
 Cap eina de la decisió inicial canvia. Les tres peces afegides passen els criteris:
@@ -99,6 +102,22 @@ Cap eina de la decisió inicial canvia. Les tres peces afegides passen els crite
 | Hetzner Storage Box | Sí (DE/FI) | Sí (compte de Hetzner) | 3,20 €/mes | És la destinació de còpia | Format restic obert |
 | UptimeRobot | No guarda dades personals | Sí | 0 € | No aplica (sense dades) | Substituïble en minuts |
 | GlitchTip o Sentry | Regió UE [A validar] | Sí | 0 € | No aplica (dades efímeres) | Mateix SDK per a tots dos |
+
+### Domini, DNS, correu i comptes d'accés ([018](decisions/018-perfil-comptes-i-rols.md), [019](decisions/019-domini-i-correu.md))
+| Element | Configuració |
+|---|---|
+| Web pública i PWA | `cris1954.cat` (i `www`) → Cloudflare Pages |
+| API i administració | Subdomini de cris1954.cat cap al VPS (per exemple, `api.`) [A validar el nom]. L'entrada d'administració és una ruta discreta de l'API |
+| DNS | Zona de cris1954.cat a Cloudflare, si el club en controla el DNS [A validar, P-25]. Abans de canviar els servidors de noms, inventari dels registres actuals |
+| Correu sortint | Brevo amb remitent `…@cris1954.cat` [A validar el nom] i capçalera de resposta a `cris@cris.es` |
+| SPF | Registre TXT a cris1954.cat que autoritza Brevo |
+| DKIM | Clau de Brevo publicada a cris1954.cat |
+| DMARC | Registre a cris1954.cat; començar en mode d'observació i endurir-lo quan els informes estiguin nets (checklist G1) |
+| cris.es | No es toca: només rep les respostes a cris@cris.es |
+| cris.barcelona | Redirecció cap a cris1954.cat [A validar, P-25] |
+| Comptes de soci | Entren amb el correu personal (únic); verificació i recuperació per correu |
+| Comptes d'administrador | Entren amb nom d'usuari per l'entrada d'administració; doble factor obligatori; correu només per a notificacions; recuperació per un altre administrador o amb codis fora de línia |
+| Àlies d'administrador (futur) | Opció: **Cloudflare Email Routing** sobre cris1954.cat (per exemple, `tresoreria@cris1954.cat` reenviat a l'adreça personal), perquè les notificacions no depenguin de correus personals. Requereix el DNS a Cloudflare [A validar] |
 
 ---
 
@@ -120,7 +139,7 @@ Cap eina de la decisió inicial canvia. Les tres peces afegides passen els crite
 | **Total aproximat** | **≈6-7 €/mes** | **≈13 €/mes (≈160 €/any)** | **≈29,50 €/mes (≈355 €/any)** |
 | Total amb IVA del 21 %, si el club no el recupera [A validar amb la gestoria] | ≈8 €/mes | ≈16 €/mes | ≈36 €/mes |
 
-- No inclou el domini (cost actual del club [A validar]; domini a confirmar, P-15).
+- Domini: cris1954.cat ja està pagat pel club, i per tant no hi ha cost addicional ([019](decisions/019-domini-i-correu.md)).
 - **Respecte a la previsió anterior:** els documents d'origen preveien 100-120 €/any. La producció mínima costa ≈160 €/any sense IVA (≈195 €/any amb IVA del 21 %), perquè hi suma la segona destinació de còpies i el VPS de proves.
 
 ### Comparació amb Cluber
@@ -186,7 +205,7 @@ Requisits per a la spec del mòdul 05 ([017](decisions/017-pagaments-metodes-i-d
 | Pas | Què passa | Esdeveniments de Stripe (orientatius) |
 |---|---|---|
 | **Alta de mandat** | El soci accepta el mandat al formulari allotjat de Stripe (IBAN i acceptació). Es guarden només els identificadors del client, del mètode de pagament i del mandat, mai l'IBAN complet. | `checkout.session.completed` (mode configuració), `setup_intent.succeeded`; `mandate.updated` si es revoca |
-| **Avís previ** | Abans de cada cobrament s'avisa el soci de l'import i la data [A validar: si ho envia Stripe o la plataforma, i amb quanta antelació] | — |
+| **Avís previ** | Abans de cada cobrament s'avisa el soci amb la **data**, l'**import**, la **referència del mandat** i l'**ID de creditor** [A validar: si ho envia Stripe o la plataforma, amb quanta antelació i quin ID de creditor hi figura, P-24] | — |
 | **Cobrament** | A la data fixada, una tasca crea el cobrament de cada quota amb el mandat. El càrrec queda «pendent» fins a la confirmació, que triga uns dies hàbils [A validar] | `payment_intent.processing` → `payment_intent.succeeded` (→ `pagat`, ingrés i comissió de 0,35 €) o `payment_intent.payment_failed` |
 | **Fallada i reintent controlat** | Si falla, el càrrec continua `pendent`, es registra la comissió de fallada [A validar l'import a la font oficial] i s'avisa el soci i el tresorer. Es reintenta fins a un màxim d'intents i amb uns dies entre intents [A validar tots dos valors]; mai de manera indefinida | `payment_intent.payment_failed` |
 | **Alternativa de pagament** | Després de la fallada (o en esgotar els reintents), el soci rep un enllaç per pagar la quota amb targeta, Bizum o transferència. Pot canviar de mètode per a les quotes següents | Com a 4.4-4.6 |
@@ -233,6 +252,29 @@ Cal confirmar l'activació al compte de Stripe del club [A validar]. El flux és
 
 Font: [017](decisions/017-pagaments-metodes-i-domiciliacions.md). La domiciliació només s'aplica a pagaments recurrents.
 
+### 4.9 Migració dels mandats de domiciliació actuals
+Avui Cluber gestiona els rebuts domiciliats. Stripe té un procediment oficial de migració de dades que permet importar mandats SEPA d'altres proveïdors i mantenir-ne les referències (condicions concretes [A validar amb Stripe]). L'escenari depèn de les respostes de tresoreria i informàtica (P-21).
+
+| | **Escenari A: migració a Stripe** | **Escenari B: mandats nous** |
+|---|---|---|
+| Quan s'aplica | El club és el creditor (té ID de creditor SEPA propi) i Cluber exporta els mandats | Cluber és el creditor, o no exporta els mandats, o l'exportació és incompleta |
+| Passos | 1. Exportar de Cluber els mandats (IBAN, referència, data de signatura). 2. Sol·licitar la migració a Stripe pel procediment oficial i enviar-li el fitxer per un canal segur, mai per correu ni pel repositori. 3. Stripe crea els clients i mètodes de pagament amb els mandats. 4. La plataforma importa la correspondència entre soci i identificadors de Stripe (importació de mandats a la spec 05). 5. Comprovació amb un cobrament de prova i avís als socis | 1. Campanya única: cada soci rep un enllaç per signar un mandat nou al formulari de Stripe. 2. Seguiment de qui l'ha signat i recordatoris. 3. Qui no el signi paga la quota amb targeta, Bizum o transferència |
+| Avantatge | El soci no ha de fer res; es mantenen les referències | No depèn de Cluber |
+| Inconvenient | Depèn del format d'exportació de Cluber i de l'acceptació de Stripe; manipula IBAN (dades sensibles) | Esforç dels socis; probablement alguns no el signaran a temps |
+| Dades | L'IBAN complet només passa de Cluber a Stripe. La plataforma guarda només identificadors | La plataforma no veu mai l'IBAN |
+
+En tots dos casos, els socis han de rebre un avís si canvien el creditor o la referència que veuen al banc (P-24).
+
+**Preguntes obertes [A validar] per a tresoreria i informàtica (P-21):**
+1. Quin és l'ID de creditor SEPA dels rebuts actuals (del club o de Cluber)?
+2. Cluber exporta els mandats amb IBAN, referència i data de signatura?
+3. En quin format (CSV, XML SEPA, un altre)?
+
+**A preveure a la spec 05:**
+- Importació de mandats (escenari A): previsualització, validació, correspondència per soci i opció de desfer, com les altres importacions.
+- Avís previ amb data, import, referència del mandat i ID de creditor.
+- Campanya de signatura de mandats nous, si cal (escenari B).
+
 ---
 
 ## 5. Variables d'entorn (sense valors)
@@ -271,6 +313,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `BREVO_API_KEY` (o `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` si es fa per SMTP) | Enviament |
 | `EMAIL_FROM_TRANSACCIONAL` | Remitent dels transaccionals |
 | `EMAIL_FROM_BUTLLETI` | Remitent del butlletí |
+| `EMAIL_REPLY_TO` | Adreça de resposta (cris@cris.es) |
 | `EMAIL_DAILY_LIMIT` | Límit diari del pla (300 al gratuït) |
 | `EMAIL_TRANSACTIONAL_RESERVE` | Enviaments reservats cada dia per als transaccionals |
 | `EMAIL_ALERT_THRESHOLD_PCT` | Percentatge que dispara l'avís (80) |
@@ -333,7 +376,8 @@ Tot el que es posa a la compilació de la web és públic: mai s'hi posa cap sec
 | R12 | Cost per sobre del pressupost aprovat (producció mínima, [016](decisions/016-pressupost-produccio-minima.md)) | Mitjana / mitjà | Límits i alertes de facturació a cada proveïdor (D3); qualsevol pas a l'escenari recomanat es decideix i es registra | Tresorer |
 | R13 | Dependència de Stripe | Baixa / mitjà | Model de pagaments propi i independent del proveïdor; transferència i efectiu com a alternatives; exportació periòdica | Tresorer + equip de desenvolupament |
 | R14 | Una actualització de Coolify o del sistema trenca el desplegament | Mitjana / mitjà | Instantània abans d'actualitzar; versió fixada; primer a proves | Responsable de manteniment |
-| R15 | Canviar els servidors de noms a Cloudflare trenca el correu actual del club | Mitjana / alt | Inventari previ de tots els registres DNS (MX, SPF actuals) abans del canvi | Responsable d'informàtica |
+| R15 | Canviar els servidors de noms de cris1954.cat a Cloudflare trenca algun servei que ja hi funciona | Mitjana / alt | Inventari previ de tots els registres DNS abans del canvi; cris.es no es toca | Responsable d'informàtica |
+| R17 | Migració de mandats SEPA incompleta o fuita d'IBAN | Mitjana / alt | Escenari A només amb exportació completa i canal segur cap a Stripe; si no, escenari B; la plataforma no guarda IBAN complets | Tresorer + responsable d'informàtica |
 | R16 | Obligacions fiscals (IVA, Verifactu, informació de Bizum a l'Agència Tributària) | Mitjana / alt | Consulta a la gestoria abans d'activar els cobraments (P-02) | Tresorer |
 
 ---
@@ -346,15 +390,16 @@ No s'ha creat cap compte. Cada compte ha de ser **del club** (correu del club, d
 - [ ] Decidir el responsable de manteniment a la junta i el segon administrador de tots els comptes.
 - [ ] Crear l'organització del repositori (GitHub o GitLab) amb dos propietaris i doble factor.
 - [ ] Triar un gestor de contrasenyes del club per guardar credencials i codis de recuperació [A validar quin].
-- [ ] Esbrinar quin és el domini actiu del club (cris.es o cris.barcelona, P-15), qui el controla (registrador i accés) i com està gestionat el correu actual; fer inventari dels registres DNS (web WordPress, correu). Necessari per decidir els àlies dels comptes d'administrador ([015](decisions/015-doble-factor-i-comptes-administrador.md)).
+- [ ] Comprovar que el club controla el DNS de **cris1954.cat** (registrador i accés) i si controla el de **cris.es**; fer inventari dels registres actuals de cris1954.cat. Decidir si es redirigeix **cris.barcelona** cap a la web nova (P-25).
+- [ ] Preguntar a tresoreria i informàtica per als mandats SEPA actuals: ID de creditor, si Cluber els exporta (IBAN, referència, data de signatura) i en quin format (P-21). Determina l'escenari A o B (§4.9).
 - [ ] **Stripe:** obrir el compte de Stripe del club **en mode de proves**, iniciar la verificació de l'entitat (NIF, estatuts, representant legal, compte bancari) i comprovar que s'hi pot activar **Bizum**. Es fa ara perquè la verificació pot trigar.
-- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md), sobretot P-15 a P-20.
+- [ ] Portar a la junta els punts oberts de [pendents.md](decisions/pendents.md), sobretot P-21, P-23, P-24 i P-25, i aplicar al .docx els textos de P-22.
 
 ### Abans de l'entorn de proves i la primera demo (porta 1)
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
 - [ ] Crear el compte de **Scaleway**, regió París, amb doble factor; crear els buckets privats per entorn i el bucket de còpies amb claus separades.
-- [ ] Crear el compte de **Cloudflare** i afegir-hi el domini; canviar els servidors de noms al registrador **només** després de copiar tots els registres actuals.
-- [ ] Crear el compte de **Brevo**, verificar el domini remitent i publicar SPF, DKIM i DMARC (checklist G1).
+- [ ] Crear el compte de **Cloudflare** i afegir-hi **cris1954.cat**; canviar els servidors de noms al registrador **només** després de copiar tots els registres actuals.
+- [ ] Crear el compte de **Brevo**, verificar **cris1954.cat** com a domini remitent, publicar-hi SPF, DKIM i DMARC (checklist G1) i configurar la resposta a cris@cris.es.
 - [ ] Crear el monitor a **UptimeRobot** amb avís al correu del responsable.
 - [ ] Confirmar per escrit la regió de dades de **GlitchTip** o **Sentry**; si és Sentry, triar la regió UE en crear l'organització (no es pot canviar després).
 
@@ -375,18 +420,24 @@ No s'ha creat cap compte. Cada compte ha de ser **del club** (correu del club, d
 ### Abans de producció
 - [ ] Comprovar que el mòdul 05 està acabat i provat (criteri d'entrada, [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)).
 - [ ] Autorització escrita de la junta per activar Stripe en producció.
-- [ ] Fer la migració única de Cluber (funcionalitats §9.13) i decidir la data de baixa de Cluber (P-20).
+- [ ] Fer la migració única de Cluber (funcionalitats §9.13), incloent-hi els mandats (escenari A o B, §4.9). Decidir si es fa la campanya de quotes en paral·lel, que és opcional ([020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md)), i donar de baixa Cluber (no hi ha contracte ni data límit).
 - [ ] Decidir si es contracta Brevo Starter (preu a confirmar en aquell moment).
 
 ---
 
 ## 8. Preguntes obertes [A validar]
 
-Resolts el 27/10/2026: abast dels cobraments (P-01 → [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)), pressupost (P-06 → [016](decisions/016-pressupost-produccio-minima.md)) i mètodes de les quotes (P-09 → [017](decisions/017-pagaments-metodes-i-domiciliacions.md)).
+Resolts el 27/10/2026:
+- abast dels cobraments (P-01 → [014](decisions/014-migracio-cluber-i-entrada-en-produccio.md));
+- pressupost (P-06 → [016](decisions/016-pressupost-produccio-minima.md));
+- mètodes de les quotes (P-09 → [017](decisions/017-pagaments-metodes-i-domiciliacions.md));
+- comptes i doble factor (P-16 a P-18 → [018](decisions/018-perfil-comptes-i-rols.md));
+- domini (P-15 → [019](decisions/019-domini-i-correu.md));
+- baixa de Cluber (P-20 → [020](decisions/020-baixa-de-cluber-sense-restriccio-de-data.md)).
 
-1. **Domini:** cris.es o cris.barcelona, i qui el gestiona? (P-15)
-2. **Comptes i doble factor:** quins rols compten com a «administrador» (dos comptes) i quins tenen doble factor obligatori? (P-16, P-17)
-3. **Cluber:** es manté la campanya de quotes en paral·lel? Quan venç el contracte? (P-20)
+1. **DNS:** el club controla el DNS de cris1954.cat? I el de cris.es? Es redirigeix cris.barcelona? Quin nom té l'adreça remitent i el subdomini de l'API? (P-25)
+2. **Persones no sòcies:** tenen compte d'accés? (P-23)
+3. **Mandats SEPA actuals:** ID de creditor, si Cluber els exporta i en quin format; quin ID de creditor veuran els socis amb Stripe? (P-21, P-24)
 4. **Bizum:** està disponible al compte de Stripe del club? És un mètode síncron o asíncron a Stripe?
 5. **SEPA:** qui envia l'avís previ (Stripe o la plataforma) i amb quanta antelació? Quant triga a confirmar-se un cobrament? Quants reintents i amb quants dies entre ells? Comissions de fallada i de retorn a la font oficial.
 6. **Rebut retornat:** què passa amb el soci (impagat, carnet desactivat, qui assumeix la comissió)? Termini d'impagat.
@@ -397,7 +448,7 @@ Resolts el 27/10/2026: abast dels cobraments (P-01 → [014](decisions/014-migra
 11. **Talla del VPS:** CX23 o CX33, segons una prova de càrrega a proves.
 12. **Seguiment d'errors:** GlitchTip o Sentry, un cop confirmada la regió de la UE.
 13. **IVA:** el club recupera l'IVA de les factures dels proveïdors? (afecta el cost real)
-14. **Domini:** qui el controla i quant costa la renovació?
+14. **Migració de mandats a Stripe:** condicions i terminis del procediment oficial de migració de dades (§4.9).
 15. **Temps màxim de recuperació** acceptable si cau el servidor (hores o dies).
 16. **Custòdia de claus:** qui guarda la clau de les còpies i els codis de recuperació.
 17. **Preus:** confirmar tots els preus d'aquest document a les pàgines oficials en el moment de contractar.
@@ -410,11 +461,11 @@ Correu i fitxers no són mòduls propis a CLAUDE.md: són serveis de la base com
 
 | Ordre | Especificació | Formalitat | Per què en aquest ordre | Depèn de |
 |---|---|---|---|---|
-| 1 | **00 Base comuna**: persones i comptes (soci i administrador separats), rols, permisos per rol i objecte, TOTP, restabliment sense correu per als administradors, registre d'activitat per compte, RGPD, entorns, cua de tasques, còpies | **Completa** (autenticació, permisos i RGPD) | Tot la fa servir; fixa els rols i els comptes ([015](decisions/015-doble-factor-i-comptes-administrador.md)) | P-04, P-16, P-17, P-18 |
+| 1 | **00 Base comuna**: perfil únic per persona, comptes de soci i d'administrador (amb diversos rols), permisos per rol i objecte, TOTP obligatori a l'entrada d'administració, restabliment sense correu per als administradors, registre d'activitat per compte, RGPD, entorns, cua de tasques, còpies | **Completa** (autenticació, permisos i RGPD) | Tot la fa servir; fixa els rols i els comptes ([015](decisions/015-doble-factor-i-comptes-administrador.md), [018](decisions/018-perfil-comptes-i-rols.md)) | P-04, P-23 |
 | 1a | 00 · annex **Fitxers** (`specs/00-base-comuna/fitxers.md`): pujada, validació, URL signades, permisos | **Lleugera** | Servei transversal sense regles de negoci pròpies | 00 |
 | 1b | 00 · annex **Correu** (`specs/00-base-comuna/correu.md`): plantilles, registre d'enviaments, comptador i reserva diària, tandes, avís al 80 % | **Lleugera** (el butlletí i els consentiments de màrqueting es completen a la 07) | Necessari per a les notificacions de tots els mòduls | 00 |
 | 2 | **04 Tresoreria**: càrrecs, estats, moviments immutables, departaments, comptes (banc, caixa, trànsit Stripe), comissions, devolucions com a moviments, conciliació amb CSV, tancament d'activitat | **Completa** (finances) | El model de càrrec, pagament i ingrés viu aquí; pagaments hi escriu a través de serveis. Comissions per departament ([013](decisions/013-imputacio-comissions.md)) | 00; P-02 |
-| 3 | **05 Pagaments**: integració amb Stripe (sessions, mandats SEPA amb avís previ, reintent controlat, alternativa de pagament i estat «retornat», webhooks, idempotència, reconciliació diària), transferència amb referència i registre manual | **Completa** (pagaments). És el criteri d'entrada en producció ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)) | Depèn del model de la 04 | 04; P-12, P-20 |
+| 3 | **05 Pagaments**: integració amb Stripe (sessions, mandats SEPA, importació de mandats o campanya de mandats nous (§4.9), avís previ amb data, import, referència del mandat i ID de creditor, reintent controlat, alternativa de pagament i estat «retornat», webhooks, idempotència, reconciliació diària), transferència amb referència i registre manual | **Completa** (pagaments). És el criteri d'entrada en producció ([014](decisions/014-migracio-cluber-i-entrada-en-produccio.md)) | Depèn del model de la 04 | 04; P-12, P-21, P-24 |
 
 Notes:
 - Les **quotes** (generació anual, remeses) són del mòdul 01 i les **inscripcions**, del 02. La 04 defineix el càrrec genèric que fan servir totes dues. Si la junta vol cobrar quotes abans de tenir el 02, es pot especificar la 01 abans de la 05.

@@ -21,9 +21,12 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [011](011-monitoratge-i-errors.md) | Monitoratge de disponibilitat i seguiment d'errors | Acceptada (regió del seguiment d'errors [A validar]) |
 | [012](012-cua-de-tasques.md) | Cua de tasques sobre PostgreSQL | Acceptada |
 | [013](013-imputacio-comissions.md) | Imputació de comissions per departament | Acceptada (llicències [A validar]) |
-| [014](014-migracio-cluber-i-entrada-en-produccio.md) | Migració única de Cluber i criteri d'entrada en producció | Acceptada (canvis al context pendents d'aprovar) |
-| [015](015-doble-factor-i-comptes-administrador.md) | Doble factor i comptes d'administrador separats | Acceptada (detalls [A validar]) |
+| [014](014-migracio-cluber-i-entrada-en-produccio.md) | Migració única de Cluber i criteri d'entrada en producció | Acceptada (concretada per 020) |
+| [015](015-doble-factor-i-comptes-administrador.md) | Doble factor i comptes d'administrador separats | Acceptada (concretada per 018; domini per 019) |
 | [016](016-pressupost-produccio-minima.md) | Pressupost: començar amb la producció mínima | Acceptada |
 | [017](017-pagaments-metodes-i-domiciliacions.md) | Pagaments: mètodes per cobrament i domiciliacions | Acceptada (registre manual [A validar]) |
+| [018](018-perfil-comptes-i-rols.md) | Perfil únic, comptes i doble factor per entrada | Acceptada |
+| [019](019-domini-i-correu.md) | Domini de la plataforma (cris1954.cat) i adreces de correu | Acceptada (control del DNS [A validar]) |
+| [020](020-baixa-de-cluber-sense-restriccio-de-data.md) | Baixa de Cluber sense restricció de data | Acceptada |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
