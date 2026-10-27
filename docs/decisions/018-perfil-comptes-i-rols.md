@@ -1,7 +1,7 @@
 # 018 — Perfil únic, comptes i doble factor per entrada
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (resol P-16, P-17 i P-18; concreta la [015](015-doble-factor-i-comptes-administrador.md))
+- **Estat:** Acceptada (resol P-16, P-17 i P-18; concreta la [015](015-doble-factor-i-comptes-administrador.md)). Comptes de les persones no sòcies: vegeu [021](021-persones-no-socies-com-a-convidades.md).
 
 ## Context
 La 015 va fixar dos comptes per a cada administrador, però quedaven oberts tres punts:

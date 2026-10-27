@@ -28,5 +28,8 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [018](018-perfil-comptes-i-rols.md) | Perfil únic, comptes i doble factor per entrada | Acceptada |
 | [019](019-domini-i-correu.md) | Domini de la plataforma (cris1954.cat) i adreces de correu | Acceptada (control del DNS [A validar]) |
 | [020](020-baixa-de-cluber-sense-restriccio-de-data.md) | Baixa de Cluber sense restricció de data | Acceptada |
+| [021](021-persones-no-socies-com-a-convidades.md) | Persones no sòcies com a convidades | Acceptada |
+| [022](022-mandats-sepa-escenari-base-b.md) | Mandats SEPA: escenari base B (mandats nous) | Acceptada provisionalment (creditor [A validar]) |
+| [023](023-gestio-del-dns.md) | Gestió del DNS i de les credencials dels dominis | Proposada |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

@@ -4,6 +4,8 @@
 >
 > **Canvis respecte a la v3:** abast dels cobraments i Cluber (§6-7), domini (§3 i §7), doble factor i comptes (§9), pressupost (§9) i forma de treballar per mòduls (§1 i §11).
 >
+> **Actualització del 27/10/2026 (dins la v4):** cobraments de Cluber i el seu cost (§4), mandats SEPA (§8), persones no sòcies com a convidades (§9), control del DNS (§3) i objectiu orientatiu de canvi de Cluber (§11). Decisions [021](decisions/021-persones-no-socies-com-a-convidades.md) a [023](decisions/023-gestio-del-dns.md).
+>
 > Les contradiccions amb altres documents que encara no s'han resolt són a [decisions/pendents.md](decisions/pendents.md).
 
 ## 1. Meta del projecte
@@ -32,9 +34,13 @@ El treball s'organitza per mòduls i passos (especificació, aclariment, pla, ta
   - **cris1954.cat**: domini de la plataforma i de la web nova, ja pagat pel club.
   - **cris@cris.es**: adreça de contacte del club.
   - **cris.barcelona**: web actual (WordPress). Redirecció cap a la web nova [A validar].
+  - El club controla el DNS de cris1954.cat i de cris.es; qui té l'accés concret és [A validar]. Recomanació: delegar cris1954.cat a Cloudflare i guardar les credencials en un gestor compartit amb dues persones ([023](decisions/023-gestio-del-dns.md)).
 
 ## 4. Situació actual (AS-IS)
 - Cluber: socis, quotes, alguns cobraments (inclosos els rebuts domiciliats actuals) i carnet. No hi ha contracte amb Cluber: el club el pot deixar quan vulgui.
+  - Cluber cobra els rebuts domiciliats a través del seu compte i després ingressa al club l'import menys un percentatge (tresoreria, 27/10/2026; percentatge [A validar]). Per tant, el creditor dels mandats actuals seria Cluber [A validar amb un rebut o la documentació de Cluber].
+  - Permet exportar les dades (socis, IBAN i referències); format [A validar].
+  - Segons el document incremental §1.2, també intervé en les llicències federatives (P-28).
 - App del banc, càlculs a mà i Excel: ingressos, despeses, marge de cada activitat, recompte de sortides i de material.
 - Gmail i WhatsApp (grup per sortida i grup general de socis): comunicació.
 - Web cris.barcelona (WordPress): informació i conferències.
@@ -91,7 +97,8 @@ Fora d'abast: dades de salut i integració directa amb la federació.
 - Llicència no vigent: avís o bloqueig.
 - Cancel·lacions i devolucions.
 - IVA i programa de facturació.
-- Mandats SEPA actuals: ID de creditor i si Cluber els pot exportar (P-21).
+- Mandats SEPA actuals: escenari base B, campanya de mandats nous ([022](decisions/022-mandats-sepa-escenari-base-b.md)); confirmar el creditor i el format d'exportació (P-21).
+- En quin moment de l'any es cobren les quotes anuals: la campanya de mandats ha d'acabar abans de la propera remesa (P-29).
 - Relació amb CRIS-UTH i abast de medicina hiperbàrica.
 
 ## 9. Requisits no funcionals
@@ -102,12 +109,13 @@ Fora d'abast: dades de salut i integració directa amb la federació.
   - Doble factor obligatori per a qualsevol compte que entri per l'administració; opcional per als comptes de soci.
   - Els comptes d'administrador no recuperen la contrasenya per correu.
   - Comptes d'emergència amb doble factor, còpies de seguretat provades i secrets fora del repositori.
+  - Les persones no sòcies no tenen compte per defecte: s'inscriuen i paguen com a convidades amb un enllaç segur; el compte és opcional ([021](decisions/021-persones-no-socies-com-a-convidades.md)).
 - Dades de prova (inventades) fins que el tractament estigui resolt.
 - Manteniment: responsable a la junta, documentació, repositori amb dos accessos, calendari de manteniment.
 - Pressupost ([016](decisions/016-pressupost-produccio-minima.md)): zero en llicències.
   - La junta coneix el cost i s'ha començat amb la producció mínima: uns 160 €/any sense IVA (preus consultats el 27/10/2026), sense cost addicional de domini (cris1954.cat ja està pagat).
   - Les comissions de Stripe són la part variable: uns 53-110 €/any per a les quotes, més un 1,9 % aproximat del que es cobri per targeta o Bizum.
-  - Referència: Cluber costa des de 599 €/any.
+  - Referència: Cluber descompta un percentatge de cada ingrés que cobra [A validar el percentatge]; el preu publicat és des de 599 €/any (si el club el paga a més del percentatge, P-27).
   - Substitueix la previsió anterior de 100-120 €/any.
 
 > **⚠ Dada de salut.** Funcionalitats §2 planteja guardar com a molt la data de validesa del certificat mèdic [A validar]. Cal confirmar si aquesta data es considera dada de salut. Vegeu P-07.
@@ -123,7 +131,7 @@ Per mòduls i passos, seguint [metodologia-sdd.md](metodologia-sdd.md):
 3. Especificació de cada mòdul en l'ordre de CLAUDE.md, amb les preguntes obertes resoltes.
 4. Pla, tasques i implementació de cada mòdul.
 5. Cas pràctic amb una sortida real i comparació del marge.
-6. Entrada en producció quan el mòdul 05 estigui acabat i provat; migració única de Cluber.
+6. Entrada en producció quan el mòdul 05 estigui acabat i provat; migració única de Cluber i campanya de mandats nous. Objectiu orientatiu: finals de gener o principis de febrer de 2027. No és una data compromesa: es pot posposar sense cost. L'abast mínim i l'ordre proposats són a l'[arquitectura, §9](arquitectura-integracions.md) (proposta pendent d'aprovació).
 7. Business case, pla de manteniment, memòria i presentació (lliuraments de l'assignatura).
 
 ## 12. Convencions de treball

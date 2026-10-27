@@ -35,7 +35,7 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 ## Regles que sempre s'han de complir
 - Diners en cèntims (enter), moviments immutables; les correccions són anul·lacions amb motiu. Marge d'una activitat = ingressos - despeses - cost de material.
 - Tot ingrés i tota despesa té departament (centre de cost); les comissions de quotes van a «General / Quotes de socis».
-- Persona separada de soci. Un no soci (alumne, assistent, llicència d'un dia) també és una persona.
+- Persona separada de soci. Un no soci (alumne, assistent, llicència d'un dia) també és una persona: no té compte per defecte, s'inscriu i paga com a convidat amb un enllaç segur, i el compte és opcional (decisió 021).
 - Cap dada de salut a la plataforma.
 - Mai dades reals de socis fora de producció: només dades inventades.
 - Cada endpoint exigeix autenticació i permís per defecte; els públics s'han de declarar de manera explícita.
@@ -48,7 +48,7 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisió 017): quotes amb domiciliació SEPA (per defecte), targeta, Bizum o transferència; inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05.
-- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: migració a Stripe o campanya de mandats nous (arquitectura §4.9).
+- Stripe sempre en mode de proves fins que la junta autoritzi producció per escrit. Entrada en producció: mòdul 05 acabat i provat; Cluber es migra una sola vegada i es deixa llavors, sense restricció de data (decisions 014 i 020). Mandats SEPA actuals: escenari base B, campanya de mandats nous (decisió 022; arquitectura §4.9). L'abast mínim per substituir Cluber i l'ordre revisat (00 → 01 → 04 mínim → 05) són una proposta pendent d'aprovació (arquitectura §9, P-26): fins que s'aprovi, l'ordre vigent és el d'aquesta secció.
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 
