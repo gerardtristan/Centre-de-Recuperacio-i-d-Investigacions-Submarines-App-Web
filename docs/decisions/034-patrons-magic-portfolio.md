@@ -1,7 +1,7 @@
 # 034 — Patrons de Magic Portfolio com a referència visual
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (contingut real, fotos, servei de butlletí i manteniment del contingut [A validar]: P-40 a P-43). Amplia la [030](030-sistema-de-disseny.md), la [031](031-estil-neumorfic-limitat.md) i la [032](032-immersio-socis-i-centre.md).
+- **Estat:** Acceptada (contingut real, fotos, servei de butlletí i manteniment del contingut [A validar]: P-40 a P-43). Amplia la [030](030-sistema-de-disseny.md), la [031](031-estil-neumorfic-limitat.md) i la [032](032-immersio-socis-i-centre.md). La [033](033-migracio-nextjs-once-ui.md) queda registrada com a «Descartada»: no es migra a Next.js amb Once UI Core.
 
 ## Context
 L'equip vol enriquir el disseny amb patrons de Magic Portfolio (Once UI) sense canviar la pila: continuem amb HTML i CSS plans. La plantilla té llicència CC BY-NC 4.0 (cal citar l'autor i no se'n permet l'ús comercial), i per això no se'n pot copiar codi, textos ni imatges.
@@ -28,7 +28,7 @@ L'equip vol enriquir el disseny amb patrons de Magic Portfolio (Once UI) sense c
 ## Conseqüències
 - Cal contingut real per als projectes i les notícies, fotos amb drets d'imatge, la confirmació del servei de butlletí i una persona responsable del contingut (P-40 a P-43).
 - Les idees de «contingut separat» i de «seccions activables» queden com a proposta per a l'editor (etapa 4) i el mòdul 07.
-- El número 033 queda lliure: aquesta decisió fa servir el 034 per indicació de l'equip.
+- La decisió 033 recull la migració a Next.js amb Once UI Core que s'ha valorat i descartat; aquesta decisió (034) és l'alternativa que s'aplica.
 
 ## Fonts
 - Encàrrec de l'equip (27/10/2026)
