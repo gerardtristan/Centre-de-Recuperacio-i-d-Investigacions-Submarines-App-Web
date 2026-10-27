@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.2 (27/10/2026), etapa 3: sistema de disseny i wireframes de baixa fidelitat.
+- **Versió:** 1.3 (27/10/2026). La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
+- **Versió anterior:** 1.2, etapa 3: sistema de disseny i wireframes de baixa fidelitat.
   - La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
   - La 1.2 afegeix l'estructura d'immersió del compte personal (§6.5), els tokens de profunditat, carnet i moviment (§2.6 i §4.1), el logotip més gran a la pública i la secció `centre-recuperacio-investigacio`.
 - **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md) i per la [032](decisions/032-immersio-socis-i-centre.md).
@@ -110,7 +111,23 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
 - **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-carril` 72 px (tauleta, administració), `--capcalera-alcada` 64 px. `--lateral-soci`, `--columna-dreta` i `--barra-inferior-alcada` són de l'estructura anterior dels socis; ara no es fan servir, però es conserven fins que es validi la nova.
 - **Logotip:** `--logo-capcalera` 40 px (socis i administració), `--logo-publica-mobil` 52 px i `--logo-publica` 72 px (capçalera pública), `--logo-peu` 120 px (peu de la pública).
-- **Compte personal:** `--portada-alcada` 90svh (el 90 % de l'alçada visible de la pantalla), `--carnet-amplada` 22rem (×1,25 a l'escriptori), `--carnet-proporcio` 1,586 (la d'una targeta física), `--dock-alcada` 64 px, `--dock-carnet` 60 px, `--tactil-gran` 56 px (accions crítiques: pagar), `--carril-targeta` 85 % (targetes del carril al mòbil) i `--ona-alcada` 48 px.
+- **Selector de tema:** `--selector-alcada` 32 px (alçada visible de cada opció), `--selector-opcio` 40 px (amplada mínima visible), `--selector-icona` 12 px (icones i ✓), text de 14 px a partir de tauleta i farciment del contenidor de 2 px. L'àrea tàctil continua sent de **44 × 44 px**: un pseudoelement invisible de l'etiqueta l'amplia 6 px amunt i avall i 2 px a cada costat, sense que es vegi més gran. La vora (`--c-linia-forta` o `--neu-vora`, ≥3:1), el focus i la llegenda «Tema» no canvien.
+- **Compte personal:** `--portada-alcada` 64svh (alçada mínima de la portada **a partir de tauleta**; al mòbil, la portada fa l'alçada del contingut), `--carnet-amplada` 22rem (×1,25 a l'escriptori), `--carnet-proporcio` 1,586 (la d'una targeta física), `--dock-alcada` 64 px, `--dock-carnet` 60 px, `--tactil-gran` 56 px (accions crítiques: pagar), `--carril-targeta` 85 % (targetes del carril al mòbil) i `--ona-alcada` 32 px.
+- **Espai vertical del compte personal (1.3):**
+
+  | Lloc | Abans | Ara |
+  |---|---|---|
+  | Farciment superior de la portada | 32 px | 16 px al mòbil; 24 px a partir de tauleta |
+  | Farciment inferior de la portada | ona + 32 px | ona + 12 px |
+  | Ona | 48 px | 32 px |
+  | Alçada mínima de la portada | 90svh | la del contingut al mòbil; 64svh a partir de tauleta |
+  | Marge entre l'ona i la franja de pagaments | 24 px | 12 px |
+  | Espai entre els blocs de la portada | 24 px | 16 px |
+  | Espai entre els blocs de sota i marge superior de la graella | 24 px | 16 px |
+  | Farciment inferior de la pàgina | 48 px | 32 px |
+  | Salutació | avatar a sobre del nom; títol de 44 px | avatar al costat del nom; títol de 32 px al mòbil i de 44 px a partir de tauleta |
+
+  El carnet manté la mida i la proporció. Al mòbil de 390 × 844 px, la franja de pagaments ja es veu sense desplaçar la pàgina, fins i tot amb les barres de demostració del wireframe.
 
 ### 4.1 Moviment (decisió 032)
 Només a tres llocs del compte personal i mai en accions crítiques:
@@ -264,7 +281,7 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 ### 6.5 Compte personal: estructura d'immersió (decisió 032)
 **Regla principal:** el «wow» (degradats, ona, gir del carnet, insígnies) només és a les peces no crítiques. **Pagar i els avisos són sempre plans, grans i amb contrast ≥4,5:1**, sense degradat, ombra ni moviment.
 
-- **Portada:** fa el 90 % de l'alçada visible i té un degradat de superfície (`--c-ocea-1` → `--c-ocea-2`). Hi ha l'avatar, la salutació i el carnet gran. A baix, una ona (SVG decoratiu, `aria-hidden`) marca l'inici de la profunditat.
+- **Portada:** compacta (al mòbil fa l'alçada del contingut, i a partir de tauleta com a mínim el 64 % de l'alçada visible) i té un degradat de superfície (`--c-ocea-1` → `--c-ocea-2`). Hi ha l'avatar, la salutació i el carnet gran. A baix, una ona (SVG decoratiu, `aria-hidden`) marca l'inici de la profunditat.
 - **Carnet giratori:**
   - Mida de targeta física (proporció 1,586), sempre fosc i amb la versió del logotip per a fons fosc.
   - Davant: nom, número de soci en JetBrains Mono 500 de 32 px (`--c-carnet-text`, 8:1 o més), validesa i estat «✓ Vigent».
@@ -285,7 +302,7 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
-- El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes) i cada opció fa 44 px com a mínim. Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.
+- El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.
 - Desa la tria a `localStorage` amb la clau `cris-tema` (`light` o `dark`); a «Sistema», la clau s'esborra. Si una pàgina té més d'un selector (l'administració en té un a la barra lateral del mòbil i un a la barra superior), tots dos queden sincronitzats.
 - Un petit script al `<head>` aplica el tema desat abans de pintar la pàgina, perquè no es vegi el canvi. Si `localStorage` no està disponible, el selector funciona igual però no se'n recorda.
 - El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el selector.
@@ -300,10 +317,12 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 
 Comprovat sobre `#08131e` i sobre `#062a47`: els contorns i el text blancs es llegeixen bé i «DES DE 1954» manté el contorn blanc. El canvi es fa amb les classes `logo-clar` i `logo-fosc`.
 
+**Nom del club:** «Centre de Recuperacions i d'Investigacions Submarines» (C.R.I.S.). És el que fan servir els títols de pàgina, els textos i el text alternatiu dels logotips de les tres zones: «Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines». Els logotips decoratius, com el del carnet, porten `alt=""`.
+
 **Mides (decisió 032):** a la web pública, el logotip fa 52 px a la capçalera del mòbil (la capçalera queda en uns 68 px d'alçada), 72 px a partir de la tauleta i 120 px al peu. A 72 px, el text circular comença a ser llegible a la pantalla de l'ordinador. Als socis i a l'administració es manté en 40 px.
 
 Falta [A validar]:
-- **Versió reduïda per a la capçalera del mòbil i per a la icona de la PWA** (només les ampolles i «CRIS», sense el text circular). A 40-48 px, el text «Centre de Recuperació i d'Investigacions Submarines» no es llegeix en cap de les dues versions.
+- **Versió reduïda per a la capçalera del mòbil i per a la icona de la PWA** (només les ampolles i «CRIS», sense el text circular). A 40-48 px, el text circular del logotip no es llegeix en cap de les dues versions.
 - **Versió vectorial (SVG)** de totes dues variants, per a una nitidesa perfecta i fitxers més petits. Els PNG actuals fan 2717 × 2900 px (de 350 a 510 kB), massa per a una capçalera.
 - **Nom del fitxer** de la versió fosca: té espais i parèntesis. Als wireframes s'enllaça codificat (`%20`). Recomanació: reanomenar-lo (per exemple, `CRIS_SenseFons_Blanc.png`) quan el club ho aprovi.
 
@@ -357,4 +376,5 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 - Allotjament i llicència de les fonts (§3).
 - Pila del frontend (§12) i convenció de noms del codi (§11).
 - Compte personal (032): la bitàcola (d'on surten les sortides i les hores, i si el club vol insígnies) i el contingut del darrere del carnet.
-- Web pública (032): el nom oficial del Centre (el títol diu «i Investigacions», el logotip «i d'Investigacions») i tots els textos de `centre-recuperacio-investigacio`.
+- Web pública (032): els textos de `centre-recuperacio-investigacio`. El nom del club ja és fixat (§8).
+- Fase futura: bitàcola, insígnies i punts per participació en activitats i cursos (P-38 a `pendents.md`).

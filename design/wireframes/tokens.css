@@ -108,6 +108,9 @@
 
   /* Mides d'estructura */
   --avatar: 56px;
+  --selector-alcada: 32px;        /* selector de tema: alçada visible de cada opció */
+  --selector-opcio: 40px;         /* amplada mínima visible; + 4 px d'espai = 44 px tàctils */
+  --selector-icona: 0.75rem;      /* 12 px: icones i ✓ del selector */
   --tactil: 44px;                 /* objectiu tàctil mínim */
   --amplada-max: 1200px;
   --amplada-text: 68ch;
@@ -125,14 +128,14 @@
   --icona: 1.25rem;
 
   /* Compte personal: immersió (decisió 032) */
-  --portada-alcada: 90svh;        /* portada a pantalla gairebé completa */
+  --portada-alcada: 64svh;        /* alçada mínima de la portada a partir de tauleta; al mòbil, la del contingut */
   --carnet-amplada: 22rem;
   --carnet-proporcio: 1.586;      /* proporció d'una targeta física (85,6 × 54 mm) */
   --dock-alcada: 64px;
   --dock-carnet: 60px;            /* botó central del carnet al dock */
   --tactil-gran: 56px;            /* accions crítiques: pagar */
   --carril-targeta: 85%;          /* amplada de cada targeta del carril (mòbil) */
-  --ona-alcada: 48px;
+  --ona-alcada: 32px;
 
   /* Profunditat (compte personal): de la superfície a l'abisme */
   --c-ocea-1: #e2f4f6;
@@ -339,16 +342,24 @@ img { max-width: 100%; display: block; }
 /* Selector de tema: control segmentat Sistema / Clar / Fosc (botons de ràdio) */
 .selector-tema {
   display: inline-flex; gap: var(--e-1);
-  margin: 0; padding: var(--e-1); min-inline-size: 0;
+  margin: 0; padding: calc(var(--e-1) / 2); min-inline-size: 0;
   border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-pastilla);
   background: var(--c-superficie);
 }
-.selector-tema label { display: flex; }
+.selector-tema label { display: flex; position: relative; cursor: pointer; }
+/* Àrea tàctil de 44 × 44 px amb un farciment invisible: l'opció només es veu de 32 px */
+.selector-tema label::after {
+  content: ""; position: absolute;
+  top: calc((var(--selector-alcada) - var(--tactil)) / 2);
+  bottom: calc((var(--selector-alcada) - var(--tactil)) / 2);
+  left: calc((var(--selector-opcio) - var(--tactil)) / 2);
+  right: calc((var(--selector-opcio) - var(--tactil)) / 2);
+}
 .selector-tema .opcio {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--e-1);
-  min-height: var(--tactil); min-width: var(--tactil); padding: 0 var(--e-2);
+  min-height: var(--selector-alcada); min-width: var(--selector-opcio); padding: 0 var(--e-2);
   border-radius: var(--r-pastilla);
-  color: var(--c-text-2); font-size: var(--t-s); font-weight: var(--p-semi); cursor: pointer;
+  color: var(--c-text-2); font-size: var(--selector-icona); line-height: 1; font-weight: var(--p-semi);
 }
 .selector-tema .marca-activa { display: none; }
 /* Opció activa: negreta + marca ✓ + fons (mai només color o ombra) */
@@ -358,8 +369,7 @@ img { max-width: 100%; display: block; }
 /* Mòbil: només icones; el text continua disponible per al lector de pantalla */
 .selector-tema .text-opcio { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (min-width: 600px) {
-  .selector-tema .opcio { padding: 0 var(--e-3); }
-  .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
 }
 
 /* ==========================================================================

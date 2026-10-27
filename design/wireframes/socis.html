@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Compte personal — wireframe C.R.I.S.</title>
+<title>Compte personal · C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines (wireframe)</title>
 <script>
 /* Tema desat: s'aplica abans de pintar la pàgina */
 (function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -65,18 +65,22 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 /* ---------- portada: immersió (superfície → profunditat) ---------- */
 .portada {
   position: relative;
-  min-height: var(--portada-alcada);
   display: flex; flex-direction: column; justify-content: center;
-  padding: var(--e-6) 0 calc(var(--ona-alcada) + var(--e-6));
+  padding: var(--e-4) 0 calc(var(--ona-alcada) + var(--e-3));   /* mòbil: alçada del contingut */
   background: linear-gradient(to bottom, var(--c-ocea-1), var(--c-ocea-2));
   color: var(--c-ocea-text);
   overflow: hidden;
 }
-.portada-contingut { width: 100%; display: grid; gap: var(--e-5); justify-items: center; text-align: center; animation: entrada var(--m-entrada) var(--m-corba) both; }
+.portada-contingut { width: 100%; display: grid; gap: var(--e-4); justify-items: center; text-align: center; animation: entrada var(--m-entrada) var(--m-corba) both; }
 @keyframes entrada { from { opacity: 0; transform: translateY(var(--e-5)); } }
-.salutacio-cap { display: grid; gap: var(--e-2); justify-items: center; }
-.salutacio-cap .etiqueta-seccio { color: var(--c-ocea-text-2); }
-.portada h1 { margin: 0; font-size: var(--t-3xl); }
+/* Avatar al costat del nom (no a sobre) per estalviar alçada */
+.salutacio-cap {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
+  column-gap: var(--e-3); row-gap: 0; justify-items: start; text-align: left;
+}
+.salutacio-cap .avatar { grid-row: 1 / span 3; }
+.salutacio-cap .etiqueta-seccio { color: var(--c-ocea-text-2); margin-bottom: 0; }
+.portada h1 { margin: 0; font-size: var(--t-2xl); }
 .salutacio-cap p { margin: 0; color: var(--c-ocea-text-2); }
 .avatar-portada { box-shadow: 0 0 0 var(--v-activa) var(--c-zona); }
 .ona { position: absolute; left: 0; right: 0; bottom: 0; height: var(--ona-alcada); overflow: hidden; line-height: 0; }
@@ -124,7 +128,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 .invitacio p { margin: 0; color: var(--c-text-2); }
 
 /* ---------- Profunditat: la resta de la pàgina, cada cop més fonda ---------- */
-.profunditat { background: linear-gradient(to bottom, var(--c-ocea-3), var(--c-ocea-4)); color: var(--c-ocea-text); padding: var(--e-5) 0 var(--e-7); }
+.profunditat { background: linear-gradient(to bottom, var(--c-ocea-3), var(--c-ocea-4)); color: var(--c-ocea-text); padding: var(--e-3) 0 var(--e-6); }
 
 /* franja-estat: plana i gran, sense efectes */
 .franja-estat {
@@ -140,7 +144,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 
 /* Graella bento */
 .graella-bento {
-  display: grid; gap: var(--e-5); margin-top: var(--e-5);
+  display: grid; gap: var(--e-4); margin-top: var(--e-4);
   grid-template-areas: "avisos" "sortides" "bitacola" "llicencia";
 }
 #avisos { grid-area: avisos; }
@@ -215,6 +219,8 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   .dock-carnet a { width: auto; height: auto; min-height: var(--tactil); margin: 0; transform: none; background: transparent; color: var(--c-text-2); border: 0; }
   .dock-carnet a[aria-current="page"] { color: var(--c-zona-text); background: var(--c-zona-fons); }
 
+  .portada { min-height: var(--portada-alcada); padding-top: var(--e-5); }
+  .portada h1 { font-size: var(--t-3xl); }
   .carril { grid-auto-columns: calc((100% - var(--e-4)) / 2); }
   .graella-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -271,8 +277,8 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 <header id="capcalera-soci" class="capcalera-soci">
   <div class="capcalera-interior">
     <a class="marca-soci" href="#portada">
-      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
-      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperacions i d'Investigacions Submarines">
       <span class="titol-zona">Compte personal</span>
     </a>
     <nav id="navegacio-soci" class="navegacio-soci" aria-label="Compte personal">
