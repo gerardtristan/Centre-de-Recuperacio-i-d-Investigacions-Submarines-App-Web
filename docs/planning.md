@@ -3442,7 +3442,7 @@ Cap altra app escriu als models del 03.
 |---|---|
 | **Intenció** | Que el tresorer sàpiga quant guanya o perd cada curs i cada sortida (marge previst mentre és oberta, marge real congelat en tancar-la), que cap despesa quedi sense factura, que els ingressos i les despeses es puguin veure per departament, subtipus i projecte per demanar i justificar ajuts, que es puguin emetre factures amb un servei homologat i que cada període es tanqui i no es toqui més. |
 | **Processos que cobreix** | P-M09-A Registrar una despesa (F 9.8) · P-M09-B Repartir una despesa entre activitats · P-M09-C Registrar un ingrés que no és un càrrec (ajut, patrocini, donatiu) · P-M09-D Marge previst i tancament econòmic d'una activitat · P-M09-E Informes per departament, subtipus i projecte · P-M09-F Factures i rectificatives · P-M09-G Tancament de període (F 9.11). La justificació d'ajuts (F 9.10) és a l'[apartat d'ajuts](#M09-ajuts) |
-| **Tasques** | 25 (T-M09-01 a T-M09-25), més les 14 de l'apartat d'ajuts (T-M09A-01 a T-M09A-14) |
+| **Tasques** | 25 (T-M09-01 a T-M09-25), més les 15 de l'apartat d'ajuts (T-M09A-01 a T-M09A-15) |
 | **Què el bloqueja** | Per construir: el 02, el 03, el 05b i l'addenda de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md), T-M04-20). Facturació: què s'ha de facturar, IVA i Verifactu [A verificar: gestoria, P-02, P-47]. La resta són supòsits configurables ([M09-13](#M09-13-riscos)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M09-01 a S-M09-05 ([M09-14](#M09-14-aprovar)). Les peces de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) i els documents amb IBAN ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) ja són aprovats |
 
@@ -3651,12 +3651,16 @@ Apps Django noves: `expenses` (despeses, proveïdors, altres ingressos i volunta
 | `payment_proof_file` | document de justificació null | Comprovant del banc. Original xifrat; només l'obren el tresorer i la junta ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 | `invoice_masked_file`, `payment_proof_masked_file` | document de justificació null | Còpies amb l'IBAN emmascarat (quatre últims dígits), generades per la plataforma ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 | `masking_status` | `masked`, `no_iban`, `not_detected` | `not_detected`: el tresorer en puja la còpia emmascarada a mà |
+| `invoice_illegible`, `payment_proof_illegible` | bool | Els marca el tresorer (RN-M09-25). Cada marca va a `DocumentIllegibleMark` |
 | `recorded_by`, `recorded_at` | — | — |
 **Restriccions:** una despesa `paid` no canvia d'import, departament ni proveïdor (es comprova al servei i amb una prova); qualsevol canvi d'una `to_pay` va al registre amb el valor anterior.
 
 ### ExpenseAllocation (repartiment) i ExpenseAnnulment (anul·lació)
 - `ExpenseAllocation`: `expense`, `activity` (FK Activity del 02), `amount_cents` (> 0), `method` (`participants`, `equal`, `manual`), `created_by`. Únic `(expense, activity)`. Suma ≤ import de la despesa (servei).
 - `ExpenseAnnulment` (només INSERT): `expense` (OneToOne), `reason`, `reversal_movement` (FK Movement null, si estava pagada), `annulled_by`, `annulled_at`.
+
+### DocumentIllegibleMark (document il·legible)
+Només INSERT. `expense`, `document` (`invoice`, `payment_proof`), `reason`, `marked_by` (tresorer), `marked_at`, `notified_person` (qui havia pujat el document), `replaced_at` (null; el posa el servei quan arriba el document nou). El document il·legible no s'esborra: es conserva xifrat i deixa de ser el vigent.
 
 ### OtherIncome (ingrés que no és un càrrec)
 `kind` (`grant`, `sponsorship`, `donation`, `other`), `payer` (`CharField(140)`, organisme o empresa; un donatiu d'una persona: vegeu S-M09-03), `amount_cents`, `department`, `cost_centre` null, `project` null, `activity` (FK null; **prohibit** si `kind = grant`, `CHECK`), `grant_application` (FK de l'apartat d'ajuts, null), `document_file` (resolució o contracte; obligatori si `kind = grant`), `movement` (FK Movement, el posa el servei), `recorded_by`. Només s'anul·la amb motiu, com la despesa.
@@ -3669,7 +3673,7 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 
 ### Period (període) i PeriodEvent
 - `Period`: `starts_on`, `ends_on` (sense solapaments, restricció d'exclusió), `status` (`open`, `closed`).
-- `PeriodEvent` (només INSERT): `period`, `action` (`close`, `reopen`), `reason` (obligatori per a `reopen`), `actor`, `at`, `checklist` (JSON de la llista de control en aquell moment).
+- `PeriodEvent` (només INSERT): `period`, `action` (`close`, `reopen`), `reason` (obligatori per a `reopen`), `actor`, `at`, `checklist` (JSON de la llista de control en aquell moment), `exceptions` (JSON: elements portats al període següent, cadascun amb el seu motiu; buit si es tanca amb la llista buida, RN-M09-26).
 
 ### VolunteerHours (hores de voluntariat)
 `date`, `hours` (`DecimalField(5,2)`, > 0), `role_label` (`CharField(80)`, funció o rol, **mai el nom**), `department`, `activity` null, `project` null, `description`, `recorded_by`.
@@ -3699,7 +3703,7 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 | RN-M09-12 | Una activitat només es tanca econòmicament si `activities.closing_blockers` és buit (inclou el material pendent del 03) i no té cap despesa sense factura. Ho fa el tresorer | F §5 i §7; [M02-7](#M02-7-regles) |
 | RN-M09-13 | **Percentatge** = marge ÷ (inscripcions + altres ingressos directes), amb una xifra decimal i arrodoniment a la meitat cap amunt; sense ingressos, no es mostra. **Per participant** = marge ÷ assistents (si no n'hi ha llista, confirmats), arrodonit al cèntim | F §7 |
 | RN-M09-14 | **Avís de marge baix:** quan el marge previst és per sota del llindar, avís al responsable de l'activitat i al tresorer (correu i app, sense push), un sol cop per cada canvi de previsió. Llindar per defecte: 0 € (l'activitat no cobreix costos) [A validar: junta, S-M09-04] | F §7 |
-| RN-M09-15 | **Període:** mensual [A validar: tresorer, S-M09-05]. Es tanca només amb la llista de control buida: línies de l'extracte sense conciliar amb data dins el període, activitats acabades dins el període sense tancar, despeses sense factura, despeses pagades sense conciliar i factures fallides | F §7 i §9.11 |
+| RN-M09-15 | **Període:** mensual [A validar: tresorer, S-M09-05]. Es tanca només amb la llista de control buida: línies de l'extracte sense conciliar amb data dins el període, activitats acabades dins el període sense tancar, despeses sense factura, despeses pagades sense conciliar i factures fallides. També es pot tancar amb **excepcions documentades** (RN-M09-26) | F §7 i §9.11 |
 | RN-M09-16 | Un període tancat no admet cap registre nou del 09 (despesa, altre ingrés o anul·lació manual) amb data dins el període: la 04 el rebutja (RN-T30); el que ja hi ha no canvia. Una correcció es fa amb una anul·lació i un registre nou al període obert. **Els moviments d'origen extern** (pagaments del 05b, devolucions, retorns, comissions del banc, remeses i liquidacions) **no es rebutgen mai**: entren al període obert i guarden la data de valor original a `original_value_date` (RN-T31); al marge compten al període on entren, com un ajust posterior (RN-M09-07). Només l'administrador reobre un període, amb motiu, i queda al registre; en reobrir-lo, s'avisa per correu el tresorer i la junta [A validar: junta, S-M09-13]. Reobrir és només per als errors de la feina del propi període (per exemple, un repartiment o un tancament mal fet), no per al que arriba tard | F §7; [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md); [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) |
 | RN-M09-17 | **Facturació:** el 09 no numera. Demana la factura al servei homologat a través de l'adaptador i en desa el número, el PDF i el QR. Comprova que cada sèrie no té salts ni duplicats i, si en troba, avisa el tresorer. Idempotent per càrrec: un càrrec té com a màxim una factura ordinària | F §7 |
 | RN-M09-18 | Cada devolució d'un cobrament facturat té la seva rectificativa (total o parcial) lligada a la factura original. Cap factura emesa s'edita ni s'esborra | F §7 |
@@ -3709,6 +3713,8 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 | RN-M09-22 | Tots els imports en cèntims (enters); els marges amb signe. Cap càlcul amb coma flotant | CLAUDE.md |
 | RN-M09-23 | **Documents de justificació** (factures de despesa, comprovants del banc, paquets): xifrats a l'emmagatzematge de la UE; només els obren el tresorer i la junta; cap eina d'IA els rep; la plataforma en fa una còpia amb l'IBAN emmascarat i conserva l'original. Qui puja una factura des del mòbil no la pot tornar a obrir [A validar: junta] | [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md) |
 | RN-M09-24 | **Reobrir no mou mai els moviments de la 053.** Els moviments d'origen extern que van entrar al període obert amb una `original_value_date` dins el període reobert s'hi queden, amb aquesta data. El marge recalculat del període reobert (RN-M09-07) no els inclou i els mostra a part com a «moviments tardans» | [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md); RN-T31 |
+| RN-M09-25 | **Vista prèvia i document il·legible.** En pujar una factura o un comprovant (també des del mòbil), el formulari en mostra una vista prèvia abans de desar-lo. La vista prèvia passa **només al navegador**: el fitxer no s'envia al servidor fins que la persona prem «Desa» i no es guarda enlloc (ni al servidor, ni a la memòria cau, ni a l'emmagatzematge del navegador). Un cop desat, el tresorer pot marcar el document com a **«il·legible»**, amb motiu: la persona que l'havia pujat rep un avís (correu i app, sense push) per tornar-lo a pujar, i l'avís no porta ni el document ni cap enllaç per obrir-lo. Mentre no arriba el nou, la despesa compta com a «sense factura» (RN-M09-09) si el document il·legible és la factura. Cap rol fora del tresorer i la junta obre mai un document ja desat (RN-M09-23) | [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md); 27/10/2026 |
+| RN-M09-26 | **Tancar amb excepcions documentades** [A validar: tresorer, S-M09-15]. Si la llista de control no és buida, el tresorer pot tancar el període indicant, element per element, quins es porten al període següent, cadascun amb motiu obligatori. Les excepcions queden a `PeriodEvent.exceptions` i al registre d'activitat, i cada element portat surt a la llista de control del període següent fins que es resol: aquell període no es pot tancar sense resoldre'l o tornar-lo a portar amb un motiu nou. Un element sense excepció continua bloquejant el tancament | 27/10/2026 |
 
 **Exemples numèrics** (dades inventades)
 - **Sortida d'un dia a les Medes, 10 participants a 60 € (F §7):** inscripcions 10 × 6000 = **60.000**; embarcació −25.000; aire 20 × 600 = −12.000; material llogat 3 × 2500 = −7500; material del club 7 × 350 = −2450; instructor voluntari 0. Marge = 60.000 − 25.000 − 12.000 − 7500 − 2450 = **13.050 cèntims (130,50 €)**. Percentatge 13.050 ÷ 60.000 = 21,75 % → **21,8 %**. Per participant 13.050 ÷ 10 = **1305 (13,05 €)**. Els ajuts no hi surten.
@@ -3772,13 +3778,16 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 - **CA-M09-10** Donat una activitat amb una inscripció pendent de pagament o amb material pendent, quan el tresorer la vol tancar, llavors es rebutja amb els motius.
 - **CA-M09-11** Donat una activitat tancada, quan arriba una devolució posterior, llavors el marge congelat no canvia i la devolució surt com a ajust posterior al període on entra.
 - **CA-M09-12** Donat un marge previst de −1000 i el llindar de 0, quan es desa la previsió, llavors el responsable i el tresorer reben un sol avís; si la previsió no canvia, no se'n repeteix cap.
-- **CA-M09-13** Donat un període amb una despesa sense factura, quan es vol tancar, llavors es rebutja i la llista de control la mostra.
+- **CA-M09-13** Donat un període amb una despesa sense factura, quan es vol tancar sense cap excepció, llavors es rebutja i la llista de control la mostra.
+- **CA-M09-29** Donat un període amb dues línies de l'extracte sense conciliar, quan el tresorer el tanca portant-ne una al període següent amb motiu i l'altra sense, llavors es rebutja; quan les porta totes dues amb motiu, es tanca, `PeriodEvent.exceptions` i el registre guarden els dos elements amb el seu motiu i tots dos surten a la llista de control del període següent, que no es pot tancar fins que es resolen o es tornen a portar.
 - **CA-M09-14** Donat un període tancat, quan algú registra una despesa amb data dins el període, llavors es rebutja (`PeriodClosed`); quan l'administrador el reobre amb motiu, s'accepta i el registre guarda la reobertura, i el tresorer i la junta reben un correu.
 - **CA-M09-22** Donat una despesa pagada d'un període tancat, quan el tresorer l'anul·la, llavors el contramoviment i la despesa nova porten data del període obert i el moviment original no canvia.
 - **CA-M09-25** Donat un període tancat, quan arriba una comissió del banc amb data dins el període, llavors no es rebutja, entra al període obert amb `original_value_date` i surt a l'informe del període obert com a ajust posterior.
 - **CA-M09-26** Donat un període reobert per l'administrador amb una comissió del banc que hi té `original_value_date` però que va entrar al període obert, quan es recalcula el marge del període reobert, llavors la comissió no s'hi inclou, surt a la llista de «moviments tardans» i continua al període obert amb la mateixa data de valor.
 - **CA-M09-23** Donat un comprovant en PDF amb un IBAN, quan es puja, llavors l'original es desa xifrat, es genera una còpia amb només els quatre últims dígits i cap pantalla mostra l'IBAN; un administrador o un responsable que vol obrir l'original rep «no trobat».
 - **CA-M09-24** Donat una foto d'un comprovant on no es detecta cap IBAN, quan es puja, llavors queda `not_detected` i surt a la llista del tresorer per pujar-ne la còpia emmascarada.
+- **CA-M09-27** Donat un responsable que tria la foto d'una factura al mòbil, quan veu la vista prèvia i surt sense prémer «Desa», llavors el servidor no ha rebut cap fitxer i no queda res desat; quan prem «Desa», el document es desa xifrat i, si després vol tornar a obrir-lo, rep «no trobat».
+- **CA-M09-28** Donat una factura desada, quan el tresorer la marca «il·legible» amb motiu, llavors la persona que l'havia pujat rep un avís sense enllaç al document, la despesa surt a «sense factura» i la marca queda al registre; quan puja el document nou, la despesa en surt i l'il·legible es conserva xifrat.
 - **CA-M09-15** Donat un tresorer, quan vol reobrir un període, llavors es rebutja.
 - **CA-M09-16** Donat la facturació activada per a inscripcions i un esdeveniment `charge.paid` repetit, quan arriba dues vegades, llavors hi ha una sola factura.
 - **CA-M09-17** Donat el `FakeInvoicingProvider` que torna un número que salta un valor, quan es desa, llavors el tresorer rep l'avís de salt a la sèrie.
@@ -3809,7 +3818,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-03 | Categories de despesa i proveïdors | S | `apps/expenses/models.py`, migracions | T-M09-02 | Dades inicials de F §7 |
 | T-M09-04 | Despesa: model, factura adjunta, estats i registre de canvis | M | `apps/expenses/` | T-M09-03 | CA-M09-01 |
 | T-M09-05 | Pagar i anul·lar una despesa amb moviments de la 04 | M | `apps/expenses/services.py` | T-M09-04 | CA-M09-02, 03 |
-| T-M09-06 | Formulari mòbil de despesa amb foto | S | vistes, plantilles | T-M09-04 | Prova al mòbil (B5) |
+| T-M09-06 | Formulari mòbil de despesa amb foto i vista prèvia només al navegador (RN-M09-25) | S | vistes, plantilles | T-M09-04 | Prova al mòbil (B5); CA-M09-27 |
 | T-M09-07 | Repartiment entre activitats amb arrodoniment | M | `apps/expenses/allocation.py` | T-M09-04, T-M02-16 | CA-M09-04, 05, 06 |
 | T-M09-08 | Altres ingressos (ajut, patrocini, donatiu) | S | `apps/expenses/income.py` | T-M09-02 | CA-M09-09 |
 | T-M09-09 | Costos previstos per activitat | S | `apps/margins/models.py` | T-M09-03 | Registre de canvis |
@@ -3819,7 +3828,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-13 | Avís de marge baix | S | `apps/margins/alerts.py` | T-M09-11 | CA-M09-12 |
 | T-M09-14 | Informes per departament, subtipus i projecte, i CSV | M | `apps/margins/reports.py` | T-M09-11, T-M09-08 | CA-M09-20 |
 | T-M09-15 | Llista de despeses sense factura i avisos | S | vistes | T-M09-04 | CA-M09-01 |
-| T-M09-16 | Períodes: llista de control, tancament, reobertura i guarda | M | `apps/margins/periods.py` | T-M09-05, T-M09-12, T-M09-02 | CA-M09-13, 14, 15 |
+| T-M09-16 | Períodes: llista de control, tancament (també amb excepcions documentades), reobertura i guarda | M | `apps/margins/periods.py` | T-M09-05, T-M09-12, T-M09-02 | CA-M09-13, 14, 15, 29 |
 | T-M09-17 | Hores de voluntariat | S | `apps/expenses/volunteering.py` | T-M09-03 | Sense noms |
 | T-M09-18 | Adaptador `InvoicingProvider` i `FakeInvoicingProvider` | M | `apps/invoicing/providers/` | — | Proves de contracte |
 | T-M09-19 | Factura d'un cobrament (subscriptor de `charge.paid`) i factura manual; control de salts | M | `apps/invoicing/` | T-M09-18, T-M05b-21 | CA-M09-16, 17, 19 |
@@ -3828,7 +3837,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-22 | Permisos per rol i per objecte | S | `apps/*/permissions.py` | T-M09-04 | CA-M09-21 |
 | T-M09-23 | Dades inventades i proves de principi a fi (inscripció → pagament → despesa → repartiment → tancament → informe → període) | L | `fixtures/`, `tests/` | T-M09-05 a T-M09-16 | Totes en verd |
 | T-M09-24 | Guia del tresorer (despeses, marge, tancament, factures) | S | `docs/` | T-M09-23 | Revisada |
-| T-M09-25 | Magatzem de documents de justificació: xifratge, accés només del tresorer i la junta, còpia amb l'IBAN emmascarat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | M | `apps/expenses/documents.py` | T-M09-04 | CA-M09-23, 24 |
+| T-M09-25 | Magatzem de documents de justificació: xifratge, accés només del tresorer i la junta, còpia amb l'IBAN emmascarat i marca «il·legible» amb avís ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | M | `apps/expenses/documents.py` | T-M09-04 | CA-M09-23, 24, 28 |
 
 La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-18 a T-M09-21 es poden fer amb el `FakeInvoicingProvider`, però la facturació no s'activa en producció fins que es respongui P-02 i P-47.
 
@@ -3883,6 +3892,7 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 | S-M09-11 | Les hores de voluntariat no es valoren en euros (RN-M09-21) | No es valoren | Junta |
 | S-M09-12 | Calen pressupostos anuals per departament | Fora d'abast | Junta |
 | S-M09-13 | Qui reobre un període tancat i si el tresorer ho pot demanar (RN-M09-16) | Només l'administrador, amb motiu; avís per correu al tresorer i a la junta; el tresorer no ho demana a la plataforma | Junta |
+| S-M09-15 | Tancar un període amb excepcions documentades (RN-M09-26): si es permet i quins elements de la llista de control es poden portar al període següent | Sí, tots, cadascun amb motiu; el tresorer decideix | Tresorer |
 | S-M09-14 | Com es comptabilitza la llicència que el club cobra i paga a la FECDAS (RN-M09-20) [A verificar: gestoria] | Ingrés i despesa del club, amb marge 0, com diu el [M06-2](#M06-2-dependencies). No bloqueja el codi; bloqueja la producció | Gestoria |
 
 **Revisió de dubtes (aplicada a mà)**
@@ -3919,7 +3929,7 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 |---|---|
 | **Intenció** | Que el club no perdi cap termini d'un ajut i que cada ajut tingui una història completa: la convocatòria amb tots els requisits, la sol·licitud amb el seu estat i el seu responsable, les despeses i factures que el justifiquen i, si es denega, què cal millorar per tornar-ho a intentar. |
 | **Processos que cobreix** | P-M09A-A Donar d'alta una convocatòria · P-M09A-B Revisar l'elegibilitat · P-M09A-C Preparar i presentar · P-M09A-D Avisos del calendari · P-M09A-E Resolució: concedida o denegada · P-M09A-F Justificar (F 9.10) · P-M09A-G Tornar-ho a intentar |
-| **Tasques** | 14 (T-M09A-01 a T-M09A-14) |
+| **Tasques** | 15 (T-M09A-01 a T-M09A-15) |
 | **Què el bloqueja** | Per construir: les despeses i els ingressos de la part principal del 09 (T-M09-05 i T-M09-08) i el correu de la 00 (proveïdor dins la UE, P-46 [A verificar: informàtica]). Per fer-lo servir: qui és el responsable dels ajuts i quines convocatòries s'han de vigilar [A validar: junta] |
 | **Què cal aprovar** | Aquest apartat i els supòsits S-M09A-01 a S-M09A-04 ([M09-ajuts-14](#M09-ajuts-14-aprovar)) |
 
@@ -4002,6 +4012,7 @@ Només tres rols hi tenen accés; **la resta de rols no hi veuen res**. Tot es f
 | AJ3 | Veure el calendari, les convocatòries i les sol·licituds | Sí | Sí | Sí |
 | AJ4 | Crear una sol·licitud i moure-la fins a «presentada» | Sí | Sí, si n'és responsable [A validar] | Sí |
 | AJ5 | Marcar-la concedida o denegada i escriure les observacions | Sí | Sí, si n'és responsable [A validar] | Sí |
+| AJ13 | Registrar un requeriment d'esmena i la seva resposta; editar la pròrroga de justificació | Sí | Sí, si n'és responsable [A validar] | Sí |
 | AJ6 | Registrar l'ingrés de l'ajut (part principal, MG4) | Sí | — | Sí |
 | AJ7 | Lligar despeses i generar el paquet de justificació | Sí | Consulta | Lligar despeses, sense obrir els documents ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 | AJ8 | Marcar-la justificada o tancada | Sí | — | Sí |
@@ -4048,7 +4059,8 @@ Només tres rols hi tenen accés; **la resta de rols no hi veuen res**. Tot es f
 |---|---|---|
 | 30, 14 i 7 dies abans del tancament (sol·licituds detectades o en preparació) | Responsable i tresorer [A validar: junta] | Convocatòria, data de tancament, documents que falten i enllaç a la fitxa |
 | La data prevista de resposta (sol·licituds presentades) | Responsable i tresorer | Que toca comprovar la resolució |
-| [Proposta] 30, 14 i 7 dies abans de la data de justificació (sol·licituds concedides) | Responsable i tresorer | Despeses sense factura o sense comprovant [A validar: junta, S-M09A-04] |
+| [Proposta] 30, 14 i 7 dies abans de la data de justificació, o de la pròrroga si n'hi ha (sol·licituds concedides) | Responsable i tresorer | Despeses sense factura o sense comprovant [A validar: junta, S-M09A-04] |
+| En registrar un requeriment d'esmena (immediat) i, [Proposta], 7 i 2 dies abans de la data límit, fins que es respon | Responsable del requeriment i tresorer | Sol·licitud, descripció del requeriment, data límit i enllaç a la fitxa [A validar: junta, S-M09A-09] |
 
 ### P-M09A-E Resolució
 - **Concedida:** el responsable hi posa l'import concedit, la data i la resolució. El tresorer registra l'ingrés quan arriba (part principal, P-M09-C), un o més cops (bestreta i saldo).
@@ -4110,14 +4122,17 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | `expected_response_on` | `DateField` null | Calculada (RN-M09A-05) o escrita |
 | `amount_granted_cents`, `resolved_on`, `resolution_file` | — | Obligatoris en concedir-la o denegar-la |
 | `justified_on` | `DateField` null | Obligatori en passar a justificada |
+| `submitted_package` | FK JustificationPackage null (PROTECT) | Obligatori en passar a justificada: el paquet enviat, que queda congelat (RN-M09A-18) |
+| `justification_extended_to` | `DateField` null | **Pròrroga de justificació**, editable; cada canvi amb motiu al registre. Si hi és, substitueix `justification_due_on` de la convocatòria per a aquesta sol·licitud (RN-M09A-20) |
 | `closed_reason` | `TextField` | Obligatori si es tanca sense presentar-la |
 | `copied_from` | FK self null | RN-M09A-14 |
 - `ApplicationDocument`: `application`, `name` (copiat de la convocatòria o afegit), `file` null, `ready` (bool), `uploaded_by`.
 - `ApplicationTransition` (només INSERT): `application`, `from_status`, `to_status`, `reason`, `actor`, `at`. Un desfer és una transició nova (AJ9).
 - `DenialNote` (només INSERT): `application`, `reason` (motiu), `resolved_on` (data), `improvements` (què millorar), `recorded_by`.
 - `GrantExpenseLink`: `application`, `expense` (FK Expense del 09), `amount_cents` (> 0), `created_by`. Únic `(application, expense)`. La suma imputada d'una despesa entre tots els ajuts no passa del seu import (servei).
-- `JustificationPackage` (només INSERT): `application`, `generated_by`, `generated_at`, `file` (ZIP, document de justificació xifrat, [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)), `masked` (bool: si porta les còpies emmascarades), `sha256`, `totals` (JSON), `excluded` (JSON amb les despeses excloses i el motiu).
-- `GrantReminder` (només INSERT): `application`, `kind` (`close_30`, `close_14`, `close_7`, `response`, `justify_30`, `justify_14`, `justify_7`), `due_on`, `sent_at`. Únic `(application, kind, due_on)`: un avís no s'envia dues vegades.
+- `GrantRequirement` (requeriment d'esmena): `application`, `received_on`, `due_on`, `description`, `responsible` (FK Person, amb rol tresorer, junta o administrador), `answered_on` (null), `created_by`. **No és un estat**: la sol·licitud manté el seu estat (RN-M09A-19). Cada canvi va al registre.
+- `JustificationPackage` (només INSERT): `application`, `generated_by`, `generated_at`, `file` (ZIP, document de justificació xifrat, [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)), `masked` (bool: si porta les còpies emmascarades), `sha256`, `totals` (JSON), `excluded` (JSON amb les despeses excloses i el motiu), `items` (JSON: cada despesa inclosa amb l'import imputat i el `sha256` de cada document).
+- `GrantReminder` (només INSERT): `application`, `requirement` (FK GrantRequirement null), `kind` (`close_30`, `close_14`, `close_7`, `response`, `justify_30`, `justify_14`, `justify_7`, `requirement_now`, `requirement_7`, `requirement_2`), `due_on`, `sent_at`. Únic `(application, requirement, kind, due_on)`: un avís no s'envia dues vegades.
 
 <a id="M09-ajuts-7-regles"></a>
 ## M09-ajuts-7 Regles de negoci i càlculs
@@ -4141,6 +4156,9 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | RN-M09A-15 | Cap dada personal de socis ni participants a les convocatòries, sol·licituds ni documents. Si un organisme demana un llistat de participants, es dona fora de la plataforma; aquí només hi ha recomptes | Instruccions del 27/10/2026; 035 |
 | RN-M09A-16 | Tot canvi (convocatòries, estats, documents, despeses lligades, paquets i avisos enviats) va al registre d'activitat amb el valor anterior | CLAUDE.md |
 | RN-M09A-17 | Imports en cèntims | CLAUDE.md |
+| RN-M09A-18 | **Paquet congelat.** En passar a «justificada», la sol·licitud queda lligada al paquet enviat (`submitted_package`): llista de despeses, imports, documents (amb el seu `sha256`) i data d'enviament (`justified_on`). Aquest paquet no canvia mai. Si després s'anul·la una despesa que hi és inclosa (RN-M09-11), el tresorer rep un avís (correu i app) amb la sol·licitud, la despesa i l'import, i el paquet **no canvia sol**: el tresorer decideix què fer (per exemple, el reintegrament, dubte 2). Les despeses lligades d'una sol·licitud justificada no es poden treure ni afegir | 27/10/2026 |
+| RN-M09A-19 | **Requeriment d'esmena:** és un esdeveniment de la sol·licitud, no un estat. Porta data de rebuda, data límit, descripció i responsable. Surt al calendari i té avisos propis al responsable i al tresorer: el primer **immediat** en registrar-lo; després, [Proposta] 7 i 2 dies abans de la data límit, configurables [A validar: junta, S-M09A-09]. Quan es registra la resposta (`answered_on`), no s'envia cap més avís. La data límit l'escriu la persona a partir del requeriment; el termini legal de resposta és [A verificar: gestoria, S-M09A-08] i la plataforma no el calcula | 27/10/2026 |
+| RN-M09A-20 | **Pròrroga de justificació:** data editable de la sol·licitud (`justification_extended_to`), amb motiu al registre. Si hi és, els avisos de justificació (RN-M09A-04 i S-M09A-04) i el calendari fan servir aquesta data; els avisos ja enviats no es repeteixen | 27/10/2026 |
 
 **Exemples** (dades inventades; «dia D» és el tancament de la convocatòria)
 - **Avisos:** tancament el dia D → correus els dies D−30, D−14 i D−7. Si el dia D−20 el tancament es mou a D+10, els avisos que falten passen a D−4 (el de 14 dies respecte del nou tancament) i D+3; el de 30 ja enviat no es repeteix.
@@ -4155,11 +4173,14 @@ Cap altra app escriu als models de `grants`.
 **Ofereix**
 | Servei | Entrada | Sortida | Errors | Qui el fa servir |
 |---|---|---|---|---|
-| `grants.calendar(from, to)` | dates | tancaments, respostes previstes i justificacions (lectura) | — | Calendari; 08 |
+| `grants.calendar(from, to)` | dates | tancaments, respostes previstes, justificacions (amb la pròrroga si n'hi ha) i requeriments oberts (lectura) | — | Calendari; 08 |
 | `grants.transition(application, to_status, data, actor)` | — | sol·licitud | `InvalidTransition`, `MissingDocuments`, `EligibilityNotReviewed` | Vistes |
 | `grants.link_expense(application, expense, amount_cents, actor)` | — | `GrantExpenseLink` | `ExpenseOutOfScope`, `OverImputed` | Vistes |
-| `grants.build_package(application, actor)` | — | `JustificationPackage` | `NotGranted` | Vistes |
+| `grants.build_package(application, actor)` | — | `JustificationPackage` | `NotGranted`, `AlreadyJustified` | Vistes |
+| `grants.on_expense_annulled(expense)` | senyal intern del 09 quan s'anul·la una despesa | avís al tresorer si la despesa és en un paquet congelat (RN-M09A-18); no canvia res | — | Subscriptor (`expenses` emet el senyal; `grants` no escriu als models de `expenses`) |
 | `grants.copy_application(application, call, actor)`, `grants.copy_call(call, actor)` | — | sol·licitud o convocatòria nova | — | Vistes |
+| `grants.record_requirement(application, received_on, due_on, description, responsible, actor)`, `grants.answer_requirement(requirement, answered_on, actor)` | — | `GrantRequirement`; el primer avís surt a la cua en desar-lo | `InvalidDates` | Vistes |
+| `grants.set_justification_extension(application, date, reason, actor)` | — | sol·licitud | — | Vistes |
 | `grants.send_due_reminders(today)` | data | avisos enviats (idempotent) | — | Tasca diària de la cua |
 | `grants.granted_by_department(period)` | — | imports concedits i cobrats (lectura) | — | 08 |
 
@@ -4189,6 +4210,10 @@ Cap altra app escriu als models de `grants`.
 - **CA-M09A-12** Donat un ingrés de tipus ajut lligat a la sol·licitud, quan es vol posar a una activitat, llavors es rebutja (CA-M09-09).
 - **CA-M09A-13** Donat un soci o un responsable de material, quan obre `/gestio/ajuts`, llavors rep «no trobat» i queda al registre.
 - **CA-M09A-14** Donat cada cel·la de [M09-ajuts-4](#M09-ajuts-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M09A-16** Donat una sol·licitud justificada amb un paquet de dues despeses (50.000 i 24.000), quan el tresorer anul·la la de 24.000, llavors el paquet enviat continua amb les dues despeses, els imports, el `sha256` dels documents i la data d'enviament; el tresorer rep un avís, i lligar-hi o treure'n despeses es rebutja.
+- **CA-M09A-17** Donat una sol·licitud concedida, quan el responsable registra un requeriment amb data límit D, llavors la sol·licitud continua «concedida», el requeriment surt al calendari i el responsable i el tresorer reben el primer avís en aquell moment.
+- **CA-M09A-18** Donat un requeriment amb data límit D, quan la tasca s'executa els dies D−7 i D−2 (dues vegades cadascun), llavors s'envia un sol avís cada dia; si s'ha registrat la resposta abans de D−2, aquell dia no s'envia res.
+- **CA-M09A-19** Donat una justificació amb data J i l'avís de 30 dies ja enviat, quan s'hi posa una pròrroga fins a J+60 amb motiu, llavors el calendari mostra J+60, els avisos que falten es calculen sobre J+60, el de 30 dies no es repeteix fins a la nova data i el canvi queda al registre amb el motiu.
 - **CA-M09A-15** Donat una convocatòria amb `accepts_masked_proofs = unknown`, quan es genera el paquet, llavors porta les còpies emmascarades; amb `no`, el tresorer el pot generar amb els originals i la descàrrega queda al registre.
 
 **Casos límit**
@@ -4215,11 +4240,12 @@ Cap altra app escriu als models de `grants`.
 | T-M09A-07 | Resolució: concedida i denegada amb observacions | S | `services.py` | T-M09A-04 | CA-M09A-07 |
 | T-M09A-08 | Ingrés de l'ajut des de la sol·licitud | S | vistes | T-M09A-07, T-M09-08 | CA-M09A-12 |
 | T-M09A-09 | Lligar despeses amb els límits | M | `apps/grants/justification.py` | T-M09A-07, T-M09-05 | CA-M09A-09, 10 |
-| T-M09A-10 | Paquet de justificació (resum, llistat i ZIP xifrat, amb còpies emmascarades o originals segons la convocatòria) | M | `justification.py` | T-M09A-09, T-M09-25 | CA-M09A-08, 15 |
+| T-M09A-10 | Paquet de justificació (resum, llistat i ZIP xifrat, amb còpies emmascarades o originals segons la convocatòria); paquet congelat en justificar i avís si s'anul·la una despesa inclosa | M | `justification.py` | T-M09A-09, T-M09-25 | CA-M09A-08, 15, 16 |
 | T-M09A-11 | Còpia de sol·licitud i de convocatòria | S | `services.py` | T-M09A-07 | CA-M09A-11 |
 | T-M09A-12 | Permisos (tres rols, cap accés per a la resta) | S | `apps/grants/permissions.py` | T-M09A-02 | CA-M09A-13, 14 |
 | T-M09A-13 | Dades inventades i proves de principi a fi (convocatòria → avisos → presentada → concedida → ingrés → despeses → paquet → tancada) | M | `fixtures/`, `tests/` | T-M09A-03 a T-M09A-11 | Totes en verd |
 | T-M09A-14 | Guia d'ajuts per al tresorer i la junta | S | `docs/` | T-M09A-13 | Revisada |
+| T-M09A-15 | Requeriments d'esmena (esdeveniment, calendari i avisos propis amb el primer immediat) i pròrroga de justificació | M | `apps/grants/requirements.py`, `reminders.py` | T-M09A-06 | CA-M09A-17, 18, 19 |
 
 <a id="M09-ajuts-11-proves"></a>
 ## M09-ajuts-11 Pla de proves
@@ -4264,6 +4290,8 @@ Cap altra app escriu als models de `grants`.
 | S-M09A-05 | Format de justificació que demana cada organisme (F §7) | Paquet genèric (resum, llistat i ZIP) | Junta |
 | S-M09A-06 | Conservació de sol·licituds, resolucions i paquets | Fins que la gestoria ho digui (Q-14) | Gestoria |
 | S-M09A-07 | L'organisme de cada convocatòria accepta comprovants amb l'IBAN emmascarat ([A verificar], 051) | `unknown`: el paquet porta la còpia emmascarada i l'original es dona a part si el demanen | Tresorer |
+| S-M09A-08 | Termini legal per respondre un requeriment d'esmena (RN-M09A-19) [A verificar] | La data límit l'escriu la persona a partir del requeriment; la plataforma no la calcula | Gestoria |
+| S-M09A-09 | Dies dels avisos d'un requeriment (RN-M09A-19) | Immediat, i 7 i 2 dies abans de la data límit | Junta |
 
 **Revisió de dubtes (aplicada a mà)**
 1. **«Tancada» té dos sentits:** final normal (justificada i acceptada) i «no es presenta». Es distingeixen pel motiu, sense estat nou, per mantenir la llista d'estats demanada. Propietari: cap (coherent amb les instruccions).
@@ -4755,6 +4783,7 @@ Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls
 | 044 | Norma d'esborrat del fitxer de la remesa al seu dispositiu; caducitat de l'enllaç de descàrrega d'un sol ús (millora opcional) | — |
 | S-M02-02 | Termini de pagament d'una inscripció (72 hores) | — |
 | S-M09-02, 05, 09 | Criteri «per participants»; durada del període; pagament a la federació com a «taxa» | — |
+| S-M09-15 | Tancar un període amb excepcions documentades i quins elements es poden portar al període següent | — (es construeix permès) |
 | M09-13 dubte 3 | Reforç confirmat després del tancament econòmic | — |
 | M09-ajuts-13 dubte 2 | Com es registra el reintegrament d'un ajut | — |
 | S-M09A-07 | Per a cada convocatòria, si l'organisme accepta comprovants amb l'IBAN emmascarat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | — (es fa servir la còpia emmascarada) |
@@ -4793,6 +4822,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M09-10, 11, 12 | Informes de l'assemblea; hores de voluntariat; pressupostos | — |
 | S-M09A-01, 02, 03 | Responsable dels ajuts, convocatòries que s'han de vigilar, qui rep els avisos | Fer servir l'apartat d'ajuts |
 | S-M09A-04, 05; M09-ajuts-13 dubte 3 | Avisos abans de justificar; format de cada organisme; renúncia a un ajut concedit | — |
+| S-M09A-09 | Dies dels avisos d'un requeriment d'esmena | — |
 | S-M06-01 | Recàrrec dels no socis i activació de l'opció | 06: llicències per a no socis |
 | S-M06-05, 07, 08, 10 | Qui manté els preus; llicència d'un dia sense inscripció; no soci que es fa soci; departament de les llicències (Q-19) | — |
 | M06-13 dubte 2 | Data de naixement si la federació la demana (Q-09, P-33) | — |
@@ -4809,6 +4839,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | M05b-12 | Informació a Hisenda dels cobraments per Bizum | — |
 | S-M05a-08 | Proves de la signatura electrònica del mandat (també banc) | — |
 | M03-12 | Acord de tractament amb els centres de busseig si reben dades personals | 03: llista de lloguer amb noms |
+| S-M09A-08 | Termini legal per respondre un requeriment d'esmena d'un ajut i si es compta en dies hàbils | — (la data límit l'escriu la persona) |
 | RN-M06-05, RN-M06-10; S-M06-11; S-M09-14 | Com es comptabilitzen els diners d'una llicència que el club cobra i després paga a la FECDAS: ingrés i despesa del club (el que suposa ara el 09) o diners de tercers (cobrament per compte de la federació, fora d'ingressos i despeses) | 06 i 09: producció (es construeix amb el supòsit) |
 | RN-T31 ([053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md)) | Si és correcte comptabilitzar al període obert un moviment d'origen extern que arriba després del tancament (pagament, devolució, retorn, comissió, remesa, liquidació), amb la data de valor original guardada a part; si els traspassos i els arqueigs han de seguir la mateixa regla; si l'exportació per a la gestoria (P-M04-G) ha de portar les dues dates | — (es construeix així; l'exportació porta les dues dates) |
 
@@ -4872,7 +4903,7 @@ Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, ag
 | 8 | **Matriu de rols** | Validar els 13 rols i les matrius dels mòduls (rols nous: Junta, Resp. comunicació i Resp. botiga); què veu l'instructor; quins imports veu el responsable; qui fa inscripcions presencials, assigna material i registra despeses; qui atén l'RGPD; conflicte d'interès; qui manté departaments i desfà conciliacions; què veu la secretaria del mètode de pagament; qui reenvia l'alternativa; qui manté els preus de les llicències | Aprovar les matrius tal com són, amb els supòsits per defecte: l'instructor veu nom, titulació, llicència sí o no i assistència; el responsable veu tots els imports cobrats i el marge de les seves activitats; la secretaria no fa inscripcions presencials; el responsable de cursos no assigna material però registra despeses de les seves activitats; l'administrador atén l'RGPD i manté departaments; ningú no aprova ni canvia el seu propi soci; la secretaria només veu «té mètode: sí o no»; tresorer i secretaria reenvien l'alternativa; el tresorer manté els preus de les llicències; qui puja una factura des del mòbil no la torna a obrir (només tresorer i junta, 051) | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01; RN-M09-23 |
 | 9 | **Comissió de retorn** | Qui paga la comissió del banc quan es retorna un rebut domiciliat | La paga el club d'inici; es revisa si els retornats augmenten. L'import és [A verificar: banc] | S-M05b-08 |
 | 10 | **Carnet amb una quota retornada** | Si el carnet continua vàlid mentre la quota retornada no es paga | No és vàlid fins que es pagui (el soci rep l'alternativa de pagament) | S-M05b-09 |
-| 11 | **Ajuts: responsable i convocatòries** | Qui és el responsable dels ajuts i de cada sol·licitud; quines convocatòries s'han de vigilar; qui rep els avisos; avisos abans de justificar; format de justificació de cada organisme | Responsable per defecte: el tresorer, amb una persona de la junta per a medi ambient; començar per les convocatòries que el club ja ha demanat; avisos al responsable i al tresorer; sí, avisos també abans de justificar; paquet genèric fins que un organisme en demani un altre | S-M09A-01 a 05 |
+| 11 | **Ajuts: responsable i convocatòries** | Qui és el responsable dels ajuts i de cada sol·licitud; quines convocatòries s'han de vigilar; qui rep els avisos; avisos abans de justificar; format de justificació de cada organisme; dies dels avisos d'un requeriment d'esmena | Responsable per defecte: el tresorer, amb una persona de la junta per a medi ambient; començar per les convocatòries que el club ja ha demanat; avisos al responsable i al tresorer; sí, avisos també abans de justificar; paquet genèric fins que un organisme en demani un altre; requeriment: avís immediat i 7 i 2 dies abans de la data límit | S-M09A-01 a 05, 09 |
 | 12 | **Llicències** | Recàrrec dels no socis i quan s'activa l'opció; departament de les llicències; llicència d'un dia sense inscripció; persona de fora que es fa sòcia; comissió del cobrament de la llicència d'un soci | Fixar el recàrrec quan la FECDAS doni els preus i activar l'opció quan la junta ho decideixi; «General / Llicències»; sí, sense inscripció; cap retorn; el club assumeix la comissió d'inici | S-M06-01, 07, 08, 10; S-M04-07; dubte 4 de [M06-13](#M06-13-riscos) |
 | 13 | **Departaments, marge i informes** | Llista de departaments i centres de cost; ingrés de les quotes a «General / Quotes de socis»; llindar de marge baix; si el marge per departament inclou els costos generals; informes de l'assemblea; hores de voluntariat; pressupostos; qui reobre un període tancat i si el tresorer ho ha de poder demanar | La junta dona la llista (d'inici, «General» i els departaments que avui demanen ajuts); quotes a «General / Quotes de socis»; llindar 0 €; mostrar marges i costos generals per separat; informes en CSV; hores sense valorar en euros; pressupostos més endavant; només l'administrador reobre, amb motiu i avís per correu al tresorer i a la junta, i el tresorer no ho demana a la plataforma | Q-17; S-M04-01, 06; S-M09-04, 06, 07, 10, 11, 12, 13 |
 | 14 | **Activitats: altres** | Avís o bloqueig si no es compleixen els requisits; tipus de sortida propis; dades ambientals; protocol d'accidents i contacte d'emergència; drets del simpatitzant | Avís, no bloqueig; Sèniors i jornades obertes com a tipus desactivables; residus en kg, espècies, observacions i fotos; protocol fora de la plataforma; els simpatitzants tenen els mateixos drets al 01 | S-M02-01, 12, 14, 20; S-M01-11 |
