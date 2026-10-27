@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web pública — wireframe C.R.I.S.</title>
+<script>
+/* Tema desat: s'aplica abans de pintar la pàgina */
+(function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ---------- Estructura general (mòbil primer en CSS; disseny pensat per a escriptori) ---------- */
+.contenidor { max-width: var(--amplada-max); margin: 0 auto; padding: 0 var(--e-4); }
+.seccio { padding: var(--e-7) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
+.seccio-alterna { background: var(--c-superficie-2); }
+.grup-botons { display: flex; flex-wrap: wrap; gap: var(--e-3); margin-top: var(--e-4); }
+.entradeta { font-size: var(--t-l); color: var(--c-text-2); max-width: var(--amplada-text); }
+.text-llarg { max-width: var(--amplada-text); }
+
+/* ---------- capcalera ---------- */
+.capcalera {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--c-superficie);
+  border-bottom: var(--v-activa) solid var(--c-zona);
+}
+.capcalera-interior {
+  max-width: var(--amplada-max); margin: 0 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2);
+  min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
+}
+.marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); color: var(--c-text); text-decoration: none; }
+.marca img { width: var(--logo-capcalera); height: auto; }
+.marca-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); }
+.capcalera-accions { display: flex; align-items: center; gap: var(--e-2); margin-left: auto; }
+#navegacio-publica { order: 3; flex-basis: 100%; }
+
+.nav-llista { display: none; list-style: none; }
+.capcalera.menu-obert .nav-llista { display: grid; gap: var(--e-1); padding: var(--e-2) 0 var(--e-3); }
+.nav-llista a, .boto-mes {
+  display: flex; align-items: center; gap: var(--e-1);
+  min-height: var(--tactil); padding: 0 var(--e-3);
+  border: 0; border-radius: var(--r-m); background: transparent;
+  color: var(--c-text); font: inherit; font-weight: var(--p-semi); text-decoration: none; cursor: pointer;
+}
+/* Element actiu: barra groga + negreta + fons de zona (mai només color) */
+.nav-llista a[aria-current="page"] {
+  font-weight: var(--p-negreta); background: var(--c-zona-fons);
+  box-shadow: inset var(--v-activa) 0 0 var(--c-accent);
+}
+.boto-mes { display: none; }
+.nav-sub { list-style: none; display: grid; gap: var(--e-1); }
+.nomes-escriptori, .no-mobil { display: none; }
+
+/* ---------- portada ---------- */
+.portada-graella { display: grid; gap: var(--e-5); }
+.caixa-alta { min-height: calc(var(--e-8) * 4); }
+
+/* ---------- properes-activitats ---------- */
+.graella-activitats { display: grid; gap: var(--e-4); list-style: none; margin-top: var(--e-5); }
+.activitat { display: grid; gap: var(--e-3); padding: 0; overflow: hidden; }
+.activitat .caixa-imatge { border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
+.activitat-cos { padding: 0 var(--e-4) var(--e-4); display: grid; gap: var(--e-2); }
+.activitat-cos h3, .activitat-cos p { margin: 0; }
+.fila-meta { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+
+/* ---------- qui-som i medi-ambient ---------- */
+.bloc-mitja { display: grid; gap: var(--e-5); align-items: center; }
+.xifres { display: grid; gap: var(--e-3); list-style: none; margin-top: var(--e-4); }
+.xifres li { padding: var(--e-3); border-left: var(--v-activa) solid var(--c-zona); background: var(--c-superficie); }
+.xifres strong { display: block; font-family: var(--f-titol); font-size: var(--t-xl); }
+.llista-punts { padding-left: var(--e-5); display: grid; gap: var(--e-2); }
+
+/* ---------- fer-se-soci ---------- */
+.graella-quotes { display: grid; gap: var(--e-4); margin-top: var(--e-5); }
+.quota { display: grid; gap: var(--e-3); border-top: var(--v-activa) solid var(--c-zona); }
+.quota h3 { margin: 0; }
+.preu { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-2); }
+.preu-xifra { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-3xl); line-height: var(--a-titol); }
+.nota-pagament { margin-top: var(--e-5); }
+
+/* ---------- contacte ---------- */
+.graella-contacte { display: grid; gap: var(--e-5); margin-top: var(--e-5); }
+.dades-contacte { display: grid; gap: var(--e-3); }
+.dades-contacte dt { font-weight: var(--p-semi); }
+.dades-contacte dd { margin: 0 0 var(--e-2); }
+.formulari { display: grid; gap: var(--e-4); }
+
+/* ---------- peu ---------- */
+.peu { background: var(--c-superficie); border-top: var(--v-activa) solid var(--c-zona); padding: var(--e-7) 0 var(--e-5); }
+.peu-graella { display: grid; gap: var(--e-5); }
+.peu h2 { font-size: var(--t-l); }
+.peu ul { list-style: none; display: grid; gap: var(--e-1); }
+.peu a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.peu-marca img { width: var(--logo-peu); height: auto; margin-bottom: var(--e-3); }
+.peu-legal { margin-top: var(--e-5); padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); font-size: var(--t-s); color: var(--c-text-2); }
+
+/* ==================== Tauleta: 600–1023 px ==================== */
+@media (min-width: 600px) {
+  .contenidor, .capcalera-interior { padding-left: var(--e-5); padding-right: var(--e-5); }
+  .capcalera-interior { flex-wrap: nowrap; }
+  #navegacio-publica { order: 0; flex-basis: auto; margin-left: auto; }
+  .boto-menu { display: none; }
+  .no-mobil { display: inline-flex; }
+  .capcalera-accions { margin-left: 0; }
+
+  .nav-llista, .capcalera.menu-obert .nav-llista {
+    display: flex; align-items: center; gap: var(--e-1); padding: var(--e-1);
+    border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-pastilla);
+    background: var(--c-superficie-2);
+  }
+  .nav-llista a, .boto-mes { border-radius: var(--r-pastilla); }
+  .nav-llista a[aria-current="page"] { box-shadow: inset 0 calc(-1 * var(--v-activa)) 0 var(--c-accent); }
+  .nav-mes { position: relative; }
+  .boto-mes { display: flex; }
+  .nav-sub {
+    display: none; position: absolute; right: 0; top: calc(100% + var(--e-2));
+    min-width: calc(var(--e-8) * 3); padding: var(--e-2);
+    background: var(--c-superficie); border: var(--v-fina) solid var(--c-linia);
+    border-radius: var(--r-m); box-shadow: var(--ombra);
+  }
+  .nav-mes.obert .nav-sub { display: grid; }
+  .nav-sub a { border-radius: var(--r-m); }
+
+  .seccio { padding: var(--e-8) 0; }
+  .graella-activitats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xifres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .graella-quotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .graella-contacte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .peu-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ==================== Escriptori: 1024 px o més ==================== */
+@media (min-width: 1024px) {
+  .contenidor, .capcalera-interior { padding-left: var(--e-6); padding-right: var(--e-6); }
+  #navegacio-publica { margin-left: auto; margin-right: auto; }
+  .nav-mes, .nav-sub, .nav-mes.obert .nav-sub { display: contents; }
+  .boto-mes, .nav-socis { display: none; }
+  .nomes-escriptori { display: inline-flex; }
+
+  .portada-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
+  .graella-activitats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bloc-mitja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bloc-invers > :first-child { order: 2; }
+  .graella-quotes { max-width: calc(var(--amplada-max) * 2 / 3); }
+  .peu-graella { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body class="zona-publica">
+<a class="salt" href="#contingut">Salta al contingut</a>
+<p class="nota-wireframe">Wireframe de baixa fidelitat · estructura, no disseny final · dades inventades</p>
+
+<header id="capcalera" class="capcalera">
+  <div class="capcalera-interior">
+    <a class="marca" href="#portada">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <span class="marca-nom">C.R.I.S.</span>
+    </a>
+
+    <nav id="navegacio-publica" aria-label="Navegació principal">
+      <ul class="nav-llista" id="nav-llista">
+        <li><a href="#portada" aria-current="page">Inici</a></li>
+        <li><a href="#properes-activitats">Activitats</a></li>
+        <li><a href="#qui-som">Qui som</a></li>
+        <li class="nav-mes">
+          <button class="boto-mes" type="button" aria-expanded="false" aria-controls="nav-sub">Més <span aria-hidden="true">▾</span></button>
+          <ul class="nav-sub" id="nav-sub">
+            <li><a href="#medi-ambient">Medi ambient</a></li>
+            <li><a href="#fer-se-soci">Fer-se soci</a></li>
+            <li><a href="#contacte">Contacte</a></li>
+            <li class="nav-socis"><a href="socis.html">Àrea de socis</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="capcalera-accions">
+      <button class="boto boto-petit boto-tema" type="button" data-boto-tema><span aria-hidden="true">◐</span> <span data-nom-tema>Sistema</span></button>
+      <a class="boto boto-petit boto-text nomes-escriptori" href="socis.html">Àrea de socis</a>
+      <a class="boto boto-petit boto-principal no-mobil" href="#fer-se-soci">Fes-te soci</a>
+      <button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="nav-llista"><span aria-hidden="true">☰</span> Menú</button>
+    </div>
+  </div>
+</header>
+
+<main id="contingut">
+
+  <section id="portada" class="seccio" aria-labelledby="portada-titol">
+    <div class="contenidor portada-graella">
+      <div>
+        <span class="etiqueta-seccio">Club de busseig · Barcelona</span>
+        <h1 id="portada-titol">Bussegem junts des de 1954</h1>
+        <p class="entradeta">Cursos, sortides i un club per compartir el mar amb seguretat.</p>
+        <div class="grup-botons">
+          <a class="boto boto-principal" href="#properes-activitats">Veure les activitats</a>
+          <a class="boto" href="#fer-se-soci">Fes-te soci</a>
+        </div>
+      </div>
+      <div class="caixa-imatge caixa-alta">Imatge de portada: una immersió del club</div>
+    </div>
+  </section>
+
+  <section id="properes-activitats" class="seccio seccio-alterna" aria-labelledby="activitats-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Agenda</span>
+      <h2 id="activitats-titol">Properes activitats</h2>
+      <p class="text-llarg text-2">Sense compte? T'hi pots inscriure com a convidat i pagar amb un enllaç segur.</p>
+      <ul class="graella-activitats">
+        <li>
+          <article class="targeta activitat" id="activitat-1">
+            <div class="caixa-imatge">Imatge de la sortida</div>
+            <div class="activitat-cos">
+              <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Places lliures</span></div>
+              <h3>Illes Medes</h3>
+              <p class="text-2">Dissabte 15/11/2026 · L'Estartit</p>
+              <p>Queden <strong>3 de 12</strong> places</p>
+              <a class="boto boto-principal" href="#">Inscriu-t'hi</a>
+            </div>
+          </article>
+        </li>
+        <li>
+          <article class="targeta activitat" id="activitat-2">
+            <div class="caixa-imatge">Imatge del curs</div>
+            <div class="activitat-cos">
+              <div class="fila-meta"><span class="xip">Curs</span><span class="estat estat-avis"><span aria-hidden="true">!</span> Últimes places</span></div>
+              <h3>Curs d'iniciació al busseig</h3>
+              <p class="text-2">Del 20/11 al 11/12/2026 · Piscina i mar</p>
+              <p>Queden <strong>1 de 8</strong> places</p>
+              <a class="boto boto-principal" href="#">Inscriu-t'hi</a>
+            </div>
+          </article>
+        </li>
+        <li>
+          <article class="targeta activitat" id="activitat-3">
+            <div class="caixa-imatge">Imatge de la sortida</div>
+            <div class="activitat-cos">
+              <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-error"><span aria-hidden="true">✕</span> Completa</span></div>
+              <h3>Tossa de Mar</h3>
+              <p class="text-2">Diumenge 30/11/2026 · Tossa de Mar</p>
+              <p>Queden <strong>0 de 10</strong> places</p>
+              <a class="boto" href="#" aria-disabled="true">Sense places</a>
+            </div>
+          </article>
+        </li>
+      </ul>
+      <p><a class="boto boto-text" href="#">Veure totes les activitats</a></p>
+    </div>
+  </section>
+
+  <section id="qui-som" class="seccio" aria-labelledby="qui-som-titol">
+    <div class="contenidor bloc-mitja">
+      <div>
+        <span class="etiqueta-seccio">El club</span>
+        <h2 id="qui-som-titol">Qui som</h2>
+        <p class="text-llarg">Text de mostra: un club de Barcelona que forma bussejadors i organitza sortides des de fa dècades.</p>
+        <p class="text-llarg text-2">Text de mostra: socis, instructors i voluntaris que comparteixen el mar.</p>
+        <ul class="xifres">
+          <li><strong>1954</strong> Any de fundació</li>
+          <li><strong>Cursos</strong> Per a tots els nivells</li>
+          <li><strong>Sortides</strong> Durant tot l'any</li>
+        </ul>
+      </div>
+      <div class="caixa-imatge caixa-alta">Imatge del grup del club</div>
+    </div>
+  </section>
+
+  <section id="medi-ambient" class="seccio seccio-alterna" aria-labelledby="medi-titol">
+    <div class="contenidor bloc-mitja bloc-invers">
+      <div>
+        <span class="etiqueta-seccio">Compromís</span>
+        <h2 id="medi-titol">Medi ambient</h2>
+        <p class="text-llarg">Text de mostra: bussejar respectant el fons marí i ajudar a conservar-lo.</p>
+        <ul class="llista-punts">
+          <li>Bones pràctiques sota l'aigua</li>
+          <li>Activitats de neteja <span class="a-validar">A validar</span></li>
+          <li>Col·laboracions amb entitats <span class="a-validar">A validar</span></li>
+        </ul>
+      </div>
+      <div class="caixa-imatge caixa-alta">Imatge del fons marí</div>
+    </div>
+  </section>
+
+  <section id="fer-se-soci" class="seccio" aria-labelledby="soci-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Quotes</span>
+      <h2 id="soci-titol">Fes-te soci</h2>
+      <p class="text-llarg text-2">Quotes d'exemple del context v4. <span class="a-validar">A validar</span></p>
+      <div class="graella-quotes">
+        <article class="targeta quota" id="quota-simpatitzant">
+          <h3>Simpatitzant</h3>
+          <p class="preu"><span class="preu-xifra">35 €</span> <span class="text-2">l'any</span> <span class="a-validar">A validar</span></p>
+          <p>Què inclou: <span class="a-validar">A validar</span></p>
+          <a class="boto" href="#">Alta com a simpatitzant</a>
+        </article>
+        <article class="targeta quota" id="quota-ple-dret">
+          <h3>Ple dret</h3>
+          <p class="preu"><span class="preu-xifra">90 €</span> <span class="text-2">l'any</span> <span class="a-validar">A validar</span></p>
+          <p>Què inclou: <span class="a-validar">A validar</span></p>
+          <a class="boto" href="#">Alta de ple dret</a>
+        </article>
+      </div>
+      <div class="avis nota-pagament">
+        <strong>Com es paga la quota</strong>
+        Per domiciliació SEPA (per defecte), targeta, Bizum o transferència.
+      </div>
+      <div class="grup-botons"><a class="boto boto-principal" href="#">Comença l'alta</a></div>
+    </div>
+  </section>
+
+  <section id="contacte" class="seccio seccio-alterna" aria-labelledby="contacte-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Parlem</span>
+      <h2 id="contacte-titol">Contacte</h2>
+      <div class="graella-contacte">
+        <div class="dades-contacte">
+          <dl>
+            <dt>Adreça</dt><dd><span class="a-validar">A validar</span></dd>
+            <dt>Correu</dt><dd><a href="mailto:cris@cris.es">cris@cris.es</a></dd>
+            <dt>Horari del local</dt><dd><span class="a-validar">A validar</span></dd>
+          </dl>
+          <div class="caixa-imatge">Mapa de situació</div>
+        </div>
+        <form class="formulari targeta" onsubmit="return false" aria-describedby="nota-formulari">
+          <div class="camp"><label for="f-nom">Nom</label><input id="f-nom" type="text" autocomplete="name"></div>
+          <div class="camp"><label for="f-correu">Correu electrònic</label><input id="f-correu" type="email" autocomplete="email"></div>
+          <div class="camp"><label for="f-missatge">Missatge</label><textarea id="f-missatge" rows="4"></textarea></div>
+          <label class="casella"><input type="checkbox"> <span>He llegit la <a href="#">política de privacitat</a></span></label>
+          <p id="nota-formulari" class="text-2">Wireframe: el formulari no envia res.</p>
+          <button class="boto boto-principal" type="submit">Envia</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer id="peu" class="peu">
+  <div class="contenidor">
+    <div class="peu-graella">
+      <div class="peu-marca">
+        <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+        <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+        <p>Centre de Recuperació i d'Investigacions Submarines</p>
+      </div>
+      <div>
+        <h2>Navega</h2>
+        <ul>
+          <li><a href="#properes-activitats">Activitats</a></li>
+          <li><a href="#qui-som">Qui som</a></li>
+          <li><a href="#fer-se-soci">Fer-se soci</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Contacte</h2>
+        <ul>
+          <li><a href="mailto:cris@cris.es">cris@cris.es</a></li>
+          <li><a href="socis.html">Àrea de socis</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="#">Avís legal</a></li>
+          <li><a href="#">Política de privacitat</a></li>
+          <li><a href="#">Galetes</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="peu-legal">© 2026 C.R.I.S. · cris1954.cat</p>
+  </div>
+</footer>
+
+<script>
+/* Tema: Sistema → Clar → Fosc; es recorda a localStorage («cris-tema») */
+(function () {
+  var ordre = ['sistema', 'light', 'dark'];
+  var noms = { sistema: 'Sistema', light: 'Clar', dark: 'Fosc' };
+  var arrel = document.documentElement;
+  function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
+  function aplica(t) {
+    try {
+      if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
+      else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
+    } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
+    document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
+      b.querySelector('[data-nom-tema]').textContent = noms[t];
+      b.setAttribute('aria-label', 'Tema: ' + noms[t] + '. Prem per canviar-lo');
+    });
+  }
+  document.querySelectorAll('[data-boto-tema]').forEach(function (b) {
+    b.addEventListener('click', function () { aplica(ordre[(ordre.indexOf(actual()) + 1) % ordre.length]); });
+  });
+  aplica(actual());
+})();
+
+/* Menú: hamburguesa al mòbil i «Més» a la tauleta (només clic, mai passar el ratolí) */
+(function () {
+  var capcalera = document.getElementById('capcalera');
+  var botoMenu = capcalera.querySelector('.boto-menu');
+  var botoMes = capcalera.querySelector('.boto-mes');
+  var mes = capcalera.querySelector('.nav-mes');
+  function tanca() {
+    capcalera.classList.remove('menu-obert'); botoMenu.setAttribute('aria-expanded', 'false');
+    mes.classList.remove('obert'); botoMes.setAttribute('aria-expanded', 'false');
+  }
+  botoMenu.addEventListener('click', function () {
+    var obert = capcalera.classList.toggle('menu-obert');
+    botoMenu.setAttribute('aria-expanded', String(obert));
+  });
+  botoMes.addEventListener('click', function () {
+    var obert = mes.classList.toggle('obert');
+    botoMes.setAttribute('aria-expanded', String(obert));
+  });
+  capcalera.querySelectorAll('.nav-llista a').forEach(function (a) { a.addEventListener('click', tanca); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tanca(); });
+})();
+</script>
+</body>
+</html>

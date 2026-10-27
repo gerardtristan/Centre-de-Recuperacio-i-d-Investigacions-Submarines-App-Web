@@ -1,7 +1,7 @@
 # 009 — Sistema de disseny
 
 - **Data:** 27/10/2026
-- **Estat:** Proposada: no hi ha cap document d'origen que fixi el sistema de disseny
+- **Estat:** Substituïda per [030](030-sistema-de-disseny.md)
 
 ## Context
 L'encàrrec demana registrar la decisió sobre el sistema de disseny. Als documents revisats només consta:

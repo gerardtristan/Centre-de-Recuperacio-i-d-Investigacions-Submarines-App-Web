@@ -16,7 +16,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [006](006-copies-de-seguretat.md) | Còpies de seguretat creuades i xifrades | Acceptada |
 | [007](007-pagaments-stripe.md) | Pagaments amb Stripe més transferència i registre manual | Substituïda per 014 i 017 |
 | [008](008-metodologia-sdd.md) | Metodologia Spec-Driven Development | Acceptada |
-| [009](009-sistema-de-disseny.md) | Sistema de disseny | Proposada (sense document d'origen) |
+| [009](009-sistema-de-disseny.md) | Sistema de disseny | Substituïda per 030 |
 | [010](010-entorns.md) | Tres entorns i VPS de proves separat | Acceptada |
 | [011](011-monitoratge-i-errors.md) | Monitoratge de disponibilitat i seguiment d'errors | Acceptada (regió del seguiment d'errors [A validar]) |
 | [012](012-cua-de-tasques.md) | Cua de tasques sobre PostgreSQL | Acceptada |
@@ -37,5 +37,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [027](027-estructura-basica-de-carrec-i-pagament.md) | Estructura bàsica de càrrec i pagament a la 00; la 04 hi construeix al damunt | Acceptada |
 | [028](028-esborrat-rgpd-i-registre-d-activitat.md) | Esborrat RGPD: anonimitzar, bloquejar el que obliga la llei i referència anònima al registre | Acceptada (terminis [A validar amb la gestoria]) |
 | [029](029-compte-personal.md) | «Compte personal» en lloc de «compte de soci» | Acceptada |
+| [030](030-sistema-de-disseny.md) | Sistema de disseny: tokens en dos temes, colors per zona, tipografia, punts de canvi i logotips | Acceptada (fletxes, logotip, fonts i pila del frontend [A validar]) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
