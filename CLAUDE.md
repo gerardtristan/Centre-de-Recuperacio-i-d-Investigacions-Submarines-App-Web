@@ -35,7 +35,8 @@ Mòduls: 0 Base comuna, 1 Socis i carnet, 2 Activitats (cursos i sortides), 3 Ma
 - **Fase 2:** 02 Activitats → 03 Material → resta de la 04 (marge, despeses amb factura, ajuts, facturació) → 06 Llicències → 07 Web pública → 08 Dashboard.
 
 Detall de l'abast mínim: `docs/arquitectura-integracions.md` §9.
-Tresoreria (04) va abans de pagaments (05): el model de càrrec, pagament i ingrés viu a 04; la integració amb la passarel·la (Stripe) és a 05.
+Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i pagament (cèntims, estats, mètodes, departament, cap IBAN); la tresoreria (04) hi construeix al damunt (moviments, ingressos, comissions, comptes i conciliació) i va abans de pagaments (05); la integració amb la passarel·la (Stripe) és a 05.
+Duplicar activitats és un servei comú previst a la 00 que es construeix al mòdul 02 (decisió 026).
 Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls); vegeu `docs/decisions/pendents.md`.
 
 ## Regles que sempre s'han de complir
@@ -46,8 +47,9 @@ Nota: el document de funcionalitats fa servir una altra numeració (12 mòduls);
 - Mai dades reals de socis fora de producció: només dades inventades.
 - Cada endpoint exigeix autenticació i permís per defecte; els públics s'han de declarar de manera explícita.
 - Permisos en dos nivells: rol i objecte (el soci només veu el seu; l'instructor només les seves sessions).
-- Cada persona té un únic perfil. Un administrador té dos comptes lligats al perfil: soci (entra amb correu únic, recupera i verifica per correu) i administrador (entra amb nom d'usuari únic per l'entrada separada; pot tenir diversos rols; correu no únic i només per a notificacions; **mai** recupera la contrasenya per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció (decisions 015 i 018).
-- Doble factor (TOTP) obligatori per a qualsevol compte que entri per l'administració (inclosos instructor i Departament d'Història) i per als comptes d'emergència; opcional per als comptes de soci.
+- Cada persona té un únic perfil. Un administrador té dos comptes lligats al perfil: personal (abans «compte de soci», decisió 029; entra amb correu únic, recupera i verifica per correu) i administrador (entra amb nom d'usuari únic per l'entrada separada; pot tenir diversos rols; correu no únic i només per a notificacions; **mai** recupera la contrasenya per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció (decisions 015 i 018).
+- Doble factor (TOTP) obligatori per a qualsevol compte que entri per l'administració (inclosos instructor i Departament d'Història) i per als comptes d'emergència; opcional per als comptes personals.
+- Esborrar les dades d'una persona (RGPD) vol dir desactivar-ne els comptes i anonimitzar-ne les dades personals; les que la llei obliga a conservar (factures i cobraments) es bloquegen fins al final del termini legal i després es destrueixen; al registre d'activitat, el que identifica la persona se substitueix per una referència anònima (decisió 028).
 - Domini de la plataforma: cris1954.cat. Remitent dels correus a cris1954.cat amb resposta a cris@cris.es (decisió 019).
 - Registre d'activitat (qui, quan, què, valor anterior) en dades de socis i diners.
 - Secrets fora del repositori. Cap clau ni contrasenya al codi, als registres ni als exemples.

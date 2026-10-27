@@ -68,7 +68,7 @@
 | Flux | Recorregut | Regla clau |
 |---|---|---|
 | Web pública | Navegador → Cloudflare Pages (HTML estàtic) → API per a llistats i formularis | Pages no guarda dades personals |
-| Àrea de socis i administració | PWA → API Django (sessió) → PostgreSQL | Permís per rol i per objecte a cada endpoint; TOTP per a rols amb diners o dades de socis |
+| Àrea de socis i administració | PWA → API Django (sessió) → PostgreSQL | Permís per rol i per objecte a cada endpoint; TOTP obligatori per a qualsevol compte que entri per l'administració ([018](decisions/018-perfil-comptes-i-rols.md)) |
 | Fitxers | Pujada: navegador → API (valida tipus, mida i permís) → bucket privat. Descàrrega: API comprova el permís → URL signada de curta durada | Cap bucket públic amb dades personals |
 | Correu | Esdeveniment → tasca a la cua → comptador diari → Brevo | Reserva per als transaccionals; el butlletí en tandes |
 | Pagament | Càrrec pendent → sessió de Stripe → el participant paga al formulari de Stripe → **webhook signat** → tasca idempotent → pagament confirmat → ingrés i comissió a tresoreria | El navegador mai confirma un pagament |
@@ -185,7 +185,7 @@ Les devolucions no retornen la comissió: la despesa es manté.
 
 ## 4. Fluxos de cada mètode de pagament
 
-### 4.1 Model comú (viu al mòdul 04, tresoreria)
+### 4.1 Model comú (estructura bàsica a la 00; la 04, tresoreria, hi construeix al damunt: [027](decisions/027-estructura-basica-de-carrec-i-pagament.md))
 - **Càrrec** (quota, inscripció o llicència): import en cèntims, moneda EUR, departament, activitat (si n'hi ha) i estat `pendent → pagat → retornat`, o `anul·lat` (amb motiu).
 - **Pagament**: lligat a un càrrec, amb el mètode (`sepa`, `targeta`, `bizum`, `transferencia`, `manual`), l'import, l'estat del proveïdor i els identificadors externs (o la referència de transferència).
 - **Moviment de tresoreria**: immutable. Cada cobrament genera un ingrés; cada comissió, una despesa del mateix departament o activitat ([013](decisions/013-imputacio-comissions.md)); cada devolució o retorn, un moviment nou de signe contrari. No s'esborra res.

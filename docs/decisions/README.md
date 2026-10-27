@@ -33,5 +33,9 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [023](023-gestio-del-dns.md) | Gestió del DNS i de les credencials dels dominis | Proposada |
 | [024](024-abast-minim-i-ordre-per-deixar-cluber.md) | Abast mínim i ordre de construcció per deixar Cluber (05a/05b) | Acceptada (mode real del 05a: vegeu 025) |
 | [025](025-dos-nivells-de-produccio.md) | Dos nivells de producció: mandats (05a) i producció completa (05b) | Acceptada (porta 3 per nivells fixada; clau del nivell 1 [A validar amb Stripe]) |
+| [026](026-duplicar-activitats-al-modul-02.md) | Duplicar activitats es construeix al mòdul 02 | Acceptada |
+| [027](027-estructura-basica-de-carrec-i-pagament.md) | Estructura bàsica de càrrec i pagament a la 00; la 04 hi construeix al damunt | Acceptada |
+| [028](028-esborrat-rgpd-i-registre-d-activitat.md) | Esborrat RGPD: anonimitzar, bloquejar el que obliga la llei i referència anònima al registre | Acceptada (terminis [A validar amb la gestoria]) |
+| [029](029-compte-personal.md) | «Compte personal» en lloc de «compte de soci» | Acceptada |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
