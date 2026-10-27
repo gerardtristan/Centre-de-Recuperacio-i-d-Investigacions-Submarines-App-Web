@@ -57,5 +57,8 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [047](047-planning-font-unica-de-l-especificacio.md) | `docs/planning.md` és la font única de l'especificació de cada mòdul | Acceptada (amplia la 008) |
 | [048](048-reobrir-carrec-retornat.md) | Reobrir un càrrec retornat (retornat → pendent) en reintentar-lo o oferir l'alternativa | Acceptada (amplia RN-67 de la spec 00) |
 | [049](049-peces-noves-a-moduls-aprovats-per-al-02.md) | Dues peces noves a mòduls aprovats per al 02: lectura de la llicència (01) i esdeveniment «càrrec pagat» (05b) | Acceptada (amplia el M01 i el M05b sense canviar-ne les regles) |
+| [050](050-addenda-tresoreria-despeses-ingressos-i-periodes.md) | Addenda de la 04: despeses, altres ingressos, anul·lació i bloqueig de període tancat | Acceptada (addenda del M04 sense canviar-ne les regles) |
+| [051](051-abast-de-la-044-i-documents-de-justificacio.md) | Abast de la 044 i documents de justificació amb IBAN (còpia emmascarada) | Acceptada (aclareix la 044 sense modificar-la) |
+| [052](052-llicencia-font-unica-al-06.md) | La llicència té una sola font, el 06; el 01 en guarda una còpia de lectura | Acceptada (addenda del M01 sense canviar-ne les regles) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

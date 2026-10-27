@@ -12,12 +12,12 @@
 | Núm. | Mòdul | Fase | Depèn de | Font de l'especificació | Estat al pla |
 |---|---|---|---|---|---|
 | **00** | Base comuna | 1 | — | [spec 00](../specs/00-base-comuna/spec.md) v2 (fins que el 00 tingui secció aquí) | pendent (el 01 en defineix la part que necessita) |
-| **01** | [Socis i carnet digital](#M01) | 1 | 00 | Aquest pla ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | **aprovat** |
-| **02** | [Activitats (cursos i sortides)](#M02) | 2 | 00, 01, 04, 05b | Aquest pla | **escrit** |
+| **01** | [Socis i carnet digital](#M01) | 1 | 00 | Aquest pla ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | **aprovat** (addendes de la 049 i la 052) |
+| **02** | [Activitats (cursos i sortides)](#M02) | 2 | 00, 01, 04, 05b (06 quan existeixi) | Aquest pla | **escrit** |
 | **03** | [Material](#M03) | 2 | 00, 02 | Aquest pla | **escrit** |
-| **04** | [Tresoreria, part mínima](#M04) | 1 | 00, 01 | Aquest pla (la spec 04 v2 és a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md)) | **aprovat** |
+| **04** | [Tresoreria, part mínima](#M04) | 1 | 00, 01 | Aquest pla (la spec 04 v2 és a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md)) | **aprovat** (addenda de la 050) |
 | **05a** | [Alta del mètode de pagament i mandats](#M05a) | 1 | 01, 04 | Aquest pla | **aprovat** |
-| **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** |
+| **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** (ampliat per la 049) |
 | **06** | [Llicències](#M06) | 2 | 01, 05b | Aquest pla | **escrit** |
 | **07** | Web pública | 2 | 01, 02 | — | pendent |
 | **08** | Dashboard | 2 | 01, 02, 04, 09 | — | pendent |
@@ -30,6 +30,10 @@
 **Regles de la numeració** (fixada el 27/10/2026 pel responsable del projecte)
 - Cap mòdul no canvia de número. Un mòdul nou s'afegeix al final (14, 15…).
 - La web instal·lable ([041](decisions/041-web-installable-i-avisos-sense-push.md)) no és un mòdul: va amb la interfície des del 01.
+- **Dependències sense cicles entre el 01, el 02, el 05b i el 06** (revisat el 27/10/2026, [052](decisions/052-llicencia-font-unica-al-06.md)). Una fletxa vol dir «crida serveis de»:
+  - 02 → 01, 05b i 06 (quan existeixi); 06 → 01 i 05b; 05b → 01; el 01 no crida cap d'aquests tres.
+  - El 05b avisa el 02 i el 06 amb l'esdeveniment `charge.paid`, i el 06 avisa el 01 amb els esdeveniments de llicència. Els esdeveniments passen pel mecanisme de la 00 ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)): qui emet no importa el codi de qui els rep, per tant no fan cicle.
+  - Fora d'aquest grup, el 01 i la 04 ja es criden en tots dos sentits (`treasury.transfer_reference` i `members.on_fee_paid`), tal com es van aprovar; no s'ha tocat.
 - Les decisions existents no s'editen. On diguin «resta de la 04» (per exemple, la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), la [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) o la spec 04 arxivada), vol dir el **09**. On diguin «mòdul 05» sense lletra, vol dir el 05a i el 05b junts.
 
 <a id="numeracio"></a>
@@ -75,9 +79,11 @@
    12. [Seguretat i RGPD](#M01-12-seguretat)
    13. [Riscos, supòsits i dubtes](#M01-13-riscos)
    14. [Què cal aprovar abans de començar](#M01-14-aprovar)
+   - [Addenda de la 052: còpia de lectura de la llicència](#M01-addenda-052)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
+   - [Addenda de la 050: despeses, altres ingressos, anul·lació i període tancat](#M04-addenda-050)
 8. [Mòdul 05a — Alta del mètode de pagament i mandats](#M05a) · [resum](#M05a-resum)
    1. [Intenció](#M05a-1-intencio) · 2. [Dependències](#M05a-2-dependencies) · 3. [Capacitats](#M05a-3-capacitats) · 4. [Rols](#M05a-4-rols) · 5. [Processos](#M05a-5-processos) · 6. [Entitats](#M05a-6-entitats) · 7. [Regles](#M05a-7-regles)
    8. [Serveis](#M05a-8-serveis) · 9. [Criteris](#M05a-9-criteris) · 10. [Tasques](#M05a-10-tasques) · 11. [Proves](#M05a-11-proves) · 12. [Seguretat](#M05a-12-seguretat) · 13. [Riscos](#M05a-13-riscos) · 14. [Aprovar](#M05a-14-aprovar)
@@ -245,7 +251,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 <a id="M01"></a>
 # Mòdul 01 — Socis i carnet digital
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), sense canviar cap regla.
 
 **Fonts integrades:** el pla M01 del repositori anterior (aprovat amb respostes el 27/10/2026), la [spec 00](../specs/00-base-comuna/spec.md) v2, el document de funcionalitats (F §3 i processos 9.2 a 9.5 i 9.13), el mapa de la plataforma v8 i les decisions 035–047. Per la [047](decisions/047-planning-font-unica-de-l-especificacio.md), aquesta secció **és** l'especificació del M01: no hi ha cap `specs/01-…`.
 
@@ -255,7 +261,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 |---|---|
 | **Intenció** | Tenir els socis, les quotes anuals i el carnet digital a la plataforma, perquè la secretaria deixi Excel i correu, cada soci vegi les seves dades i el seu carnet, i Cluber es pugui deixar. Cap altre mòdul no funciona sense aquest. |
 | **Processos que cobreix** | P-M01-A Alta de soci · P-M01-B Canvi de tipus · P-M01-C Baixa i readmissió · P-M01-D Renovació anual de quotes · P-M01-E Carnet i verificació pública · P-M01-F RGPD: exportar i esborrar · P-M01-G Importació de Cluber en dues fases (F 9.2 a 9.5 i 9.13) |
-| **Tasques** | 30 (T-M01-01 a T-M01-30), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049 |
+| **Tasques** | 31 (T-M01-01 a T-M01-31), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049 i la T-M01-31, la 052 |
 | **Què el bloqueja** | Res per començar. La importació final espera el 05a (nivell 1) i la mostra anonimitzada de Cluber [A validar: tresorer, S-M01-16] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). Continua obert sense bloquejar: la matriu dels 13 rols (junta, P-04) i els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
 
@@ -856,12 +862,46 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 
 **Continua obert, sense bloquejar el començament:** la matriu dels 13 rols de [M01-4](#M01-4-rols) (junta, P-04). Mentre no es validi, els permisos són configurables i les proves per cel·la es regeneren (risc de [M01-13](#M01-13-riscos)).
 
+
+<a id="M01-addenda-052"></a>
+## M01 — Addenda de la [052](decisions/052-llicencia-font-unica-al-06.md): còpia de lectura de la llicència
+
+Aprovada el 27/10/2026. **No canvia cap regla del M01** ni cap fila aprovada de les seccions anteriors: les completa per al moment en què el 06 entri en producció.
+
+**Què passa.** El 06 és l'únic propietari de les llicències i emet els esdeveniments `licence.issued`, `licence.renewed`, `licence.expired` i `licence.cancelled` (mecanisme de la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)). El M01 s'hi subscriu i manté el seu registre mínim (`LicenceRecord`) com a **còpia de lectura**. El M01 no importa cap codi del 06: no hi ha cicle de dependències.
+
+| | Quan el 06 entra en producció |
+|---|---|
+| **Deixa d'existir al M01** | El formulari per crear o editar a mà el registre mínim (a la fila P19, la secretaria passa de «Sí» a «Consulta»); l'origen `manual` per a registres nous |
+| **Es conserva al M01** | El model `LicenceRecord` i RN-M01-29; els registres importats de Cluber i els fets a mà abans del 06; la lectura a la fitxa i al carnet; `members.licence_record` i `members.licence_records` (049), que llegeixen la còpia; l'exportació i l'anonimització RGPD |
+| **S'afegeix al M01** | Camps `licence_ref` (identificador de la llicència del 06, únic, null) i `cancelled_on` (null) a `LicenceRecord`, i l'origen `licences`; el subscriptor dels quatre esdeveniments |
+
+**Regles de la còpia** (noves, no en substitueixen cap)
+| ID | Regla |
+|---|---|
+| RN-M01-35 | Cada esdeveniment de llicència d'un soci crea o actualitza la fila amb el mateix `licence_ref`; si la llicència ve del pas únic del 01 al 06, actualitza la fila d'origen en lloc de crear-ne una de nova ([052](decisions/052-llicencia-font-unica-al-06.md), punt 8) |
+| RN-M01-36 | `licence.cancelled` omple `cancelled_on`; `licence.expired` no canvia res (la caducitat ja surt de la data). Res s'esborra |
+| RN-M01-37 | Un esdeveniment repetit o més antic que la dada que ja hi ha no fa res (idempotent, amb el registre de lliuraments de la 049) |
+| RN-M01-38 | `members.licence_record(person)` torna la fila no cancel·lada amb la data de caducitat més tardana |
+| RN-M01-39 | Les persones que no són sòcies no tenen còpia al M01: la seva llicència només és al 06 |
+
+**Criteris d'acceptació**
+- **CA-M01-26** Donat un soci sense registre, quan arriba `licence.issued`, llavors es crea una fila amb origen `licences` i `members.licence_record` la torna.
+- **CA-M01-27** Donat el mateix esdeveniment repetit, quan arriba de nou, llavors no es crea cap fila ni cap canvi.
+- **CA-M01-28** Donat una llicència cancel·lada, quan arriba `licence.cancelled`, llavors la fila té `cancelled_on` i `members.licence_record` ja no la torna.
+- **CA-M01-29** Donat el 06 en producció, quan la secretaria vol crear o editar a mà un registre mínim, llavors no hi ha formulari i una petició forçada es rebutja.
+
+**Tasca**
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M01-31 | Còpia de lectura de la llicència: camps nous, subscriptor dels esdeveniments del 06 i fi de l'edició manual quan el 06 estigui actiu ([052](decisions/052-llicencia-font-unica-al-06.md)) | S | `apps/members/licences.py`, migració | T-M01-30, T-M05b-21 (mecanisme d'esdeveniments), T-M06-15 | CA-M01-26 a 29; proves del M01 en verd |
+
 ---
 
 <a id="M04"></a>
 # Mòdul 04 — Tresoreria, part mínima
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M04-14](#M04-14-aprovar)).
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M04-14](#M04-14-aprovar)). Ampliat per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) amb una [addenda](#M04-addenda-050) (T-M04-20), sense canviar cap regla.
 
 **Fonts integrades:** la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) v2 (aprovada amb canvis el 27/10/2026), les decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md), l'arquitectura §4 i §9.1 i la [spec 00](../specs/00-base-comuna/spec.md) (RN-60 a RN-76, HU-21). La spec 04 v2 és a l'arxiu des de l'aprovació d'aquesta secció ([047](decisions/047-planning-font-unica-de-l-especificacio.md)).
 
@@ -873,7 +913,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 |---|---|
 | **Intenció** | Que el tresorer sàpiga en tot moment quant hi ha a cada compte, de quin departament és cada euro, què ha arribat al banc i que cap moviment s'ha modificat ni esborrat. És la base dels pagaments (05a i 05b) i del marge (09). |
 | **Processos que cobreix** | P-M04-A Cobrament confirmat → ingrés · P-M04-B Devolució o retorn · P-M04-C Anul·lar un moviment · P-M04-D Traspàs i arqueig · P-M04-E Conciliar l'extracte · P-M04-F Liquidació del proveïdor o de la remesa · P-M04-G Exportar per a la gestoria |
-| **Tasques** | 19 (T-M04-01 a T-M04-19) |
+| **Tasques** | 20 (T-M04-01 a T-M04-20); la T-M04-20 l'afegeix la 050 |
 | **Què el bloqueja** | T-M04-13 (liquidacions) espera el format de PaynoPain (P-45 punt 9) [A verificar]. La conciliació real espera el format de l'extracte [A verificar: banc]; es construeix amb el supòsit CSV |
 | **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-T24 i RN-T25 ([M04-14](#M04-14-aprovar)). Els departaments [A validar: junta] no bloquegen |
 
@@ -1334,6 +1374,41 @@ T-M04-13 és l'única tasca que depèn del proveïdor; la resta es pot fer abans
 | 2 | RN-T24 (trànsit «Remeses SEPA») i RN-T25 (anul·lat derivat) | Aprovades |
 | 3 | S-M04-01 i S-M04-07 | No bloquegen: es comença només amb «General» |
 | 4 | T-M04-13 | Continua esperant P-45 punt 9 [A verificar: PaynoPain] |
+
+
+<a id="M04-addenda-050"></a>
+## M04 — Addenda de la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md): despeses, altres ingressos, anul·lació i període tancat
+
+Aprovada el 27/10/2026 perquè el [09](#M09) pugui registrar els seus moviments sense escriure als models de la 04. **No canvia cap regla existent del M04** ni cap fila aprovada de les seccions anteriors.
+
+**Entitats.** `Movement.kind` admet dos valors nous: `expense` (sortida amb factura, la crea el 09) i `other_income` (entrada que no és un càrrec: ajuts, patrocinis, donatius). Tots dos porten departament obligatori (com RN-T05) i, opcionalment, centre de cost. L'activador «només INSERT» no canvia.
+
+**Regles noves** (no en substitueixen cap)
+| ID | Regla |
+|---|---|
+| RN-T26 | Moviments `expense` i `other_income`: els crea només el 09 amb els serveis d'aquesta addenda; són immutables, amb departament, conciliables i al registre d'activitat com la resta (RN-T05, RN-T07, RN-T13) |
+| RN-T27 | `treasury.reverse` crea el contramoviment de RN-T07; motiu i usuari obligatoris; queda al registre d'activitat. Un moviment només s'anul·la una vegada (la restricció de `reverses` ja ho garanteix) |
+| RN-T28 | **Bloqueig de període tancat, només per als moviments nous:** abans de crear qualsevol moviment (també un contramoviment), la 04 consulta els bloquejos registrats i rebutja la data de valor dins un període tancat (`PeriodClosed`). Els moviments que ja existeixen no canvien mai |
+| RN-T29 | **Corregir un període tancat** = anul·lació i moviment nou, tots dos amb data de valor dins el període obert. El moviment original es queda al període tancat |
+
+**Serveis nous**
+| Servei | Entrada | Sortida | Errors | Qui el fa servir |
+|---|---|---|---|---|
+| `treasury.record_expense(account, amount_cents, value_date, department, cost_centre, concept, actor)` | — | moviment `expense` | `PeriodClosed`, `InvalidDepartment` | 09 |
+| `treasury.record_other_income(account, amount_cents, value_date, department, cost_centre, concept, actor)` | — | moviment `other_income` | `PeriodClosed`, `InvalidDepartment` | 09 |
+| `treasury.reverse(movement, reason, actor)` | moviment, motiu, usuari | contramoviment | `AlreadyReversed`, `PeriodClosed` (si la data de valor de l'anul·lació és en un període tancat) | 09; la pantalla de P-M04-C |
+| `treasury.register_movement_guard(guard)` | funció `guard(value_date) → None o error` | — | — | 09 (bloqueig de període tancat) |
+
+**Criteris d'acceptació**
+- **CA-T18** Donat un moviment `expense` creat, quan s'intenta modificar o esborrar (també amb una consulta directa), llavors es rebutja.
+- **CA-T19** Donat un període tancat fins al dia 31 i un moviment d'aquell període, quan el 09 en fa l'anul·lació amb data de valor del dia 31, llavors es rebutja; amb data del dia 1 del període obert, s'accepta i el moviment original no canvia.
+- **CA-T20** Donat una anul·lació sense motiu, quan es demana, llavors es rebutja; amb motiu, el registre guarda el motiu i l'usuari.
+- **CA-T21** Donat cap bloqueig registrat, quan es crea un moviment, llavors la 04 funciona exactament com abans (les proves del M04 continuen en verd).
+
+**Tasca**
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M04-20 | Addenda [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md): tipus `expense` i `other_income`, `record_expense`, `record_other_income`, `reverse`, `register_movement_guard` | M | `apps/treasury/`, migració | T-M04-19 | CA-T18 a CA-T21; proves del M04 en verd |
 
 ---
 
@@ -2311,7 +2386,8 @@ App `payments` (la mateixa del 05a).
 | Mòdul | Què en fa servir el 02 |
 |---|---|
 | 00 | Persona i dades mínimes del convidat; enllaços de convidat (V-02, RN-30 a RN-33); càrrec de tipus «inscripció» amb activitat i departament (RN-60 a RN-73); departaments; permisos per rol i per objecte (RN-43: l'instructor només veu les seves sessions); registre d'activitat; correu (annex A) i avisos; fitxers privats (annex B) |
-| 01 | `members.is_member(person, on=date)` per al preu de soci; **registre mínim de llicència** per comprovar si és vigent (`members.licence_record`, només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)). Quan existeixi el 06, el 02 llegeix `licences.current` ([M06-8](#M06-8-serveis)) |
+| 01 | `members.is_member(person, on=date)` per al preu de soci; **registre mínim de llicència** per comprovar si és vigent (`members.licence_record`, només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
+| 06 (quan existeixi) | `licences.current(person, on)` ([M06-8](#M06-8-serveis)), la font única de la llicència ([052](decisions/052-llicencia-font-unica-al-06.md)); llicència d'un dia (RP-M02-01) |
 | 04 | Res directament: l'ingrés i les comissions de cada inscripció els crea el 05b amb l'activitat i el departament del càrrec (RN-T10) |
 | 05b | `payments.start_payment`, `payments.payment_status`, rebut; devolucions fetes pel tresorer (`payments.refund`, B5); esdeveniment general `charge.paid` al qual el 02 se subscriu ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 
@@ -2833,6 +2909,11 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 7. **Pagar amb Bizum una inscripció que caduca mentre s'espera la confirmació:** RN-M02-08 allarga el termini mentre l'intent és «en curs»; si el proveïdor no informa mai, la caducitat del 05b ho acaba resolent. Propietari: informàtica.
 8. **El material llogat el paga el participant** (F §6) però el 02 cobra la inscripció abans de saber si es lloga. Es resol al 03 amb un càrrec a part ([M03-7](#M03-7-regles)). Propietari: junta i tresorer.
 
+**Requisits pendents** (s'han de resoldre quan es revisi aquesta secció)
+| ID | Requisit | Origen | Propietari |
+|---|---|---|---|
+| RP-M02-01 | **Llicència d'un dia:** quan existeixi el 06, el 02 li demanarà si una activitat (per a un participant i una data) necessita llicència d'un dia, i oferirà demanar-la. El 06 no depèn del 02: la pregunta va del 02 al 06 (`licences.current` i, si cal, un servei nou de lectura del 06). Fins llavors, el 02 només avisa (RN-M02-10) | [052](decisions/052-llicencia-font-unica-al-06.md) | Responsable del projecte |
+
 <a id="M02-14-aprovar"></a>
 ## M02-14 Què cal aprovar abans de començar
 
@@ -3295,7 +3376,7 @@ Cap altra app escriu als models del 03.
 
 **Fonts:** document de funcionalitats (F §7 Tresoreria, marge per activitat, factures i ajuts; F §5 tancament econòmic de les sortides; processos 9.8, 9.10 i 9.11), mapa de la plataforma v8 (M05c Marge, factures i ajuts), respostes del responsable del projecte del 20/10/2026 (totes les factures per justificar ajuts; els ajuts es compten per departament i no per activitat; centres de busseig amb marge propi) i del 22/10/2026 (factures de tot quan la junta ho activi; subtipus de medi ambient ampliables; preus configurables), instruccions del 27/10/2026 per a l'apartat d'ajuts, decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md), [035](decisions/035-dades-nomes-dins-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M02](#M02) (`closing_blockers`, `mark_closed`), [M03](#M03) (RN-M03-10 i `activity_material_cost`), [M04](#M04) (moviments i conciliació) i [M05b](#M05b) (rebuts i esdeveniment `charge.paid`).
 
-**Proveïdor de pagaments.** El 09 no cobra res i no parla mai amb el proveïdor de pagaments. Llegeix els ingressos, les comissions i les devolucions que han creat el 05b i la 04. Les despeses i els ingressos que no són càrrecs (ajuts, patrocinis) es registren com a moviments de la 04 amb les peces de [M09-14](#M09-14-aprovar).
+**Proveïdor de pagaments.** El 09 no cobra res i no parla mai amb el proveïdor de pagaments. Llegeix els ingressos, les comissions i les devolucions que han creat el 05b i la 04. Les despeses i els ingressos que no són càrrecs (ajuts, patrocinis) es registren com a moviments de la 04 amb l'[addenda](#M04-addenda-050) de la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md).
 
 **Proveïdor de facturació.** La factura no la fa la plataforma: la demana per API a un servei homologat per Verifactu, darrere d'un adaptador propi (`InvoicingProvider`), igual que el de pagaments. Quin servei, si el club ha de facturar i amb quin IVA és [A verificar: gestoria, P-02 i P-47]. Mentre no es respongui, la facturació queda desactivada i el justificant de cada pagament és el rebut del 05b.
 
@@ -3305,9 +3386,9 @@ Cap altra app escriu als models del 03.
 |---|---|
 | **Intenció** | Que el tresorer sàpiga quant guanya o perd cada curs i cada sortida (marge previst mentre és oberta, marge real congelat en tancar-la), que cap despesa quedi sense factura, que els ingressos i les despeses es puguin veure per departament, subtipus i projecte per demanar i justificar ajuts, que es puguin emetre factures amb un servei homologat i que cada període es tanqui i no es toqui més. |
 | **Processos que cobreix** | P-M09-A Registrar una despesa (F 9.8) · P-M09-B Repartir una despesa entre activitats · P-M09-C Registrar un ingrés que no és un càrrec (ajut, patrocini, donatiu) · P-M09-D Marge previst i tancament econòmic d'una activitat · P-M09-E Informes per departament, subtipus i projecte · P-M09-F Factures i rectificatives · P-M09-G Tancament de període (F 9.11). La justificació d'ajuts (F 9.10) és a l'[apartat d'ajuts](#M09-ajuts) |
-| **Tasques** | 24 (T-M09-01 a T-M09-24), més les 14 de l'apartat d'ajuts (T-M09A-01 a T-M09A-14) |
-| **Què el bloqueja** | Per construir: el 02, el 03 i el 05b; i **tres peces noves a la 04, que és aprovada** (tipus de moviment de despesa i d'altres ingressos, servei d'anul·lació i guarda de període tancat), que cal aprovar abans ([M09-14](#M09-14-aprovar)). Facturació: què s'ha de facturar, IVA i Verifactu [A verificar: gestoria, P-02, P-47]. La resta són supòsits configurables ([M09-13](#M09-13-riscos)) |
-| **Què cal aprovar** | Aquesta secció, les peces de la 04, la manera de tractar els comprovants bancaris amb IBAN (dubte 4 de [M09-13](#M09-13-riscos)) i els supòsits S-M09-01 a S-M09-05 ([M09-14](#M09-14-aprovar)) |
+| **Tasques** | 25 (T-M09-01 a T-M09-25), més les 14 de l'apartat d'ajuts (T-M09A-01 a T-M09A-14) |
+| **Què el bloqueja** | Per construir: el 02, el 03, el 05b i l'addenda de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md), T-M04-20). Facturació: què s'ha de facturar, IVA i Verifactu [A verificar: gestoria, P-02, P-47]. La resta són supòsits configurables ([M09-13](#M09-13-riscos)) |
+| **Què cal aprovar** | Aquesta secció i els supòsits S-M09-01 a S-M09-05 ([M09-14](#M09-14-aprovar)). Les peces de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) i els documents amb IBAN ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) ja són aprovats |
 
 <a id="M09-1-intencio"></a>
 ## M09-1 Intenció, abast i fora d'abast
@@ -3341,7 +3422,7 @@ Cap altra app escriu als models del 03.
 
 **Fora d'abast.**
 - **Calendari, sol·licituds i justificació d'ajuts:** són a l'[apartat d'ajuts](#M09-ajuts), dins d'aquest mateix mòdul.
-- Cobraments, devolucions i retorns: 05b. Comptes, moviments i conciliació: 04 (el 09 hi afegeix les peces de [M09-14](#M09-14-aprovar)).
+- Cobraments, devolucions i retorns: 05b. Comptes, moviments i conciliació: 04 (amb l'[addenda](#M04-addenda-050) de la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)).
 - Pressupost anual del club i comptes anuals: [A validar: junta]; el 09 només fa la previsió per activitat.
 - Comptabilitat oficial (llibres, impostos, model 182 de donatius): la porta la gestoria amb l'exportació de la 04 i del 09 [A verificar: gestoria].
 - Llegir les factures automàticament (OCR): no es fa; el tresorer escriu l'import.
@@ -3356,7 +3437,7 @@ Cap altra app escriu als models del 03.
 | 00 | Departaments; càrrecs de lectura (activitat i origen de cada càrrec); persona (dades mínimes per a una factura); fitxers privats (factures i comprovants); correu i avisos; cua de tasques; permisos; registre d'activitat |
 | 02 | Activitats, estats, participants i projectes i subtipus de medi ambient (lectura); `activities.closing_blockers` i `activities.mark_closed` ([M02-8](#M02-8-serveis)) |
 | 03 | `equipment.activity_material_cost`, `equipment.rentals_for` i `equipment.reviews_with_cost` ([M03-8](#M03-8-serveis)); regla RN-M03-10 |
-| 04 | Moviments (ingressos, comissions, devolucions) i conciliació; **peces noves** de [M09-14](#M09-14-aprovar) |
+| 04 | Moviments (ingressos, comissions, devolucions) i conciliació; [addenda](#M04-addenda-050) de la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) |
 | 05b | Esdeveniment `charge.paid` ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) per fer la factura d'un cobrament; devolucions fetes |
 
 **Què depèn del 09.**
@@ -3367,12 +3448,10 @@ Cap altra app escriu als models del 03.
 | 08 | Marges, ingressos i despeses per departament, despeses sense factura, períodes |
 | Apartat d'ajuts | Despeses amb factura i comprovant, ingressos de tipus «ajut» i informes per departament i projecte |
 
-**Peces de mòduls aprovats que el 09 necessita** (per aprovar; **no s'ha tocat el M04**):
-1. **04, tipus de moviment nous:** `expense` (sortida amb factura, la crea el 09) i `other_income` (entrada que no és un càrrec), amb els serveis `treasury.record_expense` i `treasury.record_other_income`. Són moviments immutables, amb departament i conciliables com els altres; cap regla de la 04 canvia. Avui la 04 exclou amb motiu les despeses que no són comissions «fins al 09» ([M04-1](#M04-1-intencio)).
-2. **04, servei d'anul·lació:** `treasury.reverse(movement, reason, actor)`, el contramoviment de RN-T07 que avui només té pantalla (P-M04-C), perquè el 09 pugui anul·lar una despesa pagada.
-3. **04, guarda de període tancat:** un punt d'extensió `treasury.register_movement_guard(guard)` perquè la 04 rebutgi un moviment o un contramoviment amb data de valor dins un període tancat, sense que la 04 depengui del 09.
-
-Sense la peça 1, el 09 no es pot construir. Sense la 3, el tancament només bloqueja les dades del 09 i els moviments tardans surten a la llista de control del període següent ([M09-13](#M09-13-riscos), dubte 2).
+**Peces de mòduls aprovats que el 09 necessita** (aprovades com a addenda per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md), sense canviar cap regla de la 04; detall a [M04-addenda-050](#M04-addenda-050)):
+1. **Tipus de moviment nous** `expense` i `other_income`, amb `treasury.record_expense` i `treasury.record_other_income`.
+2. **Servei d'anul·lació** `treasury.reverse(movement, reason, actor)`, amb motiu i usuari al registre.
+3. **Bloqueig de període tancat** amb `treasury.register_movement_guard(guard)`, **només per als moviments nous**. Corregir un període tancat = anul·lació i moviment nou al període obert (RN-T28 i RN-T29).
 
 <a id="M09-3-capacitats"></a>
 ## M09-3 Capacitats i històries d'usuari
@@ -3430,6 +3509,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 - **Responsable de cursos i sortides:** només les activitats de què és responsable; veu els seus costos i el seu marge si la junta ho aprova (S-M02-18), mai els informes de departament.
 - **Responsable de material:** només pot registrar despeses de categoria «lloguer» o de revisions, sense activitat d'una altra persona [A validar: junta, S-M09-01].
 - **Junta:** consulta, sense poder registrar ni anul·lar res.
+- **Documents de justificació** (factures de despesa, comprovants i paquets): només els obren el **tresorer** i la **junta** ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)). L'administrador i qui registra una despesa poden gestionar-la, però no obrir-ne els fitxers.
 - **Soci i convidat:** només les factures on és el client.
 - **Un sol tresorer** i cap doble aprovació (P-48).
 
@@ -3509,10 +3589,12 @@ Apps Django noves: `expenses` (despeses, proveïdors, altres ingressos i volunta
 | `department` | FK departament (00) | Obligatori (RN-62 de la 00) |
 | `cost_centre` | FK CostCentre (04) null | Del mateix departament |
 | `project` | FK EnvironmentalProject (02) null | Només per a medi ambient |
-| `invoice_file` | fitxer privat (00) null | PDF, JPG o PNG. Sense ell, la despesa és «sense factura» |
+| `invoice_file` | document de justificació null | PDF, JPG o PNG, xifrat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)). Sense ell, la despesa és «sense factura» |
 | `status` | `to_pay`, `paid`, `annulled` | `annulled` només amb `ExpenseAnnulment` |
 | `paid_movement` | FK Movement (04) null | El posa el servei en pagar-la |
-| `payment_proof_file` | fitxer privat null | Comprovant del banc (vegeu el dubte 4 de [M09-13](#M09-13-riscos)) |
+| `payment_proof_file` | document de justificació null | Comprovant del banc. Original xifrat; només l'obren el tresorer i la junta ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
+| `invoice_masked_file`, `payment_proof_masked_file` | document de justificació null | Còpies amb l'IBAN emmascarat (quatre últims dígits), generades per la plataforma ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
+| `masking_status` | `masked`, `no_iban`, `not_detected` | `not_detected`: el tresorer en puja la còpia emmascarada a mà |
 | `recorded_by`, `recorded_at` | — | — |
 **Restriccions:** una despesa `paid` no canvia d'import, departament ni proveïdor (es comprova al servei i amb una prova); qualsevol canvi d'una `to_pay` va al registre amb el valor anterior.
 
@@ -3557,18 +3639,19 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 | RN-M09-08 | Els ajuts **no s'imputen a cap activitat**: compten al departament i, si cal, al subtipus o projecte (com a molt, al total de medi ambient) | F §5 i §7; 20/10/2026 |
 | RN-M09-09 | Tota despesa té categoria, departament i factura adjunta. Sense factura és «sense factura», surt a la llista, avisa el tresorer i **bloqueja el tancament del període** | F §7 |
 | RN-M09-10 | Repartiment: la suma dels repartiments no passa de l'import. **Per participants:** proporcional als assistents de cada activitat (si no hi ha llista, a les inscripcions confirmades) [A validar: tresorer, S-M09-02]. **A parts iguals** o **a mà**. Arrodoniment com VT-05: cada part a la baixa i els cèntims que sobren, un a un, a les activitats amb més participants (empat: la més antiga) | F §7; VT-05 |
-| RN-M09-11 | Una despesa pagada no es modifica: s'anul·la amb motiu (contramoviment a la 04) i se'n registra una de nova. Una despesa per pagar es pot corregir; cada canvi va al registre | CLAUDE.md; RN-T07 |
+| RN-M09-11 | Una despesa pagada no es modifica: s'anul·la amb motiu i usuari (contramoviment a la 04) i se'n registra una de nova. Si la despesa és d'un període tancat, l'anul·lació i la despesa nova porten data del període obert (RN-T29). Una despesa per pagar es pot corregir; cada canvi va al registre | CLAUDE.md; RN-T07; [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) |
 | RN-M09-12 | Una activitat només es tanca econòmicament si `activities.closing_blockers` és buit (inclou el material pendent del 03) i no té cap despesa sense factura. Ho fa el tresorer | F §5 i §7; [M02-7](#M02-7-regles) |
 | RN-M09-13 | **Percentatge** = marge ÷ (inscripcions + altres ingressos directes), amb una xifra decimal i arrodoniment a la meitat cap amunt; sense ingressos, no es mostra. **Per participant** = marge ÷ assistents (si no n'hi ha llista, confirmats), arrodonit al cèntim | F §7 |
 | RN-M09-14 | **Avís de marge baix:** quan el marge previst és per sota del llindar, avís al responsable de l'activitat i al tresorer (correu i app, sense push), un sol cop per cada canvi de previsió. Llindar per defecte: 0 € (l'activitat no cobreix costos) [A validar: junta, S-M09-04] | F §7 |
 | RN-M09-15 | **Període:** mensual [A validar: tresorer, S-M09-05]. Es tanca només amb la llista de control buida: línies de l'extracte sense conciliar amb data dins el període, activitats acabades dins el període sense tancar, despeses sense factura, despeses pagades sense conciliar i factures fallides | F §7 i §9.11 |
-| RN-M09-16 | Un període tancat no admet cap alta, canvi ni anul·lació del 09 amb data dins el període; amb la peça 3 de la 04, tampoc moviments. Només l'administrador el reobre, amb motiu, i queda al registre | F §7 |
+| RN-M09-16 | Un període tancat no admet cap registre nou del 09 ni cap moviment nou de la 04 amb data dins el període (RN-T28); el que ja hi ha no canvia. Una correcció es fa amb una anul·lació i un registre nou al període obert. Només l'administrador reobre un període, amb motiu, i queda al registre | F §7; [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) |
 | RN-M09-17 | **Facturació:** el 09 no numera. Demana la factura al servei homologat a través de l'adaptador i en desa el número, el PDF i el QR. Comprova que cada sèrie no té salts ni duplicats i, si en troba, avisa el tresorer. Idempotent per càrrec: un càrrec té com a màxim una factura ordinària | F §7 |
 | RN-M09-18 | Cada devolució d'un cobrament facturat té la seva rectificativa (total o parcial) lligada a la factura original. Cap factura emesa s'edita ni s'esborra | F §7 |
 | RN-M09-19 | Què es factura, amb quin IVA i si el club és dins de Verifactu [A verificar: gestoria, P-02, P-47]. Mentre no es respongui, la facturació està **desactivada** i el justificant és el rebut del 05b. Quan la junta l'activi, s'activa per tipus de càrrec (quota, inscripció, llicència, material) | 22/10/2026; P-47 |
 | RN-M09-20 | Llicències: el pagament a la federació és una despesa de categoria «taxa» al departament de les llicències («General / Llicències», provisional, S-M04-07) [A validar: tresorer]. El marge de la llicència d'un soci és 0 abans de comissions | 20/10/2026; [M06-7](#M06-7-regles) |
 | RN-M09-21 | Hores de voluntariat: opcionals, per funció i mai per persona; no es valoren en euros dins el marge [A validar: junta] | F §7 |
 | RN-M09-22 | Tots els imports en cèntims (enters); els marges amb signe. Cap càlcul amb coma flotant | CLAUDE.md |
+| RN-M09-23 | **Documents de justificació** (factures de despesa, comprovants del banc, paquets): xifrats a l'emmagatzematge de la UE; només els obren el tresorer i la junta; cap eina d'IA els rep; la plataforma en fa una còpia amb l'IBAN emmascarat i conserva l'original. Qui puja una factura des del mòbil no la pot tornar a obrir [A validar: junta] | [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md) |
 
 **Exemples numèrics** (dades inventades)
 - **Sortida d'un dia a les Medes, 10 participants a 60 € (F §7):** inscripcions 10 × 6000 = **60.000**; embarcació −25.000; aire 20 × 600 = −12.000; material llogat 3 × 2500 = −7500; material del club 7 × 350 = −2450; instructor voluntari 0. Marge = 60.000 − 25.000 − 12.000 − 7500 − 2450 = **13.050 cèntims (130,50 €)**. Percentatge 13.050 ÷ 60.000 = 21,75 % → **21,8 %**. Per participant 13.050 ÷ 10 = **1305 (13,05 €)**. Els ajuts no hi surten.
@@ -3607,7 +3690,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 **Consumeix**
 | Servei | Mòdul | Per a què |
 |---|---|---|
-| `treasury.record_expense`, `treasury.record_other_income`, `treasury.reverse`, `treasury.register_movement_guard` | 04 (**peces noves**, [M09-14](#M09-14-aprovar)) | Moviments de despesa i d'altres ingressos, anul·lacions, guarda de període |
+| `treasury.record_expense`, `treasury.record_other_income`, `treasury.reverse`, `treasury.register_movement_guard` | 04 ([addenda](#M04-addenda-050), [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) | Moviments de despesa i d'altres ingressos, anul·lacions, guarda de període |
 | `treasury.movements(filters)`, `treasury.balance` | 04 | Ingressos, comissions i devolucions de cada activitat; llista de control |
 | Lectura de càrrecs per activitat i origen | 00 | Inscripcions i altres ingressos directes |
 | `activities.get_activity`, `activities.enrolments`, `activities.attendance_for`, `activities.closing_blockers`, `activities.mark_closed`; senyal `activity_done` | 02 | Participants, tancament |
@@ -3634,6 +3717,9 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 - **CA-M09-12** Donat un marge previst de −1000 i el llindar de 0, quan es desa la previsió, llavors el responsable i el tresorer reben un sol avís; si la previsió no canvia, no se'n repeteix cap.
 - **CA-M09-13** Donat un període amb una despesa sense factura, quan es vol tancar, llavors es rebutja i la llista de control la mostra.
 - **CA-M09-14** Donat un període tancat, quan algú registra una despesa amb data dins el període, llavors es rebutja (`PeriodClosed`); quan l'administrador el reobre amb motiu, s'accepta i el registre guarda la reobertura.
+- **CA-M09-22** Donat una despesa pagada d'un període tancat, quan el tresorer l'anul·la, llavors el contramoviment i la despesa nova porten data del període obert i el moviment original no canvia.
+- **CA-M09-23** Donat un comprovant en PDF amb un IBAN, quan es puja, llavors l'original es desa xifrat, es genera una còpia amb només els quatre últims dígits i cap pantalla mostra l'IBAN; un administrador o un responsable que vol obrir l'original rep «no trobat».
+- **CA-M09-24** Donat una foto d'un comprovant on no es detecta cap IBAN, quan es puja, llavors queda `not_detected` i surt a la llista del tresorer per pujar-ne la còpia emmascarada.
 - **CA-M09-15** Donat un tresorer, quan vol reobrir un període, llavors es rebutja.
 - **CA-M09-16** Donat la facturació activada per a inscripcions i un esdeveniment `charge.paid` repetit, quan arriba dues vegades, llavors hi ha una sola factura.
 - **CA-M09-17** Donat el `FakeInvoicingProvider` que torna un número que salta un valor, quan es desa, llavors el tresorer rep l'avís de salt a la sèrie.
@@ -3660,7 +3746,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
 |---|---|---|---|---|---|
 | T-M09-01 | Wireframes que falten (vegeu [M09-5](#M09-5-processos)) | M | `design/wireframes/` | — | Revisats; contrast i estats amb símbol |
-| T-M09-02 | Peces noves de la 04: tipus `expense` i `other_income`, `record_expense`, `record_other_income`, `reverse` i `register_movement_guard` | M | `apps/treasury/` | Aprovació de [M09-14](#M09-14-aprovar) punt 2; T-M04-19 | Proves de la 04 en verd; activador «només INSERT» intacte |
+| T-M09-02 | Registrar el bloqueig de període tancat a la 04 i fer servir els serveis de l'addenda ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) | S | `apps/margins/periods.py` | T-M04-20 | CA-T19; CA-M09-22 |
 | T-M09-03 | Categories de despesa i proveïdors | S | `apps/expenses/models.py`, migracions | T-M09-02 | Dades inicials de F §7 |
 | T-M09-04 | Despesa: model, factura adjunta, estats i registre de canvis | M | `apps/expenses/` | T-M09-03 | CA-M09-01 |
 | T-M09-05 | Pagar i anul·lar una despesa amb moviments de la 04 | M | `apps/expenses/services.py` | T-M09-04 | CA-M09-02, 03 |
@@ -3683,6 +3769,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-22 | Permisos per rol i per objecte | S | `apps/*/permissions.py` | T-M09-04 | CA-M09-21 |
 | T-M09-23 | Dades inventades i proves de principi a fi (inscripció → pagament → despesa → repartiment → tancament → informe → període) | L | `fixtures/`, `tests/` | T-M09-05 a T-M09-16 | Totes en verd |
 | T-M09-24 | Guia del tresorer (despeses, marge, tancament, factures) | S | `docs/` | T-M09-23 | Revisada |
+| T-M09-25 | Magatzem de documents de justificació: xifratge, accés només del tresorer i la junta, còpia amb l'IBAN emmascarat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | M | `apps/expenses/documents.py` | T-M09-04 | CA-M09-23, 24 |
 
 La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-18 a T-M09-21 es poden fer amb el `FakeInvoicingProvider`, però la facturació no s'activa en producció fins que es respongui P-02 i P-47.
 
@@ -3703,7 +3790,7 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 
 - **Factures emeses:** porten nom i document del client; el servei de facturació ha de ser dins la UE amb contracte d'encarregat [A verificar: gestoria i informàtica]. Les factures no s'anonimitzen: es bloquegen fins al final del termini legal (028; Q-14 [A validar: gestoria]).
 - **Factures de despesa i comprovants:** fitxers privats (00), servits amb enllaç signat i caducitat curta; mai públics.
-- **IBAN als comprovants del banc:** vegeu el dubte 4 de [M09-13](#M09-13-riscos). Cap camp del 09 guarda un IBAN ([044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md)).
+- **Documents de justificació amb IBAN** ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)): la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) cobreix els IBAN i mandats dels socis. Factures, comprovants i paquets es guarden xifrats a la UE, només els obren el tresorer i la junta, cap eina d'IA els rep i la plataforma en fa una còpia amb l'IBAN emmascarat (RN-M09-23). Cap camp, pantalla ni exportació del 09 mostra un IBAN com a text.
 - **Proveïdors:** només nom i NIF de la factura. Un professional autònom és una persona: mateix tractament mínim.
 - **Voluntariat:** per funció, mai per nom.
 - **Registre:** despeses, repartiments, anul·lacions, ingressos, previsions, tancaments, reobertures i factures, amb el valor anterior.
@@ -3715,7 +3802,7 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 **Riscos**
 | Risc | Impacte | Mitigació | Propietari |
 |---|---|---|---|
-| Les peces de la 04 no s'aproven | Alt: sense la 1, el 09 no pot registrar despeses com a moviments | Aprovar-les abans de començar ([M09-14](#M09-14-aprovar)) | Responsable del projecte |
+| No es detecta l'IBAN en una foto d'un comprovant | Mitjà: còpia no emmascarada | Estat `not_detected` i còpia emmascarada a mà (CA-M09-24) | Tresorer |
 | Factures que no arriben o es perden | Alt per justificar ajuts | Avís de «sense factura», bloqueig del tancament, foto des del mòbil | Tresorer |
 | No se sap si el club ha de facturar ni amb quin servei | Mitjà: la facturació no es pot activar | Adaptador i `FakeInvoicingProvider`; rebuts del 05b mentrestant | Gestoria |
 | Comptar el lloguer dues vegades | Alt per al marge | RN-M09-04 i prova de contracte amb el 03 | Tresorer |
@@ -3738,10 +3825,10 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 | S-M09-12 | Calen pressupostos anuals per departament | Fora d'abast | Junta |
 
 **Revisió de dubtes (aplicada a mà)**
-1. **Peces de la 04 (aprovada).** La 04 no té tipus de moviment de despesa ni d'altres ingressos, ni servei d'anul·lació, ni guarda de període tancat. El 09 en depèn. No s'ha tocat el M04: es proposen a [M09-14](#M09-14-aprovar) i, si s'aproven, caldrà una decisió nova (com la 049). Propietari: responsable del projecte.
-2. **Moviments tardans en un període tancat.** Sense la guarda (peça 3), una devolució o un retorn amb data dins un període tancat entraria a la 04 i trencaria el tancament. Alternativa sense la peça: el 09 els detecta i els porta a la llista de control del període següent. Propietari: responsable del projecte.
+1. ~~Peces de la 04 (aprovada).~~ Resolt per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) (addenda del M04).
+2. ~~Moviments tardans en un període tancat.~~ Resolt per la 050: el bloqueig rebutja tot moviment nou amb data dins un període tancat i la correcció va al període obert.
 3. **Reforç després del tancament** (dubte 4 de [M02-13](#M02-13-riscos)). Proposta: la comprovació de tancament del 02 ja bloqueja el tancament mentre hi hagi un reforç pendent de pagament; un reforç confirmat després del tancament és una desviació posterior (RN-M09-07). Propietari: tresorer.
-4. **IBAN als comprovants del banc.** F 9.10 demana els comprovants de pagament del banc al paquet de justificació, i aquests documents solen portar l'IBAN del club i del proveïdor. CLAUDE.md i la 044 diuen que la plataforma no guarda cap IBAN fora del mandat. Proposta: el 09 no llegeix ni mostra mai el contingut del comprovant (és un fitxer privat opac); el tresorer el puja amb els dígits del compte tapats sempre que el banc ho permeti. Cal decidir si la regla de l'IBAN s'aplica també als comptes del club i dels proveïdors. Propietari: responsable del projecte.
+4. ~~IBAN als comprovants del banc.~~ Resolt per la [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md): la 044 cobreix els socis; els documents de justificació tenen les seves regles i una còpia emmascarada.
 5. **Comissions del cobrament de la llicència d'un soci:** amb preu igual al de la federació, el club perd la comissió de cada cobrament amb targeta o Bizum. Alternatives: assumir-la o sumar-la al preu. Propietari: junta.
 6. **Pressupostos:** la 04 posava «pressupostos» dins el 09, però F §7 no en diu res. Es deixen fora d'abast fins que la junta ho demani (S-M09-12). Propietari: junta.
 
@@ -3749,8 +3836,8 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 ## M09-14 Què cal aprovar abans de començar
 
 1. **Aquesta secció del 09** (part principal), amb la fórmula del marge, la congelació en tancar i el tancament de període.
-2. **Peces noves a la 04, que és aprovada** ([M09-2](#M09-2-dependencies)): tipus de moviment `expense` i `other_income` amb els seus serveis, servei `treasury.reverse` i punt d'extensió `treasury.register_movement_guard`. Cap regla de la 04 canvia. Si s'aproven, es recullen en una decisió nova i s'actualitza el M04 (com es va fer amb la 049). Bloqueja T-M09-02 i, per tant, tot el 09.
-3. **IBAN als comprovants del banc** (dubte 4 de [M09-13](#M09-13-riscos)).
+2. ~~Peces noves a la 04~~ **Aprovades** com a addenda per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) ([M04-addenda-050](#M04-addenda-050)).
+3. ~~IBAN als comprovants del banc~~ **Aprovat** per la [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md).
 4. **Supòsits per defecte** S-M09-01 a S-M09-05 [A validar: junta i tresorer]. No bloquegen el codi: són configurables.
 5. **Per activar la facturació** (no per començar): resposta de la gestoria a P-02 i P-47 (S-M09-08) i decisió de la junta d'activar-la.
 
@@ -3855,11 +3942,12 @@ Només tres rols hi tenen accés; **la resta de rols no hi veuen res**. Tot es f
 | AJ4 | Crear una sol·licitud i moure-la fins a «presentada» | Sí | Sí, si n'és responsable [A validar] | Sí |
 | AJ5 | Marcar-la concedida o denegada i escriure les observacions | Sí | Sí, si n'és responsable [A validar] | Sí |
 | AJ6 | Registrar l'ingrés de l'ajut (part principal, MG4) | Sí | — | Sí |
-| AJ7 | Lligar despeses i generar el paquet de justificació | Sí | Consulta | Sí |
+| AJ7 | Lligar despeses i generar el paquet de justificació | Sí | Consulta | Lligar despeses, sense obrir els documents ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 | AJ8 | Marcar-la justificada o tancada | Sí | — | Sí |
 | AJ9 | Desfer l'últim canvi d'estat, amb motiu | — | — | Sí |
 | AJ10 | Configurar els dies dels avisos | Sí | — | Sí |
 | AJ11 | Consultar el registre d'activitat dels ajuts | Consulta | — | Sí |
+| AJ12 | Obrir i descarregar els documents de justificació i el paquet | Sí | Sí | — ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 
 **Per objecte.** El **responsable** d'una sol·licitud és una persona amb compte d'administrador i un d'aquests tres rols [A validar: junta, S-M09A-01]. Rep els avisos de les seves sol·licituds. Que la junta existeixi com a rol és P-04 (S-M01-23).
 
@@ -3941,6 +4029,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | `eligible_expenses_from`, `eligible_expenses_to` | `DateField` null | Període de despeses subvencionables |
 | `justification_due_on` | `DateField` null | — |
 | `justification_format` | `TextField` | — |
+| `accepts_masked_proofs` | `yes`, `no`, `unknown` | Si l'organisme accepta comprovants amb l'IBAN emmascarat; per defecte `unknown` [A verificar: tresorer, per a cada convocatòria] ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) |
 | `previous_edition` | FK self null | Còpia de l'edició anterior |
 | `created_by` | FK compte | — |
 - `GrantCallDocument`: `call`, `name`, `order`. Documents requerits.
@@ -3966,7 +4055,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 - `ApplicationTransition` (només INSERT): `application`, `from_status`, `to_status`, `reason`, `actor`, `at`. Un desfer és una transició nova (AJ9).
 - `DenialNote` (només INSERT): `application`, `reason` (motiu), `resolved_on` (data), `improvements` (què millorar), `recorded_by`.
 - `GrantExpenseLink`: `application`, `expense` (FK Expense del 09), `amount_cents` (> 0), `created_by`. Únic `(application, expense)`. La suma imputada d'una despesa entre tots els ajuts no passa del seu import (servei).
-- `JustificationPackage` (només INSERT): `application`, `generated_by`, `generated_at`, `file` (ZIP privat), `sha256`, `totals` (JSON), `excluded` (JSON amb les despeses excloses i el motiu).
+- `JustificationPackage` (només INSERT): `application`, `generated_by`, `generated_at`, `file` (ZIP, document de justificació xifrat, [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)), `masked` (bool: si porta les còpies emmascarades), `sha256`, `totals` (JSON), `excluded` (JSON amb les despeses excloses i el motiu).
 - `GrantReminder` (només INSERT): `application`, `kind` (`close_30`, `close_14`, `close_7`, `response`, `justify_30`, `justify_14`, `justify_7`), `due_on`, `sent_at`. Únic `(application, kind, due_on)`: un avís no s'envia dues vegades.
 
 <a id="M09-ajuts-7-regles"></a>
@@ -3984,7 +4073,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | RN-M09A-08 | Concedida: import concedit i resolució obligatoris. Si l'import concedit supera el demanat, avís (no bloqueja) | Proposta |
 | RN-M09A-09 | L'ingrés de l'ajut es registra a la part principal com a `OtherIncome` de tipus `grant`, lligat a la sol·licitud i al seu departament, **mai a una activitat** (RN-M09-08). Pot tenir diversos ingressos (bestreta i saldo) | F §7; RN-M09-08 |
 | RN-M09A-10 | Només es poden lligar despeses del departament o projecte de la sol·licitud, dins el període subvencionable si n'hi ha, que no estiguin anul·lades. La suma imputada d'una despesa entre tots els ajuts no passa del seu import | F 9.10 |
-| RN-M09A-11 | Paquet de justificació: resum d'ingressos i despeses, llistat de factures i ZIP amb factures i comprovants. Les despeses sense factura o sense comprovant **no hi entren**: surten a «excloses» amb el motiu, i el tresorer en rep l'avís | F 9.10 |
+| RN-M09A-11 | Paquet de justificació: resum d'ingressos i despeses, llistat de factures i ZIP amb factures i comprovants. Les despeses sense factura o sense comprovant **no hi entren**: surten a «excloses» amb el motiu, i el tresorer en rep l'avís. El paquet porta les **còpies amb l'IBAN emmascarat**, excepte si la convocatòria diu que no les accepta (`accepts_masked_proofs = no`); llavors el tresorer el genera amb els originals | F 9.10; [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md) |
 | RN-M09A-12 | Justificada: cal la data d'enviament. Tancada: quan l'organisme l'accepta o s'ha registrat el reintegrament (vegeu el dubte 2) | F 9.10 |
 | RN-M09A-13 | Denegada: cal almenys una observació amb motiu, data i què millorar | Instruccions del 27/10/2026 |
 | RN-M09A-14 | Copiar una sol·licitud: la nova és «detectada», amb el mateix departament o projecte, import i documents (sense els fitxers, excepte si el responsable els tria), i amb les observacions de la denegació anterior visibles. Copiar una convocatòria a l'edició següent en copia tot excepte les dates | Instruccions del 27/10/2026 |
@@ -4039,6 +4128,7 @@ Cap altra app escriu als models de `grants`.
 - **CA-M09A-12** Donat un ingrés de tipus ajut lligat a la sol·licitud, quan es vol posar a una activitat, llavors es rebutja (CA-M09-09).
 - **CA-M09A-13** Donat un soci o un responsable de material, quan obre `/gestio/ajuts`, llavors rep «no trobat» i queda al registre.
 - **CA-M09A-14** Donat cada cel·la de [M09-ajuts-4](#M09-ajuts-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M09A-15** Donat una convocatòria amb `accepts_masked_proofs = unknown`, quan es genera el paquet, llavors porta les còpies emmascarades; amb `no`, el tresorer el pot generar amb els originals i la descàrrega queda al registre.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -4064,7 +4154,7 @@ Cap altra app escriu als models de `grants`.
 | T-M09A-07 | Resolució: concedida i denegada amb observacions | S | `services.py` | T-M09A-04 | CA-M09A-07 |
 | T-M09A-08 | Ingrés de l'ajut des de la sol·licitud | S | vistes | T-M09A-07, T-M09-08 | CA-M09A-12 |
 | T-M09A-09 | Lligar despeses amb els límits | M | `apps/grants/justification.py` | T-M09A-07, T-M09-05 | CA-M09A-09, 10 |
-| T-M09A-10 | Paquet de justificació (resum, llistat i ZIP privat) | M | `justification.py` | T-M09A-09 | CA-M09A-08 |
+| T-M09A-10 | Paquet de justificació (resum, llistat i ZIP xifrat, amb còpies emmascarades o originals segons la convocatòria) | M | `justification.py` | T-M09A-09, T-M09-25 | CA-M09A-08, 15 |
 | T-M09A-11 | Còpia de sol·licitud i de convocatòria | S | `services.py` | T-M09A-07 | CA-M09A-11 |
 | T-M09A-12 | Permisos (tres rols, cap accés per a la resta) | S | `apps/grants/permissions.py` | T-M09A-02 | CA-M09A-13, 14 |
 | T-M09A-13 | Dades inventades i proves de principi a fi (convocatòria → avisos → presentada → concedida → ingrés → despeses → paquet → tancada) | M | `fixtures/`, `tests/` | T-M09A-03 a T-M09A-11 | Totes en verd |
@@ -4087,7 +4177,8 @@ Cap altra app escriu als models de `grants`.
 - **Cap dada personal** de socis ni participants (RN-M09A-15). Text d'ajuda als camps lliures i a la pujada de documents.
 - **Correu dins la UE** (035, 042; P-46 [A verificar: informàtica]).
 - **Cap integració externa:** la plataforma no visita els enllaços de les bases ni es connecta amb cap organisme.
-- **Fitxers privats** (bases, documents, resolucions i paquets), amb enllaç signat i caducitat curta.
+- **Fitxers privats** (bases, documents, resolucions), amb enllaç signat i caducitat curta.
+- **Documents de justificació i paquets** ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)): xifrats a la UE, només els obren el tresorer i la junta, cap eina d'IA, còpia amb l'IBAN emmascarat i original conservat. Si l'organisme accepta la còpia emmascarada és [A verificar: tresorer] per a cada convocatòria.
 - **Permisos** al servidor per a tres rols; la resta, «no trobat» i registre de l'intent.
 - **Registre** de tot canvi (RN-M09A-16). Conservació dels paquets i resolucions [A validar: gestoria, Q-14].
 
@@ -4111,6 +4202,7 @@ Cap altra app escriu als models de `grants`.
 | S-M09A-04 | Avisos també abans de la data de justificació (30, 14 i 7 dies) | Sí | Junta |
 | S-M09A-05 | Format de justificació que demana cada organisme (F §7) | Paquet genèric (resum, llistat i ZIP) | Junta |
 | S-M09A-06 | Conservació de sol·licituds, resolucions i paquets | Fins que la gestoria ho digui (Q-14) | Gestoria |
+| S-M09A-07 | L'organisme de cada convocatòria accepta comprovants amb l'IBAN emmascarat ([A verificar], 051) | `unknown`: el paquet porta la còpia emmascarada i l'original es dona a part si el demanen | Tresorer |
 
 **Revisió de dubtes (aplicada a mà)**
 1. **«Tancada» té dos sentits:** final normal (justificada i acceptada) i «no es presenta». Es distingeixen pel motiu, sense estat nou, per mantenir la llista d'estats demanada. Propietari: cap (coherent amb les instruccions).
@@ -4144,9 +4236,9 @@ Cap altra app escriu als models de `grants`.
 |---|---|
 | **Intenció** | Portar totes les llicències federatives dels socis (i, quan la junta ho activi, de persones de fora) en un sol lloc: tres durades, preu de soci igual al de la federació, preu de no soci amb recàrrec i l'estalvi de fer-se soci a la vista, pagament dins l'app, avisos abans que caduquin, llistat per tramitar-les a la federació, i saber a l'instant si la llicència d'una persona és vigent. |
 | **Processos que cobreix** | P-M06-A Preus i tipus · P-M06-B Demanar i pagar una llicència (soci) · P-M06-C Llicència per a una persona de fora (F 9.16) · P-M06-D «Ja en tinc una» · P-M06-E Tramitar a la federació · P-M06-F Avisos i renovació (F 9.12) · P-M06-G Cancel·lar · P-M06-H Passar els registres del 01 al 06 |
-| **Tasques** | 18 (T-M06-01 a T-M06-18) |
-| **Què el bloqueja** | Per construir: el 05b (cobrar) i el servei de lectura del 01 (T-M01-30, 049). Per acabar: qui és la font de la llicència entre el 01 i el 06 (canvia un comportament del 01, que és aprovat: [M06-14](#M06-14-aprovar)). Per entrar en producció: tipus, preus i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta] |
-| **Què cal aprovar** | Aquesta secció; la font única de la llicència i el canvi al 01; si la llicència d'un dia es lliga a una activitat del 02 (dependència nova); els supòsits S-M06-01 a S-M06-06 ([M06-14](#M06-14-aprovar)) |
+| **Tasques** | 18 (T-M06-01 a T-M06-18); la còpia de lectura del 01 és la T-M01-31 |
+| **Què el bloqueja** | Per construir: el 05b (cobrar), el mecanisme d'esdeveniments (T-M05b-21) i el servei de lectura del 01 (T-M01-30, 049). La font única de la llicència ja és aprovada ([052](decisions/052-llicencia-font-unica-al-06.md)). Per entrar en producció: tipus, preus i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta] |
+| **Què cal aprovar** | Aquesta secció i els supòsits S-M06-04, 05, 07 i 09 ([M06-14](#M06-14-aprovar)) |
 
 <a id="M06-1-intencio"></a>
 ## M06-1 Intenció, abast i fora d'abast
@@ -4193,13 +4285,13 @@ Cap altra app escriu als models de `grants`.
 | 01 | `members.is_member(person, on)` per al preu; `members.licence_records()` per passar els registres mínims al 06 (només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 | 05b | `payments.start_payment`, `payments.payment_status`, rebut; esdeveniment `charge.paid` (049); devolucions fetes pel tresorer (`payments.refund`) |
 
-La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **Dependència opcional proposada:** lligar la llicència d'un dia a una activitat del 02 afegiria el 02 com a dependència. No s'ha afegit: és el punt 3 de [M06-14](#M06-14-aprovar).
+La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06 no depèn del 02** ([052](decisions/052-llicencia-font-unica-al-06.md)): la llicència d'un dia no es lliga a cap activitat. Si cal, és el 02 qui demana al 06 si una activitat necessita llicència d'un dia (requisit pendent RP-M02-01 de [M02-13](#M02-13-riscos)).
 
 **Què depèn del 06.**
 | Mòdul | Què necessita |
 |---|---|
 | 02 | `licences.current(person, on)` per al requisit de llicència vigent (substitueix `members.licence_record`) |
-| 01 | Si s'aprova el punt 2 de [M06-14](#M06-14-aprovar), la fitxa del soci mostra la llicència del 06 |
+| 01 | Esdeveniments `licence.issued`, `licence.renewed`, `licence.expired` i `licence.cancelled` per mantenir la seva còpia de lectura ([052](decisions/052-llicencia-font-unica-al-06.md), [addenda del M01](#M01-addenda-052)). El 01 no crida cap servei del 06 |
 | 08 | Llicències per caducar i per tramitar |
 | 09 | Ingressos de les llicències (amb el 04) i despesa de la federació |
 
@@ -4311,7 +4403,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 ### P-M06-H Passar els registres del 01 al 06
 1. Quan el 06 entra en producció, l'administrador llança el pas únic: llegeix `members.licence_records()` i crea una llicència `active` amb origen `imported_m01` per a cada registre (sense càrrec).
 2. Mostra el resum (creats, ja existents, errors) i no escriu res fins a confirmar. Es pot desfer per lot.
-3. Què passa després amb el registre del 01 és el punt 2 de [M06-14](#M06-14-aprovar).
+3. Cada llicència creada recorda de quin registre del 01 surt; el seu `licence.issued` actualitza aquell registre i no en crea cap de nou ([052](decisions/052-llicencia-font-unica-al-06.md)). A partir d'aquí, la secretaria ja no edita el registre del 01: tot es fa al 06.
 
 <a id="M06-6-entitats"></a>
 ## M06-6 Entitats i camps
@@ -4336,7 +4428,7 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | `price_cents` | `PositiveIntegerField` null | Còpia del preu en demanar-la |
 | `charge` | FK càrrec (00) null | Únic |
 | `renewal_of` | FK self null | — |
-| `activity` | FK Activity (02) null | **Només si s'aprova** el punt 3 de [M06-14](#M06-14-aprovar) |
+| `m01_record_ref` | identificador del registre del 01 null | Només `imported_m01` (052, punt 8) |
 | `filed_by`, `filed_at`, `activated_by`, `activated_at` | — | — |
 | `cancellation_reason`, `cancelled_by` | — | Obligatori si `cancelled` |
 | `import_batch` | FK lot d'importació (00) null | Només `imported_m01` |
@@ -4370,6 +4462,7 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | RN-M06-14 | «Ja en tinc una»: es desa el número, el tipus i el venciment; no es crea càrrec ni tramitació | F §8.1 i 9.16 |
 | RN-M06-15 | Cap dada de salut: ni certificat mèdic ni data de validesa (P-07). Si la federació en demana, es comprova fora de la plataforma | CLAUDE.md; P-07 |
 | RN-M06-16 | Imports en cèntims; tot canvi d'estat, de preu i tota exportació, al registre d'activitat | CLAUDE.md |
+| RN-M06-17 | **El 06 és l'únic propietari de les llicències** i emet, dins la mateixa transacció i amb el mecanisme de la 049: `licence.issued` (passa a `active`), `licence.renewed` (la renovació passa a `active`), `licence.expired` (la tasca diària, l'endemà de `expires_on`, una sola vegada) i `licence.cancelled`. Porten persona, tipus, durada, dates, origen i, si escau, `m01_record_ref` | [052](decisions/052-llicencia-font-unica-al-06.md) |
 
 **Exemples** (preus inventats; els reals són [A verificar: FECDAS])
 - **Dates:** treta el 15 de març: d'un dia → 15/3 a 15/3; fins a final d'any → 15/3 a 31/12; 12 mesos → 15/3 a 14/3 de l'any següent.
@@ -4386,11 +4479,12 @@ Cap altra app escriu als models del 06.
 **Ofereix**
 | Servei | Entrada | Sortida | Errors | Qui el fa servir |
 |---|---|---|---|---|
-| `licences.current(person, on=date)` | persona, data | `{type, duration, expires_on, origin}` o res (RN-M06-13). **Només lectura** | — | 02 (requisit de llicència), 01 (si s'aprova el punt 2 de [M06-14](#M06-14-aprovar)) |
+| `licences.current(person, on=date)` | persona, data | `{type, duration, expires_on, origin}` o res (RN-M06-13). **Només lectura** | — | 02 (requisit de llicència) |
 | `licences.request(person, licence_type, duration, starts_on, actor)` | — | llicència `requested` i càrrec | `NonMembersDisabled`, `AlreadyInProgress` | Vistes |
 | `licences.declare_existing(person, data, actor)` | número, tipus, venciment | llicència `active` amb origen `external` | — | Vistes |
 | `licences.on_charge_paid(event)` | esdeveniment `charge.paid` d'un càrrec amb origen `licences` | llicència `paid` (si ja ho era, no fa res) | — | Subscriptor ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 | `licences.expiring(days)` | — | llicències per caducar (lectura) | — | 08; llistat de la secretaria |
+| Esdeveniments `licence.issued`, `licence.renewed`, `licence.expired`, `licence.cancelled` | — | emesos a la cua (RN-M06-17) | — | 01 (còpia de lectura); qualsevol mòdul que s'hi subscrigui ([052](decisions/052-llicencia-font-unica-al-06.md)) |
 | `licences.export_personal_data(person)`, `licences.anonymise(person)` | persona | — | — | 00 (RGPD) |
 
 **Consumeix**
@@ -4425,6 +4519,8 @@ Cap altra app escriu als models del 06.
 - **CA-M06-14** Donat tres registres mínims al 01, quan l'administrador fa el pas únic en prova, llavors no s'escriu res; en confirmar, es creen tres llicències `imported_m01` i el lot es pot desfer.
 - **CA-M06-15** Donat un instructor, quan consulta un participant de la seva sessió, llavors veu «vigent sí o no» i el venciment, i no el número federatiu.
 - **CA-M06-16** Donat cada cel·la de [M06-4](#M06-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M06-17** Donat una llicència d'un soci que passa a `active`, quan es desa, llavors s'emet un sol `licence.issued` i la còpia del 01 la mostra (CA-M01-26); quan la tasca diària passa per una llicència caducada dues vegades, s'emet un sol `licence.expired`.
+- **CA-M06-18** Donat una llicència importada del registre del 01, quan s'emet `licence.issued`, llavors el 01 actualitza el registre d'origen i no en crea cap de nou.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -4456,7 +4552,7 @@ Cap altra app escriu als models del 06.
 | T-M06-12 | Cancel·lació i proposta de devolució | S | `services.py` | T-M06-04, T-M05b-13 | CA-M06-13 |
 | T-M06-13 | Servei `licences.current` amb proves de contracte per al 02 | S | `services.py` | T-M06-03 | CA-M06-11, 15 |
 | T-M06-14 | Pas únic dels registres del 01, amb prova, confirmació i desfer | M | `apps/licences/imports.py` | T-M01-30, T-M06-03 | CA-M06-14 |
-| T-M06-15 | Canvi al 01 perquè la llicència només visqui al 06 | S | `apps/members/` | **Aprovació** del punt 2 de [M06-14](#M06-14-aprovar); T-M06-14 | El 01 llegeix `licences.current`; proves del 01 en verd |
+| T-M06-15 | Emetre els esdeveniments de llicència (RN-M06-17) dins la mateixa transacció, també des de la tasca diària i del pas únic ([052](decisions/052-llicencia-font-unica-al-06.md)) | S | `apps/licences/events.py` | T-M06-03, T-M06-11, T-M05b-21 | CA-M06-17, 18 |
 | T-M06-16 | Permisos per rol i per objecte | S | `apps/licences/permissions.py` | T-M06-03 | CA-M06-16 |
 | T-M06-17 | Dades inventades i proves de principi a fi (demanar → pagar → tramitar → vigent → avís → renovar) | M | `fixtures/`, `tests/` | T-M06-04 a T-M06-14 | Totes en verd |
 | T-M06-18 | Guia de la secretaria (tramitació i venciments) | S | `docs/` | T-M06-17 | Revisada |
@@ -4489,7 +4585,7 @@ Cap altra app escriu als models del 06.
 **Riscos**
 | Risc | Impacte | Mitigació | Propietari |
 |---|---|---|---|
-| Dues fonts de la llicència (registre del 01 i llicència del 06) | Alt: el 02 i el carnet podrien dir coses diferents | Pas únic i font única al 06 (punt 2 de [M06-14](#M06-14-aprovar)) | Responsable del projecte |
+| Esdeveniments de llicència que no arriben al 01 | Mitjà: la fitxa del soci mostraria una dada antiga | Lliurament a la cua amb reintents i registre de lliuraments (049); `members.licence_record` i `licences.current` es comparen a les proves ([052](decisions/052-llicencia-font-unica-al-06.md)) | Informàtica |
 | Tipus, preus i format de tramitació desconeguts | Alt per entrar en producció | Configurables; dades inventades a les proves | FECDAS |
 | La federació demana dades que la plataforma no té (data de naixement) | Mitjà | La secretaria les completa fora; dubte 2 | Secretaria |
 | Recàrrec massa baix i no socis que no es fan socis | Mitjà per al club | La junta el fixa; la pantalla mostra la comparació | Junta |
@@ -4509,9 +4605,9 @@ Cap altra app escriu als models del 06.
 | S-M06-10 | Departament de les llicències (Q-19, S-M04-07) | «General / Llicències», provisional | Junta |
 
 **Revisió de dubtes (aplicada a mà)**
-1. **Font única de la llicència.** El 01 (aprovat) té el registre mínim i la secretaria el pot editar (P19). Si el 06 té la seva llicència, hi haurà dues fonts. Proposta: després del pas únic, la fitxa i el carnet del 01 llegeixen `licences.current` i el registre del 01 queda només de lectura. Canvia un comportament d'un mòdul aprovat: no s'ha fet ([M06-14](#M06-14-aprovar), punt 2). Propietari: responsable del projecte.
+1. ~~Font única de la llicència.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 és l'únic propietari i el 01 en guarda una còpia de lectura amb esdeveniments.
 2. **Data de naixement.** Si la federació la demana (o hi ha menors, P-33), cal decidir si la plataforma la guarda (Q-09). Supòsit: no es guarda i la secretaria la completa fora. Propietari: junta.
-3. **Llicència d'un dia i activitat.** F §8.1 diu «només el dia de l'activitat». Lligar-la a una activitat del 02 fa que el 06 depengui del 02, i la taula d'estat no ho diu. Proposta: d'inici la persona tria el dia; el lligam amb l'activitat és opcional i s'aprova a part ([M06-14](#M06-14-aprovar), punt 3). Propietari: responsable del projecte.
+3. ~~Llicència d'un dia i activitat.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 no depèn del 02; el 02 hi demanarà si una activitat necessita llicència d'un dia (RP-M02-01).
 4. **Comissió del cobrament de la llicència d'un soci** (dubte 5 de [M09-13](#M09-13-riscos)). Amb preu igual al de la federació, la comissió la paga el club. Propietari: junta.
 5. **«Pagada» abans de «tramitada»:** si la federació demana tramitar abans de cobrar, l'ordre s'inverteix. Supòsit: es cobra abans. Propietari: FECDAS.
 6. **Què fa avui Cluber amb les llicències (P-28):** si les tramita Cluber, cal saber-ho abans de deixar-lo. Propietari: tresorer.
@@ -4520,8 +4616,8 @@ Cap altra app escriu als models del 06.
 ## M06-14 Què cal aprovar abans de començar
 
 1. **Aquesta secció del 06**, amb els estats derivats i el càlcul de dates.
-2. **Font única de la llicència al 06 i canvi al 01 (aprovat):** després del pas únic, la fitxa del soci i el carnet llegeixen `licences.current` i el registre mínim del 01 queda només de lectura (P19 passa a consulta). Si s'aprova, es recull en una decisió nova i s'actualitza el M01. Bloqueja T-M06-15; la resta del 06 es pot construir.
-3. **Dependència opcional del 02:** lligar la llicència d'un dia a una activitat (camp `activity`). Si no s'aprova, la persona tria el dia i el 06 no depèn del 02.
+2. ~~Font única de la llicència al 06 i canvi al 01~~ **Aprovada** per la [052](decisions/052-llicencia-font-unica-al-06.md), amb l'[addenda del M01](#M01-addenda-052).
+3. ~~Dependència opcional del 02~~ **No s'afegeix** (052). Queda com a requisit pendent del 02 (RP-M02-01).
 4. **Supòsits per defecte** S-M06-04, S-M06-05, S-M06-07 i S-M06-09 [A validar: junta i secretaria]. No bloquegen el codi.
 5. **Per entrar en producció** (no per començar): tipus, preus, càlcul de dates i format de tramitació [A verificar: FECDAS, S-M06-02 i S-M06-03]; recàrrec i activació de l'opció de no socis [A validar: junta, S-M06-01].
 
@@ -4597,6 +4693,7 @@ Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls
 | S-M09-02, 05, 09 | Criteri «per participants»; durada del període; pagament a la federació com a «taxa» | — |
 | M09-13 dubte 3 | Reforç confirmat després del tancament econòmic | — |
 | M09-ajuts-13 dubte 2 | Com es registra el reintegrament d'un ajut | — |
+| S-M09A-07 | Per a cada convocatòria, si l'organisme accepta comprovants amb l'IBAN emmascarat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | — (es fa servir la còpia emmascarada) |
 
 <a id="preguntes-junta"></a>
 **Junta**
@@ -4628,6 +4725,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M03-05 | Inventari actual per tipus i talla | 03: producció |
 | S-M03-06, 08, 09, 10, 11 | Dies dels avisos, peces perdudes, bibotelles, qui assigna, codis de les peces | — |
 | S-M09-01, 04, 06, 07 | Qui registra despeses; llindar de marge baix; costos generals al marge per departament; departaments per a ajuts | — |
+| RN-M09-23 | Qui puja una factura des del mòbil la pot tornar a obrir (documents de justificació, 051) | — |
 | S-M09-10, 11, 12 | Informes de l'assemblea; hores de voluntariat; pressupostos | — |
 | S-M09A-01, 02, 03 | Responsable dels ajuts, convocatòries que s'han de vigilar, qui rep els avisos | Fer servir l'apartat d'ajuts |
 | S-M09A-04, 05; M09-ajuts-13 dubte 3 | Avisos abans de justificar; format de cada organisme; renúncia a un ajut concedit | — |
@@ -4673,7 +4771,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 |---|---|---|
 | S-M01-19; P-46 | Remitent dels correus i proveïdor de correu (subencarregats de Brevo dins la UE); també per als avisos d'ajuts | 00: correu en producció |
 | S-M01-20 | Eina d'auditoria d'accessibilitat | — |
-| S-M05a-10 | Biblioteca de xifratge i rols de PostgreSQL separats | — |
+| S-M05a-10 | Biblioteca de xifratge i rols de PostgreSQL separats; també per als documents de justificació (051) | — |
 | S-M05a-12 | Temps per tornar a demanar la contrasenya | — |
 | S-M02-23 | On viuen les propostes de devolució | — |
 | S-M03-07 | Periodicitat legal de les revisions d'ampolles i reguladors | — |
@@ -4686,10 +4784,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | RN-M03-10 | El lloguer entra al marge com a despesa amb factura | 09 |
 | S-M02-13 | Llista de subtipus de medi ambient i projectes actuals | — |
 | S-M02-21, 22 | Servei de previsió marítima enllaçat; pujar observacions a Minka | — |
-| M09-14 punt 2 | Peces noves a la 04 (aprovada): tipus `expense` i `other_income`, `treasury.reverse`, guarda de període tancat | 09: T-M09-02 i tot el mòdul |
-| M09-14 punt 3 | IBAN als comprovants del banc del paquet de justificació | 09: comprovants |
-| M06-14 punt 2 | Font única de la llicència al 06 i canvi al 01 (aprovat) | 06: T-M06-15 |
-| M06-14 punt 3 | Lligar la llicència d'un dia a una activitat (dependència nova del 02) | — |
+| RP-M02-01 | Com el 02 demanarà al 06 si una activitat necessita llicència d'un dia (en revisar el 02) | — |
 | M02, M03, M09, M06 | Aprovar les seccions dels mòduls 02, 03, 09 (amb l'apartat d'ajuts) i 06 | 02, 03, 09 i 06 |
 
 <a id="ordre-del-dia-junta"></a>
@@ -4706,7 +4801,7 @@ Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, ag
 | 5 | **Quotes: venciment i recordatoris** | Quan es cobren les quotes i quan és la propera remesa; dies dels recordatoris; quotes pendents en una baixa; validesa del carnet dels socis que han pagat a Cluber (proposa el tresorer, ratifica la junta) | Any natural; recordatoris 15 dies abans i 15 i 30 després; s'anul·len les quotes posteriors a la baixa; carnet vàlid fins a final del període pagat a Cluber | P-29; S-M01-03, 04, 05, 24 |
 | 6 | **Carnet, verificació i socis** | Què mostra la verificació pública; darrere del carnet; soci clàssic; antiguitat en una readmissió; compte personal després de la baixa | Dos últims dígits i cap nom; darrere amb el contacte del club i com verificar-lo; sense insígnia de soci clàssic d'inici; antiguitat des de la primera alta; el compte es manté per consultar rebuts | S-M01-06, 07, 08, 09, 10, 12 |
 | 7 | **Menors** | Si hi ha o hi haurà socis o participants menors; edat mínima a les activitats; si cal guardar la data de naixement (també si la federació la demana) | Només majors d'edat a la plataforma fins que hi hagi un protocol (persona de referència i mandat signat pel titular del compte); cap data de naixement fins llavors | P-33; Q-09; S-M01-13; S-M02-19; dubte 2 de [M06-13](#M06-13-riscos) |
-| 8 | **Matriu de rols** | Validar els 13 rols i les matrius dels mòduls (rols nous: Junta, Resp. comunicació i Resp. botiga); què veu l'instructor; quins imports veu el responsable; qui fa inscripcions presencials, assigna material i registra despeses; qui atén l'RGPD; conflicte d'interès; qui manté departaments i desfà conciliacions; què veu la secretaria del mètode de pagament; qui reenvia l'alternativa; qui manté els preus de les llicències | Aprovar les matrius tal com són, amb els supòsits per defecte: l'instructor veu nom, titulació, llicència sí o no i assistència; el responsable veu tots els imports cobrats i el marge de les seves activitats; la secretaria no fa inscripcions presencials; el responsable de cursos no assigna material però registra despeses de les seves activitats; l'administrador atén l'RGPD i manté departaments; ningú no aprova ni canvia el seu propi soci; la secretaria només veu «té mètode: sí o no»; tresorer i secretaria reenvien l'alternativa; el tresorer manté els preus de les llicències | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01 |
+| 8 | **Matriu de rols** | Validar els 13 rols i les matrius dels mòduls (rols nous: Junta, Resp. comunicació i Resp. botiga); què veu l'instructor; quins imports veu el responsable; qui fa inscripcions presencials, assigna material i registra despeses; qui atén l'RGPD; conflicte d'interès; qui manté departaments i desfà conciliacions; què veu la secretaria del mètode de pagament; qui reenvia l'alternativa; qui manté els preus de les llicències | Aprovar les matrius tal com són, amb els supòsits per defecte: l'instructor veu nom, titulació, llicència sí o no i assistència; el responsable veu tots els imports cobrats i el marge de les seves activitats; la secretaria no fa inscripcions presencials; el responsable de cursos no assigna material però registra despeses de les seves activitats; l'administrador atén l'RGPD i manté departaments; ningú no aprova ni canvia el seu propi soci; la secretaria només veu «té mètode: sí o no»; tresorer i secretaria reenvien l'alternativa; el tresorer manté els preus de les llicències; qui puja una factura des del mòbil no la torna a obrir (només tresorer i junta, 051) | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01; RN-M09-23 |
 | 9 | **Comissió de retorn** | Qui paga la comissió del banc quan es retorna un rebut domiciliat | La paga el club d'inici; es revisa si els retornats augmenten. L'import és [A verificar: banc] | S-M05b-08 |
 | 10 | **Carnet amb una quota retornada** | Si el carnet continua vàlid mentre la quota retornada no es paga | No és vàlid fins que es pagui (el soci rep l'alternativa de pagament) | S-M05b-09 |
 | 11 | **Ajuts: responsable i convocatòries** | Qui és el responsable dels ajuts i de cada sol·licitud; quines convocatòries s'han de vigilar; qui rep els avisos; avisos abans de justificar; format de justificació de cada organisme | Responsable per defecte: el tresorer, amb una persona de la junta per a medi ambient; començar per les convocatòries que el club ja ha demanat; avisos al responsable i al tresorer; sí, avisos també abans de justificar; paquet genèric fins que un organisme en demani un altre | S-M09A-01 a 05 |

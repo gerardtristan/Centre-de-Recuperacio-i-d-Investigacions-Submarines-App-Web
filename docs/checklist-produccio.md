@@ -31,7 +31,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
   - B8 accessibilitat bàsica del flux;
   - G3 correu de confirmació del mandat.
 - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals i baixa de Cluber. Requereix l'autorització expressa de la junta i les portes 0 a 3 completes: la resta de la porta 3 (B6, E5, E6, F1-F7, H2, H5) i la part de nivell 2 de B5, B8, E3 i E4.
-- En tots dos nivells, la plataforma només guarda l'IBAN xifrat al mandat, per a la domiciliació (decisió 044, que substitueix la custòdia de Stripe després de la 042).
+- En tots dos nivells, la plataforma només guarda l'IBAN xifrat al mandat, per a la domiciliació (decisió 044, que substitueix la custòdia de Stripe després de la 042). Els documents de justificació d'ajuts que porten IBAN segueixen la decisió 051 (xifrats, només tresorer i junta, còpia emmascarada).
 
 ## 3. Llista per categories
 
