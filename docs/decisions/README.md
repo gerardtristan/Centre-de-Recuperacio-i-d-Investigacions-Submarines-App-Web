@@ -37,8 +37,9 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [027](027-estructura-basica-de-carrec-i-pagament.md) | Estructura bàsica de càrrec i pagament a la 00; la 04 hi construeix al damunt | Acceptada |
 | [028](028-esborrat-rgpd-i-registre-d-activitat.md) | Esborrat RGPD: anonimitzar, bloquejar el que obliga la llei i referència anònima al registre | Acceptada (terminis [A validar amb la gestoria]) |
 | [029](029-compte-personal.md) | «Compte personal» en lloc de «compte de soci» | Acceptada |
-| [030](030-sistema-de-disseny.md) | Sistema de disseny: tokens en dos temes, colors per zona, tipografia, punts de canvi i logotips | Acceptada (ampliada per 031 i 032; fletxes, logotip, fonts i pila del frontend [A validar]) |
-| [031](031-estil-neumorfic-limitat.md) | Estil neumòrfic limitat (selector de tema, avatars, carnet i pastilla de navegació pública) | Acceptada (amplia la 030; abast als socis ajustat per 032) |
-| [032](032-immersio-socis-i-centre.md) | Immersió al compte personal, logotip més gran i secció del Centre a la web pública | Acceptada (amplia la 030; bitàcola, carnet i textos del Centre [A validar]) |
+| [030](030-sistema-de-disseny.md) | Sistema de disseny: tokens en dos temes, colors per zona, tipografia, punts de canvi i logotips | Acceptada (ampliada per 031 i 032; fletxes, logotip, fonts i pila del frontend [A validar]) · ampliada per 034 |
+| [031](031-estil-neumorfic-limitat.md) | Estil neumòrfic limitat (selector de tema, avatars, carnet i pastilla de navegació pública) | Acceptada (amplia la 030; abast als socis ajustat per 032) · ampliada per 034 |
+| [032](032-immersio-socis-i-centre.md) | Immersió al compte personal, logotip més gran i secció del Centre a la web pública | Acceptada (amplia la 030; bitàcola, carnet i textos del Centre [A validar]) · ampliada per 034 |
+| [034](034-patrons-magic-portfolio.md) | Patrons de Magic Portfolio com a referència visual (sense codi): sortida destacada, memòries de projectes, notícies amb data, galeria i butlletí | Acceptada (amplia la 030, 031 i 032; contingut, fotos, butlletí i manteniment [A validar]) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

@@ -1,7 +1,7 @@
 # 030 — Sistema de disseny
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (paleta, tipografia, punts de canvi i regles d'ús; [A validar] pel club: regla de les fletxes, versions del logotip, allotjament de les fonts i pila del frontend). Substitueix la [009](009-sistema-de-disseny.md). Ampliada per la [031](031-estil-neumorfic-limitat.md) (estil neumòrfic limitat). Ampliada per la [032](032-immersio-socis-i-centre.md).
+- **Estat:** Acceptada (paleta, tipografia, punts de canvi i regles d'ús; [A validar] pel club: regla de les fletxes, versions del logotip, allotjament de les fonts i pila del frontend). Substitueix la [009](009-sistema-de-disseny.md). Ampliada per la [031](031-estil-neumorfic-limitat.md) (estil neumòrfic limitat). Ampliada per la [032](032-immersio-socis-i-centre.md). Ampliada per la [034](034-patrons-magic-portfolio.md).
 
 ## Context
 La 009 deixava el sistema de disseny pendent perquè no hi havia cap document d'origen (P-10). A l'etapa 3, l'equip ha fixat la paleta (clar i fosc) i la tipografia, i ha demanat wireframes de baixa fidelitat de les tres zones (pública, compte personal i administració) per fixar-ne l'estructura abans d'especificar les pantalles. El club ha afegit el logotip per a fons fosc a `assets/marca/`.

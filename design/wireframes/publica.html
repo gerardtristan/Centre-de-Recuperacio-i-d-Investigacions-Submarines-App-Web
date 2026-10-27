@@ -62,6 +62,8 @@
 /* Al mòbil la llista és un panell vertical pla: la pastilla neumòrfica només hi és a partir de tauleta */
 @media (max-width: 599px) { .nav-llista.neu-pastilla { background: transparent; border: 0; box-shadow: none; } }
 .nomes-escriptori, .no-mobil { display: none; }
+/* Enllaços que surten de «Més» només a l'escriptori (a la resta de mides són dins de «Més») */
+.nav-escriptori { display: none; }
 
 /* ---------- portada ---------- */
 .portada-graella { display: grid; gap: var(--e-5); }
@@ -93,6 +95,58 @@
   border: var(--v-fina) solid var(--c-zona); border-radius: var(--r-l); background: var(--c-zona-fons);
 }
 .crida h3, .crida p { margin: 0; }
+
+/* ---------- portada: sortida destacada (patró «treball destacat», decisió 034) ---------- */
+.destacada { display: grid; padding: 0; overflow: hidden; border-top: var(--v-activa) solid var(--c-zona); }
+.destacada .caixa-imatge { min-height: calc(var(--e-8) * 3); border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
+.destacada-cos { display: grid; gap: var(--e-2); padding: var(--e-4); }
+.destacada-cos h2 { font-size: var(--t-2xl); margin: 0; }
+.destacada-cos p { margin: 0; }
+.destacada .etiqueta-seccio { margin-bottom: 0; }
+
+/* ---------- projectes: targetes tipus memòria ---------- */
+.graella-projectes { list-style: none; display: grid; gap: var(--e-5); margin-top: var(--e-5); }
+.projecte { display: grid; padding: 0; overflow: hidden; height: 100%; }
+.projecte .caixa-imatge { border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
+.projecte-cos { display: grid; gap: var(--e-3); padding: var(--e-4) var(--e-5) var(--e-5); align-content: start; }
+.projecte-cos h3 { margin: 0; font-size: var(--t-2xl); }
+.memoria { display: grid; gap: var(--e-3); margin: 0; }
+.memoria dt { font-size: var(--t-xs); font-weight: var(--p-negreta); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; color: var(--c-zona-text); }
+.memoria dd { margin: 0; }
+.xifres-projecte { list-style: none; display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-5); }
+.xifres-projecte strong { display: block; font-family: var(--f-titol); font-size: var(--t-xl); line-height: var(--a-titol); }
+
+/* ---------- noticies: entrades amb data ---------- */
+.entrades { list-style: none; display: grid; margin-top: var(--e-5); border-top: var(--v-fina) solid var(--c-linia); }
+.entrada { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4); padding: var(--e-4) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
+.entrada-data {
+  display: grid; justify-items: center; align-content: start;
+  min-width: calc(var(--e-7) + var(--e-3));
+  color: var(--c-text-2); font-size: var(--t-s); text-align: center;
+}
+.entrada-data .dia { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-2xl); line-height: var(--a-titol); color: var(--c-text); }
+.entrada-cos { display: grid; gap: var(--e-1); justify-items: start; }
+.entrada-cos h3 { margin: 0; font-size: var(--t-xl); }
+.entrada-cos h3 a { color: var(--c-text); }
+.entrada-cos p { margin: 0; }
+
+/* ---------- galeria: columnes tipus maçoneria, amb espais reservats ---------- */
+.galeria { list-style: none; columns: 2; column-gap: var(--e-3); margin-top: var(--e-5); }
+.galeria li { break-inside: avoid; margin-bottom: var(--e-3); }
+.galeria figure { margin: 0; }
+.galeria .caixa-imatge { min-height: calc(var(--e-8) * 2); }
+.galeria .foto-alta { min-height: calc(var(--e-8) * 3.5); }
+.galeria figcaption { margin-top: var(--e-1); font-size: var(--t-s); color: var(--c-text-2); }
+
+/* ---------- butlleti (al peu) ---------- */
+.butlleti {
+  display: grid; gap: var(--e-4); margin-bottom: var(--e-6); padding: var(--e-5);
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); background: var(--c-fons);
+}
+.butlleti h2 { margin: 0 0 var(--e-2); }
+.butlleti p { margin: 0; }
+.butlleti-form { display: grid; gap: var(--e-3); }
+.butlleti .casella a { display: inline; min-height: 0; }
 
 /* ---------- fer-se-soci ---------- */
 .graella-quotes { display: grid; gap: var(--e-4); margin-top: var(--e-5); }
@@ -158,6 +212,10 @@
   .xifres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ambits { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .crida { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .graella-projectes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .entrada { grid-template-columns: calc(var(--e-8) + var(--e-5)) minmax(0, 1fr); gap: var(--e-5); }
+  .galeria { columns: 3; }
+  .butlleti { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .graella-quotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graella-contacte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .peu-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -166,11 +224,14 @@
 /* ==================== Escriptori: 1024 px o més ==================== */
 @media (min-width: 1024px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-6); padding-right: var(--e-6); }
-  .nav-mes, .nav-sub, .nav-mes.obert .nav-sub { display: contents; }
-  .boto-mes, .nav-socis { display: none; }
+  /* 6 enllaços + «Més», com abans: la navegació no s'allarga */
+  .nav-escriptori { display: list-item; }
+  .nav-no-escriptori, .nav-socis { display: none; }
   .nomes-escriptori { display: inline-flex; }
 
-  .portada-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
+  .portada-graella { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-7); align-items: center; }
+  .portada-graella h1 { font-size: calc(var(--t-3xl) * 1.3); }
+  .galeria { columns: 4; }
   .graella-activitats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bloc-mitja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bloc-invers > :first-child { order: 2; }
@@ -201,11 +262,17 @@
         <li><a href="#portada" aria-current="page">Inici</a></li>
         <li><a href="#properes-activitats">Activitats</a></li>
         <li><a href="#qui-som">Qui som</a></li>
+        <li class="nav-escriptori"><a href="#centre-recuperacio-investigacio">El Centre</a></li>
+        <li class="nav-escriptori"><a href="#projectes">Projectes</a></li>
+        <li class="nav-escriptori"><a href="#noticies">Notícies</a></li>
         <li class="nav-mes">
           <button class="boto-mes" type="button" aria-expanded="false" aria-controls="nav-sub">Més <span aria-hidden="true">▾</span></button>
           <ul class="nav-sub" id="nav-sub">
-            <li><a href="#centre-recuperacio-investigacio">El Centre</a></li>
+            <li class="nav-no-escriptori"><a href="#centre-recuperacio-investigacio">El Centre</a></li>
+            <li class="nav-no-escriptori"><a href="#projectes">Projectes</a></li>
+            <li class="nav-no-escriptori"><a href="#noticies">Notícies i conferències</a></li>
             <li><a href="#medi-ambient">Medi ambient</a></li>
+            <li><a href="#galeria">Galeria</a></li>
             <li><a href="#fer-se-soci">Fer-se soci</a></li>
             <li><a href="#contacte">Contacte</a></li>
             <li class="nav-socis"><a href="socis.html">Àrea de socis</a></li>
@@ -238,10 +305,19 @@
         <p class="entradeta">Cursos, sortides i un club per compartir el mar amb seguretat.</p>
         <div class="grup-botons">
           <a class="boto boto-principal" href="#properes-activitats">Veure les activitats</a>
-          <a class="boto" href="#fer-se-soci">Fes-te soci</a>
+          <a class="boto boto-text" href="#qui-som">Coneix el club</a>
         </div>
       </div>
-      <div class="caixa-imatge caixa-alta">Imatge de portada: una immersió del club</div>
+      <article class="targeta destacada" aria-labelledby="destacada-titol">
+        <div class="caixa-imatge">Imatge de la sortida destacada</div>
+        <div class="destacada-cos">
+          <span class="etiqueta-seccio">Sortida destacada</span>
+          <h2 id="destacada-titol">Illes Medes</h2>
+          <p class="text-2">Dissabte 15/11/2026 · L'Estartit</p>
+          <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Places lliures</span></div>
+          <a class="boto" href="#activitat-1">Veure la sortida</a>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -342,7 +418,59 @@
     </div>
   </section>
 
-  <section id="medi-ambient" class="seccio" aria-labelledby="medi-titol">
+  <section id="projectes" class="seccio" aria-labelledby="projectes-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Projectes</span>
+      <h2 id="projectes-titol">Projectes</h2>
+      <p class="text-llarg text-2">Memòries breus: objectiu, dades i resultats. Dades d'exemple. <span class="a-validar">A validar</span></p>
+      <ul class="graella-projectes">
+        <li>
+          <article class="targeta projecte" id="projecte-fons-nets" aria-labelledby="projecte-1-titol">
+            <div class="caixa-imatge">Imatge del projecte</div>
+            <div class="projecte-cos">
+              <div class="fila-meta"><span class="xip">Medi ambient</span><span class="xip">Neteja de fons</span></div>
+              <h3 id="projecte-1-titol">Fons nets</h3>
+              <dl class="memoria">
+                <div><dt>Objectiu</dt><dd>Text d'exemple: retirar residus del fons en punts d'immersió habituals. <span class="a-validar">A validar</span></dd></div>
+                <div><dt>Dades</dt><dd>
+                  <ul class="xifres-projecte">
+                    <li><strong>4</strong> sortides el 2026</li>
+                    <li><strong>38 kg</strong> de residus en una sortida</li>
+                  </ul>
+                  <span class="a-validar">Exemple</span>
+                </dd></div>
+                <div><dt>Resultats</dt><dd>Text d'exemple: plàstic i xarxes retirats; resultats compartits amb l'entitat que ho coordina. <span class="a-validar">A validar</span></dd></div>
+              </dl>
+              <a class="boto boto-text" href="#">Llegeix la memòria</a>
+            </div>
+          </article>
+        </li>
+        <li>
+          <article class="targeta projecte" id="projecte-minka" aria-labelledby="projecte-2-titol">
+            <div class="caixa-imatge">Imatge del projecte</div>
+            <div class="projecte-cos">
+              <div class="fila-meta"><span class="xip">Medi ambient</span><span class="xip">Ciència ciutadana</span></div>
+              <h3 id="projecte-2-titol">El C.R.I.S. a Minka</h3>
+              <dl class="memoria">
+                <div><dt>Objectiu</dt><dd>Text d'exemple: registrar a Minka, la plataforma de ciència ciutadana, les espècies observades a les immersions. Si el club ja hi participa: <span class="a-validar">A validar</span></dd></div>
+                <div><dt>Dades</dt><dd>
+                  <ul class="xifres-projecte">
+                    <li><strong>3</strong> sortides de cens</li>
+                    <li><strong>—</strong> observacions</li>
+                  </ul>
+                  <span class="a-validar">Exemple</span>
+                </dd></div>
+                <div><dt>Resultats</dt><dd>Text d'exemple: les observacions són a Minka; aquí només se'n mostra un resum i l'enllaç. <span class="a-validar">A validar</span></dd></div>
+              </dl>
+              <a class="boto boto-text" href="#">Projecte a Minka <span aria-hidden="true">↗</span></a>
+            </div>
+          </article>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="medi-ambient" class="seccio seccio-alterna" aria-labelledby="medi-titol">
     <div class="contenidor bloc-mitja bloc-invers">
       <div>
         <span class="etiqueta-seccio">Compromís</span>
@@ -358,7 +486,59 @@
     </div>
   </section>
 
-  <section id="fer-se-soci" class="seccio seccio-alterna" aria-labelledby="soci-titol">
+  <section id="noticies" class="seccio" aria-labelledby="noticies-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Actualitat</span>
+      <h2 id="noticies-titol">Notícies i conferències</h2>
+      <ol class="entrades">
+        <li class="entrada">
+          <time class="entrada-data" datetime="2026-11-20"><span class="dia">20</span>nov 2026</time>
+          <div class="entrada-cos">
+            <span class="xip">Conferència</span>
+            <h3><a href="#">Títol d'exemple d'una conferència</a></h3>
+            <p class="text-2">Text d'exemple: resum breu de la conferència i lloc. Entrada lliure. <span class="a-validar">A validar</span></p>
+          </div>
+        </li>
+        <li class="entrada">
+          <time class="entrada-data" datetime="2026-11-03"><span class="dia">3</span>nov 2026</time>
+          <div class="entrada-cos">
+            <span class="xip">Notícia</span>
+            <h3><a href="#">Títol d'exemple d'una notícia del club</a></h3>
+            <p class="text-2">Text d'exemple: resum breu de la notícia. <span class="a-validar">A validar</span></p>
+          </div>
+        </li>
+        <li class="entrada">
+          <time class="entrada-data" datetime="2026-10-18"><span class="dia">18</span>oct 2026</time>
+          <div class="entrada-cos">
+            <span class="xip">Notícia</span>
+            <h3><a href="#">Títol d'exemple d'una sortida de medi ambient</a></h3>
+            <p class="text-2">Text d'exemple: resultats i fotos de la sortida. <span class="a-validar">A validar</span></p>
+          </div>
+        </li>
+      </ol>
+      <p><a class="boto boto-text" href="#">Totes les notícies i conferències</a></p>
+    </div>
+  </section>
+
+  <section id="galeria" class="seccio seccio-alterna" aria-labelledby="galeria-titol">
+    <div class="contenidor">
+      <span class="etiqueta-seccio">Galeria</span>
+      <h2 id="galeria-titol">Sota l'aigua</h2>
+      <p class="text-llarg text-2">Espais reservats: hi aniran fotos del club amb els drets d'imatge resolts. <span class="a-validar">A validar</span></p>
+      <ul class="galeria">
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Illes Medes · 2026</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Cap de Creus · 2025</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Sortida nocturna · 2025</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Posidònia · 2026</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Curs d'iniciació · 2026</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Tossa de Mar · 2024</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Neteja de fons · 2026</figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto històrica</div><figcaption>Arxiu del club</figcaption></figure></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="fer-se-soci" class="seccio" aria-labelledby="soci-titol">
     <div class="contenidor">
       <span class="etiqueta-seccio">Quotes</span>
       <h2 id="soci-titol">Fes-te soci</h2>
@@ -385,7 +565,7 @@
     </div>
   </section>
 
-  <section id="contacte" class="seccio" aria-labelledby="contacte-titol">
+  <section id="contacte" class="seccio seccio-alterna" aria-labelledby="contacte-titol">
     <div class="contenidor">
       <span class="etiqueta-seccio">Parlem</span>
       <h2 id="contacte-titol">Contacte</h2>
@@ -414,6 +594,18 @@
 
 <footer id="peu" class="peu">
   <div class="contenidor">
+    <section id="butlleti" class="butlleti" aria-labelledby="butlleti-titol">
+      <div>
+        <h2 id="butlleti-titol">Butlletí</h2>
+        <p class="text-2">Text d'exemple: sortides, cursos, conferències i notícies del club, un cop al mes. <span class="a-validar">A validar</span></p>
+      </div>
+      <form class="butlleti-form" onsubmit="return false" aria-describedby="nota-butlleti">
+        <div class="camp"><label for="b-correu">Correu electrònic</label><input id="b-correu" type="email" autocomplete="email"></div>
+        <label class="casella"><input type="checkbox"> <span>Vull rebre el butlletí i he llegit la <a href="#">política de privacitat</a>. Em puc donar de baixa quan vulgui.</span></label>
+        <button class="boto boto-principal" type="submit">Subscriu-me</button>
+        <p id="nota-butlleti" class="text-2">Wireframe: no envia res. Caldrà confirmar l'alta per correu. <span class="a-validar">A validar</span></p>
+      </form>
+    </section>
     <div class="peu-graella">
       <div class="peu-marca">
         <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
@@ -426,6 +618,9 @@
           <li><a href="#properes-activitats">Activitats</a></li>
           <li><a href="#qui-som">Qui som</a></li>
           <li><a href="#centre-recuperacio-investigacio">El Centre</a></li>
+          <li><a href="#projectes">Projectes</a></li>
+          <li><a href="#noticies">Notícies i conferències</a></li>
+          <li><a href="#galeria">Galeria</a></li>
           <li><a href="#fer-se-soci">Fer-se soci</a></li>
         </ul>
       </div>

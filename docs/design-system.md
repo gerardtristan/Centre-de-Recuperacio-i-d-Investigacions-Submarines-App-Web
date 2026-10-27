@@ -1,10 +1,11 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.3 (27/10/2026). La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
+- **Versió:** 1.4 (27/10/2026). La 1.4 incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
+- La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
 - **Versió anterior:** 1.2, etapa 3: sistema de disseny i wireframes de baixa fidelitat.
   - La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
   - La 1.2 afegeix l'estructura d'immersió del compte personal (§6.5), els tokens de profunditat, carnet i moviment (§2.6 i §4.1), el logotip més gran a la pública i la secció `centre-recuperacio-investigacio`.
-- **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md) i per la [032](decisions/032-immersio-socis-i-centre.md).
+- **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md), per la [032](decisions/032-immersio-socis-i-centre.md) i per la [034](decisions/034-patrons-magic-portfolio.md).
 - **Fitxers:** `design/wireframes/tokens.css` (font de veritat dels valors), `publica.html`, `socis.html` i `admin.html`.
 - **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4). L'únic moviment és el del compte personal (§4.1).
 
@@ -155,14 +156,19 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 **Pública (`publica.html`)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| `capcalera` (sobre el fons de pàgina; amb el nom sencer al costat del logotip, mai l'abreviatura) | Logotip de 52 px i el nom en 3 línies de 12 px, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» (El Centre, Medi ambient, Fer-se soci, Contacte, Àrea de socis) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb els 7 enllaços |
-| `portada` | Text i, a sota, la imatge | Igual | 2 columnes |
+| `capcalera` (sobre el fons de pàgina; amb el nom sencer al costat del logotip, mai l'abreviatura) | Logotip de 52 px i el nom en 3 línies de 12 px, selector de tema només amb icones i botó ☰ de menú (hamburguesa, s'obre amb un clic) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector amb text i «Fes-te soci»; a sota, la pastilla de navegació centrada, amb 3 enllaços i «Més» (El Centre, Projectes, Notícies i conferències, Medi ambient, Galeria, Fer-se soci, Contacte, Àrea de socis) | Dues files: logotip de 72 px i el nom en 2 línies de 14 px, selector, «Àrea de socis» i «Fes-te soci»; a sota, la pastilla amb 6 enllaços (Inici, Activitats, Qui som, El Centre, Projectes, Notícies) i «Més» (Medi ambient, Galeria, Fer-se soci, Contacte) |
+| `portada` | Text i, a sota, la **sortida destacada** (targeta amb imatge, data, lloc, estat i enllaç); una sola acció principal | Igual | 2 columnes (7/5), amb el titular ×1,3 |
 | `properes-activitats` | 1 columna de targetes | 2 columnes | 3 columnes |
 | `qui-som`, `medi-ambient` | Text i, a sota, la imatge | Igual, xifres en 3 columnes | 2 columnes; la imatge canvia de costat |
 | `centre-recuperacio-investigacio` (entre `qui-som` i `medi-ambient`) | Introducció, 3 àmbits un a sota de l'altre (Recuperació, Investigació, Divulgació) i una crida a col·laborar | Àmbits en 3 columnes; crida amb el botó a la dreta | Igual que la tauleta. Tot el text és d'exemple i va marcat [A validar] |
+| `projectes` (després del Centre) | Targetes tipus memòria una a sota de l'altra: xips, títol, **Objectiu / Dades / Resultats** i enllaç | 2 columnes | 2 columnes |
+| `noticies` (després de `medi-ambient`) | Llista d'entrades: la data a l'esquerra (dia gran i mes), un xip de tipus, el títol enllaçat i un resum | Igual, amb una columna de data més ampla | Igual |
+| `galeria` | Columnes tipus maçoneria: 2, amb peu de foto (lloc i any); espais reservats | 3 columnes | 4 columnes |
 | `fer-se-soci` | 1 targeta per fila | 2 targetes | 2 targetes en 2/3 de l'amplada |
 | `contacte` | Dades i, a sota, el formulari | 2 columnes | 2 columnes |
-| `peu` | 1 columna; logotip de 120 px | 2 columnes | 4 columnes |
+| `peu` (amb `butlleti` a dalt) | Butlletí (correu, consentiment, botó «Subscriu-me») i, a sota, 1 columna; logotip de 120 px | Butlletí en 2 columnes; peu en 2 columnes | Igual; peu en 4 columnes |
+
+Les seccions alternen el fons en aquest ordre: portada, properes activitats (alternat), qui som, el Centre (alternat), projectes, medi ambient (alternat), notícies, galeria (alternat), fer-se soci i contacte (alternat).
 
 **Compte personal (`socis.html`, estructura d'immersió, §6.5)**
 | Bloc | Mòbil | Tauleta | Escriptori |
@@ -211,7 +217,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 
 ### 6.1 Navegació
-- Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc.
+- Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc. **Regla (034):** la pastilla no s'allarga. A l'escriptori mostra 6 enllaços i «Més», i les seccions noves van dins de «Més». Els enllaços que surten de «Més» només a l'escriptori porten la classe `nav-escriptori`, i les seves còpies dins de «Més», `nav-no-escriptori`. Així cada enllaç només es veu i es llegeix una vegada a cada mida.
 - Compte personal: dock flotant al mòbil (Inici, Sortides, Carnet, Pagaments, Perfil, amb el carnet al centre) i navegació a la capçalera a partir de la tauleta. No té barra lateral, i així es distingeix de l'administració.
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
@@ -300,6 +306,20 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 - **Escriptori:** sense barra lateral; capçalera superior i graella bento asimètrica (§5.1).
 - **Més contrast:** desapareixen els degradats, l'ona i les ombres; el fons és pla i les vores plenes de 2 px en `--c-text`.
 
+### 6.6 Patrons adoptats de Magic Portfolio (decisió 034)
+- **Sortida destacada** (`destacada`): una targeta amb vora superior de zona, una imatge, l'etiqueta «Sortida destacada», el títol, la data i el lloc, els xips d'estat i un enllaç. Va a la portada, al costat del titular. La portada té una sola acció principal (groga) i un enllaç de text.
+- **Memòria de projecte** (`projecte`, `memoria`): sempre amb tres apartats, **Objectiu, Dades i Resultats**. Les etiquetes van en majúscules de 12 px amb el color de text de la zona, i les xifres en Barlow Condensed. Les dades d'exemple porten la marca [A validar] o «Exemple».
+- **Entrada amb data** (`entrada`): `<time datetime>` amb el dia gran i el mes en text, un xip de tipus («Notícia» o «Conferència»), el títol enllaçat i un resum. Les entrades van en una llista ordenada (`<ol>`), de la més nova a la més antiga.
+- **Galeria** (`galeria`): columnes CSS tipus maçoneria, amb `figure` i `figcaption` (lloc i any). No hi va cap foto sense drets (P-41).
+- **Butlletí** (`butlleti`): el correu amb etiqueta visible, una casella de consentiment amb enllaç a la privacitat i la baixa, el botó «Subscriu-me» i un avís de confirmació per correu (P-42). No és neumòrfic.
+- **Compte personal (només afinament):**
+  - targetes planes amb vora fina, radi gran i sense ombra (el relleu queda per al carnet);
+  - farciment de 16 px al mòbil i de 24 px a partir de la tauleta;
+  - xips en forma de pastilla;
+  - el títol «Properes sortides» i el de cada sortida a 32 px, i la data i el lloc a 14 px.
+
+  Aquests afinaments són a l'estil de `socis.html`, no a `tokens.css`, i així no arriben a l'administració.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.
@@ -355,7 +375,9 @@ No se n'ha copiat codi, imatges, logotips ni textos. Tampoc no s'ha fet servir l
 |---|---|---|---|
 | [Card Stack Portfolio](https://21st.dev/@kedhareswer/templates/card-stack-portfolio-website-template) (Kedhareswer Naidu) | Socis | Targetes grans i navegació persistent (aquí, el dock). El moviment del carnet és disseny propi, en CSS | No indica cap llicència [A validar si se'n volgués reutilitzar codi] |
 | [Saasly](https://21st.dev/@tailgrids/templates/tailgrids-saasly) (TailGrids) | Admin i pública | Xifres en targetes, jerarquia neta, targetes de preu per a `fer-se-soci`. Nota: és una pàgina de presentació, no un panell, i la barra lateral i la taula són disseny propi | Llicència TailGrids: ús comercial i en projectes de clients permès; **no** es pot revendre, redistribuir ni fer servir en generadors d'interfícies [A validar si se'n reutilitzés codi] |
-| [Magic Portfolio](https://21st.dev/@larsen66/templates/magic-portfolio-for-next-js) (Once UI) | Admin i pública | Barra de navegació en forma de pastilla, botó de tema a la capçalera, etiquetes de secció i xips | **CC BY-NC 4.0**: cal citar l'autor i no se'n permet l'ús comercial. No en copiem codi; si mai se'n volgués reutilitzar, cal validar si l'ús del club és «no comercial» [A validar] |
+| [Magic Portfolio](https://21st.dev/@larsen66/templates/magic-portfolio-for-next-js) (Once UI; once-ui.com/products/magic-portfolio) | Pública, i socis només en tipografia | Barra de navegació en forma de pastilla, botó de tema a la capçalera, etiquetes de secció i xips. Des de la 034, també: treball destacat (sortida destacada), casos d'estudi (memòries de projectes), entrades amb data (notícies i conferències), galeria, subscripció al butlletí i ritme tipogràfic. Anàlisi completa a [analisi-magic-portfolio.md](analisi-magic-portfolio.md) | **CC BY-NC 4.0**: cal citar l'autor i no se'n permet l'ús comercial. No en copiem codi, textos ni imatges; si mai se'n volgués reutilitzar codi, cal validar si l'ús del club és «no comercial» [A validar] |
+
+**Nota d'atribució:** alguns patrons visuals de la web pública i del compte personal s'inspiren en *Magic Portfolio*, de Once UI (llicència CC BY-NC 4.0). N'agraïm el treball. No se n'ha copiat codi, textos ni imatges: els patrons s'han reimplementat en HTML i CSS propis, amb els tokens d'aquest sistema.
 
 ## 11. Convencions de noms
 - Tokens: `--c-` color, `--e-` espai, `--t-` mida de text, `--p-` pes, `--a-` alçada de línia, `--r-` radi, `--v-` vora, `--f-` família.
@@ -388,3 +410,4 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 - Compte personal (032): la bitàcola (d'on surten les sortides i les hores, i si el club vol insígnies) i el contingut del darrere del carnet.
 - Web pública (032): els textos de `centre-recuperacio-investigacio`. El nom del club ja és fixat (§8).
 - Fase futura: bitàcola, insígnies i punts per participació en activitats i cursos (P-38 a `pendents.md`).
+- Web pública (034): contingut real de projectes i notícies (P-40), fotos i drets d'imatge (P-41), servei del butlletí (P-42) i qui manté el contingut (P-43).

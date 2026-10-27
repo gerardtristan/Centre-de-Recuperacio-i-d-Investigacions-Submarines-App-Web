@@ -21,6 +21,13 @@
 .contenidor { max-width: var(--amplada-max); margin: 0 auto; padding: 0 var(--e-4); }
 body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inset-bottom)); }
 
+/* ---------- Afinament amb patrons adoptats de Magic Portfolio (decisió 034) ----------
+   Només tipografia, targetes i xips; l'estructura no canvia. */
+/* Targetes planes amb vora fina i radi gran, sense ombra: el relleu queda per al carnet */
+.targeta { border-radius: var(--r-l); box-shadow: none; padding: var(--e-4); }
+/* Xips en forma de pastilla, amb més aire */
+.xip { border-radius: var(--r-pastilla); padding: 0 var(--e-3); }
+
 /* ---------- capcalera-soci (sobre el fons: hi va el selector neumòrfic) ---------- */
 .capcalera-soci { background: var(--c-fons); border-bottom: var(--v-activa) solid var(--c-zona); }
 .capcalera-interior {
@@ -152,6 +159,11 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 #bitacola { grid-area: bitacola; }
 #llicencia { grid-area: llicencia; }
 .graella-bento h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
+/* Títol de secció fora de targeta: més gran, com a titular */
+#proximes-activitats h2 { font-size: var(--t-2xl); }
+/* Dates i llocs: text secundari més petit, per separar-los del títol */
+.sortida-cos .text-2 { font-size: var(--t-s); }
+.sortida-cos h3 { font-size: var(--t-2xl); font-weight: var(--p-negreta); }
 
 /* avisos: crítics, plans i grans */
 .llista-avisos { list-style: none; display: grid; gap: var(--e-3); }
@@ -222,6 +234,8 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   .portada { min-height: var(--portada-alcada); padding-top: var(--e-5); }
   .portada h1 { font-size: var(--t-3xl); }
   .carril { grid-auto-columns: calc((100% - var(--e-4)) / 2); }
+  .targeta { padding: var(--e-5); }
+  .sortida, .sortida.targeta { padding: 0; }
   .graella-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas: "avisos llicencia" "sortides sortides" "bitacola bitacola";

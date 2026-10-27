@@ -1,7 +1,7 @@
 # 032 — Immersió al compte personal, logotip més gran i secció del Centre
 
 - **Data:** 27/10/2026
-- **Estat:** Acceptada (bitàcola, contingut del darrere del carnet i textos de la secció [A validar]; el nom del club es va fixar el 27/10/2026: «Centre de Recuperació i d'Investigacions Submarines»). Amplia la [030](030-sistema-de-disseny.md) i ajusta l'abast de la [031](031-estil-neumorfic-limitat.md) al compte personal.
+- **Estat:** Acceptada (bitàcola, contingut del darrere del carnet i textos de la secció [A validar]; el nom del club es va fixar el 27/10/2026: «Centre de Recuperació i d'Investigacions Submarines»). Amplia la [030](030-sistema-de-disseny.md) i ajusta l'abast de la [031](031-estil-neumorfic-limitat.md) al compte personal. Ampliada per la [034](034-patrons-magic-portfolio.md).
 
 ## Context
 L'equip vol refinar l'estructura de dues zones:
