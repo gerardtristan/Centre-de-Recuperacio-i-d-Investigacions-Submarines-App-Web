@@ -9,7 +9,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | Núm. | Decisió | Estat |
 |---|---|---|
 | [001](001-construir-en-lloc-de-comprar.md) | Construir una plataforma pròpia en lloc de comprar | Acceptada (el cost de servidor l'actualitza la 016) |
-| [002](002-pila-tecnologica.md) | Pila tecnològica | Acceptada |
+| [002](002-pila-tecnologica.md) | Pila tecnològica | Acceptada (substituïda en part per 042 i 046) |
 | [003](003-autenticacio-doble-factor.md) | Autenticació i doble factor | Substituïda per 015 |
 | [004](004-correu.md) | Correu transaccional i butlletí amb Brevo | Acceptada |
 | [005](005-fitxers.md) | Fitxers a Scaleway Object Storage | Acceptada |
@@ -53,5 +53,7 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [043](043-proveidor-de-pagaments-dins-la-ue.md) | Proveïdor de pagaments dins la UE i pagament sense sortir de l'app | Acceptat l'ordre de recomanació; proveïdor pendent de verificar (P-44, P-45) |
 | [044](044-domiciliacio-sepa-iban-i-mandat-xifrats.md) | Domiciliació SEPA pròpia: IBAN i mandat xifrats, només per a aquest ús | Proposada (excepció a RN-70 de la spec 00) |
 | [045](045-correccio-transferencia-conciliada-per-error.md) | Corregir una transferència conciliada amb el càrrec equivocat (pagat → pendent) | Acceptada (amplia RN-67 de la spec 00) |
+| [046](046-interficie-django-htmx-servida-des-del-vps.md) | Interfície amb plantilles de Django i HTMX, servida des del VPS (HTMX sense CDN) | Acceptada (substitueix la part de frontend de la 002; resol la pila del frontend de la 030) |
+| [047](047-planning-font-unica-de-l-especificacio.md) | `docs/planning.md` és la font única de l'especificació de cada mòdul | Acceptada (amplia la 008) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

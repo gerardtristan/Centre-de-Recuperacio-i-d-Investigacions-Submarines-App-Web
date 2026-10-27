@@ -9,10 +9,10 @@
 | Fase | Mòdul | Valor | Depèn de | Bloquejat per | Spec |
 |---|---|---|---|---|---|
 | **1 · Deixar Cluber** | 00 Base comuna | Imprescindible | — | P-04 (matriu de rols) | [spec 00](../specs/00-base-comuna/spec.md) (v2) |
-| | 01 Socis i carnet (amb registre mínim de llicència) | Molt alt | 00 | Regles de soci de F §3; P-28; [039](decisions/039-numeros-de-soci-no-es-reutilitzen.md) i [040](decisions/040-impagat-es-marca-a-ma.md) provisionals | Pendent (hi ha un pla al repositori anterior per portar-hi) |
-| | 04 Tresoreria, part mínima | Molt alt | 00, 01 | Q-17 (departaments); format de l'extracte (P-45) | [spec 04](../specs/04-tresoreria/spec.md) (v2) |
-| | 05a Alta del mètode de pagament i mandats | Molt alt | 01, 04 | Proveïdor ([043](decisions/043-proveidor-de-pagaments-dins-la-ue.md)) i preguntes al banc (P-45); [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); P-21 | Pendent |
-| | 05b Cobraments: **pagament dins l'app amb targeta i Bizum**, domiciliació, transferència, remeses, retornats, devolucions | Molt alt: és el criteri per deixar Cluber | 05a | Proveïdor (043); P-12, P-24, P-29; experiència de pagament (spec 04, annex D) | Pendent |
+| | 01 Socis i carnet (amb registre mínim de llicència) | Molt alt | 00 | Regles de soci de F §3; P-28; [039](decisions/039-numeros-de-soci-no-es-reutilitzen.md) i [040](decisions/040-impagat-es-marca-a-ma.md) provisionals | [planning.md, M01](planning.md#M01) (aprovat) |
+| | 04 Tresoreria, part mínima | Molt alt | 00, 01 | Q-17 (departaments); format de l'extracte (P-45) | [planning.md, M04](planning.md#M04) (escrit; integra la [spec 04](../specs/04-tresoreria/spec.md) v2) |
+| | 05a Alta del mètode de pagament i mandats | Molt alt | 01, 04 | Proveïdor ([043](decisions/043-proveidor-de-pagaments-dins-la-ue.md)) i preguntes al banc (P-45); [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); P-21 | [planning.md, M05a](planning.md#M05a) (escrit) |
+| | 05b Cobraments: **pagament dins l'app amb targeta i Bizum**, domiciliació, transferència, remeses, retornats, devolucions | Molt alt: és el criteri per deixar Cluber | 05a | Proveïdor (043); P-12, P-24, P-29; experiència de pagament (spec 04, annex D) | [planning.md, M05b](planning.md#M05b) (escrit) |
 | **2 · La resta** | 02 Activitats (cursos i sortides) | Alt | 01, 04 | Catàleg i preus; centres de busseig; subtipus de medi ambient | Pendent |
 | | 03 Material | Alt | 02 | Qui paga el material llogat; cost d'ús | Pendent |
 | | Resta de la 04 (marge, despeses amb factura, ajuts, facturació) | Molt alt | 02, 03, 05b | P-02 (gestoria: IVA, Verifactu i què s'ha de facturar, P-47) | Pendent |

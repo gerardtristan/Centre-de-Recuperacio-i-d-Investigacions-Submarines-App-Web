@@ -17,14 +17,14 @@ Català per a documents, interfície i comentaris de cara a l'usuari. Noms de co
 - `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
-- `specs/NN-modul/`: spec.md, plan.md, data-model.md, tasks.md de cada mòdul.
+- `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada; `specs/04-tresoreria/spec.md` és la font de la secció M04 i passa a l'arxiu quan aquesta s'aprova.
 No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 
 ## Com es treballa (Spec-Driven Development)
-1. No s'escriu codi d'un mòdul sense `spec.md` revisada.
+1. No s'escriu codi d'un mòdul sense la seva secció de `docs/planning.md` aprovada (decisió 047).
 2. Si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, no implementis aquesta part: pregunta.
 3. Flux: spec, aclarir, pla, tasques, implementar. Una tasca = un canvi petit amb proves.
-4. Si canvia una regla, actualitza primer la spec i després el codi.
+4. Si canvia una regla, actualitza primer `docs/planning.md` i després el codi. No dupliquis el contingut del pla en cap altre fitxer: enllaça-hi per l'àncora.
 5. Formalitat segons risc: spec completa per a finances, pagaments, autenticació, permisos, RGPD i importacions; spec d'una pàgina per a contingut web, dashboard i conferències; només ticket per a errors petits.
 
 ## Mòduls (ordre de construcció, decisió 024)
