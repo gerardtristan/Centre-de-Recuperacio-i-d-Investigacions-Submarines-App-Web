@@ -11,7 +11,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 | Àmbit | Estat |
 |---|---|
 | Context | v4 del 27/10/2026 a [docs/context-projecte.md](docs/context-projecte.md); el v3 és a `docs/arxiu/` |
-| Entrevistes i funcionalitats | Fetes. Al .docx de funcionalitats encara falten els textos de substitució de [pendents.md](docs/decisions/pendents.md) (P-22) |
+| Entrevistes i funcionalitats | Fetes. Document de funcionalitats en versió 2 (27/10/2026), amb les decisions fins a la 045; la versió 1 és a `docs/arxiu/` |
 | Metodologia (SDD) i checklist de producció | Definides; checklist actualitzada (C2, C4, C5, C9, G1) |
 | Arquitectura d'integracions | Acceptada, v3: [docs/arquitectura-integracions.md](docs/arquitectura-integracions.md) |
 | Decisions | 001-025 a [docs/decisions/](docs/decisions/). Resoltes: Cluber i entrada en producció, comptes i doble factor, convidats, pressupost (producció mínima), mètodes de pagament, comissions, domini (cris1954.cat), mandats (escenari base B, provisional) |
