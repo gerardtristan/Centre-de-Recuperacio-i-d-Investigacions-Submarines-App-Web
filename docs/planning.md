@@ -2811,6 +2811,21 @@ App Django `activities` (nova). Noms de codi en anglès. Imports en cèntims (`P
 
 **Migracions:** reversibles; dades inicials (tipus de sortida, subtipus «Neteja») en una migració de dades; cap dada personal a les migracions.
 
+### Valors configurables (pantalla d'ajustos, T-M02-28)
+Valors de la [regla general](#regles), a la pantalla d'ajustos del mòdul sobre la [peça comuna](#valors-configurables-055) de la [055](decisions/055-ajustos-configurables-i-addendes.md): cada canvi es comprova al servidor (rol i rang), queda al registre amb el valor anterior i, si afecta diners, porta data d'entrada en vigor i avisa per correu el tresorer i la junta (RN-AJ-03 i RN-AJ-04). Els valors inicials són els supòsits que ja hi havia; les preguntes obertes continuen obertes.
+
+| Clau de l'ajust | VC | Valor inicial | Rang vàlid | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| Preus del catàleg (`price_member_cents`, `price_non_member_cents`, `reinforcement_price_cents`): versions a `TrainingCataloguePrice` (`entry`, preus, `valid_from`, `changed_by`, `note`) | VC-20 | Els de la fitxa | ≥ 0 | Responsable de cursos i sortides (RN-M02-01) | Sí |
+| Tipus i subtipus de sortida, projectes | VC-20 | «Neteja»; Sèniors i jornades obertes, desactivables | Noms únics | Responsable de cursos i sortides | — |
+| `activities.default_payment_window_hours` | VC-21 | 72 | 24 a 240 | Tresorer | — |
+| `activities.offer_accept_hours` | VC-22 | 48 | 12 a 168 | Responsable de cursos i sortides | — |
+| `activities.reminder_days_before` | VC-23 | 2 | 0 a 14 (0 = el mateix dia) | Secretaria | — |
+| `activities.default_requirements_mode` | VC-24 | `warn` (avís) | `warn`, `block` | Responsable de cursos i sortides, per decisió de la junta | — |
+| `activities.marine_forecast_url` | VC-25 | La pàgina pública de previsió marítima del Meteocat | URL `https` | Administrador | — |
+
+Es queda al codi: la numeració del certificat (VC-26).
+
 <a id="M02-7-regles"></a>
 ## M02-7 Regles de negoci i càlculs
 
@@ -2820,12 +2835,12 @@ App Django `activities` (nova). Noms de codi en anglès. Imports en cèntims (`P
 | RN-M02-02 | Transicions de l'activitat: `draft → open → registration_closed → in_progress → done → closed`; `open → done` i `registration_closed → done` (sortides); qualsevol estat abans de `done` → `cancelled` amb motiu. `closed` només el fa el 09. Cap transició enrere excepte `registration_closed → open` (el responsable reobre inscripcions abans de l'inici) | F §4 i §5 |
 | RN-M02-03 | Transicions de la inscripció: `pending_payment → confirmed / expired / cancelled`; `waitlisted → offered / cancelled / expired`; `offered → pending_payment / expired`; `confirmed → cancelled`. Una inscripció `confirmed` no torna a `pending_payment` | Proposta |
 | RN-M02-04 | Preu: soci si `members.is_member(person, on=data d'inscripció)`; si no, el de no soci. Es copia a la inscripció i no canvia encara que canviï el catàleg o l'estat de soci. Simpatitzants i ple dret paguen el preu de soci [A validar: junta, S-M01-11] | F §4; S-M02-04 |
-| RN-M02-05 | Canviar un preu del catàleg no canvia les activitats ja creades | Proposta |
+| RN-M02-05 | Canviar un preu del catàleg no canvia les activitats ja creades. El preu del catàleg té versions amb data d'entrada en vigor (`TrainingCataloguePrice`): una activitat nova copia el preu vigent el dia que es crea | Proposta |
 | RN-M02-06 | Si el preu d'una activitat difereix del catàleg, la nota del motiu és obligatòria i s'avisa el tresorer (correu i avís a l'app). El canvi i el valor anterior van al registre | Resposta del 22/10/2026 |
 | RN-M02-07 | Places ocupades = inscripcions `pending_payment` + `confirmed` + `offered`. Mai més que `max_places`: el recompte i la inscripció es fan dins una transacció amb la fila de l'activitat bloquejada (`SELECT … FOR UPDATE`) | F §4 i §5 |
-| RN-M02-08 | Termini de pagament: `payment_window_hours` des de la inscripció (o des d'acceptar l'oferta), amb un valor per defecte de 72 hores [A validar: responsable de cursos i sortides i tresorer, S-M02-02]. Un pagament en curs (intent del 05b «en curs») allarga el termini fins que acaba. Una transferència anunciada no l'allarga | Proposta |
-| RN-M02-09 | Llista d'espera per ordre d'arribada; el responsable pot reordenar-la amb motiu. Oferta de plaça amb 48 hores per acceptar-la [A validar, S-M02-03]. Si queden menys de 48 hores per a la data límit, el termini acaba a la data límit | F §4 i §5 |
-| RN-M02-10 | Requisits: titulació mínima (`required_level`, contra les titulacions de la persona) i llicència vigent (registre mínim del 01) a la data de l'activitat. `requirements_mode = warn` (supòsit per defecte): es pot inscriure, veu l'avís i el responsable ho veu marcat. `block`: no es pot inscriure [A validar: junta, S-M02-01] | F §5 |
+| RN-M02-08 | Termini de pagament: `payment_window_hours` des de la inscripció (o des d'acceptar l'oferta), amb un valor per defecte de 72 hores (ajust `activities.default_payment_window_hours`) [A validar: responsable de cursos i sortides i tresorer, S-M02-02]. Un pagament en curs (intent del 05b «en curs») allarga el termini fins que acaba. Una transferència anunciada no l'allarga | Proposta |
+| RN-M02-09 | Llista d'espera per ordre d'arribada; el responsable pot reordenar-la amb motiu. Oferta de plaça amb 48 hores per acceptar-la (ajust `activities.offer_accept_hours`) [A validar, S-M02-03]. Si queda menys d'aquest termini per a la data límit, el termini acaba a la data límit | F §4 i §5 |
+| RN-M02-10 | Requisits: titulació mínima (`required_level`, contra les titulacions de la persona) i llicència vigent (registre mínim del 01) a la data de l'activitat. `requirements_mode = warn` (supòsit per defecte, ajust `activities.default_requirements_mode`; cada activitat el pot canviar): es pot inscriure, veu l'avís i el responsable ho veu marcat. `block`: no es pot inscriure [A validar: junta, S-M02-01] | F §5 |
 | RN-M02-11 | Un no soci només es pot inscriure si l'activitat té `open_to_non_members`; s'inscriu com a convidat amb dades mínimes i consentiment i paga amb l'enllaç (021; RN-30 de la 00) | F §4; 021 |
 | RN-M02-12 | Cancel·lació del participant: només abans de la data límit d'inscripció. L'import a tornar el fixa la política del club [A validar: junta, S-M02-05]; mentre no hi sigui, la proposta de devolució és de l'import pagat i el tresorer decideix | F §4 |
 | RN-M02-13 | Cancel·lació de l'activitat pel club (també per meteorologia): proposta de devolució del **100 %** de l'import pagat a cada inscrit [A validar: junta, S-M02-05]. La comissió del proveïdor no es recupera i queda com a despesa de l'activitat (RN-T11, 013) | F §5 |
@@ -2834,12 +2849,12 @@ App Django `activities` (nova). Noms de codi en anglès. Imports en cèntims (`P
 | RN-M02-16 | Un alumne no rep el certificat fins que l'instructor el registra apte. El certificat és del club, en PDF, amb número únic `C-AAAA-NNNN` [A validar: junta]; la titulació oficial de la federació o l'agència es tramita fora de la plataforma [A verificar: FECDAS]. En emetre'l es crea la titulació de la persona amb `source = club_course` | F §4 |
 | RN-M02-17 | Ni incidències, ni observacions, ni avaluacions no poden contenir dades de salut. Un accident segueix el protocol del club fora de la plataforma [A validar: junta] | CLAUDE.md; P-07 |
 | RN-M02-18 | Qualsevol canvi del programa del dia, de les sessions, del lloc o de l'hora d'una activitat `open` o posterior avisa automàticament els inscrits `confirmed`, `pending_payment` i `offered` | F §5 |
-| RN-M02-19 | Avisos per correu i a la safata de l'app, mai push (041): confirmació, recordatori (supòsit: 2 dies abans de cada sessió o sortida [A validar: secretaria, S-M02-15]), canvi de programa, oferta de plaça, termini de pagament, cancel·lació i missatge del responsable | F §4 i §5; 041 |
+| RN-M02-19 | Avisos per correu i a la safata de l'app, mai push (041): confirmació, recordatori (ajust `activities.reminder_days_before`; supòsit: 2 dies abans de cada sessió o sortida [A validar: secretaria, S-M02-15]), canvi de programa, oferta de plaça, termini de pagament, cancel·lació i missatge del responsable | F §4 i §5; 041 |
 | RN-M02-20 | Una activitat no es pot marcar `done` abans de la data de l'última sessió (curs) o de la sortida | Proposta |
 | RN-M02-21 | **Duplicar** (026): copia títol, descripció, tipus, subtipus, projecte, catàleg, departament, centre de cost, places, preus (i la nota), requisits, termini de pagament, programa del dia, sessions del grup (no les de reforç) amb instructors, i el material típic (via senyal, 03). Desplaça totes les dates i hores per la diferència entre la data d'inici nova i l'antiga. **No copia:** inscripcions, llista d'espera, pagaments, assistència, avaluacions, resultats, incidències ni fotos. La còpia és `draft` i guarda `duplicated_from` | F 9.18; 026 |
 | RN-M02-22 | Comprovacions de tancament (`closing_blockers`): inscripcions `pending_payment` o `offered`, càrrecs de reforç sense pagar, propostes de devolució sense fer i les que registrin altres mòduls (material pendent, 03) | F §5 («no es pot tancar amb cobraments o material pendents») |
 | RN-M02-23 | Les fotos i els resultats ambientals no es publiquen enlloc des del 02. La publicació és del 07 i només amb autor, permís i consentiment de les persones que hi surtin (P-41) | P-41 |
-| RN-M02-24 | Previsió marítima: només un **enllaç** a la pàgina pública del servei (per exemple, Meteocat), sense incrustar-ne cap giny ni carregar-ne cap script (046) | F §5; 046 |
+| RN-M02-24 | Previsió marítima: només un **enllaç** a la pàgina pública del servei (ajust `activities.marine_forecast_url`; inicial, Meteocat), sense incrustar-ne cap giny ni carregar-ne cap script (046) | F §5; 046 |
 | RN-M02-25 | L'horari descarregable (fitxer de calendari) només conté les sessions o la sortida de qui el descarrega, sense dades d'altres persones | Proposta |
 
 **Exemples numèrics (imports inventats)**
@@ -2927,6 +2942,8 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 - **CA-M02-23** Donat una activitat amb una inscripció `pending_payment`, quan es demana `closing_blockers`, llavors la llista la conté; quan el 09 crida `mark_closed`, es rebutja.
 - **CA-M02-24** Donat cada cel·la de [M02-4](#M02-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
 - **CA-M02-25** Donat una revisió del model, quan s'executa, llavors cap camp del 02 guarda dades de salut, de targeta ni d'IBAN.
+- **CA-M02-26** Donat un preu de catàleg de 4500 i un canvi a 5000 amb data d'entrada en vigor l'1 del mes vinent, quan es crea una activitat avui, llavors copia 4500; quan es crea a partir d'aquella data, copia 5000; les activitats ja creades no canvien, i el tresorer i la junta reben el correu amb 4500 i 5000.
+- **CA-M02-27** Donat `activities.offer_accept_hours` a 24, quan s'ofereix una plaça, llavors el termini és de 24 hores (o la data límit, si és abans); un valor d'11 o de 169 es rebutja.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -2974,7 +2991,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 | T-M02-25 | Dades de prova inventades: catàlegs, activitats, inscrits, avaluacions | S | `apps/activities/fixtures/` | T-M02-20 | Es carreguen amb una ordre |
 | T-M02-26 | Proves de principi a fi amb `FakeProvider` | L | `tests/` | T-M02-11 a T-M02-22 | Totes en verd |
 | T-M02-27 | Guia del responsable i de l'instructor; ajuda per inscriure's | S | `docs/` | T-M02-26 | Revisades |
-| T-M02-28 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/activities/settings.py`, vistes | T-M02-04; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M02-28 | Pantalla d'**ajustos** del mòdul: els seus valors (bloc «Valors configurables» de la secció 6), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/activities/settings.py`, vistes | T-M02-04; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat; CA-M02-26, 27 |
 
 <a id="M02-11-proves"></a>
 ## M02-11 Pla de proves
@@ -3051,7 +3068,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 **Requisits pendents** (s'han de resoldre quan es revisi aquesta secció)
 | ID | Requisit | Origen | Propietari |
 |---|---|---|---|
-| RP-M02-01 | **Condicional a `LICENCES_DAY_ENABLED`** (desactivada per defecte, RN-M06-01). **Llicència d'un dia:** quan existeixi el 06 i l'opció sigui activada, el 02 li demanarà si una activitat (per a un participant i una data) necessita llicència d'un dia, i oferirà demanar-la. El 06 no depèn del 02: la pregunta va del 02 al 06 (`licences.current` i, si cal, un servei nou de lectura del 06). Fins llavors, el 02 només avisa (RN-M02-10) | [052](decisions/052-llicencia-font-unica-al-06.md) | Responsable del projecte |
+| RP-M02-01 | **Condicional a `licences.day_enabled`** (desactivada per defecte, RN-M06-01). **Llicència d'un dia:** quan existeixi el 06 i l'opció sigui activada, el 02 li demanarà si una activitat (per a un participant i una data) necessita llicència d'un dia, i oferirà demanar-la. El 06 no depèn del 02: la pregunta va del 02 al 06 (`licences.current` i, si cal, un servei nou de lectura del 06). Fins llavors, el 02 només avisa (RN-M02-10) | [052](decisions/052-llicencia-font-unica-al-06.md) | Responsable del projecte |
 | RP-M02-02 | **Categoria de llicència exigida:** una activitat o un rol podrà exigir una categoria concreta (per exemple, tècnic per a un instructor). `licences.current` ja torna la categoria (RN-M06-13); el 02 hi afegirà el requisit, amb el mateix avís o bloqueig de RN-M02-10. Si cal la tècnica per als instructors [A validar: responsable de cursos i sortides] | Revisió del 06, 28/10/2026 | Responsable de cursos i sortides |
 | RP-M02-03 | **Sortides a l'estranger:** avís al responsable i als participants, 7 dies abans, que cal la cobertura internacional de la llicència, excepte per a Portugal i França [A verificar: FECDAS, condicions i països] | Revisió del 06, 28/10/2026 | Responsable de cursos i sortides |
 
@@ -3321,6 +3338,17 @@ App Django `equipment` (nova). Noms de codi en anglès. Imports en cèntims. Les
 
 **Migracions:** reversibles; extensió `btree_gist` i restricció d'exclusió en una migració pròpia amb prova; tipus inicials en una migració de dades; cap dada personal.
 
+### Valors configurables (pantalla d'ajustos, T-M03-22)
+Valors de la [regla general](#regles), a la pantalla d'ajustos del mòdul sobre la [peça comuna](#valors-configurables-055) de la [055](decisions/055-ajustos-configurables-i-addendes.md): cada canvi es comprova al servidor (rol i rang), queda al registre amb el valor anterior i, si afecta diners, porta data d'entrada en vigor i avisa per correu el tresorer i la junta (RN-AJ-03 i RN-AJ-04). Els valors inicials són els supòsits que ja hi havia; les preguntes obertes continuen obertes.
+
+| Clau de l'ajust | VC | Valor inicial | Rang vàlid | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| Cost d'ús per tipus (`UsageRate.cost_per_day_cents`) | VC-28 | 0 (sense cap fila) | ≥ 0 | Tresorer | Sí (`valid_from`) |
+| `equipment.review_notice_days` | VC-29 | 30 | 1 a 90 | Responsable de material | — |
+| `equipment.unreturned_after_days` | VC-29 | 7 | 1 a 90 | Responsable de material | — |
+
+Tipus de material, centres i tarifes (VC-27) ja són dades del mòdul, i les tarifes ja tenen versions amb data d'inici (RN-M03-06); un canvi de tarifa també avisa el tresorer i la junta (RN-AJ-04). Es queda al codi: el format dels codis de les peces (VC-30).
+
 <a id="M03-7-regles"></a>
 ## M03-7 Regles de negoci i càlculs
 
@@ -3333,14 +3361,14 @@ App Django `equipment` (nova). Noms de codi en anglès. Imports en cèntims. Les
 | RN-M03-05 | Ampolla: capacitat en litres com a número lliure positiu amb un decimal com a màxim (10, 12, 15 o el que sigui). La resta de tipus, talla en text curt o res | F §6; resposta del 20/10/2026 |
 | RN-M03-06 | Tarifes per centre amb versions: un canvi crea una versió nova amb data d'inici. En assignar un lloguer, es copien el preu de cost i el preu per al participant de la versió vigent el primer dia de l'activitat | F §6 |
 | RN-M03-07 | Marge d'un lloguer = preu per al participant − preu de cost. Si és negatiu, es pot desar però surt marcat al tresorer | F §6; resposta del 20/10/2026 |
-| RN-M03-08 | Cost d'ús d'una peça del club = dies de l'assignació × `cost_per_day_cents` del seu tipus vigent. Sense tarifa, 0. La fórmula (amortització o tarifa fixa per tipus) la fixa la junta [A validar: junta i tresorer, S-M03-02] | F §6 |
+| RN-M03-08 | Cost d'ús d'una peça del club = dies de l'assignació × `cost_per_day_cents` del seu tipus vigent (`UsageRate`, que canvia el tresorer a la pantalla d'ajustos amb data d'entrada en vigor). Sense tarifa, 0. La fórmula (amortització o tarifa fixa per tipus) la fixa la junta [A validar: junta i tresorer, S-M03-02] | F §6 |
 | RN-M03-09 | Cost de material d'un participant = suma del `cost_cents` de les seves assignacions fetes servir (`returned` o `delivered`); `not_used` i `cancelled` no compten | F §6 |
 | RN-M03-10 | **Per al marge del 09:** el «cost de material» de la fórmula de CLAUDE.md és el cost d'ús del material del club (RN-M03-08). El lloguer entra al marge com a **despesa** quan es registra la factura del centre (09); mentre no hi és, el 09 fa servir el cost estimat de les tarifes. Mai totes dues coses alhora, per no comptar el lloguer dues vegades | CLAUDE.md; F §6 i §7 |
 | RN-M03-11 | El participant paga el material llogat al preu per al participant de la tarifa (F §6). Supòsit: quan el responsable confirma un lloguer, es crea un **càrrec a part** de tipus «inscripció» amb aquest preu, l'activitat i el departament de l'activitat, i es cobra amb el 05b [A validar: junta i tresorer, S-M03-03]. El material del club no es cobra al participant mentre la junta no en fixi un preu | F §6; [M02-13](#M02-13-riscos), dubte 8 |
 | RN-M03-12 | Transicions de l'assignació: `planned → delivered → returned`; `planned → not_used / cancelled`; `delivered → not_used` (no s'ha fet servir). En retornar, la peça passa a `available` o `in_review` | F 9.6 |
 | RN-M03-13 | «Material pendent» (motiu per no tancar l'activitat, registrat al 02): assignacions `planned` o `delivered` després de l'activitat, necessitats «necessito» sense assignació, lloguers sense quantitat real confirmada i llistes de lloguer no marcades «enviades» | F §5 i §6 |
-| RN-M03-14 | Una peça lliurada que no s'ha retornat 7 dies després de l'activitat [A validar: junta, S-M03-06] surt a l'avís diari del responsable | Proposta |
-| RN-M03-15 | Avís de revisió 30 dies abans de `next_review_on` [A validar: junta, S-M03-06] i cada dia mentre estigui vençuda. La plataforma no calcula terminis legals: la data la posa el responsable segons la normativa o el fabricant [A verificar: normativa d'equips a pressió per a les ampolles; fabricant per als reguladors] | F 9.7 |
+| RN-M03-14 | Una peça lliurada que no s'ha retornat 7 dies (ajust `equipment.unreturned_after_days`) després de l'activitat [A validar: junta, S-M03-06] surt a l'avís diari del responsable | Proposta |
+| RN-M03-15 | Avís de revisió 30 dies (ajust `equipment.review_notice_days`) abans de `next_review_on` [A validar: junta, S-M03-06] i cada dia mentre estigui vençuda. La plataforma no calcula terminis legals: la data la posa el responsable segons la normativa o el fabricant [A verificar: normativa d'equips a pressió per a les ampolles; fabricant per als reguladors] | F 9.7 |
 | RN-M03-16 | Stock en una data: per tipus i talla (o litres), recompte de peces disponibles, assignades, en ús i en revisió. Les peces `retired` no hi compten | F §6 |
 | RN-M03-17 | Material típic: en crear una activitat, es copia la plantilla del curs, de l'especialitat o del tipus de sortida; en duplicar-la, es copia el de l'original (026, RN-M02-21) | F §6; 026 |
 | RN-M03-18 | Llista de lloguer: agrupada per tipus i talla, amb una referència per participant (número d'inscripció i inicials), no el nom complet ni el contacte [A validar: junta, S-M03-04]. Es genera a demanda, no es desa, i queda al registre amb l'empremta | Proposta; RGPD |
@@ -3404,6 +3432,7 @@ Cap altra app escriu als models del 03.
 - **CA-M03-15** Donat el stock d'una data, quan es compara amb les peces, llavors disponibles + assignades + en ús + en revisió = total de peces no `retired`.
 - **CA-M03-16** Donat cada cel·la de [M03-4](#M03-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
 - **CA-M03-17** Donat un CSV d'inventari amb una fila sense tipus, quan es valida, llavors la fila surt amb l'error i no s'escriu res fins a confirmar.
+- **CA-M03-18** Donat un cost d'ús de les ampolles canviat de 0 a 200 cèntims per dia amb data d'entrada en vigor l'1 del mes vinent, quan es calcula el cost d'una assignació d'abans d'aquella data, llavors és 0; d'una de després, 200 per dia; un rol que no és el tresorer ni l'administrador no el pot canviar.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -3443,7 +3472,7 @@ Cap altra app escriu als models del 03.
 | T-M03-19 | Informes: cost per participant i activitat, material més usat, revisions properes | S | vistes | T-M03-13, T-M03-14 | Proves de permisos |
 | T-M03-20 | Dades inventades i proves de principi a fi (inscripció → necessitat → assignació → lliurament → retorn → cost) | L | `apps/equipment/fixtures/`, `tests/` | T-M03-08 a T-M03-17 | Totes en verd |
 | T-M03-21 | Guia del responsable de material | S | `docs/` | T-M03-20 | Revisada |
-| T-M03-22 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/equipment/settings.py`, vistes | T-M03-02; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M03-22 | Pantalla d'**ajustos** del mòdul: els seus valors (bloc «Valors configurables» de la secció 6), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/equipment/settings.py`, vistes | T-M03-02; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat; CA-M03-18 |
 
 <a id="M03-11-proves"></a>
 ## M03-11 Pla de proves
@@ -3769,6 +3798,17 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 
 **Migracions:** reversibles; categories inicials en migració de dades; la restricció d'exclusió dels períodes en una migració pròpia.
 
+### Valors configurables (pantalla d'ajustos, T-M09-26)
+Valors de la [regla general](#regles), a la pantalla d'ajustos del mòdul sobre la [peça comuna](#valors-configurables-055) de la [055](decisions/055-ajustos-configurables-i-addendes.md): cada canvi es comprova al servidor (rol i rang), queda al registre amb el valor anterior i, si afecta diners, porta data d'entrada en vigor i avisa per correu el tresorer i la junta (RN-AJ-03 i RN-AJ-04). Els valors inicials són els supòsits que ja hi havia; les preguntes obertes continuen obertes.
+
+| Clau de l'ajust | VC | Valor inicial | Rang vàlid | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| `margin.low_margin_threshold_cents` | VC-31 | 0 | Qualsevol import (també negatiu) | Tresorer | — |
+| `margin.period_length` | VC-32 | `monthly` (mensual) | `monthly`, `quarterly` (trimestral) | Tresorer | Només als períodes nous (RN-M09-28) |
+| `billing.enabled_charge_kinds` | VC-34 | Cap (facturació desactivada) | Quota, inscripció, llicència, material | Administrador, per decisió de la junta (RN-M09-19) | Sí |
+
+Categories de despesa i proveïdors (VC-33) ja són dades. **No s'aplica** VC-35 (text d'ajuda de la pujada de documents): és la mitigació d'un risc de dades fora de la UE (RN-M09-25 i [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) i es queda al codi, com la seguretat.
+
 <a id="M09-7-regles"></a>
 ## M09-7 Regles de negoci i càlculs
 
@@ -3787,12 +3827,12 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 | RN-M09-11 | Una despesa pagada no es modifica: s'anul·la amb motiu i usuari (contramoviment a la 04, anul·lació manual) i se'n registra una de nova. Si la despesa és d'un període tancat, l'anul·lació i la despesa nova porten data del període obert (RN-T29); amb data del període tancat, la 04 les rebutja (RN-T30). Una despesa per pagar es pot corregir; cada canvi va al registre | CLAUDE.md; RN-T07; [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md); [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) |
 | RN-M09-12 | Una activitat només es tanca econòmicament si `activities.closing_blockers` és buit (inclou el material pendent del 03) i no té cap despesa sense factura. Ho fa el tresorer | F §5 i §7; [M02-7](#M02-7-regles) |
 | RN-M09-13 | **Percentatge** = marge ÷ (inscripcions + altres ingressos directes), amb una xifra decimal i arrodoniment a la meitat cap amunt; sense ingressos, no es mostra. **Per participant** = marge ÷ assistents (si no n'hi ha llista, confirmats), arrodonit al cèntim | F §7 |
-| RN-M09-14 | **Avís de marge baix:** quan el marge previst és per sota del llindar, avís al responsable de l'activitat i al tresorer (correu i app, sense push), un sol cop per cada canvi de previsió. Llindar per defecte: 0 € (l'activitat no cobreix costos) [A validar: junta, S-M09-04] | F §7 |
-| RN-M09-15 | **Període:** mensual [A validar: tresorer, S-M09-05]. Es tanca només amb la llista de control buida: línies de l'extracte sense conciliar amb data dins el període, activitats acabades dins el període sense tancar, despeses sense factura, despeses pagades sense conciliar i factures fallides. També es pot tancar amb **excepcions documentades** (RN-M09-26) | F §7 i §9.11 |
+| RN-M09-14 | **Avís de marge baix:** quan el marge previst és per sota del llindar, avís al responsable de l'activitat i al tresorer (correu i app, sense push), un sol cop per cada canvi de previsió. Llindar (ajust `margin.low_margin_threshold_cents`) per defecte: 0 € (l'activitat no cobreix costos) [A validar: junta, S-M09-04] | F §7 |
+| RN-M09-15 | **Període:** mensual (ajust `margin.period_length`, mensual o trimestral; RN-M09-28) [A validar: tresorer, S-M09-05]. Es tanca només amb la llista de control buida: línies de l'extracte sense conciliar amb data dins el període, activitats acabades dins el període sense tancar, despeses sense factura, despeses pagades sense conciliar i factures fallides. També es pot tancar amb **excepcions documentades** (RN-M09-26) | F §7 i §9.11 |
 | RN-M09-16 | Un període tancat no admet cap registre nou del 09 (despesa, altre ingrés o anul·lació manual) amb data dins el període: la 04 el rebutja (RN-T30); el que ja hi ha no canvia. Una correcció es fa amb una anul·lació i un registre nou al període obert. **Els moviments d'origen extern** (pagaments del 05b, devolucions, retorns, comissions del banc, remeses i liquidacions) **no es rebutgen mai**: entren al període obert i guarden la data de valor original a `original_value_date` (RN-T31); al marge compten al període on entren, com un ajust posterior (RN-M09-07). Només l'administrador reobre un període, amb motiu, i queda al registre; en reobrir-lo, s'avisa per correu el tresorer i la junta [A validar: junta, S-M09-13]. Reobrir és només per als errors de la feina del propi període (per exemple, un repartiment o un tancament mal fet), no per al que arriba tard | F §7; [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md); [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) |
 | RN-M09-17 | **Facturació:** el 09 no numera. Demana la factura al servei homologat a través de l'adaptador i en desa el número, el PDF i el QR. Comprova que cada sèrie no té salts ni duplicats i, si en troba, avisa el tresorer. Idempotent per càrrec: un càrrec té com a màxim una factura ordinària | F §7 |
 | RN-M09-18 | Cada devolució d'un cobrament facturat té la seva rectificativa (total o parcial) lligada a la factura original. Cap factura emesa s'edita ni s'esborra | F §7 |
-| RN-M09-19 | Què es factura, amb quin IVA i si el club és dins de Verifactu [A verificar: gestoria, P-02, P-47]. Mentre no es respongui, la facturació està **desactivada** i el justificant és el rebut del 05b. Quan la junta l'activi, s'activa per tipus de càrrec (quota, inscripció, llicència, material) | 22/10/2026; P-47 |
+| RN-M09-19 | Què es factura, amb quin IVA i si el club és dins de Verifactu [A verificar: gestoria, P-02, P-47]. Mentre no es respongui, la facturació està **desactivada** i el justificant és el rebut del 05b. Quan la junta l'activi, s'activa per tipus de càrrec (ajust `billing.enabled_charge_kinds`, amb data d'entrada en vigor) (quota, inscripció, llicència, material) | 22/10/2026; P-47 |
 | RN-M09-20 | Llicències: el pagament a la federació és una despesa de categoria «taxa» al departament de les llicències («General / Llicències», provisional, S-M04-07) [A validar: tresorer]. El marge de la llicència d'un soci és 0 abans de comissions | 20/10/2026; [M06-7](#M06-7-regles) |
 | RN-M09-21 | Hores de voluntariat: opcionals, per funció i mai per persona; no es valoren en euros dins el marge [A validar: junta] | F §7 |
 | RN-M09-22 | Tots els imports en cèntims (enters); els marges amb signe. Cap càlcul amb coma flotant | CLAUDE.md |
@@ -3801,6 +3841,7 @@ Només INSERT. `activity`, `income_enrolments_cents`, `other_direct_income_cents
 | RN-M09-25 | **Vista prèvia i document il·legible.** En pujar una factura o un comprovant (també des del mòbil), el formulari en mostra una vista prèvia abans de desar-lo. La vista prèvia passa **només al navegador**: el fitxer no s'envia al servidor fins que la persona prem «Desa» i no es guarda enlloc (ni al servidor, ni a la memòria cau, ni a l'emmagatzematge del navegador). La pantalla de pujada mostra un **text d'ajuda**: «Si fas la foto amb la càmera, queda a la galeria del telèfon i es pot copiar a un núvol fora de la UE. Esborra-la de la galeria (i de la paperera) després de pujar-la.» La plataforma no pot esborrar res del telèfon (risc a [M09-13](#M09-13-riscos)) [A validar: junta i informàtica]. Un cop desat, el tresorer pot marcar el document com a **«il·legible»**, amb motiu: la persona que l'havia pujat rep un avís (correu i app, sense push) per tornar-lo a pujar, i l'avís no porta ni el document ni cap enllaç per obrir-lo. Mentre no arriba el nou, la despesa compta com a «sense factura» (RN-M09-09) si el document il·legible és la factura, i com a «sense comprovant» si és el comprovant de pagament: el paquet d'ajuts l'exclou amb el motiu «comprovant il·legible» i en dona l'avís (RN-M09A-11). Només hi pot haver una marca oberta per document. «Il·legible», «sense factura» i «sense comprovant» es deriven només de `DocumentIllegibleMark` sense `replaced_at`: marcar un document no escriu mai a la fila d'`Expense`, tampoc si és pagada (RN-M09-11). Cap rol fora del tresorer i la junta obre mai un document ja desat (RN-M09-23) | [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md); 27/10/2026 |
 | RN-M09-26 | **Tancar amb excepcions documentades** [A validar: tresorer, S-M09-15]. Si la llista de control no és buida, el tresorer pot tancar el període indicant, element per element, quins es porten al període següent, cadascun amb motiu obligatori. Les excepcions queden a `PeriodEvent.exceptions` i al registre d'activitat, i cada element portat surt a la llista de control del període següent fins que es resol: aquell període no es pot tancar sense resoldre'l o tornar-lo a portar amb un motiu nou. Un element sense excepció continua bloquejant el tancament | 27/10/2026 |
 | RN-M09-27 | **Registre i escriptura única de la marca d'il·legible** (addenda mínima, 28/10/2026). Marcar un document i substituir-lo creen cadascun una entrada al registre d'activitat **de la `DocumentIllegibleMark`** (mai de la fila d'`Expense`), amb qui, quan, quin document (`expense`, `document`) i el motiu o el document nou. `replaced_at` només passa de buit a una data una vegada i no es canvia ni s'esborra mai: ho fa complir un **activador de PostgreSQL** (com l'activador «només INSERT» dels moviments de la 04), que rebutja qualsevol altre UPDATE i qualsevol DELETE, i també el servei | CLAUDE.md; RN-M09-25 |
+| RN-M09-28 | **Canvi de la durada del període** ([055](decisions/055-ajustos-configurables-i-addendes.md), condició b). Un canvi de `margin.period_length` només s'aplica als períodes que es creen després: els que ja existeixen, oberts o tancats, no canvien. El període nou comença **l'endemà** del darrer període existent i dura un mes o tres a partir d'aquell dia, sense forats ni solapaments (restricció d'exclusió de `Period`) | 28/10/2026 |
 
 **Exemples numèrics** (dades inventades)
 - **Sortida d'un dia a les Medes, 10 participants a 60 € (F §7):** inscripcions 10 × 6000 = **60.000**; embarcació −25.000; aire 20 × 600 = −12.000; material llogat 3 × 2500 = −7500; material del club 7 × 350 = −2450; instructor voluntari 0. Marge = 60.000 − 25.000 − 12.000 − 7500 − 2450 = **13.050 cèntims (130,50 €)**. Percentatge 13.050 ÷ 60.000 = 21,75 % → **21,8 %**. Per participant 13.050 ÷ 10 = **1305 (13,05 €)**. Els ajuts no hi surten.
@@ -3878,6 +3919,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 - **CA-M09-31** Donat un document marcat il·legible i després substituït, quan es consulta el registre d'activitat, llavors hi ha dues entrades de la `DocumentIllegibleMark` (marca i substitució) amb qui, quan, la despesa, el document i el motiu, i cap de la fila d'`Expense`.
 - **CA-M09-33** Donat una factura amb una marca d'il·legible oberta, quan el tresorer la vol tornar a marcar (també amb una consulta SQL directa), llavors es rebutja; quan el document s'ha substituït (`replaced_at` ple), el nou es pot marcar.
 - **CA-M09-34** Donat una despesa pagada lligada a un ajut, quan el tresorer marca il·legible el comprovant de pagament, llavors la despesa surt com a «sense comprovant», la fila d'`Expense` no canvia, i el paquet de justificació l'exclou amb el motiu «comprovant il·legible» i el tresorer en rep l'avís; quan es puja el comprovant nou, el paquet següent la torna a incloure.
+- **CA-M09-35** (CA-AJ-06) Donat períodes mensuals fins al darrer, que acaba el 31/03, quan el tresorer canvia la durada a trimestral, llavors el període nou va de l'1/04 al 30/06; cap dia queda fora de cap període ni dins de dos, i els períodes existents no canvien.
 - **CA-M09-32** Donat una marca amb `replaced_at` ple, quan una consulta SQL directa intenta canviar-lo, buidar-lo, canviar un altre camp o esborrar la fila, llavors PostgreSQL ho rebutja; donat `replaced_at` buit, passar-lo a una data s'accepta una sola vegada.
 - **CA-M09-15** Donat un tresorer, quan vol reobrir un període, llavors es rebutja.
 - **CA-M09-16** Donat la facturació activada per a inscripcions i un esdeveniment `charge.paid` repetit, quan arriba dues vegades, llavors hi ha una sola factura.
@@ -3929,7 +3971,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-23 | Dades inventades i proves de principi a fi (inscripció → pagament → despesa → repartiment → tancament → informe → període) | L | `fixtures/`, `tests/` | T-M09-05 a T-M09-16 | Totes en verd |
 | T-M09-24 | Guia del tresorer (despeses, marge, tancament, factures) | S | `docs/` | T-M09-23 | Revisada |
 | T-M09-25 | Magatzem de documents de justificació: xifratge, accés només del tresorer i la junta, còpia amb l'IBAN emmascarat i marca «il·legible» amb avís, derivada de `DocumentIllegibleMark` sense escriure a la despesa ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | M | `apps/expenses/documents.py` | T-M09-04 | CA-M09-23, 24, 28, 30, 31, 32, 33, 34 (activador de `replaced_at` i restricció única parcial en una migració pròpia, RN-M09-27) |
-| T-M09-26 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís, també els de l'apartat d'ajuts | S | `apps/margins/settings.py`, `apps/grants/settings.py`, vistes | T-M09-22, T-M09A-12; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M09-26 | Pantalla d'**ajustos** del mòdul: els seus valors (bloc «Valors configurables» de la secció 6), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís, també els de l'apartat d'ajuts | S | `apps/margins/settings.py`, `apps/grants/settings.py`, vistes | T-M09-22, T-M09A-12; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat; CA-M09-35 (prova de la durada del període, condició b de la 055) |
 
 La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-18 a T-M09-21 es poden fer amb el `FakeInvoicingProvider`, però la facturació no s'activa en producció fins que es respongui P-02 i P-47.
 
@@ -4228,6 +4270,12 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 - `PackageSubmission` (enviament d'una versió, només INSERT): `application`, `package` (FK JustificationPackage, PROTECT), `version` (1, 2, 3…), `requirement` (FK GrantRequirement; buit només a la versió 1), `sent_on`, `sent_by`. Únic `(application, version)` i únic `package`. La versió 1 es crea en passar a «justificada» i coincideix amb `submitted_package`. La versió vigent és la més alta.
 - `GrantReminder` (només INSERT): `application`, `requirement` (FK GrantRequirement null), `kind` (`close_30`, `close_14`, `close_7`, `response`, `justify_30`, `justify_14`, `justify_7`, `requirement_now`, `requirement_7`, `requirement_2`), `due_on`, `sent_at`. Dues restriccions úniques parcials: per als avisos de requeriment (`requirement_now`, `requirement_7`, `requirement_2`), **únic `(application, requirement, kind)`, sense `due_on`**, perquè un canvi de data límit no permeti tornar a enviar un avís ja enviat (RN-M09A-22); per a la resta, únic `(application, kind, due_on)`. Un avís no s'envia dues vegades.
 
+### Valors configurables de l'apartat (pantalla d'ajustos del 09, T-M09-26)
+| Clau de l'ajust | VC | Valor inicial | Rang vàlid | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| `grants.deadline_reminder_days` | VC-36 | 30, 14 i 7 | 1 a 90 | Tresorer | — |
+| `grants.requirement_reminder_days` | VC-37 | 7 i 2 (el primer avís, immediat, és fix) | 1 a 30 | Tresorer | — |
+
 <a id="M09-ajuts-7-regles"></a>
 ## M09-ajuts-7 Regles de negoci i càlculs
 
@@ -4238,7 +4286,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | RN-M09A-03 | L'elegibilitat la revisa **sempre una persona**. Sense revisió, la sol·licitud no passa a «en preparació». El sistema no decideix mai l'elegibilitat | Instruccions del 27/10/2026 |
 | RN-M09A-04 | Avisos de tancament: 30, 14 i 7 dies abans de `closes_on`, per a les sol·licituds detectades o en preparació, al responsable i al tresorer, per correu i a l'app (sense push, [041](decisions/041-web-installable-i-avisos-sense-push.md)). Una tasca diària de la cua els envia; si `closes_on` canvia, es recalculen; si la data ja ha passat, no s'envia | Instruccions del 27/10/2026 |
 | RN-M09A-05 | Data prevista de resposta = `submitted_on` + `max_resolution_days` si l'organisme el publica; si no, la que escrigui el responsable; si no n'hi ha, cap avís. El dia de la data, avís si encara és «presentada» | Instruccions del 27/10/2026 |
-| RN-M09A-06 | Els dies dels avisos (30, 14 i 7) són configurables. Cada avís s'envia una sola vegada (unicitat de `GrantReminder`), també si la tasca es repeteix | Proposta |
+| RN-M09A-06 | Els dies dels avisos (30, 14 i 7) són configurables (ajust `grants.deadline_reminder_days`). Cada avís s'envia una sola vegada (unicitat de `GrantReminder`), també si la tasca es repeteix | Proposta |
 | RN-M09A-07 | El correu surt pel servei de la 00, amb proveïdor dins la UE (P-46 [A verificar: informàtica]). Només porta el nom de la convocatòria, les dates, el que falta i l'enllaç a la fitxa | 035; 042 |
 | RN-M09A-08 | Concedida: import concedit i resolució obligatoris. Si l'import concedit supera el demanat, avís (no bloqueja) | Proposta |
 | RN-M09A-09 | L'ingrés de l'ajut es registra a la part principal com a `OtherIncome` de tipus `grant`, lligat a la sol·licitud i al seu departament, **mai a una activitat** (RN-M09-08). Pot tenir diversos ingressos (bestreta i saldo) | F §7; RN-M09-08 |
@@ -4251,7 +4299,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | RN-M09A-16 | Tot canvi (convocatòries, estats, documents, despeses lligades, paquets i avisos enviats) va al registre d'activitat amb el valor anterior | CLAUDE.md |
 | RN-M09A-17 | Imports en cèntims | CLAUDE.md |
 | RN-M09A-18 | **Paquet congelat.** En passar a «justificada», la sol·licitud queda lligada al paquet enviat (`submitted_package`): llista de despeses, imports, documents (amb el seu `sha256`) i data d'enviament (`justified_on`). Aquest paquet no canvia mai. Si després s'anul·la una despesa que hi és inclosa (RN-M09-11), el tresorer rep un avís (correu i app) amb la sol·licitud, la despesa i l'import, i el paquet **no canvia sol**: el tresorer decideix què fer (per exemple, el reintegrament, dubte 2). Les despeses lligades d'una sol·licitud justificada no es poden treure ni afegir, excepte amb un requeriment obert (RN-M09A-21). L'avís per anul·lació val per a les despeses de qualsevol versió enviada. Igualment, si es marca il·legible (RN-M09-25) una factura o un comprovant inclòs en una versió enviada, el tresorer rep un avís amb la sol·licitud, la versió i la despesa; el paquet no canvia sol i el tresorer pot obrir un requeriment d'iniciativa del club (RN-M09A-19) | 27/10/2026 |
-| RN-M09A-19 | **Requeriment d'esmena:** és un esdeveniment de la sol·licitud, no un estat. Porta origen, data de rebuda, data límit, descripció i responsable. L'origen és «organisme» (el demana l'organisme) o «iniciativa del club»: el tresorer en pot obrir un per enviar una versió nova del paquet sense esperar que l'organisme la demani, amb motiu obligatori. Surt al calendari i té avisos propis al responsable i al tresorer: el primer **immediat** en registrar-lo; després, [Proposta] 7 i 2 dies abans de la data límit, configurables [A validar: junta, S-M09A-09]. Quan es registra la resposta (`answered_on`), no s'envia cap més avís. La data límit l'escriu la persona a partir del requeriment (o la fixa el tresorer, si és del club); el termini legal de resposta és [A verificar: gestoria, S-M09A-08] i la plataforma no el calcula | 27/10/2026 |
+| RN-M09A-19 | **Requeriment d'esmena:** és un esdeveniment de la sol·licitud, no un estat. Porta origen, data de rebuda, data límit, descripció i responsable. L'origen és «organisme» (el demana l'organisme) o «iniciativa del club»: el tresorer en pot obrir un per enviar una versió nova del paquet sense esperar que l'organisme la demani, amb motiu obligatori. Surt al calendari i té avisos propis al responsable i al tresorer: el primer **immediat** en registrar-lo; després, [Proposta] 7 i 2 dies abans de la data límit, configurables (ajust `grants.requirement_reminder_days`) [A validar: junta, S-M09A-09]. Quan es registra la resposta (`answered_on`), no s'envia cap més avís. La data límit l'escriu la persona a partir del requeriment (o la fixa el tresorer, si és del club); el termini legal de resposta és [A verificar: gestoria, S-M09A-08] i la plataforma no el calcula | 27/10/2026 |
 | RN-M09A-20 | **Pròrroga de justificació:** data editable de la sol·licitud (`justification_extended_to`), amb motiu al registre. Si hi és, els avisos de justificació (RN-M09A-04 i S-M09A-04) i el calendari fan servir aquesta data; els avisos ja enviats no es repeteixen | 27/10/2026 |
 | RN-M09A-21 | **Versions del paquet.** El primer paquet enviat (versió 1) queda congelat (RN-M09A-18). Si l'organisme demana esmenar la justificació, o el tresorer ho decideix per iniciativa del club (per exemple, perquè un document enviat s'ha marcat il·legible), amb un requeriment obert de qualsevol origen (RN-M09A-19) (sense `answered_on`) el tresorer pot afegir o donar de baixa despeses lligades (cada canvi porta el requeriment), generar un paquet nou i enviar-lo com a **versió 2** (i així successivament), lligada a aquell requeriment. Les versions anteriors i els seus fitxers no canvien mai. Enviar una versió registra la resposta del requeriment (`answered_on` = data d'enviament). La sol·licitud continua «justificada» | 28/10/2026 |
 | RN-M09A-22 | **Canviar la data límit d'un requeriment:** amb motiu obligatori, al registre amb el valor anterior. Els avisos que falten es recalculen sobre la data nova; els ja enviats no es repeteixen, ni l'immediat (mateixa lògica que la pròrroga, RN-M09A-20, CA-M09A-19). Ho garanteix també la base de dades: un avís de requeriment és únic per sol·licitud, requeriment i tipus, sigui quina sigui la data límit | 28/10/2026 |
@@ -4455,7 +4503,7 @@ Cap altra app escriu als models de `grants`.
 
 **Dins de l'abast.**
 - Tipus de llicència amb categoria i regla de validesa, i preus amb versions i trams per dates, amb nota obligatòria en canviar-los.
-- Regles de validesa: any natural (fins al 31/12), 365 dies i, **només si s'activa l'opció** `LICENCES_DAY_ENABLED`, un dia [A validar: responsable de cursos i sortides].
+- Regles de validesa: any natural (fins al 31/12), 365 dies i, **només si s'activa l'opció** `licences.day_enabled`, un dia [A validar: responsable de cursos i sortides].
 - Llicència de soci, i de no soci com a **opció que activa la junta** (avui ser soci és obligatori).
 - «Ja en tinc una»: número i venciment, sense tramitar-ne cap.
 - Pagament amb el 05b, també com a convidat ([021](decisions/021-persones-no-socies-com-a-convidades.md)).
@@ -4481,7 +4529,7 @@ Cap altra app escriu als models de `grants`.
 | 01 | `members.is_member(person, on)` per al preu; `members.licence_records()` per passar els registres mínims al 06 (només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 | 05b | `payments.start_payment`, `payments.payment_status`, rebut; esdeveniment `charge.paid` (049); devolucions fetes pel tresorer (`payments.refund`) |
 
-La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06 no depèn del 02** ([052](decisions/052-llicencia-font-unica-al-06.md)): la llicència d'un dia no es lliga a cap activitat. Si cal, és el 02 qui demana al 06 si una activitat necessita llicència d'un dia (requisit pendent RP-M02-01 de [M02-13](#M02-13-riscos), condicional a `LICENCES_DAY_ENABLED`) o una categoria concreta (RP-M02-02).
+La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06 no depèn del 02** ([052](decisions/052-llicencia-font-unica-al-06.md)): la llicència d'un dia no es lliga a cap activitat. Si cal, és el 02 qui demana al 06 si una activitat necessita llicència d'un dia (requisit pendent RP-M02-01 de [M02-13](#M02-13-riscos), condicional a `licences.day_enabled`) o una categoria concreta (RP-M02-02).
 
 **Què depèn del 06.**
 | Mòdul | Què necessita |
@@ -4551,7 +4599,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 | **Pagada** | `paid`: el càrrec és pagat i falta tramitar-la |
 | **Tramitada** | `filed`: la secretaria l'ha enviada a la federació i espera la confirmació |
 | **Vigent** | `active` i avui és entre `starts_on` i `expires_on` |
-| **Per renovar** | `active` i caduca d'aquí a 60 dies o menys (no per a les d'un dia) |
+| **Per renovar** | `active` i caduca d'aquí a 60 dies o menys (ajust `licences.to_renew_days`) (no per a les d'un dia) |
 | **No tramitada a temps** | `lapsed`: llicència d'un dia pagada (o tramitada) que no ha arribat a `active` abans d'acabar el dia de la llicència (RN-M06-20; només si l'opció d'un dia és activada) |
 | **Caducada** | `active` i `expires_on` és anterior a avui |
 | **Cancel·lada** | `cancelled`, amb motiu |
@@ -4570,7 +4618,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 | 5 | Sistema | En rebre `charge.paid`, passa la llicència a `paid` i avisa la secretaria | — |
 
 ### P-M06-C Llicència per a una persona de fora (F 9.16)
-1. Només si l'opció de no socis està activada (RN-M06-03). La persona entra a la pàgina pública i tria el tipus. Els tipus d'un dia només surten si també és activada l'opció `LICENCES_DAY_ENABLED` (RN-M06-01); si no, no es poden triar ni demanar.
+1. Només si l'opció de no socis està activada (RN-M06-03). La persona entra a la pàgina pública i tria el tipus. Els tipus d'un dia només surten si també és activada l'opció `licences.day_enabled` (RN-M06-01); si no, no es poden triar ni demanar.
 2. El sistema mostra el preu de no soci al costat del de soci, l'estalvi en la llicència i la quota anual de soci, per comparar (RN-M06-07).
 3. La persona escriu les dades mínimes (V-04 de la 00) i accepta la informació de privacitat; es crea com a convidada amb l'enllaç segur (021).
 4. Paga dins l'app; la resta és com a P-M06-B des del pas 5.
@@ -4608,7 +4656,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap dada de salut ni de pagament.
 
 ### LicenceType (tipus) i LicencePrice (preu)
-- `LicenceType`: `name` (únic; llista de la federació [A verificar: FECDAS]), `description`, `category` (`amateur` aficionat, `technical` tècnic, `other` altres), `validity_rule` (`calendar_year` any natural, `days_365` 365 dies, `single_day` un dia; configurable), `active`. Un tipus `single_day` no es pot crear ni activar mentre `LICENCES_DAY_ENABLED` és desactivada.
+- `LicenceType`: `name` (únic; llista de la federació [A verificar: FECDAS]), `description`, `category` (`amateur` aficionat, `technical` tècnic, `other` altres), `validity_rule` (`calendar_year` any natural, `days_365` 365 dies, `single_day` un dia; configurable), `active`. Un tipus `single_day` no es pot crear ni activar mentre `licences.day_enabled` és desactivada.
 - `LicencePrice` (només INSERT; una versió nova per canvi): `licence_type`, `federation_cost_cents`, `non_member_surcharge_cents`, `valid_from`, `valid_to` (null), `note` (obligatòria), `created_by`. `valid_from` i `valid_to` són les dates d'inici de la llicència a què s'aplica el preu: així es fan els **trams de l'any** (per exemple, un preu de gener a juny i un altre de juliol a desembre) (RN-M06-18). El preu de soci és `federation_cost_cents` i el de no soci, `federation_cost_cents + non_member_surcharge_cents`.
 
 ### Licence (llicència)
@@ -4636,17 +4684,27 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 - `LicenceReminderDigest` (només INSERT): `day`, `days_before`, `count`, `sent_to` (secretaria), `sent_at`. Únic `(day, days_before)`: un sol resum per dia i tram per a la secretaria (RN-M06-12).
 - `LicenceRefundProposal`: `licence`, `amount_cents`, `reason`, `status` (`proposed`, `done`, `rejected`), `decided_by`. Com la `RefundProposal` del 02: el tresorer la fa amb `payments.refund`.
 
-### Configuració
-`LICENCES_NON_MEMBERS_ENABLED` (desactivada per defecte; l'activa l'administrador per decisió de la junta), `LICENCES_DAY_ENABLED` (desactivada per defecte; l'activa l'administrador quan es confirmi que la llicència d'un dia existeix [A validar: responsable de cursos i sortides; A verificar: FECDAS]), `LICENCE_REMINDER_DAYS` (60, 30, 7), `LICENCE_TO_RENEW_DAYS` (60), `LICENCE_NEXT_YEAR_OPENS_ON` (dia i mes des del qual es pot demanar la llicència d'any natural de l'any següent; supòsit 1/12 [A verificar: FECDAS], RN-M06-21), `LICENCE_REMINDER_BATCH_SIZE` (avisos per lot de la cua).
+### Valors configurables (pantalla d'ajustos, T-M06-20)
+Valors de la [regla general](#regles), a la pantalla d'ajustos del mòdul sobre la [peça comuna](#valors-configurables-055) de la [055](decisions/055-ajustos-configurables-i-addendes.md): cada canvi es comprova al servidor (rol i rang), queda al registre amb el valor anterior i, si afecta diners, porta data d'entrada en vigor i avisa per correu el tresorer i la junta (RN-AJ-03 i RN-AJ-04). Els valors inicials són els supòsits que ja hi havia; les preguntes obertes continuen obertes.
+
+| Clau de l'ajust | VC | Valor inicial | Rang vàlid | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| `licences.non_members_enabled` | VC-39 | Desactivada | Sí o no | Administrador, per decisió de la junta | — |
+| `licences.day_enabled` | VC-40 | Desactivada | Sí o no | Administrador, quan es confirmi que la llicència d'un dia existeix [A validar: responsable de cursos i sortides; A verificar: FECDAS]. Si es confirma que no existeix, la retirarà la decisió 056 | — |
+| `licences.reminder_days` | VC-41 | 60, 30 i 7 | 1 a 120 | Secretaria | — |
+| `licences.to_renew_days` | VC-41 | 60 | 1 a 120 | Secretaria | — |
+| `licences.next_year_opens_on` (dia i mes, RN-M06-21) | VC-42 | 1/12 [A verificar: FECDAS] | 1/10 a 31/12 | Secretaria | — |
+
+Tipus, categories, regles de validesa i preus (VC-38) ja són dades amb versions (`valid_from`); un canvi de preu també avisa el tresorer i la junta (RN-AJ-04). Es queden: `LICENCE_REMINDER_BATCH_SIZE`, variable d'entorn d'informàtica (VC-43), i preu de soci igual al de la federació (VC-44, regla).
 
 <a id="M06-7-regles"></a>
 ## M06-7 Regles de negoci i càlculs
 
 | ID | Regla | Font |
 |---|---|---|
-| RN-M06-01 | **Regles de validesa** (una per tipus, configurable): **any natural** (des del dia d'inici fins al 31 de desembre d'aquell any), **365 dies** (RN-M06-02) i **un dia** (només aquell dia). La d'un dia queda **darrere de l'opció `LICENCES_DAY_ENABLED`, desactivada per defecte**: mentre ho estigui, cap tipus d'un dia no es pot crear, triar ni demanar, i RP-M02-01 i S-M06-07 són condicionals [A validar: responsable de cursos i sortides; A verificar: FECDAS, si avui existeix]. Cada tipus té també una **categoria**: aficionat (1 a 3 estrelles), tècnic (titulacions superiors i instructors) o altres [A verificar: FECDAS] | F §8.1; 28/10/2026 |
+| RN-M06-01 | **Regles de validesa** (una per tipus, configurable): **any natural** (des del dia d'inici fins al 31 de desembre d'aquell any), **365 dies** (RN-M06-02) i **un dia** (només aquell dia). La d'un dia queda **darrere de l'opció `licences.day_enabled`, desactivada per defecte**: mentre ho estigui, cap tipus d'un dia no es pot crear, triar ni demanar, i RP-M02-01 i S-M06-07 són condicionals [A validar: responsable de cursos i sortides; A verificar: FECDAS, si avui existeix]. Cada tipus té també una **categoria**: aficionat (1 a 3 estrelles), tècnic (titulacions superiors i instructors) o altres [A verificar: FECDAS] | F §8.1; 28/10/2026 |
 | RN-M06-02 | Dates: **any natural** → `expires_on` = 31 de desembre de l'any de `starts_on`. **365 dies** → `expires_on = starts_on + 364 dies`: la llicència cobreix 365 dies naturals **comptant el dia d'inici**; si hi ha un 29 de febrer pel mig, acaba dos dies abans del mateix dia de l'any següent (del 15/3/2026 al 14/3/2027; del 15/3/2027 al 13/3/2028; del 29/2/2028 al 27/2/2029) [A verificar: FECDAS, S-M06-02]. **Un dia** (només si l'opció és activada) → `expires_on = starts_on`. `starts_on` = el dia que es tramita, el que tria la persona (llicència d'un dia) o l'1/1 en una sol·licitud anticipada de l'any següent (RN-M06-21) | F §8.1; 28/10/2026 |
-| RN-M06-03 | La llicència per a no socis és una **opció que activa la junta** (`LICENCES_NON_MEMBERS_ENABLED`). Desactivada: la pàgina pública no existeix i només els socis en poden demanar | 22/10/2026 |
+| RN-M06-03 | La llicència per a no socis és una **opció que activa la junta** (`licences.non_members_enabled`). Desactivada: la pàgina pública no existeix i només els socis en poden demanar | 22/10/2026 |
 | RN-M06-04 | Preu de soci o de no soci segons `members.is_member(person, on=data en què es demana)`; queda copiat a la llicència. També en una sol·licitud anticipada de l'any següent (RN-M06-21), perquè l'estat de soci a l'1/1 encara no se sap [A validar: tresorer, S-M06-14] | F §8.1; 28/10/2026 |
 | RN-M06-05 | **Preu de soci = preu de la federació** (marge 0). El sistema no admet cap preu de soci diferent | 20/10/2026; F §8.1 |
 | RN-M06-06 | **Preu de no soci = preu de la federació + recàrrec** [A validar: junta, S-M06-01]. El recàrrec no pot ser negatiu | F §8.1; 22/10/2026 |
@@ -4655,16 +4713,16 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | RN-M06-09 | Transicions: `requested → paid` (només per `charge.paid`); `paid → filed → active`; `paid → active`; `requested`, `paid` o `filed` → `cancelled` amb motiu; `paid` o `filed` → `lapsed` (només la tasca diària i només les d'un dia, RN-M06-20). «Per renovar» i «caducada» es deriven de les dates. Una llicència `active` no es cancel·la: es deixa caducar [A validar: secretaria] | F §8.1 |
 | RN-M06-10 | Càrrec de tipus «llicència», departament «General / Llicències» (provisional, S-M04-07, Q-19) i mètodes targeta, Bizum o transferència | 013; 017; RN-69 de la 00 |
 | RN-M06-11 | El llistat per a la federació només porta les dades que la federació demana [A verificar: FECDAS] i que la plataforma ja té (V-04 de la 00). Es genera a demanda, no es desa i queda al registre amb l'empremta | 035; F §8.1 |
-| RN-M06-12 | Avisos al titular a 60, 30 i 7 dies del venciment, per correu i a l'app (sense push), un sol cop per llicència i dia, enviats per la cua en lots (`LICENCE_REMINDER_BATCH_SIZE`). Com que gairebé totes les d'any natural caduquen el 31/12, **la secretaria no rep un avís per llicència**: rep un sol resum per dia i tram (60, 30 o 7), agrupat per data de venciment i categoria, i ordenat per data i nom, amb l'enllaç al llistat filtrat. Si ja hi ha una renovació en curs, no s'avisa. Les d'un dia (només si l'opció és activada) no s'avisen | F §8.1 i 9.12; 28/10/2026 |
+| RN-M06-12 | Avisos al titular a 60, 30 i 7 dies del venciment (ajust `licences.reminder_days`), per correu i a l'app (sense push), un sol cop per llicència i dia, enviats per la cua en lots (`LICENCE_REMINDER_BATCH_SIZE`). Com que gairebé totes les d'any natural caduquen el 31/12, **la secretaria no rep un avís per llicència**: rep un sol resum per dia i tram (60, 30 o 7), agrupat per data de venciment i categoria, i ordenat per data i nom, amb l'enllaç al llistat filtrat. Si ja hi ha una renovació en curs, no s'avisa. Les d'un dia (només si l'opció és activada) no s'avisen | F §8.1 i 9.12; 28/10/2026 |
 | RN-M06-13 | `licences.current(person, on)` torna la llicència `active` que cobreix aquella data (si n'hi ha diverses, la que caduca més tard), amb la seva **categoria**; si no n'hi ha, res | F §8.1 |
 | RN-M06-14 | «Ja en tinc una»: es desa el número, el tipus i el venciment; no es crea càrrec ni tramitació | F §8.1 i 9.16 |
 | RN-M06-15 | Cap dada de salut: ni certificat mèdic ni data de validesa (P-07). Si la federació en demana, es comprova fora de la plataforma | CLAUDE.md; P-07 |
 | RN-M06-16 | Imports en cèntims; tot canvi d'estat, de preu i tota exportació, al registre d'activitat | CLAUDE.md |
 | RN-M06-17 | **El 06 és l'únic propietari de les llicències** i emet, dins la mateixa transacció i amb el mecanisme de la 049: `licence.issued` (passa a `active`), `licence.renewed` (la renovació passa a `active`), `licence.expired` (la tasca diària, l'endemà de `expires_on`, una sola vegada) i `licence.cancelled`. Porten persona, tipus, durada (la regla de validesa, `validity_rule`), dates, origen i, si escau, `m01_record_ref`. Cada llicència té un comptador `version` que puja en 1 a cada canvi, dins la mateixa transacció, i cada esdeveniment porta `version` i `occurred_at` ([054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)). En arrencar, el 06 registra al 01 la seva font de lectura per a la comprovació diària (`members.register_licence_source`, RN-M01-41) | [052](decisions/052-llicencia-font-unica-al-06.md) |
 | RN-M06-18 | **Preu aplicat:** la versió de `LicencePrice` del tipus creada més recentment amb `valid_from ≤ starts_on` i `valid_to` buit o `≥ starts_on`. Els trams de l'any natural (preu més baix si s'obté a mig any) són versions amb dates [A verificar: FECDAS, quins trams hi ha] | 28/10/2026 |
-| RN-M06-19 | **Condicional a `LICENCES_DAY_ENABLED`:** una persona pot tenir diverses llicències d'un dia en curs per a dates diferents, però no dues per al mateix tipus i data. La unicitat «una llicència en curs per tipus» només val per a les d'any natural i de 365 dies | 28/10/2026 |
-| RN-M06-20 | **Condicional a `LICENCES_DAY_ENABLED`:** si una llicència d'un dia pagada (o tramitada) no ha arribat a `active` en acabar el seu dia, la tasca diària la marca **«no tramitada a temps»** (`lapsed`), avisa la secretaria i el tresorer i crea una proposta de devolució (`LicenceRefundProposal`). Cap devolució automàtica: la fa el tresorer amb el 05b | 28/10/2026 |
-| RN-M06-21 | **Sol·licitud anticipada de l'any següent:** des de `LICENCE_NEXT_YEAR_OPENS_ON` (supòsit: 1/12 [A verificar: FECDAS, quan s'obre cada any]), es pot demanar una llicència d'any natural de l'any següent amb `starts_on` l'1/1, al preu de la versió que cobreix l'1/1 i, per a soci o no soci, segons `members.is_member(person, on=data en què es demana)` (RN-M06-04). Si la persona es dona de baixa abans de l'1/1, la secretaria cancel·la la llicència amb proposta de devolució (P-M06-G) [A validar: tresorer, S-M06-14]. Es paga quan es demana; la secretaria la tramita quan la federació obri el període. Abans d'aquella data, es rebutja (`NextYearNotOpen`) | 28/10/2026 |
+| RN-M06-19 | **Condicional a `licences.day_enabled`:** una persona pot tenir diverses llicències d'un dia en curs per a dates diferents, però no dues per al mateix tipus i data. La unicitat «una llicència en curs per tipus» només val per a les d'any natural i de 365 dies | 28/10/2026 |
+| RN-M06-20 | **Condicional a `licences.day_enabled`:** si una llicència d'un dia pagada (o tramitada) no ha arribat a `active` en acabar el seu dia, la tasca diària la marca **«no tramitada a temps»** (`lapsed`), avisa la secretaria i el tresorer i crea una proposta de devolució (`LicenceRefundProposal`). Cap devolució automàtica: la fa el tresorer amb el 05b | 28/10/2026 |
+| RN-M06-21 | **Sol·licitud anticipada de l'any següent:** des de `licences.next_year_opens_on` (supòsit: 1/12 [A verificar: FECDAS, quan s'obre cada any]), es pot demanar una llicència d'any natural de l'any següent amb `starts_on` l'1/1, al preu de la versió que cobreix l'1/1 i, per a soci o no soci, segons `members.is_member(person, on=data en què es demana)` (RN-M06-04). Si la persona es dona de baixa abans de l'1/1, la secretaria cancel·la la llicència amb proposta de devolució (P-M06-G) [A validar: tresorer, S-M06-14]. Es paga quan es demana; la secretaria la tramita quan la federació obri el període. Abans d'aquella data, es rebutja (`NextYearNotOpen`) | 28/10/2026 |
 | RN-M06-22 | **Visibilitat per a l'instructor i el responsable de l'activitat** (igual al [M02-4](#M02-4-rols)): només «vigent sí o no» per a la data de la sessió o de l'activitat. Mai la data de venciment, el número federatiu, la categoria ni el document | 28/10/2026 |
 
 **Exemples** (preus inventats; els reals són [A verificar: FECDAS])
@@ -4729,11 +4787,12 @@ Cap altra app escriu als models del 06.
 - **CA-M06-18** Donat una llicència importada del registre del 01, quan s'emet `licence.issued`, llavors el 01 actualitza el registre d'origen i no en crea cap de nou.
 - **CA-M06-19** Donat una llicència amb `version` 1, quan es renova i després es cancel·la, llavors els esdeveniments porten `version` 2 i 3, i la font registrada al 01 torna `version` 3.
 - **CA-M06-20** Donat un tipus d'any natural amb un tram de 9000 (inici de l'1/1 al 30/6) i un de 5000 (de l'1/7 al 31/12), quan un soci en demana una amb inici el 10/9, llavors paga 5000; si després es crea una versió nova del tram de juliol, les llicències ja demanades conserven el preu.
-- **CA-M06-21** Donat `LICENCES_DAY_ENABLED` desactivada, quan es vol crear un tipus d'un dia o demanar-ne una (també amb una petició forçada), llavors es rebutja (`DayLicencesDisabled`) i la pàgina no l'ofereix.
-- **CA-M06-22** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una persona amb una llicència d'un dia en curs per al 10/5, quan en demana una altra del mateix tipus per al 17/5, llavors s'accepta; per al 10/5, es rebutja; i dues d'any natural en curs del mateix tipus continuen rebutjades.
-- **CA-M06-23** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una llicència d'un dia `paid` per al 10/5 que el 10/5 a la nit encara no és `active`, quan corre la tasca diària, llavors passa a `lapsed` una sola vegada, la secretaria i el tresorer reben l'avís i es crea una proposta de devolució, sense cap devolució automàtica.
+- **CA-M06-21** Donat `licences.day_enabled` desactivada, quan es vol crear un tipus d'un dia o demanar-ne una (també amb una petició forçada), llavors es rebutja (`DayLicencesDisabled`) i la pàgina no l'ofereix.
+- **CA-M06-22** *(Condicional a `licences.day_enabled`.)* Donat una persona amb una llicència d'un dia en curs per al 10/5, quan en demana una altra del mateix tipus per al 17/5, llavors s'accepta; per al 10/5, es rebutja; i dues d'any natural en curs del mateix tipus continuen rebutjades.
+- **CA-M06-23** *(Condicional a `licences.day_enabled`.)* Donat una llicència d'un dia `paid` per al 10/5 que el 10/5 a la nit encara no és `active`, quan corre la tasca diària, llavors passa a `lapsed` una sola vegada, la secretaria i el tresorer reben l'avís i es crea una proposta de devolució, sense cap devolució automàtica.
 - **CA-M06-24** Donat 300 llicències d'any natural que caduquen el 31/12, quan corre la tasca el 2/11, llavors cada titular rep un sol avís (enviats en lots), la secretaria rep un sol resum agrupat per data i categoria, i si la tasca es repeteix aquell dia no s'envia res més.
-- **CA-M06-25** Donat `LICENCE_NEXT_YEAR_OPENS_ON` l'1/12, quan un soci demana el 30/11 la llicència d'any natural de l'any següent, llavors es rebutja (`NextYearNotOpen`); l'1/12, es crea amb inici l'1/1 i caducitat el 31/12 de l'any següent, al preu de la versió que cobreix l'1/1 i al preu de soci perquè és soci l'1/12 (data en què la demana), lligada a l'anterior (`renewal_of`), i els avisos de l'anterior s'aturen; si es dona de baixa el 20/12, la secretaria la cancel·la i es crea una proposta de devolució, sense devolució automàtica.
+- **CA-M06-25** Donat `licences.next_year_opens_on` l'1/12, quan un soci demana el 30/11 la llicència d'any natural de l'any següent, llavors es rebutja (`NextYearNotOpen`); l'1/12, es crea amb inici l'1/1 i caducitat el 31/12 de l'any següent, al preu de la versió que cobreix l'1/1 i al preu de soci perquè és soci l'1/12 (data en què la demana), lligada a l'anterior (`renewal_of`), i els avisos de l'anterior s'aturen; si es dona de baixa el 20/12, la secretaria la cancel·la i es crea una proposta de devolució, sense devolució automàtica.
+- **CA-M06-26** Donat `licences.reminder_days` canviat a 45, 15 i 3, quan corre la tasca d'avisos, llavors els titulars i el resum de la secretaria surten a 45, 15 i 3 dies; un valor de 0 o de 121 es rebutja i el canvi vàlid queda al registre.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -4744,7 +4803,7 @@ Cap altra app escriu als models del 06.
 | L-M06-04 | Dues persones amb el mateix document | Les uneix la 00 (perfil únic); el 06 no crea persones duplicades |
 | L-M06-05 | La federació canvia el preu a mig any | Versió nova del preu; les demanades conserven l'anterior |
 | L-M06-06 | Esborrat RGPD del titular | Llicència anonimitzada; el càrrec i el cobrament es bloquegen (028) |
-| L-M06-07 | *(Condicional a `LICENCES_DAY_ENABLED`.)* La llicència d'un dia es demana per a una data passada | Es rebutja (`DateInPast`); amb l'opció desactivada, ni tan sols es pot triar |
+| L-M06-07 | *(Condicional a `licences.day_enabled`.)* La llicència d'un dia es demana per a una data passada | Es rebutja (`DateInPast`); amb l'opció desactivada, ni tan sols es pot triar |
 | L-M06-08 | Un soci demana l'any següent el 15/12 però es dona de baixa abans de l'1/1 | El preu de soci es va fixar amb `is_member` a la data en què la va demanar (el 15/12, RN-M06-04); la secretaria cancel·la la llicència amb proposta de devolució (P-M06-G) [A validar: tresorer, S-M06-14] |
 
 <a id="M06-10-tasques"></a>
@@ -4770,8 +4829,8 @@ Cap altra app escriu als models del 06.
 | T-M06-16 | Permisos per rol i per objecte | S | `apps/licences/permissions.py` | T-M06-03 | CA-M06-16 |
 | T-M06-17 | Dades inventades i proves de principi a fi (demanar → pagar → tramitar → vigent → avís → renovar) | M | `fixtures/`, `tests/` | T-M06-04 a T-M06-14 | Totes en verd |
 | T-M06-18 | Guia de la secretaria (tramitació i venciments) | S | `docs/` | T-M06-17 | Revisada |
-| T-M06-19 | Opció `LICENCES_DAY_ENABLED` (desactivada per defecte) i, darrere d'ella, llicència d'un dia: unicitat per data, estat `lapsed`, avís i proposta de devolució | M | `apps/licences/day.py`, migració | T-M06-03, T-M06-12 | CA-M06-21 sempre; CA-M06-22, 23 amb l'opció activada a la prova |
-| T-M06-20 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/licences/settings.py`, vistes | T-M06-16; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M06-19 | Opció `licences.day_enabled` (desactivada per defecte) i, darrere d'ella, llicència d'un dia: unicitat per data, estat `lapsed`, avís i proposta de devolució | M | `apps/licences/day.py`, migració | T-M06-03, T-M06-12 | CA-M06-21 sempre; CA-M06-22, 23 amb l'opció activada a la prova |
+| T-M06-20 | Pantalla d'**ajustos** del mòdul: els seus valors (bloc «Valors configurables» de la secció 6), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/licences/settings.py`, vistes | T-M06-16; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat; CA-M06-26 |
 
 <a id="M06-11-proves"></a>
 ## M06-11 Pla de proves
@@ -4806,7 +4865,7 @@ Cap altra app escriu als models del 06.
 | La federació demana dades que la plataforma no té (data de naixement) | Mitjà | La secretaria les completa fora; dubte 2 | Secretaria |
 | Recàrrec massa baix i no socis que no es fan socis | Mitjà per al club | La junta el fixa; la pantalla mostra la comparació | Junta |
 | Gairebé totes les llicències d'any natural caduquen el 31/12 | Alt per a la secretaria al desembre | Resum diari agrupat en lloc d'un avís per llicència; avisos als titulars en lots; sol·licitud anticipada de l'any següent (RN-M06-12 i 21) | Secretaria |
-| La llicència d'un dia potser ja no existeix | Mitjà: funcions que no es farien servir | Darrere de `LICENCES_DAY_ENABLED`, desactivada per defecte | Responsable de cursos i sortides |
+| La llicència d'un dia potser ja no existeix | Mitjà: funcions que no es farien servir | Darrere de `licences.day_enabled`, desactivada per defecte | Responsable de cursos i sortides |
 
 **Supòsits [A validar] i dades [A verificar]**
 | ID | Què | Supòsit mentre tant | Propietari |
@@ -4817,19 +4876,19 @@ Cap altra app escriu als models del 06.
 | S-M06-04 | «Ja en tinc una» per a socis i qui la comprova | Sí, i la secretaria la comprova | Secretaria |
 | S-M06-05 | Qui manté els preus de les llicències | El tresorer | Junta |
 | S-M06-06 | Devolució d'una llicència ja tramitada | No se'n fa | FECDAS |
-| S-M06-07 | *(Condicional a `LICENCES_DAY_ENABLED`.)* La llicència d'un dia es pot demanar sense estar inscrit a cap activitat | Sí | Junta |
+| S-M06-07 | *(Condicional a `licences.day_enabled`.)* La llicència d'un dia es pot demanar sense estar inscrit a cap activitat | Sí | Junta |
 | S-M06-08 | Una persona de fora que es fa sòcia amb una llicència vigent (L-M06-02) | Cap retorn | Junta |
 | S-M06-09 | Número federatiu obligatori per marcar una llicència vigent | Sí, per a les tramitades pel club | Secretaria |
 | S-M06-10 | Departament de les llicències (Q-19, S-M04-07) | «General / Llicències», provisional | Junta |
 | S-M06-11 | Com es comptabilitza la llicència que el club cobra i paga a la FECDAS (RN-M06-05, RN-M06-10) [A verificar: gestoria] | Ingrés i despesa del club, amb marge 0, com diu el [M06-2](#M06-2-dependencies). No bloqueja el codi; bloqueja la producció | Gestoria |
-| S-M06-12 | Si existeix avui la llicència d'un dia (RN-M06-01) [A validar; A verificar: FECDAS] | No: `LICENCES_DAY_ENABLED` desactivada | Responsable de cursos i sortides |
+| S-M06-12 | Si existeix avui la llicència d'un dia (RN-M06-01) [A validar; A verificar: FECDAS] | No: `licences.day_enabled` desactivada | Responsable de cursos i sortides |
 | S-M06-13 | Quan obre la FECDAS el període de sol·licitud de l'any següent (RN-M06-21) [A verificar] | 1/12 (configurable) | FECDAS |
 | S-M06-14 | Preu d'una sol·licitud anticipada de l'any següent (RN-M06-04, RN-M06-21): l'estat de soci a l'1/1 encara no se sap | `is_member` a la data en què es demana; si es dona de baixa abans de l'1/1, cancel·lació amb proposta de devolució. Alternativa: exigir la quota de l'any següent pagada | Tresorer |
 
 **Revisió de dubtes (aplicada a mà)**
 1. ~~Font única de la llicència.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 és l'únic propietari i el 01 en guarda una còpia de lectura amb esdeveniments.
 2. **Data de naixement.** La FECDAS la demana en tramitar (informació del 28/10/2026); falta saber si el formulari de club també la demana [A verificar: FECDAS]. Cal decidir si la plataforma la guarda (Q-09, P-33). Supòsit, que es manté: no es guarda i la secretaria la completa fora. És el **punt prioritari 0** de l'[ordre del dia de la junta](#ordre-del-dia-junta). Propietari: junta.
-3. ~~Llicència d'un dia i activitat.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 no depèn del 02; el 02 hi demanarà si una activitat necessita llicència d'un dia (RP-M02-01, condicional a `LICENCES_DAY_ENABLED`).
+3. ~~Llicència d'un dia i activitat.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 no depèn del 02; el 02 hi demanarà si una activitat necessita llicència d'un dia (RP-M02-01, condicional a `licences.day_enabled`).
 4. **Comissió del cobrament de la llicència d'un soci** (dubte 5 de [M09-13](#M09-13-riscos)). Amb preu igual al de la federació, la comissió la paga el club. Propietari: junta.
 5. **«Pagada» abans de «tramitada»:** si la federació demana tramitar abans de cobrar, l'ordre s'inverteix. Supòsit: es cobra abans. Propietari: FECDAS.
 6. **Què fa avui Cluber amb les llicències (P-28):** si les tramita Cluber, cal saber-ho abans de deixar-lo. Propietari: tresorer.
@@ -5017,7 +5076,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 **Responsable de cursos i sortides**
 | ID | Pregunta | Bloqueja |
 |---|---|---|
-| S-M06-12 | Si existeix avui la llicència d'un dia (decideix si s'activa `LICENCES_DAY_ENABLED`) | — (desactivada) |
+| S-M06-12 | Si existeix avui la llicència d'un dia (decideix si s'activa `licences.day_enabled`) | — (desactivada) |
 | S-M06-02 | Quins tipus de llicència tramita el club i a quins preus (aficionat, tècnic, altres) | 06: producció |
 | RP-M02-02 | Si cal la llicència tècnica per als instructors | — |
 | RP-M02-03 | Quines sortides són a l'estranger i necessiten l'avís de cobertura internacional | — |
@@ -5029,7 +5088,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | RN-M03-10 | El lloguer entra al marge com a despesa amb factura | 09 |
 | S-M02-13 | Llista de subtipus de medi ambient i projectes actuals | — |
 | S-M02-21, 22 | Servei de previsió marítima enllaçat; pujar observacions a Minka | — |
-| RP-M02-01 | Com el 02 demanarà al 06 si una activitat necessita llicència d'un dia (en revisar el 02; condicional a `LICENCES_DAY_ENABLED`) | — |
+| RP-M02-01 | Com el 02 demanarà al 06 si una activitat necessita llicència d'un dia (en revisar el 02; condicional a `licences.day_enabled`) | — |
 | M02, M03, M09, M06 | Aprovar les seccions dels mòduls 02, 03, 09 (amb l'apartat d'ajuts) i 06 | 02, 03, 09 i 06 |
 
 <a id="ordre-del-dia-junta"></a>
@@ -5085,7 +5144,7 @@ No bloqueja res. Són els valors amb què arrenca el codi; la junta els pot conf
 
 Aplica la regla general de [valors de negoci](#regles) (28/10/2026). Per a cada valor: on viu **ara** segons la secció del mòdul, on hauria de viure (**proposta**), valor inicial, rang vàlid, qui el canvia, si queda al registre i si té data d'entrada en vigor. **«Ajustos»** vol dir base de dades, editable a la pantalla d'ajustos del mòdul, amb registre (qui, quan, valor anterior). **«Dada»** vol dir que ja és una llista o una fila editable a l'app (catàlegs, tipus, tarifes). **«Entorn»** vol dir variable d'entorn, que canvia informàtica en desplegar.
 
-Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Proposta** és configuració tècnica, no definida o fixa al text, i hauria de ser editable a l'app (en un mòdul escrit, s'aplica quan s'aprovi aquest apèndix; en un mòdul aprovat, l'aplica la decisió [055](decisions/055-ajustos-configurables-i-addendes.md)); **055** s'aplica amb una addenda al mòdul aprovat; **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
+Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Aplicada** vol dir que el mòdul escrit ja el té al bloc «Valors configurables» de la secció 6 (28/10/2026); **No aplicada** vol dir que contradiu una regla escrita i es manté la regla; **055** s'aplica amb una addenda al mòdul aprovat ([055](decisions/055-ajustos-configurables-i-addendes.md)); **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
 
 | ID | Mòdul | Valor | On viu ara | Proposta | Valor inicial | Rang vàlid | Qui el canvia | Registre | En vigor | Canvi |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -5108,29 +5167,29 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Proposta** és
 | VC-17 | 05b | `PaymentSettings`: minuts d'espera de Bizum i edat de la xarxa de seguretat | Base de dades amb registre | Ajustos, només administrador | 15; 60 | 5 a 30; 30 a 240 | Administrador | Sí | — | 055 (només la pantalla) |
 | VC-18 | 05b | Qui paga la comissió de retorn (RN-M05b-16) i carnet amb una quota retornada (RN-M05b-18) | Valors configurables | Ajustos (commutadors) | El club; no vàlid | — | Administrador, per decisió de la junta | Sí | Sí | 055 (només la pantalla) |
 | VC-19 | 05b | Format del número de rebut (`R-AAAA-NNNNNN`) | Text | Codi | — | — | — | — | — | Es queda (numeració) |
-| VC-20 | 02 | Catàleg de cursos i especialitats, preus de soci i de no soci, tipus i subtipus de sortida, projectes | Dada | Dada, amb data d'entrada en vigor per als preus | Buit; «Neteja»; Sèniors i jornades obertes desactivables | Preus ≥ 0 | Responsable de cursos i sortides; preus, tresorer [A validar: junta] | Sí | Sí (preus) | Proposta (data d'entrada en vigor dels preus) |
-| VC-21 | 02 | Termini de pagament d'una inscripció per defecte (RN-M02-08; cada activitat el pot canviar) | Text (valor per defecte) | Ajustos | 72 hores | 24 a 240 | Tresorer | Sí | — | Proposta |
-| VC-22 | 02 | Hores per acceptar una plaça oferta (RN-M02-09) | Text | Ajustos | 48 | 12 a 168 | Responsable de cursos i sortides | Sí | — | Proposta |
-| VC-23 | 02 | Dies del recordatori d'una activitat (RN-M02-19) | Text | Ajustos | 2 | 0 a 14 | Secretaria | Sí | — | Proposta |
-| VC-24 | 02 | Mode dels requisits per defecte (avís o bloqueig, RN-M02-10) | Camp per activitat; per defecte al text | Ajustos (per defecte) i camp per activitat | Avís | Avís o bloqueig | Responsable de cursos i sortides, per decisió de la junta | Sí | — | Proposta |
-| VC-25 | 02 | Enllaç del servei de previsió marítima (RN-M02-24) | Text | Ajustos (URL) | Meteocat | URL https | Administrador | Sí | — | Proposta |
+| VC-20 | 02 | Catàleg de cursos i especialitats, preus de soci i de no soci, tipus i subtipus de sortida, projectes | Dada | Dada, amb data d'entrada en vigor per als preus | Buit; «Neteja»; Sèniors i jornades obertes desactivables | Preus ≥ 0 | Responsable de cursos i sortides; preus, tresorer [A validar: junta] | Sí | Sí (preus) | Aplicada en part: la data d'entrada en vigor dels preus sí; que els preus els canviï el tresorer, no (contradiu RN-M02-01 i HU-M02-01: els canvia el responsable de cursos i sortides) |
+| VC-21 | 02 | Termini de pagament d'una inscripció per defecte (RN-M02-08; cada activitat el pot canviar) | Text (valor per defecte) | Ajustos | 72 hores | 24 a 240 | Tresorer | Sí | — | Aplicada |
+| VC-22 | 02 | Hores per acceptar una plaça oferta (RN-M02-09) | Text | Ajustos | 48 | 12 a 168 | Responsable de cursos i sortides | Sí | — | Aplicada |
+| VC-23 | 02 | Dies del recordatori d'una activitat (RN-M02-19) | Text | Ajustos | 2 | 0 a 14 | Secretaria | Sí | — | Aplicada |
+| VC-24 | 02 | Mode dels requisits per defecte (avís o bloqueig, RN-M02-10) | Camp per activitat; per defecte al text | Ajustos (per defecte) i camp per activitat | Avís | Avís o bloqueig | Responsable de cursos i sortides, per decisió de la junta | Sí | — | Aplicada |
+| VC-25 | 02 | Enllaç del servei de previsió marítima (RN-M02-24) | Text | Ajustos (URL) | Meteocat | URL https | Administrador | Sí | — | Aplicada |
 | VC-26 | 02 | Numeració del certificat (`C-AAAA-NNNN`) | Text | Codi | — | — | — | — | — | Es queda (numeració) |
-| VC-27 | 03 | Tipus de material, centres de busseig i tarifes | Dada | Dada, amb data d'entrada en vigor per a les tarifes | Buit | ≥ 0 | Responsable de material; tarifes, tresorer | Sí | Sí (tarifes) | Proposta (data d'entrada en vigor) |
-| VC-28 | 03 | Cost d'ús del material del club (RN-M03-08) | Text | Ajustos per tipus | 0 | ≥ 0 | Tresorer | Sí | Sí | Proposta |
-| VC-29 | 03 | Dies dels avisos de revisió i de peces no retornades (RN-M03-14, 15) | Text | Ajustos | 30 i 7 | 1 a 90 | Responsable de material | Sí | — | Proposta |
+| VC-27 | 03 | Tipus de material, centres de busseig i tarifes | Dada | Dada, amb data d'entrada en vigor per a les tarifes | Buit | ≥ 0 | Responsable de material; tarifes, tresorer | Sí | Sí (tarifes) | No aplicada: les tarifes ja tenen versions amb data d'inici (RN-M03-06); que les canviï el tresorer contradiu C3 i MT8 (les manté el responsable de material) |
+| VC-28 | 03 | Cost d'ús del material del club (RN-M03-08) | Text | Ajustos per tipus | 0 | ≥ 0 | Tresorer | Sí | Sí | Aplicada |
+| VC-29 | 03 | Dies dels avisos de revisió i de peces no retornades (RN-M03-14, 15) | Text | Ajustos | 30 i 7 | 1 a 90 | Responsable de material | Sí | — | Aplicada |
 | VC-30 | 03 | Format dels codis de les peces (`MAT-NNNN`) | Text | Codi | — | — | — | — | — | Es queda (integritat) |
-| VC-31 | 09 | Llindar de marge baix (RN-M09-14) | Text | Ajustos | 0 € | Qualsevol import (també negatiu) | Tresorer | Sí | — | Proposta |
-| VC-32 | 09 | Durada del període (RN-M09-15) | Text | Ajustos; només s'aplica als períodes nous | Mensual | Mensual, trimestral | Tresorer | Sí | Sí | Proposta |
+| VC-31 | 09 | Llindar de marge baix (RN-M09-14) | Text | Ajustos | 0 € | Qualsevol import (també negatiu) | Tresorer | Sí | — | Aplicada |
+| VC-32 | 09 | Durada del període (RN-M09-15) | Text | Ajustos; només s'aplica als períodes nous | Mensual | Mensual, trimestral | Tresorer | Sí | Sí | Aplicada, amb RN-M09-28 i la prova de la 055 |
 | VC-33 | 09 | Categories de despesa i proveïdors | Dada | Dada | Les de F §7 | — | Tresorer | Sí | — | — |
-| VC-34 | 09 | Facturació activada per tipus de càrrec (RN-M09-19) | Text | Ajustos (commutadors) | Desactivada | — | Administrador, per decisió de la junta | Sí | Sí | Proposta |
-| VC-35 | 09 | Text d'ajuda de la pujada de documents (RN-M09-25) | Text | Ajustos (text) | El de RN-M09-25 | Fins a 400 caràcters | Administrador | Sí | — | Proposta |
-| VC-36 | 09 (ajuts) | Dies dels avisos de tancament i de justificació (RN-M09A-06) | Configurable, sense lloc | Ajustos | 30, 14 i 7 | 1 a 90 | Tresorer | Sí | — | Proposta |
-| VC-37 | 09 (ajuts) | Dies dels avisos d'un requeriment (RN-M09A-19) | Text | Ajustos (el primer, immediat, és fix) | 7 i 2 | 1 a 30 | Tresorer | Sí | — | Proposta |
+| VC-34 | 09 | Facturació activada per tipus de càrrec (RN-M09-19) | Text | Ajustos (commutadors) | Desactivada | — | Administrador, per decisió de la junta | Sí | Sí | Aplicada |
+| VC-35 | 09 | Text d'ajuda de la pujada de documents (RN-M09-25) | Text | Ajustos (text) | El de RN-M09-25 | Fins a 400 caràcters | Administrador | Sí | — | No aplicada: el text és la mitigació d'un risc de dades fora de la UE (RN-M09-25, 051); es queda al codi |
+| VC-36 | 09 (ajuts) | Dies dels avisos de tancament i de justificació (RN-M09A-06) | Configurable, sense lloc | Ajustos | 30, 14 i 7 | 1 a 90 | Tresorer | Sí | — | Aplicada |
+| VC-37 | 09 (ajuts) | Dies dels avisos d'un requeriment (RN-M09A-19) | Text | Ajustos (el primer, immediat, és fix) | 7 i 2 | 1 a 30 | Tresorer | Sí | — | Aplicada |
 | VC-38 | 06 | Tipus, categories, regles de validesa i preus (amb trams) | Dada amb versions | Dada; `valid_from` és la data d'entrada en vigor | [A verificar: FECDAS] | Preus ≥ 0 | Tresorer (S-M06-05) | Sí, amb nota | Sí | — |
-| VC-39 | 06 | `LICENCES_NON_MEMBERS_ENABLED` | Configuració (nom d'entorn) | Ajustos (commutador) | Desactivada | — | Administrador, per decisió de la junta | Sí | — | Proposta |
-| VC-40 | 06 | `LICENCES_DAY_ENABLED` | Configuració (nom d'entorn) | Ajustos (commutador) | Desactivada | — | Administrador, quan ho confirmi el responsable de cursos i sortides | Sí | — | Proposta |
-| VC-41 | 06 | `LICENCE_REMINDER_DAYS` i `LICENCE_TO_RENEW_DAYS` | Configuració (nom d'entorn) | Ajustos | 60, 30 i 7; 60 | 1 a 120 | Secretaria | Sí | — | Proposta |
-| VC-42 | 06 | `LICENCE_NEXT_YEAR_OPENS_ON` | Configuració (nom d'entorn) | Ajustos (dia i mes) | 1/12 [A verificar: FECDAS] | 1/10 a 31/12 | Secretaria | Sí | — | Proposta |
+| VC-39 | 06 | `licences.non_members_enabled` | Configuració (nom d'entorn) | Ajustos (commutador) | Desactivada | — | Administrador, per decisió de la junta | Sí | — | Aplicada |
+| VC-40 | 06 | `licences.day_enabled` | Configuració (nom d'entorn) | Ajustos (commutador) | Desactivada | — | Administrador, quan ho confirmi el responsable de cursos i sortides | Sí | — | Aplicada (si es confirma que no existeix, la retirarà la decisió 056) |
+| VC-41 | 06 | `licences.reminder_days` i `licences.to_renew_days` | Configuració (nom d'entorn) | Ajustos | 60, 30 i 7; 60 | 1 a 120 | Secretaria | Sí | — | Aplicada |
+| VC-42 | 06 | `licences.next_year_opens_on` | Configuració (nom d'entorn) | Ajustos (dia i mes) | 1/12 [A verificar: FECDAS] | 1/10 a 31/12 | Secretaria | Sí | — | Aplicada |
 | VC-43 | 06 | `LICENCE_REMINDER_BATCH_SIZE` | Configuració | Entorn | [A validar: informàtica] | — | Informàtica | Desplegament | — | Es queda (tècnic) |
 | VC-44 | 06 | Preu de soci = preu de la federació (RN-M06-05) | Regla | Codi | — | — | — | — | — | Es queda (regla) |
 
