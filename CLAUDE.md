@@ -31,6 +31,7 @@ No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 Numeració fixa (`docs/planning.md#estat`): 00 Base comuna, 01 Socis i carnet digital, 02 Activitats (cursos i sortides), 03 Material, 04 Tresoreria (part mínima), 05a Alta del mètode de pagament i mandats, 05b Cobraments, 06 Llicències, 07 Web pública, 08 Dashboard, 09 Marge, despeses, ajuts i facturació (abans «resta de la 04»), 10 Missatges i xat per activitat, 11 Departament d'Història i conferències, 12 Idees noves (avatars de fauna marina i bitàcola), 13 Botiga en línia (fora d'abast ara). Cap mòdul no canvia de número; un de nou s'afegeix al final. El número no és l'ordre de construcció.
 
 **Ordre de construcció:**
+- **Primer mòdul que es pot començar:** el 01 (Socis i carnet), amb les peces de la 00 que necessita (`docs/planning.md#primer-modul`). Aprovats al pla: 01, 04, 05a, 05b, 02, 03, 06 i 09.
 - **Fase 1, abast mínim per deixar Cluber:** 00 Base comuna → 01 Socis i carnet (amb registre mínim de llicència: tipus, data d'alta i de caducitat) → 04 Tresoreria, part mínima → 05a Alta del mètode de pagament i signatura de mandats en mode real → 05b Cobraments, remeses, retornats, devolucions i conciliació.
 - **Fase 2:** 02 Activitats → 03 Material → 09 Marge, despeses, ajuts i facturació → 06 Llicències → 07 Web pública → 08 Dashboard.
 - **Després:** 10, 11 i 12.

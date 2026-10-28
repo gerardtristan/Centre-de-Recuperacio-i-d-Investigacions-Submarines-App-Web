@@ -1,31 +1,34 @@
 # Pla de la plataforma C.R.I.S., mòdul a mòdul
 
 - **Què és:** l'únic fitxer del pla de tots els mòduls i la **font única de la seva especificació** ([047](decisions/047-planning-font-unica-de-l-especificacio.md)). S'hi afegeixen mòduls amb la mateixa estructura de 14 seccions. Cap altre fitxer en copia el contingut: s'hi enllaça per l'àncora.
-- **Data de la versió:** 27/10/2026 (la data només identifica la versió; el pla no té calendari, [038](decisions/038-planificar-sense-dates.md)).
+- **Data de la versió:** 28/10/2026 (la data només identifica la versió; el pla no té calendari, [038](decisions/038-planificar-sense-dates.md)).
 - **Com s'aprova:** cada secció de mòdul passa d'«escrit» a «aprovat» quan el responsable del projecte l'aprova. Cap mòdul nou s'afegeix fins que l'anterior està aprovat, excepte quan el responsable del projecte en demana diversos alhora perquè depenen entre ells (04, 05a i 05b; 02 i 03; 09 i 06, que depenen tots dos del 05b).
 
 <a id="estat"></a>
 ## 1. Estat i numeració dels mòduls
 
-«Estat» és l'estat de la secció d'aquest pla, no del codi: **pendent** (no escrita), **escrit** (per aprovar), **aprovat**. Ordre de construcció segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md): fase 1, 00 → 01 → 04 → 05a → 05b; fase 2, 02 → 03 → 09 → 06 → 07 → 08; després, 10, 11 i 12. **El número identifica el mòdul, no l'ordre de construcció.**
+«Estat» és l'estat de la secció d'aquest pla, no del codi: **pendent** (no escrita), **escrit** (per aprovar), **aprovat**. Aprovats: 01, 04, 05a i 05b (27/10/2026); 02, 03, 06 i 09 amb l'apartat d'ajuts (28/10/2026). Ordre de construcció segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md): fase 1, 00 → 01 → 04 → 05a → 05b; fase 2, 02 → 03 → 09 → 06 → 07 → 08; després, 10, 11 i 12. **El número identifica el mòdul, no l'ordre de construcció.**
 
 | Núm. | Mòdul | Fase | Depèn de | Font de l'especificació | Estat al pla |
 |---|---|---|---|---|---|
 | **00** | Base comuna | 1 | — | [spec 00](../specs/00-base-comuna/spec.md) v2 (fins que el 00 tingui secció aquí) | pendent (el 01 en defineix la part que necessita) |
 | **01** | [Socis i carnet digital](#M01) | 1 | 00 | Aquest pla ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | **aprovat** (addendes de la 049 i la 052) |
-| **02** | [Activitats (cursos i sortides)](#M02) | 2 | 00, 01, 04, 05b (06 quan existeixi) | Aquest pla | **escrit** |
-| **03** | [Material](#M03) | 2 | 00, 02 | Aquest pla | **escrit** |
+| **02** | [Activitats (cursos i sortides)](#M02) | 2 | 00, 01, 04, 05b (06 quan existeixi) | Aquest pla | **aprovat** (28/10/2026) |
+| **03** | [Material](#M03) | 2 | 00, 02 | Aquest pla | **aprovat** (28/10/2026) |
 | **04** | [Tresoreria, part mínima](#M04) | 1 | 00, 01 | Aquest pla (la spec 04 v2 és a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md)) | **aprovat** (addenda de la 050) |
 | **05a** | [Alta del mètode de pagament i mandats](#M05a) | 1 | 01, 04 | Aquest pla | **aprovat** |
 | **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** (ampliat per la 049) |
-| **06** | [Llicències](#M06) | 2 | 01, 05b | Aquest pla | **escrit** |
+| **06** | [Llicències](#M06) | 2 | 01, 05b | Aquest pla | **aprovat** (28/10/2026) |
 | **07** | Web pública | 2 | 01, 02 | — | pendent |
 | **08** | Dashboard | 2 | 01, 02, 04, 09 | — | pendent |
-| **09** | [Marge, despeses, ajuts i facturació](#M09) (abans «resta de la 04»; amb l'[apartat d'ajuts](#M09-ajuts)) | 2 | 02, 03, 04, 05b | Aquest pla | **escrit** |
+| **09** | [Marge, despeses, ajuts i facturació](#M09) (abans «resta de la 04»; amb l'[apartat d'ajuts](#M09-ajuts)) | 2 | 02, 03, 04, 05b | Aquest pla | **aprovat** (28/10/2026) |
 | **10** | Missatges i xat per activitat | després de la 2 | 01, 02 | — | pendent |
 | **11** | Departament d'Història i conferències | després de la 2 | 01, 02, 07 | — | pendent |
 | **12** | Idees noves (avatars de fauna marina i bitàcola; [idees registrades](#M12-idees)) | després de la 2 | 01, 02, 03 | — | pendent |
 | **13** | Botiga en línia | — | — | Fora d'abast ara | — |
+
+<a id="primer-modul"></a>
+**Primer mòdul que es pot començar a construir: el 01 (Socis i carnet digital), amb les peces de la 00 que necessita**, a partir de T-M01-01 i T-M01-03 (esquelet del projecte). La 00 no té secció pròpia: el 01 en construeix la part que necessita, seguint la [spec 00](../specs/00-base-comuna/spec.md). Després, per dependències: 04 → 05a → 05b (fase 1) i 02 → 03 → 09 → 06 (fase 2). Tots aquests mòduls estan aprovats i es poden construir en aquest ordre; entrar en producció depèn dels [A verificar] externs i de les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
 
 **Regles de la numeració** (fixada el 27/10/2026 pel responsable del projecte)
 - Cap mòdul no canvia de número. Un mòdul nou s'afegeix al final (14, 15…).
@@ -95,17 +98,17 @@
    1. [Intenció](#M05b-1-intencio) · 2. [Dependències](#M05b-2-dependencies) · 3. [Capacitats](#M05b-3-capacitats) · 4. [Rols](#M05b-4-rols) · 5. [Processos](#M05b-5-processos) · 6. [Entitats](#M05b-6-entitats) · 7. [Regles](#M05b-7-regles)
    8. [Serveis](#M05b-8-serveis) · 9. [Criteris](#M05b-9-criteris) · 10. [Tasques](#M05b-10-tasques) · 11. [Proves](#M05b-11-proves) · 12. [Seguretat](#M05b-12-seguretat) · 13. [Riscos](#M05b-13-riscos) · 14. [Aprovar](#M05b-14-aprovar)
    - [Addenda de la 055: pantalla d'ajustos](#M05b-addenda-055)
-10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum)
+10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M02-1-intencio) · 2. [Dependències](#M02-2-dependencies) · 3. [Capacitats](#M02-3-capacitats) · 4. [Rols](#M02-4-rols) · 5. [Processos](#M02-5-processos) · 6. [Entitats](#M02-6-entitats) · 7. [Regles](#M02-7-regles)
    8. [Serveis](#M02-8-serveis) · 9. [Criteris](#M02-9-criteris) · 10. [Tasques](#M02-10-tasques) · 11. [Proves](#M02-11-proves) · 12. [Seguretat](#M02-12-seguretat) · 13. [Riscos](#M02-13-riscos) · 14. [Aprovar](#M02-14-aprovar)
-11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum)
+11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M03-1-intencio) · 2. [Dependències](#M03-2-dependencies) · 3. [Capacitats](#M03-3-capacitats) · 4. [Rols](#M03-4-rols) · 5. [Processos](#M03-5-processos) · 6. [Entitats](#M03-6-entitats) · 7. [Regles](#M03-7-regles)
    8. [Serveis](#M03-8-serveis) · 9. [Criteris](#M03-9-criteris) · 10. [Tasques](#M03-10-tasques) · 11. [Proves](#M03-11-proves) · 12. [Seguretat](#M03-12-seguretat) · 13. [Riscos](#M03-13-riscos) · 14. [Aprovar](#M03-14-aprovar)
-12. [Mòdul 09 — Marge, despeses, ajuts i facturació](#M09) · [resum](#M09-resum)
+12. [Mòdul 09 — Marge, despeses, ajuts i facturació](#M09) · [resum](#M09-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M09-1-intencio) · 2. [Dependències](#M09-2-dependencies) · 3. [Capacitats](#M09-3-capacitats) · 4. [Rols](#M09-4-rols) · 5. [Processos](#M09-5-processos) · 6. [Entitats](#M09-6-entitats) · 7. [Regles](#M09-7-regles)
    8. [Serveis](#M09-8-serveis) · 9. [Criteris](#M09-9-criteris) · 10. [Tasques](#M09-10-tasques) · 11. [Proves](#M09-11-proves) · 12. [Seguretat](#M09-12-seguretat) · 13. [Riscos](#M09-13-riscos) · 14. [Aprovar](#M09-14-aprovar)
-   - [Apartat: Ajuts: calendari, sol·licituds i justificació](#M09-ajuts) · [resum](#M09-ajuts-resum): 1. [Intenció](#M09-ajuts-1-intencio) · 2. [Dependències](#M09-ajuts-2-dependencies) · 3. [Capacitats](#M09-ajuts-3-capacitats) · 4. [Rols](#M09-ajuts-4-rols) · 5. [Processos](#M09-ajuts-5-processos) · 6. [Entitats](#M09-ajuts-6-entitats) · 7. [Regles](#M09-ajuts-7-regles) · 8. [Serveis](#M09-ajuts-8-serveis) · 9. [Criteris](#M09-ajuts-9-criteris) · 10. [Tasques](#M09-ajuts-10-tasques) · 11. [Proves](#M09-ajuts-11-proves) · 12. [Seguretat](#M09-ajuts-12-seguretat) · 13. [Riscos](#M09-ajuts-13-riscos) · 14. [Aprovar](#M09-ajuts-14-aprovar)
-13. [Mòdul 06 — Llicències](#M06) · [resum](#M06-resum)
+   - [Apartat: Ajuts: calendari, sol·licituds i justificació](#M09-ajuts) · [resum](#M09-ajuts-resum) · **aprovat** (28/10/2026): 1. [Intenció](#M09-ajuts-1-intencio) · 2. [Dependències](#M09-ajuts-2-dependencies) · 3. [Capacitats](#M09-ajuts-3-capacitats) · 4. [Rols](#M09-ajuts-4-rols) · 5. [Processos](#M09-ajuts-5-processos) · 6. [Entitats](#M09-ajuts-6-entitats) · 7. [Regles](#M09-ajuts-7-regles) · 8. [Serveis](#M09-ajuts-8-serveis) · 9. [Criteris](#M09-ajuts-9-criteris) · 10. [Tasques](#M09-ajuts-10-tasques) · 11. [Proves](#M09-ajuts-11-proves) · 12. [Seguretat](#M09-ajuts-12-seguretat) · 13. [Riscos](#M09-ajuts-13-riscos) · 14. [Aprovar](#M09-ajuts-14-aprovar)
+13. [Mòdul 06 — Llicències](#M06) · [resum](#M06-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M06-1-intencio) · 2. [Dependències](#M06-2-dependencies) · 3. [Capacitats](#M06-3-capacitats) · 4. [Rols](#M06-4-rols) · 5. [Processos](#M06-5-processos) · 6. [Entitats](#M06-6-entitats) · 7. [Regles](#M06-7-regles)
    8. [Serveis](#M06-8-serveis) · 9. [Criteris](#M06-9-criteris) · 10. [Tasques](#M06-10-tasques) · 11. [Proves](#M06-11-proves) · 12. [Seguretat](#M06-12-seguretat) · 13. [Riscos](#M06-13-riscos) · 14. [Aprovar](#M06-14-aprovar)
 14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
@@ -2456,7 +2459,7 @@ Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: d
 <a id="M02"></a>
 # Mòdul 02 — Activitats (cursos i sortides)
 
-**Estat: escrit**, per aprovar pel responsable del projecte.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M02-14](#M02-14-aprovar)), alhora que els 02, 03, 06 i 09.
 
 **Fonts:** document de funcionalitats (F §4 Cursos, §5 Sortides, processos 9.1, 9.17 i 9.18), mapa de la plataforma v8 (M02 Cursos i M03 Sortides), respostes del responsable del projecte del 20/10/2026 i del 22/10/2026 (catàlegs separats i editables, classes de reforç amb cost, subtipus de medi ambient ampliables, preus configurables amb nota obligatòria en canviar-los, duplicar com a plantilla), decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (RN-30 a RN-33, RN-43, RN-60 a RN-73, V-02); seccions aprovades [M01](#M01), [M04](#M04) i [M05b](#M05b).
 
@@ -3077,6 +3080,13 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 <a id="M02-14-aprovar"></a>
 ## M02-14 Què cal aprovar abans de començar
 
+**Aprovat el 28/10/2026** pel responsable del projecte, alhora que els 02, 03, 06 i 09 (amb l'apartat d'ajuts), sense canviar cap regla ni cap criteri. Respostes d'aquesta aprovació:
+- Els **supòsits per defecte** s'accepten per començar i **no bloquegen el codi**.
+- **Per entrar en producció** cal respondre els [A verificar] externs i les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+- Tots els [A validar] i [A verificar] continuen oberts amb el seu propietari: aquesta aprovació no els resol.
+
+Punts que es van presentar per aprovar:
+
 1. **Aquesta secció del 02**, amb els estats, la plantilla de duplicar (RN-M02-21) i la separació 02 ↔ 03 per senyals i punts d'extensió.
 2. ~~Ampliació del contracte del 01~~ **Aprovada per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)**: `members.licence_record(person)`, només lectura (T-M01-30).
 3. ~~Ampliació del contracte de la 00 i del 05b~~ **Aprovada per la 049** com a esdeveniment general `charge.paid` (T-M05b-21), no com a crida directa al 02. Si el 02 ha de reaccionar a un càrrec retornat o anul·lat, caldrà aprovar aquell esdeveniment a part (049, conseqüències).
@@ -3088,7 +3098,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 <a id="M03"></a>
 # Mòdul 03 — Material
 
-**Estat: escrit**, per aprovar pel responsable del projecte.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M03-14](#M03-14-aprovar)), alhora que els 02, 03, 06 i 09.
 
 **Fonts:** document de funcionalitats (F §6 Material i cost per participant, processos 9.6 i 9.7), mapa de la plataforma v8 (M04 Material), respostes del responsable del projecte del 20/10/2026 (llista de tipus, ampolla amb litres lliures, stock de tot el material, material al registre d'immersió, tarifes per centre amb marge propi) i del 22/10/2026 (les classes de reforç són un ús nou de material), decisions [013](decisions/013-imputacio-comissions.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [035](decisions/035-dades-nomes-dins-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (càrrec, importacions, fitxers); secció [M02](#M02).
 
@@ -3536,6 +3546,13 @@ Cap altra app escriu als models del 03.
 <a id="M03-14-aprovar"></a>
 ## M03-14 Què cal aprovar abans de començar
 
+**Aprovat el 28/10/2026** pel responsable del projecte, alhora que els 02, 03, 06 i 09 (amb l'apartat d'ajuts), sense canviar cap regla ni cap criteri. Respostes d'aquesta aprovació:
+- Els **supòsits per defecte** s'accepten per començar i **no bloquegen el codi**.
+- **Per entrar en producció** cal respondre els [A verificar] externs i les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+- Tots els [A validar] i [A verificar] continuen oberts amb el seu propietari: aquesta aprovació no els resol.
+
+Punts que es van presentar per aprovar:
+
 1. **Aquesta secció del 03**, amb l'estat de la peça derivat de les assignacions ([M03-5](#M03-5-processos)) i la restricció d'exclusió.
 2. **RN-M03-10** (el lloguer entra al marge com a despesa amb factura; el cost de material és el del club), perquè el 09 hi quedi lligat.
 3. **Supòsits per defecte** S-M03-02 (cost d'ús 0), S-M03-03 (càrrec a part del lloguer) i S-M03-04 (referència i inicials a la llista) [A validar: junta i tresorer]. No bloquegen el codi.
@@ -3546,7 +3563,7 @@ Cap altra app escriu als models del 03.
 <a id="M09"></a>
 # Mòdul 09 — Marge, despeses, ajuts i facturació
 
-**Estat: escrit**, per aprovar pel responsable del projecte. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-14](#M09-14-aprovar)), amb l'apartat d'ajuts i alhora que els 02, 03 i 06. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**.
 
 **Fonts:** document de funcionalitats (F §7 Tresoreria, marge per activitat, factures i ajuts; F §5 tancament econòmic de les sortides; processos 9.8, 9.10 i 9.11), mapa de la plataforma v8 (M05c Marge, factures i ajuts), respostes del responsable del projecte del 20/10/2026 (totes les factures per justificar ajuts; els ajuts es compten per departament i no per activitat; centres de busseig amb marge propi) i del 22/10/2026 (factures de tot quan la junta ho activi; subtipus de medi ambient ampliables; preus configurables), instruccions del 27/10/2026 per a l'apartat d'ajuts, decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md), [035](decisions/035-dades-nomes-dins-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M02](#M02) (`closing_blockers`, `mark_closed`), [M03](#M03) (RN-M03-10 i `activity_material_cost`), [M04](#M04) (moviments i conciliació) i [M05b](#M05b) (rebuts i esdeveniment `charge.paid`).
 
@@ -4044,6 +4061,13 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 <a id="M09-14-aprovar"></a>
 ## M09-14 Què cal aprovar abans de començar
 
+**Aprovat el 28/10/2026** pel responsable del projecte, alhora que els 02, 03, 06 i 09 (amb l'apartat d'ajuts), sense canviar cap regla ni cap criteri. Respostes d'aquesta aprovació:
+- Els **supòsits per defecte** s'accepten per començar i **no bloquegen el codi**.
+- **Per entrar en producció** cal respondre els [A verificar] externs i les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+- Tots els [A validar] i [A verificar] continuen oberts amb el seu propietari: aquesta aprovació no els resol.
+
+Punts que es van presentar per aprovar:
+
 1. **Aquesta secció del 09** (part principal), amb la fórmula del marge, la congelació en tancar i el tancament de període.
 2. ~~Peces noves a la 04~~ **Aprovades** com a addenda per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) ([M04-addenda-050](#M04-addenda-050)).
 3. ~~IBAN als comprovants del banc~~ **Aprovat** per la [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md).
@@ -4055,7 +4079,7 @@ La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-
 <a id="M09-ajuts"></a>
 # Mòdul 09 — Apartat: Ajuts: calendari, sol·licituds i justificació
 
-**Estat: escrit**, per aprovar pel responsable del projecte, amb la resta del 09.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-ajuts-14](#M09-ajuts-14-aprovar)), amb la resta del 09.
 
 **Fonts:** instruccions del responsable del projecte del 27/10/2026; F §7 (ajuts i justificació, procés 9.10); respostes del 20/10/2026 (totes les factures per justificar ajuts; ajuts per departament i per tipus d'acció de medi ambient) i del 22/10/2026 (subtipus i projectes per trobar ajuts); part principal del [09](#M09).
 
@@ -4458,6 +4482,13 @@ Cap altra app escriu als models de `grants`.
 <a id="M09-ajuts-14-aprovar"></a>
 ## M09-ajuts-14 Què cal aprovar abans de començar
 
+**Aprovat el 28/10/2026** pel responsable del projecte, alhora que els 02, 03, 06 i 09 (amb l'apartat d'ajuts), sense canviar cap regla ni cap criteri. Respostes d'aquesta aprovació:
+- Els **supòsits per defecte** s'accepten per començar i **no bloquegen el codi**.
+- **Per entrar en producció** cal respondre els [A verificar] externs i les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+- Tots els [A validar] i [A verificar] continuen oberts amb el seu propietari: aquesta aprovació no els resol.
+
+Punts que es van presentar per aprovar:
+
 1. **Aquest apartat**, amb la llista d'estats i les transicions de RN-M09A-01.
 2. **Supòsits per defecte** S-M09A-01 (responsable: el tresorer), S-M09A-03 (responsable i tresorer reben els avisos) i S-M09A-04 (avisos també abans de justificar) [A validar: junta].
 3. **Per fer-lo servir** (no per començar): les convocatòries que s'han de vigilar (S-M09A-02) [A validar: junta].
@@ -4467,7 +4498,7 @@ Cap altra app escriu als models de `grants`.
 <a id="M06"></a>
 # Mòdul 06 — Llicències
 
-**Estat: escrit**, per aprovar pel responsable del projecte.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M06-14](#M06-14-aprovar)), alhora que els 02, 03, 06 i 09.
 
 **Fonts:** document de funcionalitats (F §8.1 Llicències federatives, processos 9.12 i 9.16), mapa de la plataforma v8 (M06 Llicències), respostes del responsable del projecte del 20/10/2026 (tres durades; marge 0 per a la llicència d'un soci) i del 22/10/2026 (opció de llicència sense ser soci, amb un recàrrec que faci que fer-se soci surti gairebé sempre a compte; preus configurables amb nota obligatòria en canviar-los), decisions [036](decisions/036-fecdas-alia.md) (la FECDAS és un aliat, sense cap acord d'integració), [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M01](#M01) (registre mínim de llicència), [M05b](#M05b) i [M09](#M09) (despesa de la federació).
 
@@ -4900,6 +4931,13 @@ Cap altra app escriu als models del 06.
 <a id="M06-14-aprovar"></a>
 ## M06-14 Què cal aprovar abans de començar
 
+**Aprovat el 28/10/2026** pel responsable del projecte, alhora que els 02, 03, 06 i 09 (amb l'apartat d'ajuts), sense canviar cap regla ni cap criteri. Respostes d'aquesta aprovació:
+- Els **supòsits per defecte** s'accepten per començar i **no bloquegen el codi**.
+- **Per entrar en producció** cal respondre els [A verificar] externs i les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+- Tots els [A validar] i [A verificar] continuen oberts amb el seu propietari: aquesta aprovació no els resol.
+
+Punts que es van presentar per aprovar:
+
 1. **Aquesta secció del 06**, amb els estats derivats i el càlcul de dates.
 2. ~~Font única de la llicència al 06 i canvi al 01~~ **Aprovada** per la [052](decisions/052-llicencia-font-unica-al-06.md), amb l'[addenda del M01](#M01-addenda-052).
 3. ~~Dependència opcional del 02~~ **No s'afegeix** (052). Queda com a requisit pendent del 02 (RP-M02-01).
@@ -5148,7 +5186,7 @@ No bloqueja res. Són els valors amb què arrenca el codi; la junta els pot conf
 
 Aplica la regla general de [valors de negoci](#regles) (28/10/2026). Per a cada valor: on viu **ara** segons la secció del mòdul, on hauria de viure (**proposta**), valor inicial, rang vàlid, qui el canvia, si queda al registre i si té data d'entrada en vigor. **«Ajustos»** vol dir base de dades, editable a la pantalla d'ajustos del mòdul, amb registre (qui, quan, valor anterior). **«Dada»** vol dir que ja és una llista o una fila editable a l'app (catàlegs, tipus, tarifes). **«Entorn»** vol dir variable d'entorn, que canvia informàtica en desplegar.
 
-Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Aplicada** vol dir que el mòdul escrit ja el té al bloc «Valors configurables» de la secció 6 (28/10/2026); **No aplicada** vol dir que contradiu una regla escrita i es manté la regla; **055** s'aplica amb una addenda al mòdul aprovat ([055](decisions/055-ajustos-configurables-i-addendes.md)); **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
+Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Aplicada** vol dir que el mòdul (escrit en aquell moment, aprovat el 28/10/2026) ja el té al bloc «Valors configurables» de la secció 6 (28/10/2026); **No aplicada** vol dir que contradiu una regla escrita i es manté la regla; **055** s'aplica amb una addenda al mòdul aprovat ([055](decisions/055-ajustos-configurables-i-addendes.md)); **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
 
 | ID | Mòdul | Valor | On viu ara | Proposta | Valor inicial | Rang vàlid | Qui el canvia | Registre | En vigor | Canvi |
 |---|---|---|---|---|---|---|---|---|---|---|
