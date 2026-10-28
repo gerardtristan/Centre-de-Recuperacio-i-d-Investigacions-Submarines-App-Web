@@ -140,3 +140,51 @@ Preguntes a [preguntes-tresorer](planning.md#preguntes-tresorer).
 > 2. Què fa avui Cluber amb les llicències: les guarda, en cobra, avisa quan caduquen? (P-28)
 >
 > **Per què ens cal:** la importació final de Cluber es fa una sola vegada i ha de quedar bé a la primera; i si Cluber ja porta llicències, cal saber-ho per passar-les al mòdul nou.
+
+---
+
+<a id="seguiment-057"></a>
+## 8. Seguiment: banc i PaynoPain (decisió 057)
+
+Preguntes noves després de llegir les tarifes públiques de PaynoPain i l'API Market de CaixaGuissona ([057](decisions/057-tarifes-paynopain-i-api-caixaguissona.md)). Completen els missatges de les seccions 3 i 4, que no canvien. Numerades per ordre de prioritat; cada missatge porta les que toquen a cada propietari.
+
+| Prioritat | Tema | Propietari | Pregunta |
+|---|---|---|---|
+| 1 | On són les dades i qui són els subencarregats | Banc i PaynoPain | B1, PP1 |
+| 2 | Qui contracta el TPV | Banc | B2 |
+| 3 | Domiciliació SEPA de PaynoPain | PaynoPain | PP2 |
+| 4 | Accés de producció a l'API de moviments sense QSealC i durada del consentiment | Banc | B3 |
+| 5 | Dades de cada moviment | Banc | B4 |
+| 6 | Remeses, retornats i extractes automàtics | Banc | B5 |
+| 7 | Detalls de les tarifes | PaynoPain | PP3, PP4 |
+
+### Missatge de seguiment al banc
+
+> Bon dia,
+>
+> Com a continuació de la nostra consulta sobre les domiciliacions, hem vist el vostre API Market i ens agradaria fer-vos unes preguntes més.
+>
+> 1. **(B1)** Qui opera la plataforma de l'API Market i on són els servidors i les còpies? Hi intervé cap empresa fora de la UE? (057)
+> 2. **(B2)** El TPV virtual de PaynoPain, el contracta el club amb vosaltres, amb tarifes pròpies del banc, o directament amb PaynoPain amb les seves tarifes públiques? Com arriben les liquidacions al compte: agrupades per dia o una per operació? (P-44, 057)
+> 3. **(B3)** Un client que és una associació, sense ser proveïdor de serveis de pagament i sense certificat QSealC, pot tenir accés de **producció** a les API de comptes, saldos i moviments **dels seus propis comptes** per la via «sense certificat»? Quin contracte cal i quin cost té? Quant dura el consentiment: cal tornar a autenticar-se cada 90 o 180 dies, i es pot llegir automàticament cada dia sense que el tresorer hi sigui? (057)
+> 4. **(B4)** Quines dades retorna l'API per a cada moviment (concepte complet, nom de l'ordenant, referència, data valor, identificador únic) i quants dies d'històric? (057)
+> 5. **(B5)** Hi ha alguna via automàtica (API, EBICS o fitxers per la banca electrònica) per enviar remeses de rebuts (pain.008), rebre els rebuts retornats i descarregar els extractes (Norma 43 o camt.053)? (P-45 punt 5, 057)
+>
+> **Per què ens cal:** les dades del club només es poden tractar dins la UE, i si podem llegir els moviments automàticament la conciliació serà més ràpida i amb menys errors.
+>
+> Moltes gràcies.
+
+### Missatge de seguiment a PaynoPain
+
+> Bon dia,
+>
+> Com a continuació de la nostra consulta, hem vist les vostres tarifes públiques i ens agradaria aclarir alguns punts.
+>
+> 1. **(PP1)** On es tracten i es guarden les dades (servidors i còpies) i quina és la llista de subencarregats? Hi ha cap transferència de dades fora de la UE? (P-45 punt 3, 057)
+> 2. **(PP2)** Gestioneu domiciliacions SEPA? Si és així: quin preu té cada rebut i cada rebut retornat? Custodieu vosaltres els mandats (i l'IBAN) en nom del club? Signeu un contracte d'encarregat del tractament per a aquest servei? (057)
+> 3. **(PP3)** Què vol dir que la tarifa Start «s'activa a partir de 2.000 €»? Les comissions porten IVA?
+> 4. **(PP4)** La tarifa de Bizum (1,20 + 0,15 €) i la d'Open Banking: l'1,20 és un percentatge?
+>
+> **Per què ens cal:** si gestioneu les domiciliacions amb custòdia dels mandats, l'aplicació no hauria de guardar l'IBAN dels socis; i necessitem les tarifes completes per tancar el pressupost.
+>
+> Moltes gràcies.

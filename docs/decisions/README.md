@@ -63,5 +63,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [053](053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) | Addenda a la 050: el bloqueig de període tancat només afecta els moviments del 09; els d'origen extern entren al període obert | Acceptada (precisa RN-T28 sense canviar cap altra regla) |
 | [054](054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) | Addenda a la 052: versió dels esdeveniments de llicència i comprovació diària de la còpia del 01 | Acceptada (addenda del M01 sense canviar-ne les regles) |
 | [055](055-ajustos-configurables-i-addendes.md) | Valors configurables: peça comuna d'ajustos a la 00, addendes al 01, 05a i 05b, avís dels canvis de diners i prova de la durada del període | Acceptada (addendes sense canviar cap regla aprovada) |
+| [057](057-tarifes-paynopain-i-api-caixaguissona.md) | Tarifes públiques de PaynoPain i API de CaixaGuissona: l'API complementa PaynoPain i la lectura de moviments és una millora opcional de la conciliació | Acceptada (amplia la 043, la 016 i la 037 sense editar-les; dades del banc i de PaynoPain [A verificar]) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
