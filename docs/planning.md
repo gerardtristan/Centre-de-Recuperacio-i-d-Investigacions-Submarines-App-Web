@@ -4563,7 +4563,7 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | RN-M06-01 | **Regles de validesa** (una per tipus, configurable): **any natural** (des del dia d'inici fins al 31 de desembre d'aquell any), **365 dies** (RN-M06-02) i **un dia** (només aquell dia). La d'un dia queda **darrere de l'opció `LICENCES_DAY_ENABLED`, desactivada per defecte**: mentre ho estigui, cap tipus d'un dia no es pot crear, triar ni demanar, i RP-M02-01 i S-M06-07 són condicionals [A validar: responsable de cursos i sortides; A verificar: FECDAS, si avui existeix]. Cada tipus té també una **categoria**: aficionat (1 a 3 estrelles), tècnic (titulacions superiors i instructors) o altres [A verificar: FECDAS] | F §8.1; 28/10/2026 |
 | RN-M06-02 | Dates: **any natural** → `expires_on` = 31 de desembre de l'any de `starts_on`. **365 dies** → `expires_on = starts_on + 364 dies`: la llicència cobreix 365 dies naturals **comptant el dia d'inici**; si hi ha un 29 de febrer pel mig, acaba dos dies abans del mateix dia de l'any següent (del 15/3/2026 al 14/3/2027; del 15/3/2027 al 13/3/2028; del 29/2/2028 al 27/2/2029) [A verificar: FECDAS, S-M06-02]. **Un dia** (només si l'opció és activada) → `expires_on = starts_on`. `starts_on` = el dia que es tramita, el que tria la persona (llicència d'un dia) o l'1/1 en una sol·licitud anticipada de l'any següent (RN-M06-21) | F §8.1; 28/10/2026 |
 | RN-M06-03 | La llicència per a no socis és una **opció que activa la junta** (`LICENCES_NON_MEMBERS_ENABLED`). Desactivada: la pàgina pública no existeix i només els socis en poden demanar | 22/10/2026 |
-| RN-M06-04 | Preu de soci o de no soci segons `members.is_member(person, on=starts_on)` en demanar-la; queda copiat a la llicència | F §8.1 |
+| RN-M06-04 | Preu de soci o de no soci segons `members.is_member(person, on=data en què es demana)`; queda copiat a la llicència. També en una sol·licitud anticipada de l'any següent (RN-M06-21), perquè l'estat de soci a l'1/1 encara no se sap [A validar: tresorer, S-M06-14] | F §8.1; 28/10/2026 |
 | RN-M06-05 | **Preu de soci = preu de la federació** (marge 0). El sistema no admet cap preu de soci diferent | 20/10/2026; F §8.1 |
 | RN-M06-06 | **Preu de no soci = preu de la federació + recàrrec** [A validar: junta, S-M06-01]. El recàrrec no pot ser negatiu | F §8.1; 22/10/2026 |
 | RN-M06-07 | La pantalla del no soci mostra el preu de soci al costat, l'estalvi en la llicència (= recàrrec) i la quota anual de soci, sense dir que surt a compte si no és així | F §8.1 |
@@ -4580,7 +4580,7 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | RN-M06-18 | **Preu aplicat:** la versió de `LicencePrice` del tipus creada més recentment amb `valid_from ≤ starts_on` i `valid_to` buit o `≥ starts_on`. Els trams de l'any natural (preu més baix si s'obté a mig any) són versions amb dates [A verificar: FECDAS, quins trams hi ha] | 28/10/2026 |
 | RN-M06-19 | **Condicional a `LICENCES_DAY_ENABLED`:** una persona pot tenir diverses llicències d'un dia en curs per a dates diferents, però no dues per al mateix tipus i data. La unicitat «una llicència en curs per tipus» només val per a les d'any natural i de 365 dies | 28/10/2026 |
 | RN-M06-20 | **Condicional a `LICENCES_DAY_ENABLED`:** si una llicència d'un dia pagada (o tramitada) no ha arribat a `active` en acabar el seu dia, la tasca diària la marca **«no tramitada a temps»** (`lapsed`), avisa la secretaria i el tresorer i crea una proposta de devolució (`LicenceRefundProposal`). Cap devolució automàtica: la fa el tresorer amb el 05b | 28/10/2026 |
-| RN-M06-21 | **Sol·licitud anticipada de l'any següent:** des de `LICENCE_NEXT_YEAR_OPENS_ON` (supòsit: 1/12 [A verificar: FECDAS, quan s'obre cada any]), es pot demanar una llicència d'any natural de l'any següent amb `starts_on` l'1/1, al preu de la versió que cobreix l'1/1 i segons `members.is_member(person, on=1/1)`. Es paga quan es demana; la secretaria la tramita quan la federació obri el període. Abans d'aquella data, es rebutja (`NextYearNotOpen`) | 28/10/2026 |
+| RN-M06-21 | **Sol·licitud anticipada de l'any següent:** des de `LICENCE_NEXT_YEAR_OPENS_ON` (supòsit: 1/12 [A verificar: FECDAS, quan s'obre cada any]), es pot demanar una llicència d'any natural de l'any següent amb `starts_on` l'1/1, al preu de la versió que cobreix l'1/1 i, per a soci o no soci, segons `members.is_member(person, on=data en què es demana)` (RN-M06-04). Si la persona es dona de baixa abans de l'1/1, la secretaria cancel·la la llicència amb proposta de devolució (P-M06-G) [A validar: tresorer, S-M06-14]. Es paga quan es demana; la secretaria la tramita quan la federació obri el període. Abans d'aquella data, es rebutja (`NextYearNotOpen`) | 28/10/2026 |
 | RN-M06-22 | **Visibilitat per a l'instructor i el responsable de l'activitat** (igual al [M02-4](#M02-4-rols)): només «vigent sí o no» per a la data de la sessió o de l'activitat. Mai la data de venciment, el número federatiu, la categoria ni el document | 28/10/2026 |
 
 **Exemples** (preus inventats; els reals són [A verificar: FECDAS])
@@ -4649,7 +4649,7 @@ Cap altra app escriu als models del 06.
 - **CA-M06-22** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una persona amb una llicència d'un dia en curs per al 10/5, quan en demana una altra del mateix tipus per al 17/5, llavors s'accepta; per al 10/5, es rebutja; i dues d'any natural en curs del mateix tipus continuen rebutjades.
 - **CA-M06-23** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una llicència d'un dia `paid` per al 10/5 que el 10/5 a la nit encara no és `active`, quan corre la tasca diària, llavors passa a `lapsed` una sola vegada, la secretaria i el tresorer reben l'avís i es crea una proposta de devolució, sense cap devolució automàtica.
 - **CA-M06-24** Donat 300 llicències d'any natural que caduquen el 31/12, quan corre la tasca el 2/11, llavors cada titular rep un sol avís (enviats en lots), la secretaria rep un sol resum agrupat per data i categoria, i si la tasca es repeteix aquell dia no s'envia res més.
-- **CA-M06-25** Donat `LICENCE_NEXT_YEAR_OPENS_ON` l'1/12, quan un soci demana el 30/11 la llicència d'any natural de l'any següent, llavors es rebutja (`NextYearNotOpen`); l'1/12, es crea amb inici l'1/1 i caducitat el 31/12 de l'any següent, al preu de la versió que cobreix l'1/1, lligada a l'anterior (`renewal_of`), i els avisos de l'anterior s'aturen.
+- **CA-M06-25** Donat `LICENCE_NEXT_YEAR_OPENS_ON` l'1/12, quan un soci demana el 30/11 la llicència d'any natural de l'any següent, llavors es rebutja (`NextYearNotOpen`); l'1/12, es crea amb inici l'1/1 i caducitat el 31/12 de l'any següent, al preu de la versió que cobreix l'1/1 i al preu de soci perquè és soci l'1/12 (data en què la demana), lligada a l'anterior (`renewal_of`), i els avisos de l'anterior s'aturen; si es dona de baixa el 20/12, la secretaria la cancel·la i es crea una proposta de devolució, sense devolució automàtica.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -4661,7 +4661,7 @@ Cap altra app escriu als models del 06.
 | L-M06-05 | La federació canvia el preu a mig any | Versió nova del preu; les demanades conserven l'anterior |
 | L-M06-06 | Esborrat RGPD del titular | Llicència anonimitzada; el càrrec i el cobrament es bloquegen (028) |
 | L-M06-07 | *(Condicional a `LICENCES_DAY_ENABLED`.)* La llicència d'un dia es demana per a una data passada | Es rebutja (`DateInPast`); amb l'opció desactivada, ni tan sols es pot triar |
-| L-M06-08 | Un soci demana l'any següent el 15/12 però es dona de baixa abans de l'1/1 | El preu es va fixar amb `is_member` a l'1/1 en demanar-la; la secretaria la pot cancel·lar amb proposta de devolució (P-M06-G) |
+| L-M06-08 | Un soci demana l'any següent el 15/12 però es dona de baixa abans de l'1/1 | El preu de soci es va fixar amb `is_member` a la data en què la va demanar (el 15/12, RN-M06-04); la secretaria cancel·la la llicència amb proposta de devolució (P-M06-G) [A validar: tresorer, S-M06-14] |
 
 <a id="M06-10-tasques"></a>
 ## M06-10 Tasques (per dependències, sense dates)
@@ -4739,6 +4739,7 @@ Cap altra app escriu als models del 06.
 | S-M06-11 | Com es comptabilitza la llicència que el club cobra i paga a la FECDAS (RN-M06-05, RN-M06-10) [A verificar: gestoria] | Ingrés i despesa del club, amb marge 0, com diu el [M06-2](#M06-2-dependencies). No bloqueja el codi; bloqueja la producció | Gestoria |
 | S-M06-12 | Si existeix avui la llicència d'un dia (RN-M06-01) [A validar; A verificar: FECDAS] | No: `LICENCES_DAY_ENABLED` desactivada | Responsable de cursos i sortides |
 | S-M06-13 | Quan obre la FECDAS el període de sol·licitud de l'any següent (RN-M06-21) [A verificar] | 1/12 (configurable) | FECDAS |
+| S-M06-14 | Preu d'una sol·licitud anticipada de l'any següent (RN-M06-04, RN-M06-21): l'estat de soci a l'1/1 encara no se sap | `is_member` a la data en què es demana; si es dona de baixa abans de l'1/1, cancel·lació amb proposta de devolució. Alternativa: exigir la quota de l'any següent pagada | Tresorer |
 
 **Revisió de dubtes (aplicada a mà)**
 1. ~~Font única de la llicència.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 és l'únic propietari i el 01 en guarda una còpia de lectura amb esdeveniments.
@@ -4828,6 +4829,7 @@ Recull de totes les preguntes obertes ([A verificar] i [A validar]) dels mòduls
 | S-M02-02 | Termini de pagament d'una inscripció (72 hores) | — |
 | S-M09-02, 05, 09 | Criteri «per participants»; durada del període; pagament a la federació com a «taxa» | — |
 | S-M09-15 | Tancar un període amb excepcions documentades i quins elements es poden portar al període següent | — (es construeix permès) |
+| S-M06-14 | Preu de la llicència de l'any següent demanada abans de l'1/1: soci segons la data en què es demana (i cancel·lació si es dona de baixa) o exigir la quota de l'any següent pagada | — |
 | M09-13 dubte 3 | Reforç confirmat després del tancament econòmic | — |
 | M09-ajuts-13 dubte 2 | Com es registra el reintegrament d'un ajut | — |
 | S-M09A-07 | Per a cada convocatòria, si l'organisme accepta comprovants amb l'IBAN emmascarat ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | — (es fa servir la còpia emmascarada) |
