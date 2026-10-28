@@ -106,7 +106,7 @@
    1. [Intenció](#M06-1-intencio) · 2. [Dependències](#M06-2-dependencies) · 3. [Capacitats](#M06-3-capacitats) · 4. [Rols](#M06-4-rols) · 5. [Processos](#M06-5-processos) · 6. [Entitats](#M06-6-entitats) · 7. [Regles](#M06-7-regles)
    8. [Serveis](#M06-8-serveis) · 9. [Criteris](#M06-9-criteris) · 10. [Tasques](#M06-10-tasques) · 11. [Proves](#M06-11-proves) · 12. [Seguretat](#M06-12-seguretat) · 13. [Riscos](#M06-13-riscos) · 14. [Aprovar](#M06-14-aprovar)
 14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
-15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable)
+15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
 16. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta)
 
 <a id="regles"></a>
@@ -137,7 +137,7 @@
 **Documentació**
 - Aquest fitxer és la font única de l'especificació de cada mòdul ([047](decisions/047-planning-font-unica-de-l-especificacio.md)). Cap altre fitxer en copia regles, criteris ni tasques.
 - No s'edita cap decisió existent: se'n crea una de nova que la substitueix o l'amplia.
-- No s'inventa res: el que falta porta [A verificar] (dada externa) o [A validar] (decisió del club), sempre amb propietari. Propietaris possibles: tresorer, junta, banc, PaynoPain, gestoria, FECDAS, secretaria, informàtica, responsable del projecte.
+- No s'inventa res: el que falta porta [A verificar] (dada externa) o [A validar] (decisió del club), sempre amb propietari. Propietaris possibles: tresorer, junta, banc, PaynoPain, gestoria, FECDAS, secretaria, informàtica, responsable del projecte, responsable de cursos i sortides.
 
 **Pila i interfície**
 - Django i PostgreSQL ([002](decisions/002-pila-tecnologica.md)); cua de tasques sobre PostgreSQL ([012](decisions/012-cua-de-tasques.md)).
@@ -221,7 +221,7 @@ S'amplia a cada mòdul. Els termes de la spec 00 (persona, compte personal, comp
 | Convocatòria d'ajut | Crida d'un organisme per demanar un ajut. No s'ha de confondre amb la convocatòria d'un curs | [M09-ajuts-6](#M09-ajuts-6-entitats) |
 | Sol·licitud d'ajut | Petició del club a una convocatòria d'ajut, amb estat, responsable i import | RN-M09A-01 |
 | Paquet de justificació | Resum, llistat de factures i ZIP amb factures i comprovants de les despeses lligades a un ajut | F 9.10; RN-M09A-11 |
-| Llicència federativa | Llicència de la federació per a un soci o una persona de fora: d'un dia, fins a final d'any o d'un any sencer | F §8.1; [M06](#M06) |
+| Llicència federativa | Llicència de la federació per a un soci o una persona de fora. Cada tipus té una categoria (aficionat, tècnic o altres) i una regla de validesa: any natural (fins al 31/12), 365 dies o, només si s'activa l'opció, un dia | F §8.1; [M06](#M06); RN-M06-01 |
 | Recàrrec de no soci | Diferència entre el preu de la llicència per a un no soci i el preu de la federació (el del soci) | RN-M06-06 |
 
 <a id="plantilla"></a>
@@ -2443,7 +2443,7 @@ App `payments` (la mateixa del 05a).
 |---|---|
 | 00 | Persona i dades mínimes del convidat; enllaços de convidat (V-02, RN-30 a RN-33); càrrec de tipus «inscripció» amb activitat i departament (RN-60 a RN-73); departaments; permisos per rol i per objecte (RN-43: l'instructor només veu les seves sessions); registre d'activitat; correu (annex A) i avisos; fitxers privats (annex B) |
 | 01 | `members.is_member(person, on=date)` per al preu de soci; **registre mínim de llicència** per comprovar si és vigent (`members.licence_record`, només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
-| 06 (quan existeixi) | `licences.current(person, on)` ([M06-8](#M06-8-serveis)), la font única de la llicència ([052](decisions/052-llicencia-font-unica-al-06.md)); llicència d'un dia (RP-M02-01) |
+| 06 (quan existeixi) | `licences.current(person, on)` ([M06-8](#M06-8-serveis)), amb la categoria, la font única de la llicència ([052](decisions/052-llicencia-font-unica-al-06.md)); llicència d'un dia (RP-M02-01, condicional); categoria exigida (RP-M02-02) |
 | 04 | Res directament: l'ingrés i les comissions de cada inscripció els crea el 05b amb l'activitat i el departament del càrrec (RN-T10) |
 | 05b | `payments.start_payment`, `payments.payment_status`, rebut; devolucions fetes pel tresorer (`payments.refund`, B5); esdeveniment general `charge.paid` al qual el 02 se subscriu ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 
@@ -2538,7 +2538,8 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 **Com es llegeix amb els comptes.** Com al [M01-4](#M01-4-rols): les files «Propi» amb el compte personal (o amb l'enllaç de convidat); les de gestió amb el compte d'administrador, el rol i TOTP. Un instructor sempre entra per l'administració per passar llista (RN-20 de la 00).
 
 **Per objecte.**
-- **Instructor:** només les sessions on fa classe i els alumnes inscrits a aquestes sessions. Dels alumnes veu nom i cognoms, titulació, si la llicència és vigent (sí o no, no la data), l'assistència i les avaluacions. **No veu** document, adreça, correu, telèfon ni pagaments [A validar: junta, Q-01]. Fora de les seves sessions, «no trobat» i registre.
+- **Instructor:** només les sessions on fa classe i els alumnes inscrits a aquestes sessions. Dels alumnes veu nom i cognoms, titulació, si la llicència és vigent per a la data de la sessió (només sí o no: ni la data de venciment, ni el número federatiu, ni la categoria; igual que el [M06-4](#M06-4-rols)), l'assistència i les avaluacions. **No veu** document, adreça, correu, telèfon ni pagaments [A validar: junta, Q-01]. Fora de les seves sessions, «no trobat» i registre.
+- **Responsable de cursos i sortides:** de la llicència dels participants de les seves activitats, només «vigent sí o no» per a la data de l'activitat, com l'instructor (RN-M06-22).
 - **Responsable de material:** participants i necessitats de material (03), sense pagaments.
 - **Tresorer:** estat de pagament de les inscripcions, sense avaluacions ni incidències.
 - **Participant:** només les seves inscripcions; mai la llista d'altres inscrits (tampoc noms a la web pública).
@@ -2968,7 +2969,9 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 **Requisits pendents** (s'han de resoldre quan es revisi aquesta secció)
 | ID | Requisit | Origen | Propietari |
 |---|---|---|---|
-| RP-M02-01 | **Llicència d'un dia:** quan existeixi el 06, el 02 li demanarà si una activitat (per a un participant i una data) necessita llicència d'un dia, i oferirà demanar-la. El 06 no depèn del 02: la pregunta va del 02 al 06 (`licences.current` i, si cal, un servei nou de lectura del 06). Fins llavors, el 02 només avisa (RN-M02-10) | [052](decisions/052-llicencia-font-unica-al-06.md) | Responsable del projecte |
+| RP-M02-01 | **Condicional a `LICENCES_DAY_ENABLED`** (desactivada per defecte, RN-M06-01). **Llicència d'un dia:** quan existeixi el 06 i l'opció sigui activada, el 02 li demanarà si una activitat (per a un participant i una data) necessita llicència d'un dia, i oferirà demanar-la. El 06 no depèn del 02: la pregunta va del 02 al 06 (`licences.current` i, si cal, un servei nou de lectura del 06). Fins llavors, el 02 només avisa (RN-M02-10) | [052](decisions/052-llicencia-font-unica-al-06.md) | Responsable del projecte |
+| RP-M02-02 | **Categoria de llicència exigida:** una activitat o un rol podrà exigir una categoria concreta (per exemple, tècnic per a un instructor). `licences.current` ja torna la categoria (RN-M06-13); el 02 hi afegirà el requisit, amb el mateix avís o bloqueig de RN-M02-10. Si cal la tècnica per als instructors [A validar: responsable de cursos i sortides] | Revisió del 06, 28/10/2026 | Responsable de cursos i sortides |
+| RP-M02-03 | **Sortides a l'estranger:** avís al responsable i als participants, 7 dies abans, que cal la cobertura internacional de la llicència, excepte per a Portugal i França [A verificar: FECDAS, condicions i països] | Revisió del 06, 28/10/2026 | Responsable de cursos i sortides |
 
 <a id="M02-14-aprovar"></a>
 ## M02-14 Què cal aprovar abans de començar
@@ -4337,14 +4340,16 @@ Cap altra app escriu als models de `grants`.
 
 **FECDAS.** És la font dels tipus de llicència, dels preus de cada durada, del format per tramitar-les i de les dades que demana [A verificar: FECDAS]. No hi ha cap integració: la secretaria tramita amb el llistat exportat.
 
+**Informació nova (28/10/2026) [A verificar: FECDAS i responsable de cursos i sortides].** La FECDAS distingeix la llicència d'**aficionat** (1 a 3 estrelles) de la de **tècnic** (titulacions superiors i instructors). Pot ser que ja no hi hagi llicència d'un dia: avui només s'hi veuen l'**any natural** (fins al 31/12; si s'obté a mig any dura menys i pot tenir un preu per trams) i els **365 dies**. La FECDAS demana la **data de naixement** en tramitar, i la llicència **no és vigent fins al correu de confirmació de la FECDAS** (pas 4 de P-M06-E).
+
 <a id="M06-resum"></a>
 **Resum d'una pàgina**
 | | |
 |---|---|
-| **Intenció** | Portar totes les llicències federatives dels socis (i, quan la junta ho activi, de persones de fora) en un sol lloc: tres durades, preu de soci igual al de la federació, preu de no soci amb recàrrec i l'estalvi de fer-se soci a la vista, pagament dins l'app, avisos abans que caduquin, llistat per tramitar-les a la federació, i saber a l'instant si la llicència d'una persona és vigent. |
+| **Intenció** | Portar totes les llicències federatives dels socis (i, quan la junta ho activi, de persones de fora) en un sol lloc: tipus amb categoria (aficionat, tècnic, altres) i regla de validesa (any natural, 365 dies i, només si s'activa, un dia), preu de soci igual al de la federació, preu de no soci amb recàrrec i l'estalvi de fer-se soci a la vista, pagament dins l'app, avisos abans que caduquin, llistat per tramitar-les a la federació, i saber a l'instant si la llicència d'una persona és vigent. |
 | **Processos que cobreix** | P-M06-A Preus i tipus · P-M06-B Demanar i pagar una llicència (soci) · P-M06-C Llicència per a una persona de fora (F 9.16) · P-M06-D «Ja en tinc una» · P-M06-E Tramitar a la federació · P-M06-F Avisos i renovació (F 9.12) · P-M06-G Cancel·lar · P-M06-H Passar els registres del 01 al 06 |
-| **Tasques** | 18 (T-M06-01 a T-M06-18); la còpia de lectura del 01 és la T-M01-31 |
-| **Què el bloqueja** | Per construir: el 05b (cobrar), el mecanisme d'esdeveniments (T-M05b-21) i el servei de lectura del 01 (T-M01-30, 049). La font única de la llicència ja és aprovada ([052](decisions/052-llicencia-font-unica-al-06.md)). Per entrar en producció: tipus, preus i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta] |
+| **Tasques** | 19 (T-M06-01 a T-M06-19); la còpia de lectura del 01 és la T-M01-31 |
+| **Què el bloqueja** | Per construir: el 05b (cobrar), el mecanisme d'esdeveniments (T-M05b-21) i el servei de lectura del 01 (T-M01-30, 049). La font única de la llicència ja és aprovada ([052](decisions/052-llicencia-font-unica-al-06.md)). Per entrar en producció: tipus, categories, preus, trams i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta]; data de naixement (punt prioritari 0 de l'[ordre del dia](#ordre-del-dia-junta)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M06-04, 05, 07 i 09 ([M06-14](#M06-14-aprovar)) |
 
 <a id="M06-1-intencio"></a>
@@ -4354,7 +4359,7 @@ Cap altra app escriu als models de `grants`.
 
 **Resultat esperat.**
 - Cada soci veu «La meva llicència»: estat, venciment i botó per renovar.
-- La secretaria veu totes les llicències amb filtres per durada i estat, els venciments a 60, 30 i 7 dies i un llistat per enviar a la federació.
+- La secretaria veu totes les llicències amb filtres per tipus, categoria i estat, els venciments a 60, 30 i 7 dies i un llistat per enviar a la federació.
 - Un soci paga la llicència al preu de la federació; una persona de fora, quan la junta ho activi, paga el preu de no soci i veu quant s'estalviaria fent-se sòcia.
 - Els cursos i les sortides saben si la llicència d'una persona és vigent amb una sola crida.
 
@@ -4365,12 +4370,12 @@ Cap altra app escriu als models de `grants`.
 - Hi ha una sola font de la llicència d'una persona (sense dades duplicades entre el 01 i el 06).
 
 **Dins de l'abast.**
-- Tipus de llicència i preus per durada, amb versions i nota obligatòria en canviar-los.
-- Tres durades: d'un dia, fins a final d'any i d'un any sencer (12 mesos).
+- Tipus de llicència amb categoria i regla de validesa, i preus amb versions i trams per dates, amb nota obligatòria en canviar-los.
+- Regles de validesa: any natural (fins al 31/12), 365 dies i, **només si s'activa l'opció** `LICENCES_DAY_ENABLED`, un dia [A validar: responsable de cursos i sortides].
 - Llicència de soci, i de no soci com a **opció que activa la junta** (avui ser soci és obligatori).
 - «Ja en tinc una»: número i venciment, sense tramitar-ne cap.
 - Pagament amb el 05b, també com a convidat ([021](decisions/021-persones-no-socies-com-a-convidades.md)).
-- Estats, venciments, avisos a 60, 30 i 7 dies i renovació.
+- Estats, venciments, avisos a 60, 30 i 7 dies (agrupats per a la secretaria), renovació i sol·licitud anticipada de l'any següent.
 - Llistat exportable per tramitar a la federació; marcar tramitada i vigent.
 - Cancel·lació, amb proposta de devolució al tresorer.
 - Pas únic dels registres mínims del 01 al 06.
@@ -4392,12 +4397,12 @@ Cap altra app escriu als models de `grants`.
 | 01 | `members.is_member(person, on)` per al preu; `members.licence_records()` per passar els registres mínims al 06 (només lectura, [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 | 05b | `payments.start_payment`, `payments.payment_status`, rebut; esdeveniment `charge.paid` (049); devolucions fetes pel tresorer (`payments.refund`) |
 
-La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06 no depèn del 02** ([052](decisions/052-llicencia-font-unica-al-06.md)): la llicència d'un dia no es lliga a cap activitat. Si cal, és el 02 qui demana al 06 si una activitat necessita llicència d'un dia (requisit pendent RP-M02-01 de [M02-13](#M02-13-riscos)).
+La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06 no depèn del 02** ([052](decisions/052-llicencia-font-unica-al-06.md)): la llicència d'un dia no es lliga a cap activitat. Si cal, és el 02 qui demana al 06 si una activitat necessita llicència d'un dia (requisit pendent RP-M02-01 de [M02-13](#M02-13-riscos), condicional a `LICENCES_DAY_ENABLED`) o una categoria concreta (RP-M02-02).
 
 **Què depèn del 06.**
 | Mòdul | Què necessita |
 |---|---|
-| 02 | `licences.current(person, on)` per al requisit de llicència vigent (substitueix `members.licence_record`) |
+| 02 | `licences.current(person, on)` per al requisit de llicència vigent, amb la categoria (substitueix `members.licence_record`) |
 | 01 | Esdeveniments `licence.issued`, `licence.renewed`, `licence.expired` i `licence.cancelled` per mantenir la seva còpia de lectura ([052](decisions/052-llicencia-font-unica-al-06.md), [addenda del M01](#M01-addenda-052)). El 01 no crida cap servei del 06 |
 | 08 | Llicències per caducar i per tramitar |
 | 09 | Ingressos de les llicències (amb el 04) i despesa de la federació |
@@ -4407,7 +4412,7 @@ La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06
 
 | # | Capacitat | Qui | On |
 |---|---|---|---|
-| C1 | Tipus i preus per durada | Tresorer [A validar: junta, S-M06-05] | Configuració |
+| C1 | Tipus (categoria i regla de validesa) i preus | Tresorer [A validar: junta, S-M06-05] | Configuració |
 | C2 | «La meva llicència» i renovar | Soci, persona de fora | Compte personal o enllaç |
 | C3 | Demanar una llicència des de la web (no socis, quan s'activi) | Visitant | Web |
 | C4 | «Ja en tinc una» | Persona de fora, soci | Formulari |
@@ -4419,11 +4424,11 @@ La taula d'estat diu que el 06 depèn del 01 i del 05b; això no canvia. **El 06
 
 **Històries d'usuari**
 - **HU-M06-01.** Com a soci, vull veure l'estat i el venciment de la meva llicència i renovar-la pagant dins l'app.
-- **HU-M06-02.** Com a persona de fora, vull demanar una llicència d'un dia, veure el preu de soci al costat del meu i pagar sense crear cap compte.
+- **HU-M06-02.** Com a persona de fora, vull demanar una llicència (d'un dia, només si l'opció és activada), veure el preu de soci al costat del meu i pagar sense crear cap compte.
 - **HU-M06-03.** Com a persona de fora que ja té llicència, vull indicar-ne el número i el venciment perquè no me'n tramitin cap altra.
 - **HU-M06-04.** Com a secretaria, vull el llistat de llicències pagades per tramitar i un fitxer per enviar a la federació.
 - **HU-M06-05.** Com a secretaria, vull veure les llicències que caduquen d'aquí a 60, 30 i 7 dies.
-- **HU-M06-06.** Com a responsable de cursos i sortides, vull saber si la llicència d'un participant serà vigent el dia de l'activitat.
+- **HU-M06-06.** Com a responsable de cursos i sortides, vull saber si la llicència d'un participant serà vigent el dia de l'activitat (només sí o no).
 
 <a id="M06-4-rols"></a>
 ## M06-4 Rols i permisos
@@ -4441,12 +4446,12 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 | LC7 | Fer la devolució d'una llicència cancel·lada (05b) | — | — | — | — | — | — | — | Sí | — | — | — | — | — |
 | LC8 | Tipus, preus i recàrrec | — | — | — | — | — | — | — | Sí [A validar] | — | — | Consulta | Sí | — |
 | LC9 | Activar l'opció de llicència per a no socis (per decisió de la junta) | — | — | — | — | — | — | — | — | — | — | — | Sí | — |
-| LC10 | Veure si la llicència d'un participant és vigent | — | — | — | Les seves sessions (sí o no) | Sí | Les seves activitats (sí o no) | — | — | — | — | — | Sí | — |
+| LC10 | Veure si la llicència d'un participant és vigent | — | — | — | Les seves sessions (només «vigent sí o no» per a la data de la sessió) | Sí | Les seves activitats (només «vigent sí o no» per a la data de l'activitat) | — | — | — | — | — | Sí | — |
 | LC11 | Passar els registres del 01 al 06 | — | — | — | — | — | — | — | — | — | — | — | Sí | — |
 
 **Per objecte.**
 - **Titular:** només les seves llicències.
-- **Instructor i responsable de cursos i sortides:** només «vigent sí o no» i la data de venciment dels participants de les seves sessions o activitats, mai el número federatiu ni el document.
+- **Instructor i responsable de cursos i sortides:** només «vigent sí o no» **per a la data de la sessió o de l'activitat** dels participants de les seves sessions o activitats; mai la data de venciment, el número federatiu ni el document. És la mateixa regla que al [M02-4](#M02-4-rols).
 - **Tresorer:** imports i estats per cobrar i fer devolucions; no el document.
 - **Secretaria:** totes les llicències i les dades que demana la federació.
 
@@ -4463,24 +4468,25 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 | **Tramitada** | `filed`: la secretaria l'ha enviada a la federació i espera la confirmació |
 | **Vigent** | `active` i avui és entre `starts_on` i `expires_on` |
 | **Per renovar** | `active` i caduca d'aquí a 60 dies o menys (no per a les d'un dia) |
+| **No tramitada a temps** | `lapsed`: llicència d'un dia pagada (o tramitada) que no ha arribat a `active` abans d'acabar el dia de la llicència (RN-M06-20; només si l'opció d'un dia és activada) |
 | **Caducada** | `active` i `expires_on` és anterior a avui |
 | **Cancel·lada** | `cancelled`, amb motiu |
 
 ### P-M06-A Preus i tipus
-1. El tresorer dona d'alta els tipus de llicència de la federació [A verificar: FECDAS] i, per a cada tipus i durada, el **preu de la federació** i el **recàrrec de no soci** [A validar: junta].
+1. El tresorer dona d'alta els tipus de llicència de la federació [A verificar: FECDAS], cadascun amb la seva **categoria** (aficionat, tècnic, altres) i la seva **regla de validesa** (any natural, 365 dies i, si l'opció és activada, un dia). Per a cada tipus, hi posa el **preu de la federació** i el **recàrrec de no soci** [A validar: junta]; si la federació té preus per trams de l'any (any natural obtingut a mig any), cada tram és una versió de preu amb les seves dates (RN-M06-18).
 2. El sistema fixa el preu de soci = preu de la federació (RN-M06-05) i calcula el de no soci. Cada canvi crea una versió nova amb nota obligatòria i avisa la secretaria i la junta (respostes del 22/10/2026).
 
 ### P-M06-B Demanar i pagar una llicència (soci)
 | Pas | Qui | Què passa | Pantalla |
 |---|---|---|---|
-| 1 | Soci | Obre «La meva llicència», tria la durada i el tipus | `/socis/llicencia` |
+| 1 | Soci | Obre «La meva llicència» i tria el tipus (que ja porta la seva regla de validesa); des de la data d'obertura de l'any següent, també pot triar l'any següent amb inici l'1/1 (RN-M06-21) | `/socis/llicencia` |
 | 2 | Sistema | Mostra el preu de soci, les dates de validesa i les dades que s'enviaran a la federació | Ídem |
 | 3 | Soci | Confirma: es crea la llicència `requested` i el càrrec «llicència» | — |
 | 4 | Soci | Paga amb targeta, Bizum o transferència (05b) | Pantalla de pagament |
 | 5 | Sistema | En rebre `charge.paid`, passa la llicència a `paid` i avisa la secretaria | — |
 
 ### P-M06-C Llicència per a una persona de fora (F 9.16)
-1. Només si l'opció de no socis està activada (RN-M06-03). La persona entra a la pàgina pública i tria la durada.
+1. Només si l'opció de no socis està activada (RN-M06-03). La persona entra a la pàgina pública i tria el tipus. Els tipus d'un dia només surten si també és activada l'opció `LICENCES_DAY_ENABLED` (RN-M06-01); si no, no es poden triar ni demanar.
 2. El sistema mostra el preu de no soci al costat del de soci, l'estalvi en la llicència i la quota anual de soci, per comparar (RN-M06-07).
 3. La persona escriu les dades mínimes (V-04 de la 00) i accepta la informació de privacitat; es crea com a convidada amb l'enllaç segur (021).
 4. Paga dins l'app; la resta és com a P-M06-B des del pas 5.
@@ -4495,12 +4501,12 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 | 1 | Secretaria | Obre «Per tramitar»: llicències `paid` |
 | 2 | Secretaria | Exporta el llistat amb les dades que demana la federació (RN-M06-11). No es desa; queda al registre amb l'empremta |
 | 3 | Secretaria | Les tramita a la federació (fora de la plataforma) i les marca `filed` |
-| 4 | Secretaria | Quan la federació les confirma, hi posa el número federatiu i les marca `active` (si no hi ha espera, del pas 1 es pot passar directament a `active`) |
+| 4 | Secretaria | Quan la federació les confirma per correu (la llicència no és vigent fins llavors), hi posa el número federatiu i les marca `active` (si no hi ha espera, del pas 1 es pot passar directament a `active`) |
 
 ### P-M06-F Avisos i renovació (F 9.12)
-1. Cada dia, la cua mira les llicències anuals i fins a final d'any que caduquen d'aquí a 60, 30 i 7 dies i avisa el titular (correu i app, sense push; el convidat, per correu amb l'enllaç). Les d'un dia no s'avisen.
-2. El titular confirma que vol renovar i tria la durada; paga al preu que li toqui (soci o no soci).
-3. Es crea una llicència nova lligada a l'anterior (`renewal_of`) que comença l'endemà del venciment (o avui, si ja ha caducat); la secretaria la tramita com a P-M06-E.
+1. Cada dia, la cua mira les llicències d'any natural i de 365 dies que caduquen d'aquí a 60, 30 i 7 dies i avisa el titular (correu i app, sense push; el convidat, per correu amb l'enllaç), en lots perquè no se n'enviïn centenars de cop. La secretaria **no** rep un avís per llicència: rep un sol resum per dia, agrupat per data de venciment i categoria, i ordenat per data i nom (RN-M06-12). Les d'un dia no s'avisen.
+2. El titular confirma que vol renovar i tria el tipus; paga al preu que li toqui (soci o no soci).
+3. Es crea una llicència nova lligada a l'anterior (`renewal_of`) que comença l'endemà del venciment (o avui, si ja ha caducat); la secretaria la tramita com a P-M06-E. Per a l'any natural, des de la data d'obertura de l'any següent, la renovació es pot demanar abans de l'1/1 amb inici l'1/1 (RN-M06-21).
 
 ### P-M06-G Cancel·lar
 1. La secretaria cancel·la una llicència amb motiu. Si encara no és pagada, el càrrec s'anul·la.
@@ -4518,16 +4524,16 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap dada de salut ni de pagament.
 
 ### LicenceType (tipus) i LicencePrice (preu)
-- `LicenceType`: `name` (únic; llista de la federació [A verificar: FECDAS]), `description`, `active`.
-- `LicencePrice` (només INSERT; una versió nova per canvi): `licence_type`, `duration` (`day`, `year_end`, `twelve_months`), `federation_cost_cents`, `non_member_surcharge_cents`, `valid_from`, `note` (obligatòria), `created_by`. El preu de soci és `federation_cost_cents` i el de no soci, `federation_cost_cents + non_member_surcharge_cents`. Vigent = la versió més recent amb `valid_from ≤ avui`.
+- `LicenceType`: `name` (únic; llista de la federació [A verificar: FECDAS]), `description`, `category` (`amateur` aficionat, `technical` tècnic, `other` altres), `validity_rule` (`calendar_year` any natural, `days_365` 365 dies, `single_day` un dia; configurable), `active`. Un tipus `single_day` no es pot crear ni activar mentre `LICENCES_DAY_ENABLED` és desactivada.
+- `LicencePrice` (només INSERT; una versió nova per canvi): `licence_type`, `federation_cost_cents`, `non_member_surcharge_cents`, `valid_from`, `valid_to` (null), `note` (obligatòria), `created_by`. `valid_from` i `valid_to` són les dates d'inici de la llicència a què s'aplica el preu: així es fan els **trams de l'any** (per exemple, un preu de gener a juny i un altre de juliol a desembre) (RN-M06-18). El preu de soci és `federation_cost_cents` i el de no soci, `federation_cost_cents + non_member_surcharge_cents`.
 
 ### Licence (llicència)
 | Camp | Tipus | Restriccions |
 |---|---|---|
 | `person` | FK Person (00, PROTECT) | — |
 | `licence_type` | FK LicenceType | — |
-| `duration` | `day`, `year_end`, `twelve_months` | — |
-| `status` | `requested`, `paid`, `filed`, `active`, `cancelled` | Transicions de RN-M06-09 |
+| `validity_rule` | `calendar_year`, `days_365`, `single_day` | Còpia de la regla del tipus en demanar-la |
+| `status` | `requested`, `paid`, `filed`, `active`, `cancelled`, `lapsed` | Transicions de RN-M06-09; `lapsed` només per a les d'un dia (RN-M06-20) |
 | `origin` | `club`, `external`, `imported_m01` | `external` i `imported_m01` no tenen càrrec |
 | `starts_on`, `expires_on` | `DateField` | `expires_on ≥ starts_on` (`CHECK`); calculades (RN-M06-02) excepte `external` |
 | `federation_number` | `CharField(30)` | Opcional; obligatori en passar a `active` si `origin = club` [A validar: secretaria] |
@@ -4539,40 +4545,48 @@ App Django `licences` (nova). Noms de codi en anglès. Imports en cèntims. Cap 
 | `filed_by`, `filed_at`, `activated_by`, `activated_at` | — | — |
 | `cancellation_reason`, `cancelled_by` | — | Obligatori si `cancelled` |
 | `import_batch` | FK lot d'importació (00) null | Només `imported_m01` |
-**Restriccions:** únic parcial `(person, licence_type) WHERE status IN ('requested','paid','filed')` (una sola llicència en curs per tipus); índexs `(status, expires_on)` i `(person, expires_on)`.
+**Restriccions:** únic parcial `(person, licence_type) WHERE status IN ('requested','paid','filed') AND validity_rule <> 'single_day'` (una sola llicència anual en curs per tipus); si s'activa la llicència d'un dia, únic parcial `(person, licence_type, starts_on) WHERE status IN ('requested','paid','filed') AND validity_rule = 'single_day'`, per poder-ne tenir diverses per a dates diferents (RN-M06-19); índexs `(status, expires_on)` i `(person, expires_on)`.
 
 ### LicenceReminder i RefundProposal
 - `LicenceReminder` (només INSERT): `licence`, `days_before` (60, 30, 7), `sent_at`. Únic `(licence, days_before)`.
+- `LicenceReminderDigest` (només INSERT): `day`, `days_before`, `count`, `sent_to` (secretaria), `sent_at`. Únic `(day, days_before)`: un sol resum per dia i tram per a la secretaria (RN-M06-12).
 - `LicenceRefundProposal`: `licence`, `amount_cents`, `reason`, `status` (`proposed`, `done`, `rejected`), `decided_by`. Com la `RefundProposal` del 02: el tresorer la fa amb `payments.refund`.
 
 ### Configuració
-`LICENCES_NON_MEMBERS_ENABLED` (desactivada per defecte; l'activa l'administrador per decisió de la junta), `LICENCE_REMINDER_DAYS` (60, 30, 7), `LICENCE_TO_RENEW_DAYS` (60).
+`LICENCES_NON_MEMBERS_ENABLED` (desactivada per defecte; l'activa l'administrador per decisió de la junta), `LICENCES_DAY_ENABLED` (desactivada per defecte; l'activa l'administrador quan es confirmi que la llicència d'un dia existeix [A validar: responsable de cursos i sortides; A verificar: FECDAS]), `LICENCE_REMINDER_DAYS` (60, 30, 7), `LICENCE_TO_RENEW_DAYS` (60), `LICENCE_NEXT_YEAR_OPENS_ON` (dia i mes des del qual es pot demanar la llicència d'any natural de l'any següent; supòsit 1/12 [A verificar: FECDAS], RN-M06-21), `LICENCE_REMINDER_BATCH_SIZE` (avisos per lot de la cua).
 
 <a id="M06-7-regles"></a>
 ## M06-7 Regles de negoci i càlculs
 
 | ID | Regla | Font |
 |---|---|---|
-| RN-M06-01 | Tres durades: **d'un dia** (només aquell dia), **fins a final d'any** (des del dia que es treu fins al 31 de desembre) i **d'un any sencer** (12 mesos des del dia que es treu) | F §8.1 |
-| RN-M06-02 | Dates: un dia → `expires_on = starts_on`; final d'any → 31 de desembre de l'any de `starts_on`; 12 mesos → el mateix dia de l'any següent menys un dia (del 15 de març al 14 de març; del 29 de febrer al 27 de febrer) [A verificar: FECDAS, S-M06-02]. `starts_on` = el dia que es tramita o el que tria la persona (llicència d'un dia) | F §8.1 |
+| RN-M06-01 | **Regles de validesa** (una per tipus, configurable): **any natural** (des del dia d'inici fins al 31 de desembre d'aquell any), **365 dies** (RN-M06-02) i **un dia** (només aquell dia). La d'un dia queda **darrere de l'opció `LICENCES_DAY_ENABLED`, desactivada per defecte**: mentre ho estigui, cap tipus d'un dia no es pot crear, triar ni demanar, i RP-M02-01 i S-M06-07 són condicionals [A validar: responsable de cursos i sortides; A verificar: FECDAS, si avui existeix]. Cada tipus té també una **categoria**: aficionat (1 a 3 estrelles), tècnic (titulacions superiors i instructors) o altres [A verificar: FECDAS] | F §8.1; 28/10/2026 |
+| RN-M06-02 | Dates: **any natural** → `expires_on` = 31 de desembre de l'any de `starts_on`. **365 dies** → `expires_on = starts_on + 364 dies`: la llicència cobreix 365 dies naturals **comptant el dia d'inici**; si hi ha un 29 de febrer pel mig, acaba dos dies abans del mateix dia de l'any següent (del 15/3/2026 al 14/3/2027; del 15/3/2027 al 13/3/2028; del 29/2/2028 al 27/2/2029) [A verificar: FECDAS, S-M06-02]. **Un dia** (només si l'opció és activada) → `expires_on = starts_on`. `starts_on` = el dia que es tramita, el que tria la persona (llicència d'un dia) o l'1/1 en una sol·licitud anticipada de l'any següent (RN-M06-21) | F §8.1; 28/10/2026 |
 | RN-M06-03 | La llicència per a no socis és una **opció que activa la junta** (`LICENCES_NON_MEMBERS_ENABLED`). Desactivada: la pàgina pública no existeix i només els socis en poden demanar | 22/10/2026 |
 | RN-M06-04 | Preu de soci o de no soci segons `members.is_member(person, on=starts_on)` en demanar-la; queda copiat a la llicència | F §8.1 |
 | RN-M06-05 | **Preu de soci = preu de la federació** (marge 0). El sistema no admet cap preu de soci diferent | 20/10/2026; F §8.1 |
 | RN-M06-06 | **Preu de no soci = preu de la federació + recàrrec** [A validar: junta, S-M06-01]. El recàrrec no pot ser negatiu | F §8.1; 22/10/2026 |
 | RN-M06-07 | La pantalla del no soci mostra el preu de soci al costat, l'estalvi en la llicència (= recàrrec) i la quota anual de soci, sense dir que surt a compte si no és així | F §8.1 |
 | RN-M06-08 | Un canvi de preu crea una versió nova amb nota obligatòria i avisa la secretaria i la junta; les llicències ja demanades conserven el seu preu | 22/10/2026 |
-| RN-M06-09 | Transicions: `requested → paid` (només per `charge.paid`); `paid → filed → active`; `paid → active`; `requested`, `paid` o `filed` → `cancelled` amb motiu. «Per renovar» i «caducada» es deriven de les dates. Una llicència `active` no es cancel·la: es deixa caducar [A validar: secretaria] | F §8.1 |
+| RN-M06-09 | Transicions: `requested → paid` (només per `charge.paid`); `paid → filed → active`; `paid → active`; `requested`, `paid` o `filed` → `cancelled` amb motiu; `paid` o `filed` → `lapsed` (només la tasca diària i només les d'un dia, RN-M06-20). «Per renovar» i «caducada» es deriven de les dates. Una llicència `active` no es cancel·la: es deixa caducar [A validar: secretaria] | F §8.1 |
 | RN-M06-10 | Càrrec de tipus «llicència», departament «General / Llicències» (provisional, S-M04-07, Q-19) i mètodes targeta, Bizum o transferència | 013; 017; RN-69 de la 00 |
 | RN-M06-11 | El llistat per a la federació només porta les dades que la federació demana [A verificar: FECDAS] i que la plataforma ja té (V-04 de la 00). Es genera a demanda, no es desa i queda al registre amb l'empremta | 035; F §8.1 |
-| RN-M06-12 | Avisos a 60, 30 i 7 dies del venciment, per correu i a l'app (sense push), un sol cop per llicència i dia. Les d'un dia no s'avisen. Si ja hi ha una renovació en curs, no s'avisa | F §8.1 i 9.12 |
-| RN-M06-13 | `licences.current(person, on)` torna la llicència `active` que cobreix aquella data (si n'hi ha diverses, la que caduca més tard); si no n'hi ha, res | F §8.1 |
+| RN-M06-12 | Avisos al titular a 60, 30 i 7 dies del venciment, per correu i a l'app (sense push), un sol cop per llicència i dia, enviats per la cua en lots (`LICENCE_REMINDER_BATCH_SIZE`). Com que gairebé totes les d'any natural caduquen el 31/12, **la secretaria no rep un avís per llicència**: rep un sol resum per dia i tram (60, 30 o 7), agrupat per data de venciment i categoria, i ordenat per data i nom, amb l'enllaç al llistat filtrat. Si ja hi ha una renovació en curs, no s'avisa. Les d'un dia (només si l'opció és activada) no s'avisen | F §8.1 i 9.12; 28/10/2026 |
+| RN-M06-13 | `licences.current(person, on)` torna la llicència `active` que cobreix aquella data (si n'hi ha diverses, la que caduca més tard), amb la seva **categoria**; si no n'hi ha, res | F §8.1 |
 | RN-M06-14 | «Ja en tinc una»: es desa el número, el tipus i el venciment; no es crea càrrec ni tramitació | F §8.1 i 9.16 |
 | RN-M06-15 | Cap dada de salut: ni certificat mèdic ni data de validesa (P-07). Si la federació en demana, es comprova fora de la plataforma | CLAUDE.md; P-07 |
 | RN-M06-16 | Imports en cèntims; tot canvi d'estat, de preu i tota exportació, al registre d'activitat | CLAUDE.md |
-| RN-M06-17 | **El 06 és l'únic propietari de les llicències** i emet, dins la mateixa transacció i amb el mecanisme de la 049: `licence.issued` (passa a `active`), `licence.renewed` (la renovació passa a `active`), `licence.expired` (la tasca diària, l'endemà de `expires_on`, una sola vegada) i `licence.cancelled`. Porten persona, tipus, durada, dates, origen i, si escau, `m01_record_ref`. Cada llicència té un comptador `version` que puja en 1 a cada canvi, dins la mateixa transacció, i cada esdeveniment porta `version` i `occurred_at` ([054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)). En arrencar, el 06 registra al 01 la seva font de lectura per a la comprovació diària (`members.register_licence_source`, RN-M01-41) | [052](decisions/052-llicencia-font-unica-al-06.md) |
+| RN-M06-17 | **El 06 és l'únic propietari de les llicències** i emet, dins la mateixa transacció i amb el mecanisme de la 049: `licence.issued` (passa a `active`), `licence.renewed` (la renovació passa a `active`), `licence.expired` (la tasca diària, l'endemà de `expires_on`, una sola vegada) i `licence.cancelled`. Porten persona, tipus, durada (la regla de validesa, `validity_rule`), dates, origen i, si escau, `m01_record_ref`. Cada llicència té un comptador `version` que puja en 1 a cada canvi, dins la mateixa transacció, i cada esdeveniment porta `version` i `occurred_at` ([054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)). En arrencar, el 06 registra al 01 la seva font de lectura per a la comprovació diària (`members.register_licence_source`, RN-M01-41) | [052](decisions/052-llicencia-font-unica-al-06.md) |
+| RN-M06-18 | **Preu aplicat:** la versió de `LicencePrice` del tipus creada més recentment amb `valid_from ≤ starts_on` i `valid_to` buit o `≥ starts_on`. Els trams de l'any natural (preu més baix si s'obté a mig any) són versions amb dates [A verificar: FECDAS, quins trams hi ha] | 28/10/2026 |
+| RN-M06-19 | **Condicional a `LICENCES_DAY_ENABLED`:** una persona pot tenir diverses llicències d'un dia en curs per a dates diferents, però no dues per al mateix tipus i data. La unicitat «una llicència en curs per tipus» només val per a les d'any natural i de 365 dies | 28/10/2026 |
+| RN-M06-20 | **Condicional a `LICENCES_DAY_ENABLED`:** si una llicència d'un dia pagada (o tramitada) no ha arribat a `active` en acabar el seu dia, la tasca diària la marca **«no tramitada a temps»** (`lapsed`), avisa la secretaria i el tresorer i crea una proposta de devolució (`LicenceRefundProposal`). Cap devolució automàtica: la fa el tresorer amb el 05b | 28/10/2026 |
+| RN-M06-21 | **Sol·licitud anticipada de l'any següent:** des de `LICENCE_NEXT_YEAR_OPENS_ON` (supòsit: 1/12 [A verificar: FECDAS, quan s'obre cada any]), es pot demanar una llicència d'any natural de l'any següent amb `starts_on` l'1/1, al preu de la versió que cobreix l'1/1 i segons `members.is_member(person, on=1/1)`. Es paga quan es demana; la secretaria la tramita quan la federació obri el període. Abans d'aquella data, es rebutja (`NextYearNotOpen`) | 28/10/2026 |
+| RN-M06-22 | **Visibilitat per a l'instructor i el responsable de l'activitat** (igual al [M02-4](#M02-4-rols)): només «vigent sí o no» per a la data de la sessió o de l'activitat. Mai la data de venciment, el número federatiu, la categoria ni el document | 28/10/2026 |
 
 **Exemples** (preus inventats; els reals són [A verificar: FECDAS])
-- **Dates:** treta el 15 de març: d'un dia → 15/3 a 15/3; fins a final d'any → 15/3 a 31/12; 12 mesos → 15/3 a 14/3 de l'any següent.
+- **Dates:** inici el 15/3/2027: any natural → 15/3/2027 a 31/12/2027; 365 dies → 15/3/2027 a 13/3/2028 (el 29/2/2028 és pel mig); inici el 15/3/2026 amb 365 dies → 14/3/2027; un dia (només amb l'opció) → 15/3/2027 a 15/3/2027.
+- **Trams (preus inventats):** any natural amb inici entre l'1/1 i el 30/6 → 9000; entre l'1/7 i el 31/12 → 5000. Inici el 10/9 → 5000.
+- **Final d'any:** 300 llicències d'any natural caduquen el 31/12 → el 2/11, el 1/12 i el 24/12 cada titular rep el seu avís i la secretaria en rep un sol resum cada dia; des de l'1/12 (supòsit) es poden demanar les de l'any següent amb inici l'1/1.
 - **Preus:** preu de la federació de la llicència anual 9000; recàrrec 2500 → soci **9000**, no soci **11.500**; estalvi en la llicència **2500**. La pantalla mostra al costat la quota anual de soci, sense restar-la.
 - **Estat derivat:** caduca el 31/12; el 2/11 surt «per renovar» (60 dies o menys); l'1/1 surt «caducada».
 - **Avisos:** caduca el dia V → avisos els dies V−60, V−30 i V−7; si el titular renova el dia V−40, no s'envien els de V−30 i V−7.
@@ -4586,8 +4600,8 @@ Cap altra app escriu als models del 06.
 **Ofereix**
 | Servei | Entrada | Sortida | Errors | Qui el fa servir |
 |---|---|---|---|---|
-| `licences.current(person, on=date)` | persona, data | `{type, duration, expires_on, origin}` o res (RN-M06-13). **Només lectura** | — | 02 (requisit de llicència) |
-| `licences.request(person, licence_type, duration, starts_on, actor)` | — | llicència `requested` i càrrec | `NonMembersDisabled`, `AlreadyInProgress` | Vistes |
+| `licences.current(person, on=date)` | persona, data | `{type, category, validity_rule, expires_on, origin}` o res (RN-M06-13). **Només lectura**. Al 02, la pantalla de l'instructor i del responsable només en mostra «vigent sí o no» (RN-M06-22) | — | 02 (requisit de llicència i, quan es resolgui RP-M02-02, de categoria) |
+| `licences.request(person, licence_type, starts_on, actor)` | — | llicència `requested` i càrrec | `NonMembersDisabled`, `DayLicencesDisabled`, `AlreadyInProgress`, `NextYearNotOpen`, `DateInPast` | Vistes |
 | `licences.declare_existing(person, data, actor)` | número, tipus, venciment | llicència `active` amb origen `external` | — | Vistes |
 | `licences.on_charge_paid(event)` | esdeveniment `charge.paid` d'un càrrec amb origen `licences` | llicència `paid` (si ja ho era, no fa res) | — | Subscriptor ([049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md)) |
 | `licences.expiring(days)` | — | llicències per caducar (lectura) | — | 08; llistat de la secretaria |
@@ -4611,25 +4625,31 @@ Cap altra app escriu als models del 06.
 <a id="M06-9-criteris"></a>
 ## M06-9 Criteris d'acceptació i casos límit
 
-- **CA-M06-01** Donat una llicència de 12 mesos treta el 15 de març, quan es calcula, llavors caduca el 14 de març de l'any següent; treta el 29 de febrer, caduca el 27 de febrer.
-- **CA-M06-02** Donat una llicència fins a final d'any treta el 15 de març, quan es calcula, llavors caduca el 31 de desembre del mateix any.
+- **CA-M06-01** Donat un tipus de 365 dies, quan es calcula, llavors: inici 15/3/2026 → caduca 14/3/2027; inici 15/3/2027 → 13/3/2028; inici 29/2/2028 → 27/2/2029; inici 1/3/2027 → 28/2/2028; inici 1/1/2028 → 30/12/2028; i en tots els casos hi ha exactament 365 dies comptant el d'inici.
+- **CA-M06-02** Donat un tipus d'any natural, quan es calcula amb inici el 15/3, l'1/1 i el 31/12, llavors caduca el 31/12 del mateix any.
 - **CA-M06-03** Donat un preu de la federació de 9000 i un recàrrec de 2500, quan un soci i un no soci demanen la llicència, llavors el soci paga 9000 i el no soci 11.500.
 - **CA-M06-04** Donat un intent de posar un preu de soci diferent del de la federació, quan es desa, llavors es rebutja.
 - **CA-M06-05** Donat un canvi de preu sense nota, quan es desa, llavors es rebutja; amb nota, crea una versió nova, avisa la secretaria i la junta i les llicències ja demanades conserven el preu.
 - **CA-M06-06** Donat l'opció de no socis desactivada, quan un visitant obre `/llicencies`, llavors rep «no trobat»; activada, veu la comparació de preus.
 - **CA-M06-07** Donat una llicència `requested`, quan arriba `charge.paid` dues vegades, llavors passa a `paid` una sola vegada i la secretaria rep un sol avís.
-- **CA-M06-08** Donat una llicència anual `active` que caduca el dia V, quan s'executa la tasca diària els dies V−60, V−30 i V−7, llavors el titular rep un avís cada dia i cap de repetit; per a una d'un dia, cap.
+- **CA-M06-08** Donat una llicència anual `active` que caduca el dia V, quan s'executa la tasca diària els dies V−60, V−30 i V−7, llavors el titular rep un avís cada dia i cap de repetit; per a una d'un dia (només amb l'opció activada), cap.
 - **CA-M06-09** Donat una renovació pagada el dia V−40, quan arriba V−30, llavors no s'envia cap avís.
 - **CA-M06-10** Donat dues llicències `paid`, quan la secretaria exporta el llistat, llavors el fitxer només porta els camps de RN-M06-11, no es desa i el registre en guarda l'empremta.
-- **CA-M06-11** Donat una persona amb una llicència `active` del 15/3 al 14/3, quan el 02 demana `licences.current` per al 14/3 i per al 15/3 de l'any següent, llavors torna la llicència i res.
+- **CA-M06-11** Donat una persona amb una llicència de 365 dies `active` del 15/3/2026 al 14/3/2027 i de categoria tècnic, quan el 02 demana `licences.current` per al 14/3/2027 i per al 15/3/2027, llavors torna la llicència amb la categoria i res.
 - **CA-M06-12** Donat «Ja en tinc una» amb venciment el 31/12, quan es desa, llavors la llicència és `active`, origen `external`, sense càrrec.
 - **CA-M06-13** Donat una llicència pagada i no tramitada, quan la secretaria la cancel·la, llavors es crea una proposta de devolució per al tresorer i cap devolució automàtica.
 - **CA-M06-14** Donat tres registres mínims al 01, quan l'administrador fa el pas únic en prova, llavors no s'escriu res; en confirmar, es creen tres llicències `imported_m01` i el lot es pot desfer.
-- **CA-M06-15** Donat un instructor, quan consulta un participant de la seva sessió, llavors veu «vigent sí o no» i el venciment, i no el número federatiu.
+- **CA-M06-15** Donat un instructor o un responsable d'activitat, quan consulta un participant de la seva sessió o activitat, llavors només veu «vigent sí o no» per a la data de la sessió o de l'activitat, i no la data de venciment, el número federatiu, la categoria ni el document; una petició forçada d'aquestes dades es rebutja.
 - **CA-M06-16** Donat cada cel·la de [M06-4](#M06-4-rols), quan el rol prova l'acció, llavors el resultat coincideix.
 - **CA-M06-17** Donat una llicència d'un soci que passa a `active`, quan es desa, llavors s'emet un sol `licence.issued` i la còpia del 01 la mostra (CA-M01-26); quan la tasca diària passa per una llicència caducada dues vegades, s'emet un sol `licence.expired`.
 - **CA-M06-18** Donat una llicència importada del registre del 01, quan s'emet `licence.issued`, llavors el 01 actualitza el registre d'origen i no en crea cap de nou.
 - **CA-M06-19** Donat una llicència amb `version` 1, quan es renova i després es cancel·la, llavors els esdeveniments porten `version` 2 i 3, i la font registrada al 01 torna `version` 3.
+- **CA-M06-20** Donat un tipus d'any natural amb un tram de 9000 (inici de l'1/1 al 30/6) i un de 5000 (de l'1/7 al 31/12), quan un soci en demana una amb inici el 10/9, llavors paga 5000; si després es crea una versió nova del tram de juliol, les llicències ja demanades conserven el preu.
+- **CA-M06-21** Donat `LICENCES_DAY_ENABLED` desactivada, quan es vol crear un tipus d'un dia o demanar-ne una (també amb una petició forçada), llavors es rebutja (`DayLicencesDisabled`) i la pàgina no l'ofereix.
+- **CA-M06-22** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una persona amb una llicència d'un dia en curs per al 10/5, quan en demana una altra del mateix tipus per al 17/5, llavors s'accepta; per al 10/5, es rebutja; i dues d'any natural en curs del mateix tipus continuen rebutjades.
+- **CA-M06-23** *(Condicional a `LICENCES_DAY_ENABLED`.)* Donat una llicència d'un dia `paid` per al 10/5 que el 10/5 a la nit encara no és `active`, quan corre la tasca diària, llavors passa a `lapsed` una sola vegada, la secretaria i el tresorer reben l'avís i es crea una proposta de devolució, sense cap devolució automàtica.
+- **CA-M06-24** Donat 300 llicències d'any natural que caduquen el 31/12, quan corre la tasca el 2/11, llavors cada titular rep un sol avís (enviats en lots), la secretaria rep un sol resum agrupat per data i categoria, i si la tasca es repeteix aquell dia no s'envia res més.
+- **CA-M06-25** Donat `LICENCE_NEXT_YEAR_OPENS_ON` l'1/12, quan un soci demana el 30/11 la llicència d'any natural de l'any següent, llavors es rebutja (`NextYearNotOpen`); l'1/12, es crea amb inici l'1/1 i caducitat el 31/12 de l'any següent, al preu de la versió que cobreix l'1/1, lligada a l'anterior (`renewal_of`), i els avisos de l'anterior s'aturen.
 
 **Casos límit**
 | # | Cas | Comportament |
@@ -4640,7 +4660,8 @@ Cap altra app escriu als models del 06.
 | L-M06-04 | Dues persones amb el mateix document | Les uneix la 00 (perfil únic); el 06 no crea persones duplicades |
 | L-M06-05 | La federació canvia el preu a mig any | Versió nova del preu; les demanades conserven l'anterior |
 | L-M06-06 | Esborrat RGPD del titular | Llicència anonimitzada; el càrrec i el cobrament es bloquegen (028) |
-| L-M06-07 | La llicència d'un dia es demana per a una data passada | Es rebutja |
+| L-M06-07 | *(Condicional a `LICENCES_DAY_ENABLED`.)* La llicència d'un dia es demana per a una data passada | Es rebutja (`DateInPast`); amb l'opció desactivada, ni tan sols es pot triar |
+| L-M06-08 | Un soci demana l'any següent el 15/12 però es dona de baixa abans de l'1/1 | El preu es va fixar amb `is_member` a l'1/1 en demanar-la; la secretaria la pot cancel·lar amb proposta de devolució (P-M06-G) |
 
 <a id="M06-10-tasques"></a>
 ## M06-10 Tasques (per dependències, sense dates)
@@ -4648,29 +4669,30 @@ Cap altra app escriu als models del 06.
 | # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
 |---|---|---|---|---|---|
 | T-M06-01 | Wireframes que falten (vegeu [M06-5](#M06-5-processos)) | M | `design/wireframes/` | — | Revisats; contrast i estats amb símbol |
-| T-M06-02 | Tipus i preus amb versions, nota i avís | M | `apps/licences/models.py`, vistes | T-M01-11 | CA-M06-03, 04, 05 |
-| T-M06-03 | Model de llicència, estats derivats i càlcul de dates (funció pura) | M | `models.py`, `apps/licences/dates.py` | T-M06-02 | CA-M06-01, 02 |
-| T-M06-04 | Demanar i pagar (soci) amb el càrrec i el 05b | M | `apps/licences/services.py` | T-M06-03, T-M05b-04 | P-M06-B |
+| T-M06-02 | Tipus amb categoria i regla de validesa; preus amb versions, trams per dates, nota i avís | M | `apps/licences/models.py`, vistes | T-M01-11 | CA-M06-03, 04, 05, 20 |
+| T-M06-03 | Model de llicència, estats derivats i càlcul de dates (funció pura: any natural, 365 dies comptant el dia d'inici i any de traspàs) | M | `models.py`, `apps/licences/dates.py` | T-M06-02 | CA-M06-01, 02 |
+| T-M06-04 | Demanar i pagar (soci) amb el càrrec i el 05b; sol·licitud anticipada de l'any següent | M | `apps/licences/services.py` | T-M06-03, T-M05b-04 | P-M06-B; CA-M06-25 |
 | T-M06-05 | Subscriptor de `charge.paid`, idempotent | S | `services.py` | T-M05b-21 | CA-M06-07 |
 | T-M06-06 | «La meva llicència» i renovació | M | vistes, plantilles | T-M06-04 | HU-M06-01 |
 | T-M06-07 | Pàgina pública per a no socis, desactivada per defecte, amb comparació de preus | M | vistes, plantilles | T-M06-04; enllaços de convidat de la 00 | CA-M06-06 |
 | T-M06-08 | «Ja en tinc una» | S | `services.py` | T-M06-03 | CA-M06-12 |
 | T-M06-09 | Llistat de la secretaria, filtres i venciments | S | vistes | T-M06-03 | HU-M06-05 |
 | T-M06-10 | Exportació per a la federació i marcar tramitada o vigent | M | `apps/licences/filing.py` | T-M06-09 | CA-M06-10; format [A verificar: FECDAS] |
-| T-M06-11 | Avisos diaris a la cua, idempotents | S | `apps/licences/tasks.py` | T-M06-03 | CA-M06-08, 09 |
+| T-M06-11 | Avisos diaris a la cua, idempotents, en lots, i resum diari agrupat per a la secretaria | S | `apps/licences/tasks.py` | T-M06-03 | CA-M06-08, 09, 24 |
 | T-M06-12 | Cancel·lació i proposta de devolució | S | `services.py` | T-M06-04, T-M05b-13 | CA-M06-13 |
-| T-M06-13 | Servei `licences.current` amb proves de contracte per al 02 | S | `services.py` | T-M06-03 | CA-M06-11, 15 |
+| T-M06-13 | Servei `licences.current` (amb la categoria) i visibilitat «sí o no» amb proves de contracte per al 02 | S | `services.py` | T-M06-03 | CA-M06-11, 15 |
 | T-M06-14 | Pas únic dels registres del 01, amb prova, confirmació i desfer | M | `apps/licences/imports.py` | T-M01-30, T-M06-03 | CA-M06-14 |
 | T-M06-15 | Emetre els esdeveniments de llicència (RN-M06-17) dins la mateixa transacció, també des de la tasca diària i del pas únic, amb `version` i `occurred_at`, i registrar la font de lectura al 01 ([052](decisions/052-llicencia-font-unica-al-06.md), [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md)) | S | `apps/licences/events.py`, `apps/licences/apps.py` | T-M06-03, T-M06-11, T-M05b-21 | CA-M06-17, 18, 19 |
 | T-M06-16 | Permisos per rol i per objecte | S | `apps/licences/permissions.py` | T-M06-03 | CA-M06-16 |
 | T-M06-17 | Dades inventades i proves de principi a fi (demanar → pagar → tramitar → vigent → avís → renovar) | M | `fixtures/`, `tests/` | T-M06-04 a T-M06-14 | Totes en verd |
 | T-M06-18 | Guia de la secretaria (tramitació i venciments) | S | `docs/` | T-M06-17 | Revisada |
+| T-M06-19 | Opció `LICENCES_DAY_ENABLED` (desactivada per defecte) i, darrere d'ella, llicència d'un dia: unicitat per data, estat `lapsed`, avís i proposta de devolució | M | `apps/licences/day.py`, migració | T-M06-03, T-M06-12 | CA-M06-21 sempre; CA-M06-22, 23 amb l'opció activada a la prova |
 
 <a id="M06-11-proves"></a>
 ## M06-11 Pla de proves
 
-- **Unitàries (B1):** càlcul de dates (inclosos el 29 de febrer i el canvi d'any), estats derivats, preu de soci i de no soci, versions de preu, dies dels avisos.
-- **Base de dades:** `CHECK` de dates; unicitat d'una llicència en curs per tipus; unicitat dels avisos.
+- **Unitàries (B1):** càlcul de dates (any natural i 365 dies comptant el dia d'inici, inclosos el 29 de febrer, l'any de traspàs i el canvi d'any), preu per trams, estats derivats, preu de soci i de no soci, versions de preu, dies dels avisos.
+- **Base de dades:** `CHECK` de dates; unicitat d'una llicència anual en curs per tipus i, amb l'opció d'un dia, per tipus i data; unicitat dels avisos i dels resums.
 - **Integració:** demanar → pagar amb `FakeProvider` → `charge.paid` → `paid` → tramitar → `active`; renovació; cancel·lació amb proposta de devolució.
 - **Contracte amb el 02:** `licences.current` amb els casos de CA-M06-11.
 - **Pas únic del 01:** prova sense escriure, confirmació i desfer amb registres inventats.
@@ -4685,7 +4707,7 @@ Cap altra app escriu als models del 06.
 - **Cap dada de salut** (RN-M06-15).
 - **Llistat per a la federació:** surt cap a un tercer dins la UE; es genera a demanda i no es desa. Base legal i informació a la persona [A validar: junta]; la federació hi és com a destinatària, no com a encarregada.
 - **Pàgina pública:** declarada de manera explícita, desactivada per defecte, amb limitació de peticions i protecció contra robots, i dades mínimes.
-- **Permisos:** comprovats al servidor; l'instructor i el responsable de l'activitat només veuen «vigent sí o no» i el venciment.
+- **Permisos:** comprovats al servidor; l'instructor i el responsable de l'activitat només veuen «vigent sí o no» per a la data de l'activitat, sense venciment ni número federatiu.
 - **Registre:** canvis d'estat, preus, exportacions, cancel·lacions i el pas únic, amb el valor anterior.
 
 <a id="M06-13-riscos"></a>
@@ -4698,26 +4720,30 @@ Cap altra app escriu als models del 06.
 | Tipus, preus i format de tramitació desconeguts | Alt per entrar en producció | Configurables; dades inventades a les proves | FECDAS |
 | La federació demana dades que la plataforma no té (data de naixement) | Mitjà | La secretaria les completa fora; dubte 2 | Secretaria |
 | Recàrrec massa baix i no socis que no es fan socis | Mitjà per al club | La junta el fixa; la pantalla mostra la comparació | Junta |
+| Gairebé totes les llicències d'any natural caduquen el 31/12 | Alt per a la secretaria al desembre | Resum diari agrupat en lloc d'un avís per llicència; avisos als titulars en lots; sol·licitud anticipada de l'any següent (RN-M06-12 i 21) | Secretaria |
+| La llicència d'un dia potser ja no existeix | Mitjà: funcions que no es farien servir | Darrere de `LICENCES_DAY_ENABLED`, desactivada per defecte | Responsable de cursos i sortides |
 
 **Supòsits [A validar] i dades [A verificar]**
 | ID | Què | Supòsit mentre tant | Propietari |
 |---|---|---|---|
 | S-M06-01 | Recàrrec per als no socis (RN-M06-06) | Cap preu; l'opció de no socis queda desactivada | Junta |
-| S-M06-02 | Tipus de llicència, preu de cada durada i càlcul exacte de les dates (S-M01-17) | Tipus en text; preus inventats; 12 mesos = mateix dia menys un | FECDAS |
+| S-M06-02 | Tipus de llicència, categoria (aficionat, tècnic, altres), preu i trams, i càlcul exacte de les dates de 365 dies (S-M01-17) | Tipus en text; preus inventats; 365 dies comptant el dia d'inici (RN-M06-02) | FECDAS |
 | S-M06-03 | Format i dades del llistat per tramitar; si la federació té un sistema per importar-lo | CSV amb nom, cognoms, document, correu, tipus i durada | FECDAS |
 | S-M06-04 | «Ja en tinc una» per a socis i qui la comprova | Sí, i la secretaria la comprova | Secretaria |
 | S-M06-05 | Qui manté els preus de les llicències | El tresorer | Junta |
 | S-M06-06 | Devolució d'una llicència ja tramitada | No se'n fa | FECDAS |
-| S-M06-07 | La llicència d'un dia es pot demanar sense estar inscrit a cap activitat | Sí | Junta |
+| S-M06-07 | *(Condicional a `LICENCES_DAY_ENABLED`.)* La llicència d'un dia es pot demanar sense estar inscrit a cap activitat | Sí | Junta |
 | S-M06-08 | Una persona de fora que es fa sòcia amb una llicència vigent (L-M06-02) | Cap retorn | Junta |
 | S-M06-09 | Número federatiu obligatori per marcar una llicència vigent | Sí, per a les tramitades pel club | Secretaria |
 | S-M06-10 | Departament de les llicències (Q-19, S-M04-07) | «General / Llicències», provisional | Junta |
 | S-M06-11 | Com es comptabilitza la llicència que el club cobra i paga a la FECDAS (RN-M06-05, RN-M06-10) [A verificar: gestoria] | Ingrés i despesa del club, amb marge 0, com diu el [M06-2](#M06-2-dependencies). No bloqueja el codi; bloqueja la producció | Gestoria |
+| S-M06-12 | Si existeix avui la llicència d'un dia (RN-M06-01) [A validar; A verificar: FECDAS] | No: `LICENCES_DAY_ENABLED` desactivada | Responsable de cursos i sortides |
+| S-M06-13 | Quan obre la FECDAS el període de sol·licitud de l'any següent (RN-M06-21) [A verificar] | 1/12 (configurable) | FECDAS |
 
 **Revisió de dubtes (aplicada a mà)**
 1. ~~Font única de la llicència.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 és l'únic propietari i el 01 en guarda una còpia de lectura amb esdeveniments.
-2. **Data de naixement.** Si la federació la demana (o hi ha menors, P-33), cal decidir si la plataforma la guarda (Q-09). Supòsit: no es guarda i la secretaria la completa fora. Propietari: junta.
-3. ~~Llicència d'un dia i activitat.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 no depèn del 02; el 02 hi demanarà si una activitat necessita llicència d'un dia (RP-M02-01).
+2. **Data de naixement.** La FECDAS la demana en tramitar (informació del 28/10/2026); falta saber si el formulari de club també la demana [A verificar: FECDAS]. Cal decidir si la plataforma la guarda (Q-09, P-33). Supòsit, que es manté: no es guarda i la secretaria la completa fora. És el **punt prioritari 0** de l'[ordre del dia de la junta](#ordre-del-dia-junta). Propietari: junta.
+3. ~~Llicència d'un dia i activitat.~~ Resolt per la [052](decisions/052-llicencia-font-unica-al-06.md): el 06 no depèn del 02; el 02 hi demanarà si una activitat necessita llicència d'un dia (RP-M02-01, condicional a `LICENCES_DAY_ENABLED`).
 4. **Comissió del cobrament de la llicència d'un soci** (dubte 5 de [M09-13](#M09-13-riscos)). Amb preu igual al de la federació, la comissió la paga el club. Propietari: junta.
 5. **«Pagada» abans de «tramitada»:** si la federació demana tramitar abans de cobrar, l'ordre s'inverteix. Supòsit: es cobra abans. Propietari: FECDAS.
 6. **Què fa avui Cluber amb les llicències (P-28):** si les tramita Cluber, cal saber-ho abans de deixar-lo. Propietari: tresorer.
@@ -4728,8 +4754,8 @@ Cap altra app escriu als models del 06.
 1. **Aquesta secció del 06**, amb els estats derivats i el càlcul de dates.
 2. ~~Font única de la llicència al 06 i canvi al 01~~ **Aprovada** per la [052](decisions/052-llicencia-font-unica-al-06.md), amb l'[addenda del M01](#M01-addenda-052).
 3. ~~Dependència opcional del 02~~ **No s'afegeix** (052). Queda com a requisit pendent del 02 (RP-M02-01).
-4. **Supòsits per defecte** S-M06-04, S-M06-05, S-M06-07 i S-M06-09 [A validar: junta i secretaria]. No bloquegen el codi.
-5. **Per entrar en producció** (no per començar): tipus, preus, càlcul de dates i format de tramitació [A verificar: FECDAS, S-M06-02 i S-M06-03]; recàrrec i activació de l'opció de no socis [A validar: junta, S-M06-01].
+4. **Supòsits per defecte** S-M06-04, S-M06-05, S-M06-07 (condicional) i S-M06-09 [A validar: junta i secretaria], i S-M06-12 (llicència d'un dia desactivada) [A validar: responsable de cursos i sortides]. No bloquegen el codi.
+5. **Per entrar en producció** (no per començar): tipus, categories, preus i trams, càlcul de dates, obertura de l'any següent i format de tramitació [A verificar: FECDAS, S-M06-02, S-M06-03 i S-M06-13]; data de naixement (punt 0 de la junta); recàrrec i activació de l'opció de no socis [A validar: junta, S-M06-01].
 
 ---
 
@@ -4843,8 +4869,8 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M09A-04, 05; M09-ajuts-13 dubte 3 | Avisos abans de justificar; format de cada organisme; renúncia a un ajut concedit | — |
 | S-M09A-09 | Dies dels avisos d'un requeriment d'esmena | — |
 | S-M06-01 | Recàrrec dels no socis i activació de l'opció | 06: llicències per a no socis |
-| S-M06-05, 07, 08, 10 | Qui manté els preus; llicència d'un dia sense inscripció; no soci que es fa soci; departament de les llicències (Q-19) | — |
-| M06-13 dubte 2 | Data de naixement si la federació la demana (Q-09, P-33) | — |
+| S-M06-05, 07, 08, 10 | Qui manté els preus; llicència d'un dia sense inscripció (condicional); no soci que es fa soci; departament de les llicències (Q-19) | — |
+| M06-13 dubte 2 | Data de naixement: la FECDAS la demana en tramitar (Q-09, P-33); **punt prioritari 0** | — |
 | M06-13 dubte 4; M09-13 dubte 5 | Comissió del cobrament de la llicència d'un soci | — |
 
 <a id="preguntes-gestoria"></a>
@@ -4866,7 +4892,10 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 **FECDAS**
 | ID | Pregunta | Bloqueja |
 |---|---|---|
-| S-M01-17; S-M06-02 | Tipus de llicència, preu de cada durada i càlcul de les dates | 06: producció |
+| S-M01-17; S-M06-02 | Tipus de llicència, categories (aficionat, tècnic), preus i trams de l'any natural, i càlcul exacte dels 365 dies (dia d'inici, any de traspàs) | 06: producció |
+| S-M06-12, 13 | Si encara existeix la llicència d'un dia; quan s'obre cada any el període per demanar la de l'any següent | 06: activar l'opció d'un dia; sol·licitud anticipada |
+| M06-13 dubte 2 | Si el formulari de club també demana la data de naixement | 06: producció (punt 0 de la junta) |
+| RP-M02-03 | Condicions de la cobertura internacional de la llicència (avís 7 dies abans; excepte Portugal i França) | — |
 | S-M06-03 | Format i dades del llistat per tramitar; si la federació el pot importar | 06: producció (T-M06-10) |
 | S-M06-06; M06-13 dubte 5 | Devolució d'una llicència ja tramitada; si es cobra abans o després de tramitar | — |
 | S-M02-10 | Relació entre el certificat del club i la titulació oficial | — |
@@ -4896,6 +4925,15 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | RN-M09-25 (risc de [M09-13](#M09-13-riscos)) | Si la càmera oberta des del navegador (Android i iPhone) desa la foto a la galeria o al núvol del telèfon, i si hi ha una manera de pujar-la sense que s'hi guardi | — |
 | M12-idees | Fonts i condicions d'ús per a l'assistent d'ajuts (BDNS, Generalitat, Diputació, CIDO) | — (idea futura) |
 
+<a id="preguntes-cursos-sortides"></a>
+**Responsable de cursos i sortides**
+| ID | Pregunta | Bloqueja |
+|---|---|---|
+| S-M06-12 | Si existeix avui la llicència d'un dia (decideix si s'activa `LICENCES_DAY_ENABLED`) | — (desactivada) |
+| S-M06-02 | Quins tipus de llicència tramita el club i a quins preus (aficionat, tècnic, altres) | 06: producció |
+| RP-M02-02 | Si cal la llicència tècnica per als instructors | — |
+| RP-M02-03 | Quines sortides són a l'estranger i necessiten l'avís de cobertura internacional | — |
+
 <a id="preguntes-responsable"></a>
 **Responsable del projecte**
 | ID | Pregunta | Bloqueja |
@@ -4903,28 +4941,29 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | RN-M03-10 | El lloguer entra al marge com a despesa amb factura | 09 |
 | S-M02-13 | Llista de subtipus de medi ambient i projectes actuals | — |
 | S-M02-21, 22 | Servei de previsió marítima enllaçat; pujar observacions a Minka | — |
-| RP-M02-01 | Com el 02 demanarà al 06 si una activitat necessita llicència d'un dia (en revisar el 02) | — |
+| RP-M02-01 | Com el 02 demanarà al 06 si una activitat necessita llicència d'un dia (en revisar el 02; condicional a `LICENCES_DAY_ENABLED`) | — |
 | M02, M03, M09, M06 | Aprovar les seccions dels mòduls 02, 03, 09 (amb l'apartat d'ajuts) i 06 | 02, 03, 09 i 06 |
 
 <a id="ordre-del-dia-junta"></a>
 # Apèndix — Ordre del dia per a la junta
 
-Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, agrupats per tema. Els punts 1 a 11 segueixen els temes demanats; els 12 a 15 recullen la resta. Cada punt diu la decisió que cal prendre, la **proposta de Claude** (el supòsit amb què ja funciona el codi, si no es diu el contrari) i on és el detall. Cap punt no bloqueja començar a construir: bloquegen entrar en producció. Quan la junta decideix un punt, s'actualitza la secció del mòdul i se'n treu la fila d'aquí i de l'[apèndix de preguntes](#preguntes).
+Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, agrupats per tema. El **punt 0 és prioritari**. Els punts 1 a 11 segueixen els temes demanats; els 12 a 15 recullen la resta. Cada punt diu la decisió que cal prendre, la **proposta de Claude** (el supòsit amb què ja funciona el codi, si no es diu el contrari) i on és el detall. Cap punt no bloqueja començar a construir: bloquegen entrar en producció. Quan la junta decideix un punt, s'actualitza la secció del mòdul i se'n treu la fila d'aquí i de l'[apèndix de preguntes](#preguntes).
 
 | # | Tema | Decisió que cal prendre | Proposta de Claude | IDs |
 |---|---|---|---|---|
+| 0 | **Prioritari: data de naixement per a la FECDAS** | La FECDAS demana la data de naixement en tramitar una llicència (informació del 28/10/2026). Si la plataforma la guarda o la secretaria la completa fora; si el formulari de club també la demana [A verificar: FECDAS] | Mantenir el supòsit: no es guarda i la secretaria la completa fora en tramitar; revisar-ho si la FECDAS confirma que el formulari de club la demana sempre (lligat al punt 7, menors) | Q-09; P-33; dubte 2 de [M06-13](#M06-13-riscos) |
 | 1 | **Preus i catàleg** | Catàleg de cursos i d'especialitats amb preus de soci i de no soci; preu dels simpatitzants; no socis a les activitats; preu del reforç; certificat del club; import del canvi a ple dret; quota sencera a mig any | Passar el catàleg actual tal com és; simpatitzants al preu de soci; no socis només si l'activitat ho permet, al preu de no soci; reforç per proposta confirmada; certificat del club signat pel responsable; canvi a ple dret = diferència de quota; quota sencera | S-M02-04, 06, 07, 08, 09; S-M01-01, 02 |
 | 2 | **Política de cancel·lació** | Devolució quan cancel·la el participant i quan cancel·la el club (també per meteorologia); termini per acceptar una plaça oferta | 100 % si cancel·la el club, també per meteorologia; si cancel·la el participant, el tresorer decideix cas per cas fins que la junta fixi una escala; 48 hores per acceptar una plaça | S-M02-05, 03 |
 | 3 | **Centres de busseig** | Amb quins centres treballa el club i amb quines tarifes (cost, soci i, si n'hi ha, no soci); quines dades reben a la llista de lloguer | Recollir la llista i les tarifes de l'Excel actual; a la llista, referència i inicials, sense nom complet; si un centre demana noms, acord de tractament abans (gestoria) | S-M03-01, 04; M03-12 |
 | 4 | **Material: cost d'ús i qui paga el lloguer** | Si el material del club té un cost d'ús al marge; si el lloguer es cobra en un càrrec a part o dins la inscripció; qui paga una peça perduda; bibotelles; qui assigna el material; codis i dies dels avisos; inventari inicial | Cost d'ús 0 d'inici; lloguer en un càrrec a part en confirmar-lo; la peça perduda l'anota el responsable i la junta decideix cas per cas; bibotella com una peça; assigna el responsable de material; codis `MAT-NNNN`; avisos a 30 i 7 dies; inventari en un CSV | S-M03-02, 03, 05, 06, 08, 09, 10, 11 |
 | 5 | **Quotes: venciment i recordatoris** | Quan es cobren les quotes i quan és la propera remesa; dies dels recordatoris; quotes pendents en una baixa; validesa del carnet dels socis que han pagat a Cluber (proposa el tresorer, ratifica la junta) | Any natural; recordatoris 15 dies abans i 15 i 30 després; s'anul·len les quotes posteriors a la baixa; carnet vàlid fins a final del període pagat a Cluber | P-29; S-M01-03, 04, 05, 24 |
 | 6 | **Carnet, verificació i socis** | Què mostra la verificació pública; darrere del carnet; soci clàssic; antiguitat en una readmissió; compte personal després de la baixa | Dos últims dígits i cap nom; darrere amb el contacte del club i com verificar-lo; sense insígnia de soci clàssic d'inici; antiguitat des de la primera alta; el compte es manté per consultar rebuts | S-M01-06, 07, 08, 09, 10, 12 |
-| 7 | **Menors** | Si hi ha o hi haurà socis o participants menors; edat mínima a les activitats; si cal guardar la data de naixement (també si la federació la demana) | Només majors d'edat a la plataforma fins que hi hagi un protocol (persona de referència i mandat signat pel titular del compte); cap data de naixement fins llavors | P-33; Q-09; S-M01-13; S-M02-19; dubte 2 de [M06-13](#M06-13-riscos) |
+| 7 | **Menors** | Si hi ha o hi haurà socis o participants menors; edat mínima a les activitats; si cal guardar la data de naixement (vegeu el punt prioritari 0) | Només majors d'edat a la plataforma fins que hi hagi un protocol (persona de referència i mandat signat pel titular del compte); cap data de naixement fins llavors | P-33; Q-09; S-M01-13; S-M02-19; dubte 2 de [M06-13](#M06-13-riscos) |
 | 8 | **Matriu de rols** | Validar els 13 rols i les matrius dels mòduls (rols nous: Junta, Resp. comunicació i Resp. botiga); què veu l'instructor; quins imports veu el responsable; qui fa inscripcions presencials, assigna material i registra despeses; qui atén l'RGPD; conflicte d'interès; qui manté departaments i desfà conciliacions; què veu la secretaria del mètode de pagament; qui reenvia l'alternativa; qui manté els preus de les llicències | Aprovar les matrius tal com són, amb els supòsits per defecte: l'instructor veu nom, titulació, llicència sí o no i assistència; el responsable veu tots els imports cobrats i el marge de les seves activitats; la secretaria no fa inscripcions presencials; el responsable de cursos no assigna material però registra despeses de les seves activitats; l'administrador atén l'RGPD i manté departaments; ningú no aprova ni canvia el seu propi soci; la secretaria només veu «té mètode: sí o no»; tresorer i secretaria reenvien l'alternativa; el tresorer manté els preus de les llicències; qui puja una factura des del mòbil no la torna a obrir (només tresorer i junta, 051) | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01; RN-M09-23 |
 | 9 | **Comissió de retorn** | Qui paga la comissió del banc quan es retorna un rebut domiciliat | La paga el club d'inici; es revisa si els retornats augmenten. L'import és [A verificar: banc] | S-M05b-08 |
 | 10 | **Carnet amb una quota retornada** | Si el carnet continua vàlid mentre la quota retornada no es paga | No és vàlid fins que es pagui (el soci rep l'alternativa de pagament) | S-M05b-09 |
 | 11 | **Ajuts: responsable i convocatòries** | Qui és el responsable dels ajuts i de cada sol·licitud; quines convocatòries s'han de vigilar; qui rep els avisos; avisos abans de justificar; format de justificació de cada organisme; dies dels avisos d'un requeriment d'esmena | Responsable per defecte: el tresorer, amb una persona de la junta per a medi ambient; començar per les convocatòries que el club ja ha demanat; avisos al responsable i al tresorer; sí, avisos també abans de justificar; paquet genèric fins que un organisme en demani un altre; requeriment: avís immediat i 7 i 2 dies abans de la data límit | S-M09A-01 a 05, 09 |
-| 12 | **Llicències** | Recàrrec dels no socis i quan s'activa l'opció; departament de les llicències; llicència d'un dia sense inscripció; persona de fora que es fa sòcia; comissió del cobrament de la llicència d'un soci | Fixar el recàrrec quan la FECDAS doni els preus i activar l'opció quan la junta ho decideixi; «General / Llicències»; sí, sense inscripció; cap retorn; el club assumeix la comissió d'inici | S-M06-01, 07, 08, 10; S-M04-07; dubte 4 de [M06-13](#M06-13-riscos) |
+| 12 | **Llicències** | Recàrrec dels no socis i quan s'activa l'opció; departament de les llicències; persona de fora que es fa sòcia; comissió del cobrament de la llicència d'un soci; **condicional**: llicència d'un dia sense inscripció, només si el responsable de cursos i sortides confirma que existeix; categories (aficionat i tècnic) i si cal la tècnica per als instructors; sol·licitud de l'any següent abans de l'1/1 | Fixar el recàrrec quan la FECDAS doni els preus i activar l'opció quan la junta ho decideixi; «General / Llicències»; cap retorn; el club assumeix la comissió d'inici; llicència d'un dia desactivada fins que es confirmi i, si s'activa, sense inscripció; tècnica per als instructors segons digui el responsable de cursos i sortides; sol·licitud anticipada des de l'1/12 (o la data de la FECDAS) | S-M06-01, 07 (condicional), 08, 10, 12, 13; S-M04-07; RP-M02-02; dubte 4 de [M06-13](#M06-13-riscos) |
 | 13 | **Departaments, marge i informes** | Llista de departaments i centres de cost; ingrés de les quotes a «General / Quotes de socis»; llindar de marge baix; si el marge per departament inclou els costos generals; informes de l'assemblea; hores de voluntariat; pressupostos; qui reobre un període tancat i si el tresorer ho ha de poder demanar; fotos de factures i comprovants que queden a la galeria del telèfon | La junta dona la llista (d'inici, «General» i els departaments que avui demanen ajuts); quotes a «General / Quotes de socis»; llindar 0 €; mostrar marges i costos generals per separat; informes en CSV; hores sense valorar en euros; pressupostos més endavant; només l'administrador reobre, amb motiu i avís per correu al tresorer i a la junta, i el tresorer no ho demana a la plataforma; text d'ajuda a la pujada que demana esborrar la foto, i una norma per als responsables si informàtica confirma que la foto es copia al núvol | Q-17; S-M04-01, 06; S-M09-04, 06, 07, 10, 11, 12, 13; RN-M09-25 |
 | 14 | **Activitats: altres** | Avís o bloqueig si no es compleixen els requisits; tipus de sortida propis; dades ambientals; protocol d'accidents i contacte d'emergència; drets del simpatitzant | Avís, no bloqueig; Sèniors i jornades obertes com a tipus desactivables; residus en kg, espècies, observacions i fotos; protocol fora de la plataforma; els simpatitzants tenen els mateixos drets al 01 | S-M02-01, 12, 14, 20; S-M01-11 |
 | 15 | **Pagaments i producció** | Autoritzacions dels nivells 1 i 2 de producció; qui guarda la còpia de la clau; textos del mandat, de la invitació i del correu G3; titular del compte diferent del soci; registre manual de cobraments en efectiu; doble aprovació | Autoritzar cada nivell quan es passin les portes de la checklist; dues persones de la junta per a la clau; Claude prepara els esborranys dels textos; titular diferent admès amb declaració; registre manual només pel tresorer, amb justificant; sense doble aprovació | 025; S-M05a-05, 09; M05a-14 punt 2; P-12; P-48 |
