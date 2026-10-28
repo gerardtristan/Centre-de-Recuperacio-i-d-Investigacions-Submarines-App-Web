@@ -81,6 +81,7 @@
    14. [Què cal aprovar abans de començar](#M01-14-aprovar)
    - [Addenda de la 052: còpia de lectura de la llicència](#M01-addenda-052)
    - [Addenda de la 054: versió dels esdeveniments i comprovació diària](#M01-addenda-054)
+   - [Addenda de la 055: pantalla d'ajustos](#M01-addenda-055)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
@@ -89,9 +90,11 @@
 8. [Mòdul 05a — Alta del mètode de pagament i mandats](#M05a) · [resum](#M05a-resum)
    1. [Intenció](#M05a-1-intencio) · 2. [Dependències](#M05a-2-dependencies) · 3. [Capacitats](#M05a-3-capacitats) · 4. [Rols](#M05a-4-rols) · 5. [Processos](#M05a-5-processos) · 6. [Entitats](#M05a-6-entitats) · 7. [Regles](#M05a-7-regles)
    8. [Serveis](#M05a-8-serveis) · 9. [Criteris](#M05a-9-criteris) · 10. [Tasques](#M05a-10-tasques) · 11. [Proves](#M05a-11-proves) · 12. [Seguretat](#M05a-12-seguretat) · 13. [Riscos](#M05a-13-riscos) · 14. [Aprovar](#M05a-14-aprovar)
+   - [Addenda de la 055: pantalla d'ajustos](#M05a-addenda-055)
 9. [Mòdul 05b — Cobraments](#M05b) · [resum](#M05b-resum)
    1. [Intenció](#M05b-1-intencio) · 2. [Dependències](#M05b-2-dependencies) · 3. [Capacitats](#M05b-3-capacitats) · 4. [Rols](#M05b-4-rols) · 5. [Processos](#M05b-5-processos) · 6. [Entitats](#M05b-6-entitats) · 7. [Regles](#M05b-7-regles)
    8. [Serveis](#M05b-8-serveis) · 9. [Criteris](#M05b-9-criteris) · 10. [Tasques](#M05b-10-tasques) · 11. [Proves](#M05b-11-proves) · 12. [Seguretat](#M05b-12-seguretat) · 13. [Riscos](#M05b-13-riscos) · 14. [Aprovar](#M05b-14-aprovar)
+   - [Addenda de la 055: pantalla d'ajustos](#M05b-addenda-055)
 10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum)
    1. [Intenció](#M02-1-intencio) · 2. [Dependències](#M02-2-dependencies) · 3. [Capacitats](#M02-3-capacitats) · 4. [Rols](#M02-4-rols) · 5. [Processos](#M02-5-processos) · 6. [Entitats](#M02-6-entitats) · 7. [Regles](#M02-7-regles)
    8. [Serveis](#M02-8-serveis) · 9. [Criteris](#M02-9-criteris) · 10. [Tasques](#M02-10-tasques) · 11. [Proves](#M02-11-proves) · 12. [Seguretat](#M02-12-seguretat) · 13. [Riscos](#M02-13-riscos) · 14. [Aprovar](#M02-14-aprovar)
@@ -108,7 +111,7 @@
 14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
 15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
 16. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta): [decisions de debò](#ordre-del-dia-decisions) · [valors inicials](#ordre-del-dia-valors)
-17. [Apèndix — Valors configurables](#valors-configurables)
+17. [Apèndix — Valors configurables](#valors-configurables) · [peça comuna d'ajustos (055)](#valors-configurables-055)
 
 <a id="regles"></a>
 ## 3. Regles generals (valen per a tots els mòduls)
@@ -139,7 +142,7 @@
 - **Els valors de negoci són dades editables des de l'app, no codi ni configuració tècnica.** Un preu, el nom d'un curs o d'un departament, un llindar, els dies d'un avís, un text d'ajuda i els supòsits que són només un valor es canvien des de la pantalla d'**«Ajustos»** del mòdul, per l'administrador o pel responsable del departament que correspongui.
 - Cada valor editable té: **valor inicial**, **rang vàlid**, **rol que el canvia**, **registre de canvis** (qui, quan, valor anterior) i, si afecta diners, **data d'entrada en vigor** (el canvi no toca el que ja s'ha demanat o cobrat).
 - **Queden al codi** i no s'editen des de l'app: les regles i la seguretat (per exemple, preu de soci igual al de la federació, període tancat que no es toca, documents amb IBAN només per al tresorer i la junta, quantes xifres es mostren en una verificació pública) i els formats que garanteixen la integritat (numeracions, referències). **Els secrets** viuen en variables d'entorn.
-- La llista de valors, on viu cadascun i què canvia és a l'[apèndix de valors configurables](#valors-configurables). En els mòduls aprovats (01, 04, 05a i 05b) aquesta regla no edita cap regla aprovada: s'hi aplica amb la proposta de decisió 055 de l'apèndix, pendent d'aprovació.
+- La llista de valors, on viu cadascun i què canvia és a l'[apèndix de valors configurables](#valors-configurables). En els mòduls aprovats (01, 04, 05a i 05b) aquesta regla no edita cap regla aprovada: s'hi aplica amb la decisió [055](decisions/055-ajustos-configurables-i-addendes.md), amb una addenda a cada mòdul. La peça comuna d'ajustos (00) és a l'[apèndix](#valors-configurables-055). Tot canvi d'un valor que afecta diners avisa per correu el tresorer i la junta (RN-AJ-04).
 
 **Documentació**
 - Aquest fitxer és la font única de l'especificació de cada mòdul ([047](decisions/047-planning-font-unica-de-l-especificacio.md)). Cap altre fitxer en copia regles, criteris ni tasques.
@@ -260,7 +263,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 <a id="M01"></a>
 # Mòdul 01 — Socis i carnet digital
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M01-addenda-055) de pantalla d'ajustos (T-M01-32), sense canviar cap regla.
 
 **Fonts integrades:** el pla M01 del repositori anterior (aprovat amb respostes el 27/10/2026), la [spec 00](../specs/00-base-comuna/spec.md) v2, el document de funcionalitats (F §3 i processos 9.2 a 9.5 i 9.13), el mapa de la plataforma v8 i les decisions 035–047. Per la [047](decisions/047-planning-font-unica-de-l-especificacio.md), aquesta secció **és** l'especificació del M01: no hi ha cap `specs/01-…`.
 
@@ -270,7 +273,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 |---|---|
 | **Intenció** | Tenir els socis, les quotes anuals i el carnet digital a la plataforma, perquè la secretaria deixi Excel i correu, cada soci vegi les seves dades i el seu carnet, i Cluber es pugui deixar. Cap altre mòdul no funciona sense aquest. |
 | **Processos que cobreix** | P-M01-A Alta de soci · P-M01-B Canvi de tipus · P-M01-C Baixa i readmissió · P-M01-D Renovació anual de quotes · P-M01-E Carnet i verificació pública · P-M01-F RGPD: exportar i esborrar · P-M01-G Importació de Cluber en dues fases (F 9.2 a 9.5 i 9.13) |
-| **Tasques** | 31 (T-M01-01 a T-M01-31), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049 i la T-M01-31, la 052 (amb la 054) |
+| **Tasques** | 32 (T-M01-01 a T-M01-32), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049, la T-M01-31, la 052 (amb la 054) i la T-M01-32, la 055. La peça comuna d'ajustos (T-AJ-01 i T-AJ-02) és a l'[apèndix](#valors-configurables-055) |
 | **Què el bloqueja** | Res per començar. La importació final espera el 05a (nivell 1) i la mostra anonimitzada de Cluber [A validar: tresorer, S-M01-16] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). Continua obert sense bloquejar: la matriu dels 13 rols (junta, P-04) i els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
 
@@ -938,6 +941,35 @@ Aprovada el 27/10/2026. Completa l'[addenda de la 052](#M01-addenda-052) **sense
 
 - **CA-M01-34** Donat una còpia amb llicències vigents, quan la font del 06 dona error o torna una llista buida, llavors cap fila canvia, el registre de la tasca diu «comprovació saltada» i s'envia l'avís.
 
+<a id="M01-addenda-055"></a>
+## M01 — Addenda de la [055](decisions/055-ajustos-configurables-i-addendes.md): pantalla d'ajustos
+
+Aprovada el 28/10/2026. **No canvia cap regla** del M01: els valors que el text deixava oberts passen a la [peça comuna d'ajustos](#valors-configurables-055), amb valor inicial, rang, rol i registre. Els valors inicials són les propostes que ja hi havia; les preguntes obertes (RN-M01-14, S-M01-08, S-M01-09) continuen obertes. La feina és a la tasca T-M01-32.
+
+**Valors** (de l'[apèndix](#valors-configurables))
+| VC | Clau | Valor inicial | Rang | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-01 | Preu del tipus de soci (`annual_fee_cents`), que continua al tipus | 3500 i 9000 cèntims | > 0 | Tresorer o administrador, amb motiu | Sí (nova) |
+| VC-02 | `members.fee_reminder_days_before`; `members.fee_reminder_days_after` | 15; 15 i 30 | 1 a 90 | Tresorer | — |
+| VC-03 | `members.card_back_text` | Contacte del club i com verificar-lo; el text final [A validar: junta, S-M01-08] | Fins a 300 caràcters | Secretaria o administrador | — |
+| VC-04 | `members.classic_member_years` (0 = sense insígnia) | 0 | 0 a 60 | Administrador, per decisió de la junta | — |
+
+**Regles noves** (no en substitueixen cap)
+| ID | Regla |
+|---|---|
+| RN-M01-45 | El preu de cada tipus de soci guarda versions amb data d'entrada en vigor (igual que `SettingVersion`, RN-AJ-03). La quota es genera amb el preu vigent a la data en què es genera, que és el que ja diu RN-M01-13; un canvi no toca les quotes creades. Cada canvi avisa el tresorer i la junta (RN-AJ-04) |
+| RN-M01-46 | Els recordatoris de quota, el darrere del carnet i la insígnia de soci clàssic llegeixen el valor dels ajustos en el moment d'enviar o de generar; no hi ha cap valor escrit al codi |
+
+**Criteris d'acceptació**
+- **CA-M01-35** Donat el preu d'un tipus a 3500 i un canvi a 4000 amb data d'entrada en vigor d'aquí a un mes, quan es genera una quota avui, llavors és de 3500; quan es genera després d'aquella data, és de 4000; les quotes ja creades no canvien, i el tresorer i la junta reben un correu amb 3500 i 4000.
+- **CA-M01-36** Donat els dies de recordatori canviats a 10 abans, quan corre la tasca de recordatoris, llavors fa servir 10; un valor de 0 o de 91 es rebutja.
+- **CA-M01-37** Donat `members.classic_member_years` a 0, quan es genera un carnet, llavors no hi ha insígnia; a 25, la té qui té 25 anys o més d'antiguitat.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M01-32 | Pantalla d'ajustos del 01 (VC-01 a VC-04), versions del preu del tipus amb data d'entrada en vigor i lectura dels valors des de les tasques i el carnet ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/members/settings.py`, vistes, migració | T-AJ-02, T-M01-18, T-M01-19 | CA-M01-35 a 37; proves del M01 en verd |
+
 ---
 
 <a id="M04"></a>
@@ -1478,7 +1510,7 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 <a id="M05a"></a>
 # Mòdul 05a — Alta del mètode de pagament i mandats
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar].
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05a-addenda-055) de pantalla d'ajustos (T-M05a-22), sense canviar cap regla.
 
 **Fonts:** decisions [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); arquitectura §4.2, §4.3 i §4.9 (on diu Stripe, s'aplica la 042); [`integracio-paylands.md`](integracio-paylands.md); checklist (C9, G3 i els punts «N1»).
 
@@ -1490,7 +1522,7 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 |---|---|
 | **Intenció** | Que cada soci tingui un mètode per pagar la quota abans de la primera remesa de la plataforma: recollir mandats SEPA nous en producció al nivell 1 (dades reals, cap cobrament), amb l'IBAN xifrat (044) i el proveïdor de targeta darrere de l'adaptador. |
 | **Processos que cobreix** | P-M05a-A Triar el mètode de pagament · P-M05a-B Signar el mandat · P-M05a-C Canviar l'IBAN o revocar · P-M05a-D Guardar una targeta (condicional) · P-M05a-E Campanya de mandats · P-M05a-F Pas al nivell 1 · P-M05a-G Rotació de la clau |
-| **Tasques** | 21 (T-M05a-01 a T-M05a-21) |
+| **Tasques** | 22 (T-M05a-01 a T-M05a-22); la T-M05a-22 l'afegeix la 055 |
 | **Què el bloqueja** | Res de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (acceptada). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden els textos (junta) i l'autorització del nivell 1 (junta). La 044 és acceptada |
 
@@ -1908,12 +1940,31 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 4. **Proveïdor** (P-44, P-45) [A verificar: PaynoPain]: només bloqueja T-M05a-05 i T-M05a-12.
 5. **Autorització del nivell 1** (junta, 025): quan el 05a estigui acabat i provat.
 
+<a id="M05a-addenda-055"></a>
+## M05a — Addenda de la [055](decisions/055-ajustos-configurables-i-addendes.md): pantalla d'ajustos
+
+Aprovada el 28/10/2026. **No canvia cap regla** del M05a. La feina és a la tasca T-M05a-22.
+
+| VC | Clau | Valor inicial | Rang | Qui el canvia |
+|---|---|---|---|---|
+| VC-11 | `payments.mandate_campaign_reminder_days` | 7 i 14 dies [A validar: tresorer, RN-M05a-14] | 1 a 60 | Tresorer |
+
+| ID | Regla |
+|---|---|
+| RN-M05a-18 | Els recordatoris de la campanya de mandats (RN-M05a-14) llegeixen els dies dels ajustos en el moment d'enviar. El darrer recordatori, quan el tresorer fixa la remesa, no canvia. Cap recordatori a qui ja ha triat |
+
+- **CA-M05a-18** Donat els dies canviats a 5 i 10, quan corre la campanya, llavors els recordatoris surten als 5 i als 10 dies de la invitació; el canvi queda al registre amb el valor anterior; un valor de 0 o de 61 es rebutja.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05a-22 | Pantalla d'ajustos del 05a (VC-11) i lectura des de la campanya ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/payments/settings.py`, vistes | T-AJ-02, T-M05a-13 | CA-M05a-18 |
+
 ---
 
 <a id="M05b"></a>
 # Mòdul 05b — Cobraments: targeta, Bizum, domiciliació i transferència
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05b-addenda-055) de pantalla d'ajustos (T-M05b-22), sense canviar cap regla.
 
 **Fonts:** decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [025](decisions/025-dos-nivells-de-produccio.md), [040](decisions/040-impagat-es-marca-a-ma.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md); annex D de la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) (experiència de pagament, que passa aquí); arquitectura §4.2 a §4.8; [`integracio-paylands.md`](integracio-paylands.md); spec 00 (RN-30 a RN-33, RN-60 a RN-73).
 
@@ -1925,7 +1976,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 |---|---|
 | **Intenció** | Cobrar dins l'app quotes, inscripcions i llicències amb targeta, Bizum, domiciliació i transferència, sense donar mai res per pagat pel navegador i quadrant-ho tot amb la tresoreria. És el criteri per deixar Cluber (nivell 2). |
 | **Processos que cobreix** | P-M05b-A Targeta · P-M05b-B Bizum · P-M05b-C Transferència · P-M05b-D Notificació del proveïdor · P-M05b-E Remesa de quotes · P-M05b-F Retornat, reintent i alternativa · P-M05b-G Devolució · P-M05b-H Liquidació del proveïdor · P-M05b-I Pas al nivell 2 |
-| **Tasques** | 21 (T-M05b-01 a T-M05b-21); la T-M05b-21 l'afegeix la 049 |
+| **Tasques** | 22 (T-M05b-01 a T-M05b-22); la T-M05b-21 l'afegeix la 049 i la T-M05b-22, la 055 |
 | **Què el bloqueja** | Remeses (T-M05b-10 i T-M05b-11): resposta del banc (P-45 punt 5) [A verificar]. Targeta i Bizum contra un proveïdor real i liquidacions (T-M05b-14): PaynoPain (P-44, P-45) [A verificar]; amb `FakeProvider` es pot avançar |
 | **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-M05b-14 ([048](decisions/048-reobrir-carrec-retornat.md)) i RN-M05b-15 ([M05b-14](#M05b-14-aprovar)). Queden RN-M05b-16 i RN-M05b-18 (junta, configurables) i l'autorització del nivell 2 (junta). El 02 proposa una ampliació petita del seu contracte ([M02-14](#M02-14-aprovar)) |
 
@@ -2376,6 +2427,29 @@ App `payments` (la mateixa del 05a).
 2. **Resposta del banc** sobre remeses (P-45 punt 5) [A verificar: banc]: bloqueja T-M05b-10 i T-M05b-11.
 3. **Proveïdor** (P-44, P-45) [A verificar: PaynoPain]: bloqueja T-M05b-04 contra un proveïdor real; amb `FakeProvider` es pot avançar.
 4. **Autorització del nivell 2** (junta, 025): quan el 05b estigui acabat i provat.
+
+<a id="M05b-addenda-055"></a>
+## M05b — Addenda de la [055](decisions/055-ajustos-configurables-i-addendes.md): pantalla d'ajustos
+
+Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: dona pantalla als `PaymentSettings` que ja existeixen i als dos valors configurables de RN-M05b-16 i RN-M05b-18. La feina és a la tasca T-M05b-22.
+
+| VC | Valor | Valor inicial | Rang | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-16 | `transfer_reminder_days`; `prenotification_days`; `max_direct_debit_attempts` | 30; 14; 2 | 7 a 60; 14 a 30 (segons el text del mandat [A verificar: banc]); 1 a 3 | Tresorer | — |
+| VC-17 | `bizum_ui_timeout_minutes`; `safety_net_age_minutes` | 15; 60 | 5 a 30; 30 a 240 | Administrador | — |
+| VC-18 | `payments.return_fee_payer` (club o soci, RN-M05b-16); `members.card_valid_with_returned_fee` (RN-M05b-18) | El club; no vàlid | — | Administrador, per decisió de la junta | Sí, el de la comissió |
+
+| ID | Regla |
+|---|---|
+| RN-M05b-24 | La pantalla edita els `PaymentSettings` amb els rangs de VC-16 i VC-17 i les mateixes comprovacions de la peça comuna (rol al servidor, rang, registre amb el valor anterior). Els valors que ja s'estan fent servir (una remesa amb l'avís previ enviat, un pagament de Bizum en curs) no canvien |
+| RN-M05b-25 | Els dos valors de VC-18 viuen a la peça comuna d'ajustos. Canviar qui paga la comissió de retorn afecta diners: porta data d'entrada en vigor, s'aplica als retornats que arriben a partir d'aquella data i avisa el tresorer i la junta (RN-AJ-04) |
+
+- **CA-M05b-26** Donat `prenotification_days` a 14, quan el tresorer el posa a 13 o a 31, llavors es rebutja; a 20, s'accepta, queda al registre i les remeses noves fan servir 20, però una remesa amb l'avís ja enviat no canvia.
+- **CA-M05b-27** Donat un canvi de `payments.return_fee_payer` a «soci» amb data d'entrada en vigor, quan arriba un retornat abans d'aquella data, llavors la comissió la paga el club; quan arriba després, la paga el soci; el tresorer i la junta reben el correu amb el valor anterior i el nou.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05b-22 | Pantalla d'ajustos del 05b (VC-16 a VC-18) sobre els `PaymentSettings` i la peça comuna ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/payments/views/settings.py` | T-AJ-02, T-M05b-05, T-M05b-12 | CA-M05b-26, 27 |
 
 ---
 
@@ -2900,7 +2974,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 | T-M02-25 | Dades de prova inventades: catàlegs, activitats, inscrits, avaluacions | S | `apps/activities/fixtures/` | T-M02-20 | Es carreguen amb una ordre |
 | T-M02-26 | Proves de principi a fi amb `FakeProvider` | L | `tests/` | T-M02-11 a T-M02-22 | Totes en verd |
 | T-M02-27 | Guia del responsable i de l'instructor; ajuda per inscriure's | S | `docs/` | T-M02-26 | Revisades |
-| T-M02-28 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/activities/settings.py`, vistes | T-M02-04; peça comuna d'ajustos (proposta 055) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M02-28 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/activities/settings.py`, vistes | T-M02-04; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
 
 <a id="M02-11-proves"></a>
 ## M02-11 Pla de proves
@@ -3369,7 +3443,7 @@ Cap altra app escriu als models del 03.
 | T-M03-19 | Informes: cost per participant i activitat, material més usat, revisions properes | S | vistes | T-M03-13, T-M03-14 | Proves de permisos |
 | T-M03-20 | Dades inventades i proves de principi a fi (inscripció → necessitat → assignació → lliurament → retorn → cost) | L | `apps/equipment/fixtures/`, `tests/` | T-M03-08 a T-M03-17 | Totes en verd |
 | T-M03-21 | Guia del responsable de material | S | `docs/` | T-M03-20 | Revisada |
-| T-M03-22 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/equipment/settings.py`, vistes | T-M03-02; peça comuna d'ajustos (proposta 055) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M03-22 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/equipment/settings.py`, vistes | T-M03-02; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
 
 <a id="M03-11-proves"></a>
 ## M03-11 Pla de proves
@@ -3855,7 +3929,7 @@ Cap altra app escriu als models del 09. Tots els serveis que escriuen deixen reg
 | T-M09-23 | Dades inventades i proves de principi a fi (inscripció → pagament → despesa → repartiment → tancament → informe → període) | L | `fixtures/`, `tests/` | T-M09-05 a T-M09-16 | Totes en verd |
 | T-M09-24 | Guia del tresorer (despeses, marge, tancament, factures) | S | `docs/` | T-M09-23 | Revisada |
 | T-M09-25 | Magatzem de documents de justificació: xifratge, accés només del tresorer i la junta, còpia amb l'IBAN emmascarat i marca «il·legible» amb avís, derivada de `DocumentIllegibleMark` sense escriure a la despesa ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) | M | `apps/expenses/documents.py` | T-M09-04 | CA-M09-23, 24, 28, 30, 31, 32, 33, 34 (activador de `replaced_at` i restricció única parcial en una migració pròpia, RN-M09-27) |
-| T-M09-26 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís, també els de l'apartat d'ajuts | S | `apps/margins/settings.py`, `apps/grants/settings.py`, vistes | T-M09-22, T-M09A-12; peça comuna d'ajustos (proposta 055) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M09-26 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís, també els de l'apartat d'ajuts | S | `apps/margins/settings.py`, `apps/grants/settings.py`, vistes | T-M09-22, T-M09A-12; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
 
 La facturació real (servei homologat) espera la resposta de la gestoria: T-M09-18 a T-M09-21 es poden fer amb el `FakeInvoicingProvider`, però la facturació no s'activa en producció fins que es respongui P-02 i P-47.
 
@@ -4697,7 +4771,7 @@ Cap altra app escriu als models del 06.
 | T-M06-17 | Dades inventades i proves de principi a fi (demanar → pagar → tramitar → vigent → avís → renovar) | M | `fixtures/`, `tests/` | T-M06-04 a T-M06-14 | Totes en verd |
 | T-M06-18 | Guia de la secretaria (tramitació i venciments) | S | `docs/` | T-M06-17 | Revisada |
 | T-M06-19 | Opció `LICENCES_DAY_ENABLED` (desactivada per defecte) i, darrere d'ella, llicència d'un dia: unicitat per data, estat `lapsed`, avís i proposta de devolució | M | `apps/licences/day.py`, migració | T-M06-03, T-M06-12 | CA-M06-21 sempre; CA-M06-22, 23 amb l'opció activada a la prova |
-| T-M06-20 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/licences/settings.py`, vistes | T-M06-16; peça comuna d'ajustos (proposta 055) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
+| T-M06-20 | Pantalla d'**ajustos** del mòdul: els seus valors de l'[apèndix](#valors-configurables), amb valor inicial, rang vàlid, rol que el canvia, registre (qui, quan, valor anterior) i data d'entrada en vigor si afecta diners; només per als rols amb permís | S | `apps/licences/settings.py`, vistes | T-M06-16; T-AJ-02 (peça comuna d'ajustos, [055](#valors-configurables-055)) | Per valor: fora de rang es rebutja; el canvi queda al registre; un rol sense permís rep «no trobat»; un canvi de diners no toca el que ja s'ha demanat |
 
 <a id="M06-11-proves"></a>
 ## M06-11 Pla de proves
@@ -4885,6 +4959,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M06-05, 07, 08, 10 | Qui manté els preus; llicència d'un dia sense inscripció (condicional); no soci que es fa soci; departament de les llicències (Q-19) | — |
 | M06-13 dubte 2 | Data de naixement: la FECDAS la demana en tramitar (Q-09, P-33); **punt prioritari 0** | — |
 | M06-13 dubte 4; M09-13 dubte 5 | Comissió del cobrament de la llicència d'un soci | — |
+| S-AJ-01, 02 ([055](#valors-configurables-055)) | Si algun import només es pot canviar amb ratificació; qui rep l'avís dels canvis de diners com a «junta» | — (el canvi s'aplica i s'avisa) |
 
 <a id="preguntes-gestoria"></a>
 **Gestoria**
@@ -4985,6 +5060,7 @@ Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, en
 | 13 | **Departaments, marge i informes** | Ingrés de les quotes a «General / Quotes de socis»; si el marge per departament inclou els costos generals; informes de l'assemblea; hores de voluntariat; pressupostos; qui reobre un període tancat i si el tresorer ho ha de poder demanar; fotos de factures i comprovants que queden a la galeria del telèfon. La llista de departaments i el llindar de marge baix són a la part B (B9) | Quotes a «General / Quotes de socis»; mostrar marges i costos generals per separat; informes en CSV; hores sense valorar en euros; pressupostos més endavant; només l'administrador reobre, amb motiu i avís per correu al tresorer i a la junta, i el tresorer no ho demana a la plataforma; text d'ajuda a la pujada que demana esborrar la foto, i una norma per als responsables si informàtica confirma que la foto es copia al núvol | S-M04-06; S-M09-06, 10, 11, 12, 13; RN-M09-25 |
 | 14 | **Activitats: altres** | Avís o bloqueig si no es compleixen els requisits; dades ambientals; protocol d'accidents i contacte d'emergència; drets del simpatitzant. Els tipus de sortida propis són a la part B (B10) | Avís, no bloqueig; residus en kg, espècies, observacions i fotos; protocol fora de la plataforma; els simpatitzants tenen els mateixos drets al 01 | S-M02-01, 14, 20; S-M01-11 |
 | 15 | **Pagaments i producció** | Autoritzacions dels nivells 1 i 2 de producció; qui guarda la còpia de la clau; textos del mandat, de la invitació i del correu G3; titular del compte diferent del soci; registre manual de cobraments en efectiu; doble aprovació | Autoritzar cada nivell quan es passin les portes de la checklist; dues persones de la junta per a la clau; Claude prepara els esborranys dels textos; titular diferent admès amb declaració; registre manual només pel tresorer, amb justificant; sense doble aprovació | 025; S-M05a-05, 09; M05a-14 punt 2; P-12; P-48 |
+| 16 | **Canvis d'imports** | Si algun import (quota, preu, tarifa, recàrrec, comissió) només es pot canviar amb ratificació de la junta; qui rep l'avís de cada canvi com a «junta» ([055](decisions/055-ajustos-configurables-i-addendes.md)) | Cap ratificació: el canvi s'aplica, el tresorer i la junta reben un correu amb el valor anterior i el nou, i la junta pot demanar desfer-lo; destinataris: una llista d'adreces de la junta que manté l'administrador | S-AJ-01, 02 |
 
 <a id="ordre-del-dia-valors"></a>
 ## Part B — Valors inicials que es poden canviar quan calgui
@@ -5009,28 +5085,28 @@ No bloqueja res. Són els valors amb què arrenca el codi; la junta els pot conf
 
 Aplica la regla general de [valors de negoci](#regles) (28/10/2026). Per a cada valor: on viu **ara** segons la secció del mòdul, on hauria de viure (**proposta**), valor inicial, rang vàlid, qui el canvia, si queda al registre i si té data d'entrada en vigor. **«Ajustos»** vol dir base de dades, editable a la pantalla d'ajustos del mòdul, amb registre (qui, quan, valor anterior). **«Dada»** vol dir que ja és una llista o una fila editable a l'app (catàlegs, tipus, tarifes). **«Entorn»** vol dir variable d'entorn, que canvia informàtica en desplegar.
 
-Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Proposta** és configuració tècnica, no definida o fixa al text, i hauria de ser editable a l'app (en un mòdul escrit, s'aplica quan s'aprovi aquest apèndix; en un mòdul aprovat, només amb la [proposta 055](#valors-configurables-055)); **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
+Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Proposta** és configuració tècnica, no definida o fixa al text, i hauria de ser editable a l'app (en un mòdul escrit, s'aplica quan s'aprovi aquest apèndix; en un mòdul aprovat, l'aplica la decisió [055](decisions/055-ajustos-configurables-i-addendes.md)); **055** s'aplica amb una addenda al mòdul aprovat; **Es queda** és regla, seguretat, format d'integritat o secret, i no s'edita des de l'app. Cap regla aprovada no s'ha editat.
 
 | ID | Mòdul | Valor | On viu ara | Proposta | Valor inicial | Rang vàlid | Qui el canvia | Registre | En vigor | Canvi |
 |---|---|---|---|---|---|---|---|---|---|---|
-| VC-01 | 01 | Quota anual per tipus de soci (`annual_fee_cents`) | Dada (tresorer o administrador, amb motiu) | Ajustos, amb data d'entrada en vigor | 3500 i 9000 cèntims | > 0 | Tresorer o administrador | Sí, amb motiu | Sí (nova) | Proposta 055 |
-| VC-02 | 01 | Dies dels recordatoris de quota (RN-M01-14) | No definit (al text) | Ajustos | 15 abans; 15 i 30 després | 1 a 90 | Tresorer | Sí | — | Proposta 055 |
-| VC-03 | 01 | Text del darrere del carnet (S-M01-08) | No definit | Ajustos (text) | Contacte del club i com verificar-lo | Fins a 300 caràcters | Secretaria o administrador | Sí | — | Proposta 055 |
-| VC-04 | 01 | Llindar de soci clàssic (S-M01-09) | No definit | Ajustos (anys; 0 = sense insígnia) | 0 | 0 a 60 | Junta (administrador) | Sí | — | Proposta 055 |
+| VC-01 | 01 | Quota anual per tipus de soci (`annual_fee_cents`) | Dada (tresorer o administrador, amb motiu) | Ajustos, amb data d'entrada en vigor | 3500 i 9000 cèntims | > 0 | Tresorer o administrador | Sí, amb motiu | Sí (nova) | 055 |
+| VC-02 | 01 | Dies dels recordatoris de quota (RN-M01-14) | No definit (al text) | Ajustos | 15 abans; 15 i 30 després | 1 a 90 | Tresorer | Sí | — | 055 |
+| VC-03 | 01 | Text del darrere del carnet (S-M01-08) | No definit | Ajustos (text) | Contacte del club i com verificar-lo | Fins a 300 caràcters | Secretaria o administrador | Sí | — | 055 |
+| VC-04 | 01 | Llindar de soci clàssic (S-M01-09) | No definit | Ajustos (anys; 0 = sense insígnia) | 0 | 0 a 60 | Junta (administrador) | Sí | — | 055 |
 | VC-05 | 01 | Xifres visibles a la verificació pública (S-M01-06) | Text | Codi | Dues | — | — | — | — | Es queda (privacitat) |
 | VC-06 | 01 | `CLUBER_FINAL_IMPORT_ALLOWED` | Entorn | Entorn | Fals | — | Informàtica | Desplegament | — | Es queda (seguretat d'una operació única) |
 | VC-07 | 01 | `ADMIN_URL_PATH`; remitent dels correus (S-M01-19) | Entorn | Entorn | — | — | Informàtica | Desplegament | — | Es queda (tècnic) |
 | VC-08 | 04 | Departaments, centres de cost i comptes de tresoreria | Dada (administrador; S-M04-09) | Dada | «General» i els seus centres | Noms únics | Administrador | Sí | — | — |
 | VC-09 | 04 | `CLUB_IBAN_TRANSFERENCIES` (IBAN del club per pagar per transferència) | Entorn | Entorn | [A verificar: banc] | — | Informàtica, amb ordre del tresorer | Desplegament | — | Es queda (canviar on paguen els socis és un risc de frau) |
 | VC-10 | 04 | `TRANSFER_REFERENCE_PREFIX` | Entorn | Codi o entorn | — | — | Informàtica | Desplegament | — | Es queda (format d'integritat de la conciliació) |
-| VC-11 | 05a | Dies dels recordatoris de la campanya de mandats (RN-M05a-14) | No definit (al text) | Ajustos | 7 i 14 dies | 1 a 60 | Tresorer | Sí | — | Proposta 055 |
+| VC-11 | 05a | Dies dels recordatoris de la campanya de mandats (RN-M05a-14) | No definit (al text) | Ajustos | 7 i 14 dies | 1 a 60 | Tresorer | Sí | — | 055 |
 | VC-12 | 05a | Minuts per tornar a demanar la contrasenya (RN-M05a-12) | Text | Codi | 15 | — | Informàtica | — | — | Es queda (seguretat) |
 | VC-13 | 05a | Caducitat d'un mandat sense cobraments (RN-M05a-08) | Text | Codi | 36 mesos | — | — | — | — | Es queda (regla SEPA) [A verificar: banc] |
 | VC-14 | 05a | Mètodes actius del proveïdor (`card_enabled`, `bizum_enabled`, `tokenization_enabled`) | Dada (administrador, A7) | Dada | Segons el proveïdor | — | Administrador | Sí | — | — |
 | VC-15 | 05a | `PAYMENTS_LIVE_CHARGES_ALLOWED`, `SEPA_CREDITOR_ID`, `MANDATE_ENCRYPTION_KEYS`, claus del proveïdor | Entorn | Entorn | Fals; [A verificar: banc]; secret | — | Informàtica (nivells de producció, 025) | Desplegament | — | Es queda (seguretat i secrets) |
-| VC-16 | 05b | `PaymentSettings`: dies del recordatori de transferència i de l'avís previ, màxim d'intents de domiciliació | Base de dades amb registre | Ajustos (pantalla) | 30; 14; 2 | 7 a 60; 14 a 30 (avís previ, segons el text del mandat [A verificar: banc]); 1 a 3 | Tresorer | Sí | — | Proposta 055 (només la pantalla) |
-| VC-17 | 05b | `PaymentSettings`: minuts d'espera de Bizum i edat de la xarxa de seguretat | Base de dades amb registre | Ajustos, només administrador | 15; 60 | 5 a 30; 30 a 240 | Administrador | Sí | — | Proposta 055 (només la pantalla) |
-| VC-18 | 05b | Qui paga la comissió de retorn (RN-M05b-16) i carnet amb una quota retornada (RN-M05b-18) | Valors configurables | Ajustos (commutadors) | El club; no vàlid | — | Administrador, per decisió de la junta | Sí | Sí | Proposta 055 (només la pantalla) |
+| VC-16 | 05b | `PaymentSettings`: dies del recordatori de transferència i de l'avís previ, màxim d'intents de domiciliació | Base de dades amb registre | Ajustos (pantalla) | 30; 14; 2 | 7 a 60; 14 a 30 (avís previ, segons el text del mandat [A verificar: banc]); 1 a 3 | Tresorer | Sí | — | 055 (només la pantalla) |
+| VC-17 | 05b | `PaymentSettings`: minuts d'espera de Bizum i edat de la xarxa de seguretat | Base de dades amb registre | Ajustos, només administrador | 15; 60 | 5 a 30; 30 a 240 | Administrador | Sí | — | 055 (només la pantalla) |
+| VC-18 | 05b | Qui paga la comissió de retorn (RN-M05b-16) i carnet amb una quota retornada (RN-M05b-18) | Valors configurables | Ajustos (commutadors) | El club; no vàlid | — | Administrador, per decisió de la junta | Sí | Sí | 055 (només la pantalla) |
 | VC-19 | 05b | Format del número de rebut (`R-AAAA-NNNNNN`) | Text | Codi | — | — | — | — | — | Es queda (numeració) |
 | VC-20 | 02 | Catàleg de cursos i especialitats, preus de soci i de no soci, tipus i subtipus de sortida, projectes | Dada | Dada, amb data d'entrada en vigor per als preus | Buit; «Neteja»; Sèniors i jornades obertes desactivables | Preus ≥ 0 | Responsable de cursos i sortides; preus, tresorer [A validar: junta] | Sí | Sí (preus) | Proposta (data d'entrada en vigor dels preus) |
 | VC-21 | 02 | Termini de pagament d'una inscripció per defecte (RN-M02-08; cada activitat el pot canviar) | Text (valor per defecte) | Ajustos | 72 hores | 24 a 240 | Tresorer | Sí | — | Proposta |
@@ -5058,13 +5134,42 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **Proposta** és
 | VC-43 | 06 | `LICENCE_REMINDER_BATCH_SIZE` | Configuració | Entorn | [A validar: informàtica] | — | Informàtica | Desplegament | — | Es queda (tècnic) |
 | VC-44 | 06 | Preu de soci = preu de la federació (RN-M06-05) | Regla | Codi | — | — | — | — | — | Es queda (regla) |
 
-**Fora d'aquesta llista.** Els valors de la spec 00 (rols, permisos configurables mentre no es validi P-04) són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i entra amb la proposta 055.
+**Fora d'aquesta llista.** Els valors de la spec 00 (rols, permisos configurables mentre no es validi P-04) són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i és a la [055](#valors-configurables-055).
 
 <a id="valors-configurables-055"></a>
-**Proposta de decisió 055 (pendent d'aprovació, no creada): ajustos als mòduls aprovats.** No s'edita cap regla aprovada dels mòduls 01, 04, 05a i 05b. Si el responsable del projecte l'aprova, es crea la decisió i s'afegeix com a addenda a cada mòdul:
-1. **Peça comuna d'ajustos a la 00:** valor amb valor inicial, rang, rol, registre (qui, quan, valor anterior) i data d'entrada en vigor quan afecta diners. La fan servir totes les pantalles d'ajustos.
-2. **01:** pantalla d'ajustos (tasca nova T-M01-32) amb VC-01 (afegeix la data d'entrada en vigor a la quota), VC-02, VC-03 i VC-04.
-3. **04:** cap valor nou; els departaments i els comptes ja són dades (VC-08). Sense tasca nova.
-4. **05a:** pantalla d'ajustos (T-M05a-22) amb VC-11.
-5. **05b:** pantalla per als `PaymentSettings` que ja existeixen (T-M05b-22): VC-16, VC-17 i VC-18. No canvia cap valor ni cap regla.
-6. **Es queden com estan:** VC-05, 06, 07, 09, 10, 12, 13, 15 i 19 (seguretat, regles, formats i secrets).
+## Decisió 055: peça comuna d'ajustos (00)
+
+Acceptada el 28/10/2026 ([055](decisions/055-ajustos-configurables-i-addendes.md)). La spec 00 no s'edita: la peça comuna és aquí fins que la 00 tingui secció. Als mòduls aprovats s'aplica amb una addenda ([01](#M01-addenda-055), [05a](#M05a-addenda-055), [05b](#M05b-addenda-055)) sense canviar-ne cap regla. El 04 no té cap valor nou (VC-08 ja són dades). Es queden com estan: VC-05, 06, 07, 09, 10, 12, 13, 15 i 19.
+
+**Entitats**
+- `Setting`: `key` (única, amb el prefix del mòdul, per exemple `members.fee_reminder_days_before`), `module`, `value_type` (enter, cèntims, sí o no, text, opció, URL, dia i mes, llista d'enters), `initial_value`, rang (`min_value` i `max_value`, `choices` o `max_length`), `editor_roles`, `affects_money` i `effective_dated`.
+- `SettingVersion`: `setting`, `value`, `effective_from` (data, buida si el valor no en té), `changed_by` (compte), `changed_at`, `previous_value`, `note`. Només s'hi afegeixen files: mai s'editen ni s'esborren.
+
+**Regles**
+| ID | Regla |
+|---|---|
+| RN-AJ-01 | **Lectura:** `settings.get(key, at)` torna el valor de la versió amb la `effective_from` més gran que no passa de la data `at` (si n'hi ha dues amb la mateixa data, la creada més tard); sense cap versió, el valor inicial. Cap mòdul escriu un valor de negoci al codi |
+| RN-AJ-02 | **Canvi:** `settings.change(key, value, user, note, effective_from)` comprova al servidor el rol (sense permís, «no trobat»), el tipus i el rang (fora de rang es rebutja i no es desa res). Crea una `SettingVersion` i escriu al registre d'activitat qui, quan, el valor anterior i el compte. Tornar al valor inicial és un canvi més |
+| RN-AJ-03 | **Data d'entrada en vigor:** si el valor afecta diners, la data és obligatòria i no pot ser anterior a avui, i la nota també és obligatòria. El canvi no toca el que ja s'ha demanat, inscrit o cobrat: cada mòdul llegeix el valor a la data que fixa la seva regla. Un canvi programat es desfà amb un altre canvi amb la mateixa data |
+| RN-AJ-04 | **Avís dels canvis de diners (condició a de la 055):** tot canvi d'un valor que afecta diners (quotes, preus, tarifes, recàrrecs, comissions), sigui un `Setting` o una fila d'un catàleg o d'una tarifa, envia un correu al tresorer i a la junta amb el valor, el valor anterior, el nou, qui l'ha canviat, la nota i la data d'entrada en vigor. Els catàlegs i les tarifes el criden amb `settings.notify_money_change`. El correu va per la cua i es reintenta; si falla, el canvi no es desfà. És un avís: no cal cap segona aprovació. Si algun import ha de ser «només amb ratificació»: [A validar: junta, S-AJ-01] |
+| RN-AJ-05 | **Pantalla base:** per a cada mòdul, la llista dels seus valors amb el valor vigent, el programat (si n'hi ha), el valor inicial, el rang i l'historial. Només la veuen els rols amb permís sobre algun valor del mòdul |
+
+**Supòsits**
+| ID | Supòsit | Proposta | Qui ho valida |
+|---|---|---|---|
+| S-AJ-01 | Si algun import només es pot canviar amb ratificació de la junta | Cap: el canvi s'aplica i s'avisa (RN-AJ-04); la junta pot demanar que es desfaci amb un altre canvi | Junta |
+| S-AJ-02 | Qui rep l'avís com a «junta» mentre el rol Junta no estigui validat (P-04) | Una llista d'adreces de la junta als ajustos generals, que manté l'administrador | Junta |
+
+**Criteris d'acceptació**
+- **CA-AJ-01** Donat un valor amb rang 1 a 90, quan es desa 0 o 91, llavors es rebutja amb un missatge i no es crea cap versió.
+- **CA-AJ-02** Donat un rol sense permís sobre un valor, quan el vol canviar, llavors rep «no trobat» i no es crea cap versió.
+- **CA-AJ-03** Donat un valor de diners canviat amb data d'entrada en vigor demà, quan es llegeix avui, llavors torna el valor anterior; quan es llegeix demà, torna el nou; una data anterior a avui o sense nota es rebutja.
+- **CA-AJ-04** Donat un canvi d'un valor de diners (un `Setting` o una fila de catàleg o de tarifa), quan es desa, llavors el tresorer i la junta reben un sol correu amb el valor anterior i el nou; un canvi d'un valor que no és de diners no envia cap correu; si el correu falla, el canvi es manté i el correu es reintenta.
+- **CA-AJ-05** Donat qualsevol canvi, quan es desa, llavors el registre d'activitat guarda qui, quan, el compte i el valor anterior, i l'historial de la pantalla el mostra.
+- **CA-AJ-06** (condició b de la 055) Donat períodes mensuals fins al darrer, que acaba el 31/03, quan el tresorer canvia la durada del període (VC-32) a trimestral, llavors el període nou comença l'1/04 i acaba el 30/06: cap dia queda fora de cap període ni dins de dos, i els períodes existents no canvien. La prova és a la T-M09-26.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-AJ-01 | Peça comuna: `Setting`, `SettingVersion`, serveis `settings.get`, `settings.change` i `settings.notify_money_change`, registre, data d'entrada en vigor i correu dels canvis de diners | M | `apps/core/business_settings.py`, migració | T-M01-06, T-M01-07, T-M01-10 | CA-AJ-01 a 05 |
+| T-AJ-02 | Pantalla base d'ajustos (llista per mòdul, formulari segons el tipus, historial) | S | `apps/core/views/business_settings.py`, plantilles | T-AJ-01 | Proves de permisos, de rang i d'historial |
