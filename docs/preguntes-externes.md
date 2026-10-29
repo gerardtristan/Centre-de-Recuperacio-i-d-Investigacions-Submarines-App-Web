@@ -2,6 +2,8 @@
 
 Missatges llestos per enviar, un per propietari. Aquest document no copia cap regla del pla: cada pregunta porta l'identificador que l'enllaça a l'[apèndix de preguntes per propietari](planning.md#preguntes). Quan arribi una resposta, s'actualitza el pla (no aquest document) i es marca aquí com a respost.
 
+**Estat del 29/10/2026** ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)): respostes de la FECDAS, la gestoria, el responsable de cursos i sortides i el tresorer, aplicades amb addendes al pla. **Continuen obertes:** les preguntes al banc (secció 3 i seguiment B1 a B5), a PaynoPain (secció 4 i seguiment PP1 a PP4) i la mostra de l'exportació de Cluber (secció 7, pregunta 1). Cada secció diu què està respost i què no; el que falta queda [A verificar] o [A validar] al pla.
+
 Abans d'enviar-los: cap dada personal (ni noms de socis, ni IBAN, ni exportacions reals). Si cal una mostra, ha de ser anonimitzada o inventada.
 
 ---
@@ -9,6 +11,11 @@ Abans d'enviar-los: cap dada personal (ni noms de socis, ni IBAN, ni exportacion
 ## 1. FECDAS
 
 Preguntes a [preguntes-fecdas](planning.md#preguntes-fecdas).
+
+**Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)):**
+- **Respostes:** 3 (365 dies: el mateix dia de l'any següent menys un dia; [M06-addenda-058](planning.md#M06-addenda-058)), 4 (la llicència d'un dia existeix i s'activa), 5 (obertura l'1/12, valor configurable), 6 (la data de naixement es recull; [M01-addenda-058](planning.md#M01-addenda-058)), 7 (el llistat va en el format que triï el club). Tanca els supòsits S-M06-03 i S-M06-12 i el dubte 2 de M06-13.
+- **Respost en part:** 1 (tipus Aficionat i Tècnic, amb les durades un dia, any natural i 365 dies; que tots dos tinguin les tres durades és [A verificar: FECDAS]).
+- **Obertes:** 2 (preus de la federació i si hi ha trams segons el mes; mentrestant, un preu per tipus i durada) i 8 (devolució d'una llicència ja tramitada).
 
 > Bon dia,
 >
@@ -32,6 +39,12 @@ Preguntes a [preguntes-fecdas](planning.md#preguntes-fecdas).
 ## 2. Gestoria
 
 Preguntes a [preguntes-gestoria](planning.md#preguntes-gestoria).
+
+**Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)):**
+- **Respostes:** 2 (la llicència és ingrés del soci i despesa a la federació; tanca S-M06-11 i S-M09-14) i 3 (moviments tardans al període obert amb la data original; confirma RN-T31).
+- **Respostes en part:** 1 (es factura tot cobrament; cursos, sortides i material amb IVA; quotes i llicències exemptes. Obert: tipus d'IVA, text d'exempció, Verifactu i servei homologat, P-02 i P-47), 4 (els registres econòmics no s'eliminen mai; obert: el termini legal per anonimitzar-ne les dades personals, Q-14) i 5 (els donatius de persones es fan, amb certificat i model 182; substitueix S-M09-03. Obert: si el club pot emetre certificats deduïbles).
+- **Sense prioritat:** 6 (el termini d'esmena serà un camp opcional per convocatòria).
+- Detall a [M09-addenda-058](planning.md#M09-addenda-058).
 
 > Bon dia,
 >
@@ -98,6 +111,8 @@ Preguntes a [preguntes-paynopain](planning.md#preguntes-paynopain) (P-44 i P-45)
 
 Preguntes a [preguntes-informatica](planning.md#preguntes-informatica).
 
+**Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) punt 12):** es mantenen els supòsits del pla tal com són i no s'afluixa el requisit de dades dins la UE (035). Les preguntes continuen pendents de confirmar per informàtica.
+
 > Hola,
 >
 > Estem acabant el pla de l'aplicació del club i, abans d'entrar en producció, hi ha algunes decisions tècniques que són teves.
@@ -116,6 +131,8 @@ Preguntes a [preguntes-informatica](planning.md#preguntes-informatica).
 
 Preguntes a [preguntes-cursos-sortides](planning.md#preguntes-cursos-sortides).
 
+**Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)): respostes totes tres.** 1: la llicència d'un dia existeix i s'activa (S-M06-12). 2: tipus Aficionat i Tècnic; els preus són els de la federació, pendents de la FECDAS. 3: per ser instructor d'una sessió cal ser soci actiu i tenir llicència tècnica vigent, en mode bloqueig configurable ([M02-addenda-058](planning.md#M02-addenda-058); RP-M02-02).
+
 > Hola,
 >
 > Per tancar la part de llicències i activitats de l'aplicació ens calen tres respostes teves.
@@ -131,6 +148,10 @@ Preguntes a [preguntes-cursos-sortides](planning.md#preguntes-cursos-sortides).
 ## 7. Tresorer
 
 Preguntes a [preguntes-tresorer](planning.md#preguntes-tresorer).
+
+**Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)):**
+- **Resposta:** 2 (P-28): Cluber no guarda la data de caducitat de les llicències; s'importen com a «pendents de confirmar» ([M01-addenda-058](planning.md#M01-addenda-058), [M06-addenda-058](planning.md#M06-addenda-058)).
+- **Oberta:** 1 (Q-23), la mostra anonimitzada de l'exportació de Cluber.
 
 > Hola,
 >

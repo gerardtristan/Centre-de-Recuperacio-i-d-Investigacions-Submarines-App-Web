@@ -85,6 +85,7 @@
    - [Addenda de la 052: còpia de lectura de la llicència](#M01-addenda-052)
    - [Addenda de la 054: versió dels esdeveniments i comprovació diària](#M01-addenda-054)
    - [Addenda de la 055: pantalla d'ajustos](#M01-addenda-055)
+   - [Addenda de la 058: data de naixement (00), caducitat desconeguda i conservació](#M01-addenda-058)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
@@ -94,13 +95,16 @@
    1. [Intenció](#M05a-1-intencio) · 2. [Dependències](#M05a-2-dependencies) · 3. [Capacitats](#M05a-3-capacitats) · 4. [Rols](#M05a-4-rols) · 5. [Processos](#M05a-5-processos) · 6. [Entitats](#M05a-6-entitats) · 7. [Regles](#M05a-7-regles)
    8. [Serveis](#M05a-8-serveis) · 9. [Criteris](#M05a-9-criteris) · 10. [Tasques](#M05a-10-tasques) · 11. [Proves](#M05a-11-proves) · 12. [Seguretat](#M05a-12-seguretat) · 13. [Riscos](#M05a-13-riscos) · 14. [Aprovar](#M05a-14-aprovar)
    - [Addenda de la 055: pantalla d'ajustos](#M05a-addenda-055)
+   - [Addenda de la 058: targeta guardada recomanada i renovació de la quota](#M05a-addenda-058)
 9. [Mòdul 05b — Cobraments](#M05b) · [resum](#M05b-resum)
    1. [Intenció](#M05b-1-intencio) · 2. [Dependències](#M05b-2-dependencies) · 3. [Capacitats](#M05b-3-capacitats) · 4. [Rols](#M05b-4-rols) · 5. [Processos](#M05b-5-processos) · 6. [Entitats](#M05b-6-entitats) · 7. [Regles](#M05b-7-regles)
    8. [Serveis](#M05b-8-serveis) · 9. [Criteris](#M05b-9-criteris) · 10. [Tasques](#M05b-10-tasques) · 11. [Proves](#M05b-11-proves) · 12. [Seguretat](#M05b-12-seguretat) · 13. [Riscos](#M05b-13-riscos) · 14. [Aprovar](#M05b-14-aprovar)
    - [Addenda de la 055: pantalla d'ajustos](#M05b-addenda-055)
+   - [Addenda de la 058: import extra del retorn i reintent de la targeta](#M05b-addenda-058)
 10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M02-1-intencio) · 2. [Dependències](#M02-2-dependencies) · 3. [Capacitats](#M02-3-capacitats) · 4. [Rols](#M02-4-rols) · 5. [Processos](#M02-5-processos) · 6. [Entitats](#M02-6-entitats) · 7. [Regles](#M02-7-regles)
    8. [Serveis](#M02-8-serveis) · 9. [Criteris](#M02-9-criteris) · 10. [Tasques](#M02-10-tasques) · 11. [Proves](#M02-11-proves) · 12. [Seguretat](#M02-12-seguretat) · 13. [Riscos](#M02-13-riscos) · 14. [Aprovar](#M02-14-aprovar)
+   - [Addenda de la 058: instructors, nivells, especialitats, titulacions i edat mínima](#M02-addenda-058)
 11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M03-1-intencio) · 2. [Dependències](#M03-2-dependencies) · 3. [Capacitats](#M03-3-capacitats) · 4. [Rols](#M03-4-rols) · 5. [Processos](#M03-5-processos) · 6. [Entitats](#M03-6-entitats) · 7. [Regles](#M03-7-regles)
    8. [Serveis](#M03-8-serveis) · 9. [Criteris](#M03-9-criteris) · 10. [Tasques](#M03-10-tasques) · 11. [Proves](#M03-11-proves) · 12. [Seguretat](#M03-12-seguretat) · 13. [Riscos](#M03-13-riscos) · 14. [Aprovar](#M03-14-aprovar)
@@ -108,9 +112,11 @@
    1. [Intenció](#M09-1-intencio) · 2. [Dependències](#M09-2-dependencies) · 3. [Capacitats](#M09-3-capacitats) · 4. [Rols](#M09-4-rols) · 5. [Processos](#M09-5-processos) · 6. [Entitats](#M09-6-entitats) · 7. [Regles](#M09-7-regles)
    8. [Serveis](#M09-8-serveis) · 9. [Criteris](#M09-9-criteris) · 10. [Tasques](#M09-10-tasques) · 11. [Proves](#M09-11-proves) · 12. [Seguretat](#M09-12-seguretat) · 13. [Riscos](#M09-13-riscos) · 14. [Aprovar](#M09-14-aprovar)
    - [Apartat: Ajuts: calendari, sol·licituds i justificació](#M09-ajuts) · [resum](#M09-ajuts-resum) · **aprovat** (28/10/2026): 1. [Intenció](#M09-ajuts-1-intencio) · 2. [Dependències](#M09-ajuts-2-dependencies) · 3. [Capacitats](#M09-ajuts-3-capacitats) · 4. [Rols](#M09-ajuts-4-rols) · 5. [Processos](#M09-ajuts-5-processos) · 6. [Entitats](#M09-ajuts-6-entitats) · 7. [Regles](#M09-ajuts-7-regles) · 8. [Serveis](#M09-ajuts-8-serveis) · 9. [Criteris](#M09-ajuts-9-criteris) · 10. [Tasques](#M09-ajuts-10-tasques) · 11. [Proves](#M09-ajuts-11-proves) · 12. [Seguretat](#M09-ajuts-12-seguretat) · 13. [Riscos](#M09-ajuts-13-riscos) · 14. [Aprovar](#M09-ajuts-14-aprovar)
+   - [Addenda de la 058: IVA per tipus de càrrec, donatius, termini d'esmena i conservació](#M09-addenda-058)
 13. [Mòdul 06 — Llicències](#M06) · [resum](#M06-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M06-1-intencio) · 2. [Dependències](#M06-2-dependencies) · 3. [Capacitats](#M06-3-capacitats) · 4. [Rols](#M06-4-rols) · 5. [Processos](#M06-5-processos) · 6. [Entitats](#M06-6-entitats) · 7. [Regles](#M06-7-regles)
    8. [Serveis](#M06-8-serveis) · 9. [Criteris](#M06-9-criteris) · 10. [Tasques](#M06-10-tasques) · 11. [Proves](#M06-11-proves) · 12. [Seguretat](#M06-12-seguretat) · 13. [Riscos](#M06-13-riscos) · 14. [Aprovar](#M06-14-aprovar)
+   - [Addenda de la 058: tipus, durades, llicència d'un dia, recàrrec, renovació, format del carnet i caducitat desconeguda](#M06-addenda-058)
 14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
 15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
 16. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta): [decisions de debò](#ordre-del-dia-decisions) · [valors inicials](#ordre-del-dia-valors)
@@ -266,7 +272,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 <a id="M01"></a>
 # Mòdul 01 — Socis i carnet digital
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M01-addenda-055) de pantalla d'ajustos (T-M01-32), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M01-addenda-055) de pantalla d'ajustos (T-M01-32), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M01-addenda-058) (data de naixement de la 00, caducitat desconeguda i conservació; T-M01-33 i T-M01-34), sense canviar cap regla.
 
 **Fonts integrades:** el pla M01 del repositori anterior (aprovat amb respostes el 27/10/2026), la [spec 00](../specs/00-base-comuna/spec.md) v2, el document de funcionalitats (F §3 i processos 9.2 a 9.5 i 9.13), el mapa de la plataforma v8 i les decisions 035–047. Per la [047](decisions/047-planning-font-unica-de-l-especificacio.md), aquesta secció **és** l'especificació del M01: no hi ha cap `specs/01-…`.
 
@@ -276,7 +282,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 |---|---|
 | **Intenció** | Tenir els socis, les quotes anuals i el carnet digital a la plataforma, perquè la secretaria deixi Excel i correu, cada soci vegi les seves dades i el seu carnet, i Cluber es pugui deixar. Cap altre mòdul no funciona sense aquest. |
 | **Processos que cobreix** | P-M01-A Alta de soci · P-M01-B Canvi de tipus · P-M01-C Baixa i readmissió · P-M01-D Renovació anual de quotes · P-M01-E Carnet i verificació pública · P-M01-F RGPD: exportar i esborrar · P-M01-G Importació de Cluber en dues fases (F 9.2 a 9.5 i 9.13) |
-| **Tasques** | 32 (T-M01-01 a T-M01-32), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049, la T-M01-31, la 052 (amb la 054) i la T-M01-32, la 055. La peça comuna d'ajustos (T-AJ-01 i T-AJ-02) és a l'[apèndix](#valors-configurables-055) |
+| **Tasques** | 34 (T-M01-01 a T-M01-34), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049, la T-M01-31, la 052 (amb la 054) i la T-M01-32, la 055, i la T-M01-33 i la T-M01-34, la 058. La peça comuna d'ajustos (T-AJ-01 i T-AJ-02) és a l'[apèndix](#valors-configurables-055) |
 | **Què el bloqueja** | Res per començar. La importació final espera el 05a (nivell 1) i la mostra anonimitzada de Cluber [A validar: tresorer, S-M01-16] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). Continua obert sense bloquejar: la matriu dels 13 rols (junta, P-04) i els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
 
@@ -973,6 +979,36 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M01: els valors que el text 
 |---|---|---|---|---|---|
 | T-M01-32 | Pantalla d'ajustos del 01 (VC-01 a VC-04), versions del preu del tipus amb data d'entrada en vigor i lectura dels valors des de les tasques i el carnet ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/members/settings.py`, vistes, migració | T-AJ-02, T-M01-18, T-M01-19 | CA-M01-35 a 37; proves del M01 en verd |
 
+
+<a id="M01-addenda-058"></a>
+## M01 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): data de naixement (00), caducitat desconeguda i conservació
+
+Aprovada el 29/10/2026. **No canvia cap regla** del M01 ni edita la spec 00: hi afegeix el que diuen els punts 1, 7 i 10 de la 058. La part de la 00 es construeix aquí, com la resta de peces de la 00 que el 01 necessita. El fora d'abast de [M01-1](#M01-1-intencio) («data de naixement») queda substituït per aquesta addenda; la relació amb tutors continua fora d'abast mentre P-33 sigui obert.
+
+**Entitats**
+- `Person` (00): camp nou `birth_date` (`DateField`, null). Substitueix la V-04 de la spec 00 només en aquest punt.
+- `LicenceRecord`: `expires_on` passa a admetre buit (caducitat desconeguda). La restricció `expires_on ≥ issued_on` només s'aplica quan hi ha data.
+
+**Regles noves** (no en substitueixen cap)
+| ID | Regla |
+|---|---|
+| RN-M01-47 | **Data de naixement.** Finalitat: tramitar llicències i comprovar l'edat mínima dels cursos. Es demana a l'alta i a la fitxa; si és obligatòria a l'alta o només en demanar una llicència: [A validar: secretaria] (supòsit: obligatòria en demanar una llicència, opcional a la resta) |
+| RN-M01-48 | Només la secretaria i l'administrador veuen la data. La resta de rols que poden veure la persona veuen només «major d'edat», «menor d'edat» o «edat desconeguda», que calcula el servei de la 00 `persons.age_band(person, on)`. Cap llistat, exportació (excepte l'RGPD i el llistat de tramitació del 06) ni registre no porta la data |
+| RN-M01-49 | La data de naixement s'inclou a l'exportació RGPD de la persona i s'anonimitza amb la resta de dades. P-33 (menors) continua obert: aquesta addenda no admet socis menors |
+| RN-M01-50 | **Caducitat desconeguda.** Un registre mínim pot no tenir `expires_on` (Cluber no la guarda). La fitxa i el carnet hi diuen «caducitat desconeguda». `members.licence_record(person)` torna primer la fila amb la caducitat coneguda més tardana; només si no n'hi ha cap, la fila sense data, marcada com a desconeguda. Per al 02, una llicència amb caducitat desconeguda és «pendent de confirmar», no vigent (com «en tràmit», RN-M02-10) [A validar: secretaria] |
+| RN-M01-51 | **Conservació** ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) punt 7): les quotes, els càrrecs i els pagaments no s'eliminen mai. Quan s'esborren les dades d'una persona (RGPD), les seves dades personals en aquests registres s'anonimitzen passat el termini legal [A verificar: gestoria, Q-14], en lloc de destruir els registres |
+
+**Criteris d'acceptació**
+- **CA-M01-38** Donat un soci amb data de naixement, quan l'obre l'instructor o el tresorer, llavors veuen «major d'edat» i no la data; quan l'obre la secretaria, veu la data; una petició forçada de la data per un altre rol es rebutja.
+- **CA-M01-39** Donat un soci que demana l'esborrat RGPD, quan s'executa, llavors l'exportació prèvia porta la data de naixement i, després, la data queda anonimitzada amb la resta de dades.
+- **CA-M01-40** Donat un registre importat de Cluber sense caducitat, quan es desa, llavors s'accepta; la fitxa diu «caducitat desconeguda» i `members.licence_record` el torna marcat com a desconegut si no n'hi ha cap altre amb data.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M01-33 | `Person.birth_date` (00), servei `persons.age_band`, visibilitat per rol i exportació i anonimització RGPD ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/core/models.py`, `apps/core/persons.py`, migració | T-M01-04, T-M01-06 | CA-M01-38, 39 |
+| T-M01-34 | Caducitat desconeguda al registre mínim i a `members.licence_record` ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/members/models.py`, `services.py`, migració | T-M01-30 | CA-M01-40 |
+
 ---
 
 <a id="M04"></a>
@@ -1513,7 +1549,7 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 <a id="M05a"></a>
 # Mòdul 05a — Alta del mètode de pagament i mandats
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05a-addenda-055) de pantalla d'ajustos (T-M05a-22), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05a-addenda-055) de pantalla d'ajustos (T-M05a-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05a-addenda-058) (T-M05a-23 i T-M05a-24), sense canviar cap regla.
 
 **Fonts:** decisions [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); arquitectura §4.2, §4.3 i §4.9 (on diu Stripe, s'aplica la 042); [`integracio-paylands.md`](integracio-paylands.md); checklist (C9, G3 i els punts «N1»).
 
@@ -1525,7 +1561,7 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 |---|---|
 | **Intenció** | Que cada soci tingui un mètode per pagar la quota abans de la primera remesa de la plataforma: recollir mandats SEPA nous en producció al nivell 1 (dades reals, cap cobrament), amb l'IBAN xifrat (044) i el proveïdor de targeta darrere de l'adaptador. |
 | **Processos que cobreix** | P-M05a-A Triar el mètode de pagament · P-M05a-B Signar el mandat · P-M05a-C Canviar l'IBAN o revocar · P-M05a-D Guardar una targeta (condicional) · P-M05a-E Campanya de mandats · P-M05a-F Pas al nivell 1 · P-M05a-G Rotació de la clau |
-| **Tasques** | 22 (T-M05a-01 a T-M05a-22); la T-M05a-22 l'afegeix la 055 |
+| **Tasques** | 24 (T-M05a-01 a T-M05a-24); la T-M05a-22 l'afegeix la 055, i la T-M05a-23 i la T-M05a-24, la 058 |
 | **Què el bloqueja** | Res de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (acceptada). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden els textos (junta) i l'autorització del nivell 1 (junta). La 044 és acceptada |
 
@@ -1962,12 +1998,34 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M05a. La feina és a la tasc
 |---|---|---|---|---|---|
 | T-M05a-22 | Pantalla d'ajustos del 05a (VC-11) i lectura des de la campanya ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/payments/settings.py`, vistes | T-AJ-02, T-M05a-13 | CA-M05a-18 |
 
+
+<a id="M05a-addenda-058"></a>
+## M05a — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): targeta guardada recomanada i renovació de la quota
+
+Aprovada el 29/10/2026. **No canvia cap regla** del M05a: canvia només quin mètode es **recomana** per defecte als socis nous (punt 15 de la 058, que substitueix la 017 en aquest punt). Els mètodes disponibles de RN-M05a-01 no canvien.
+
+| ID | Regla |
+|---|---|
+| RN-M05a-19 | **Mètode recomanat als socis nous:** la targeta guardada, si el proveïdor permet guardar-la (`tokenization_enabled`, VC-14) [A verificar: PaynoPain, P-45 punt 6]. Si no ho permet, es continua recomanant la domiciliació. La domiciliació continua disponible i la transferència es permet sense obligar-hi. Els socis que ja tenen un mètode no reben cap canvi |
+| RN-M05a-20 | **Caducitat de la targeta guardada:** el soci rep un avís abans que caduqui la targeta, per correu i a l'app (sense push), amb l'enllaç per guardar-ne una de nova. Quants dies abans: ajust `payments.card_expiry_notice_days`, valor inicial [A validar: tresorer] |
+| RN-M05a-21 | **Renovació de la quota:** la quota es renova cada any. La baixa s'ha de demanar abans d'una data límit i el soci rep un avís previ del cobrament, sigui quin sigui el mètode. La data límit i el termini de l'avís: [A validar: junta i gestoria]. Mentre no es fixin, no s'activa cap renovació automàtica en producció |
+| RN-M05a-22 | **Invitació a pagar de manera automàtica:** el tresorer pot enviar als socis que paguen per transferència una invitació opcional a passar a targeta guardada o domiciliació, amb la campanya (RN-M05a-14). No és obligatori respondre-hi i no canvia el mètode de ningú |
+
+- **CA-M05a-19** Donat `tokenization_enabled` actiu, quan un soci nou tria mètode, llavors la targeta guardada surt com a recomanada i la domiciliació i la transferència es poden triar; amb `tokenization_enabled` desactivat, surt recomanada la domiciliació.
+- **CA-M05a-20** Donat una targeta guardada que caduca d'aquí a menys dies que `payments.card_expiry_notice_days`, quan corre la tasca diària, llavors el soci rep un sol avís.
+- **CA-M05a-21** Donat un soci que paga per transferència, quan el tresorer envia la invitació, llavors la rep una sola vegada i el seu mètode no canvia fins que ell en triï un altre.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05a-23 | Mètode recomanat segons el proveïdor, avís de caducitat de la targeta i invitació als qui paguen per transferència ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/payments/preferences.py`, `campaigns.py`, tasques de la cua | T-M05a-11, T-M05a-12, T-M05a-13 | CA-M05a-19 a 21 |
+| T-M05a-24 | Renovació anual de la quota, data límit de baixa i avís previ del cobrament (bloquejada fins que es fixin la data i el termini) | M | `apps/payments/renewals.py` | T-M01-18, T-M05a-23; RN-M05a-21 validada | Proves amb dates inventades |
+
 ---
 
 <a id="M05b"></a>
 # Mòdul 05b — Cobraments: targeta, Bizum, domiciliació i transferència
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05b-addenda-055) de pantalla d'ajustos (T-M05b-22), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05b-addenda-055) de pantalla d'ajustos (T-M05b-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05b-addenda-058) (T-M05b-23 i T-M05b-24), sense canviar cap regla.
 
 **Fonts:** decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [025](decisions/025-dos-nivells-de-produccio.md), [040](decisions/040-impagat-es-marca-a-ma.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md); annex D de la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) (experiència de pagament, que passa aquí); arquitectura §4.2 a §4.8; [`integracio-paylands.md`](integracio-paylands.md); spec 00 (RN-30 a RN-33, RN-60 a RN-73).
 
@@ -1979,7 +2037,7 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M05a. La feina és a la tasc
 |---|---|
 | **Intenció** | Cobrar dins l'app quotes, inscripcions i llicències amb targeta, Bizum, domiciliació i transferència, sense donar mai res per pagat pel navegador i quadrant-ho tot amb la tresoreria. És el criteri per deixar Cluber (nivell 2). |
 | **Processos que cobreix** | P-M05b-A Targeta · P-M05b-B Bizum · P-M05b-C Transferència · P-M05b-D Notificació del proveïdor · P-M05b-E Remesa de quotes · P-M05b-F Retornat, reintent i alternativa · P-M05b-G Devolució · P-M05b-H Liquidació del proveïdor · P-M05b-I Pas al nivell 2 |
-| **Tasques** | 22 (T-M05b-01 a T-M05b-22); la T-M05b-21 l'afegeix la 049 i la T-M05b-22, la 055 |
+| **Tasques** | 24 (T-M05b-01 a T-M05b-24); la T-M05b-21 l'afegeix la 049, la T-M05b-22, la 055, i la T-M05b-23 i la T-M05b-24, la 058 |
 | **Què el bloqueja** | Remeses (T-M05b-10 i T-M05b-11): resposta del banc (P-45 punt 5) [A verificar]. Targeta i Bizum contra un proveïdor real i liquidacions (T-M05b-14): PaynoPain (P-44, P-45) [A verificar]; amb `FakeProvider` es pot avançar |
 | **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-M05b-14 ([048](decisions/048-reobrir-carrec-retornat.md)) i RN-M05b-15 ([M05b-14](#M05b-14-aprovar)). Queden RN-M05b-16 i RN-M05b-18 (junta, configurables) i l'autorització del nivell 2 (junta). El 02 proposa una ampliació petita del seu contracte ([M02-14](#M02-14-aprovar)) |
 
@@ -2454,12 +2512,31 @@ Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: d
 |---|---|---|---|---|---|
 | T-M05b-22 | Pantalla d'ajustos del 05b (VC-16 a VC-18) sobre els `PaymentSettings` i la peça comuna ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/payments/views/settings.py` | T-AJ-02, T-M05b-05, T-M05b-12 | CA-M05b-26, 27 |
 
+
+<a id="M05b-addenda-058"></a>
+## M05b — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): import extra del retorn i reintent de la targeta
+
+Aprovada el 29/10/2026. **No canvia cap regla** del M05b. El valor de `payments.return_fee_payer` (VC-18, RN-M05b-25) continua sent «el club» fins que es validi el punt 11 de la 058.
+
+| ID | Regla |
+|---|---|
+| RN-M05b-26 | **Import extra del retorn:** quan `payments.return_fee_payer` és «soci», al **segon intent** d'una quota retornada (RN-M05b-15) el soci paga, a més de la quota, un càrrec a part que cobreix la comissió de retorn de CaixaGuissona, departament «General / Quotes de socis». L'import és el que cobra el banc [A verificar: banc, S-M05b-05]. Canviar el valor a «soci» necessita la validació de la junta i del banc i cobertura als estatuts [A validar: junta i banc]; fins llavors no es cobra cap import extra |
+| RN-M05b-27 | **Reintent de la targeta guardada:** si el cobrament d'una quota amb la targeta guardada falla, es reintenta; quants reintents i amb quin interval: [A validar: tresorer]. Si tots fallen, el soci rep l'alternativa de pagament (targeta nova, Bizum o transferència) |
+
+- **CA-M05b-28** Donat `payments.return_fee_payer` a «club», quan es reintenta una quota retornada, llavors no es crea cap càrrec extra; amb «soci», es crea un càrrec a part amb l'import de la comissió, lligat a la quota.
+- **CA-M05b-29** Donat un cobrament amb targeta guardada que falla, quan s'esgoten els reintents, llavors el soci rep l'alternativa de pagament i el càrrec continua pendent.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05b-23 | Càrrec extra de la comissió de retorn al segon intent, condicionat a l'ajust ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/payments/returns.py` | T-M05b-12, T-M05b-22 | CA-M05b-28 |
+| T-M05b-24 | Reintent i alternativa del cobrament amb targeta guardada | S | `checkout.py`, tasques de la cua | T-M05b-15 | CA-M05b-29 |
+
 ---
 
 <a id="M02"></a>
 # Mòdul 02 — Activitats (cursos i sortides)
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M02-14](#M02-14-aprovar)), alhora que els 02, 03, 06 i 09.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M02-14](#M02-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M02-addenda-058) (T-M02-29 a T-M02-32), sense canviar cap regla.
 
 **Fonts:** document de funcionalitats (F §4 Cursos, §5 Sortides, processos 9.1, 9.17 i 9.18), mapa de la plataforma v8 (M02 Cursos i M03 Sortides), respostes del responsable del projecte del 20/10/2026 i del 22/10/2026 (catàlegs separats i editables, classes de reforç amb cost, subtipus de medi ambient ampliables, preus configurables amb nota obligatòria en canviar-los, duplicar com a plantilla), decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (RN-30 a RN-33, RN-43, RN-60 a RN-73, V-02); seccions aprovades [M01](#M01), [M04](#M04) i [M05b](#M05b).
 
@@ -2471,7 +2548,7 @@ Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: d
 |---|---|
 | **Intenció** | Organitzar cursos i sortides de principi a fi en un sol lloc: catàlegs i preus, convocatòries i sortides (o duplicar-ne una d'anterior), inscripció i pagament dins l'app, places i llista d'espera, llista des del mòbil, avaluació, classes de reforç i certificat als cursos, i resultats ambientals i projectes a les sortides de medi ambient. Deixa cada activitat a punt perquè el 09 en calculi i en congeli el marge. |
 | **Processos que cobreix** | P-M02-A Catàlegs i preus · P-M02-B Crear o duplicar una activitat · P-M02-C Publicar i inscriure's (soci, convidat i presencial) · P-M02-D Places, llista d'espera i cancel·lacions · P-M02-E El dia de l'activitat: llista i incidències · P-M02-F Avaluació, reforç i certificat · P-M02-G Resultats ambientals i projectes · P-M02-H Fi de l'activitat i comprovacions de tancament (F 9.1, 9.17 i 9.18) |
-| **Tasques** | 28 (T-M02-01 a T-M02-28) |
+| **Tasques** | 32 (T-M02-01 a T-M02-32); de la T-M02-29 a la T-M02-32 les afegeix la 058 |
 | **Què el bloqueja** | Per construir: el 05b (cobrar inscripcions) i les dues peces de mòduls aprovats que aprova la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) (T-M01-30 i T-M05b-21). Per entrar en producció: el catàleg amb preus i la política de cancel·lació [A validar: junta]. La resta són supòsits configurables ([M02-13](#M02-13-riscos)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M02-01 a S-M02-06, que fixen el comportament per defecte ([M02-14](#M02-14-aprovar)). Les dues peces de mòduls aprovats ja són aprovades (049) |
 
@@ -3093,6 +3170,47 @@ Punts que es van presentar per aprovar:
 4. **Supòsits per defecte** S-M02-01 (avís), S-M02-02 (72 hores), S-M02-04 (mateix preu de soci), S-M02-05 (devolució decidida pel tresorer; 100 % si cancel·la el club) i S-M02-06 (no socis si l'activitat ho permet) [A validar: junta i tresorer]. No bloquegen el codi: són valors configurables.
 5. **Per entrar en producció** (no per començar): catàleg amb preus (S-M02-07) i política de cancel·lació (S-M02-05) [A validar: junta].
 
+
+<a id="M02-addenda-058"></a>
+## M02 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): instructors, nivells, especialitats, titulacions i edat mínima
+
+Aprovada el 29/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix els punts 3, 13 i 14 de la 058 i la comprovació de l'edat mínima del punt 1. Quan un punt d'aquesta addenda i el text anterior diuen coses diferents sobre el mateix, val l'addenda (com amb la 052).
+
+**Entitats**
+- `CertificationLevel` (nou): `name` (únic), `rank` (enter únic, ordre: un número més alt és un nivell més alt), `agency` (`CharField(60)`, opcional), `active`. L'edita el responsable de cursos i sortides. Dades inicials: les que doni el responsable (per exemple, B1 < B2 i els nivells d'1 i 2 estrelles de la FECDAS) [A verificar: FECDAS, S-M02-11].
+- `Activity`: camp nou `min_level` (FK `CertificationLevel`, null), que fa la funció del camp de text `required_level` per als requisits nous; camps nous `required_specialities` (M2M a fitxes del catàleg de tipus `speciality`) i `specialities_rule` (`all` totes, `any` alguna).
+- `OutingType` i `TrainingCatalogueEntry`: camp nou `default_requirements_mode` (`warn`, `block`, null). Si és buit, val l'ajust general `activities.default_requirements_mode` (VC-24).
+- `TrainingCatalogueEntry`: camp nou `min_age` (enter, null), que es copia a l'activitat. Valors: [A validar: responsable de cursos i sortides].
+- `DiverCertification`: camps nous `level` (FK `CertificationLevel`, null), `speciality` (FK a una fitxa de tipus `speciality`, null; una de les dues és obligatòria), `issuer` (`CharField(120)`; «C.R.I.S.» en una titulació del club), `instructor` (FK Person, null), `certificate_number` (null) i `course_outcome` (FK, null).
+- Ajust nou: `activities.instructor_requirements_mode` (`block` o `warn`), valor inicial `block` [A validar: junta].
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M02-26 | **Instructors:** per assignar una persona com a instructor d'una sessió cal que sigui **soci actiu** (`members.is_member`) i que tingui **llicència tècnica vigent** (`licences.current` amb `status = active` i categoria tècnic) a la data de la sessió. «Adherit al C.R.I.S.» = soci actiu [A validar: junta]. Amb `instructor_requirements_mode = block` no es pot assignar; amb `warn`, s'assigna i el responsable ho veu marcat. Mentre no existeixi el 06, la categoria no es pot comprovar: la condició de llicència es comprova només com a avís [A validar: responsable del projecte]. Si deixa de complir-se per a una sessió futura, la sessió surt marcada al responsable |
+| RN-M02-27 | **Nivell mínim:** una persona compleix `min_level` si té una titulació amb `level.rank` igual o més alt. Un «B1/B2» és «mínim B1»; si els grups fan coses diferents, es fan dues activitats (duplicar, RN-M02-21) |
+| RN-M02-28 | **Especialitats:** amb `specialities_rule = all`, cal tenir totes les de `required_specialities`; amb `any`, n'hi ha prou amb una |
+| RN-M02-29 | **Mode per activitat:** cada activitat té el seu `requirements_mode`, modificable; en crear-la, es copia el `default_requirements_mode` del tipus de sortida o de la fitxa del catàleg i, si és buit, l'ajust general |
+| RN-M02-30 | **Quines titulacions compten:** en mode `block` només compten les titulacions **verificades** (`verified_by` informat) o d'un **curs del club** (`source = club_course`); les declarades o importades sense verificar només donen avís [A validar: junta]. En mode `warn` compten totes, i el responsable veu de quin origen és cadascuna. Substitueix, per al mode `block`, la marca «titulació del club, sense verificar» de RN-M02-10 |
+| RN-M02-31 | **Titulació del club:** en emetre el certificat (RN-M02-16) es crea la titulació amb `issuer` «C.R.I.S.», data, instructor, nivell o especialitat i número de certificat, lligada al resultat del curs |
+| RN-M02-32 | **Titulacions inicials:** la secretaria o el responsable les carreguen a mà (origen `declared` o `imported`) i les poden verificar (queda qui i quan). Si el fitxer de Cluber porta titulacions, s'importen amb origen `imported` [A verificar: tresorer, mostra Q-23] |
+| RN-M02-33 | **Edat mínima:** si l'activitat té `min_age`, es comprova amb `persons.age_band` o la data de naixement a la data d'inici. Sense data de naixement, el responsable veu «edat desconeguda». Avís o bloqueig segons el `requirements_mode` de l'activitat. Cap rol fora de la secretaria i l'administrador no veu la data (RN-M01-48) |
+
+**Criteris d'acceptació**
+- **CA-M02-30** Donat `instructor_requirements_mode = block` i una persona sòcia amb una llicència d'aficionat vigent, quan se l'assigna a una sessió, llavors es rebutja; amb una llicència tècnica vigent, s'accepta; amb `warn`, s'accepta i surt marcada.
+- **CA-M02-31** Donat una activitat amb `min_level` B1 i un participant amb una titulació B2 verificada, quan s'inscriu en mode `block`, llavors s'accepta; amb una titulació B2 declarada sense verificar, es rebutja en `block` i s'accepta amb avís en `warn`.
+- **CA-M02-32** Donat una activitat que demana les especialitats A i B amb `any`, quan s'inscriu una persona que només té A, llavors compleix; amb `all`, no compleix.
+- **CA-M02-33** Donat un curs del club acabat, quan s'emet el certificat d'un alumne apte, llavors la titulació té `issuer` «C.R.I.S.», l'instructor, el nivell i el número del certificat, i compta en mode `block`.
+- **CA-M02-34** Donat un tipus de sortida amb `default_requirements_mode = block`, quan es crea una sortida d'aquest tipus, llavors l'activitat neix en `block` i el responsable la pot canviar a `warn`.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M02-29 | Llista de nivells, `min_level`, especialitats exigides, mode per defecte per tipus i càlcul del requisit ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | M | `apps/activities/requirements.py`, models, migració | T-M02-02, T-M02-23 | CA-M02-31, 32, 34 |
+| T-M02-30 | Requisits per assignar instructors i ajust del mode | S | `apps/activities/sessions.py` | T-M02-06, T-M06-13 (quan existeixi) | CA-M02-30 |
+| T-M02-31 | Titulació del club en emetre el certificat; càrrega manual, verificació i importació de titulacions | M | `certificates.py`, vistes | T-M02-19, T-M02-29 | CA-M02-33 |
+| T-M02-32 | Edat mínima per fitxa i activitat amb `persons.age_band` | S | `requirements.py` | T-M02-29, T-M01-33 | Prova amb dates inventades: major, menor i sense data |
+
 ---
 
 <a id="M03"></a>
@@ -3563,7 +3681,7 @@ Punts que es van presentar per aprovar:
 <a id="M09"></a>
 # Mòdul 09 — Marge, despeses, ajuts i facturació
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-14](#M09-14-aprovar)), amb l'apartat d'ajuts i alhora que els 02, 03 i 06. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-14](#M09-14-aprovar)), amb l'apartat d'ajuts i alhora que els 02, 03 i 06. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M09-addenda-058) (T-M09-27 a T-M09-29 i T-M09A-16), sense canviar cap regla.
 
 **Fonts:** document de funcionalitats (F §7 Tresoreria, marge per activitat, factures i ajuts; F §5 tancament econòmic de les sortides; processos 9.8, 9.10 i 9.11), mapa de la plataforma v8 (M05c Marge, factures i ajuts), respostes del responsable del projecte del 20/10/2026 (totes les factures per justificar ajuts; els ajuts es compten per departament i no per activitat; centres de busseig amb marge propi) i del 22/10/2026 (factures de tot quan la junta ho activi; subtipus de medi ambient ampliables; preus configurables), instruccions del 27/10/2026 per a l'apartat d'ajuts, decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md), [035](decisions/035-dades-nomes-dins-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M02](#M02) (`closing_blockers`, `mark_closed`), [M03](#M03) (RN-M03-10 i `activity_material_cost`), [M04](#M04) (moviments i conciliació) i [M05b](#M05b) (rebuts i esdeveniment `charge.paid`).
 
@@ -3577,7 +3695,7 @@ Punts que es van presentar per aprovar:
 |---|---|
 | **Intenció** | Que el tresorer sàpiga quant guanya o perd cada curs i cada sortida (marge previst mentre és oberta, marge real congelat en tancar-la), que cap despesa quedi sense factura, que els ingressos i les despeses es puguin veure per departament, subtipus i projecte per demanar i justificar ajuts, que es puguin emetre factures amb un servei homologat i que cada període es tanqui i no es toqui més. |
 | **Processos que cobreix** | P-M09-A Registrar una despesa (F 9.8) · P-M09-B Repartir una despesa entre activitats · P-M09-C Registrar un ingrés que no és un càrrec (ajut, patrocini, donatiu) · P-M09-D Marge previst i tancament econòmic d'una activitat · P-M09-E Informes per departament, subtipus i projecte · P-M09-F Factures i rectificatives · P-M09-G Tancament de període (F 9.11). La justificació d'ajuts (F 9.10) és a l'[apartat d'ajuts](#M09-ajuts) |
-| **Tasques** | 26 (T-M09-01 a T-M09-26), més les 15 de l'apartat d'ajuts (T-M09A-01 a T-M09A-15) |
+| **Tasques** | 29 (T-M09-01 a T-M09-29), més les 16 de l'apartat d'ajuts (T-M09A-01 a T-M09A-16); de la T-M09-27 a la T-M09-29 i la T-M09A-16 les afegeix la 058 |
 | **Què el bloqueja** | Per construir: el 02, el 03, el 05b i l'addenda de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md), T-M04-20). Facturació: què s'ha de facturar, IVA i Verifactu [A verificar: gestoria, P-02, P-47]. La resta són supòsits configurables ([M09-13](#M09-13-riscos)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M09-01 a S-M09-05 ([M09-14](#M09-14-aprovar)). Les peces de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) i els documents amb IBAN ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) ja són aprovats |
 
@@ -4079,7 +4197,7 @@ Punts que es van presentar per aprovar:
 <a id="M09-ajuts"></a>
 # Mòdul 09 — Apartat: Ajuts: calendari, sol·licituds i justificació
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-ajuts-14](#M09-ajuts-14-aprovar)), amb la resta del 09.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-ajuts-14](#M09-ajuts-14-aprovar)), amb la resta del 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) (termini d'esmena, T-M09A-16, a l'[addenda del 09](#M09-addenda-058)).
 
 **Fonts:** instruccions del responsable del projecte del 27/10/2026; F §7 (ajuts i justificació, procés 9.10); respostes del 20/10/2026 (totes les factures per justificar ajuts; ajuts per departament i per tipus d'acció de medi ambient) i del 22/10/2026 (subtipus i projectes per trobar ajuts); part principal del [09](#M09).
 
@@ -4091,7 +4209,7 @@ Punts que es van presentar per aprovar:
 |---|---|
 | **Intenció** | Que el club no perdi cap termini d'un ajut i que cada ajut tingui una història completa: la convocatòria amb tots els requisits, la sol·licitud amb el seu estat i el seu responsable, les despeses i factures que el justifiquen i, si es denega, què cal millorar per tornar-ho a intentar. |
 | **Processos que cobreix** | P-M09A-A Donar d'alta una convocatòria · P-M09A-B Revisar l'elegibilitat · P-M09A-C Preparar i presentar · P-M09A-D Avisos del calendari · P-M09A-E Resolució: concedida o denegada · P-M09A-F Justificar (F 9.10) · P-M09A-G Tornar-ho a intentar |
-| **Tasques** | 15 (T-M09A-01 a T-M09A-15) |
+| **Tasques** | 16 (T-M09A-01 a T-M09A-16); la T-M09A-16 l'afegeix la 058 |
 | **Què el bloqueja** | Per construir: les despeses i els ingressos de la part principal del 09 (T-M09-05 i T-M09-08) i el correu de la 00 (proveïdor dins la UE, P-46 [A verificar: informàtica]). Per fer-lo servir: qui és el responsable dels ajuts i quines convocatòries s'han de vigilar [A validar: junta] |
 | **Què cal aprovar** | Aquest apartat i els supòsits S-M09A-01 a S-M09A-04 ([M09-ajuts-14](#M09-ajuts-14-aprovar)) |
 
@@ -4493,12 +4611,48 @@ Punts que es van presentar per aprovar:
 2. **Supòsits per defecte** S-M09A-01 (responsable: el tresorer), S-M09A-03 (responsable i tresorer reben els avisos) i S-M09A-04 (avisos també abans de justificar) [A validar: junta].
 3. **Per fer-lo servir** (no per començar): les convocatòries que s'han de vigilar (S-M09A-02) [A validar: junta].
 
+
+<a id="M09-addenda-058"></a>
+## M09 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): IVA per tipus de càrrec, donatius, termini d'esmena i conservació
+
+Aprovada el 29/10/2026. **No canvia cap regla aprovada** del 09 ni de l'apartat d'ajuts. La facturació continua desactivada fins que es resolguin P-02 i P-47 (RN-M09-19).
+
+**Respostes que confirmen el que ja diu el 09:** la llicència és sempre ingrés del soci i despesa a la federació, amb marge 0 per als socis i +20 € per als no socis (S-M09-14 i S-M06-11; RN-M09-20). Els moviments que arriben després del tancament entren al període obert amb la data original (RN-T31 de la [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md); RN-M09-16).
+
+**Ajustos nous**
+| Clau de l'ajust | Valor inicial | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|
+| `billing.vat_rate_by_charge_kind` (per tipus de càrrec) | Inscripció (cursos, sortides i material llogat): amb IVA, tipus [A verificar: gestoria]. Quota i llicència: exemptes | Tresorer, amb avís (RN-AJ-04) | Sí |
+| `billing.vat_exemption_text` | [A verificar: gestoria] | Tresorer | Sí |
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M09-29 | **Es factura tot cobrament** quan s'activi la facturació (RN-M09-19): quota, inscripció, llicència i material. Les línies de quota i de llicència porten el text d'exempció; la resta, el tipus d'IVA de l'ajust. La botiga en línia continua fora d'abast. El servei homologat i Verifactu continuen oberts (P-02, P-47) |
+| RN-M09-30 | **Donatius de persones** (substitueix el supòsit S-M09-03): un `OtherIncome` de tipus `donation` pot tenir com a donant una persona (`donor_person`, FK Person), amb el nom i el NIF del seu document (00). Cada any, el tresorer genera el certificat de donatiu de cada donant i el fitxer per al model 182. Que el club pugui emetre certificats deduïbles: [A verificar: gestoria]; fins llavors, el certificat no es lliura |
+| RN-M09-31 | **Conservació** (punt 7 de la 058): els registres econòmics (despeses, altres ingressos, factures, moviments) **no s'eliminen mai**. Les dades personals que hi surten s'anonimitzen passat el termini legal [A verificar: gestoria, Q-14]; el que identifica la persona se substitueix per la referència anònima, com al registre d'activitat (028) |
+| RN-M09A-23 | **Termini d'esmena:** la convocatòria pot tenir un termini d'esmena opcional (`amendment_term_days`, null). Si hi és, en registrar un requeriment es proposa la data límit; la persona la pot canviar (RN-M09A-19). Sense prioritat |
+
+**Criteris d'acceptació**
+- **CA-M09-36** Donat la facturació activada per a tots els tipus, quan es factura una quota, llavors la línia porta el text d'exempció i cap IVA; quan es factura una inscripció a un curs, porta el tipus d'IVA de l'ajust vigent a la data del cobrament.
+- **CA-M09-37** Donat dos donatius d'una mateixa persona en un any, quan el tresorer genera els certificats, llavors n'hi ha un sol per a aquella persona amb la suma, i el fitxer del model 182 en porta una sola línia.
+- **CA-M09-38** Donat una persona esborrada (RGPD) amb una despesa i un donatiu de fa més del termini legal, quan corre l'anonimització, llavors els registres continuen existint amb els imports i les dates, i el nom i el NIF s'han substituït per la referència anònima.
+- **CA-M09A-26** Donat una convocatòria amb `amendment_term_days` 10, quan es registra un requeriment rebut l'1/3, llavors la data límit proposada és l'11/3 i es pot canviar.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M09-27 | IVA per tipus de càrrec i text d'exempció a les factures ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/invoicing/`, ajustos | T-M09-19, T-M09-26 | CA-M09-36 |
+| T-M09-28 | Donant persona, certificat anual de donatius i fitxer del model 182 (lliurament bloquejat fins a la resposta de la gestoria) | M | `apps/expenses/donations.py` | T-M09-08 | CA-M09-37 |
+| T-M09-29 | Anonimització dels registres econòmics passat el termini legal (bloquejada fins a Q-14) | M | `apps/expenses/retention.py`, tasques de la cua | T-M09-04, T-M09-08 | CA-M09-38 |
+| T-M09A-16 | Termini d'esmena opcional per convocatòria (sense prioritat) | S | `apps/grants/models.py`, migració | T-M09A-02 | CA-M09A-26 |
+
 ---
 
 <a id="M06"></a>
 # Mòdul 06 — Llicències
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M06-14](#M06-14-aprovar)), alhora que els 02, 03, 06 i 09.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M06-14](#M06-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M06-addenda-058) (T-M06-21 a T-M06-23), sense canviar cap regla.
 
 **Fonts:** document de funcionalitats (F §8.1 Llicències federatives, processos 9.12 i 9.16), mapa de la plataforma v8 (M06 Llicències), respostes del responsable del projecte del 20/10/2026 (tres durades; marge 0 per a la llicència d'un soci) i del 22/10/2026 (opció de llicència sense ser soci, amb un recàrrec que faci que fer-se soci surti gairebé sempre a compte; preus configurables amb nota obligatòria en canviar-los), decisions [036](decisions/036-fecdas-alia.md) (la FECDAS és un aliat, sense cap acord d'integració), [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M01](#M01) (registre mínim de llicència), [M05b](#M05b) i [M09](#M09) (despesa de la federació).
 
@@ -4514,7 +4668,7 @@ Punts que es van presentar per aprovar:
 |---|---|
 | **Intenció** | Portar totes les llicències federatives dels socis (i, quan la junta ho activi, de persones de fora) en un sol lloc: tipus amb categoria (aficionat, tècnic, altres) i regla de validesa (any natural, 365 dies i, només si s'activa, un dia), preu de soci igual al de la federació, preu de no soci amb recàrrec i l'estalvi de fer-se soci a la vista, pagament dins l'app, avisos abans que caduquin, llistat per tramitar-les a la federació, i saber a l'instant si la llicència d'una persona és vigent. |
 | **Processos que cobreix** | P-M06-A Preus i tipus · P-M06-B Demanar i pagar una llicència (soci) · P-M06-C Llicència per a una persona de fora (F 9.16) · P-M06-D «Ja en tinc una» · P-M06-E Tramitar a la federació · P-M06-F Avisos i renovació (F 9.12) · P-M06-G Cancel·lar · P-M06-H Passar els registres del 01 al 06 |
-| **Tasques** | 20 (T-M06-01 a T-M06-20); la còpia de lectura del 01 és la T-M01-31 |
+| **Tasques** | 23 (T-M06-01 a T-M06-23; de la T-M06-21 a la T-M06-23 les afegeix la 058); la còpia de lectura del 01 és la T-M01-31 |
 | **Què el bloqueja** | Per construir: el 05b (cobrar), el mecanisme d'esdeveniments (T-M05b-21) i el servei de lectura del 01 (T-M01-30, 049). La font única de la llicència ja és aprovada ([052](decisions/052-llicencia-font-unica-al-06.md)). Per entrar en producció: tipus, categories, preus, trams i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta]; data de naixement (punt prioritari 0 de l'[ordre del dia](#ordre-del-dia-junta)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M06-04, 05, 07 i 09 ([M06-14](#M06-14-aprovar)) |
 
@@ -4943,6 +5097,42 @@ Punts que es van presentar per aprovar:
 3. ~~Dependència opcional del 02~~ **No s'afegeix** (052). Queda com a requisit pendent del 02 (RP-M02-01).
 4. **Supòsits per defecte** S-M06-04, S-M06-05, S-M06-07 (condicional) i S-M06-09 [A validar: junta i secretaria], i S-M06-12 (llicència d'un dia desactivada) [A validar: responsable de cursos i sortides]. No bloquegen el codi.
 5. **Per entrar en producció** (no per començar): tipus, categories, preus i trams, càlcul de dates, obertura de l'any següent i format de tramitació [A verificar: FECDAS, S-M06-02, S-M06-03 i S-M06-13]; data de naixement (punt 0 de la junta); recàrrec i activació de l'opció de no socis [A validar: junta, S-M06-01].
+
+
+<a id="M06-addenda-058"></a>
+## M06 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): tipus, durades, llicència d'un dia, recàrrec, renovació, format del carnet i caducitat desconeguda
+
+Aprovada el 29/10/2026. **No canvia cap regla aprovada** del 06, excepte el càlcul dels 365 dies, que aquesta addenda substitueix (RN-M06-23 en lloc de la part de 365 dies de RN-M06-02, i CA-M06-28 en lloc de CA-M06-01). L'any natural no canvia. El número 056 no es fa servir: la llicència d'un dia existeix.
+
+**Dades i valors inicials**
+- **Tipus inicials:** Aficionat (categoria `amateur`) i Tècnic (categoria `technical`), cadascun amb les tres durades (un dia, any natural i 365 dies): sis `LicenceType`. Que els dos tipus tinguin les tres durades: [A verificar: FECDAS].
+- **Preus:** un preu per tipus i durada mentre no se sàpiga si la FECDAS varia el preu segons el mes de compra; si el varia, es fan servir els trams que ja preveu RN-M06-18 [A verificar: FECDAS]. Els imports de la federació: [A verificar: FECDAS].
+- **Recàrrec de no soci:** valor inicial **2000 cèntims** a `non_member_surcharge_cents` (RN-M06-06). El preu de soci continua sent el de la federació (RN-M06-05). Activar l'opció de no socis continua sent decisió de la junta (RN-M06-03).
+- **Llicència d'un dia:** existeix; `licences.day_enabled` (VC-40) passa a **activada** amb una migració de dades. RP-M02-01 i S-M06-07 deixen de ser condicionals.
+- **Obertura de la renovació de l'any natural:** `licences.next_year_opens_on` (VC-42), valor inicial l'**1/12**, decidit pel club. Els avisos als 60, 30 i 7 dies continuen.
+- **Format del carnet:** camp nou `card_format` a la llicència (`physical` físic, `digital`, null) [A validar: secretaria, qui el tria i si és obligatori].
+- **Llistat per a la FECDAS:** en el format que triï el club, amb les dades de RN-M06-11; ara hi pot anar la data de naixement (RN-M01-47). S-M06-03 queda resolt.
+- **Cap cànon de club:** el 06 no crea cap càrrec anual del club a la federació.
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M06-23 | **365 dies:** `expires_on` = el mateix dia de l'any següent menys un dia (del 15/03 al 14/03). Els anys de traspàs no compten. Si comença el 29/02, caduca el 28/02 de l'any següent [A verificar: FECDAS] |
+| RN-M06-24 | **Caducitat desconeguda:** el pas únic (P-M06-H) importa els registres del 01 sense `expires_on` com a llicències `active` amb `expiry_confirmed = false` («pendent de confirmar»). No reben avisos ni emeten `licence.expired` fins que la secretaria hi posa la data. `licences.current` les torna amb `status = unconfirmed`; el responsable de l'activitat veu «pendent de confirmar» i l'instructor, «no». Posar-hi la data puja la `version` i la comprovació diària (054) la porta al 01 |
+| RN-M06-25 | **Comptabilitat:** la llicència és sempre ingrés del soci i despesa a la federació; marge 0 per als socis i el recàrrec per als no socis (S-M06-11 resolt; RN-M09-20) |
+
+**Criteris d'acceptació**
+- **CA-M06-28** (substitueix CA-M06-01) Donat un tipus de 365 dies, quan es calcula, llavors: inici 15/3/2026 → caduca 14/3/2027; inici 15/3/2027 → 14/3/2028; inici 1/3/2027 → 29/2/2028; inici 1/1/2028 → 31/12/2028; inici 29/2/2028 → 28/2/2029.
+- **CA-M06-29** Donat un registre del 01 sense caducitat, quan corre el pas únic, llavors es crea una llicència «pendent de confirmar» sense cap avís; quan la secretaria hi posa la data, passa a ser una llicència normal, rep avisos i el 01 en té la data l'endemà com a molt tard.
+- **CA-M06-30** Donat un no soci que demana una llicència d'any natural amb un preu de federació de X, quan es calcula el preu, llavors és X + 2000 cèntims, i el d'un soci és X.
+- **CA-M06-31** Donat la base de dades nova, quan s'apliquen les migracions, llavors hi ha els sis tipus inicials i `licences.day_enabled` és activada.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M06-21 | Dades inicials: sis tipus, recàrrec de 2000 cèntims, llicència d'un dia activada, obertura l'1/12 i camp `card_format` ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | migracions de dades, `models.py` | T-M06-02, T-M06-19 | CA-M06-30, 31 |
+| T-M06-22 | Càlcul dels 365 dies segons RN-M06-23 | S | `apps/licences/dates.py` | T-M06-03 | CA-M06-28 |
+| T-M06-23 | Llicències «pendents de confirmar» al pas únic i a `licences.current` | S | `imports.py`, `services.py` | T-M06-14, T-M06-13, T-M01-34 | CA-M06-29 |
 
 ---
 
