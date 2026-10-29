@@ -64,5 +64,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [054](054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) | Addenda a la 052: versió dels esdeveniments de llicència i comprovació diària de la còpia del 01 | Acceptada (addenda del M01 sense canviar-ne les regles) |
 | [055](055-ajustos-configurables-i-addendes.md) | Valors configurables: peça comuna d'ajustos a la 00, addendes al 01, 05a i 05b, avís dels canvis de diners i prova de la durada del període | Acceptada (addendes sense canviar cap regla aprovada) |
 | [057](057-tarifes-paynopain-i-api-caixaguissona.md) | Tarifes públiques de PaynoPain i API de CaixaGuissona: l'API complementa PaynoPain i la lectura de moviments és una millora opcional de la conciliació | Acceptada (amplia la 043, la 016 i la 037 sense editar-les; dades del banc i de PaynoPain [A verificar]) |
+| [058](058-respostes-fecdas-gestoria-i-cursos.md) | Respostes de la FECDAS, la gestoria, cursos i sortides i el tresorer (29/10/2026): data de naixement, llicències, instructors, facturació, conservació, donatius, nivells i titulacions, pagament de quotes | Acceptada (addendes sense canviar cap regla aprovada; substitueix en punts concrets la V-04, la 017, la 028 i S-M09-03) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
