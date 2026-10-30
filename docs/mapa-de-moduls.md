@@ -8,7 +8,7 @@
 ## 1. Resum
 | Fase | Mòdul | Valor | Depèn de | Bloquejat per | Spec |
 |---|---|---|---|---|---|
-| **1 · Deixar Cluber** | 00 Base comuna | Imprescindible | — | P-04 (matriu de rols) | [spec 00](../specs/00-base-comuna/spec.md) (v2) |
+| **1 · Deixar Cluber** | 00 Base comuna | Imprescindible | — | — (P-04 resolt per la [059](decisions/059-rols-i-permisos-editables.md): rols i permisos editables, [configuració inicial](planning.md#rols-i-permisos-059-matriu)) | [spec 00](../specs/00-base-comuna/spec.md) (v2) |
 | | 01 Socis i carnet digital (amb registre mínim de llicència) | Molt alt | 00 | Regles de soci de F §3; P-28; [039](decisions/039-numeros-de-soci-no-es-reutilitzen.md) i [040](decisions/040-impagat-es-marca-a-ma.md) provisionals | [planning.md, M01](planning.md#M01) (aprovat) |
 | | 04 Tresoreria, part mínima | Molt alt | 00, 01 | Q-17 (departaments); format de l'extracte i de les liquidacions (P-45) | [planning.md, M04](planning.md#M04) (aprovat; la spec 04 v2 és a l'[arxiu](arxiu/spec-04-tresoreria-v2-2026-10-27.md)) |
 | | 05a Alta del mètode de pagament i mandats | Molt alt | 01, 04 | Proveïdor ([043](decisions/043-proveidor-de-pagaments-dins-la-ue.md)) i preguntes al banc (P-45); P-21. La [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) és acceptada | [planning.md, M05a](planning.md#M05a) (aprovat) |

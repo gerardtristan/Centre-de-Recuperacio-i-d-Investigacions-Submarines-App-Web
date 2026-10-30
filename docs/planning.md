@@ -86,41 +86,50 @@
    - [Addenda de la 054: versió dels esdeveniments i comprovació diària](#M01-addenda-054)
    - [Addenda de la 055: pantalla d'ajustos](#M01-addenda-055)
    - [Addenda de la 058: data de naixement (00), caducitat desconeguda i conservació](#M01-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M01-addenda-059)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
    - [Addenda de la 050: despeses, altres ingressos, anul·lació i període tancat](#M04-addenda-050)
    - [Addenda de la 053: moviments d'origen extern i període tancat](#M04-addenda-053)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M04-addenda-059)
 8. [Mòdul 05a — Alta del mètode de pagament i mandats](#M05a) · [resum](#M05a-resum)
    1. [Intenció](#M05a-1-intencio) · 2. [Dependències](#M05a-2-dependencies) · 3. [Capacitats](#M05a-3-capacitats) · 4. [Rols](#M05a-4-rols) · 5. [Processos](#M05a-5-processos) · 6. [Entitats](#M05a-6-entitats) · 7. [Regles](#M05a-7-regles)
    8. [Serveis](#M05a-8-serveis) · 9. [Criteris](#M05a-9-criteris) · 10. [Tasques](#M05a-10-tasques) · 11. [Proves](#M05a-11-proves) · 12. [Seguretat](#M05a-12-seguretat) · 13. [Riscos](#M05a-13-riscos) · 14. [Aprovar](#M05a-14-aprovar)
    - [Addenda de la 055: pantalla d'ajustos](#M05a-addenda-055)
    - [Addenda de la 058: targeta guardada recomanada i renovació de la quota](#M05a-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M05a-addenda-059)
 9. [Mòdul 05b — Cobraments](#M05b) · [resum](#M05b-resum)
    1. [Intenció](#M05b-1-intencio) · 2. [Dependències](#M05b-2-dependencies) · 3. [Capacitats](#M05b-3-capacitats) · 4. [Rols](#M05b-4-rols) · 5. [Processos](#M05b-5-processos) · 6. [Entitats](#M05b-6-entitats) · 7. [Regles](#M05b-7-regles)
    8. [Serveis](#M05b-8-serveis) · 9. [Criteris](#M05b-9-criteris) · 10. [Tasques](#M05b-10-tasques) · 11. [Proves](#M05b-11-proves) · 12. [Seguretat](#M05b-12-seguretat) · 13. [Riscos](#M05b-13-riscos) · 14. [Aprovar](#M05b-14-aprovar)
    - [Addenda de la 055: pantalla d'ajustos](#M05b-addenda-055)
    - [Addenda de la 058: import extra del retorn i reintent de la targeta](#M05b-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M05b-addenda-059)
 10. [Mòdul 02 — Activitats (cursos i sortides)](#M02) · [resum](#M02-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M02-1-intencio) · 2. [Dependències](#M02-2-dependencies) · 3. [Capacitats](#M02-3-capacitats) · 4. [Rols](#M02-4-rols) · 5. [Processos](#M02-5-processos) · 6. [Entitats](#M02-6-entitats) · 7. [Regles](#M02-7-regles)
    8. [Serveis](#M02-8-serveis) · 9. [Criteris](#M02-9-criteris) · 10. [Tasques](#M02-10-tasques) · 11. [Proves](#M02-11-proves) · 12. [Seguretat](#M02-12-seguretat) · 13. [Riscos](#M02-13-riscos) · 14. [Aprovar](#M02-14-aprovar)
    - [Addenda de la 058: instructors, nivells, especialitats, titulacions i edat mínima](#M02-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M02-addenda-059)
 11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M03-1-intencio) · 2. [Dependències](#M03-2-dependencies) · 3. [Capacitats](#M03-3-capacitats) · 4. [Rols](#M03-4-rols) · 5. [Processos](#M03-5-processos) · 6. [Entitats](#M03-6-entitats) · 7. [Regles](#M03-7-regles)
    8. [Serveis](#M03-8-serveis) · 9. [Criteris](#M03-9-criteris) · 10. [Tasques](#M03-10-tasques) · 11. [Proves](#M03-11-proves) · 12. [Seguretat](#M03-12-seguretat) · 13. [Riscos](#M03-13-riscos) · 14. [Aprovar](#M03-14-aprovar)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M03-addenda-059)
 12. [Mòdul 09 — Marge, despeses, ajuts i facturació](#M09) · [resum](#M09-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M09-1-intencio) · 2. [Dependències](#M09-2-dependencies) · 3. [Capacitats](#M09-3-capacitats) · 4. [Rols](#M09-4-rols) · 5. [Processos](#M09-5-processos) · 6. [Entitats](#M09-6-entitats) · 7. [Regles](#M09-7-regles)
    8. [Serveis](#M09-8-serveis) · 9. [Criteris](#M09-9-criteris) · 10. [Tasques](#M09-10-tasques) · 11. [Proves](#M09-11-proves) · 12. [Seguretat](#M09-12-seguretat) · 13. [Riscos](#M09-13-riscos) · 14. [Aprovar](#M09-14-aprovar)
    - [Apartat: Ajuts: calendari, sol·licituds i justificació](#M09-ajuts) · [resum](#M09-ajuts-resum) · **aprovat** (28/10/2026): 1. [Intenció](#M09-ajuts-1-intencio) · 2. [Dependències](#M09-ajuts-2-dependencies) · 3. [Capacitats](#M09-ajuts-3-capacitats) · 4. [Rols](#M09-ajuts-4-rols) · 5. [Processos](#M09-ajuts-5-processos) · 6. [Entitats](#M09-ajuts-6-entitats) · 7. [Regles](#M09-ajuts-7-regles) · 8. [Serveis](#M09-ajuts-8-serveis) · 9. [Criteris](#M09-ajuts-9-criteris) · 10. [Tasques](#M09-ajuts-10-tasques) · 11. [Proves](#M09-ajuts-11-proves) · 12. [Seguretat](#M09-ajuts-12-seguretat) · 13. [Riscos](#M09-ajuts-13-riscos) · 14. [Aprovar](#M09-ajuts-14-aprovar)
    - [Addenda de la 058: IVA per tipus de càrrec, donatius, termini d'esmena i conservació](#M09-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M09-addenda-059)
 13. [Mòdul 06 — Llicències](#M06) · [resum](#M06-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M06-1-intencio) · 2. [Dependències](#M06-2-dependencies) · 3. [Capacitats](#M06-3-capacitats) · 4. [Rols](#M06-4-rols) · 5. [Processos](#M06-5-processos) · 6. [Entitats](#M06-6-entitats) · 7. [Regles](#M06-7-regles)
    8. [Serveis](#M06-8-serveis) · 9. [Criteris](#M06-9-criteris) · 10. [Tasques](#M06-10-tasques) · 11. [Proves](#M06-11-proves) · 12. [Seguretat](#M06-12-seguretat) · 13. [Riscos](#M06-13-riscos) · 14. [Aprovar](#M06-14-aprovar)
    - [Addenda de la 058: tipus, durades, llicència d'un dia, recàrrec, renovació, format del carnet i caducitat desconeguda](#M06-addenda-058)
+   - [Addenda de la 059: permisos editables i configuració inicial](#M06-addenda-059)
 14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
 15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
 16. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta): [decisions de debò](#ordre-del-dia-decisions) · [valors inicials](#ordre-del-dia-valors)
 17. [Apèndix — Valors configurables](#valors-configurables) · [peça comuna d'ajustos (055)](#valors-configurables-055)
+18. [Apèndix — Rols i permisos editables (059)](#rols-i-permisos-059) · [configuració inicial de la matriu](#rols-i-permisos-059-matriu)
 
 <a id="regles"></a>
 ## 3. Regles generals (valen per a tots els mòduls)
@@ -145,6 +154,7 @@
 **Diners, permisos i registre**
 - Imports en cèntims (enters). Res s'esborra: s'anul·la amb motiu.
 - Permisos comprovats **al servidor**, per rol i per objecte, a cada petició. Amagar un botó no és un permís.
+- **Els permisos de cada rol són dades** que només l'administrador canvia des de l'app, amb TOTP, nota, resum dels afectats i registre; també assigna i retira rols als comptes d'administrador. Les regles de seguretat i d'integritat (IBAN, documents de justificació, data de naixement, dades bloquejades, gestionar usuaris i rols…) queden al codi i no s'editen ([059](decisions/059-rols-i-permisos-editables.md), [apèndix](#rols-i-permisos-059)).
 - Registre d'activitat immutable (qui, quan, què, valor anterior).
 
 **Valors de negoci (configurables)** (28/10/2026)
@@ -242,6 +252,14 @@ S'amplia a cada mòdul. Els termes de la spec 00 (persona, compte personal, comp
 | Paquet de justificació | Resum, llistat de factures i ZIP amb factures i comprovants de les despeses lligades a un ajut | F 9.10; RN-M09A-11 |
 | Llicència federativa | Llicència de la federació per a un soci o una persona de fora. Cada tipus té una categoria (aficionat, tècnic o altres) i una regla de validesa: any natural (fins al 31/12), 365 dies o, només si s'activa l'opció, un dia | F §8.1; [M06](#M06); RN-M06-01 |
 | Recàrrec de no soci | Diferència entre el preu de la llicència per a un no soci i el preu de la federació (el del soci) | RN-M06-06 |
+| Rol de gestió | Conjunt de permisos que s'assigna a un compte d'administrador: instructor, secretaria, responsable de cursos i sortides, responsable de material, tresorer, Departament d'Història, administrador, President, junta, responsable de comunicació i responsable de botiga. Un compte en pot tenir diversos (unió) | [059](decisions/059-rols-i-permisos-editables.md) |
+| President | Rol de gestió nou (30/10/2026). Pot fer només el que li dona la matriu inicial; no gestiona usuaris, rols ni permisos | [059](decisions/059-rols-i-permisos-editables.md) |
+| Permís | Acció concreta d'un mòdul (per exemple, registrar una despesa). Autoritzar-ne una no n'autoritza cap altra | [Apèndix](#rols-i-permisos-059) |
+| Abast | Sobre quins objectes s'aplica un permís (tots, les seves activitats, les seves sessions, propi), d'una llista tancada que fixa el codi | RN-RP-04 |
+| Camp sensible | Camp que només veu qui en té el permís de lectura (data de naixement, document, número federatiu, marge…) | [Apèndix](#rols-i-permisos-059) |
+| Regla protegida | Regla de seguretat o d'integritat que l'editor mostra però no deixa canviar | RN-RP-05 |
+| Configuració inicial de la matriu | Permisos amb què arrenca la plataforma; l'administrador els pot canviar des de l'editor, amb versions | [Matriu](#rols-i-permisos-059-matriu) |
+| Administrador operatiu | Compte actiu amb el rol administrador, TOTP donat d'alta, no bloquejat i que no és d'emergència. N'hi ha d'haver sempre almenys un | RN-RP-13 |
 
 <a id="plantilla"></a>
 ## 5. Plantilla de secció de mòdul
@@ -272,7 +290,7 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 <a id="M01"></a>
 # Mòdul 01 — Socis i carnet digital
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M01-addenda-055) de pantalla d'ajustos (T-M01-32), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M01-addenda-058) (data de naixement de la 00, caducitat desconeguda i conservació; T-M01-33 i T-M01-34), amb la precisió del 29/10/2026 (data de naixement obligatòria per als socis i socis existents; T-M01-35 i T-M01-36), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026, amb les respostes recollides a [M01-14](#M01-14-aprovar). Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb un servei de lectura de la llicència (T-M01-30) i per la [052](decisions/052-llicencia-font-unica-al-06.md) amb una [addenda](#M01-addenda-052) (T-M01-31), completada per la [054](decisions/054-addenda-052-versio-dels-esdeveniments-i-comprovacio-diaria.md) ([addenda](#M01-addenda-054)), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M01-addenda-055) de pantalla d'ajustos (T-M01-32), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M01-addenda-058) (data de naixement de la 00, caducitat desconeguda i conservació; T-M01-33 i T-M01-34), amb la precisió del 29/10/2026 (data de naixement obligatòria per als socis i socis existents; T-M01-35 i T-M01-36), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M01-addenda-059)).
 
 **Fonts integrades:** el pla M01 del repositori anterior (aprovat amb respostes el 27/10/2026), la [spec 00](../specs/00-base-comuna/spec.md) v2, el document de funcionalitats (F §3 i processos 9.2 a 9.5 i 9.13), el mapa de la plataforma v8 i les decisions 035–047. Per la [047](decisions/047-planning-font-unica-de-l-especificacio.md), aquesta secció **és** l'especificació del M01: no hi ha cap `specs/01-…`.
 
@@ -282,9 +300,9 @@ Cada mòdul es titula «Mòdul NN — Nom» amb l'ancora `MNN`. Just després de
 |---|---|
 | **Intenció** | Tenir els socis, les quotes anuals i el carnet digital a la plataforma, perquè la secretaria deixi Excel i correu, cada soci vegi les seves dades i el seu carnet, i Cluber es pugui deixar. Cap altre mòdul no funciona sense aquest. |
 | **Processos que cobreix** | P-M01-A Alta de soci · P-M01-B Canvi de tipus · P-M01-C Baixa i readmissió · P-M01-D Renovació anual de quotes · P-M01-E Carnet i verificació pública · P-M01-F RGPD: exportar i esborrar · P-M01-G Importació de Cluber en dues fases (F 9.2 a 9.5 i 9.13) |
-| **Tasques** | 36 (T-M01-01 a T-M01-36), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049, la T-M01-31, la 052 (amb la 054) i la T-M01-32, la 055, i de la T-M01-33 a la T-M01-36, la 058 (amb la precisió del 29/10/2026). La peça comuna d'ajustos (T-AJ-01 i T-AJ-02) és a l'[apèndix](#valors-configurables-055) |
+| **Tasques** | 37 (T-M01-01 a T-M01-37), incloses les peces de la 00 que el 01 necessita; la T-M01-30 l'afegeix la 049, la T-M01-31, la 052 (amb la 054) i la T-M01-32, la 055, de la T-M01-33 a la T-M01-36, la 058 (amb la precisió del 29/10/2026), i la T-M01-37, la 059. La peça comuna de rols i permisos (T-RP-01 a T-RP-05) és a l'[apèndix](#rols-i-permisos-059). La peça comuna d'ajustos (T-AJ-01 i T-AJ-02) és a l'[apèndix](#valors-configurables-055) |
 | **Què el bloqueja** | Res per començar. La importació final espera el 05a (nivell 1) i la mostra anonimitzada de Cluber [A validar: tresorer, S-M01-16] |
-| **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). Continua obert sense bloquejar: la matriu dels 13 rols (junta, P-04) i els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
+| **Què cal aprovar** | Aprovat el 27/10/2026 ([M01-14](#M01-14-aprovar)). La matriu de rols (P-04) queda resolta per la [059](decisions/059-rols-i-permisos-editables.md) (30/10/2026). Continuen oberts sense bloquejar els supòsits de [M01-13](#M01-13-riscos) ([apèndix](#preguntes)) |
 
 <a id="M01-1-intencio"></a>
 ## M01-1 Intenció, abast i fora d'abast
@@ -1029,12 +1047,35 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M01 ni edita la spec 00: hi 
 | T-M01-35 | Data de naixement obligatòria a l'alta dels socis i condicional per als convidats; bloqueig de menors; columna opcional a la importació de Cluber; avís, camp al perfil i llista de la secretaria | M | `apps/members/views/`, `imports/cluber.py`, `apps/core/persons.py` | T-M01-13, T-M01-14, T-M01-25, T-M01-33 | CA-M01-41 a 43 |
 | T-M01-36 | Confirmació en bloc de les caducitats d'any natural pendents i declaració del soci | S | `apps/members/licences.py`, vistes | T-M01-34 | CA-M01-44 |
 
+<a id="M01-addenda-059"></a>
+## M01 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M01. La taula de [M01-4](#M01-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia**
+- El **tresorer** i el **President** aproven o rebutgen altes (P3) i resolen canvis de tipus i baixes (P7), amb el permís nou de consultar sol·licituds (P3a). El tresorer no crea altes ni edita dades del soci.
+- Ni el tresorer ni el President veuen la data de naixement ni el document. La data de naixement continua com a la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) (regla protegida).
+- Queden resolts:
+  - S-M01-14: l'administrador atén les sol·licituds RGPD;
+  - S-M01-22: el conflicte d'interès és una regla protegida;
+  - S-M01-23: Junta, Resp. comunicació i Resp. botiga existeixen, sense permisos al 01;
+  - el punt 10 de [M01-13](#M01-13-riscos): la decisió nova que amplia la llista de rols és la 059.
+- La T-M01-06 la completa la T-RP-01 (motor, rols i catàleg).
+
+**Criteri d'acceptació**
+- **CA-M01-45** Donat un compte amb el rol tresorer, quan obre una sol·licitud d'alta, llavors la pot aprovar o rebutjar i hi veu «major d'edat» o «menor d'edat» en lloc de la data de naixement, sense el document. Quan la sol·licitud és seva, es rebutja i queda al registre.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M01-37 | Declarar els permisos del 01 al catàleg (P2 a P20, P3a, C1 i C2) i comprovar-los a totes les vistes i serveis del 01 | S | `apps/members/permissions.py` | T-RP-01 | CA-M01-45; proves per cel·la del 01 (CA-RP-13) |
+
 ---
 
 <a id="M04"></a>
 # Mòdul 04 — Tresoreria, part mínima
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M04-14](#M04-14-aprovar)). Ampliat per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) amb una [addenda](#M04-addenda-050) (T-M04-20), precisada per la [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) ([addenda](#M04-addenda-053)), sense canviar cap altra regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M04-14](#M04-14-aprovar)). Ampliat per la [050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md) amb una [addenda](#M04-addenda-050) (T-M04-20), precisada per la [053](decisions/053-addenda-050-moviments-d-origen-extern-en-periode-tancat.md) ([addenda](#M04-addenda-053)), sense canviar cap altra regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M04-addenda-059)).
 
 **Fonts integrades:** la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) v2 (aprovada amb canvis el 27/10/2026), les decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md), l'arquitectura §4 i §9.1 i la [spec 00](../specs/00-base-comuna/spec.md) (RN-60 a RN-76, HU-21). La spec 04 v2 és a l'arxiu des de l'aprovació d'aquesta secció ([047](decisions/047-planning-font-unica-de-l-especificacio.md)).
 
@@ -1046,7 +1087,7 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M01 ni edita la spec 00: hi 
 |---|---|
 | **Intenció** | Que el tresorer sàpiga en tot moment quant hi ha a cada compte, de quin departament és cada euro, què ha arribat al banc i que cap moviment s'ha modificat ni esborrat. És la base dels pagaments (05a i 05b) i del marge (09). |
 | **Processos que cobreix** | P-M04-A Cobrament confirmat → ingrés · P-M04-B Devolució o retorn · P-M04-C Anul·lar un moviment · P-M04-D Traspàs i arqueig · P-M04-E Conciliar l'extracte · P-M04-F Liquidació del proveïdor o de la remesa · P-M04-G Exportar per a la gestoria |
-| **Tasques** | 20 (T-M04-01 a T-M04-20); la T-M04-20 l'afegeix la 050 (amb la 053) |
+| **Tasques** | 21 (T-M04-01 a T-M04-21); la T-M04-20 l'afegeix la 050 (amb la 053) i la T-M04-21, la 059 |
 | **Què el bloqueja** | T-M04-13 (liquidacions) espera el format de PaynoPain (P-45 punt 9) [A verificar]. La conciliació real espera el format de l'extracte [A verificar: banc]; es construeix amb el supòsit CSV |
 | **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-T24 i RN-T25 ([M04-14](#M04-14-aprovar)). Els departaments [A validar: junta] no bloquegen |
 
@@ -1564,12 +1605,24 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 - **CA-T24** Donat un ingrés que ha entrat al període obert amb `original_value_date` del dia 30, quan s'importa la línia de l'extracte del dia 30, llavors la conciliació els casa.
 - **CA-T25** Donat cap període tancat, quan es crea qualsevol moviment, llavors `original_value_date` queda buit i la data de valor no canvia.
 
+<a id="M04-addenda-059"></a>
+## M04 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M04. La taula de [M04-4](#M04-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia:** res per al tresorer i l'administrador. La Junta no veu comptes ni saldos a l'inici, perquè T1 era [A validar]. Queda resolt S-M04-09: l'administrador manté els departaments i el tresorer concilia i desfà conciliacions.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M04-21 | Declarar els permisos de la 04 al catàleg (T1 a T11) i comprovar-los a totes les vistes i serveis | XS | `apps/treasury/permissions.py` | T-RP-01 | Proves per cel·la de la 04 (CA-RP-13) |
+
 ---
 
 <a id="M05a"></a>
 # Mòdul 05a — Alta del mètode de pagament i mandats
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05a-addenda-055) de pantalla d'ajustos (T-M05a-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05a-addenda-058) (T-M05a-23 i T-M05a-24), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05a-addenda-055) de pantalla d'ajustos (T-M05a-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05a-addenda-058) (T-M05a-23 i T-M05a-24), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M05a-addenda-059)).
 
 **Fonts:** decisions [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [025](decisions/025-dos-nivells-de-produccio.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); arquitectura §4.2, §4.3 i §4.9 (on diu Stripe, s'aplica la 042); [`integracio-paylands.md`](integracio-paylands.md); checklist (C9, G3 i els punts «N1»).
 
@@ -1581,7 +1634,7 @@ Aprovada el 27/10/2026. Precisa l'abast de RN-T28 de l'[addenda de la 050](#M04-
 |---|---|
 | **Intenció** | Que cada soci tingui un mètode per pagar la quota abans de la primera remesa de la plataforma: recollir mandats SEPA nous en producció al nivell 1 (dades reals, cap cobrament), amb l'IBAN xifrat (044) i el proveïdor de targeta darrere de l'adaptador. |
 | **Processos que cobreix** | P-M05a-A Triar el mètode de pagament · P-M05a-B Signar el mandat · P-M05a-C Canviar l'IBAN o revocar · P-M05a-D Guardar una targeta (condicional) · P-M05a-E Campanya de mandats · P-M05a-F Pas al nivell 1 · P-M05a-G Rotació de la clau |
-| **Tasques** | 24 (T-M05a-01 a T-M05a-24); la T-M05a-22 l'afegeix la 055, i la T-M05a-23 i la T-M05a-24, la 058 |
+| **Tasques** | 25 (T-M05a-01 a T-M05a-25); la T-M05a-22 l'afegeix la 055, la T-M05a-23 i la T-M05a-24, la 058, i la T-M05a-25, la 059 |
 | **Què el bloqueja** | Res de la [044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md) (acceptada). Identificador de creditor, remeses i mandats electrònics [A verificar: banc]. Proveïdor (T-M05a-05 i T-M05a-12) [A verificar: PaynoPain]. Traspàs dels mandats de Cluber [A verificar: tresorer amb el banc o la gestoria] |
 | **Què cal aprovar** | Aprovat el 27/10/2026 ([M05a-14](#M05a-14-aprovar)). Queden els textos (junta) i l'autorització del nivell 1 (junta). La 044 és acceptada |
 
@@ -2040,12 +2093,24 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M05a: canvia només quin mè
 | T-M05a-23 | Mètode recomanat segons el proveïdor, avís de caducitat de la targeta i invitació als qui paguen per transferència ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/payments/preferences.py`, `campaigns.py`, tasques de la cua | T-M05a-11, T-M05a-12, T-M05a-13 | CA-M05a-19 a 21 |
 | T-M05a-24 | Renovació anual de la quota, data límit de baixa i avís previ del cobrament (bloquejada fins que es fixin la data i el termini) | M | `apps/payments/renewals.py` | T-M01-18, T-M05a-23; RN-M05a-21 validada | Proves amb dates inventades |
 
+<a id="M05a-addenda-059"></a>
+## M05a — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M05a. La taula de [M05a-4](#M05a-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia:** res per al tresorer i l'administrador. La secretaria veu només «té mètode: sí o no» (A4), perquè queda resolt S-M05a-13. A9 (IBAN complet, ningú) és una regla protegida ([044](decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md)).
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05a-25 | Declarar els permisos del 05a al catàleg (A4 a A8; A9 protegit) i comprovar-los a totes les vistes i serveis | XS | `apps/payments/permissions.py` | T-RP-01 | Proves per cel·la del 05a (CA-RP-13) |
+
 ---
 
 <a id="M05b"></a>
 # Mòdul 05b — Cobraments: targeta, Bizum, domiciliació i transferència
 
-**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05b-addenda-055) de pantalla d'ajustos (T-M05b-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05b-addenda-058) (T-M05b-23 i T-M05b-24), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 27/10/2026 ([M05b-14](#M05b-14-aprovar)). Els bloquejos que depenen del banc i de PaynoPain es mantenen [A verificar]. Ampliat per la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) amb l'esdeveniment general «càrrec pagat» (T-M05b-21), i per la [055](decisions/055-ajustos-configurables-i-addendes.md) amb una [addenda](#M05b-addenda-055) de pantalla d'ajustos (T-M05b-22), sense canviar cap regla. Ampliat també per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M05b-addenda-058) (T-M05b-23 i T-M05b-24), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M05b-addenda-059)).
 
 **Fonts:** decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [022](decisions/022-mandats-sepa-escenari-base-b.md), [025](decisions/025-dos-nivells-de-produccio.md), [040](decisions/040-impagat-es-marca-a-ma.md), [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) a [045](decisions/045-correccio-transferencia-conciliada-per-error.md); annex D de la [spec 04](arxiu/spec-04-tresoreria-v2-2026-10-27.md) (experiència de pagament, que passa aquí); arquitectura §4.2 a §4.8; [`integracio-paylands.md`](integracio-paylands.md); spec 00 (RN-30 a RN-33, RN-60 a RN-73).
 
@@ -2057,7 +2122,7 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M05a: canvia només quin mè
 |---|---|
 | **Intenció** | Cobrar dins l'app quotes, inscripcions i llicències amb targeta, Bizum, domiciliació i transferència, sense donar mai res per pagat pel navegador i quadrant-ho tot amb la tresoreria. És el criteri per deixar Cluber (nivell 2). |
 | **Processos que cobreix** | P-M05b-A Targeta · P-M05b-B Bizum · P-M05b-C Transferència · P-M05b-D Notificació del proveïdor · P-M05b-E Remesa de quotes · P-M05b-F Retornat, reintent i alternativa · P-M05b-G Devolució · P-M05b-H Liquidació del proveïdor · P-M05b-I Pas al nivell 2 |
-| **Tasques** | 24 (T-M05b-01 a T-M05b-24); la T-M05b-21 l'afegeix la 049, la T-M05b-22, la 055, i la T-M05b-23 i la T-M05b-24, la 058 |
+| **Tasques** | 25 (T-M05b-01 a T-M05b-25); la T-M05b-21 l'afegeix la 049, la T-M05b-22, la 055, la T-M05b-23 i la T-M05b-24, la 058, i la T-M05b-25, la 059 |
 | **Què el bloqueja** | Remeses (T-M05b-10 i T-M05b-11): resposta del banc (P-45 punt 5) [A verificar]. Targeta i Bizum contra un proveïdor real i liquidacions (T-M05b-14): PaynoPain (P-44, P-45) [A verificar]; amb `FakeProvider` es pot avançar |
 | **Què cal aprovar** | Aprovat el 27/10/2026 amb RN-M05b-14 ([048](decisions/048-reobrir-carrec-retornat.md)) i RN-M05b-15 ([M05b-14](#M05b-14-aprovar)). Queden RN-M05b-16 i RN-M05b-18 (junta, configurables) i l'autorització del nivell 2 (junta). El 02 proposa una ampliació petita del seu contracte ([M02-14](#M02-14-aprovar)) |
 
@@ -2551,12 +2616,24 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M05b. El valor de `payments.
 | T-M05b-23 | Càrrec extra de la comissió de retorn al segon intent, condicionat a l'ajust ([058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)) | S | `apps/payments/returns.py` | T-M05b-12, T-M05b-22 | CA-M05b-28 |
 | T-M05b-24 | Reintent i alternativa del cobrament amb targeta guardada | S | `checkout.py`, tasques de la cua | T-M05b-15 | CA-M05b-29 |
 
+<a id="M05b-addenda-059"></a>
+## M05b — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M05b. La taula de [M05b-4](#M05b-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia:** les devolucions (B5) les fa només el tresorer (l'administrador era [A validar]). La secretaria reenvia l'alternativa de les quotes (B7), perquè queda resolt S-M05b-13. B3, pel fitxer amb IBAN, i B8, per l'autorització de la junta, són regles protegides.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05b-25 | Declarar els permisos del 05b al catàleg (B3 a B8; B3 i B8 protegits) i comprovar-los a totes les vistes i serveis | XS | `apps/payments/permissions.py` | T-RP-01 | Proves per cel·la del 05b (CA-RP-13) |
+
 ---
 
 <a id="M02"></a>
 # Mòdul 02 — Activitats (cursos i sortides)
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M02-14](#M02-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M02-addenda-058) (T-M02-29 a T-M02-32), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M02-14](#M02-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M02-addenda-058) (T-M02-29 a T-M02-32), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M02-addenda-059)).
 
 **Fonts:** document de funcionalitats (F §4 Cursos, §5 Sortides, processos 9.1, 9.17 i 9.18), mapa de la plataforma v8 (M02 Cursos i M03 Sortides), respostes del responsable del projecte del 20/10/2026 i del 22/10/2026 (catàlegs separats i editables, classes de reforç amb cost, subtipus de medi ambient ampliables, preus configurables amb nota obligatòria en canviar-los, duplicar com a plantilla), decisions [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (RN-30 a RN-33, RN-43, RN-60 a RN-73, V-02); seccions aprovades [M01](#M01), [M04](#M04) i [M05b](#M05b).
 
@@ -2568,7 +2645,7 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M05b. El valor de `payments.
 |---|---|
 | **Intenció** | Organitzar cursos i sortides de principi a fi en un sol lloc: catàlegs i preus, convocatòries i sortides (o duplicar-ne una d'anterior), inscripció i pagament dins l'app, places i llista d'espera, llista des del mòbil, avaluació, classes de reforç i certificat als cursos, i resultats ambientals i projectes a les sortides de medi ambient. Deixa cada activitat a punt perquè el 09 en calculi i en congeli el marge. |
 | **Processos que cobreix** | P-M02-A Catàlegs i preus · P-M02-B Crear o duplicar una activitat · P-M02-C Publicar i inscriure's (soci, convidat i presencial) · P-M02-D Places, llista d'espera i cancel·lacions · P-M02-E El dia de l'activitat: llista i incidències · P-M02-F Avaluació, reforç i certificat · P-M02-G Resultats ambientals i projectes · P-M02-H Fi de l'activitat i comprovacions de tancament (F 9.1, 9.17 i 9.18) |
-| **Tasques** | 32 (T-M02-01 a T-M02-32); de la T-M02-29 a la T-M02-32 les afegeix la 058 |
+| **Tasques** | 33 (T-M02-01 a T-M02-33); de la T-M02-29 a la T-M02-32 les afegeix la 058 i la T-M02-33, la 059 |
 | **Què el bloqueja** | Per construir: el 05b (cobrar inscripcions) i les dues peces de mòduls aprovats que aprova la [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md) (T-M01-30 i T-M05b-21). Per entrar en producció: el catàleg amb preus i la política de cancel·lació [A validar: junta]. La resta són supòsits configurables ([M02-13](#M02-13-riscos)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M02-01 a S-M02-06, que fixen el comportament per defecte ([M02-14](#M02-14-aprovar)). Les dues peces de mòduls aprovats ja són aprovades (049) |
 
@@ -3231,12 +3308,36 @@ Aprovada el 29/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix els
 | T-M02-31 | Titulació del club en emetre el certificat; càrrega manual, verificació i importació de titulacions | M | `certificates.py`, vistes | T-M02-19, T-M02-29 | CA-M02-33 |
 | T-M02-32 | Edat mínima per fitxa i activitat amb `persons.age_band` | S | `requirements.py` | T-M02-29, T-M01-33 | Prova amb dates inventades: major, menor i sense data |
 
+<a id="M02-addenda-059"></a>
+## M02 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M02. La taula de [M02-4](#M02-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia**
+- El **tresorer** i el **President** gestionen activitats completes: AC5 a AC8, AC15 a AC17 i AC20. No passen llista ni avaluen; el President sí que passa llista (AC9).
+- El tresorer i el President mantenen el catàleg i els preus (AC6). El President confirma reforços (AC11) i emet certificats (AC13).
+- **Avaluar, proposar reforç i posar apte** (AC10 i AC12) només ho fa qui fa classe a la sessió (RN-RP-04).
+- El responsable de material conserva la consulta de participants (AC8) per assignar material.
+- Queden resolts:
+  - S-M02-16: la secretaria no fa inscripcions presencials;
+  - S-M02-17: dades dels alumnes per a l'instructor;
+  - S-M02-18: el responsable veu els imports cobrats de totes les activitats i el marge de les seves.
+- Les **conferències** (mòdul 11) tenen la configuració inicial a CF1 i CF2.
+
+**Criteri d'acceptació**
+- **CA-M02-35** Donat un compte amb el rol tresorer, quan crea, publica i duplica una activitat, llavors pot. Quan vol passar llista o avaluar un alumne, rep «no trobat», tret que faci classe a la sessió.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M02-33 | Declarar els permisos del 02 al catàleg (AC5 a AC20, C3; CF1 i CF2 reservats per a l'11) i comprovar-los a totes les vistes i serveis | S | `apps/activities/permissions.py` | T-RP-01 | CA-M02-35; proves per cel·la del 02 (CA-RP-13) |
+
 ---
 
 <a id="M03"></a>
 # Mòdul 03 — Material
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M03-14](#M03-14-aprovar)), alhora que els 02, 03, 06 i 09.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M03-14](#M03-14-aprovar)), alhora que els 02, 03, 06 i 09. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M03-addenda-059)).
 
 **Fonts:** document de funcionalitats (F §6 Material i cost per participant, processos 9.6 i 9.7), mapa de la plataforma v8 (M04 Material), respostes del responsable del projecte del 20/10/2026 (llista de tipus, ampolla amb litres lliures, stock de tot el material, material al registre d'immersió, tarifes per centre amb marge propi) i del 22/10/2026 (les classes de reforç són un ús nou de material), decisions [013](decisions/013-imputacio-comissions.md), [026](decisions/026-duplicar-activitats-al-modul-02.md), [035](decisions/035-dades-nomes-dins-ue.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md); [spec 00](../specs/00-base-comuna/spec.md) (càrrec, importacions, fitxers); secció [M02](#M02).
 
@@ -3248,7 +3349,7 @@ Aprovada el 29/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix els
 |---|---|
 | **Intenció** | Respondre per a cada activitat què fa servir cada participant, d'on surt (propi, del club o llogat a un centre de busseig) i quant costa; portar l'inventari de tot el material del club peça per peça, amb stock i revisions; i donar al 09 el cost de material i el marge dels lloguers. |
 | **Processos que cobreix** | P-M03-A Inventari, tipus i stock · P-M03-B Centres de busseig i tarifes · P-M03-C Necessitats a la inscripció · P-M03-D Assignar, llogar, lliurar i retornar (F 9.6) · P-M03-E Quantitats reals, registre d'immersió i cost per participant · P-M03-F Revisions (F 9.7) · P-M03-G Càrrega inicial de l'inventari |
-| **Tasques** | 22 (T-M03-01 a T-M03-22) |
+| **Tasques** | 23 (T-M03-01 a T-M03-23); la T-M03-23 l'afegeix la 059 |
 | **Què el bloqueja** | Per construir: el 02 (activitats, inscripcions i punts d'extensió). Per entrar en producció: centres i tarifes, peces actuals del club i regla del cost d'ús [A validar: junta]; qui paga el material llogat [A validar: junta i tresorer] |
 | **Què cal aprovar** | Aquesta secció; la regla que evita comptar dues vegades el lloguer al marge (RN-M03-10); els supòsits S-M03-01 a S-M03-04 ([M03-14](#M03-14-aprovar)) |
 
@@ -3696,12 +3797,35 @@ Punts que es van presentar per aprovar:
 3. **Supòsits per defecte** S-M03-02 (cost d'ús 0), S-M03-03 (càrrec a part del lloguer) i S-M03-04 (referència i inicials a la llista) [A validar: junta i tresorer]. No bloquegen el codi.
 4. **Per entrar en producció** (no per començar): centres i tarifes (S-M03-01) i inventari inicial (S-M03-05) [A validar: junta].
 
+<a id="M03-addenda-059"></a>
+## M03 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M03. La taula de [M03-4](#M03-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia**
+- «Gestionar inventari i assignar material» és de l'instructor (només les seves sessions), el responsable de cursos i sortides, el responsable de material, el tresorer, l'administrador i el President. Queda resolt S-M03-10 al revés del supòsit: el responsable de cursos i sortides **sí** que assigna material.
+- **Lloguer puntual a un centre** (MT6b, nou):
+  - qui el registra tria qui ha agafat què i escriu el **cost del centre**;
+  - el preu per a l'alumne és el de la tarifa (MT8), que mantenen el responsable de material, el tresorer, l'administrador i el President;
+  - l'instructor veu el preu per a l'alumne (C4), però no el marge dels lloguers (MT12);
+  - si el centre no té tarifa per a aquell equip, el lloguer queda «sense preu per a l'alumne» fins que el responsable de material la posa [A validar: responsable de material].
+- El responsable de cursos i sortides veu el marge dels lloguers de les seves activitats (MT12).
+- **Punt feble:** l'instructor pot calcular el marge amb el cost que escriu i el preu de l'alumne. Es pot canviar des de l'editor.
+
+**Criteri d'acceptació**
+- **CA-M03-20** Donat un instructor d'una sessió amb un lloguer puntual, quan registra que un alumne ha agafat un jaquet al centre i n'escriu el cost, llavors l'assignació queda amb el cost del centre i el preu per a l'alumne de la tarifa. L'instructor veu el preu per a l'alumne i no el marge. En una sessió on no fa classe, rep «no trobat».
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M03-23 | Declarar els permisos del 03 al catàleg (MT3 a MT13, MT6b, C4) i el lloguer puntual amb el cost del centre | S | `apps/equipment/permissions.py`, `apps/equipment/rentals.py` | T-RP-01, T-M03-10, T-M03-18 | CA-M03-20; proves per cel·la del 03 (CA-RP-13) |
+
 ---
 
 <a id="M09"></a>
 # Mòdul 09 — Marge, despeses, ajuts i facturació
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-14](#M09-14-aprovar)), amb l'apartat d'ajuts i alhora que els 02, 03 i 06. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M09-addenda-058) (T-M09-27 a T-M09-29 i T-M09A-16), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-14](#M09-14-aprovar)), amb l'apartat d'ajuts i alhora que els 02, 03 i 06. Abans s'anomenava «resta de la 04» ([numeració](#numeracio)). Té dues parts, cadascuna amb la plantilla de 14 seccions: la **principal** (despeses amb factura, altres ingressos, marge per activitat, informes per departament, facturació i tancament de període) i l'apartat **[Ajuts: calendari, sol·licituds i justificació](#M09-ajuts)**. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M09-addenda-058) (T-M09-27 a T-M09-29 i T-M09A-16), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M09-addenda-059)).
 
 **Fonts:** document de funcionalitats (F §7 Tresoreria, marge per activitat, factures i ajuts; F §5 tancament econòmic de les sortides; processos 9.8, 9.10 i 9.11), mapa de la plataforma v8 (M05c Marge, factures i ajuts), respostes del responsable del projecte del 20/10/2026 (totes les factures per justificar ajuts; els ajuts es compten per departament i no per activitat; centres de busseig amb marge propi) i del 22/10/2026 (factures de tot quan la junta ho activi; subtipus de medi ambient ampliables; preus configurables), instruccions del 27/10/2026 per a l'apartat d'ajuts, decisions [013](decisions/013-imputacio-comissions.md), [027](decisions/027-estructura-basica-de-carrec-i-pagament.md), [028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md), [035](decisions/035-dades-nomes-dins-ue.md), [043](decisions/043-proveidor-de-pagaments-dins-la-ue.md), [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M02](#M02) (`closing_blockers`, `mark_closed`), [M03](#M03) (RN-M03-10 i `activity_material_cost`), [M04](#M04) (moviments i conciliació) i [M05b](#M05b) (rebuts i esdeveniment `charge.paid`).
 
@@ -3715,7 +3839,7 @@ Punts que es van presentar per aprovar:
 |---|---|
 | **Intenció** | Que el tresorer sàpiga quant guanya o perd cada curs i cada sortida (marge previst mentre és oberta, marge real congelat en tancar-la), que cap despesa quedi sense factura, que els ingressos i les despeses es puguin veure per departament, subtipus i projecte per demanar i justificar ajuts, que es puguin emetre factures amb un servei homologat i que cada període es tanqui i no es toqui més. |
 | **Processos que cobreix** | P-M09-A Registrar una despesa (F 9.8) · P-M09-B Repartir una despesa entre activitats · P-M09-C Registrar un ingrés que no és un càrrec (ajut, patrocini, donatiu) · P-M09-D Marge previst i tancament econòmic d'una activitat · P-M09-E Informes per departament, subtipus i projecte · P-M09-F Factures i rectificatives · P-M09-G Tancament de període (F 9.11). La justificació d'ajuts (F 9.10) és a l'[apartat d'ajuts](#M09-ajuts) |
-| **Tasques** | 29 (T-M09-01 a T-M09-29), més les 16 de l'apartat d'ajuts (T-M09A-01 a T-M09A-16); de la T-M09-27 a la T-M09-29 i la T-M09A-16 les afegeix la 058 |
+| **Tasques** | 30 (T-M09-01 a T-M09-30), més les 16 de l'apartat d'ajuts (T-M09A-01 a T-M09A-16); de la T-M09-27 a la T-M09-29 i la T-M09A-16 les afegeix la 058, i la T-M09-30 (que també cobreix l'apartat d'ajuts), la 059 |
 | **Què el bloqueja** | Per construir: el 02, el 03, el 05b i l'addenda de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md), T-M04-20). Facturació: què s'ha de facturar, IVA i Verifactu [A verificar: gestoria, P-02, P-47]. La resta són supòsits configurables ([M09-13](#M09-13-riscos)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M09-01 a S-M09-05 ([M09-14](#M09-14-aprovar)). Les peces de la 04 ([050](decisions/050-addenda-tresoreria-despeses-ingressos-i-periodes.md)) i els documents amb IBAN ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) ja són aprovats |
 
@@ -4217,7 +4341,7 @@ Punts que es van presentar per aprovar:
 <a id="M09-ajuts"></a>
 # Mòdul 09 — Apartat: Ajuts: calendari, sol·licituds i justificació
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-ajuts-14](#M09-ajuts-14-aprovar)), amb la resta del 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) (termini d'esmena, T-M09A-16, a l'[addenda del 09](#M09-addenda-058)).
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M09-ajuts-14](#M09-ajuts-14-aprovar)), amb la resta del 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) (termini d'esmena, T-M09A-16, a l'[addenda del 09](#M09-addenda-058)). Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M09-addenda-059)).
 
 **Fonts:** instruccions del responsable del projecte del 27/10/2026; F §7 (ajuts i justificació, procés 9.10); respostes del 20/10/2026 (totes les factures per justificar ajuts; ajuts per departament i per tipus d'acció de medi ambient) i del 22/10/2026 (subtipus i projectes per trobar ajuts); part principal del [09](#M09).
 
@@ -4667,12 +4791,30 @@ Aprovada el 29/10/2026. **No canvia cap regla aprovada** del 09 ni de l'apartat 
 | T-M09-29 | Anonimització dels registres econòmics passat el termini legal (bloquejada fins a Q-14) | M | `apps/expenses/retention.py`, tasques de la cua | T-M09-04, T-M09-08 | CA-M09-38 |
 | T-M09A-16 | Termini d'esmena opcional per convocatòria (sense prioritat) | S | `apps/grants/models.py`, migració | T-M09A-02 | CA-M09A-26 |
 
+<a id="M09-addenda-059"></a>
+## M09 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M09. Les taules de [M09-4](#M09-4-rols) i [M09-ajuts-4](#M09-ajuts-4-rols) passen a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu).
+
+**Què canvia**
+- El **President** registra despeses amb factura (MG1) i veu el marge (MG6).
+- El **responsable de cursos i sortides** registra despeses de les seves activitats i en veu el marge.
+- El **responsable de material no registra despeses**, a diferència del supòsit S-M09-01, que queda resolt així.
+- Pagar despeses, repartir-les, emetre factures, tancar i fer devolucions es queden com al pla.
+- Obrir els documents de justificació (RN-M09-23, [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)) i reobrir un període (MG12) són regles protegides.
+- L'apartat d'ajuts no canvia. La Junta hi actua sobre les sol·licituds de què és responsable.
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M09-30 | Declarar els permisos del 09 i de l'apartat d'ajuts al catàleg (MG1 a MG14, AJ1 a AJ13; C5, MG12 i AJ12 protegits) i comprovar-los a totes les vistes i serveis | S | `apps/expenses/permissions.py`, `apps/grants/permissions.py` | T-RP-01 | Proves per cel·la del 09 (CA-RP-13) |
+
 ---
 
 <a id="M06"></a>
 # Mòdul 06 — Llicències
 
-**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M06-14](#M06-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M06-addenda-058) (T-M06-21 a T-M06-24, amb la precisió del 29/10/2026), sense canviar cap regla.
+**Estat: aprovat** pel responsable del projecte el 28/10/2026 ([M06-14](#M06-14-aprovar)), alhora que els 02, 03, 06 i 09. Ampliat per la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md) amb una [addenda](#M06-addenda-058) (T-M06-21 a T-M06-24, amb la precisió del 29/10/2026), sense canviar cap regla. Els permisos de la taula de rols són la configuració inicial, editable des de l'app per l'administrador ([059](decisions/059-rols-i-permisos-editables.md), [addenda](#M06-addenda-059)).
 
 **Fonts:** document de funcionalitats (F §8.1 Llicències federatives, processos 9.12 i 9.16), mapa de la plataforma v8 (M06 Llicències), respostes del responsable del projecte del 20/10/2026 (tres durades; marge 0 per a la llicència d'un soci) i del 22/10/2026 (opció de llicència sense ser soci, amb un recàrrec que faci que fer-se soci surti gairebé sempre a compte; preus configurables amb nota obligatòria en canviar-los), decisions [036](decisions/036-fecdas-alia.md) (la FECDAS és un aliat, sense cap acord d'integració), [013](decisions/013-imputacio-comissions.md), [017](decisions/017-pagaments-metodes-i-domiciliacions.md), [021](decisions/021-persones-no-socies-com-a-convidades.md), [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md), [035](decisions/035-dades-nomes-dins-ue.md), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [049](decisions/049-peces-noves-a-moduls-aprovats-per-al-02.md); seccions [M01](#M01) (registre mínim de llicència), [M05b](#M05b) i [M09](#M09) (despesa de la federació).
 
@@ -4688,7 +4830,7 @@ Aprovada el 29/10/2026. **No canvia cap regla aprovada** del 09 ni de l'apartat 
 |---|---|
 | **Intenció** | Portar totes les llicències federatives dels socis (i, quan la junta ho activi, de persones de fora) en un sol lloc: tipus amb categoria (aficionat, tècnic, altres) i regla de validesa (any natural, 365 dies i, només si s'activa, un dia), preu de soci igual al de la federació, preu de no soci amb recàrrec i l'estalvi de fer-se soci a la vista, pagament dins l'app, avisos abans que caduquin, llistat per tramitar-les a la federació, i saber a l'instant si la llicència d'una persona és vigent. |
 | **Processos que cobreix** | P-M06-A Preus i tipus · P-M06-B Demanar i pagar una llicència (soci) · P-M06-C Llicència per a una persona de fora (F 9.16) · P-M06-D «Ja en tinc una» · P-M06-E Tramitar a la federació · P-M06-F Avisos i renovació (F 9.12) · P-M06-G Cancel·lar · P-M06-H Passar els registres del 01 al 06 |
-| **Tasques** | 24 (T-M06-01 a T-M06-24; de la T-M06-21 a la T-M06-24 les afegeix la 058); la còpia de lectura del 01 és la T-M01-31 |
+| **Tasques** | 25 (T-M06-01 a T-M06-25; de la T-M06-21 a la T-M06-24 les afegeix la 058 i la T-M06-25, la 059); la còpia de lectura del 01 és la T-M01-31 |
 | **Què el bloqueja** | Per construir: el 05b (cobrar), el mecanisme d'esdeveniments (T-M05b-21) i el servei de lectura del 01 (T-M01-30, 049). La font única de la llicència ja és aprovada ([052](decisions/052-llicencia-font-unica-al-06.md)). Per entrar en producció: tipus, categories, preus, trams i format de tramitació [A verificar: FECDAS] i recàrrec dels no socis [A validar: junta]; data de naixement (punt prioritari 0 de l'[ordre del dia](#ordre-del-dia-junta)) |
 | **Què cal aprovar** | Aquesta secció i els supòsits S-M06-04, 05, 07 i 09 ([M06-14](#M06-14-aprovar)) |
 
@@ -5166,6 +5308,26 @@ Aprovada el 29/10/2026. **No canvia cap regla aprovada** del 06, excepte el càl
 |---|---|---|---|---|---|
 | T-M06-24 | Confirmació en bloc de les llicències d'any natural pendents i declaració del soci | S | `apps/licences/imports.py`, vistes | T-M06-23 | CA-M06-32 |
 
+<a id="M06-addenda-059"></a>
+## M06 — Addenda de la [059](decisions/059-rols-i-permisos-editables.md): permisos editables i configuració inicial
+
+Aprovada el 30/10/2026. **No canvia cap regla** del M06. La taula de [M06-4](#M06-4-rols) passa a ser la **configuració inicial** dels permisos del mòdul, que l'administrador pot canviar des de l'app ([peça comuna](#rols-i-permisos-059)). Els canvis respecte de la taula, cel·la per cel·la, són a la [matriu inicial](#rols-i-permisos-059-matriu). Les cel·les [A validar] prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si l'acció es quedaria sense ningú, l'administrador.
+
+**Què canvia**
+- El **responsable de cursos i sortides** i el **tresorer** veuen el llistat i els venciments (LC4), amb el número federatiu i la categoria (C6), i registren «ja en tinc una» (LC3).
+- Exportar a la federació i cancel·lar (LC5, LC6) ho fan la secretaria, l'administrador i el President.
+- El President també canvia tipus i preus (LC8).
+- L'instructor continua veient només «vigent sí o no» (RN-M06-22). La data de naixement continua com a la 058 (regla protegida).
+- Queda resolt S-M06-05: mantenen els preus el tresorer, l'administrador i el President.
+
+**Criteri d'acceptació**
+- **CA-M06-33** Donat un compte amb el rol responsable de cursos i sortides, quan obre el llistat de llicències, llavors en veu els venciments, el número federatiu i la categoria, però no la data de naixement. Quan vol exportar a la federació o cancel·lar, rep «no trobat».
+
+**Tasca**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M06-25 | Declarar els permisos del 06 al catàleg (LC3 a LC11, C6) i comprovar-los a totes les vistes i serveis | XS | `apps/licences/permissions.py` | T-RP-01 | CA-M06-33; proves per cel·la del 06 (CA-RP-13) |
+
 ---
 
 <a id="M12-idees"></a>
@@ -5249,11 +5411,10 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 
 | ID | Pregunta | Bloqueja |
 |---|---|---|
-| P-04; S-M01-23 | Matriu dels 13 rols i rols nous (Junta, Resp. comunicació, Resp. botiga) | — (permisos configurables) |
 | S-M01-01, 02 | Import del canvi a ple dret; quota sencera a mig any | — |
 | S-M01-06, 07, 08 | Verificació pública del carnet (dígits, nom) i darrere del carnet | — |
 | S-M01-09, 10, 11 | Soci clàssic, antiguitat en una readmissió, drets del simpatitzant | — |
-| S-M01-12, 13, 14, 22 | Compte després de la baixa, socis menors (P-33), qui atén l'RGPD, conflicte d'interès | — |
+| S-M01-12, 13 | Compte després de la baixa, socis menors (P-33) | — |
 | S-M04-01, 06, 07, 09 | Departaments i centres de cost (Q-17), ingrés de quotes, comissions de llicències, qui desfà conciliacions | — |
 | S-M05a-09, 13 | Qui guarda la còpia de la clau; què veu la secretaria del mètode de pagament | 05a: nivell 1 (còpia de la clau) |
 | M05a-14 punt 2 | Textos del mandat, la invitació i el correu G3 | 05a: producció |
@@ -5265,14 +5426,13 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M02-07 | Catàleg de cursos i d'especialitats amb preus | 02: producció |
 | S-M02-08, 09 | Preu del reforç (per classe o per proposta); qui emet el certificat i com es numera | — |
 | S-M02-12, 14 | Tipus de sortida propis (Sèniors, jornades obertes); dades ambientals | — |
-| S-M02-16, 17, 18 | Inscripció presencial de la secretaria; dades que veu l'instructor; imports que veu el responsable (Q-01) | — |
 | S-M02-19, 20 | Requisits d'edat; protocol d'accidents i contacte d'emergència | — |
 | S-M03-01 | Centres de busseig i tarifes | 03: producció |
 | S-M03-02, 03 | Cost d'ús del material del club; lloguer en càrrec a part (també tresorer) | — |
 | S-M03-04 | Dades que rep el centre a la llista de lloguer | — |
 | S-M03-05 | Inventari actual per tipus i talla | 03: producció |
 | S-M03-06, 08, 09, 10, 11 | Dies dels avisos, peces perdudes, bibotelles, qui assigna, codis de les peces | — |
-| S-M09-01, 04, 06, 07 | Qui registra despeses; llindar de marge baix; costos generals al marge per departament; departaments per a ajuts | — |
+| S-M09-04, 06, 07 | Llindar de marge baix; costos generals al marge per departament; departaments per a ajuts | — |
 | RN-M09-23 | Qui puja una factura des del mòbil la pot tornar a obrir (documents de justificació, 051) | — |
 | RN-M09-25 (risc de [M09-13](#M09-13-riscos)) | Fotos de factures i comprovants que queden a la galeria del telèfon: si n'hi ha prou amb el text d'ajuda o cal una norma per als responsables | — |
 | S-M09-10, 11, 12 | Informes de l'assemblea; hores de voluntariat; pressupostos | — |
@@ -5280,7 +5440,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 | S-M09A-04, 05; M09-ajuts-13 dubte 3 | Avisos abans de justificar; format de cada organisme; renúncia a un ajut concedit | — |
 | S-M09A-09 | Dies dels avisos d'un requeriment d'esmena | — |
 | S-M06-01 | Recàrrec dels no socis i activació de l'opció | 06: llicències per a no socis |
-| S-M06-05, 07, 08, 10 | Qui manté els preus; llicència d'un dia sense inscripció (condicional); no soci que es fa soci; departament de les llicències (Q-19) | — |
+| S-M06-07, 08, 10 | Llicència d'un dia sense inscripció (condicional); no soci que es fa soci; departament de les llicències (Q-19) | — |
 | M06-13 dubte 2 | Data de naixement: la FECDAS la demana en tramitar (Q-09, P-33); **punt prioritari 0** | — |
 | M06-13 dubte 4; M09-13 dubte 5 | Comissió del cobrament de la llicència d'un soci | — |
 | S-AJ-01, 02 ([055](#valors-configurables-055)) | Si algun import només es pot canviar amb ratificació; qui rep l'avís dels canvis de diners com a «junta» | — (el canvi s'aplica i s'avisa) |
@@ -5376,7 +5536,7 @@ Tots els pendents de la junta dels mòduls 01, 02, 03, 04, 05a, 05b, 06 i 09, en
 | 5 | **Quotes: venciment** | Quan es cobren les quotes i quan és la propera remesa; quotes pendents en una baixa; validesa del carnet dels socis que han pagat a Cluber (proposa el tresorer, ratifica la junta). Els dies dels recordatoris són a la part B (B5) | Any natural; s'anul·len les quotes posteriors a la baixa; carnet vàlid fins a final del període pagat a Cluber | P-29; S-M01-03, 05, 24 |
 | 6 | **Carnet, verificació i socis** | Què mostra la verificació pública; si hi ha insígnia de soci clàssic; antiguitat en una readmissió; compte personal després de la baixa. El text del darrere i el llindar de soci clàssic són a la part B (B6) | Dos últims dígits i cap nom; sense insígnia d'inici; antiguitat des de la primera alta; el compte es manté per consultar rebuts | S-M01-06, 07, 09, 10, 12 |
 | 7 | **Menors** | Si hi ha o hi haurà socis o participants menors; edat mínima a les activitats; si cal guardar la data de naixement (vegeu el punt prioritari 0) | Només majors d'edat a la plataforma fins que hi hagi un protocol (persona de referència i mandat signat pel titular del compte); cap data de naixement fins llavors | P-33; Q-09; S-M01-13; S-M02-19; dubte 2 de [M06-13](#M06-13-riscos) |
-| 8 | **Matriu de rols** | Validar els 13 rols i les matrius dels mòduls (rols nous: Junta, Resp. comunicació i Resp. botiga); què veu l'instructor; quins imports veu el responsable; qui fa inscripcions presencials, assigna material i registra despeses; qui atén l'RGPD; conflicte d'interès; qui manté departaments i desfà conciliacions; què veu la secretaria del mètode de pagament; qui reenvia l'alternativa; qui manté els preus de les llicències; qui canvia cada valor de les pantalles d'ajustos ([valors configurables](#valors-configurables)), en especial dues propostes d'ajustos no aplicades perquè contradeien una regla escrita: qui canvia els preus del catàleg del 02 (la proposta deia el tresorer; avui és el responsable de cursos i sortides, RN-M02-01) i qui canvia les tarifes del 03 (la proposta deia el tresorer; avui és el responsable de material, C3 i MT8) | Aprovar les matrius tal com són, amb els supòsits per defecte: l'instructor veu nom, titulació, llicència sí o no i assistència; el responsable veu tots els imports cobrats i el marge de les seves activitats; la secretaria no fa inscripcions presencials; el responsable de cursos no assigna material però registra despeses de les seves activitats; l'administrador atén l'RGPD i manté departaments; ningú no aprova ni canvia el seu propi soci; la secretaria només veu «té mètode: sí o no»; tresorer i secretaria reenvien l'alternativa; el tresorer manté els preus de les llicències; qui puja una factura des del mòbil no la torna a obrir (només tresorer i junta, 051); cada valor d'ajustos el canvia el rol de la columna «Qui el canvia» de l'apèndix, excepte els preus del catàleg del 02 i les tarifes del 03, que es queden com diuen ara les regles (VC-20 i VC-27) | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01; RN-M09-23; VC-20; VC-27 |
+| 8 | **Matriu de rols** | **Resolt el 30/10/2026** per la [059](decisions/059-rols-i-permisos-editables.md): el responsable del projecte dona la matriu per validada, l'administrador assigna rols i edita els permisos des de l'app, i la configuració inicial és a l'[apèndix de rols i permisos](#rols-i-permisos-059-matriu). Qui canvia els preus del catàleg del 02 i les tarifes del 03 també hi és (VC-20 i VC-27). **Continua obert:** si qui puja una factura des del mòbil la pot tornar a obrir (RN-M09-23) | Per a RN-M09-23: no; només el tresorer i la junta (051) | P-04; Q-01; S-M01-14, 22, 23; S-M02-16, 17, 18; S-M03-10; S-M04-09; S-M05a-13; S-M05b-13; S-M06-05; S-M09-01; VC-20; VC-27 (resolts); RN-M09-23 (obert) |
 | 9 | **Comissió de retorn** | Qui paga la comissió del banc quan es retorna un rebut domiciliat | La paga el club d'inici; es revisa si els retornats augmenten. L'import és [A verificar: banc] | S-M05b-08 |
 | 10 | **Carnet amb una quota retornada** | Si el carnet continua vàlid mentre la quota retornada no es paga | No és vàlid fins que es pagui (el soci rep l'alternativa de pagament) | S-M05b-09 |
 | 11 | **Ajuts: responsable i convocatòries** | Qui és el responsable dels ajuts i de cada sol·licitud; quines convocatòries s'han de vigilar; qui rep els avisos; si hi ha avisos abans de justificar; format de justificació de cada organisme. Els dies dels avisos són a la part B (B7) | Responsable per defecte: el tresorer, amb una persona de la junta per a medi ambient; començar per les convocatòries que el club ja ha demanat; avisos al responsable i al tresorer; sí, avisos també abans de justificar; paquet genèric fins que un organisme en demani un altre | S-M09A-01 a 05 |
@@ -5465,7 +5625,7 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **058** vol dir 
 | VC-50 | 09 | `billing.vat_exemption_text` (RN-M09-29) | Ajustos | Ajustos (text) | [A verificar: gestoria] | Text | Tresorer | Sí | Sí | 058 |
 | VC-51 | 09 (ajuts) | `amendment_term_days` per convocatòria (RN-M09A-23) | Dada | Dada (camp opcional de la convocatòria) | Buit | Buit o ≥ 1 | Tresorer | Sí | — | 058 (sense prioritat) |
 
-**Fora d'aquesta llista.** Els valors de la spec 00 (rols, permisos configurables mentre no es validi P-04) són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i és a la [055](#valors-configurables-055).
+**Fora d'aquesta llista.** Els valors de la spec 00 són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. Els rols i els permisos són dades editables per l'administrador ([059](decisions/059-rols-i-permisos-editables.md)): la configuració inicial és a l'[apèndix de rols i permisos](#rols-i-permisos-059-matriu), i qui canvia cada valor d'aquesta llista és un permís `settings.edit.<clau>` (RN-RP-17). La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i és a la [055](#valors-configurables-055).
 
 <a id="valors-configurables-055"></a>
 ## Decisió 055: peça comuna d'ajustos (00)
@@ -5504,3 +5664,262 @@ Acceptada el 28/10/2026 ([055](decisions/055-ajustos-configurables-i-addendes.md
 |---|---|---|---|---|---|
 | T-AJ-01 | Peça comuna: `Setting`, `SettingVersion`, serveis `settings.get`, `settings.change` i `settings.notify_money_change`, registre, data d'entrada en vigor i correu dels canvis de diners | M | `apps/core/business_settings.py`, migració | T-M01-06, T-M01-07, T-M01-10 | CA-AJ-01 a 05 |
 | T-AJ-02 | Pantalla base d'ajustos (llista per mòdul, formulari segons el tipus, historial) | S | `apps/core/views/business_settings.py`, plantilles | T-AJ-01 | Proves de permisos, de rang i d'historial |
+
+---
+
+<a id="rols-i-permisos-059"></a>
+# Apèndix — Rols i permisos editables (decisió 059)
+
+Acceptada el 30/10/2026 ([059](decisions/059-rols-i-permisos-editables.md)). És una peça comuna de la 00: la spec 00 no s'edita i la peça viu aquí fins que la 00 tingui secció, com la [peça d'ajustos](#valors-configurables-055). Als mòduls aprovats s'aplica amb una addenda ([01](#M01-addenda-059), [04](#M04-addenda-059), [05a](#M05a-addenda-059), [05b](#M05b-addenda-059), [02](#M02-addenda-059), [03](#M03-addenda-059), [09](#M09-addenda-059), [06](#M06-addenda-059)) que no canvia cap regla. Substitueix la matriu provisional de la spec 00 (§2.2 a §2.4 i RN-45) i resol P-04 i Q-01.
+
+**Què es pot fer des de l'app.** L'administrador, i només ell:
+1. assigna i retira un o diversos rols als comptes d'administrador;
+2. modifica els permisos de cada rol, amb efecte sobre tots els comptes que el tenen.
+
+La matriu de sota és la **configuració inicial**. Les regles protegides no es poden canviar des de l'app.
+
+**Entitats**
+- **Catàleg de permisos (codi, no base de dades):**
+  - `code` (amb el prefix del mòdul, per exemple `expenses.register`), `module`, descripció en català i `kind` (`action` o `field`);
+  - `allowed_scopes`: llista tancada, per exemple `all`, `own_activities`, `own_sessions`;
+  - `protected`: si és sí, l'editor el mostra però no el deixa canviar;
+  - `requires`: permisos sense els quals no es pot atorgar.
+- `Role`: `code`, nom en català, `is_management` (s'assigna a comptes d'administrador). Llista fixa, creada per migració: no es crea ni es reanomena des de l'app.
+- `RolePermission`: `role`, `permission_code`, `scope`. Només hi ha files per als permisos no protegits.
+- `AccountRole`: `admin_account`, `role`, `assigned_by`, `assigned_at`, `removed_by`, `removed_at`. Retirar un rol omple `removed_*`; la fila no s'esborra.
+- `PermissionMatrixVersion`: `number`, `changed_by` (compte), `changed_at`, `note`, `diff` (abans i després de cada cel·la) i `affected_accounts`. Només s'hi afegeixen files.
+- Es fan servir taules pròpies, no els grups de Django, perquè l'abast, les regles protegides i les versions no hi caben. Amplia la T-M01-06 sense canviar-ne el que ja fa.
+
+**Regles**
+| ID | Regla |
+|---|---|
+| RN-RP-01 | **Permís per petició.** Els permisos d'un compte d'administrador es calculen a cada petició, a partir dels seus rols actius i de la matriu vigent. No es guarden a la sessió. Primer el rol, després l'objecte i després els camps (spec 00 §2.6, punt 3) |
+| RN-RP-02 | **Unió.** El permís d'un compte és la unió dels seus rols (RN-27). Si un permís té abasts diferents en dos rols, guanya el més ampli. Els camps sensibles no protegits també se sumen |
+| RN-RP-03 | **Cap deducció.** Cada permís s'atorga sol. Un permís amb `requires` no es pot desar sense els que demana: l'editor ho rebutja amb un missatge i no els afegeix sol |
+| RN-RP-04 | **Abast tancat.** L'abast s'escull d'`allowed_scopes`. Els abasts base no s'amplien: el soci, «propi»; el convidat, l'objecte de l'enllaç; l'instructor, les seves sessions. Avaluar pràctiques, proposar reforç i posar apte només admeten l'abast «les seves sessions»: només ho fa qui fa classe a la sessió, tingui el rol que tingui |
+| RN-RP-05 | **Regles protegides.** No són files de `RolePermission` i l'editor les mostra com a només lectura, amb la decisió que les fixa: les 15 de la [059](decisions/059-rols-i-permisos-editables.md), punt 4. Entre elles, gestionar usuaris, rols i permisos és exclusiu del rol administrador i no es pot donar a cap altre rol |
+| RN-RP-06 | **Editor: qui i com.** Només el rol administrador. Per desar, cal tornar a escriure el TOTP (temps màxim des de l'últim TOTP: 5 minuts, valor de seguretat al codi, com V-01) i una nota obligatòria |
+| RN-RP-07 | **Resum abans de desar.** L'editor mostra cada cel·la que canvia (abans i després), la llista de comptes afectats (nom d'usuari) i un avís si el canvi toca diners, dades personals o un camp sensible. Sense confirmar el resum no es desa res |
+| RN-RP-08 | **Registre i versions.** Cada canvi de la matriu o de rols d'un compte deixa una entrada al registre d'activitat (qui, quan, compte, rol, permís, abast, valor anterior, valor nou, nota) i, per a la matriu, una `PermissionMatrixVersion`. No s'editen ni s'esborren. «Tornar a la configuració inicial» és un canvi més, amb resum i nota |
+| RN-RP-09 | **Avís.** Cada canvi envia un correu de notificació a tots els comptes amb el rol administrador, als comptes afectats i als comptes amb el rol President. El correu diu què ha canviat i qui ho ha fet, sense dades personals de terceres persones |
+| RN-RP-10 | **Efecte a la petició següent.** Retirar un rol o modificar un permís té efecte a la petició següent de tots els comptes afectats. En desar un formulari obert, el servidor torna a comprovar el permís: si ja no hi és, es rebutja sense revelar dades i queda al registre |
+| RN-RP-11 | **Sessions.** Si un compte es queda sense cap rol, se'n tanquen les sessions i el compte continua actiu sense accés (desactivar-lo és una acció a part, CA-13.2). Si un canvi amplia l'accés a dades personals o a diners, es tanquen les sessions d'administració dels comptes afectats, perquè tornin a entrar amb TOTP |
+| RN-RP-12 | **Responsables orfes.** Si un compte perd el rol amb què era responsable d'un objecte (activitat, sessió, sol·licitud d'ajut), l'objecte no es reassigna sol: surt a la llista «sense responsable» de l'administrador |
+| RN-RP-13 | **Administrador operatiu.** Operatiu vol dir actiu, amb TOTP donat d'alta, no bloquejat i que no és compte d'emergència. Es rebutja qualsevol canvi que en deixi menys d'un: retirar el rol, desactivar el compte, restablir-ne el TOTP o tocar els permisos del rol administrador (que, a més, són protegits). Per sota de dos, avís permanent a l'administració (R10b de l'arquitectura). Amplia RN-26 sense canviar-la |
+| RN-RP-14 | **Un sol tresorer.** Assignar el rol tresorer a un segon compte actiu mostra un avís al resum (P-48), però no es bloqueja |
+| RN-RP-15 | **Rols a l'acció.** Cada entrada del registre d'activitat feta amb un compte d'administrador guarda també els rols actius en aquell moment |
+| RN-RP-16 | **Dashboard.** Veure el dashboard no dona accés a cap dada per si mateix. Hi surten les xifres econòmiques per a tots els rols que el poden veure, però cap dada personal que el rol no pugui veure per un altre permís. Des del dashboard no s'obre cap pantalla de detall ni cap acció sense el permís corresponent (regla per al mòdul 08) |
+| RN-RP-17 | **Ajustos (055).** El camp `editor_roles` de `Setting` se substitueix per un permís del catàleg per a cada valor o grup de valors (`settings.edit.<clau>`). La configuració inicial és la columna «Qui el canvia» de l'[apèndix de valors configurables](#valors-configurables), amb els canvis de la [matriu](#rols-i-permisos-059-matriu) |
+
+**Criteris d'acceptació**
+- **CA-RP-01** Donat un compte amb els rols tresorer i responsable de material, quan se li retira el rol tresorer, llavors la petició següent ja no té cap permís de tresorer, la sessió continua oberta i el canvi queda al registre (amplia CA-13.1).
+- **CA-RP-02** Donat el rol tresorer amb el permís `members.approve`, quan l'administrador el retira, llavors tots els comptes amb aquest rol perden el permís a la petició següent, i un formulari d'aprovació que ja era obert es rebutja en desar-lo.
+- **CA-RP-03** Donat un compte amb el rol President, quan intenta obrir l'editor de permisos o assignar rols, llavors rep «no trobat»; quan l'administrador intenta donar el permís de gestionar usuaris i rols al rol President, llavors l'editor ho rebutja.
+- **CA-RP-04** Donat l'editor, quan l'administrador desa un canvi sense tornar a escriure el TOTP o sense nota, llavors no es desa res.
+- **CA-RP-05** Donat un canvi de la matriu, quan es mostra el resum, llavors hi surten totes les cel·les que canvien i tots els comptes afectats; en confirmar, hi ha una `PermissionMatrixVersion` nova, una entrada per cel·la al registre i un correu als administradors, als afectats i al President.
+- **CA-RP-06** Donat un sol administrador operatiu, quan es vol retirar-li el rol, desactivar-lo o restablir-ne el TOTP, llavors es rebutja amb un missatge que ho explica; amb dos, s'accepta i surt l'avís permanent.
+- **CA-RP-07** Donat el permís «aprovar una alta» sense «consultar sol·licituds» al mateix rol, quan es desa, llavors es rebutja amb un missatge i no s'afegeix cap permís sol.
+- **CA-RP-08** Donat un compte amb el rol responsable de cursos i sortides i el permís d'avaluar atorgat al seu rol, quan vol avaluar un alumne d'una sessió on no fa classe, llavors rep «no trobat».
+- **CA-RP-09** Donat qualsevol regla protegida (IBAN, documents de justificació, data de naixement, dades bloquejades, gestionar usuaris i rols), quan l'administrador la vol canviar des de l'editor, llavors no hi ha cap control per fer-ho i una petició directa es rebutja.
+- **CA-RP-10** Donat un canvi que dona al rol secretaria un permís sobre diners, quan es desa, llavors es tanquen les sessions d'administració dels comptes amb el rol secretaria.
+- **CA-RP-11** Donat un compte que perd l'únic rol que tenia, quan es desa, llavors se'n tanquen les sessions, el compte continua actiu i les activitats on era responsable surten a «sense responsable».
+- **CA-RP-12** Donat el rol Departament d'Història, quan obre el dashboard, llavors veu les xifres econòmiques agregades però cap nom, document, data de naixement ni IBAN, i cap enllaç a una pantalla de gestió fora de conferències.
+- **CA-RP-13** Donat la configuració inicial, quan es carrega en una base de dades buida, llavors cada cel·la de la [matriu](#rols-i-permisos-059-matriu) té una prova que en comprova el «sí» i el «no» (checklist B4).
+- **CA-RP-14** Donat un segon compte al qual s'assigna el rol tresorer, quan es mostra el resum, llavors hi surt l'avís d'un sol tresorer i el canvi es pot desar.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-RP-01 | Catàleg de permisos al codi, `Role`, `RolePermission`, `AccountRole`, motor de comprovació (rol, objecte, camps; unió; abast tancat; regles protegides) i rols a cada entrada del registre | M | `apps/core/permissions.py`, `apps/core/roles.py`, migració | T-M01-06, T-M01-10 | CA-RP-01, 02, 03, 08 i 09; prova de la llista de rutes sense sessió (RN-40) |
+| T-RP-02 | Assignar i retirar rols als comptes d'administrador: pantalla, sessions, responsables orfes, administrador operatiu i avís d'un sol tresorer | S | `apps/core/views/roles.py`, plantilles | T-RP-01 | CA-RP-06, 11 i 14 |
+| T-RP-03 | Editor de permisos: TOTP en desar, nota, resum de canvis i d'afectats, coherència, versions, correu, tancament de sessions quan s'amplia l'accés i «tornar a la configuració inicial» | M | `apps/core/views/permission_matrix.py`, `apps/core/services/permission_matrix.py`, plantilles | T-RP-01, T-RP-02 | CA-RP-04, 05, 07 i 10 |
+| T-RP-04 | Configuració inicial com a migració de dades i proves per cel·la que es generen des de la matriu | S | migració de dades, `tests/permissions/` | T-RP-01 | CA-RP-13; proves en verd |
+| T-RP-05 | `settings.edit.<clau>` en lloc d'`editor_roles` a la peça d'ajustos (RN-RP-17) | XS | `apps/core/business_settings.py` | T-RP-01, T-AJ-01 | CA-AJ-02 continua passant amb els permisos del catàleg |
+
+Les tasques de cada mòdul que declaren els seus permisos al catàleg són a les addendes. El dashboard (08) aplicarà RN-RP-16 quan s'escrigui.
+
+<a id="rols-i-permisos-059-matriu"></a>
+## Configuració inicial de la matriu
+
+Font: taula «Què pot fer cada rol» del responsable del projecte (30/10/2026), separada en permisos concrets. Les **cel·les [A validar]** que la taula no cobreix prenen el supòsit per defecte del mòdul; si no n'hi ha, «—»; si amb «—» l'acció es quedaria sense ningú, la té l'administrador. Totes es poden canviar des de l'editor, excepte les que porten **Protegit**.
+
+**Llegenda.** **Sí**; **Les seves** (instructor: sessions on fa classe; responsable de cursos i sortides: activitats de què és responsable); **Cons.** (només veure); **—** (no). **Columnes:** Instr. = Instructor; Secr. = Secretaria; RCS = Resp. cursos i sortides; RM = Resp. material; Tres. = Tresorer; DH = Dept. d'Història; Admin. = Administrador; Pres. = President. A la columna «Canvi», «+» vol dir que el rol guanya el permís respecte del pla i «−» que el perd.
+
+**Fora de la matriu (no editables):**
+- Les **accions pròpies** es fan amb el compte personal i no són permisos de rol. Per exemple: P12 a P16, A1 a A3, B1, B2, AC1 a AC4, MT1, MT2, MG10, LC1 i el «Propi» de LC3.
+- Visitant i convidat són fixos (RN-40, [021](decisions/021-persones-no-socies-com-a-convidades.md)).
+- El **Responsable de comunicació** i el **Responsable de botiga** comencen sense cap permís.
+
+### 00 Base comuna
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| M2 | Crear i editar perfils d'altres persones i els seus comptes personals | — | Sí | — | — | — | — | Sí | — | — | Les [A validar] passen a — |
+| M3 | Crear comptes d'administrador, assignar i retirar rols, desactivar comptes | — | — | — | — | — | — | Sí | — | — | **Protegit** |
+| M3b | Modificar els permisos dels rols (editor) | — | — | — | — | — | — | Sí | — | — | Nou; **Protegit** |
+| M4 | Restablir la contrasenya o el TOTP d'un altre compte d'administrador | — | — | — | — | — | — | Sí | — | — | **Protegit** |
+| M5 | Generar, reenviar i revocar enllaços de convidat | — | — | — | — | — | — | Sí | — | — | Les [A validar] passen a — (B7 continua) |
+| M6 | Consultar el registre d'activitat | — | — | — | — | — | — | Sí | — | — | Les [A validar] passen a — |
+| M7 | Mantenir la llista de departaments | — | — | — | — | — | — | Sí | — | — | S-M04-09 |
+| M8 | Importar les dades de Cluber i desfer-ho | — | — | — | — | — | — | Sí | — | — | — |
+| M9 | Importar l'extracte bancari i desfer-ho | — | — | — | — | Sí | — | — | — | — | Admin. [A validar] passa a — |
+| M11 | Atendre sol·licituds RGPD d'altres persones | — | — | — | — | — | — | Sí | — | — | S-M01-14 |
+| M12 | Publicar versions noves dels textos legals | — | — | — | — | — | — | Sí | — | — | Únic candidat |
+| M13 | Consultar dades bloquejades | — | — | — | — | Sí | — | Sí | — | — | **Protegit** (028) |
+| M14 | Registrar un cobrament manual | Bloquejat fins a P-12; no surt a l'editor | | | | | | | | | — |
+
+### 01 Socis i carnet
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| P2 | Crear una alta presencial | — | Sí | — | — | — | — | Sí | — | — | — |
+| P3a | Consultar sol·licituds d'alta, de canvi de tipus i de baixa | — | Sí | — | — | Sí | — | Sí | Sí | — | Nou (requisit de P3 i P7) |
+| P3 | Aprovar o rebutjar altes | — | Sí | — | — | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| P4 | Llistat i fitxa de socis | — | Sí | — | — | Cons. (dades mínimes) | — | Sí | — | — | Junta [A validar] passa a — |
+| P5 | Editar dades d'un soci (inclòs document i número) | — | Sí | — | — | — | — | Sí | — | — | — |
+| P6 | Corregir la data d'alta | — | Sí | — | — | — | — | Sí | — | — | — |
+| P7 | Resoldre canvis de tipus i baixes | — | Sí | — | — | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| P8 | Generar quotes anuals | — | — | — | — | Sí | — | Sí | — | — | — |
+| P9 | Marcar i desmarcar impagat | — | — | — | — | Sí | — | — | — | — | Admin. [A validar] passa a — |
+| P10 | Veure l'estat de quotes de tots els socis | — | Cons. | — | — | Sí | — | Sí | — | — | — |
+| P11 | Exportar el llistat de socis | — | Sí | — | — | — | — | Sí | — | — | Tres. [A validar] passa a — |
+| P17 | Atendre sol·licituds RGPD d'altres | — | — | — | — | — | — | Sí | — | — | S-M01-14 |
+| P18 | Importació de Cluber i desfer | — | — | — | — | — | — | Sí | — | — | — |
+| P19 | Registre mínim de llicència (còpia de lectura, 052) | — | Sí | Cons. | — | Cons. | — | Sí | — | — | — |
+| P20 | Consultar el registre d'activitat dels socis | — | — | — | — | — | — | Sí | — | — | Secr. [A validar] passa a — |
+| C1 | Camp: data de naixement | — | Sí | — | — | — | — | Sí | — | — | **Protegit** (058); la resta veu «major», «menor» o «edat desconeguda» |
+| C2 | Camps: document d'identitat, adreça i consentiments d'altres | — | Sí | — | — | — | — | Sí | — | — | El tresorer aprova sense veure'ls (D-04) |
+
+### 04 Tresoreria
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| T1 | Veure comptes, saldos i moviments | — | — | — | — | Sí | — | Sí | — | — | Junta [A validar] passa a — |
+| T2 | Crear i desactivar comptes | — | — | — | — | Sí | — | Sí | — | — | — |
+| T3 | Mantenir departaments i centres de cost | — | — | — | — | — | — | Sí | — | — | S-M04-09 |
+| T4 | Conciliar i desfer una conciliació | — | — | — | — | Sí | — | — | — | — | S-M04-09 |
+| T5 | Anul·lar un moviment amb motiu | — | — | — | — | Sí | — | Sí | — | — | — |
+| T6 | Registrar un traspàs | — | — | — | — | Sí | — | Sí | — | — | — |
+| T7 | Registrar un arqueig | — | — | — | — | Sí | — | Sí | — | — | — |
+| T8 | Excloure una línia de l'extracte | — | — | — | — | Sí | — | — | — | — | — |
+| T9 | Exportar moviments en CSV | — | — | — | — | Sí | — | Sí | — | — | — |
+| T10 | Veure la llista «a revisar» | — | — | — | — | Sí | — | Sí | — | — | — |
+| T11 | Veure l'estat de les quotes sense imports de tresoreria | — | Cons. | — | — | Sí | — | Sí | — | — | — |
+
+### 05a Mètode de pagament i mandats
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| A4 | Veure mètodes i mandats de tots els socis (IBAN emmascarat) | — | Cons. («té mètode: sí o no») | — | — | Sí | — | Sí | — | — | S-M05a-13 |
+| A5 | Enviar la campanya i els recordatoris | — | — | — | — | Sí | — | Sí | — | — | — |
+| A6 | Revocar un mandat a petició escrita, amb motiu | — | — | — | — | Sí | — | Sí | — | — | — |
+| A7 | Configurar el proveïdor (les claus, per variables d'entorn) | — | — | — | — | — | — | Sí | — | — | — |
+| A8 | Rotar la clau de xifratge (amb informàtica) | — | — | — | — | — | — | Sí | — | — | — |
+| A9 | Veure l'IBAN complet | — | — | — | — | — | — | — | — | — | **Protegit** (044): ningú |
+
+### 05b Cobraments
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| B3 | Generar remeses, descarregar el fitxer i marcar-lo enviat | — | — | — | — | Sí | — | — | — | — | **Protegit** (fitxer amb IBAN, 044) |
+| B4 | Registrar retornats i decidir el reintent | — | — | — | — | Sí | — | — | — | — | — |
+| B5 | Fer devolucions | — | — | — | — | Sí | — | — | — | — | Admin. [A validar] passa a — (D-10) |
+| B6 | Veure tots els pagaments, en curs, fallits i «a revisar» | — | — | — | — | Sí | — | Sí | — | — | RCS [A validar] passa a — |
+| B7 | Reenviar l'alternativa de pagament o l'enllaç de convidat | — | Sí (quotes) | — | — | Sí | — | Sí | — | — | S-M05b-13 |
+| B8 | Passar al nivell 2 | — | — | — | — | — | — | Sí, amb l'autorització escrita de la junta | — | — | **Protegit** (025) |
+
+### 02 Activitats (cursos i sortides)
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AC5 | Inscriure presencialment una altra persona | — | — | Sí | — | Sí | — | Sí | Sí | — | + Tres., + Pres.; Secr. — (S-M02-16) |
+| AC6 | Catàleg de cursos i especialitats, tipus, subtipus, projectes i preus | — | — | Sí | — | Sí | — | Sí | Sí | — | Tres. Cons. → Sí; + Pres.; Junta [A validar] passa a — |
+| AC7 | Crear, editar, publicar, cancel·lar i duplicar activitats | — | — | Sí | — | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| AC8 | Llista de participants amb requisits | Les seves | — | Sí | Cons. | Sí | — | Sí | Sí | — | Tres. Cons. → Sí; + Pres.; RM la conserva per assignar (D-06) |
+| AC9 | Passar llista i registrar incidències | Les seves | — | Sí | — | — | — | Sí | Sí | — | + Pres. |
+| AC10a | Avaluar pràctiques | Les seves | — | — | — | — | — | — | — | — | Només «les seves sessions» (RN-RP-04) |
+| AC10b | Proposar reforç | Les seves | — | — | — | — | — | — | — | — | Només «les seves sessions»; RCS [A validar] passa a — |
+| AC11 | Confirmar o rebutjar (programar) reforç | — | — | Sí | — | — | — | Sí | Sí | — | + Pres. |
+| AC12 | Registrar apte o no apte | Les seves | — | — | — | — | — | — | — | — | Només «les seves sessions» (RN-RP-04) |
+| AC13 | Emetre el certificat | — | — | Sí | — | — | — | Sí | Sí | — | + Pres.; Instr. [A validar] passa a — |
+| AC14 | Resultats ambientals i fitxa de projecte | — | — | Sí | — | — | — | Sí | Sí | Cons. | + Pres.; Resp. comunicació [A validar] passa a — |
+| AC15 | Missatge als inscrits | — | — | Sí | — | Sí | — | Sí | Sí | — | + Tres., + Pres.; les [A validar] passen a — |
+| AC16 | Gestionar la llista d'espera a mà | — | — | Sí | — | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| AC17 | Proposar una devolució per cancel·lació | — | — | Sí | — | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| AC18 | Fer la devolució (B5) | — | — | — | — | Sí | — | — | — | — | — |
+| AC19 | Veure els imports cobrats d'una activitat | — | — | Cons. (totes, S-M02-18) | — | Sí | — | Sí | — | — | Junta [A validar] passa a — |
+| AC20 | Informes operatius | Les seves | — | Sí | Cons. | Sí | — | Sí | Sí | Cons. | Tres. Cons. → Sí; + Pres. |
+| C3 | Camps de l'alumne per a l'instructor: nom, titulació, llicència sí o no, assistència i avaluacions; sense document, adreça, correu, telèfon ni pagaments | Les seves | | | | | | | | | S-M02-17; abast base (**Protegit**) |
+
+### 11 Conferències i contingut històric (mòdul pendent)
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CF1 | Crear, duplicar i gestionar conferències i contingut històric | — | — | Sí | — | Sí | Sí | Sí | Sí | — | + RCS, + Tres., + Pres. |
+| CF2 | Passar llista i registrar resultats de conferències | — | — | Sí | — | — | Sí | Sí | Sí | — | + Pres. |
+
+El Departament d'Història continua sense accés a la resta de la gestió (RN-44), excepte el dashboard en lectura (RN-RP-16).
+
+### 03 Material
+«Gestionar inventari i assignar material» (fila de la taula) = MT3 a MT7, MT9 a MT11 i el lloguer puntual. No inclou les tarifes (MT8, fila de preus), el marge (MT12) ni la càrrega inicial (MT13).
+
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MT3 | Mantenir tipus i inventari; donar de baixa una peça | — | — | Sí | Sí | Sí | — | Sí | Sí | — | + RCS, + Tres., + Pres. |
+| MT4 | Veure l'stock | Cons. | — | Sí | Sí | Sí | — | Sí | Sí | Cons. | + Instr. (cons.); RCS i Tres. Cons. → Sí; + Pres. |
+| MT5 | Material típic | — | — | Sí | Sí | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| MT6 | Assignar, marcar llogat, lliurar i retornar | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | + Instr., + RCS (S-M03-10 deia no), + Tres., + Pres. |
+| MT6b | **Lloguer puntual a un centre:** qui ha agafat què i **cost del centre** | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | Nou |
+| MT7 | Veure el material dels participants | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | + Tres., + Pres. |
+| MT8 | Centres de busseig i tarifes (preu per a l'alumne) | — | — | Cons. | Sí | Sí | — | Sí | Sí | — | Tres. Cons. → Sí; + Pres.; Junta [A validar] passa a — |
+| MT9 | Llista de lloguer: generar, exportar i marcar enviada | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | + Instr., + Tres., + Pres. |
+| MT10 | Quantitats reals després de l'activitat | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | + Instr., + RCS, + Tres., + Pres. |
+| MT11 | Revisions | — | — | Sí | Sí | Sí | — | Sí | Sí | — | + RCS, + Tres., + Pres. |
+| MT12 | Cost per participant i per activitat; **marge dels lloguers** | — | — | Les seves | Sí | Sí | — | Sí | Sí | Cons. | RCS Cons. → les seves; + Pres. |
+| C4 | Camp: preu per a l'alumne del material llogat | Les seves | — | Sí | Sí | Sí | — | Sí | Sí | — | L'instructor no veu el marge (MT12) |
+| MT13 | Càrrega inicial de l'inventari | — | — | — | Sí | — | — | Sí | — | — | — |
+
+En un lloguer puntual, qui el registra escriu el **cost del centre**. El preu per a l'alumne és el de la tarifa del centre (MT8). Si el centre no té tarifa per a aquell equip, el lloguer queda «sense preu per a l'alumne» fins que el responsable de material el posa a la tarifa [A validar: responsable de material]. **Punt feble:** l'instructor no veu el marge, però el pot calcular amb el cost que escriu i el preu de l'alumne ([059](decisions/059-rols-i-permisos-editables.md)).
+
+### 09 Marge, despeses, ajuts i facturació
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MG1 | Registrar una despesa amb factura | — | — | Les seves | — | Sí | — | Sí | Sí | — | + Pres.; RM [A validar] passa a — (taula: no) |
+| MG2 | Pagar una despesa, adjuntar-ne el comprovant i anul·lar-la | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG3 | Repartir una despesa entre activitats | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG4 | Registrar ajuts, patrocinis i donatius | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG5 | Costos previstos d'una activitat | — | — | Les seves | — | Sí | — | Sí | — | — | — |
+| MG6 | Veure el marge d'una activitat | — | — | Les seves | — | Sí | — | Sí | Sí | Cons. | RCS: les seves; + Pres. |
+| MG7 | Tancar econòmicament una activitat | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG8 | Informes per departament, subtipus i projecte | — | — | — | — | Sí | — | Sí | — | Cons. | DH [A validar] passa a — |
+| MG9 | Emetre factures i rectificatives | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG11 | Tancar un període | — | — | — | — | Sí | — | Sí | — | — | — |
+| MG12 | Reobrir un període | — | — | — | — | — | — | Sí | — | — | **Protegit** |
+| MG13 | Hores de voluntariat | — | — | — | — | Sí | — | Sí | — | — | Junta [A validar] passa a — |
+| MG14 | Categories, proveïdors i llindar de marge baix | — | — | — | — | Sí | — | Sí | — | — | — |
+| C5 | Obrir documents de justificació | — | — | — | — | Sí | — | — | — | Sí | **Protegit** (051) |
+
+**Ajuts (AJ1 a AJ13):** igual que [M09-ajuts-4](#M09-ajuts-4-rols). Les cel·les «Sí, si n'és responsable» de la Junta tenen l'abast «les que en sigui responsable». AJ12 és **Protegit** (051). Cap altre rol hi té accés.
+
+### 06 Llicències
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LC3 | «Ja en tinc una» (registrar-la per a una altra persona) | — | Sí | Sí | — | Sí | — | Sí | Sí | — | + RCS, + Tres., + Pres. |
+| LC4 | Llistat, filtres i venciments | — | Sí | Sí | — | Sí | — | Sí | Sí | — | + RCS; Tres. Cons. → Sí; + Pres.; Junta [A validar] passa a — |
+| LC5 | Exportar per a la federació; marcar tramitada i vigent | — | Sí | — | — | — | — | Sí | Sí | — | + Pres. |
+| LC6 | Cancel·lar una llicència | — | Sí | — | — | — | — | Sí | Sí | — | + Pres. |
+| LC7 | Fer la devolució d'una llicència cancel·lada | — | — | — | — | Sí | — | — | — | — | — |
+| LC8 | Tipus, preus i recàrrec | — | — | — | — | Sí | — | Sí | Sí | Cons. | + Pres. |
+| LC9 | Activar l'opció de llicència per a no socis | — | — | — | — | — | — | Sí | — | — | — |
+| LC10 | Veure si la llicència d'un participant és vigent | Les seves (només sí o no) | Sí | Les seves | — | — | — | Sí | Sí | — | + Pres. |
+| LC11 | Passar els registres del 01 al 06 | — | — | — | — | — | — | Sí | — | — | — |
+| C6 | Camps: número federatiu, categoria i venciment | — | Sí | Sí | — | Sí | — | Sí | Sí | — | Els veu qui té LC4; l'instructor continua amb «sí o no» (RN-M06-22) |
+
+### 08 Dashboard (mòdul pendent)
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DB1 | Veure el dashboard sencer, amb les xifres econòmiques | — | Sí | Sí | Sí | Sí | Sí | Sí | Sí | — | Abans: parcial per a Secr., RCS, RM i DH |
+| DB2 | Fer accions des del dashboard (si n'hi ha) | — | — | Sí | — | Sí | — | Sí | Sí | — | «Complet» de la taula |
+
+Sempre amb RN-RP-16: cap dada personal que el rol no pugui veure per un altre permís.
+
+### Ajustos (055)
+La configuració inicial dels permisos `settings.edit.<clau>` és la columna «Qui el canvia» de l'[apèndix de valors configurables](#valors-configurables), amb tres canvis:
+- **VC-20** (catàleg i preus de cursos i especialitats): RCS, tresorer, administrador i President.
+- **VC-27** (tipus de material, centres i tarifes): responsable de material, tresorer, administrador i President.
+- **VC-38 i VC-45** (tipus, preus i recàrrec de llicències): tresorer, administrador i President.
+
+Els valors que diuen «per decisió de la junta» els continua canviant l'administrador. Tot canvi d'un import continua avisant el tresorer i la junta (RN-AJ-04).
