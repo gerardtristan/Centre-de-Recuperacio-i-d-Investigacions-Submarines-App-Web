@@ -27,3 +27,13 @@ docs/context/entrevistes.docx
 Thumbs.db
 desktop.ini
 ~$*
+
+# Python i Django
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+staticfiles/
+*.sqlite3

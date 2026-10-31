@@ -72,7 +72,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
-Comandes: [completar quan existeixi el projecte: instal·lar, executar, proves, lint, migracions].
+Comandes: instal·lar `pip install -e ".[dev]"`; executar `python manage.py runserver`; proves `pytest`; lint `ruff check . && ruff format --check .`; migracions `python manage.py makemigrations` / `migrate` (cap migració abans del model d'usuari propi, T-M01-04). Detall al README.
 
 ## Comportament
 - Abans de fer canvis grans, proposa el pla i espera confirmació.
