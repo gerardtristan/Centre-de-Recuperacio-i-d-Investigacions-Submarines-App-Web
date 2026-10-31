@@ -27,17 +27,17 @@ No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 4. Si canvia una regla, actualitza primer `docs/planning.md` i després el codi. No dupliquis el contingut del pla en cap altre fitxer: enllaça-hi per l'àncora.
 5. Formalitat segons risc: spec completa per a finances, pagaments, autenticació, permisos, RGPD i importacions; spec d'una pàgina per a contingut web, dashboard i conferències; només ticket per a errors petits.
 
-## Mòduls (ordre de construcció, decisió 024)
+## Mòduls (ordre de construcció, decisions 024 i 060)
 Numeració fixa (`docs/planning.md#estat`): 00 Base comuna, 01 Socis i carnet digital, 02 Activitats (cursos i sortides), 03 Material, 04 Tresoreria (part mínima), 05a Alta del mètode de pagament i mandats, 05b Cobraments, 06 Llicències, 07 Web pública, 08 Dashboard, 09 Marge, despeses, ajuts i facturació (abans «resta de la 04»), 10 Missatges i xat per activitat, 11 Departament d'Història i conferències, 12 Idees noves (avatars de fauna marina i bitàcola), 13 Botiga en línia (fora d'abast ara). Cap mòdul no canvia de número; un de nou s'afegeix al final. El número no és l'ordre de construcció.
 
 **Ordre de construcció:**
 - **Primer mòdul que es pot començar:** el 01 (Socis i carnet), amb les peces de la 00 que necessita (`docs/planning.md#primer-modul`). Aprovats al pla: 01, 04, 05a, 05b, 02, 03, 06 i 09.
 - **Fase 1, abast mínim per deixar Cluber:** 00 Base comuna → 01 Socis i carnet (amb registre mínim de llicència: tipus, data d'alta i de caducitat) → 04 Tresoreria, part mínima → 05a Alta del mètode de pagament i signatura de mandats en mode real → 05b Cobraments, remeses, retornats, devolucions i conciliació.
-- **Fase 2:** 02 Activitats → 03 Material → 09 Marge, despeses, ajuts i facturació → 06 Llicències → 07 Web pública → 08 Dashboard.
+- **Fase 2** (ordre de la decisió 060): 06 Llicències → 02 Activitats → 03 Material → 09 Marge, despeses, ajuts i facturació → 07 Web pública → 08 Dashboard.
 - **Després:** 10, 11 i 12.
 
 Detall de l'abast mínim: `docs/arquitectura-integracions.md` §9.
-Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i pagament (cèntims, estats, mètodes, departament, cap IBAN); la tresoreria (04) hi construeix al damunt (moviments, ingressos, comissions, comptes i conciliació) i va abans de pagaments (05); la integració amb la passarel·la (Stripe) és a 05.
+Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i pagament (cèntims, estats, mètodes, departament, cap IBAN); la tresoreria (04) hi construeix al damunt (moviments, ingressos, comissions, comptes i conciliació) i va abans de pagaments (05); la integració amb el proveïdor de pagaments, darrere d'un adaptador (decisió 043), és a 05.
 Duplicar activitats és un servei comú previst a la 00 que es construeix al mòdul 02 (decisió 026).
 Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00–M12) fan servir altres numeracions; la correspondència és a `docs/planning.md#numeracio`.
 
@@ -58,10 +58,10 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisions 017 i 058): quotes amb targeta guardada (el mètode recomanat si el proveïdor permet guardar-la; si no, la domiciliació SEPA), domiciliació SEPA, targeta, Bizum o transferència (permesa, sense obligar-hi); inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
-- Stripe en mode de proves excepte en els dos nivells de producció, cadascun amb autorització expressa de la junta (decisió 025):
-  - **Nivell 1, producció de mandats** (05a acabat i provat): Stripe en mode real **només per recollir mandats**; **cap cobrament real**. Cal haver passat les portes 0-2 (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i, de la porta 3, els punts del flux de mandats marcats «N1» a la checklist (A6, E3, E4, B5, B8, G3).
+- Proveïdor de pagaments (decisió 043; candidat PaynoPain [A verificar: P-44, P-45]) en mode de proves excepte en els dos nivells de producció, cadascun amb autorització expressa de la junta (decisions 025 i 042):
+  - **Nivell 1, producció de mandats** (05a acabat i provat): dades reals **només per recollir el mètode de pagament i els mandats**; **cap cobrament real**. Cal haver passat les portes 0-2 (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i, de la porta 3, els punts del flux de mandats marcats «N1» a la checklist (A6, E3, E4, B5, B8, G3).
   - **Nivell 2, producció completa** (05b acabat i provat): cobraments reals. És el criteri per deixar Cluber, que es migra una sola vegada i sense restricció de data (decisions 014 i 020).
-- IBAN: la plataforma només el guarda **xifrat al mandat i només per a la domiciliació de quotes** (decisió 044, camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats); mai en cap altre camp, pantalla, registre ni exportació. Abast (decisió 051): la 044 cobreix els IBAN i mandats dels socis; els documents de justificació d'ajuts (factures, comprovants del banc) es guarden xifrats, només els obren el tresorer i la junta, cap eina d'IA els rep i se'n fa una còpia amb l'IBAN emmascarat. Stripe està descartat pel requisit de dades dins la UE (042). Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
+- IBAN: la plataforma només el guarda **xifrat al mandat i només per a la domiciliació de quotes** (decisió 044, camí per defecte, revisable si el banc o el proveïdor ofereixen custòdia de mandats); mai en cap altre camp, pantalla, registre ni exportació. Abast (decisió 051): la 044 cobreix els IBAN i mandats dels socis; els documents de justificació d'ajuts (factures, comprovants del banc) es guarden xifrats, només els obren el tresorer i la junta, cap eina d'IA els rep i se'n fa una còpia amb l'IBAN emmascarat. El proveïdor de pagaments ha de complir el requisit de dades dins la UE (decisions 035 i 042). Mandats actuals: escenari base B, campanya de mandats nous al 05a (decisions 022, 024 i 025; arquitectura §4.9).
 - Una app no escriu als models d'una altra; ho fa a través de serveis.
 - Arquitectura: monòlit modular, una sola base de dades.
 
@@ -71,7 +71,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
-Django amb API REST, PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), web pública i PWA a Cloudflare Pages, fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb Stripe.
+Django amb API REST, PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), web pública i PWA a Cloudflare Pages, fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
 Comandes: [completar quan existeixi el projecte: instal·lar, executar, proves, lint, migracions].
 
 ## Comportament
