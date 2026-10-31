@@ -71,7 +71,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
-Django amb API REST, PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), web pública i PWA a Cloudflare Pages, fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
+Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
 Comandes: [completar quan existeixi el projecte: instal·lar, executar, proves, lint, migracions].
 
 ## Comportament

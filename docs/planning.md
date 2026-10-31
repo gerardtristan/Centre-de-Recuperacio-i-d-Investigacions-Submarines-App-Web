@@ -6099,8 +6099,10 @@ El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, m
 |---|---|
 | RN-RP-18 | **Restabliment del TOTP de l'últim administrador.** Un compte d'emergència pot restablir el TOTP de l'últim administrador operatiu. És l'única excepció a RN-RP-13. Cal una nota obligatòria. Queda una entrada immutable al registre d'activitat (compte d'emergència, compte afectat, nota) i s'envia un correu a la junta i a tots els comptes amb el rol administrador. El compte restablert torna a ser operatiu quan dona d'alta el TOTP nou. Mentrestant, surt l'avís permanent de RN-RP-13 |
 | RN-RP-19 | **Nom del permís d'ajustos:** `settings.edit.<clau>` (RN-RP-17). On la [059](decisions/059-rols-i-permisos-editables.md) diu `settings.edit_<mòdul>`, val `settings.edit.<clau>` |
+| RN-RP-20 | **Un administrador es desactiva a si mateix** (precisió aprovada el 31/10/2026). Només es permet si queda almenys un altre administrador operatiu (RN-RP-13). En confirmar-ho, **es tanquen totes les sessions actives del seu compte d'administrador**, també la de la petició en curs, que acaba amb la sortida de l'administració. El canvi queda al registre d'activitat i s'avisa per correu els altres comptes amb el rol administrador. El compte personal de la mateixa persona no es toca. La feina és a la T-RP-02 |
 
 - **CA-RP-15** Donat un sol administrador operatiu, quan un compte d'emergència en restableix el TOTP amb una nota, llavors s'accepta, queda l'entrada al registre, la junta i els administradors reben el correu i surt l'avís permanent fins que l'administrador dona d'alta el TOTP nou. Quan ho intenta un compte que no és d'emergència, es continua rebutjant (CA-RP-06).
+- **CA-RP-16** Donat dos administradors operatius, A amb sessions obertes en dos dispositius, quan A desactiva el seu propi compte d'administrador, llavors totes dues sessions queden tancades, la petició següent de qualsevol de les dues va a l'entrada, el registre guarda el canvi i B rep el correu. Amb un sol administrador operatiu, es rebutja (CA-RP-06).
 
 <a id="ajustos-060-lectura"></a>
 ## Lectura de les tasques substituïdes
@@ -6119,5 +6121,6 @@ Una línia per cada tasca on el text aprovat ja no és el que cal construir. Les
 | T-M02-30 | La T-M06-13 ja existeix; RN-M02-26 sense el mode provisional | 060 |
 | T-AJ-01 | Depèn de la T-RP-01; sense `editor_roles` | 060 |
 | T-RP-03 | Després de la T-M05b-19; fora del camí crític | 060 |
+| T-RP-02 | També RN-RP-20 i CA-RP-16 (autodesactivació) | 060 |
 | T-RP-05 | Retirada | 060 |
 | T-M01-37, T-M04-21, T-M05a-25, T-M05b-25, T-M06-25, T-M02-33, T-M03-23, T-M09-30 | Revisió final de la cobertura per cel·la | 060 |
