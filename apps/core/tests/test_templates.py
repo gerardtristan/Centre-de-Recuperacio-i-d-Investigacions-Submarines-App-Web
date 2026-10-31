@@ -8,16 +8,16 @@ from django.urls import reverse
 
 
 def test_htmx_is_served_locally(client):
-    html = client.get(reverse("core:login")).content.decode()
+    html = client.get(reverse("accounts:login")).content.decode()
     assert f"{settings.STATIC_URL}vendor/htmx/htmx.min.js" in html
     assert finders.find("vendor/htmx/htmx.min.js")
 
 
 def test_no_external_scripts(client):
-    html = client.get(reverse("core:login")).content.decode()
+    html = client.get(reverse("accounts:login")).content.decode()
     assert not re.search(r"<script[^>]+src=[\"'](https?:)?//", html)
 
 
 def test_page_language_is_catalan(client):
-    html = client.get(reverse("core:login")).content.decode()
+    html = client.get(reverse("accounts:login")).content.decode()
     assert '<html lang="ca">' in html

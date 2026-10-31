@@ -5,6 +5,8 @@ from .base import env
 
 DEBUG = False
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+# Un salt: el proxy de Coolify. Si n'hi ha més (p. ex. una CDN), cal augmentar-ho.
+NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=1)
 
 # El proxy de Coolify rep l'HTTPS i ho indica amb aquesta capçalera.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -35,7 +35,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Tota vista exigeix sessió; les públiques es declaren amb @login_not_required.
-    "apps.core.middleware.LoginRequiredMiddleware",
+    "apps.accounts.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -64,14 +64,32 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 # Compte personal o d'administrador, lligat al perfil únic de la persona (spec 00, RN-11).
 AUTH_USER_MODEL = "accounts.Account"
 
+# V-01: mínim 12 caràcters; es rebutgen les habituals i les semblants a l'identificador.
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {"user_attributes": ("login", "notification_email")},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
+    },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LOGIN_URL = "core:login"
+LOGIN_URL = "accounts:login"
+
+# Entrada d'administració separada, en una ruta discreta (arquitectura §5).
+ADMIN_URL_PATH = env("ADMIN_URL_PATH", default="gestio").strip("/")
+TOTP_ISSUER_NAME = env("TOTP_ISSUER_NAME", default="C.R.I.S.")
+
+# Claus de xifratge dels camps sensibles (Fernet). La primera xifra; totes desxifren.
+FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
+
+# Proxies de confiança davant de Django: decideix d'on es llegeix l'IP d'origen
+# per al límit d'intents (V-01). 0 = connexió directa.
+NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
 
 LANGUAGE_CODE = "ca"
 TIME_ZONE = "Europe/Madrid"
@@ -88,3 +106,12 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 X_FRAME_OPTIONS = "DENY"
+
+# Esdeveniments de seguretat (entrades, bloquejos). Fins a la T-M01-07 només van al registre
+# del servidor; mai hi surten contrasenyes, codis ni secrets.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"cris.security": {"handlers": ["console"], "level": "INFO"}},
+}

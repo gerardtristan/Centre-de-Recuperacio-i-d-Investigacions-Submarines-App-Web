@@ -58,10 +58,9 @@ class TestPersonalAccount:
         account.save()
         assert authenticate(login="ANNA@example.org", password=PASSWORD) == account
 
-    @pytest.mark.parametrize("status", [Account.Status.LOCKED, Account.Status.DISABLED])
-    def test_locked_or_disabled_is_not_active(self, anna, status):
+    def test_disabled_is_not_active(self, anna):
         account = Account.objects.create_personal(anna, "anna@example.org")
-        account.status = status
+        account.status = Account.Status.DISABLED
         assert not account.is_active
 
     def test_email_is_unique_ignoring_case(self, anna, joan):

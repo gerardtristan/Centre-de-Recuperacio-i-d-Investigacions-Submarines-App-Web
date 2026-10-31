@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Administració · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>Administració del C.R.I.S.</h1>
+  <p>Has entrat com a {{ user.get_username }}.</p>
+  <form method="post" action="{% url 'administration:logout' %}">
+    {% csrf_token %}
+    <button type="submit">Sortir</button>
+  </form>
+{% endblock %}

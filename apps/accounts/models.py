@@ -99,7 +99,6 @@ class Account(AbstractBaseUser, PermissionsMixin):
     class Status(models.TextChoices):
         PENDING = "pending", "Pendent de verificar"
         ACTIVE = "active", "Actiu"
-        LOCKED = "locked", "Bloquejat temporalment"
         DISABLED = "disabled", "Desactivat"
 
     # PROTECT: els comptes es desactiven, no s'esborren (RN-25).
@@ -112,6 +111,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     notification_email = models.EmailField("correu de notificació", blank=True)
     status = models.CharField("estat", max_length=10, choices=Status.choices)
     is_emergency = models.BooleanField("és d'emergència", default=False)
+    # «Bloquejat temporalment» (V-01) no és un estat: un compte pendent també es pot bloquejar,
+    # i el bloqueig s'acaba sol quan passa l'hora.
+    failed_login_count = models.PositiveSmallIntegerField("intents fallits seguits", default=0)
+    locked_until = models.DateTimeField("bloquejat fins a", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -149,8 +152,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_active(self):
-        # Pendent, bloquejat o desactivat: no obté sessió.
+        # Pendent o desactivat: no obté sessió.
         return self.status == self.Status.ACTIVE
+
+    def is_locked(self, now):
+        return self.locked_until is not None and self.locked_until > now
+
+    @property
+    def has_totp(self):
+        device = getattr(self, "totp_device", None)
+        return device is not None and device.confirmed_at is not None
 
     def clean(self):
         super().clean()
@@ -174,3 +185,56 @@ class Account(AbstractBaseUser, PermissionsMixin):
         self.login = normalize_login(self.login)
         self.notification_email = normalize_email(self.notification_email)
         super().save(*args, **kwargs)
+
+
+class TotpDevice(models.Model):
+    """Factor TOTP (RFC 6238), un per compte. El secret es guarda xifrat."""
+
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="totp_device")
+    secret_encrypted = models.TextField()
+    # Null mentre l'alta no s'ha confirmat amb un codi vàlid.
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    # Últim interval acceptat: un codi no es pot fer servir dues vegades.
+    last_used_step = models.BigIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "factor TOTP"
+        verbose_name_plural = "factors TOTP"
+
+    def __str__(self):
+        return f"TOTP de {self.account}"
+
+
+class RecoveryCode(models.Model):
+    """Codi de recuperació d'un sol ús (HU-09). Només se'n guarda l'empremta."""
+
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="recovery_codes")
+    code_hash = models.CharField(max_length=64, unique=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "codi de recuperació"
+        verbose_name_plural = "codis de recuperació"
+
+    def __str__(self):
+        return f"Codi de recuperació de {self.account}"
+
+
+class FailedLogin(models.Model):
+    """Intent d'entrada fallit, per al límit per origen (V-01, CA-07.6)."""
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    ip_address = models.GenericIPAddressField()
+    # Null si l'identificador no correspon a cap compte d'aquesta entrada.
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    area = models.CharField(max_length=10)
+
+    class Meta:
+        verbose_name = "intent fallit"
+        verbose_name_plural = "intents fallits"
+        indexes = [models.Index(fields=["ip_address", "created_at"], name="failedlogin_ip_idx")]
+
+    def __str__(self):
+        return f"{self.ip_address} {self.created_at:%Y-%m-%d %H:%M}"

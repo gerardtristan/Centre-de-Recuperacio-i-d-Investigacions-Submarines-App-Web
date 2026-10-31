@@ -307,6 +307,8 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `API_BASE_URL` | URL pública de l'API |
 | `ADMIN_URL_PATH` | Ruta discreta de l'administració |
 | `TOTP_ISSUER_NAME` | Nom que surt a l'aplicació d'autenticació |
+| `FIELD_ENCRYPTION_KEYS` | Claus Fernet per xifrar camps sensibles (secrets TOTP), separades per comes; la primera xifra i totes desxifren (rotació). Es guarden fora de línia com les de les còpies |
+| `DJANGO_NUM_PROXIES` | Proxies de confiança davant de Django (1 amb Coolify); decideix d'on es llegeix l'IP per al límit d'intents |
 
 ### Fitxers (Scaleway)
 | Variable | Ús |

@@ -4,9 +4,12 @@ version = "0.1.0"
 description = "Plataforma del C.R.I.S.: socis, activitats, material, tresoreria i llicències"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "cryptography>=44",
     "Django>=5.2,<5.3",
     "django-environ>=0.11,<1",
     "psycopg[binary]>=3.2,<4",
+    "pyotp>=2.9,<3",
+    "qrcode>=8,<9",
 ]
 
 [project.optional-dependencies]

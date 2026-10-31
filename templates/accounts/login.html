@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{% if area == "admin" %}Administració{% else %}Entrar{% endif %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% if area == "admin" %}Entrada d'administració{% else %}Entrar a l'àrea de socis{% endif %}</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% for field in form %}
+      <p>
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      </p>
+    {% endfor %}
+    <button type="submit">Entrar</button>
+  </form>
+{% endblock %}

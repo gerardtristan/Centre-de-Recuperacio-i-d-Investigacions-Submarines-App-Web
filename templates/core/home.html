@@ -2,5 +2,9 @@
 
 {% block content %}
   <h1>Plataforma del C.R.I.S.</h1>
-  <p>Benvingut, {{ user.get_username }}.</p>
+  <p>Benvingut, {{ user.person.first_name }}.</p>
+  <form method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">Sortir</button>
+  </form>
 {% endblock %}
