@@ -61,8 +61,8 @@ TEMPLATES = [
 # Una sola base de dades PostgreSQL. Format: postgres://usuari:contrasenya@host:port/nom
 DATABASES = {"default": env.db("DATABASE_URL")}
 
-# El model d'usuari propi (T-M01-04) ha d'existir abans de la primera migració
-# d'una base de dades que no sigui de proves.
+# Compte personal o d'administrador, lligat al perfil únic de la persona (spec 00, RN-11).
+AUTH_USER_MODEL = "accounts.Account"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

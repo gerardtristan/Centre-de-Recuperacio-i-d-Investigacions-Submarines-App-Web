@@ -5,6 +5,8 @@ import uuid
 import pytest
 from django.urls import URLPattern, URLResolver, get_resolver, reverse
 
+from apps.core.models import Person
+
 # Rutes públiques declarades. Afegir-ne una obliga a canviar aquesta llista a propòsit.
 PUBLIC_ROUTES = {"core:health", "core:login"}
 
@@ -70,8 +72,11 @@ def test_login_page_is_public(client):
 
 @pytest.mark.django_db
 def test_home_with_session(client, django_user_model):
-    user = django_user_model.objects.create_user(username="soci-inventat")
-    client.force_login(user)
+    person = Person.objects.create(first_name="Anna", origin=Person.Origin.WEB)
+    account = django_user_model.objects.create_personal(person, "anna@example.org")
+    account.status = account.Status.ACTIVE
+    account.save()
+    client.force_login(account)
     response = client.get(reverse("core:home"))
     assert response.status_code == 200
     assert "Plataforma del C.R.I.S." in response.content.decode()
