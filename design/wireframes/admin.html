@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Administració · fitxa de sortida · C.R.I.S., Centre de Recuperació i d'Investigacions Submarines (wireframe)</title>
+<title>Administració · C.R.I.S., Centre de Recuperació i d'Investigacions Submarines (prototip)</title>
 <script>
 /* Tema desat: s'aplica abans de pintar la pàgina */
 (function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -13,7 +13,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="tokens.css">
 <style>
-/* ---------- Pensat per a escriptori (dens); CSS de mòbil a escriptori ---------- */
+/* ---------- Pensat per a escriptori (dens); CSS de mòbil a escriptori ----------
+   Relleu tou als contenidors i controls; les taules i els avisos són plans. */
 
 /* barra-lateral: fosca als dos temes. Mòbil: panell que s'obre amb «Menú» */
 .barra-lateral {
@@ -29,119 +30,178 @@
 .lateral-cap { display: flex; align-items: center; gap: var(--e-2); }
 .lateral-cap img { width: var(--logo-lateral); height: auto; }
 .lateral-cap .text-lateral { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
-.boto-tanca-menu { margin-left: auto; background: transparent; color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); }
+.boto-tanca-menu { margin-left: auto; --neu-base: var(--c-lateral-fons); color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); box-shadow: none; }
 .lateral-nav ul { list-style: none; display: grid; gap: var(--e-1); }
 .lateral-nav a {
   display: flex; align-items: center; gap: var(--e-3);
   min-height: var(--tactil); padding: 0 var(--e-3);
   border-radius: var(--r-m);
   color: var(--c-lateral-text-2); text-decoration: none; font-weight: var(--p-semi);
+  transition: background-color var(--m-rapid), color var(--m-rapid);
 }
-.lateral-nav .icona { font-size: var(--icona); line-height: 1; width: var(--icona); text-align: center; }
-/* Element actiu: barra groga + negreta + fons; color de zona per a fons fosc */
+.lateral-nav a:hover { background: rgba(204, 208, 207, .06); color: var(--c-lateral-text); }
+.lateral-nav .icona { display: inline-flex; font-size: var(--icona); }
+/* Element actiu: pou enfonsat + barra daurada + negreta */
 .lateral-nav a[aria-current="page"] {
-  color: var(--c-lateral-zona); font-weight: var(--p-negreta);
+  color: var(--c-lateral-text); font-weight: var(--p-negreta);
   background: var(--c-lateral-fons-2);
-  box-shadow: inset var(--v-activa) 0 0 var(--c-accent);
+  box-shadow: inset var(--v-activa) 0 0 var(--c-accent), inset 2px 2px 6px rgba(0, 0, 0, .45);
 }
+.lateral-separador { height: 1px; margin: var(--e-2) var(--e-3); background: var(--c-lateral-fons-2); }
 .lateral-compte { margin-top: auto; display: grid; gap: var(--e-1); padding-top: var(--e-3); border-top: var(--v-fina) solid var(--c-lateral-fons-2); font-size: var(--t-s); }
 .lateral-compte a { color: var(--c-lateral-text); display: inline-flex; align-items: center; min-height: var(--tactil); }
 .lateral-compte .text-2 { color: var(--c-lateral-text-2); }
 
-/* barra-mobil (només mòbil) */
 .barra-mobil {
   display: flex; align-items: center; gap: var(--e-2);
   min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4);
   background: var(--c-lateral-fons); color: var(--c-lateral-text);
-  border-bottom: var(--v-activa) solid var(--c-lateral-zona);
+  border-bottom: var(--v-activa) solid var(--c-accent);
 }
 .barra-mobil img { width: var(--logo-capcalera); height: auto; }
 .barra-mobil .text-lateral { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
-.barra-mobil .boto { background: transparent; color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); }
+.barra-mobil .boto { --neu-base: var(--c-lateral-fons); color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); box-shadow: none; }
 .barra-mobil .boto-menu { margin-left: auto; }
-
-/* Selector de tema pla (l'administració no fa servir neumorfisme). Variant per a la barra lateral fosca */
-.selector-lateral { background: var(--c-lateral-fons-2); border-color: var(--c-lateral-text-2); }
-.selector-lateral .opcio { color: var(--c-lateral-text-2); }
-.selector-lateral input:checked + .opcio { background: var(--c-lateral-fons); color: var(--c-lateral-text); }
-.selector-lateral input:checked + .opcio .marca-activa { color: var(--c-lateral-zona); }
-.selector-lateral input:focus-visible + .opcio { outline-color: var(--c-lateral-focus); }
 .barra-mobil :focus-visible { outline-color: var(--c-lateral-focus); }
 
-/* barra-superior (tauleta i escriptori) */
+/* Selector de tema per a la barra lateral fosca */
+.selector-lateral { --neu-base: var(--c-lateral-fons); background: var(--c-lateral-fons-2); border-color: var(--c-lateral-text-2); box-shadow: inset 2px 2px 5px rgba(0, 0, 0, .5); }
+.selector-lateral .opcio { color: var(--c-lateral-text-2); }
+.selector-lateral input:checked + .opcio { background: var(--c-lateral-fons); color: var(--c-lateral-text); box-shadow: 2px 2px 5px rgba(0, 0, 0, .5); border-color: var(--c-lateral-text-2); }
+.selector-lateral input:checked + .opcio .marca-activa { color: var(--c-accent); }
+
 .barra-superior { display: none; }
 .molla { display: flex; flex-wrap: wrap; gap: var(--e-2); list-style: none; font-size: var(--t-s); }
 .molla li { display: flex; align-items: center; }
 .molla li + li::before { content: "/"; margin-right: var(--e-2); color: var(--c-text-2); }
 .molla a { display: inline-flex; align-items: center; min-height: var(--tactil); }
 
-/* Selector «Veure com» */
 .demo .estat { white-space: normal; }
 .descripcio-rol { flex-basis: 100%; margin: 0; color: var(--c-text-2); }
 
 /* Contingut */
-.fitxa-contenidor { padding: var(--e-4); display: grid; gap: var(--e-4); }
-.fitxa-graella { display: grid; gap: var(--e-4); }
-.columna-secundaria { display: grid; gap: var(--e-4); align-content: start; }
+.vista { padding: var(--e-4); display: grid; gap: var(--e-5); align-content: start; }
+.vista > h1 { margin: 0; font-size: var(--t-2xl); }
+.cap-vista { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--e-3); }
+.cap-vista h1 { margin: 0; font-size: var(--t-2xl); }
+.cap-vista p { margin: 0; }
 .targeta h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
 .cap-bloc { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); margin-bottom: var(--e-3); }
 .cap-bloc h2 { margin: 0; }
 
 /* capcalera-fitxa */
-.capcalera-fitxa { display: grid; gap: var(--e-4); border-top: var(--v-activa) solid var(--c-zona); }
+.capcalera-fitxa { display: grid; gap: var(--e-4); }
 .capcalera-fitxa h1 { font-size: var(--t-2xl); margin-bottom: var(--e-2); }
 .fila-codi { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); margin: 0 0 var(--e-3); }
 .meta-graella { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2) var(--e-4); margin: 0; font-size: var(--t-s); }
 .meta-graella dt { color: var(--c-text-2); }
 .meta-graella dd { margin: 0; font-weight: var(--p-semi); }
-.accions-amples { display: none; }
-.accions-mobil summary {
-  display: inline-flex; align-items: center; min-height: var(--tactil); padding: 0 var(--e-4);
-  border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m);
-  font-weight: var(--p-semi); cursor: pointer;
-}
-.accions-mobil[open] .llista-accions { display: grid; gap: var(--e-2); margin-top: var(--e-2); }
-.llista-accions { list-style: none; }
-.llista-accions .boto { width: 100%; }
+/* Accions de la fitxa: a totes les mides (al mòbil, en dues files) */
+.accions-amples { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+
+/* Pestanyes de la fitxa */
+.fitxa-pestanyes { display: grid; gap: var(--e-4); }
+.panells > [role="tabpanel"] { display: grid; gap: var(--e-5); align-content: start; }
 
 /* resum-economic */
 .xifres-resum { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3); }
-.xifra { padding: var(--e-3); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); background: var(--c-superficie-2); }
+.xifra { padding: var(--e-3) var(--e-4); border-radius: var(--r-l); box-shadow: var(--neu-enfonsat); }
 .xifra-etiqueta { display: block; font-size: var(--t-s); color: var(--c-text-2); }
-.xifra-valor { display: block; font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); }
-.xifra-nota { display: block; font-size: var(--t-xs); color: var(--c-text-2); }
-.xifra-marge { border-left: var(--v-activa) solid var(--c-zona); }
+.xifra-valor { display: block; font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+.xifra-nota { display: block; font-size: var(--t-s); color: var(--c-text-2); }
+.xifra-marge { box-shadow: var(--neu-enfonsat), inset 0 calc(-1 * var(--v-activa)) 0 var(--c-mari); }
 .formula { margin: var(--e-3) 0 0; font-size: var(--t-s); color: var(--c-text-2); }
 
-/* participants: eines i taula */
+/* Taules: planes dins de la placa */
 .eines { display: grid; gap: var(--e-3); margin-bottom: var(--e-3); }
 .recompte { font-size: var(--t-s); color: var(--c-text-2); margin: 0; }
 .taula { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
 .taula td.num, .taula th.num { text-align: right; }
-/* Mòbil: cada fila és un bloc apilat amb etiquetes */
 .taula thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .taula, .taula tbody, .taula tr, .taula td { display: block; }
-.taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
+.taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
 .taula td { display: flex; justify-content: space-between; align-items: center; gap: var(--e-3); padding: var(--e-1) 0; }
 .taula td::before { content: attr(data-etiqueta); color: var(--c-text-2); font-family: var(--f-text); font-weight: var(--p-normal); }
 .taula td.cel-nom { font-weight: var(--p-semi); font-size: var(--t-m); }
-.taula td.cel-nom::before { content: none; }
+.taula td.cel-nom::before, .taula td.cel-accions::before { content: none; }
+.taula td.cel-accions { justify-content: flex-end; gap: var(--e-2); flex-wrap: wrap; }
 .cel-nom .codi { display: block; font-weight: var(--p-normal); font-size: var(--t-s); color: var(--c-text-2); }
 
-/* Llistes compactes (material, registre) */
 .llista-compacta { list-style: none; display: grid; font-size: var(--t-s); }
-.llista-compacta li { display: grid; gap: var(--e-1); padding: var(--e-2) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
+.llista-compacta li { display: grid; gap: var(--e-1); padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
 .llista-compacta li:last-child { border-bottom: 0; }
 .fila-entre { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--e-2); }
 .total { display: flex; justify-content: space-between; margin-top: var(--e-3); padding-top: var(--e-2); border-top: var(--v-fina) solid var(--c-linia-forta); font-weight: var(--p-negreta); }
 .registre-qui { font-family: var(--f-codi); }
 .registre-quan { color: var(--c-text-2); }
 
-/* programa-i-notes */
 .graella-programa { display: grid; gap: var(--e-4); }
 .programa { list-style: none; display: grid; gap: var(--e-1); font-size: var(--t-s); }
 .programa li { display: grid; grid-template-columns: calc(var(--e-7) + var(--e-2)) minmax(0, 1fr); gap: var(--e-3); padding: var(--e-1) 0; }
 .programa time { font-family: var(--f-codi); }
+
+/* Despeses: formulari + factura */
+.form-despesa { display: grid; gap: var(--e-4); }
+.form-despesa .camps { display: grid; gap: var(--e-3); }
+.error-camp { margin: 0; color: var(--c-error-text); font-size: var(--t-s); font-weight: var(--p-semi); }
+.camp [aria-invalid="true"] { border-color: var(--c-error); border-width: 2px; }
+.accions-form { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+
+/* Socis: altes pendents */
+.llista-altes { list-style: none; display: grid; gap: var(--e-4); }
+.alta { display: grid; gap: var(--e-3); }
+.alta h2 { margin: 0; font-size: var(--t-xl); }
+.alta .meta-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Tresoreria */
+.graella-tresoreria { display: grid; gap: var(--e-5); }
+
+/* ---------- Rols i permisos ---------- */
+.rols { display: grid; gap: var(--e-5); align-items: start; }
+.llista-rols { list-style: none; display: grid; gap: var(--e-2); }
+.rol-opcio {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--e-2); align-items: center;
+  width: 100%; min-height: var(--tactil-gran); padding: var(--e-2) var(--e-3);
+  border: var(--v-fina) solid transparent; border-radius: var(--r-l);
+  background: transparent; color: var(--c-text); font: inherit; text-align: left; cursor: pointer;
+  transition: box-shadow var(--m-rapid) var(--m-corba), background-color var(--m-rapid);
+}
+.rol-opcio:hover { background: var(--c-pindola); }
+.rol-opcio .nom { font-weight: var(--p-semi); }
+.rol-opcio .comptes { grid-column: 1; font-size: var(--t-s); color: var(--c-text-2); }
+.rol-opcio .pendents { grid-row: 1 / span 2; grid-column: 2; }
+/* Rol triat: surt en relleu + barra daurada + negreta */
+.rol-opcio[aria-pressed="true"] {
+  background: var(--neu-base); box-shadow: var(--neu-relleu-petit), inset var(--v-activa) 0 0 var(--c-accent);
+  border-color: color-mix(in oklab, var(--neu-base), var(--c-text) 16%);
+}
+.rol-opcio[aria-pressed="true"] .nom { font-weight: var(--p-negreta); }
+.comptes-rol { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: 0 0 var(--e-4); list-style: none; }
+.compte-xip { display: inline-flex; align-items: center; gap: var(--e-1); padding: 2px var(--e-3); border-radius: var(--r-pastilla); box-shadow: var(--neu-enfonsat); font-family: var(--f-codi); font-size: var(--t-s); }
+.llista-permisos { list-style: none; display: grid; }
+.permis {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-4); align-items: center;
+  padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%);
+}
+.permis:last-child { border-bottom: 0; }
+.permis-nom { font-weight: var(--p-semi); }
+.permis-detall { grid-column: 1; display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-2); align-items: center; font-size: var(--t-s); color: var(--c-text-2); }
+.permis .interruptor { grid-column: 2; grid-row: 1 / span 2; }
+.permis.canviat { box-shadow: inset var(--v-activa) 0 0 var(--c-accent); padding-left: var(--e-3); margin-left: calc(-1 * var(--e-3)); }
+.afecta { display: inline-flex; align-items: center; gap: var(--e-1); color: var(--c-text); font-weight: var(--p-semi); }
+.safata {
+  position: sticky; bottom: var(--e-3); z-index: 3;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3);
+  margin-top: var(--e-4); padding: var(--e-3) var(--e-4);
+  border-radius: var(--r-l);
+  border: var(--v-plena) solid var(--c-avis);
+  background: var(--c-superficie); box-shadow: var(--ombra-flotant);
+}
+.safata .recompte-viu { margin: 0; font-weight: var(--p-semi); font-variant-numeric: tabular-nums; }
+.safata .accions { display: flex; flex-wrap: wrap; gap: var(--e-2); margin-left: auto; }
+.llista-canvis { list-style: none; display: grid; gap: var(--e-2); font-size: var(--t-s); }
+.llista-canvis li { display: grid; gap: 2px; padding: var(--e-2) var(--e-3); border-radius: var(--r-m); box-shadow: var(--neu-enfonsat); }
+.camp-totp input { font-family: var(--f-codi); font-size: var(--t-l); letter-spacing: .3em; max-width: 12ch; }
 
 /* ==================== Tauleta: 600–1023 px ==================== */
 @media (min-width: 600px) {
@@ -159,34 +219,35 @@
   .barra-superior {
     display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3);
     min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-5);
-    background: var(--c-superficie); border-bottom: var(--v-activa) solid var(--c-zona);
+    background: var(--c-fons); border-bottom: var(--v-fina) solid var(--c-linia);
   }
   .barra-superior .selector-tema { margin-left: auto; }
 
-  .fitxa-contenidor { padding: var(--e-5); }
+  .vista { padding: var(--e-5); }
   .capcalera-fitxa { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
   .meta-graella { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .accions-mobil { display: none; }
-  .accions-amples { display: flex; flex-wrap: wrap; gap: var(--e-2); justify-content: flex-end; max-width: calc(var(--e-8) * 5); }
+  .accions-amples { justify-content: flex-end; max-width: calc(var(--e-8) * 5.5); }
 
   .eines { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); align-items: end; }
   .eines .recompte { grid-column: 1 / -1; }
 
-  /* Taula real a partir de tauleta */
   .taula { display: table; }
   .taula thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; display: table-header-group; }
   .taula tbody { display: table-row-group; }
   .taula tr { display: table-row; padding: 0; }
   .taula th {
     text-align: left; padding: var(--e-2) var(--e-3);
-    background: var(--c-superficie-2); color: var(--c-text-2); font-weight: var(--p-semi);
+    color: var(--c-text-2); font-weight: var(--p-semi);
     border-bottom: var(--v-fina) solid var(--c-linia-forta);
   }
-  .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia); vertical-align: middle; }
+  .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); vertical-align: middle; }
   .taula td::before { content: none; }
   .taula td.cel-nom { font-size: var(--t-s); }
+  .taula td.cel-accions { text-align: right; white-space: nowrap; }
   .taula .col-secundaria { display: none; }
   .graella-programa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-despesa .camps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .llista-altes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ==================== Escriptori: 1024 px o més ==================== */
@@ -194,20 +255,21 @@
   .admin { grid-template-columns: var(--lateral-ample) minmax(0, 1fr); }
   .barra-lateral, .admin.menu-obert .barra-lateral { padding: var(--e-4) var(--e-3); }
   .text-lateral, .lateral-compte .text-2 { display: inline; }
+  .selector-lateral { display: inline-flex; }
   .lateral-cap { justify-content: flex-start; }
   .lateral-nav a { flex-direction: row; justify-content: flex-start; gap: var(--e-3); padding: 0 var(--e-3); min-height: var(--tactil); font-size: var(--t-m); text-align: left; }
   .lateral-compte { justify-items: start; font-size: var(--t-s); }
+  .barra-superior .selector-tema { display: none; }
 
   .barra-superior { padding: var(--e-2) var(--e-6); }
-  .fitxa-contenidor { padding: var(--e-5) var(--e-6); }
-  .fitxa-graella { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
-  #capcalera-fitxa, #resum-economic, #programa-i-notes { grid-column: 1 / -1; }
-  #participants { grid-column: span 8; }
-  .columna-secundaria { grid-column: span 4; }
-  #participants[hidden] + .columna-secundaria { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vista { padding: var(--e-5) var(--e-6) var(--e-7); }
   .xifres-resum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .meta-graella { grid-template-columns: repeat(6, auto); }
   .taula .col-secundaria { display: table-cell; }
+  .graella-material { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--e-5); align-items: start; }
+  .graella-tresoreria { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
+  .rols { grid-template-columns: 18rem minmax(0, 1fr); }
+  .llista-rols { position: sticky; top: var(--e-5); }
 }
 </style>
 </head>
@@ -224,14 +286,16 @@
     </div>
     <nav class="lateral-nav" aria-label="Mòduls">
       <ul>
-        <li data-rols="admin secretaria tresorer"><a href="#"><span class="icona" aria-hidden="true">◎</span><span>Socis</span></a></li>
-        <li data-rols="admin cursos material tresorer instructor historia"><a href="#" aria-current="page"><span class="icona" aria-hidden="true">▦</span><span>Activitats</span></a></li>
-        <li data-rols="admin material cursos instructor tresorer"><a href="#"><span class="icona" aria-hidden="true">▣</span><span>Material</span></a></li>
-        <li data-rols="admin tresorer"><a href="#"><span class="icona" aria-hidden="true">€</span><span>Tresoreria</span></a></li>
-        <li data-rols="admin tresorer"><a href="#"><span class="icona" aria-hidden="true">⇄</span><span>Pagaments</span></a></li>
-        <li data-rols="admin secretaria cursos tresorer"><a href="#"><span class="icona" aria-hidden="true">▤</span><span>Llicències</span></a></li>
-        <li data-rols="admin historia"><a href="#"><span class="icona" aria-hidden="true">◍</span><span>Web</span></a></li>
-        <li data-rols="admin secretaria cursos material tresorer historia"><a href="#"><span class="icona" aria-hidden="true">▥</span><span>Dashboard</span></a></li>
+        <li data-rols="admin secretaria tresorer"><a href="#" data-vista="vista-socis"><span class="icona" data-icona="persona"></span><span>Socis</span></a></li>
+        <li data-rols="admin cursos material tresorer instructor historia"><a href="#" data-vista="vista-activitat" aria-current="page"><span class="icona" data-icona="ona"></span><span>Activitats</span></a></li>
+        <li data-rols="admin material cursos instructor tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="llista"></span><span>Material</span></a></li>
+        <li data-rols="admin tresorer"><a href="#" data-vista="vista-tresoreria"><span class="icona" data-icona="banc"></span><span>Tresoreria</span></a></li>
+        <li data-rols="admin tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="targeta"></span><span>Pagaments</span></a></li>
+        <li data-rols="admin secretaria cursos tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="escut"></span><span>Llicències</span></a></li>
+        <li data-rols="admin historia"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="casa"></span><span>Web</span></a></li>
+        <li data-rols="admin secretaria cursos material tresorer historia"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="taula"></span><span>Dashboard</span></a></li>
+        <li class="lateral-separador" aria-hidden="true" data-rols="admin"></li>
+        <li data-rols="admin"><a href="#" data-vista="vista-rols"><span class="icona" data-icona="cadenat"></span><span>Usuaris i rols</span></a></li>
       </ul>
     </nav>
     <div class="lateral-compte">
@@ -241,14 +305,14 @@
         <label><input class="visualment-amagat" type="radio" name="tema-lateral" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
         <label><input class="visualment-amagat" type="radio" name="tema-lateral" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
       </fieldset>
-      <span class="codi">jordi.adm</span>
+      <span class="codi" id="compte-actiu">jordi.adm</span>
       <span class="text-2">Compte d'administrador · TOTP actiu</span>
       <a href="publica.html">Surt</a>
     </div>
   </aside>
 
   <div class="admin-principal">
-    <p class="nota-wireframe">Wireframe de baixa fidelitat · estructura, no disseny final · dades inventades</p>
+    <p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades</p>
     <header class="barra-mobil">
       <img class="logo-sempre-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
       <span class="text-lateral">Administració</span>
@@ -257,7 +321,7 @@
 
     <header class="barra-superior">
       <nav aria-label="Molla de pa">
-        <ol class="molla">
+        <ol class="molla" id="molla">
           <li><a href="#">Activitats</a></li>
           <li><a href="#">Sortides</a></li>
           <li><span class="codi" aria-current="page">SRT-2026-014</span></li>
@@ -288,14 +352,17 @@
       <p class="descripcio-rol" id="descripcio-rol" aria-live="polite"></p>
     </div>
 
-    <main id="contingut" class="fitxa-contenidor">
+    <main id="contingut">
 
-      <div id="sense-acces" class="avis avis-error" hidden>
-        <strong>Sense accés a aquesta fitxa</strong>
-        Aquest rol no gestiona cursos ni sortides. Torna a un mòdul del menú.
+      <div id="sense-acces" class="vista" hidden>
+        <div class="avis avis-error">
+          <strong>Sense accés a aquesta pantalla</strong>
+          <span id="sense-acces-text">Aquest rol no hi té permís. Tria un mòdul del menú.</span>
+        </div>
       </div>
 
-      <div id="fitxa" class="fitxa-graella" data-rols="admin cursos material tresorer instructor">
+      <!-- ==================== Vista: fitxa de sortida ==================== -->
+      <div id="vista-activitat" class="vista" data-acces="admin cursos material tresorer instructor" data-molla="Activitats|Sortides|SRT-2026-014">
 
         <section id="capcalera-fitxa" class="targeta capcalera-fitxa" aria-labelledby="fitxa-titol">
           <div>
@@ -303,7 +370,7 @@
             <h1 id="fitxa-titol">Illes Medes · immersió des de vaixell</h1>
             <p class="fila-codi">
               <span class="codi" title="Codi de la sortida">SRT-2026-014</span>
-              <span class="estat estat-ok"><span aria-hidden="true">✓</span> Inscripcions obertes</span>
+              <span class="estat estat-ok" id="estat-inscripcions"><span aria-hidden="true">✓</span> Inscripcions obertes</span>
             </p>
             <dl class="meta-graella">
               <div><dt>Data</dt><dd>Dissabte 15/11/2026</dd></div>
@@ -311,275 +378,852 @@
               <div><dt>Responsable</dt><dd>Laia Ferrer</dd></div>
               <div><dt>Places</dt><dd>7 de 12</dd></div>
               <div><dt>Preu</dt><dd>Soci <span class="import">45,00 €</span> · no soci <span class="import">60,00 €</span></dd></div>
-              <div><dt>Departament</dt><dd>Sortides <span class="a-validar">A validar</span></dd></div>
+              <div><dt>Departament</dt><dd>Activitats / Sortides <span class="a-validar">A validar</span></dd></div>
             </dl>
           </div>
           <div class="accions-amples">
             <a class="boto boto-petit" href="#" data-rols="admin cursos">Edita</a>
             <a class="boto boto-petit" href="#" data-rols="admin cursos">Duplica</a>
             <a class="boto boto-petit" href="#" data-rols="admin cursos instructor">Passa llista</a>
-            <a class="boto boto-petit boto-principal" href="#" data-rols="admin cursos">Tanca inscripcions</a>
+            <button class="boto boto-petit boto-principal" type="button" data-rols="admin cursos" data-icona="cadenat" id="tanca-inscripcions">Tanca inscripcions</button>
           </div>
-          <details class="accions-mobil" data-rols="admin cursos instructor">
-            <summary>Accions</summary>
-            <ul class="llista-accions">
-              <li data-rols="admin cursos"><a class="boto boto-principal" href="#">Tanca inscripcions</a></li>
-              <li data-rols="admin cursos instructor"><a class="boto" href="#">Passa llista</a></li>
-              <li data-rols="admin cursos"><a class="boto" href="#">Edita</a></li>
-              <li data-rols="admin cursos"><a class="boto" href="#">Duplica</a></li>
-            </ul>
-          </details>
         </section>
 
-        <section id="resum-economic" class="targeta" data-rols="admin cursos tresorer" aria-labelledby="resum-titol">
-          <h2 id="resum-titol">Resum econòmic</h2>
-          <ul class="xifres-resum">
-            <li class="xifra"><span class="xifra-etiqueta">Ingressos cobrats</span><span class="xifra-valor">240,00 €</span><span class="xifra-nota">Pendent: 105,00 €</span></li>
-            <li class="xifra"><span class="xifra-etiqueta">Despeses</span><span class="xifra-valor">150,00 €</span><span class="xifra-nota">Vaixell</span></li>
-            <li class="xifra"><span class="xifra-etiqueta">Cost de material</span><span class="xifra-valor">36,00 €</span><span class="xifra-nota">3 equips</span></li>
-            <li class="xifra xifra-marge"><span class="xifra-etiqueta">Marge</span><span class="xifra-valor">54,00 €</span><span class="xifra-nota">Previst si es cobra tot: 159,00 €</span></li>
-          </ul>
-          <p class="formula">Marge = ingressos − despeses − cost de material.</p>
-        </section>
-
-        <section id="participants" class="targeta" data-rols="admin cursos tresorer instructor" aria-labelledby="participants-titol">
-          <div class="cap-bloc">
-            <h2 id="participants-titol">Participants</h2>
-            <a class="boto boto-petit" href="#" data-rols="admin cursos">Afegeix participant</a>
+        <div class="fitxa-pestanyes">
+          <div class="pestanyes" role="tablist" aria-label="Seccions de la sortida" id="pestanyes-fitxa">
+            <button class="pestanya" role="tab" type="button" id="pt-resum" aria-controls="pp-resum" aria-selected="true">Resum</button>
+            <button class="pestanya" role="tab" type="button" id="pt-participants" aria-controls="pp-participants" aria-selected="false" data-rols="admin cursos tresorer instructor">Participants</button>
+            <button class="pestanya" role="tab" type="button" id="pt-material" aria-controls="pp-material" aria-selected="false">Material i despeses</button>
+            <button class="pestanya" role="tab" type="button" id="pt-registre" aria-controls="pp-registre" aria-selected="false" data-rols="admin cursos tresorer">Registre</button>
           </div>
-          <div class="eines">
-            <div class="camp"><label for="cerca-participants">Cerca per nom</label><input id="cerca-participants" type="search" autocomplete="off"></div>
-            <div class="camp"><label for="filtre-estat">Estat del pagament</label>
-              <select id="filtre-estat"><option value="">Tots</option><option value="pagat">Pagat</option><option value="pendent">Pendent</option><option value="cancellat">Cancel·lat</option></select>
-            </div>
-            <div class="camp"><label for="filtre-tipus">Tipus</label>
-              <select id="filtre-tipus"><option value="">Tots</option><option value="soci">Soci</option><option value="convidat">Convidat</option></select>
-            </div>
-            <p class="recompte" id="recompte" aria-live="polite">8 de 8 participants</p>
-          </div>
-          <table class="taula" id="taula-participants">
-            <caption class="visualment-amagat">Participants de la sortida SRT-2026-014</caption>
-            <thead>
-              <tr>
-                <th scope="col">Nom</th>
-                <th scope="col">Pagament</th>
-                <th scope="col" class="num" data-rols="admin cursos tresorer">Import</th>
-                <th scope="col" class="col-secundaria" data-rols="admin cursos tresorer">Mètode</th>
-                <th scope="col" class="col-secundaria">Llicència</th>
-                <th scope="col"><span class="visualment-amagat">Accions</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-estat="pagat" data-tipus="soci">
-                <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pagat" data-tipus="soci">
-                <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Bizum</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pagat" data-tipus="soci">
-                <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-avis"><span aria-hidden="true">!</span> Caduca 31/12</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pendent" data-tipus="soci">
-                <td class="cel-nom">Pau Roca Gil<span class="codi">Soci 0188</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">—</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pagat" data-tipus="convidat">
-                <td class="cel-nom">Anna Vidal Costa<span class="codi">Convidat</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">60,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> D'un dia</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="cancellat" data-tipus="soci">
-                <td class="cel-nom">Marc Serra Pons<span class="codi">Soci 0466</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-error"><span aria-hidden="true">✕</span> Cancel·lat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">0,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta (retornat)</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pendent" data-tipus="convidat">
-                <td class="cel-nom">Núria Camps Roig<span class="codi">Convidat</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">60,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Transferència</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-error"><span aria-hidden="true">✕</span> Sense llicència</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-              <tr data-estat="pagat" data-tipus="soci">
-                <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
-                <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
-                <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
-                <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Transferència</td>
-                <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
-                <td><a class="boto boto-petit" href="#">Detall</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
 
-        <div class="columna-secundaria">
-          <section id="material-assignat" class="targeta" aria-labelledby="material-titol">
-            <div class="cap-bloc">
-              <h2 id="material-titol">Material assignat</h2>
-              <a class="boto boto-petit" href="#" data-rols="admin cursos material">Assigna</a>
+          <div class="panells">
+            <div role="tabpanel" id="pp-resum" aria-labelledby="pt-resum" tabindex="0">
+              <section id="resum-economic" class="targeta" data-rols="admin cursos tresorer" aria-labelledby="resum-titol">
+                <h2 id="resum-titol">Resum econòmic</h2>
+                <ul class="xifres-resum">
+                  <li class="xifra"><span class="xifra-etiqueta">Ingressos cobrats</span><span class="xifra-valor" id="x-ingressos">240,00 €</span><span class="xifra-nota">Pendent: 105,00 €</span></li>
+                  <li class="xifra"><span class="xifra-etiqueta">Despeses</span><span class="xifra-valor" id="x-despeses">150,00 €</span><span class="xifra-nota" id="x-despeses-nota">Vaixell</span></li>
+                  <li class="xifra"><span class="xifra-etiqueta">Cost de material</span><span class="xifra-valor">36,00 €</span><span class="xifra-nota">3 equips</span></li>
+                  <li class="xifra xifra-marge"><span class="xifra-etiqueta">Marge</span><span class="xifra-valor" id="x-marge">54,00 €</span><span class="xifra-nota" id="x-marge-nota">Previst si es cobra tot: 159,00 €</span></li>
+                </ul>
+                <p class="formula">Marge = ingressos − despeses − cost de material.</p>
+              </section>
+
+              <section id="programa-i-notes" class="targeta" aria-labelledby="programa-titol">
+                <div class="cap-bloc">
+                  <h2 id="programa-titol">Programa i notes</h2>
+                  <a class="boto boto-petit" href="#" data-rols="admin cursos">Edita</a>
+                </div>
+                <div class="graella-programa">
+                  <div>
+                    <h3>Programa</h3>
+                    <ol class="programa">
+                      <li><time>07:30</time><span>Trobada al port</span></li>
+                      <li><time>08:30</time><span>Primera immersió</span></li>
+                      <li><time>11:00</time><span>Interval en superfície</span></li>
+                      <li><time>12:00</time><span>Segona immersió</span></li>
+                      <li><time>14:00</time><span>Tornada</span></li>
+                    </ol>
+                  </div>
+                  <div>
+                    <h3>Notes internes</h3>
+                    <p>Confirmar el vaixell amb el centre dijous.</p>
+                    <div class="avis"><strong>Recordatori</strong>No s'hi anoten dades de salut.</div>
+                  </div>
+                </div>
+              </section>
             </div>
-            <ul class="llista-compacta">
-              <li>
-                <div class="fila-entre"><strong>Jaqueta talla M</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
-                <div class="fila-entre"><span><span class="codi">MAT-0112</span> · Marta Puig</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Lliurat</span></div>
-              </li>
-              <li>
-                <div class="fila-entre"><strong>Regulador</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
-                <div class="fila-entre"><span><span class="codi">MAT-0450</span> · Anna Vidal</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Per recollir</span></div>
-              </li>
-              <li>
-                <div class="fila-entre"><strong>Ordinador de busseig</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
-                <div class="fila-entre"><span><span class="codi">MAT-0233</span> · Núria Camps</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Per recollir</span></div>
-              </li>
-            </ul>
-            <p class="total" data-rols="admin cursos tresorer material"><span>Cost de material</span><span class="import">36,00 €</span></p>
+
+            <div role="tabpanel" id="pp-participants" aria-labelledby="pt-participants" tabindex="0" hidden>
+              <section id="participants" class="targeta" data-rols="admin cursos tresorer instructor" aria-labelledby="participants-titol">
+                <div class="cap-bloc">
+                  <h2 id="participants-titol">Participants</h2>
+                  <a class="boto boto-petit" href="#" data-rols="admin cursos">Afegeix participant</a>
+                </div>
+                <div class="eines">
+                  <div class="camp"><label for="cerca-participants">Cerca per nom</label><input id="cerca-participants" type="search" autocomplete="off"></div>
+                  <div class="camp"><label for="filtre-estat">Estat del pagament</label>
+                    <select id="filtre-estat"><option value="">Tots</option><option value="pagat">Pagat</option><option value="pendent">Pendent</option><option value="cancellat">Cancel·lat</option></select>
+                  </div>
+                  <div class="camp"><label for="filtre-tipus">Tipus</label>
+                    <select id="filtre-tipus"><option value="">Tots</option><option value="soci">Soci</option><option value="convidat">Convidat</option></select>
+                  </div>
+                  <p class="recompte xifra-viva" id="recompte" aria-live="polite">8 de 8 participants</p>
+                </div>
+                <table class="taula" id="taula-participants">
+                  <caption class="visualment-amagat">Participants de la sortida SRT-2026-014</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Nom</th>
+                      <th scope="col">Pagament</th>
+                      <th scope="col" class="num" data-rols="admin cursos tresorer">Import</th>
+                      <th scope="col" class="col-secundaria" data-rols="admin cursos tresorer">Mètode</th>
+                      <th scope="col" class="col-secundaria">Llicència</th>
+                      <th scope="col"><span class="visualment-amagat">Accions</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-estat="pagat" data-tipus="soci">
+                      <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos tresorer" data-justificant="JUS-2026-000412|Marta Puig Ferrer · soci 0427|45,00 €|Targeta|14/10/2026">Justificant</button></td>
+                    </tr>
+                    <tr data-estat="pagat" data-tipus="soci">
+                      <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Bizum</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos tresorer" data-justificant="JUS-2026-000398|Jordi Soler Mas · soci 0311|45,00 €|Bizum|09/10/2026">Justificant</button></td>
+                    </tr>
+                    <tr data-estat="pagat" data-tipus="soci">
+                      <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-avis"><span aria-hidden="true">!</span> Caduca 31/12</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos tresorer" data-justificant="JUS-2026-000401|Laia Ferrer Vila · soci 0502|45,00 €|Targeta|10/10/2026">Justificant</button></td>
+                    </tr>
+                    <tr data-estat="pendent" data-tipus="soci">
+                      <td class="cel-nom">Pau Roca Gil<span class="codi">Soci 0188</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">—</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
+                      <td class="cel-accions"><a class="boto boto-petit" href="#">Detall</a></td>
+                    </tr>
+                    <tr data-estat="pagat" data-tipus="convidat">
+                      <td class="cel-nom">Anna Vidal Costa<span class="codi">Convidat</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">60,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> D'un dia</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos tresorer" data-justificant="JUS-2026-000405|Anna Vidal Costa · convidada|60,00 €|Targeta|11/10/2026">Justificant</button></td>
+                    </tr>
+                    <tr data-estat="cancellat" data-tipus="soci">
+                      <td class="cel-nom">Marc Serra Pons<span class="codi">Soci 0466</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-error"><span aria-hidden="true">✕</span> Cancel·lat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">0,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Targeta (retornat)</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
+                      <td class="cel-accions"><a class="boto boto-petit" href="#">Detall</a></td>
+                    </tr>
+                    <tr data-estat="pendent" data-tipus="convidat">
+                      <td class="cel-nom">Núria Camps Roig<span class="codi">Convidat</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">60,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Transferència</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-error"><span aria-hidden="true">✕</span> Sense llicència</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos" data-icona="copia" id="copia-enllac">Copia l'enllaç de pagament</button></td>
+                    </tr>
+                    <tr data-estat="pagat" data-tipus="soci">
+                      <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
+                      <td data-etiqueta="Pagament"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                      <td data-etiqueta="Import" class="num import" data-rols="admin cursos tresorer">45,00 €</td>
+                      <td data-etiqueta="Mètode" class="col-secundaria" data-rols="admin cursos tresorer">Transferència</td>
+                      <td data-etiqueta="Llicència" class="col-secundaria"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vigent</span></td>
+                      <td class="cel-accions"><button class="boto boto-petit" type="button" data-rols="admin cursos tresorer" data-justificant="JUS-2026-000420|Oriol Mas Font · soci 0239|45,00 €|Transferència (conciliada)|20/10/2026">Justificant</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)" data-rols="admin cursos">L'enllaç de convidat és secret i caduca <span class="a-validar">A validar: V-02</span>. Qui el pot generar: <span class="a-validar">A validar: M5</span></p>
+              </section>
+            </div>
+
+            <div role="tabpanel" id="pp-material" aria-labelledby="pt-material" tabindex="0" hidden>
+              <div class="graella-material">
+                <section id="material-assignat" class="targeta" aria-labelledby="material-titol">
+                  <div class="cap-bloc">
+                    <h2 id="material-titol">Material assignat</h2>
+                    <a class="boto boto-petit" href="#" data-rols="admin cursos material">Assigna</a>
+                  </div>
+                  <ul class="llista-compacta">
+                    <li>
+                      <div class="fila-entre"><strong>Jaqueta talla M</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
+                      <div class="fila-entre"><span><span class="codi">MAT-0112</span> · Marta Puig</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Lliurat</span></div>
+                    </li>
+                    <li>
+                      <div class="fila-entre"><strong>Regulador</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
+                      <div class="fila-entre"><span><span class="codi">MAT-0450</span> · Anna Vidal</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Per recollir</span></div>
+                    </li>
+                    <li>
+                      <div class="fila-entre"><strong>Ordinador de busseig</strong><span class="import" data-rols="admin cursos tresorer material">12,00 €</span></div>
+                      <div class="fila-entre"><span><span class="codi">MAT-0233</span> · Núria Camps</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Per recollir</span></div>
+                    </li>
+                  </ul>
+                  <p class="total" data-rols="admin cursos tresorer material"><span>Cost de material</span><span class="import">36,00 €</span></p>
+                </section>
+
+                <section id="despeses" class="targeta" data-rols="admin cursos tresorer" aria-labelledby="despeses-titol">
+                  <h2 id="despeses-titol">Despeses</h2>
+                  <ul class="llista-compacta" id="llista-despeses">
+                    <li>
+                      <div class="fila-entre"><strong>Lloguer del vaixell</strong><span class="import">150,00 €</span></div>
+                      <div class="fila-entre"><span>Centre d'immersió (exemple) · Activitats / Sortides</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Amb factura</span></div>
+                    </li>
+                  </ul>
+
+                  <form class="form-despesa" id="form-despesa" novalidate data-rols="admin tresorer" style="margin-top: var(--e-5)">
+                    <h3 style="margin: 0">Afegeix una despesa</h3>
+                    <div class="camps">
+                      <div class="camp"><label for="d-concepte">Concepte</label><input id="d-concepte" type="text" value="Gasolina del vaixell" autocomplete="off"></div>
+                      <div class="camp"><label for="d-import">Import (€)</label><input id="d-import" type="text" inputmode="decimal" placeholder="0,00" aria-describedby="d-import-error"><p class="error-camp" id="d-import-error" hidden></p></div>
+                      <div class="camp"><label for="d-departament">Departament</label>
+                        <select id="d-departament" aria-describedby="d-departament-error">
+                          <option value="">Tria'n un</option>
+                          <option selected>Activitats / Sortides</option>
+                          <option>Activitats / Cursos</option>
+                          <option>General / Quotes de socis</option>
+                          <option>Material</option>
+                        </select>
+                        <p class="error-camp" id="d-departament-error" hidden></p>
+                      </div>
+                      <div class="camp"><label for="d-proveidor">Proveïdor</label><input id="d-proveidor" type="text" value="Combustibles del port (exemple)" autocomplete="off"></div>
+                    </div>
+                    <div class="camp">
+                      <span class="etiqueta" id="factura-titol">Factura</span>
+                      <div class="zona-magnetica" id="zona-factura" role="group" aria-labelledby="factura-titol" data-accepta="application/pdf,.pdf,image/*" data-mida-max="10485760" data-tipus="PDF o imatge" data-titol="Arrossega la factura aquí"></div>
+                      <p class="ajuda">Es desa a l'emmagatzematge de fitxers del club (UE). Sense factura, la despesa queda marcada «Falta la factura».</p>
+                    </div>
+                    <div class="accions-form">
+                      <button class="boto boto-principal" type="submit" id="desa-despesa" data-icona="check">Desa la despesa</button>
+                    </div>
+                  </form>
+                </section>
+              </div>
+            </div>
+
+            <div role="tabpanel" id="pp-registre" aria-labelledby="pt-registre" tabindex="0" hidden>
+              <section id="activitat-recent" class="targeta" data-rols="admin cursos tresorer" aria-labelledby="registre-titol">
+                <h2 id="registre-titol">Activitat recent</h2>
+                <ul class="llista-compacta" id="llista-registre">
+                  <li>
+                    <span><span class="registre-quan">27/10/2026 18:02</span> · <span class="registre-qui">jordi.adm</span></span>
+                    <span>Places màximes: 12 (abans 10)</span>
+                  </li>
+                  <li>
+                    <span><span class="registre-quan">27/10/2026 17:40</span> · <span class="estat estat-sistema"><span aria-hidden="true">⚙</span> Sistema</span></span>
+                    <span>Pagament d'Anna Vidal confirmat per una notificació verificada</span>
+                  </li>
+                  <li>
+                    <span><span class="registre-quan">26/10/2026 12:15</span> · <span class="registre-qui">laia.cursos</span></span>
+                    <span>Inscripció de Marc Serra: Cancel·lada (abans Pagada) · motiu: baixa voluntària</span>
+                  </li>
+                </ul>
+                <a class="boto boto-text boto-petit" href="#">Tot el registre</a>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== Vista: altes pendents ==================== -->
+      <div id="vista-socis" class="vista" data-acces="admin secretaria tresorer" data-molla="Socis|Altes pendents" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Socis</span>
+            <h1>Altes pendents</h1>
+          </div>
+          <p class="text-2">El número de soci s'assigna en aprovar l'alta i no es reutilitza mai.</p>
+        </div>
+        <ul class="llista-altes">
+          <li class="targeta alta">
+            <div class="fila-entre"><h2>Pol Rius Camps</h2><span class="estat estat-avis" data-estat-alta><span aria-hidden="true">◷</span> Pendent de revisar</span></div>
+            <dl class="meta-graella">
+              <div><dt>Tipus</dt><dd>Ple dret</dd></div>
+              <div><dt>Sol·licitud</dt><dd>28/10/2026</dd></div>
+              <div><dt>Quota</dt><dd><span class="import">90,00 €</span> l'any</dd></div>
+              <div><dt>Mandat SEPA</dt><dd>Es demanarà en aprovar (05a)</dd></div>
+            </dl>
+            <div class="accions-form" data-rols="admin secretaria">
+              <button class="boto boto-principal" type="button" data-aprova="0603" data-icona="check">Aprova l'alta</button>
+              <button class="boto" type="button">Demana més dades</button>
+            </div>
+            <p class="text-2" data-rols="tresorer" style="margin: 0">Només consulta: el tresorer no aprova altes.</p>
+          </li>
+          <li class="targeta alta">
+            <div class="fila-entre"><h2>Clara Bosch Mir</h2><span class="estat estat-avis" data-estat-alta><span aria-hidden="true">◷</span> Pendent de revisar</span></div>
+            <dl class="meta-graella">
+              <div><dt>Tipus</dt><dd>Simpatitzant</dd></div>
+              <div><dt>Sol·licitud</dt><dd>30/10/2026</dd></div>
+              <div><dt>Quota</dt><dd><span class="import">35,00 €</span> l'any</dd></div>
+              <div><dt>Mandat SEPA</dt><dd>Prefereix targeta</dd></div>
+            </dl>
+            <div class="accions-form" data-rols="admin secretaria">
+              <button class="boto boto-principal" type="button" data-aprova="0604" data-icona="check">Aprova l'alta</button>
+              <button class="boto" type="button">Demana més dades</button>
+            </div>
+            <p class="text-2" data-rols="tresorer" style="margin: 0">Només consulta: el tresorer no aprova altes.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ==================== Vista: tresoreria, importar l'extracte ==================== -->
+      <div id="vista-tresoreria" class="vista" data-acces="admin tresorer" data-molla="Tresoreria|Extracte bancari" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Tresoreria</span>
+            <h1>Importa l'extracte bancari</h1>
+          </div>
+          <p class="text-2">Es pot desfer la importació. Administrador: <span class="a-validar">A validar: M9</span></p>
+        </div>
+        <div class="graella-tresoreria">
+          <section class="targeta" aria-labelledby="extracte-titol">
+            <h2 id="extracte-titol">Fitxer de l'extracte</h2>
+            <div class="camp" style="margin-bottom: var(--e-4)">
+              <label for="compte-bancari">Compte bancari</label>
+              <select id="compte-bancari"><option>Compte principal del club</option></select>
+              <p class="ajuda">Banc i format de l'exportació <span class="a-validar">A verificar</span></p>
+            </div>
+            <div class="zona-magnetica" id="zona-extracte" role="group" aria-label="Fitxer CSV de l'extracte" data-csv data-accepta=".csv,text/csv" data-mida-max="5242880" data-tipus="CSV" data-titol="Arrossega el CSV de l'extracte aquí"></div>
+            <div class="accions-form" style="margin-top: var(--e-4)">
+              <button class="boto boto-principal" type="button" id="importa-extracte" data-icona="puja" aria-disabled="true">Importa els moviments</button>
+              <a class="boto boto-text" href="#" id="csv-exemple" download="extracte-exemple.csv">Descarrega un CSV d'exemple</a>
+            </div>
           </section>
-
-          <section id="activitat-recent" class="targeta" data-rols="admin cursos tresorer" aria-labelledby="registre-titol">
-            <h2 id="registre-titol">Activitat recent</h2>
-            <ul class="llista-compacta">
-              <li>
-                <span><span class="registre-quan">27/10/2026 18:02</span> · <span class="registre-qui">jordi.adm</span></span>
-                <span>Places màximes: 12 (abans 10)</span>
-              </li>
-              <li>
-                <span><span class="registre-quan">27/10/2026 17:40</span> · <span class="estat estat-sistema"><span aria-hidden="true">⚙</span> Sistema</span></span>
-                <span>Pagament d'Anna Vidal confirmat per una notificació verificada</span>
-              </li>
-              <li>
-                <span><span class="registre-quan">26/10/2026 12:15</span> · <span class="registre-qui">laia.cursos</span></span>
-                <span>Inscripció de Marc Serra: Cancel·lada (abans Pagada) · motiu: baixa voluntària</span>
-              </li>
-            </ul>
-            <a class="boto boto-text boto-petit" href="#">Tot el registre</a>
+          <section class="targeta" aria-labelledby="extracte-com-titol">
+            <h2 id="extracte-com-titol">Què passa en importar</h2>
+            <ol style="padding-left: var(--e-5); display: grid; gap: var(--e-2)">
+              <li>Es llegeixen els moviments i es comproven els imports, en cèntims.</li>
+              <li>Les transferències amb referència (per exemple <span class="codi">CRS-SRT014-0427</span>) es proposen per conciliar.</li>
+              <li>Res no es dona per cobrat fins que ho confirmes.</li>
+            </ol>
+            <div class="avis" style="margin-top: var(--e-4)"><strong>Dades bancàries</strong>La plataforma no guarda cap IBAN de socis.</div>
           </section>
         </div>
-
-        <section id="programa-i-notes" class="targeta" aria-labelledby="programa-titol">
-          <div class="cap-bloc">
-            <h2 id="programa-titol">Programa i notes</h2>
-            <a class="boto boto-petit" href="#" data-rols="admin cursos">Edita</a>
-          </div>
-          <div class="graella-programa">
-            <div>
-              <h3>Programa</h3>
-              <ol class="programa">
-                <li><time>07:30</time><span>Trobada al port</span></li>
-                <li><time>08:30</time><span>Primera immersió</span></li>
-                <li><time>11:00</time><span>Interval en superfície</span></li>
-                <li><time>12:00</time><span>Segona immersió</span></li>
-                <li><time>14:00</time><span>Tornada</span></li>
-              </ol>
-            </div>
-            <div>
-              <h3>Notes internes</h3>
-              <p>Confirmar el vaixell amb el centre dijous.</p>
-              <div class="avis"><strong>Recordatori</strong>No s'hi anoten dades de salut.</div>
-            </div>
-          </div>
-        </section>
-
       </div>
+
+      <!-- ==================== Vista: usuaris i rols (decisió 059) ==================== -->
+      <div id="vista-rols" class="vista" data-acces="admin" data-molla="Usuaris i rols|Permisos per rol" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Usuaris i rols</span>
+            <h1>Permisos per rol</h1>
+          </div>
+          <p class="text-2">Matriu provisional de la spec 00, §2.4 (P-04). Decisió 059 <span class="a-validar">No trobada al repositori</span></p>
+        </div>
+        <div class="rols">
+          <ul class="llista-rols" id="llista-rols" aria-label="Rols"></ul>
+          <section class="targeta" aria-labelledby="permisos-titol" id="panell-permisos">
+            <h2 id="permisos-titol">Permisos</h2>
+            <p class="text-2" id="permisos-resum" style="margin: 0 0 var(--e-2)"></p>
+            <ul class="comptes-rol" id="comptes-rol" aria-label="Comptes amb aquest rol"></ul>
+            <ul class="llista-permisos" id="llista-permisos"></ul>
+            <div class="safata" id="safata" hidden>
+              <p class="recompte-viu" id="recompte-viu" aria-live="polite"></p>
+              <div class="accions">
+                <button class="boto" type="button" id="desfes-canvis">Desfés els canvis</button>
+                <button class="boto-tactil tactil-daurat" type="button" id="revisa-canvis"><span class="bt-tecla">Revisa i confirma</span></button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <section class="targeta" aria-labelledby="historial-rols-titol">
+          <h2 id="historial-rols-titol">Últims canvis de permisos</h2>
+          <ul class="llista-compacta" id="historial-rols">
+            <li><span><span class="registre-quan">20/10/2026 10:12</span> · <span class="registre-qui">jordi.adm</span></span><span>Rol tresorer: «Importar l'extracte bancari» Sí (abans No)</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <div id="vista-buida" class="vista" hidden data-acces="admin secretaria cursos material tresorer instructor historia" data-molla="Mòdul">
+        <div class="avis"><strong>Fora d'aquest prototip</strong>Aquest mòdul encara no té pantalla. Prova Activitats, Socis, Tresoreria o Usuaris i rols.</div>
+      </div>
+
     </main>
   </div>
 </div>
 
+<!-- ==================== Diàleg: justificant d'un participant ==================== -->
+<dialog class="dialeg" id="dialeg-justificant" aria-labelledby="justificant-titol">
+  <div class="dialeg-cap">
+    <h2 id="justificant-titol">Justificant de cobrament</h2>
+    <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+  </div>
+  <div class="dialeg-cos">
+    <section class="impressora" id="impressora" aria-label="Justificant" data-etapa="processant" data-text-processant="Recuperant el cobrament" data-text-imprimint="Imprimint el justificant" data-text-complet="Justificant a punt">
+      <div class="imp-maquina superficie">
+        <div class="imp-cap">
+          <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
+          <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
+          <span class="estat estat-neutre">Còpia</span>
+        </div>
+        <div class="imp-pantalla">
+          <div class="imp-fila">
+            <div><p class="imp-concepte">Sortida Illes Medes</p><p class="imp-detall" data-j="persona"></p></div>
+            <p class="imp-import" data-j="total"></p>
+          </div>
+          <div class="imp-estat"><span class="imp-indicador" aria-hidden="true"></span><div class="imp-etiqueta"></div></div>
+        </div>
+        <div class="imp-ranura" aria-hidden="true"></div>
+      </div>
+      <div class="imp-sortida">
+        <div class="imp-moviment">
+          <article class="imp-paper" aria-labelledby="paper-titol">
+            <h3 id="paper-titol">Justificant de cobrament</h3>
+            <p>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines</p>
+            <hr>
+            <dl>
+              <div><dt>Número</dt><dd data-j="numero"></dd></div>
+              <div><dt>Data</dt><dd data-j="data"></dd></div>
+              <div><dt>Persona</dt><dd data-j="persona"></dd></div>
+              <div><dt>Concepte</dt><dd>Sortida Illes Medes (SRT-2026-014)</dd></div>
+              <div><dt>Mètode</dt><dd data-j="metode"></dd></div>
+              <div><dt>Departament</dt><dd>Activitats / Sortides</dd></div>
+            </dl>
+            <hr>
+            <dl class="imp-total"><div><dt>Total</dt><dd data-j="total"></dd></div></dl>
+            <span class="imp-segell"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>Cobrat</span>
+            <p style="margin-top: var(--e-3)">Justificant, no és una factura. <span class="a-validar">A validar</span></p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="dialeg-peu">
+    <a class="boto" href="#" aria-disabled="true">Envia'l per correu (prototip)</a>
+    <button class="boto-tactil" type="button" data-tanca><span class="bt-tecla">Tanca</span></button>
+  </div>
+</dialog>
+
+<!-- ==================== Diàleg: confirmar canvis de permisos ==================== -->
+<dialog class="dialeg" id="dialeg-rols" aria-labelledby="dialeg-rols-titol">
+  <form method="dialog" id="form-rols" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="dialeg-rols-titol">Confirma els canvis</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p id="resum-confirmacio" style="margin: 0"></p>
+      <ul class="llista-canvis" id="llista-canvis"></ul>
+      <div class="avis avis-avis" id="avis-sensible" hidden><strong>Hi ha permisos sobre diners</strong>Els comptes afectats ho notaran a la petició següent.</div>
+      <div class="camp camp-totp">
+        <label for="totp">Codi TOTP del teu compte</label>
+        <input id="totp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="totp-ajuda totp-error">
+        <p class="ajuda" id="totp-ajuda">Prototip: qualsevol codi de 6 xifres. Demanar-lo aquí <span class="a-validar">A validar</span></p>
+        <p class="error-camp" id="totp-error" hidden>Escriu les 6 xifres del codi.</p>
+      </div>
+      <p class="text-2" style="margin: 0; font-size: var(--t-s)">Queda al registre d'activitat amb el valor anterior.</p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-rols" data-icona="cadenat">Confirma els canvis</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="interaccions.js"></script>
 <script>
-/* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
 (function () {
-  var arrel = document.documentElement;
-  function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
-  function aplica(t) {
-    try {
-      if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
-      else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
-    } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
-    document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
+  'use strict';
+  CRIS.tema();
+  document.querySelectorAll('[data-icona].icona').forEach(s => { s.innerHTML = CRIS.icona(s.dataset.icona); });
+
+  const comptePerRol = { admin: 'jordi.adm', cursos: 'laia.cursos', tresorer: 'marc.tresor', material: 'pere.material', instructor: 'xavi.instructor', secretaria: 'anna.secretaria', historia: 'rosa.historia' };
+  const rolActual = () => document.getElementById('veure-com').value;
+  const ara = () => { const d = new Date(); return d.toLocaleDateString('ca', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('ca', { hour: '2-digit', minute: '2-digit' }); };
+  function registra(llista, qui, que) {
+    const li = document.createElement('li');
+    li.innerHTML = '<span><span class="registre-quan"></span> · <span class="registre-qui"></span></span><span></span>';
+    li.querySelector('.registre-quan').textContent = ara();
+    li.querySelector('.registre-qui').textContent = qui;
+    li.lastElementChild.textContent = que;
+    llista.prepend(li);
   }
-  document.querySelectorAll('.selector-tema input').forEach(function (i) {
-    i.addEventListener('change', function () { if (i.checked) aplica(i.value); });
-  });
-  aplica(actual());
-})();
 
-/* Menú del mòbil: la barra lateral s'obre com a panell */
-(function () {
-  var admin = document.getElementById('admin');
-  var boto = document.querySelector('.boto-menu');
-  function posa(obert) { admin.classList.toggle('menu-obert', obert); boto.setAttribute('aria-expanded', String(obert)); }
-  boto.addEventListener('click', function () { posa(!admin.classList.contains('menu-obert')); });
-  document.querySelector('.boto-tanca-menu').addEventListener('click', function () { posa(false); boto.focus(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') posa(false); });
-})();
+  /* ---------- Menú del mòbil ---------- */
+  const admin = document.getElementById('admin');
+  const botoMenu = document.querySelector('.boto-menu');
+  function menu(obert) { admin.classList.toggle('menu-obert', obert); botoMenu.setAttribute('aria-expanded', String(obert)); }
+  botoMenu.addEventListener('click', () => menu(!admin.classList.contains('menu-obert')));
+  document.querySelector('.boto-tanca-menu').addEventListener('click', () => { menu(false); botoMenu.focus(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') menu(false); });
 
-/* «Veure com»: filtra menús, blocs i columnes segons la matriu provisional (spec 00, §2.4) */
-(function () {
-  var descripcions = {
-    admin: 'Administrador: ho veu i ho gestiona tot.',
-    cursos: 'Resp. cursos i sortides: gestiona la sortida i en veu el marge.',
-    tresorer: 'Tresorer: consulta la sortida i en veu els diners.',
+  /* ---------- Pestanyes de la fitxa (subratllat elàstic) ---------- */
+  const pestanyes = CRIS.pestanyes(document.getElementById('pestanyes-fitxa'));
+
+  /* ---------- Vistes: la barra lateral canvia de pantalla ---------- */
+  const vistes = Array.from(document.querySelectorAll('main > .vista[data-acces]'));
+  let vistaActual = 'vista-activitat';
+  function mostra(id) {
+    vistaActual = id;
+    const rol = rolActual();
+    const v = document.getElementById(id);
+    const pot = v.dataset.acces.split(' ').includes(rol);
+    vistes.forEach(x => { x.hidden = x !== v || !pot; });
+    document.getElementById('sense-acces').hidden = pot;
+    const molla = document.getElementById('molla');
+    const parts = (v.dataset.molla || '').split('|');
+    molla.innerHTML = parts.map((p, i) => i === parts.length - 1 ? '<li><span aria-current="page"' + (p.indexOf('-20') > 0 ? ' class="codi"' : '') + '></span></li>' : '<li><a href="#"></a></li>').join('');
+    molla.querySelectorAll('li > *').forEach((n, i) => { n.textContent = parts[i]; });
+    if (id === 'vista-activitat') pestanyes.refresca();
+  }
+  document.querySelectorAll('.lateral-nav a').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.lateral-nav a').forEach(x => x.removeAttribute('aria-current'));
+    a.setAttribute('aria-current', 'page');
+    menu(false);
+    mostra(a.dataset.vista);
+    document.getElementById('contingut').focus({ preventScroll: true });
+  }));
+  document.getElementById('contingut').tabIndex = -1;
+
+  /* ---------- «Veure com»: matriu provisional (spec 00, §2.4) ---------- */
+  const descripcions = {
+    admin: 'Administrador: ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
+    cursos: 'Resp. cursos i sortides: gestiona la sortida i en veu el marge; no registra despeses.',
+    tresorer: 'Tresorer: consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
     material: 'Resp. material: consulta la sortida per assignar material; no en veu els diners ni els participants.',
     instructor: 'Instructor: només si fa classe en aquesta sortida; no en veu els diners. Les dades dels alumnes es fixen a la spec 02.',
-    secretaria: 'Secretaria: no gestiona cursos ni sortides.',
+    secretaria: 'Secretaria: aprova altes; no gestiona cursos ni sortides.',
     historia: 'Dept. Història: només conferències i contingut històric.'
   };
-  var selector = document.getElementById('veure-com');
-  function aplica(rol) {
-    document.querySelectorAll('[data-rols]').forEach(function (el) {
-      el.hidden = el.getAttribute('data-rols').split(' ').indexOf(rol) === -1;
-    });
-    document.getElementById('sense-acces').hidden = !document.getElementById('fitxa').hidden;
+  const selector = document.getElementById('veure-com');
+  function aplicaRol(rol) {
+    document.querySelectorAll('[data-rols]').forEach(el => { el.hidden = !el.getAttribute('data-rols').split(' ').includes(rol); });
     document.getElementById('descripcio-rol').textContent = descripcions[rol];
+    document.getElementById('compte-actiu').textContent = comptePerRol[rol];
+    mostra(vistaActual);
   }
-  selector.addEventListener('change', function () { aplica(selector.value); });
-  aplica(selector.value);
-})();
+  selector.addEventListener('change', () => aplicaRol(selector.value));
 
-/* Cerca i filtres de participants */
-(function () {
-  var cerca = document.getElementById('cerca-participants');
-  var estat = document.getElementById('filtre-estat');
-  var tipus = document.getElementById('filtre-tipus');
-  var files = document.querySelectorAll('#taula-participants tbody tr');
-  function filtra() {
-    var text = cerca.value.trim().toLowerCase(), visibles = 0;
-    files.forEach(function (tr) {
-      var nom = tr.querySelector('.cel-nom').textContent.toLowerCase();
-      var mostra = nom.indexOf(text) !== -1 &&
-        (!estat.value || tr.getAttribute('data-estat') === estat.value) &&
-        (!tipus.value || tr.getAttribute('data-tipus') === tipus.value);
-      tr.hidden = !mostra;
-      if (mostra) visibles++;
+  /* ---------- Cerca i filtres de participants ---------- */
+  (function () {
+    const cerca = document.getElementById('cerca-participants');
+    const estat = document.getElementById('filtre-estat');
+    const tipus = document.getElementById('filtre-tipus');
+    const files = document.querySelectorAll('#taula-participants tbody tr');
+    function filtra() {
+      const text = cerca.value.trim().toLowerCase(); let visibles = 0;
+      files.forEach(tr => {
+        const nom = tr.querySelector('.cel-nom').textContent.toLowerCase();
+        const mostra = nom.includes(text) && (!estat.value || tr.dataset.estat === estat.value) && (!tipus.value || tr.dataset.tipus === tipus.value);
+        tr.hidden = !mostra; if (mostra) visibles++;
+      });
+      document.getElementById('recompte').textContent = visibles + ' de ' + files.length + ' participants';
+    }
+    [cerca, estat, tipus].forEach(el => el.addEventListener('input', filtra));
+  })();
+
+  /* ---------- Justificant d'un participant (impressora) ---------- */
+  (function () {
+    const dialeg = document.getElementById('dialeg-justificant');
+    const imp = CRIS.impressora(document.getElementById('impressora'));
+    document.getElementById('taula-participants').addEventListener('click', e => {
+      const b = e.target.closest('[data-justificant]');
+      if (!b) return;
+      const [numero, persona, total, metode, data] = b.dataset.justificant.split('|');
+      const d = { numero, persona, total, metode, data };
+      Object.keys(d).forEach(k => dialeg.querySelectorAll('[data-j="' + k + '"]').forEach(x => { x.textContent = d[k]; }));
+      imp.etapa('processant');
+      dialeg.showModal();
+      imp.imprimeix({ ms: 600 });
     });
-    document.getElementById('recompte').textContent = visibles + ' de ' + files.length + ' participants';
-  }
-  [cerca, estat, tipus].forEach(function (el) { el.addEventListener('input', filtra); });
+    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
+  })();
+
+  /* ---------- Enllaç de convidat: copiar (botó dinàmic) ---------- */
+  (function () {
+    const boto = document.getElementById('copia-enllac');
+    const bd = CRIS.botoDinamic(boto);
+    let t = null;
+    boto.addEventListener('click', () => {
+      const enllac = 'https://cris1954.cat/pagament/convidat/EXEMPLE-NO-VALID';
+      if (navigator.clipboard) navigator.clipboard.writeText(enllac).catch(() => {});
+      bd.posa('Enllaç copiat', 'fet', { fet: true });
+      CRIS.anuncia('Enllaç de pagament copiat');
+      clearTimeout(t);
+      t = setTimeout(() => bd.posa(bd.inicial.text, bd.inicial.icona), 1400);
+    });
+  })();
+
+  /* ---------- Tancar inscripcions (botó dinàmic) ---------- */
+  (function () {
+    const boto = document.getElementById('tanca-inscripcions');
+    const bd = CRIS.botoDinamic(boto);
+    boto.addEventListener('click', async () => {
+      if (bd.estaOcupat) return;
+      const obert = bd.text === bd.inicial.text;
+      await bd.flux([{ text: obert ? 'Tancant…' : 'Obrint…', icona: 'carrega', gira: true, ms: 700 }]);
+      const e = document.getElementById('estat-inscripcions');
+      if (obert) {
+        bd.posa('Reobre inscripcions', 'fletxa');
+        e.className = 'estat estat-neutre'; e.innerHTML = '<span aria-hidden="true">■</span> Inscripcions tancades';
+        registra(document.getElementById('llista-registre'), comptePerRol[rolActual()], 'Inscripcions: Tancades (abans Obertes)');
+      } else {
+        bd.posa(bd.inicial.text, bd.inicial.icona);
+        e.className = 'estat estat-ok'; e.innerHTML = '<span aria-hidden="true">✓</span> Inscripcions obertes';
+        registra(document.getElementById('llista-registre'), comptePerRol[rolActual()], 'Inscripcions: Obertes (abans Tancades)');
+      }
+      CRIS.anuncia(e.textContent.trim());
+    });
+  })();
+
+  /* ---------- Despeses: validació, factura i marge en viu (cèntims) ---------- */
+  (function () {
+    const form = document.getElementById('form-despesa');
+    const boto = document.getElementById('desa-despesa');
+    const bd = CRIS.botoDinamic(boto);
+    const zona = CRIS.zonaMagnetica(document.getElementById('zona-factura'));
+    const xifres = { ingressos: 24000, despeses: 15000, material: 3600, pendent: 10500 };
+    function errorCamp(input, missatge) {
+      const p = document.getElementById(input.id + '-error');
+      input.setAttribute('aria-invalid', String(!!missatge));
+      p.textContent = missatge || ''; p.hidden = !missatge;
+    }
+    function repinta() {
+      const marge = xifres.ingressos - xifres.despeses - xifres.material;
+      document.getElementById('x-despeses').textContent = CRIS.euros(xifres.despeses);
+      document.getElementById('x-marge').textContent = CRIS.euros(marge);
+      document.getElementById('x-marge-nota').textContent = 'Previst si es cobra tot: ' + CRIS.euros(marge + xifres.pendent);
+    }
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      const imp = document.getElementById('d-import'), dep = document.getElementById('d-departament');
+      const c = CRIS.centims(imp.value);
+      errorCamp(imp, c === null || c <= 0 ? 'Escriu un import positiu, per exemple 32,50.' : '');
+      errorCamp(dep, dep.value ? '' : 'Tota despesa ha de tenir departament.');
+      if (c === null || c <= 0) { imp.focus(); return; }
+      if (!dep.value) { dep.focus(); return; }
+      const factura = zona.fitxer;
+      await bd.flux([
+        { text: 'Desant…', icona: 'carrega', gira: true, ms: 900 },
+        { text: 'Despesa desada', icona: 'fet', fet: true, ms: 1300, anunci: 'Despesa desada. El marge s\'ha recalculat.' }
+      ]);
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      xifres.despeses += c;
+      repinta();
+      document.getElementById('x-despeses-nota').textContent = 'Vaixell i ' + document.getElementById('d-concepte').value.toLowerCase();
+      const li = document.createElement('li');
+      li.innerHTML = '<div class="fila-entre"><strong></strong><span class="import"></span></div><div class="fila-entre"><span></span>' +
+        (factura ? '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Amb factura</span>' : '<span class="estat estat-avis"><span aria-hidden="true">!</span> Falta la factura</span>') + '</div>';
+      li.querySelector('strong').textContent = document.getElementById('d-concepte').value;
+      li.querySelector('.import').textContent = CRIS.euros(c);
+      li.querySelector('.fila-entre:last-child span').textContent = document.getElementById('d-proveidor').value + ' · ' + dep.value;
+      document.getElementById('llista-despeses').append(li);
+      registra(document.getElementById('llista-registre'), comptePerRol[rolActual()], 'Despesa afegida: ' + document.getElementById('d-concepte').value + ' ' + CRIS.euros(c) + ' (' + dep.value + ')');
+      imp.value = ''; zona.buida();
+    });
+  })();
+
+  /* ---------- Altes pendents: aprovar (botó dinàmic) ---------- */
+  document.querySelectorAll('[data-aprova]').forEach(boto => {
+    const bd = CRIS.botoDinamic(boto);
+    boto.addEventListener('click', async () => {
+      if (bd.estaOcupat || bd.text !== bd.inicial.text) return;
+      const alta = boto.closest('.alta');
+      await bd.flux([
+        { text: 'Aprovant…', icona: 'carrega', gira: true, ms: 900 },
+        { text: 'Alta aprovada · soci ' + boto.dataset.aprova, icona: 'fet', fet: true, anunci: 'Alta aprovada. Número de soci ' + boto.dataset.aprova + '.' }
+      ]);
+      boto.setAttribute('aria-disabled', 'true');
+      const e = alta.querySelector('[data-estat-alta]');
+      e.className = 'estat estat-ok'; e.innerHTML = '<span aria-hidden="true">✓</span> Aprovada';
+    });
+  });
+
+  /* ---------- Tresoreria: importar l'extracte (CSV) ---------- */
+  (function () {
+    const boto = document.getElementById('importa-extracte');
+    const bd = CRIS.botoDinamic(boto);
+    let fitxer = null;
+    CRIS.zonaMagnetica(document.getElementById('zona-extracte'), {
+      enCanvi: f => { fitxer = f; if (f) boto.removeAttribute('aria-disabled'); else boto.setAttribute('aria-disabled', 'true'); bd.posa(bd.inicial.text, bd.inicial.icona); }
+    });
+    boto.addEventListener('click', async () => {
+      if (!fitxer || bd.estaOcupat || bd.text !== bd.inicial.text) return;
+      const n = (await fitxer.text()).split(/\r?\n/).filter(l => l.trim()).length - 1;
+      await bd.flux([
+        { text: 'Important…', icona: 'carrega', gira: true, ms: 1100 },
+        { text: n + ' moviments importats', icona: 'fet', fet: true, anunci: n + ' moviments importats. Revisa les propostes de conciliació.' }
+      ]);
+    });
+    // CSV d'exemple amb dades inventades, per provar la zona
+    const linies = ['data;concepte;import', '02/11/2026;TRANSFERENCIA CRS-SRT014-0427 PUIG;45,00', '02/11/2026;BIZUM SORTIDA MEDES;60,00',
+      '03/11/2026;REBUT QUOTA DEVOLT;-90,00', '04/11/2026;COMISSIO MANTENIMENT;-3,50', '05/11/2026;TRANSFERENCIA CRS-CUR003-P1182;120,00'];
+    document.getElementById('csv-exemple').href = URL.createObjectURL(new Blob([linies.join('\n')], { type: 'text/csv' }));
+  })();
+
+  /* ======================================================================
+     Rols i permisos (decisió 059, no trobada): interruptors per permís,
+     recompte en viu dels comptes afectats i confirmació amb TOTP.
+     El permís efectiu d'un compte és la unió dels seus rols (spec 00, §2.6).
+     ====================================================================== */
+  (function () {
+    const ROLS = [
+      { id: 'admin', nom: 'Administrador' }, { id: 'secretaria', nom: 'Secretaria' }, { id: 'cursos', nom: 'Resp. cursos i sortides' },
+      { id: 'material', nom: 'Resp. material' }, { id: 'tresorer', nom: 'Tresorer' }, { id: 'historia', nom: 'Dept. Història' }, { id: 'instructor', nom: 'Instructor' }
+    ];
+    const PERMISOS = [
+      { id: 'altes', nom: 'Aprovar altes, baixes i canvis de tipus' },
+      { id: 'activitats', nom: 'Crear, duplicar i gestionar cursos i sortides' },
+      { id: 'conferencies', nom: 'Gestionar conferències i contingut històric' },
+      { id: 'llista', nom: 'Passar llista i registrar resultats' },
+      { id: 'avaluar', nom: 'Avaluar alumnes i programar reforços' },
+      { id: 'inventari', nom: 'Gestionar inventari i assignar material' },
+      { id: 'diners', nom: 'Registrar ingressos, despeses i factures', diners: true },
+      { id: 'marge', nom: 'Veure el marge de les activitats', diners: true },
+      { id: 'preus', nom: 'Modificar preus i catàlegs', diners: true },
+      { id: 'llicencies', nom: 'Gestionar llicències de socis i no socis' },
+      { id: 'extracte', nom: 'Importar l\'extracte bancari', diners: true },
+      { id: 'registre', nom: 'Consultar el registre d\'activitat' },
+      { id: 'usuaris', nom: 'Gestionar usuaris i rols', nomesAdmin: true }
+    ];
+    // Valors inicials: spec 00, §2.3 i §2.4. abast = límit per objecte; validar = pendent de la junta
+    const S = (abast, validar) => ({ on: true, abast: abast || '', validar: !!validar });
+    const BASE = {
+      admin: Object.fromEntries(PERMISOS.map(p => [p.id, S('', p.id === 'extracte')])),
+      secretaria: { altes: S(), llicencies: S(), registre: S('Dades de socis', true) },
+      cursos: { activitats: S(), llista: S(), avaluar: S(), inventari: S('Només assignar'), marge: S('Abast: Q-01', true), preus: S('', true), llicencies: S('Només consulta') },
+      material: { inventari: S(), activitats: S('Només consulta') },
+      tresorer: { altes: S('Només consulta'), activitats: S('Només consulta'), inventari: S('Només consulta'), diners: S(), marge: S(), preus: S('', true), llicencies: S('Només consulta'), extracte: S(), registre: S('Diners', true) },
+      historia: { conferencies: S(), llista: S('Només conferències') },
+      instructor: { llista: S('Només les seves sessions'), avaluar: S('Només els seus alumnes'), inventari: S('Només consulta') }
+    };
+    const COMPTES = [
+      { u: 'jordi.adm', rols: ['admin'] }, { u: 'emergencia.1', rols: ['admin'], emergencia: true }, { u: 'emergencia.2', rols: ['admin'], emergencia: true },
+      { u: 'anna.secretaria', rols: ['secretaria'] }, { u: 'laia.cursos', rols: ['cursos', 'instructor'] }, { u: 'pere.material', rols: ['material', 'instructor'] },
+      { u: 'marc.tresor', rols: ['tresorer'] }, { u: 'rosa.historia', rols: ['historia'] }, { u: 'xavi.instructor', rols: ['instructor'] }, { u: 'nuria.instructora', rols: ['instructor'] }
+    ];
+    const valor = (m, r, p) => !!(m[r] && m[r][p] && m[r][p].on);
+    let base = JSON.parse(JSON.stringify(BASE));
+    let esborrany = JSON.parse(JSON.stringify(BASE));
+    let rolTriat = 'cursos';
+    const nomRol = id => ROLS.find(r => r.id === id).nom;
+    const nomPermis = id => PERMISOS.find(p => p.id === id).nom;
+    const efectiu = (m, c, p) => c.rols.some(r => valor(m, r, p));
+
+    function canvis() {
+      const l = [];
+      ROLS.forEach(r => PERMISOS.forEach(p => { if (valor(base, r.id, p.id) !== valor(esborrany, r.id, p.id)) l.push({ rol: r.id, permis: p.id, ara: valor(esborrany, r.id, p.id) }); }));
+      return l;
+    }
+    function afectats(permisos) {
+      // un compte és afectat si el seu permís efectiu (unió de rols) canvia
+      return COMPTES.filter(c => permisos.some(p => efectiu(base, c, p) !== efectiu(esborrany, c, p)));
+    }
+    function afectatsFila(rol, p) {
+      const delRol = COMPTES.filter(c => c.rols.includes(rol));
+      const si = delRol.filter(c => efectiu(base, c, p) !== efectiu(esborrany, c, p));
+      return { si, jaElTenen: delRol.length - si.length };
+    }
+
+    const llistaRols = document.getElementById('llista-rols');
+    const llistaPermisos = document.getElementById('llista-permisos');
+    function pintaRols() {
+      const cv = canvis();
+      llistaRols.innerHTML = '';
+      ROLS.forEach(r => {
+        const n = COMPTES.filter(c => c.rols.includes(r.id)).length;
+        const pend = cv.filter(c => c.rol === r.id).length;
+        const li = document.createElement('li');
+        li.innerHTML = '<button class="rol-opcio" type="button" aria-pressed="' + (r.id === rolTriat) + '"><span class="nom"></span><span class="comptes"></span>' +
+          (pend ? '<span class="pendents estat estat-avis">' + pend + (pend === 1 ? ' canvi' : ' canvis') + '</span>' : '') + '</button>';
+        li.querySelector('.nom').textContent = r.nom;
+        li.querySelector('.comptes').textContent = n + (n === 1 ? ' compte' : ' comptes');
+        li.querySelector('button').addEventListener('click', () => { rolTriat = r.id; pinta(); llistaRols.querySelector('[aria-pressed="true"]').focus(); });
+        llistaRols.append(li);
+      });
+    }
+    function pintaPermisos() {
+      const r = rolTriat, bloquejat = r === 'admin';
+      document.getElementById('permisos-titol').textContent = 'Permisos: ' + nomRol(r);
+      document.getElementById('permisos-resum').textContent = bloquejat ? 'L\'administrador té tots els permisos i no se n\'hi poden treure (CA-13.3).' : 'El permís d\'un compte és la suma dels seus rols. Els canvis no s\'apliquen fins que els confirmes.';
+      const comptes = COMPTES.filter(c => c.rols.includes(r));
+      document.getElementById('comptes-rol').innerHTML = comptes.map(c => '<li class="compte-xip">' + c.u + (c.emergencia ? ' <span class="text-2">(emergència)</span>' : '') + (c.rols.length > 1 ? ' <span class="text-2">+' + (c.rols.length - 1) + ' rol</span>' : '') + '</li>').join('');
+      llistaPermisos.innerHTML = '';
+      PERMISOS.forEach(p => {
+        const v = esborrany[r] && esborrany[r][p.id];
+        const on = valor(esborrany, r, p.id);
+        const canviat = on !== valor(base, r, p.id);
+        const bloc = bloquejat || (p.nomesAdmin && r !== 'admin');
+        const li = document.createElement('li');
+        li.className = 'permis' + (canviat ? ' canviat' : '');
+        const idNom = 'pn-' + r + '-' + p.id;
+        let detall = '';
+        if (v && v.abast && on) detall += '<span class="xip">' + v.abast + '</span>';
+        if (v && v.validar) detall += '<span class="a-validar">A validar</span>';
+        if (p.diners) detall += '<span>Diners</span>';
+        if (bloc) detall += '<span>' + CRIS.icona('cadenat') + ' ' + (bloquejat ? 'Fix per a l\'administrador' : 'Només el rol administrador (M3)') + '</span>';
+        if (canviat) {
+          const a = afectatsFila(r, p.id);
+          detall += '<span class="afecta">' + (on ? 'Es dona' : 'Es treu') + ' · afecta ' + a.si.length + (a.si.length === 1 ? ' compte' : ' comptes') + '</span>';
+          if (a.jaElTenen) detall += '<span>' + a.jaElTenen + ' ja el ' + (a.jaElTenen === 1 ? 'té' : 'tenen') + ' per un altre rol</span>';
+        }
+        li.innerHTML = '<span class="permis-nom" id="' + idNom + '"></span><span class="permis-detall">' + detall + '</span>' +
+          '<button class="interruptor" type="button" role="switch" aria-checked="' + on + '" aria-labelledby="' + idNom + '"' + (bloc ? ' aria-disabled="true"' : '') + '>' +
+            '<span class="int-pista"><span class="int-boto"><span class="si">' + CRIS.icona('check') + '</span><span class="no">' + CRIS.icona('menys') + '</span></span></span>' +
+            '<span class="int-estat" aria-hidden="true">' + (on ? 'Sí' : 'No') + '</span></button>';
+        li.querySelector('.permis-nom').textContent = p.nom;
+        const sw = li.querySelector('.interruptor');
+        sw.addEventListener('click', () => {
+          if (bloc) { CRIS.anuncia(bloquejat ? 'L\'administrador té tots els permisos.' : 'Només el rol administrador pot gestionar usuaris i rols.'); return; }
+          esborrany[r] = esborrany[r] || {};
+          const actual = esborrany[r][p.id] || { on: false, abast: '', validar: false };
+          esborrany[r][p.id] = Object.assign({}, actual, { on: !actual.on });
+          pinta();
+          const nou = llistaPermisos.querySelector('[aria-labelledby="' + idNom + '"]');
+          if (nou) nou.focus();
+        });
+        llistaPermisos.append(li);
+      });
+    }
+    function pintaSafata() {
+      const cv = canvis();
+      const safata = document.getElementById('safata');
+      safata.hidden = !cv.length;
+      if (!cv.length) return;
+      const af = afectats([...new Set(cv.map(c => c.permis))]);
+      document.getElementById('recompte-viu').textContent = cv.length + (cv.length === 1 ? ' canvi pendent' : ' canvis pendents') + ' · ' + (af.length === 1 ? 'afecta 1 compte' : 'afecten ' + af.length + ' comptes');
+    }
+    function pinta() { pintaRols(); pintaPermisos(); pintaSafata(); }
+
+    document.getElementById('desfes-canvis').addEventListener('click', () => {
+      esborrany = JSON.parse(JSON.stringify(base)); pinta(); CRIS.anuncia('Canvis desfets');
+    });
+
+    const dialeg = document.getElementById('dialeg-rols');
+    const totp = document.getElementById('totp');
+    const confirma = document.getElementById('confirma-rols');
+    const bd = CRIS.botoDinamic(confirma);
+    document.getElementById('revisa-canvis').addEventListener('click', () => {
+      const cv = canvis();
+      const af = afectats([...new Set(cv.map(c => c.permis))]);
+      document.getElementById('resum-confirmacio').textContent = cv.length + (cv.length === 1 ? ' canvi' : ' canvis') + ' · ' + af.length + (af.length === 1 ? ' compte afectat: ' : ' comptes afectats: ') + af.map(c => c.u).join(', ') + '.';
+      document.getElementById('llista-canvis').innerHTML = cv.map(c => '<li><strong>' + nomRol(c.rol) + '</strong><span>«' + nomPermis(c.permis) + '»: ' + (c.ara ? 'Sí (abans No)' : 'No (abans Sí)') + '</span></li>').join('');
+      document.getElementById('avis-sensible').hidden = !cv.some(c => PERMISOS.find(p => p.id === c.permis).diners);
+      totp.value = ''; totp.removeAttribute('aria-invalid'); document.getElementById('totp-error').hidden = true;
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      dialeg.showModal();
+      totp.focus();
+    });
+    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
+    document.getElementById('form-rols').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      if (!/^\d{6}$/.test(totp.value)) { totp.setAttribute('aria-invalid', 'true'); document.getElementById('totp-error').hidden = false; totp.focus(); return; }
+      totp.removeAttribute('aria-invalid'); document.getElementById('totp-error').hidden = true;
+      const cv = canvis();
+      await bd.flux([
+        { text: 'Desant…', icona: 'carrega', gira: true, ms: 900 },
+        { text: 'Canvis desats', icona: 'fet', fet: true, ms: 900, anunci: 'Canvis de permisos desats.' }
+      ]);
+      const historial = document.getElementById('historial-rols');
+      cv.forEach(c => registra(historial, 'jordi.adm', 'Rol ' + nomRol(c.rol).toLowerCase() + ': «' + nomPermis(c.permis) + '» ' + (c.ara ? 'Sí (abans No)' : 'No (abans Sí)')));
+      base = JSON.parse(JSON.stringify(esborrany));
+      dialeg.close();
+      pinta();
+    });
+
+    pinta();
+  })();
+
+  aplicaRol(selector.value);
 })();
 </script>
 </body>
