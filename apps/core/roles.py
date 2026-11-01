@@ -1,11 +1,10 @@
 """Serveis de rols i governança (decisió 059; RN-RP-03, 05, 11, 13, 14, 18 i 20; RN-26).
 
-Aquí hi ha les regles; les pantalles són de la T-RP-02 i l'editor, de la T-RP-03. Mentre
-no existeixi el registre d'activitat (T-M01-07) ni el correu (T-M01-10), els canvis queden
-al registre del servidor (`cris.audit`) i els avisos per correu estan pendents.
+Aquí hi ha les regles; les pantalles són de la T-RP-02 i l'editor, de la T-RP-03. Cada canvi
+deixa la seva entrada al registre d'activitat (RN-RP-08) dins la mateixa transacció, amb els
+rols que tenia qui actua abans de canviar res (RN-RP-15). Mentre no existeixi el correu
+(T-M01-10), els avisos per correu estan pendents.
 """
-
-import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -15,11 +14,10 @@ from django.utils import timezone
 
 from apps.accounts.models import Account, RecoveryCode, TotpDevice
 
+from . import audit
 from .models import AccountRole, Role
 from .permission_catalog import ADMINISTRATOR_ONLY, CATALOG
 from .permissions import has_perm
-
-logger = logging.getLogger("cris.audit")
 
 NO_OPERATIONAL_ADMIN = (
     "No es pot fer: la plataforma es quedaria sense cap administrador operatiu "
@@ -106,8 +104,8 @@ def assign_role(account: Account, role_code: str, *, by: Account) -> list[str]:
         if others:
             warnings.append(SECOND_TREASURER)  # RN-RP-14: avís, no bloqueig
 
+    audit.record(audit.Action.ROLE_ASSIGNED, actor=by, target=account, field="role", new=role_code)
     AccountRole.objects.create(admin_account=account, role=role, assigned_by=by)
-    logger.info("role_assigned account=%s role=%s by=%s", account.pk, role_code, by.pk)
     return warnings
 
 
@@ -122,13 +120,13 @@ def remove_role(account: Account, role_code: str, *, by: Account) -> None:
     if role_code == Role.Code.ADMINISTRATOR and _would_leave_no_operational_admin(account):
         raise ValidationError(NO_OPERATIONAL_ADMIN)
 
+    audit.record(audit.Action.ROLE_REMOVED, actor=by, target=account, field="role", old=role_code)
     assignment.removed_at = timezone.now()
     assignment.removed_by = by
     assignment.save(update_fields=["removed_at", "removed_by"])
     if not AccountRole.objects.filter(admin_account=account, removed_at__isnull=True).exists():
         account.end_all_sessions()
     # RN-RP-12 (responsables orfes) s'aplicarà quan hi hagi activitats i sessions (02).
-    logger.info("role_removed account=%s role=%s by=%s", account.pk, role_code, by.pk)
 
 
 @transaction.atomic
@@ -140,10 +138,17 @@ def deactivate_admin_account(account: Account, *, by: Account) -> None:
         raise ValidationError("Aquesta acció és per a comptes d'administrador.")
     if _would_leave_no_operational_admin(account):
         raise ValidationError(NO_OPERATIONAL_ADMIN)
+    audit.record(
+        audit.Action.ADMIN_ACCOUNT_DISABLED,
+        actor=by,
+        target=account,
+        field="status",
+        old=account.status,
+        new=Account.Status.DISABLED,
+    )
     account.status = Account.Status.DISABLED
     account.save(update_fields=["status", "updated_at"])
     account.end_all_sessions()
-    logger.info("admin_account_disabled account=%s by=%s", account.pk, by.pk)
 
 
 @transaction.atomic
@@ -161,23 +166,33 @@ def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
             raise ValidationError(NO_OPERATIONAL_ADMIN)
         if not note.strip():
             raise ValidationError("Cal una nota per restablir el TOTP de l'últim administrador.")
+    # RN-RP-18: compte d'emergència, compte afectat i nota. Cap secret (CA-14.4).
+    audit.record(
+        audit.Action.TOTP_RESET,
+        actor=by,
+        target=account,
+        reason=note,
+        details={"emergency": by.is_emergency},
+    )
     TotpDevice.objects.filter(account=account).delete()
     RecoveryCode.objects.filter(account=account).delete()
     account.end_all_sessions()
-    logger.warning(
-        "totp_reset account=%s by=%s emergency=%s note=%r",
-        account.pk,
-        by.pk,
-        by.is_emergency,
-        note.strip(),
-    )
 
 
 def grant_initial_administrator(account: Account) -> None:
     """Rol administrador per al primer compte (`createsuperuser`, des del servidor)."""
     role = Role.objects.get(code=Role.Code.ADMINISTRATOR)
-    AccountRole.objects.get_or_create(admin_account=account, role=role, removed_at=None)
-    logger.warning("initial_administrator account=%s", account.pk)
+    _, created = AccountRole.objects.get_or_create(
+        admin_account=account, role=role, removed_at=None
+    )
+    if created:
+        audit.record(
+            audit.Action.ROLE_ASSIGNED,
+            actor=audit.system("createsuperuser"),
+            target=account,
+            field="role",
+            new=Role.Code.ADMINISTRATOR,
+        )
 
 
 def validate_role_permissions(role_code: str, cells: dict[str, str]) -> None:

@@ -11,8 +11,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Account, RecoveryCode, TotpDevice
+from apps.core import audit
 from apps.core.crypto import encrypt
-from apps.core.models import AccountRole, Role
+from apps.core.models import AccountRole, AuditEntry, Role
 from apps.core.permissions import has_perm
 from apps.core.roles import (
     NO_OPERATIONAL_ADMIN,
@@ -284,6 +285,14 @@ class TestMatrixValidation:
             {"members.requests.approve_join": "all", "members.requests.view": "all"},
         )
 
+    @pytest.mark.parametrize("code", ["members.edit", "members.edit_join_date"])
+    def test_editing_a_member_needs_the_member_list(self, code):
+        # RN-RP-21: P5 i P6 demanen P4, amb qualsevol abast.
+        with pytest.raises(ValidationError) as exc:
+            validate_role_permissions(R.BOARD, {code: "all"})
+        assert "Llistat i fitxa de socis" in message_of(exc)
+        validate_role_permissions(R.BOARD, {code: "all", "members.list": "read_minimal"})
+
     @pytest.mark.parametrize(
         "code",
         [
@@ -328,3 +337,8 @@ def test_createsuperuser_gets_the_administrator_role():
     account = Account.objects.get(login="arrel")
     assert active_roles(account) == {R.ADMINISTRATOR}
     assert has_perm(account, "core.accounts.manage")
+    # CA-14.5: l'actor és «sistema» amb l'origen.
+    entry = AuditEntry.objects.get(action=audit.Action.ROLE_ASSIGNED, target_id=str(account.pk))
+    assert (entry.actor_kind, entry.actor_origin) == ("system", "createsuperuser")
+    assert entry.actor_account is None
+    assert entry.new_value == R.ADMINISTRATOR

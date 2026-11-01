@@ -1,5 +1,9 @@
+import datetime
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from .normalization import normalize_document, normalize_email, normalize_phone
 
@@ -189,3 +193,127 @@ class PermissionMatrixVersion(models.Model):
 
     def __str__(self):
         return f"Matriu v{self.number}"
+
+
+class ImmutableAuditError(Exception):
+    """Intent de modificar o esborrar una entrada del registre d'activitat (RN-51)."""
+
+
+class AuditJSONEncoder(DjangoJSONEncoder):
+    """Com el de Django, però les dates i hores conserven els microsegons: un valor anterior
+    del registre ha de ser exacte."""
+
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return super().default(o)
+
+
+class AuditEntryQuerySet(models.QuerySet):
+    # Les operacions en bloc no passen per `save` ni `delete` del model: també es bloquegen.
+    def update(self, **kwargs):
+        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
+
+    def delete(self):
+        raise ImmutableAuditError("El registre d'activitat no es pot esborrar.")
+
+    def bulk_update(self, objs, fields, batch_size=None):
+        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
+
+    def update_or_create(self, *args, **kwargs):
+        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
+
+
+class AuditEntry(models.Model):
+    """Entrada del registre d'activitat (spec 00, HU-14, RN-50 a RN-53; RN-RP-15).
+
+    Només s'hi afegeixen files: el model ho impedeix a l'ORM i uns disparadors de PostgreSQL
+    (migració 0004) ho impedeixen a la base de dades, també amb SQL directe. Les entrades es
+    creen amb els serveis de `apps.core.audit`, mai directament. Cap secret als valors (RN-52).
+    """
+
+    class ActorKind(models.TextChoices):
+        ACCOUNT = "account", "Compte"
+        GUEST = "guest", "Convidat"
+        SYSTEM = "system", "Sistema"
+        # Ningú identificat: p. ex. un intent d'entrada amb un identificador desconegut.
+        ANONYMOUS = "anonymous", "Sense identificar"
+
+    created_at = models.DateTimeField("data i hora", default=timezone.now, db_index=True)
+    actor_kind = models.CharField("tipus d'actor", max_length=10, choices=ActorKind.choices)
+    actor_account = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="compte que actua",
+    )
+    # La persona del compte o la convidada. En un esborrat RGPD queda anonimitzada (RN-89).
+    actor_person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="persona que actua",
+    )
+    # Rols de gestió actius del compte en aquell moment (RN-RP-15); buit si no en té.
+    actor_roles = models.JSONField("rols actius", default=list, blank=True)
+    # Sistema: nom de la tasca o del proveïdor. Convidat: identificador intern de l'enllaç,
+    # mai el testimoni (CA-14.6).
+    actor_origin = models.CharField("origen", max_length=100, blank=True)
+    ip_address = models.GenericIPAddressField("adreça IP", null=True, blank=True)
+    action = models.CharField("acció", max_length=60)
+    target_type = models.CharField("tipus d'objecte", max_length=60, blank=True)
+    target_id = models.CharField("identificador de l'objecte", max_length=64, blank=True)
+    field = models.CharField("camp", max_length=60, blank=True)
+    old_value = models.JSONField("valor anterior", null=True, blank=True, encoder=AuditJSONEncoder)
+    new_value = models.JSONField("valor nou", null=True, blank=True, encoder=AuditJSONEncoder)
+    reason = models.TextField("motiu", blank=True)
+    details = models.JSONField("detalls", default=dict, blank=True, encoder=AuditJSONEncoder)
+
+    objects = AuditEntryQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "entrada del registre d'activitat"
+        verbose_name_plural = "registre d'activitat"
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(actor_kind="account", actor_account__isnull=False)
+                | (~Q(actor_kind="account") & Q(actor_account__isnull=True) & Q(actor_roles=[])),
+                name="auditentry_account_actor",
+            ),
+            models.CheckConstraint(
+                condition=~Q(actor_kind__in=["system", "guest"]) | ~Q(actor_origin=""),
+                name="auditentry_origin_for_system_and_guest",
+            ),
+            models.CheckConstraint(
+                condition=~Q(actor_kind="guest") | Q(actor_person__isnull=False),
+                name="auditentry_guest_has_person",
+            ),
+            models.CheckConstraint(
+                condition=~Q(actor_kind="anonymous") | Q(actor_person__isnull=True),
+                name="auditentry_anonymous_has_no_person",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["target_type", "target_id"], name="auditentry_target_idx"),
+            models.Index(fields=["actor_account", "created_at"], name="auditentry_account_idx"),
+            models.Index(fields=["action", "created_at"], name="auditentry_action_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.created_at:%Y-%m-%d %H:%M:%S} {self.action}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
+        # Sempre INSERT: amb una clau primària donada, Django provaria primer un UPDATE.
+        kwargs["force_insert"] = True
+        kwargs.pop("force_update", None)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ImmutableAuditError("El registre d'activitat no es pot esborrar.")

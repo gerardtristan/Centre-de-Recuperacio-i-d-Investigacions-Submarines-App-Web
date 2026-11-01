@@ -12,9 +12,14 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
+from apps.core import audit
+
 from .models import Account, FailedLogin, normalize_login
 
 logger = logging.getLogger("cris.security")
+
+# Els bloquejos els aplica la plataforma sola (V-01): al registre, l'actor és «sistema».
+LOCKOUT_ACTOR = audit.system("login-attempt-limit")
 
 # V-01
 ACCOUNT_MAX_FAILURES = 5
@@ -65,20 +70,42 @@ def record_failure(request, area: str, account: Account | None, reason: str) -> 
     ip = client_ip(request)
     with transaction.atomic():
         FailedLogin.objects.create(ip_address=ip, account=account, area=area)
+        # Qui ho prova no està identificat. L'identificador escrit no es guarda: podria ser
+        # una dada personal o una contrasenya escrita al camp equivocat.
+        audit.record(
+            audit.Action.LOGIN_FAILED,
+            actor=audit.ANONYMOUS,
+            target=account,
+            details={"area": area, "reason": reason},
+            request=request,
+        )
         if account is None:
             logger.info("login_failed area=%s ip=%s reason=%s", area, ip, reason)
-            return
-        locked = Account.objects.select_for_update().get(pk=account.pk)
-        locked.failed_login_count += 1
-        if locked.failed_login_count >= ACCOUNT_MAX_FAILURES:
-            locked.failed_login_count = 0
-            locked.locked_until = timezone.now() + ACCOUNT_LOCK
-            logger.warning("account_locked account=%s area=%s ip=%s", account.pk, area, ip)
-        locked.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
-    account.refresh_from_db(fields=["failed_login_count", "locked_until"])
-    logger.info("login_failed account=%s area=%s ip=%s reason=%s", account.pk, area, ip, reason)
+        else:
+            locked = Account.objects.select_for_update().get(pk=account.pk)
+            locked.failed_login_count += 1
+            if locked.failed_login_count >= ACCOUNT_MAX_FAILURES:
+                locked.failed_login_count = 0
+                locked.locked_until = timezone.now() + ACCOUNT_LOCK
+                logger.warning("account_locked account=%s area=%s ip=%s", account.pk, area, ip)
+                audit.record(
+                    audit.Action.ACCOUNT_LOCKED,
+                    actor=LOCKOUT_ACTOR,
+                    target=account,
+                    field="locked_until",
+                    new=locked.locked_until,
+                    details={"area": area},
+                    request=request,
+                )
+            locked.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
+    if account is not None:
+        account.refresh_from_db(fields=["failed_login_count", "locked_until"])
+        logger.info("login_failed account=%s area=%s ip=%s reason=%s", account.pk, area, ip, reason)
     if ip_is_blocked(ip):
         logger.warning("ip_blocked ip=%s area=%s", ip, area)
+        audit.record(
+            audit.Action.IP_BLOCKED, actor=LOCKOUT_ACTOR, details={"area": area}, request=request
+        )
 
 
 def reset_failures(account: Account) -> None:

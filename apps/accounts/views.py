@@ -13,6 +13,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from apps.core import audit
+
 from . import totp
 from .forms import CodeForm, LoginForm
 from .security import AREA_ADMIN, AREA_PERSONAL, check_credentials, client_ip, record_failure
@@ -101,6 +103,7 @@ def login_totp_view(request, area):
         # Codis de recuperació: només els comptes d'administrador en tenen (V-01).
         if area == AREA_ADMIN and totp.use_recovery_code(account, code):
             logger.warning("recovery_code_used account=%s ip=%s", account.pk, client_ip(request))
+            audit.record(audit.Action.RECOVERY_CODE_USED, actor=account, request=request)
             return redirect(_url(area, "totp_enrol"))
         if (response := _code_failed(request, area, account)) is not None:
             return response
@@ -127,6 +130,8 @@ def totp_enrol_view(request):
         codes = totp.confirm_enrolment(device, form.cleaned_data["code"])
         if codes is not None:
             logger.info("totp_enrolled account=%s ip=%s", account.pk, client_ip(request))
+            # CA-14.4: diu què ha passat, sense el secret ni els codis.
+            audit.record(audit.Action.TOTP_ENROLLED, actor=account, request=request)
             next_url = pending_next(request)
             complete_login(request, account, area)
             # Els codis es mostren aquesta única vegada; a la base de dades només hi ha
@@ -161,6 +166,9 @@ def totp_enrol_view(request):
 def logout_view(request, area):
     if request.user.is_authenticated:
         logger.info("logout account=%s area=%s", request.user.pk, area)
+        audit.record(
+            audit.Action.LOGOUT, actor=request.user, details={"area": area}, request=request
+        )
     logout(request)  # buida la sessió sencera, també l'estat pendent
     return redirect(_url(area, "login"))
 

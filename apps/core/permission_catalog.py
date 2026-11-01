@@ -196,6 +196,7 @@ PERMISSIONS: tuple[Permission, ...] = (
         "members.edit",
         "P5",
         "Editar dades d'un soci (inclòs document i número)",
+        requires=("members.list",),  # RN-RP-21
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
@@ -203,6 +204,7 @@ PERMISSIONS: tuple[Permission, ...] = (
         "members.edit_join_date",
         "P6",
         "Corregir la data d'alta",
+        requires=("members.list",),  # RN-RP-21
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),

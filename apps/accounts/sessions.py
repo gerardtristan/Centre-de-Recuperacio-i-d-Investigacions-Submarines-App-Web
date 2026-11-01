@@ -12,6 +12,8 @@ from django.contrib.auth import login, logout
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from apps.core import audit
+
 from .models import Account
 from .security import AREA_ADMIN, KIND_BY_AREA, client_ip, reset_failures
 
@@ -81,6 +83,9 @@ def complete_login(request, account: Account, area: str) -> None:
     refresh_expiry(request, area)
     reset_failures(account)
     logger.info("login_ok account=%s area=%s ip=%s", account.pk, area, client_ip(request))
+    audit.record(
+        audit.Action.LOGIN_SUCCEEDED, actor=account, details={"area": area}, request=request
+    )
 
 
 def session_area_is_valid(request, area: str) -> bool:
