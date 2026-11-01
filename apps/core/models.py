@@ -82,3 +82,110 @@ class Person(models.Model):
         self.phone = normalize_phone(self.phone)
         self.id_document_number = normalize_document(self.id_document_number)
         super().save(*args, **kwargs)
+
+
+class Role(models.Model):
+    """Rol (decisió 059). Llista fixa, creada per migració: no es crea ni es reanomena des de
+    l'app. Els rols de gestió s'assignen a comptes d'administrador; soci, visitant i convidat
+    no són editables ni s'assignen."""
+
+    class Code(models.TextChoices):
+        INSTRUCTOR = "instructor", "Instructor"
+        SECRETARY = "secretary", "Secretaria"
+        COURSES_MANAGER = "courses_manager", "Responsable de cursos i sortides"
+        EQUIPMENT_MANAGER = "equipment_manager", "Responsable de material"
+        TREASURER = "treasurer", "Tresorer"
+        HISTORY_DEPARTMENT = "history_department", "Departament d'Història"
+        ADMINISTRATOR = "administrator", "Administrador"
+        PRESIDENT = "president", "President"
+        BOARD = "board", "Junta"
+        COMMUNICATIONS_MANAGER = "communications_manager", "Responsable de comunicació"
+        SHOP_MANAGER = "shop_manager", "Responsable de botiga"
+        MEMBER = "member", "Soci"
+        VISITOR = "visitor", "Visitant"
+        GUEST = "guest", "Participant no soci"
+
+    code = models.CharField(max_length=30, unique=True, choices=Code.choices)
+    name = models.CharField(max_length=60)
+    is_management = models.BooleanField()
+
+    class Meta:
+        verbose_name = "rol"
+        verbose_name_plural = "rols"
+
+    def __str__(self):
+        return self.name
+
+
+class RolePermission(models.Model):
+    """Cel·la editable de la matriu: el rol té el permís amb aquest abast. Els permisos
+    protegits no tenen mai fila: els fixa el catàleg al codi (RN-RP-05)."""
+
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="permissions")
+    permission_code = models.CharField(max_length=80)
+    scope = models.CharField(max_length=30)
+
+    class Meta:
+        verbose_name = "permís d'un rol"
+        verbose_name_plural = "permisos dels rols"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["role", "permission_code"], name="rolepermission_unique"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.role.code}: {self.permission_code} ({self.scope})"
+
+
+class AccountRole(models.Model):
+    """Rol assignat a un compte d'administrador. Retirar-lo omple `removed_*`; la fila no
+    s'esborra mai."""
+
+    admin_account = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="role_assignments"
+    )
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="assignments")
+    assigned_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    removed_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    removed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "rol d'un compte"
+        verbose_name_plural = "rols dels comptes"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["admin_account", "role"],
+                condition=Q(removed_at__isnull=True),
+                name="accountrole_one_active",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.admin_account}: {self.role.code}"
+
+
+class PermissionMatrixVersion(models.Model):
+    """Versió de la matriu (RN-RP-08). Només s'hi afegeixen files."""
+
+    number = models.PositiveIntegerField(unique=True)
+    changed_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField()
+    # Llista de cel·les: {"role", "permission", "before", "after"} (abast o null).
+    diff = models.JSONField(default=list)
+    affected_accounts = models.JSONField(default=list)
+
+    class Meta:
+        verbose_name = "versió de la matriu de permisos"
+        verbose_name_plural = "versions de la matriu de permisos"
+
+    def __str__(self):
+        return f"Matriu v{self.number}"

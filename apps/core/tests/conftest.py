@@ -1,0 +1,31 @@
+import pytest
+from django.utils import timezone
+
+from apps.accounts.models import Account, TotpDevice
+from apps.core.crypto import encrypt
+from apps.core.models import AccountRole, Person, Role
+
+
+@pytest.fixture
+def make_admin(db):
+    """Compte d'administrador amb els rols indicats. Per defecte, operatiu (amb TOTP)."""
+    counter = iter(range(1, 10_000))
+
+    def make(*roles, username=None, totp=True, emergency=False, person=None):
+        n = next(counter)
+        person = person or Person.objects.create(first_name=f"Admin{n}", origin="in_person")
+        account = Account.objects.create_admin(person, username or f"admin{n}")
+        if emergency:
+            account.is_emergency = True
+            account.save()
+        if totp:
+            TotpDevice.objects.create(
+                account=account,
+                secret_encrypted=encrypt("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"),
+                confirmed_at=timezone.now(),
+            )
+        for code in roles:
+            AccountRole.objects.create(admin_account=account, role=Role.objects.get(code=code))
+        return account
+
+    return make

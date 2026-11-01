@@ -17,6 +17,7 @@ from django.core.validators import RegexValidator, validate_email
 from django.db import models, transaction
 from django.db.models import F, Q
 from django.db.models.functions import Lower
+from django.utils.crypto import salted_hmac
 
 from apps.core.models import Person
 from apps.core.normalization import normalize_email
@@ -79,7 +80,12 @@ class AccountManager(BaseUserManager):
             status=Account.Status.ACTIVE,
             is_superuser=True,
         )
-        return self._save_new(account, password)
+        account = self._save_new(account, password)
+        # `is_superuser` no dona cap permís: el que compta és el rol administrador (059).
+        from apps.core.roles import grant_initial_administrator
+
+        grant_initial_administrator(account)
+        return account
 
     def _save_new(self, account, password):
         if password:
@@ -115,6 +121,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
     # i el bloqueig s'acaba sol quan passa l'hora.
     failed_login_count = models.PositiveSmallIntegerField("intents fallits seguits", default=0)
     locked_until = models.DateTimeField("bloquejat fins a", null=True, blank=True)
+    # Forma part de l'empremta de sessió: incrementar-lo tanca totes les sessions del compte
+    # a la petició següent, en qualsevol dispositiu (RN-RP-11, RN-RP-20).
+    session_epoch = models.PositiveIntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -154,6 +163,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def is_active(self):
         # Pendent o desactivat: no obté sessió.
         return self.status == self.Status.ACTIVE
+
+    def _get_session_auth_hash(self, secret=None):
+        key_salt = "apps.accounts.models.Account.get_session_auth_hash"
+        return salted_hmac(
+            key_salt, f"{self.password}:{self.session_epoch}", secret=secret, algorithm="sha256"
+        ).hexdigest()
+
+    def end_all_sessions(self):
+        Account.objects.filter(pk=self.pk).update(session_epoch=F("session_epoch") + 1)
+        self.refresh_from_db(fields=["session_epoch"])
 
     def is_locked(self, now):
         return self.locked_until is not None and self.locked_until > now
