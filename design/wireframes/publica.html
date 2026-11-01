@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines — web pública (wireframe)</title>
+<title>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines — web pública (prototip)</title>
 <script>
 /* Tema desat: s'aplica abans de pintar la pàgina */
 (function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -13,19 +13,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="tokens.css">
 <style>
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
 /* ---------- Estructura general (mòbil primer en CSS; disseny pensat per a escriptori) ---------- */
 .contenidor { max-width: var(--amplada-max); margin: 0 auto; padding: 0 var(--e-4); }
-.seccio { padding: var(--e-7) 0; border-bottom: var(--v-fina) solid var(--c-linia); scroll-margin-top: calc(var(--logo-publica-mobil) + var(--e-4)); }
-.seccio-alterna { background: var(--c-superficie-2); }
-.grup-botons { display: flex; flex-wrap: wrap; gap: var(--e-3); margin-top: var(--e-4); }
+.seccio { padding: var(--e-7) 0; scroll-margin-top: calc(var(--logo-publica-mobil) + var(--e-4)); }
+/* Seccions alternes: el mateix to de fons (perquè el relleu sigui coherent) amb una veladura */
+.seccio-alterna { background: linear-gradient(to bottom, color-mix(in oklab, var(--c-fons), var(--c-superficie) 30%), var(--c-fons) 85%); }
+.grup-botons { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); margin-top: var(--e-5); }
 .entradeta { font-size: var(--t-l); color: var(--c-text-2); max-width: var(--amplada-text); }
 .text-llarg { max-width: var(--amplada-text); }
 
 /* ---------- capcalera ---------- */
 .capcalera {
   position: sticky; top: 0; z-index: 10;
-  background: var(--c-fons);   /* fons de pàgina: hi van peces neumòrfiques */
-  border-bottom: var(--v-activa) solid var(--c-zona);
+  background: color-mix(in oklab, var(--c-fons), transparent 6%);
+  backdrop-filter: blur(10px);
+  border-bottom: var(--v-fina) solid var(--c-linia);
 }
 .capcalera-interior {
   max-width: var(--amplada-max); margin: 0 auto;
@@ -34,13 +38,8 @@
 }
 .marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); min-width: 0; color: var(--c-text); text-decoration: none; }
 .marca img { width: var(--logo-publica-mobil); height: auto; flex: none; }
-/* Nom sencer al costat del logotip: 3 línies al mòbil, 2 a partir de tauleta (mai l'abreviatura) */
-.marca-nom {
-  min-width: 0; overflow-wrap: anywhere;
-  font-family: var(--f-titol); font-weight: var(--p-semi); font-size: var(--t-xs); line-height: var(--a-titol);
-}
+.marca-nom { min-width: 0; overflow-wrap: anywhere; font-family: var(--f-titol); font-weight: var(--p-semi); font-size: var(--t-xs); line-height: var(--a-titol); }
 .marca-nom .linia { display: block; }
-/* Mòbil: menys espai entre selector i menú; el tàctil continua de 44 px */
 .capcalera-accions { display: flex; align-items: center; gap: var(--e-1); margin-left: auto; }
 #navegacio-publica { order: 3; flex-basis: 100%; }
 
@@ -50,78 +49,91 @@
   display: flex; align-items: center; gap: var(--e-1);
   min-height: var(--tactil); padding: 0 var(--e-3);
   border: 0; border-radius: var(--r-m); background: transparent;
-  color: var(--c-text); font: inherit; font-weight: var(--p-semi); text-decoration: none; cursor: pointer;
+  color: var(--c-text-2); font: inherit; font-weight: var(--p-semi); text-decoration: none; cursor: pointer;
+  transition: color var(--m-rapid);
 }
-/* Element actiu: barra groga + negreta + fons de zona (mai només color) */
-.nav-llista a[aria-current="page"] {
-  font-weight: var(--p-negreta); background: var(--c-zona-fons);
-  box-shadow: inset var(--v-activa) 0 0 var(--c-accent);
+.nav-llista a:hover, .boto-mes:hover { color: var(--c-text); }
+/* Element actiu: negreta + text fort + (a partir de tauleta) la ratlla daurada elàstica */
+.nav-llista a[aria-current="true"], .boto-mes.conte-actiu { color: var(--c-text); font-weight: var(--p-negreta); }
+@media (max-width: 599px) {
+  .nav-llista a[aria-current="true"] { box-shadow: inset var(--v-activa) 0 0 var(--c-accent), var(--neu-enfonsat-fons); }
+  #navegacio-publica .sr-capa { display: none; }
 }
 .boto-mes { display: none; }
+.boto-mes .icona-svg { transition: transform var(--m-rapid) var(--m-corba); }
+.boto-mes[aria-expanded="true"] .icona-svg { transform: rotate(180deg); }
 .nav-sub { list-style: none; display: grid; gap: var(--e-1); }
-/* Al mòbil la llista és un panell vertical pla: la pastilla neumòrfica només hi és a partir de tauleta */
-@media (max-width: 599px) { .nav-llista.neu-pastilla { background: transparent; border: 0; box-shadow: none; } }
 .nomes-escriptori, .no-mobil { display: none; }
-/* Enllaços que surten de «Més» només a l'escriptori (a la resta de mides són dins de «Més») */
 .nav-escriptori { display: none; }
 
 /* ---------- portada ---------- */
-.portada-graella { display: grid; gap: var(--e-5); }
+.portada { position: relative; overflow: hidden; }
+.portada-graella { display: grid; gap: var(--e-6); }
+.portada h1 { font-size: calc(var(--t-3xl) * 1.1); text-wrap: balance; }
+/* Detall submarí: escala de profunditat a la vora, discreta */
+.escala-profunditat { display: none; }
 .caixa-alta { min-height: calc(var(--e-8) * 4); }
 
-/* ---------- properes-activitats ---------- */
-.graella-activitats { display: grid; gap: var(--e-4); list-style: none; margin-top: var(--e-5); }
-.activitat { display: grid; gap: var(--e-3); padding: 0; overflow: hidden; }
-.activitat .caixa-imatge { border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
-.activitat-cos { padding: 0 var(--e-4) var(--e-4); display: grid; gap: var(--e-2); }
+/* ---------- activitats ---------- */
+.graella-activitats { display: grid; gap: var(--e-5); list-style: none; margin-top: var(--e-5); }
+.activitat { display: grid; gap: var(--e-2); align-content: start; padding: var(--e-2); }
+.activitat .caixa-imatge { border-radius: calc(var(--r-xl) - var(--e-2)); }
+.activitat-cos { padding: var(--e-2) var(--e-3) var(--e-3); display: grid; gap: var(--e-2); justify-items: start; }
 .activitat-cos h3, .activitat-cos p { margin: 0; }
 .fila-meta { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.places { font-variant-numeric: tabular-nums; }
 
 /* ---------- qui-som i medi-ambient ---------- */
-.bloc-mitja { display: grid; gap: var(--e-5); align-items: center; }
-.xifres { display: grid; gap: var(--e-3); list-style: none; margin-top: var(--e-4); }
-.xifres li { padding: var(--e-3); border-left: var(--v-activa) solid var(--c-zona); background: var(--c-superficie); }
+.bloc-mitja { display: grid; gap: var(--e-6); align-items: center; }
+.xifres { display: grid; gap: var(--e-3); list-style: none; margin-top: var(--e-5); }
+.xifres li { padding: var(--e-3) var(--e-4); border-radius: var(--r-l); box-shadow: var(--neu-enfonsat-fons), inset var(--v-activa) 0 0 var(--c-zona); }
 .xifres strong { display: block; font-family: var(--f-titol); font-size: var(--t-xl); }
 .llista-punts { padding-left: var(--e-5); display: grid; gap: var(--e-2); }
 
-/* ---------- centre-recuperacio-investigacio ---------- */
-.ambits { list-style: none; display: grid; gap: var(--e-4); margin-top: var(--e-5); }
-.ambit { display: grid; gap: var(--e-2); align-content: start; border-top: var(--v-activa) solid var(--c-zona); }
-.ambit h3 { margin: 0; }
-.ambit p { margin: 0; }
-.ambit-icona { font-size: var(--t-2xl); line-height: 1; color: var(--c-zona-text); }
+/* ---------- el Centre ---------- */
+.ambits { list-style: none; display: grid; gap: var(--e-5); margin-top: var(--e-5); }
+.ambit { display: grid; gap: var(--e-2); align-content: start; }
+.ambit h3, .ambit p { margin: 0; }
+.ambit-icona {
+  display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: var(--e-2);
+  border-radius: 50%; font-size: 24px; color: var(--c-zona-text);
+  background: var(--neu-base); box-shadow: var(--neu-relleu-petit);
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), var(--c-text) 14%);
+}
 .crida {
-  display: grid; gap: var(--e-3); margin-top: var(--e-5); padding: var(--e-5);
-  border: var(--v-fina) solid var(--c-zona); border-radius: var(--r-l); background: var(--c-zona-fons);
+  display: grid; gap: var(--e-3); margin-top: var(--e-6); padding: var(--e-5);
+  border: var(--v-fina) solid var(--c-zona); border-radius: var(--r-xl); background: var(--c-zona-fons); color: var(--c-zona-text);
+  --neu-base: var(--c-zona-fons);
 }
 .crida h3, .crida p { margin: 0; }
 
-/* ---------- portada: sortida destacada (patró «treball destacat», decisió 034) ---------- */
-.destacada { display: grid; padding: 0; overflow: hidden; border-top: var(--v-activa) solid var(--c-zona); }
-.destacada .caixa-imatge { min-height: calc(var(--e-8) * 3); border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
-.destacada-cos { display: grid; gap: var(--e-2); padding: var(--e-4); }
+/* ---------- portada: sortida destacada ---------- */
+.destacada { display: grid; gap: var(--e-2); padding: var(--e-2); }
+.destacada .caixa-imatge { min-height: calc(var(--e-8) * 3.2); border-radius: calc(var(--r-xl) - var(--e-2)); }
+.destacada-cos { display: grid; gap: var(--e-2); padding: var(--e-2) var(--e-3) var(--e-3); justify-items: start; }
 .destacada-cos h2 { font-size: var(--t-2xl); margin: 0; }
 .destacada-cos p { margin: 0; }
 .destacada .etiqueta-seccio { margin-bottom: 0; }
 
-/* ---------- projectes: targetes tipus memòria ---------- */
+/* ---------- projectes ---------- */
 .graella-projectes { list-style: none; display: grid; gap: var(--e-5); margin-top: var(--e-5); }
-.projecte { display: grid; padding: 0; overflow: hidden; height: 100%; }
-.projecte .caixa-imatge { border-radius: 0; border-width: 0 0 var(--v-fina) 0; }
-.projecte-cos { display: grid; gap: var(--e-3); padding: var(--e-4) var(--e-5) var(--e-5); align-content: start; }
+.projecte { display: grid; gap: var(--e-2); padding: var(--e-2); height: 100%; align-content: start; }
+.projecte .caixa-imatge { border-radius: calc(var(--r-xl) - var(--e-2)); }
+.projecte-cos { display: grid; gap: var(--e-3); padding: var(--e-3) var(--e-4) var(--e-4); align-content: start; justify-items: start; }
 .projecte-cos h3 { margin: 0; font-size: var(--t-2xl); }
 .memoria { display: grid; gap: var(--e-3); margin: 0; }
-.memoria dt { font-size: var(--t-xs); font-weight: var(--p-negreta); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; color: var(--c-zona-text); }
+.memoria dt { font-size: var(--t-s); font-weight: var(--p-negreta); color: var(--c-zona-text); }
 .memoria dd { margin: 0; }
 .xifres-projecte { list-style: none; display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-5); }
 .xifres-projecte strong { display: block; font-family: var(--f-titol); font-size: var(--t-xl); line-height: var(--a-titol); }
 
-/* ---------- noticies: entrades amb data ---------- */
+/* ---------- notícies ---------- */
 .entrades { list-style: none; display: grid; margin-top: var(--e-5); border-top: var(--v-fina) solid var(--c-linia); }
 .entrada { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4); padding: var(--e-4) 0; border-bottom: var(--v-fina) solid var(--c-linia); }
 .entrada-data {
-  display: grid; justify-items: center; align-content: start;
-  min-width: calc(var(--e-7) + var(--e-3));
+  display: grid; justify-items: center; align-content: center;
+  min-width: calc(var(--e-7) + var(--e-3)); padding: var(--e-2);
+  border-radius: var(--r-l); box-shadow: var(--neu-enfonsat-fons);
   color: var(--c-text-2); font-size: var(--t-s); text-align: center;
 }
 .entrada-data .dia { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-2xl); line-height: var(--a-titol); color: var(--c-text); }
@@ -130,7 +142,7 @@
 .entrada-cos h3 a { color: var(--c-text); }
 .entrada-cos p { margin: 0; }
 
-/* ---------- galeria: columnes tipus maçoneria, amb espais reservats ---------- */
+/* ---------- galeria ---------- */
 .galeria { list-style: none; columns: 2; column-gap: var(--e-3); margin-top: var(--e-5); }
 .galeria li { break-inside: avoid; margin-bottom: var(--e-3); }
 .galeria figure { margin: 0; }
@@ -138,22 +150,22 @@
 .galeria .foto-alta { min-height: calc(var(--e-8) * 3.5); }
 .galeria figcaption { margin-top: var(--e-1); font-size: var(--t-s); color: var(--c-text-2); }
 
-/* ---------- butlleti (al peu) ---------- */
-.butlleti {
-  display: grid; gap: var(--e-4); margin-bottom: var(--e-6); padding: var(--e-5);
-  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); background: var(--c-fons);
-}
+/* ---------- butlletí ---------- */
+.butlleti { display: grid; gap: var(--e-4); margin-bottom: var(--e-6); }
 .butlleti h2 { margin: 0 0 var(--e-2); }
 .butlleti p { margin: 0; }
-.butlleti-form { display: grid; gap: var(--e-3); }
+.butlleti-form { display: grid; gap: var(--e-3); justify-items: start; }
+.butlleti-form .camp { width: 100%; }
 .butlleti .casella a { display: inline; min-height: 0; }
+.error-camp { margin: 0; color: var(--c-error-text); font-size: var(--t-s); font-weight: var(--p-semi); }
+.camp [aria-invalid="true"], .casella [aria-invalid="true"] { outline: 2px solid var(--c-error); outline-offset: 1px; }
 
-/* ---------- fer-se-soci ---------- */
-.graella-quotes { display: grid; gap: var(--e-4); margin-top: var(--e-5); }
-.quota { display: grid; gap: var(--e-3); border-top: var(--v-activa) solid var(--c-zona); }
+/* ---------- fer-se soci ---------- */
+.graella-quotes { display: grid; gap: var(--e-5); margin-top: var(--e-5); }
+.quota { display: grid; gap: var(--e-3); justify-items: start; }
 .quota h3 { margin: 0; }
 .preu { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-2); }
-.preu-xifra { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-3xl); line-height: var(--a-titol); }
+.preu-xifra { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-3xl); line-height: var(--a-titol); font-variant-numeric: tabular-nums; }
 .nota-pagament { margin-top: var(--e-5); }
 
 /* ---------- contacte ---------- */
@@ -161,10 +173,11 @@
 .dades-contacte { display: grid; gap: var(--e-3); }
 .dades-contacte dt { font-weight: var(--p-semi); }
 .dades-contacte dd { margin: 0 0 var(--e-2); }
-.formulari { display: grid; gap: var(--e-4); }
+.formulari { display: grid; gap: var(--e-4); justify-items: start; }
+.formulari .camp { width: 100%; }
 
 /* ---------- peu ---------- */
-.peu { background: var(--c-superficie); border-top: var(--v-activa) solid var(--c-zona); padding: var(--e-7) 0 var(--e-5); }
+.peu { background: var(--c-fons); border-top: var(--v-fina) solid var(--c-linia); padding: var(--e-7) 0 var(--e-5); }
 .peu-graella { display: grid; gap: var(--e-5); }
 .peu h2 { font-size: var(--t-l); }
 .peu ul { list-style: none; display: grid; gap: var(--e-1); }
@@ -172,40 +185,50 @@
 .peu-marca img { width: var(--logo-peu); height: auto; margin-bottom: var(--e-3); }
 .peu-legal { margin-top: var(--e-5); padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); font-size: var(--t-s); color: var(--c-text-2); }
 
+/* ---------- diàleg d'inscripció com a convidat ---------- */
+.resum-inscripcio { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: baseline; padding: var(--e-4); border-radius: var(--r-l); box-shadow: var(--neu-enfonsat); }
+.resum-inscripcio p { margin: 0; }
+.resum-inscripcio .import { font-size: var(--t-xl); }
+.form-convidat { display: grid; gap: var(--e-4); }
+.confirmacio { display: grid; gap: var(--e-3); justify-items: start; }
+.confirmacio .marca-ok { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--c-mari); color: var(--c-mari-sobre); font-size: 28px; box-shadow: var(--neu-relleu-petit); }
+
 /* ==================== Tauleta: 600–1023 px ==================== */
 @media (min-width: 600px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-5); padding-right: var(--e-5); }
-  /* Dues files: marca i accions a dalt; la pastilla de navegació, centrada a sota */
   .capcalera-interior { padding-top: var(--e-3); padding-bottom: var(--e-3); row-gap: var(--e-3); }
   #navegacio-publica { display: flex; justify-content: center; }
   .marca img { width: var(--logo-publica); }
   .marca-nom { font-size: var(--t-s); }
-  .marca-nom .linia-mobil { display: inline; }   /* «i d'Investigacions Submarines» en una línia */
+  .marca-nom .linia-mobil { display: inline; }
   .capcalera-accions { gap: var(--e-2); }
-  .seccio { scroll-margin-top: calc(var(--logo-publica) + var(--tactil) + var(--e-6)); }  /* dues files de capçalera */
+  .seccio { scroll-margin-top: calc(var(--logo-publica) + var(--tactil) + var(--e-6)); }
   .boto-menu { display: none; }
   .no-mobil { display: inline-flex; }
 
-  .nav-llista, .capcalera.menu-obert .nav-llista {
-    display: flex; align-items: center; gap: var(--e-1); padding: var(--e-1);
+  /* Pastilla de navegació en relleu; la ratlla daurada marca la secció actual */
+  /* El fons va al contenidor de la pastilla, per sota de la capa del subratllat */
+  .nav-pastilla {
+    padding: var(--e-1);
     border-radius: var(--r-pastilla);
+    background: var(--c-fons);
+    border: var(--v-fina) solid color-mix(in oklab, var(--c-fons), var(--c-text) 12%);
+    box-shadow: var(--neu-relleu-fons-petit);
   }
-  .nav-llista a, .boto-mes { border-radius: var(--r-pastilla); }
-  /* Element actiu dins la pastilla: ombra interior + negreta + barra groga */
-  .nav-llista a[aria-current="page"] {
-    background: var(--neu-superficie);
-    box-shadow: var(--neu-enfonsat), inset 0 calc(-1 * var(--v-activa)) 0 var(--c-accent);
-  }
+  .nav-llista, .capcalera.menu-obert .nav-llista { display: flex; align-items: center; gap: var(--e-1); padding: 0; }
+  .nav-llista a, .boto-mes { border-radius: var(--r-pastilla); padding-bottom: var(--e-1); }
   .nav-mes { position: relative; }
   .boto-mes { display: flex; }
   .nav-sub {
-    display: none; position: absolute; right: 0; top: calc(100% + var(--e-2));
-    min-width: calc(var(--e-8) * 3); padding: var(--e-2);
-    background: var(--c-superficie); border: var(--v-fina) solid var(--c-linia);
-    border-radius: var(--r-m); box-shadow: var(--ombra);
+    display: none; position: absolute; right: 0; top: calc(100% + var(--e-3));
+    min-width: calc(var(--e-8) * 3.4); padding: var(--e-2);
+    background: var(--c-fons); border: var(--v-fina) solid color-mix(in oklab, var(--c-fons), var(--c-text) 14%);
+    border-radius: var(--r-l); box-shadow: var(--ombra-flotant);
   }
-  .nav-mes.obert .nav-sub { display: grid; }
-  .nav-sub a { border-radius: var(--r-m); }
+  .nav-mes.obert .nav-sub { display: grid; animation: desplega 180ms var(--m-corba); }
+  @keyframes desplega { from { opacity: 0; transform: translateY(-4px); } }
+  .nav-sub a { border-radius: var(--r-m); padding-bottom: 0; }
+  .nav-sub a[aria-current="true"] { box-shadow: inset var(--v-activa) 0 0 var(--c-accent); }
 
   .seccio { padding: var(--e-8) 0; }
   .graella-activitats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -214,7 +237,6 @@
   .crida { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .graella-projectes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .entrada { grid-template-columns: calc(var(--e-8) + var(--e-5)) minmax(0, 1fr); gap: var(--e-5); }
-  /* Tauleta: graella de 3 columnes amb files uniformes; la darrera imatge ocupa 2 columnes i no queda cap forat */
   .galeria { columns: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-3); }
   .galeria li { margin-bottom: 0; }
   .galeria .foto-alta { min-height: calc(var(--e-8) * 2); }
@@ -228,13 +250,19 @@
 /* ==================== Escriptori: 1024 px o més ==================== */
 @media (min-width: 1024px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-6); padding-right: var(--e-6); }
-  /* 6 enllaços + «Més», com abans: la navegació no s'allarga */
   .nav-escriptori { display: list-item; }
   .nav-no-escriptori, .nav-socis { display: none; }
   .nomes-escriptori { display: inline-flex; }
 
   .portada-graella { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-7); align-items: center; }
-  .portada-graella h1 { font-size: calc(var(--t-3xl) * 1.3); }
+  .portada h1 { font-size: calc(var(--t-3xl) * 1.45); }
+  /* Escala de profunditat: marques cada 5 m a la vora esquerra de la portada */
+  .escala-profunditat {
+    display: block; position: absolute; left: var(--e-4); top: var(--e-7); bottom: var(--e-7); width: 28px;
+    background: repeating-linear-gradient(to bottom, var(--c-linia-forta) 0 1px, transparent 1px 24px) left / 8px 100% no-repeat,
+                repeating-linear-gradient(to bottom, var(--c-linia-forta) 0 1px, transparent 1px 120px) left / 16px 100% no-repeat;
+    opacity: .55;
+  }
   .galeria { display: block; columns: 4; }
   .galeria li { margin-bottom: var(--e-3); }
   .galeria .foto-alta { min-height: calc(var(--e-8) * 3.5); }
@@ -245,15 +273,15 @@
   .peu-graella { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-/* Més contrast: l'element actiu de la pastilla, sense ombra i amb barra plena */
-@media (prefers-contrast: more) and (min-width: 600px) {
-  .nav-llista a[aria-current="page"] { box-shadow: inset 0 calc(-1 * var(--v-activa)) 0 var(--c-text); }
+@media (prefers-contrast: more) {
+  .nav-pastilla, .xifres li, .entrada-data, .ambit-icona, .resum-inscripcio { box-shadow: none !important; border: var(--v-plena) solid var(--c-text); }
+  .escala-profunditat { display: none; }
 }
 </style>
 </head>
 <body class="zona-publica">
 <a class="salt" href="#contingut">Salta al contingut</a>
-<p class="nota-wireframe">Wireframe de baixa fidelitat · estructura, no disseny final · dades inventades</p>
+<p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades</p>
 
 <header id="capcalera" class="capcalera">
   <div class="capcalera-interior">
@@ -264,15 +292,16 @@
     </a>
 
     <nav id="navegacio-publica" aria-label="Navegació principal">
-      <ul class="nav-llista neu-pastilla" id="nav-llista">
-        <li><a href="#portada" aria-current="page">Inici</a></li>
+      <div class="nav-pastilla" id="nav-pastilla">
+      <ul class="nav-llista" id="nav-llista">
+        <li><a href="#portada" aria-current="true">Inici</a></li>
         <li><a href="#properes-activitats">Activitats</a></li>
         <li><a href="#qui-som">Qui som</a></li>
         <li class="nav-escriptori"><a href="#centre-recuperacio-investigacio">El Centre</a></li>
         <li class="nav-escriptori"><a href="#projectes">Projectes</a></li>
         <li class="nav-escriptori"><a href="#noticies">Notícies</a></li>
         <li class="nav-mes">
-          <button class="boto-mes" type="button" aria-expanded="false" aria-controls="nav-sub">Més <span aria-hidden="true">▾</span></button>
+          <button class="boto-mes" type="button" aria-expanded="false" aria-controls="nav-sub">Més <svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
           <ul class="nav-sub" id="nav-sub">
             <li class="nav-no-escriptori"><a href="#centre-recuperacio-investigacio">El Centre</a></li>
             <li class="nav-no-escriptori"><a href="#projectes">Projectes</a></li>
@@ -285,17 +314,18 @@
           </ul>
         </li>
       </ul>
+      </div>
     </nav>
 
     <div class="capcalera-accions">
-      <fieldset class="selector-tema neu-selector">
+      <fieldset class="selector-tema">
         <legend class="visualment-amagat">Tema</legend>
         <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
         <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
         <label><input class="visualment-amagat" type="radio" name="tema-capcalera" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
       </fieldset>
       <a class="boto boto-petit boto-text nomes-escriptori" href="socis.html">Àrea de socis</a>
-      <a class="boto boto-petit boto-principal no-mobil" href="#fer-se-soci">Fes-te soci</a>
+      <a class="boto-tactil tactil-daurat boto-petit no-mobil" href="#fer-se-soci" data-profunditat="baixa"><span class="bt-tecla">Fes-te soci</span></a>
       <button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="nav-llista"><span aria-hidden="true">☰</span><span class="visualment-amagat">Menú</span></button>
     </div>
   </div>
@@ -303,14 +333,15 @@
 
 <main id="contingut">
 
-  <section id="portada" class="seccio" aria-labelledby="portada-titol">
+  <section id="portada" class="seccio portada" aria-labelledby="portada-titol">
+    <span class="escala-profunditat" aria-hidden="true"></span>
     <div class="contenidor portada-graella">
       <div>
-        <span class="etiqueta-seccio">Club de busseig · Barcelona</span>
+        <span class="etiqueta-seccio">Club de busseig a Barcelona</span>
         <h1 id="portada-titol">Bussegem junts des de 1954</h1>
         <p class="entradeta">Cursos, sortides i un club per compartir el mar amb seguretat.</p>
         <div class="grup-botons">
-          <a class="boto boto-principal" href="#properes-activitats">Veure les activitats</a>
+          <a class="boto-tactil tactil-daurat boto-gran" href="#properes-activitats"><span class="bt-tecla">Veure les activitats</span></a>
           <a class="boto boto-text" href="#qui-som">Coneix el club</a>
         </div>
       </div>
@@ -340,8 +371,8 @@
               <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Places lliures</span></div>
               <h3>Illes Medes</h3>
               <p class="text-2">Dissabte 15/11/2026 · L'Estartit</p>
-              <p>Queden <strong>3 de 12</strong> places</p>
-              <a class="boto boto-principal" href="#">Inscriu-t'hi</a>
+              <p class="places">Queden <strong data-places>3</strong> de 12 places</p>
+              <button class="boto boto-principal" type="button" data-inscripcio="Illes Medes|Dissabte 15/11/2026 · L'Estartit|6000" data-icona="fletxa">Inscriu-t'hi</button>
             </div>
           </article>
         </li>
@@ -352,8 +383,8 @@
               <div class="fila-meta"><span class="xip">Curs</span><span class="estat estat-avis"><span aria-hidden="true">!</span> Últimes places</span></div>
               <h3>Curs d'iniciació al busseig</h3>
               <p class="text-2">Del 20/11 al 11/12/2026 · Piscina i mar</p>
-              <p>Queden <strong>1 de 8</strong> places</p>
-              <a class="boto boto-principal" href="#">Inscriu-t'hi</a>
+              <p class="places">Queden <strong data-places>1</strong> de 8 places</p>
+              <button class="boto boto-principal" type="button" data-inscripcio="Curs d'iniciació al busseig|Del 20/11 al 11/12/2026|12000" data-icona="fletxa">Inscriu-t'hi</button>
             </div>
           </article>
         </li>
@@ -364,13 +395,13 @@
               <div class="fila-meta"><span class="xip">Sortida</span><span class="estat estat-error"><span aria-hidden="true">✕</span> Completa</span></div>
               <h3>Tossa de Mar</h3>
               <p class="text-2">Diumenge 30/11/2026 · Tossa de Mar</p>
-              <p>Queden <strong>0 de 10</strong> places</p>
+              <p class="places">Queden <strong>0</strong> de 10 places</p>
               <a class="boto" href="#" aria-disabled="true">Sense places</a>
             </div>
           </article>
         </li>
       </ul>
-      <p><a class="boto boto-text" href="#">Veure totes les activitats</a></p>
+      <p style="margin-top: var(--e-4)"><a class="boto boto-text" href="#">Veure totes les activitats</a></p>
     </div>
   </section>
 
@@ -399,17 +430,17 @@
       <p class="text-2">El nom coincideix amb el del logotip del club.</p>
       <ul class="ambits">
         <li class="targeta ambit">
-          <span class="ambit-icona" aria-hidden="true">⚓&#xFE0E;</span>
+          <span class="ambit-icona" aria-hidden="true"><svg class="icona-svg" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2"/><path d="M12 7.5v13M8 11h8M4.5 14a7.5 7.5 0 0 0 15 0"/></svg></span>
           <h3>Recuperació</h3>
           <p>Text d'exemple: recuperació d'objectes i restes del fons marí amb els permisos corresponents. <span class="a-validar">A validar</span></p>
         </li>
         <li class="targeta ambit">
-          <span class="ambit-icona" aria-hidden="true">◎</span>
+          <span class="ambit-icona" aria-hidden="true"><svg class="icona-svg" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
           <h3>Investigació</h3>
           <p>Text d'exemple: col·laboració en estudis del fons marí i del patrimoni submergit. <span class="a-validar">A validar</span></p>
         </li>
         <li class="targeta ambit">
-          <span class="ambit-icona" aria-hidden="true">✎&#xFE0E;</span>
+          <span class="ambit-icona" aria-hidden="true"><svg class="icona-svg" viewBox="0 0 24 24"><path d="M4 19.5V6a2 2 0 0 1 2-2h12v13H6a2 2 0 0 0-2 2.5zm0 0A2 2 0 0 0 6 21h12"/></svg></span>
           <h3>Divulgació</h3>
           <p>Text d'exemple: conferències, exposicions i arxiu històric del club. <span class="a-validar">A validar</span></p>
         </li>
@@ -522,7 +553,7 @@
           </div>
         </li>
       </ol>
-      <p><a class="boto boto-text" href="#">Totes les notícies i conferències</a></p>
+      <p style="margin-top: var(--e-4)"><a class="boto boto-text" href="#">Totes les notícies i conferències</a></p>
     </div>
   </section>
 
@@ -532,13 +563,13 @@
       <h2 id="galeria-titol">Sota l'aigua</h2>
       <p class="text-llarg text-2">Espais reservats: hi aniran fotos del club amb els drets d'imatge resolts. <span class="a-validar">A validar</span></p>
       <ul class="galeria">
-        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Illes Medes · 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Cap de Creus · 2025 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Sortida nocturna · 2025 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Posidònia · 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Curs d'iniciació · 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Tossa de Mar · 2024 <span class="a-validar">Exemple</span></figcaption></figure></li>
-        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Neteja de fons · 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Illes Medes, 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Cap de Creus, 2025 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Sortida nocturna, 2025 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Posidònia, 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Curs d'iniciació, 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge foto-alta">Foto submarina</div><figcaption>Tossa de Mar, 2024 <span class="a-validar">Exemple</span></figcaption></figure></li>
+        <li><figure><div class="caixa-imatge">Foto submarina</div><figcaption>Neteja de fons, 2026 <span class="a-validar">Exemple</span></figcaption></figure></li>
         <li><figure><div class="caixa-imatge">Foto històrica</div><figcaption>Arxiu del club <span class="a-validar">Exemple</span></figcaption></figure></li>
       </ul>
     </div>
@@ -567,7 +598,7 @@
         <strong>Com es paga la quota</strong>
         Per domiciliació SEPA (per defecte), targeta, Bizum o transferència.
       </div>
-      <div class="grup-botons"><a class="boto boto-principal" href="#">Comença l'alta</a></div>
+      <div class="grup-botons"><a class="boto-tactil tactil-daurat boto-gran" href="#"><span class="bt-tecla">Comença l'alta</span></a></div>
     </div>
   </section>
 
@@ -584,13 +615,14 @@
           </dl>
           <div class="caixa-imatge">Mapa de situació</div>
         </div>
-        <form class="formulari targeta" onsubmit="return false" aria-describedby="nota-formulari">
+        <form class="formulari targeta" id="form-contacte" novalidate aria-describedby="nota-formulari">
           <div class="camp"><label for="f-nom">Nom</label><input id="f-nom" type="text" autocomplete="name"></div>
-          <div class="camp"><label for="f-correu">Correu electrònic</label><input id="f-correu" type="email" autocomplete="email"></div>
+          <div class="camp"><label for="f-correu">Correu electrònic</label><input id="f-correu" type="email" autocomplete="email" aria-describedby="f-correu-error"><p class="error-camp" id="f-correu-error" hidden></p></div>
           <div class="camp"><label for="f-missatge">Missatge</label><textarea id="f-missatge" rows="4"></textarea></div>
-          <label class="casella"><input type="checkbox"> <span>He llegit la <a href="#">política de privacitat</a></span></label>
-          <p id="nota-formulari" class="text-2">Wireframe: el formulari no envia res.</p>
-          <button class="boto boto-principal" type="submit">Envia</button>
+          <label class="casella"><input type="checkbox" id="f-privacitat" aria-describedby="f-privacitat-error"> <span>He llegit la <a href="#">política de privacitat</a></span></label>
+          <p class="error-camp" id="f-privacitat-error" hidden></p>
+          <p id="nota-formulari" class="text-2" style="margin: 0">Prototip: el formulari no envia res.</p>
+          <button class="boto boto-principal" type="submit" id="envia-contacte" data-icona="fletxa">Envia</button>
         </form>
       </div>
     </div>
@@ -600,16 +632,17 @@
 
 <footer id="peu" class="peu">
   <div class="contenidor">
-    <section id="butlleti" class="butlleti" aria-labelledby="butlleti-titol">
+    <section id="butlleti" class="butlleti targeta" aria-labelledby="butlleti-titol">
       <div>
         <h2 id="butlleti-titol">Butlletí</h2>
         <p class="text-2">Text d'exemple: sortides, cursos, conferències i notícies del club, un cop al mes. <span class="a-validar">A validar</span></p>
       </div>
-      <form class="butlleti-form" onsubmit="return false" aria-describedby="nota-butlleti">
-        <div class="camp"><label for="b-correu">Correu electrònic</label><input id="b-correu" type="email" autocomplete="email"></div>
-        <label class="casella"><input type="checkbox"> <span>Vull rebre el butlletí i he llegit la <a href="#">política de privacitat</a>. Em puc donar de baixa quan vulgui.</span></label>
-        <button class="boto boto-principal" type="submit">Subscriu-me</button>
-        <p id="nota-butlleti" class="text-2">Wireframe: no envia res. Caldrà confirmar l'alta per correu. <span class="a-validar">A validar</span></p>
+      <form class="butlleti-form" id="form-butlleti" novalidate aria-describedby="nota-butlleti">
+        <div class="camp"><label for="b-correu">Correu electrònic</label><input id="b-correu" type="email" autocomplete="email" aria-describedby="b-correu-error"><p class="error-camp" id="b-correu-error" hidden></p></div>
+        <label class="casella"><input type="checkbox" id="b-consentiment" aria-describedby="b-consentiment-error"> <span>Vull rebre el butlletí i he llegit la <a href="#">política de privacitat</a>. Em puc donar de baixa quan vulgui.</span></label>
+        <p class="error-camp" id="b-consentiment-error" hidden></p>
+        <button class="boto boto-principal" type="submit" id="subscriu" data-icona="fletxa">Subscriu-me</button>
+        <p id="nota-butlleti" class="text-2">Prototip: no envia res. Caldrà confirmar l'alta per correu. <span class="a-validar">A validar</span></p>
       </form>
     </section>
     <div class="peu-graella">
@@ -650,44 +683,181 @@
   </div>
 </footer>
 
-<script>
-/* Tema: selector Sistema / Clar / Fosc; es recorda a localStorage («cris-tema») */
-(function () {
-  var arrel = document.documentElement;
-  function actual() { return arrel.getAttribute('data-theme') || 'sistema'; }
-  function aplica(t) {
-    try {
-      if (t === 'sistema') { arrel.removeAttribute('data-theme'); localStorage.removeItem('cris-tema'); }
-      else { arrel.setAttribute('data-theme', t); localStorage.setItem('cris-tema', t); }
-    } catch (e) { if (t !== 'sistema') arrel.setAttribute('data-theme', t); }
-    document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
-  }
-  document.querySelectorAll('.selector-tema input').forEach(function (i) {
-    i.addEventListener('change', function () { if (i.checked) aplica(i.value); });
-  });
-  aplica(actual());
-})();
+<!-- ==================== Diàleg: inscripció com a convidat (decisió 021) ==================== -->
+<dialog class="dialeg" id="dialeg-inscripcio" aria-labelledby="inscripcio-titol">
+  <div class="dialeg-cap">
+    <h2 id="inscripcio-titol">Inscriu-t'hi</h2>
+    <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+  </div>
+  <form class="dialeg-cos form-convidat" id="form-convidat" novalidate>
+    <div class="resum-inscripcio">
+      <p><strong id="ins-activitat"></strong><br><span class="text-2" id="ins-data"></span></p>
+      <span class="import" id="ins-preu"></span>
+    </div>
+    <p class="text-2" style="margin: 0">Sense compte: et farem arribar un enllaç segur per pagar. Si ets soci, <a href="socis.html">entra a l'àrea de socis</a> per tenir el preu de soci.</p>
+    <div class="camp"><label for="c-nom">Nom i cognoms</label><input id="c-nom" type="text" autocomplete="name" aria-describedby="c-nom-error"><p class="error-camp" id="c-nom-error" hidden></p></div>
+    <div class="camp"><label for="c-correu">Correu electrònic</label><input id="c-correu" type="email" autocomplete="email" aria-describedby="c-correu-error"><p class="error-camp" id="c-correu-error" hidden></p></div>
+    <label class="casella"><input type="checkbox" id="c-privacitat" aria-describedby="c-privacitat-error"> <span>He llegit la <a href="#">política de privacitat</a>.</span></label>
+    <p class="error-camp" id="c-privacitat-error" hidden></p>
+    <div class="dialeg-peu" style="padding: 0">
+      <button class="boto" type="button" data-tanca>Cancel·la</button>
+      <button class="boto boto-principal" type="submit" id="reserva-placa" data-icona="fletxa">Reserva la plaça</button>
+    </div>
+  </form>
+  <div class="dialeg-cos confirmacio" id="confirmacio-inscripcio" hidden tabindex="-1">
+    <span class="marca-ok" aria-hidden="true"><svg class="icona-svg" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+    <h3 style="margin: 0">Plaça reservada</h3>
+    <p style="margin: 0">T'hem enviat un enllaç segur a <strong id="conf-correu"></strong> per pagar <strong id="conf-preu"></strong>. Caduca d'aquí a 48 hores <span class="a-validar">A validar: V-02</span>.</p>
+    <p class="text-2" style="margin: 0">Prototip: no s'envia cap correu.</p>
+    <button class="boto-tactil" type="button" data-tanca><span class="bt-tecla">Entesos</span></button>
+  </div>
+</dialog>
 
-/* Menú: hamburguesa al mòbil i «Més» a la tauleta (només clic, mai passar el ratolí) */
+<script src="interaccions.js"></script>
+<script>
 (function () {
-  var capcalera = document.getElementById('capcalera');
-  var botoMenu = capcalera.querySelector('.boto-menu');
-  var botoMes = capcalera.querySelector('.boto-mes');
-  var mes = capcalera.querySelector('.nav-mes');
+  'use strict';
+  CRIS.tema();
+  const correuValid = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+  function errorCamp(input, missatge) {
+    const p = document.getElementById(input.id + '-error');
+    input.setAttribute('aria-invalid', String(!!missatge));
+    p.textContent = missatge || ''; p.hidden = !missatge;
+    return !missatge;
+  }
+
+  /* ---------- Menú: hamburguesa al mòbil i «Més» a la tauleta (només clic) ---------- */
+  const capcalera = document.getElementById('capcalera');
+  const botoMenu = capcalera.querySelector('.boto-menu');
+  const botoMes = capcalera.querySelector('.boto-mes');
+  const mes = capcalera.querySelector('.nav-mes');
   function tanca() {
     capcalera.classList.remove('menu-obert'); botoMenu.setAttribute('aria-expanded', 'false');
     mes.classList.remove('obert'); botoMes.setAttribute('aria-expanded', 'false');
   }
-  botoMenu.addEventListener('click', function () {
-    var obert = capcalera.classList.toggle('menu-obert');
-    botoMenu.setAttribute('aria-expanded', String(obert));
-  });
-  botoMes.addEventListener('click', function () {
-    var obert = mes.classList.toggle('obert');
-    botoMes.setAttribute('aria-expanded', String(obert));
-  });
-  capcalera.querySelectorAll('.nav-llista a').forEach(function (a) { a.addEventListener('click', tanca); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tanca(); });
+  botoMenu.addEventListener('click', () => { const o = capcalera.classList.toggle('menu-obert'); botoMenu.setAttribute('aria-expanded', String(o)); });
+  botoMes.addEventListener('click', () => { const o = mes.classList.toggle('obert'); botoMes.setAttribute('aria-expanded', String(o)); });
+  capcalera.querySelectorAll('.nav-llista a').forEach(a => a.addEventListener('click', tanca));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') tanca(); });
+  document.addEventListener('click', e => { if (!mes.contains(e.target)) { mes.classList.remove('obert'); botoMes.setAttribute('aria-expanded', 'false'); } });
+
+  /* ---------- Subratllat elàstic: segueix la secció que es llegeix ---------- */
+  const nav = document.getElementById('navegacio-publica');
+  const sr = CRIS.subratllat(document.getElementById('nav-pastilla'), { elements: '.nav-llista > li > a, .boto-mes', ratlla: 'element', separacio: 5, farciment: 0 });
+  const enllacos = Array.from(nav.querySelectorAll('.nav-llista a[href^="#"]'));
+  const seccions = [...new Set(enllacos.map(a => a.getAttribute('href').slice(1)))].map(id => document.getElementById(id)).filter(Boolean)
+    .sort((a, b) => a.offsetTop - b.offsetTop);
+  let actual = null;
+  function marca(id) {
+    if (id === actual) return;
+    actual = id;
+    enllacos.forEach(a => { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    // si l'enllaç visible de la pastilla no hi és (és dins de «Més»), la ratlla va a «Més»
+    const visible = enllacos.find(a => a.getAttribute('href') === '#' + id && a.closest('.nav-llista > li') && !a.closest('.nav-sub') && a.getClientRects().length);
+    botoMes.classList.toggle('conte-actiu', !visible);
+    sr.activa(visible || botoMes);
+  }
+  let pendent = false;
+  function espia() {
+    pendent = false;
+    const linia = innerHeight * 0.35;
+    let id = seccions[0].id;
+    seccions.forEach(s => { if (s.getBoundingClientRect().top <= linia) id = s.id; });
+    marca(id);
+  }
+  addEventListener('scroll', () => { if (!pendent) { pendent = true; requestAnimationFrame(espia); } }, { passive: true });
+  addEventListener('resize', () => { actual = null; espia(); });
+  espia();
+
+  /* ---------- Inscripció com a convidat: diàleg + botó dinàmic ---------- */
+  (function () {
+    const dialeg = document.getElementById('dialeg-inscripcio');
+    const form = document.getElementById('form-convidat');
+    const conf = document.getElementById('confirmacio-inscripcio');
+    const boto = document.getElementById('reserva-placa');
+    const bd = CRIS.botoDinamic(boto);
+    let origen = null, preu = 0;
+    document.querySelectorAll('[data-inscripcio]').forEach(b => {
+      const bdi = CRIS.botoDinamic(b);
+      b.addEventListener('click', () => {
+        if (bdi.text !== bdi.inicial.text) return;
+        const [activitat, data, centims] = b.dataset.inscripcio.split('|');
+        origen = b; preu = +centims;
+        document.getElementById('ins-activitat').textContent = activitat;
+        document.getElementById('ins-data').textContent = data;
+        document.getElementById('ins-preu').textContent = CRIS.euros(preu);
+        form.hidden = false; conf.hidden = true;
+        bd.posa(bd.inicial.text, bd.inicial.icona);
+        dialeg.showModal();
+        document.getElementById('c-nom').focus();
+      });
+    });
+    dialeg.addEventListener('click', e => { if (e.target.closest('[data-tanca]')) dialeg.close(); });
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      const nom = document.getElementById('c-nom'), correu = document.getElementById('c-correu'), priv = document.getElementById('c-privacitat');
+      const ok = [
+        errorCamp(nom, nom.value.trim() ? '' : 'Escriu el teu nom i cognoms.'),
+        errorCamp(correu, correuValid(correu.value) ? '' : 'Escriu un correu vàlid, per exemple nom@exemple.cat.'),
+        errorCamp(priv, priv.checked ? '' : 'Cal acceptar la política de privacitat.')
+      ];
+      const primer = [nom, correu, priv][ok.indexOf(false)];
+      if (primer) { primer.focus(); return; }
+      await bd.flux([
+        { text: 'Reservant la plaça…', icona: 'carrega', gira: true, ms: 1000 },
+        { text: 'Plaça reservada', icona: 'fet', fet: true, ms: 500 }
+      ]);
+      document.getElementById('conf-correu').textContent = correu.value.trim();
+      document.getElementById('conf-preu').textContent = CRIS.euros(preu);
+      form.hidden = true; conf.hidden = false; conf.focus();
+      CRIS.anuncia('Plaça reservada. T\'hem enviat l\'enllaç per pagar.');
+      const places = origen.closest('.activitat').querySelector('[data-places]');
+      if (places) places.textContent = Math.max(0, +places.textContent - 1);
+      const bo = CRIS.botoDinamic(origen);
+      bo.posa('Plaça reservada', 'fet', { fet: true });
+      origen.setAttribute('aria-disabled', 'true');
+      form.reset();
+    });
+  })();
+
+  /* ---------- Butlletí i contacte: validació a prop del camp + botó dinàmic ---------- */
+  (function () {
+    const form = document.getElementById('form-butlleti');
+    const bd = CRIS.botoDinamic(document.getElementById('subscriu'));
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      const correu = document.getElementById('b-correu'), cons = document.getElementById('b-consentiment');
+      const a = errorCamp(correu, correuValid(correu.value) ? '' : 'Escriu un correu vàlid.');
+      const b = errorCamp(cons, cons.checked ? '' : 'Cal el teu consentiment per enviar-te el butlletí.');
+      if (!a) { correu.focus(); return; } if (!b) { cons.focus(); return; }
+      await bd.flux([
+        { text: 'Subscrivint…', icona: 'carrega', gira: true, ms: 900 },
+        { text: 'Revisa el correu per confirmar-ho', icona: 'fet', fet: true, ms: 2600, anunci: 'T\'hem enviat un correu per confirmar la subscripció.' }
+      ]);
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      form.reset();
+    });
+  })();
+  (function () {
+    const form = document.getElementById('form-contacte');
+    const bd = CRIS.botoDinamic(document.getElementById('envia-contacte'));
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      const correu = document.getElementById('f-correu'), priv = document.getElementById('f-privacitat');
+      const a = errorCamp(correu, correuValid(correu.value) ? '' : 'Escriu un correu vàlid perquè et puguem respondre.');
+      const b = errorCamp(priv, priv.checked ? '' : 'Cal acceptar la política de privacitat.');
+      if (!a) { correu.focus(); return; } if (!b) { priv.focus(); return; }
+      await bd.flux([
+        { text: 'Enviant…', icona: 'carrega', gira: true, ms: 900 },
+        { text: 'Missatge enviat', icona: 'fet', fet: true, ms: 2200, anunci: 'Missatge enviat. Et respondrem a ' + correu.value.trim() + '.' }
+      ]);
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      form.reset();
+    });
+  })();
 })();
 </script>
 </body>

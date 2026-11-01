@@ -1,79 +1,191 @@
 /* ==========================================================================
-   Sistema de disseny C.R.I.S. — tokens i base compartida dels wireframes
-   Font de veritat: docs/design-system.md (decisió 030).
-   Regla: els components només fan servir variables d'aquest fitxer.
+   Sistema de disseny C.R.I.S. — tokens i components compartits dels prototips
+   Font de veritat: docs/design-system.md (decisió 030). Paleta i neumorfisme
+   revisats el 31/10/2026 (pendent de registrar com a decisió: vegeu la nota
+   de lliurament). Regla: els components només fan servir variables d'aquest fitxer.
    Noms: català sense accents. Prefixos: --c- color, --e- espai, --t- mida
-   de text, --p- pes, --a- alçada de línia, --r- radi, --v- vora.
+   de text, --p- pes, --a- alçada de línia, --r- radi, --v- vora, --m- moviment,
+   --neu- relleu neumòrfic.
    ========================================================================== */
+
+/* ---------- Primitius: la paleta (no es fan servir directament als components) ---------- */
+:root {
+  --abisme: #11212D;      /* fons fosc */
+  --casc: #253745;        /* contenidors al fosc; text secundari al clar */
+  --posidonia: #01614B;   /* accent marí / èxit (farciment) */
+  --boira: #CCD0CF;       /* fons clar; text al fosc */
+  --pissarra: #9BA8AB;    /* contenidors al clar; text secundari al fosc */
+  --pissarra-fosca: #4A5C6A; /* només vores i text gran: 4,45:1 sobre la boira, no arriba a 4,5:1 */
+  --llauto: #f5c43a;      /* daurat: acció principal, element actiu, avisos */
+  --llauto-text: #3d2e00; /* text sobre el daurat: 8,1:1 */
+  --paper: #F4F5F2;       /* paper del justificant (igual als dos temes) */
+}
 
 /* ---------- Tema clar (per defecte si el sistema no demana fosc) ---------- */
 :root {
   color-scheme: light;
 
-  /* Superfícies i text */
-  --c-fons: #f2f5f8;
-  --c-superficie: #ffffff;
-  --c-superficie-2: #f7f9fb;
-  --c-text: #0f1c2a;
-  --c-text-2: #566676;
-  --c-linia: #dbe3ea;
-  --c-linia-forta: #7a8b9b;    /* vores de camps i botons: 3:1 */
-  --c-enllac: #0b5f8f;
-  --c-focus: #0b5f8f;
-  --c-caixa: #e3e8ed;          /* caixes grises que substitueixen imatges */
-  --c-caixa-text: #566676;
+  /* Superfícies i text (contrast comprovat: text ≥ 4,5:1 i vores ≥ 3:1 sobre fons i contenidor) */
+  --c-fons: var(--boira);
+  --c-superficie: var(--pissarra);
+  --c-superficie-2: #BCC3C4;      /* pou intermedi */
+  --c-text: var(--abisme);        /* 10,6:1 fons · 6,7:1 contenidor */
+  --c-text-2: var(--casc);        /* 7,9:1 fons · 5,0:1 contenidor */
+  --c-linia: #AEB7B9;             /* decorativa */
+  --c-linia-forta: #3B4B57;       /* vores de camps i interruptors: 5,8:1 fons · 3,7:1 contenidor */
+  --c-enllac: #12384F;
+  --c-focus: var(--abisme);
+  --c-caixa: #B3BCBE;
+  --c-caixa-text: var(--casc);
 
-  /* Acció principal i element actiu */
-  --c-accent: #f5c43a;
-  --c-accent-text: #3d2e00;
+  /* Acció principal i element actiu (daurat) */
+  --c-accent: var(--llauto);
+  --c-accent-text: var(--llauto-text);
+  --c-accent-vora: #7A5D00;       /* vora del daurat sobre la boira: 4,0:1 */
+  --c-accent-premut: #E2AF1F;
+  /* Marí: farciment d'èxit i acció secundària */
+  --c-mari: var(--posidonia);
+  --c-mari-sobre: #E9F6F1;        /* 6,7:1 */
+  --c-mari-text: #013F31;         /* text marí: 4,9:1 contenidor */
 
-  /* Barra lateral: fosca als dos temes */
-  --c-lateral-fons: #062a47;
-  --c-lateral-fons-2: #0b3a5e;
-  --c-lateral-text: #cfe0ee;
-  --c-lateral-text-2: #8fb0c9;
-  --c-lateral-focus: #f5c43a;
-  /* Color de zona sobre la barra lateral: sempre el valor del tema fosc */
-  --c-lateral-publica: #4cc3d3;
-  --c-lateral-soci: #e2b04f;
-  --c-lateral-admin: #8fb2ec;
+  /* Indicador actiu (subratllat elàstic): daurat amb vora fosca perquè es vegi sobre la boira */
+  --c-indicador: var(--llauto);
+  --c-indicador-vora: var(--llauto-text);
+  --c-pindola: rgba(17, 33, 45, .07);
 
-  /* Zones: decoratiu (vores, punts) / text (enllaços, etiquetes) / fons tenyit */
-  --c-publica: #0f8496;  --c-publica-text: #0b6f7e;  --c-publica-fons: #e2f4f6;
-  --c-soci: #9a6b12;     --c-soci-text: #85590a;     --c-soci-fons: #fbf1da;
-  --c-admin: #2a4f86;    --c-admin-text: #2a4f86;    --c-admin-fons: #e5ecf7;
+  /* Barra lateral de l'administració: fosca als dos temes */
+  --c-lateral-fons: var(--abisme);
+  --c-lateral-fons-2: var(--casc);
+  --c-lateral-text: var(--boira);
+  --c-lateral-text-2: var(--pissarra);
+  --c-lateral-focus: var(--llauto);
+  --c-lateral-publica: #43C59E;
+  --c-lateral-soci: var(--llauto);
+  --c-lateral-admin: var(--boira);
 
-  /* Estats: decoratiu / text / fons tenyit */
-  --c-ok: #1b8a5e;       --c-ok-text: #157049;       --c-ok-fons: #e1f3ea;
-  --c-avis: #a8650d;     --c-avis-text: #8f5409;     --c-avis-fons: #fcefd9;
-  --c-error: #c0392f;    --c-error-text: #a8322a;    --c-error-fons: #fbe5e2;
-  --c-info: #0b5f8f;     --c-info-text: #0b5f8f;     --c-info-fons: #e3eff7;
-  --c-sistema: #6b5aa8;  --c-sistema-text: #6b5aa8;  --c-sistema-fons: #ece9f7;
+  /* Zones: decoratiu / text / fons tenyit */
+  --c-publica: var(--posidonia); --c-publica-text: var(--c-mari-text); --c-publica-fons: #B4CCC2;
+  --c-soci: #7A5D00;             --c-soci-text: var(--llauto-text);  --c-soci-fons: var(--llauto);
+  --c-admin: var(--casc);        --c-admin-text: var(--abisme);      --c-admin-fons: #B5BEC0;
 
-  --ombra: 0 1px 2px rgba(6, 42, 71, .06), 0 6px 20px rgba(6, 42, 71, .07);
+  /* Estats: decoratiu / text / fons tenyit (sempre amb símbol i text, mai només color) */
+  --c-ok: var(--posidonia);  --c-ok-text: #013F31;            --c-ok-fons: #B4CCC2;
+  --c-avis: #7A5D00;         --c-avis-text: var(--llauto-text); --c-avis-fons: var(--llauto);
+  --c-error: #8E2A22;        --c-error-text: #6A1712;          --c-error-fons: #E6C4BF;
+  --c-info: #12384F;         --c-info-text: #12384F;           --c-info-fons: #B9CEDA;
+  --c-sistema: #3A2C70;      --c-sistema-text: #3A2C70;        --c-sistema-fons: #C9C3E0;
 
-  /* Neumorfisme limitat (decisió 031): només sobre --c-fons.
-     La superfície és igual que el fons; les dues ombres es calculen per a cada tema. */
-  --neu-superficie: #f2f5f8;     /* = --c-fons */
-  --neu-ombra-fosca: #c3ced9;    /* el mateix to, més fosc */
-  --neu-ombra-clara: #ffffff;    /* el mateix to, més clar */
-  --neu-vora: #7a8b9b;           /* 3,2:1 sobre la superfície */
-  --neu-desplac: 4px;
-  --neu-difuminat: 10px;
-  --neu-desplac-petit: 2px;
-  --neu-difuminat-petit: 5px;
-  /* Ombres compostes: es resolen amb les variables del tema actiu */
-  --neu-relleu:
-    var(--neu-desplac) var(--neu-desplac) var(--neu-difuminat) var(--neu-ombra-fosca),
-    calc(-1 * var(--neu-desplac)) calc(-1 * var(--neu-desplac)) var(--neu-difuminat) var(--neu-ombra-clara);
-  --neu-relleu-petit:
-    var(--neu-desplac-petit) var(--neu-desplac-petit) var(--neu-difuminat-petit) var(--neu-ombra-fosca),
-    calc(-1 * var(--neu-desplac-petit)) calc(-1 * var(--neu-desplac-petit)) var(--neu-difuminat-petit) var(--neu-ombra-clara);
-  --neu-enfonsat:
-    inset var(--neu-desplac-petit) var(--neu-desplac-petit) var(--neu-difuminat-petit) var(--neu-ombra-fosca),
-    inset calc(-1 * var(--neu-desplac-petit)) calc(-1 * var(--neu-desplac-petit)) var(--neu-difuminat-petit) var(--neu-ombra-clara);
+  /* Relleu neumòrfic: una ombra fosca i una de clara del mateix to, per a cada superfície */
+  --neu-fons-fosca: #A3AAAA;  --neu-fons-clara: #F0F2F1;
+  --neu-sup-fosca: #76848A;   --neu-sup-clara: #BAC5C7;
+  --c-llum-interior: rgba(255, 255, 255, .45);   /* fil de llum a la vora superior dels botons */
+  --ombra-flotant: 0 18px 40px -18px rgba(17, 33, 45, .55), 0 4px 12px -6px rgba(17, 33, 45, .25);
 
-  /* Tipografia (igual als dos temes) */
+  /* Profunditat (compte personal): de la superfície a l'abisme */
+  --c-ocea-1: #DCE0DF;
+  --c-ocea-2: var(--boira);
+  --c-ocea-3: #B3BDBF;
+  --c-ocea-4: var(--pissarra);
+  --c-ocea-text: var(--abisme);
+  --c-ocea-text-2: var(--casc);
+  --c-caustica: rgba(255, 255, 255, .5);
+}
+
+/* ---------- Tema fosc: valors (s'apliquen per preferència del sistema o amb el botó) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --c-fons: var(--abisme);
+    --c-superficie: var(--casc);
+    --c-superficie-2: #1B2C39;
+    --c-text: #E6EAE9;              /* 13,5:1 fons · 10,1:1 contenidor */
+    --c-text-2: var(--pissarra);    /* 6,7:1 fons · 5,0:1 contenidor */
+    --c-linia: #34495A;
+    --c-linia-forta: #7A8E9C;       /* 4,8:1 fons · 3,6:1 contenidor */
+    --c-enllac: #8CC4E0;
+    --c-focus: var(--llauto);
+    --c-caixa: #1E3140;
+    --c-caixa-text: var(--pissarra);
+    --c-accent-vora: var(--llauto);
+    --c-accent-premut: #E0AE22;
+    --c-mari-text: #43C59E;
+    --c-indicador-vora: transparent;
+    --c-pindola: rgba(204, 208, 207, .08);
+    --c-lateral-fons: #0C1821;
+    --c-lateral-fons-2: #1B2C39;
+    --c-publica: #43C59E; --c-publica-text: #43C59E; --c-publica-fons: #12392F;
+    --c-soci: var(--llauto); --c-soci-text: var(--llauto); --c-soci-fons: #3A3110;
+    --c-admin: var(--pissarra); --c-admin-text: var(--boira); --c-admin-fons: #2E4252;
+    --c-ok: #43C59E;   --c-ok-text: #43C59E;   --c-ok-fons: #12392F;
+    --c-avis: var(--llauto); --c-avis-text: var(--llauto); --c-avis-fons: #3A3110;
+    --c-error: #FF9A8F; --c-error-text: #FF9A8F; --c-error-fons: #3E2427;
+    --c-info: #8CC4E0;  --c-info-text: #8CC4E0;  --c-info-fons: #1C3A4D;
+    --c-sistema: #C3B5F5; --c-sistema-text: #C3B5F5; --c-sistema-fons: #2A2547;
+    --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
+    --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
+    --c-llum-interior: rgba(255, 255, 255, .08);
+    --ombra-flotant: 0 18px 40px -18px rgba(0, 0, 0, .7), 0 4px 12px -6px rgba(0, 0, 0, .5);
+    --c-ocea-1: #1F3646;
+    --c-ocea-2: #192D3B;
+    --c-ocea-3: #142733;
+    --c-ocea-4: var(--abisme);
+    --c-ocea-text: #E6EAE9;
+    --c-ocea-text-2: var(--boira);
+    --c-caustica: rgba(204, 208, 207, .07);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-fons: var(--abisme);
+  --c-superficie: var(--casc);
+  --c-superficie-2: #1B2C39;
+  --c-text: #E6EAE9;
+  --c-text-2: var(--pissarra);
+  --c-linia: #34495A;
+  --c-linia-forta: #7A8E9C;
+  --c-enllac: #8CC4E0;
+  --c-focus: var(--llauto);
+  --c-caixa: #1E3140;
+  --c-caixa-text: var(--pissarra);
+  --c-accent-vora: var(--llauto);
+  --c-accent-premut: #E0AE22;
+  --c-mari-text: #43C59E;
+  --c-indicador-vora: transparent;
+  --c-pindola: rgba(204, 208, 207, .08);
+  --c-lateral-fons: #0C1821;
+  --c-lateral-fons-2: #1B2C39;
+  --c-publica: #43C59E; --c-publica-text: #43C59E; --c-publica-fons: #12392F;
+  --c-soci: var(--llauto); --c-soci-text: var(--llauto); --c-soci-fons: #3A3110;
+  --c-admin: var(--pissarra); --c-admin-text: var(--boira); --c-admin-fons: #2E4252;
+  --c-ok: #43C59E;   --c-ok-text: #43C59E;   --c-ok-fons: #12392F;
+  --c-avis: var(--llauto); --c-avis-text: var(--llauto); --c-avis-fons: #3A3110;
+  --c-error: #FF9A8F; --c-error-text: #FF9A8F; --c-error-fons: #3E2427;
+  --c-info: #8CC4E0;  --c-info-text: #8CC4E0;  --c-info-fons: #1C3A4D;
+  --c-sistema: #C3B5F5; --c-sistema-text: #C3B5F5; --c-sistema-fons: #2A2547;
+  --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
+  --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
+  --c-llum-interior: rgba(255, 255, 255, .08);
+  --ombra-flotant: 0 18px 40px -18px rgba(0, 0, 0, .7), 0 4px 12px -6px rgba(0, 0, 0, .5);
+  --c-ocea-1: #1F3646;
+  --c-ocea-2: #192D3B;
+  --c-ocea-3: #142733;
+  --c-ocea-4: var(--abisme);
+  --c-ocea-text: #E6EAE9;
+  --c-ocea-text-2: var(--boira);
+  --c-caustica: rgba(204, 208, 207, .07);
+}
+
+/* ---------- Escales (iguals als dos temes) ---------- */
+:root {
+  /* Ombres compostes: es resolen amb els valors del tema actiu */
+  --neu-relleu-fons: 7px 7px 16px var(--neu-fons-fosca), -7px -7px 16px var(--neu-fons-clara);
+  --neu-relleu-fons-petit: 3px 3px 7px var(--neu-fons-fosca), -3px -3px 7px var(--neu-fons-clara);
+  --neu-enfonsat-fons: inset 3px 3px 7px var(--neu-fons-fosca), inset -3px -3px 7px var(--neu-fons-clara);
+  --neu-relleu-sup: 6px 6px 14px var(--neu-sup-fosca), -6px -6px 14px var(--neu-sup-clara);
+  --neu-relleu-sup-petit: 3px 3px 6px var(--neu-sup-fosca), -3px -3px 6px var(--neu-sup-clara);
+  --neu-enfonsat-sup: inset 3px 3px 6px var(--neu-sup-fosca), inset -3px -3px 6px var(--neu-sup-clara);
+
+  /* Tipografia (decisió 030) */
   --f-titol: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
   --f-text: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-codi: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -81,7 +193,7 @@
   --p-mitja: 500;   /* només JetBrains Mono */
   --p-semi: 600;
   --p-negreta: 700;
-  --t-xs: 0.75rem;   /* 12 px: només etiquetes en majúscules */
+  --t-xs: 0.75rem;   /* 12 px: mai per a text de lectura */
   --t-s: 0.875rem;   /* 14 px */
   --t-m: 1rem;       /* 16 px: base */
   --t-l: 1.25rem;    /* 20 px */
@@ -90,161 +202,70 @@
   --t-3xl: 2.75rem;  /* 44 px */
   --a-text: 1.5;
   --a-titol: 1.1;
-  --ll-etiqueta: 0.08em; /* espaiat de lletra de les etiquetes */
+  --ll-etiqueta: 0.02em;
 
   /* Espaiat: 4, 8, 12, 16, 24, 32, 48, 64 px */
   --e-1: 4px;  --e-2: 8px;  --e-3: 12px; --e-4: 16px;
   --e-5: 24px; --e-6: 32px; --e-7: 48px; --e-8: 64px;
 
-  /* Formes */
-  --r-s: 4px;
-  --r-m: 8px;
-  --r-l: 12px;
+  /* Formes: radis concèntrics (exterior = interior + farciment) */
+  --r-s: 6px;
+  --r-m: 10px;
+  --r-l: 16px;
+  --r-xl: 22px;
   --r-pastilla: 999px;
   --v-fina: 1px;
-  --v-activa: 3px;   /* barra de l'element actiu */
+  --v-activa: 3px;
   --v-focus: 3px;
-  --v-plena: 2px;    /* vores plenes amb prefers-contrast: more */
+  --v-plena: 2px;
 
   /* Mides d'estructura */
   --avatar: 56px;
-  --selector-alcada: 32px;        /* selector de tema: alçada visible de cada opció */
-  --selector-opcio: 40px;         /* amplada mínima visible; + 4 px d'espai = 44 px tàctils */
-  --selector-icona: 0.75rem;      /* 12 px: icones i ✓ del selector */
-  --tactil: 44px;                 /* objectiu tàctil mínim */
+  --selector-alcada: 32px;
+  --selector-opcio: 40px;
+  --selector-icona: 0.75rem;
+  --tactil: 44px;
+  --tactil-gran: 56px;
   --amplada-max: 1200px;
   --amplada-text: 68ch;
   --capcalera-alcada: 64px;
-  --barra-inferior-alcada: 64px;
-  --lateral-ample: 240px;         /* administració, escriptori */
-  --lateral-soci: 200px;          /* compte personal, escriptori */
-  --lateral-carril: 72px;         /* carril d'icones, tauleta */
-  --columna-dreta: 22rem;         /* compte personal, escriptori */
+  --lateral-ample: 248px;
+  --lateral-carril: 76px;
   --logo-capcalera: 40px;
   --logo-lateral: 48px;
-  --logo-peu: 120px;              /* web pública (decisió 032) */
-  --logo-publica-mobil: 52px;     /* capçalera pública, mòbil */
-  --logo-publica: 72px;           /* capçalera pública, tauleta i escriptori */
+  --logo-peu: 120px;
+  --logo-publica-mobil: 52px;
+  --logo-publica: 72px;
   --icona: 1.25rem;
-
-  /* Compte personal: immersió (decisió 032) */
-  --portada-alcada: 64svh;        /* alçada mínima de la portada a partir de tauleta; al mòbil, la del contingut */
   --carnet-amplada: 22rem;
-  --carnet-proporcio: 1.586;      /* proporció d'una targeta física (85,6 × 54 mm) */
+  --carnet-proporcio: 1.586;   /* 85,6 × 54 mm */
   --dock-alcada: 64px;
-  --dock-carnet: 60px;            /* botó central del carnet al dock */
-  --tactil-gran: 56px;            /* accions crítiques: pagar */
-  --carril-targeta: 85%;          /* amplada de cada targeta del carril (mòbil) */
+  --dock-carnet: 60px;
+  --carril-targeta: 85%;
   --ona-alcada: 32px;
 
-  /* Profunditat (compte personal): de la superfície a l'abisme */
-  --c-ocea-1: #e2f4f6;
-  --c-ocea-2: #c4e6ee;
-  --c-ocea-3: #a6d6e3;
-  --c-ocea-4: #8cc7d8;
-  --c-ocea-text: #0f1c2a;
-  --c-ocea-text-2: #2f4152;
   /* Carnet: sempre fosc, com una targeta física (igual als dos temes) */
-  --c-carnet-1: #0b4f74;
-  --c-carnet-2: #062a47;
-  --c-carnet-text: #f2f5f8;
-  --c-carnet-text-2: #b9cfe0;
-  --c-carnet-zona: #e2b04f;
+  --c-carnet-1: var(--casc);
+  --c-carnet-2: var(--abisme);
+  --c-carnet-text: #E6EAE9;
+  --c-carnet-text-2: var(--pissarra);
+  --c-carnet-zona: var(--llauto);
+  --c-carnet-mari: var(--posidonia);
 
-  /* Moviment: només portada (entrada), gir del carnet i ona */
-  --m-rapid: 150ms;
+  /* Moviment: corbes i durades amb nom (les sortides, més curtes que les entrades) */
+  --m-sortida: 150ms;
+  --m-rapid: 180ms;
+  --m-amplada: 260ms;
   --m-entrada: 700ms;
-  --m-gir: 600ms;
+  --m-gir: 650ms;
   --m-ona: 2400ms;
-  --m-ona-repeticions: 2;         /* 4,8 s en total: s'atura sola abans de 5 s */
-  --m-corba: cubic-bezier(.2, .7, .2, 1);
+  --m-ona-repeticions: 2;           /* 4,8 s: s'atura sola abans de 5 s */
+  --m-corba: cubic-bezier(.23, 1, .32, 1);       /* sortida suau */
+  --m-corba-entra-surt: cubic-bezier(.77, 0, .175, 1);
+  --m-corba-sortida: cubic-bezier(.4, 0, 1, 1);
 }
 
-/* ---------- Tema fosc: preferència del sistema ---------- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --c-fons: #08131e;
-    --c-superficie: #0f1f2f;
-    --c-superficie-2: #132638;
-    --c-text: #e4edf5;
-    --c-text-2: #93a7b9;
-    --c-linia: #22384d;
-    --c-linia-forta: #5a7590;
-    --c-enllac: #74c4ea;
-    --c-focus: #74c4ea;
-    --c-caixa: #1b3044;
-    --c-caixa-text: #93a7b9;
-    --c-accent: #f5c43a;
-    --c-accent-text: #2b2000;
-    --c-lateral-fons: #04101b;
-    --c-lateral-fons-2: #0b2236;
-    --c-lateral-text: #cfe0ee;
-    --c-lateral-text-2: #7f9db5;
-    --c-publica: #4cc3d3;  --c-publica-text: #4cc3d3;  --c-publica-fons: #0f3139;
-    --c-soci: #e2b04f;     --c-soci-text: #e2b04f;     --c-soci-fons: #33270e;
-    --c-admin: #8fb2ec;    --c-admin-text: #8fb2ec;    --c-admin-fons: #18294a;
-    --c-ok: #55c995;       --c-ok-text: #55c995;       --c-ok-fons: #0f3123;
-    --c-avis: #f0b056;     --c-avis-text: #f0b056;     --c-avis-fons: #36260b;
-    --c-error: #f2857b;    --c-error-text: #f2857b;    --c-error-fons: #3a1714;
-    --c-info: #74c4ea;     --c-info-text: #74c4ea;     --c-info-fons: #0f2c40;
-    --c-sistema: #b3a6ef;  --c-sistema-text: #b3a6ef;  --c-sistema-fons: #231e3d;
-    --ombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
-    --neu-superficie: #08131e;
-    --neu-ombra-fosca: #01060b;
-    --neu-ombra-clara: #15293d;
-    --neu-vora: #5a7590;
-    --c-ocea-1: #0f3a4a;
-    --c-ocea-2: #0c2c40;
-    --c-ocea-3: #0a1f33;
-    --c-ocea-4: #08131e;
-    --c-ocea-text: #e4edf5;
-    --c-ocea-text-2: #a9bccc;
-  }
-}
-
-/* ---------- Tema fosc: triat amb el botó ---------- */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --c-fons: #08131e;
-  --c-superficie: #0f1f2f;
-  --c-superficie-2: #132638;
-  --c-text: #e4edf5;
-  --c-text-2: #93a7b9;
-  --c-linia: #22384d;
-  --c-linia-forta: #5a7590;
-  --c-enllac: #74c4ea;
-  --c-focus: #74c4ea;
-  --c-caixa: #1b3044;
-  --c-caixa-text: #93a7b9;
-  --c-accent: #f5c43a;
-  --c-accent-text: #2b2000;
-  --c-lateral-fons: #04101b;
-  --c-lateral-fons-2: #0b2236;
-  --c-lateral-text: #cfe0ee;
-  --c-lateral-text-2: #7f9db5;
-  --c-publica: #4cc3d3;  --c-publica-text: #4cc3d3;  --c-publica-fons: #0f3139;
-  --c-soci: #e2b04f;     --c-soci-text: #e2b04f;     --c-soci-fons: #33270e;
-  --c-admin: #8fb2ec;    --c-admin-text: #8fb2ec;    --c-admin-fons: #18294a;
-  --c-ok: #55c995;       --c-ok-text: #55c995;       --c-ok-fons: #0f3123;
-  --c-avis: #f0b056;     --c-avis-text: #f0b056;     --c-avis-fons: #36260b;
-  --c-error: #f2857b;    --c-error-text: #f2857b;    --c-error-fons: #3a1714;
-  --c-info: #74c4ea;     --c-info-text: #74c4ea;     --c-info-fons: #0f2c40;
-  --c-sistema: #b3a6ef;  --c-sistema-text: #b3a6ef;  --c-sistema-fons: #231e3d;
-  --ombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
-  --neu-superficie: #08131e;
-  --neu-ombra-fosca: #01060b;
-  --neu-ombra-clara: #15293d;
-  --neu-vora: #5a7590;
-  --c-ocea-1: #0f3a4a;
-  --c-ocea-2: #0c2c40;
-  --c-ocea-3: #0a1f33;
-  --c-ocea-4: #08131e;
-  --c-ocea-text: #e4edf5;
-  --c-ocea-text-2: #a9bccc;
-}
-
-/* ---------- Zona activa: cada pàgina posa la classe al <body> ---------- */
+/* Zona activa: cada pàgina posa la classe al <body> */
 .zona-publica { --c-zona: var(--c-publica); --c-zona-text: var(--c-publica-text); --c-zona-fons: var(--c-publica-fons); --c-lateral-zona: var(--c-lateral-publica); }
 .zona-soci    { --c-zona: var(--c-soci);    --c-zona-text: var(--c-soci-text);    --c-zona-fons: var(--c-soci-fons);    --c-lateral-zona: var(--c-lateral-soci); }
 .zona-admin   { --c-zona: var(--c-admin);   --c-zona-text: var(--c-admin-text);   --c-zona-fons: var(--c-admin-fons);   --c-lateral-zona: var(--c-lateral-admin); }
@@ -253,7 +274,7 @@
    Base
    ========================================================================== */
 *, *::before, *::after { box-sizing: border-box; }
-html { font-size: 100%; }
+html { font-size: 100%; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 body {
   margin: 0;
   background: var(--c-fons);
@@ -262,26 +283,40 @@ body {
   font-size: var(--t-m);
   font-weight: var(--p-normal);
   line-height: var(--a-text);
+  /* Context neumòrfic: el relleu es calcula sobre el fons de pàgina */
+  --neu-base: var(--c-fons);
+  --neu-relleu: var(--neu-relleu-fons);
+  --neu-relleu-petit: var(--neu-relleu-fons-petit);
+  --neu-enfonsat: var(--neu-enfonsat-fons);
+}
+/* Context neumòrfic sobre un contenidor: les ombres es recalculen per al seu to */
+.targeta, .superficie, .dialeg {
+  --neu-base: var(--c-superficie);
+  --neu-relleu: var(--neu-relleu-sup);
+  --neu-relleu-petit: var(--neu-relleu-sup-petit);
+  --neu-enfonsat: var(--neu-enfonsat-sup);
 }
 h1, h2, h3, h4 {
   font-family: var(--f-titol);
   font-weight: var(--p-negreta);
   line-height: var(--a-titol);
   margin: 0 0 var(--e-3);
+  text-wrap: balance;
 }
-h1 { font-size: var(--t-3xl); }
+h1 { font-size: var(--t-3xl); letter-spacing: -0.01em; }
 h2 { font-size: var(--t-2xl); }
 h3 { font-size: var(--t-xl); font-weight: var(--p-semi); }
 h4 { font-size: var(--t-l); font-weight: var(--p-semi); }
-p { margin: 0 0 var(--e-3); }
+p { margin: 0 0 var(--e-3); text-wrap: pretty; }
 ul, ol { margin: 0; padding: 0; }
-a { color: var(--c-enllac); }
+a { color: var(--c-enllac); text-underline-offset: 0.18em; }
 img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
 :focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
-/* Reduir moviment: els tokens de moviment passen a 0 i s'atura qualsevol animació */
+/* Reduir moviment: les durades passen a 0 i s'atura qualsevol animació de CSS.
+   Les animacions fetes amb JavaScript ho comproven a interaccions.js. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --m-rapid: 0ms; --m-entrada: 0ms; --m-gir: 0ms; --m-ona: 0ms; --m-ona-repeticions: 0; }
+  :root { --m-sortida: 0ms; --m-rapid: 0ms; --m-amplada: 0ms; --m-entrada: 0ms; --m-gir: 0ms; --m-ona: 0ms; --m-ona-repeticions: 0; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
@@ -291,29 +326,27 @@ img { max-width: 100%; display: block; }
 }
 .salt {
   position: absolute; left: var(--e-2); top: var(--e-2); z-index: 100;
-  padding: var(--e-2) var(--e-4); background: var(--c-accent); color: var(--c-accent-text);
+  padding: var(--e-2) var(--e-4); border-radius: var(--r-m);
+  background: var(--c-accent); color: var(--c-accent-text);
   transform: translateY(-200%);
 }
 .salt:focus { transform: none; }
 
-/* Codis: número de soci, referències, identificadors, imports de taula */
 .codi { font-family: var(--f-codi); font-weight: var(--p-normal); font-size: 0.95em; }
 .import { font-family: var(--f-codi); font-weight: var(--p-mitja); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xifra-viva { font-variant-numeric: tabular-nums; }
 .text-2 { color: var(--c-text-2); }
+.icona-svg { width: 1em; height: 1em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ==========================================================================
-   Components compartits
+   Peces de demostració (només prototips)
    ========================================================================== */
-
-/* Avís de wireframe */
 .nota-wireframe {
   margin: 0; padding: var(--e-2) var(--e-4);
   background: var(--c-sistema-fons); color: var(--c-sistema-text);
   border-bottom: var(--v-fina) solid var(--c-sistema);
   font-size: var(--t-s); font-weight: var(--p-semi);
 }
-
-/* Barra de demostració (només wireframes: simula persona o rol) */
 .demo {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-4);
   padding: var(--e-2) var(--e-4);
@@ -323,31 +356,164 @@ img { max-width: 100%; display: block; }
 }
 .demo-titol { font-weight: var(--p-negreta); color: var(--c-sistema-text); }
 .demo label { display: inline-flex; align-items: center; gap: var(--e-1); min-height: var(--tactil); }
-.demo select { min-height: var(--tactil); padding: 0 var(--e-2); font: inherit; color: var(--c-text); background: var(--c-superficie); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); }
+.demo select { min-height: var(--tactil); padding: 0 var(--e-2); font: inherit; color: var(--c-text); background: var(--c-fons); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); }
+.a-validar {
+  display: inline-block; padding: 0 var(--e-1);
+  border: var(--v-fina) dashed var(--c-sistema); border-radius: var(--r-s);
+  color: var(--c-sistema-text);
+  font-size: var(--t-xs); font-weight: var(--p-negreta); white-space: nowrap; vertical-align: middle;
+}
 
-/* Botons */
+/* ==========================================================================
+   Neumorfisme: relleu per defecte, enfonsat en prémer o als camps actius.
+   Cap estat s'indica només amb l'ombra: sempre hi ha text, marca o negreta.
+   ========================================================================== */
+.neu-relleu { background: var(--neu-base); box-shadow: var(--neu-relleu); }
+.neu-relleu-petit { background: var(--neu-base); box-shadow: var(--neu-relleu-petit); }
+.neu-enfonsat { background: var(--neu-base); box-shadow: var(--neu-enfonsat); }
+
+/* Targeta: placa en relleu, vora decorativa fina */
+.targeta {
+  background: var(--c-superficie);
+  border: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 10%);
+  border-radius: var(--r-xl);
+  padding: var(--e-5);
+  box-shadow: var(--neu-relleu-fons);
+}
+.targeta > h2, .targeta > h3, .targeta > header h2 { font-size: var(--t-xl); }
+
+/* Etiqueta de secció: frase curta, sense majúscules forçades */
+.etiqueta-seccio {
+  display: inline-flex; align-items: center; gap: var(--e-2); margin-bottom: var(--e-2);
+  color: var(--c-zona-text);
+  font-size: var(--t-s); font-weight: var(--p-semi);
+}
+.etiqueta-seccio::before { content: ""; width: var(--e-4); height: 2px; border-radius: 2px; background: currentColor; }
+
+.caixa-imatge {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: calc(var(--e-8) * 3);
+  padding: var(--e-4);
+  background:
+    radial-gradient(120% 80% at 20% 0%, color-mix(in oklab, var(--c-caixa), white 10%), transparent 60%),
+    var(--c-caixa);
+  color: var(--c-caixa-text);
+  border-radius: var(--r-l);
+  font-size: var(--t-s); font-weight: var(--p-semi);
+  box-shadow: var(--neu-enfonsat);
+}
+
+/* ==========================================================================
+   Botons
+   ========================================================================== */
 .boto {
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--e-2);
   min-height: var(--tactil); min-width: var(--tactil);
   padding: var(--e-2) var(--e-4);
-  border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m);
-  background: var(--c-superficie); color: var(--c-text);
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), var(--c-text) 14%);
+  border-radius: var(--r-m);
+  background: var(--neu-base); color: var(--c-text);
+  box-shadow: var(--neu-relleu-petit), inset 0 1px 0 var(--c-llum-interior);
   font: inherit; font-weight: var(--p-semi); text-decoration: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: transform, box-shadow, background-color, color, border-color;
+  transition-duration: var(--m-sortida);
+  transition-timing-function: var(--m-corba);
 }
-.boto-principal { background: var(--c-accent); color: var(--c-accent-text); border-color: var(--c-accent); }
-.boto-text { background: transparent; border-color: transparent; color: var(--c-enllac); }
-.boto-petit { min-height: var(--tactil); padding: var(--e-1) var(--e-3); font-size: var(--t-s); }
-.boto[aria-disabled="true"] { color: var(--c-text-2); border-style: dashed; cursor: not-allowed; }
+.boto:hover { box-shadow: var(--neu-relleu), inset 0 1px 0 var(--c-llum-interior); }
+.boto:active { transform: scale(.97); box-shadow: var(--neu-enfonsat); }
+.boto-principal {
+  background: var(--c-accent); color: var(--c-accent-text);
+  border-color: var(--c-accent-vora);
+  box-shadow: var(--neu-relleu-petit), inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -2px 0 rgba(61, 46, 0, .18);
+}
+.boto-principal:hover { background: color-mix(in oklab, var(--c-accent), white 8%); }
+.boto-principal:active { background: var(--c-accent-premut); box-shadow: inset 2px 2px 5px rgba(61, 46, 0, .35); }
+.boto-mari {
+  background: var(--c-mari); color: var(--c-mari-sobre); border-color: var(--c-mari);
+  box-shadow: var(--neu-relleu-petit), inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+.boto-mari:active { box-shadow: inset 2px 2px 6px rgba(0, 0, 0, .35); }
+.boto-text { background: transparent; border-color: transparent; box-shadow: none; color: var(--c-enllac); }
+.boto-text:hover { box-shadow: none; background: var(--c-pindola); }
+.boto-text:active { box-shadow: none; }
+.boto-petit { padding: var(--e-1) var(--e-3); font-size: var(--t-s); }
+.boto-gran { min-height: var(--tactil-gran); padding: 0 var(--e-6); font-size: var(--t-l); border-radius: var(--r-l); }
+.boto[aria-disabled="true"], .boto:disabled {
+  color: var(--c-text-2); border-style: dashed; border-color: var(--c-linia-forta);
+  background: transparent; box-shadow: none; cursor: not-allowed; transform: none;
+}
+.boto .icona-svg { font-size: 1.05em; }
 
-/* Selector de tema: control segmentat Sistema / Clar / Fosc (botons de ràdio) */
-.selector-tema {
-  display: inline-flex; gap: var(--e-1);
-  margin: 0; padding: calc(var(--e-1) / 2); min-inline-size: 0;
-  border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-pastilla);
-  background: var(--c-superficie);
+/* Botó tàctil: una tecla de carcassa submarina. L'alvèol és enfonsat; la tecla
+   té gruix (la vora inferior) i baixa en prémer. */
+.boto-tactil {
+  --bt-gruix: 4px;
+  --bt-cara: var(--neu-base);
+  --bt-cantell: color-mix(in oklab, var(--neu-base), black 28%);
+  --bt-text: var(--c-text);
+  position: relative; display: inline-flex; padding: 3px;
+  border: 0; border-radius: calc(var(--r-m) + 3px);
+  background: var(--neu-base); box-shadow: var(--neu-enfonsat);
+  font: inherit; text-decoration: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.selector-tema label { display: flex; position: relative; cursor: pointer; }
-/* Àrea tàctil de 44 × 44 px amb un farciment invisible: l'opció només es veu de 32 px */
+.boto-tactil .bt-tecla {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--e-2);
+  min-height: calc(var(--tactil) - 6px); padding: 0 var(--e-4);
+  border-radius: var(--r-m);
+  border: var(--v-fina) solid color-mix(in oklab, var(--bt-cara), black 18%);
+  background: linear-gradient(to bottom, color-mix(in oklab, var(--bt-cara), white 12%), var(--bt-cara));
+  color: var(--bt-text); font-weight: var(--p-semi); white-space: nowrap;
+  transform: translateY(calc(-1 * var(--bt-gruix)));
+  box-shadow: 0 var(--bt-gruix) 0 var(--bt-cantell), 0 calc(var(--bt-gruix) + 3px) 8px -2px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .35);
+  transition-property: transform, box-shadow;
+  transition-duration: 90ms;
+  transition-timing-function: var(--m-corba);
+}
+.boto-tactil:hover .bt-tecla { transform: translateY(calc(-1 * var(--bt-gruix) - 1px)); box-shadow: 0 calc(var(--bt-gruix) + 1px) 0 var(--bt-cantell), 0 calc(var(--bt-gruix) + 5px) 10px -2px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.boto-tactil:active .bt-tecla, .boto-tactil.premut .bt-tecla {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 var(--bt-cantell), 0 1px 2px rgba(0, 0, 0, .3), inset 0 1px 3px rgba(0, 0, 0, .18);
+}
+.boto-tactil:focus-visible { outline: none; }
+.boto-tactil:focus-visible .bt-tecla { outline: var(--v-focus) solid var(--c-focus); outline-offset: 3px; }
+.boto-tactil[data-profunditat="baixa"] { --bt-gruix: 2px; }
+.boto-tactil.boto-petit .bt-tecla { min-height: 34px; padding: 0 var(--e-3); font-size: var(--t-s); }
+.boto-tactil.boto-gran .bt-tecla { min-height: calc(var(--tactil-gran) - 6px); padding: 0 var(--e-6); font-size: var(--t-l); border-radius: var(--r-l); }
+.boto-tactil.boto-gran { border-radius: calc(var(--r-l) + 3px); }
+.boto-tactil.tactil-daurat { --bt-cara: var(--c-accent); --bt-cantell: #A9800F; --bt-text: var(--c-accent-text); }
+.boto-tactil.tactil-mari { --bt-cara: var(--c-mari); --bt-cantell: #003024; --bt-text: var(--c-mari-sobre); }
+.boto-tactil[aria-disabled="true"] { cursor: not-allowed; }
+.boto-tactil[aria-disabled="true"] .bt-tecla { transform: none; box-shadow: none; border-style: dashed; color: var(--c-text-2); background: transparent; }
+
+/* Botó dinàmic: l'amplada s'adapta al text nou i el text i la icona es relleven en vertical */
+.boto-dinamic { overflow: hidden; white-space: nowrap; transition-property: transform, box-shadow, background-color, color, border-color, width; transition-duration: var(--m-sortida), var(--m-sortida), var(--m-sortida), var(--m-sortida), var(--m-sortida), var(--m-amplada); }
+.bd-cos { position: relative; display: inline-flex; align-items: center; gap: var(--e-2); }
+.bd-icona, .bd-text { position: relative; display: inline-grid; overflow: hidden; }
+.bd-icona { width: 1.05em; height: 1.05em; flex: none; }
+.bd-capa { grid-area: 1 / 1; display: flex; align-items: center; justify-content: center; }
+.bd-text .bd-capa { display: block; padding-block: 0.1em; }
+.bd-mesura { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: var(--e-2); opacity: 0; pointer-events: none; visibility: hidden; }
+.bd-mesura .bd-icona-mesura { width: 1.05em; height: 1.05em; flex: none; }
+.boto-dinamic[aria-busy="true"] { cursor: progress; }
+.boto-dinamic.es-fet:not(.boto-principal) { color: var(--c-ok-text); }
+.gira { animation: gira 0.8s linear infinite; transform-origin: 50% 50%; }
+@keyframes gira { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   Selectors: tema (Sistema / Clar / Fosc) i control segmentat genèric
+   ========================================================================== */
+.selector-tema, .segmentat {
+  display: inline-flex; gap: var(--e-1);
+  margin: 0; padding: 3px; min-inline-size: 0;
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), var(--c-text) 14%);
+  border-radius: var(--r-pastilla);
+  background: var(--neu-base); box-shadow: var(--neu-enfonsat);
+}
+.selector-tema label, .segmentat label { display: flex; position: relative; cursor: pointer; }
 .selector-tema label::after {
   content: ""; position: absolute;
   top: calc((var(--selector-alcada) - var(--tactil)) / 2);
@@ -355,99 +521,81 @@ img { max-width: 100%; display: block; }
   left: calc((var(--selector-opcio) - var(--tactil)) / 2);
   right: calc((var(--selector-opcio) - var(--tactil)) / 2);
 }
-.selector-tema .opcio {
+.selector-tema .opcio, .segmentat .opcio {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--e-1);
   min-height: var(--selector-alcada); min-width: var(--selector-opcio); padding: 0 var(--e-2);
-  border-radius: var(--r-pastilla);
+  border-radius: var(--r-pastilla); border: var(--v-fina) solid transparent;
   color: var(--c-text-2); font-size: var(--selector-icona); line-height: 1; font-weight: var(--p-semi);
+  transition-property: background-color, box-shadow, color;
+  transition-duration: var(--m-rapid);
+  transition-timing-function: var(--m-corba);
 }
-.selector-tema .marca-activa { display: none; }
-/* Opció activa: negreta + marca ✓ + fons (mai només color o ombra) */
-.selector-tema input:checked + .opcio { color: var(--c-text); font-weight: var(--p-negreta); background: var(--c-zona-fons); }
-.selector-tema input:checked + .opcio .marca-activa { display: inline; color: var(--c-zona-text); }
-.selector-tema input:focus-visible + .opcio { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--v-fina); }
-/* Mòbil: només icones; el text continua disponible per al lector de pantalla */
+.segmentat .opcio { min-height: var(--tactil); padding: 0 var(--e-4); font-size: var(--t-s); }
+.selector-tema .marca-activa, .segmentat .marca-activa { display: none; }
+/* Opció activa: surt en relleu + negreta + marca ✓ (mai només ombra) */
+.selector-tema input:checked + .opcio, .segmentat input:checked + .opcio {
+  color: var(--c-text); font-weight: var(--p-negreta);
+  background: var(--neu-base); box-shadow: var(--neu-relleu-petit);
+  border-color: color-mix(in oklab, var(--neu-base), var(--c-text) 18%);
+}
+.selector-tema input:checked + .opcio .marca-activa, .segmentat input:checked + .opcio .marca-activa { display: inline; color: var(--c-zona-text); }
+.selector-tema input:focus-visible + .opcio, .segmentat input:focus-visible + .opcio { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--v-fina); }
 .selector-tema .text-opcio { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (min-width: 600px) {
   .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
 }
 
 /* ==========================================================================
-   Neumorfisme limitat (decisió 031)
-   Només: selector de tema, avatars, carnet de soci i pastilla de navegació
-   de la web pública. Sempre sobre --c-fons (la superfície és igual que el fons).
-   Mai a l'administració, taules, formularis, avisos ni botons principals.
+   Interruptor (role="switch"): pista enfonsada, botó en relleu.
+   Estat: posició + icona dins del botó + text «Sí / No», no només color.
    ========================================================================== */
-.neu-relleu {
-  background: var(--neu-superficie);
-  border: var(--v-fina) solid var(--neu-vora);
-  box-shadow: var(--neu-relleu);
+.interruptor {
+  --int-ample: 52px; --int-alt: 30px; --int-boto: 22px;
+  position: relative; flex: none;
+  display: inline-flex; align-items: center; gap: var(--e-2);
+  min-height: var(--tactil); padding: 0; border: 0; background: transparent;
+  color: var(--c-text); font: inherit; font-size: var(--t-s); font-weight: var(--p-semi); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.neu-selector, .neu-pastilla {
-  background: var(--neu-superficie);
-  border: var(--v-fina) solid var(--neu-vora);
-  box-shadow: var(--neu-relleu-petit);
-}
-.neu-selector input:checked + .opcio { background: var(--neu-superficie); box-shadow: var(--neu-enfonsat); }
-
-/* Avatar amb anell tou; inicials en alt contrast */
-.avatar {
-  display: inline-flex; align-items: center; justify-content: center; flex: none;
-  width: var(--avatar); height: var(--avatar);
+.int-pista {
+  position: relative; width: var(--int-ample); height: var(--int-alt); flex: none;
   border-radius: var(--r-pastilla);
-  background: var(--c-superficie); color: var(--c-text);
-  font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl);
+  border: var(--v-fina) solid var(--c-linia-forta);
+  background: var(--neu-base); box-shadow: var(--neu-enfonsat);
+  transition: background-color var(--m-rapid) var(--m-corba), border-color var(--m-rapid) var(--m-corba);
 }
-.neu-anell {
-  background: var(--neu-superficie);
-  border: var(--v-fina) solid var(--neu-vora);
-  box-shadow: var(--neu-relleu-petit), var(--neu-enfonsat);
+.int-boto {
+  position: absolute; top: 50%; left: 3px;
+  display: grid; place-items: center;
+  width: var(--int-boto); height: var(--int-boto);
+  border-radius: 50%;
+  background: linear-gradient(145deg, color-mix(in oklab, var(--neu-base), white 22%), var(--neu-base));
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), black 22%);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, .28), -1px -1px 3px var(--c-llum-interior);
+  color: var(--c-text-2); font-size: 12px;
+  transform: translate(0, -50%);
+  transition: transform var(--m-amplada) var(--m-corba), color var(--m-rapid);
 }
+.int-boto .icona-svg { width: 12px; height: 12px; stroke-width: 3; }
+.int-boto .si { display: none; }
+.interruptor[aria-checked="true"] .int-pista { background: var(--c-mari); border-color: var(--c-mari); box-shadow: inset 2px 2px 5px rgba(0, 0, 0, .3); }
+.interruptor[aria-checked="true"] .int-boto { transform: translate(calc(var(--int-ample) - var(--int-boto) - 8px), -50%); color: var(--c-mari); }
+.interruptor[aria-checked="true"] .int-boto .si { display: block; }
+.interruptor[aria-checked="true"] .int-boto .no { display: none; }
+.interruptor:active .int-boto { width: calc(var(--int-boto) + 4px); border-radius: var(--r-pastilla); }
+.interruptor[aria-checked="true"]:active .int-boto { transform: translate(calc(var(--int-ample) - var(--int-boto) - 12px), -50%); }
+.int-estat { min-width: 2.2em; }
+.interruptor:focus-visible { outline: none; }
+.interruptor:focus-visible .int-pista { outline: var(--v-focus) solid var(--c-focus); outline-offset: 3px; }
+.interruptor[aria-disabled="true"] { cursor: not-allowed; color: var(--c-text-2); }
+.interruptor[aria-disabled="true"] .int-pista { border-style: dashed; }
 
-/* Més contrast: l'efecte passa a vores plenes */
-@media (prefers-contrast: more) {
-  .neu-relleu, .neu-selector, .neu-pastilla, .neu-anell {
-    box-shadow: none;
-    border: var(--v-plena) solid var(--c-text);
-  }
-  .neu-selector input:checked + .opcio {
-    box-shadow: none;
-    background: var(--c-text); color: var(--c-fons);
-  }
-  .neu-selector input:checked + .opcio .marca-activa { color: var(--c-fons); }
-}
-
-/* Etiqueta de secció (color de zona) */
-.etiqueta-seccio {
-  display: inline-block; margin-bottom: var(--e-2);
-  color: var(--c-zona-text);
-  font-size: var(--t-xs); font-weight: var(--p-negreta);
-  letter-spacing: var(--ll-etiqueta); text-transform: uppercase;
-}
-
-/* Targeta */
-.targeta {
-  background: var(--c-superficie);
-  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l);
-  padding: var(--e-4);
-  box-shadow: var(--ombra);
-}
-.targeta > h2, .targeta > h3, .targeta > header h2 { font-size: var(--t-xl); }
-
-/* Caixa grisa que substitueix una imatge */
-.caixa-imatge {
-  display: flex; align-items: center; justify-content: center; text-align: center;
-  min-height: calc(var(--e-8) * 3);
-  padding: var(--e-4);
-  background: var(--c-caixa); color: var(--c-caixa-text);
-  border: var(--v-fina) dashed var(--c-linia-forta); border-radius: var(--r-m);
-  font-size: var(--t-s); font-weight: var(--p-semi);
-}
-
-/* Estat: sempre símbol + text + color, mai només color */
+/* ==========================================================================
+   Estats, avisos, xips
+   ========================================================================== */
 .estat {
   display: inline-flex; align-items: center; gap: var(--e-1);
-  padding: 0 var(--e-2);
+  padding: 1px var(--e-2);
   border: var(--v-fina) solid currentColor; border-radius: var(--r-pastilla);
   font-size: var(--t-s); font-weight: var(--p-semi); line-height: var(--a-text);
   white-space: nowrap;
@@ -457,52 +605,249 @@ img { max-width: 100%; display: block; }
 .estat-error   { color: var(--c-error-text);   background: var(--c-error-fons); }
 .estat-info    { color: var(--c-info-text);    background: var(--c-info-fons); }
 .estat-sistema { color: var(--c-sistema-text); background: var(--c-sistema-fons); }
-.estat-neutre  { color: var(--c-text-2);       background: var(--c-superficie-2); }
+.estat-neutre  { color: var(--c-text-2);       background: transparent; }
 
-/* Bloc d'avís (missatge): barra a l'esquerra + títol en text */
+/* Avisos: plans (sense relleu), amb barra i títol en text */
 .avis {
   padding: var(--e-3) var(--e-4);
   border: var(--v-fina) solid var(--c-linia);
   border-left: var(--v-activa) solid var(--c-info);
   border-radius: var(--r-m);
-  background: var(--c-superficie-2);
+  background: var(--c-superficie-2); color: var(--c-text);
 }
 .avis strong { display: block; }
-.avis-ok      { border-left-color: var(--c-ok); }
-.avis-avis    { border-left-color: var(--c-avis);    background: var(--c-avis-fons); }
-.avis-error   { border-left-color: var(--c-error);   background: var(--c-error-fons); }
-.avis-sistema { border-left-color: var(--c-sistema); background: var(--c-sistema-fons); }
+.avis-ok      { border-left-color: var(--c-ok);      background: var(--c-ok-fons); }
+.avis-avis    { border-left-color: var(--c-avis);    background: var(--c-avis-fons); color: var(--c-avis-text); }
+.avis-error   { border-left-color: var(--c-error);   background: var(--c-error-fons); color: var(--c-error-text); }
+.avis-sistema { border-left-color: var(--c-sistema); background: var(--c-sistema-fons); color: var(--c-sistema-text); }
 
-/* Xip (etiqueta de tipus: Sortida, Curs, Convidat…) */
 .xip {
   display: inline-flex; align-items: center;
-  padding: 0 var(--e-2);
-  border-radius: var(--r-s);
+  padding: 1px var(--e-3);
+  border-radius: var(--r-pastilla);
+  border: var(--v-fina) solid color-mix(in oklab, var(--c-zona-fons), var(--c-zona-text) 25%);
   background: var(--c-zona-fons); color: var(--c-zona-text);
   font-size: var(--t-s); font-weight: var(--p-semi);
 }
 
-/* Marca [A validar] dins dels wireframes */
-.a-validar {
-  display: inline-block; padding: 0 var(--e-1);
-  border: var(--v-fina) dashed var(--c-sistema); border-radius: var(--r-s);
-  color: var(--c-sistema-text);
-  font-size: var(--t-xs); font-weight: var(--p-negreta); white-space: nowrap;
-}
-
-/* Camps de formulari */
+/* ==========================================================================
+   Camps: pous enfonsats; al focus, la vora es fa plena
+   ========================================================================== */
 .camp { display: grid; gap: var(--e-1); }
-.camp label { font-weight: var(--p-semi); font-size: var(--t-s); }
+.camp label, .camp .etiqueta { font-weight: var(--p-semi); font-size: var(--t-s); }
 .camp input, .camp select, .camp textarea {
   min-height: var(--tactil); width: 100%;
   padding: var(--e-2) var(--e-3);
   border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m);
-  background: var(--c-superficie); color: var(--c-text); font: inherit;
+  background: var(--neu-base); color: var(--c-text); font: inherit;
+  box-shadow: var(--neu-enfonsat);
+  transition: border-color var(--m-rapid), box-shadow var(--m-rapid);
 }
+.camp input:focus-visible, .camp select:focus-visible, .camp textarea:focus-visible {
+  outline: var(--v-plena) solid var(--c-focus); outline-offset: 1px;
+}
+.camp .ajuda { font-size: var(--t-s); color: var(--c-text-2); margin: 0; }
 .casella { display: flex; gap: var(--e-2); align-items: flex-start; min-height: var(--tactil); }
-.casella input { width: var(--icona); height: var(--icona); margin-top: var(--e-1); }
+.casella input { width: var(--icona); height: var(--icona); margin-top: var(--e-1); accent-color: var(--c-mari); }
 
-/* Logotips: el del tema clar o el del tema fosc */
+/* ==========================================================================
+   Subratllat elàstic (navegació superior i pestanyes)
+   El dibuixa interaccions.js: una píndola que segueix el cursor i una ratlla
+   daurada que s'estira entre pestanyes. L'element actiu també porta negreta
+   i aria-current / aria-selected.
+   ========================================================================== */
+.subratllat { position: relative; isolation: isolate; }
+.subratllat > :not(.sr-capa) { position: relative; z-index: 1; }
+.sr-capa { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+.sr-pindola { fill: var(--c-pindola); }
+.sr-vora { stroke: var(--c-indicador-vora); stroke-linecap: round; }
+.sr-ratlla { stroke: var(--c-indicador); stroke-linecap: round; }
+
+/* Pestanyes (role="tablist") */
+.pestanyes {
+  display: flex; gap: var(--e-1); overflow-x: auto; scrollbar-width: none;
+  border-bottom: var(--v-fina) solid var(--c-linia);
+}
+.pestanyes::-webkit-scrollbar { display: none; }
+.pestanya {
+  flex: none; min-height: var(--tactil); padding: var(--e-2) var(--e-4) var(--e-3);
+  border: 0; background: none; cursor: pointer;
+  color: var(--c-text-2); font: inherit; font-weight: var(--p-semi);
+  transition: color var(--m-rapid);
+  -webkit-tap-highlight-color: transparent;
+}
+.pestanya:hover, .pestanya[aria-selected="true"] { color: var(--c-text); }
+.pestanya[aria-selected="true"] { font-weight: var(--p-negreta); }
+.pestanya:focus-visible { outline-offset: -3px; border-radius: var(--r-m); }
+.panells { display: grid; }
+.panells > [role="tabpanel"] { grid-area: 1 / 1; min-width: 0; }
+.panells > [role="tabpanel"]:focus-visible { outline-offset: var(--e-2); border-radius: var(--r-m); }
+
+/* ==========================================================================
+   Zona d'arrossegament magnètica (pujar fitxers)
+   ========================================================================== */
+.zona-magnetica {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; place-items: center; text-align: center;
+  min-height: 15rem; width: 100%; padding: var(--e-6) var(--e-5);
+  border: 2px dashed var(--c-linia-forta); border-radius: var(--r-xl);
+  background: var(--neu-base); box-shadow: var(--neu-enfonsat);
+  transition: border-color var(--m-rapid) var(--m-corba), background-color var(--m-rapid) var(--m-corba);
+  will-change: transform;
+}
+.zona-magnetica.a-prop { border-color: var(--c-mari); border-style: solid; }
+.zona-magnetica.a-sobre { border-color: var(--c-mari); border-style: solid; background: color-mix(in oklab, var(--neu-base), var(--c-mari) 10%); }
+.zona-magnetica.te-fitxer { border-style: solid; border-color: color-mix(in oklab, var(--neu-base), var(--c-text) 20%); }
+.zona-magnetica.te-error { border-color: var(--c-error); }
+/* Llum de bioluminescència: segueix el fitxer quan s'acosta */
+.zm-llum {
+  position: absolute; left: 50%; top: 50%; z-index: -1;
+  width: 13rem; height: 13rem; margin: -6.5rem 0 0 -6.5rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklab, var(--c-mari), transparent 35%), transparent 68%);
+  filter: blur(18px); opacity: 0;
+  transition: opacity 200ms var(--m-corba);
+  pointer-events: none;
+}
+.zona-magnetica.a-prop .zm-llum { opacity: 1; }
+.zm-tria {
+  display: grid; justify-items: center; gap: var(--e-1);
+  padding: var(--e-3); border: 0; border-radius: var(--r-l); background: transparent;
+  color: var(--c-text); font: inherit; cursor: pointer;
+}
+.zm-tria:focus-visible { outline-offset: var(--e-2); }
+.zm-rajola {
+  display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: var(--e-2);
+  border-radius: var(--r-l);
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), var(--c-text) 14%);
+  background: var(--neu-base); box-shadow: var(--neu-relleu-petit);
+  color: var(--c-text-2); font-size: 24px;
+  transition: color var(--m-rapid), background-color var(--m-rapid);
+}
+.zona-magnetica.a-prop .zm-rajola { color: var(--c-mari-text); }
+.zona-magnetica.te-fitxer .zm-rajola { background: var(--c-mari); color: var(--c-mari-sobre); border-color: var(--c-mari); }
+.zm-titol { font-weight: var(--p-semi); }
+.zm-ajuda { font-size: var(--t-s); color: var(--c-text-2); }
+.zm-fitxer { display: grid; justify-items: center; gap: var(--e-1); width: 100%; }
+.zm-nom { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text-2); font-size: var(--t-s); }
+.zm-mida { font-family: var(--f-codi); font-size: var(--t-xs); color: var(--c-text-2); }
+.zm-llest { display: inline-flex; align-items: center; gap: var(--e-1); font-weight: var(--p-semi); }
+.zm-llest .icona-svg { color: var(--c-ok-text); }
+.zm-accions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-2); margin-top: var(--e-3); }
+.zm-error { margin: var(--e-3) 0 0; max-width: 28ch; color: var(--c-error-text); font-size: var(--t-s); font-weight: var(--p-semi); }
+.zm-resum { margin: var(--e-2) 0 0; font-size: var(--t-s); color: var(--c-text); }
+
+/* ==========================================================================
+   Impressora de justificants
+   La màquina és en relleu; la pantalla, un pou fosc; el paper surt per la
+   ranura a batzegades, línia a línia, i té la vora tallada en ona.
+   ========================================================================== */
+.impressora { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 24rem; margin-inline: auto; }
+.imp-maquina {
+  --imp-radi: 24px; --imp-marge: 12px;
+  position: relative; isolation: isolate; width: 100%;
+  padding: var(--imp-marge) var(--imp-marge) 32px;
+  border-radius: var(--imp-radi);
+  border: var(--v-fina) solid color-mix(in oklab, var(--neu-base), var(--c-text) 12%);
+  background:
+    radial-gradient(140% 90% at 30% 0%, color-mix(in oklab, var(--neu-base), white 9%), transparent 60%),
+    var(--neu-base);
+  box-shadow: var(--neu-relleu), inset 0 1px 0 var(--c-llum-interior), inset 0 -2px 0 rgba(0, 0, 0, .12);
+}
+.imp-cap { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: var(--e-2); min-height: 44px; margin-bottom: var(--e-2); }
+.imp-cap img { width: 30px; height: auto; }
+.imp-pantalla {
+  position: relative; z-index: 1; overflow: hidden;
+  padding: var(--e-4);
+  border-radius: calc(var(--imp-radi) - var(--imp-marge));
+  border: var(--v-fina) solid #08121A;
+  background: #0C1821; color: var(--boira);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, .65);
+}
+/* Reflex de vidre i línies d'escombrat molt suaus */
+.imp-pantalla::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, .06), transparent 40%),
+    repeating-linear-gradient(to bottom, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 0 24px 4px rgba(0, 0, 0, .45);
+}
+.imp-pantalla .imp-fila { display: flex; justify-content: space-between; gap: var(--e-3); align-items: start; }
+.imp-pantalla p { margin: 0; }
+.imp-concepte { font-weight: var(--p-semi); color: #E6EAE9; }
+.imp-detall { font-size: var(--t-s); color: var(--pissarra); }
+.imp-import { font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-l); color: #E6EAE9; font-variant-numeric: tabular-nums; }
+.imp-estat { display: flex; align-items: center; gap: var(--e-2); min-width: 0; margin-top: var(--e-4); }
+.imp-indicador { position: relative; display: grid; width: 20px; height: 20px; flex: none; }
+.imp-indicador > * { grid-area: 1 / 1; display: grid; place-items: center; }
+.imp-indicador .icona-svg { width: 18px; height: 18px; }
+.imp-indicador .fet { color: #43C59E; }
+.imp-indicador .treballant { color: var(--pissarra); }
+.imp-etiqueta { display: grid; flex: 1; min-width: 0; overflow: hidden; }
+.imp-etiqueta > span { grid-area: 1 / 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--t-s); font-weight: var(--p-semi); color: var(--pissarra); }
+.imp-ranura {
+  position: absolute; z-index: 3; left: 24px; right: 24px; bottom: var(--imp-marge); height: 8px;
+  border-radius: 4px; background: #08121A; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .8);
+}
+.imp-sortida { position: relative; z-index: 4; width: calc(80% + 3rem); max-width: 100%; margin-top: -16px; padding: 0 var(--e-5); overflow: hidden; }
+/* Ombra de la ranura sobre el paper que surt */
+.imp-sortida::before { content: ""; position: absolute; z-index: 2; left: var(--e-5); right: var(--e-5); top: -4px; height: 8px; background: rgba(8, 18, 26, .75); filter: blur(6px); opacity: 0; transition: opacity 160ms; }
+.impressora:not([data-etapa="processant"]) .imp-sortida::before { opacity: 1; }
+.imp-moviment { position: relative; isolation: isolate; }
+.imp-moviment::after { content: ""; position: absolute; z-index: -1; left: 8%; right: 8%; bottom: 0; height: 12px; transform: translateY(6px); border-radius: 50%; background: rgba(8, 18, 26, .25); filter: blur(10px); }
+.imp-paper {
+  position: relative; z-index: 1;
+  padding: var(--e-6) var(--e-5) var(--e-7);
+  background:
+    linear-gradient(to bottom, rgba(17, 33, 45, .05), transparent 18px),
+    var(--paper);
+  color: var(--abisme);
+  font-family: var(--f-codi); font-size: var(--t-s); line-height: 1.55;
+  /* clip-path de la vora en ona: el calcula interaccions.js */
+}
+.imp-paper h3 { margin: 0 0 var(--e-1); font-family: var(--f-titol); font-size: var(--t-xl); color: var(--abisme); }
+.imp-paper hr { margin: var(--e-3) 0; border: 0; border-top: 1.5px dashed #9BA8AB; }
+.imp-paper dl { display: grid; gap: var(--e-1); margin: 0; }
+.imp-paper dl > div { display: flex; justify-content: space-between; gap: var(--e-3); }
+.imp-paper dt { color: var(--pissarra-fosca); }
+.imp-paper dd { margin: 0; text-align: right; font-weight: var(--p-mitja); }
+.imp-paper .imp-total { font-size: var(--t-l); font-weight: var(--p-negreta); }
+.imp-paper .imp-total dd { font-variant-numeric: tabular-nums; }
+.imp-paper p { margin: 0; color: var(--pissarra-fosca); }
+.imp-segell {
+  display: inline-flex; align-items: center; gap: var(--e-1); margin-top: var(--e-3);
+  padding: 2px var(--e-2); border: 1.5px solid var(--posidonia); border-radius: var(--r-s);
+  color: var(--posidonia); font-weight: var(--p-mitja); transform: rotate(-2deg);
+}
+.imp-segell .icona-svg { width: 14px; height: 14px; }
+
+/* ==========================================================================
+   Diàleg (<dialog> natiu: tanca amb Esc i reté el focus)
+   ========================================================================== */
+.dialeg {
+  width: min(34rem, calc(100vw - 2 * var(--e-4)));
+  max-height: calc(100dvh - 2 * var(--e-4));
+  padding: 0; border: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 14%);
+  border-radius: var(--r-xl);
+  background: var(--c-superficie); color: var(--c-text);
+  box-shadow: var(--ombra-flotant);
+  overflow: auto;
+}
+.dialeg[open] { animation: dialeg-entra 220ms var(--m-corba); }
+@keyframes dialeg-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+.dialeg::backdrop { background: rgba(8, 18, 26, .62); backdrop-filter: blur(3px); }
+.dialeg-cap { display: flex; align-items: start; justify-content: space-between; gap: var(--e-3); padding: var(--e-5) var(--e-5) 0; }
+.dialeg-cap h2 { margin: 0; font-size: var(--t-2xl); }
+.dialeg-cos { display: grid; gap: var(--e-4); padding: var(--e-4) var(--e-5) var(--e-5); }
+.dialeg-peu { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-2); padding: 0 var(--e-5) var(--e-5); }
+.boto-tanca { min-width: var(--tactil); padding: 0; }
+
+/* Regió viva compartida per anunciar canvis d'estat al lector de pantalla */
+.anunci { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ==========================================================================
+   Logotips
+   ========================================================================== */
 .logo-fosc { display: none; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .logo-clar { display: none; }
@@ -510,5 +855,20 @@ img { max-width: 100%; display: block; }
 }
 :root[data-theme="dark"] .logo-clar { display: none; }
 :root[data-theme="dark"] .logo-fosc { display: block; }
-/* Barra lateral: sempre fosca, sempre la versió per a fons fosc */
 .logo-sempre-fosc { display: block; }
+
+/* ==========================================================================
+   Més contrast: sense relleu ni degradats; vores plenes
+   ========================================================================== */
+@media (prefers-contrast: more) {
+  .targeta, .boto, .selector-tema, .segmentat, .int-pista, .zona-magnetica, .imp-maquina, .caixa-imatge, .camp input, .camp select, .camp textarea, .neu-relleu, .neu-relleu-petit, .neu-enfonsat, .boto-tactil {
+    box-shadow: none !important;
+    border: var(--v-plena) solid var(--c-text);
+  }
+  .boto-tactil .bt-tecla { box-shadow: none; transform: none; border: var(--v-plena) solid var(--c-text); }
+  .selector-tema input:checked + .opcio, .segmentat input:checked + .opcio { box-shadow: none; background: var(--c-text); color: var(--c-fons); }
+  .selector-tema input:checked + .opcio .marca-activa, .segmentat input:checked + .opcio .marca-activa { color: var(--c-fons); }
+  .sr-pindola { display: none; }
+  .sr-vora { stroke: var(--c-text); }
+  .zm-llum { display: none; }
+}
