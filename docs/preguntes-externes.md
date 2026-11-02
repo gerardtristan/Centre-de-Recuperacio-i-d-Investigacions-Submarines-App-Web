@@ -117,7 +117,7 @@ Preguntes a [preguntes-informatica](planning.md#preguntes-informatica).
 >
 > Estem acabant el pla de l'aplicació del club i, abans d'entrar en producció, hi ha algunes decisions tècniques que són teves.
 >
-> 1. Correu: amb quin remitent i quin proveïdor enviem els correus? Si és Brevo, els seus subencarregats són tots dins la UE? (P-46, S-M01-19)
+> 1. Correu: amb quin remitent enviem els correus? (S-M01-19; el proveïdor, Brevo, ja és decidit a la 062)
 > 2. Quina eina fem servir per auditar l'accessibilitat? (S-M01-20)
 > 3. Xifratge: quina biblioteca fem servir, com separem els rols de la base de dades i qui guarda la còpia de la clau? (S-M05a-10)
 > 4. A quina hora corren les comprovacions diàries, qui rep l'avís si es corregeix alguna cosa i on es veu el resum? (RN-M01-41, RN-M01-43)
