@@ -61,6 +61,10 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    # A les PR, l'acció de gitleaks llegeix la llista de commits de la PR per l'API.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
