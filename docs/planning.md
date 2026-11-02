@@ -841,7 +841,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 - **Conservació:** després de la baixa, el que obliga la llei (quotes i rebuts bloquejats, Q-14) [A validar: gestoria].
 - **Esborrat:** decisió 028; el número queda reservat i lligat a una referència anònima.
 - **Importació:** el fitxer de Cluber no es desa (RN-101); cap IBAN; la importació real només a producció.
-- **Dades dins la UE:** base de dades, còpies i correu dins la UE ([035](decisions/035-dades-nomes-dins-ue.md)); el correu, segons P-46.
+- **Dades dins la UE:** base de dades, còpies i correu dins la UE ([035](decisions/035-dades-nomes-dins-ue.md)); el correu, amb Brevo ([062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)).
 - **Fitxers:** PDF del carnet generat a demanda; exportació RGPD amb URL signada de 5 minuts i esborrada als 7 dies (V-08).
 
 <a id="M01-13-riscos"></a>
@@ -4474,7 +4474,7 @@ Punts que es van presentar per aprovar:
 | **Intenció** | Que el club no perdi cap termini d'un ajut i que cada ajut tingui una història completa: la convocatòria amb tots els requisits, la sol·licitud amb el seu estat i el seu responsable, les despeses i factures que el justifiquen i, si es denega, què cal millorar per tornar-ho a intentar. |
 | **Processos que cobreix** | P-M09A-A Donar d'alta una convocatòria · P-M09A-B Revisar l'elegibilitat · P-M09A-C Preparar i presentar · P-M09A-D Avisos del calendari · P-M09A-E Resolució: concedida o denegada · P-M09A-F Justificar (F 9.10) · P-M09A-G Tornar-ho a intentar |
 | **Tasques** | 16 (T-M09A-01 a T-M09A-16); la T-M09A-16 l'afegeix la 058 |
-| **Què el bloqueja** | Per construir: les despeses i els ingressos de la part principal del 09 (T-M09-05 i T-M09-08) i el correu de la 00 (proveïdor dins la UE, P-46 [A verificar: informàtica]). Per fer-lo servir: qui és el responsable dels ajuts i quines convocatòries s'han de vigilar [A validar: junta] |
+| **Què el bloqueja** | Per construir: les despeses i els ingressos de la part principal del 09 (T-M09-05 i T-M09-08) i el correu de la 00 (Brevo, [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)). Per fer-lo servir: qui és el responsable dels ajuts i quines convocatòries s'han de vigilar [A validar: junta] |
 | **Què cal aprovar** | Aquest apartat i els supòsits S-M09A-01 a S-M09A-04 ([M09-ajuts-14](#M09-ajuts-14-aprovar)) |
 
 <a id="M09-ajuts-1-intencio"></a>
@@ -4514,7 +4514,7 @@ Punts que es van presentar per aprovar:
 **De què depèn.**
 | Mòdul | Què en fa servir l'apartat |
 |---|---|
-| 00 | Departaments; fitxers privats (bases, documents, resolucions, paquet); correu (proveïdor dins la UE, P-46 [A verificar: informàtica]) i avisos a l'app; cua de tasques; permisos; registre d'activitat |
+| 00 | Departaments; fitxers privats (bases, documents, resolucions, paquet); correu (Brevo, [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)) i avisos a l'app; cua de tasques; permisos; registre d'activitat |
 | 02 | Projectes i subtipus de medi ambient (lectura, clau forana) |
 | 09 (part principal) | `expenses.expenses_for` (despeses amb factura i comprovant), `expenses.record_other_income(kind="grant")` (ingrés de l'ajut), `margins.department_report` |
 
@@ -4696,7 +4696,7 @@ App Django `grants` (nova). Cap camp de dades personals més enllà del responsa
 | RN-M09A-04 | Avisos de tancament: 30, 14 i 7 dies abans de `closes_on`, per a les sol·licituds detectades o en preparació, al responsable i al tresorer, per correu i a l'app (sense push, [041](decisions/041-web-installable-i-avisos-sense-push.md)). Una tasca diària de la cua els envia; si `closes_on` canvia, es recalculen; si la data ja ha passat, no s'envia | Instruccions del 27/10/2026 |
 | RN-M09A-05 | Data prevista de resposta = `submitted_on` + `max_resolution_days` si l'organisme el publica; si no, la que escrigui el responsable; si no n'hi ha, cap avís. El dia de la data, avís si encara és «presentada» | Instruccions del 27/10/2026 |
 | RN-M09A-06 | Els dies dels avisos (30, 14 i 7) són configurables (ajust `grants.deadline_reminder_days`). Cada avís s'envia una sola vegada (unicitat de `GrantReminder`), també si la tasca es repeteix | Proposta |
-| RN-M09A-07 | El correu surt pel servei de la 00, amb proveïdor dins la UE (P-46 [A verificar: informàtica]). Només porta el nom de la convocatòria, les dates, el que falta i l'enllaç a la fitxa | 035; 042 |
+| RN-M09A-07 | El correu surt pel servei de la 00, amb Brevo ([062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)). Només porta el nom de la convocatòria, les dates, el que falta i l'enllaç a la fitxa | 035; 042; 062 |
 | RN-M09A-08 | Concedida: import concedit i resolució obligatoris. Si l'import concedit supera el demanat, avís (no bloqueja) | Proposta |
 | RN-M09A-09 | L'ingrés de l'ajut es registra a la part principal com a `OtherIncome` de tipus `grant`, lligat a la sol·licitud i al seu departament, **mai a una activitat** (RN-M09-08). Pot tenir diversos ingressos (bestreta i saldo) | F §7; RN-M09-08 |
 | RN-M09A-10 | Només es poden lligar despeses del departament o projecte de la sol·licitud, dins el període subvencionable si n'hi ha, que no estiguin anul·lades. La suma imputada d'una despesa entre tots els ajuts no passa del seu import | F 9.10 |
@@ -4824,7 +4824,7 @@ Cap altra app escriu als models de `grants`.
 ## M09-ajuts-12 Seguretat i RGPD
 
 - **Cap dada personal** de socis ni participants (RN-M09A-15). Text d'ajuda als camps lliures i a la pujada de documents.
-- **Correu dins la UE** (035, 042; P-46 [A verificar: informàtica]).
+- **Correu dins la UE** (035, 042; Brevo, 062).
 - **Cap integració externa:** la plataforma no visita els enllaços de les bases ni es connecta amb cap organisme.
 - **Fitxers privats** (bases, documents, resolucions), amb enllaç signat i caducitat curta.
 - **Documents de justificació i paquets** ([051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md)): xifrats a la UE, només els obren el tresorer i la junta, cap eina d'IA, còpia amb l'IBAN emmascarat i original conservat. Si l'organisme accepta la còpia emmascarada és [A verificar: tresorer] per a cada convocatòria.
