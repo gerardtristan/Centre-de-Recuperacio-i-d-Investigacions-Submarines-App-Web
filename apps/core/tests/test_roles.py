@@ -21,6 +21,7 @@ from apps.core.roles import (
     admin_shortage_warning,
     assign_role,
     deactivate_admin_account,
+    grant_initial_administrator,
     operational_admins,
     remove_role,
     reset_totp,
@@ -342,6 +343,36 @@ def test_createsuperuser_gets_the_administrator_role():
     assert (entry.actor_kind, entry.actor_origin) == ("system", "createsuperuser")
     assert entry.actor_account is None
     assert entry.new_value == R.ADMINISTRATOR
+
+
+def test_initial_administrator_records_the_command_that_creates_it(make_person):
+    account = Account.objects.create_admin(make_person(), "demo")
+    grant_initial_administrator(account, origin="seed_demo_data")
+    assert active_roles(account) == {R.ADMINISTRATOR}
+    entry = AuditEntry.objects.get(action=audit.Action.ROLE_ASSIGNED, target_id=str(account.pk))
+    assert (entry.actor_kind, entry.actor_origin) == ("system", "seed_demo_data")
+    assert entry.actor_account is None
+    assert entry.new_value == R.ADMINISTRATOR
+
+
+def test_initial_administrator_twice_records_once(make_person):
+    account = Account.objects.create_admin(make_person(), "demo")
+    grant_initial_administrator(account, origin="seed_demo_data")
+    grant_initial_administrator(account, origin="seed_demo_data")
+    assert AccountRole.objects.filter(admin_account=account).count() == 1
+    assert (
+        AuditEntry.objects.filter(
+            action=audit.Action.ROLE_ASSIGNED, target_id=str(account.pk)
+        ).count()
+        == 1
+    )
+
+
+def test_initial_administrator_needs_an_origin(make_person):
+    account = Account.objects.create_admin(make_person(), "demo")
+    with pytest.raises(ValueError):
+        grant_initial_administrator(account, origin=" ")
+    assert not AccountRole.objects.filter(admin_account=account).exists()
 
 
 def test_the_interface_shows_the_translatable_label_not_the_stored_name():

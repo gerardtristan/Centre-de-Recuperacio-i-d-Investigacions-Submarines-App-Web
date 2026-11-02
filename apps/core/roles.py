@@ -181,8 +181,11 @@ def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
     account.end_all_sessions()
 
 
-def grant_initial_administrator(account: Account) -> None:
-    """Rol administrador per al primer compte (`createsuperuser`, des del servidor)."""
+def grant_initial_administrator(account: Account, *, origin: str = "createsuperuser") -> None:
+    """Rol administrador per al primer compte, des del servidor. `origin` és l'ordre que el crea
+    (`createsuperuser` o `seed_demo_data`) i queda al registre d'activitat com a actor sistema."""
+    # Abans de crear el rol: un origen buit no ha de deixar un rol sense registre.
+    actor = audit.system(origin)
     role = Role.objects.get(code=Role.Code.ADMINISTRATOR)
     _, created = AccountRole.objects.get_or_create(
         admin_account=account, role=role, removed_at=None
@@ -190,7 +193,7 @@ def grant_initial_administrator(account: Account) -> None:
     if created:
         audit.record(
             audit.Action.ROLE_ASSIGNED,
-            actor=audit.system("createsuperuser"),
+            actor=actor,
             target=account,
             field="role",
             new=Role.Code.ADMINISTRATOR,
