@@ -72,6 +72,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
 | C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fora dels dos nivells de producció (decisió 025). Al nivell 1 (05a), mode real només per a mandats i cap cobrament real; al nivell 2 (05b), producció completa. La plataforma no guarda l'IBAN, excepte xifrat al mandat (044) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat; prova que al nivell 1 no es pot crear cap cobrament real; revisió del model de dades: l'únic camp amb IBAN és el xifrat del mandat (044) | 2 |
 | C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
+| C11 | Usuaris de la base de dades | Dos usuaris de PostgreSQL: un per a les migracions (propietari de les taules) i un altre per a l'app en funcionament, sense ser propietari ni superusuari, de manera que no pugui desactivar els disparadors del registre d'activitat (T-M01-07) ni canviar l'estructura | Comprovar que l'usuari de l'app no pot fer `ALTER TABLE core_auditentry DISABLE TRIGGER` ni `DROP TRIGGER` | 1 |
 
 ### D. Dades i continuïtat
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
