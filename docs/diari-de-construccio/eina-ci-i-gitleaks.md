@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 02/11/2026 23:29 – 23:43 | 383c0df (excepció), 2a381b5 (diari), d1dab31 (permís) | 722 (sense canvis) | [A comprovar] |
+| 02/11/2026 23:29 – 23:43 | 383c0df (excepció), 2a381b5 (diari), d1dab31 (permís) | 722 (sense canvis) | verd (#14 a la PR #4; el push de d7cd1c3 també en verd) |
 
 No és una tasca del pla: és el manteniment del pipeline que revisa cada canvi.
 
@@ -27,7 +27,7 @@ No és una tasca del pla: és el manteniment del pipeline que revisa cada canvi.
 
 ## Com se sap que funciona
 - Execució #12 (PR #4): proves i captures en verd; `secrets` va fallar pel permís, no per cap filtració.
-- Pendent: execució nova de la PR #4 amb el permís corregit. [A comprovar]
+- Execució #14 (PR #4), amb el permís corregit: proves, captures i `secrets` en verd, amb «No leaks detected». La PR en esborrany va confirmar que l'excepció cobreix els commits antics (a2babcd i d5abc59), sense `.gitleaksignore`.
 
 ## Evidències
 - `.github/workflows/ci.yml · commit d1dab31 · 02/11/2026`

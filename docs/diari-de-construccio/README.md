@@ -54,4 +54,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | Eina | Títol | Data i hora | Commit | Proves | CI |
 |---|---|---|---|---|---|
 | [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | verd (#9) |
-| [CI i gitleaks](eina-ci-i-gitleaks.md) | Cerca de secrets: excepció i permisos | 02/11/2026 23:43 | 383c0df, 2a381b5, d1dab31 | 722 | [A comprovar] |
+| [CI i gitleaks](eina-ci-i-gitleaks.md) | Cerca de secrets: excepció i permisos | 02/11/2026 23:43 | 383c0df, 2a381b5, d1dab31 | 722 | verd (#14 a la PR #4; el push de d7cd1c3 també en verd) |
