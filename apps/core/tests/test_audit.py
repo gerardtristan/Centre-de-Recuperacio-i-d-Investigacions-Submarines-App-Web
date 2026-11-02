@@ -14,7 +14,7 @@ from apps.accounts import totp
 from apps.accounts.models import Account, RecoveryCode, TotpDevice
 from apps.accounts.tests.test_totp import ADMIN_CODE, ENROL, code_for, enrolled, password_step
 from apps.core import audit
-from apps.core.models import AccountRole, AuditEntry, ImmutableAuditError, Person, Role
+from apps.core.models import AccountRole, AppendOnlyError, AuditEntry, Person, Role
 from apps.core.roles import assign_role, deactivate_admin_account, remove_role, reset_totp
 from conftest import PASSWORD
 
@@ -53,13 +53,13 @@ class TestImmutableInTheOrm:
 
     def test_saving_an_existing_entry_fails(self, entry):
         entry.action = "auth.una_altra_cosa"
-        with pytest.raises(ImmutableAuditError):
+        with pytest.raises(AppendOnlyError):
             entry.save()
         entry.refresh_from_db()
         assert entry.action == A.LOGOUT
 
     def test_deleting_an_entry_fails(self, entry):
-        with pytest.raises(ImmutableAuditError):
+        with pytest.raises(AppendOnlyError):
             entry.delete()
         assert AuditEntry.objects.filter(pk=entry.pk).exists()
 
@@ -75,7 +75,7 @@ class TestImmutableInTheOrm:
     )
     def test_bulk_operations_fail(self, entry, operation):
         entry.action = "x"
-        with pytest.raises(ImmutableAuditError):
+        with pytest.raises(AppendOnlyError):
             operation(AuditEntry.objects.all(), entry)
         assert AuditEntry.objects.get(pk=entry.pk).action == A.LOGOUT
 

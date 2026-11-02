@@ -1,0 +1,102 @@
+"""Textos legals i consentiments amb versió i canal (spec 00, HU-17, CA-17.1 a CA-17.3, RN-80).
+
+- Publicar un text crea la versió següent del seu tipus; les anteriors no canvien (CA-17.2).
+- Donar o retirar un consentiment afegeix una fila; l'estat és el de l'última (CA-17.3).
+- Q-16 és oberta: no hi ha llista fixa de tipus i una versió nova no obliga a tornar a donar
+  el consentiment; `has_consent` mira l'última fila, de qualsevol versió.
+
+Qui pot registrar un consentiment presencial ho comprova la vista que crida el servei (p. ex.
+l'alta presencial, P2); publicar, aquí mateix (M12).
+"""
+
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Max
+from django.http import Http404
+
+from . import audit
+from .models import Consent, LegalText
+from .permissions import has_perm
+
+PUBLISHED = "legal_texts.published"
+GRANTED = "consents.granted"
+WITHDRAWN = "consents.withdrawn"
+
+
+@transaction.atomic
+def publish_text(kind: str, content: str, *, by) -> LegalText:
+    if not has_perm(by, "core.legal_texts.publish"):
+        raise Http404
+    if not content.strip():
+        raise ValidationError("El text no pot ser buit.")
+    # shortcut: dues publicacions simultànies del mateix tipus xoquen amb la restricció
+    # d'unicitat i una falla sense desar res; amb un sol administrador que publica, n'hi ha prou.
+    last = LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0
+    text = LegalText(kind=kind, version=last + 1, content=content.strip(), published_by=by)
+    text.full_clean()
+    text.save()
+    audit.record(PUBLISHED, actor=by, target=text, details={"kind": kind, "version": text.version})
+    return text
+
+
+def current_text(kind: str) -> LegalText | None:
+    return LegalText.objects.filter(kind=kind).order_by("-version").first()
+
+
+def _last(person, kind) -> Consent | None:
+    return (
+        Consent.objects.filter(person=person, legal_text__kind=kind)
+        .select_related("legal_text")
+        .order_by("-created_at", "-id")
+        .first()
+    )
+
+
+def has_consent(person, kind: str) -> bool:
+    last = _last(person, kind)
+    return last is not None and last.action == Consent.Action.GRANTED
+
+
+def _record(person, text, action, channel, by, request) -> Consent:
+    from apps.accounts.models import Account
+
+    # CA-17.1: el presencial el registra un compte concret.
+    recorder = by if channel == Consent.Channel.IN_PERSON else None
+    if channel == Consent.Channel.IN_PERSON and not isinstance(by, Account):
+        raise ValidationError("Un consentiment presencial necessita el compte que el registra.")
+    consent = Consent.objects.create(
+        person=person, legal_text=text, action=action, channel=channel, recorded_by=recorder
+    )
+    audit.record(
+        GRANTED if action == Consent.Action.GRANTED else WITHDRAWN,
+        actor=by,
+        target=person,
+        field=f"consent:{text.kind}",
+        new=action,
+        details={"version": text.version, "channel": channel},
+        request=request,
+    )
+    return consent
+
+
+@transaction.atomic
+def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
+    """Atorga el consentiment amb la versió vigent del text. `by` és qui actua: un compte, un
+    convidat (`audit.guest`) o ningú (visitant del formulari web)."""
+    text = current_text(kind)
+    if text is None:
+        raise ValidationError(f"No hi ha cap text publicat del tipus «{kind}».")
+    last = _last(person, kind)
+    if last and last.action == Consent.Action.GRANTED and last.legal_text_id == text.pk:
+        return last
+    return _record(person, text, Consent.Action.GRANTED, channel, by, request)
+
+
+@transaction.atomic
+def withdraw(person, kind: str, *, channel: str, by=None, request=None) -> Consent | None:
+    """Retira el consentiment: fila nova lligada a la versió que s'havia acceptat; l'anterior
+    no canvia i l'efecte és immediat (CA-17.3). Sense consentiment actiu, no fa res."""
+    last = _last(person, kind)
+    if last is None or last.action != Consent.Action.GRANTED:
+        return None
+    return _record(person, last.legal_text, Consent.Action.WITHDRAWN, channel, by, request)

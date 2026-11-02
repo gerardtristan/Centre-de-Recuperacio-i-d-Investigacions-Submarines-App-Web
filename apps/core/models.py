@@ -195,8 +195,45 @@ class PermissionMatrixVersion(models.Model):
         return f"Matriu v{self.number}"
 
 
-class ImmutableAuditError(Exception):
-    """Intent de modificar o esborrar una entrada del registre d'activitat (RN-51)."""
+class AppendOnlyError(Exception):
+    """Intent de modificar o esborrar una fila d'una taula on només s'afegeixen files (RN-51,
+    RN-80; textos legals publicats)."""
+
+
+_NO_CHANGE = "Aquest registre no es pot modificar ni esborrar: només s'hi afegeixen files."
+
+
+class AppendOnlyQuerySet(models.QuerySet):
+    # Les operacions en bloc no passen per `save` ni `delete` del model: també es bloquegen.
+    def update(self, **kwargs):
+        raise AppendOnlyError(_NO_CHANGE)
+
+    def delete(self):
+        raise AppendOnlyError(_NO_CHANGE)
+
+    def bulk_update(self, objs, fields, batch_size=None):
+        raise AppendOnlyError(_NO_CHANGE)
+
+    def update_or_create(self, *args, **kwargs):
+        raise AppendOnlyError(_NO_CHANGE)
+
+
+class AppendOnlyModel(models.Model):
+    objects = AppendOnlyQuerySet.as_manager()
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise AppendOnlyError(_NO_CHANGE)
+        # Sempre INSERT: amb una clau primària donada, Django provaria primer un UPDATE.
+        kwargs["force_insert"] = True
+        kwargs.pop("force_update", None)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise AppendOnlyError(_NO_CHANGE)
 
 
 class AuditJSONEncoder(DjangoJSONEncoder):
@@ -209,22 +246,7 @@ class AuditJSONEncoder(DjangoJSONEncoder):
         return super().default(o)
 
 
-class AuditEntryQuerySet(models.QuerySet):
-    # Les operacions en bloc no passen per `save` ni `delete` del model: també es bloquegen.
-    def update(self, **kwargs):
-        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
-
-    def delete(self):
-        raise ImmutableAuditError("El registre d'activitat no es pot esborrar.")
-
-    def bulk_update(self, objs, fields, batch_size=None):
-        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
-
-    def update_or_create(self, *args, **kwargs):
-        raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
-
-
-class AuditEntry(models.Model):
+class AuditEntry(AppendOnlyModel):
     """Entrada del registre d'activitat (spec 00, HU-14, RN-50 a RN-53; RN-RP-15).
 
     Només s'hi afegeixen files: el model ho impedeix a l'ORM i uns disparadors de PostgreSQL
@@ -273,8 +295,6 @@ class AuditEntry(models.Model):
     reason = models.TextField("motiu", blank=True)
     details = models.JSONField("detalls", default=dict, blank=True, encoder=AuditJSONEncoder)
 
-    objects = AuditEntryQuerySet.as_manager()
-
     class Meta:
         verbose_name = "entrada del registre d'activitat"
         verbose_name_plural = "registre d'activitat"
@@ -307,13 +327,78 @@ class AuditEntry(models.Model):
     def __str__(self):
         return f"{self.created_at:%Y-%m-%d %H:%M:%S} {self.action}"
 
-    def save(self, *args, **kwargs):
-        if not self._state.adding:
-            raise ImmutableAuditError("El registre d'activitat no es pot modificar.")
-        # Sempre INSERT: amb una clau primària donada, Django provaria primer un UPDATE.
-        kwargs["force_insert"] = True
-        kwargs.pop("force_update", None)
-        super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        raise ImmutableAuditError("El registre d'activitat no es pot esborrar.")
+class LegalText(AppendOnlyModel):
+    """Versió d'un text legal o de consentiment (spec 00, HU-17). Una versió publicada no es
+    modifica: un canvi és una versió nova. Els tipus (privacitat, butlletí, imatge…) són
+    dades i depenen de Q-16; aquí no se'n fixa cap."""
+
+    kind = models.SlugField("tipus", max_length=40)
+    version = models.PositiveIntegerField("versió")
+    content = models.TextField("contingut")
+    published_at = models.DateTimeField("vigent des de", default=timezone.now)
+    published_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="publicat per",
+    )
+
+    class Meta:
+        verbose_name = "text legal"
+        verbose_name_plural = "textos legals"
+        constraints = [
+            models.UniqueConstraint(fields=["kind", "version"], name="legaltext_unique_version"),
+        ]
+
+    def __str__(self):
+        return f"{self.kind} v{self.version}"
+
+
+class Consent(AppendOnlyModel):
+    """Atorgament o retirada d'un consentiment (RN-80, CA-17.1 i CA-17.3). Només s'hi afegeixen
+    files: l'estat d'una persona per a un tipus és el de la seva última fila."""
+
+    class Action(models.TextChoices):
+        GRANTED = "granted", "Atorgat"
+        WITHDRAWN = "withdrawn", "Retirat"
+
+    class Channel(models.TextChoices):
+        WEB = "web", "Web"
+        IN_PERSON = "in_person", "Presencial"
+
+    person = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="consents", verbose_name="persona"
+    )
+    legal_text = models.ForeignKey(
+        LegalText, on_delete=models.PROTECT, related_name="+", verbose_name="text acceptat"
+    )
+    action = models.CharField("acció", max_length=10, choices=Action.choices)
+    channel = models.CharField("canal", max_length=10, choices=Channel.choices)
+    # Compte que l'ha registrat, obligatori si és presencial (CA-17.1).
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="registrat per",
+    )
+    created_at = models.DateTimeField("data i hora", default=timezone.now)
+
+    class Meta:
+        verbose_name = "consentiment"
+        verbose_name_plural = "consentiments"
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~Q(channel="in_person") | Q(recorded_by__isnull=False),
+                name="consent_in_person_has_recorder",
+            ),
+        ]
+        indexes = [models.Index(fields=["person", "created_at"], name="consent_person_idx")]
+
+    def __str__(self):
+        return f"{self.person_id} {self.legal_text} {self.action}"
