@@ -8,6 +8,8 @@ from django.urls import URLPattern, URLResolver, get_resolver, reverse
 # Rutes públiques declarades. Afegir-ne una obliga a canviar aquesta llista a propòsit.
 PUBLIC_ROUTES = {
     "core:health",
+    # Enllaç signat local (imita Scaleway fora de producció): l'enllaç és la credencial.
+    "core:local_private_file",
     "accounts:login",
     "accounts:login_totp",
     "accounts:logout",
@@ -17,7 +19,14 @@ PUBLIC_ROUTES = {
     "administration:logout",
 }
 
-SAMPLE_VALUES = {"int": 1, "str": "x", "slug": "x", "path": "x", "uuid": uuid.UUID(int=0)}
+SAMPLE_VALUES = {
+    "int": 1,
+    "str": "x",
+    "string": "x",
+    "slug": "x",
+    "path": "x",
+    "uuid": uuid.UUID(int=0),
+}
 
 
 def _routes(patterns=None, namespace=""):

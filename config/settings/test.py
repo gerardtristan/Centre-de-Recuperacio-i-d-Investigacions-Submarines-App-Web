@@ -1,6 +1,7 @@
 """Proves automàtiques. Només dades inventades."""
 
 import os
+import tempfile
 
 from cryptography.fernet import Fernet
 
@@ -15,3 +16,12 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 # Correu en memòria de Django: cap correu surt de les proves.
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+# Fitxers privats en una carpeta temporal, fora del repositori.
+STORAGES = {
+    **STORAGES,  # noqa: F405
+    "private": {
+        "BACKEND": "apps.core.files.LocalSignedStorage",
+        "OPTIONS": {"location": tempfile.mkdtemp(prefix="cris-fitxers-proves-")},
+    },
+}

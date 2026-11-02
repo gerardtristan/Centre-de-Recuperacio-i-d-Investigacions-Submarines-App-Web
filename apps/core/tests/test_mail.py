@@ -321,7 +321,7 @@ def test_mail_code_does_not_depend_on_a_provider(module):
         elif isinstance(node, ast.ImportFrom) and node.module:
             imported.add(node.module)
     roots = {name.split(".")[0] for name in imported}
-    assert roots <= {"re", "django", "procrastinate", "models", "persons", "tasks", ""}
+    assert roots <= {"re", "django", "procrastinate", "models", "persons", "tasks", "files", ""}
 
 
 def test_nothing_of_the_email_goes_to_the_audit_log(email_templates):

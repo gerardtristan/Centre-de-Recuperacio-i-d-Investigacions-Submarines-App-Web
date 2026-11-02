@@ -127,6 +127,25 @@ SERVER_EMAIL = EMAIL_FROM_TRANSACCIONAL
 # Intents d'enviament d'un correu abans de donar-lo per fallit (i esborrar-ne el cos).
 EMAIL_MAX_ATTEMPTS = env.int("EMAIL_MAX_ATTEMPTS", default=5)
 
+# Fitxers privats (annex B de la spec 00; decisió 005; V-08). Fora de producció, un
+# emmagatzematge local que imita Scaleway; producció hi posa Scaleway (prod.py).
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    "private": {
+        "BACKEND": "apps.core.files.LocalSignedStorage",
+        "OPTIONS": {"location": BASE_DIR / "var" / "fitxers-privats"},
+    },
+}
+PRIVATE_FILES_LOCAL_ALLOWED = True
+# Durada de les URL signades: 5 minuts (V-08).
+PRIVATE_FILES_SIGNED_URL_TTL = env.int("S3_SIGNED_URL_TTL_SECONDS", default=300)
+# Mida màxima d'un fitxer pujat: 10 MB (V-08 de la spec 00; la checklist C10 només demana
+# que estigui limitada).
+UPLOAD_MAX_BYTES = env.int("UPLOAD_MAX_BYTES", default=10 * 1024 * 1024)
+# Dies que es conserva una exportació RGPD abans d'esborrar-la (V-08).
+GDPR_EXPORT_RETENTION_DAYS = env.int("GDPR_EXPORT_RETENTION_DAYS", default=7)
+
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"

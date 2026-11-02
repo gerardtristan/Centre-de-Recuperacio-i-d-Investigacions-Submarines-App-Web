@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
@@ -646,3 +647,43 @@ class OutgoingEmail(models.Model):
 
     def __str__(self):
         return f"{self.template} ({self.get_status_display()})"
+
+
+class PrivateFile(models.Model):
+    """Fitxer privat (spec 00, annex B; decisió 005). El contingut és a l'emmagatzematge
+    «private» (Scaleway a producció); aquí només hi ha qui n'és el propietari i com es diu.
+
+    Identificador i clau aleatoris: cap nom previsible ni cap dada personal a la ruta. Hereta el
+    permís del seu propietari (RN-B4): el comprova `files.can_access`.
+    """
+
+    class Kind(models.TextChoices):
+        GDPR_EXPORT = "gdpr_export", _("Exportació de dades (RGPD)")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    storage_key = models.CharField(_("clau a l'emmagatzematge"), max_length=100, unique=True)
+    kind = models.CharField(_("tipus"), max_length=20, choices=Kind.choices)
+    owner = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="+", verbose_name=_("propietari")
+    )
+    content_type = models.CharField(_("tipus de contingut"), max_length=100)
+    size_bytes = models.PositiveBigIntegerField(_("mida (bytes)"))
+    # Nom que rep qui el descarrega; el posa el codi, mai l'usuari.
+    download_name = models.CharField(_("nom de descàrrega"), max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Després d'aquesta data, la tasca diària l'esborra (V-08: exportació RGPD, 7 dies).
+    expires_at = models.DateTimeField(_("caduca"), null=True, blank=True)
+    deleted_at = models.DateTimeField(_("esborrat"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("fitxer privat")
+        verbose_name_plural = _("fitxers privats")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["gdpr_export"]), name="private_file_kind_valid"
+            ),
+        ]
+        indexes = [models.Index(fields=["expires_at"], name="private_file_expires_idx")]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.pk}"

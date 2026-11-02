@@ -33,6 +33,8 @@ class Action:
     ROLE_ASSIGNED = "roles.assigned"
     ROLE_REMOVED = "roles.removed"
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"
+    FILE_URL_ISSUED = "files.url_issued"
+    FILE_DELETED = "files.deleted"
 
 
 @dataclass(frozen=True)

@@ -5,7 +5,7 @@ from django.conf import settings
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
 
-from . import mail
+from . import files, mail
 
 
 # Reintents espaiats: 4, 16, 64, 256… segons. Qui decideix quan s'atura és `mail.deliver`, amb
@@ -17,3 +17,10 @@ from . import mail
 )
 def send_email(email_id: int) -> None:
     mail.deliver(email_id)
+
+
+# Cada dia, de matinada: esborra les exportacions RGPD caducades (V-08).
+@app.periodic(cron="15 3 * * *")
+@app.task(name="core.purge_expired_files", queue="maintenance")
+def purge_expired_files(timestamp: int) -> None:
+    files.purge_expired()

@@ -26,3 +26,25 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+
+# Fitxers privats a Scaleway Object Storage (París), un bucket privat per entorn (decisió 005).
+# Que el bucket no es pugui llistar ni sigui públic es configura a Scaleway.
+PRIVATE_FILES_LOCAL_ALLOWED = False
+STORAGES = {
+    **STORAGES,  # noqa: F405
+    "private": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": env("S3_BUCKET_FITXERS"),
+            "endpoint_url": env("S3_ENDPOINT_URL"),
+            "region_name": env("S3_REGION", default="fr-par"),
+            "access_key": env("S3_ACCESS_KEY_ID"),
+            "secret_key": env("S3_SECRET_ACCESS_KEY"),
+            "default_acl": "private",
+            "querystring_auth": True,
+            "querystring_expire": PRIVATE_FILES_SIGNED_URL_TTL,  # noqa: F405
+            "file_overwrite": False,
+            "signature_version": "s3v4",
+        },
+    },
+}
