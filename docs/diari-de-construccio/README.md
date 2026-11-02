@@ -39,18 +39,18 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 
 | Tasca | Títol | Data i hora | Commit | Proves | CI |
 |---|---|---|---|---|---|
-| [T-M01-03](T-M01-03.md) | Esquelet del projecte | 01/11/2026 00:04 | ee78d4b, 82332bc | 10 | [A comprovar] |
-| [T-M01-04](T-M01-04.md) | Persona i model d'usuari | 01/11/2026 00:16 | a2babcd | 66 | [A comprovar] |
-| [T-M01-05](T-M01-05.md) | Entrades separades i doble factor (en part) | 01/11/2026 00:31 | d5abc59 | 133 | [A comprovar] |
-| [T-M01-06](T-M01-06.md) | Rols i permisos | 01/11/2026 07:28 | 3b9f947 | 561 | [A comprovar] |
-| [T-M01-07](T-M01-07.md) | Registre d'activitat immutable | 02/11/2026 00:33 | a8ff23d | 616 | [A comprovar] |
-| [T-M01-08](T-M01-08.md) | Textos legals i consentiments | 02/11/2026 12:24 | f14ed71 | 636 | [A comprovar] |
-| [T-M01-09](T-M01-09.md) | Càrrec, pagament i departament | 02/11/2026 12:55 | 8cb6dc5 | 692 | [A comprovar] |
-| [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | [A comprovar] |
+| [T-M01-03](T-M01-03.md) | Esquelet del projecte | 01/11/2026 00:04 | ee78d4b, 82332bc | 10 | verd (#1) |
+| [T-M01-04](T-M01-04.md) | Persona i model d'usuari | 01/11/2026 00:16 | a2babcd | 66 | vermell (#2) |
+| [T-M01-05](T-M01-05.md) | Entrades separades i doble factor (en part) | 01/11/2026 00:31 | d5abc59 | 133 | vermell (#3) |
+| [T-M01-06](T-M01-06.md) | Rols i permisos | 01/11/2026 07:28 | 3b9f947 | 561 | verd (#4) |
+| [T-M01-07](T-M01-07.md) | Registre d'activitat immutable | 02/11/2026 00:33 | a8ff23d | 616 | vermell (#5) |
+| [T-M01-08](T-M01-08.md) | Textos legals i consentiments | 02/11/2026 12:24 | f14ed71 | 636 | verd (#6) |
+| [T-M01-09](T-M01-09.md) | Càrrec, pagament i departament | 02/11/2026 12:55 | 8cb6dc5 | 692 | verd (#7) |
+| [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | verd (#8) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
 
 | Eina | Títol | Data i hora | Commit | Proves | CI |
 |---|---|---|---|---|---|
-| [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | [A comprovar] |
+| [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | verd (#9) |

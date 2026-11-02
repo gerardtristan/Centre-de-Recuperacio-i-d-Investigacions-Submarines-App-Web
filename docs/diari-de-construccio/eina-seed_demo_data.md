@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 02/11/2026 14:04 – 14:07 | e69793d (origen), 942b752 (ordre) | 722 | [A comprovar] |
+| 02/11/2026 14:04 – 14:07 | e69793d (origen), 942b752 (ordre) | 722 | verd (#9, a 0b9debb) |
 
 No és una tasca del pla: és una eina per fer captures i demostracions sense dades reals.
 
