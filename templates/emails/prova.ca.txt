@@ -1,0 +1,6 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Aquest és un correu de prova de la plataforma del C.R.I.S. Si l'has rebut, l'enviament funciona." %}
+
+{% translate "Si respons aquest correu, la resposta arriba a l'adreça del club." %}
+{% endautoescape %}

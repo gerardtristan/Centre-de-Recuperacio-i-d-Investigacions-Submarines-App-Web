@@ -584,3 +584,65 @@ class Payment(UndeletableModel):
         if self.method == self.Method.DIRECT_DEBIT and self.charge.kind != Charge.Kind.FEE:
             raise ValidationError(gettext("La domiciliació només s'admet per a quotes."))
         super().save(*args, **kwargs)
+
+
+class OutgoingEmail(models.Model):
+    """Registre d'enviaments (spec 00, annex A, RN-A7): plantilla, destinatari, llengua, estat
+    i data. Es crea en posar el correu a la cua (`mail.queue_email`).
+
+    El cos només es guarda mentre el correu espera: s'esborra quan s'ha enviat bé o quan
+    s'esgoten els intents, perquè pot portar enllaços d'un sol ús (RN-A12). Mai cap adjunt.
+    """
+
+    class Status(models.TextChoices):
+        QUEUED = "queued", _("A la cua")
+        SENT = "sent", _("Enviat")
+        FAILED = "failed", _("Fallit")
+
+    template = models.CharField(_("plantilla"), max_length=100)
+    # Llengua amb què s'ha generat (061, punt 7): la de la plantilla que s'ha fet servir.
+    language = models.CharField(_("llengua"), max_length=7)
+    to_address = models.EmailField(_("destinatari"))
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("persona"),
+    )
+    subject = models.CharField(_("assumpte"), max_length=255)
+    body_text = models.TextField(_("cos (text)"), blank=True)
+    body_html = models.TextField(_("cos (HTML)"), blank=True)
+    status = models.CharField(
+        _("estat"), max_length=8, choices=Status.choices, default=Status.QUEUED
+    )
+    attempts = models.PositiveSmallIntegerField(_("intents"), default=0)
+    # Només el tipus d'error i un tros del missatge del servidor, mai el cos.
+    last_error = models.CharField(_("darrer error"), max_length=255, blank=True)
+    created_at = models.DateTimeField(_("posat a la cua"), auto_now_add=True)
+    sent_at = models.DateTimeField(_("enviat"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("correu enviat")
+        verbose_name_plural = _("correus enviats")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(status__in=["queued", "sent", "failed"]),
+                name="outgoing_email_status_valid",
+            ),
+            # Un correu que ja no espera no guarda el cos.
+            models.CheckConstraint(
+                condition=Q(status="queued") | Q(body_text="", body_html=""),
+                name="outgoing_email_body_only_while_queued",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="sent", sent_at__isnull=False)
+                | (~Q(status="sent") & Q(sent_at__isnull=True)),
+                name="outgoing_email_sent_at_only_when_sent",
+            ),
+        ]
+        indexes = [models.Index(fields=["status", "created_at"], name="outgoing_email_status_idx")]
+
+    def __str__(self):
+        return f"{self.template} ({self.get_status_display()})"

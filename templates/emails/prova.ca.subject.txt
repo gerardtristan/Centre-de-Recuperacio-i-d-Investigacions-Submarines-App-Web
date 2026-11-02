@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Correu de prova de la plataforma del C.R.I.S." %}
