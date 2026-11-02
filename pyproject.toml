@@ -35,7 +35,8 @@ addopts = "--strict-markers"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["static/vendor"]
+# El diari cita fragments de codi tal com eren en un commit: no es reformaten.
+extend-exclude = ["static/vendor", "docs/diari-de-construccio"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "INT"]

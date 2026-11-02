@@ -34,6 +34,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   decisions/                   una decisió per fitxer (NNN-nom.md) i pendents.md
   funcionalitats-processos/    funcionalitats i processos per mòdul (.pdf i .docx)
   context/                     fonts originals (instruccions; entrevistes fora de Git)
+  diari-de-construccio/        una entrada per tasca acabada, índex i captures
   entregues/                   lliuraments de l'assignatura
   arxiu/                       versions antigues (mai s'esborren), p. ex. context v3
 /specs/                        spec 00 (vigent fins que el 00 tingui secció a planning.md; la 04 és a l'arxiu)
@@ -53,6 +54,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 - [Checklist de producció](docs/checklist-produccio.md)
 - [Arquitectura d'integracions](docs/arquitectura-integracions.md)
 - [Decisions](docs/decisions/) · [Pendents de validar](docs/decisions/pendents.md)
+- [Diari de construcció](docs/diari-de-construccio/README.md)
 - [Document incremental (vigent)](docs/entregues/document-incremental.pdf)
 
 ## Fitxers fora del repositori

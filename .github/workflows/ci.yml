@@ -50,6 +50,15 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.prod
           DJANGO_ALLOWED_HOSTS: cris1954.cat
 
+  captures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Captures del diari de 500 KB com a màxim
+        run: |
+          grans=$(find docs/diari-de-construccio/captures -type f -size +500000c)
+          if [ -n "$grans" ]; then echo "Captures de més de 500 KB:"; echo "$grans"; exit 1; fi
+
   secrets:
     runs-on: ubuntu-latest
     steps:

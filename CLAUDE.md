@@ -16,6 +16,7 @@ La plataforma està preparada per traduir-se, amb el català com a única llengu
 - `docs/arquitectura-integracions.md`: components, proveïdors externs, fluxos de pagament, variables d'entorn i riscos.
 - `docs/decisions/`: una decisió per fitxer (NNN-nom.md). `docs/decisions/pendents.md`: contradiccions i decisions que ha de validar la junta.
 - `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
+- `docs/diari-de-construccio/`: diari de construcció, una entrada per tasca acabada, amb l'índex, les regles de contingut i la convenció de captures al seu `README.md`.
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
 - `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada. La spec 04 v2 és a l'arxiu (`docs/arxiu/spec-04-tresoreria-v2-2026-10-27.md`) des que es va aprovar la secció M04.
@@ -69,7 +70,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 ## Qualitat
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
 - No es fusiona res si el pipeline falla.
-- Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada.
+- Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
