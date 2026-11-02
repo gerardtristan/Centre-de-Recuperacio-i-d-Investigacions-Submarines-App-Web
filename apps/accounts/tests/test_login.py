@@ -39,6 +39,13 @@ class TestPersonalEntry:
         assert is_logged_in(client)
         assert client.get(reverse("core:home")).status_code == 200
 
+    def test_home_greets_without_gender(self, client, personal_account):
+        # Fórmula neutra: el perfil no diu el gènere de la persona.
+        post_login(client, PERSONAL_LOGIN, "anna@example.org")
+        html = client.get(reverse("core:home")).content.decode()
+        assert "Hola, Anna." in html
+        assert "Benvingut" not in html
+
     def test_email_in_any_case(self, client, personal_account):
         post_login(client, PERSONAL_LOGIN, " ANNA@example.org ")
         assert is_logged_in(client)
