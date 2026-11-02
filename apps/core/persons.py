@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+from django.conf import settings
 from django.db.models import Q
 
 from .models import Person
@@ -56,3 +57,12 @@ def find_duplicates(
             matches = matches.exclude(pk=result.same_document.pk)
         result.possible = list(matches.order_by("pk"))
     return result
+
+
+def language_for(person) -> str:
+    """Llengua en què s'escriu a la persona: la preferida si és activa; si no, la de reserva
+    (decisió 061)."""
+    active = {code for code, _ in settings.LANGUAGES}
+    if person.preferred_language in active:
+        return person.preferred_language
+    return settings.LANGUAGE_CODE

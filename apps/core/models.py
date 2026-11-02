@@ -46,6 +46,9 @@ class Person(models.Model):
         "referència anònima", max_length=20, null=True, blank=True, unique=True
     )
     origin = models.CharField("origen", max_length=16, choices=Origin.choices)
+    # Sense `choices`: les llengües actives són configuració (061). Es llegeix amb
+    # `persons.language_for`, que torna al català si no és activa.
+    preferred_language = models.CharField("llengua preferida", max_length=7, default="ca")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -332,10 +335,12 @@ class AuditEntry(AppendOnlyModel):
 class LegalText(AppendOnlyModel):
     """Versió d'un text legal o de consentiment (spec 00, HU-17). Una versió publicada no es
     modifica: un canvi és una versió nova. Els tipus (privacitat, butlletí, imatge…) són
-    dades i depenen de Q-16; aquí no se'n fixa cap."""
+    dades i depenen de Q-16; aquí no se'n fixa cap. Una traducció és una fila més de la
+    mateixa versió, no una versió nova (061)."""
 
     kind = models.SlugField("tipus", max_length=40)
     version = models.PositiveIntegerField("versió")
+    language = models.CharField("llengua", max_length=7, default="ca")
     content = models.TextField("contingut")
     published_at = models.DateTimeField("vigent des de", default=timezone.now)
     published_by = models.ForeignKey(
@@ -351,11 +356,13 @@ class LegalText(AppendOnlyModel):
         verbose_name = "text legal"
         verbose_name_plural = "textos legals"
         constraints = [
-            models.UniqueConstraint(fields=["kind", "version"], name="legaltext_unique_version"),
+            models.UniqueConstraint(
+                fields=["kind", "version", "language"], name="legaltext_unique_version_language"
+            ),
         ]
 
     def __str__(self):
-        return f"{self.kind} v{self.version}"
+        return f"{self.kind} v{self.version} ({self.language})"
 
 
 class Consent(AppendOnlyModel):

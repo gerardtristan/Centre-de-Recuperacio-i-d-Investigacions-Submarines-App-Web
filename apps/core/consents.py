@@ -4,11 +4,15 @@
 - Donar o retirar un consentiment afegeix una fila; l'estat és el de l'última (CA-17.3).
 - Q-16 és oberta: no hi ha llista fixa de tipus i una versió nova no obliga a tornar a donar
   el consentiment; `has_consent` mira l'última fila, de qualsevol versió.
+- Decisió 061: una traducció és una fila més de la versió vigent; si no n'hi ha, es mostra el
+  català. Publicar traduccions i decidir si cal una fila nova en acceptar la mateixa versió en
+  una altra llengua queda per a la primera traducció real (P-49).
 
 Qui pot registrar un consentiment presencial ho comprova la vista que crida el servei (p. ex.
 l'alta presencial, P2); publicar, aquí mateix (M12).
 """
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
@@ -17,6 +21,7 @@ from django.http import Http404
 from . import audit
 from .models import Consent, LegalText
 from .permissions import has_perm
+from .persons import language_for
 
 PUBLISHED = "legal_texts.published"
 GRANTED = "consents.granted"
@@ -39,8 +44,14 @@ def publish_text(kind: str, content: str, *, by) -> LegalText:
     return text
 
 
-def current_text(kind: str) -> LegalText | None:
-    return LegalText.objects.filter(kind=kind).order_by("-version").first()
+def current_text(kind: str, language: str | None = None) -> LegalText | None:
+    """Versió vigent del tipus: la traducció a `language` si existeix i, si no, l'original en
+    català. Mai una traducció d'una versió anterior."""
+    texts = LegalText.objects.filter(kind=kind)
+    latest = texts.filter(language=settings.LANGUAGE_CODE).order_by("-version").first()
+    if latest is None or language in (None, latest.language):
+        return latest
+    return texts.filter(version=latest.version, language=language).first() or latest
 
 
 def _last(person, kind) -> Consent | None:
@@ -83,7 +94,7 @@ def _record(person, text, action, channel, by, request) -> Consent:
 def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
     """Atorga el consentiment amb la versió vigent del text. `by` és qui actua: un compte, un
     convidat (`audit.guest`) o ningú (visitant del formulari web)."""
-    text = current_text(kind)
+    text = current_text(kind, language_for(person))
     if text is None:
         raise ValidationError(f"No hi ha cap text publicat del tipus «{kind}».")
     last = _last(person, kind)

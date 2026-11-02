@@ -6,10 +6,11 @@ Només dades inventades.
 import pytest
 from django.apps import apps
 from django.db import IntegrityError
+from django.test import override_settings
 
 from apps.core.models import Person
 from apps.core.normalization import normalize_document, normalize_phone
-from apps.core.persons import find_duplicates
+from apps.core.persons import find_duplicates, language_for
 
 pytestmark = pytest.mark.django_db
 
@@ -146,3 +147,18 @@ def test_no_model_has_iban_or_health_fields():
     project_models = [m for m in apps.get_models() if m.__module__.startswith("apps.")]
     fields = [f"{m.__name__}.{f.name}" for m in project_models for f in m._meta.get_fields()]
     assert not [f for f in fields if any(word in f.lower() for word in forbidden)]
+
+
+def test_preferred_language_defaults_to_catalan():
+    assert make_person().preferred_language == "ca"
+
+
+@pytest.mark.parametrize(("preferred", "expected"), [("ca", "ca"), ("es", "ca"), ("xx", "ca")])
+def test_language_for_falls_back_to_catalan_when_not_active(preferred, expected):
+    # Decisió 061: una preferència que no és activa no canvia res.
+    assert language_for(make_person(preferred_language=preferred)) == expected
+
+
+@override_settings(LANGUAGES=[("ca", "Català"), ("es", "Castellano")])
+def test_language_for_uses_an_active_preference():
+    assert language_for(make_person(preferred_language="es")) == "es"

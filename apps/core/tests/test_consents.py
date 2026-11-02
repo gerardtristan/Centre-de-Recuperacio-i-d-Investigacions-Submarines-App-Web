@@ -5,6 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.http import Http404
+from django.test import override_settings
 
 from apps.core import audit, consents
 from apps.core.models import AppendOnlyError, AuditEntry, Consent, LegalText, Role
@@ -175,3 +176,50 @@ class TestWithdrawing:
         consents.grant(person, "image", channel=WEB)
         consents.withdraw(person, "image", channel=WEB)
         assert consents.has_consent(person, "newsletter")
+
+
+def translate(text, language, content):
+    # Encara no hi ha servei de traduccions (061): la fila es crea directament.
+    return LegalText.objects.create(
+        kind=text.kind, version=text.version, language=language, content=content
+    )
+
+
+class TestLanguages:
+    """Decisió 061: una traducció és una fila més de la mateixa versió; reserva al català."""
+
+    def test_published_texts_are_catalan(self, newsletter):
+        assert newsletter.language == "ca"
+
+    def test_one_row_per_version_and_language(self, newsletter):
+        translate(newsletter, "es", "Quiero recibir el boletín del club.")
+        with pytest.raises(IntegrityError), transaction.atomic():
+            translate(newsletter, "es", "Otra traducción")
+        with pytest.raises(IntegrityError), transaction.atomic():
+            translate(newsletter, "ca", "Un altre text")
+
+    def test_a_translation_is_not_a_new_version(self, newsletter, publisher):
+        translate(newsletter, "es", "Boletín")
+        assert consents.publish_text("newsletter", "Butlletí v2", by=publisher).version == 2
+
+    def test_current_text_in_a_language(self, newsletter):
+        spanish = translate(newsletter, "es", "Boletín")
+        assert consents.current_text("newsletter", "es") == spanish
+        assert consents.current_text("newsletter", "ca") == newsletter
+        assert consents.current_text("newsletter") == newsletter
+
+    def test_without_the_translation_the_catalan_text_is_current(self, newsletter):
+        assert consents.current_text("newsletter", "en") == newsletter
+
+    def test_a_translation_of_an_older_version_is_never_current(self, newsletter, publisher):
+        translate(newsletter, "es", "Boletín v1")
+        second = consents.publish_text("newsletter", "Butlletí v2", by=publisher)
+        assert consents.current_text("newsletter", "es") == second
+
+    def test_grant_uses_the_language_of_the_person(self, newsletter, make_person):
+        spanish = translate(newsletter, "es", "Boletín")
+        person = make_person("Pau", "Roca", preferred_language="es")
+        assert consents.grant(person, "newsletter", channel=WEB).legal_text == newsletter
+        with override_settings(LANGUAGES=[("ca", "Català"), ("es", "Castellano")]):
+            other = make_person("Marta", "Vidal", preferred_language="es")
+            assert consents.grant(other, "newsletter", channel=WEB).legal_text == spanish

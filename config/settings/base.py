@@ -31,6 +31,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # Després de la sessió i abans de Common (decisió 061).
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -51,6 +53,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -91,7 +94,11 @@ FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
 
+# Decisió 061: el català és l'única llengua activa i la de reserva. No s'hi afegeix cap llengua
+# sense les seves traduccions revisades (P-49).
 LANGUAGE_CODE = "ca"
+LANGUAGES = [("ca", "Català")]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Europe/Madrid"
 USE_I18N = True
 USE_TZ = True

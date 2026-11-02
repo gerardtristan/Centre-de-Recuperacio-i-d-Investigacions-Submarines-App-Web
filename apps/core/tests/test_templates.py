@@ -21,3 +21,10 @@ def test_no_external_scripts(client):
 def test_page_language_is_catalan(client):
     html = client.get(reverse("accounts:login")).content.decode()
     assert '<html lang="ca">' in html
+
+
+def test_another_browser_language_still_gets_catalan(client):
+    # Decisió 061: només el català és actiu, sigui quina sigui la llengua del navegador.
+    response = client.get(reverse("accounts:login"), headers={"accept-language": "es,en;q=0.8"})
+    assert '<html lang="ca">' in response.content.decode()
+    assert response["Content-Language"] == "ca"
