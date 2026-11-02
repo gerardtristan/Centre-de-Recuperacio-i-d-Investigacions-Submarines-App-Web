@@ -704,8 +704,8 @@ Cap altra app escriu als models del M01: tot passa per aquests serveis (CLAUDE.m
 | `accounts.invite_personal_account(person)` | 00 | Activar el compte personal en aprovar l'alta |
 | `permissions.require(account, action, obj)` | 00 | Cada vista |
 | `audit.record(actor, action, obj, field, old, new, reason)` | 00 | Tot canvi |
-| `consents.record(person, legal_text, action, channel, by)` | 00 | Alta i perfil |
-| `charges.create_charge(person, kind="quota", amount_cents, department, concept, origin)` i `charges.cancel(charge, reason)` | 00 | Quotes i suplements |
+| `consents.grant(person, kind, channel, by)` i `consents.withdraw(...)` (T-M01-08; abans `consents.record`) | 00 | Alta i perfil |
+| `charges.create_charge(person, kind="fee", amount_cents, department, concept, origin)` i `charges.cancel(charge, reason)` | 00 | Quotes i suplements |
 | `mail.send(template, to, context)` | 00 (annex A) | Correus |
 | `files.render_private_pdf(...)` | 00 (annex B) | PDF del carnet |
 | `imports.create_batch(kind="cluber", ...)` | 00 | Importació |
@@ -788,7 +788,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | T-M01-07 | Registre d'activitat immutable (també a PostgreSQL) | M | `apps/core/audit.py`, migració de permisos | T-M01-04 | Prova que un UPDATE directe falla. **Feta** (02/11/2026): `AuditEntry` (hora en UTC, actor compte, convidat, sistema o sense identificar; persona, rols actius de RN-RP-15, IP, acció, objecte, camp, valors anterior i nou, motiu i detalls), bloquejat a l'ORM i amb disparadors de PostgreSQL contra UPDATE, DELETE i TRUNCATE (`core/0004`); servei `audit.record` i `audit.record_changes`, que rebutja els noms de camp que semblen secrets (RN-52); entrades d'entrada, sortida, intents fallits, bloquejos, TOTP, codis de recuperació i rols. **Queda:** l'excepció acotada de RN-89, que afegirà amb una migració pròpia la tasca de l'esborrat RGPD (T-M01-22), i la pantalla de consulta (T-M01-07b) |
 | T-M01-07b | Llistat i filtratge del registre d'activitat (HU-14): M6 hi veu totes les entrades i P20, només les de dades de socis; filtres per data, compte, acció i objecte; només lectura. Afegida el 02/11/2026 | S | `apps/core/views/audit.py`, plantilles | T-M01-07, T-RP-01 | Prova per cel·la de M6 i P20 (sense permís, «no trobat»); prova que la pantalla no ofereix cap manera de modificar ni esborrar (CA-14.3); checklist C8. Abans del nivell 1 |
 | T-M01-08 | Textos legals i consentiments amb versió i canal | S | `apps/core/consents.py` | T-M01-07 | CA-17.x de la 00. **Feta** (02/11/2026): `LegalText` i `Consent`, als quals només s'afegeixen files (`core/0005`); publicar (M12) crea la versió següent; atorgar i retirar afegeixen una fila amb la versió, el canal i, si és presencial, el compte que el registra; tot queda al registre d'activitat. Amb Q-16 oberta, no hi ha llista fixa de tipus i una versió nova no obliga a tornar a donar el consentiment |
-| T-M01-09 | Càrrec i departament (estructura bàsica de la 00) | M | `apps/core/charges.py` | T-M01-07 | CA-15.x i CA-16.x de la 00 |
+| T-M01-09 | Càrrec i departament (estructura bàsica de la 00) | M | `apps/core/charges.py` | T-M01-07 | CA-15.x i CA-16.x de la 00. **Feta** (02/11/2026): `Department` (amb «General» des de la migració `core/0006`), `Charge` i `Payment` bàsics, sense esborrar mai; imports en cèntims comprovats al codi i a la base de dades; transicions de RN-67 amb registre; «pagat» només des del proveïdor o la conciliació (manual bloquejat per P-12); domiciliació només per a quotes; quotes sempre a «General»; serveis de departament amb M7. Segons la [lectura de la 060](#ajustos-060-lectura) |
 | T-M01-10 | Correu mínim (plantilles, cua) i fitxers privats (PDF) | M | `apps/core/mail.py`, `files.py` | T-M01-03 | Correu a la bústia de proves; URL signada caduca |
 | T-M01-11 | Models del M01: tipus, soci, historial, sol·licitud, comptador, carnet, llicència | M | `apps/members/models.py` | T-M01-04, T-M01-09 | Restriccions i índexs comprovats amb proves |
 | T-M01-12 | Serveis d'estat i transicions (RN-M01-07 a RN-M01-09) | M | `apps/members/services.py` | T-M01-11, T-M01-07 | CA-M01-07 a 09 |
@@ -6132,3 +6132,4 @@ Una línia per cada tasca on el text aprovat ja no és el que cal construir. Les
 | T-RP-02 | També RN-RP-20 i CA-RP-16 (autodesactivació) | 060 |
 | T-RP-05 | Retirada | 060 |
 | T-M01-37, T-M04-21, T-M05a-25, T-M05b-25, T-M06-25, T-M02-33, T-M03-23, T-M09-30 | Revisió final de la cobertura per cel·la | 060 |
+| T-M01-09 | CA-16.1 i CA-15.8 de la spec 00: el departament inicial és «General», no «General / Quotes de socis». Els centres de cost («Quotes de socis», «Llicències», «Ajustos de caixa») els afegeix la T-M04-02 (CA-T14.1). Els camps del pagament són del proveïdor, sense el nom de Stripe (`provider_reference`, `provider_status`; 043) | Precisió aprovada el 02/11/2026 |

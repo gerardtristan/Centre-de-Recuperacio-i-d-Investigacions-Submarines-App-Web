@@ -1,5 +1,6 @@
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
@@ -402,3 +403,166 @@ class Consent(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.person_id} {self.legal_text} {self.action}"
+
+
+class UndeletableError(Exception):
+    """Intent d'esborrar un registre econòmic: es corregeix amb una anul·lació (RN-61)."""
+
+
+class UndeletableQuerySet(models.QuerySet):
+    def delete(self):
+        raise UndeletableError("Els registres econòmics no s'esborren: s'anul·len amb motiu.")
+
+
+class UndeletableModel(models.Model):
+    objects = UndeletableQuerySet.as_manager()
+
+    class Meta:
+        abstract = True
+
+    def delete(self, *args, **kwargs):
+        raise UndeletableError("Els registres econòmics no s'esborren: s'anul·len amb motiu.")
+
+
+def validate_cents(value) -> None:
+    """RN-60: enter positiu de cèntims. `bool` és un `int` a Python: es rebutja a part."""
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValidationError("L'import ha de ser un enter positiu de cèntims.")
+
+
+class Department(models.Model):
+    """Departament o centre de cost (spec 00, HU-16, RN-62, RN-74, RN-75). La llista la fixa
+    la junta (Q-17); d'inici només hi ha «General». Amb càrrecs no s'esborra (PROTECT): es
+    desactiva."""
+
+    GENERAL = "General"
+
+    name = models.CharField("nom", max_length=80, unique=True)
+    active = models.BooleanField("actiu", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "departament"
+        verbose_name_plural = "departaments"
+
+    def __str__(self):
+        return self.name
+
+
+class Charge(UndeletableModel):
+    """Càrrec, estructura bàsica (spec 00, HU-15, RN-60 a RN-72; decisió 027). L'estat només
+    canvia amb els serveis de `apps.core.charges`, que apliquen les transicions de RN-67."""
+
+    class Kind(models.TextChoices):
+        FEE = "fee", "Quota"
+        ENROLMENT = "enrolment", "Inscripció"
+        LICENCE = "licence", "Llicència"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pendent"
+        PAID = "paid", "Pagat"
+        RETURNED = "returned", "Retornat"
+        CANCELLED = "cancelled", "Anul·lat"
+
+    person = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="charges", verbose_name="persona deutora"
+    )
+    kind = models.CharField("tipus", max_length=10, choices=Kind.choices)
+    concept = models.CharField("concepte", max_length=140)
+    amount_cents = models.PositiveBigIntegerField("import (cèntims)")
+    currency = models.CharField("moneda", max_length=3, default="EUR", editable=False)
+    department = models.ForeignKey(
+        Department, on_delete=models.PROTECT, related_name="charges", verbose_name="departament"
+    )
+    status = models.CharField(
+        "estat", max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    cancel_reason = models.TextField("motiu d'anul·lació", blank=True)
+    # Mòdul que l'ha creat: «members», «activities», «licences»…
+    origin = models.CharField("mòdul d'origen", max_length=30)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "càrrec"
+        verbose_name_plural = "càrrecs"
+        constraints = [
+            models.CheckConstraint(condition=Q(amount_cents__gt=0), name="charge_amount_positive"),
+            models.CheckConstraint(condition=Q(currency="EUR"), name="charge_currency_eur"),
+            models.CheckConstraint(
+                condition=Q(kind__in=["fee", "enrolment", "licence"]), name="charge_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["pending", "paid", "returned", "cancelled"]),
+                name="charge_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="cancelled") | ~Q(cancel_reason=""),
+                name="charge_cancel_has_reason",
+            ),
+        ]
+        indexes = [models.Index(fields=["person", "status"], name="charge_person_status_idx")]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.amount_cents} c ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        validate_cents(self.amount_cents)
+        if self._state.adding and not self.department.active:
+            raise ValidationError("Un departament desactivat no es pot triar per a càrrecs nous.")
+        super().save(*args, **kwargs)
+
+
+class Payment(UndeletableModel):
+    """Pagament, estructura bàsica (spec 00, HU-15). El 05b l'amplia. Cap camp d'IBAN ni de
+    targeta (RN-70, CA-15.6); els identificadors són del proveïdor, sense nom propi (043)."""
+
+    class Method(models.TextChoices):
+        DIRECT_DEBIT = "direct_debit", "Domiciliació"
+        CARD = "card", "Targeta"
+        BIZUM = "bizum", "Bizum"
+        TRANSFER = "transfer", "Transferència"
+        MANUAL = "manual", "Manual"
+
+    charge = models.ForeignKey(
+        Charge, on_delete=models.PROTECT, related_name="payments", verbose_name="càrrec"
+    )
+    method = models.CharField("mètode", max_length=12, choices=Method.choices)
+    amount_cents = models.PositiveBigIntegerField("import (cèntims)")
+    provider_status = models.CharField("estat al proveïdor", max_length=40, blank=True)
+    needs_review = models.BooleanField("a revisar", default=False)
+    provider_reference = models.CharField("referència del proveïdor", max_length=100, blank=True)
+    transfer_reference = models.CharField("referència de transferència", max_length=60, blank=True)
+    paid_at = models.DateTimeField("data del pagament", null=True, blank=True)
+    # Registre manual (P-12, encara bloquejat): qui i per què.
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="registrat per",
+    )
+    reason = models.TextField("motiu", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "pagament"
+        verbose_name_plural = "pagaments"
+        constraints = [
+            models.CheckConstraint(condition=Q(amount_cents__gt=0), name="payment_amount_positive"),
+            models.CheckConstraint(
+                condition=Q(method__in=["direct_debit", "card", "bizum", "transfer", "manual"]),
+                name="payment_method_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_method_display()} {self.amount_cents} c"
+
+    def save(self, *args, **kwargs):
+        validate_cents(self.amount_cents)
+        # RN-69: la domiciliació només per a pagaments recurrents (quotes).
+        if self.method == self.Method.DIRECT_DEBIT and self.charge.kind != Charge.Kind.FEE:
+            raise ValidationError("La domiciliació només s'admet per a quotes.")
+        super().save(*args, **kwargs)
