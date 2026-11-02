@@ -4,9 +4,14 @@ version = "0.1.0"
 description = "Plataforma del C.R.I.S.: socis, activitats, material, tresoreria i llicències"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    # Client de l'emmagatzematge d'objectes (API S3) per als fitxers privats (decisió 005).
+    "boto3>=1.43,<2",
     "cryptography>=44",
     "Django>=5.2,<5.3",
     "django-environ>=0.11,<1",
+    "django-storages[s3]>=1.14.6,<2",
+    # Cua de tasques sobre PostgreSQL, amb el mateix psycopg 3 (decisió 012).
+    "procrastinate>=3.10,<4",
     "psycopg[binary]>=3.2,<4",
     "pyotp>=2.9,<3",
     "qrcode>=8,<9",

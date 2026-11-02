@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Cua de tasques sobre PostgreSQL (decisió 012). Abans de les apps que hi registren tasques.
+    "procrastinate.contrib.django",
     "apps.core",
     "apps.accounts",
     "apps.members",
@@ -102,6 +104,28 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Europe/Madrid"
 USE_I18N = True
 USE_TZ = True
+
+# Correu (annex A de la spec 00; decisions 004, 019 i 042). El transport és SMTP estàndard, que
+# ofereixen tant Brevo com Scaleway Transactional Email: canviar de proveïdor és canviar aquestes
+# variables. Les credencials només surten de l'entorn. Per defecte, la bústia de proves local
+# (Mailpit al port 1025); producció les exigeix totes.
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=1025)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)
+# Remitent sense bústia real a cris1954.cat, amb resposta a l'adreça del club (decisió 019).
+# El nom que es mostra es canvia amb la mateixa variable: "Nom <adreça>".
+EMAIL_FROM_TRANSACCIONAL = env(
+    "EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <no-respon@cris1954.cat>"
+)
+EMAIL_REPLY_TO = env("EMAIL_REPLY_TO", default="cris@cris.es")
+DEFAULT_FROM_EMAIL = EMAIL_FROM_TRANSACCIONAL
+SERVER_EMAIL = EMAIL_FROM_TRANSACCIONAL
+# Intents d'enviament d'un correu abans de donar-lo per fallit (i esborrar-ne el cos).
+EMAIL_MAX_ATTEMPTS = env.int("EMAIL_MAX_ATTEMPTS", default=5)
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]

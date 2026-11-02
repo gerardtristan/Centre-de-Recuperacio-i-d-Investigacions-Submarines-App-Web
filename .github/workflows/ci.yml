@@ -49,6 +49,10 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings.prod
           DJANGO_ALLOWED_HOSTS: cris1954.cat
+          # Valors de mostra: només comproven que producció arrenca; no envien res.
+          EMAIL_HOST: smtp.example.invalid
+          EMAIL_HOST_USER: proves
+          EMAIL_HOST_PASSWORD: contrasenya-de-proves-1954
 
   captures:
     runs-on: ubuntu-latest

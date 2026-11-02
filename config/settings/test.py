@@ -12,3 +12,6 @@ os.environ.setdefault("FIELD_ENCRYPTION_KEYS", Fernet.generate_key().decode())
 from .base import *  # noqa: E402, F403
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# Correu en memòria de Django: cap correu surt de les proves.
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
