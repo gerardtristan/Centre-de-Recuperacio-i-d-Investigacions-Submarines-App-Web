@@ -106,7 +106,7 @@ class TestEnrolment:
         password_step(client)
         client.get(reverse(ENROL))
         response = client.post(reverse(ENROL), {"code": "000000"})
-        assert BAD_CODE in response.content.decode()
+        assert str(BAD_CODE) in response.content.decode()
         assert not is_logged_in(client)
         assert TotpDevice.objects.get(account=admin_account).confirmed_at is None
 
@@ -182,7 +182,7 @@ class TestAdminSecondStep:
         client.post(reverse("administration:logout"))
         password_step(client)
         response = client.post(reverse(ADMIN_CODE), {"code": code})
-        assert BAD_CODE in response.content.decode()
+        assert str(BAD_CODE) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_wrong_codes_lock_the_account(self, client, admin_account):

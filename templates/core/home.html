@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block content %}
-  <h1>Plataforma del C.R.I.S.</h1>
-  <p>Benvingut, {{ user.person.first_name }}.</p>
+  <h1>{% translate "Plataforma del C.R.I.S." %}</h1>
+  <p>{% blocktranslate with name=user.person.first_name %}Benvingut, {{ name }}.{% endblocktranslate %}</p>
   <form method="post" action="{% url 'accounts:logout' %}">
     {% csrf_token %}
-    <button type="submit">Sortir</button>
+    <button type="submit">{% translate "Sortir" %}</button>
   </form>
 {% endblock %}

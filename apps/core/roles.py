@@ -11,6 +11,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import Http404
 from django.utils import timezone
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.accounts.models import Account, RecoveryCode, TotpDevice
 
@@ -19,11 +21,11 @@ from .models import AccountRole, Role
 from .permission_catalog import ADMINISTRATOR_ONLY, CATALOG
 from .permissions import has_perm
 
-NO_OPERATIONAL_ADMIN = (
+NO_OPERATIONAL_ADMIN = gettext_lazy(
     "No es pot fer: la plataforma es quedaria sense cap administrador operatiu "
     "(actiu, amb doble factor, no bloquejat i que no sigui d'emergència)."
 )
-SECOND_TREASURER = (
+SECOND_TREASURER = gettext_lazy(
     "Ja hi ha un altre compte actiu amb el rol tresorer. El club treballa amb un sol tresorer "
     "(P-48); es pot desar igualment."
 )
@@ -84,9 +86,9 @@ def assign_role(account: Account, role_code: str, *, by: Account) -> list[str]:
     _ensure_can_manage_accounts(by)
     role = Role.objects.filter(code=role_code, is_management=True).first()
     if role is None:
-        raise ValidationError("Aquest rol no s'assigna a comptes d'administrador.")
+        raise ValidationError(_("Aquest rol no s'assigna a comptes d'administrador."))
     if account.kind != Account.Kind.ADMIN:
-        raise ValidationError("Els rols només s'assignen a comptes d'administrador.")
+        raise ValidationError(_("Els rols només s'assignen a comptes d'administrador."))
     if _active_assignment(account, role_code):
         return []
 
@@ -116,7 +118,7 @@ def remove_role(account: Account, role_code: str, *, by: Account) -> None:
     _ensure_can_manage_accounts(by)
     assignment = _active_assignment(account, role_code)
     if assignment is None:
-        raise ValidationError("El compte no té aquest rol.")
+        raise ValidationError(_("El compte no té aquest rol."))
     if role_code == Role.Code.ADMINISTRATOR and _would_leave_no_operational_admin(account):
         raise ValidationError(NO_OPERATIONAL_ADMIN)
 
@@ -135,7 +137,7 @@ def deactivate_admin_account(account: Account, *, by: Account) -> None:
     les sessions; el compte personal de la mateixa persona no es toca."""
     _ensure_can_manage_accounts(by)
     if account.kind != Account.Kind.ADMIN:
-        raise ValidationError("Aquesta acció és per a comptes d'administrador.")
+        raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
     if _would_leave_no_operational_admin(account):
         raise ValidationError(NO_OPERATIONAL_ADMIN)
     audit.record(
@@ -158,14 +160,14 @@ def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
     if not has_perm(by, "core.accounts.reset_credentials"):
         raise Http404
     if by.pk == account.pk:
-        raise ValidationError("Ningú no pot restablir el seu propi compte per aquesta via.")
+        raise ValidationError(_("Ningú no pot restablir el seu propi compte per aquesta via."))
     if account.kind != Account.Kind.ADMIN:
-        raise ValidationError("Aquesta acció és per a comptes d'administrador.")
+        raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
     if _would_leave_no_operational_admin(account):
         if not by.is_emergency:
             raise ValidationError(NO_OPERATIONAL_ADMIN)
         if not note.strip():
-            raise ValidationError("Cal una nota per restablir el TOTP de l'últim administrador.")
+            raise ValidationError(_("Cal una nota per restablir el TOTP de l'últim administrador."))
     # RN-RP-18: compte d'emergència, compte afectat i nota. Cap secret (CA-14.4).
     audit.record(
         audit.Action.TOTP_RESET,
@@ -200,20 +202,29 @@ def validate_role_permissions(role_code: str, cells: dict[str, str]) -> None:
     T-RP-03 i per a les migracions de dades que canviïn la matriu). No afegeix res sol."""
     role = Role.objects.filter(code=role_code, is_management=True).first()
     if role is None:
-        raise ValidationError("Els permisos només s'editen als rols de gestió.")
+        raise ValidationError(_("Els permisos només s'editen als rols de gestió."))
     errors = []
     for code, scope in cells.items():
         perm = CATALOG.get(code)
         if perm is None:
-            errors.append(f"Permís desconegut: {code}.")
+            errors.append(_("Permís desconegut: %(code)s.") % {"code": code})
         elif perm.protected or code in ADMINISTRATOR_ONLY:
             # CA-RP-03 i CA-RP-09: les regles protegides no es poden canviar.
-            errors.append(f"«{perm.description}» és una regla protegida ({perm.protected_by}).")
+            errors.append(
+                _("«%(permission)s» és una regla protegida (%(rule)s).")
+                % {"permission": perm.description, "rule": perm.protected_by}
+            )
         elif scope not in perm.allowed_scopes:
-            errors.append(f"«{perm.description}» no admet l'abast «{scope}».")
+            errors.append(
+                _("«%(permission)s» no admet l'abast «%(scope)s».")
+                % {"permission": perm.description, "scope": scope}
+            )
         else:
             missing = [req for req in perm.requires if req not in cells]
             for req in missing:  # RN-RP-03: cap deducció
-                errors.append(f"«{perm.description}» demana també «{CATALOG[req].description}».")
+                errors.append(
+                    _("«%(permission)s» demana també «%(required)s».")
+                    % {"permission": perm.description, "required": CATALOG[req].description}
+                )
     if errors:
         raise ValidationError(errors)

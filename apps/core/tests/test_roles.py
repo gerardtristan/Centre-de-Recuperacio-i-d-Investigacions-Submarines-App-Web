@@ -158,7 +158,7 @@ class TestOperationalAdministrator:
         only = make_admin(R.ADMINISTRATOR)
         with pytest.raises(ValidationError) as exc:
             remove_role(only, R.ADMINISTRATOR, by=only)
-        assert NO_OPERATIONAL_ADMIN in message_of(exc)
+        assert str(NO_OPERATIONAL_ADMIN) in message_of(exc)
         assert R.ADMINISTRATOR in active_roles(only)
 
     def test_last_one_cannot_be_deactivated(self, make_admin):
@@ -342,3 +342,8 @@ def test_createsuperuser_gets_the_administrator_role():
     assert (entry.actor_kind, entry.actor_origin) == ("system", "createsuperuser")
     assert entry.actor_account is None
     assert entry.new_value == R.ADMINISTRATOR
+
+
+def test_the_interface_shows_the_translatable_label_not_the_stored_name():
+    # Decisió 061: `Role.name` és una dada interna; el nom visible surt de l'etiqueta del codi.
+    assert str(Role(code=R.TREASURER, name="nom intern", is_management=True)) == "Tresorer"

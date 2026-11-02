@@ -1,15 +1,18 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Codis de recuperació · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Codis de recuperació" %} · C.R.I.S.{% endblock %}
 
 {% block content %}
-  <h1>Codis de recuperació</h1>
+  <h1>{% translate "Codis de recuperació" %}</h1>
   <p role="alert">
-    Només els veuràs ara. Guarda'ls fora de línia (en paper o al gestor de contrasenyes del
-    club). Cada codi serveix una sola vegada si perds el mòbil.
+    {% blocktranslate trimmed %}
+      Només els veuràs ara. Guarda'ls fora de línia (en paper o al gestor de contrasenyes del
+      club). Cada codi serveix una sola vegada si perds el mòbil.
+    {% endblocktranslate %}
   </p>
   <ul>
     {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
   </ul>
-  <p><a href="{{ continue_url }}">Ja els he guardat</a></p>
+  <p><a href="{{ continue_url }}">{% translate "Ja els he guardat" %}</a></p>
 {% endblock %}

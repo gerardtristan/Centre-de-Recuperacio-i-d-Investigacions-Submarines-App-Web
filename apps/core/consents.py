@@ -17,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
+from django.utils.translation import gettext as _
 
 from . import audit
 from .models import Consent, LegalText
@@ -33,7 +34,7 @@ def publish_text(kind: str, content: str, *, by) -> LegalText:
     if not has_perm(by, "core.legal_texts.publish"):
         raise Http404
     if not content.strip():
-        raise ValidationError("El text no pot ser buit.")
+        raise ValidationError(_("El text no pot ser buit."))
     # shortcut: dues publicacions simultànies del mateix tipus xoquen amb la restricció
     # d'unicitat i una falla sense desar res; amb un sol administrador que publica, n'hi ha prou.
     last = LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0
@@ -74,7 +75,7 @@ def _record(person, text, action, channel, by, request) -> Consent:
     # CA-17.1: el presencial el registra un compte concret.
     recorder = by if channel == Consent.Channel.IN_PERSON else None
     if channel == Consent.Channel.IN_PERSON and not isinstance(by, Account):
-        raise ValidationError("Un consentiment presencial necessita el compte que el registra.")
+        raise ValidationError(_("Un consentiment presencial necessita el compte que el registra."))
     consent = Consent.objects.create(
         person=person, legal_text=text, action=action, channel=channel, recorded_by=recorder
     )
@@ -96,7 +97,9 @@ def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
     convidat (`audit.guest`) o ningú (visitant del formulari web)."""
     text = current_text(kind, language_for(person))
     if text is None:
-        raise ValidationError(f"No hi ha cap text publicat del tipus «{kind}».")
+        raise ValidationError(
+            _("No hi ha cap text publicat del tipus «%(kind)s».") % {"kind": kind}
+        )
     last = _last(person, kind)
     if last and last.action == Consent.Action.GRANTED and last.legal_text_id == text.pk:
         return last

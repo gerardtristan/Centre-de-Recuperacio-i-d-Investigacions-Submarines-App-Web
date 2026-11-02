@@ -13,6 +13,7 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
+from django.utils.translation import gettext as _
 
 from . import audit
 from .models import Charge, Department, validate_cents
@@ -52,7 +53,7 @@ def deactivate_department(department: Department, *, by) -> None:
     _ensure_can_manage_departments(by)
     if department.name == Department.GENERAL:
         # Hi van les quotes (CA-15.8): sense ell no se'n podria crear cap.
-        raise ValidationError("El departament «General» no es pot desactivar.")
+        raise ValidationError(_("El departament «General» no es pot desactivar."))
     if not department.active:
         return
     audit.record(
@@ -72,10 +73,10 @@ def create_charge(
     if kind == Charge.Kind.FEE:
         general = Department.objects.get(name=Department.GENERAL)
         if department is not None and department != general:
-            raise ValidationError("Les quotes van al departament «General».")
+            raise ValidationError(_("Les quotes van al departament «General»."))
         department = general
     if department is None:
-        raise ValidationError("Tot càrrec necessita un departament (RN-62).")
+        raise ValidationError(_("Tot càrrec necessita un departament (RN-62)."))
     charge = Charge(
         person=person,
         kind=kind,
@@ -104,8 +105,8 @@ def _transition(charge: Charge, new_status: str, *, by, reason: str = "", detail
     locked = Charge.objects.select_for_update().get(pk=charge.pk)
     if (locked.status, new_status) not in TRANSITIONS:
         raise ValidationError(
-            f"Un càrrec «{locked.get_status_display()}» no pot passar a "
-            f"«{Charge.Status(new_status).label}»."
+            _("Un càrrec «%(current)s» no pot passar a «%(new)s».")
+            % {"current": locked.get_status_display(), "new": Charge.Status(new_status).label}
         )
     audit.record(
         "charges.status_changed",
@@ -130,11 +131,13 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
     """Pendent → pagat. `origin`: «provider» (notificació verificada) o «reconciliation»
     (conciliació confirmada). `by` és qui ho confirma: el sistema o el tresorer."""
     if origin == "manual":
-        raise ValidationError("El registre manual de cobraments està bloquejat fins a P-12.")
+        raise ValidationError(_("El registre manual de cobraments està bloquejat fins a P-12."))
     if origin not in PAID_ORIGINS:
-        raise ValidationError("Un càrrec només passa a pagat des del proveïdor o la conciliació.")
+        raise ValidationError(
+            _("Un càrrec només passa a pagat des del proveïdor o la conciliació.")
+        )
     if payment.charge_id != charge.pk:
-        raise ValidationError("El pagament no és d'aquest càrrec.")
+        raise ValidationError(_("El pagament no és d'aquest càrrec."))
     return _transition(charge, S.PAID, by=by, details={"origin": origin, "payment": payment.pk})
 
 
@@ -142,5 +145,5 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
 def cancel(charge: Charge, reason: str, *, by) -> Charge:
     """Pendent o pagat (devolució total) → anul·lat, amb motiu (CA-15.5)."""
     if not reason.strip():
-        raise ValidationError("Per anul·lar un càrrec cal un motiu.")
+        raise ValidationError(_("Per anul·lar un càrrec cal un motiu."))
     return _transition(charge, S.CANCELLED, by=by, reason=reason)

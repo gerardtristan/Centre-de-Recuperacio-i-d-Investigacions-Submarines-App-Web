@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Codi de verificació · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Codi de verificació" %} · C.R.I.S.{% endblock %}
 
 {% block content %}
-  <h1>Codi de verificació</h1>
+  <h1>{% translate "Codi de verificació" %}</h1>
   <p>
-    Escriu el codi de sis xifres de l'aplicació d'autenticació.
-    {% if area == "admin" %}Si no tens el mòbil, pots fer servir un codi de recuperació.{% endif %}
+    {% translate "Escriu el codi de sis xifres de l'aplicació d'autenticació." %}
+    {% if area == "admin" %}{% translate "Si no tens el mòbil, pots fer servir un codi de recuperació." %}{% endif %}
   </p>
   {% if error %}<p role="alert">{{ error }}</p>{% endif %}
   <form method="post" novalidate>
@@ -15,6 +16,6 @@
       <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
       {{ form.code }}
     </p>
-    <button type="submit">Verificar</button>
+    <button type="submit">{% translate "Verificar" %}</button>
   </form>
 {% endblock %}

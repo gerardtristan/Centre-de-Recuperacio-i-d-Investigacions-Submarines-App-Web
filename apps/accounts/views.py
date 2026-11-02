@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_not_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -31,7 +32,7 @@ logger = logging.getLogger("cris.security")
 
 NAMESPACE = {AREA_PERSONAL: "accounts", AREA_ADMIN: "administration"}
 HOME = {AREA_PERSONAL: "core:home", AREA_ADMIN: "administration:home"}
-BAD_CODE = "El codi no és correcte."
+BAD_CODE = _("El codi no és correcte.")
 
 
 def _url(area, name):

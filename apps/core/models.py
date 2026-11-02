@@ -5,6 +5,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 from .normalization import normalize_document, normalize_email, normalize_phone
 
@@ -16,45 +18,47 @@ class Person(models.Model):
     """
 
     class DocumentType(models.TextChoices):
-        DNI = "dni", "DNI"
-        NIE = "nie", "NIE"
-        PASSPORT = "passport", "Passaport"
+        DNI = "dni", _("DNI")
+        NIE = "nie", _("NIE")
+        PASSPORT = "passport", _("Passaport")
 
     class Status(models.TextChoices):
-        ACTIVE = "active", "Activa"
-        ANONYMISED = "anonymised", "Anonimitzada"
+        ACTIVE = "active", _("Activa")
+        ANONYMISED = "anonymised", _("Anonimitzada")
 
     class Origin(models.TextChoices):
-        IN_PERSON = "in_person", "Alta presencial"
-        WEB = "web", "Web"
-        GUEST = "guest", "Convidat"
-        CLUBER_IMPORT = "cluber_import", "Importació de Cluber"
+        IN_PERSON = "in_person", _("Alta presencial")
+        WEB = "web", _("Web")
+        GUEST = "guest", _("Convidat")
+        CLUBER_IMPORT = "cluber_import", _("Importació de Cluber")
 
-    first_name = models.CharField("nom", max_length=100)
-    last_name = models.CharField("cognoms", max_length=150, blank=True)
+    first_name = models.CharField(_("nom"), max_length=100)
+    last_name = models.CharField(_("cognoms"), max_length=150, blank=True)
     # No és únic: famílies que comparteixen correu (RN-10, V-05).
-    contact_email = models.EmailField("correu de contacte", blank=True)
-    phone = models.CharField("telèfon", max_length=30, blank=True)
-    address = models.CharField("adreça", max_length=255, blank=True)
+    contact_email = models.EmailField(_("correu de contacte"), blank=True)
+    phone = models.CharField(_("telèfon"), max_length=30, blank=True)
+    address = models.CharField(_("adreça"), max_length=255, blank=True)
     id_document_type = models.CharField(
         "tipus de document", max_length=10, choices=DocumentType.choices, blank=True
     )
-    id_document_number = models.CharField("número de document", max_length=30, blank=True)
-    status = models.CharField("estat", max_length=12, choices=Status.choices, default=Status.ACTIVE)
+    id_document_number = models.CharField(_("número de document"), max_length=30, blank=True)
+    status = models.CharField(
+        _("estat"), max_length=12, choices=Status.choices, default=Status.ACTIVE
+    )
     # Referència que substitueix la identitat en anonimitzar (decisió 028), p. ex. «A-0042».
     anonymous_ref = models.CharField(
         "referència anònima", max_length=20, null=True, blank=True, unique=True
     )
-    origin = models.CharField("origen", max_length=16, choices=Origin.choices)
+    origin = models.CharField(_("origen"), max_length=16, choices=Origin.choices)
     # Sense `choices`: les llengües actives són configuració (061). Es llegeix amb
     # `persons.language_for`, que torna al català si no és activa.
-    preferred_language = models.CharField("llengua preferida", max_length=7, default="ca")
+    preferred_language = models.CharField(_("llengua preferida"), max_length=7, default="ca")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "persona"
-        verbose_name_plural = "persones"
+        verbose_name = _("persona")
+        verbose_name_plural = _("persones")
         constraints = [
             # Mateix document (normalitzat, amb el tipus) = mateixa persona (RN-06, V-03).
             models.UniqueConstraint(
@@ -98,31 +102,32 @@ class Role(models.Model):
     no són editables ni s'assignen."""
 
     class Code(models.TextChoices):
-        INSTRUCTOR = "instructor", "Instructor"
-        SECRETARY = "secretary", "Secretaria"
-        COURSES_MANAGER = "courses_manager", "Responsable de cursos i sortides"
-        EQUIPMENT_MANAGER = "equipment_manager", "Responsable de material"
-        TREASURER = "treasurer", "Tresorer"
-        HISTORY_DEPARTMENT = "history_department", "Departament d'Història"
-        ADMINISTRATOR = "administrator", "Administrador"
-        PRESIDENT = "president", "President"
-        BOARD = "board", "Junta"
-        COMMUNICATIONS_MANAGER = "communications_manager", "Responsable de comunicació"
-        SHOP_MANAGER = "shop_manager", "Responsable de botiga"
-        MEMBER = "member", "Soci"
-        VISITOR = "visitor", "Visitant"
-        GUEST = "guest", "Participant no soci"
+        INSTRUCTOR = "instructor", _("Instructor")
+        SECRETARY = "secretary", _("Secretaria")
+        COURSES_MANAGER = "courses_manager", _("Responsable de cursos i sortides")
+        EQUIPMENT_MANAGER = "equipment_manager", _("Responsable de material")
+        TREASURER = "treasurer", _("Tresorer")
+        HISTORY_DEPARTMENT = "history_department", _("Departament d'Història")
+        ADMINISTRATOR = "administrator", _("Administrador")
+        PRESIDENT = "president", _("President")
+        BOARD = "board", _("Junta")
+        COMMUNICATIONS_MANAGER = "communications_manager", _("Responsable de comunicació")
+        SHOP_MANAGER = "shop_manager", _("Responsable de botiga")
+        MEMBER = "member", _("Soci")
+        VISITOR = "visitor", _("Visitant")
+        GUEST = "guest", _("Participant no soci")
 
     code = models.CharField(max_length=30, unique=True, choices=Code.choices)
     name = models.CharField(max_length=60)
     is_management = models.BooleanField()
 
     class Meta:
-        verbose_name = "rol"
-        verbose_name_plural = "rols"
+        verbose_name = _("rol")
+        verbose_name_plural = _("rols")
 
     def __str__(self):
-        return self.name
+        # Decisió 061: l'etiqueta del codi es pot traduir; `name` queda com a dada interna.
+        return str(self.get_code_display())
 
 
 class RolePermission(models.Model):
@@ -134,8 +139,8 @@ class RolePermission(models.Model):
     scope = models.CharField(max_length=30)
 
     class Meta:
-        verbose_name = "permís d'un rol"
-        verbose_name_plural = "permisos dels rols"
+        verbose_name = _("permís d'un rol")
+        verbose_name_plural = _("permisos dels rols")
         constraints = [
             models.UniqueConstraint(
                 fields=["role", "permission_code"], name="rolepermission_unique"
@@ -164,8 +169,8 @@ class AccountRole(models.Model):
     removed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = "rol d'un compte"
-        verbose_name_plural = "rols dels comptes"
+        verbose_name = _("rol d'un compte")
+        verbose_name_plural = _("rols dels comptes")
         constraints = [
             models.UniqueConstraint(
                 fields=["admin_account", "role"],
@@ -192,8 +197,8 @@ class PermissionMatrixVersion(models.Model):
     affected_accounts = models.JSONField(default=list)
 
     class Meta:
-        verbose_name = "versió de la matriu de permisos"
-        verbose_name_plural = "versions de la matriu de permisos"
+        verbose_name = _("versió de la matriu de permisos")
+        verbose_name_plural = _("versions de la matriu de permisos")
 
     def __str__(self):
         return f"Matriu v{self.number}"
@@ -259,21 +264,21 @@ class AuditEntry(AppendOnlyModel):
     """
 
     class ActorKind(models.TextChoices):
-        ACCOUNT = "account", "Compte"
-        GUEST = "guest", "Convidat"
-        SYSTEM = "system", "Sistema"
+        ACCOUNT = "account", _("Compte")
+        GUEST = "guest", _("Convidat")
+        SYSTEM = "system", _("Sistema")
         # Ningú identificat: p. ex. un intent d'entrada amb un identificador desconegut.
-        ANONYMOUS = "anonymous", "Sense identificar"
+        ANONYMOUS = "anonymous", _("Sense identificar")
 
-    created_at = models.DateTimeField("data i hora", default=timezone.now, db_index=True)
-    actor_kind = models.CharField("tipus d'actor", max_length=10, choices=ActorKind.choices)
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now, db_index=True)
+    actor_kind = models.CharField(_("tipus d'actor"), max_length=10, choices=ActorKind.choices)
     actor_account = models.ForeignKey(
         "accounts.Account",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="compte que actua",
+        verbose_name=_("compte que actua"),
     )
     # La persona del compte o la convidada. En un esborrat RGPD queda anonimitzada (RN-89).
     actor_person = models.ForeignKey(
@@ -282,26 +287,28 @@ class AuditEntry(AppendOnlyModel):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="persona que actua",
+        verbose_name=_("persona que actua"),
     )
     # Rols de gestió actius del compte en aquell moment (RN-RP-15); buit si no en té.
-    actor_roles = models.JSONField("rols actius", default=list, blank=True)
+    actor_roles = models.JSONField(_("rols actius"), default=list, blank=True)
     # Sistema: nom de la tasca o del proveïdor. Convidat: identificador intern de l'enllaç,
     # mai el testimoni (CA-14.6).
-    actor_origin = models.CharField("origen", max_length=100, blank=True)
-    ip_address = models.GenericIPAddressField("adreça IP", null=True, blank=True)
-    action = models.CharField("acció", max_length=60)
-    target_type = models.CharField("tipus d'objecte", max_length=60, blank=True)
-    target_id = models.CharField("identificador de l'objecte", max_length=64, blank=True)
-    field = models.CharField("camp", max_length=60, blank=True)
-    old_value = models.JSONField("valor anterior", null=True, blank=True, encoder=AuditJSONEncoder)
-    new_value = models.JSONField("valor nou", null=True, blank=True, encoder=AuditJSONEncoder)
-    reason = models.TextField("motiu", blank=True)
-    details = models.JSONField("detalls", default=dict, blank=True, encoder=AuditJSONEncoder)
+    actor_origin = models.CharField(_("origen"), max_length=100, blank=True)
+    ip_address = models.GenericIPAddressField(_("adreça IP"), null=True, blank=True)
+    action = models.CharField(_("acció"), max_length=60)
+    target_type = models.CharField(_("tipus d'objecte"), max_length=60, blank=True)
+    target_id = models.CharField(_("identificador de l'objecte"), max_length=64, blank=True)
+    field = models.CharField(_("camp"), max_length=60, blank=True)
+    old_value = models.JSONField(
+        _("valor anterior"), null=True, blank=True, encoder=AuditJSONEncoder
+    )
+    new_value = models.JSONField(_("valor nou"), null=True, blank=True, encoder=AuditJSONEncoder)
+    reason = models.TextField(_("motiu"), blank=True)
+    details = models.JSONField(_("detalls"), default=dict, blank=True, encoder=AuditJSONEncoder)
 
     class Meta:
-        verbose_name = "entrada del registre d'activitat"
-        verbose_name_plural = "registre d'activitat"
+        verbose_name = _("entrada del registre d'activitat")
+        verbose_name_plural = _("registre d'activitat")
         ordering = ["created_at", "id"]
         constraints = [
             models.CheckConstraint(
@@ -338,23 +345,23 @@ class LegalText(AppendOnlyModel):
     dades i depenen de Q-16; aquí no se'n fixa cap. Una traducció és una fila més de la
     mateixa versió, no una versió nova (061)."""
 
-    kind = models.SlugField("tipus", max_length=40)
-    version = models.PositiveIntegerField("versió")
-    language = models.CharField("llengua", max_length=7, default="ca")
-    content = models.TextField("contingut")
-    published_at = models.DateTimeField("vigent des de", default=timezone.now)
+    kind = models.SlugField(_("tipus"), max_length=40)
+    version = models.PositiveIntegerField(_("versió"))
+    language = models.CharField(_("llengua"), max_length=7, default="ca")
+    content = models.TextField(_("contingut"))
+    published_at = models.DateTimeField(_("vigent des de"), default=timezone.now)
     published_by = models.ForeignKey(
         "accounts.Account",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="publicat per",
+        verbose_name=_("publicat per"),
     )
 
     class Meta:
-        verbose_name = "text legal"
-        verbose_name_plural = "textos legals"
+        verbose_name = _("text legal")
+        verbose_name_plural = _("textos legals")
         constraints = [
             models.UniqueConstraint(
                 fields=["kind", "version", "language"], name="legaltext_unique_version_language"
@@ -370,21 +377,21 @@ class Consent(AppendOnlyModel):
     files: l'estat d'una persona per a un tipus és el de la seva última fila."""
 
     class Action(models.TextChoices):
-        GRANTED = "granted", "Atorgat"
-        WITHDRAWN = "withdrawn", "Retirat"
+        GRANTED = "granted", _("Atorgat")
+        WITHDRAWN = "withdrawn", _("Retirat")
 
     class Channel(models.TextChoices):
-        WEB = "web", "Web"
-        IN_PERSON = "in_person", "Presencial"
+        WEB = "web", _("Web")
+        IN_PERSON = "in_person", _("Presencial")
 
     person = models.ForeignKey(
-        Person, on_delete=models.PROTECT, related_name="consents", verbose_name="persona"
+        Person, on_delete=models.PROTECT, related_name="consents", verbose_name=_("persona")
     )
     legal_text = models.ForeignKey(
-        LegalText, on_delete=models.PROTECT, related_name="+", verbose_name="text acceptat"
+        LegalText, on_delete=models.PROTECT, related_name="+", verbose_name=_("text acceptat")
     )
-    action = models.CharField("acció", max_length=10, choices=Action.choices)
-    channel = models.CharField("canal", max_length=10, choices=Channel.choices)
+    action = models.CharField(_("acció"), max_length=10, choices=Action.choices)
+    channel = models.CharField(_("canal"), max_length=10, choices=Channel.choices)
     # Compte que l'ha registrat, obligatori si és presencial (CA-17.1).
     recorded_by = models.ForeignKey(
         "accounts.Account",
@@ -392,13 +399,13 @@ class Consent(AppendOnlyModel):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="registrat per",
+        verbose_name=_("registrat per"),
     )
-    created_at = models.DateTimeField("data i hora", default=timezone.now)
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
 
     class Meta:
-        verbose_name = "consentiment"
-        verbose_name_plural = "consentiments"
+        verbose_name = _("consentiment")
+        verbose_name_plural = _("consentiments")
         ordering = ["created_at", "id"]
         constraints = [
             models.CheckConstraint(
@@ -434,7 +441,7 @@ class UndeletableModel(models.Model):
 def validate_cents(value) -> None:
     """RN-60: enter positiu de cèntims. `bool` és un `int` a Python: es rebutja a part."""
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise ValidationError("L'import ha de ser un enter positiu de cèntims.")
+        raise ValidationError(gettext("L'import ha de ser un enter positiu de cèntims."))
 
 
 class Department(models.Model):
@@ -444,13 +451,13 @@ class Department(models.Model):
 
     GENERAL = "General"
 
-    name = models.CharField("nom", max_length=80, unique=True)
-    active = models.BooleanField("actiu", default=True)
+    name = models.CharField(_("nom"), max_length=80, unique=True)
+    active = models.BooleanField(_("actiu"), default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "departament"
-        verbose_name_plural = "departaments"
+        verbose_name = _("departament")
+        verbose_name_plural = _("departaments")
 
     def __str__(self):
         return self.name
@@ -461,38 +468,38 @@ class Charge(UndeletableModel):
     canvia amb els serveis de `apps.core.charges`, que apliquen les transicions de RN-67."""
 
     class Kind(models.TextChoices):
-        FEE = "fee", "Quota"
-        ENROLMENT = "enrolment", "Inscripció"
-        LICENCE = "licence", "Llicència"
+        FEE = "fee", _("Quota")
+        ENROLMENT = "enrolment", _("Inscripció")
+        LICENCE = "licence", _("Llicència")
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pendent"
-        PAID = "paid", "Pagat"
-        RETURNED = "returned", "Retornat"
-        CANCELLED = "cancelled", "Anul·lat"
+        PENDING = "pending", _("Pendent")
+        PAID = "paid", _("Pagat")
+        RETURNED = "returned", _("Retornat")
+        CANCELLED = "cancelled", _("Anul·lat")
 
     person = models.ForeignKey(
-        Person, on_delete=models.PROTECT, related_name="charges", verbose_name="persona deutora"
+        Person, on_delete=models.PROTECT, related_name="charges", verbose_name=_("persona deutora")
     )
-    kind = models.CharField("tipus", max_length=10, choices=Kind.choices)
-    concept = models.CharField("concepte", max_length=140)
-    amount_cents = models.PositiveBigIntegerField("import (cèntims)")
-    currency = models.CharField("moneda", max_length=3, default="EUR", editable=False)
+    kind = models.CharField(_("tipus"), max_length=10, choices=Kind.choices)
+    concept = models.CharField(_("concepte"), max_length=140)
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    currency = models.CharField(_("moneda"), max_length=3, default="EUR", editable=False)
     department = models.ForeignKey(
-        Department, on_delete=models.PROTECT, related_name="charges", verbose_name="departament"
+        Department, on_delete=models.PROTECT, related_name="charges", verbose_name=_("departament")
     )
     status = models.CharField(
         "estat", max_length=10, choices=Status.choices, default=Status.PENDING
     )
-    cancel_reason = models.TextField("motiu d'anul·lació", blank=True)
+    cancel_reason = models.TextField(_("motiu d'anul·lació"), blank=True)
     # Mòdul que l'ha creat: «members», «activities», «licences»…
-    origin = models.CharField("mòdul d'origen", max_length=30)
+    origin = models.CharField(_("mòdul d'origen"), max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "càrrec"
-        verbose_name_plural = "càrrecs"
+        verbose_name = _("càrrec")
+        verbose_name_plural = _("càrrecs")
         constraints = [
             models.CheckConstraint(condition=Q(amount_cents__gt=0), name="charge_amount_positive"),
             models.CheckConstraint(condition=Q(currency="EUR"), name="charge_currency_eur"),
@@ -516,7 +523,9 @@ class Charge(UndeletableModel):
     def save(self, *args, **kwargs):
         validate_cents(self.amount_cents)
         if self._state.adding and not self.department.active:
-            raise ValidationError("Un departament desactivat no es pot triar per a càrrecs nous.")
+            raise ValidationError(
+                gettext("Un departament desactivat no es pot triar per a càrrecs nous.")
+            )
         super().save(*args, **kwargs)
 
 
@@ -525,22 +534,24 @@ class Payment(UndeletableModel):
     targeta (RN-70, CA-15.6); els identificadors són del proveïdor, sense nom propi (043)."""
 
     class Method(models.TextChoices):
-        DIRECT_DEBIT = "direct_debit", "Domiciliació"
-        CARD = "card", "Targeta"
-        BIZUM = "bizum", "Bizum"
-        TRANSFER = "transfer", "Transferència"
-        MANUAL = "manual", "Manual"
+        DIRECT_DEBIT = "direct_debit", _("Domiciliació")
+        CARD = "card", _("Targeta")
+        BIZUM = "bizum", _("Bizum")
+        TRANSFER = "transfer", _("Transferència")
+        MANUAL = "manual", _("Manual")
 
     charge = models.ForeignKey(
-        Charge, on_delete=models.PROTECT, related_name="payments", verbose_name="càrrec"
+        Charge, on_delete=models.PROTECT, related_name="payments", verbose_name=_("càrrec")
     )
-    method = models.CharField("mètode", max_length=12, choices=Method.choices)
-    amount_cents = models.PositiveBigIntegerField("import (cèntims)")
-    provider_status = models.CharField("estat al proveïdor", max_length=40, blank=True)
-    needs_review = models.BooleanField("a revisar", default=False)
-    provider_reference = models.CharField("referència del proveïdor", max_length=100, blank=True)
-    transfer_reference = models.CharField("referència de transferència", max_length=60, blank=True)
-    paid_at = models.DateTimeField("data del pagament", null=True, blank=True)
+    method = models.CharField(_("mètode"), max_length=12, choices=Method.choices)
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    provider_status = models.CharField(_("estat al proveïdor"), max_length=40, blank=True)
+    needs_review = models.BooleanField(_("a revisar"), default=False)
+    provider_reference = models.CharField(_("referència del proveïdor"), max_length=100, blank=True)
+    transfer_reference = models.CharField(
+        _("referència de transferència"), max_length=60, blank=True
+    )
+    paid_at = models.DateTimeField(_("data del pagament"), null=True, blank=True)
     # Registre manual (P-12, encara bloquejat): qui i per què.
     recorded_by = models.ForeignKey(
         "accounts.Account",
@@ -548,14 +559,14 @@ class Payment(UndeletableModel):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="registrat per",
+        verbose_name=_("registrat per"),
     )
-    reason = models.TextField("motiu", blank=True)
+    reason = models.TextField(_("motiu"), blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "pagament"
-        verbose_name_plural = "pagaments"
+        verbose_name = _("pagament")
+        verbose_name_plural = _("pagaments")
         constraints = [
             models.CheckConstraint(condition=Q(amount_cents__gt=0), name="payment_amount_positive"),
             models.CheckConstraint(
@@ -571,5 +582,5 @@ class Payment(UndeletableModel):
         validate_cents(self.amount_cents)
         # RN-69: la domiciliació només per a pagaments recurrents (quotes).
         if self.method == self.Method.DIRECT_DEBIT and self.charge.kind != Charge.Kind.FEE:
-            raise ValidationError("La domiciliació només s'admet per a quotes.")
+            raise ValidationError(gettext("La domiciliació només s'admet per a quotes."))
         super().save(*args, **kwargs)

@@ -18,14 +18,18 @@ from django.db import models, transaction
 from django.db.models import F, Q
 from django.db.models.functions import Lower
 from django.utils.crypto import salted_hmac
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Person
 from apps.core.normalization import normalize_email
 
 validate_username = RegexValidator(
     r"^[a-z0-9][a-z0-9._-]{2,49}$",
-    "El nom d'usuari ha de tenir entre 3 i 50 caràcters: lletres sense accents, xifres, "
-    "punts, guions o guions baixos.",
+    _(
+        "El nom d'usuari ha de tenir entre 3 i 50 caràcters: lletres sense accents, xifres, "
+        "punts, guions o guions baixos."
+    ),
 )
 
 
@@ -99,28 +103,28 @@ class AccountManager(BaseUserManager):
 
 class Account(AbstractBaseUser, PermissionsMixin):
     class Kind(models.TextChoices):
-        PERSONAL = "personal", "Personal"
-        ADMIN = "admin", "Administrador"
+        PERSONAL = "personal", _("Personal")
+        ADMIN = "admin", _("Administrador")
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pendent de verificar"
-        ACTIVE = "active", "Actiu"
-        DISABLED = "disabled", "Desactivat"
+        PENDING = "pending", _("Pendent de verificar")
+        ACTIVE = "active", _("Actiu")
+        DISABLED = "disabled", _("Desactivat")
 
     # PROTECT: els comptes es desactiven, no s'esborren (RN-25).
     person = models.ForeignKey(
-        Person, on_delete=models.PROTECT, related_name="accounts", verbose_name="persona"
+        Person, on_delete=models.PROTECT, related_name="accounts", verbose_name=_("persona")
     )
-    kind = models.CharField("tipus", max_length=10, choices=Kind.choices)
+    kind = models.CharField(_("tipus"), max_length=10, choices=Kind.choices)
     # Correu d'entrada (personal) o nom d'usuari (administrador), sempre en minúscules.
-    login = models.CharField("identificador d'entrada", max_length=254, unique=True)
-    notification_email = models.EmailField("correu de notificació", blank=True)
-    status = models.CharField("estat", max_length=10, choices=Status.choices)
-    is_emergency = models.BooleanField("és d'emergència", default=False)
+    login = models.CharField(_("identificador d'entrada"), max_length=254, unique=True)
+    notification_email = models.EmailField(_("correu de notificació"), blank=True)
+    status = models.CharField(_("estat"), max_length=10, choices=Status.choices)
+    is_emergency = models.BooleanField(_("és d'emergència"), default=False)
     # «Bloquejat temporalment» (V-01) no és un estat: un compte pendent també es pot bloquejar,
     # i el bloqueig s'acaba sol quan passa l'hora.
-    failed_login_count = models.PositiveSmallIntegerField("intents fallits seguits", default=0)
-    locked_until = models.DateTimeField("bloquejat fins a", null=True, blank=True)
+    failed_login_count = models.PositiveSmallIntegerField(_("intents fallits seguits"), default=0)
+    locked_until = models.DateTimeField(_("bloquejat fins a"), null=True, blank=True)
     # Forma part de l'empremta de sessió: incrementar-lo tanca totes les sessions del compte
     # a la petició següent, en qualsevol dispositiu (RN-RP-11, RN-RP-20).
     session_epoch = models.PositiveIntegerField(default=0, editable=False)
@@ -133,8 +137,8 @@ class Account(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     class Meta:
-        verbose_name = "compte"
-        verbose_name_plural = "comptes"
+        verbose_name = _("compte")
+        verbose_name_plural = _("comptes")
         constraints = [
             # Màxim un compte de cada tipus per persona (RN-13). L'excepció dels comptes
             # d'emergència depèn de Q-02, encara oberta.
@@ -190,12 +194,14 @@ class Account(AbstractBaseUser, PermissionsMixin):
                 validate_email(self.login)
             except ValidationError:
                 raise ValidationError(
-                    {"login": "El compte personal entra amb una adreça de correu vàlida."}
+                    {"login": gettext("El compte personal entra amb una adreça de correu vàlida.")}
                 ) from None
             if self.notification_email or self.is_emergency or self.is_superuser:
                 raise ValidationError(
-                    "El correu de notificació, l'emergència i el superusuari només són per a "
-                    "comptes d'administrador."
+                    gettext(
+                        "El correu de notificació, l'emergència i el superusuari només són per a "
+                        "comptes d'administrador."
+                    )
                 )
         elif self.kind == self.Kind.ADMIN:
             validate_username(self.login)
@@ -218,8 +224,8 @@ class TotpDevice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "factor TOTP"
-        verbose_name_plural = "factors TOTP"
+        verbose_name = _("factor TOTP")
+        verbose_name_plural = _("factors TOTP")
 
     def __str__(self):
         return f"TOTP de {self.account}"
@@ -234,8 +240,8 @@ class RecoveryCode(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "codi de recuperació"
-        verbose_name_plural = "codis de recuperació"
+        verbose_name = _("codi de recuperació")
+        verbose_name_plural = _("codis de recuperació")
 
     def __str__(self):
         return f"Codi de recuperació de {self.account}"
@@ -251,8 +257,8 @@ class FailedLogin(models.Model):
     area = models.CharField(max_length=10)
 
     class Meta:
-        verbose_name = "intent fallit"
-        verbose_name_plural = "intents fallits"
+        verbose_name = _("intent fallit")
+        verbose_name_plural = _("intents fallits")
         indexes = [models.Index(fields=["ip_address", "created_at"], name="failedlogin_ip_idx")]
 
     def __str__(self):

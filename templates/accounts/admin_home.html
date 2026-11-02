@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Administració · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Administració" %} · C.R.I.S.{% endblock %}
 
 {% block content %}
-  <h1>Administració del C.R.I.S.</h1>
-  <p>Has entrat com a {{ user.get_username }}.</p>
+  <h1>{% translate "Administració del C.R.I.S." %}</h1>
+  <p>{% blocktranslate with username=user.get_username %}Has entrat com a {{ username }}.{% endblocktranslate %}</p>
   <form method="post" action="{% url 'administration:logout' %}">
     {% csrf_token %}
-    <button type="submit">Sortir</button>
+    <button type="submit">{% translate "Sortir" %}</button>
   </form>
 {% endblock %}

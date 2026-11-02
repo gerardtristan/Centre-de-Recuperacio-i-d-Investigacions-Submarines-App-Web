@@ -1,18 +1,19 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Doble factor · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Doble factor" %} · C.R.I.S.{% endblock %}
 
 {% block content %}
-  <h1>Activa el doble factor</h1>
-  <p>Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil.</p>
+  <h1>{% translate "Activa el doble factor" %}</h1>
+  <p>{% translate "Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil." %}</p>
   <ol>
-    <li>Obre l'aplicació d'autenticació i afegeix un compte nou.</li>
-    <li>Escaneja aquest codi QR, o escriu la clau a mà.</li>
-    <li>Escriu el codi de sis xifres que et mostra l'aplicació.</li>
+    <li>{% translate "Obre l'aplicació d'autenticació i afegeix un compte nou." %}</li>
+    <li>{% translate "Escaneja aquest codi QR, o escriu la clau a mà." %}</li>
+    <li>{% translate "Escriu el codi de sis xifres que et mostra l'aplicació." %}</li>
   </ol>
   <figure>
     {{ qr_svg|safe }}
-    <figcaption>Clau: <code>{{ secret_groups|join:" " }}</code></figcaption>
+    <figcaption>{% translate "Clau:" %} <code>{{ secret_groups|join:" " }}</code></figcaption>
   </figure>
   {% if error %}<p role="alert">{{ error }}</p>{% endif %}
   <form method="post" novalidate>
@@ -21,6 +22,6 @@
       <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
       {{ form.code }}
     </p>
-    <button type="submit">Activar</button>
+    <button type="submit">{% translate "Activar" %}</button>
   </form>
 {% endblock %}

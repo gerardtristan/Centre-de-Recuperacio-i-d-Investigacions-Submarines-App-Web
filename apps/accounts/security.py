@@ -11,6 +11,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit
 
@@ -33,10 +34,10 @@ KIND_BY_AREA = {AREA_PERSONAL: Account.Kind.PERSONAL, AREA_ADMIN: Account.Kind.A
 
 # El mateix missatge per a identificador desconegut, contrasenya incorrecta, compte bloquejat
 # o desactivat i origen bloquejat: no revela si el compte existeix.
-GENERIC_ERROR = (
+GENERIC_ERROR = _(
     "Les dades no són correctes, o s'han fet massa intents. Torna-ho a provar d'aquí a una estona."
 )
-PENDING_ERROR = (
+PENDING_ERROR = _(
     "Encara has de confirmar el correu. Obre l'enllaç que t'hem enviat per activar el compte."
 )
 

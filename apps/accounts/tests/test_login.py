@@ -46,7 +46,7 @@ class TestPersonalEntry:
     def test_wrong_password(self, client, personal_account):
         response = post_login(client, PERSONAL_LOGIN, "anna@example.org", "no-es-aquesta")
         assert response.status_code == 200
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
         personal_account.refresh_from_db()
         assert personal_account.failed_login_count == 1
@@ -55,27 +55,27 @@ class TestPersonalEntry:
         wrong = post_login(client, PERSONAL_LOGIN, "anna@example.org", "no-es-aquesta")
         unknown = post_login(client, PERSONAL_LOGIN, "ningu@example.org", "no-es-aquesta")
         assert wrong.status_code == unknown.status_code == 200
-        assert escape(GENERIC_ERROR) in unknown.content.decode()
+        assert escape(str(GENERIC_ERROR)) in unknown.content.decode()
         assert FailedLogin.objects.filter(account__isnull=True).count() == 1
 
     def test_pending_account_gets_no_session(self, client, make_person):
         # CA-04.2
         Account.objects.create_personal(make_person(), "anna@example.org", PASSWORD)
         response = post_login(client, PERSONAL_LOGIN, "anna@example.org")
-        assert escape(PENDING_ERROR) in response.content.decode()
+        assert escape(str(PENDING_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_pending_message_needs_the_right_password(self, client, make_person):
         Account.objects.create_personal(make_person(), "anna@example.org", PASSWORD)
         response = post_login(client, PERSONAL_LOGIN, "anna@example.org", "no-es-aquesta")
-        assert escape(PENDING_ERROR) not in response.content.decode()
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(PENDING_ERROR)) not in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
 
     def test_disabled_account_gets_no_session(self, client, personal_account):
         personal_account.status = Account.Status.DISABLED
         personal_account.save()
         response = post_login(client, PERSONAL_LOGIN, "anna@example.org")
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_admin_account_cannot_enter_with_username(self, client, admin_account):
@@ -85,7 +85,7 @@ class TestPersonalEntry:
     def test_admin_account_cannot_enter_with_notification_email(self, client, admin_account):
         # CA-07.5
         response = post_login(client, PERSONAL_LOGIN, "joan@example.org")
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_safe_next_is_followed(self, client, personal_account):
@@ -107,7 +107,7 @@ class TestAdminEntry:
     def test_personal_account_cannot_enter(self, client, personal_account):
         # CA-04.5
         response = post_login(client, ADMIN_LOGIN, "anna@example.org")
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_password_alone_never_opens_a_session(self, client, admin_account):
@@ -138,7 +138,7 @@ class TestAccountLock:
         assert abs((personal_account.locked_until - expected).total_seconds()) < 5
 
         response = post_login(client, PERSONAL_LOGIN, "anna@example.org")
-        assert escape(GENERIC_ERROR) in response.content.decode()
+        assert escape(str(GENERIC_ERROR)) in response.content.decode()
         assert not is_logged_in(client)
 
     def test_lock_ends_after_fifteen_minutes(self, client, personal_account):

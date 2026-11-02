@@ -13,6 +13,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
 
+from django.utils.translation import gettext_lazy as _
+
 from .models import Role
 
 R = Role.Code
@@ -64,14 +66,14 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "core.people.manage",
         "M2",
-        "Crear i editar perfils d'altres persones i els seus comptes personals",
+        _("Crear i editar perfils d'altres persones i els seus comptes personals"),
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "core.accounts.manage",
         "M3",
-        "Crear comptes d'administrador, assignar i retirar rols, desactivar comptes",
+        _("Crear comptes d'administrador, assignar i retirar rols, desactivar comptes"),
         protected=True,
         protected_by="059, punt 4.13",
         initial={R.ADMINISTRATOR: _ALL},
@@ -79,7 +81,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "core.permissions.edit",
         "M3b",
-        "Modificar els permisos dels rols (editor)",
+        _("Modificar els permisos dels rols (editor)"),
         protected=True,
         protected_by="059, punt 4.13",
         initial={R.ADMINISTRATOR: _ALL},
@@ -87,7 +89,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "core.accounts.reset_credentials",
         "M4",
-        "Restablir la contrasenya o el TOTP d'un altre compte d'administrador",
+        _("Restablir la contrasenya o el TOTP d'un altre compte d'administrador"),
         protected=True,
         protected_by="059, punt 4.13; 018",
         initial={R.ADMINISTRATOR: _ALL},
@@ -95,55 +97,55 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "core.guest_links.manage",
         "M5",
-        "Generar, reenviar i revocar enllaços de convidat",
+        _("Generar, reenviar i revocar enllaços de convidat"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "core.audit.view",
         "M6",
-        "Consultar el registre d'activitat",
+        _("Consultar el registre d'activitat"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "core.departments.manage",
         "M7",
-        "Mantenir la llista de departaments",
+        _("Mantenir la llista de departaments"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
     _perm(
         "core.cluber_import.run",
         "M8",
-        "Importar les dades de Cluber i desfer-ho",
+        _("Importar les dades de Cluber i desfer-ho"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "core.bank_statement.import",
         "M9",
-        "Importar l'extracte bancari i desfer-ho",
+        _("Importar l'extracte bancari i desfer-ho"),
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
     _perm(
         "core.gdpr.handle",
         "M11",
-        "Atendre sol·licituds RGPD d'altres persones",
+        _("Atendre sol·licituds RGPD d'altres persones"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "core.legal_texts.publish",
         "M12",
-        "Publicar versions noves dels textos legals",
+        _("Publicar versions noves dels textos legals"),
         initial={R.ADMINISTRATOR: _ALL},
     ),
     _perm(
         "core.locked_data.view",
         "M13",
-        "Consultar dades bloquejades",
+        _("Consultar dades bloquejades"),
         protected=True,
         protected_by="028",
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
@@ -155,14 +157,14 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.create_in_person",
         "P2",
-        "Crear una alta presencial",
+        _("Crear una alta presencial"),
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "members.requests.view",
         "P3a",
-        "Consultar sol·licituds d'alta, de canvi de tipus i de baixa",
+        _("Consultar sol·licituds d'alta, de canvi de tipus i de baixa"),
         initial={
             R.SECRETARY: _ALL,
             R.TREASURER: _ALL,
@@ -174,7 +176,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.requests.approve_join",
         "P3",
-        "Aprovar o rebutjar altes",
+        _("Aprovar o rebutjar altes"),
         requires=("members.requests.view",),
         initial={
             R.SECRETARY: _ALL,
@@ -187,7 +189,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.list",
         "P4",
-        "Llistat i fitxa de socis",
+        _("Llistat i fitxa de socis"),
         allowed_scopes=(SCOPE_ALL, SCOPE_READ_MINIMAL),
         initial={R.SECRETARY: _ALL, R.TREASURER: SCOPE_READ_MINIMAL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
@@ -195,7 +197,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.edit",
         "P5",
-        "Editar dades d'un soci (inclòs document i número)",
+        _("Editar dades d'un soci (inclòs document i número)"),
         requires=("members.list",),  # RN-RP-21
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
@@ -203,7 +205,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.edit_join_date",
         "P6",
-        "Corregir la data d'alta",
+        _("Corregir la data d'alta"),
         requires=("members.list",),  # RN-RP-21
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
@@ -211,7 +213,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.requests.resolve_change",
         "P7",
-        "Resoldre canvis de tipus i baixes",
+        _("Resoldre canvis de tipus i baixes"),
         requires=("members.requests.view",),
         initial={
             R.SECRETARY: _ALL,
@@ -225,21 +227,21 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.fees.generate",
         "P8",
-        "Generar quotes anuals",
+        _("Generar quotes anuals"),
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
     _perm(
         "members.unpaid.mark",
         "P9",
-        "Marcar i desmarcar impagat",
+        _("Marcar i desmarcar impagat"),
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
     _perm(
         "members.fees.view",
         "P10",
-        "Veure l'estat de quotes de tots els socis",
+        _("Veure l'estat de quotes de tots els socis"),
         # És un permís de consulta: el «Cons.» de la secretaria equival a «Sí».
         initial={R.SECRETARY: _ALL, R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
@@ -248,28 +250,28 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.export",
         "P11",
-        "Exportar el llistat de socis",
+        _("Exportar el llistat de socis"),
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "members.gdpr.handle",
         "P17",
-        "Atendre sol·licituds RGPD d'altres",
+        _("Atendre sol·licituds RGPD d'altres"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "members.cluber_import.run",
         "P18",
-        "Importació de Cluber i desfer",
+        _("Importació de Cluber i desfer"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "members.licence_record.manage",
         "P19",
-        "Registre mínim de llicència (còpia de lectura, 052)",
+        _("Registre mínim de llicència (còpia de lectura, 052)"),
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
         initial={
             R.SECRETARY: _ALL,
@@ -282,14 +284,14 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.audit.view",
         "P20",
-        "Consultar el registre d'activitat dels socis",
+        _("Consultar el registre d'activitat dels socis"),
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
     _perm(
         "members.field.birth_date",
         "C1",
-        "Camp: data de naixement",
+        _("Camp: data de naixement"),
         kind="field",
         protected=True,
         protected_by="058",
@@ -299,7 +301,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     _perm(
         "members.field.identity",
         "C2",
-        "Camps: document d'identitat, adreça i consentiments d'altres",
+        _("Camps: document d'identitat, adreça i consentiments d'altres"),
         kind="field",
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
