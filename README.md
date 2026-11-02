@@ -75,6 +75,8 @@ ruff check . && ruff format --check .   # lint
 
 Base de dades: `python manage.py migrate`. Primer compte d'administrador: `python manage.py createsuperuser` (entra amb nom d'usuari, mai amb correu). L'àrea de socis és a `/entrar/`; l'administració, a `/<ADMIN_URL_PATH>/entrar/` (per defecte `/gestio/entrar/`), on la primera entrada demana donar d'alta el TOTP i mostra els 10 codis de recuperació una sola vegada. Desplegament, còpies i restauració: pendent (requisit A5 de la checklist).
 
+Dades inventades per a captures i demostracions (`docs/diari-de-construccio/`): sobre una base de dades local, nova i migrada, `python manage.py seed_demo_data` (llavor 1954 per defecte; `--seed N` per canviar-la). Crea persones fictícies (correus `@example.org`, documents `PROVA…`), textos legals de prova, consentiments i càrrecs en diversos estats, sempre iguals per a la mateixa llavor. Es nega a executar-se fora de `config.settings.dev` o `.test`, sense `DEBUG`, amb una base de dades que no sigui local o que no sigui buida. Crea també `admin-demo` amb el rol administrador però sense contrasenya ni TOTP: per fer-lo operatiu, `python manage.py changepassword admin-demo` i l'alta del TOTP des del navegador. Aquesta contrasenya no es reutilitza enlloc, i les pantalles de l'alta del TOTP i dels codis de recuperació no es capturen mai. Amb un sol administrador, la plataforma avisa que n'hi ha menys de dos d'operatius: és el comportament esperat.
+
 ## Responsables
 - Desenvolupament i documentació: equip de l'assignatura.
 - Responsable de manteniment a la junta: [A validar].
