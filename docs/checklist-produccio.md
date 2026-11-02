@@ -102,7 +102,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | F4 | Imatges OG i favicon | Logotip del club per a previsualitzacions en xarxes i icona de l'app | Prova en xarxes | 3 |
 | F5 | Optimització d'imatges | Formats moderns, mides adaptades i càrrega diferida | Informe de rendiment | 3 |
 | F6 | Memòria cau | Memòria cau del navegador per a recursos estàtics i del servidor per a pàgines públiques | Capçaleres comprovades | 3 |
-| F7 | Idioma | Català i, si es decideix, castellà i anglès amb etiquetes d'idioma | Revisió | 3 |
+| F7 | Idioma | Català i, si es decideix, castellà i anglès amb etiquetes d'idioma. Totes les cadenes que veu l'usuari, marcades com a traduïbles ([061](decisions/061-plataforma-preparada-per-traduir.md)); cap llengua activa sense les seves traduccions revisades (P-49) | Revisió | 3 |
 
 ### G. Correu
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |

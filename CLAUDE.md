@@ -5,6 +5,7 @@ Plataforma app-web pròpia per al C.R.I.S. (club de busseig de Barcelona): socis
 
 ## Idioma
 Català per a documents, interfície i comentaris de cara a l'usuari. Noms de codi coherents (decidir-ho una vegada i no barrejar).
+La plataforma està preparada per traduir-se, amb el català com a única llengua activa i la de reserva (decisió 061): tota cadena que veu l'usuari es marca com a traduïble (regla a `docs/planning.md#idiomes`). Quines llengües i qui les tradueix: P-49 [A validar].
 
 ## On és cada cosa
 - `README.md`: estat del projecte i mapa de carpetes.
