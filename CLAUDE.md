@@ -57,6 +57,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Domini de la plataforma: cris1954.cat. Remitent dels correus a cris1954.cat amb resposta a cris@cris.es (decisió 019).
 - Registre d'activitat (qui, quan, què, valor anterior) en dades de socis i diners.
 - Secrets fora del repositori. Cap clau ni contrasenya al codi, als registres ni als exemples.
+- Proves: cap secret real mai. Les credencials de proves fan servir sempre el valor únic `contrasenya-de-proves-1954` (l'única excepció de gitleaks, a `.gitleaks.toml`). Si cal un altre valor que sembli un secret, la línia porta `gitleaks:allow` i un comentari que digui per què.
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisions 017 i 058): quotes amb targeta guardada (el mètode recomanat si el proveïdor permet guardar-la; si no, la domiciliació SEPA), domiciliació SEPA, targeta, Bizum o transferència (permesa, sense obligar-hi); inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
