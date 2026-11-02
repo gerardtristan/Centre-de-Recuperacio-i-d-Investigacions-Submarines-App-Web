@@ -47,3 +47,10 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-08](T-M01-08.md) | Textos legals i consentiments | 02/11/2026 12:24 | f14ed71 | 636 | [A comprovar] |
 | [T-M01-09](T-M01-09.md) | Càrrec, pagament i departament | 02/11/2026 12:55 | 8cb6dc5 | 692 | [A comprovar] |
 | [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | [A comprovar] |
+
+### Eines
+Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
+
+| Eina | Títol | Data i hora | Commit | Proves | CI |
+|---|---|---|---|---|---|
+| [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | [A comprovar] |
