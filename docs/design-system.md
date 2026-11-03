@@ -383,7 +383,7 @@ Les accions equivalents fan servir els mateixos noms, passos i respostes a les t
 - **Minimització:** el document surt emmascarat al compte personal; el Tresorer i el President veuen «major d'edat» en lloc de la data de naixement; cap llistat porta la data de naixement; la importació de Cluber mostra els errors per línia sense repetir dades del fitxer.
 - **Simulació i servidor:** amagar un element per rol al prototip és una simulació. Cada pantalla porta una nota «Al servidor» amb el control real.
 
-Contrast comprovat amb els valors de `tokens.css` als dos temes (taula al diari de la T-M01-02). Per sota del mínim: el daurat de la barra activa sobre el fons de zona al tema clar (1,16:1; és decoratiu i ara porta una vora fosca de 6,98:1) i la pista de l'interruptor actiu al tema fosc (1,64:1; component existent, amb l'estat també en text) [A completar: T-M01-28].
+Contrast comprovat amb els valors de `tokens.css` als dos temes, en 27 combinacions per tema (resum al diari de la T-M01-02). Per sota del mínim: el daurat de la barra activa sobre el fons de zona al tema clar (1,16:1; és decoratiu i ara porta una vora fosca de 6,98:1) i la pista de l'interruptor actiu al tema fosc (1,64:1; component existent, amb l'estat també en text) [A completar: T-M01-28].
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
