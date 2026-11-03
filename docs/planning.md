@@ -472,22 +472,25 @@ Llegenda: **Sí**; **Propi** (només la seva persona); **Consulta** (només veur
 <a id="M01-5-processos"></a>
 ## M01-5 Processos pas per pas
 
-**Wireframes existents** (`design/wireframes/`):
-- `publica.html`: secció i botó «Fer-se soci» (`#fer-se-soci`).
-- `socis.html`: portada del compte personal, **carnet giratori** (`#carnet`, davant i darrere), franja d'estat de pagaments (`#franja-estat`), avisos, llicència (`#llicencia`) i la invitació «Uneix-te al club» per a qui no és soci.
-- `admin.html`: barra lateral filtrada per rol (`data-rols`) i el patró de fitxa amb taula, cerca i filtres (es fa servir per a una activitat; el M01 el reutilitza per a la fitxa i el llistat de socis).
-- **Falten** wireframes de: formulari «Fer-se soci», altes pendents, llistat i fitxa de soci, quotes i impagats, verificació pública, migració de Cluber, perfil, sol·licituds i esborrar el compte. Tasca T-M01-02 ([M01-10](#M01-10-tasques)).
+**Wireframes** (`design/wireframes/`; inventari actualitzat per la T-M01-02, 03/11/2026). Les pantalles noves s'obren amb l'adreça (per exemple, `admin.html#vista-socis-llistat&rol=tresorer`); com provar-les és a [`design-system.md`](design-system.md) §13.
+- **Existents, conservades sense canvis:**
+  - `publica.html`: secció i botons «Fer-se soci» (`#fer-se-soci`; ara porten al formulari).
+  - `socis.html`: portada del compte personal, **carnet giratori** (`#carnet`), franja d'estat (`#franja-estat`), avisos, pagaments amb justificant (`#historial-pagaments`, que fa de «Les meves quotes»), llicència (`#llicencia`) i la invitació per a qui no és soci.
+  - `admin.html`: barra lateral filtrada per rol (`data-rols`) i el patró de fitxa amb taula, cerca i filtres.
+- **Esbós completat:** `admin.html#vista-socis-sollicituds` (abans «Altes pendents»), ara amb altes, canvis de tipus i baixes, i els permisos de la [059](#M01-addenda-059).
+- **Noves (T-M01-02):** formulari «Fer-se soci» (`publica.html#alta`) i verificació del carnet (`publica.html#verificar`); alta presencial (`#vista-socis-alta`), llistat (`#vista-socis-llistat`), fitxa (`#vista-socis-fitxa`), quotes i impagats (`#vista-socis-quotes`) i importació de Cluber (`#vista-socis-cluber`) a `admin.html`; perfil (`socis.html#perfil`), canvi a ple dret (`#canvi-tipus`), baixa (`#baixa`), esborrar el compte (`#esborrar`) i «no trobat» (`#no-trobat`).
+- **Encara sense wireframe (fora de la T-M01-02):** l'aprovació de l'esborrat per l'administració (`/gestio/rgpd`, peça de la 00, M11) i la marca «Comprovat per última vegada» del carnet sense connexió (T-M01-21).
 
 ### P-M01-A Alta de soci (F §9.2)
 | Pas | Qui | Què passa | Pantalla (ruta del mapa v8) | Wireframe |
 |---|---|---|---|---|
-| 1 | Visitant | Obre «Fer-se soci» des de la web pública | `/fer-se-soci` | `publica.html#fer-se-soci` (botó); formulari: falta |
-| 2 | Visitant | Omple dades mínimes (V-04: nom, cognoms, document, correu, telèfon; adreça opcional), tria el tipus i accepta els textos legals obligatoris. **Sense mandat SEPA** (és del 05a) | `/fer-se-soci` | Falta |
+| 1 | Visitant | Obre «Fer-se soci» des de la web pública | `/fer-se-soci` | `publica.html#fer-se-soci` (botó) i `publica.html#alta` (formulari) |
+| 2 | Visitant | Omple dades mínimes (V-04: nom, cognoms, document, correu, telèfon; adreça opcional), tria el tipus i accepta els textos legals obligatoris. **Sense mandat SEPA** (és del 05a) | `/fer-se-soci` | `publica.html#alta` |
 | 3 | Sistema | Comprova duplicats (RN-M01-03). Desa la sol·licitud «pendent de revisió» i els consentiments. Envia un correu de rebut de la sol·licitud | — | — |
-| 3b | Secretaria | (Alta presencial) Omple el mateix formulari des de l'administració; el consentiment es registra com a presencial (canal i compte) | `/gestio/socis/altes/nova` | Falta |
-| 4 | Secretaria | Revisa la sol·licitud a «Altes pendents»; veu l'avís de possible duplicat | `/gestio/socis/altes` | Falta |
-| 5a | Secretaria | **Aprova:** es crea el soci (estat **pendent**), s'assigna el número (RN-M01-05), es crea la quota del període (RN-M01-12) i s'envia una invitació per activar el compte personal | `/gestio/socis/altes` | Falta |
-| 5b | Secretaria | **Rebutja** amb motiu: no es crea cap soci ni es consumeix cap número; s'avisa la persona | `/gestio/socis/altes` | Falta |
+| 3b | Secretaria | (Alta presencial) Omple el mateix formulari des de l'administració; el consentiment es registra com a presencial (canal i compte) | `/gestio/socis/altes/nova` | `admin.html#vista-socis-alta` |
+| 4 | Secretaria | Revisa la sol·licitud a «Altes pendents»; veu l'avís de possible duplicat | `/gestio/socis/altes` | `admin.html#vista-socis-sollicituds` |
+| 5a | Secretaria | **Aprova:** es crea el soci (estat **pendent**), s'assigna el número (RN-M01-05), es crea la quota del període (RN-M01-12) i s'envia una invitació per activar el compte personal | `/gestio/socis/altes` | `admin.html#vista-socis-sollicituds` |
+| 5b | Secretaria | **Rebutja** amb motiu: no es crea cap soci ni es consumeix cap número; s'avisa la persona | `/gestio/socis/altes` | `admin.html#vista-socis-sollicituds` |
 | 6 | Soci | Activa el compte personal (verificació de correu) i veu la quota pendent i el botó «Paga ara» (el pagament és del 05b) | `/socis` | `socis.html#franja-estat` |
 | 7 | Sistema | Quan la quota passa a «pagat» (05b o conciliació de la 04), el soci passa a **actiu** i es genera el carnet | — | — |
 | 8 | Soci | Veu el carnet | `/socis/carnet` | `socis.html#carnet` |
@@ -495,17 +498,19 @@ Llegenda: **Sí**; **Propi** (només la seva persona); **Consulta** (només veur
 ### P-M01-B Canvi de tipus (F §9.3)
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
-| 1 | Soci (simpatitzant actiu) | Obre «Sol·licitar canvi a ple dret»; veu l'import calculat (RN-M01-15) i confirma | `/socis/canvi-tipus` | Falta |
+| 1 | Soci (simpatitzant actiu) | Obre «Sol·licitar canvi a ple dret»; veu l'import calculat (RN-M01-15) i confirma | `/socis/canvi-tipus` | `socis.html#canvi-tipus` (amb l'import «pendent de determinar per la secretaria»; vegeu la nota) |
 | 2 | Sistema | Crea la sol·licitud i un càrrec de quota pel suplement (si l'import és > 0) | — | — |
-| 3 | Secretaria | Aprova la sol·licitud. El canvi de tipus és **efectiu quan el suplement està pagat** [A validar: junta] | `/gestio/socis/{id}` | Falta |
+| 3 | Secretaria | Aprova la sol·licitud. El canvi de tipus és **efectiu quan el suplement està pagat** [A validar: junta] | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Canvis de tipus») |
 | 4 | Sistema | Canvia el tipus amb data efectiva, ho desa a l'historial, **revoca el carnet anterior i n'emet un de nou** | — | — |
 Canvi de ple dret a simpatitzant: no consta enlloc [A validar: junta]. Proposta: només s'aplica a la quota del període següent.
+
+**Nota de la T-M01-02 (wireframes, 03/11/2026).** HU-M01-09 i el pas 1 demanen que el soci vegi l'import abans de confirmar, però RN-M01-15 (aprovada) diu que la secretaria l'escriu en aprovar el canvi. El wireframe segueix RN-M01-15 (estat «Import pendent de determinar per la secretaria» i camp per escriure'l a la resolució) i **no resol la contradicció** [A validar: junta]. A més, la configuració inicial de la [059](#M01-addenda-059) dona P7 al President sense P4 (fitxa): per això el wireframe resol els canvis de tipus i les baixes des de la vista de sol·licituds, i no només des de `/gestio/socis/{id}` [A validar: ruta definitiva, T-M01-17].
 
 ### P-M01-C Baixa (F §9.4)
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
-| 1 | Soci o junta | El soci la demana amb motiu i confirmació; o la secretaria la crea per decisió de la junta | `/socis/baixa`; `/gestio/socis/{id}` | Falta |
-| 2 | Secretaria | La valida i fixa la data efectiva | `/gestio/socis/{id}` | Falta |
+| 1 | Soci o junta | El soci la demana amb motiu i confirmació; o la secretaria la crea per decisió de la junta | `/socis/baixa`; `/gestio/socis/{id}` | `socis.html#baixa`; `admin.html#vista-socis-fitxa` («Crea una baixa») |
+| 2 | Secretaria | La valida i fixa la data efectiva | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Baixes») |
 | 3 | Sistema | A la data efectiva: estat **baixa**, carnet revocat, correu de confirmació. Quotes pendents: vegeu RN-M01-20 | — | — |
 | 4 | Sistema | El compte personal es manté per consultar rebuts (Q-31, proposta) [A validar: junta] | — | — |
 El número queda reservat per sempre ([039](decisions/039-numeros-de-soci-no-es-reutilitzen.md)). Si la persona torna, es **readmet** amb el mateix número (P-M01-A des del pas 4).
@@ -513,11 +518,11 @@ El número queda reservat per sempre ([039](decisions/039-numeros-de-soci-no-es-
 ### P-M01-D Renovació anual de quotes (F §9.5)
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
-| 1 | Tresorer | Tria el període i veu una **previsualització**: quants socis actius, quantes quotes de cada tipus i l'import total | `/gestio/quotes` | Falta |
-| 2 | Tresorer | Confirma: es crea una quota per soci actiu o impagat (RN-M01-12), departament «General / Quotes de socis» | `/gestio/quotes` | Falta |
+| 1 | Tresorer | Tria el període i veu una **previsualització**: quants socis actius, quantes quotes de cada tipus i l'import total | `/gestio/quotes` | `admin.html#vista-socis-quotes` |
+| 2 | Tresorer | Confirma: es crea una quota per soci actiu o impagat (RN-M01-12), departament «General / Quotes de socis» | `/gestio/quotes` | `admin.html#vista-socis-quotes` |
 | 3 | Sistema | Envia l'avís de quota nova al soci (correu i safata d'avisos de l'app) | — | `socis.html#avisos` |
 | 4 | Sistema | Recordatoris abans i després del venciment (RN-M01-14) | — | — |
-| 5 | Tresorer | Revisa les quotes pendents i **marca impagat** a mà amb motiu ([040](decisions/040-impagat-es-marca-a-ma.md)) | `/gestio/quotes` | Falta |
+| 5 | Tresorer | Revisa les quotes pendents i **marca impagat** a mà amb motiu ([040](decisions/040-impagat-es-marca-a-ma.md)) | `/gestio/quotes` | `admin.html#vista-socis-quotes` |
 | 6 | Sistema | Quan una quota es paga (05b o 04), avisa el tresorer perquè desmarqui l'impagat | — | — |
 La remesa de domiciliacions és del 05b; el M01 només crea les quotes.
 
@@ -526,26 +531,26 @@ La remesa de domiciliacions és del 05b; el M01 només crea les quotes.
 |---|---|---|---|---|
 | 1 | Sistema | En passar a actiu (o en un canvi de tipus), genera un carnet amb un testimoni aleatori nou; el QR porta l'URL de verificació amb el testimoni | — | — |
 | 2 | Soci | Veu el carnet (davant: nom, número, tipus, vàlid fins a, anys de soci, QR; darrere: [A validar, decisió 032]) i el descarrega en PDF. La web instal·lable el guarda per veure'l sense cobertura | `/socis/carnet` | `socis.html#carnet` |
-| 3 | Qualsevol persona | Escaneja el QR i obre la pàgina de verificació | `/carnet/verificar/{testimoni}` | Falta |
+| 3 | Qualsevol persona | Escaneja el QR i obre la pàgina de verificació | `/carnet/verificar/{testimoni}` | `publica.html#verificar` |
 | 4 | Sistema | Mostra **«Vàlid»** o **«No vàlid»** i el número de soci parcial (RN-M01-26). Res més. Si el nom de pila s'hi ha de mostrar és [A validar: junta] | — | — |
 Sense cobertura, el carnet desat es mostra amb la marca «Comprovat per última vegada: [data]», perquè qui el mira sàpiga que pot no estar al dia.
 
 ### P-M01-F RGPD: exportar i esborrar
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
-| 1 | Soci | Demana «Descarregar les meves dades» | `/socis/perfil` | Falta |
+| 1 | Soci | Demana «Descarregar les meves dades» | `/socis/perfil` | `socis.html#perfil` |
 | 2 | Sistema | Prepara un fitxer JSON amb persona, soci, historial, quotes, carnets (sense testimonis), sol·licituds, consentiments i llicència; URL signada, disponible 7 dies (V-08) | — | — |
-| 3 | Soci | Demana «Esborrar el meu compte» amb confirmació | `/socis/perfil/esborrar` | Falta |
-| 4 | Responsable RGPD | Aprova la sol·licitud (Q-15) [A validar: junta] | `/gestio/rgpd` | Falta |
+| 3 | Soci | Demana «Esborrar el meu compte» amb confirmació | `/socis/perfil/esborrar` | `socis.html#esborrar` |
+| 4 | Responsable RGPD | Aprova la sol·licitud (Q-15) [A validar: junta] | `/gestio/rgpd` | Falta (fora de la T-M01-02: peça de la 00; l'atén l'administrador, M11 de la [059](#rols-i-permisos-059-matriu)) |
 | 5 | Sistema | Fa la baixa si és soci actiu, desactiva els comptes, anonimitza les dades personals, **bloqueja** quotes i rebuts fins al termini legal (Q-14), i substitueix la identitat al registre per una referència anònima ([028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md)). El número de soci queda reservat i lligat a la referència anònima | — | — |
 
 ### P-M01-G Importació de Cluber, en dues fases (F §9.13; HU-20)
 **Fase 1, prova (en aquest mòdul).**
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
-| 1 | Administrador | Puja l'exportació de Cluber (fitxer inventat o anonimitzat fora de producció) | `/gestio/importacions/cluber` | Falta |
+| 1 | Administrador | Puja l'exportació de Cluber (fitxer inventat o anonimitzat fora de producció) | `/gestio/importacions/cluber` | `admin.html#vista-socis-cluber` |
 | 2 | Sistema | Rebutja el fitxer sencer si té una columna d'IBAN (RN-94). Valida cada línia i fa coincidir per document o número de soci (RN-95) | — | — |
-| 3 | Administrador | Veu el resum: nous, coincidents, errors per línia, i el que es crearia (socis, tipus, estats, dates d'alta, quotes històriques, llicències). **No s'escriu res** | `/gestio/importacions/cluber` | Falta |
+| 3 | Administrador | Veu el resum: nous, coincidents, errors per línia, i el que es crearia (socis, tipus, estats, dates d'alta, quotes històriques, llicències). **No s'escriu res** | `/gestio/importacions/cluber` | `admin.html#vista-socis-cluber` |
 **Fase 2, final (quan el 05a pugui rebre els mandats).**
 | Pas | Qui | Què passa |
 |---|---|---|
@@ -785,7 +790,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | # | Tasca | Esforç | Fitxers afectats | Depèn de | Feta quan |
 |---|---|---|---|---|---|
 | T-M01-01 | Decisions sobre la interfície ([046](decisions/046-interficie-django-htmx-servida-des-del-vps.md)) i sobre la font única de l'especificació ([047](decisions/047-planning-font-unica-de-l-especificacio.md)) | S | `docs/decisions/046-…md`, `047-…md`, `CLAUDE.md` | Aprovació del M01 | **Feta** (27/10/2026) |
-| T-M01-02 | Wireframes que falten (formulari d'alta, altes pendents, llistat, fitxa, quotes, verificació, migració, perfil, sol·licituds, esborrar) amb el sistema de disseny | M | `design/wireframes/socis.html`, `admin.html`, `publica.html` | — | Revisats; contrast comprovat |
+| T-M01-02 | Wireframes que falten (formulari d'alta, altes pendents, llistat, fitxa, quotes, verificació, migració, perfil, sol·licituds, esborrar) amb el sistema de disseny | M | `design/wireframes/socis.html`, `admin.html`, `publica.html` | — | Revisats; contrast comprovat. **Feta en part** (03/11/2026): onze pantalles noves i l'esbós d'«Altes pendents» completat, amb els permisos inicials de la 059 ([inventari a M01-5](#M01-5-processos)); contrast comprovat amb els valors de `tokens.css` als dos temes; teclat i focus provats amb tecles reals a Chrome sense finestra; CI [A comprovar]. **Queda:** la revisió del responsable del projecte («Revisats») |
 | T-M01-03 | Esquelet del projecte Django des de `main`, amb l'estructura d'apps de la PR #1 anterior; configuració per entorns; CI amb proves, lint i escaneig de secrets | M | `pyproject.toml`, `config/settings/`, `.github/workflows/` | T-M01-01 | **Feta** (01/11/2026): apps `core`, `accounts` i `members` segons aquest pla (sense la PR #1); Python 3.12 i Django 5.2 LTS |
 | T-M01-04 | **Model d'usuari propi** abans de la primera migració, i model `Person` (00) | M | `apps/core/models.py`, `migrations/0001_*` | T-M01-03 | **Feta** (01/11/2026): `Person` a `apps/core`; el model d'usuari és `Account` a `apps/accounts` (un compte = una fila, personal o d'administrador, lligada a la persona); RN-13 estricte mentre Q-02 sigui oberta |
 | T-M01-05 | Comptes personal i d'administrador, entrada separada, TOTP obligatori a l'administració, bloqueig per intents (V-01) | L | `apps/accounts/` | T-M01-04 | Proves de C2, C3, C4, C5 de la checklist. **Feta en part** (01/11/2026): entrades separades, TOTP obligatori a l'administració (secret xifrat, QR, sense reutilitzar codis), codis de recuperació, bloqueig per compte i per origen, caducitat de les sessions i sortida. **Queda:** verificació i recuperació per correu del compte personal (C4, C5; depèn de la T-M01-10), restabliment per un altre administrador (HU-08; depèn de la T-M01-06), alta i baixa del TOTP del compte personal (HU-05; baixa amb registre, T-M01-07) i prova de càrrega de C3 |
