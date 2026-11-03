@@ -6,11 +6,12 @@ Regles protegides (059): no són permisos editables.
 import ipaddress
 import logging
 import secrets
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -69,6 +70,42 @@ def ip_is_blocked(ip: str, now=None) -> bool:
     now = now or timezone.now()
     recent = FailedLogin.objects.filter(ip_address=ip, created_at__gt=now - IP_WINDOW)
     return recent.count() >= IP_MAX_FAILURES
+
+
+def _advisory_lock(key: str) -> None:
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
+
+
+def lock_account_attempts(account: Account) -> None:
+    """Dins de `serialized_attempts`: espera el torn del compte i en torna a llegir l'estat,
+    que una altra petició pot haver canviat mentre esperava."""
+    _advisory_lock(f"cris-attempts-account:{account.pk}")
+    account.refresh_from_db(
+        fields=[
+            "failed_login_count",
+            "locked_until",
+            "status",
+            "password",
+            "password_temporary_until",
+        ]
+    )
+
+
+@contextmanager
+def serialized_attempts(request, account: Account | None = None):
+    """Una comprovació de credencials alhora per origen i per compte (C3, V-01).
+
+    Sense això, moltes peticions simultànies llegeixen el comptador abans que cap altra hi
+    hagi desat el seu intent, i s'avaluen més contrasenyes o codis dels que permet el límit
+    (ho mostra la prova de càrrega de C3). Els bloquejos consultius de PostgreSQL duren fins al
+    final de la transacció. Sempre l'origen primer i després el compte: amb aquest ordre fix,
+    dues peticions no es poden esperar l'una a l'altra."""
+    with transaction.atomic():
+        _advisory_lock(f"cris-attempts-ip:{client_ip(request)}")
+        if account is not None:
+            lock_account_attempts(account)
+        yield
 
 
 def record_failure(request, area: str, account: Account | None, reason: str) -> None:
@@ -143,17 +180,18 @@ def confirm_password_and_code(request, account: Account, area: str, password: st
     no es comprova res. El missatge no diu quants intents queden. El codi no es comprova (ni
     es gasta) si la contrasenya és incorrecta. La reautenticació de la T-M00-05 la podrà fer
     servir; aquí no hi ha cap finestra de temps."""
-    if ip_is_blocked(client_ip(request)) or account.is_locked(timezone.now()):
-        return TOO_MANY_ATTEMPTS
-    if not account.check_password(password):
-        record_failure(request, area, account, "bad_password")
-        return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_PASSWORD
-    device = getattr(account, "totp_device", None)
-    if device is None or device.confirmed_at is None or not totp.verify_code(device, code):
-        record_failure(request, area, account, "bad_code")
-        return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_CODE
-    reset_failures(account)
-    return None
+    with serialized_attempts(request, account):
+        if ip_is_blocked(client_ip(request)) or account.is_locked(timezone.now()):
+            return TOO_MANY_ATTEMPTS
+        if not account.check_password(password):
+            record_failure(request, area, account, "bad_password")
+            return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_PASSWORD
+        device = getattr(account, "totp_device", None)
+        if device is None or device.confirmed_at is None or not totp.verify_code(device, code):
+            record_failure(request, area, account, "bad_code")
+            return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_CODE
+        reset_failures(account)
+        return None
 
 
 @dataclass
@@ -164,7 +202,15 @@ class CredentialCheck:
 
 def check_credentials(request, area: str, login: str, password: str) -> CredentialCheck:
     """Primer pas de l'entrada. Cada entrada només troba els comptes del seu tipus (RN-14):
-    un compte d'administrador no existeix per a l'àrea de socis, i a l'inrevés."""
+    un compte d'administrador no existeix per a l'àrea de socis, i a l'inrevés.
+
+    Les comprovacions del mateix origen i del mateix compte van d'una en una
+    (`serialized_attempts`)."""
+    with serialized_attempts(request):
+        return _check_credentials(request, area, login, password)
+
+
+def _check_credentials(request, area: str, login: str, password: str) -> CredentialCheck:
     if ip_is_blocked(client_ip(request)):
         return CredentialCheck(error=GENERIC_ERROR)
 
@@ -178,6 +224,7 @@ def check_credentials(request, area: str, login: str, password: str) -> Credenti
         Account().set_password(password)
         record_failure(request, area, None, "unknown_login")
         return CredentialCheck(error=GENERIC_ERROR)
+    lock_account_attempts(account)
 
     if account.is_locked(timezone.now()):
         record_failure(request, area, account, "locked")

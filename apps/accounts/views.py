@@ -33,6 +33,7 @@ from .security import (
     client_ip,
     confirm_password_and_code,
     record_failure,
+    serialized_attempts,
 )
 from .sessions import (
     clear_pending,
@@ -120,15 +121,28 @@ def login_totp_view(request, area):
     error = None
     if request.method == "POST" and form.is_valid():
         code = form.cleaned_data["code"]
-        if totp.verify_code(account.totp_device, code):
+        # D'un en un per origen i per compte, com la contrasenya (C3): el bloqueig es torna a
+        # mirar després d'esperar el torn.
+        with serialized_attempts(request, account):
+            if account.is_locked(timezone.now()):
+                outcome = "locked"
+            elif totp.verify_code(account.totp_device, code):
+                outcome = "ok"
+            # Codis de recuperació: només els comptes d'administrador en tenen (V-01).
+            elif area == AREA_ADMIN and totp.use_recovery_code(account, code):
+                outcome = "recovery"
+            else:
+                record_failure(request, area, account, "bad_code")
+                outcome = "locked" if account.is_locked(timezone.now()) else "bad"
+        if outcome == "ok":
             return _finish(request, account, area)
-        # Codis de recuperació: només els comptes d'administrador en tenen (V-01).
-        if area == AREA_ADMIN and totp.use_recovery_code(account, code):
+        if outcome == "recovery":
             logger.warning("recovery_code_used account=%s ip=%s", account.pk, client_ip(request))
             audit.record(audit.Action.RECOVERY_CODE_USED, actor=account, request=request)
             return redirect(_url(area, "totp_enrol"))
-        if (response := _code_failed(request, area, account)) is not None:
-            return response
+        if outcome == "locked":
+            clear_pending(request)
+            return redirect(_url(area, "login"))
         error = BAD_CODE
     return render(request, "accounts/login_totp.html", {"form": form, "error": error, "area": area})
 

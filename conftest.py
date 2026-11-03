@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 from django.apps import apps
 from django.db import connection, transaction
+from django.test import TransactionTestCase
 
 from apps.accounts.models import Account
 from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
@@ -49,40 +50,45 @@ def _integer_pk_tables():
     return sorted(set(tables))
 
 
-@pytest.fixture
-def committed_db(django_db_setup, django_db_blocker):
-    """Base de dades sense la transacció de cada prova, per a les proves de concurrència: cada
-    fil té la seva connexió i només veu el que s'ha confirmat.
+class CommittedDataTestCase(TransactionTestCase):
+    """Proves de concurrència amb PostgreSQL real: les dades es confirmen de debò perquè els
+    fils, cadascun amb la seva connexió, les vegin.
 
-    No es fa servir `transaction=True` de pytest-django perquè la neteja fa TRUNCATE i els
-    disparadors del registre d'activitat (T-M01-07) l'impedeixen. En acabar, s'esborren les
-    files noves de cada taula dins d'una sola transacció, amb els disparadors de l'usuari
-    desactivats només dins d'aquesta transacció (ALTER TABLE és transaccional a PostgreSQL).
-    No toca les dades de les migracions (rols, matriu, departament «General»)."""
-    with django_db_blocker.unblock():
-        tables = _integer_pk_tables()
-        start = {}
+    És un `TransactionTestCase` perquè pytest-django prepari la base de dades de proves, però
+    sense el TRUNCATE de la neteja, que els disparadors del registre d'activitat (T-M01-07)
+    impedeixen. En acabar, s'esborren les files noves de cada taula dins d'una sola transacció,
+    amb els disparadors de l'usuari desactivats només dins d'aquesta transacció (ALTER TABLE és
+    transaccional a PostgreSQL). No toca les dades de les migracions (rols, matriu, «General»).
+    """
+
+    @classmethod
+    def _fixture_setup(cls):
+        # Es crida abans de cada prova (Django 5.2 el declara mètode de classe).
+        # Protecció: mai fora de la base de dades de proves.
+        if not connection.settings_dict["NAME"].startswith("test_"):
+            raise RuntimeError("Les proves de concurrència només s'executen a la base de proves.")
+        cls._tables = _integer_pk_tables()
+        cls._start = {}
         with connection.cursor() as cursor:
-            for table, column in tables:
+            for table, column in cls._tables:
                 cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
-                start[table] = cursor.fetchone()[0]
-        try:
-            yield
-        finally:
-            with transaction.atomic(), connection.cursor() as cursor:
-                # Primer es desactiven tots: un ALTER TABLE no es pot fer amb comprovacions
-                # de claus foranes pendents a la mateixa taula.
-                for table, _ in tables:
-                    cursor.execute(f'ALTER TABLE "{table}" DISABLE TRIGGER USER')
-                for table, column in tables:
-                    cursor.execute(
-                        f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
-                        [start[table]],
-                    )
-                cursor.execute("DELETE FROM django_session")
-                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-                for table, _ in tables:
-                    cursor.execute(f'ALTER TABLE "{table}" ENABLE TRIGGER USER')
+                cls._start[table] = cursor.fetchone()[0]
+
+    def _fixture_teardown(self):
+        with transaction.atomic(), connection.cursor() as cursor:
+            # Primer es desactiven tots: un ALTER TABLE no es pot fer amb comprovacions de
+            # claus foranes pendents a la mateixa taula.
+            for table, _ in self._tables:
+                cursor.execute(f'ALTER TABLE "{table}" DISABLE TRIGGER USER')
+            for table, column in self._tables:
+                cursor.execute(
+                    f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
+                    [self._start[table]],
+                )
+            cursor.execute("DELETE FROM django_session")
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+            for table, _ in self._tables:
+                cursor.execute(f'ALTER TABLE "{table}" ENABLE TRIGGER USER')
 
 
 def run_together(functions):
