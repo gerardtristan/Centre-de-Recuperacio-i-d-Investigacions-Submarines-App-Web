@@ -1143,6 +1143,31 @@ Aprovada el 03/11/2026. Una baixa es pot rebutjar amb motiu obligatori (pas 2 de
 
 **Tasques.** La T-M01-11 construeix els dos camps i les restriccions (CA-M01-47). La T-M01-22 també anonimitza `request_reason` i `resolution_reason` ([lectura de les tasques substituïdes](#ajustos-060-lectura)).
 
+<a id="M01-addenda-065"></a>
+## M01 — Addenda de la [065](decisions/065-enllacos-del-correu-i-restabliment-per-un-altre-administrador.md): enllaços del correu i restabliment per un altre administrador
+
+Aprovada el 03/11/2026. Precisa la recuperació per correu, el reenviament de la verificació i el restabliment per un altre administrador de la spec 00 (HU-04, HU-08, RN-24, V-01), sense editar-la. No resol Q-03 ni [P-52](decisions/pendents.md).
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M01-58 | **Límits dels enllaços del correu.** Per destinatari (adreça normalitzada) i finalitat (recuperació o verificació): com a màxim 3 correus per hora i 6 cada 24 hores. Per origen: quan arriba a 10 peticions acceptades en 15 minuts, queda limitat 15 minuts comptats des de la desena; el límit és **conjunt** per a la recuperació i el reenviament. Una petició limitada no envia res, no compta i no allarga cap finestra. No bloquegen l'entrada ni compten per a V-01. La resposta pública no canvia. Valors de seguretat al codi, en un sol lloc (`apps/accounts/limits.py`); canviar-los demana una decisió nova |
+| RN-M01-59 | **Comptes pendents i reenviament.** Un compte personal pendent de verificar no rep cap enllaç de recuperació. El reenviament de la verificació només s'ofereix després de la contrasenya correcta d'un compte pendent (amb «Encara has de confirmar el correu»). Aquest estat dura com a màxim 10 minuts a la sessió, serveix per a un sol reenviament, no és cap sessió autenticada i no dona accés a res més. Abans d'enviar es torna a comprovar que el compte és pendent; el destinatari el decideix el servidor |
+| RN-M01-60 | **Restabliment per un altre administrador.** Qui el fa escriu a la mateixa petició un codi TOTP nou del seu compte (cap codi ja acceptat abans, tampoc el de l'entrada), també en l'excepció de RN-RP-18, i un motiu obligatori, tant per a la contrasenya com per al TOTP. Un codi incorrecte no restableix res i compta per a V-01. Restablir la contrasenya no desbloqueja el compte ni li treu el TOTP ni els codis de recuperació; tanca les sessions i les entrades a mig fer i anul·la la credencial temporal anterior |
+| RN-M01-61 | **Avís del restabliment (CA-08.4).** El registre separa el restabliment i l'avís, sense secrets; un avís a la cua no es presenta mai com a lliurat. Sense correu de notificació, el restabliment es pot fer: la pantalla ho adverteix abans («Aquest compte no té correu de notificació. El restabliment es pot fer, però no se li podrà enviar l'avís.») i ho diu després («Restabliment completat. No s'ha pogut enviar l'avís perquè el compte no té correu de notificació. Avisa la persona afectada per una altra via.»); el registre guarda l'avís com a no enviat, «sense adreça», i no s'avisa ningú més. No resol Q-03 ni permet enviar la credencial per correu (RN-17) |
+
+**Criteris d'acceptació**
+- **CA-M01-48** Donat qualsevol adreça (compte personal actiu, pendent, desactivat, d'administrador, inexistent o limitada), quan es demana recuperar la contrasenya, llavors la resposta és la mateixa i només un compte personal actiu rep l'enllaç.
+- **CA-M01-49** Donat 3 correus enviats en una hora a una adreça per a una finalitat, quan se'n demana un altre, llavors no s'envia res i la resposta no canvia; amb peticions simultànies tampoc no se n'envien més de 3. El mateix amb 6 en 24 hores.
+- **CA-M01-50** Donat 10 peticions acceptades d'un origen en 15 minuts, barrejant recuperació i reenviament, quan en fa una altra, llavors no s'envia res; les limitades no allarguen el límit, que s'acaba 15 minuts després de la desena; amb peticions simultànies no se n'accepten més de 10; i l'entrada des d'aquest origen i el comptador de V-01 no canvien.
+- **CA-M01-51** Donat un compte pendent, quan s'escriu la contrasenya correcta, llavors s'ofereix el reenviament; quan han passat 10 minuts, ja s'ha fet servir o el compte ja no és pendent, no s'envia res; i aquest estat no obre cap pàgina que demani sessió.
+- **CA-M01-52** Donat dos enllaços vigents de la mateixa operació, quan se'n fa servir un, llavors l'altre ja no serveix; si se'n fan servir dos alhora, només un completa l'operació.
+- **CA-M01-53** Donat un restabliment per un altre administrador, quan el codi TOTP de qui el fa falta, és incorrecte o ja s'ha acceptat abans, llavors no es restableix res, l'intent compta per a V-01 i queda al registre; amb un codi nou i el motiu, es restableix.
+- **CA-M01-54** Donat un restabliment de la contrasenya o del TOTP sense motiu, quan es confirma, llavors es rebutja.
+- **CA-M01-55** Donat un compte sense correu de notificació, quan es restableix, llavors la pantalla mostra l'advertiment abans i el missatge després, el registre té el restabliment i l'avís «no enviat, sense adreça», i no surt cap correu; amb correu, el registre diu «a la cua» i la pantalla no diu que s'hagi lliurat.
+
+**Tasques.** La feina és de la T-M01-05 ([lectura de les tasques substituïdes](#ajustos-060-lectura)).
+
 ---
 
 <a id="M04"></a>
@@ -6192,3 +6217,5 @@ Una línia per cada tasca on el text aprovat ja no és el que cal construir. Les
 | T-M05a-09 | També depèn de la T-M00-05 (la reautenticació de RN-M05a-12) | 063 |
 | T-M01-22 | També anonimitza `request_reason` i `resolution_reason` de `MemberRequest` | 064 |
 | T-M01-11 | També CA-M01-47: `MemberRequest` té `request_reason` i `resolution_reason` en lloc de `reason`, amb les dues restriccions | 064 |
+| T-M01-05 | També RN-M01-58 a RN-M01-61 i CA-M01-48 a CA-M01-55: límits dels enllaços del correu, comptes pendents i reenviament, revalidació TOTP i motiu en els restabliments, i avís sense adreça | 065 |
+| T-RP-02, T-M00-03 | La revalidació TOTP i el motiu obligatori de RN-M01-60 també valen per a l'excepció de RN-RP-18 (ja feta a la T-M01-05); els avisos a la junta i als administradors continuen en aquestes tasques | 065 |
