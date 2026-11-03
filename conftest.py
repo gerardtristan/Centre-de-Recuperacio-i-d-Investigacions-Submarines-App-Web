@@ -14,6 +14,10 @@ from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core.models import Person
 
 PASSWORD = "contrasenya-de-proves-1954"  # noqa: S105 (dada inventada de proves)
+# Quan una prova necessita una segona o una tercera contrasenya (canviar-la, dues peticions
+# alhora). Inventades i identificables pel mateix prefix; no són cap secret (CLAUDE.md).
+NEW_PASSWORD = "contrasenya-de-proves-1954-nova"  # noqa: S105 gitleaks:allow (2a contrasenya de proves)
+OTHER_PASSWORD = "contrasenya-de-proves-1954-altra"  # noqa: S105 gitleaks:allow (3a contrasenya de proves)
 
 
 @pytest.fixture

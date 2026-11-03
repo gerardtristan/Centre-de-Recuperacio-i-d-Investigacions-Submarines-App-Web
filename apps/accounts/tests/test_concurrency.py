@@ -18,7 +18,13 @@ from apps.accounts.security import ACCOUNT_MAX_FAILURES, IP_MAX_FAILURES
 from apps.core import audit
 from apps.core.crypto import encrypt
 from apps.core.models import AuditEntry, Person
-from conftest import PASSWORD, CommittedDataTestCase, run_together
+from conftest import (
+    NEW_PASSWORD,
+    OTHER_PASSWORD,
+    PASSWORD,
+    CommittedDataTestCase,
+    run_together,
+)
 
 WRONG = "no-es-aquesta"
 
@@ -63,8 +69,8 @@ class TestSingleUse(CommittedDataTestCase):
     def test_two_simultaneous_resets_change_the_password_once(self):
         account = make_account(status=Account.Status.ACTIVE)
         token = tokens.make_token(account, tokens.RESET_PASSWORD)
-        first = {"new_password1": f"{PASSWORD}-primera", "new_password2": f"{PASSWORD}-primera"}
-        second = {"new_password1": f"{PASSWORD}-segona", "new_password2": f"{PASSWORD}-segona"}
+        first = {"new_password1": NEW_PASSWORD, "new_password2": NEW_PASSWORD}
+        second = {"new_password1": OTHER_PASSWORD, "new_password2": OTHER_PASSWORD}
 
         results = run_together(
             [

@@ -17,11 +17,10 @@ from apps.accounts.security import AREA_PERSONAL
 from apps.core import audit
 from apps.core.crypto import encrypt
 from apps.core.models import AuditEntry
-from conftest import PASSWORD
+from conftest import NEW_PASSWORD, OTHER_PASSWORD, PASSWORD
 
 pytestmark = pytest.mark.django_db
 
-NEW_PASSWORD = f"{PASSWORD}-nova"
 RESET = "accounts:password_reset"
 
 
@@ -77,7 +76,7 @@ class TestResetWithLink:
         other = type(client)()
         other.get(reverse("accounts:password_reset_link", args=[token]))
         assert other.get(reverse(RESET)).context["state"] == "invalid"
-        assert submit(other, f"{PASSWORD}-tercera").context["state"] == "invalid"
+        assert submit(other, OTHER_PASSWORD).context["state"] == "invalid"
         personal_account.refresh_from_db()
         assert personal_account.check_password(NEW_PASSWORD)
 

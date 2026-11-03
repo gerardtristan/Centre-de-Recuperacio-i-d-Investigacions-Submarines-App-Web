@@ -17,7 +17,7 @@ from apps.accounts.models import Account
 from apps.accounts.security import PENDING_ERROR
 from apps.core import audit, mail
 from apps.core.models import AuditEntry, OutgoingEmail
-from conftest import PASSWORD
+from conftest import OTHER_PASSWORD, PASSWORD
 
 pytestmark = pytest.mark.django_db
 
@@ -100,7 +100,7 @@ class TestTokens:
 
     def test_reset_dies_when_the_password_changes(self, personal_account):
         token = tokens.make_token(personal_account, tokens.RESET_PASSWORD)
-        personal_account.set_password(f"{PASSWORD}-altra")
+        personal_account.set_password(OTHER_PASSWORD)
         personal_account.save()
         assert tokens.account_for_token(token, tokens.RESET_PASSWORD) is None
 

@@ -24,7 +24,7 @@ from apps.core import audit
 from apps.core.models import AuditEntry, OutgoingEmail
 from apps.core.models import Role as RoleModel
 from apps.core.roles import reset_password, reset_totp
-from conftest import PASSWORD
+from conftest import NEW_PASSWORD, PASSWORD
 
 pytestmark = pytest.mark.django_db
 
@@ -161,7 +161,7 @@ class TestEntryWithTemporaryCredential:
         )
         assert same.context["form"].has_error("new_password1")
 
-        new = f"{PASSWORD}-nova"
+        new = NEW_PASSWORD
         done = client.post(reverse(CHANGE), {"new_password1": new, "new_password2": new})
         assert done["Location"] == reverse("administration:home")
         assert "_auth_user_id" in client.session
@@ -176,7 +176,7 @@ class TestEntryWithTemporaryCredential:
         a, b = pair
         credential = reset_password(b, by=a)
         log_in(client, "bernat.tresor", credential)
-        new = f"{PASSWORD}-nova"
+        new = NEW_PASSWORD
         response = client.post(reverse(CHANGE), {"new_password1": new, "new_password2": new})
         assert response["Location"] == reverse(LOGIN)
         b.refresh_from_db()
@@ -206,7 +206,7 @@ class TestEntryWithTemporaryCredential:
         codes_page = client.post(reverse("administration:totp_enrol"), {"code": current_code(b)})
         assert codes_page.context["continue_url"] == reverse(CHANGE)
         assert "_auth_user_id" not in client.session
-        new = f"{PASSWORD}-nova"
+        new = NEW_PASSWORD
         client.post(reverse(CHANGE), {"new_password1": new, "new_password2": new})
         assert "_auth_user_id" in client.session
 
