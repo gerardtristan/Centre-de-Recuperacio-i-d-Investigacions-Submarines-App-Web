@@ -11,7 +11,7 @@ Els enllaços porten el testimoni a la ruta. Per reduir-ne l'exposició:
   programa que obre els enllaços dels correus per revisar-los no la completa;
 - cap testimoni va al registre d'activitat ni als registres del servidor de la plataforma.
 La petició inicial sí que passa pel proxy: els seus registres d'accés no han de guardar
-aquestes rutes (arquitectura, variables i proxy) [A verificar: informàtica].
+aquestes rutes (arquitectura §7, «Abans de dades reals») [A verificar: informàtica].
 """
 
 from dataclasses import dataclass
