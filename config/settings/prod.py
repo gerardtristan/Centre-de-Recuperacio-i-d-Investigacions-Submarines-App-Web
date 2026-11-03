@@ -19,7 +19,7 @@ SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 # Enllaços dels correus sempre cap al domini de la plataforma, amb HTTPS (decisió 019).
-PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="https://cris1954.cat").rstrip("/")
+PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="https://cris1954.cat").rstrip("/")
 
 # Correu: el proveïdor real s'ha de declarar sencer; mai la bústia de proves local per defecte.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

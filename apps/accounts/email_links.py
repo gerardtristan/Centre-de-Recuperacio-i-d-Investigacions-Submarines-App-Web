@@ -31,7 +31,7 @@ RESET_SESSION_KEY = "link_reset_password"
 
 
 def _link(url_name: str, token: str) -> str:
-    return settings.PUBLIC_BASE_URL + reverse(url_name, args=[token])
+    return settings.PUBLIC_SITE_URL + reverse(url_name, args=[token])
 
 
 def send_verification(account: Account) -> bool:
