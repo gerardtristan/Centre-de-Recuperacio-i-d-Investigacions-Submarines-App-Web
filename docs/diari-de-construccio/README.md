@@ -49,7 +49,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | verd (#8) |
 | [T-M01-10](T-M01-10.md) | Correu mínim i fitxers privats | 03/11/2026 00:40 | ba27a1e, d70f300, d67ea3b, 93279ff | 795 | verd (a 4c8c143) |
 | [T-M01-02](T-M01-02.md) | Wireframes que falten del mòdul 01 (revisió aprovada el 03/11/2026) | 03/11/2026 02:13 | 994c200, 28402de, 961117b, f37c182, 2d86a35, 2ab6390, a1c9adc, ac5aaf6, 6c0ba5b, 9b69ff9 | 795 | verd (PR #4, dues execucions; també a 47d9b84; tancament a aca95cc) |
-| [T-M01-05](T-M01-05.md) | Comptes: correu, doble factor personal, restabliment i càrrega (segona tanda, en part) | 03/11/2026 17:05 | 3e4b1ae, be08bed, cd80f9e, c5dc59f, 5b75d08, 43673af | 880 | [A comprovar] |
+| [T-M01-05](T-M01-05.md) | Comptes: correu, doble factor personal, restabliment i càrrega (segona tanda, en part) | 03/11/2026 17:05 | 3e4b1ae, be08bed, cd80f9e, c5dc59f, 5b75d08, 43673af | 880 | verd (PR #4, sis feines, dues execucions; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: demanar els enllaços i restablir un altre compte (tercera tanda; pendent de CI i revisió) | 03/11/2026 18:14 | a8fe478, cf5e7f3, 0802245, 2b671cd | 926 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
