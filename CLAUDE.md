@@ -72,6 +72,14 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
 - No es fusiona res si el pipeline falla.
 - Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
+- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca «**Feta**» al pla, amb la data i l'estat del CI. L'informe final acaba amb l'apartat «Propera tasca»:
+  1. Recorregut: primer la taula de tasques principal del mòdul a `docs/planning.md`, després les taules de les seves addendes en l'ordre del fitxer i, al final, les dels apèndixs comuns (T-RP, T-AJ, T-M00).
+  2. Criteri: la propera és la primera fila del recorregut que no està marcada «**Feta**» i que té totes les dependències («Depèn de») marcades «**Feta**». Una tasca «Feta en part» compta com a no feta.
+  3. Font: fitxer, línia i fila de la taula, i cada dependència comprovada amb el seu estat.
+  4. Les altres candidates vàlides es llisten com a informació, sense triar-ne cap.
+  5. Si el pla i l'índex de `docs/diari-de-construccio/README.md` no coincideixen, es llisten totes les candidates amb el motiu i decideix el responsable del projecte. Si no es pot determinar amb seguretat, es diu.
+
+  No es comença la propera tasca sense confirmació.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
