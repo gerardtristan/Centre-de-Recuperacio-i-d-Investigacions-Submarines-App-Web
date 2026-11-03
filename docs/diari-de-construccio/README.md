@@ -48,7 +48,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-09](T-M01-09.md) | Càrrec, pagament i departament | 02/11/2026 12:55 | 8cb6dc5 | 692 | verd (#7) |
 | [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | verd (#8) |
 | [T-M01-10](T-M01-10.md) | Correu mínim i fitxers privats | 03/11/2026 00:40 | ba27a1e, d70f300, d67ea3b, 93279ff | 795 | verd (a 4c8c143) |
-| [T-M01-02](T-M01-02.md) | Wireframes que falten del mòdul 01 (en part: falta la revisió) | 03/11/2026 02:13 | 994c200, 28402de, 961117b, f37c182, 2d86a35, 2ab6390, a1c9adc, ac5aaf6, 6c0ba5b, 9b69ff9 | 795 | [A comprovar] |
+| [T-M01-02](T-M01-02.md) | Wireframes que falten del mòdul 01 (en part: falta la revisió) | 03/11/2026 02:13 | 994c200, 28402de, 961117b, f37c182, 2d86a35, 2ab6390, a1c9adc, ac5aaf6, 6c0ba5b, 9b69ff9 | 795 | verd (PR #4, dues execucions) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
