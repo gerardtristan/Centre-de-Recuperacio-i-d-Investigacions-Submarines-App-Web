@@ -70,6 +70,7 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 
 ## Qualitat
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
+- **Disseny amb seguretat i privacitat.** Tota tasca de disseny (wireframes, plantilles, pantalles) indica, per a cada flux, els requisits de seguretat i privacitat aplicables i els aplica: separació de comptes, permisos per rol i objecte, minimització i emmascarament, missatges que no revelen dades ni l'existència de comptes, confirmacions, motius i verificacions, i estats d'error, accés denegat i sessió caducada. Amagar un element a la interfície no és un control: els wireframes distingeixen la simulació visual dels controls que s'apliquen al servidor.
 - No es fusiona res si el pipeline falla.
 - Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
 - **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca «**Feta**» al pla, amb la data i l'estat del CI. L'informe final acaba amb l'apartat «Propera tasca»:
