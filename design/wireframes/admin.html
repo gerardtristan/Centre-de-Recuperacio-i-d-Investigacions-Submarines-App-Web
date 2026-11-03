@@ -690,8 +690,8 @@
               <select id="filtre-tipus-soci"><option value="">Tots</option><option value="simpatitzant">Simpatitzant</option><option value="ple">Ple dret</option></select>
             </div>
             <div class="camp">
-              <label for="filtre-estat-soci">Estat</label>
-              <select id="filtre-estat-soci"><option value="">Tots</option><option value="pendent">Pendent</option><option value="actiu">Actiu</option><option value="impagat">Impagat</option><option value="baixa">Baixa</option></select>
+              <label for="filtre-estat-soci">Estat del soci</label>
+              <select id="filtre-estat-soci"><option value="">Tots</option><option value="pendent">Pendent de la primera quota</option><option value="actiu">Actiu</option><option value="impagat">Impagat</option><option value="baixa">Baixa</option></select>
             </div>
             <label class="casella" data-rols="admin secretaria"><input type="checkbox" id="filtre-sense-data"> <span>Només els que no tenen data de naixement</span></label>
             <p class="recompte xifra-viva" id="recompte-socis" aria-live="polite">8 de 8 socis</p>
@@ -702,7 +702,7 @@
               <tr>
                 <th scope="col">Soci</th>
                 <th scope="col">Tipus</th>
-                <th scope="col">Estat</th>
+                <th scope="col">Estat del soci</th>
                 <th scope="col">Quota 2026</th>
                 <th scope="col" class="col-secundaria" data-rols="admin secretaria">Data d'alta</th>
                 <th scope="col" data-rols="admin secretaria">Dades</th>
@@ -713,7 +713,7 @@
               <tr data-tipus="ple" data-estat="actiu" data-cerca="marta puig ferrer 0427" data-document="23456789d">
                 <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
                 <td data-etiqueta="Tipus">Ple dret</td>
-                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">12/03/2019</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -722,7 +722,7 @@
               <tr data-tipus="simpatitzant" data-estat="actiu" data-cerca="jordi soler mas 0311">
                 <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
                 <td data-etiqueta="Tipus">Simpatitzant</td>
-                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">05/06/2015</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -731,7 +731,7 @@
               <tr data-tipus="simpatitzant" data-estat="actiu" data-cerca="marc riera sala 0356">
                 <td class="cel-nom">Marc Riera Sala<span class="codi">Soci 0356</span></td>
                 <td data-etiqueta="Tipus">Simpatitzant</td>
-                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">17/09/2016</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -740,7 +740,7 @@
               <tr data-tipus="ple" data-estat="impagat" data-cerca="laia ferrer vila 0502">
                 <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
                 <td data-etiqueta="Tipus">Ple dret</td>
-                <td data-etiqueta="Estat"><span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent · vençuda</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">20/01/2021</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -749,7 +749,7 @@
               <tr data-tipus="ple" data-estat="actiu" data-cerca="oriol mas font 0239">
                 <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
                 <td data-etiqueta="Tipus">Ple dret</td>
-                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent · vençuda</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">~1998 <span class="text-2">(aproximada)</span></td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -758,7 +758,7 @@
               <tr data-tipus="simpatitzant" data-estat="actiu" data-sense-data data-cerca="albert gil mas 0870">
                 <td class="cel-nom">Albert Gil Mas<span class="codi">Soci 0870 · importat de Cluber</span></td>
                 <td data-etiqueta="Tipus">Simpatitzant</td>
-                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">~2008 <span class="text-2">(aproximada)</span></td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria"><span class="estat estat-avis"><span aria-hidden="true">!</span> Sense data de naixement</span></td>
@@ -767,7 +767,7 @@
               <tr data-tipus="simpatitzant" data-estat="pendent" data-cerca="pere soler roig 1286">
                 <td class="cel-nom">Pere Soler Roig<span class="codi">Soci 1286</span></td>
                 <td data-etiqueta="Tipus">Simpatitzant</td>
-                <td data-etiqueta="Estat"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent de la primera quota</span></td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">27/10/2026</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -776,7 +776,7 @@
               <tr data-tipus="ple" data-estat="baixa" data-cerca="rosa vidal pons 0115">
                 <td class="cel-nom">Rosa Vidal Pons<span class="codi">Soci 0115</span></td>
                 <td data-etiqueta="Tipus">Ple dret</td>
-                <td data-etiqueta="Estat"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Baixa</span></td>
+                <td data-etiqueta="Estat del soci"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Baixa</span></td>
                 <td data-etiqueta="Quota 2026"><span class="text-2">—</span></td>
                 <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">02/02/1992</td>
                 <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
@@ -864,7 +864,7 @@
               <section class="targeta" aria-labelledby="hist-soci-titol">
                 <h2 id="hist-soci-titol">Historial d'estats i tipus</h2>
                 <ul class="llista-compacta" id="historial-soci">
-                  <li><span><span class="registre-quan">05/01/2026 09:14</span> · <span class="estat estat-sistema"><span aria-hidden="true">⚙</span> Sistema</span></span><span>Estat: Actiu (abans Pendent) · quota 2026 pagada · efectiu el 05/01/2026</span></li>
+                  <li><span><span class="registre-quan">05/01/2026 09:14</span> · <span class="estat estat-sistema"><span aria-hidden="true">⚙</span> Sistema</span></span><span>Estat: Actiu (abans Pendent de la primera quota) · quota 2026 pagada · efectiu el 05/01/2026</span></li>
                   <li><span><span class="registre-quan">18/02/2025 11:02</span> · <span class="registre-qui">marc.tresor</span></span><span>Estat: Actiu (abans Impagat) · motiu: quota 2025 pagada fora de termini</span></li>
                   <li><span><span class="registre-quan">03/02/2025 10:40</span> · <span class="registre-qui">marc.tresor</span></span><span>Estat: Impagat (abans Actiu) · motiu: quota 2025 retornada pel banc</span></li>
                   <li data-rols="admin secretaria"><span><span class="registre-quan">14/05/2021 17:20</span> · <span class="registre-qui">anna.secretaria</span></span><span>Data d'alta: 12/03/2019, real (abans 01/04/2019, aproximada)</span></li>
@@ -1045,7 +1045,7 @@
                 <td data-etiqueta="Tipus">Simpatitzant</td>
                 <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">35,00 €</td>
                 <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
-                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent de la primera quota</span></td>
                 <td class="cel-accions" data-rols="tresorer"><span class="text-2">Encara no és actiu: no es pot marcar impagat</span></td>
               </tr>
             </tbody>
@@ -2375,11 +2375,18 @@
     }
     [fQ, fS].forEach(el => el.addEventListener('input', filtra));
 
+    // Xip de l'estat del soci. Si la quota està pagada i el soci continua marcat, ho diu:
+    // el desmarcatge és manual (040), el prototip no el fa sol.
+    const xipImpagat = tr => tr.dataset.quota === 'pagada'
+      ? '<span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat · quota pagada, revisa-ho</span>'
+      : '<span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span>';
+
     // Demostració: la quota de Laia es paga (05b) i el tresorer rep l'avís per desmarcar
     g('simula-pagament').addEventListener('click', () => {
       const fila = g('fila-laia');
       fila.dataset.quota = 'pagada';
       fila.querySelector('[data-estat-quota]').innerHTML = '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span>';
+      if (fila.dataset.soci === 'impagat') fila.querySelector('[data-estat-soci]').innerHTML = xipImpagat(fila);
       g('avis-desmarca').hidden = false;
       filtra();
       CRIS.anuncia('La quota de Laia Ferrer Vila s\'ha pagat.');
@@ -2412,7 +2419,7 @@
       const acc = fila.querySelector('.cel-accions');
       if (accio === 'marca') {
         fila.dataset.soci = 'impagat';
-        cel.innerHTML = '<span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span>';
+        cel.innerHTML = xipImpagat(fila);
       } else {
         fila.dataset.soci = 'actiu';
         cel.innerHTML = '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span>';

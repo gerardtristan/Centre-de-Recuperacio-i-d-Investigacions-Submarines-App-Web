@@ -299,6 +299,7 @@ A la fitxa d'una sortida:
 |---|---|---|
 | Pagat, Vigent, Inscripció confirmada, Places lliures, Lliurat | ✓ | `estat-ok` |
 | Pendent, Per recollir | ◷ | `estat-avis` |
+| Estat del soci (M01): «Pendent de la primera quota» (`pending`), «Actiu», «Impagat», «Impagat · quota pagada, revisa-ho» (el tresorer encara no l'ha desmarcat; 040) i «Baixa» | ◷, ✓, ✕, ✕, ■ | `estat-avis`, `estat-ok`, `estat-error`, `estat-error`, `estat-neutre` |
 | Caduca aviat, Últimes places | ! | `estat-avis` |
 | Cancel·lat, Completa, Sense llicència | ✕ | `estat-error` |
 | Sistema (missatge automàtic) | ⚙ | `estat-sistema` |
