@@ -878,7 +878,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | S-M01-16 | Format i contingut de l'exportació de Cluber (Q-23) | **Aprovat:** es treballa amb un **fitxer inventat** (CSV amb número, document, nom, tipus, estat, data d'alta, quotes i llicència). La mostra real anonimitzada de Cluber és pendent del tresorer (Q-23) | Tresorer |
 | S-M01-17 | Tipus de llicència de la FECDAS | Text lliure fins a la 06 | FECDAS |
 | S-M01-18 | Data d'alta desconeguda a Cluber | Data més antiga coneguda, aproximada | Secretaria |
-| S-M01-19 | Remitent dels correus (Q-26) i proveïdor de correu (P-46) | `no-respon@cris1954.cat`, correu a la bústia de proves | Informàtica |
+| S-M01-19 | Remitent dels correus (Q-26); el proveïdor és Brevo ([062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)) | `no-respon@cris1954.cat`, correu a la bústia de proves | Informàtica |
 | S-M01-20 | Eina d'auditoria d'accessibilitat | axe amb Playwright | Informàtica |
 | S-M01-21 | Llavor de l'avatar ja al M01 | **Resolt:** es desa en l'alta (RN-M01-30) | — |
 | S-M01-22 | Conflicte d'interès (Q-11) | Ningú no aprova ni canvia el seu propi soci | Junta |
@@ -5636,7 +5636,7 @@ Els punts de la junta, agrupats per tema i amb la proposta de Claude, són a l'[
 **Informàtica**
 | ID | Pregunta | Bloqueja |
 |---|---|---|
-| S-M01-19; P-46 | Remitent dels correus i proveïdor de correu (subencarregats de Brevo dins la UE); també per als avisos d'ajuts | 00: correu en producció |
+| S-M01-19 | Remitent dels correus (el proveïdor, Brevo, és a la [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)); també per als avisos d'ajuts | 00: correu en producció |
 | S-M01-20 | Eina d'auditoria d'accessibilitat | — |
 | S-M05a-10 | Biblioteca de xifratge i rols de PostgreSQL separats; també per als documents de justificació (051) | — |
 | S-M05a-12 | Temps per tornar a demanar la contrasenya | — |
