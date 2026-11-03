@@ -1059,6 +1059,7 @@
       if (p === 'alta') { document.getElementById('form-alta').hidden = false; document.getElementById('alta-enviada').hidden = true; }
       if (p) {
         scrollTo(0, 0);
+        if (enCarregar) addEventListener('load', () => setTimeout(() => scrollTo(0, 0)), { once: true });
         if (!enCarregar) { const h1 = document.querySelector('#' + p + ' h1'); h1.tabIndex = -1; h1.focus(); }
       } else if (!enCarregar && id) {
         const t = document.getElementById(id); if (t) t.scrollIntoView();
