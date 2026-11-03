@@ -26,3 +26,31 @@ def test_two_simultaneous_confirmations_verify_once(committed_db):
     account.refresh_from_db()
     assert account.status == Account.Status.ACTIVE
     assert AuditEntry.objects.filter(action=audit.Action.EMAIL_VERIFIED).count() == 1
+
+
+def test_two_simultaneous_resets_change_the_password_once(committed_db):
+    account = make_pending()
+    account.status = Account.Status.ACTIVE
+    account.save()
+    token = tokens.make_token(account, tokens.RESET_PASSWORD)
+    first = {
+        "new_password1": f"{PASSWORD}-primera",
+        "new_password2": f"{PASSWORD}-primera",
+    }
+    second = {
+        "new_password1": f"{PASSWORD}-segona",
+        "new_password2": f"{PASSWORD}-segona",
+    }
+
+    results = run_together(
+        [
+            lambda: email_links.reset_password(token, first),
+            lambda: email_links.reset_password(token, second),
+        ]
+    )
+
+    assert sum(result.done for result in results) == 1
+    winner = first if results[0].done else second
+    account.refresh_from_db()
+    assert account.check_password(winner["new_password1"])
+    assert AuditEntry.objects.filter(action=audit.Action.PASSWORD_RESET).count() == 1

@@ -31,6 +31,7 @@ class Action:
     TOTP_RESET = "auth.totp_reset"
     RECOVERY_CODE_USED = "auth.recovery_code_used"
     EMAIL_VERIFIED = "auth.email_verified"
+    PASSWORD_RESET = "auth.password_reset"  # noqa: S105 (nom d'una acció, no cap contrasenya)
     ROLE_ASSIGNED = "roles.assigned"
     ROLE_REMOVED = "roles.removed"
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"

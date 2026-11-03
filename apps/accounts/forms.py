@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import SetPasswordForm
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
@@ -22,6 +23,18 @@ class LoginForm(forms.Form):
         else:
             field.label = gettext("Correu electrònic")
             field.widget = forms.EmailInput(attrs={"autocomplete": "email"})
+
+
+class NewPasswordForm(SetPasswordForm):
+    """Contrasenya nova, dues vegades, amb les regles de V-01 (AUTH_PASSWORD_VALIDATORS)."""
+
+    error_messages = {"password_mismatch": _("Les dues contrasenyes no coincideixen.")}
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        self.fields["new_password1"].label = gettext("Contrasenya nova")
+        self.fields["new_password2"].label = gettext("Torna-la a escriure")
+        self.fields["new_password2"].help_text = ""
 
 
 class CodeForm(forms.Form):

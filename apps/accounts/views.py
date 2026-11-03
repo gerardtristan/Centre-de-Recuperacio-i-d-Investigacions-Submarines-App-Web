@@ -213,6 +213,29 @@ def verify_email_view(request):
     return _no_referrer(render(request, "accounts/verify_email.html", {"state": state}))
 
 
+@login_not_required
+@never_cache
+@require_GET
+def password_reset_link_view(request, token):
+    return _stash_link(request, email_links.RESET_SESSION_KEY, token, "accounts:password_reset")
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def password_reset_view(request):
+    """CA-04.4: un enllaç caducat o ja utilitzat no permet canviar la contrasenya."""
+    token = request.session.get(email_links.RESET_SESSION_KEY, "")
+    data = request.POST if request.method == "POST" else None
+    result = email_links.reset_password(token, data, request=request)
+    if result.account is None or result.done:
+        request.session.pop(email_links.RESET_SESSION_KEY, None)
+    state = "done" if result.done else "ready" if result.account else "invalid"
+    return _no_referrer(
+        render(request, "accounts/password_reset.html", {"state": state, "form": result.form})
+    )
+
+
 @never_cache
 @require_GET
 def admin_home(request):

@@ -14,6 +14,8 @@ La petició inicial sí que passa pel proxy: els seus registres d'accés no han 
 aquestes rutes (arquitectura, variables i proxy) [A verificar: informàtica].
 """
 
+from dataclasses import dataclass
+
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
@@ -21,6 +23,7 @@ from django.urls import reverse
 from apps.core import audit, mail
 
 from . import tokens
+from .forms import NewPasswordForm
 from .models import Account
 
 VERIFY_SESSION_KEY = "link_verify_email"
@@ -48,6 +51,40 @@ def send_verification(account: Account) -> bool:
         },
     )
     return True
+
+
+@dataclass
+class ResetResult:
+    account: Account | None = None
+    form: NewPasswordForm | None = None
+    done: bool = False
+
+
+def reset_password(token: str, data=None, *, request=None) -> ResetResult:
+    """CA-04.3 i CA-04.4: contrasenya nova amb l'enllaç de recuperació.
+
+    Sense `data`, només comprova l'enllaç i torna el formulari buit. Amb `data`, ho fa tot
+    amb la fila del compte bloquejada: si dues peticions arriben alhora, la segona troba la
+    contrasenya ja canviada i el testimoni ja no val. Només comptes actius.
+
+    No toca el doble factor: si el compte en té, l'entrada continua demanant-lo. Canviar la
+    contrasenya tanca les sessions obertes del compte (l'empremta de sessió en depèn)."""
+    with transaction.atomic():
+        account = tokens.account_for_token(token, tokens.RESET_PASSWORD, lock=data is not None)
+        if account is None or account.status != Account.Status.ACTIVE:
+            return ResetResult()
+        form = NewPasswordForm(account, data)
+        if data is None or not form.is_valid():
+            return ResetResult(account=account, form=form)
+        audit.record(
+            audit.Action.PASSWORD_RESET,
+            actor=account,
+            target=account,
+            details={"channel": "email"},
+            request=request,
+        )
+        form.save()
+        return ResetResult(account=account, done=True)
 
 
 @transaction.atomic
