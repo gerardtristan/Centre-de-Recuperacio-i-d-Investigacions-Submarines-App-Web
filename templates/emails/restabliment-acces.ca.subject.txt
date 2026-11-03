@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "S'ha restablert l'accés del teu compte d'administració del C.R.I.S." %}

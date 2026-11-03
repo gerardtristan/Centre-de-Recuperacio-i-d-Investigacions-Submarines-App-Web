@@ -2,8 +2,9 @@
 
 Aquí hi ha les regles; les pantalles són de la T-RP-02 i l'editor, de la T-RP-03. Cada canvi
 deixa la seva entrada al registre d'activitat (RN-RP-08) dins la mateixa transacció, amb els
-rols que tenia qui actua abans de canviar res (RN-RP-15). Mentre no existeixi el correu
-(T-M01-10), els avisos per correu estan pendents.
+rols que tenia qui actua abans de canviar res (RN-RP-15). Els avisos per correu de la T-RP-02
+i de RN-RP-18 (junta i administradors) continuen pendents; el de CA-08.4 al compte restablert,
+sí que s'envia.
 """
 
 from django.core.exceptions import ValidationError
@@ -15,8 +16,9 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.accounts.models import Account, RecoveryCode, TotpDevice
+from apps.accounts.security import TEMPORARY_PASSWORD_VALIDITY, new_temporary_password
 
-from . import audit
+from . import audit, mail
 from .models import AccountRole, Role
 from .permission_catalog import ADMINISTRATOR_ONLY, CATALOG
 from .permissions import has_perm
@@ -156,13 +158,9 @@ def deactivate_admin_account(account: Account, *, by: Account) -> None:
 @transaction.atomic
 def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
     """Restableix el TOTP d'un altre compte d'administrador (M4; CA-08.3). Si és l'últim
-    administrador operatiu, només ho pot fer un compte d'emergència, amb nota (RN-RP-18)."""
-    if not has_perm(by, "core.accounts.reset_credentials"):
-        raise Http404
-    if by.pk == account.pk:
-        raise ValidationError(_("Ningú no pot restablir el seu propi compte per aquesta via."))
-    if account.kind != Account.Kind.ADMIN:
-        raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
+    administrador operatiu, només ho pot fer un compte d'emergència, amb nota (RN-RP-18).
+    El compte restablert rep l'avís de CA-08.4."""
+    _ensure_can_reset(account, by)
     if _would_leave_no_operational_admin(account):
         if not by.is_emergency:
             raise ValidationError(NO_OPERATIONAL_ADMIN)
@@ -179,6 +177,51 @@ def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
     TotpDevice.objects.filter(account=account).delete()
     RecoveryCode.objects.filter(account=account).delete()
     account.end_all_sessions()
+    _notify_reset(account, second_factor=True)
+
+
+def _ensure_can_reset(account: Account, by: Account) -> None:
+    if not has_perm(by, "core.accounts.reset_credentials"):
+        raise Http404
+    if by.pk == account.pk:
+        raise ValidationError(_("Ningú no pot restablir el seu propi compte per aquesta via."))
+    if account.kind != Account.Kind.ADMIN:
+        raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
+
+
+@transaction.atomic
+def reset_password(account: Account, *, by: Account) -> str:
+    """Restableix la contrasenya d'un altre compte d'administrador (M4; HU-08, CA-08.1 i
+    CA-08.2). Torna la credencial temporal, que caduca a les 24 hores (V-01) i que s'ha de
+    canviar en entrar. Es mostra una sola vegada a qui ho fa: no es desa en clar, ni va al
+    registre ni a cap correu (RN-17). Com es fa arribar a la persona: Q-03, obert.
+
+    La credencial anterior, si n'hi havia, deixa de valer. Es tanquen totes les sessions del
+    compte i qualsevol entrada a mig fer. El TOTP i el bloqueig per intents no es toquen."""
+    _ensure_can_reset(account, by)
+    account = Account.objects.select_for_update().get(pk=account.pk)
+    credential = new_temporary_password()
+    expires = timezone.now() + TEMPORARY_PASSWORD_VALIDITY
+    # Què ha passat i fins quan val la credencial; mai la credencial (CA-14.4, RN-52).
+    audit.record(audit.Action.PASSWORD_RESET_BY_ADMIN, actor=by, target=account, new=expires)
+    account.set_password(credential)
+    account.password_temporary_until = expires
+    account.save(update_fields=["password", "password_temporary_until", "updated_at"])
+    account.end_all_sessions()
+    _notify_reset(account, second_factor=False)
+    return credential
+
+
+def _notify_reset(account: Account, *, second_factor: bool) -> None:
+    """CA-08.4: avís informatiu al correu de notificació, sense cap enllaç ni credencial."""
+    if not account.notification_email:
+        return
+    mail.queue_email(
+        "restabliment-acces",
+        to=account.notification_email,
+        person=account.person,
+        context={"second_factor": second_factor, "when": timezone.localtime()},
+    )
 
 
 def grant_initial_administrator(account: Account, *, origin: str = "createsuperuser") -> None:

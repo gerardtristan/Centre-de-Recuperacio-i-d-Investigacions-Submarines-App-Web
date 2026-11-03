@@ -5,6 +5,7 @@ Regles protegides (059): no són permisos editables.
 
 import ipaddress
 import logging
+import secrets
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -28,6 +29,10 @@ ACCOUNT_MAX_FAILURES = 5
 ACCOUNT_LOCK = timedelta(minutes=15)
 IP_MAX_FAILURES = 20
 IP_WINDOW = timedelta(minutes=15)
+
+# V-01: credencial temporal d'un restabliment per un altre administrador (HU-08).
+TEMPORARY_PASSWORD_VALIDITY = timedelta(hours=24)
+_TEMPORARY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # sense 0/O ni 1/I
 
 AREA_PERSONAL = "personal"
 AREA_ADMIN = "admin"
@@ -110,6 +115,13 @@ def record_failure(request, area: str, account: Account | None, reason: str) -> 
         )
 
 
+def new_temporary_password() -> str:
+    """Credencial temporal: 16 caràcters aleatoris (80 bits) en quatre grups, fàcils de dictar.
+    Es mostra una sola vegada a qui fa el restabliment i no es desa enlloc més."""
+    raw = "".join(secrets.choice(_TEMPORARY_ALPHABET) for _ in range(16))
+    return "-".join(raw[i : i + 4] for i in range(0, 16, 4))
+
+
 def reset_failures(account: Account) -> None:
     if account.failed_login_count or account.locked_until:
         account.failed_login_count = 0
@@ -180,6 +192,10 @@ def check_credentials(request, area: str, login: str, password: str) -> Credenti
         return CredentialCheck(error=PENDING_ERROR)
     if account.status != Account.Status.ACTIVE:
         record_failure(request, area, account, "disabled")
+        return CredentialCheck(error=GENERIC_ERROR)
+    if account.temporary_password_expired(timezone.now()):
+        # CA-08.1: la credencial temporal caduca (V-01). Cal un restabliment nou.
+        record_failure(request, area, account, "temporary_expired")
         return CredentialCheck(error=GENERIC_ERROR)
 
     return CredentialCheck(account=account)

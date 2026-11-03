@@ -1,4 +1,6 @@
-"""Entrades de l'àrea de socis i de l'administració (spec 00, HU-04, HU-05, HU-07 i HU-09).
+"""Entrades de l'àrea de socis i de l'administració (spec 00, HU-04, HU-05, HU-07 i HU-09),
+enllaços del correu del compte personal (C4, C5), seguretat del compte personal (HU-05) i
+entrada amb una credencial temporal d'un restabliment per un altre administrador (HU-08).
 
 L'entrada d'administració no té cap enllaç ni cap ruta de recuperació per correu (CA-07.4).
 """
@@ -17,9 +19,11 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit
+from apps.core.permissions import has_perm, permission_required
 
 from . import email_links, tokens, totp
-from .forms import CodeForm, DisableTotpForm, LoginForm
+from .forms import CodeForm, DisableTotpForm, LoginForm, NewPasswordForm
+from .models import Account
 from .security import (
     AREA_ADMIN,
     AREA_PERSONAL,
@@ -33,9 +37,11 @@ from .security import (
 from .sessions import (
     clear_pending,
     complete_login,
+    mark_second_factor,
     pending_account,
     pending_next,
     safe_next,
+    second_factor_done,
     start_pending,
 )
 
@@ -51,6 +57,10 @@ def _url(area, name):
 
 
 def _finish(request, account, area):
+    if account.must_change_password:
+        # CA-08.1: amb una credencial temporal, primer s'ha de canviar; fins llavors, cap sessió.
+        mark_second_factor(request)
+        return redirect(_url(area, "change_temporary_credential"))
     next_url = pending_next(request)
     complete_login(request, account, area)
     return redirect(safe_next(request, next_url) or reverse(HOME[area]))
@@ -145,16 +155,19 @@ def totp_enrol_view(request):
             # CA-14.4: diu què ha passat, sense el secret ni els codis.
             audit.record(audit.Action.TOTP_ENROLLED, actor=account, request=request)
             next_url = pending_next(request)
-            complete_login(request, account, area)
+            if account.must_change_password:
+                # Restabliment de la contrasenya i del TOTP: després dels codis, la contrasenya.
+                mark_second_factor(request)
+                continue_url = _url(area, "change_temporary_credential")
+            else:
+                complete_login(request, account, area)
+                continue_url = safe_next(request, next_url) or reverse(HOME[area])
             # Els codis es mostren aquesta única vegada; a la base de dades només hi ha
             # les empremtes (CA-09.1).
             return render(
                 request,
                 "accounts/recovery_codes.html",
-                {
-                    "codes": codes,
-                    "continue_url": safe_next(request, next_url) or reverse(HOME[area]),
-                },
+                {"codes": codes, "continue_url": continue_url},
             )
         if (response := _code_failed(request, area, account)) is not None:
             return response
@@ -171,6 +184,44 @@ def totp_enrol_view(request):
             "secret_groups": [secret[i : i + 4] for i in range(0, len(secret), 4)],
         },
     )
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def temporary_password_change_view(request):
+    """CA-08.1: qui entra amb una credencial temporal l'ha de canviar abans de tenir sessió.
+    Només després de la contrasenya i del segon factor; la nova ha de ser diferent."""
+    area = AREA_ADMIN
+    account = pending_account(request, area)
+    if (
+        account is None
+        or not second_factor_done(request)
+        or not account.must_change_password
+        or account.temporary_password_expired(timezone.now())
+    ):
+        clear_pending(request)
+        return redirect(_url(area, "login"))
+    form = NewPasswordForm(account, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        if account.check_password(form.cleaned_data["new_password1"]):
+            form.add_error("new_password1", _("Ha de ser diferent de la contrasenya temporal."))
+        else:
+            next_url = pending_next(request)
+            with transaction.atomic():
+                audit.record(
+                    audit.Action.PASSWORD_CHANGED,
+                    actor=account,
+                    target=account,
+                    details={"after_reset": True},
+                    request=request,
+                )
+                form.save(commit=False)
+                account.password_temporary_until = None
+                account.save(update_fields=["password", "password_temporary_until", "updated_at"])
+            complete_login(request, account, area)
+            return redirect(safe_next(request, next_url) or reverse(HOME[area]))
+    return render(request, "accounts/temporary_password_change.html", {"form": form})
 
 
 @login_not_required
@@ -334,5 +385,22 @@ def personal_totp_disable_view(request):
 
 @never_cache
 @require_GET
+@permission_required("core.accounts.reset_credentials")
+def admin_accounts_view(request):
+    """Llista mínima dels comptes d'administrador per al restabliment (HU-08), només amb M4.
+    Sense permís, «no trobat». Només el que cal per decidir: nom d'usuari, estat, si té el
+    doble factor i si té una contrasenya temporal pendent. La T-RP-02 l'ampliarà."""
+    accounts = (
+        Account.objects.filter(kind=Account.Kind.ADMIN)
+        .select_related("totp_device")
+        .order_by("login")
+    )
+    return render(request, "accounts/admin_accounts.html", {"accounts": accounts})
+
+
+@never_cache
+@require_GET
 def admin_home(request):
-    return render(request, "accounts/admin_home.html")
+    # L'enllaç només surt amb el permís; la vista el torna a comprovar igualment.
+    can_reset = has_perm(request.user, "core.accounts.reset_credentials")
+    return render(request, "accounts/admin_home.html", {"can_reset": can_reset})

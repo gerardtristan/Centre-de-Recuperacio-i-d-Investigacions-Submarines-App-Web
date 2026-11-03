@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Comptes d'administrador" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Comptes d'administrador" %}</h1>
+  <table>
+    <caption>{% translate "Comptes que poden entrar a l'administració" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Nom d'usuari" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col">{% translate "Doble factor" %}</th>
+        <th scope="col">{% translate "Contrasenya temporal" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for account in accounts %}
+        <tr>
+          <th scope="row">{{ account.login }}{% if account.pk == user.pk %} ({% translate "tu" %}){% endif %}</th>
+          <td>{{ account.get_status_display }}</td>
+          <td>{% if account.has_totp %}{% translate "Actiu" %}{% else %}{% translate "Pendent d'alta" %}{% endif %}</td>
+          <td>{% if account.must_change_password %}{% translate "Pendent de canviar" %}{% else %}—{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

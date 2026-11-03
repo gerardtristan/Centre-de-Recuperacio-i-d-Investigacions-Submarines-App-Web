@@ -128,6 +128,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
     # Forma part de l'empremta de sessió: incrementar-lo tanca totes les sessions del compte
     # a la petició següent, en qualsevol dispositiu (RN-RP-11, RN-RP-20).
     session_epoch = models.PositiveIntegerField(default=0, editable=False)
+    # Credencial temporal d'un restabliment per un altre administrador (HU-08, CA-08.1): mentre
+    # n'hi ha, la contrasenya és temporal, caduca a aquesta hora (V-01) i s'ha de canviar en
+    # entrar. Només en comptes d'administrador.
+    password_temporary_until = models.DateTimeField(
+        _("contrasenya temporal fins a"), null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -158,6 +164,11 @@ class Account(AbstractBaseUser, PermissionsMixin):
                 | Q(notification_email="", is_emergency=False, is_superuser=False),
                 name="account_admin_only_fields",
             ),
+            # RN-16: el compte personal recupera per correu, mai amb una credencial temporal.
+            models.CheckConstraint(
+                condition=Q(kind="admin") | Q(password_temporary_until__isnull=True),
+                name="account_temporary_password_admin_only",
+            ),
         ]
 
     def __str__(self):
@@ -180,6 +191,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def is_locked(self, now):
         return self.locked_until is not None and self.locked_until > now
+
+    @property
+    def must_change_password(self):
+        return self.password_temporary_until is not None
+
+    def temporary_password_expired(self, now):
+        return self.password_temporary_until is not None and self.password_temporary_until <= now
 
     @property
     def has_totp(self):

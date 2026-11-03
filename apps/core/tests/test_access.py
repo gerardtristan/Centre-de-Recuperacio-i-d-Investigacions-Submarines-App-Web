@@ -21,6 +21,8 @@ PUBLIC_ROUTES = {
     "administration:login",
     "administration:login_totp",
     "administration:totp_enrol",
+    # Canvi de la credencial temporal (CA-08.1): dins l'entrada, abans de tenir sessió.
+    "administration:change_temporary_credential",
     "administration:logout",
 }
 

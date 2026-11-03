@@ -10,6 +10,7 @@ import time
 
 from django.contrib.auth import login, logout
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.core import audit
@@ -50,6 +51,11 @@ def start_pending(request, account: Account, area: str, next_url: str | None) ->
         "area": area,
         "at": time.time(),
         "next": safe_next(request, next_url),
+        # Empremta de la contrasenya i de les sessions del compte: si un altre administrador
+        # en restableix la contrasenya o el TOTP mentre aquest pas està a mig fer, l'estat
+        # pendent deixa de valer (HU-08), igual que les sessions obertes.
+        "hash": account.get_session_auth_hash(),
+        "second_factor": False,
     }
 
 
@@ -64,7 +70,21 @@ def pending_account(request, area: str) -> Account | None:
     )
     if account is None or account.is_locked(timezone.now()):
         return None
+    if not constant_time_compare(data.get("hash", ""), account.get_session_auth_hash()):
+        return None
     return account
+
+
+def mark_second_factor(request) -> None:
+    """El segon factor ja és correcte, però encara falta un pas (canviar la contrasenya
+    temporal, CA-08.1) abans d'obrir la sessió."""
+    data = request.session[_PENDING]
+    data["second_factor"] = True
+    request.session.modified = True
+
+
+def second_factor_done(request) -> bool:
+    return bool((request.session.get(_PENDING) or {}).get("second_factor"))
 
 
 def pending_next(request) -> str | None:

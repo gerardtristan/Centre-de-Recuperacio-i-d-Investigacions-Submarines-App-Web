@@ -33,6 +33,8 @@ class Action:
     RECOVERY_CODE_USED = "auth.recovery_code_used"
     EMAIL_VERIFIED = "auth.email_verified"
     PASSWORD_RESET = "auth.password_reset"  # noqa: S105 (nom d'una acció, no cap contrasenya)
+    PASSWORD_RESET_BY_ADMIN = "auth.password_reset_by_admin"  # noqa: S105 (nom d'una acció)
+    PASSWORD_CHANGED = "auth.password_changed"  # noqa: S105 (nom d'una acció)
     ROLE_ASSIGNED = "roles.assigned"
     ROLE_REMOVED = "roles.removed"
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"

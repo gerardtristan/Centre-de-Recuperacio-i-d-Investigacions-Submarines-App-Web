@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% if second_factor %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }}, un administrador del club ha restablert el doble factor del teu compte d'administració. En la propera entrada l'hauràs de tornar a donar d'alta.{% endblocktranslate %}{% else %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }}, un administrador del club ha restablert la contrasenya del teu compte d'administració. La contrasenya temporal no s'envia mai per correu.{% endblocktranslate %}{% endif %}
+
+{% translate "Aquest correu només és un avís: no porta cap enllaç ni cap contrasenya." %}
+
+{% translate "Si no ho esperaves, avisa el club." %}
+{% endautoescape %}
