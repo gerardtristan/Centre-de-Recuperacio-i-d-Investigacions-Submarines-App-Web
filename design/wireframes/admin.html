@@ -848,7 +848,7 @@
                   <div data-rols="admin secretaria"><dt>Telèfon</dt><dd>600 000 427</dd></div>
                   <div data-rols="admin secretaria"><dt>Adreça</dt><dd>Carrer de l'Exemple, 1, Barcelona</dd></div>
                 </dl>
-                <p class="text-2" data-rols="tresorer" style="margin: var(--e-3) 0 0">Només les dades mínimes per cobrar: el document, l'adreça, el contacte i els consentiments no es mostren al tresorer.</p>
+                <p class="text-2" data-rols="tresorer" style="margin: var(--e-3) 0 0">Vista de tresoreria: dades mínimes.</p>
               </section>
               <section class="targeta" aria-labelledby="consent-soci-titol" data-rols="admin secretaria">
                 <h2 id="consent-soci-titol">Consentiments</h2>
@@ -904,7 +904,7 @@
                   <button class="boto boto-principal" type="button" id="confirma-caducitat" data-icona="check">Confirma la caducitat</button>
                   <button class="boto" type="button" data-obre-dialeg="dialeg-llicencia">Edita el registre</button>
                 </div>
-                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Quan el mòdul 06 entri en producció, aquest registre serà una còpia de lectura i no es podrà editar aquí (addenda 052). La confirmació en bloc de les caducitats d'any natural és la T-M01-36.</p>
+                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Quan el mòdul de llicències entri en producció, aquest registre només es podrà consultar.</p>
               </section>
             </div>
           </div>
@@ -918,6 +918,10 @@
             <li>Conflicte d'interès: ningú canvia el seu propi soci des de l'administració.</li>
             <li>Cada canvi crea una entrada d'historial (només INSERT) i una al registre d'activitat amb el valor anterior (CA-M01-08).</li>
             <li>Les quotes històriques de Cluber no són càrrecs ni moviments (RN-M01-33).</li>
+            <li>Al tresorer, el servidor no envia el document, l'adreça, el contacte ni els consentiments (C2, 059): la fitxa li arriba amb les dades mínimes per cobrar.</li>
+            <li>Llicència: quan el 06 entri en producció, aquest registre passa a ser una còpia de lectura i no s'edita aquí (addenda 052). La confirmació en bloc de les caducitats d'any natural és la T-M01-36.</li>
+            <li>Diàleg «Edita les dades»: el número no es reutilitza mai (039); el servidor rebutja un número que ja és d'una altra persona, encara que sigui de baixa.</li>
+            <li>Diàleg «Corregeix la data d'alta»: historial i registre d'activitat amb el valor anterior (RN-M01-22).</li>
           </ul>
         </aside>
       </div>
@@ -948,7 +952,7 @@
               <li class="xifra"><span class="xifra-etiqueta">Ple dret</span><span class="xifra-valor">50</span><span class="xifra-nota">× <span class="import">90,00 €</span> = <span class="import">4.500,00 €</span></span></li>
               <li class="xifra xifra-marge"><span class="xifra-etiqueta">Quotes noves</span><span class="xifra-valor" id="pv-noves">150</span><span class="xifra-nota" id="pv-total">Total: <span class="import">8.000,00 €</span></span></li>
             </ul>
-            <p class="formula">Preu de cada tipus vigent avui; un canvi de preu posterior no toca les quotes creades (RN-M01-13). Venciment: <span class="a-validar">A validar: tresorer (P-29)</span>. Recordatoris: els dels ajustos del mòdul (VC-02).</p>
+            <p class="formula">Preu vigent de cada tipus. Venciment: <span class="a-validar">A validar: tresorer (P-29)</span></p>
             <div class="accions-form" style="margin-top: var(--e-4)">
               <button class="boto boto-principal" type="button" id="genera-quotes" data-icona="check">Genera 150 quotes</button>
             </div>
@@ -963,7 +967,7 @@
 
         <div data-rols="tresorer"><div class="avis avis-sistema" id="avis-desmarca" role="status" hidden>
           <strong><span aria-hidden="true">⚙</span> Missatge automàtic</strong>
-          La quota 2026 de Laia Ferrer Vila (soci 0502) s'ha pagat i el soci continua marcat com a impagat. Revisa si cal desmarcar-lo: no es fa sol (040).
+          La quota 2026 de Laia Ferrer Vila (soci 0502) s'ha pagat i el soci continua marcat com a impagat. Revisa si cal desmarcar-lo: no es fa sol.
         </div></div>
 
         <section class="targeta" aria-labelledby="estat-quotes-titol">
@@ -1051,7 +1055,7 @@
             </tbody>
           </table>
           <p class="text-2" data-rols="secretaria" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">La secretaria veu l'estat de les quotes, sense imports ni accions.</p>
-          <p class="text-2" data-rols="admin" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Marcar i desmarcar impagats només ho fa el tresorer (configuració inicial de la 059).</p>
+          <p class="text-2" data-rols="admin" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Només el tresorer marca i desmarca impagats.</p>
         </section>
 
         <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
@@ -1061,6 +1065,9 @@
             <li>Marcar i desmarcar impagat (P9): només el tresorer, amb motiu obligatori i només des d'actiu o cap a actiu (RN-M01-07, RN-M01-09, CA-M01-09). Ningú es marca a si mateix.</li>
             <li>Quan una quota es paga (05b o 04), <span class="codi">on_fee_paid</span> avisa el tresorer; l'impagat no es desmarca sol (040).</li>
             <li>La secretaria (P10 en consulta) rep l'estat sense imports.</li>
+            <li>Preu: el vigent de cada tipus el dia de generar; un canvi de preu posterior no toca les quotes creades (RN-M01-13). Recordatoris: els dels ajustos del mòdul (VC-02).</li>
+            <li>L'administrador no marca ni desmarca impagats a la configuració inicial de la 059.</li>
+            <li>Marcar impagat deixa el carnet «no vàlid» fins que es desmarqui (CA-M01-09).</li>
           </ul>
         </aside>
       </div>
@@ -1076,7 +1083,7 @@
         </div>
         <div class="avis avis-avis">
           <strong>Només fitxers inventats o anonimitzats fora de producció</strong>
-          El fitxer no es desa enlloc (RN-101). Format de l'exportació de Cluber: <span class="a-validar">A validar: tresorer (S-M01-16, Q-23)</span>
+          El fitxer no es desa enlloc. Format de l'exportació de Cluber: <span class="a-validar">A validar: tresorer (S-M01-16, Q-23)</span>
         </div>
 
         <div class="graella-tresoreria">
@@ -1092,12 +1099,12 @@
           <section class="targeta" aria-labelledby="cluber-final-titol">
             <h2 id="cluber-final-titol">2. Importació final</h2>
             <p><span class="estat estat-neutre"><span aria-hidden="true">■</span> Bloquejada</span></p>
-            <p>Es fa quan el 05a pugui rebre els mandats. Només n'hi ha una de confirmada; les línies amb error s'han d'excloure explícitament i el lot es pot desfer si encara no s'ha creat res a partir d'ell.</p>
+            <p>Disponible quan el mòdul de mandats pugui rebre'ls.</p>
             <div class="accions-form">
               <button class="boto" type="button" aria-disabled="true" data-bloquejat="La importació final està bloquejada fins que el 05a pugui rebre els mandats.">Importa definitivament</button>
               <button class="boto" type="button" aria-disabled="true" data-bloquejat="Encara no hi ha cap lot final per desfer.">Desfés el lot</button>
             </div>
-            <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Sense IBAN: els socis signaran mandats nous a la campanya del 05a (escenari B).</p>
+            <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Sense IBAN: els socis signaran mandats nous.</p>
           </section>
         </div>
 
@@ -1105,7 +1112,7 @@
           <h2 id="cluber-resultat-titol">Resultat de la prova</h2>
           <div id="cluber-rebutjat" class="avis avis-error" hidden>
             <strong>Fitxer rebutjat sencer: té una columna d'IBAN</strong>
-            La plataforma no importa cap IBAN (RN-94). Treu la columna de l'exportació i torna-ho a provar. No s'ha llegit cap línia.
+            La plataforma no importa cap IBAN. Treu la columna de l'exportació i torna-ho a provar. No s'ha llegit cap línia.
           </div>
           <div id="cluber-resum" hidden>
             <p><span class="estat estat-ok"><span aria-hidden="true">✓</span> Prova feta: no s'ha escrit res a la base de dades</span></p>
@@ -1131,6 +1138,9 @@
             <li>Una columna d'IBAN rebutja el fitxer sencer (RN-94, CA-M01-21). El fitxer no es desa (RN-101).</li>
             <li>La importació final està bloquejada per configuració (<span class="codi">CLUBER_FINAL_IMPORT_ALLOWED</span>, fals per defecte) i el servidor també la rebutja (CA-M01-23). El botó desactivat no és el control.</li>
             <li>Els errors es mostren per número de línia, sense repetir dades personals del fitxer a la pantalla ni al registre.</li>
+            <li>Importació final: quan el 05a pugui rebre els mandats; només n'hi ha una de confirmada, les línies amb error s'exclouen explícitament i el lot es pot desfer si encara no s'ha creat res a partir d'ell.</li>
+            <li>Mandats nous a la campanya del 05a (escenari B; 022, 024 i 025).</li>
+            <li>Un soci importat sense data de naixement queda «sense data de naixement» i se li demana (RN-M01-55).</li>
           </ul>
         </aside>
       </div>
@@ -1142,7 +1152,6 @@
             <span class="etiqueta-seccio">Socis</span>
             <h1>Sol·licituds</h1>
           </div>
-          <p class="text-2">El número de soci s'assigna en aprovar l'alta, continuant el llistat, i no es reutilitza mai.</p>
         </div>
 
         <div class="demo" role="group" aria-labelledby="demo-sol">
@@ -1238,13 +1247,13 @@
                   </dl>
                   <div class="avis avis-avis" data-rols="tresorer">
                     <strong>És la teva sol·licitud</strong>
-                    No la pots resoldre tu (conflicte d'interès). La pot resoldre una altra persona de la secretaria, de la presidència o de l'administració.
+                    No la pots resoldre tu: és la teva sol·licitud. Ho ha de fer una altra persona amb permís.
                   </div>
                   <div class="bloc-resolucio" data-rols="admin secretaria president">
                     <div class="camp camp-import">
                       <label for="imp-suplement">Import del suplement (€)</label>
                       <input id="imp-suplement" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-describedby="imp-suplement-ajuda imp-suplement-error">
-                      <p class="ajuda" id="imp-suplement-ajuda"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Import pendent de determinar per la secretaria</span> L'escriu qui aprova el canvi mentre la junta no fixi la regla (RN-M01-15). <span class="a-validar">A validar: junta</span></p>
+                      <p class="ajuda" id="imp-suplement-ajuda"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Import pendent de determinar per la secretaria</span> L'escriu qui aprova el canvi. <span class="a-validar">A validar: junta</span></p>
                       <p class="error-camp" id="imp-suplement-error" hidden></p>
                     </div>
                     <p class="text-2" style="margin: 0; font-size: var(--t-s)">El canvi és efectiu quan el suplement està pagat <span class="a-validar">A validar: junta</span>. Llavors el carnet actual deixa de ser vàlid i se n'emet un de nou.</p>
@@ -1272,7 +1281,7 @@
                     <div class="camp camp-import">
                       <label for="data-efectiva">Data efectiva de la baixa</label>
                       <input id="data-efectiva" type="date" aria-describedby="data-efectiva-ajuda data-efectiva-error">
-                      <p class="ajuda" id="data-efectiva-ajuda">Aquell dia el carnet deixa de ser vàlid i el soci rep un correu. Les quotes pendents de períodes posteriors s'anul·len amb motiu <span class="a-validar">A validar: tresorer (RN-M01-20)</span>. El número queda reservat.</p>
+                      <p class="ajuda" id="data-efectiva-ajuda">Aquell dia el carnet deixa de ser vàlid i el soci rep un correu.</p>
                       <p class="error-camp" id="data-efectiva-error" hidden></p>
                     </div>
                     <div class="accions-form">
@@ -1297,6 +1306,10 @@
             <li>Rebutjar: motiu obligatori; no es crea cap soci ni es consumeix cap número (CA-M01-05).</li>
             <li>Sessió caducada o permís retirat: no es desa res i la resposta no revela cap dada.</li>
             <li>Tot queda al registre d'activitat amb el valor anterior, el compte i els rols actius (RN-RP-15).</li>
+            <li>El número de soci s'assigna en aprovar l'alta, continuant el llistat, i no es reutilitza mai (039).</li>
+            <li>Conflicte d'interès: la sol·licitud pròpia la resol una altra persona amb P7 (secretaria, presidència o administració).</li>
+            <li>Import del canvi a ple dret: l'escriu a mà qui aprova el canvi mentre la junta no fixi la regla (RN-M01-15).</li>
+            <li>Baixa: les quotes pendents de períodes posteriors a la data efectiva s'anul·len amb motiu i les anteriors es mantenen <span class="a-validar">A validar: tresorer (RN-M01-20)</span>. El número queda reservat (039).</li>
           </ul>
         </aside>
       </div>
@@ -1308,7 +1321,7 @@
             <span class="etiqueta-seccio">Socis</span>
             <h1>Alta presencial</h1>
           </div>
-          <p class="text-2">El mateix formulari que a la web. Queda pendent de revisar a Sol·licituds.</p>
+          <p class="text-2">Queda pendent de revisar a Sol·licituds.</p>
         </div>
         <div class="demo" role="group" aria-labelledby="demo-presencial">
           <span class="demo-titol" id="demo-presencial">Demostració</span>
@@ -1332,7 +1345,7 @@
               </div>
             </div>
             <label class="casella"><input type="checkbox" id="p-legal" aria-describedby="p-legal-ajuda p-legal-error"> <span>La persona ha llegit i accepta la política de privacitat i les condicions de soci.</span></label>
-            <p class="ajuda text-2" id="p-legal-ajuda" style="margin: 0; font-size: var(--t-s)">Es registra com a consentiment presencial, amb la versió del text i el teu compte (<span class="codi" data-compte-actiu>anna.secretaria</span>).</p>
+            <p class="ajuda text-2" id="p-legal-ajuda" style="margin: 0; font-size: var(--t-s)">Queda registrat com a consentiment presencial amb el teu compte (<span class="codi" data-compte-actiu>anna.secretaria</span>).</p>
             <p class="error-camp" id="p-legal-error" hidden></p>
             <label class="casella"><input type="checkbox" id="p-butlleti"> <span>La persona vol rebre el butlletí <span class="text-2">(opcional)</span></span></label>
             <div class="avis avis-avis" id="p-duplicat" role="alert" hidden>
@@ -1351,6 +1364,8 @@
               <li>Consentiment amb canal «presencial» i el compte que el registra (T-M01-08).</li>
               <li>Duplicats (RN-M01-03): aquí sí que es diu, perquè qui ho veu té permís per veure la persona (HU-M01-03).</li>
               <li>Qui desa una alta no pot aprovar-la si és la seva (conflicte d'interès).</li>
+              <li>Mateix formulari i mateixes validacions que el de la web (P-M01-A).</li>
+              <li>Consentiment presencial: es guarda la versió del text, el canal presencial i el compte que el registra (T-M01-08).</li>
             </ul>
           </aside>
         </div>
@@ -1527,7 +1542,7 @@
       <div class="camp">
         <label for="e-numero">Número de soci</label>
         <input id="e-numero" type="text" inputmode="numeric" value="0427" autocomplete="off" data-obligatori="Escriu el número de soci." aria-describedby="e-numero-ajuda e-numero-error">
-        <p class="ajuda" id="e-numero-ajuda">Només per corregir un error. Cap número no es reutilitza mai: si ja és d'una altra persona, encara que sigui de baixa, es rebutja (039).</p>
+        <p class="ajuda" id="e-numero-ajuda">Només per corregir un error. Cap número no es reutilitza mai: si ja és d'una altra persona, encara que sigui de baixa, es rebutja.</p>
         <p class="error-camp" id="e-numero-error" hidden></p>
       </div>
       <p class="text-2" style="margin: 0; font-size: var(--t-s)">Cada canvi queda al registre d'activitat amb el valor anterior.</p>
@@ -1549,7 +1564,7 @@
       <p style="margin: 0">Per reconèixer l'antiguitat real quan es recupera la data (actes, carnets antics). Ara: <strong>12/03/2019</strong>, real.</p>
       <div class="camp"><label for="d-alta">Data d'alta</label><input id="d-alta" type="date" value="2019-03-12" data-obligatori="Escriu la data d'alta." data-no-futura aria-describedby="d-alta-error"><p class="error-camp" id="d-alta-error" hidden></p></div>
       <label class="casella"><input type="checkbox" id="d-aproximada"> <span>La data és aproximada (el carnet dirà «des de ~AAAA» i no compta per a la insígnia de soci clàssic)</span></label>
-      <p class="text-2" style="margin: 0; font-size: var(--t-s)">Queda a l'historial i al registre d'activitat amb el valor anterior (RN-M01-22).</p>
+      <p class="text-2" style="margin: 0; font-size: var(--t-s)">Queda a l'historial i al registre d'activitat amb el valor anterior.</p>
     </div>
     <div class="dialeg-peu">
       <button class="boto" type="button" data-tanca>Cancel·la</button>
@@ -2402,7 +2417,7 @@
       g('impagat-titol').textContent = accio === 'marca' ? 'Marca impagat' : 'Desmarca impagat';
       g('impagat-resum').textContent = (accio === 'marca' ? 'Marcaràs ' : 'Desmarcaràs ') + nom + (accio === 'marca' ? ' com a impagat.' : '.');
       g('impagat-conseq').textContent = accio === 'marca'
-        ? 'El carnet passa a «no vàlid» fins que es desmarqui (CA-M01-09).'
+        ? 'El carnet passa a «no vàlid» fins que es desmarqui.'
         : 'El soci torna a «actiu» i el carnet torna a ser vàlid si la quota del període està pagada.';
       bdI.posa(accio === 'marca' ? 'Marca impagat' : 'Desmarca impagat', 'check');
       motiu.value = ''; errorCamp(motiu, '');
@@ -2460,7 +2475,7 @@
         if (docs[d].length > 1) { r.errors++; r.problemes.push([f.n, 'error', 'Document repetit a les línies ' + docs[d].join(' i '), 'Cal resoldre-ho abans de la importació final (L-M01-06).']); return; }
         if (CONEGUTS.has(col(f, 'numero'))) r.coinc++; else r.nous++;
         if (!col(f, 'data_alta')) r.problemes.push([f.n, 'avis', 'Sense data d\'alta', 'Es farà servir la data més antiga coneguda, marcada com a aproximada (L-M01-07).']);
-        if (!col(f, 'data_naixement')) { r.senseNaix++; r.problemes.push([f.n, 'avis', 'Sense data de naixement', 'El soci quedarà «sense data de naixement» i se li demanarà (RN-M01-55).']); }
+        if (!col(f, 'data_naixement')) { r.senseNaix++; r.problemes.push([f.n, 'avis', 'Sense data de naixement', 'El soci quedarà «sense data de naixement» i se li demanarà.']); }
         if (col(f, 'quotes_pagades')) r.quotes++;
         if (col(f, 'llicencia_tipus')) r.llic++;
       });

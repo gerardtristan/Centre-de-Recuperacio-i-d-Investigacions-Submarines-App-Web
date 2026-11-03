@@ -793,13 +793,14 @@
           <strong>Massa comprovacions seguides</strong>
           Torna-ho a provar d'aquí a una estona.
         </div>
-        <p class="text-2" style="margin: 0">Aquesta pàgina només diu si el carnet és vàlid ara i els dos últims dígits del número. No mostra cap altra dada. Nom de pila: no es mostra <span class="a-validar">A validar: junta (RN-M01-26, S-M01-07)</span></p>
+        <p class="text-2" style="margin: 0">Només mostra si el carnet és vàlid i els dos últims dígits del número.</p>
         <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
           <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
           <ul>
             <li>Ruta pública declarada (RN-40), amb <span class="codi">noindex</span> i límit de peticions per origen (V-01, CA-M01-16). La pantalla no diu el límit ni el temps d'espera.</li>
             <li>El QR només porta l'URL amb un testimoni aleatori; només se'n desa l'empremta (RN-M01-24).</li>
             <li>Testimoni inventat, revocat, de baixa o d'un soci impagat: «No vàlid» amb la mateixa estructura i el mateix temps de resposta (RN-M01-27, CA-M01-14). Cap altra dada a l'HTML (CA-M01-13).</li>
+            <li>Nom de pila: no es mostra <span class="a-validar">A validar: junta (RN-M01-26, S-M01-07)</span>. No es mostra cap altra dada.</li>
           </ul>
         </aside>
       </div>
