@@ -161,11 +161,6 @@
 .camp [aria-invalid="true"], .casella [aria-invalid="true"] { outline: 2px solid var(--c-error); outline-offset: 1px; }
 
 /* ---------- fer-se soci ---------- */
-.graella-quotes { display: grid; gap: var(--e-5); margin-top: var(--e-5); }
-.quota { display: grid; gap: var(--e-3); justify-items: start; }
-.quota h3 { margin: 0; }
-.preu { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-2); }
-.preu-xifra { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-3xl); line-height: var(--a-titol); font-variant-numeric: tabular-nums; }
 .nota-pagament { margin-top: var(--e-5); }
 
 /* ---------- contacte ---------- */
@@ -267,7 +262,6 @@
   .galeria .foto-alta { min-height: calc(var(--e-8) * 2); }
   .galeria li:last-child { grid-column: span 2; }
   .butlleti { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .graella-quotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graella-contacte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .peu-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .form-alta .camps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -296,7 +290,6 @@
   .graella-activitats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bloc-mitja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bloc-invers > :first-child { order: 2; }
-  .graella-quotes { max-width: calc(var(--amplada-max) * 2 / 3); }
   .peu-graella { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .graella-alta { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
   .costat-alta { position: sticky; top: calc(var(--capcalera-alcada) * 2); }
@@ -606,27 +599,21 @@
 
   <section id="fer-se-soci" class="seccio" aria-labelledby="soci-titol">
     <div class="contenidor">
-      <span class="etiqueta-seccio">Quotes</span>
+      <span class="etiqueta-seccio">Socis</span>
       <h2 id="soci-titol">Fes-te soci</h2>
-      <div class="graella-quotes">
-        <article class="targeta quota" id="quota-simpatitzant">
-          <h3>Simpatitzant</h3>
-          <p class="preu"><span class="preu-xifra">35 €</span> <span class="text-2">l'any</span></p>
-          <p>Què inclou: <span class="a-validar">A validar</span></p>
-          <a class="boto" href="#alta" data-tipus="supporter">Alta com a simpatitzant</a>
-        </article>
-        <article class="targeta quota" id="quota-ple-dret">
-          <h3>Ple dret</h3>
-          <p class="preu"><span class="preu-xifra">90 €</span> <span class="text-2">l'any</span></p>
-          <p>Què inclou: <span class="a-validar">A validar</span></p>
-          <a class="boto" href="#alta" data-tipus="full">Alta de ple dret</a>
-        </article>
-      </div>
+      <p class="text-llarg">Pots ser simpatitzant o soci de ple dret. Al formulari d'alta tries la modalitat i en veus la quota. No cal crear cap compte per començar.</p>
       <div class="avis nota-pagament">
         <strong>Com es paga la quota</strong>
         Per domiciliació SEPA (per defecte), targeta, Bizum o transferència.
       </div>
       <div class="grup-botons"><a class="boto-tactil tactil-daurat boto-gran" href="#alta"><span class="bt-tecla">Comença l'alta</span></a></div>
+      <aside class="demo nota-servidor" aria-label="Nota de disseny">
+        <span class="demo-titol">Nota de disseny (no és part de la pantalla)</span>
+        <ul>
+          <li>Els preus de les quotes no surten a la portada: només al pas «Tipus de soci» del formulari d'alta (alternativa B de la revisió del 03/11/2026). És una tria de presentació, no cap control de seguretat: els preus són informació pública i qualsevol persona els veu en obrir el formulari.</li>
+          <li>Per començar l'alta no cal compte (P-M01-A); el compte personal s'activa quan s'aprova.</li>
+        </ul>
+      </aside>
     </div>
   </section>
 
@@ -1068,11 +1055,6 @@
       espia();
     }
     addEventListener('hashchange', () => ruta(false));
-    // «Alta com a simpatitzant» i «Alta de ple dret» obren el formulari amb el tipus triat
-    document.querySelectorAll('a[data-tipus]').forEach(a => a.addEventListener('click', () => {
-      const r = document.querySelector('input[name="a-tipus"][value="' + a.dataset.tipus + '"]');
-      if (r) r.checked = true;
-    }));
     ruta(true);
   })();
 
