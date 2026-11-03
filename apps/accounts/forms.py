@@ -53,6 +53,32 @@ class CodeForm(forms.Form):
     )
 
 
+class ResetCredentialsForm(forms.Form):
+    """Restabliment per un altre administrador (HU-08; RN-M01-60): què, per què i un codi
+    TOTP nou de qui ho fa."""
+
+    PASSWORD = "password"  # noqa: S105 (opció del formulari, no cap contrasenya)
+    TOTP = "totp"
+
+    what = forms.ChoiceField(
+        label=_("Què vols restablir"),
+        choices=[(PASSWORD, _("La contrasenya")), (TOTP, _("El doble factor (TOTP)"))],
+        widget=forms.RadioSelect,
+    )
+    note = forms.CharField(
+        label=_("Motiu"),
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Queda al registre d'activitat. No hi escriguis cap contrasenya ni codi."),
+    )
+    code = forms.CharField(
+        label=_("El teu codi TOTP"),
+        max_length=24,
+        help_text=_("Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu."),
+        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+    )
+
+
 class DisableTotpForm(CodeForm):
     """CA-05.2: per desactivar el doble factor cal la contrasenya i un codi vàlid."""
 

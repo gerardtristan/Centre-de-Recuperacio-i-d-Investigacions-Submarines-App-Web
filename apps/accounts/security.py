@@ -18,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit
 
 from . import totp
-from .models import Account, FailedLogin, normalize_login
+from .models import Account, FailedLogin, TotpDevice, normalize_login
 
 logger = logging.getLogger("cris.security")
 
@@ -188,6 +188,24 @@ def confirm_password_and_code(request, account: Account, area: str, password: st
             return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_PASSWORD
         device = getattr(account, "totp_device", None)
         if device is None or device.confirmed_at is None or not totp.verify_code(device, code):
+            record_failure(request, area, account, "bad_code")
+            return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_CODE
+        reset_failures(account)
+        return None
+
+
+def confirm_code(request, account: Account, area: str, code: str):
+    """Torna a demanar un codi TOTP a un compte amb sessió (RN-M01-60: abans de restablir un
+    altre compte). Torna None si és correcte, o el missatge d'error.
+
+    El codi ha de ser nou: `totp.verify_code` no accepta cap interval igual o anterior a
+    l'últim acceptat, tampoc el de l'entrada. Els errors compten per al bloqueig de V-01 i
+    queden al registre; amb el compte o l'origen bloquejats no es comprova res."""
+    with serialized_attempts(request, account):
+        if ip_is_blocked(client_ip(request)) or account.is_locked(timezone.now()):
+            return TOO_MANY_ATTEMPTS
+        device = TotpDevice.objects.filter(account=account, confirmed_at__isnull=False).first()
+        if device is None or not totp.verify_code(device, code):
             record_failure(request, area, account, "bad_code")
             return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_CODE
         reset_failures(account)

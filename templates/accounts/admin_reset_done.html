@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Restablir l'accés" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% blocktranslate with username=target.login %}Accés de {{ username }} restablert{% endblocktranslate %}</h1>
+  <p role="{% if notice_queued %}status{% else %}alert{% endif %}">{{ notice_message }}</p>
+  {% if credential %}
+    <h2>{% translate "Contrasenya temporal" %}</h2>
+    <p><code>{{ credential }}</code></p>
+    <p>
+      {% blocktranslate count hours=valid_hours trimmed %}
+        Només es mostra ara. Caduca d'aquí a {{ hours }} hora i s'haurà de canviar en entrar.
+      {% plural %}
+        Només es mostra ara. Caduca d'aquí a {{ hours }} hores i s'haurà de canviar en entrar.
+      {% endblocktranslate %}
+      {% translate "No l'enviïs mai per correu." %}
+    </p>
+  {% else %}
+    <p>{% translate "En la propera entrada, la persona haurà de tornar a donar d'alta el doble factor." %}</p>
+  {% endif %}
+  <p><a href="{% url 'administration:accounts' %}">{% translate "Tornar als comptes" %}</a></p>
+{% endblock %}

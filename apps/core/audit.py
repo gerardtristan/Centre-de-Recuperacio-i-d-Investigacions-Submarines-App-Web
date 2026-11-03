@@ -30,6 +30,7 @@ class Action:
     TOTP_ENROLLED = "auth.totp_enrolled"
     TOTP_RESET = "auth.totp_reset"
     TOTP_DISABLED = "auth.totp_disabled"
+    RESET_NOTICE = "auth.reset_notice"
     RECOVERY_CODE_USED = "auth.recovery_code_used"
     EMAIL_VERIFIED = "auth.email_verified"
     EMAIL_LINK_SENT = "auth.email_link_sent"

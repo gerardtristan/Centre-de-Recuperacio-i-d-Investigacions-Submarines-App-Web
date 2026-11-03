@@ -10,6 +10,11 @@ app_name = "administration"
 urlpatterns = [
     path("", views.admin_home, name="home"),
     path("comptes/", views.admin_accounts_view, name="accounts"),
+    path(
+        "comptes/<int:pk>/restablir/",
+        views.reset_credentials_view,
+        name="reset_credentials",
+    ),
     path("entrar/", views.login_view, {"area": AREA_ADMIN}, name="login"),
     path("entrar/codi/", views.login_totp_view, {"area": AREA_ADMIN}, name="login_totp"),
     path("entrar/doble-factor/", views.totp_enrol_view, name="totp_enrol"),

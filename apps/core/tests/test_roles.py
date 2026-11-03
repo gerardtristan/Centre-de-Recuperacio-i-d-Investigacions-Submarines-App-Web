@@ -238,7 +238,7 @@ class TestResetTotp:
         actor, target = make_admin(R.ADMINISTRATOR), make_admin(R.ADMINISTRATOR)
         RecoveryCode.objects.create(account=target, code_hash="a" * 64)
         epoch = target.session_epoch
-        reset_totp(target, by=actor)
+        reset_totp(target, by=actor, note="Ha canviat de mòbil")
         assert not TotpDevice.objects.filter(account=target).exists()
         assert not RecoveryCode.objects.filter(account=target).exists()
         target.refresh_from_db()
@@ -248,11 +248,18 @@ class TestResetTotp:
         me = make_admin(R.ADMINISTRATOR)
         make_admin(R.ADMINISTRATOR)
         with pytest.raises(ValidationError):
-            reset_totp(me, by=me)
+            reset_totp(me, by=me, note="Prova")
 
     def test_needs_the_protected_permission(self, make_admin):
         with pytest.raises(Http404):
-            reset_totp(make_admin(R.SECRETARY), by=make_admin(R.PRESIDENT))
+            reset_totp(make_admin(R.SECRETARY), by=make_admin(R.PRESIDENT), note="Prova")
+
+    def test_a_reason_is_always_required(self, make_admin):
+        # RN-M01-60 i CA-M01-54: també fora de l'excepció de RN-RP-18.
+        actor, target = make_admin(R.ADMINISTRATOR), make_admin(R.ADMINISTRATOR)
+        with pytest.raises(ValidationError):
+            reset_totp(target, by=actor, note="  ")
+        assert TotpDevice.objects.filter(account=target).exists()
 
     def test_last_operational_admin_is_protected(self, make_admin):
         # CA-RP-06: un compte que no és d'emergència no ho pot fer.

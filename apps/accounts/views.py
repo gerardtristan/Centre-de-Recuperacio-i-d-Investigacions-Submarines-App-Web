@@ -10,7 +10,9 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_not_required
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -19,7 +21,7 @@ from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit
+from apps.core import audit, roles
 from apps.core.permissions import has_perm, permission_required
 
 from . import email_links, tokens, totp
@@ -29,15 +31,18 @@ from .forms import (
     LoginForm,
     NewPasswordForm,
     RecoveryRequestForm,
+    ResetCredentialsForm,
 )
 from .models import Account
 from .security import (
     AREA_ADMIN,
     AREA_PERSONAL,
+    TEMPORARY_PASSWORD_VALIDITY,
     WRONG_CODE,
     WRONG_PASSWORD,
     check_credentials,
     client_ip,
+    confirm_code,
     confirm_password_and_code,
     record_failure,
     serialized_attempts,
@@ -489,6 +494,81 @@ def admin_accounts_view(request):
         .order_by("login")
     )
     return render(request, "accounts/admin_accounts.html", {"accounts": accounts})
+
+
+NO_NOTIFICATION_ADDRESS = _(
+    "Aquest compte no té correu de notificació. El restabliment es pot fer, però no se li "
+    "podrà enviar l'avís."
+)
+NOTICE_NO_ADDRESS = _(
+    "Restabliment completat. No s'ha pogut enviar l'avís perquè el compte no té correu de "
+    "notificació. Avisa la persona afectada per una altra via."
+)
+NOTICE_QUEUED = _(
+    "Restabliment completat. L'avís s'ha posat a la cua d'enviament cap al correu de "
+    "notificació del compte; el registre d'enviaments en dirà el resultat."
+)
+NOTICE_NOT_SENT = _("Restabliment completat. No s'ha enviat l'avís (%(reason)s).")
+
+
+def _notice_message(notice):
+    if notice.queued:
+        return NOTICE_QUEUED
+    if notice.reason == str(roles.NO_ADDRESS):
+        return NOTICE_NO_ADDRESS
+    return NOTICE_NOT_SENT % {"reason": notice.reason}
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@permission_required("core.accounts.reset_credentials")
+def reset_credentials_view(request, pk):
+    """HU-08 i RN-M01-60: M4, codi TOTP nou de qui ho fa a la mateixa petició (també amb
+    l'excepció de RN-RP-18) i motiu obligatori. La credencial temporal es mostra aquesta
+    sola vegada; no va al registre ni a cap correu (RN-17). El canal de lliurament és Q-03,
+    obert: la pantalla no en proposa cap."""
+    target = Account.objects.filter(pk=pk, kind=Account.Kind.ADMIN).first()
+    if target is None:
+        raise Http404
+    form = ResetCredentialsForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        error = confirm_code(request, request.user, AREA_ADMIN, form.cleaned_data["code"])
+        if error is not None:
+            form.add_error("code" if error == WRONG_CODE else None, error)
+        else:
+            note = form.cleaned_data["note"]
+            credential = None
+            try:
+                if form.cleaned_data["what"] == ResetCredentialsForm.PASSWORD:
+                    credential, notice = roles.reset_password(target, by=request.user, note=note)
+                else:
+                    notice = roles.reset_totp(target, by=request.user, note=note)
+            except ValidationError as exc:
+                form.add_error(None, exc)
+            else:
+                return render(
+                    request,
+                    "accounts/admin_reset_done.html",
+                    {
+                        "target": target,
+                        "credential": credential,
+                        "valid_hours": int(TEMPORARY_PASSWORD_VALIDITY.total_seconds() // 3600),
+                        "notice_message": _notice_message(notice),
+                        "notice_queued": notice.queued,
+                    },
+                )
+    return render(
+        request,
+        "accounts/admin_reset.html",
+        {
+            "target": target,
+            "form": form,
+            "own_account": target.pk == request.user.pk,
+            "no_address_warning": (
+                NO_NOTIFICATION_ADDRESS if not target.notification_email else None
+            ),
+        },
+    )
 
 
 @never_cache

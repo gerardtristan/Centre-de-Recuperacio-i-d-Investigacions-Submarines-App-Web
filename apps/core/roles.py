@@ -7,6 +7,8 @@ i de RN-RP-18 (junta i administradors) continuen pendents; el de CA-08.4 al comp
 sí que s'envia.
 """
 
+from dataclasses import dataclass
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -155,17 +157,30 @@ def deactivate_admin_account(account: Account, *, by: Account) -> None:
     account.end_all_sessions()
 
 
+@dataclass(frozen=True)
+class ResetNotice:
+    """Resultat de l'avís de CA-08.4, separat del restabliment (RN-M01-61). «A la cua» no vol
+    dir lliurat: el resultat de l'enviament és al registre d'enviaments (`email_id`)."""
+
+    queued: bool
+    reason: str = ""
+    email_id: int | None = None
+
+
+NO_ADDRESS = gettext_lazy("sense adreça")
+ANONYMISED = gettext_lazy("persona anonimitzada")
+
+
 @transaction.atomic
-def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
-    """Restableix el TOTP d'un altre compte d'administrador (M4; CA-08.3). Si és l'últim
-    administrador operatiu, només ho pot fer un compte d'emergència, amb nota (RN-RP-18).
-    El compte restablert rep l'avís de CA-08.4."""
-    _ensure_can_reset(account, by)
-    if _would_leave_no_operational_admin(account):
-        if not by.is_emergency:
-            raise ValidationError(NO_OPERATIONAL_ADMIN)
-        if not note.strip():
-            raise ValidationError(_("Cal una nota per restablir el TOTP de l'últim administrador."))
+def reset_totp(account: Account, *, by: Account, note: str = "") -> ResetNotice:
+    """Restableix el TOTP d'un altre compte d'administrador (M4; CA-08.3), amb motiu
+    obligatori (RN-M01-60). Si és l'últim administrador operatiu, només ho pot fer un compte
+    d'emergència (RN-RP-18). El compte restablert rep l'avís de CA-08.4 si té on rebre'l.
+
+    El codi TOTP nou de qui actua (RN-M01-60) el comprova la vista, a la mateixa petició."""
+    _ensure_can_reset(account, by, note)
+    if _would_leave_no_operational_admin(account) and not by.is_emergency:
+        raise ValidationError(NO_OPERATIONAL_ADMIN)
     # RN-RP-18: compte d'emergència, compte afectat i nota. Cap secret (CA-14.4).
     audit.record(
         audit.Action.TOTP_RESET,
@@ -177,51 +192,74 @@ def reset_totp(account: Account, *, by: Account, note: str = "") -> None:
     TotpDevice.objects.filter(account=account).delete()
     RecoveryCode.objects.filter(account=account).delete()
     account.end_all_sessions()
-    _notify_reset(account, second_factor=True)
+    return _notify_reset(account, by=by, second_factor=True)
 
 
-def _ensure_can_reset(account: Account, by: Account) -> None:
+def _ensure_can_reset(account: Account, by: Account, note: str) -> None:
     if not has_perm(by, "core.accounts.reset_credentials"):
         raise Http404
     if by.pk == account.pk:
         raise ValidationError(_("Ningú no pot restablir el seu propi compte per aquesta via."))
     if account.kind != Account.Kind.ADMIN:
         raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
+    if not (note or "").strip():
+        raise ValidationError(_("Cal un motiu per restablir l'accés d'un compte."))
 
 
 @transaction.atomic
-def reset_password(account: Account, *, by: Account) -> str:
+def reset_password(account: Account, *, by: Account, note: str = "") -> tuple[str, ResetNotice]:
     """Restableix la contrasenya d'un altre compte d'administrador (M4; HU-08, CA-08.1 i
     CA-08.2). Torna la credencial temporal, que caduca a les 24 hores (V-01) i que s'ha de
     canviar en entrar. Es mostra una sola vegada a qui ho fa: no es desa en clar, ni va al
     registre ni a cap correu (RN-17). Com es fa arribar a la persona: Q-03, obert.
 
-    La credencial anterior, si n'hi havia, deixa de valer. Es tanquen totes les sessions del
-    compte i qualsevol entrada a mig fer. El TOTP i el bloqueig per intents no es toquen."""
-    _ensure_can_reset(account, by)
+    Motiu obligatori (RN-M01-60). La credencial anterior, si n'hi havia, deixa de valer. Es
+    tanquen totes les sessions del compte i qualsevol entrada a mig fer. El TOTP, els codis de
+    recuperació i el bloqueig per intents no es toquen."""
+    _ensure_can_reset(account, by, note)
     account = Account.objects.select_for_update().get(pk=account.pk)
     credential = new_temporary_password()
     expires = timezone.now() + TEMPORARY_PASSWORD_VALIDITY
-    # Què ha passat i fins quan val la credencial; mai la credencial (CA-14.4, RN-52).
-    audit.record(audit.Action.PASSWORD_RESET_BY_ADMIN, actor=by, target=account, new=expires)
+    # Què ha passat, per què i fins quan val la credencial; mai la credencial (CA-14.4, RN-52).
+    audit.record(
+        audit.Action.PASSWORD_RESET_BY_ADMIN, actor=by, target=account, reason=note, new=expires
+    )
     account.set_password(credential)
     account.password_temporary_until = expires
     account.save(update_fields=["password", "password_temporary_until", "updated_at"])
     account.end_all_sessions()
-    _notify_reset(account, second_factor=False)
-    return credential
+    return credential, _notify_reset(account, by=by, second_factor=False)
 
 
-def _notify_reset(account: Account, *, second_factor: bool) -> None:
-    """CA-08.4: avís informatiu al correu de notificació, sense cap enllaç ni credencial."""
-    if not account.notification_email:
-        return
-    mail.queue_email(
-        "restabliment-acces",
-        to=account.notification_email,
-        person=account.person,
-        context={"second_factor": second_factor, "when": timezone.localtime()},
+def _notify_reset(account: Account, *, by: Account, second_factor: bool) -> ResetNotice:
+    """CA-08.4: avís informatiu al correu de notificació, sense cap enllaç ni credencial. El
+    resultat queda en una entrada pròpia del registre (RN-M01-61): «a la cua» o «no enviat»,
+    amb el motiu. Sense adreça, no s'avisa ningú més (065)."""
+    email = None
+    if account.notification_email:
+        email = mail.queue_email(
+            "restabliment-acces",
+            to=account.notification_email,
+            person=account.person,
+            context={"second_factor": second_factor, "when": timezone.localtime()},
+        )
+    if email is not None:
+        notice = ResetNotice(queued=True, email_id=email.pk)
+    else:
+        reason = ANONYMISED if account.notification_email else NO_ADDRESS
+        notice = ResetNotice(queued=False, reason=str(reason))
+    audit.record(
+        audit.Action.RESET_NOTICE,
+        actor=by,
+        target=account,
+        reason=notice.reason,
+        details={
+            "result": "queued" if notice.queued else "not_sent",
+            "email_id": notice.email_id,
+            "second_factor": second_factor,
+        },
     )
+    return notice
 
 
 def grant_initial_administrator(account: Account, *, origin: str = "createsuperuser") -> None:

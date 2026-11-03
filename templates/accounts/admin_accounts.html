@@ -13,6 +13,7 @@
         <th scope="col">{% translate "Estat" %}</th>
         <th scope="col">{% translate "Doble factor" %}</th>
         <th scope="col">{% translate "Contrasenya temporal" %}</th>
+        <th scope="col">{% translate "Accions" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -22,9 +23,10 @@
           <td>{{ account.get_status_display }}</td>
           <td>{% if account.has_totp %}{% translate "Actiu" %}{% else %}{% translate "Pendent d'alta" %}{% endif %}</td>
           <td>{% if account.must_change_password %}{% translate "Pendent de canviar" %}{% else %}—{% endif %}</td>
+          <td>{% if account.pk != user.pk %}<a href="{% url 'administration:reset_credentials' account.pk %}">{% blocktranslate with username=account.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</a>{% else %}—{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="4">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
+        <tr><td colspan="5">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
