@@ -89,6 +89,7 @@
    - [Addenda de la 059: permisos editables i configuració inicial](#M01-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M01-addenda-060)
    - [Addenda de la 063: contrasenya abans d'esborrar el compte](#M01-addenda-063)
+   - [Addenda de la 064: baixa rebutjada i motius de la sol·licitud](#M01-addenda-064)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
@@ -514,7 +515,7 @@ Canvi de ple dret a simpatitzant: no consta enlloc [A validar: junta]. Proposta:
 | 2 | Secretaria | La valida i fixa la data efectiva, o la rebutja amb motiu obligatori (`MemberRequest` passa a `rejected`) | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Baixes») |
 | 3 | Sistema | A la data efectiva: estat **baixa**, carnet revocat, correu de confirmació. Quotes pendents: vegeu RN-M01-20 | — | — |
 | 4 | Sistema | El compte personal es manté per consultar rebuts (Q-31, proposta) [A validar: junta] | — | — |
-**Rebutjar una baixa (03/11/2026).** El responsable del projecte ha comunicat que la junta ha validat que una baixa es pot rebutjar, amb motiu. Continuen pendents, i no s'han d'implementar fins que es decideixin ([P-50](decisions/pendents.md)): qui la pot rebutjar i per quins motius; què passa si hi ha quotes impagades; qui pot perdonar o anul·lar una quota anterior i amb quin permís; i què es diu al soci abans d'enviar la sol·licitud. Hi ha també un punt del model per resoldre: `reason` guarda alhora el motiu de la baixa i el de rebuig, i una baixa rebutjada en necessita tots dos.
+**Rebutjar una baixa (03/11/2026, [064](decisions/064-una-baixa-es-pot-rebutjar-amb-motiu.md)).** El responsable del projecte ha comunicat que la junta ha validat que una baixa es pot rebutjar, amb motiu. Continuen pendents, i no s'han d'implementar fins que es decideixin ([P-50](decisions/pendents.md)): qui la pot rebutjar i per quins motius; què passa si hi ha quotes impagades; qui pot perdonar o anul·lar una quota anterior i amb quin permís; i què es diu al soci abans d'enviar la sol·licitud. El motiu de la baixa i el de rebuig es guarden en camps separats ([addenda de la 064](#M01-addenda-064)).
 
 El número queda reservat per sempre ([039](decisions/039-numeros-de-soci-no-es-reutilitzen.md)). Si la persona torna, es **readmet** amb el mateix número (P-M01-A des del pas 4).
 
@@ -606,6 +607,8 @@ Noms de codi en anglès (V-09). App Django `members` (nova); les entitats de la 
 | `status` | `pending`, `approved`, `rejected`, `cancelled` | Només una `pending` del mateix `kind` per persona |
 | `resolved_by`, `resolved_at`, `effective_on` | — | — |
 | `duplicate_warning` | JSON | Coincidències trobades (V-03), sense dades sensibles |
+
+El camp `reason` el substitueixen `request_reason` i `resolution_reason` ([addenda de la 064](#M01-addenda-064)).
 
 ### MembershipNumberCounter
 Una sola fila amb `last_number`. S'actualitza amb `SELECT … FOR UPDATE` dins la mateixa transacció que aprova l'alta. Després de la importació final, `last_number` = número més alt importat. No es fa servir una seqüència de PostgreSQL perquè una transacció desfeta en consumiria números.
@@ -804,7 +807,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | T-M01-09 | Càrrec i departament (estructura bàsica de la 00) | M | `apps/core/charges.py` | T-M01-07 | CA-15.x i CA-16.x de la 00. **Feta** (02/11/2026): `Department` (amb «General» des de la migració `core/0006`), `Charge` i `Payment` bàsics, sense esborrar mai; imports en cèntims comprovats al codi i a la base de dades; transicions de RN-67 amb registre; «pagat» només des del proveïdor o la conciliació (manual bloquejat per P-12); domiciliació només per a quotes; quotes sempre a «General»; serveis de departament amb M7. Segons la [lectura de la 060](#ajustos-060-lectura) |
 | T-M01-09b | Preparació per traduir ([061](decisions/061-plataforma-preparada-per-traduir.md)), en dos commits: (a) configuració (`LANGUAGES` només amb el català, `LOCALE_PATHS`, `LocaleMiddleware`, processador `i18n`, `<html lang>` dinàmic, regla `INT` de ruff), `Person.preferred_language`, `LegalText.language` amb la restricció `(kind, version, language)`, `current_text` amb reserva al català i `persons.language_for`, i la migració `core/0007`; (b) marcatge de les cadenes existents segons la [regla d'idiomes](#idiomes) i nom dels rols amb `get_code_display()`. Afegida el 02/11/2026 | M | `config/settings/base.py`, `apps/core/models.py`, `consents.py`, `persons.py`, `migrations/0007_*`, plantilles, formularis i vistes | T-M01-08 | A cada commit, `makemigrations --check` net i la suite completa en verd; prova que `Accept-Language: es` dona català; proves de la reserva de `language_for` i de `current_text` i de la restricció única. **Feta** (02/11/2026): (a) configuració, camps i migració `core/0007`; (b) unes 200 cadenes marcades (models, catàleg de permisos, formularis, vistes, serveis i plantilles), `Role.__str__` amb `get_code_display()`. Sense cap `.po`: arriben amb la primera llengua nova (P-49) |
 | T-M01-10 | Correu mínim (plantilles, cua) i fitxers privats (PDF) | M | `apps/core/mail.py`, `files.py` | T-M01-03, T-M01-09b | Correu a la bústia de proves; URL signada caduca; plantilla per llengua (`emails/<nom>.<llengua>.…`) triada amb `persons.language_for` i, si no n'hi ha, la catalana; generada dins de `translation.override` en posar-la a la cua, i el missatge guarda la llengua (061, punt 7). **Feta** (03/11/2026): cua de tasques sobre PostgreSQL amb procrastinate; `mail.queue_email` amb plantilla per llengua i reserva al català, generada dins de `translation.override`. El registre d'enviaments (`OutgoingEmail`, `core/0008`) guarda la llengua i esborra el cos quan s'envia bé o quan s'esgoten els intents. Transport SMTP configurable: Brevo o Scaleway sense tocar el codi. Remitent `no-respon@cris1954.cat` amb resposta a cris@cris.es. Fitxers privats (`PrivateFile`, `core/0009`) amb clau aleatòria i URL signada de 5 minuts després de comprovar compte i objecte; tipus comprovat pel contingut, mida de 10 MB (V-08) i exportació RGPD esborrada als 7 dies. Fora de producció, un emmagatzematge local que imita Scaleway. Correu comprovat a la bústia de proves. **Queda:** comptador diari, reserva, tandes i avís del 80 % (RN-A3 a RN-A6), butlletí i avisos de Brevo (RN-A9, RN-A10), i bloqueig de fitxers en un esborrat RGPD (RN-B8) |
-| T-M01-11 | Models del M01: tipus, soci, historial, sol·licitud, comptador, carnet, llicència | M | `apps/members/models.py` | T-M01-04, T-M01-09 | Restriccions i índexs comprovats amb proves |
+| T-M01-11 | Models del M01: tipus, soci, historial, sol·licitud, comptador, carnet, llicència | M | `apps/members/models.py` | T-M01-04, T-M01-09 | Restriccions i índexs comprovats amb proves; CA-M01-47 ([064](#M01-addenda-064)) |
 | T-M01-12 | Serveis d'estat i transicions (RN-M01-07 a RN-M01-09) | M | `apps/members/services.py` | T-M01-11, T-M01-07 | CA-M01-07 a 09 |
 | T-M01-13 | Formulari «Fer-se soci» i alta presencial | M | `apps/members/views/public.py`, plantilles | T-M01-08, T-M01-12, T-M01-02 | CA-M01-01, 02 |
 | T-M01-14 | Altes pendents: aprovar, rebutjar, número amb bloqueig | M | `apps/members/views/admin.py` | T-M01-13 | CA-M01-03 a 05 |
@@ -1119,6 +1122,26 @@ Aprovada el 03/11/2026. Afegeix una regla i un criteri i no en canvia cap altra.
 **Contracte de serveis** (precisa [M05a-8](#M05a-8-serveis) sense editar-lo): `accounts.require_recent_auth(account, minutes)` admet `minutes=0`, que vol dir que s'ha de tornar a escriure a la mateixa petició. El 05a continua fent servir `minutes=15`.
 
 **Tasques.** La prova de CA-M01-46 és a la T-M01-22, que també depèn de la T-M00-05. Les files aprovades no s'editen: ho diu la [lectura de les tasques substituïdes](#ajustos-060-lectura).
+
+<a id="M01-addenda-064"></a>
+## M01 — Addenda de la [064](decisions/064-una-baixa-es-pot-rebutjar-amb-motiu.md): baixa rebutjada i motius de la sol·licitud
+
+Aprovada el 03/11/2026. Una baixa es pot rebutjar amb motiu obligatori (pas 2 de [P-M01-C](#M01-5-processos)). Els altres punts de [P-50](decisions/pendents.md) continuen oberts i no s'implementen. No canvia cap regla de negoci: només com es guarda el motiu.
+
+**Entitats.** A [`MemberRequest`](#M01-6-entitats), aquests dos camps substitueixen el camp `reason`. La taula aprovada no s'edita.
+| Camp | Tipus | Restriccions |
+|---|---|---|
+| `request_reason` | Text | Motiu de qui fa la sol·licitud. Obligatori per a `leave`; opcional per a la resta |
+| `resolution_reason` | Text | Motiu de qui la resol. Obligatori quan `status` = `rejected`; opcional quan s'aprova o es cancel·la |
+
+- Dues restriccions a la base de dades: si `kind` = `leave`, `request_reason` no pot ser buit; si `status` = `rejected`, `resolution_reason` no pot ser buit.
+- CA-M01-05 («cal motiu» en rebutjar) es comprova amb `resolution_reason`.
+- RGPD: tots dos camps són text lliure i poden contenir dades personals. S'anonimitzen a la T-M01-22, amb la resta de dades de la persona.
+
+**Criteri d'acceptació**
+- **CA-M01-47** Donat una baixa rebutjada, quan es consulta, llavors es conserven el motiu de la baixa i el de rebuig, i cap no substitueix l'altre.
+
+**Tasques.** La T-M01-11 construeix els dos camps i les restriccions (CA-M01-47). La T-M01-22 també anonimitza `request_reason` i `resolution_reason` ([lectura de les tasques substituïdes](#ajustos-060-lectura)).
 
 ---
 
@@ -6167,3 +6190,4 @@ Una línia per cada tasca on el text aprovat ja no és el que cal construir. Les
 | T-M01-09 | CA-16.1 i CA-15.8 de la spec 00: el departament inicial és «General», no «General / Quotes de socis». Els centres de cost («Quotes de socis», «Llicències», «Ajustos de caixa») els afegeix la T-M04-02 (CA-T14.1). Els camps del pagament són del proveïdor, sense el nom de Stripe (`provider_reference`, `provider_status`; 043) | Precisió aprovada el 02/11/2026 |
 | T-M01-22 | També depèn de la T-M00-05 i cobreix CA-M01-46 | 063 |
 | T-M05a-09 | També depèn de la T-M00-05 (la reautenticació de RN-M05a-12) | 063 |
+| T-M01-22 | També anonimitza `request_reason` i `resolution_reason` de `MemberRequest` | 064 |
