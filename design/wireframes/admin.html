@@ -168,6 +168,7 @@
 .resultat-desar { margin: 0; }
 .graella-alta-admin { display: grid; gap: var(--e-5); align-items: start; }
 .form-despesa .camp-ample { grid-column: 1 / -1; }
+.targeta .dades-soci { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3) var(--e-4); }
 
 /* Tresoreria */
 .graella-tresoreria { display: grid; gap: var(--e-5); }
@@ -305,7 +306,7 @@
     </div>
     <nav class="lateral-nav" aria-label="Mòduls">
       <ul>
-        <li data-rols="admin secretaria tresorer president"><a href="#" data-vista="vista-socis-sollicituds"><span class="icona" data-icona="persona"></span><span>Socis</span></a></li>
+        <li data-rols="admin secretaria tresorer president"><a href="#" data-vista="vista-socis-llistat"><span class="icona" data-icona="persona"></span><span>Socis</span></a></li>
         <li data-rols="admin cursos material tresorer instructor historia"><a href="#" data-vista="vista-activitat" aria-current="page"><span class="icona" data-icona="ona"></span><span>Activitats</span></a></li>
         <li data-rols="admin material cursos instructor tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="llista"></span><span>Material</span></a></li>
         <li data-rols="admin tresorer"><a href="#" data-vista="vista-tresoreria"><span class="icona" data-icona="banc"></span><span>Tresoreria</span></a></li>
@@ -647,10 +648,273 @@
       <!-- ==================== Socis: navegació del mòdul (T-M01-02) ==================== -->
       <nav class="vista-subnav" id="subnav-socis" aria-label="Socis" hidden>
         <ul class="subnav">
+          <li data-rols="admin secretaria tresorer"><a href="#vista-socis-llistat" data-vista="vista-socis-llistat">Llistat</a></li>
           <li data-rols="admin secretaria tresorer president"><a href="#vista-socis-sollicituds" data-vista="vista-socis-sollicituds">Sol·licituds</a></li>
           <li data-rols="admin secretaria"><a href="#vista-socis-alta" data-vista="vista-socis-alta">Alta presencial</a></li>
         </ul>
       </nav>
+
+      <!-- ==================== Vista: llistat de socis (P4, P11) ==================== -->
+      <div id="vista-socis-llistat" class="vista" data-acces="admin secretaria tresorer" data-molla="Socis|Llistat" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Socis</span>
+            <h1>Llistat de socis</h1>
+          </div>
+          <div class="accions-form">
+            <button class="boto" type="button" id="exporta-socis" data-rols="admin secretaria" data-icona="taula">Exporta el llistat (CSV)</button>
+          </div>
+        </div>
+        <p class="text-2" data-rols="tresorer" style="margin: 0">Consulta amb les dades mínimes per cobrar: número, nom, tipus, estat i quotes.</p>
+
+        <div class="demo" role="group" aria-labelledby="demo-llistat">
+          <span class="demo-titol" id="demo-llistat">Demostració</span>
+          <label><input type="checkbox" id="llistat-buit"> Instal·lació nova, sense cap soci</label>
+        </div>
+
+        <section class="targeta" aria-labelledby="llistat-titol" id="bloc-llistat">
+          <h2 id="llistat-titol" class="visualment-amagat">Socis</h2>
+          <div class="eines">
+            <div class="camp">
+              <label for="cerca-socis"><span data-rols="admin secretaria">Cerca per nom, número o document</span><span data-rols="tresorer">Cerca per nom o número</span></label>
+              <input id="cerca-socis" type="search" autocomplete="off">
+            </div>
+            <div class="camp">
+              <label for="filtre-tipus-soci">Tipus</label>
+              <select id="filtre-tipus-soci"><option value="">Tots</option><option value="simpatitzant">Simpatitzant</option><option value="ple">Ple dret</option></select>
+            </div>
+            <div class="camp">
+              <label for="filtre-estat-soci">Estat</label>
+              <select id="filtre-estat-soci"><option value="">Tots</option><option value="pendent">Pendent</option><option value="actiu">Actiu</option><option value="impagat">Impagat</option><option value="baixa">Baixa</option></select>
+            </div>
+            <label class="casella" data-rols="admin secretaria"><input type="checkbox" id="filtre-sense-data"> <span>Només els que no tenen data de naixement</span></label>
+            <p class="recompte xifra-viva" id="recompte-socis" aria-live="polite">8 de 8 socis</p>
+          </div>
+          <table class="taula" id="taula-socis">
+            <caption class="visualment-amagat">Socis del club, amb el tipus, l'estat i la quota de l'any</caption>
+            <thead>
+              <tr>
+                <th scope="col">Soci</th>
+                <th scope="col">Tipus</th>
+                <th scope="col">Estat</th>
+                <th scope="col">Quota 2026</th>
+                <th scope="col" class="col-secundaria" data-rols="admin secretaria">Data d'alta</th>
+                <th scope="col" data-rols="admin secretaria">Dades</th>
+                <th scope="col"><span class="visualment-amagat">Accions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-tipus="ple" data-estat="actiu" data-cerca="marta puig ferrer 0427" data-document="23456789d">
+                <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">12/03/2019</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Marta Puig Ferrer</span></a></td>
+              </tr>
+              <tr data-tipus="simpatitzant" data-estat="actiu" data-cerca="jordi soler mas 0311">
+                <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">05/06/2015</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Jordi Soler Mas</span></a></td>
+              </tr>
+              <tr data-tipus="simpatitzant" data-estat="actiu" data-cerca="marc riera sala 0356">
+                <td class="cel-nom">Marc Riera Sala<span class="codi">Soci 0356</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">17/09/2016</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Marc Riera Sala</span></a></td>
+              </tr>
+              <tr data-tipus="ple" data-estat="impagat" data-cerca="laia ferrer vila 0502">
+                <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Estat"><span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">20/01/2021</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Laia Ferrer Vila</span></a></td>
+              </tr>
+              <tr data-tipus="ple" data-estat="actiu" data-cerca="oriol mas font 0239">
+                <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">~1998 <span class="text-2">(aproximada)</span></td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> d'Oriol Mas Font</span></a></td>
+              </tr>
+              <tr data-tipus="simpatitzant" data-estat="actiu" data-sense-data data-cerca="albert gil mas 0870">
+                <td class="cel-nom">Albert Gil Mas<span class="codi">Soci 0870 · importat de Cluber</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">~2008 <span class="text-2">(aproximada)</span></td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria"><span class="estat estat-avis"><span aria-hidden="true">!</span> Sense data de naixement</span></td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> d'Albert Gil Mas</span></a></td>
+              </tr>
+              <tr data-tipus="simpatitzant" data-estat="pendent" data-cerca="pere soler roig 1286">
+                <td class="cel-nom">Pere Soler Roig<span class="codi">Soci 1286</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Estat"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">27/10/2026</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Pere Soler Roig</span></a></td>
+              </tr>
+              <tr data-tipus="ple" data-estat="baixa" data-cerca="rosa vidal pons 0115">
+                <td class="cel-nom">Rosa Vidal Pons<span class="codi">Soci 0115</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Estat"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Baixa</span></td>
+                <td data-etiqueta="Quota 2026"><span class="text-2">—</span></td>
+                <td data-etiqueta="Data d'alta" class="col-secundaria" data-rols="admin secretaria">02/02/1992</td>
+                <td data-etiqueta="Dades" data-rols="admin secretaria">—</td>
+                <td class="cel-accions"><a class="boto boto-petit" href="#vista-socis-fitxa" data-obre-vista="vista-socis-fitxa">Fitxa<span class="visualment-amagat"> de Rosa Vidal Pons</span></a></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-2" id="sense-resultats" hidden style="margin: var(--e-4) 0 0">Cap soci coincideix amb la cerca i els filtres.</p>
+        </section>
+
+        <section class="targeta" id="llistat-sense-socis" aria-labelledby="buit-titol" hidden>
+          <h2 id="buit-titol">Encara no hi ha socis</h2>
+          <p data-rols="admin secretaria">Importa'ls de Cluber o dona'n d'alta un.</p>
+          <div class="accions-form">
+            <a class="boto" href="#vista-socis-cluber" data-rols="admin" data-obre-vista="vista-socis-cluber">Importació de Cluber</a>
+            <a class="boto" href="#vista-socis-alta" data-rols="admin secretaria" data-obre-vista="vista-socis-alta">Alta presencial</a>
+          </div>
+        </section>
+
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Permís P4: secretaria i administrador amb totes les dades; tresorer en consulta amb les dades mínimes (número, nom, tipus, estat i quotes). El servidor no envia la resta de columnes al tresorer, i la cerca per document només funciona per a qui pot veure el document (C2).</li>
+            <li>Cap llistat ni exportació porta la data de naixement (RN-M01-48). El filtre «sense data de naixement» és de la secretaria i l'administrador (RN-M01-55).</li>
+            <li>Exportar (P11): secretaria i administrador; l'exportació queda al registre d'activitat.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: fitxa del soci (P4 a P7, P10, P19) ==================== -->
+      <div id="vista-socis-fitxa" class="vista" data-acces="admin secretaria tresorer" data-molla="Socis|Llistat|Soci 0427" hidden>
+        <section class="targeta capcalera-fitxa" aria-labelledby="soci-titol">
+          <div>
+            <p class="fila-codi"><span class="codi">Soci 0427</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span><span class="xip">Ple dret</span></p>
+            <h1 id="soci-titol">Marta Puig Ferrer</h1>
+            <dl class="meta-graella">
+              <div data-rols="admin secretaria"><dt>Data d'alta</dt><dd id="data-alta-soci">12/03/2019</dd></div>
+              <div data-rols="admin secretaria"><dt>Anys de soci</dt><dd>7</dd></div>
+              <div><dt>Carnet</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vàlid fins al 31/12/2026</span></dd></div>
+              <div><dt>Quota 2026</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></dd></div>
+            </dl>
+          </div>
+          <div class="accions-amples">
+            <button class="boto boto-petit" type="button" data-rols="admin secretaria" data-obre-dialeg="dialeg-edita-soci">Edita les dades</button>
+            <button class="boto boto-petit" type="button" data-rols="admin secretaria" data-obre-dialeg="dialeg-data-alta">Corregeix la data d'alta</button>
+            <button class="boto boto-petit" type="button" data-rols="admin secretaria tresorer" data-obre-dialeg="dialeg-baixa-junta">Crea una baixa</button>
+            <a class="boto boto-petit" href="#" aria-disabled="true" data-rols="admin">Registre d'activitat (T-M01-07b)</a>
+          </div>
+        </section>
+        <p class="resultat-desar" id="resultat-fitxa" role="status" hidden></p>
+
+        <div class="fitxa-pestanyes">
+          <div class="pestanyes" role="tablist" aria-label="Seccions de la fitxa" id="pestanyes-soci">
+            <button class="pestanya" role="tab" type="button" id="pt-soci-dades" aria-controls="pp-soci-dades" aria-selected="true">Dades</button>
+            <button class="pestanya" role="tab" type="button" id="pt-soci-historial" aria-controls="pp-soci-historial" aria-selected="false">Historial</button>
+            <button class="pestanya" role="tab" type="button" id="pt-soci-quotes" aria-controls="pp-soci-quotes" aria-selected="false">Quotes</button>
+            <button class="pestanya" role="tab" type="button" id="pt-soci-llicencia" aria-controls="pp-soci-llicencia" aria-selected="false">Llicència</button>
+          </div>
+          <div class="panells">
+            <div role="tabpanel" id="pp-soci-dades" aria-labelledby="pt-soci-dades" tabindex="0">
+              <section class="targeta" aria-labelledby="dades-soci-titol">
+                <h2 id="dades-soci-titol">Dades personals</h2>
+                <dl class="meta-graella dades-soci">
+                  <div><dt>Nom i cognoms</dt><dd>Marta Puig Ferrer</dd></div>
+                  <div data-rols="admin secretaria"><dt>Data de naixement</dt><dd>08/10/1988</dd></div>
+                  <div data-rols="tresorer"><dt>Edat</dt><dd>Major d'edat</dd></div>
+                  <div data-rols="admin secretaria"><dt>Document</dt><dd class="codi">23456789D</dd></div>
+                  <div data-rols="admin secretaria"><dt>Correu</dt><dd>marta.puig@exemple.cat</dd></div>
+                  <div data-rols="admin secretaria"><dt>Telèfon</dt><dd>600 000 427</dd></div>
+                  <div data-rols="admin secretaria"><dt>Adreça</dt><dd>Carrer de l'Exemple, 1, Barcelona</dd></div>
+                </dl>
+                <p class="text-2" data-rols="tresorer" style="margin: var(--e-3) 0 0">Només les dades mínimes per cobrar: el document, l'adreça, el contacte i els consentiments no es mostren al tresorer.</p>
+              </section>
+              <section class="targeta" aria-labelledby="consent-soci-titol" data-rols="admin secretaria">
+                <h2 id="consent-soci-titol">Consentiments</h2>
+                <ul class="llista-compacta">
+                  <li><div class="fila-entre"><strong>Política de privacitat i condicions de soci</strong><span class="estat estat-ok"><span aria-hidden="true">✓</span> Acceptats</span></div><span class="text-2">Versió 2 · web · 12/03/2019</span></li>
+                  <li><div class="fila-entre"><strong>Butlletí</strong><span class="estat estat-ok"><span aria-hidden="true">✓</span> Sí</span></div><span class="text-2">Web · 12/03/2019</span></li>
+                </ul>
+                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Llista de tipus de consentiment <span class="a-validar">A validar: Q-16</span></p>
+              </section>
+            </div>
+
+            <div role="tabpanel" id="pp-soci-historial" aria-labelledby="pt-soci-historial" tabindex="0" hidden>
+              <section class="targeta" aria-labelledby="hist-soci-titol">
+                <h2 id="hist-soci-titol">Historial d'estats i tipus</h2>
+                <ul class="llista-compacta" id="historial-soci">
+                  <li><span><span class="registre-quan">05/01/2026 09:14</span> · <span class="estat estat-sistema"><span aria-hidden="true">⚙</span> Sistema</span></span><span>Estat: Actiu (abans Pendent) · quota 2026 pagada · efectiu el 05/01/2026</span></li>
+                  <li><span><span class="registre-quan">18/02/2025 11:02</span> · <span class="registre-qui">marc.tresor</span></span><span>Estat: Actiu (abans Impagat) · motiu: quota 2025 pagada fora de termini</span></li>
+                  <li><span><span class="registre-quan">03/02/2025 10:40</span> · <span class="registre-qui">marc.tresor</span></span><span>Estat: Impagat (abans Actiu) · motiu: quota 2025 retornada pel banc</span></li>
+                  <li data-rols="admin secretaria"><span><span class="registre-quan">14/05/2021 17:20</span> · <span class="registre-qui">anna.secretaria</span></span><span>Data d'alta: 12/03/2019, real (abans 01/04/2019, aproximada)</span></li>
+                  <li><span><span class="registre-quan">12/03/2019 18:30</span> · <span class="registre-qui">anna.secretaria</span></span><span>Alta aprovada · número 0427 · ple dret</span></li>
+                </ul>
+                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Només s'hi afegeixen entrades: no es poden editar ni esborrar.</p>
+              </section>
+            </div>
+
+            <div role="tabpanel" id="pp-soci-quotes" aria-labelledby="pt-soci-quotes" tabindex="0" hidden>
+              <section class="targeta" aria-labelledby="quotes-soci-titol">
+                <h2 id="quotes-soci-titol">Quotes</h2>
+                <table class="taula">
+                  <caption class="visualment-amagat">Quotes de Marta Puig Ferrer</caption>
+                  <thead><tr><th scope="col">Any</th><th scope="col">Concepte</th><th scope="col" class="num" data-rols="admin tresorer">Import</th><th scope="col">Estat</th></tr></thead>
+                  <tbody>
+                    <tr><td data-etiqueta="Any" class="codi">2026</td><td data-etiqueta="Concepte">Quota anual · ple dret</td><td data-etiqueta="Import" class="num import" data-rols="admin tresorer">90,00 €</td><td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td></tr>
+                    <tr><td data-etiqueta="Any" class="codi">2025</td><td data-etiqueta="Concepte">Quota anual · ple dret</td><td data-etiqueta="Import" class="num import" data-rols="admin tresorer">90,00 €</td><td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td></tr>
+                    <tr><td data-etiqueta="Any" class="codi">2019–2024</td><td data-etiqueta="Concepte">Quotes històriques de Cluber (informatives, no són càrrecs)</td><td data-etiqueta="Import" class="num import" data-rols="admin tresorer">—</td><td data-etiqueta="Estat"><span class="estat estat-neutre">Pagades a Cluber</span></td></tr>
+                  </tbody>
+                </table>
+                <p class="text-2" data-rols="secretaria" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">La secretaria veu l'estat de les quotes, sense imports.</p>
+                <a class="boto boto-text boto-petit" href="#vista-socis-quotes" data-rols="admin tresorer secretaria" data-obre-vista="vista-socis-quotes">Quotes i impagats de tots els socis</a>
+              </section>
+            </div>
+
+            <div role="tabpanel" id="pp-soci-llicencia" aria-labelledby="pt-soci-llicencia" tabindex="0" hidden>
+              <section class="targeta" aria-labelledby="llic-soci-titol">
+                <h2 id="llic-soci-titol">Registre mínim de llicència</h2>
+                <dl class="meta-graella dades-soci">
+                  <div><dt>Tipus</dt><dd>Federativa anual <span class="a-validar">A verificar: FECDAS</span></dd></div>
+                  <div><dt>Data d'alta</dt><dd>01/01/2026</dd></div>
+                  <div><dt>Caducitat</dt><dd>31/12/2026 <span class="estat estat-avis" id="llic-estat"><span aria-hidden="true">◷</span> Declarada pel soci · pendent de confirmar</span></dd></div>
+                  <div><dt>Origen</dt><dd>Cluber</dd></div>
+                </dl>
+                <div class="accions-form" data-rols="admin secretaria" style="margin-top: var(--e-3)">
+                  <button class="boto boto-principal" type="button" id="confirma-caducitat" data-icona="check">Confirma la caducitat</button>
+                  <button class="boto" type="button" data-obre-dialeg="dialeg-llicencia">Edita el registre</button>
+                </div>
+                <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Quan el mòdul 06 entri en producció, aquest registre serà una còpia de lectura i no es podrà editar aquí (addenda 052). La confirmació en bloc de les caducitats d'any natural és la T-M01-36.</p>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Permisos per objecte i per camp: el servidor només envia al tresorer les dades mínimes (P4 en consulta) i cap camp C1 o C2. Amagar-los al prototip és només una simulació.</li>
+            <li>Editar (P5), corregir la data d'alta (P6) i el registre de llicència (P19): secretaria i administrador. Crear una baixa (P7): també el tresorer.</li>
+            <li>Conflicte d'interès: ningú canvia el seu propi soci des de l'administració.</li>
+            <li>Cada canvi crea una entrada d'historial (només INSERT) i una al registre d'activitat amb el valor anterior (CA-M01-08).</li>
+            <li>Les quotes històriques de Cluber no són càrrecs ni moviments (RN-M01-33).</li>
+          </ul>
+        </aside>
+      </div>
 
       <!-- ==================== Vista: sol·licituds d'alta, de canvi de tipus i de baixa (P3a, P3, P7) ==================== -->
       <div id="vista-socis-sollicituds" class="vista" data-acces="admin secretaria tresorer president" data-molla="Socis|Sol·licituds" hidden>
@@ -747,7 +1011,7 @@
             <div role="tabpanel" id="pp-canvis" aria-labelledby="pt-canvis" tabindex="0" hidden>
               <ul class="llista-altes">
                 <li class="targeta alta" data-sol="Marc Riera Sala" data-tipus-sol="canvi">
-                  <div class="fila-entre"><h2>Marc Riera Sala <span class="codi text-2">· soci 0311</span></h2><span class="estat estat-avis" data-estat-sol><span aria-hidden="true">◷</span> Pendent de revisar</span></div>
+                  <div class="fila-entre"><h2>Marc Riera Sala <span class="codi text-2">· soci 0356</span></h2><span class="estat estat-avis" data-estat-sol><span aria-hidden="true">◷</span> Pendent de revisar</span></div>
                   <dl class="meta-graella">
                     <div><dt>Canvi</dt><dd>Simpatitzant → ple dret</dd></div>
                     <div><dt>Sol·licitud</dt><dd>25/10/2026 · compte personal</dd></div>
@@ -1027,6 +1291,94 @@
   </form>
 </dialog>
 
+<!-- ==================== Diàlegs de la fitxa del soci (T-M01-02) ==================== -->
+<dialog class="dialeg" id="dialeg-edita-soci" aria-labelledby="edita-soci-titol">
+  <form method="dialog" novalidate data-form-fitxa="Dades desades. Queden al registre d'activitat amb el valor anterior.">
+    <div class="dialeg-cap">
+      <h2 id="edita-soci-titol">Edita les dades</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <div class="camp"><label for="e-nom">Nom i cognoms</label><input id="e-nom" type="text" value="Marta Puig Ferrer" autocomplete="off" data-obligatori="Escriu el nom i els cognoms." aria-describedby="e-nom-error"><p class="error-camp" id="e-nom-error" hidden></p></div>
+      <div class="camp"><label for="e-document">Document d'identitat</label><input id="e-document" type="text" value="23456789D" autocomplete="off" spellcheck="false" data-obligatori="Escriu el document." aria-describedby="e-document-error"><p class="error-camp" id="e-document-error" hidden></p></div>
+      <div class="camp"><label for="e-naixement">Data de naixement</label><input id="e-naixement" type="date" value="1988-10-08" data-obligatori="Escriu la data de naixement." aria-describedby="e-naixement-error"><p class="error-camp" id="e-naixement-error" hidden></p></div>
+      <div class="camp"><label for="e-correu">Correu</label><input id="e-correu" type="email" value="marta.puig@exemple.cat" autocomplete="off" data-obligatori="Escriu el correu." aria-describedby="e-correu-error"><p class="error-camp" id="e-correu-error" hidden></p></div>
+      <div class="camp"><label for="e-telefon">Telèfon</label><input id="e-telefon" type="tel" value="600 000 427" autocomplete="off" data-obligatori="Escriu el telèfon." aria-describedby="e-telefon-error"><p class="error-camp" id="e-telefon-error" hidden></p></div>
+      <div class="camp"><label for="e-adreca">Adreça <span class="text-2">(opcional)</span></label><input id="e-adreca" type="text" value="Carrer de l'Exemple, 1, Barcelona" autocomplete="off"></div>
+      <div class="camp">
+        <label for="e-numero">Número de soci</label>
+        <input id="e-numero" type="text" inputmode="numeric" value="0427" autocomplete="off" data-obligatori="Escriu el número de soci." aria-describedby="e-numero-ajuda e-numero-error">
+        <p class="ajuda" id="e-numero-ajuda">Només per corregir un error. Cap número no es reutilitza mai: si ja és d'una altra persona, encara que sigui de baixa, es rebutja (039).</p>
+        <p class="error-camp" id="e-numero-error" hidden></p>
+      </div>
+      <p class="text-2" style="margin: 0; font-size: var(--t-s)">Cada canvi queda al registre d'activitat amb el valor anterior.</p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Cancel·la</button>
+      <button class="boto boto-principal" type="submit" data-icona="check">Desa les dades</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialeg" id="dialeg-data-alta" aria-labelledby="data-alta-titol">
+  <form method="dialog" novalidate data-form-fitxa="Data d'alta corregida. Queda a l'historial amb el valor anterior.">
+    <div class="dialeg-cap">
+      <h2 id="data-alta-titol">Corregeix la data d'alta</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p style="margin: 0">Per reconèixer l'antiguitat real quan es recupera la data (actes, carnets antics). Ara: <strong>12/03/2019</strong>, real.</p>
+      <div class="camp"><label for="d-alta">Data d'alta</label><input id="d-alta" type="date" value="2019-03-12" data-obligatori="Escriu la data d'alta." data-no-futura aria-describedby="d-alta-error"><p class="error-camp" id="d-alta-error" hidden></p></div>
+      <label class="casella"><input type="checkbox" id="d-aproximada"> <span>La data és aproximada (el carnet dirà «des de ~AAAA» i no compta per a la insígnia de soci clàssic)</span></label>
+      <p class="text-2" style="margin: 0; font-size: var(--t-s)">Queda a l'historial i al registre d'activitat amb el valor anterior (RN-M01-22).</p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Cancel·la</button>
+      <button class="boto boto-principal" type="submit" data-icona="check">Desa la correcció</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialeg" id="dialeg-baixa-junta" aria-labelledby="baixa-junta-titol">
+  <form method="dialog" novalidate data-form-fitxa="Sol·licitud de baixa creada. Queda a Sol·licituds per validar-la i fixar la data efectiva.">
+    <div class="dialeg-cap">
+      <h2 id="baixa-junta-titol">Crea una baixa</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p style="margin: 0">Per decisió de la junta. Es crea la sol·licitud de baixa de <strong>Marta Puig Ferrer</strong>; la data efectiva es fixa en validar-la a Sol·licituds.</p>
+      <div class="camp">
+        <label for="b-motiu">Motiu</label>
+        <textarea id="b-motiu" rows="3" data-obligatori="Escriu el motiu de la baixa." aria-describedby="b-motiu-ajuda b-motiu-error"></textarea>
+        <p class="ajuda" id="b-motiu-ajuda">Obligatori. Per exemple, la referència de l'acta de la junta.</p>
+        <p class="error-camp" id="b-motiu-error" hidden></p>
+      </div>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Cancel·la</button>
+      <button class="boto boto-principal" type="submit" data-icona="check">Crea la sol·licitud de baixa</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialeg" id="dialeg-llicencia" aria-labelledby="llicencia-titol">
+  <form method="dialog" novalidate data-form-fitxa="Registre de llicència desat. Queda al registre d'activitat amb el valor anterior.">
+    <div class="dialeg-cap">
+      <h2 id="llicencia-titol">Edita el registre de llicència</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <div class="camp"><label for="l-tipus">Tipus</label><input id="l-tipus" type="text" value="Federativa anual" autocomplete="off" data-obligatori="Escriu el tipus de llicència." aria-describedby="l-tipus-ajuda l-tipus-error"><p class="ajuda" id="l-tipus-ajuda">Text lliure fins que el mòdul 06 en fixi la llista <span class="a-validar">A verificar: FECDAS</span></p><p class="error-camp" id="l-tipus-error" hidden></p></div>
+      <div class="camp"><label for="l-alta">Data d'alta</label><input id="l-alta" type="date" value="2026-01-01" data-obligatori="Escriu la data d'alta de la llicència." aria-describedby="l-alta-error"><p class="error-camp" id="l-alta-error" hidden></p></div>
+      <div class="camp"><label for="l-caducitat">Caducitat</label><input id="l-caducitat" type="date" value="2026-12-31" data-no-anterior="l-alta" aria-describedby="l-caducitat-ajuda l-caducitat-error"><p class="ajuda" id="l-caducitat-ajuda">Deixa-la buida si no se sap (Cluber no la guarda): sortirà «caducitat desconeguda».</p><p class="error-camp" id="l-caducitat-error" hidden></p></div>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Cancel·la</button>
+      <button class="boto boto-principal" type="submit" data-icona="check">Desa el registre</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- ==================== Diàleg: rebutjar una sol·licitud (motiu obligatori) ==================== -->
 <dialog class="dialeg" id="dialeg-rebutja" aria-labelledby="rebutja-titol">
   <form method="dialog" id="form-rebutja" novalidate>
@@ -1130,9 +1482,15 @@
     document.querySelectorAll('.lateral-nav a').forEach(x => x.removeAttribute('aria-current'));
     a.setAttribute('aria-current', 'page');
     menu(false);
-    mostra(a.dataset.vista);
+    // Socis: la primera pantalla del mòdul que el rol pot veure (el President, Sol·licituds)
+    const id = a.dataset.vista.startsWith('vista-socis') ? primeraSocis() : a.dataset.vista;
+    mostra(id);
     document.getElementById('contingut').focus({ preventScroll: true });
   }));
+  function primeraSocis() {
+    const li = Array.from(document.querySelectorAll('#subnav-socis li')).find(x => x.dataset.rols.split(' ').includes(rolActual()));
+    return li ? li.querySelector('a').dataset.vista : 'vista-socis-llistat';
+  }
   document.getElementById('contingut').tabIndex = -1;
 
   /* ---------- «Veure com»: rols de la 059. Socis segueix la configuració inicial;
@@ -1631,6 +1989,103 @@
     });
 
     pinta();
+  })();
+
+  /* ---------- Socis: llistat (cerca, filtres, exportació i estat buit) ---------- */
+  (function () {
+    const g = id => document.getElementById(id);
+    const cerca = g('cerca-socis'), tipus = g('filtre-tipus-soci'), estat = g('filtre-estat-soci'), senseData = g('filtre-sense-data');
+    const files = Array.from(document.querySelectorAll('#taula-socis tbody tr'));
+    function filtra() {
+      const t = cerca.value.trim().toLowerCase();
+      // la cerca per document i el filtre de data de naixement només per a qui pot veure aquests camps (C1, C2)
+      const potDades = ['admin', 'secretaria'].includes(rolActual());
+      let n = 0;
+      files.forEach(tr => {
+        const text = tr.dataset.cerca + (potDades && tr.dataset.document ? ' ' + tr.dataset.document : '');
+        const mostra = text.includes(t) && (!tipus.value || tr.dataset.tipus === tipus.value) &&
+          (!estat.value || tr.dataset.estat === estat.value) && (!(potDades && senseData.checked) || tr.hasAttribute('data-sense-data'));
+        tr.hidden = !mostra; if (mostra) n++;
+      });
+      g('recompte-socis').textContent = n + ' de ' + files.length + ' socis';
+      g('sense-resultats').hidden = n > 0;
+    }
+    [cerca, tipus, estat, senseData].forEach(el => el.addEventListener('input', filtra));
+    selector.addEventListener('change', filtra);
+    const exporta = g('exporta-socis');
+    const bd = CRIS.botoDinamic(exporta);
+    g('llistat-buit').addEventListener('change', e => {
+      g('bloc-llistat').hidden = e.target.checked;
+      g('llistat-sense-socis').hidden = !e.target.checked;
+      if (e.target.checked) exporta.setAttribute('aria-disabled', 'true'); else exporta.removeAttribute('aria-disabled');
+    });
+    exporta.addEventListener('click', async () => {
+      if (bd.estaOcupat || exporta.getAttribute('aria-disabled') === 'true') return;
+      await bd.flux([
+        { text: 'Preparant…', icona: 'carrega', gira: true, ms: 800 },
+        { text: 'Llistat exportat', icona: 'fet', fet: true, ms: 1600, anunci: 'Llistat exportat en CSV, sense dates de naixement. Queda al registre d\'activitat.' }
+      ]);
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+    });
+  })();
+
+  /* ---------- Socis: fitxa (pestanyes, diàlegs amb validació i confirmació de la caducitat) ---------- */
+  pestanyesVista['vista-socis-fitxa'] = CRIS.pestanyes(document.getElementById('pestanyes-soci'));
+  (function () {
+    const resultat = document.getElementById('resultat-fitxa');
+    function mostraResultat(text) {
+      resultat.className = 'resultat-desar avis avis-ok';
+      resultat.innerHTML = '<strong>Fet</strong><span></span>';
+      resultat.querySelector('span').textContent = text;
+      resultat.hidden = false; resultat.tabIndex = -1; resultat.focus();
+      CRIS.anuncia(text);
+    }
+    document.querySelectorAll('[data-obre-dialeg]').forEach(b => b.addEventListener('click', () => {
+      const d = document.getElementById(b.dataset.obreDialeg);
+      d.querySelectorAll('.error-camp').forEach(p => { p.hidden = true; });
+      d.querySelectorAll('[aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'));
+      d.showModal();
+      const primer = d.querySelector('input:not([type="checkbox"]), textarea');
+      if (primer) primer.focus();
+    }));
+    document.querySelectorAll('dialog [data-form-fitxa]').forEach(form => {
+      const d = form.closest('dialog');
+      d.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => d.close()));
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const avui = new Date().toISOString().slice(0, 10);
+        const errors = [];
+        form.querySelectorAll('input, textarea').forEach(i => {
+          if (!document.getElementById(i.id + '-error')) return;
+          let m = '';
+          if (i.dataset.obligatori && !i.value.trim()) m = i.dataset.obligatori;
+          else if (i.hasAttribute('data-no-futura') && i.value > avui) m = 'La data no pot ser posterior a avui.';
+          else if (i.dataset.noAnterior && i.value && i.value < document.getElementById(i.dataset.noAnterior).value) m = 'La caducitat no pot ser anterior a la data d\'alta.';
+          else if (i.id === 'e-numero' && i.value.trim() === '0311') m = 'Aquest número ja és d\'una altra persona. Els números no es reutilitzen.';
+          if (!errorCamp(i, m)) errors.push(i);
+        });
+        if (errors.length) { errors[0].focus(); return; }
+        if (d.id === 'dialeg-data-alta') {
+          const v = document.getElementById('d-alta').value, aprox = document.getElementById('d-aproximada').checked;
+          const anterior = document.getElementById('data-alta-soci').textContent;
+          document.getElementById('data-alta-soci').textContent = aprox ? '~' + v.slice(0, 4) + ' (aproximada)' : dataLlegible(v);
+          registra(document.getElementById('historial-soci'), comptePerRol[rolActual()], 'Data d\'alta: ' + dataLlegible(v) + (aprox ? ', aproximada' : ', real') + ' (abans ' + anterior + ')');
+        }
+        d.close();
+        mostraResultat(form.dataset.formFitxa);
+        if (d.id === 'dialeg-baixa-junta') form.reset();
+      });
+    });
+    const conf = document.getElementById('confirma-caducitat');
+    const bd = CRIS.botoDinamic(conf);
+    conf.addEventListener('click', async () => {
+      if (bd.estaOcupat) return;
+      await bd.flux([{ text: 'Confirmant…', icona: 'carrega', gira: true, ms: 700 }]);
+      const e = document.getElementById('llic-estat');
+      e.className = 'estat estat-ok'; e.innerHTML = '<span aria-hidden="true">✓</span> Confirmada per la secretaria';
+      conf.remove();
+      mostraResultat('Caducitat confirmada. Queda al registre d\'activitat amb el valor anterior.');
+    });
   })();
 
   // Adreça: #vista[&rol=…] obre una vista amb un rol (per revisar i fer captures)
