@@ -274,8 +274,15 @@ def logout_view(request, area):
 
 
 def _no_referrer(response):
-    # Les pàgines dels enllaços d'un sol ús no passen cap adreça a una altra pàgina.
+    # La redirecció de l'enllaç del correu ve d'una adreça amb el testimoni: no es passa enlloc.
     response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+def _same_origin_referrer(response):
+    # Pàgina neta del formulari (sense testimoni a l'adreça). Amb «no-referrer», els navegadors
+    # envien «Origin: null» al POST i la comprovació CSRF el rebutja.
+    response["Referrer-Policy"] = "same-origin"
     return response
 
 
@@ -309,7 +316,7 @@ def verify_email_view(request):
         state = "ready"
     if state == "invalid":
         request.session.pop(email_links.VERIFY_SESSION_KEY, None)
-    return _no_referrer(render(request, "accounts/verify_email.html", {"state": state}))
+    return _same_origin_referrer(render(request, "accounts/verify_email.html", {"state": state}))
 
 
 def _reset_sent_message():
@@ -391,7 +398,7 @@ def password_reset_view(request):
     if result.account is None or result.done:
         request.session.pop(email_links.RESET_SESSION_KEY, None)
     state = "done" if result.done else "ready" if result.account else "invalid"
-    return _no_referrer(
+    return _same_origin_referrer(
         render(request, "accounts/password_reset.html", {"state": state, "form": result.form})
     )
 

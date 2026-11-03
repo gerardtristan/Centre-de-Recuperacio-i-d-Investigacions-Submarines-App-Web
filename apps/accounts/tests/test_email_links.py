@@ -225,8 +225,12 @@ class TestTokenExposure:
         done = client.post(reverse("accounts:verify_email"))
         again = client.get(path_of(link), follow=True)
 
+        # Només la redirecció ve d'una adreça amb el testimoni; les pàgines netes, «same-origin»
+        # (amb «no-referrer», el navegador enviaria «Origin: null» i el POST fallaria per CSRF).
+        assert first["Referrer-Policy"] == "no-referrer"
+        for response in (page, done, again):
+            assert response["Referrer-Policy"] == "same-origin"
         for response in (first, page, done, again):
-            assert response["Referrer-Policy"] == "no-referrer"
             assert "no-cache" in response["Cache-Control"]
             assert token not in response.get("Location", "")
             assert token not in response.content.decode()

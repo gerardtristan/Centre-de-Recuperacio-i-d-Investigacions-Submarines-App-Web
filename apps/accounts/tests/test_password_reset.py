@@ -139,8 +139,9 @@ class TestResetWithLink:
         first = client.get(reverse("accounts:password_reset_link", args=[token]))
         page = client.get(reverse(RESET))
         done = submit(client)
+        assert first["Referrer-Policy"] == "no-referrer"
+        assert page["Referrer-Policy"] == done["Referrer-Policy"] == "same-origin"
         for response in (first, page, done):
-            assert response["Referrer-Policy"] == "no-referrer"
             assert "no-cache" in response["Cache-Control"]
             assert token not in response.get("Location", "")
             assert token not in response.content.decode()
