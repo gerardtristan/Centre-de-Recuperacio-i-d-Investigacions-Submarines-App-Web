@@ -340,15 +340,19 @@
       <label>Veure com:
         <select id="veure-com">
           <option value="admin">Administrador</option>
-          <option value="cursos">Resp. cursos i sortides</option>
-          <option value="tresorer">Tresorer</option>
-          <option value="material">Resp. material</option>
           <option value="instructor">Instructor</option>
           <option value="secretaria">Secretaria</option>
+          <option value="cursos">Resp. cursos i sortides</option>
+          <option value="material">Resp. material</option>
+          <option value="tresorer">Tresorer</option>
           <option value="historia">Dept. Història</option>
+          <option value="president">President</option>
+          <option value="junta">Junta</option>
+          <option value="comunicacio">Resp. comunicació</option>
+          <option value="botiga">Resp. botiga</option>
         </select>
       </label>
-      <span class="estat estat-avis" role="note"><span aria-hidden="true">!</span> Matriu de permisos provisional (pendent de la junta)</span>
+      <span class="estat estat-avis" role="note"><span aria-hidden="true">!</span> Rols de la decisió 059. Només Socis segueix la configuració inicial; Activitats, Tresoreria i Usuaris i rols encara mostren la matriu provisional (pendents d'adaptar)</span>
       <p class="descripcio-rol" id="descripcio-rol" aria-live="polite"></p>
     </div>
 
@@ -823,7 +827,7 @@
   CRIS.tema();
   document.querySelectorAll('[data-icona].icona').forEach(s => { s.innerHTML = CRIS.icona(s.dataset.icona); });
 
-  const comptePerRol = { admin: 'jordi.adm', cursos: 'laia.cursos', tresorer: 'marc.tresor', material: 'pere.material', instructor: 'xavi.instructor', secretaria: 'anna.secretaria', historia: 'rosa.historia' };
+  const comptePerRol = { admin: 'jordi.adm', cursos: 'laia.cursos', tresorer: 'marc.tresor', material: 'pere.material', instructor: 'xavi.instructor', secretaria: 'anna.secretaria', historia: 'rosa.historia', president: 'pau.presidencia', junta: 'eva.junta', comunicacio: 'ona.comunicacio', botiga: 'biel.botiga' };
   const rolActual = () => document.getElementById('veure-com').value;
   const ara = () => { const d = new Date(); return d.toLocaleDateString('ca', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('ca', { hour: '2-digit', minute: '2-digit' }); };
   function registra(llista, qui, que) {
@@ -872,15 +876,20 @@
   }));
   document.getElementById('contingut').tabIndex = -1;
 
-  /* ---------- «Veure com»: matriu provisional (spec 00, §2.4) ---------- */
+  /* ---------- «Veure com»: rols de la 059. Socis segueix la configuració inicial;
+     la resta de pantalles, encara la matriu provisional (spec 00, §2.4) ---------- */
   const descripcions = {
-    admin: 'Administrador: ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
-    cursos: 'Resp. cursos i sortides: gestiona la sortida i en veu el marge; no registra despeses.',
-    tresorer: 'Tresorer: consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
-    material: 'Resp. material: consulta la sortida per assignar material; no en veu els diners ni els participants.',
-    instructor: 'Instructor: només si fa classe en aquesta sortida; no en veu els diners. Les dades dels alumnes es fixen a la spec 02.',
-    secretaria: 'Secretaria: aprova altes; no gestiona cursos ni sortides.',
-    historia: 'Dept. Història: només conferències i contingut històric.'
+    admin: 'Administrador: a Socis, tot excepte marcar impagats (059). Altres pantalles (provisional): ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
+    cursos: 'Resp. cursos i sortides: a Socis, cap pantalla (la llicència, en consulta, la veurà al 06). Altres pantalles (provisional): gestiona la sortida i en veu el marge; no registra despeses.',
+    tresorer: 'Tresorer: a Socis, resol sol·licituds sense veure el document ni la data de naixement, consulta el llistat amb dades mínimes, genera quotes i marca impagats (059). Altres pantalles (provisional): consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
+    material: 'Resp. material: a Socis, cap pantalla (059). Altres pantalles (provisional): consulta la sortida per assignar material; no en veu els diners ni els participants.',
+    instructor: 'Instructor: a Socis, cap pantalla (059). Altres pantalles (provisional): només si fa classe en aquesta sortida; no en veu els diners.',
+    secretaria: 'Secretaria: a Socis, sol·licituds, altes presencials, llistat i fitxa amb totes les dades, i consulta de quotes (059). Altres pantalles (provisional): no gestiona cursos ni sortides.',
+    historia: 'Dept. Història: a Socis, cap pantalla (059). Altres pantalles (provisional): només conferències i contingut històric.',
+    president: 'President: a Socis, consulta i resol sol·licituds d\'alta, de canvi de tipus i de baixa, sense veure el document ni la data de naixement; no veu el llistat ni la fitxa (059). Les altres pantalles encara no estan adaptades a la 059.',
+    junta: 'Junta: a Socis, cap permís (059). Les altres pantalles encara no estan adaptades a la 059.',
+    comunicacio: 'Resp. comunicació: comença sense cap permís (059).',
+    botiga: 'Resp. botiga: comença sense cap permís (059).'
   };
   const selector = document.getElementById('veure-com');
   function aplicaRol(rol) {
