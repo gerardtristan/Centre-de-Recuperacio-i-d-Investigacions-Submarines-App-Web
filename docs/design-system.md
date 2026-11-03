@@ -345,7 +345,7 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
   - Darrere: QR [A validar], tipus, data d'alta, quota i llicència.
   - Es gira amb un botó visible, «Mostra el darrere» o «Mostra el davant», amb `aria-pressed`. La cara amagada porta `aria-hidden`.
   - Sense moviment, el gir és instantani.
-- **No soci:** en lloc del carnet, una invitació a fer-se soci (targeta plana amb les quotes d'exemple [A validar] i el botó principal «Fes-te soci»).
+- **No soci:** en lloc del carnet, una invitació a fer-se soci (targeta plana amb les quotes, validades el 03/11/2026, i el botó principal «Fes-te soci»).
 - **Franja d'estat:**
   - Plana, gran i a tota l'amplada, just sota la portada.
   - Amb pendents: «◷ N pagaments pendents», el detall i el botó «Paga ara» de 56 px d'alçada. El text fa 15,2:1 i 12,3:1, i el botó 8,1:1 i 9,8:1.
@@ -467,7 +467,7 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 ## 14. Pendents [A validar]
 - Que el club validi la paleta, la regla de les fletxes i els ajustos de §2.3.
 - Matriu de permisos dels menús i blocs (P-04).
-- Quotes d'exemple (35 € simpatitzant i 90 € ple dret, del context v4), què inclou cada quota, adreça i horari del local, i tipus de llicència.
+- Què inclou cada quota (els preus, 35 € simpatitzant i 90 € ple dret, els va validar el responsable del projecte el 03/11/2026), adreça i horari del local, i tipus de llicència.
 - Si el carnet té codi QR i foto.
 - El nom del departament de les sortides.
 - Versions del logotip (reduïda i SVG) i nom del fitxer de la versió fosca (§8).

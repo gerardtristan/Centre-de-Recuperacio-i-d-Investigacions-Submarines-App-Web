@@ -997,7 +997,7 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M01: els valors que el text 
 **Valors** (de l'[apèndix](#valors-configurables))
 | VC | Clau | Valor inicial | Rang | Qui el canvia | Data d'entrada en vigor |
 |---|---|---|---|---|---|
-| VC-01 | Preu del tipus de soci (`annual_fee_cents`), que continua al tipus | 3500 i 9000 cèntims | > 0 | Tresorer o administrador, amb motiu | Sí (nova) |
+| VC-01 | Preu del tipus de soci (`annual_fee_cents`), que continua al tipus | 3500 i 9000 cèntims (validats pel responsable del projecte el 03/11/2026) | > 0 | Tresorer o administrador, amb motiu | Sí (nova) |
 | VC-02 | `members.fee_reminder_days_before`; `members.fee_reminder_days_after` | 15; 15 i 30 | 1 a 90 | Tresorer | — |
 | VC-03 | `members.card_back_text` | Contacte del club i com verificar-lo; el text final [A validar: junta, S-M01-08] | Fins a 300 caràcters | Secretaria o administrador | — |
 | VC-04 | `members.classic_member_years` (0 = sense insígnia) | 0 | 0 a 60 | Administrador, per decisió de la junta | — |
