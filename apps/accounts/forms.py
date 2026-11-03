@@ -43,3 +43,14 @@ class CodeForm(forms.Form):
         max_length=24,
         widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
     )
+
+
+class DisableTotpForm(CodeForm):
+    """CA-05.2: per desactivar el doble factor cal la contrasenya i un codi vàlid."""
+
+    password = forms.CharField(
+        label=_("Contrasenya"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    field_order = ["password", "code"]

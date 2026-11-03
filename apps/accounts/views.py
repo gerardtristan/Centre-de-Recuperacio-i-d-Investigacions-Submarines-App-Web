@@ -5,8 +5,10 @@ L'entrada d'administració no té cap enllaç ni cap ruta de recuperació per co
 
 import logging
 
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_not_required
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -17,8 +19,17 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.core import audit
 
 from . import email_links, tokens, totp
-from .forms import CodeForm, LoginForm
-from .security import AREA_ADMIN, AREA_PERSONAL, check_credentials, client_ip, record_failure
+from .forms import CodeForm, DisableTotpForm, LoginForm
+from .security import (
+    AREA_ADMIN,
+    AREA_PERSONAL,
+    WRONG_CODE,
+    WRONG_PASSWORD,
+    check_credentials,
+    client_ip,
+    confirm_password_and_code,
+    record_failure,
+)
 from .sessions import (
     clear_pending,
     complete_login,
@@ -234,6 +245,91 @@ def password_reset_view(request):
     return _no_referrer(
         render(request, "accounts/password_reset.html", {"state": state, "form": result.form})
     )
+
+
+@never_cache
+@require_GET
+def security_view(request):
+    """Seguretat del compte personal: estat del doble factor (HU-05)."""
+    return render(
+        request,
+        "accounts/security.html",
+        {"has_totp": request.user.has_totp, "disable_form": DisableTotpForm()},
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def personal_totp_enrol_view(request):
+    """CA-05.1: el compte personal activa el TOTP confirmant un codi vàlid. Sense codis de
+    recuperació (V-01). Un codi mal escrit aquí no compta per al bloqueig: la persona ja és
+    dins i té el secret a la pantalla, no hi ha res a endevinar."""
+    account = request.user
+    if account.has_totp:
+        return redirect("accounts:security")
+    device = getattr(account, "totp_device", None) or totp.start_enrolment(account)
+    form = CodeForm(request.POST or None)
+    error = None
+    if request.method == "POST" and form.is_valid():
+        if totp.confirm_enrolment(device, form.cleaned_data["code"], recovery_codes=False) == []:
+            logger.info("totp_enrolled account=%s ip=%s", account.pk, client_ip(request))
+            audit.record(
+                audit.Action.TOTP_ENROLLED,
+                actor=account,
+                details={"area": AREA_PERSONAL},
+                request=request,
+            )
+            messages.success(request, _("Doble factor activat."))
+            return redirect("accounts:security")
+        error = BAD_CODE
+    secret = totp.secret_of(device)
+    return render(
+        request,
+        "accounts/totp_enrol.html",
+        {
+            "area": AREA_PERSONAL,
+            "form": form,
+            "error": error,
+            "qr_svg": totp.qr_svg(totp.provisioning_uri(device)),
+            "secret_groups": [secret[i : i + 4] for i in range(0, len(secret), 4)],
+        },
+    )
+
+
+@never_cache
+@require_POST
+def personal_totp_disable_view(request):
+    """CA-05.2: contrasenya i codi vàlid; els errors compten per al bloqueig (V-01) i el
+    canvi queda al registre, sense cap secret."""
+    account = request.user
+    if not account.has_totp:
+        return redirect("accounts:security")
+    form = DisableTotpForm(request.POST)
+    error = None
+    if form.is_valid():
+        error = confirm_password_and_code(
+            request,
+            account,
+            AREA_PERSONAL,
+            form.cleaned_data["password"],
+            form.cleaned_data["code"],
+        )
+        if error is None:
+            with transaction.atomic():
+                audit.record(
+                    audit.Action.TOTP_DISABLED,
+                    actor=account,
+                    details={"area": AREA_PERSONAL},
+                    request=request,
+                )
+                totp.disable(account)
+            logger.info("totp_disabled account=%s ip=%s", account.pk, client_ip(request))
+            messages.success(request, _("Doble factor desactivat."))
+            return redirect("accounts:security")
+        # L'error al costat del camp que falla (com RN-M01-57); el bloqueig, a tot el formulari.
+        field = {WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error)
+        form.add_error(field, error)
+    return render(request, "accounts/security.html", {"has_totp": True, "disable_form": form})
 
 
 @never_cache

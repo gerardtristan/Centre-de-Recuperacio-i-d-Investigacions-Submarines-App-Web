@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit
 
+from . import totp
 from .models import Account, FailedLogin, normalize_login
 
 logger = logging.getLogger("cris.security")
@@ -114,6 +115,33 @@ def reset_failures(account: Account) -> None:
         account.failed_login_count = 0
         account.locked_until = None
         account.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
+
+
+WRONG_PASSWORD = _("Contrasenya incorrecta")
+WRONG_CODE = _("Codi incorrecte")
+TOO_MANY_ATTEMPTS = _("S'han fet massa intents. Torna-ho a provar d'aquí a una estona.")
+
+
+def confirm_password_and_code(request, account: Account, area: str, password: str, code: str):
+    """Torna a demanar la contrasenya i un codi TOTP vàlid a un compte amb sessió (CA-05.2).
+    Torna None si tots dos són correctes, o el missatge d'error.
+
+    Comprovació mínima amb les peces de l'entrada: els errors compten com a intents fallits
+    del compte i de l'origen (V-01) i queden al registre; amb el compte o l'origen bloquejats
+    no es comprova res. El missatge no diu quants intents queden. El codi no es comprova (ni
+    es gasta) si la contrasenya és incorrecta. La reautenticació de la T-M00-05 la podrà fer
+    servir; aquí no hi ha cap finestra de temps."""
+    if ip_is_blocked(client_ip(request)) or account.is_locked(timezone.now()):
+        return TOO_MANY_ATTEMPTS
+    if not account.check_password(password):
+        record_failure(request, area, account, "bad_password")
+        return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_PASSWORD
+    device = getattr(account, "totp_device", None)
+    if device is None or device.confirmed_at is None or not totp.verify_code(device, code):
+        record_failure(request, area, account, "bad_code")
+        return TOO_MANY_ATTEMPTS if account.is_locked(timezone.now()) else WRONG_CODE
+    reset_failures(account)
+    return None
 
 
 @dataclass

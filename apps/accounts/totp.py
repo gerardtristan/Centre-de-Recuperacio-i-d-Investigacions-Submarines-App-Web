@@ -71,14 +71,29 @@ def verify_code(device: TotpDevice, code: str, now=None) -> bool:
 
 
 @transaction.atomic
-def confirm_enrolment(device: TotpDevice, code: str) -> list[str] | None:
+def confirm_enrolment(
+    device: TotpDevice, code: str, *, recovery_codes: bool = True
+) -> list[str] | None:
     """Confirma l'alta amb un codi vàlid i genera els codis de recuperació nous, que es
-    mostren una sola vegada (CA-09.1). Retorna None si el codi no és vàlid."""
+    mostren una sola vegada (CA-09.1). Retorna None si el codi no és vàlid.
+
+    Els comptes personals no en tenen (V-01 només en preveu per als d'administrador): amb
+    `recovery_codes=False`, torna una llista buida. Què fa un soci que perd el mòbil és un
+    pendent de la junta (pendents.md) que s'ha de resoldre abans de producció."""
     if not verify_code(device, code):
         return None
     device.confirmed_at = timezone.now()
     device.save(update_fields=["confirmed_at"])
+    if not recovery_codes:
+        return []
     return regenerate_recovery_codes(device.account)
+
+
+@transaction.atomic
+def disable(account: Account) -> None:
+    """Treu el doble factor d'un compte (i els codis de recuperació que pogués tenir)."""
+    TotpDevice.objects.filter(account=account).delete()
+    RecoveryCode.objects.filter(account=account).delete()
 
 
 def regenerate_recovery_codes(account: Account) -> list[str]:

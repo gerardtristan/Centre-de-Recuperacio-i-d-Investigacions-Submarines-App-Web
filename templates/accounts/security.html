@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Seguretat del compte" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Seguretat del compte" %}</h1>
+  {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+  <h2>{% translate "Doble factor" %}</h2>
+  {% if has_totp %}
+    <p>{% translate "Actiu: per entrar, a més de la contrasenya, et demanem el codi de l'aplicació d'autenticació." %}</p>
+    <h3>{% translate "Desactivar el doble factor" %}</h3>
+    <p>{% translate "Per confirmar que ets tu, escriu la contrasenya i un codi de l'aplicació." %}</p>
+    {{ disable_form.non_field_errors }}
+    <form method="post" action="{% url 'accounts:totp_disable' %}" novalidate>
+      {% csrf_token %}
+      {% for field in disable_form %}
+        <p>
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </p>
+        {{ field.errors }}
+      {% endfor %}
+      <button type="submit">{% translate "Desactivar" %}</button>
+    </form>
+  {% else %}
+    <p>{% translate "No actiu. Si l'actives, per entrar et demanarem també un codi de l'aplicació d'autenticació del mòbil." %}</p>
+    <p>{% translate "El compte personal no té codis de recuperació: abans d'activar-lo, assegura't que no perdràs l'accés a l'aplicació." %}</p>
+    <p><a href="{% url 'accounts:totp_enrol' %}">{% translate "Activar el doble factor" %}</a></p>
+  {% endif %}
+  <p><a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a></p>
+{% endblock %}

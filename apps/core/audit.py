@@ -29,6 +29,7 @@ class Action:
     LOGOUT = "auth.logout"
     TOTP_ENROLLED = "auth.totp_enrolled"
     TOTP_RESET = "auth.totp_reset"
+    TOTP_DISABLED = "auth.totp_disabled"
     RECOVERY_CODE_USED = "auth.recovery_code_used"
     EMAIL_VERIFIED = "auth.email_verified"
     PASSWORD_RESET = "auth.password_reset"  # noqa: S105 (nom d'una acció, no cap contrasenya)

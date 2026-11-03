@@ -5,7 +5,11 @@
 
 {% block content %}
   <h1>{% translate "Activa el doble factor" %}</h1>
-  <p>{% translate "Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil." %}</p>
+  {% if area == "personal" %}
+    <p>{% translate "A partir d'ara, per entrar a l'àrea de socis caldrà també un codi de l'aplicació d'autenticació del mòbil." %}</p>
+  {% else %}
+    <p>{% translate "Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil." %}</p>
+  {% endif %}
   <ol>
     <li>{% translate "Obre l'aplicació d'autenticació i afegeix un compte nou." %}</li>
     <li>{% translate "Escaneja aquest codi QR, o escriu la clau a mà." %}</li>
@@ -24,4 +28,5 @@
     </p>
     <button type="submit">{% translate "Activar" %}</button>
   </form>
+  {% if area == "personal" %}<p><a href="{% url 'accounts:security' %}">{% translate "Cancel·lar" %}</a></p>{% endif %}
 {% endblock %}
