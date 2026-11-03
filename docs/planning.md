@@ -510,9 +510,11 @@ Canvi de ple dret a simpatitzant: no consta enlloc [A validar: junta]. Proposta:
 | Pas | Qui | Què passa | Pantalla | Wireframe |
 |---|---|---|---|---|
 | 1 | Soci o junta | El soci la demana amb motiu i confirmació; o la secretaria la crea per decisió de la junta | `/socis/baixa`; `/gestio/socis/{id}` | `socis.html#baixa`; `admin.html#vista-socis-fitxa` («Crea una baixa») |
-| 2 | Secretaria | La valida i fixa la data efectiva | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Baixes») |
+| 2 | Secretaria | La valida i fixa la data efectiva, o la rebutja amb motiu obligatori (`MemberRequest` passa a `rejected`) | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Baixes») |
 | 3 | Sistema | A la data efectiva: estat **baixa**, carnet revocat, correu de confirmació. Quotes pendents: vegeu RN-M01-20 | — | — |
 | 4 | Sistema | El compte personal es manté per consultar rebuts (Q-31, proposta) [A validar: junta] | — | — |
+**Rebutjar una baixa (03/11/2026).** El responsable del projecte ha comunicat que la junta ha validat que una baixa es pot rebutjar, amb motiu. Continuen pendents, i no s'han d'implementar fins que es decideixin ([P-50](decisions/pendents.md)): qui la pot rebutjar i per quins motius; què passa si hi ha quotes impagades; qui pot perdonar o anul·lar una quota anterior i amb quin permís; i què es diu al soci abans d'enviar la sol·licitud. Hi ha també un punt del model per resoldre: `reason` guarda alhora el motiu de la baixa i el de rebuig, i una baixa rebutjada en necessita tots dos.
+
 El número queda reservat per sempre ([039](decisions/039-numeros-de-soci-no-es-reutilitzen.md)). Si la persona torna, es **readmet** amb el mateix número (P-M01-A des del pas 4).
 
 ### P-M01-D Renovació anual de quotes (F §9.5)
