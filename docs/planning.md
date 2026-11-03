@@ -28,7 +28,7 @@
 | **13** | Botiga en línia | — | — | Fora d'abast ara | — |
 
 <a id="primer-modul"></a>
-**Primer mòdul que es pot començar a construir: el 01 (Socis i carnet digital), amb les peces de la 00 que necessita**, a partir de T-M01-01 i T-M01-03 (esquelet del projecte). La 00 no té secció pròpia: el 01 en construeix la part que necessita, seguint la [spec 00](../specs/00-base-comuna/spec.md). Després, per dependències: 04 → 05a → 05b (fase 1) i 06 → 02 → 03 → 09 (fase 2, [060](decisions/060-ajustos-de-l-auditoria-del-pla.md)). Les peces de la 00 que el pla esmentava sense tasca tenen identificador propi (T-M00-01 a T-M00-04, [apèndix de la 060](#ajustos-060-peces-00)); la T-RP-01 i la T-RP-04 es fan just després de la T-M01-06. Tots aquests mòduls estan aprovats i es poden construir en aquest ordre; entrar en producció depèn dels [A verificar] externs i de les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
+**Primer mòdul que es pot començar a construir: el 01 (Socis i carnet digital), amb les peces de la 00 que necessita**, a partir de T-M01-01 i T-M01-03 (esquelet del projecte). La 00 no té secció pròpia: el 01 en construeix la part que necessita, seguint la [spec 00](../specs/00-base-comuna/spec.md). Després, per dependències: 04 → 05a → 05b (fase 1) i 06 → 02 → 03 → 09 (fase 2, [060](decisions/060-ajustos-de-l-auditoria-del-pla.md)). Les peces de la 00 que el pla esmentava sense tasca tenen identificador propi (T-M00-01 a T-M00-04, [apèndix de la 060](#ajustos-060-peces-00); la T-M00-05, de la [063](decisions/063-validacions-de-la-revisio-de-la-t-m01-02.md), és al mateix apèndix); la T-RP-01 i la T-RP-04 es fan just després de la T-M01-06. Tots aquests mòduls estan aprovats i es poden construir en aquest ordre; entrar en producció depèn dels [A verificar] externs i de les decisions de la junta ([ordre del dia](#ordre-del-dia-junta)).
 
 **Regles de la numeració** (fixada el 27/10/2026 pel responsable del projecte)
 - Cap mòdul no canvia de número. Un mòdul nou s'afegeix al final (14, 15…).
@@ -88,6 +88,7 @@
    - [Addenda de la 058: data de naixement (00), caducitat desconeguda i conservació](#M01-addenda-058)
    - [Addenda de la 059: permisos editables i configuració inicial](#M01-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M01-addenda-060)
+   - [Addenda de la 063: contrasenya abans d'esborrar el compte](#M01-addenda-063)
 7. [Mòdul 04 — Tresoreria, part mínima](#M04) · [resum](#M04-resum)
    1. [Intenció](#M04-1-intencio) · 2. [Dependències](#M04-2-dependencies) · 3. [Capacitats](#M04-3-capacitats) · 4. [Rols](#M04-4-rols) · 5. [Processos](#M04-5-processos) · 6. [Entitats](#M04-6-entitats) · 7. [Regles](#M04-7-regles)
    8. [Serveis](#M04-8-serveis) · 9. [Criteris](#M04-9-criteris) · 10. [Tasques](#M04-10-tasques) · 11. [Proves](#M04-11-proves) · 12. [Seguretat](#M04-12-seguretat) · 13. [Riscos](#M04-13-riscos) · 14. [Aprovar](#M04-14-aprovar)
@@ -542,7 +543,7 @@ Sense cobertura, el carnet desat es mostra amb la marca «Comprovat per última 
 |---|---|---|---|---|
 | 1 | Soci | Demana «Descarregar les meves dades» | `/socis/perfil` | `socis.html#perfil` |
 | 2 | Sistema | Prepara un fitxer JSON amb persona, soci, historial, quotes, carnets (sense testimonis), sol·licituds, consentiments i llicència; URL signada, disponible 7 dies (V-08) | — | — |
-| 3 | Soci | Demana «Esborrar el meu compte» amb confirmació | `/socis/perfil/esborrar` | `socis.html#esborrar` |
+| 3 | Soci | Demana «Esborrar el meu compte»: marca la confirmació i torna a escriure la contrasenya (i el codi TOTP si el compte en té). Sense això no s'envia la sol·licitud ([RN-M01-57](#M01-addenda-063)) | `/socis/perfil/esborrar` | `socis.html#esborrar` |
 | 4 | Responsable RGPD | Aprova la sol·licitud (Q-15) [A validar: junta] | `/gestio/rgpd` | Falta (fora de la T-M01-02: peça de la 00; l'atén l'administrador, M11 de la [059](#rols-i-permisos-059-matriu)) |
 | 5 | Sistema | Fa la baixa si és soci actiu, desactiva els comptes, anonimitza les dades personals, **bloqueja** quotes i rebuts fins al termini legal (Q-14), i substitueix la identitat al registre per una referència anònima ([028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md)). El número de soci queda reservat i lligat a la referència anònima | — | — |
 
@@ -1101,6 +1102,23 @@ Aprovada el 31/10/2026. **No canvia cap regla** del M01; només fixa l'ordre de 
 - La **T-M01-31** (còpia de lectura de la llicència) es fa en construir el 06, al començament de la fase 2. No bloqueja que el 01 es doni per acabat.
 - La **T-M01-36** (confirmació en bloc) és requisit previ per obrir les inscripcions del 02 ([RN-M02-34](#M02-addenda-060)).
 - RN-M01-47 és un supòsit substituït per RN-M01-52: es construeix RN-M01-52.
+
+<a id="M01-addenda-063"></a>
+## M01 — Addenda de la [063](decisions/063-validacions-de-la-revisio-de-la-t-m01-02.md): contrasenya abans d'esborrar el compte
+
+Aprovada el 03/11/2026. Afegeix una regla i un criteri i no en canvia cap altra. El pas 3 de [P-M01-F](#M01-5-processos) ja ho recull.
+
+**Regla nova**
+| ID | Regla |
+|---|---|
+| RN-M01-57 | **Contrasenya abans d'esborrar el compte.** Per enviar la sol·licitud «Esborrar el meu compte», el soci torna a escriure la contrasenya **sempre**, encara que acabi d'entrar, i el codi TOTP si el compte en té. Es fa servir el servei de reautenticació de la 00 (`accounts.require_recent_auth`, el de RN-M05a-12; tasca [T-M00-05](#ajustos-060-peces-00)), però **sense la finestra de 15 minuts**: la comprovació es fa a la mateixa petició que envia la sol·licitud. Si falla, no s'envia res i l'intent compta per al bloqueig per intents del compte (V-01). El missatge és «Contrasenya incorrecta» (o «Codi incorrecte») i no diu quants intents queden. L'intent fallit i la sol·licitud enviada queden al registre d'activitat |
+
+**Criteri d'acceptació**
+- **CA-M01-46** Donat un soci amb la sessió iniciada fa menys d'un minut, quan envia «Esborrar el meu compte» sense la contrasenya o amb una contrasenya incorrecta, llavors no es crea cap sol·licitud, veu «Contrasenya incorrecta» al costat del camp i l'intent compta per al bloqueig de V-01. Amb la contrasenya correcta, i el codi TOTP si el compte en té, es crea la sol·licitud.
+
+**Contracte de serveis** (precisa [M05a-8](#M05a-8-serveis) sense editar-lo): `accounts.require_recent_auth(account, minutes)` admet `minutes=0`, que vol dir que s'ha de tornar a escriure a la mateixa petició. El 05a continua fent servir `minutes=15`.
+
+**Tasques.** La prova de CA-M01-46 és a la T-M01-22, que també depèn de la T-M00-05. Les files aprovades no s'editen: ho diu la [lectura de les tasques substituïdes](#ajustos-060-lectura).
 
 ---
 
@@ -6091,7 +6109,7 @@ Acceptada el 31/10/2026 ([060](decisions/060-ajustos-de-l-auditoria-del-pla.md))
 <a id="ajustos-060-peces-00"></a>
 ## Peces de la 00 amb tasca pròpia
 
-El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, mentre que altres tasques ja en depenien.
+El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, mentre que altres tasques ja en depenien. La T-M00-05 l'afegeix la [063](decisions/063-validacions-de-la-revisio-de-la-t-m01-02.md) el 03/11/2026, pel mateix motiu: RN-M05a-12 en declarava el servei com a peça de la 00 sense cap tasca.
 
 | ID | Tasca | Mida | Fitxers | Depèn de | Fet quan | La necessiten |
 |---|---|---|---|---|---|---|
@@ -6099,6 +6117,7 @@ El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, m
 | T-M00-02 | Enllaços de convidat: generar, enviar, caducar, reenviar (l'anterior deixa de funcionar), revocar i limitar els intents (HU-02, V-02, RN-30 a RN-33) | M | `apps/core/guest_links.py`, vistes | T-M01-05, T-M01-09, T-M01-10, T-RP-01 | CA-02.1 a CA-02.7 de la spec 00 | T-M05b-08, T-M06-07, T-M02-14 |
 | T-M00-03 | Comptes d'emergència (com a mínim dos, amb TOTP) i codis de recuperació fora de línia; avís quan n'hi ha menys de dos; restabliment del TOTP de l'últim administrador ([RN-RP-18](#ajustos-060-rols)) | M | `apps/accounts/emergency.py`, `apps/accounts/recovery.py` | T-M01-05, T-RP-02 | CA-09.x i CA-10.1, 10.2 de la spec 00; CA-RP-15 | Nivell 1 de producció |
 | T-M00-04 | Consulta de dades bloquejades (M13, protegit; [028](decisions/028-esborrat-rgpd-i-registre-d-activitat.md)): només el tresorer i l'administrador, cada consulta amb motiu al registre, i les dades bloquejades no surten enlloc més | S | `apps/core/privacy.py`, vistes | T-M01-22, T-RP-01 | CA-19.3 de la spec 00; prova que cap llistat, cerca ni exportació mostra una dada bloquejada | Nivell 1 de producció |
+| T-M00-05 | Servei de reautenticació `accounts.require_recent_auth(account, minutes)`: torna a demanar la contrasenya, i el TOTP si el compte en té. `minutes=0` vol dir sempre, a la mateixa petició ([RN-M01-57](#M01-addenda-063)); `minutes=15`, per al 05a (RN-M05a-12). Els errors compten per al bloqueig de V-01 i queden al registre d'activitat | S | `apps/accounts/reauth.py` | Només les parts fetes de la T-M01-05 (TOTP i bloqueig per intents de V-01) i la T-M01-07 | CA-M01-46; els criteris del 05a quan es construeixi | T-M01-22, T-M05a-09 |
 
 <a id="ajustos-060-rols"></a>
 ## Rols i permisos (precisa la 059)
@@ -6146,3 +6165,5 @@ Una línia per cada tasca on el text aprovat ja no és el que cal construir. Les
 | T-RP-05 | Retirada | 060 |
 | T-M01-37, T-M04-21, T-M05a-25, T-M05b-25, T-M06-25, T-M02-33, T-M03-23, T-M09-30 | Revisió final de la cobertura per cel·la | 060 |
 | T-M01-09 | CA-16.1 i CA-15.8 de la spec 00: el departament inicial és «General», no «General / Quotes de socis». Els centres de cost («Quotes de socis», «Llicències», «Ajustos de caixa») els afegeix la T-M04-02 (CA-T14.1). Els camps del pagament són del proveïdor, sense el nom de Stripe (`provider_reference`, `provider_status`; 043) | Precisió aprovada el 02/11/2026 |
+| T-M01-22 | També depèn de la T-M00-05 i cobreix CA-M01-46 | 063 |
+| T-M05a-09 | També depèn de la T-M00-05 (la reautenticació de RN-M05a-12) | 063 |
