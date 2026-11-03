@@ -193,6 +193,31 @@
 .confirmacio { display: grid; gap: var(--e-3); justify-items: start; }
 .confirmacio .marca-ok { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--c-mari); color: var(--c-mari-sobre); font-size: 28px; box-shadow: var(--neu-relleu-petit); }
 
+/* ---------- Pantalles pròpies (T-M01-02): «Fer-se soci» i verificació del carnet ----------
+   S'obren amb l'adreça (#alta, #verificar) i amaguen la resta de seccions de la portada. */
+.pantalla-cos { display: grid; gap: var(--e-5); }
+.pantalla-cos h1 { font-size: var(--t-2xl); margin: 0; }
+.pantalla-cos .demo { border-radius: var(--r-m); }
+/* Pantalla que no és a la navegació (verificació): cap enllaç actiu ni ratlla */
+.sense-actiu #navegacio-publica .sr-ratlla, .sense-actiu #navegacio-publica .sr-vora { display: none; }
+.graella-alta { display: grid; gap: var(--e-5); align-items: start; }
+.form-alta { display: grid; gap: var(--e-5); }
+.form-alta fieldset { display: grid; gap: var(--e-4); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.form-alta legend { padding: 0; margin-bottom: var(--e-3); font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); line-height: var(--a-titol); }
+.form-alta .camps { display: grid; gap: var(--e-4); }
+.form-alta .opcional { font-weight: var(--p-normal); color: var(--c-text-2); }
+.form-alta .segmentat { flex-wrap: wrap; border-radius: var(--r-l); }
+.form-alta .casella a { display: inline; }
+.costat-alta { display: grid; gap: var(--e-4); }
+.costat-alta ol { padding-left: var(--e-5); display: grid; gap: var(--e-2); }
+.verificacio { display: grid; gap: var(--e-4); max-width: var(--amplada-text); }
+.resultat-verificacio { display: grid; gap: var(--e-3); justify-items: start; }
+.resultat-verificacio h2 { margin: 0; font-size: var(--t-2xl); }
+.resultat-verificacio .estat { font-size: var(--t-l); padding: var(--e-1) var(--e-4); }
+.resultat-verificacio dl { margin: 0; display: grid; gap: var(--e-1); }
+.resultat-verificacio dt { font-size: var(--t-s); color: var(--c-text-2); }
+.resultat-verificacio dd { margin: 0; font-family: var(--f-codi); font-weight: var(--p-mitja); font-size: var(--t-2xl); }
+
 /* ==================== Tauleta: 600–1023 px ==================== */
 @media (min-width: 600px) {
   .contenidor, .capcalera-interior { padding-left: var(--e-5); padding-right: var(--e-5); }
@@ -245,6 +270,8 @@
   .graella-quotes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graella-contacte { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .peu-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-alta .camps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-alta .camp-ample { grid-column: 1 / -1; }
 }
 
 /* ==================== Escriptori: 1024 px o més ==================== */
@@ -271,6 +298,8 @@
   .bloc-invers > :first-child { order: 2; }
   .graella-quotes { max-width: calc(var(--amplada-max) * 2 / 3); }
   .peu-graella { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .graella-alta { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .costat-alta { position: sticky; top: calc(var(--capcalera-alcada) * 2); }
 }
 
 @media (prefers-contrast: more) {
@@ -585,20 +614,20 @@
           <h3>Simpatitzant</h3>
           <p class="preu"><span class="preu-xifra">35 €</span> <span class="text-2">l'any</span> <span class="a-validar">A validar</span></p>
           <p>Què inclou: <span class="a-validar">A validar</span></p>
-          <a class="boto" href="#">Alta com a simpatitzant</a>
+          <a class="boto" href="#alta" data-tipus="supporter">Alta com a simpatitzant</a>
         </article>
         <article class="targeta quota" id="quota-ple-dret">
           <h3>Ple dret</h3>
           <p class="preu"><span class="preu-xifra">90 €</span> <span class="text-2">l'any</span> <span class="a-validar">A validar</span></p>
           <p>Què inclou: <span class="a-validar">A validar</span></p>
-          <a class="boto" href="#">Alta de ple dret</a>
+          <a class="boto" href="#alta" data-tipus="full">Alta de ple dret</a>
         </article>
       </div>
       <div class="avis nota-pagament">
         <strong>Com es paga la quota</strong>
         Per domiciliació SEPA (per defecte), targeta, Bizum o transferència.
       </div>
-      <div class="grup-botons"><a class="boto-tactil tactil-daurat boto-gran" href="#"><span class="bt-tecla">Comença l'alta</span></a></div>
+      <div class="grup-botons"><a class="boto-tactil tactil-daurat boto-gran" href="#alta"><span class="bt-tecla">Comença l'alta</span></a></div>
     </div>
   </section>
 
@@ -624,6 +653,156 @@
           <p id="nota-formulari" class="text-2" style="margin: 0">Prototip: el formulari no envia res.</p>
           <button class="boto boto-principal" type="submit" id="envia-contacte" data-icona="fletxa">Envia</button>
         </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Pantalla: formulari «Fer-se soci» (P-M01-A, passos 1 a 3) ==================== -->
+  <section id="alta" class="seccio pantalla" data-nav="fer-se-soci" aria-labelledby="alta-titol" hidden>
+    <div class="contenidor pantalla-cos">
+      <div>
+        <a class="boto boto-text boto-petit" href="#fer-se-soci"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna a les quotes</a>
+        <span class="etiqueta-seccio" style="display: flex">Fer-se soci</span>
+        <h1 id="alta-titol">Sol·licitud d'alta</h1>
+        <p class="entradeta" style="margin: var(--e-2) 0 0">Omple les teves dades i tria el tipus de soci. La secretaria revisarà la sol·licitud; quan l'aprovi, rebràs un correu per activar el compte i pagar la quota.</p>
+      </div>
+
+      <div class="demo" role="group" aria-labelledby="demo-alta">
+        <span class="demo-titol" id="demo-alta">Demostració</span>
+        <button class="boto boto-petit" type="button" id="omple-alta">Omple amb dades inventades</button>
+        <button class="boto boto-petit" type="button" id="omple-alta-duplicat">Omple amb un document que ja existeix</button>
+        <button class="boto boto-petit" type="button" id="omple-alta-menor">Omple amb una persona menor d'edat</button>
+      </div>
+
+      <div class="graella-alta">
+        <form class="targeta form-alta" id="form-alta" novalidate aria-describedby="alta-obligatoris">
+          <p class="text-2" id="alta-obligatoris" style="margin: 0">Tots els camps són obligatoris, excepte els que diuen «opcional».</p>
+
+          <fieldset>
+            <legend>Dades personals</legend>
+            <div class="camps">
+              <div class="camp"><label for="a-nom">Nom</label><input id="a-nom" type="text" autocomplete="given-name" aria-describedby="a-nom-error"><p class="error-camp" id="a-nom-error" hidden></p></div>
+              <div class="camp"><label for="a-cognoms">Cognoms</label><input id="a-cognoms" type="text" autocomplete="family-name" aria-describedby="a-cognoms-error"><p class="error-camp" id="a-cognoms-error" hidden></p></div>
+              <div class="camp">
+                <label for="a-document">Document d'identitat (DNI o NIE)</label>
+                <input id="a-document" type="text" autocomplete="off" spellcheck="false" aria-describedby="a-document-ajuda a-document-error">
+                <p class="ajuda" id="a-document-ajuda">Serveix per no duplicar persones. Només el veu la secretaria. Passaport: <span class="a-validar">A validar</span></p>
+                <p class="error-camp" id="a-document-error" hidden></p>
+              </div>
+              <div class="camp">
+                <label for="a-naixement">Data de naixement</label>
+                <input id="a-naixement" type="date" autocomplete="bday" aria-describedby="a-naixement-ajuda a-naixement-error">
+                <p class="ajuda" id="a-naixement-ajuda">Per tramitar llicències i comprovar l'edat mínima de cursos i activitats. <span class="a-validar">A validar: junta (RN-M01-52)</span></p>
+                <p class="error-camp" id="a-naixement-error" hidden></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Contacte</legend>
+            <div class="camps">
+              <div class="camp"><label for="a-correu">Correu electrònic</label><input id="a-correu" type="email" autocomplete="email" aria-describedby="a-correu-error"><p class="error-camp" id="a-correu-error" hidden></p></div>
+              <div class="camp"><label for="a-telefon">Telèfon</label><input id="a-telefon" type="tel" autocomplete="tel" aria-describedby="a-telefon-error"><p class="error-camp" id="a-telefon-error" hidden></p></div>
+              <div class="camp camp-ample"><label for="a-adreca">Adreça <span class="opcional">(opcional)</span></label><input id="a-adreca" type="text" autocomplete="street-address"></div>
+            </div>
+          </fieldset>
+
+          <fieldset aria-describedby="a-tipus-error">
+            <legend>Tipus de soci</legend>
+            <div class="segmentat" id="a-tipus">
+              <label><input class="visualment-amagat" type="radio" name="a-tipus" value="supporter"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Simpatitzant · <span class="import">35,00 €</span> l'any</span></label>
+              <label><input class="visualment-amagat" type="radio" name="a-tipus" value="full"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>Ple dret · <span class="import">90,00 €</span> l'any</span></label>
+            </div>
+            <p class="ajuda text-2" style="margin: 0; font-size: var(--t-s)">Quotes de l'any natural; si t'hi apuntes a mig any, la quota és sencera <span class="a-validar">A validar: junta (RN-M01-16)</span>. Què inclou cada tipus: <span class="a-validar">A validar</span></p>
+            <p class="error-camp" id="a-tipus-error" hidden></p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Textos legals</legend>
+            <label class="casella"><input type="checkbox" id="a-legal" aria-describedby="a-legal-error"> <span>He llegit i accepto la <a href="#">política de privacitat</a> i les <a href="#">condicions de soci</a>. <span class="a-validar">A validar: quins textos són obligatoris (M12, Q-16)</span></span></label>
+            <p class="error-camp" id="a-legal-error" hidden></p>
+            <label class="casella"><input type="checkbox" id="a-butlleti"> <span>Vull rebre el butlletí del club <span class="opcional">(opcional; es pot retirar quan vulguis)</span></span></label>
+          </fieldset>
+
+          <div class="avis">
+            <strong>No et demanem dades bancàries ni de salut</strong>
+            El mètode de pagament i, si tries domiciliació, el mandat SEPA es fan després de l'aprovació, des del teu compte personal.
+          </div>
+
+          <div class="accions-alta">
+            <button class="boto boto-principal" type="submit" id="envia-alta" data-icona="fletxa">Envia la sol·licitud</button>
+          </div>
+        </form>
+
+        <div class="targeta confirmacio" id="alta-enviada" hidden tabindex="-1" aria-labelledby="alta-enviada-titol">
+          <span class="marca-ok" aria-hidden="true"><svg class="icona-svg" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+          <h2 id="alta-enviada-titol" style="margin: 0; font-size: var(--t-xl)">Sol·licitud enviada</h2>
+          <p style="margin: 0">Si les dades són correctes, rebràs un correu a <strong id="alta-enviada-correu"></strong> amb el rebut de la sol·licitud. La secretaria la revisarà i t'avisarà per correu.</p>
+          <p class="text-2" style="margin: 0">Prototip: no s'envia cap correu. El missatge és el mateix tant si el document ja existia com si no.</p>
+          <a class="boto" href="#portada">Torna a l'inici</a>
+        </div>
+
+        <aside class="costat-alta" aria-label="Què passa després">
+          <section class="targeta" aria-labelledby="despres-titol">
+            <h2 id="despres-titol">Què passa després</h2>
+            <ol>
+              <li>La secretaria revisa la sol·licitud.</li>
+              <li>Si l'aprova, et dona el número de soci i rebràs un correu per activar el compte personal.</li>
+              <li>Des del compte, pagues la quota. Quan està pagada, tens el carnet digital.</li>
+            </ol>
+          </section>
+          <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+            <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+            <ul>
+              <li>Ruta pública declarada (RN-40), amb protecció CSRF. Es tornen a validar tots els camps.</li>
+              <li>Sense data de naixement o amb una data de menor d'edat, no es crea la sol·licitud (CA-M01-41, CA-M01-42).</li>
+              <li>Duplicats (RN-M01-03): mateix document → s'enllaça a la persona existent i s'avisa la secretaria. La resposta al visitant és sempre la mateixa (CA-M01-02).</li>
+              <li>Es desa la sol·licitud «pendent» i els consentiments amb versió, llengua i canal «web». No es crea cap soci ni cap número.</li>
+              <li>Cap camp d'IBAN ni de salut al formulari ni al model.</li>
+            </ul>
+          </aside>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Pantalla: verificació pública del carnet (P-M01-E, passos 3 i 4) ==================== -->
+  <section id="verificar" class="seccio pantalla" aria-labelledby="verificar-titol" hidden>
+    <div class="contenidor pantalla-cos">
+      <div>
+        <span class="etiqueta-seccio" style="display: flex">Carnet de soci</span>
+        <h1 id="verificar-titol">Verificació del carnet</h1>
+      </div>
+
+      <div class="demo" role="group" aria-labelledby="demo-verificar">
+        <span class="demo-titol" id="demo-verificar">Demostració · resultat:</span>
+        <label><input type="radio" name="verificacio" value="valid" checked> Vàlid</label>
+        <label><input type="radio" name="verificacio" value="no-valid"> No vàlid</label>
+        <label><input type="radio" name="verificacio" value="limit"> Massa comprovacions</label>
+      </div>
+
+      <div class="verificacio">
+        <section class="targeta resultat-verificacio" id="resultat-valid" aria-labelledby="res-valid-titol">
+          <h2 id="res-valid-titol"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Vàlid</span></h2>
+          <dl><dt>Número de soci</dt><dd>··87</dd></dl>
+        </section>
+        <section class="targeta resultat-verificacio" id="resultat-no-valid" aria-labelledby="res-no-valid-titol" hidden>
+          <h2 id="res-no-valid-titol"><span class="estat estat-error"><span aria-hidden="true">✕</span> No vàlid</span></h2>
+          <p style="margin: 0">Aquest carnet no és vàlid en aquest moment.</p>
+        </section>
+        <div class="avis avis-avis" id="resultat-limit" role="alert" hidden>
+          <strong>Massa comprovacions seguides</strong>
+          Torna-ho a provar d'aquí a una estona.
+        </div>
+        <p class="text-2" style="margin: 0">Aquesta pàgina només diu si el carnet és vàlid ara i els dos últims dígits del número. No mostra cap altra dada. Nom de pila: no es mostra <span class="a-validar">A validar: junta (RN-M01-26, S-M01-07)</span></p>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Ruta pública declarada (RN-40), amb <span class="codi">noindex</span> i límit de peticions per origen (V-01, CA-M01-16). La pantalla no diu el límit ni el temps d'espera.</li>
+            <li>El QR només porta l'URL amb un testimoni aleatori; només se'n desa l'empremta (RN-M01-24).</li>
+            <li>Testimoni inventat, revocat, de baixa o d'un soci impagat: «No vàlid» amb la mateixa estructura i el mateix temps de resposta (RN-M01-27, CA-M01-14). Cap altra dada a l'HTML (CA-M01-13).</li>
+          </ul>
+        </aside>
       </div>
     </div>
   </section>
@@ -760,6 +939,14 @@
   let pendent = false;
   function espia() {
     pendent = false;
+    // amb una pantalla pròpia oberta, l'enllaç actiu és el del seu apartat (data-nav) o cap
+    const oberta = document.querySelector('section.pantalla:not([hidden])');
+    document.body.classList.toggle('sense-actiu', !!oberta && !oberta.dataset.nav);
+    if (oberta) {
+      if (oberta.dataset.nav) marca(oberta.dataset.nav);
+      else { actual = null; enllacos.forEach(a => a.removeAttribute('aria-current')); botoMes.classList.remove('conte-actiu'); }
+      return;
+    }
     const linia = innerHeight * 0.35;
     let id = seccions[0].id;
     seccions.forEach(s => { if (s.getBoundingClientRect().top <= linia) id = s.id; });
@@ -858,6 +1045,102 @@
       form.reset();
     });
   })();
+
+  /* ---------- Pantalles pròpies (T-M01-02): #alta i #verificar amaguen la portada ---------- */
+  (function () {
+    const main = document.getElementById('contingut');
+    const PANTALLES = ['alta', 'verificar'];
+    const portada = Array.from(main.children).filter(s => !PANTALLES.includes(s.id));
+    function ruta(enCarregar) {
+      const id = location.hash.slice(1);
+      const p = PANTALLES.includes(id) ? id : null;
+      portada.forEach(s => { s.hidden = !!p; });
+      PANTALLES.forEach(x => { document.getElementById(x).hidden = x !== p; });
+      if (p === 'alta') { document.getElementById('form-alta').hidden = false; document.getElementById('alta-enviada').hidden = true; }
+      if (p) {
+        scrollTo(0, 0);
+        if (!enCarregar) { const h1 = document.querySelector('#' + p + ' h1'); h1.tabIndex = -1; h1.focus(); }
+      } else if (!enCarregar && id) {
+        const t = document.getElementById(id); if (t) t.scrollIntoView();
+      }
+      espia();
+    }
+    addEventListener('hashchange', () => ruta(false));
+    // «Alta com a simpatitzant» i «Alta de ple dret» obren el formulari amb el tipus triat
+    document.querySelectorAll('a[data-tipus]').forEach(a => a.addEventListener('click', () => {
+      const r = document.querySelector('input[name="a-tipus"][value="' + a.dataset.tipus + '"]');
+      if (r) r.checked = true;
+    }));
+    ruta(true);
+  })();
+
+  /* ---------- Formulari «Fer-se soci»: validació a prop del camp, sense revelar duplicats ---------- */
+  (function () {
+    const form = document.getElementById('form-alta');
+    const bd = CRIS.botoDinamic(document.getElementById('envia-alta'));
+    const $ = id => document.getElementById(id);
+    const avui = new Date();
+    const anys = d => { const n = new Date(d + 'T00:00:00'); let a = avui.getFullYear() - n.getFullYear(); const m = avui.getMonth() - n.getMonth(); if (m < 0 || (m === 0 && avui.getDate() < n.getDate())) a--; return a; };
+    const documentValid = v => /^([0-9]{8}[A-Z]|[XYZ][0-9]{7}[A-Z])$/i.test(v.replace(/[\s-]/g, ''));
+    const fa = n => { const d = new Date(avui); d.setFullYear(d.getFullYear() - n); return d.toISOString().slice(0, 10); };
+    function omple(document_, naixement) {
+      $('a-nom').value = 'Laia'; $('a-cognoms').value = 'Serra Vidal';
+      $('a-document').value = document_; $('a-naixement').value = naixement;
+      $('a-correu').value = 'laia.serra@exemple.cat'; $('a-telefon').value = '600 000 000';
+      document.querySelector('input[name="a-tipus"][value="full"]').checked = true;
+      $('a-legal').checked = true;
+      CRIS.anuncia('Formulari omplert amb dades inventades.');
+    }
+    $('omple-alta').addEventListener('click', () => omple('12345678Z', '1990-04-12'));
+    $('omple-alta-duplicat').addEventListener('click', () => omple('87654321X', '1985-09-30'));
+    $('omple-alta-menor').addEventListener('click', () => omple('12345678Z', fa(16)));
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      const nom = $('a-nom'), cognoms = $('a-cognoms'), doc = $('a-document'), naix = $('a-naixement'),
+        correu = $('a-correu'), tel = $('a-telefon'), legal = $('a-legal');
+      const tipus = document.querySelector('input[name="a-tipus"]:checked');
+      const primerTipus = document.querySelector('input[name="a-tipus"]');
+      let errNaix = '';
+      if (!naix.value) errNaix = 'Escriu la teva data de naixement.';
+      else if (new Date(naix.value) > avui) errNaix = 'La data de naixement no pot ser posterior a avui.';
+      else if (anys(naix.value) < 18) errNaix = 'Ara mateix el club només admet socis majors d\'edat. És una qüestió pendent de la junta (P-33). Si tens dubtes, escriu a cris@cris.es.';
+      const resultats = [
+        [nom, errorCamp(nom, nom.value.trim() ? '' : 'Escriu el teu nom.')],
+        [cognoms, errorCamp(cognoms, cognoms.value.trim() ? '' : 'Escriu els teus cognoms.')],
+        [doc, errorCamp(doc, documentValid(doc.value) ? '' : 'Escriu un DNI o un NIE vàlid, per exemple 12345678Z.')],
+        [naix, errorCamp(naix, errNaix)],
+        [correu, errorCamp(correu, correuValid(correu.value) ? '' : 'Escriu un correu vàlid, per exemple nom@exemple.cat.')],
+        [tel, errorCamp(tel, tel.value.replace(/\D/g, '').length >= 9 ? '' : 'Escriu un telèfon de 9 xifres com a mínim.')]
+      ];
+      const pTipus = $('a-tipus-error');
+      pTipus.textContent = tipus ? '' : 'Tria si vols ser simpatitzant o de ple dret.'; pTipus.hidden = !!tipus;
+      resultats.push([primerTipus, !!tipus]);
+      resultats.push([legal, errorCamp(legal, legal.checked ? '' : 'Cal acceptar la política de privacitat i les condicions de soci.')]);
+      const errors = resultats.filter(r => !r[1]);
+      if (errors.length) {
+        CRIS.anuncia(errors.length === 1 ? 'Hi ha 1 camp per revisar.' : 'Hi ha ' + errors.length + ' camps per revisar.');
+        errors[0][0].focus();
+        return;
+      }
+      await bd.flux([
+        { text: 'Enviant…', icona: 'carrega', gira: true, ms: 1000 },
+        { text: 'Sol·licitud enviada', icona: 'fet', fet: true, ms: 400 }
+      ]);
+      // La mateixa resposta tant si el document ja existia com si no (CA-M01-02)
+      $('alta-enviada-correu').textContent = correu.value.trim();
+      form.hidden = true;
+      const conf = $('alta-enviada'); conf.hidden = false; conf.focus();
+      CRIS.anuncia('Sol·licitud enviada.');
+      form.reset(); bd.posa(bd.inicial.text, bd.inicial.icona);
+    });
+  })();
+
+  /* ---------- Verificació del carnet: resultat de demostració ---------- */
+  document.querySelectorAll('input[name="verificacio"]').forEach(r => r.addEventListener('change', () => {
+    ['valid', 'no-valid', 'limit'].forEach(v => { document.getElementById('resultat-' + v).hidden = v !== r.value; });
+  }));
 })();
 </script>
 </body>

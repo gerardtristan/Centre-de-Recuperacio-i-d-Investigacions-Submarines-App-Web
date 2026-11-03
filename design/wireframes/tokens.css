@@ -355,6 +355,11 @@ img { max-width: 100%; display: block; }
   font-size: var(--t-s);
 }
 .demo-titol { font-weight: var(--p-negreta); color: var(--c-sistema-text); }
+/* Notes «Al servidor»: controls que s'apliquen al servidor. Amagar un element al
+   prototip és només una simulació; aquestes notes no formen part de la pantalla. */
+.nota-servidor { display: block; border: var(--v-fina) dashed var(--c-sistema); border-radius: var(--r-m); }
+.nota-servidor .demo-titol { display: block; margin: 0 0 var(--e-1); }
+.nota-servidor ul { display: grid; gap: var(--e-1); padding-left: var(--e-5); }
 .demo label { display: inline-flex; align-items: center; gap: var(--e-1); min-height: var(--tactil); }
 .demo select { min-height: var(--tactil); padding: 0 var(--e-2); font: inherit; color: var(--c-text); background: var(--c-fons); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); }
 .a-validar {
