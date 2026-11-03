@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Confirmar el correu" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Confirmar el correu" %}</h1>
+  <p role="{% if expired %}alert{% else %}status{% endif %}">{{ message }}</p>
+  <p><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+{% endblock %}

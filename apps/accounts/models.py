@@ -265,6 +265,35 @@ class RecoveryCode(models.Model):
         return f"Codi de recuperació de {self.account}"
 
 
+class EmailLinkRequest(models.Model):
+    """Petició pública acceptada d'un enllaç pel correu (recuperació o reenviament de la
+    verificació), per als límits de RN-M01-58 (`limits.py`). Les limitades no es desen. Del
+    destinatari només hi ha l'empremta, i només si s'ha posat el correu a la cua. S'esborren
+    passades 24 hores (tasca diària)."""
+
+    class Purpose(models.TextChoices):
+        RESET_PASSWORD = "reset", _("Recuperació de la contrasenya")
+        VERIFY_EMAIL = "verify", _("Verificació del correu")
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    ip_address = models.GenericIPAddressField()
+    purpose = models.CharField(max_length=10, choices=Purpose.choices)
+    recipient_hash = models.CharField(max_length=64, blank=True)
+
+    class Meta:
+        verbose_name = _("petició d'enllaç pel correu")
+        verbose_name_plural = _("peticions d'enllaç pel correu")
+        indexes = [
+            models.Index(fields=["ip_address", "created_at"], name="emaillink_ip_idx"),
+            models.Index(
+                fields=["recipient_hash", "purpose", "created_at"], name="emaillink_to_idx"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.purpose} {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class FailedLogin(models.Model):
     """Intent d'entrada fallit, per al límit per origen (V-01, CA-07.6)."""
 

@@ -198,6 +198,9 @@ def confirm_password_and_code(request, account: Account, area: str, password: st
 class CredentialCheck:
     account: Account | None = None
     error: str | None = None
+    # Compte pendent amb la contrasenya correcta: no té sessió, però se li pot oferir el
+    # reenviament de la verificació (RN-M01-59).
+    pending: Account | None = None
 
 
 def check_credentials(request, area: str, login: str, password: str) -> CredentialCheck:
@@ -236,7 +239,7 @@ def _check_credentials(request, area: str, login: str, password: str) -> Credent
 
     if account.status == Account.Status.PENDING:
         # La contrasenya és correcta: dir-ho no revela res a qui no és el titular.
-        return CredentialCheck(error=PENDING_ERROR)
+        return CredentialCheck(error=PENDING_ERROR, pending=account)
     if account.status != Account.Status.ACTIVE:
         record_failure(request, area, account, "disabled")
         return CredentialCheck(error=GENERIC_ERROR)

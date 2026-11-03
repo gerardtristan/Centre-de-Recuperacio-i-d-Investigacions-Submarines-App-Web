@@ -8,16 +8,20 @@ amb el criteri de V-01: amb moltes peticions alhora, el compte i l'origen es blo
 que amb peticions d'una en una, i no s'avaluen més contrasenyes de les que permet el límit.
 """
 
+import time
+from unittest import mock
+
+from django.core import signing
 from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.accounts import email_links, tokens
-from apps.accounts.models import Account, FailedLogin, TotpDevice
+from apps.accounts import email_links, limits, tokens
+from apps.accounts.models import Account, EmailLinkRequest, FailedLogin, TotpDevice
 from apps.accounts.security import ACCOUNT_MAX_FAILURES, IP_MAX_FAILURES
 from apps.core import audit
 from apps.core.crypto import encrypt
-from apps.core.models import AuditEntry, Person
+from apps.core.models import AuditEntry, OutgoingEmail, Person
 from conftest import (
     NEW_PASSWORD,
     OTHER_PASSWORD,
@@ -156,3 +160,73 @@ class TestLoadC3(CommittedDataTestCase):
         account.refresh_from_db()
         assert account.is_locked(timezone.now())
         assert passwords_checked("bad_code") <= ACCOUNT_MAX_FAILURES
+
+
+def slow(function):
+    """Versió lenta d'una comprovació: eixampla la finestra entre llegir el comptador i desar
+    la petició, perquè una cursa es vegi a la prova si la serialització falla."""
+
+    def wrapper(*args, **kwargs):
+        result = function(*args, **kwargs)
+        time.sleep(0.05)
+        return result
+
+    return wrapper
+
+
+class TestLinkLimitsConcurrent(CommittedDataTestCase):
+    """RN-M01-58 amb peticions simultànies (CA-M01-49 i CA-M01-50)."""
+
+    def setUp(self):
+        for name in ("origin_limited", "recipient_limited"):
+            patcher = mock.patch.object(limits, name, slow(getattr(limits, name)))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def test_burst_to_one_recipient_from_many_origins(self):
+        make_account(status=Account.Status.ACTIVE)
+
+        def ask(ip):
+            return lambda: Client(REMOTE_ADDR=ip).post(
+                reverse("accounts:password_reset_request"), {"email": "anna@example.org"}
+            )
+
+        run_together([ask(f"10.6.0.{i}") for i in range(12)])
+
+        hour = limits.RECIPIENT_WINDOWS[0]
+        assert OutgoingEmail.objects.filter(template="recuperacio-contrasenya").count() == (
+            hour.max_count
+        )
+
+    def test_burst_from_one_origin(self):
+        def ask(i):
+            return lambda: Client(REMOTE_ADDR="10.6.1.1").post(
+                reverse("accounts:password_reset_request"), {"email": f"ningu{i}@example.org"}
+            )
+
+        run_together([ask(i) for i in range(25)])
+
+        accepted = EmailLinkRequest.objects.filter(ip_address="10.6.1.1").count()
+        assert accepted == limits.ORIGIN_WINDOW.max_count
+        # No toca l'entrada: cap intent fallit ni cap bloqueig.
+        assert not FailedLogin.objects.exists()
+
+    def test_two_different_links_of_the_same_operation_at_once(self):
+        # CA-M01-52: dos enllaços vigents i diferents, fets servir alhora: només un.
+        account = make_account(status=Account.Status.ACTIVE)
+        earlier = time.time() - 60
+        with mock.patch.object(signing.time, "time", lambda: earlier):
+            first = tokens.make_token(account, tokens.RESET_PASSWORD)
+        second = tokens.make_token(account, tokens.RESET_PASSWORD)
+        assert first != second
+        data = {"new_password1": NEW_PASSWORD, "new_password2": NEW_PASSWORD}
+
+        results = run_together(
+            [
+                lambda: email_links.reset_password(first, data),
+                lambda: email_links.reset_password(second, data),
+            ]
+        )
+
+        assert sum(result.done for result in results) == 1
+        assert AuditEntry.objects.filter(action=audit.Action.PASSWORD_RESET).count() == 1

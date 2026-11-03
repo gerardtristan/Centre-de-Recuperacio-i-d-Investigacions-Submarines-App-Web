@@ -15,6 +15,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -22,7 +23,13 @@ from apps.core import audit
 from apps.core.permissions import has_perm, permission_required
 
 from . import email_links, tokens, totp
-from .forms import CodeForm, DisableTotpForm, LoginForm, NewPasswordForm
+from .forms import (
+    CodeForm,
+    DisableTotpForm,
+    LoginForm,
+    NewPasswordForm,
+    RecoveryRequestForm,
+)
 from .models import Account
 from .security import (
     AREA_ADMIN,
@@ -83,6 +90,7 @@ def _code_failed(request, area, account):
 def login_view(request, area):
     form = LoginForm(area, request.POST or None)
     error = None
+    can_resend = False
     next_url = request.POST.get("next") or request.GET.get("next")
     if request.method == "POST" and form.is_valid():
         result = check_credentials(
@@ -99,10 +107,20 @@ def login_view(request, area):
             complete_login(request, account, area)
             return redirect(safe_next(request, next_url) or reverse(HOME[area]))
         error = result.error
+        if result.pending is not None and area == AREA_PERSONAL:
+            # RN-M01-59: el reenviament només després de la contrasenya correcta.
+            email_links.remember_pending(request, result.pending)
+            can_resend = True
     return render(
         request,
         "accounts/login.html",
-        {"form": form, "error": error, "area": area, "next": safe_next(request, next_url)},
+        {
+            "form": form,
+            "error": error,
+            "area": area,
+            "next": safe_next(request, next_url),
+            "can_resend": can_resend,
+        },
     )
 
 
@@ -287,6 +305,67 @@ def verify_email_view(request):
     if state == "invalid":
         request.session.pop(email_links.VERIFY_SESSION_KEY, None)
     return _no_referrer(render(request, "accounts/verify_email.html", {"state": state}))
+
+
+def _reset_sent_message():
+    hours = email_links.hours(tokens.RESET_PASSWORD)
+    return ngettext(
+        "Si hi ha un compte actiu amb aquesta adreça, t'hi hem enviat un enllaç per triar una "
+        "contrasenya nova. L'enllaç caduca d'aquí a %(hours)d hora i només serveix una vegada. "
+        "Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.",
+        "Si hi ha un compte actiu amb aquesta adreça, t'hi hem enviat un enllaç per triar una "
+        "contrasenya nova. L'enllaç caduca d'aquí a %(hours)d hores i només serveix una vegada. "
+        "Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.",
+        hours,
+    ) % {"hours": hours}
+
+
+def _verification_resent_message():
+    hours = email_links.hours(tokens.VERIFY_EMAIL)
+    return ngettext(
+        "Si el compte encara està pendent de confirmar, t'hem tornat a enviar l'enllaç de "
+        "confirmació al correu amb què el vas crear. Caduca d'aquí a %(hours)d hora i només "
+        "serveix una vegada. Si no el reps, mira la carpeta de correu brossa o torna-ho a provar "
+        "més tard.",
+        "Si el compte encara està pendent de confirmar, t'hem tornat a enviar l'enllaç de "
+        "confirmació al correu amb què el vas crear. Caduca d'aquí a %(hours)d hores i només "
+        "serveix una vegada. Si no el reps, mira la carpeta de correu brossa o torna-ho a provar "
+        "més tard.",
+        hours,
+    ) % {"hours": hours}
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def password_reset_request_view(request):
+    """CA-04.3 i CA-M01-48: la mateixa resposta per a qualsevol adreça (compte actiu,
+    pendent, desactivat, d'administrador, inexistent o limitat), amb els límits de RN-M01-58."""
+    form = RecoveryRequestForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        email_links.request_password_reset(request, form.cleaned_data["email"])
+        return render(
+            request, "accounts/password_reset_request.html", {"sent": _reset_sent_message()}
+        )
+    return render(request, "accounts/password_reset_request.html", {"form": form})
+
+
+@login_not_required
+@never_cache
+@require_POST
+def resend_verification_view(request):
+    """RN-M01-59: només amb l'estat que deixa la contrasenya correcta d'un compte pendent; un
+    sol reenviament. L'adreça no ve mai del navegador."""
+    if email_links.resend_verification(request):
+        message, expired = _verification_resent_message(), False
+    else:
+        message, expired = (
+            _("Per demanar un enllaç nou, torna a escriure el correu i la contrasenya."),
+            True,
+        )
+    return render(
+        request, "accounts/resend_verification.html", {"message": message, "expired": expired}
+    )
 
 
 @login_not_required

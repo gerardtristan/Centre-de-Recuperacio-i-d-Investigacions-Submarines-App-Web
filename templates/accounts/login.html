@@ -17,4 +17,14 @@
     {% endfor %}
     <button type="submit">{% translate "Entrar" %}</button>
   </form>
+  {% if can_resend %}
+    {# RN-M01-59: només després de la contrasenya correcta d'un compte pendent. #}
+    <form method="post" action="{% url 'accounts:resend_verification' %}">
+      {% csrf_token %}
+      <button type="submit">{% translate "Torna'm a enviar l'enllaç de confirmació" %}</button>
+    </form>
+  {% endif %}
+  {% if area == "personal" %}
+    <p><a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a></p>
+  {% endif %}
 {% endblock %}

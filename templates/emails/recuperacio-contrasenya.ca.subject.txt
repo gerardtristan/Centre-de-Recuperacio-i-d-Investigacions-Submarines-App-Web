@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Contrasenya nova a la plataforma del C.R.I.S." %}

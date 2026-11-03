@@ -18,6 +18,8 @@ PUBLIC_ROUTES = {
     "accounts:verify_email_link",
     "accounts:password_reset",
     "accounts:password_reset_link",
+    "accounts:password_reset_request",
+    "accounts:resend_verification",
     "administration:login",
     "administration:login_totp",
     "administration:totp_enrol",

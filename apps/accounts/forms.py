@@ -25,6 +25,14 @@ class LoginForm(forms.Form):
             field.widget = forms.EmailInput(attrs={"autocomplete": "email"})
 
 
+class RecoveryRequestForm(forms.Form):
+    email = forms.EmailField(
+        label=_("Correu electrònic"),
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+
+
 class NewPasswordForm(SetPasswordForm):
     """Contrasenya nova, dues vegades, amb les regles de V-01 (AUTH_PASSWORD_VALIDATORS)."""
 
