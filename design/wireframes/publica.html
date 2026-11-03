@@ -310,7 +310,7 @@
 </head>
 <body class="zona-publica">
 <a class="salt" href="#contingut">Salta al contingut</a>
-<p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades</p>
+<p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades <button class="boto-marques" type="button" data-marques aria-pressed="false"><span class="marca-activa" aria-hidden="true">✓ </span>Amaga les marques de revisió</button></p>
 
 <header id="capcalera" class="capcalera">
   <div class="capcalera-interior">
@@ -897,6 +897,7 @@
 (function () {
   'use strict';
   CRIS.tema();
+  CRIS.marques();
   const correuValid = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
   function errorCamp(input, missatge) {
     const p = document.getElementById(input.id + '-error');

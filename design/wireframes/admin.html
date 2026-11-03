@@ -336,7 +336,7 @@
   </aside>
 
   <div class="admin-principal">
-    <p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades</p>
+    <p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades <button class="boto-marques" type="button" data-marques aria-pressed="false"><span class="marca-activa" aria-hidden="true">✓ </span>Amaga les marques de revisió</button></p>
     <header class="barra-mobil">
       <img class="logo-sempre-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S., Centre de Recuperació i d'Investigacions Submarines">
       <span class="text-lateral">Administració</span>
@@ -1666,6 +1666,7 @@
 (function () {
   'use strict';
   CRIS.tema();
+  CRIS.marques();
   document.querySelectorAll('[data-icona].icona').forEach(s => { s.innerHTML = CRIS.icona(s.dataset.icona); });
 
   const comptePerRol = { admin: 'jordi.adm', cursos: 'laia.cursos', tresorer: 'marc.tresor', material: 'pere.material', instructor: 'xavi.instructor', secretaria: 'anna.secretaria', historia: 'rosa.historia', president: 'pau.presidencia', junta: 'eva.junta', comunicacio: 'ona.comunicacio', botiga: 'biel.botiga' };

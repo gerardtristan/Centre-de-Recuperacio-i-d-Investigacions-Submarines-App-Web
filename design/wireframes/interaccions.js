@@ -71,6 +71,27 @@
     setTimeout(() => { regio.textContent = text; }, 60);
   }
 
+  /* ---------- Marques de revisió: amaga les etiquetes [A validar] i les notes «Al servidor»,
+     desat a localStorage («cris-marques»). Només afecta peces de demostració: no canvia cap
+     control ni cap permís simulat. ---------- */
+  function marques() {
+    const arrel = document.documentElement;
+    const botons = document.querySelectorAll('[data-marques]');
+    function aplica(amaga) {
+      arrel.classList.toggle('sense-marques', amaga);
+      botons.forEach(b => b.setAttribute('aria-pressed', String(amaga)));
+      try { if (amaga) localStorage.setItem('cris-marques', 'amagades'); else localStorage.removeItem('cris-marques'); } catch (e) { /* sense localStorage */ }
+    }
+    let inicial = false;
+    try { inicial = localStorage.getItem('cris-marques') === 'amagades'; } catch (e) { /* sense localStorage */ }
+    botons.forEach(b => b.addEventListener('click', () => {
+      const amaga = b.getAttribute('aria-pressed') !== 'true';
+      aplica(amaga);
+      anuncia(amaga ? 'Marques de revisió amagades.' : 'Marques de revisió visibles.');
+    }));
+    aplica(inicial);
+  }
+
   /* ---------- Tema: Sistema / Clar / Fosc, desat a localStorage («cris-tema») ---------- */
   function tema() {
     const arrel = document.documentElement;
@@ -632,5 +653,5 @@
     return api;
   }
 
-  window.CRIS = { tema, anuncia, botoDinamic, subratllat, pestanyes, zonaMagnetica, impressora, icona, espera, euros, centims, redueix };
+  window.CRIS = { tema, marques, anuncia, botoDinamic, subratllat, pestanyes, zonaMagnetica, impressora, icona, espera, euros, centims, redueix };
 })();

@@ -362,6 +362,16 @@ img { max-width: 100%; display: block; }
 .nota-servidor ul { display: grid; gap: var(--e-1); padding-left: var(--e-5); }
 .demo label { display: inline-flex; align-items: center; gap: var(--e-1); min-height: var(--tactil); }
 .demo select { min-height: var(--tactil); padding: 0 var(--e-2); font: inherit; color: var(--c-text); background: var(--c-fons); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); }
+/* Interruptor «Amaga les marques de revisió» (franja del prototip) */
+.boto-marques {
+  min-height: 24px; margin-left: var(--e-2); padding: 0 var(--e-2);
+  font: inherit; color: var(--c-sistema-text); background: transparent;
+  border: var(--v-fina) solid var(--c-sistema); border-radius: var(--r-s); cursor: pointer;
+}
+.boto-marques .marca-activa { display: none; }
+.boto-marques[aria-pressed="true"] { background: var(--c-sistema); color: var(--c-sistema-fons); }
+.boto-marques[aria-pressed="true"] .marca-activa { display: inline; }
+.sense-marques .a-validar, .sense-marques .nota-servidor { display: none !important; }
 .a-validar {
   display: inline-block; padding: 0 var(--e-1);
   border: var(--v-fina) dashed var(--c-sistema); border-radius: var(--r-s);

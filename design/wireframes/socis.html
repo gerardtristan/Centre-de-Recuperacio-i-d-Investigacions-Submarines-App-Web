@@ -370,7 +370,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 </head>
 <body class="zona-soci" data-persona="soci-pendent">
 <a class="salt" href="#contingut">Salta al contingut</a>
-<p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades</p>
+<p class="nota-wireframe">Prototip interactiu · disseny en revisió · dades inventades <button class="boto-marques" type="button" data-marques aria-pressed="false"><span class="marca-activa" aria-hidden="true">✓ </span>Amaga les marques de revisió</button></p>
 <div class="demo" role="group" aria-labelledby="demo-persona">
   <span class="demo-titol" id="demo-persona">Demostració · veure com:</span>
   <label><input type="radio" name="persona" value="soci-pendent" checked> Soci amb pagaments pendents</label>
@@ -1040,6 +1040,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 (function () {
   'use strict';
   CRIS.tema();
+  CRIS.marques();
 
   /* ---------- Demostració: soci amb pendents, soci al dia o persona no sòcia ---------- */
   document.querySelectorAll('input[name="persona"]').forEach(r => {

@@ -463,7 +463,8 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 3. **Mides:** a les eines de desenvolupament (F12), activar el mode de dispositiu (Ctrl+Maj+M) i provar 390 px (mòbil), 820 px (tauleta) i 1440 px (escriptori).
 4. **Demostració:** a `socis.html`, triar «Soci amb pagaments pendents», «Soci al dia» o «Persona no sòcia (alumne)», i prémer «Mostra el darrere» per girar el carnet. A `admin.html`, canviar «Veure com» per veure els menús i blocs de cada rol.
 5. **Mòdul 01 (1.5):** `publica.html#alta` i `#verificar`; `admin.html#vista-socis-llistat&rol=tresorer` (qualsevol vista de §5.2 amb qualsevol rol de la 059); `socis.html#perfil`, `#canvi-tipus`, `#baixa`, `#esborrar` i `#no-trobat`. Cada pantalla té la seva franja «Demostració» (per exemple, sessió caducada, llistat buit o resultat de la verificació), i la importació de Cluber té un CSV d'exemple inventat.
-6. **Reduir moviment:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-reduced-motion: reduce*. Cal recarregar la pàgina per veure-hi la portada sense animació d'entrada.
+6. **Marques de revisió:** el botó «Amaga les marques de revisió» de la franja del prototip amaga les etiquetes [A validar] i les notes «Al servidor» per veure la pantalla neta. Es manté en recarregar i en canviar de pàgina. Només amaga peces de demostració: no canvia cap control ni cap permís simulat.
+7. **Reduir moviment:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-reduced-motion: reduce*. Cal recarregar la pàgina per veure-hi la portada sense animació d'entrada.
 
 ## 14. Pendents [A validar]
 - Que el club validi la paleta, la regla de les fletxes i els ajustos de §2.3.
