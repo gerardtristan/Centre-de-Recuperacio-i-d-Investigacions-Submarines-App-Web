@@ -168,6 +168,8 @@
 .resultat-desar { margin: 0; }
 .graella-alta-admin { display: grid; gap: var(--e-5); align-items: start; }
 .form-despesa .camp-ample { grid-column: 1 / -1; }
+.eines-quotes { display: flex; flex-wrap: wrap; align-items: end; gap: var(--e-3); }
+.eines-quotes .camp { min-width: 12rem; }
 .targeta .dades-soci { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3) var(--e-4); }
 
 /* Tresoreria */
@@ -651,6 +653,8 @@
           <li data-rols="admin secretaria tresorer"><a href="#vista-socis-llistat" data-vista="vista-socis-llistat">Llistat</a></li>
           <li data-rols="admin secretaria tresorer president"><a href="#vista-socis-sollicituds" data-vista="vista-socis-sollicituds">Sol·licituds</a></li>
           <li data-rols="admin secretaria"><a href="#vista-socis-alta" data-vista="vista-socis-alta">Alta presencial</a></li>
+          <li data-rols="admin secretaria tresorer"><a href="#vista-socis-quotes" data-vista="vista-socis-quotes">Quotes i impagats</a></li>
+          <li data-rols="admin"><a href="#vista-socis-cluber" data-vista="vista-socis-cluber">Importació de Cluber</a></li>
         </ul>
       </nav>
 
@@ -912,6 +916,211 @@
             <li>Conflicte d'interès: ningú canvia el seu propi soci des de l'administració.</li>
             <li>Cada canvi crea una entrada d'historial (només INSERT) i una al registre d'activitat amb el valor anterior (CA-M01-08).</li>
             <li>Les quotes històriques de Cluber no són càrrecs ni moviments (RN-M01-33).</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: quotes i impagats (P8, P9, P10; P-M01-D) ==================== -->
+      <div id="vista-socis-quotes" class="vista" data-acces="admin secretaria tresorer" data-molla="Socis|Quotes i impagats" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Socis</span>
+            <h1>Quotes i impagats</h1>
+          </div>
+          <p class="text-2">Les quotes són ingrés general (departament «General / Quotes de socis»). El cobrament és del mòdul 05b.</p>
+        </div>
+
+        <section class="targeta" aria-labelledby="genera-titol" data-rols="admin tresorer">
+          <h2 id="genera-titol">Genera les quotes de l'any</h2>
+          <div class="eines eines-quotes">
+            <div class="camp">
+              <label for="periode-quotes">Període</label>
+              <select id="periode-quotes"><option value="2027">2027 (any natural)</option><option value="2026">2026 (any natural)</option></select>
+            </div>
+            <button class="boto" type="button" id="previsualitza-quotes" data-icona="taula">Previsualitza</button>
+          </div>
+          <div id="previsualitzacio" hidden>
+            <ul class="xifres-resum" aria-label="Previsualització de la generació">
+              <li class="xifra"><span class="xifra-etiqueta">Socis actius o impagats</span><span class="xifra-valor" id="pv-socis">150</span><span class="xifra-nota" id="pv-ja">Ja tenen quota: 0</span></li>
+              <li class="xifra"><span class="xifra-etiqueta">Simpatitzants</span><span class="xifra-valor">100</span><span class="xifra-nota">× <span class="import">35,00 €</span> = <span class="import">3.500,00 €</span></span></li>
+              <li class="xifra"><span class="xifra-etiqueta">Ple dret</span><span class="xifra-valor">50</span><span class="xifra-nota">× <span class="import">90,00 €</span> = <span class="import">4.500,00 €</span></span></li>
+              <li class="xifra xifra-marge"><span class="xifra-etiqueta">Quotes noves</span><span class="xifra-valor" id="pv-noves">150</span><span class="xifra-nota" id="pv-total">Total: <span class="import">8.000,00 €</span></span></li>
+            </ul>
+            <p class="formula">Preu de cada tipus vigent avui; un canvi de preu posterior no toca les quotes creades (RN-M01-13). Venciment: <span class="a-validar">A validar: tresorer (P-29)</span>. Recordatoris: els dels ajustos del mòdul (VC-02).</p>
+            <div class="accions-form" style="margin-top: var(--e-4)">
+              <button class="boto boto-principal" type="button" id="genera-quotes" data-icona="check">Genera 150 quotes</button>
+            </div>
+          </div>
+          <p class="resultat-desar" id="resultat-quotes" role="status" hidden></p>
+        </section>
+
+        <div class="demo" role="group" aria-labelledby="demo-quotes">
+          <span class="demo-titol" id="demo-quotes">Demostració</span>
+          <button class="boto boto-petit" type="button" id="simula-pagament">La quota de Laia Ferrer Vila es paga (05b)</button>
+        </div>
+
+        <div data-rols="tresorer"><div class="avis avis-sistema" id="avis-desmarca" role="status" hidden>
+          <strong><span aria-hidden="true">⚙</span> Missatge automàtic</strong>
+          La quota 2026 de Laia Ferrer Vila (soci 0502) s'ha pagat i el soci continua marcat com a impagat. Revisa si cal desmarcar-lo: no es fa sol (040).
+        </div></div>
+
+        <section class="targeta" aria-labelledby="estat-quotes-titol">
+          <h2 id="estat-quotes-titol">Estat de les quotes 2026</h2>
+          <div class="eines">
+            <div class="camp">
+              <label for="filtre-quota">Estat de la quota</label>
+              <select id="filtre-quota"><option value="">Totes</option><option value="pagada">Pagada</option><option value="pendent">Pendent</option></select>
+            </div>
+            <div class="camp">
+              <label for="filtre-impagat">Estat del soci</label>
+              <select id="filtre-impagat"><option value="">Tots</option><option value="impagat">Impagat</option></select>
+            </div>
+            <p class="recompte xifra-viva" id="recompte-quotes" aria-live="polite">6 de 6 quotes</p>
+          </div>
+          <table class="taula" id="taula-quotes">
+            <caption class="visualment-amagat">Quotes del 2026 de cada soci, amb l'estat de la quota i del soci</caption>
+            <thead>
+              <tr>
+                <th scope="col">Soci</th>
+                <th scope="col">Tipus</th>
+                <th scope="col" class="num" data-rols="admin tresorer">Import</th>
+                <th scope="col">Quota 2026</th>
+                <th scope="col">Estat del soci</th>
+                <th scope="col" data-rols="tresorer"><span class="visualment-amagat">Accions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-quota="pagada" data-soci="actiu">
+                <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">90,00 €</td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td class="cel-accions" data-rols="tresorer"></td>
+              </tr>
+              <tr data-quota="pagada" data-soci="actiu">
+                <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">35,00 €</td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td class="cel-accions" data-rols="tresorer"></td>
+              </tr>
+              <tr data-quota="pendent" data-soci="actiu" data-nom-soci="Oriol Mas Font">
+                <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">90,00 €</td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent · vençuda</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td class="cel-accions" data-rols="tresorer"><button class="boto boto-petit" type="button" data-impagat="marca">Marca impagat…<span class="visualment-amagat"> Oriol Mas Font</span></button></td>
+              </tr>
+              <tr data-quota="pendent" data-soci="impagat" data-nom-soci="Laia Ferrer Vila" id="fila-laia">
+                <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
+                <td data-etiqueta="Tipus">Ple dret</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">90,00 €</td>
+                <td data-etiqueta="Quota 2026" data-estat-quota><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent · vençuda</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span></td>
+                <td class="cel-accions" data-rols="tresorer"><button class="boto boto-petit" type="button" data-impagat="desmarca">Desmarca impagat…<span class="visualment-amagat"> Laia Ferrer Vila</span></button></td>
+              </tr>
+              <tr data-quota="pendent" data-soci="actiu">
+                <td class="cel-nom">Marc Riera Sala<span class="codi">Soci 0356</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">35,00 €</td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></td>
+                <td class="cel-accions" data-rols="tresorer"><span class="text-2">És el teu soci: no te'l pots marcar (conflicte d'interès)</span></td>
+              </tr>
+              <tr data-quota="pendent" data-soci="pendent">
+                <td class="cel-nom">Pere Soler Roig<span class="codi">Soci 1286</span></td>
+                <td data-etiqueta="Tipus">Simpatitzant</td>
+                <td data-etiqueta="Import" class="num import" data-rols="admin tresorer">35,00 €</td>
+                <td data-etiqueta="Quota 2026"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td data-etiqueta="Estat del soci" data-estat-soci><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></td>
+                <td class="cel-accions" data-rols="tresorer"><span class="text-2">Encara no és actiu: no es pot marcar impagat</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-2" data-rols="secretaria" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">La secretaria veu l'estat de les quotes, sense imports ni accions.</p>
+          <p class="text-2" data-rols="admin" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Marcar i desmarcar impagats només ho fa el tresorer (configuració inicial de la 059).</p>
+        </section>
+
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Generar (P8, tresorer i administrador): una quota per soci actiu o impagat i període, amb la restricció única (soci, període, tipus); generar-les dues vegades no en crea cap més (RN-M01-12, CA-M01-10). Departament «General / Quotes de socis».</li>
+            <li>Marcar i desmarcar impagat (P9): només el tresorer, amb motiu obligatori i només des d'actiu o cap a actiu (RN-M01-07, RN-M01-09, CA-M01-09). Ningú es marca a si mateix.</li>
+            <li>Quan una quota es paga (05b o 04), <span class="codi">on_fee_paid</span> avisa el tresorer; l'impagat no es desmarca sol (040).</li>
+            <li>La secretaria (P10 en consulta) rep l'estat sense imports.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: importació de Cluber, fase de prova (P18; P-M01-G) ==================== -->
+      <div id="vista-socis-cluber" class="vista" data-acces="admin" data-molla="Socis|Importació de Cluber" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Socis</span>
+            <h1>Importació de Cluber</h1>
+          </div>
+          <p class="text-2">Fase de prova: valida el fitxer sense escriure res a la base de dades.</p>
+        </div>
+        <div class="avis avis-avis">
+          <strong>Només fitxers inventats o anonimitzats fora de producció</strong>
+          El fitxer no es desa enlloc (RN-101). Format de l'exportació de Cluber: <span class="a-validar">A validar: tresorer (S-M01-16, Q-23)</span>
+        </div>
+
+        <div class="graella-tresoreria">
+          <section class="targeta" aria-labelledby="cluber-fitxer-titol">
+            <h2 id="cluber-fitxer-titol">1. Fitxer de prova</h2>
+            <div class="zona-magnetica" id="zona-cluber" role="group" aria-label="Fitxer CSV de Cluber" data-accepta=".csv,text/csv" data-mida-max="10485760" data-tipus="CSV" data-titol="Arrossega el CSV de Cluber aquí"></div>
+            <div class="accions-form" style="margin-top: var(--e-4)">
+              <button class="boto boto-principal" type="button" id="valida-cluber" data-icona="check" aria-disabled="true">Valida el fitxer (prova)</button>
+              <a class="boto boto-text" href="#" id="csv-cluber" download="cluber-exemple-inventat.csv">CSV d'exemple (inventat)</a>
+              <a class="boto boto-text" href="#" id="csv-cluber-iban" download="cluber-exemple-amb-iban.csv">CSV amb columna d'IBAN (per provar el rebuig)</a>
+            </div>
+          </section>
+          <section class="targeta" aria-labelledby="cluber-final-titol">
+            <h2 id="cluber-final-titol">2. Importació final</h2>
+            <p><span class="estat estat-neutre"><span aria-hidden="true">■</span> Bloquejada</span></p>
+            <p>Es fa quan el 05a pugui rebre els mandats. Només n'hi ha una de confirmada; les línies amb error s'han d'excloure explícitament i el lot es pot desfer si encara no s'ha creat res a partir d'ell.</p>
+            <div class="accions-form">
+              <button class="boto" type="button" aria-disabled="true" data-bloquejat="La importació final està bloquejada fins que el 05a pugui rebre els mandats.">Importa definitivament</button>
+              <button class="boto" type="button" aria-disabled="true" data-bloquejat="Encara no hi ha cap lot final per desfer.">Desfés el lot</button>
+            </div>
+            <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Sense IBAN: els socis signaran mandats nous a la campanya del 05a (escenari B).</p>
+          </section>
+        </div>
+
+        <section class="targeta" id="resultat-cluber" aria-labelledby="cluber-resultat-titol" hidden tabindex="-1">
+          <h2 id="cluber-resultat-titol">Resultat de la prova</h2>
+          <div id="cluber-rebutjat" class="avis avis-error" hidden>
+            <strong>Fitxer rebutjat sencer: té una columna d'IBAN</strong>
+            La plataforma no importa cap IBAN (RN-94). Treu la columna de l'exportació i torna-ho a provar. No s'ha llegit cap línia.
+          </div>
+          <div id="cluber-resum" hidden>
+            <p><span class="estat estat-ok"><span aria-hidden="true">✓</span> Prova feta: no s'ha escrit res a la base de dades</span></p>
+            <ul class="xifres-resum" aria-label="Resum de la prova">
+              <li class="xifra"><span class="xifra-etiqueta">Línies</span><span class="xifra-valor" id="cl-linies">0</span></li>
+              <li class="xifra"><span class="xifra-etiqueta">Socis nous</span><span class="xifra-valor" id="cl-nous">0</span></li>
+              <li class="xifra"><span class="xifra-etiqueta">Coincidents</span><span class="xifra-valor" id="cl-coinc">0</span><span class="xifra-nota">per document o número</span></li>
+              <li class="xifra xifra-marge"><span class="xifra-etiqueta">Amb error</span><span class="xifra-valor" id="cl-errors">0</span></li>
+            </ul>
+            <p class="formula" id="cl-crearia"></p>
+            <table class="taula" id="taula-cluber">
+              <caption class="visualment-amagat">Problemes trobats, per línia del fitxer</caption>
+              <thead><tr><th scope="col">Línia</th><th scope="col">Tipus</th><th scope="col">Què passa</th><th scope="col">Què es farà</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Només l'administrador (P18, M8). La prova no escriu res: es compara el recompte de taules abans i després (CA-M01-20).</li>
+            <li>Una columna d'IBAN rebutja el fitxer sencer (RN-94, CA-M01-21). El fitxer no es desa (RN-101).</li>
+            <li>La importació final està bloquejada per configuració (<span class="codi">CLUBER_FINAL_IMPORT_ALLOWED</span>, fals per defecte) i el servidor també la rebutja (CA-M01-23). El botó desactivat no és el control.</li>
+            <li>Els errors es mostren per número de línia, sense repetir dades personals del fitxer a la pantalla ni al registre.</li>
           </ul>
         </aside>
       </div>
@@ -1375,6 +1584,30 @@
     <div class="dialeg-peu">
       <button class="boto" type="button" data-tanca>Cancel·la</button>
       <button class="boto boto-principal" type="submit" data-icona="check">Desa el registre</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ==================== Diàleg: marcar o desmarcar impagat (motiu obligatori, 040) ==================== -->
+<dialog class="dialeg" id="dialeg-impagat" aria-labelledby="impagat-titol">
+  <form method="dialog" id="form-impagat" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="impagat-titol">Marca impagat</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p id="impagat-resum" style="margin: 0"></p>
+      <div class="camp">
+        <label for="impagat-motiu">Motiu</label>
+        <textarea id="impagat-motiu" rows="3" aria-describedby="impagat-motiu-ajuda impagat-motiu-error"></textarea>
+        <p class="ajuda" id="impagat-motiu-ajuda">Obligatori. Queda a l'historial del soci i al registre d'activitat.</p>
+        <p class="error-camp" id="impagat-motiu-error" hidden></p>
+      </div>
+      <p class="text-2" id="impagat-conseq" style="margin: 0; font-size: var(--t-s)"></p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-impagat" data-icona="check">Marca impagat</button>
     </div>
   </form>
 </dialog>
@@ -2086,6 +2319,178 @@
       conf.remove();
       mostraResultat('Caducitat confirmada. Queda al registre d\'activitat amb el valor anterior.');
     });
+  })();
+
+  /* ---------- Socis: quotes i impagats (previsualitzar, generar sense duplicats, marcar amb motiu) ---------- */
+  (function () {
+    const g = id => document.getElementById(id);
+    const creades = { 2026: 150, 2027: 0 };   // quotes que ja existeixen per període (exemple de M01-7)
+    const periode = g('periode-quotes');
+    const genera = g('genera-quotes');
+    const bdG = CRIS.botoDinamic(genera);
+    function previsualitza() {
+      const ja = creades[periode.value], noves = 150 - ja;
+      g('pv-ja').textContent = 'Ja tenen quota: ' + ja;
+      g('pv-noves').textContent = noves;
+      g('pv-total').innerHTML = noves ? 'Total: <span class="import">8.000,00 €</span>' : 'Cap quota nova: no es duplica res';
+      g('previsualitzacio').hidden = false;
+      if (noves) { genera.removeAttribute('aria-disabled'); bdG.posa('Genera ' + noves + ' quotes', 'check'); }
+      else { genera.setAttribute('aria-disabled', 'true'); bdG.posa('Cap quota nova per generar', 'check'); }
+      CRIS.anuncia('Previsualització del ' + periode.value + ': ' + noves + ' quotes noves.');
+    }
+    g('previsualitza-quotes').addEventListener('click', previsualitza);
+    periode.addEventListener('change', () => { g('previsualitzacio').hidden = true; g('resultat-quotes').hidden = true; });
+    genera.addEventListener('click', async () => {
+      if (bdG.estaOcupat || genera.getAttribute('aria-disabled') === 'true') return;
+      await bdG.flux([{ text: 'Generant…', icona: 'carrega', gira: true, ms: 900 }]);
+      creades[periode.value] = 150;
+      const r = g('resultat-quotes');
+      r.className = 'resultat-desar avis avis-ok';
+      r.innerHTML = '<strong>150 quotes creades per al ' + periode.value + '</strong>S\'ha avisat cada soci per correu i a la safata d\'avisos. Si les tornes a generar, no se\'n crearà cap més.';
+      r.hidden = false; r.tabIndex = -1; r.focus();
+      CRIS.anuncia('150 quotes creades per al ' + periode.value + '.');
+      previsualitza();
+    });
+
+    // Filtres de la taula
+    const fQ = g('filtre-quota'), fS = g('filtre-impagat');
+    const files = Array.from(document.querySelectorAll('#taula-quotes tbody tr'));
+    function filtra() {
+      let n = 0;
+      files.forEach(tr => {
+        const m = (!fQ.value || tr.dataset.quota === fQ.value) && (!fS.value || tr.dataset.soci === fS.value);
+        tr.hidden = !m; if (m) n++;
+      });
+      g('recompte-quotes').textContent = n + ' de ' + files.length + ' quotes';
+    }
+    [fQ, fS].forEach(el => el.addEventListener('input', filtra));
+
+    // Demostració: la quota de Laia es paga (05b) i el tresorer rep l'avís per desmarcar
+    g('simula-pagament').addEventListener('click', () => {
+      const fila = g('fila-laia');
+      fila.dataset.quota = 'pagada';
+      fila.querySelector('[data-estat-quota]').innerHTML = '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span>';
+      g('avis-desmarca').hidden = false;
+      filtra();
+      CRIS.anuncia('La quota de Laia Ferrer Vila s\'ha pagat.');
+    });
+
+    // Marcar i desmarcar impagat: diàleg amb motiu obligatori
+    const dialeg = g('dialeg-impagat'), motiu = g('impagat-motiu');
+    const bdI = CRIS.botoDinamic(g('confirma-impagat'));
+    let fila = null, accio = null;
+    document.querySelectorAll('[data-impagat]').forEach(b => b.addEventListener('click', () => {
+      fila = b.closest('tr'); accio = b.dataset.impagat;
+      const nom = fila.dataset.nomSoci;
+      g('impagat-titol').textContent = accio === 'marca' ? 'Marca impagat' : 'Desmarca impagat';
+      g('impagat-resum').textContent = (accio === 'marca' ? 'Marcaràs ' : 'Desmarcaràs ') + nom + (accio === 'marca' ? ' com a impagat.' : '.');
+      g('impagat-conseq').textContent = accio === 'marca'
+        ? 'El carnet passa a «no vàlid» fins que es desmarqui (CA-M01-09).'
+        : 'El soci torna a «actiu» i el carnet torna a ser vàlid si la quota del període està pagada.';
+      bdI.posa(accio === 'marca' ? 'Marca impagat' : 'Desmarca impagat', 'check');
+      motiu.value = ''; errorCamp(motiu, '');
+      dialeg.showModal(); motiu.focus();
+    }));
+    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
+    g('form-impagat').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdI.estaOcupat) return;
+      if (!errorCamp(motiu, motiu.value.trim() ? '' : 'Escriu el motiu. És obligatori per marcar i per desmarcar.')) { motiu.focus(); return; }
+      await bdI.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 700 }]);
+      dialeg.close();
+      const cel = fila.querySelector('[data-estat-soci]');
+      const acc = fila.querySelector('.cel-accions');
+      if (accio === 'marca') {
+        fila.dataset.soci = 'impagat';
+        cel.innerHTML = '<span class="estat estat-error"><span aria-hidden="true">✕</span> Impagat</span>';
+      } else {
+        fila.dataset.soci = 'actiu';
+        cel.innerHTML = '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span>';
+        if (fila.id === 'fila-laia') g('avis-desmarca').hidden = true;
+      }
+      acc.innerHTML = '<span class="text-2"></span>';
+      acc.firstChild.textContent = (accio === 'marca' ? 'Marcat' : 'Desmarcat') + ' · motiu: ' + motiu.value.trim();
+      acc.tabIndex = -1; acc.focus();
+      filtra();
+      CRIS.anuncia(fila.dataset.nomSoci + (accio === 'marca' ? ' marcat com a impagat.' : ' desmarcat.'));
+    });
+  })();
+
+  /* ---------- Socis: importació de Cluber, fase de prova (no escriu res) ---------- */
+  (function () {
+    const g = id => document.getElementById(id);
+    const boto = g('valida-cluber');
+    const bd = CRIS.botoDinamic(boto);
+    let fitxer = null;
+    CRIS.zonaMagnetica(g('zona-cluber'), {
+      enCanvi: f => { fitxer = f; if (f) boto.removeAttribute('aria-disabled'); else boto.setAttribute('aria-disabled', 'true'); bd.posa(bd.inicial.text, bd.inicial.icona); }
+    });
+    // Socis que ja hi ha a la plataforma (per número), per comptar les coincidències
+    const CONEGUTS = new Set(['0427', '0311', '0356', '0502', '0239', '0870', '1286', '0115']);
+    function analitza(text) {
+      const linies = text.split(/\r?\n/).filter(l => l.trim());
+      const sep = linies[0].includes(';') ? ';' : ',';
+      const cap = linies[0].split(sep).map(c => c.trim().toLowerCase());
+      if (cap.some(c => c.includes('iban'))) return { iban: true };
+      const col = (f, nom) => (f.c[cap.indexOf(nom)] || '').trim();
+      const files = linies.slice(1).map((l, i) => ({ n: i + 2, c: l.split(sep) }));
+      const docs = {};
+      files.forEach(f => { const d = col(f, 'document').toUpperCase(); if (d) (docs[d] = docs[d] || []).push(f.n); });
+      const r = { files: files.length, nous: 0, coinc: 0, errors: 0, senseNaix: 0, quotes: 0, llic: 0, problemes: [] };
+      files.forEach(f => {
+        const d = col(f, 'document').toUpperCase();
+        if (!d) { r.errors++; r.problemes.push([f.n, 'error', 'Sense document', 'Cal corregir-ho abans de la importació final.']); return; }
+        if (docs[d].length > 1) { r.errors++; r.problemes.push([f.n, 'error', 'Document repetit a les línies ' + docs[d].join(' i '), 'Cal resoldre-ho abans de la importació final (L-M01-06).']); return; }
+        if (CONEGUTS.has(col(f, 'numero'))) r.coinc++; else r.nous++;
+        if (!col(f, 'data_alta')) r.problemes.push([f.n, 'avis', 'Sense data d\'alta', 'Es farà servir la data més antiga coneguda, marcada com a aproximada (L-M01-07).']);
+        if (!col(f, 'data_naixement')) { r.senseNaix++; r.problemes.push([f.n, 'avis', 'Sense data de naixement', 'El soci quedarà «sense data de naixement» i se li demanarà (RN-M01-55).']); }
+        if (col(f, 'quotes_pagades')) r.quotes++;
+        if (col(f, 'llicencia_tipus')) r.llic++;
+      });
+      return r;
+    }
+    boto.addEventListener('click', async () => {
+      if (!fitxer || bd.estaOcupat) return;
+      await bd.flux([{ text: 'Validant…', icona: 'carrega', gira: true, ms: 900 }]);
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      const r = analitza(await fitxer.text());
+      const sec = g('resultat-cluber');
+      sec.hidden = false;
+      g('cluber-rebutjat').hidden = !r.iban;
+      g('cluber-resum').hidden = !!r.iban;
+      if (r.iban) { sec.focus(); CRIS.anuncia('Fitxer rebutjat sencer: té una columna d\'IBAN.'); return; }
+      g('cl-linies').textContent = r.files; g('cl-nous').textContent = r.nous; g('cl-coinc').textContent = r.coinc; g('cl-errors').textContent = r.errors;
+      g('cl-crearia').textContent = 'A la importació final es crearien ' + r.nous + ' socis nous i s\'actualitzarien ' + r.coinc + '; ' + r.quotes + ' amb quotes històriques (informatives), ' + r.llic + ' amb registre mínim de llicència i ' + r.senseNaix + ' sense data de naixement.';
+      const tb = document.querySelector('#taula-cluber tbody');
+      tb.innerHTML = '';
+      r.problemes.forEach(([n, tipus, que, fara]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td data-etiqueta="Línia" class="codi"></td><td data-etiqueta="Tipus">' +
+          (tipus === 'error' ? '<span class="estat estat-error"><span aria-hidden="true">✕</span> Error</span>' : '<span class="estat estat-avis"><span aria-hidden="true">!</span> Avís</span>') +
+          '</td><td data-etiqueta="Què passa"></td><td data-etiqueta="Què es farà"></td>';
+        tr.children[0].textContent = n; tr.children[2].textContent = que; tr.children[3].textContent = fara;
+        tb.append(tr);
+      });
+      sec.focus();
+      CRIS.anuncia('Prova feta. ' + r.files + ' línies, ' + r.errors + ' amb error. No s\'ha escrit res.');
+    });
+
+    // CSV d'exemple amb dades inventades (documents amb format vàlid i lletra calculada, però inexistents)
+    const lletra = n => 'TRWAGMYFPDXBNJZSQVHLCKE'[n % 23];
+    const doc = n => String(n).padStart(8, '0') + lletra(n);
+    const cap = 'numero;document;nom;cognoms;tipus;estat;data_alta;data_naixement;quotes_pagades;llicencia_tipus;llicencia_alta;llicencia_caducitat';
+    const files = [
+      ['0427', doc(23456789), 'Marta', 'Puig Ferrer', 'ple', 'actiu', '12/03/2019', '08/10/1988', '2019-2025', 'Federativa anual', '01/01/2026', ''],
+      ['0311', doc(34567890), 'Jordi', 'Soler Mas', 'simpatitzant', 'actiu', '05/06/2015', '21/04/1975', '2015-2025', '', '', ''],
+      ['0870', doc(45678901), 'Albert', 'Gil Mas', 'simpatitzant', 'actiu', '', '', '2008-2025', '', '', ''],
+      ['0901', doc(56789012), 'Carla', 'Rius Pons', 'ple', 'actiu', '10/10/2010', '02/02/1980', '2010-2025', 'Federativa anual', '01/01/2026', '31/12/2026'],
+      ['0902', doc(67890123), 'Dani', 'Puig Sala', 'simpatitzant', 'baixa', '01/02/2005', '15/06/1970', '2005-2019', '', '', ''],
+      ['0903', doc(56789012), 'Eva', 'Mir Font', 'ple', 'actiu', '11/11/2011', '09/09/1990', '2011-2025', '', '', ''],
+      ['0904', doc(78901234), 'Ferran', 'Bosch Gil', 'simpatitzant', 'actiu', '03/03/2012', '', '2012-2025', '', '', '']
+    ];
+    const blob = linies => URL.createObjectURL(new Blob([linies.join('\n')], { type: 'text/csv' }));
+    g('csv-cluber').href = blob([cap].concat(files.map(f => f.join(';'))));
+    g('csv-cluber-iban').href = blob([cap + ';iban'].concat(files.slice(0, 2).map(f => f.join(';') + ';')));
   })();
 
   // Adreça: #vista[&rol=…] obre una vista amb un rol (per revisar i fer captures)
