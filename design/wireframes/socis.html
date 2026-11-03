@@ -836,9 +836,29 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
         <strong>Tens pagaments pendents.</strong>
         Pots enviar la sol·licitud igualment.
       </div>
+      <div class="demo" role="group" aria-labelledby="demo-esborrar">
+        <span class="demo-titol" id="demo-esborrar">Demostració · resposta del servidor:</span>
+        <label><input type="checkbox" id="demo-esborrar-totp"> El compte té doble factor</label>
+        <label><input type="radio" name="demo-esborrar" value="correcta" checked> Dades correctes</label>
+        <label><input type="radio" name="demo-esborrar" value="contrasenya"> Contrasenya incorrecta</label>
+        <label class="si-esborrar-totp" hidden><input type="radio" name="demo-esborrar" value="codi"> Codi incorrecte</label>
+        <label><input type="radio" name="demo-esborrar" value="bloquejat"> Compte bloquejat per intents</label>
+      </div>
       <form class="targeta form-perfil" id="form-esborrar" novalidate>
         <label class="casella"><input type="checkbox" id="esborrar-entenc" aria-describedby="esborrar-entenc-error"> <span>Entenc que, un cop fet, l'esborrat no es pot desfer.</span></label>
         <p class="error-camp" id="esborrar-entenc-error" hidden></p>
+        <div class="camp">
+          <label for="esborrar-contrasenya">Contrasenya</label>
+          <input id="esborrar-contrasenya" type="password" autocomplete="current-password" aria-describedby="esborrar-contrasenya-ajuda esborrar-contrasenya-error">
+          <p class="ajuda" id="esborrar-contrasenya-ajuda">Torna-la a escriure per confirmar que ets tu, encara que acabis d'entrar.</p>
+          <p class="error-camp" id="esborrar-contrasenya-error" hidden></p>
+        </div>
+        <div class="camp si-esborrar-totp" hidden>
+          <label for="esborrar-codi">Codi de l'aplicació d'autenticació</label>
+          <input id="esborrar-codi" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="esborrar-codi-ajuda esborrar-codi-error">
+          <p class="ajuda" id="esborrar-codi-ajuda">Les 6 xifres que mostra ara l'aplicació.</p>
+          <p class="error-camp" id="esborrar-codi-error" hidden></p>
+        </div>
         <button class="boto" type="submit" id="envia-esborrar">Sol·licita l'esborrat</button>
         <p class="resultat-perfil" id="resultat-esborrar" role="status" hidden></p>
       </form>
@@ -849,7 +869,10 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
           <li>Conservació (058, punt 7; RN-M01-51): el text «no s'esborren mai… passat el termini legal» està validat com a principi. El termini concret depèn de la gestoria [A verificar: Q-14, S-M01-15] i no es mostra cap xifra a la pantalla.</li>
           <li>Pagaments pendents: com es tracten en un esborrat depèn de Q-14 [A verificar: gestoria]. La sol·licitud es pot enviar igualment.</li>
           <li>En aprovar-la: baixa si és soci actiu, comptes desactivats i sessions tancades, dades anonimitzades, quotes i rebuts bloquejats, número reservat i identitat substituïda per una referència anònima al registre (028, CA-M01-19).</li>
-          <li>Tornar a demanar la contrasenya abans d'enviar-la: el pla no ho diu <span class="a-validar">A validar: informàtica</span>.</li>
+          <li>Contrasenya, i codi TOTP si el compte en té, <strong>sempre</strong> i a la mateixa petició que envia la sol·licitud (RN-M01-57, 063): <code>accounts.require_recent_auth</code> amb <code>minutes=0</code> (T-M00-05). Sense això no es crea cap sol·licitud (CA-M01-46).</li>
+          <li>Un error compta per al bloqueig per intents del compte (V-01). El missatge no diu quants intents queden ni quant dura el bloqueig. L'intent fallit i la sol·licitud enviada queden al registre d'activitat.</li>
+          <li>La comprovació no es fa mai al navegador: aquí els botons de demostració simulen la resposta del servidor. Després d'un error, el camp de la contrasenya es buida.</li>
+          <li>Què passa amb la sessió oberta mentre el compte està bloquejat: el pla no ho diu <span class="a-validar">A validar: informàtica</span>.</li>
         </ul>
       </aside>
     </div>
@@ -1436,19 +1459,50 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     });
   })();
 
-  /* ---------- Esborrar el compte: confirmació explícita ---------- */
+  /* ---------- Esborrar el compte: confirmació i contrasenya sempre (RN-M01-57) ---------- */
   (function () {
     const casella = g('esborrar-entenc');
+    const contrasenya = g('esborrar-contrasenya');
+    const codi = g('esborrar-codi');
     const boto = g('envia-esborrar');
     const bd = CRIS.botoDinamic(boto);
+    const ambTotp = () => g('demo-esborrar-totp').checked;
+    g('demo-esborrar-totp').addEventListener('change', () => {
+      document.querySelectorAll('.si-esborrar-totp').forEach(x => { x.hidden = !ambTotp(); });
+      const r = document.querySelector('input[name="demo-esborrar"]:checked');
+      if (!ambTotp() && r.value === 'codi') document.querySelector('input[name="demo-esborrar"][value="correcta"]').checked = true;
+    });
+    // Simula un error del servidor: es buiden les credencials i el botó torna a l'estat inicial
+    function falla(camp, missatge, anunci) {
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      contrasenya.value = ''; codi.value = '';
+      if (camp) { errorCamp(camp, missatge); camp.focus(); CRIS.anuncia(anunci); }
+    }
     g('form-esborrar').addEventListener('submit', async e => {
       e.preventDefault();
       if (bd.estaOcupat || boto.getAttribute('aria-disabled') === 'true') return;
-      if (!errorCamp(casella, casella.checked ? '' : 'Marca la casella per confirmar que ho entens.')) { casella.focus(); return; }
-      await bd.flux([{ text: 'Enviant…', icona: 'carrega', gira: true, ms: 800 }]);
+      const p = g('resultat-esborrar');
+      p.hidden = true;
+      const okCasella = errorCamp(casella, casella.checked ? '' : 'Marca la casella per confirmar que ho entens.');
+      const okContrasenya = errorCamp(contrasenya, contrasenya.value ? '' : 'Escriu la contrasenya.');
+      const okCodi = !ambTotp() || errorCamp(codi, /^[0-9]{6}$/.test(codi.value) ? '' : 'Escriu les 6 xifres del codi.');
+      if (!okCasella) { casella.focus(); return; }
+      if (!okContrasenya) { contrasenya.focus(); return; }
+      if (!okCodi) { codi.focus(); return; }
+      await bd.flux([{ text: 'Comprovant…', icona: 'carrega', gira: true, ms: 800 }]);
+      const resposta = document.querySelector('input[name="demo-esborrar"]:checked').value;
+      if (resposta === 'contrasenya') return falla(contrasenya, 'Contrasenya incorrecta', 'Contrasenya incorrecta');
+      if (resposta === 'codi') return falla(codi, 'Codi incorrecte', 'Codi incorrecte. Torna a escriure la contrasenya i el codi.');
+      if (resposta === 'bloquejat') {
+        falla(null);
+        resultat(p, 'avis-error', 'Ara no es pot comprovar', 'Hi ha hagut massa intents. No s\'ha enviat res. Torna-ho a provar més tard.', true);
+        return;
+      }
       bd.posa('Sol·licitud enviada', 'fet', { fet: true });
-      boto.setAttribute('aria-disabled', 'true'); casella.disabled = true;
-      resultat(g('resultat-esborrar'), 'avis-ok', 'Sol·licitud d\'esborrat rebuda', 'L\'administració la revisarà i t\'avisarà per correu. Mentrestant, el compte continua actiu.', true);
+      boto.setAttribute('aria-disabled', 'true');
+      contrasenya.value = ''; codi.value = '';
+      [casella, contrasenya, codi].forEach(x => { x.disabled = true; });
+      resultat(p, 'avis-ok', 'Sol·licitud d\'esborrat rebuda', 'L\'administració la revisarà i t\'avisarà per correu. Mentrestant, el compte continua actiu.', true);
     });
   })();
 })();
