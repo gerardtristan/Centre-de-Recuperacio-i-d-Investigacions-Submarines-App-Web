@@ -274,6 +274,31 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 .nota-segura .icona-svg { flex: none; margin-top: 2px; font-size: 18px; color: var(--c-mari-text); }
 .pas-impressio { display: grid; gap: var(--e-4); justify-items: center; }
 
+/* ---------- Pantalles pròpies (T-M01-02): perfil, sol·licituds, esborrar i «no trobat» ----------
+   Planes, com pagar i els avisos: sense degradat, ombra de profunditat ni moviment. */
+.pantalla-soci { padding: var(--e-5) 0 var(--e-6); }
+.pantalla-cos { display: grid; gap: var(--e-5); align-content: start; }
+.pantalla-cos.estreta { max-width: calc(46rem + 2 * var(--e-4)); }
+.pantalla-cos h1 { margin: 0; font-size: var(--t-2xl); }
+.pantalla-cos .demo { border-radius: var(--r-m); }
+.pantalla-cos .estat { white-space: normal; }
+.graella-perfil, .columna-perfil { display: grid; gap: var(--e-5); align-items: start; }
+.graella-perfil h2 { font-size: var(--t-xl); margin-bottom: var(--e-3); }
+.form-perfil { display: grid; gap: var(--e-4); justify-items: start; margin-top: var(--e-4); }
+.form-perfil .camp { width: 100%; }
+.form-perfil h3 { margin: var(--e-2) 0 0; font-size: var(--t-l); }
+.targeta.form-perfil { margin-top: 0; }
+.llista-consentiments { list-style: none; display: grid; }
+.llista-consentiments li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--e-2) var(--e-3); padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 14%); }
+.llista-consentiments li:last-child { border-bottom: 0; }
+.llista-consentiments li > div { display: grid; gap: 2px; }
+.llista-consentiments .text-2 { font-size: var(--t-s); }
+.accions-perfil { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.llista-passos { padding-left: var(--e-5); display: grid; gap: var(--e-2); }
+.resultat-perfil { margin: 0; }
+.error-camp { margin: 0; color: var(--c-error-text); font-size: var(--t-s); font-weight: var(--p-semi); }
+.camp [aria-invalid="true"], .casella [aria-invalid="true"] { outline: 2px solid var(--c-error); outline-offset: 1px; }
+
 /* Persona (selector de demostració) */
 .nomes-no-soci, .si-al-dia, .si-no-soci { display: none; }
 [data-persona="no-soci"] .nomes-soci { display: none; }
@@ -319,6 +344,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   .portada-contingut { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); justify-items: start; text-align: left; align-items: center; }
   .portada h1 { font-size: calc(var(--t-3xl) * 1.3); }
   .carnet-escena, .invitacio { max-width: calc(var(--carnet-amplada) * 1.22); }
+  .graella-perfil { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
   .bloc-carnet { justify-items: end; }
 
   .graella-bento {
@@ -365,7 +391,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
         <li><a href="#proximes-activitats"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14c2 0 2-2 4.5-2S10 14 12 14s2-2 4.5-2S19 14 21 14M3 18.5c2 0 2-2 4.5-2s2.5 2 4.5 2 2-2 4.5-2 2.5 2 4.5 2M12 4v5"/></svg><span>Sortides</span></a></li>
         <li class="dock-carnet"><a href="#carnet"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M6 15.5h5M14 10h4M14 13.5h4"/></svg><span>Carnet</span></a></li>
         <li><a href="#historial-pagaments"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg><span>Pagaments</span></a></li>
-        <li><a href="#"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Perfil</span></a></li>
+        <li><a href="#perfil"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Perfil</span></a></li>
       </ul>
     </nav>
     <fieldset class="selector-tema">
@@ -583,6 +609,267 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
       </div>
     </div>
   </div>
+
+  <!-- ==================== Pantalles pròpies (T-M01-02): s'obren amb l'adreça i amaguen la portada ==================== -->
+
+  <!-- ---------- El meu perfil (C5, C11; HU-M01-08, HU-M01-16; addenda 058) ---------- -->
+  <section id="perfil" class="pantalla-soci" aria-labelledby="perfil-titol" hidden>
+    <div class="contenidor pantalla-cos">
+      <div>
+        <span class="etiqueta-seccio">Perfil</span>
+        <h1 id="perfil-titol">El meu perfil</h1>
+        <p class="text-2" style="margin: var(--e-2) 0 0">Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu.</p>
+      </div>
+
+      <div class="demo" role="group" aria-labelledby="demo-perfil">
+        <span class="demo-titol" id="demo-perfil">Demostració</span>
+        <label class="nomes-soci"><input type="checkbox" id="demo-sense-naixement"> Soci importat de Cluber, sense data de naixement</label>
+        <label><input type="checkbox" id="demo-sessio"> La sessió ha caducat en desar</label>
+        <a class="boto boto-petit" href="#no-trobat">Obre la fitxa d'un altre soci per l'adreça</a>
+      </div>
+
+      <div class="avis avis-avis" id="avis-naixement" hidden>
+        <strong>Falta la teva data de naixement</strong>
+        La demanem per tramitar llicències i comprovar l'edat mínima d'algunes activitats. No es bloqueja res del que ja fas: només la demanarà una acció nova que la necessiti.
+      </div>
+
+      <div class="graella-perfil">
+        <section class="targeta" aria-labelledby="dades-titol">
+          <h2 id="dades-titol">Dades personals</h2>
+          <dl class="dades">
+            <dt>Nom i cognoms</dt><dd>Marta Puig Ferrer</dd>
+            <dt>Document</dt><dd><span class="codi">•••••789D</span></dd>
+            <dt class="nomes-soci">Número de soci</dt><dd class="nomes-soci"><span class="codi">0427</span></dd>
+            <dt>Data de naixement</dt><dd id="dd-naixement">08/10/1988</dd>
+          </dl>
+          <form class="form-perfil" id="form-naixement" novalidate hidden>
+            <div class="camp">
+              <label for="pf-naixement">Data de naixement</label>
+              <input id="pf-naixement" type="date" autocomplete="bday" aria-describedby="pf-naixement-ajuda pf-naixement-error">
+              <p class="ajuda" id="pf-naixement-ajuda">Un cop desada, només la pot corregir la secretaria.</p>
+              <p class="error-camp" id="pf-naixement-error" hidden></p>
+            </div>
+            <button class="boto boto-principal" type="submit" id="desa-naixement" data-icona="check">Desa la data</button>
+          </form>
+          <p class="text-2" style="margin: var(--e-3) 0 0; font-size: var(--t-s)">Per canviar el nom, el document o la data de naixement, adreça't a la secretaria.</p>
+
+          <form class="form-perfil" id="form-contacte-soci" novalidate>
+            <h3>Contacte</h3>
+            <div class="camp"><label for="pf-correu">Correu electrònic</label><input id="pf-correu" type="email" autocomplete="email" value="marta.puig@exemple.cat" aria-describedby="pf-correu-ajuda pf-correu-error"><p class="ajuda" id="pf-correu-ajuda">Si el canvies, l'hauràs de confirmar des de l'adreça nova; fins llavors es manté l'actual. <span class="a-validar">A validar</span></p><p class="error-camp" id="pf-correu-error" hidden></p></div>
+            <div class="camp"><label for="pf-telefon">Telèfon</label><input id="pf-telefon" type="tel" autocomplete="tel" value="600 000 427" aria-describedby="pf-telefon-error"><p class="error-camp" id="pf-telefon-error" hidden></p></div>
+            <div class="camp"><label for="pf-adreca">Adreça <span class="text-2">(opcional)</span></label><input id="pf-adreca" type="text" autocomplete="street-address" value="Carrer de l'Exemple, 1, Barcelona"></div>
+            <button class="boto boto-principal" type="submit" id="desa-contacte" data-icona="check">Desa els canvis</button>
+            <p class="resultat-perfil" id="resultat-contacte" role="status" hidden></p>
+          </form>
+        </section>
+
+        <div class="columna-perfil">
+          <section class="targeta" aria-labelledby="consent-titol">
+            <h2 id="consent-titol">Consentiments</h2>
+            <ul class="llista-consentiments">
+              <li>
+                <div><strong>Política de privacitat i condicions de soci</strong><span class="text-2">Acceptades el 12/03/2019 · versió 2 · <a href="#">llegeix-les</a></span></div>
+                <span class="estat estat-ok"><span aria-hidden="true">✓</span> Acceptades</span>
+              </li>
+              <li>
+                <div><strong id="nom-butlleti">Butlletí del club</strong><span class="text-2">Opcional. Es pot retirar quan vulguis.</span></div>
+                <button class="interruptor" type="button" role="switch" aria-checked="true" aria-labelledby="nom-butlleti" data-consentiment="butlletí"><span class="int-pista"><span class="int-boto"><span class="si"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span><span class="no"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12h9"/></svg></span></span></span><span class="int-estat" aria-hidden="true">Sí</span></button>
+              </li>
+              <li>
+                <div><strong id="nom-imatge">Ús de la meva imatge</strong><span class="text-2">Opcional. <span class="a-validar">A validar: Q-16</span></span></div>
+                <button class="interruptor" type="button" role="switch" aria-checked="false" aria-labelledby="nom-imatge" data-consentiment="ús de la imatge"><span class="int-pista"><span class="int-boto"><span class="si"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span><span class="no"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12h9"/></svg></span></span></span><span class="int-estat" aria-hidden="true">No</span></button>
+              </li>
+            </ul>
+          </section>
+
+          <section class="targeta nomes-soci" aria-labelledby="perfil-llic-titol">
+            <h2 id="perfil-llic-titol">Llicència</h2>
+            <dl class="dades">
+              <dt>Tipus</dt><dd>Federativa anual <span class="a-validar">A verificar: FECDAS</span></dd>
+              <dt>Data d'alta</dt><dd>01/01/2026</dd>
+              <dt>Caducitat</dt><dd id="dd-caducitat">31/12/2026</dd>
+            </dl>
+            <form class="form-perfil" id="form-caducitat" novalidate hidden>
+              <div class="camp">
+                <label for="pf-caducitat">Declara la data de caducitat</label>
+                <input id="pf-caducitat" type="date" aria-describedby="pf-caducitat-ajuda pf-caducitat-error">
+                <p class="ajuda" id="pf-caducitat-ajuda">Quedarà «declarada per tu» fins que la secretaria la confirmi.</p>
+                <p class="error-camp" id="pf-caducitat-error" hidden></p>
+              </div>
+              <button class="boto" type="submit" id="desa-caducitat" data-icona="check">Declara la caducitat</button>
+            </form>
+            <p class="text-2" style="margin: 0; font-size: var(--t-s)">El tipus i la data d'alta els porta la secretaria.</p>
+          </section>
+
+          <section class="targeta nomes-soci" aria-labelledby="sol-titol">
+            <h2 id="sol-titol">Sol·licituds</h2>
+            <p id="sol-estat" class="text-2">No tens cap sol·licitud pendent.</p>
+            <div class="accions-perfil">
+              <a class="boto" href="#canvi-tipus">Canvi a ple dret</a>
+              <a class="boto" href="#baixa">Sol·licita la baixa</a>
+            </div>
+          </section>
+
+          <section class="targeta" aria-labelledby="rgpd-titol">
+            <h2 id="rgpd-titol">Les meves dades</h2>
+            <p>Pots descarregar totes les teves dades en un fitxer, o demanar que s'esborrin.</p>
+            <div class="accions-perfil">
+              <button class="boto" type="button" id="descarrega-dades" data-icona="puja">Descarrega les meves dades</button>
+              <a class="boto boto-text" href="#esborrar">Esborra el meu compte</a>
+            </div>
+            <p class="resultat-perfil" id="resultat-dades" role="status" hidden></p>
+          </section>
+        </div>
+      </div>
+
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Compte personal: només la seva persona (RN-42); el compte personal no hereta cap rol. Una adreça d'un altre soci retorna «no trobat» i queda al registre (CA-M01-25).</li>
+          <li>Editables pel soci: correu, telèfon i adreça (HU-M01-08); la data de naixement només si falta (RN-M01-55); la caducitat de la llicència només si és desconeguda, com a «declarada» (RN-M01-56). La resta es rebutja encara que s'enviï.</li>
+          <li>El document es mostra emmascarat (M01-12). Cap IBAN ni dada de salut.</li>
+          <li>Consentiments: cada canvi afegeix una fila amb la versió, la llengua i el canal (T-M01-08). Selector de llengua només si n'hi ha més d'una d'activa (061).</li>
+          <li>Exportació (CA-M01-18): només les seves dades i cap testimoni del carnet; URL signada de 5 minuts i fitxer esborrat als 7 dies (V-08).</li>
+          <li>Sessió caducada: no es desa res; cal tornar a entrar.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- Sol·licitar el canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1) ---------- -->
+  <section id="canvi-tipus" class="pantalla-soci" aria-labelledby="canvi-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#perfil"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna al perfil</a>
+        <span class="etiqueta-seccio" style="display: flex">Sol·licituds</span>
+        <h1 id="canvi-titol">Canvi a ple dret</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-canvi">
+        <span class="demo-titol" id="demo-canvi">Demostració · veure com:</span>
+        <label><input type="radio" name="demo-canvi" value="al-dia" checked> Simpatitzant al dia</label>
+        <label><input type="radio" name="demo-canvi" value="quota-pendent"> Simpatitzant amb la quota pendent</label>
+        <label><input type="radio" name="demo-canvi" value="ple"> Ja és de ple dret</label>
+      </div>
+
+      <section class="targeta canvi-estat" data-canvi="al-dia" aria-labelledby="canvi-al-dia-titol">
+        <h2 id="canvi-al-dia-titol">Passar de simpatitzant a ple dret</h2>
+        <p>Què inclou el ple dret respecte de simpatitzant: <span class="a-validar">A validar: junta (S-M01-11)</span></p>
+        <dl class="dades">
+          <dt>Import del suplement</dt>
+          <dd><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent de determinar per la secretaria</span></dd>
+        </dl>
+        <p class="text-2" style="font-size: var(--t-s)">La secretaria el fixarà en aprovar la sol·licitud i el veuràs a Pagaments. El canvi serà efectiu quan l'hagis pagat <span class="a-validar">A validar: junta</span>. Llavors rebràs un carnet nou i l'actual deixarà de ser vàlid.</p>
+        <button class="boto boto-principal" type="button" id="envia-canvi" data-icona="fletxa">Envia la sol·licitud</button>
+        <p class="resultat-perfil" id="resultat-canvi" role="status" hidden></p>
+      </section>
+      <section class="targeta canvi-estat" data-canvi="quota-pendent" aria-labelledby="canvi-pendent-titol" hidden>
+        <h2 id="canvi-pendent-titol">Primer cal pagar la quota 2026</h2>
+        <p>Mentre la quota de l'any estigui pendent, no es pot demanar el canvi <span class="a-validar">A validar: junta (L-M01-04)</span>.</p>
+        <a class="boto" href="#franja-estat">Ves als pagaments pendents</a>
+      </section>
+      <section class="targeta canvi-estat" data-canvi="ple" aria-labelledby="canvi-ple-titol" hidden>
+        <h2 id="canvi-ple-titol">Ja ets soci de ple dret</h2>
+        <p style="margin: 0">El canvi de ple dret a simpatitzant no es pot demanar ara <span class="a-validar">A validar: junta</span>.</p>
+      </section>
+
+      <aside class="demo nota-servidor" aria-label="Nota de disseny">
+        <span class="demo-titol">Nota de disseny i servidor (no és part de la pantalla)</span>
+        <ul>
+          <li><strong>Contradicció oberta:</strong> HU-M01-09 i el pas 1 de P-M01-B demanen veure l'import abans de confirmar, però RN-M01-15 (aprovada) diu que la secretaria l'escriu en aprovar. El wireframe segueix RN-M01-15 i no resol la contradicció ni hi afegeix cap pas.</li>
+          <li>Només una sol·licitud pendent del mateix tipus per persona (M01-6). Només un simpatitzant actiu la pot crear.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- Sol·licitar la baixa (C6; HU-M01-10; P-M01-C pas 1) ---------- -->
+  <section id="baixa" class="pantalla-soci" aria-labelledby="baixa-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#perfil"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna al perfil</a>
+        <span class="etiqueta-seccio" style="display: flex">Sol·licituds</span>
+        <h1 id="baixa-titol">Sol·licita la baixa</h1>
+      </div>
+      <section class="targeta" aria-labelledby="baixa-que-titol">
+        <h2 id="baixa-que-titol">Què passarà</h2>
+        <ul class="llista-passos">
+          <li>La secretaria validarà la sol·licitud i fixarà la data efectiva.</li>
+          <li>Aquell dia, el carnet deixarà de ser vàlid i rebràs un correu.</li>
+          <li>Les quotes pendents de períodes posteriors s'anul·laran <span class="a-validar">A validar: tresorer</span>.</li>
+          <li>El teu número de soci queda reservat: si tornes, el recuperes.</li>
+          <li>Podràs continuar entrant per consultar els teus rebuts <span class="a-validar">A validar: junta</span>.</li>
+        </ul>
+      </section>
+      <form class="targeta form-perfil" id="form-baixa" novalidate>
+        <div class="camp">
+          <label for="baixa-motiu">Motiu de la baixa</label>
+          <textarea id="baixa-motiu" rows="3" aria-describedby="baixa-motiu-ajuda baixa-motiu-error"></textarea>
+          <p class="ajuda" id="baixa-motiu-ajuda">Obligatori. El llegirà la secretaria.</p>
+          <p class="error-camp" id="baixa-motiu-error" hidden></p>
+        </div>
+        <button class="boto" type="submit" id="obre-confirma-baixa">Sol·licita la baixa…</button>
+        <p class="resultat-perfil" id="resultat-baixa" role="status" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ---------- Esborrar el meu compte (C11; HU-M01-16; P-M01-F pas 3; decisions 028 i 058) ---------- -->
+  <section id="esborrar" class="pantalla-soci" aria-labelledby="esborrar-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#perfil"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna al perfil</a>
+        <span class="etiqueta-seccio" style="display: flex">Les meves dades</span>
+        <h1 id="esborrar-titol">Esborra el meu compte</h1>
+      </div>
+      <section class="targeta" aria-labelledby="esborrar-que-titol">
+        <h2 id="esborrar-que-titol">Què passarà</h2>
+        <ul class="llista-passos">
+          <li>L'administració revisarà la sol·licitud i t'avisarà per correu.</li>
+          <li class="nomes-soci">Si ets soci actiu, et donarem de baixa.</li>
+          <li>Es desactivaran els teus comptes i s'anonimitzaran les teves dades personals: nom, document, correu, telèfon, adreça, data de naixement i consentiments.</li>
+          <li>Les quotes, els rebuts i els pagaments no s'esborren mai. Les teves dades que hi surten quedaran bloquejades i s'anonimitzaran passat el termini legal <span class="a-validar">A verificar: gestoria (Q-14)</span>.</li>
+          <li class="nomes-soci">El teu número de soci quedarà reservat, sense cap dada teva.</li>
+        </ul>
+        <p style="margin: var(--e-3) 0 0">Abans, si vols, <a href="#perfil">descarrega les teves dades</a>.</p>
+      </section>
+      <div class="avis avis-avis si-pendent">
+        <strong>Tens pagaments pendents</strong>
+        Com es tracten en un esborrat està pendent de la gestoria (Q-14). La sol·licitud es pot enviar igualment.
+      </div>
+      <form class="targeta form-perfil" id="form-esborrar" novalidate>
+        <label class="casella"><input type="checkbox" id="esborrar-entenc" aria-describedby="esborrar-entenc-error"> <span>Entenc que, un cop fet, l'esborrat no es pot desfer.</span></label>
+        <p class="error-camp" id="esborrar-entenc-error" hidden></p>
+        <button class="boto" type="submit" id="envia-esborrar">Sol·licita l'esborrat</button>
+        <p class="resultat-perfil" id="resultat-esborrar" role="status" hidden></p>
+      </form>
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Atén la sol·licitud l'administrador (M11, 059). Q-15 (qui és el responsable de protecció de dades) continua obert, però no afecta aquest permís.</li>
+          <li>En aprovar-la: baixa si és soci actiu, comptes desactivats i sessions tancades, dades anonimitzades, quotes i rebuts bloquejats, número reservat i identitat substituïda per una referència anònima al registre (028, CA-M01-19).</li>
+          <li>Tornar a demanar la contrasenya abans d'enviar-la: el pla no ho diu <span class="a-validar">A validar: informàtica</span>.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- No trobat (CA-M01-25: un soci que obre dades d'un altre) ---------- -->
+  <section id="no-trobat" class="pantalla-soci" aria-labelledby="no-trobat-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div class="targeta">
+        <h1 id="no-trobat-titol">No s'ha trobat la pàgina</h1>
+        <p>L'adreça no existeix o ha canviat.</p>
+        <a class="boto" href="#portada">Torna a l'inici</a>
+      </div>
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Un soci que demana la fitxa, les quotes o el carnet d'un altre rep exactament aquesta resposta, la mateixa que per a una adreça inexistent, i l'intent queda al registre d'activitat (CA-M01-25).</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
 </main>
 
 <!-- ==================== Diàleg: pagar un càrrec ==================== -->
@@ -726,6 +1013,24 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     <a class="boto" href="#" aria-disabled="true">Descarrega el PDF (prototip)</a>
     <button class="boto-tactil" type="button" data-tanca><span class="bt-tecla">Tanca</span></button>
   </div>
+</dialog>
+
+<!-- ==================== Diàleg: confirmar la sol·licitud de baixa ==================== -->
+<dialog class="dialeg" id="dialeg-baixa" aria-labelledby="dialeg-baixa-titol">
+  <form method="dialog" id="form-confirma-baixa" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="dialeg-baixa-titol">Confirmes la baixa?</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p style="margin: 0">Enviaràs la sol·licitud de baixa a la secretaria. La veuràs al teu perfil mentre estigui pendent.</p>
+      <p class="text-2" id="confirma-baixa-motiu" style="margin: 0"></p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-baixa" data-icona="check">Sí, sol·licita la baixa</button>
+    </div>
+  </form>
 </dialog>
 
 <script src="interaccions.js"></script>
@@ -947,6 +1252,201 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
       imp.imprimeix({ ms: 600 });
     });
     dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
+  })();
+
+  /* ======================================================================
+     Pantalles pròpies (T-M01-02): perfil, canvi a ple dret, baixa, esborrar
+     el compte i «no trobat». S'obren amb l'adreça i amaguen la portada.
+     ====================================================================== */
+  function errorCamp(input, missatge) {
+    const p = document.getElementById(input.id + '-error');
+    input.setAttribute('aria-invalid', String(!!missatge));
+    p.textContent = missatge || ''; p.hidden = !missatge;
+    return !missatge;
+  }
+  const g = id => document.getElementById(id);
+  const dataLlegible = iso => iso.split('-').reverse().join('/');
+  function resultat(p, classe, titol, text, focus) {
+    p.className = 'resultat-perfil avis ' + classe;
+    p.innerHTML = '<strong></strong><span></span>';
+    p.querySelector('strong').textContent = titol;
+    p.querySelector('span').textContent = text;
+    p.hidden = false;
+    if (focus) { p.tabIndex = -1; p.focus(); }
+    CRIS.anuncia(titol + '. ' + text);
+  }
+  // Demostració: si la sessió ha caducat, no es desa res
+  function sessioCaducada(p) {
+    if (!g('demo-sessio').checked) return false;
+    resultat(p, 'avis-error', 'La sessió ha caducat', 'No s\'ha desat res. Torna a entrar al compte personal per desar els canvis.', true);
+    return true;
+  }
+
+  (function () {
+    const PANTALLES = ['perfil', 'canvi-tipus', 'baixa', 'esborrar', 'no-trobat'];
+    const portada = [g('portada'), document.querySelector('main > .profunditat')];
+    const perfil = nav.querySelector('a[href="#perfil"]');
+    function ruta(enCarregar) {
+      const id = location.hash.slice(1);
+      const p = PANTALLES.includes(id) ? id : null;
+      portada.forEach(s => { s.hidden = !!p; });
+      PANTALLES.forEach(x => { g(x).hidden = x !== p; });
+      if (p === 'no-trobat') { enllacos.forEach(x => x.removeAttribute('aria-current')); }
+      else if (p) marca(perfil);
+      else if (!enCarregar) {
+        const enllac = enllacos.find(a => a.getAttribute('href') === '#' + id);
+        if (enllac) marca(enllac);
+        const t = id && g(id); if (t) t.scrollIntoView();
+      }
+      if (p) {
+        // després del salt a l'àncora del navegador, perquè la capçalera es vegi
+        scrollTo(0, 0);
+        if (enCarregar) addEventListener('load', () => setTimeout(() => scrollTo(0, 0)), { once: true });
+        if (!enCarregar) { const h1 = document.querySelector('#' + p + ' h1'); h1.tabIndex = -1; h1.focus(); }
+      }
+    }
+    addEventListener('hashchange', () => ruta(false));
+    ruta(true);
+  })();
+
+  /* ---------- Perfil ---------- */
+  (function () {
+    // Demostració: soci importat de Cluber sense data de naixement ni caducitat de la llicència
+    g('demo-sense-naixement').addEventListener('change', e => {
+      const sense = e.target.checked;
+      g('avis-naixement').hidden = !sense;
+      g('form-naixement').hidden = !sense;
+      g('dd-naixement').innerHTML = sense ? '<span class="estat estat-avis"><span aria-hidden="true">!</span> Falta</span>' : '08/10/1988';
+      g('form-caducitat').hidden = !sense;
+      g('dd-caducitat').innerHTML = sense ? '<span class="estat estat-neutre">Caducitat desconeguda</span>' : '31/12/2026';
+    });
+
+    const avui = new Date().toISOString().slice(0, 10);
+    const bdN = CRIS.botoDinamic(g('desa-naixement'));
+    g('form-naixement').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdN.estaOcupat) return;
+      const i = g('pf-naixement');
+      if (!errorCamp(i, !i.value ? 'Escriu la teva data de naixement.' : i.value > avui ? 'La data no pot ser posterior a avui.' : '')) { i.focus(); return; }
+      const lloc = g('resultat-contacte');
+      if (sessioCaducada(lloc)) return;
+      await bdN.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 700 }]);
+      bdN.posa(bdN.inicial.text, bdN.inicial.icona);
+      g('dd-naixement').textContent = dataLlegible(i.value);
+      g('form-naixement').hidden = true; g('avis-naixement').hidden = true;
+      const h = g('dades-titol'); h.tabIndex = -1; h.focus();
+      CRIS.anuncia('Data de naixement desada. Per corregir-la, adreça\'t a la secretaria.');
+    });
+
+    const correuInicial = g('pf-correu').value;
+    const bdC = CRIS.botoDinamic(g('desa-contacte'));
+    g('form-contacte-soci').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdC.estaOcupat) return;
+      const c = g('pf-correu'), t = g('pf-telefon');
+      const a = errorCamp(c, /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.value.trim()) ? '' : 'Escriu un correu vàlid, per exemple nom@exemple.cat.');
+      const b = errorCamp(t, t.value.replace(/\D/g, '').length >= 9 ? '' : 'Escriu un telèfon de 9 xifres com a mínim.');
+      if (!a) { c.focus(); return; } if (!b) { t.focus(); return; }
+      const lloc = g('resultat-contacte');
+      if (sessioCaducada(lloc)) return;
+      await bdC.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 700 }]);
+      bdC.posa(bdC.inicial.text, bdC.inicial.icona);
+      if (c.value.trim() !== correuInicial) resultat(lloc, 'avis-ok', 'Canvis desats', 'Confirma el correu nou des del missatge que t\'hem enviat a ' + c.value.trim() + '. Fins llavors es manté l\'actual.', true);
+      else resultat(lloc, 'avis-ok', 'Canvis desats', 'Les teves dades de contacte estan al dia.', true);
+    });
+
+    document.querySelectorAll('[data-consentiment]').forEach(sw => sw.addEventListener('click', () => {
+      const si = sw.getAttribute('aria-checked') !== 'true';
+      sw.setAttribute('aria-checked', String(si));
+      sw.querySelector('.int-estat').textContent = si ? 'Sí' : 'No';
+      CRIS.anuncia('Consentiment de ' + sw.dataset.consentiment + (si ? ' donat' : ' retirat') + '. Queda registrat amb la data d\'avui.');
+    }));
+
+    const bdL = CRIS.botoDinamic(g('desa-caducitat'));
+    g('form-caducitat').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdL.estaOcupat) return;
+      const i = g('pf-caducitat');
+      if (!errorCamp(i, !i.value ? 'Escriu la data de caducitat de la teva llicència.' : i.value < '2026-01-01' ? 'La caducitat no pot ser anterior a la data d\'alta de la llicència.' : '')) { i.focus(); return; }
+      await bdL.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 700 }]);
+      g('dd-caducitat').innerHTML = '';
+      g('dd-caducitat').append(dataLlegible(i.value) + ' ');
+      g('dd-caducitat').insertAdjacentHTML('beforeend', '<span class="estat estat-avis"><span aria-hidden="true">◷</span> Declarada per tu · pendent que la secretaria la confirmi</span>');
+      g('form-caducitat').hidden = true;
+      const h = g('perfil-llic-titol'); h.tabIndex = -1; h.focus();
+      CRIS.anuncia('Caducitat declarada. La secretaria l\'ha de confirmar.');
+    });
+
+    const bdD = CRIS.botoDinamic(g('descarrega-dades'));
+    g('descarrega-dades').addEventListener('click', async () => {
+      if (bdD.estaOcupat || g('descarrega-dades').getAttribute('aria-disabled') === 'true') return;
+      await bdD.flux([{ text: 'Preparant el fitxer…', icona: 'carrega', gira: true, ms: 1200 }]);
+      bdD.posa('Fitxer a punt', 'fet', { fet: true });
+      g('descarrega-dades').setAttribute('aria-disabled', 'true');
+      const fins = new Date(); fins.setDate(fins.getDate() + 7);
+      const p = g('resultat-dades');
+      resultat(p, 'avis-ok', 'Fitxer a punt', 'Només conté les teves dades. Està disponible fins al ' + fins.toLocaleDateString('ca') + '; després s\'esborra.', true);
+      p.insertAdjacentHTML('beforeend', ' <a href="#" aria-disabled="true">Descarrega\'l (enllaç temporal, prototip)</a>');
+    });
+  })();
+
+  /* ---------- Canvi a ple dret: l'import el fixa la secretaria (RN-M01-15) ---------- */
+  (function () {
+    document.querySelectorAll('input[name="demo-canvi"]').forEach(r => r.addEventListener('change', () => {
+      document.querySelectorAll('.canvi-estat').forEach(s => { s.hidden = s.dataset.canvi !== r.value; });
+    }));
+    const boto = g('envia-canvi');
+    const bd = CRIS.botoDinamic(boto);
+    boto.addEventListener('click', async () => {
+      if (bd.estaOcupat || boto.getAttribute('aria-disabled') === 'true') return;
+      await bd.flux([{ text: 'Enviant…', icona: 'carrega', gira: true, ms: 800 }]);
+      bd.posa('Ja tens una sol·licitud pendent', 'rellotge');
+      boto.setAttribute('aria-disabled', 'true');
+      resultat(g('resultat-canvi'), 'avis-ok', 'Sol·licitud enviada', 'La secretaria fixarà l\'import del suplement i t\'avisarà per correu.', true);
+      g('sol-estat').textContent = 'Canvi a ple dret · pendent de la secretaria.';
+    });
+  })();
+
+  /* ---------- Baixa: motiu obligatori i confirmació ---------- */
+  (function () {
+    const dialeg = g('dialeg-baixa');
+    const motiu = g('baixa-motiu');
+    const bd = CRIS.botoDinamic(g('confirma-baixa'));
+    g('form-baixa').addEventListener('submit', e => {
+      e.preventDefault();
+      if (g('obre-confirma-baixa').getAttribute('aria-disabled') === 'true') return;
+      if (!errorCamp(motiu, motiu.value.trim() ? '' : 'Escriu el motiu de la baixa.')) { motiu.focus(); return; }
+      g('confirma-baixa-motiu').textContent = 'Motiu: ' + motiu.value.trim();
+      bd.posa(bd.inicial.text, bd.inicial.icona);
+      dialeg.showModal();
+    });
+    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
+    g('form-confirma-baixa').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat) return;
+      await bd.flux([{ text: 'Enviant…', icona: 'carrega', gira: true, ms: 700 }]);
+      dialeg.close();
+      g('obre-confirma-baixa').setAttribute('aria-disabled', 'true');
+      motiu.readOnly = true;
+      resultat(g('resultat-baixa'), 'avis-ok', 'Sol·licitud de baixa enviada', 'La secretaria la validarà i et dirà la data efectiva per correu.', true);
+      g('sol-estat').textContent = 'Baixa · pendent de validar per la secretaria.';
+    });
+  })();
+
+  /* ---------- Esborrar el compte: confirmació explícita ---------- */
+  (function () {
+    const casella = g('esborrar-entenc');
+    const boto = g('envia-esborrar');
+    const bd = CRIS.botoDinamic(boto);
+    g('form-esborrar').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bd.estaOcupat || boto.getAttribute('aria-disabled') === 'true') return;
+      if (!errorCamp(casella, casella.checked ? '' : 'Marca la casella per confirmar que ho entens.')) { casella.focus(); return; }
+      await bd.flux([{ text: 'Enviant…', icona: 'carrega', gira: true, ms: 800 }]);
+      bd.posa('Sol·licitud enviada', 'fet', { fet: true });
+      boto.setAttribute('aria-disabled', 'true'); casella.disabled = true;
+      resultat(g('resultat-esborrar'), 'avis-ok', 'Sol·licitud d\'esborrat rebuda', 'L\'administració la revisarà i t\'avisarà per correu. Mentrestant, el compte continua actiu.', true);
+    });
   })();
 })();
 </script>
