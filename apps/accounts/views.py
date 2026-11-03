@@ -16,7 +16,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.core import audit
 
-from . import totp
+from . import email_links, tokens, totp
 from .forms import CodeForm, LoginForm
 from .security import AREA_ADMIN, AREA_PERSONAL, check_credentials, client_ip, record_failure
 from .sessions import (
@@ -172,6 +172,45 @@ def logout_view(request, area):
         )
     logout(request)  # buida la sessió sencera, també l'estat pendent
     return redirect(_url(area, "login"))
+
+
+def _no_referrer(response):
+    # Les pàgines dels enllaços d'un sol ús no passen cap adreça a una altra pàgina.
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+def _stash_link(request, session_key, token, url_name):
+    """Primera petició d'un enllaç del correu: no canvia res. Desa el testimoni a la sessió i
+    redirigeix a l'adreça sense testimoni (vegeu `email_links`)."""
+    request.session[session_key] = token
+    return _no_referrer(redirect(reverse(url_name)))
+
+
+@login_not_required
+@never_cache
+@require_GET
+def verify_email_link_view(request, token):
+    return _stash_link(request, email_links.VERIFY_SESSION_KEY, token, "accounts:verify_email")
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def verify_email_view(request):
+    """CA-04.2: el compte personal s'activa quan es confirma el correu. Amb un POST, perquè
+    obrir l'enllaç no ho faci sol."""
+    token = request.session.get(email_links.VERIFY_SESSION_KEY, "")
+    state = "invalid"
+    if request.method == "POST":
+        if email_links.confirm_email(token, request=request) is not None:
+            state = "done"
+        request.session.pop(email_links.VERIFY_SESSION_KEY, None)
+    elif tokens.account_for_token(token, tokens.VERIFY_EMAIL) is not None:
+        state = "ready"
+    if state == "invalid":
+        request.session.pop(email_links.VERIFY_SESSION_KEY, None)
+    return _no_referrer(render(request, "accounts/verify_email.html", {"state": state}))
 
 
 @never_cache

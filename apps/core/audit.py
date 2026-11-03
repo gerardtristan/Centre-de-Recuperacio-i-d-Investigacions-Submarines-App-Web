@@ -30,6 +30,7 @@ class Action:
     TOTP_ENROLLED = "auth.totp_enrolled"
     TOTP_RESET = "auth.totp_reset"
     RECOVERY_CODE_USED = "auth.recovery_code_used"
+    EMAIL_VERIFIED = "auth.email_verified"
     ROLE_ASSIGNED = "roles.assigned"
     ROLE_REMOVED = "roles.removed"
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"

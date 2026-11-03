@@ -13,6 +13,9 @@ PUBLIC_ROUTES = {
     "accounts:login",
     "accounts:login_totp",
     "accounts:logout",
+    # Enllaços del correu del compte personal: el testimoni és la credencial (RN-18).
+    "accounts:verify_email",
+    "accounts:verify_email_link",
     "administration:login",
     "administration:login_totp",
     "administration:totp_enrol",

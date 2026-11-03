@@ -89,6 +89,10 @@ LOGIN_URL = "accounts:login"
 ADMIN_URL_PATH = env("ADMIN_URL_PATH", default="gestio").strip("/")
 TOTP_ISSUER_NAME = env("TOTP_ISSUER_NAME", default="C.R.I.S.")
 
+# Adreça pública de la plataforma, per als enllaços dels correus (verificació i recuperació):
+# la cua no té cap petició d'on treure-la. Domini: decisió 019.
+PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="http://localhost:8000").rstrip("/")
+
 # Claus de xifratge dels camps sensibles (Fernet). La primera xifra; totes desxifren.
 FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
 

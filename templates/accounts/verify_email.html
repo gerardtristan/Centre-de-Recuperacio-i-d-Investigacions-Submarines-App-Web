@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Confirmar el correu" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Confirmar el correu" %}</h1>
+  {% if state == "ready" %}
+    <p>{% translate "Confirma que aquesta adreça és teva per activar el compte." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit">{% translate "Confirmar el correu" %}</button>
+    </form>
+  {% elif state == "done" %}
+    <p role="status">{% translate "Correu confirmat. Ja pots entrar a l'àrea de socis." %}</p>
+    <p><a href="{% url 'accounts:login' %}">{% translate "Entrar" %}</a></p>
+  {% else %}
+    <p role="alert">{% translate "Aquest enllaç no és vàlid o ja ha caducat." %}</p>
+    <p><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+  {% endif %}
+{% endblock %}
