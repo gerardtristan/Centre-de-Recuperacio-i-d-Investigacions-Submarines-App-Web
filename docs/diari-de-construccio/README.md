@@ -68,7 +68,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova (en part: lector CSV i previsualització sense escriptures; sense `ImportBatch`, CA-20.8 ni pantalla; pendent de revisió) | 04/11/2026 17:50 | f7465a6, 5e078c7, 0389010, c710080 | 1188 | [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: revisió (dades mínimes en memòria, resum segur, números molt llargs; segona tanda, en part; pendent de revisió) | 04/11/2026 18:06 | f879b95, 3cd9662, 57560df | 1200 | [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: número d'un soci d'una persona anonimitzada (tercera tanda, en part; pendent de revisió) | 04/11/2026 18:14 | 66348b5, ce7bbaa | 1208 | verd a #89 (PR #4; comprovat visualment pel responsable); associació amb bf1eef6 [A comprovar] |
-| [T-M01-24](T-M01-24.md) | Importació de Cluber: nucli compartit del lot i de la línia, procedència i CA-20.8 (quarta tanda, en part; pendent de revisió) | 04/11/2026 18:49 | bbdfb96, 3d64cff | 1282 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: nucli compartit del lot i de la línia, procedència i CA-20.8 (quarta tanda, en part; pendent de revisió) | 04/11/2026 18:49 | bbdfb96, 3d64cff | 1282 | vermell a #92 (5add66b) i #93 (PR #4): dates dels lots de prova |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: correcció de la cronologia dels lots de prova (CI #92 i #93; en part) | 04/11/2026 | 366c1d4 | 1291 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
