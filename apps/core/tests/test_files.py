@@ -4,6 +4,7 @@ import datetime
 import importlib
 import re
 import sys
+from types import SimpleNamespace
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -250,17 +251,26 @@ def test_file_view_requires_a_session(client, personal_account):
     assert response["Location"].startswith(reverse("accounts:login"))
 
 
-def test_expired_signed_url_is_rejected(client, personal_account, monkeypatch):
-    """CA-B5: passats els 5 minuts, l'emmagatzematge rebutja l'enllaç."""
-    file = _export(personal_account.person)
-    url = files.signed_url(personal_account, file)
-    assert client.get(url).status_code == 200
+@pytest.mark.parametrize(
+    ("offset", "status"),
+    [(0, 200), (299, 200), (300, 200), (300.001, 403), (301, 403)],
+)
+def test_expired_signed_url_is_rejected(
+    client, personal_account, monkeypatch, settings, offset, status
+):
+    """CA-B5: passats els 5 minuts, l'emmagatzematge rebutja l'enllaç.
 
-    now = files.time.time()
-    monkeypatch.setattr(files.time, "time", lambda: now + 299)
-    assert client.get(url).status_code == 200
-    monkeypatch.setattr(files.time, "time", lambda: now + 301)
-    assert client.get(url).status_code == 403
+    El rellotge del mòdul (el que fan servir l'emissió i la comprovació) es fixa abans d'emetre
+    l'URL, en un instant enter, i totes les comprovacions en deriven. Abans es prenia l'instant base
+    després del primer GET, amb el rellotge real: fallava de manera intermitent (CI #102).
+    """
+    issued = 1_000_000.0
+    clock = [issued]
+    monkeypatch.setattr(files, "time", SimpleNamespace(time=lambda: clock[0]))
+    assert settings.PRIVATE_FILES_SIGNED_URL_TTL == 300
+    url = files.signed_url(personal_account, _export(personal_account.person))
+    clock[0] = issued + offset
+    assert client.get(url).status_code == status
 
 
 def test_tampered_signed_url_is_rejected(client, personal_account):
