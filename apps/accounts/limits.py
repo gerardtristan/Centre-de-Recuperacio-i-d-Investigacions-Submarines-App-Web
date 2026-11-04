@@ -7,7 +7,9 @@ RN-M01-58 i, després, el valor d'aquest fitxer; les proves el llegeixen d'aquí
   24 hores, vinguin d'on vinguin les peticions.
 - Per origen, conjunt per a les dues finalitats: quan arriba a 10 peticions acceptades en
   15 minuts, queda limitat 15 minuts comptats des de la desena.
-- Només es desen les peticions acceptades: una de limitada no compta i no allarga res.
+- Una petició limitada per origen no es desa: no compta i no allarga res. Una de limitada
+  per destinatari no envia res ni compta per al destinatari, però sí per a l'origen
+  (decisió 066): així el límit d'origen avança igual tant si l'adreça té compte com si no.
 - No té res a veure amb el comptador d'intents fallits de l'entrada (V-01).
 """
 
@@ -32,7 +34,7 @@ class Window:
 RECIPIENT_WINDOWS = (Window(3, timedelta(hours=1)), Window(6, timedelta(hours=24)))
 ORIGIN_WINDOW = Window(10, timedelta(minutes=15))
 ORIGIN_COOLDOWN = timedelta(minutes=15)
-# RN-M01-59: estat intermedi d'un compte pendent per demanar un reenviament (un de sol).
+# RN-M01-59: estat intermedi d'un compte pendent per demanar reenviaments (066: no és d'un sol ús).
 RESEND_STATE = timedelta(minutes=10)
 # El més llarg dels terminis: les peticions més velles ja no serveixen per a res i s'esborren.
 RETENTION = max(window.period for window in (*RECIPIENT_WINDOWS, ORIGIN_WINDOW))

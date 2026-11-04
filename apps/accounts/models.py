@@ -267,7 +267,8 @@ class RecoveryCode(models.Model):
 
 class EmailLinkRequest(models.Model):
     """Petició pública acceptada d'un enllaç pel correu (recuperació o reenviament de la
-    verificació), per als límits de RN-M01-58 (`limits.py`). Les limitades no es desen. Del
+    verificació), per als límits de RN-M01-58 (`limits.py`). Les limitades per origen no es
+    desen; les limitades per destinatari sí, perquè compten per a l'origen (066). Del
     destinatari només hi ha l'empremta, i només si s'ha posat el correu a la cua. S'esborren
     passades 24 hores (tasca diària)."""
 

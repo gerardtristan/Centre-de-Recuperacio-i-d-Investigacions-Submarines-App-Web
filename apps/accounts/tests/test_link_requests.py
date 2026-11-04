@@ -222,6 +222,33 @@ class TestOriginLimit:
         ask_reset("anna@example.org", ip=ip)
         assert sent(RESET_TEMPLATE) == 1
 
+    @pytest.mark.parametrize(
+        "target",
+        [
+            "anna@example.org",  # compte actiu: 3 enviades i la resta limitades per destinatari
+            "ningu@example.org",  # sense compte
+            "pere@example.org",  # pendent: no rep recuperació
+        ],
+    )
+    def test_the_origin_counts_the_same_with_or_without_an_account(
+        self, make_person, personal_account, pending_account, target
+    ):
+        # RN-M01-58 amb el text de la 066: les limitades per destinatari compten per a
+        # l'origen. Si no, deu peticions per a una adreça i una per a una bústia pròpia
+        # dirien si l'adreça té compte actiu (la pròpia rebria el correu només en aquest cas).
+        own = Account.objects.create_personal(
+            make_person("Joan", "Vila"), "propia@example.org", PASSWORD
+        )
+        own.status = Account.Status.ACTIVE
+        own.save()
+        ip = "10.4.4.1"
+        for _ in range(WINDOW.max_count):
+            ask_reset(target, ip=ip)
+        assert EmailLinkRequest.objects.filter(ip_address=ip).count() == WINDOW.max_count
+        assert limits.origin_limited(ip)
+        ask_reset("propia@example.org", ip=ip)
+        assert sent(RESET_TEMPLATE, "propia@example.org") == 0
+
     def test_other_origins_are_not_affected(self, personal_account):
         for _ in range(WINDOW.max_count + 1):
             ask_reset("ningu@example.org", ip="10.4.3.1")
@@ -251,7 +278,7 @@ class TestResendVerification:
         )
         assert not response.context["can_resend"]
 
-    def test_one_resend_to_the_account_address(self, client, pending_account):
+    def test_resends_go_to_the_account_address(self, client, pending_account):
         self.login(client)
         # Una adreça enviada pel navegador no es fa servir mai.
         response = client.post(reverse(RESEND), {"email": "atacant@example.org"})
@@ -260,8 +287,30 @@ class TestResendVerification:
         assert "1 hora" not in response.context["message"]
         assert sent(VERIFY_TEMPLATE) == 1
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == 1
+        # 066: l'estat no és d'un sol ús; dins dels 10 minuts se'n pot demanar un altre.
         again = client.post(reverse(RESEND))
-        assert again.context["expired"]
+        assert not again.context["expired"]
+        assert sent(VERIFY_TEMPLATE, "pere@example.org") == 2
+        assert sent(VERIFY_TEMPLATE) == 2
+
+    def test_resends_follow_the_recipient_limit(self, client, pending_account):
+        # 066: sense el límit d'un sol ús, el límit per destinatari de RN-M01-58 continua.
+        self.login(client)
+        answers = [client.post(reverse(RESEND)) for _ in range(PER_HOUR.max_count + 1)]
+        assert sent(VERIFY_TEMPLATE, "pere@example.org") == PER_HOUR.max_count
+        assert len({response.context["message"] for response in answers}) == 1
+        assert not any(response.context["expired"] for response in answers)
+        limited = AuditEntry.objects.filter(action=audit.Action.EMAIL_LINK_LIMITED).get()
+        assert limited.details == {"purpose": "verify", "scope": "recipient"}
+
+    def test_each_resend_checks_the_state_again(self, client, pending_account):
+        self.login(client)
+        client.post(reverse(RESEND))
+        assert sent(VERIFY_TEMPLATE) == 1
+        pending_account.status = Account.Status.ACTIVE
+        pending_account.save()
+        response = client.post(reverse(RESEND))
+        assert not response.context["expired"]  # la resposta no diu res de l'estat
         assert sent(VERIFY_TEMPLATE) == 1
 
     def test_the_state_expires(self, client, pending_account):

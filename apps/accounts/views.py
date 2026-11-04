@@ -366,8 +366,8 @@ def password_reset_request_view(request):
 @never_cache
 @require_POST
 def resend_verification_view(request):
-    """RN-M01-59: només amb l'estat que deixa la contrasenya correcta d'un compte pendent; un
-    sol reenviament. L'adreça no ve mai del navegador."""
+    """RN-M01-59: només amb l'estat que deixa la contrasenya correcta d'un compte pendent;
+    mentre dura, amb els límits de RN-M01-58 (066). L'adreça no ve mai del navegador."""
     if email_links.resend_verification(request):
         message, expired = _verification_resent_message(), False
     else:

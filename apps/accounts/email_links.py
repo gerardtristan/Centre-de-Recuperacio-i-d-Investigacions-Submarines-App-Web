@@ -38,8 +38,9 @@ logger = logging.getLogger("cris.security")
 
 VERIFY_SESSION_KEY = "link_verify_email"
 RESET_SESSION_KEY = "link_reset_password"
-# Compte pendent que ha escrit la contrasenya correcta: només serveix per a un reenviament
-# (RN-M01-59). No és cap sessió: el middleware no el mira i no dona accés a res.
+# Compte pendent que ha escrit la contrasenya correcta: permet reenviaments mentre dura, amb
+# els límits de RN-M01-58 (RN-M01-59, 066). No és cap sessió: el middleware no el mira i no
+# dona accés a res.
 RESEND_SESSION_KEY = "verification_resend"
 
 RESET = EmailLinkRequest.Purpose.RESET_PASSWORD
@@ -126,6 +127,8 @@ def _send_link(request, purpose: str, find_account, wanted_status: str, send) ->
         if account is None or limits.recipient_key(account.login) != key:
             return
         if limits.recipient_limited(key, purpose):
+            # La fila es queda i compta per a l'origen (RN-M01-58, 066): si no, el límit
+            # d'origen avançaria diferent segons si l'adreça té compte actiu.
             _limited(request, purpose, "recipient", account)
             return
         send(account)
@@ -153,17 +156,19 @@ def request_password_reset(request, email: str) -> None:
 
 
 def remember_pending(request, account: Account) -> None:
-    """Després de la contrasenya correcta d'un compte pendent: permet un sol reenviament
-    durant `limits.RESEND_STATE`. El compte el decideix el servidor."""
+    """Després de la contrasenya correcta d'un compte pendent: permet reenviaments durant
+    `limits.RESEND_STATE`. El compte el decideix el servidor."""
     request.session[RESEND_SESSION_KEY] = {"account": account.pk, "at": time.time()}
 
 
 def resend_verification(request) -> bool:
-    """Reenviament de la verificació (RN-M01-59). Consumeix l'estat de la sessió; torna False
-    si no n'hi havia o havia caducat (cal tornar a escriure la contrasenya). Si l'estat era
-    vàlid, la resposta no diu si s'ha enviat o s'ha limitat."""
-    data = request.session.pop(RESEND_SESSION_KEY, None)
+    """Reenviament de la verificació (RN-M01-59, 066). L'estat no es consumeix: mentre dura,
+    cada reenviament passa pels límits de RN-M01-58 i torna a comprovar que el compte és
+    pendent. Torna False si no n'hi havia o havia caducat (cal tornar a escriure la
+    contrasenya). Si l'estat era vàlid, la resposta no diu si s'ha enviat o s'ha limitat."""
+    data = request.session.get(RESEND_SESSION_KEY)
     if not data or time.time() - data.get("at", 0) > limits.RESEND_STATE.total_seconds():
+        request.session.pop(RESEND_SESSION_KEY, None)
         return False
 
     def find_account():
