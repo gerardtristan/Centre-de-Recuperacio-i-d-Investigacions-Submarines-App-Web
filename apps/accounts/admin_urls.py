@@ -1,6 +1,6 @@
 """Entrada d'administració, sota ADMIN_URL_PATH. Sense cap ruta de recuperació per correu."""
 
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 from .security import AREA_ADMIN
@@ -24,4 +24,6 @@ urlpatterns = [
         name="change_temporary_credential",
     ),
     path("sortir/", views.logout_view, {"area": AREA_ADMIN}, name="logout"),
+    # Rutes d'administració del M01, dins d'aquest mateix espai de noms.
+    path("", include("apps.members.admin_urls")),
 ]

@@ -43,6 +43,7 @@ class Action:
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"
     FILE_URL_ISSUED = "files.url_issued"
     FILE_DELETED = "files.deleted"
+    CLUBER_PREVIEW = "members.cluber_import.preview"
 
 
 @dataclass(frozen=True)

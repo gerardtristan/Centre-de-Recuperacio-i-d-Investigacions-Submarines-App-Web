@@ -130,7 +130,16 @@ class TestAdminEntry:
         html = client.get(reverse(ADMIN_LOGIN)).content.decode().lower()
         assert "recuper" not in html
         assert "contrasenya oblidada" not in html
-        names = [pattern.name for pattern in admin_urls.urlpatterns]
+
+        def all_names(patterns):  # també les rutes incloses (p. ex., les del M01)
+            for pattern in patterns:
+                if hasattr(pattern, "url_patterns"):
+                    yield from all_names(pattern.url_patterns)
+                else:
+                    yield pattern.name or ""
+
+        names = list(all_names(admin_urls.urlpatterns))
+        assert "cluber_preview" in names
         assert not [n for n in names if "password" in n or "recover" in n]
 
 

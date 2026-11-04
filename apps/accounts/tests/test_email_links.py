@@ -261,5 +261,13 @@ def test_no_email_route_on_the_admin_entry():
     # CA-07.4: l'entrada d'administració continua sense cap ruta de verificació ni recuperació.
     from apps.accounts import admin_urls
 
-    names = {pattern.name for pattern in admin_urls.urlpatterns}
-    assert not any("verify_email" in name or "password_reset" in name for name in names)
+    def names(patterns):  # també les rutes incloses (p. ex., les del M01)
+        for pattern in patterns:
+            if hasattr(pattern, "url_patterns"):
+                yield from names(pattern.url_patterns)
+            else:
+                yield pattern.name or ""
+
+    found = set(names(admin_urls.urlpatterns))
+    assert "cluber_preview" in found  # la inclusió es recorre de debò
+    assert not any("verify_email" in name or "password_reset" in name for name in found)
