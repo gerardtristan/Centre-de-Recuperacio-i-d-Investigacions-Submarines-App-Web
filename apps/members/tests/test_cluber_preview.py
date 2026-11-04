@@ -114,6 +114,25 @@ def person_with(make_person, number, kind=Person.DocumentType.DNI, **fields):
     return make_person(id_document_type=kind, id_document_number=number, **fields)
 
 
+ANON_NAME = "SENTINELLA-ANON-NOM-7Q"
+ANON_REF = "ANON-SENTINELLA-7Q"
+
+
+def anonymised_member(make_person, make_member, number, document=""):
+    """Soci d'una persona anonimitzada, amb el document buit o, si es dona, conservat."""
+    fields = {"id_document_type": Person.DocumentType.DNI, "id_document_number": document}
+    person = make_person(
+        ANON_NAME,
+        ANON_NAME,
+        status=Person.Status.ANONYMISED,
+        anonymous_ref=ANON_REF,
+        **(fields if document else {}),
+    )
+    return make_member(
+        person, member_number=number, status=Member.Status.LEFT, left_on=datetime.date(2024, 1, 1)
+    )
+
+
 class TestFileProfile:
     def test_correct_file(self, db):
         result = cluber.preview(build([record(1), record(2)]))
@@ -492,6 +511,88 @@ class TestMatchesWithTheDatabase:
         assert len(queries) <= 3
 
 
+class TestAnonymisedMemberNumber:
+    """El número d'un soci d'una persona anonimitzada està ocupat: conflicte bloquejant."""
+
+    def _check_blocked(self, result, *codes):
+        row = only_row(result)
+        assert row.identity == "conflict"
+        assert set(row.errors) == {"member_number_unavailable", *codes}
+        assert (row.person_id, row.member_id) == (None, None)
+        assert row.ready is False
+        counts = result.counts
+        assert (counts["matching"], counts["ready"], counts["conflict"]) == (0, 0, 1)
+        return row
+
+    def test_empty_document_of_the_anonymised_person(self, db, make_person, make_member):
+        anonymised_member(make_person, make_member, 67)
+        self._check_blocked(cluber.preview(build([record(1, {"Nº Soci": "00067"})])))
+
+    def test_row_without_document(self, db, make_person, make_member):
+        anonymised_member(make_person, make_member, 67)
+        values = {"Nº Soci": "67", "Document d'Identitat": ""}
+        self._check_blocked(cluber.preview(build([record(1, values)])))
+
+    def test_row_document_of_another_person(self, db, make_person, make_member):
+        anonymised_member(make_person, make_member, 67)
+        person_with(make_person, dni(1))
+        result = cluber.preview(build([record(1, {"Nº Soci": "67"})]))
+        self._check_blocked(result, "identity_conflict")  # els dos conflictes es mantenen
+
+    def test_row_document_ambiguous(self, db, make_person, make_member):
+        anonymised_member(make_person, make_member, 67)
+        person_with(make_person, dni(1), kind=Person.DocumentType.DNI)
+        person_with(make_person, dni(1), kind=Person.DocumentType.NIE)
+        result = cluber.preview(build([record(1, {"Nº Soci": "67"})]))
+        self._check_blocked(result, "identity_conflict")
+
+    def test_anonymised_person_kept_the_same_document(self, db, make_person, make_member):
+        # Encara que el document coincideixi, no és una coincidència utilitzable.
+        anonymised_member(make_person, make_member, 67, document=dni(1))
+        self._check_blocked(cluber.preview(build([record(1, {"Nº Soci": "67"})])))
+
+    def test_nothing_about_the_anonymised_person_is_exposed(
+        self, db, make_person, make_member, caplog
+    ):
+        caplog.set_level(logging.DEBUG)
+        member = anonymised_member(make_person, make_member, 67)
+        result = cluber.preview(build([record(1, {"Nº Soci": "67"})]))
+        text = repr(result) + repr(result.rows) + str(result.summary()) + caplog.text
+        for value in (ANON_NAME, ANON_REF, f"person_id={member.person_id}"):
+            assert value not in text
+        assert f"member_id={member.pk}" not in text
+        assert cluber.MESSAGES["member_number_unavailable"]
+
+    def test_the_anonymised_member_is_not_touched(self, db, make_person, make_member):
+        member = anonymised_member(make_person, make_member, 67)
+        before = (
+            list(Person.objects.filter(pk=member.person_id).values()),
+            list(Member.objects.filter(pk=member.pk).values()),
+        )
+        with CaptureQueriesContext(connection) as queries:
+            cluber.preview(build([record(1, {"Nº Soci": "67"})]))
+        assert all(q["sql"].lstrip().upper().startswith("SELECT") for q in queries)
+        assert len(queries) <= 3
+        after = (
+            list(Person.objects.filter(pk=member.person_id).values()),
+            list(Member.objects.filter(pk=member.pk).values()),
+        )
+        assert after == before
+
+    def test_former_member_not_anonymised_still_matches(self, db, make_person, make_member):
+        # No regressió: la regla només val per a persones anonimitzades.
+        person = person_with(make_person, dni(1))
+        member = make_member(
+            person, member_number=67, status=Member.Status.LEFT, left_on=datetime.date(2025, 1, 1)
+        )
+        result = cluber.preview(build([record(1, {"Nº Soci": "67"})]))
+        row = only_row(result)
+        assert row.identity == "matching"
+        assert "member_number_unavailable" not in row.errors
+        assert (row.person_id, row.member_id) == (person.pk, member.pk)
+        assert result.counts["matching"] == 1
+
+
 class TestExcludedColumnsAndCatalogue:
     def test_sentinels_never_reach_the_result_or_the_logs(self, db, caplog):
         caplog.set_level(logging.DEBUG)
@@ -595,6 +696,7 @@ class TestNoWrites:
     def existing(self, make_person, make_member):
         make_member(person_with(make_person, dni(1)), member_number=901)
         make_member(person_with(make_person, dni(5)), member_number=12)
+        anonymised_member(make_person, make_member, 77)
 
     def _table_counts(self):
         with connection.cursor() as cursor:
@@ -625,6 +727,7 @@ class TestNoWrites:
         return [
             build([record(1), record(2), record(3, {"Document d'Identitat": dni(5)})]),
             build([record(1), record(1)]),
+            build([record(4, {"Nº Soci": "77"})]),  # número d'un soci d'una persona anonimitzada
             build([record(1)], headers=[*cluber.KNOWN_HEADERS, "IBAN"]),
             b"",
         ]

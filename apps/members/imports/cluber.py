@@ -123,6 +123,9 @@ MESSAGES = {
     "duplicate_document": _("El document es repeteix en una altra fila del fitxer."),
     "duplicate_member_number": _("El número de soci es repeteix en una altra fila del fitxer."),
     "identity_conflict": _("El document i el número de soci apunten a persones diferents."),
+    "member_number_unavailable": _(
+        "El número de soci no està disponible i cal que el revisi una persona autoritzada."
+    ),
     # Advertiments de fila
     "member_number_leading_zeros": _("El número de soci té zeros a l'esquerra."),
     "match_without_document_type": _("Coincidència sense tipus de document."),
@@ -356,7 +359,9 @@ def _match(rows: list) -> None:
     Per document: persones no anonimitzades (`Person.status` actiu), sigui quin sigui el seu
     compte o l'estat del soci; es compara només el número normalitzat, de qualsevol tipus,
     perquè l'exportació no porta el tipus (per això no es fa servir `find_duplicates`). Per
-    número: tots els socis, de qualsevol estat.
+    número: tots els socis, de qualsevol estat. Si el soci és d'una persona anonimitzada, el
+    número està ocupat: la fila és un conflicte bloquejant («member_number_unavailable») i no
+    en conserva cap dada.
     """
     readable = [r for r in rows if r.data]
     documents = {r.data["id_document"] for r in readable if r.data["id_document"]}
@@ -370,11 +375,17 @@ def _match(rows: list) -> None:
         for document, pk in people:
             by_document[document].append(pk)
     by_number = {}
+    # Números de socis de persones anonimitzades: ocupats, mai utilitzables per coincidir.
+    unavailable = set()
     if numbers:
         members = Member.objects.filter(member_number__in=numbers).values_list(
-            "member_number", "pk", "person_id", "person__id_document_number"
+            "member_number", "pk", "person_id", "person__id_document_number", "person__status"
         )
-        by_number = {number: (pk, person, doc) for number, pk, person, doc in members}
+        for number, pk, person, doc, status in members:
+            if status == Person.Status.ANONYMISED:
+                unavailable.add(number)
+            else:
+                by_number[number] = (pk, person, doc)
     member_of = {}
     single = {pks[0] for pks in by_document.values() if len(pks) == 1}
     if single:
@@ -387,6 +398,13 @@ def _match(rows: list) -> None:
         document = row.data["id_document"]
         number = row.data.get("member_number")
         people = by_document.get(document, []) if document else []
+        if number in unavailable:
+            # Preval sobre tota la resta. Res de l'antic titular no passa a la fila.
+            row.identity = "conflict"
+            row._error("member_number_unavailable", NUMBER)
+            if people:  # el document és d'una persona activa, per força una altra
+                row._error("identity_conflict", DOCUMENT)
+            continue
         if len(people) > 1:
             row.identity = "ambiguous"
             continue
