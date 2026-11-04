@@ -11,8 +11,9 @@ import itertools
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import DatabaseError, connection, transaction
 from django.http import Http404
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from apps.accounts.models import Account
@@ -27,7 +28,7 @@ from apps.members.models import (
     MembershipType,
     MemberStatusChange,
 )
-from apps.members.services import InvalidTransition, OwnMemberChange
+from apps.members.services import InactiveAccount, InvalidTransition, OwnMemberChange
 from conftest import CommittedDataTestCase, run_together
 
 S = Member.Status
@@ -92,9 +93,8 @@ def make_member(make_person, supporter):
         fields.setdefault("joined_on", JOINED)
         if status == S.LEFT:
             fields.setdefault("left_on", LEFT_ON)
-        return Member.objects.create(
-            person=person or make_person(), status=status, member_number=87, **fields
-        )
+        fields.setdefault("member_number", 87)
+        return Member.objects.create(person=person or make_person(), status=status, **fields)
 
     return make
 
@@ -160,6 +160,7 @@ class TestTransitionMatrix:
 
     def test_public_api_is_only_the_authorised_services(self):
         assert set(services.__all__) == {
+            "InactiveAccount",
             "InvalidTransition",
             "OwnMemberChange",
             "ensure_not_own_member",
@@ -584,11 +585,113 @@ class TestReadmission:
         assert snapshot(left_member)[0] == S.LEFT
         assert len(audit_entries(left_member, services.OWN_MEMBER_REJECTED)) == 1
 
+    def test_readmission_before_the_leave_is_rejected(self, left_member, join_request, actor):
+        with pytest.raises(ValidationError, match="anterior a la data de la baixa"):
+            readmit(
+                left_member, join_request, actor, effective_on=LEFT_ON - datetime.timedelta(days=1)
+            )
+        assert snapshot(left_member)[:3] == (S.LEFT, left_member.type_id, LEFT_ON)
+        assert len(history(left_member)) == 1
+
+    @pytest.mark.parametrize("days_after_leave", [0, 1])
+    def test_readmission_on_or_after_the_leave_is_accepted(
+        self, left_member, join_request, actor, days_after_leave
+    ):
+        effective_on = LEFT_ON + datetime.timedelta(days=days_after_leave)
+        readmit(left_member, join_request, actor, effective_on=effective_on)
+        assert snapshot(left_member)[0] == S.PENDING
+        assert history(left_member)[-1].effective_on == effective_on
+
     def test_future_readmission_date_is_rejected(self, left_member, join_request, actor):
         tomorrow = today() + datetime.timedelta(days=1)
         with pytest.raises(ValidationError):
             readmit(left_member, join_request, actor, effective_on=tomorrow)
         assert snapshot(left_member)[0] == S.LEFT
+
+
+# --- Compte no actiu ---------------------------------------------------------------------
+
+
+def _deactivate(account):
+    Account.objects.filter(pk=account.pk).update(status=Account.Status.DISABLED)
+
+
+class TestInactiveAccount:
+    @pytest.mark.parametrize("status", [Account.Status.DISABLED, Account.Status.PENDING])
+    def test_inactive_account_cannot_use_the_primitives(
+        self, left_member, join_request, make_member, full, status
+    ):
+        member = make_member(status=S.PENDING, member_number=88)
+        account = make_admin(Role.Code.SECRETARY)
+        Account.objects.filter(pk=account.pk).update(status=status)
+        account.refresh_from_db()
+        before, before_left = snapshot(member), snapshot(left_member)
+
+        with pytest.raises(InactiveAccount):
+            change(member, S.ACTIVE, account)
+        with pytest.raises(InactiveAccount):
+            services._change_type(member, full, by=account, effective_on=today())
+        with pytest.raises(InactiveAccount):
+            readmit(left_member, join_request, account)
+
+        assert (snapshot(member), snapshot(left_member)) == (before, before_left)
+        assert history(member) == []
+        assert len(history(left_member)) == 1
+
+    def test_stale_account_object_is_checked_against_the_database(self, make_member):
+        # L'objecte encara diu «actiu», però a la base de dades ja està desactivat.
+        member = make_member(status=S.PENDING)
+        account = make_admin(Role.Code.SECRETARY)
+        _deactivate(account)
+        assert account.is_active
+        with pytest.raises(InactiveAccount):
+            change(member, S.ACTIVE, account)
+        assert snapshot(member)[0] == S.PENDING
+        assert history(member) == []
+
+    def test_deactivated_treasurer_cannot_mark_unpaid(self, make_member, treasurer):
+        member = make_member(status=S.ACTIVE)
+        _deactivate(treasurer)
+        # La mateixa resposta amb l'objecte desfasat i amb l'objecte al dia, abans del permís.
+        for _attempt in ("desfasat", "al dia"):
+            with pytest.raises(InactiveAccount):
+                services.mark_unpaid(member, by=treasurer, effective_on=today(), reason=REASON)
+            treasurer.refresh_from_db()
+        assert snapshot(member)[0] == S.ACTIVE
+        assert history(member) == []
+
+    def test_deactivation_after_the_first_check_is_caught_inside_the_transaction(
+        self, make_member, actor, monkeypatch
+    ):
+        # Es desactiva just després de la comprovació d'abans de la transacció: la de dins,
+        # amb la fila del compte bloquejada, ho rebutja.
+        member = make_member(status=S.PENDING)
+        original = services.ensure_not_own_member
+
+        def check_then_deactivate(*args, **kwargs):
+            original(*args, **kwargs)
+            _deactivate(actor)
+
+        monkeypatch.setattr(services, "ensure_not_own_member", check_then_deactivate)
+        with pytest.raises(InactiveAccount):
+            change(member, S.ACTIVE, actor)
+        assert snapshot(member)[0] == S.PENDING
+        assert history(member) == []
+
+    def test_inactive_account_on_its_own_member_leaves_no_attempt(self, make_member):
+        # El compte no actiu es rebutja abans del conflicte d'interès: no hi ha intent nou.
+        member = make_member(status=S.ACTIVE)
+        own = make_admin(Role.Code.SECRETARY, person=member.person)
+        _deactivate(own)
+        with pytest.raises(InactiveAccount):
+            change(member, S.LEFT, own)
+        assert audit_entries(member) == []
+        assert history(member) == []
+
+    def test_system_actor_is_not_affected(self, make_member):
+        member = make_member(status=S.PENDING)
+        change(member, S.ACTIVE, SYSTEM, reason="")
+        assert snapshot(member)[0] == S.ACTIVE
 
 
 # --- Concurrència i registre de l'intent fora de transacció ----------------------------
@@ -645,6 +748,41 @@ class TestConcurrency(CommittedDataTestCase):
         assert sorted(run_together([_outcome(back), _outcome(back)])) == ["fet", "rebutjat"]
         assert Member.objects.get(pk=member.pk).status == S.PENDING
         assert [e.to_status for e in history(member)] == [S.LEFT, S.PENDING]
+
+    def test_locks_the_member_row_but_not_its_type(self):
+        # Prova executada, a més de la inspecció de la SQL. Mentre la transacció del canvi és
+        # oberta, una altra connexió no pot bloquejar el compte que actua ni el soci (aquest
+        # també el bloqueja l'UPDATE: el bloqueig explícit el fixa la comprovació de la SQL), però
+        # sí el tipus que el soci comparteix amb altres. Les claus foranes de Django es
+        # comproven en confirmar (DEFERRABLE): aleshores PostgreSQL pren un moment un bloqueig
+        # de clau compartida (FOR KEY SHARE) sobre el tipus, propi de la clau forana i no
+        # d'aquest servei, que no impedeix editar-ne la quota.
+        member = _committed_member(S.ACTIVE)
+        secretary = make_admin(Role.Code.SECRETARY)
+
+        def try_lock(model, pk):
+            def run():
+                try:
+                    with transaction.atomic():
+                        model.objects.select_for_update(nowait=True).get(pk=pk)
+                    return "lliure"
+                except DatabaseError:
+                    return "bloquejada"
+
+            return run
+
+        with CaptureQueriesContext(connection) as queries, transaction.atomic():
+            change(member, S.LEFT, secretary)
+            (member_lock,) = run_together([try_lock(Member, member.pk)])
+            (type_lock,) = run_together([try_lock(MembershipType, member.type_id)])
+            (account_lock,) = run_together([try_lock(Account, secretary.pk)])
+
+        assert (member_lock, type_lock, account_lock) == ("bloquejada", "lliure", "bloquejada")
+        (lock_sql,) = [q["sql"] for q in queries if 'FOR UPDATE OF "members_member"' in q["sql"]]
+        assert "membershiptype" not in lock_sql.split("FOR UPDATE", 1)[1]
+        assert any(
+            "FOR NO KEY UPDATE" in q["sql"] and "accounts_account" in q["sql"] for q in queries
+        )
 
     def test_own_member_attempt_is_committed_without_any_change(self):
         # Recorregut correcte: el punt d'entrada comprova el conflicte abans d'obrir la

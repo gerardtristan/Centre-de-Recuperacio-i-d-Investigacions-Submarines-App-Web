@@ -10,7 +10,9 @@ substituïdes):
   només es fa amb P9, també si s'entra per una altra banda; baixa → pendent, només amb
   `_readmit`.
 - Actor: un compte o el sistema (`audit.system(origen)`, amb `actor_account` buit a
-  l'historial). El sistema no marca ni desmarca l'impagat (RN-M01-09, 040) ni readmet.
+  l'historial). El sistema no marca ni desmarca l'impagat (RN-M01-09, 040) ni readmet. Un
+  compte que no és actiu no fa canvis nous (es llegeix de la base de dades dins la transacció).
+- Readmissió: no abans de la data de la baixa actual (el mateix dia, sí).
 - Conflicte d'interès (S-M01-22, sense excepcions): `ensure_not_own_member` registra l'intent i
   rebutja. Contracte: cada punt d'entrada el crida ABANS d'obrir la seva transacció; dins d'una
   transacció exterior que es desfà, el rebuig es manté però l'intent registrat es perd.
@@ -40,6 +42,7 @@ from apps.core.permissions import has_perm
 from .models import Member, MemberRequest, MemberStatusChange
 
 __all__ = [
+    "InactiveAccount",
     "InvalidTransition",
     "OwnMemberChange",
     "ensure_not_own_member",
@@ -71,6 +74,10 @@ class InvalidTransition(ValidationError):
     """Transició que RN-M01-07 no permet, o dades del soci que no la deixen fer."""
 
 
+class InactiveAccount(PermissionDenied):
+    """El compte que actua no és actiu (desactivat o pendent): no fa canvis nous."""
+
+
 class OwnMemberChange(PermissionDenied):
     """Conflicte d'interès: el compte és de la persona del soci (S-M01-22)."""
 
@@ -88,9 +95,25 @@ def _is_own(member, by) -> bool:
     return isinstance(by, Account) and by.person_id == member.person_id
 
 
+def _check_account_active(by, *, lock=False) -> None:
+    # Es llegeix de la base de dades: l'objecte pot estar desfasat. Amb `lock`, FOR NO KEY
+    # UPDATE fins al final de la transacció: una desactivació simultània espera, però no les
+    # claus foranes que apunten al compte (historial i registre).
+    if not isinstance(by, Account):
+        return
+    accounts = Account.objects.filter(pk=by.pk)
+    if lock:
+        accounts = accounts.select_for_update(no_key=True)
+    if accounts.values_list("status", flat=True).first() != Account.Status.ACTIVE:
+        raise InactiveAccount(_("Aquest compte no està actiu i no pot fer canvis."))
+
+
 def ensure_not_own_member(member, by, *, request=None) -> None:
     """Rebutja i registra l'intent si el compte és de la persona del soci. Cal cridar-lo
-    abans d'obrir la transacció de l'operació (vegeu el docstring del mòdul)."""
+    abans d'obrir la transacció de l'operació (vegeu el docstring del mòdul). Un compte no
+    actiu es rebutja abans (`InactiveAccount`), sense intent registrat, llevat que es desactivi
+    just entre aquesta comprovació i la de dins la transacció, que en tot cas impedeix el canvi."""
+    _check_account_active(by)
     if _is_own(member, by):
         audit.record(OWN_MEMBER_REJECTED, actor=by, target=member, request=request)
         raise OwnMemberChange(_("No pots canviar l'estat ni el tipus del teu propi soci."))
@@ -119,7 +142,7 @@ def _reason_required(from_status, to_status) -> bool:
     return to_status in (S.LEFT, S.UNPAID) or (from_status, to_status) == (S.UNPAID, S.ACTIVE)
 
 
-def _check_readmission(member, join_request, by) -> None:
+def _check_readmission(member, join_request, by, effective_on) -> None:
     if not isinstance(by, Account):
         raise ValidationError(_("Una readmissió l'aprova una persona, no el sistema."))
     if join_request is None:
@@ -146,6 +169,9 @@ def _check_readmission(member, join_request, by) -> None:
         or last.effective_on != member.left_on
     ):
         raise InvalidTransition(_("La baixa actual del soci no consta a l'historial."))
+    # Revisió de la T-M01-12: no abans de la baixa actual; el mateix dia, sí.
+    if effective_on < member.left_on:
+        raise ValidationError(_("La readmissió no pot ser anterior a la data de la baixa."))
 
 
 def _apply(
@@ -164,7 +190,9 @@ def _apply(
     _check_effective_on(effective_on)
     reason = (reason or "").strip()
     with transaction.atomic():
-        # Ordre dels bloquejos: soci i després sol·licitud. Es valida amb les files bloquejades.
+        # Ordre dels bloquejos: compte que actua, soci i després sol·licitud. Es valida amb les
+        # files bloquejades.
+        _check_account_active(by, lock=True)
         # `of=("self",)`: només la fila del soci, no la del tipus que s'hi uneix.
         locked = (
             Member.objects.select_for_update(of=("self",)).select_related("type").get(pk=member.pk)
@@ -190,7 +218,7 @@ def _apply(
             if with_p9 and not has_perm(by, UNPAID_PERMISSION):
                 raise Http404
             if pair == READMISSION:
-                _check_readmission(locked, join_request, by)
+                _check_readmission(locked, join_request, by, effective_on)
                 new_left_on = None
             if new_status == S.LEFT:
                 if effective_on < locked.joined_on:
@@ -235,6 +263,8 @@ def _apply(
 
 
 def _unpaid(member, to_status, *, by, effective_on, reason, request) -> Member:
+    # Abans del permís: un compte no actiu rep sempre la mateixa resposta.
+    _check_account_active(by)
     if not has_perm(by, UNPAID_PERMISSION):
         raise Http404
     ensure_not_own_member(member, by, request=request)
