@@ -8,6 +8,7 @@ amb el criteri de V-01: amb moltes peticions alhora, el compte i l'origen es blo
 que amb peticions d'una en una, i no s'avaluen més contrasenyes de les que permet el límit.
 """
 
+import copy
 import time
 from unittest import mock
 
@@ -210,6 +211,83 @@ class TestLinkLimitsConcurrent(CommittedDataTestCase):
         assert accepted == limits.ORIGIN_WINDOW.max_count
         # No toca l'entrada: cap intent fallit ni cap bloqueig.
         assert not FailedLogin.objects.exists()
+
+    # Reenviaments de la verificació alhora (066). Cada fil fa servir el seu propi client de
+    # proves; l'estat de 10 minuts es prepara abans, d'un en un, amb la contrasenya correcta.
+
+    @staticmethod
+    def pending_browser(ip, email="anna@example.org", session_of=None):
+        """Un navegador amb l'estat del reenviament. Amb `session_of`, una altra pestanya del
+        mateix navegador: un client nou amb la mateixa galeta de sessió (el mateix estat)."""
+        browser = Client(REMOTE_ADDR=ip)
+        if session_of is not None:
+            # Una còpia: cap objecte del client es comparteix entre fils.
+            browser.cookies = copy.deepcopy(session_of.cookies)
+            return browser
+        browser.post(reverse("accounts:login"), {"login": email, "password": PASSWORD})
+        assert email_links.RESEND_SESSION_KEY in browser.session
+        return browser
+
+    @staticmethod
+    def resend(browser):
+        return lambda: browser.post(reverse("accounts:resend_verification")).status_code
+
+    @staticmethod
+    def limited(scope):
+        return AuditEntry.objects.filter(
+            action=audit.Action.EMAIL_LINK_LIMITED, details__scope=scope
+        ).count()
+
+    def test_resends_to_one_recipient_from_many_origins(self):
+        # Límit per destinatari: 12 navegadors del mateix compte pendent, cadascun amb la seva
+        # sessió i el seu origen. Només en surten 3; la resta compten per al seu origen.
+        make_account()
+        browsers = [self.pending_browser(f"10.6.2.{i}") for i in range(12)]
+
+        assert run_together([self.resend(b) for b in browsers]) == [200] * 12
+
+        hour = limits.RECIPIENT_WINDOWS[0]
+        assert OutgoingEmail.objects.filter(template="verificacio-correu").count() == (
+            hour.max_count
+        )
+        assert self.limited("recipient") == 12 - hour.max_count
+        assert EmailLinkRequest.objects.filter(ip_address__startswith="10.6.2.").count() == 12
+
+    def test_resends_from_one_origin_for_many_accounts(self):
+        # Límit per origen: 14 comptes pendents diferents des d'una sola IP, cadascun amb el
+        # seu navegador. Cap destinatari arriba al seu límit; només n'accepta 10 l'origen.
+        browsers = []
+        for i in range(14):
+            make_account(f"soci{i}@example.org")
+            browsers.append(self.pending_browser("10.6.3.1", f"soci{i}@example.org"))
+
+        run_together([self.resend(b) for b in browsers])
+
+        window = limits.ORIGIN_WINDOW
+        assert EmailLinkRequest.objects.filter(ip_address="10.6.3.1").count() == (window.max_count)
+        assert OutgoingEmail.objects.filter(template="verificacio-correu").count() == (
+            window.max_count
+        )
+        assert self.limited("origin") == 14 - window.max_count
+        assert not FailedLogin.objects.exists()
+
+    def test_resends_from_one_state_in_many_tabs(self):
+        # Els dos límits alhora: 12 pestanyes amb el mateix estat i el mateix origen. Surten 3
+        # (destinatari); 7 més queden limitades per destinatari però compten, i fan les 10 de
+        # l'origen; les 2 últimes queden limitades per origen.
+        make_account()
+        first = self.pending_browser("10.6.4.1")
+        tabs = [first] + [self.pending_browser("10.6.4.1", session_of=first) for _ in range(11)]
+
+        run_together([self.resend(tab) for tab in tabs])
+
+        hour, window = limits.RECIPIENT_WINDOWS[0], limits.ORIGIN_WINDOW
+        assert OutgoingEmail.objects.filter(template="verificacio-correu").count() == (
+            hour.max_count
+        )
+        assert EmailLinkRequest.objects.filter(ip_address="10.6.4.1").count() == (window.max_count)
+        assert self.limited("recipient") == window.max_count - hour.max_count
+        assert self.limited("origin") == 12 - window.max_count
 
     def test_two_different_links_of_the_same_operation_at_once(self):
         # CA-M01-52: dos enllaços vigents i diferents, fets servir alhora: només un.

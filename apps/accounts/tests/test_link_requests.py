@@ -303,6 +303,57 @@ class TestResendVerification:
         limited = AuditEntry.objects.filter(action=audit.Action.EMAIL_LINK_LIMITED).get()
         assert limited.details == {"purpose": "verify", "scope": "recipient"}
 
+    def limited(self, scope):
+        return AuditEntry.objects.filter(
+            action=audit.Action.EMAIL_LINK_LIMITED, details__scope=scope
+        ).count()
+
+    def test_the_same_state_cannot_bypass_the_origin_limit(self, pending_account):
+        # 066: el mateix estat de 10 minuts, sense tornar a escriure la contrasenya. Des d'un
+        # origen amb 6 peticions acceptades: 3 reenviaments s'envien, el quart queda limitat
+        # per destinatari (i compta: ja en són 10) i el cinquè, per origen.
+        ip = "10.5.0.1"
+        for _ in range(WINDOW.max_count - PER_HOUR.max_count - 1):
+            ask_reset("ningu@example.org", ip=ip)
+        browser = Client(REMOTE_ADDR=ip)
+        self.login(browser)
+        answers = [browser.post(reverse(RESEND)) for _ in range(PER_HOUR.max_count + 2)]
+
+        assert sent(VERIFY_TEMPLATE, "pere@example.org") == PER_HOUR.max_count
+        sent_entries = AuditEntry.objects.filter(action=audit.Action.EMAIL_LINK_SENT)
+        assert sent_entries.count() == PER_HOUR.max_count
+        assert self.limited("recipient") == 1
+        assert self.limited("origin") == 1
+        assert EmailLinkRequest.objects.filter(ip_address=ip).count() == WINDOW.max_count
+        # La resposta és la mateixa en els tres casos, i l'estat continua vàlid.
+        assert len({response.context["message"] for response in answers}) == 1
+        assert not any(response.context["expired"] for response in answers)
+
+    def test_recipient_limited_resends_count_for_the_origin(self, pending_account):
+        # RN-M01-58 amb el text de la 066, amb reenviaments: 3 enviats i 7 limitats per
+        # destinatari fan les 10 de l'origen; els següents queden limitats per origen i no
+        # allarguen la finestra, que s'acaba 15 minuts després de la desena.
+        ip = "10.5.1.1"
+        browser = Client(REMOTE_ADDR=ip)
+        self.login(browser)
+        for _ in range(WINDOW.max_count):
+            browser.post(reverse(RESEND))
+        assert sent(VERIFY_TEMPLATE) == PER_HOUR.max_count
+        assert self.limited("recipient") == WINDOW.max_count - PER_HOUR.max_count
+        rows = EmailLinkRequest.objects.filter(ip_address=ip)
+        assert rows.count() == WINDOW.max_count
+        tenth = rows.latest("created_at").created_at
+        assert limits.origin_limited(ip)
+
+        for _ in range(5):
+            browser.post(reverse(RESEND))
+        assert self.limited("origin") == 5
+        assert rows.count() == WINDOW.max_count
+        assert rows.latest("created_at").created_at == tenth
+        assert limits.origin_limited(ip, now=tenth + limits.ORIGIN_COOLDOWN - timedelta(seconds=1))
+        assert not limits.origin_limited(ip, now=tenth + limits.ORIGIN_COOLDOWN)
+        assert sent(VERIFY_TEMPLATE) == PER_HOUR.max_count
+
     def test_each_resend_checks_the_state_again(self, client, pending_account):
         self.login(client)
         client.post(reverse(RESEND))
