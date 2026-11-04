@@ -57,6 +57,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-05](T-M01-05.md) | Comptes: tancament, **Feta** (aprovada pel responsable el 04/11/2026; no tanca la T-M01-38, la T-M00-06, la T-M01-39 ni les comprovacions de desplegament) | 04/11/2026 02:31 | e316e40 (referència) | 956 | verd (e316e40; confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01 (en part: `avatar_seed` aturat; pendent de revisió) | 04/11/2026 03:03 | 19ba4c7, a501793 | 1014 | verd (d3d1064, dues execucions; confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: llavor de l'avatar, decisions pendents i neteja de les proves (segona tanda; pendent de revisió) | 04/11/2026 12:21 | a0e111e, ba89284 | 1017 | [A comprovar] |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: format de la llavor, prova de la quota i readmissió (tercera tanda; pendent de revisió) | 04/11/2026 12:35 | 0ca680a, a34f5a1 | 1025 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
