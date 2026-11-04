@@ -19,6 +19,7 @@ from django.core import mail
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
+from apps.accounts.models import Account
 from apps.core.models import Person
 from apps.members.imports import cluber
 from apps.members.models import Member, MembershipType
@@ -128,9 +129,12 @@ class TestFileProfile:
         }
         first = result.rows[0]
         assert first.row == 2  # la capçalera és el registre 1
-        assert first.data["first_name"] == "Anna"
-        assert first.data["id_document"] == dni(1)
-        assert first.data["member_number"] == 901
+        # Només el que fa servir la previsualització: cap altra columna queda en memòria.
+        assert first.data == {
+            "member_number_text": "901",
+            "member_number": 901,
+            "id_document": dni(1),
+        }
 
     def test_no_row_is_ready_without_approved_equivalences(self, db):
         row = only_row(cluber.preview(build([record(1)])))
@@ -155,10 +159,12 @@ class TestFileProfile:
         assert result.warnings == ["no_document_type"]
 
     def test_quotes_separators_and_multiline_fields(self, db):
+        # L'adreça no es conserva: que la fila quedi ben llegida es veu en els camps de després.
         address = 'Carrer "Inventat"; 1\nPis 2'
         result = cluber.preview(build([record(1, {"Adreça": address}), record(2)]))
         assert result.counts["rows"] == 2
-        assert result.rows[0].data["address"] == address
+        assert not result.rows[0].errors
+        assert result.rows[0].data["id_document"] == dni(1)
         assert result.rows[1].row == 3
 
     def test_blank_lines_are_skipped(self, db):
@@ -192,6 +198,13 @@ class TestFileProfile:
         result = cluber.preview(build([record(1)], headers=headers))
         assert result.rejected == "duplicate_header"
         assert result.rejected_column == "Nom"
+
+    def test_repeated_unknown_header_is_named_by_position(self, db):
+        headers = [*cluber.KNOWN_HEADERS, "SENTINELLA-CAPCALERA-7Q", "SENTINELLA-CAPCALERA-7Q"]
+        result = cluber.preview(build([record(1)], headers=headers))
+        assert result.rejected == "duplicate_header"
+        assert result.rejected_column == f"#{len(cluber.KNOWN_HEADERS) + 1}"
+        assert "SENTINELLA-CAPCALERA" not in repr(result) + str(result.summary())
 
     def test_unknown_columns_are_a_warning(self, db):
         headers = [*cluber.KNOWN_HEADERS, "Columna nova"]
@@ -230,13 +243,34 @@ class TestLimits:
         assert result.rejected is None
         assert result.counts["rows"] == cluber.MAX_ROWS
 
-    def test_field_length_limit(self, db):
+    @pytest.mark.parametrize("column", ["Adreça", "Nom", "Document d'Identitat"])
+    def test_field_length_limit(self, db, column):
         long_ok = "a" * cluber.MAX_FIELD
-        assert not only_row(cluber.preview(build([record(1, {"Adreça": long_ok})]))).errors
-        row = only_row(cluber.preview(build([record(1, {"Adreça": long_ok + "a"})])))
+        assert not only_row(cluber.preview(build([record(1, {column: long_ok})]))).errors
+        row = only_row(cluber.preview(build([record(1, {column: long_ok + "a"})])))
         assert row.errors == ["field_too_long"]
-        assert row.error_columns == ["Adreça"]
+        assert row.error_columns == [column]
         assert row.data == {}
+
+    def test_field_limit_in_an_unknown_column(self, db):
+        headers = [*cluber.KNOWN_HEADERS, "SENTINELLA-CAPCALERA-7Q"]
+        values = {"SENTINELLA-CAPCALERA-7Q": "x" * (cluber.MAX_FIELD + 1)}
+        result = cluber.preview(build([record(1, values)], headers=headers))
+        row = only_row(result)
+        assert row.error_columns == [f"#{len(headers)}"]
+        assert "SENTINELLA-CAPCALERA" not in repr(result) + str(result.summary())
+
+    def test_field_over_the_csv_module_limit(self, db):
+        # Més llarg que el límit intern del mòdul csv (131.072), que no es canvia: el fitxer es
+        # rebutja sencer i el resultat no en conté res.
+        assert csv.field_size_limit() == 131_072
+        value = "SENTINELLA-LLARG-7Q" * (131_072 // 19 + 1)
+        assert len(value) > csv.field_size_limit()
+        result = cluber.preview(build([record(1, {"Adreça": value})]))
+        assert result.rejected == "malformed"
+        assert result.rejected_row == 2
+        assert result.rows == []
+        assert "SENTINELLA-LLARG" not in repr(result) + str(result.summary())
 
 
 class TestIban:
@@ -321,6 +355,14 @@ class TestMemberNumber:
         assert "member_number" not in row.data
         assert row.ready is False
 
+    def test_very_long_numbers_do_not_break_the_preview(self, db):
+        # Python no converteix a enter més de 4.300 xifres: ha de ser un error de la fila.
+        row = only_row(cluber.preview(build([record(1, {"Nº Soci": "9" * 5000})])))
+        assert row.errors == ["member_number_invalid"]
+        row = only_row(cluber.preview(build([record(1, {"Nº Soci": "0" * 5000 + "67"})])))
+        assert row.data["member_number"] == 67
+        assert "member_number_leading_zeros" in row.warnings
+
     def test_missing_number_is_pending(self, db):
         row = only_row(cluber.preview(build([record(1, {"Nº Soci": ""})])))
         assert "member_number" in row.pending
@@ -333,7 +375,7 @@ class TestRowValues:
         row = only_row(cluber.preview(build([record(1, values)])))
         assert {"first_name", "last_name", "email", "phone", "id_document"} <= set(row.pending)
         assert "id_document_type" not in row.pending  # sense document, no cal el tipus
-        assert row.data["first_name"] == "" and row.data["email"] == ""
+        assert row.data["id_document"] == ""
         assert not row.errors
 
     @pytest.mark.parametrize("email", ["-", "no-es-un-correu", "anna@"])
@@ -342,12 +384,9 @@ class TestRowValues:
         assert row.errors == ["email_invalid"]
         assert row.error_columns == ["Email"]
 
-    def test_values_keep_their_text(self, db):
-        values = {"Telèfon": "34600000001", "Document d'Identitat": "0001-r"}
-        row = only_row(cluber.preview(build([record(1, values)])))
-        assert row.data["phone"] == "34600000001"  # sense afegir cap «+»
+    def test_document_is_normalised_for_comparison(self, db):
+        row = only_row(cluber.preview(build([record(1, {"Document d'Identitat": "0001-r"})])))
         assert row.data["id_document"] == "0001R"
-        assert row.data["id_document_text"] == "0001-r"
 
 
 class TestDuplicatesInTheFile:
@@ -426,6 +465,25 @@ class TestMatchesWithTheDatabase:
         )
         assert only_row(cluber.preview(build([record(1)]))).identity == "new"
 
+    @pytest.mark.parametrize("account_status", [None, "pending", "disabled"])
+    def test_former_member_not_anonymised_is_detected(
+        self, db, make_person, make_member, account_status
+    ):
+        # «Activa» vol dir no anonimitzada: ni el compte ni la baixa del soci no hi compten.
+        person = person_with(make_person, dni(1))
+        if account_status:
+            account = Account.objects.create_personal(person, "antiga@example.org")
+            Account.objects.filter(pk=account.pk).update(status=account_status)
+        member = make_member(
+            person, member_number=67, status=Member.Status.LEFT, left_on=datetime.date(2025, 1, 1)
+        )
+        for number in ("67", ""):  # pel document i el número, i només pel document
+            row = only_row(cluber.preview(build([record(1, {"Nº Soci": number})])))
+            assert row.identity == "matching"
+            assert (row.person_id, row.member_id) == (person.pk, member.pk)
+        row = only_row(cluber.preview(build([record(2, {"Nº Soci": "67"})])))
+        assert row.identity == "conflict"  # el número d'una antiga sòcia amb un altre document
+
     def test_queries_are_bounded(self, db, make_person):
         person_with(make_person, dni(3))
         data = build([record(n) for n in range(1, 51)])
@@ -457,10 +515,77 @@ class TestExcludedColumnsAndCatalogue:
         assert result.catalogue["Quota"] == {"Quota inventada A": 3}
         assert "Estat inventat" not in caplog.text
 
-    def test_a_column_with_too_many_values_is_not_a_catalogue(self, db):
-        records = [record(n, {"Estat": f"Estat {n}"}) for n in range(1, cluber.MAX_CATALOGUE + 2)]
-        result = cluber.preview(build(records))
-        assert result.catalogue["Estat"] == cluber.MAX_CATALOGUE + 1  # només el recompte
+    def test_catalogue_detail_is_limited_and_the_omission_is_explicit(self, db):
+        def with_states(count):
+            return [record(n, {"Estat": f"Estat {n}"}) for n in range(1, count + 1)]
+
+        result = cluber.preview(build(with_states(cluber.MAX_CATALOGUE)))
+        assert len(result.catalogue["Estat"]) == cluber.MAX_CATALOGUE
+        assert result.catalogue_omitted == {}
+        result = cluber.preview(build(with_states(cluber.MAX_CATALOGUE + 1)))
+        assert "Estat" not in result.catalogue
+        assert result.catalogue_omitted == {"Estat": cluber.MAX_CATALOGUE + 1}
+        assert result.summary()["catalogue_omitted"] == {"Estat": cluber.MAX_CATALOGUE + 1}
+
+
+class TestSafeSummary:
+    """`repr` i `summary()` sense valors del fitxer; l'objecte intern sí que en té alguns."""
+
+    USED = {
+        "Nº Soci": "00067",
+        "Nom": "SENTINELLA-NOM-7Q",
+        "Cognoms": "SENTINELLA-COGNOMS-7Q",
+        "Telèfon": "34611122233",
+        "Document d'Identitat": "SENTINELLA-DOC-7Q",
+        "Email": "sentinella-correu-7q@example.org",
+        "Adreça": "SENTINELLA-ADRECA-7Q",
+        "Quota": "SENTINELLA-QUOTA-7Q",
+    }
+    HIDDEN = (
+        "SENTINELLA",
+        "SENTINELLADOC7Q",
+        "sentinella-correu",
+        "34611122233",
+        "00067",
+    )
+
+    def _result(self):
+        headers = [*cluber.KNOWN_HEADERS, "SENTINELLA-CAPCALERA-7Q"]
+        records = [record(1, self.USED), record(2, {**self.USED, "Email": "-"})]
+        return cluber.preview(build(records, headers=headers))
+
+    def test_repr_and_summary_show_no_values(self, db):
+        result = self._result()
+        text = repr(result) + repr(result.rows) + str(result.summary())
+        for value in self.HIDDEN:
+            assert value not in text
+
+    def test_internal_result_keeps_only_what_the_preview_uses(self, db):
+        result = self._result()
+        assert result.rows[0].data == {
+            "member_number_text": "00067",
+            "member_number": 67,
+            "id_document": "SENTINELLADOC7Q",
+        }
+        assert result.catalogue["Quota"] == {"SENTINELLA-QUOTA-7Q": 2}
+        assert result.unknown_columns == ["SENTINELLA-CAPCALERA-7Q"]
+
+    def test_summary_contents(self, db):
+        summary = self._result().summary()
+        assert summary["rejected"] is None
+        assert summary["counts"]["rows"] == 2
+        assert summary["unknown_columns"] == 1
+        assert summary["catalogue"]["Quota"] == 1  # nombre de valors diferents, sense valors
+        # Les dues files tenen el mateix document i número; la segona, a més, un correu invàlid.
+        assert summary["rows"][1] == {
+            "row": 3,
+            "identity": "new",
+            "ready": False,
+            "errors": ["email_invalid", "duplicate_document", "duplicate_member_number"],
+            "error_columns": ["Email", "Document d'Identitat", "Nº Soci"],
+            "warnings": ["member_number_leading_zeros"],
+            "pending": ["id_document_type", "member_type", "member_status", "joined_on"],
+        }
 
 
 class TestNoWrites:

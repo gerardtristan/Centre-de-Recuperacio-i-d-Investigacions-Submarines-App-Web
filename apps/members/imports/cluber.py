@@ -1,24 +1,28 @@
 """Importació de Cluber, fase de prova (T-M01-24; P-M01-G, passos 1 a 3).
 
-`preview(data)` llegeix l'exportació en CSV, la valida i en torna el resum. Precisions aplicades
+`preview(data)` llegeix l'exportació en CSV, la valida i en torna el resultat. Precisions aplicades
 (docs/planning.md, lectura de les tasques substituïdes, files de la T-M01-24):
 
 - No escriu res: a la base de dades només fa consultes de lectura (tres com a màxim), i no
   escriu a la sessió, al disc ni a la cua. El registre de l'execució, el permís (P18) i la
   presentació del resum són del punt d'entrada que la cridi, que encara no existeix.
-- Perfil CSV inicial, no confirmat per Q-23: UTF-8 amb BOM opcional, separador «;», cometes del
-  mòdul `csv`, 1 MiB, 2.000 registres de dades i 10.000 caràcters per camp. Sense heurístiques.
+- Perfil CSV inicial revisable, no confirmat per Q-23: UTF-8 amb BOM opcional, separador «;»,
+  cometes del mòdul `csv`, 1 MiB, 2.000 registres de dades i 10.000 caràcters per camp.
 - Una columna d'IBAN (capçalera «iban» normalitzada, sense àlies) rebutja el fitxer sencer en
-  llegir la capçalera, abans de cap fila (RN-94, CA-M01-21).
+  llegir la capçalera, abans de cap fila (RN-94, CA-M01-21). Un IBAN dins d'una altra columna no
+  es detecta (risc conegut).
 - Cap equivalència aprovada per al tipus de soci, l'estat ni la data d'alta: cap fila no és
   preparada per importar, i aquestes dades surten com a pendents. No s'inventa res.
-- Els errors porten la fila, la columna i un codi, mai cap valor del fitxer. Els valors de les
-  columnes de catàleg sí que surten al resum: informació no fiable i potencialment personal, que
-  no va als registres. Les columnes que no s'utilitzen es llegeixen (cal processar la fila) però
-  el seu valor no passa al resultat.
+- Dades en memòria: de cada fila només el document normalitzat i el número de soci (amb el text
+  original), que són el que fa servir la previsualització. Les altres columnes es llegeixen
+  (cal processar la fila) però el seu valor no passa al resultat. `repr` no mostra aquestes
+  dades, ni els valors de catàleg, ni els noms de columna desconeguts; això no impedeix altres
+  serialitzacions (`dataclasses.asdict`, `vars`, `pickle`). L'únic que es pot mostrar o
+  registrar sense cap valor del fitxer és `Preview.summary()`.
 
 La fila (`row`) és el número de registre, amb la capçalera com a 1: un camp de diverses línies
-compta com una sola fila, com en un full de càlcul.
+compta com una sola fila, com en un full de càlcul. Una columna que no es reconeix s'identifica
+per la seva posició («#33»), perquè el seu nom ve del fitxer.
 """
 
 import csv
@@ -32,13 +36,13 @@ from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Person
-from apps.core.normalization import normalize_document, normalize_email, normalize_phone
+from apps.core.normalization import normalize_document
 from apps.members.models import Member
 
 MAX_BYTES = 1024 * 1024
 MAX_ROWS = 2000
 MAX_FIELD = 10_000
-# Més valors diferents que aquests i la columna no es tracta com un catàleg: només el recompte.
+# Amb més valors diferents, el detall s'omet i només se'n dona el recompte.
 MAX_CATALOGUE = 50
 MAX_MEMBER_NUMBER = 2_147_483_647  # rang de PositiveIntegerField a PostgreSQL
 
@@ -81,15 +85,15 @@ KNOWN_HEADERS = (
 )
 IBAN_HEADERS = frozenset({"iban"})  # comparació exacta normalitzada; cap àlies aprovat
 
-# Concepte → capçalera. Només les correspondències directes; la resta de columnes és pendent.
 NUMBER = "Nº Soci"
 FIRST_NAME = "Nom"
 LAST_NAME = "Cognoms"
 DOCUMENT = "Document d'Identitat"
 EMAIL = "Email"
 PHONE = "Telèfon"
-ADDRESS = "Adreça"
 REQUIRED_HEADERS = (NUMBER, FIRST_NAME, LAST_NAME, DOCUMENT)
+# Presència comprovada (si falta, queda pendent); el valor no es conserva.
+PRESENCE = {FIRST_NAME: "first_name", LAST_NAME: "last_name", EMAIL: "email", PHONE: "phone"}
 CATALOGUE_HEADERS = ("Quota", "Estat", "Renovació")
 # Sense cap equivalència aprovada (S-M01-16, Q-23): pendents a totes les files.
 UNMAPPED = ("member_type", "member_status", "joined_on")
@@ -136,10 +140,15 @@ MESSAGES = {
 }
 
 
+def _label(header: str, position: int) -> str:
+    """Nom de la columna si és reconegut; si no, la posició, perquè el nom ve del fitxer."""
+    return header if header in KNOWN_HEADERS else f"#{position + 1}"
+
+
 @dataclass
 class Row:
     row: int
-    data: dict = field(default_factory=dict)
+    data: dict = field(default_factory=dict, repr=False)
     # Identitat: "new", "matching", "ambiguous", "conflict"; None si la fila no s'ha pogut llegir.
     identity: str | None = None
     person_id: int | None = None
@@ -157,6 +166,17 @@ class Row:
         self.errors.append(code)
         self.error_columns.append(column)
 
+    def summary(self) -> dict:
+        return {
+            "row": self.row,
+            "identity": self.identity,
+            "ready": self.ready,
+            "errors": list(self.errors),
+            "error_columns": list(self.error_columns),
+            "warnings": list(self.warnings),
+            "pending": list(self.pending),
+        }
+
 
 @dataclass
 class Preview:
@@ -165,8 +185,10 @@ class Preview:
     rejected_row: int | None = None
     rows: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
-    unknown_columns: list = field(default_factory=list)
-    catalogue: dict = field(default_factory=dict)
+    unknown_columns: list = field(default_factory=list, repr=False)
+    # Valors de catàleg: no fiables i potencialment personals; fora de `repr` i de `summary()`.
+    catalogue: dict = field(default_factory=dict, repr=False)
+    catalogue_omitted: dict = field(default_factory=dict)
 
     @property
     def counts(self) -> dict:
@@ -181,14 +203,28 @@ class Preview:
             "ready": sum(1 for r in self.rows if r.ready),
         }
 
+    def summary(self) -> dict:
+        """Resum sense cap valor del fitxer: el que es pot mostrar o registrar."""
+        return {
+            "rejected": self.rejected,
+            "rejected_column": self.rejected_column,
+            "rejected_row": self.rejected_row,
+            "counts": self.counts,
+            "warnings": list(self.warnings),
+            "unknown_columns": len(self.unknown_columns),
+            "catalogue": {column: len(values) for column, values in self.catalogue.items()},
+            "catalogue_omitted": dict(self.catalogue_omitted),
+            "rows": [r.summary() for r in self.rows],
+        }
+
 
 def _reject(code, *, column="", row=None) -> Preview:
     return Preview(rejected=code, rejected_column=column, rejected_row=row)
 
 
 def preview(data: bytes) -> Preview:
-    """Valida l'exportació de Cluber sense escriure res i en torna el resum."""
-    # La mida es comprova abans de descodificar: res no creix més que el fitxer acotat.
+    """Valida l'exportació de Cluber sense escriure res i en torna el resultat."""
+    # La mida es comprova abans de descodificar: el text i el lector queden acotats per 1 MiB.
     if len(data) > MAX_BYTES:
         return _reject("too_large")
     try:
@@ -199,8 +235,9 @@ def preview(data: bytes) -> Preview:
         return _reject("empty")
 
     # El lector va registre a registre: no es llegeix cap fila abans de validar la capçalera.
-    # El límit propi del mòdul csv (131.072 caràcters) no es toca perquè és global del procés:
-    # un camp que el supera fa rebutjar el fitxer com a «malformed».
+    # El límit aprovat (MAX_FIELD) es comprova a cada fila. El límit intern del mòdul csv
+    # (131.072 caràcters) no es canvia perquè afecta tot el procés: un camp que el supera fa
+    # rebutjar el fitxer com a «malformed», sense res del seu contingut.
     reader = csv.reader(io.StringIO(text, newline=""), delimiter=";", strict=True)
     try:
         headers = [h.strip() for h in next(reader)]
@@ -209,11 +246,13 @@ def preview(data: bytes) -> Preview:
 
     if any(h.lower() in IBAN_HEADERS for h in headers):
         return _reject("iban_column")
-    repeated = [h for h, n in Counter(headers).items() if n > 1]
-    if repeated:
-        return _reject("duplicate_header", column=repeated[0])
+    seen = set()
+    for header in headers:
+        if header in seen:
+            return _reject("duplicate_header", column=_label(header, headers.index(header)))
+        seen.add(header)
     for required in REQUIRED_HEADERS:
-        if required not in headers:
+        if required not in seen:
             return _reject("missing_header", column=required)
 
     result = Preview(warnings=["no_document_type"])
@@ -236,12 +275,12 @@ def preview(data: bytes) -> Preview:
             if len(values) != len(headers):
                 row._error("field_count", "")
                 continue
-            too_long = [headers[i] for i, v in enumerate(values) if len(v) > MAX_FIELD]
+            too_long = [i for i, v in enumerate(values) if len(v) > MAX_FIELD]
             if too_long:
-                for column in too_long:
-                    row._error("field_too_long", column)
+                for i in too_long:
+                    row._error("field_too_long", _label(headers[i], i))
                 continue
-            _read_row(row, {h: values[i].strip() for h, i in index.items()})
+            _read_row(row, values, index)
             for column, counter in catalogue.items():
                 if value := values[index[column]].strip():
                     counter[value] += 1
@@ -250,53 +289,52 @@ def preview(data: bytes) -> Preview:
 
     if not result.rows:
         return _reject("no_rows")
-    result.catalogue = {
-        column: dict(counter) if len(counter) <= MAX_CATALOGUE else len(counter)
-        for column, counter in catalogue.items()
-    }
+    for column, counter in catalogue.items():
+        if len(counter) <= MAX_CATALOGUE:
+            result.catalogue[column] = dict(counter)
+        else:
+            result.catalogue_omitted[column] = len(counter)
     _mark_duplicates(result.rows)
     _match(result.rows)
     return result
 
 
-def _read_row(row: Row, values: dict) -> None:
-    """Copia només les columnes utilitzades; la resta no passa al resultat."""
-    number_text = values[NUMBER]
-    document_text = values[DOCUMENT]
-    email = values.get(EMAIL, "")
+def _read_row(row: Row, values: list, index: dict) -> None:
+    """Valida la fila i en conserva només el document normalitzat i el número de soci."""
+
+    def value(header):
+        return values[index[header]].strip() if header in index else ""
+
+    number_text = value(NUMBER)
     row.data = {
         "member_number_text": number_text,
-        "first_name": values[FIRST_NAME],
-        "last_name": values[LAST_NAME],
-        "id_document_text": document_text,
-        "id_document": normalize_document(document_text),
-        "email": normalize_email(email),
-        "phone": normalize_phone(values.get(PHONE, "")),
-        "address": values.get(ADDRESS, ""),
+        "id_document": normalize_document(value(DOCUMENT)),
     }
 
+    # Sense els zeros de l'esquerra, i amb la llargada comprovada abans de convertir-lo: int() no
+    # accepta més de 4.300 xifres i el camp en pot tenir fins a 10.000.
+    significant = number_text.lstrip("0")
     if not number_text:
         row.pending.append("member_number")
-    elif _NUMBER_RE.fullmatch(number_text) and 1 <= int(number_text) <= MAX_MEMBER_NUMBER:
-        row.data["member_number"] = int(number_text)
+    elif (
+        _NUMBER_RE.fullmatch(number_text)
+        and 1 <= len(significant) <= len(str(MAX_MEMBER_NUMBER))
+        and int(significant) <= MAX_MEMBER_NUMBER
+    ):
+        row.data["member_number"] = int(significant)
         if number_text.startswith("0"):
             row.warnings.append("member_number_leading_zeros")
     else:
         row._error("member_number_invalid", NUMBER)
 
-    if email:
+    if email := value(EMAIL):
         try:
             validate_email(email)
         except ValidationError:
             row._error("email_invalid", EMAIL)
 
-    for key in ("first_name", "last_name", "email", "phone"):
-        if not row.data[key]:
-            row.pending.append(key)
-    if row.data["id_document"]:
-        row.pending.append("id_document_type")
-    else:
-        row.pending.append("id_document")
+    row.pending.extend(code for header, code in PRESENCE.items() if not value(header))
+    row.pending.append("id_document_type" if row.data["id_document"] else "id_document")
     row.pending.extend(UNMAPPED)
 
 
@@ -315,8 +353,10 @@ def _mark_duplicates(rows: list) -> None:
 def _match(rows: list) -> None:
     """Coincidències amb la base de dades (RN-95): només lectures, cap fusió ni assignació.
 
-    El document es compara només pel número normalitzat, amb persones actives de qualsevol
-    tipus, perquè l'exportació no porta el tipus: per això no es fa servir `find_duplicates`.
+    Per document: persones no anonimitzades (`Person.status` actiu), sigui quin sigui el seu
+    compte o l'estat del soci; es compara només el número normalitzat, de qualsevol tipus,
+    perquè l'exportació no porta el tipus (per això no es fa servir `find_duplicates`). Per
+    número: tots els socis, de qualsevol estat.
     """
     readable = [r for r in rows if r.data]
     documents = {r.data["id_document"] for r in readable if r.data["id_document"]}
@@ -354,8 +394,11 @@ def _match(rows: list) -> None:
         by_num = by_number.get(number) if number else None
         own_member = member_of.get(person)
         conflict = (
+            # El document i el número apunten a persones diferents.
             (person and by_num and by_num[1] != person)
+            # El document és d'un soci amb un altre número.
             or (person and not by_num and number and own_member and own_member[1] is not None)
+            # El número és d'un soci amb un altre document.
             or (by_num and not person and document and by_num[2] and by_num[2] != document)
         )
         if conflict:
