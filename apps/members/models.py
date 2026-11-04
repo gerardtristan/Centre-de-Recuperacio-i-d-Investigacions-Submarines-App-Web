@@ -81,6 +81,8 @@ class Member(models.Model):
         _("identificador de Cluber"), max_length=40, null=True, blank=True
     )
     # Fixada en l'alta per a l'avatar futur; un disparador impedeix canviar-la (members/0004).
+    # Només la genera `new_avatar_seed`, des del servei d'alta (T-M01-14). El format de 64
+    # caràcters hexadecimals (members/0005) no demostra que sigui aleatòria.
     avatar_seed = models.CharField(
         _("llavor de l'avatar"), max_length=64, default=new_avatar_seed, editable=False
     )
@@ -108,6 +110,10 @@ class Member(models.Model):
             ),
             # Destí de la clau forana composta de `MemberRequest` (migració 0001).
             models.UniqueConstraint(fields=["id", "person"], name="member_id_person"),
+            models.CheckConstraint(
+                condition=Q(avatar_seed__regex=r"^[0-9a-f]{64}$"),
+                name="member_avatar_seed_hex64",
+            ),
         ]
         indexes = [models.Index(fields=["status", "type"], name="member_status_type_idx")]
 
@@ -308,9 +314,10 @@ class AnnualFee(UndeletableModel):
     """Quota d'un soci sobre un càrrec de la 00 (RN-M01-51: no s'esborra). L'import i l'estat
     són els del càrrec. La generació i el venciment (P-29) són de la T-M01-14 i la T-M01-18.
 
-    Que el càrrec sigui de la persona del soci i de tipus «quota» (M01-6) ho garanteix el servei
-    que crea les quotes (T-M01-14), no la base de dades: caldrien columnes duplicades aquí i una
-    restricció nova al `Charge` de la 00 (lectura de la 060)."""
+    Que el càrrec sigui de la persona del soci i de tipus «quota» (M01-6) NO està garantit encara:
+    la base de dades no ho comprova (caldrien columnes duplicades aquí i una restricció nova al
+    `Charge` de la 00). Ho ha de fer el servei que crea les quotes, amb una prova que ho rebutgi,
+    a la T-M01-14, la T-M01-17 i la T-M01-18 (lectura de la 060)."""
 
     class Kind(models.TextChoices):
         ANNUAL = "annual", _("Quota anual")

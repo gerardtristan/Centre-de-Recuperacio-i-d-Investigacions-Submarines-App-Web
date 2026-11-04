@@ -127,6 +127,24 @@ class TestMember:
                     [other_seed, member.pk],
                 )
 
+    @pytest.mark.parametrize(
+        "bad_seed",
+        ["", "abc", "A" * 64, "g" * 64, "0" * 63, "0" * 65, " " + "0" * 63],
+        ids=["buida", "curta", "majuscules", "no-hex", "63", "65", "espai"],
+    )
+    def test_avatar_seed_must_be_64_lowercase_hex(self, make_member, bad_seed):
+        # Només el format de token_hex(32); no demostra que sigui aleatòria.
+        # 65 caràcters ja els rebutja la longitud de la columna (DataError).
+        rejected(lambda: make_member(avatar_seed=bad_seed), DatabaseError)
+
+    def test_anonymising_other_data_is_not_blocked(self, member):
+        # El disparador i el format només afecten la llavor (T-M01-22 pot anonimitzar la resta).
+        seed = member.avatar_seed
+        Person.objects.filter(pk=member.person_id).update(first_name="Anònim", last_name="")
+        Member.objects.filter(pk=member.pk).update(cluber_id=None)
+        member.refresh_from_db()
+        assert member.avatar_seed == seed
+
     def test_saving_other_fields_keeps_the_seed(self, member):
         seed = member.avatar_seed
         member.status = Member.Status.ACTIVE
