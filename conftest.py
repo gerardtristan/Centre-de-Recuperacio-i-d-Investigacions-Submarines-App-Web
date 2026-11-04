@@ -84,6 +84,9 @@ class CommittedDataTestCase(TransactionTestCase):
             # claus foranes pendents a la mateixa taula.
             for table, _ in self._tables:
                 cursor.execute(f'ALTER TABLE "{table}" DISABLE TRIGGER USER')
+            # Les restriccions diferibles que es comproven a l'instant (members/0001) esperen
+            # al final: l'ordre dels DELETE no segueix el de les claus foranes.
+            cursor.execute("SET CONSTRAINTS ALL DEFERRED")
             for table, column in self._tables:
                 cursor.execute(
                     f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
