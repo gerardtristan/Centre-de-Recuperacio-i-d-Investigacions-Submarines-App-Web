@@ -58,7 +58,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01 (en part: `avatar_seed` aturat; pendent de revisió) | 04/11/2026 03:03 | 19ba4c7, a501793 | 1014 | verd (d3d1064, dues execucions; confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: llavor de l'avatar, decisions pendents i neteja de les proves (segona tanda; pendent de revisió) | 04/11/2026 12:21 | a0e111e, ba89284 | 1017 | verd a 28cd481, que la inclou (confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: format de la llavor, prova de la quota i readmissió (tercera tanda; pendent de revisió) | 04/11/2026 12:35 | 0ca680a, a34f5a1 | 1025 | verd (28cd481, dues execucions; confirmat pel responsable) |
-| [T-M01-11](T-M01-11.md) | Models del mòdul 01: readmissió i llavor de Cluber (quarta tanda, només documentació; pendent de revisió) | 04/11/2026 12:40 | 48d9ed6 | 1025 | [A comprovar] |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: readmissió i llavor de Cluber (quarta tanda, només documentació; pendent de revisió) | 04/11/2026 12:40 | 48d9ed6 | 1025 | verd (7b2c586, dues execucions; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: decisió de la readmissió i pregunta de les quotes (cinquena tanda, només documentació; pendent de revisió) | 04/11/2026 12:48 | 1c87847 | 1025 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
