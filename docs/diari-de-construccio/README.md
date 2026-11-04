@@ -51,7 +51,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-02](T-M01-02.md) | Wireframes que falten del mòdul 01 (revisió aprovada el 03/11/2026) | 03/11/2026 02:13 | 994c200, 28402de, 961117b, f37c182, 2d86a35, 2ab6390, a1c9adc, ac5aaf6, 6c0ba5b, 9b69ff9 | 795 | verd (PR #4, dues execucions; també a 47d9b84; tancament a aca95cc) |
 | [T-M01-05](T-M01-05.md) | Comptes: correu, doble factor personal, restabliment i càrrega (segona tanda, en part) | 03/11/2026 17:05 | 3e4b1ae, be08bed, cd80f9e, c5dc59f, 5b75d08, 43673af | 880 | verd (PR #4, sis feines, dues execucions; confirmat pel responsable) |
 | [T-M01-05](T-M01-05.md) | Comptes: demanar els enllaços i restablir un altre compte (tercera tanda; pendent de revisió) | 03/11/2026 18:14 | a8fe478, cf5e7f3, 0802245, 2b671cd | 926 | verd (0bfcee8; confirmat pel responsable) |
-| [T-M01-05](T-M01-05.md) | Comptes: revisió al navegador i correcció dels formularis dels enllaços (E1; en part) | 03/11/2026 21:15 | ad5d53d | 946 | [A comprovar] |
+| [T-M01-05](T-M01-05.md) | Comptes: revisió al navegador i correcció dels formularis dels enllaços (E1; en part) | 03/11/2026 21:15 | ad5d53d | 946 | verd (942b80a; confirmat pel responsable) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
