@@ -70,7 +70,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: número d'un soci d'una persona anonimitzada (tercera tanda, en part; pendent de revisió) | 04/11/2026 18:14 | 66348b5, ce7bbaa | 1208 | verd a #89 (PR #4; comprovat visualment pel responsable); associació amb bf1eef6 [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: nucli compartit del lot i de la línia, procedència i CA-20.8 (quarta tanda, en part; pendent de revisió) | 04/11/2026 18:49 | bbdfb96, 3d64cff | 1282 | vermell a #92 (5add66b) i #93 (PR #4): dates dels lots de prova |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: correcció de la cronologia dels lots de prova (CI #92 i #93; en part) | 04/11/2026 | 366c1d4 | 1291 | verd a #94 (push de 26fae2f) i #95 (PR #4); comprovat visualment pel responsable |
-| [T-M01-24](T-M01-24.md) | Importació de Cluber: autorevisió ampliada (NUL, restriccions exactes i restauració de migracions; en part; revisió independent pendent) | 04/11/2026 19:42 | 18a393b, 7adbf6d, b3f1276 | 1292 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: autorevisió ampliada (NUL, restriccions exactes i restauració de migracions; en part; revisió independent pendent) | 04/11/2026 19:42 | 18a393b, 7adbf6d, b3f1276 | 1292 | verd a #96 (push de 6a18a75) i #97 (PR #4); comprovat visualment pel responsable |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: correccions de la segona revisió d'IA (capçaleres, llargades i conflicte; en part; revisió humana pendent) | 04/11/2026 20:17 | 1874e4a, e878958 | 1310 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
