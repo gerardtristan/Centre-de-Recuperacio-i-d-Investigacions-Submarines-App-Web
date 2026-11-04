@@ -596,12 +596,33 @@ class TestAnonymisedMemberNumber:
 
 
 def make_batch(account, status, kind=ImportBatch.Kind.CLUBER):
-    values = {"kind": kind, "status": status, "file_sha256": "0" * 64, "created_by": account}
+    # Totes les dates surten d'un sol instant: amb crides separades a now(), `created_at` (que
+    # es calcula dins de create()) podia quedar després de `confirmed_at` (CI #92 i #93).
+    base = timezone.now()
+    values = {
+        "kind": kind,
+        "status": status,
+        "file_sha256": "0" * 64,
+        "created_by": account,
+        "created_at": base,
+    }
     if status in (ImportBatch.Status.CONFIRMED, ImportBatch.Status.UNDONE):
-        values.update(confirmed_by=account, confirmed_at=timezone.now())
+        values.update(confirmed_by=account, confirmed_at=base + datetime.timedelta(minutes=1))
     if status == ImportBatch.Status.UNDONE:
-        values.update(undone_by=account, undone_at=timezone.now())
+        values.update(undone_by=account, undone_at=base + datetime.timedelta(minutes=2))
     return ImportBatch.objects.create(**values)
+
+
+@pytest.mark.parametrize("status", ["preview", "confirmed", "undone", "rejected"])
+def test_make_batch_chronology(db, admin_account, status):
+    # Regressió del CI #92 i #93: cronologia determinista, sense dependre del rellotge.
+    batch = make_batch(admin_account, status)
+    batch.refresh_from_db()
+    minute = datetime.timedelta(minutes=1)
+    if batch.confirmed_at:
+        assert batch.confirmed_at - batch.created_at == minute
+    if batch.undone_at:
+        assert batch.undone_at - batch.confirmed_at == minute
 
 
 class TestAlreadyImported:

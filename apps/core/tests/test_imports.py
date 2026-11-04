@@ -20,6 +20,7 @@ from apps.members.models import LicenceRecord, Member, MembershipType
 from conftest import CommittedDataTestCase
 
 SHA = hashlib.sha256(b"fitxer-inventat").hexdigest()
+HOUR = datetime.timedelta(hours=1)
 
 
 def later():
@@ -34,12 +35,19 @@ def rejected(make, error=IntegrityError):
 @pytest.fixture
 def make_batch(admin_account):
     def make(status=ImportBatch.Status.CONFIRMED, kind=ImportBatch.Kind.CLUBER, **fields):
-        values = {"kind": kind, "status": status, "file_sha256": SHA, "created_by": admin_account}
-        moment = later()
+        # Un sol instant per a totes les dates (sense crides separades a now()).
+        base = timezone.now()
+        values = {
+            "kind": kind,
+            "status": status,
+            "file_sha256": SHA,
+            "created_by": admin_account,
+            "created_at": base,
+        }
         if status in (ImportBatch.Status.CONFIRMED, ImportBatch.Status.UNDONE):
-            values.update(confirmed_by=admin_account, confirmed_at=moment)
+            values.update(confirmed_by=admin_account, confirmed_at=base + HOUR)
         if status == ImportBatch.Status.UNDONE:
-            values.update(undone_by=admin_account, undone_at=moment)
+            values.update(undone_by=admin_account, undone_at=base + 2 * HOUR)
         values.update(fields)
         return ImportBatch.objects.create(**values)
 
@@ -126,8 +134,28 @@ class TestImportBatch:
         yesterday = timezone.now() - datetime.timedelta(days=1)
         rejected(lambda: make_batch(confirmed_at=yesterday))
         rejected(lambda: make_batch(ImportBatch.Status.UNDONE, undone_at=yesterday))
-        same = make_batch(ImportBatch.Status.UNDONE)
-        assert same.undone_at == same.confirmed_at
+        # El mateix instant per a les tres dates s'accepta (≥, no >).
+        moment = timezone.now()
+        same = make_batch(
+            ImportBatch.Status.UNDONE, created_at=moment, confirmed_at=moment, undone_at=moment
+        )
+        assert same.created_at == same.confirmed_at == same.undone_at
+
+    def test_confirmation_a_microsecond_before_creation_is_rejected(self, make_batch):
+        # El cas del CI #92: la restricció no té cap tolerància.
+        moment = timezone.now()
+        before = moment - datetime.timedelta(microseconds=1)
+        rejected(lambda: make_batch(created_at=moment, confirmed_at=before))
+
+    @pytest.mark.parametrize("status", ["preview", "confirmed", "undone", "rejected"])
+    def test_fixture_chronology(self, make_batch, status):
+        # Regressió del CI #92 i #93: cronologia determinista, sense dependre del rellotge.
+        batch = make_batch(status)
+        batch.refresh_from_db()
+        if batch.confirmed_at:
+            assert batch.confirmed_at - batch.created_at == HOUR
+        if batch.undone_at:
+            assert batch.undone_at - batch.confirmed_at == HOUR
 
     def test_only_one_confirmed_cluber_batch(self, make_batch):
         make_batch()
