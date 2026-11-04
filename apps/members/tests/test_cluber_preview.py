@@ -679,6 +679,47 @@ class TestAlreadyImported:
         assert set(cluber.MESSAGES) - file_level == set(IMPORT_LINE_CODES)
 
 
+NUL_VALUE = "SENTINELLA-NUL-7Q\x00X"
+
+
+def with_nul(where):
+    """Fitxer correcte, amb un NUL al lloc indicat (dades inventades)."""
+    headers = [*cluber.KNOWN_HEADERS, "Columna nova"]
+    if where == "header":
+        headers[1] = "No\x00m"
+        return build([record(1)], headers=headers)
+    column = {
+        "document": "Document d'Identitat",
+        "used": "Email",
+        "excluded": "Informació addicional",
+        "unknown": "Columna nova",
+    }[where]
+    return build([record(1, {column: NUL_VALUE}), record(2)], headers=headers)
+
+
+class TestNulCharacter:
+    """Un NUL fa rebutjar el fitxer sencer abans de llegir cap registre (abans, `DataError`)."""
+
+    @pytest.mark.parametrize("where", ["document", "used", "excluded", "unknown", "header"])
+    def test_rejected_before_any_row_or_match(self, db, caplog, where):
+        caplog.set_level(logging.DEBUG)
+        with CaptureQueriesContext(connection) as queries:
+            result = cluber.preview(with_nul(where))
+        assert result.rejected == "malformed"
+        assert (result.rows, result.catalogue, result.unknown_columns) == ([], {}, [])
+        # Només la consulta de CA-20.8: cap consulta de coincidències.
+        assert len(queries) == 1
+        assert '"core_importbatch"' in queries[0]["sql"]
+        text = repr(result) + str(result.summary()) + caplog.text
+        assert "SENTINELLA-NUL" not in text and "\x00" not in text
+
+    def test_size_and_already_imported_keep_priority(self, db, admin_account):
+        big = with_nul("document") + b" " * cluber.MAX_BYTES
+        assert cluber.preview(big).rejected == "too_large"
+        make_batch(admin_account, ImportBatch.Status.CONFIRMED)
+        assert cluber.preview(with_nul("document")).rejected == "cluber_already_imported"
+
+
 class TestExcludedColumnsAndCatalogue:
     def test_sentinels_never_reach_the_result_or_the_logs(self, db, caplog):
         caplog.set_level(logging.DEBUG)
@@ -825,6 +866,7 @@ class TestNoWrites:
             build([record(1), record(1)]),
             build([record(4, {"Nº Soci": "77"})]),  # número d'un soci d'una persona anonimitzada
             build([record(1)], headers=[*cluber.KNOWN_HEADERS, "IBAN"]),
+            with_nul("document"),
             b"",
         ]
 

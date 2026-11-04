@@ -242,6 +242,9 @@ def preview(data: bytes) -> Preview:
         text = data.decode("utf-8-sig")
     except UnicodeDecodeError:
         return _reject("encoding")
+    # PostgreSQL no admet NUL en un text: el fitxer es rebutja abans de cap registre o consulta.
+    if "\x00" in text:
+        return _reject("malformed")
     if not text.strip():
         return _reject("empty")
 
