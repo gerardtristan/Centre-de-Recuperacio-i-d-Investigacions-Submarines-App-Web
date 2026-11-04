@@ -60,7 +60,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: format de la llavor, prova de la quota i readmissió (tercera tanda; pendent de revisió) | 04/11/2026 12:35 | 0ca680a, a34f5a1 | 1025 | verd (28cd481, dues execucions; confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: readmissió i llavor de Cluber (quarta tanda, només documentació; pendent de revisió) | 04/11/2026 12:40 | 48d9ed6 | 1025 | verd (7b2c586, dues execucions; confirmat pel responsable) |
 | [T-M01-11](T-M01-11.md) | Models del mòdul 01: decisió de la readmissió i pregunta de les quotes (cinquena tanda, només documentació; pendent de revisió) | 04/11/2026 12:48 | 1c87847 | 1025 | verd (b1b2ebc, dues execucions; confirmat pel responsable) |
-| [T-M01-11](T-M01-11.md) | Models del mòdul 01: pregunta de les quotes per a la junta (sisena tanda, només documentació; pendent de revisió) | 04/11/2026 12:52 | 1e0b2f4 | 1025 | [A comprovar] |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: pregunta de les quotes per a la junta (sisena tanda, només documentació; pendent de revisió) | 04/11/2026 12:52 | 1e0b2f4 | 1025 | sense CI propi; inclòs a a446ece, verd (referència) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: tancament, **Feta** (aprovada pel responsable el 04/11/2026 dins l'abast actual; no tanca la P-54, les garanties de la quota, les transicions, la llavor de la importació ni les excepcions d'anonimització) | 04/11/2026 13:15 | a446ece (referència) i el commit del tancament | 1025 | verd a a446ece (referència); el commit del tancament: [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
