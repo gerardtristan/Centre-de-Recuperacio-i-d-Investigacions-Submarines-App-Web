@@ -1,7 +1,7 @@
 # 065 — Enllaços del correu del compte personal i restabliment per un altre administrador
 
 - **Data:** 03/11/2026
-- **Estat:** Acceptada. Validacions del responsable del projecte per completar la T-M01-05. Afegeix una [addenda al M01](../planning.md#M01-addenda-065) (RN-M01-58 a RN-M01-61, CA-M01-48 a CA-M01-55) i dues línies a la [lectura de les tasques substituïdes](../planning.md#ajustos-060-lectura). No edita la spec 00 ni cap regla aprovada. No resol Q-03 ni P-52.
+- **Estat:** Acceptada. Validacions del responsable del projecte per completar la T-M01-05. Afegeix una [addenda al M01](../planning.md#M01-addenda-065) (RN-M01-58 a RN-M01-61, CA-M01-48 a CA-M01-55) i dues línies a la [lectura de les tasques substituïdes](../planning.md#ajustos-060-lectura). No edita la spec 00 ni cap regla aprovada. No resol Q-03 ni P-52. Precisada per la [066](066-revisio-de-la-t-m01-05-reenviament-limit-d-origen-i-tasques.md) (04/11/2026): el reenviament ja no és d'un sol ús i una petició limitada per destinatari compta per al límit d'origen.
 
 ## Context
 La T-M01-05 havia de completar la recuperació per correu (C4), el reenviament de la verificació (C5) i el restabliment per un altre administrador (HU-08). La spec 00 deia que la recuperació té limitació de peticions (RN-24), però V-01 no en donava els valors; no deia què passa amb un compte pendent que demana recuperar la contrasenya; ni si qui restableix un altre compte ha de tornar a demostrar que és ell, ni què fer quan el compte afectat no té correu de notificació.
