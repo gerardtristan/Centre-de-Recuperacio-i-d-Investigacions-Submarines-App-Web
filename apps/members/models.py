@@ -86,6 +86,15 @@ class Member(models.Model):
     avatar_seed = models.CharField(
         _("llavor de l'avatar"), max_length=64, default=new_avatar_seed, editable=False
     )
+    # Només als socis creats per un lot (T-M01-24); PROTECT protegeix el lot, no el soci.
+    import_batch = models.ForeignKey(
+        "core.ImportBatch",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("lot d'importació"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -403,6 +412,15 @@ class LicenceRecord(models.Model):
     issued_on = models.DateField(_("data d'alta"))
     expires_on = models.DateField(_("data de caducitat"), null=True, blank=True)
     source = models.CharField(_("origen"), max_length=10, choices=Source.choices)
+    # Només als registres creats per un lot (T-M01-24); PROTECT protegeix el lot.
+    import_batch = models.ForeignKey(
+        "core.ImportBatch",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("lot d'importació"),
+    )
 
     class Meta:
         verbose_name = _("registre de llicència")

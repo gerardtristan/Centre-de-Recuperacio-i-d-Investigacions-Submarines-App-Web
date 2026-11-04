@@ -3,9 +3,10 @@
 `preview(data)` llegeix l'exportació en CSV, la valida i en torna el resultat. Precisions aplicades
 (docs/planning.md, lectura de les tasques substituïdes, files de la T-M01-24):
 
-- No escriu res: a la base de dades només fa consultes de lectura (tres com a màxim), i no
-  escriu a la sessió, al disc ni a la cua. El registre de l'execució, el permís (P18) i la
-  presentació del resum són del punt d'entrada que la cridi, que encara no existeix.
+- No escriu res: a la base de dades només fa consultes de lectura (quatre com a màxim: la de
+  CA-20.8 i tres de coincidències), i no escriu a la sessió, al disc ni a la cua. El registre
+  de l'execució, el permís (P18) i la presentació del resum són del punt d'entrada que la
+  cridi, que encara no existeix.
 - Perfil CSV inicial revisable, no confirmat per Q-23: UTF-8 amb BOM opcional, separador «;»,
   cometes del mòdul `csv`, 1 MiB, 2.000 registres de dades i 10.000 caràcters per camp.
 - Una columna d'IBAN (capçalera «iban» normalitzada, sense àlies) rebutja el fitxer sencer en
@@ -35,7 +36,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Person
+from apps.core.models import ImportBatch, Person
 from apps.core.normalization import normalize_document
 from apps.members.models import Member
 
@@ -113,6 +114,7 @@ MESSAGES = {
     "missing_header": _("Falta una columna obligatòria."),
     "no_rows": _("El fitxer no té cap fila de dades."),
     "too_many_rows": _("El fitxer supera el nombre màxim de files."),
+    "cluber_already_imported": _("Ja hi ha una importació de Cluber confirmada."),
     "no_document_type": _("El fitxer no indica el tipus de document."),
     "unknown_columns": _("Hi ha columnes que no es reconeixen i no es fan servir."),
     # Errors de fila
@@ -230,6 +232,12 @@ def preview(data: bytes) -> Preview:
     # La mida es comprova abans de descodificar: el text i el lector queden acotats per 1 MiB.
     if len(data) > MAX_BYTES:
         return _reject("too_large")
+    # CA-20.8, abans de descodificar res. Preventiu: la garantia és l'índex únic del lot i la
+    # transacció de la confirmació (T-M01-25).
+    if ImportBatch.objects.filter(
+        kind=ImportBatch.Kind.CLUBER, status=ImportBatch.Status.CONFIRMED
+    ).exists():
+        return _reject("cluber_already_imported")
     try:
         text = data.decode("utf-8-sig")
     except UnicodeDecodeError:

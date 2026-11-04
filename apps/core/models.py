@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -51,6 +52,16 @@ class Person(models.Model):
         "referència anònima", max_length=20, null=True, blank=True, unique=True
     )
     origin = models.CharField(_("origen"), max_length=16, choices=Origin.choices)
+    # Només a les persones creades per un lot; mai a una de preexistent (T-M01-24). PROTECT
+    # protegeix el lot, no la persona.
+    import_batch = models.ForeignKey(
+        "ImportBatch",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("lot d'importació"),
+    )
     # Sense `choices`: les llengües actives són configuració (061). Es llegeix amb
     # `persons.language_for`, que torna al català si no és activa.
     preferred_language = models.CharField(_("llengua preferida"), max_length=7, default="ca")
@@ -687,3 +698,211 @@ class PrivateFile(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()} {self.pk}"
+
+
+# Codis de fila d'una línia d'importació: llista tancada, comprovada a la base de dades, perquè
+# cap línia no desi text lliure (T-M01-24). Un codi nou necessita una migració.
+IMPORT_LINE_CODES = (
+    # Errors
+    "field_count",
+    "field_too_long",
+    "member_number_invalid",
+    "email_invalid",
+    "duplicate_document",
+    "duplicate_member_number",
+    "identity_conflict",
+    "member_number_unavailable",
+    # Advertiments
+    "member_number_leading_zeros",
+    "match_without_document_type",
+    # Dades pendents
+    "member_type",
+    "member_status",
+    "joined_on",
+    "id_document_type",
+    "member_number",
+    "first_name",
+    "last_name",
+    "id_document",
+    "email",
+    "phone",
+)
+
+
+class ImportBatch(UndeletableModel):
+    """Lot d'importació (spec 00; contracte compartit de la T-M01-24).
+
+    Conserva els quatre estats de la spec 00. Les transicions les controlen els serveis de cada
+    tasca: en el recorregut de Cluber, el lot només es crea en confirmar i neix confirmat
+    (T-M01-25); quins estats fa servir l'extracte bancari ho decideix la T-M00-01. No es pot
+    esborrar, però tampoc no és de només afegir files. Els recomptes no tenen cap restricció de
+    suma: les seves categories no són excloents.
+    """
+
+    class Kind(models.TextChoices):
+        CLUBER = "cluber", _("Cluber")
+        BANK_STATEMENT = "bank_statement", _("Extracte bancari")
+
+    class Status(models.TextChoices):
+        PREVIEW = "preview", _("Previsualització")
+        CONFIRMED = "confirmed", _("Confirmat")
+        UNDONE = "undone", _("Desfet")
+        REJECTED = "rejected", _("Rebutjat")
+
+    kind = models.CharField(_("tipus"), max_length=20, choices=Kind.choices)
+    status = models.CharField(_("estat"), max_length=10, choices=Status.choices)
+    file_sha256 = models.CharField(_("empremta del fitxer"), max_length=64)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("creat per")
+    )
+    created_at = models.DateTimeField(_("creat el"), default=timezone.now)
+    confirmed_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("confirmat per"),
+    )
+    confirmed_at = models.DateTimeField(_("confirmat el"), null=True, blank=True)
+    undone_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("desfet per"),
+    )
+    undone_at = models.DateTimeField(_("desfet el"), null=True, blank=True)
+    new_count = models.PositiveIntegerField(_("noves"), default=0)
+    matching_count = models.PositiveIntegerField(_("coincidents"), default=0)
+    error_count = models.PositiveIntegerField(_("amb error"), default=0)
+    excluded_count = models.PositiveIntegerField(_("excloses"), default=0)
+    duplicate_count = models.PositiveIntegerField(_("duplicades"), default=0)
+
+    class Meta:
+        verbose_name = _("lot d'importació")
+        verbose_name_plural = _("lots d'importació")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["cluber", "bank_statement"]), name="importbatch_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["preview", "confirmed", "undone", "rejected"]),
+                name="importbatch_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(file_sha256__regex=r"^[0-9a-f]{64}$"), name="importbatch_sha256_format"
+            ),
+            # Cada actor amb la seva data: tots dos o cap.
+            models.CheckConstraint(
+                condition=Q(confirmed_by__isnull=True, confirmed_at__isnull=True)
+                | Q(confirmed_by__isnull=False, confirmed_at__isnull=False),
+                name="importbatch_confirmed_pair",
+            ),
+            models.CheckConstraint(
+                condition=Q(undone_by__isnull=True, undone_at__isnull=True)
+                | Q(undone_by__isnull=False, undone_at__isnull=False),
+                name="importbatch_undone_pair",
+            ),
+            # Quines dades porta cada estat (amb les parelles, n'hi ha prou amb les dates).
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=["preview", "rejected"],
+                    confirmed_at__isnull=True,
+                    undone_at__isnull=True,
+                )
+                | Q(status="confirmed", confirmed_at__isnull=False, undone_at__isnull=True)
+                | Q(status="undone", confirmed_at__isnull=False, undone_at__isnull=False),
+                name="importbatch_status_fields",
+            ),
+            models.CheckConstraint(
+                condition=Q(confirmed_at__isnull=True)
+                | Q(confirmed_at__gte=models.F("created_at")),
+                name="importbatch_confirmed_after_created",
+            ),
+            models.CheckConstraint(
+                condition=Q(undone_at__isnull=True) | Q(undone_at__gte=models.F("confirmed_at")),
+                name="importbatch_undone_after_confirmed",
+            ),
+            # RN-93: un sol lot de Cluber confirmat (un de desfet no compta).
+            models.UniqueConstraint(
+                fields=["kind"],
+                condition=Q(kind="cluber", status="confirmed"),
+                name="importbatch_one_confirmed_cluber",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.pk} ({self.get_status_display()})"
+
+
+def _array_int(function, *args):
+    return models.Func(*args, function=function, output_field=models.IntegerField())
+
+
+class ImportLine(UndeletableModel):
+    """Línia d'un lot d'importació (spec 00; T-M01-24).
+
+    Sense còpies dels valors personals del fitxer: fila, resultat, codis d'una llista tancada i,
+    a les files noves i coincidents, la referència a la persona (que continua sent una dada
+    personal). La procedència d'un registre la determina el seu `import_batch`, no aquesta
+    referència. Sense JSON obert: les columnes tipades dels altres tipus d'importació les
+    afegeixen les seves tasques.
+    """
+
+    class Result(models.TextChoices):
+        NEW = "new", _("Nova")
+        MATCHING = "matching", _("Coincident")
+        ERROR = "error", _("Amb error")
+        EXCLUDED = "excluded", _("Exclosa")
+        DUPLICATE = "duplicate", _("Duplicada")
+
+    batch = models.ForeignKey(
+        ImportBatch, on_delete=models.PROTECT, related_name="lines", verbose_name=_("lot")
+    )
+    row = models.PositiveIntegerField(_("fila"))
+    result = models.CharField(_("resultat"), max_length=10, choices=Result.choices)
+    codes = ArrayField(models.CharField(max_length=40), default=list, verbose_name=_("codis"))
+    # PROTECT protegeix la persona referenciada.
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("persona"),
+    )
+
+    class Meta:
+        verbose_name = _("línia d'importació")
+        verbose_name_plural = _("línies d'importació")
+        constraints = [
+            models.UniqueConstraint(fields=["batch", "row"], name="importline_unique_row"),
+            models.CheckConstraint(condition=Q(row__gte=1), name="importline_row_positive"),
+            models.CheckConstraint(
+                condition=Q(result__in=["new", "matching", "error", "excluded", "duplicate"]),
+                name="importline_result_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["new", "matching"]) | Q(person__isnull=True),
+                name="importline_person_only_new_or_matching",
+            ),
+            # Només codis de la llista; un element NULL no hi és mai contingut (<@).
+            models.CheckConstraint(
+                condition=Q(codes__contained_by=list(IMPORT_LINE_CODES)),
+                name="importline_codes_closed_list",
+            ),
+            # Una llista d'una sola dimensió que comença a 1 (o buida): <@ no mira l'estructura.
+            models.CheckConstraint(
+                condition=Q(codes__len=0)
+                | Q(
+                    models.lookups.Exact(_array_int("array_ndims", "codes"), 1),
+                    models.lookups.Exact(_array_int("array_lower", "codes", models.Value(1)), 1),
+                ),
+                name="importline_codes_one_dimension",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.batch_id}:{self.row}"

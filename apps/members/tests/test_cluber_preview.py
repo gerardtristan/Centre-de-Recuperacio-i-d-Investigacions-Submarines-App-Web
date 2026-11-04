@@ -18,9 +18,10 @@ import pytest
 from django.core import mail
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 
 from apps.accounts.models import Account
-from apps.core.models import Person
+from apps.core.models import IMPORT_LINE_CODES, ImportBatch, ImportLine, Person
 from apps.members.imports import cluber
 from apps.members.models import Member, MembershipType
 
@@ -309,13 +310,14 @@ class TestIban:
 
     def test_rejected_before_processing_data_rows(self, db):
         # Després de la capçalera hi ha una fila amb unes cometes sense tancar: si es
-        # processés, el resultat seria «malformed». Tampoc no es fa cap consulta.
+        # processés, el resultat seria «malformed». L'única consulta és la de CA-20.8.
         header = build([], headers=[*cluber.KNOWN_HEADERS, "IBAN"])
         data = header + b'901;"sense tancar\r\n'
         with CaptureQueriesContext(connection) as queries:
             result = cluber.preview(data)
         assert result.rejected == "iban_column"
-        assert len(queries) == 0
+        assert len(queries) == 1
+        assert '"core_importbatch"' in queries[0]["sql"]
 
     @pytest.mark.parametrize("header", ["Compte IBAN", "IBAN titular", "I.B.A.N."])
     def test_no_substring_search(self, db, header):
@@ -508,7 +510,7 @@ class TestMatchesWithTheDatabase:
         data = build([record(n) for n in range(1, 51)])
         with CaptureQueriesContext(connection) as queries:
             cluber.preview(data)
-        assert len(queries) <= 3
+        assert len(queries) <= 4  # CA-20.8 i les tres de les coincidències
 
 
 class TestAnonymisedMemberNumber:
@@ -572,7 +574,7 @@ class TestAnonymisedMemberNumber:
         with CaptureQueriesContext(connection) as queries:
             cluber.preview(build([record(1, {"Nº Soci": "67"})]))
         assert all(q["sql"].lstrip().upper().startswith("SELECT") for q in queries)
-        assert len(queries) <= 3
+        assert len(queries) <= 4  # CA-20.8 i les tres de les coincidències
         after = (
             list(Person.objects.filter(pk=member.person_id).values()),
             list(Member.objects.filter(pk=member.pk).values()),
@@ -591,6 +593,69 @@ class TestAnonymisedMemberNumber:
         assert "member_number_unavailable" not in row.errors
         assert (row.person_id, row.member_id) == (person.pk, member.pk)
         assert result.counts["matching"] == 1
+
+
+def make_batch(account, status, kind=ImportBatch.Kind.CLUBER):
+    values = {"kind": kind, "status": status, "file_sha256": "0" * 64, "created_by": account}
+    if status in (ImportBatch.Status.CONFIRMED, ImportBatch.Status.UNDONE):
+        values.update(confirmed_by=account, confirmed_at=timezone.now())
+    if status == ImportBatch.Status.UNDONE:
+        values.update(undone_by=account, undone_at=timezone.now())
+    return ImportBatch.objects.create(**values)
+
+
+class TestAlreadyImported:
+    """CA-20.8: amb una importació final de Cluber confirmada, una prova nova es rebutja."""
+
+    def test_confirmed_cluber_batch_rejects_before_reading(self, db, admin_account):
+        make_batch(admin_account, ImportBatch.Status.CONFIRMED)
+        # Ni tan sols és UTF-8: si es descodifiqués, el rebuig seria «encoding».
+        with CaptureQueriesContext(connection) as queries:
+            result = cluber.preview(b"\xff\xfe" + build([record(1)]))
+        assert result.rejected == "cluber_already_imported"
+        assert result.rows == [] and result.catalogue == {} and result.unknown_columns == []
+        assert len(queries) == 1
+        assert queries[0]["sql"].lstrip().upper().startswith("SELECT")
+        assert "cluber_already_imported" in cluber.MESSAGES
+
+    def test_size_is_checked_first(self, db, admin_account):
+        make_batch(admin_account, ImportBatch.Status.CONFIRMED)
+        with CaptureQueriesContext(connection) as queries:
+            result = cluber.preview(b"x" * (cluber.MAX_BYTES + 1))
+        assert result.rejected == "too_large"
+        assert len(queries) == 0
+
+    @pytest.mark.parametrize(
+        ("status", "kind"),
+        [
+            ("undone", "cluber"),
+            ("preview", "cluber"),
+            ("rejected", "cluber"),
+            ("confirmed", "bank_statement"),
+        ],
+    )
+    def test_other_batches_do_not_block(self, db, admin_account, status, kind):
+        make_batch(admin_account, status, kind)
+        result = cluber.preview(build([record(1)]))
+        assert result.rejected is None
+        assert result.counts["rows"] == 1
+
+    def test_row_codes_of_the_service_are_allowed_in_lines(self):
+        file_level = {
+            "too_large",
+            "encoding",
+            "empty",
+            "malformed",
+            "iban_column",
+            "duplicate_header",
+            "missing_header",
+            "no_rows",
+            "too_many_rows",
+            "no_document_type",
+            "unknown_columns",
+            "cluber_already_imported",
+        }
+        assert set(cluber.MESSAGES) - file_level == set(IMPORT_LINE_CODES)
 
 
 class TestExcludedColumnsAndCatalogue:
@@ -697,6 +762,14 @@ class TestNoWrites:
         make_member(person_with(make_person, dni(1)), member_number=901)
         make_member(person_with(make_person, dni(5)), member_number=12)
         anonymised_member(make_person, make_member, 77)
+        # Lots i línies existents (un d'undone i un de previsualització, que no bloquegen).
+        account = Account.objects.create_admin(make_person(), "lots.inventat", None)
+        for status in (ImportBatch.Status.UNDONE, ImportBatch.Status.PREVIEW):
+            batch = make_batch(account, status)
+            ImportLine.objects.create(
+                batch=batch, row=2, result="matching", person=Person.objects.first()
+            )
+            ImportLine.objects.create(batch=batch, row=3, result="error", codes=["field_count"])
 
     def _table_counts(self):
         with connection.cursor() as cursor:
@@ -710,6 +783,8 @@ class TestNoWrites:
         return (
             list(Person.objects.order_by("pk").values()),
             list(Member.objects.order_by("pk").values()),
+            list(ImportBatch.objects.order_by("pk").values()),
+            list(ImportLine.objects.order_by("pk").values()),
         )
 
     def _pg_state(self):
