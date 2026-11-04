@@ -2,7 +2,8 @@
 
 Precisions: files de la T-M01-24 a docs/planning.md#ajustos-060-lectura (contracte compartit del
 lot, línia d'importació, procedència i proteccions). Cada restricció es prova amb una escriptura
-que arriba a la base de dades. Només dades inventades.
+que arriba a la base de dades i comprova quina restricció la rebutja; cada cas parteix de dades
+que compleixen totes les altres. Només dades inventades.
 """
 
 import datetime
@@ -24,12 +25,28 @@ HOUR = datetime.timedelta(hours=1)
 
 
 def later():
-    return timezone.now() + datetime.timedelta(hours=1)
+    """Posterior a totes les dates que posa `make_batch` (base + 2 hores com a màxim)."""
+    return timezone.now() + datetime.timedelta(days=1)
 
 
-def rejected(make, error=IntegrityError):
-    with pytest.raises(error), transaction.atomic():
+def _db_error(make, error):
+    with pytest.raises(error) as info, transaction.atomic():
         make()
+    return info.value.__cause__  # l'error de psycopg, amb el diagnòstic de PostgreSQL
+
+
+def rejected(make, constraint):
+    """Rebutjat per la restricció CHECK o única indicada (nom que dona PostgreSQL)."""
+    assert _db_error(make, IntegrityError).diag.constraint_name == constraint
+
+
+def rejected_not_null(make, column):
+    cause = _db_error(make, IntegrityError)
+    assert (cause.sqlstate, cause.diag.column_name) == ("23502", column)
+
+
+def rejected_too_long(make):
+    assert _db_error(make, DataError).sqlstate == "22001"  # text més llarg que la columna
 
 
 @pytest.fixture
@@ -76,64 +93,90 @@ class TestImportBatch:
         assert counts == (0, 0, 0, 0, 0)
         assert batch.created_at is not None
 
-    @pytest.mark.parametrize("field", ["kind", "status"])
-    def test_unknown_values(self, make_batch, field):
-        rejected(lambda: make_batch(**{field: "altre"}))
+    def test_unknown_kind(self, make_batch):
+        rejected(lambda: make_batch(kind="altre"), "importbatch_kind_valid")
 
-    @pytest.mark.parametrize("sha", [SHA.upper(), SHA[:-1], SHA + "0", "g" * 64, ""])
+    def test_unknown_status(self, make_batch):
+        # Un estat desconegut no compleix mai `status_fields`, que PostgreSQL comprova abans
+        # (ordre alfabètic dels noms): `status_valid` queda coberta per aquesta.
+        rejected(lambda: make_batch(status="altre"), "importbatch_status_fields")
+
+    @pytest.mark.parametrize("sha", [SHA.upper(), SHA[:-1], "g" * 64, ""])
     def test_sha256_format(self, make_batch, sha):
-        rejected(lambda: make_batch(file_sha256=sha), error=(IntegrityError, DataError))
+        rejected(lambda: make_batch(file_sha256=sha), "importbatch_sha256_format")
+
+    def test_sha256_too_long(self, make_batch):
+        rejected_too_long(lambda: make_batch(file_sha256=SHA + "0"))
 
     @pytest.mark.parametrize(
         "field", ["new_count", "matching_count", "error_count", "excluded_count", "duplicate_count"]
     )
     def test_counts_not_negative(self, make_batch, field):
-        rejected(lambda: make_batch(**{field: -1}))
+        rejected(lambda: make_batch(**{field: -1}), f"core_importbatch_{field}_check")
         assert getattr(make_batch(ImportBatch.Status.PREVIEW, **{field: 7}), field) == 7
 
     def test_creation_is_required(self, make_batch):
-        rejected(lambda: make_batch(created_by=None))
+        rejected_not_null(lambda: make_batch(created_by=None), "created_by_id")
         batch = make_batch()
-        rejected(lambda: ImportBatch.objects.filter(pk=batch.pk).update(created_at=None))
+        update = ImportBatch.objects.filter(pk=batch.pk).update
+        rejected_not_null(lambda: update(created_at=None), "created_at")
 
-    @pytest.mark.parametrize("missing", ["confirmed_at", "confirmed_by"])
-    @pytest.mark.parametrize("status", ["confirmed", "undone"])
-    def test_confirmation_actor_and_date_together(self, make_batch, status, missing):
-        rejected(lambda: make_batch(status, **{missing: None}))
+    def test_confirmation_actor_and_date_together(self, make_batch, admin_account):
+        # Data sense actor (l'estat confirmat ja té la data) i actor sense data (en
+        # previsualització, l'estat no en demana cap).
+        rejected(lambda: make_batch(confirmed_by=None), "importbatch_confirmed_pair")
+        rejected(
+            lambda: make_batch(ImportBatch.Status.PREVIEW, confirmed_by=admin_account),
+            "importbatch_confirmed_pair",
+        )
 
-    @pytest.mark.parametrize("missing", ["undone_at", "undone_by"])
-    def test_undo_actor_and_date_together(self, make_batch, missing):
-        rejected(lambda: make_batch(ImportBatch.Status.UNDONE, **{missing: None}))
+    def test_undo_actor_and_date_together(self, make_batch, admin_account):
+        rejected(
+            lambda: make_batch(ImportBatch.Status.UNDONE, undone_by=None),
+            "importbatch_undone_pair",
+        )
+        rejected(
+            lambda: make_batch(ImportBatch.Status.PREVIEW, undone_by=admin_account),
+            "importbatch_undone_pair",
+        )
 
     @pytest.mark.parametrize("status", ["preview", "rejected"])
     def test_preview_and_rejected_carry_no_confirmation_or_undo(
         self, make_batch, admin_account, status
     ):
-        rejected(lambda: make_batch(status, confirmed_by=admin_account, confirmed_at=later()))
-        rejected(lambda: make_batch(status, undone_by=admin_account, undone_at=later()))
-        rejected(
-            lambda: make_batch(
-                status,
-                confirmed_by=admin_account,
-                confirmed_at=later(),
-                undone_by=admin_account,
-                undone_at=later(),
-            )
-        )
+        moment = later()
+        confirmation = {"confirmed_by": admin_account, "confirmed_at": moment}
+        undo = {"undone_by": admin_account, "undone_at": moment}
+        for fields in (confirmation, undo, {**confirmation, **undo}):
+            rejected(lambda f=fields: make_batch(status, **f), "importbatch_status_fields")
 
     def test_confirmed_needs_confirmation_and_no_undo(self, make_batch, admin_account):
-        rejected(lambda: make_batch(confirmed_by=None, confirmed_at=None))
-        rejected(lambda: make_batch(undone_by=admin_account, undone_at=later()))
+        rejected(
+            lambda: make_batch(confirmed_by=None, confirmed_at=None), "importbatch_status_fields"
+        )
+        rejected(
+            lambda: make_batch(undone_by=admin_account, undone_at=later()),
+            "importbatch_status_fields",
+        )
 
     def test_undone_needs_confirmation_and_undo(self, make_batch):
         status = ImportBatch.Status.UNDONE
-        rejected(lambda: make_batch(status, confirmed_by=None, confirmed_at=None))
-        rejected(lambda: make_batch(status, undone_by=None, undone_at=None))
+        rejected(
+            lambda: make_batch(status, confirmed_by=None, confirmed_at=None),
+            "importbatch_status_fields",
+        )
+        rejected(
+            lambda: make_batch(status, undone_by=None, undone_at=None),
+            "importbatch_status_fields",
+        )
 
     def test_dates_in_order(self, make_batch):
         yesterday = timezone.now() - datetime.timedelta(days=1)
-        rejected(lambda: make_batch(confirmed_at=yesterday))
-        rejected(lambda: make_batch(ImportBatch.Status.UNDONE, undone_at=yesterday))
+        rejected(lambda: make_batch(confirmed_at=yesterday), "importbatch_confirmed_after_created")
+        rejected(
+            lambda: make_batch(ImportBatch.Status.UNDONE, undone_at=yesterday),
+            "importbatch_undone_after_confirmed",
+        )
         # El mateix instant per a les tres dates s'accepta (≥, no >).
         moment = timezone.now()
         same = make_batch(
@@ -145,7 +188,10 @@ class TestImportBatch:
         # El cas del CI #92: la restricció no té cap tolerància.
         moment = timezone.now()
         before = moment - datetime.timedelta(microseconds=1)
-        rejected(lambda: make_batch(created_at=moment, confirmed_at=before))
+        rejected(
+            lambda: make_batch(created_at=moment, confirmed_at=before),
+            "importbatch_confirmed_after_created",
+        )
 
     @pytest.mark.parametrize("status", ["preview", "confirmed", "undone", "rejected"])
     def test_fixture_chronology(self, make_batch, status):
@@ -159,7 +205,7 @@ class TestImportBatch:
 
     def test_only_one_confirmed_cluber_batch(self, make_batch):
         make_batch()
-        rejected(make_batch)
+        rejected(make_batch, "importbatch_one_confirmed_cluber")
         make_batch(ImportBatch.Status.UNDONE)
         make_batch(ImportBatch.Status.PREVIEW)
         make_batch(ImportBatch.Status.REJECTED)
@@ -193,22 +239,31 @@ class TestImportLine:
 
     def test_unique_row_per_batch(self, batch, make_batch):
         ImportLine.objects.create(batch=batch, row=2, result=ImportLine.Result.NEW)
-        rejected(lambda: ImportLine.objects.create(batch=batch, row=2, result="new"))
+        rejected(
+            lambda: ImportLine.objects.create(batch=batch, row=2, result="new"),
+            "importline_unique_row",
+        )
         other = make_batch(ImportBatch.Status.PREVIEW)
         ImportLine.objects.create(batch=other, row=2, result=ImportLine.Result.NEW)
 
-    @pytest.mark.parametrize("row", [0, -1])
-    def test_row_at_least_one(self, batch, row):
-        rejected(lambda: ImportLine.objects.create(batch=batch, row=row, result="new"))
+    def test_row_at_least_one(self, batch):
+        create = ImportLine.objects.create
+        rejected(lambda: create(batch=batch, row=0, result="new"), "importline_row_positive")
+        # Un negatiu també incompleix la de `PositiveIntegerField`, que PostgreSQL comprova abans.
+        rejected(lambda: create(batch=batch, row=-1, result="new"), "core_importline_row_check")
 
     def test_unknown_result(self, batch):
-        rejected(lambda: ImportLine.objects.create(batch=batch, row=2, result="altre"))
+        rejected(
+            lambda: ImportLine.objects.create(batch=batch, row=2, result="altre"),
+            "importline_result_valid",
+        )
 
     @pytest.mark.parametrize("result", ["error", "excluded", "duplicate"])
     def test_no_person_on_lines_that_create_nothing(self, batch, make_person, result):
         person = make_person()
         rejected(
-            lambda: ImportLine.objects.create(batch=batch, row=2, result=result, person=person)
+            lambda: ImportLine.objects.create(batch=batch, row=2, result=result, person=person),
+            "importline_person_only_new_or_matching",
         )
         ImportLine.objects.create(batch=batch, row=2, result=result)
 
@@ -253,35 +308,44 @@ class TestClosedCodes:
             ["Field_Count"],
             ["field_count "],
             [""],
-            ["x" * 41],
             [None],
             ["field_count", None],
-            [["field_count"]],  # una llista dins la llista
+            [["field_count"]],  # Django el converteix en el text "['field_count']"
         ],
     )
     def test_anything_else_is_rejected(self, line, codes):
-        rejected(lambda: self._set(line, codes), error=(IntegrityError, DataError))
+        rejected(lambda: self._set(line, codes), "importline_codes_closed_list")
         line.refresh_from_db()
         assert line.codes == []
 
+    def test_free_text_longer_than_a_code_is_rejected(self, line):
+        # Django envia la llista amb una conversió explícita a varchar(40)[], i PostgreSQL hi
+        # retalla el text a 40 caràcters en lloc de donar un error de llargada; el rebuig és de
+        # la llista tancada. Cap codi no fa 40 caràcters: un text retallat no en pot ser cap.
+        assert max(map(len, IMPORT_LINE_CODES)) < 40
+        rejected(lambda: self._set(line, ["x" * 41]), "importline_codes_closed_list")
+
     def test_null_list_is_rejected(self, line):
-        rejected(lambda: self._set(line, None))
+        rejected_not_null(lambda: self._set(line, None), "codes")
 
     @pytest.mark.parametrize(
-        "sql_value",
+        ("sql_value", "constraint"),
         [
-            "ARRAY[['field_count']]::varchar(40)[]",  # dues dimensions
-            "'[0:0]={field_count}'::varchar(40)[]",  # índex inicial diferent
-            "ARRAY[NULL]::varchar(40)[]",
+            ("ARRAY[['field_count']]::varchar(40)[]", "importline_codes_one_dimension"),
+            ("'[0:0]={field_count}'::varchar(40)[]", "importline_codes_one_dimension"),
+            ("ARRAY[NULL]::varchar(40)[]", "importline_codes_closed_list"),
         ],
     )
-    def test_unexpected_structures_rejected_by_the_database(self, line, sql_value):
+    def test_unexpected_structures_rejected_by_the_database(self, line, sql_value, constraint):
         # Sense passar pel camp de Django: la restricció és de la base de dades.
-        with pytest.raises(IntegrityError), transaction.atomic(), connection.cursor() as cursor:
-            cursor.execute(
-                f"UPDATE core_importline SET codes = {sql_value} WHERE id = %s",  # noqa: S608
-                [line.pk],
-            )
+        def update():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"UPDATE core_importline SET codes = {sql_value} WHERE id = %s",  # noqa: S608
+                    [line.pk],
+                )
+
+        rejected(update, constraint)
 
 
 class TestProvenance:
@@ -329,24 +393,40 @@ class TestProvenance:
             Collector(using="default").collect([batch])  # la línia també protegeix el lot
 
 
+def _applied_targets():
+    """Per a cada app, la darrera migració aplicada: l'estat complet de la base de proves."""
+    loader = MigrationExecutor(connection).loader
+    applied = {key for key in loader.applied_migrations if key in loader.graph.node_map}
+    targets = [
+        key
+        for key in applied
+        if not any(c in applied and c[0] == key[0] for c in loader.graph.node_map[key].children)
+    ]
+    return applied, targets
+
+
 class TestMigrationsAreReversible(CommittedDataTestCase):
-    """Les migracions d'aquesta tanda es desfan i es tornen a aplicar a la base de proves."""
+    """Les migracions d'aquesta tanda es desfan i es tornen a aplicar a la base de proves.
+
+    Es restaura sempre l'estat d'abans (totes les apps, també les que en depenguin), encara que
+    falli una comprovació.
+    """
 
     def test_backwards_and_forwards(self):
-        executor = MigrationExecutor(connection)
-        latest = [
-            key for key in executor.loader.graph.leaf_nodes() if key[0] in ("core", "members")
-        ]
-        executor.migrate(
-            [("members", "0005_member_avatar_seed_format"), ("core", "0009_private_files")]
-        )
-        tables = connection.introspection.table_names()
-        assert "core_importbatch" not in tables and "core_importline" not in tables
-        executor = MigrationExecutor(connection)
-        executor.migrate(latest)
-        tables = connection.introspection.table_names()
-        assert "core_importbatch" in tables and "core_importline" in tables
-        with connection.cursor() as cursor:
-            for table in ("core_person", "members_member", "members_licencerecord"):
-                columns = connection.introspection.get_table_description(cursor, table)
-                assert "import_batch_id" in [c.name for c in columns]
+        applied, targets = _applied_targets()
+        try:
+            MigrationExecutor(connection).migrate(
+                [("members", "0005_member_avatar_seed_format"), ("core", "0009_private_files")]
+            )
+            tables = connection.introspection.table_names()
+            assert "core_importbatch" not in tables and "core_importline" not in tables
+            MigrationExecutor(connection).migrate(targets)
+            tables = connection.introspection.table_names()
+            assert "core_importbatch" in tables and "core_importline" in tables
+            with connection.cursor() as cursor:
+                for table in ("core_person", "members_member", "members_licencerecord"):
+                    columns = connection.introspection.get_table_description(cursor, table)
+                    assert "import_batch_id" in [c.name for c in columns]
+        finally:
+            MigrationExecutor(connection).migrate(targets)
+        assert _applied_targets()[0] == applied
