@@ -67,7 +67,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-12](T-M01-12.md) | Estats del soci i transicions: tancament, **Feta** (aprovada pel responsable el 04/11/2026 dins l'abast actual; no tanca la validesa del carnet, l'historial dels importats, les proves de l'intent als punts d'entrada, el canvi de tipus ni la P-54) | 04/11/2026 | 081868b (referència) i el commit del tancament | 1113 | verd a 081868b (referència); el commit del tancament: [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova (en part: lector CSV i previsualització sense escriptures; sense `ImportBatch`, CA-20.8 ni pantalla; pendent de revisió) | 04/11/2026 17:50 | f7465a6, 5e078c7, 0389010, c710080 | 1188 | [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: revisió (dades mínimes en memòria, resum segur, números molt llargs; segona tanda, en part; pendent de revisió) | 04/11/2026 18:06 | f879b95, 3cd9662, 57560df | 1200 | [A comprovar] |
-| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: número d'un soci d'una persona anonimitzada (tercera tanda, en part; pendent de revisió) | 04/11/2026 18:14 | 66348b5, ce7bbaa | 1208 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: número d'un soci d'una persona anonimitzada (tercera tanda, en part; pendent de revisió) | 04/11/2026 18:14 | 66348b5, ce7bbaa | 1208 | verd a #89 (PR #4; comprovat visualment pel responsable); associació amb bf1eef6 [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
