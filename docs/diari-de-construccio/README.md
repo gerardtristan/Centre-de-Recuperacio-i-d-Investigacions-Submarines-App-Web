@@ -73,6 +73,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: autorevisió ampliada (NUL, restriccions exactes i restauració de migracions; autorevisió; en part) | 04/11/2026 19:42 | 18a393b, 7adbf6d, b3f1276 | 1292 | verd a #96 (push de 6a18a75) i #97 (PR #4); comprovat visualment pel responsable |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: correccions de la segona revisió d'IA (capçaleres, llargades i conflicte; segona revisió d'IA; en part) | 04/11/2026 20:17 | 1874e4a, e878958 | 1310 | verd a #98 (push de e4c3620) i #99 (PR #4); comprovat visualment pel responsable |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: pantalla de la prova (P18, CSRF, pujada en memòria i registre; en part; comprovació manual pendent) | 04/11/2026 21:37 | 9e7f1c7, df37c51 | 1339 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: validació funcional de la pantalla pel responsable (en part: falten el CI del codi actual i la porta de la checklist; Q-23 pendent) | 05/11/2026 | 29d8073 (referència) i el commit d'aquesta entrada | 1339 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
