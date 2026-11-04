@@ -26,6 +26,7 @@ from apps.members.imports import cluber
 from apps.members.models import Member, MembershipType
 
 LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE"
+DOCUMENT = "Document d'Identitat"
 
 # Valors dels camps exclosos: no han d'aparèixer mai al resultat ni als registres.
 SENTINELS = {
@@ -226,6 +227,27 @@ class TestFileProfile:
         assert result.rejected_column == f"#{len(cluber.KNOWN_HEADERS) + 1}"
         assert "SENTINELLA-CAPCALERA" not in repr(result) + str(result.summary())
 
+    @pytest.mark.parametrize("variant", ["nom", "​Nom", "No​m", "﻿Nom", " NOM "])
+    def test_equivalent_headers_are_repeated(self, db, variant):
+        # Mateixa representació que per a l'IBAN: sense U+FEFF ni U+200B, extrems i minúscules.
+        headers = [*cluber.KNOWN_HEADERS, variant]
+        result = cluber.preview(build([record(1)], headers=headers))
+        assert result.rejected == "duplicate_header"
+
+    def test_header_length_limit(self, db):
+        ok = "SENTINELLA-CAPCALERA-7Q" + "x" * (cluber.MAX_FIELD - 23)
+        assert len(ok) == cluber.MAX_FIELD
+        result = cluber.preview(build([record(1)], headers=[*cluber.KNOWN_HEADERS, ok]))
+        assert result.rejected is None
+        headers = [*cluber.KNOWN_HEADERS, ok + "x"]
+        with CaptureQueriesContext(connection) as queries:
+            result = cluber.preview(build([record(1)], headers=headers))
+        assert result.rejected == "field_too_long"
+        assert (result.rejected_column, result.rejected_row) == (f"#{len(headers)}", 1)
+        assert result.rows == []
+        assert len(queries) == 1  # només CA-20.8
+        assert "SENTINELLA-CAPCALERA" not in repr(result) + str(result.summary())
+
     def test_unknown_columns_are_a_warning(self, db):
         headers = [*cluber.KNOWN_HEADERS, "Columna nova"]
         result = cluber.preview(build([record(1)], headers=headers))
@@ -263,7 +285,8 @@ class TestLimits:
         assert result.rejected is None
         assert result.counts["rows"] == cluber.MAX_ROWS
 
-    @pytest.mark.parametrize("column", ["Adreça", "Nom", "Document d'Identitat"])
+    # El document té un límit més estricte (el del camp de destinació): TestDocumentLength.
+    @pytest.mark.parametrize("column", ["Adreça", "Nom", "Cognoms"])
     def test_field_length_limit(self, db, column):
         long_ok = "a" * cluber.MAX_FIELD
         assert not only_row(cluber.preview(build([record(1, {column: long_ok})]))).errors
@@ -327,6 +350,27 @@ class TestIban:
         assert result.rejected is None
         assert result.unknown_columns == [header]
 
+    @pytest.mark.parametrize("value", ["", "VALOR-INVENTAT"])
+    @pytest.mark.parametrize(
+        ("headers", "bom"),
+        [
+            (["﻿IBAN", *cluber.KNOWN_HEADERS], True),  # BOM doble a l'inici
+            ([*cluber.KNOWN_HEADERS, "IB​AN"], False),
+            ([*cluber.KNOWN_HEADERS, "​IBAN​"], False),
+            ([*cluber.KNOWN_HEADERS, " ﻿iban "], False),
+        ],
+    )
+    def test_invisible_characters_do_not_hide_the_iban_column(self, db, headers, bom, value):
+        iban = next(h for h in headers if "IB" in h.upper())
+        data = build([record(1, {iban: value})], headers=headers, bom=bom)
+        if bom:
+            assert data.startswith(b"\xef\xbb\xbf\xef\xbb\xbf")
+        with CaptureQueriesContext(connection) as queries:
+            result = cluber.preview(data)
+        assert result.rejected == "iban_column"
+        assert result.rows == [] and len(queries) == 1  # només CA-20.8
+        assert "VALOR-INVENTAT" not in repr(result) + str(result.summary())
+
 
 class TestMemberNumber:
     def test_leading_zeros_warn_and_compare_as_the_same_number(self, db):
@@ -388,6 +432,32 @@ class TestMemberNumber:
         row = only_row(cluber.preview(build([record(1, {"Nº Soci": ""})])))
         assert "member_number" in row.pending
         assert not row.errors
+
+
+class TestDocumentLength:
+    """El document normalitzat no supera la llargada de `Person.id_document_number`."""
+
+    LIMIT = Person._meta.get_field("id_document_number").max_length
+
+    def test_limit_accepted(self, db):
+        row = only_row(cluber.preview(build([record(1, {DOCUMENT: "A" * self.LIMIT})])))
+        assert not row.errors
+        assert row.data["id_document"] == "A" * self.LIMIT
+
+    def test_one_more_is_a_row_error_without_the_value(self, db):
+        value = "SENTINELLA" + "B" * (self.LIMIT - 9)
+        result = cluber.preview(build([record(1, {DOCUMENT: value})]))
+        row = only_row(result)
+        assert (row.errors, row.error_columns) == (["field_too_long"], [DOCUMENT])
+        assert row.ready is False
+        assert "SENTINELLA" not in repr(result) + str(result.summary())
+
+    def test_length_counts_after_normalisation(self, db):
+        value = "-".join(["AAAAA"] * 6) + "  ..."  # 34 caràcters; 30 sense separadors
+        assert len(value) > self.LIMIT
+        row = only_row(cluber.preview(build([record(1, {DOCUMENT: value})])))
+        assert not row.errors
+        assert row.data["id_document"] == "A" * self.LIMIT
 
 
 class TestRowValues:
@@ -468,6 +538,7 @@ class TestMatchesWithTheDatabase:
         row = only_row(cluber.preview(build([record(1, {"Nº Soci": "67"})])))
         assert row.identity == "conflict"
         assert row.errors == ["identity_conflict"]
+        assert row.error_columns == [""]  # la relació entre tots dos, no un dels dos camps
         assert (row.person_id, row.member_id) == (None, None)
 
     def test_document_of_a_member_with_another_number(self, db, make_person, make_member):
@@ -479,6 +550,22 @@ class TestMatchesWithTheDatabase:
         make_member(person_with(make_person, dni(2)), member_number=67)
         row = only_row(cluber.preview(build([record(1, {"Nº Soci": "67"})])))
         assert row.identity == "conflict"
+        # Regressió: abans s'indicava la columna del document, com si el document fos l'erroni.
+        assert (row.errors, row.error_columns) == (["identity_conflict"], [""])
+
+    def test_two_rows_can_resolve_to_the_same_person(self, db, make_person, make_member):
+        # Decisió pendent abans de la confirmació (T-M01-25): aquí només es deixa constància
+        # del comportament actual, sense fusió ni descart.
+        person = person_with(make_person, dni(1))
+        make_member(person, member_number=67)
+        records = [
+            record(1, {"Nº Soci": ""}),  # només pel document
+            record(2, {"Nº Soci": "67", DOCUMENT: ""}),  # només pel número
+        ]
+        result = cluber.preview(build(records))
+        assert [r.identity for r in result.rows] == ["matching", "matching"]
+        assert {r.person_id for r in result.rows} == {person.pk}
+        assert not any(r.errors for r in result.rows)
 
     def test_anonymised_people_do_not_match_by_document(self, db, make_person):
         person_with(

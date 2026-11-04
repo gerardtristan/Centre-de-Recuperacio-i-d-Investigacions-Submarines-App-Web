@@ -46,6 +46,7 @@ MAX_FIELD = 10_000
 # Amb més valors diferents, el detall s'omet i només se'n dona el recompte.
 MAX_CATALOGUE = 50
 MAX_MEMBER_NUMBER = 2_147_483_647  # rang de PositiveIntegerField a PostgreSQL
+DOCUMENT_MAX_LENGTH = Person._meta.get_field("id_document_number").max_length
 
 # Capçaleres de la mostra parcial del 04/11/2026, sense la d'IBAN (no substitueix S-M01-16).
 KNOWN_HEADERS = (
@@ -143,6 +144,15 @@ MESSAGES = {
     "email": _("Falta el correu."),
     "phone": _("Falta el telèfon."),
 }
+
+
+_INVISIBLE = str.maketrans("", "", "﻿​")
+
+
+def _header_key(header: str) -> str:
+    """Només per comparar capçaleres (IBAN i repetides): sense U+FEFF ni U+200B, sense espais
+    als extrems i en minúscules. El nom de la capçalera no es modifica per a cap altre ús."""
+    return header.translate(_INVISIBLE).strip().lower()
 
 
 def _label(header: str, position: int) -> str:
@@ -254,19 +264,24 @@ def preview(data: bytes) -> Preview:
     # rebutjar el fitxer com a «malformed», sense res del seu contingut.
     reader = csv.reader(io.StringIO(text, newline=""), delimiter=";", strict=True)
     try:
-        headers = [h.strip() for h in next(reader)]
+        raw_headers = next(reader)
     except csv.Error:
         return _reject("malformed", row=1)
+    headers = [h.strip() for h in raw_headers]
+    keys = [_header_key(h) for h in raw_headers]
 
-    if any(h.lower() in IBAN_HEADERS for h in headers):
+    if any(key in IBAN_HEADERS for key in keys):
         return _reject("iban_column")
-    seen = set()
-    for header in headers:
-        if header in seen:
-            return _reject("duplicate_header", column=_label(header, headers.index(header)))
-        seen.add(header)
+    for i, header in enumerate(raw_headers):
+        if len(header) > MAX_FIELD:
+            return _reject("field_too_long", column=_label(headers[i], i), row=1)
+    first = {}
+    for i, key in enumerate(keys):
+        if key in first:
+            return _reject("duplicate_header", column=_label(headers[first[key]], first[key]))
+        first[key] = i
     for required in REQUIRED_HEADERS:
-        if required not in seen:
+        if required not in headers:
             return _reject("missing_header", column=required)
 
     result = Preview(warnings=["no_document_type"])
@@ -324,6 +339,9 @@ def _read_row(row: Row, values: list, index: dict) -> None:
         "member_number_text": number_text,
         "id_document": normalize_document(value(DOCUMENT)),
     }
+    # Sense retallar-lo: un document més llarg que el camp de destinació és un error de fila.
+    if len(row.data["id_document"]) > DOCUMENT_MAX_LENGTH:
+        row._error("field_too_long", DOCUMENT)
 
     # Sense els zeros de l'esquerra, i amb la llargada comprovada abans de convertir-lo: int() no
     # accepta més de 4.300 xifres i el camp en pot tenir fins a 10.000.
@@ -414,7 +432,7 @@ def _match(rows: list) -> None:
             row.identity = "conflict"
             row._error("member_number_unavailable", NUMBER)
             if people:  # el document és d'una persona activa, per força una altra
-                row._error("identity_conflict", DOCUMENT)
+                row._error("identity_conflict", "")  # la relació, no un camp
             continue
         if len(people) > 1:
             row.identity = "ambiguous"
@@ -432,7 +450,7 @@ def _match(rows: list) -> None:
         )
         if conflict:
             row.identity = "conflict"
-            row._error("identity_conflict", DOCUMENT)
+            row._error("identity_conflict", "")  # la relació, no un camp
         elif person or by_num:
             row.identity = "matching"
             row.person_id = person or by_num[1]
