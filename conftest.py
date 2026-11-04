@@ -63,6 +63,13 @@ class CommittedDataTestCase(TransactionTestCase):
     impedeixen. En acabar, s'esborren les files noves de cada taula dins d'una sola transacció,
     amb els disparadors de l'usuari desactivats només dins d'aquesta transacció (ALTER TABLE és
     transaccional a PostgreSQL). No toca les dades de les migracions (rols, matriu, «General»).
+
+    Dues condicions: (1) tota clau forana s'ha de poder ajornar (DEFERRABLE), perquè l'ordre dels
+    DELETE és alfabètic; les que crea Django ja ho són i les compostes amb RunSQL ho han de
+    declarar (members/0001). Les de la cua (procrastinate) no, però l'ordre ja els va bé, llevat
+    de `procrastinate_periodic_defers`, que cap prova no crea. (2) Només s'esborren les files
+    noves: una prova que modifiqui una fila de les migracions (per exemple, el comptador de
+    números) l'ha de deixar com estava.
     """
 
     @classmethod

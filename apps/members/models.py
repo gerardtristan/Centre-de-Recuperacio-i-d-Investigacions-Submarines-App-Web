@@ -10,6 +10,8 @@ i el seu número no s'esborren mai (039); l'historial, les quotes i les llicènc
 Els camps `import_batch` els afegeix la T-M01-24 amb el lot d'importació.
 """
 
+import secrets
+
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.functions import Length, Trim
@@ -23,6 +25,11 @@ from apps.core.models import AppendOnlyModel, Charge, Person, UndeletableModel
 def _filled(field):
     # Text amb alguna cosa més que espais (TRIM de PostgreSQL treu els espais ordinaris).
     return Q(GreaterThan(Length(Trim(field)), 0))
+
+
+def new_avatar_seed():
+    # Font aleatòria segura del sistema, mai cap dada personal (RN-M01-30, lectura de la 060).
+    return secrets.token_hex(32)
 
 
 class MembershipType(models.Model):
@@ -72,6 +79,10 @@ class Member(models.Model):
     # Null (M01-6) i no "": l'únic parcial només s'aplica als socis que vénen de Cluber.
     cluber_id = models.CharField(  # noqa: DJ001
         _("identificador de Cluber"), max_length=40, null=True, blank=True
+    )
+    # Fixada en l'alta per a l'avatar futur; un disparador impedeix canviar-la (members/0004).
+    avatar_seed = models.CharField(
+        _("llavor de l'avatar"), max_length=64, default=new_avatar_seed, editable=False
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -295,7 +306,11 @@ class MembershipNumberCounter(models.Model):
 
 class AnnualFee(UndeletableModel):
     """Quota d'un soci sobre un càrrec de la 00 (RN-M01-51: no s'esborra). L'import i l'estat
-    són els del càrrec. La generació i el venciment (P-29) són de la T-M01-14 i la T-M01-18."""
+    són els del càrrec. La generació i el venciment (P-29) són de la T-M01-14 i la T-M01-18.
+
+    Que el càrrec sigui de la persona del soci i de tipus «quota» (M01-6) ho garanteix el servei
+    que crea les quotes (T-M01-14), no la base de dades: caldrien columnes duplicades aquí i una
+    restricció nova al `Charge` de la 00 (lectura de la 060)."""
 
     class Kind(models.TextChoices):
         ANNUAL = "annual", _("Quota anual")

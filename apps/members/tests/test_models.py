@@ -6,6 +6,7 @@ Cada restricció es prova amb una escriptura que la base de dades ha de rebutjar
 
 import datetime
 import hashlib
+import re
 
 import pytest
 from django.db import DatabaseError, IntegrityError, connection, transaction
@@ -104,6 +105,35 @@ class TestMember:
     def test_defaults(self, make_member):
         new = make_member()
         assert (new.status, new.joined_on_is_approximate, new.left_on) == ("pending", False, None)
+
+    def test_avatar_seed_is_random_not_from_the_name(self, make_member, make_person):
+        # RN-M01-30 amb la lectura de la 060: el mateix nom no dona la mateixa llavor.
+        first = make_member(make_person("Anna", "Puig"))
+        second = make_member(make_person("Anna", "Puig"))
+        assert re.fullmatch(r"[0-9a-f]{64}", first.avatar_seed)
+        assert first.avatar_seed != second.avatar_seed
+
+    def test_avatar_seed_never_changes(self, member):
+        other_seed = "0" * 64
+        member.avatar_seed = other_seed
+        with pytest.raises(DatabaseError, match="llavor"), transaction.atomic():
+            member.save()
+        with pytest.raises(DatabaseError, match="llavor"), transaction.atomic():
+            Member.objects.filter(pk=member.pk).update(avatar_seed=other_seed)
+        with pytest.raises(DatabaseError, match="llavor"), transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE members_member SET avatar_seed = %s WHERE id = %s",
+                    [other_seed, member.pk],
+                )
+
+    def test_saving_other_fields_keeps_the_seed(self, member):
+        seed = member.avatar_seed
+        member.status = Member.Status.ACTIVE
+        member.save()
+        Member.objects.filter(pk=member.pk).update(left_on=TODAY)
+        member.refresh_from_db()
+        assert (member.status, member.left_on, member.avatar_seed) == ("active", TODAY, seed)
 
 
 class TestMembershipNumberCounter:
