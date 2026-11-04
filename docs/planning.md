@@ -1185,6 +1185,8 @@ Aprovada el 04/11/2026, excepte la T-M01-39, que és una **proposta**. Canvia el
 
 ### T-M01-39 en detall (proposta)
 
+**Estat:** proposta. Cap valor d'aquesta secció no és una regla vigent (tampoc el retard màxim de 5 minuts): tots són [A validar]. No es pot començar cap part, tampoc la (a), sense l'aprovació del responsable del projecte ([P-53](decisions/pendents.md)). El codi actual no fa servir cap cua per a «He oblidat la contrasenya»: la petició fa tota la feina en el moment.
+
 **(a) Mesura abans i després.** No depèn de cap canvi de codi.
 - Un programa de mesura fora del CI, contra una base de dades de proves (mai la de desenvolupament), a la mateixa màquina connectada a la corrent. Es documenten el commit, les versions de Python i PostgreSQL, les files de les taules implicades, l'estat del worker, els altres processos i la data i l'hora.
 - Casos: dues adreces inexistents (la diferència entre totes dues dona el soroll), compte personal actiu, actiu limitat per destinatari, pendent, desactivat i d'administrador.
