@@ -591,5 +591,8 @@ def admin_home(request):
     # L'enllaç només surt amb el permís; la vista el torna a comprovar igualment.
     can_reset = has_perm(request.user, "core.accounts.reset_credentials")
     can_import = has_perm(request.user, "members.cluber_import.run")
-    context = {"can_reset": can_reset, "can_import": can_import}
+    can_audit = has_perm(request.user, "core.audit.view") or has_perm(
+        request.user, "members.audit.view"
+    )
+    context = {"can_reset": can_reset, "can_import": can_import, "can_audit": can_audit}
     return render(request, "accounts/admin_home.html", context)

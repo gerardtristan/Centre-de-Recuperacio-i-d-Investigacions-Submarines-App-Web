@@ -61,3 +61,10 @@ figure { margin: 0; }
   .taula .cel-nom { font-size: var(--t-s); }
   .taula td.cel-accions { text-align: right; }
 }
+
+/* Registre d'activitat (T-M01-07b): filtres en graella i valors llargs que es parteixen a 320 px */
+.filtres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--e-3); }
+.taula .cel-valor { overflow-wrap: anywhere; min-width: 0; text-align: right; }
+/* La llegenda, a tota l'amplada mentre la taula és apilada (display: block) */
+.taula caption { display: block; }
+@media (min-width: 600px) { .taula .cel-valor { text-align: left; } .taula caption { display: table-caption; } }

@@ -3,8 +3,8 @@ from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidd
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET
 
-from . import files
-from .models import PrivateFile
+from .. import files
+from ..models import PrivateFile
 
 
 @require_GET
