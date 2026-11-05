@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pantalles de comptes · C.R.I.S. (prototip, T-M01-38)</title>
+<script>
+/* Tema desat: s'aplica abans de pintar la pàgina */
+(function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<!-- Tokens i fonts: una sola còpia a static/ (T-M01-38), la mateixa que fa servir la plataforma -->
+<link rel="stylesheet" href="../../static/css/fonts.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
+<style>
+/* ==========================================================================
+   Pantalles de comptes (T-M01-38). Només peces de tokens.css i patrons ja
+   aprovats: formularis, avisos i botons plans (031); capçalera sense barra
+   lateral (032); taula apilada de l'administració (admin.html, 034).
+   ========================================================================== */
+.index { padding: var(--e-4); max-width: var(--amplada-max); margin: 0 auto; }
+.index ol { display: grid; gap: var(--e-1); padding-left: var(--e-5); grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+.index a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+
+/* Cada pantalla, dins d'un marc amb el seu nom */
+.pantalla { border-top: var(--v-activa) solid var(--c-zona); padding-bottom: var(--e-6); }
+.pantalla > .demo { border-top: 0; }
+.nom-pantalla { margin: 0; padding: var(--e-3) var(--e-4) 0; font-size: var(--t-s); color: var(--c-text-2); font-family: var(--f-codi); }
+
+/* capcalera-compte: logotip, zona i tema; sense navegació (032) */
+.capcalera-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4); border-bottom: var(--v-fina) solid var(--c-linia); }
+.capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
+.capcalera-compte img { width: var(--logo-capcalera); height: auto; }
+.capcalera-compte .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
+
+/* Cos: una columna estreta per als formularis, més ampla per a la llista */
+.cos-compte { max-width: 28rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
+.cos-ample { max-width: 60rem; }
+.cos-compte h1 { font-size: var(--t-2xl); margin: 0; }
+/* Blocs d'estat: el mateix espai entre avís, formulari i enllaços que el cos */
+.cos-compte > div[data-estat]:not(.avis) { display: grid; gap: var(--e-4); }
+.formulari { display: grid; gap: var(--e-4); }
+.formulari fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--e-2); }
+.formulari legend { font-weight: var(--p-semi); font-size: var(--t-s); margin-bottom: var(--e-1); }
+.camp .error { margin: 0; font-size: var(--t-s); color: var(--c-error-text); font-weight: var(--p-semi); }
+.accions { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.enllacos { display: grid; gap: var(--e-1); }
+.enllacos a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+/* Radi només a la zona de silenci (4 mòduls): els mòduls no es retallen ni s'arrodoneixen */
+.qr { width: 11rem; height: 11rem; border: var(--v-fina) dashed var(--c-linia-forta); border-radius: var(--r-m); overflow: hidden; background: #fff; }
+.qr svg { display: block; width: 100%; height: 100%; border-radius: var(--r-m); }
+figure { margin: 0; }
+.clau, .credencial { font-family: var(--f-codi); font-size: var(--t-l); overflow-wrap: anywhere; }
+.codis { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); font-family: var(--f-codi); }
+.passos { padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+
+/* Taula apilada al mòbil i taula a partir de 600 px: el mateix patró d'admin.html */
+.taula { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+.taula thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.taula, .taula tbody, .taula tr, .taula td, .taula th[scope="row"] { display: block; }
+.taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
+.taula td { display: flex; justify-content: space-between; align-items: center; gap: var(--e-3); padding: var(--e-1) 0; }
+.taula td::before { content: attr(data-etiqueta); color: var(--c-text-2); }
+.taula .cel-nom { text-align: left; font-weight: var(--p-semi); font-size: var(--t-m); }
+.taula td.cel-accions { justify-content: flex-end; }
+.taula td.cel-accions::before { content: none; }
+.taula caption { text-align: left; font-size: var(--t-s); color: var(--c-text-2); margin-bottom: var(--e-2); }
+@media (min-width: 600px) {
+  .taula { display: table; }
+  .taula thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; display: table-header-group; }
+  .taula tbody { display: table-row-group; }
+  .taula tr { display: table-row; padding: 0; }
+  .taula th { text-align: left; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia-forta); }
+  .taula th[scope="row"], .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); vertical-align: middle; }
+  .taula td::before { content: none; }
+  .taula .cel-nom { font-size: var(--t-s); }
+  .taula td.cel-accions { text-align: right; }
+}
+</style>
+</head>
+<body>
+<a class="salt" href="#index">Vés a l'índex de pantalles</a>
+<p class="nota-wireframe">Prototip · pantalles de comptes (T-M01-38) · disseny en revisió · dades inventades <button class="boto-marques" type="button" data-marques aria-pressed="false"><span class="marca-activa" aria-hidden="true">✓ </span>Amaga les marques de revisió</button></p>
+
+<nav id="index" class="index" aria-labelledby="index-titol">
+  <h1 id="index-titol">Pantalles de comptes</h1>
+  <p class="text-2">Cada pantalla té una barra de demostració per veure'n els estats i, a sota, què s'aplica al servidor. Per a l'amplada de 320 px, redueix la finestra o fes servir el mode de dispositiu del navegador.</p>
+  <fieldset class="selector-tema">
+    <legend class="visualment-amagat">Tema</legend>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">Sistema</span></span></label>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">Clar</span></span></label>
+    <label><input class="visualment-amagat" type="radio" name="tema-index" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">Fosc</span></span></label>
+  </fieldset>
+  <ol>
+    <li><a href="#p-entrada-personal">1. Entrada personal</a></li>
+    <li><a href="#p-entrada-admin">2. Entrada d'administració</a></li>
+    <li><a href="#p-codi-totp">3. Codi TOTP</a></li>
+    <li><a href="#p-alta-totp">4. Alta del TOTP</a></li>
+    <li><a href="#p-codis">5. Codis de recuperació</a></li>
+    <li><a href="#p-oblidada">6. Contrasenya oblidada</a></li>
+    <li><a href="#p-nova">7. Contrasenya nova (enllaç)</a></li>
+    <li><a href="#p-verificacio">8. Verificació del correu</a></li>
+    <li><a href="#p-reenviament">9. Reenviament de la verificació</a></li>
+    <li><a href="#p-seguretat">10. Seguretat del compte</a></li>
+    <li><a href="#p-temporal">11. Canvi de la credencial temporal</a></li>
+    <li><a href="#p-llista">12. Llista de comptes d'administrador</a></li>
+    <li><a href="#p-restabliment">13. Restabliment (amb correu i sense)</a></li>
+    <li><a href="#p-comuns">14. Estats comuns: accés denegat i sessió caducada</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ===================== 1. Entrada personal ===================== -->
+<section id="p-entrada-personal" class="pantalla zona-soci" aria-labelledby="t1" data-pantalla>
+  <p class="nom-pantalla">accounts:login · accounts/login.html</p>
+  <div class="demo" role="group" aria-label="Demostració, entrada personal">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e1" value="inicial" checked> Inicial</label>
+    <label><input type="radio" name="e1" value="error"> Dades incorrectes o massa intents</label>
+    <label><input type="radio" name="e1" value="pendent"> Compte pendent de confirmar</label>
+  </div>
+  <header class="capcalera-compte">
+    <a class="marca" href="#p-entrada-personal">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <span class="titol-zona">Àrea de socis</span>
+    </a>
+  </header>
+  <div class="cos-compte">
+    <h1 id="t1">Entrar a l'àrea de socis</h1>
+    <div class="avis avis-error" role="alert" data-estat="error" hidden>Les dades no són correctes, o s'han fet massa intents. Torna-ho a provar d'aquí a una estona.</div>
+    <div class="avis avis-avis" role="alert" data-estat="pendent" hidden>Encara has de confirmar el correu. Obre l'enllaç que t'hem enviat per activar el compte.</div>
+    <form class="formulari" onsubmit="return false" novalidate>
+      <div class="camp"><label for="c1-correu">Correu electrònic</label><input id="c1-correu" type="email" autocomplete="username" value="marta.prova@example.org"></div>
+      <div class="camp"><label for="c1-pass">Contrasenya</label><input id="c1-pass" type="password" autocomplete="current-password"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">Entrar</button></div>
+    </form>
+    <form class="formulari" onsubmit="return false" data-estat="pendent" hidden>
+      <div class="accions"><button class="boto" type="submit">Torna'm a enviar l'enllaç de confirmació</button></div>
+    </form>
+    <p class="enllacos"><a href="#p-oblidada">He oblidat la contrasenya</a></p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, entrada personal">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Missatge únic per a contrasenya incorrecta, compte inexistent i bloqueig: no revela si el compte existeix (V-01).</li>
+      <li>El missatge de «pendent» i el botó de reenviament només surten després de la contrasenya correcta d'un compte pendent (RN-M01-59). Amagar el botó no és el control: la vista de reenviament comprova l'estat de 10 minuts.</li>
+      <li>Només l'entrada personal té «He oblidat la contrasenya»; l'administració no recupera mai per correu.</li>
+      <li>CSRF i límits per compte i per origen; «next» validat al servidor (safe_next).</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 2. Entrada d'administració ===================== -->
+<section id="p-entrada-admin" class="pantalla zona-admin" aria-labelledby="t2" data-pantalla>
+  <p class="nom-pantalla">administration:login · accounts/login.html (area = admin)</p>
+  <div class="demo" role="group" aria-label="Demostració, entrada d'administració">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e2" value="inicial" checked> Inicial</label>
+    <label><input type="radio" name="e2" value="error"> Dades incorrectes o massa intents</label>
+  </div>
+  <header class="capcalera-compte">
+    <a class="marca" href="#p-entrada-admin">
+      <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="Logotip del C.R.I.S.">
+      <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="Logotip del C.R.I.S.">
+      <span class="titol-zona">Administració</span>
+    </a>
+  </header>
+  <div class="cos-compte">
+    <h1 id="t2">Entrada d'administració</h1>
+    <div class="avis avis-error" role="alert" data-estat="error" hidden>Les dades no són correctes, o s'han fet massa intents. Torna-ho a provar d'aquí a una estona.</div>
+    <form class="formulari" onsubmit="return false" novalidate>
+      <div class="camp"><label for="c2-usuari">Nom d'usuari</label><input id="c2-usuari" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" value="tresoreria.prova"></div>
+      <div class="camp"><label for="c2-pass">Contrasenya</label><input id="c2-pass" type="password" autocomplete="current-password"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">Entrar</button></div>
+    </form>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, entrada d'administració">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Entrada separada amb nom d'usuari; cap enllaç de recuperació per correu (decisions 015 i 018). Qui perd l'accés el demana a un altre administrador (pantalla 13) o fa servir un codi de recuperació.</li>
+      <li>Mateix missatge genèric i mateixos límits que la personal; després de la contrasenya sempre ve el TOTP (obligatori).</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 3. Codi TOTP ===================== -->
+<section id="p-codi-totp" class="pantalla zona-admin" aria-labelledby="t3" data-pantalla>
+  <p class="nom-pantalla">accounts/login_totp.html</p>
+  <div class="demo" role="group" aria-label="Demostració, codi TOTP">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e3" value="admin" checked> Administració</label>
+    <label><input type="radio" name="e3" value="personal"> Compte personal</label>
+    <label><input type="radio" name="e3" value="error"> Codi incorrecte</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t3">Codi de verificació</h1>
+    <p>Escriu el codi de sis xifres de l'aplicació d'autenticació. <span data-estat="admin error">Si no tens el mòbil, pots fer servir un codi de recuperació.</span></p>
+    <div class="avis avis-error" role="alert" data-estat="error" hidden>Codi incorrecte</div>
+    <form class="formulari" onsubmit="return false" novalidate>
+      <div class="camp"><label for="c3-codi">Codi</label><input id="c3-codi" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">Verificar</button></div>
+    </form>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, codi TOTP">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>L'estat de «contrasenya correcta» dura 10 minuts i és de l'àrea on es va obrir; si caduca, es torna a l'entrada (estat comú, pantalla 14).</li>
+      <li>Un codi no es pot reutilitzar; els intents compten per al bloqueig. El camp no és de tipus numèric per acceptar també codis de recuperació.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 4. Alta del TOTP ===================== -->
+<section id="p-alta-totp" class="pantalla zona-soci" aria-labelledby="t4" data-pantalla>
+  <p class="nom-pantalla">accounts:totp_enrol · accounts/totp_enrol.html</p>
+  <div class="demo" role="group" aria-label="Demostració, alta del TOTP">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e4" value="personal" checked> Compte personal (opcional)</label>
+    <label><input type="radio" name="e4" value="admin"> Administració (obligatori)</label>
+    <label><input type="radio" name="e4" value="error"> Codi incorrecte</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t4">Activa el doble factor</h1>
+    <p data-estat="personal error">A partir d'ara, per entrar a l'àrea de socis caldrà també un codi de l'aplicació d'autenticació del mòbil.</p>
+    <p data-estat="admin" hidden>Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil.</p>
+    <ol class="passos">
+      <li>Obre l'aplicació d'autenticació i afegeix un compte nou.</li>
+      <li>Escaneja aquest codi QR, o escriu la clau a mà.</li>
+      <li>Escriu el codi de sis xifres que et mostra l'aplicació.</li>
+    </ol>
+    <figure class="targeta">
+      <div class="qr" role="img" aria-label="Codi QR de mostra, amb una clau inventada (el real el genera el servidor en SVG)"><svg aria-hidden="true" focusable="false" version="1.1" viewBox="0 0 39.2 39.2" xmlns="http://www.w3.org/2000/svg"><path d="M3.2,3.2H4V4H3.2zM4,3.2H4.8V4H4zM4.8,3.2H5.6V4H4.8zM5.6,3.2H6.4V4H5.6zM6.4,3.2H7.2V4H6.4zM7.2,3.2H8V4H7.2zM8,3.2H8.8V4H8zM10.4,3.2H11.2V4H10.4zM11.2,3.2H12V4H11.2zM13.6,3.2H14.4V4H13.6zM15.2,3.2H16V4H15.2zM16,3.2H16.8V4H16zM20,3.2H20.8V4H20zM21.6,3.2H22.4V4H21.6zM24,3.2H24.8V4H24zM24.8,3.2H25.6V4H24.8zM27.2,3.2H28V4H27.2zM28,3.2H28.8V4H28zM30.4,3.2H31.2V4H30.4zM31.2,3.2H32V4H31.2zM32,3.2H32.8V4H32zM32.8,3.2H33.6V4H32.8zM33.6,3.2H34.4V4H33.6zM34.4,3.2H35.2V4H34.4zM35.2,3.2H36V4H35.2zM3.2,4H4V4.8H3.2zM8,4H8.8V4.8H8zM9.6,4H10.4V4.8H9.6zM11.2,4H12V4.8H11.2zM12.8,4H13.6V4.8H12.8zM14.4,4H15.2V4.8H14.4zM15.2,4H16V4.8H15.2zM16.8,4H17.6V4.8H16.8zM19.2,4H20V4.8H19.2zM23.2,4H24V4.8H23.2zM24,4H24.8V4.8H24zM26.4,4H27.2V4.8H26.4zM28.8,4H29.6V4.8H28.8zM30.4,4H31.2V4.8H30.4zM35.2,4H36V4.8H35.2zM3.2,4.8H4V5.6H3.2zM4.8,4.8H5.6V5.6H4.8zM5.6,4.8H6.4V5.6H5.6zM6.4,4.8H7.2V5.6H6.4zM8,4.8H8.8V5.6H8zM9.6,4.8H10.4V5.6H9.6zM10.4,4.8H11.2V5.6H10.4zM15.2,4.8H16V5.6H15.2zM16.8,4.8H17.6V5.6H16.8zM17.6,4.8H18.4V5.6H17.6zM18.4,4.8H19.2V5.6H18.4zM20,4.8H20.8V5.6H20zM20.8,4.8H21.6V5.6H20.8zM21.6,4.8H22.4V5.6H21.6zM23.2,4.8H24V5.6H23.2zM27.2,4.8H28V5.6H27.2zM28.8,4.8H29.6V5.6H28.8zM30.4,4.8H31.2V5.6H30.4zM32,4.8H32.8V5.6H32zM32.8,4.8H33.6V5.6H32.8zM33.6,4.8H34.4V5.6H33.6zM35.2,4.8H36V5.6H35.2zM3.2,5.6H4V6.4H3.2zM4.8,5.6H5.6V6.4H4.8zM5.6,5.6H6.4V6.4H5.6zM6.4,5.6H7.2V6.4H6.4zM8,5.6H8.8V6.4H8zM9.6,5.6H10.4V6.4H9.6zM10.4,5.6H11.2V6.4H10.4zM11.2,5.6H12V6.4H11.2zM12,5.6H12.8V6.4H12zM12.8,5.6H13.6V6.4H12.8zM13.6,5.6H14.4V6.4H13.6zM14.4,5.6H15.2V6.4H14.4zM15.2,5.6H16V6.4H15.2zM16,5.6H16.8V6.4H16zM20.8,5.6H21.6V6.4H20.8zM21.6,5.6H22.4V6.4H21.6zM22.4,5.6H23.2V6.4H22.4zM24.8,5.6H25.6V6.4H24.8zM25.6,5.6H26.4V6.4H25.6zM27.2,5.6H28V6.4H27.2zM28.8,5.6H29.6V6.4H28.8zM30.4,5.6H31.2V6.4H30.4zM32,5.6H32.8V6.4H32zM32.8,5.6H33.6V6.4H32.8zM33.6,5.6H34.4V6.4H33.6zM35.2,5.6H36V6.4H35.2zM3.2,6.4H4V7.2H3.2zM4.8,6.4H5.6V7.2H4.8zM5.6,6.4H6.4V7.2H5.6zM6.4,6.4H7.2V7.2H6.4zM8,6.4H8.8V7.2H8zM10.4,6.4H11.2V7.2H10.4zM11.2,6.4H12V7.2H11.2zM12,6.4H12.8V7.2H12zM13.6,6.4H14.4V7.2H13.6zM14.4,6.4H15.2V7.2H14.4zM16,6.4H16.8V7.2H16zM16.8,6.4H17.6V7.2H16.8zM17.6,6.4H18.4V7.2H17.6zM18.4,6.4H19.2V7.2H18.4zM19.2,6.4H20V7.2H19.2zM20.8,6.4H21.6V7.2H20.8zM21.6,6.4H22.4V7.2H21.6zM22.4,6.4H23.2V7.2H22.4zM25.6,6.4H26.4V7.2H25.6zM26.4,6.4H27.2V7.2H26.4zM27.2,6.4H28V7.2H27.2zM28,6.4H28.8V7.2H28zM30.4,6.4H31.2V7.2H30.4zM32,6.4H32.8V7.2H32zM32.8,6.4H33.6V7.2H32.8zM33.6,6.4H34.4V7.2H33.6zM35.2,6.4H36V7.2H35.2zM3.2,7.2H4V8H3.2zM8,7.2H8.8V8H8zM12.8,7.2H13.6V8H12.8zM13.6,7.2H14.4V8H13.6zM16.8,7.2H17.6V8H16.8zM17.6,7.2H18.4V8H17.6zM19.2,7.2H20V8H19.2zM20,7.2H20.8V8H20zM20.8,7.2H21.6V8H20.8zM26.4,7.2H27.2V8H26.4zM28.8,7.2H29.6V8H28.8zM30.4,7.2H31.2V8H30.4zM35.2,7.2H36V8H35.2zM3.2,8H4V8.8H3.2zM4,8H4.8V8.8H4zM4.8,8H5.6V8.8H4.8zM5.6,8H6.4V8.8H5.6zM6.4,8H7.2V8.8H6.4zM7.2,8H8V8.8H7.2zM8,8H8.8V8.8H8zM9.6,8H10.4V8.8H9.6zM11.2,8H12V8.8H11.2zM12.8,8H13.6V8.8H12.8zM14.4,8H15.2V8.8H14.4zM16,8H16.8V8.8H16zM17.6,8H18.4V8.8H17.6zM19.2,8H20V8.8H19.2zM20.8,8H21.6V8.8H20.8zM22.4,8H23.2V8.8H22.4zM24,8H24.8V8.8H24zM25.6,8H26.4V8.8H25.6zM27.2,8H28V8.8H27.2zM28.8,8H29.6V8.8H28.8zM30.4,8H31.2V8.8H30.4zM31.2,8H32V8.8H31.2zM32,8H32.8V8.8H32zM32.8,8H33.6V8.8H32.8zM33.6,8H34.4V8.8H33.6zM34.4,8H35.2V8.8H34.4zM35.2,8H36V8.8H35.2zM9.6,8.8H10.4V9.6H9.6zM17.6,8.8H18.4V9.6H17.6zM18.4,8.8H19.2V9.6H18.4zM19.2,8.8H20V9.6H19.2zM3.2,9.6H4V10.4H3.2zM8,9.6H8.8V10.4H8zM9.6,9.6H10.4V10.4H9.6zM11.2,9.6H12V10.4H11.2zM12,9.6H12.8V10.4H12zM15.2,9.6H16V10.4H15.2zM16.8,9.6H17.6V10.4H16.8zM18.4,9.6H19.2V10.4H18.4zM19.2,9.6H20V10.4H19.2zM20,9.6H20.8V10.4H20zM20.8,9.6H21.6V10.4H20.8zM22.4,9.6H23.2V10.4H22.4zM23.2,9.6H24V10.4H23.2zM25.6,9.6H26.4V10.4H25.6zM26.4,9.6H27.2V10.4H26.4zM27.2,9.6H28V10.4H27.2zM29.6,9.6H30.4V10.4H29.6zM30.4,9.6H31.2V10.4H30.4zM32.8,9.6H33.6V10.4H32.8zM33.6,9.6H34.4V10.4H33.6zM34.4,9.6H35.2V10.4H34.4zM6.4,10.4H7.2V11.2H6.4zM7.2,10.4H8V11.2H7.2zM8.8,10.4H9.6V11.2H8.8zM10.4,10.4H11.2V11.2H10.4zM12,10.4H12.8V11.2H12zM16,10.4H16.8V11.2H16zM17.6,10.4H18.4V11.2H17.6zM18.4,10.4H19.2V11.2H18.4zM19.2,10.4H20V11.2H19.2zM20,10.4H20.8V11.2H20zM20.8,10.4H21.6V11.2H20.8zM21.6,10.4H22.4V11.2H21.6zM22.4,10.4H23.2V11.2H22.4zM24,10.4H24.8V11.2H24zM24.8,10.4H25.6V11.2H24.8zM27.2,10.4H28V11.2H27.2zM28,10.4H28.8V11.2H28zM28.8,10.4H29.6V11.2H28.8zM30.4,10.4H31.2V11.2H30.4zM31.2,10.4H32V11.2H31.2zM32,10.4H32.8V11.2H32zM32.8,10.4H33.6V11.2H32.8zM35.2,10.4H36V11.2H35.2zM3.2,11.2H4V12H3.2zM5.6,11.2H6.4V12H5.6zM7.2,11.2H8V12H7.2zM8,11.2H8.8V12H8zM8.8,11.2H9.6V12H8.8zM10.4,11.2H11.2V12H10.4zM11.2,11.2H12V12H11.2zM12,11.2H12.8V12H12zM12.8,11.2H13.6V12H12.8zM13.6,11.2H14.4V12H13.6zM16.8,11.2H17.6V12H16.8zM17.6,11.2H18.4V12H17.6zM20.8,11.2H21.6V12H20.8zM22.4,11.2H23.2V12H22.4zM24.8,11.2H25.6V12H24.8zM30.4,11.2H31.2V12H30.4zM31.2,11.2H32V12H31.2zM32,11.2H32.8V12H32zM32.8,11.2H33.6V12H32.8zM33.6,11.2H34.4V12H33.6zM3.2,12H4V12.8H3.2zM5.6,12H6.4V12.8H5.6zM7.2,12H8V12.8H7.2zM9.6,12H10.4V12.8H9.6zM11.2,12H12V12.8H11.2zM12,12H12.8V12.8H12zM13.6,12H14.4V12.8H13.6zM16,12H16.8V12.8H16zM18.4,12H19.2V12.8H18.4zM19.2,12H20V12.8H19.2zM21.6,12H22.4V12.8H21.6zM22.4,12H23.2V12.8H22.4zM24,12H24.8V12.8H24zM25.6,12H26.4V12.8H25.6zM28,12H28.8V12.8H28zM30.4,12H31.2V12.8H30.4zM32,12H32.8V12.8H32zM32.8,12H33.6V12.8H32.8zM34.4,12H35.2V12.8H34.4zM3.2,12.8H4V13.6H3.2zM4.8,12.8H5.6V13.6H4.8zM8,12.8H8.8V13.6H8zM9.6,12.8H10.4V13.6H9.6zM10.4,12.8H11.2V13.6H10.4zM15.2,12.8H16V13.6H15.2zM21.6,12.8H22.4V13.6H21.6zM22.4,12.8H23.2V13.6H22.4zM24.8,12.8H25.6V13.6H24.8zM27.2,12.8H28V13.6H27.2zM28.8,12.8H29.6V13.6H28.8zM30.4,12.8H31.2V13.6H30.4zM3.2,13.6H4V14.4H3.2zM4,13.6H4.8V14.4H4zM4.8,13.6H5.6V14.4H4.8zM6.4,13.6H7.2V14.4H6.4zM7.2,13.6H8V14.4H7.2zM8.8,13.6H9.6V14.4H8.8zM12,13.6H12.8V14.4H12zM13.6,13.6H14.4V14.4H13.6zM14.4,13.6H15.2V14.4H14.4zM16,13.6H16.8V14.4H16zM17.6,13.6H18.4V14.4H17.6zM23.2,13.6H24V14.4H23.2zM28,13.6H28.8V14.4H28zM31.2,13.6H32V14.4H31.2zM32,13.6H32.8V14.4H32zM32.8,13.6H33.6V14.4H32.8zM35.2,13.6H36V14.4H35.2zM3.2,14.4H4V15.2H3.2zM4.8,14.4H5.6V15.2H4.8zM5.6,14.4H6.4V15.2H5.6zM7.2,14.4H8V15.2H7.2zM8,14.4H8.8V15.2H8zM9.6,14.4H10.4V15.2H9.6zM10.4,14.4H11.2V15.2H10.4zM12,14.4H12.8V15.2H12zM12.8,14.4H13.6V15.2H12.8zM13.6,14.4H14.4V15.2H13.6zM15.2,14.4H16V15.2H15.2zM19.2,14.4H20V15.2H19.2zM20,14.4H20.8V15.2H20zM21.6,14.4H22.4V15.2H21.6zM22.4,14.4H23.2V15.2H22.4zM23.2,14.4H24V15.2H23.2zM24.8,14.4H25.6V15.2H24.8zM25.6,14.4H26.4V15.2H25.6zM26.4,14.4H27.2V15.2H26.4zM28.8,14.4H29.6V15.2H28.8zM32,14.4H32.8V15.2H32zM3.2,15.2H4V16H3.2zM4,15.2H4.8V16H4zM5.6,15.2H6.4V16H5.6zM6.4,15.2H7.2V16H6.4zM9.6,15.2H10.4V16H9.6zM11.2,15.2H12V16H11.2zM12,15.2H12.8V16H12zM12.8,15.2H13.6V16H12.8zM13.6,15.2H14.4V16H13.6zM16,15.2H16.8V16H16zM19.2,15.2H20V16H19.2zM20.8,15.2H21.6V16H20.8zM21.6,15.2H22.4V16H21.6zM25.6,15.2H26.4V16H25.6zM27.2,15.2H28V16H27.2zM28,15.2H28.8V16H28zM28.8,15.2H29.6V16H28.8zM29.6,15.2H30.4V16H29.6zM30.4,15.2H31.2V16H30.4zM32,15.2H32.8V16H32zM32.8,15.2H33.6V16H32.8zM33.6,15.2H34.4V16H33.6zM4,16H4.8V16.8H4zM4.8,16H5.6V16.8H4.8zM5.6,16H6.4V16.8H5.6zM6.4,16H7.2V16.8H6.4zM8,16H8.8V16.8H8zM8.8,16H9.6V16.8H8.8zM9.6,16H10.4V16.8H9.6zM11.2,16H12V16.8H11.2zM12,16H12.8V16.8H12zM12.8,16H13.6V16.8H12.8zM13.6,16H14.4V16.8H13.6zM16.8,16H17.6V16.8H16.8zM19.2,16H20V16.8H19.2zM21.6,16H22.4V16.8H21.6zM22.4,16H23.2V16.8H22.4zM24,16H24.8V16.8H24zM24.8,16H25.6V16.8H24.8zM31.2,16H32V16.8H31.2zM33.6,16H34.4V16.8H33.6zM34.4,16H35.2V16.8H34.4zM4.8,16.8H5.6V17.6H4.8zM6.4,16.8H7.2V17.6H6.4zM8.8,16.8H9.6V17.6H8.8zM11.2,16.8H12V17.6H11.2zM12.8,16.8H13.6V17.6H12.8zM13.6,16.8H14.4V17.6H13.6zM15.2,16.8H16V17.6H15.2zM16,16.8H16.8V17.6H16zM17.6,16.8H18.4V17.6H17.6zM18.4,16.8H19.2V17.6H18.4zM19.2,16.8H20V17.6H19.2zM20,16.8H20.8V17.6H20zM25.6,16.8H26.4V17.6H25.6zM26.4,16.8H27.2V17.6H26.4zM27.2,16.8H28V17.6H27.2zM28.8,16.8H29.6V17.6H28.8zM29.6,16.8H30.4V17.6H29.6zM30.4,16.8H31.2V17.6H30.4zM31.2,16.8H32V17.6H31.2zM32,16.8H32.8V17.6H32zM32.8,16.8H33.6V17.6H32.8zM34.4,16.8H35.2V17.6H34.4zM35.2,16.8H36V17.6H35.2zM4.8,17.6H5.6V18.4H4.8zM8,17.6H8.8V18.4H8zM9.6,17.6H10.4V18.4H9.6zM10.4,17.6H11.2V18.4H10.4zM11.2,17.6H12V18.4H11.2zM12,17.6H12.8V18.4H12zM13.6,17.6H14.4V18.4H13.6zM14.4,17.6H15.2V18.4H14.4zM15.2,17.6H16V18.4H15.2zM16.8,17.6H17.6V18.4H16.8zM17.6,17.6H18.4V18.4H17.6zM18.4,17.6H19.2V18.4H18.4zM21.6,17.6H22.4V18.4H21.6zM22.4,17.6H23.2V18.4H22.4zM23.2,17.6H24V18.4H23.2zM24,17.6H24.8V18.4H24zM24.8,17.6H25.6V18.4H24.8zM28,17.6H28.8V18.4H28zM28.8,17.6H29.6V18.4H28.8zM29.6,17.6H30.4V18.4H29.6zM30.4,17.6H31.2V18.4H30.4zM32,17.6H32.8V18.4H32zM33.6,17.6H34.4V18.4H33.6zM35.2,17.6H36V18.4H35.2zM3.2,18.4H4V19.2H3.2zM5.6,18.4H6.4V19.2H5.6zM7.2,18.4H8V19.2H7.2zM8.8,18.4H9.6V19.2H8.8zM12.8,18.4H13.6V19.2H12.8zM14.4,18.4H15.2V19.2H14.4zM15.2,18.4H16V19.2H15.2zM16,18.4H16.8V19.2H16zM18.4,18.4H19.2V19.2H18.4zM20,18.4H20.8V19.2H20zM21.6,18.4H22.4V19.2H21.6zM24,18.4H24.8V19.2H24zM26.4,18.4H27.2V19.2H26.4zM27.2,18.4H28V19.2H27.2zM28.8,18.4H29.6V19.2H28.8zM30.4,18.4H31.2V19.2H30.4zM32,18.4H32.8V19.2H32zM32.8,18.4H33.6V19.2H32.8zM35.2,18.4H36V19.2H35.2zM4,19.2H4.8V20H4zM4.8,19.2H5.6V20H4.8zM5.6,19.2H6.4V20H5.6zM8,19.2H8.8V20H8zM8.8,19.2H9.6V20H8.8zM9.6,19.2H10.4V20H9.6zM12,19.2H12.8V20H12zM12.8,19.2H13.6V20H12.8zM14.4,19.2H15.2V20H14.4zM17.6,19.2H18.4V20H17.6zM19.2,19.2H20V20H19.2zM20,19.2H20.8V20H20zM20.8,19.2H21.6V20H20.8zM21.6,19.2H22.4V20H21.6zM22.4,19.2H23.2V20H22.4zM25.6,19.2H26.4V20H25.6zM32.8,19.2H33.6V20H32.8zM33.6,19.2H34.4V20H33.6zM34.4,19.2H35.2V20H34.4zM3.2,20H4V20.8H3.2zM4,20H4.8V20.8H4zM9.6,20H10.4V20.8H9.6zM10.4,20H11.2V20.8H10.4zM14.4,20H15.2V20.8H14.4zM16,20H16.8V20.8H16zM16.8,20H17.6V20.8H16.8zM18.4,20H19.2V20.8H18.4zM19.2,20H20V20.8H19.2zM20,20H20.8V20.8H20zM20.8,20H21.6V20.8H20.8zM21.6,20H22.4V20.8H21.6zM23.2,20H24V20.8H23.2zM24.8,20H25.6V20.8H24.8zM26.4,20H27.2V20.8H26.4zM27.2,20H28V20.8H27.2zM28,20H28.8V20.8H28zM32,20H32.8V20.8H32zM33.6,20H34.4V20.8H33.6zM3.2,20.8H4V21.6H3.2zM4.8,20.8H5.6V21.6H4.8zM7.2,20.8H8V21.6H7.2zM8,20.8H8.8V21.6H8zM8.8,20.8H9.6V21.6H8.8zM10.4,20.8H11.2V21.6H10.4zM11.2,20.8H12V21.6H11.2zM15.2,20.8H16V21.6H15.2zM19.2,20.8H20V21.6H19.2zM20,20.8H20.8V21.6H20zM22.4,20.8H23.2V21.6H22.4zM23.2,20.8H24V21.6H23.2zM24,20.8H24.8V21.6H24zM24.8,20.8H25.6V21.6H24.8zM25.6,20.8H26.4V21.6H25.6zM26.4,20.8H27.2V21.6H26.4zM29.6,20.8H30.4V21.6H29.6zM32.8,20.8H33.6V21.6H32.8zM33.6,20.8H34.4V21.6H33.6zM3.2,21.6H4V22.4H3.2zM4,21.6H4.8V22.4H4zM4.8,21.6H5.6V22.4H4.8zM5.6,21.6H6.4V22.4H5.6zM7.2,21.6H8V22.4H7.2zM8.8,21.6H9.6V22.4H8.8zM9.6,21.6H10.4V22.4H9.6zM10.4,21.6H11.2V22.4H10.4zM12,21.6H12.8V22.4H12zM12.8,21.6H13.6V22.4H12.8zM15.2,21.6H16V22.4H15.2zM18.4,21.6H19.2V22.4H18.4zM19.2,21.6H20V22.4H19.2zM20.8,21.6H21.6V22.4H20.8zM24,21.6H24.8V22.4H24zM25.6,21.6H26.4V22.4H25.6zM28,21.6H28.8V22.4H28zM28.8,21.6H29.6V22.4H28.8zM30.4,21.6H31.2V22.4H30.4zM32,21.6H32.8V22.4H32zM34.4,21.6H35.2V22.4H34.4zM4,22.4H4.8V23.2H4zM4.8,22.4H5.6V23.2H4.8zM6.4,22.4H7.2V23.2H6.4zM7.2,22.4H8V23.2H7.2zM8,22.4H8.8V23.2H8zM13.6,22.4H14.4V23.2H13.6zM15.2,22.4H16V23.2H15.2zM16,22.4H16.8V23.2H16zM18.4,22.4H19.2V23.2H18.4zM19.2,22.4H20V23.2H19.2zM20.8,22.4H21.6V23.2H20.8zM23.2,22.4H24V23.2H23.2zM24.8,22.4H25.6V23.2H24.8zM28,22.4H28.8V23.2H28zM30.4,22.4H31.2V23.2H30.4zM31.2,22.4H32V23.2H31.2zM32,22.4H32.8V23.2H32zM32.8,22.4H33.6V23.2H32.8zM34.4,22.4H35.2V23.2H34.4zM4,23.2H4.8V24H4zM4.8,23.2H5.6V24H4.8zM6.4,23.2H7.2V24H6.4zM15.2,23.2H16V24H15.2zM17.6,23.2H18.4V24H17.6zM18.4,23.2H19.2V24H18.4zM20,23.2H20.8V24H20zM23.2,23.2H24V24H23.2zM24.8,23.2H25.6V24H24.8zM25.6,23.2H26.4V24H25.6zM28,23.2H28.8V24H28zM31.2,23.2H32V24H31.2zM32,23.2H32.8V24H32zM32.8,23.2H33.6V24H32.8zM34.4,23.2H35.2V24H34.4zM35.2,23.2H36V24H35.2zM4,24H4.8V24.8H4zM4.8,24H5.6V24.8H4.8zM5.6,24H6.4V24.8H5.6zM7.2,24H8V24.8H7.2zM8,24H8.8V24.8H8zM8.8,24H9.6V24.8H8.8zM9.6,24H10.4V24.8H9.6zM10.4,24H11.2V24.8H10.4zM12.8,24H13.6V24.8H12.8zM13.6,24H14.4V24.8H13.6zM15.2,24H16V24.8H15.2zM16,24H16.8V24.8H16zM19.2,24H20V24.8H19.2zM20.8,24H21.6V24.8H20.8zM22.4,24H23.2V24.8H22.4zM24,24H24.8V24.8H24zM24.8,24H25.6V24.8H24.8zM25.6,24H26.4V24.8H25.6zM29.6,24H30.4V24.8H29.6zM30.4,24H31.2V24.8H30.4zM31.2,24H32V24.8H31.2zM32,24H32.8V24.8H32zM34.4,24H35.2V24.8H34.4zM3.2,24.8H4V25.6H3.2zM4,24.8H4.8V25.6H4zM5.6,24.8H6.4V25.6H5.6zM9.6,24.8H10.4V25.6H9.6zM10.4,24.8H11.2V25.6H10.4zM12,24.8H12.8V25.6H12zM12.8,24.8H13.6V25.6H12.8zM13.6,24.8H14.4V25.6H13.6zM14.4,24.8H15.2V25.6H14.4zM16,24.8H16.8V25.6H16zM18.4,24.8H19.2V25.6H18.4zM19.2,24.8H20V25.6H19.2zM21.6,24.8H22.4V25.6H21.6zM24.8,24.8H25.6V25.6H24.8zM27.2,24.8H28V25.6H27.2zM28.8,24.8H29.6V25.6H28.8zM29.6,24.8H30.4V25.6H29.6zM30.4,24.8H31.2V25.6H30.4zM31.2,24.8H32V25.6H31.2zM32.8,24.8H33.6V25.6H32.8zM33.6,24.8H34.4V25.6H33.6zM3.2,25.6H4V26.4H3.2zM5.6,25.6H6.4V26.4H5.6zM6.4,25.6H7.2V26.4H6.4zM7.2,25.6H8V26.4H7.2zM8,25.6H8.8V26.4H8zM8.8,25.6H9.6V26.4H8.8zM10.4,25.6H11.2V26.4H10.4zM11.2,25.6H12V26.4H11.2zM12,25.6H12.8V26.4H12zM15.2,25.6H16V26.4H15.2zM16.8,25.6H17.6V26.4H16.8zM20.8,25.6H21.6V26.4H20.8zM21.6,25.6H22.4V26.4H21.6zM23.2,25.6H24V26.4H23.2zM24,25.6H24.8V26.4H24zM26.4,25.6H27.2V26.4H26.4zM27.2,25.6H28V26.4H27.2zM28,25.6H28.8V26.4H28zM28.8,25.6H29.6V26.4H28.8zM29.6,25.6H30.4V26.4H29.6zM31.2,25.6H32V26.4H31.2zM32.8,25.6H33.6V26.4H32.8zM33.6,25.6H34.4V26.4H33.6zM34.4,25.6H35.2V26.4H34.4zM3.2,26.4H4V27.2H3.2zM4,26.4H4.8V27.2H4zM4.8,26.4H5.6V27.2H4.8zM5.6,26.4H6.4V27.2H5.6zM7.2,26.4H8V27.2H7.2zM10.4,26.4H11.2V27.2H10.4zM12,26.4H12.8V27.2H12zM13.6,26.4H14.4V27.2H13.6zM14.4,26.4H15.2V27.2H14.4zM17.6,26.4H18.4V27.2H17.6zM19.2,26.4H20V27.2H19.2zM20.8,26.4H21.6V27.2H20.8zM22.4,26.4H23.2V27.2H22.4zM23.2,26.4H24V27.2H23.2zM24,26.4H24.8V27.2H24zM25.6,26.4H26.4V27.2H25.6zM28.8,26.4H29.6V27.2H28.8zM30.4,26.4H31.2V27.2H30.4zM31.2,26.4H32V27.2H31.2zM32,26.4H32.8V27.2H32zM34.4,26.4H35.2V27.2H34.4zM35.2,26.4H36V27.2H35.2zM3.2,27.2H4V28H3.2zM4,27.2H4.8V28H4zM6.4,27.2H7.2V28H6.4zM8,27.2H8.8V28H8zM8.8,27.2H9.6V28H8.8zM9.6,27.2H10.4V28H9.6zM10.4,27.2H11.2V28H10.4zM12.8,27.2H13.6V28H12.8zM14.4,27.2H15.2V28H14.4zM15.2,27.2H16V28H15.2zM16.8,27.2H17.6V28H16.8zM19.2,27.2H20V28H19.2zM21.6,27.2H22.4V28H21.6zM23.2,27.2H24V28H23.2zM25.6,27.2H26.4V28H25.6zM28,27.2H28.8V28H28zM28.8,27.2H29.6V28H28.8zM30.4,27.2H31.2V28H30.4zM31.2,27.2H32V28H31.2zM33.6,27.2H34.4V28H33.6zM35.2,27.2H36V28H35.2zM3.2,28H4V28.8H3.2zM4.8,28H5.6V28.8H4.8zM7.2,28H8V28.8H7.2zM8.8,28H9.6V28.8H8.8zM9.6,28H10.4V28.8H9.6zM11.2,28H12V28.8H11.2zM13.6,28H14.4V28.8H13.6zM18.4,28H19.2V28.8H18.4zM19.2,28H20V28.8H19.2zM22.4,28H23.2V28.8H22.4zM24.8,28H25.6V28.8H24.8zM25.6,28H26.4V28.8H25.6zM28,28H28.8V28.8H28zM28.8,28H29.6V28.8H28.8zM31.2,28H32V28.8H31.2zM34.4,28H35.2V28.8H34.4zM35.2,28H36V28.8H35.2zM3.2,28.8H4V29.6H3.2zM4.8,28.8H5.6V29.6H4.8zM5.6,28.8H6.4V29.6H5.6zM7.2,28.8H8V29.6H7.2zM8,28.8H8.8V29.6H8zM8.8,28.8H9.6V29.6H8.8zM10.4,28.8H11.2V29.6H10.4zM11.2,28.8H12V29.6H11.2zM16,28.8H16.8V29.6H16zM16.8,28.8H17.6V29.6H16.8zM18.4,28.8H19.2V29.6H18.4zM19.2,28.8H20V29.6H19.2zM20.8,28.8H21.6V29.6H20.8zM22.4,28.8H23.2V29.6H22.4zM24,28.8H24.8V29.6H24zM28,28.8H28.8V29.6H28zM28.8,28.8H29.6V29.6H28.8zM29.6,28.8H30.4V29.6H29.6zM30.4,28.8H31.2V29.6H30.4zM31.2,28.8H32V29.6H31.2zM32,28.8H32.8V29.6H32zM33.6,28.8H34.4V29.6H33.6zM34.4,28.8H35.2V29.6H34.4zM9.6,29.6H10.4V30.4H9.6zM10.4,29.6H11.2V30.4H10.4zM11.2,29.6H12V30.4H11.2zM12.8,29.6H13.6V30.4H12.8zM14.4,29.6H15.2V30.4H14.4zM15.2,29.6H16V30.4H15.2zM16,29.6H16.8V30.4H16zM16.8,29.6H17.6V30.4H16.8zM18.4,29.6H19.2V30.4H18.4zM20.8,29.6H21.6V30.4H20.8zM23.2,29.6H24V30.4H23.2zM24,29.6H24.8V30.4H24zM27.2,29.6H28V30.4H27.2zM28.8,29.6H29.6V30.4H28.8zM32,29.6H32.8V30.4H32zM32.8,29.6H33.6V30.4H32.8zM33.6,29.6H34.4V30.4H33.6zM34.4,29.6H35.2V30.4H34.4zM3.2,30.4H4V31.2H3.2zM4,30.4H4.8V31.2H4zM4.8,30.4H5.6V31.2H4.8zM5.6,30.4H6.4V31.2H5.6zM6.4,30.4H7.2V31.2H6.4zM7.2,30.4H8V31.2H7.2zM8,30.4H8.8V31.2H8zM10.4,30.4H11.2V31.2H10.4zM11.2,30.4H12V31.2H11.2zM12.8,30.4H13.6V31.2H12.8zM13.6,30.4H14.4V31.2H13.6zM14.4,30.4H15.2V31.2H14.4zM15.2,30.4H16V31.2H15.2zM16,30.4H16.8V31.2H16zM16.8,30.4H17.6V31.2H16.8zM19.2,30.4H20V31.2H19.2zM20,30.4H20.8V31.2H20zM23.2,30.4H24V31.2H23.2zM24,30.4H24.8V31.2H24zM24.8,30.4H25.6V31.2H24.8zM27.2,30.4H28V31.2H27.2zM28.8,30.4H29.6V31.2H28.8zM30.4,30.4H31.2V31.2H30.4zM32,30.4H32.8V31.2H32zM3.2,31.2H4V32H3.2zM8,31.2H8.8V32H8zM12,31.2H12.8V32H12zM14.4,31.2H15.2V32H14.4zM16.8,31.2H17.6V32H16.8zM17.6,31.2H18.4V32H17.6zM20.8,31.2H21.6V32H20.8zM23.2,31.2H24V32H23.2zM28,31.2H28.8V32H28zM28.8,31.2H29.6V32H28.8zM32,31.2H32.8V32H32zM34.4,31.2H35.2V32H34.4zM3.2,32H4V32.8H3.2zM4.8,32H5.6V32.8H4.8zM5.6,32H6.4V32.8H5.6zM6.4,32H7.2V32.8H6.4zM8,32H8.8V32.8H8zM12,32H12.8V32.8H12zM12.8,32H13.6V32.8H12.8zM13.6,32H14.4V32.8H13.6zM15.2,32H16V32.8H15.2zM16,32H16.8V32.8H16zM16.8,32H17.6V32.8H16.8zM19.2,32H20V32.8H19.2zM20,32H20.8V32.8H20zM20.8,32H21.6V32.8H20.8zM22.4,32H23.2V32.8H22.4zM23.2,32H24V32.8H23.2zM25.6,32H26.4V32.8H25.6zM26.4,32H27.2V32.8H26.4zM27.2,32H28V32.8H27.2zM28,32H28.8V32.8H28zM28.8,32H29.6V32.8H28.8zM29.6,32H30.4V32.8H29.6zM30.4,32H31.2V32.8H30.4zM31.2,32H32V32.8H31.2zM32,32H32.8V32.8H32zM34.4,32H35.2V32.8H34.4zM35.2,32H36V32.8H35.2zM3.2,32.8H4V33.6H3.2zM4.8,32.8H5.6V33.6H4.8zM5.6,32.8H6.4V33.6H5.6zM6.4,32.8H7.2V33.6H6.4zM8,32.8H8.8V33.6H8zM10.4,32.8H11.2V33.6H10.4zM11.2,32.8H12V33.6H11.2zM12.8,32.8H13.6V33.6H12.8zM14.4,32.8H15.2V33.6H14.4zM16,32.8H16.8V33.6H16zM16.8,32.8H17.6V33.6H16.8zM17.6,32.8H18.4V33.6H17.6zM18.4,32.8H19.2V33.6H18.4zM19.2,32.8H20V33.6H19.2zM20,32.8H20.8V33.6H20zM20.8,32.8H21.6V33.6H20.8zM21.6,32.8H22.4V33.6H21.6zM24.8,32.8H25.6V33.6H24.8zM25.6,32.8H26.4V33.6H25.6zM28,32.8H28.8V33.6H28zM28.8,32.8H29.6V33.6H28.8zM29.6,32.8H30.4V33.6H29.6zM32.8,32.8H33.6V33.6H32.8zM33.6,32.8H34.4V33.6H33.6zM34.4,32.8H35.2V33.6H34.4zM3.2,33.6H4V34.4H3.2zM4.8,33.6H5.6V34.4H4.8zM5.6,33.6H6.4V34.4H5.6zM6.4,33.6H7.2V34.4H6.4zM8,33.6H8.8V34.4H8zM10.4,33.6H11.2V34.4H10.4zM12,33.6H12.8V34.4H12zM14.4,33.6H15.2V34.4H14.4zM15.2,33.6H16V34.4H15.2zM16,33.6H16.8V34.4H16zM20.8,33.6H21.6V34.4H20.8zM22.4,33.6H23.2V34.4H22.4zM23.2,33.6H24V34.4H23.2zM24.8,33.6H25.6V34.4H24.8zM29.6,33.6H30.4V34.4H29.6zM30.4,33.6H31.2V34.4H30.4zM31.2,33.6H32V34.4H31.2zM32,33.6H32.8V34.4H32zM33.6,33.6H34.4V34.4H33.6zM3.2,34.4H4V35.2H3.2zM8,34.4H8.8V35.2H8zM11.2,34.4H12V35.2H11.2zM12.8,34.4H13.6V35.2H12.8zM14.4,34.4H15.2V35.2H14.4zM17.6,34.4H18.4V35.2H17.6zM18.4,34.4H19.2V35.2H18.4zM19.2,34.4H20V35.2H19.2zM20.8,34.4H21.6V35.2H20.8zM22.4,34.4H23.2V35.2H22.4zM25.6,34.4H26.4V35.2H25.6zM27.2,34.4H28V35.2H27.2zM28,34.4H28.8V35.2H28zM29.6,34.4H30.4V35.2H29.6zM32,34.4H32.8V35.2H32zM32.8,34.4H33.6V35.2H32.8zM33.6,34.4H34.4V35.2H33.6zM35.2,34.4H36V35.2H35.2zM3.2,35.2H4V36H3.2zM4,35.2H4.8V36H4zM4.8,35.2H5.6V36H4.8zM5.6,35.2H6.4V36H5.6zM6.4,35.2H7.2V36H6.4zM7.2,35.2H8V36H7.2zM8,35.2H8.8V36H8zM9.6,35.2H10.4V36H9.6zM11.2,35.2H12V36H11.2zM12,35.2H12.8V36H12zM14.4,35.2H15.2V36H14.4zM15.2,35.2H16V36H15.2zM16.8,35.2H17.6V36H16.8zM19.2,35.2H20V36H19.2zM20,35.2H20.8V36H20zM20.8,35.2H21.6V36H20.8zM22.4,35.2H23.2V36H22.4zM23.2,35.2H24V36H23.2zM24.8,35.2H25.6V36H24.8zM26.4,35.2H27.2V36H26.4zM28,35.2H28.8V36H28zM30.4,35.2H31.2V36H30.4zM32,35.2H32.8V36H32zM32.8,35.2H33.6V36H32.8z" id="qr-path" fill="#000000" fill-opacity="1" fill-rule="nonzero" stroke="none" /></svg></div>
+      <figcaption>Clau: <span class="clau">ABCD EFGH IJKL MNOP</span></figcaption>
+    </figure>
+    <div class="avis avis-error" role="alert" data-estat="error" hidden>El codi no és correcte.</div>
+    <form class="formulari" onsubmit="return false" novalidate>
+      <div class="camp"><label for="c4-codi">Codi</label><input id="c4-codi" type="text" inputmode="numeric" autocomplete="one-time-code"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">Activar</button></div>
+    </form>
+    <p class="enllacos" data-estat="personal error"><a href="#p-seguretat">Cancel·lar</a></p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, alta del TOTP">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>El secret es guarda xifrat; la clau només es mostra en aquesta pantalla, amb resposta sense memòria cau. El QR es genera al servidor (cap servei extern).</li>
+      <li>A l'administració no es pot cancel·lar: sense TOTP no s'entra.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 5. Codis de recuperació ===================== -->
+<section id="p-codis" class="pantalla zona-admin" aria-labelledby="t5">
+  <p class="nom-pantalla">accounts/recovery_codes.html (només administració)</p>
+  <div class="cos-compte">
+    <h1 id="t5">Codis de recuperació</h1>
+    <div class="avis avis-avis" role="alert">Només els veuràs ara. Guarda'ls fora de línia (en paper o al gestor de contrasenyes del club). Cada codi serveix una sola vegada si perds el mòbil.</div>
+    <ul class="codis" aria-label="Codis de recuperació (inventats)">
+      <li>4F7K-92QX</li><li>8M2D-LP4W</li><li>T6RB-03ZN</li><li>Q9HC-7Y1E</li><li>2KJV-W8SA</li><li>N5UG-6TQD</li><li>Z3PL-MX0R</li><li>H7EW-4BCF</li>
+    </ul>
+    <div class="accions"><a class="boto boto-principal" href="#p-codis">Ja els he guardat</a></div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, codis de recuperació">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Es mostren una sola vegada i es guarden com a resum, mai en clar; resposta sense memòria cau. El compte personal no en té.</li>
+      <li>No es proposa cap botó de copiar ni d'imprimir: seria una decisió nova.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 6. Contrasenya oblidada ===================== -->
+<section id="p-oblidada" class="pantalla zona-soci" aria-labelledby="t6" data-pantalla>
+  <p class="nom-pantalla">accounts:password_reset_request · accounts/password_reset_request.html</p>
+  <div class="demo" role="group" aria-label="Demostració, contrasenya oblidada">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e6" value="inicial" checked> Formulari</label>
+    <label><input type="radio" name="e6" value="enviat"> Petició feta</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t6">He oblidat la contrasenya</h1>
+    <div data-estat="inicial">
+      <p>Escriu el correu amb què entres a l'àrea de socis i t'hi enviarem un enllaç per triar una contrasenya nova.</p>
+      <form class="formulari" onsubmit="return false" novalidate>
+        <div class="camp"><label for="c6-correu">Correu electrònic</label><input id="c6-correu" type="email" autocomplete="email"></div>
+        <div class="accions"><button class="boto boto-principal" type="submit">Envia'm l'enllaç</button></div>
+      </form>
+      <p class="enllacos"><a href="#p-entrada-personal">Tornar a l'entrada</a></p>
+    </div>
+    <div data-estat="enviat" hidden>
+      <div class="avis avis-ok" role="status">Si hi ha un compte actiu amb aquesta adreça, t'hi hem enviat un enllaç per triar una contrasenya nova. L'enllaç caduca d'aquí a 1 hora i només serveix una vegada. Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.</div>
+      <p class="enllacos"><a href="#p-entrada-personal">Anar a l'entrada</a></p>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, contrasenya oblidada">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Resposta idèntica existeixi o no el compte (també quan la petició queda limitada per RN-M01-58). La diferència de temps és coneguda i és la proposta T-M01-39, no aprovada.</li>
+      <li>L'adreça no es repeteix a la confirmació.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 7. Contrasenya nova ===================== -->
+<section id="p-nova" class="pantalla zona-soci" aria-labelledby="t7" data-pantalla>
+  <p class="nom-pantalla">accounts/password_reset.html (des de l'enllaç del correu)</p>
+  <div class="demo" role="group" aria-label="Demostració, contrasenya nova">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e7" value="ready" checked> Formulari</label>
+    <label><input type="radio" name="e7" value="error"> Errors als camps</label>
+    <label><input type="radio" name="e7" value="done"> Fet</label>
+    <label><input type="radio" name="e7" value="invalid"> Enllaç no vàlid</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t7">Contrasenya nova</h1>
+    <div data-estat="ready error">
+      <div class="avis avis-error" role="alert" data-estat="error" hidden>Revisa els camps marcats.</div>
+      <form class="formulari" onsubmit="return false" novalidate>
+        <div class="camp">
+          <label for="c7-p1">Contrasenya nova</label>
+          <input id="c7-p1" type="password" autocomplete="new-password" aria-describedby="c7-p1-ajuda">
+          <p class="ajuda" id="c7-p1-ajuda">Ajuda de Django per a la contrasenya (llargada mínima i regles).</p>
+        </div>
+        <div class="camp">
+          <label for="c7-p2">Torna-la a escriure</label>
+          <input id="c7-p2" type="password" autocomplete="new-password">
+          <p class="error" data-estat="error" hidden>Les dues contrasenyes no coincideixen.</p>
+        </div>
+        <div class="accions"><button class="boto boto-principal" type="submit">Desar la contrasenya</button></div>
+      </form>
+    </div>
+    <div data-estat="done" hidden>
+      <div class="avis avis-ok" role="status">Contrasenya canviada. Les sessions obertes amb l'anterior s'han tancat.</div>
+      <div class="accions"><a class="boto boto-principal" href="#p-entrada-personal">Entrar</a></div>
+    </div>
+    <div data-estat="invalid" hidden>
+      <div class="avis avis-error" role="alert">Aquest enllaç no és vàlid o ja ha caducat.</div>
+      <p class="enllacos"><a href="#p-entrada-personal">Anar a l'entrada</a></p>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, contrasenya nova">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Enllaç d'un sol ús i amb finalitat pròpia; la pàgina no carrega cap recurs extern (testimoni a l'URL, «no-referrer»).</li>
+      <li>En desar, es tanquen les altres sessions.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 8. Verificació del correu ===================== -->
+<section id="p-verificacio" class="pantalla zona-soci" aria-labelledby="t8" data-pantalla>
+  <p class="nom-pantalla">accounts/verify_email.html (des de l'enllaç del correu)</p>
+  <div class="demo" role="group" aria-label="Demostració, verificació del correu">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e8" value="ready" checked> Confirmar</label>
+    <label><input type="radio" name="e8" value="done"> Fet</label>
+    <label><input type="radio" name="e8" value="invalid"> Enllaç no vàlid</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t8">Confirmar el correu</h1>
+    <div data-estat="ready">
+      <p>Confirma que aquesta adreça és teva per activar el compte.</p>
+      <form onsubmit="return false"><button class="boto boto-principal" type="submit">Confirmar el correu</button></form>
+    </div>
+    <div data-estat="done" hidden>
+      <div class="avis avis-ok" role="status">Correu confirmat. Ja pots entrar a l'àrea de socis.</div>
+      <div class="accions"><a class="boto boto-principal" href="#p-entrada-personal">Entrar</a></div>
+    </div>
+    <div data-estat="invalid" hidden>
+      <div class="avis avis-error" role="alert">Aquest enllaç no és vàlid o ja ha caducat.</div>
+      <p class="enllacos"><a href="#p-entrada-personal">Anar a l'entrada</a></p>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, verificació">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Confirmació amb un POST (obrir l'enllaç no activa res); no es mostra l'adreça. Per demanar-ne un de nou cal entrar amb la contrasenya (pantalla 1).</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 9. Reenviament ===================== -->
+<section id="p-reenviament" class="pantalla zona-soci" aria-labelledby="t9" data-pantalla>
+  <p class="nom-pantalla">accounts:resend_verification · accounts/resend_verification.html</p>
+  <div class="demo" role="group" aria-label="Demostració, reenviament">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e9" value="enviat" checked> Petició feta (dins dels 10 minuts)</label>
+    <label><input type="radio" name="e9" value="caducat"> Estat caducat</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t9">Confirmar el correu</h1>
+    <div data-estat="enviat">
+      <div class="avis avis-ok" role="status">Si el compte encara està pendent de confirmar, t'hem tornat a enviar l'enllaç de confirmació al correu amb què el vas crear. Caduca d'aquí a 1 hora i només serveix una vegada. Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.</div>
+      <form class="formulari" onsubmit="return false"><div class="accions"><button class="boto" type="submit">Torna'm a enviar l'enllaç de confirmació</button></div></form>
+      <p class="enllacos"><a href="#p-entrada-personal">Anar a l'entrada</a></p>
+    </div>
+    <div data-estat="caducat" hidden>
+      <div class="avis avis-avis" role="alert">Per demanar un enllaç nou, torna a escriure el correu i la contrasenya.</div>
+      <div class="accions"><a class="boto boto-principal" href="#p-entrada-personal">Anar a l'entrada</a></div>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, reenviament">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Recorregut demanat a la fila de la T-M01-38 (aprovació de la T-M01-05): confirmació visible, manera de tornar-lo a demanar i navegació sense dependre de «Enrere» sobre un POST.</li>
+      <li>El botó fa el mateix POST que el de l'entrada; mentre duri l'estat de 10 minuts es pot repetir (066, punt 1), amb els límits de RN-M01-58. Si un límit l'atura, el missatge és el mateix: no diu si s'ha enviat ni si el compte existeix.</li>
+      <li><span class="a-validar">A validar</span> després del POST, redirigir (303) a una pàgina GET amb aquest resultat, perquè recarregar o tornar enrere no reenviï el formulari. És l'única peça d'aquest wireframe que demana canviar una vista; no es toca fins que s'aprovi.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 10. Seguretat del compte ===================== -->
+<section id="p-seguretat" class="pantalla zona-soci" aria-labelledby="t10" data-pantalla>
+  <p class="nom-pantalla">accounts:security · accounts/security.html (compte personal)</p>
+  <div class="demo" role="group" aria-label="Demostració, seguretat del compte">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e10" value="no" checked> TOTP no actiu</label>
+    <label><input type="radio" name="e10" value="si"> TOTP actiu</label>
+    <label><input type="radio" name="e10" value="fet"> Acabat d'activar</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t10">Seguretat del compte</h1>
+    <div class="avis avis-ok" role="status" data-estat="fet" hidden>Doble factor activat.</div>
+    <section class="targeta" aria-labelledby="t10-df">
+      <h2 id="t10-df">Doble factor</h2>
+      <div data-estat="no">
+        <p><span class="estat estat-neutre">○ No actiu</span></p>
+        <p>Si l'actives, per entrar et demanarem també un codi de l'aplicació d'autenticació del mòbil.</p>
+        <p>El compte personal no té codis de recuperació: abans d'activar-lo, assegura't que no perdràs l'accés a l'aplicació.</p>
+        <div class="accions"><a class="boto boto-principal" href="#p-alta-totp">Activar el doble factor</a></div>
+      </div>
+      <div data-estat="si fet" hidden>
+        <p><span class="estat estat-ok">✓ Actiu</span></p>
+        <p>Per entrar, a més de la contrasenya, et demanem el codi de l'aplicació d'autenticació.</p>
+        <h3>Desactivar el doble factor</h3>
+        <p>Per confirmar que ets tu, escriu la contrasenya i un codi de l'aplicació.</p>
+        <form class="formulari" onsubmit="return false" novalidate>
+          <div class="camp"><label for="c10-pass">Contrasenya</label><input id="c10-pass" type="password" autocomplete="current-password"></div>
+          <div class="camp"><label for="c10-codi">Codi</label><input id="c10-codi" type="text" inputmode="numeric" autocomplete="one-time-code"></div>
+          <div class="accions"><button class="boto" type="submit">Desactivar</button></div>
+        </form>
+      </div>
+    </section>
+    <p class="enllacos"><a href="#p-seguretat">Tornar a l'inici</a></p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, seguretat del compte">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Desactivar exigeix contrasenya i codi i queda al registre d'activitat. Estats amb símbol, text i color (030).</li>
+      <li>Pantalla dins del compte personal: la capçalera definitiva és la de la T-M01-16; aquí només es dibuixa el contingut.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 11. Credencial temporal ===================== -->
+<section id="p-temporal" class="pantalla zona-admin" aria-labelledby="t11" data-pantalla>
+  <p class="nom-pantalla">accounts/temporary_password_change.html</p>
+  <div class="demo" role="group" aria-label="Demostració, credencial temporal">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e11" value="ready" checked> Formulari</label>
+    <label><input type="radio" name="e11" value="error"> Errors</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t11">Contrasenya nova</h1>
+    <p>Has entrat amb una contrasenya temporal. Abans de continuar, tria'n una de nova.</p>
+    <div class="avis avis-error" role="alert" data-estat="error" hidden>Revisa els camps marcats.</div>
+    <form class="formulari" onsubmit="return false" novalidate>
+      <div class="camp">
+        <label for="c11-p1">Contrasenya nova</label>
+        <input id="c11-p1" type="password" autocomplete="new-password">
+        <p class="error" data-estat="error" hidden>Ha de ser diferent de la contrasenya temporal.</p>
+      </div>
+      <div class="camp"><label for="c11-p2">Torna-la a escriure</label><input id="c11-p2" type="password" autocomplete="new-password"></div>
+      <div class="accions"><button class="boto boto-principal" type="submit">Desar i entrar</button></div>
+    </form>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, credencial temporal">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Mentre no la canviï, el compte no pot obrir cap altra pàgina de l'administració; la temporal caduca a les 24 hores (HU-08).</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 12. Llista de comptes ===================== -->
+<section id="p-llista" class="pantalla zona-admin" aria-labelledby="t12">
+  <p class="nom-pantalla">administration:accounts · accounts/admin_accounts.html (M4)</p>
+  <div class="cos-compte cos-ample">
+    <h1 id="t12">Comptes d'administrador</h1>
+    <table class="taula">
+      <caption>Comptes que poden entrar a l'administració</caption>
+      <thead><tr><th scope="col">Nom d'usuari</th><th scope="col">Estat</th><th scope="col">Doble factor</th><th scope="col">Contrasenya temporal</th><th scope="col">Accions</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" class="cel-nom">secretaria.prova (tu)</th><td data-etiqueta="Estat"><span class="estat estat-ok">✓ Actiu</span></td><td data-etiqueta="Doble factor">✓ Actiu</td><td data-etiqueta="Contrasenya temporal">—</td><td class="cel-accions">—</td></tr>
+        <tr><th scope="row" class="cel-nom">tresoreria.prova</th><td data-etiqueta="Estat"><span class="estat estat-ok">✓ Actiu</span></td><td data-etiqueta="Doble factor">○ Pendent d'alta</td><td data-etiqueta="Contrasenya temporal"><span class="estat estat-avis">! Pendent de canviar</span></td><td class="cel-accions"><a class="boto boto-petit" href="#p-restabliment">Restablir l'accés de tresoreria.prova</a></td></tr>
+        <tr><th scope="row" class="cel-nom">historia.prova</th><td data-etiqueta="Estat"><span class="estat estat-neutre">× Desactivat</span></td><td data-etiqueta="Doble factor">✓ Actiu</td><td data-etiqueta="Contrasenya temporal">—</td><td class="cel-accions"><a class="boto boto-petit" href="#p-restabliment">Restablir l'accés de historia.prova</a></td></tr>
+      </tbody>
+    </table>
+    <p class="enllacos"><a href="#p-llista">Tornar a l'administració</a></p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, llista de comptes">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>Només amb M4, comprovat al servidor; l'enllaç a l'administració surt només amb M4, però no és el control.</li>
+      <li>Minimització: només nom d'usuari i estats; cap correu, nom de persona ni data d'últim accés. El propi compte no té acció.</li>
+      <li>Dins de l'administració, la pàgina va dins de la barra lateral d'admin.html (034: l'administració no es toca).</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 13. Restabliment ===================== -->
+<section id="p-restabliment" class="pantalla zona-admin" aria-labelledby="t13" data-pantalla>
+  <p class="nom-pantalla">administration:reset_credentials · admin_reset.html i admin_reset_done.html</p>
+  <div class="demo" role="group" aria-label="Demostració, restabliment">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e13" value="amb" checked> Formulari, amb correu</label>
+    <label><input type="radio" name="e13" value="sense"> Formulari, sense correu</label>
+    <label><input type="radio" name="e13" value="propi"> El propi compte</label>
+    <label><input type="radio" name="e13" value="fet-pass"> Fet: contrasenya</label>
+    <label><input type="radio" name="e13" value="fet-totp"> Fet: TOTP, sense correu</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t13"><span data-estat="amb sense propi">Restablir l'accés de tresoreria.prova</span><span data-estat="fet-pass fet-totp" hidden>Accés de tresoreria.prova restablert</span></h1>
+    <div data-estat="propi" hidden><div class="avis avis-error" role="alert">Ningú no pot restablir el seu propi compte per aquesta via.</div></div>
+    <div data-estat="amb sense">
+      <p>Fes-ho només si la persona ha perdut l'accés i n'has comprovat la identitat.</p>
+      <div class="avis avis-avis" role="alert" data-estat="sense" hidden>Aquest compte no té correu de notificació. El restabliment es pot fer, però no se li podrà enviar l'avís.</div>
+      <form class="formulari" onsubmit="return false" novalidate>
+        <fieldset>
+          <legend>Què vols restablir</legend>
+          <label class="casella"><input type="radio" name="c13-que" checked> La contrasenya</label>
+          <label class="casella"><input type="radio" name="c13-que"> El doble factor (TOTP)</label>
+        </fieldset>
+        <div class="camp">
+          <label for="c13-motiu">Motiu</label>
+          <textarea id="c13-motiu" rows="3" aria-describedby="c13-motiu-ajuda"></textarea>
+          <p class="ajuda" id="c13-motiu-ajuda">Queda al registre d'activitat. No hi escriguis cap contrasenya ni codi.</p>
+        </div>
+        <div class="camp">
+          <label for="c13-codi">El teu codi TOTP</label>
+          <input id="c13-codi" type="text" inputmode="numeric" autocomplete="one-time-code" aria-describedby="c13-codi-ajuda">
+          <p class="ajuda" id="c13-codi-ajuda">Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu.</p>
+        </div>
+        <div class="accions"><button class="boto boto-principal" type="submit">Restablir</button></div>
+      </form>
+    </div>
+    <div data-estat="fet-pass" hidden>
+      <div class="avis avis-ok" role="status">Restabliment completat. L'avís s'ha posat a la cua d'enviament cap al correu de notificació del compte; el registre d'enviaments en dirà el resultat.</div>
+      <section class="targeta" aria-labelledby="t13-temp">
+        <h2 id="t13-temp">Contrasenya temporal</h2>
+        <p class="credencial">exemple-inventat-0000</p>
+        <p>Només es mostra ara. Caduca d'aquí a 24 hores i s'haurà de canviar en entrar. No l'enviïs mai per correu.</p>
+      </section>
+    </div>
+    <div data-estat="fet-totp" hidden>
+      <div class="avis avis-avis" role="alert">Restabliment completat. No s'ha pogut enviar l'avís perquè el compte no té correu de notificació. Avisa la persona afectada per una altra via.</div>
+      <p>En la propera entrada, la persona haurà de tornar a donar d'alta el doble factor.</p>
+    </div>
+    <p class="enllacos"><a href="#p-llista">Tornar als comptes</a></p>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, restabliment">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>M4, TOTP nou de qui ho fa i motiu obligatori (RN-M01-60); mai el propi compte; l'avís va separat al registre (RN-M01-61).</li>
+      <li>La credencial temporal es mostra una sola vegada, sense memòria cau, i no va mai al registre ni al correu.</li>
+      <li>Tant si hi ha correu com si no, el restabliment es fa; només canvia l'avís.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ===================== 14. Estats comuns ===================== -->
+<section id="p-comuns" class="pantalla zona-admin" aria-labelledby="t14" data-pantalla>
+  <p class="nom-pantalla">Estats comuns a totes les pantalles de comptes</p>
+  <div class="demo" role="group" aria-label="Demostració, estats comuns">
+    <span class="demo-titol">Estat:</span>
+    <label><input type="radio" name="e14" value="denegat" checked> Accés denegat (403)</label>
+    <label><input type="radio" name="e14" value="caducada"> Sessió caducada</label>
+  </div>
+  <div class="cos-compte">
+    <h1 id="t14"><span data-estat="denegat">No tens permís per veure aquesta pàgina</span><span data-estat="caducada" hidden>La sessió ha caducat</span></h1>
+    <div data-estat="denegat">
+      <p>Si creus que n'hauries de tenir, parla-ho amb un administrador del club.</p>
+      <p class="enllacos"><a href="#p-llista">Tornar a l'administració</a></p>
+    </div>
+    <div data-estat="caducada" hidden>
+      <div class="avis avis-avis" role="alert">Per seguretat, torna a entrar. Si estaves omplint un formulari, no s'ha desat.</div>
+      <div class="accions"><a class="boto boto-principal" href="#p-entrada-admin">Tornar a entrar</a></div>
+    </div>
+  </div>
+  <aside class="demo nota-servidor" aria-label="Seguretat i privacitat, estats comuns">
+    <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+    <ul>
+      <li>El 403 no diu quin permís falta ni si l'objecte existeix.</li>
+      <li><span class="a-validar">A validar</span> els textos d'aquestes dues pantalles són proposta; avui són les respostes per defecte de Django i del middleware.</li>
+    </ul>
+  </aside>
+</section>
+
+</main>
+
+<script src="interaccions.js"></script>
+<script>
+(function () {
+  'use strict';
+  CRIS.tema();
+  CRIS.marques();
+  /* Barra de demostració: mostra els blocs [data-estat] que inclouen l'estat triat */
+  document.querySelectorAll('[data-pantalla]').forEach(p => {
+    const radios = p.querySelectorAll('.demo input[type="radio"]');
+    function aplica(v) {
+      p.querySelectorAll('[data-estat]').forEach(b => { b.hidden = !b.getAttribute('data-estat').split(' ').includes(v); });
+    }
+    radios.forEach(r => r.addEventListener('change', () => { if (r.checked) aplica(r.value); }));
+    const triat = Array.from(radios).find(r => r.checked);
+    if (triat) aplica(triat.value);
+  });
+})();
+</script>
+</body>
+</html>

@@ -364,19 +364,26 @@ def password_reset_request_view(request):
 
 @login_not_required
 @never_cache
-@require_POST
+@require_http_methods(["GET", "POST"])
 def resend_verification_view(request):
     """RN-M01-59: només amb l'estat que deixa la contrasenya correcta d'un compte pendent;
-    mentre dura, amb els límits de RN-M01-58 (066). L'adreça no ve mai del navegador."""
-    if email_links.resend_verification(request):
-        message, expired = _verification_resent_message(), False
+    mentre dura, amb els límits de RN-M01-58 (066). L'adreça no ve mai del navegador.
+    El POST redirigeix (303) a aquesta mateixa pàgina en GET (T-M01-38): recarregar-la o
+    tornar-hi enrere no torna a enviar res. El GET no envia mai res."""
+    if request.method == "POST":
+        email_links.resend_verification(request)
+        response = redirect("accounts:resend_verification")
+        response.status_code = 303
+        return response
+    sent = email_links.resend_was_requested(request)
+    if sent:
+        message = _verification_resent_message()
     else:
-        message, expired = (
-            _("Per demanar un enllaç nou, torna a escriure el correu i la contrasenya."),
-            True,
-        )
+        message = _("Per demanar un enllaç nou, torna a escriure el correu i la contrasenya.")
     return render(
-        request, "accounts/resend_verification.html", {"message": message, "expired": expired}
+        request,
+        "accounts/resend_verification.html",
+        {"message": message, "sent": bool(sent), "expired": not sent},
     )
 
 

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-38: text aprovat al wireframe (estats comuns). El middleware la mostra només si hi havia una sessió. #}
+{% block title %}{% translate "La sessió ha caducat" %} · C.R.I.S.{% endblock %}
+{% block zona %}{% if area == "admin" %}admin{% else %}soci{% endif %}{% endblock %}
+{% block titol_zona %}{% if area == "admin" %}{% translate "Administració" %}{% else %}{% translate "Àrea de socis" %}{% endif %}{% endblock %}
+{% block inici %}{{ login_url }}{% endblock %}
+{% block content %}
+  <h1>{% translate "La sessió ha caducat" %}</h1>
+  <div class="avis avis-avis" role="alert">{% translate "Per seguretat, torna a entrar. Si estaves omplint un formulari, no s'ha desat." %}</div>
+  <div class="accions"><a class="boto boto-principal" href="{{ login_url }}">{% translate "Tornar a entrar" %}</a></div>
+{% endblock %}

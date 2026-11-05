@@ -129,7 +129,8 @@ class TestRemove:
         client = login_as(target, "admin")
         assert client.get(reverse("administration:home")).status_code == 200
         remove_role(target, R.SECRETARY, by=admin)
-        assert client.get(reverse("administration:home")).status_code == 302
+        # T-M01-38: sessió tancada, pàgina «La sessió ha caducat» (401).
+        assert client.get(reverse("administration:home")).status_code == 401
         target.refresh_from_db()
         assert target.status == Account.Status.ACTIVE
 

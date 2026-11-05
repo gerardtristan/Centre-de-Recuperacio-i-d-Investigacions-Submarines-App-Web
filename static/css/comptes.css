@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Pantalles de comptes (T-M01-38), segons design/wireframes/comptes.html, aprovat el
+   05/11/2026. Només peces de tokens.css: formularis, avisos i botons plans (031);
+   capçalera sense barra lateral (032); taula apilada de l'administració (034).
+   Els afinaments de cada pàgina viuen aquí, no a tokens.css (034).
+   ========================================================================== */
+
+/* capcalera-compte: logotip, zona i tema; sense navegació (032) */
+.capcalera-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4); border-bottom: var(--v-fina) solid var(--c-linia); border-top: var(--v-activa) solid var(--c-zona); }
+.capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
+.capcalera-compte img { width: var(--logo-capcalera); height: auto; }
+.capcalera-compte .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
+.capcalera-compte .selector-tema { margin-left: auto; }
+
+/* Cos: una columna estreta per als formularis, més ampla per a les llistes */
+.cos-compte { max-width: 28rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
+.cos-ample { max-width: 60rem; }
+.cos-compte h1 { font-size: var(--t-2xl); margin: 0; }
+.cos-compte p, .cos-compte h2, .cos-compte h3 { margin: 0; }
+/* Blocs d'estat: el mateix espai entre avís, formulari i enllaços que el cos (ajust aprovat) */
+.cos-compte > div:not(.avis), .cos-compte > section { display: grid; gap: var(--e-4); }
+.formulari { display: grid; gap: var(--e-4); }
+.formulari fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--e-2); }
+.formulari legend { font-weight: var(--p-semi); font-size: var(--t-s); margin-bottom: var(--e-1); }
+.camp .ajuda, .camp .ajuda ul { font-size: var(--t-s); color: var(--c-text-2); margin: 0; }
+.camp .ajuda ul { padding-left: var(--e-5); }
+/* Errors de Django (de camp, d'una opció i generals del formulari): el mateix estil a tot arreu */
+.cos-compte .errorlist { list-style: none; margin: 0; padding: 0; font-size: var(--t-s); color: var(--c-error-text); font-weight: var(--p-semi); }
+.camp input[aria-invalid="true"] { border-color: var(--c-error); }
+.accions { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.enllacos { display: grid; gap: var(--e-1); }
+.enllacos a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.passos { padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+
+/* QR: radi només a la zona de silenci (4 mòduls); els mòduls no es retallen ni s'arrodoneixen (ajust aprovat) */
+figure { margin: 0; }
+.qr { width: 11rem; height: 11rem; border: var(--v-fina) dashed var(--c-linia-forta); border-radius: var(--r-m); overflow: hidden; background: #fff; }
+.qr svg { display: block; width: 100%; height: 100%; border-radius: var(--r-m); }
+.clau, .credencial { font-family: var(--f-codi); font-size: var(--t-l); overflow-wrap: anywhere; }
+.codis { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); font-family: var(--f-codi); }
+
+/* Taula apilada al mòbil i taula a partir de 600 px: el mateix patró d'admin.html */
+.taula { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+.taula thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.taula, .taula tbody, .taula tr, .taula td, .taula th[scope="row"] { display: block; }
+.taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
+.taula td { display: flex; justify-content: space-between; align-items: center; gap: var(--e-3); padding: var(--e-1) 0; }
+.taula td::before { content: attr(data-etiqueta); color: var(--c-text-2); }
+.taula .cel-nom { text-align: left; font-weight: var(--p-semi); font-size: var(--t-m); }
+.taula td.cel-accions { justify-content: flex-end; }
+.taula td.cel-accions::before { content: none; }
+.taula caption { text-align: left; font-size: var(--t-s); color: var(--c-text-2); margin-bottom: var(--e-2); }
+@media (min-width: 600px) {
+  .taula { display: table; }
+  .taula thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; display: table-header-group; }
+  .taula tbody { display: table-row-group; }
+  .taula tr { display: table-row; padding: 0; }
+  .taula th { text-align: left; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia-forta); }
+  .taula th[scope="row"], .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); vertical-align: middle; }
+  .taula td::before { content: none; }
+  .taula .cel-nom { font-size: var(--t-s); }
+  .taula td.cel-accions { text-align: right; }
+}

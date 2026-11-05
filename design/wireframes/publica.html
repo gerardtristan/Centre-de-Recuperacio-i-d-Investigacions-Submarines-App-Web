@@ -8,10 +8,9 @@
 /* Tema desat: s'aplica abans de pintar la pàgina */
 (function () { try { var t = localStorage.getItem('cris-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="tokens.css">
+<!-- Tokens i fonts: una sola còpia a static/ (T-M01-38), la mateixa que fa servir la plataforma -->
+<link rel="stylesheet" href="../../static/css/fonts.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
 <style>
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-38: text aprovat al wireframe (estats comuns). No diu quin permís falta ni si l'objecte existeix. #}
+{# Sense permís a l'administració, la resposta continua sent «no trobat» (apps/core/permissions.py). #}
+{% block title %}{% translate "Accés denegat" %} · C.R.I.S.{% endblock %}
+{% block zona %}{% if "administration" in request.resolver_match.namespaces %}admin{% else %}soci{% endif %}{% endblock %}
+{% block titol_zona %}{% if "administration" in request.resolver_match.namespaces %}{% translate "Administració" %}{% else %}{% translate "Àrea de socis" %}{% endif %}{% endblock %}
+{% block inici %}{% if "administration" in request.resolver_match.namespaces %}{% url 'administration:home' %}{% else %}{% url 'core:home' %}{% endif %}{% endblock %}
+{% block content %}
+  <h1>{% translate "No tens permís per veure aquesta pàgina" %}</h1>
+  <p>{% translate "Si creus que n'hauries de tenir, parla-ho amb un administrador del club." %}</p>
+  <p class="enllacos">
+    {% if "administration" in request.resolver_match.namespaces %}<a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a>
+    {% else %}<a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a>{% endif %}
+  </p>
+{% endblock %}

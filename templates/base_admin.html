@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# Pàgines de l'administració: zona, títol i inici propis. La barra lateral d'admin.html encara no hi és (T-M01-38: pendent). #}
+{% block zona %}admin{% endblock %}
+{% block titol_zona %}{% translate "Administració" %}{% endblock %}
+{% block inici %}{% url 'administration:home' %}{% endblock %}

@@ -1,14 +1,33 @@
-{% load static %}<!DOCTYPE html>
+{% load static i18n %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}C.R.I.S.{% endblock %}</title>
-  {# HTMX servit des del VPS, mai des d'un CDN (decisió 046) #}
+  {# Sense «defer»: aplica el tema desat abans de pintar. Fitxer propi, cap codi en línia (066). #}
+  <script src="{% static 'js/tema.js' %}"></script>
+  {# Tot servit des del VPS: fonts, estils i HTMX, mai des d'un CDN (decisions 035 i 046) #}
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/comptes.css' %}">
   <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <main>
+<body class="zona-{% block zona %}soci{% endblock %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>
+  <header class="capcalera-compte">
+    <a class="marca" href="{% block inici %}{% url 'core:home' %}{% endblock %}">
+      <img class="logo-clar" src="{% static 'marca/CRIS_SenseFons.png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
+      <img class="logo-fosc" src="{% static 'marca/CRIS_Blanc_per fons Negre (Blanc).png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
+      <span class="titol-zona">{% block titol_zona %}{% translate "Àrea de socis" %}{% endblock %}</span>
+    </a>
+    <fieldset class="selector-tema" hidden>
+      <legend class="visualment-amagat">{% translate "Tema" %}</legend>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">{% translate "Sistema" %}</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">{% translate "Clar" %}</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">{% translate "Fosc" %}</span></span></label>
+    </fieldset>
+  </header>
+  <main id="contingut" class="cos-compte {% block cos_classe %}{% endblock %}">
     {% block content %}{% endblock %}
   </main>
 </body>

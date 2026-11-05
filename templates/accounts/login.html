@@ -1,30 +1,26 @@
 {% extends "base.html" %}
 {% load i18n %}
-
 {% block title %}{% if area == "admin" %}{% translate "Administració" %}{% else %}{% translate "Entrar" %}{% endif %} · C.R.I.S.{% endblock %}
-
+{% block zona %}{% if area == "admin" %}admin{% else %}soci{% endif %}{% endblock %}
+{% block titol_zona %}{% if area == "admin" %}{% translate "Administració" %}{% else %}{% translate "Àrea de socis" %}{% endif %}{% endblock %}
+{% block inici %}{% if area == "admin" %}{% url 'administration:home' %}{% else %}{% url 'core:home' %}{% endif %}{% endblock %}
 {% block content %}
   <h1>{% if area == "admin" %}{% translate "Entrada d'administració" %}{% else %}{% translate "Entrar a l'àrea de socis" %}{% endif %}</h1>
-  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-  <form method="post" novalidate>
+  {% if error %}<div class="avis {% if can_resend %}avis-avis{% else %}avis-error{% endif %}" role="alert">{{ error }}</div>{% endif %}
+  <form class="formulari" method="post" novalidate>
     {% csrf_token %}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-    {% for field in form %}
-      <p>
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-      </p>
-    {% endfor %}
-    <button type="submit">{% translate "Entrar" %}</button>
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Entrar" %}</button></div>
   </form>
   {% if can_resend %}
     {# RN-M01-59: només després de la contrasenya correcta d'un compte pendent. #}
-    <form method="post" action="{% url 'accounts:resend_verification' %}">
+    <form class="formulari" method="post" action="{% url 'accounts:resend_verification' %}">
       {% csrf_token %}
-      <button type="submit">{% translate "Torna'm a enviar l'enllaç de confirmació" %}</button>
+      <div class="accions"><button class="boto" type="submit">{% translate "Torna'm a enviar l'enllaç de confirmació" %}</button></div>
     </form>
   {% endif %}
   {% if area == "personal" %}
-    <p><a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a></p>
+    <p class="enllacos"><a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a></p>
   {% endif %}
 {% endblock %}

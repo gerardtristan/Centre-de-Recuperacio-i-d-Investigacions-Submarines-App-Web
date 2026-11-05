@@ -103,3 +103,26 @@ def test_home_with_personal_session(personal_account, login_as):
     response = client.get(reverse("core:home"))
     assert response.status_code == 200
     assert "Plataforma del C.R.I.S." in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_each_account_greets_only_its_own_person(make_person, login_as):
+    """Cada compte veu el nom de la seva persona i mai el d'una altra (revisió de la
+    T-M01-38). Una persona sense compte creada primer fa que els ids de compte i de persona
+    no coincideixin: triar la persona per l'id del compte fallaria."""
+    from apps.accounts.models import Account
+
+    make_person(first_name="Sense", last_name="Compte")
+    accounts = {}
+    for first, last, login in [("Biel", "Mero", "biel@example.org"), ("Núria", "Pop", "n@x.org")]:
+        account = Account.objects.create_personal(
+            make_person(first, last), login, "contrasenya-de-proves-1954"
+        )
+        account.status = Account.Status.ACTIVE
+        account.save()
+        accounts[first] = account
+    assert all(a.pk != a.person_id for a in accounts.values())
+    for own, other in [("Biel", "Núria"), ("Núria", "Biel")]:
+        text = login_as(accounts[own], "personal").get(reverse("core:home")).content.decode()
+        assert f"Hola, {own}." in text
+        assert other not in text

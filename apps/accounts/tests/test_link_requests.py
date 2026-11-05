@@ -177,7 +177,7 @@ class TestRecipientLimit:
         pending_account.status = Account.Status.PENDING
         pending_account.save()
         client.post(reverse("accounts:login"), {"login": "pere@example.org", "password": PASSWORD})
-        client.post(reverse(RESEND))
+        client.post(reverse(RESEND), follow=True)
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == 1
 
 
@@ -189,12 +189,12 @@ class TestOriginLimit:
             ask_reset("ningu@example.org", ip=ip)
         resend = Client(REMOTE_ADDR=ip)
         resend.post(reverse("accounts:login"), {"login": "pere@example.org", "password": PASSWORD})
-        resend.post(reverse(RESEND))  # la desena, acceptada
+        resend.post(reverse(RESEND), follow=True)  # la desena, acceptada
         assert sent(VERIFY_TEMPLATE) == 1
         assert EmailLinkRequest.objects.filter(ip_address=ip).count() == WINDOW.max_count
 
         resend.post(reverse("accounts:login"), {"login": "pere@example.org", "password": PASSWORD})
-        resend.post(reverse(RESEND))  # l'onzena, limitada
+        resend.post(reverse(RESEND), follow=True)  # l'onzena, limitada
         assert sent(VERIFY_TEMPLATE) == 1
         assert EmailLinkRequest.objects.filter(ip_address=ip).count() == WINDOW.max_count
         entry = AuditEntry.objects.filter(action=audit.Action.EMAIL_LINK_LIMITED).get()
@@ -281,14 +281,14 @@ class TestResendVerification:
     def test_resends_go_to_the_account_address(self, client, pending_account):
         self.login(client)
         # Una adreça enviada pel navegador no es fa servir mai.
-        response = client.post(reverse(RESEND), {"email": "atacant@example.org"})
+        response = client.post(reverse(RESEND), {"email": "atacant@example.org"}, follow=True)
         assert not response.context["expired"]
         assert "48 hores" in response.context["message"]
         assert "1 hora" not in response.context["message"]
         assert sent(VERIFY_TEMPLATE) == 1
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == 1
         # 066: l'estat no és d'un sol ús; dins dels 10 minuts se'n pot demanar un altre.
-        again = client.post(reverse(RESEND))
+        again = client.post(reverse(RESEND), follow=True)
         assert not again.context["expired"]
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == 2
         assert sent(VERIFY_TEMPLATE) == 2
@@ -296,7 +296,7 @@ class TestResendVerification:
     def test_resends_follow_the_recipient_limit(self, client, pending_account):
         # 066: sense el límit d'un sol ús, el límit per destinatari de RN-M01-58 continua.
         self.login(client)
-        answers = [client.post(reverse(RESEND)) for _ in range(PER_HOUR.max_count + 1)]
+        answers = [client.post(reverse(RESEND), follow=True) for _ in range(PER_HOUR.max_count + 1)]
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == PER_HOUR.max_count
         assert len({response.context["message"] for response in answers}) == 1
         assert not any(response.context["expired"] for response in answers)
@@ -317,7 +317,9 @@ class TestResendVerification:
             ask_reset("ningu@example.org", ip=ip)
         browser = Client(REMOTE_ADDR=ip)
         self.login(browser)
-        answers = [browser.post(reverse(RESEND)) for _ in range(PER_HOUR.max_count + 2)]
+        answers = [
+            browser.post(reverse(RESEND), follow=True) for _ in range(PER_HOUR.max_count + 2)
+        ]
 
         assert sent(VERIFY_TEMPLATE, "pere@example.org") == PER_HOUR.max_count
         sent_entries = AuditEntry.objects.filter(action=audit.Action.EMAIL_LINK_SENT)
@@ -337,7 +339,7 @@ class TestResendVerification:
         browser = Client(REMOTE_ADDR=ip)
         self.login(browser)
         for _ in range(WINDOW.max_count):
-            browser.post(reverse(RESEND))
+            browser.post(reverse(RESEND), follow=True)
         assert sent(VERIFY_TEMPLATE) == PER_HOUR.max_count
         assert self.limited("recipient") == WINDOW.max_count - PER_HOUR.max_count
         rows = EmailLinkRequest.objects.filter(ip_address=ip)
@@ -346,7 +348,7 @@ class TestResendVerification:
         assert limits.origin_limited(ip)
 
         for _ in range(5):
-            browser.post(reverse(RESEND))
+            browser.post(reverse(RESEND), follow=True)
         assert self.limited("origin") == 5
         assert rows.count() == WINDOW.max_count
         assert rows.latest("created_at").created_at == tenth
@@ -356,11 +358,11 @@ class TestResendVerification:
 
     def test_each_resend_checks_the_state_again(self, client, pending_account):
         self.login(client)
-        client.post(reverse(RESEND))
+        client.post(reverse(RESEND), follow=True)
         assert sent(VERIFY_TEMPLATE) == 1
         pending_account.status = Account.Status.ACTIVE
         pending_account.save()
-        response = client.post(reverse(RESEND))
+        response = client.post(reverse(RESEND), follow=True)
         assert not response.context["expired"]  # la resposta no diu res de l'estat
         assert sent(VERIFY_TEMPLATE) == 1
 
@@ -371,19 +373,19 @@ class TestResendVerification:
         state["at"] = time.time() - limits.RESEND_STATE.total_seconds() - 1
         session[email_links.RESEND_SESSION_KEY] = state
         session.save()
-        assert client.post(reverse(RESEND)).context["expired"]
+        assert client.post(reverse(RESEND), follow=True).context["expired"]
         assert sent(VERIFY_TEMPLATE) == 0
 
     def test_state_is_checked_again_before_sending(self, client, pending_account):
         self.login(client)
         pending_account.status = Account.Status.ACTIVE
         pending_account.save()
-        response = client.post(reverse(RESEND))
+        response = client.post(reverse(RESEND), follow=True)
         assert not response.context["expired"]  # la resposta no diu res de l'estat
         assert sent(VERIFY_TEMPLATE) == 0
 
     def test_without_the_state(self):
-        response = Client().post(reverse(RESEND))
+        response = Client().post(reverse(RESEND), follow=True)
         assert response.context["expired"]
         assert sent(VERIFY_TEMPLATE) == 0
 
@@ -393,8 +395,38 @@ class TestResendVerification:
         for name in ("core:home", "accounts:security", "accounts:totp_enrol"):
             assert client.get(reverse(name)).status_code == 302
 
-    def test_only_post(self, client):
-        assert client.get(reverse(RESEND)).status_code == 405
+    def test_post_redirects_to_a_get_page(self, client, pending_account):
+        # T-M01-38: després del POST, 303 a la mateixa adreça en GET, perquè recarregar o
+        # tornar enrere no torni a enviar el formulari.
+        self.login(client)
+        response = client.post(reverse(RESEND))
+        assert response.status_code == 303
+        assert response["Location"] == reverse(RESEND)
+        assert sent(VERIFY_TEMPLATE) == 1
+
+    def test_reloading_the_page_sends_nothing(self, client, pending_account):
+        self.login(client)
+        client.post(reverse(RESEND))
+        for _ in range(3):
+            page = client.get(reverse(RESEND))
+            assert page.status_code == 200
+            assert not page.context["expired"]
+        assert sent(VERIFY_TEMPLATE) == 1
+        # La pàgina ofereix tornar-lo a demanar amb un POST, no amb un enllaç.
+        assert 'method="post"' in page.content.decode()
+
+    def test_get_without_a_request_sends_nothing(self, client, pending_account):
+        # Amb l'estat vàlid però sense cap reenviament demanat, la pàgina no diu que s'ha enviat.
+        self.login(client)
+        page = client.get(reverse(RESEND))
+        assert page.context["expired"]
+        assert sent(VERIFY_TEMPLATE) == 0
+
+    def test_a_new_state_starts_without_the_mark(self, client, pending_account):
+        self.login(client)
+        client.post(reverse(RESEND))
+        self.login(client)  # contrasenya correcta un altre cop: estat nou
+        assert client.get(reverse(RESEND)).context["expired"]
 
 
 class TestLinksOfTheSameOperation:

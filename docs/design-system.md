@@ -7,7 +7,7 @@
   - La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
   - La 1.2 afegeix l'estructura d'immersió del compte personal (§6.5), els tokens de profunditat, carnet i moviment (§2.6 i §4.1), el logotip més gran a la pública i la secció `centre-recuperacio-investigacio`.
 - **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md), per la [032](decisions/032-immersio-socis-i-centre.md) i per la [034](decisions/034-patrons-magic-portfolio.md).
-- **Fitxers:** `design/wireframes/tokens.css` (font de veritat dels valors), `publica.html`, `socis.html` i `admin.html`.
+- **Fitxers:** `static/css/tokens.css` (font de veritat dels valors, una sola còpia que fan servir la plataforma i els prototips des de la T-M01-38), `static/css/fonts.css` (fonts allotjades al servidor; llicència a `static/fonts/README.md`) i els prototips `design/wireframes/publica.html`, `socis.html`, `admin.html` i `comptes.html`.
 - **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4). L'únic moviment és el del compte personal (§4.1).
 
 ## 1. Principis

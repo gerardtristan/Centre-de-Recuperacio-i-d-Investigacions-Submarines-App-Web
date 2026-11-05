@@ -75,6 +75,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: pantalla de la prova (P18, CSRF, pujada en memòria i registre; en part; comprovació manual pendent) | 04/11/2026 21:37 | 9e7f1c7, df37c51 | 1339 | [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber: validació funcional de la pantalla pel responsable (en part: falten el CI del codi actual i la porta de la checklist; Q-23 pendent) | 05/11/2026 | 29d8073 (referència) i el commit d'aquesta entrada | 1339 | [A comprovar] |
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: tancament, **Feta** (aprovada pel responsable el 05/11/2026; no tanca Q-23, les equivalències ni la T-M01-25) | 05/11/2026 | af5aaa5 (referència) i el commit del tancament | 1343 | verd a #104 i #105 sobre af5aaa5 (confirmat pel responsable); el commit del tancament: [A comprovar] |
+| [T-M01-38](T-M01-38.md) | Plantilla base, fulls d'estil i pantalles de comptes (Feta el 05/11/2026; pantalles validades pel responsable) | 05/11/2026 01:54 | [sense commit] | 1382 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).

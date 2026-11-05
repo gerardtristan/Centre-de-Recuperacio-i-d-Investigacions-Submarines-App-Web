@@ -1,11 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 {% load i18n %}
-
 {% block title %}{% translate "Comptes d'administrador" %} · C.R.I.S.{% endblock %}
-
+{% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <h1>{% translate "Comptes d'administrador" %}</h1>
-  <table>
+  <table class="taula">
     <caption>{% translate "Comptes que poden entrar a l'administració" %}</caption>
     <thead>
       <tr>
@@ -19,16 +18,16 @@
     <tbody>
       {% for account in accounts %}
         <tr>
-          <th scope="row">{{ account.login }}{% if account.pk == user.pk %} ({% translate "tu" %}){% endif %}</th>
-          <td>{{ account.get_status_display }}</td>
-          <td>{% if account.has_totp %}{% translate "Actiu" %}{% else %}{% translate "Pendent d'alta" %}{% endif %}</td>
-          <td>{% if account.must_change_password %}{% translate "Pendent de canviar" %}{% else %}—{% endif %}</td>
-          <td>{% if account.pk != user.pk %}<a href="{% url 'administration:reset_credentials' account.pk %}">{% blocktranslate with username=account.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</a>{% else %}—{% endif %}</td>
+          <th scope="row" class="cel-nom">{{ account.login }}{% if account.pk == user.pk %} ({% translate "tu" %}){% endif %}</th>
+          <td data-etiqueta="{% translate 'Estat' %}"><span class="estat {% if account.status == 'active' %}estat-ok{% else %}estat-neutre{% endif %}">{% if account.status == 'active' %}✓{% elif account.status == 'disabled' %}×{% else %}○{% endif %} {{ account.get_status_display }}</span></td>
+          <td data-etiqueta="{% translate 'Doble factor' %}">{% if account.has_totp %}✓ {% translate "Actiu" %}{% else %}○ {% translate "Pendent d'alta" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Contrasenya temporal' %}">{% if account.must_change_password %}<span class="estat estat-avis">! {% translate "Pendent de canviar" %}</span>{% else %}—{% endif %}</td>
+          <td class="cel-accions">{% if account.pk != user.pk %}<a class="boto boto-petit" href="{% url 'administration:reset_credentials' account.pk %}">{% blocktranslate with username=account.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</a>{% else %}—{% endif %}</td>
         </tr>
       {% empty %}
         <tr><td colspan="5">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <p><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
 {% endblock %}

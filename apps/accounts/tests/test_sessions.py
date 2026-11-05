@@ -60,7 +60,9 @@ def test_admin_session_ends_after_eight_hours(admin_account, login_as):
     session[AUTH_AT_SESSION_KEY] = time.time() - 8 * 60 * 60 - 1
     session.save()
     response = client.get(reverse("administration:home"))
-    assert response["Location"].startswith(reverse("administration:login"))
+    # T-M01-38: «La sessió ha caducat» (401), amb el botó cap a l'entrada d'administració.
+    assert response.status_code == 401
+    assert f'href="{reverse("administration:login")}?next=' in response.content.decode()
     assert "_auth_user_id" not in client.session
 
 

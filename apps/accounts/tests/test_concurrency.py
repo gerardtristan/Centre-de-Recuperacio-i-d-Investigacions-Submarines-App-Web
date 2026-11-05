@@ -244,7 +244,7 @@ class TestLinkLimitsConcurrent(CommittedDataTestCase):
         make_account()
         browsers = [self.pending_browser(f"10.6.2.{i}") for i in range(12)]
 
-        assert run_together([self.resend(b) for b in browsers]) == [200] * 12
+        assert run_together([self.resend(b) for b in browsers]) == [303] * 12
 
         hour = limits.RECIPIENT_WINDOWS[0]
         assert OutgoingEmail.objects.filter(template="verificacio-correu").count() == (

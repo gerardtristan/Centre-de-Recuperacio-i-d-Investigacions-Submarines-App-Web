@@ -113,7 +113,10 @@ class TestResetWithLink:
         other = type(client)()
         open_link(other, personal_account)
         submit(other)
-        assert session_client.get(reverse("core:home")).status_code == 302
+        # T-M01-38: la sessió tancada mostra «La sessió ha caducat» (401) en lloc de redirigir.
+        closed = session_client.get(reverse("core:home"))
+        assert closed.status_code == 401
+        assert f'href="{reverse("accounts:login")}?next=' in closed.content.decode()
 
     def test_the_second_factor_stays(self, client, personal_account):
         # La recuperació per correu no desactiva el TOTP del compte personal.

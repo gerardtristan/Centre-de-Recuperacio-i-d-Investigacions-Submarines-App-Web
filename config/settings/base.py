@@ -151,7 +151,8 @@ UPLOAD_MAX_BYTES = env.int("UPLOAD_MAX_BYTES", default=10 * 1024 * 1024)
 GDPR_EXPORT_RETENTION_DAYS = env.int("GDPR_EXPORT_RETENTION_DAYS", default=7)
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# Els logotips es serveixen des d'assets/marca/, sense una segona còpia (T-M01-38).
+STATICFILES_DIRS = [BASE_DIR / "static", ("marca", BASE_DIR / "assets" / "marca")]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

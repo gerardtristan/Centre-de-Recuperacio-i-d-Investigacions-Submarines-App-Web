@@ -175,7 +175,8 @@ class TestService:
         session = login_as(b, AREA_ADMIN)
         assert session.get(reverse("administration:home")).status_code == 200
         reset_password(b, by=a, note=NOTE)
-        assert session.get(reverse("administration:home")).status_code == 302
+        # T-M01-38: sessió tancada, pàgina «La sessió ha caducat» (401).
+        assert session.get(reverse("administration:home")).status_code == 401
 
     def test_totp_and_lockout_are_left_alone(self, pair):
         a, b = pair

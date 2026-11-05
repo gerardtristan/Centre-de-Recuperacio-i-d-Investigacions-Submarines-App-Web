@@ -161,15 +161,34 @@ def remember_pending(request, account: Account) -> None:
     request.session[RESEND_SESSION_KEY] = {"account": account.pk, "at": time.time()}
 
 
+def resend_state_valid(request) -> bool:
+    """L'estat de reenviament encara dura (no envia res). Si ha caducat, s'esborra."""
+    data = request.session.get(RESEND_SESSION_KEY)
+    if not data or time.time() - data.get("at", 0) > limits.RESEND_STATE.total_seconds():
+        request.session.pop(RESEND_SESSION_KEY, None)
+        return False
+    return True
+
+
+def resend_was_requested(request) -> bool:
+    """Per a la pàgina posterior al POST: l'estat dura i s'hi ha demanat algun reenviament."""
+    return resend_state_valid(request) and bool(
+        request.session[RESEND_SESSION_KEY].get("requested")
+    )
+
+
 def resend_verification(request) -> bool:
     """Reenviament de la verificació (RN-M01-59, 066). L'estat no es consumeix: mentre dura,
     cada reenviament passa pels límits de RN-M01-58 i torna a comprovar que el compte és
     pendent. Torna False si no n'hi havia o havia caducat (cal tornar a escriure la
     contrasenya). Si l'estat era vàlid, la resposta no diu si s'ha enviat o s'ha limitat."""
-    data = request.session.get(RESEND_SESSION_KEY)
-    if not data or time.time() - data.get("at", 0) > limits.RESEND_STATE.total_seconds():
-        request.session.pop(RESEND_SESSION_KEY, None)
+    if not resend_state_valid(request):
         return False
+    data = request.session[RESEND_SESSION_KEY]
+    # La pàgina de després (GET) mostra la confirmació només si se n'ha demanat un en aquest
+    # estat; un estat nou (remember_pending) torna a començar sense la marca.
+    data["requested"] = True
+    request.session.modified = True
 
     def find_account():
         return Account.objects.filter(pk=data.get("account"), kind=Account.Kind.PERSONAL).first()
