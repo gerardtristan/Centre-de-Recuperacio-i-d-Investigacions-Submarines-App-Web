@@ -39,8 +39,6 @@
 |---|---|
 | Telèfon fix | Un segon número per contactar-te quan no responguis al mòbil, per a avisos de les activitats o de la teva condició de soci [A validar: assessor] |
 | Adreça desglossada (codi postal, població i província) | Enviar-te correspondència postal del club i omplir els tràmits que demanen l'adreça per parts, com la llicència federativa. La província també la demana la declaració dels donatius (model 182), si fas un donatiu deduïble [A verificar: gestoria] |
-| Nacionalitat | Els tràmits amb la federació o amb altres organismes que la demanin (per exemple, llicències o activitats a l'estranger) i estadístiques agregades i anònimes per a memòries i sol·licituds d'ajuts [A validar: junta i assessor] |
-| Professió | Saber, si tu vols, quins coneixements pots aportar al club com a voluntari (per exemple, per a projectes o activitats), i estadístiques agregades i anònimes [A validar: junta i assessor] |
 
 Aquests camps els veus i els edites tu, i a l'administració només les persones que hi tenen permís. Es conserven, s'exporten i s'anonimitzen com la resta del teu perfil.
 
@@ -114,7 +112,7 @@ La casella està **desmarcada per defecte**. Pots donar-te de baixa en qualsevol
 
 La casella està **desmarcada per defecte**. Pots retirar el consentiment en qualsevol moment des del perfil. Les publicacions noves deixaran d'incloure't i retirarem les existents que depenguin del club, dins del que sigui possible.
 
-**Menors de 14 anys:** consent el pare, la mare o el tutor legal [A validar: assessor de protecció de dades; LO 1/1982, art. 3].
+**Menors de 14 anys:** consent el pare, la mare o el tutor legal. El consentiment queda registrat al perfil del menor, i hi consta que l'ha donat el representant (decisió del 09/11/2026) [A validar: assessor de protecció de dades; LO 1/1982, art. 3].
 
 ---
 
@@ -126,5 +124,5 @@ La casella està **desmarcada per defecte**. Pots retirar el consentiment en qua
 5. Si n'hi ha prou amb el registre de qui fa l'alta presencial (Q-030).
 6. Amb diverses llengües (P-49): quina versió preval (Q-034, proposta: el català) i si una traducció automàtica d'un text legal és vàlida sense revisió.
 7. On es publiquen les imatges i qui decideix retirar-les (P-41).
-8. Les finalitats dels camps opcionals del perfil, sobretot la nacionalitat i la professió (minimització).
+8. Les finalitats dels camps opcionals del perfil. La nacionalitat i la professió s'han tret (decisió del 09/11/2026) perquè ara no tenen cap finalitat justificable.
 9. Com es reflecteix a la política la verificació pública amb el número sencer i el nom de pila.

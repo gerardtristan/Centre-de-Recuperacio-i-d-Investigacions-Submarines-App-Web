@@ -1,7 +1,7 @@
 # 072 — Respostes del responsable a la ronda 1 de pendents
 
 - **Data:** 09/11/2026
-- **Estat:** Acceptada pel responsable del projecte el 09/11/2026, amb correccions del mateix dia (segona instrucció escrita).
+- **Estat:** Acceptada pel responsable del projecte el 09/11/2026, amb correccions del mateix dia (segona i tercera instruccions escrites).
 - **Origen:** respostes escrites al document de consulta «C.R.I.S. — Decisions i validacions pendents per tasca» (revisió del 06 i 07/11/2026, **ronda 1**, preguntes Q-001 a Q-238; és fora del repositori) i dues instruccions escrites del responsable del 09/11/2026: la primera sobre les contradiccions i la segona amb les correccions.
 - **Abast:**
   - **Substitueix el punt 3 de la [070](070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md)** en la separació dels terminis (repartits equitativament dins dels 12 mesos i editables). Precisa el punt 2 en el càlcul del «vàlid fins a»: el mateix dia de l'any següent.
@@ -11,7 +11,7 @@
 
 ## Prioritat dels registres
 Si dos registres es contradiuen, l'ordre és aquest:
-1. les correccions del responsable del 09/11/2026 (segona instrucció);
+1. les decisions de la tercera instrucció del 09/11/2026 i, després, les correccions de la segona;
 2. la decisió més recent (per exemple, la 070);
 3. el document de la ronda 1, del 07/11/2026.
 
@@ -36,6 +36,22 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 5. **Es mantenen:** la Q-056 (RN-M01-20 tal com és), la Q-004 (RN-M01-72 i T-M01-40, sense implementar), la Q-040 (acceptat) i la Q-079 (opció 1). La Q-024 i la Q-073 continuen pendents de nova resposta.
 6. **Formulari d'alta.** Els canvis de la Q-031, la Q-011 i la Q-017 van en una **tasca nova (T-M01-41)**, no a la T-M01-13, que està tancada. Les caselles del butlletí i de les imatges van desmarcades per defecte i separades de les obligatòries. On es desa el consentiment d'imatges d'un menor de 14 anys està pendent de la tria del responsable entre dues opcions.
 
+## Decisions de la tercera instrucció (09/11/2026; prevalen)
+1. **Exempts (Q-002 i Q-003).** Es manté la Q-002: el carnet d'un exempt per edat val fins al 31/12 de l'últim any exempt. Els exempts no paguen: per a ells manen la Q-002 i la Q-003. La correcció 1 (un any des del pagament, fins al mateix dia de l'any següent) **només afecta els que paguen**.
+2. **Edició dels terminis (Q-020).**
+   - Mentre un termini no té cap pagament associat, la secretaria en pot editar l'import i la data, amb motiu obligatori; l'historial guarda el valor anterior.
+   - Quan ja té un pagament, només es pot anul·lar i crear-ne un de nou.
+   - Els terminis sempre sumen la quota anual. Moure imports i dates entre terminis és editar; canviar el total és anul·lar i tornar a generar.
+   - Es fa a la T-M01-18.
+3. **Consentiment d'imatges d'un menor de 14 anys (Q-031 i Q-044): opció A.**
+   - Es desa a la persona del menor (`core.Consent`), amb el representant com a «qui el dona».
+   - És l'**única excepció a la Q-044** (les altres acceptacions del representant es queden a la sol·licitud).
+   - Va a la T-M01-41: un camp «qui el dona» a `core.Consent`, amb una migració posterior a la `core/0013`.
+   - No s'implementa ara.
+4. **Carnet dels importats (Q-076).** S'accepta la proposta: compta des de la columna «Data alta/renovació» de Cluber (un any, fins al mateix dia de l'any següent), **[A validar: tresorer]**.
+5. **T-M01-25:** passa a «feta en part».
+6. **Nacionalitat i professió:** es treuen del perfil, perquè ara no hi ha cap procés del club ni de la plataforma que en justifiqui la finalitat. La finalitat proposada per a la nacionalitat (tràmits amb la federació) no està confirmada, i la de la professió (voluntariat) no té cap procés que la faci servir. Es tornaran a plantejar si la FECDAS, un ajut o un procés del club ho demana. Entren el telèfon fix i l'adreça desglossada.
+
 ## Decisió
 
 ### 1. Quotes, exempts i terminis
@@ -43,14 +59,14 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 | Q | Tema | Resposta | On s'aplica |
 |---|---|---|---|
 | Q-001 | Exempts per edat (P-57) | **Opció 1.** Passen a «actiu» en aprovar l'alta, amb carnet i sense cap quota ni càrrec de 0 €. Entrada d'historial amb el motiu «sense quota exigible (RN-M01-65)» | RN-M01-07, RN-M01-18, RN-M01-67; T-M01-14, T-M01-19 |
-| Q-002 | Validesa del carnet d'un exempt | **Opció 1.** Fins al 31/12 de l'últim any exempt (any de naixement + 14). Una baixa continua revocant el carnet | RN-M01-19; T-M01-19, T-M01-20 |
+| Q-002 | Validesa del carnet d'un exempt | **Opció 1.** Fins al 31/12 de l'últim any exempt (any de naixement + 14). Una baixa continua revocant el carnet. **Es manté (tercera instrucció):** la correcció 1 només afecta els que paguen | RN-M01-19; T-M01-19, T-M01-20 |
 | Q-003 | L'1 de gener en què comença a pagar | **Opció 1.** Continua «actiu» i se li genera la quota. Quan la paga, el carnet li val un any des del pagament (correcció 1). Si no paga, el tresorer el marca impagat a mà ([040](040-impagat-es-marca-a-ma.md)) i el carnet no és vàlid fins que pagui | T-M01-18 |
 | Q-004 | Altres exempcions | No n'hi ha cap més aprovada. Es vol poder eximir un soci de la quota d'un període, en l'alta o en qualsevol moment. Es fa com una **anul·lació amb motiu i amb un permís propi**, mai com un pagament de 0 € | RN-M01-72 i T-M01-40 (sense implementar) |
 | Q-005 a Q-007 | Prorrata | Cap prorrata: ja ho recull la 070 | — |
 | Q-008 | Quota anul·lada i retorn dins del mateix període (P-54) | **Sortida E.** Una quota nova del mateix període; l'anul·lada es queda a l'historial i no es pot pagar (un càrrec anul·lat ja no canvia, RN-67). «Vàlid fins a»: el que doni la quota pagada més recent (correcció 1). El mateix val per a un segon canvi de tipus dins del període. Cal un número d'ordre a la clau d'`AnnualFee` | RN-M01-12; T-M01-14, T-M01-17, T-M01-18 |
 | Q-009 | Prorrata en una readmissió | Substituïda per la 070: la readmissió paga la quota íntegra | — |
 | Q-019 | 3 × 32 € | S'ofereix, per al soci de ple dret | P-61 |
-| Q-020 | Calendari dels tres pagaments | El primer en l'alta o la renovació; els altres dos, **repartits equitativament dins dels 12 mesos**. **Correcció 2:** l'import i la data de cada termini els pot editar la secretaria, amb permís propi i motiu obligatori a l'historial. El càlcul de les dates es fixa a la T-M01-18 | P-61; T-M01-18 |
+| Q-020 | Calendari dels tres pagaments | El primer en l'alta o la renovació; els altres dos, **repartits equitativament dins dels 12 mesos**. **Correcció 2:** l'import i la data de cada termini els pot editar la secretaria, amb permís propi i motiu obligatori a l'historial. **Tercera instrucció:** només mentre el termini no té cap pagament (l'historial guarda el valor anterior); amb un pagament, només anul·lar i crear-ne un de nou; els terminis sempre sumen la quota anual (canviar el total és anul·lar i tornar a generar). El càlcul de les dates es fixa a la T-M01-18 | P-61; T-M01-18 |
 | Q-021 | Per què 96 € | Preu fixat per la junta | — |
 | Q-022 | Un termini que no es paga | El soci queda en suspens per impagat i no pot fer servir cap servei, curs ni activitat del club. Continua obert si el suspens és la marca manual d'impagat (040) o un bloqueig automàtic | P-61 |
 | Q-023 | Mentrestant | Només la quota anual | — |
@@ -86,7 +102,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 | Q-066 | Insígnia de soci clàssic | Sense llindar automàtic (no hi ha l'historial real de tothom). L'administració l'assigna a mà com a reconeixement; el carnet passa a una versió daurada que conserva el disseny, i el voltant de la foto o l'avatar del perfil també. **Sense tasca encara** | RN-M01-23, S-M01-09 |
 | Q-067 | Antiguitat en una readmissió | Des de la primera alta | S-M01-10 |
 | Q-075 | Data d'alta que Cluber no té | No se'n posa cap i no es mostra l'antiguitat d'aquests socis. Substitueix el supòsit «data més antiga coneguda, aproximada» | RN-M01-21, S-M01-18; T-M01-25 |
-| Q-076 | Carnet dels importats amb la quota pagada a Cluber | Sí, vàlid. **Correcció 1:** un any des del pagament, fins al mateix dia de l'any següent. La data d'inici és [A validar: tresorer] (P-62.1; proposta: «Data alta/renovació») | RN-M01-34, S-M01-24; T-M01-25, T-M01-19 |
+| Q-076 | Carnet dels importats amb la quota pagada a Cluber | Sí, vàlid. **Correcció 1:** un any des del pagament, fins al mateix dia de l'any següent. **Tercera instrucció:** compta des de la columna «Data alta/renovació» de Cluber [A validar: tresorer] | RN-M01-34, S-M01-24; T-M01-25, T-M01-19 |
 
 ### 4. Menors i alta
 
@@ -105,7 +121,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 | Q-026 | Dades del representant | Es conserven mentre la persona sigui sòcia | T-M01-22 |
 | Q-042 | Contacte nou d'una persona que ja existeix | **Opció 1.** Es desa a la sol·licitud, visible només per a qui revisa l'alta; en aprovar, la secretaria decideix si actualitza la persona, amb registre | T-M01-14 |
 | Q-043 | Comprovació del representant | **Opció 2.** La secretaria comprova el document del representant i ho deixa registrat abans d'aprovar. Si es guarda una còpia: per decidir (proposta: no; només la marca, qui i quan) | T-M01-14 |
-| Q-044 | Acceptacions en aprovar | **Opció 1.** Només les del sol·licitant passen a `core.Consent`, amb referència a la sol·licitud; les del representant es queden a la sol·licitud. El consentiment d'imatges d'un menor de 14 anys espera la tria (correcció 6) | T-M01-14, T-M01-41 |
+| Q-044 | Acceptacions en aprovar | **Opció 1.** Només les del sol·licitant passen a `core.Consent`, amb referència a la sol·licitud; les del representant es queden a la sol·licitud. **Excepció (tercera instrucció, opció A):** el consentiment d'imatges d'un menor de 14 anys es desa a la persona del menor, amb el representant com a qui el dona (T-M01-41) | T-M01-14, T-M01-41 |
 
 ### 5. Textos legals, consentiments i idiomes
 
@@ -123,7 +139,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 | Q-037 | Qui registra un cobrament manual (P-12) | Qui tingui permís de veure i editar la tresoreria | 04, 05b |
 | Q-038 | Justificant del cobrament manual | Comprovant opcional. El motiu continua sent obligatori (CLAUDE.md) | 04, 05b |
 | Q-039 | Qui atén les sol·licituds RGPD | L'administrador | S-M01-14 |
-| Q-045 a Q-048 | Camps opcionals del perfil (P-58) | **Correcció 3:** entren el telèfon fix, l'adreça desglossada (codi postal, població i província), la nacionalitat i la professió, tots opcionals i mai obligatoris per ser soci, cadascun amb la finalitat escrita a la política de privacitat. «Observacions» queda fora (Q-045). Els veuen i editen el soci i l'administració amb permís de camp (Q-047); es conserven, s'exporten i s'anonimitzen com la resta del perfil (Q-048). La província per al model 182 continua [A verificar: gestoria] | T-M01-16, T-M01-22 |
+| Q-045 a Q-048 | Camps opcionals del perfil (P-58) | **Tercera instrucció:** entren el telèfon fix i l'adreça desglossada (codi postal, població i província); la nacionalitat i la professió es treuen perquè ara no tenen cap finalitat justificable. Text de la correcció 3, ara substituït: entren el telèfon fix, l'adreça desglossada, la nacionalitat i la professió, tots opcionals i mai obligatoris per ser soci, cadascun amb la finalitat escrita a la política de privacitat. «Observacions» queda fora (Q-045). Els veuen i editen el soci i l'administració amb permís de camp (Q-047); es conserven, s'exporten i s'anonimitzen com la resta del perfil (Q-048). La província per al model 182 continua [A verificar: gestoria] | T-M01-16, T-M01-22 |
 
 ### 6. Comptes, seguretat i operació
 
@@ -153,8 +169,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
   - de la P-29, el calendari de la remesa i de la campanya de mandats;
   - de la Q-062, la data límit per demanar la baixa;
   - de la Q-083, on es veu el resum;
-  - la data d'inici del carnet dels importats ([A validar: tresorer]);
-  - on es desa el consentiment d'imatges d'un menor de 14 anys (T-M01-41).
+  - la confirmació del tresorer de la data d'inici del carnet dels importats («Data alta/renovació», [A validar: tresorer]).
 - **En blanc al document:** Q-036, Q-090, Q-092, Q-093 i de la Q-104 a la Q-238. De la Q-094 a la Q-103 eren validacions de la T-M01-13, que ja és «Feta» (09/11/2026).
 - **R2-13 i R2-21:** són del document de la ronda 2, que ha d'aportar el responsable. No són al repositori: només apareixen a la fila de la T-M01-15 i a l'índex del diari, des del commit 1dafae2, sense cap definició.
 
