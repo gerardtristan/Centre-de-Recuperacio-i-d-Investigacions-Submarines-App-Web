@@ -24,6 +24,7 @@ from django.utils.crypto import salted_hmac
 from apps.core.normalization import normalize_email
 
 from .models import EmailLinkRequest
+from .security import IP_MAX_FAILURES, IP_WINDOW
 
 
 @dataclass(frozen=True)
@@ -130,6 +131,24 @@ def join_receipt_allowed(accepted: EmailLinkRequest, email: str) -> bool:
         return False
     accepted.recipient_hash = key
     accepted.save(update_fields=["recipient_hash"])
+    return True
+
+
+# --- Verificació pública del carnet (T-M01-20; RN-M01-28, CA-M01-16) ---------------------------
+# Límit per origen de V-01 (`security.py`): 20 consultes en 15 minuts → 15 minuts. Compten totes,
+# vàlides o no, perquè el límit no digui res del testimoni. Només es desa l'origen.
+CARD_VERIFY = EmailLinkRequest.Purpose.CARD_VERIFY
+CARD_VERIFY_WINDOW = Window(IP_MAX_FAILURES, IP_WINDOW)
+
+
+def start_card_verification(ip: str) -> bool:
+    """Dins d'una transacció. Fals si l'origen està limitat (aleshores no es desa res)."""
+    lock_origin(ip)
+    if origin_limited(
+        ip, purposes=(CARD_VERIFY,), window=CARD_VERIFY_WINDOW, cooldown=CARD_VERIFY_WINDOW.period
+    ):
+        return False
+    EmailLinkRequest.objects.create(ip_address=ip, purpose=CARD_VERIFY)
     return True
 
 

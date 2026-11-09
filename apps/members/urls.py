@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import personal, personal_card, public
+from .views import personal, personal_card, public, public_card
 
 app_name = "members"
 
@@ -13,4 +13,6 @@ urlpatterns = [
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
     path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19
+    # Verificació pública del carnet (T-M01-20, P15): ruta pública declarada (RN-40).
+    path("carnet/verificar/<str:token>/", public_card.card_verify_view, name="card_verify"),
 ]
