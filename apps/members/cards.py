@@ -4,11 +4,17 @@ decisions 069 i 070).
 - **Testimoni:** aleatori de 256 bits (`secrets`). Només se'n desa l'empremta SHA-256
   (`MemberCard.token_hash`); el testimoni en clar el torna `issue_card` una sola vegada i no surt
   mai al registre d'activitat (RN-52).
-- **Emissió (069, RN-M01-67):** només a un soci actiu amb un pagament confirmat de la quota.
-  Cap carnet per a un pendent, ni per a un exempt (P-57), ni amb pagaments parcials (tres
-  quotes, P-61).
-- **Validesa (RN-M01-18, 070):** carnet no revocat ∧ soci actiu ∧ «pagada fins al» no passat.
-  «Vàlid fins al» = 12 mesos després del pagament confirmat (`_paid_until`), mai el 31/12.
+- **Emissió (069, RN-M01-67; 072):** només a un soci actiu amb un «vàlid fins al»: un pagament
+  confirmat, l'exempció per edat (P-57) o la renovació de Cluber d'un importat. Cap carnet per a
+  un pendent ni amb pagaments parcials (tres quotes, P-61).
+- **Validesa (RN-M01-18, 070 i 072):** carnet no revocat ∧ soci actiu ∧ «vàlid fins al» no
+  passat. «Vàlid fins al» (`valid_until`) és la data més tardana d'aquestes:
+  - els que paguen: un any des del pagament confirmat, fins al mateix dia de l'any següent
+    (`roster.twelve_months_after`; el 29/02 passa al 28/02);
+  - els exempts per edat sense cap quota: el 31/12 de l'últim any exempt (Q-002), mai el càlcul
+    anterior;
+  - els importats de Cluber: un any des de «Data alta/renovació» (`cluber_renewed_on`, Q-076)
+    [A validar: tresorer].
   Un impagat té el carnet no revocat «No vàlid»: estat i validesa van separats (D1) i marcar o
   desmarcar l'impagat no toca el carnet (T-M01-12).
 - **Revocació:** sempre amb motiu i registre. La criden els fluxos del canvi de tipus, la baixa i
@@ -31,7 +37,7 @@ from apps.core import audit
 from apps.core.models import Charge
 
 from . import roster
-from .fee_rules import local_today
+from .fee_rules import first_fee_year, local_today
 from .models import Member, MemberCard
 
 CARD_ISSUED = "members.card.issued"
@@ -63,10 +69,7 @@ def _paid_until(member) -> date | None:
     ha cap o si alguna quota té pagaments parcials (tres quotes, P-61: cap regla aprovada).
 
     No es fa servir `roster.fee_state` sencer perquè hi mana «pendent»: una quota de renovació
-    generada abans de la data (T-M01-18) no ha de treure la validesa del període ja pagat.
-
-    Socis importats de Cluber (decisió 071, en una altra branca; [A validar: tresorer]): aquí és
-    on s'hauria d'afegir la seva data provisional, «Data alta/renovació» + 12 mesos."""
+    generada abans de la data (T-M01-18) no ha de treure la validesa del període ja pagat."""
     paid_on = []
     for fee in member.annual_fees:
         payments = list(fee.charge.payments.all())
@@ -80,11 +83,51 @@ def _paid_until(member) -> date | None:
     return roster.twelve_months_after(max(paid_on)) if paid_on else None
 
 
+def _has_partial_payments(member) -> bool:
+    return any(
+        p.amount_cents < fee.charge.amount_cents
+        for fee in member.annual_fees
+        for p in fee.charge.payments.all()
+    )
+
+
+def _birth_date(member) -> date | None:
+    """La de la persona (T-M01-33) o, si encara no hi és, la declarada a l'alta aprovada."""
+    if member.person.birth_date:
+        return member.person.birth_date
+    joins = member.person.approved_joins
+    return joins[0].birth_date if joins else None
+
+
+def _exempt_until(member) -> date | None:
+    """Q-002 (072): exempt per edat i sense cap quota, fins al 31/12 de l'últim any exempt (l'any
+    abans del primer any de quota, 068). Passat aquest dia, ja no compta: cal la quota (Q-003)."""
+    if member.annual_fees:
+        return None
+    birth = _birth_date(member)
+    return date(first_fee_year(birth) - 1, 12, 31) if birth else None
+
+
+def _cluber_until(member) -> date | None:
+    """Q-076 (072): un any des de «Data alta/renovació» de Cluber [A validar: tresorer]."""
+    renewed = member.cluber_renewed_on
+    return roster.twelve_months_after(renewed) if renewed and member.cluber_id else None
+
+
+def valid_until(member) -> date | None:
+    """«Vàlid fins al» del soci (vegeu el docstring del mòdul). `None` si no en té cap o si hi ha
+    pagaments parcials, que no tenen cap regla aprovada (P-61). `member` ve de `load_member`."""
+    if _has_partial_payments(member):
+        return None
+    dates = [d for d in (_paid_until(member), _exempt_until(member), _cluber_until(member)) if d]
+    return max(dates) if dates else None
+
+
 def validity(member, card, today=None) -> CardValidity:
-    """RN-M01-18 i 070. `member` ve de `roster.with_fee_data`. «Fins al» és inclusiu: el dia de
-    la renovació encara és vàlid (supòsit, per revisar)."""
+    """RN-M01-18, 070 i 072. `member` ve de `roster.with_fee_data`. «Fins al» és inclusiu: el dia
+    de la renovació encara és vàlid (supòsit, per revisar)."""
     today = today or local_today()
-    until = _paid_until(member)
+    until = valid_until(member)
     valid = (
         card is not None
         and card.revoked_at is None
@@ -106,7 +149,7 @@ def valid_card_for_token(token, today=None) -> MemberCard | None:
     temps de resposta i limitar les peticions és de la vista (T-M01-20)."""
     card = (
         MemberCard.objects.filter(token_hash=token_hash(str(token or "")), revoked_at__isnull=True)
-        .select_related("member")
+        .select_related("member__person")
         .first()
     )
     if card is None:
@@ -123,14 +166,17 @@ def years_of_membership(member, today=None) -> int:
 
 def issue_card(member, *, by, request=None) -> str:
     """Emet un carnet i torna el testimoni en clar (l'únic moment en què existeix). Rebutja un
-    soci que no és actiu o sense pagament confirmat (069) i un que ja té carnet: per canviar-lo,
-    `replace_card`."""
+    soci que no és actiu o sense cap «vàlid fins al» (069 i 072) i un que ja té carnet: per
+    canviar-lo, `replace_card`."""
     with transaction.atomic():
         Member.objects.select_for_update(of=("self",)).get(pk=member.pk)
         loaded = load_member(member.pk)
-        if loaded.status != Member.Status.ACTIVE or _paid_until(loaded) is None:
+        if loaded.status != Member.Status.ACTIVE or valid_until(loaded) is None:
             raise CardNotAllowed(
-                _("Només té carnet un soci actiu amb el pagament de la quota confirmat.")
+                _(
+                    "Només té carnet un soci actiu amb la quota pagada, exempt per edat o "
+                    "importat amb la renovació de Cluber."
+                )
             )
         if active_card(loaded) is not None:
             raise CardNotAllowed(_("Aquest soci ja té un carnet; cal revocar-lo abans."))

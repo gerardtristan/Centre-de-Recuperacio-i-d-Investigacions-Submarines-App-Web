@@ -28,7 +28,7 @@ from apps.members.services import InvalidTransition, MemberStats, MemberSummary,
 from apps.members.tests.test_cards import SYSTEM, add_fee, make_member, paid_member, pay
 
 S = Member.Status
-INVALID = {"valid": False, "partial_number": ""}
+INVALID = {"valid": False, "member_number": "", "first_name": ""}
 READ_PREFIXES = ("SELECT", "SAVEPOINT", "RELEASE SAVEPOINT", "ROLLBACK TO SAVEPOINT")
 
 
@@ -199,9 +199,14 @@ class TestActiveMembersForMandates:
 
 @pytest.mark.django_db
 class TestVerifyCard:
-    def test_valid_card_gives_valid_and_two_last_digits_only(self):
+    def test_valid_card_gives_the_full_number_and_the_first_name_only(self):
+        # RN-M01-26; 072: número sencer i nom de pila, confirmats per la junta.
         token = cards.issue_card(paid_member(number=1287), by=SYSTEM)
-        assert read_only(services.verify_card, token) == {"valid": True, "partial_number": "··87"}
+        assert read_only(services.verify_card, token) == {
+            "valid": True,
+            "member_number": "1287",
+            "first_name": "Anna",
+        }
 
     @pytest.mark.parametrize("token", ["inventat", "", None])
     def test_unknown_token_has_the_same_shape(self, token):

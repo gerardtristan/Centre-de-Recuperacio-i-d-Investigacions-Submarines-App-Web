@@ -46,8 +46,8 @@ def card_for(member):
 
 @pytest.mark.django_db
 class TestResult:
-    def test_valid_card_says_valid_and_nothing_else(self, client):
-        # CA-M01-13, sense el número parcial (S-M01-06, [A validar: junta]).
+    def test_valid_card_shows_the_full_number_and_the_first_name_and_nothing_else(self, client):
+        # CA-M01-13; RN-M01-26, S-M01-06 i S-M01-07 (072, confirmats per la junta).
         member = paid_member()
         token = card_for(member)
         response = client.get(url(token))
@@ -55,11 +55,10 @@ class TestResult:
         page = main(response)
         assert "Vàlid" in page and "No vàlid" not in page
         person = member.person
+        assert str(member.member_number) in page and person.first_name in page
         for data in (
-            person.first_name,
             person.last_name,
             person.id_document_number,
-            "87",
             member.type.name,
             cards.token_hash(token),
         ):
@@ -91,6 +90,8 @@ class TestResult:
         assert response.status_code == reference.status_code == 200
         assert "No vàlid" in main(response)
         assert main(response) == main(reference)
+        assert str(member.member_number) not in main(response)
+        assert member.person.first_name not in main(response)
 
     def test_unpaid_member_card_is_not_valid_without_revoking_it(self, client):
         # CA-M01-09, part del carnet (D1): marcar l'impagat amb motiu fa que el carnet no

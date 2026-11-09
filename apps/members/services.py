@@ -443,7 +443,7 @@ class MemberSummary:
     type: str  # codi del tipus
     type_name: str
     status: str
-    valid_until: datetime.date | None  # data de renovació (070); no diu res de l'estat
+    valid_until: datetime.date | None  # «vàlid fins al» del carnet (070, 072); no és l'estat
 
 
 @dataclass(frozen=True)
@@ -461,7 +461,7 @@ def _summary(member) -> MemberSummary:
         type=member.type.code,
         type_name=member.type.name,
         status=member.status,
-        valid_until=cards._paid_until(member),
+        valid_until=cards.valid_until(member),
     )
 
 
@@ -518,15 +518,23 @@ def active_members_for_mandates() -> list[MemberSummary]:
     return [_summary(m) for m in members]
 
 
+INVALID_CARD = {"valid": False, "member_number": "", "first_name": ""}
+
+
 def verify_card(token) -> dict:
-    """Verificació pública (RN-M01-26, RN-M01-27): sempre `{"valid", "partial_number"}`. Un
-    testimoni desconegut, revocat, d'un impagat o caducat dona `{"valid": False,
-    "partial_number": ""}`, igual. Igualar el temps i limitar les peticions és de la vista."""
+    """Verificació pública (RN-M01-26, RN-M01-27; 072, Q-063 i Q-064, confirmades per la junta):
+    sempre `{"valid", "member_number", "first_name"}`. Si és vàlid, el número de soci sencer i el
+    nom de pila; res més. Un testimoni desconegut, revocat, d'un impagat o caducat dona
+    `INVALID_CARD`, igual. Igualar el temps i limitar les peticions és de la vista (T-M01-20)."""
     card = cards.valid_card_for_token(token)
-    number = card.member.member_number if card is not None else None
-    if number is None:
-        return {"valid": False, "partial_number": ""}
-    return {"valid": True, "partial_number": "··" + str(number)[-2:]}
+    if card is None or card.member.member_number is None:
+        return dict(INVALID_CARD)
+    member = card.member
+    return {
+        "valid": True,
+        "member_number": str(member.member_number),
+        "first_name": member.person.first_name,
+    }
 
 
 def stats(on=None) -> MemberStats:

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-20: verificació pública del carnet (P15; publica.html#verificar). Només «Vàlid» o «No vàlid»: cap dada del soci ni del testimoni. El número parcial (RN-M01-26, S-M01-06) i el nom de pila (S-M01-07) són [A validar: junta] i no es mostren. La pantalla no diu el límit ni el temps d'espera. #}
+{# T-M01-20 i T-M01-26: verificació pública del carnet (P15; publica.html#verificar). Si és vàlid, el número de soci sencer i el nom de pila (RN-M01-26; 072, confirmat per la junta); res més. Si no és vàlid, cap dada. La pantalla no diu el límit ni el temps d'espera. #}
 {% block title %}{% translate "Verificació del carnet" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Carnet de soci" %}{% endblock %}
 {% block content %}
@@ -13,6 +13,10 @@
   {% elif valid %}
     <section class="targeta resultat-verificacio" aria-labelledby="resultat-titol">
       <h2 id="resultat-titol"><span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span></h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Número de soci" %}</dt><dd>{{ result.member_number }}</dd></div>
+        <div><dt>{% translate "Nom" %}</dt><dd>{{ result.first_name }}</dd></div>
+      </dl>
     </section>
   {% else %}
     <section class="targeta resultat-verificacio" aria-labelledby="resultat-titol">
@@ -20,5 +24,5 @@
       <p>{% translate "Aquest carnet no és vàlid en aquest moment." %}</p>
     </section>
   {% endif %}
-  <p class="text-2">{% translate "Només mostra si el carnet és vàlid." %}</p>
+  <p class="text-2">{% translate "Mostra si el carnet és vàlid i, si ho és, el número de soci i el nom de pila." %}</p>
 {% endblock %}

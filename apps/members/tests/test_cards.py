@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from django.utils import timezone
 
@@ -382,3 +383,83 @@ def test_approximate_date_shows_since_year(personal):
     member = paid_member(joined_on=date(1998, 3, 15), joined_on_is_approximate=True)
     cards.issue_card(member, by=SYSTEM)
     assert "des de ~1998" in personal(member).get(reverse(CARD)).content.decode()
+
+
+# --- Validesa del 072: exempts, importats i el 29 de febrer (retoc de la T-M01-26) -----------
+
+
+def exempt_member(birth=date(2015, 5, 1), **kwargs):
+    member = make_member(**kwargs)
+    Person.objects.filter(pk=member.person_id).update(birth_date=birth)
+    return member
+
+
+@pytest.mark.django_db
+class TestValidUntil072:
+    def test_paid_member_is_valid_until_the_same_day_of_the_next_year(self):
+        # Correcció 1 de la 072: mateix dia de l'any següent, no «+365 dies».
+        member = make_member()
+        pay(add_fee(member, period=2026), timezone.make_aware(datetime(2026, 3, 10, 12)))
+        card = MemberCard.objects.get(
+            pk=MemberCard.objects.create(member=member, token_hash="a" * 64).pk
+        )
+        assert validity(member, card, date(2027, 3, 10)) == cards.CardValidity(
+            True, date(2027, 3, 10)
+        )
+        assert not validity(member, card, date(2027, 3, 11)).valid
+
+    def test_a_29_february_payment_expires_on_28_february(self):
+        member = make_member()
+        pay(add_fee(member, period=2024), timezone.make_aware(datetime(2024, 2, 29, 12)))
+        assert cards.valid_until(cards.load_member(member.pk)) == date(2025, 2, 28)
+
+    def test_exempt_member_is_valid_until_31_december_of_the_last_exempt_year(self):
+        # Q-002 (072): nascut el 2015, paga des del 2030; carnet fins al 31/12/2029.
+        member = exempt_member()
+        token = cards.issue_card(member, by=SYSTEM)
+        card = MemberCard.objects.get(token_hash=cards.token_hash(token))
+        assert validity(member, card, date(2029, 12, 31)) == cards.CardValidity(
+            True, date(2029, 12, 31)
+        )
+        assert not validity(member, card, date(2030, 1, 1)).valid
+
+    def test_exempt_member_with_a_fee_follows_the_fee(self):
+        # Q-003: el primer any de quota ja no compta l'exempció; sense pagar, cap validesa.
+        member = exempt_member()
+        add_fee(member, period=2030)
+        assert cards.valid_until(cards.load_member(member.pk)) is None
+
+    def test_member_without_birth_date_or_fee_has_no_validity(self):
+        member = make_member()
+        assert cards.valid_until(cards.load_member(member.pk)) is None
+        with pytest.raises(CardNotAllowed):
+            cards.issue_card(member, by=SYSTEM)
+
+    def test_imported_member_is_valid_one_year_from_cluber_renewal(self):
+        # Q-076 (072): des de «Data alta/renovació» [A validar: tresorer].
+        member = make_member(cluber_id="CLB-1", cluber_renewed_on=date(2024, 2, 29))
+        assert cards.valid_until(cards.load_member(member.pk)) == date(2025, 2, 28)
+        member = make_member(
+            first="Berta",
+            number=88,
+            document="87654321X",
+            cluber_id="CLB-2",
+            cluber_renewed_on=date(2026, 6, 15),
+        )
+        token = cards.issue_card(member, by=SYSTEM)
+        card = MemberCard.objects.get(token_hash=cards.token_hash(token))
+        assert validity(member, card, date(2027, 6, 15)).valid
+        assert not validity(member, card, date(2027, 6, 16)).valid
+
+    def test_a_platform_payment_after_cluber_wins_if_later(self):
+        member = make_member(cluber_id="CLB-3", cluber_renewed_on=date(2025, 1, 10))
+        pay(add_fee(member, period=2026), timezone.make_aware(datetime(2026, 2, 1, 12)))
+        assert cards.valid_until(cards.load_member(member.pk)) == date(2027, 2, 1)
+
+    def test_cluber_renewal_only_for_cluber_members(self):
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_member(cluber_renewed_on=date(2026, 1, 1))
+
+    def test_summary_gives_the_same_valid_until(self):
+        member = exempt_member()
+        assert services.get_member_summary(member.person).valid_until == date(2029, 12, 31)

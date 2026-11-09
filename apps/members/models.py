@@ -89,6 +89,10 @@ class Member(models.Model):
     cluber_id = models.CharField(  # noqa: DJ001
         _("identificador de Cluber"), max_length=40, null=True, blank=True
     )
+    # «Data alta/renovació» de l'exportació de Cluber (072, Q-076): el carnet d'un soci importat
+    # val un any des d'aquesta data, fins al mateix dia de l'any següent [A validar: tresorer].
+    # Només per a socis de Cluber (restricció). La desa la importació final (T-M01-25).
+    cluber_renewed_on = models.DateField(_("última renovació a Cluber"), null=True, blank=True)
     # Fixada en l'alta per a l'avatar futur; un disparador impedeix canviar-la (members/0004).
     # Només la genera `new_avatar_seed`, des del servei d'alta (T-M01-14). El format de 64
     # caràcters hexadecimals (members/0005) no demostra que sigui aleatòria.
@@ -125,6 +129,10 @@ class Member(models.Model):
             models.CheckConstraint(
                 condition=Q(status__in=["pending", "active", "unpaid", "left"]),
                 name="member_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(cluber_renewed_on__isnull=True) | Q(cluber_id__isnull=False),
+                name="member_cluber_renewed_only_cluber",
             ),
             # Destí de la clau forana composta de `MemberRequest` (migració 0001).
             models.UniqueConstraint(fields=["id", "person"], name="member_id_person"),
