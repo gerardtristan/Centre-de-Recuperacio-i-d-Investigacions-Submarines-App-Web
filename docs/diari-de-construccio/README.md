@@ -93,6 +93,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-16](T-M01-16.md) | Àrea del soci: perfil, les meves quotes i sol·licituds (**feta en part**, sessió nocturna; pendent de validació; queden el rebut del 05b, el canvi de correu, Q-16 i P-58) | 09/11/2026 | dfcaaba | 1702 | No comprovat (sense push) |
 | [T-M01-19](T-M01-19.md) | Carnet: testimoni, validesa, revocació i pàgina del soci (**feta en part**, sessió nocturna; pendent de validació; queden el QR, el PDF i les crides des del canvi de tipus, la baixa i `on_fee_paid`) | 09/11/2026 | f21b762 | 1738 | No comprovat (sense push) |
 | [T-M01-26](T-M01-26.md) | Serveis oferts a altres mòduls amb proves de contracte (**feta en part**, sessió nocturna; pendent de validació; queden l'avís al tresorer, el cas del soci de baixa, el carnet en una renovació i P-61) | 09/11/2026 | ecf760c | 1781 | No comprovat (sense push) |
+| [T-M01-20](T-M01-20.md) | Verificació pública del carnet amb limitació de peticions (**feta en part**, sessió nocturna; pendent de validació; queda el número parcial de RN-M01-26, [A validar: junta]) | 09/11/2026 | 553c24f | 1756 | No comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).

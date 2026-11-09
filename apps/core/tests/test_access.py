@@ -28,6 +28,8 @@ PUBLIC_ROUTES = {
     "administration:logout",
     # Formulari «Fer-se soci» (RN-40, M01-8): P1 és del visitant.
     "members:join",
+    # Verificació del carnet (P15, M01-8): qualsevol persona; el testimoni no dona cap dada.
+    "members:card_verify",
 }
 
 SAMPLE_VALUES = {
