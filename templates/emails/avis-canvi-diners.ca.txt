@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "S'ha canviat un valor que afecta diners a la plataforma del club." %}
+
+{% translate "Valor:" %} {{ what }}
+{% translate "Valor anterior:" %} {{ previous }}
+{% translate "Valor nou:" %} {{ new }}
+{% translate "Qui l'ha canviat:" %} {{ changed_by }}
+{% translate "Nota:" %} {{ note|default:"—" }}
+{% translate "En vigor des de:" %} {% if effective_from %}{{ effective_from|date:"d/m/Y" }}{% else %}—{% endif %}
+
+{% translate "Aquest correu només és un avís: el canvi ja s'ha aplicat i no cal cap aprovació. Si la junta vol desfer-lo, es fa amb un altre canvi des de la pantalla d'ajustos." %}
+{% endautoescape %}

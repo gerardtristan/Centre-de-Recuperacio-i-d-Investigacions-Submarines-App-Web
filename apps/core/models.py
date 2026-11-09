@@ -910,3 +910,94 @@ class ImportLine(UndeletableModel):
 
     def __str__(self):
         return f"{self.batch_id}:{self.row}"
+
+
+class Setting(models.Model):
+    """Valor de negoci configurable (decisió 055; planning.md, «peça comuna d'ajustos»).
+
+    Cada mòdul declara els seus valors amb una migració de dades quan construeix la seva
+    pantalla d'ajustos. Es llegeixen i es canvien només amb els serveis de
+    `apps.core.business_settings`. Qui el pot canviar és el permís del catàleg
+    `settings.edit.<clau>` (RN-RP-17 i RN-RP-19): no hi ha camp `editor_roles` (060).
+    """
+
+    class ValueType(models.TextChoices):
+        INTEGER = "integer", _("Enter")
+        CENTS = "cents", _("Import en cèntims")
+        BOOLEAN = "boolean", _("Sí o no")
+        TEXT = "text", _("Text")
+        CHOICE = "choice", _("Opció")
+        URL = "url", _("URL")
+        DAY_MONTH = "day_month", _("Dia i mes")
+        INTEGER_LIST = "integer_list", _("Llista d'enters")
+
+    key = models.CharField(_("clau"), max_length=60, unique=True)
+    module = models.CharField(_("mòdul"), max_length=30)
+    value_type = models.CharField(_("tipus"), max_length=20, choices=ValueType.choices)
+    initial_value = models.JSONField(_("valor inicial"))
+    # Rang. Per a «dia i mes», el valor es guarda com a "MM-DD" i el rang com a MMDD (1001 =
+    # 1 d'octubre). Per a la llista d'enters, el rang s'aplica a cada element.
+    min_value = models.BigIntegerField(_("valor mínim"), null=True, blank=True)
+    max_value = models.BigIntegerField(_("valor màxim"), null=True, blank=True)
+    choices = models.JSONField(_("opcions"), default=list, blank=True)
+    max_length = models.PositiveIntegerField(_("longitud màxima"), null=True, blank=True)
+    affects_money = models.BooleanField(_("afecta diners"), default=False)
+    effective_dated = models.BooleanField(_("amb data d'entrada en vigor"), default=False)
+
+    class Meta:
+        verbose_name = _("ajust")
+        verbose_name_plural = _("ajustos")
+        ordering = ["module", "key"]
+        constraints = [
+            # RN-AJ-03: un valor de diners sempre té data d'entrada en vigor.
+            models.CheckConstraint(
+                condition=Q(affects_money=False) | Q(effective_dated=True),
+                name="setting_money_is_effective_dated",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_value__isnull=True)
+                | Q(max_value__isnull=True)
+                | Q(min_value__lte=models.F("max_value")),
+                name="setting_range_ordered",
+            ),
+        ]
+
+    def __str__(self):
+        return self.key
+
+    def clean(self):
+        if not self.key.startswith(f"{self.module}."):
+            raise ValidationError({"key": gettext("La clau ha de començar pel prefix del mòdul.")})
+        from .business_settings import validate_value
+
+        validate_value(self, self.initial_value)
+
+
+class SettingVersion(AppendOnlyModel):
+    """Canvi d'un ajust (RN-AJ-02). Només s'hi afegeixen files: el model ho impedeix a l'ORM i
+    uns disparadors de PostgreSQL (migració 0012), a la base de dades."""
+
+    setting = models.ForeignKey(
+        Setting, on_delete=models.PROTECT, related_name="versions", verbose_name=_("ajust")
+    )
+    value = models.JSONField(_("valor"))
+    # Buida si l'ajust no té data d'entrada en vigor.
+    effective_from = models.DateField(_("en vigor des de"), null=True, blank=True)
+    changed_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("compte que el canvia"),
+    )
+    changed_at = models.DateTimeField(_("data del canvi"), default=timezone.now)
+    previous_value = models.JSONField(_("valor anterior"), null=True, blank=True)
+    note = models.TextField(_("nota"), blank=True)
+
+    class Meta:
+        verbose_name = _("versió d'un ajust")
+        verbose_name_plural = _("versions dels ajustos")
+        ordering = ["setting", "changed_at", "id"]
+        indexes = [models.Index(fields=["setting", "effective_from"])]
+
+    def __str__(self):
+        return f"{self.setting_id}:{self.effective_from or self.changed_at:%Y-%m-%d}"
