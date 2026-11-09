@@ -1,0 +1,17 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-17: sol·licituds pendents de canvi de tipus i de baixa (P3a; wireframe admin.html#vista-socis-sollicituds). Les altes són de la T-M01-14. Sense document, adreça ni data de naixement. #}
+{% block title %}{% translate "Sol·licituds de socis" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+  <h1>{% translate "Sol·licituds" %}</h1>
+  <section aria-labelledby="canvis-titol">
+    <h2 id="canvis-titol">{% blocktranslate with total=changes|length %}Canvis de tipus ({{ total }}){% endblocktranslate %}</h2>
+    {% if changes %}{% include "members/_requests_table.html" with rows=changes %}{% else %}<p class="text-2">{% translate "No hi ha cap canvi de tipus pendent." %}</p>{% endif %}
+  </section>
+  <section aria-labelledby="baixes-titol">
+    <h2 id="baixes-titol">{% blocktranslate with total=leaves|length %}Baixes ({{ total }}){% endblocktranslate %}</h2>
+    {% if leaves %}{% include "members/_requests_table.html" with rows=leaves %}{% else %}<p class="text-2">{% translate "No hi ha cap baixa pendent." %}</p>{% endif %}
+  </section>
+{% endblock %}

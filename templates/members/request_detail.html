@@ -1,0 +1,45 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-17: una sol·licitud de canvi de tipus o de baixa (P3a per veure-la, P7 per resoldre-la). Amagar el formulari no és cap control: el servidor torna a comprovar P7 i el conflicte d'interès en desar. Aprovar un canvi de tipus està desconnectat (RN-M01-15, P-54, pas 3 de P-M01-B). #}
+{% block title %}{{ item.get_kind_display }} · {{ item.person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
+  <h1>{{ item.get_kind_display }}: {{ item.person }}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+  <dl class="dades-soci">
+    <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ item.member.member_number|default:_("Sense número") }}</dd></div>
+    <div><dt>{% translate "Tipus actual" %}</dt><dd>{{ item.member.type.name }}</dd></div>
+    {% if item.requested_type %}<div><dt>{% translate "Tipus demanat" %}</dt><dd>{{ item.requested_type.name }}</dd></div>{% endif %}
+    <div><dt>{% translate "Canal" %}</dt><dd>{{ item.get_channel_display }}</dd></div>
+    <div><dt>{% translate "Enviada el" %}</dt><dd>{{ item.created_at|date:"d/m/Y" }}</dd></div>
+    {% if item.request_reason %}<div><dt>{% translate "Motiu de la sol·licitud" %}</dt><dd>{{ item.request_reason|linebreaksbr }}</dd></div>{% endif %}
+    <div><dt>{% translate "Estat" %}</dt><dd>{{ item.get_status_display }}</dd></div>
+    {% if not pending %}
+      {% if item.effective_on %}<div><dt>{% translate "Data efectiva" %}</dt><dd>{{ item.effective_on|date:"d/m/Y" }}</dd></div>{% endif %}
+      {% if item.resolution_reason %}<div><dt>{% translate "Motiu de la resolució" %}</dt><dd>{{ item.resolution_reason|linebreaksbr }}</dd></div>{% endif %}
+      {% if item.resolved_at %}<div><dt>{% translate "Resolta el" %}</dt><dd>{{ item.resolved_at|date:"d/m/Y H:i" }}</dd></div>{% endif %}
+    {% endif %}
+  </dl>
+
+  {% if pending %}
+    {% if own %}
+      <div class="avis avis-avis" role="status"><strong>{% translate "És la teva sol·licitud" %}</strong> {% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
+    {% elif can_resolve %}
+      {% if item.kind == "change_type" %}
+        <div class="avis avis-avis" role="status">{% translate "Encara no es pot aprovar un canvi de tipus: falten decisions de la junta sobre l'import del suplement, com es cobra i quan és efectiu. Sí que el pots rebutjar amb motiu." %}</div>
+      {% endif %}
+      <form class="formulari" method="post" action="{% url 'administration:member_request_detail' item.pk %}" novalidate>
+        {% csrf_token %}
+        {% if item.kind == "leave" %}{% include "accounts/_camp.html" with field=form.effective_on %}{% endif %}
+        {% include "accounts/_camp.html" with field=form.reason %}
+        <div class="accions">
+          {% if item.kind == "leave" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% translate "Valida la baixa" %}</button>{% endif %}
+          <button class="boto" type="submit" name="action" value="reject">{% translate "Rebutja" %}</button>
+        </div>
+      </form>
+    {% endif %}
+  {% endif %}
+  <p><a href="{% url 'administration:member_requests' %}">{% translate "Torna a les sol·licituds" %}</a></p>
+{% endblock %}
