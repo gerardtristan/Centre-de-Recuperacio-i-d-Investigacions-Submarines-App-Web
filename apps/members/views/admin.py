@@ -122,7 +122,10 @@ def _protected(request, handler):
     data = files[0].read()
     summary = cluber.preview(data).summary()
     rejected = summary["rejected"]
-    sha256 = None if rejected == "iban_column" else hashlib.sha256(data).hexdigest()
+    # Minimització aprovada a la T-M01-24: sense empremta si el fitxer porta una columna d'IBAN,
+    # encara que ara es descarti en llegir (071).
+    iban = "iban_discarded" in summary["warnings"]
+    sha256 = None if iban else hashlib.sha256(data).hexdigest()
     _record(request, rejected, summary["counts"], sha256)
     return _page(request, summary=summary, recorded=True)
 
@@ -150,7 +153,12 @@ def _display(summary):
     messages = cluber.MESSAGES
     problems = []
     pending = Counter()
+    filled = Counter()
+    types = Counter()
     for row in summary["rows"]:
+        filled.update(row["fields"])
+        if row["member_type"]:
+            types[row["member_type"], row["member_type_by"]] += 1
         for kind, codes in ((_("Error"), row["errors"]), (_("Advertiment"), row["warnings"])):
             columns = row["error_columns"] if codes is row["errors"] else [""] * len(codes)
             for code, column in zip(codes, columns, strict=True):
@@ -168,6 +176,12 @@ def _display(summary):
         "problems": problems,
         "pending": [(messages[code], count) for code, count in sorted(pending.items())],
         "omitted": sorted(summary["catalogue_omitted"].items()),
+        "encoding": cluber.ENCODING_LABELS.get(summary["encoding"]),
+        "would_import": [(label, filled[target]) for target, label in cluber.FIELD_LABELS.items()],
+        "types": [
+            (summary["type_names"][code], cluber.TYPE_BY_LABELS[by], count)
+            for (code, by), count in sorted(types.items())
+        ],
     }
 
 

@@ -1,25 +1,27 @@
-"""Importació de Cluber, fase de prova (T-M01-24; P-M01-G, passos 1 a 3).
+"""Importació de Cluber, fase de prova (T-M01-24 i T-M01-24b; P-M01-G, passos 1 a 3).
 
 `preview(data)` llegeix l'exportació en CSV, la valida i en torna el resultat. Precisions aplicades
-(docs/planning.md, lectura de les tasques substituïdes, files de la T-M01-24):
+(docs/planning.md, lectura de les tasques substituïdes, files de la T-M01-24; decisió 071):
 
-- No escriu res: a la base de dades només fa consultes de lectura (quatre com a màxim: la de
-  CA-20.8 i tres de coincidències), i no escriu a la sessió, al disc ni a la cua. El registre
-  de l'execució, el permís (P18) i la presentació del resum són del punt d'entrada que la
-  cridi, que encara no existeix.
-- Perfil CSV inicial revisable, no confirmat per Q-23: UTF-8 amb BOM opcional, separador «;»,
-  cometes del mòdul `csv`, 1 MiB, 2.000 registres de dades i 10.000 caràcters per camp.
-- Una columna d'IBAN (capçalera «iban» normalitzada, sense àlies) rebutja el fitxer sencer en
-  llegir la capçalera, abans de cap fila (RN-94, CA-M01-21). Un IBAN dins d'una altra columna no
-  es detecta (risc conegut).
-- Cap equivalència aprovada per al tipus de soci, l'estat ni la data d'alta: cap fila no és
-  preparada per importar, i aquestes dades surten com a pendents. No s'inventa res.
+- No escriu res: a la base de dades només fa consultes de lectura (cinc com a màxim: la de
+  CA-20.8, la dels tipus de soci i tres de coincidències), i no escriu a la sessió, al disc ni a
+  la cua. El registre de l'execució, el permís (P18) i la presentació del resum són del punt
+  d'entrada que la crida (`views/admin.py`).
+- Format (071): CSV separat per «;», cometes del mòdul `csv`; UTF-8 amb BOM opcional i, si no és
+  UTF-8 vàlid, Windows-1252 (`Preview.encoding`). 1 MiB, 2.000 registres de dades i 10.000
+  caràcters per camp.
+- Una columna d'IBAN (capçalera «iban» normalitzada, sense àlies) es descarta en llegir: el seu
+  valor s'esborra de cada registre abans de cap altre tractament i no passa enlloc (071, que
+  matisa la RN-94 i el CA-M01-21). Un IBAN dins d'una altra columna no es detecta (risc conegut).
+- Només es llegeixen les columnes d'`EQUIVALENCES` (071, punt 10); la resta s'ignoren.
+- Tipus de soci per nom, per preu o pendent (071, punt 5). Tots entrarien actius (punt 7).
 - Dades en memòria: de cada fila només el document normalitzat i el número de soci (amb el text
-  original), que són el que fa servir la previsualització. Les altres columnes es llegeixen
-  (cal processar la fila) però el seu valor no passa al resultat. `repr` no mostra aquestes
-  dades, ni els valors de catàleg, ni els noms de columna desconeguts; això no impedeix altres
-  serialitzacions (`dataclasses.asdict`, `vars`, `pickle`). L'únic que es pot mostrar o
-  registrar sense cap valor del fitxer és `Preview.summary()`.
+  original), que són el que fa servir la previsualització, i la llista dels camps que
+  s'omplirien (`Row.fields`, sense valors). `normalize()` calcula els valors normalitzats, però
+  aquí només se n'aprofiten les claus. `repr` no mostra aquestes dades, ni els valors de catàleg,
+  ni els noms de columna desconeguts; això no impedeix altres serialitzacions
+  (`dataclasses.asdict`, `vars`, `pickle`). L'únic que es pot mostrar o registrar sense cap valor
+  del fitxer és `Preview.summary()`.
 
 La fila (`row`) és el número de registre, amb la capçalera com a 1: un camp de diverses línies
 compta com una sola fila, com en un full de càlcul. Una columna que no es reconeix s'identifica
@@ -27,18 +29,22 @@ per la seva posició («#33»), perquè el seu nom ve del fitxer.
 """
 
 import csv
+import datetime
 import io
 import re
+import unicodedata
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import ImportBatch, Person
 from apps.core.normalization import normalize_document
-from apps.members.models import Member
+from apps.members.models import Member, MembershipType
 
 MAX_BYTES = 1024 * 1024
 MAX_ROWS = 2000
@@ -48,7 +54,13 @@ MAX_CATALOGUE = 50
 MAX_MEMBER_NUMBER = 2_147_483_647  # rang de PositiveIntegerField a PostgreSQL
 DOCUMENT_MAX_LENGTH = Person._meta.get_field("id_document_number").max_length
 
-# Capçaleres de la mostra parcial del 04/11/2026, sense la d'IBAN (no substitueix S-M01-16).
+IMAGE_CONSENT = (
+    "CONSENTIMIENTO PARA USO DE IMÁGENES: Autorizo a la publicación de imágenes en redes "
+    "sociales y página web del club/entidad. El club/entidad usará las imágenes solo para los "
+    "fines autorizados y no las compartirá con terceros."
+)
+# Capçaleres de la mostra parcial del 04/11/2026, sense la d'IBAN, que a l'exportació real va
+# just després de «Soci titular» i es descarta en llegir (071).
 KNOWN_HEADERS = (
     "Nº Soci",
     "Nom",
@@ -81,9 +93,7 @@ KNOWN_HEADERS = (
     "Titulacio;",
     "Especialitats;",
     "idInterno",
-    "CONSENTIMIENTO PARA USO DE IMÁGENES: Autorizo a la publicación de imágenes en redes "
-    "sociales y página web del club/entidad. El club/entidad usará las imágenes solo para los "
-    "fines autorizados y no las compartirá con terceros.",
+    IMAGE_CONSENT,
 )
 IBAN_HEADERS = frozenset({"iban"})  # comparació exacta normalitzada; cap àlies aprovat
 
@@ -93,23 +103,97 @@ LAST_NAME = "Cognoms"
 DOCUMENT = "Document d'Identitat"
 EMAIL = "Email"
 PHONE = "Telèfon"
+QUOTA = "Quota"
+TOTAL_PRICE = "Preu total"
+ADDRESS = "Adreça"
+POSTAL_CODE = "Codi Postal"
+CITY = "Ciutat"
+BIRTH_DATE = "Data de Naixament"
+JOINED_ON = "Data d'inscripció"
+LAST_RENEWAL = "Data alta/renovació"
+CLUBER_ID = "idInterno"
+
+
+@dataclass(frozen=True)
+class Equivalence:
+    column: str  # capçalera de Cluber
+    target: str  # camp de destinació, o què en fa la importació final
+    purpose: str  # finalitat: per què es llegeix
+
+
+# Taula d'equivalències (decisió 071, punt 10): les úniques columnes que es llegeixen. Afegir-ne
+# una és afegir-hi una fila, el seu tractament a `normalize()` i la seva prova. Cap mode
+# «importa-ho tot»: la resta (també «Estat», «Renovació», «Soci titular», «Mètode de pagament»
+# i «Polítiques de privadesa») s'ignoren sense conservar-ne el valor.
+EQUIVALENCES = (
+    Equivalence(NUMBER, "Member.member_number", "Conservar el número de soci (RN-M01-32)."),
+    Equivalence(FIRST_NAME, "Person.first_name", "Identificar la persona."),
+    Equivalence(LAST_NAME, "Person.last_name", "Identificar la persona."),
+    Equivalence(DOCUMENT, "Person.id_document_number", "Identificar i detectar duplicats."),
+    Equivalence(EMAIL, "Person.contact_email", "Contactar i obrir el compte personal."),
+    Equivalence(PHONE, "Person.phone", "Contactar; tal com ve (071, punt 16)."),
+    Equivalence(BIRTH_DATE, "Person.birth_date", "Franja d'edat (058, RN-M01-55); pot ser buida."),
+    Equivalence(ADDRESS, "Person.address", "Adreça postal."),
+    Equivalence(POSTAL_CODE, "Person.address", "Adreça postal: codi postal."),
+    Equivalence(CITY, "Person.address", "Adreça postal: ciutat; «-» és buida (071, punt 17)."),
+    Equivalence(JOINED_ON, "Member.joined_on", "Antiguitat [A validar: tresorer, P-62]."),
+    Equivalence(LAST_RENEWAL, "last_renewal", "Carnet provisional (RN-M01-34) [A validar]."),
+    Equivalence(QUOTA, "Member.type", "Deduir el tipus per nom o per preu (071, punt 5)."),
+    Equivalence(TOTAL_PRICE, "total_price", "Només informatiu; no crea cap càrrec (071, punt 6)."),
+    Equivalence(CLUBER_ID, "Member.cluber_id", "Referència de Cluber per seguir el lot."),
+    Equivalence(IMAGE_CONSENT, "image_consent", "Consentiment d'imatges importat de Cluber."),
+)
+
+# Noms dels camps per a la pantalla de la prova («què s'importaria»), en l'ordre de la taula.
+FIELD_LABELS = {
+    "Member.member_number": _("Número de soci"),
+    "Person.first_name": _("Nom"),
+    "Person.last_name": _("Cognoms"),
+    "Person.id_document_number": _("Document"),
+    "Person.contact_email": _("Correu"),
+    "Person.phone": _("Telèfon"),
+    "Person.birth_date": _("Data de naixement"),
+    "Person.address": _("Adreça"),
+    "Member.joined_on": _("Data d'alta"),
+    "last_renewal": _("Última renovació (carnet provisional)"),
+    "Member.cluber_id": _("Referència de Cluber"),
+    "image_consent": _("Consentiment d'imatges atorgat"),
+}
+TYPE_BY_LABELS = {"name": _("pel nom"), "price": _("pel preu")}
+ENCODING_LABELS = {"utf-8": "UTF-8", "windows-1252": "Windows-1252"}
+
 REQUIRED_HEADERS = (NUMBER, FIRST_NAME, LAST_NAME, DOCUMENT)
 # Presència comprovada (si falta, queda pendent); el valor no es conserva.
 PRESENCE = {FIRST_NAME: "first_name", LAST_NAME: "last_name", EMAIL: "email", PHONE: "phone"}
-CATALOGUE_HEADERS = ("Quota", "Estat", "Renovació")
-# Sense cap equivalència aprovada (S-M01-16, Q-23): pendents a totes les files.
-UNMAPPED = ("member_type", "member_status", "joined_on")
+CATALOGUE_HEADERS = (QUOTA,)
+# Llargada dels camps de destinació: un valor més llarg és un error de fila, sense retallar-lo.
+MAX_LENGTH = {
+    "Person.first_name": Person._meta.get_field("first_name").max_length,
+    "Person.last_name": Person._meta.get_field("last_name").max_length,
+    "Person.phone": Person._meta.get_field("phone").max_length,
+    "Person.address": Person._meta.get_field("address").max_length,
+    "Member.cluber_id": Member._meta.get_field("cluber_id").max_length,
+}
+# «Sí» al consentiment d'imatges, sense majúscules ni accents. Qualsevol altre valor, o buit, és
+# no atorgat [A validar: valors reals de Cluber].
+YES = frozenset({"si", "s", "yes", "1", "true", "x", "acepto", "autorizo"})
+# Codis de la T-M01-24b que encara no són a `IMPORT_LINE_CODES` (restricció a la base de dades):
+# la T-M01-25 els hi afegeix, amb la seva migració, abans de desar cap línia (071).
+NEW_LINE_CODES = ("date_invalid", "total_price_differs")
 
 _NUMBER_RE = re.compile(r"[0-9]+")
+_DATE_RE = re.compile(r"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})")
+_PRICE_IN_TEXT_RE = re.compile(r"([0-9]+(?:[.,][0-9]{1,2})?)\s*€")
+_AMOUNT_RE = re.compile(r"([0-9]+(?:[.,][0-9]{1,2})?)\s*€?")
 
 MESSAGES = {
     # Fitxer sencer
     "too_large": _("El fitxer supera la mida màxima."),
-    "encoding": _("El fitxer no és UTF-8."),
+    "encoding": _("El fitxer no és UTF-8 ni Windows-1252."),
     "empty": _("El fitxer és buit."),
     "malformed": _("El fitxer no té un format CSV vàlid."),
-    "iban_column": _(
-        "El fitxer té una columna d'IBAN i es rebutja sencer. Exporta'l sense aquesta columna."
+    "iban_discarded": _(
+        "El fitxer té una columna d'IBAN: s'ha descartat sense desar-ne ni mostrar-ne cap valor."
     ),
     "duplicate_header": _("Hi ha una capçalera repetida."),
     "missing_header": _("Falta una columna obligatòria."),
@@ -123,6 +207,7 @@ MESSAGES = {
     "field_too_long": _("Un camp supera la llargada màxima."),
     "member_number_invalid": _("El número de soci no és un enter positiu vàlid."),
     "email_invalid": _("El correu no té un format vàlid."),
+    "date_invalid": _("La data no té el format dd/mm/aaaa, no existeix o és futura."),
     "duplicate_document": _("El document es repeteix en una altra fila del fitxer."),
     "duplicate_member_number": _("El número de soci es repeteix en una altra fila del fitxer."),
     "identity_conflict": _("El document i el número de soci apunten a persones diferents."),
@@ -132,10 +217,12 @@ MESSAGES = {
     # Advertiments de fila
     "member_number_leading_zeros": _("El número de soci té zeros a l'esquerra."),
     "match_without_document_type": _("Coincidència sense tipus de document."),
+    "joined_on": _("Falta la data d'alta: s'importaria igualment i la secretaria la posaria a mà."),
+    "total_price_differs": _(
+        "El preu total no coincideix amb la quota del tipus deduït (només informatiu)."
+    ),
     # Dades pendents
-    "member_type": _("Tipus de soci sense equivalència aprovada."),
-    "member_status": _("Estat del soci sense equivalència aprovada."),
-    "joined_on": _("Data d'alta sense equivalència aprovada."),
+    "member_type": _("No s'ha pogut deduir el tipus de soci: l'ha de triar la secretaria."),
     "id_document_type": _("Falta el tipus de document."),
     "member_number": _("Falta el número de soci."),
     "first_name": _("Falta el nom."),
@@ -160,6 +247,107 @@ def _label(header: str, position: int) -> str:
     return header if header in KNOWN_HEADERS else f"#{position + 1}"
 
 
+def _fold(text: str) -> str:
+    """Sense majúscules ni accents, per comparar textos («Col·laborador» = «col·laborador»)."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold()
+
+
+def _cents(amount: str) -> int:
+    return int(Decimal(amount.replace(",", ".")) * 100)
+
+
+def parse_date(text: str) -> datetime.date | None:
+    """dd/mm/aaaa (dia i mes d'una o dues xifres). None si no té el format o no existeix."""
+    match = _DATE_RE.fullmatch(text)
+    if not match:
+        return None
+    day, month, year = (int(part) for part in match.groups())
+    try:
+        return datetime.date(year, month, day)
+    except ValueError:
+        return None
+
+
+def price_in_text(text: str) -> int | None:
+    """Cèntims de l'únic preu en euros del text («… 35€.» → 3500); None si no n'hi ha cap o més
+    d'un."""
+    prices = _PRICE_IN_TEXT_RE.findall(text)
+    return _cents(prices[0]) if len(prices) == 1 else None
+
+
+def normalize(value) -> tuple[dict, list]:
+    """Valors normalitzats de les columnes de text, dates i consentiment d'`EQUIVALENCES`.
+
+    `value(columna)` torna el text de la cel·la sense espais als extrems ("" si no hi és). Torna
+    `(camps, errors)`: `camps` té una clau per cada camp que s'ompliria; `errors`, parells
+    (codi, columna) sense cap valor. El número, el document i el tipus es tracten a part. No
+    s'inventa res: un valor buit o invàlid no omple el camp.
+    """
+    fields, errors = {}, []
+
+    def text(column, target):
+        if v := value(column):
+            if len(v) > MAX_LENGTH[target]:
+                errors.append(("field_too_long", column))
+            else:
+                fields[target] = v
+
+    text(FIRST_NAME, "Person.first_name")
+    text(LAST_NAME, "Person.last_name")
+    text(PHONE, "Person.phone")  # tal com ve
+    text(CLUBER_ID, "Member.cluber_id")
+    if email := value(EMAIL):
+        try:
+            validate_email(email)
+            fields["Person.contact_email"] = email
+        except ValidationError:
+            errors.append(("email_invalid", EMAIL))
+
+    city = "" if value(CITY) == "-" else value(CITY)  # la província no s'hi afegeix
+    locality = " ".join(part for part in (value(POSTAL_CODE), city) if part)
+    if address := ", ".join(part for part in (value(ADDRESS), locality) if part):
+        if len(address) > MAX_LENGTH["Person.address"]:
+            errors.append(("field_too_long", ADDRESS))
+        else:
+            fields["Person.address"] = address
+
+    today = timezone.localdate()
+    for column, target in (
+        (BIRTH_DATE, "Person.birth_date"),
+        (JOINED_ON, "Member.joined_on"),
+        (LAST_RENEWAL, "last_renewal"),
+    ):
+        if raw := value(column):
+            date = parse_date(raw)
+            if date is None or (target == "Person.birth_date" and date > today):
+                errors.append(("date_invalid", column))
+            else:
+                fields[target] = date
+
+    if _fold(value(IMAGE_CONSENT)) in YES:
+        fields["image_consent"] = True
+    return fields, errors
+
+
+def resolve_type(quota: str, types: list) -> tuple[MembershipType | None, str | None]:
+    """Tipus de soci a partir del text de «Quota» (071, punt 5).
+
+    1r: el nom d'un sol tipus surt dins el text, per paraules senceres i sense majúscules ni
+    accents. 2n: l'únic preu del text coincideix amb la quota vigent d'un sol tipus. Si no, cap
+    tipus (pendent: el tria la secretaria). Torna `(tipus, "name" | "price" | None)`.
+    """
+    folded = _fold(quota)
+    by_name = [t for t in types if re.search(rf"(?<!\w){re.escape(_fold(t.name))}(?!\w)", folded)]
+    if len(by_name) == 1:
+        return by_name[0], "name"
+    cents = price_in_text(quota)
+    by_price = [t for t in types if cents is not None and t.annual_fee_cents == cents]
+    if len(by_price) == 1:
+        return by_price[0], "price"
+    return None, None
+
+
 @dataclass
 class Row:
     row: int
@@ -172,6 +360,10 @@ class Row:
     error_columns: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
     pending: list = field(default_factory=list)
+    # Camps que s'omplirien (destinacions d'`EQUIVALENCES`), sense cap valor.
+    fields: list = field(default_factory=list)
+    member_type: str | None = None  # codi del tipus deduït (catàleg de la plataforma)
+    member_type_by: str | None = None  # "name" o "price"
 
     @property
     def ready(self) -> bool:
@@ -190,6 +382,9 @@ class Row:
             "error_columns": list(self.error_columns),
             "warnings": list(self.warnings),
             "pending": list(self.pending),
+            "fields": list(self.fields),
+            "member_type": self.member_type,
+            "member_type_by": self.member_type_by,
         }
 
 
@@ -198,12 +393,15 @@ class Preview:
     rejected: str | None = None
     rejected_column: str = ""
     rejected_row: int | None = None
+    encoding: str | None = None  # "utf-8" o "windows-1252"
     rows: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
     unknown_columns: list = field(default_factory=list, repr=False)
     # Valors de catàleg: no fiables i potencialment personals; fora de `repr` i de `summary()`.
     catalogue: dict = field(default_factory=dict, repr=False)
     catalogue_omitted: dict = field(default_factory=dict)
+    # Noms dels tipus actius de la plataforma (codi → nom), per presentar el tipus deduït.
+    type_names: dict = field(default_factory=dict)
 
     @property
     def counts(self) -> dict:
@@ -224,17 +422,31 @@ class Preview:
             "rejected": self.rejected,
             "rejected_column": self.rejected_column,
             "rejected_row": self.rejected_row,
+            "encoding": self.encoding,
             "counts": self.counts,
             "warnings": list(self.warnings),
             "unknown_columns": len(self.unknown_columns),
             "catalogue": {column: len(values) for column, values in self.catalogue.items()},
             "catalogue_omitted": dict(self.catalogue_omitted),
+            "type_names": dict(self.type_names),
             "rows": [r.summary() for r in self.rows],
         }
 
 
-def _reject(code, *, column="", row=None) -> Preview:
-    return Preview(rejected=code, rejected_column=column, rejected_row=row)
+def _reject(code, *, column="", row=None, encoding=None) -> Preview:
+    return Preview(rejected=code, rejected_column=column, rejected_row=row, encoding=encoding)
+
+
+def _decode(data: bytes) -> tuple[str, str] | None:
+    """UTF-8 (amb BOM opcional) i, si no ho és, Windows-1252 (071, punt 1)."""
+    # shortcut: Windows-1252 accepta gairebé qualsevol byte; un fitxer en ISO-8859-15 o un altre
+    # joc es llegiria malament sense avís. Si Cluber exporta en un altre joc, cal detectar-lo.
+    for codec, name in (("utf-8-sig", "utf-8"), ("cp1252", "windows-1252")):
+        try:
+            return data.decode(codec), name
+        except UnicodeDecodeError:
+            continue
+    return None
 
 
 def preview(data: bytes) -> Preview:
@@ -248,15 +460,15 @@ def preview(data: bytes) -> Preview:
         kind=ImportBatch.Kind.CLUBER, status=ImportBatch.Status.CONFIRMED
     ).exists():
         return _reject("cluber_already_imported")
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError:
+    decoded = _decode(data)
+    if decoded is None:
         return _reject("encoding")
+    text, encoding = decoded
     # PostgreSQL no admet NUL en un text: el fitxer es rebutja abans de cap registre o consulta.
     if "\x00" in text:
-        return _reject("malformed")
+        return _reject("malformed", encoding=encoding)
     if not text.strip():
-        return _reject("empty")
+        return _reject("empty", encoding=encoding)
 
     # El lector va registre a registre: no es llegeix cap fila abans de validar la capçalera.
     # El límit aprovat (MAX_FIELD) es comprova a cada fila. El límit intern del mòdul csv
@@ -266,39 +478,48 @@ def preview(data: bytes) -> Preview:
     try:
         raw_headers = next(reader)
     except csv.Error:
-        return _reject("malformed", row=1)
+        return _reject("malformed", row=1, encoding=encoding)
     headers = [h.strip() for h in raw_headers]
     keys = [_header_key(h) for h in raw_headers]
+    iban = [i for i, key in enumerate(keys) if key in IBAN_HEADERS]
 
-    if any(key in IBAN_HEADERS for key in keys):
-        return _reject("iban_column")
     for i, header in enumerate(raw_headers):
         if len(header) > MAX_FIELD:
-            return _reject("field_too_long", column=_label(headers[i], i), row=1)
+            return _reject("field_too_long", column=_label(headers[i], i), row=1, encoding=encoding)
     first = {}
     for i, key in enumerate(keys):
         if key in first:
-            return _reject("duplicate_header", column=_label(headers[first[key]], first[key]))
+            column = _label(headers[first[key]], first[key])
+            return _reject("duplicate_header", column=column, encoding=encoding)
         first[key] = i
     for required in REQUIRED_HEADERS:
         if required not in headers:
-            return _reject("missing_header", column=required)
+            return _reject("missing_header", column=required, encoding=encoding)
 
-    result = Preview(warnings=["no_document_type"])
-    result.unknown_columns = [h for h in headers if h not in KNOWN_HEADERS]
+    result = Preview(encoding=encoding, warnings=["no_document_type"])
+    if iban:
+        result.warnings.append("iban_discarded")
+    result.unknown_columns = [
+        h for i, h in enumerate(headers) if h not in KNOWN_HEADERS and i not in iban
+    ]
     if result.unknown_columns:
         result.warnings.append("unknown_columns")
-    index = {h: i for i, h in enumerate(headers)}
+    index = {h: i for i, h in enumerate(headers) if i not in iban}
     catalogue = {h: Counter() for h in CATALOGUE_HEADERS if h in index}
+    # Text de «Quota» i «Preu total» de cada fila llegida, només fins a resoldre'n el tipus.
+    to_resolve = []
 
     row_number = 1
     try:
         for values in reader:
             if not values:  # línia buida
                 continue
+            for i in iban:  # abans de cap altre tractament: el valor no passa enlloc
+                if i < len(values):
+                    values[i] = ""
             row_number += 1
             if len(result.rows) == MAX_ROWS:
-                return _reject("too_many_rows")
+                return _reject("too_many_rows", encoding=encoding)
             row = Row(row=row_number)
             result.rows.append(row)
             if len(values) != len(headers):
@@ -309,31 +530,34 @@ def preview(data: bytes) -> Preview:
                 for i in too_long:
                     row._error("field_too_long", _label(headers[i], i))
                 continue
-            _read_row(row, values, index)
+
+            def value(header, values=values):
+                return values[index[header]].strip() if header in index else ""
+
+            _read_row(row, value)
+            to_resolve.append((row, value(QUOTA), value(TOTAL_PRICE)))
             for column, counter in catalogue.items():
-                if value := values[index[column]].strip():
-                    counter[value] += 1
+                if v := value(column):
+                    counter[v] += 1
     except csv.Error:
-        return _reject("malformed", row=row_number + 1)
+        return _reject("malformed", row=row_number + 1, encoding=encoding)
 
     if not result.rows:
-        return _reject("no_rows")
+        return _reject("no_rows", encoding=encoding)
     for column, counter in catalogue.items():
         if len(counter) <= MAX_CATALOGUE:
             result.catalogue[column] = dict(counter)
         else:
             result.catalogue_omitted[column] = len(counter)
+    _resolve_types(result, to_resolve)
     _mark_duplicates(result.rows)
     _match(result.rows)
     return result
 
 
-def _read_row(row: Row, values: list, index: dict) -> None:
-    """Valida la fila i en conserva només el document normalitzat i el número de soci."""
-
-    def value(header):
-        return values[index[header]].strip() if header in index else ""
-
+def _read_row(row: Row, value) -> None:
+    """Valida la fila i en conserva només el document normalitzat, el número de soci i la llista
+    dels camps que s'omplirien."""
     number_text = value(NUMBER)
     row.data = {
         "member_number_text": number_text,
@@ -359,15 +583,38 @@ def _read_row(row: Row, values: list, index: dict) -> None:
     else:
         row._error("member_number_invalid", NUMBER)
 
-    if email := value(EMAIL):
-        try:
-            validate_email(email)
-        except ValidationError:
-            row._error("email_invalid", EMAIL)
+    fields, errors = normalize(value)
+    for code, column in errors:
+        row._error(code, column)
+    if "member_number" in row.data:
+        fields["Member.member_number"] = True
+    if row.data["id_document"]:
+        fields["Person.id_document_number"] = True
+    row.fields = sorted(fields)  # només les claus: cap valor no queda al resultat
+    # Sense data d'alta, s'importaria igualment (071, punt 8): és un advertiment, no un pendent.
+    if "Member.joined_on" not in fields and ("date_invalid", JOINED_ON) not in errors:
+        row.warnings.append("joined_on")
 
     row.pending.extend(code for header, code in PRESENCE.items() if not value(header))
     row.pending.append("id_document_type" if row.data["id_document"] else "id_document")
-    row.pending.extend(UNMAPPED)
+
+
+def _resolve_types(result: Preview, to_resolve: list) -> None:
+    """Tipus de soci de cada fila llegida (071, punt 5), amb una sola consulta. «Preu total» només
+    serveix per avisar si no coincideix amb la quota del tipus deduït (punt 6)."""
+    if not to_resolve:
+        return
+    types = list(MembershipType.objects.filter(active=True).order_by("pk"))
+    result.type_names = {t.code: t.name for t in types}
+    for row, quota, total in to_resolve:
+        membership_type, by = resolve_type(quota, types) if quota else (None, None)
+        if membership_type is None:
+            row.pending.append("member_type")
+            continue
+        row.member_type, row.member_type_by = membership_type.code, by
+        amount = _AMOUNT_RE.fullmatch(total)
+        if amount and _cents(amount.group(1)) != membership_type.annual_fee_cents:
+            row.warnings.append("total_price_differs")
 
 
 def _mark_duplicates(rows: list) -> None:

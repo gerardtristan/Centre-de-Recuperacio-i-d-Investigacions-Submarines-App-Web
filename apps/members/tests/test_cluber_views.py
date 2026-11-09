@@ -268,16 +268,29 @@ class TestResult:
         assert "confirm" not in html.lower() and "exclo" not in html.lower()
 
     def test_rejected_file_shows_the_safe_message(self, web):
+        headers = [*cluber.KNOWN_HEADERS[:3]]  # sense el document, que és obligatori
+        response = post(web, build([record(1)], headers=headers))
+        assert response.status_code == 200
+        html = response.content.decode()
+        assert escape(str(cluber.MESSAGES["missing_header"])) in html
+        assert 'role="alert"' in html and SUCCESS not in html
+        [entry] = audits()
+        assert entry.details["rejected"] == "missing_header"
+
+    def test_iban_column_is_discarded_and_never_shown(self, web):
+        # 071: el fitxer no es rebutja; el valor no surt a la pantalla ni al registre, i el
+        # registre continua sense empremta quan hi ha una columna d'IBAN (minimització).
         headers = [*cluber.KNOWN_HEADERS, "IBAN"]
         response = post(web, build([record(1, {"IBAN": "VALOR-INVENTAT"})], headers=headers))
         assert response.status_code == 200
         html = response.content.decode()
-        assert escape(str(cluber.MESSAGES["iban_column"])) in html
-        assert 'role="alert"' in html
-        assert SUCCESS not in html and "VALOR-INVENTAT" not in html
+        assert SUCCESS in html
+        assert escape(str(cluber.MESSAGES["iban_discarded"])) in html
+        assert "VALOR-INVENTAT" not in html
         [entry] = audits()
-        assert entry.details["rejected"] == "iban_column"
-        assert "file_sha256" not in entry.details  # IBAN: sense empremta
+        assert entry.details["rejected"] is None
+        assert "file_sha256" not in entry.details
+        assert "VALOR-INVENTAT" not in str(entry.details)
 
     def test_errors_by_record_and_conflict_without_column(self, web, make_person):
         member_person = make_person(id_document_type="dni", id_document_number=dni(9))
@@ -312,11 +325,13 @@ class TestResult:
             "rejected",
             "rejected_column",
             "rejected_row",
+            "encoding",
             "counts",
             "warnings",
             "unknown_columns",
             "catalogue",
             "catalogue_omitted",
+            "type_names",
             "rows",
         }
         [entry] = audits()

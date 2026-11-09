@@ -34,13 +34,12 @@ SENTINELS = {
     "Informació addicional": "SENTINELLA-INFO-ADDICIONAL-7Q",
     "Professió;": "SENTINELLA-PROFESSIO-7Q",
     "Polítiques de privadesa": "SENTINELLA-POLITIQUES-7Q",
-    "Data de Naixament": "SENTINELLA-NAIXEMENT-7Q",
     "Mètode de pagament": "SENTINELLA-METODE-7Q",
     "Identificador": "SENTINELLA-IDENTIFICADOR-7Q",
     "idInterno": "SENTINELLA-IDINTERNO-7Q",
 }
 
-# La línia de capçalera de la mostra parcial, sense la columna IBAN (que la rebutjaria):
+# La línia de capçalera de la mostra parcial, sense la columna IBAN (que es descarta, 071):
 # tres noms porten un «;» entre cometes.
 SAMPLE_HEADER_LINE = (
     "Nº Soci;Nom;Cognoms;Telèfon;Document d'Identitat;Quota;Preu total;Estat;Soci titular;"
@@ -74,6 +73,9 @@ def record(n=1, values=None):
         "Codi Postal": "08001",
         "Ciutat": "-",
         "Renovació": "Renovació inventada A",
+        "Data d'inscripció": "15/03/2010",
+        "Data alta/renovació": "01/10/2026",
+        "Data de Naixament": "02/05/1980",
         **SENTINELS,
     }
     row.update(values or {})
@@ -157,10 +159,11 @@ class TestFileProfile:
             "id_document": dni(1),
         }
 
-    def test_no_row_is_ready_without_approved_equivalences(self, db):
-        row = only_row(cluber.preview(build([record(1)])))
+    def test_no_row_is_ready_without_the_document_type(self, db):
+        # 071: el tipus i la data d'alta tenen equivalència; el tipus de document no (P-62).
+        row = only_row(cluber.preview(build([record(1, {"Quota": "Quota de soci ple dret"})])))
         assert not row.errors
-        assert {"member_type", "member_status", "joined_on", "id_document_type"} <= set(row.pending)
+        assert row.pending == ["id_document_type"]
         assert row.ready is False
 
     def test_bom_and_line_endings(self, db):
@@ -199,7 +202,7 @@ class TestFileProfile:
             (b"\xef\xbb\xbf", "empty"),
             (b" \r\n", "empty"),
             (build([]), "no_rows"),
-            ("Nº Soci;Nom".encode("cp1252"), "encoding"),
+            (b"N\x81 Soci;Nom", "encoding"),  # ni UTF-8 ni Windows-1252 (0x81 no hi és)
             (b'"Nom;Cognoms\r\nAnna;"Prova"x\r\n', "malformed"),
         ],
     )
@@ -285,8 +288,9 @@ class TestLimits:
         assert result.rejected is None
         assert result.counts["rows"] == cluber.MAX_ROWS
 
-    # El document té un límit més estricte (el del camp de destinació): TestDocumentLength.
-    @pytest.mark.parametrize("column", ["Adreça", "Nom", "Cognoms"])
+    # Les columnes que es llegeixen tenen el límit del camp de destinació (TestDocumentLength i
+    # test_cluber_format.py); aquí, columnes que s'ignoren.
+    @pytest.mark.parametrize("column", ["Informació addicional", "Província", "Telèfon fix"])
     def test_field_length_limit(self, db, column):
         long_ok = "a" * cluber.MAX_FIELD
         assert not only_row(cluber.preview(build([record(1, {column: long_ok})]))).errors
@@ -317,30 +321,23 @@ class TestLimits:
 
 
 class TestIban:
+    """071: la columna d'IBAN es descarta en llegir; el fitxer no es rebutja (abans, RN-94)."""
+
     @pytest.mark.parametrize("header", ["IBAN", "iban", " Iban ", "IBAN "])
     @pytest.mark.parametrize("value", ["", "VALOR-INVENTAT"])
-    def test_iban_column_rejects_the_whole_file(self, db, header, value):
+    def test_iban_column_is_discarded(self, db, header, value):
         headers = [*cluber.KNOWN_HEADERS, header]
         result = cluber.preview(build([record(1, {header: value})], headers=headers))
-        assert result.rejected == "iban_column"
-        assert result.rows == []
-        assert "VALOR-INVENTAT" not in repr(result)
+        assert result.rejected is None
+        assert "iban_discarded" in result.warnings
+        assert result.unknown_columns == []
+        assert len(result.rows) == 1
+        assert "VALOR-INVENTAT" not in repr(result) + repr(result.rows) + str(result.summary())
 
     def test_iban_as_first_column_after_bom(self, db):
         headers = ["IBAN", *cluber.KNOWN_HEADERS]
         result = cluber.preview(build([record(1)], headers=headers, bom=True))
-        assert result.rejected == "iban_column"
-
-    def test_rejected_before_processing_data_rows(self, db):
-        # Després de la capçalera hi ha una fila amb unes cometes sense tancar: si es
-        # processés, el resultat seria «malformed». L'única consulta és la de CA-20.8.
-        header = build([], headers=[*cluber.KNOWN_HEADERS, "IBAN"])
-        data = header + b'901;"sense tancar\r\n'
-        with CaptureQueriesContext(connection) as queries:
-            result = cluber.preview(data)
-        assert result.rejected == "iban_column"
-        assert len(queries) == 1
-        assert '"core_importbatch"' in queries[0]["sql"]
+        assert result.rejected is None and "iban_discarded" in result.warnings
 
     @pytest.mark.parametrize("header", ["Compte IBAN", "IBAN titular", "I.B.A.N."])
     def test_no_substring_search(self, db, header):
@@ -349,15 +346,16 @@ class TestIban:
         result = cluber.preview(build([record(1)], headers=headers))
         assert result.rejected is None
         assert result.unknown_columns == [header]
+        assert "iban_discarded" not in result.warnings
 
     @pytest.mark.parametrize("value", ["", "VALOR-INVENTAT"])
     @pytest.mark.parametrize(
         ("headers", "bom"),
         [
-            (["﻿IBAN", *cluber.KNOWN_HEADERS], True),  # BOM doble a l'inici
-            ([*cluber.KNOWN_HEADERS, "IB​AN"], False),
-            ([*cluber.KNOWN_HEADERS, "​IBAN​"], False),
-            ([*cluber.KNOWN_HEADERS, " ﻿iban "], False),
+            (["\ufeffIBAN", *cluber.KNOWN_HEADERS], True),  # BOM doble a l'inici
+            ([*cluber.KNOWN_HEADERS, "IB\u200bAN"], False),
+            ([*cluber.KNOWN_HEADERS, "\u200bIBAN\u200b"], False),
+            ([*cluber.KNOWN_HEADERS, " \ufeffiban "], False),
         ],
     )
     def test_invisible_characters_do_not_hide_the_iban_column(self, db, headers, bom, value):
@@ -365,10 +363,9 @@ class TestIban:
         data = build([record(1, {iban: value})], headers=headers, bom=bom)
         if bom:
             assert data.startswith(b"\xef\xbb\xbf\xef\xbb\xbf")
-        with CaptureQueriesContext(connection) as queries:
-            result = cluber.preview(data)
-        assert result.rejected == "iban_column"
-        assert result.rows == [] and len(queries) == 1  # només CA-20.8
+        result = cluber.preview(data)
+        assert result.rejected is None
+        assert "iban_discarded" in result.warnings and result.unknown_columns == []
         assert "VALOR-INVENTAT" not in repr(result) + str(result.summary())
 
 
@@ -597,7 +594,7 @@ class TestMatchesWithTheDatabase:
         data = build([record(n) for n in range(1, 51)])
         with CaptureQueriesContext(connection) as queries:
             cluber.preview(data)
-        assert len(queries) <= 4  # CA-20.8 i les tres de les coincidències
+        assert len(queries) <= 5  # CA-20.8, els tipus de soci i les tres de coincidències
 
 
 class TestAnonymisedMemberNumber:
@@ -661,7 +658,7 @@ class TestAnonymisedMemberNumber:
         with CaptureQueriesContext(connection) as queries:
             cluber.preview(build([record(1, {"Nº Soci": "67"})]))
         assert all(q["sql"].lstrip().upper().startswith("SELECT") for q in queries)
-        assert len(queries) <= 4  # CA-20.8 i les tres de les coincidències
+        assert len(queries) <= 5  # CA-20.8, els tipus de soci i les tres de coincidències
         after = (
             list(Person.objects.filter(pk=member.person_id).values()),
             list(Member.objects.filter(pk=member.pk).values()),
@@ -754,7 +751,7 @@ class TestAlreadyImported:
             "encoding",
             "empty",
             "malformed",
-            "iban_column",
+            "iban_discarded",
             "duplicate_header",
             "missing_header",
             "no_rows",
@@ -763,7 +760,11 @@ class TestAlreadyImported:
             "unknown_columns",
             "cluber_already_imported",
         }
-        assert set(cluber.MESSAGES) - file_level == set(IMPORT_LINE_CODES)
+        # Els codis nous de la T-M01-24b entren a la llista de la base de dades amb la migració
+        # de la T-M01-25 (071); llavors surten de NEW_LINE_CODES i aquesta prova ho exigeix.
+        new = set(cluber.NEW_LINE_CODES)
+        assert not new & set(IMPORT_LINE_CODES)
+        assert set(cluber.MESSAGES) - file_level - new <= set(IMPORT_LINE_CODES)
 
 
 NUL_VALUE = "SENTINELLA-NUL-7Q\x00X"
@@ -824,23 +825,29 @@ class TestExcludedColumnsAndCatalogue:
 
     def test_catalogue_values_are_counted_but_not_logged(self, db, caplog):
         caplog.set_level(logging.DEBUG)
-        records = [record(1), record(2), record(3, {"Estat": "Estat inventat B"})]
+        records = [record(1), record(2), record(3, {"Quota": "Quota inventada B"})]
         result = cluber.preview(build(records))
-        assert result.catalogue["Estat"] == {"Estat inventat A": 2, "Estat inventat B": 1}
-        assert result.catalogue["Quota"] == {"Quota inventada A": 3}
-        assert "Estat inventat" not in caplog.text
+        assert result.catalogue == {"Quota": {"Quota inventada A": 2, "Quota inventada B": 1}}
+        assert "Quota inventada" not in caplog.text
+
+    def test_ignored_columns_keep_no_catalogue(self, db):
+        # 071: «Estat» i «Renovació» ja no es fan servir i no se'n conserva cap valor.
+        records = [record(1, {"Estat": "SENTINELLA-ESTAT-7Q", "Renovació": "SENTINELLA-REN-7Q"})]
+        result = cluber.preview(build(records))
+        assert set(result.catalogue) == {"Quota"}
+        assert "SENTINELLA" not in str(result.catalogue) + str(result.summary())
 
     def test_catalogue_detail_is_limited_and_the_omission_is_explicit(self, db):
-        def with_states(count):
-            return [record(n, {"Estat": f"Estat {n}"}) for n in range(1, count + 1)]
+        def with_quotas(count):
+            return [record(n, {"Quota": f"Quota {n}"}) for n in range(1, count + 1)]
 
-        result = cluber.preview(build(with_states(cluber.MAX_CATALOGUE)))
-        assert len(result.catalogue["Estat"]) == cluber.MAX_CATALOGUE
+        result = cluber.preview(build(with_quotas(cluber.MAX_CATALOGUE)))
+        assert len(result.catalogue["Quota"]) == cluber.MAX_CATALOGUE
         assert result.catalogue_omitted == {}
-        result = cluber.preview(build(with_states(cluber.MAX_CATALOGUE + 1)))
-        assert "Estat" not in result.catalogue
-        assert result.catalogue_omitted == {"Estat": cluber.MAX_CATALOGUE + 1}
-        assert result.summary()["catalogue_omitted"] == {"Estat": cluber.MAX_CATALOGUE + 1}
+        result = cluber.preview(build(with_quotas(cluber.MAX_CATALOGUE + 1)))
+        assert "Quota" not in result.catalogue
+        assert result.catalogue_omitted == {"Quota": cluber.MAX_CATALOGUE + 1}
+        assert result.summary()["catalogue_omitted"] == {"Quota": cluber.MAX_CATALOGUE + 1}
 
 
 class TestSafeSummary:
@@ -899,8 +906,24 @@ class TestSafeSummary:
             "errors": ["email_invalid", "duplicate_document", "duplicate_member_number"],
             "error_columns": ["Email", "Document d'Identitat", "Nº Soci"],
             "warnings": ["member_number_leading_zeros"],
-            "pending": ["id_document_type", "member_type", "member_status", "joined_on"],
+            "pending": ["id_document_type", "member_type"],
+            "fields": [
+                "Member.cluber_id",
+                "Member.joined_on",
+                "Member.member_number",
+                "Person.address",
+                "Person.birth_date",
+                "Person.first_name",
+                "Person.id_document_number",
+                "Person.last_name",
+                "Person.phone",
+                "last_renewal",
+            ],
+            "member_type": None,
+            "member_type_by": None,
         }
+        assert summary["encoding"] == "utf-8"
+        assert summary["type_names"] == {"supporter": "Simpatitzant", "full": "Ple dret"}
 
 
 class TestNoWrites:
