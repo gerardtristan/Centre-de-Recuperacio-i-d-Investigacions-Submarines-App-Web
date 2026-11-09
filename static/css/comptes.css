@@ -111,3 +111,9 @@ figure { margin: 0; }
 .menu-exporta .menu-opcions .boto { justify-content: flex-start; width: 100%; }
 /* «Pagada fins al dd/mm/aaaa» es pot partir en dues línies a 320 px */
 .estat-quota { white-space: normal; }
+
+/* Navegació de l'àrea del soci (T-M01-16): a tota l'amplada sota la marca, es parteix a 320 px */
+.navegacio-compte { order: 3; flex-basis: 100%; }
+.navegacio-compte ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
+.navegacio-compte a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.navegacio-compte a[aria-current="page"] { font-weight: var(--p-semi); color: var(--c-text); }

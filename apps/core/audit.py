@@ -47,6 +47,10 @@ class Action:
     JOIN_REQUEST_CREATED = "members.join_request.created"
     JOIN_REQUEST_LIMITED = "members.join_request.limited"
     MEMBERS_EXPORTED = "members.list.exported"
+    # T-M01-16. Fora de «members.*»: P20 no hi veu els canvis de perfil fins que es decideixi
+    # (pendent de la T-M01-07b).
+    PROFILE_UPDATED = "persons.profile_updated"
+    PERSONAL_AREA_NOT_FOUND = "members.personal_area.not_found"  # CA-M01-25
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Fora d'aquesta tasca: la data de naixement (T-M01-35), la llicència (T-M01-36), canviar el correu (pendent de decidir), retirar consentiments (Q-16), els camps opcionals (P-58), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
+{% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
+  <h1>{% translate "El meu perfil" %}</h1>
+  <p class="text-2">{% translate "Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu." %}</p>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+
+  <section class="targeta" aria-labelledby="dades-titol">
+    <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
+      <div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>
+      {% if member.member_number %}<div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ member.member_number }}</dd></div>{% endif %}
+      <div><dt>{% translate "Correu electrònic" %}</dt><dd>{{ user.login }}</dd></div>
+    </dl>
+    <p class="text-2">{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p>
+
+    <h3>{% translate "Contacte" %}</h3>
+    {{ form.non_field_errors }}
+    <form class="formulari" method="post" action="{% url 'members:profile' %}" novalidate>
+      {% csrf_token %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els canvis" %}</button></div>
+    </form>
+  </section>
+
+  <section class="targeta" aria-labelledby="consentiments-titol">
+    <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
+    {% if consents %}
+      <ul class="historial">
+        {% for label, consent in consents %}
+          <li>
+            <strong>{{ label }}</strong>
+            <span>{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</span>
+            <span class="text-2">{% blocktranslate with date=consent.created_at|date:"d/m/Y" version=consent.legal_text.version %}El {{ date }} · versió {{ version }}{% endblocktranslate %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>{% translate "No hi ha cap consentiment registrat." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="targeta" aria-labelledby="sollicituds-titol">
+    <h2 id="sollicituds-titol">{% translate "Sol·licituds" %}</h2>
+    {% if requests %}
+      <ul class="historial">
+        {% for item in requests %}
+          <li>
+            <strong>{{ item.get_kind_display }}</strong>
+            <span>{{ item.get_status_display }}</span>
+            <span class="text-2">{% blocktranslate with date=item.created_at|date:"d/m/Y" %}Enviada el {{ date }}{% endblocktranslate %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-2">{% translate "No tens cap sol·licitud." %}</p>
+    {% endif %}
+  </section>
+{% endblock %}

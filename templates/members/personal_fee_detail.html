@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-16: detall d'una quota pròpia (CA-M01-12, CA-M01-25). Una quota d'un altre o inexistent dona «no trobat». El rebut (número R-AAAA-NNNNNN) és del 05b (RN-M05b-19): aquí no se'n genera cap. #}
+{% block title %}{{ fee.charge.concept }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Quotes" %}</p>
+  <h1>{{ fee.charge.concept }}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Tipus" %}</dt><dd>{{ fee.get_kind_display }}</dd></div>
+    <div><dt>{% translate "Període" %}</dt><dd>{{ fee.period }}</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd>{{ amount }}</dd></div>
+    <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" with charge=fee.charge %}</dd></div>
+    {% if payment %}<div><dt>{% translate "Mètode" %}</dt><dd>{{ payment.get_method_display }}</dd></div>{% endif %}
+  </dl>
+  <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>
+{% endblock %}

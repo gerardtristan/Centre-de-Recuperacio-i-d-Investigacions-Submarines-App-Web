@@ -9,6 +9,7 @@ torna a validar tot: el navegador només ajuda.
 import re
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.formats import number_format
 from django.utils.translation import gettext_lazy as _
@@ -344,3 +345,29 @@ GUARDIAN_OWN_DOCUMENT = _(
 GUARDIAN_AUTHORIZATION_REQUIRED = _(
     "Sense l'autorització del pare, la mare o el tutor legal, no es pot enviar l'alta."
 )
+
+
+class ProfileForm(forms.Form):
+    """El meu perfil (T-M01-16; HU-M01-08): telèfon i adreça. El selector de llengua només hi és
+    si hi ha més d'una llengua activa, i només n'admet de les actives (061). Qualsevol altre camp
+    que porti la petició (nom, document, correu) s'ignora: no és al formulari."""
+
+    phone = forms.CharField(
+        label=_("Telèfon"), max_length=30, widget=forms.TextInput(attrs={"autocomplete": "tel"})
+    )
+    address = forms.CharField(
+        label=_("Adreça (opcional)"),
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "street-address"}),
+    )
+    preferred_language = forms.ChoiceField(label=_("Llengua"))
+
+    clean_phone = JoinForm.clean_phone  # la mateixa regla que a l'alta (V-04)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if len(settings.LANGUAGES) > 1:
+            self.fields["preferred_language"].choices = settings.LANGUAGES
+        else:
+            del self.fields["preferred_language"]
