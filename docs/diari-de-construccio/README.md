@@ -79,6 +79,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-07b](T-M01-07b.md) | Consulta del registre d'activitat (Feta el 05/11/2026; pantalla validada pel responsable; pendents: lector de pantalla, altres navegadors i CI) | 05/11/2026 16:10 | [sense commit] | 1427 | [A comprovar] |
 | [T-M01-13](T-M01-13.md) | Formulari «Fer-se soci» i alta presencial (**Feta**; P-57, P-61, P-33 i P-56 obertes) | 09/11/2026 | 7fa8b97 | 1572 | verd: #112 i #113 (710b15f) |
 | [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; Q-079, R2-13, P-57, P-61, P-54, P-58, Q-052 i R2-21 oberts) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
+| [T-M01-33](T-M01-33.md) | Data de naixement a la persona, `persons.age_band` i visibilitat per rol (**Feta en part**: RGPD pendent de la T-M01-22; pendent de validació) | 09/11/2026 | 331cfb2 | 1692 | [A comprovar]: sense push |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
