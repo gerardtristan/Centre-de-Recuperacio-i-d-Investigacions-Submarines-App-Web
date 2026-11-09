@@ -105,6 +105,10 @@ EDITABLE_FIELDS = (
     "contact_email",
     "phone",
     "address",
+    "landline",
+    "postal_code",
+    "city",
+    "province",
     "id_document_type",
     "id_document_number",
 )
@@ -159,7 +163,15 @@ def update(person, *, by, request=None, **fields) -> list[str]:
 
 # Dades que la persona pot corregir des del seu perfil (HU-M01-08; 061). El nom, el document i la
 # data de naixement només els corregeix la secretaria; el correu d'entrada té el seu propi camí.
-PROFILE_FIELDS = ("phone", "address", "preferred_language")
+PROFILE_FIELDS = (
+    "phone",
+    "address",
+    "landline",
+    "postal_code",
+    "city",
+    "province",
+    "preferred_language",
+)
 
 
 def update_profile(person, *, actor, request=None, **values) -> list:

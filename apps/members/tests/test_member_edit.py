@@ -160,9 +160,13 @@ class TestFields:
             "last_name",
             "contact_email",
             "phone",
+            "landline",  # camps opcionals de la 072 (P-58)
             "id_document_type",
             "id_document_number",
             "address",
+            "postal_code",
+            "city",
+            "province",
         )
 
     def test_without_c2_document_and_address_are_ignored(self, secretary):

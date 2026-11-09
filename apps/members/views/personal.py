@@ -57,6 +57,10 @@ def profile_view(request):
     initial = {
         "phone": person.phone,
         "address": person.address,
+        "landline": person.landline,
+        "postal_code": person.postal_code,
+        "city": person.city,
+        "province": person.province,
         "preferred_language": person.preferred_language,
     }
     form = ProfileForm(request.POST or None, initial=initial)

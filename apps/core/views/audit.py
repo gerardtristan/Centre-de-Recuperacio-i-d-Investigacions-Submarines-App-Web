@@ -1,7 +1,8 @@
 """Consulta del registre d'activitat (T-M01-07b; HU-14, CA-14.3, checklist C8).
 
 - M6 (`core.audit.view`) hi veu totes les entrades; P20 (`members.audit.view`), només les de
-  dades de socis: accions «members.*» (decisió del responsable, 05/11/2026). Sense cap dels
+  dades de socis: accions «members.*» (decisió del responsable, 05/11/2026) i, des de la 072
+  (Q-079), els canvis de perfil de la persona d'un soci. Sense cap dels
   dos, «no trobat». L'abast s'aplica a la consulta abans de cap filtre ni pàgina.
 - Només lectura: només GET; l'únic formulari és el dels filtres, amb GET.
 - Els valors dels camps amb permís de camp (C1, C2) surten emmascarats si el lector no té
@@ -12,6 +13,7 @@ from datetime import datetime, time, timedelta
 
 from django import forms
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
 from django.utils import timezone
@@ -19,7 +21,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
-from ..models import AuditEntry
+from ..models import AuditEntry, Person
 from ..permissions import has_perm, request_permissions
 
 ALL_ENTRIES = "core.audit.view"  # M6
@@ -104,6 +106,21 @@ def _filter(entries, data):
     return entries
 
 
+# Q-079, opció 1 (072): P20 també veu els canvis de perfil de la persona d'un soci, fets per la
+# secretaria (`persons.updated`, T-M01-15b) o pel soci (`persons.profile_updated`, T-M01-16). Els
+# camps protegits continuen ocults sense el permís de camp (`_row`).
+PROFILE_ACTIONS = ("persons.updated", "persons.profile_updated")
+
+
+def _member_profile_changes():
+    people = Person.objects.filter(member__isnull=False).values_list("pk", flat=True)
+    return Q(
+        action__in=PROFILE_ACTIONS,
+        target_type="core.person",
+        target_id__in=[str(pk) for pk in people],
+    )
+
+
 def _row(entry, *, perms, user, show_ip):
     code = _field_permission(entry.field)
     hidden = code is not None and not has_perm(user, code, permissions=perms)
@@ -123,7 +140,9 @@ def audit_log_view(request):
     if has_perm(user, ALL_ENTRIES, permissions=perms):
         visible, show_ip = AuditEntry.objects.all(), True
     elif has_perm(user, MEMBER_ENTRIES, permissions=perms):
-        visible = AuditEntry.objects.filter(action__startswith=MEMBER_ACTION_PREFIX)
+        visible = AuditEntry.objects.filter(
+            Q(action__startswith=MEMBER_ACTION_PREFIX) | _member_profile_changes()
+        )
         show_ip = False
     else:
         raise Http404

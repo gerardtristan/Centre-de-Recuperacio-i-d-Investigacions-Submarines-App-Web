@@ -42,8 +42,16 @@ JOIN_DATE_CORRECTED = "members.join_date_corrected"
 OWN_MEMBER = _("És el teu soci: no pots editar-ne les dades des de l'administració.")
 
 NAME_FIELDS = ("first_name", "last_name")
-CONTACT_FIELDS = ("contact_email", "phone")
-IDENTITY_FIELDS = ("id_document_type", "id_document_number", "address")
+CONTACT_FIELDS = ("contact_email", "phone", "landline")
+# L'adreça desglossada (072, P-58) va amb l'adreça: només amb C2.
+IDENTITY_FIELDS = (
+    "id_document_type",
+    "id_document_number",
+    "address",
+    "postal_code",
+    "city",
+    "province",
+)
 
 
 def editable_fields(user, perms=None) -> tuple[str, ...]:
@@ -142,6 +150,10 @@ class MemberDataForm(forms.Form):
         help_text=_("Un document nou ha de ser un DNI o un NIE vàlid, amb la lletra."),
     )
     address = forms.CharField(label=_("Adreça (opcional)"), max_length=255, required=False)
+    landline = forms.CharField(label=_("Telèfon fix (opcional)"), max_length=30, required=False)
+    postal_code = forms.CharField(label=_("Codi postal (opcional)"), max_length=10, required=False)
+    city = forms.CharField(label=_("Població (opcional)"), max_length=100, required=False)
+    province = forms.CharField(label=_("Província (opcional)"), max_length=100, required=False)
 
     def __init__(self, data=None, *, person, fields):
         self.person = person

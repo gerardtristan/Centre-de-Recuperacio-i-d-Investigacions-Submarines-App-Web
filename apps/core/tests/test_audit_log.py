@@ -343,3 +343,41 @@ def test_no_route_below_the_log(people, log):
     client = client_for(people["m6"])
     for suffix in (f"{log['status'].pk}/", f"{log['status'].pk}/esborrar/", "esborrar/"):
         assert client.get(URL + suffix).status_code == 404
+
+
+# --- Q-079 de la 072: canvis de perfil de la persona d'un soci --------------------------------
+
+
+@pytest.mark.django_db
+def test_p20_sees_profile_changes_of_members_only(people):
+    from datetime import date
+
+    from apps.members.models import Member, MembershipType
+
+    member_person = _person("Joana", "Soci")
+    Member.objects.create(
+        person=member_person,
+        member_number=501,
+        type=MembershipType.objects.get(code="supporter"),
+        joined_on=date(2020, 1, 1),
+    )
+    other_person = _person("Biel", "Nosoci")
+    for action, who in (
+        ("persons.profile_updated", member_person),
+        ("persons.updated", member_person),
+        ("persons.profile_updated", other_person),
+    ):
+        entry(
+            action,
+            account=people["m6"],
+            when=at(5),
+            target=("core.person", str(who.pk)),
+            field="phone",
+            old="600000001",
+            new="600000002",
+        )
+    response = client_for(people["p20"]).get(reverse("administration:audit_log"))
+    targets = {r["entry"].target_id for r in response.context["rows"]}
+    assert actions_in(response).count("persons.profile_updated") == 1
+    assert "persons.updated" in actions_in(response)
+    assert str(other_person.pk) not in targets

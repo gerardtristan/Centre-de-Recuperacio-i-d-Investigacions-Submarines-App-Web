@@ -369,6 +369,31 @@ class ProfileForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={"autocomplete": "street-address"}),
     )
+    # Camps opcionals (P-58, 072): mai obligatoris per ser soci.
+    landline = forms.CharField(
+        label=_("Telèfon fix (opcional)"),
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "tel"}),
+    )
+    postal_code = forms.CharField(
+        label=_("Codi postal (opcional)"),
+        max_length=10,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "postal-code"}),
+    )
+    city = forms.CharField(
+        label=_("Població (opcional)"),
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "address-level2"}),
+    )
+    province = forms.CharField(
+        label=_("Província (opcional)"),
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "address-level1"}),
+    )
     preferred_language = forms.ChoiceField(label=_("Llengua"))
 
     clean_phone = JoinForm.clean_phone  # la mateixa regla que a l'alta (V-04)

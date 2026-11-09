@@ -40,6 +40,13 @@ class Person(models.Model):
     contact_email = models.EmailField(_("correu de contacte"), blank=True)
     phone = models.CharField(_("telèfon"), max_length=30, blank=True)
     address = models.CharField(_("adreça"), max_length=255, blank=True)
+    # Camps opcionals del perfil (P-58, resolta per la 072): mai obligatoris per ser soci; la
+    # finalitat de cadascun és a la política de privacitat (esborrany). Es conserven, s'exporten i
+    # s'anonimitzen com la resta del perfil (Q-048; T-M01-22).
+    landline = models.CharField(_("telèfon fix"), max_length=30, blank=True)
+    postal_code = models.CharField(_("codi postal"), max_length=10, blank=True)
+    city = models.CharField(_("població"), max_length=100, blank=True)
+    province = models.CharField(_("província"), max_length=100, blank=True)
     id_document_type = models.CharField(
         "tipus de document", max_length=10, choices=DocumentType.choices, blank=True
     )
