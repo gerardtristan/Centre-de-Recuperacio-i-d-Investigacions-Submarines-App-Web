@@ -177,9 +177,6 @@ MAX_LENGTH = {
 # «Sí» al consentiment d'imatges, sense majúscules ni accents. Qualsevol altre valor, o buit, és
 # no atorgat [A validar: valors reals de Cluber].
 YES = frozenset({"si", "s", "yes", "1", "true", "x", "acepto", "autorizo"})
-# Codis de la T-M01-24b que encara no són a `IMPORT_LINE_CODES` (restricció a la base de dades):
-# la T-M01-25 els hi afegeix, amb la seva migració, abans de desar cap línia (071).
-NEW_LINE_CODES = ("date_invalid", "total_price_differs")
 
 _NUMBER_RE = re.compile(r"[0-9]+")
 _DATE_RE = re.compile(r"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})")
@@ -449,8 +446,13 @@ def _decode(data: bytes) -> tuple[str, str] | None:
     return None
 
 
-def preview(data: bytes) -> Preview:
-    """Valida l'exportació de Cluber sense escriure res i en torna el resultat."""
+def preview(data: bytes, *, keep_values: bool = False) -> Preview:
+    """Valida l'exportació de Cluber sense escriure res i en torna el resultat.
+
+    `keep_values` només el fa servir la importació final (`imports/final.py`, T-M01-25): cada
+    fila conserva en memòria els valors normalitzats d'`EQUIVALENCES` (`Row.data["values"]`,
+    fora de `repr` i de `summary()`) per crear la persona i el soci. La prova no els conserva.
+    """
     # La mida es comprova abans de descodificar: el text i el lector queden acotats per 1 MiB.
     if len(data) > MAX_BYTES:
         return _reject("too_large")
@@ -534,7 +536,7 @@ def preview(data: bytes) -> Preview:
             def value(header, values=values):
                 return values[index[header]].strip() if header in index else ""
 
-            _read_row(row, value)
+            _read_row(row, value, keep_values)
             to_resolve.append((row, value(QUOTA), value(TOTAL_PRICE)))
             for column, counter in catalogue.items():
                 if v := value(column):
@@ -555,9 +557,9 @@ def preview(data: bytes) -> Preview:
     return result
 
 
-def _read_row(row: Row, value) -> None:
+def _read_row(row: Row, value, keep_values: bool = False) -> None:
     """Valida la fila i en conserva només el document normalitzat, el número de soci i la llista
-    dels camps que s'omplirien."""
+    dels camps que s'omplirien (i, per a la importació final, els valors normalitzats)."""
     number_text = value(NUMBER)
     row.data = {
         "member_number_text": number_text,
@@ -584,6 +586,8 @@ def _read_row(row: Row, value) -> None:
         row._error("member_number_invalid", NUMBER)
 
     fields, errors = normalize(value)
+    if keep_values:
+        row.data["values"] = dict(fields)
     for code, column in errors:
         row._error(code, column)
     if "member_number" in row.data:

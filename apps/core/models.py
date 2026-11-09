@@ -399,6 +399,8 @@ class Consent(AppendOnlyModel):
     class Channel(models.TextChoices):
         WEB = "web", _("Web")
         IN_PERSON = "in_person", _("Presencial")
+        # El consentiment ve de l'exportació de Cluber (071, punt 15; T-M01-25).
+        CLUBER = "cluber", _("Importat de Cluber")
 
     person = models.ForeignKey(
         Person, on_delete=models.PROTECT, related_name="consents", verbose_name=_("persona")
@@ -716,9 +718,11 @@ IMPORT_LINE_CODES = (
     "duplicate_member_number",
     "identity_conflict",
     "member_number_unavailable",
+    "date_invalid",  # 071 (T-M01-25)
     # Advertiments
     "member_number_leading_zeros",
     "match_without_document_type",
+    "total_price_differs",  # 071 (T-M01-25)
     # Dades pendents
     "member_type",
     "member_status",

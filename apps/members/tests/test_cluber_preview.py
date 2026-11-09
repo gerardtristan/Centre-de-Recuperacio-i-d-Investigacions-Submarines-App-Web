@@ -760,11 +760,10 @@ class TestAlreadyImported:
             "unknown_columns",
             "cluber_already_imported",
         }
-        # Els codis nous de la T-M01-24b entren a la llista de la base de dades amb la migració
-        # de la T-M01-25 (071); llavors surten de NEW_LINE_CODES i aquesta prova ho exigeix.
-        new = set(cluber.NEW_LINE_CODES)
-        assert not new & set(IMPORT_LINE_CODES)
-        assert set(cluber.MESSAGES) - file_level - new <= set(IMPORT_LINE_CODES)
+        # Els codis de la T-M01-24b («date_invalid», «total_price_differs») hi són des de la
+        # migració core/0012 de la T-M01-25 (071).
+        assert set(cluber.MESSAGES) - file_level <= set(IMPORT_LINE_CODES)
+        assert {"date_invalid", "total_price_differs"} <= set(IMPORT_LINE_CODES)
 
 
 NUL_VALUE = "SENTINELLA-NUL-7Q\x00X"
