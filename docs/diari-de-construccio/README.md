@@ -85,6 +85,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-23](T-M01-23.md) | Registre mínim de llicència a la fitxa: veure, afegir i corregir (**implementada, pendent de validació**; serveis de lectura a la T-M01-30, caducitat desconeguda a la T-M01-34) | 09/11/2026 | 00c6de6 | 1869 | no comprovat (sense push) |
 | [T-M01-30](T-M01-30.md) | Servei de lectura de la llicència: `licence_record` i `licence_records`, sense cap escriptura (**implementada, pendent de validació**; marca de caducitat desconeguda a la T-M01-34) | 09/11/2026 | f3ec865 | 1884 | no comprovat (sense push) |
 | [T-M01-34](T-M01-34.md) | Caducitat desconeguda: «caducitat desconeguda» a la fitxa i marca `expiry_unknown` a `members.licence_record` (**implementada, pendent de validació**; «pendent de confirmar» al 02, [A validar: secretaria]; carnet en una altra branca) | 09/11/2026 | 930b743 | 1893 | no comprovat (sense push) |
+| [T-M01-36](T-M01-36.md) | Confirmació en bloc de les caducitats d'any natural pendents (**feta en part**; la declaració del soci, pendent: àrea del soci en una altra branca i model de la caducitat declarada per decidir) | 09/11/2026 | b6af97c | 1931 | no comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
