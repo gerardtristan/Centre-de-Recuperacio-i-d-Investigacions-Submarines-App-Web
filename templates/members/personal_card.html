@@ -5,6 +5,11 @@
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Carnet" %}</p>
   <h1>{% translate "El meu carnet" %}</h1>
+  {# T-M01-21, CA-M01-17: amagat a la pàgina en línia; el service worker el mostra a la còpia sense connexió (marca «data-sense-connexio hidden», static/js/service-worker.js). L'hora és la de la comprovació al servidor. #}
+  <div class="avis avis-avis" role="status" data-sense-connexio hidden>
+    <strong>{% translate "Sense connexió: aquesta còpia del carnet pot no estar al dia." %}</strong>
+    {% translate "Comprovat per última vegada:" %} <time datetime="{% now 'c' %}">{% now "d/m/Y H:i" %}</time>
+  </div>
   {% if card %}
     <dl class="dades-soci">
       <div><dt>{% translate "Nom" %}</dt><dd>{{ person }}</dd></div>

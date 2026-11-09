@@ -8,6 +8,9 @@ from django.urls import URLPattern, URLResolver, get_resolver, reverse
 # Rutes públiques declarades. Afegir-ne una obliga a canviar aquesta llista a propòsit.
 PUBLIC_ROUTES = {
     "core:health",
+    # Service worker de la web instal·lable (T-M01-21): la pàgina d'entrada també el registra
+    # i el fitxer no porta cap dada.
+    "core:service_worker",
     # Enllaç signat local (imita Scaleway fora de producció): l'enllaç és la credencial.
     "core:local_private_file",
     "accounts:login",
