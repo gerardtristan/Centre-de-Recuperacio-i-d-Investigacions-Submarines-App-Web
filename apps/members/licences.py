@@ -13,8 +13,9 @@
   no en canvia l'origen ni el lot.
 
 Fora d'aquesta tasca: els serveis de lectura `licence_record` i `licence_records` (T-M01-30), el
-text i la priorització de la caducitat desconeguda (RN-M01-50, T-M01-34), el número federatiu
-(fins que la 06 el defineixi) i la llista tancada de tipus de la FECDAS [A verificar: FECDAS].
+text «caducitat desconeguda» de la fitxa i la marca `expiry_unknown` (RN-M01-50, T-M01-34), el
+número federatiu (fins que la 06 el defineixi) i la llista tancada de tipus de la FECDAS
+[A verificar: FECDAS].
 Cap dada de salut.
 """
 

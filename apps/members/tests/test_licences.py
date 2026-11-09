@@ -5,7 +5,7 @@ administrador, «Cons.» per a tresorer i responsable de cursos i sortides) i pe
 registre ha de ser del soci de l'URL; conflicte d'interès), validació de dates
 (`expires_on ≥ issued_on`) i registre d'activitat amb el valor anterior. Fora d'aquestes proves,
 perquè no són d'aquesta tasca: els serveis de lectura (T-M01-30) i el text de la caducitat
-desconeguda (T-M01-34). Només dades inventades.
+desconeguda (T-M01-34, `test_licence_unknown_expiry.py`). Només dades inventades.
 """
 
 import datetime

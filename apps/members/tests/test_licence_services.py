@@ -3,7 +3,8 @@
 `members.licence_record(person)` i `members.licence_records()`: no escriuen res, tornen res (o
 una llista buida) si no hi ha registre, tornen dades immutables amb la forma del contracte i
 segueixen l'ordre de RN-M01-50 (caducitat coneguda més tardana primer). La marca explícita de
-caducitat desconeguda és de la T-M01-34. Només dades inventades.
+caducitat desconeguda (`expiry_unknown`, T-M01-34) es prova a `test_licence_unknown_expiry.py`.
+Només dades inventades.
 """
 
 import contextlib
@@ -114,8 +115,7 @@ class TestLicenceRecord:
             assert licence_record(member.person) == info(latest)
 
     def test_unknown_expiry_only_if_no_known_one(self):
-        # RN-M01-50: la fila sense data, només si no n'hi ha cap amb data. La marca «desconeguda»
-        # és de la T-M01-34; aquí, `expires_on` és None.
+        # RN-M01-50: la fila sense data, només si no n'hi ha cap amb data.
         member = a_member()
         a_record(member, expires_on=None, issued_on=datetime.date(2026, 6, 1))
         known = a_record(member, expires_on=datetime.date(2026, 3, 31))

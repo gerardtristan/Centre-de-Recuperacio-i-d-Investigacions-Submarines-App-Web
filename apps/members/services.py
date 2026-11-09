@@ -344,8 +344,8 @@ def _readmit(member, join_request, *, by, effective_on, reason="", request=None)
 #
 # Només lectura: cap escriptura, cap registre d'activitat i cap comprovació de permís (és un
 # servei entre mòduls; el permís el comprova la vista de qui el crida). Torna dades immutables,
-# mai el model, perquè cap altra app no pugui desar-lo. Fora d'aquesta tasca: la marca explícita
-# de caducitat desconeguda (RN-M01-50, T-M01-34) i `cancelled_on` (RN-M01-38, T-M01-31).
+# mai el model, perquè cap altra app no pugui desar-lo. La marca de caducitat desconeguda és
+# `expiry_unknown` (RN-M01-50, T-M01-34). Fora d'aquí: `cancelled_on` (RN-M01-38, T-M01-31).
 # No s'afegeixen a `__all__` aquí: ho farà la T-M01-26 (contracte de M01-8) en fusionar-se.
 
 
@@ -358,6 +358,12 @@ class LicenceInfo:
     licence_type: str
     issued_on: datetime.date
     expires_on: datetime.date | None
+
+    @property
+    def expiry_unknown(self) -> bool:
+        """Caducitat desconeguda (RN-M01-50). Marca neutra: què vol dir per al 02 («pendent de
+        confirmar», no vigent) ho decideix el 02 [A validar: secretaria]."""
+        return self.expires_on is None
 
 
 _LICENCE_FIELDS = ("pk", "member__person_id", "licence_type", "issued_on", "expires_on")
