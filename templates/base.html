@@ -20,6 +20,7 @@
       <img class="logo-fosc" src="{% static 'marca/CRIS_Blanc_per fons Negre (Blanc).png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
       <span class="titol-zona">{% block titol_zona %}{% translate "Àrea de socis" %}{% endblock %}</span>
     </a>
+    {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
     <fieldset class="selector-tema" hidden>
       <legend class="visualment-amagat">{% translate "Tema" %}</legend>
       <label><input class="visualment-amagat" type="radio" name="tema" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">{% translate "Sistema" %}</span></span></label>

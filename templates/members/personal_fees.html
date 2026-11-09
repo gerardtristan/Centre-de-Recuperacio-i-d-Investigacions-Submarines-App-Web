@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-16: les meves quotes (C8; CA-M01-12; L-M01-09). Només les quotes del soci de la sessió. L'estat general és el de la T-M01-15 (070); sense regla (pagaments parcials, P-61), no es mostra res. El rebut és del 05b (RN-M05b-19). #}
+{% block title %}{% translate "Les meves quotes" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Quotes" %}</p>
+  <h1>{% translate "Les meves quotes" %}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Estat de la quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>
+  </dl>
+  {% if rows %}
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Les teves quotes, de la més recent a la més antiga" %}</caption>
+      <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col"><span class="visualment-amagat">{% translate "Detall" %}</span></th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ row.fee.charge.concept }} <span class="text-2">({{ row.fee.period }})</span></th>
+            <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge paid_on=row.paid_on %}</td>
+            <td class="cel-accions"><a href="{% url 'members:fee_detail' row.fee.pk %}">{% translate "Detall" %}<span class="visualment-amagat"> · {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Encara no tens cap quota." %}</p>
+  {% endif %}
+{% endblock %}

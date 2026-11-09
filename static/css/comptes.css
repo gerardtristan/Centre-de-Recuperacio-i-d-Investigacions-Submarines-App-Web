@@ -118,3 +118,9 @@ figure { margin: 0; }
 .altes-rebuig > summary { list-style: none; cursor: pointer; width: fit-content; }
 .altes-rebuig > summary::-webkit-details-marker { display: none; }
 .altes-rebuig[open] > summary { margin-bottom: var(--e-3); }
+
+/* Navegació de l'àrea del soci (T-M01-16): a tota l'amplada sota la marca, es parteix a 320 px */
+.navegacio-compte { order: 3; flex-basis: 100%; }
+.navegacio-compte ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
+.navegacio-compte a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.navegacio-compte a[aria-current="page"] { font-weight: var(--p-semi); color: var(--c-text); }

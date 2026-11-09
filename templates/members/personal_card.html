@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió. Validesa: RN-M01-18 i 070 («vàlid fins al» = 12 mesos després del pagament confirmat). Sense QR ni PDF de moment (diari de la T-M01-19); el darrere del carnet és [A validar, decisió 032]. #}
+{% block title %}{% translate "El meu carnet" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Carnet" %}</p>
+  <h1>{% translate "El meu carnet" %}</h1>
+  {% if card %}
+    <dl class="dades-soci">
+      <div><dt>{% translate "Nom" %}</dt><dd>{{ person }}</dd></div>
+      <div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ member.member_number }}</dd></div>
+      <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
+      <div><dt>{% translate "Estat del carnet" %}</dt><dd>{% if validity.valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No vàlid" %}</span>{% endif %}</dd></div>
+      {% if validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
+      <div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% else %}{{ years }}{% endif %}</dd></div>
+    </dl>
+    <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a></p>
+  {% else %}
+    <p>{% translate "Encara no tens cap carnet." %}</p>
+  {% endif %}
+{% endblock %}

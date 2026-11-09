@@ -30,17 +30,26 @@ from dataclasses import dataclass
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
 from apps.core import audit
-from apps.core.models import AuditEntry
+from apps.core.models import AuditEntry, Charge, Person
 from apps.core.permissions import has_perm
 
-from .models import LicenceRecord, Member, MemberRequest, MemberStatusChange
+from . import cards, roster
+from .fee_rules import local_today
+from .models import (
+    AnnualFee,
+    LicenceRecord,
+    Member,
+    MemberRequest,
+    MembershipType,
+    MemberStatusChange,
+)
 
 __all__ = [
     "InactiveAccount",
@@ -346,7 +355,7 @@ def _readmit(member, join_request, *, by, effective_on, reason="", request=None)
 # servei entre mòduls; el permís el comprova la vista de qui el crida). Torna dades immutables,
 # mai el model, perquè cap altra app no pugui desar-lo. La marca de caducitat desconeguda és
 # `expiry_unknown` (RN-M01-50, T-M01-34). Fora d'aquí: `cancelled_on` (RN-M01-38, T-M01-31).
-# No s'afegeixen a `__all__` aquí: ho farà la T-M01-26 (contracte de M01-8) en fusionar-se.
+# Formen part de `__all__` des de la integració amb la T-M01-26 (contracte de M01-8).
 
 
 @dataclass(frozen=True)
@@ -390,3 +399,202 @@ def licence_records() -> list[LicenceInfo]:
         *_LICENCE_FIELDS
     )
     return [LicenceInfo(*row) for row in rows]
+
+
+# --- Serveis oferts a altres mòduls (M01-8; T-M01-26) ---------------------------------------
+#
+# Cap altra app escriu als models del M01: ho fa amb aquests serveis. Els de lectura no escriuen
+# res i no comproven cap permís: el comprova la vista del mòdul que els crida. No tornen
+# objectes del model (que es podrien desar), sinó dades. Fora d'aquesta tasca:
+# `licence_record` i `licence_records` (T-M01-30), i `export_personal_data` i `anonymise`
+# (T-M01-22, RGPD del M01, a `privacy.py`).
+
+__all__ += [
+    "MemberStats",
+    "MemberSummary",
+    "LicenceInfo",
+    "NotAMember",
+    "active_members_for_mandates",
+    "get_member_summary",
+    "is_member",
+    "licence_record",
+    "licence_records",
+    "on_fee_paid",
+    "on_fee_returned",
+    "stats",
+    "verify_card",
+]
+
+FEE_PAID_ORIGIN = "members.on_fee_paid"
+FEE_RETURNED_ORIGIN = "members.on_fee_returned"
+FEE_PAID_WHILE_UNPAID = "members.fee_paid_while_unpaid"
+FEE_RETURNED = "members.fee_returned"
+MEMBER_STATUSES = (S.ACTIVE, S.UNPAID)  # «és soci» a M01-8: actiu o impagat
+
+
+class NotAMember(LookupError):
+    """La persona no té cap registre de soci."""
+
+
+@dataclass(frozen=True)
+class MemberSummary:
+    person_id: int
+    number: int | None
+    type: str  # codi del tipus
+    type_name: str
+    status: str
+    valid_until: datetime.date | None  # data de renovació (070); no diu res de l'estat
+
+
+@dataclass(frozen=True)
+class MemberStats:
+    by_type_and_status: dict  # {(codi del tipus, estat): recompte}, a la data
+    joined: int  # altes del mes fins a la data (`joined_on`)
+    left: int  # baixes del mes fins a la data (historial)
+
+
+def _summary(member) -> MemberSummary:
+    # `member` ve de `roster.with_fee_data` (quotes i pagaments precarregats).
+    return MemberSummary(
+        person_id=member.person_id,
+        number=member.member_number,
+        type=member.type.code,
+        type_name=member.type.name,
+        status=member.status,
+        valid_until=cards._paid_until(member),
+    )
+
+
+def _ordered_changes():
+    return MemberStatusChange.objects.order_by("created_at", "id")
+
+
+def _state_on(member, on, changes):
+    """(estat, id del tipus) del soci a la data `on`, o `None` si encara no ho era. Avui o
+    després, l'estat actual. Abans, l'historial: l'últim canvi desat amb data efectiva fins a
+    `on` (ordre de desar: un canvi amb data passada no reordena els anteriors); si no n'hi ha
+    cap, l'estat d'abans del primer canvi. `changes` ve per ordre de desar."""
+    if on >= local_today():
+        return member.status, member.type_id
+    before = [c for c in changes if c.effective_on <= on]
+    if before:
+        return before[-1].to_status, before[-1].to_type_id
+    if member.joined_on > on:
+        return None
+    if not changes:
+        return member.status, member.type_id
+    first = changes[0]
+    return (first.from_status, first.from_type_id) if first.from_status else None
+
+
+def is_member(person, on=None) -> bool:
+    """Cert si la persona és sòcia activa o impagada a la data `on` (per defecte, avui)."""
+    member = Member.objects.filter(person=person).first()
+    if member is None:
+        return False
+    state = _state_on(member, on or local_today(), list(_ordered_changes().filter(member=member)))
+    return state is not None and state[0] in MEMBER_STATUSES
+
+
+def get_member_summary(person) -> MemberSummary:
+    """Número, tipus, estat i «vàlid fins al» del soci de la persona, sigui quin sigui l'estat
+    (també pendent o de baixa). `NotAMember` si la persona no té soci."""
+    member = (
+        roster.with_fee_data(Member.objects.select_related("type")).filter(person=person).first()
+    )
+    if member is None:
+        raise NotAMember(_("Aquesta persona no és sòcia."))
+    return _summary(member)
+
+
+def active_members_for_mandates() -> list[MemberSummary]:
+    """Socis actius per a la campanya de mandats (P-M05a-E), per número. Ni pendents, ni
+    impagats, ni de baixa, ni persones anonimitzades."""
+    members = roster.with_fee_data(
+        Member.objects.select_related("type")
+        .filter(status=S.ACTIVE, person__status=Person.Status.ACTIVE)
+        .order_by("member_number", "pk")
+    )
+    return [_summary(m) for m in members]
+
+
+def verify_card(token) -> dict:
+    """Verificació pública (RN-M01-26, RN-M01-27): sempre `{"valid", "partial_number"}`. Un
+    testimoni desconegut, revocat, d'un impagat o caducat dona `{"valid": False,
+    "partial_number": ""}`, igual. Igualar el temps i limitar les peticions és de la vista."""
+    card = cards.valid_card_for_token(token)
+    number = card.member.member_number if card is not None else None
+    if number is None:
+        return {"valid": False, "partial_number": ""}
+    return {"valid": True, "partial_number": "··" + str(number)[-2:]}
+
+
+def stats(on=None) -> MemberStats:
+    """Recomptes per al dashboard (08), sense cap dada personal."""
+    on = on or local_today()
+    month_start = on.replace(day=1)
+    codes = dict(MembershipType.objects.values_list("pk", "code"))
+    counts = {}
+    members = Member.objects.prefetch_related(Prefetch("status_changes", _ordered_changes()))
+    for member in members:
+        state = _state_on(member, on, list(member.status_changes.all()))
+        if state is not None:
+            key = (codes[state[1]], state[0])
+            counts[key] = counts.get(key, 0) + 1
+    joined = Member.objects.filter(joined_on__range=(month_start, on)).count()
+    left = (
+        MemberStatusChange.objects.filter(to_status=S.LEFT, effective_on__range=(month_start, on))
+        .exclude(from_status=S.LEFT)
+        .values("member")
+        .distinct()
+        .count()
+    )
+    return MemberStats(by_type_and_status=counts, joined=joined, left=left)
+
+
+def on_fee_paid(annual_fee_id) -> Member:
+    """La 05b o la 04 (en conciliar) l'avisen quan el càrrec d'una quota passa a «pagat», dins
+    la mateixa transacció. Comprova a la base de dades que el càrrec està pagat: mai no dona un
+    pagament per fet per la crida. Idempotent.
+
+    - Pendent, quota anual pagada → actiu (actor: el sistema; data efectiva: avui) i carnet nou
+      (P-M01-A, pas 7; CA-M01-06), tot o res. `replace_card` revoca abans un carnet que hagi
+      quedat d'abans; el testimoni en clar no es torna (pregunta del QR de la T-M01-19).
+    - Actiu → res: «vàlid fins al» es recalcula amb el pagament nou (070).
+    - Impagat → continua impagat (040, RN-M01-09); queda al registre perquè se n'avisi el
+      tresorer. L'avís (canal, destinataris i text) està pendent: vegeu el diari.
+    - Baixa → `InvalidTransition`, sense escriure res (M01-8).
+    - Suplement de canvi de tipus → res (el canvi de tipus és de la T-M01-17).
+    - Pagaments parcials (tres quotes, P-61) → `InvalidTransition`: no hi ha cap regla aprovada.
+    """
+    by = audit.system(FEE_PAID_ORIGIN)
+    with transaction.atomic():
+        fee = AnnualFee.objects.select_related("charge").get(pk=annual_fee_id)
+        member = Member.objects.select_for_update(of=("self",)).get(pk=fee.member_id)
+        if fee.charge.status != Charge.Status.PAID or fee.charge.person_id != member.person_id:
+            raise InvalidTransition(_("El càrrec d'aquesta quota no consta com a pagat."))
+        if fee.kind != AnnualFee.Kind.ANNUAL or member.status == S.ACTIVE:
+            return member
+        if member.status == S.UNPAID:
+            audit.record(FEE_PAID_WHILE_UNPAID, actor=by, target=fee)
+            return member
+        if member.status != S.PENDING:
+            raise _not_allowed(member.status, S.ACTIVE)
+        if cards._paid_until(cards.load_member(member.pk)) is None:
+            raise InvalidTransition(
+                _("La quota té pagaments parcials: falta la regla del pagament en tres quotes.")
+            )
+        _change_status(member, S.ACTIVE, by=by, effective_on=local_today())
+        cards.replace_card(
+            member, by=by, reason=_("Carnet nou en confirmar-se el pagament de la quota.")
+        )
+    member.refresh_from_db()
+    return member
+
+
+def on_fee_returned(annual_fee_id) -> None:
+    """La 05b l'avisa quan una quota es retorna. El M01 no canvia l'estat del soci: l'impagat
+    continua sent manual (040). Queda al registre perquè se n'avisi el tresorer; l'avís (canal,
+    destinataris i text) està pendent: vegeu el diari."""
+    fee = AnnualFee.objects.get(pk=annual_fee_id)
+    audit.record(FEE_RETURNED, actor=audit.system(FEE_RETURNED_ORIGIN), target=fee)

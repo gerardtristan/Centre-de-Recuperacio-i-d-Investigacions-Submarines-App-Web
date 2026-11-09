@@ -157,6 +157,38 @@ def update(person, *, by, request=None, **fields) -> list[str]:
     return list(changes)
 
 
+# Dades que la persona pot corregir des del seu perfil (HU-M01-08; 061). El nom, el document i la
+# data de naixement només els corregeix la secretaria; el correu d'entrada té el seu propi camí.
+PROFILE_FIELDS = ("phone", "address", "preferred_language")
+
+
+def update_profile(person, *, actor, request=None, **values) -> list:
+    """Desa les dades del perfil i registra cada camp que canvia amb el valor anterior (RN-50,
+    CA-14.1). Torna les entrades del registre (cap si no canvia res). Un camp fora de
+    `PROFILE_FIELDS` o una llengua que no és activa és un error de qui crida: el formulari ja ho
+    ha validat."""
+    unknown = set(values) - set(PROFILE_FIELDS)
+    if unknown:
+        raise ValueError(f"Camps que no es poden editar des del perfil: {sorted(unknown)}")
+    active = {code for code, _ in settings.LANGUAGES}
+    if "preferred_language" in values and values["preferred_language"] not in active:
+        raise ValueError("Llengua no activa (decisió 061).")
+    with transaction.atomic():
+        person = Person.objects.select_for_update().get(pk=person.pk)
+        old = {name: getattr(person, name) for name in values}
+        for name, value in values.items():
+            setattr(person, name, value)
+        person.save(update_fields=[*values, "updated_at"])  # `save` normalitza el telèfon
+        changes = {name: (old[name], getattr(person, name)) for name in values}
+        return audit.record_changes(
+            audit.Action.PROFILE_UPDATED,
+            actor=actor,
+            target=person,
+            changes=changes,
+            request=request,
+        )
+
+
 def language_for(person) -> str:
     """Llengua en què s'escriu a la persona: la preferida si és activa; si no, la de reserva
     (decisió 061)."""
