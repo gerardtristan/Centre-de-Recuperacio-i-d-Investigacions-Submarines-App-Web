@@ -666,16 +666,16 @@ L'estat i l'import són els del càrrec (spec 00, RN-60 i RN-67); no es duplique
 | RN-M01-14 | Recordatoris: N dies abans i M dies després del venciment [A validar: tresorer]. Proposta: 15 dies abans, 15 i 30 dies després | F §3 **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-061):** 15 dies abans, el dia abans i el mateix dia del venciment, i 15 i 30 dies després si no s'ha pagat; configurables. |
 | RN-M01-15 | Import del canvi a ple dret: **la secretaria l'escriu a mà** en aprovar el canvi, fins que la junta decideixi la regla. La proposta més simple per a la junta és la **diferència** entre quotes (9000 − 3500 = 5500 cèntims, 55 €) [A validar: junta] | F §3, pregunta 1; aprovació del M01, resposta 2 **Decidit (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-049):** la diferència entre quotes (55 €); la secretaria ja no l'escriu a mà. |
 | RN-M01-16 | Un soci que s'apunta a mig any paga la quota sencera del període [A validar: junta] | F §9.2 («quota de l'any») **Substituïda per la [069](decisions/069-condicio-de-soci-i-quota-d-alta-per-mesos.md) (06/11/2026):** de gener a octubre, prorrata mensual de l'any en curs; al novembre i desembre, quota sencera de l'any següent, que cobreix la resta de l'any d'alta (RN-M01-68). Detalls del càlcul: [P-59](decisions/pendents.md). **Substituïda de nou per la [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md) (09/11/2026):** quota íntegra del tipus, sense prorrata ni regla de novembre i desembre. |
-| RN-M01-17 | Període de la quota = **any natural** (supòsit aprovat); data de venciment pendent del tresorer (P-29) [A validar: tresorer] | Aprovació del M01, resposta 3 **Substituït per la [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md) (09/11/2026):** el període és de 12 mesos des del pagament confirmat; no hi ha data comuna ni any natural. Menors: [P-61](decisions/pendents.md). |
+| RN-M01-17 | Període de la quota = **any natural** (supòsit aprovat); data de venciment pendent del tresorer (P-29) [A validar: tresorer] | Aprovació del M01, resposta 3 **Substituït per la [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md) (09/11/2026):** el període és de 12 mesos des del pagament confirmat; no hi ha data comuna ni any natural. Menors: [P-61](decisions/pendents.md). **Correcció (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)):** el carnet dura un any des del dia del pagament, fins al mateix dia de l'any següent; cap any natural, excepte per als exempts (Q-002 i Q-003). |
 | RN-M01-18 | Carnet **vàlid** ⇔ soci actiu ∧ quota del període vigent pagada ∧ carnet no revocat | F §3 **Precisió (06/11/2026, [069](decisions/069-condicio-de-soci-i-quota-d-alta-per-mesos.md)):** cap carnet abans de l'alta aprovada i el pagament confirmat; per als exempts, [P-57](decisions/pendents.md). **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), P-57):** un exempt per edat té el carnet vàlid sense quota (RN-M01-19). |
-| RN-M01-19 | «Vàlid fins a» = últim dia del període pagat | Proposta **Precisió (09/11/2026, [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md)):** «vàlid fins a» = 12 mesos després del pagament confirmat (data de renovació), mai el 31/12 fix. Pagament en tres quotes: [P-61](decisions/pendents.md). **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)):** exempts per edat, fins al 31/12 de l'últim any exempt (any de naixement + 14); amb diverses quotes del mateix període ([P-54](decisions/pendents.md), sortida E), mana la pagada més recent. |
+| RN-M01-19 | «Vàlid fins a» = últim dia del període pagat | Proposta **Precisió (09/11/2026, [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md)):** «vàlid fins a» = 12 mesos després del pagament confirmat (data de renovació), mai el 31/12 fix. Pagament en tres quotes: [P-61](decisions/pendents.md). **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)):** exempts per edat, fins al 31/12 de l'últim any exempt (any de naixement + 14); amb diverses quotes del mateix període ([P-54](decisions/pendents.md), sortida E), mana la pagada més recent. **Correcció (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)):** «vàlid fins a» = el mateix dia de l'any següent al pagament, no «+365 dies»; un pagament del 29/02 caduca el 28/02 de l'any següent. |
 | RN-M01-20 | En una baixa, les quotes pendents de períodes posteriors a la data efectiva s'anul·len amb motiu; les anteriors es mantenen | Proposta; RN-61 **Validada pel responsable del projecte (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-056):** tal com és; les pendents anteriors a la data efectiva se segueixen devent. |
 | RN-M01-21 | Anys de soci = anys sencers entre `joined_on` i avui. Si la data és aproximada, el carnet diu «des de ~AAAA» | F §3 **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-075):** si no hi ha data d'alta (importats de Cluber sense data), no es mostra l'antiguitat. |
 | RN-M01-22 | La secretaria pot corregir la data d'alta; queda a l'historial amb el valor anterior | F §3 |
 | RN-M01-23 | Insígnia de soci clàssic: llindar [A validar: junta]; només si la data no és aproximada | Mapa v8 **Substituïda (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-066):** sense llindar automàtic; l'administració l'assigna a mà, i el carnet i el voltant de la foto o l'avatar passen a una versió daurada. Sense tasca encara. |
 | RN-M01-24 | El QR no conté dades personals: només l'URL amb el testimoni aleatori | Pla M01 anterior, K2 |
 | RN-M01-25 | Canvi de tipus, baixa o petició del soci → el carnet es revoca i, si escau, se n'emet un de nou | Pla M01 anterior |
-| RN-M01-26 | La verificació pública mostra «Vàlid»/«No vàlid» i els **dos últims dígits** del número (per exemple «··87») [A validar: junta]. El nom de pila, [A validar: junta] | Aprovació del pla M01 **Decisió del responsable (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-063 i Q-064):** el número sencer i el nom de pila. El número està **pendent de la confirmació de la junta i no es publica fins llavors**; mentrestant, la verificació es queda com està. |
+| RN-M01-26 | La verificació pública mostra «Vàlid»/«No vàlid» i els **dos últims dígits** del número (per exemple «··87») [A validar: junta]. El nom de pila, [A validar: junta] | Aprovació del pla M01 **Decisió del responsable (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-063 i Q-064):** el número sencer i el nom de pila. **Confirmat per la junta** (comunicat pel responsable el 09/11/2026; [referència de l'acta: a completar]). |
 | RN-M01-27 | Un testimoni desconegut o revocat dona «No vàlid», amb la mateixa resposta i el mateix temps que un de vàlid sense quota | Proposta (no revelar) |
 | RN-M01-28 | La pàgina de verificació té limitació de peticions (V-01) | RN-24 |
 | RN-M01-29 | Registre mínim de llicència: tipus, data d'alta i de caducitat | 024 |
@@ -684,7 +684,7 @@ L'estat i l'import són els del càrrec (spec 00, RN-60 i RN-67); no es duplique
 | RN-M01-31 | Importació de Cluber: prova sense escriure res; final quan el 05a pugui rebre mandats; una sola final; sense IBAN | Aprovació del pla M01; RN-93, RN-94 |
 | RN-M01-32 | Els números de Cluber es conserven; el comptador continua després del més alt | F §3 («continuant el llistat actual») |
 | RN-M01-33 | Les quotes cobrades per Cluber s'importen com a **quotes històriques** informatives, no com a càrrecs ni moviments | Proposta (RN-71: un càrrec només passa a pagat per proveïdor, conciliació o registre manual) |
-| RN-M01-34 | Un soci importat com a actiu amb la quota del període vigent pagada a Cluber té el carnet vàlid fins al final del període [A validar: tresorer] | Proposta **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-076):** sí; vàlid fins a 12 mesos després de l'última renovació registrada a Cluber ([070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md)), no fins al final de l'any. |
+| RN-M01-34 | Un soci importat com a actiu amb la quota del període vigent pagada a Cluber té el carnet vàlid fins al final del període [A validar: tresorer] | Proposta **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-076):** sí; **corregit el 09/11/2026:** vàlid un any des del pagament, fins al mateix dia de l'any següent. La data des de la qual compta per als importats és [A validar: tresorer] (depèn de la [P-62.1](decisions/pendents.md); proposta: la columna «Data alta/renovació» de Cluber). |
 
 **Exemples numèrics**
 - **Quotes:** simpatitzant `3500` cèntims (35,00 €); ple dret `9000` cèntims (90,00 €).
@@ -818,7 +818,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | T-M01-15b | Editar les dades d'un soci (P5) i corregir la data d'alta (P6) des de la fitxa. Afegida el 09/11/2026 per decisió del responsable del projecte: no és de la T-M01-15, que només consulta i exporta | — (per estimar) | `apps/members/services.py`, `apps/members/views/admin.py`, plantilles | T-M01-15 | HU-M01-07, RN-M01-22; proves de permisos de P5 i P6 (RN-RP-21); historial i registre d'activitat amb el valor anterior (CA-M01-08) |
 | T-M01-16 | Àrea del soci: perfil, quotes, sol·licituds | M | `apps/members/views/personal.py` | T-M01-12, T-M01-05 | CA-M01-12, 25. El perfil valida `preferred_language` contra les llengües actives i només mostra el selector si n'hi ha més d'una (061) |
 | T-M01-17 | Canvi de tipus i baixa (sol·licitud i resolució) | M | `services.py`, vistes | T-M01-16 | Proves de P-M01-B i C |
-| T-M01-18 | Generació de quotes, recordatoris i marca d'impagat | M | `apps/members/fees.py`, tasques de la cua | T-M01-09, T-M01-12 | CA-M01-09 a 11 **068 (06/11/2026):** RN-M01-65 i [P-57](decisions/pendents.md); vegeu el [repartiment](#M01-addenda-058-menors). **069 (06/11/2026):** RN-M01-68 (quota d'alta per mesos, sense doble cobrament) i [P-59](decisions/pendents.md). **070 (09/11/2026):** substitueix la prorrata i el «sense doble cobrament» de la 069: quota íntegra, renovació 12 mesos després del pagament confirmat, per persona; pagament en tres quotes amb el cicle marcat pel primer pagament; [P-61](decisions/pendents.md). |
+| T-M01-18 | Generació de quotes, recordatoris i marca d'impagat | M | `apps/members/fees.py`, tasques de la cua | T-M01-09, T-M01-12 | CA-M01-09 a 11 **068 (06/11/2026):** RN-M01-65 i [P-57](decisions/pendents.md); vegeu el [repartiment](#M01-addenda-058-menors). **069 (06/11/2026):** RN-M01-68 (quota d'alta per mesos, sense doble cobrament) i [P-59](decisions/pendents.md). **070 (09/11/2026):** substitueix la prorrata i el «sense doble cobrament» de la 069: quota íntegra, renovació 12 mesos després del pagament confirmat, per persona; pagament en tres quotes amb el cicle marcat pel primer pagament; [P-61](decisions/pendents.md). **Precisió (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-020):** terminis repartits equitativament dins dels 12 mesos i **editables per la secretaria** (l'import i la data de cada termini), amb un permís propi i un motiu obligatori a l'historial; el càlcul exacte de les dates es fixa en aquesta tasca. Recordatoris: Q-061. Primer any dels exempts: Q-003. |
 | T-M01-19 | Carnet: testimoni, revocació, PDF, pàgina del soci | M | `apps/members/cards.py` | T-M01-12, T-M01-10 | CA-M01-15 **069 (06/11/2026):** cap carnet abans de l'alta aprovada i el pagament confirmat (RN-M01-67); exempts, [P-57](decisions/pendents.md). **070 (09/11/2026):** carnet vàlid fins a la data de renovació (12 mesos després del pagament confirmat), no fins al 31/12; pagament en tres quotes: [P-61](decisions/pendents.md). |
 | T-M01-20 | Verificació pública amb limitació de peticions | S | `apps/members/views/public.py` | T-M01-19 | CA-M01-13, 14, 16 |
 | T-M01-21 | Web instal·lable: manifest, service worker amb carnet sense connexió | M | `static/`, plantilla base | T-M01-19 | CA-M01-17 |
@@ -877,11 +877,11 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 |---|---|---|---|
 | S-M01-01 | Import del canvi a ple dret (diferència 55 €, complet o prorrata) | **Aprovat:** la secretaria l'escriu a mà fins que la junta decideixi. La diferència (55 €) és la proposta més simple per a la junta | Junta **Decidit (09/11/2026, [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-049):** la diferència, 55 €. |
 | S-M01-02 | Quota sencera per a les altes a mig any | Sí | Junta **Substituït per la [069](decisions/069-condicio-de-soci-i-quota-d-alta-per-mesos.md) (06/11/2026):** prorrata mensual (RN-M01-68). **Substituït de nou per la [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md) (09/11/2026):** quota íntegra, sense prorrata. |
-| S-M01-03 | Període = any natural i data de venciment de les quotes | **Aprovat:** any natural com a supòsit; el venciment queda pendent del tresorer (P-29) | Tresorer **Substituït per la 070 i la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md) (09/11/2026):** venciment als 12 mesos del pagament; l'any natural només s'aplica als exempts. |
+| S-M01-03 | Període = any natural i data de venciment de les quotes | **Aprovat:** any natural com a supòsit; el venciment queda pendent del tresorer (P-29) | Tresorer **Substituït per la 070 i la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md) (09/11/2026):** un any des del pagament, fins al mateix dia de l'any següent; l'any natural només s'aplica als exempts. |
 | S-M01-04 | Dies dels recordatoris | 15 abans, 15 i 30 després | Tresorer **Decidit ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-061):** 15 abans, el dia abans, el mateix dia, i 15 i 30 després; configurables. |
 | S-M01-05 | Quotes pendents en una baixa | S'anul·len les posteriors a la data efectiva | Tresorer **Validat ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-056).** |
-| S-M01-06 | Número parcial a la verificació | Dos últims dígits | Junta **Decisió del responsable ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-063):** el número sencer; pendent de la junta, no es publica. |
-| S-M01-07 | Nom de pila a la verificació | No es mostra | Junta **Decidit ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-064):** es mostra, quan la junta confirmi la Q-063. |
+| S-M01-06 | Número parcial a la verificació | Dos últims dígits | Junta **Decisió del responsable ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-063):** el número sencer. **Confirmat per la junta** (09/11/2026; [referència de l'acta: a completar]). |
+| S-M01-07 | Nom de pila a la verificació | No es mostra | Junta **Decidit ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-064):** es mostra. **Confirmat per la junta** (09/11/2026; [referència de l'acta: a completar]). |
 | S-M01-08 | Contingut del darrere del carnet ([032](decisions/032-immersio-socis-i-centre.md)) | Contacte del club i instruccions de verificació | Junta **Decidit ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-065):** el contingut del wireframe, al carnet digital. |
 | S-M01-09 | Llindar de soci clàssic | Sense insígnia | Junta **Substituït ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-066):** l'administració l'assigna a mà. |
 | S-M01-10 | Antiguitat d'una readmissió | Compta des de la primera alta. **Resposta del responsable del projecte (Q-067, ronda 1, registrada el 09/11/2026): «Sí».** La pregunta era una confirmació externa de la junta: fins que la junta la confirmi, continua com a supòsit [A validar: junta] | Junta **Aplicat com a decisió ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)).** |
@@ -898,7 +898,7 @@ Fitxers orientatius; els fixa el pla tècnic de la 00. «Feta quan» sempre incl
 | S-M01-21 | Llavor de l'avatar ja al M01 | **Resolt:** es desa en l'alta (RN-M01-30) | — |
 | S-M01-22 | Conflicte d'interès (Q-11) | Ningú no aprova ni canvia el seu propi soci | Junta |
 | S-M01-23 | Els rols Junta, Resp. comunicació i Resp. botiga existeixen al model (P-04) | Existeixen sense permisos al M01 | Junta |
-| S-M01-24 | Quotes de socis importats pagades a Cluber per al període vigent (RN-M01-34) | El carnet és vàlid fins a final del període | Tresorer **Precisat ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-076):** fins a 12 mesos després de l'última renovació a Cluber. |
+| S-M01-24 | Quotes de socis importats pagades a Cluber per al període vigent (RN-M01-34) | El carnet és vàlid fins a final del període | Tresorer **Precisat ([072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), Q-076):** un any des del pagament, fins al mateix dia de l'any següent; data d'inici [A validar: tresorer] (P-62.1). |
 | S-M01-25 | Traspàs al club dels mandats SEPA vigents de Cluber (risc nou) | Cap supòsit: pregunta oberta al banc o a la gestoria | Tresorer |
 
 **Revisió de dubtes (doubt-driven, aplicada a mà)**
@@ -1286,25 +1286,39 @@ Aprovada el 04/11/2026, excepte la T-M01-39, que és una **proposta**. Canvia el
 <a id="M01-addenda-072"></a>
 ## M01 — Addenda de la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md): respostes de la ronda 1 de pendents
 
-Aprovada el 09/11/2026. Recull les respostes del responsable del projecte al document de consulta de la ronda 1 (Q-001 a Q-238) i les seves instruccions sobre les contradiccions. La llista completa, amb l'efecte de cada resposta, és a la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md). Aquí hi ha el que canvia l'especificació del 01. Les precisions datades de la RN-M01-07, 14, 15, 18, 19, 20, 21, 23, 26, 34 i 67, i dels supòsits de [M01-13](#M01-13-riscos), són al seu lloc.
+Aprovada el 09/11/2026, amb correccions del mateix dia. Recull les respostes del responsable del projecte al document de consulta de la ronda 1 (Q-001 a Q-238) i les seves dues instruccions escrites. La llista completa, amb l'efecte de cada resposta, és a la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md). Aquí hi ha el que canvia l'especificació del 01. Les precisions datades de la RN-M01-07, 14, 15, 17, 18, 19, 20, 21, 23, 26, 34 i 67, i dels supòsits de [M01-13](#M01-13-riscos), són al seu lloc.
+
+**Prioritat dels registres:**
+1. les correccions del responsable del 09/11/2026;
+2. la decisió més recent;
+3. el document de la ronda 1.
+
+Qualsevol altre conflicte es comunica al responsable.
 
 **Què canvia**
+- **Validesa del carnet (correcció del 09/11/2026):**
+  - un any des del dia del pagament, fins al **mateix dia de l'any següent**, no «+365 dies»;
+  - un pagament del 29 de febrer caduca el 28 de febrer de l'any següent;
+  - cap any natural, excepte per als exempts;
+  - per als importats de Cluber, la data d'inici és [A validar: tresorer] ([P-62.1](decisions/pendents.md); proposta: «Data alta/renovació»).
 - **Exempts per edat ([P-57](decisions/pendents.md), resolta):**
-  - passen a «actiu» en aprovar l'alta, amb carnet, sense quota ni càrrec de 0 €;
-  - el carnet els val fins al 31/12 de l'últim any exempt;
+  - passen a «actiu» en aprovar l'alta, amb carnet fins al 31/12 de l'últim any exempt, sense quota ni càrrec de 0 €;
   - l'1 de gener en què comencen a pagar continuen actius i se'ls genera la quota; si no la paguen, impagat a mà ([040](decisions/040-impagat-es-marca-a-ma.md)).
-
-  L'any natural només s'aplica als exempts. Per als que paguen mana la [070](decisions/070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md).
 - **Quota anul·lada i retorn dins del mateix període ([P-54](decisions/pendents.md), resolta, sortida E):**
   - es crea una quota nova del mateix període; l'anul·lada es queda a l'historial;
   - mana la quota pagada més recent;
-  - cal un ordinal a la clau d'`AnnualFee` (`(member, period, kind, n)`), que construeix la T-M01-14 o la T-M01-18, la primera que creï una segona quota.
-- **Pagament en tres terminis ([P-61](decisions/pendents.md)):** el primer en l'alta o la renovació; els altres dos, repartits equitativament dins dels 12 mesos. Substitueix «separats per dos mesos» de la 070. Un termini impagat deixa el soci en suspens. Continua sense implementar.
+  - cal un número d'ordre a la clau d'`AnnualFee` (`(member, period, kind, n)`), que construeix la T-M01-14.
+- **Pagament en tres terminis ([P-61](decisions/pendents.md)):**
+  - el primer en l'alta o la renovació; els altres dos, repartits equitativament dins dels 12 mesos;
+  - **la secretaria pot editar l'import i la data de cada termini, amb un permís propi i un motiu obligatori a l'historial**;
+  - el càlcul exacte de les dates i l'edició es fixen a la T-M01-18;
+  - un termini impagat deixa el soci en suspens.
+
+  Continuen obertes la resta de la P-61 (quan passa a actiu, si el suspens és manual o automàtic, quan es poden triar els terminis i els menors) i com l'edició d'un termini respecta la immutabilitat dels diners [A validar: responsable].
 - **Canvi de tipus i baixa (T-M01-17):**
   - el suplement és la diferència (55 €) i el canvi és efectiu en pagar-lo;
   - el pas de ple dret a simpatitzant s'aplica a la renovació següent;
   - un soci de baixa no canvia de tipus;
-  - es manté el motiu en el canvi de tipus d'un impagat;
   - rebutgen baixes i anul·len quotes anteriors els comptes amb permís d'edició, mai els de només lectura;
   - RN-M01-20 queda validada tal com és.
 - **Menors i alta (T-M01-14):**
@@ -1315,16 +1329,13 @@ Aprovada el 09/11/2026. Recull les respostes del responsable del projecte al doc
   - les sol·licituds no caduquen;
   - les dades del representant es conserven mentre la persona sigui sòcia.
 - **Camps opcionals del perfil ([P-58](decisions/pendents.md), resolta; T-M01-16):**
-  - entren el telèfon fix i l'adreça desglossada (codi postal, població i província), cadascun amb una finalitat;
-  - queden fora la nacionalitat, la professió i les observacions;
-  - els veuen i editen el soci i l'administració amb permís de camp, i es tracten com la resta del perfil.
-- **Registre per a P20 (Q-079, opció 1):** P20 també veu els canvis de perfil de la persona d'un soci, amb els camps protegits ocults sense el permís de camp. S'aplica quan es registrin aquests canvis (T-M01-15b i T-M01-16).
-- **Canvis a la T-M01-13 («Feta»), pendents d'aprovar l'abast:**
-  - caselles del butlletí i de les imatges a l'alta, desmarcades per defecte (Q-031);
-  - correu i telèfon del representant obligatoris, i del menor opcionals, amb els avisos al representant (Q-011);
-  - passaport només a l'alta presencial (Q-017).
-
-  No hi ha tasca fins que el responsable n'aprovi l'abast.
+  - entren el telèfon fix, l'adreça desglossada (codi postal, població i província), la nacionalitat i la professió;
+  - tots són opcionals i mai obligatoris per ser soci;
+  - cadascun té la finalitat escrita a la política de privacitat;
+  - «observacions» queda fora;
+  - els veuen i editen el soci i l'administració amb permís de camp.
+- **Verificació pública (RN-M01-26):** el número de soci sencer i el nom de pila. **Confirmat per la junta** (09/11/2026; [referència de l'acta: a completar]).
+- **Registre per a P20 (Q-079, opció 1):** P20 també veu els canvis de perfil de la persona d'un soci, amb els camps protegits ocults sense el permís de camp (T-M01-15b i T-M01-16).
 
 **Regla nova**
 | ID | Regla |
@@ -1339,13 +1350,16 @@ Aprovada el 09/11/2026. Recull les respostes del responsable del projecte al doc
 **Tasques**
 | # | Tasca | Esforç | Fitxers afectats | Depèn de | Feta quan |
 |---|---|---|---|---|---|
-| T-M01-40 | Exempció puntual de la quota (RN-M01-72): permís nou a la matriu, acció a la fitxa del soci i a les altes pendents, anul·lació del càrrec amb motiu i categoria «exempció», efecte en l'estat i el carnet, i registre d'activitat | M | `apps/members/` (serveis de quotes i vistes), plantilles, permís de la matriu (059) | T-M01-14, T-M01-18, T-M01-19 | CA-M01-65 a CA-M01-67. **No començada; no s'implementa** fins que es decideixin l'assignació inicial del permís i la data d'inici del període eximit (instrucció del 09/11/2026) |
+| T-M01-40 | Exempció puntual de la quota (RN-M01-72): permís nou a la matriu, acció a la fitxa del soci i a les altes pendents, anul·lació del càrrec amb motiu i categoria «exempció», efecte en l'estat i el carnet, i registre d'activitat | M | `apps/members/` (serveis de quotes i vistes), plantilles, permís de la matriu (059) | T-M01-14, T-M01-18, T-M01-19 | CA-M01-65 a CA-M01-67. **No començada; no s'implementa** fins que es decideixin l'assignació inicial del permís i la data d'inici del període eximit |
+| T-M01-41 | Canvis al formulari d'alta (web i presencial; la T-M01-13 està tancada): (1) caselles del **butlletí** i de les **imatges**, desmarcades per defecte i separades de les obligatòries, amb els tipus de text `newsletter` i `images` (Q-031); (2) **correu i telèfon del representant** obligatoris, i els del menor opcionals, amb el rebut i els avisos al representant (Q-011; canvi de `MemberRequest`); (3) **passaport** només a l'alta presencial, també per al representant (Q-017) | M | `apps/members/forms.py`, `join.py`, `models.py` i migració, plantilles de l'alta | T-M01-13, T-M01-08 | Una prova per a cada punt, incloses les caselles mai marcades pel servidor i el passaport rebutjat a la web. **No començada.** On es desa el consentiment d'imatges d'un menor de 14 anys espera la tria del responsable (a la persona del menor o a la sol·licitud). Els textos definitius depenen de la Q-16 |
 
 **Continuen obertes:**
 - la Q-024 i la Q-073 (conservació; el responsable les tornarà a respondre);
 - la Q-052 (des d'on resol el President);
 - la resta de la P-61 i de la P-29;
-- la R2-13 i la R2-21, que són d'una segona ronda que no és al repositori.
+- la data d'inici del carnet dels importats;
+- el consentiment d'imatges dels menors de 14 anys;
+- la R2-13 i la R2-21, que són del document de la ronda 2 i les ha d'aportar el responsable.
 
 ---
 

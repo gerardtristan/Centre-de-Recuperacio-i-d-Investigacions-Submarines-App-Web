@@ -1,6 +1,6 @@
 # Terminis de conservació: esborrany
 
-> **ESBORRANY. A VALIDAR: gestoria i assessor de protecció de dades.** No és vigent ni es pot aplicar. Respon a la Q-027 (Q-14 de la spec 00), segons la [decisió 072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md). Les bases legals les ha consultat l'equip en fonts secundàries el 09/11/2026: cada una porta **[A verificar]** fins que la gestoria la confirmi amb el text oficial.
+> **ESBORRANY. NO VIGENT. A VALIDAR: gestoria i assessor de protecció de dades.** No es pot aplicar. Respon a la Q-027 (Q-14 de la spec 00), segons la [decisió 072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md). Les bases legals les ha consultat l'equip en fonts secundàries el 09/11/2026: cada una porta **[A verificar]** fins que la gestoria la confirmi amb el text oficial.
 
 ## Principis que ja són decisió
 - **Limitació del termini (RGPD, art. 5.1.e):** les dades personals es conserven només el temps necessari per a la finalitat.
