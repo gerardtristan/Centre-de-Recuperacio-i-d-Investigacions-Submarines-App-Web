@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import personal, public
+from .views import personal, personal_requests, public
 
 app_name = "members"
 
@@ -12,4 +12,7 @@ urlpatterns = [
     path("socis/perfil/", personal.profile_view, name="profile"),
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
+    # T-M01-17: sol·licituds de canvi de tipus i de baixa (P14).
+    path("socis/canvi-tipus/", personal_requests.change_type_view, name="change_type"),
+    path("socis/baixa/", personal_requests.leave_view, name="leave"),
 ]

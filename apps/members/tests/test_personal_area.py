@@ -444,7 +444,8 @@ def test_navigation_without_member_has_no_fees_link(client_for, anna):
 def test_navigation_has_no_links_to_pages_not_built_yet(client_for, anna):
     make_member(anna.person, 427)
     html = client_for(anna).get(reverse(PROFILE)).content.decode()
-    for path in ("/socis/carnet", "/socis/canvi-tipus", "/socis/baixa", "/socis/perfil/esborrar"):
+    # El canvi de tipus i la baixa ja hi són (T-M01-17).
+    for path in ("/socis/carnet", "/socis/perfil/esborrar"):
         assert path not in html
 
 
