@@ -83,6 +83,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-18](T-M01-18.md) | Quotes i impagats: marca manual d'impagat amb motiu (**feta en part**; generació i recordatoris aturats per P-54, P-61, P-29, P-57 i RN-M01-14) | 09/11/2026 | 76c9cf3 | 1762 | no comprovat (sense push) |
 | [T-M01-15b](T-M01-15b.md) | Editar les dades d'un soci (P5) i corregir la data d'alta (P6) des de la fitxa (**feta en part**; el número de soci, pendent de decisió; data de naixement a la T-M01-33) | 09/11/2026 | d9302c7 | 1823 | no comprovat (sense push) |
 | [T-M01-23](T-M01-23.md) | Registre mínim de llicència a la fitxa: veure, afegir i corregir (**implementada, pendent de validació**; serveis de lectura a la T-M01-30, caducitat desconeguda a la T-M01-34) | 09/11/2026 | 00c6de6 | 1869 | no comprovat (sense push) |
+| [T-M01-30](T-M01-30.md) | Servei de lectura de la llicència: `licence_record` i `licence_records`, sense cap escriptura (**implementada, pendent de validació**; marca de caducitat desconeguda a la T-M01-34) | 09/11/2026 | f3ec865 | 1884 | no comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
