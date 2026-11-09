@@ -39,7 +39,7 @@ DROP FUNCTION core_settingversion_immutable();
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0011_person_birth_date"),
+        ("core", "0012_cluber_import_final"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

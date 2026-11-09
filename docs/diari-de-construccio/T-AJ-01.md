@@ -9,7 +9,7 @@
 Estat: **implementada, pendent de validació** del responsable del projecte.
 
 ## Què s'ha fet
-- Models `Setting` i `SettingVersion` a `core` (migració `core/0012_business_settings`). Les versions només admeten files noves: ho impedeixen l'ORM i uns disparadors de PostgreSQL. Detall: [pla, peça comuna d'ajustos](../planning.md#valors-configurables-055).
+- Models `Setting` i `SettingVersion` a `core` (migració `core/0013_business_settings`; era la `0012` a la branca nocturna i es va renumerar en integrar-la després de `core/0012_cluber_import_final`). Les versions només admeten files noves: ho impedeixen l'ORM i uns disparadors de PostgreSQL. Detall: [pla, peça comuna d'ajustos](../planning.md#valors-configurables-055).
 - `business_settings.get(key, at)` torna el valor vigent a una data (RN-AJ-01).
 - `business_settings.change(...)` comprova al servidor el permís del catàleg `settings.edit.<clau>`; sense permís, o amb una clau que no existeix, respon «no trobat». També comprova el tipus i el rang i, per als valors de diners, la data (avui o més endavant) i la nota. Crea la versió i l'entrada del registre d'activitat dins la mateixa transacció (RN-AJ-02 i 03).
 - `business_settings.notify_money_change(...)` envia l'avís per la cua de correu (RN-AJ-04). El fa servir `change` i el poden cridar els catàlegs i les tarifes. Plantilla `avis-canvi-diners`.
