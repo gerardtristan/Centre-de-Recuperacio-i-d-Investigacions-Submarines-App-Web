@@ -81,6 +81,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; Q-079, R2-13, P-57, P-61, P-54, P-58, Q-052 i R2-21 oberts) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
 | [T-M01-14](T-M01-14.md) | Altes pendents: aprovar amb número bloquejat i readmissió, rebutjar amb motiu (**implementada, pendent de validació**; sense quota ni invitació: P-54, P-61, P-29, P-33, P-57 i RN-M01-70 oberts) | 09/11/2026 | 5713643 | 1720 | no comprovat (sense push) |
 | [T-M01-18](T-M01-18.md) | Quotes i impagats: marca manual d'impagat amb motiu (**feta en part**; generació i recordatoris aturats per P-54, P-61, P-29, P-57 i RN-M01-14) | 09/11/2026 | 76c9cf3 | 1762 | no comprovat (sense push) |
+| [T-M01-15b](T-M01-15b.md) | Editar les dades d'un soci (P5) i corregir la data d'alta (P6) des de la fitxa (**feta en part**; el número de soci, pendent de decisió; data de naixement a la T-M01-33) | 09/11/2026 | d9302c7 | 1823 | no comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
