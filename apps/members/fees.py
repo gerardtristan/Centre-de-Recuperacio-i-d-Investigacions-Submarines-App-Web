@@ -13,15 +13,48 @@ es crea cap quota ni cap càrrec.
 import datetime
 
 from django import forms
+from django.core.exceptions import ValidationError
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
+
+from apps.core import charges
+from apps.core.models import Charge
 
 from . import roster
 from .fee_rules import local_today
-from .models import Member
+from .models import AnnualFee, Member
 
 S = Member.Status
 VIEW = roster.FEES  # P10
 REVIEWED = (S.ACTIVE, S.UNPAID)  # els únics que es poden marcar o desmarcar (RN-M01-07)
+
+
+def issue_annual_fee(member, *, period: int, due_on: datetime.date, by) -> AnnualFee:
+    """Quota anual íntegra del tipus del soci (070; RN-M01-13: l'import del tipus quan es crea),
+    sobre un càrrec «quota» a «General» (la 00 ho imposa). P-54, sortida E (072): si les quotes
+    d'aquest període estan anul·lades, se'n crea una de nova amb el número d'ordre següent; si n'hi
+    ha cap de viva (pendent, pagada o retornada), es rebutja. Qui crida ja ha comprovat el permís
+    i és dins la transacció que bloqueja el soci."""
+    same = AnnualFee.objects.filter(member=member, period=period, kind=AnnualFee.Kind.ANNUAL)
+    if same.exclude(charge__status=Charge.Status.CANCELLED).exists():
+        raise ValidationError(_("Aquest soci ja té una quota d'aquest període."))
+    sequence = (same.aggregate(n=Max("sequence"))["n"] or 0) + 1
+    charge = charges.create_charge(
+        member.person,
+        kind=Charge.Kind.FEE,
+        amount_cents=member.type.annual_fee_cents,
+        concept=str(_("Quota de soci %(period)s") % {"period": period}),
+        origin="members",
+        by=by,
+    )
+    return AnnualFee.objects.create(
+        member=member,
+        period=period,
+        kind=AnnualFee.Kind.ANNUAL,
+        sequence=sequence,
+        charge=charge,
+        due_on=due_on,
+    )
 
 
 class FeeFilterForm(forms.Form):

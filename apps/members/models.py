@@ -311,6 +311,14 @@ class MemberRequest(models.Model):
     birth_date = models.DateField(_("data de naixement"), null=True, blank=True)
     # Pare, mare o tutor legal d'un menor (RN-M01-62): tot o res. Visibilitat del document: C2.
     # Cap vista no els edita; només els canviarà l'anonimització (T-M01-22).
+    # Q-042 (072): el correu i el telèfon escrits a la sol·licitud quan el document ja era d'una
+    # persona existent i no coincideixen amb els seus. Només els veu qui revisa l'alta (P3); la
+    # secretaria decideix en aprovar si actualitza la persona, amb registre. S'anonimitzen amb la
+    # resta de la sol·licitud (T-M01-22).
+    new_contact_email = models.EmailField(_("correu nou de contacte"), blank=True, default="")
+    new_contact_phone = models.CharField(
+        _("telèfon nou de contacte"), max_length=30, blank=True, default=""
+    )
     guardian_first_name = models.CharField(_("nom del representant"), max_length=100, blank=True)
     guardian_last_name = models.CharField(_("cognoms del representant"), max_length=150, blank=True)
     guardian_id_document_type = models.CharField(
@@ -501,6 +509,9 @@ class AnnualFee(UndeletableModel):
     )
     period = models.PositiveSmallIntegerField(_("període"))
     kind = models.CharField(_("tipus de quota"), max_length=25, choices=Kind.choices)
+    # P-54, sortida E (072): si la quota d'un període es va anul·lar, se'n crea una de nova del
+    # mateix període amb el número d'ordre següent; l'anul·lada es queda a l'historial.
+    sequence = models.PositiveSmallIntegerField(_("número d'ordre"), default=1)
     charge = models.OneToOneField(
         Charge, on_delete=models.PROTECT, related_name="annual_fee", verbose_name=_("càrrec")
     )
@@ -511,7 +522,11 @@ class AnnualFee(UndeletableModel):
         verbose_name_plural = _("quotes")
         constraints = [
             models.UniqueConstraint(
-                fields=["member", "period", "kind"], name="annualfee_unique_period_kind"
+                fields=["member", "period", "kind", "sequence"],
+                name="annualfee_unique_period_kind_sequence",
+            ),
+            models.CheckConstraint(
+                condition=Q(sequence__gte=1), name="annualfee_sequence_positive"
             ),
             models.CheckConstraint(
                 condition=Q(kind__in=["annual", "type_change_supplement"]),

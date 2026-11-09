@@ -1,11 +1,11 @@
 """Altes pendents: aprovar i rebutjar (T-M01-14; CA-M01-03 a 05; RN-M01-05, RN-M01-06; 039,
 059 i 067).
 
-Fora d'aquestes proves, perquè depenen de decisions obertes i no s'han implementat: la quota del
-període (P-54, P-61, P-29), la invitació per activar el compte (P-33 per als menors; cap mecanisme
-d'invitació), passar les acceptacions a `core.Consent` i l'activació dels exempts (P-57). Les
-proves comproven que, mentrestant, aprovar no crea cap quota, càrrec, compte ni consentiment.
-Només dades inventades.
+Retoc del 09/11/2026 (072): quota anual íntegra amb número d'ordre (P-54 E), exempts actius amb
+carnet (P-57), acceptacions del sol·licitant a `core.Consent` (Q-044), comprovació del
+representant (Q-043) i contacte nou a la sol·licitud (Q-042). Fora d'aquestes proves: la invitació
+per activar el compte (cap mecanisme especificat; cap per als menors de 14 anys, Q-012), i les
+proves comproven que no es crea cap compte personal. Només dades inventades.
 """
 
 import datetime
@@ -181,8 +181,10 @@ class TestApprove:
         assert join_request.resolved_by == secretary
         assert join_request.resolved_at is not None
         assert join_request.effective_on == timezone.localdate()
-        # Quota, invitació i consentiments: pendents de decisió, no es creen (vegeu el docstring).
-        assert side_effects() == before
+        # 072: la quota anual íntegra (un càrrec); cap compte personal (invitació oberta) ni
+        # consentiment (aquesta sol·licitud no té acceptacions).
+        fees, charges_, accounts, consents_ = before
+        assert side_effects() == (fees + 1, charges_ + 1, accounts, consents_)
 
     def test_writes_initial_history_entry(self, secretary):
         member = admissions.approve_join(a_request(), by=secretary)
@@ -280,9 +282,12 @@ class TestBlocked:
         self.assert_not_approved(join_request, secretary)
 
     def test_minor_with_document_is_approved(self, secretary):
-        member = admissions.approve_join(minor_request(document=True), by=secretary)
-        assert member.status == S.PENDING
-        assert not AnnualFee.objects.exists()  # P-57: cap quota ni activació dels exempts
+        member = admissions.approve_join(
+            minor_request(document=True), by=secretary, guardian_checked=True
+        )
+        # P-57, opció 1 (072): l'exempt per edat passa a actiu, sense quota.
+        assert member.status == S.ACTIVE
+        assert not AnnualFee.objects.exists()
 
     def test_person_who_is_already_a_member(self, secretary):
         person = a_person()

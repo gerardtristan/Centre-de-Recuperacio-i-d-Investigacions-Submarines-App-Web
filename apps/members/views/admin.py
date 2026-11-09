@@ -405,6 +405,10 @@ def join_requests_view(request):
                 "own": join_request.person_id == request.user.person_id,
                 "blocker": admissions.approval_blocker(join_request),
                 "identity_check": admissions.needs_identity_check(join_request),
+                "guardian_check": admissions.needs_guardian_check(join_request),
+                "new_contact": bool(
+                    join_request.new_contact_email or join_request.new_contact_phone
+                ),
                 "matches": sorted({w.get("match") for w in join_request.duplicate_warning}),
                 "birth_date": join_request.birth_date if birth_date else None,
                 "document": roster.document_label(person) if identity else "",
@@ -453,12 +457,18 @@ def join_approve_view(request, pk):
             join_request,
             by=request.user,
             identity_checked=request.POST.get("identitat_comprovada") == "1",
+            guardian_checked=request.POST.get("representant_comprovat") == "1",
+            update_contact=request.POST.get("actualitza_contacte") == "1",
             request=request,
         )
-        return _("Alta aprovada: %(person)s, soci número %(number)s, queda pendent.") % {
-            "person": member.person,
-            "number": member.member_number,
-        }
+        if member.status == Member.Status.ACTIVE:
+            text = _("Alta aprovada: %(person)s, soci número %(number)s, actiu i exempt per edat.")
+        else:
+            text = _(
+                "Alta aprovada: %(person)s, soci número %(number)s, pendent fins que pagui "
+                "la quota."
+            )
+        return text % {"person": member.person, "number": member.member_number}
 
     return _resolve(request, pk, approve)
 

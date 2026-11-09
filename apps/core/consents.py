@@ -109,6 +109,40 @@ def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
 
 
 @transaction.atomic
+def grant_accepted(
+    person, text: LegalText, *, channel: str, recorded_by=None, by=None, request=None, source=None
+) -> Consent:
+    """Atorga el consentiment amb la versió exacta que la persona va acceptar en una altra
+    operació (p. ex. la sol·licitud d'alta, Q-044 de la 072), no amb la vigent. `recorded_by` és
+    el compte que va registrar l'acceptació presencial; `by`, qui fa l'operació ara (l'actor del
+    registre); `source`, una referència sense dades personals per al registre (p. ex. la
+    sol·licitud). Si l'últim consentiment d'aquest tipus ja és aquesta versió atorgada, no fa
+    res."""
+    if channel == Consent.Channel.IN_PERSON and recorded_by is None:
+        raise ValidationError(_("Aquest consentiment necessita el compte que el registra."))
+    last = _last(person, text.kind)
+    if last and last.action == Consent.Action.GRANTED and last.legal_text_id == text.pk:
+        return last
+    consent = Consent.objects.create(
+        person=person,
+        legal_text=text,
+        action=Consent.Action.GRANTED,
+        channel=channel,
+        recorded_by=recorded_by if channel == Consent.Channel.IN_PERSON else None,
+    )
+    audit.record(
+        GRANTED,
+        actor=by,
+        target=person,
+        field=f"consent:{text.kind}",
+        new=Consent.Action.GRANTED,
+        details={"version": text.version, "channel": channel, **(source or {})},
+        request=request,
+    )
+    return consent
+
+
+@transaction.atomic
 def withdraw(person, kind: str, *, channel: str, by=None, request=None) -> Consent | None:
     """Retira el consentiment: fila nova lligada a la versió que s'havia acceptat; l'anterior
     no canvia i l'efecte és immediat (CA-17.3). Sense consentiment actiu, no fa res."""

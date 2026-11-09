@@ -9,7 +9,7 @@
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent. Encara no es crea la quota ni s'envia la invitació per activar el compte: estan pendents de decisió." %}</p>
+  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. Encara no s'envia la invitació per activar el compte." %}</p>
 
   {% for row in rows %}
     {% with jr=row.request person=row.person %}
@@ -23,6 +23,9 @@
         <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
         {% if jr.guardian_last_name %}
           <div><dt>{% translate "Pare, mare o tutor legal" %}</dt><dd>{{ jr.guardian_first_name }} {{ jr.guardian_last_name }}{% if row.guardian_document %} · <span class="codi">{{ row.guardian_document }}</span>{% endif %}</dd></div>
+        {% endif %}
+        {% if row.new_contact %}
+          <div><dt>{% translate "Contacte nou escrit a la sol·licitud" %}</dt><dd>{{ jr.new_contact_email|default:"—" }}{% if jr.new_contact_phone %} · {{ jr.new_contact_phone }}{% endif %}</dd></div>
         {% endif %}
         {% if row.former %}
           <div><dt>{% translate "Soci existent" %}</dt><dd>{% blocktranslate with number=row.former.member_number|default:"—" status=row.former.get_status_display %}Número {{ number }} · {{ status }}{% endblocktranslate %}</dd></div>
@@ -49,6 +52,12 @@
             {% csrf_token %}
             {% if row.identity_check %}
               <label class="casella"><input type="checkbox" name="identitat_comprovada" value="1" required> <span>{% translate "He comprovat la identitat de la persona" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.guardian_check %}
+              <label class="casella"><input type="checkbox" name="representant_comprovat" value="1" required> <span>{% translate "He comprovat el document del pare, la mare o el tutor legal" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.new_contact %}
+              <label class="casella"><input type="checkbox" name="actualitza_contacte" value="1"> <span>{% translate "Actualitza el correu i el telèfon de la persona amb els de la sol·licitud" %}</span></label>
             {% endif %}
             <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Aprova l'alta" %}</button></div>
           </form>

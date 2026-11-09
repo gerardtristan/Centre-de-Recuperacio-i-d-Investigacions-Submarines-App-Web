@@ -26,7 +26,7 @@ from django.db import transaction
 
 from apps.core import audit, consents, mail
 from apps.core.models import LegalText, Person
-from apps.core.normalization import normalize_email
+from apps.core.normalization import normalize_email, normalize_phone
 from apps.core.persons import create_or_get
 
 from . import fee_rules
@@ -105,6 +105,15 @@ def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True
     ).exists()
 
     warning = _warnings(check, person, fields["contact_email"])
+    # Q-042 (072): si la persona ja existia, el contacte escrit no la modifica; es desa a la
+    # sol·licitud si és diferent, i la secretaria decideix en aprovar.
+    new_contact = {}
+    if not created:
+        email, phone = normalize_email(fields["contact_email"]), normalize_phone(fields["phone"])
+        if email and email != person.contact_email:
+            new_contact["new_contact_email"] = email
+        if phone and phone != person.phone:
+            new_contact["new_contact_phone"] = phone
     join_request = None
     if not pending:
         join_request = MemberRequest.objects.create(
@@ -114,6 +123,7 @@ def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True
             channel=channel,
             duplicate_warning=warning,
             birth_date=birth_date,
+            **new_contact,
             **guardian,
         )
         # Qui accepta: la persona adulta o, per a un menor, el representant (RN-M01-63).
