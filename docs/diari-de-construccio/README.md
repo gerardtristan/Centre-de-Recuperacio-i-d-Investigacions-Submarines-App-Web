@@ -82,6 +82,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-33](T-M01-33.md) | Data de naixement a la persona, `persons.age_band` i visibilitat per rol (**Feta en part**: RGPD pendent de la T-M01-22; pendent de validació) | 09/11/2026 | 331cfb2 | 1692 | [A comprovar]: sense push |
 | [T-M01-24b](T-M01-24b.md) | Importació de Cluber adaptada al format real: UTF-8 o Windows-1252, IBAN descartat, equivalències i tipus per nom o preu (**implementada, pendent de validació**; P-62, P-63 i P-64 obertes) | 09/11/2026 | 3c6d0b5, fd11cc9 | 1767 | [A comprovar]: sense push |
 | [T-M01-25](T-M01-25.md) | Importació de Cluber, fase final: servei preparat i bloquejat per configuració (**implementada, pendent de validació**; cap fila importable fins a la P-62; P-65 oberta) | 09/11/2026 | ff18a54 | 1801 | [A comprovar]: sense push |
+| [T-AJ-01](T-AJ-01.md) | Peça comuna d'ajustos: `Setting`, `SettingVersion`, lectura, canvi amb permís del catàleg, data d'entrada en vigor i avís dels canvis de diners (**Implementada, pendent de validació**; S-AJ-02 i S-AJ-01 obertes) | 09/11/2026 | b7bfc2e | 1738 | [A comprovar]: sense push |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
