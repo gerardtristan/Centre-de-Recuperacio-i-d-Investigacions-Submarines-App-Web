@@ -42,32 +42,94 @@ REMINDER_TEMPLATE = "recordatori-quota"
 UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
 
 
-def issue_annual_fee(member, *, period: int, due_on: datetime.date, by) -> AnnualFee:
-    """Quota anual íntegra del tipus del soci (070; RN-M01-13: l'import del tipus quan es crea),
-    sobre un càrrec «quota» a «General» (la 00 ho imposa). P-54, sortida E (072): si les quotes
-    d'aquest període estan anul·lades, se'n crea una de nova amb el número d'ordre següent; si n'hi
-    ha cap de viva (pendent, pagada o retornada), es rebutja. Qui crida ja ha comprovat el permís
-    i és dins la transacció que bloqueja el soci."""
-    same = AnnualFee.objects.filter(member=member, period=period, kind=AnnualFee.Kind.ANNUAL)
+def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> AnnualFee:
+    """Quota sobre un càrrec «quota» a «General» (la 00 ho imposa). P-54, sortida E (072): si les
+    quotes d'aquest tipus i període estan anul·lades, se'n crea una de nova amb el número d'ordre
+    següent; si n'hi ha cap de viva (pendent, pagada o retornada), es rebutja. Qui crida ja ha
+    comprovat el permís i és dins la transacció que bloqueja el soci."""
+    same = AnnualFee.objects.filter(member=member, period=period, kind=kind)
     if same.exclude(charge__status=Charge.Status.CANCELLED).exists():
-        raise ValidationError(_("Aquest soci ja té una quota d'aquest període."))
+        raise ValidationError(_("Aquest soci ja té una quota d'aquest tipus i període."))
     sequence = (same.aggregate(n=Max("sequence"))["n"] or 0) + 1
     charge = charges.create_charge(
         member.person,
         kind=Charge.Kind.FEE,
-        amount_cents=member.type.annual_fee_cents,
-        concept=str(_("Quota de soci %(period)s") % {"period": period}),
+        amount_cents=amount_cents,
+        concept=concept,
         origin="members",
         by=by,
     )
     return AnnualFee.objects.create(
-        member=member,
-        period=period,
-        kind=AnnualFee.Kind.ANNUAL,
-        sequence=sequence,
-        charge=charge,
-        due_on=due_on,
+        member=member, period=period, kind=kind, sequence=sequence, charge=charge, due_on=due_on
     )
+
+
+def issue_annual_fee(member, *, period: int, due_on: datetime.date, by) -> AnnualFee:
+    """Quota anual íntegra del tipus del soci (070; RN-M01-13: l'import del tipus quan es
+    crea)."""
+    return _issue_fee(
+        member,
+        kind=AnnualFee.Kind.ANNUAL,
+        amount_cents=member.type.annual_fee_cents,
+        concept=str(_("Quota de soci %(period)s") % {"period": period}),
+        period=period,
+        due_on=due_on,
+        by=by,
+    )
+
+
+def supplement_cents(member, target_type) -> int:
+    """Q-049 (072): la diferència entre les quotes dels dos tipus (55 € de simpatitzant a ple
+    dret), amb els imports vigents quan s'aprova el canvi."""
+    return target_type.annual_fee_cents - member.type.annual_fee_cents
+
+
+def issue_type_change_supplement(member, target_type, *, period, due_on, by) -> AnnualFee:
+    """Suplement del canvi a ple dret (Q-049). El canvi és efectiu quan es paga (Q-050)."""
+    cents = supplement_cents(member, target_type)
+    if cents <= 0:
+        raise ValidationError(_("Aquest canvi de tipus no té cap suplement a pagar."))
+    return _issue_fee(
+        member,
+        kind=AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT,
+        amount_cents=cents,
+        concept=str(_("Suplement de canvi a %(type)s") % {"type": target_type.name}),
+        period=period,
+        due_on=due_on,
+        by=by,
+    )
+
+
+EDIT_PERMISSION = "members.fees.generate"  # P8, el permís d'edició de quotes (Q-057)
+CANCELLED_FEE = "members.fee.cancelled"
+
+
+def cancel_fee(fee, *, by, reason, request=None) -> AnnualFee:
+    """Anul·la (perdona) una quota pendent o retornada, amb motiu (Q-057 de la 072): ho pot fer
+    qui té permís d'edició de quotes (P8 amb edició); amb només lectura, no. Sempre és una
+    anul·lació del càrrec, mai un esborrat (RN-67)."""
+    from django.http import Http404
+
+    from apps.accounts.models import Account
+    from apps.core.permissions import has_perm
+
+    from .services import _check_account_active, ensure_not_own_member
+
+    if not isinstance(by, Account) or not has_perm(by, EDIT_PERMISSION, write=True):
+        raise Http404
+    _check_account_active(by)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu per anul·lar la quota."))
+    ensure_not_own_member(fee.member, by, request=request)
+    with transaction.atomic():
+        locked = AnnualFee.objects.select_related("charge").get(pk=fee.pk)
+        if locked.charge.status not in UNPAID_CHARGE:
+            raise ValidationError(_("Només es pot anul·lar una quota pendent o retornada."))
+        charges.cancel(locked.charge, reason, by=by)
+        audit.record(CANCELLED_FEE, actor=by, target=locked, reason=reason, request=request)
+    fee.refresh_from_db()
+    return fee
 
 
 class FeeFilterForm(forms.Form):

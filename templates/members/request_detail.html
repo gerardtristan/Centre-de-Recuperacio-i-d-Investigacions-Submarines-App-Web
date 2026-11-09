@@ -28,7 +28,7 @@
       <div class="avis avis-avis" role="status"><strong>{% translate "És la teva sol·licitud" %}</strong> {% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
     {% elif can_resolve %}
       {% if item.kind == "change_type" %}
-        <div class="avis avis-avis" role="status">{% translate "Encara no es pot aprovar un canvi de tipus: falten decisions de la junta sobre l'import del suplement, com es cobra i quan és efectiu. Sí que el pots rebutjar amb motiu." %}</div>
+        <p>{% blocktranslate with amount=supplement_cents|floatformat:"0" %}En aprovar-lo es crea el suplement, la diferència entre les dues quotes. El canvi de tipus és efectiu quan el soci el paga.{% endblocktranslate %}</p>
       {% endif %}
       <form class="formulari" method="post" action="{% url 'administration:member_request_detail' item.pk %}" novalidate>
         {% csrf_token %}
@@ -36,6 +36,7 @@
         {% include "accounts/_camp.html" with field=form.reason %}
         <div class="accions">
           {% if item.kind == "leave" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% translate "Valida la baixa" %}</button>{% endif %}
+          {% if item.kind == "change_type" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% translate "Aprova el canvi" %}</button>{% endif %}
           <button class="boto" type="submit" name="action" value="reject">{% translate "Rebutja" %}</button>
         </div>
       </form>

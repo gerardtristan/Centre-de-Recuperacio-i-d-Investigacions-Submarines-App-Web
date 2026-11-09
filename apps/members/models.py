@@ -319,6 +319,15 @@ class MemberRequest(models.Model):
     new_contact_phone = models.CharField(
         _("telèfon nou de contacte"), max_length=30, blank=True, default=""
     )
+    # T-M01-17 (072): el suplement d'un canvi de tipus aprovat; en pagar-lo, el canvi es fa.
+    supplement_fee = models.OneToOneField(
+        "AnnualFee",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="type_change_request",
+        verbose_name=_("suplement"),
+    )
     guardian_first_name = models.CharField(_("nom del representant"), max_length=100, blank=True)
     guardian_last_name = models.CharField(_("cognoms del representant"), max_length=150, blank=True)
     guardian_id_document_type = models.CharField(

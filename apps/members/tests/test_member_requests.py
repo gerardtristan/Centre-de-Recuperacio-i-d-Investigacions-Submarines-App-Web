@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
@@ -461,33 +462,95 @@ def test_effective_date_before_joining_is_rejected(make_admin, marta):  # noqa: 
     assert not MemberStatusChange.objects.exists()
 
 
-def test_leave_with_unpaid_fees_is_blocked_pending_decision(make_admin, marta):  # noqa: F811
+def test_leave_cancels_later_unpaid_fees_and_keeps_earlier_ones(make_admin, marta):  # noqa: F811
+    # RN-M01-20 tal com és (Q-056 de la 072).
     member = marta[0]
-    add_unpaid_fee(member)
+    add_unpaid_fee(member)  # venç l'1/1/2026: anterior a la baixa, es continua devent
+    later = charges.create_charge(
+        member.person,
+        kind=Charge.Kind.FEE,
+        amount_cents=3500,
+        concept="Quota posterior de prova",
+        origin="members",
+        by=audit.system("proves"),
+    )
+    AnnualFee.objects.create(
+        member=member,
+        period=2099,
+        kind=AnnualFee.Kind.ANNUAL,
+        charge=later,
+        due_on=date(2099, 1, 1),
+    )
     request = leave_request(member)
-    with pytest.raises(ValidationError, match="quotes pendents"):
-        mr.approve_leave(request, by=make_admin("secretary"), effective_on=local_today())
+    mr.approve_leave(request, by=make_admin("secretary"), effective_on=local_today())
     member.refresh_from_db()
-    request.refresh_from_db()
-    assert member.status == "active" and request.status == RS.PENDING
-    assert AnnualFee.objects.get().charge.status == Charge.Status.PENDING  # cap anul·lació
+    assert member.status == "left"
+    statuses = dict(AnnualFee.objects.values_list("period", "charge__status"))
+    assert statuses == {2026: Charge.Status.PENDING, 2099: Charge.Status.CANCELLED}
 
 
-def test_approving_a_type_change_is_disconnected(make_admin, marta):  # noqa: F811
+def test_approving_a_type_change_creates_the_supplement_and_applies_on_payment(
+    make_admin,  # noqa: F811
+    marta,  # noqa: F811
+):
+    # Q-049 (55 €) i Q-050 (efectiu en pagar-lo) de la 072.
+    from apps.core.models import Payment
+    from apps.members import services
+
     member = marta[0]
     request = change_request(member)
     client = admin_client(make_admin("secretary"))
     page = client.get(reverse(DETAIL, args=[request.pk])).content.decode()
-    assert 'value="approve"' not in page
-    response = client.post(
+    assert 'value="approve"' in page
+    client.post(
         reverse(DETAIL, args=[request.pk]),
         {"action": "approve", "effective_on": local_today().isoformat()},
     )
-    assert response.status_code == 200
     request.refresh_from_db()
     member.refresh_from_db()
-    assert request.status == RS.PENDING and member.type.code == "supporter"
-    assert not AnnualFee.objects.exists() and not Charge.objects.exists()
+    assert request.status == RS.APPROVED and request.effective_on is None
+    fee = request.supplement_fee
+    assert fee.kind == AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT
+    assert fee.charge.amount_cents == 9000 - 3500
+    assert member.type.code == "supporter"  # encara no: falta pagar-lo
+
+    payment = Payment.objects.create(
+        charge=fee.charge, method=Payment.Method.CARD, amount_cents=5500, paid_at=timezone.now()
+    )
+    charges.mark_paid(fee.charge, payment, origin="provider", by=audit.system("proves"))
+    services.on_fee_paid(fee.pk)
+    member.refresh_from_db()
+    request.refresh_from_db()
+    assert member.type.code == "full"
+    assert request.effective_on == local_today()
+    services.on_fee_paid(fee.pk)  # una segona notificació no fa res més
+    assert member.status_changes.filter(to_type__code="full").count() == 1
+
+
+def test_a_left_member_does_not_change_type(make_admin, marta):  # noqa: F811
+    # Q-053 de la 072.
+    member = marta[0]
+    request = change_request(member)
+    Member.objects.filter(pk=member.pk).update(status="left", left_on=local_today())
+    with pytest.raises(ValidationError):
+        mr.approve_type_change(request, by=make_admin("secretary"))
+    assert not AnnualFee.objects.exists()
+
+
+def test_cancelling_a_fee_needs_edit_permission(make_admin, marta):  # noqa: F811
+    # Q-057 de la 072: amb permís d'edició de quotes (P8), amb motiu; amb només lectura, no.
+    from apps.members import fees
+
+    member = marta[0]
+    add_unpaid_fee(member)
+    fee = AnnualFee.objects.get()
+    with pytest.raises(Http404):
+        fees.cancel_fee(fee, by=make_admin("secretary"), reason="Prova")
+    treasurer = make_admin("treasurer")
+    with pytest.raises(ValidationError):
+        fees.cancel_fee(fee, by=treasurer, reason="")
+    fees.cancel_fee(fee, by=treasurer, reason="Perdonada per la junta (prova)")
+    assert AnnualFee.objects.get().charge.status == Charge.Status.CANCELLED
 
 
 # --- Conflicte d'interès als punts d'entrada (S-M01-22) -------------------------------------

@@ -20,7 +20,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.permissions import has_perm, permission_required, request_permissions, require_perm
-from apps.members import member_requests
+from apps.members import fees, member_requests
 from apps.members.fee_rules import local_today
 from apps.members.models import Member, MemberRequest
 from apps.members.services import OwnMemberChange
@@ -101,6 +101,10 @@ def request_detail_view(request, pk):
                     member_requests.reject(
                         member_request, by=request.user, reason=data["reason"], request=request
                     )
+                elif member_request.kind == MemberRequest.Kind.CHANGE_TYPE:
+                    member_requests.approve_type_change(
+                        member_request, by=request.user, request=request
+                    )
                 else:
                     member_requests.approve_leave(
                         member_request,
@@ -123,6 +127,12 @@ def request_detail_view(request, pk):
         "can_resolve": can_resolve and not own,
         "own": own,
         "pending": member_request.status == MemberRequest.Status.PENDING,
+        "supplement_cents": (
+            fees.supplement_cents(member_request.member, member_request.requested_type)
+            if member_request.kind == MemberRequest.Kind.CHANGE_TYPE
+            and member_request.requested_type_id
+            else None
+        ),
     }
     return render(request, "members/request_detail.html", context, status=status)
 

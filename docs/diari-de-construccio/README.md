@@ -95,7 +95,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-26](T-M01-26.md) | Serveis oferts a altres mòduls amb proves de contracte (**feta en part**, sessió nocturna i retoc del 09/11/2026 a la branca d'integració; pendent de validació; queden l'avís al tresorer, el cas del soci de baixa, el carnet en una renovació i P-61) | 09/11/2026 | ecf760c | 1781 | No comprovat (sense push) |
 | [T-M01-20](T-M01-20.md) | Verificació pública del carnet amb limitació de peticions (**implementada, pendent de validació**, retoc del 09/11/2026: número sencer i nom de pila, 072) | 09/11/2026 | 553c24f | 1756 | No comprovat (sense push) |
 | [T-M01-21](T-M01-21.md) | Web instal·lable: manifest, service worker i carnet sense connexió (**implementada, pendent de validació**, sessió nocturna; prova en un navegador no comprovada; sense QR, pendent de la pregunta de la T-M01-19) | 09/11/2026 | af3e7ce | 1753 | No comprovat (sense push) |
-| [T-M01-17](T-M01-17.md) | Canvi de tipus i baixa: sol·licitud i resolució (**feta en part**, sessió nocturna; pendent de validació; aprovar el canvi de tipus, desconnectat: RN-M01-15, P-54; baixa amb quotes pendents: P-50) | 09/11/2026 | 6571003 | 1762 | No comprovat (sense push) |
+| [T-M01-17](T-M01-17.md) | Canvi de tipus i baixa: sol·licitud i resolució (**feta en part**; retoc del 09/11/2026: suplement de 55 € efectiu en pagar-lo, baixa segons la RN-M01-20 i permisos d'edició, sessió nocturna; pendent de validació; aprovar el canvi de tipus, desconnectat: RN-M01-15, P-54; baixa amb quotes pendents: P-50) | 09/11/2026 | 6571003 | 1762 | No comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).

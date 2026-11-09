@@ -428,6 +428,7 @@ __all__ += [
 FEE_PAID_ORIGIN = "members.on_fee_paid"
 FEE_RETURNED_ORIGIN = "members.on_fee_returned"
 FEE_PAID_WHILE_UNPAID = "members.fee_paid_while_unpaid"
+SUPPLEMENT_PAID_NOT_ACTIVE = "members.supplement_paid_not_active"
 FEE_RETURNED = "members.fee_returned"
 MEMBER_STATUSES = (S.ACTIVE, S.UNPAID)  # «és soci» a M01-8: actiu o impagat
 
@@ -581,6 +582,8 @@ def on_fee_paid(annual_fee_id) -> Member:
         member = Member.objects.select_for_update(of=("self",)).get(pk=fee.member_id)
         if fee.charge.status != Charge.Status.PAID or fee.charge.person_id != member.person_id:
             raise InvalidTransition(_("El càrrec d'aquesta quota no consta com a pagat."))
+        if fee.kind == AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT:
+            return _apply_paid_supplement(fee, member, by=by)
         if fee.kind != AnnualFee.Kind.ANNUAL or member.status == S.ACTIVE:
             return member
         if member.status == S.UNPAID:
@@ -596,6 +599,37 @@ def on_fee_paid(annual_fee_id) -> Member:
         cards.replace_card(
             member, by=by, reason=_("Carnet nou en confirmar-se el pagament de la quota.")
         )
+    member.refresh_from_db()
+    return member
+
+
+def _apply_paid_supplement(fee, member, *, by) -> Member:
+    """Q-050 (072): el canvi a ple dret és efectiu quan es paga el suplement. Només una vegada i
+    només si el soci continua actiu; si no, queda al registre perquè ho revisi la secretaria."""
+    change = (
+        MemberRequest.objects.select_for_update(of=("self",))
+        .select_related("requested_type")
+        .filter(supplement_fee=fee, status=MemberRequest.Status.APPROVED, effective_on=None)
+        .first()
+    )
+    if change is None:
+        return member
+    if member.status != S.ACTIVE:
+        audit.record(SUPPLEMENT_PAID_NOT_ACTIVE, actor=by, target=fee)
+        return member
+    today = local_today()
+    _change_type(
+        member,
+        change.requested_type,
+        by=by,
+        effective_on=today,
+        reason=_("Suplement del canvi de tipus pagat."),
+    )
+    change.effective_on = today
+    change.save(update_fields=["effective_on"])
+    # RN-M01-25: amb el canvi de tipus, carnet nou si en tenia un (si escau).
+    if cards.active_card(member) is not None:
+        cards.replace_card(member, by=by, reason=_("Carnet nou pel canvi de tipus."))
     member.refresh_from_db()
     return member
 
