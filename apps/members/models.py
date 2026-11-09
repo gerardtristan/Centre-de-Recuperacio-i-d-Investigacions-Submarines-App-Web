@@ -548,6 +548,29 @@ class AnnualFee(UndeletableModel):
         return f"{self.member_id} {self.period} {self.kind}"
 
 
+class FeeReminder(models.Model):
+    """Recordatori enviat d'una quota (T-M01-18; RN-M01-14, Q-061). Una fila per quota i dia:
+    tornar a executar la tasca no envia el mateix recordatori dues vegades. Sense cap dada
+    personal: el correu el registra la 00 (`OutgoingEmail`)."""
+
+    fee = models.ForeignKey(
+        AnnualFee, on_delete=models.PROTECT, related_name="reminders", verbose_name=_("quota")
+    )
+    offset_days = models.SmallIntegerField(_("dies respecte al venciment"))
+    sent_on = models.DateField(_("data d'enviament"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("recordatori de quota")
+        verbose_name_plural = _("recordatoris de quota")
+        constraints = [
+            models.UniqueConstraint(fields=["fee", "offset_days"], name="feereminder_unique_day")
+        ]
+
+    def __str__(self):
+        return f"{self.fee_id} {self.offset_days:+d}"
+
+
 class MemberCard(models.Model):
     """Carnet. Només es desa l'empremta del testimoni. El format de `token_hash` és el d'un
     SHA-256 en hexadecimal, però això no impedeix desar-hi un testimoni en clar que tingui

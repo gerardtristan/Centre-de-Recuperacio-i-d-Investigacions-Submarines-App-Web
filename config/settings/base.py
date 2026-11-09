@@ -100,7 +100,15 @@ FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
 
-# Formulari «Fer-se soci» (T-M01-13): llindars PROVISIONALS [A validar], no són regla aprovada.
+# Recordatoris de quota (T-M01-18; RN-M01-14, Q-061 de la 072): dies respecte al venciment, en
+# ordre. Els negatius, abans; els positius, només si encara no s'ha pagat. La quota de renovació
+# es genera el dia del primer recordatori. Configurable amb una llista separada per comes.
+MEMBER_FEE_REMINDER_OFFSETS = tuple(
+    sorted(env.list("MEMBER_FEE_REMINDER_OFFSETS", cast=int, default=[-15, -1, 0, 15, 30]))
+)
+
+# Formulari «Fer-se soci» (T-M01-13): llindars acceptats pel responsable com a valors inicials
+# configurables (Q-040 de la 072, 09/11/2026).
 # Per origen: com a màxim N sol·licituds en M minuts; en arribar-hi, limitat M minuts més. Per
 # destinatari: com a màxim N rebuts en 24 hores. Els terminis no poden passar de 24 hores, el
 # que es conserven les peticions (`apps/accounts/limits.py`, RETENTION).
