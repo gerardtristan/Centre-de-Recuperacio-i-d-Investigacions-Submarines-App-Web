@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió. Validesa: RN-M01-18 i 070 («vàlid fins al» = 12 mesos després del pagament confirmat). Sense QR ni PDF de moment (diari de la T-M01-19); el darrere del carnet és [A validar, decisió 032]. #}
+{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió. Validesa: RN-M01-18, 070 i 072 («vàlid fins al» = el mateix dia de l'any següent al pagament; exempts, fins al 31/12 de l'últim any exempt). Darrere del carnet: el del wireframe aprovat (Q-065). Sense QR ni PDF de moment (diari de la T-M01-19). El text legal serà configurable a la pantalla d'ajustos (VC-03, T-M01-32); el NIF del club, [A validar], no es mostra fins que se sàpiga. #}
 {% block title %}{% translate "El meu carnet" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Carnet" %}</p>
@@ -19,6 +19,16 @@
       {% if validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
       <div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% else %}{{ years }}{% endif %}</dd></div>
     </dl>
+    <section class="targeta carnet-darrere" aria-labelledby="carnet-darrere-titol">
+      <h2 id="carnet-darrere-titol">{% translate "Darrere del carnet" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
+        {% if member.joined_on %}<div><dt>{% translate "Alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}</dd></div>{% endif %}
+        <div><dt>{% translate "Quota" %}</dt><dd>{% if exempt %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Exempt per edat fins al {{ date }}{% endblocktranslate %}{% elif validity.until %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Pagada fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Llicència" %}</dt><dd>{% if licence and licence.expiry_unknown %}{% translate "Caducitat desconeguda" %}{% elif licence %}{% blocktranslate with date=licence.expires_on|date:"d/m/Y" %}Fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
+      </dl>
+      <p class="text-2">{% translate "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es. C.R.I.S. · cris1954.cat" %}</p>
+    </section>
     <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a></p>
   {% else %}
     <p>{% translate "Encara no tens cap carnet." %}</p>

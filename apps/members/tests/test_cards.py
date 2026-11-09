@@ -463,3 +463,31 @@ class TestValidUntil072:
     def test_summary_gives_the_same_valid_until(self):
         member = exempt_member()
         assert services.get_member_summary(member.person).valid_until == date(2029, 12, 31)
+
+
+# --- Darrere del carnet i exempts (retoc de la T-M01-19, 072) --------------------------------
+
+
+@pytest.mark.django_db
+def test_card_back_shows_the_wireframe_content(personal):
+    # Q-065: tipus, alta, quota, llicència i text legal; sense cap marca [A validar].
+    member = make_member(joined_on=date(2019, 3, 12))
+    paid = timezone.make_aware(datetime(2026, 3, 10, 12))
+    pay(add_fee(member), paid)
+    cards.issue_card(member, by=SYSTEM)
+    html = personal(member).get(reverse(CARD)).content.decode()
+    assert "Darrere del carnet" in html
+    assert member.type.name in html and "12/03/2019" in html
+    assert "Pagada fins al 10/03/2027" in html
+    assert "Carnet personal i intransferible" in html and "cris@cris.es" in html
+    assert "A validar" not in html
+
+
+@pytest.mark.django_db
+def test_exempt_member_card_page(personal):
+    # Q-002: vàlid fins al 31/12 de l'últim any exempt.
+    member = exempt_member(birth=date(2015, 5, 1))
+    cards.issue_card(member, by=SYSTEM)
+    html = personal(member).get(reverse(CARD)).content.decode()
+    assert "Exempt per edat fins al 31/12/2029" in html
+    assert "Vàlid fins al" in html

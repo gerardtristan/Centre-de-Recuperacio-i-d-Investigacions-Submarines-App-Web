@@ -108,6 +108,11 @@ def _exempt_until(member) -> date | None:
     return date(first_fee_year(birth) - 1, 12, 31) if birth else None
 
 
+def is_exempt(member) -> bool:
+    """Exempt per edat i sense cap quota (068, Q-002); `member` ve de `load_member`."""
+    return _exempt_until(member) is not None
+
+
 def _cluber_until(member) -> date | None:
     """Q-076 (072): un any des de «Data alta/renovació» de Cluber [A validar: tresorer]."""
     renewed = member.cluber_renewed_on
