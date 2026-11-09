@@ -153,6 +153,95 @@ def correct_record(record, *, by, licence_type, issued_on, expires_on, request=N
     return True
 
 
+# --- Confirmació en bloc de les caducitats d'any natural (T-M01-36; RN-M01-56, CA-M01-44) -------
+# La plataforma no sap quines llicències són d'any natural (el tipus és text lliure fins a la 06):
+# ho decideix la secretaria en seleccionar-les. La declaració del soci no és aquí: vegeu el diari.
+
+CONFIRMED_IN_BULK = "members.licence_record.expiry_confirmed_in_bulk"
+NOT_PENDING = _("Algun registre ja no està pendent de confirmar. Torna a carregar la llista.")
+NOTHING_SELECTED = _("Selecciona almenys un registre.")
+
+
+def pending_records(by):
+    """Registres sense caducitat de persones no anonimitzades, sense els del soci de qui confirma
+    (S-M01-22). Només llegeix: el permís el comprova la vista i el torna a comprovar el servei."""
+    return (
+        LicenceRecord.objects.filter(
+            expires_on__isnull=True, member__person__status=Person.Status.ACTIVE
+        )
+        .exclude(member__person_id=by.person_id)
+        .select_related("member__person")
+        .order_by("member__member_number", "pk")
+    )
+
+
+def confirm_in_bulk(record_ids, *, year, by, request=None) -> int:
+    """Fixa la caducitat al 31/12 de `year` a tots els registres triats, tot o res. Cada registre
+    deixa una entrada al registre d'activitat amb el valor anterior (buit). Torna quants."""
+    _check_account_active(by)
+    if not can_manage(by):
+        raise Http404
+    ids = {int(pk) for pk in record_ids}
+    if not ids:
+        raise ValidationError(NOTHING_SELECTED)
+    if isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 9999:
+        raise ValidationError(_("Cal un any vàlid."))
+    expires_on = datetime.date(year, 12, 31)
+    own = LicenceRecord.objects.filter(pk__in=ids, member__person_id=by.person_id).first()
+    if own is not None:
+        ensure_not_own_member(own.member, by, request=request, message=OWN_MEMBER)
+    with transaction.atomic():
+        _check_account_active(by, lock=True)
+        records = list(
+            LicenceRecord.objects.select_for_update(of=("self",))
+            .filter(
+                pk__in=ids, expires_on__isnull=True, member__person__status=Person.Status.ACTIVE
+            )
+            .order_by("pk")
+        )
+        if len(records) != len(ids):
+            raise ValidationError(NOT_PENDING)
+        late = sum(1 for record in records if record.issued_on > expires_on)
+        if late:
+            raise ValidationError(
+                _(
+                    "Hi ha %(count)s registre(s) amb la data d'alta posterior al %(date)s: "
+                    "treu-los de la selecció o tria un altre any."
+                ),
+                params={"count": late, "date": expires_on.strftime("%d/%m/%Y")},
+            )
+        for record in records:
+            record.expires_on = expires_on
+            audit.record_changes(
+                CONFIRMED_IN_BULK,
+                actor=by,
+                target=record,
+                changes={"expires_on": (None, expires_on)},
+                request=request,
+            )
+        LicenceRecord.objects.bulk_update(records, ["expires_on"])
+    return len(records)
+
+
+class BulkConfirmForm(forms.Form):
+    records = forms.ModelMultipleChoiceField(
+        label=_("Registres"),
+        # El servei torna a comprovar el soci propi, la persona i que encara siguin pendents.
+        queryset=LicenceRecord.objects.filter(expires_on__isnull=True),
+        error_messages={
+            "required": NOTHING_SELECTED,
+            "invalid_choice": NOT_PENDING,
+            "invalid_pk_value": NOT_PENDING,
+        },
+    )
+    year = forms.IntegerField(
+        label=_("Any de caducitat"),
+        min_value=1,
+        max_value=9999,
+        help_text=_("Les llicències seleccionades caducaran el 31/12 d'aquest any."),
+    )
+
+
 class LicenceRecordForm(forms.Form):
     licence_type = forms.CharField(
         label=_("Tipus de llicència"),

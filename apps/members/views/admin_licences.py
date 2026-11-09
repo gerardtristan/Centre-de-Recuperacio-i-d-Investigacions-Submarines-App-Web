@@ -9,7 +9,9 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
@@ -95,3 +97,51 @@ def licence_edit_view(request, pk, record_pk):
         return licences.correct_record(record, by=request.user, request=request, **_data(form))
 
     return _handle(request, member, form, _("Corregeix la llicència"), save)
+
+
+@never_cache
+@permission_required(licences.MANAGE, write=True)
+@require_http_methods(["GET", "POST"])
+def licence_bulk_confirm_view(request):
+    """Confirmació en bloc de les caducitats d'any natural pendents (T-M01-36; RN-M01-56)."""
+    if not licences.can_manage(request.user, request_permissions(request)):
+        raise Http404  # RN-RP-21: també P4
+    if request.method == "POST":
+        form = licences.BulkConfirmForm(request.POST)
+        if form.is_valid():
+            year = form.cleaned_data["year"]
+            try:
+                count = licences.confirm_in_bulk(
+                    [record.pk for record in form.cleaned_data["records"]],
+                    year=year,
+                    by=request.user,
+                    request=request,
+                )
+            except OwnMemberChange as error:
+                messages.error(request, error.args[0])
+            except ValidationError as error:
+                form.add_error(None, error)
+            else:
+                messages.success(
+                    request,
+                    ngettext(
+                        "Confirmada %(count)s llicència amb caducitat el 31/12/%(year)s. "
+                        "Queda al registre d'activitat.",
+                        "Confirmades %(count)s llicències amb caducitat el 31/12/%(year)s. "
+                        "Queda al registre d'activitat.",
+                        count,
+                    )
+                    % {"count": count, "year": year},
+                )
+                response = redirect("administration:licence_bulk_confirm")
+                response.status_code = 303
+                return response
+    else:
+        form = licences.BulkConfirmForm(initial={"year": timezone.localdate().year})
+    selected = {str(pk) for pk in form["records"].value() or []}
+    context = {
+        "form": form,
+        "records": licences.pending_records(request.user),
+        "selected": selected,
+    }
+    return render(request, "members/licence_bulk_confirm.html", context)

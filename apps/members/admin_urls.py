@@ -34,3 +34,10 @@ urlpatterns = [
         name="licence_edit",
     ),
 ]
+urlpatterns += [
+    path(
+        "llicencies/pendents/",
+        admin_licences.licence_bulk_confirm_view,
+        name="licence_bulk_confirm",
+    ),
+]
