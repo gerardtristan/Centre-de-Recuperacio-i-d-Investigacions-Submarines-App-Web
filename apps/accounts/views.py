@@ -602,5 +602,6 @@ def admin_home(request):
         "can_audit": can_audit,
         "can_join": can_join,
         "can_requests": has_perm(request.user, "members.requests.view"),
+        "can_fees": has_perm(request.user, "members.fees.view"),
     }
     return render(request, "accounts/admin_home.html", context)

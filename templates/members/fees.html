@@ -1,0 +1,83 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-18: quotes i impagats (P10 per veure-ho, P9 per marcar i desmarcar). Amagar els botons no és cap control: el servei torna a comprovar P9 i el conflicte d'interès. La generació de quotes i els recordatoris no hi són: depenen de decisions obertes. #}
+{% block title %}{% translate "Quotes i impagats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+  <h1>{% translate "Quotes i impagats" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <p class="text-2">{% translate "Socis actius i impagats. Un soci no passa mai a impagat sol: el marca i el desmarca el tresorer, amb motiu. La generació de quotes i els recordatoris encara no estan disponibles: depenen de decisions pendents." %}</p>
+
+  <form class="formulari" method="get" action="{% url 'administration:fees' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:fees' %}">{% translate "Treu els filtres" %}</a>
+    </div>
+  </form>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} soci{% plural %}{{ total }} socis{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Soci" %}</th>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Quota" %}</th>
+        <th scope="col">{% translate "Estat del soci" %}</th>
+        {% if can_mark %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for member, fee in page %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
+          <td data-etiqueta="{% translate 'Tipus' %}">{{ member.type.name }}</td>
+          <td data-etiqueta="{% translate 'Quota' %}">{% include "members/_fee_state.html" %}</td>
+          <td data-etiqueta="{% translate 'Estat del soci' %}">{% include "members/_member_status.html" %}</td>
+          {% if can_mark %}
+            <td class="cel-accions">
+              {% if member.person_id == user.person_id %}
+                <span class="text-2">{% translate "És el teu soci: no el pots marcar tu." %}</span>
+              {% else %}
+                {# Mateixa peça desplegable que el rebuig d'una alta (T-M01-14). #}
+                <details class="altes-rebuig">
+                  <summary class="boto boto-petit">{% if member.status == "active" %}{% translate "Marca impagat…" %}{% else %}{% translate "Desmarca impagat…" %}{% endif %}<span class="visualment-amagat">: {{ member.person }}</span></summary>
+                  <form class="formulari" method="post" action="{% if member.status == 'active' %}{% url 'administration:fee_mark_unpaid' member.pk %}{% else %}{% url 'administration:fee_unmark_unpaid' member.pk %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="camp">
+                      <label for="data-{{ member.pk }}">{% translate "Data efectiva" %}</label>
+                      <input type="date" id="data-{{ member.pk }}" name="data" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="camp">
+                      <label for="motiu-{{ member.pk }}">{% translate "Motiu" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                      <textarea id="motiu-{{ member.pk }}" name="motiu" rows="3" required></textarea>
+                      <p class="ajuda">{% translate "Queda a l'historial del soci i al registre d'activitat." %}</p>
+                    </div>
+                    <div class="accions"><button class="boto" type="submit">{% if member.status == "active" %}{% translate "Marca com a impagat" %}{% else %}{% translate "Desmarca l'impagat" %}{% endif %}</button></div>
+                  </form>
+                </details>
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td>{% translate "Cap soci coincideix amb els filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines del llistat' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Anterior" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Següent" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
+{% endblock %}

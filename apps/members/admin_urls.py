@@ -14,4 +14,7 @@ urlpatterns = [
     path("socis/", admin.members_list_view, name="members_list"),
     path("socis/exporta/", admin.members_export_view, name="members_export"),
     path("socis/<int:pk>/", admin.member_detail_view, name="member_detail"),
+    path("quotes/", admin.fees_view, name="fees"),
+    path("quotes/<int:pk>/impagat/", admin.fee_mark_unpaid_view, name="fee_mark_unpaid"),
+    path("quotes/<int:pk>/desmarca/", admin.fee_unmark_unpaid_view, name="fee_unmark_unpaid"),
 ]

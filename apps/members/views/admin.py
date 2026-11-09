@@ -37,7 +37,7 @@ from apps.core.permissions import (
     request_permissions,
     require_perm,
 )
-from apps.members import admissions, join, roster
+from apps.members import admissions, fees, join, roster, services
 from apps.members.fee_rules import local_today
 from apps.members.forms import JoinForm
 from apps.members.imports import cluber
@@ -438,3 +438,66 @@ def join_reject_view(request, pk):
         return _("Sol·licitud rebutjada. No s'ha creat cap soci.")
 
     return _resolve(request, pk, reject)
+
+
+# --- Quotes i impagats (T-M01-18; P10 per veure-ho, P9 per marcar; RN-M01-09, 040) ----------
+# La generació de quotes i els recordatoris no hi són: depenen de decisions obertes (fees.py).
+# El servei torna a comprovar P9 i el conflicte d'interès, i en registra l'intent.
+
+
+@never_cache
+@permission_required(fees.VIEW)
+@require_GET
+def fees_view(request):
+    form = fees.FeeFilterForm(request.GET or None)
+    data = form.cleaned_data if form.is_valid() else {}
+    today = local_today()
+    page = Paginator(fees.rows_for_review(data, today), PER_PAGE).get_page(
+        request.GET.get("pagina")
+    )
+    context = {
+        "form": form,
+        "page": page,
+        "can_mark": has_perm(request.user, services.UNPAID_PERMISSION),
+        "today": today,
+    }
+    return render(request, "members/fees.html", context)
+
+
+def _unpaid_action(request, pk, service, done):
+    member = get_object_or_404(Member.objects.select_related("person"), pk=pk)
+    try:
+        service(
+            member,
+            by=request.user,
+            effective_on=fees.parse_date(request.POST.get("data")),
+            reason=request.POST.get("motiu", ""),
+            request=request,
+        )
+    except OwnMemberChange as error:
+        messages.error(request, error.args[0])
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, done % {"person": member.person})
+    response = redirect("administration:fees")
+    response.status_code = 303
+    return response
+
+
+@never_cache
+@permission_required(services.UNPAID_PERMISSION)
+@require_POST
+def fee_mark_unpaid_view(request, pk):
+    return _unpaid_action(
+        request, pk, services.mark_unpaid, _("%(person)s queda marcat com a impagat.")
+    )
+
+
+@never_cache
+@permission_required(services.UNPAID_PERMISSION)
+@require_POST
+def fee_unmark_unpaid_view(request, pk):
+    return _unpaid_action(
+        request, pk, services.unmark_unpaid, _("%(person)s ja no és impagat: torna a ser actiu.")
+    )
