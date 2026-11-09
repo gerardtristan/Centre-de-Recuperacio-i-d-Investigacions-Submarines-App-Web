@@ -3,10 +3,13 @@
 Només lectura: aquí no s'escriu cap dada de socis. Què veu cada compte (decisió 059):
 - P4 (`members.list`) amb abast «all»: totes les dades de la fitxa; amb «read_minimal» (tresorer),
   només número, nom, tipus, estat, quota i historial d'estats i tipus (wireframe aprovat).
+- C1 (`members.field.birth_date`, protegit): la data de naixement a la fitxa i el filtre «sense
+  data de naixement» (T-M01-33; RN-M01-48, RN-M01-55). Sense C1, la fitxa només diu «major
+  d'edat», «menor d'edat» o «edat desconeguda» (`persons.age_band`) i el filtre no existeix.
 - C2 (`members.field.identity`): document, adreça i consentiments.
 - P10 (`members.fees.view`): l'estat de la quota.
 - P11 (`members.export`): exportar, amb les mateixes restriccions de camp que la fitxa.
-Cap vista ni exportació no porta la data de naixement (RN-M01-48).
+El llistat i l'exportació mai no porten la data de naixement (RN-M01-48, RN-M01-71).
 """
 
 import codecs
@@ -34,12 +37,14 @@ LIST = "members.list"  # P4
 EXPORT = "members.export"  # P11
 FEES = "members.fees.view"  # P10
 IDENTITY = "members.field.identity"  # C2
+BIRTH_DATE = "members.field.birth_date"  # C1
 
 
 @dataclass(frozen=True)
 class Visibility:
     full: bool  # P4 amb abast «all»: contacte, data d'alta i antiguitat
     identity: bool  # C2: document, adreça i consentiments
+    birth_date: bool  # C1: data de naixement i filtre «sense data»
     fees: bool  # P10: estat de la quota
 
 
@@ -49,6 +54,7 @@ def visibility_for(user, perms) -> Visibility:
     return Visibility(
         full=full,
         identity=full and has_perm(user, IDENTITY, permissions=perms),
+        birth_date=full and has_perm(user, BIRTH_DATE, permissions=perms),
         fees=has_perm(user, FEES, permissions=perms),
     )
 
@@ -61,8 +67,12 @@ class MemberFilterForm(forms.Form):
     tipus = forms.ChoiceField(label=_("Tipus"), required=False)
     estat = forms.ChoiceField(label=_("Estat del soci"), required=False)
 
-    def __init__(self, data, *, can_search_document):
+    def __init__(self, data, *, can_search_document, can_see_birth_date=False):
         super().__init__(data)
+        if can_see_birth_date:  # sense C1 el camp no existeix: un valor enviat no filtra
+            self.fields["sense_data"] = forms.BooleanField(
+                label=_("Només els que no tenen data de naixement"), required=False
+            )
         self.fields["q"].label = (
             _("Cerca per nom, número o document")
             if can_search_document
@@ -73,14 +83,17 @@ class MemberFilterForm(forms.Form):
         self.fields["estat"].choices = [("", _("Tots")), *Member.Status.choices]
 
 
-def filtered_members(data, *, can_search_document):
+def filtered_members(data, *, can_search_document, can_see_birth_date=False):
     """Socis segons els filtres vàlids. La cerca per document només per a qui pot veure'l (C2):
-    sense C2, un document escrit a la cerca no troba ningú per aquesta via."""
+    sense C2, un document escrit a la cerca no troba ningú per aquesta via. El filtre «sense data
+    de naixement», només amb C1."""
     members = Member.objects.select_related("person", "type")
     if data.get("tipus"):
         members = members.filter(type__code=data["tipus"])
     if data.get("estat"):
         members = members.filter(status=data["estat"])
+    if can_see_birth_date and data.get("sense_data"):
+        members = members.filter(person__birth_date__isnull=True)
     text = (data.get("q") or "").strip()
     if text:
         members = members.annotate(

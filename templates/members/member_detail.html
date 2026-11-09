@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-15: fitxa del soci (P4). Només lectura: editar i corregir la data d'alta són de la T-M01-15b. Cap data de naixement (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
+{# T-M01-15: fitxa del soci (P4). Només lectura: editar i corregir la data d'alta són de la T-M01-15b. Data de naixement només amb C1; la resta veu la franja d'edat (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
 {% block title %}{{ person }} · {% translate "Fitxa del soci" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -11,6 +11,7 @@
     <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
     <div><dt>{% translate "Estat del soci" %}</dt><dd>{% include "members/_member_status.html" %}</dd></div>
     {% if vis.fees %}<div><dt>{% translate "Quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>{% endif %}
+    {% if age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ age_band.label }}</dd></div>{% endif %}
     {% if vis.full %}
       <div><dt>{% translate "Data d'alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</dd></div>
       <div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>
@@ -22,6 +23,7 @@
       <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
       <dl class="dades-soci">
         <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
+        {% if vis.birth_date %}<div><dt>{% translate "Data de naixement" %}</dt><dd>{% if birth_date %}{{ birth_date|date:"d/m/Y" }}{% else %}{% include "members/_sense_data.html" %}{% endif %}</dd></div>{% endif %}
         {% if vis.identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>{% endif %}
         <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
         <div><dt>{% translate "Telèfon" %}</dt><dd>{{ person.phone|default:"—" }}</dd></div>

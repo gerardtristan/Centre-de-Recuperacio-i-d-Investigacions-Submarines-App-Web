@@ -44,6 +44,10 @@ class Person(models.Model):
         "tipus de document", max_length=10, choices=DocumentType.choices, blank=True
     )
     id_document_number = models.CharField(_("número de document"), max_length=30, blank=True)
+    # Opcional; buit = «sense data de naixement» (058, RN-M01-55). Només la llegeix qui té C1
+    # (`members.field.birth_date`); la resta, `persons.age_band`. Mai en llistats, exportacions
+    # (excepte RGPD i el llistat del 06) ni al registre d'activitat (RN-M01-48).
+    birth_date = models.DateField(_("data de naixement"), null=True, blank=True)
     status = models.CharField(
         _("estat"), max_length=12, choices=Status.choices, default=Status.ACTIVE
     )

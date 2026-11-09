@@ -3,8 +3,10 @@
 from dataclasses import dataclass, field
 
 from django.conf import settings
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, models, transaction
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .models import Person
 from .normalization import normalize_document, normalize_email, normalize_phone
@@ -104,6 +106,29 @@ def language_for(person) -> str:
 
 
 def age_on(birth_date, on) -> int:
-    """Anys complerts el dia `on` (068). Peça de la 00 que la T-M01-33 farà servir a `age_band`;
-    qui crida passa la data local (Barcelona), mai una edat que enviï el navegador."""
+    """Anys complerts el dia `on` (068). Qui crida passa la data local (Barcelona), mai una edat
+    que enviï el navegador. Nascuts el 29 de febrer: en un any no de traspàs compleixen l'1 de
+    març (comportament de la fórmula, provat a la T-M01-13; per confirmar)."""
     return on.year - birth_date.year - ((on.month, on.day) < (birth_date.month, birth_date.day))
+
+
+ADULT_AGE = 18  # menor = menys de 18 anys complerts (RN-M01-62); el mateix que `fee_rules`
+
+
+class AgeBand(models.TextChoices):
+    """El que veu de l'edat qui no té C1 (RN-M01-48)."""
+
+    ADULT = "adult", _("Major d'edat")
+    MINOR = "minor", _("Menor d'edat")
+    UNKNOWN = "unknown", _("Edat desconeguda")
+
+
+def age_band(person, on=None) -> AgeBand:
+    """Major, menor o edat desconeguda el dia `on` (per defecte, avui a Barcelona), sense
+    revelar la data (058, RN-M01-48). Sense data, «desconeguda» i no es bloqueja res
+    (RN-M01-55). Una data posterior a `on` no és vàlida: també «desconeguda»."""
+    on = on or timezone.localdate()
+    birth = person.birth_date
+    if birth is None or birth > on:
+        return AgeBand.UNKNOWN
+    return AgeBand.ADULT if age_on(birth, on) >= ADULT_AGE else AgeBand.MINOR
