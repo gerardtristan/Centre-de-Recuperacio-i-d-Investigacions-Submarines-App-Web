@@ -80,6 +80,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-13](T-M01-13.md) | Formulari «Fer-se soci» i alta presencial (**Feta**; P-57, P-61, P-33 i P-56 obertes) | 09/11/2026 | 7fa8b97 | 1572 | verd: #112 i #113 (710b15f) |
 | [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; Q-079, R2-13, P-57, P-61, P-54, P-58, Q-052 i R2-21 oberts) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
 | [T-M01-16](T-M01-16.md) | Àrea del soci: perfil, les meves quotes i sol·licituds (**feta en part**, sessió nocturna; pendent de validació; queden el rebut del 05b, el canvi de correu, Q-16 i P-58) | 09/11/2026 | dfcaaba | 1702 | No comprovat (sense push) |
+| [T-M01-19](T-M01-19.md) | Carnet: testimoni, validesa, revocació i pàgina del soci (**feta en part**, sessió nocturna; pendent de validació; queden el QR, el PDF i les crides des del canvi de tipus, la baixa i `on_fee_paid`) | 09/11/2026 | f21b762 | 1738 | No comprovat (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
