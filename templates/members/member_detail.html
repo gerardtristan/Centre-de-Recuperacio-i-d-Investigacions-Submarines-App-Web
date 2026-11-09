@@ -83,6 +83,7 @@
     {% endif %}
   </section>
   {% include "members/_join_date_history.html" %}
+  {% load member_licences %}{% licence_records member %}
 
   <p class="enllacos">
     <a href="{% url 'administration:members_list' %}">{% translate "Tornar al llistat de socis" %}</a>
