@@ -151,7 +151,7 @@ Preguntes a [preguntes-tresorer](planning.md#preguntes-tresorer).
 
 **Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)):**
 - **Resposta:** 2 (P-28): Cluber no guarda la data de caducitat de les llicències; s'importen com a «pendents de confirmar» ([M01-addenda-058](planning.md#M01-addenda-058), [M06-addenda-058](planning.md#M06-addenda-058)).
-- **Oberta:** 1 (Q-23), la mostra anonimitzada de l'exportació de Cluber.
+- **Resolta per al format** (09/11/2026, [071](decisions/071-importacio-de-cluber-format-real-i-iban-descartat.md)): 1 (Q-23), amb una mostra inventada; ja no cal la mostra anonimitzada. Continuen obertes, amb el tresorer, les dates i la columna «Renovació» ([P-62](decisions/pendents.md)).
 
 > Hola,
 >

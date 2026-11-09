@@ -35,7 +35,27 @@
           <tr><th scope="row">{% translate "Preparats per importar" %}</th><td>{{ summary.counts.ready }}</td></tr>
         </tbody>
       </table>
-      <p>{% translate "Cap registre no queda preparat per importar mentre no s'aprovin les equivalències del tipus de soci, l'estat i la data d'alta." %}</p>
+      {% if encoding %}<p>{% translate "Codificació detectada:" %} {{ encoding }}</p>{% endif %}
+      <p>{% translate "Cap registre no queda preparat per importar mentre falti el tipus de document, que l'exportació de Cluber no porta." %}</p>
+
+      <table>
+        <caption>{% translate "Què s'importaria" %}</caption>
+        <thead><tr><th scope="col">{% translate "Dada" %}</th><th scope="col">{% translate "Registres amb aquesta dada" %}</th></tr></thead>
+        <tbody>
+          {% for label, count in would_import %}<tr><th scope="row">{{ label }}</th><td>{{ count }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <p>{% translate "Tots els socis importats entrarien actius. La columna «Preu total» només és informativa: no crea cap càrrec ni cap quota." %}</p>
+
+      {% if types %}
+        <table>
+          <caption>{% translate "Tipus de soci deduït" %}</caption>
+          <thead><tr><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Com s'ha deduït" %}</th><th scope="col">{% translate "Registres" %}</th></tr></thead>
+          <tbody>
+            {% for name, by, count in types %}<tr><td>{{ name }}</td><td>{{ by }}</td><td>{{ count }}</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
 
       {% if file_warnings or summary.unknown_columns or omitted %}
         <h2>{% translate "Avisos del fitxer" %}</h2>
@@ -92,7 +112,7 @@
         <label for="id_fitxer">{% translate "Fitxer CSV de Cluber" %}</label>
         <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv" required aria-describedby="ajuda-fitxer">
       </p>
-      <p id="ajuda-fitxer">{% translate "CSV en UTF-8, separat per «;», sense columna d'IBAN i d'1 MiB com a màxim." %}</p>
+      <p id="ajuda-fitxer">{% translate "CSV separat per «;», en UTF-8 o Windows-1252, d'1 MiB com a màxim. Si porta una columna d'IBAN, es descarta sense desar-ne ni mostrar-ne cap valor." %}</p>
       <button type="submit">{% translate "Valida el fitxer (prova)" %}</button>
     </form>
   {% endif %}

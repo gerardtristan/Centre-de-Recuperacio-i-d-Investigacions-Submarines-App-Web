@@ -72,10 +72,12 @@ def has_consent(person, kind: str) -> bool:
 def _record(person, text, action, channel, by, request) -> Consent:
     from apps.accounts.models import Account
 
-    # CA-17.1: el presencial el registra un compte concret.
-    recorder = by if channel == Consent.Channel.IN_PERSON else None
-    if channel == Consent.Channel.IN_PERSON and not isinstance(by, Account):
-        raise ValidationError(_("Un consentiment presencial necessita el compte que el registra."))
+    # CA-17.1: el presencial el registra un compte concret; l'importat de Cluber, el compte que
+    # confirma la importació (071, punt 15).
+    recorded = channel in (Consent.Channel.IN_PERSON, Consent.Channel.CLUBER)
+    recorder = by if recorded else None
+    if recorded and not isinstance(by, Account):
+        raise ValidationError(_("Aquest consentiment necessita el compte que el registra."))
     consent = Consent.objects.create(
         person=person, legal_text=text, action=action, channel=channel, recorded_by=recorder
     )
@@ -114,3 +116,25 @@ def withdraw(person, kind: str, *, channel: str, by=None, request=None) -> Conse
     if last is None or last.action != Consent.Action.GRANTED:
         return None
     return _record(person, last.legal_text, Consent.Action.WITHDRAWN, channel, by, request)
+
+
+def imported_text(kind: str, content: str, *, language: str, by) -> LegalText:
+    """Text que porta una importació, com una versió del seu tipus (071, punt 15): la mateixa
+    versió si el contingut no ha canviat; si no, la següent. Sense M12: el publica el servei
+    d'importació que el crida, dins de la seva transacció i amb el seu permís."""
+    content = content.strip()
+    texts = LegalText.objects.filter(kind=kind, language=language)
+    same = texts.filter(content=content).order_by("-version").first()
+    if same is not None:
+        return same
+    last = LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0
+    text = LegalText.objects.create(
+        kind=kind, version=last + 1, language=language, content=content, published_by=by
+    )
+    audit.record(PUBLISHED, actor=by, target=text, details={"kind": kind, "version": text.version})
+    return text
+
+
+def grant_imported(person, text: LegalText, *, by) -> Consent:
+    """Consentiment atorgat que ve de Cluber, lligat al text de l'exportació (071, punt 15)."""
+    return _record(person, text, Consent.Action.GRANTED, Consent.Channel.CLUBER, by, None)

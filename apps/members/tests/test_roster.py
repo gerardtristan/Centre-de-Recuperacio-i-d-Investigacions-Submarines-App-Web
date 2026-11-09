@@ -412,18 +412,20 @@ def test_without_p10_no_fee_state(make_admin, full_member):  # noqa: F811
 
 
 @pytest.mark.parametrize("role", ["secretary", "administrator", "treasurer"])
-def test_birth_date_never_shown_nor_exported(make_admin, full_member, role):  # noqa: F811
+def test_request_birth_date_never_shown_nor_exported(make_admin, full_member, role):  # noqa: F811
+    """La data declarada a la sol·licitud no surt enlloc; la de la persona (T-M01-33), només a
+    la fitxa amb C1 (`test_birth_date.py`). L'exportació mai no en parla (RN-M01-71)."""
     client = admin_client(make_admin(role))
     texts = [
         as_text(client.get(reverse(LIST))),
         as_text(client.get(reverse(DETAIL, args=[full_member.pk]))),
     ]
-    if role != "treasurer":
-        texts += [as_text(export(client, fmt), fmt) for fmt in FORMATS]
-    for text in texts:
-        assert "naixement" not in text.lower()
+    exports = [] if role == "treasurer" else [as_text(export(client, f), f) for f in FORMATS]
+    for text in texts + exports:
         for value in BIRTH_TEXTS:
             assert value not in text
+    for text in exports:
+        assert "naixement" not in text.lower()
 
 
 def test_document_search_only_with_c2(make_admin, full_member):  # noqa: F811
@@ -619,7 +621,12 @@ def test_export_audit_keeps_only_filters_rows_and_format(make_admin, full_member
     export(admin_client(make_admin("secretary")), fmt, q="Marta", tipus="full", estat="active")
     entry = AuditEntry.objects.get(action=EXPORTED)
     assert entry.details == {
-        "filters": {"type": "full", "status": "active", "search": True},
+        "filters": {
+            "type": "full",
+            "status": "active",
+            "search": True,
+            "without_birth_date": False,
+        },
         "rows": 1,
         "format": fmt,
     }

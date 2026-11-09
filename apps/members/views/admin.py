@@ -28,7 +28,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit
+from apps.core import audit, persons
 from apps.core.permissions import (
     has_perm,
     permission_required,
@@ -122,7 +122,10 @@ def _protected(request, handler):
     data = files[0].read()
     summary = cluber.preview(data).summary()
     rejected = summary["rejected"]
-    sha256 = None if rejected == "iban_column" else hashlib.sha256(data).hexdigest()
+    # Minimització aprovada a la T-M01-24: sense empremta si el fitxer porta una columna d'IBAN,
+    # encara que ara es descarti en llegir (071).
+    iban = "iban_discarded" in summary["warnings"]
+    sha256 = None if iban else hashlib.sha256(data).hexdigest()
     _record(request, rejected, summary["counts"], sha256)
     return _page(request, summary=summary, recorded=True)
 
@@ -150,7 +153,12 @@ def _display(summary):
     messages = cluber.MESSAGES
     problems = []
     pending = Counter()
+    filled = Counter()
+    types = Counter()
     for row in summary["rows"]:
+        filled.update(row["fields"])
+        if row["member_type"]:
+            types[row["member_type"], row["member_type_by"]] += 1
         for kind, codes in ((_("Error"), row["errors"]), (_("Advertiment"), row["warnings"])):
             columns = row["error_columns"] if codes is row["errors"] else [""] * len(codes)
             for code, column in zip(codes, columns, strict=True):
@@ -168,6 +176,12 @@ def _display(summary):
         "problems": problems,
         "pending": [(messages[code], count) for code, count in sorted(pending.items())],
         "omitted": sorted(summary["catalogue_omitted"].items()),
+        "encoding": cluber.ENCODING_LABELS.get(summary["encoding"]),
+        "would_import": [(label, filled[target]) for target, label in cluber.FIELD_LABELS.items()],
+        "types": [
+            (summary["type_names"][code], cluber.TYPE_BY_LABELS[by], count)
+            for (code, by), count in sorted(types.items())
+        ],
     }
 
 
@@ -218,7 +232,11 @@ PER_PAGE = 50
 
 
 def _filters(request, vis):
-    form = roster.MemberFilterForm(request.GET or None, can_search_document=vis.identity)
+    form = roster.MemberFilterForm(
+        request.GET or None,
+        can_search_document=vis.identity,
+        can_see_birth_date=vis.birth_date,
+    )
     data = {}
     if form.is_bound:
         form.is_valid()  # els camps vàlids filtren; un valor manipulat no filtra
@@ -233,7 +251,9 @@ def members_list_view(request):
     perms = request_permissions(request)
     vis = roster.visibility_for(request.user, perms)
     form, data = _filters(request, vis)
-    members = roster.filtered_members(data, can_search_document=vis.identity)
+    members = roster.filtered_members(
+        data, can_search_document=vis.identity, can_see_birth_date=vis.birth_date
+    )
     if vis.fees:
         members = roster.with_fee_data(members)
     page = Paginator(members, PER_PAGE).get_page(request.GET.get("pagina"))
@@ -285,6 +305,9 @@ def member_detail_view(request, pk):
         "history": history,
         "consents": consents,
         "document": roster.document_label(member.person) if vis.identity else "",
+        # Sense C1, només la franja d'edat; la data no arriba a la plantilla (RN-M01-48).
+        "birth_date": member.person.birth_date if vis.birth_date else None,
+        "age_band": None if vis.birth_date else persons.age_band(member.person, today),
     }
     return render(request, "members/member_detail.html", context)
 
@@ -299,14 +322,18 @@ def members_export_view(request):
     perms = request_permissions(request)
     require_perm(request, roster.LIST)  # s'exporta el que es pot llistar
     vis = roster.visibility_for(request.user, perms)
-    form = roster.ExportForm(request.POST, can_search_document=vis.identity)
+    form = roster.ExportForm(
+        request.POST, can_search_document=vis.identity, can_see_birth_date=vis.birth_date
+    )
     form.is_valid()  # un filtre manipulat no filtra, com al llistat
     if "format" in form.errors:
         return HttpResponseBadRequest(_("Format d'exportació no vàlid."))
     data = form.cleaned_data
     content_type, extension, write = roster.FORMATS[data["format"]]
     columns = roster.export_columns(vis)
-    members = roster.filtered_members(data, can_search_document=vis.identity)
+    members = roster.filtered_members(
+        data, can_search_document=vis.identity, can_see_birth_date=vis.birth_date
+    )
     rows = [roster.export_row(member, columns) for member in members]
     response = HttpResponse(write([label for _key, label in columns], rows), content_type)
     response["Content-Disposition"] = (
@@ -320,6 +347,7 @@ def members_export_view(request):
                 "type": data.get("tipus") or "",
                 "status": data.get("estat") or "",
                 "search": bool((data.get("q") or "").strip()),
+                "without_birth_date": bool(data.get("sense_data")),
             },
             "rows": len(rows),
             "format": data["format"],

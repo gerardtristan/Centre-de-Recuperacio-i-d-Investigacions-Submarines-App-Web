@@ -44,6 +44,10 @@ class Person(models.Model):
         "tipus de document", max_length=10, choices=DocumentType.choices, blank=True
     )
     id_document_number = models.CharField(_("número de document"), max_length=30, blank=True)
+    # Opcional; buit = «sense data de naixement» (058, RN-M01-55). Només la llegeix qui té C1
+    # (`members.field.birth_date`); la resta, `persons.age_band`. Mai en llistats, exportacions
+    # (excepte RGPD i el llistat del 06) ni al registre d'activitat (RN-M01-48).
+    birth_date = models.DateField(_("data de naixement"), null=True, blank=True)
     status = models.CharField(
         _("estat"), max_length=12, choices=Status.choices, default=Status.ACTIVE
     )
@@ -395,6 +399,8 @@ class Consent(AppendOnlyModel):
     class Channel(models.TextChoices):
         WEB = "web", _("Web")
         IN_PERSON = "in_person", _("Presencial")
+        # El consentiment ve de l'exportació de Cluber (071, punt 15; T-M01-25).
+        CLUBER = "cluber", _("Importat de Cluber")
 
     person = models.ForeignKey(
         Person, on_delete=models.PROTECT, related_name="consents", verbose_name=_("persona")
@@ -712,9 +718,11 @@ IMPORT_LINE_CODES = (
     "duplicate_member_number",
     "identity_conflict",
     "member_number_unavailable",
+    "date_invalid",  # 071 (T-M01-25)
     # Advertiments
     "member_number_leading_zeros",
     "match_without_document_type",
+    "total_price_differs",  # 071 (T-M01-25)
     # Dades pendents
     "member_type",
     "member_status",
