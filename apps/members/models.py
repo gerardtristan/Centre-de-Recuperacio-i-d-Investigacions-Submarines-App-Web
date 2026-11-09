@@ -205,6 +205,37 @@ class MemberStatusChange(AppendOnlyModel):
         return f"{self.member_id}: {self.from_status or '—'} → {self.to_status}"
 
 
+class MemberJoinDateChange(AppendOnlyModel):
+    """Correccions de la data d'alta (RN-M01-22, T-M01-15b): el valor anterior i el nou, amb la
+    marca d'aproximada. Les fa sempre un compte amb P6, mai el sistema. Només s'hi afegeixen
+    files: també ho imposen uns disparadors de PostgreSQL (migració 0009). Sense text lliure."""
+
+    member = models.ForeignKey(
+        Member, on_delete=models.PROTECT, related_name="join_date_changes", verbose_name=_("soci")
+    )
+    from_joined_on = models.DateField(_("data d'alta anterior"))
+    from_is_approximate = models.BooleanField(_("aproximada abans"))
+    to_joined_on = models.DateField(_("data d'alta nova"))
+    to_is_approximate = models.BooleanField(_("aproximada ara"))
+    actor_account = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("compte")
+    )
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("correcció de la data d'alta")
+        verbose_name_plural = _("correccions de la data d'alta")
+        constraints = [
+            models.CheckConstraint(
+                condition=~Q(
+                    from_joined_on=F("to_joined_on"), from_is_approximate=F("to_is_approximate")
+                ),
+                name="memberjoindatechange_changes_something",
+            ),
+        ]
+        indexes = [models.Index(fields=["member", "created_at"], name="joindatechange_member_idx")]
+
+
 class MemberRequest(models.Model):
     """Sol·licitud d'alta, de canvi de tipus o de baixa. El motiu de qui la fa i el de qui la
     resol són camps separats (064, CA-M01-47)."""

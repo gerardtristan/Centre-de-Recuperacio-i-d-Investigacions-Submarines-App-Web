@@ -3,7 +3,7 @@ l'espai de noms `administration` (sessió d'administració i TOTP)."""
 
 from django.urls import path
 
-from .views import admin
+from .views import admin, admin_member_edit
 
 urlpatterns = [
     path("importacions/cluber/", admin.cluber_preview_view, name="cluber_preview"),
@@ -17,4 +17,10 @@ urlpatterns = [
     path("quotes/", admin.fees_view, name="fees"),
     path("quotes/<int:pk>/impagat/", admin.fee_mark_unpaid_view, name="fee_mark_unpaid"),
     path("quotes/<int:pk>/desmarca/", admin.fee_unmark_unpaid_view, name="fee_unmark_unpaid"),
+    path("socis/<int:pk>/edita/", admin_member_edit.member_edit_view, name="member_edit"),
+    path(
+        "socis/<int:pk>/data-alta/",
+        admin_member_edit.member_join_date_view,
+        name="member_join_date",
+    ),
 ]

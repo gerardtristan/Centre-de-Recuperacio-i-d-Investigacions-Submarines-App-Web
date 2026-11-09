@@ -37,7 +37,7 @@ from apps.core.permissions import (
     request_permissions,
     require_perm,
 )
-from apps.members import admissions, fees, join, roster, services
+from apps.members import admissions, fees, join, member_edit, roster, services
 from apps.members.fee_rules import local_today
 from apps.members.forms import JoinForm
 from apps.members.imports import cluber
@@ -288,6 +288,14 @@ def member_detail_view(request, pk):
         "history": history,
         "consents": consents,
         "document": roster.document_label(member.person) if vis.identity else "",
+        # T-M01-15b: enllaços i historial de la data d'alta. Els serveis ho tornen a comprovar.
+        "can_edit": bool(member_edit.editable_fields(request.user, perms)),
+        "can_correct_join_date": member_edit.can_correct_join_date(request.user, perms),
+        "join_date_changes": (
+            member.join_date_changes.select_related("actor_account").order_by("-created_at", "-id")
+            if vis.full
+            else []
+        ),
     }
     return render(request, "members/member_detail.html", context)
 

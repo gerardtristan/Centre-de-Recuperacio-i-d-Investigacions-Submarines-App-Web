@@ -3,9 +3,12 @@
 from dataclasses import dataclass, field
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
+from . import audit
 from .models import Person
 from .normalization import normalize_document, normalize_email, normalize_phone
 
@@ -92,6 +95,65 @@ def create_or_get(*, origin: str, **fields) -> tuple[Person, bool, DuplicateChec
             raise
         return check.same_document, False, check
     return person, True, check
+
+
+UPDATED = "persons.updated"
+EDITABLE_FIELDS = (
+    "first_name",
+    "last_name",
+    "contact_email",
+    "phone",
+    "address",
+    "id_document_type",
+    "id_document_number",
+)
+DOCUMENT_IN_USE = _(
+    "Aquest document ja és d'una altra persona. Revisa'l: els perfils no es fusionen sols."
+)
+
+
+def update(person, *, by, request=None, **fields) -> list[str]:
+    """Corregeix les dades d'una persona i en deixa una entrada per camp al registre
+    d'activitat, amb el valor anterior (RN-50). Torna els camps que han canviat; si no en canvia
+    cap, no escriu res. Qui crida ja ha comprovat el permís i els camps que pot editar.
+
+    Una persona anonimitzada no s'edita (028). El document segueix sent únic (RN-06): si ja és
+    d'una altra persona, es rebutja i no es fusionen perfils (RN-07)."""
+    unknown = set(fields) - set(EDITABLE_FIELDS)
+    if unknown:
+        raise ValueError(f"Camps no editables: {sorted(unknown)}")
+    with transaction.atomic():
+        locked = Person.objects.select_for_update().get(pk=person.pk)
+        if locked.status != Person.Status.ACTIVE:
+            raise ValidationError(
+                _("Les dades d'aquesta persona estan anonimitzades i no es poden editar.")
+            )
+        old = {name: getattr(locked, name) for name in fields}
+        for name, value in fields.items():
+            setattr(locked, name, value)
+        locked.normalize()
+        changes = {
+            name: (old[name], getattr(locked, name))
+            for name in fields
+            if old[name] != getattr(locked, name)
+        }
+        if not changes:
+            return []
+        document = (locked.id_document_type, locked.id_document_number)
+        if {"id_document_type", "id_document_number"} & set(changes) and document[1]:
+            other = Person.objects.filter(
+                id_document_type=document[0], id_document_number=document[1]
+            ).exclude(pk=locked.pk)
+            if other.exists():
+                raise ValidationError(DOCUMENT_IN_USE)
+        try:
+            with transaction.atomic():
+                locked.save(update_fields=[*changes, "updated_at"])
+        except IntegrityError:  # una altra edició simultània amb el mateix document
+            raise ValidationError(DOCUMENT_IN_USE) from None
+        audit.record_changes(UPDATED, actor=by, target=locked, changes=changes, request=request)
+    person.refresh_from_db()
+    return list(changes)
 
 
 def language_for(person) -> str:

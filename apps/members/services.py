@@ -108,7 +108,7 @@ def _check_account_active(by, *, lock=False) -> None:
         raise InactiveAccount(_("Aquest compte no està actiu i no pot fer canvis."))
 
 
-def ensure_not_own_member(member, by, *, request=None) -> None:
+def ensure_not_own_member(member, by, *, request=None, message=None) -> None:
     """Rebutja i registra l'intent si el compte és de la persona del soci. Cal cridar-lo
     abans d'obrir la transacció de l'operació (vegeu el docstring del mòdul). Un compte no
     actiu es rebutja abans (`InactiveAccount`), sense intent registrat, llevat que es desactivi
@@ -116,7 +116,9 @@ def ensure_not_own_member(member, by, *, request=None) -> None:
     _check_account_active(by)
     if _is_own(member, by):
         audit.record(OWN_MEMBER_REJECTED, actor=by, target=member, request=request)
-        raise OwnMemberChange(_("No pots canviar l'estat ni el tipus del teu propi soci."))
+        raise OwnMemberChange(
+            message or _("No pots canviar l'estat ni el tipus del teu propi soci.")
+        )
 
 
 def _check_actor(by) -> None:

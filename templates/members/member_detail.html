@@ -1,11 +1,15 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-15: fitxa del soci (P4). Només lectura: editar i corregir la data d'alta són de la T-M01-15b. Cap data de naixement (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
+{# T-M01-15: fitxa del soci (P4). Editar (P5) i corregir la data d'alta (P6) són pantalles a part (T-M01-15b; inclusions _member_edit_links i _join_date_history). Cap data de naixement (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
 {% block title %}{{ person }} · {% translate "Fitxa del soci" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
   <h1>{{ person }}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  {% include "members/_member_edit_links.html" %}
   <dl class="dades-soci">
     <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ member.member_number|default:_("Sense número") }}</dd></div>
     <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
@@ -78,6 +82,7 @@
       <p>{% translate "Encara no hi ha cap entrada a l'historial." %}</p>
     {% endif %}
   </section>
+  {% include "members/_join_date_history.html" %}
 
   <p class="enllacos">
     <a href="{% url 'administration:members_list' %}">{% translate "Tornar al llistat de socis" %}</a>
