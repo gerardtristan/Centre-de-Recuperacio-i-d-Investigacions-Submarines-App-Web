@@ -1,7 +1,7 @@
 # 072 — Respostes del responsable a la ronda 1 de pendents
 
 - **Data:** 09/11/2026
-- **Estat:** Acceptada pel responsable del projecte el 09/11/2026, amb correccions del mateix dia (segona i tercera instruccions escrites).
+- **Estat:** Acceptada pel responsable del projecte el 09/11/2026, amb correccions del mateix dia (segona, tercera i quarta instruccions escrites).
 - **Origen:** respostes escrites al document de consulta «C.R.I.S. — Decisions i validacions pendents per tasca» (revisió del 06 i 07/11/2026, **ronda 1**, preguntes Q-001 a Q-238; és fora del repositori) i dues instruccions escrites del responsable del 09/11/2026: la primera sobre les contradiccions i la segona amb les correccions.
 - **Abast:**
   - **Substitueix el punt 3 de la [070](070-quota-integra-i-renovacio-als-12-mesos-del-pagament.md)** en la separació dels terminis (repartits equitativament dins dels 12 mesos i editables). Precisa el punt 2 en el càlcul del «vàlid fins a»: el mateix dia de l'any següent.
@@ -41,7 +41,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 2. **Edició dels terminis (Q-020).**
    - Mentre un termini no té cap pagament associat, la secretaria en pot editar l'import i la data, amb motiu obligatori; l'historial guarda el valor anterior.
    - Quan ja té un pagament, només es pot anul·lar i crear-ne un de nou.
-   - Els terminis sempre sumen la quota anual. Moure imports i dates entre terminis és editar; canviar el total és anul·lar i tornar a generar.
+   - Els terminis sempre sumen el preu a terminis (96 €; vegeu la quarta instrucció, punt 2). Moure imports i dates entre terminis és editar; canviar el total és anul·lar i tornar a generar.
    - Es fa a la T-M01-18.
 3. **Consentiment d'imatges d'un menor de 14 anys (Q-031 i Q-044): opció A.**
    - Es desa a la persona del menor (`core.Consent`), amb el representant com a «qui el dona».
@@ -51,6 +51,13 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 4. **Carnet dels importats (Q-076).** S'accepta la proposta: compta des de la columna «Data alta/renovació» de Cluber (un any, fins al mateix dia de l'any següent), **[A validar: tresorer]**.
 5. **T-M01-25:** passa a «feta en part».
 6. **Nacionalitat i professió: decisió del responsable del projecte (09/11/2026, opció 1).** Es queden fora del perfil fins que hi hagi un procés que en justifiqui la finalitat. Entren el telèfon fix i l'adreça desglossada.
+
+## Decisions de la quarta instrucció (09/11/2026; decisions del responsable del projecte; prevalen)
+1. **Socis de baixa a Cluber (Q-071).** La importació llegeix l'«Estat» de Cluber i **exclou les files de baixa**, amb el motiu explícit «baixa a Cluber», i en dona una llista a la secretaria. **Modifica el punt 7 de la [071](071-importacio-de-cluber-format-real-i-iban-descartat.md)**: la resta de socis continuen entrant actius. El valor exacte que fa servir Cluber per a la baixa es comprova amb l'exportació real **[A validar: secretaria o tresorer]**. Es fa a la T-M01-24b i a la T-M01-25.
+2. **Terminis (P-61, Q-019 i Q-021): opció (a).** 3 × 32 € = 96 € és un **preu propi del pagament a terminis**, no la quota anual repartida: la diferència amb la quota anual és un **recàrrec que decideix la junta** (és una dada, no una regla del codi). Els terminis sumen el preu a terminis. Corregeix el punt 2 de la tercera instrucció («sumen la quota anual»). La resta de la P-61 continua oberta.
+3. **Recordatoris de quota d'un menor que paga.** Fins als 14 anys, al correu del representant; a partir dels 14, al contacte del soci. **Es resol a la T-M01-41** (on es desa el representant); mentrestant, els recordatoris van al contacte de la persona.
+4. **Pantalla per anul·lar una quota.** Va a la **T-M01-40**, amb el mateix permís i el mateix motiu obligatori que l'exempció. No es fa ara; el servei `fees.cancel_fee` ja existeix.
+5. **Importat sense data d'alta (Q-075).** S'accepta que l'entrada inicial de l'historial porti la data de la importació, amb la procedència «importat de Cluber», **amb la condició que no es mostri mai com a antiguitat ni com a data d'alta**.
 
 ## Decisió
 
@@ -165,11 +172,13 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 - **Sense decidir:**
   - la Q-052 (President);
   - la Q-086 (nivell 1);
-  - de la P-61, quan passa a actiu i fins quan té carnet qui paga a terminis, si el suspens és manual o automàtic, quan es poden triar els terminis i què passa amb els menors;
+  - de la P-61 (el preu a terminis ja és decidit, quarta instrucció), quan passa a actiu i fins quan té carnet qui paga a terminis, si el suspens és manual o automàtic, quan es poden triar els terminis i què passa amb els menors;
   - de la P-29, el calendari de la remesa i de la campanya de mandats;
   - de la Q-062, la data límit per demanar la baixa;
   - de la Q-083, on es veu el resum;
-  - la confirmació del tresorer de la data d'inici del carnet dels importats («Data alta/renovació», [A validar: tresorer]).
+  - la confirmació del tresorer de la data d'inici del carnet dels importats («Data alta/renovació», [A validar: tresorer]);
+  - el valor exacte de l'«Estat» de baixa a l'exportació real de Cluber ([A validar: secretaria o tresorer]);
+  - l'import del recàrrec del pagament a terminis (la junta).
 - **En blanc al document:** Q-036, Q-090, Q-092, Q-093 i de la Q-104 a la Q-238. De la Q-094 a la Q-103 eren validacions de la T-M01-13, que ja és «Feta» (09/11/2026).
 - **R2-13 i R2-21:** són del document de la ronda 2, que ha d'aportar el responsable. No són al repositori: només apareixen a la fila de la T-M01-15 i a l'índex del diari, des del commit 1dafae2, sense cap definició.
 
