@@ -32,6 +32,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   arquitectura-integracions.md components, proveïdors, fluxos de pagament, riscos
   planning.md                  font única de l'especificació i el pla de cada mòdul (047)
   decisions/                   una decisió per fitxer (NNN-nom.md) i pendents.md
+  esborranys/                  esborranys a validar, no vigents (terminis de conservació, textos legals)
   funcionalitats-processos/    funcionalitats i processos per mòdul (.pdf i .docx)
   context/                     fonts originals (instruccions; entrevistes fora de Git)
   diari-de-construccio/        una entrada per tasca acabada, índex i captures

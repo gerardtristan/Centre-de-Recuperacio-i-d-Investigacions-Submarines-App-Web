@@ -77,8 +77,8 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: tancament, **Feta** (aprovada pel responsable el 05/11/2026; no tanca Q-23, les equivalències ni la T-M01-25) | 05/11/2026 | af5aaa5 (referència) i el commit del tancament | 1343 | verd a #104 i #105 sobre af5aaa5 (confirmat pel responsable); el commit del tancament: [A comprovar] |
 | [T-M01-38](T-M01-38.md) | Plantilla base, fulls d'estil i pantalles de comptes (Feta el 05/11/2026; pantalles validades pel responsable) | 05/11/2026 01:54 | [sense commit] | 1382 | [A comprovar] |
 | [T-M01-07b](T-M01-07b.md) | Consulta del registre d'activitat (Feta el 05/11/2026; pantalla validada pel responsable; pendents: lector de pantalla, altres navegadors i CI) | 05/11/2026 16:10 | [sense commit] | 1427 | [A comprovar] |
-| [T-M01-13](T-M01-13.md) | Formulari «Fer-se soci» i alta presencial (**Feta**; P-57, P-61, P-33 i P-56 obertes) | 09/11/2026 | 7fa8b97 | 1572 | verd: #112 i #113 (710b15f) |
-| [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; Q-079, R2-13, P-57, P-61, P-54, P-58, Q-052 i R2-21 oberts) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
+| [T-M01-13](T-M01-13.md) | Formulari «Fer-se soci» i alta presencial (**Feta**; P-61, P-33 i P-56 obertes; P-57 resolta el 09/11/2026, [072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)) | 09/11/2026 | 7fa8b97 | 1572 | verd: #112 i #113 (710b15f) |
+| [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; R2-13, P-61, Q-052 i R2-21 oberts; Q-079, P-57, P-54 i P-58 resolts el 09/11/2026, [072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).

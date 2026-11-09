@@ -1,7 +1,8 @@
 # 070 — Quota íntegra i renovació als 12 mesos del pagament
 
 - **Data:** 09/11/2026
-- **Estat:** Acceptada pel responsable del projecte el 09/11/2026. El pagament en tres quotes el va fixar la junta. **Substitueix el punt 2 de la [069](069-condicio-de-soci-i-quota-d-alta-per-mesos.md)** (prorrata mensual de gener a octubre i regla de novembre i desembre), els seus exemples del punt 3, i qualsevol formulació de quota per any natural fix o de carnet fins al 31/12. El punt 1 de la 069 (condició de soci) es manté. Tanca la [P-59](pendents.md) i la [P-60](pendents.md); obre la [P-61](pendents.md).
+- **Estat:** **Substituïda en part per la [072](072-respostes-del-responsable-a-la-ronda-1-de-pendents.md) (09/11/2026):** al punt 3, els tres pagaments van repartits equitativament dins dels 12 mesos, no separats per dos mesos.
+- Acceptada pel responsable del projecte el 09/11/2026. El pagament en tres quotes el va fixar la junta. **Substitueix el punt 2 de la [069](069-condicio-de-soci-i-quota-d-alta-per-mesos.md)** (prorrata mensual de gener a octubre i regla de novembre i desembre), els seus exemples del punt 3, i qualsevol formulació de quota per any natural fix o de carnet fins al 31/12. El punt 1 de la 069 (condició de soci) es manté. Tanca la [P-59](pendents.md) i la [P-60](pendents.md); obre la [P-61](pendents.md).
 
 ## Context
 La 069 (06/11/2026) havia fixat una prorrata mensual per a les altes de gener a octubre i una regla especial per a novembre i desembre, amb tres detalls oberts (P-59). La revisió del responsable del 09/11/2026 la substitueix per una regla més simple, sense data comuna de renovació.
