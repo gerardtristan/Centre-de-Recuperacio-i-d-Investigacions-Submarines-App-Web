@@ -50,7 +50,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
    - No s'implementa ara.
 4. **Carnet dels importats (Q-076).** S'accepta la proposta: compta des de la columna «Data alta/renovació» de Cluber (un any, fins al mateix dia de l'any següent), **[A validar: tresorer]**.
 5. **T-M01-25:** passa a «feta en part».
-6. **Nacionalitat i professió:** es treuen del perfil, perquè ara no hi ha cap procés del club ni de la plataforma que en justifiqui la finalitat. La finalitat proposada per a la nacionalitat (tràmits amb la federació) no està confirmada, i la de la professió (voluntariat) no té cap procés que la faci servir. Es tornaran a plantejar si la FECDAS, un ajut o un procés del club ho demana. Entren el telèfon fix i l'adreça desglossada.
+6. **Nacionalitat i professió: decisió del responsable del projecte (09/11/2026, opció 1).** Es queden fora del perfil fins que hi hagi un procés que en justifiqui la finalitat. Entren el telèfon fix i l'adreça desglossada.
 
 ## Decisió
 
@@ -139,7 +139,7 @@ El document de la ronda 1 recollia 238 preguntes. El responsable va respondre la
 | Q-037 | Qui registra un cobrament manual (P-12) | Qui tingui permís de veure i editar la tresoreria | 04, 05b |
 | Q-038 | Justificant del cobrament manual | Comprovant opcional. El motiu continua sent obligatori (CLAUDE.md) | 04, 05b |
 | Q-039 | Qui atén les sol·licituds RGPD | L'administrador | S-M01-14 |
-| Q-045 a Q-048 | Camps opcionals del perfil (P-58) | **Tercera instrucció:** entren el telèfon fix i l'adreça desglossada (codi postal, població i província); la nacionalitat i la professió es treuen perquè ara no tenen cap finalitat justificable. Text de la correcció 3, ara substituït: entren el telèfon fix, l'adreça desglossada, la nacionalitat i la professió, tots opcionals i mai obligatoris per ser soci, cadascun amb la finalitat escrita a la política de privacitat. «Observacions» queda fora (Q-045). Els veuen i editen el soci i l'administració amb permís de camp (Q-047); es conserven, s'exporten i s'anonimitzen com la resta del perfil (Q-048). La província per al model 182 continua [A verificar: gestoria] | T-M01-16, T-M01-22 |
+| Q-045 a Q-048 | Camps opcionals del perfil (P-58) | **Tercera instrucció:** entren el telèfon fix i l'adreça desglossada (codi postal, població i província); la nacionalitat i la professió es queden fora fins que hi hagi un procés que en justifiqui la finalitat (decisió del responsable). Text de la correcció 3, ara substituït: entren el telèfon fix, l'adreça desglossada, la nacionalitat i la professió, tots opcionals i mai obligatoris per ser soci, cadascun amb la finalitat escrita a la política de privacitat. «Observacions» queda fora (Q-045). Els veuen i editen el soci i l'administració amb permís de camp (Q-047); es conserven, s'exporten i s'anonimitzen com la resta del perfil (Q-048). La província per al model 182 continua [A verificar: gestoria] | T-M01-16, T-M01-22 |
 
 ### 6. Comptes, seguretat i operació
 
