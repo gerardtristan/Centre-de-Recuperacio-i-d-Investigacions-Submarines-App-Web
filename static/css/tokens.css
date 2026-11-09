@@ -298,6 +298,9 @@ body {
 }
 h1, h2, h3, h4 {
   font-family: var(--f-titol);
+  /* Barlow Condensed col·loca malament el punt de «l·l» amb la variant catalana (lang="ca"):
+     el punt queda damunt de la primera l. Es desactiva només aquesta variant. */
+  font-feature-settings: "locl" 0;
   font-weight: var(--p-negreta);
   line-height: var(--a-titol);
   margin: 0 0 var(--e-3);

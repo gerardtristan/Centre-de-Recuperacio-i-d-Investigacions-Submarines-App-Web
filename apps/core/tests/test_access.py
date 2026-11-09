@@ -26,6 +26,8 @@ PUBLIC_ROUTES = {
     # Canvi de la credencial temporal (CA-08.1): dins l'entrada, abans de tenir sessió.
     "administration:change_temporary_credential",
     "administration:logout",
+    # Formulari «Fer-se soci» (RN-40, M01-8): P1 és del visitant.
+    "members:join",
 }
 
 SAMPLE_VALUES = {

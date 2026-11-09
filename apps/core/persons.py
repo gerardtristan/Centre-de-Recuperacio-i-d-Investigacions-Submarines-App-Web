@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 
 from .models import Person
@@ -59,6 +60,40 @@ def find_duplicates(
     return result
 
 
+DUPLICATE_FIELDS = (
+    "first_name",
+    "last_name",
+    "phone",
+    "contact_email",
+    "id_document_type",
+    "id_document_number",
+)
+
+
+def create_or_get(*, origin: str, **fields) -> tuple[Person, bool, DuplicateCheck]:
+    """Persona amb aquest document, o una de nova (V-03, RN-06, RN-07). Torna
+    `(persona, creada, duplicats)`.
+
+    Amb el mateix document es torna l'existent **sense modificar-la**: les dades noves no s'hi
+    escriuen mai (la fusió de perfils queda fora d'abast). Amb un possible duplicat (correu, o
+    nom i telèfon) es crea una persona nova i es torna l'avís; mai es fusionen soles.
+    Dues altes simultànies amb el mateix document: la restricció única en deixa crear una i
+    l'altra torna l'existent."""
+    lookup = {k: fields.get(k, "") for k in DUPLICATE_FIELDS}
+    check = find_duplicates(**lookup)
+    if check.same_document is not None:
+        return check.same_document, False, check
+    try:
+        with transaction.atomic():
+            person = Person.objects.create(origin=origin, **fields)
+    except IntegrityError:
+        check = find_duplicates(**lookup)
+        if check.same_document is None:
+            raise
+        return check.same_document, False, check
+    return person, True, check
+
+
 def language_for(person) -> str:
     """Llengua en què s'escriu a la persona: la preferida si és activa; si no, la de reserva
     (decisió 061)."""
@@ -66,3 +101,9 @@ def language_for(person) -> str:
     if person.preferred_language in active:
         return person.preferred_language
     return settings.LANGUAGE_CODE
+
+
+def age_on(birth_date, on) -> int:
+    """Anys complerts el dia `on` (068). Peça de la 00 que la T-M01-33 farà servir a `age_band`;
+    qui crida passa la data local (Barcelona), mai una edat que enviï el navegador."""
+    return on.year - birth_date.year - ((on.month, on.day) < (birth_date.month, birth_date.day))

@@ -4,9 +4,11 @@ Només l'estructura i les restriccions que garanteix la base de dades. Les trans
 número de soci, les quotes, els carnets i les llicències els porten els serveis de les tasques
 següents: cap altra app escriu en aquests models si no és a través d'aquests serveis.
 
-Cap camp de salut, d'IBAN ni de data de naixement. Totes les relacions són PROTECT: les
-persones s'anonimitzen i els comptes es desactiven, però no s'esborren (028, RN-25); el soci
-i el seu número no s'esborren mai (039); l'historial, les quotes i les llicències tampoc.
+Cap camp de salut ni d'IBAN. L'única data de naixement és la que porta una sol·licitud d'alta
+(068; `Person.birth_date` és de la T-M01-33), amb la mateixa visibilitat (C1). Totes les
+relacions són PROTECT: les persones s'anonimitzen i els comptes es desactiven, però no
+s'esborren (028, RN-25); el soci i el seu número no s'esborren mai (039); l'historial, les
+quotes i les llicències tampoc.
 Els camps `import_batch` els afegeix la T-M01-24 amb el lot d'importació.
 """
 
@@ -257,6 +259,23 @@ class MemberRequest(models.Model):
     effective_on = models.DateField(_("data efectiva"), null=True, blank=True)
     # Coincidències trobades (V-03), sense dades sensibles.
     duplicate_warning = models.JSONField(_("avís de possible duplicat"), default=list, blank=True)
+    # Alta (068, RN-M01-62): la data declarada a la sol·licitud, amb la visibilitat de C1. Buida
+    # només a les sol·licituds anteriors a la migració 0007: per a les noves l'exigeixen el
+    # formulari i `join.submit`; aprovar-ne una sense data es rebutja (T-M01-35, CA-M01-41).
+    birth_date = models.DateField(_("data de naixement"), null=True, blank=True)
+    # Pare, mare o tutor legal d'un menor (RN-M01-62): tot o res. Visibilitat del document: C2.
+    # Cap vista no els edita; només els canviarà l'anonimització (T-M01-22).
+    guardian_first_name = models.CharField(_("nom del representant"), max_length=100, blank=True)
+    guardian_last_name = models.CharField(_("cognoms del representant"), max_length=150, blank=True)
+    guardian_id_document_type = models.CharField(
+        _("tipus de document del representant"),
+        max_length=10,
+        choices=Person.DocumentType.choices,
+        blank=True,
+    )
+    guardian_id_document_number = models.CharField(
+        _("document del representant"), max_length=30, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -296,10 +315,98 @@ class MemberRequest(models.Model):
                 condition=Q(status="pending"),
                 name="memberrequest_one_pending_per_kind",
             ),
+            # Representant: tot o res (068). Les dades d'un menor sense representant les rebutja
+            # el servei, perquè l'edat depèn del dia de la sol·licitud.
+            models.CheckConstraint(
+                condition=Q(
+                    guardian_first_name="",
+                    guardian_last_name="",
+                    guardian_id_document_type="",
+                    guardian_id_document_number="",
+                )
+                | (
+                    _filled("guardian_first_name")
+                    & _filled("guardian_last_name")
+                    & Q(guardian_id_document_type__in=["dni", "nie"])
+                    & _filled("guardian_id_document_number")
+                ),
+                name="memberrequest_guardian_all_or_nothing",
+            ),
+            models.CheckConstraint(
+                condition=Q(kind="join")
+                | Q(birth_date__isnull=True, guardian_id_document_number=""),
+                name="memberrequest_birth_and_guardian_only_for_join",
+            ),
         ]
 
     def __str__(self):
         return f"{self.get_kind_display()} {self.person_id} ({self.get_status_display()})"
+
+
+class JoinAcceptance(AppendOnlyModel):
+    """Acceptació d'un text legal en una sol·licitud d'alta (068, RN-M01-63; regla uniforme del
+    06/11/2026). En enviar l'alta no es crea cap `core.Consent`: l'acceptació queda aquí, lligada
+    a la sol·licitud, amb el text i la versió, qui l'accepta, per a qui, el canal i, a l'alta
+    presencial, el compte que la registra. Què se'n fa en aprovar l'alta és de la T-M01-14.
+
+    - **Qui:** «sol·licitant» (qui demana l'alta per a si mateix, adult) o «representant» (el
+      pare, la mare o el tutor legal amb les dades de la mateixa sol·licitud). Mai no es desa com
+      a acceptació del menor el que ha acceptat el representant.
+    - **Per a qui:** el sol·licitant de la sol·licitud. A propòsit, no hi ha cap clau cap a
+      `Person`: si el document coincidia amb una persona existent, l'acceptació no se li atribueix
+      (RN-M01-66); la T-M01-14 decideix què se'n fa quan l'administració hagi comprovat la
+      identitat.
+    - **Immutable** (model i disparadors de la migració 0008). La fila no porta cap dada
+      personal pròpia: l'esborrat RGPD anonimitza la persona i les dades de la sol·licitud
+      (T-M01-22, 028) i aquesta fila queda com a prova sense identificar ningú.
+    """
+
+    class AcceptedBy(models.TextChoices):
+        APPLICANT = "applicant", _("Sol·licitant")
+        GUARDIAN = "guardian", _("Pare, mare o tutor legal")
+
+    request = models.ForeignKey(
+        MemberRequest,
+        on_delete=models.PROTECT,
+        related_name="acceptances",
+        verbose_name=_("sol·licitud"),
+    )
+    legal_text = models.ForeignKey(
+        "core.LegalText", on_delete=models.PROTECT, related_name="+", verbose_name=_("text")
+    )
+    accepted_by = models.CharField(_("qui accepta"), max_length=10, choices=AcceptedBy.choices)
+    channel = models.CharField(_("canal"), max_length=10, choices=MemberRequest.Channel.choices)
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("acceptació de l'alta")
+        verbose_name_plural = _("acceptacions de l'alta")
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(accepted_by__in=["applicant", "guardian"]),
+                name="joinacceptance_accepted_by_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(channel="web", recorded_by__isnull=True)
+                | Q(channel="in_person", recorded_by__isnull=False),
+                name="joinacceptance_recorder_by_channel",
+            ),
+            models.UniqueConstraint(
+                fields=["request", "legal_text"], name="joinacceptance_one_per_text"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.request_id} {self.legal_text_id} {self.accepted_by}"
 
 
 class MembershipNumberCounter(models.Model):

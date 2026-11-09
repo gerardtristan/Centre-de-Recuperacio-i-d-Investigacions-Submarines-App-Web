@@ -594,5 +594,11 @@ def admin_home(request):
     can_audit = has_perm(request.user, "core.audit.view") or has_perm(
         request.user, "members.audit.view"
     )
-    context = {"can_reset": can_reset, "can_import": can_import, "can_audit": can_audit}
+    can_join = has_perm(request.user, "members.create_in_person")
+    context = {
+        "can_reset": can_reset,
+        "can_import": can_import,
+        "can_audit": can_audit,
+        "can_join": can_join,
+    }
     return render(request, "accounts/admin_home.html", context)

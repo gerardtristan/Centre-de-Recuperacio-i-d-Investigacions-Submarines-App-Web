@@ -1,4 +1,5 @@
-"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1).
+"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1) i alta presencial (T-M01-13,
+al final del fitxer).
 
 Precisions: files de la T-M01-24 a docs/planning.md#ajustos-060-lectura (pantalla, recepció,
 CSRF, registre de la prova i numeració).
@@ -17,16 +18,21 @@ import hashlib
 from collections import Counter
 
 from django.core.files.uploadhandler import MemoryFileUploadHandler, StopUpload
+from django.db import transaction
 from django.http.multipartparser import MultiPartParserError
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_http_methods
 
 from apps.core import audit
-from apps.core.permissions import permission_required
+from apps.core.permissions import has_perm, permission_required
+from apps.members import join
+from apps.members.forms import JoinForm
 from apps.members.imports import cluber
+from apps.members.models import MemberRequest
+from apps.members.views.public import PREVIEW, render_preview
 
 FIELD = "fitxer"
 # Marge per a les capçaleres del multipart: no amplia el límit del CSV (cluber.MAX_BYTES).
@@ -155,3 +161,42 @@ def _display(summary):
         "pending": [(messages[code], count) for code, count in sorted(pending.items())],
         "omitted": sorted(summary["catalogue_omitted"].items()),
     }
+
+
+# --- Alta presencial (T-M01-13; P2; P-M01-A pas 3b) --------------------------------------------
+# El mateix formulari i el mateix servei que la web; consentiment presencial amb el compte que el
+# registra (CA-17.1). Si hi ha un possible duplicat o una alta pendent, només ho diu a qui també
+# pot consultar les sol·licituds (P3a), on ho veurà igualment; si no, la resposta és neutra.
+
+JOIN_DONE_KEY = "members_join_in_person_done"
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@permission_required("members.create_in_person")
+def join_in_person_view(request):
+    texts = join.current_texts()
+    if texts is None:
+        return render(request, "members/join_in_person.html", {"unavailable": True}, status=503)
+    done = request.session.pop(JOIN_DONE_KEY, None) if request.method == "GET" else None
+    form = JoinForm(request.POST or None, texts=texts, in_person=True)
+    if request.method == "POST" and request.POST.get(PREVIEW):
+        return render_preview(request, form)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            outcome = join.submit(
+                form.cleaned_data,
+                channel=MemberRequest.Channel.IN_PERSON,
+                by=request.user,
+                request=request,
+            )
+        can_see = has_perm(request.user, "members.requests.view")
+        request.session[JOIN_DONE_KEY] = {
+            "duplicate": can_see and outcome.duplicate,
+            "already_pending": can_see and outcome.request is None,
+        }
+        response = redirect("administration:join_in_person")
+        response.status_code = 303
+        return response
+    context = {"form": form, "texts": texts, "done": done}
+    return render(request, "members/join_in_person.html", context)

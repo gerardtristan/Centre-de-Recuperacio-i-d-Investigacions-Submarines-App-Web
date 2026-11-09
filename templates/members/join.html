@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Fer-se soci" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Fer-se soci" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Sol·licitud d'alta" %}</h1>
+  {% if unavailable %}
+    <div class="avis avis-avis" role="status">{% translate "Ara mateix no es pot enviar cap sol·licitud d'alta. Torna-ho a provar més tard o escriu a la secretaria." %}</div>
+  {% elif sent_to %}
+    <div class="avis avis-ok" role="status">
+      <strong>{% translate "Sol·licitud enviada" %}</strong>
+      {% blocktranslate %}Si les dades són correctes, rebràs un correu a {{ sent_to }} amb el rebut de la sol·licitud. Encara no és una alta: l'administració del C.R.I.S. la revisarà i t'avisarà per correu.{% endblocktranslate %}
+    </div>
+  {% else %}
+    <p>{% translate "Omple les teves dades i tria el tipus de soci." %}</p>
+    {% include "members/_join_form.html" %}
+    {# Secció secundària, sota el formulari. Ordre aprovat el 06/11/2026 per a qui paga quota (069); per als exempts, P-57 oberta: no es promet cap flux. #}
+    <section class="despres" aria-labelledby="despres-titol">
+      <h2 id="despres-titol">{% translate "Què passa després" %}</h2>
+      <ol class="passos">
+        <li>{% translate "L'administració del C.R.I.S. revisa la sol·licitud." %}</li>
+        <li>{% translate "Si l'aprova, t'assigna el número de soci, crea la quota pendent i t'envia una invitació per activar el compte personal." %}</li>
+        <li>{% translate "Actives el compte i pagues la quota." %}</li>
+        <li>{% translate "Amb l'alta aprovada i el pagament confirmat, passes a ser soci actiu i tens el carnet digital." %}</li>
+      </ol>
+      <p>{% translate "Ni el número de soci ni el compte activat no et fan soci per si sols." %}</p>
+      <p>{% translate "Si per l'edat encara no et correspon pagar quota, l'administració del C.R.I.S. revisarà la sol·licitud i t'explicarà per correu com continua l'alta." %}</p>
+    </section>
+  {% endif %}
+{% endblock %}

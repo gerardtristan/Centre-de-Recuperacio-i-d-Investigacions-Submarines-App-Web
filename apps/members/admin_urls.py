@@ -7,4 +7,5 @@ from .views import admin
 
 urlpatterns = [
     path("importacions/cluber/", admin.cluber_preview_view, name="cluber_preview"),
+    path("socis/altes/nova/", admin.join_in_person_view, name="join_in_person"),
 ]

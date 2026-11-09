@@ -101,6 +101,14 @@ class Command(BaseCommand):
             ("privacy", "Text de prova de la política de privacitat, versió 1."),
             ("privacy", "Text de prova de la política de privacitat, versió 2."),
             ("newsletter", "Text de prova: vull rebre el butlletí."),
+            # Formulari d'alta (T-M01-13). Textos de prova: no serveixen per a producció (H1).
+            ("membership_terms", "Text de prova de les condicions de soci, versió 1."),
+            ("adult_declaration", "Text de prova: declaro que soc major d'edat."),
+            # Alta d'un menor (068): l'autorització del pare, la mare o el tutor legal.
+            (
+                "guardian_authorization",
+                "Text de prova: com a pare, mare o tutor legal, autoritzo l'alta del menor.",
+            ),
         ]:
             consents.publish_text(kind, content, by=admin)
 

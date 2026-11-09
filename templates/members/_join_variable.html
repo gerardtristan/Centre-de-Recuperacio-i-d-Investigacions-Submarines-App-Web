@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %}Part del formulari d'alta que depèn de la data de naixement (068): tipus i quota, representant i acceptació.
+   El servidor la calcula amb la data de Barcelona; amb HTMX es torna a demanar en canviar la data, sense desar res.
+   El bloc del representant només surt per a un menor; sense JavaScript, surt quan el servidor torna el formulari
+   amb la data d'un menor. Cada text legal té la seva casella obligatòria.{% endcomment %}
+<div id="part-variable" class="part-variable" hx-post="{{ request.get_full_path }}" hx-trigger="change from:#id_birth_date" hx-vals='{"vista_previa": "1"}' hx-target="this" hx-swap="outerHTML">
+  <fieldset{% if form.membership_type.errors %} aria-describedby="{{ form.membership_type.auto_id }}_error"{% endif %}>
+    <legend>{{ form.membership_type.label }}</legend>
+    <div class="segmentat">
+      {% for radio in form.membership_type %}
+        <label>{{ radio.tag }}<span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ radio.choice_label }}</span></label>
+      {% endfor %}
+    </div>
+    {% if form.state == "unknown" %}
+      <p class="ajuda text-2">{% translate "Els menors de 14 anys només poden ser simpatitzants, sense quota." %}</p>
+    {% elif form.fee_note %}
+      <p class="ajuda text-2">{% translate "L'import es confirma en aprovar l'alta." %}</p>
+    {% endif %}
+    {{ form.membership_type.errors }}
+  </fieldset>
+
+  {% if form.show_guardian %}
+    <fieldset class="representant">
+      <legend>{% translate "Pare, mare o tutor legal" %}</legend>
+      <p class="text-2">{% translate "La persona és menor d'edat: cal que el pare, la mare o el tutor legal hi doni les seves dades i autoritzi l'alta." %}</p>
+      {% with field=form.guardian_first_name %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.guardian_last_name %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.guardian_id_document %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% for kind, label, text, field in form.guardian_acceptance %}
+        {% include "members/_acceptacio.html" with intro=form.authorization_intro %}
+      {% endfor %}
+    </fieldset>
+  {% endif %}
+
+  <fieldset>
+    <legend>{% translate "Textos legals" %}{% if form.in_person %} <span class="a-validar">{% translate "A validar: quins textos són obligatoris (Q-16)" %}</span>{% endif %}</legend>
+    <p class="text-2">{% translate "Cal acceptar cada text. Pots obrir-los per llegir-los." %}</p>
+    {% for kind, label, text, field in form.general_acceptances %}
+      {% include "members/_acceptacio.html" with intro=form.accept_intro %}
+    {% endfor %}
+    {% if form.in_person %}
+      <p class="ajuda text-2">{% blocktranslate with username=user.get_username %}Queda registrat amb el teu compte ({{ username }}) com a acceptació presencial de la sol·licitud.{% endblocktranslate %}</p>
+    {% endif %}
+  </fieldset>
+</div>

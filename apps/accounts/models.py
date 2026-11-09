@@ -270,11 +270,15 @@ class EmailLinkRequest(models.Model):
     verificació), per als límits de RN-M01-58 (`limits.py`). Les limitades per origen no es
     desen; les limitades per destinatari sí, perquè compten per a l'origen (066). Del
     destinatari només hi ha l'empremta, i només si s'ha posat el correu a la cua. S'esborren
-    passades 24 hores (tasca diària)."""
+    passades 24 hores (tasca diària).
+
+    També hi van les sol·licituds del formulari «Fer-se soci» (T-M01-13), amb els seus propis
+    llindars provisionals: no compten per als límits de RN-M01-58 ni al revés."""
 
     class Purpose(models.TextChoices):
         RESET_PASSWORD = "reset", _("Recuperació de la contrasenya")
         VERIFY_EMAIL = "verify", _("Verificació del correu")
+        JOIN = "join", _("Sol·licitud d'alta de soci")
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     ip_address = models.GenericIPAddressField()

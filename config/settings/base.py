@@ -100,6 +100,14 @@ FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
 
+# Formulari «Fer-se soci» (T-M01-13): llindars PROVISIONALS [A validar], no són regla aprovada.
+# Per origen: com a màxim N sol·licituds en M minuts; en arribar-hi, limitat M minuts més. Per
+# destinatari: com a màxim N rebuts en 24 hores. Els terminis no poden passar de 24 hores, el
+# que es conserven les peticions (`apps/accounts/limits.py`, RETENTION).
+JOIN_FORM_ORIGIN_MAX = env.int("JOIN_FORM_ORIGIN_MAX", default=5)
+JOIN_FORM_ORIGIN_MINUTES = env.int("JOIN_FORM_ORIGIN_MINUTES", default=60)
+JOIN_FORM_RECIPIENT_MAX_PER_DAY = env.int("JOIN_FORM_RECIPIENT_MAX_PER_DAY", default=3)
+
 # Decisió 061: el català és l'única llengua activa i la de reserva. No s'hi afegeix cap llengua
 # sense les seves traduccions revisades (P-49).
 LANGUAGE_CODE = "ca"

@@ -34,6 +34,12 @@ _FIELD_PERMISSIONS = {
     "address": "members.field.identity",
     "id_document_type": "members.field.identity",
     "id_document_number": "members.field.identity",
+    # Representant d'un menor en una sol·licitud d'alta (068): com el document del soci (C2).
+    # Avui cap entrada no els porta; si la T-M01-14 o la T-M01-22 els registren, ja surten ocults.
+    "guardian_first_name": "members.field.identity",
+    "guardian_last_name": "members.field.identity",
+    "guardian_id_document_type": "members.field.identity",
+    "guardian_id_document_number": "members.field.identity",
 }
 
 

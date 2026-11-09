@@ -16,6 +16,7 @@ RN-M01-58 i, després, el valor d'aquest fitxer; les proves el llegeixen d'aquí
 from dataclasses import dataclass
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import connection
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
@@ -63,26 +64,73 @@ def lock_recipient(key: str) -> None:
     _advisory_lock(f"cris-email-links-to:{key}")
 
 
-def origin_limited(ip: str, now=None) -> bool:
+EMAIL_LINK_PURPOSES = (
+    EmailLinkRequest.Purpose.RESET_PASSWORD,
+    EmailLinkRequest.Purpose.VERIFY_EMAIL,
+)
+
+
+def origin_limited(
+    ip: str,
+    now=None,
+    *,
+    purposes=EMAIL_LINK_PURPOSES,
+    window: Window = ORIGIN_WINDOW,
+    cooldown: timedelta = ORIGIN_COOLDOWN,
+) -> bool:
     now = now or timezone.now()
     latest = list(
-        EmailLinkRequest.objects.filter(ip_address=ip)
+        EmailLinkRequest.objects.filter(ip_address=ip, purpose__in=purposes)
         .order_by("-created_at")
-        .values_list("created_at", flat=True)[: ORIGIN_WINDOW.max_count]
+        .values_list("created_at", flat=True)[: window.max_count]
     )
-    if len(latest) < ORIGIN_WINDOW.max_count:
+    if len(latest) < window.max_count:
         return False
     newest, oldest = latest[0], latest[-1]
-    return newest - oldest <= ORIGIN_WINDOW.period and now < newest + ORIGIN_COOLDOWN
+    return newest - oldest <= window.period and now < newest + cooldown
 
 
-def recipient_limited(key: str, purpose: str, now=None) -> bool:
+def recipient_limited(key: str, purpose: str, now=None, *, windows=RECIPIENT_WINDOWS) -> bool:
     now = now or timezone.now()
     sent = EmailLinkRequest.objects.filter(recipient_hash=key, purpose=purpose)
     return any(
         sent.filter(created_at__gt=now - window.period).count() >= window.max_count
-        for window in RECIPIENT_WINDOWS
+        for window in windows
     )
+
+
+# --- Formulari «Fer-se soci» (T-M01-13) --------------------------------------------------------
+# Mateix mecanisme, amb llindars PROVISIONALS de la configuració [A validar] i comptadors propis.
+JOIN = EmailLinkRequest.Purpose.JOIN
+
+
+def _join_origin_window() -> Window:
+    # Mai més llarg que RETENTION: la tasca diària esborra les peticions més velles.
+    minutes = timedelta(minutes=settings.JOIN_FORM_ORIGIN_MINUTES)
+    return Window(settings.JOIN_FORM_ORIGIN_MAX, min(minutes, RETENTION))
+
+
+def start_join(ip: str) -> EmailLinkRequest | None:
+    """Dins d'una transacció. Torna la petició acceptada, o None si l'origen està limitat
+    (aleshores no es desa res). D'un en un per origen, com els enllaços del correu."""
+    lock_origin(ip)
+    window = _join_origin_window()
+    if origin_limited(ip, purposes=(JOIN,), window=window, cooldown=window.period):
+        return None
+    return EmailLinkRequest.objects.create(ip_address=ip, purpose=JOIN)
+
+
+def join_receipt_allowed(accepted: EmailLinkRequest, email: str) -> bool:
+    """Dins de la mateixa transacció: es pot enviar el rebut a aquesta adreça? Si sí, la
+    petició en guarda l'empremta i compta per al destinatari."""
+    key = recipient_key(email)
+    lock_recipient(key)
+    windows = (Window(settings.JOIN_FORM_RECIPIENT_MAX_PER_DAY, timedelta(hours=24)),)
+    if recipient_limited(key, JOIN, windows=windows):
+        return False
+    accepted.recipient_hash = key
+    accepted.save(update_fields=["recipient_hash"])
+    return True
 
 
 def purge_old(now=None) -> int:

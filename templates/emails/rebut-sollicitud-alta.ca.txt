@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M01-13: TEXT PROVISIONAL [A validar: junta i secretaria]. Cap dada de la persona: el text és el mateix tant si el document ja existia com si no (CA-M01-02). #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Hem rebut una sol·licitud d'alta com a soci del C.R.I.S. amb aquesta adreça de correu." %}
+
+{% translate "Aquest correu només confirma que l'hem rebuda: encara no és una alta aprovada. L'administració del C.R.I.S. la revisarà i t'avisarà per correu." %}
+
+{% translate "Si no has demanat l'alta, no cal que facis res." %}
+{% endautoescape %}

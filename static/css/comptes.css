@@ -9,7 +9,7 @@
 .capcalera-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4); border-bottom: var(--v-fina) solid var(--c-linia); border-top: var(--v-activa) solid var(--c-zona); }
 .capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
 .capcalera-compte img { width: var(--logo-capcalera); height: auto; }
-.capcalera-compte .titol-zona { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-l); }
+.capcalera-compte .titol-zona { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-weight: var(--p-negreta); font-size: var(--t-l); }
 .capcalera-compte .selector-tema { margin-left: auto; }
 
 /* Cos: una columna estreta per als formularis, més ampla per a les llistes */
@@ -68,3 +68,29 @@ figure { margin: 0; }
 /* La llegenda, a tota l'amplada mentre la taula és apilada (display: block) */
 .taula caption { display: block; }
 @media (min-width: 600px) { .taula .cel-valor { text-align: left; } .taula caption { display: table-caption; } }
+
+/* Formulari d'alta (T-M01-13): el tipus de soci es parteix en dues línies a 320 px i els textos
+   legals es despleguen amb el teclat */
+.formulari .segmentat { flex-wrap: wrap; border-radius: var(--r-m); }
+/* Textos legals: enllaços que obren una finestra (textos-legals.js); sense JavaScript, els textos
+   sencers queden a la secció .textos-legals de la mateixa pàgina */
+.enllacos-legals { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+.enllacos-legals a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.textos-legals { font-size: var(--t-s); }
+.textos-legals article { display: grid; gap: var(--e-2); }
+.textos-legals h2 { font-size: var(--t-l); }
+.textos-legals h3, .dialeg-text .dialeg-cap h3 { margin: 0; font-size: var(--t-l); }
+.dialeg-text .dialeg-cos { font-size: var(--t-s); }
+.dialeg-text .dialeg-cos:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: calc(-1 * var(--v-focus)); }
+/* «Què passa després»: secció secundària sota el formulari */
+.despres { padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); font-size: var(--t-s); color: var(--c-text-2); }
+.despres h2 { font-size: var(--t-l); color: var(--c-text); }
+/* La casella no s'encongeix quan l'etiqueta ocupa més d'una línia (es veia més petita a 320 px) */
+.casella input { flex-shrink: 0; }
+/* Part del formulari que es recalcula amb la data de naixement: el mateix espai que la resta */
+.part-variable { display: grid; gap: var(--e-4); }
+/* Bloc del pare, la mare o el tutor legal (només menors): títol gran i separat de la resta */
+.representant { padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); }
+.formulari .representant legend { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-size: var(--t-xl); font-weight: var(--p-negreta); color: var(--c-text); }
+/* Marca dels textos legals obligatoris */
+.etiqueta-obligatori { font-size: var(--t-s); font-weight: var(--p-semi); white-space: nowrap; }

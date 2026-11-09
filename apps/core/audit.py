@@ -44,6 +44,8 @@ class Action:
     FILE_URL_ISSUED = "files.url_issued"
     FILE_DELETED = "files.deleted"
     CLUBER_PREVIEW = "members.cluber_import.preview"
+    JOIN_REQUEST_CREATED = "members.join_request.created"
+    JOIN_REQUEST_LIMITED = "members.join_request.limited"
 
 
 @dataclass(frozen=True)
