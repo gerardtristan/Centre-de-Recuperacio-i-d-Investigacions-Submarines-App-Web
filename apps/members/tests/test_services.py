@@ -166,6 +166,17 @@ class TestTransitionMatrix:
             "ensure_not_own_member",
             "mark_unpaid",
             "unmark_unpaid",
+            # Serveis de M01-8 (T-M01-26); les primitives `_…` continuen fora.
+            "MemberStats",
+            "MemberSummary",
+            "NotAMember",
+            "active_members_for_mandates",
+            "get_member_summary",
+            "is_member",
+            "on_fee_paid",
+            "on_fee_returned",
+            "stats",
+            "verify_card",
         }
 
 
