@@ -352,7 +352,7 @@ def test_removing_p11_hides_the_button_and_closes_export(make_admin, full_member
 
 
 def test_home_links_to_the_list_only_with_p4(make_admin, full_member):  # noqa: F811
-    url = reverse(LIST)
+    url = f'href="{reverse(LIST)}"'  # amb l'atribut: «Altes pendents» (T-M01-14) hi comença igual
     home = reverse("administration:home")
     assert url in admin_client(make_admin("secretary")).get(home).content.decode()
     assert url not in admin_client(make_admin("president")).get(home).content.decode()

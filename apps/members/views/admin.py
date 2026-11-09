@@ -1,5 +1,5 @@
-"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1), alta presencial (T-M01-13) i
-llistat, fitxa i exportació de socis (T-M01-15), aquestes dues al final del fitxer.
+"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1), alta presencial (T-M01-13),
+llistat, fitxa i exportació de socis (T-M01-15) i altes pendents (T-M01-14), al final del fitxer.
 
 Precisions: files de la T-M01-24 a docs/planning.md#ajustos-060-lectura (pantalla, recepció,
 CSRF, registre de la prova i numeració).
@@ -17,6 +17,8 @@ CSRF, registre de la prova i numeració).
 import hashlib
 from collections import Counter
 
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.files.uploadhandler import MemoryFileUploadHandler, StopUpload
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -35,11 +37,12 @@ from apps.core.permissions import (
     request_permissions,
     require_perm,
 )
-from apps.members import join, roster
+from apps.members import admissions, join, roster
 from apps.members.fee_rules import local_today
 from apps.members.forms import JoinForm
 from apps.members.imports import cluber
 from apps.members.models import Member, MemberRequest
+from apps.members.services import OwnMemberChange
 from apps.members.views.public import PREVIEW, render_preview
 
 FIELD = "fitxer"
@@ -327,3 +330,111 @@ def members_export_view(request):
         request=request,
     )
     return response
+
+
+# --- Altes pendents: aprovar i rebutjar (T-M01-14; P3a, P3, C1, C2; CA-M01-03 a 05) -----------
+# Consultar amb P3a; aprovar i rebutjar amb P3. El servei torna a comprovar el permís i el
+# conflicte d'interès: amagar un botó no és cap control. La data de naixement només arriba a la
+# plantilla amb C1, i els documents (sol·licitant i representant), només amb C2.
+
+REQUESTS_VIEW = "members.requests.view"
+
+
+def _pending_joins():
+    return (
+        MemberRequest.objects.filter(
+            kind=MemberRequest.Kind.JOIN, status=MemberRequest.Status.PENDING
+        )
+        .select_related("person", "requested_type", "person__member", "person__member__type")
+        .order_by("created_at", "id")
+    )
+
+
+@never_cache
+@permission_required(REQUESTS_VIEW)
+@require_GET
+def join_requests_view(request):
+    perms = request_permissions(request)
+    can_resolve = has_perm(request.user, admissions.APPROVE_PERMISSION, permissions=perms)
+    birth_date = has_perm(request.user, "members.field.birth_date", permissions=perms)
+    identity = has_perm(request.user, "members.field.identity", permissions=perms)
+    rows = []
+    for join_request in _pending_joins():
+        person = join_request.person
+        rows.append(
+            {
+                "request": join_request,
+                "person": person,
+                "former": getattr(person, "member", None),
+                "own": join_request.person_id == request.user.person_id,
+                "blocker": admissions.approval_blocker(join_request),
+                "identity_check": admissions.needs_identity_check(join_request),
+                "matches": sorted({w.get("match") for w in join_request.duplicate_warning}),
+                "birth_date": join_request.birth_date if birth_date else None,
+                "document": roster.document_label(person) if identity else "",
+                "guardian_document": (
+                    f"{join_request.get_guardian_id_document_type_display()} "
+                    f"{join_request.guardian_id_document_number}"
+                    if identity and join_request.guardian_id_document_number
+                    else ""
+                ),
+            }
+        )
+    context = {
+        "rows": rows,
+        "can_resolve": can_resolve,
+        "show_birth_date": birth_date,
+        "show_identity": identity,
+    }
+    return render(request, "members/join_requests.html", context)
+
+
+def _back_to_requests():
+    response = redirect("administration:join_requests")
+    response.status_code = 303
+    return response
+
+
+def _resolve(request, pk, action):
+    join_request = get_object_or_404(MemberRequest, pk=pk, kind=MemberRequest.Kind.JOIN)
+    try:
+        message = action(join_request)
+    except OwnMemberChange as error:
+        messages.error(request, error.args[0])
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, message)
+    return _back_to_requests()
+
+
+@never_cache
+@permission_required(admissions.APPROVE_PERMISSION)
+@require_POST
+def join_approve_view(request, pk):
+    def approve(join_request):
+        member = admissions.approve_join(
+            join_request,
+            by=request.user,
+            identity_checked=request.POST.get("identitat_comprovada") == "1",
+            request=request,
+        )
+        return _("Alta aprovada: %(person)s, soci número %(number)s, queda pendent.") % {
+            "person": member.person,
+            "number": member.member_number,
+        }
+
+    return _resolve(request, pk, approve)
+
+
+@never_cache
+@permission_required(admissions.APPROVE_PERMISSION)
+@require_POST
+def join_reject_view(request, pk):
+    def reject(join_request):
+        admissions.reject_join(
+            join_request, by=request.user, reason=request.POST.get("motiu", ""), request=request
+        )
+        return _("Sol·licitud rebutjada. No s'ha creat cap soci.")
+
+    return _resolve(request, pk, reject)
