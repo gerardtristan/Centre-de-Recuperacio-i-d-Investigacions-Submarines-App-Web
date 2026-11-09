@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/comptes.css' %}">
   <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+  {# Web instal·lable i carnet sense connexió (T-M01-21; decisió 041) #}
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/icones/cris-180.png' %}">
+  <script src="{% static 'js/pwa.js' %}" data-service-worker="{% url 'core:service_worker' %}" defer></script>
 </head>
 <body class="zona-{% block zona %}soci{% endblock %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>
