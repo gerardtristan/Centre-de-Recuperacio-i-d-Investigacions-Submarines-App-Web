@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import personal, public
+from .views import personal, personal_card, public
 
 app_name = "members"
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path("socis/perfil/", personal.profile_view, name="profile"),
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
+    path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19
 ]
