@@ -1,5 +1,5 @@
-"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1) i alta presencial (T-M01-13,
-al final del fitxer).
+"""Pantalla de la prova de Cluber (T-M01-24; CA-M01-20, CA-20.1), alta presencial (T-M01-13) i
+llistat, fitxa i exportació de socis (T-M01-15), aquestes dues al final del fitxer.
 
 Precisions: files de la T-M01-24 a docs/planning.md#ajustos-060-lectura (pantalla, recepció,
 CSRF, registre de la prova i numeració).
@@ -18,20 +18,28 @@ import hashlib
 from collections import Counter
 
 from django.core.files.uploadhandler import MemoryFileUploadHandler, StopUpload
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.http.multipartparser import MultiPartParserError
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit
-from apps.core.permissions import has_perm, permission_required
-from apps.members import join
+from apps.core.permissions import (
+    has_perm,
+    permission_required,
+    request_permissions,
+    require_perm,
+)
+from apps.members import join, roster
+from apps.members.fee_rules import local_today
 from apps.members.forms import JoinForm
 from apps.members.imports import cluber
-from apps.members.models import MemberRequest
+from apps.members.models import Member, MemberRequest
 from apps.members.views.public import PREVIEW, render_preview
 
 FIELD = "fitxer"
@@ -200,3 +208,122 @@ def join_in_person_view(request):
         return response
     context = {"form": form, "texts": texts, "done": done}
     return render(request, "members/join_in_person.html", context)
+
+
+# --- Llistat, fitxa i exportació de socis (T-M01-15; P4, P11; RN-M01-71, CA-M01-64) -----------
+# Només lectura. El permís es comprova abans que el mètode: sense permís, sempre «no trobat».
+# Què veu cada compte: `apps/members/roster.py`.
+
+PER_PAGE = 50
+
+
+def _filters(request, vis):
+    form = roster.MemberFilterForm(request.GET or None, can_search_document=vis.identity)
+    data = {}
+    if form.is_bound:
+        form.is_valid()  # els camps vàlids filtren; un valor manipulat no filtra
+        data = form.cleaned_data
+    return form, data
+
+
+@never_cache
+@permission_required(roster.LIST)
+@require_GET
+def members_list_view(request):
+    perms = request_permissions(request)
+    vis = roster.visibility_for(request.user, perms)
+    form, data = _filters(request, vis)
+    members = roster.filtered_members(data, can_search_document=vis.identity)
+    if vis.fees:
+        members = roster.with_fee_data(members)
+    page = Paginator(members, PER_PAGE).get_page(request.GET.get("pagina"))
+    rows = [(m, roster.fee_state(m) if vis.fees else None) for m in page]
+    context = {
+        "form": form,
+        "page": page,
+        "rows": rows,
+        "vis": vis,
+        "no_members": not Member.objects.exists(),
+        "can_export": has_perm(request.user, roster.EXPORT, permissions=perms),
+        "export_formats": roster.ExportForm.base_fields["format"].choices,
+        "can_import": has_perm(request.user, "members.cluber_import.run", permissions=perms),
+        "can_join": has_perm(request.user, "members.create_in_person", permissions=perms),
+    }
+    return render(request, "members/member_list.html", context)
+
+
+@never_cache
+@permission_required(roster.LIST)
+@require_GET
+def member_detail_view(request, pk):
+    perms = request_permissions(request)
+    vis = roster.visibility_for(request.user, perms)
+    members = Member.objects.select_related("person", "type")
+    if vis.fees:
+        members = roster.with_fee_data(members)
+    member = get_object_or_404(members, pk=pk)
+    history = member.status_changes.select_related(
+        "from_type", "to_type", "actor_account"
+    ).order_by("-created_at", "-id")
+    consents = []
+    if vis.identity:
+        latest = {}
+        for consent in member.person.consents.select_related("legal_text"):
+            latest[consent.legal_text.kind] = consent  # ordenats per data: queda l'última
+        consents = sorted(latest.values(), key=lambda c: c.legal_text.kind)
+    today = local_today()
+    years = None
+    if vis.full:
+        joined = member.joined_on
+        years = today.year - joined.year - ((today.month, today.day) < (joined.month, joined.day))
+    context = {
+        "member": member,
+        "person": member.person,
+        "vis": vis,
+        "fee": roster.fee_state(member, today) if vis.fees else None,
+        "years": years,
+        "history": history,
+        "consents": consents,
+        "document": roster.document_label(member.person) if vis.identity else "",
+    }
+    return render(request, "members/member_detail.html", context)
+
+
+@never_cache
+@permission_required(roster.EXPORT)
+@require_POST
+def members_export_view(request):
+    """.xlsx o CSV amb els filtres del llistat (RN-M01-71). Es genera en memòria i no es desa
+    enlloc; el registre només guarda els filtres, el nombre de files i el format, mai el text de
+    la cerca. Un format no vàlid es rebutja sense fitxer ni registre."""
+    perms = request_permissions(request)
+    require_perm(request, roster.LIST)  # s'exporta el que es pot llistar
+    vis = roster.visibility_for(request.user, perms)
+    form = roster.ExportForm(request.POST, can_search_document=vis.identity)
+    form.is_valid()  # un filtre manipulat no filtra, com al llistat
+    if "format" in form.errors:
+        return HttpResponseBadRequest(_("Format d'exportació no vàlid."))
+    data = form.cleaned_data
+    content_type, extension, write = roster.FORMATS[data["format"]]
+    columns = roster.export_columns(vis)
+    members = roster.filtered_members(data, can_search_document=vis.identity)
+    rows = [roster.export_row(member, columns) for member in members]
+    response = HttpResponse(write([label for _key, label in columns], rows), content_type)
+    response["Content-Disposition"] = (
+        f'attachment; filename="socis-{local_today():%Y-%m-%d}.{extension}"'
+    )
+    audit.record(
+        audit.Action.MEMBERS_EXPORTED,
+        actor=request.user,
+        details={
+            "filters": {
+                "type": data.get("tipus") or "",
+                "status": data.get("estat") or "",
+                "search": bool((data.get("q") or "").strip()),
+            },
+            "rows": len(rows),
+            "format": data["format"],
+        },
+        request=request,
+    )
+    return response

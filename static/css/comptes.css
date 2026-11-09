@@ -94,3 +94,20 @@ figure { margin: 0; }
 .formulari .representant legend { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-size: var(--t-xl); font-weight: var(--p-negreta); color: var(--c-text); }
 /* Marca dels textos legals obligatoris */
 .etiqueta-obligatori { font-size: var(--t-s); font-weight: var(--p-semi); white-space: nowrap; }
+
+/* Fitxa del soci (T-M01-15): parells etiqueta-valor i historial, sense desbordar a 320 px */
+.dades-soci { margin: 0; display: grid; gap: var(--e-2); }
+.dades-soci div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-1) var(--e-3); padding-bottom: var(--e-2); border-bottom: var(--v-fina) solid var(--c-linia); }
+.dades-soci dt { color: var(--c-text-2); }
+.dades-soci dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
+.historial { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-3); font-size: var(--t-s); }
+.historial li { display: grid; gap: var(--e-1); overflow-wrap: anywhere; }
+/* Exportació: «Exporta» obre, just a sota, una llista emergent amb els dos formats (details natiu) */
+.menu-exporta { position: relative; display: inline-block; }
+.menu-exporta > summary { list-style: none; cursor: pointer; }
+.menu-exporta > summary::-webkit-details-marker { display: none; }
+.menu-exporta[open] > summary span { display: inline-block; transform: rotate(180deg); }
+.menu-exporta .menu-opcions { position: absolute; z-index: 10; top: calc(100% + var(--e-1)); left: 0; display: grid; gap: var(--e-1); min-width: 12rem; padding: var(--e-2); background: var(--c-superficie); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); box-shadow: var(--ombra-flotant); }
+.menu-exporta .menu-opcions .boto { justify-content: flex-start; width: 100%; }
+/* «Pagada fins al dd/mm/aaaa» es pot partir en dues línies a 320 px */
+.estat-quota { white-space: normal; }

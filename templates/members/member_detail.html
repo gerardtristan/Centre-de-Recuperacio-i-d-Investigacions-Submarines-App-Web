@@ -1,0 +1,86 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-15: fitxa del soci (P4). Només lectura: editar i corregir la data d'alta són de la T-M01-15b. Cap data de naixement (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
+{% block title %}{{ person }} · {% translate "Fitxa del soci" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{{ person }}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ member.member_number|default:_("Sense número") }}</dd></div>
+    <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
+    <div><dt>{% translate "Estat del soci" %}</dt><dd>{% include "members/_member_status.html" %}</dd></div>
+    {% if vis.fees %}<div><dt>{% translate "Quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>{% endif %}
+    {% if vis.full %}
+      <div><dt>{% translate "Data d'alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</dd></div>
+      <div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>
+    {% endif %}
+  </dl>
+
+  {% if vis.full %}
+    <section aria-labelledby="dades-titol">
+      <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
+        {% if vis.identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>{% endif %}
+        <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
+        <div><dt>{% translate "Telèfon" %}</dt><dd>{{ person.phone|default:"—" }}</dd></div>
+        {% if vis.identity %}<div><dt>{% translate "Adreça" %}</dt><dd>{{ person.address|default:"—" }}</dd></div>{% endif %}
+      </dl>
+    </section>
+  {% else %}
+    <p class="text-2">{% translate "Vista de tresoreria: dades mínimes." %}</p>
+  {% endif %}
+
+  {% if vis.identity %}
+    <section aria-labelledby="consentiments-titol">
+      <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
+      {% if consents %}
+        <table class="taula">
+          <caption class="visualment-amagat">{% translate "Últim estat de cada consentiment" %}</caption>
+          <thead><tr><th scope="col">{% translate "Text" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Versió" %}</th><th scope="col">{% translate "Canal" %}</th><th scope="col">{% translate "Data" %}</th></tr></thead>
+          <tbody>
+            {% for consent in consents %}
+              <tr>
+                <th scope="row" class="cel-nom">{{ consent.legal_text.kind }}</th>
+                <td data-etiqueta="{% translate 'Estat' %}">{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</td>
+                <td data-etiqueta="{% translate 'Versió' %}">{{ consent.legal_text.version }}</td>
+                <td data-etiqueta="{% translate 'Canal' %}">{{ consent.get_channel_display }}</td>
+                <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ consent.created_at|date:'c' }}">{{ consent.created_at|date:"d/m/Y" }}</time></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>{% translate "No hi ha cap consentiment registrat." %}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <section aria-labelledby="historial-titol">
+    <h2 id="historial-titol">{% translate "Historial d'estats i tipus" %}</h2>
+    {% if history %}
+      <ol class="historial">
+        {% for change in history %}
+          <li>
+            <span class="text-2"><time datetime="{{ change.created_at|date:'c' }}">{{ change.created_at|date:"d/m/Y H:i" }}</time> · {% if change.actor_account %}{{ change.actor_account.login }}{% else %}{% translate "Sistema" %}{% endif %}</span>
+            <span>
+              {% if change.from_status and change.from_status != change.to_status %}{% blocktranslate with new=change.get_to_status_display old=change.get_from_status_display %}Estat: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_status %}{% blocktranslate with new=change.get_to_status_display %}Estat inicial: {{ new }}{% endblocktranslate %}{% endif %}
+              {% if change.from_type_id and change.from_type_id != change.to_type_id %} · {% blocktranslate with new=change.to_type.name old=change.from_type.name %}Tipus: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_type_id %} · {% blocktranslate with new=change.to_type.name %}Tipus: {{ new }}{% endblocktranslate %}{% endif %}
+              · {% blocktranslate with date=change.effective_on|date:"d/m/Y" %}efectiu el {{ date }}{% endblocktranslate %}
+              {% if change.reason %} · {% blocktranslate with reason=change.reason %}motiu: {{ reason }}{% endblocktranslate %}{% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ol>
+      <p class="text-2">{% translate "Només s'hi afegeixen entrades: no es poden editar ni esborrar." %}</p>
+    {% else %}
+      <p>{% translate "Encara no hi ha cap entrada a l'historial." %}</p>
+    {% endif %}
+  </section>
+
+  <p class="enllacos">
+    <a href="{% url 'administration:members_list' %}">{% translate "Tornar al llistat de socis" %}</a>
+    <a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a>
+  </p>
+{% endblock %}

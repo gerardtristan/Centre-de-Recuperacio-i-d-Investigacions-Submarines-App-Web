@@ -8,4 +8,7 @@ from .views import admin
 urlpatterns = [
     path("importacions/cluber/", admin.cluber_preview_view, name="cluber_preview"),
     path("socis/altes/nova/", admin.join_in_person_view, name="join_in_person"),
+    path("socis/", admin.members_list_view, name="members_list"),
+    path("socis/exporta/", admin.members_export_view, name="members_export"),
+    path("socis/<int:pk>/", admin.member_detail_view, name="member_detail"),
 ]

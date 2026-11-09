@@ -596,6 +596,7 @@ def admin_home(request):
     )
     can_join = has_perm(request.user, "members.create_in_person")
     context = {
+        "can_members": has_perm(request.user, "members.list"),
         "can_reset": can_reset,
         "can_import": can_import,
         "can_audit": can_audit,

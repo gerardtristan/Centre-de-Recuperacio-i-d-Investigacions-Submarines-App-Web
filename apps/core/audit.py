@@ -46,6 +46,7 @@ class Action:
     CLUBER_PREVIEW = "members.cluber_import.preview"
     JOIN_REQUEST_CREATED = "members.join_request.created"
     JOIN_REQUEST_LIMITED = "members.join_request.limited"
+    MEMBERS_EXPORTED = "members.list.exported"
 
 
 @dataclass(frozen=True)

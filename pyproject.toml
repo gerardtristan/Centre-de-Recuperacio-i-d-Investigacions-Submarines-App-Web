@@ -15,6 +15,9 @@ dependencies = [
     "psycopg[binary]>=3.2,<4",
     "pyotp>=2.9,<3",
     "qrcode>=8,<9",
+    # Exportació del llistat de socis en .xlsx (T-M01-15, RN-M01-71); sèrie 3.2 per decisió del
+    # responsable del projecte (09/11/2026). Només escriu, sense dependències ni xarxa.
+    "XlsxWriter>=3.2,<3.3",
 ]
 
 [project.optional-dependencies]
