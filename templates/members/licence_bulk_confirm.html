@@ -1,0 +1,45 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-36: confirmació en bloc de les caducitats d'any natural pendents (RN-M01-56, P19 sencer i P4). La llista no mostra els registres del teu soci, però el servidor torna a comprovar el permís, el conflicte d'interès, que siguin pendents i les dates; tot o res, i cada registre queda al registre d'activitat amb el valor anterior. La declaració del soci no és aquí. #}
+{% block title %}{% translate "Llicències pendents de confirmar" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+  <h1>{% translate "Llicències pendents de confirmar" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <p class="text-2">{% translate "Registres de llicència sense data de caducitat (per exemple, els importats de Cluber). Marca només les llicències d'any natural: caducaran el 31/12 de l'any que triïs. Les altres, corregeix-les una a una des de la fitxa del soci." %}</p>
+  {% if records %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      <fieldset>
+        <legend>{% translate "Registres que es confirmen" %}</legend>
+        {% if form.records.errors %}<div id="id_records_error">{{ form.records.errors }}</div>{% endif %}
+        <table class="taula">
+          <caption>{% blocktranslate count total=records|length %}{{ total }} registre pendent{% plural %}{{ total }} registres pendents{% endblocktranslate %}</caption>
+          <thead><tr><th scope="col"><span class="visualment-amagat">{% translate "Selecciona" %}</span></th><th scope="col">{% translate "Soci" %}</th><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Data d'alta" %}</th><th scope="col">{% translate "Origen" %}</th></tr></thead>
+          <tbody>
+            {% for record in records %}
+              <tr>
+                <td><label class="casella"><input type="checkbox" name="records" value="{{ record.pk }}" id="registre-{{ record.pk }}"{% if record.pk|stringformat:"s" in selected %} checked{% endif %}{% if form.records.errors %} aria-describedby="id_records_error"{% endif %}><span class="visualment-amagat">{% blocktranslate with person=record.member.person type=record.licence_type %}{{ type }} de {{ person }}{% endblocktranslate %}</span></label></td>
+                <th scope="row" class="cel-nom"><a href="{% url 'administration:member_detail' record.member.pk %}">{{ record.member.person }}</a>{% if record.member.member_number %}<br><span class="codi">{% blocktranslate with number=record.member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</th>
+                <td data-etiqueta="{% translate 'Tipus' %}">{{ record.licence_type }}</td>
+                <td data-etiqueta="{% translate "Data d'alta" %}"><time datetime="{{ record.issued_on|date:'Y-m-d' }}">{{ record.issued_on|date:"d/m/Y" }}</time></td>
+                <td data-etiqueta="{% translate 'Origen' %}">{{ record.get_source_display }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </fieldset>
+      {% with field=form.year %}{% include "accounts/_camp.html" %}{% endwith %}
+      <p class="ajuda">{% translate "Cada registre confirmat queda al registre d'activitat amb el valor anterior. Si algun registre no es pot confirmar, no es confirma cap." %}</p>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Confirma les seleccionades" %}</button>
+      </div>
+    </form>
+  {% else %}
+    <p>{% translate "No hi ha cap registre de llicència pendent de confirmar." %}</p>
+  {% endif %}
+{% endblock %}

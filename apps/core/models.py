@@ -104,12 +104,16 @@ class Person(models.Model):
         return f"{self.first_name} {self.last_name}".strip()
 
     def save(self, *args, **kwargs):
+        self.normalize()
+        super().save(*args, **kwargs)
+
+    def normalize(self):
+        # També el fa servir `persons.update` per saber què canvia abans de desar.
         self.first_name = self.first_name.strip()
         self.last_name = self.last_name.strip()
         self.contact_email = normalize_email(self.contact_email)
         self.phone = normalize_phone(self.phone)
         self.id_document_number = normalize_document(self.id_document_number)
-        super().save(*args, **kwargs)
 
 
 class Role(models.Model):

@@ -1,0 +1,26 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-23: afegir o corregir el registre mínim de llicència (RN-M01-29, P19). El servidor torna a comprovar el permís, les dates i el conflicte d'interès; cada canvi queda al registre d'activitat amb el valor anterior. #}
+{% block title %}{{ title }} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "És el teu soci: no pots canviar-ne la llicència des de l'administració." %}</div>
+  {% elif anonymised %}
+    <div class="avis avis-error" role="alert">{% translate "Les dades d'aquesta persona estan anonimitzades i no es poden editar." %}</div>
+  {% else %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <p class="ajuda">{% translate "Cada canvi queda al registre d'activitat amb el valor anterior. Els registres de llicència no s'esborren." %}</p>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa la llicència" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% load i18n %}
+{# T-M01-15b: correccions de la data d'alta amb el valor anterior (RN-M01-22). Només amb P4 sencer: «dades mínimes» no veu la data d'alta (la vista no envia les files). #}
+{% if join_date_changes %}
+  <section aria-labelledby="data-alta-titol">
+    <h2 id="data-alta-titol">{% translate "Correccions de la data d'alta" %}</h2>
+    <ol class="historial">
+      {% for change in join_date_changes %}
+        <li>
+          <span class="text-2"><time datetime="{{ change.created_at|date:'c' }}">{{ change.created_at|date:"d/m/Y H:i" }}</time> · {{ change.actor_account.login }}</span>
+          <span>
+            {% blocktranslate with new=change.to_joined_on|date:"d/m/Y" old=change.from_joined_on|date:"d/m/Y" %}Data d'alta: {{ new }} (abans {{ old }}){% endblocktranslate %}
+            · {% if change.to_is_approximate %}{% translate "aproximada" %}{% else %}{% translate "segura" %}{% endif %}
+            ({% if change.from_is_approximate %}{% translate "abans aproximada" %}{% else %}{% translate "abans segura" %}{% endif %})
+          </span>
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="text-2">{% translate "Només s'hi afegeixen entrades: no es poden editar ni esborrar." %}</p>
+  </section>
+{% endif %}

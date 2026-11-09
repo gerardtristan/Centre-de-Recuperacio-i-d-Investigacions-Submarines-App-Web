@@ -14,6 +14,7 @@ Els camps `import_batch` els afegeix la T-M01-24 amb el lot d'importació.
 
 import secrets
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.functions import Length, Trim
@@ -21,7 +22,13 @@ from django.db.models.lookups import GreaterThan
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import AppendOnlyModel, Charge, Person, UndeletableModel
+from apps.core.models import (
+    AppendOnlyModel,
+    Charge,
+    Person,
+    UndeletableModel,
+    UndeletableQuerySet,
+)
 
 
 def _filled(field):
@@ -196,6 +203,37 @@ class MemberStatusChange(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.member_id}: {self.from_status or '—'} → {self.to_status}"
+
+
+class MemberJoinDateChange(AppendOnlyModel):
+    """Correccions de la data d'alta (RN-M01-22, T-M01-15b): el valor anterior i el nou, amb la
+    marca d'aproximada. Les fa sempre un compte amb P6, mai el sistema. Només s'hi afegeixen
+    files: també ho imposen uns disparadors de PostgreSQL (migració 0009). Sense text lliure."""
+
+    member = models.ForeignKey(
+        Member, on_delete=models.PROTECT, related_name="join_date_changes", verbose_name=_("soci")
+    )
+    from_joined_on = models.DateField(_("data d'alta anterior"))
+    from_is_approximate = models.BooleanField(_("aproximada abans"))
+    to_joined_on = models.DateField(_("data d'alta nova"))
+    to_is_approximate = models.BooleanField(_("aproximada ara"))
+    actor_account = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("compte")
+    )
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("correcció de la data d'alta")
+        verbose_name_plural = _("correccions de la data d'alta")
+        constraints = [
+            models.CheckConstraint(
+                condition=~Q(
+                    from_joined_on=F("to_joined_on"), from_is_approximate=F("to_is_approximate")
+                ),
+                name="memberjoindatechange_changes_something",
+            ),
+        ]
+        indexes = [models.Index(fields=["member", "created_at"], name="joindatechange_member_idx")]
 
 
 class MemberRequest(models.Model):
@@ -426,18 +464,29 @@ class MembershipNumberCounter(models.Model):
         return str(self.last_number)
 
 
+class AnnualFeeQuerySet(UndeletableQuerySet):
+    # Se saltarien la comprovació de `AnnualFee.save` (persona i tipus del càrrec).
+    def bulk_create(self, *args, **kwargs):
+        raise ValidationError(_("Les quotes es creen d'una en una."))
+
+    def update(self, **kwargs):
+        raise ValidationError(_("Les quotes no es modifiquen en bloc."))
+
+
 class AnnualFee(UndeletableModel):
     """Quota d'un soci sobre un càrrec de la 00 (RN-M01-51: no s'esborra). L'import i l'estat
     són els del càrrec. La generació i el venciment (P-29) són de la T-M01-14 i la T-M01-18.
 
-    Que el càrrec sigui de la persona del soci i de tipus «quota» (M01-6) NO està garantit encara:
-    la base de dades no ho comprova (caldrien columnes duplicades aquí i una restricció nova al
-    `Charge` de la 00). Ho ha de fer el servei que crea les quotes, amb una prova que ho rebutgi,
-    a la T-M01-14, la T-M01-17 i la T-M01-18 (lectura de la 060)."""
+    Que el càrrec sigui de la persona del soci i de tipus «quota» (M01-6) no ho comprova la base
+    de dades (caldrien columnes duplicades aquí i una restricció nova al `Charge` de la 00): ho
+    comprova `save` (T-M01-14, lectura de la 060), i el gestor no admet `bulk_create` ni `update`,
+    que se'l saltarien. Una escriptura amb SQL directa no queda coberta."""
 
     class Kind(models.TextChoices):
         ANNUAL = "annual", _("Quota anual")
         TYPE_CHANGE_SUPPLEMENT = "type_change_supplement", _("Suplement de canvi de tipus")
+
+    objects = AnnualFeeQuerySet.as_manager()
 
     member = models.ForeignKey(
         Member, on_delete=models.PROTECT, related_name="fees", verbose_name=_("soci")
@@ -461,6 +510,16 @@ class AnnualFee(UndeletableModel):
                 name="annualfee_kind_valid",
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        charge = Charge.objects.only("person_id", "kind").get(pk=self.charge_id)
+        if charge.kind != Charge.Kind.FEE:
+            raise ValidationError(_("El càrrec d'una quota ha de ser del tipus «quota»."))
+        if charge.person_id != Member.objects.values_list("person_id", flat=True).get(
+            pk=self.member_id
+        ):
+            raise ValidationError(_("El càrrec d'una quota ha de ser de la persona del soci."))
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.member_id} {self.period} {self.kind}"

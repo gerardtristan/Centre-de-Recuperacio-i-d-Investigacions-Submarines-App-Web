@@ -39,6 +39,17 @@ def parse_document(value: str) -> tuple[str, str] | None:
     return kind, number
 
 
+DOCUMENT_INVALID = _("Escriu un DNI o un NIE vàlid, amb la lletra.")
+
+
+def clean_phone_value(value: str) -> str:
+    """Telèfon normalitzat, de 9 a 15 xifres (alta i edició del soci)."""
+    phone = normalize_phone(value)
+    if not 9 <= len(phone.lstrip("+")) <= 15:
+        raise ValidationError(_("Escriu un telèfon vàlid, de 9 xifres com a mínim."))
+    return phone
+
+
 # Noms dels textos legals de l'alta (els tipus són els de `join.REQUIRED_TEXTS`).
 LEGAL_LABELS = {
     "privacy": _("Política de privacitat"),
@@ -257,7 +268,7 @@ class JoinForm(forms.Form):
             return None
         parsed = parse_document(raw)
         if parsed is None:
-            raise ValidationError(_("Escriu un DNI o un NIE vàlid, amb la lletra."))
+            raise ValidationError(DOCUMENT_INVALID)
         return parsed
 
     def clean_birth_date(self):
@@ -269,10 +280,7 @@ class JoinForm(forms.Form):
         return value
 
     def clean_phone(self):
-        phone = normalize_phone(self.cleaned_data["phone"])
-        if not 9 <= len(phone.lstrip("+")) <= 15:
-            raise ValidationError(_("Escriu un telèfon vàlid, de 9 xifres com a mínim."))
-        return phone
+        return clean_phone_value(self.cleaned_data["phone"])
 
     def clean_text_versions(self):
         if self.cleaned_data["text_versions"] != self._versions():

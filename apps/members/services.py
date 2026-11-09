@@ -26,6 +26,7 @@ falla qualsevol pas, no queda res escrit.
 """
 
 import datetime
+from dataclasses import dataclass
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -39,7 +40,7 @@ from apps.core import audit
 from apps.core.models import AuditEntry
 from apps.core.permissions import has_perm
 
-from .models import Member, MemberRequest, MemberStatusChange
+from .models import LicenceRecord, Member, MemberRequest, MemberStatusChange
 
 __all__ = [
     "InactiveAccount",
@@ -108,7 +109,7 @@ def _check_account_active(by, *, lock=False) -> None:
         raise InactiveAccount(_("Aquest compte no està actiu i no pot fer canvis."))
 
 
-def ensure_not_own_member(member, by, *, request=None) -> None:
+def ensure_not_own_member(member, by, *, request=None, message=None) -> None:
     """Rebutja i registra l'intent si el compte és de la persona del soci. Cal cridar-lo
     abans d'obrir la transacció de l'operació (vegeu el docstring del mòdul). Un compte no
     actiu es rebutja abans (`InactiveAccount`), sense intent registrat, llevat que es desactivi
@@ -116,7 +117,9 @@ def ensure_not_own_member(member, by, *, request=None) -> None:
     _check_account_active(by)
     if _is_own(member, by):
         audit.record(OWN_MEMBER_REJECTED, actor=by, target=member, request=request)
-        raise OwnMemberChange(_("No pots canviar l'estat ni el tipus del teu propi soci."))
+        raise OwnMemberChange(
+            message or _("No pots canviar l'estat ni el tipus del teu propi soci.")
+        )
 
 
 def _check_actor(by) -> None:
@@ -335,3 +338,55 @@ def _readmit(member, join_request, *, by, effective_on, reason="", request=None)
         request=request,
         join_request=join_request,
     )
+
+
+# --- Lectura de la llicència (T-M01-30; decisió 049, M01-8) ---------------------------------
+#
+# Només lectura: cap escriptura, cap registre d'activitat i cap comprovació de permís (és un
+# servei entre mòduls; el permís el comprova la vista de qui el crida). Torna dades immutables,
+# mai el model, perquè cap altra app no pugui desar-lo. La marca de caducitat desconeguda és
+# `expiry_unknown` (RN-M01-50, T-M01-34). Fora d'aquí: `cancelled_on` (RN-M01-38, T-M01-31).
+# No s'afegeixen a `__all__` aquí: ho farà la T-M01-26 (contracte de M01-8) en fusionar-se.
+
+
+@dataclass(frozen=True)
+class LicenceInfo:
+    """Registre mínim de llicència (RN-M01-29). `expires_on` és None si no se sap (Cluber)."""
+
+    record_id: int
+    person_id: int
+    licence_type: str
+    issued_on: datetime.date
+    expires_on: datetime.date | None
+
+    @property
+    def expiry_unknown(self) -> bool:
+        """Caducitat desconeguda (RN-M01-50). Marca neutra: què vol dir per al 02 («pendent de
+        confirmar», no vigent) ho decideix el 02 [A validar: secretaria]."""
+        return self.expires_on is None
+
+
+_LICENCE_FIELDS = ("pk", "member__person_id", "licence_type", "issued_on", "expires_on")
+# Caducitat coneguda més tardana primer; les buides, només si no n'hi ha cap amb data (RN-M01-50).
+_LICENCE_ORDER = (F("expires_on").desc(nulls_last=True), "-issued_on", "-pk")
+
+
+def licence_record(person) -> LicenceInfo | None:
+    """El registre mínim de la persona, o None si no és sòcia o no en té cap (049)."""
+    row = (
+        LicenceRecord.objects.filter(member__person=person)
+        .order_by(*_LICENCE_ORDER)
+        .values_list(*_LICENCE_FIELDS)
+        .first()
+    )
+    return LicenceInfo(*row) if row else None
+
+
+def licence_records() -> list[LicenceInfo]:
+    """Tots els registres mínims de tots els socis, un per registre, per al pas únic al 06
+    (P-M06-H: cada llicència recorda de quin registre surt). Ordenats per persona i amb el mateix
+    ordre que `licence_record`: el primer de cada persona és el que torna `licence_record`."""
+    rows = LicenceRecord.objects.order_by("member__person_id", *_LICENCE_ORDER).values_list(
+        *_LICENCE_FIELDS
+    )
+    return [LicenceInfo(*row) for row in rows]

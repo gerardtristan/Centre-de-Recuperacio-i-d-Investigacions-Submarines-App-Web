@@ -111,3 +111,10 @@ figure { margin: 0; }
 .menu-exporta .menu-opcions .boto { justify-content: flex-start; width: 100%; }
 /* «Pagada fins al dd/mm/aaaa» es pot partir en dues línies a 320 px */
 .estat-quota { white-space: normal; }
+
+/* Altes pendents (T-M01-14): una targeta per sol·licitud; el títol i l'estat es parteixen a 320 px */
+.altes-targeta { display: grid; gap: var(--e-3); }
+.altes-targeta > h2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); overflow-wrap: anywhere; }
+.altes-rebuig > summary { list-style: none; cursor: pointer; width: fit-content; }
+.altes-rebuig > summary::-webkit-details-marker { display: none; }
+.altes-rebuig[open] > summary { margin-bottom: var(--e-3); }
