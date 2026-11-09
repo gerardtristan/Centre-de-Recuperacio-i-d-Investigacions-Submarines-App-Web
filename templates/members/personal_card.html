@@ -17,7 +17,7 @@
       <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
       <div><dt>{% translate "Estat del carnet" %}</dt><dd>{% if validity.valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No vàlid" %}</span>{% endif %}</dd></div>
       {% if validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
-      <div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% else %}{{ years }}{% endif %}</dd></div>
+      {% if member.joined_on %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% else %}{{ years }}{% endif %}</dd></div>{% endif %}
     </dl>
     <section class="targeta carnet-darrere" aria-labelledby="carnet-darrere-titol">
       <h2 id="carnet-darrere-titol">{% translate "Darrere del carnet" %}</h2>

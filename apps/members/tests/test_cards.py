@@ -491,3 +491,32 @@ def test_exempt_member_card_page(personal):
     html = personal(member).get(reverse(CARD)).content.decode()
     assert "Exempt per edat fins al 31/12/2029" in html
     assert "Vàlid fins al" in html
+
+
+# --- Importats sense data d'alta (retoc de la T-M01-25, 072, Q-075) --------------------------
+
+
+@pytest.mark.django_db
+def test_only_an_imported_member_may_lack_the_join_date():
+    with pytest.raises(IntegrityError), transaction.atomic():
+        make_member(joined_on=None)
+
+
+@pytest.mark.django_db
+def test_imported_member_without_join_date_shows_no_seniority(personal, admin_account):
+    from apps.core.models import ImportBatch
+    from apps.members import roster
+    from apps.members.tests.test_cluber_preview import make_batch
+
+    batch = make_batch(admin_account, ImportBatch.Status.CONFIRMED)
+    member = make_member(
+        joined_on=None,
+        import_batch=batch,
+        cluber_id="CLB-1",
+        cluber_renewed_on=local_today() - timedelta(days=30),
+    )
+    assert cards.years_of_membership(member) is None
+    cards.issue_card(member, by=SYSTEM)  # Q-076: vàlid des de la renovació de Cluber
+    html = personal(member).get(reverse(CARD)).content.decode()
+    assert "Anys de soci" not in html and "Vàlid" in html and "No vàlid" not in html
+    assert roster.export_row(member, [("joined_on", "Data d'alta")]) == [""]

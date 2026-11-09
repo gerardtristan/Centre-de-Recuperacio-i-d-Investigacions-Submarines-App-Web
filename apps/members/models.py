@@ -82,7 +82,9 @@ class Member(models.Model):
     status = models.CharField(
         _("estat"), max_length=10, choices=Status.choices, default=Status.PENDING
     )
-    joined_on = models.DateField(_("data d'alta"))
+    # Buida només en un soci importat de Cluber sense data d'alta (072, Q-075): no se n'inventa
+    # cap i no es mostra l'antiguitat; la secretaria la pot posar després (RN-M01-22).
+    joined_on = models.DateField(_("data d'alta"), null=True, blank=True)
     joined_on_is_approximate = models.BooleanField(_("data d'alta aproximada"), default=False)
     left_on = models.DateField(_("data de baixa"), null=True, blank=True)
     # Null (M01-6) i no "": l'únic parcial només s'aplica als socis que vénen de Cluber.
@@ -131,6 +133,10 @@ class Member(models.Model):
                 name="member_status_valid",
             ),
             models.CheckConstraint(
+                condition=Q(joined_on__isnull=False) | Q(import_batch__isnull=False),
+                name="member_joined_on_only_imported_may_be_empty",
+            ),
+            models.CheckConstraint(
                 condition=Q(cluber_renewed_on__isnull=True) | Q(cluber_id__isnull=False),
                 name="member_cluber_renewed_only_cluber",
             ),
@@ -172,6 +178,16 @@ class MemberStatusChange(AppendOnlyModel):
     )
     effective_on = models.DateField(_("data efectiva"))
     reason = models.TextField(_("motiu"), blank=True)
+
+    class Origin(models.TextChoices):
+        PLATFORM = "platform", _("plataforma")
+        CLUBER_IMPORT = "cluber_import", _("importat de Cluber")
+
+    # Procedència de l'entrada (072, Q-072): distingeix l'entrada inicial d'un soci importat d'un
+    # canvi fet a la plataforma. Sense data d'alta, la data efectiva és la de la importació.
+    origin = models.CharField(
+        _("procedència"), max_length=20, choices=Origin.choices, default=Origin.PLATFORM
+    )
     # Null quan l'acció és del sistema.
     actor_account = models.ForeignKey(
         "accounts.Account",
@@ -204,6 +220,10 @@ class MemberStatusChange(AppendOnlyModel):
                 | _filled("reason"),
                 name="memberstatuschange_reason_when_required",
             ),
+            models.CheckConstraint(
+                condition=Q(origin__in=["platform", "cluber_import"]),
+                name="memberstatuschange_origin_valid",
+            ),
         ]
         indexes = [
             models.Index(fields=["member", "created_at"], name="memberstatuschange_member_idx")
@@ -221,7 +241,8 @@ class MemberJoinDateChange(AppendOnlyModel):
     member = models.ForeignKey(
         Member, on_delete=models.PROTECT, related_name="join_date_changes", verbose_name=_("soci")
     )
-    from_joined_on = models.DateField(_("data d'alta anterior"))
+    # Buida quan el soci importat no en tenia cap (072, Q-075).
+    from_joined_on = models.DateField(_("data d'alta anterior"), null=True, blank=True)
     from_is_approximate = models.BooleanField(_("aproximada abans"))
     to_joined_on = models.DateField(_("data d'alta nova"))
     to_is_approximate = models.BooleanField(_("aproximada ara"))

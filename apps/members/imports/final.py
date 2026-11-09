@@ -12,18 +12,22 @@ Què fa, en una sola transacció (si falla qualsevol pas, no queda res escrit):
 - exigeix que cada fila que no es pot importar estigui exclosa explícitament i que n'hi hagi
   almenys una d'importable (una importació buida gastaria l'única importació final, RN-93);
 - crea el lot confirmat i, per cada fila importable, la persona (`persons.create_or_get`), el
-  soci actiu amb el número de Cluber, `cluber_id`, la data d'alta, la llavor de l'avatar
-  (`new_avatar_seed`, per defecte del model) i l'entrada inicial de l'historial, i el
-  consentiment d'imatges amb el canal «importat de Cluber» si la cel·la diu «sí»;
+  soci actiu amb el número de Cluber, `cluber_id`, la data d'alta si n'hi ha (Q-075), l'última
+  renovació de Cluber (`cluber_renewed_on`, d'on compta el carnet, Q-076 [A validar: tresorer]),
+  la llavor de l'avatar (`new_avatar_seed`, per defecte del model) i l'entrada inicial de
+  l'historial amb la procedència «importat de Cluber» (Q-072), i el consentiment d'imatges amb el
+  canal «importat de Cluber» si la cel·la diu «sí»;
 - una línia per fila, amb codis de la llista tancada i sense cap valor del fitxer;
 - el comptador de números continua després del més alt importat (RN-M01-32, CA-M01-22).
 
 Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la regla):
-- Fila importable = preparada (`Row.ready`), nova, amb data d'alta i **sense document**. Avui cap
-  fila no és preparada: totes tenen pendent el tipus de document o el document (P-62, punt 5).
-  Una fila amb document no s'importa fins que el servei desi també el tipus: mai no es perd el
-  document en silenci. Sense data d'alta, la fila no s'importa: `joined_on` és obligatòria i no
-  s'inventa cap data (P-62, punt 6).
+- Fila importable = preparada (`Row.ready`), nova i **sense document**. Avui cap fila no és
+  preparada: totes tenen pendent el tipus de document o el document (P-62, punt 5). Una fila amb
+  document no s'importa fins que el servei desi també el tipus: mai no es perd el document en
+  silenci. Sense data d'alta, s'importa sense cap data i no es mostra l'antiguitat (072, Q-075);
+  l'entrada inicial de l'historial porta la data de la importació.
+- L'«Estat» de Cluber no es llegeix (071, punt 7): tots entren actius. La Q-071 (socis de baixa
+  sense data de baixa) xoca amb aquest punt i continua oberta.
 - Les files coincidents no s'importen ni modifiquen la persona: s'han d'excloure (P-65, punt 3).
 - Cap quota, càrrec ni moviment (RN-M01-33; 071, punts 3 i 6). Cap carnet: el provisional de la
   RN-M01-34 és [A validar: tresorer] i de la T-M01-19.
@@ -36,6 +40,7 @@ from collections import Counter
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, consents, imports
@@ -81,11 +86,9 @@ def is_allowed() -> bool:
 
 
 def importable(row: cluber.Row) -> bool:
-    values = row.data.get("values", {})
     return (
         row.ready
         and row.identity == "new"
-        and "Member.joined_on" in values  # P-62, punt 6: cap data inventada
         and not row.data["id_document"]  # P-62, punt 5: el document no es desa sense tipus
     )
 
@@ -160,21 +163,25 @@ def _write(result, to_import, by, file_sha256) -> ImportBatch:
         )
         if not created:  # sense document no hauria de passar; mai s'assigna un lot a una existent
             raise IntegrityError("persona preexistent")
+        cluber_id = values.get("Member.cluber_id") or None
         member = Member.objects.create(
             person=person,
             member_number=row.data["member_number"],
             type=types[row.member_type],
             status=Member.Status.ACTIVE,  # 071, punt 7
-            joined_on=values["Member.joined_on"],
-            cluber_id=values.get("Member.cluber_id") or None,
+            joined_on=values.get("Member.joined_on"),  # Q-075: cap data inventada
+            cluber_id=cluber_id,
+            # Q-076: el carnet compta des d'aquí [A validar: tresorer]; només amb `cluber_id`.
+            cluber_renewed_on=values.get("last_renewal") if cluber_id else None,
             import_batch=batch,
         )
         MemberStatusChange.objects.create(
             member=member,
             to_status=Member.Status.ACTIVE,
             to_type=member.type,
-            effective_on=member.joined_on,
+            effective_on=member.joined_on or timezone.localdate(),
             actor_account=by,
+            origin=MemberStatusChange.Origin.CLUBER_IMPORT,
         )
         if values.get("image_consent"):
             image_text = image_text or consents.imported_text(

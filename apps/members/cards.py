@@ -162,10 +162,12 @@ def valid_card_for_token(token, today=None) -> MemberCard | None:
     return card if validity(load_member(card.member_id), card, today).valid else None
 
 
-def years_of_membership(member, today=None) -> int:
-    """RN-M01-21: anys sencers entre `joined_on` i avui."""
+def years_of_membership(member, today=None) -> int | None:
+    """RN-M01-21: anys sencers entre `joined_on` i avui. `None` sense data d'alta (Q-075)."""
     today = today or local_today()
     joined = member.joined_on
+    if joined is None:
+        return None
     return today.year - joined.year - ((today.month, today.day) < (joined.month, joined.day))
 
 

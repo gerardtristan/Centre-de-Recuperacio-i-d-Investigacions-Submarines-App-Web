@@ -235,7 +235,7 @@ def export_row(member, columns) -> list[str]:
         "name": str(person),
         "type": member.type.name,
         "status": member.get_status_display(),
-        "joined_on": member.joined_on.strftime("%d/%m/%Y"),
+        "joined_on": member.joined_on.strftime("%d/%m/%Y") if member.joined_on else "",
         "email": person.contact_email,
         "phone": person.phone,
         "document": document_label(person),

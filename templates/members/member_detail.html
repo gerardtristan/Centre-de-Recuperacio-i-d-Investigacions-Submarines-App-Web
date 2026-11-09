@@ -18,7 +18,7 @@
     {% if age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ age_band.label }}</dd></div>{% endif %}
     {% if vis.full %}
       <div><dt>{% translate "Data d'alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</dd></div>
-      <div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>
+      {% if years is not None %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>{% endif %}
     {% endif %}
   </dl>
 

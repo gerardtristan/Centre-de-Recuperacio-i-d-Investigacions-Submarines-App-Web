@@ -19,6 +19,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import connection
 from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 
 from apps.core import consents
 from apps.core.models import (
@@ -221,11 +222,17 @@ class TestOpenDecisionsKeepRowsOut:
             final.confirm(data, by=admin, file_sha256=SHA)
         assert refused.value.code == "rows_unresolved"
 
-    def test_a_row_without_joined_on_is_not_imported(self, admin, future_document_rule):
+    def test_a_row_without_joined_on_is_imported_without_a_date_q075(
+        self, admin, future_document_rule
+    ):
+        # 072, Q-075: cap data inventada; l'entrada inicial porta la data de la importació.
         data = build([importable_record(1, {"Data d'inscripció": ""})])
-        with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(data, by=admin, file_sha256=SHA)
-        assert refused.value.rows == (2,)
+        final.confirm(data, by=admin, file_sha256=SHA)
+        member = Member.objects.get(member_number=901)
+        assert member.joined_on is None
+        change = member.status_changes.get()
+        assert change.origin == MemberStatusChange.Origin.CLUBER_IMPORT
+        assert change.effective_on == timezone.localdate()
 
     def test_a_matching_row_is_not_imported(self, admin, make_person, future_document_rule):
         person = make_person()
@@ -284,6 +291,8 @@ class TestWrites:
         assert [m.type.code for m in members] == ["supporter", "full"]
         assert {m.status for m in members} == {Member.Status.ACTIVE}
         assert {m.joined_on for m in members} == {datetime.date(2010, 3, 15)}
+        # Q-076: «Data alta/renovació», d'on compta el carnet [A validar: tresorer].
+        assert {m.cluber_renewed_on for m in members} == {datetime.date(2026, 10, 1)}
         seeds = {m.avatar_seed for m in members}
         assert len(seeds) == 2 and all(len(s) == 64 for s in seeds)
 
@@ -292,6 +301,7 @@ class TestWrites:
         assert (change.from_status, change.to_status) == ("", Member.Status.ACTIVE)
         assert change.effective_on == datetime.date(2010, 3, 15)
         assert change.actor_account == admin
+        assert change.origin == MemberStatusChange.Origin.CLUBER_IMPORT  # Q-072
 
     def test_image_consent_only_when_yes(self, batch, admin):
         consent = Consent.objects.get()

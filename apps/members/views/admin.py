@@ -296,7 +296,7 @@ def member_detail_view(request, pk):
         consents = sorted(latest.values(), key=lambda c: c.legal_text.kind)
     today = local_today()
     years = None
-    if vis.full:
+    if vis.full and member.joined_on:  # Q-075: sense data, sense antiguitat
         joined = member.joined_on
         years = today.year - joined.year - ((today.month, today.day) < (joined.month, joined.day))
     context = {

@@ -233,7 +233,7 @@ def _apply(
                 _check_readmission(locked, join_request, by, effective_on)
                 new_left_on = None
             if new_status == S.LEFT:
-                if effective_on < locked.joined_on:
+                if locked.joined_on and effective_on < locked.joined_on:
                     raise ValidationError(_("La baixa no pot ser anterior a la data d'alta."))
                 new_left_on = effective_on
 
@@ -480,7 +480,7 @@ def _state_on(member, on, changes):
     before = [c for c in changes if c.effective_on <= on]
     if before:
         return before[-1].to_status, before[-1].to_type_id
-    if member.joined_on > on:
+    if member.joined_on and member.joined_on > on:
         return None
     if not changes:
         return member.status, member.type_id
