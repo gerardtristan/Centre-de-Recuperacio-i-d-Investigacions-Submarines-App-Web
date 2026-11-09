@@ -178,6 +178,8 @@ def _display(summary):
         "file_warnings": [messages[code] for code in summary["warnings"]],
         "problems": problems,
         "pending": [(messages[code], count) for code, count in sorted(pending.items())],
+        # Llista per a la secretaria (072, Q-071): només els números de registre, cap valor.
+        "left_rows": [row["row"] for row in summary["rows"] if row.get("left_in_cluber")],
         "omitted": sorted(summary["catalogue_omitted"].items()),
         "encoding": cluber.ENCODING_LABELS.get(summary["encoding"]),
         "would_import": [(label, filled[target]) for target, label in cluber.FIELD_LABELS.items()],

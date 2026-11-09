@@ -350,6 +350,28 @@ class TestWrites:
 
 
 @allowed
+class TestLeftInCluberQ071:
+    """072, quarta instrucció, punt 1: les files de baixa a Cluber no s'importen mai, sense
+    excloure-les a mà, i la seva línia porta el motiu «left_in_cluber»."""
+
+    def test_left_rows_are_excluded_automatically(self, admin, future_document_rule):
+        data = build([importable_record(1), importable_record(2, {"Estat": "Baja"})])
+        batch = final.confirm(data, by=admin, file_sha256=SHA)
+        assert list(Member.objects.values_list("member_number", flat=True)) == [901]
+        lines = {line.row: line for line in batch.lines.all()}
+        assert (lines[3].result, lines[3].person) == (ImportLine.Result.EXCLUDED, None)
+        assert lines[3].codes[0] == "left_in_cluber"
+        assert (batch.new_count, batch.excluded_count) == (1, 1)
+
+    def test_only_left_rows_import_nothing(self, admin, future_document_rule):
+        data = build([importable_record(1, {"Estat": "Baja"})])
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(data, by=admin, file_sha256=SHA)
+        assert refused.value.code == "nothing_to_import"
+        assert Member.objects.count() == 0
+
+
+@allowed
 def test_counter_is_never_lowered(admin, future_document_rule):
     MembershipNumberCounter.objects.filter(pk=1).update(last_number=5000)
     final.confirm(build([importable_record(1)]), by=admin, file_sha256=SHA)

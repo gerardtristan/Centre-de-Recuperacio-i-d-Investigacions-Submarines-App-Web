@@ -111,6 +111,7 @@ CITY = "Ciutat"
 BIRTH_DATE = "Data de Naixament"
 JOINED_ON = "Data d'inscripció"
 LAST_RENEWAL = "Data alta/renovació"
+STATUS = "Estat"
 CLUBER_ID = "idInterno"
 
 
@@ -123,8 +124,9 @@ class Equivalence:
 
 # Taula d'equivalències (decisió 071, punt 10): les úniques columnes que es llegeixen. Afegir-ne
 # una és afegir-hi una fila, el seu tractament a `normalize()` i la seva prova. Cap mode
-# «importa-ho tot»: la resta (també «Estat», «Renovació», «Soci titular», «Mètode de pagament»
-# i «Polítiques de privadesa») s'ignoren sense conservar-ne el valor.
+# «importa-ho tot»: la resta (també «Renovació», «Soci titular», «Mètode de pagament» i
+# «Polítiques de privadesa») s'ignoren sense conservar-ne el valor. De l'«Estat» només es mira si
+# diu baixa (072, quarta instrucció, punt 1); el valor no es conserva.
 EQUIVALENCES = (
     Equivalence(NUMBER, "Member.member_number", "Conservar el número de soci (RN-M01-32)."),
     Equivalence(FIRST_NAME, "Person.first_name", "Identificar la persona."),
@@ -141,6 +143,7 @@ EQUIVALENCES = (
     Equivalence(QUOTA, "Member.type", "Deduir el tipus per nom o per preu (071, punt 5)."),
     Equivalence(TOTAL_PRICE, "total_price", "Només informatiu; no crea cap càrrec (071, punt 6)."),
     Equivalence(CLUBER_ID, "Member.cluber_id", "Referència de Cluber per seguir el lot."),
+    Equivalence(STATUS, "left_in_cluber", "Excloure els socis de baixa a Cluber (072, Q-071)."),
     Equivalence(IMAGE_CONSENT, "image_consent", "Consentiment d'imatges importat de Cluber."),
 )
 
@@ -178,6 +181,9 @@ MAX_LENGTH = {
 # no atorgat [A validar: valors reals de Cluber].
 YES = frozenset({"si", "s", "yes", "1", "true", "x", "acepto", "autorizo"})
 
+# «Baixa» a l'«Estat» de Cluber (072, Q-071), sense majúscules ni accents, com a paraula: també
+# «De baja». Valor exacte de l'exportació real [A validar: secretaria o tresorer].
+_LEFT_RE = re.compile(r"\b(baja|baixa)\b")
 _NUMBER_RE = re.compile(r"[0-9]+")
 _DATE_RE = re.compile(r"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})")
 _PRICE_IN_TEXT_RE = re.compile(r"([0-9]+(?:[.,][0-9]{1,2})?)\s*€")
@@ -218,6 +224,8 @@ MESSAGES = {
     "total_price_differs": _(
         "El preu total no coincideix amb la quota del tipus deduït (només informatiu)."
     ),
+    # Exclusió automàtica (072, Q-071)
+    "left_in_cluber": _("Baixa a Cluber: no s'importa i la secretaria la revisa a mà."),
     # Dades pendents
     "member_type": _("No s'ha pogut deduir el tipus de soci: l'ha de triar la secretaria."),
     "id_document_type": _("Falta el tipus de document."),
@@ -361,10 +369,17 @@ class Row:
     fields: list = field(default_factory=list)
     member_type: str | None = None  # codi del tipus deduït (catàleg de la plataforma)
     member_type_by: str | None = None  # "name" o "price"
+    # De baixa a Cluber (072, Q-071): mai no s'importa, sense que calgui excloure-la a mà.
+    left_in_cluber: bool = False
 
     @property
     def ready(self) -> bool:
-        return not self.errors and not self.pending and self.identity in ("new", "matching")
+        return (
+            not self.left_in_cluber
+            and not self.errors
+            and not self.pending
+            and self.identity in ("new", "matching")
+        )
 
     def _error(self, code, column):
         self.errors.append(code)
@@ -382,6 +397,7 @@ class Row:
             "fields": list(self.fields),
             "member_type": self.member_type,
             "member_type_by": self.member_type_by,
+            "left_in_cluber": self.left_in_cluber,
         }
 
 
@@ -411,6 +427,7 @@ class Preview:
             "conflict": identities["conflict"],
             "with_errors": sum(1 for r in self.rows if r.errors),
             "ready": sum(1 for r in self.rows if r.ready),
+            "left_in_cluber": sum(1 for r in self.rows if r.left_in_cluber),
         }
 
     def summary(self) -> dict:
@@ -561,6 +578,7 @@ def _read_row(row: Row, value, keep_values: bool = False) -> None:
     """Valida la fila i en conserva només el document normalitzat, el número de soci i la llista
     dels camps que s'omplirien (i, per a la importació final, els valors normalitzats)."""
     number_text = value(NUMBER)
+    row.left_in_cluber = bool(_LEFT_RE.search(_fold(value(STATUS))))
     row.data = {
         "member_number_text": number_text,
         "id_document": normalize_document(value(DOCUMENT)),

@@ -26,8 +26,9 @@ Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la re
   document no s'importa fins que el servei desi també el tipus: mai no es perd el document en
   silenci. Sense data d'alta, s'importa sense cap data i no es mostra l'antiguitat (072, Q-075);
   l'entrada inicial de l'historial porta la data de la importació.
-- L'«Estat» de Cluber no es llegeix (071, punt 7): tots entren actius. La Q-071 (socis de baixa
-  sense data de baixa) xoca amb aquest punt i continua oberta.
+- Les files de baixa a Cluber (072, Q-071, que modifica el punt 7 de la 071) no s'importen mai:
+  queden excloses soles, amb el codi «left_in_cluber» a la seva línia, que és la llista per a la
+  secretaria. La resta entren actives.
 - Les files coincidents no s'importen ni modifiquen la persona: s'han d'excloure (P-65, punt 3).
 - Cap quota, càrrec ni moviment (RN-M01-33; 071, punts 3 i 6). Cap carnet: el provisional de la
   RN-M01-34 és [A validar: tresorer] i de la T-M01-19.
@@ -94,7 +95,8 @@ def importable(row: cluber.Row) -> bool:
 
 
 def _codes(row: cluber.Row) -> list:
-    return list(dict.fromkeys([*row.errors, *row.pending, *row.warnings]))
+    left = ["left_in_cluber"] if row.left_in_cluber else []
+    return list(dict.fromkeys([*left, *row.errors, *row.pending, *row.warnings]))
 
 
 def _result(row: cluber.Row) -> str:
@@ -122,7 +124,12 @@ def confirm(data: bytes, *, by, file_sha256: str, excluded_rows=()) -> ImportBat
     if unknown := excluded - rows:
         raise FinalImportRefused("excluded_row_unknown", tuple(sorted(unknown)))
     to_import = [r for r in result.rows if importable(r) and r.row not in excluded]
-    unresolved = [r.row for r in result.rows if not importable(r) and r.row not in excluded]
+    # Les de baixa a Cluber queden excloses soles (072, Q-071).
+    unresolved = [
+        r.row
+        for r in result.rows
+        if not importable(r) and r.row not in excluded and not r.left_in_cluber
+    ]
     if unresolved:
         raise FinalImportRefused("rows_unresolved", tuple(unresolved))
     if not to_import:

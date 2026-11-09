@@ -13,8 +13,8 @@ Retoc del 09/11/2026 (072):
 - `send_due_reminders`: recordatoris als dies de `MEMBER_FEE_REMINDER_OFFSETS` (Q-061), un sol
   cop per quota i dia (`FeeReminder`); els posteriors al venciment, només si no s'ha pagat.
 
-**No implementat:** els terminis (P-61, resta oberta; a més, 3 × 32 € = 96 € i la regla «sempre
-sumen la quota anual» no coincideixen, vegeu el diari) i la data de la marca d'impagat.
+**No implementat:** els terminis (P-61, resta oberta; el preu a terminis, 96 € amb un recàrrec que
+decideix la junta, és de la 072, quarta instrucció) i la data de la marca d'impagat.
 """
 
 import datetime

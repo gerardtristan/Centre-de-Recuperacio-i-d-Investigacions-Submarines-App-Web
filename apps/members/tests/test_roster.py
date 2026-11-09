@@ -501,6 +501,35 @@ def test_history_newest_first_with_author_and_reason(make_admin, full_member):  
     assert text.index("Impagat (abans") < text.index("Estat inicial: Pendent")
 
 
+def test_imported_without_join_date_never_shows_the_import_date_as_join_date(make_admin):  # noqa: F811
+    # 072, quarta instrucció, punt 5: la data de la importació és a l'historial, marcada
+    # «importat de Cluber», i mai no es mostra com a data d'alta ni com a antiguitat.
+    from apps.core.models import ImportBatch
+    from apps.members.tests.test_cluber_preview import make_batch
+
+    admin = make_admin("administrator")
+    batch = make_batch(admin, ImportBatch.Status.CONFIRMED)
+    person = Person.objects.create(
+        first_name="Importat", last_name="Prova", origin=Person.Origin.CLUBER_IMPORT
+    )
+    full = MembershipType.objects.get(code="full")
+    member = Member.objects.create(
+        person=person, member_number=950, type=full, status="active", import_batch=batch
+    )
+    imported_at = timezone.make_aware(datetime(2026, 11, 20, 9, 0))
+    MemberStatusChange.objects.create(
+        member=member, from_status="", to_status="active", to_type=full,
+        effective_on=date(2026, 11, 20), actor_account=admin, created_at=imported_at,
+        origin=MemberStatusChange.Origin.CLUBER_IMPORT,
+    )  # fmt: skip
+    text = admin_client(make_admin("secretary")).get(reverse(DETAIL, args=[member.pk]))
+    text = text.content.decode()
+    assert "importat de Cluber el 20/11/2026" in text
+    assert "efectiu el 20/11/2026" not in text
+    assert "Anys de soci" not in text
+    assert text.count("20/11/2026") == 2  # només a l'historial: hora i procedència
+
+
 def test_consents_show_the_last_state_of_each_text(make_admin, full_member):  # noqa: F811
     admin = make_admin("administrator")
     consents.publish_text("privacy", "Text de prova.", by=admin)

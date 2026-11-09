@@ -33,6 +33,7 @@
           <tr><th scope="row">{% translate "En conflicte" %}</th><td>{{ summary.counts.conflict }}</td></tr>
           <tr><th scope="row">{% translate "Amb error" %}</th><td>{{ summary.counts.with_errors }}</td></tr>
           <tr><th scope="row">{% translate "Preparats per importar" %}</th><td>{{ summary.counts.ready }}</td></tr>
+          <tr><th scope="row">{% translate "De baixa a Cluber (no s'importen)" %}</th><td>{{ summary.counts.left_in_cluber }}</td></tr>
         </tbody>
       </table>
       {% if encoding %}<p>{% translate "Codificació detectada:" %} {{ encoding }}</p>{% endif %}
@@ -45,7 +46,15 @@
           {% for label, count in would_import %}<tr><th scope="row">{{ label }}</th><td>{{ count }}</td></tr>{% endfor %}
         </tbody>
       </table>
-      <p>{% translate "Tots els socis importats entrarien actius. La columna «Preu total» només és informativa: no crea cap càrrec ni cap quota." %}</p>
+      <p>{% translate "Els socis de baixa a Cluber no s'importen; la resta entrarien actius. La columna «Preu total» només és informativa: no crea cap càrrec ni cap quota." %}</p>
+
+      {% if left_rows %}
+        <h2>{% translate "Socis de baixa a Cluber" %}</h2>
+        <p>{% translate "No s'importen. La secretaria els revisa a mà a Cluber amb aquests números de registre (la capçalera és el registre 1)." %}</p>
+        <ul>
+          {% for row in left_rows %}<li>{% blocktranslate %}Registre {{ row }}{% endblocktranslate %}</li>{% endfor %}
+        </ul>
+      {% endif %}
 
       {% if types %}
         <table>

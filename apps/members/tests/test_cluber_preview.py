@@ -149,6 +149,7 @@ class TestFileProfile:
             "conflict": 0,
             "with_errors": 0,
             "ready": 0,
+            "left_in_cluber": 0,
         }
         first = result.rows[0]
         assert first.row == 2  # la capçalera és el registre 1
@@ -920,6 +921,7 @@ class TestSafeSummary:
             ],
             "member_type": None,
             "member_type_by": None,
+            "left_in_cluber": False,
         }
         assert summary["encoding"] == "utf-8"
         assert summary["type_names"] == {"supporter": "Simpatitzant", "full": "Ple dret"}

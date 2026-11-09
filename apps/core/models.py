@@ -734,6 +734,8 @@ IMPORT_LINE_CODES = (
     "member_number_leading_zeros",
     "match_without_document_type",
     "total_price_differs",  # 071 (T-M01-25)
+    # Exclusions automàtiques
+    "left_in_cluber",  # 072, Q-071
     # Dades pendents
     "member_type",
     "member_status",

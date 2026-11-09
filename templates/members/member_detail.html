@@ -73,7 +73,7 @@
             <span>
               {% if change.from_status and change.from_status != change.to_status %}{% blocktranslate with new=change.get_to_status_display old=change.get_from_status_display %}Estat: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_status %}{% blocktranslate with new=change.get_to_status_display %}Estat inicial: {{ new }}{% endblocktranslate %}{% endif %}
               {% if change.from_type_id and change.from_type_id != change.to_type_id %} · {% blocktranslate with new=change.to_type.name old=change.from_type.name %}Tipus: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_type_id %} · {% blocktranslate with new=change.to_type.name %}Tipus: {{ new }}{% endblocktranslate %}{% endif %}
-              · {% blocktranslate with date=change.effective_on|date:"d/m/Y" %}efectiu el {{ date }}{% endblocktranslate %}
+              · {% if change.origin == "cluber_import" %}{% blocktranslate with date=change.created_at|date:"d/m/Y" %}importat de Cluber el {{ date }}{% endblocktranslate %}{% else %}{% blocktranslate with date=change.effective_on|date:"d/m/Y" %}efectiu el {{ date }}{% endblocktranslate %}{% endif %}
               {% if change.reason %} · {% blocktranslate with reason=change.reason %}motiu: {{ reason }}{% endblocktranslate %}{% endif %}
             </span>
           </li>

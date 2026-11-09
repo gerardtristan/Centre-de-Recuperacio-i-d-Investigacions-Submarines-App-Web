@@ -140,6 +140,7 @@ class TestEquivalences:
             "Quota",
             "Preu total",
             "idInterno",
+            "Estat",  # 072, Q-071: només per excloure les baixes
             cluber.IMAGE_CONSENT,
         }
 
@@ -150,7 +151,7 @@ class TestEquivalences:
 
     @pytest.mark.parametrize(
         "column",
-        ["Estat", "Renovació", "Soci titular", "Mètode de pagament", "Polítiques de privadesa"],
+        ["Renovació", "Soci titular", "Mètode de pagament", "Polítiques de privadesa"],
     )
     def test_ignored_columns_do_not_change_the_result(self, db, column):
         plain = only_row(cluber.preview(build([record(1)])))
@@ -254,11 +255,23 @@ class TestRowOutcome:
         assert not row.errors
         assert "Person.birth_date" not in row.fields
 
-    def test_cluber_status_is_not_used(self, db):
-        # 071, punt 7: tots entrarien actius; l'«Estat» de Cluber no decideix res.
-        rows = [record(1, {"Estat": "Baja"}), record(2, {"Estat": "Activo"})]
-        first, second = cluber.preview(build(rows)).rows
-        assert first.summary() | {"row": 0} == second.summary() | {"row": 0}
+    @pytest.mark.parametrize("status", ["Baja", "BAIXA", "De baja", "baixa voluntària"])
+    def test_left_in_cluber_is_never_ready_q071(self, db, status):
+        # 072, quarta instrucció, punt 1 (modifica el punt 7 de la 071).
+        rows = [record(1, {"Estat": status}), record(2, {"Estat": "Activo"})]
+        result = cluber.preview(build(rows))
+        left, active = result.rows
+        assert left.left_in_cluber and not left.ready
+        assert not active.left_in_cluber
+        assert result.counts["left_in_cluber"] == 1
+        # Fora de la marca, la resta del resultat no canvia; el valor no es conserva.
+        assert left.summary() | {"row": 0, "left_in_cluber": False} == active.summary() | {"row": 0}
+        assert status not in repr(left) + str(result.summary())
+
+    @pytest.mark.parametrize("status", ["Activo", "Pendiente", "", "Trabajador"])
+    def test_other_statuses_are_not_left(self, db, status):
+        row = only_row(cluber.preview(build([record(1, {"Estat": status})])))
+        assert not row.left_in_cluber
 
     def test_no_value_is_kept_in_the_row(self, db):
         row = only_row(cluber.preview(build([record(1, {"idInterno": "SENTINELLA-ID-7Q"})])))
@@ -437,7 +450,7 @@ class TestScreen:
         response = post(client, build(records))
         html = response.content.decode()
         assert "Codificació detectada: UTF-8" in html
-        assert "Tots els socis importats entrarien actius." in html
+        assert "Els socis de baixa a Cluber no s'importen; la resta entrarien actius." in html
         assert "Ple dret" in html and "pel nom" in html and "pel preu" in html
         rows = dict(response.context["would_import"])
         assert rows[cluber.FIELD_LABELS["Person.birth_date"]] == 3
@@ -448,3 +461,13 @@ class TestScreen:
         ]
         for value in ("Quota de soci", "Quota familiar", "Prova1 Exemple", "15/03/2010"):
             assert value not in html
+
+    def test_left_in_cluber_list_for_the_secretary_q071(self, db, make_admin):  # noqa: F811
+        client = admin_client(make_admin("administrator"))
+        records = [record(1, {"Estat": "Baja"}), record(2), record(3, {"Estat": "Baja"})]
+        response = post(client, build(records))
+        html = response.content.decode()
+        assert response.context["left_rows"] == [2, 4]
+        assert "Socis de baixa a Cluber" in html
+        assert "Registre 2" in html and "Registre 4" in html
+        assert "Baja" not in html
