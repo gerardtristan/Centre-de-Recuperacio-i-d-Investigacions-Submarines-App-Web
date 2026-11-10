@@ -1427,6 +1427,39 @@ Acceptada pel responsable del projecte el 10/11/2026. Precisa P-M01-B (pas 2), P
 | T-M01-22 | Peça mínima autoritzada: sol·licitud d'esborrat a `core` (migració) i `/socis/perfil/esborrar`, que només la crea (RN-M01-57, CA-M01-46). La resta continua a la tasca |
 | T-M01-27 | Comptes de rol amb un TOTP de prova fix, públic i inequívocament de prova, només quan l'ordre pot córrer (desenvolupament amb `DEBUG`) |
 
+
+<a id="M01-addenda-075"></a>
+## M01 — Addenda de la [075](decisions/075-respostes-del-responsable-a-l-informe-de-la-tanda-del-10-11.md): respostes del responsable a l'informe de la tanda del 10/11/2026
+
+Acceptada pel responsable del projecte el 10/11/2026. Precisa RN-M01-76, RN-M01-79 i RN-M01-80 de l'[addenda de la 074](#M01-addenda-074) i afegeix una acció a la [matriu de la 059](#rols-i-permisos-059-matriu), sense editar text aprovat.
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M01-81 | **Reautenticació per canviar el correu d'entrada (075, punts 1 i 2).** Per demanar el canvi, el soci torna a escriure la contrasenya i, si el compte té TOTP, el codi, a la mateixa petició (`require_recent_auth`, `minutes=0`); si falla, no s'envia cap enllaç i l'intent compta per a V-01. En confirmar el correu nou es tanquen totes les altres sessions del compte i es conserva la sessió des de la qual es confirma |
+| RN-M01-82 | **P7a, anul·lar el suplement vençut (075, punt 4).** Acció nova «Anul·lar el suplement vençut d'un canvi de tipus», inicialment només de la secretaria. Només per al suplement d'un canvi de tipus i només quan ha vençut; motiu obligatori; el registre guarda qui i el motiu. Qui té P8 amb edició també ho pot fer. No canvia cap altre permís econòmic |
+| RN-M01-83 | **Accés a «Crea una baixa» i resum de la baixa (075, punts 5 i 6).** «Crea una baixa» exigeix P7 amb edició i P4. Al detall d'una baixa, només qui té P10 veu les quotes sense pagar (venciment i import); la resta veu que s'aplicaran les conseqüències de la RN-M01-20, sense imports ni detall |
+| RN-M01-84 | **Secret TOTP de prova i casella del document (075, punts 8 i 10).** El servidor rebutja el secret TOTP de prova de `seed_demo_data` quan `DEBUG` no està actiu. La casella «He comprovat el document» no es mostra a qui no té C2, i sense C2 una alta que la necessita no es pot aprovar (provisional, pendent de la junta) |
+
+**Criteris d'acceptació**
+- **CA-M01-81** Donat un soci amb sessió, quan demana canviar el correu sense contrasenya, amb una d'incorrecta o (si té TOTP) amb un codi incorrecte, llavors no s'envia cap enllaç, veu l'error al camp i l'intent compta per a V-01; amb les dades correctes, s'envia l'enllaç.
+- **CA-M01-82** Donat un compte amb dues sessions, quan es confirma el correu nou des d'una d'elles, llavors aquesta continua vàlida i l'altra no; si es confirma sense sessió, cap de les dues continua vàlida.
+- **CA-M01-83** Donat un suplement vençut, quan la secretaria (P7a) l'anul·la amb motiu, llavors queda anul·lat i el registre guarda qui i el motiu; sense P7a ni P8 amb edició, o abans del venciment, o per a un càrrec que no és un suplement, el servidor ho rebutja.
+- **CA-M01-84** Donat un compte amb P7 amb edició però sense P4, quan obre «Crea una baixa», llavors rep la denegació i no veu el nom del soci.
+- **CA-M01-85** Donat un soci amb quotes sense pagar, quan qui no té P10 obre el detall de la seva baixa, llavors no veu cap import ni cap quota, només que s'aplicaran les conseqüències de la baixa; amb P10, veu la llista.
+- **CA-M01-86** Donat `DEBUG` inactiu, quan un compte té el secret TOTP de prova, llavors cap codi no és vàlid; donat un rol sense C2, quan obre una alta que necessita la comprovació del document, llavors no veu la casella i no la pot aprovar.
+
+**Tasques**
+| # | Tasca | Esforç | Fitxers afectats | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M01-44 | Recollida de dades del representant (075, punt 9): amb la secretaria, obtenir el correu i el telèfon del representant dels menors donats d'alta abans de la `members/0017`, que ara no reben cap comunicació (RN-M01-78) | S | Cap codi (procediment de la secretaria) | T-M01-41 | Tots els menors de 14 anys actius tenen el contacte del representant o consta per què no. **No començada.** |
+
+**Tasques afectades:** T-M01-16 (RN-M01-81, CA-M01-81 i 82), T-M01-17 (RN-M01-82 i 83, CA-M01-83 a 85), T-M01-14 (casella del document, CA-M01-86), T-M01-27 (secret de prova, CA-M01-86).
+
+**Risc acceptat (075, punt 7):** amb la RN-M01-80, qui conegui el correu d'un soci li pot tancar totes les sessions amb cinc intents fallits. Es reconsidera amb la [P-52](decisions/pendents.md).
+
+**Continuen obertes** (a [pendents.md](decisions/pendents.md#preguntes-de-la-tanda-del-10-11)): si el President ha de poder crear baixes sense P4, i la casella del document per a rols sense C2 (junta).
+
 ---
 
 <a id="M04"></a>
