@@ -69,14 +69,29 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
-    # A les PR, l'acció de gitleaks llegeix la llista de commits de la PR per l'API.
+    # Push: l'acció de gitleaks revisa els commits nous. PR: l'acció només rep 30 commits de
+    # l'API, així que un pas propi revisa tot el rang de la base al cap (decisió 078).
     permissions:
       contents: read
-      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - if: github.event_name != 'pull_request'
+        uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Gitleaks sobre tota la PR, de la base al cap (decisió 078)
+        if: github.event_name == 'pull_request'
+        env:
+          # La mateixa versió que fa servir l'acció; suma del checksums.txt oficial de la versió.
+          GITLEAKS_VERSION: 8.24.3
+          GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          echo "Rang ${BASE_SHA}..${HEAD_SHA}: $(git rev-list --count --no-merges "${BASE_SHA}..${HEAD_SHA}") commits sense fusions"
+          "$RUNNER_TEMP/gitleaks" detect --source . --redact -v --exit-code=2 --log-level=info --log-opts="--no-merges ${BASE_SHA}..${HEAD_SHA}"

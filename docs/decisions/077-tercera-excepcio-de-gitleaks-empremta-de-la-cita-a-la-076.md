@@ -1,7 +1,7 @@
 # 077 — Tercera excepció de gitleaks: l'empremta exacta de la cita del fals positiu a la decisió 076
 
 - **Data:** 10/11/2026
-- **Estat:** Acceptada pel responsable del projecte el 10/11/2026 (resposta a l'informe de la validació de la tanda del 10/11/2026).
+- **Estat:** Acceptada pel responsable del projecte el 10/11/2026 (resposta a l'informe de la validació de la tanda del 10/11/2026). L'apartat «Comprovació» queda esmenat per la [078](078-escaneig-de-secrets-de-tota-la-pr-limit-de-30-commits.md).
 - **Abast:** amplia la norma d'excepcions de gitleaks de `CLAUDE.md` i la llista de `.gitleaksignore` de la [076](076-segona-excepcio-de-gitleaks-empremta-d-un-fals-positiu.md) amb una sola empremta. La 076 no canvia.
 
 ## Context
