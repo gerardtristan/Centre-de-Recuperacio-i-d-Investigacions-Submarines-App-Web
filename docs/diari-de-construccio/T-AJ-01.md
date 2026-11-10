@@ -47,3 +47,9 @@ Estat: **implementada, pendent de validació** del responsable del projecte.
 ## Termes nous
 - **Ajust** (en anglès: *setting*): valor de negoci que es canvia des de l'app, amb registre i, si toca diners, amb data d'entrada en vigor.
 - **Canvi programat**: canvi amb una data d'entrada en vigor futura. Fins a aquella data, continua vigent el valor anterior.
+
+## Tall de la revisió (10/11/2026)
+
+- **Estat:** Feta en part (10/11/2026).
+- **CI de referència:** verd a `180bdf8` (execució 42811548125) i a `dfa6517` (execució 42849078087).
+- **Detall** (el mateix text de la fila del [pla](../planning.md)): **Tall de la revisió (10/11/2026): feta en part.** S-AJ-02 resolt pel responsable del projecte: l'avís d'un canvi de diners el reben els comptes que poden editar aquell valor al seu mòdul (vegeu RN-AJ-04). **Falta:** que `money_change_recipients` triï aquests comptes en lloc dels rols Tresorer i Junta, amb proves; els supòsits d'implementació d'aquesta fila, sense validar; la pantalla (CA-AJ-05), que és de la T-AJ-02. CI de referència: verd a `180bdf8` (execució 42811548125) i a `dfa6517` (execució 42849078087).
