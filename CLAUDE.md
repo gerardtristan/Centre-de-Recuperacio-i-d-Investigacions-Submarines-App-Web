@@ -43,6 +43,15 @@ Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i
 Duplicar activitats és un servei comú previst a la 00 que es construeix al mòdul 02 (decisió 026).
 Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00–M12) fan servir altres numeracions; la correspondència és a `docs/planning.md#numeracio`.
 
+## Domini (resum; les regles són al pla, enllaçades)
+- **Persona** (`core.Person`): una per ésser humà, activa o anonimitzada. **Compte** (`accounts.Account`): personal o d'administrador; pendent, actiu o desactivat. Rols i permisos són dades ([matriu](docs/planning.md#rols-i-permisos-059-matriu)).
+- **Soci** (`members.Member`, un per persona; [entitats](docs/planning.md#M01-6-entitats), [regles](docs/planning.md#M01-7-regles)): pendent → actiu; actiu ↔ impagat (només a mà, P9, amb motiu); pendent, actiu o impagat → baixa; baixa → pendent només per readmissió. Cada canvi deixa una fila a l'historial, que no es modifica.
+- **Sol·licitud** (`MemberRequest`): alta, canvi de tipus o baixa; pendent → aprovada o rebutjada. Qui la cancel·la: [P-72](docs/decisions/pendents.md).
+- **Quota** (`AnnualFee`) sobre un **càrrec** (`core.Charge`, en cèntims: pendent, pagat, retornat o anul·lat) amb **pagaments** (`Payment`). Renovació 12 mesos després del pagament confirmat (070). «Està al corrent?» té tres respostes al codi: [P-71](docs/decisions/pendents.md).
+- **Carnet** (`MemberCard`): vàlid si no està revocat, el soci és actiu i el «vàlid fins al» (`cards.valid_until`) no ha passat.
+- Registre d'activitat, textos legals, consentiments i historial: només s'hi afegeixen files.
+- Flux principal ([processos](docs/planning.md#M01-5-processos)): «Fer-se soci» (web o presencial) → l'administració aprova i assigna el número → quota → pagament confirmat → actiu i carnet.
+
 ## Regles que sempre s'han de complir
 - Diners en cèntims (enter), moviments immutables; les correccions són anul·lacions amb motiu. Marge d'una activitat = ingressos - despeses - cost de material.
 - Tot ingrés i tota despesa té departament (centre de cost); les comissions de quotes van a «General / Quotes de socis».
@@ -71,20 +80,15 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 ## Qualitat
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
 - **Disseny amb seguretat i privacitat.** Tota tasca de disseny (wireframes, plantilles, pantalles) indica, per a cada flux, els requisits de seguretat i privacitat aplicables i els aplica: separació de comptes, permisos per rol i objecte, minimització i emmascarament, missatges que no revelen dades ni l'existència de comptes, confirmacions, motius i verificacions, i estats d'error, accés denegat i sessió caducada. Amagar un element a la interfície no és un control: els wireframes distingeixen la simulació visual dels controls que s'apliquen al servidor.
+- **Interfície.** Només classes de `static/css/tokens.css` i components de `docs/design-system.md`; cap `style=` ni cap color, mida o espai sense token. Una peça nova va primer al sistema de disseny (document i CSS) i després a la plantilla.
 - No es fusiona res si el pipeline falla.
-- Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
-- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca al pla amb el seu estat («**Feta**» o «Feta en part»), la data i l'estat del CI. L'apartat «Propera tasca» només s'afegeix a l'informe final quan la tasca passa a «**Feta**» i ja té la revisió d'una persona i el CI en verd, segons el «Feta quan» del pla. No s'afegeix en informes intermedis, en tasques «Feta en part» ni en tasques aturades per una decisió, i tampoc s'hi llisten altres candidates. Si el responsable del projecte ho demana explícitament, l'apartat es calcula sempre. Quan es mostra:
-  1. Recorregut: primer la taula de tasques principal del mòdul a `docs/planning.md`, després les taules de les seves addendes en l'ordre del fitxer i, al final, les dels apèndixs comuns (T-RP, T-AJ, T-M00).
-  2. Criteri: la propera és la primera fila del recorregut que no està marcada «**Feta**» i que té totes les dependències («Depèn de») marcades «**Feta**». Una tasca «Feta en part» compta com a no feta.
-  3. Font: fitxer, línia i fila de la taula, i cada dependència comprovada amb el seu estat.
-  4. Les altres candidates vàlides es llisten com a informació, sense triar-ne cap.
-  5. Si el pla i l'índex de `docs/diari-de-construccio/README.md` no coincideixen, es llisten totes les candidates amb el motiu i decideix el responsable del projecte. Si no es pot determinar amb seguretat, es diu.
-
-  No es comença cap altra tasca sense confirmació, tant si l'informe porta l'apartat com si no.
+- Definició de fet: proves passades, pipeline verd, **comprovat al navegador** (`pytest -m e2e` en verd i les captures a 1280 i 390 px de les pantalles tocades, mirades; skill `webapp-testing`), porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
+- **Error → primer la prova que el reprodueix** (ha de fallar) i després l'arreglo. Si l'arreglo depèn d'una decisió pendent, la prova va amb `xfail` i la referència, i no s'arregla.
+- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca al pla amb el seu estat («**Feta**» o «Feta en part»), la data i l'estat del CI. Quan toca, l'apartat «Propera tasca» el calcula la skill `propera-tasca` (`.claude/skills/propera-tasca/`), que llegeix el pla per àncores. No es comença cap altra tasca sense confirmació.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
-Comandes: instal·lar `pip install -e ".[dev]"`; executar `python manage.py runserver`; proves `pytest`; lint `ruff check . && ruff format --check .`; migracions `python manage.py makemigrations` / `migrate`; dades inventades per a captures `python manage.py seed_demo_data` (només en local, amb una base de dades buida). Model d'usuari: `accounts.Account` (compte personal o d'administrador), lligat a `core.Person`. Detall al README.
+Comandes: instal·lar `pip install -e ".[dev]"`; executar `python manage.py runserver`; proves `pytest`; proves al navegador `pytest -m e2e apps/core/tests/e2e --reuse-db` (la primera vegada, `PLAYWRIGHT_BROWSERS_PATH=0 python -m playwright install chromium-headless-shell`; captures a `.e2e-captures/`; el hook de fi de torn les executa sol); lint `ruff check . && ruff format --check .`; migracions `python manage.py makemigrations` / `migrate`; dades inventades per a captures `python manage.py seed_demo_data` (només en local, amb una base de dades buida). Model d'usuari: `accounts.Account` (compte personal o d'administrador), lligat a `core.Person`. Detall al README.
 
 ## Comportament
 - Abans de fer canvis grans, proposa el pla i espera confirmació.
