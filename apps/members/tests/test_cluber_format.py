@@ -15,78 +15,10 @@ import pytest
 from apps.core.models import AuditEntry, Charge, Consent, ImportBatch, ImportLine, LegalText
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.imports import cluber
+from apps.members.imports.cluber_sample import FALSE_IBAN, fake_iban, real_headers, sample_file
 from apps.members.models import Member, MembershipType
-from apps.members.tests.test_cluber_preview import build, dni, only_row, record
+from apps.members.tests.test_cluber_preview import build, only_row, record
 from apps.members.tests.test_cluber_views import admin_client, post
-
-FALSE_IBAN = "ES00IBANFALS"  # prefix de tots els IBAN inventats de la mostra
-
-
-def fake_iban(n):
-    return f"{FALSE_IBAN}{n:012d}"
-
-
-def real_headers():
-    """Capçalera de l'exportació real: la de la mostra parcial amb «IBAN» després de «Soci
-    titular» (071, punt 19)."""
-    headers = list(cluber.KNOWN_HEADERS)
-    headers.insert(headers.index("Soci titular") + 1, "IBAN")
-    return headers
-
-
-SAMPLE_QUOTAS = (
-    ("Quota de soci col·laborador 35€.", "35"),  # pel preu (o pendent si dos tipus el comparteixen)
-    ("Quota de soci Ple Dret 90 €.", "90,00"),  # pel nom
-    ("QUOTA SIMPATITZANT 35€", "35"),  # pel nom, amb majúscules
-    ("Quota familiar 50€.", "50"),  # cap tipus amb aquest preu: pendent
-    ("Quota juvenil 35€", "35"),  # pel nom si hi ha el tipus «Juvenil»
-)
-NAMES = ("Àngels", "Jordi", "Núria", "Pere", "Mònica", "Ferran", "Laia", "Iñaki")
-
-
-def sample_records(count=40):
-    rows = []
-    for n in range(1, count + 1):
-        quota, total = SAMPLE_QUOTAS[n % len(SAMPLE_QUOTAS)]
-        rows.append(
-            {
-                "Nº Soci": str(n),
-                "Nom": NAMES[n % len(NAMES)],
-                "Cognoms": f"Garcia Inventat{n}",
-                "Telèfon": f"346000000{n:02d}",
-                "Document d'Identitat": dni(5000 + n),
-                "Quota": quota,
-                "Preu total": total,
-                "Estat": "Activo" if n % 2 else "Pendiente",
-                "Soci titular": "",
-                "IBAN": fake_iban(n),
-                "Email": f"soci{n}@example.org",
-                "Data alta/renovació": "" if n % 7 == 0 else f"{n % 28 + 1:02d}/10/2026",
-                "Mètode de pagament": "Domiciliación",
-                "Adreça": f"Carrer de l'Àncora, {n}",
-                "Codi Postal": "08001",
-                "Ciutat": "-" if n % 3 == 0 else "Barcelona",
-                "Província": "Barcelona",
-                "Renovació": "Automática",
-                "Polítiques de privadesa": "Sí" if n % 5 else "No",
-                "Data d'inscripció": "" if n % 6 == 0 else f"{n % 28 + 1}/{n % 12 + 1}/2010",
-                "Data de Naixament": "" if n % 4 == 0 else f"{n % 28 + 1:02d}/05/1980",
-                "Edat": "46",
-                "idInterno": f"cl-{n:05d}",
-                cluber.IMAGE_CONSENT: "Sí" if n % 2 else "No",
-            }
-        )
-    return rows
-
-
-def sample_file(count=40):
-    out = io.StringIO()
-    writer = csv.writer(out, delimiter=";", lineterminator="\r\n")
-    headers = real_headers()
-    writer.writerow(headers)
-    for row in sample_records(count):
-        writer.writerow([row.get(h, "") for h in headers])
-    return out.getvalue().encode("cp1252")
 
 
 @pytest.fixture

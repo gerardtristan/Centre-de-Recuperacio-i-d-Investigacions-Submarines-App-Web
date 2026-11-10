@@ -23,9 +23,9 @@ from django.utils import timezone
 from apps.accounts.models import Account
 from apps.core.models import IMPORT_LINE_CODES, ImportBatch, ImportLine, Person
 from apps.members.imports import cluber
+from apps.members.imports.cluber_sample import dni
 from apps.members.models import Member, MembershipType
 
-LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE"
 DOCUMENT = "Document d'Identitat"
 
 # Valors dels camps exclosos: no han d'aparèixer mai al resultat ni als registres.
@@ -51,11 +51,6 @@ SAMPLE_HEADER_LINE = (
     "El club/entidad usará las imágenes solo para los fines autorizados y no las compartirá "
     "con terceros."
 )
-
-
-def dni(n):
-    """Document amb el format d'un DNI i la lletra correcta, inventat."""
-    return f"{n:08d}{LETTERS[n % 23]}"
 
 
 def record(n=1, values=None):
