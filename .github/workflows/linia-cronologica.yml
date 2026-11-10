@@ -1,0 +1,106 @@
+name: Línia cronològica
+
+# Regenera la línia cronològica del projecte, la xifra i la publica a GitHub Pages.
+# Detall i passos de configuració: tools/linia-cronologica/README.md
+
+on:
+  # Cada vegada que acaba el CI d'una branca (verd o vermell): hi ha hagut un push
+  # i el número i el resultat de l'execució ja es poden mostrar.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  push:
+    branches: [master]
+    paths:
+      - docs/planning.md
+      - docs/decisions/**
+      - docs/diari-de-construccio/**
+      - docs/preguntes-externes.md
+      - tools/linia-cronologica/**
+      - .github/workflows/linia-cronologica.yml
+  # Xarxa de seguretat, per si algun avís no arriba.
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branca que es llegeix (buit: la més recent entre master i feature/*)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linia-cronologica
+  cancel-in-progress: true
+
+jobs:
+  genera:
+    # Els CI de les PR no hi afegeixen res: el push de la mateixa branca ja l'ha disparat.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      # El generador sempre és el de la branca per defecte; de les altres branques
+      # només se'n llegeix el text (cap codi seu s'executa amb el secret).
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "cryptography>=43,<51" "pillow>=10,<13"
+      - name: Tria la branca que es llegeix
+        id: branca
+        env:
+          DEMANADA: ${{ inputs.branch || vars.TIMELINE_BRANCH }}
+        run: |
+          git fetch --quiet origin '+refs/heads/*:refs/remotes/origin/*'
+          if [ -n "$DEMANADA" ]; then
+            if ! printf '%s' "$DEMANADA" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
+              echo "Nom de branca no vàlid."; exit 1
+            fi
+            git rev-parse --verify --quiet "refs/remotes/origin/$DEMANADA" >/dev/null \
+              || { echo "La branca no existeix."; exit 1; }
+            ref="origin/$DEMANADA"
+          else
+            ref=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' \
+              refs/remotes/origin/master refs/remotes/origin/feature/ | head -n 1)
+          fi
+          echo "Es llegeix $ref"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+      - name: Execucions del CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | select(.name == "CI") | {n: .run_number, sha: .head_sha, ev: .event, c: .conclusion, t: .created_at}' \
+            > runs.jsonl || { echo "::warning::No s'han pogut llegir les execucions del CI."; : > runs.jsonl; }
+          wc -l runs.jsonl
+      - name: Genera i xifra
+        env:
+          TIMELINE_PASSPHRASE: ${{ secrets.TIMELINE_PASSPHRASE }}
+          REF: ${{ steps.branca.outputs.ref }}
+        run: |
+          python tools/linia-cronologica/generate.py --ref "$REF" --runs runs.jsonl \
+            --encrypt --out public/index.html
+          printf 'User-agent: *\nDisallow: /\n' > public/robots.txt
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  publica:
+    needs: genera
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.desplega.outputs.page_url }}
+    steps:
+      - id: desplega
+        uses: actions/deploy-pages@v4

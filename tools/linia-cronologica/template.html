@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>C.R.I.S. · Línia cronològica del projecte</title>
+<style>
+:root{
+  --bg:#f3f7f9;--surface:#ffffff;--surface2:#e9f0f4;--text:#10222e;--muted:#48606e;--border:#c5d3dc;--accent:#0a6583;--accent-fg:#ffffff;--focus:#b4470a;
+  --feta-bg:#d6f0df;--feta-fg:#0d5229;--part-bg:#fbe8bf;--part-fg:#6b4000;--val-bg:#dfe3fb;--val-fg:#28358f;--pend-bg:#e3e9ed;--pend-fg:#3a4b56;
+  --bloq-bg:#fad9d9;--bloq-fg:#861313;--ret-bg:#ececec;--ret-fg:#555555;--up:#8a5a00;--down:#1c5fb0;--sel:#0a6583;
+  --shadow:0 1px 3px rgba(16,34,46,.12);
+}
+:root[data-theme="dark"]{
+  --bg:#0b171f;--surface:#12232e;--surface2:#1a303d;--text:#e7eff3;--muted:#a9bcc7;--border:#2c4453;--accent:#62c8e4;--accent-fg:#06222c;--focus:#ffb76b;
+  --feta-bg:#123f25;--feta-fg:#96e3b2;--part-bg:#4b3606;--part-fg:#f6cd72;--val-bg:#252e6b;--val-fg:#bcc5ff;--pend-bg:#24353f;--pend-fg:#c0ced6;
+  --bloq-bg:#501818;--bloq-fg:#ffb3b3;--ret-bg:#2b2b2b;--ret-fg:#b5b5b5;--up:#f2c35b;--down:#8fc1ff;--sel:#62c8e4;
+  --shadow:0 1px 3px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:9rem}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:0;background:var(--accent);color:var(--accent-fg);padding:.5rem 1rem;z-index:100}
+.skip:focus{left:.5rem;top:.5rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.top-in{max-width:1500px;margin:0 auto;padding:.5rem 1rem;display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:center}
+.brand{display:flex;align-items:center;gap:.6rem;min-width:0;flex:1 1 220px}
+.brand img{width:44px;height:47px;flex:none}
+.logo-dark{display:none}
+:root[data-theme="dark"] .logo-dark{display:block}
+:root[data-theme="dark"] .logo-light{display:none}
+.brand h1{font-size:1.02rem;line-height:1.2;margin:0}
+.brand p{margin:0;color:var(--muted);font-size:.78rem}
+.tools{display:flex;gap:.4rem;align-items:center;flex:2 1 320px;min-width:0}
+.btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.4rem .7rem;cursor:pointer;min-height:38px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.search{position:relative;flex:1 1 200px;min-width:0}
+.search input{width:100%;min-height:38px;padding:.4rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+#sug{position:absolute;left:0;right:0;top:100%;margin:.2rem 0 0;padding:0;list-style:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-height:60vh;overflow:auto;z-index:40}
+#sug li{padding:.4rem .6rem;cursor:pointer;display:flex;gap:.5rem;align-items:baseline;border-bottom:1px solid var(--border)}
+#sug li:last-child{border-bottom:0}
+#sug li[aria-selected="true"],#sug li:hover{background:var(--surface2)}
+#sug .k{font-family:ui-monospace,Consolas,monospace;font-weight:700;flex:none}
+#sug .ty{font-size:.72rem;color:var(--muted);flex:none}
+#sug .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+nav.views{max-width:1500px;margin:0 auto;padding:0 1rem .5rem;display:flex;gap:.3rem;overflow-x:auto}
+nav.views button{background:none;border:1px solid transparent;border-radius:999px;padding:.3rem .8rem;cursor:pointer;white-space:nowrap;color:var(--muted);min-height:34px}
+nav.views button[aria-current="page"]{background:var(--accent);color:var(--accent-fg);font-weight:600}
+main{max-width:1500px;margin:0 auto;padding:1rem;display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+@media(min-width:1100px){main.has-detail{grid-template-columns:minmax(0,1fr) 440px}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;box-shadow:var(--shadow)}
+h2{font-size:1.15rem;margin:0 0 .6rem}
+h3{font-size:1rem;margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+.mono{font-family:ui-monospace,Consolas,monospace}
+/* resum */
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:.5rem;margin:.6rem 0}
+.stat{border:1px solid var(--border);border-radius:10px;padding:.5rem .6rem;text-align:left;background:var(--surface);cursor:pointer}
+.stat .b{white-space:normal;text-align:left}.stat b{display:block;font-size:1.4rem;line-height:1.1}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--pend-bg);border:1px solid var(--border)}
+.bar span{display:block;height:100%}
+.bar .feta{background:var(--feta-fg)}.bar .part{background:var(--part-fg)}.bar .val{background:var(--val-fg)}.bar .pend{background:transparent}.bar .ret{background:var(--ret-fg)}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:.3rem .45rem;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:.8rem;color:var(--muted);font-weight:600}
+.tw{overflow-x:auto}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+/* filtres */
+.filters{display:flex;flex-wrap:wrap;gap:.5rem;align-items:end}
+.filters label{display:flex;flex-direction:column;font-size:.76rem;color:var(--muted);gap:.15rem;flex:1 1 130px;min-width:0}
+.filters select{min-height:36px;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:.2rem .4rem;max-width:100%}
+.chk{flex-direction:row!important;align-items:center;gap:.4rem!important;font-size:.84rem!important;color:var(--text)!important}
+/* llegenda i insígnies */
+.legend{display:flex;flex-wrap:wrap;gap:.4rem .8rem;margin:.6rem 0 0;padding:0;list-style:none;font-size:.82rem}
+.b{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;padding:.05rem .55rem;font-size:.76rem;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.b.feta{background:var(--feta-bg);color:var(--feta-fg)}.b.feta_part{background:var(--part-bg);color:var(--part-fg)}
+.b.validacio,.b.curs{background:var(--val-bg);color:var(--val-fg)}.b.pendent{background:var(--pend-bg);color:var(--pend-fg)}
+.b.bloq{background:var(--bloq-bg);color:var(--bloq-fg)}.b.retirada{background:var(--ret-bg);color:var(--ret-fg);text-decoration:line-through}
+.b.cost{background:transparent;border-color:var(--border);color:var(--muted);font-weight:500}
+.b.warn{background:transparent;border-color:var(--bloq-fg);color:var(--bloq-fg)}
+/* cronologia */
+.phase{margin-top:1rem}
+.phase>h2{position:relative;padding-left:.8rem;border-left:5px solid var(--accent)}
+.mod{margin:.6rem 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+.mod>summary{cursor:pointer;padding:.6rem .8rem;display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;list-style-position:inside}
+.mod>summary h3{display:inline}
+.mod .bar{flex:1 1 120px;max-width:260px}
+.mod .none{padding:.2rem .8rem .8rem}
+ol.tl{list-style:none;margin:0;padding:0 .5rem .5rem 1.4rem;position:relative}
+ol.tl:before{content:"";position:absolute;left:.75rem;top:0;bottom:.8rem;width:2px;background:var(--border)}
+ol.tl li{position:relative;margin:.25rem 0}
+ol.tl li:before{content:"";position:absolute;left:-.93rem;top:.95rem;width:10px;height:10px;border-radius:50%;background:var(--pend-fg);border:2px solid var(--surface)}
+ol.tl li.s-feta:before{background:var(--feta-fg)}ol.tl li.s-feta_part:before{background:var(--part-fg)}ol.tl li.s-validacio:before{background:var(--val-fg)}
+ol.tl li.is-bloq:before{background:var(--bloq-fg)}
+.row{display:grid;grid-template-columns:7.2rem minmax(0,1fr) auto;gap:.2rem .6rem;align-items:start;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:.35rem .5rem;cursor:pointer}
+.row:hover{background:var(--surface2)}
+.row .id{font-family:ui-monospace,Consolas,monospace;font-weight:700;font-size:.86rem}
+.row .ti{min-width:0;overflow-wrap:anywhere}
+.row .bs{display:flex;flex-wrap:wrap;gap:.25rem;justify-content:flex-end}
+@media(max-width:640px){.tools{flex-wrap:wrap}.search{flex:1 1 100%;order:3}#print{display:none}.brand img{width:36px;height:38px}html{scroll-padding-top:13rem}.row{grid-template-columns:minmax(0,1fr)}.row .bs{justify-content:flex-start}ol.tl{padding-left:1.2rem}}
+li.hid{display:none}
+li.c-sel>.row{border-color:var(--sel);box-shadow:inset 4px 0 0 var(--sel);background:var(--surface2)}
+li.c-up>.row{border-color:var(--up);border-style:dashed;box-shadow:inset 4px 0 0 var(--up)}
+li.c-down>.row{border-color:var(--down);border-style:dotted;box-shadow:inset 4px 0 0 var(--down)}
+.chain-on li:not(.c-sel):not(.c-up):not(.c-down)>.row{opacity:.42}
+.chain-only li:not(.c-sel):not(.c-up):not(.c-down){display:none}
+.tagc{display:block;font-size:.7rem;font-weight:700;font-family:system-ui,sans-serif}
+li.c-up .tagc{color:var(--up)}li.c-down .tagc{color:var(--down)}
+/* detall */
+#detail{align-self:start;position:sticky;top:8.6rem;max-height:calc(100vh - 9.4rem);overflow:auto}
+#detail h2{font-size:1.05rem;margin-right:2.5rem;overflow-wrap:anywhere}
+#detail h4{margin:.9rem 0 .25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+#detail ul{margin:.2rem 0;padding-left:1.1rem}
+#detail p{margin:.3rem 0}
+#detail .x{position:absolute;right:.6rem;top:.6rem}
+#detail{position:sticky}
+.dwrap{position:relative}
+.txt{overflow-wrap:anywhere}
+.conf{border:2px solid var(--bloq-fg);border-radius:8px;padding:.5rem .6rem;margin:.5rem 0;background:var(--bloq-bg);color:var(--bloq-fg)}
+.note{border-left:4px solid var(--accent);padding:.3rem .6rem;margin:.4rem 0;background:var(--surface2);border-radius:0 8px 8px 0}
+code{background:var(--surface2);padding:0 .25rem;border-radius:4px;font-size:.88em;overflow-wrap:anywhere}
+a.go{font-family:ui-monospace,Consolas,monospace;font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem .5rem}
+details.raw summary{cursor:pointer;color:var(--accent)}
+@media(max-width:1099px){
+  #detail{position:fixed;inset:0;top:0;max-height:none;z-index:50;border-radius:0;padding-top:1rem}
+  body.d-open{overflow:hidden}
+}
+.list{list-style:none;margin:0;padding:0}
+.list li{border-bottom:1px solid var(--border)}
+.list .row{grid-template-columns:5.2rem minmax(0,1fr) auto}
+@media(max-width:640px){.list .row{grid-template-columns:minmax(0,1fr)}}
+.list li.c-sel .row{border-color:var(--sel);background:var(--surface2)}
+.rank{font-size:1.2rem;font-weight:700;min-width:2.2rem;text-align:right}
+ol.crit{margin:.5rem 0;padding-left:1.6rem}
+ol.crit li{margin:.3rem 0}
+#lock{max-width:30rem;margin:2rem auto;width:100%}
+#lockform{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
+#lockform input[type=password]{width:100%;min-height:42px;padding:.4rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+#lockmsg{min-height:1.3em;margin:0;color:var(--bloq-fg);font-weight:600}
+body.locked nav.views,body.locked #back,body.locked .search,body.locked #print{display:none}
+[hidden]{display:none!important}
+@media print{
+  header.top{position:static;box-shadow:none}
+  .tools,nav.views,.filters,#detail,.skip,.noprint{display:none!important}
+  body{background:#fff;color:#000;font-size:10.5pt}
+  main{display:block;padding:0}
+  .card,.mod{box-shadow:none;border-color:#999;break-inside:auto}
+  .view{display:block!important}
+  .view[data-print="0"]{display:none!important}
+  li.hid{display:block}
+  .row{break-inside:avoid}
+  .chain-on li>.row{opacity:1!important}
+  .b{border:1px solid #666!important;background:#fff!important;color:#000!important}
+  details.mod>ol{display:block}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contingut">Salta al contingut</a>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img class="logo-light" alt="Logotip del C.R.I.S." src="__LOGO__" width="44" height="47">
+      <img class="logo-dark" alt="Logotip del C.R.I.S." src="__LOGODARK__" width="44" height="47">
+      <div><h1>C.R.I.S. · Línia cronològica del projecte</h1><p id="gen"></p></div>
+    </div>
+    <div class="tools" role="search">
+      <button class="btn" id="back" type="button" disabled aria-label="Enrere: torna a l'element anterior"><span aria-hidden="true">←</span> Enrere</button>
+      <div class="search">
+        <label class="sr" for="q">Cerca per codi (T-M01-06, TM0110, D066, P-50) o per text</label>
+        <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Cerca: T-M01-06, TM0110, D066, P-50 o text…" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list">
+        <ul id="sug" role="listbox" aria-label="Suggeriments" hidden></ul>
+      </div>
+      <button class="btn" id="theme" type="button" aria-pressed="false">Mode fosc</button>
+      <button class="btn noprint" id="print" type="button">Imprimeix</button>
+      <button class="btn noprint" id="relock" type="button" hidden>Bloqueja</button>
+    </div>
+  </div>
+  <nav class="views" aria-label="Vistes">
+    <button type="button" data-view="cron">Cronologia</button>
+    <button type="button" data-view="dec">Decisions</button>
+    <button type="button" data-view="pend">Pendents</button>
+    <button type="button" data-view="desb">Què desbloqueja</button>
+    <button type="button" data-view="crit">Camí crític</button>
+    <button type="button" data-view="fonts">Fonts i criteris</button>
+  </nav>
+</header>
+<div class="sr" aria-live="polite" id="live"></div>
+<main id="contingut">
+  <section class="card" id="lock" hidden aria-labelledby="h-lock">
+    <h2 id="h-lock">Pàgina protegida</h2>
+    <p>El contingut d'aquesta pàgina està xifrat. Escriu la contrasenya per veure la línia cronològica; es desxifra en aquest navegador i no s'envia enlloc.</p>
+    <form id="lockform" autocomplete="off">
+      <label for="pass">Contrasenya</label>
+      <input id="pass" type="password" autocomplete="current-password" required>
+      <label class="chk"><input type="checkbox" id="remember"> Recorda-la en aquest dispositiu</label>
+      <button class="btn primary" id="unlock" type="submit">Obre</button>
+      <p id="lockmsg" role="alert" class="small"></p>
+    </form>
+  </section>
+  <div id="views" hidden>
+    <section class="view" id="v-cron" aria-labelledby="h-cron">
+      <div class="card" id="summary"></div>
+      <div class="card" style="margin-top:1rem">
+        <h2 id="h-cron">Cronologia per fases</h2>
+        <form class="filters" id="filters" aria-label="Filtres de la cronologia" onsubmit="return false">
+          <label>Fase<select id="f-f"></select></label>
+          <label>Mòdul<select id="f-m"></select></label>
+          <label>Estat<select id="f-s"></select></label>
+          <label>Responsable del bloqueig<select id="f-r"></select></label>
+          <label>Cost en crèdits<select id="f-c"></select></label>
+          <label class="chk"><input type="checkbox" id="f-chain"> Només la cadena de la tasca oberta</label>
+          <button class="btn" type="button" id="f-clear">Treu els filtres</button>
+        </form>
+        <p class="small muted" id="count" role="status"></p>
+        <ul class="legend" aria-label="Llegenda dels estats">
+          <li><span class="b feta">✓ Feta</span></li>
+          <li><span class="b feta_part">◐ Feta en part</span></li>
+          <li><span class="b validacio">◇ Implementada, pendent de validació</span></li>
+          <li><span class="b pendent">○ Pendent</span></li>
+          <li><span class="b bloq">⛔ Bloquejada (ho diu el pla)</span></li>
+          <li><span class="b retirada">Retirada</span></li>
+          <li><span class="b warn">⚠ Fonts que no coincideixen</span></li>
+          <li class="muted">Cadena: <span style="color:var(--up);font-weight:700">┄ necessita</span> · <span style="color:var(--down);font-weight:700">··· en depèn</span></li>
+        </ul>
+      </div>
+      <div id="timeline"></div>
+    </section>
+    <section class="view card" id="v-dec" hidden aria-labelledby="h-dec"></section>
+    <section class="view card" id="v-pend" hidden aria-labelledby="h-pend"></section>
+    <section class="view card" id="v-desb" hidden aria-labelledby="h-desb"></section>
+    <section class="view card" id="v-crit" hidden aria-labelledby="h-crit"></section>
+    <section class="view card" id="v-fonts" hidden aria-labelledby="h-fonts"></section>
+  </div>
+  <aside class="card dwrap" id="detail" hidden aria-label="Detall de l'element obert" tabindex="-1"></aside>
+</main>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+'use strict';
+var RAW=JSON.parse(document.getElementById('data').textContent);
+var $=function(id){return document.getElementById(id)};
+function setTheme(t,save){
+  document.documentElement.setAttribute('data-theme',t);
+  var b=$('theme');b.textContent=t==='dark'?'Mode clar':'Mode fosc';b.setAttribute('aria-pressed',String(t==='dark'));
+  if(save){try{localStorage.setItem('cris-tema',t)}catch(e){}}
+}
+var th=null;try{th=localStorage.getItem('cris-tema')}catch(e){}
+setTheme(th||((window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'),false);
+$('theme').addEventListener('click',function(){setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark',true)});
+
+/* ---------- dades xifrades: es desxifren al navegador amb la contrasenya ---------- */
+var KEY='cris-linia-clau';
+function b64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function decrypt(pass){
+  var enc=new TextEncoder();
+  return crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']).then(function(k){
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(RAW.salt),iterations:RAW.it,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']);
+  }).then(function(k){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(RAW.iv)},k,b64(RAW.ct))
+  }).then(function(buf){return JSON.parse(new TextDecoder().decode(buf))});
+}
+function unlocked(D){
+  $('lock').hidden=true;$('views').hidden=false;document.body.classList.remove('locked');
+  if(RAW.enc)$('relock').hidden=false;
+  start(D);
+}
+function lockScreen(){
+  document.body.classList.add('locked');$('views').hidden=true;$('lock').hidden=false;
+  var form=$('lockform'),msg=$('lockmsg'),inp=$('pass'),btn=$('unlock');
+  if(!(window.crypto&&crypto.subtle)){msg.textContent='Aquest navegador no pot desxifrar la pàgina en aquest context. Obre-la amb https o amb un navegador actual.';btn.disabled=true;return}
+  function attempt(pass,remember,silent){
+    btn.disabled=true;msg.textContent=silent?'':'Desxifrant…';
+    decrypt(pass).then(function(D){
+      if(remember){try{localStorage.setItem(KEY,pass)}catch(e){}}
+      inp.value='';unlocked(D);
+    }).catch(function(){
+      btn.disabled=false;try{localStorage.removeItem(KEY)}catch(e){}
+      msg.textContent=silent?'':'La contrasenya no és correcta.';if(!silent)inp.focus();
+    });
+  }
+  form.addEventListener('submit',function(ev){ev.preventDefault();if(inp.value)attempt(inp.value,$('remember').checked,false)});
+  var saved=null;try{saved=localStorage.getItem(KEY)}catch(e){}
+  if(saved)attempt(saved,true,true);else inp.focus();
+}
+$('relock').addEventListener('click',function(){try{localStorage.removeItem(KEY)}catch(e){}location.reload()});
+
+function start(D){
+var T=new Map(),DEC=new Map(),PEND=new Map();
+D.tasks.forEach(function(t){T.set(t.id,t);t.rdeps=[]});
+D.decisions.forEach(function(d){DEC.set(d.num,d)});
+D.pend.forEach(function(p){PEND.set(p.id,p)});
+D.tasks.forEach(function(t){t.deps.forEach(function(d){var o=T.get(d.id);if(o)o.rdeps.push(t.id)})});
+var SL={feta:'Feta',feta_part:'Feta en part',validacio:'Implementada, pendent de validació',curs:'En curs',pendent:'Pendent',retirada:'Retirada'};
+var SI={feta:'✓',feta_part:'◐',validacio:'◇',curs:'◇',pendent:'○',retirada:''};
+var CL={alt:'alt',mitja:'mitjà',baix:'baix',sense:'sense estimar'};
+var PH={1:'Fase 1 · abast mínim per deixar Cluber',2:'Fase 2',3:'Després de la fase 2',4:"Fora d'abast ara"};
+var NT='<span class="muted">no trobat</span>';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fold(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function normCode(s){return String(s).toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function go(id,label){return '<a class="go" href="#" data-go="'+esc(id)+'">'+esc(label||id)+'</a>'}
+function rich(s){
+  var h=esc(s);
+  h=h.replace(/\[([^\]]+)\]\((?:\.\.\/)?(?:decisions\/)?(\d{3})-[^)]*\)/g,function(m,a,n){return DEC.has(n)?'<a class="go" href="#" data-go="D'+n+'">'+a+'</a>':a});
+  h=h.replace(/\[([^\]]+)\]\([^)]*\)/g,'$1');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/~~([^~]+)~~/g,'<s>$1</s>');
+  h=h.replace(/\bT-[A-Za-z0-9]+-\d+[a-z]?\b(?![^<]*<\/a>)(?![^<]*<\/code>)/g,function(m){return T.has(m)?'<a class="go" href="#" data-go="'+m+'">'+m+'</a>':m});
+  h=h.replace(/\bP-\d+\b(?![^<]*<\/a>)(?![^<]*<\/code>)/g,function(m){return PEND.has(m)?'<a class="go" href="#" data-go="'+m+'">'+m+'</a>':m});
+  return h;
+}
+function badge(t){
+  var h='<span class="b '+t.status+'">'+(SI[t.status]?'<span aria-hidden="true">'+SI[t.status]+'</span> ':'')+SL[t.status]+'</span>';
+  if(t.blocked)h+='<span class="b bloq"><span aria-hidden="true">⛔</span> Bloquejada</span>';
+  if(t.conflicts&&t.conflicts.length)h+='<span class="b warn"><span aria-hidden="true">⚠</span> Fonts que no coincideixen</span>';
+  return h;
+}
+function costB(t){return '<span class="b cost">Cost: '+CL[t.cost.level]+'</span>'}
+
+/* ---------- estat i navegació ---------- */
+var DEF={v:'cron',sel:'',f:'',m:'',s:'',r:'',c:'',ch:''};
+var S=Object.assign({},DEF),stack=[];
+function ser(st){var p=[];Object.keys(DEF).forEach(function(k){if(st[k])p.push(k+'='+encodeURIComponent(st[k]))});return p.join('&')}
+function parse(h){var st=Object.assign({},DEF);h.replace(/^#/,'').split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){var k=kv.slice(0,i);if(k in DEF){try{st[k]=decodeURIComponent(kv.slice(i+1))}catch(e){}}}});
+  if(!document.querySelector('[data-view="'+st.v+'"]'))st.v='cron';return st}
+function setHash(){var h=ser(S);try{history.replaceState(null,'',h?'#'+h:location.pathname+location.search)}catch(e){location.hash=h}}
+function nav(ch,opts){
+  opts=opts||{};
+  var prev=ser(S);
+  var nx=Object.assign({},S,ch);
+  if(ser(nx)===prev&&!opts.force)return;
+  if(!opts.replace){stack.push(prev);if(stack.length>200)stack.shift()}
+  S=nx;apply(opts);
+}
+function back(){if(!stack.length)return;S=parse(stack.pop());apply({scroll:true})}
+function viewOf(sel){if(!sel)return null;if(sel.charAt(0)==='T')return 'cron';if(sel.charAt(0)==='D')return 'dec';if(sel.charAt(0)==='P')return 'pend';if(sel.charAt(0)==='Q')return null;return null}
+function open(id,opts){
+  opts=opts||{};var ch={sel:id};var v=viewOf(id);
+  if(v&&(opts.switchView!==false))ch.v=v;
+  if(id.charAt(0)==='T'&&opts.reveal){var t=T.get(id);if(t&&!passes(t,S)){ch.f='';ch.m='';ch.s='';ch.r='';ch.c='';ch.ch=''}}
+  nav(ch,{scroll:true,focusDetail:true});
+}
+
+/* ---------- construcció (una sola vegada) ---------- */
+var rowEl=new Map(),decEl=new Map(),pendEl=new Map();
+function build(){
+  var r=D.report;
+  $('gen').innerHTML='Generat el '+esc(D.generated)+' (Europa/Madrid) · branca <code>'+esc(r.head.branch)+'</code> · commit <code>'+esc(r.head.h)+'</code> ('+esc(r.head.d.slice(0,16))+')';
+  /* resum */
+  var tot=D.tasks.length,cn={};D.tasks.forEach(function(t){cn[t.status]=(cn[t.status]||0)+1});
+  var nb=D.tasks.filter(function(t){return t.blocked}).length;
+  var h='<h2>Resum</h2><p class="small muted">'+tot+' tasques a <code>docs/planning.md</code>. «Feta en part» i «implementada, pendent de validació» compten com a no fetes (regla del <code>CLAUDE.md</code>).</p>';
+  h+=barHtml(cn,tot,'Progrés global');
+  h+='<div class="sumgrid">';
+  ['feta','feta_part','validacio','pendent','retirada'].forEach(function(k){if(cn[k])h+='<button type="button" class="stat" data-setstate="'+k+'"><b>'+cn[k]+'</b><span class="b '+k+'">'+SL[k]+'</span></button>'});
+  h+='<button type="button" class="stat" data-setstate="bloq"><b>'+nb+'</b><span class="b bloq">Bloquejades</span></button></div>';
+  h+='<div class="tw"><table><caption class="sr">Tasques per mòdul i estat</caption><thead><tr><th>Mòdul</th><th>Fase</th><th class="n">Tasques</th><th class="n">Feta</th><th class="n">En part</th><th class="n">Per validar</th><th class="n">Pendent</th><th>Progrés</th></tr></thead><tbody>';
+  D.modorder.forEach(function(m){
+    var tt=D.tasks.filter(function(t){return t.mod===m});var c={};tt.forEach(function(t){c[t.status]=(c[t.status]||0)+1});
+    h+='<tr><td><a href="#" data-setmod="'+m+'">'+m+' '+esc(D.modname[m])+'</a></td><td>'+(D.phase[m]<3?D.phase[m]:(D.phase[m]===3?'després':'—'))+'</td><td class="n">'+tt.length+'</td><td class="n">'+(c.feta||0)+'</td><td class="n">'+(c.feta_part||0)+'</td><td class="n">'+(c.validacio||0)+'</td><td class="n">'+((c.pendent||0)+(c.curs||0))+(c.retirada?' (+'+c.retirada+' retirada)':'')+'</td><td style="min-width:110px">'+(tt.length?barHtml(c,tt.length,'Mòdul '+m):'<span class="muted small">sense tasques al pla</span>')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  $('summary').innerHTML=h;
+  /* filtres */
+  fill('f-f',[['','Totes']].concat([1,2,3].map(function(p){return [String(p),PH[p]]})));
+  fill('f-m',[['','Tots']].concat(D.modorder.filter(function(m){return D.tasks.some(function(t){return t.mod===m})}).map(function(m){return [m,m+' · '+D.modname[m]]})));
+  fill('f-s',[['','Tots'],['feta','Feta'],['feta_part','Feta en part'],['validacio','Implementada, pendent de validació'],['pendent','Pendent'],['bloq','Bloquejada'],['retirada','Retirada'],['conf','Fonts que no coincideixen']]);
+  var ow={};D.tasks.forEach(function(t){t.owners.forEach(function(o){ow[o]=1})});
+  fill('f-r',[['','Tots']].concat(Object.keys(ow).sort().map(function(o){return [o,o]})).concat([['-','Cap responsable consta']]));
+  fill('f-c',[['','Tots'],['alt','Alt'],['mitja','Mitjà'],['baix','Baix'],['sense','Sense estimar']]);
+  /* cronologia */
+  var tl='';
+  [1,2,3,4].forEach(function(p){
+    tl+='<section class="phase" data-phase="'+p+'"><h2>'+PH[p]+'</h2>';
+    D.modorder.filter(function(m){return D.phase[m]===p}).forEach(function(m){
+      var tt=D.tasks.filter(function(t){return t.mod===m});var ms=D.moduleStatus[m]||{};
+      var c={};tt.forEach(function(t){c[t.status]=(c[t.status]||0)+1});
+      tl+='<details class="mod" data-mod="'+m+'" open><summary><h3>Mòdul '+m+' · '+esc(D.modname[m])+'</h3><span class="small muted">estat al pla: '+rich(ms.estat||'no trobat')+'</span>'+(tt.length?'<span class="small"><span data-modcount="'+m+'">'+(c.feta||0)+' de '+tt.length+' fetes</span></span>'+barHtml(c,tt.length,'Mòdul '+m):'')+'</summary>';
+      if(!tt.length){tl+='<p class="none muted small">Cap tasca al pla: el mòdul no té secció escrita a <code>docs/planning.md</code>.</p>'}
+      else{
+        tl+='<ol class="tl">';
+        tt.forEach(function(t){
+          tl+='<li id="r-'+t.id+'" class="s-'+t.status+(t.blocked?' is-bloq':'')+'"><button type="button" class="row" data-go="'+t.id+'" aria-label="'+esc(t.id+', '+SL[t.status]+(t.blocked?', bloquejada':'')+': '+plain(t.title).slice(0,140))+'"><span class="id">'+t.id+'<span class="tagc" aria-hidden="true"></span></span><span class="ti">'+rich1(t.title)+'</span><span class="bs">'+badge(t)+costB(t)+'</span></button></li>';
+        });
+        tl+='</ol>';
+      }
+      tl+='</details>';
+    });
+    tl+='</section>';
+  });
+  $('timeline').innerHTML=tl;
+  D.tasks.forEach(function(t){rowEl.set(t.id,$('r-'+t.id))});
+  buildDec();buildPend();buildDesb();buildCrit();buildFonts();
+}
+function plain(s){return String(s).replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/[*`~]/g,'')}
+function rich1(s){var p=plain(s);return esc(p.length>230?p.slice(0,228)+'…':p)}
+function fill(id,opts){$(id).innerHTML=opts.map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'}).join('')}
+function barHtml(c,tot,label){
+  var f=c.feta||0,p=c.feta_part||0,v=(c.validacio||0)+(c.curs||0),r=c.retirada||0;
+  var pc=function(n){return (100*n/tot).toFixed(2)+'%'};
+  return '<div class="bar" role="img" aria-label="'+esc(label)+': '+f+' fetes, '+p+' en part, '+v+' per validar, de '+tot+'"><span class="feta" style="width:'+pc(f)+'"></span><span class="part" style="width:'+pc(p)+'"></span><span class="val" style="width:'+pc(v)+'"></span></div>';
+}
+function buildDec(){
+  var h='<h2 id="h-dec">Decisions ('+D.decisions.length+')</h2><p class="small muted">Font: <code>docs/decisions/</code>. '+(D.report.decisions_missing.length?'La '+D.report.decisions_missing.join(', ')+' no existeix al repositori i no s\'ha creat. ':'')+'El vincle amb les tasques surt de les mencions: la tasca cita la decisió al pla o la decisió cita la tasca.</p><ul class="list">';
+  D.decisions.forEach(function(d){
+    h+='<li id="d-'+d.num+'"><button type="button" class="row" data-go="D'+d.num+'"><span class="id">D'+d.num+'</span><span class="ti">'+rich1(d.title.replace(/^\d{3}\s*[—-]\s*/,''))+'<br><span class="small muted">'+rich1(d.estat).slice(0,150)+'</span></span><span class="bs"><span class="b cost">'+d.tasks.length+' tasques</span></span></button></li>';
+  });
+  $('v-dec').innerHTML=h+'</ul>';
+  D.decisions.forEach(function(d){decEl.set(d.num,$('d-'+d.num))});
+}
+function ownersTxt(a){return a&&a.length?esc(a.join(', ')):'no trobat'}
+function buildPend(){
+  var op=D.pend.filter(function(p){return p.state==='obert'}),rs=D.pend.filter(function(p){return p.state==='resolt'});
+  var h='<h2 id="h-pend">Pendents</h2><p class="small muted">Font: <code>docs/decisions/pendents.md</code>. «Responsable» és qui ha de respondre segons l\'apèndix de preguntes per propietari del pla, <code>preguntes-externes.md</code> o una marca [A validar: …] de la mateixa fila; si cap font ho diu, «no trobat».</p>';
+  function li(p){var bo=p.both?'<span class="b warn">⚠ a «Oberts» i a «Resolts»</span>':'';
+    return '<li id="p-'+p.id+'"><button type="button" class="row" data-go="'+p.id+'"><span class="id">'+p.id+'</span><span class="ti">'+rich1(p.tema)+'<br><span class="small muted">Responsable: '+ownersTxt(p.ownersCanon)+'</span></span><span class="bs"><span class="b '+(p.state==='obert'?'feta_part':'feta')+'">'+(p.state==='obert'?'Obert':'Resolt')+'</span>'+bo+'<span class="b cost">'+p.tasks.length+' tasques</span></span></button></li>'}
+  h+='<h3 style="margin-top:.8rem">Oberts ('+op.length+')</h3><ul class="list">'+op.map(li).join('')+'</ul>';
+  h+='<h3 style="margin-top:1rem">'+esc(D.tanda.length?D.tanda[0].sec:'Preguntes per responsable')+' ('+D.tanda.length+', sense identificador al repositori)</h3><div class="tw"><table><thead><tr><th>Responsable</th><th>Pregunta</th><th>Opcions</th><th>Tasca</th></tr></thead><tbody>';
+  D.tanda.forEach(function(q){h+='<tr><td>'+esc(q.resp)+'</td><td class="txt">'+rich(q.q)+'</td><td class="txt small">'+rich(q.opts)+'</td><td>'+rich(q.task)+'</td></tr>'});
+  h+='</tbody></table></div>';
+  h+='<h3 style="margin-top:1rem">Resolts ('+rs.length+')</h3><ul class="list">'+rs.map(li).join('')+'</ul>';
+  h+='<h3 style="margin-top:1rem">Preguntes externes (<code>docs/preguntes-externes.md</code>)</h3><ul>';
+  D.ext.forEach(function(s){h+='<li><strong>'+esc(s.owner)+'</strong> (línia '+s.line+'): '+s.ids.map(function(i){return PEND.has(i)?go(i):esc(i)}).join(', ')+(s.estat?'<br><span class="small txt">'+rich(s.estat)+'</span>':'')+'</li>'});
+  h+='</ul><p class="small"><strong>Preguntes de la ronda 2 (R2):</strong> no trobat. '+esc(D.report.files_missing.join(' '))+'</p>';
+  $('v-pend').innerHTML=h;
+  D.pend.forEach(function(p){pendEl.set(p.id,$('p-'+p.id))});
+}
+function buildDesb(){
+  var qs=D.openq.map(function(q,i){q.i=i;return q}).slice().sort(function(a,b){return b.unblocks.length-a.unblocks.length||b.tasks.length-a.tasks.length});
+  var withT=qs.filter(function(q){return q.unblocks.length});
+  var h='<h2 id="h-desb">Què desbloqueja</h2><p class="small muted">Preguntes obertes ordenades pel nombre de tasques <strong>no fetes</strong> que hi estan vinculades. Vincle: la fila de la tasca al pla esmenta la pregunta, o la pregunta (columna «Afecta», «Bloqueja» o «Tasca») esmenta la tasca. No vol dir que la resposta sigui l\'única cosa que falta a la tasca. '+withT.length+' de '+qs.length+' preguntes obertes vinculen alguna tasca no feta.</p><div class="tw"><table><thead><tr><th class="n">Tasques</th><th>Pregunta</th><th>Qui respon</th><th>Tasques no fetes vinculades</th></tr></thead><tbody>';
+  withT.forEach(function(q){
+    h+='<tr><td class="n rank">'+q.unblocks.length+'</td><td class="txt"><strong>'+(PEND.has(q.id)?go(q.id):esc(q.id))+'</strong><br>'+rich(q.q)+'<br><span class="small muted">'+esc(q.src)+(q.blocks?' · Bloqueja, segons el pla: '+esc(plain(q.blocks)):'')+'</span></td><td>'+ownersTxt(q.owners)+'</td><td><div class="chips">'+q.unblocks.map(function(t){return go(t)}).join(' ')+'</div></td></tr>';
+  });
+  h+='</tbody></table></div><details class="raw" style="margin-top:.8rem"><summary>Preguntes obertes que no vinculen cap tasca concreta ('+(qs.length-withT.length)+')</summary><div class="tw"><table><thead><tr><th>Pregunta</th><th>Qui respon</th><th>Bloqueja, segons el pla</th></tr></thead><tbody>';
+  qs.filter(function(q){return !q.unblocks.length}).forEach(function(q){h+='<tr><td class="txt"><strong>'+(PEND.has(q.id)?go(q.id):esc(q.id))+'</strong> '+rich(q.q)+' <span class="small muted">'+esc(q.src)+'</span></td><td>'+ownersTxt(q.owners)+'</td><td class="txt small">'+rich(q.blocks||'—')+'</td></tr>'});
+  $('v-desb').innerHTML=h+'</tbody></table></div></details>';
+}
+function notDone(t){return t&&t.status!=='feta'&&t.status!=='retirada'}
+function critical(){
+  var memo=new Map(),nextOf=new Map(),vis=new Set();
+  function len(id){
+    if(memo.has(id))return memo.get(id);if(vis.has(id))return 0;vis.add(id);
+    var t=T.get(id),best=0,bn=null;
+    t.deps.forEach(function(d){var o=T.get(d.id);if(notDone(o)){var l=len(d.id);if(l>best){best=l;bn=d.id}}});
+    vis.delete(id);memo.set(id,best+1);nextOf.set(id,bn);return best+1;
+  }
+  var ends=D.tasks.filter(function(t){return t.phase===1&&notDone(t)&&!t.offcrit});
+  var mx=0;ends.forEach(function(t){var l=len(t.id);if(l>mx)mx=l});
+  var tops=ends.filter(function(t){return memo.get(t.id)===mx});
+  var chains=tops.map(function(t){var c=[],id=t.id;while(id){c.push(id);id=nextOf.get(id)}return c.reverse()});
+  return {max:mx,chains:chains,nEnds:ends.length};
+}
+var CRIT;
+function buildCrit(){
+  CRIT=critical();
+  var h='<h2 id="h-crit">Camí crític de la fase 1</h2><p class="small muted">La cadena més llarga de tasques no fetes, seguint «Depèn de» (i les dependències afegides per la «Lectura de les tasques substituïdes»), que acaba en una tasca de la fase 1 (mòduls 00, 01, 04, 05a i 05b). Es compta en nombre de tasques, perquè el pla no té dates (decisió 038). Les dependències que el pla escriu sense identificador de tasca (per exemple, «Mòdul 04» o «aprovació del M01») no es poden seguir i no hi compten. No hi entren les tasques «Feta» ni les que el pla treu del camí crític. '+CRIT.nEnds+' tasques de la fase 1 no són fetes.</p>';
+  if(!CRIT.chains.length){h+='<p>No queda cap tasca pendent a la fase 1.</p>'}
+  CRIT.chains.slice(0,4).forEach(function(c,i){
+    h+='<h3 style="margin-top:.8rem">Cadena '+(CRIT.chains.length>1?(i+1)+' de '+CRIT.chains.length+' (empat)':'')+' · '+c.length+' tasques</h3><ol class="crit">';
+    c.forEach(function(id){var t=T.get(id);h+='<li>'+go(id)+' '+badge(t)+' <span class="small">'+rich1(t.title)+'</span></li>'});
+    h+='</ol><p><button type="button" class="btn" data-go="'+c[c.length-1]+'">Ressalta aquesta cadena a la cronologia</button></p>';
+  });
+  if(CRIT.chains.length>4)h+='<p class="small muted">Hi ha '+CRIT.chains.length+' cadenes amb la mateixa llargada; se\'n mostren 4.</p>';
+  $('v-crit').innerHTML=h;
+}
+function buildFonts(){
+  var r=D.report,h='<h2 id="h-fonts">Fonts i criteris</h2>';
+  h+='<h3>Resum de comprovació</h3><ul>'+r.files_read.map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'<li><code>git log</code> de <code>'+esc(r.head.branch)+'</code>: '+r.commits_on_branch+' commits; últim, <code>'+esc(r.head.h)+'</code> «'+esc(r.head.s)+'»</li><li>GitHub Actions: '+D.runs+' execucions del CI consultades el '+esc(D.generated)+'</li></ul>';
+  h+='<p><strong>No trobat:</strong> '+esc(r.files_missing.join(' ')||'res')+(r.decisions_missing.length?' Decisions que no existeixen: '+esc(r.decisions_missing.join(', '))+'.':'')+'</p>';
+  h+='<p class="small">Última línia llegida de <code>planning.md</code> (línia '+r.planning_lines+'): «'+esc(plain(r.planning_last))+'…»</p>';
+  h+='<h3 style="margin-top:1rem">Com es llegeix l\'estat d\'una tasca</h3><ul><li>L\'estat és l\'<strong>última marca</strong> de la cel·la «Feta quan» del pla («Feta», «Feta en part», «Implementada, pendent de validació», «No començada»), sense comptar les que van darrere d\'«Abans:» o d\'«Historial:». Sense cap marca, «Pendent».</li><li>«Bloquejada» només surt si el pla ho escriu («bloquejada per la P-…», «congelada…», «no s\'implementa fins que…»). És una marca a més de l\'estat.</li><li>«Retirada»: la «Lectura de les tasques substituïdes» ho diu.</li><li>Si l\'índex del diari de construcció diu un altre estat, o si una tasca «Feta» no té el CI en verd escrit enlloc, es marca «Fonts que no coincideixen» i el detall cita les dues fonts.</li><li>El commit i la data surten del text del pla i es comproven amb <code>git log</code>. El CI es mostra amb tres fonts separades: el que diu el pla, el que diu l\'índex del diari i el que diu GitHub Actions.</li></ul>';
+  h+='<h3 style="margin-top:1rem">Estimació del cost en crèdits</h3><p>Puntuació = mida del pla (S = 1, M = 2, L = 4) + 0,5 per criteri d\'acceptació o punt de checklist citat a «Feta quan» (màxim 8) + 0,5 per dependència (màxim 4) + 1 si la tasca té migracions o pantalles (ho diu el títol o la columna de fitxers) + 1 per cada tercer citat (proveïdor de pagaments, banc, federació, servei de correu, gestoria…).</p><p>Referència: la <a class="go" href="#" data-go="T-M01-05">T-M01-05</a> és «alt», amb '+r.cost_ref+' punts. <strong>Alt</strong>: '+r.cost_ref+' punts o més. <strong>Mitjà</strong>: de '+(r.cost_ref/2)+' a menys de '+r.cost_ref+'. <strong>Baix</strong>: menys de '+(r.cost_ref/2)+'. Una tasca sense mida al pla surt com a <strong>sense estimar</strong>. És una estimació relativa, no una mesura de crèdits reals.</p>';
+  var cf=D.tasks.filter(function(t){return t.conflicts.length});
+  h+='<h3 style="margin-top:1rem">Fonts que no coincideixen</h3><ul>'+cf.map(function(t){return '<li>'+go(t.id)+': '+t.conflicts.map(function(c){return esc(c.src)}).join(' · ')+'</li>'}).join('')+D.pend.filter(function(p){return p.both}).map(function(p){return '<li>'+go(p.id)+': surt a «Oberts» (línia '+p.open.line+') i a «Resolts» (línia '+p.resolved.line+') de <code>pendents.md</code>. Es compta com a resolt, perquè la fila de «Resolts» té data i decisió.</li>'}).join('')+'</ul>';
+  h+='<h3 style="margin-top:1rem">Límits</h3><ul><li>Les tasques no tenen responsable al pla. El filtre «Responsable del bloqueig» mostra qui ha de respondre les preguntes obertes vinculades a cada tasca.</li><li>Els identificadors Q-xxx i S-Mxx-xx es mostren com a text: no tenen una llista pròpia en aquesta pàgina.</li><li>Aquesta pàgina no resol cap pregunta ni dona per presa cap decisió que no consti al repositori.</li></ul>';
+  $('v-fonts').innerHTML=h;
+}
+
+/* ---------- filtres i cadena ---------- */
+function passes(t,st){
+  if(st.f&&String(t.phase)!==st.f)return false;
+  if(st.m&&t.mod!==st.m)return false;
+  if(st.s){if(st.s==='bloq'){if(!t.blocked)return false}else if(st.s==='conf'){if(!t.conflicts.length)return false}else if(t.status!==st.s)return false}
+  if(st.r){if(st.r==='-'){if(t.owners.length)return false}else if(t.owners.indexOf(st.r)<0)return false}
+  if(st.c&&t.cost.level!==st.c)return false;
+  return true;
+}
+function chainOf(id){
+  var up=new Set(),down=new Set();
+  (function a(x){T.get(x).deps.forEach(function(d){if(T.has(d.id)&&!up.has(d.id)){up.add(d.id);a(d.id)}})})(id);
+  (function b(x){T.get(x).rdeps.forEach(function(d){if(!down.has(d)){down.add(d);b(d)}})})(id);
+  return {up:up,down:down};
+}
+var lastChain=null,lastSelRow=null;
+function applyFilters(){
+  var n=0,ch=(S.sel&&T.has(S.sel))?chainOf(S.sel):null;
+  D.tasks.forEach(function(t){
+    var el=rowEl.get(t.id),ok=passes(t,S);
+    var cls='s-'+t.status+(t.blocked?' is-bloq':'')+(ok?'':' hid'),tag='';
+    if(ch){if(t.id===S.sel)cls+=' c-sel';else if(ch.up.has(t.id)){cls+=' c-up';tag='◀ necessita'}else if(ch.down.has(t.id)){cls+=' c-down';tag='▶ en depèn'}}
+    if(el.className!==cls)el.className=cls;
+    var tg=el.querySelector('.tagc');if(tg.textContent!==tag)tg.textContent=tag;
+    if(ok)n++;
+  });
+  var tlc=$('timeline');tlc.classList.toggle('chain-on',!!ch);tlc.classList.toggle('chain-only',!!ch&&S.ch==='1');
+  document.querySelectorAll('.mod').forEach(function(m){var has=m.querySelector('ol')?!!m.querySelector('ol>li:not(.hid)'):!(S.m||S.s||S.r||S.c);m.hidden=!has||(S.m&&m.dataset.mod!==S.m)});
+  document.querySelectorAll('.phase').forEach(function(p){p.hidden=!p.querySelector('.mod:not([hidden])')||(S.f&&p.dataset.phase!==S.f)});
+  $('count').textContent='Es mostren '+n+' de '+D.tasks.length+' tasques.'+(ch?' Cadena de la '+S.sel+': en necessita '+ch.up.size+' i en depenen '+ch.down.size+'.':'');
+  $('f-f').value=S.f;$('f-m').value=S.m;$('f-s').value=S.s;$('f-r').value=S.r;$('f-c').value=S.c;$('f-chain').checked=S.ch==='1';
+}
+function apply(opts){
+  opts=opts||{};
+  document.querySelectorAll('.view').forEach(function(v){v.hidden=v.id!=='v-'+S.v;v.dataset.print=v.id==='v-'+S.v?'1':'0'});
+  document.querySelectorAll('nav.views button').forEach(function(b){if(b.dataset.view===S.v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  applyFilters();
+  decEl.forEach(function(el,k){el.classList.toggle('c-sel',S.sel==='D'+k)});
+  pendEl.forEach(function(el,k){el.classList.toggle('c-sel',S.sel===k)});
+  renderDetail();
+  $('back').disabled=!stack.length;
+  setHash();
+  if(opts.scroll&&S.sel){
+    var el=T.has(S.sel)?rowEl.get(S.sel):(S.sel.charAt(0)==='D'?decEl.get(S.sel.slice(1)):pendEl.get(S.sel));
+    if(el&&!el.classList.contains('hid')&&el.offsetParent!==null){var d=el.closest('details');if(d&&!d.open)d.open=true;var r=el.getBoundingClientRect();if(r.top<150||r.bottom>window.innerHeight-20)el.scrollIntoView({block:'center'})}
+  }
+  if(opts.focusDetail&&S.sel&&window.matchMedia('(max-width:1099px)').matches){var x=$('detail').querySelector('.x');if(x)x.focus()}
+}
+
+/* ---------- detall ---------- */
+function runTxt(r){return '#'+r.n+' ('+(r.ev==='pull_request'?'PR':r.ev)+') '+(r.c==='success'?'<strong>verda</strong>':(r.c==='failure'?'<strong>vermella</strong>':esc(r.c||'sense resultat')))+' sobre <code>'+r.sha+'</code>'}
+function listGo(ids){return ids.length?'<div class="chips">'+ids.map(function(i){return go(i)}).join(' ')+'</div>':'<p class="muted">Cap.</p>'}
+function detailTask(t){
+  var h='<h2>'+t.id+'</h2><p class="txt">'+rich(t.title)+'</p><p>'+badge(t)+' '+costB(t)+'</p>';
+  h+='<p class="small muted">Mòdul '+t.mod+' · '+esc(D.modname[t.mod])+' · '+PH[t.phase]+' · <code>planning.md</code>, línia '+t.line+' ('+esc(plain(t.sec)).slice(0,90)+')</p>';
+  if(!passes(t,S))h+='<p class="note small">Aquesta tasca queda amagada pels filtres actuals. <button type="button" class="btn" data-clear="1">Treu els filtres</button></p>';
+  if(t.statusNote)h+='<p class="note small">'+esc(t.statusNote)+'</p>';
+  t.conflicts.forEach(function(c){h+='<div class="conf small"><strong>Fonts que no coincideixen.</strong> '+(c.kind==='estat'?'El pla diu «'+SL[c.plan]+'» i el diari diu «'+SL[c.other]+'». ':'')+rich(c.src)+'</div>'});
+  if(t.blocked)h+='<div class="conf small"><strong>Bloquejada, segons el pla</strong> (línia '+t.blocked.line+'): «'+rich(t.blocked.quote)+'»<br>Qui controla el bloqueig: '+ownersTxt(t.owners)+'</div>';
+  if(t.offcrit)h+='<p class="note small">'+esc(t.offcrit)+'</p>';
+  h+='<h4>Estat real</h4><ul class="small">';
+  h+='<li><strong>Estat al pla:</strong> '+SL[t.status]+(t.statusQuote?' (marca: «'+esc(plain(t.statusQuote))+'»)':' (cap marca d\'estat a la fila)')+'</li>';
+  h+='<li><strong>Data:</strong> '+(t.date?esc(t.date):NT)+'</li>';
+  h+='<li><strong>Commit:</strong> '+(t.commits.length?t.commits.map(function(c){return '<code>'+c.h+'</code> ('+esc(c.d)+') '+esc(c.s)}).join('<br>')+(t.commitsAll>t.commits.length?'<br>… i '+(t.commitsAll-t.commits.length)+' més':''):NT)+'</li>';
+  h+='<li><strong>CI segons el pla:</strong> '+(t.ciDeclared.length?t.ciDeclared.map(function(c){return '«'+rich(c)+'»'}).join('<br>'):NT)+'</li>';
+  h+='<li><strong>CI segons l\'índex del diari:</strong> '+(t.diari?rich(t.diari.ci||'no trobat')+' <span class="muted">(entrada del '+esc(t.diari.date)+'; commit '+esc(t.diari.commit)+')</span>':NT+' (sense entrada a l\'índex)')+'</li>';
+  var g=t.ciGithub;
+  h+='<li><strong>CI segons GitHub Actions</strong> (consultat el '+esc(D.generated)+'): ';
+  if(!g)h+=NT+' (cap commit identificat)';
+  else{
+    if(g.kind==='directa')h+='execucions sobre <code>'+g.commit+'</code>: '+g.runs.map(runTxt).join('; ')+'.';
+    else if(g.kind==='inclosa')h+='cap execució directa sobre <code>'+g.commit+'</code>. La primera que l\'inclou: '+g.runs.map(runTxt).join('; ')+'.';
+    else h+='cap execució inclou <code>'+g.commit+'</code>.';
+    if(g.last)h+=' L\'última que l\'inclou: '+runTxt(g.last)+'.';
+  }
+  h+='</li></ul>';
+  h+='<h4>Què no tanca o què queda</h4>'+(t.noTanca.length?'<ul class="small txt">'+t.noTanca.map(function(n){return '<li>'+rich(n)+'</li>'}).join('')+'</ul>':(t.status==='pendent'?'<p class="small muted">La tasca no està començada segons el pla.</p>':'<p class="small">'+NT+' (el pla no té cap apartat «No tanca» ni «Queda» després de l\'última marca d\'estat; vegeu el text complet a sota).</p>'));
+  var ch=chainOf(t.id);
+  h+='<h4>Depèn de ('+t.deps.length+')</h4>';
+  if(t.deps.length){h+='<ul class="small">'+t.deps.map(function(d){var o=T.get(d.id);return '<li>'+(o?go(d.id)+' '+badge(o)+' <span class="muted">'+rich1(o.title).slice(0,80)+'</span>':esc(d.id)+' <span class="muted">(no és cap tasca del pla)</span>')+(d.kind==='rang'?' <span class="muted">(dins d\'un rang «a»)</span>':'')+(d.kind==='lectura'?' <span class="muted">('+esc(plain(d.src))+')</span>':'')+'</li>'}).join('')+'</ul>'}
+  h+='<p class="small muted">Text de la columna: «'+rich(t.depRaw||'—')+'»</p>';
+  h+='<h4>Cadena cap enrere: tot el que necessita ('+ch.up.size+')</h4>'+listGo(D.tasks.filter(function(x){return ch.up.has(x.id)}).map(function(x){return x.id}));
+  h+='<h4>Cadena cap endavant: el que en depèn ('+ch.down.size+', directes: '+t.rdeps.length+')</h4>'+listGo(D.tasks.filter(function(x){return ch.down.has(x.id)}).map(function(x){return x.id}));
+  if(t.neces)h+='<p class="small">«La necessiten», segons el pla: '+rich(t.neces)+'</p>';
+  h+='<h4>Decisions vinculades</h4>'+listGo(t.decisions.filter(function(n){return DEC.has(n)}).map(function(n){return 'D'+n}));
+  h+='<h4>Pendents vinculats</h4>'+(t.pend.length?'<ul class="small">'+t.pend.map(function(p){var o=PEND.get(p);return '<li>'+(o?go(p)+' <span class="b '+(o.state==='obert'?'feta_part':'feta')+'">'+(o.state==='obert'?'Obert':'Resolt')+'</span> '+rich1(o.tema)+' · responsable: '+ownersTxt(o.ownersCanon):esc(p)+' (no és a pendents.md)')+'</li>'}).join('')+'</ul>':'<p class="muted small">Cap.</p>');
+  if(t.qrefs.length)h+='<p class="small">Altres preguntes citades a la fila: '+esc(t.qrefs.join(', '))+'</p>';
+  h+='<p class="small"><strong>Qui controla les preguntes obertes vinculades:</strong> '+ownersTxt(t.owners)+'</p>';
+  var c=t.cost;
+  h+='<h4>Cost en crèdits (estimació)</h4><p class="small">'+(c.level==='sense'?'<strong>Sense estimar.</strong> '+esc(c.why):'<strong>'+CL[c.level][0].toUpperCase()+CL[c.level].slice(1)+'</strong> · '+c.score+' punts = mida '+esc(c.eff)+' ('+c.base+') + '+c.nca+' criteris × 0,5 + '+c.nd+' dependències × 0,5 + '+(c.mig?'1 (migracions o pantalles)':'0 (sense migracions ni pantalles)')+' + '+c.third.length+' tercers'+(c.third.length?' ('+esc(c.third.join(', '))+')':'')+'. Referència: T-M01-05 = '+D.report.cost_ref+' punts.')+'</p>';
+  h+='<h4>Fitxers afectats, segons el pla</h4><p class="small txt">'+rich(t.files||'—')+'</p>';
+  h+='<h4>Feta quan (criteri del pla)</h4><p class="small txt">'+rich(t.criteria||'—')+'</p>';
+  if(t.notes.length)h+='<h4>Remissions d\'addendes i de la lectura</h4><ul class="small txt">'+t.notes.map(function(n){return '<li>'+rich(n.text)+' <span class="muted">(línia '+n.line+')</span></li>'}).join('')+'</ul>';
+  if(t.diariEntry)h+='<p class="small">Entrada del diari: <code>'+esc(t.diariEntry.file)+'</code>'+(t.diariEntry.estat?' · estat que hi consta: «'+esc(t.diariEntry.estat)+'»':'')+' · '+t.diariCount+' files a l\'índex.</p>';
+  h+='<details class="raw"><summary>Text complet de la cel·la «Feta quan» del pla</summary><p class="small txt">'+rich(t.feta)+'</p></details>';
+  return h;
+}
+function detailDec(d){
+  var h='<h2>Decisió '+d.num+'</h2><p class="txt">'+rich(d.title)+'</p><ul class="small"><li><strong>Data:</strong> '+rich(d.date)+'</li><li class="txt"><strong>Estat al fitxer:</strong> '+rich(d.estat)+'</li><li class="txt"><strong>Estat al registre (README):</strong> '+(d.readme?rich(d.readme.estat):NT)+'</li><li><strong>Fitxer:</strong> <code>docs/'+esc(d.file)+'</code></li></ul>';
+  h+='<h4>Tasques que afecta ('+d.tasks.length+')</h4>'+(d.tasks.length?'<ul class="small">'+d.tasks.map(function(i){var t=T.get(i);return '<li>'+go(i)+' '+badge(t)+' <span class="muted">'+rich1(t.title).slice(0,70)+'</span></li>'}).join('')+'</ul>':'<p class="muted small">Cap tasca la cita ni hi és citada.</p>');
+  h+='<h4>Pendents que cita</h4>'+listGo(d.pend.filter(function(p){return PEND.has(p)}));
+  return h;
+}
+function detailPend(p){
+  var h='<h2>'+p.id+'</h2><p class="txt">'+rich(p.tema)+'</p><p><span class="b '+(p.state==='obert'?'feta_part':'feta')+'">'+(p.state==='obert'?'Obert':'Resolt')+'</span></p>';
+  if(p.both)h+='<div class="conf small"><strong>Surt a les dues taules</strong> de <code>pendents.md</code>: «Oberts» (línia '+p.open.line+') i «Resolts» (línia '+p.resolved.line+').</div>';
+  h+='<h4>Qui controla la resposta</h4>'+(p.owners.length?'<ul class="small">'+p.owners.map(function(o){return '<li>'+esc(o[0])+' <span class="muted">('+esc(o[1])+')</span></li>'}).join('')+'</ul>':'<p class="small">'+NT+': cap font del repositori diu qui ha de respondre.</p>');
+  if(p.open)h+='<h4>Fila d\'«Oberts» (línia '+p.open.line+')</h4><p class="small txt">'+rich(p.open.text)+'</p>';
+  if(p.resolved)h+='<h4>Fila de «Resolts» (línia '+p.resolved.line+')</h4><p class="small txt">'+rich(p.resolved.text)+'</p><p class="small">'+rich(p.resolved.date)+' · '+rich(p.resolved.dec)+'</p>';
+  h+='<h4>Tasques vinculades ('+p.tasks.length+')</h4>'+(p.tasks.length?'<ul class="small">'+p.tasks.map(function(i){var t=T.get(i);return '<li>'+go(i)+' '+badge(t)+'</li>'}).join('')+'</ul>':'<p class="muted small">Cap.</p>');
+  h+='<h4>Decisions vinculades</h4>'+listGo(p.decisions.filter(function(n){return DEC.has(n)}).map(function(n){return 'D'+n}));
+  return h;
+}
+function renderDetail(){
+  var el=$('detail'),h='';
+  if(S.sel&&T.has(S.sel))h=detailTask(T.get(S.sel));
+  else if(S.sel&&S.sel.charAt(0)==='D'&&DEC.has(S.sel.slice(1)))h=detailDec(DEC.get(S.sel.slice(1)));
+  else if(S.sel&&PEND.has(S.sel))h=detailPend(PEND.get(S.sel));
+  if(!h){el.hidden=true;el.innerHTML='';$('contingut').classList.remove('has-detail');document.body.classList.remove('d-open');return}
+  el.innerHTML='<button type="button" class="btn x" data-close="1" aria-label="Tanca el detall">✕</button>'+h;
+  el.hidden=false;el.scrollTop=0;$('contingut').classList.add('has-detail');document.body.classList.add('d-open');
+  $('live').textContent='Obert: '+S.sel;
+}
+
+/* ---------- cerca ---------- */
+var IDX=[];
+function buildIndex(){
+  D.tasks.forEach(function(t){IDX.push({id:t.id,codes:[normCode(t.id)],label:t.id,ty:'tasca',text:fold(t.id+' '+plain(t.title)+' '+t.files),sub:plain(t.title)})});
+  D.decisions.forEach(function(d){var n=d.num,i=String(parseInt(n,10));IDX.push({id:'D'+n,codes:['D'+n,'D'+i,n,'DECISIO'+n],label:'D'+n,ty:'decisió',text:fold(d.title),sub:plain(d.title).replace(/^\d{3}\s*[—-]\s*/,'')})});
+  D.pend.forEach(function(p){var i=p.id.replace(/\D/g,''),k=p.id.charAt(0);IDX.push({id:p.id,codes:[k+i,k+String(parseInt(i,10)),k+('00'+parseInt(i,10)).slice(-3)],label:p.id,ty:'pendent',text:fold(p.tema),sub:plain(p.tema)})});
+}
+function search(q){
+  var qn=normCode(q),words=fold(q).split(/\s+/).filter(Boolean),res=[];
+  if(!qn&&!words.length)return res;
+  for(var i=0;i<IDX.length;i++){
+    var e=IDX[i],sc=0;
+    if(qn){for(var j=0;j<e.codes.length;j++){var c=e.codes[j];if(c===qn){sc=Math.max(sc,100)}else if(qn.length>=2&&c.indexOf(qn)===0){sc=Math.max(sc,80-(c.length-qn.length))}else if(qn.length>=3&&c.indexOf(qn)>0){sc=Math.max(sc,50)}}}
+    if(sc<100&&words.length){var all=true;for(var w=0;w<words.length;w++){if(e.text.indexOf(words[w])<0){all=false;break}}if(all&&words.join('').length>=2)sc=Math.max(sc,40)}
+    if(sc)res.push({e:e,sc:sc});
+  }
+  res.sort(function(a,b){return b.sc-a.sc});
+  return res.slice(0,12);
+}
+var sugItems=[],sugIdx=-1,deb=null;
+function renderSug(){
+  var ul=$('sug'),inp=$('q');
+  sugItems=search(inp.value);sugIdx=sugItems.length?0:-1;
+  if(!inp.value.trim()){ul.hidden=true;inp.setAttribute('aria-expanded','false');return}
+  ul.innerHTML=sugItems.length?sugItems.map(function(r,i){return '<li role="option" id="sg'+i+'" data-i="'+i+'" aria-selected="'+(i===0)+'"><span class="k">'+esc(r.e.label)+'</span><span class="ty">'+r.e.ty+'</span><span class="tx">'+esc(r.e.sub)+'</span></li>'}).join(''):'<li role="option" aria-disabled="true" class="muted">Cap resultat</li>';
+  ul.hidden=false;inp.setAttribute('aria-expanded','true');
+  if(sugIdx>=0)inp.setAttribute('aria-activedescendant','sg0');else inp.removeAttribute('aria-activedescendant');
+}
+function moveSug(d){if(!sugItems.length)return;sugIdx=(sugIdx+d+sugItems.length)%sugItems.length;
+  var lis=$('sug').children;for(var i=0;i<lis.length;i++)lis[i].setAttribute('aria-selected',String(i===sugIdx));
+  $('q').setAttribute('aria-activedescendant','sg'+sugIdx);lis[sugIdx].scrollIntoView({block:'nearest'})}
+function pickSug(i){var r=sugItems[i];if(!r)return;closeSug();$('q').value=r.e.label;open(r.e.id,{reveal:true})}
+function closeSug(){$('sug').hidden=true;$('q').setAttribute('aria-expanded','false');$('q').removeAttribute('aria-activedescendant')}
+
+/* ---------- esdeveniments ---------- */
+function wire(){
+  document.addEventListener('click',function(ev){
+    var a=ev.target.closest('[data-go]');
+    if(a){ev.preventDefault();open(a.getAttribute('data-go'),{reveal:true});return}
+    var x=ev.target.closest('[data-close]');if(x){nav({sel:''});var r=document.querySelector('.c-sel .row');return}
+    var c=ev.target.closest('[data-clear]');if(c){nav({f:'',m:'',s:'',r:'',c:'',ch:''},{scroll:true});return}
+    var st=ev.target.closest('[data-setstate]');if(st){nav({v:'cron',s:st.getAttribute('data-setstate'),f:'',m:'',r:'',c:''});$('filters').scrollIntoView();return}
+    var sm=ev.target.closest('[data-setmod]');if(sm){ev.preventDefault();nav({v:'cron',m:sm.getAttribute('data-setmod'),f:'',s:'',r:'',c:''});$('filters').scrollIntoView();return}
+    var vw=ev.target.closest('[data-view]');if(vw){nav({v:vw.getAttribute('data-view')});window.scrollTo(0,0);return}
+    var sg=ev.target.closest('#sug li[data-i]');if(sg){pickSug(+sg.getAttribute('data-i'));return}
+    if(!ev.target.closest('.search'))closeSug();
+  });
+  [['f-f','f'],['f-m','m'],['f-s','s'],['f-r','r'],['f-c','c']].forEach(function(p){$(p[0]).addEventListener('change',function(){var o={};o[p[1]]=this.value;nav(o)})});
+  $('f-chain').addEventListener('change',function(){nav({ch:this.checked?'1':''})});
+  $('f-clear').addEventListener('click',function(){nav({f:'',m:'',s:'',r:'',c:'',ch:''})});
+  $('back').addEventListener('click',back);
+  $('print').addEventListener('click',function(){window.print()});
+  var inp=$('q');
+  inp.addEventListener('input',function(){clearTimeout(deb);deb=setTimeout(renderSug,70)});
+  inp.addEventListener('focus',function(){if(inp.value.trim())renderSug()});
+  inp.addEventListener('keydown',function(ev){
+    if(ev.key==='ArrowDown'){ev.preventDefault();if($('sug').hidden)renderSug();else moveSug(1)}
+    else if(ev.key==='ArrowUp'){ev.preventDefault();moveSug(-1)}
+    else if(ev.key==='Enter'){ev.preventDefault();clearTimeout(deb);if($('sug').hidden||sugIdx<0)renderSug();if(sugIdx>=0)pickSug(sugIdx)}
+    else if(ev.key==='Escape'){closeSug()}
+  });
+  document.addEventListener('keydown',function(ev){
+    if(ev.key==='Escape'&&S.sel&&document.activeElement!==inp){nav({sel:''})}
+    if(ev.key==='/'&&!/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)){ev.preventDefault();inp.focus()}
+  });
+  window.addEventListener('hashchange',function(){var st=parse(location.hash);if(ser(st)!==ser(S)){stack.push(ser(S));S=st;apply({scroll:true})}});
+}
+build();buildIndex();wire();
+S=parse(location.hash);apply({scroll:true});
+window.__CRIS={state:function(){return S},crit:function(){return CRIT},counts:function(){var c={};D.tasks.forEach(function(t){c[t.mod]=(c[t.mod]||0)+1});return c},domCounts:function(){var c={};document.querySelectorAll('.mod').forEach(function(m){c[m.dataset.mod]=m.querySelectorAll('ol>li').length});return c}};
+}
+if(RAW.enc)lockScreen();else unlocked(RAW);
+})();
+</script>
+</body>
+</html>
