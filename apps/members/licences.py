@@ -27,6 +27,7 @@ from django.db import transaction
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.models import Account
 from apps.core import audit
 from apps.core.models import Person
 from apps.core.permissions import effective_permissions, has_perm
@@ -236,8 +237,11 @@ ALREADY_KNOWN = _("Aquesta llicència ja té data de caducitat: no la pots decla
 def declare_expiry(record, *, by, expires_on, request=None) -> None:
     """El soci declara la caducitat d'un registre seu que la té desconeguda. Es desa a
     `expires_on` amb la marca «declarada» fins que la secretaria la confirma a la fitxa. Un
-    registre d'una altra persona és «no trobat»; la vista registra l'intent abans (CA-M01-25)."""
+    registre d'una altra persona és «no trobat»; la vista registra l'intent abans (CA-M01-25).
+    És una acció pròpia: només amb el compte personal (059, punt 4.2; T-M01-37)."""
     _check_account_active(by)
+    if not isinstance(by, Account) or by.kind != Account.Kind.PERSONAL:
+        raise Http404
     if record.member.person_id != by.person_id:
         raise Http404
     with transaction.atomic():

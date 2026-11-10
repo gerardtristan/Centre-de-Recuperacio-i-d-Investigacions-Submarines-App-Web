@@ -34,10 +34,12 @@ from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import Http404
 
 from apps.core import audit, consents, mail
 from apps.core.models import LegalText, Person
 from apps.core.normalization import normalize_email, normalize_phone
+from apps.core.permissions import has_perm
 from apps.core.persons import create_or_get
 
 from . import fee_rules, recipients
@@ -60,6 +62,7 @@ OPTIONAL_TEXTS = ("newsletter", "images")
 # L'únic que el representant d'un menor de 14 anys dona a la persona del menor (072, Q-044 opció A).
 GUARDIAN_CONSENT_TEXT = "images"
 RECEIPT_TEMPLATE = "rebut-sollicitud-alta"
+IN_PERSON_PERMISSION = "members.create_in_person"  # P2
 
 # Textos PROVISIONALS del butlletí i de les imatges (074, punt 16; esborrany
 # `docs/esborranys/textos-legals.md`, seccions 4 i 5). [A validar: Q-16 i Q-028, gestoria i
@@ -126,7 +129,10 @@ def _warnings(check, person, email: str) -> list[dict]:
 @transaction.atomic
 def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True) -> JoinOutcome:
     """`data` és el `cleaned_data` del formulari. `by`: el compte de l'alta presencial, o None
-    al formulari web (visitant sense identificar)."""
+    al formulari web (visitant sense identificar). L'alta presencial exigeix P2 també aquí, no
+    només a la vista (T-M01-37): sense permís, «no trobat»."""
+    if channel != MemberRequest.Channel.WEB and not has_perm(by, IN_PERSON_PERMISSION):
+        raise Http404
     fields = {
         "first_name": data["first_name"],
         "last_name": data["last_name"],

@@ -635,6 +635,58 @@ class TestScreen:
         assert link not in admin_client(make_admin("instructor")).get(home).content.decode()
 
 
+# --- CA-M01-45: el tresorer (059) ------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestCaM0145Treasurer:
+    """CA-M01-45: el tresorer aprova o rebutja una alta; hi veu «major d'edat» o «menor d'edat»
+    en lloc de la data de naixement, sense el document; la seva, rebutjada i registrada."""
+
+    def test_ca_m01_45_age_band_instead_of_birth_date_and_no_document(self, make_admin):
+        adult = a_request(a_person("Adulta", "Franja"))
+        minor = minor_request(document=True)
+        page = admin_client(make_admin("treasurer")).get(reverse(LIST)).content.decode()
+        assert page.count("Major d&#x27;edat") == 1
+        assert page.count("Menor d&#x27;edat") == 1
+        for day in (ADULT, MINOR):
+            assert day.strftime("%d/%m/%Y") not in page and day.isoformat() not in page
+        for document in (adult.person.id_document_number, minor.person.id_document_number):
+            assert document not in page
+        assert minor.guardian_id_document_number not in page
+        # Amb C1, la data i no la franja.
+        secretary_page = admin_client(make_admin("secretary")).get(reverse(LIST)).content.decode()
+        assert ADULT.strftime("%d/%m/%Y") in secretary_page
+        assert "Major d&#x27;edat" not in secretary_page
+
+    def test_ca_m01_45_treasurer_approves(self, make_admin):
+        join_request = a_request()
+        client = admin_client(make_admin("treasurer"))
+        response = client.post(reverse(APPROVE, args=[join_request.pk]))
+        assert response.status_code == 303
+        assert Member.objects.get().person == join_request.person
+
+    def test_ca_m01_45_treasurer_rejects(self, make_admin):
+        join_request = a_request()
+        client = admin_client(make_admin("treasurer"))
+        client.post(reverse(REJECT, args=[join_request.pk]), {"motiu": REASON})
+        join_request.refresh_from_db()
+        assert join_request.status == R.REJECTED
+        assert not Member.objects.exists()
+
+    @pytest.mark.parametrize(("route", "data"), [(APPROVE, {}), (REJECT, {"motiu": REASON})])
+    def test_ca_m01_45_own_request_is_rejected_and_recorded(self, make_admin, route, data):
+        join_request = a_request()
+        own = make_admin("treasurer", person=join_request.person)
+        response = admin_client(own).post(reverse(route, args=[join_request.pk]), data)
+        assert response.status_code == 303
+        join_request.refresh_from_db()
+        assert join_request.status == R.PENDING
+        assert not Member.objects.exists()
+        (attempt,) = entries(services.OWN_MEMBER_REJECTED, join_request)
+        assert attempt.actor_account == own
+
+
 # --- Quota: el càrrec ha de ser de la persona del soci i de tipus «quota» (M01-6) -----------
 
 

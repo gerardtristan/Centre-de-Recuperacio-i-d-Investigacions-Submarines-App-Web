@@ -19,6 +19,7 @@
         <div><dt>{% translate "Tipus" %}</dt><dd>{{ jr.requested_type.name }}</dd></div>
         <div><dt>{% translate "Sol·licitud" %}</dt><dd><time datetime="{{ jr.created_at|date:'c' }}">{{ jr.created_at|date:"d/m/Y" }}</time> · {{ jr.get_channel_display }}</dd></div>
         {% if show_birth_date %}<div><dt>{% translate "Data de naixement" %}</dt><dd>{{ row.birth_date|date:"d/m/Y"|default:_("Falta") }}</dd></div>{% endif %}
+        {% if row.age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ row.age_band.label }}</dd></div>{% endif %}
         {% if show_identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ row.document|default:"—" }}</dd></div>{% endif %}
         <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
         {% if jr.guardian_last_name %}

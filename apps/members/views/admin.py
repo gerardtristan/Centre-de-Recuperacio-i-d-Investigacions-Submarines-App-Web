@@ -402,6 +402,7 @@ def join_requests_view(request):
     can_resolve = has_perm(request.user, admissions.APPROVE_PERMISSION, permissions=perms)
     birth_date = has_perm(request.user, "members.field.birth_date", permissions=perms)
     identity = has_perm(request.user, "members.field.identity", permissions=perms)
+    today = local_today()
     rows = []
     for join_request in _pending_joins():
         person = join_request.person
@@ -419,6 +420,9 @@ def join_requests_view(request):
                 ),
                 "matches": sorted({w.get("match") for w in join_request.duplicate_warning}),
                 "birth_date": join_request.birth_date if birth_date else None,
+                # Sense C1, només la franja (CA-M01-45, RN-M01-48). `age_band` només llegeix
+                # `birth_date`, que a l'alta és a la sol·licitud.
+                "age_band": None if birth_date else persons.age_band(join_request, today),
                 "document": roster.document_label(person) if identity else "",
                 "guardian_document": (
                     f"{join_request.get_guardian_id_document_type_display()} "
