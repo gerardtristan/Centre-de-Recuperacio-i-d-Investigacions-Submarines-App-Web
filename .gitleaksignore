@@ -1,4 +1,8 @@
-# Decisió 076 (10/11/2026): única entrada. Fals positiu de la regla generic-api-key a l'historial
-# («by=secretary, effective_on=…», dades de prova, commit 6d871bd). Només aquesta empremta exacta;
-# cap patró genèric. Una entrada nova demana una decisió nova.
+# Empremtes exactes de falsos positius de l'historial. Cap patró genèric.
+# Cada entrada nova demana una decisió nova amb la causa, l'abast i la data.
+
+# Decisió 076 (10/11/2026): regla generic-api-key, dades de prova inventades a apps/members/demo_data.py, commit 6d871bd.
 6d871bd0ce0b95ee5bcc6bbcf65ddb9619670e31:apps/members/demo_data.py:generic-api-key:305
+
+# Decisió 077 (10/11/2026): regla generic-api-key, cita d'aquelles dades a la primera versió de la decisió 076, commit a31d6b4.
+a31d6b4dc188e489aead746fc0dd816bf0abc898:docs/decisions/076-segona-excepcio-de-gitleaks-empremta-d-un-fals-positiu.md:generic-api-key:8
