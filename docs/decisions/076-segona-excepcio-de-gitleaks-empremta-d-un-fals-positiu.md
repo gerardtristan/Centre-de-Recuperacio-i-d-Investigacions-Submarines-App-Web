@@ -5,7 +5,7 @@
 - **Abast:** amplia la norma d'excepcions de gitleaks de `CLAUDE.md` («Regles que sempre s'han de complir», proves), que fins ara només admetia l'excepció de valor de `.gitleaks.toml` (`contrasenya-de-proves-1954`).
 
 ## Context
-La primera execució del CI de la branca `feature/night-2026-11-10` (42810347688, 10/11/2026) va fallar a la feina «secrets»: la regla per defecte `generic-api-key` de gitleaks va llegir com una clau la línia `leave, by=secretary, effective_on=today + datetime.timedelta(days=30)` de `apps/members/demo_data.py` (dades de prova inventades, commit `6d871bd`), pel tros «secret» de «secretary». No és cap secret. El nom es va canviar a `180bdf8` i el CI següent va ser verd, però la línia continua a l'historial: una revisió de tota la branca (per exemple, en una PR) la tornaria a trobar. No es reescriu l'historial.
+La primera execució del CI de la branca `feature/night-2026-11-10` (42810347688, 10/11/2026) va fallar a la feina «secrets»: la regla per defecte `generic-api-key` de gitleaks va llegir com una clau una crida a `approve_leave` de `apps/members/demo_data.py` (línia 305) que passava el compte de la secretaria i la data efectiva (dades de prova inventades, commit `6d871bd`), pel tros «secret» de «secretary». No és cap secret. El nom es va canviar a `180bdf8` i el CI següent va ser verd, però la línia continua a l'historial: una revisió de tota la branca (per exemple, en una PR) la tornaria a trobar. No es reescriu l'historial.
 
 ## Decisió
 1. **Causa:** fals positiu de la regla `generic-api-key` a l'historial, en dades de prova inventades.
@@ -13,6 +13,9 @@ La primera execució del CI de la branca `feature/night-2026-11-10` (42810347688
 3. **Primera excepció sense canvis:** `.gitleaks.toml` continua igual (només el valor exacte `contrasenya-de-proves-1954` a la regla `generic-api-key`).
 4. **Cap reescriptura:** ni `force-push` ni canvis de l'historial.
 5. **Entrades noves:** cada empremta nova a `.gitleaksignore` demana una decisió nova amb la causa, l'abast i la data.
+
+## Incidència en registrar-la
+La primera versió d'aquesta decisió (commit `a31d6b4`) citava literalment la línia i gitleaks la va tornar a detectar al CI 42832792912 (fallada a «secrets», cap secret real). El text es va corregir en un commit posterior sense citar-la. Aquella troballa de `a31d6b4` **no** és dins d'aquesta excepció: cobrir-la amb una segona empremta demana una decisió nova (punt 5).
 
 ## Conseqüències
 - `CLAUDE.md`: la norma de proves diu que hi ha dues excepcions (la de valor de `.gitleaks.toml` i aquesta empremta) i que no se n'afegeix cap altra sense decisió.
