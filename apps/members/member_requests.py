@@ -19,7 +19,8 @@ Retoc del 09/11/2026 (072):
 - Rebutjar i anul·lar quotes: només amb permís d'edició, mai amb només lectura (Q-055, Q-057).
 
 Continua desconnectat: una data efectiva futura (la primitiva no programa canvis); el pas de ple
-dret a simpatitzant a la renovació (Q-051, sense sol·licitud); la ruta definitiva i des d'on
+dret a simpatitzant a la renovació (Q-051, precisada per la 073: sol·licitud i avís a la T-M01-42
+i la T-M01-43); la ruta definitiva i des d'on
 resol el President (Q-052).
 
 Conflicte d'interès (S-M01-22): `ensure_not_own_member` abans d'obrir la transacció, també per
@@ -70,11 +71,16 @@ def _is_own_personal(member, by) -> bool:
 
 def type_change_problem(member) -> str:
     """Per què aquest soci no pot demanar el canvi a ple dret, o "" si pot (pas 1 de P-M01-B).
-    El canvi de ple dret a simpatitzant no consta enlloc [A validar: junta]."""
+    De ple dret a simpatitzant (073): explica la regla sense prometre l'avís ni la sol·licitud,
+    que són de la T-M01-42 i la T-M01-43 (text del responsable, 09/11/2026)."""
     if member.status != Member.Status.ACTIVE:
         return _("Només un soci simpatitzant actiu pot demanar el canvi a ple dret.")
     if member.type.code != SUPPORTER:
-        return _("Ja ets soci de ple dret. El canvi a simpatitzant ara no es pot demanar.")
+        return _(
+            "Actualment ets soci de ple dret. El canvi a simpatitzant serà efectiu en la pròxima "
+            "renovació de la quota anual, sense devolució ni prorrateig de la quota actual. La "
+            "sol·licitud d'aquest canvi des de l'aplicació encara no està disponible."
+        )
     return ""
 
 

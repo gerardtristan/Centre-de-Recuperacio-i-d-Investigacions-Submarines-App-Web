@@ -163,7 +163,48 @@ def test_navigation_links_to_both_pages_for_a_member(marta):
     assert reverse(LEAVE) in html
 
 
+def test_leave_confirmation_is_a_checkbox_inside_its_label(marta):
+    # Patró `casella`: quadrat al costat del text i tota l'etiqueta clicable (revisió 09/11/2026).
+    html = personal_client(marta[1]).get(reverse(LEAVE)).content.decode()
+    assert '<label class="casella" for="id_confirm"><input type="checkbox" name="confirm"' in html
+
+
+def test_admin_home_links_to_the_requests_only_with_p3a(make_admin, db):  # noqa: F811
+    home = reverse("administration:home")
+    assert reverse(LIST) in admin_client(make_admin("secretary")).get(home).content.decode()
+    assert reverse(LIST) not in admin_client(make_admin("board")).get(home).content.decode()
+
+
+def test_member_detail_links_to_create_a_leave_only_with_p7(make_admin, marta):  # noqa: F811
+    member = marta[0]
+    detail = reverse("administration:member_detail", args=[member.pk])
+    create = reverse(CREATE, args=[member.pk])
+    client = admin_client(make_admin("secretary"))
+    assert create in client.get(detail).content.decode()
+    leave_request(member)  # amb una baixa pendent, ja no s'ofereix
+    assert create not in client.get(detail).content.decode()
+    left = make_member("Pere", status="left")
+    left_detail = reverse("administration:member_detail", args=[left.pk])
+    assert reverse(CREATE, args=[left.pk]) not in client.get(left_detail).content.decode()
+    RolePermission.objects.filter(
+        role__code="secretary", permission_code=mr.RESOLVE_PERMISSION
+    ).delete()
+    other = make_member("Anna")
+    other_detail = reverse("administration:member_detail", args=[other.pk])
+    assert reverse(CREATE, args=[other.pk]) not in client.get(other_detail).content.decode()
+
+
 # --- Canvi a ple dret (P-M01-B, pas 1) ------------------------------------------------------
+
+
+def test_full_member_sees_the_downgrade_rule_without_a_promised_notice(db):
+    # 073: el text explica la regla i no promet cap avís ni cap sol·licitud que encara no existeix.
+    member = make_member(type_code="full")
+    page = personal_client(account_for(member)).get(reverse(CHANGE)).content.decode()
+    assert "efectiu en la pròxima renovació de la quota anual" in page
+    assert "encara no està disponible" in page
+    assert "avisarem" not in page.lower()
+    assert 'method="post"' not in page
 
 
 def test_active_supporter_requests_the_change_without_any_charge(marta):

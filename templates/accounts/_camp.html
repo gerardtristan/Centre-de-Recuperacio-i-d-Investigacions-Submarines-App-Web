@@ -1,7 +1,16 @@
 {# Un camp de formulari amb l'etiqueta, l'ajuda i els errors (B8). Django enllaça l'ajuda amb aria-describedby i marca aria-invalid. #}
+{% if field.widget_type == "checkbox" %}
+{# Una casella va dins de la seva etiqueta (patró `casella`, com al llistat de socis): quadrat petit al costat del text i tota l'etiqueta clicable. Fora de `.camp`, perquè `.camp input` l'estiraria a 44 px amb relleu. #}
+<div>
+  <label class="casella" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
+  {% if field.help_text %}<div class="ajuda text-2" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
+  {{ field.errors }}
+</div>
+{% else %}
 <div class="camp">
   <label for="{{ field.id_for_label }}">{{ field.label }}</label>
   {{ field }}
   {% if field.help_text %}<div class="ajuda" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
   {{ field.errors }}
 </div>
+{% endif %}

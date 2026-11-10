@@ -37,7 +37,7 @@ from apps.core.permissions import (
     request_permissions,
     require_perm,
 )
-from apps.members import admissions, fees, join, member_edit, roster, services
+from apps.members import admissions, fees, join, member_edit, member_requests, roster, services
 from apps.members.fee_rules import local_today
 from apps.members.forms import JoinForm
 from apps.members.imports import cluber
@@ -316,6 +316,14 @@ def member_detail_view(request, pk):
         # T-M01-15b: enllaços i historial de la data d'alta. Els serveis ho tornen a comprovar.
         "can_edit": bool(member_edit.editable_fields(request.user, perms)),
         "can_correct_join_date": member_edit.can_correct_join_date(request.user, perms),
+        # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
+        "can_create_leave": member.status != Member.Status.LEFT
+        and has_perm(
+            request.user, member_requests.RESOLVE_PERMISSION, write=True, permissions=perms
+        )
+        and not member.requests.filter(
+            kind=MemberRequest.Kind.LEAVE, status=MemberRequest.Status.PENDING
+        ).exists(),
         "join_date_changes": (
             member.join_date_changes.select_related("actor_account").order_by("-created_at", "-id")
             if vis.full
