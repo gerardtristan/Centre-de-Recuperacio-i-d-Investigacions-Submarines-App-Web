@@ -123,7 +123,8 @@ def add_record(member, *, by, licence_type, issued_on, expires_on, request=None)
 
 def correct_record(record, *, by, licence_type, issued_on, expires_on, request=None) -> bool:
     """Corregeix el tipus i les dates. Una caducitat que ja era buida (registre de Cluber) es pot
-    deixar buida; no se'n pot buidar una de coneguda. Torna si ha canviat res."""
+    deixar buida; no se'n pot buidar una de coneguda. Desar una caducitat declarada pel soci,
+    igual o corregida, la confirma: treu la marca (RN-M01-77). Torna si ha canviat res."""
     member = record.member
     authorize(member, by, request=request)
     with transaction.atomic():
@@ -137,6 +138,7 @@ def correct_record(record, *, by, licence_type, issued_on, expires_on, request=N
             "licence_type": (locked.licence_type, licence_type),
             "issued_on": (locked.issued_on, issued_on),
             "expires_on": (locked.expires_on, expires_on),
+            "expiry_declared": (locked.expiry_declared, False),
         }
         recorded = audit.record_changes(
             CORRECTED, actor=by, target=locked, changes=changes, request=request
@@ -148,14 +150,16 @@ def correct_record(record, *, by, licence_type, issued_on, expires_on, request=N
             issued_on,
             expires_on,
         )
-        locked.save(update_fields=["licence_type", "issued_on", "expires_on"])
+        locked.expiry_declared = False
+        locked.save(update_fields=["licence_type", "issued_on", "expires_on", "expiry_declared"])
     record.refresh_from_db()
     return True
 
 
 # --- Confirmació en bloc de les caducitats d'any natural (T-M01-36; RN-M01-56, CA-M01-44) -------
 # La plataforma no sap quines llicències són d'any natural (el tipus és text lliure fins a la 06):
-# ho decideix la secretaria en seleccionar-les. La declaració del soci no és aquí: vegeu el diari.
+# ho decideix la secretaria en seleccionar-les. Una caducitat declarada pel soci ja té data i, per
+# tant, no surt aquí: la secretaria la confirma a la fitxa (`correct_record`; RN-M01-77).
 
 CONFIRMED_IN_BULK = "members.licence_record.expiry_confirmed_in_bulk"
 NOT_PENDING = _("Algun registre ja no està pendent de confirmar. Torna a carregar la llista.")
@@ -223,6 +227,51 @@ def confirm_in_bulk(record_ids, *, year, by, request=None) -> int:
     return len(records)
 
 
+# --- Caducitat declarada pel soci (T-M01-36; RN-M01-77, CA-M01-76) ------------------------------
+
+DECLARED = "members.licence_record.expiry_declared"
+ALREADY_KNOWN = _("Aquesta llicència ja té data de caducitat: no la pots declarar.")
+
+
+def declare_expiry(record, *, by, expires_on, request=None) -> None:
+    """El soci declara la caducitat d'un registre seu que la té desconeguda. Es desa a
+    `expires_on` amb la marca «declarada» fins que la secretaria la confirma a la fitxa. Un
+    registre d'una altra persona és «no trobat»; la vista registra l'intent abans (CA-M01-25)."""
+    _check_account_active(by)
+    if record.member.person_id != by.person_id:
+        raise Http404
+    with transaction.atomic():
+        _check_account_active(by, lock=True)
+        _check_person_active(record.member)
+        locked = LicenceRecord.objects.select_for_update().get(pk=record.pk)
+        if locked.expires_on is not None:
+            raise ValidationError(ALREADY_KNOWN)
+        _clean(locked.licence_type, locked.issued_on, expires_on)
+        audit.record_changes(
+            DECLARED,
+            actor=by,
+            target=locked,
+            changes={"expires_on": (None, expires_on), "expiry_declared": (False, True)},
+            request=request,
+        )
+        locked.expires_on, locked.expiry_declared = expires_on, True
+        locked.save(update_fields=["expires_on", "expiry_declared"])
+    record.refresh_from_db()
+
+
+class DeclareExpiryForm(forms.Form):
+    expires_on = forms.DateField(
+        label=_("Declara la data de caducitat"),
+        help_text=_("Quedarà «declarada per tu» fins que la secretaria la confirmi."),
+        input_formats=["%Y-%m-%d", "%d/%m/%Y"],
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        error_messages={
+            "required": _("Escriu la data de caducitat de la teva llicència."),
+            "invalid": _("Escriu una data vàlida, per exemple 31/12/2027."),
+        },
+    )
+
+
 class BulkConfirmForm(forms.Form):
     records = forms.ModelMultipleChoiceField(
         label=_("Registres"),
@@ -275,6 +324,11 @@ class LicenceRecordForm(forms.Form):
         expires = self.fields["expires_on"]
         expires.required = not (record is not None and record.expires_on is None)
         expires.error_messages["required"] = EXPIRES_REQUIRED
+        if record is not None and record.expiry_declared:
+            expires.help_text = _(
+                "Declarada pel soci, pendent de confirmar. Desa-la tal com està per acceptar-la "
+                "o escriu-ne una altra per corregir-la."
+            )
 
     def clean(self):
         data = super().clean()

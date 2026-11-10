@@ -66,6 +66,7 @@ class TestContract:
             "licence_type",
             "issued_on",
             "expires_on",
+            "declared_expires_on",  # RN-M01-77 (T-M01-36): declarada, no vigent
         ]
 
     def test_result_is_immutable_and_not_the_model(self):

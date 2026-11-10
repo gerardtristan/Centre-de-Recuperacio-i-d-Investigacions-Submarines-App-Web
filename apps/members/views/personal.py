@@ -12,19 +12,20 @@ sessió d'administració.
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit, persons
 from apps.core.models import Charge
 
-from .. import roster
+from .. import licences, roster
 from ..forms import LEGAL_LABELS, ProfileForm
-from ..models import AnnualFee, Member
+from ..models import AnnualFee, LicenceRecord, Member
 
 
 def euros(cents: int) -> str:
@@ -54,31 +55,83 @@ def own_consents(person):
 @require_http_methods(["GET", "POST"])
 def profile_view(request):
     person = request.user.person
-    initial = {
-        "phone": person.phone,
-        "address": person.address,
-        "landline": person.landline,
-        "postal_code": person.postal_code,
-        "city": person.city,
-        "province": person.province,
-        "preferred_language": person.preferred_language,
-    }
-    form = ProfileForm(request.POST or None, initial=initial)
+    form = ProfileForm(request.POST or None, initial=_profile_initial(person))
     if request.method == "POST" and form.is_valid():
         changed = persons.update_profile(
             person, actor=request.user, request=request, **form.cleaned_data
         )
         messages.success(request, _("Canvis desats.") if changed else _("No has canviat cap dada."))
         return redirect("members:profile")
+    return _render_profile(request, form=form)
+
+
+def _render_profile(request, *, form=None, declare_form=None):
+    person = request.user.person
+    member = own_member(request)
+    records = []
+    for record in member.licence_records.order_by("-issued_on", "-id") if member else []:
+        # Només una caducitat desconeguda es pot declarar (RN-M01-77); el servei ho torna a
+        # comprovar. Un formulari enviat amb errors es mostra igualment, amb el motiu.
+        if declare_form is not None and declare_form.prefix == _prefix(record):
+            declare = declare_form
+        elif record.expires_on is None:
+            declare = licences.DeclareExpiryForm(prefix=_prefix(record))
+        else:
+            declare = None
+        records.append((record, declare))
     context = {
         "person": person,
-        "member": own_member(request),
+        "member": member,
         "document": masked_document(person),
-        "form": form,
+        "form": form or ProfileForm(initial=_profile_initial(person)),
         "consents": own_consents(person),
         "requests": person.member_requests.order_by("-created_at", "-id"),
+        "licence_records": records,
     }
     return render(request, "members/personal_profile.html", context)
+
+
+def _profile_initial(person):
+    return {name: getattr(person, name) for name in ProfileForm.base_fields}
+
+
+def _prefix(record):
+    return f"llicencia-{record.pk}"
+
+
+@never_cache
+@require_POST
+def declare_expiry_view(request, record_id):
+    """El soci declara la caducitat desconeguda d'un registre seu (RN-M01-77, CA-M01-76). Un
+    d'un altre o un que no existeix: «no trobat» i registre, com el detall d'una quota."""
+    record = (
+        LicenceRecord.objects.select_related("member")
+        .filter(pk=record_id, member__person=request.user.person)
+        .first()
+    )
+    if record is None:
+        audit.record(
+            audit.Action.PERSONAL_AREA_NOT_FOUND,
+            actor=request.user,
+            target=LicenceRecord.objects.filter(pk=record_id).first(),
+            details={"object": "members.licencerecord", "id": record_id},
+            request=request,
+        )
+        raise Http404
+    form = licences.DeclareExpiryForm(request.POST, prefix=_prefix(record))
+    if form.is_valid():
+        try:
+            licences.declare_expiry(
+                record, by=request.user, expires_on=form.cleaned_data["expires_on"], request=request
+            )
+        except ValidationError as error:
+            form.add_error("expires_on", error)
+        else:
+            messages.success(
+                request, _("Caducitat declarada. Queda pendent que la secretaria la confirmi.")
+            )
+            return redirect("members:profile")
+    return _render_profile(request, declare_form=form)
 
 
 def _fee_row(fee):

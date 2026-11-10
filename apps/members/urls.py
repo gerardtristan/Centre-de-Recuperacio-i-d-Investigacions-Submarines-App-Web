@@ -10,6 +10,12 @@ urlpatterns = [
     path("fer-se-soci/", public.join_view, name="join"),
     # Àrea del soci (compte personal, T-M01-16). Sessió obligatòria per defecte (RN-40).
     path("socis/perfil/", personal.profile_view, name="profile"),
+    # T-M01-36: el soci declara la caducitat desconeguda d'una llicència seva (RN-M01-77).
+    path(
+        "socis/perfil/llicencia/<int:record_id>/",
+        personal.declare_expiry_view,
+        name="declare_expiry",
+    ),
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
     path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19

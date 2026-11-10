@@ -23,6 +23,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.core import audit, roles
 from apps.core.permissions import has_perm, permission_required
+from apps.members import licences
 
 from . import email_links, tokens, totp
 from .forms import (
@@ -603,5 +604,7 @@ def admin_home(request):
         "can_join": can_join,
         "can_requests": has_perm(request.user, "members.requests.view"),
         "can_fees": has_perm(request.user, "members.fees.view"),
+        # P19 sencer i P4, com la vista (T-M01-36, CA-M01-80).
+        "can_licences": licences.can_manage(request.user),
     }
     return render(request, "accounts/admin_home.html", context)

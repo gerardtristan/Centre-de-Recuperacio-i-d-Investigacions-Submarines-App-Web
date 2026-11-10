@@ -11,6 +11,7 @@
   {% if can_members %}<p><a href="{% url 'administration:members_list' %}">{% translate "Llistat de socis" %}</a></p>{% endif %}
   {% if can_requests %}<p><a href="{% url 'administration:join_requests' %}">{% translate "Altes pendents" %}</a></p>{% endif %}
   {% if can_requests %}<p><a href="{% url 'administration:member_requests' %}">{% translate "Sol·licituds de socis" %}</a></p>{% endif %}
+  {% if can_licences %}<p><a href="{% url 'administration:licence_bulk_confirm' %}">{% translate "Llicències pendents de confirmar" %}</a></p>{% endif %}
   {% if can_fees %}<p><a href="{% url 'administration:fees' %}">{% translate "Quotes i impagats" %}</a></p>{% endif %}
   {% if can_join %}<p><a href="{% url 'administration:join_in_person' %}">{% translate "Alta presencial" %}</a></p>{% endif %}
   {% if can_audit %}<p><a href="{% url 'administration:audit_log' %}">{% translate "Registre d'activitat" %}</a></p>{% endif %}

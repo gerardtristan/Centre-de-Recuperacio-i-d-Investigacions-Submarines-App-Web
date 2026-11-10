@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import Case, DateField, F, Prefetch, When
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -360,13 +360,16 @@ def _readmit(member, join_request, *, by, effective_on, reason="", request=None)
 
 @dataclass(frozen=True)
 class LicenceInfo:
-    """Registre mínim de llicència (RN-M01-29). `expires_on` és None si no se sap (Cluber)."""
+    """Registre mínim de llicència (RN-M01-29). `expires_on` és None si no se sap (Cluber) o si
+    només la sap el soci: una caducitat declarada i no confirmada no és vigent (RN-M01-77) i va a
+    `declared_expires_on`, només per mostrar-la com a «declarada pel soci»."""
 
     record_id: int
     person_id: int
     licence_type: str
     issued_on: datetime.date
     expires_on: datetime.date | None
+    declared_expires_on: datetime.date | None = None
 
     @property
     def expiry_unknown(self) -> bool:
@@ -375,15 +378,30 @@ class LicenceInfo:
         return self.expires_on is None
 
 
-_LICENCE_FIELDS = ("pk", "member__person_id", "licence_type", "issued_on", "expires_on")
+# Una caducitat declarada pel soci compta com a desconeguda fins que la secretaria la confirma.
+_KNOWN = {
+    "known_expires_on": Case(
+        When(expiry_declared=True, then=None), default=F("expires_on"), output_field=DateField()
+    ),
+    "declared_on": Case(When(expiry_declared=True, then=F("expires_on")), output_field=DateField()),
+}
+_LICENCE_FIELDS = (
+    "pk",
+    "member__person_id",
+    "licence_type",
+    "issued_on",
+    "known_expires_on",
+    "declared_on",
+)
 # Caducitat coneguda més tardana primer; les buides, només si no n'hi ha cap amb data (RN-M01-50).
-_LICENCE_ORDER = (F("expires_on").desc(nulls_last=True), "-issued_on", "-pk")
+_LICENCE_ORDER = (F("known_expires_on").desc(nulls_last=True), "-issued_on", "-pk")
 
 
 def licence_record(person) -> LicenceInfo | None:
     """El registre mínim de la persona, o None si no és sòcia o no en té cap (049)."""
     row = (
         LicenceRecord.objects.filter(member__person=person)
+        .annotate(**_KNOWN)
         .order_by(*_LICENCE_ORDER)
         .values_list(*_LICENCE_FIELDS)
         .first()
@@ -395,8 +413,10 @@ def licence_records() -> list[LicenceInfo]:
     """Tots els registres mínims de tots els socis, un per registre, per al pas únic al 06
     (P-M06-H: cada llicència recorda de quin registre surt). Ordenats per persona i amb el mateix
     ordre que `licence_record`: el primer de cada persona és el que torna `licence_record`."""
-    rows = LicenceRecord.objects.order_by("member__person_id", *_LICENCE_ORDER).values_list(
-        *_LICENCE_FIELDS
+    rows = (
+        LicenceRecord.objects.annotate(**_KNOWN)
+        .order_by("member__person_id", *_LICENCE_ORDER)
+        .values_list(*_LICENCE_FIELDS)
     )
     return [LicenceInfo(*row) for row in rows]
 

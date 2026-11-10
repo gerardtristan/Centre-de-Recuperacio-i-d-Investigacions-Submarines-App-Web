@@ -644,7 +644,9 @@ class MemberCard(models.Model):
 
 class LicenceRecord(models.Model):
     """Registre mínim de llicència (RN-M01-29). `expires_on` pot ser buit: caducitat
-    desconeguda (addenda de la 058). `licence_type` és text lliure fins a la 06."""
+    desconeguda (addenda de la 058). `licence_type` és text lliure fins a la 06.
+    `expiry_declared`: la data d'`expires_on` l'ha declarada el soci i la secretaria encara no
+    l'ha confirmada; mentrestant no és vigent per a cap consumidor (RN-M01-77)."""
 
     class Source(models.TextChoices):
         MANUAL = "manual", _("Manual")
@@ -656,6 +658,7 @@ class LicenceRecord(models.Model):
     licence_type = models.CharField(_("tipus de llicència"), max_length=100)
     issued_on = models.DateField(_("data d'alta"))
     expires_on = models.DateField(_("data de caducitat"), null=True, blank=True)
+    expiry_declared = models.BooleanField(_("caducitat declarada pel soci"), default=False)
     source = models.CharField(_("origen"), max_length=10, choices=Source.choices)
     # Només als registres creats per un lot (T-M01-24); PROTECT protegeix el lot.
     import_batch = models.ForeignKey(
@@ -677,6 +680,10 @@ class LicenceRecord(models.Model):
             ),
             models.CheckConstraint(
                 condition=Q(source__in=["manual", "cluber"]), name="licencerecord_source_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(expiry_declared=False) | Q(expires_on__isnull=False),
+                name="licencerecord_declared_has_expiry",
             ),
         ]
 

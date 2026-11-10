@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Fora d'aquesta tasca: la data de naixement (T-M01-35), la llicència (T-M01-36), canviar el correu (pendent de decidir), retirar consentiments (Q-16), els camps opcionals (P-58), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Fora d'aquesta tasca: la data de naixement (T-M01-35), canviar el correu (pendent de decidir), retirar consentiments (Q-16), els camps opcionals (P-58), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
@@ -43,6 +43,30 @@
       <p>{% translate "No hi ha cap consentiment registrat." %}</p>
     {% endif %}
   </section>
+
+  {% if member %}
+    {# T-M01-36 (RN-M01-77): el soci només pot declarar una caducitat desconeguda; el servidor torna a comprovar que el registre és seu i que no en té cap. #}
+    <section class="targeta" aria-labelledby="llicencia-titol">
+      <h2 id="llicencia-titol">{% translate "Llicència" %}</h2>
+      {% for record, declare in licence_records %}
+        <dl class="dades-soci">
+          <div><dt>{% translate "Tipus" %}</dt><dd>{{ record.licence_type }}</dd></div>
+          <div><dt>{% translate "Data d'alta" %}</dt><dd><time datetime="{{ record.issued_on|date:'Y-m-d' }}">{{ record.issued_on|date:"d/m/Y" }}</time></dd></div>
+          <div><dt>{% translate "Caducitat" %}</dt><dd>{% if record.expires_on %}<time datetime="{{ record.expires_on|date:'Y-m-d' }}">{{ record.expires_on|date:"d/m/Y" }}</time>{% if record.expiry_declared %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Declarada per tu · pendent que la secretaria la confirmi" %}</span>{% endif %}{% else %}<span class="estat estat-neutre">{% translate "Caducitat desconeguda" %}</span>{% endif %}</dd></div>
+        </dl>
+        {% if declare %}
+          <form class="formulari" method="post" action="{% url 'members:declare_expiry' record.pk %}" novalidate>
+            {% csrf_token %}
+            {% for field in declare %}{% include "accounts/_camp.html" %}{% endfor %}
+            <div class="accions"><button class="boto" type="submit">{% translate "Declara la caducitat" %}<span class="visualment-amagat"> {{ record.licence_type }}</span></button></div>
+          </form>
+        {% endif %}
+      {% empty %}
+        <p>{% translate "No hi ha cap llicència registrada." %}</p>
+      {% endfor %}
+      <p class="text-2">{% translate "El tipus i la data d'alta els porta la secretaria." %}</p>
+    </section>
+  {% endif %}
 
   <section class="targeta" aria-labelledby="sollicituds-titol">
     <h2 id="sollicituds-titol">{% translate "Sol·licituds" %}</h2>

@@ -25,7 +25,7 @@
         <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
         {% if member.joined_on %}<div><dt>{% translate "Alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}</dd></div>{% endif %}
         <div><dt>{% translate "Quota" %}</dt><dd>{% if exempt %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Exempt per edat fins al {{ date }}{% endblocktranslate %}{% elif validity.until %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Pagada fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
-        <div><dt>{% translate "Llicència" %}</dt><dd>{% if licence and licence.expiry_unknown %}{% translate "Caducitat desconeguda" %}{% elif licence %}{% blocktranslate with date=licence.expires_on|date:"d/m/Y" %}Fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Llicència" %}</dt><dd>{% if licence.declared_expires_on %}{% blocktranslate with date=licence.declared_expires_on|date:"d/m/Y" %}Caducitat desconeguda (declarada per tu: {{ date }}, pendent que la secretaria la confirmi){% endblocktranslate %}{% elif licence and licence.expiry_unknown %}{% translate "Caducitat desconeguda" %}{% elif licence %}{% blocktranslate with date=licence.expires_on|date:"d/m/Y" %}Fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
       </dl>
       <p class="text-2">{% translate "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es. C.R.I.S. · cris1954.cat" %}</p>
     </section>
