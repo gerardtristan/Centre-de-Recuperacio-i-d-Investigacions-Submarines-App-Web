@@ -141,8 +141,11 @@ class TestOptionalConsents:
         assert consents.has_consent(request.person, IMAGES)
         assert not consents.has_consent(request.person, NEWSLETTER)
 
-    def test_under_14_consents_go_to_the_minor_given_by_the_guardian_option_a(self, optional, sec):
-        """072, Q-044 opció A: a la persona del menor, amb el representant com a qui el dona."""
+    def test_under_14_images_consent_goes_to_the_minor_given_by_the_guardian_option_a(
+        self, optional, sec
+    ):
+        """072, Q-044 opció A: les imatges, a la persona del menor, amb el representant com a qui
+        el dona. És l'única excepció: el butlletí es queda a la sol·licitud."""
         minor(id_document="00000003A", accept_images="on", accept_newsletter="on")
         request = MemberRequest.objects.get()
         assert kinds(request, "guardian") == [
@@ -154,12 +157,29 @@ class TestOptionalConsents:
         ]
         admissions.approve_join(request, by=sec, guardian_checked=True)
         granted = Consent.objects.filter(person=request.person)
-        # Les altres acceptacions del representant es queden a la sol·licitud (Q-044).
-        assert sorted(granted.values_list("legal_text__kind", flat=True)) == [
-            "images",
-            "newsletter",
-        ]
-        assert set(granted.values_list("given_by", flat=True)) == {"guardian"}
+        consent = granted.get()
+        assert (consent.legal_text.kind, consent.given_by) == ("images", "guardian")
+
+    def test_under_14_newsletter_stays_on_the_request_and_creates_no_consent_q_044(
+        self, optional, sec
+    ):
+        """072, Q-044 i tercera instrucció, punt 3: el butlletí marcat pel representant es queda
+        a la sol·licitud, com la resta de les seves acceptacions."""
+        minor(id_document="00000003A", accept_newsletter="on")
+        request = MemberRequest.objects.get()
+        assert "newsletter" in kinds(request, "guardian")
+        admissions.approve_join(request, by=sec, guardian_checked=True)
+        assert not Consent.objects.filter(person=request.person).exists()
+        assert JoinAcceptance.objects.filter(
+            request=request, legal_text__kind="newsletter", accepted_by="guardian"
+        ).exists()
+
+    def test_14_to_17_newsletter_is_a_consent_given_by_the_minor(self, optional, sec):
+        minor(TEEN, id_document="00000003A", accept_newsletter="on")
+        request = MemberRequest.objects.get()
+        admissions.approve_join(request, by=sec, guardian_checked=True)
+        consent = Consent.objects.get(person=request.person)
+        assert (consent.legal_text.kind, consent.given_by) == ("newsletter", "person")
 
     def test_14_to_17_consents_are_given_by_the_minor_rn_m01_78(self, optional, sec):
         """RN-M01-78 [A validar: assessor de protecció de dades, Q-016]."""

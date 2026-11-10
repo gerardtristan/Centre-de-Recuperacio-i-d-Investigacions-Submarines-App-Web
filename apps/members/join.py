@@ -23,7 +23,8 @@ T-M01-41 (072: Q-011, Q-017, Q-031 i Q-044; 074: punts 13 a 16, RN-M01-78):
   vigent publicat d'aquell tipus. Una casella marcada és una acceptació més de la sol·licitud: la
   dona el representant d'un menor de 14 anys i, a partir dels 14, la mateixa persona (posició del
   responsable, [A validar: assessor de protecció de dades, Q-016] abans de posar-ho en servei).
-  En aprovar l'alta passen a `core.Consent` (`admissions`).
+  En aprovar l'alta passen a `core.Consent` (`admissions`), excepte el butlletí d'un menor de
+  14 anys, que es queda a la sol·licitud (072: les imatges són l'única excepció a la Q-044).
 - Menors: el correu i el telèfon del representant són obligatoris; els del menor, opcionals.
 - El rebut va a l'adreça de `receipt_address` (la regla de `recipients`, amb les adreces escrites).
 - Passaport: només a l'alta presencial, també el del representant; la web el rebutja.
@@ -56,6 +57,8 @@ GUARDIAN_DATA = (
 )
 # Consentiments opcionals (Q-031): cadascun amb la seva casella `accept_<tipus>`.
 OPTIONAL_TEXTS = ("newsletter", "images")
+# L'únic que el representant d'un menor de 14 anys dona a la persona del menor (072, Q-044 opció A).
+GUARDIAN_CONSENT_TEXT = "images"
 RECEIPT_TEMPLATE = "rebut-sollicitud-alta"
 
 # Textos PROVISIONALS del butlletí i de les imatges (074, punt 16; esborrany

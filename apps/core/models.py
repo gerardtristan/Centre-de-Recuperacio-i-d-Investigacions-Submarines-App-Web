@@ -421,8 +421,8 @@ class Consent(AppendOnlyModel):
     person = models.ForeignKey(
         Person, on_delete=models.PROTECT, related_name="consents", verbose_name=_("persona")
     )
-    # Qui el dona (T-M01-41): el representant només per als consentiments opcionals d'un menor
-    # de 14 anys donats a l'alta (072, Q-044 opció A; RN-M01-78).
+    # Qui el dona (T-M01-41): el representant només per al consentiment d'imatges d'un menor de
+    # 14 anys donat a l'alta (072, Q-044 opció A, l'única excepció).
     given_by = models.CharField(
         _("qui el dona"), max_length=10, choices=GivenBy.choices, default=GivenBy.PERSON
     )

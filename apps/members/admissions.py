@@ -20,8 +20,9 @@ Aprovar:
     de 0 €, amb el motiu «Sense quota exigible (RN-M01-65)» i amb carnet (Q-001, Q-002).
 - **Acceptacions (Q-044):** les del sol·licitant passen a `core.Consent` amb la versió exacta que
   va acceptar i la referència a la sol·licitud; les del representant es queden a la sol·licitud,
-  excepte el butlletí i les imatges d'un menor de 14 anys, que van a la persona del menor amb el
-  representant com a qui els dona (072, opció A; T-M01-41).
+  excepte el consentiment d'imatges d'un menor de 14 anys, que va a la persona del menor amb el
+  representant com a qui el dona (072, opció A, l'única excepció; T-M01-41). El butlletí marcat
+  pel representant es queda a la sol·licitud.
 - **Representant (Q-043, opció 2):** per aprovar l'alta d'un menor, cal confirmar que s'ha
   comprovat el document del representant; queda al registre (sense cap còpia del document).
 - **Contacte nou (Q-042, opció 1):** si la sol·licitud porta un correu o un telèfon diferents dels
@@ -53,7 +54,7 @@ from apps.core.permissions import has_perm
 
 from . import cards, fees, recipients
 from .fee_rules import first_fee_year
-from .join import OPTIONAL_TEXTS
+from .join import GUARDIAN_CONSENT_TEXT
 from .models import (
     JoinAcceptance,
     Member,
@@ -203,13 +204,13 @@ def _check_approvable(join_request, identity_checked, guardian_checked) -> None:
 
 def _grant_applicant_acceptances(join_request, *, by, request) -> int:
     """Q-044: les acceptacions del sol·licitant, amb la versió que va acceptar. Excepció (072,
-    opció A; T-M01-41): els consentiments opcionals (butlletí i imatges) que el representant
-    dona per a un menor de 14 anys van a la persona del menor, amb el representant com a qui
-    els dona. Les altres acceptacions del representant es queden a la sol·licitud."""
+    opció A, l'única excepció; T-M01-41): el consentiment d'imatges que el representant dona
+    per a un menor de 14 anys va a la persona del menor, amb el representant com a qui el dona.
+    Les altres acceptacions del representant, també el butlletí, es queden a la sol·licitud."""
     by_guardian = JoinAcceptance.AcceptedBy.GUARDIAN
     accepted = JoinAcceptance.objects.filter(
         Q(accepted_by=JoinAcceptance.AcceptedBy.APPLICANT)
-        | Q(accepted_by=by_guardian, legal_text__kind__in=OPTIONAL_TEXTS),
+        | Q(accepted_by=by_guardian, legal_text__kind=GUARDIAN_CONSENT_TEXT),
         request=join_request,
     ).select_related("legal_text", "recorded_by")
     for acceptance in accepted:
