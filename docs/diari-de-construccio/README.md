@@ -101,6 +101,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M01-22](T-M01-22.md) | RGPD del M01: sol·licitud d'esborrat des del perfil (**feta en part**, peça mínima de la 074, tanda del 10/11/2026; queden la gestió, l'anonimització i l'exportació) | 10/11/2026 | 42e243f | 2560 | pendent (sense push) |
 | [T-M01-37](T-M01-37.md) | Permisos del 01 per cel·la: cada ruta i els serveis principals contra la matriu inicial, franja d'edat a les altes pendents (**Feta**, 10/11/2026, aprovada pel responsable; CA-RP-13, CA-M01-45; no tanca: la revisió de la matriu inicial amb el club, President sense P4, casella sense C2) | 10/11/2026 | 8c96168 | 3160 | verd a 180bdf8 (42811548125) |
 | [T-M01-27](T-M01-27.md) | Dades de prova inventades per a la revisió: socis de cada cas, quotes, carnets, llicències, textos provisionals, fitxer de Cluber i comptes de rol amb TOTP de prova (**Feta**, 10/11/2026, aprovada pel responsable; 074, punt 21; 075, punt 8; no tanca: previsualització de Cluber al navegador, ordre en un altre ordinador) | 10/11/2026 | 6d871bd, 180bdf8 | 3160 | verd a 180bdf8 (42811548125) |
+| [T-M00-07](T-M00-07.md) | Verificació al navegador: suite e2e de quatre fluxos, job del CI i hook de fi de torn (implementada, pendent de validació; troba i arregla els noms dels consentiments a la fitxa) | 10/11/2026 23:58 | e2ac92d, c6321a7, e7712c6 | 3169 | [A comprovar] |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
