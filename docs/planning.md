@@ -505,6 +505,8 @@ Llegenda: **Sí**; **Propi** (només la seva persona); **Consulta** (només veur
 | 2 | Sistema | Crea la sol·licitud i un càrrec de quota pel suplement (si l'import és > 0) | — | — |
 | 3 | Secretaria | Aprova la sol·licitud. El canvi de tipus és **efectiu quan el suplement està pagat** [A validar: junta] | `/gestio/socis/{id}` | `admin.html#vista-socis-sollicituds` (pestanya «Canvis de tipus») |
 | 4 | Sistema | Canvia el tipus amb data efectiva, ho desa a l'historial, **revoca el carnet anterior i n'emet un de nou** | — | — |
+**Precisat per la [074](decisions/074-respostes-del-responsable-al-diagnostic-del-10-11.md) (10/11/2026; [addenda](#M01-addenda-074)):** el càrrec del suplement del pas 2 es crea en aprovar el canvi, no en demanar-lo, i venç una setmana després (RN-M01-76); el canvi a ple dret es rebutja amb una quota pendent (RN-M01-75).
+
 **Substituït per la [073](decisions/073-pas-de-ple-dret-a-simpatitzant-a-la-renovacio.md) (09/11/2026; [addenda](#M01-addenda-073)):** el soci de ple dret ho demana amb una sol·licitud, rep un avís un mes abans de la renovació i el canvi és efectiu en renovar, sense cap devolució. Text anterior: Canvi de ple dret a simpatitzant: no consta enlloc [A validar: junta]. Proposta: només s'aplica a la quota del període següent.
 
 **Nota de la T-M01-02 (wireframes, 03/11/2026).** HU-M01-09 i el pas 1 demanen que el soci vegi l'import abans de confirmar, però RN-M01-15 (aprovada) diu que la secretaria l'escriu en aprovar el canvi. El wireframe segueix RN-M01-15 (estat «Import pendent de determinar per la secretaria» i camp per escriure'l a la resolució) i **no resol la contradicció** [A validar: junta]. A més, la configuració inicial de la [059](#M01-addenda-059) dona P7 al President sense P4 (fitxa): per això el wireframe resol els canvis de tipus i les baixes des de la vista de sol·licituds, i no només des de `/gestio/socis/{id}` [A validar: ruta definitiva, T-M01-17].
@@ -1386,6 +1388,44 @@ Acceptada pel responsable del projecte el 09/11/2026, durant la revisió de pant
 | T-M01-43 | Avís un mes abans de la renovació i aplicació del canvi en renovar (073): tasca de la cua que envia l'avís (correu i safata d'avisos), una sola vegada per renovació; la quota de renovació amb el tipus demanat; canvi de tipus amb data efectiva, historial, registre i carnet nou | M | `apps/members/fees.py`, tasques de la cua, plantilles de correu | T-M01-18 (generació de renovacions, aturada per P-54, P-61 i P-29), T-M01-42, T-M01-32 (ajust del termini) | CA-M01-69 i CA-M01-70 amb proves. Punts oberts 1, 5, 6 i 7 de la 073 resolts abans de començar. **No començada.** |
 
 **Continuen obertes:** els punts 1 a 7 de la [073](decisions/073-pas-de-ple-dret-a-simpatitzant-a-la-renovacio.md).
+
+<a id="M01-addenda-074"></a>
+## M01 — Addenda de la [074](decisions/074-respostes-del-responsable-al-diagnostic-del-10-11.md): respostes del responsable al diagnòstic del 10/11/2026
+
+Acceptada pel responsable del projecte el 10/11/2026. Precisa P-M01-B (pas 2), P-M01-C (pas 3), L-M01-04, RN-M01-20, RN-M01-56, RN-M01-57 i la Q-088 de la [072](decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md), sense editar-los. **No** valida cap dels punts oberts de la [073](decisions/073-pas-de-ple-dret-a-simpatitzant-a-la-renovacio.md). Validacions externes que es mantenen: el tresorer, per a l'efecte econòmic de RN-M01-76; la junta, per a L-M01-04 i els motius de rebuig de la P-50 (resolts pel responsable); l'assessor de protecció de dades, per als consentiments dels 14 als 17 anys (Q-016) abans de posar-ho en servei; i la secretaria, la gestoria i l'assessor, per als textos definitius (Q-058, Q-16, Q-028).
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M01-74 | **Baixa programada (074, punts 1 i 5).** Validar una baixa amb una data efectiva posterior a avui la deixa programada: l'estat del soci, el carnet i les quotes no canvien fins aquell dia. Una tasca diària de la cua aplica les baixes que vencen (estat «baixa» amb `left_on`, carnet revocat, quotes de la RN-M01-20 i correu de confirmació), una sola vegada: tornar-la a executar no duplica cap efecte. Amb la data d'avui o una d'anterior, s'aplica en validar-la. En validar una baixa, el canvi de tipus pendent de la mateixa persona es cancel·la amb el motiu «baixa» |
+| RN-M01-75 | **Canvi a ple dret amb una quota pendent (L-M01-04, 074 punt 2).** Mentre el soci té alguna quota sense pagar (pendent o retornada), el canvi a ple dret es rebutja, tant en demanar-lo com en aprovar-lo. Resolta pel responsable del projecte [advertència de la junta mantinguda] |
+| RN-M01-76 | **Suplement del canvi a ple dret (074, punts 3 i 4).** El càrrec del suplement es crea en **aprovar** el canvi, no en demanar-lo (corregeix el pas 2 de P-M01-B). Venç una setmana després de l'aprovació. Si venç sense pagar-se, no s'anul·la sol: l'anul·la la secretaria, amb motiu i com a anul·lació del càrrec (Q-057, `fees.cancel_fee`). El termini és un sol valor al codi o als ajustos [efecte econòmic: A validar, tresorer] |
+| RN-M01-77 | **Caducitat declarada pel soci (074, punts 9 a 11).** El soci declara la caducitat d'un registre seu que la té desconeguda. Es desa a `expires_on` amb la marca «declarada»; mentre la secretaria no la confirma, cap consumidor (02, `licence_record` i qualsevol altre) la tracta com a vigent. La secretaria la confirma a la fitxa, acceptant o corregint la data (es treu la marca); la confirmació en bloc no mostra les declarades. La data es valida com a la fitxa. Cada canvi va al registre amb el valor anterior |
+| RN-M01-78 | **Destinatari de les comunicacions d'un menor (074, punts 13 a 15).** Les comunicacions d'un menor de 14 anys (rebut, avisos, rebuig, aprovació, recordatoris, canvis i baixa) van al representant; les d'un menor de 14 a 17 anys sense correu propi, també. Els consentiments opcionals d'un menor de 14 a 17 anys els dona el mateix menor [A validar: assessor de protecció de dades, Q-016, abans de posar-ho en servei] |
+| RN-M01-79 | **Canvi de correu des del perfil (074, punt 17).** El soci escriu l'adreça nova i rep un enllaç de confirmació en aquesta adreça; el correu d'entrada només canvia quan es confirma, i l'adreça antiga rep un avís. Passa pels límits de la RN-M01-58 i queda al registre amb el valor anterior. La resposta no revela si l'adreça nova ja té compte |
+| RN-M01-80 | **Sessions d'un compte bloquejat per intents (Q-088, 074 punt 19).** Quan un compte queda bloquejat per intents (V-01), també durant una reautenticació, es tanquen totes les seves sessions. La desactivació és de la T-M01-22 |
+
+**Criteris d'acceptació**
+- **CA-M01-72** Donat un soci actiu amb carnet i una quota futura sense pagar, quan la secretaria valida la seva baixa amb data efectiva d'aquí a deu dies, llavors el soci continua actiu i el carnet vàlid; quan la tasca diària s'executa aquell dia, llavors queda de baixa, el carnet revocat, la quota anul·lada amb motiu i s'envia el correu; i tornar a executar la tasca no canvia res més ni envia cap altre correu.
+- **CA-M01-73** Donat un soci amb un canvi de tipus pendent, quan la secretaria valida la seva baixa, llavors el canvi queda cancel·lat amb el motiu «baixa».
+- **CA-M01-74** Donat un simpatitzant amb una quota sense pagar, quan demana el canvi a ple dret o la secretaria l'aprova, llavors el servidor el rebutja i no es crea cap càrrec.
+- **CA-M01-75** Donat un canvi a ple dret aprovat, llavors el suplement venç una setmana després de l'aprovació; quan venç sense pagar-se, continua viu; només qui té permís d'anul·lar quotes (P8 amb edició) el pot anul·lar, amb motiu, i abans del venciment no s'ofereix anul·lar-lo.
+- **CA-M01-76** Donat un soci amb la caducitat desconeguda, quan la declara, llavors queda «declarada», `licence_record` no la dona per vigent i la confirmació en bloc no la mostra; quan la secretaria l'accepta o la corregeix a la fitxa, llavors deixa de ser declarada i el registre guarda el valor anterior. Un altre soci no la pot declarar per URL directa.
+- **CA-M01-77** Donat un menor de 14 anys, o un de 14 a 17 sense correu propi, quan el sistema li envia una comunicació, llavors va a l'adreça del representant.
+- **CA-M01-78** Donat un soci amb sessió, quan demana canviar el correu, llavors rep l'enllaç a l'adreça nova, el correu d'entrada no canvia fins que el confirma, l'adreça antiga rep un avís, els límits de RN-M01-58 s'apliquen i la resposta és la mateixa tant si l'adreça ja té compte com si no.
+- **CA-M01-79** Donat un compte amb dues sessions obertes, quan queda bloquejat per intents, llavors totes dues sessions deixen de ser vàlides.
+- **CA-M01-80** Donat l'inici de l'administració, llavors l'enllaç a la confirmació en bloc de llicències només surt amb P19 i P4, i la vista ho comprova al servidor.
+
+**Tasques afectades** (les files aprovades no s'editen; s'hi afegeix la remissió)
+| Tasca | Què hi afegeix la 074 |
+|---|---|
+| T-M01-17 | RN-M01-74 a RN-M01-76 i CA-M01-72 a CA-M01-75; ruta `/gestio/socis/sollicituds/` confirmada, President sense P4 (Q-052); motiu de rebuig lliure i obligatori (P-50); textos provisionals validats per a la revisió (Q-058 pendent) |
+| T-M01-36 | RN-M01-77, CA-M01-76 i CA-M01-80 |
+| T-M01-41 | RN-M01-78 i CA-M01-77; textos provisionals del butlletí i de les imatges [A validar] |
+| T-M01-16 | RN-M01-79 i CA-M01-78; el rebut de CA-M01-12 continua a la T-M05b-07 i la tasca queda «feta en part» fins aleshores |
+| T-M00-05 | RN-M01-80 i CA-M01-79; CA-M01-46 es prova amb la peça mínima de la T-M01-22 |
+| T-M01-22 | Peça mínima autoritzada: sol·licitud d'esborrat a `core` (migració) i `/socis/perfil/esborrar`, que només la crea (RN-M01-57, CA-M01-46). La resta continua a la tasca |
+| T-M01-27 | Comptes de rol amb un TOTP de prova fix, públic i inequívocament de prova, només quan l'ordre pot córrer (desenvolupament amb `DEBUG`) |
 
 ---
 
