@@ -39,7 +39,7 @@ from apps.core.permissions import (
 )
 from apps.members import admissions, fees, join, member_edit, member_requests, roster, services
 from apps.members.fee_rules import local_today
-from apps.members.forms import JoinForm
+from apps.members.forms import LEGAL_LABELS, JoinForm
 from apps.members.imports import cluber
 from apps.members.models import Member, MemberRequest
 from apps.members.services import OwnMemberChange
@@ -295,7 +295,9 @@ def member_detail_view(request, pk):
         latest = {}
         for consent in member.person.consents.select_related("legal_text"):
             latest[consent.legal_text.kind] = consent  # ordenats per data: queda l'última
-        consents = sorted(latest.values(), key=lambda c: c.legal_text.kind)
+        consents = [
+            (LEGAL_LABELS.get(kind, kind), latest[kind]) for kind in sorted(latest)
+        ]  # (nom del text, últim consentiment), com a l'àrea del soci
     today = local_today()
     years = None
     if vis.full and member.joined_on:  # Q-075: sense data, sense antiguitat

@@ -46,9 +46,9 @@
           <caption class="visualment-amagat">{% translate "Últim estat de cada consentiment" %}</caption>
           <thead><tr><th scope="col">{% translate "Text" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Versió" %}</th><th scope="col">{% translate "Canal" %}</th><th scope="col">{% translate "Data" %}</th></tr></thead>
           <tbody>
-            {% for consent in consents %}
+            {% for label, consent in consents %}
               <tr>
-                <th scope="row" class="cel-nom">{{ consent.legal_text.kind }}</th>
+                <th scope="row" class="cel-nom">{{ label }}</th>
                 <td data-etiqueta="{% translate 'Estat' %}">{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</td>
                 <td data-etiqueta="{% translate 'Versió' %}">{{ consent.legal_text.version }}</td>
                 <td data-etiqueta="{% translate 'Canal' %}">{{ consent.get_channel_display }}</td>

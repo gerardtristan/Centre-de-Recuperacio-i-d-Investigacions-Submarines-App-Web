@@ -539,8 +539,21 @@ def test_consents_show_the_last_state_of_each_text(make_admin, full_member):  # 
     consents.withdraw(full_member.person, "newsletter", channel="web")
     text = admin_client(admin).get(reverse(DETAIL, args=[full_member.pk])).content.decode()
     block = text[text.index("Consentiments") :]
-    assert "privacy" in block and "Atorgat" in block
-    assert "newsletter" in block and "Retirat" in block
+    assert "Política de privacitat" in block and "Atorgat" in block
+    assert "Butlletí del club" in block and "Retirat" in block
+
+
+def test_consents_show_the_text_name_not_its_code(make_admin, full_member):  # noqa: F811
+    """Error trobat a la suite e2e (T-M00-07): la fitxa mostrava `privacy` i
+    `membership_terms` en lloc del nom del text, com fa l'àrea del soci."""
+    admin = make_admin("administrator")
+    for kind in ("privacy", "membership_terms"):
+        consents.publish_text(kind, "Text de prova.", by=admin)
+        consents.grant(full_member.person, kind, channel="web")
+    text = admin_client(admin).get(reverse(DETAIL, args=[full_member.pk])).content.decode()
+    block = text[text.index("Consentiments") :]
+    assert "Política de privacitat" in block and "Condicions de soci" in block
+    assert '"cel-nom">privacy<' not in block and '"cel-nom">membership_terms<' not in block
 
 
 # --- Exportació (RN-M01-71, CA-M01-64) ------------------------------------------------------
