@@ -75,34 +75,47 @@ class CommittedDataTestCase(TransactionTestCase):
     @classmethod
     def _fixture_setup(cls):
         # Es crida abans de cada prova (Django 5.2 el declara mètode de classe).
-        # Protecció: mai fora de la base de dades de proves.
-        if not connection.settings_dict["NAME"].startswith("test_"):
-            raise RuntimeError("Les proves de concurrència només s'executen a la base de proves.")
-        cls._tables = _integer_pk_tables()
-        cls._start = {}
-        with connection.cursor() as cursor:
-            for table, column in cls._tables:
-                cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
-                cls._start[table] = cursor.fetchone()[0]
+        cls._tables, cls._start = committed_snapshot()
 
     def _fixture_teardown(self):
-        with transaction.atomic(), connection.cursor() as cursor:
-            # Primer es desactiven tots: un ALTER TABLE no es pot fer amb comprovacions de
-            # claus foranes pendents a la mateixa taula.
-            for table, _ in self._tables:
-                cursor.execute(f'ALTER TABLE "{table}" DISABLE TRIGGER USER')
-            # Les restriccions diferibles que es comproven a l'instant (members/0001) esperen
-            # al final: l'ordre dels DELETE no segueix el de les claus foranes.
-            cursor.execute("SET CONSTRAINTS ALL DEFERRED")
-            for table, column in self._tables:
-                cursor.execute(
-                    f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
-                    [self._start[table]],
-                )
-            cursor.execute("DELETE FROM django_session")
-            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-            for table, _ in self._tables:
-                cursor.execute(f'ALTER TABLE "{table}" ENABLE TRIGGER USER')
+        delete_committed_rows(self._tables, self._start)
+
+
+def committed_snapshot():
+    """Taules amb clau entera i el seu valor màxim abans de la prova (`CommittedDataTestCase` i
+    proves e2e, on el servidor en viu té la seva connexió i les dades s'han de confirmar)."""
+    # Protecció: mai fora de la base de dades de proves.
+    if not connection.settings_dict["NAME"].startswith("test_"):
+        raise RuntimeError("Aquestes proves només s'executen a la base de proves.")
+    tables = _integer_pk_tables()
+    start = {}
+    with connection.cursor() as cursor:
+        for table, column in tables:
+            cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
+            start[table] = cursor.fetchone()[0]
+    return tables, start
+
+
+def delete_committed_rows(tables, start):
+    """Esborra les files noves de cada taula dins d'una sola transacció (vegeu
+    `CommittedDataTestCase`)."""
+    with transaction.atomic(), connection.cursor() as cursor:
+        # Primer es desactiven tots: un ALTER TABLE no es pot fer amb comprovacions de
+        # claus foranes pendents a la mateixa taula.
+        for table, _ in tables:
+            cursor.execute(f'ALTER TABLE "{table}" DISABLE TRIGGER USER')
+        # Les restriccions diferibles que es comproven a l'instant (members/0001) esperen
+        # al final: l'ordre dels DELETE no segueix el de les claus foranes.
+        cursor.execute("SET CONSTRAINTS ALL DEFERRED")
+        for table, column in tables:
+            cursor.execute(
+                f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
+                [start[table]],
+            )
+        cursor.execute("DELETE FROM django_session")
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+        for table, _ in tables:
+            cursor.execute(f'ALTER TABLE "{table}" ENABLE TRIGGER USER')
 
 
 def run_together(functions):

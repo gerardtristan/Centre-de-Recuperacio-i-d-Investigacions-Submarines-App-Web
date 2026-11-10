@@ -35,6 +35,7 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
+.e2e-captures/
 staticfiles/
 *.sqlite3
 
