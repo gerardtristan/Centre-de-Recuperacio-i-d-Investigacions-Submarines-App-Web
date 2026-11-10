@@ -25,6 +25,8 @@ P4 = "members.list"
 P5 = "members.edit"
 P6 = "members.edit_join_date"
 P7 = "members.requests.resolve_change"
+P7A = "members.requests.cancel_supplement"
+P8 = "members.fees.generate"
 P9 = "members.unpaid.mark"
 P10 = "members.fees.view"
 P11 = "members.export"
@@ -73,8 +75,15 @@ ROUTES = {
     "administration:member_requests": _both((P3A, READ)),
     "administration:member_request_detail": {
         "GET": ((P3A, READ),),
-        # Resoldre; anul·lar el suplement vençut demana P8 amb edició (prova a part, CA-M01-75).
+        # Resoldre; anul·lar el suplement vençut és a `ACTIONS`.
         "POST": ((P3A, READ), (P7, WRITE)),
     },
-    "administration:member_leave_create": _both((P7, WRITE)),
+    # 075 (RN-M01-83, CA-M01-84): també P4, per veure el nom del soci.
+    "administration:member_leave_create": _both((P7, WRITE), (P4, READ)),
+}
+
+# Accions d'un POST que no demanen el permís de la ruta sinó **un** dels de la llista (qualsevol).
+ACTIONS = {
+    # 075 (RN-M01-82, CA-M01-83): P7a o P8 amb edició, a més de P3a per veure la sol·licitud.
+    ("administration:member_request_detail", "cancel_supplement"): ((P7A, WRITE), (P8, WRITE)),
 }

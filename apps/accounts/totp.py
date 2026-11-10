@@ -20,6 +20,9 @@ RECOVERY_CODE_COUNT = 10  # V-01
 # S'accepta el codi de l'interval anterior i del següent per tolerar el desajust del rellotge.
 VALID_WINDOW = 1
 _RECOVERY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # sense 0/O ni 1/I
+# Secret TOTP de PROVA (074, punt 21): públic, el fan servir els comptes d'administració de
+# `seed_demo_data`. No és cap secret; per això `verify_code` el rebutja sense DEBUG (075, punt 8).
+DEMO_TOTP_SECRET = "PROVESCRISNOESSECRETPROVESCRIS22"  # noqa: S105 gitleaks:allow (TOTP de prova)
 
 
 def start_enrolment(account: Account) -> TotpDevice:
@@ -53,8 +56,11 @@ def verify_code(device: TotpDevice, code: str, now=None) -> bool:
     code = "".join((code or "").split())
     if not (code.isdigit() and len(code) == 6):
         return False
+    secret = secret_of(device)
+    if not settings.DEBUG and secret == DEMO_TOTP_SECRET:  # RN-M01-84: mai fora de desenvolupament
+        return False
     now = now or timezone.now()
-    totp = pyotp.TOTP(secret_of(device))
+    totp = pyotp.TOTP(secret)
     with transaction.atomic():
         locked = TotpDevice.objects.select_for_update().get(pk=device.pk)
         for offset in range(-VALID_WINDOW, VALID_WINDOW + 1):

@@ -412,7 +412,10 @@ def join_requests_view(request):
                 "person": person,
                 "former": getattr(person, "member", None),
                 "own": join_request.person_id == request.user.person_id,
-                "blocker": admissions.approval_blocker(join_request),
+                # Sense C2, una alta que demana comprovar el document no mostra cap casella
+                # (075, CA-M01-86); el servei ho torna a comprovar.
+                "blocker": admissions.approval_blocker(join_request)
+                or admissions.document_blocker(join_request, identity),
                 "identity_check": admissions.needs_identity_check(join_request),
                 "guardian_check": admissions.needs_guardian_check(join_request),
                 "new_contact": bool(

@@ -521,30 +521,11 @@ class ProfileForm(forms.Form):
             del self.fields["preferred_language"]
 
 
-class ChangeEmailForm(forms.Form):
-    """Correu d'entrada nou des del perfil (RN-M01-79). Si l'adreça es pot fer servir o no ho
-    decideix el servei, sense dir-ho: la resposta és sempre la mateixa."""
+class ReauthForm(forms.Form):
+    """Contrasenya i, només si el compte té TOTP actiu, el codi, per a `reauth.require_recent_auth`
+    (T-M00-05). La contrasenya no és obligatòria al formulari: una de buida es comprova igualment
+    i compta com a intent fallit (V-01)."""
 
-    new_email = forms.EmailField(
-        label=_("Correu nou"),
-        max_length=254,
-        widget=forms.EmailInput(attrs={"autocomplete": "email", "spellcheck": "false"}),
-        help_text=_(
-            "T'hi enviarem un enllaç per confirmar-la. Fins que no la confirmis, continues "
-            "entrant amb el correu actual."
-        ),
-    )
-
-
-class EraseAccountForm(forms.Form):
-    """«Esborra el meu compte» (P-M01-F, pas 3; wireframe `socis.html#esborrar`). La contrasenya
-    no és obligatòria al formulari: una de buida es comprova igualment i compta com a intent
-    fallit (CA-M01-46). El codi només hi és si el compte té TOTP actiu."""
-
-    confirm = forms.BooleanField(
-        label=_("Entenc que, un cop fet, l'esborrat no es pot desfer."),
-        error_messages={"required": _("Marca la casella per confirmar que ho entens.")},
-    )
     password = forms.CharField(
         label=_("Contrasenya"),
         required=False,
@@ -566,3 +547,32 @@ class EraseAccountForm(forms.Form):
         super().__init__(*args, **kwargs)
         if not has_totp:
             del self.fields["code"]
+
+
+class ChangeEmailForm(ReauthForm):
+    """Correu d'entrada nou des del perfil (RN-M01-79), amb reautenticació (RN-M01-81). Si
+    l'adreça es pot fer servir o no ho decideix el servei, sense dir-ho: la resposta és sempre la
+    mateixa."""
+
+    field_order = ["new_email"]
+
+    new_email = forms.EmailField(
+        label=_("Correu nou"),
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email", "spellcheck": "false"}),
+        help_text=_(
+            "T'hi enviarem un enllaç per confirmar-la. Fins que no la confirmis, continues "
+            "entrant amb el correu actual."
+        ),
+    )
+
+
+class EraseAccountForm(ReauthForm):
+    """«Esborra el meu compte» (P-M01-F, pas 3; wireframe `socis.html#esborrar`; CA-M01-46)."""
+
+    field_order = ["confirm"]
+
+    confirm = forms.BooleanField(
+        label=_("Entenc que, un cop fet, l'esborrat no es pot desfer."),
+        error_messages={"required": _("Marca la casella per confirmar que ho entens.")},
+    )

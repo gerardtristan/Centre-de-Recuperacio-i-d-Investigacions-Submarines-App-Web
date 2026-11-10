@@ -6,15 +6,18 @@ P-M01-C; wireframe `admin.html#vista-socis-sollicituds`, pestanyes «Canvis de t
   (RN-RP-10). Sense permís, «no trobat».
 - Les altes (P3) no surten aquí: són de la T-M01-14. Ruta confirmada per la 074 (Q-052): el
   President hi resol amb P3a i P7, sense P4.
-- Anul·lar el suplement vençut d'un canvi aprovat: P8 amb edició (RN-M01-76; Q-057), comprovat
-  aquí i al servei.
+- Anul·lar el suplement vençut d'un canvi aprovat: P7a o P8 amb edició (RN-M01-76 i 82; Q-057),
+  comprovat aquí i al servei.
+- «Crea una baixa»: P7 amb edició i P4 (075, RN-M01-83); sense P4, «no trobat» i cap nom.
 - Només es mostren el nom, el número, el tipus i el motiu: cap document, adreça ni data de
-  naixement. El resum de quotes d'una baixa només el veu qui la pot resoldre.
+  naixement. El resum de quotes d'una baixa el veu qui la pot resoldre; la llista de quotes sense
+  pagar, només amb P10 (075, RN-M01-83).
 """
 
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -29,6 +32,8 @@ from apps.members.services import OwnMemberChange
 from apps.members.views.personal import euros
 
 APPROVE, REJECT, CANCEL_SUPPLEMENT = "approve", "reject", "cancel_supplement"
+MEMBERS_LIST = "members.list"  # P4
+FEES_VIEW = "members.fees.view"  # P10
 
 
 class ResolveForm(forms.Form):
@@ -163,9 +168,11 @@ def request_detail_view(request, pk):
     cancel_form = CancelSupplementForm(request.POST if cancelling else None)
     status = 200
     if request.method == "POST":
-        # Resoldre: P7 amb edició; anul·lar el suplement: P8 amb edició. Sense permís, «no trobat».
+        # Resoldre: P7 amb edició; anul·lar el suplement: P7a o P8 amb edició. Sense permís,
+        # «no trobat».
         if cancelling:
-            require_perm(request, fees.EDIT_PERMISSION, write=True)
+            if not member_requests.can_cancel_supplement(request.user, perms):
+                raise Http404
         else:
             require_perm(request, member_requests.RESOLVE_PERMISSION, write=True)
         active = cancel_form if cancelling else form
@@ -209,23 +216,26 @@ def request_detail_view(request, pk):
         "supplement": fee,
         "supplement_state": SUPPLEMENT_STATES.get(state, ""),
         "supplement_fee_amount": euros(fee.charge.amount_cents) if fee else "",
-        # CA-M01-75: només vençut, amb P8 d'edició i no el propi; el servei ho torna a comprovar.
+        # CA-M01-75 i 83: només vençut, amb P7a o P8 d'edició i no el propi; el servei ho torna
+        # a comprovar.
         "can_cancel_supplement": state == "overdue"
         and not own
-        and has_perm(request.user, fees.EDIT_PERMISSION, write=True, permissions=perms),
+        and member_requests.can_cancel_supplement(request.user, perms),
     }
     if kind == MemberRequest.Kind.LEAVE and pending and can_resolve and not own:
         # C3: resum de conseqüències (RN-M01-20). Depèn de la data que es triï: es mostra la
-        # regla i les quotes sense pagar amb el venciment, sense JavaScript.
+        # regla i, només amb P10 (075, CA-M01-85), les quotes sense pagar amb el venciment.
         member = member_request.member
-        context["unpaid_fees"] = [
-            (fee, euros(fee.charge.amount_cents))
-            for fee in AnnualFee.objects.filter(
-                member=member, charge__status__in=member_requests.UNPAID_CHARGE
-            )
-            .select_related("charge")
-            .order_by("due_on", "pk")
-        ]
+        context["show_fees"] = has_perm(request.user, FEES_VIEW, permissions=perms)
+        if context["show_fees"]:
+            context["unpaid_fees"] = [
+                (fee, euros(fee.charge.amount_cents))
+                for fee in AnnualFee.objects.filter(
+                    member=member, charge__status__in=member_requests.UNPAID_CHARGE
+                )
+                .select_related("charge")
+                .order_by("due_on", "pk")
+            ]
         context["pending_change"] = member.requests.filter(
             kind=MemberRequest.Kind.CHANGE_TYPE, status=MemberRequest.Status.PENDING
         ).exists()
@@ -234,6 +244,7 @@ def request_detail_view(request, pk):
 
 @never_cache
 @permission_required(member_requests.RESOLVE_PERMISSION, write=True)
+@permission_required(MEMBERS_LIST)
 @require_http_methods(["GET", "POST"])
 def leave_create_view(request, pk):
     """Baixa per decisió de la junta (pas 1 de P-M01-C). La data es fixa en validar-la."""

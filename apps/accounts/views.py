@@ -8,7 +8,7 @@ L'entrada d'administració no té cap enllaç ni cap ruta de recuperació per co
 import logging
 
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_not_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -333,12 +333,18 @@ def change_email_link_view(request, token):
 def change_email_view(request):
     """RN-M01-79, CA-M01-78: el correu d'entrada canvia quan es confirma l'enllaç, amb un POST.
     Sense sessió, com la verificació: el testimoni lliga el compte i l'adreça nova. Un enllaç
-    caducat, ja fet servir o d'una adreça que ja és d'un altre compte dona el mateix missatge."""
+    caducat, ja fet servir o d'una adreça que ja és d'un altre compte dona el mateix missatge.
+    En confirmar-lo, les sessions del compte deixen de valer i només es conserva la de la
+    petició, si és del mateix compte (RN-M01-81, CA-M01-82)."""
     token = request.session.get(email_links.CHANGE_SESSION_KEY, "")
     new_email = ""
     if request.method == "POST":
-        done = email_links.confirm_email_change(token, request=request) is not None
-        state = "done" if done else "invalid"
+        # Abans de confirmar: després, l'època nova ja no reconeixeria la sessió de la petició.
+        session_pk = request.user.pk if request.user.is_authenticated else None
+        account = email_links.confirm_email_change(token, request=request)
+        if account is not None and session_pk == account.pk:
+            update_session_auth_hash(request, account)
+        state = "done" if account is not None else "invalid"
     else:
         account, new_email = email_links.email_change_for_token(token)
         state = "ready" if account is not None else "invalid"

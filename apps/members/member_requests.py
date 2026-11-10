@@ -23,8 +23,8 @@ Tanda del 10/11/2026 (074, RN-M01-74 a 76):
   `apply_due_leaves` una sola vegada. Aplicar-la: estat «baixa», quotes de la RN-M01-20, carnet
   revocat i correu, tot en una transacció. En validar-la, el canvi de tipus pendent es cancel·la.
 - Canvi a ple dret amb una quota sense pagar: es rebutja en demanar-lo i en aprovar-lo.
-- El suplement venç `SUPPLEMENT_DUE_DAYS` després d'aprovar-lo; vençut, l'anul·la qui té P8 amb
-  edició (`cancel_overdue_supplement`). Mai sol.
+- El suplement venç `SUPPLEMENT_DUE_DAYS` després d'aprovar-lo; vençut, l'anul·la qui té P7a
+  (075, RN-M01-82) o P8 amb edició (`cancel_overdue_supplement`). Mai sol.
 - Ruta `/gestio/socis/sollicituds/` confirmada (Q-052): el President hi resol amb P3a i P7.
 
 Fora d'aquí: el pas de ple dret a simpatitzant (073, T-M01-42 i T-M01-43). El destinatari del
@@ -57,6 +57,7 @@ from .services import _change_status, _check_account_active, ensure_not_own_memb
 FULL = "full"
 VIEW_PERMISSION = "members.requests.view"  # P3a
 RESOLVE_PERMISSION = "members.requests.resolve_change"  # P7
+CANCEL_SUPPLEMENT_PERMISSION = "members.requests.cancel_supplement"  # P7a (075)
 REQUEST_CREATED = "members.request.created"
 REQUEST_RESOLVED = "members.request.resolved"
 LEAVE_EMAIL = "baixa-efectiva"
@@ -409,11 +410,21 @@ def supplement_overdue(fee, today=None) -> bool:
     return fee.charge.status in UNPAID_CHARGE and fee.due_on < (today or local_today())
 
 
+def can_cancel_supplement(account, permissions=None) -> bool:
+    """P7a (075, RN-M01-82) o P8, tots dos amb edició."""
+    return isinstance(account, Account) and any(
+        has_perm(account, code, write=True, permissions=permissions)
+        for code in (CANCEL_SUPPLEMENT_PERMISSION, fees.EDIT_PERMISSION)
+    )
+
+
 def cancel_overdue_supplement(member_request, *, by, reason, request=None) -> AnnualFee:
     """Anul·la el suplement vençut i sense pagar d'un canvi aprovat, amb motiu (Q-057): ho fa qui
-    té P8 amb edició, amb `fees.cancel_fee` (permís, motiu, conflicte d'interès i anul·lació del
-    càrrec). Abans del venciment, es rebutja: mai no s'anul·la sol."""
-    if not isinstance(by, Account) or not has_perm(by, fees.EDIT_PERMISSION, write=True):
+    té P7a (la secretaria, 075) o P8 amb edició, amb el nucli de `fees.cancel_fee` (motiu,
+    conflicte d'interès i anul·lació del càrrec, mai esborrat). P7a només serveix aquí: per a
+    qualsevol altra quota, `fees.cancel_fee` continua exigint P8. Abans del venciment, es
+    rebutja: mai no s'anul·la sol."""
+    if not can_cancel_supplement(by):
         raise Http404
     fee = member_request.supplement_fee
     if member_request.kind != K.CHANGE_TYPE or fee is None:
@@ -421,4 +432,4 @@ def cancel_overdue_supplement(member_request, *, by, reason, request=None) -> An
     ensure_not_own_member(member_request.member, by, request=request)
     if not supplement_overdue(fee):
         raise RequestNotAllowed(_("Només es pot anul·lar un suplement vençut i sense pagar."))
-    return fees.cancel_fee(fee, by=by, reason=reason, request=request)
+    return fees.cancel_fee_checked(fee, by=by, reason=reason, request=request)

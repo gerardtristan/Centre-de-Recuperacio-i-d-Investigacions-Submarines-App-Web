@@ -25,6 +25,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
+from apps.accounts.totp import DEMO_TOTP_SECRET
 from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
@@ -36,9 +37,6 @@ ORIGIN = "seed_demo_data"
 ADMIN_LOGIN = "admin-demo"
 # L'única contrasenya de proves permesa (CLAUDE.md, `.gitleaks.toml`).
 PASSWORD = "contrasenya-de-proves-1954"  # noqa: S105 (dada inventada de proves)
-# Secret TOTP de PROVA (074, punt 21): públic, el mateix per a tots els comptes d'administració de
-# prova i només el fa servir aquesta ordre, que es nega fora de desenvolupament. No és cap secret.
-DEMO_TOTP_SECRET = "PROVESCRISNOESSECRETPROVESCRIS22"  # noqa: S105 gitleaks:allow (TOTP de prova)
 # Comptes d'administració de prova: identificador, nom i rol de la configuració inicial (059).
 ROLE_ACCOUNTS = [
     (ADMIN_LOGIN, "Administració", Role.Code.ADMINISTRATOR),

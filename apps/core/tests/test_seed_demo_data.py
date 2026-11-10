@@ -14,10 +14,10 @@ from django.utils import timezone
 
 from apps.accounts import totp
 from apps.accounts.models import Account, TotpDevice
+from apps.accounts.totp import DEMO_TOTP_SECRET
 from apps.core import audit
 from apps.core.management.commands.seed_demo_data import (
     ADMIN_LOGIN,
-    DEMO_TOTP_SECRET,
     PASSWORD,
     ROLE_ACCOUNTS,
     demo_people,
@@ -124,7 +124,8 @@ def test_t_m01_27_only_invented_data(cluber_path):
 
 @DEV
 def test_t_m01_27_role_accounts_are_operational_with_the_test_totp(cluber_path):
-    """Cada compte d'administració de prova valida un codi del secret de prova (074, punt 21)."""
+    """Cada compte d'administració de prova valida un codi del secret de prova (074, punt 21),
+    només amb DEBUG (`DEV`; sense, el rebutja: 075, CA-M01-86 a `test_retocs_075.py`)."""
     output = run(cluber_path=cluber_path)
     for login, _name, role in ROLE_ACCOUNTS:
         account = Account.objects.get(login=login)

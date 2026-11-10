@@ -115,10 +115,17 @@ def cancel_fee(fee, *, by, reason, request=None) -> AnnualFee:
     from apps.accounts.models import Account
     from apps.core.permissions import has_perm
 
-    from .services import _check_account_active, ensure_not_own_member
-
     if not isinstance(by, Account) or not has_perm(by, EDIT_PERMISSION, write=True):
         raise Http404
+    return cancel_fee_checked(fee, by=by, reason=reason, request=request)
+
+
+def cancel_fee_checked(fee, *, by, reason, request=None) -> AnnualFee:
+    """Nucli de `cancel_fee`, sense el permís: qui el crida l'ha comprovat abans (només
+    `cancel_fee`, P8, i el suplement vençut, P7a o P8; RN-M01-82). Compte actiu, motiu,
+    conflicte d'interès i anul·lació del càrrec amb el registre de qui i el motiu."""
+    from .services import _check_account_active, ensure_not_own_member
+
     _check_account_active(by)
     reason = (reason or "").strip()
     if not reason:

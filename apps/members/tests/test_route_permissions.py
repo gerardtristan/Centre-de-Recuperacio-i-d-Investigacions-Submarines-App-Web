@@ -31,7 +31,7 @@ from apps.core.tests.test_access import PUBLIC_ROUTES, _routes
 from apps.members import admissions, fees, join, licences, member_edit, member_requests, services
 from apps.members.fee_rules import local_today
 from apps.members.models import LicenceRecord, Member, MemberRequest, MembershipType
-from apps.members.permissions import OWN, PUBLIC, ROUTES
+from apps.members.permissions import ACTIONS, OWN, PUBLIC, ROUTES
 from conftest import PASSWORD
 
 ROLES = [code for code in Role.Code.values if code not in ("member", "visitor", "guest")]
@@ -216,6 +216,31 @@ def test_ca_rp_13_admin_route_cell(make_admin, world, name, who):  # noqa: F811
             assert response.status_code == 404, method
 
 
+# Objecte de cada acció declarada a `ACTIONS`.
+OBJECT_FOR_ACTION = {"cancel_supplement": "change"}
+
+
+@pytest.mark.parametrize("who", ROLES)
+@pytest.mark.parametrize("route_action", sorted(ACTIONS))
+def test_ca_rp_13_post_action_cell(make_admin, world, route_action, who):  # noqa: F811
+    """Accions de `ACTIONS` × rol (CA-M01-83 per al suplement vençut): el GET de la ruta i
+    qualsevol dels permisos de l'acció; sense, «no trobat» i res no canvia."""
+    name, action = route_action
+    account = make_admin(who)
+    target = getattr(world, OBJECT_FOR_ACTION[action])
+    url = reverse(name, kwargs={"pk": target.pk})
+    before = snapshot()
+    response = client_for(account).post(url, {"action": action, "reason": REASON})
+    allowed = all(has_perm(account, c, write=w) for c, w in ROUTES[name]["GET"]) and any(
+        has_perm(account, c, write=w) for c, w in ACTIONS[route_action]
+    )
+    if allowed:
+        assert response.status_code == 302
+    else:
+        assert response.status_code == 404
+        assert snapshot() == before
+
+
 @pytest.mark.parametrize("who", ACCOUNTS)
 @pytest.mark.parametrize("name", OWN_ROUTES)
 def test_ca_rp_13_personal_route_cell(make_admin, world, name, who):  # noqa: F811
@@ -304,7 +329,8 @@ SERVICES = {
         lambda w, by: member_requests.request_leave(w.other, by=by, reason=REASON),
     ),
     "cancel_supplement": (
-        ((P + "fees.generate", True),),
+        # 075 (RN-M01-82): P7a o P8, tots dos amb edició (una llista és «qualsevol d'aquests»).
+        ([(P + "requests.cancel_supplement", True), (P + "fees.generate", True)],),
         lambda w, by: member_requests.cancel_overdue_supplement(w.change, by=by, reason=REASON),
     ),
     "cancel_fee": (
@@ -348,6 +374,12 @@ SERVICES = {
 }
 
 
+def allows(account, need) -> bool:
+    """`(codi, edició)`, o una llista d'alternatives de les quals n'hi ha prou amb una."""
+    alternatives = need if isinstance(need, list) else [need]
+    return any(has_perm(account, code, write=w) for code, w in alternatives)
+
+
 def snapshot():
     return (
         list(MemberRequest.objects.order_by("pk").values_list("pk", "status")),
@@ -364,7 +396,7 @@ def snapshot():
 def test_service_checks_the_permission_outside_the_view(make_admin, world, service, who):  # noqa: F811
     needs, call = SERVICES[service]
     by = account_for(make_admin, world, who)
-    allowed = all(has_perm(by, code, write=w) for code, w in needs)
+    allowed = all(allows(by, need) for need in needs)
     if not allowed:
         before = snapshot()
         with pytest.raises(Http404):

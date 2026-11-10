@@ -29,7 +29,8 @@
     <h3 id="correu-titol">{% translate "Canviar el correu d'entrada" %}</h3>
     <form class="formulari" method="post" action="{% url 'members:change_email' %}" aria-labelledby="correu-titol" novalidate>
       {% csrf_token %}
-      {% with field=email_form.new_email %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% if email_form.non_field_errors %}<div class="avis avis-error" role="alert">{{ email_form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in email_form %}{% include "accounts/_camp.html" %}{% endfor %}
       <div class="accions"><button class="boto" type="submit">{% translate "Envia l'enllaç de confirmació" %}</button></div>
     </form>
   </section>

@@ -225,6 +225,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         touches_money=True,
     ),
     _perm(
+        "members.requests.cancel_supplement",
+        "P7a",
+        _("Anul·lar el suplement vençut d'un canvi de tipus"),
+        # 075 (RN-M01-82): només aquest suplement i només vençut; P8 amb edició també ho pot fer.
+        requires=("members.requests.view",),
+        initial={R.SECRETARY: _ALL},
+        touches_money=True,
+    ),
+    _perm(
         "members.fees.generate",
         "P8",
         _("Generar quotes anuals"),

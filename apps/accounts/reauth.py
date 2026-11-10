@@ -1,8 +1,7 @@
 """Reautenticació d'un compte amb sessió (T-M00-05; RN-M01-57, RN-M05a-12; V-01).
 
-Punts d'ús: esborrar el compte (T-M01-22, `minutes=0`) i, quan es construeixi, el 05a
-(T-M05a-09, `minutes=15`). Altres fluxos (p. ex. el canvi de correu de la T-M01-16) no estan
-decidits: no la fan servir.
+Punts d'ús: esborrar el compte (T-M01-22, `minutes=0`), demanar el canvi del correu d'entrada
+(T-M01-16, `minutes=0`; RN-M01-81) i, quan es construeixi, el 05a (T-M05a-09, `minutes=15`).
 """
 
 import time

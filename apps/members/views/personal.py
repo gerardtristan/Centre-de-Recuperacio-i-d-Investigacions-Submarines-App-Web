@@ -105,7 +105,7 @@ def _render_profile(request, *, form=None, declare_form=None, email_form=None):
         "form": form or ProfileForm(initial=_profile_initial(person)),
         "consents": fixed_consents,
         "optional_consents": optional_consents,
-        "email_form": email_form or ChangeEmailForm(),
+        "email_form": email_form or ChangeEmailForm(has_totp=request.user.has_totp),
         "requests": person.member_requests.order_by("-created_at", "-id"),
         "licence_records": records,
     }
@@ -143,10 +143,18 @@ def consent_view(request):
 @never_cache
 @require_POST
 def change_email_view(request):
-    """Demana el canvi del correu d'entrada (RN-M01-79, CA-M01-78). La resposta és la mateixa
+    """Demana el canvi del correu d'entrada (RN-M01-79, CA-M01-78). Abans d'enviar res, la
+    contrasenya i, si el compte té TOTP, el codi, a la mateixa petició (RN-M01-81, CA-M01-81):
+    si fallen, no s'envia cap enllaç i l'intent compta per a V-01. La resposta és la mateixa
     tant si l'adreça es pot fer servir com si ja és d'un altre compte o s'ha limitat."""
-    form = ChangeEmailForm(request.POST)
+    form = ChangeEmailForm(request.POST, has_totp=request.user.has_totp)
     if not form.is_valid():
+        return _render_profile(request, email_form=form)
+    error = reauth.require_recent_auth(
+        request, 0, password=form.cleaned_data["password"], code=form.cleaned_data.get("code", "")
+    )
+    if error is not None:
+        _reauth_failed(form, error)
         return _render_profile(request, email_form=form)
     email_links.request_email_change(request, request.user, form.cleaned_data["new_email"])
     hours = email_links.hours(tokens.CHANGE_EMAIL)
@@ -161,6 +169,14 @@ def change_email_view(request):
     )
     messages.success(request, message % {"hours": hours})
     return redirect("members:profile")
+
+
+def _reauth_failed(form, error):
+    # L'error al costat del camp que falla; el de massa intents, a tot el formulari. La
+    # contrasenya no es torna a mostrar (PasswordInput) i el codi tampoc.
+    form.add_error({WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error), error)
+    form.data = form.data.copy()
+    form.data.pop("code", None)
 
 
 @never_cache
@@ -192,11 +208,7 @@ def erase_view(request):
                     ),
                 )
                 return redirect("members:erase")
-            # L'error al costat del camp que falla; el de massa intents, a tot el formulari. La
-            # contrasenya no es torna a mostrar (PasswordInput) i el codi tampoc.
-            form.add_error({WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error), error)
-            form.data = form.data.copy()
-            form.data.pop("code", None)
+            _reauth_failed(form, error)
     unpaid = person.charges.filter(status__in=[Charge.Status.PENDING, Charge.Status.RETURNED])
     context = {
         "form": form,

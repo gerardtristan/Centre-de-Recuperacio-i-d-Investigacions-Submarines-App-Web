@@ -861,7 +861,7 @@ def _approved_change(member, by):
     return request
 
 
-def test_ca_m01_75_overdue_supplement_stays_alive_and_only_p8_edit_cancels_it(
+def test_ca_m01_75_overdue_supplement_stays_alive_and_only_p7a_or_p8_edit_cancels_it(
     make_admin,  # noqa: F811
     marta,
     monkeypatch,
@@ -887,10 +887,11 @@ def test_ca_m01_75_overdue_supplement_stays_alive_and_only_p8_edit_cancels_it(
     page = treasurer.get(url).content.decode()
     assert "Vençut" in page and 'value="cancel_supplement"' in page
 
-    # Sense P8 amb edició (la secretaria de la configuració inicial): ni botó ni acció.
-    secretary = admin_client(make_admin("secretary"))
-    assert 'value="cancel_supplement"' not in secretary.get(url).content.decode()
-    assert secretary.post(url, data).status_code == 404
+    # Sense P7a ni P8 amb edició (el President de la configuració inicial; la secretaria té P7a
+    # des de la 075, CA-M01-83): ni botó ni acció.
+    president = admin_client(make_admin("president"))
+    assert 'value="cancel_supplement"' not in president.get(url).content.decode()
+    assert president.post(url, data).status_code == 404
 
     # Sense motiu: error.
     assert treasurer.post(url, {"action": "cancel_supplement", "reason": " "}).status_code == 200

@@ -324,7 +324,8 @@ def confirm_email_change(token: str, *, request=None) -> Account | None:
     """Confirma el correu d'entrada nou (RN-M01-79). Torna None si l'enllaç no és vàlid, ja
     s'ha fet servir (l'empremta inclou el correu) o l'adreça ha passat a ser d'un altre compte
     entre la petició i la confirmació. El contacte de la persona canvia només si era l'adreça
-    antiga. Les sessions obertes del compte no es tanquen (no està decidit)."""
+    antiga. Totes les sessions del compte deixen de valer (RN-M01-81); la vista torna a lligar
+    la de la petició si és del mateix compte."""
     account, new_email = email_change_for_token(token, lock=True)
     if account is None or Account.objects.filter(login=new_email).exists():
         return None
@@ -335,6 +336,7 @@ def confirm_email_change(token: str, *, request=None) -> Account | None:
             account.save(update_fields=["login", "updated_at"])
     except IntegrityError:  # una altra confirmació simultània amb la mateixa adreça
         return None
+    account.end_all_sessions()
     audit.record(
         audit.Action.LOGIN_EMAIL_CHANGED,
         actor=account,

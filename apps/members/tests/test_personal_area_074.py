@@ -87,7 +87,9 @@ def messages_of(response):
 
 
 def ask_change(client, email, ip="10.7.0.1"):
-    return client.post(reverse(CHANGE), {"new_email": email}, REMOTE_ADDR=ip)
+    # Amb la contrasenya: la reautenticació de la 075 (RN-M01-81) es prova a `test_retocs_075.py`.
+    data = {"new_email": email, "password": PASSWORD}
+    return client.post(reverse(CHANGE), data, REMOTE_ADDR=ip)
 
 
 def open_and_confirm(link, client=None):
@@ -427,8 +429,5 @@ class TestChangeEmail:
         assert response["Location"].startswith(reverse("accounts:login"))
         assert not OutgoingEmail.objects.exists()
 
-    def test_other_sessions_stay_open(self, as_anna, anna, login_as):
-        """Supòsit (no decidit): confirmar el correu nou no tanca la sessió oberta del compte."""
-        ask_change(as_anna, NEW)
-        open_and_confirm(link_in(emails(CHANGE_TEMPLATE).get()))
-        assert as_anna.get(reverse(PROFILE)).status_code == 200
+    # Sessions en confirmar el correu nou: la 075 ho decideix (RN-M01-81, CA-M01-82), a
+    # `test_retocs_075.py`.

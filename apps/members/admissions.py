@@ -74,6 +74,7 @@ from .services import (
 __all__ = ["approval_blocker", "approve_join", "reject_join", "needs_identity_check"]
 
 APPROVE_PERMISSION = "members.requests.approve_join"  # P3
+DOCUMENT_PERMISSION = "members.field.identity"  # C2
 APPROVED = "members.join_request.approved"
 REJECTED = "members.join_request.rejected"
 MEMBER_CREATED = "members.member_created"
@@ -187,13 +188,26 @@ def needs_guardian_check(join_request) -> bool:
     return bool(join_request.guardian_id_document_number)
 
 
+def document_blocker(join_request, sees_document: bool) -> str | None:
+    """075 (RN-M01-84, provisional fins que decideixi la junta): una alta que demana comprovar
+    el document (coincidència de document o representant d'un menor) només l'aprova qui el pot
+    veure (C2). Sense C2 no es mostra cap casella i la comprovació no es dona per feta."""
+    if sees_document or not (
+        needs_identity_check(join_request) or needs_guardian_check(join_request)
+    ):
+        return None
+    return _(
+        "Cal comprovar el document d'identitat: l'ha d'aprovar una persona que el pugui veure."
+    )
+
+
 def is_exempt(join_request, today) -> bool:
     """Exempt per edat el dia de l'aprovació (068, RN-M01-65)."""
     return today.year < first_fee_year(join_request.birth_date)
 
 
-def _check_approvable(join_request, identity_checked, guardian_checked) -> None:
-    blocker = approval_blocker(join_request)
+def _check_approvable(join_request, identity_checked, guardian_checked, sees_document) -> None:
+    blocker = approval_blocker(join_request) or document_blocker(join_request, sees_document)
     if blocker is None and needs_identity_check(join_request) and not identity_checked:
         blocker = _("Cal confirmar que has comprovat la identitat de la persona.")
     if blocker is None and needs_guardian_check(join_request) and not guardian_checked:
@@ -254,6 +268,7 @@ def approve_join(
 ) -> Member:
     """Aprova una alta pendent (P-M01-A, pas 5a, sense la invitació)."""
     _authorise(join_request, by, request, "approve_join")
+    sees_document = has_perm(by, DOCUMENT_PERMISSION)
     today = timezone.localdate()
     with transaction.atomic():
         _check_account_active(by, lock=True)
@@ -263,7 +278,7 @@ def approve_join(
             # 067: `_readmit` bloqueja el soci i després la sol·licitud, i torna a validar; per
             # no invertir l'ordre dels bloquejos, aquí la sol·licitud no es bloqueja abans.
             current = MemberRequest.objects.select_related("person").get(pk=join_request.pk)
-            _check_approvable(current, identity_checked, guardian_checked)
+            _check_approvable(current, identity_checked, guardian_checked, sees_document)
             member = _readmit(former, current, by=by, effective_on=today, request=request)
         else:
             current = (
@@ -271,7 +286,7 @@ def approve_join(
                 .select_related("person", "requested_type")
                 .get(pk=join_request.pk)
             )
-            _check_approvable(current, identity_checked, guardian_checked)
+            _check_approvable(current, identity_checked, guardian_checked, sees_document)
             member = _create_member(current, by=by, today=today, request=request)
 
         member = Member.objects.select_related("person", "type").get(pk=member.pk)
