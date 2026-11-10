@@ -12,6 +12,8 @@ Retoc del 09/11/2026 (072):
   del primer any de quota (Q-003). Res amb pagaments parcials ni amb una quota viva sense pagar.
 - `send_due_reminders`: recordatoris als dies de `MEMBER_FEE_REMINDER_OFFSETS` (Q-061), un sol
   cop per quota i dia (`FeeReminder`); els posteriors al venciment, només si no s'ha pagat.
+  Van a l'adreça de `recipients.email_for` (T-M01-41, RN-M01-78): un menor de 14 anys, o un de
+  14 a 17 sense correu propi, els rep al correu del representant.
 
 **No implementat:** els terminis (P-61, resta oberta; el preu a terminis, 96 € amb un recàrrec que
 decideix la junta, és de la 072, quarta instrucció) i la data de la marca d'impagat.
@@ -29,7 +31,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit, charges, mail
 from apps.core.models import Charge, Person
 
-from . import cards, roster
+from . import cards, recipients, roster
 from .fee_rules import first_fee_year, local_today
 from .models import AnnualFee, FeeReminder, Member
 
@@ -251,10 +253,11 @@ def send_due_reminders(today=None) -> int:
             if not created:
                 continue
             person = fee.member.person
-            if person.contact_email:
+            to = recipients.email_for(person, today=today)  # RN-M01-78; 072, quarta instr., 3
+            if to:
                 mail.queue_email(
                     REMINDER_TEMPLATE,
-                    to=person.contact_email,
+                    to=to,
                     person=person,
                     context={
                         "due_on": fee.due_on,

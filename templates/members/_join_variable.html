@@ -2,7 +2,8 @@
 {% comment %}Part del formulari d'alta que depèn de la data de naixement (068): tipus i quota, representant i acceptació.
    El servidor la calcula amb la data de Barcelona; amb HTMX es torna a demanar en canviar la data, sense desar res.
    El bloc del representant només surt per a un menor; sense JavaScript, surt quan el servidor torna el formulari
-   amb la data d'un menor. Cada text legal té la seva casella obligatòria.{% endcomment %}
+   amb la data d'un menor. Cada text legal té la seva casella obligatòria; el butlletí i les imatges, la seva
+   casella opcional i desmarcada (T-M01-41).{% endcomment %}
 <div id="part-variable" class="part-variable" hx-post="{{ request.get_full_path }}" hx-trigger="change from:#id_birth_date" hx-vals='{"vista_previa": "1"}' hx-target="this" hx-swap="outerHTML">
   <fieldset{% if form.membership_type.errors %} aria-describedby="{{ form.membership_type.auto_id }}_error"{% endif %}>
     <legend>{{ form.membership_type.label }}</legend>
@@ -22,10 +23,13 @@
   {% if form.show_guardian %}
     <fieldset class="representant">
       <legend>{% translate "Pare, mare o tutor legal" %}</legend>
-      <p class="text-2">{% translate "La persona és menor d'edat: cal que el pare, la mare o el tutor legal hi doni les seves dades i autoritzi l'alta." %}</p>
+      <p class="text-2">{% translate "La persona és menor d'edat: cal que el pare, la mare o el tutor legal hi doni les seves dades i autoritzi l'alta. Els avisos del club arribaran al seu correu." %}</p>
       {% with field=form.guardian_first_name %}{% include "accounts/_camp.html" %}{% endwith %}
       {% with field=form.guardian_last_name %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% if form.in_person %}{% with field=form.guardian_id_document_kind %}{% include "accounts/_camp.html" %}{% endwith %}{% endif %}
       {% with field=form.guardian_id_document %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.guardian_email %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.guardian_phone %}{% include "accounts/_camp.html" %}{% endwith %}
       {% for kind, label, text, field in form.guardian_acceptance %}
         {% include "members/_acceptacio.html" with intro=form.authorization_intro %}
       {% endfor %}
@@ -42,4 +46,15 @@
       <p class="ajuda text-2">{% blocktranslate with username=user.get_username %}Queda registrat amb el teu compte ({{ username }}) com a acceptació presencial de la sol·licitud.{% endblocktranslate %}</p>
     {% endif %}
   </fieldset>
+
+  {# Consentiments opcionals (Q-031): desmarcats i separats dels obligatoris; només amb text vigent. #}
+  {% if form.optional_acceptances %}
+    <fieldset>
+      <legend>{% translate "Consentiments opcionals" %}{% if form.in_person %} <span class="a-validar">{% translate "A validar: textos provisionals (Q-16 i Q-028)" %}</span>{% endif %}</legend>
+      <p class="text-2">{% translate "No són obligatoris: sense marcar-los també es pot ser soci." %}</p>
+      {% for kind, label, text, field in form.optional_acceptances %}
+        {% include "members/_acceptacio.html" with intro=form.optional_intro optional=True %}
+      {% endfor %}
+    </fieldset>
+  {% endif %}
 </div>

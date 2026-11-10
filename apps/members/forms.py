@@ -4,6 +4,10 @@ Dades mínimes de V-04 (RN-M01-02): nom, cognoms, document, correu i telèfon; a
 Data de naixement obligatòria i, per a un menor, les dades i l'autorització del pare, la mare o
 el tutor legal (068, RN-M01-62 a RN-M01-64). Sense IBAN ni cap dada de salut. El servidor ho
 torna a validar tot: el navegador només ajuda.
+
+T-M01-41: per a un menor, el correu i el telèfon del representant són obligatoris i els del menor,
+opcionals (Q-011); caselles opcionals i desmarcades del butlletí i de les imatges (Q-031), només
+si hi ha text vigent; el passaport, només a l'alta presencial (Q-017).
 """
 
 import re
@@ -15,7 +19,7 @@ from django.utils.formats import number_format
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Person
-from apps.core.normalization import normalize_document, normalize_phone
+from apps.core.normalization import normalize_document, normalize_email, normalize_phone
 
 from . import fee_rules
 from .models import MembershipType
@@ -25,10 +29,16 @@ _DNI = re.compile(r"^\d{8}[A-Z]$")
 _NIE = re.compile(r"^[XYZ]\d{7}[A-Z]$")
 
 
-def parse_document(value: str) -> tuple[str, str] | None:
-    """(tipus, número normalitzat) d'un DNI o NIE amb la lletra correcta, o None.
-    El passaport no s'admet al formulari [A validar], com diu el wireframe."""
+_PASSPORT = re.compile(r"^[A-Z0-9]{5,20}$")  # format lliure de cada país [A validar]
+PASSPORT = Person.DocumentType.PASSPORT
+
+
+def parse_document(value: str, *, passport: bool = False) -> tuple[str, str] | None:
+    """(tipus, número normalitzat) d'un DNI o NIE amb la lletra correcta, o None. Amb
+    `passport`, un número de passaport (només a l'alta presencial, Q-017)."""
     number = normalize_document(value)
+    if passport:
+        return (PASSPORT, number) if _PASSPORT.match(number) else None
     if _DNI.match(number):
         kind, digits = Person.DocumentType.DNI, number[:8]
     elif _NIE.match(number):
@@ -41,6 +51,9 @@ def parse_document(value: str) -> tuple[str, str] | None:
 
 
 DOCUMENT_INVALID = _("Escriu un DNI o un NIE vàlid, amb la lletra.")
+PASSPORT_INVALID = _("Escriu un número de passaport vàlid, només amb lletres i xifres.")
+# Tipus de document: només a l'alta presencial (Q-017). Buit = DNI o NIE.
+DOCUMENT_KINDS = [("", _("DNI o NIE")), (PASSPORT, _("Passaport"))]
 
 
 def clean_phone_value(value: str) -> str:
@@ -56,11 +69,15 @@ LEGAL_LABELS = {
     "privacy": _("Política de privacitat"),
     "membership_terms": _("Condicions de soci"),
     "guardian_authorization": _("Autorització del pare, la mare o el tutor legal"),
+    "newsletter": _("Butlletí del club"),
+    "images": _("Ús d'imatges (fotos i vídeos)"),
 }
 # Textos que accepta tothom, cadascun amb la seva casella; l'autorització, només els menors.
 GENERAL_TEXTS = ("privacy", "membership_terms")
 GUARDIAN_TEXT = "guardian_authorization"
 ACCEPT_FIELDS = {"privacy": "accept_privacy", "membership_terms": "accept_membership_terms"}
+# Opcionals (Q-031), separats dels obligatoris; els tipus són els de `join.OPTIONAL_TEXTS`.
+OPTIONAL_FIELDS = {"newsletter": "accept_newsletter", "images": "accept_images"}
 
 
 def _euros(cents: int) -> str:
@@ -79,14 +96,19 @@ class JoinForm(forms.Form):
     # Obligatori per als majors d'edat i opcional per als menors (068, 09/11/2026): ho decideix
     # el servidor amb la data de naixement, a `clean`. L'etiqueta la fixa `_set_labels`.
     id_document = forms.CharField(max_length=30, required=False)
+    # Només a l'alta presencial (Q-017): a la web el camp no existeix i un valor enviat s'ignora.
+    id_document_kind = forms.ChoiceField(
+        label=_("Tipus de document"), choices=DOCUMENT_KINDS, required=False
+    )
     birth_date = forms.DateField(
         label=_("Data de naixement"),
         input_formats=["%Y-%m-%d", "%d/%m/%Y"],
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         error_messages={"invalid": _("Escriu una data vàlida, per exemple 31/12/2010.")},
     )
-    contact_email = forms.EmailField(label=_("Correu electrònic"), max_length=254)
-    phone = forms.CharField(label=_("Telèfon"), max_length=30)
+    # Obligatoris per als majors d'edat i opcionals per als menors (Q-011): ho decideix `clean`.
+    contact_email = forms.EmailField(max_length=254, required=False)
+    phone = forms.CharField(max_length=30, required=False)
     address = forms.CharField(label=_("Adreça (opcional)"), max_length=255, required=False)
     membership_type = forms.ModelChoiceField(
         label=_("Tipus de soci"),
@@ -97,9 +119,14 @@ class JoinForm(forms.Form):
     # Pare, mare o tutor legal: obligatori només si la persona és menor (RN-M01-62).
     guardian_first_name = forms.CharField(label=_("Nom"), max_length=100, required=False)
     guardian_last_name = forms.CharField(label=_("Cognoms"), max_length=150, required=False)
+    guardian_id_document_kind = forms.ChoiceField(
+        label=_("Tipus de document"), choices=DOCUMENT_KINDS, required=False
+    )
     guardian_id_document = forms.CharField(
         label=_("Document d'identitat (DNI o NIE)"), max_length=30, required=False
     )
+    guardian_email = forms.EmailField(label=_("Correu electrònic"), max_length=254, required=False)
+    guardian_phone = forms.CharField(label=_("Telèfon"), max_length=30, required=False)
     guardian_authorization = forms.BooleanField(required=False)
     # Un text, una casella, totes obligatòries (09/11/2026). L'autorització del representant
     # (`guardian_authorization`) només ho és per als menors.
@@ -113,6 +140,10 @@ class JoinForm(forms.Form):
             "required": _("Cal acceptar les condicions de soci per enviar la sol·licitud.")
         }
     )
+    # Opcionals i desmarcats (Q-031): només marcats si la petició els porta marcats. Sense text
+    # vigent del tipus, el camp no existeix.
+    accept_newsletter = forms.BooleanField(required=False)
+    accept_images = forms.BooleanField(required=False)
     # Versions dels textos que s'han mostrat: si n'hi ha una de nova, cal tornar-los a llegir
     # (CA-17.1: es desa la versió exacta acceptada).
     text_versions = forms.CharField(widget=forms.HiddenInput)
@@ -128,6 +159,8 @@ class JoinForm(forms.Form):
         "guardian_first_name": "off",
         "guardian_last_name": "off",
         "guardian_id_document": "off",
+        "guardian_email": "off",
+        "guardian_phone": "off",
     }
 
     def __init__(self, *args, texts, in_person=False, today=None, **kwargs):
@@ -135,6 +168,11 @@ class JoinForm(forms.Form):
         self.texts = texts
         self.in_person = in_person
         self.today = today or fee_rules.local_today()
+        if not in_person:
+            del self.fields["id_document_kind"], self.fields["guardian_id_document_kind"]
+        for kind, name in OPTIONAL_FIELDS.items():
+            if kind not in texts:
+                del self.fields[name]
         # (tipus, nom, text): el tipus fa d'identificador de la finestra de cada text.
         self.legal = [(kind, LEGAL_LABELS.get(kind, kind), text) for kind, text in texts.items()]
         self.fields["text_versions"].initial = self._versions()
@@ -228,10 +266,47 @@ class JoinForm(forms.Form):
         # Només per als menors (calculat al servidor). Sense JavaScript, el bloc surt quan el
         # servidor torna el formulari amb la data d'un menor i els errors del representant.
         self.show_guardian = minor
-        self.fields["id_document"].label = {
-            "unknown": _("Document d'identitat (DNI o NIE; obligatori per a majors d'edat)"),
-            "adult": _("Document d'identitat (DNI o NIE)"),
-        }.get(self.state, _("Document d'identitat (DNI o NIE, opcional)"))
+        if self.in_person:  # també passaport (Q-017)
+            self.fields["guardian_id_document"].label = _("Número de document")
+            self.fields["id_document"].label = {
+                "unknown": _("Número de document (obligatori per a majors d'edat)"),
+                "adult": _("Número de document"),
+            }.get(self.state, _("Número de document (opcional)"))
+        else:
+            self.fields["id_document"].label = {
+                "unknown": _("Document d'identitat (DNI o NIE; obligatori per a majors d'edat)"),
+                "adult": _("Document d'identitat (DNI o NIE)"),
+            }.get(self.state, _("Document d'identitat (DNI o NIE, opcional)"))
+        self.fields["contact_email"].label = {
+            "unknown": _("Correu electrònic (obligatori per a majors d'edat)"),
+            "adult": _("Correu electrònic"),
+        }.get(self.state, _("Correu electrònic de la persona menor (opcional)"))
+        self.fields["phone"].label = {
+            "unknown": _("Telèfon (obligatori per a majors d'edat)"),
+            "adult": _("Telèfon"),
+        }.get(self.state, _("Telèfon de la persona menor (opcional)"))
+        # Qui dona els opcionals: el representant d'un menor de 14 anys (Q-044, opció A); a
+        # partir dels 14, el mateix menor (RN-M01-78) [A validar: assessor, Q-016].
+        if self.state == "under14":
+            self.optional_intro = (
+                _(
+                    "El pare, la mare o el tutor legal dona el consentiment, en nom de la "
+                    "persona menor, per a:"
+                )
+                if self.in_person
+                else _(
+                    "Com a pare, mare o tutor legal, dono el consentiment, en nom de la persona "
+                    "menor, per a:"
+                )
+            )
+        elif self.state == "minor":
+            self.optional_intro = _("La persona menor dona ella mateixa el consentiment per a:")
+        else:
+            self.optional_intro = (
+                _("La persona dona el consentiment per a:")
+                if self.in_person
+                else _("Dono el meu consentiment per a:")
+            )
         self.age_summary = {
             "under14": _(
                 "Menor de 14 anys: només pot ser simpatitzant, sense quota, i cal l'autorització "
@@ -250,6 +325,15 @@ class JoinForm(forms.Form):
         ]
 
     @property
+    def optional_acceptances(self):
+        """(tipus, nom, text, casella) de cada consentiment opcional amb text vigent."""
+        return [
+            (kind, label, text, self[OPTIONAL_FIELDS[kind]])
+            for kind, label, text in self.legal
+            if kind in OPTIONAL_FIELDS
+        ]
+
+    @property
     def guardian_acceptance(self):
         return [
             (kind, label, text, self["guardian_authorization"])
@@ -261,16 +345,27 @@ class JoinForm(forms.Form):
     def _versions(self) -> str:
         return ";".join(f"{kind}:{text.version}" for kind, text in self.texts.items())
 
+    def _passport(self, name) -> bool:
+        """S'ha triat el passaport. El camp només existeix a l'alta presencial (Q-017): a la web
+        sempre és DNI o NIE, encara que la petició digui una altra cosa."""
+        if name not in self.fields:
+            return False
+        widget = self.fields[name].widget
+        return widget.value_from_datadict(self.data, self.files, self.add_prefix(name)) == PASSPORT
+
+    def _parse(self, raw, kind_field):
+        """(tipus, número), o ValidationError amb el missatge del tipus triat."""
+        passport = self._passport(kind_field)
+        parsed = parse_document(raw, passport=passport)
+        if parsed is None:
+            raise ValidationError(PASSPORT_INVALID if passport else DOCUMENT_INVALID)
+        return parsed
+
     def clean_id_document(self):
         """(tipus, número) si s'ha escrit, validat amb la lletra; None si és buit. Que sigui
         obligatori (adults) es decideix a `clean`, amb l'edat."""
         raw = self.cleaned_data["id_document"].strip()
-        if not raw:
-            return None
-        parsed = parse_document(raw)
-        if parsed is None:
-            raise ValidationError(DOCUMENT_INVALID)
-        return parsed
+        return self._parse(raw, "id_document_kind") if raw else None
 
     def clean_birth_date(self):
         value = self.cleaned_data["birth_date"]
@@ -281,7 +376,9 @@ class JoinForm(forms.Form):
         return value
 
     def clean_phone(self):
-        return clean_phone_value(self.cleaned_data["phone"])
+        # Buit: el decideix `clean` amb l'edat (opcional per als menors, Q-011).
+        value = self.cleaned_data["phone"]
+        return clean_phone_value(value) if value.strip() else ""
 
     def clean_text_versions(self):
         if self.cleaned_data["text_versions"] != self._versions():
@@ -305,8 +402,12 @@ class JoinForm(forms.Form):
             return cleaned
         age = fee_rules.age_today(birth, self.today)
         cleaned["on"] = self.today
-        if "id_document" in cleaned and not fee_rules.is_minor(age) and not cleaned["id_document"]:
+        adult = not fee_rules.is_minor(age)
+        if "id_document" in cleaned and adult and not cleaned["id_document"]:
             self.add_error("id_document", self.fields["id_document"].error_messages["required"])
+        for name in ("contact_email", "phone"):
+            if name in cleaned and adult and not cleaned[name]:
+                self.add_error(name, self.fields[name].error_messages["required"])
         if self.state == "under14" and "membership_type" in self.errors:
             # El ple dret no és a les opcions: un formulari manipulat rep aquest missatge.
             self.errors["membership_type"] = self.error_class([UNDER14_TYPE])
@@ -318,8 +419,9 @@ class JoinForm(forms.Form):
             self._clean_guardian(cleaned)
         else:
             # Minimització: d'un adult no es desa cap dada de representant.
-            for name in ("guardian_first_name", "guardian_last_name"):
+            for name in ("guardian_first_name", "guardian_last_name", "guardian_email"):
                 cleaned[name] = ""
+            cleaned["guardian_phone"] = ""
             cleaned["guardian_id_document_type"] = cleaned["guardian_id_document_number"] = ""
             cleaned["guardian_authorization"] = False
         return cleaned
@@ -331,17 +433,30 @@ class JoinForm(forms.Form):
             if not cleaned[name]:
                 self.add_error(name, required)
         raw = (cleaned.get("guardian_id_document") or "").strip()
-        parsed = parse_document(raw) if raw else None
+        parsed = None
         if not raw:
             self.add_error("guardian_id_document", required)
-        elif parsed is None:
-            self.add_error(
-                "guardian_id_document", _("Escriu un DNI o un NIE vàlid, amb la lletra.")
-            )
-        elif parsed[1] == cleaned.get("id_document_number"):
+        else:
+            try:
+                parsed = self._parse(raw, "guardian_id_document_kind")
+            except ValidationError as error:
+                self.add_error("guardian_id_document", error)
+        if parsed and parsed[1] == cleaned.get("id_document_number"):
             self.add_error("guardian_id_document", GUARDIAN_OWN_DOCUMENT)
         if parsed:
             cleaned["guardian_id_document_type"], cleaned["guardian_id_document_number"] = parsed
+        # Q-011 (opció 3): el correu i el telèfon del representant, obligatoris.
+        cleaned["guardian_email"] = normalize_email(cleaned.get("guardian_email"))
+        if not cleaned["guardian_email"] and "guardian_email" not in self.errors:
+            self.add_error("guardian_email", required)
+        raw_phone = (cleaned.get("guardian_phone") or "").strip()
+        try:
+            cleaned["guardian_phone"] = clean_phone_value(raw_phone) if raw_phone else ""
+        except ValidationError as error:
+            self.add_error("guardian_phone", error)
+        else:
+            if not raw_phone:
+                self.add_error("guardian_phone", required)
         if not cleaned.get("guardian_authorization"):
             self.add_error("guardian_authorization", GUARDIAN_AUTHORIZATION_REQUIRED)
 

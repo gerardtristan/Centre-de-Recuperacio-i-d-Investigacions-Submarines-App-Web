@@ -413,8 +413,18 @@ class Consent(AppendOnlyModel):
         # El consentiment ve de l'exportació de Cluber (071, punt 15; T-M01-25).
         CLUBER = "cluber", _("Importat de Cluber")
 
+    class GivenBy(models.TextChoices):
+        # Els mateixos valors que `members.JoinAcceptance.AcceptedBy`, vist des de la persona.
+        PERSON = "person", _("La mateixa persona")
+        GUARDIAN = "guardian", _("Pare, mare o tutor legal")
+
     person = models.ForeignKey(
         Person, on_delete=models.PROTECT, related_name="consents", verbose_name=_("persona")
+    )
+    # Qui el dona (T-M01-41): el representant només per als consentiments opcionals d'un menor
+    # de 14 anys donats a l'alta (072, Q-044 opció A; RN-M01-78).
+    given_by = models.CharField(
+        _("qui el dona"), max_length=10, choices=GivenBy.choices, default=GivenBy.PERSON
     )
     legal_text = models.ForeignKey(
         LegalText, on_delete=models.PROTECT, related_name="+", verbose_name=_("text acceptat")
@@ -440,6 +450,9 @@ class Consent(AppendOnlyModel):
             models.CheckConstraint(
                 condition=~Q(channel="in_person") | Q(recorded_by__isnull=False),
                 name="consent_in_person_has_recorder",
+            ),
+            models.CheckConstraint(
+                condition=Q(given_by__in=["person", "guardian"]), name="consent_given_by_valid"
             ),
         ]
         indexes = [models.Index(fields=["person", "created_at"], name="consent_person_idx")]

@@ -44,6 +44,9 @@ GUARDIAN = {
     "guardian_first_name": "Marta",
     "guardian_last_name": "Dorada Puig",
     "guardian_id_document": "00000002W",
+    # T-M01-41 (Q-011, opció 3): el correu i el telèfon del representant són obligatoris.
+    "guardian_email": "marta.dorada@example.org",
+    "guardian_phone": "600 000 009",
     "guardian_authorization": "on",
 }
 TODAY = date(2026, 11, 6)
@@ -404,9 +407,13 @@ class TestModel:
         with pytest.raises(IntegrityError), transaction.atomic():
             MemberRequest.objects.update(guardian_id_document_number="")
         # També amb SQL directe, i en el sentit contrari (representant a mitges en un adult).
+        # T-M01-41: el passaport ja és vàlid (Q-017); el correu i el telèfon del representant van
+        # junts (Q-011).
         for sql in (
             "UPDATE members_memberrequest SET guardian_first_name = ''",
-            "UPDATE members_memberrequest SET guardian_id_document_type = 'passport'",
+            "UPDATE members_memberrequest SET guardian_id_document_type = 'altre'",
+            "UPDATE members_memberrequest SET guardian_email = ''",
+            "UPDATE members_memberrequest SET guardian_phone = '   '",
         ):
             with pytest.raises(IntegrityError), transaction.atomic(), connection.cursor() as c:
                 c.execute(sql)

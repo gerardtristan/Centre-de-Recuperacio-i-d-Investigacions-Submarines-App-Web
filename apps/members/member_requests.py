@@ -27,8 +27,8 @@ Tanda del 10/11/2026 (074, RN-M01-74 a 76):
   edició (`cancel_overdue_supplement`). Mai sol.
 - Ruta `/gestio/socis/sollicituds/` confirmada (Q-052): el President hi resol amb P3a i P7.
 
-Fora d'aquí: el pas de ple dret a simpatitzant (073, T-M01-42 i T-M01-43) i el destinatari de les
-comunicacions d'un menor (RN-M01-78, T-M01-41).
+Fora d'aquí: el pas de ple dret a simpatitzant (073, T-M01-42 i T-M01-43). El destinatari del
+correu de baixa és el de `recipients.email_for` (RN-M01-78, T-M01-41).
 
 Conflicte d'interès (S-M01-22): `ensure_not_own_member` abans d'obrir la transacció, també per
 rebutjar. El permís es torna a comprovar aquí, no només a la vista.
@@ -49,7 +49,7 @@ from apps.core import audit, charges, mail
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
 
-from . import cards, fees
+from . import cards, fees, recipients
 from .fee_rules import SUPPORTER, local_today
 from .models import AnnualFee, Member, MemberRequest, MembershipType
 from .services import _change_status, _check_account_active, ensure_not_own_member
@@ -316,10 +316,11 @@ def _apply_leave(locked, *, by, request=None) -> None:
     )
     locked.applied_at = timezone.now()
     locked.save(update_fields=["applied_at"])
-    if member.person.contact_email:
+    to = recipients.email_for(member.person)  # RN-M01-78
+    if to:
         mail.queue_email(
             LEAVE_EMAIL,
-            to=member.person.contact_email,
+            to=to,
             person=member.person,
             context={"effective_on": effective_on},
         )

@@ -42,6 +42,8 @@ _FIELD_PERMISSIONS = {
     "guardian_last_name": "members.field.identity",
     "guardian_id_document_type": "members.field.identity",
     "guardian_id_document_number": "members.field.identity",
+    "guardian_email": "members.field.identity",  # T-M01-41
+    "guardian_phone": "members.field.identity",
 }
 
 

@@ -65,7 +65,7 @@ def join_view(request):
     if request.method == "POST" and request.POST.get(PREVIEW):
         return render_preview(request, form)
     if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data["contact_email"]
+        email = join.receipt_address(form.cleaned_data)  # RN-M01-78: el del representant
         with transaction.atomic():
             accepted = limits.start_join(client_ip(request))
             if accepted is None:

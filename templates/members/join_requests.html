@@ -22,7 +22,7 @@
         {% if show_identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ row.document|default:"—" }}</dd></div>{% endif %}
         <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
         {% if jr.guardian_last_name %}
-          <div><dt>{% translate "Pare, mare o tutor legal" %}</dt><dd>{{ jr.guardian_first_name }} {{ jr.guardian_last_name }}{% if row.guardian_document %} · <span class="codi">{{ row.guardian_document }}</span>{% endif %}</dd></div>
+          <div><dt>{% translate "Pare, mare o tutor legal" %}</dt><dd>{{ jr.guardian_first_name }} {{ jr.guardian_last_name }}{% if row.guardian_document %} · <span class="codi">{{ row.guardian_document }}</span>{% endif %}{% if jr.guardian_email %}<br>{{ jr.guardian_email }} · {{ jr.guardian_phone }}{% endif %}</dd></div>
         {% endif %}
         {% if row.new_contact %}
           <div><dt>{% translate "Contacte nou escrit a la sol·licitud" %}</dt><dd>{{ jr.new_contact_email|default:"—" }}{% if jr.new_contact_phone %} · {{ jr.new_contact_phone }}{% endif %}</dd></div>

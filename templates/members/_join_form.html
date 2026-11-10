@@ -18,6 +18,8 @@
     {% with field=form.birth_date %}{% include "accounts/_camp.html" %}{% endwith %}
     {# Resum de l'edat: es torna a calcular al servidor en canviar la data i s'anuncia. #}
     <p id="resum-edat" class="ajuda text-2" aria-live="polite">{{ form.age_summary }}</p>
+    {# Passaport: només a l'alta presencial (Q-017); a la web el camp no existeix. #}
+    {% if form.in_person %}{% with field=form.id_document_kind %}{% include "accounts/_camp.html" %}{% endwith %}{% endif %}
     {# L'etiqueta del document la recalcula el servidor (vista prèvia, fora de banda). #}
     <div class="camp">
       <label for="{{ form.id_document.id_for_label }}"><span id="etiqueta-document">{{ form.id_document.label }}</span></label>
@@ -28,8 +30,17 @@
 
   <fieldset>
     <legend>{% translate "Contacte" %}</legend>
-    {% with field=form.contact_email %}{% include "accounts/_camp.html" %}{% endwith %}
-    {% with field=form.phone %}{% include "accounts/_camp.html" %}{% endwith %}
+    {# Obligatoris per als majors d'edat i opcionals per als menors (Q-011): l'etiqueta la recalcula el servidor (vista prèvia, fora de banda). #}
+    <div class="camp">
+      <label for="{{ form.contact_email.id_for_label }}"><span id="etiqueta-correu">{{ form.contact_email.label }}</span></label>
+      {{ form.contact_email }}
+      {{ form.contact_email.errors }}
+    </div>
+    <div class="camp">
+      <label for="{{ form.phone.id_for_label }}"><span id="etiqueta-telefon">{{ form.phone.label }}</span></label>
+      {{ form.phone }}
+      {{ form.phone.errors }}
+    </div>
     {% with field=form.address %}{% include "accounts/_camp.html" %}{% endwith %}
   </fieldset>
 

@@ -19,7 +19,9 @@ Aprovar:
   - un exempt per edat (068, P-57 opció 1) passa a «actiu» en aprovar-lo, sense quota ni càrrec
     de 0 €, amb el motiu «Sense quota exigible (RN-M01-65)» i amb carnet (Q-001, Q-002).
 - **Acceptacions (Q-044):** les del sol·licitant passen a `core.Consent` amb la versió exacta que
-  va acceptar i la referència a la sol·licitud; les del representant es queden a la sol·licitud.
+  va acceptar i la referència a la sol·licitud; les del representant es queden a la sol·licitud,
+  excepte el butlletí i les imatges d'un menor de 14 anys, que van a la persona del menor amb el
+  representant com a qui els dona (072, opció A; T-M01-41).
 - **Representant (Q-043, opció 2):** per aprovar l'alta d'un menor, cal confirmar que s'ha
   comprovat el document del representant; queda al registre (sense cap còpia del document).
 - **Contacte nou (Q-042, opció 1):** si la sol·licitud porta un correu o un telèfon diferents dels
@@ -34,20 +36,24 @@ Aprovar:
   (supòsit provisional, [A validar]).
 
 Rebutjar: amb motiu (CA-M01-05), sense soci ni número; s'avisa la persona per correu, sense cap
-dada seva ni el motiu (text provisional, [A validar]).
+dada seva ni el motiu (text provisional, [A validar]), a l'adreça de `recipients.email_for`
+(RN-M01-78: el representant d'un menor de 14 anys, o d'un de 14 a 17 sense correu propi).
 """
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, consents, mail, persons
+from apps.core.models import Consent
 from apps.core.permissions import has_perm
 
-from . import cards, fees
+from . import cards, fees, recipients
 from .fee_rules import first_fee_year
+from .join import OPTIONAL_TEXTS
 from .models import (
     JoinAcceptance,
     Member,
@@ -196,9 +202,15 @@ def _check_approvable(join_request, identity_checked, guardian_checked) -> None:
 
 
 def _grant_applicant_acceptances(join_request, *, by, request) -> int:
-    """Q-044: només les acceptacions del sol·licitant, amb la versió que va acceptar."""
+    """Q-044: les acceptacions del sol·licitant, amb la versió que va acceptar. Excepció (072,
+    opció A; T-M01-41): els consentiments opcionals (butlletí i imatges) que el representant
+    dona per a un menor de 14 anys van a la persona del menor, amb el representant com a qui
+    els dona. Les altres acceptacions del representant es queden a la sol·licitud."""
+    by_guardian = JoinAcceptance.AcceptedBy.GUARDIAN
     accepted = JoinAcceptance.objects.filter(
-        request=join_request, accepted_by=JoinAcceptance.AcceptedBy.APPLICANT
+        Q(accepted_by=JoinAcceptance.AcceptedBy.APPLICANT)
+        | Q(accepted_by=by_guardian, legal_text__kind__in=OPTIONAL_TEXTS),
+        request=join_request,
     ).select_related("legal_text", "recorded_by")
     for acceptance in accepted:
         consents.grant_accepted(
@@ -209,6 +221,11 @@ def _grant_applicant_acceptances(join_request, *, by, request) -> int:
             by=by,
             request=request,
             source={"join_request": join_request.pk},
+            given_by=(
+                Consent.GivenBy.GUARDIAN
+                if acceptance.accepted_by == by_guardian
+                else Consent.GivenBy.PERSON
+            ),
         )
     return len(accepted)
 
@@ -329,7 +346,8 @@ def reject_join(join_request, *, by, reason, request=None) -> MemberRequest:
         current.resolved_at = timezone.now()
         current.save(update_fields=["status", "resolution_reason", "resolved_by", "resolved_at"])
         person = current.person
-        if person.contact_email:
+        to = recipients.email_for(person, join_request=current)  # RN-M01-78
+        if to:
             # Sense cap dada de la persona ni el motiu; dins la transacció: si es desfà, no surt.
-            mail.queue_email(REJECTION_TEMPLATE, to=person.contact_email, person=person)
+            mail.queue_email(REJECTION_TEMPLATE, to=to, person=person)
     return current

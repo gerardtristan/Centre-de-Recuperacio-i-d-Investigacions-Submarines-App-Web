@@ -363,6 +363,13 @@ class MemberRequest(models.Model):
     guardian_id_document_number = models.CharField(
         _("document del representant"), max_length=30, blank=True
     )
+    # T-M01-41 (072, Q-011 opció 3): on van les comunicacions d'un menor (RN-M01-78,
+    # `recipients.email_for`). Normalitzats com els de la persona; els exigeix el servei per a les
+    # sol·licituds noves (les anteriors a la migració 0017 no en tenen).
+    guardian_email = models.EmailField(_("correu del representant"), blank=True, default="")
+    guardian_phone = models.CharField(
+        _("telèfon del representant"), max_length=30, blank=True, default=""
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -403,19 +410,27 @@ class MemberRequest(models.Model):
                 name="memberrequest_one_pending_per_kind",
             ),
             # Representant: tot o res (068). Les dades d'un menor sense representant les rebutja
-            # el servei, perquè l'edat depèn del dia de la sol·licitud.
+            # el servei, perquè l'edat depèn del dia de la sol·licitud. T-M01-41: el correu i el
+            # telèfon, junts i només amb un representant; poden faltar tots dos només a les
+            # sol·licituds anteriors (el servei els exigeix a les noves). Passaport: Q-017.
             models.CheckConstraint(
                 condition=Q(
                     guardian_first_name="",
                     guardian_last_name="",
                     guardian_id_document_type="",
                     guardian_id_document_number="",
+                    guardian_email="",
+                    guardian_phone="",
                 )
                 | (
                     _filled("guardian_first_name")
                     & _filled("guardian_last_name")
-                    & Q(guardian_id_document_type__in=["dni", "nie"])
+                    & Q(guardian_id_document_type__in=["dni", "nie", "passport"])
                     & _filled("guardian_id_document_number")
+                    & (
+                        Q(guardian_email="", guardian_phone="")
+                        | (_filled("guardian_email") & _filled("guardian_phone"))
+                    )
                 ),
                 name="memberrequest_guardian_all_or_nothing",
             ),
@@ -438,7 +453,9 @@ class JoinAcceptance(AppendOnlyModel):
 
     - **Qui:** «sol·licitant» (qui demana l'alta per a si mateix, adult) o «representant» (el
       pare, la mare o el tutor legal amb les dades de la mateixa sol·licitud). Mai no es desa com
-      a acceptació del menor el que ha acceptat el representant.
+      a acceptació del menor el que ha acceptat el representant. Excepció (T-M01-41, RN-M01-78):
+      el butlletí i les imatges d'un menor de 14 a 17 anys els accepta el mateix menor
+      («sol·licitant») [A validar: assessor de protecció de dades, Q-016].
     - **Per a qui:** el sol·licitant de la sol·licitud. A propòsit, no hi ha cap clau cap a
       `Person`: si el document coincidia amb una persona existent, l'acceptació no se li atribueix
       (RN-M01-66); la T-M01-14 decideix què se'n fa quan l'administració hagi comprovat la

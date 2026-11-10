@@ -110,14 +110,22 @@ def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
 
 @transaction.atomic
 def grant_accepted(
-    person, text: LegalText, *, channel: str, recorded_by=None, by=None, request=None, source=None
+    person,
+    text: LegalText,
+    *,
+    channel: str,
+    recorded_by=None,
+    by=None,
+    request=None,
+    source=None,
+    given_by=Consent.GivenBy.PERSON,
 ) -> Consent:
     """Atorga el consentiment amb la versió exacta que la persona va acceptar en una altra
     operació (p. ex. la sol·licitud d'alta, Q-044 de la 072), no amb la vigent. `recorded_by` és
     el compte que va registrar l'acceptació presencial; `by`, qui fa l'operació ara (l'actor del
     registre); `source`, una referència sense dades personals per al registre (p. ex. la
-    sol·licitud). Si l'últim consentiment d'aquest tipus ja és aquesta versió atorgada, no fa
-    res."""
+    sol·licitud); `given_by`, qui el dona (el representant d'un menor de 14 anys, T-M01-41). Si
+    l'últim consentiment d'aquest tipus ja és aquesta versió atorgada, no fa res."""
     if channel == Consent.Channel.IN_PERSON and recorded_by is None:
         raise ValidationError(_("Aquest consentiment necessita el compte que el registra."))
     last = _last(person, text.kind)
@@ -129,6 +137,7 @@ def grant_accepted(
         action=Consent.Action.GRANTED,
         channel=channel,
         recorded_by=recorded_by if channel == Consent.Channel.IN_PERSON else None,
+        given_by=given_by,
     )
     audit.record(
         GRANTED,
@@ -136,7 +145,12 @@ def grant_accepted(
         target=person,
         field=f"consent:{text.kind}",
         new=Consent.Action.GRANTED,
-        details={"version": text.version, "channel": channel, **(source or {})},
+        details={
+            "version": text.version,
+            "channel": channel,
+            "given_by": given_by,
+            **(source or {}),
+        },
         request=request,
     )
     return consent
