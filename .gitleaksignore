@@ -1,0 +1,4 @@
+# Decisió 076 (10/11/2026): única entrada. Fals positiu de la regla generic-api-key a l'historial
+# («by=secretary, effective_on=…», dades de prova, commit 6d871bd). Només aquesta empremta exacta;
+# cap patró genèric. Una entrada nova demana una decisió nova.
+6d871bd0ce0b95ee5bcc6bbcf65ddb9619670e31:apps/members/demo_data.py:generic-api-key:305
