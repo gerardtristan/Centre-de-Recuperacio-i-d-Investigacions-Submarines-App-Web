@@ -27,3 +27,6 @@ docs/context/entrevistes.docx
 Thumbs.db
 desktop.ini
 ~$*
+
+# Línia cronològica generada en local sense xifrar: no es puja (tools/linia-cronologica/README.md)
+CRIS_linia_cronologica.html
