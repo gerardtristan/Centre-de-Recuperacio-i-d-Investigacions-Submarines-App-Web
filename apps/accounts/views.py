@@ -320,6 +320,35 @@ def verify_email_view(request):
     return _same_origin_referrer(render(request, "accounts/verify_email.html", {"state": state}))
 
 
+@login_not_required
+@never_cache
+@require_GET
+def change_email_link_view(request, token):
+    return _stash_link(request, email_links.CHANGE_SESSION_KEY, token, "accounts:change_email")
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def change_email_view(request):
+    """RN-M01-79, CA-M01-78: el correu d'entrada canvia quan es confirma l'enllaç, amb un POST.
+    Sense sessió, com la verificació: el testimoni lliga el compte i l'adreça nova. Un enllaç
+    caducat, ja fet servir o d'una adreça que ja és d'un altre compte dona el mateix missatge."""
+    token = request.session.get(email_links.CHANGE_SESSION_KEY, "")
+    new_email = ""
+    if request.method == "POST":
+        done = email_links.confirm_email_change(token, request=request) is not None
+        state = "done" if done else "invalid"
+    else:
+        account, new_email = email_links.email_change_for_token(token)
+        state = "ready" if account is not None else "invalid"
+    if state != "ready":
+        request.session.pop(email_links.CHANGE_SESSION_KEY, None)
+    return _same_origin_referrer(
+        render(request, "accounts/change_email.html", {"state": state, "new_email": new_email})
+    )
+
+
 def _reset_sent_message():
     hours = email_links.hours(tokens.RESET_PASSWORD)
     return ngettext(

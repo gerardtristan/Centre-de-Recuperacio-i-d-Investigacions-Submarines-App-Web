@@ -519,3 +519,18 @@ class ProfileForm(forms.Form):
             self.fields["preferred_language"].choices = settings.LANGUAGES
         else:
             del self.fields["preferred_language"]
+
+
+class ChangeEmailForm(forms.Form):
+    """Correu d'entrada nou des del perfil (RN-M01-79). Si l'adreça es pot fer servir o no ho
+    decideix el servei, sense dir-ho: la resposta és sempre la mateixa."""
+
+    new_email = forms.EmailField(
+        label=_("Correu nou"),
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email", "spellcheck": "false"}),
+        help_text=_(
+            "T'hi enviarem un enllaç per confirmar-la. Fins que no la confirmis, continues "
+            "entrant amb el correu actual."
+        ),
+    )

@@ -17,17 +17,25 @@ Els enllaços porten el testimoni a la ruta. Per reduir-ne l'exposició:
 Demanar els enllaços (decisió 065): la recuperació i el reenviament de la verificació tenen
 els límits de `limits.py` i una resposta pública que no depèn de si el compte existeix, de
 l'estat ni de si s'ha limitat. Un compte pendent no rep recuperació (RN-M01-59).
+
+Canvi del correu d'entrada des del perfil (074, RN-M01-79, CA-M01-78): el soci amb sessió
+demana l'adreça nova, que rep l'enllaç; el correu d'entrada no canvia fins que es confirma, i
+l'adreça antiga en rep un avís sense cap enllaç. Mateixos límits i la mateixa resposta tant si
+l'adreça ja té compte com si no.
 """
 
 import logging
 import time
 from dataclasses import dataclass
 
+from cryptography.fernet import InvalidToken
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.urls import reverse
+from django.utils import timezone
 
-from apps.core import audit, mail
+from apps.core import audit, crypto, mail, persons
+from apps.core.normalization import normalize_email
 
 from . import limits, tokens
 from .forms import NewPasswordForm
@@ -45,6 +53,8 @@ RESEND_SESSION_KEY = "verification_resend"
 
 RESET = EmailLinkRequest.Purpose.RESET_PASSWORD
 VERIFY = EmailLinkRequest.Purpose.VERIFY_EMAIL
+CHANGE = EmailLinkRequest.Purpose.CHANGE_EMAIL
+CHANGE_SESSION_KEY = "link_change_email"
 
 
 def _link(url_name: str, token: str) -> str:
@@ -249,4 +259,95 @@ def confirm_email(token: str, *, request=None) -> Account | None:
     )
     account.status = Account.Status.ACTIVE
     account.save(update_fields=["status", "updated_at"])
+    return account
+
+
+def request_email_change(request, account: Account, new_email: str) -> None:
+    """RN-M01-79: envia a l'adreça nova l'enllaç per confirmar-la. No torna res: qui la crida
+    respon sempre el mateix. No s'envia res si l'adreça és la mateixa, si ja és d'un altre
+    compte, si el compte no és personal i actiu o si s'ha limitat (RN-M01-58: per origen,
+    conjunt amb la recuperació i el reenviament, i per destinatari i finalitat)."""
+    ip = client_ip(request)
+    new_email = normalize_email(new_email)
+    with transaction.atomic():
+        limits.lock_origin(ip)
+        if limits.origin_limited(ip):
+            _limited(request, CHANGE, "origin", account)
+            return
+        accepted = EmailLinkRequest.objects.create(ip_address=ip, purpose=CHANGE)
+        key = limits.recipient_key(new_email)
+        limits.lock_recipient(key)
+        account = (
+            Account.objects.select_for_update()
+            .filter(pk=account.pk, kind=Account.Kind.PERSONAL, status=Account.Status.ACTIVE)
+            .first()
+        )
+        if account is None or Account.objects.filter(login=new_email).exists():
+            return  # també la mateixa adreça: ja és el seu correu d'entrada
+        if limits.recipient_limited(key, CHANGE):
+            _limited(request, CHANGE, "recipient", account)
+            return
+        token = tokens.make_token(account, tokens.CHANGE_EMAIL, e=crypto.encrypt(new_email))
+        mail.queue_email(
+            "canvi-correu",
+            to=new_email,
+            person=account.person,
+            context={
+                "link": _link("accounts:change_email_link", token),
+                "hours": hours(tokens.CHANGE_EMAIL),
+            },
+        )
+        accepted.recipient_hash = key
+        accepted.save(update_fields=["recipient_hash"])
+        audit.record(
+            audit.Action.EMAIL_LINK_SENT,
+            actor=account,
+            target=account,
+            details={"purpose": CHANGE},
+            request=request,
+        )
+
+
+def email_change_for_token(token: str, *, lock: bool = False) -> tuple[Account | None, str]:
+    """El compte i l'adreça nova del testimoni, si encara és vàlid i el compte és actiu."""
+    account, data = tokens.read_token(token, tokens.CHANGE_EMAIL, lock=lock)
+    if account is None or account.status != Account.Status.ACTIVE:
+        return None, ""
+    try:
+        return account, normalize_email(crypto.decrypt(str(data.get("e", ""))))
+    except InvalidToken:
+        return None, ""
+
+
+@transaction.atomic
+def confirm_email_change(token: str, *, request=None) -> Account | None:
+    """Confirma el correu d'entrada nou (RN-M01-79). Torna None si l'enllaç no és vàlid, ja
+    s'ha fet servir (l'empremta inclou el correu) o l'adreça ha passat a ser d'un altre compte
+    entre la petició i la confirmació. El contacte de la persona canvia només si era l'adreça
+    antiga. Les sessions obertes del compte no es tanquen (no està decidit)."""
+    account, new_email = email_change_for_token(token, lock=True)
+    if account is None or Account.objects.filter(login=new_email).exists():
+        return None
+    old_email = account.login
+    account.login = new_email
+    try:
+        with transaction.atomic():
+            account.save(update_fields=["login", "updated_at"])
+    except IntegrityError:  # una altra confirmació simultània amb la mateixa adreça
+        return None
+    audit.record(
+        audit.Action.LOGIN_EMAIL_CHANGED,
+        actor=account,
+        target=account,
+        field="login",
+        old=old_email,
+        new=new_email,
+        request=request,
+    )
+    person = account.person
+    if normalize_email(person.contact_email) == old_email:
+        persons.update(person, by=account, request=request, contact_email=new_email)
+    mail.queue_email(
+        "avis-canvi-correu", to=old_email, person=person, context={"when": timezone.now()}
+    )
     return account

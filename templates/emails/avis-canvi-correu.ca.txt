@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} es va confirmar un correu d'entrada nou per al teu compte de l'àrea de socis del C.R.I.S. Aquesta adreça ja no serveix per entrar-hi.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís: no porta cap enllaç." %}
+
+{% translate "Si no has estat tu, avisa el club tan aviat com puguis responent aquest correu o adreçant-te a la secretaria." %}
+{% endautoescape %}

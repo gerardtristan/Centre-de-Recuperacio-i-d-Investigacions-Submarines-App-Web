@@ -1,4 +1,5 @@
-"""Àrea del soci amb el compte personal (T-M01-16; P12, P13; CA-M01-12, CA-M01-25).
+"""Àrea del soci amb el compte personal (T-M01-16; P12, P13; CA-M01-12, CA-M01-25; Q-031 i
+RN-M01-79 de la 074: consentiments opcionals i canvi del correu d'entrada des del perfil).
 
 Totes les dades surten de la persona de la sessió (`request.user.person`): cap ruta no porta
 l'identificador d'una persona ni d'un soci. L'única que porta un identificador, el detall d'una
@@ -17,14 +18,16 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils.formats import number_format
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit, persons
-from apps.core.models import Charge
+from apps.accounts import email_links, tokens
+from apps.core import audit, consents, persons
+from apps.core.models import Charge, Consent
 
-from .. import licences, roster
-from ..forms import LEGAL_LABELS, ProfileForm
+from .. import join, licences, roster
+from ..forms import LEGAL_LABELS, ChangeEmailForm, ProfileForm
 from ..models import AnnualFee, LicenceRecord, Member
 
 
@@ -43,12 +46,25 @@ def own_member(request) -> Member | None:
 
 
 def own_consents(person):
-    """Últim estat de cada text de la persona, com a la fitxa (T-M01-15). Només lectura: quins
-    es poden retirar des del perfil depèn de Q-16."""
+    """Últim estat de cada text de la persona, com a la fitxa (T-M01-15): els obligatoris, només
+    lectura, i els opcionals (Q-031) que tenen un text vigent publicat, que es poden donar o
+    retirar des del perfil (amb `None` si encara no n'hi ha cap fila, i el text vigent)."""
     latest = {}
     for consent in person.consents.select_related("legal_text").order_by("created_at", "id"):
         latest[consent.legal_text.kind] = consent
-    return [(LEGAL_LABELS.get(kind, kind), consent) for kind, consent in sorted(latest.items())]
+    optional = [
+        (kind, LEGAL_LABELS[kind], latest.pop(kind, None), text)
+        for kind, text in changeable_consents(persons.language_for(person)).items()
+    ]
+    fixed = [(LEGAL_LABELS.get(kind, kind), consent) for kind, consent in sorted(latest.items())]
+    return fixed, optional
+
+
+def changeable_consents(language=None) -> dict:
+    """Tipus opcionals que es poden canviar des del perfil, amb el text vigent: només els que en
+    tenen un de publicat, com a l'alta (T-M01-41)."""
+    texts = {kind: consents.current_text(kind, language) for kind in join.OPTIONAL_TEXTS}
+    return {kind: text for kind, text in texts.items() if text is not None}
 
 
 @never_cache
@@ -65,7 +81,7 @@ def profile_view(request):
     return _render_profile(request, form=form)
 
 
-def _render_profile(request, *, form=None, declare_form=None):
+def _render_profile(request, *, form=None, declare_form=None, email_form=None):
     person = request.user.person
     member = own_member(request)
     records = []
@@ -79,16 +95,70 @@ def _render_profile(request, *, form=None, declare_form=None):
         else:
             declare = None
         records.append((record, declare))
+    fixed_consents, optional_consents = own_consents(person)
     context = {
         "person": person,
         "member": member,
         "document": masked_document(person),
         "form": form or ProfileForm(initial=_profile_initial(person)),
-        "consents": own_consents(person),
+        "consents": fixed_consents,
+        "optional_consents": optional_consents,
+        "email_form": email_form or ChangeEmailForm(),
         "requests": person.member_requests.order_by("-created_at", "-id"),
         "licence_records": records,
     }
     return render(request, "members/personal_profile.html", context)
+
+
+CONSENT_ACTIONS = {"grant": consents.grant, "withdraw": consents.withdraw}
+
+
+@never_cache
+@require_POST
+def consent_view(request):
+    """Dona o retira un consentiment opcional propi (Q-031). La persona surt de la sessió: un
+    identificador enviat al formulari no hi té cap paper. Un tipus que no és opcional o sense
+    text vigent, o una acció desconeguda, es rebutgen sense canviar res."""
+    kind, action = request.POST.get("kind"), request.POST.get("action")
+    if kind not in changeable_consents() or action not in CONSENT_ACTIONS:
+        raise Http404
+    # Dels 14 als 17 anys, el mateix menor (RN-M01-78) [A validar: assessor, Q-016]. Un menor de
+    # 14 anys no té compte personal (Q-012), de manera que no arriba aquí.
+    person = request.user.person
+    before = person.consents.filter(legal_text__kind=kind).order_by("-created_at", "-id").first()
+    after = CONSENT_ACTIONS[action](
+        person, kind, channel=Consent.Channel.WEB, by=request.user, request=request
+    )
+    if after is None or after == before:  # ja estava així (p. ex. un formulari antic)
+        messages.success(request, _("No has canviat cap consentiment."))
+    elif action == "grant":
+        messages.success(request, _("Consentiment donat."))
+    else:
+        messages.success(request, _("Consentiment retirat."))
+    return redirect("members:profile")
+
+
+@never_cache
+@require_POST
+def change_email_view(request):
+    """Demana el canvi del correu d'entrada (RN-M01-79, CA-M01-78). La resposta és la mateixa
+    tant si l'adreça es pot fer servir com si ja és d'un altre compte o s'ha limitat."""
+    form = ChangeEmailForm(request.POST)
+    if not form.is_valid():
+        return _render_profile(request, email_form=form)
+    email_links.request_email_change(request, request.user, form.cleaned_data["new_email"])
+    hours = email_links.hours(tokens.CHANGE_EMAIL)
+    message = ngettext(
+        "Si aquesta adreça es pot fer servir, hi rebràs un enllaç per confirmar-la, que caduca "
+        "d'aquí a %(hours)d hora. Fins que no el confirmis, continues entrant amb el correu "
+        "actual.",
+        "Si aquesta adreça es pot fer servir, hi rebràs un enllaç per confirmar-la, que caduca "
+        "d'aquí a %(hours)d hores. Fins que no el confirmis, continues entrant amb el correu "
+        "actual.",
+        hours,
+    )
+    messages.success(request, message % {"hours": hours})
+    return redirect("members:profile")
 
 
 def _profile_initial(person):

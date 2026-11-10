@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Fora d'aquesta tasca: la data de naixement (T-M01-35), canviar el correu (pendent de decidir), retirar consentiments (Q-16), els camps opcionals (P-58), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. Fora d'aquesta tasca: la data de naixement (T-M01-35), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
@@ -14,7 +14,7 @@
       <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
       <div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>
       {% if member.member_number %}<div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ member.member_number }}</dd></div>{% endif %}
-      <div><dt>{% translate "Correu electrònic" %}</dt><dd>{{ user.login }}</dd></div>
+      <div><dt>{% translate "Correu d'entrada" %}</dt><dd>{{ user.login }}</dd></div>
     </dl>
     <p class="text-2">{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p>
 
@@ -25,17 +25,44 @@
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els canvis" %}</button></div>
     </form>
+
+    <h3 id="correu-titol">{% translate "Canviar el correu d'entrada" %}</h3>
+    <form class="formulari" method="post" action="{% url 'members:change_email' %}" aria-labelledby="correu-titol" novalidate>
+      {% csrf_token %}
+      {% with field=email_form.new_email %}{% include "accounts/_camp.html" %}{% endwith %}
+      <div class="accions"><button class="boto" type="submit">{% translate "Envia l'enllaç de confirmació" %}</button></div>
+    </form>
   </section>
 
   <section class="targeta" aria-labelledby="consentiments-titol">
     <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
-    {% if consents %}
+    {% if consents or optional_consents %}
       <ul class="historial">
         {% for label, consent in consents %}
           <li>
             <strong>{{ label }}</strong>
             <span>{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</span>
             <span class="text-2">{% blocktranslate with date=consent.created_at|date:"d/m/Y" version=consent.legal_text.version %}El {{ date }} · versió {{ version }}{% endblocktranslate %}</span>
+          </li>
+        {% endfor %}
+        {# Q-031: opcionals amb text vigent. Cada canvi és una fila nova; la persona surt de la sessió. #}
+        {% for kind, label, consent, text in optional_consents %}
+          <li>
+            <strong id="consentiment-{{ kind }}">{{ label }}</strong>
+            <span>{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% elif consent %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No donat" %}</span>{% endif %}</span>
+            <span class="text-2">{% if consent %}{% blocktranslate with date=consent.created_at|date:"d/m/Y" version=consent.legal_text.version %}El {{ date }} · versió {{ version }}{% endblocktranslate %} · {% endif %}{% translate "Opcional. El pots donar o retirar quan vulguis." %}</span>
+            <details><summary>{% blocktranslate with version=text.version %}Llegeix el text (versió {{ version }}){% endblocktranslate %}</summary>{{ text.content|linebreaks }}</details>
+            <form method="post" action="{% url 'members:consent' %}">
+              {% csrf_token %}
+              <input type="hidden" name="kind" value="{{ kind }}">
+              {% if consent.action == "granted" %}
+                <input type="hidden" name="action" value="withdraw">
+                <button class="boto boto-petit" type="submit" aria-describedby="consentiment-{{ kind }}">{% translate "Retira el consentiment" %}</button>
+              {% else %}
+                <input type="hidden" name="action" value="grant">
+                <button class="boto boto-petit" type="submit" aria-describedby="consentiment-{{ kind }}">{% translate "Dona el consentiment" %}</button>
+              {% endif %}
+            </form>
           </li>
         {% endfor %}
       </ul>

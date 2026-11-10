@@ -12,7 +12,10 @@ Què l'invalida:
 - verificació (48 hores): el compte deixa d'estar pendent (verificat o desactivat) o canvia
   el correu d'entrada;
 - recuperació (1 hora): canvia la contrasenya, el compte entra (data d'última entrada), canvia
-  l'estat o el correu.
+  l'estat o el correu;
+- canvi del correu d'entrada (48 hores, com la verificació: RN-M01-79): canvia el correu (és a
+  dir, se n'ha confirmat un), la contrasenya o l'estat. L'adreça nova va xifrada dins del
+  testimoni (`apps.core.crypto`), perquè no quedi llegible a l'adreça de l'enllaç.
 
 Demanar-ne un de nou no invalida els anteriors encara vigents: tots deixen de valer alhora
 quan se'n fa servir un.
@@ -45,6 +48,11 @@ RESET_PASSWORD = Purpose(
     max_age=timedelta(hours=1),
     fields=("login", "status", "password", "last_login"),
 )
+CHANGE_EMAIL = Purpose(
+    salt="apps.accounts.tokens.change_email",
+    max_age=timedelta(hours=48),
+    fields=("login", "status", "password"),
+)
 
 
 def _fingerprint(account: Account, purpose: Purpose) -> str:
@@ -52,23 +60,31 @@ def _fingerprint(account: Account, purpose: Purpose) -> str:
     return salted_hmac(purpose.salt, f"{account.pk}:{state}", algorithm="sha256").hexdigest()
 
 
-def make_token(account: Account, purpose: Purpose) -> str:
-    return signing.dumps({"a": account.pk, "f": _fingerprint(account, purpose)}, salt=purpose.salt)
+def make_token(account: Account, purpose: Purpose, **extra) -> str:
+    """`extra`: dades més que porta el testimoni (signades, no xifrades)."""
+    return signing.dumps(
+        {**extra, "a": account.pk, "f": _fingerprint(account, purpose)}, salt=purpose.salt
+    )
 
 
-def account_for_token(token: str, purpose: Purpose, *, lock: bool = False) -> Account | None:
-    """El compte personal del testimoni, si encara és vàlid. Amb `lock`, en bloqueja la fila
-    fins al final de la transacció i hi torna a comparar l'empremta: dues peticions alhora
-    amb el mateix testimoni no poden completar dues vegades la mateixa operació."""
+def read_token(token: str, purpose: Purpose, *, lock: bool = False) -> tuple[Account | None, dict]:
+    """El compte personal del testimoni, si encara és vàlid, i les dades que porta. Amb `lock`,
+    en bloqueja la fila fins al final de la transacció i hi torna a comparar l'empremta: dues
+    peticions alhora amb el mateix testimoni no poden completar dues vegades la mateixa
+    operació."""
     try:
         data = signing.loads(token or "", salt=purpose.salt, max_age=purpose.max_age)
         pk, fingerprint = int(data["a"]), str(data["f"])
     except (signing.BadSignature, KeyError, TypeError, ValueError):
-        return None
+        return None, {}
     accounts = Account.objects.filter(pk=pk, kind=Account.Kind.PERSONAL)
     if lock:
         accounts = accounts.select_for_update()
     account = accounts.first()
     if account is None or not constant_time_compare(_fingerprint(account, purpose), fingerprint):
-        return None
-    return account
+        return None, {}
+    return account, data
+
+
+def account_for_token(token: str, purpose: Purpose, *, lock: bool = False) -> Account | None:
+    return read_token(token, purpose, lock=lock)[0]

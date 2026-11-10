@@ -33,6 +33,7 @@ class Action:
     RESET_NOTICE = "auth.reset_notice"
     RECOVERY_CODE_USED = "auth.recovery_code_used"
     EMAIL_VERIFIED = "auth.email_verified"
+    LOGIN_EMAIL_CHANGED = "auth.login_email_changed"  # RN-M01-79, amb el valor anterior
     EMAIL_LINK_SENT = "auth.email_link_sent"
     EMAIL_LINK_LIMITED = "auth.email_link_limited"
     PASSWORD_RESET = "auth.password_reset"  # noqa: S105 (nom d'una acció, no cap contrasenya)

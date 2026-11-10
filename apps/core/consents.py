@@ -69,14 +69,14 @@ def has_consent(person, kind: str) -> bool:
     return last is not None and last.action == Consent.Action.GRANTED
 
 
-def _record(person, text, action, channel, by, request) -> Consent:
+def _record(person, text, action, channel, by, request, old=None) -> Consent:
     from apps.accounts.models import Account
 
     # CA-17.1: el presencial el registra un compte concret; l'importat de Cluber, el compte que
-    # confirma la importació (071, punt 15).
+    # confirma la importació (071, punt 15). Al web, el compte si n'hi ha (el perfil, T-M01-16).
     recorded = channel in (Consent.Channel.IN_PERSON, Consent.Channel.CLUBER)
-    recorder = by if recorded else None
-    if recorded and not isinstance(by, Account):
+    recorder = by if isinstance(by, Account) else None
+    if recorded and recorder is None:
         raise ValidationError(_("Aquest consentiment necessita el compte que el registra."))
     consent = Consent.objects.create(
         person=person, legal_text=text, action=action, channel=channel, recorded_by=recorder
@@ -86,6 +86,7 @@ def _record(person, text, action, channel, by, request) -> Consent:
         actor=by,
         target=person,
         field=f"consent:{text.kind}",
+        old=old,
         new=action,
         details={"version": text.version, "channel": channel},
         request=request,
@@ -105,7 +106,8 @@ def grant(person, kind: str, *, channel: str, by=None, request=None) -> Consent:
     last = _last(person, kind)
     if last and last.action == Consent.Action.GRANTED and last.legal_text_id == text.pk:
         return last
-    return _record(person, text, Consent.Action.GRANTED, channel, by, request)
+    old = last.action if last else None
+    return _record(person, text, Consent.Action.GRANTED, channel, by, request, old)
 
 
 @transaction.atomic
@@ -163,7 +165,9 @@ def withdraw(person, kind: str, *, channel: str, by=None, request=None) -> Conse
     last = _last(person, kind)
     if last is None or last.action != Consent.Action.GRANTED:
         return None
-    return _record(person, last.legal_text, Consent.Action.WITHDRAWN, channel, by, request)
+    return _record(
+        person, last.legal_text, Consent.Action.WITHDRAWN, channel, by, request, last.action
+    )
 
 
 def imported_text(kind: str, content: str, *, language: str, by) -> LegalText:

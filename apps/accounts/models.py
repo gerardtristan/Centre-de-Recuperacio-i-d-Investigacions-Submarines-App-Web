@@ -281,6 +281,8 @@ class EmailLinkRequest(models.Model):
         VERIFY_EMAIL = "verify", _("Verificació del correu")
         JOIN = "join", _("Sol·licitud d'alta de soci")
         CARD_VERIFY = "card", _("Verificació del carnet")
+        # Canvi del correu d'entrada des del perfil (RN-M01-79): el destinatari és l'adreça nova.
+        CHANGE_EMAIL = "email", _("Canvi del correu d'entrada")
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     ip_address = models.GenericIPAddressField()

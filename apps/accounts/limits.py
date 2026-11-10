@@ -1,11 +1,12 @@
-"""Límits dels enllaços del correu: recuperació i reenviament de la verificació (decisió 065,
-RN-M01-58). Són valors de seguretat al codi, com els de V-01 (`security.py`): les regles de
-seguretat no s'editen des de l'app (059). Per ajustar-los cal una decisió nova que canviï
-RN-M01-58 i, després, el valor d'aquest fitxer; les proves el llegeixen d'aquí.
+"""Límits dels enllaços del correu: recuperació, reenviament de la verificació (decisió 065,
+RN-M01-58) i, amb els mateixos valors, confirmació d'un correu d'entrada nou (RN-M01-79). Són
+valors de seguretat al codi, com els de V-01 (`security.py`): les regles de seguretat no
+s'editen des de l'app (059). Per ajustar-los cal una decisió nova que canviï RN-M01-58 i,
+després, el valor d'aquest fitxer; les proves el llegeixen d'aquí.
 
 - Per destinatari (adreça normalitzada) i finalitat: com a màxim 3 correus per hora i 6 cada
   24 hores, vinguin d'on vinguin les peticions.
-- Per origen, conjunt per a les dues finalitats: quan arriba a 10 peticions acceptades en
+- Per origen, conjunt per a les tres finalitats: quan arriba a 10 peticions acceptades en
   15 minuts, queda limitat 15 minuts comptats des de la desena.
 - Una petició limitada per origen no es desa: no compta i no allarga res. Una de limitada
   per destinatari no envia res ni compta per al destinatari, però sí per a l'origen
@@ -68,6 +69,7 @@ def lock_recipient(key: str) -> None:
 EMAIL_LINK_PURPOSES = (
     EmailLinkRequest.Purpose.RESET_PASSWORD,
     EmailLinkRequest.Purpose.VERIFY_EMAIL,
+    EmailLinkRequest.Purpose.CHANGE_EMAIL,
 )
 
 

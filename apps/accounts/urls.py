@@ -29,6 +29,9 @@ urlpatterns = [
         name="resend_verification",
     ),
     path("compte/verificar/<str:token>/", views.verify_email_link_view, name="verify_email_link"),
+    # Canvi del correu d'entrada des del perfil (RN-M01-79): confirmació des de l'adreça nova.
+    path("compte/correu/", views.change_email_view, name="change_email"),
+    path("compte/correu/<str:token>/", views.change_email_link_view, name="change_email_link"),
     path("compte/contrasenya/", views.password_reset_view, name="password_reset"),
     path(
         "compte/contrasenya/oblidada/",
