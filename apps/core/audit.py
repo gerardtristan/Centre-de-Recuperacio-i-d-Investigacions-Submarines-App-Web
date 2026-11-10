@@ -51,6 +51,7 @@ class Action:
     MEMBERS_EXPORTED = "members.list.exported"
     # T-M01-16. Fora de «members.*», però P20 els veu si la persona és sòcia (Q-079 de la 072).
     PROFILE_UPDATED = "persons.profile_updated"
+    ERASURE_REQUESTED = "persons.erasure_requested"  # RN-M01-57 (T-M01-22, peça mínima)
     PERSONAL_AREA_NOT_FOUND = "members.personal_area.not_found"  # CA-M01-25
 
 

@@ -444,9 +444,9 @@ def test_navigation_without_member_has_no_fees_link(client_for, anna):
 def test_navigation_has_no_links_to_pages_not_built_yet(client_for, anna):
     make_member(anna.person, 427)
     html = client_for(anna).get(reverse(PROFILE)).content.decode()
-    # El carnet (T-M01-19), el canvi de tipus i la baixa (T-M01-17) ja hi són.
-    for path in ("/socis/perfil/esborrar",):
-        assert path not in html
+    # El carnet (T-M01-19), el canvi de tipus i la baixa (T-M01-17) ja hi són, i l'esborrat
+    # (peça mínima de la T-M01-22); descarregar les dades encara no.
+    assert "Descarrega les meves dades" not in html
 
 
 def test_no_navigation_on_the_login_page(client, db):

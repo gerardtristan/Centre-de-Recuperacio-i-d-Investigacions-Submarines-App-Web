@@ -461,6 +461,52 @@ class Consent(AppendOnlyModel):
         return f"{self.person_id} {self.legal_text} {self.action}"
 
 
+class ErasureRequest(models.Model):
+    """Sol·licitud d'esborrat de les dades d'una persona (P-M01-F, pas 3; RN-M01-57; peça mínima
+    de la T-M01-22 autoritzada per la 074, punt 20). Només es crea: atendre-la (pas 4,
+    `/gestio/rgpd`), anonimitzar i desactivar els comptes continuen a la T-M01-22. Cap dada
+    personal duplicada: la persona i el compte són referències."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pendent")
+
+    class Channel(models.TextChoices):
+        WEB = "web", _("Web")
+
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="erasure_requests",
+        verbose_name=_("persona"),
+    )
+    requested_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("demanada pel compte"),
+    )
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    channel = models.CharField(_("canal"), max_length=10, choices=Channel.choices)
+    created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("sol·licitud d'esborrat")
+        verbose_name_plural = _("sol·licituds d'esborrat")
+        constraints = [
+            # Una sola pendent per persona.
+            models.UniqueConstraint(
+                fields=["person"],
+                condition=Q(status="pending"),
+                name="erasure_request_one_pending_per_person",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.person_id} {self.status}"
+
+
 class UndeletableError(Exception):
     """Intent d'esborrar un registre econòmic: es corregeix amb una anul·lació (RN-61)."""
 

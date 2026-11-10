@@ -1,5 +1,6 @@
 """Àrea del soci amb el compte personal (T-M01-16; P12, P13; CA-M01-12, CA-M01-25; Q-031 i
-RN-M01-79 de la 074: consentiments opcionals i canvi del correu d'entrada des del perfil).
+RN-M01-79 de la 074: consentiments opcionals i canvi del correu d'entrada des del perfil; peça
+mínima de la T-M01-22: sol·licitud d'esborrat, RN-M01-57 i CA-M01-46).
 
 Totes les dades surten de la persona de la sessió (`request.user.person`): cap ruta no porta
 l'identificador d'una persona ni d'un soci. L'única que porta un identificador, el detall d'una
@@ -22,12 +23,13 @@ from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.accounts import email_links, tokens
-from apps.core import audit, consents, persons
+from apps.accounts import email_links, reauth, tokens
+from apps.accounts.security import WRONG_CODE, WRONG_PASSWORD
+from apps.core import audit, consents, erasure, persons
 from apps.core.models import Charge, Consent
 
 from .. import join, licences, roster
-from ..forms import LEGAL_LABELS, ChangeEmailForm, ProfileForm
+from ..forms import LEGAL_LABELS, ChangeEmailForm, EraseAccountForm, ProfileForm
 from ..models import AnnualFee, LicenceRecord, Member
 
 
@@ -159,6 +161,51 @@ def change_email_view(request):
     )
     messages.success(request, message % {"hours": hours})
     return redirect("members:profile")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def erase_view(request):
+    """«Esborra el meu compte» (P-M01-F, pas 3; RN-M01-57, CA-M01-46). Qualsevol persona amb el
+    compte personal (no cal ser soci). Contrasenya, i codi si el compte té TOTP, sempre i a la
+    mateixa petició (`require_recent_auth` amb `minutes=0`); si falla, no es crea res. Una sola
+    sol·licitud pendent per persona: amb una de pendent no es torna a demanar res."""
+    person, account = request.user.person, request.user
+    pending = erasure.pending_request(person)
+    form = None
+    if pending is None:
+        form = EraseAccountForm(request.POST or None, has_totp=account.has_totp)
+        if request.method == "POST" and form.is_valid():
+            error = reauth.require_recent_auth(
+                request,
+                0,
+                password=form.cleaned_data["password"],
+                code=form.cleaned_data.get("code", ""),
+            )
+            if error is None:
+                erasure.request_erasure(person, by=account, request=request)
+                messages.success(
+                    request,
+                    _(
+                        "Sol·licitud d'esborrat rebuda. L'administració la revisarà i t'avisarà "
+                        "per correu. Mentrestant, el compte continua actiu."
+                    ),
+                )
+                return redirect("members:erase")
+            # L'error al costat del camp que falla; el de massa intents, a tot el formulari. La
+            # contrasenya no es torna a mostrar (PasswordInput) i el codi tampoc.
+            form.add_error({WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error), error)
+            form.data = form.data.copy()
+            form.data.pop("code", None)
+    unpaid = person.charges.filter(status__in=[Charge.Status.PENDING, Charge.Status.RETURNED])
+    context = {
+        "form": form,
+        "pending": pending,
+        "member": own_member(request),
+        # Només un avís: la sol·licitud es pot enviar igualment (Q-14, wireframe).
+        "has_unpaid": unpaid.exists(),
+    }
+    return render(request, "members/personal_erase.html", context)
 
 
 def _profile_initial(person):

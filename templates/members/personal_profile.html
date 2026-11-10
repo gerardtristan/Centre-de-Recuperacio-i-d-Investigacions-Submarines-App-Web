@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. Fora d'aquesta tasca: la data de naixement (T-M01-35), el canvi de tipus i la baixa (T-M01-17), i exportar i esborrar (T-M01-22). #}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. Fora d'aquesta tasca: la data de naixement (T-M01-35), el canvi de tipus i la baixa (T-M01-17), i exportar (T-M01-22; l'enllaç a esborrar és de la seva peça mínima). #}
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
@@ -110,5 +110,11 @@
     {% else %}
       <p class="text-2">{% translate "No tens cap sol·licitud." %}</p>
     {% endif %}
+  </section>
+
+  {# T-M01-22, peça mínima (074): només l'esborrat; descarregar les dades és de la resta de la tasca. #}
+  <section class="targeta" aria-labelledby="rgpd-titol">
+    <h2 id="rgpd-titol">{% translate "Les meves dades" %}</h2>
+    <p><a href="{% url 'members:erase' %}">{% translate "Esborra el meu compte" %}</a></p>
   </section>
 {% endblock %}

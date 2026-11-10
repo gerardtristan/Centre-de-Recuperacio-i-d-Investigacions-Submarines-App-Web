@@ -534,3 +534,35 @@ class ChangeEmailForm(forms.Form):
             "entrant amb el correu actual."
         ),
     )
+
+
+class EraseAccountForm(forms.Form):
+    """«Esborra el meu compte» (P-M01-F, pas 3; wireframe `socis.html#esborrar`). La contrasenya
+    no és obligatòria al formulari: una de buida es comprova igualment i compta com a intent
+    fallit (CA-M01-46). El codi només hi és si el compte té TOTP actiu."""
+
+    confirm = forms.BooleanField(
+        label=_("Entenc que, un cop fet, l'esborrat no es pot desfer."),
+        error_messages={"required": _("Marca la casella per confirmar que ho entens.")},
+    )
+    password = forms.CharField(
+        label=_("Contrasenya"),
+        required=False,
+        strip=False,
+        help_text=_("Torna-la a escriure per confirmar que ets tu, encara que acabis d'entrar."),
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    code = forms.CharField(
+        label=_("Codi de l'aplicació d'autenticació"),
+        required=False,
+        max_length=24,
+        help_text=_("Les 6 xifres que mostra ara l'aplicació."),
+        widget=forms.TextInput(
+            attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "maxlength": "6"}
+        ),
+    )
+
+    def __init__(self, *args, has_totp: bool, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not has_totp:
+            del self.fields["code"]

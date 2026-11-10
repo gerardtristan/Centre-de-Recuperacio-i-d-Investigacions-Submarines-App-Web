@@ -370,8 +370,9 @@ class TestResetAction:
             post_reset(session, b, code="000000")
         a.refresh_from_db()
         assert a.is_locked(timezone.now())
+        # El bloqueig tanca les sessions del compte (RN-M01-80, T-M00-05).
         response = post_reset(session, b, actor=a)
-        assert response.context["form"].non_field_errors()
+        assert response.status_code != 200
         b.refresh_from_db()
         assert b.check_password(PASSWORD)
 

@@ -19,6 +19,8 @@ urlpatterns = [
     # T-M01-16 (074): consentiments opcionals (Q-031) i canvi del correu d'entrada (RN-M01-79).
     path("socis/perfil/consentiment/", personal.consent_view, name="consent"),
     path("socis/perfil/correu/", personal.change_email_view, name="change_email"),
+    # T-M01-22, peça mínima (074): sol·licitud d'esborrat (RN-M01-57, CA-M01-46).
+    path("socis/perfil/esborrar/", personal.erase_view, name="erase"),
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
     path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19

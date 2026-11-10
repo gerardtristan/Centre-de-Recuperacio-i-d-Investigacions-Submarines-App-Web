@@ -161,9 +161,9 @@ class TestDisable:
         assert escape(str(TOO_MANY_ATTEMPTS)) in response.content.decode()
         personal_account.refresh_from_db()
         assert personal_account.is_locked(timezone.now())
-        # Bloquejat: ni amb les dades bones.
+        # Bloquejat: la sessió s'ha tancat (RN-M01-80, T-M00-05) i ni amb les dades bones.
         response = session.post(reverse(DISABLE), {"password": PASSWORD, "code": code_for(device)})
-        assert escape(str(TOO_MANY_ATTEMPTS)) in response.content.decode()
+        assert response.status_code != 200
         personal_account.refresh_from_db()
         assert personal_account.has_totp
         assert AuditEntry.objects.filter(action=audit.Action.ACCOUNT_LOCKED).count() == 1

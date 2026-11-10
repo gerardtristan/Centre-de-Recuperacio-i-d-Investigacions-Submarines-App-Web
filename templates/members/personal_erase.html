@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-22, peça mínima (074, punt 20): «Esborra el meu compte» (P-M01-F pas 3; RN-M01-57, CA-M01-46; wireframe socis.html#esborrar). Només crea la sol·licitud. La contrasenya, i el codi si el compte té TOTP, es comproven al servidor a la mateixa petició; amagar el camp del codi no és cap control. #}
+{% block title %}{% translate "Esborra el meu compte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Les meves dades" %}</p>
+  <h1>{% translate "Esborra el meu compte" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+
+  {% if pending %}
+    <section class="targeta" aria-labelledby="pendent-titol">
+      <h2 id="pendent-titol">{% translate "Ja tens una sol·licitud d'esborrat pendent" %}</h2>
+      <p>{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}La vas enviar el {{ date }}. L'administració la revisarà i t'avisarà per correu. Mentrestant, el compte continua actiu.{% endblocktranslate %}</p>
+    </section>
+  {% else %}
+    <section class="targeta" aria-labelledby="que-titol">
+      <h2 id="que-titol">{% translate "Què passarà" %}</h2>
+      <ul>
+        <li>{% translate "L'administració revisarà la sol·licitud i t'avisarà per correu." %}</li>
+        {% if member %}<li>{% translate "Si ets soci actiu, et donarem de baixa." %}</li>{% endif %}
+        <li>{% translate "Es desactivaran els teus comptes i s'anonimitzaran les teves dades personals: nom, document, correu, telèfon, adreça, data de naixement i consentiments." %}</li>
+        <li>{% translate "Les quotes, els rebuts i els pagaments no s'esborren mai. Les teves dades que hi surten quedaran bloquejades i s'anonimitzaran passat el termini legal." %}</li>
+        {% if member %}<li>{% translate "El teu número de soci quedarà reservat, sense cap dada teva." %}</li>{% endif %}
+      </ul>
+    </section>
+    {% if has_unpaid %}
+      <div class="avis avis-avis"><strong>{% translate "Tens pagaments pendents." %}</strong> {% translate "Pots enviar la sol·licitud igualment." %}</div>
+    {% endif %}
+    <form class="targeta formulari" method="post" action="{% url 'members:erase' %}" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Sol·licita l'esborrat" %}</button></div>
+    </form>
+  {% endif %}
+  <p><a href="{% url 'members:profile' %}">{% translate "Torna al perfil" %}</a></p>
+{% endblock %}
