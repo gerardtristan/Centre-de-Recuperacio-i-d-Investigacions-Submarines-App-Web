@@ -100,6 +100,7 @@ La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida d
 | [T-M00-05](T-M00-05.md) | Servei de reautenticació i sessions tancades quan un compte queda bloquejat per intents (**implementada, pendent de validació**, tanda del 10/11/2026; RN-M01-80, CA-M01-79) | 10/11/2026 | 42e243f | 2560 | pendent (sense push) |
 | [T-M01-22](T-M01-22.md) | RGPD del M01: sol·licitud d'esborrat des del perfil (**feta en part**, peça mínima de la 074, tanda del 10/11/2026; queden la gestió, l'anonimització i l'exportació) | 10/11/2026 | 42e243f | 2560 | pendent (sense push) |
 | [T-M01-37](T-M01-37.md) | Permisos del 01 per cel·la: cada ruta i els serveis principals contra la matriu inicial, franja d'edat a les altes pendents (**implementada, pendent de validació**, tanda del 10/11/2026; CA-RP-13, CA-M01-45) | 10/11/2026 | 8c96168 | 3110 | pendent (sense push) |
+| [T-M01-27](T-M01-27.md) | Dades de prova inventades per a la revisió: socis de cada cas, quotes, carnets, llicències, textos provisionals, fitxer de Cluber i comptes de rol amb TOTP de prova (**implementada, pendent de validació**, tanda del 10/11/2026; 074, punt 21) | 10/11/2026 | 6d871bd | 3115 | pendent (sense push) |
 
 ### Eines
 Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).

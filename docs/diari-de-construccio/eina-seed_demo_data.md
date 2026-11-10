@@ -49,3 +49,11 @@ Com s'executa: [`README.md` del projecte](../../README.md).
 - **Dades de demostració** (*demo data*): dades inventades per ensenyar l'aplicació sense fer servir dades reals.
 - **Faker**: biblioteca de Python que inventa noms, adreces i documents realistes.
 - **Ordre de gestió** (*management command*): programa que s'executa amb `python manage.py …`.
+
+## Tanda del 10/11/2026 (branca `night/2026-11-10`)
+Ampliada per la [T-M01-27](T-M01-27.md) (commit 6d871bd, 3115 proves; CI: pendent). Ara, a més del que hi havia:
+- crea els socis de cada cas de la revisió conjunta amb els serveis del 01 (`apps/members/demo_data.py`), amb quotes, carnets, sol·licituds i llicències, i publica els textos provisionals del butlletí i de les imatges [A validar];
+- escriu una exportació de Cluber inventada, sense IBAN (`--cluber-file`), i amb `--without-cluber-batch` deixa la base sense importació confirmada per provar-ne la previsualització;
+- **substitueix dues decisions d'aquesta entrada:** «Cap secret conegut» i «Cap compte personal». La [074](../decisions/074-respostes-del-responsable-al-diagnostic-del-10-11.md) (punt 21) permet un secret TOTP públic i inequívocament de prova: `admin-demo` i els comptes de secretaria, tresorer, President i instructor ja són operatius amb la contrasenya de proves i aquest secret, i sis socis tenen compte personal confirmat amb l'enllaç real de verificació. Tot plegat només quan l'ordre pot córrer (desenvolupament o proves, `DEBUG`, base local i buida).
+
+Com carregar-ho i entrar-hi: [`README.md` del projecte](../../README.md) i la sortida de l'ordre.
