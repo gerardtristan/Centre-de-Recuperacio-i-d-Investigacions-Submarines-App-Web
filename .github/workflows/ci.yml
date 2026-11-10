@@ -58,6 +58,43 @@ jobs:
           S3_ACCESS_KEY_ID: proves
           S3_SECRET_ACCESS_KEY: contrasenya-de-proves-1954
 
+  e2e:
+    # Suite de prova ràpida al navegador (T-M00-07): Postgres 16 i Chromium de Playwright.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Base de dades efímera del pipeline, sense cap dada.
+          POSTGRES_USER: cris
+          POSTGRES_PASSWORD: cris-ci
+          POSTGRES_DB: cris
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://cris:cris-ci@localhost:5432/cris
+      # Chromium dins del paquet de Playwright, com en local (apps/core/tests/e2e/conftest.py).
+      PLAYWRIGHT_BROWSERS_PATH: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Chromium de Playwright
+        run: python -m playwright install --with-deps chromium-headless-shell
+      - name: Proves e2e
+        run: pytest -m e2e apps/core/tests/e2e
+      - name: Captures de les proves e2e (només si fallen)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-captures
+          path: .e2e-captures/
+          retention-days: 7
+
   captures:
     runs-on: ubuntu-latest
     steps:
