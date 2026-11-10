@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import el fixa qui aprova (RN-M01-15); la contradicció amb HU-M01-09 és oberta [A validar: junta]. L'aprovació encara no està disponible. L-M01-04 (quota pendent) no s'aplica: és [A validar: junta]. #}
+{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import és la diferència entre quotes (Q-049 de la 072), calculat com el càrrec que es crea en aprovar-lo; venç una setmana després (RN-M01-76). Amb una quota sense pagar no es pot demanar (RN-M01-75). #}
 {% block title %}{% translate "Canvi a ple dret" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
@@ -21,9 +21,9 @@
     <section class="targeta" aria-labelledby="canvi-titol">
       <h2 id="canvi-titol">{% translate "Passar de simpatitzant a ple dret" %}</h2>
       <dl class="dades-soci">
-        <div><dt>{% translate "Import del suplement" %}</dt><dd><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent de determinar per la secretaria" %}</span></dd></div>
+        <div><dt>{% translate "Import del suplement" %}</dt><dd>{{ supplement_amount }}</dd></div>
       </dl>
-      <p class="text-2">{% translate "La secretaria revisarà la sol·licitud i t'avisarà." %}</p>
+      <p class="text-2">{% translate "La secretaria revisarà la sol·licitud. Si l'aprova, tindràs una setmana per pagar el suplement. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement." %}</p>
       <form method="post" action="{% url 'members:change_type' %}">
         {% csrf_token %}
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la sol·licitud" %}</button></div>

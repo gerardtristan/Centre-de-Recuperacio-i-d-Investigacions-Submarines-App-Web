@@ -2,8 +2,10 @@
 P-M01-B i P-M01-C; P3a, P7 i P14; 064; CA-M01-05, CA-M01-08, CA-M01-24 per a P3a i P7,
 CA-M01-47; conflicte d'interès als punts d'entrada). Només dades inventades.
 
-No es prova cap creació de quotes: aquesta tasca no en crea (l'aprovació del canvi de tipus, amb
-el suplement, està desconnectada; P-54 i RN-M01-15).
+072: suplement del canvi a ple dret i quotes de la RN-M01-20. 074 (tanda del 10/11/2026): baixa
+programada i tasca diària (CA-M01-72), canvi pendent cancel·lat (CA-M01-73), quota sense pagar
+(CA-M01-74), venciment i anul·lació del suplement (CA-M01-75) i correccions de la revisió de
+pantalles (C1 a C7).
 """
 
 import time
@@ -22,11 +24,13 @@ from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person, RolePermission
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members import cards, fees
 from apps.members import member_requests as mr
 from apps.members.fee_rules import local_today
 from apps.members.models import (
     AnnualFee,
     Member,
+    MemberCard,
     MemberRequest,
     MembershipType,
     MemberStatusChange,
@@ -211,7 +215,8 @@ def test_active_supporter_requests_the_change_without_any_charge(marta):
     member, account = marta
     client = personal_client(account)
     page = client.get(reverse(CHANGE)).content.decode()
-    assert "Pendent de determinar per la secretaria" in page
+    assert "55,00 €" in page  # C2: el mateix càlcul que el càrrec (Q-049)
+    assert "Pendent de determinar" not in page
     response = client.post(reverse(CHANGE))
     assert response.status_code == 302
     created = MemberRequest.objects.get()
@@ -480,19 +485,19 @@ def test_pending_or_unpaid_member_can_also_leave(make_admin, db, status):  # noq
     assert member.status == "left"
 
 
-def test_future_effective_date_is_rejected_and_nothing_changes(make_admin, marta):  # noqa: F811
+def test_ca_m01_72_validating_without_date_is_a_field_error(make_admin, marta):  # noqa: F811
+    """Prova b: sense data, error al camp i res no canvia."""
     member = marta[0]
     request = leave_request(member)
     client = admin_client(make_admin("secretary"))
-    tomorrow = (local_today() + timedelta(days=1)).isoformat()
     response = client.post(
-        reverse(DETAIL, args=[request.pk]), {"action": "approve", "effective_on": tomorrow}
+        reverse(DETAIL, args=[request.pk]), {"action": "approve", "effective_on": ""}
     )
     assert response.status_code == 200
+    assert response.context["form"].errors["effective_on"] == ["Escriu la data efectiva."]
     request.refresh_from_db()
     member.refresh_from_db()
     assert request.status == RS.PENDING and member.status == "active"
-    assert not MemberStatusChange.objects.exists() and not OutgoingEmail.objects.exists()
 
 
 def test_effective_date_before_joining_is_rejected(make_admin, marta):  # noqa: F811
@@ -504,8 +509,10 @@ def test_effective_date_before_joining_is_rejected(make_admin, marta):  # noqa: 
 
 
 def test_leave_cancels_later_unpaid_fees_and_keeps_earlier_ones(make_admin, marta):  # noqa: F811
-    # RN-M01-20 tal com és (Q-056 de la 072).
+    """Prova f: RN-M01-20 tal com és (Q-056 de la 072), carnet revocat amb registre (C4) i
+    correu."""
     member = marta[0]
+    MemberCard.objects.create(member=member, token_hash="c" * 64)
     add_unpaid_fee(member)  # venç l'1/1/2026: anterior a la baixa, es continua devent
     later = charges.create_charge(
         member.person,
@@ -523,18 +530,27 @@ def test_leave_cancels_later_unpaid_fees_and_keeps_earlier_ones(make_admin, mart
         due_on=date(2099, 1, 1),
     )
     request = leave_request(member)
-    mr.approve_leave(request, by=make_admin("secretary"), effective_on=local_today())
+    secretary = make_admin("secretary")
+    mr.approve_leave(request, by=secretary, effective_on=local_today())
     member.refresh_from_db()
     assert member.status == "left"
     statuses = dict(AnnualFee.objects.values_list("period", "charge__status"))
     assert statuses == {2026: Charge.Status.PENDING, 2099: Charge.Status.CANCELLED}
+    later.refresh_from_db()
+    assert "RN-M01-20" in later.cancel_reason
+    card = MemberCard.objects.get(member=member)
+    assert card.revoked_at is not None and "Baixa" in card.revoked_reason
+    revoked = entries(cards.CARD_REVOKED).get()
+    assert revoked.actor_account == secretary and revoked.old_value in (None, "")
+    assert OutgoingEmail.objects.filter(template=mr.LEAVE_EMAIL).count() == 1
 
 
-def test_approving_a_type_change_creates_the_supplement_and_applies_on_payment(
+def test_ca_m01_75_approving_a_type_change_creates_the_supplement_and_applies_on_payment(
     make_admin,  # noqa: F811
     marta,  # noqa: F811
 ):
-    # Q-049 (55 €) i Q-050 (efectiu en pagar-lo) de la 072.
+    """Prova e: Q-049 (55 €) i Q-050 (efectiu en pagar-lo) de la 072; venç d'aquí a una setmana
+    (RN-M01-76)."""
     from apps.core.models import Payment
     from apps.members import services
 
@@ -543,16 +559,18 @@ def test_approving_a_type_change_creates_the_supplement_and_applies_on_payment(
     client = admin_client(make_admin("secretary"))
     page = client.get(reverse(DETAIL, args=[request.pk])).content.decode()
     assert 'value="approve"' in page
-    client.post(
-        reverse(DETAIL, args=[request.pk]),
-        {"action": "approve", "effective_on": local_today().isoformat()},
-    )
+    assert "55,00 €" in page  # C2
+    assert "es farà efectiu quan es confirmi el pagament del suplement" in page  # C7
+    assert "Per aprovar el canvi, opcional." in page  # C7
+    client.post(reverse(DETAIL, args=[request.pk]), {"action": "approve", "reason": "Acta 4"})
     request.refresh_from_db()
     member.refresh_from_db()
     assert request.status == RS.APPROVED and request.effective_on is None
     fee = request.supplement_fee
     assert fee.kind == AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT
     assert fee.charge.amount_cents == 9000 - 3500
+    assert fee.due_on == local_today() + timedelta(days=7)
+    assert request.resolution_reason == "Acta 4"
     assert member.type.code == "supporter"  # encara no: falta pagar-lo
 
     payment = Payment.objects.create(
@@ -652,3 +670,295 @@ def test_unknown_member_or_request_is_not_found(make_admin, marta):  # noqa: F81
     client = admin_client(make_admin("secretary"))
     assert client.get(reverse(CREATE, args=[marta[0].pk + 999])).status_code == 404
     assert client.get(reverse(DETAIL, args=[999_999])).status_code == 404
+
+
+# --- Tanda del 10/11/2026 (074): baixa programada i tasca diària (RN-M01-74) ----------------
+
+
+def add_future_fee(member, due_on):
+    charge = charges.create_charge(
+        member.person,
+        kind=Charge.Kind.FEE,
+        amount_cents=3500,
+        concept="Quota futura de prova",
+        origin="members",
+        by=audit.system("proves"),
+    )
+    return AnnualFee.objects.create(
+        member=member, period=due_on.year, kind=AnnualFee.Kind.ANNUAL, charge=charge, due_on=due_on
+    )
+
+
+def travel_to(monkeypatch, day):
+    """Dates controlades: «avui» passa a ser `day` per a `local_today` i `_check_effective_on`."""
+    monkeypatch.setattr(timezone, "localdate", lambda value=None, timezone=None: day)
+
+
+def test_ca_m01_72_future_leave_is_scheduled_and_the_daily_task_applies_it_once(
+    make_admin,  # noqa: F811
+    marta,
+    monkeypatch,
+):
+    """Proves b i c: data futura → programada; la tasca diària l'aplica aquell dia, una vegada."""
+    member = marta[0]
+    MemberCard.objects.create(member=member, token_hash="c" * 64)
+    today = local_today()
+    effective = today + timedelta(days=10)
+    fee = add_future_fee(member, today + timedelta(days=40))
+    request = leave_request(member)
+    response = admin_client(make_admin("secretary")).post(
+        reverse(DETAIL, args=[request.pk]),
+        {"action": "approve", "effective_on": effective.isoformat()},
+        follow=True,
+    )
+    page = response.content.decode()
+    date = effective.strftime("%d/%m/%Y")
+    assert f"Queda programada per al {date}" in page
+    assert f"Programada per al {date}" in page
+    request.refresh_from_db()
+    member.refresh_from_db()
+    assert (request.status, request.effective_on, request.applied_at) == (
+        RS.APPROVED,
+        effective,
+        None,
+    )
+    assert mr.is_scheduled(request)
+    assert member.status == "active" and member.left_on is None
+    assert MemberCard.objects.get(member=member).revoked_at is None
+    assert AnnualFee.objects.get(pk=fee.pk).charge.status == Charge.Status.PENDING
+    assert not OutgoingEmail.objects.exists()
+
+    assert mr.apply_due_leaves(effective - timedelta(days=1)) == []  # encara no
+    travel_to(monkeypatch, effective)
+    assert [r.pk for r in mr.apply_due_leaves()] == [request.pk]
+    member.refresh_from_db()
+    request.refresh_from_db()
+    assert (member.status, member.left_on) == ("left", effective)
+    assert request.applied_at is not None and not mr.is_scheduled(request)
+    assert MemberCard.objects.get(member=member).revoked_at is not None
+    assert AnnualFee.objects.get(pk=fee.pk).charge.status == Charge.Status.CANCELLED
+    change = MemberStatusChange.objects.get(member=member)
+    assert change.actor_account is None and change.effective_on == effective
+    assert OutgoingEmail.objects.filter(template=mr.LEAVE_EMAIL).count() == 1
+
+    # Idempotent: ni efectes ni correus nous.
+    assert mr.apply_due_leaves() == []
+    assert mr.apply_due_leaves(effective + timedelta(days=5)) == []
+    assert OutgoingEmail.objects.count() == 1
+    assert MemberStatusChange.objects.filter(member=member).count() == 1
+    assert entries(cards.CARD_REVOKED).count() == 1
+
+
+def test_ca_m01_72_the_daily_task_is_registered_on_the_queue():
+    from apps.members import tasks
+
+    assert tasks.daily_leaves.name == "members.daily_leaves"
+    assert tasks.daily_leaves.queue == tasks.daily_fees.queue
+
+
+def test_ca_m01_72_scheduled_leave_blocks_another_leave(make_admin, marta):  # noqa: F811
+    """Prova d (en part): una baixa programada impedeix demanar-ne o crear-ne una altra."""
+    member, account = marta
+    mr.approve_leave(
+        leave_request(member),
+        by=make_admin("secretary"),
+        effective_on=local_today() + timedelta(days=3),
+    )
+    client = personal_client(account)
+    assert "Ja tens una baixa programada" in client.get(reverse(LEAVE)).content.decode()
+    with pytest.raises(ValidationError):
+        mr.request_leave(member, by=account, reason="Una altra")
+    secretary = admin_client(make_admin("secretary"))
+    detail = reverse("administration:member_detail", args=[member.pk])
+    assert reverse(CREATE, args=[member.pk]) not in secretary.get(detail).content.decode()
+    response = secretary.post(reverse(CREATE, args=[member.pk]), {"reason": "Acta 9"})
+    assert "ja té una baixa programada" in response.content.decode()
+    assert MemberRequest.objects.count() == 1
+
+
+@pytest.mark.parametrize("case", ["read_only_p7", "own", "left", "pending"])
+def test_create_leave_errors(make_admin, marta, case):  # noqa: F811
+    """Prova d: errors de «Crea una baixa» (P7 sense edició, propi soci, soci de baixa i baixa
+    pendent). No es crea res més."""
+    from apps.core.permission_catalog import SCOPE_READ
+
+    member = marta[0]
+    if case == "own":
+        account = make_admin("secretary", person=member.person)
+    else:
+        account = make_admin("secretary")
+    if case == "read_only_p7":
+        RolePermission.objects.filter(
+            role__code="secretary", permission_code=mr.RESOLVE_PERMISSION
+        ).update(scope=SCOPE_READ)
+    if case == "left":
+        Member.objects.filter(pk=member.pk).update(status="left", left_on=local_today())
+    if case == "pending":
+        leave_request(member)
+    before = MemberRequest.objects.count()
+    response = admin_client(account).post(reverse(CREATE, args=[member.pk]), {"reason": "Acta"})
+    expected = {"read_only_p7": 404, "own": 403, "left": 200, "pending": 200}[case]
+    assert response.status_code == expected
+    assert MemberRequest.objects.count() == before
+    if case == "own":
+        assert entries(OWN_MEMBER_REJECTED).exists()
+
+
+def test_ca_m01_73_validating_a_leave_cancels_the_pending_type_change(
+    make_admin,  # noqa: F811
+    marta,
+):
+    member = marta[0]
+    change = change_request(member)
+    leave = leave_request(member)
+    secretary = make_admin("secretary")
+    page = admin_client(secretary).get(reverse(DETAIL, args=[leave.pk])).content.decode()
+    assert "es cancel·la amb el motiu «baixa»" in page
+    mr.approve_leave(leave, by=secretary, effective_on=local_today() + timedelta(days=5))
+    change.refresh_from_db()
+    assert (change.status, change.resolution_reason, change.resolved_by) == (
+        RS.CANCELLED,
+        "Baixa",
+        secretary,
+    )
+    assert (
+        entries(mr.REQUEST_RESOLVED)
+        .filter(target_id=str(change.pk), field="status", new_value="cancelled")
+        .exists()
+    )
+    assert not AnnualFee.objects.exists()
+
+
+def test_ca_m01_74_unpaid_fee_blocks_the_change_on_request_and_on_approval(
+    make_admin,  # noqa: F811
+    marta,
+):
+    member, account = marta
+    add_unpaid_fee(member)
+    client = personal_client(account)
+    page = client.get(reverse(CHANGE)).content.decode()
+    assert "Tens una quota sense pagar" in page and 'method="post"' not in page
+    response = client.post(reverse(CHANGE))
+    assert "Tens una quota sense pagar" in response.content.decode()
+    assert not MemberRequest.objects.exists()
+
+    request = change_request(member)  # demanada abans que es generés la quota
+    response = admin_client(make_admin("secretary")).post(
+        reverse(DETAIL, args=[request.pk]), {"action": "approve"}
+    )
+    assert response.status_code == 200
+    assert "alguna quota sense pagar" in response.content.decode()
+    request.refresh_from_db()
+    assert request.status == RS.PENDING
+    assert not AnnualFee.objects.filter(kind=AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT).exists()
+    assert Charge.objects.count() == 1
+
+
+def _approved_change(member, by):
+    request = change_request(member)
+    mr.approve_type_change(request, by=by)
+    request.refresh_from_db()
+    return request
+
+
+def test_ca_m01_75_overdue_supplement_stays_alive_and_only_p8_edit_cancels_it(
+    make_admin,  # noqa: F811
+    marta,
+    monkeypatch,
+):
+    member = marta[0]
+    request = _approved_change(member, make_admin("secretary"))
+    fee = request.supplement_fee
+    treasurer = admin_client(make_admin("treasurer"))  # P3a i P8 amb edició
+    url = reverse(DETAIL, args=[request.pk])
+    data = {"action": "cancel_supplement", "reason": "No l'ha pagat (prova)"}
+
+    # Abans del venciment: no s'ofereix i el servidor ho rebutja.
+    page = treasurer.get(url).content.decode()
+    assert "Pendent" in page and 'value="cancel_supplement"' not in page
+    assert treasurer.post(url, data).status_code == 200
+    assert AnnualFee.objects.get(pk=fee.pk).charge.status == Charge.Status.PENDING
+
+    # Vençut: continua viu; les tasques diàries no l'anul·len.
+    travel_to(monkeypatch, fee.due_on + timedelta(days=1))
+    mr.apply_due_leaves()
+    fees.generate_due_fees()
+    assert AnnualFee.objects.get(pk=fee.pk).charge.status == Charge.Status.PENDING
+    page = treasurer.get(url).content.decode()
+    assert "Vençut" in page and 'value="cancel_supplement"' in page
+
+    # Sense P8 amb edició (la secretaria de la configuració inicial): ni botó ni acció.
+    secretary = admin_client(make_admin("secretary"))
+    assert 'value="cancel_supplement"' not in secretary.get(url).content.decode()
+    assert secretary.post(url, data).status_code == 404
+
+    # Sense motiu: error.
+    assert treasurer.post(url, {"action": "cancel_supplement", "reason": " "}).status_code == 200
+    assert AnnualFee.objects.get(pk=fee.pk).charge.status == Charge.Status.PENDING
+
+    response = treasurer.post(url, data, follow=True)
+    assert "Suplement anul·lat." in response.content.decode()
+    charge = AnnualFee.objects.get(pk=fee.pk).charge
+    assert (charge.status, charge.cancel_reason) == (Charge.Status.CANCELLED, data["reason"])
+    assert entries(fees.CANCELLED_FEE).get().reason == data["reason"]
+    assert "Anul·lat" in treasurer.get(url).content.decode()
+
+
+def test_ca_m01_75_own_overdue_supplement_cannot_be_cancelled(
+    make_admin,  # noqa: F811
+    marta,
+    monkeypatch,
+):
+    member = marta[0]
+    request = _approved_change(member, make_admin("secretary"))
+    travel_to(monkeypatch, request.supplement_fee.due_on + timedelta(days=1))
+    own = admin_client(make_admin("treasurer", person=member.person))
+    response = own.post(
+        reverse(DETAIL, args=[request.pk]), {"action": "cancel_supplement", "reason": "Prova"}
+    )
+    assert response.status_code == 403
+    assert AnnualFee.objects.get(pk=request.supplement_fee_id).charge.status == "pending"
+    assert entries(OWN_MEMBER_REJECTED).exists()
+
+
+# --- Correccions de la revisió de pantalles (C1, C3, C5, C7) --------------------------------
+
+
+def test_c1_initial_effective_date_is_iso(make_admin, marta):  # noqa: F811
+    request = leave_request(marta[0])
+    page = admin_client(make_admin("secretary")).get(reverse(DETAIL, args=[request.pk]))
+    assert f'value="{local_today().isoformat()}"' in page.content.decode()
+
+
+def test_c3_leave_detail_summarises_the_consequences(make_admin, marta):  # noqa: F811
+    member = marta[0]
+    add_unpaid_fee(member)
+    request = leave_request(member)
+    page = admin_client(make_admin("secretary")).get(reverse(DETAIL, args=[request.pk]))
+    html = page.content.decode()
+    assert "vencen després de la data efectiva s&#x27;anul·len" in html or (
+        "vencen després de la data efectiva s'anul·len" in html
+    )
+    assert "el carnet es revoca" in html and "correu de confirmació" in html
+    assert "01/01/2026" in html and "35,00 €" in html
+
+
+def test_c3_personal_leave_page_explains_what_will_happen(marta):
+    html = personal_client(marta[1]).get(reverse(LEAVE)).content.decode()
+    for text in (
+        "fixarà la data efectiva",
+        "les continuaràs devent",
+        "anul·laran",
+        "deixarà de ser vàlid",
+        "Mantindràs el compte personal",
+    ):
+        assert text in html
+
+
+def test_c5_c7_requests_table_has_labels_and_a_neutral_link(make_admin, marta):  # noqa: F811
+    leave_request(make_member("Arnau"))
+    html = admin_client(make_admin("secretary")).get(reverse(LIST)).content.decode()
+    for label in ("Soci", "Número", "Tipus", "Canal", "Enviada"):
+        assert f'data-etiqueta="{label}"' in html
+    assert "Obre la sol·licitud: Arnau Prova" in html
+    assert "de Arnau" not in html

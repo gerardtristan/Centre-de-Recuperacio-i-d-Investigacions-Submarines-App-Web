@@ -321,9 +321,7 @@ def member_detail_view(request, pk):
         and has_perm(
             request.user, member_requests.RESOLVE_PERMISSION, write=True, permissions=perms
         )
-        and not member.requests.filter(
-            kind=MemberRequest.Kind.LEAVE, status=MemberRequest.Status.PENDING
-        ).exists(),
+        and not member_requests.open_leaves(member).exists(),
         "join_date_changes": (
             member.join_date_changes.select_related("actor_account").order_by("-created_at", "-id")
             if vis.full

@@ -18,17 +18,28 @@ Retoc del 09/11/2026 (072):
   data efectiva s'anul·len amb motiu; les anteriors se segueixen devent.
 - Rebutjar i anul·lar quotes: només amb permís d'edició, mai amb només lectura (Q-055, Q-057).
 
-Continua desconnectat: una data efectiva futura (la primitiva no programa canvis); el pas de ple
-dret a simpatitzant a la renovació (Q-051, precisada per la 073: sol·licitud i avís a la T-M01-42
-i la T-M01-43); la ruta definitiva i des d'on
-resol el President (Q-052).
+Tanda del 10/11/2026 (074, RN-M01-74 a 76):
+- Baixa amb data futura: queda programada (aprovada, sense `applied_at`) i l'aplica la tasca diària
+  `apply_due_leaves` una sola vegada. Aplicar-la: estat «baixa», quotes de la RN-M01-20, carnet
+  revocat i correu, tot en una transacció. En validar-la, el canvi de tipus pendent es cancel·la.
+- Canvi a ple dret amb una quota sense pagar: es rebutja en demanar-lo i en aprovar-lo.
+- El suplement venç `SUPPLEMENT_DUE_DAYS` després d'aprovar-lo; vençut, l'anul·la qui té P8 amb
+  edició (`cancel_overdue_supplement`). Mai sol.
+- Ruta `/gestio/socis/sollicituds/` confirmada (Q-052): el President hi resol amb P3a i P7.
+
+Fora d'aquí: el pas de ple dret a simpatitzant (073, T-M01-42 i T-M01-43) i el destinatari de les
+comunicacions d'un menor (RN-M01-78, T-M01-41).
 
 Conflicte d'interès (S-M01-22): `ensure_not_own_member` abans d'obrir la transacció, també per
 rebutjar. El permís es torna a comprovar aquí, no només a la vista.
 """
 
+import datetime
+import logging
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -38,7 +49,7 @@ from apps.core import audit, charges, mail
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
 
-from . import fees
+from . import cards, fees
 from .fee_rules import SUPPORTER, local_today
 from .models import AnnualFee, Member, MemberRequest, MembershipType
 from .services import _change_status, _check_account_active, ensure_not_own_member
@@ -52,6 +63,12 @@ LEAVE_EMAIL = "baixa-efectiva"
 RESOLVABLE = (MemberRequest.Kind.CHANGE_TYPE, MemberRequest.Kind.LEAVE)
 UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
 K, RS = MemberRequest.Kind, MemberRequest.Status
+# RN-M01-76 (074, punt 4): dies entre l'aprovació del canvi a ple dret i el venciment del
+# suplement. Una sola constant: el model d'ajustos (T-AJ-01) demana declarar la clau i el permís
+# amb la seva pantalla (T-AJ-02), que encara no hi és. [Efecte econòmic: A validar, tresorer]
+SUPPLEMENT_DUE_DAYS = 7
+LEAVES_ORIGIN = "members.apply_due_leaves"
+logger = logging.getLogger(__name__)
 
 
 class RequestNotAllowed(ValidationError):
@@ -81,7 +98,18 @@ def type_change_problem(member) -> str:
             "renovació de la quota anual, sense devolució ni prorrateig de la quota actual. La "
             "sol·licitud d'aquest canvi des de l'aplicació encara no està disponible."
         )
+    if has_unpaid_fees(member):  # RN-M01-75 (L-M01-04)
+        return _(
+            "Tens una quota sense pagar. Quan l'hagis pagada, podràs demanar el canvi a ple dret."
+        )
     return ""
+
+
+def open_leaves(member):
+    """Baixes pendents o programades (validades, encara sense aplicar) del soci."""
+    return member.requests.filter(kind=K.LEAVE).filter(
+        Q(status=RS.PENDING) | Q(status=RS.APPROVED, applied_at__isnull=True)
+    )
 
 
 def _create(member, *, by, kind, channel, reason="", requested_type=None, request=None):
@@ -137,6 +165,10 @@ def request_leave(member, *, by, reason, request=None) -> MemberRequest:
         channel = MemberRequest.Channel.WEB
     elif isinstance(by, Account) and has_perm(by, RESOLVE_PERMISSION, write=True):
         channel = MemberRequest.Channel.IN_PERSON
+        # S-M01-22: ningú no crea una baixa per al seu propi soci des de l'administració.
+        ensure_not_own_member(
+            member, by, request=request, message=_("No pots crear una baixa per al teu propi soci.")
+        )
     else:
         raise Http404
     _check_account_active(by)
@@ -145,6 +177,8 @@ def request_leave(member, *, by, reason, request=None) -> MemberRequest:
         raise RequestNotAllowed(_("Escriu el motiu de la baixa."))
     if member.status == Member.Status.LEFT:
         raise RequestNotAllowed(_("Aquest soci ja és de baixa."))
+    if open_leaves(member).filter(status=RS.APPROVED).exists():
+        raise RequestNotAllowed(_("Aquest soci ja té una baixa programada."))
     return _create(member, by=by, kind=K.LEAVE, channel=channel, reason=reason, request=request)
 
 
@@ -207,9 +241,10 @@ def has_unpaid_fees(member) -> bool:
     return AnnualFee.objects.filter(member=member, charge__status__in=UNPAID_CHARGE).exists()
 
 
-def approve_type_change(member_request, *, by, request=None) -> AnnualFee:
-    """Aprova un canvi a ple dret (P7; Q-049, Q-050, Q-053): crea el suplement i deixa la
-    sol·licitud aprovada sense data efectiva; el canvi es fa quan es paga (`on_fee_paid`)."""
+def approve_type_change(member_request, *, by, reason="", request=None) -> AnnualFee:
+    """Aprova un canvi a ple dret (P7; Q-049, Q-050, Q-053): crea el suplement, que venç d'aquí a
+    `SUPPLEMENT_DUE_DAYS` (RN-M01-76), i deixa la sol·licitud aprovada sense data efectiva; el
+    canvi es fa quan es paga (`on_fee_paid`). Amb una quota sense pagar, es rebutja (RN-M01-75)."""
     _check_resolver(member_request, by, request)
     if member_request.kind != K.CHANGE_TYPE:
         raise RequestNotAllowed(_("Aquesta sol·licitud no és un canvi de tipus."))
@@ -218,14 +253,22 @@ def approve_type_change(member_request, *, by, request=None) -> AnnualFee:
         member = Member.objects.select_related("person", "type").get(pk=locked.member_id)
         if member.status != Member.Status.ACTIVE:
             raise RequestNotAllowed(_("Només es pot canviar el tipus d'un soci actiu."))
+        if has_unpaid_fees(member):
+            raise RequestNotAllowed(
+                _(
+                    "El soci té alguna quota sense pagar: el canvi a ple dret no es pot aprovar "
+                    "fins que la pagui."
+                )
+            )
+        today = local_today()
         fee = fees.issue_type_change_supplement(
             member,
             locked.requested_type,
-            period=local_today().year,
-            due_on=local_today(),
+            period=today.year,
+            due_on=today + datetime.timedelta(days=SUPPLEMENT_DUE_DAYS),
             by=by,
         )
-        _close(locked, RS.APPROVED, by=by, reason="", request=request)
+        _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)
         MemberRequest.objects.filter(pk=locked.pk).update(supplement_fee=fee)
     member_request.refresh_from_db()
     return fee
@@ -244,30 +287,71 @@ def _cancel_later_fees(member, effective_on, *, by, reason) -> list[int]:
     return cancelled
 
 
+def _apply_leave(locked, *, by, request=None) -> None:
+    """Fa efectiva una baixa validada (pas 3 de P-M01-C): quotes de la RN-M01-20, estat «baixa»
+    amb historial i registre, carnet revocat (RN-M01-25), marca d'aplicada i correu. Qui crida
+    ja és dins la transacció que bloqueja el soci i la sol·licitud."""
+    effective_on = locked.effective_on
+    date = effective_on.strftime("%d/%m/%Y")
+    member = Member.objects.select_related("person").get(pk=locked.member_id)
+    _cancel_later_fees(
+        member,
+        effective_on,
+        by=by,
+        reason=_("Baixa amb data efectiva %(date)s (RN-M01-20).") % {"date": date},
+    )
+    _change_status(
+        member,
+        Member.Status.LEFT,
+        by=by,
+        effective_on=effective_on,
+        reason=locked.request_reason,
+        request=request,
+    )
+    cards.revoke_card(
+        member,
+        by=by,
+        reason=_("Baixa del soci amb data efectiva %(date)s.") % {"date": date},
+        request=request,
+    )
+    locked.applied_at = timezone.now()
+    locked.save(update_fields=["applied_at"])
+    if member.person.contact_email:
+        mail.queue_email(
+            LEAVE_EMAIL,
+            to=member.person.contact_email,
+            person=member.person,
+            context={"effective_on": effective_on},
+        )
+
+
+def _cancel_pending_type_change(member, *, by, request=None) -> None:
+    """RN-M01-74 (074, punt 5): en validar una baixa, el canvi de tipus pendent es cancel·la
+    amb el motiu «baixa»."""
+    pending = MemberRequest.objects.select_for_update().filter(
+        member=member, kind=K.CHANGE_TYPE, status=RS.PENDING
+    )
+    for change in pending:
+        _close(change, RS.CANCELLED, by=by, reason=_("Baixa"), request=request)
+
+
 def approve_leave(member_request, *, by, effective_on, reason="", request=None) -> MemberRequest:
-    """Valida una baixa: el soci passa a «baixa» a la data efectiva (avui o abans), amb
-    historial i registre (`_change_status`), i rep un correu. Tot en una transacció."""
+    """Valida una baixa (P7). Amb data d'avui o anterior, s'aplica ara (`_apply_leave`); amb una
+    data futura, queda programada i l'aplica la tasca diària aquell dia (RN-M01-74). En tots dos
+    casos es cancel·la el canvi de tipus pendent. Tot en una transacció."""
     _check_resolver(member_request, by, request)
     if member_request.kind != K.LEAVE:
         raise RequestNotAllowed(_("Aquesta sol·licitud no és una baixa."))
+    if not isinstance(effective_on, datetime.date) or isinstance(effective_on, datetime.datetime):
+        raise RequestNotAllowed(_("Escriu la data efectiva."))
     with transaction.atomic():
         locked = _lock_pending(member_request, by)
-        member = Member.objects.select_related("person").get(pk=locked.member_id)
-        _cancel_later_fees(
-            member,
-            effective_on,
-            by=by,
-            reason=_("Baixa amb data efectiva %(date)s (RN-M01-20).")
-            % {"date": effective_on.strftime("%d/%m/%Y")},
-        )
-        _change_status(
-            member,
-            Member.Status.LEFT,
-            by=by,
-            effective_on=effective_on,
-            reason=locked.request_reason,
-            request=request,
-        )
+        member = Member.objects.get(pk=locked.member_id)
+        if member.status == Member.Status.LEFT:
+            raise RequestNotAllowed(_("Aquest soci ja és de baixa."))
+        if member.joined_on and effective_on < member.joined_on:
+            raise RequestNotAllowed(_("La baixa no pot ser anterior a la data d'alta."))
+        _cancel_pending_type_change(member, by=by, request=request)
         _close(
             locked,
             RS.APPROVED,
@@ -276,12 +360,64 @@ def approve_leave(member_request, *, by, effective_on, reason="", request=None) 
             effective_on=effective_on,
             request=request,
         )
-        if member.person.contact_email:
-            mail.queue_email(
-                LEAVE_EMAIL,
-                to=member.person.contact_email,
-                person=member.person,
-                context={"effective_on": effective_on},
-            )
+        if effective_on <= local_today():
+            _apply_leave(locked, by=by, request=request)
     member_request.refresh_from_db()
     return member_request
+
+
+def is_scheduled(member_request) -> bool:
+    """Baixa validada amb data futura que encara no s'ha aplicat."""
+    return (
+        member_request.kind == K.LEAVE
+        and member_request.status == RS.APPROVED
+        and member_request.applied_at is None
+    )
+
+
+def apply_due_leaves(today=None) -> list[MemberRequest]:
+    """Tasca diària (RN-M01-74, CA-M01-72): aplica les baixes programades que vencen avui o abans.
+    Idempotent: la marca `applied_at`, comprovada amb la fila bloquejada, impedeix aplicar-ne cap
+    dues vegades. Si una no es pot aplicar (p. ex. el soci ja és de baixa), queda al registre de
+    l'aplicació i es continua amb les altres."""
+    today = today or local_today()
+    by = audit.system(LEAVES_ORIGIN)
+    due = MemberRequest.objects.filter(
+        kind=K.LEAVE, status=RS.APPROVED, applied_at__isnull=True, effective_on__lte=today
+    ).order_by("effective_on", "pk")
+    applied = []
+    for item in due:
+        try:
+            with transaction.atomic():
+                Member.objects.select_for_update(of=("self",)).get(pk=item.member_id)
+                locked = MemberRequest.objects.select_for_update().get(pk=item.pk)
+                if locked.applied_at is not None:
+                    continue
+                _apply_leave(locked, by=by)
+        except ValidationError as exc:
+            logger.warning("Baixa %s no aplicada: %s", item.pk, exc.messages[0])
+            continue
+        applied.append(locked)
+    return applied
+
+
+# --- Suplement vençut (RN-M01-76, CA-M01-75) ------------------------------------------------
+
+
+def supplement_overdue(fee, today=None) -> bool:
+    return fee.charge.status in UNPAID_CHARGE and fee.due_on < (today or local_today())
+
+
+def cancel_overdue_supplement(member_request, *, by, reason, request=None) -> AnnualFee:
+    """Anul·la el suplement vençut i sense pagar d'un canvi aprovat, amb motiu (Q-057): ho fa qui
+    té P8 amb edició, amb `fees.cancel_fee` (permís, motiu, conflicte d'interès i anul·lació del
+    càrrec). Abans del venciment, es rebutja: mai no s'anul·la sol."""
+    if not isinstance(by, Account) or not has_perm(by, fees.EDIT_PERMISSION, write=True):
+        raise Http404
+    fee = member_request.supplement_fee
+    if member_request.kind != K.CHANGE_TYPE or fee is None:
+        raise Http404
+    ensure_not_own_member(member_request.member, by, request=request)
+    if not supplement_overdue(fee):
+        raise RequestNotAllowed(_("Només es pot anul·lar un suplement vençut i sense pagar."))
+    return fees.cancel_fee(fee, by=by, reason=reason, request=request)

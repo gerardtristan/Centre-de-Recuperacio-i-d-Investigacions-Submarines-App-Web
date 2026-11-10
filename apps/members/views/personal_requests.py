@@ -14,9 +14,9 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from .. import member_requests
-from ..models import MemberRequest
-from .personal import _own_member_or_404
+from .. import fees, member_requests
+from ..models import MemberRequest, MembershipType
+from .personal import _own_member_or_404, euros
 
 
 class LeaveForm(forms.Form):
@@ -49,11 +49,17 @@ def change_type_view(request):
         else:
             messages.success(request, _("Sol·licitud de canvi a ple dret enviada."))
             return redirect("members:profile")
+    problem = member_requests.type_change_problem(member)
+    target = MembershipType.objects.filter(code=member_requests.FULL, active=True).first()
     context = {
         "member": member,
         "pending": _pending(member, MemberRequest.Kind.CHANGE_TYPE),
-        "problem": member_requests.type_change_problem(member),
+        "problem": problem,
         "error": error,
+        # C2: el mateix càlcul que crea el càrrec en aprovar-lo (Q-049).
+        "supplement_amount": euros(fees.supplement_cents(member, target))
+        if target and not problem
+        else "",
     }
     return render(request, "members/personal_change_type.html", context)
 
@@ -76,6 +82,7 @@ def leave_view(request):
     context = {
         "member": member,
         "form": form,
-        "pending": _pending(member, MemberRequest.Kind.LEAVE),
+        # Pendent o programada (RN-M01-74): no se'n pot demanar cap altra.
+        "pending": member_requests.open_leaves(member).first(),
     }
     return render(request, "members/personal_leave.html", context)

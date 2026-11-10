@@ -349,6 +349,9 @@ class MemberRequest(models.Model):
         related_name="type_change_request",
         verbose_name=_("suplement"),
     )
+    # T-M01-17 (074, RN-M01-74): quan s'ha aplicat una baixa validada. Buida en una baixa
+    # aprovada vol dir programada (data efectiva futura): l'aplica la tasca diària una sola vegada.
+    applied_at = models.DateTimeField(_("baixa aplicada el"), null=True, blank=True)
     guardian_first_name = models.CharField(_("nom del representant"), max_length=100, blank=True)
     guardian_last_name = models.CharField(_("cognoms del representant"), max_length=150, blank=True)
     guardian_id_document_type = models.CharField(

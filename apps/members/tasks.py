@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import fees
+from . import fees, member_requests
 
 
 # Cada dia al matí: primer es generen les quotes que vencen aviat i després s'envien els
@@ -12,3 +12,11 @@ from . import fees
 def daily_fees(timestamp: int) -> None:
     fees.generate_due_fees()
     fees.send_due_reminders()
+
+
+# Cada dia, abans de les quotes: aplica les baixes programades que vencen (RN-M01-74; 074).
+# Idempotent: tornar-la a executar no aplica cap baixa dues vegades.
+@app.periodic(cron="45 5 * * *")
+@app.task(name="members.daily_leaves", queue="maintenance")
+def daily_leaves(timestamp: int) -> None:
+    member_requests.apply_due_leaves()

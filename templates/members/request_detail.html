@@ -1,34 +1,80 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-17: una sol·licitud de canvi de tipus o de baixa (P3a per veure-la, P7 per resoldre-la). Amagar el formulari no és cap control: el servidor torna a comprovar P7 i el conflicte d'interès en desar. Aprovar un canvi de tipus està desconnectat (RN-M01-15, P-54, pas 3 de P-M01-B). #}
+{# T-M01-17: una sol·licitud de canvi de tipus o de baixa (P3a per veure-la, P7 per resoldre-la, P8 amb edició per anul·lar el suplement vençut). Amagar els formularis no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès en desar. #}
 {% block title %}{{ item.get_kind_display }} · {{ item.person }} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
   <h1>{{ item.get_kind_display }}: {{ item.person }}</h1>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% if cancel_form.non_field_errors %}<div class="avis avis-error" role="alert">{{ cancel_form.non_field_errors|join:" " }}</div>{% endif %}
 
   <dl class="dades-soci">
     <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ item.member.member_number|default:_("Sense número") }}</dd></div>
     <div><dt>{% translate "Tipus actual" %}</dt><dd>{{ item.member.type.name }}</dd></div>
     {% if item.requested_type %}<div><dt>{% translate "Tipus demanat" %}</dt><dd>{{ item.requested_type.name }}</dd></div>{% endif %}
+    {% if supplement_amount %}<div><dt>{% translate "Import del suplement" %}</dt><dd>{{ supplement_amount }}</dd></div>{% endif %}
     <div><dt>{% translate "Canal" %}</dt><dd>{{ item.get_channel_display }}</dd></div>
     <div><dt>{% translate "Enviada el" %}</dt><dd>{{ item.created_at|date:"d/m/Y" }}</dd></div>
     {% if item.request_reason %}<div><dt>{% translate "Motiu de la sol·licitud" %}</dt><dd>{{ item.request_reason|linebreaksbr }}</dd></div>{% endif %}
-    <div><dt>{% translate "Estat" %}</dt><dd>{{ item.get_status_display }}</dd></div>
+    <div><dt>{% translate "Estat" %}</dt><dd>{% if scheduled %}{% blocktranslate with date=item.effective_on|date:"d/m/Y" %}Programada per al {{ date }}{% endblocktranslate %}{% else %}{{ item.get_status_display }}{% endif %}</dd></div>
     {% if not pending %}
       {% if item.effective_on %}<div><dt>{% translate "Data efectiva" %}</dt><dd>{{ item.effective_on|date:"d/m/Y" }}</dd></div>{% endif %}
       {% if item.resolution_reason %}<div><dt>{% translate "Motiu de la resolució" %}</dt><dd>{{ item.resolution_reason|linebreaksbr }}</dd></div>{% endif %}
       {% if item.resolved_at %}<div><dt>{% translate "Resolta el" %}</dt><dd>{{ item.resolved_at|date:"d/m/Y H:i" }}</dd></div>{% endif %}
     {% endif %}
+    {% if supplement %}
+      <div><dt>{% translate "Suplement" %}</dt><dd>{{ supplement_fee_amount }} · {{ supplement_state }}</dd></div>
+      <div><dt>{% translate "Venciment del suplement" %}</dt><dd>{{ supplement.due_on|date:"d/m/Y" }}</dd></div>
+    {% endif %}
   </dl>
+
+  {% if scheduled %}
+    <div class="avis avis-avis" role="status">{% blocktranslate with date=item.effective_on|date:"d/m/Y" %}La baixa queda programada per al {{ date }}. Fins aquell dia, l'estat del soci, el carnet i les quotes no canvien.{% endblocktranslate %}</div>
+  {% endif %}
+
+  {% if can_cancel_supplement %}
+    <form class="formulari" method="post" action="{% url 'administration:member_request_detail' item.pk %}" novalidate>
+      {% csrf_token %}
+      <p>{% translate "El suplement ha vençut sense pagar-se. No s'anul·la sol: si cal, anul·la'l amb un motiu. Sense el pagament, el canvi de tipus no es fa." %}</p>
+      {% include "accounts/_camp.html" with field=cancel_form.reason %}
+      <div class="accions"><button class="boto" type="submit" name="action" value="cancel_supplement">{% translate "Anul·la el suplement" %}</button></div>
+    </form>
+  {% endif %}
 
   {% if pending %}
     {% if own %}
       <div class="avis avis-avis" role="status"><strong>{% translate "És la teva sol·licitud" %}</strong> {% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
     {% elif can_resolve %}
       {% if item.kind == "change_type" %}
-        <p>{% blocktranslate with amount=supplement_cents|floatformat:"0" %}En aprovar-lo es crea el suplement, la diferència entre les dues quotes. El canvi de tipus és efectiu quan el soci el paga.{% endblocktranslate %}</p>
+        <p>{% blocktranslate with amount=supplement_amount %}En aprovar-lo es crea un suplement de {{ amount }}, la diferència entre les dues quotes, que venç d'aquí a una setmana. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% endblocktranslate %}</p>
+      {% else %}
+        <section aria-labelledby="consequencies-titol">
+          <h2 id="consequencies-titol">{% translate "Què passarà en validar-la" %}</h2>
+          <ul>
+            <li>{% translate "Si la data efectiva és avui o anterior, la baixa s'aplica ara. Si és futura, queda programada i s'aplica aquell dia." %}</li>
+            <li>{% translate "A la data efectiva: el soci passa a «baixa», el carnet es revoca i el soci rep un correu de confirmació." %}</li>
+            <li>{% translate "Les quotes sense pagar que vencen després de la data efectiva s'anul·len amb motiu; les que vencen abans o el mateix dia es continuen devent." %}</li>
+            {% if pending_change %}<li>{% translate "El canvi de tipus pendent d'aquest soci es cancel·la amb el motiu «baixa»." %}</li>{% endif %}
+          </ul>
+          {% if unpaid_fees %}
+            <table class="taula">
+              <caption>{% translate "Quotes sense pagar" %}</caption>
+              <thead><tr><th scope="col">{% translate "Concepte" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Import" %}</th></tr></thead>
+              <tbody>
+                {% for fee, amount in unpaid_fees %}
+                  <tr>
+                    <td data-etiqueta="{% translate 'Concepte' %}">{{ fee.charge.concept }}</td>
+                    <td data-etiqueta="{% translate 'Venciment' %}">{{ fee.due_on|date:"d/m/Y" }}</td>
+                    <td data-etiqueta="{% translate 'Import' %}">{{ amount }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="text-2">{% translate "Aquest soci no té cap quota sense pagar." %}</p>
+          {% endif %}
+        </section>
       {% endif %}
       <form class="formulari" method="post" action="{% url 'administration:member_request_detail' item.pk %}" novalidate>
         {% csrf_token %}
