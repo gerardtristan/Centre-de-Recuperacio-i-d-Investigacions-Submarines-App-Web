@@ -11,6 +11,8 @@ urlpatterns = [
     path("salut/", views.health, name="health"),
     path("fitxers/<uuid:file_id>/", views.private_file, name="private_file"),
     path("service-worker.js", pwa.service_worker, name="service_worker"),  # T-M01-21
+    # Ajuda per instal·lar-la a l'iPhone (041; 079, A-28; T-M01-45): pública, només text.
+    path("ajuda/iphone/", pwa.install_help_iphone, name="install_help_iphone"),
 ]
 
 # Emmagatzematge local que imita Scaleway: només fora de producció (decisió 010).

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# Ajuda per instal·lar la web a l'iPhone (decisió 041; 079, A-28 i RN-M01-96; T-M01-45). Només text i passos. #}
+{# Seguretat i privacitat: pàgina pública (declarada a PUBLIC_ROUTES). No llegeix ni mostra cap dada de la sessió ni del #}
+{# compte; no té cap formulari. Diu el que passa amb la còpia del carnet al mòbil: s'esborra en sortir. #}
+{# Les captures que demana la 041 queden pendents [A validar]: els noms dels botons de Safari canvien amb la versió. #}
+{% block title %}{% translate "Instal·lar la plataforma a l'iPhone" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Ajuda" %}</p>
+  <h1>{% translate "Instal·lar la plataforma a l'iPhone" %}</h1>
+  <p>{% translate "La plataforma del C.R.I.S. no és a l'App Store: s'instal·la des del navegador i queda a la pantalla d'inici com una aplicació." %}</p>
+  <ol class="passos">
+    <li>{% translate "Obre cris1954.cat amb Safari." %}</li>
+    <li>{% translate "Prem el botó «Comparteix»: un quadrat amb una fletxa cap amunt, a la barra de baix (o de dalt, a l'iPad)." %}</li>
+    <li>{% translate "Llisca cap avall i tria «Afegeix a la pantalla d'inici». Si no hi surt, prem «Edita les accions» i afegeix-la." %}</li>
+    <li>{% translate "Comprova que el nom és «C.R.I.S.» i prem «Afegeix»." %}</li>
+    <li>{% translate "Obre la plataforma des de la icona nova i entra amb el teu correu i la teva contrasenya." %}</li>
+  </ol>
+  <section class="despres" aria-labelledby="saber-titol">
+    <h2 id="saber-titol">{% translate "Què has de saber" %}</h2>
+    <ul class="passos">
+      <li>{% translate "No rebràs notificacions al mòbil: els avisos del club arriben dins de la plataforma i per correu." %}</li>
+      <li>{% translate "Si has obert «El meu carnet» amb connexió, el pots veure sense cobertura. Quan surts del compte, la còpia del carnet s'esborra del mòbil." %}</li>
+      <li>{% translate "Els noms dels botons poden canviar una mica segons la versió i la llengua de l'iPhone." %}</li>
+    </ul>
+  </section>
+  <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a></p>
+{% endblock %}

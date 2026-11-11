@@ -8,6 +8,7 @@ porta cap dada. Què guarda al navegador i quan ho esborra: `static/js/service-w
 from django.conf import settings
 from django.contrib.auth.decorators import login_not_required
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
 SOURCE = settings.BASE_DIR / "static" / "js" / "service-worker.js"
@@ -21,3 +22,11 @@ def service_worker(request):
     # corregida) arriba a tots els dispositius a la primera visita amb connexió.
     response["Cache-Control"] = "no-cache"
     return response
+
+
+@login_not_required
+@require_GET
+def install_help_iphone(request):
+    """Com s'instal·la la web a l'iPhone (decisió 041: a l'iPhone només des de Safari, sense
+    botiga). Pública i només de text: no llegeix ni mostra cap dada de la sessió."""
+    return render(request, "core/install_help_iphone.html")
