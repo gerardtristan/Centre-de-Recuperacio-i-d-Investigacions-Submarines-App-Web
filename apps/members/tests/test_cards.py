@@ -480,6 +480,8 @@ def test_card_back_shows_the_wireframe_content(personal):
     assert member.type.name in html and "12/03/2019" in html
     assert "Pagada fins al 10/03/2027" in html
     assert "Carnet personal i intransferible" in html and "cris@cris.es" in html
+    # Decisió 085 (J-6): el NIF del club al darrere del carnet.
+    assert "NIF V08591042" in html
     assert "A validar" not in html
 
 

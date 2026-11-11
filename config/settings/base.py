@@ -147,11 +147,13 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)
-# Remitent sense bústia real a cris1954.cat, amb resposta a l'adreça del club (decisió 019).
+# Remitent: l'adreça del club, que també rep les respostes (decisió 085, I-2; substitueix el
+# remitent sense bústia de cris1954.cat de la 019). Per enviar des de cris.es, el proveïdor de
+# correu ha de tenir aquest domini autenticat (SPF i DKIM): condició de producció.
 # El nom que es mostra es canvia amb la mateixa variable: "Nom <adreça>".
-EMAIL_FROM_TRANSACCIONAL = env(
-    "EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <no-respon@cris1954.cat>"
-)
+EMAIL_FROM_TRANSACCIONAL = env("EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <cris@cris.es>")
+# NIF del club (decisió 085, J-6): surt al darrere del carnet. És una dada pública de l'entitat.
+CLUB_TAX_ID = env("CLUB_TAX_ID", default="V08591042")
 EMAIL_REPLY_TO = env("EMAIL_REPLY_TO", default="cris@cris.es")
 DEFAULT_FROM_EMAIL = EMAIL_FROM_TRANSACCIONAL
 SERVER_EMAIL = EMAIL_FROM_TRANSACCIONAL

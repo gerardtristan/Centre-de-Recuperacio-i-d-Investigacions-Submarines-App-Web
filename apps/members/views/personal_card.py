@@ -18,6 +18,7 @@ Decisió 079 (RN-M01-85 i 92):
   079 o clau retirada) o quan la secretaria l'ha revocat.
 """
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils.safestring import mark_safe
@@ -51,6 +52,7 @@ def card_view(request):
         "qr_svg": mark_safe(svg) if svg else "",  # noqa: S308
         "can_request": cards.may_request_new_card(loaded),
         "offline_copy_days": cards.OFFLINE_COPY_DAYS,
+        "club_tax_id": settings.CLUB_TAX_ID,
     }
     return render(request, "members/personal_card.html", context)
 
