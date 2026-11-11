@@ -265,7 +265,7 @@ def test_rejecting_needs_a_reason(login_as, handler, pending):
         erasure.reject(pending, by=handler, reason=" ")
 
 
-def test_rejecting_keeps_the_person_and_sends_an_email_without_the_reason(
+def test_rejecting_keeps_the_person_and_sends_an_email_with_the_reason_and_how_to_complain(
     login_as, handler, personal_account, pending
 ):
     client = login_as(handler, AREA_ADMIN)
@@ -279,7 +279,11 @@ def test_rejecting_keeps_the_person_and_sends_an_email_without_the_reason(
     assert personal_account.status == Account.Status.ACTIVE
     email = OutgoingEmail.objects.get(template=erasure.REJECTED_EMAIL)
     assert email.to_address == "anna@example.org"
-    assert REASON not in email.body_text and "Anna" not in email.body_text
+    # Decisió 085 (A-3, opció B; article 12.4 del RGPD): el correu diu el motiu i que es pot
+    # reclamar davant l'autoritat de control o als tribunals. Cap altra dada de la persona.
+    assert REASON in email.body_text and "Anna" not in email.body_text
+    assert "Agència Espanyola de Protecció de Dades" in email.body_text
+    assert "www.aepd.es" in email.body_text and "tribunals" in email.body_text
     entry = AuditEntry.objects.get(action=audit.Action.ERASURE_REJECTED)
     assert (entry.old_value, entry.new_value, entry.reason) == ("pending", "rejected", REASON)
     # Pot tornar-la a demanar: només n'hi pot haver una de pendent.

@@ -57,7 +57,7 @@
       <form class="formulari targeta" method="post" action="{% url 'administration:gdpr_request_detail' item.pk %}" aria-labelledby="rebutja-titol" novalidate>
         {% csrf_token %}
         <h2 id="rebutja-titol">{% translate "Rebutja la sol·licitud" %}</h2>
-        <p class="text-2">{% translate "La persona continua activa, amb les seves dades i els seus comptes, i rep un correu que diu que la sol·licitud no s'ha aprovat." %}</p>
+        <p class="text-2">{% translate "La persona continua activa, amb les seves dades i els seus comptes, i rep un correu que diu que la sol·licitud no s'ha aprovat, amb el motiu i amb la manera de reclamar." %}</p>
         {% include "accounts/_camp.html" with field=reject_form.reason %}
         <div class="accions"><button class="boto" type="submit" name="action" value="reject">{% translate "Rebutja" %}</button></div>
       </form>
