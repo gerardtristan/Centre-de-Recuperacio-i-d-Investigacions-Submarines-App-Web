@@ -206,7 +206,7 @@ def test_approving_asks_for_password_and_code_again(
 
 def test_ca_19_1_approving_executes_the_erasure(login_as, handler, personal_account, pending):
     """CA-19.1 i CA-19.2: en aprovar, els comptes queden desactivats, la persona anonimitzada, i
-    la pantalla només ensenya la referència anònima."""
+    la pantalla només ensenya la referència."""
     client = login_as(handler, AREA_ADMIN)
     response = client.post(detail(pending), approval(handler))
     assert response.status_code == 302 and response["Location"] == detail(pending)
@@ -404,7 +404,7 @@ def test_export_file_is_kept_if_the_erasure_is_undone(personal_account, handler,
 
 class TestAuditTrigger:
     """L'excepció és a la base de dades. Ni amb el paràmetre posat es pot canviar res que no
-    sigui: el valor anterior, el valor nou o el motiu per la referència anònima d'una persona ja
+    sigui: el valor anterior, el valor nou o el motiu per la referència d'una persona ja
     anonimitzada, i l'adreça IP per res."""
 
     @pytest.fixture

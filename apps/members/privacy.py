@@ -21,7 +21,7 @@ tria un per un. No hi surten:
 - el soci que no és de baixa passa a «baixa» avui, amb un motiu fix, i el carnet es revoca;
 - les sol·licituds pendents es cancel·len i una baixa programada es dona per aplicada;
 - de totes les sol·licituds de la persona se'n buiden la data de naixement, el representant, el
-  contacte nou i les coincidències, i els motius passen a ser la referència anònima; la persona
+  contacte nou i les coincidències, i els motius passen a ser la referència; la persona
   també desapareix de les coincidències de les sol·licituds d'altres;
 - els motius anteriors de l'historial (`MemberStatusChange.reason`, amb l'excepció acotada del
   disparador de members/0018) i de les revocacions de carnets passen a ser la referència;

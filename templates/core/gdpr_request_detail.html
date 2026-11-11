@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-22: una sol·licitud d'esborrat RGPD (P-M01-F, passos 4 i 5; M11). Seguretat i privacitat: M11 per veure-la i M11 amb edició per resoldre-la, comprovats al servidor (sense permís, «no trobat»); ningú no resol la seva pròpia sol·licitud (403 i registre); aprovar demana la casella de confirmació, la contrasenya i el codi TOTP a la mateixa petició, i els errors no diuen quants intents queden; rebutjar demana un motiu. Només es mostra el nom i el compte de qui ho demana, i les conseqüències en frases sense imports ni dades; un cop executada, només la referència anònima. Amagar els formularis no és cap control: el servidor ho torna a comprovar tot en desar. #}
+{# T-M01-22: una sol·licitud d'esborrat RGPD (P-M01-F, passos 4 i 5; M11). Seguretat i privacitat: M11 per veure-la i M11 amb edició per resoldre-la, comprovats al servidor (sense permís, «no trobat»); ningú no resol la seva pròpia sol·licitud (403 i registre); aprovar demana la casella de confirmació, la contrasenya i el codi TOTP a la mateixa petició, i els errors no diuen quants intents queden; rebutjar demana un motiu. Només es mostra el nom i el compte de qui ho demana, i les conseqüències en frases sense imports ni dades; un cop executada, només la referència. Amagar els formularis no és cap control: el servidor ho torna a comprovar tot en desar. #}
 {% block title %}{% translate "Sol·licitud d'esborrat" %} · {{ item.person }} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds RGPD" %}</p>
@@ -36,8 +36,8 @@
         <ul>
           {% for line in consequences %}<li>{{ line }}</li>{% endfor %}
           <li>{% translate "Es desactivaran tots els seus comptes i se'n tancaran les sessions." %}</li>
-          <li>{% translate "S'anonimitzaran les seves dades personals: nom, document, correu, telèfon, adreça i data de naixement. Al registre d'activitat, el que la identifica se substituirà per una referència anònima." %}</li>
-          <li>{% translate "Les quotes, els càrrecs i els pagaments no s'esborren ni es modifiquen: queden bloquejats, lligats a la referència anònima. Si en té, el nom i el document que hi surten es conserven xifrats fins al final del termini legal i només es consulten amb el permís de dades bloquejades i un motiu." %}</li>
+          <li>{% translate "S'anonimitzaran les seves dades personals: nom, document, correu, telèfon, adreça i data de naixement. Al registre d'activitat, el que la identifica se substituirà per una referència." %}</li>
+          <li>{% translate "Les quotes, els càrrecs i els pagaments no s'esborren ni es modifiquen: queden bloquejats, lligats a la referència. Si en té, el nom i el document que hi surten es conserven xifrats fins al final del termini legal i només es consulten amb el permís de dades bloquejades i un motiu." %}</li>
           <li>{% translate "Rebrà un correu de confirmació, l'últim." %}</li>
         </ul>
       </section>

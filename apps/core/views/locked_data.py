@@ -4,7 +4,7 @@ patrons de les sol·licituds RGPD (`design-system.md`, §6.7).
 
 - Sense M13, «no trobat», també abans de comprovar el mètode. M13 és protegit: el tenen el
   tresorer i l'administrador i no s'edita des de la matriu.
-- La llista només mostra la referència anònima i la data del bloqueig.
+- La llista només mostra la referència i la data del bloqueig.
 - Les dades només surten a la resposta d'un POST amb un motiu, que queda al registre d'activitat
   amb qui i quan. Un GET no mostra res. Sense memòria cau (`never_cache`): tornar enrere no les
   torna a mostrar sense una consulta nova.

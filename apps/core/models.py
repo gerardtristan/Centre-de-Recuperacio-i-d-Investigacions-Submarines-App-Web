@@ -68,7 +68,7 @@ class Person(models.Model):
     )
     # Referència que substitueix la identitat en anonimitzar (decisió 028), p. ex. «A-0042».
     anonymous_ref = models.CharField(
-        "referència anònima", max_length=20, null=True, blank=True, unique=True
+        "referència", max_length=20, null=True, blank=True, unique=True
     )
     origin = models.CharField(_("origen"), max_length=16, choices=Origin.choices)
     # Només a les persones creades per un lot; mai a una de preexistent (T-M01-24). PROTECT
@@ -297,7 +297,7 @@ class AuditEntry(AppendOnlyModel):
     (migració 0004) ho impedeixen a la base de dades, també amb SQL directe. Les entrades es
     creen amb els serveis de `apps.core.audit`, mai directament. Cap secret als valors (RN-52).
     Única excepció (RN-89, migració 0019): en un esborrat RGPD, `audit.substitute_identity`
-    substitueix el que identifica la persona per la seva referència anònima.
+    substitueix el que identifica la persona per la seva referència.
     """
 
     class ActorKind(models.TextChoices):

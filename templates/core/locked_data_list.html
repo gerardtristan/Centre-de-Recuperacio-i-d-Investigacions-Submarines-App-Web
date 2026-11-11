@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M00-04: dades bloquejades (M13, `core.locked_data.view`, protegit; decisió 028; CA-19.3, RN-91). Seguretat i privacitat: el servidor exigeix M13 (sense permís, «no trobat»); la llista només mostra la referència anònima i la data del bloqueig, mai cap nom, document ni import; les dades només surten a la pantalla de cada persona, després d'escriure un motiu que queda al registre d'activitat. #}
+{# T-M00-04: dades bloquejades (M13, `core.locked_data.view`, protegit; decisió 028; CA-19.3, RN-91). Seguretat i privacitat: el servidor exigeix M13 (sense permís, «no trobat»); la llista només mostra la referència i la data del bloqueig, mai cap nom, document ni import; les dades només surten a la pantalla de cada persona, després d'escriure un motiu que queda al registre d'activitat. #}
 {% block title %}{% translate "Dades bloquejades" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -12,7 +12,7 @@
       <caption>{% blocktranslate count total=items|length %}{{ total }} persona{% plural %}{{ total }} persones{% endblocktranslate %}</caption>
       <thead>
         <tr>
-          <th scope="col">{% translate "Referència anònima" %}</th>
+          <th scope="col">{% translate "Referència" %}</th>
           <th scope="col">{% translate "Bloquejades el" %}</th>
           <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
         </tr>

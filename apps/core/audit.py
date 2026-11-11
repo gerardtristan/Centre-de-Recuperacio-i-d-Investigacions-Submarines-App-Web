@@ -12,7 +12,7 @@ Les entrades es creen dins de la transacció de l'acció: si l'acció es desfà,
 Cap secret als valors (RN-52): els noms de camp i de detall que en semblen es rebutgen.
 
 Única modificació permesa (RN-89, decisió 028): en un esborrat RGPD, `substitute_identity`
-substitueix el que identifica la persona per la seva referència anònima.
+substitueix el que identifica la persona per la seva referència.
 """
 
 from collections.abc import Mapping
@@ -218,7 +218,7 @@ def identity_substitution():
 
     L'excepció és acotada a la base de dades, no aquí: amb el paràmetre posat, els disparadors
     només accepten un UPDATE que deixi iguals l'acció, la data, l'objecte i l'actor i que hi
-    escrigui la referència anònima d'una persona ja anonimitzada (o buidi l'adreça IP). DELETE i
+    escrigui la referència d'una persona ja anonimitzada (o buidi l'adreça IP). DELETE i
     TRUNCATE continuen rebutjats sempre. El paràmetre es torna a tancar en sortir; si la
     transacció es desfà, PostgreSQL el desfà amb ella."""
     if not connection.in_atomic_block:
@@ -239,11 +239,11 @@ def substitute_identity(person, targets: Mapping[str, Any], *, up_to: int) -> in
     anteriors a l'esborrat (`id <= up_to`), sense tocar-ne l'acció, la data ni l'objecte
     (CA-19.4). Torna quantes entrades ha tocat.
 
-    - On la persona és l'actor: l'adreça IP es buida. Qui actua ja és la referència anònima
+    - On la persona és l'actor: l'adreça IP es buida. Qui actua ja és la referència
       (`actor_person` i el compte, que queden anonimitzats); els valors no es toquen, perquè
       poden ser dades d'altres persones.
     - Sobre els seus objectes no econòmics (`targets`: {tipus: identificadors}): el valor
-      anterior, el valor nou i el motiu (text lliure) passen a ser la referència anònima, i
+      anterior, el valor nou i el motiu (text lliure) passen a ser la referència, i
       l'adreça IP es buida si l'actor era anònim (un intent d'entrada al seu compte).
     - Les entrades de càrrecs, pagaments i quotes no són a `targets`: queden bloquejades amb el
       registre econòmic (028, punt 2) i no porten cap dada personal pròpia.

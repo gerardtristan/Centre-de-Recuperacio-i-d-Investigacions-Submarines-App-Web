@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-22: sol·licituds d'esborrat RGPD (P-M01-F, pas 4; M11, `core.gdpr.handle`). Seguretat i privacitat: el servidor exigeix M11 (sense permís, «no trobat»); només es mostra el nom de qui ho demana i la data, sense document, correu, adreça ni imports; una persona ja anonimitzada surt només amb la referència anònima. Només lectura: resoldre és a la pantalla de cada sol·licitud. #}
+{# T-M01-22: sol·licituds d'esborrat RGPD (P-M01-F, pas 4; M11, `core.gdpr.handle`). Seguretat i privacitat: el servidor exigeix M11 (sense permís, «no trobat»); només es mostra el nom de qui ho demana i la data, sense document, correu, adreça ni imports; una persona ja anonimitzada surt només amb la referència. Només lectura: resoldre és a la pantalla de cada sol·licitud. #}
 {% block title %}{% translate "Sol·licituds RGPD" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}

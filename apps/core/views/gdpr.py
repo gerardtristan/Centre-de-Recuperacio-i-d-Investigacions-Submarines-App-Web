@@ -10,7 +10,7 @@ sol·licituds de socis (`design-system.md`, §6.7).
   (`reauth.require_recent_auth` amb `minutes=0`: contrasenya i codi TOTP). Un error compta per al
   bloqueig de V-01 i no diu quants intents queden.
 - Minimització: de la persona només es mostra el nom i el compte que ho demana; del que passarà,
-  frases sense imports ni dades. Un cop executada, només la referència anònima.
+  frases sense imports ni dades. Un cop executada, només la referència.
 """
 
 from django import forms

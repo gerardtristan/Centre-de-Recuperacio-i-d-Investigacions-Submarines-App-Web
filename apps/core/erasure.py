@@ -147,7 +147,7 @@ def reject(erasure_request, *, by, reason, request=None) -> ErasureRequest:
 def approve(erasure_request, *, by, request=None) -> ErasureRequest:
     """Aprova la sol·licitud i executa l'esborrat (P-M01-F, passos 4 i 5; CA-M01-19, CA-19.1 a
     CA-19.4). Tot o res. Les dues entrades del registre s'escriuen després d'anonimitzar: només
-    porten estats i la referència anònima."""
+    porten estats i la referència."""
     ensure_can_resolve(erasure_request, by, request=request)
     with transaction.atomic():
         person, locked = _lock_pending(erasure_request)

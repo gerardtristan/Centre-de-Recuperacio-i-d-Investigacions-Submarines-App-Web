@@ -1,5 +1,5 @@
 """Dades bloquejades al navegador (T-M00-04; M13; CA-19.3, RN-91): el tresorer obre la llista, que
-només mostra la referència anònima, i consulta una persona escrivint el motiu només amb el teclat.
+només mostra la referència, i consulta una persona escrivint el motiu només amb el teclat.
 Pantalles a 1280, 390 i 320 px (clar i fosc).
 """
 

@@ -156,7 +156,7 @@ class Member(models.Model):
 class MemberStatusChange(AppendOnlyModel):
     """Historial d'estats i tipus (RN-M01-08). Només s'hi afegeixen files: també ho
     imposen uns disparadors de PostgreSQL (migració 0003). Única excepció, acotada al disparador
-    (migració 0018, T-M01-22): en un esborrat RGPD, `reason` passa a ser la referència anònima."""
+    (migració 0018, T-M01-22): en un esborrat RGPD, `reason` passa a ser la referència."""
 
     member = models.ForeignKey(
         Member, on_delete=models.PROTECT, related_name="status_changes", verbose_name=_("soci")

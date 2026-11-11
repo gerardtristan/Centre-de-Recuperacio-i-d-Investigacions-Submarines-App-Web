@@ -13,7 +13,7 @@ demanar-ne una de nova, l'anterior caduca. Sense testimonis, empremtes ni secret
 d'altres persones (vegeu `EXPORT_NOTE`).
 
 **Anonimització (CA-19.1 a CA-19.4, CA-M01-19).** `anonymise_person`, en una sola transacció:
-1. la persona passa a «anonimitzada» amb la referència anònima i sense cap dada personal;
+1. la persona passa a «anonimitzada» amb la referència i sense cap dada personal;
 2. cada mòdul fa la seva part (el 01: baixa, carnets, sol·licituds i textos lliures);
 3. els comptes es desactiven i se'n tanquen les sessions; les invitacions s'invaliden;
 4. l'adreça dels correus enviats se substitueix i els fitxers sense obligació legal caduquen;
@@ -32,7 +32,7 @@ cap regla que el simuli. Quan es decideixi:
 - el termini ha de ser un valor de configuració (`core.business_settings`), no una constant;
 - la destrucció (CA-19.5, RN-90) és una tasca periòdica nova a `apps/core/tasks.py`
   (`core.destroy_expired_blocked_data`), que cridaria una funció d'aquest mòdul i deixaria una
-  entrada al registre amb la referència anònima.
+  entrada al registre amb la referència.
 Tampoc no està decidit què es fa quan qui demana l'esborrat té càrrecs pendents (CA-19.7, Q-14):
 `erasure.approve` no executa aquest cas.
 """
@@ -241,7 +241,7 @@ _PERSONAL_TEXT_FIELDS = (
 def anonymise_person(person, *, by, request=None) -> Person:
     """Anonimitza la persona i tot el que la identifica (vegeu el docstring del mòdul). Qui crida
     ja ha comprovat el permís, el conflicte d'interès i `blockers`. Torna la persona, ja amb la
-    referència anònima."""
+    referència."""
     from apps.accounts import privacy as accounts_privacy
 
     with transaction.atomic():

@@ -29,7 +29,7 @@ Pots consultar i resoldre les altes i els canvis de tipus, igual que la secretar
 
 ## 6. Dades bloquejades
 Quan una persona demana l'esborrat de les seves dades, les quotes i els pagaments no s'esborren. El nom i el document que hi surten queden **bloquejats i xifrats** fins al final del termini legal, que encara ha de fixar la gestoria [A validar: Q-14].
-- **Dades bloquejades** mostra només la referència anònima («A-0001») i la data del bloqueig.
+- **Dades bloquejades** mostra només la referència («A-0001») i la data del bloqueig.
 - Per veure la identitat i els registres econòmics, has d'escriure **el motiu** (per exemple, una inspecció o un requeriment de la gestoria). Cada consulta queda al registre amb el teu compte i el motiu.
 - Fes servir aquestes dades només per a l'obligació legal que has escrit; no les copiïs fora de la plataforma.
 

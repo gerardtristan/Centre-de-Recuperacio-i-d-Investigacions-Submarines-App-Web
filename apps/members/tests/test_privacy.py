@@ -650,7 +650,7 @@ class TestErasure:
         self, brunilda, staff
     ):
         """CA-19.4: cap entrada s'esborra ni canvia d'acció, data, objecte ni actor; el que
-        identifica la persona se substitueix per la referència anònima."""
+        identifica la persona se substitueix per la referència."""
         fixed = ("id", "created_at", "action", "target_type", "target_id", "field")
         actor = ("actor_kind", "actor_account_id", "actor_person_id", "actor_roles", "details")
         before = list(AuditEntry.objects.order_by("id").values(*fixed, *actor))
@@ -882,7 +882,7 @@ class TestAnonymisedPerson:
 
 class TestStatusHistoryTrigger:
     """L'excepció és a la base de dades: ni amb el paràmetre posat es pot fer res més que
-    escriure-hi la referència anònima de la persona d'aquell soci, ja anonimitzada."""
+    escriure-hi la referència de la persona d'aquell soci, ja anonimitzada."""
 
     def _update(self, sql, params):
         with transaction.atomic(), connection.cursor() as cursor:

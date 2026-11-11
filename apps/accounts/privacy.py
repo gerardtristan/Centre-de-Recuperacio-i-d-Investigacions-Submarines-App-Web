@@ -6,7 +6,7 @@ El crida `apps.core.privacy`, que porta l'exportació i l'esborrat d'una persona
   contrasenya, el secret TOTP ni els codis de recuperació.
 - **Esborrat (CA-19.1):** cada compte queda desactivat i sense sessions, i el que identifica la
   persona (correu d'entrada o nom d'usuari, i correu de notificació) se substitueix per la
-  referència anònima. La contrasenya queda inservible: un compte desactivat que algú tornés a
+  referència. La contrasenya queda inservible: un compte desactivat que algú tornés a
   activar tampoc no deixaria entrar. Les invitacions vives s'invaliden (079, punt 10).
 - **TOTP i codis de recuperació:** s'eliminen (decisió 081, punt 18), amb el nombre de codis
   eliminats al registre. Els enllaços del correu també deixen de valer, perquè l'empremta dels

@@ -53,7 +53,7 @@ def record_locked(person: Person, *, by, request=None) -> None:
 
 
 def locked_people():
-    """Les persones amb dades bloquejades: només la referència anònima i la data."""
+    """Les persones amb dades bloquejades: només la referència i la data."""
     return (
         LockedIdentity.objects.filter(person__status=Person.Status.ANONYMISED)
         .select_related("person")

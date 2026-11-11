@@ -291,7 +291,7 @@ ANONYMOUS_EMAIL_DOMAIN = "anonimitzat.invalid"
 
 
 def anonymous_ref_for(person) -> str:
-    """Referència anònima d'una persona (028), p. ex. «A-0042». Surt de l'identificador intern:
+    """Referència d'una persona (028), p. ex. «A-0042». Surt de l'identificador intern:
     és única sense cap comptador i no diu res de la persona."""
     return f"A-{person.pk:04d}"
 
