@@ -28,6 +28,10 @@ dev = [
     # Playwright fixat a la 1.64: la 1.65 tenia un dia quan es va afegir.
     "pytest-playwright>=0.10,<0.11",
     "playwright>=1.64,<1.65",
+    # Auditoria d'accessibilitat (T-M01-28; Q-082 de la 072: axe amb Playwright). Només per a
+    # proves: porta axe-core 4.12.1 dins del paquet i no el descarrega. Autoritzada pel responsable
+    # del projecte l'11/11/2026.
+    "axe-playwright-python==0.1.8",
     "ruff>=0.7,<1",
 ]
 

@@ -1,9 +1,13 @@
 """Revisió automàtica d'accessibilitat del M01 al navegador (T-M01-28; checklist B8; M01-11).
 
-**No és l'auditoria amb axe** (Q-082, decisió 072): són comprovacions pròpies, amb Playwright, de
-la part estructural i de teclat que es pot verificar sense l'eina. No mesuren el contrast ni
-cobreixen tots els criteris de WCAG 2.2 AA. L'auditoria amb axe i la revisió amb lector de pantalla
-continuen pendents (diari de la T-M01-28).
+Dues parts, a les mateixes pantalles:
+- **axe** (Q-082, decisió 072; `axe-playwright-python` 0.1.8, que porta axe-core 4.12.1 i no el
+  descarrega): regles WCAG 2.0, 2.1 i 2.2 A i AA, en clar i en fosc (el contrast canvia). Fallen
+  les violacions d'impacte greu («serious» i «critical»); les altres són avisos, i el que axe no
+  pot decidir sol («incomplete») queda per a la revisió manual. Tot va a l'informe.
+- **Comprovacions pròpies** d'estructura i de teclat, que axe no fa (recorregut amb el tabulador).
+
+La revisió amb lector de pantalla continua pendent de persona (diari de la T-M01-28).
 
 Per a cada pantalla del M01 (àrea del soci, pàgines públiques i administració):
 - estructura: `lang="ca"`, títol, un sol `h1`, la regió `main` i cap salt de nivell de títol;
@@ -19,6 +23,7 @@ import json
 from pathlib import Path
 
 import pytest
+from axe_playwright_python.sync_playwright import Axe
 from django.conf import settings
 from django.urls import reverse
 
@@ -31,6 +36,16 @@ pytestmark = pytest.mark.e2e
 
 REPORTS = Path(settings.BASE_DIR) / ".e2e-captures" / "accessibilitat"
 MAX_TABS = 120
+AXE = Axe()
+AXE_OPTIONS = {
+    "runOnly": {
+        "type": "tag",
+        "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+    },
+    "resultTypes": ["violations", "incomplete"],
+}
+SERIOUS = {"serious", "critical"}
+THEMES = ("light", "dark")
 
 STRUCTURE_JS = r"""
 () => {
@@ -200,8 +215,43 @@ def keyboard_walk(page) -> tuple[list[str], int, list[str], str]:
     return issues, len(seen), order, stop
 
 
+def _rule(rule: dict) -> dict:
+    return {
+        "regla": rule["id"],
+        "impacte": rule.get("impact"),
+        "ajuda": rule.get("help"),
+        "url": rule.get("helpUrl"),
+        "elements": [
+            {
+                "selector": node.get("target"),
+                "html": (node.get("html") or "")[:200],
+                "detall": (node.get("failureSummary") or "")[:400],
+            }
+            for node in rule.get("nodes", [])
+        ],
+    }
+
+
+def axe_audit(page) -> dict:
+    """axe en clar i en fosc: violacions greus, avisos i el que necessita revisió manual."""
+    out = {}
+    for theme in THEMES:
+        page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
+        page.wait_for_timeout(500)  # transicions de color del tema
+        response = AXE.run(page, options=AXE_OPTIONS).response
+        violations = response["violations"]
+        out[theme] = {
+            "violacions": [_rule(r) for r in violations if r.get("impact") in SERIOUS],
+            "avisos": [_rule(r) for r in violations if r.get("impact") not in SERIOUS],
+            "revisio_manual": [_rule(r) for r in response.get("incomplete", [])],
+        }
+    page.evaluate("document.documentElement.removeAttribute('data-theme')")
+    return out
+
+
 def audit(page, name: str, results: dict) -> None:
     page.wait_for_load_state("networkidle")
+    axe = axe_audit(page)
     structure = page.evaluate(STRUCTURE_JS)
     focusable = page.evaluate(COUNT_FOCUSABLE_JS)
     keyboard, reached, order, stop = keyboard_walk(page)
@@ -219,6 +269,7 @@ def audit(page, name: str, results: dict) -> None:
         "focusable": focusable,
         "order": order,
         "stop": stop,
+        "axe": axe,
     }
 
 
@@ -230,11 +281,19 @@ def save(results: dict, label: str) -> None:
 
 
 def problems(results: dict) -> list[str]:
-    return [
+    own = [
         f"{name}: {issue}"
         for name, result in results.items()
         for issue in result["structure"] + result["keyboard"]
     ]
+    axe = [
+        f"{name} ({theme}): axe {rule['regla']} ({rule['impacte']}) a {len(rule['elements'])}"
+        f" element(s): {rule['ajuda']}"
+        for name, result in results.items()
+        for theme, found in result["axe"].items()
+        for rule in found["violacions"]
+    ]
+    return own + axe
 
 
 def test_personal_and_public_screens(page, live_server, builder, member, page_checks):
@@ -339,3 +398,7 @@ def test_the_checks_detect_known_defects(page):
         assert expected in text, (expected, structure)
     keyboard, _reached, _order, _stop = keyboard_walk(page)
     assert any("sense indicador de focus visible" in issue for issue in keyboard), keyboard
+    # axe també ha de veure els defectes greus de la mateixa pàgina.
+    found = {r["regla"] for r in axe_audit(page)["light"]["violacions"]}
+    for rule in ("image-alt", "button-name", "link-name", "label", "document-title"):
+        assert rule in found, (rule, found)
