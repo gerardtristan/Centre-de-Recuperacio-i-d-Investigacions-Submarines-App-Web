@@ -499,3 +499,57 @@ def test_ca_m01_73_validating_a_leave_cancels_the_pending_downgrade(
     assert (downgrade.status, downgrade.resolution_reason) == (RS.CANCELLED, "Baixa")
     with pytest.raises(mr.RequestNotAllowed):
         mr.withdraw_downgrade(member, by=account)
+
+
+def test_081_validating_a_leave_cancels_the_accepted_downgrade_keeping_its_history(
+    pere,
+    make_admin,  # noqa: F811
+):
+    """Decisió 081, punt 17 (opció A): en validar la baixa, el pas a simpatitzant ja acceptat es
+    cancel·la amb el motiu «baixa». L'acceptació anterior queda al registre (qui i quan) i la
+    renovació (`accepted_downgrade`, contracte de la T-M01-43) ja no el troba."""
+    member, account = pere
+    secretary = make_admin("secretary")
+    downgrade = downgrade_request(member)
+    mr.approve_type_change(downgrade, by=secretary)
+    downgrade.refresh_from_db()
+    accepted_at = downgrade.resolved_at
+    assert mr.accepted_downgrade(member) == downgrade
+    leave = leave_request(member)
+    page = admin_client(secretary).get(reverse(DETAIL, args=[leave.pk])).content.decode()
+    assert "El pas a simpatitzant acceptat d'aquest soci es cancel·la amb el motiu «baixa»." in page
+    other = make_admin("secretary", username="secretaria.dos")
+    mr.approve_leave(leave, by=other, effective_on=local_today() + timedelta(days=5))
+
+    downgrade.refresh_from_db()
+    assert (downgrade.status, downgrade.resolution_reason) == (RS.CANCELLED, "Baixa")
+    assert downgrade.effective_on is None and downgrade.applied_at is None
+    assert mr.accepted_downgrade(member) is None
+    # Historial: l'acceptació i la cancel·lació, cadascuna amb el seu compte i el valor anterior.
+    resolved = entries(mr.REQUEST_RESOLVED).filter(target_id=str(downgrade.pk)).order_by("pk")
+    states = [(e.old_value, e.new_value, e.actor_account) for e in resolved if e.field == "status"]
+    assert states == [("pending", "approved", secretary), ("approved", "cancelled", other)]
+    fields = {
+        e.field: (e.old_value, e.new_value, e.reason) for e in resolved if e.actor_account == other
+    }
+    assert fields["status"] == ("approved", "cancelled", "Baixa")
+    assert fields["resolved_by"][:2] == (secretary.pk, other.pk)
+    assert fields["resolved_at"][0] == accepted_at.isoformat()
+    # El soci no el pot tornar a retirar ni demanar-ne un altre (ja és de baixa programada).
+    with pytest.raises(mr.RequestNotAllowed):
+        mr.withdraw_downgrade(member, by=account)
+
+
+def test_081_a_downgrade_already_applied_is_not_touched_by_the_leave(
+    pere,
+    make_admin,  # noqa: F811
+):
+    # Un pas que la renovació ja ha aplicat (amb `effective_on`) és història: la baixa no el toca.
+    member = pere[0]
+    secretary = make_admin("secretary")
+    downgrade = downgrade_request(member)
+    mr.approve_type_change(downgrade, by=secretary)
+    MemberRequest.objects.filter(pk=downgrade.pk).update(effective_on=local_today())
+    mr.approve_leave(leave_request(member), by=secretary, effective_on=local_today())
+    downgrade.refresh_from_db()
+    assert downgrade.status == RS.APPROVED and downgrade.effective_on == local_today()

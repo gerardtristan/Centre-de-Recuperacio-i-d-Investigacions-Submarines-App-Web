@@ -38,8 +38,10 @@ Pas de ple dret a simpatitzant (073 i 079, RN-M01-73 i RN-M01-93; T-M01-42):
   una sol·licitud `change_type` cap al tipus simpatitzant, `approved`, amb `effective_on` buit i
   sense `supplement_fee`. Qui l'apliqui en renovar hi escriu `effective_on` (el dia de la
   renovació), i deixa de sortir.
-- Una baixa validada cancel·la el pas **pendent** (RN-M01-74). Què passa amb un pas ja acceptat
-  quan el soci es dona de baixa no ho diu cap regla: aquí no es toca.
+- Una baixa validada cancel·la el pas **pendent** (RN-M01-74) i també el pas **acceptat** encara
+  no aplicat (decisió 081, punt 17, opció A; RN-M01-98): passa a «cancel·lada» amb el motiu
+  «baixa», el registre conserva qui l'havia acceptat i quan, i `accepted_downgrade` ja no el troba,
+  de manera que la renovació (T-M01-43) no l'aplicarà. Un pas ja aplicat no es toca.
 
 El destinatari del correu de baixa és el de `recipients.email_for` (RN-M01-78, T-M01-41).
 
@@ -284,6 +286,21 @@ def _lock_pending(member_request, by) -> MemberRequest:
 
 def _close(locked, status, *, by, reason, effective_on=None, request=None) -> None:
     old = locked.status
+    changes = {"status": (old, status), "effective_on": (None, effective_on)}
+    if old != RS.PENDING:
+        # Una sol·licitud ja resolta que es torna a tancar (el pas acceptat que cancel·la una
+        # baixa, decisió 081): el registre conserva qui l'havia resolt, quan i amb quin motiu.
+        now = timezone.now()
+        changes.update(
+            {
+                "resolved_by": (locked.resolved_by_id, by.pk),
+                "resolved_at": (
+                    locked.resolved_at.isoformat() if locked.resolved_at else None,
+                    now.isoformat(),
+                ),
+                "resolution_reason": (locked.resolution_reason, reason),
+            }
+        )
     locked.status = status
     locked.resolution_reason = reason
     locked.resolved_by = by
@@ -296,7 +313,7 @@ def _close(locked, status, *, by, reason, effective_on=None, request=None) -> No
         REQUEST_RESOLVED,
         actor=by,
         target=locked,
-        changes={"status": (old, status), "effective_on": (None, effective_on)},
+        changes=changes,
         reason=reason,
         request=request,
     )
@@ -416,11 +433,19 @@ def _apply_leave(locked, *, by, request=None) -> None:
 
 def _cancel_pending_type_change(member, *, by, request=None) -> None:
     """RN-M01-74 (074, punt 5): en validar una baixa, el canvi de tipus pendent es cancel·la
-    amb el motiu «baixa»."""
+    amb el motiu «baixa». Decisió 081, punt 17 (RN-M01-98): també el pas a simpatitzant acceptat
+    i encara no aplicat; el registre guarda qui l'havia acceptat i quan."""
     pending = MemberRequest.objects.select_for_update().filter(
         member=member, kind=K.CHANGE_TYPE, status=RS.PENDING
     )
     for change in pending:
+        _close(change, RS.CANCELLED, by=by, reason=_("Baixa"), request=request)
+    accepted = (
+        downgrades(member)
+        .select_for_update(of=("self",))
+        .filter(status=RS.APPROVED, effective_on__isnull=True, applied_at__isnull=True)
+    )
+    for change in accepted:
         _close(change, RS.CANCELLED, by=by, reason=_("Baixa"), request=request)
 
 

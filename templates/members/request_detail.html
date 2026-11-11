@@ -66,6 +66,7 @@
             <li>{% translate "A la data efectiva: el soci passa a «baixa», el carnet es revoca i el soci rep un correu de confirmació." %}</li>
             <li>{% translate "Les quotes sense pagar que vencen després de la data efectiva s'anul·len amb motiu; les que vencen abans o el mateix dia es continuen devent." %}</li>
             {% if pending_change %}<li>{% translate "El canvi de tipus pendent d'aquest soci es cancel·la amb el motiu «baixa»." %}</li>{% endif %}
+            {% if accepted_downgrade %}<li>{% translate "El pas a simpatitzant acceptat d'aquest soci es cancel·la amb el motiu «baixa»." %}</li>{% endif %}
           </ul>
           {% if not show_fees %}
             {# 075 (CA-M01-85): sense P10, cap quota ni import; el servidor no les passa. #}

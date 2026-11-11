@@ -258,6 +258,8 @@ def request_detail_view(request, pk):
         context["pending_change"] = member.requests.filter(
             kind=MemberRequest.Kind.CHANGE_TYPE, status=MemberRequest.Status.PENDING
         ).exists()
+        # Decisió 081, punt 17: el pas a simpatitzant acceptat també es cancel·la.
+        context["accepted_downgrade"] = member_requests.accepted_downgrade(member) is not None
     return render(request, "members/request_detail.html", context, status=status)
 
 
