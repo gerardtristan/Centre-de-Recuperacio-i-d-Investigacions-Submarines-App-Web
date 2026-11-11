@@ -107,6 +107,33 @@ class ResetCredentialsForm(forms.Form):
     )
 
 
+class PersonalTotpResetForm(forms.Form):
+    """Restabliment presencial del doble factor d'un compte personal (P-52; decisió 081, punt 24):
+    comprovació de la identitat, motiu i un codi TOTP nou de qui ho fa."""
+
+    document = forms.CharField(
+        label=_("Número del document que t'ha mostrat"),
+        max_length=30,
+        help_text=_("Ha de coincidir amb el de la fitxa. No es desa ni surt al registre."),
+        widget=forms.TextInput(attrs={"autocomplete": "off", "autocapitalize": "characters"}),
+    )
+    identity_checked = forms.BooleanField(
+        label=_("He comprovat en persona la identitat del titular amb el seu document original."),
+    )
+    note = forms.CharField(
+        label=_("Motiu"),
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Queda al registre d'activitat. No hi escriguis cap contrasenya ni codi."),
+    )
+    code = forms.CharField(
+        label=_("El teu codi TOTP"),
+        max_length=24,
+        help_text=_("Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu."),
+        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+    )
+
+
 class DisableTotpForm(CodeForm):
     """CA-05.2: per desactivar el doble factor cal la contrasenya i un codi vàlid."""
 

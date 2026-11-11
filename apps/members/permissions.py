@@ -78,6 +78,10 @@ ROUTES = {
     "administration:member_invite": _both((M2, WRITE), (P4, READ)),
     # 079 (A-21, RN-M01-92): revocar el carnet d'un soci amb motiu.
     "administration:member_card_revoke": _both((P21, WRITE), (P4, READ)),
+    # 081, punt 24 (P-52): restabliment presencial del doble factor del compte personal.
+    "administration:member_totp_reset": _both((M2, WRITE), (P4, READ)),
+    # 081, punt 16: C1 el comprova el servei (`birth_date.can_check`).
+    "administration:member_birth_date_check": _both((P5, WRITE), (P4, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

@@ -185,18 +185,69 @@ def set_birth_date(person, birth_date, *, by, request=None, source="") -> bool:
         if locked.birth_date == birth_date:
             return False
         had = locked.birth_date is not None
+        was_checked = locked.birth_date_checked_at is not None
         locked.birth_date = birth_date
-        locked.save(update_fields=["birth_date", "updated_at"])
+        # Una data nova és una declaració nova: la comprovació anterior ja no la cobreix (081).
+        locked.birth_date_checked_at = None
+        locked.save(update_fields=["birth_date", "birth_date_checked_at", "updated_at"])
         audit.record(
             BIRTH_DATE_SET,
             actor=by,
             target=locked,
             field="birth_date",
-            details={"had_value": had, "has_value": birth_date is not None, "source": source},
+            details={
+                "had_value": had,
+                "has_value": birth_date is not None,
+                "source": source,
+                "check_reset": was_checked,
+            },
             request=request,
         )
     person.birth_date = birth_date
+    person.birth_date_checked_at = None
     return True
+
+
+BIRTH_DATE_CHECKED = "persons.birth_date_checked"
+
+
+def mark_birth_date_checked(person, *, by, request=None) -> bool:
+    """Decisió 081, punt 16 (RN-M01-99): la secretaria ha comprovat la data de naixement amb el
+    document d'identitat. És posterior a la declaració i no condiciona res del que la data ja fa
+    (per exemple, l'exempció de la quota). Torna si ha canviat. El registre diu qui i quan, mai la
+    data ni el document; no se'n desa cap còpia. Qui crida ja ha comprovat els permisos."""
+    with transaction.atomic():
+        locked = Person.objects.select_for_update().get(pk=person.pk)
+        if locked.status != Person.Status.ACTIVE:
+            raise ValidationError(
+                _("Les dades d'aquesta persona estan anonimitzades i no es poden editar.")
+            )
+        if locked.birth_date is None:
+            raise ValidationError(_("Aquesta persona no té data de naixement per comprovar."))
+        if not locked.id_document_number:
+            raise ValidationError(BIRTH_DATE_CHECK_WITHOUT_DOCUMENT)
+        if locked.birth_date_checked_at is not None:
+            return False
+        locked.birth_date_checked_at = timezone.now()
+        locked.save(update_fields=["birth_date_checked_at", "updated_at"])
+        audit.record(
+            BIRTH_DATE_CHECKED,
+            actor=by,
+            target=locked,
+            field="birth_date_checked_at",
+            details={"method": "document"},
+            request=request,
+        )
+    person.birth_date_checked_at = locked.birth_date_checked_at
+    return True
+
+
+# Excepció que queda pendent (P-73): un menor sense document a la fitxa (RN-M01-70) no es pot
+# comprovar amb el DNI. No s'inventa cap altre mètode.
+BIRTH_DATE_CHECK_WITHOUT_DOCUMENT = _(
+    "Aquesta persona no té document a la fitxa. Com es comprova l'edat d'un menor sense document "
+    "està pendent de decidir."
+)
 
 
 # Dades que la persona pot corregir des del seu perfil (HU-M01-08; 061). El nom, el document i la

@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }}, la secretaria del club ha restablert el doble factor del teu compte, després de comprovar la teva identitat en persona. Ara pots entrar amb la contrasenya i, si vols, tornar a activar el doble factor a «Seguretat».{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís: no porta cap enllaç ni cap codi." %}
+
+{% translate "Si no ho has demanat tu, avisa el club." %}
+{% endautoescape %}

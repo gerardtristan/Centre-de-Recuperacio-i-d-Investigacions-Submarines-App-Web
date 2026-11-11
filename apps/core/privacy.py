@@ -109,6 +109,7 @@ def _person_data(person) -> dict:
         "tipus_de_document": person.get_id_document_type_display(),
         "numero_de_document": person.id_document_number,
         "data_de_naixement": person.birth_date,
+        "data_de_naixement_comprovada_el": person.birth_date_checked_at,
         "llengua_preferida": person.preferred_language,
         "origen": person.get_origin_display(),
         "creat_el": person.created_at,
@@ -262,6 +263,7 @@ def anonymise_person(person, *, by, request=None) -> Person:
         for name in _PERSONAL_TEXT_FIELDS:
             setattr(locked, name, "")
         locked.birth_date = None
+        locked.birth_date_checked_at = None
         locked.preferred_language = settings.LANGUAGE_CODE
         locked.save()
 

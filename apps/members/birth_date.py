@@ -9,6 +9,15 @@
   la data (RN-M01-48; `persons.set_birth_date`).
 - Mentre no hi sigui, no es bloqueja res que el soci ja feia (RN-M01-55).
 
+**Declaració i comprovació (decisió 081, punt 16; RN-M01-99):** la data declarada (pel soci al
+perfil, a la sol·licitud d'alta o importada) s'accepta i té efecte de seguida, també l'exempció
+de la quota per edat; la comprovació no és mai una condició prèvia. La secretaria la comprova
+després amb el document d'identitat (el d'un menor exempt, el DNI que mostra el seu representant
+legal) i ho marca a la fitxa (`mark_checked`, P5 amb C1). No es desa cap còpia ni fotografia del
+document. El filtre «exempts per edat amb la data sense comprovar» del llistat és la seva llista
+de feina. Un menor sense document a la fitxa (RN-M01-70) no es pot marcar: com es comprova és la
+P-73 [A validar].
+
 **No fet, pendent de decisió:** l'avís per correu de RN-M01-55 (quan s'envia: en importar, en
 crear el compte o periòdicament; vegeu pendents.md). La data dels convidats (RN-M01-53) és dels
 mòduls 02 i 06, que encara no existeixen.
@@ -19,9 +28,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import persons
+from apps.core.permissions import effective_permissions, has_perm
 
-from . import fee_rules
+from . import fee_rules, roster
 from .models import Member
+from .services import ensure_not_own_member
 
 SOURCE_PROFILE = "profile"
 SOURCE_MEMBER_EDIT = "member_edit"
@@ -40,6 +51,44 @@ def complete_own(person, birth_date, *, by, request=None) -> bool:
     if person.birth_date is not None:
         return False
     return persons.set_birth_date(person, birth_date, by=by, request=request, source=SOURCE_PROFILE)
+
+
+CHECK_CONFIRMATION = _(
+    "He comprovat la data de naixement amb el document d'identitat (el d'un menor, mostrat pel seu "
+    "representant legal). No se n'ha desat cap còpia."
+)
+
+
+def can_check(user, perms=None) -> bool:
+    """P5 amb edició (`member_edit`) i C1 (veure la data de naixement)."""
+    from .member_edit import EDIT
+
+    perms = effective_permissions(user) if perms is None else perms
+    vis = roster.visibility_for(user, perms)
+    return vis.birth_date and has_perm(user, EDIT, write=True, permissions=perms)
+
+
+def mark_checked(member, *, by, confirmed: bool, request=None) -> bool:
+    """La secretaria marca la data de naixement com a comprovada (081, punt 16). Torna a
+    comprovar el permís i el conflicte d'interès; exigeix la confirmació."""
+    if not can_check(by):
+        raise forms.ValidationError(_("No tens permís per fer això."))
+    ensure_not_own_member(member, by, request=request)
+    if not confirmed:
+        raise forms.ValidationError(_("Cal confirmar que has comprovat el document."))
+    return persons.mark_birth_date_checked(member.person, by=by, request=request)
+
+
+def exempt_unchecked(members, today=None):
+    """Del conjunt `members`, els exempts per edat (sense cap quota i dins dels anys exempts,
+    068 i Q-002) amb la data sense comprovar: la llista de feina de la secretaria (081)."""
+    today = today or timezone.localdate()
+    first_exempt_birth_year = today.year - fee_rules.FEE_START_OFFSET + 1
+    return members.filter(
+        fees__isnull=True,
+        person__birth_date__year__gte=first_exempt_birth_year,
+        person__birth_date_checked_at__isnull=True,
+    ).exclude(status=Member.Status.LEFT)
 
 
 class BirthDateForm(forms.Form):

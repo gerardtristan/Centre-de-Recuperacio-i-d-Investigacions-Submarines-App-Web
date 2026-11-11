@@ -668,6 +668,7 @@ def test_export_audit_keeps_only_filters_rows_and_format(make_admin, full_member
             "status": "active",
             "search": True,
             "without_birth_date": False,
+            "exempt_unchecked_birth_date": False,  # 081, punt 16
         },
         "rows": 1,
         "format": fmt,

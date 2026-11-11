@@ -29,6 +29,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from apps.accounts import personal_reset
 from apps.core import audit, persons
 from apps.core.permissions import (
     has_perm,
@@ -46,6 +47,7 @@ from apps.members import (
     roster,
     services,
 )
+from apps.members import birth_date as birth_date_rules
 from apps.members.fee_rules import local_today
 from apps.members.forms import LEGAL_LABELS, JoinForm
 from apps.members.imports import cluber
@@ -322,6 +324,18 @@ def member_detail_view(request, pk):
         # Sense C1, només la franja d'edat; la data no arriba a la plantilla (RN-M01-48).
         "birth_date": member.person.birth_date if vis.birth_date else None,
         "age_band": None if vis.birth_date else persons.age_band(member.person, today),
+        # Decisió 081, punt 16: declarada o comprovada, i l'acció per marcar-la (P5 amb C1).
+        "birth_date_checked_at": member.person.birth_date_checked_at if vis.birth_date else None,
+        "can_check_birth_date": vis.birth_date
+        and member.person.birth_date is not None
+        and member.person.birth_date_checked_at is None
+        and member.person_id != request.user.person_id
+        and birth_date_rules.can_check(request.user, perms),
+        "birth_date_without_document": not member.person.id_document_number,
+        # Decisió 081, punt 24 (P-52): restablir en persona el doble factor del compte personal.
+        "can_reset_totp": member.person_id != request.user.person_id
+        and personal_reset.can_reset(request.user, perms)
+        and personal_reset.personal_account_with_totp(member.person) is not None,
         # T-M01-15b: enllaços i historial de la data d'alta. Els serveis ho tornen a comprovar.
         "can_edit": bool(member_edit.editable_fields(request.user, perms)),
         "can_correct_join_date": member_edit.can_correct_join_date(request.user, perms),
@@ -381,6 +395,7 @@ def members_export_view(request):
                 "status": data.get("estat") or "",
                 "search": bool((data.get("q") or "").strip()),
                 "without_birth_date": bool(data.get("sense_data")),
+                "exempt_unchecked_birth_date": bool(data.get("sense_comprovar")),
             },
             "rows": len(rows),
             "format": data["format"],

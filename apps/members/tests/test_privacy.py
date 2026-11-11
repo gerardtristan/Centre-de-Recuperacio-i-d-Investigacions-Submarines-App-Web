@@ -515,8 +515,9 @@ class TestErasure:
             assert account.notification_email == ""
         assert Account.objects.get(pk=admin.pk).login == f"{ref.lower()}.admin"
         response = session.get(reverse("members:profile"))
-        assert response.status_code == 302
-        assert response["Location"].startswith(reverse("accounts:login"))
+        # Sessió tancada: «La sessió ha caducat» amb el botó cap a l'entrada (081, punt 22).
+        assert response.status_code == 401
+        assert f'href="{reverse("accounts:login")}?next=' in response.content.decode()
         pending.refresh_from_db()
         assert pending.invalidated_at is not None
         assert not FailedLogin.objects.filter(account__person=brunilda.person).exists()

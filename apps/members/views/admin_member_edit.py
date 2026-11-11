@@ -13,9 +13,12 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.accounts import personal_reset
+from apps.accounts.forms import PersonalTotpResetForm
+from apps.accounts.security import AREA_ADMIN, WRONG_CODE, confirm_code
 from apps.core.models import Person
 from apps.core.permissions import permission_required, request_permissions, require_perm
-from apps.members import admissions, cards, member_edit, roster
+from apps.members import admissions, birth_date, cards, member_edit, roster
 from apps.members.models import Member
 from apps.members.services import OwnMemberChange
 
@@ -121,6 +124,76 @@ def member_invite_view(request, pk):
                 "propi o és menor de 14 anys."
             ),
         )
+    return _to_detail(member)
+
+
+@never_cache
+@permission_required(personal_reset.PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def member_totp_reset_view(request, pk):
+    """Decisió 081, punt 24 (P-52; RN-M01-104): la secretaria restableix en persona el doble
+    factor del compte personal del soci (M2 amb edició i P4). Comprovació presencial de la
+    identitat amb el document, motiu i un codi TOTP nou de qui ho fa a la mateixa petició. El
+    servei ho torna a comprovar tot."""
+    member = _member(request, pk)
+    account = personal_reset.personal_account_with_totp(member.person)
+    own = member.person_id == request.user.person_id
+    form = PersonalTotpResetForm(request.POST or None)
+    if request.method == "POST" and account is not None and not own and form.is_valid():
+        error = confirm_code(request, request.user, AREA_ADMIN, form.cleaned_data["code"])
+        if error is not None:
+            form.add_error("code" if error == WRONG_CODE else None, error)
+        else:
+            try:
+                queued = personal_reset.reset_personal_totp(
+                    account,
+                    by=request.user,
+                    document=form.cleaned_data["document"],
+                    identity_checked=form.cleaned_data["identity_checked"],
+                    note=form.cleaned_data["note"],
+                    request=request,
+                )
+            except ValidationError as exc:
+                form.add_error(None, exc)
+            else:
+                messages.success(
+                    request,
+                    _("Doble factor restablert. El soci ja pot entrar amb la contrasenya.")
+                    if queued
+                    else _(
+                        "Doble factor restablert. No s'ha pogut enviar l'avís al soci: "
+                        "explica-li-ho en persona."
+                    ),
+                )
+                return _to_detail(member)
+    return render(
+        request,
+        "members/member_totp_reset.html",
+        {"member": member, "person": member.person, "account": account, "own": own, "form": form},
+    )
+
+
+@never_cache
+@permission_required(member_edit.EDIT, write=True)
+@require_POST
+def member_birth_date_check_view(request, pk):
+    """Decisió 081, punt 16 (RN-M01-99): la secretaria marca la data de naixement com a
+    comprovada amb el document (P5 amb C1, i P4). No condiciona l'exempció ni cap altra cosa que
+    la data ja fa; no es desa cap còpia del document."""
+    member = _member(request, pk)
+    try:
+        changed = birth_date.mark_checked(
+            member, by=request.user, confirmed=bool(request.POST.get("confirmo")), request=request
+        )
+    except OwnMemberChange as error:
+        messages.error(request, error.args[0])
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        if changed:
+            messages.success(request, _("Data de naixement marcada com a comprovada."))
+        else:
+            messages.info(request, _("La data de naixement ja constava com a comprovada."))
     return _to_detail(member)
 
 

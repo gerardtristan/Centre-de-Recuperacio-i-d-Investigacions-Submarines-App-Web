@@ -345,7 +345,12 @@ class TestJoinDateAndBirthDate:
         entry = AuditEntry.objects.get(action=persons.BIRTH_DATE_SET)
         # RN-M01-48: el registre diu que ha canviat, mai la data.
         assert (entry.old_value, entry.new_value) == (None, None)
-        assert entry.details == {"had_value": False, "has_value": True, "source": "join_request"}
+        assert entry.details == {
+            "had_value": False,
+            "has_value": True,
+            "source": "join_request",
+            "check_reset": False,
+        }
         assert str(ADULT) not in str(AuditEntry.objects.values().get(pk=entry.pk))
         (approved,) = entries(admissions.APPROVED, join_request)
         assert approved.details["birth_date_copied"] is True

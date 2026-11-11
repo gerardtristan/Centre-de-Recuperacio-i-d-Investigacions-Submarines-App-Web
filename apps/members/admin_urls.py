@@ -35,6 +35,18 @@ urlpatterns = [
         admin_member_edit.member_invite_view,
         name="member_invite",
     ),
+    # 081, punt 24 (P-52): restablir en persona el doble factor del compte personal (M2, P4).
+    path(
+        "socis/<int:pk>/doble-factor/",
+        admin_member_edit.member_totp_reset_view,
+        name="member_totp_reset",
+    ),
+    # Decisió 081, punt 16: marcar la data de naixement com a comprovada (P5 amb C1, i P4).
+    path(
+        "socis/<int:pk>/naixement/comprovada/",
+        admin_member_edit.member_birth_date_check_view,
+        name="member_birth_date_check",
+    ),
     # 079 (A-21, RN-M01-92): revocar el carnet d'un soci amb motiu (P21 i P4).
     path(
         "socis/<int:pk>/carnet/revoca/",

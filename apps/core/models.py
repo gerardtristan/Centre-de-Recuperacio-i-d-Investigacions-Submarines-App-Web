@@ -57,6 +57,12 @@ class Person(models.Model):
     # (`members.field.birth_date`); la resta, `persons.age_band`. Mai en llistats, exportacions
     # (excepte RGPD i el llistat del 06) ni al registre d'activitat (RN-M01-48).
     birth_date = models.DateField(_("data de naixement"), null=True, blank=True)
+    # Decisió 081, punt 16 (RN-M01-99): la data declarada s'accepta tal com és; la secretaria la
+    # comprova després amb el document (el d'un menor, mostrat pel seu representant legal) i ho
+    # marca aquí. No es desa cap còpia del document. Torna a buit quan la data canvia.
+    birth_date_checked_at = models.DateTimeField(
+        _("data de naixement comprovada el"), null=True, blank=True
+    )
     status = models.CharField(
         _("estat"), max_length=12, choices=Status.choices, default=Status.ACTIVE
     )

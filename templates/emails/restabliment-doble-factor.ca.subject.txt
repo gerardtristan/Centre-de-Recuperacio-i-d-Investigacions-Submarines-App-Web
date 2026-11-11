@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "S'ha restablert el doble factor del teu compte del C.R.I.S." %}

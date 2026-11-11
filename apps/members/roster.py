@@ -73,6 +73,10 @@ class MemberFilterForm(forms.Form):
             self.fields["sense_data"] = forms.BooleanField(
                 label=_("Només els que no tenen data de naixement"), required=False
             )
+            # Decisió 081, punt 16: la llista de feina de la comprovació de l'edat.
+            self.fields["sense_comprovar"] = forms.BooleanField(
+                label=_("Només els exempts per edat amb la data sense comprovar"), required=False
+            )
         self.fields["q"].label = (
             _("Cerca per nom, número o document")
             if can_search_document
@@ -97,6 +101,10 @@ def filtered_members(data, *, can_search_document, can_see_birth_date=False):
         members = members.filter(status=data["estat"])
     if can_see_birth_date and data.get("sense_data"):
         members = members.filter(person__birth_date__isnull=True)
+    if can_see_birth_date and data.get("sense_comprovar"):
+        from .birth_date import exempt_unchecked
+
+        members = exempt_unchecked(members).distinct()
     text = (data.get("q") or "").strip()
     if text:
         members = members.annotate(

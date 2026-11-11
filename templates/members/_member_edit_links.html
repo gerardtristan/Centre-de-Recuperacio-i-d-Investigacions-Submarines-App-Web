@@ -19,3 +19,7 @@
     <span class="text-2">{% translate "Aquesta persona encara no té compte personal. L'enllaç caduca i només serveix una vegada." %}</span>
   </form>
 {% endif %}
+{# Decisió 081, punt 24 (P-52): restabliment presencial del doble factor del compte personal (M2 i P4). #}
+{% if can_reset_totp %}
+  <p class="accions"><a class="boto boto-petit boto-text" href="{% url 'administration:member_totp_reset' member.pk %}">{% translate "Restableix el doble factor del compte…" %}</a></p>
+{% endif %}

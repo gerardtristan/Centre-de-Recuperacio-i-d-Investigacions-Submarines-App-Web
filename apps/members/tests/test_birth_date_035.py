@@ -79,7 +79,12 @@ class TestCaM0143:
         assert member.person.birth_date == BIRTH
         entry = AuditEntry.objects.get(action=persons.BIRTH_DATE_SET)
         assert entry.actor_account == account
-        assert entry.details == {"had_value": False, "has_value": True, "source": "profile"}
+        assert entry.details == {
+            "had_value": False,
+            "has_value": True,
+            "source": "profile",
+            "check_reset": False,
+        }
         assert "1985" not in str(AuditEntry.objects.values().get(pk=entry.pk))
         profile = client.get(reverse(PROFILE)).content.decode()
         assert 'name="birth_date"' not in profile  # un cop desada, ja no s'ofereix
