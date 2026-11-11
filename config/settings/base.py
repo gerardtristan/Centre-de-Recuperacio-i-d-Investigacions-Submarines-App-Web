@@ -152,6 +152,9 @@ EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)
 # correu ha de tenir aquest domini autenticat (SPF i DKIM): condició de producció.
 # El nom que es mostra es canvia amb la mateixa variable: "Nom <adreça>".
 EMAIL_FROM_TRANSACCIONAL = env("EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <cris@cris.es>")
+# Anys que es conserven les dades bloquejades després del 31/12 de l'any de l'últim registre
+# econòmic de la persona (CA-19.5; decisió 085, G-1). Passat el termini, es destrueixen.
+LOCKED_DATA_RETENTION_YEARS = env.int("LOCKED_DATA_RETENTION_YEARS", default=6)
 # NIF del club (decisió 085, J-6): surt al darrere del carnet. És una dada pública de l'entitat.
 CLUB_TAX_ID = env("CLUB_TAX_ID", default="V08591042")
 EMAIL_REPLY_TO = env("EMAIL_REPLY_TO", default="cris@cris.es")
