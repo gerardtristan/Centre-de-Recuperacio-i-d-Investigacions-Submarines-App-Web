@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. Fora d'aquesta tasca: la data de naixement (T-M01-35), el canvi de tipus i la baixa (T-M01-17), i exportar (T-M01-22; l'enllaç a esborrar és de la seva peça mínima). #}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. Fora d'aquesta tasca: la data de naixement (T-M01-35), el canvi de tipus i la baixa (T-M01-17). Exportar i esborrar (T-M01-22) són a «Les meves dades», al final. #}
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
@@ -113,9 +113,18 @@
     {% endif %}
   </section>
 
-  {# T-M01-22, peça mínima (074): només l'esborrat; descarregar les dades és de la resta de la tasca. #}
-  <section class="targeta" aria-labelledby="rgpd-titol">
+  {# T-M01-22 (P-M01-F; CA-M01-18): descarregar les dades pròpies i demanar l'esborrat. El fitxer es prepara amb la persona de la sessió; l'enllaç porta un identificador aleatori i el servidor torna a comprovar que el fitxer és seu abans de donar la URL signada (5 minuts). Cap dada d'altres persones, cap testimoni ni empremta. #}
+  <section class="targeta" aria-labelledby="rgpd-titol" id="les-meves-dades">
     <h2 id="rgpd-titol">{% translate "Les meves dades" %}</h2>
+    <p class="text-2">{% translate "Pots demanar una còpia de totes les dades que la plataforma guarda de tu, en un fitxer JSON." %}</p>
+    {% if export %}
+      <p><a class="boto" href="{% url 'core:private_file' export.pk %}">{% translate "Descarrega el fitxer amb les meves dades" %}</a></p>
+      <p class="text-2">{% blocktranslate with created=export.created_at|date:"d/m/Y H:i" expires=export.expires_at|date:"d/m/Y" %}Preparat el {{ created }}. Es pot descarregar fins al {{ expires }}; després s'esborra. Conté dades personals: desa'l en un lloc segur.{% endblocktranslate %}</p>
+    {% endif %}
+    <form method="post" action="{% url 'members:export_data' %}">
+      {% csrf_token %}
+      <div class="accions"><button class="boto" type="submit">{% if export %}{% translate "Torna a preparar el fitxer" %}{% else %}{% translate "Prepara el fitxer amb les meves dades" %}{% endif %}</button></div>
+    </form>
     <p><a href="{% url 'members:erase' %}">{% translate "Esborra el meu compte" %}</a></p>
   </section>
 {% endblock %}

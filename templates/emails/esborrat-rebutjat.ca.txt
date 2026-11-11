@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M01-22: TEXT PROVISIONAL [A validar: junta i assessor de protecció de dades]. Cap dada de la persona ni el motiu del rebuig, com al rebuig d'una alta (079, A-13); si l'ha de portar (article 12.4 del RGPD) és una pregunta oberta a l'informe de la tasca. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "L'administració del C.R.I.S. ha revisat la teva sol·licitud d'esborrat de dades i ara no l'ha pogut aprovar. Les teves dades i el teu compte continuen com estaven." %}
+
+{% translate "Si vols saber-ne el motiu o tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

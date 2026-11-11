@@ -288,6 +288,8 @@ class AuditEntry(AppendOnlyModel):
     Només s'hi afegeixen files: el model ho impedeix a l'ORM i uns disparadors de PostgreSQL
     (migració 0004) ho impedeixen a la base de dades, també amb SQL directe. Les entrades es
     creen amb els serveis de `apps.core.audit`, mai directament. Cap secret als valors (RN-52).
+    Única excepció (RN-89, migració 0019): en un esborrat RGPD, `audit.substitute_identity`
+    substitueix el que identifica la persona per la seva referència anònima.
     """
 
     class ActorKind(models.TextChoices):
@@ -462,13 +464,18 @@ class Consent(AppendOnlyModel):
 
 
 class ErasureRequest(models.Model):
-    """Sol·licitud d'esborrat de les dades d'una persona (P-M01-F, pas 3; RN-M01-57; peça mínima
-    de la T-M01-22 autoritzada per la 074, punt 20). Només es crea: atendre-la (pas 4,
-    `/gestio/rgpd`), anonimitzar i desactivar els comptes continuen a la T-M01-22. Cap dada
-    personal duplicada: la persona i el compte són referències."""
+    """Sol·licitud d'esborrat de les dades d'una persona (P-M01-F, passos 3 a 5; RN-M01-57;
+    T-M01-22). La crea la persona des del perfil (`erasure.request_erasure`) i l'atén qui té M11
+    a `/gestio/rgpd/` (`erasure.approve` i `erasure.reject`). Aprovar-la l'executa a la mateixa
+    transacció: «aprovada» només es veu si mai l'execució passa a la cua. Cap dada personal
+    duplicada: la persona i els comptes són referències. `executed_at` és la data des d'on es
+    comptarà el termini de conservació de les dades bloquejades quan es decideixi (Q-14)."""
 
     class Status(models.TextChoices):
         PENDING = "pending", _("Pendent")
+        APPROVED = "approved", _("Aprovada")
+        REJECTED = "rejected", _("Rebutjada")
+        EXECUTED = "executed", _("Executada")
 
     class Channel(models.TextChoices):
         WEB = "web", _("Web")
@@ -490,6 +497,19 @@ class ErasureRequest(models.Model):
     )
     channel = models.CharField(_("canal"), max_length=10, choices=Channel.choices)
     created_at = models.DateTimeField(_("data i hora"), default=timezone.now)
+    # Qui l'aprova o la rebutja, i quan. Mai la mateixa persona que la demana (`erasure`).
+    resolved_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("resolta per"),
+    )
+    resolved_at = models.DateTimeField(_("resolta el"), null=True, blank=True)
+    # Text lliure de qui la rebutja: la persona continua activa i el pot demanar.
+    rejection_reason = models.TextField(_("motiu del rebuig"), blank=True)
+    executed_at = models.DateTimeField(_("executada el"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("sol·licitud d'esborrat")
@@ -500,6 +520,26 @@ class ErasureRequest(models.Model):
                 fields=["person"],
                 condition=Q(status="pending"),
                 name="erasure_request_one_pending_per_person",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["pending", "approved", "rejected", "executed"]),
+                name="erasure_request_status_valid",
+            ),
+            # Pendent: ningú l'ha resolta. La resta: qui i quan.
+            models.CheckConstraint(
+                condition=Q(status="pending", resolved_by__isnull=True, resolved_at__isnull=True)
+                | (~Q(status="pending") & Q(resolved_by__isnull=False, resolved_at__isnull=False)),
+                name="erasure_request_resolved_pair",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="rejected", rejection_reason__regex=r"\S")
+                | (~Q(status="rejected") & Q(rejection_reason="")),
+                name="erasure_request_reason_only_when_rejected",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="executed", executed_at__isnull=False)
+                | (~Q(status="executed") & Q(executed_at__isnull=True)),
+                name="erasure_request_executed_at_only_when_executed",
             ),
         ]
 

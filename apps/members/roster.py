@@ -24,7 +24,7 @@ from django.db.models import Prefetch, Q, Value
 from django.db.models.functions import Concat
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Charge
+from apps.core.models import Charge, Person
 from apps.core.normalization import normalize_document
 from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import has_perm
@@ -86,8 +86,11 @@ class MemberFilterForm(forms.Form):
 def filtered_members(data, *, can_search_document, can_see_birth_date=False):
     """Socis segons els filtres vàlids. La cerca per document només per a qui pot veure'l (C2):
     sense C2, un document escrit a la cerca no troba ningú per aquesta via. El filtre «sense data
-    de naixement», només amb C1."""
-    members = Member.objects.select_related("person", "type")
+    de naixement», només amb C1. Una persona anonimitzada no surt en cap llistat, cerca ni
+    exportació (spec 00, CA-19.2; T-M01-22)."""
+    members = Member.objects.select_related("person", "type").filter(
+        person__status=Person.Status.ACTIVE
+    )
     if data.get("tipus"):
         members = members.filter(type__code=data["tipus"])
     if data.get("estat"):

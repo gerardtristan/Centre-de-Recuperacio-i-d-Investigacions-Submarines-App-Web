@@ -52,6 +52,7 @@ ROUTES = {
     "members:consent": OWN,
     "members:change_email": OWN,
     "members:erase": OWN,
+    "members:export_data": OWN,
     "members:fees": OWN,
     "members:fee_detail": OWN,
     "members:card": OWN,
