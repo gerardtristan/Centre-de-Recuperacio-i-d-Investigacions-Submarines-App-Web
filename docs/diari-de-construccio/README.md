@@ -116,3 +116,8 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-39](T-M01-39.md) | Cua de «He oblidat la contrasenya»: mesura abans, part (a) (**feta en part**, 11/11/2026; cal repetir-la sense càrrega) | 11/11/2026 (nit) | bc4ceaa | 3476 | no comprovat (sense push) |
 | [T-M01-35](T-M01-35.md) | Data de naixement que falta: avís, camp al perfil i correcció de la secretaria (**implementada, pendent de validació**, 11/11/2026) | 11/11/2026 (nit) | 95125ea | 3646 | no comprovat (sense push) |
 | [T-M00-02](T-M00-02.md) | Enllaços de convidat (**implementada, pendent de validació**, 11/11/2026; CA-02.9 és del 05b) | 11/11/2026 (nit) | 0a69365 | 3721 | no comprovat (sense push) |
+| [T-M00-04](T-M00-04.md) | Dades bloquejades i consulta per obligació legal, M13 (**implementada, pendent de validació**, 11/11/2026; no tanca Q-14) | 11/11/2026 (nit) | 8445921 | 3740 | no comprovat (sense push) |
+| [T-M00-03](T-M00-03.md) | Comptes d'emergència (**implementada, pendent de validació**, 11/11/2026; rol i custòdia [A validar: junta]) | 11/11/2026 (nit) | 774531a, 0ecef34 | 3807 | no comprovat (sense push) |
+| [T-M01-46](T-M01-46.md) | Navegació comuna de l'administració i «Surt» (**implementada, pendent de validació**, 11/11/2026; diari conjunt amb la 45 i la 47) | 11/11/2026 (nit) | 4bb8fe0, 317f906 | 3807 | no comprovat (sense push) |
+| [T-M01-47](T-M01-47.md) | Pàgines 404 i 500 pròpies (**implementada, pendent de validació**, 11/11/2026) | 11/11/2026 (nit) | 65289be | 3807 | no comprovat (sense push) |
+| [T-M01-45](T-M01-45.md) | Correccions de la revisió de pantalles (**feta en part**, 11/11/2026) | 11/11/2026 (nit) | bac4cd9 a a2d71a9 | 3807 | no comprovat (sense push) |
