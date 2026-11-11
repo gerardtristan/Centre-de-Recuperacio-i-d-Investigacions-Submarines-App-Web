@@ -46,3 +46,14 @@ No és una tasca del pla: és el manteniment del pipeline que revisa cada canvi.
 - **Fals positiu**: avís d'un problema que no ho és.
 - **Excepció** (*allowlist*): llista del que l'eina ha de deixar passar.
 - **PR en esborrany** (*draft pull request*): proposta de canvi que no es pot fusionar fins que deixa de ser esborrany.
+
+## Decisió 083: dues empremtes d'un fals positiu d'una prova (11/11/2026)
+
+| Data i hora (Europa/Madrid) | Commit | Proves | CI |
+|---|---|---|---|
+| 11/11/2026 | c441e9d | gitleaks 8.24.3 en local: 69 commits, cap troballa | verd a c441e9d (43084998593 i 43085015294) |
+
+- **Què va passar:** el CI de `f96387c` (43081028066 i 43081038374) va fallar només a «secrets», amb dues troballes de `generic-api-key` al commit `6c73807` (`apps/members/tests/test_totp_reset_081.py`, línies 165 i 166): una prova feia servir un valor inventat que no era el valor únic de proves. El valor ja s'havia corregit al HEAD (`65b2c81`), però gitleaks llegeix cada commit.
+- **Decisió 083:** només les dues empremtes exactes a `.gitleaksignore`; cap patró genèric ni cap canvi a `.gitleaks.toml`; cap reescriptura de l'historial.
+- **Comprovació en local abans del push:** gitleaks 8.24.3 (suma comprovada amb el fitxer oficial de la versió) sobre el rang de la PR. Amb la llista antiga, les dues mateixes empremtes (68 commits, sortida 2); amb la nova, 69 commits i cap troballa. Atenció: `--gitleaks-ignore-path` no substitueix el `.gitleaksignore` de la carpeta; per reproduir la fallada cal una còpia de treball al commit antic.
+- **Per no repetir-ho:** sempre el valor únic de proves, també per a una contrasenya «nova», i gitleaks en local sobre el mateix rang que el CI abans de cada push (CLAUDE.md).
