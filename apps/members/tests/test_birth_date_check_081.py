@@ -6,7 +6,8 @@ T-M01-18).
 - La secretaria la comprova després amb el document (el d'un menor, el DNI que mostra el seu
   representant legal) i ho marca a la fitxa, amb P5 i C1. No es desa cap còpia del document.
 - Si la data canvia, la comprovació deixa de valer.
-- Un menor sense document a la fitxa (RN-M01-70) no es pot marcar: és la P-73 [A validar].
+- Un menor sense document a la fitxa (RN-M01-70) també es pot marcar, després de veure'n el DNI a
+  través del representant legal (decisió 082, punt 1; P-73 resolta); no es desa cap document.
 
 Només dades inventades.
 """
@@ -84,7 +85,7 @@ def test_secretary_marks_it_checked_without_storing_any_document(minor, secretar
     assert minor.person.birth_date_checked_at is not None
     entry = AuditEntry.objects.get(action=persons.BIRTH_DATE_CHECKED)
     assert entry.actor_account == secretary and entry.target_id == str(minor.person.pk)
-    assert entry.details == {"method": "document"}
+    assert entry.details == {}  # 082: només qui i quan
     assert MINOR_BIRTH.isoformat() not in str(entry.old_value) + str(entry.new_value)
     assert not PrivateFile.objects.exists()
     text = detail(client, minor)
@@ -129,17 +130,23 @@ def test_a_new_date_needs_a_new_check(minor, secretary):
     assert entry.details["check_reset"] is True
 
 
-def test_minor_without_document_stays_pending_p73(db, secretary):
-    """Contradicció identificada: el DNI no és obligatori per als menors (RN-M01-70). La
-    comprovació d'aquests menors queda pendent (P-73); res no s'inventa."""
+def test_082_minor_without_document_on_file_can_be_checked_without_storing_anything(db, secretary):
+    """Decisió 082, punt 1 (P-73): la secretaria marca la data d'un menor sense document a la
+    fitxa després de veure'n el DNI a través del representant legal. No es desa cap document ni
+    cap còpia; només qui ho ha comprovat i quan. RN-M01-70 no canvia: el document continua buit."""
     member = make_member(613, "Pol", "Senedoc", type_code="supporter", birth_date=MINOR_BIRTH)
     client = admin_client(secretary)
     text = detail(client, member)
-    assert "com es comprova l'edat d'un menor sense document està pendent de decidir" in text
-    assert "Marca la data com a comprovada" not in text
-    with pytest.raises(ValidationError):
-        birth_date.mark_checked(member, by=secretary, confirmed=True)
-    # L'exempció continua: la comprovació no és mai una condició prèvia.
+    assert "Marca la data com a comprovada" in text
+    assert "pendent de decidir" not in text
+    client.post(reverse(CHECK, args=[member.pk]), {"confirmo": "1"})
+    member.person.refresh_from_db()
+    assert member.person.birth_date_checked_at is not None
+    assert member.person.id_document_number == "" and member.person.id_document_type == ""
+    entry = AuditEntry.objects.get(action=persons.BIRTH_DATE_CHECKED)
+    assert entry.actor_account == secretary and entry.created_at is not None
+    assert entry.details == {} and entry.reason == ""
+    assert not PrivateFile.objects.exists()
     assert cards.is_exempt(cards.load_member(member.pk))
 
 

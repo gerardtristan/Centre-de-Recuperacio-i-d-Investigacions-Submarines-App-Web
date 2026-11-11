@@ -15,8 +15,8 @@ de la quota per edat; la comprovació no és mai una condició prèvia. La secre
 després amb el document d'identitat (el d'un menor exempt, el DNI que mostra el seu representant
 legal) i ho marca a la fitxa (`mark_checked`, P5 amb C1). No es desa cap còpia ni fotografia del
 document. El filtre «exempts per edat amb la data sense comprovar» del llistat és la seva llista
-de feina. Un menor sense document a la fitxa (RN-M01-70) no es pot marcar: com es comprova és la
-P-73 [A validar].
+de feina. Decisió 082, punt 1 (P-73): un menor sense document a la fitxa (RN-M01-70) també es
+marca, després de veure'n el DNI a través del representant legal; el registre només diu qui i quan.
 
 **No fet, pendent de decisió:** l'avís per correu de RN-M01-55 (quan s'envia: en importar, en
 crear el compte o periòdicament; vegeu pendents.md). La data dels convidats (RN-M01-53) és dels

@@ -59,9 +59,6 @@
       </dl>
       {# Decisió 081, punt 16 (RN-M01-99): la comprovació és posterior i no condiciona l'exempció. No es desa cap còpia del document. #}
       {% if can_check_birth_date %}
-        {% if birth_date_without_document %}
-          <p class="text-2">{% translate "Sense document a la fitxa: com es comprova l'edat d'un menor sense document està pendent de decidir." %}</p>
-        {% else %}
           <details class="altes-rebuig">
             <summary class="boto boto-petit">{% translate "Marca la data com a comprovada…" %}</summary>
             <form class="formulari" method="post" action="{% url 'administration:member_birth_date_check' member.pk %}">
@@ -70,7 +67,6 @@
               <div class="accions"><button class="boto" type="submit">{% translate "Marca-la com a comprovada" %}</button></div>
             </form>
           </details>
-        {% endif %}
       {% endif %}
     </section>
   {% else %}

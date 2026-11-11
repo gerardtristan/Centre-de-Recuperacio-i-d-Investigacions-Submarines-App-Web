@@ -331,7 +331,6 @@ def member_detail_view(request, pk):
         and member.person.birth_date_checked_at is None
         and member.person_id != request.user.person_id
         and birth_date_rules.can_check(request.user, perms),
-        "birth_date_without_document": not member.person.id_document_number,
         # Decisió 081, punt 24 (P-52): restablir en persona el doble factor del compte personal.
         "can_reset_totp": member.person_id != request.user.person_id
         and personal_reset.can_reset(request.user, perms)
