@@ -321,6 +321,26 @@ def create_subtype(*, by, name, request=None) -> EnvironmentalSubtype:
     return _create_named(EnvironmentalSubtype, by=by, name=name, request=request)
 
 
+def check_outing_classification(outing_type, subtype=None, project=None) -> None:
+    """Regla de CA-M02-03 (M02-6, `Activity.subtype` i `Activity.project`): una sortida de medi
+    ambient ha de tenir subtipus; una que no ho és no pot tenir ni subtipus ni projecte. El
+    projecte és opcional. Un tipus o un subtipus desactivat no es pot triar (és el que vol dir
+    desactivar-lo, P-M02-A pas 3); si un projecte acabat es pot fer servir no ho diu cap regla i
+    aquí no es comprova. La cridarà el servei que desa una activitat (T-M02-06)."""
+    if outing_type is None:
+        raise ValidationError(_("Cal triar el tipus de sortida."))
+    if not outing_type.active:
+        raise ValidationError(_("Aquest tipus de sortida està desactivat."))
+    if outing_type.is_environmental:
+        if subtype is None:
+            raise ValidationError(_("Una sortida de medi ambient ha de tenir subtipus."))
+        if not subtype.active:
+            raise ValidationError(_("Aquest subtipus està desactivat."))
+        return
+    if subtype is not None or project is not None:
+        raise ValidationError(_("Només les sortides de medi ambient tenen subtipus i projecte."))
+
+
 def create_project(*, by, name, objective, department, request=None) -> EnvironmentalProject:
     objective = (objective or "").strip()
     if not objective:

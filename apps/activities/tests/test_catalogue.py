@@ -281,6 +281,40 @@ def test_types_subtypes_and_projects_have_unique_names_and_are_deactivated(manag
         )
 
 
+# --- CA-M02-03: subtipus i projecte només a medi ambient ------------------------------------------
+
+
+def test_ca_m02_03_environmental_outings_need_a_subtype_and_others_cannot_have_one(
+    manager, general
+):
+    """CA-M02-03, a nivell de regla: la connectarà el desat d'una activitat (T-M02-06)."""
+    environment = OutingType.objects.get(name="Medi ambient")
+    dive = OutingType.objects.get(name="Immersió")
+    cleaning = EnvironmentalSubtype.objects.get(name="Neteja")
+    project = catalogue.create_project(
+        by=manager, name="Projecte inventat", objective="Objectiu inventat.", department=general
+    )
+    catalogue.check_outing_classification(environment, cleaning)
+    catalogue.check_outing_classification(environment, cleaning, project)
+    catalogue.check_outing_classification(dive)
+    for wrong in ((environment, None, None), (dive, cleaning, None), (dive, None, project)):
+        with pytest.raises(ValidationError):
+            catalogue.check_outing_classification(*wrong)
+
+
+def test_inactive_types_and_subtypes_cannot_be_chosen(manager):
+    environment = OutingType.objects.get(name="Medi ambient")
+    cleaning = EnvironmentalSubtype.objects.get(name="Neteja")
+    catalogue.set_active(cleaning, False, by=manager)
+    with pytest.raises(ValidationError):
+        catalogue.check_outing_classification(environment, cleaning)
+    catalogue.set_active(environment, False, by=manager)
+    with pytest.raises(ValidationError):
+        catalogue.check_outing_classification(environment, EnvironmentalSubtype(name="x"))
+    with pytest.raises(ValidationError):
+        catalogue.check_outing_classification(None)
+
+
 # --- CA-M02-25 (part d'aquests models) ------------------------------------------------------------
 
 
