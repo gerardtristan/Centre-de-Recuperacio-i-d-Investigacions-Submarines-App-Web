@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.members",
+    # Mòdul 02, Activitats (cursos i sortides): de moment, només el catàleg (T-M02-02).
+    "apps.activities",
 ]
 
 MIDDLEWARE = [
