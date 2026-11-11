@@ -26,7 +26,6 @@
       <img class="logo-fosc" src="{% static 'marca/CRIS_Blanc_per fons Negre (Blanc).png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
       <span class="titol-zona">{% block titol_zona %}{% translate "Àrea de socis" %}{% endblock %}</span>
     </a>
-    {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
     {# El botó només es mostra amb JavaScript (menu-admin.js); sense, la barra lateral es veu sempre. #}
     {% if admin_nav %}<button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="barra-lateral" hidden><span aria-hidden="true">☰</span> {% translate "Menú" %}</button>{% endif %}
     <fieldset class="selector-tema" hidden>
@@ -35,6 +34,8 @@
       <label><input class="visualment-amagat" type="radio" name="tema" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">{% translate "Clar" %}</span></span></label>
       <label><input class="visualment-amagat" type="radio" name="tema" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">{% translate "Fosc" %}</span></span></label>
     </fieldset>
+    {# Després del selector (T-M01-45, punt 6): es veu a sota i el Tab hi arriba en el mateix ordre. #}
+    {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
   </header>
   {# Menú construït al servidor segons els permisos del compte; `admin_nav` és buit fora d'una sessió d'administració. #}
   {% if admin_nav %}{% include "accounts/_admin_nav.html" %}{% endif %}
