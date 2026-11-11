@@ -10,6 +10,7 @@ funcionament sense connexió dins d'un navegador es comprova a mà (diari de la 
 import json
 import re
 import struct
+import zlib
 
 import pytest
 from django.conf import settings
@@ -161,3 +162,58 @@ def test_worker_also_stores_the_fonts_of_the_styles():
     }
     assert len(fonts) == 7 and fonts <= stored
     assert all(p.endswith((".css", ".js", ".woff2")) for p in stored)
+
+
+# --- Icona adaptable (079, A-28; T-M01-45) ----------------------------------------------------
+
+
+def png_pixels(path):
+    """RGBA de 8 bits sense entrellaçar, com les icones de static/img/icones/."""
+    data = open(path, "rb").read()
+    pos, idat = 8, b""
+    while pos < len(data):
+        (length,) = struct.unpack(">I", data[pos : pos + 4])
+        kind, body = data[pos + 4 : pos + 8], data[pos + 8 : pos + 8 + length]
+        if kind == b"IHDR":
+            width, height, depth, colour, _, _, interlace = struct.unpack(">IIBBBBB", body)
+            assert (depth, colour, interlace) == (8, 6, 0)
+        elif kind == b"IDAT":
+            idat += body
+        pos += 12 + length
+    raw, stride, rows, prev = zlib.decompress(idat), width * 4, [], bytearray(width * 4)
+    for y in range(height):
+        kind, line = (
+            raw[y * (stride + 1)],
+            bytearray(raw[y * (stride + 1) + 1 : (y + 1) * (stride + 1)]),
+        )
+        for x in range(stride):
+            a, b = (line[x - 4] if x >= 4 else 0), prev[x]
+            c = prev[x - 4] if x >= 4 else 0
+            p = a + b - c
+            predictor = {
+                0: 0,
+                1: a,
+                2: b,
+                3: (a + b) // 2,
+                4: min((abs(p - a), 0, a), (abs(p - b), 1, b), (abs(p - c), 2, c))[2],
+            }[kind]
+            line[x] = (line[x] + predictor) & 255
+        rows.append(line)
+        prev = line
+    return width, height, rows
+
+
+def test_manifest_declares_a_maskable_icon_that_fits_the_safe_zone():
+    """La icona adaptable reaprofita les icones que ja hi ha (cap art nou): fons blanc opac fins
+    a les vores i el dibuix dins la zona segura (cercle del 80 % del costat)."""
+    maskable = {i["sizes"]: i for i in manifest()["icons"] if i["purpose"] == "maskable"}
+    assert set(maskable) == {"192x192", "512x512"}
+    path = finders.find(maskable["192x192"]["src"].removeprefix(settings.STATIC_URL))
+    width, height, rows = png_pixels(path)
+    centre, safe = (width - 1) / 2, 0.40 * width
+    for y, row in enumerate(rows):
+        for x in range(width):
+            r, g, b, alpha = row[x * 4 : x * 4 + 4]
+            assert alpha == 255  # cap transparència: la màscara no deixa forats
+            if min(r, g, b) < 235:  # dibuix (no el fons blanc)
+                assert ((x - centre) ** 2 + (y - centre) ** 2) ** 0.5 <= safe, (x, y)
