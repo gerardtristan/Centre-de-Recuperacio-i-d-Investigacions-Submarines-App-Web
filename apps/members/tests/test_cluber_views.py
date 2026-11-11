@@ -331,6 +331,7 @@ class TestResult:
             "rejected_column",
             "rejected_row",
             "encoding",
+            "format",  # 081, punt 23: «csv» o «xlsx», cap valor del fitxer
             "counts",
             "warnings",
             "unknown_columns",

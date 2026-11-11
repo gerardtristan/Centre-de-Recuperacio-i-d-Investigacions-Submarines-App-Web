@@ -784,6 +784,11 @@ class TestAlreadyImported:
             "no_document_type",
             "unknown_columns",
             "cluber_already_imported",
+            # Excel (081, punt 23): de tot el fitxer
+            "xlsx_invalid",
+            "xlsx_active_content",
+            "xlsx_formula",
+            "xlsx_several_sheets",
         }
         # Els codis de la T-M01-24b («date_invalid», «total_price_differs») hi són des de la
         # migració core/0012 de la T-M01-25 (071).

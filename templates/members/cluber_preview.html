@@ -36,7 +36,7 @@
           <tr><th scope="row">{% translate "De baixa a Cluber (no s'importen)" %}</th><td>{{ summary.counts.left_in_cluber }}</td></tr>
         </tbody>
       </table>
-      {% if encoding %}<p>{% translate "Codificació detectada:" %} {{ encoding }}</p>{% endif %}
+      {% if format == "xlsx" %}<p>{% translate "Format: Excel (.xlsx)." %}</p>{% elif encoding %}<p>{% translate "Codificació detectada:" %} {{ encoding }}</p>{% endif %}
       <p>{% translate "Cap registre no queda preparat per importar mentre falti el tipus de document, que l'exportació de Cluber no porta." %}</p>
 
       <table>
@@ -119,9 +119,9 @@
       {% csrf_token %}
       <p>
         <label for="id_fitxer">{% translate "Fitxer CSV de Cluber" %}</label>
-        <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv" required aria-describedby="ajuda-fitxer">
+        <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="ajuda-fitxer">
       </p>
-      <p id="ajuda-fitxer">{% translate "CSV separat per «;», en UTF-8 o Windows-1252, d'1 MiB com a màxim. Si porta una columna d'IBAN, es descarta sense desar-ne ni mostrar-ne cap valor." %}</p>
+      <p id="ajuda-fitxer">{% translate "CSV separat per «;», en UTF-8 o Windows-1252, o Excel (.xlsx) sense macros ni fórmules, d'1 MiB com a màxim. D'un Excel es llegeix només el full que té les columnes de Cluber a la primera fila. Si porta una columna d'IBAN, es descarta sense desar-ne ni mostrar-ne cap valor." %}</p>
       <button type="submit">{% translate "Valida el fitxer (prova)" %}</button>
     </form>
   {% endif %}

@@ -18,6 +18,11 @@ dependencies = [
     # Exportació del llistat de socis en .xlsx (T-M01-15, RN-M01-71); sèrie 3.2 per decisió del
     # responsable del projecte (09/11/2026). Només escriu, sense dependències ni xarxa.
     "XlsxWriter>=3.2,<3.3",
+    # Importació de Cluber en Excel (.xlsx) (decisió 081, punt 23; P-63; T-M01-50). Només llegeix,
+    # sense executar fórmules ni macros. defusedxml protegeix el XML del fitxer (openpyxl el fa
+    # servir si hi és).
+    "openpyxl>=3.1.5,<3.2",
+    "defusedxml>=0.7.1,<0.8",
 ]
 
 [project.optional-dependencies]

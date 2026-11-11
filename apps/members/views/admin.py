@@ -188,6 +188,7 @@ def _display(summary):
         "left_rows": [row["row"] for row in summary["rows"] if row.get("left_in_cluber")],
         "omitted": sorted(summary["catalogue_omitted"].items()),
         "encoding": cluber.ENCODING_LABELS.get(summary["encoding"]),
+        "format": summary["format"],
         "would_import": [(label, filled[target]) for target, label in cluber.FIELD_LABELS.items()],
         "types": [
             (summary["type_names"][code], cluber.TYPE_BY_LABELS[by], count)

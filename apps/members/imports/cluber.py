@@ -10,6 +10,9 @@
 - Format (071): CSV separat per «;», cometes del mòdul `csv`; UTF-8 amb BOM opcional i, si no és
   UTF-8 vàlid, Windows-1252 (`Preview.encoding`). 1 MiB, 2.000 registres de dades i 10.000
   caràcters per camp.
+- També Excel (.xlsx) (decisió 081, punt 23; P-63; T-M01-50): `imports/xlsx.py` el llegeix sense
+  executar res, tria el full amb les columnes obligatòries i el converteix en aquest mateix CSV.
+  Les regles, els límits i l'empremta són els mateixos (`Preview.source_format`).
 - Una columna d'IBAN (capçalera «iban» normalitzada, sense àlies) es descarta en llegir: el seu
   valor s'esborra de cada registre abans de cap altre tractament i no passa enlloc (071, que
   matisa la RN-94 i el CA-M01-21). Un IBAN dins d'una altra columna no es detecta (risc conegut).
@@ -48,6 +51,8 @@ from apps.core.models import ImportBatch, Person
 from apps.core.normalization import normalize_document
 from apps.members.forms import parse_document
 from apps.members.models import Member, MembershipType
+
+from . import xlsx
 
 MAX_BYTES = 1024 * 1024
 MAX_ROWS = 2000
@@ -199,6 +204,17 @@ MESSAGES = {
     "encoding": _("El fitxer no és UTF-8 ni Windows-1252."),
     "empty": _("El fitxer és buit."),
     "malformed": _("El fitxer no té un format CSV vàlid."),
+    # Excel (.xlsx), decisió 081, punt 23
+    "xlsx_invalid": _("El fitxer Excel no es pot llegir. Desa'l de nou com a .xlsx."),
+    "xlsx_active_content": _(
+        "El fitxer Excel té macros o enllaços externs i no s'accepta. Desa'l com a .xlsx normal."
+    ),
+    "xlsx_formula": _(
+        "El fitxer Excel té fórmules. Desa'l només amb els valors i torna-ho a provar."
+    ),
+    "xlsx_several_sheets": _(
+        "Hi ha més d'un full amb les columnes de Cluber. Deixa'n només un i torna-ho a provar."
+    ),
     "iban_discarded": _(
         "El fitxer té una columna d'IBAN: s'ha descartat sense desar-ne ni mostrar-ne cap valor."
     ),
@@ -412,7 +428,8 @@ class Preview:
     rejected: str | None = None
     rejected_column: str = ""
     rejected_row: int | None = None
-    encoding: str | None = None  # "utf-8" o "windows-1252"
+    encoding: str | None = None  # "utf-8" o "windows-1252"; buida per a un .xlsx
+    source_format: str = "csv"  # "csv" o "xlsx" (081, punt 23)
     rows: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
     unknown_columns: list = field(default_factory=list, repr=False)
@@ -448,6 +465,7 @@ class Preview:
             "rejected_column": self.rejected_column,
             "rejected_row": self.rejected_row,
             "encoding": self.encoding,
+            "format": self.source_format,
             "counts": self.counts,
             "warnings": list(self.warnings),
             "unknown_columns": len(self.unknown_columns),
@@ -480,7 +498,28 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
     `keep_values` només el fa servir la importació final (`imports/final.py`, T-M01-25): cada
     fila conserva en memòria els valors normalitzats d'`EQUIVALENCES` (`Row.data["values"]`,
     fora de `repr` i de `summary()`) per crear la persona i el soci. La prova no els conserva.
+
+    Un .xlsx (es reconeix pel contingut, no pel nom) es converteix primer en el CSV equivalent
+    (`imports/xlsx.py`); a partir d'aquí, tot és igual.
     """
+    if len(data) > MAX_BYTES:
+        return _reject("too_large")
+    if not xlsx.is_xlsx(data):
+        return _preview_csv(data, keep_values=keep_values)
+    try:
+        converted = xlsx.to_csv(
+            data, required=REQUIRED_HEADERS, iban_headers=IBAN_HEADERS, header_key=_header_key
+        )
+    except xlsx.XlsxRejected as error:
+        result = _reject(error.code, column=error.column, row=error.row)
+    else:
+        result = _preview_csv(converted, keep_values=keep_values)
+        result.encoding = None
+    result.source_format = "xlsx"
+    return result
+
+
+def _preview_csv(data: bytes, *, keep_values: bool = False) -> Preview:
     # La mida es comprova abans de descodificar: el text i el lector queden acotats per 1 MiB.
     if len(data) > MAX_BYTES:
         return _reject("too_large")
