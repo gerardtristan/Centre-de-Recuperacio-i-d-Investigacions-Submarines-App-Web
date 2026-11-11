@@ -45,9 +45,11 @@ jobs:
         run: |
           export DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
           export FIELD_ENCRYPTION_KEYS="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
+          export CARD_QR_KEYS="ci:$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
           python manage.py check --deploy --fail-level WARNING
         env:
           DJANGO_SETTINGS_MODULE: config.settings.prod
+          CARD_QR_ACTIVE_KEY: ci
           DJANGO_ALLOWED_HOSTS: cris1954.cat
           # Valors de mostra: només comproven que producció arrenca; no envien res.
           EMAIL_HOST: smtp.example.invalid
