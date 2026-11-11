@@ -11,11 +11,11 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core.models import Person
 from apps.core.permissions import permission_required, request_permissions, require_perm
-from apps.members import member_edit, roster
+from apps.members import admissions, member_edit, roster
 from apps.members.models import Member
 from apps.members.services import OwnMemberChange
 
@@ -98,3 +98,26 @@ def member_join_date_view(request, pk):
 
     context = {"permission": member_edit.EDIT_JOIN_DATE}
     return _handle(request, member, form, "members/member_join_date.html", context, save)
+
+
+@never_cache
+@permission_required(admissions.INVITE_PERMISSION)
+@require_POST
+def member_invite_view(request, pk):
+    """079 (RN-M01-87, especificació punt 7): tornar a enviar la invitació del compte personal.
+    M2 amb edició i P4; el servei ho torna a comprovar. Invalida la invitació anterior."""
+    member = _member(request, pk)
+    if admissions.resend_invitation(member, by=request.user, request=request):
+        messages.success(
+            request,
+            _("Invitació enviada. L'enllaç anterior, si n'hi havia, ja no serveix."),
+        )
+    else:
+        messages.error(
+            request,
+            _(
+                "No s'ha enviat cap invitació: la persona ja té compte personal, no té correu "
+                "propi o és menor de 14 anys."
+            ),
+        )
+    return _to_detail(member)

@@ -26,6 +26,9 @@ PUBLIC_ROUTES = {
     # Confirmació del correu d'entrada nou (RN-M01-79): el testimoni lliga el compte i l'adreça.
     "accounts:change_email",
     "accounts:change_email_link",
+    # Invitació del compte personal (079, RN-M01-87): el testimoni és la credencial.
+    "accounts:invitation",
+    "accounts:invitation_link",
     "administration:login",
     "administration:login_totp",
     "administration:totp_enrol",

@@ -11,3 +11,11 @@
     </p>
   {% endif %}
 {% endif %}
+{# 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4). Només surt si la persona en pot rebre una; el servei ho torna a comprovar. #}
+{% if can_invite %}
+  <form class="accions" method="post" action="{% url 'administration:member_invite' member.pk %}">
+    {% csrf_token %}
+    <button class="boto boto-petit" type="submit">{% translate "Envia la invitació del compte" %}</button>
+    <span class="text-2">{% translate "Aquesta persona encara no té compte personal. L'enllaç caduca i només serveix una vegada." %}</span>
+  </form>
+{% endif %}

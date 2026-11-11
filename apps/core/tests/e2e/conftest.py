@@ -106,6 +106,29 @@ def capture(page, request):
     return shoot
 
 
+NARROW = 320  # amplada mínima que demana la definició de fet de les pantalles
+
+
+@pytest.fixture
+def review(page, request, capture):
+    """Com `capture` i, a més, la pantalla a 320 px en clar i en fosc. Falla si a 320 px la
+    pàgina es desplaça de costat (algun element no hi cap)."""
+    folder = CAPTURES / request.node.name
+
+    def shoot(name):
+        capture(name)
+        page.set_viewport_size({"width": NARROW, "height": 800})
+        for theme in ("light", "dark"):
+            page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
+            page.screenshot(path=folder / f"{name}-{NARROW}-{theme}.png", full_page=True)
+        overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
+        page.evaluate("document.documentElement.removeAttribute('data-theme')")
+        page.set_viewport_size({"width": WIDTHS[0], "height": 900})
+        assert overflow <= 0, f"«{name}» es desplaça de costat a {NARROW} px ({overflow} px)"
+
+    return shoot
+
+
 def make_admin(username, *roles):
     person = Person.objects.create(
         first_name=username.split(".")[0].title(), last_name="Prova", origin="in_person"

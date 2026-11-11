@@ -23,6 +23,12 @@ urlpatterns = [
         admin_member_edit.member_join_date_view,
         name="member_join_date",
     ),
+    # 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4).
+    path(
+        "socis/<int:pk>/invitacio/",
+        admin_member_edit.member_invite_view,
+        name="member_invite",
+    ),
     path(
         "socis/<int:pk>/llicencies/nova/",
         admin_licences.licence_add_view,

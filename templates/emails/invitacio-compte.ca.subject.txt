@@ -1,0 +1,1 @@
+{% load i18n %}{# 079: TEXT PROVISIONAL [A validar: junta i secretaria] #}{% translate "Crea el teu compte del C.R.I.S." %}

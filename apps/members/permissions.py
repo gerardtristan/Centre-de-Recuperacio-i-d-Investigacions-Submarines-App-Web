@@ -18,6 +18,7 @@ PUBLIC = "public"
 OWN = "own"
 READ, WRITE = False, True
 
+M2 = "core.people.manage"  # de la 00: perfils d'altres persones i els seus comptes personals
 P2 = "members.create_in_person"
 P3A = "members.requests.view"
 P3 = "members.requests.approve_join"
@@ -66,6 +67,8 @@ ROUTES = {
     "administration:member_edit": _both((P5, WRITE), (P4, READ)),
     # P6 demana P4 sencer: «dades mínimes» no veu la data d'alta.
     "administration:member_join_date": _both((P6, WRITE), (P4, WRITE)),
+    # 079 (RN-M01-87): tornar a enviar la invitació del compte personal.
+    "administration:member_invite": _both((M2, WRITE), (P4, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

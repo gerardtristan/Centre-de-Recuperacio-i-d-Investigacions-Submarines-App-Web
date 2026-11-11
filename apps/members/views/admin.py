@@ -318,6 +318,8 @@ def member_detail_view(request, pk):
         # T-M01-15b: enllaços i historial de la data d'alta. Els serveis ho tornen a comprovar.
         "can_edit": bool(member_edit.editable_fields(request.user, perms)),
         "can_correct_join_date": member_edit.can_correct_join_date(request.user, perms),
+        # 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4).
+        "can_invite": admissions.can_invite(request.user, member, perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(
@@ -424,6 +426,13 @@ def join_requests_view(request):
                     join_request.new_contact_email or join_request.new_contact_phone
                 ),
                 "matches": sorted({w.get("match") for w in join_request.duplicate_warning}),
+                # 079 (A-15): persones amb el mateix nom, cognoms i data de naixement que un
+                # menor sense document. Només el que cal per revisar-ho: si és soci i el número.
+                "similar": [
+                    getattr(other, "member", None)
+                    for other in admissions.similar_minors(join_request)
+                ],
+                "birth_conflict": admissions.birth_date_conflict(join_request),
                 "birth_date": join_request.birth_date if birth_date else None,
                 # Sense C1, només la franja (CA-M01-45, RN-M01-48). `age_band` només llegeix
                 # `birth_date`, que a l'alta és a la sol·licitud.
@@ -476,6 +485,7 @@ def join_approve_view(request, pk):
             identity_checked=request.POST.get("identitat_comprovada") == "1",
             guardian_checked=request.POST.get("representant_comprovat") == "1",
             update_contact=request.POST.get("actualitza_contacte") == "1",
+            duplicates_reviewed=request.POST.get("duplicats_revisats") == "1",
             request=request,
         )
         if member.status == Member.Status.ACTIVE:
@@ -485,7 +495,15 @@ def join_approve_view(request, pk):
                 "Alta aprovada: %(person)s, soci número %(number)s, pendent fins que pagui "
                 "la quota."
             )
-        return text % {"person": member.person, "number": member.member_number}
+        text = text % {"person": member.person, "number": member.member_number}
+        # 079 (RN-M01-87): no es diu si ha estat una invitació o un avís a qui ja té compte.
+        if member.access_mail_sent:
+            return text + " " + _("Se li ha enviat el correu d'accés a l'àrea de socis.")
+        return (
+            text
+            + " "
+            + _("No se li ha enviat cap correu d'accés: és menor de 14 anys o no té correu propi.")
+        )
 
     return _resolve(request, pk, approve)
 

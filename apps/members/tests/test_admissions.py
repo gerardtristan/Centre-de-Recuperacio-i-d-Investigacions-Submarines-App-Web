@@ -276,10 +276,12 @@ class TestBlocked:
     def test_without_birth_date(self, secretary):
         self.assert_not_approved(a_request(birth=None), secretary)
 
-    def test_minor_without_document_waits_for_rn_m01_70(self, secretary):
+    def test_minor_without_document_is_approved_without_similar_people(self, secretary):
+        # 079 (A-15, RN-M01-88): ja no espera cap decisió; sense coincidències, s'aprova.
         join_request = minor_request(document=False)
-        assert "RN-M01-70" in admissions.approval_blocker(join_request)
-        self.assert_not_approved(join_request, secretary)
+        assert admissions.approval_blocker(join_request) is None
+        member = admissions.approve_join(join_request, by=secretary, guardian_checked=True)
+        assert member.status == S.ACTIVE
 
     def test_minor_with_document_is_approved(self, secretary):
         member = admissions.approve_join(
@@ -311,15 +313,18 @@ class TestBlocked:
         join_request = a_request(warning=[{"match": "email", "person_id": 1}])
         assert admissions.approve_join(join_request, by=secretary).status == S.PENDING
 
-    def test_readmission_with_another_type_waits_for_a_decision(self, secretary):
+    def test_readmission_with_another_type_needs_only_the_identity_check(self, secretary):
+        # 079 (A-05, P-68): ja no espera cap decisió; el detall és a `test_admissions_079.py`.
         member = left_member(by=secretary)
         join_request = a_request(
             member.person,
             type_code="full",
             warning=[{"match": "document", "person_id": member.person_id}],
         )
-        self.assert_not_approved(join_request, secretary, identity_checked=True)
+        self.assert_not_approved(join_request, secretary)
         assert Member.objects.get(pk=member.pk).status == S.LEFT
+        admissions.approve_join(join_request, by=secretary, identity_checked=True)
+        assert Member.objects.get(pk=member.pk).status == S.PENDING
 
 
 # --- Readmissió (067): mateix número, el comptador no avança -------------------------------

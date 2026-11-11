@@ -161,6 +161,44 @@ def update(person, *, by, request=None, **fields) -> list[str]:
     return list(changes)
 
 
+BIRTH_DATE_SET = "persons.birth_date_set"
+BIRTH_DATE_IN_FUTURE = _("La data de naixement no pot ser posterior a avui.")
+
+
+def check_birth_date(birth_date, today=None) -> None:
+    """079 (A-10, RN-M01-90): una data de naixement futura es rebutja en desar."""
+    if birth_date is not None and birth_date > (today or timezone.localdate()):
+        raise ValidationError(BIRTH_DATE_IN_FUTURE)
+
+
+def set_birth_date(person, birth_date, *, by, request=None, source="") -> bool:
+    """Desa la data de naixement de la persona. Torna si ha canviat. El registre d'activitat
+    guarda que ha canviat i d'on ve, **mai la data** (RN-M01-48). Qui crida ja ha comprovat el
+    permís (C1). Una data futura es rebutja; una persona anonimitzada no s'edita."""
+    check_birth_date(birth_date)
+    with transaction.atomic():
+        locked = Person.objects.select_for_update().get(pk=person.pk)
+        if locked.status != Person.Status.ACTIVE:
+            raise ValidationError(
+                _("Les dades d'aquesta persona estan anonimitzades i no es poden editar.")
+            )
+        if locked.birth_date == birth_date:
+            return False
+        had = locked.birth_date is not None
+        locked.birth_date = birth_date
+        locked.save(update_fields=["birth_date", "updated_at"])
+        audit.record(
+            BIRTH_DATE_SET,
+            actor=by,
+            target=locked,
+            field="birth_date",
+            details={"had_value": had, "has_value": birth_date is not None, "source": source},
+            request=request,
+        )
+    person.birth_date = birth_date
+    return True
+
+
 # Dades que la persona pot corregir des del seu perfil (HU-M01-08; 061). El nom, el document i la
 # data de naixement només els corregeix la secretaria; el correu d'entrada té el seu propi camí.
 PROFILE_FIELDS = (

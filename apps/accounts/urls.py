@@ -32,6 +32,9 @@ urlpatterns = [
     # Canvi del correu d'entrada des del perfil (RN-M01-79): confirmació des de l'adreça nova.
     path("compte/correu/", views.change_email_view, name="change_email"),
     path("compte/correu/<str:token>/", views.change_email_link_view, name="change_email_link"),
+    # Invitació per crear el compte personal en aprovar una alta (079, RN-M01-87).
+    path("compte/invitacio/", views.invitation_view, name="invitation"),
+    path("compte/invitacio/<str:token>/", views.invitation_link_view, name="invitation_link"),
     path("compte/contrasenya/", views.password_reset_view, name="password_reset"),
     path(
         "compte/contrasenya/oblidada/",

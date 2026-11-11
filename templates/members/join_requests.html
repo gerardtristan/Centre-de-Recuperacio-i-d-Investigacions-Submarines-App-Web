@@ -9,7 +9,7 @@
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. Encara no s'envia la invitació per activar el compte." %}</p>
+  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. La persona rep un correu amb un enllaç d'un sol ús per crear el seu compte; als menors de 14 anys no se'ls n'envia cap." %}</p>
 
   {% for row in rows %}
     {% with jr=row.request person=row.person %}
@@ -43,6 +43,18 @@
         </div>
       {% endif %}
 
+      {% if row.similar %}
+        <div class="avis avis-avis" role="note">
+          <strong>{% translate "Possible duplicat d'un menor sense document" %}</strong>
+          {% translate "Ja hi ha persones a la plataforma amb el mateix nom, cognoms i data de naixement:" %}
+          {% for other in row.similar %}{% if other %}{% blocktranslate with number=other.member_number|default:"—" status=other.get_status_display %}soci número {{ number }} ({{ status }}){% endblocktranslate %}{% else %}{% translate "persona sense soci" %}{% endif %}{% if forloop.last %}.{% else %}; {% endif %}{% endfor %}
+          {% translate "No es fusiona sol: revisa-ho abans d'aprovar." %}
+        </div>
+      {% endif %}
+      {% if row.birth_conflict %}
+        <div class="avis avis-avis" role="note"><strong>{% translate "Data de naixement diferent" %}</strong>{% translate "La data de naixement de la sol·licitud no és la que ja té la persona. En aprovar, la de la persona no canvia: si cal, corregeix-la després des de la fitxa." %}</div>
+      {% endif %}
+
       {% if row.own %}
         <div class="avis avis-sistema" role="note"><strong>{% translate "És la teva sol·licitud" %}</strong>{% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
       {% elif can_resolve %}
@@ -56,6 +68,9 @@
             {% endif %}
             {% if row.guardian_check %}
               <label class="casella"><input type="checkbox" name="representant_comprovat" value="1" required> <span>{% translate "He comprovat el document del pare, la mare o el tutor legal" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.similar %}
+              <label class="casella"><input type="checkbox" name="duplicats_revisats" value="1" required> <span>{% translate "He revisat les persones amb el mateix nom, cognoms i data de naixement" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
             {% endif %}
             {% if row.new_contact %}
               <label class="casella"><input type="checkbox" name="actualitza_contacte" value="1"> <span>{% translate "Actualitza el correu i el telèfon de la persona amb els de la sol·licitud" %}</span></label>

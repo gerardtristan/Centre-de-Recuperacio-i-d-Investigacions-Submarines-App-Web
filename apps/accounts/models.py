@@ -319,3 +319,40 @@ class FailedLogin(models.Model):
 
     def __str__(self):
         return f"{self.ip_address} {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class AccountInvitation(models.Model):
+    """Invitació per crear el compte personal (079, RN-M01-87; especificació al pla,
+    `#M01-079-invitacio`). Només se'n desa l'empremta SHA-256 del testimoni: el testimoni en clar
+    només existeix dins del correu. Un sol ús, amb caducitat, i una de viva per persona (crear-ne
+    una de nova invalida les anteriors). Cap dada personal pròpia: l'adreça és la de la persona."""
+
+    person = models.ForeignKey(Person, on_delete=models.PROTECT, related_name="account_invitations")
+    token_hash = models.CharField(_("empremta del testimoni"), max_length=64, unique=True)
+    expires_at = models.DateTimeField(_("caduca el"))
+    used_at = models.DateTimeField(_("feta servir el"), null=True, blank=True)
+    # Substituïda per una de nova o anul·lada (p. ex. en anonimitzar la persona).
+    invalidated_at = models.DateTimeField(_("invalidada el"), null=True, blank=True)
+    created_by = models.ForeignKey(
+        Account, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("invitació del compte personal")
+        verbose_name_plural = _("invitacions del compte personal")
+        constraints = [
+            models.CheckConstraint(
+                # Format de l'empremta, no cap contrasenya.
+                condition=Q(token_hash__regex=r"^[0-9a-f]{64}$"),  # noqa: S106
+                name="accountinvitation_token_hash_sha256_hex",
+            ),
+            models.UniqueConstraint(
+                fields=["person"],
+                condition=Q(used_at__isnull=True, invalidated_at__isnull=True),
+                name="accountinvitation_one_live_per_person",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.person_id} {self.created_at:%Y-%m-%d}"

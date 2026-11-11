@@ -25,7 +25,7 @@ from apps.core import audit, roles
 from apps.core.permissions import has_perm, permission_required
 from apps.members import licences
 
-from . import email_links, tokens, totp
+from . import email_links, invitations, tokens, totp
 from .forms import (
     CodeForm,
     DisableTotpForm,
@@ -443,6 +443,31 @@ def password_reset_view(request):
     state = "done" if result.done else "ready" if result.account else "invalid"
     return _same_origin_referrer(
         render(request, "accounts/password_reset.html", {"state": state, "form": result.form})
+    )
+
+
+@login_not_required
+@never_cache
+@require_GET
+def invitation_link_view(request, token):
+    return _stash_link(request, invitations.SESSION_KEY, token, "accounts:invitation")
+
+
+@login_not_required
+@never_cache
+@require_http_methods(["GET", "POST"])
+def invitation_view(request):
+    """079 (RN-M01-87, CA-M01-90): crear el compte personal amb la invitació de l'alta aprovada.
+    Només amb un POST. Un enllaç desconegut, caducat, ja fet servir, d'una persona que ja té
+    compte o amb un correu que ja és d'un altre compte dona el mateix text. No obre cap sessió."""
+    token = request.session.get(invitations.SESSION_KEY, "")
+    data = request.POST if request.method == "POST" else None
+    result = invitations.accept(token, data, request=request)
+    state = "done" if result.done else "ready" if result.form else "invalid"
+    if state != "ready":
+        request.session.pop(invitations.SESSION_KEY, None)
+    return _same_origin_referrer(
+        render(request, "accounts/invitation.html", {"state": state, "form": result.form})
     )
 
 
