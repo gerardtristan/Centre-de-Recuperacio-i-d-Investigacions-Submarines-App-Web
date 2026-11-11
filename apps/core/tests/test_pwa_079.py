@@ -56,6 +56,9 @@ def test_081_an_expired_copy_is_deleted_and_never_shown():
 
 def test_081_the_page_reloads_when_the_connection_comes_back_without_a_loop():
     script = (settings.BASE_DIR / "static" / "js" / "carnet-copia.js").read_text(encoding="utf-8")
-    assert "addEventListener('online'" in script and "{ once: true }" in script
+    assert "addEventListener('online', comenca)" in script
+    # Primer comprova que el servidor respon; si no, reintents limitats i espaiats (cap bucle).
+    assert "var ESPERES = [1000, 2000, 4000, 8000, 15000, 30000];" in script
+    assert "if (intent + 1 < ESPERES.length)" in script and "if (provant) return;" in script
     assert "if (!avis || avis.hidden) return;" in script  # només a la còpia
     assert "'/static/js/carnet-copia.js'" in SOURCE  # disponible sense connexió

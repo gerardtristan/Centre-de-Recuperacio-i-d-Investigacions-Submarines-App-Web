@@ -51,7 +51,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
         "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 1"
     )
     assert cached_card(page) == ["/socis/carnet/"]
-    expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden()
+    expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden(timeout=15000)
 
     # Sense connexió (CA-M01-17): surt la còpia, amb l'avís i el QR.
     context.set_offline(True)
@@ -63,7 +63,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     review("carnet-sense-connexio")
     context.set_offline(False)
     # Torna la connexió: la còpia es recarrega del servidor (decisió 081, punt 15).
-    expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden()
+    expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden(timeout=15000)
 
     # En sortir (CA-M01-110): s'esborra la còpia del carnet i el tema es conserva.
     page.goto(f"{base}/")
@@ -142,9 +142,9 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     expect(notice).to_be_visible()
     expect(page.get_by_text("es mostra com a màxim 30 dies")).to_be_visible()
 
-    # Torna la connexió: la pàgina es recarrega i ja és la del servidor (sense l'avís).
+    # Torna la connexió: quan el servidor respon, la pàgina es recarrega i ja és la del servidor.
     context.set_offline(False)
-    expect(notice).to_be_hidden()
+    expect(notice).to_be_hidden(timeout=15000)
 
     # 29 dies: encara es mostra; 31 dies: s'esborra i no es mostra.
     _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 29 * 86400000)")
