@@ -22,6 +22,7 @@ from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core import audit
 from apps.core.models import AuditEntry, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.test_error_pages import body
 from apps.members import cards, licences, services
 from apps.members.models import LicenceRecord
 from apps.members.services import InactiveAccount
@@ -171,7 +172,8 @@ class TestCriteria:
         foreign = declare(client, other)
         missing = declare(client, LicenceRecord(pk=other.pk + 1000))
         assert foreign.status_code == missing.status_code == 404
-        assert foreign.content == missing.content
+        # La mateixa pàgina 404 (T-M01-47); només hi canvia el testimoni CSRF de cada resposta.
+        assert body(foreign) == body(missing)
         other.refresh_from_db()
         assert (other.expires_on, other.expiry_declared) == (None, False)
         logged = list(AuditEntry.objects.filter(action=NOT_FOUND).order_by("id"))
