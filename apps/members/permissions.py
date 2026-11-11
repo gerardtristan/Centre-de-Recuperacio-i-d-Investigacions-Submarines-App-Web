@@ -54,6 +54,8 @@ ROUTES = {
     "members:fee_detail": OWN,
     "members:card": OWN,
     "members:change_type": OWN,
+    # 079 (RN-M01-93, punt 4): retirar el pas a simpatitzant propi mentre és pendent. Només POST.
+    "members:change_type_withdraw": OWN,
     "members:leave": OWN,
     # --- Administració ---
     "administration:cluber_preview": _both((P18, READ)),

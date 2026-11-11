@@ -1,6 +1,7 @@
 """Administració: sol·licituds de canvi de tipus i de baixa (T-M01-17; P3a i P7; P-M01-B i
 P-M01-C; wireframe `admin.html#vista-socis-sollicituds`, pestanyes «Canvis de tipus» i
-«Baixes», i el diàleg «Crea una baixa» de la fitxa).
+«Baixes», i el diàleg «Crea una baixa» de la fitxa). T-M01-42 (073, RN-M01-93): el pas a
+simpatitzant surt amb els canvis de tipus i es resol amb el mateix P7, sense suplement.
 
 - Consultar: P3a. Resoldre i crear una baixa: P7; el servei ho torna a comprovar en desar
   (RN-RP-10). Sense permís, «no trobat».
@@ -11,7 +12,8 @@ P-M01-C; wireframe `admin.html#vista-socis-sollicituds`, pestanyes «Canvis de t
 - «Crea una baixa»: P7 amb edició i P4 (075, RN-M01-83); sense P4, «no trobat» i cap nom.
 - Només es mostren el nom, el número, el tipus i el motiu: cap document, adreça ni data de
   naixement. El resum de quotes d'una baixa el veu qui la pot resoldre; la llista de quotes sense
-  pagar, només amb P10 (075, RN-M01-83).
+  pagar, només amb P10 (075, RN-M01-83). La data de la renovació en què s'aplicarà un pas a
+  simpatitzant és el «vàlid fins al» del soci, que és l'estat de la quota: també només amb P10.
 """
 
 from django import forms
@@ -25,7 +27,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.permissions import has_perm, permission_required, request_permissions, require_perm
-from apps.members import fees, member_requests
+from apps.members import cards, fees, member_requests
 from apps.members.fee_rules import local_today
 from apps.members.models import AnnualFee, Member, MemberRequest
 from apps.members.services import OwnMemberChange
@@ -130,9 +132,11 @@ def _resolve(member_request, data, request) -> str:
         )
         return _("Sol·licitud resolta.")
     if member_request.kind == MemberRequest.Kind.CHANGE_TYPE:
-        member_requests.approve_type_change(
+        fee = member_requests.approve_type_change(
             member_request, by=request.user, reason=data["reason"], request=request
         )
+        if fee is None:  # pas a simpatitzant (073): cap càrrec i cap canvi fins a la renovació
+            return _("Pas a simpatitzant acceptat. S'aplicarà quan el soci renovi.")
         return _("Canvi aprovat. S'ha creat el suplement.")
     member_requests.approve_leave(
         member_request,
@@ -197,6 +201,7 @@ def request_detail_view(request, pk):
                 messages.success(request, message)
                 return redirect("administration:member_request_detail", pk=member_request.pk)
     pending = member_request.status == MemberRequest.Status.PENDING
+    downgrade = member_requests.is_downgrade(member_request)
     fee = member_request.supplement_fee
     state = _supplement_state(fee) if fee else ""
     context = {
@@ -210,9 +215,10 @@ def request_detail_view(request, pk):
         # C2: el mateix càlcul que crea el càrrec (`fees.supplement_cents`), en euros.
         "supplement_amount": (
             euros(fees.supplement_cents(member_request.member, member_request.requested_type))
-            if kind == MemberRequest.Kind.CHANGE_TYPE and pending
+            if kind == MemberRequest.Kind.CHANGE_TYPE and pending and not downgrade
             else ""
         ),
+        "downgrade": downgrade,
         "supplement": fee,
         "supplement_state": SUPPLEMENT_STATES.get(state, ""),
         "supplement_fee_amount": euros(fee.charge.amount_cents) if fee else "",
@@ -222,6 +228,19 @@ def request_detail_view(request, pk):
         and not own
         and member_requests.can_cancel_supplement(request.user, perms),
     }
+    if (
+        downgrade
+        and member_request.effective_on is None
+        and (pending or member_request.status == MemberRequest.Status.APPROVED)
+    ):
+        # 073: s'aplicarà a la renovació, que és el «vàlid fins al» del soci (un sol càlcul,
+        # RN-M01-86). És l'estat de la quota: només amb P10. Sense «vàlid fins al», cap data.
+        context["awaiting_renewal"] = True
+        context["show_renewal"] = has_perm(request.user, FEES_VIEW, permissions=perms)
+        if context["show_renewal"]:
+            until = cards.valid_until(cards.load_member(member_request.member_id))
+            context["renewal_on"] = until
+            context["renewal_passed"] = until is not None and until < local_today()
     if kind == MemberRequest.Kind.LEAVE and pending and can_resolve and not own:
         # C3: resum de conseqüències (RN-M01-20). Depèn de la data que es triï: es mostra la
         # regla i, només amb P10 (075, CA-M01-85), les quotes sense pagar amb el venciment.
