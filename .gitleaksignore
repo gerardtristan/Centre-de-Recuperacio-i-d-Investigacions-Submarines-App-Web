@@ -6,3 +6,7 @@
 
 # Decisió 077 (10/11/2026): regla generic-api-key, cita d'aquelles dades a la primera versió de la decisió 076, commit a31d6b4.
 a31d6b4dc188e489aead746fc0dd816bf0abc898:docs/decisions/076-segona-excepcio-de-gitleaks-empremta-d-un-fals-positiu.md:generic-api-key:8
+
+# Decisió 083 (11/11/2026): regla generic-api-key, valor inventat d'una prova a apps/members/tests/test_totp_reset_081.py, commit 6c73807 (línies 165 i 166).
+6c7380731f4822cb1b8fcebc4f581b5b7848da7e:apps/members/tests/test_totp_reset_081.py:generic-api-key:165
+6c7380731f4822cb1b8fcebc4f581b5b7848da7e:apps/members/tests/test_totp_reset_081.py:generic-api-key:166
