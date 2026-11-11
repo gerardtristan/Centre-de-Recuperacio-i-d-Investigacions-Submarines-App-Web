@@ -10,9 +10,12 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
   «pagat → pendent» (045, T-M04-12).
 """
 
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
+from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 
 from . import audit
@@ -30,6 +33,11 @@ TRANSITIONS = {
 }
 
 PAID_ORIGINS = {"provider", "reconciliation"}
+
+
+def euros(cents: int) -> str:
+    """Un import en cèntims, per mostrar-lo: «120,00 €» en la llengua activa."""
+    return f"{number_format(Decimal(cents) / 100, decimal_pos=2)} €"
 
 
 def _ensure_can_manage_departments(by) -> None:

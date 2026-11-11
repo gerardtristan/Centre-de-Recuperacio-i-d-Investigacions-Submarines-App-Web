@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M00-02: TEXT PROVISIONAL [A validar: junta i tresorer] #}{% translate "El teu pagament pendent amb el C.R.I.S." %}

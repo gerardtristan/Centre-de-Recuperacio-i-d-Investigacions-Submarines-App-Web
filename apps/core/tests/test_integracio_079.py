@@ -1,5 +1,6 @@
 """Integració de l'RGPD (T-M01-22) amb les peces de la nit de l'11/11/2026: el límit diari de
-correu (T-M00-06), la invitació del compte personal (T-M01-14) i el QR del carnet (T-M01-19).
+correu (T-M00-06), la invitació del compte personal (T-M01-14), el QR del carnet (T-M01-19) i
+els enllaços de convidat (T-M00-02).
 Només dades inventades.
 """
 
@@ -7,9 +8,10 @@ import pytest
 from django.test import override_settings
 
 from apps.accounts import invitations
-from apps.core import mail, privacy
-from apps.core.models import OutgoingEmail, Person
+from apps.core import charges, guest_links, mail, privacy
+from apps.core.models import GuestLink, OutgoingEmail, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.test_guest_links import new_charge, pay, send
 from apps.members import cards, services
 from apps.members.tests.test_cards import SYSTEM, paid_member
 
@@ -56,3 +58,19 @@ def test_anonymising_a_member_makes_the_card_qr_invalid(make_admin):  # noqa: F8
     assert services.verify_card(token)["valid"] is True
     privacy.anonymise_person(member.person, by=make_admin("administrator"))
     assert services.verify_card(token)["valid"] is False
+
+
+def test_anonymising_revokes_the_guest_links(person, make_admin):  # noqa: F811
+    """CA-19.1: en esborrar les dades d'una persona, els seus enllaços de convidat es revoquen.
+    Amb un càrrec pendent no s'anonimitza (CA-19.7): l'enllaç és d'un càrrec ja pagat, que
+    continua obrint-se fins que caduca (CA-02.4)."""
+    admin = make_admin("administrator")
+    charge = new_charge(person, admin, charges.create_department("Cursos", by=admin))
+    link, token = send(charge, admin)
+    pay(charge)
+    assert guest_links.resolve(token) is not None
+
+    privacy.anonymise_person(person, by=admin)
+
+    assert GuestLink.objects.get(pk=link.pk).revoked_at is not None
+    assert guest_links.resolve(token) is None

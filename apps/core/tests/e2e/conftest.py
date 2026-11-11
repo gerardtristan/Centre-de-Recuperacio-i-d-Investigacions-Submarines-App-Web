@@ -86,7 +86,12 @@ class PageChecks:
         self.downloads.add(path_prefix)
 
     def _console(self, message):
-        if message.type == "error":
+        # Chromium també escriu a la consola les respostes 4xx: les que la prova espera no compten.
+        path = urlparse((message.location or {}).get("url", "")).path
+        declared = message.text.startswith("Failed to load resource") and any(
+            path == expected for _, expected in self.expected
+        )
+        if message.type == "error" and not declared:
             self.problems.append(f"consola: {message.text}")
 
     def _failed(self, request):

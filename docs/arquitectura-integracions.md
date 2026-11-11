@@ -440,6 +440,7 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] Guardar fora de línia la clau de xifratge de les còpies i els codis de recuperació del doble factor (dos llocs).
 - [ ] Fer i documentar la primera prova de restauració.
 - [ ] Comprovar que els registres d'accés del proxy de Coolify no guarden les rutes amb testimoni dels enllaços del correu (`/compte/verificar/…`, `/compte/contrasenya/…`): la primera petició porta el testimoni a la ruta, i la plataforma només el treu de les peticions següents (T-M01-05) [A verificar: informàtica].
+- [ ] El mateix per a l'enllaç de convidat (`/convidat/<testimoni>/`, T-M00-02; RN-32 i CA-02.8 de la spec 00): ni els registres d'accés del proxy ni el seguiment d'errors, quan es configuri, n'han de guardar la ruta. La plataforma no l'escriu als seus registres i redirigeix a `/convidat/`, sense testimoni [A verificar: informàtica].
 
 ### Abans del nivell 1 de producció (mandats, [025](decisions/025-dos-nivells-de-produccio.md))
 - [ ] Comprovar que el 05a està acabat i provat, que les portes 0-2 estan superades (HTTPS, secrets, còpies i restauració, RGPD i consentiments, registre d'activitat) i que els punts «N1» de la porta 3 també (A6, E3, E4, B5, B8, G3).

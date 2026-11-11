@@ -272,6 +272,10 @@ def anonymise_person(person, *, by, request=None) -> Person:
         targets["accounts.account"] = accounts_privacy.anonymise(
             locked, by=by, known_addresses=known_addresses, request=request
         )
+        # Enllaços de convidat (T-M00-02; CA-19.1): es revoquen els que encara funcionen.
+        locked.guest_links.filter(revoked_at__isnull=True, replaced_by__isnull=True).update(
+            revoked_at=timezone.now()
+        )
         # 4. Correus enviats i fitxers sense obligació legal (RN-B8).
         mail.anonymise_recipient(locked, known_addresses)
         files.expire_owner_files(locked)

@@ -65,6 +65,8 @@ TEMPLATE_PRIORITIES = {
     "verificacio-correu": _Priority.ACCOUNT,
     "canvi-correu": _Priority.ACCOUNT,
     "invitacio-compte": _Priority.ACCOUNT,  # fa de verificació (079, A-11)
+    # Enllaços de convidat (T-M00-02; V-07, segona posició).
+    "enllac-convidat": _Priority.GUEST_LINK,
     # Confirmacions i avisos d'una cosa que ja ha passat.
     "alta-aprovada": _Priority.CONFIRMATION,
     "alta-rebutjada": _Priority.CONFIRMATION,

@@ -714,6 +714,74 @@ class Payment(UndeletableModel):
         super().save(*args, **kwargs)
 
 
+class GuestLink(models.Model):
+    """Enllaç de convidat (spec 00, HU-02, RN-30 a RN-33, V-02; decisió 021). Només se'n desa
+    l'empremta SHA-256 del testimoni: el testimoni en clar només existeix dins del correu
+    (RN-32). Només es crea, es revoca i se substitueix amb `apps.core.guest_links`.
+
+    L'objecte lligat és un càrrec; la inscripció sense pagament (V-02) l'hi afegirà el 02.
+    Cap dada personal pròpia: l'adreça és la de la persona."""
+
+    class Purpose(models.TextChoices):
+        PAYMENT = "payment", _("Pagament")
+
+    person = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="guest_links", verbose_name=_("persona")
+    )
+    charge = models.ForeignKey(
+        Charge, on_delete=models.PROTECT, related_name="guest_links", verbose_name=_("càrrec")
+    )
+    purpose = models.CharField(_("finalitat"), max_length=10, choices=Purpose.choices)
+    token_hash = models.CharField(_("empremta del testimoni"), max_length=64, unique=True)
+    expires_at = models.DateTimeField(_("caduca el"))
+    revoked_at = models.DateTimeField(_("revocat el"), null=True, blank=True)
+    # En reenviar: l'enllaç nou que el deixa sense efecte (CA-02.5).
+    replaced_by = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("substituït per"),
+    )
+    # Null: l'ha creat el sistema (un mòdul, o la petició d'un enllaç nou amb el correu).
+    created_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("creat per"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("enllaç de convidat")
+        verbose_name_plural = _("enllaços de convidat")
+        constraints = [
+            models.CheckConstraint(
+                # Format de l'empremta, no cap contrasenya.
+                condition=Q(token_hash__regex=r"^[0-9a-f]{64}$"),  # noqa: S106
+                name="guestlink_token_hash_sha256_hex",
+            ),
+            models.CheckConstraint(
+                condition=Q(purpose__in=["payment"]), name="guestlink_purpose_valid"
+            ),
+        ]
+        indexes = [models.Index(fields=["charge", "created_at"], name="guestlink_charge_idx")]
+
+    def __str__(self):
+        return f"{self.charge_id} {self.created_at:%Y-%m-%d}"
+
+    def is_live(self, now=None) -> bool:
+        """Ni revocat, ni substituït, ni caducat. No mira el càrrec ni la persona."""
+        return (
+            self.revoked_at is None
+            and self.replaced_by_id is None
+            and self.expires_at > (now or timezone.now())
+        )
+
+
 class OutgoingEmail(models.Model):
     """Registre d'enviaments (spec 00, annex A, RN-A7): plantilla, destinatari, llengua, estat
     i data. Es crea en posar el correu a la cua (`mail.queue_email`).

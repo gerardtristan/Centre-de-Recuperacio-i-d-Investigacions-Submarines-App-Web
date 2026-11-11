@@ -665,6 +665,7 @@ def admin_home(request):
         "can_requests": has_perm(request.user, "members.requests.view"),
         "can_fees": has_perm(request.user, "members.fees.view"),
         "can_gdpr": has_perm(request.user, "core.gdpr.handle"),  # M11 (T-M01-22)
+        "can_guest_links": has_perm(request.user, "core.guest_links.manage"),  # M5 (T-M00-02)
         # P19 sencer i P4, com la vista (T-M01-36, CA-M01-80).
         "can_licences": licences.can_manage(request.user),
     }
