@@ -20,7 +20,10 @@ from django.utils.html import escape
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core.models import AuditEntry, ImportBatch, ImportLine, Person
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 from apps.members.imports import cluber
 from apps.members.models import Member, MembershipType
 from apps.members.tests.test_cluber_preview import SENTINELS, build, dni, record
@@ -263,7 +266,7 @@ class TestResult:
 
     def test_no_confirmation_or_exclusion_controls(self, web):
         # El resultat no té cap formulari: per provar un altre fitxer hi ha un enllaç (GET).
-        html = post(web, build([record(1)])).content.decode()
+        html = main_of(post(web, build([record(1)])).content.decode())
         assert "<form" not in html and "<button" not in html and 'type="submit"' not in html
         assert "confirm" not in html.lower() and "exclo" not in html.lower()
 

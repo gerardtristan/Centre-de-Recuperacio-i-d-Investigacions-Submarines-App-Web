@@ -22,8 +22,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit, roles
-from apps.core.permissions import has_perm, permission_required
-from apps.members import licences
+from apps.core.permissions import permission_required
 
 from . import email_links, emergency, invitations, tokens, totp
 from .forms import (
@@ -657,28 +656,11 @@ def reset_credentials_view(request, pk):
 @never_cache
 @require_GET
 def admin_home(request):
-    # L'enllaç només surt amb el permís; la vista el torna a comprovar igualment.
-    can_reset = has_perm(request.user, "core.accounts.reset_credentials")
-    can_import = has_perm(request.user, "members.cluber_import.run")
-    can_audit = has_perm(request.user, "core.audit.view") or has_perm(
-        request.user, "members.audit.view"
-    )
-    can_join = has_perm(request.user, "members.create_in_person")
+    # Els enllaços són els del menú comú (`navigation.admin_navigation`, T-M01-46): només hi
+    # surten amb el permís de la ruta, i cada vista el torna a comprovar igualment.
+    # CA-10.1 (T-M00-03): menys de dos comptes d'emergència a punt.
     context = {
-        "can_members": has_perm(request.user, "members.list"),
-        "can_reset": can_reset,
-        "can_import": can_import,
-        "can_audit": can_audit,
-        "can_join": can_join,
-        "can_requests": has_perm(request.user, "members.requests.view"),
-        "can_fees": has_perm(request.user, "members.fees.view"),
-        "can_gdpr": has_perm(request.user, "core.gdpr.handle"),  # M11 (T-M01-22)
-        "can_guest_links": has_perm(request.user, "core.guest_links.manage"),  # M5 (T-M00-02)
-        "can_locked_data": has_perm(request.user, "core.locked_data.view"),  # M13 (T-M00-04)
-        # CA-10.1 (T-M00-03): menys de dos comptes d'emergència a punt.
         "emergency_ready": emergency.warning_for(request.user),
         "emergency_minimum": emergency.MINIMUM,
-        # P19 sencer i P4, com la vista (T-M01-36, CA-M01-80).
-        "can_licences": licences.can_manage(request.user),
     }
     return render(request, "accounts/admin_home.html", context)

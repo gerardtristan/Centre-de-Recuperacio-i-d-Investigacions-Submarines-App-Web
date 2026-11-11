@@ -17,6 +17,12 @@ ADMIN = settings.ADMIN_URL_PATH
 NOT_FOUND = "No s'ha trobat la pàgina"
 
 
+@pytest.fixture(autouse=True)
+def _no_motion(page):
+    """Sense transicions: la captura en fosc es fa just després de canviar el tema."""
+    page.emulate_media(reduced_motion="reduce")
+
+
 def test_not_found_page_without_session_and_in_both_areas(
     page, live_server, page_checks, builder, member, secretary, review
 ):

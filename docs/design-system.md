@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.5 (03/11/2026). La 1.5 afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
+- **Versió:** 1.6 (11/11/2026). La 1.6 descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
+- La 1.5 (03/11/2026) afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
 - La 1.4 (27/10/2026) incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
 - La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
 - **Versió anterior:** 1.2, etapa 3: sistema de disseny i wireframes de baixa fidelitat.
@@ -240,6 +241,9 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 | Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |
+| Barra lateral de l'administració (1.6) | `barra-lateral`, `lateral-nav`, `lateral-compte`, `lateral-estat`; el `<body>` porta `amb-barra-lateral` | A `comptes.css`. Fosca als dos temes (`--c-lateral-*`). Les entrades les posa el servidor segons els permisos; vegeu §6.1 |
+| Botó «Menú» (1.6) | `boto boto-petit boto-menu` | Només per sota de 1024 px i amb JavaScript. `aria-expanded` i `aria-controls="barra-lateral"`; vegeu §6.1 |
+| «Surt» (1.6) | `boto boto-petit` dins d'un formulari | Sempre un POST amb CSRF, mai un enllaç. Un sol text a tot arreu: «Surt» |
 
 **Components del prototip interactiu (ja existien des del 31/10/2026; es documenten a la 1.5 perquè les pantalles del mòdul 01 els reutilitzen).** Són a `tokens.css` i `interaccions.js` (JavaScript propi, sense dependències ni CDN, decisió 046).
 
@@ -260,6 +264,17 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 - Compte personal: dock flotant al mòbil (Inici, Sortides, Carnet, Pagaments, Perfil, amb el carnet al centre) i navegació a la capçalera a partir de la tauleta. No té barra lateral, i així es distingeix de l'administració.
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
+
+**Navegació a la plataforma (1.6, T-M01-46).** És la del wireframe `admin.html`, amb aquestes precisions:
+- **Entrades.** Una per pantalla que existeix, no per mòdul: Inici, Llistat de socis, Altes pendents, Alta presencial, Sol·licituds de socis, Llicències pendents de confirmar, Quotes i impagats, Importació de Cluber, Comptes d'administrador i Registre d'activitat. Quan hi hagi més mòduls, s'agruparan com al wireframe.
+- **Filtrada al servidor.** Una entrada només arriba a l'HTML si el compte té el permís que la ruta declara (`apps/members/permissions.py` i `apps/accounts/navigation.py`); no s'amaga amb CSS. No és cap control: cada vista torna a comprovar el permís.
+- **Compte.** Sota les entrades: el nom d'usuari del compte actiu (`codi`), «Compte d'administrador · TOTP actiu» i «Surt» (formulari POST amb CSRF). Cap altra dada.
+- **Escriptori (1024 px o més).** Columna fixa de `--lateral-ample`, sota la capçalera. El botó «Menú» no hi és.
+- **Mòbil i tauleta (fins a 1023 px).** La barra va sota la capçalera, a tota l'amplada, plegada darrere del botó «☰ Menú». El botó l'obre i la tanca (Intro o Espai); Esc la tanca i torna el focus al botó. No tapa la pàgina ni reté el focus: l'ordre del tabulador és el de la pantalla (logotip, «Menú», tema, entrades, «Surt», contingut). Sense JavaScript, la barra es veu sempre oberta.
+- **Diferències amb el wireframe, pendents:** el carril de 72 px amb icones de la tauleta (la plataforma encara no té el joc d'icones; de 600 a 1023 px es comporta com el mòbil) i el selector de tema dins del panell (a la plataforma n'hi ha un de sol, a la capçalera).
+- **Entrada actual:** `aria-current="page"`, barra daurada (`--v-activa`, `--c-accent`), negreta i fons `--c-lateral-fons-2`; també quan s'és en una pantalla que en penja (la fitxa d'un soci marca «Llistat de socis»).
+- **Contrast** (calculat amb els valors de `tokens.css`, clar i fosc): text de les entrades sobre la barra, 6,7:1 i 7,4:1; entrada actual sobre el seu fons, 7,9:1 i 9,2:1; focus daurat sobre la barra, 10:1 o més.
+- **Compte personal.** Navegació en text a la capçalera (el dock és de la portada, pendent). «Surt» és l'última peça de la llista, com a botó petit, a totes les pantalles de l'àrea.
 
 ### 6.2 Menús i blocs per rol
 **Socis (1.5):** segueix la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) ([matriu](planning.md#rols-i-permisos-059-matriu)). El selector «Veure com» porta els onze rols de gestió de la 059.

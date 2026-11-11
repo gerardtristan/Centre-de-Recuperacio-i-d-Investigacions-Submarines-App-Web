@@ -1,4 +1,4 @@
-{% load i18n %}{# Navegació de l'àrea del soci (T-M01-16). Cada pàgina nova de l'àrea hi afegeix el seu <li> quan funciona (T-M01-17, T-M01-19). Amagar un enllaç no és cap control: cada vista ho torna a comprovar. #}{% with current=request.resolver_match.view_name %}
+{% load i18n %}{# Navegació de l'àrea del soci (T-M01-16). Cada pàgina nova de l'àrea hi afegeix el seu <li> quan funciona (T-M01-17, T-M01-19). Amagar un enllaç no és cap control: cada vista ho torna a comprovar. «Surt» (T-M01-46) és a totes les pantalles de l'àrea: un POST amb CSRF, mai un enllaç. #}{% with current=request.resolver_match.view_name %}
 <nav class="navegacio-compte" aria-label="{% translate 'Compte personal' %}">
   <ul>
     <li><a href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}>{% translate "Inici" %}</a></li>
@@ -7,5 +7,6 @@
     {% if user.person.member %}<li><a href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}>{% translate "El meu carnet" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
+    <li class="sortida"><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="boto boto-petit" type="submit">{% translate "Surt" %}</button></form></li>
   </ul>
 </nav>{% endwith %}

@@ -15,7 +15,10 @@ from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.core.models import AuditEntry, Person
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 from apps.members import licences, services
 from apps.members.models import LicenceRecord
 from apps.members.services import InactiveAccount, OwnMemberChange
@@ -127,7 +130,7 @@ class TestList:
         assert f'value="{timezone.localdate().year}"' in page  # any proposat: l'actual
 
     def test_empty_list(self, secretary):
-        page = admin_client(secretary).get(reverse(URL)).content.decode()
+        page = main_of(admin_client(secretary).get(reverse(URL)).content.decode())
         assert "No hi ha cap registre de llicència pendent de confirmar." in page
         assert 'method="post"' not in page
 

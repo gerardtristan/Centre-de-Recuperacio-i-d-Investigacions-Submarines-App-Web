@@ -60,6 +60,8 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Menú de l'administració segons els permisos del compte (T-M01-46).
+                "apps.accounts.navigation.admin_navigation",
             ],
         },
     },

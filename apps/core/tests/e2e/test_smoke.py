@@ -23,7 +23,7 @@ def test_personal_login(page, live_server, builder, member, capture):
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
     expect(page).to_have_url(f"{live_server.url}/")
-    expect(page.get_by_role("button", name="Sortir")).to_be_visible()
+    expect(page.get_by_role("button", name="Surt")).to_be_visible()
     capture("inici")
 
 

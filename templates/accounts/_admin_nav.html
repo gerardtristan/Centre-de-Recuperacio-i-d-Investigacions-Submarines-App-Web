@@ -1,0 +1,22 @@
+{% load i18n %}{# Barra lateral de l'administració (T-M01-46; sistema de disseny §6.1 i §6.2; wireframe admin.html). #}
+{# Seguretat i privacitat: les entrades les calcula el servidor amb els permisos del compte (apps/accounts/navigation.py); #}
+{# una entrada sense permís no arriba a l'HTML, no s'amaga amb CSS. No és cap control: cada vista torna a comprovar el #}
+{# permís. Només es dibuixa amb una sessió vàlida de l'administració. Mostra el compte que fa les accions (el que queda #}
+{# al registre d'activitat) i l'estat del seu TOTP, i cap altra dada. «Surt» és un POST amb CSRF. #}
+{% translate "Menú de l'administració" as menu_label %}{% translate "Seccions" as sections_label %}
+<aside id="barra-lateral" class="barra-lateral" aria-label="{{ menu_label }}">
+  <nav class="lateral-nav" aria-label="{{ sections_label }}">
+    <ul>
+      {% for entry in admin_nav.entries %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %}>{{ entry.label }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+  <div class="lateral-compte">
+    <span class="codi">{{ admin_nav.username }}</span>
+    <span class="lateral-estat">{% if admin_nav.totp_active %}{% translate "Compte d'administrador · TOTP actiu" %}{% else %}{% translate "Compte d'administrador · TOTP no activat" %}{% endif %}</span>
+    <form method="post" action="{% url 'administration:logout' %}">
+      {% csrf_token %}
+      <button class="boto boto-petit" type="submit">{% translate "Surt" %}</button>
+    </form>
+  </div>
+</aside>
