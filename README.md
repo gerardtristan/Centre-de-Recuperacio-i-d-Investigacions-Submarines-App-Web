@@ -40,6 +40,9 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   arxiu/                       versions antigues (mai s'esborren), p. ex. context v3
 /specs/                        spec 00 (vigent fins que el 00 tingui secció a planning.md; la 04 és a l'arxiu)
 /design/                       mapa de la plataforma i arbre de processos (HTML)
+  wireframes/                  prototips de les pantalles (HTML, amb els tokens de static/)
+  recorreguts/                 índex dels recorreguts pels wireframes (index.html, obert des del disc);
+                               dades a recorreguts.json i comprovació amb `python design/recorreguts/comprova.py`
 /assets/marca/                 logotips del club
 /config/                       projecte Django: settings per entorn (base, dev, prod, test) i URL
 /apps/                         core (base comuna, 00), accounts (comptes), members (socis, 01)

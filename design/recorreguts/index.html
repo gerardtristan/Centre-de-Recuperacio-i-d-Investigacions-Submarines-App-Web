@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recorreguts dels wireframes · C.R.I.S. (prototip de disseny)</title>
+<!-- T-M01-48 (decisió 079, A-31: abast petit). Índex dels recorreguts per funcionalitat, amb
+     enllaços als wireframes originals de ../wireframes/ (no se'n duplica ni se'n modifica cap).
+     Funciona obert amb file://, sense connexió ni dependències: les dades són a dades.js, que
+     comprova.py genera a partir de recorreguts.json. Seguretat i privacitat: és un prototip de
+     disseny amb dades inventades; no llegeix res de l'aplicació ni hi envia res, i els permisos
+     que hi surten són només una referència a la matriu del pla (els controls són al servidor). -->
+<!-- Tokens i fonts: la mateixa còpia de static/ que fan servir els wireframes i la plataforma -->
+<link rel="stylesheet" href="../../static/css/fonts.css">
+<link rel="stylesheet" href="../../static/css/tokens.css">
+<link rel="stylesheet" href="recorreguts.css">
+</head>
+<body>
+<p class="nota-wireframe">Prototip de disseny, no és l'aplicació real · dades inventades</p>
+<main class="recorreguts" id="contingut">
+  <header class="recorreguts-cap">
+    <p class="etiqueta-seccio">Disseny · wireframes</p>
+    <h1 id="titol">Recorreguts dels wireframes</h1>
+    <p class="text-2" id="font"></p>
+  </header>
+  <noscript><p>Aquesta pàgina necessita JavaScript per mostrar els recorreguts. Les dades són a recorreguts.json.</p></noscript>
+  <nav aria-labelledby="index-titol">
+    <h2 id="index-titol">Índex</h2>
+    <ul class="index-recorreguts" id="index"></ul>
+  </nav>
+  <section aria-labelledby="llegenda-titol">
+    <h2 id="llegenda-titol">Distintius</h2>
+    <ul class="llegenda" id="llegenda"></ul>
+  </section>
+  <div class="llista-recorreguts" id="recorreguts"></div>
+</main>
+<script src="dades.js"></script>
+<script src="index.js"></script>
+</body>
+</html>

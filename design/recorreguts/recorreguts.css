@@ -1,0 +1,25 @@
+/* Recorreguts dels wireframes (T-M01-48). Només tokens de static/css/tokens.css: cap color,
+   mida ni espai sense token. Les peces (targeta, estat, codi, nota-wireframe) són les del
+   sistema de disseny; aquí només hi ha la disposició d'aquesta pàgina. */
+.recorreguts { max-width: var(--amplada-max); margin: 0 auto; padding: var(--e-5) var(--e-4) var(--e-8); display: grid; gap: var(--e-5); }
+.recorreguts-cap, .recorreguts nav, .recorreguts > section { display: grid; gap: var(--e-2); }
+.recorreguts-cap p { max-width: var(--amplada-text); }
+.index-recorreguts, .llegenda, .passos { list-style: none; }
+.index-recorreguts { display: grid; gap: var(--e-1); }
+.index-recorreguts a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.llegenda { display: grid; gap: var(--e-2); }
+.llegenda li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-1) var(--e-2); }
+.llista-recorreguts { display: grid; gap: var(--e-5); }
+.recorregut { display: grid; gap: var(--e-3); }
+.passos { display: grid; gap: var(--e-3); }
+.pas { display: grid; gap: var(--e-2); padding-top: var(--e-3); border-top: var(--v-fina) solid var(--c-linia); }
+.pas-cap { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-1) var(--e-3); }
+.pas-cap .codi { color: var(--c-text-2); }
+.pas-dades { margin: 0; display: grid; gap: var(--e-1); font-size: var(--t-s); }
+.pas-dades div { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-2); min-width: 0; }
+.pas-dades dt { color: var(--c-text-2); }
+.pas-dades dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pas-dades a { display: inline-block; padding: var(--e-1) 0; }
+.pas-nota { font-size: var(--t-s); }
+/* En pantalles estretes el text d'un distintiu pot ocupar més d'una línia */
+.recorreguts .estat { white-space: normal; }
