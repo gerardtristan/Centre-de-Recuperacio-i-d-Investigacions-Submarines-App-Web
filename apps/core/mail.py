@@ -14,6 +14,8 @@ Scaleway Transactional Email, o a qualsevol altre, és canviar la configuració.
 - Mai contrasenyes ni adjunts (RN-A12). Res d'això va al registre d'activitat.
 - Les persones anonimitzades no reben correus (RN-A14). Es comprova en posar-lo a la cua: un
   correu posat abans d'anonimitzar (la confirmació d'un esborrat RGPD) surt igualment.
+- En anonimitzar una persona (T-M01-22), l'adreça dels seus enviaments se substitueix
+  (`anonymise_recipient`); la dels que encara esperen, quan es tanquen (`_close`).
 
 Fora d'abast ara: comptador diari, reserva i tandes, avís del 80 %, butlletí i avisos del
 proveïdor (RN-A3 a RN-A6, RN-A9 i RN-A10); s'hi afegeixen quan calguin.
@@ -24,12 +26,13 @@ import re
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.db.models import Q
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template, render_to_string
 from django.utils import timezone, translation
 
 from .models import OutgoingEmail, Person
-from .persons import language_for
+from .persons import anonymous_email, language_for
 
 _TEMPLATE_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # RN-A12: res que sembli una contrasenya o un secret entra al context d'una plantilla. Els
@@ -114,6 +117,27 @@ def _close(email: OutgoingEmail, status: str) -> None:
     email.body_html = ""
     if status == OutgoingEmail.Status.SENT:
         email.sent_at = timezone.now()
+    # El correu ja era a la cua quan la persona es va anonimitzar: ha sortit (RN-A14), però
+    # l'adreça no es queda al registre d'enviaments (028), tampoc dins del missatge d'error.
+    if email.person_id and email.person.status == Person.Status.ANONYMISED:
+        email.to_address = anonymous_email(email.person.anonymous_ref)
+        email.last_error = ""
+
+
+def anonymise_recipient(person, addresses) -> int:
+    """Treu l'adreça del destinatari dels enviaments d'una persona ja anonimitzada (028; risc
+    anotat a la T-M01-10). `addresses` són les adreces que tenia: també cobreix els correus que
+    hi van anar sense lligar-los a la persona (el rebut d'una alta). Els que encara esperen
+    conserven l'adreça fins que surten (RN-A14) i queden lligats a la persona perquè `_close`
+    la substitueixi llavors. El missatge d'error del servidor pot repetir l'adreça: també es
+    buida. Torna quants enviaments ha tocat."""
+    replacement = anonymous_email(person.anonymous_ref)
+    loose = OutgoingEmail.objects.filter(person__isnull=True, to_address__in=list(addresses))
+    queued = Q(status=OutgoingEmail.Status.QUEUED)
+    loose.filter(queued).update(person=person)
+    return OutgoingEmail.objects.filter(
+        ~queued, Q(person=person) | Q(pk__in=loose.values("pk"))
+    ).update(to_address=replacement, last_error="")
 
 
 def deliver(email_id: int) -> None:

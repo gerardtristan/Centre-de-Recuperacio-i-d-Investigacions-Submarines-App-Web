@@ -64,6 +64,7 @@ class PageChecks:
     def __init__(self, page):
         self.problems = []
         self.expected = set()  # (estat, camí) que la prova espera
+        self.downloads = set()  # camins de descàrregues que la prova espera
         page.on("console", self._console)
         page.on("pageerror", lambda error: self.problems.append(f"JavaScript: {error}"))
         page.on("requestfailed", self._failed)
@@ -72,11 +73,21 @@ class PageChecks:
     def expect(self, status, path):
         self.expected.add((status, path))
 
+    def expect_download(self, path_prefix):
+        """Chromium avorta (`net::ERR_ABORTED`) la navegació que es converteix en una descàrrega:
+        no és cap error si la prova l'espera. Només aquest error i només en aquest camí."""
+        self.downloads.add(path_prefix)
+
     def _console(self, message):
         if message.type == "error":
             self.problems.append(f"consola: {message.text}")
 
     def _failed(self, request):
+        path = urlparse(request.url).path
+        if request.failure == "net::ERR_ABORTED" and any(
+            path.startswith(prefix) for prefix in self.downloads
+        ):
+            return
         self.problems.append(f"petició fallida: {request.method} {request.url} ({request.failure})")
 
     def _response(self, response):

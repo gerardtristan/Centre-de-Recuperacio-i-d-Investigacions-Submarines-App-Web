@@ -10,11 +10,18 @@ entrada per camp que canvia). L'actor pot ser:
 
 Les entrades es creen dins de la transacció de l'acció: si l'acció es desfà, l'entrada també.
 Cap secret als valors (RN-52): els noms de camp i de detall que en semblen es rebutgen.
+
+Única modificació permesa (RN-89, decisió 028): en un esborrat RGPD, `substitute_identity`
+substitueix el que identifica la persona per la seva referència anònima.
 """
 
 from collections.abc import Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
+
+from django.db import connection
+from django.db.models import Max, Q, QuerySet
 
 from .models import AccountRole, AuditEntry, Person
 
@@ -52,6 +59,13 @@ class Action:
     # T-M01-16. Fora de «members.*», però P20 els veu si la persona és sòcia (Q-079 de la 072).
     PROFILE_UPDATED = "persons.profile_updated"
     ERASURE_REQUESTED = "persons.erasure_requested"  # RN-M01-57 (T-M01-22, peça mínima)
+    # T-M01-22 (HU-18, HU-19; RN-53: les sol·licituds RGPD queden al registre).
+    ERASURE_APPROVED = "persons.erasure_approved"
+    ERASURE_REJECTED = "persons.erasure_rejected"
+    ERASURE_EXECUTED = "persons.erasure_executed"
+    ERASURE_OWN_REJECTED = "persons.erasure_own_request_rejected"  # conflicte d'interès
+    EXPORT_REQUESTED = "persons.export_requested"  # CA-18.1
+    ACCOUNT_DISABLED_BY_ERASURE = "accounts.disabled_by_erasure"  # CA-19.1
     PERSONAL_AREA_NOT_FOUND = "members.personal_area.not_found"  # CA-M01-25
 
 
@@ -189,3 +203,70 @@ def record_changes(
         AuditEntry(field=name, old_value=old, new_value=new, **common)
         for name, (old, new) in changed.items()
     )
+
+
+# --- Esborrat RGPD: única excepció a «només s'hi afegeixen files» (RN-51, RN-89; 028) --------
+
+_SUBSTITUTION_SETTING = "cris.rgpd_anonymise"
+
+
+@contextmanager
+def identity_substitution():
+    """Obre, només dins de la transacció en curs, l'excepció dels disparadors que protegeixen el
+    registre d'activitat (core/0019) i l'historial dels socis (members/0018).
+
+    L'excepció és acotada a la base de dades, no aquí: amb el paràmetre posat, els disparadors
+    només accepten un UPDATE que deixi iguals l'acció, la data, l'objecte i l'actor i que hi
+    escrigui la referència anònima d'una persona ja anonimitzada (o buidi l'adreça IP). DELETE i
+    TRUNCATE continuen rebutjats sempre. El paràmetre es torna a tancar en sortir; si la
+    transacció es desfà, PostgreSQL el desfà amb ella."""
+    if not connection.in_atomic_block:
+        raise RuntimeError("La substitució de la identitat només es fa dins d'una transacció.")
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config(%s, 'on', true)", [_SUBSTITUTION_SETTING])
+    yield
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config(%s, 'off', true)", [_SUBSTITUTION_SETTING])
+
+
+def last_entry_id() -> int:
+    return AuditEntry.objects.aggregate(last=Max("id"))["last"] or 0
+
+
+def substitute_identity(person, targets: Mapping[str, Any], *, up_to: int) -> int:
+    """Substitueix pel `anonymous_ref` de la persona el que la identifica a les entrades
+    anteriors a l'esborrat (`id <= up_to`), sense tocar-ne l'acció, la data ni l'objecte
+    (CA-19.4). Torna quantes entrades ha tocat.
+
+    - On la persona és l'actor: l'adreça IP es buida. Qui actua ja és la referència anònima
+      (`actor_person` i el compte, que queden anonimitzats); els valors no es toquen, perquè
+      poden ser dades d'altres persones.
+    - Sobre els seus objectes no econòmics (`targets`: {tipus: identificadors}): el valor
+      anterior, el valor nou i el motiu (text lliure) passen a ser la referència anònima, i
+      l'adreça IP es buida si l'actor era anònim (un intent d'entrada al seu compte).
+    - Les entrades de càrrecs, pagaments i quotes no són a `targets`: queden bloquejades amb el
+      registre econòmic (028, punt 2) i no porten cap dada personal pròpia.
+
+    Les entrades que escriu el mateix esborrat (baixa, revocació, desactivació) són posteriors a
+    `up_to`: només porten estats i motius fixos, i es conserven com a prova del que s'ha fet."""
+    if person.status != Person.Status.ANONYMISED or not person.anonymous_ref:
+        raise ValueError("La persona encara no està anonimitzada.")
+    ref = person.anonymous_ref
+    own = Q(pk__in=[])
+    for label, ids in targets.items():
+        own |= Q(target_type=label, target_id__in=[str(pk) for pk in ids])
+    # Sense el gestor del model, que rebutja `update`: l'excepció la decideix el disparador.
+    entries = QuerySet(AuditEntry).filter(id__lte=up_to)
+    touched = set()
+
+    def apply(queryset, **values):
+        touched.update(queryset.values_list("pk", flat=True))
+        queryset.update(**values)
+
+    with identity_substitution():
+        acted = Q(actor_person=person) | (own & Q(actor_kind=AuditEntry.ActorKind.ANONYMOUS))
+        apply(entries.filter(acted, ip_address__isnull=False), ip_address=None)
+        apply(entries.filter(own, old_value__isnull=False), old_value=ref)
+        apply(entries.filter(own, new_value__isnull=False), new_value=ref)
+        apply(entries.filter(own).exclude(reason=""), reason=ref)
+    return len(touched)

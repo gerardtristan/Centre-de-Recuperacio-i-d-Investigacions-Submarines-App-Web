@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M01-22: TEXT PROVISIONAL [A validar: junta i assessor de protecció de dades] #}{% translate "Hem esborrat les teves dades del C.R.I.S." %}

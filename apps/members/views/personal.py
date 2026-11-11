@@ -1,6 +1,7 @@
 """Àrea del soci amb el compte personal (T-M01-16; P12, P13; CA-M01-12, CA-M01-25; Q-031 i
-RN-M01-79 de la 074: consentiments opcionals i canvi del correu d'entrada des del perfil; peça
-mínima de la T-M01-22: sol·licitud d'esborrat, RN-M01-57 i CA-M01-46).
+RN-M01-79 de la 074: consentiments opcionals i canvi del correu d'entrada des del perfil;
+T-M01-22: sol·licitud d'esborrat, RN-M01-57 i CA-M01-46, i «Descarrega les meves dades»,
+CA-M01-18).
 
 Totes les dades surten de la persona de la sessió (`request.user.person`): cap ruta no porta
 l'identificador d'una persona ni d'un soci. L'única que porta un identificador, el detall d'una
@@ -25,7 +26,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.accounts import email_links, reauth, tokens
 from apps.accounts.security import WRONG_CODE, WRONG_PASSWORD
-from apps.core import audit, consents, erasure, persons
+from apps.core import audit, consents, erasure, persons, privacy
 from apps.core.models import Charge, Consent
 
 from .. import join, licences, roster
@@ -108,8 +109,29 @@ def _render_profile(request, *, form=None, declare_form=None, email_form=None):
         "email_form": email_form or ChangeEmailForm(has_totp=request.user.has_totp),
         "requests": person.member_requests.order_by("-created_at", "-id"),
         "licence_records": records,
+        # T-M01-22: l'exportació pròpia que encara es pot descarregar (7 dies, V-08).
+        "export": privacy.live_export(person),
     }
     return render(request, "members/personal_profile.html", context)
+
+
+@never_cache
+@require_POST
+def export_data_view(request):
+    """«Descarrega les meves dades» (P-M01-F, passos 1 i 2; CA-M01-18, CA-18.1). Prepara el
+    fitxer amb les dades de la persona de la sessió (cap identificador a la ruta ni al
+    formulari) i torna al perfil, on surt l'enllaç. La descàrrega passa per `core:private_file`,
+    que torna a comprovar que el fitxer és seu i dona una URL signada de 5 minuts. La
+    sol·licitud i cada descàrrega queden al registre."""
+    privacy.request_export(request.user.person, by=request.user, request=request)
+    messages.success(
+        request,
+        _(
+            "Hem preparat el fitxer amb les teves dades. El trobaràs a «Les meves dades», al "
+            "final d'aquesta pàgina."
+        ),
+    )
+    return redirect("members:profile")
 
 
 CONSENT_ACTIONS = {"grant": consents.grant, "withdraw": consents.withdraw}

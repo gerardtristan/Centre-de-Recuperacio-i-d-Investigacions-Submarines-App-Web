@@ -9,9 +9,11 @@
 - Clau i identificador aleatoris: cap nom previsible, cap dada personal a la ruta.
 - Els fitxers pujats es comproven pel contingut i per la mida (`validate_upload`; checklist C10).
 - L'exportació RGPD caduca als `GDPR_EXPORT_RETENTION_DAYS` dies i la tasca diària l'esborra.
+- En un esborrat RGPD, els fitxers de la persona sense obligació legal s'esborren (RN-B8):
+  `expire_owner_files`. Avui l'únic tipus és l'exportació RGPD; un tipus amb obligació legal
+  (factures, justificants) no ha d'entrar a `ERASABLE_KINDS`: es bloqueja amb el seu mòdul.
 
-Fora d'abast ara: els fitxers de cada mòdul (carnet en PDF a la T-M01-19, exportació RGPD a la
-T-M01-22), el bloqueig en un esborrat RGPD (RN-B8) i les còpies (RN-B6).
+Fora d'abast ara: els fitxers de cada mòdul (carnet en PDF a la T-M01-19) i les còpies (RN-B6).
 """
 
 import datetime
@@ -24,6 +26,7 @@ from django.core import signing
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage, storages
+from django.db import transaction
 from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
@@ -51,6 +54,12 @@ _HEIC_BRANDS = {b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b
 _KIND_PERMISSION = {PrivateFile.Kind.GDPR_EXPORT: "core.gdpr.handle"}
 
 _LOCAL_SALT = "apps.core.files.local"
+
+
+def _local_signer() -> signing.Signer:
+    # «~» i no el «:» per defecte: a la ruta, el servidor de proves en viu de Windows llegeix
+    # «X:» com una unitat de disc (T-M01-22). La caducitat va dins del contingut signat.
+    return signing.Signer(salt=_LOCAL_SALT, sep="~")
 
 
 class LinkRejected(Exception):
@@ -192,6 +201,24 @@ def purge_expired() -> int:
     return count
 
 
+# Tipus de fitxer sense obligació legal de conservació (RN-B8).
+ERASABLE_KINDS = frozenset({PrivateFile.Kind.GDPR_EXPORT})
+
+
+def expire_owner_files(owner, *, kinds=ERASABLE_KINDS) -> int:
+    """Deixa caducats ara mateix els fitxers vius de la persona (RN-B8; i l'exportació anterior
+    quan se'n demana una de nova): des d'aquest moment ningú no els pot obrir (`can_access`).
+    El contingut s'esborra en confirmar-se la transacció; si aquell esborrat falla, el torna a
+    provar la tasca diària (`purge_expired`). Així, si la transacció es desfà, no es perd cap
+    fitxer. Torna quants n'ha caducat."""
+    count = PrivateFile.objects.filter(owner=owner, kind__in=kinds, deleted_at__isnull=True).update(
+        expires_at=timezone.now()
+    )
+    if count:
+        transaction.on_commit(purge_expired, robust=True)
+    return count
+
+
 class LocalSignedStorage(FileSystemStorage):
     """Emmagatzematge local que imita Scaleway fora de producció (decisió 010).
 
@@ -208,14 +235,14 @@ class LocalSignedStorage(FileSystemStorage):
 
     def url(self, name, parameters=None, expire=None, http_method=None):
         ttl = expire or settings.PRIVATE_FILES_SIGNED_URL_TTL
-        token = signing.dumps({"k": name, "e": int(time.time()) + ttl}, salt=_LOCAL_SALT)
+        token = _local_signer().sign_object({"k": name, "e": int(time.time()) + ttl})
         return reverse("core:local_private_file", args=[token])
 
 
 def open_local(token: str) -> tuple[PrivateFile, object]:
     """Obre el fitxer d'un enllaç local signat, o aixeca `LinkRejected`."""
     try:
-        payload = signing.loads(token, salt=_LOCAL_SALT)
+        payload = _local_signer().unsign_object(token)
     except signing.BadSignature:
         raise LinkRejected from None
     if not isinstance(payload, dict) or payload.get("e", 0) < time.time():

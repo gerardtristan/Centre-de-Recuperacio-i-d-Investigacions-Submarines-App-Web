@@ -18,6 +18,8 @@ from django.core.exceptions import ValidationError
 from django.utils.formats import number_format
 from django.utils.translation import gettext_lazy as _
 
+# `ReauthForm` és dels comptes (T-M00-05); també el fa servir `/gestio/rgpd/` (T-M01-22).
+from apps.accounts.forms import ReauthForm
 from apps.core.models import Person
 from apps.core.normalization import normalize_document, normalize_email, normalize_phone
 
@@ -519,34 +521,6 @@ class ProfileForm(forms.Form):
             self.fields["preferred_language"].choices = settings.LANGUAGES
         else:
             del self.fields["preferred_language"]
-
-
-class ReauthForm(forms.Form):
-    """Contrasenya i, només si el compte té TOTP actiu, el codi, per a `reauth.require_recent_auth`
-    (T-M00-05). La contrasenya no és obligatòria al formulari: una de buida es comprova igualment
-    i compta com a intent fallit (V-01)."""
-
-    password = forms.CharField(
-        label=_("Contrasenya"),
-        required=False,
-        strip=False,
-        help_text=_("Torna-la a escriure per confirmar que ets tu, encara que acabis d'entrar."),
-        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
-    )
-    code = forms.CharField(
-        label=_("Codi de l'aplicació d'autenticació"),
-        required=False,
-        max_length=24,
-        help_text=_("Les 6 xifres que mostra ara l'aplicació."),
-        widget=forms.TextInput(
-            attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "maxlength": "6"}
-        ),
-    )
-
-    def __init__(self, *args, has_totp: bool, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not has_totp:
-            del self.fields["code"]
 
 
 class ChangeEmailForm(ReauthForm):

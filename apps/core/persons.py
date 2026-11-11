@@ -225,6 +225,10 @@ def update_profile(person, *, actor, request=None, **values) -> list:
         raise ValueError("Llengua no activa (decisió 061).")
     with transaction.atomic():
         person = Person.objects.select_for_update().get(pk=person.pk)
+        # Una petició que esperava el bloqueig mentre s'executava l'esborrat (T-M01-22) no torna a
+        # escriure cap dada a la persona ja anonimitzada.
+        if person.status != Person.Status.ACTIVE:
+            raise ValidationError(ANONYMISED_NOT_EDITABLE)
         old = {name: getattr(person, name) for name in values}
         for name, value in values.items():
             setattr(person, name, value)
@@ -237,6 +241,22 @@ def update_profile(person, *, actor, request=None, **values) -> list:
             changes=changes,
             request=request,
         )
+
+
+ANONYMISED_NOT_EDITABLE = _("Les dades d'aquesta persona estan anonimitzades i no es poden editar.")
+# Domini reservat que no existeix (RFC 2606): cap correu no hi pot arribar.
+ANONYMOUS_EMAIL_DOMAIN = "anonimitzat.invalid"
+
+
+def anonymous_ref_for(person) -> str:
+    """Referència anònima d'una persona (028), p. ex. «A-0042». Surt de l'identificador intern:
+    és única sense cap comptador i no diu res de la persona."""
+    return f"A-{person.pk:04d}"
+
+
+def anonymous_email(ref: str) -> str:
+    """Adreça que substitueix un correu de la persona anonimitzada on el camp no pot ser buit."""
+    return f"{ref.lower()}@{ANONYMOUS_EMAIL_DOMAIN}"
 
 
 def language_for(person) -> str:

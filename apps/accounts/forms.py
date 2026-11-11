@@ -53,6 +53,34 @@ class CodeForm(forms.Form):
     )
 
 
+class ReauthForm(forms.Form):
+    """Contrasenya i, només si el compte té TOTP actiu, el codi, per a `reauth.require_recent_auth`
+    (T-M00-05). La contrasenya no és obligatòria al formulari: una de buida es comprova igualment
+    i compta com a intent fallit (V-01). Abans era a `apps.members.forms`, que encara l'exporta."""
+
+    password = forms.CharField(
+        label=_("Contrasenya"),
+        required=False,
+        strip=False,
+        help_text=_("Torna-la a escriure per confirmar que ets tu, encara que acabis d'entrar."),
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    code = forms.CharField(
+        label=_("Codi de l'aplicació d'autenticació"),
+        required=False,
+        max_length=24,
+        help_text=_("Les 6 xifres que mostra ara l'aplicació."),
+        widget=forms.TextInput(
+            attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "maxlength": "6"}
+        ),
+    )
+
+    def __init__(self, *args, has_totp: bool, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not has_totp:
+            del self.fields["code"]
+
+
 class ResetCredentialsForm(forms.Form):
     """Restabliment per un altre administrador (HU-08; RN-M01-60): què, per què i un codi
     TOTP nou de qui ho fa."""

@@ -280,6 +280,15 @@ def test_tampered_signed_url_is_rejected(client, personal_account):
     assert client.get(reverse("core:local_private_file", args=["inventat"])).status_code == 403
 
 
+def test_local_signed_url_has_no_colon(personal_account):
+    """T-M01-22 (trobat amb l'e2e de l'exportació RGPD): el separador «:» de `django.core.signing`
+    a la ruta fa fallar el servidor de proves en viu a Windows, que llegeix «X:» com una unitat
+    de disc (`url2pathname`) i respon 500 en lloc de servir el fitxer. L'enllaç local no en porta
+    cap."""
+    url = files.signed_url(personal_account, _export(personal_account.person))
+    assert ":" not in url
+
+
 def test_signed_url_of_a_purged_file_is_rejected(client, personal_account):
     file = _export(personal_account.person)
     url = files.signed_url(personal_account, file)

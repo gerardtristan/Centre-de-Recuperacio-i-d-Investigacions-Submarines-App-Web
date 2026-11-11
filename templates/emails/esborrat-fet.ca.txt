@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M01-22: TEXT PROVISIONAL [A validar: junta i assessor de protecció de dades]. Cap dada de la persona. Es posa a la cua abans d'anonimitzar-la (RN-A14). No diu quant de temps es conserven les dades bloquejades: el termini no està decidit (Q-14). #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Hem aprovat la teva sol·licitud d'esborrat de dades. Hem desactivat els teus comptes i hem anonimitzat les teves dades personals a la plataforma del C.R.I.S." %}
+
+{% translate "Les quotes i els pagaments no s'esborren, perquè la llei obliga el club a conservar-los: queden bloquejats, sense cap dada personal teva, i només es consulten per complir una obligació legal." %}
+
+{% translate "Aquest és l'últim correu que rebràs de la plataforma. Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}
