@@ -145,3 +145,19 @@ def test_admin_pages_are_never_stored(login_as, admin_account):
     response = login_as(admin_account, AREA_ADMIN).get(reverse("administration:home"))
     assert response.status_code == 200
     assert "no-store" in response["Cache-Control"]
+
+
+def test_worker_also_stores_the_fonts_of_the_styles():
+    """079, A-28 (RN-M01-96; T-M01-45): sense connexió, el carnet es veu amb la lletra correcta.
+    Totes les fonts de fonts.css són a la llista d'estils, i res més que no sigui un estil."""
+    css = (settings.BASE_DIR / "static" / "css" / "fonts.css").read_text(encoding="utf-8")
+    fonts = {
+        f"{settings.STATIC_URL}fonts/{name}"
+        for name in re.findall(r'url\("\.\./fonts/([^"]+)"\)', css)
+    }
+    stored = {
+        p.strip().strip("'")
+        for p in re.search(r"var ESTILS = \[([^\]]*)\]", SW).group(1).split(",")
+    }
+    assert len(fonts) == 7 and fonts <= stored
+    assert all(p.endswith((".css", ".js", ".woff2")) for p in stored)

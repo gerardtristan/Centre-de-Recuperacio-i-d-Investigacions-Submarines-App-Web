@@ -13,7 +13,13 @@ var CARNET = '/socis/carnet/';             // members:card
 var INICI = '/';                           // start_url del manifest
 var MEMORIA_CARNET = 'cris-carnet-v1';
 var MEMORIA_ESTILS = 'cris-estils-v1';
-var ESTILS = ['/static/css/fonts.css', '/static/css/tokens.css', '/static/css/comptes.css', '/static/js/tema.js'];
+// Estils i les fonts que fa servir fonts.css (079, A-28; T-M01-45): sense connexió, el carnet es
+// veu amb la lletra correcta. Són fitxers públics, sense cap dada.
+var ESTILS = ['/static/css/fonts.css', '/static/css/tokens.css', '/static/css/comptes.css', '/static/js/tema.js',
+  '/static/fonts/barlow-condensed/BarlowCondensed-SemiBold.woff2', '/static/fonts/barlow-condensed/BarlowCondensed-Bold.woff2',
+  '/static/fonts/source-sans-3/SourceSans3-Regular.ttf.woff2', '/static/fonts/source-sans-3/SourceSans3-Semibold.ttf.woff2',
+  '/static/fonts/source-sans-3/SourceSans3-Bold.ttf.woff2',
+  '/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2', '/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2'];
 var ENTRAR_O_SORTIR = /\/(entrar|sortir)\//;  // les dues entrades, també la d'administració
 // Marca de l'avís que la pàgina del carnet porta amagat; la còpia el mostra.
 var AVIS_AMAGAT = ' data-sense-connexio hidden';
