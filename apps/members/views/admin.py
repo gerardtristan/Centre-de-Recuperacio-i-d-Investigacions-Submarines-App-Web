@@ -463,12 +463,16 @@ def _back_to_requests():
 
 def _resolve(request, pk, action):
     join_request = get_object_or_404(MemberRequest, pk=pk, kind=MemberRequest.Kind.JOIN)
+    # T-M01-45 (1): l'error surt a dalt de la llista; diu de quina sol·licitud és amb el nom que
+    # ja hi surt a la targeta (qui hi arriba té P3a i el veu igualment).
+    failed = _("%(person)s: %(error)s")
     try:
         message = action(join_request)
     except OwnMemberChange as error:
-        messages.error(request, error.args[0])
+        messages.error(request, failed % {"person": join_request.person, "error": error.args[0]})
     except ValidationError as error:
-        messages.error(request, " ".join(error.messages))
+        text = " ".join(error.messages)
+        messages.error(request, failed % {"person": join_request.person, "error": text})
     else:
         messages.success(request, message)
     return _back_to_requests()
