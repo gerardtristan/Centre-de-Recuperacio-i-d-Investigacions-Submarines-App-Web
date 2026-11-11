@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M00-06 (RN-A6): TEXT PROVISIONAL [A validar: Q-26, qui el rep]. Cap dada personal: només el dia i els números. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with day=day|date:"d/m/Y" %}El {{ day }} la plataforma del club ja ha gastat {{ used }} dels {{ limit }} correus que pot enviar en un dia.{% endblocktranslate %}
+
+{% translate "Si s'arriba al límit, els correus que no hi càpiguen queden ajornats i surten l'endemà: primer els de recuperació i verificació de comptes, després els enllaços de convidat, les confirmacions i els recordatoris." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club i avui no se n'enviarà cap altre com aquest." %}
+{% endautoescape %}

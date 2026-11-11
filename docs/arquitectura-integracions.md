@@ -329,10 +329,10 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `EMAIL_FROM_TRANSACCIONAL` | Remitent dels transaccionals |
 | `EMAIL_FROM_BUTLLETI` | Remitent del butlletí |
 | `EMAIL_REPLY_TO` | Adreça de resposta (cris@cris.es) |
-| `EMAIL_DAILY_LIMIT` | Límit diari del pla (300 al gratuït) |
-| `EMAIL_TRANSACTIONAL_RESERVE` | Enviaments reservats cada dia per als transaccionals |
-| `EMAIL_ALERT_THRESHOLD_PCT` | Percentatge que dispara l'avís (80) |
-| `EMAIL_ALERT_TO` | Qui rep l'avís |
+| `EMAIL_DAILY_LIMIT` | Límit diari del pla, sumant totes les categories (per defecte 300, el del pla gratuït). El dia és el de l'hora local. Amb el límit ple, els correus queden ajornats i surten l'endemà per l'ordre de V-07 (T-M00-06) |
+| `EMAIL_TRANSACTIONAL_RESERVE` | Enviaments reservats cada dia per als transaccionals (per defecte 100): el butlletí només pot gastar el límit menys la reserva |
+| `EMAIL_ALERT_THRESHOLD_PCT` | Percentatge del límit que dispara l'únic avís del dia (per defecte 80) |
+| `EMAIL_ALERT_TO` | Adreces que reben l'avís, separades per comes. Buida per defecte: l'avís només queda al registre d'activitat fins que es respongui qui el rep (Q-26 [A validar]) |
 | `BREVO_WEBHOOK_SECRET` | Verificació dels avisos de rebots i baixes |
 
 ### Pagaments (Stripe i transferència)

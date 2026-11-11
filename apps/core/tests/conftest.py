@@ -2,8 +2,32 @@ import pytest
 from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
+from apps.core import mail
 from apps.core.crypto import encrypt
-from apps.core.models import AccountRole, Person, Role
+from apps.core.models import AccountRole, OutgoingEmail, Person, Role
+
+
+@pytest.fixture
+def email_templates(tmp_path, settings, monkeypatch):
+    """Plantilles inventades en una carpeta temporal, abans de les del projecte. Cada una
+    declara la seva prioritat (RN-A8); amb `priority=None`, no en declara cap."""
+    folder = tmp_path / "emails"
+    folder.mkdir()
+
+    def write(
+        name, language, subject, body, html=None, priority=OutgoingEmail.Priority.CONFIRMATION
+    ):
+        (folder / f"{name}.{language}.subject.txt").write_text(subject, encoding="utf-8")
+        (folder / f"{name}.{language}.txt").write_text(body, encoding="utf-8")
+        if html is not None:
+            (folder / f"{name}.{language}.html").write_text(html, encoding="utf-8")
+        if priority is not None:
+            monkeypatch.setitem(mail.TEMPLATE_PRIORITIES, name, priority)
+
+    templates = [dict(settings.TEMPLATES[0])]
+    templates[0]["DIRS"] = [tmp_path, *templates[0]["DIRS"]]
+    settings.TEMPLATES = templates
+    return write
 
 
 @pytest.fixture
