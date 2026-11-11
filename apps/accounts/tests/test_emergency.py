@@ -15,7 +15,7 @@ from django.urls import reverse
 
 from apps.accounts import emergency
 from apps.accounts.models import Account
-from apps.core import audit
+from apps.core import audit, crypto
 from apps.core.models import AccountRole, AuditEntry, OutgoingEmail, Person, Role
 from apps.core.roles import operational_admins
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -23,7 +23,6 @@ from apps.core.tests.test_guest_links import admin_client
 from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
-SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"  # el de `make_admin`, inventat
 
 
 class TestCreate:
@@ -118,10 +117,16 @@ class TestCa101Warning:
         assert "Falten comptes d'emergència." not in text
 
 
-def login(username):
+def secret_of(account) -> str:
+    """El secret TOTP inventat de `make_admin`, llegit del dispositiu (no es repeteix aquí)."""
+    return crypto.decrypt(account.totp_device.secret_encrypted)
+
+
+def login(account):
     client = Client()
-    client.post(reverse("administration:login"), {"login": username, "password": PASSWORD})
-    response = client.post(reverse("administration:login_totp"), {"code": pyotp.TOTP(SECRET).now()})
+    client.post(reverse("administration:login"), {"login": account.login, "password": PASSWORD})
+    code = pyotp.TOTP(secret_of(account)).now()
+    response = client.post(reverse("administration:login_totp"), {"code": code})
     assert response.status_code == 302
     return client
 
@@ -139,7 +144,7 @@ class TestCa102Use:
         with_password(make_admin("administrator"), "admin.dos@example.org")
         with_password(make_admin("secretary"), "secretaria@example.org")
         used = with_password(make_admin("administrator", emergency=True))
-        login(used.login)
+        login(used)
         entry = AuditEntry.objects.get(action=emergency.USED)
         assert entry.actor_account == used
         assert entry.details == {"area": "admin", "notified": 2}
@@ -154,7 +159,7 @@ class TestCa102Use:
     def test_a_normal_login_sends_nothing(self, make_admin):  # noqa: F811
         with_password(make_admin("administrator"), "admin.u@example.org")
         account = with_password(make_admin("administrator"), "admin.dos@example.org")
-        login(account.login)
+        login(account)
         assert not AuditEntry.objects.filter(action=emergency.USED).exists()
         assert not OutgoingEmail.objects.filter(template=emergency.NOTICE_TEMPLATE).exists()
 
@@ -163,5 +168,5 @@ class TestCa102Use:
         used = with_password(make_admin("administrator", emergency=True))
         emergency.record_use(used, area="admin")
         body = OutgoingEmail.objects.get(template=emergency.NOTICE_TEMPLATE).body_text
-        assert PASSWORD not in body and SECRET not in body and "http" not in body
+        assert PASSWORD not in body and secret_of(used) not in body and "http" not in body
         assert audit.Action.LOGIN_SUCCEEDED not in body
