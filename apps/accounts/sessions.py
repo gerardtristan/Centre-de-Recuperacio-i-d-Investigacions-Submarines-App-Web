@@ -8,6 +8,7 @@ factor és correcte, de manera que un compte d'administrador sense TOTP no pot f
 import logging
 import time
 
+from django.conf import settings
 from django.contrib.auth import login, logout
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
@@ -20,10 +21,31 @@ from .security import AREA_ADMIN, KIND_BY_AREA, client_ip, reset_failures
 
 logger = logging.getLogger("cris.security")
 
-# V-01
+# V-01. Decisió 081, punt 22: la pantalla «La sessió ha caducat» per inactivitat fa servir
+# aquests mateixos temps (no n'hi ha cap altre): 30 minuts a l'administració, que veu les dades
+# de tots els socis i els diners, amb un màxim de 8 hores; 14 dies a l'àrea de socis, que només
+# mostra les dades pròpies i el carnet, i on les operacions sensibles ja demanen tornar a
+# identificar-se (`reauth.py`).
 ADMIN_IDLE_SECONDS = 30 * 60
 ADMIN_MAX_AGE_SECONDS = 8 * 60 * 60
 PERSONAL_IDLE_SECONDS = 14 * 24 * 60 * 60
+
+# Galeta auxiliar (decisió 081, punt 22): només diu que en aquest navegador hi havia hagut una
+# sessió, perquè quan caduca per inactivitat (i el navegador ja n'ha esborrat la galeta) la
+# pàgina següent expliqui què ha passat en lloc de portar directament a l'entrada. Valor fix
+# «1»: cap dada personal, cap identificador i cap capacitat d'autenticació. Dura el temps
+# d'inactivitat de l'entrada més `SESSION_HINT_GRACE_SECONDS`, s'esborra en sortir i en
+# mostrar la pàgina, i es renova amb l'activitat.
+SESSION_HINT_COOKIE = "cris_sessio_previa"
+SESSION_HINT_GRACE_SECONDS = 30 * 24 * 60 * 60
+
+# Què compta com a activitat (decisió 081, punt 22): qualsevol petició a una pàgina protegida que
+# fa la persona (navegar, enviar un formulari, una acció d'HTMX que ella provoca). No hi compten
+# les precàrregues del navegador (`Sec-Purpose` o `Purpose: prefetch`) ni les peticions marcades
+# com a automàtiques amb `AUTOMATIC_HEADER` (un sondeig periòdic d'HTMX l'ha de portar; una
+# prova ho comprova a les plantilles). Aquestes es responen igual, però no allarguen la sessió.
+# El service worker no fa cap petició pel seu compte: només respon les navegacions.
+AUTOMATIC_HEADER = {"X-CRIS-Automatica": "1"}
 # Supòsit (la spec no en diu res): temps per escriure el codi o escanejar el QR.
 PENDING_SECONDS = 10 * 60
 
@@ -129,7 +151,38 @@ def session_area_is_valid(request, area: str) -> bool:
     return True
 
 
+def idle_seconds(area: str) -> int:
+    return ADMIN_IDLE_SECONDS if area == AREA_ADMIN else PERSONAL_IDLE_SECONDS
+
+
+def is_user_activity(request) -> bool:
+    """Cert si la petició la fa la persona i, per tant, allarga la sessió."""
+    purpose = (request.headers.get("Sec-Purpose", "") + request.headers.get("Purpose", "")).lower()
+    if "prefetch" in purpose:
+        return False
+    return not any(request.headers.get(name) for name in AUTOMATIC_HEADER)
+
+
 def refresh_expiry(request, area: str) -> None:
-    """Caducitat per inactivitat: es renova a cada petició."""
-    seconds = ADMIN_IDLE_SECONDS if area == AREA_ADMIN else PERSONAL_IDLE_SECONDS
-    request.session.set_expiry(seconds)
+    """Caducitat per inactivitat: es renova a cada petició que compta com a activitat."""
+    request.session.set_expiry(idle_seconds(area))
+
+
+def set_session_hint(response, area: str) -> None:
+    response.set_cookie(
+        SESSION_HINT_COOKIE,
+        "1",
+        max_age=idle_seconds(area) + SESSION_HINT_GRACE_SECONDS,
+        path="/",
+        secure=settings.SESSION_COOKIE_SECURE,
+        httponly=True,
+        samesite="Lax",
+    )
+
+
+def delete_session_hint(response) -> None:
+    response.delete_cookie(SESSION_HINT_COOKIE, path="/", samesite="Lax")
+
+
+def had_session(request) -> bool:
+    return request.COOKIES.get(SESSION_HINT_COOKIE) == "1"

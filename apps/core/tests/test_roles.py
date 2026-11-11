@@ -221,7 +221,10 @@ class TestSelfDeactivation:
 
         for device in devices:
             response = device.get(reverse("administration:home"))
-            assert response["Location"].startswith(reverse("administration:login"))
+            # Hi havia una sessió en aquest navegador: «La sessió ha caducat», amb el botó cap a
+            # l'entrada (T-M01-38; decisió 081, punt 22). Cap accés.
+            assert response.status_code == 401
+            assert f'href="{reverse("administration:login")}?next=' in response.content.decode()
         me.refresh_from_db()
         personal.refresh_from_db()
         assert me.status == Account.Status.DISABLED

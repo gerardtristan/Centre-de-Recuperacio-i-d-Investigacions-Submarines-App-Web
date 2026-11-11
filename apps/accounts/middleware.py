@@ -8,6 +8,8 @@ d'administració (amb TOTP); la resta, una sessió de l'àrea de socis. Una sess
 per a l'altra entrada.
 """
 
+from urllib.parse import urlsplit
+
 from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponse
@@ -16,7 +18,15 @@ from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
 
 from .security import AREA_ADMIN, AREA_PERSONAL
-from .sessions import refresh_expiry, session_area_is_valid
+from .sessions import (
+    delete_session_hint,
+    had_session,
+    is_user_activity,
+    refresh_expiry,
+    safe_next,
+    session_area_is_valid,
+    set_session_hint,
+)
 
 ADMIN_NAMESPACE = "administration"
 LOGIN_URL_NAMES = {AREA_PERSONAL: "accounts:login", AREA_ADMIN: "administration:login"}
@@ -34,7 +44,11 @@ class LoginRequiredMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        return self.get_response(request)
+        response = self.get_response(request)
+        area = getattr(request, "_cris_active_area", None)
+        if area:
+            set_session_hint(response, area)
+        return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if not getattr(view_func, "login_required", True):
@@ -42,20 +56,27 @@ class LoginRequiredMiddleware:
         area = area_of(request)
         if not session_area_is_valid(request, area):
             return self.handle_no_permission(request, area)
-        refresh_expiry(request, area)
+        if is_user_activity(request):
+            refresh_expiry(request, area)
+            request._cris_active_area = area
         return None
 
     def handle_no_permission(self, request, area):
         login_url = reverse(LOGIN_URL_NAMES[area])
+        expired = session_expired(request) or had_session(request)
         # Una petició d'HTMX no ha d'encastar la pàgina d'entrada dins d'un fragment:
-        # HTMX llegeix HX-Redirect i porta tota la pàgina a l'entrada.
+        # HTMX llegeix HX-Redirect i porta tota la pàgina a l'entrada. Si la sessió ha caducat,
+        # torna a carregar la pàgina actual (d'aquest lloc), que ja explica què ha passat.
         if request.headers.get("HX-Request"):
             response = HttpResponse(status=401)
-            response["HX-Redirect"] = login_url
+            current = _same_site_path(request, request.headers.get("HX-Current-URL", ""))
+            response["HX-Redirect"] = current if expired and current else login_url
             return response
-        if session_expired(request):
-            # T-M01-38: pàgina «La sessió ha caducat» amb el botó per tornar a entrar. No diu
-            # res del compte ni de la pàgina demanada; el «next» és el mateix que abans.
+        if expired:
+            # T-M01-38 i decisió 081, punt 22: pàgina «La sessió ha caducat» amb el botó per
+            # tornar a entrar, també per inactivitat. No diu res del compte ni de la pàgina
+            # demanada; el «next» és el mateix que abans. Un formulari enviat no es processa i,
+            # en tornar a entrar, el «next» porta a la pàgina (GET): no repeteix l'operació.
             login_redirect = redirect_to_login(request.get_full_path(), login_url)
             response = render(
                 request,
@@ -64,8 +85,18 @@ class LoginRequiredMiddleware:
                 status=401,
             )
             add_never_cache_headers(response)
+            delete_session_hint(response)  # una sola vegada: cap bucle
             return response
         return redirect_to_login(request.get_full_path(), login_url)
+
+
+def _same_site_path(request, url: str) -> str:
+    """De l'adreça completa que envia HTMX, el camí i la consulta, només si és d'aquest lloc
+    (`safe_next`); si no, buida."""
+    if not url or not safe_next(request, url):
+        return ""
+    parts = urlsplit(url)
+    return parts.path + (f"?{parts.query}" if parts.query else "")
 
 
 def session_expired(request) -> bool:

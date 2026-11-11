@@ -50,6 +50,7 @@ from .security import (
 from .sessions import (
     clear_pending,
     complete_login,
+    delete_session_hint,
     mark_second_factor,
     pending_account,
     pending_next,
@@ -270,7 +271,9 @@ def logout_view(request, area):
             audit.Action.LOGOUT, actor=request.user, details={"area": area}, request=request
         )
     logout(request)  # buida la sessió sencera, també l'estat pendent
-    return redirect(_url(area, "login"))
+    response = redirect(_url(area, "login"))
+    delete_session_hint(response)  # qui surt no ha de veure «La sessió ha caducat» (081)
+    return response
 
 
 def _no_referrer(response):
