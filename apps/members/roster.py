@@ -22,7 +22,6 @@ import xlsxwriter
 from django import forms
 from django.db.models import Prefetch, Q, Value
 from django.db.models.functions import Concat
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Charge
@@ -30,7 +29,8 @@ from apps.core.normalization import normalize_document
 from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import has_perm
 
-from .fee_rules import first_fee_year, local_today
+from . import validity
+from .fee_rules import local_today
 from .models import AnnualFee, Member, MemberRequest, MembershipType
 
 LIST = "members.list"  # P4
@@ -108,7 +108,7 @@ def filtered_members(data, *, can_search_document, can_see_birth_date=False):
     return members.order_by("member_number", "person__last_name", "person__first_name", "pk")
 
 
-# --- Estat de la quota (decisió 070; decisió 1.3 del responsable, 09/11/2026) ---------------
+# --- Estat de la quota (decisió 070; càlcul únic de la 079, RN-M01-86) ----------------------
 
 
 @dataclass(frozen=True)
@@ -122,13 +122,7 @@ PENDING = "pending"
 EXEMPT = "exempt"
 
 
-def twelve_months_after(day: date) -> date:
-    """070: 12 mesos des del pagament confirmat. De data a data; si el mes de venciment no té
-    aquell dia (29 de febrer), l'últim del mes (Codi civil, art. 5.1). Revisable a la T-M01-18."""
-    try:
-        return day.replace(year=day.year + 1)
-    except ValueError:
-        return day.replace(year=day.year + 1, day=28)
+twelve_months_after = validity.twelve_months_after  # el càlcul és a `validity.py` (079)
 
 
 def with_fee_data(members):
@@ -153,40 +147,34 @@ def with_fee_data(members):
 
 
 def fee_state(member, today: date | None = None) -> FeeState | None:
-    """«Pagada fins al», «pendent» o «sense quota»; `None` (no es mostra res) en qualsevol altre
-    cas, perquè cap regla aprovada no el defineix. `member` ve de `with_fee_data`.
+    """Estat de la quota amb el càlcul únic de «vàlid fins al» (079, A-02; RN-M01-86): el
+    llistat, la fitxa i la revisió de quotes diuen el mateix que el carnet. `member` ve de
+    `with_fee_data`.
 
-    - Pagaments parcials (diversos pagaments per sota de l'import del càrrec): poden ser els tres
-      pagaments de la 070, que no tenen cap comportament aprovat (P-61). No es mostra res.
-    - «Pendent»: alguna quota anual amb el càrrec pendent.
-    - «Pagada fins al»: 12 mesos des del pagament confirmat (càrrec «pagat»; data del seu únic
-      pagament). Si alguna quota pagada no té exactament un pagament amb data i import complet,
-      no es mostra res.
-    - «Sense quota»: cap quota i exempt per edat segons la data declarada a l'alta aprovada (068,
-      RN-M01-65). Cap activació (P-57).
-    - Retornats, anul·lats, sense quota i no exempt, o socis sense data a l'alta: res.
+    - Pagaments parcials (els terminis, sense regla aprovada: P-61, T-M01-49): no es mostra res.
+    - «Sense quota»: el «vàlid fins al» vigent surt de l'exempció per edat (068, Q-002).
+    - «Pagada fins al»: té un «vàlid fins al» que no ha passat (pagament confirmat o renovació
+      de Cluber), encara que la renovació ja estigui emesa i pendent.
+    - «Pendent»: no té cap «vàlid fins al» vigent i té una quota anual amb el càrrec pendent i
+      el venciment passat, o una amb el càrrec retornat.
+    - La resta (cap quota, una de pendent que encara no ha vençut, anul·lades): res.
+
+    L'impagat no surt d'aquí: és la marca manual del tresorer (RN-M01-09, 040).
     """
     today = today or local_today()
-    fees = member.annual_fees
-    for fee in fees:
-        if any(p.amount_cents < fee.charge.amount_cents for p in fee.charge.payments.all()):
-            return None
-    if any(fee.charge.status == Charge.Status.PENDING for fee in fees):
-        return FeeState(PENDING)
-    paid_on = []
-    for fee in fees:
-        if fee.charge.status != Charge.Status.PAID:
-            continue
-        payments = list(fee.charge.payments.all())
-        if len(payments) != 1 or payments[0].paid_at is None:
-            return None
-        paid_on.append(timezone.localdate(payments[0].paid_at))
-    if paid_on:
-        return FeeState(PAID_UNTIL, twelve_months_after(max(paid_on)))
-    joins = member.person.approved_joins
-    birth_date = joins[0].birth_date if joins else None
-    if not fees and birth_date and today.year < first_fee_year(birth_date):
-        return FeeState(EXEMPT)
+    if validity.has_partial_payments(member):
+        return None
+    until = validity.valid_until(member)
+    if until is not None and today <= until:
+        if validity.exempt_now(member, today):
+            return FeeState(EXEMPT)
+        return FeeState(PAID_UNTIL, until)
+    for fee in member.annual_fees:
+        status = fee.charge.status
+        if status == Charge.Status.RETURNED:
+            return FeeState(PENDING)
+        if status == Charge.Status.PENDING and fee.due_on < today:
+            return FeeState(PENDING)
     return None
 
 

@@ -607,7 +607,11 @@ def on_fee_paid(annual_fee_id) -> Member:
         if fee.kind != AnnualFee.Kind.ANNUAL or member.status == S.ACTIVE:
             return member
         if member.status == S.UNPAID:
+            # 079 (A-07, RN-M01-89; P-M01-D, pas 6): correu a qui pot editar les quotes.
+            from . import fees
+
             audit.record(FEE_PAID_WHILE_UNPAID, actor=by, target=fee)
+            fees.notify_fee_editors(fee, fees.NOTICE_PAID_WHILE_UNPAID)
             return member
         if member.status != S.PENDING:
             raise _not_allowed(member.status, S.ACTIVE)
@@ -656,7 +660,11 @@ def _apply_paid_supplement(fee, member, *, by) -> Member:
 
 def on_fee_returned(annual_fee_id) -> None:
     """La 05b l'avisa quan una quota es retorna. El M01 no canvia l'estat del soci: l'impagat
-    continua sent manual (040). Queda al registre perquè se n'avisi el tresorer; l'avís (canal,
-    destinataris i text) està pendent: vegeu el diari."""
-    fee = AnnualFee.objects.get(pk=annual_fee_id)
-    audit.record(FEE_RETURNED, actor=audit.system(FEE_RETURNED_ORIGIN), target=fee)
+    continua sent manual (040). Queda al registre i s'avisa per correu qui pot editar les quotes
+    (079, A-07; RN-M01-89), només amb el número de soci i la quota."""
+    from . import fees
+
+    with transaction.atomic():
+        fee = AnnualFee.objects.select_related("member").get(pk=annual_fee_id)
+        audit.record(FEE_RETURNED, actor=audit.system(FEE_RETURNED_ORIGIN), target=fee)
+        fees.notify_fee_editors(fee, fees.NOTICE_RETURNED)

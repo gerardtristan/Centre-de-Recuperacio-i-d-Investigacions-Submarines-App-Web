@@ -43,7 +43,7 @@ def a_member(status=S.ACTIVE, *, person=None, first="Laia"):
     )
 
 
-def with_pending_fee(member):
+def with_pending_fee(member, due_on=datetime.date(2027, 1, 31)):
     charge = charges.create_charge(
         member.person,
         kind=Charge.Kind.FEE,
@@ -53,7 +53,7 @@ def with_pending_fee(member):
         by=audit.system("proves-t-m01-18"),
     )
     AnnualFee.objects.create(
-        member=member, period=2027, kind="annual", charge=charge, due_on=datetime.date(2027, 1, 31)
+        member=member, period=due_on.year, kind="annual", charge=charge, due_on=due_on
     )
     return member
 
@@ -257,8 +257,11 @@ class TestList:
         assert self.names(admin_client(treasurer), estat=S.UNPAID) == ["Impagada Ferrer"]
 
     def test_filter_by_pending_fee(self, treasurer):
+        # 079 (RN-M01-86, CA-M01-89): «pendent» només amb el venciment passat; una quota
+        # emesa que encara no ha vençut no hi surt.
         a_member(first="Sense")
-        with_pending_fee(a_member(first="Deu"))
+        with_pending_fee(a_member(first="Deu"), due_on=datetime.date(2026, 1, 31))
+        with_pending_fee(a_member(first="Encara"))
         client = admin_client(treasurer)
         assert self.names(client, quota="pending") == ["Deu Ferrer"]
         assert "Pendent" in client.get(reverse(PAGE), {"quota": "pending"}).content.decode()

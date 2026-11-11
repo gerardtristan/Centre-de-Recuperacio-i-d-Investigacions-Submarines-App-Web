@@ -147,3 +147,23 @@ def _is_admin_with_access(account) -> bool:
         and account.kind == Account.Kind.ADMIN
         and account.is_active
     )
+
+
+def accounts_with_perm(code, *, write=False) -> list:
+    """Comptes d'administrador actius que tenen ara el permís `code` (amb `write`, un abast que
+    no sigui només de consulta), per ordre. Per als avisos que van «a qui pot fer X» (079,
+    RN-M01-89): la llista surt de la matriu vigent, mai d'un rol escrit al codi."""
+    from apps.accounts.models import Account
+
+    _permission(code)
+    accounts = (
+        Account.objects.filter(
+            kind=Account.Kind.ADMIN,
+            status=Account.Status.ACTIVE,
+            role_assignments__removed_at__isnull=True,
+        )
+        .select_related("person")
+        .distinct()
+        .order_by("pk")
+    )
+    return [account for account in accounts if has_perm(account, code, write=write)]

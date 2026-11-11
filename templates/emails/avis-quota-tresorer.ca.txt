@@ -1,0 +1,10 @@
+{% load i18n %}{# 079 (A-07, RN-M01-89): TEXT PROVISIONAL [A validar: tresorer]. Només el número de soci i la quota: cap nom ni cap altra dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% if event == "returned" %}{% blocktranslate %}S'ha retornat el rebut d'una quota del soci número {{ member_number }}.{% endblocktranslate %}{% else %}{% blocktranslate %}El soci número {{ member_number }}, que consta com a impagat, ha pagat una quota.{% endblocktranslate %}{% endif %}
+
+{% translate "Quota:" %} {{ fee_kind }}, {{ period }}
+
+{% if event == "returned" %}{% translate "El soci no passa a impagat sol: si escau, marca'l des de «Quotes i impagats», amb motiu." %}{% else %}{% translate "El soci no deixa de ser impagat sol: si escau, desmarca'l des de «Quotes i impagats», amb motiu." %}{% endif %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

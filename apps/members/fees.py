@@ -2,7 +2,9 @@
 
 Implementat: la revisió de l'estat de les quotes dels socis actius i impagats (P10) i la marca
 manual d'impagat, amb motiu, amb els serveis de la T-M01-12 (`mark_unpaid`, `unmark_unpaid`;
-P9). L'estat de la quota és el de la T-M01-15 (`roster.fee_state`), sense canvis.
+P9). L'estat de la quota (`roster.fee_state`) surt del càlcul únic de «vàlid fins al»
+(`validity.py`; 079, RN-M01-86): el llistat, la fitxa, aquesta revisió, el carnet i la generació
+diuen el mateix.
 
 Retoc del 09/11/2026 (072):
 - `issue_annual_fee`: quota anual íntegra amb número d'ordre (P-54, sortida E).
@@ -15,8 +17,12 @@ Retoc del 09/11/2026 (072):
   Van a l'adreça de `recipients.email_for` (T-M01-41, RN-M01-78): un menor de 14 anys, o un de
   14 a 17 sense correu propi, els rep al correu del representant.
 
-**No implementat:** els terminis (P-61, resta oberta; el preu a terminis, 96 € amb un recàrrec que
-decideix la junta, és de la 072, quarta instrucció) i la data de la marca d'impagat.
+Decisió 079 (11/11/2026):
+- `notify_fee_editors`: correu a qui pot editar les quotes quan paga un soci impagat o es retorna
+  un rebut, només amb el número de soci i la quota (A-07, RN-M01-89).
+- La marca d'impagat admet una data passada i mai una de futura (A-18): ho fa el servei
+  d'estats (`services._check_effective_on`).
+- **Fora d'aquesta tasca:** el pagament a terminis és de la T-M01-49 (A-04, RN-M01-91; P-61).
 """
 
 import datetime
@@ -274,3 +280,41 @@ def send_due_reminders(today=None) -> int:
                 )
         sent += 1
     return sent
+
+
+# --- Avís al tresorer (079, A-07; RN-M01-89; P-M01-D, pas 6) ---------------------------------
+
+NOTICE_TEMPLATE = "avis-quota-tresorer"
+NOTICE_PAID_WHILE_UNPAID = "paid_while_unpaid"
+NOTICE_RETURNED = "returned"
+NOTICE_SENT = "members.fee.treasurer_notified"
+
+
+def notify_fee_editors(fee, event: str) -> int:
+    """Correu als comptes d'administrador amb el permís d'edició de les quotes (P8 amb edició,
+    Q-057) i amb correu de notificació: només el número de soci, el període i el tipus de la
+    quota; cap nom ni cap altra dada. Una adreça rep un sol correu. Torna quants n'ha posat a la
+    cua; queda al registre d'activitat. Qui el crida és dins la transacció del canvi."""
+    from apps.core.permissions import accounts_with_perm
+
+    member = fee.member
+    context = {
+        "event": event,
+        "member_number": member.member_number,
+        "period": fee.period,
+        "fee_kind": str(fee.get_kind_display()),
+    }
+    sent = set()
+    for account in accounts_with_perm(EDIT_PERMISSION, write=True):
+        address = account.notification_email
+        if not address or address in sent:
+            continue
+        if mail.queue_email(NOTICE_TEMPLATE, to=address, person=account.person, context=context):
+            sent.add(address)
+    audit.record(
+        NOTICE_SENT,
+        actor=audit.system("members.notify_fee_editors"),
+        target=fee,
+        details={"event": event, "recipients": len(sent)},
+    )
+    return len(sent)

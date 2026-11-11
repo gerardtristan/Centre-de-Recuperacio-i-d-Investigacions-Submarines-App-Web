@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-18: quotes i impagats (P10 per veure-ho, P9 per marcar i desmarcar). Amagar els botons no és cap control: el servei torna a comprovar P9 i el conflicte d'interès. La generació de quotes i els recordatoris no hi són: depenen de decisions obertes. #}
+{# T-M01-18: quotes i impagats (P10 per veure-ho, P9 per marcar i desmarcar). Amagar els botons no és cap control: el servei torna a comprovar P9 i el conflicte d'interès. L'estat de la quota surt del mateix «vàlid fins al» del carnet (079, RN-M01-86). La quota de renovació i els recordatoris els fa la tasca diària, no aquesta pantalla. Seguretat: P10 al servidor per veure-la; P9 per marcar; conflicte d'interès registrat; data futura rebutjada pel servei. #}
 {% block title %}{% translate "Quotes i impagats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -9,7 +9,7 @@
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "Socis actius i impagats. Un soci no passa mai a impagat sol: el marca i el desmarca el tresorer, amb motiu. La generació de quotes i els recordatoris encara no estan disponibles: depenen de decisions pendents." %}</p>
+  <p class="text-2">{% translate "Socis actius i impagats. Un soci no passa mai a impagat sol: el marca i el desmarca el tresorer, amb motiu. «Pendent» vol dir que la quota ha vençut sense pagar o que el rebut s'ha retornat. La quota de renovació de cada soci es genera sola el dia del primer recordatori." %}</p>
 
   <form class="formulari" method="get" action="{% url 'administration:fees' %}" novalidate>
     <fieldset class="filtres">
