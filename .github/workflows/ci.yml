@@ -59,6 +59,9 @@ jobs:
           S3_ENDPOINT_URL: https://s3.example.invalid
           S3_ACCESS_KEY_ID: proves
           S3_SECRET_ACCESS_KEY: contrasenya-de-proves-1954
+          # Adreça de mostra de l'administrador que rep l'avís del límit de correu (081, punt 21):
+          # sense cap adreça, core.W001 fa fallar aquest pas.
+          EMAIL_ALERT_TO: administracio@example.invalid
 
   e2e:
     # Suite de prova ràpida al navegador (T-M00-07): Postgres 16 i Chromium de Playwright.

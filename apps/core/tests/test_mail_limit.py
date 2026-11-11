@@ -368,7 +368,7 @@ def test_ca_a3_one_single_alert_a_day_at_80_percent(spec_limits):
     entry = _alerts().get()
     assert entry.actor_kind == AuditEntry.ActorKind.SYSTEM
     assert entry.actor_origin == "core.mail"
-    assert entry.details == {"day": "2026-11-11", "used": 8, "limit": 10}
+    assert entry.details == {"day": "2026-11-11", "used": 8, "limit": 10, "recipients": 1}
     alert = OutgoingEmail.objects.get(template=mail.ALERT_TEMPLATE)
     assert alert.to_address == "avisos@example.org"
     assert "8" in alert.subject and "10" in alert.subject
@@ -393,15 +393,41 @@ def test_ca_a3_the_next_day_can_alert_again(spec_limits):
     assert sorted(entry.details["day"] for entry in _alerts()) == ["2026-11-11", "2026-11-12"]
 
 
-def test_q26_without_addresses_the_alert_only_stays_in_the_audit_log(spec_limits):
-    """Q-26 [A validar]: ningú no rep el correu fins que es digui qui; l'avís queda registrat."""
+def test_081_without_the_administrator_address_the_alert_is_not_operational(spec_limits, caplog):
+    """Decisió 081, punt 21: el rep només l'administrador, a l'adreça d'`EMAIL_ALERT_TO`. Si és
+    buida, no s'inventa cap destinatari: l'avís queda al registre amb zero destinataris i el
+    registre de l'aplicació avisa que no ha arribat a ningú."""
     spec_limits.EMAIL_DAILY_LIMIT = 5
-    for n in range(5):
-        _deliver(_queue(to=f"soci{n}@example.org"))
+    with caplog.at_level("WARNING", logger="apps.core.mail"):
+        for n in range(5):
+            _deliver(_queue(to=f"soci{n}@example.org"))
 
-    assert _alerts().count() == 1
+    assert _alerts().get().details["recipients"] == 0
     assert not OutgoingEmail.objects.filter(template=mail.ALERT_TEMPLATE).exists()
     assert len(django_mail.outbox) == 5
+    assert "email_limit_alert_without_recipient" in caplog.text
+
+
+class TestAlertRecipientCheck:
+    """`check --deploy` marca l'avís com a no operatiu mentre no hi ha l'adreça (core.W001), i una
+    adreça mal escrita és un error a tots els entorns (core.E001)."""
+
+    def _ids(self, deploy):
+        from django.core import checks
+
+        return {m.id for m in checks.run_checks(include_deployment_checks=deploy)}
+
+    def test_empty_address_is_a_deploy_warning(self, spec_limits):
+        assert "core.W001" in self._ids(deploy=True)
+        assert "core.W001" not in self._ids(deploy=False)
+
+    def test_with_the_administrator_address_there_is_no_warning(self, spec_limits):
+        spec_limits.EMAIL_ALERT_TO = ["administracio@example.org"]
+        assert not {"core.W001", "core.E001"} & self._ids(deploy=True)
+
+    def test_a_wrong_address_is_an_error(self, spec_limits):
+        spec_limits.EMAIL_ALERT_TO = ["no-es-una-adreca"]
+        assert "core.E001" in self._ids(deploy=False)
 
 
 def test_ca_a3_releasing_deferred_emails_also_alerts_once(spec_limits):

@@ -29,12 +29,14 @@ Límit diari (T-M00-06; RN-A3, RN-A4 i RN-A6; V-07). El dia és el de l'hora loc
   fan `release_deferred`, que la cua crida cada hora, i el primer enviament del dia.
 - El butlletí només pot gastar el límit menys `EMAIL_TRANSACTIONAL_RESERVE` (RN-A4).
 - Un sol avís al dia en arribar al `EMAIL_ALERT_THRESHOLD_PCT` del límit (CA-A3): una entrada
-  al registre d'activitat i un correu a `EMAIL_ALERT_TO`, si n'hi ha (Q-26 [A validar]).
+  al registre d'activitat i un correu a `EMAIL_ALERT_TO`, l'adreça de l'administrador (Q-26,
+  decisió 081). Si és buida, l'avís no és operatiu i `check --deploy` ho marca (`core.W001`).
 
 Fora d'abast ara: tandes i consentiment del butlletí i avisos del proveïdor (RN-A5, RN-A9 i
 RN-A10); s'hi afegeixen quan calguin.
 """
 
+import logging
 import re
 
 from django.conf import settings
@@ -48,6 +50,8 @@ from django.utils import timezone, translation
 from . import audit
 from .models import EmailDailyUsage, OutgoingEmail, Person
 from .persons import anonymous_email, language_for
+
+logger = logging.getLogger(__name__)
 
 _TEMPLATE_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # RN-A12: res que sembli una contrasenya o un secret entra al context d'una plantilla. Els
@@ -212,9 +216,11 @@ def _release(usage: EmailDailyUsage) -> int:
 def _save_usage(usage: EmailDailyUsage) -> None:
     """Desa el comptador i, la primera vegada del dia que arriba al llindar, avisa (RN-A6).
 
-    Qui rep l'avís és la Q-26 [A validar]: sempre queda al registre d'activitat i el correu
-    només surt cap a les adreces d'`EMAIL_ALERT_TO`. Cap dada personal ni al registre ni al
-    correu: només el dia i els números.
+    Qui rep l'avís (Q-26, resolta a la decisió 081, punt 21): **només l'administrador**, a
+    l'adreça configurada a `EMAIL_ALERT_TO`. Sempre queda al registre d'activitat, amb el nombre
+    de destinataris; si no n'hi ha cap, el registre de l'aplicació ho diu i l'avís no és
+    operatiu (la comprovació de desplegament `core.W001` ho marca). Cap dada personal ni al
+    registre ni al correu: només el dia i els números.
     """
     limit = settings.EMAIL_DAILY_LIMIT
     reached = usage.used * 100 >= limit * settings.EMAIL_ALERT_THRESHOLD_PCT
@@ -224,8 +230,15 @@ def _save_usage(usage: EmailDailyUsage) -> None:
             audit.Action.EMAIL_LIMIT_ALERT,
             actor=audit.system("core.mail"),
             target=usage,
-            details={"day": usage.day.isoformat(), "used": usage.used, "limit": limit},
+            details={
+                "day": usage.day.isoformat(),
+                "used": usage.used,
+                "limit": limit,
+                "recipients": len(settings.EMAIL_ALERT_TO),
+            },
         )
+        if not settings.EMAIL_ALERT_TO:
+            logger.warning("email_limit_alert_without_recipient day=%s", usage.day.isoformat())
         for address in settings.EMAIL_ALERT_TO:
             queue_email(
                 ALERT_TEMPLATE,
