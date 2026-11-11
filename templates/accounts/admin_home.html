@@ -5,6 +5,7 @@
 
 {% block content %}
   <h1>{% translate "Administració del C.R.I.S." %}</h1>
+  {% include "accounts/_avis_emergencia.html" %}
   <p>{% blocktranslate with username=user.get_username %}Has entrat com a {{ username }}.{% endblocktranslate %}</p>
   {% if can_reset %}<p><a href="{% url 'administration:accounts' %}">{% translate "Comptes d'administrador" %}</a></p>{% endif %}
   {% if can_import %}<p><a href="{% url 'administration:cluber_preview' %}">{% translate "Importació de Cluber: prova" %}</a></p>{% endif %}

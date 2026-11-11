@@ -33,6 +33,8 @@ class Person(models.Model):
         WEB = "web", _("Web")
         GUEST = "guest", _("Convidat")
         CLUBER_IMPORT = "cluber_import", _("Importació de Cluber")
+        # Persona tècnica d'un compte d'emergència, sense dades personals (079, A-30; T-M00-03).
+        TECHNICAL = "technical", _("Persona tècnica (compte d'emergència)")
 
     first_name = models.CharField(_("nom"), max_length=100)
     last_name = models.CharField(_("cognoms"), max_length=150, blank=True)

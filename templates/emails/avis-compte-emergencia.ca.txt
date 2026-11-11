@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte d'emergència «{{ username }}» ha entrat a l'administració de la plataforma del C.R.I.S.{% endblocktranslate %}
+
+{% translate "Reps aquest avís perquè tens el rol administrador. Aquest correu no porta cap enllaç." %}
+
+{% translate "Si ningú no esperava aquesta entrada, revisa el registre d'activitat i avisa la junta tan aviat com puguis." %}
+{% endautoescape %}

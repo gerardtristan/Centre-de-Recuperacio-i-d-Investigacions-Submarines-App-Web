@@ -106,6 +106,10 @@ def complete_login(request, account: Account, area: str) -> None:
     audit.record(
         audit.Action.LOGIN_SUCCEEDED, actor=account, details={"area": area}, request=request
     )
+    # CA-10.2: l'entrada d'un compte d'emergència es registra i s'avisa els administradors.
+    from . import emergency
+
+    emergency.record_use(account, area=area, request=request)
 
 
 def session_area_is_valid(request, area: str) -> bool:

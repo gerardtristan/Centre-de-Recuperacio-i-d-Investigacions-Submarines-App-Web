@@ -25,7 +25,7 @@ from apps.core import audit, roles
 from apps.core.permissions import has_perm, permission_required
 from apps.members import licences
 
-from . import email_links, invitations, tokens, totp
+from . import email_links, emergency, invitations, tokens, totp
 from .forms import (
     CodeForm,
     DisableTotpForm,
@@ -568,7 +568,15 @@ def admin_accounts_view(request):
         .select_related("totp_device")
         .order_by("login")
     )
-    return render(request, "accounts/admin_accounts.html", {"accounts": accounts})
+    return render(
+        request,
+        "accounts/admin_accounts.html",
+        {
+            "accounts": accounts,
+            "emergency_ready": emergency.warning_for(request.user),
+            "emergency_minimum": emergency.MINIMUM,
+        },
+    )
 
 
 NO_NOTIFICATION_ADDRESS = _(
@@ -667,6 +675,9 @@ def admin_home(request):
         "can_gdpr": has_perm(request.user, "core.gdpr.handle"),  # M11 (T-M01-22)
         "can_guest_links": has_perm(request.user, "core.guest_links.manage"),  # M5 (T-M00-02)
         "can_locked_data": has_perm(request.user, "core.locked_data.view"),  # M13 (T-M00-04)
+        # CA-10.1 (T-M00-03): menys de dos comptes d'emergència a punt.
+        "emergency_ready": emergency.warning_for(request.user),
+        "emergency_minimum": emergency.MINIMUM,
         # P19 sencer i P4, com la vista (T-M01-36, CA-M01-80).
         "can_licences": licences.can_manage(request.user),
     }

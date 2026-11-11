@@ -1,0 +1,9 @@
+{% load i18n %}
+{# T-M00-03, CA-10.1: només surt als comptes amb el rol administrador (ho decideix `emergency.warning_for` al servidor). No diu quins comptes són ni cap nom d'usuari. #}
+{% if emergency_ready is not None %}
+  <div class="avis avis-error" role="alert">
+    <strong>{% translate "Falten comptes d'emergència." %}</strong>
+    {% blocktranslate count ready=emergency_ready with minimum=emergency_minimum %}Només hi ha {{ ready }} compte d'emergència actiu amb el doble factor, i en calen com a mínim {{ minimum }} per no quedar mai sense accés a l'administració.{% plural %}Només hi ha {{ ready }} comptes d'emergència actius amb el doble factor, i en calen com a mínim {{ minimum }} per no quedar mai sense accés a l'administració.{% endblocktranslate %}
+    {% translate "Els crea informàtica des del servidor; cal que entrin per donar d'alta el doble factor." %}
+  </div>
+{% endif %}
