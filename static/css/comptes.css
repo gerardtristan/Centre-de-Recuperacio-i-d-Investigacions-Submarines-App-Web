@@ -11,6 +11,9 @@
 .capcalera-compte img { width: var(--logo-capcalera); height: auto; }
 .capcalera-compte .titol-zona { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-weight: var(--p-negreta); font-size: var(--t-l); }
 .capcalera-compte .selector-tema { margin-left: auto; }
+/* T-M01-45 (2): «Sistema», «Clar» i «Fosc» es llegeixen també al mòbil, com al wireframe
+   (tokens.css només els mostra a partir de 600 px). A 320 px el selector passa a la seva fila. */
+.capcalera-compte .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
 
 /* Cos: una columna estreta per als formularis, més ampla per a les llistes */
 .cos-compte { max-width: 28rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
