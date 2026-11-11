@@ -50,7 +50,7 @@ from apps.members import (
 from apps.members.fee_rules import local_today
 from apps.members.forms import LEGAL_LABELS, JoinForm
 from apps.members.imports import cluber
-from apps.members.models import Member, MemberRequest
+from apps.members.models import AnnualFee, Member, MemberRequest
 from apps.members.services import OwnMemberChange
 from apps.members.views.public import PREVIEW, render_preview
 
@@ -548,13 +548,50 @@ def fees_view(request):
     page = Paginator(fees.rows_for_review(data, today), PER_PAGE).get_page(
         request.GET.get("pagina")
     )
+    to_review = []
+    for fee in fees.payments_to_review():  # 079 (A-17, RN-M01-89)
+        payments = list(fee.charge.payments.all())
+        to_review.append(
+            {
+                "fee": fee,
+                "member": fee.member,
+                "paid_at": max((p.paid_at for p in payments if p.paid_at), default=None),
+                "amount": fees._euros(fee.charge.amount_cents),
+                "own": fee.member.person_id == request.user.person_id,
+            }
+        )
     context = {
         "form": form,
         "page": page,
         "can_mark": has_perm(request.user, services.UNPAID_PERMISSION),
         "today": today,
+        "to_review": to_review,
+        "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
     }
     return render(request, "members/fees.html", context)
+
+
+@never_cache
+@permission_required(fees.EDIT_PERMISSION, write=True)
+@require_POST
+def fee_payment_reviewed_view(request, pk):
+    """079 (A-17, CA-M01-98): marca com a revisat el pagament d'un soci de baixa, amb una nota.
+    P8 amb edició, a més de P10 per veure la pantalla; el servei ho torna a comprovar."""
+    require_perm(request, fees.VIEW)
+    fee = get_object_or_404(AnnualFee.objects.select_related("member__person"), pk=pk)
+    try:
+        fees.mark_payment_reviewed(
+            fee, by=request.user, note=request.POST.get("nota", ""), request=request
+        )
+    except OwnMemberChange as error:
+        messages.error(request, error.args[0])
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, _("Pagament marcat com a revisat."))
+    response = redirect("administration:fees")
+    response.status_code = 303
+    return response
 
 
 def _unpaid_action(request, pk, service, done):

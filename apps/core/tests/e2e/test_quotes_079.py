@@ -41,3 +41,30 @@ def test_fee_review_and_manual_unpaid_mark(page, live_server, builder, member, r
     expect(page.get_by_text("queda marcat com a impagat")).to_be_visible()
     review("marcat-impagat")
     assert Member.objects.get(pk=member.pk).status == Member.Status.UNPAID
+
+
+def test_payment_of_a_left_member_is_reviewed(page, live_server, builder, member, review):
+    """079 (A-17, RN-M01-89; CA-M01-98): el pagament d'un soci de baixa surt a «Pagaments per
+    revisar» i el tresorer el marca com a revisat amb una nota, només amb el teclat."""
+    from apps.core import audit
+    from apps.members import fees, services
+    from apps.members.models import AnnualFee
+
+    Member.objects.filter(pk=member.pk).update(status=Member.Status.LEFT, left_on="2026-11-01")
+    fee = AnnualFee.objects.filter(member=member).first()
+    audit.record(services.FEE_PAID_AFTER_LEAVING, actor=audit.system("proves-e2e"), target=fee)
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}/{ADMIN}/quotes/")
+    expect(page.get_by_role("heading", name="Pagaments per revisar")).to_be_visible()
+    page.get_by_text("Marca com a revisat…").click()
+    review("pagaments-per-revisar")
+    page.get_by_label("Nota").focus()
+    page.keyboard.type("Es retorna per transferència (prova inventada)")
+    page.keyboard.press("Tab")
+    expect(page.get_by_role("button", name="Marca com a revisat", exact=True)).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page.get_by_text("Pagament marcat com a revisat.")).to_be_visible()
+    expect(page.get_by_role("heading", name="Pagaments per revisar")).to_be_hidden()
+    review("pagament-revisat")
+    assert fees.payments_to_review() == []

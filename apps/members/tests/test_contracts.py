@@ -385,13 +385,14 @@ class TestOnFeePaid:
         assert MemberCard.objects.filter(member=member).count() == 1
         assert AuditEntry.objects.count() == before
 
-    def test_left_member_is_an_invalid_transition(self):
+    def test_left_member_changes_nothing_and_does_not_fail(self):
+        # 079 (A-17, RN-M01-89): ja no és `InvalidTransition`; el detall, a test_contracts_079.py.
         member = left_member()
         fee = paid_fee(member)
-        with pytest.raises(InvalidTransition):
-            services.on_fee_paid(fee.pk)
+        assert services.on_fee_paid(fee.pk).status == S.LEFT
         assert Member.objects.get(pk=member.pk).status == S.LEFT
         assert history(member) == []
+        assert not MemberCard.objects.exists()
 
     def test_a_type_change_supplement_does_not_activate(self):
         member = make_member(status=S.PENDING)

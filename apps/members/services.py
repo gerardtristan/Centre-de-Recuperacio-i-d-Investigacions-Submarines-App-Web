@@ -448,6 +448,7 @@ __all__ += [
 FEE_PAID_ORIGIN = "members.on_fee_paid"
 FEE_RETURNED_ORIGIN = "members.on_fee_returned"
 FEE_PAID_WHILE_UNPAID = "members.fee_paid_while_unpaid"
+FEE_PAID_AFTER_LEAVING = "members.fee_paid_after_leaving"  # 079 (A-17): llista de revisió
 SUPPLEMENT_PAID_NOT_ACTIVE = "members.supplement_paid_not_active"
 FEE_RETURNED = "members.fee_returned"
 MEMBER_STATUSES = (S.ACTIVE, S.UNPAID)  # «és soci» a M01-8: actiu o impagat
@@ -586,16 +587,23 @@ def on_fee_paid(annual_fee_id) -> Member:
     la mateixa transacció. Comprova a la base de dades que el càrrec està pagat: mai no dona un
     pagament per fet per la crida. Idempotent.
 
+    Segons l'estat del soci (079, RN-M01-89; substitueix la fila del contracte de M01-8):
     - Pendent, quota anual pagada → actiu (actor: el sistema; data efectiva: avui) i carnet nou
       (P-M01-A, pas 7; CA-M01-06), tot o res. `replace_card` revoca abans un carnet que hagi
-      quedat d'abans; el testimoni en clar no es torna (pregunta del QR de la T-M01-19).
-    - Actiu → res: «vàlid fins al» es recalcula amb el pagament nou (070).
-    - Impagat → continua impagat (040, RN-M01-09); queda al registre perquè se n'avisi el
-      tresorer. L'avís (canal, destinataris i text) està pendent: vegeu el diari.
-    - Baixa → `InvalidTransition`, sense escriure res (M01-8).
-    - Suplement de canvi de tipus → res (el canvi de tipus és de la T-M01-17).
-    - Pagaments parcials (tres quotes, P-61) → `InvalidTransition`: no hi ha cap regla aprovada.
+      quedat d'abans.
+    - Actiu → «vàlid fins al» es recalcula amb el pagament nou (070) i, si no té cap carnet no
+      revocat, se n'emet un (A-06, CA-M01-96).
+    - Impagat → continua impagat (040, RN-M01-09); queda al registre i s'avisa per correu qui pot
+      editar les quotes (A-07, CA-M01-97).
+    - Baixa → **cap error**: no canvia res, queda al registre i el pagament surt a la llista
+      «Pagaments per revisar» del tresorer (A-17, CA-M01-98; `fees.payments_to_review`).
+    - Suplement de canvi de tipus → el canvi de tipus, si escau (T-M01-17).
+    - Pagaments parcials (terminis, P-61; T-M01-49) → `InvalidTransition`: no hi ha cap regla
+      aprovada. És l'únic `InvalidTransition`, a part del càrrec que no consta com a pagat: mai
+      per l'estat del soci.
     """
+    from . import fees
+
     by = audit.system(FEE_PAID_ORIGIN)
     with transaction.atomic():
         fee = AnnualFee.objects.select_related("charge").get(pk=annual_fee_id)
@@ -604,17 +612,23 @@ def on_fee_paid(annual_fee_id) -> Member:
             raise InvalidTransition(_("El càrrec d'aquesta quota no consta com a pagat."))
         if fee.kind == AnnualFee.Kind.TYPE_CHANGE_SUPPLEMENT:
             return _apply_paid_supplement(fee, member, by=by)
-        if fee.kind != AnnualFee.Kind.ANNUAL or member.status == S.ACTIVE:
+        if fee.kind != AnnualFee.Kind.ANNUAL:
             return member
-        if member.status == S.UNPAID:
-            # 079 (A-07, RN-M01-89; P-M01-D, pas 6): correu a qui pot editar les quotes.
-            from . import fees
-
-            audit.record(FEE_PAID_WHILE_UNPAID, actor=by, target=fee)
-            fees.notify_fee_editors(fee, fees.NOTICE_PAID_WHILE_UNPAID)
+        if member.status == S.ACTIVE:
+            # A-06: un actiu sense carnet que paga la renovació en rep un.
+            loaded = cards.load_member(member.pk)
+            if cards.active_card(loaded) is None and cards.valid_until(loaded) is not None:
+                cards.issue_card(member, by=by)
             return member
-        if member.status != S.PENDING:
-            raise _not_allowed(member.status, S.ACTIVE)
+        if member.status in (S.UNPAID, S.LEFT):
+            # Idempotent: una segona crida per la mateixa quota no torna a avisar ni a anotar.
+            action = FEE_PAID_WHILE_UNPAID if member.status == S.UNPAID else FEE_PAID_AFTER_LEAVING
+            if _already_recorded(action, fee):
+                return member
+            audit.record(action, actor=by, target=fee)
+            if member.status == S.UNPAID:
+                fees.notify_fee_editors(fee, fees.NOTICE_PAID_WHILE_UNPAID)
+            return member
         if cards._paid_until(cards.load_member(member.pk)) is None:
             raise InvalidTransition(
                 _("La quota té pagaments parcials: falta la regla del pagament en tres quotes.")
@@ -625,6 +639,12 @@ def on_fee_paid(annual_fee_id) -> Member:
         )
     member.refresh_from_db()
     return member
+
+
+def _already_recorded(action, fee) -> bool:
+    return AuditEntry.objects.filter(
+        action=action, target_type=fee._meta.label_lower, target_id=str(fee.pk)
+    ).exists()
 
 
 def _apply_paid_supplement(fee, member, *, by) -> Member:

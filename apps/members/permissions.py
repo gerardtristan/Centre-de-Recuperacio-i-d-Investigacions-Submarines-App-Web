@@ -76,6 +76,8 @@ ROUTES = {
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),
+    # 079 (A-17, RN-M01-89): marcar com a revisat el pagament d'un soci de baixa.
+    "administration:fee_payment_reviewed": _both((P8, WRITE), (P10, READ)),
     "administration:licence_add": _both((P19, WRITE), (P4, READ)),
     "administration:licence_edit": _both((P19, WRITE), (P4, READ)),
     "administration:licence_bulk_confirm": _both((P19, WRITE), (P4, READ)),

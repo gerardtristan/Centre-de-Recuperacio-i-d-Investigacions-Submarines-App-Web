@@ -64,6 +64,7 @@ OBJECT_FOR_ROUTE = {
     "administration:join_approve": "join_request",
     "administration:join_reject": "join_request",
     "administration:member_request_detail": "leave",
+    "administration:fee_payment_reviewed": "fee",  # 079 (A-17): el paràmetre és una quota
 }
 _numbers = iter(range(500, 10_000))
 

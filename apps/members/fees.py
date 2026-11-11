@@ -318,3 +318,60 @@ def notify_fee_editors(fee, event: str) -> int:
         details={"event": event, "recipients": len(sent)},
     )
     return len(sent)
+
+
+# --- Pagaments per revisar (079, A-17; RN-M01-89; CA-M01-98) ---------------------------------
+#
+# Un soci de baixa que paga una quota anterior a la baixa: `services.on_fee_paid` no falla ni
+# canvia res; en deixa una entrada al registre d'activitat. La llista surt d'aquestes entrades i
+# s'acaba quan qui pot editar les quotes marca el pagament com a revisat, amb una nota. No hi ha
+# cap taula nova: l'estat és al registre, que no es pot modificar.
+
+PAID_AFTER_LEAVING = "members.fee_paid_after_leaving"  # el mateix codi que `services`
+PAYMENT_REVIEWED = "members.fee_payment_reviewed"
+
+
+def _fee_ids(action) -> set[int]:
+    from apps.core.models import AuditEntry
+
+    ids = AuditEntry.objects.filter(
+        action=action, target_type=AnnualFee._meta.label_lower
+    ).values_list("target_id", flat=True)
+    return {int(pk) for pk in ids}
+
+
+def payments_to_review() -> list[AnnualFee]:
+    """Quotes pagades per socis de baixa que encara ningú no ha revisat, per ordre de pagament."""
+    pending = _fee_ids(PAID_AFTER_LEAVING) - _fee_ids(PAYMENT_REVIEWED)
+    return list(
+        AnnualFee.objects.filter(pk__in=pending)
+        .select_related("member__person", "member__type", "charge")
+        .prefetch_related("charge__payments")
+        .order_by("pk")
+    )
+
+
+def mark_payment_reviewed(fee, *, by, note, request=None) -> None:
+    """Treu un pagament de la llista de revisió. Permís d'edició de les quotes (P8 amb edició;
+    «no trobat» sense), compte actiu, conflicte d'interès registrat i nota obligatòria, que
+    queda al registre d'activitat. No toca el càrrec ni el pagament: si cal una devolució, és
+    del 05b."""
+    from django.http import Http404
+
+    from apps.core.permissions import has_perm
+
+    from .services import _check_account_active, ensure_not_own_member
+
+    _check_account_active(by)
+    if not has_perm(by, EDIT_PERMISSION, write=True):
+        raise Http404
+    note = (note or "").strip()
+    if not note:
+        raise ValidationError(_("Cal una nota per marcar el pagament com a revisat."))
+    ensure_not_own_member(fee.member, by, request=request)
+    with transaction.atomic():
+        AnnualFee.objects.select_for_update().get(pk=fee.pk)
+        pending = _fee_ids(PAID_AFTER_LEAVING) - _fee_ids(PAYMENT_REVIEWED)
+        if fee.pk not in pending:
+            raise ValidationError(_("Aquest pagament ja no és a la llista de revisió."))
+        audit.record(PAYMENT_REVIEWED, actor=by, target=fee, reason=note, request=request)

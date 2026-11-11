@@ -17,6 +17,12 @@ urlpatterns = [
     path("quotes/", admin.fees_view, name="fees"),
     path("quotes/<int:pk>/impagat/", admin.fee_mark_unpaid_view, name="fee_mark_unpaid"),
     path("quotes/<int:pk>/desmarca/", admin.fee_unmark_unpaid_view, name="fee_unmark_unpaid"),
+    # 079 (A-17, RN-M01-89): pagament d'un soci de baixa, marcat com a revisat (P8 i P10).
+    path(
+        "quotes/pagaments/<int:pk>/revisat/",
+        admin.fee_payment_reviewed_view,
+        name="fee_payment_reviewed",
+    ),
     path("socis/<int:pk>/edita/", admin_member_edit.member_edit_view, name="member_edit"),
     path(
         "socis/<int:pk>/data-alta/",

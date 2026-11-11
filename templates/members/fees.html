@@ -79,5 +79,54 @@
       {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Següent" %}</a>{% endif %}
     </nav>
   {% endif %}
+  {# 079 (A-17, RN-M01-89): pagaments de socis de baixa. La llista la veu qui veu aquesta pantalla (P10); marcar-ne un com a revisat demana el permís d'edició de les quotes (P8) i una nota, i el servei ho torna a comprovar. No s'hi mostra cap dada del pagament més enllà de l'import i la data. #}
+  {% if to_review %}
+    <section aria-labelledby="revisar-titol">
+      <h2 id="revisar-titol">{% translate "Pagaments per revisar" %}</h2>
+      <p class="text-2">{% translate "Quotes pagades per socis que ja són de baixa. La plataforma no ha canviat res: decideix què se'n fa (per exemple, una devolució) i marca-les com a revisades." %}</p>
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Pagaments de socis de baixa pendents de revisar" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Soci" %}</th>
+            <th scope="col">{% translate "Quota" %}</th>
+            <th scope="col">{% translate "Import" %}</th>
+            <th scope="col">{% translate "Pagada el" %}</th>
+            {% if can_review %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in to_review %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ row.member.person }}<br><span class="codi">{% if row.member.member_number %}{% blocktranslate with number=row.member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
+              <td data-etiqueta="{% translate 'Quota' %}">{{ row.fee.get_kind_display }} {{ row.fee.period }}</td>
+              <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
+              <td data-etiqueta="{% translate 'Pagada el' %}">{% if row.paid_at %}<time datetime="{{ row.paid_at|date:'c' }}">{{ row.paid_at|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
+              {% if can_review %}
+                <td class="cel-accions">
+                  {% if row.own %}
+                    <span class="text-2">{% translate "És el teu soci: no el pots revisar tu." %}</span>
+                  {% else %}
+                    <details class="altes-rebuig">
+                      <summary class="boto boto-petit">{% translate "Marca com a revisat…" %}<span class="visualment-amagat">: {{ row.member.person }}</span></summary>
+                      <form class="formulari" method="post" action="{% url 'administration:fee_payment_reviewed' row.fee.pk %}">
+                        {% csrf_token %}
+                        <div class="camp">
+                          <label for="nota-{{ row.fee.pk }}">{% translate "Nota" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                          <textarea id="nota-{{ row.fee.pk }}" name="nota" rows="3" required></textarea>
+                          <p class="ajuda">{% translate "Què se n'ha fet. Queda al registre d'activitat." %}</p>
+                        </div>
+                        <div class="accions"><button class="boto" type="submit">{% translate "Marca com a revisat" %}</button></div>
+                      </form>
+                    </details>
+                  {% endif %}
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
   <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
 {% endblock %}
