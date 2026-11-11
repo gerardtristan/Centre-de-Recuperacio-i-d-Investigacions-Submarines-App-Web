@@ -39,6 +39,10 @@ PUBLIC_ROUTES = {
     "members:join",
     # Verificació del carnet (P15, M01-8): qualsevol persona; el testimoni no dona cap dada.
     "members:card_verify",
+    # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
+    "core:guest",
+    "core:guest_link",
+    "core:guest_link_request",
 }
 
 SAMPLE_VALUES = {

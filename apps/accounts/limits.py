@@ -126,10 +126,14 @@ def start_join(ip: str) -> EmailLinkRequest | None:
 def join_receipt_allowed(accepted: EmailLinkRequest, email: str) -> bool:
     """Dins de la mateixa transacció: es pot enviar el rebut a aquesta adreça? Si sí, la
     petició en guarda l'empremta i compta per al destinatari."""
+    windows = (Window(settings.JOIN_FORM_RECIPIENT_MAX_PER_DAY, timedelta(hours=24)),)
+    return _recipient_allowed(accepted, email, windows)
+
+
+def _recipient_allowed(accepted: EmailLinkRequest, email: str, windows) -> bool:
     key = recipient_key(email)
     lock_recipient(key)
-    windows = (Window(settings.JOIN_FORM_RECIPIENT_MAX_PER_DAY, timedelta(hours=24)),)
-    if recipient_limited(key, JOIN, windows=windows):
+    if recipient_limited(key, accepted.purpose, windows=windows):
         return False
     accepted.recipient_hash = key
     accepted.save(update_fields=["recipient_hash"])
@@ -152,6 +156,45 @@ def start_card_verification(ip: str) -> bool:
         return False
     EmailLinkRequest.objects.create(ip_address=ip, purpose=CARD_VERIFY)
     return True
+
+
+# --- Enllaços de convidat (T-M00-02; spec 00, RN-24, V-02, CA-02.6 i CA-02.7) ------------------
+# Testimonis que no funcionen: 10 des d'un mateix origen en 15 minuts → 15 minuts (V-02). Només
+# es desa l'origen, mai el testimoni. Mentre dura el bloqueig no es desa res: no s'allarga.
+GUEST_FAILED = EmailLinkRequest.Purpose.GUEST_LINK_FAILED
+GUEST_FAILED_WINDOW = Window(10, timedelta(minutes=15))
+GUEST_FAILED_COOLDOWN = timedelta(minutes=15)
+# Demanar un enllaç nou amb el correu (CA-02.6). V-02 no en fixa cap límit: s'hi apliquen els
+# valors de RN-M01-58 (per origen i per destinatari), amb comptadors propis
+# [A confirmar: responsable].
+GUEST_NEW = EmailLinkRequest.Purpose.GUEST_LINK_REQUEST
+
+
+def guest_link_blocked(ip: str) -> bool:
+    """Dins d'una transacció, d'un en un per origen: ha arribat als intents fallits de V-02?"""
+    lock_origin(ip)
+    return origin_limited(
+        ip, purposes=(GUEST_FAILED,), window=GUEST_FAILED_WINDOW, cooldown=GUEST_FAILED_COOLDOWN
+    )
+
+
+def record_guest_link_failure(ip: str) -> None:
+    EmailLinkRequest.objects.create(ip_address=ip, purpose=GUEST_FAILED)
+
+
+def start_guest_link_request(ip: str) -> EmailLinkRequest | None:
+    """Dins d'una transacció. Torna la petició acceptada, o None si l'origen està limitat
+    (aleshores no es desa res)."""
+    lock_origin(ip)
+    if origin_limited(ip, purposes=(GUEST_NEW,)):
+        return None
+    return EmailLinkRequest.objects.create(ip_address=ip, purpose=GUEST_NEW)
+
+
+def guest_link_request_allowed(accepted: EmailLinkRequest, email: str) -> bool:
+    """Dins de la mateixa transacció: es pot enviar a aquesta adreça? Si sí, la petició en
+    guarda l'empremta i compta per al destinatari."""
+    return _recipient_allowed(accepted, email, RECIPIENT_WINDOWS)
 
 
 def purge_old(now=None) -> int:

@@ -274,7 +274,9 @@ class EmailLinkRequest(models.Model):
 
     També hi van les sol·licituds del formulari «Fer-se soci» (T-M01-13), amb els seus propis
     llindars provisionals: no compten per als límits de RN-M01-58 ni al revés. I les consultes de
-    la verificació pública del carnet (T-M01-20), només amb l'origen, per al límit de V-01."""
+    la verificació pública del carnet (T-M01-20), només amb l'origen, per al límit de V-01.
+    I, dels enllaços de convidat (T-M00-02; V-02), els testimonis que no han funcionat (només
+    l'origen) i les peticions d'un enllaç nou amb el correu."""
 
     class Purpose(models.TextChoices):
         RESET_PASSWORD = "reset", _("Recuperació de la contrasenya")
@@ -283,6 +285,8 @@ class EmailLinkRequest(models.Model):
         CARD_VERIFY = "card", _("Verificació del carnet")
         # Canvi del correu d'entrada des del perfil (RN-M01-79): el destinatari és l'adreça nova.
         CHANGE_EMAIL = "email", _("Canvi del correu d'entrada")
+        GUEST_LINK_FAILED = "guestfail", _("Enllaç de convidat que no ha funcionat")
+        GUEST_LINK_REQUEST = "guestnew", _("Petició d'un enllaç de convidat nou")
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     ip_address = models.GenericIPAddressField()

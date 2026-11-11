@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M00-02 (spec 00, HU-02, V-02): TEXT PROVISIONAL [A validar: junta i tresorer]. Cap dada de la persona ni del càrrec: només l'enllaç i la caducitat. Com pagar és del 05b. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Tens un pagament pendent amb el C.R.I.S. El pots consultar amb aquest enllaç, sense crear cap compte:" %}
+
+{{ link }}
+
+{% blocktranslate count days=days %}L'enllaç caduca d'aquí a {{ days }} dia.{% plural %}L'enllaç caduca d'aquí a {{ days }} dies.{% endblocktranslate %} {% translate "És personal: no el reenviïs a ningú." %}
+
+{% translate "Si tens cap dubte, respon aquest correu. Si no esperaves aquest missatge, no cal que facis res." %}
+{% endautoescape %}

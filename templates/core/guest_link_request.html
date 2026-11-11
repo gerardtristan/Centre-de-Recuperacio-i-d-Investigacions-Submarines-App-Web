@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M00-02: demanar un enllaç de convidat nou amb el correu (spec 00, CA-02.6, V-02). Seguretat i privacitat: ruta pública declarada; la resposta és la mateixa per a qualsevol adreça (amb pagaments pendents, sense, inexistent o limitada) i no mostra cap dada; l'enllaç només s'envia al correu de contacte que ja té la persona, mai a una adreça escrita aquí; límits per origen i per destinatari al servidor, sense dir-los a la pantalla. #}
+{% block title %}{% translate "Demana un enllaç nou" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Pagaments" %}{% endblock %}
+{% block inici %}{% url 'core:guest' %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Demana un enllaç nou" %}</h1>
+  {% if sent %}
+    <div>
+      <div class="avis avis-ok" role="status">{% translate "Si aquesta adreça té cap pagament pendent amb un enllaç, hi hem enviat un enllaç nou i l'anterior ha deixat de funcionar." %}</div>
+      <p>{% translate "Pot trigar uns minuts a arribar. Mira també el correu brossa." %}</p>
+    </div>
+  {% else %}
+    <div>
+      <p>{% translate "Escriu el correu on vas rebre l'enllaç del C.R.I.S. i te n'hi enviarem un de nou." %}</p>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% with field=form.email %}{% include "accounts/_camp.html" %}{% endwith %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia'm l'enllaç" %}</button></div>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

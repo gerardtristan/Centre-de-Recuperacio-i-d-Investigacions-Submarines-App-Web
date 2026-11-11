@@ -1,0 +1,73 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M00-02: enllaços de convidat a l'administració (spec 00, HU-02, M5). Seguretat i privacitat: M5 (`core.guest_links.manage`) al servidor per veure la pantalla i per a cada acció, i el servei el torna a comprovar; de la persona només surt el nom, mai el correu ni cap altra dada; el testimoni no es mostra mai (només existeix dins del correu); les accions són POST amb CSRF, queden al registre d'activitat i revocar demana un segon pas; només hi surten els càrrecs pendents de persones sense compte personal i els que tenen un enllaç que encara funciona. Amagar un botó no és cap control: el servei rebutja un càrrec que no és pendent o una persona sense correu. #}
+{% block title %}{% translate "Enllaços de convidat" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Enllaços de convidat" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <p class="text-2">{% blocktranslate count days=days %}Càrrecs pendents de persones sense compte. L'enllaç s'envia al correu de contacte de la persona i caduca al cap d'{{ days }} dia. Reenviar-lo en genera un de nou i l'anterior deixa de funcionar.{% plural %}Càrrecs pendents de persones sense compte. L'enllaç s'envia al correu de contacte de la persona i caduca al cap de {{ days }} dies. Reenviar-lo en genera un de nou i l'anterior deixa de funcionar.{% endblocktranslate %}</p>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} càrrec{% plural %}{{ total }} càrrecs{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Persona" %}</th>
+        <th scope="col">{% translate "Concepte" %}</th>
+        <th scope="col">{% translate "Import" %}</th>
+        <th scope="col">{% translate "Càrrec" %}</th>
+        <th scope="col">{% translate "Enllaç" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for charge, amount, link in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ charge.person }}</th>
+          <td data-etiqueta="{% translate 'Concepte' %}">{{ charge.concept }}</td>
+          <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ amount }}</span></td>
+          <td data-etiqueta="{% translate 'Càrrec' %}">{% if charge.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Pagat" %}</span>{% elif charge.status == "pending" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Retornat" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Enllaç' %}">{% if not link %}<span class="estat estat-neutre"><span aria-hidden="true">–</span> {% translate "Cap" %}</span>{% elif link.revoked_at %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Revocat" %}</span>{% elif link.is_live %}<span class="estat estat-ok estat-quota"><span aria-hidden="true">✓</span> {% blocktranslate with date=link.expires_at|date:"d/m/Y" %}Vigent fins al {{ date }}{% endblocktranslate %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Caducat" %}</span>{% endif %}</td>
+          <td class="cel-accions">
+            <div class="accions">
+              {% if charge.status == "pending" %}
+                {% if charge.person.contact_email %}
+                  <form method="post" action="{% url 'administration:guest_link_send' charge.pk %}">
+                    {% csrf_token %}
+                    <button class="boto boto-petit" type="submit">{% if link %}{% translate "Reenvia" %}{% else %}{% translate "Genera i envia" %}{% endif %}<span class="visualment-amagat">: {{ charge.person }}, {{ charge.concept }}</span></button>
+                  </form>
+                {% else %}
+                  <span class="text-2">{% translate "Sense correu de contacte" %}</span>
+                {% endif %}
+              {% endif %}
+              {% if link and not link.revoked_at and link.is_live %}
+                {# Mateixa peça desplegable que el rebuig d'una alta (T-M01-14): fa de segon pas. #}
+                <details class="altes-rebuig">
+                  <summary class="boto boto-petit">{% translate "Revoca…" %}<span class="visualment-amagat">: {{ charge.person }}, {{ charge.concept }}</span></summary>
+                  <form class="formulari" method="post" action="{% url 'administration:guest_link_revoke' charge.pk %}">
+                    {% csrf_token %}
+                    <p>{% translate "L'enllaç deixarà de funcionar de seguida. El càrrec no canvia." %}</p>
+                    <div class="accions"><button class="boto" type="submit">{% translate "Revoca l'enllaç" %}</button></div>
+                  </form>
+                </details>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td>{% translate "No hi ha cap càrrec pendent de cap persona sense compte." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines del llistat' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Anterior" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Següent" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
+{% endblock %}
