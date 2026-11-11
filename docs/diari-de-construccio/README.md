@@ -121,3 +121,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-46](T-M01-46.md) | Navegació comuna de l'administració i «Surt» (**implementada, pendent de validació**, 11/11/2026; diari conjunt amb la 45 i la 47) | 11/11/2026 (nit) | 4bb8fe0, 317f906 | 3807 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
 | [T-M01-47](T-M01-47.md) | Pàgines 404 i 500 pròpies (**implementada, pendent de validació**, 11/11/2026) | 11/11/2026 (nit) | 65289be | 3807 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
 | [T-M01-45](T-M01-45.md) | Correccions de la revisió de pantalles (**feta en part**, 11/11/2026) | 11/11/2026 (nit) | bac4cd9 a a2d71a9 | 3807 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-28](T-M01-28.md) | Revisió d'accessibilitat i de permisos del M01 (**feta en part**, 11/11/2026; falten axe i la revisió humana) | 11/11/2026 | 19fe6a0 | 1157 de permisos; 3 e2e noves | no comprovat (sense push) |
+| [T-M01-29](T-M01-29.md) | Guies de la secretaria i del tresorer (**implementada, pendent de revisió**, 11/11/2026) | 11/11/2026 | branca night/2026-11-11-a11y | — (documentació) | no comprovat (sense push) |
