@@ -1,7 +1,7 @@
 """Còpia del carnet sense connexió després de la decisió 079 (T-M01-21; A-28, RN-M01-96,
 CA-M01-110): en sortir només s'esborra la còpia del carnet; la preferència de tema es conserva.
-El comportament en un navegador de debò és a `e2e/test_pwa_079.py`. La caducitat de la còpia als
-N dies NO està implementada: N no està decidit.
+El comportament en un navegador de debò és a `e2e/test_pwa_079.py`. Caducitat de la còpia: 30 dies
+i mai després del «vàlid fins al» (decisió 081, punt 15; RN-M01-101).
 """
 
 import re
@@ -34,7 +34,28 @@ def test_ca_m01_110_service_worker_only_deletes_the_card_copy_on_login_and_logou
     assert "localStorage" in THEME and "cris-tema" in THEME
 
 
-def test_copy_expiry_after_n_days_is_not_implemented_until_n_is_decided():
-    """RN-M01-96: N [A validar: responsable]. Cap codi no simula la regla amb un valor inventat."""
-    for word in ("Date.now", "expires", "maxAge", "max-age", "DIES"):
-        assert word not in SOURCE
+def test_081_copy_lasts_the_decided_days_in_the_worker_and_in_the_page():
+    """Decisió 081, punt 15: 30 dies, el mateix valor al service worker i a la pàgina."""
+    from apps.members import cards
+
+    assert cards.OFFLINE_COPY_DAYS == 30
+    assert f"var DIES_COPIA = {cards.OFFLINE_COPY_DAYS};" in SOURCE
+
+
+def test_081_an_expired_copy_is_deleted_and_never_shown():
+    function = re.search(r"function copiaDelCarnet\(\) \{(.*?)\n\}", SOURCE, re.S).group(1)
+    assert "copiaCaducada(copia, Date.now())" in function
+    assert "esborraCarnet().then(function () { return Response.error(); })" in function
+    expired = re.search(r"function copiaCaducada\(copia, ara\) \{(.*?)\n\}", SOURCE, re.S)
+    expired = expired.group(1)
+    # Sense hora de desar (còpia d'una versió anterior) també és caducada.
+    assert "if (!desada || ara - desada > DIES_COPIA * MS_DIA) return true;" in expired
+    # Mai després del «vàlid fins al»: l'endemà a les 00:00 ja no es mostra.
+    assert "Number(parts[2]) + 1" in expired and "if (ara >= final) return true;" in expired
+
+
+def test_081_the_page_reloads_when_the_connection_comes_back_without_a_loop():
+    script = (settings.BASE_DIR / "static" / "js" / "carnet-copia.js").read_text(encoding="utf-8")
+    assert "addEventListener('online'" in script and "{ once: true }" in script
+    assert "if (!avis || avis.hidden) return;" in script  # només a la còpia
+    assert "'/static/js/carnet-copia.js'" in SOURCE  # disponible sense connexió

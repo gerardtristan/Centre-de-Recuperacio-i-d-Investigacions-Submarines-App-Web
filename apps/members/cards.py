@@ -48,6 +48,9 @@ from .fee_rules import local_today
 from .models import Member, MemberCard
 
 CARD_ISSUED = "members.card.issued"
+# Decisió 081, punt 15 (RN-M01-101): dies que la còpia sense connexió del carnet es pot mostrar
+# després de l'última comprovació. El service worker en té el mateix valor (DIES_COPIA, amb prova).
+OFFLINE_COPY_DAYS = 30
 CARD_REVOKED = "members.card.revoked"
 
 

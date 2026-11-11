@@ -6,20 +6,32 @@
    l'administració ni de cap altra persona. La còpia del carnet s'esborra en entrar o sortir
    per qualsevol de les dues entrades i quan el servidor ja no la dona (sessió caducada,
    sense soci). El control d'accés el fa el servidor; això només decideix què es guarda al
-   navegador. Les rutes són les de Django: una prova comprova que coincideixen. */
+   navegador. Les rutes són les de Django: una prova comprova que coincideixen.
+
+   Caducitat de la còpia (decisió 081, punt 15; RN-M01-101): es mostra com a màxim DIES_COPIA
+   dies després de desar-la i mai després del dia «vàlid fins al» del carnet, si en té: la còpia
+   no allarga la vigència real. Una còpia caducada (o d'una versió anterior, sense les dades de
+   caducitat) s'esborra i no es mostra. La pàgina en línia la torna a desar a cada visita, i
+   carnet-copia.js la recarrega quan torna la connexió. */
 'use strict';
 
 var CARNET = '/socis/carnet/';             // members:card
 var INICI = '/';                           // start_url del manifest
 var MEMORIA_CARNET = 'cris-carnet-v1';
 var MEMORIA_ESTILS = 'cris-estils-v1';
+var DIES_COPIA = 30;                       // decisió 081, punt 15 (cards.OFFLINE_COPY_DAYS)
+var MS_DIA = 24 * 60 * 60 * 1000;
+var CAP_DESADA = 'X-Cris-Copia-Desada';    // hora del dispositiu en desar-la (ms)
+var CAP_VALID_FINS = 'X-Cris-Valid-Fins';  // «vàlid fins al» del carnet (AAAA-MM-DD) o buit
+var VALID_FINS = /data-valid-fins="(\d{4}-\d{2}-\d{2})"/;
 // Estils i les fonts que fa servir fonts.css (079, A-28; T-M01-45): sense connexió, el carnet es
 // veu amb la lletra correcta. Són fitxers públics, sense cap dada.
 var ESTILS = ['/static/css/fonts.css', '/static/css/tokens.css', '/static/css/comptes.css', '/static/js/tema.js',
   '/static/fonts/barlow-condensed/BarlowCondensed-SemiBold.woff2', '/static/fonts/barlow-condensed/BarlowCondensed-Bold.woff2',
   '/static/fonts/source-sans-3/SourceSans3-Regular.ttf.woff2', '/static/fonts/source-sans-3/SourceSans3-Semibold.ttf.woff2',
   '/static/fonts/source-sans-3/SourceSans3-Bold.ttf.woff2',
-  '/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2', '/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2'];
+  '/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2', '/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2',
+  '/static/js/carnet-copia.js'];
 var ENTRAR_O_SORTIR = /\/(entrar|sortir)\//;  // les dues entrades, també la d'administració
 // Marca de l'avís que la pàgina del carnet porta amagat; la còpia el mostra.
 var AVIS_AMAGAT = ' data-sense-connexio hidden';
@@ -54,18 +66,40 @@ function desaCarnet(resposta) {
     var copia = html.replace(AVIS_AMAGAT, AVIS_VISIBLE);
     // Sense l'avís «pot no estar al dia» no es desa res: millor cap còpia que una que sembli actual.
     if (copia === html) return esborraCarnet();
+    var fins = VALID_FINS.exec(html);
+    var capcaleres = { 'Content-Type': 'text/html; charset=utf-8' };
+    capcaleres[CAP_DESADA] = String(Date.now());
+    capcaleres[CAP_VALID_FINS] = fins ? fins[1] : '';
     return caches.open(MEMORIA_CARNET).then(function (memoria) {
-      return memoria.put(CARNET, new Response(copia, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }));
+      return memoria.put(CARNET, new Response(copia, { headers: capcaleres }));
     });
   });
+}
+
+// Cert si la còpia ja no es pot mostrar: massa antiga o passat el «vàlid fins al».
+function copiaCaducada(copia, ara) {
+  var desada = Number(copia.headers.get(CAP_DESADA));
+  if (!desada || ara - desada > DIES_COPIA * MS_DIA) return true;
+  var fins = copia.headers.get(CAP_VALID_FINS);
+  if (fins) {
+    var parts = fins.split('-');
+    // L'endemà del «vàlid fins al», a les 00:00 del dispositiu.
+    var final = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]) + 1).getTime();
+    if (ara >= final) return true;
+  }
+  return false;
 }
 
 function copiaDelCarnet() {
   return caches.open(MEMORIA_CARNET)
     .then(function (memoria) { return memoria.match(CARNET); })
-    .then(function (copia) { return copia || Response.error(); });
+    .then(function (copia) {
+      if (!copia) return Response.error();
+      if (copiaCaducada(copia, Date.now())) {
+        return esborraCarnet().then(function () { return Response.error(); });
+      }
+      return copia;
+    });
 }
 
 self.addEventListener('fetch', function (event) {

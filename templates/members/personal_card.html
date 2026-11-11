@@ -9,9 +9,12 @@
     <div class="avis no-imprimeix {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
   {# T-M01-21, CA-M01-17: amagat a la pàgina en línia; el service worker el mostra a la còpia sense connexió (marca «data-sense-connexio hidden», static/js/service-worker.js). L'hora és la de la comprovació al servidor. #}
-  <div class="avis avis-avis" role="status" data-sense-connexio hidden>
+  {# Decisió 081, punt 15: la còpia no és una comprovació en temps real, es mostra com a màxim offline_copy_days dies i mai després del «vàlid fins al» (data-valid-fins, que llegeix el service worker). #}
+  <div class="avis avis-avis" role="status"{% if validity.valid and validity.until %} data-valid-fins="{{ validity.until|date:'Y-m-d' }}"{% endif %} data-sense-connexio hidden>
     <strong>{% translate "Sense connexió: aquesta còpia del carnet pot no estar al dia." %}</strong>
-    {% translate "Comprovat per última vegada:" %} <time datetime="{% now 'c' %}">{% now "d/m/Y H:i" %}</time>
+    {% translate "No és una comprovació en temps real de l'estat del soci." %}
+    {% translate "Comprovat per última vegada:" %} <time datetime="{% now 'c' %}">{% now "d/m/Y H:i" %}</time>.
+    {% blocktranslate count days=offline_copy_days %}Sense connexió, aquesta còpia es mostra com a màxim {{ days }} dia després d'aquesta comprovació.{% plural %}Sense connexió, aquesta còpia es mostra com a màxim {{ days }} dies després d'aquesta comprovació.{% endblocktranslate %}
   </div>
   {% if card %}
     <dl class="dades-soci">
@@ -59,4 +62,5 @@
   {% endif %}
   <p class="enllacos no-imprimeix"><a href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a></p>
   <script src="{% static 'js/imprimeix.js' %}" defer></script>
+  <script src="{% static 'js/carnet-copia.js' %}" defer></script>
 {% endblock %}

@@ -62,6 +62,8 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     expect(page.get_by_text("Pere Prova Inventat")).to_be_visible()
     review("carnet-sense-connexio")
     context.set_offline(False)
+    # Torna la connexió: la còpia es recarrega del servidor (decisió 081, punt 15).
+    expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden()
 
     # En sortir (CA-M01-110): s'esborra la còpia del carnet i el tema es conserva.
     page.goto(f"{base}/")
@@ -85,6 +87,86 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     context.set_offline(False)
 
     # Les peticions fallides mentre no hi havia connexió són les que s'esperaven.
+    page_checks.problems[:] = [
+        p for p in page_checks.problems if not any(text in p for text in OFFLINE_ERRORS)
+    ]
+
+
+def _age_the_copy(page, header, value_js):
+    """Canvia una capçalera de la còpia desada, com si hagués passat el temps."""
+    page.evaluate(
+        "async ([name, value]) => { const c = await caches.open('cris-carnet-v1');"
+        " const r = await c.match('/socis/carnet/'); const h = new Headers(r.headers);"
+        " h.set(name, value); await c.put('/socis/carnet/', new Response(await r.text(),"
+        " { headers: h })); }",
+        [header, page.evaluate(value_js)],
+    )
+
+
+def _offline_card_is_not_shown(page, context, base):
+    context.set_offline(True)
+    failed = False
+    try:
+        page.goto(f"{base}/socis/carnet/")
+    except Exception:  # noqa: BLE001 (el navegador diu que no hi ha connexió)
+        failed = True
+    assert failed or "Sense connexió: aquesta còpia" not in page.content()
+    context.set_offline(False)
+    page.goto(f"{base}/")  # fora de la pàgina d'error del navegador, on no hi ha `caches`
+    page.wait_for_function(
+        "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 0"
+    )
+
+
+def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
+    page, context, live_server, builder, member, page_checks
+):
+    """Decisió 081, punt 15: la còpia es mostra com a màxim 30 dies, mai després del «vàlid fins
+    al», diu que no és una comprovació en temps real i, quan torna la connexió, la pàgina es
+    torna a carregar del servidor."""
+    base = live_server.url.replace("127.0.0.1", "localhost")
+    login_personal(page, base, builder.personal(member.person))
+
+    def save_copy():
+        page.goto(f"{base}/socis/carnet/")
+        page.evaluate("navigator.serviceWorker.ready.then(() => true)")
+        page.reload()
+        page.wait_for_function(
+            "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 1"
+        )
+
+    save_copy()
+    context.set_offline(True)
+    page.reload()
+    notice = page.get_by_text("No és una comprovació en temps real de l'estat del soci.")
+    expect(notice).to_be_visible()
+    expect(page.get_by_text("es mostra com a màxim 30 dies")).to_be_visible()
+
+    # Torna la connexió: la pàgina es recarrega i ja és la del servidor (sense l'avís).
+    context.set_offline(False)
+    expect(notice).to_be_hidden()
+
+    # 29 dies: encara es mostra; 31 dies: s'esborra i no es mostra.
+    _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 29 * 86400000)")
+    context.set_offline(True)
+    page.reload()
+    expect(notice).to_be_visible()
+    context.set_offline(False)
+    page.wait_for_function("navigator.onLine")
+    _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 31 * 86400000)")
+    _offline_card_is_not_shown(page, context, base)
+
+    # El «vàlid fins al» ja ha passat: tampoc no es mostra, encara que la còpia sigui d'avui.
+    save_copy()
+    _age_the_copy(
+        page,
+        "X-Cris-Valid-Fins",
+        "(() => { const d = new Date(Date.now() - 86400000);"
+        " return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-'"
+        " + String(d.getDate()).padStart(2, '0'); })()",
+    )
+    _offline_card_is_not_shown(page, context, base)
+
     page_checks.problems[:] = [
         p for p in page_checks.problems if not any(text in p for text in OFFLINE_ERRORS)
     ]

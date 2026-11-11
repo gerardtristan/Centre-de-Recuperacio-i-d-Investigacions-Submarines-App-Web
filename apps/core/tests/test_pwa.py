@@ -138,6 +138,12 @@ def test_card_page_carries_the_hidden_offline_notice(login_as):
     assert js_string("AVIS_AMAGAT") in html  # la marca exacta que el service worker canvia
     assert "Sense connexió: aquesta còpia del carnet pot no estar al dia." in html
     assert re.search(r'Comprovat per última vegada: <time datetime="[^"]+">\d\d/\d\d/\d{4}', html)
+    # Decisió 081, punt 15: no es presenta com una comprovació en temps real, diu quant dura i
+    # porta el «vàlid fins al» que el service worker fa servir per no allargar la vigència.
+    assert "No és una comprovació en temps real de l'estat del soci." in html
+    assert "es mostra com a màxim 30 dies després d'aquesta comprovació" in html
+    validity = cards.validity(cards.load_member(member.pk), cards.active_card(member), None)
+    assert f'data-valid-fins="{validity.until:%Y-%m-%d}" data-sense-connexio hidden' in html
     # El navegador no la desa a la memòria cau HTTP: només en queda la còpia del service worker.
     assert "no-store" in response["Cache-Control"] and "private" in response["Cache-Control"]
 

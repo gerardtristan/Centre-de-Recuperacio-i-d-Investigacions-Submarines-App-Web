@@ -50,6 +50,7 @@ def card_view(request):
         # SVG generat pel servidor (qrcode), sense cap dada escrita per l'usuari.
         "qr_svg": mark_safe(svg) if svg else "",  # noqa: S308
         "can_request": cards.may_request_new_card(loaded),
+        "offline_copy_days": cards.OFFLINE_COPY_DAYS,
     }
     return render(request, "members/personal_card.html", context)
 
