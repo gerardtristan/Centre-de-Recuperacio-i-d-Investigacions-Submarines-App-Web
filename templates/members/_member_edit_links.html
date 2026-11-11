@@ -1,5 +1,5 @@
 {% load i18n %}
-{# T-M01-15b: enllaços de la fitxa a editar (P5) i a corregir la data d'alta (P6); T-M01-17: crear una baixa (P7). Amagar-los no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès (S-M01-22). #}
+{# T-M01-15b: enllaços de la fitxa a editar (P5) i a corregir la data d'alta (P6); T-M01-17: crear una baixa (P7). Amagar-los no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès (S-M01-22). T-M01-45 (5): «Crea una baixa» és un botó de text, amb menys pes que «Edita les dades». #}
 {% if can_edit or can_correct_join_date or can_create_leave %}
   {% if member.person_id == user.person_id %}
     <p class="text-2">{% translate "És el teu soci: no pots editar-ne les dades des de l'administració." %}</p>
@@ -7,7 +7,7 @@
     <p class="accions">
       {% if can_edit %}<a class="boto boto-petit" href="{% url 'administration:member_edit' member.pk %}">{% translate "Edita les dades" %}</a>{% endif %}
       {% if can_correct_join_date %}<a class="boto boto-petit" href="{% url 'administration:member_join_date' member.pk %}">{% translate "Corregeix la data d'alta" %}</a>{% endif %}
-      {% if can_create_leave %}<a class="boto boto-petit" href="{% url 'administration:member_leave_create' member.pk %}">{% translate "Crea una baixa" %}</a>{% endif %}
+      {% if can_create_leave %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_leave_create' member.pk %}">{% translate "Crea una baixa" %}</a>{% endif %}
     </p>
   {% endif %}
 {% endif %}
