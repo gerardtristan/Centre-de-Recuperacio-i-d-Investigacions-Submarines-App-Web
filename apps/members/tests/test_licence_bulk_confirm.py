@@ -28,6 +28,15 @@ from apps.members.tests.test_roster import admin_client, remove_permission
 URL = "administration:licence_bulk_confirm"
 ISSUED = datetime.date(2026, 3, 1)
 END_2026 = datetime.date(2026, 12, 31)
+
+
+@pytest.fixture(autouse=True)
+def _year_2026(monkeypatch):
+    """Les proves d'aquest fitxer passen l'any 2026: des de la decisió 085 (S-4) només es pot
+    confirmar l'any actual o el següent, i els anys d'aquí són fixos."""
+    monkeypatch.setattr(licences, "_current_year", lambda: 2026)
+
+
 WITHOUT_P19_WRITE = [
     "treasurer",
     "courses_manager",
@@ -300,5 +309,34 @@ class TestValidation:
         (record,) = pending(1)
         with pytest.raises(ValidationError):
             licences.confirm_in_bulk([record.pk], year=year, by=secretary)
+        record.refresh_from_db()
+        assert record.expires_on is None
+
+
+class TestYearLimit085:
+    """Decisió 085 (S-4, opció B): en confirmar en bloc només es pot posar l'any actual o el
+    següent, al formulari i al servei, per evitar errors de teclat."""
+
+    @pytest.mark.parametrize("year", [2025, 2028, 2062])
+    def test_other_years_are_rejected_by_the_service(self, secretary, year):
+        (record,) = pending(1)
+        with pytest.raises(ValidationError) as error:
+            licences.confirm_in_bulk([record.pk], year=year, by=secretary)
+        assert "2026 o 2027" in " ".join(error.value.messages)
+        record.refresh_from_db()
+        assert record.expires_on is None
+
+    @pytest.mark.parametrize("year", [2026, 2027])
+    def test_this_year_and_the_next_are_accepted(self, secretary, year):
+        (record,) = pending(1)
+        assert licences.confirm_in_bulk([record.pk], year=year, by=secretary) == 1
+
+    def test_the_form_says_which_years_and_rejects_the_rest(self, secretary):
+        (record,) = pending(1)
+        client = admin_client(secretary)
+        page = client.get(reverse(URL)).content.decode()
+        assert 'min="2026"' in page and 'max="2027"' in page
+        response = client.post(reverse(URL), {"records": [record.pk], "year": "2062"})
+        assert response.status_code == 200
         record.refresh_from_db()
         assert record.expires_on is None
