@@ -6,6 +6,8 @@ la preferència de tema es conserva.
 No substitueix la prova en un mòbil real feta per una persona (instal·lació, iPhone).
 """
 
+import time
+
 import pytest
 from playwright.sync_api import expect
 
@@ -21,6 +23,46 @@ def login_personal(page, base_url, account):
     page.get_by_label("Correu electrònic").fill(account.login)
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
+
+
+def go_offline(page, context, base):
+    """Posa el navegador sense connexió i comprova que ja ho està també per al service worker.
+
+    L'emulació de Playwright no sempre s'aplica a la primera petició que fa el service worker:
+    dins la suite sencera, alguna vegada la petició ha sortit a la xarxa i ha tornat la pàgina
+    del servidor. És un límit de l'eina de proves, no de la web: sense xarxa de debò el servidor
+    no pot respondre. Per això es comprova amb l'inici, que el service worker demana a la xarxa
+    sense desar res: si falla o surt la còpia, ja no hi ha connexió; si surt la pàgina del
+    servidor, es torna a provar. Així la còpia del carnet no es torna a desar per error."""
+    context.set_offline(True)
+    deadline = time.monotonic() + 15
+    while True:
+        try:
+            page.goto(f"{base}/")
+        except Exception:  # noqa: BLE001 (sense xarxa i sense còpia: el navegador ho diu)
+            return
+        if page.locator("[data-sense-connexio]:not([hidden])").count():
+            return  # la còpia del carnet: el service worker no ha arribat al servidor
+        assert time.monotonic() < deadline, "l'emulació de «sense connexió» no s'ha aplicat"
+        page.wait_for_timeout(250)
+
+
+COPY_STAMP = (
+    "async () => { const r = await (await caches.open('cris-carnet-v1')).match('/socis/carnet/');"
+    " return r ? r.headers.get('X-Cris-Copia-Desada') : null; }"
+)
+
+
+def wait_for_a_copy_saved_since(page, since):
+    """Espera que el service worker hagi acabat de desar una còpia posterior a `since` (ms del
+    navegador) i que ja no en desi cap altra: la pàgina es pot haver demanat dues vegades."""
+    deadline = time.monotonic() + 15
+    while True:
+        first = page.evaluate(COPY_STAMP)
+        page.wait_for_timeout(400)
+        if first and first == page.evaluate(COPY_STAMP) and int(first) >= since:
+            return
+        assert time.monotonic() < deadline, "el service worker no ha desat la còpia del carnet"
 
 
 def cached_card(page):
@@ -54,8 +96,8 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_hidden(timeout=15000)
 
     # Sense connexió (CA-M01-17): surt la còpia, amb l'avís i el QR.
-    context.set_offline(True)
-    page.reload()
+    go_offline(page, context, base)
+    page.goto(f"{base}/socis/carnet/")
     expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_visible()
     expect(page.get_by_text("Comprovat per última vegada:")).to_be_visible()
     expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()
@@ -77,7 +119,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "dark"
 
     # I sense connexió ja no hi ha cap carnet per mostrar.
-    context.set_offline(True)
+    go_offline(page, context, base)
     response_failed = False
     try:
         page.goto(f"{base}/socis/carnet/")
@@ -104,7 +146,7 @@ def _age_the_copy(page, header, value_js):
 
 
 def _offline_card_is_not_shown(page, context, base):
-    context.set_offline(True)
+    go_offline(page, context, base)
     failed = False
     try:
         page.goto(f"{base}/socis/carnet/")
@@ -130,29 +172,33 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     def save_copy():
         page.goto(f"{base}/socis/carnet/")
         page.evaluate("navigator.serviceWorker.ready.then(() => true)")
-        page.reload()
-        page.wait_for_function(
-            "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 1"
-        )
+        since = page.evaluate("Date.now()")
+        page.reload()  # ara segur que la serveix el service worker
+        expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()
+        wait_for_a_copy_saved_since(page, since)
 
-    save_copy()
-    context.set_offline(True)
-    page.reload()
+    def back_online():
+        """Torna la connexió: quan el servidor respon, la pàgina es recarrega, ja és la del
+        servidor (sense l'avís) i el service worker en desa una còpia nova."""
+        since = page.evaluate("Date.now()")
+        context.set_offline(False)
+        expect(notice).to_be_hidden(timeout=15000)
+        wait_for_a_copy_saved_since(page, since)
+
     notice = page.get_by_text("No és una comprovació en temps real de l'estat del soci.")
+    save_copy()
+    go_offline(page, context, base)
+    page.goto(f"{base}/socis/carnet/")
     expect(notice).to_be_visible()
     expect(page.get_by_text("es mostra com a màxim 30 dies")).to_be_visible()
-
-    # Torna la connexió: quan el servidor respon, la pàgina es recarrega i ja és la del servidor.
-    context.set_offline(False)
-    expect(notice).to_be_hidden(timeout=15000)
+    back_online()
 
     # 29 dies: encara es mostra; 31 dies: s'esborra i no es mostra.
     _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 29 * 86400000)")
-    context.set_offline(True)
-    page.reload()
+    go_offline(page, context, base)
+    page.goto(f"{base}/socis/carnet/")
     expect(notice).to_be_visible()
-    context.set_offline(False)
-    page.wait_for_function("navigator.onLine")
+    back_online()
     _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 31 * 86400000)")
     _offline_card_is_not_shown(page, context, base)
 
