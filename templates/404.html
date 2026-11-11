@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-47: text del wireframe (socis.html, «No trobat»), amb l'estructura de la 403. #}
+{# Seguretat i privacitat: és també la resposta «no trobat» sense permís (apps/core/permissions.py) i la d'un objecte #}
+{# d'un altre soci (CA-M01-25). Per això és sempre la mateixa: no repeteix l'adreça demanada, no diu si l'objecte #}
+{# existeix, no diu quin permís falta i no mostra el missatge de l'excepció. La zona surt de la sessió, mai de #}
+{# l'adreça: sense sessió d'administració no es diu que una adreça sigui de l'administració. #}
+{% block title %}{% translate "No s'ha trobat la pàgina" %} · C.R.I.S.{% endblock %}
+{% block zona %}{% if user.kind == "admin" %}admin{% else %}soci{% endif %}{% endblock %}
+{% block titol_zona %}{% if user.kind == "admin" %}{% translate "Administració" %}{% else %}{% translate "Àrea de socis" %}{% endif %}{% endblock %}
+{% block inici %}{% if user.kind == "admin" %}{% url 'administration:home' %}{% else %}{% url 'core:home' %}{% endif %}{% endblock %}
+{% block content %}
+  <h1>{% translate "No s'ha trobat la pàgina" %}</h1>
+  <p>{% translate "L'adreça no existeix o ha canviat." %}</p>
+  <p class="enllacos">
+    {% if user.kind == "admin" %}<a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a>
+    {% else %}<a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a>{% endif %}
+  </p>
+{% endblock %}

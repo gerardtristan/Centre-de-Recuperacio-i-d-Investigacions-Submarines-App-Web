@@ -73,8 +73,16 @@ class PageChecks:
         self.expected.add((status, path))
 
     def _console(self, message):
-        if message.type == "error":
-            self.problems.append(f"consola: {message.text}")
+        if message.type != "error":
+            return
+        # El navegador també escriu a la consola les respostes 4xx i 5xx. Les que la prova ha
+        # declarat amb `expect` ja es comproven a `_response`.
+        path = urlparse(message.location.get("url", "")).path
+        if message.text.startswith("Failed to load resource") and path in {
+            expected_path for _, expected_path in self.expected
+        }:
+            return
+        self.problems.append(f"consola: {message.text}")
 
     def _failed(self, request):
         self.problems.append(f"petició fallida: {request.method} {request.url} ({request.failure})")

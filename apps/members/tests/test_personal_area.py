@@ -15,6 +15,7 @@ from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import AREA_SESSION_KEY
 from apps.core import audit, charges, persons
 from apps.core.models import AuditEntry, Charge, Payment, Person
+from apps.core.tests.test_error_pages import body
 from apps.members.models import AnnualFee, Member, MemberRequest, MembershipType
 from conftest import PASSWORD
 
@@ -401,7 +402,8 @@ def test_other_members_fee_is_not_found_and_logged(client_for, anna, other):
     response = client.get(reverse(DETAIL, args=[foreign.pk]))
     missing = client.get(reverse(DETAIL, args=[foreign.pk + 1000]))
     assert response.status_code == missing.status_code == 404
-    assert response.content == missing.content
+    # La mateixa pàgina 404 (T-M01-47); només hi canvia el testimoni CSRF de cada resposta.
+    assert body(response) == body(missing)
     assert "Quota sentinella" not in response.content.decode()
     logged = list(entries(NOT_FOUND))
     assert len(logged) == 2
