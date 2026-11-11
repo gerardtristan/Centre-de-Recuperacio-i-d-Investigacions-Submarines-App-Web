@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-42: pas de ple dret a simpatitzant (073; RN-M01-73 i RN-M01-93; CA-M01-68, 71 i 106). Seguretat i privacitat: el soci surt de la sessió i cap ruta porta identificador; només un soci de ple dret actiu la pot enviar i només la pot retirar mentre és pendent, i el servidor ho torna a comprovar en desar (amagar el formulari no és cap control); cap import ni cap dada d'una altra persona; enviar-la i retirar-la queden al registre d'activitat. La frase de l'avís previ («T'avisarem un mes abans…») no surt fins que l'avís existeixi (T-M01-43). #}
+{% block title %}{% translate "Pas a simpatitzant" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
+  <h1>{% translate "Pas a simpatitzant" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+
+  {% if pending %}
+    <section class="targeta" aria-labelledby="pendent-titol">
+      <h2 id="pendent-titol">{% translate "Tens una sol·licitud pendent" %}</h2>
+      <p>{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}La vas enviar el {{ date }}. La secretaria la revisarà. Mentrestant continues sent soci de ple dret.{% endblocktranslate %}</p>
+      <form class="formulari" method="post" action="{% url 'members:change_type_withdraw' %}" novalidate>
+        {% csrf_token %}
+        <p class="text-2">{% translate "Mentre és pendent, la pots retirar i fer-ne una altra més endavant. Un cop acceptada, ja no es pot retirar." %}</p>
+        {% include "accounts/_camp.html" with field=withdraw_form.confirm %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Retira la sol·licitud" %}</button></div>
+      </form>
+    </section>
+  {% elif accepted and member.status != "left" %}
+    <section class="targeta" aria-labelledby="acceptada-titol">
+      <h2 id="acceptada-titol">{% translate "Sol·licitud acceptada" %}</h2>
+      <p>{% blocktranslate with date=accepted.resolved_at|date:"d/m/Y" %}La secretaria la va acceptar el {{ date }}. S'aplicarà en la pròxima renovació de la quota anual: fins aleshores continues sent soci de ple dret i, en renovar, ho faràs com a simpatitzant, amb la quota d'aquest tipus.{% endblocktranslate %}</p>
+      <p class="text-2">{% translate "El canvi no comporta cap devolució de la quota del període actual. Un cop acceptada, la sol·licitud ja no es pot retirar." %}</p>
+    </section>
+  {% elif problem %}
+    <section class="targeta" aria-labelledby="no-titol">
+      <h2 id="no-titol">{% translate "Ara no pots demanar el canvi" %}</h2>
+      <p>{{ problem }}</p>
+    </section>
+  {% else %}
+    <section class="targeta" aria-labelledby="canvi-titol">
+      <h2 id="canvi-titol">{% translate "Passar de ple dret a simpatitzant" %}</h2>
+      <p>{% translate "Actualment ets soci de ple dret. Pots passar a simpatitzant en la pròxima renovació de la quota anual." %}</p>
+      <ul>
+        <li>{% translate "Fins que acabi el període que ja has pagat, continues sent soci de ple dret." %}</li>
+        <li>{% translate "En la renovació següent renovaràs com a simpatitzant, amb la quota d'aquest tipus." %}</li>
+        <li>{% translate "El canvi no comporta cap devolució de la quota del període actual." %}</li>
+        <li>{% translate "Demanar-lo no té cap cost. La secretaria revisarà la sol·licitud; mentre sigui pendent, la pots retirar." %}</li>
+      </ul>
+      <form method="post" action="{% url 'members:change_type' %}">
+        {% csrf_token %}
+        <input type="hidden" name="target" value="supporter">
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la sol·licitud" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+  <p><a href="{% url 'members:profile' %}">{% translate "Torna al perfil" %}</a></p>
+{% endblock %}

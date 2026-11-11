@@ -5,7 +5,7 @@
     <li><a href="{% url 'members:profile' %}"{% if current == "members:profile" %} aria-current="page"{% endif %}>{% translate "El meu perfil" %}</a></li>
     {% if user.person.member %}<li><a href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" %} aria-current="page"{% endif %}>{% translate "Les meves quotes" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}>{% translate "El meu carnet" %}</a></li>{% endif %}
-    {% if user.person.member %}<li><a href="{% url 'members:change_type' %}"{% if current == "members:change_type" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>{% endif %}
+    {% if user.person.member %}<li><a href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
   </ul>
 </nav>{% endwith %}

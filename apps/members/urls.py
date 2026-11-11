@@ -30,5 +30,11 @@ urlpatterns = [
     path("carnet/verificar/<str:token>/", public_card.card_verify_view, name="card_verify"),
     # T-M01-17: sol·licituds de canvi de tipus i de baixa (P14).
     path("socis/canvi-tipus/", personal_requests.change_type_view, name="change_type"),
+    # T-M01-42 (073, RN-M01-93): el soci retira el seu pas a simpatitzant pendent. Només POST.
+    path(
+        "socis/canvi-tipus/retira/",
+        personal_requests.change_type_withdraw_view,
+        name="change_type_withdraw",
+    ),
     path("socis/baixa/", personal_requests.leave_view, name="leave"),
 ]

@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-17: una sol·licitud de canvi de tipus o de baixa (P3a per veure-la, P7 per resoldre-la, P7a o P8 amb edició per anul·lar el suplement vençut; la llista de quotes d'una baixa, només amb P10). Amagar els formularis no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès en desar. #}
+{# T-M01-17 i T-M01-42: una sol·licitud de canvi de tipus (també el pas a simpatitzant, 073) o de baixa (P3a per veure-la, P7 per resoldre-la, P7a o P8 amb edició per anul·lar el suplement vençut; la llista de quotes d'una baixa i la data de la renovació d'un pas a simpatitzant, només amb P10). Amagar els formularis no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès en desar. #}
 {% block title %}{{ item.get_kind_display }} · {{ item.person }} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
@@ -14,6 +14,10 @@
     <div><dt>{% translate "Tipus actual" %}</dt><dd>{{ item.member.type.name }}</dd></div>
     {% if item.requested_type %}<div><dt>{% translate "Tipus demanat" %}</dt><dd>{{ item.requested_type.name }}</dd></div>{% endif %}
     {% if supplement_amount %}<div><dt>{% translate "Import del suplement" %}</dt><dd>{{ supplement_amount }}</dd></div>{% endif %}
+    {% if awaiting_renewal %}
+      {# T-M01-42 (073): la renovació en què s'aplicarà és el «vàlid fins al» del soci; és l'estat de la quota, només amb P10, i el servidor no la passa a qui no el té. Sense «vàlid fins al», no s'inventa cap data. #}
+      <div><dt>{% translate "Renovació en què s'aplicarà" %}</dt><dd>{% if not show_renewal %}{% translate "La pròxima renovació de la quota anual. La data només la veu qui té permís per consultar les quotes." %}{% elif not renewal_on %}{% translate "Sense data: el soci no té cap «vàlid fins al»." %}{% elif renewal_passed %}{% blocktranslate with date=renewal_on|date:"d/m/Y" %}{{ date }} (el «vàlid fins al» del soci ja ha passat){% endblocktranslate %}{% else %}{{ renewal_on|date:"d/m/Y" }}{% endif %}</dd></div>
+    {% endif %}
     <div><dt>{% translate "Canal" %}</dt><dd>{{ item.get_channel_display }}</dd></div>
     <div><dt>{% translate "Enviada el" %}</dt><dd>{{ item.created_at|date:"d/m/Y" }}</dd></div>
     {% if item.request_reason %}<div><dt>{% translate "Motiu de la sol·licitud" %}</dt><dd>{{ item.request_reason|linebreaksbr }}</dd></div>{% endif %}
@@ -33,6 +37,10 @@
     <div class="avis avis-avis" role="status">{% blocktranslate with date=item.effective_on|date:"d/m/Y" %}La baixa queda programada per al {{ date }}. Fins aquell dia, l'estat del soci, el carnet i les quotes no canvien.{% endblocktranslate %}</div>
   {% endif %}
 
+  {% if awaiting_renewal and not pending %}
+    <div class="avis avis-avis" role="status">{% translate "Pas a simpatitzant acceptat. El soci continua de ple dret fins que acabi el període pagat: el tipus canviarà quan renovi, sense cap devolució. El soci ja no el pot retirar." %}</div>
+  {% endif %}
+
   {% if can_cancel_supplement %}
     <form class="formulari" method="post" action="{% url 'administration:member_request_detail' item.pk %}" novalidate>
       {% csrf_token %}
@@ -46,7 +54,9 @@
     {% if own %}
       <div class="avis avis-avis" role="status"><strong>{% translate "És la teva sol·licitud" %}</strong> {% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
     {% elif can_resolve %}
-      {% if item.kind == "change_type" %}
+      {% if downgrade %}
+        <p>{% translate "En acceptar-lo no es crea cap càrrec ni cap suplement i el tipus no canvia ara: el soci continua de ple dret fins que acabi el període pagat i, en renovar, ho farà com a simpatitzant, amb la quota d'aquest tipus. No es retorna cap diferència de la quota actual. Un cop acceptat, el soci ja no el pot retirar." %}</p>
+      {% elif item.kind == "change_type" %}
         <p>{% blocktranslate with amount=supplement_amount %}En aprovar-lo es crea un suplement de {{ amount }}, la diferència entre les dues quotes, que venç d'aquí a una setmana. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% endblocktranslate %}</p>
       {% else %}
         <section aria-labelledby="consequencies-titol">
@@ -85,7 +95,7 @@
         {% include "accounts/_camp.html" with field=form.reason %}
         <div class="accions">
           {% if item.kind == "leave" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% translate "Valida la baixa" %}</button>{% endif %}
-          {% if item.kind == "change_type" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% translate "Aprova el canvi" %}</button>{% endif %}
+          {% if item.kind == "change_type" %}<button class="boto boto-principal" type="submit" name="action" value="approve">{% if downgrade %}{% translate "Accepta el pas a simpatitzant" %}{% else %}{% translate "Aprova el canvi" %}{% endif %}</button>{% endif %}
           <button class="boto" type="submit" name="action" value="reject">{% translate "Rebutja" %}</button>
         </div>
       </form>

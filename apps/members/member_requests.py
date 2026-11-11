@@ -27,8 +27,21 @@ Tanda del 10/11/2026 (074, RN-M01-74 a 76):
   (075, RN-M01-82) o P8 amb edició (`cancel_overdue_supplement`). Mai sol.
 - Ruta `/gestio/socis/sollicituds/` confirmada (Q-052): el President hi resol amb P3a i P7.
 
-Fora d'aquí: el pas de ple dret a simpatitzant (073, T-M01-42 i T-M01-43). El destinatari del
-correu de baixa és el de `recipients.email_for` (RN-M01-78, T-M01-41).
+Pas de ple dret a simpatitzant (073 i 079, RN-M01-73 i RN-M01-93; T-M01-42):
+- El demana un soci de ple dret actiu (`request_downgrade`), en qualsevol moment del període, sense
+  suplement ni càrrec. Mentre és pendent, el soci el pot retirar (`withdraw_downgrade`: queda
+  «cancel·lada», amb registre) i en pot fer un altre; és l'única sol·licitud que el soci retira.
+- La secretaria l'accepta o el rebutja amb P7 (`approve_type_change`, `reject`). Acceptar-lo **no
+  canvia el tipus** ni crea cap càrrec, cap tasca ni cap avís: el canvi s'aplica en renovar, i això
+  és de la T-M01-43 (punts 1, 5 i 7 de la 073, oberts).
+- **Contracte per a la T-M01-43** (`accepted_downgrade`): un pas acceptat i encara no aplicat és
+  una sol·licitud `change_type` cap al tipus simpatitzant, `approved`, amb `effective_on` buit i
+  sense `supplement_fee`. Qui l'apliqui en renovar hi escriu `effective_on` (el dia de la
+  renovació), i deixa de sortir.
+- Una baixa validada cancel·la el pas **pendent** (RN-M01-74). Què passa amb un pas ja acceptat
+  quan el soci es dona de baixa no ho diu cap regla: aquí no es toca.
+
+El destinatari del correu de baixa és el de `recipients.email_for` (RN-M01-78, T-M01-41).
 
 Conflicte d'interès (S-M01-22): `ensure_not_own_member` abans d'obrir la transacció, també per
 rebutjar. El permís es torna a comprovar aquí, no només a la vista.
@@ -89,16 +102,9 @@ def _is_own_personal(member, by) -> bool:
 
 def type_change_problem(member) -> str:
     """Per què aquest soci no pot demanar el canvi a ple dret, o "" si pot (pas 1 de P-M01-B).
-    De ple dret a simpatitzant (073): explica la regla sense prometre l'avís ni la sol·licitud,
-    que són de la T-M01-42 i la T-M01-43 (text del responsable, 09/11/2026)."""
-    if member.status != Member.Status.ACTIVE:
+    El pas contrari, de ple dret a simpatitzant, és `downgrade_problem`."""
+    if member.status != Member.Status.ACTIVE or member.type.code != SUPPORTER:
         return _("Només un soci simpatitzant actiu pot demanar el canvi a ple dret.")
-    if member.type.code != SUPPORTER:
-        return _(
-            "Actualment ets soci de ple dret. El canvi a simpatitzant serà efectiu en la pròxima "
-            "renovació de la quota anual, sense devolució ni prorrateig de la quota actual. La "
-            "sol·licitud d'aquest canvi des de l'aplicació encara no està disponible."
-        )
     if has_unpaid_fees(member):  # RN-M01-75 (L-M01-04)
         return _(
             "Tens una quota sense pagar. Quan l'hagis pagada, podràs demanar el canvi a ple dret."
@@ -157,6 +163,77 @@ def request_type_change(member, *, by, request=None) -> MemberRequest:
         requested_type=target,
         request=request,
     )
+
+
+# --- Pas de ple dret a simpatitzant (073; RN-M01-73 i RN-M01-93) ----------------------------
+
+
+def is_downgrade(member_request) -> bool:
+    """Un canvi de tipus cap a simpatitzant (073)."""
+    return member_request.kind == K.CHANGE_TYPE and member_request.requested_type.code == SUPPORTER
+
+
+def downgrades(member):
+    return member.requests.filter(kind=K.CHANGE_TYPE, requested_type__code=SUPPORTER)
+
+
+def accepted_downgrade(member) -> MemberRequest | None:
+    """Contracte per a la T-M01-43: el pas a simpatitzant acceptat i encara no aplicat, o `None`.
+    És la sol·licitud `change_type` cap a simpatitzant, `approved` i amb `effective_on` buit. Qui
+    l'apliqui en renovar hi ha d'escriure `effective_on`; aquí no l'aplica ningú."""
+    return downgrades(member).filter(status=RS.APPROVED, effective_on__isnull=True).first()
+
+
+def downgrade_problem(member) -> str:
+    """Per què aquest soci no pot demanar el pas a simpatitzant, o "" si pot (CA-M01-68 i 71)."""
+    if member.status != Member.Status.ACTIVE or member.type.code != FULL:
+        return _("Només un soci de ple dret actiu pot demanar el pas a simpatitzant.")
+    if accepted_downgrade(member) is not None:
+        return _("Ja tens el pas a simpatitzant acceptat. S'aplicarà en la pròxima renovació.")
+    return ""
+
+
+def request_downgrade(member, *, by, request=None) -> MemberRequest:
+    """El soci de ple dret actiu demana el pas a simpatitzant (P14; CA-M01-68): queda pendent,
+    sense suplement ni cap càrrec, i el tipus no canvia. Un simpatitzant, un soci que no és actiu
+    o un que ja en té un de pendent o d'acceptat no el pot demanar (CA-M01-71)."""
+    if not _is_own_personal(member, by):
+        raise Http404
+    _check_account_active(by)
+    problem = downgrade_problem(member)
+    if problem:
+        raise RequestNotAllowed(problem)
+    target = MembershipType.objects.filter(code=SUPPORTER, active=True).first()
+    if target is None:
+        raise RequestNotAllowed(_("Ara no es pot demanar el pas a simpatitzant."))
+    return _create(
+        member,
+        by=by,
+        kind=K.CHANGE_TYPE,
+        channel=MemberRequest.Channel.WEB,
+        requested_type=target,
+        request=request,
+    )
+
+
+def withdraw_downgrade(member, *, by, request=None) -> MemberRequest:
+    """El soci retira el seu pas a simpatitzant mentre és pendent (RN-M01-93, punt 4;
+    CA-M01-106): passa a «cancel·lada», amb registre, i en pot fer un altre. Un cop acceptat o
+    rebutjat, ja no es pot retirar. Cap altra sol·licitud no la retira el soci."""
+    if not _is_own_personal(member, by):
+        raise Http404
+    with transaction.atomic():
+        _check_account_active(by, lock=True)
+        Member.objects.select_for_update(of=("self",)).get(pk=member.pk)
+        locked = (
+            downgrades(member).select_for_update(of=("self",)).filter(status=RS.PENDING).first()
+        )
+        if locked is None:
+            raise RequestNotAllowed(
+                _("No tens cap pas a simpatitzant pendent. Un cop acceptat, ja no es pot retirar.")
+            )
+        _close(locked, RS.CANCELLED, by=by, reason=_("Retirada pel soci"), request=request)
+    return locked
 
 
 def request_leave(member, *, by, reason, request=None) -> MemberRequest:
@@ -242,10 +319,14 @@ def has_unpaid_fees(member) -> bool:
     return AnnualFee.objects.filter(member=member, charge__status__in=UNPAID_CHARGE).exists()
 
 
-def approve_type_change(member_request, *, by, reason="", request=None) -> AnnualFee:
+def approve_type_change(member_request, *, by, reason="", request=None) -> AnnualFee | None:
     """Aprova un canvi a ple dret (P7; Q-049, Q-050, Q-053): crea el suplement, que venç d'aquí a
     `SUPPLEMENT_DUE_DAYS` (RN-M01-76), i deixa la sol·licitud aprovada sense data efectiva; el
-    canvi es fa quan es paga (`on_fee_paid`). Amb una quota sense pagar, es rebutja (RN-M01-75)."""
+    canvi es fa quan es paga (`on_fee_paid`). Amb una quota sense pagar, es rebutja (RN-M01-75).
+
+    Un pas a simpatitzant (073; RN-M01-93, punt 2) s'accepta sense suplement ni cap càrrec i
+    torna `None`: el tipus no canvia i la sol·licitud queda com diu `accepted_downgrade`, perquè
+    la T-M01-43 l'apliqui en renovar."""
     _check_resolver(member_request, by, request)
     if member_request.kind != K.CHANGE_TYPE:
         raise RequestNotAllowed(_("Aquesta sol·licitud no és un canvi de tipus."))
@@ -254,6 +335,12 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
         member = Member.objects.select_related("person", "type").get(pk=locked.member_id)
         if member.status != Member.Status.ACTIVE:
             raise RequestNotAllowed(_("Només es pot canviar el tipus d'un soci actiu."))
+        if is_downgrade(locked):
+            if member.type.code != FULL:
+                raise RequestNotAllowed(_("Aquest soci ja no és de ple dret."))
+            _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)
+            member_request.refresh_from_db()
+            return None
         if has_unpaid_fees(member):
             raise RequestNotAllowed(
                 _(
