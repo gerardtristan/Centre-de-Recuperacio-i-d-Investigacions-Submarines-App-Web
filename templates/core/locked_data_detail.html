@@ -1,0 +1,57 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M00-04: consulta de les dades bloquejades d'una persona (M13, protegit; CA-19.3, RN-91). Seguretat i privacitat: M13 al servidor (sense permís, «no trobat»); un GET només mostra la referència anònima i el formulari; les dades només surten a la resposta d'un POST amb motiu, que queda al registre d'activitat (qui, quan i motiu, cap valor); la resposta no es desa a la memòria cau; només el mínim que identifica qui va pagar (nom i document [A validar: gestoria, Q-14]) i els registres econòmics, sense correu, telèfon, adreça ni data de naixement. Amagar el resultat no és cap control: el servei torna a comprovar M13 i el motiu. #}
+{% block title %}{% translate "Dades bloquejades" %} · {{ item.person.anonymous_ref }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Dades bloquejades" %}</p>
+  <h1>{% blocktranslate with ref=item.person.anonymous_ref %}Dades bloquejades: {{ ref }}{% endblocktranslate %}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Referència anònima" %}</dt><dd>{{ item.person.anonymous_ref }}</dd></div>
+    <div><dt>{% translate "Bloquejades el" %}</dt><dd>{{ item.locked_at|date:"d/m/Y H:i" }}</dd></div>
+  </dl>
+  {% if result %}
+    <div class="avis avis-avis" role="status"><strong>{% translate "Consulta registrada." %}</strong> {% translate "Aquestes dades només es poden fer servir per a l'obligació legal que has escrit. No les copiïs ni les desis fora de la plataforma." %}</div>
+    <section aria-labelledby="identitat-titol">
+      <h2 id="identitat-titol">{% translate "Identitat" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Nom" %}</dt><dd>{{ result.identity.first_name }}</dd></div>
+        <div><dt>{% translate "Cognoms" %}</dt><dd>{{ result.identity.last_name|default:"—" }}</dd></div>
+        <div><dt>{% translate "Document" %}</dt><dd>{% if result.identity.id_document_number %}{{ result.identity.id_document_type|upper }} {{ result.identity.id_document_number }}{% else %}—{% endif %}</dd></div>
+      </dl>
+    </section>
+    <section aria-labelledby="registres-titol">
+      <h2 id="registres-titol">{% translate "Registres econòmics" %}</h2>
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Concepte" %}</th>
+            <th scope="col">{% translate "Data" %}</th>
+            <th scope="col">{% translate "Import" %}</th>
+            <th scope="col">{% translate "Estat" %}</th>
+            <th scope="col">{% translate "Pagaments" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in result.records %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ record.charge.concept }}</th>
+              <td data-etiqueta="{% translate 'Data' %}">{{ record.charge.created_at|date:"d/m/Y" }}</td>
+              <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ record.amount }}</span></td>
+              <td data-etiqueta="{% translate 'Estat' %}">{{ record.charge.get_status_display }}</td>
+              <td data-etiqueta="{% translate 'Pagaments' %}">{% for payment, amount in record.payments %}{{ payment.get_method_display }} · <span class="import">{{ amount }}</span>{% if payment.paid_at %} · {{ payment.paid_at|date:"d/m/Y" }}{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% else %}
+    <form class="formulari targeta" method="post" action="{% url 'administration:locked_data_detail' item.pk %}" aria-labelledby="consulta-titol" novalidate>
+      {% csrf_token %}
+      <h2 id="consulta-titol">{% translate "Consulta per obligació legal" %}</h2>
+      {% include "accounts/_camp.html" with field=form.reason %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Consulta les dades" %}</button></div>
+    </form>
+  {% endif %}
+  <p><a href="{% url 'administration:locked_data' %}">{% translate "Torna a les dades bloquejades" %}</a></p>
+{% endblock %}

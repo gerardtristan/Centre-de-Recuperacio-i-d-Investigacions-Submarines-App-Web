@@ -547,6 +547,33 @@ class ErasureRequest(models.Model):
         return f"{self.person_id} {self.status}"
 
 
+class LockedIdentity(models.Model):
+    """Dades bloquejades d'una persona anonimitzada (T-M00-04; decisió 028, punt 2; 058, punt 7;
+    CA-19.3, RN-91). En anonimitzar una persona que té registres econòmics, la identitat que hi
+    surt (`locked_data.FIELDS` [A validar: gestoria, Q-14]) es desa aquí, xifrada, abans de
+    buidar-la de la persona. Només es llegeix amb M13 i un motiu (`locked_data.consult`), i cada
+    lectura queda al registre d'activitat. Cap altra pantalla, cerca ni exportació no hi accedeix.
+
+    El termini de conservació i què se'n fa quan venç (CA-19.5, RN-90) depenen de la Q-14: la data
+    d'inici és `locked_at`. Una per persona."""
+
+    person = models.OneToOneField(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="locked_identity",
+        verbose_name=_("persona"),
+    )
+    payload_encrypted = models.TextField(_("dades xifrades"))
+    locked_at = models.DateTimeField(_("bloquejades el"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("dades bloquejades")
+        verbose_name_plural = _("dades bloquejades")
+
+    def __str__(self):
+        return f"{self.person_id}"
+
+
 class UndeletableError(Exception):
     """Intent d'esborrar un registre econòmic: es corregeix amb una anul·lació (RN-61)."""
 

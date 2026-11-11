@@ -24,7 +24,7 @@
   </dl>
 
   {% if item.status == "executed" %}
-    <div class="avis avis-avis" role="status">{% translate "Les dades personals d'aquesta persona s'han anonimitzat i els seus comptes estan desactivats. Les quotes i els pagaments queden bloquejats: no s'esborren ni es modifiquen." %}</div>
+    <div class="avis avis-avis" role="status">{% translate "Les dades personals d'aquesta persona s'han anonimitzat i els seus comptes estan desactivats. Les quotes i els pagaments queden bloquejats: no s'esborren ni es modifiquen, i la identitat que hi surt només es consulta a «Dades bloquejades», amb un motiu." %}</div>
   {% endif %}
 
   {% if pending %}
@@ -37,7 +37,7 @@
           {% for line in consequences %}<li>{{ line }}</li>{% endfor %}
           <li>{% translate "Es desactivaran tots els seus comptes i se'n tancaran les sessions." %}</li>
           <li>{% translate "S'anonimitzaran les seves dades personals: nom, document, correu, telèfon, adreça i data de naixement. Al registre d'activitat, el que la identifica se substituirà per una referència anònima." %}</li>
-          <li>{% translate "Les quotes, els càrrecs i els pagaments no s'esborren ni es modifiquen: queden bloquejats, lligats a la referència anònima." %}</li>
+          <li>{% translate "Les quotes, els càrrecs i els pagaments no s'esborren ni es modifiquen: queden bloquejats, lligats a la referència anònima. Si en té, el nom i el document que hi surten es conserven xifrats fins al final del termini legal i només es consulten amb el permís de dades bloquejades i un motiu." %}</li>
           <li>{% translate "Rebrà un correu de confirmació, l'últim." %}</li>
         </ul>
       </section>

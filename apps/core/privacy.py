@@ -20,10 +20,10 @@ d'altres persones (vegeu `EXPORT_NOTE`).
 5. al registre d'activitat, el que identifica la persona se substitueix per la referència.
 Si un pas falla, no queda res fet.
 
-**Dades bloquejades (028, punt 2; CA-19.3).** Els càrrecs, els pagaments i les quotes no
-s'esborren ni es modifiquen: queden lligats a la persona anonimitzada. «Bloquejada» vol dir
-exactament això: un registre econòmic d'una persona amb `status = anonymised`. La consulta per
-obligació legal (M13) és de la T-M00-04, que pot partir d'aquesta definició.
+**Dades bloquejades (028, punt 2; 058, punt 7; CA-19.3).** Els càrrecs, els pagaments i les
+quotes no s'esborren ni es modifiquen: queden lligats a la persona anonimitzada. La identitat que
+hi surt es bloqueja abans d'anonimitzar (`locked_data.lock`, xifrada) i només es consulta amb M13
+i un motiu (T-M00-04).
 
 **Termini de conservació: PUNT D'EXTENSIÓ, sense codi (Q-14 [A verificar: gestoria]).** Quant de
 temps es conserven les dades bloquejades no està decidit, i aquí no hi ha cap nombre d'anys ni
@@ -48,7 +48,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from . import audit, files, mail
+from . import audit, files, locked_data, mail
 from .models import OutgoingEmail, Person, PrivateFile
 from .persons import ANONYMISED_NOT_EDITABLE, anonymous_ref_for
 
@@ -250,6 +250,10 @@ def anonymise_person(person, *, by, request=None) -> Person:
         before = audit.last_entry_id()
         known_addresses = {locked.contact_email, *accounts_privacy.addresses(locked)} - {""}
 
+        # 0. La identitat que surt als registres econòmics es bloqueja, xifrada, abans de buidar-la
+        # (028, punt 2; 058, punt 7; CA-19.3; T-M00-04). Només si en té.
+        blocked = locked_data.lock(locked)
+
         # 1. La persona (CA-19.2). El nom passa a ser la referència: res no queda en blanc on
         # una pantalla el mostri. La llengua torna a la de reserva (061).
         locked.status = Person.Status.ANONYMISED
@@ -286,4 +290,6 @@ def anonymise_person(person, *, by, request=None) -> Person:
         targets["core.erasurerequest"] = list(locked.erasure_requests.values_list("pk", flat=True))
         # 5. Registre d'activitat (CA-19.4), només les entrades anteriors a l'esborrat.
         audit.substitute_identity(locked, targets, up_to=before)
+        if blocked is not None:
+            locked_data.record_locked(locked, by=by, request=request)
     return locked
