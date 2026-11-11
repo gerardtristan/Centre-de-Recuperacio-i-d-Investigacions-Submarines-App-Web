@@ -45,7 +45,6 @@ def deploy_env() -> dict:
             "EMAIL_HOST": "smtp.example.invalid",
             "EMAIL_HOST_USER": "proves",
             "EMAIL_HOST_PASSWORD": "contrasenya-de-proves-1954",
-            "EMAIL_ALERT_TO": "administracio@example.invalid",
             "S3_BUCKET_FITXERS": "cris-ci",
             "S3_ENDPOINT_URL": "https://s3.example.invalid",
             "S3_ACCESS_KEY_ID": "proves",

@@ -34,6 +34,11 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 
+# Avís del 80 % del límit diari de correu (T-M00-06; decisions 081, punt 21, i 084): només
+# l'administrador, a l'adreça del club que ha donat el responsable. Es pot canviar amb la variable
+# d'entorn sense tocar el codi. Fora de producció no hi ha cap adreça per defecte (base.py).
+EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=["cris@cris.es"])
+
 # Fitxers privats a Scaleway Object Storage (París), un bucket privat per entorn (decisió 005).
 # Que el bucket no es pugui llistar ni sigui públic es configura a Scaleway.
 PRIVATE_FILES_LOCAL_ALLOWED = False

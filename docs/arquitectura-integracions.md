@@ -332,7 +332,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `EMAIL_DAILY_LIMIT` | Límit diari del pla, sumant totes les categories (per defecte 300, el del pla gratuït). El dia és el de l'hora local. Amb el límit ple, els correus queden ajornats i surten l'endemà per l'ordre de V-07 (T-M00-06) |
 | `EMAIL_TRANSACTIONAL_RESERVE` | Enviaments reservats cada dia per als transaccionals (per defecte 100): el butlletí només pot gastar el límit menys la reserva |
 | `EMAIL_ALERT_THRESHOLD_PCT` | Percentatge del límit que dispara l'únic avís del dia (per defecte 80) |
-| `EMAIL_ALERT_TO` | Adreça de l'administrador, l'únic que rep l'avís (decisió 081, punt 21; Q-26 resolta). Buida per defecte: l'avís només queda al registre d'activitat i **no és operatiu**; `check --deploy` ho marca (`core.W001`). Una adreça mal escrita és un error (`core.E001`). Pendent de configuració: l'adreça real |
+| `EMAIL_ALERT_TO` | Adreça de l'administrador, l'únic que rep l'avís (decisió 081, punt 21; Q-26 resolta). **A producció, per defecte `cris@cris.es`** (decisió 084; `config/settings/prod.py`); la variable d'entorn la pot canviar. En local i a les proves no té valor per defecte i l'avís només queda al registre d'activitat. Si quedés buida a producció, `check --deploy` ho marca (`core.W001`); una adreça mal escrita és un error (`core.E001`) |
 | `BREVO_WEBHOOK_SECRET` | Verificació dels avisos de rebots i baixes |
 
 ### Pagaments (Stripe i transferència)

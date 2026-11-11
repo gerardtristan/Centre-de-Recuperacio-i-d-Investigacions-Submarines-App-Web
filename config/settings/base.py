@@ -161,9 +161,10 @@ EMAIL_MAX_ATTEMPTS = env.int("EMAIL_MAX_ATTEMPTS", default=5)
 # pot gastar perquè es reserva per als transaccionals (RN-A4, V-07). Els dies són en hora local.
 EMAIL_DAILY_LIMIT = env.int("EMAIL_DAILY_LIMIT", default=300)
 EMAIL_TRANSACTIONAL_RESERVE = env.int("EMAIL_TRANSACTIONAL_RESERVE", default=100)
-# Un sol avís al dia quan els enviaments arriben a aquest percentatge del límit (RN-A6). Qui el
-# rep és la Q-26 [A validar]: sense adreces (separades per comes), només queda al registre
-# d'activitat.
+# Un sol avís al dia quan els enviaments arriben a aquest percentatge del límit (RN-A6). El rep
+# només l'administrador (decisió 081, punt 21). Aquí, per a desenvolupament i proves, no hi ha
+# cap adreça per defecte i l'avís només queda al registre d'activitat; producció hi posa la del
+# club (prod.py, decisió 084).
 EMAIL_ALERT_THRESHOLD_PCT = env.int("EMAIL_ALERT_THRESHOLD_PCT", default=80)
 EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])
 
