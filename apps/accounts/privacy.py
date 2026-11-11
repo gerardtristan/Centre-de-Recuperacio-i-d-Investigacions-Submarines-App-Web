@@ -8,9 +8,9 @@ El crida `apps.core.privacy`, que porta l'exportació i l'esborrat d'una persona
   persona (correu d'entrada o nom d'usuari, i correu de notificació) se substitueix per la
   referència anònima. La contrasenya queda inservible: un compte desactivat que algú tornés a
   activar tampoc no deixaria entrar. Les invitacions vives s'invaliden (079, punt 10).
-- **TOTP i codis de recuperació:** no es toquen. La 028 no en diu res i el flux d'alta, baixa i
-  restabliment del TOTP no és d'aquesta tasca; el compte desactivat no els pot fer servir.
-  Esborrar-los és una pregunta oberta a l'informe de la T-M01-22.
+- **TOTP i codis de recuperació:** s'eliminen (decisió 081, punt 18), amb el nombre de codis
+  eliminats al registre. Els enllaços del correu també deixen de valer, perquè l'empremta dels
+  testimonis inclou l'estat i la contrasenya (`tokens.py`).
 """
 
 from django.core.exceptions import ValidationError
@@ -19,7 +19,7 @@ from apps.core import audit, roles
 from apps.core.persons import anonymous_email
 
 from . import invitations, limits
-from .models import Account, EmailLinkRequest, FailedLogin
+from .models import Account, EmailLinkRequest, FailedLogin, RecoveryCode, TotpDevice
 
 
 def export(person) -> list[dict]:
@@ -86,6 +86,10 @@ def anonymise(person, *, by, known_addresses=(), request=None) -> list[int]:
         account.end_all_sessions()
         # Intents fallits: una adreça IP lligada al compte.
         FailedLogin.objects.filter(account=account).delete()
+        # Decisió 081, punt 18: el secret TOTP i els codis de recuperació s'eliminen. El compte
+        # ja no pot entrar (desactivat i sense contrasenya), però no se'n conserva cap factor.
+        totp_removed, _ = TotpDevice.objects.filter(account=account).delete()
+        codes_removed, _ = RecoveryCode.objects.filter(account=account).delete()
         audit.record(
             audit.Action.ACCOUNT_DISABLED_BY_ERASURE,
             actor=by,
@@ -93,6 +97,10 @@ def anonymise(person, *, by, known_addresses=(), request=None) -> list[int]:
             field="status",
             old=old_status,
             new=account.status,
+            details={
+                "second_factor_removed": bool(totp_removed),
+                "backup_codes_removed": codes_removed,
+            },
             request=request,
         )
         ids.append(account.pk)

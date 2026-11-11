@@ -523,6 +523,39 @@ class TestErasure:
         disabled = AuditEntry.objects.filter(action=audit.Action.ACCOUNT_DISABLED_BY_ERASURE)
         assert disabled.count() == 2
 
+    def test_081_totp_and_recovery_codes_are_deleted(
+        self,
+        brunilda,
+        staff,
+        make_admin,  # noqa: F811
+    ):
+        """Decisió 081, punt 18: l'esborrat elimina el secret TOTP i els codis de recuperació de
+        tots els comptes de la persona, i cap mecanisme d'accés no continua vigent (enllaç de
+        recuperació de la contrasenya)."""
+        from apps.accounts import tokens
+        from apps.accounts.models import TotpDevice
+
+        admin = make_admin("secretary", person=brunilda.person, username="brunilda.t")
+        totp.regenerate_recovery_codes(admin)
+        assert TotpDevice.objects.filter(account__person=brunilda.person).count() == 2
+        assert RecoveryCode.objects.filter(account=admin).exists()
+        reset_token = tokens.make_token(brunilda.account, tokens.RESET_PASSWORD)
+        assert tokens.account_for_token(reset_token, tokens.RESET_PASSWORD) is not None
+        erase(brunilda, staff)
+
+        assert not TotpDevice.objects.filter(account__person=brunilda.person).exists()
+        assert not RecoveryCode.objects.filter(account__person=brunilda.person).exists()
+        assert tokens.account_for_token(reset_token, tokens.RESET_PASSWORD) is None
+        entry = AuditEntry.objects.get(
+            action=audit.Action.ACCOUNT_DISABLED_BY_ERASURE, target_id=str(admin.pk)
+        )
+        assert entry.details["second_factor_removed"] is True
+        assert entry.details["backup_codes_removed"] >= 1
+        personal = AuditEntry.objects.get(
+            action=audit.Action.ACCOUNT_DISABLED_BY_ERASURE, target_id=str(brunilda.account.pk)
+        )
+        assert personal.details["second_factor_removed"] is True
+
     def test_ca_19_2_no_original_value_is_left_in_any_table(
         self, brunilda, staff, django_capture_on_commit_callbacks
     ):
