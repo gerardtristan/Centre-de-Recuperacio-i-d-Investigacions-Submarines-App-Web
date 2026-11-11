@@ -32,8 +32,9 @@ Què fa, en una sola transacció (si falla qualsevol pas, no queda res escrit):
 
 Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la regla):
 - Fila importable = nova, sense errors i amb el tipus de document (deduït o triat). Una fila
-  **sense document** continua pendent («id_document»): com s'importa un soci sense document no
-  està decidit. Sense data d'alta, s'importa sense cap data i no es mostra l'antiguitat (072,
+  **sense document** continua pendent («id_document») i no s'importa mai sola (decisió 081, punt
+  19, opció A): s'ha d'excloure expressament, la línia en guarda el motiu i la secretaria en fa
+  l'alta a mà, on valen les excepcions dels menors (RN-M01-70). No s'inventa cap document. Sense data d'alta, s'importa sense cap data i no es mostra l'antiguitat (072,
   Q-075); l'entrada inicial de l'historial porta la data de la importació.
 - Les files de baixa a Cluber (072, Q-071, que modifica el punt 7 de la 071) no s'importen mai:
   queden excloses soles, amb el codi «left_in_cluber» a la seva línia, que és la llista per a la

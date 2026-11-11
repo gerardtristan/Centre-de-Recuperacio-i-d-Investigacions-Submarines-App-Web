@@ -415,3 +415,33 @@ class TestImportedText:
         with pytest.raises(ValidationError):
             consents.grant_imported(make_person(), text, by=None)
         assert Consent.objects.count() == 0
+
+
+@allowed
+class TestRowsWithoutDocument081:
+    """Decisió 081, punt 19 (opció A): una fila de Cluber sense document no s'importa mai sola,
+    tampoc la d'un menor; queda pendent perquè la secretaria revisi el cas i en faci l'alta a mà
+    (on s'apliquen les excepcions aprovades per als menors, RN-M01-70). No es descarta en
+    silenci ni s'inventa cap document: la confirmació no avança fins que s'exclou expressament i
+    la línia en guarda el motiu."""
+
+    @pytest.mark.parametrize("birth", ["09/04/1988", "01/03/2016"])  # adult i menor
+    def test_never_imported_and_never_dropped_silently(self, admin, birth):
+        from apps.members.imports.cluber_sample import dni
+
+        with_document = importable_record(2, {"Document d'Identitat": dni(4242)})
+        data = build([importable_record(1, {"Data de Naixament": birth}), with_document])
+        preview = cluber.preview(data, keep_values=True)
+        assert "id_document" in preview.rows[0].pending
+        before = snapshot()
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(data, by=admin)
+        assert (refused.value.code, refused.value.rows) == ("rows_unresolved", (2,))
+        assert snapshot() == before
+        batch = final.confirm(data, by=admin, excluded_rows=[2])
+        assert (batch.new_count, batch.excluded_count) == (1, 1)
+        line = batch.lines.get(row=2)
+        assert (line.result, line.person) == (ImportLine.Result.EXCLUDED, None)
+        assert "id_document" in line.codes
+        # Només s'ha importat la fila amb document; cap persona sense document ni inventada.
+        assert Member.objects.get().person.id_document_number == dni(4242)
