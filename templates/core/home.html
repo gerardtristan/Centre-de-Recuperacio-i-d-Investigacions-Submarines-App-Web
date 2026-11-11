@@ -4,6 +4,7 @@
 {% block content %}
   <h1>{% translate "Plataforma del C.R.I.S." %}</h1>
   <p>{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
+  {% load member_notices %}{% birth_date_notice %}
   <p><a href="{% url 'accounts:security' %}">{% translate "Seguretat del compte" %}</a></p>
   <form method="post" action="{% url 'accounts:logout' %}">
     {% csrf_token %}

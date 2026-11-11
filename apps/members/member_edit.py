@@ -52,6 +52,7 @@ OWN_MEMBER = _("És el teu soci: no pots editar-ne les dades des de l'administra
 NAME_FIELDS = ("first_name", "last_name")
 CONTACT_FIELDS = ("contact_email", "phone", "landline")
 # L'adreça desglossada (072, P-58) va amb l'adreça: només amb C2.
+BIRTH_DATE_FIELDS = ("birth_date",)
 IDENTITY_FIELDS = (
     "id_document_type",
     "id_document_number",
@@ -72,6 +73,8 @@ def editable_fields(user, perms=None) -> tuple[str, ...]:
         NAME_FIELDS
         + (CONTACT_FIELDS if vis.full else ())
         + (IDENTITY_FIELDS if vis.identity else ())
+        # T-M01-35 (RN-M01-55): la data de naixement, només amb C1 (protegit, RN-M01-48).
+        + (BIRTH_DATE_FIELDS if vis.birth_date else ())
     )
 
 
@@ -105,7 +108,21 @@ def edit_member_data(member, *, by, fields, request=None) -> list[str]:
             and not may_clear_document(person)
         ):
             raise ValidationError(DOCUMENT_REQUIRED)
-        return persons.update(person, by=by, request=request, **fields)
+        fields = dict(fields)
+        changed = []
+        if "birth_date" in fields:
+            # RN-M01-55: es completa o es corregeix; no es treu. El registre no guarda la data.
+            new_date = fields.pop("birth_date")
+            if new_date is None and person.birth_date is not None:
+                raise ValidationError(BIRTH_DATE_REQUIRED)
+            if new_date is not None and persons.set_birth_date(
+                person, new_date, by=by, request=request, source="member_edit"
+            ):
+                changed.append("birth_date")
+        return changed + persons.update(person, by=by, request=request, **fields)
+
+
+BIRTH_DATE_REQUIRED = _("La data de naixement no es pot treure, només corregir.")
 
 
 DOCUMENT_REQUIRED = _(
@@ -188,6 +205,14 @@ class MemberDataForm(forms.Form):
     postal_code = forms.CharField(label=_("Codi postal (opcional)"), max_length=10, required=False)
     city = forms.CharField(label=_("Població (opcional)"), max_length=100, required=False)
     province = forms.CharField(label=_("Província (opcional)"), max_length=100, required=False)
+    # T-M01-35: només amb C1. Una data futura es rebutja (079, A-10).
+    birth_date = forms.DateField(
+        label=_("Data de naixement"),
+        required=False,
+        input_formats=["%Y-%m-%d", "%d/%m/%Y"],
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        error_messages={"invalid": _("Escriu una data vàlida, per exemple 12/03/1987.")},
+    )
 
     def __init__(self, data=None, *, person, fields):
         self.person = person
@@ -222,6 +247,14 @@ class MemberDataForm(forms.Form):
         if parsed is None:
             raise ValidationError(DOCUMENT_INVALID)
         return parsed
+
+    def clean_birth_date(self):
+        value = self.cleaned_data["birth_date"]
+        if value is None and self.person.birth_date is not None:
+            raise ValidationError(BIRTH_DATE_REQUIRED)
+        if value is not None:
+            persons.check_birth_date(value)
+        return value
 
     def person_fields(self) -> dict:
         data = dict(self.cleaned_data)

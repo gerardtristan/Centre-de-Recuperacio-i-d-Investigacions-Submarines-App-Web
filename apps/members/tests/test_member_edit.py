@@ -74,6 +74,8 @@ def data(member, **changes):
         "phone": p.phone,
         "id_document": p.id_document_number,
         "address": p.address,
+        # T-M01-35: el formulari porta la data que ja hi ha (amb C1).
+        "birth_date": p.birth_date.isoformat() if p.birth_date else "",
     }
     return {**values, **changes}
 
@@ -168,6 +170,7 @@ class TestFields:
             "postal_code",
             "city",
             "province",
+            "birth_date",  # T-M01-35: amb C1, que la secretaria té (RN-M01-55)
         )
 
     def test_without_c2_document_and_address_are_ignored(self, secretary):

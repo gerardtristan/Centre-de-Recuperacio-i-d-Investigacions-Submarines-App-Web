@@ -40,7 +40,7 @@ from apps.core import audit, consents, mail
 from apps.core.models import LegalText, Person
 from apps.core.normalization import normalize_email, normalize_phone
 from apps.core.permissions import has_perm
-from apps.core.persons import create_or_get
+from apps.core.persons import check_birth_date, create_or_get
 
 from . import fee_rules, recipients
 from .models import JoinAcceptance, MemberRequest
@@ -133,6 +133,8 @@ def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True
     només a la vista (T-M01-37): sense permís, «no trobat»."""
     if channel != MemberRequest.Channel.WEB and not has_perm(by, IN_PERSON_PERMISSION):
         raise Http404
+    # 079 (A-10): una data de naixement futura es rebutja també al servei, abans de res.
+    check_birth_date(data["birth_date"], data.get("on"))
     fields = {
         "first_name": data["first_name"],
         "last_name": data["last_name"],

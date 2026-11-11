@@ -29,7 +29,7 @@ from apps.accounts.security import WRONG_CODE, WRONG_PASSWORD
 from apps.core import audit, consents, erasure, persons, privacy
 from apps.core.models import Charge, Consent
 
-from .. import join, licences, roster
+from .. import birth_date, join, licences, roster
 from ..forms import LEGAL_LABELS, ChangeEmailForm, EraseAccountForm, ProfileForm
 from ..models import AnnualFee, LicenceRecord, Member
 
@@ -84,7 +84,9 @@ def profile_view(request):
     return _render_profile(request, form=form)
 
 
-def _render_profile(request, *, form=None, declare_form=None, email_form=None):
+def _render_profile(
+    request, *, form=None, declare_form=None, email_form=None, birth_date_form=None
+):
     person = request.user.person
     member = own_member(request)
     records = []
@@ -111,8 +113,29 @@ def _render_profile(request, *, form=None, declare_form=None, email_form=None):
         "licence_records": records,
         # T-M01-22: l'exportació pròpia que encara es pot descarregar (7 dies, V-08).
         "export": privacy.live_export(person),
+        # T-M01-35 (RN-M01-55): només si encara no té data; un cop desada, ja no s'ofereix.
+        "birth_date_missing": birth_date.missing_for(person),
+        "birth_date_form": (
+            birth_date_form or birth_date.BirthDateForm() if person.birth_date is None else None
+        ),
     }
     return render(request, "members/personal_profile.html", context)
+
+
+@never_cache
+@require_POST
+def birth_date_view(request):
+    """T-M01-35 (RN-M01-55, CA-M01-43): el soci completa la seva data de naixement, només si
+    encara no en té. La persona és la de la sessió; una data ja desada no es canvia aquí."""
+    person = request.user.person
+    form = birth_date.BirthDateForm(request.POST)
+    if person.birth_date is None and form.is_valid():
+        birth_date.complete_own(
+            person, form.cleaned_data["birth_date"], by=request.user, request=request
+        )
+        messages.success(request, _("Data de naixement desada. Gràcies."))
+        return redirect("members:profile")
+    return _render_profile(request, birth_date_form=form)
 
 
 @never_cache

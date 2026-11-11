@@ -51,6 +51,7 @@ ROUTES = {
     "members:declare_expiry": OWN,
     "members:consent": OWN,
     "members:change_email": OWN,
+    "members:birth_date": OWN,
     "members:erase": OWN,
     "members:export_data": OWN,
     "members:fees": OWN,

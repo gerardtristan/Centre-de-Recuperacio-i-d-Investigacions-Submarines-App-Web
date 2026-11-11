@@ -28,6 +28,8 @@ urlpatterns = [
     # T-M01-16 (074): consentiments opcionals (Q-031) i canvi del correu d'entrada (RN-M01-79).
     path("socis/perfil/consentiment/", personal.consent_view, name="consent"),
     path("socis/perfil/correu/", personal.change_email_view, name="change_email"),
+    # T-M01-35 (RN-M01-55): el soci completa la data de naixement que falta.
+    path("socis/perfil/naixement/", personal.birth_date_view, name="birth_date"),
     # T-M01-22, peça mínima (074): sol·licitud d'esborrat (RN-M01-57, CA-M01-46).
     path("socis/perfil/esborrar/", personal.erase_view, name="erase"),
     # T-M01-22: «Descarrega les meves dades» (P-M01-F, passos 1 i 2; CA-M01-18).

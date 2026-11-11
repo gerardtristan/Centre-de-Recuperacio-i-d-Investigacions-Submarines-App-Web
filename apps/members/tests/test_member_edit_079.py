@@ -63,7 +63,7 @@ class TestCaM0199MemberNumber:
         assert member.member_number == number
         assert member.person.first_name == "Anna Maria"
 
-    @pytest.mark.parametrize("field", ["member_number", "birth_date", "status", "type"])
+    @pytest.mark.parametrize("field", ["member_number", "status", "type", "joined_on"])
     def test_ca_m01_99_service_rejects_fields_that_are_not_editable(self, secretary, field):
         member = a_member()
         number = member.member_number
