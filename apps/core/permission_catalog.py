@@ -298,6 +298,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         touches_personal_data=True,
     ),
     _perm(
+        "members.card.revoke",
+        "P21",
+        _("Revocar el carnet d'un soci, amb motiu"),
+        # 079 (A-21, RN-M01-92): acció nova, inicialment només de la secretaria.
+        requires=("members.list",),
+        initial={R.SECRETARY: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
         "members.field.birth_date",
         "C1",
         _("Camp: data de naixement"),

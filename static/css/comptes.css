@@ -124,3 +124,14 @@ figure { margin: 0; }
 .navegacio-compte ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
 .navegacio-compte a { display: inline-flex; align-items: center; min-height: var(--tactil); }
 .navegacio-compte a[aria-current="page"] { font-weight: var(--p-semi); color: var(--c-text); }
+
+/* Carnet (T-M01-19; 079, RN-M01-85 i 92): el QR centrat amb la seva explicació */
+.carnet-qr { display: grid; gap: var(--e-2); justify-items: center; text-align: center; }
+/* Impressió i «Desa com a PDF»: només el contingut de la pàgina, sense capçalera, navegació ni accions.
+   El tema clar el força static/js/imprimeix.js mentre s'imprimeix. */
+@media print {
+  /* «!important»: és una utilitat, i ha de guanyar els «display» de les regles de disposició del cos. */
+  .capcalera-compte, .salt, .no-imprimeix { display: none !important; }
+  .cos-compte { max-width: none; padding: 0; }
+  .targeta { box-shadow: none; break-inside: avoid; }
+}

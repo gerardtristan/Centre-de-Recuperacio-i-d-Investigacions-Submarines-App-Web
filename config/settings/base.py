@@ -96,6 +96,13 @@ PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="http://localhost:8000").rstrip
 # Claus de xifratge dels camps sensibles (Fernet). La primera xifra; totes desxifren.
 FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
 
+# Claus del QR del carnet (079, RN-M01-85; `apps/members/card_keys.py`): «identificador:clau»
+# separades per comes, i l'identificador de la que es fa servir per emetre. Sense cap, en local
+# i a les proves se'n deriva una de `SECRET_KEY`; producció les exigeix (prod.py).
+CARD_QR_KEYS = env.list("CARD_QR_KEYS", default=[])
+CARD_QR_ACTIVE_KEY = env("CARD_QR_ACTIVE_KEY", default="")
+CARD_QR_KEYS_REQUIRED = False
+
 # Proxies de confiança davant de Django: decideix d'on es llegeix l'IP d'origen
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)

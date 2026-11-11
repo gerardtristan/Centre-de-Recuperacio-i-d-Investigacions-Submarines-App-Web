@@ -22,6 +22,30 @@
     {% endif %}
   </dl>
 
+  {# 079 (A-21, RN-M01-92): el carnet vigent i, amb P21 i P4, revocar-lo amb motiu. El servidor torna a comprovar el permís, el motiu i el conflicte d'interès; aquí no surt mai el testimoni ni el QR. #}
+  <section aria-labelledby="carnet-titol">
+    <h2 id="carnet-titol">{% translate "Carnet" %}</h2>
+    {% if card %}
+      <p>{% blocktranslate with date=card.issued_at|date:"d/m/Y" version=card.version %}Emès el {{ date }} (versió {{ version }}).{% endblocktranslate %}</p>
+      {% if can_revoke_card and member.person_id != user.person_id %}
+        <details class="altes-rebuig">
+          <summary class="boto boto-petit">{% translate "Revoca el carnet…" %}</summary>
+          <form class="formulari" method="post" action="{% url 'administration:member_card_revoke' member.pk %}">
+            {% csrf_token %}
+            <div class="camp">
+              <label for="motiu-carnet">{% translate "Motiu de la revocació" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+              <textarea id="motiu-carnet" name="motiu" rows="3" required></textarea>
+              <p class="ajuda">{% translate "Queda al registre d'activitat. El codi QR deixa de ser vàlid de seguida; el soci en pot demanar un de nou des de la seva pàgina del carnet." %}</p>
+            </div>
+            <div class="accions"><button class="boto" type="submit">{% translate "Revoca el carnet" %}</button></div>
+          </form>
+        </details>
+      {% endif %}
+    {% else %}
+      <p>{% translate "Ara no té cap carnet vigent." %}</p>
+    {% endif %}
+  </section>
+
   {% if vis.full %}
     <section aria-labelledby="dades-titol">
       <h2 id="dades-titol">{% translate "Dades personals" %}</h2>

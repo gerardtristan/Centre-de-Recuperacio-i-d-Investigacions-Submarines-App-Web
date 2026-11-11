@@ -624,12 +624,20 @@ class FeeReminder(models.Model):
 class MemberCard(models.Model):
     """Carnet. Només es desa l'empremta del testimoni. El format de `token_hash` és el d'un
     SHA-256 en hexadecimal, però això no impedeix desar-hi un testimoni en clar que tingui
-    aquest format: generar el testimoni i resumir-lo és del servei del carnet (T-M01-19)."""
+    aquest format: generar el testimoni i resumir-lo és del servei del carnet (T-M01-19).
+
+    079 (RN-M01-85): el testimoni es calcula amb una clau del servidor a partir del soci i de
+    `version`, i es torna a calcular per mostrar el QR; `key_id` diu amb quina clau. Cap secret
+    es desa. `key_id` buit: carnet anterior a la 079 (testimoni aleatori), que es verifica igual
+    però no es pot tornar a mostrar."""
 
     member = models.ForeignKey(
         Member, on_delete=models.PROTECT, related_name="cards", verbose_name=_("soci")
     )
     token_hash = models.CharField(_("empremta del testimoni"), max_length=64, unique=True)
+    # Puja d'un en un per soci a cada emissió: un carnet reemès té un QR diferent.
+    version = models.PositiveIntegerField(_("versió"), default=1)
+    key_id = models.CharField(_("identificador de la clau"), max_length=8, blank=True, default="")
     issued_at = models.DateTimeField(_("emès el"), default=timezone.now)
     revoked_at = models.DateTimeField(_("revocat el"), null=True, blank=True)
     revoked_reason = models.TextField(_("motiu de la revocació"), blank=True)
@@ -652,6 +660,13 @@ class MemberCard(models.Model):
                 condition=Q(revoked_at__isnull=True, revoked_reason="")
                 | (Q(revoked_at__isnull=False) & _filled("revoked_reason")),
                 name="membercard_revoked_with_reason",
+            ),
+            models.UniqueConstraint(
+                fields=["member", "version"], name="membercard_unique_version_per_member"
+            ),
+            models.CheckConstraint(
+                condition=Q(version__gte=1) & Q(key_id__regex=r"^[a-z0-9]{0,8}$"),
+                name="membercard_version_and_key_id_valid",
             ),
         ]
 

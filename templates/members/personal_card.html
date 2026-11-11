@@ -1,10 +1,13 @@
 {% extends "base.html" %}
-{% load i18n %}
-{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió. Validesa: RN-M01-18, 070 i 072 («vàlid fins al» = el mateix dia de l'any següent al pagament; exempts, fins al 31/12 de l'últim any exempt). Darrere del carnet: el del wireframe aprovat (Q-065). Sense QR ni PDF de moment (diari de la T-M01-19). El text legal serà configurable a la pantalla d'ajustos (VC-03, T-M01-32); el NIF del club, [A validar], no es mostra fins que se sàpiga. #}
+{% load i18n static %}
+{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió: la ruta no porta cap identificador. Validesa: RN-M01-18, 070 i 072 («vàlid fins al»: càlcul únic de la 079, RN-M01-86). Darrere del carnet: el del wireframe aprovat (Q-065). Seguretat i privacitat (079, RN-M01-85 i 92): el QR es torna a calcular al servidor a cada visita i no es desa enlloc; la resposta és «no-store»; el QR només porta l'adreça de verificació, que mostra «vàlid», el número i el nom de pila; demanar un carnet nou és un POST amb CSRF i invalida el QR anterior; imprimir (o desar com a PDF) només treu el carnet, sense navegació ni botons. El text legal serà configurable a la pantalla d'ajustos (VC-03, T-M01-32); el NIF del club, [A validar], no es mostra fins que se sàpiga. #}
 {% block title %}{% translate "El meu carnet" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Carnet" %}</p>
   <h1>{% translate "El meu carnet" %}</h1>
+  {% for message in messages %}
+    <div class="avis no-imprimeix {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
   {# T-M01-21, CA-M01-17: amagat a la pàgina en línia; el service worker el mostra a la còpia sense connexió (marca «data-sense-connexio hidden», static/js/service-worker.js). L'hora és la de la comprovació al servidor. #}
   <div class="avis avis-avis" role="status" data-sense-connexio hidden>
     <strong>{% translate "Sense connexió: aquesta còpia del carnet pot no estar al dia." %}</strong>
@@ -19,6 +22,14 @@
       {% if validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
       {% if member.joined_on %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% else %}{{ years }}{% endif %}</dd></div>{% endif %}
     </dl>
+    {% if qr_svg %}
+      <figure class="carnet-qr">
+        <div class="qr" role="img" aria-label="{% translate 'Codi QR per verificar el carnet' %}">{{ qr_svg }}</div>
+        <figcaption class="text-2">{% translate "Qui l'escaneja veu si el carnet és vàlid, el teu número de soci i el teu nom de pila. Res més." %}</figcaption>
+      </figure>
+    {% else %}
+      <div class="avis avis-avis no-imprimeix" role="note"><strong>{% translate "El codi QR d'aquest carnet no es pot mostrar" %}</strong>{% translate "El carnet continua sent el teu, però per tenir el codi QR n'has de demanar un de nou." %}</div>
+    {% endif %}
     <section class="targeta carnet-darrere" aria-labelledby="carnet-darrere-titol">
       <h2 id="carnet-darrere-titol">{% translate "Darrere del carnet" %}</h2>
       <dl class="dades-soci">
@@ -29,8 +40,23 @@
       </dl>
       <p class="text-2">{% translate "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es. C.R.I.S. · cris1954.cat" %}</p>
     </section>
-    <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a></p>
+    {# 079 (A-20): el PDF és la impressió del navegador. El botó surt amagat i el mostra static/js/imprimeix.js; sense JavaScript, es pot imprimir igualment des del menú del navegador. #}
+    <div class="accions no-imprimeix">
+      <button class="boto" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
+    </div>
   {% else %}
-    <p>{% translate "Encara no tens cap carnet." %}</p>
+    <p>{% translate "Ara no tens cap carnet." %}</p>
   {% endif %}
+  {% if can_request %}
+    <section class="no-imprimeix" aria-labelledby="carnet-nou-titol">
+      <h2 id="carnet-nou-titol">{% if card %}{% translate "Has perdut el carnet o el mòbil?" %}{% else %}{% translate "Demana el teu carnet" %}{% endif %}</h2>
+      <p class="text-2">{% if card %}{% translate "Demana'n un de nou: el codi QR de l'anterior deixarà de ser vàlid, també el que tinguis imprès o desat." %}{% else %}{% translate "Pots tenir carnet: demana'l ara." %}{% endif %}</p>
+      <form method="post" action="{% url 'members:card_renew' %}">
+        {% csrf_token %}
+        <button class="boto" type="submit">{% translate "Demana un carnet nou" %}</button>
+      </form>
+    </section>
+  {% endif %}
+  <p class="enllacos no-imprimeix"><a href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
 {% endblock %}

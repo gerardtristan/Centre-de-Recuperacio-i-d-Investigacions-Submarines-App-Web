@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core.models import Person
 from apps.core.permissions import permission_required, request_permissions, require_perm
-from apps.members import admissions, member_edit, roster
+from apps.members import admissions, cards, member_edit, roster
 from apps.members.models import Member
 from apps.members.services import OwnMemberChange
 
@@ -121,4 +121,34 @@ def member_invite_view(request, pk):
                 "propi o és menor de 14 anys."
             ),
         )
+    return _to_detail(member)
+
+
+@never_cache
+@permission_required(cards.REVOKE_PERMISSION, write=True)
+@require_POST
+def member_card_revoke_view(request, pk):
+    """079 (A-21, RN-M01-92; P21): la secretaria revoca el carnet d'un soci amb motiu. P21 amb
+    edició i P4; el servei ho torna a comprovar, registra el conflicte d'interès i exigeix el
+    motiu. No n'emet cap de nou: el soci el demana des de la seva pàgina del carnet."""
+    member = _member(request, pk)
+    try:
+        revoked = cards.revoke_by_admin(
+            member, by=request.user, reason=request.POST.get("motiu", ""), request=request
+        )
+    except OwnMemberChange as error:
+        messages.error(request, error.args[0])
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        if revoked is None:
+            messages.info(request, _("Aquest soci no tenia cap carnet per revocar."))
+        else:
+            messages.success(
+                request,
+                _(
+                    "Carnet revocat: el seu codi QR ja no és vàlid. El soci en pot demanar un "
+                    "de nou des de la seva pàgina del carnet."
+                ),
+            )
     return _to_detail(member)

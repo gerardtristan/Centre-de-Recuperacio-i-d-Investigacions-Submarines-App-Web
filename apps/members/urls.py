@@ -24,6 +24,8 @@ urlpatterns = [
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
     path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19
+    # 079 (RN-M01-92; RN-M01-25): carnet nou a petició del soci.
+    path("socis/carnet/nou/", personal_card.card_renew_view, name="card_renew"),
     # Verificació pública del carnet (T-M01-20, P15): ruta pública declarada (RN-40).
     path("carnet/verificar/<str:token>/", public_card.card_verify_view, name="card_verify"),
     # T-M01-17: sol·licituds de canvi de tipus i de baixa (P14).

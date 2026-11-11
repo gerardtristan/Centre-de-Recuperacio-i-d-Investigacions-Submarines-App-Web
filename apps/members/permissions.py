@@ -33,6 +33,7 @@ P10 = "members.fees.view"
 P11 = "members.export"
 P18 = "members.cluber_import.run"
 P19 = "members.licence_record.manage"
+P21 = "members.card.revoke"
 
 
 def _both(*needs):
@@ -53,6 +54,7 @@ ROUTES = {
     "members:fees": OWN,
     "members:fee_detail": OWN,
     "members:card": OWN,
+    "members:card_renew": OWN,
     "members:change_type": OWN,
     "members:leave": OWN,
     # --- Administració ---
@@ -69,6 +71,8 @@ ROUTES = {
     "administration:member_join_date": _both((P6, WRITE), (P4, WRITE)),
     # 079 (RN-M01-87): tornar a enviar la invitació del compte personal.
     "administration:member_invite": _both((M2, WRITE), (P4, READ)),
+    # 079 (A-21, RN-M01-92): revocar el carnet d'un soci amb motiu.
+    "administration:member_card_revoke": _both((P21, WRITE), (P4, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

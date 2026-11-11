@@ -37,7 +37,16 @@ from apps.core.permissions import (
     request_permissions,
     require_perm,
 )
-from apps.members import admissions, fees, join, member_edit, member_requests, roster, services
+from apps.members import (
+    admissions,
+    cards,
+    fees,
+    join,
+    member_edit,
+    member_requests,
+    roster,
+    services,
+)
 from apps.members.fee_rules import local_today
 from apps.members.forms import LEGAL_LABELS, JoinForm
 from apps.members.imports import cluber
@@ -320,6 +329,9 @@ def member_detail_view(request, pk):
         "can_correct_join_date": member_edit.can_correct_join_date(request.user, perms),
         # 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4).
         "can_invite": admissions.can_invite(request.user, member, perms),
+        # 079 (A-21, RN-M01-92): el carnet vigent i, amb P21, revocar-lo amb motiu.
+        "card": cards.active_card(member),
+        "can_revoke_card": cards.can_revoke(request.user, perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(

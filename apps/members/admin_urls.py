@@ -29,6 +29,12 @@ urlpatterns = [
         admin_member_edit.member_invite_view,
         name="member_invite",
     ),
+    # 079 (A-21, RN-M01-92): revocar el carnet d'un soci amb motiu (P21 i P4).
+    path(
+        "socis/<int:pk>/carnet/revoca/",
+        admin_member_edit.member_card_revoke_view,
+        name="member_card_revoke",
+    ),
     path(
         "socis/<int:pk>/llicencies/nova/",
         admin_licences.licence_add_view,

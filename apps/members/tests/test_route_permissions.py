@@ -28,7 +28,16 @@ from apps.core.models import AuditEntry, Charge, Person, Role
 from apps.core.permissions import has_perm
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_access import PUBLIC_ROUTES, _routes
-from apps.members import admissions, fees, join, licences, member_edit, member_requests, services
+from apps.members import (
+    admissions,
+    cards,
+    fees,
+    join,
+    licences,
+    member_edit,
+    member_requests,
+    services,
+)
 from apps.members.fee_rules import local_today
 from apps.members.models import LicenceRecord, Member, MemberRequest, MembershipType
 from apps.members.permissions import ACTIONS, OWN, PUBLIC, ROUTES
@@ -375,6 +384,11 @@ SERVICES = {
     "resend_invitation": (
         (("core.people.manage", True), (P + "list", False)),
         lambda w, by: admissions.resend_invitation(w.other, by=by),
+    ),
+    # 079 (A-21, RN-M01-92): revocar el carnet d'un soci, amb P21 i P4.
+    "revoke_card": (
+        ((P + "card.revoke", True), (P + "list", False)),
+        lambda w, by: cards.revoke_by_admin(w.other, by=by, reason=REASON),
     ),
     "join_in_person": (
         ((P + "create_in_person", True),),

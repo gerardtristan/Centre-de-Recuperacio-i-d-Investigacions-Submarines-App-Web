@@ -21,6 +21,11 @@ SECURE_REFERRER_POLICY = "same-origin"
 # Enllaços dels correus sempre cap al domini de la plataforma, amb HTTPS (decisió 019).
 PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="https://cris1954.cat").rstrip("/")
 
+# Claus del QR del carnet (079, RN-M01-85): pròpies i obligatòries; mai la derivada de proves.
+CARD_QR_KEYS = env.list("CARD_QR_KEYS")
+CARD_QR_ACTIVE_KEY = env("CARD_QR_ACTIVE_KEY")
+CARD_QR_KEYS_REQUIRED = True
+
 # Correu: el proveïdor real s'ha de declarar sencer; mai la bústia de proves local per defecte.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST")

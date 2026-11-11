@@ -308,6 +308,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `ADMIN_URL_PATH` | Ruta discreta de l'administració |
 | `TOTP_ISSUER_NAME` | Nom que surt a l'aplicació d'autenticació |
 | `FIELD_ENCRYPTION_KEYS` | Claus Fernet per xifrar camps sensibles (secrets TOTP), separades per comes; la primera xifra i totes desxifren (rotació). Es guarden fora de línia com les de les còpies |
+| `CARD_QR_KEYS`, `CARD_QR_ACTIVE_KEY` | Claus del QR del carnet (decisió 079): «identificador:clau» separades per comes, i l'identificador de la que es fa servir per emetre. Obligatòries a producció. Per rotar: s'afegeix la nova, es posa com a activa i es conserva l'antiga; si una s'ha filtrat, `manage.py reemet_carnets --clau <id>` i després es treu. Es guarden fora de línia com les de les còpies |
 | `DJANGO_NUM_PROXIES` | Proxies de confiança davant de Django (1 amb Coolify); decideix d'on es llegeix l'IP per al límit d'intents |
 
 ### Fitxers (Scaleway)

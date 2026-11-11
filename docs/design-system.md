@@ -386,6 +386,14 @@ Les accions equivalents fan servir els mateixos noms, passos i respostes a les t
 
 Contrast comprovat amb els valors de `tokens.css` als dos temes, en 27 combinacions per tema (resum al diari de la T-M01-02). Per sota del mínim: el daurat de la barra activa sobre el fons de zona al tema clar (1,16:1; és decoratiu i ara porta una vora fosca de 6,98:1) i la pista de l'interruptor actiu al tema fosc (1,64:1; component existent, amb l'estat també en text) [A completar: T-M01-28].
 
+### 6.8 Impressió i carnet en PDF (decisió 079)
+El carnet es desa com a PDF amb la impressió del navegador; el servidor no genera cap PDF.
+- **`no-imprimeix`:** classe per a tot el que no ha de sortir al paper (avisos, botons, enllaços, formularis). La capçalera i l'enllaç «Vés al contingut» ja no s'imprimeixen mai.
+- **`[data-imprimeix]`:** botó que obre la impressió («Desa com a PDF»). Surt amagat (`hidden`) i el mostra `static/js/imprimeix.js`; sense JavaScript es pot imprimir igualment des del navegador.
+- **Tema:** mentre s'imprimeix, `imprimeix.js` força el tema clar i després torna a posar el que hi havia.
+- **`carnet-qr`:** el QR del carnet (peça `qr`, §6) centrat amb la seva explicació a sota.
+- Estils a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.

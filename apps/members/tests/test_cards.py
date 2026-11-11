@@ -347,7 +347,7 @@ def test_not_a_member_gets_not_found(login_as, db):
 def test_member_without_card(personal):
     response = personal(make_member(status=S.PENDING)).get(reverse(CARD))
     assert response.status_code == 200
-    assert "Encara no tens cap carnet." in response.content.decode()
+    assert "Ara no tens cap carnet." in response.content.decode()
 
 
 @pytest.mark.django_db

@@ -319,11 +319,12 @@ class TestMemberCard:
     def test_one_non_revoked_card_per_member(self, member):
         card = MemberCard.objects.create(member=member, token_hash=HASH)
         other = hashlib.sha256(b"altre").hexdigest()
-        rejected(lambda: MemberCard.objects.create(member=member, token_hash=other))
+        # 079 (RN-M01-85): cada carnet del soci té la seva versió.
+        rejected(lambda: MemberCard.objects.create(member=member, token_hash=other, version=2))
         card.revoked_at = card.issued_at
         card.revoked_reason = "Canvi de tipus"
         card.save()
-        assert MemberCard.objects.create(member=member, token_hash=other).pk
+        assert MemberCard.objects.create(member=member, token_hash=other, version=2).pk
 
     @pytest.mark.parametrize(
         ("revoked", "reason"), [(True, ""), (True, "   "), (False, "Motiu sense data")]
