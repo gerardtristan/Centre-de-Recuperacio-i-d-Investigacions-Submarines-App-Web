@@ -75,3 +75,19 @@ def test_point_6_tab_reaches_the_theme_before_the_personal_menu(
     page.keyboard.press("Tab")
     expect(page.get_by_role("link", name="Inici")).to_be_focused()
     review("inici-ordre-del-tabulador")
+
+
+def test_point_6_fields_have_the_same_focus_ring_as_buttons(page, live_server, review):
+    """Vora de focus de 3 px (`--v-focus`) als camps, com als botons i als enllaços (§9)."""
+    page.goto(f"{live_server.url}/entrar/")
+    field = page.get_by_label("Correu electrònic")
+    field.focus()
+    page.keyboard.press("Tab")
+    page.keyboard.press("Shift+Tab")  # hi torna amb el teclat: :focus-visible
+    expect(field).to_be_focused()
+    width = field.evaluate("e => getComputedStyle(e).outlineWidth")
+    page.get_by_role("button", name="Entrar").focus()
+    button = page.evaluate("getComputedStyle(document.activeElement).outlineWidth")
+    assert width == button == "3px"
+    field.focus()
+    review("entrada-focus-camp")
