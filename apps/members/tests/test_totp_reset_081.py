@@ -159,12 +159,9 @@ def test_no_email_path_removes_the_factor(soci, client):
     i l'entrada continua demanant el codi."""
     member, account = soci
     token = tokens.make_token(account, tokens.RESET_PASSWORD)
+    # La contrasenya de proves és el valor únic de CLAUDE.md (també com a «nova»).
     result = email_links.reset_password(
-        token,
-        {
-            "new_password1": "una-altra-contrasenya-de-proves-1954",
-            "new_password2": "una-altra-contrasenya-de-proves-1954",
-        },
+        token, {"new_password1": PASSWORD, "new_password2": PASSWORD}
     )
-    assert result is not None
+    assert result.done is True  # la recuperació s'ha fet de debò
     assert TotpDevice.objects.filter(account=account, confirmed_at__isnull=False).exists()
