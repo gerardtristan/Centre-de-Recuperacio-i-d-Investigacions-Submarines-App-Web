@@ -91,3 +91,18 @@ def test_point_6_fields_have_the_same_focus_ring_as_buttons(page, live_server, r
     assert width == button == "3px"
     field.focus()
     review("entrada-focus-camp")
+
+
+def test_iphone_install_help_from_the_login(page, live_server, review):
+    """079, A-28 (RN-M01-96): ajuda per instal·lar-la a l'iPhone, pública i només de text."""
+    page.goto(f"{live_server.url}/entrar/")
+    page.get_by_role("link", name="He oblidat la contrasenya").focus()
+    page.keyboard.press("Tab")
+    link = page.get_by_role("link", name="Com instal·lar la plataforma a l'iPhone")
+    expect(link).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(
+        page.get_by_role("heading", level=1, name="Instal·lar la plataforma a l'iPhone")
+    ).to_be_visible()
+    expect(page.locator("ol.passos > li")).to_have_count(5)
+    review("ajuda-iphone")

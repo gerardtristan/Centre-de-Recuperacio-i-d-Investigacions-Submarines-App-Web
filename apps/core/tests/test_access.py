@@ -11,6 +11,8 @@ PUBLIC_ROUTES = {
     # Service worker de la web instal·lable (T-M01-21): la pàgina d'entrada també el registra
     # i el fitxer no porta cap dada.
     "core:service_worker",
+    # Ajuda per instal·lar la web a l'iPhone (041; T-M01-45): només text, cap dada.
+    "core:install_help_iphone",
     # Enllaç signat local (imita Scaleway fora de producció): l'enllaç és la credencial.
     "core:local_private_file",
     "accounts:login",

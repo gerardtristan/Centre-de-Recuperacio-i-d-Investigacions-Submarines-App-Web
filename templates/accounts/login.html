@@ -21,6 +21,6 @@
     </form>
   {% endif %}
   {% if area == "personal" %}
-    <p class="enllacos"><a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a></p>
+    <p class="enllacos"><a href="{% url 'accounts:password_reset_request' %}">{% translate "He oblidat la contrasenya" %}</a><a href="{% url 'core:install_help_iphone' %}">{% translate "Com instal·lar la plataforma a l'iPhone" %}</a></p>
   {% endif %}
 {% endblock %}
