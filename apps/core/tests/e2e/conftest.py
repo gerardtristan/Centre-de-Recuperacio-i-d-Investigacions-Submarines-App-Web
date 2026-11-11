@@ -25,6 +25,7 @@ from apps.core import consents
 from apps.core.crypto import encrypt
 from apps.core.models import AccountRole, Person, Role
 from apps.members.demo_data import _Builder
+from apps.members.models import MembershipNumberCounter
 from conftest import PASSWORD, committed_snapshot, delete_committed_rows
 
 # Chromium dins del paquet de Playwright (a .venv), no a la memòria cau de l'usuari.
@@ -56,8 +57,14 @@ def _async_unsafe_only_in_e2e():
 def transactional_db(_async_unsafe_only_in_e2e, django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         tables, start = committed_snapshot()
+        # Les e2e aproven altes de debò i el comptador de números (una fila de les migracions)
+        # avança: es torna al valor d'abans, perquè una altra execució amb `--reuse-db` no
+        # comenci amb un comptador desfasat.
+        counter = MembershipNumberCounter.objects.values_list("last_number", flat=True).first()
         yield
         delete_committed_rows(tables, start)
+        if counter is not None:
+            MembershipNumberCounter.objects.filter(pk=1).update(last_number=counter)
 
 
 class PageChecks:
