@@ -6,14 +6,26 @@ Una prova per incidència, amb el número del punt de la fila del pla. Les de te
 Només dades inventades.
 """
 
+import re
+
 import pytest
 from django.contrib.messages import get_messages
 from django.urls import reverse
 
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.members.models import MemberRequest
 from apps.members.tests.test_admissions import a_person, a_request
-from apps.members.tests.test_member_requests import admin_client
+from apps.members.tests.test_member_requests import (
+    CHANGE,
+    LEAVE,
+    account_for,
+    admin_client,
+    change_request,
+    leave_request,
+    make_member,
+    marta,  # noqa: F401 (fixture)
+    personal_client,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -41,3 +53,36 @@ def test_point_1_the_error_of_a_pending_join_names_the_request(make_admin):  # n
     assert failing.status == MemberRequest.Status.PENDING
     page = client.get(reverse(JOIN_LIST)).content.decode()
     assert "Ona Sardina: Cal confirmar" in page and "Laia Dorada: Cal confirmar" not in page
+
+
+# --- Punt 5 (T-M01-17): títols de les sol·licituds personals ------------------------------------
+
+
+def h_tags(html, level):
+    return [
+        re.sub(r"<[^>]+>", "", t).strip()
+        for t in re.findall(rf"<h{level}[^>]*>(.*?)</h{level}>", html, re.S)
+    ]
+
+
+def test_point_5_full_member_page_is_titled_type_change():
+    """El soci de ple dret no veia «Canvi a ple dret» com a títol d'una pantalla que li explica
+    el pas a simpatitzant: la pantalla es diu com l'entrada del menú, «Canvi de tipus»."""
+    member = make_member(type_code="full")
+    html = main_of(personal_client(account_for(member)).get(reverse(CHANGE)).content.decode())
+    assert h_tags(html, 1) == ["Canvi de tipus"]
+    assert "Canvi a ple dret" not in html
+
+
+def test_point_5_pending_titles_have_the_same_shape(marta):  # noqa: F811
+    member, account = marta
+    change_request(member)
+    client = personal_client(account)
+    change = h_tags(main_of(client.get(reverse(CHANGE)).content.decode()), 2)
+    assert change == ["Ja tens una sol·licitud de canvi de tipus pendent"]
+    other = make_member("Pau")
+    leave_request(other)
+    leave = h_tags(
+        main_of(personal_client(account_for(other)).get(reverse(LEAVE)).content.decode()), 2
+    )
+    assert leave == ["Ja tens una sol·licitud de baixa pendent"]
