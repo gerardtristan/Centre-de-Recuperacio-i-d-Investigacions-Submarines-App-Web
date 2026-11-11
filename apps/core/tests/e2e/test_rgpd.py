@@ -41,7 +41,7 @@ def login_personal(page, base_url, account):
     page.get_by_label("Correu electrònic").fill(account.login)
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
-    expect(page.get_by_role("button", name="Sortir")).to_be_visible()
+    expect(page.get_by_role("button", name="Surt")).to_be_visible()
 
 
 def test_member_prepares_and_downloads_their_data(
@@ -89,7 +89,7 @@ def test_admin_rejects_and_approves_erasure_requests_with_the_keyboard(
     erasure.request_erasure(other.person, by=builder.personal(other.person))
 
     login_admin(page, live_server.url, texts.login)
-    page.get_by_role("link", name="Sol·licituds RGPD").click()
+    page.get_by_role("main").get_by_role("link", name="Sol·licituds RGPD").click()
     expect(page.get_by_role("heading", name="Sol·licituds RGPD")).to_be_visible()
     expect(page.get_by_role("heading", name="Pendents (2)")).to_be_visible()
     review("llista-pendents")

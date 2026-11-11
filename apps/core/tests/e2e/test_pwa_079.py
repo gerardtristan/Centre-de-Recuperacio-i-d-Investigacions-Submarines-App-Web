@@ -65,7 +65,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
 
     # En sortir (CA-M01-110): s'esborra la còpia del carnet i el tema es conserva.
     page.goto(f"{base}/")
-    page.get_by_role("button", name="Sortir").click()
+    page.get_by_role("button", name="Surt").click()
     expect(page).to_have_url(f"{base}/entrar/")
     page.wait_for_function(
         "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 0"

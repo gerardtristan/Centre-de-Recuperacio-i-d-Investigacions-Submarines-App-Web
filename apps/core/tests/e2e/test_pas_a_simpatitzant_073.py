@@ -33,7 +33,9 @@ def test_full_member_requests_withdraws_and_the_secretary_accepts_another(
     account = builder.personal(member.person)
     login_personal(page, live_server.url, account)
     page.get_by_role("link", name="Canvi de tipus").click()
-    expect(page.get_by_role("heading", level=1, name="Pas a simpatitzant")).to_be_visible()
+    expect(
+        page.get_by_role("heading", level=1, name="Canvi de tipus")
+    ).to_be_visible()  # T-M01-45, punt 5
     expect(page.get_by_text("Actualment ets soci de ple dret.")).to_be_visible()
     expect(page.get_by_text("cap devolució de la quota del període actual")).to_be_visible()
     review("explicacio")

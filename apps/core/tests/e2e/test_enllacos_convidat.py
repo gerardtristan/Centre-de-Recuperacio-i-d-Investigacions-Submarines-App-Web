@@ -48,7 +48,7 @@ def last_token():
 def test_admin_sends_the_link_and_the_guest_opens_it(page, live_server, texts, review):
     charge = guest_charge(texts)
     login_admin(page, live_server.url, texts.login)
-    page.get_by_role("link", name="Enllaços de convidat").click()
+    page.get_by_role("main").get_by_role("link", name="Enllaços de convidat").click()
     expect(page.get_by_role("heading", name="Enllaços de convidat")).to_be_visible()
     expect(page.get_by_role("rowheader", name="Mar Convidada Inventada")).to_be_visible()
     review("administracio-sense-enllac")

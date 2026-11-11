@@ -23,7 +23,7 @@ def test_treasurer_consults_blocked_data_with_a_reason(page, live_server, member
     treasurer = make_admin("tresoreria.prova", "treasurer")
 
     login_admin(page, live_server.url, treasurer.login)
-    page.get_by_role("link", name="Dades bloquejades").click()
+    page.get_by_role("main").get_by_role("link", name="Dades bloquejades").click()
     expect(page.get_by_role("heading", name="Dades bloquejades")).to_be_visible()
     expect(page.get_by_text("Prova Inventat")).to_have_count(0)
     review("llista")

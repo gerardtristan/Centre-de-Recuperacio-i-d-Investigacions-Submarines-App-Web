@@ -19,7 +19,7 @@ def test_administrator_sees_the_emergency_warning(page, live_server, texts, revi
     login_admin(page, live_server.url, texts.login)
     expect(page.get_by_text("Falten comptes d'emergència.")).to_be_visible()
     review("inici-avis")
-    page.get_by_role("link", name="Comptes d'administrador").click()
+    page.get_by_role("main").get_by_role("link", name="Comptes d'administrador").click()
     expect(page.get_by_text("Falten comptes d'emergència.")).to_be_visible()
     expect(page.get_by_text("Emergència", exact=True)).to_be_visible()
     review("comptes-avis")
