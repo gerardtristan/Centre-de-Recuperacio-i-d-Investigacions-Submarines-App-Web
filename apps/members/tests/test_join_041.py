@@ -2,7 +2,7 @@
 
 072: Q-011 (opció 3), Q-017, Q-031, Q-044 (opció A) i quarta instrucció, punt 3. 074: punts 13 a
 16, RN-M01-78 i CA-M01-77. Els textos del butlletí i de les imatges són els PROVISIONALS de
-`join.PROVISIONAL_OPTIONAL_TEXTS`, publicats només aquí. Només dades inventades (DNI de prova amb
+`join.OPTIONAL_TEXT_CONTENT`, publicats només aquí. Només dades inventades (DNI de prova amb
 la lletra correcta, correus a example.org).
 """
 
@@ -55,7 +55,7 @@ def sec(make_admin, texts):  # noqa: F811
 @pytest.fixture
 def optional(texts):  # noqa: F811
     """Publica els textos provisionals del butlletí i de les imatges (mai en producció)."""
-    for kind, body in join.PROVISIONAL_OPTIONAL_TEXTS.items():
+    for kind, body in join.OPTIONAL_TEXT_CONTENT.items():
         consents.publish_text(kind, body, by=texts)
 
 
@@ -104,7 +104,9 @@ class TestOptionalConsents:
         assert "Consentiments opcionals" in html and "opcional" in html
         # Separats: el bloc opcional va després del dels obligatoris.
         assert html.index('name="accept_membership_terms"') < html.index('name="accept_images"')
-        assert "TEXT PROVISIONAL" in html  # el text sencer, a la secció dels textos legals
+        # El text sencer, a la secció dels textos legals (definitiu des de la decisió 085, G-4).
+        assert "Vull rebre per correu electrònic el butlletí del C.R.I.S." in html
+        assert "TEXT PROVISIONAL" not in html
 
     def test_server_never_marks_them_unless_they_arrive_checked(self, optional):
         assert post(accept_newsletter="false").status_code == 303

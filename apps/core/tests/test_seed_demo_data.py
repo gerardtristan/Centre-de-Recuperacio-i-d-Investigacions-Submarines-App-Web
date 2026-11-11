@@ -26,7 +26,7 @@ from apps.core.models import AuditEntry, Charge, Consent, ImportBatch, LegalText
 from apps.core.roles import operational_admins
 from apps.members import services
 from apps.members.imports import cluber
-from apps.members.join import PROVISIONAL_OPTIONAL_TEXTS
+from apps.members.join import OPTIONAL_TEXT_CONTENT
 from apps.members.models import AnnualFee, LicenceRecord, Member, MemberCard, MemberRequest
 
 pytestmark = pytest.mark.django_db
@@ -212,9 +212,11 @@ def test_t_m01_27_fees_cards_licences_texts_and_consents(cluber_path):
     declared = records.get(expiry_declared=True)
     assert services.licence_record(declared.member.person).expires_on is None
 
-    for kind, content in PROVISIONAL_OPTIONAL_TEXTS.items():
+    for kind, content in OPTIONAL_TEXT_CONTENT.items():
         assert LegalText.objects.get(kind=kind).content == content
-    assert "[A validar" in LegalText.objects.get(kind="images").content
+    # Decisió 085 (G-4): textos definitius, sense marques pendents.
+    assert "A validar" not in LegalText.objects.get(kind="images").content
+    assert "xarxes socials" in LegalText.objects.get(kind="images").content
     given = Consent.objects.filter(legal_text__kind__in=["newsletter", "images"])
     assert given.filter(person__member__isnull=False).exists()
     assert given.filter(given_by=Consent.GivenBy.GUARDIAN).exists()  # imatges d'un menor de 14
