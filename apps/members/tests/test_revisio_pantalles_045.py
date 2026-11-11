@@ -86,3 +86,18 @@ def test_point_5_pending_titles_have_the_same_shape(marta):  # noqa: F811
         main_of(personal_client(account_for(other)).get(reverse(LEAVE)).content.decode()), 2
     )
     assert leave == ["Ja tens una sol·licitud de baixa pendent"]
+
+
+def test_point_5_create_a_leave_does_not_weigh_like_edit(make_admin):  # noqa: F811
+    """«Crea una baixa» és una acció de menys ús i amb conseqüències: botó de text, no com
+    «Edita les dades»."""
+    member = make_member("Fitxa")
+    html = (
+        admin_client(make_admin("secretary"))
+        .get(reverse("administration:member_detail", args=[member.pk]))
+        .content.decode()
+    )
+    edit = re.search(r'<a class="([^"]+)" href="[^"]+/edita/">Edita les dades</a>', html)
+    leave = re.search(r'<a class="([^"]+)" href="[^"]+/baixa/nova/">Crea una baixa</a>', html)
+    assert edit.group(1) == "boto boto-petit"
+    assert "boto-text" in leave.group(1).split()
