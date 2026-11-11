@@ -7,6 +7,7 @@ capçalera real. Només dades inventades: els IBAN són clarament falsos i no te
 
 import csv
 import datetime
+import hashlib
 import io
 import logging
 
@@ -208,7 +209,13 @@ class TestRowOutcome:
     def test_no_value_is_kept_in_the_row(self, db):
         row = only_row(cluber.preview(build([record(1, {"idInterno": "SENTINELLA-ID-7Q"})])))
         assert "Member.cluber_id" in row.fields
-        assert set(row.data) == {"member_number_text", "member_number", "id_document"}
+        # 079 (RN-M01-95): també el tipus deduït del document, mai cap altre valor.
+        assert set(row.data) == {
+            "member_number_text",
+            "member_number",
+            "id_document",
+            "id_document_type",
+        }
         assert "SENTINELLA" not in repr(row) + str(row.summary())
 
 
@@ -294,7 +301,11 @@ class TestInventedSample:
         assert result.unknown_columns == []
         assert result.counts["rows"] == 40 and result.counts["new"] == 40
         assert result.counts["with_errors"] == 0
-        assert result.counts["ready"] == 0  # el tipus de document continua pendent (P-62)
+        # 079 (A-25): el tipus es dedueix dels DNI amb la lletra correcta; només queden
+        # pendents les files amb el tipus de soci pendent.
+        assert result.counts["ready"] == 24
+        assert {tuple(r.pending) for r in result.rows if not r.ready} == {("member_type",)}
+        assert {r.data["id_document_type"] for r in result.rows} == {"dni"}
 
         types = {(r.member_type, r.member_type_by) for r in result.rows}
         assert types == {
@@ -368,7 +379,10 @@ class TestIbanNeverStored:
         assert "Què s&#x27;importaria" in html or "Què s'importaria" in html
         [entry] = AuditEntry.objects.filter(action="members.cluber_import.preview")
         assert FALSE_IBAN not in str(entry.details)
-        assert "file_sha256" not in entry.details
+        # 079 (A-26, P-65 punt 1): l'empremta registrada és la canònica, calculada sense
+        # l'IBAN; mai la del fitxer tal com arriba.
+        assert entry.details["file_sha256"] == cluber.preview(sample_file()).fingerprint
+        assert entry.details["file_sha256"] != hashlib.sha256(sample_file()).hexdigest()
 
 
 class TestScreen:

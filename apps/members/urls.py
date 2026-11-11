@@ -2,7 +2,14 @@
 
 from django.urls import path
 
-from .views import personal, personal_card, personal_requests, public, public_card
+from .views import (
+    personal,
+    personal_card,
+    personal_policies,
+    personal_requests,
+    public,
+    public_card,
+)
 
 app_name = "members"
 
@@ -10,6 +17,8 @@ urlpatterns = [
     path("fer-se-soci/", public.join_view, name="join"),
     # Àrea del soci (compte personal, T-M01-16). Sessió obligatòria per defecte (RN-40).
     path("socis/perfil/", personal.profile_view, name="profile"),
+    # T-M01-25 (079, A-27): els importats de Cluber accepten les polítiques a la primera entrada.
+    path("socis/politiques/", personal_policies.accept_policies_view, name="accept_policies"),
     # T-M01-36: el soci declara la caducitat desconeguda d'una llicència seva (RN-M01-77).
     path(
         "socis/perfil/llicencia/<int:record_id>/",

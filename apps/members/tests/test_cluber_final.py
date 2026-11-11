@@ -42,7 +42,7 @@ from apps.members.models import (
     MemberStatusChange,
 )
 from apps.members.tests.test_cluber_format import FALSE_IBAN, real_headers, sample_file
-from apps.members.tests.test_cluber_preview import build, dni, record
+from apps.members.tests.test_cluber_preview import build, record
 
 SHA = "a" * 64  # empremta inventada: quina es desa és la P-65, punt 1
 allowed = pytest.mark.usefixtures("allow")
@@ -115,14 +115,14 @@ class TestBlockedByConfiguration:
         monkeypatch.setattr(cluber, "preview", must_not_run)
         before = snapshot()
         with CaptureQueriesContext(connection) as queries, pytest.raises(final.FinalImportBlocked):
-            final.confirm(sample_file(), by=admin, file_sha256=SHA)
+            final.confirm(sample_file(), by=admin)
         assert len(queries) == 0
         assert snapshot() == before
 
     def test_blocked_even_with_an_importable_file(self, admin, future_document_rule):
         before = snapshot()
         with pytest.raises(final.FinalImportBlocked):
-            final.confirm(build([importable_record(1)]), by=admin, file_sha256=SHA)
+            final.confirm(build([importable_record(1)]), by=admin)
         assert snapshot() == before
         assert MembershipNumberCounter.objects.get().last_number == 0
 
@@ -137,55 +137,57 @@ class TestConfirmationPath:
         without_p18 = make_admin()
         before = snapshot()
         with pytest.raises(PermissionDenied):
-            final.confirm(build([importable_record(1)]), by=without_p18, file_sha256=SHA)
+            final.confirm(build([importable_record(1)]), by=without_p18)
         assert snapshot() == before
 
-    def test_real_format_today_has_no_importable_row(self, admin):
-        """Amb el format real (071) i sense decidir la P-62, cap fila no es pot importar."""
+    def test_ca_m01_107_real_format_imports_the_rows_with_a_deduced_type(self, admin):
+        """079 (A-25): amb el format real (071), les files amb un DNI vàlid s'importen amb el
+        tipus deduït; les que tenen pendent el tipus de soci s'han d'excloure."""
         before = snapshot()
+        pending = tuple(r.row for r in cluber.preview(sample_file()).rows if r.pending)
+        assert len(pending) == 8
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(sample_file(), by=admin, file_sha256=SHA)
-        assert refused.value.code == "rows_unresolved"
-        assert refused.value.rows == tuple(range(2, 42))
-        with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(sample_file(), by=admin, file_sha256=SHA, excluded_rows=range(2, 42))
-        assert refused.value.code == "nothing_to_import"
+            final.confirm(sample_file(), by=admin)
+        assert (refused.value.code, refused.value.rows) == ("rows_unresolved", pending)
         assert snapshot() == before
+        batch = final.confirm(sample_file(), by=admin, excluded_rows=pending)
+        imported = Person.objects.filter(import_batch=batch)
+        assert imported.count() == 32
+        assert set(imported.values_list("id_document_type", flat=True)) == {"dni"}
+        assert all(imported.values_list("id_document_number", flat=True))
 
     def test_a_rejected_file_is_refused(self, admin):
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(b"", by=admin, file_sha256=SHA)
+            final.confirm(b"", by=admin)
         assert refused.value.code == "empty"
 
     def test_unknown_excluded_row(self, admin, future_document_rule):
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(
-                build([importable_record(1)]), by=admin, file_sha256=SHA, excluded_rows=[9]
-            )
+            final.confirm(build([importable_record(1)]), by=admin, excluded_rows=[9])
         assert (refused.value.code, refused.value.rows) == ("excluded_row_unknown", (9,))
 
     def test_every_non_importable_row_must_be_excluded(self, admin, future_document_rule):
         data = build([importable_record(1), importable_record(2, {"Nom": ""})])
         before = snapshot()
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(data, by=admin, file_sha256=SHA)
+            final.confirm(data, by=admin)
         assert (refused.value.code, refused.value.rows) == ("rows_unresolved", (3,))
         assert snapshot() == before
-        batch = final.confirm(data, by=admin, file_sha256=SHA, excluded_rows=[3])
+        batch = final.confirm(data, by=admin, excluded_rows=[3])
         assert (batch.new_count, batch.excluded_count) == (1, 1)
 
     def test_an_importable_row_can_be_excluded(self, admin, future_document_rule):
         data = build([importable_record(1), importable_record(2)])
-        batch = final.confirm(data, by=admin, file_sha256=SHA, excluded_rows=[2])
+        batch = final.confirm(data, by=admin, excluded_rows=[2])
         assert Member.objects.get().member_number == 902
         line = batch.lines.get(row=2)
         assert (line.result, line.person) == (ImportLine.Result.EXCLUDED, None)
 
     def test_a_second_final_import_is_refused(self, admin, future_document_rule):
-        final.confirm(build([importable_record(1)]), by=admin, file_sha256=SHA)
+        final.confirm(build([importable_record(1)]), by=admin)
         before = snapshot()
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(build([importable_record(2)]), by=admin, file_sha256=SHA)
+            final.confirm(build([importable_record(2)]), by=admin)
         assert refused.value.code == "cluber_already_imported"
         assert snapshot() == before
 
@@ -194,7 +196,7 @@ class TestConfirmationPath:
         data = build([importable_record(1), importable_record(2, {"idInterno": "cl-00001"})])
         before = snapshot()
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(data, by=admin, file_sha256=SHA)
+            final.confirm(data, by=admin)
         assert refused.value.code == "conflict"
         assert snapshot() == before
         assert MembershipNumberCounter.objects.get().last_number == 0
@@ -217,9 +219,10 @@ class TestOpenDecisionsKeepRowsOut:
             return result
 
         monkeypatch.setattr(cluber, "preview", no_pending)
-        data = build([importable_record(1, {"Document d'Identitat": dni(1)})])
+        # Un DNI amb la lletra incorrecta: el tipus no es pot deduir.
+        data = build([importable_record(1, {"Document d'Identitat": "12345678A"})])
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(data, by=admin, file_sha256=SHA)
+            final.confirm(data, by=admin)
         assert refused.value.code == "rows_unresolved"
 
     def test_a_row_without_joined_on_is_imported_without_a_date_q075(
@@ -227,7 +230,7 @@ class TestOpenDecisionsKeepRowsOut:
     ):
         # 072, Q-075: cap data inventada; l'entrada inicial porta la data de la importació.
         data = build([importable_record(1, {"Data d'inscripció": ""})])
-        final.confirm(data, by=admin, file_sha256=SHA)
+        final.confirm(data, by=admin)
         member = Member.objects.get(member_number=901)
         assert member.joined_on is None
         change = member.status_changes.get()
@@ -243,13 +246,13 @@ class TestOpenDecisionsKeepRowsOut:
             joined_on=datetime.date(2020, 1, 1),
         )
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(build([importable_record(1)]), by=admin, file_sha256=SHA)
+            final.confirm(build([importable_record(1)]), by=admin)
         assert refused.value.rows == (2,)
 
     def test_pending_type_is_not_imported(self, admin, future_document_rule):
         data = build([importable_record(1, {"Quota": "Quota familiar 50€."})])
         with pytest.raises(final.FinalImportRefused):
-            final.confirm(data, by=admin, file_sha256=SHA)
+            final.confirm(data, by=admin)
 
 
 @allowed
@@ -264,12 +267,14 @@ class TestWrites:
                 importable_record(4, {"Email": "", "Nº Soci": "907"}),  # pendent: exclosa
             ]
         )
-        return final.confirm(data, by=admin, file_sha256=SHA, excluded_rows=[4, 5])
+        return final.confirm(data, by=admin, excluded_rows=[4, 5])
 
     def test_batch(self, batch, admin):
         assert batch.kind == ImportBatch.Kind.CLUBER
         assert batch.status == ImportBatch.Status.CONFIRMED
-        assert (batch.confirmed_by, batch.created_by, batch.file_sha256) == (admin, admin, SHA)
+        assert (batch.confirmed_by, batch.created_by) == (admin, admin)
+        # 079 (A-26, P-65 punt 1): l'empremta canònica de la prova, mai una d'inventada.
+        assert len(batch.file_sha256) == 64 and batch.file_sha256 != SHA
         assert (batch.new_count, batch.error_count, batch.excluded_count) == (2, 1, 1)
         assert (batch.matching_count, batch.duplicate_count) == (0, 0)
 
@@ -346,6 +351,8 @@ class TestWrites:
             "error_count": 1,
             "excluded_count": 1,
             "duplicate_count": 0,
+            "document_type_deduced": 0,
+            "document_type_chosen": 0,
         }
 
 
@@ -356,7 +363,7 @@ class TestLeftInCluberQ071:
 
     def test_left_rows_are_excluded_automatically(self, admin, future_document_rule):
         data = build([importable_record(1), importable_record(2, {"Estat": "Baja"})])
-        batch = final.confirm(data, by=admin, file_sha256=SHA)
+        batch = final.confirm(data, by=admin)
         assert list(Member.objects.values_list("member_number", flat=True)) == [901]
         lines = {line.row: line for line in batch.lines.all()}
         assert (lines[3].result, lines[3].person) == (ImportLine.Result.EXCLUDED, None)
@@ -366,7 +373,7 @@ class TestLeftInCluberQ071:
     def test_only_left_rows_import_nothing(self, admin, future_document_rule):
         data = build([importable_record(1, {"Estat": "Baja"})])
         with pytest.raises(final.FinalImportRefused) as refused:
-            final.confirm(data, by=admin, file_sha256=SHA)
+            final.confirm(data, by=admin)
         assert refused.value.code == "nothing_to_import"
         assert Member.objects.count() == 0
 
@@ -374,7 +381,7 @@ class TestLeftInCluberQ071:
 @allowed
 def test_counter_is_never_lowered(admin, future_document_rule):
     MembershipNumberCounter.objects.filter(pk=1).update(last_number=5000)
-    final.confirm(build([importable_record(1)]), by=admin, file_sha256=SHA)
+    final.confirm(build([importable_record(1)]), by=admin)
     assert MembershipNumberCounter.objects.get().last_number == 5000
 
 
@@ -387,7 +394,7 @@ def test_no_iban_reaches_any_table_or_log(admin, future_document_rule, caplog):
         {**importable_record(n), "IBAN": f"{FALSE_IBAN}{n:012d}", "Nº Soci": str(n)} for n in (1, 2)
     ]
     caplog.set_level(logging.DEBUG)
-    batch = final.confirm(build(records, headers), by=admin, file_sha256=SHA)
+    batch = final.confirm(build(records, headers), by=admin)
     assert batch.new_count == 2
     for model in apps.get_models():
         for values in model.objects.values():

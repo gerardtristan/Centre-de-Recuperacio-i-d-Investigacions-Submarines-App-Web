@@ -153,14 +153,43 @@ class TestFileProfile:
             "member_number_text": "901",
             "member_number": 901,
             "id_document": dni(1),
+            # 079 (A-25, RN-M01-95): el tipus es dedueix d'un DNI amb la lletra correcta.
+            "id_document_type": "dni",
         }
 
-    def test_no_row_is_ready_without_the_document_type(self, db):
-        # 071: el tipus i la data d'alta tenen equivalència; el tipus de document no (P-62).
+    def test_ca_m01_107_a_valid_dni_or_nie_gives_the_type(self, db):
+        # 079 (A-25, RN-M01-95): el tipus es dedueix quan el DNI o el NIE té la lletra correcta.
         row = only_row(cluber.preview(build([record(1, {"Quota": "Quota de soci ple dret"})])))
         assert not row.errors
+        assert row.pending == []
+        assert row.data["id_document_type"] == "dni"
+        assert row.summary()["id_document_type"] == "dni"
+        assert row.ready is True
+        nie = only_row(cluber.preview(build([record(1, {"Document d'Identitat": "X1234567L"})])))
+        assert nie.data["id_document_type"] == "nie" and "id_document_type" not in nie.pending
+
+    @pytest.mark.parametrize("document", ["12345678A", "PASSAPORT01", "X1234567A"])
+    def test_ca_m01_107_otherwise_the_type_stays_pending(self, db, document):
+        values = {"Document d'Identitat": document, "Quota": "Quota de soci ple dret"}
+        row = only_row(cluber.preview(build([record(1, values)])))
         assert row.pending == ["id_document_type"]
+        assert "id_document_type" not in row.data
+        assert row.summary()["id_document_type"] == ""
         assert row.ready is False
+
+    def test_ca_m01_108_fingerprint_ignores_the_iban_and_the_encoding(self, db):
+        # 079 (A-26, P-65 punt 1): SHA-256 de les columnes llegides, sense la d'IBAN.
+        headers = [*cluber.KNOWN_HEADERS, "IBAN"]
+        first = cluber.preview(build([record(1, {"IBAN": "ES0000000000000000000001"})], headers))
+        second = cluber.preview(build([record(1, {"IBAN": "ES9999999999999999999999"})], headers))
+        assert len(first.fingerprint) == 64
+        assert first.fingerprint == second.fingerprint
+        assert first.summary()["fingerprint"] == first.fingerprint
+        other = cluber.preview(build([record(1, {"Ciutat": "Girona"})], headers))
+        assert other.fingerprint != first.fingerprint
+        plain = cluber.preview(build([record(1)]))
+        with_bom = cluber.preview(build([record(1)], bom=True))
+        assert plain.fingerprint == with_bom.fingerprint
 
     def test_bom_and_line_endings(self, db):
         plain = cluber.preview(build([record(1)]))
@@ -898,6 +927,7 @@ class TestSafeSummary:
             "row": 3,
             "identity": "new",
             "ready": False,
+            "id_document_type": "",
             "errors": ["email_invalid", "duplicate_document", "duplicate_member_number"],
             "error_columns": ["Email", "Document d'Identitat", "Nº Soci"],
             "warnings": ["member_number_leading_zeros"],

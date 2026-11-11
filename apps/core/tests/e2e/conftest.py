@@ -120,6 +120,8 @@ def review(page, request, capture):
         page.set_viewport_size({"width": NARROW, "height": 800})
         for theme in ("light", "dark"):
             page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
+            # Els botons tenen transició de color: la captura espera que acabi.
+            page.wait_for_timeout(500)
             page.screenshot(path=folder / f"{name}-{NARROW}-{theme}.png", full_page=True)
         overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         page.evaluate("document.documentElement.removeAttribute('data-theme')")

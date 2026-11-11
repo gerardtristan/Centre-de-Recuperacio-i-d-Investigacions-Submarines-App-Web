@@ -30,7 +30,9 @@ per la seva posició («#33»), perquè el seu nom ve del fitxer.
 
 import csv
 import datetime
+import hashlib
 import io
+import json
 import re
 import unicodedata
 from collections import Counter, defaultdict
@@ -44,10 +46,12 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import ImportBatch, Person
 from apps.core.normalization import normalize_document
+from apps.members.forms import parse_document
 from apps.members.models import Member, MembershipType
 
 MAX_BYTES = 1024 * 1024
 MAX_ROWS = 2000
+NEWLINE = bytes([10])  # separador de files de la forma canònica (079, P-65 punt 1)
 MAX_FIELD = 10_000
 # Amb més valors diferents, el detall s'omet i només se'n dona el recompte.
 MAX_CATALOGUE = 50
@@ -398,6 +402,8 @@ class Row:
             "member_type": self.member_type,
             "member_type_by": self.member_type_by,
             "left_in_cluber": self.left_in_cluber,
+            # Només el tipus deduït (DNI o NIE), mai el número.
+            "id_document_type": self.data.get("id_document_type", ""),
         }
 
 
@@ -415,6 +421,10 @@ class Preview:
     catalogue_omitted: dict = field(default_factory=dict)
     # Noms dels tipus actius de la plataforma (codi → nom), per presentar el tipus deduït.
     type_names: dict = field(default_factory=dict)
+    # 079 (A-26, P-65 punt 1; RN-M01-95): SHA-256 d'una forma canònica de les columnes llegides,
+    # calculada després de descartar la d'IBAN. Dos fitxers que només difereixen en l'IBAN (o en
+    # la codificació) tenen la mateixa empremta. Lliga la prova amb la confirmació.
+    fingerprint: str = ""
 
     @property
     def counts(self) -> dict:
@@ -433,6 +443,7 @@ class Preview:
     def summary(self) -> dict:
         """Resum sense cap valor del fitxer: el que es pot mostrar o registrar."""
         return {
+            "fingerprint": self.fingerprint,
             "rejected": self.rejected,
             "rejected_column": self.rejected_column,
             "rejected_row": self.rejected_row,
@@ -527,6 +538,9 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
     catalogue = {h: Counter() for h in CATALOGUE_HEADERS if h in index}
     # Text de «Quota» i «Preu total» de cada fila llegida, només fins a resoldre'n el tipus.
     to_resolve = []
+    kept = [i for i in range(len(headers)) if i not in iban]
+    canonical = hashlib.sha256()
+    canonical.update(json.dumps([headers[i] for i in kept], ensure_ascii=False).encode())
 
     row_number = 1
     try:
@@ -537,6 +551,9 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
                 if i < len(values):
                     values[i] = ""
             row_number += 1
+            # Forma canònica: els valors llegits de cada fila, sense l'IBAN, en JSON.
+            line = [values[i].strip() if i < len(values) else "" for i in kept]
+            canonical.update(NEWLINE + json.dumps(line, ensure_ascii=False).encode())
             if len(result.rows) == MAX_ROWS:
                 return _reject("too_many_rows", encoding=encoding)
             row = Row(row=row_number)
@@ -563,6 +580,7 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
 
     if not result.rows:
         return _reject("no_rows", encoding=encoding)
+    result.fingerprint = canonical.hexdigest()
     for column, counter in catalogue.items():
         if len(counter) <= MAX_CATALOGUE:
             result.catalogue[column] = dict(counter)
@@ -618,7 +636,14 @@ def _read_row(row: Row, value, keep_values: bool = False) -> None:
         row.warnings.append("joined_on")
 
     row.pending.extend(code for header, code in PRESENCE.items() if not value(header))
-    row.pending.append("id_document_type" if row.data["id_document"] else "id_document")
+    # 079 (A-25, RN-M01-95): el tipus es dedueix quan el DNI o el NIE té la lletra correcta; per
+    # a la resta, el tria la secretaria fila per fila en confirmar (`final.confirm`).
+    if not row.data["id_document"]:
+        row.pending.append("id_document")
+    elif parsed := parse_document(row.data["id_document"]):
+        row.data["id_document_type"] = parsed[0]
+    else:
+        row.pending.append("id_document_type")
 
 
 def _resolve_types(result: Preview, to_resolve: list) -> None:

@@ -14,7 +14,6 @@ CSRF, registre de la prova i numeració).
   fitxer complet i si no s'ha rebutjat per IBAN. La pantalla només fa servir `summary()`.
 """
 
-import hashlib
 from collections import Counter
 
 from django.contrib import messages
@@ -134,11 +133,9 @@ def _protected(request, handler):
     data = files[0].read()
     summary = cluber.preview(data).summary()
     rejected = summary["rejected"]
-    # Minimització aprovada a la T-M01-24: sense empremta si el fitxer porta una columna d'IBAN,
-    # encara que ara es descarti en llegir (071).
-    iban = "iban_discarded" in summary["warnings"]
-    sha256 = None if iban else hashlib.sha256(data).hexdigest()
-    _record(request, rejected, summary["counts"], sha256)
+    # 079 (A-26, P-65 punt 1): l'empremta registrada és la canònica de les columnes llegides,
+    # calculada sense la d'IBAN; mai la del fitxer tal com arriba, que depèn de l'IBAN.
+    _record(request, rejected, summary["counts"], summary["fingerprint"] or None)
     return _page(request, summary=summary, recorded=True)
 
 

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M01-25 (079, A-27 punt 4; CA-M01-109): un soci importat de Cluber accepta les polítiques vigents a la primera entrada. Seguretat i privacitat: només el compte personal de la sessió (la ruta no porta cap identificador); el servidor desvia aquí qualsevol altra pàgina de l'àrea de socis fins que les accepta (ImportedPoliciesMiddleware, no és cap amagatall de la interfície); l'acceptació queda a core.Consent amb la versió exacta i el canal web; el «next» només pot ser del mateix lloc; es pot sortir sense acceptar. #}
+{% block title %}{% translate "Accepta les polítiques" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Benvinguda" %}</p>
+  <h1>{% translate "Accepta les polítiques" %}</h1>
+  {% if rows %}
+    <p>{% translate "Les teves dades venen del programa que feia servir abans el club. Per fer servir l'àrea de socis, llegeix i accepta els textos vigents." %}</p>
+    {% if form.errors %}<div class="avis avis-error" role="alert">{% translate "Revisa els camps marcats." %}</div>{% endif %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <fieldset>
+        <legend>{% translate "Textos que cal acceptar" %}</legend>
+        {% for kind, label, text, field in rows %}
+          {% translate "He llegit i accepto la" as intro %}
+          {% include "members/_acceptacio.html" with field=field kind=kind label=label text=text intro=intro %}
+        {% endfor %}
+      </fieldset>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Accepta i continua" %}</button></div>
+    </form>
+    <section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+      <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+      {% for kind, label, text, field in rows %}
+        <article id="text-{{ kind }}" aria-labelledby="text-{{ kind }}-titol">
+          <h3 id="text-{{ kind }}-titol">{{ label }} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+          <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+        </article>
+      {% endfor %}
+    </section>
+    <script src="{% static 'js/textos-legals.js' %}" defer></script>
+    <form method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
+      <button class="boto boto-text" type="submit">{% translate "Sortir sense acceptar" %}</button>
+    </form>
+  {% else %}
+    <p>{% translate "No tens cap text pendent d'acceptar." %}</p>
+    <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Anar a l'inici" %}</a></p>
+  {% endif %}
+{% endblock %}

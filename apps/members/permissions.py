@@ -47,6 +47,7 @@ ROUTES = {
     "members:card_verify": PUBLIC,
     # --- Àrea del soci (P12 a P16: accions pròpies) ---
     "members:profile": OWN,
+    "members:accept_policies": OWN,
     "members:declare_expiry": OWN,
     "members:consent": OWN,
     "members:change_email": OWN,

@@ -4,7 +4,6 @@ Precisions: files de la T-M01-24 a docs/planning.md#ajustos-060-lectura (pantall
 recepció, CSRF i registre de la prova). Només dades inventades.
 """
 
-import hashlib
 import time
 
 import pytest
@@ -176,7 +175,8 @@ class TestReception:
         assert response.status_code == 200
         [entry] = audits()
         assert entry.details["rejected"] is None
-        assert entry.details["file_sha256"] == hashlib.sha256(data).hexdigest()
+        # 079 (A-26, P-65 punt 1): l'empremta canònica de les columnes llegides.
+        assert entry.details["file_sha256"] == cluber.preview(data).fingerprint
 
     def test_file_over_the_limit_is_cut_while_receiving(self, web, preview_calls):
         data = self._exact(cluber.MAX_BYTES) + b"\n"
@@ -278,8 +278,8 @@ class TestResult:
         assert entry.details["rejected"] == "missing_header"
 
     def test_iban_column_is_discarded_and_never_shown(self, web):
-        # 071: el fitxer no es rebutja; el valor no surt a la pantalla ni al registre, i el
-        # registre continua sense empremta quan hi ha una columna d'IBAN (minimització).
+        # 071: el fitxer no es rebutja i el valor no surt a la pantalla ni al registre. 079 (A-26):
+        # el registre porta l'empremta canònica, calculada sense l'IBAN.
         headers = [*cluber.KNOWN_HEADERS, "IBAN"]
         response = post(web, build([record(1, {"IBAN": "VALOR-INVENTAT"})], headers=headers))
         assert response.status_code == 200
@@ -289,7 +289,8 @@ class TestResult:
         assert "VALOR-INVENTAT" not in html
         [entry] = audits()
         assert entry.details["rejected"] is None
-        assert "file_sha256" not in entry.details
+        without_iban = build([record(1, {"IBAN": "UN-ALTRE-VALOR"})], headers=headers)
+        assert entry.details["file_sha256"] == cluber.preview(without_iban).fingerprint
         assert "VALOR-INVENTAT" not in str(entry.details)
 
     def test_errors_by_record_and_conflict_without_column(self, web, make_person):
@@ -322,6 +323,7 @@ class TestResult:
             assert value not in html
         assert f"person_id={person.pk}" not in html and "person_id" not in html
         assert set(response.context["summary"]) <= {
+            "fingerprint",  # 079: empremta canònica, sense cap valor del fitxer
             "rejected",
             "rejected_column",
             "rejected_row",

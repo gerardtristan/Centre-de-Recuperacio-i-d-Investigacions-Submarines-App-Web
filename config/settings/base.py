@@ -40,6 +40,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Tota vista exigeix sessió; les públiques es declaren amb @login_not_required.
     "apps.accounts.middleware.LoginRequiredMiddleware",
+    # Importats de Cluber: acceptar les polítiques a la primera entrada (079, A-27; T-M01-25).
+    "apps.members.policies.ImportedPoliciesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
