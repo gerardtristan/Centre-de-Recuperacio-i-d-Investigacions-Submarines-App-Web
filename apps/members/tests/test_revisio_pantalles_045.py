@@ -101,3 +101,12 @@ def test_point_5_create_a_leave_does_not_weigh_like_edit(make_admin):  # noqa: F
     leave = re.search(r'<a class="([^"]+)" href="[^"]+/baixa/nova/">Crea una baixa</a>', html)
     assert edit.group(1) == "boto boto-petit"
     assert "boto-text" in leave.group(1).split()
+
+
+# --- Punt 6: el selector de tema i el menú personal en l'ordre en què es veuen -------------------
+
+
+def test_point_6_theme_selector_comes_before_the_personal_menu_in_tab_order(marta):  # noqa: F811
+    _member, account = marta
+    html = personal_client(account).get(reverse("core:home")).content.decode()
+    assert 0 < html.index('class="selector-tema"') < html.index('class="navegacio-compte"')

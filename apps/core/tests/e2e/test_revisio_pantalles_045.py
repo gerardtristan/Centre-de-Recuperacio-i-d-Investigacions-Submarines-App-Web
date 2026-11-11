@@ -61,3 +61,17 @@ def test_point_5_create_a_leave_is_a_text_button(page, live_server, secretary, m
     expect(edit).to_be_visible()
     expect(leave).to_have_class("boto boto-petit boto-text")
     review("fitxa-accions")
+
+
+def test_point_6_tab_reaches_the_theme_before_the_personal_menu(
+    page, live_server, builder, member, review
+):
+    """A l'àrea personal el selector es veu a sobre del menú: el Tab també hi arriba abans."""
+    login_personal(page, live_server, builder, member)
+    page.set_viewport_size(NARROW)
+    page.locator(".capcalera-compte .marca").focus()
+    page.keyboard.press("Tab")
+    expect(page.locator(".selector-tema input:checked")).to_be_focused()
+    page.keyboard.press("Tab")
+    expect(page.get_by_role("link", name="Inici")).to_be_focused()
+    review("inici-ordre-del-tabulador")
