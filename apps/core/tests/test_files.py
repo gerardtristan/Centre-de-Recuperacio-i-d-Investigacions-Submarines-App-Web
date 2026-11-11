@@ -326,11 +326,20 @@ def test_production_uses_a_private_scaleway_bucket(monkeypatch):
         "S3_ENDPOINT_URL": "https://s3.fr-par.scw.cloud",
         "S3_ACCESS_KEY_ID": "proves",
         "S3_SECRET_ACCESS_KEY": PASSWORD,
+        # Claus del QR del carnet (079, RN-M01-85): obligatòries a producció. Clau inventada.
+        "CARD_QR_KEYS": "k1:clau-inventada-de-proves-numero-u-1954",  # gitleaks:allow (inventada)
+        "CARD_QR_ACTIVE_KEY": "k1",
     }.items():
         monkeypatch.setenv(name, value)
     monkeypatch.delitem(sys.modules, "config.settings.prod", raising=False)
     prod = importlib.import_module("config.settings.prod")
     monkeypatch.delitem(sys.modules, "config.settings.prod")
+
+    assert prod.CARD_QR_KEYS_REQUIRED is True
+    assert (prod.CARD_QR_KEYS, prod.CARD_QR_ACTIVE_KEY) == (
+        ["k1:clau-inventada-de-proves-numero-u-1954"],  # gitleaks:allow (inventada)
+        "k1",
+    )
 
     private = prod.STORAGES["private"]
     assert private["BACKEND"] == "storages.backends.s3.S3Storage"
