@@ -39,6 +39,7 @@ NOT_EDITORS = [
     "history_department",
 ]
 JOINED = datetime.date(2019, 3, 12)
+REASON = "Motiu inventat de proves"
 DNI = "12345678Z"  # lletra correcta (inventat)
 OTHER_DNI = "87654321X"  # lletra correcta (inventat)
 
@@ -252,7 +253,8 @@ class TestEditData:
         ("value", "message"),
         [
             ("12345678A", "Escriu un DNI o un NIE vàlid, amb la lletra."),
-            ("", "El document no es pot treure, només corregir."),
+            # 079 (A-08): només es pot buidar el d'un menor; aquesta persona no té data.
+            ("", "El document només es pot treure a una persona menor d&#x27;edat."),
         ],
     )
     def test_invalid_document_is_rejected(self, secretary, value, message):
@@ -312,7 +314,7 @@ class TestEditData:
 @pytest.mark.django_db
 class TestJoinDate:
     def post(self, account, member, joined_on, approximate=False):
-        body = {"joined_on": joined_on}
+        body = {"joined_on": joined_on, "reason": REASON}  # 079 (A-23): motiu obligatori
         if approximate:
             body["approximate"] = "on"
         return admin_client(account).post(reverse(JOIN_DATE, args=[member.pk]), body)
@@ -415,7 +417,11 @@ class TestOwnMember:
     def test_post_is_rejected_and_recorded(self, make_admin, name):  # noqa: F811
         member = a_member()
         own = make_admin("administrator", person=member.person)
-        body = {**data(member, first_name="Jo mateixa"), "joined_on": "1980-01-01"}
+        body = {
+            **data(member, first_name="Jo mateixa"),
+            "joined_on": "1980-01-01",
+            "reason": REASON,
+        }
         response = admin_client(own).post(reverse(name, args=[member.pk]), body)
         assert response.status_code == 303
         member.refresh_from_db()
@@ -435,7 +441,11 @@ class TestOwnMember:
         own = make_admin("secretary", person=member.person)
         with pytest.raises(OwnMemberChange):
             member_edit.correct_join_date(
-                member, by=own, joined_on=datetime.date(1980, 1, 1), approximate=False
+                member,
+                by=own,
+                joined_on=datetime.date(1980, 1, 1),
+                approximate=False,
+                reason=REASON,
             )
 
     def test_detail_hides_the_links_for_own_member(self, make_admin):  # noqa: F811

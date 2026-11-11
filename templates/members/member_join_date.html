@@ -14,11 +14,12 @@
       {% csrf_token %}
       {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
       {% with field=form.joined_on %}{% include "accounts/_camp.html" %}{% endwith %}
-      <div class="camp">
-        <label class="casella" for="{{ form.approximate.id_for_label }}">{{ form.approximate }} <span>{{ form.approximate.label }}</span></label>
-        <div class="ajuda" id="{{ form.approximate.auto_id }}_helptext">{{ form.approximate.help_text }}</div>
-      </div>
-      <p class="ajuda">{% translate "La correcció queda a l'historial del soci i al registre d'activitat, amb el valor anterior." %}</p>
+      {# Patró «casella» fora de `.camp` (T-M01-45, punt 3): dins de `.camp` la casella s'estirava. #}
+      <label class="casella" for="{{ form.approximate.id_for_label }}">{{ form.approximate }} <span>{{ form.approximate.label }}</span></label>
+      <p class="text-2" id="{{ form.approximate.auto_id }}_helptext">{{ form.approximate.help_text }}</p>
+      {# 079 (A-23, RN-M01-90): motiu obligatori; el servei el torna a exigir. #}
+      {% with field=form.reason %}{% include "accounts/_camp.html" %}{% endwith %}
+      <p class="ajuda">{% translate "La correcció queda a l'historial del soci, amb el valor anterior, i al registre d'activitat, amb el motiu." %}</p>
       <div class="accions">
         <button class="boto boto-principal" type="submit">{% translate "Desa la data" %}</button>
         <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>

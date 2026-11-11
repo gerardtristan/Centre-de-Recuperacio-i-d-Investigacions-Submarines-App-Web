@@ -93,6 +93,7 @@ def member_join_date_view(request, pk):
             by=request.user,
             joined_on=form.cleaned_data["joined_on"],
             approximate=form.cleaned_data["approximate"],
+            reason=form.cleaned_data["reason"],
             request=request,
         )
 

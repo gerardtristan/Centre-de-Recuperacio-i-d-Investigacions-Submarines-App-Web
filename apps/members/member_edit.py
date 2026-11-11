@@ -12,9 +12,17 @@ HU-M01-07, RN-M01-22, RN-RP-21, S-M01-22).
   camp al registre d'activitat amb el valor anterior. La data d'alta deixa una fila a
   `MemberJoinDateChange` (historial visible a la fitxa) i el registre d'activitat (RN-M01-22).
 
-Fora d'abast (docs/planning.md, fila de la T-M01-15b): el número de soci (pendent de decisió), la
-data de naixement (T-M01-33), el tipus i l'estat (serveis de la T-M01-12 i la T-M01-17) i els
-camps opcionals de la P-58. Mai l'IBAN ni cap dada de salut.
+Decisió 079 (RN-M01-90, CA-M01-99 a 101):
+- El **número de soci no es corregeix des de l'app** (A-22): no és cap camp editable, i un camp
+  afegit a mà a la petició és «no trobat».
+- Corregir la **data d'alta** demana un **motiu obligatori** (A-23), que queda al registre
+  d'activitat amb el valor anterior. L'historial de correccions no porta text lliure.
+- El **document d'un menor** es pot buidar (A-08) si la data de naixement de la persona diu que
+  és menor d'edat, amb P5 i C2 (el permís que ja demana editar el document) i amb el valor
+  anterior al registre. El d'un major o el d'algú sense data de naixement, no.
+
+Fora d'abast: la data de naixement (T-M01-35), el tipus i l'estat (serveis de la T-M01-12 i la
+T-M01-17). Mai l'IBAN ni cap dada de salut.
 """
 
 import datetime
@@ -90,12 +98,34 @@ def edit_member_data(member, *, by, fields, request=None) -> list[str]:
         raise Http404
     with transaction.atomic():
         _check_account_active(by, lock=True)
-        return persons.update(member.person, by=by, request=request, **fields)
+        person = member.person
+        if (
+            person.id_document_number
+            and fields.get("id_document_number") == ""
+            and not may_clear_document(person)
+        ):
+            raise ValidationError(DOCUMENT_REQUIRED)
+        return persons.update(person, by=by, request=request, **fields)
 
 
-def correct_join_date(member, *, by, joined_on, approximate, request=None) -> bool:
-    """P6 (RN-M01-22). Historial i registre amb el valor anterior. Torna si ha canviat res."""
+DOCUMENT_REQUIRED = _(
+    "El document només es pot treure a una persona menor d'edat. Si cal, corregeix-lo."
+)
+
+
+def may_clear_document(person) -> bool:
+    """079 (A-08, RN-M01-90): el document és opcional només per als menors (RN-M01-70). Sense
+    data de naixement no se sap si ho és, i no es pot buidar."""
+    return persons.age_band(person) == persons.AgeBand.MINOR
+
+
+def correct_join_date(member, *, by, joined_on, approximate, reason, request=None) -> bool:
+    """P6 (RN-M01-22). Historial i registre amb el valor anterior; el motiu és obligatori i queda
+    al registre d'activitat (079, A-23). Torna si ha canviat res."""
     authorize(member, by, EDIT_JOIN_DATE, request=request)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu de la correcció."))
     if not isinstance(joined_on, datetime.date) or isinstance(joined_on, datetime.datetime):
         raise ValidationError(_("Cal la data d'alta."))
     if joined_on > timezone.localdate():
@@ -125,6 +155,7 @@ def correct_join_date(member, *, by, joined_on, approximate, request=None) -> bo
                 "joined_on": (old[0], joined_on),
                 "joined_on_is_approximate": (old[1], approximate),
             },
+            reason=reason,
             request=request,
         )
         locked.joined_on, locked.joined_on_is_approximate = joined_on, approximate
@@ -147,7 +178,10 @@ class MemberDataForm(forms.Form):
         label=_("Document d'identitat"),
         max_length=30,
         required=False,
-        help_text=_("Un document nou ha de ser un DNI o un NIE vàlid, amb la lletra."),
+        help_text=_(
+            "Un document nou ha de ser un DNI o un NIE vàlid, amb la lletra. Només es pot deixar "
+            "buit per a una persona menor d'edat."
+        ),
     )
     address = forms.CharField(label=_("Adreça (opcional)"), max_length=255, required=False)
     landline = forms.CharField(label=_("Telèfon fix (opcional)"), max_length=30, required=False)
@@ -174,14 +208,16 @@ class MemberDataForm(forms.Form):
 
     def clean_id_document(self):
         """El document actual es pot deixar tal com és (també un passaport). Un de nou ha de ser
-        un DNI o un NIE vàlid, com a l'alta. No es pot buidar: sense la data de naixement
-        (T-M01-33) no se sap si la persona és menor, l'únic cas en què és opcional (068)."""
+        un DNI o un NIE vàlid, com a l'alta. Només es pot buidar el d'una persona menor d'edat
+        segons la seva data de naixement (079, A-08; RN-M01-70); el servei ho torna a comprovar."""
         raw = self.cleaned_data["id_document"].strip()
         current = (self.person.id_document_type, self.person.id_document_number)
         if normalize_document(raw) == current[1]:
             return current
         if not raw:
-            raise ValidationError(_("El document no es pot treure, només corregir."))
+            if may_clear_document(self.person):
+                return ("", "")
+            raise ValidationError(DOCUMENT_REQUIRED)
         parsed = parse_document(raw)
         if parsed is None:
             raise ValidationError(DOCUMENT_INVALID)
@@ -205,6 +241,12 @@ class JoinDateForm(forms.Form):
         label=_("La data és aproximada"),
         required=False,
         help_text=_("Marca-ho si no és segura (per exemple, recuperada d'un carnet antic)."),
+    )
+    reason = forms.CharField(
+        label=_("Motiu de la correcció"),
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Queda al registre d'activitat. No hi escriguis dades d'altres persones."),
     )
 
     def __init__(self, data=None, *, member):

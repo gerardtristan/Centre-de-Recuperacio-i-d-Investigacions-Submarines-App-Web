@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-15b: editar les dades d'un soci (P5). Només hi ha els camps que el compte pot veure a la fitxa; la resta de la petició s'ignora. El número, el tipus, l'estat i la data de naixement no s'editen aquí. #}
+{# T-M01-15b: editar les dades d'un soci (P5). Només hi ha els camps que el compte pot veure a la fitxa; la resta de la petició s'ignora. El número de soci no es corregeix des de l'app (079, RN-M01-90); el tipus i l'estat tenen els seus serveis. Seguretat: P5 i P4 al servidor; document i adreça només amb C2; conflicte d'interès registrat; el document només es pot buidar per a un menor. #}
 {% block title %}{% translate "Edita les dades" %} · {{ person }} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
@@ -15,7 +15,7 @@
       {% csrf_token %}
       {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
-      <p class="ajuda">{% translate "Cada canvi queda al registre d'activitat amb el valor anterior. El número de soci encara no es pot corregir aquí: està pendent d'una decisió." %}</p>
+      <p class="ajuda">{% translate "Cada canvi queda al registre d'activitat amb el valor anterior. El número de soci no es pot corregir des de l'aplicació." %}</p>
       <div class="accions">
         <button class="boto boto-principal" type="submit">{% translate "Desa els canvis" %}</button>
         <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>

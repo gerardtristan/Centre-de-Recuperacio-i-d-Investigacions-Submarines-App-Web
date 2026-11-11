@@ -364,8 +364,17 @@ SERVICES = {
     "correct_join_date": (
         ((P + "edit_join_date", True), (P + "list", True)),
         lambda w, by: member_edit.correct_join_date(
-            w.other, by=by, joined_on=datetime.date(2010, 1, 1), approximate=False
+            w.other,
+            by=by,
+            joined_on=datetime.date(2010, 1, 1),
+            approximate=False,
+            reason=REASON,
         ),
+    ),
+    # 079 (RN-M01-87): tornar a enviar la invitació del compte personal, amb M2 i P4.
+    "resend_invitation": (
+        (("core.people.manage", True), (P + "list", False)),
+        lambda w, by: admissions.resend_invitation(w.other, by=by),
     ),
     "join_in_person": (
         ((P + "create_in_person", True),),
