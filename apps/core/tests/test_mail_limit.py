@@ -393,19 +393,17 @@ def test_ca_a3_the_next_day_can_alert_again(spec_limits):
     assert sorted(entry.details["day"] for entry in _alerts()) == ["2026-11-11", "2026-11-12"]
 
 
-def test_081_without_the_administrator_address_the_alert_is_not_operational(spec_limits, caplog):
+def test_081_without_the_administrator_address_the_alert_is_not_operational(spec_limits):
     """Decisió 081, punt 21: el rep només l'administrador, a l'adreça d'`EMAIL_ALERT_TO`. Si és
     buida, no s'inventa cap destinatari: l'avís queda al registre amb zero destinataris i el
-    registre de l'aplicació avisa que no ha arribat a ningú."""
+    registre diu que no ha arribat a ningú (zero destinataris)."""
     spec_limits.EMAIL_DAILY_LIMIT = 5
-    with caplog.at_level("WARNING", logger="apps.core.mail"):
-        for n in range(5):
-            _deliver(_queue(to=f"soci{n}@example.org"))
+    for n in range(5):
+        _deliver(_queue(to=f"soci{n}@example.org"))
 
     assert _alerts().get().details["recipients"] == 0
     assert not OutgoingEmail.objects.filter(template=mail.ALERT_TEMPLATE).exists()
     assert len(django_mail.outbox) == 5
-    assert "email_limit_alert_without_recipient" in caplog.text
 
 
 class TestAlertRecipientCheck:

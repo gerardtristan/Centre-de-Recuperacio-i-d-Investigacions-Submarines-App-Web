@@ -36,7 +36,6 @@ Fora d'abast ara: tandes i consentiment del butlletí i avisos del proveïdor (R
 RN-A10); s'hi afegeixen quan calguin.
 """
 
-import logging
 import re
 
 from django.conf import settings
@@ -50,8 +49,6 @@ from django.utils import timezone, translation
 from . import audit
 from .models import EmailDailyUsage, OutgoingEmail, Person
 from .persons import anonymous_email, language_for
-
-logger = logging.getLogger(__name__)
 
 _TEMPLATE_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # RN-A12: res que sembli una contrasenya o un secret entra al context d'una plantilla. Els
@@ -81,6 +78,7 @@ TEMPLATE_PRIORITIES = {
     "avis-canvi-diners": _Priority.CONFIRMATION,
     "avis-quota-tresorer": _Priority.CONFIRMATION,
     "avis-compte-emergencia": _Priority.CONFIRMATION,  # CA-10.2 (T-M00-03)
+    "restabliment-doble-factor": _Priority.CONFIRMATION,  # P-52 (081, punt 24; T-M01-51)
     "esborrat-fet": _Priority.CONFIRMATION,  # RGPD (T-M01-22)
     "esborrat-rebutjat": _Priority.CONFIRMATION,
     ALERT_TEMPLATE: _Priority.CONFIRMATION,
@@ -218,9 +216,9 @@ def _save_usage(usage: EmailDailyUsage) -> None:
 
     Qui rep l'avís (Q-26, resolta a la decisió 081, punt 21): **només l'administrador**, a
     l'adreça configurada a `EMAIL_ALERT_TO`. Sempre queda al registre d'activitat, amb el nombre
-    de destinataris; si no n'hi ha cap, el registre de l'aplicació ho diu i l'avís no és
-    operatiu (la comprovació de desplegament `core.W001` ho marca). Cap dada personal ni al
-    registre ni al correu: només el dia i els números.
+    de destinataris; si no n'hi ha cap («recipients»: 0), l'avís no és operatiu (la
+    comprovació de desplegament `core.W001` ho marca). Cap dada personal ni al registre ni al
+    correu: només el dia i els números.
     """
     limit = settings.EMAIL_DAILY_LIMIT
     reached = usage.used * 100 >= limit * settings.EMAIL_ALERT_THRESHOLD_PCT
@@ -237,8 +235,6 @@ def _save_usage(usage: EmailDailyUsage) -> None:
                 "recipients": len(settings.EMAIL_ALERT_TO),
             },
         )
-        if not settings.EMAIL_ALERT_TO:
-            logger.warning("email_limit_alert_without_recipient day=%s", usage.day.isoformat())
         for address in settings.EMAIL_ALERT_TO:
             queue_email(
                 ALERT_TEMPLATE,
