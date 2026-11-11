@@ -1,0 +1,263 @@
+"""Quina prova e2e cobreix quins fitxers (T-M00-07, CA-M00-07f; decisió 081, punt 1).
+
+El hook de fi de torn fa servir aquest mapa per triar les proves e2e que passa:
+
+- **Conjunt mínim** (`SMOKE`): sempre que hi ha canvis, els quatre fluxos crítics.
+- **Fitxers del mapa** (`MAP`): les proves del mapa per a cada fitxer canviat, més el conjunt
+  mínim, si el temps estimat hi cap.
+- **Fitxers compartits** (`SHARED`): plantilles base, estils, configuració, models, migracions,
+  serveis comuns, permisos, sessions... Afecten moltes pantalles: el hook només passa el conjunt
+  mínim i la **verificació completa queda obligatòria** abans del commit.
+- **Fitxers desconeguts** (cap patró): igual que els compartits. Una prova unitària, una
+  plantilla de correu o un fitxer nou que no és al mapa no el pot verificar el hook.
+
+Els patrons són de `fnmatch` sobre camins amb «/»: `*` també travessa carpetes. Una prova
+(`test_e2e_map_*` a `apps/core/tests/test_verificacio_t_m00_07.py`) comprova que cada prova e2e
+és al mapa i que cada patró correspon a algun fitxer.
+
+`SECONDS` són temps de referència per fitxer de prova, en local amb la base reutilitzada; el hook
+els substitueix pels que mesura cada vegada (`.e2e-captures/.verificacio.json`).
+"""
+
+from fnmatch import fnmatch
+
+E2E_DIR = "apps/core/tests/e2e"
+SMOKE = "test_smoke.py"
+
+SHARED = (
+    "templates/base*.html",
+    "templates/403.html",
+    "templates/accounts/_camp.html",
+    "templates/accounts/_admin_nav.html",
+    "templates/members/_personal_nav.html",
+    "static/css/*",
+    "static/js/tema.js",
+    "static/vendor/*",
+    "static/fonts/*",
+    "config/*",
+    "conftest.py",
+    "pyproject.toml",
+    "manage.py",
+    "apps/*/migrations/*",
+    "apps/*/models.py",
+    "apps/*/apps.py",
+    "apps/*/urls.py",
+    "apps/*/admin_urls.py",
+    "apps/*/permissions.py",
+    "apps/*/checks.py",
+    "apps/*/templatetags/*",
+    "apps/*/management/*",
+    "apps/core/audit.py",
+    "apps/core/permissions.py",
+    "apps/core/permission_catalog.py",
+    "apps/core/roles.py",
+    "apps/core/mail.py",
+    "apps/core/persons.py",
+    "apps/core/charges.py",
+    "apps/core/crypto.py",
+    "apps/core/files.py",
+    "apps/core/consents.py",
+    "apps/core/normalization.py",
+    "apps/core/business_settings.py",
+    "apps/core/tasks.py",
+    "apps/accounts/middleware.py",
+    "apps/accounts/sessions.py",
+    "apps/accounts/security.py",
+    "apps/accounts/views.py",
+    "apps/accounts/forms.py",
+    "apps/accounts/totp.py",
+    "apps/accounts/reauth.py",
+    "apps/members/services.py",
+    "apps/members/forms.py",
+    "apps/members/demo_data.py",
+    "apps/core/tests/e2e/conftest.py",
+    "apps/core/tests/conftest.py",
+    ".claude/hooks/*",
+    "tools/*",
+    ".github/workflows/*",
+)
+
+MAP = {
+    SMOKE: (
+        "apps/members/join.py",
+        "apps/members/views/public.py",
+        "templates/members/join.html",
+        "templates/members/_join_*.html",
+        "templates/members/member_list.html",
+        "templates/accounts/login*.html",
+    ),
+    "test_altes_079.py": (
+        "apps/members/admissions.py",
+        "apps/accounts/invitations.py",
+        "templates/members/join_requests.html",
+        "templates/accounts/invitation.html",
+    ),
+    "test_carnet_079.py": (
+        "apps/members/cards.py",
+        "apps/members/card_keys.py",
+        "apps/members/validity.py",
+        "apps/members/views/personal_card.py",
+        "apps/members/views/public_card.py",
+        "templates/members/personal_card.html",
+        "templates/members/card_verify.html",
+        "static/js/imprimeix.js",
+    ),
+    "test_pwa_079.py": (
+        "static/js/service-worker.js",
+        "static/js/carnet-copia.js",
+        "static/js/pwa.js",
+        "static/manifest.json",
+        "static/img/*",
+        "apps/core/views/pwa.py",
+        "apps/members/cards.py",
+        "apps/members/views/personal_card.py",
+        "templates/members/personal_card.html",
+        "templates/core/install_help_iphone.html",
+    ),
+    "test_comptes_emergencia.py": (
+        "apps/accounts/emergency.py",
+        "templates/accounts/_avis_emergencia.html",
+        "templates/accounts/admin_accounts.html",
+        "templates/accounts/admin_home.html",
+    ),
+    "test_dades_bloquejades.py": (
+        "apps/core/locked_data.py",
+        "apps/core/views/locked_data.py",
+        "templates/core/locked_data_*.html",
+    ),
+    "test_edicio_soci_079.py": (
+        "apps/members/member_edit.py",
+        "apps/members/birth_date.py",
+        "apps/members/views/admin.py",
+        "apps/members/views/admin_member_edit.py",
+        "apps/accounts/personal_reset.py",
+        "templates/members/member_detail.html",
+        "templates/members/member_edit.html",
+        "templates/members/member_join_date.html",
+        "templates/members/member_totp_reset.html",
+        "templates/members/_member_edit_links.html",
+        "templates/members/_join_date_history.html",
+    ),
+    "test_fitxa_081.py": (
+        "apps/members/birth_date.py",
+        "apps/members/views/admin.py",
+        "apps/members/views/admin_member_edit.py",
+        "apps/accounts/personal_reset.py",
+        "templates/members/member_detail.html",
+        "templates/members/member_totp_reset.html",
+        "templates/members/_member_edit_links.html",
+    ),
+    "test_enllacos_convidat.py": (
+        "apps/core/guest_links.py",
+        "apps/core/views/guest.py",
+        "templates/core/guest*.html",
+    ),
+    "test_naixement_035.py": (
+        "apps/members/birth_date.py",
+        "apps/members/views/personal.py",
+        "templates/members/_birth_date_notice.html",
+        "templates/members/personal_profile.html",
+    ),
+    "test_navegacio.py": (
+        "apps/accounts/navigation.py",
+        "static/js/menu-admin.js",
+        "templates/accounts/admin_home.html",
+    ),
+    "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_pas_a_simpatitzant_073.py": (
+        "apps/members/member_requests.py",
+        "apps/members/views/personal_requests.py",
+        "apps/members/views/admin_requests.py",
+        "templates/members/personal_change_type.html",
+        "templates/members/personal_downgrade.html",
+        "templates/members/request_detail.html",
+        "templates/members/requests_list.html",
+        "templates/members/_requests_table.html",
+    ),
+    "test_politiques_079.py": (
+        "apps/members/policies.py",
+        "apps/members/views/personal_policies.py",
+        "templates/members/accept_policies.html",
+        "static/js/textos-legals.js",
+    ),
+    "test_quotes_079.py": (
+        "apps/members/fees.py",
+        "apps/members/fee_rules.py",
+        "apps/members/validity.py",
+        "apps/members/roster.py",
+        "templates/members/fees.html",
+        "templates/members/_fee_state.html",
+        "templates/members/_charge_status.html",
+        "templates/members/personal_fees.html",
+        "templates/members/personal_fee_detail.html",
+    ),
+    "test_recorreguts_048.py": ("design/*",),
+    "test_revisio_pantalles_045.py": (
+        "templates/members/join_requests.html",
+        "templates/members/member_join_date.html",
+        "templates/members/personal_leave.html",
+        "templates/members/personal_change_type.html",
+        "templates/members/leave_create.html",
+        "templates/accounts/admin_home.html",
+    ),
+    "test_rgpd.py": (
+        "apps/core/erasure.py",
+        "apps/core/privacy.py",
+        "apps/core/views/gdpr.py",
+        "apps/members/privacy.py",
+        "apps/accounts/privacy.py",
+        "templates/core/gdpr_*.html",
+        "templates/members/personal_erase.html",
+        "templates/members/personal_profile.html",
+    ),
+    "test_sessio_caducada_081.py": ("templates/accounts/session_expired.html",),
+    # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
+    # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
+    # verificació completa obligatòria.
+    "test_accessibilitat_028.py": ("templates/*.html",),
+}
+
+SECONDS = {
+    SMOKE: 35,
+    "test_accessibilitat_028.py": 120,
+    "test_pwa_079.py": 45,
+    "test_recorreguts_048.py": 20,
+}
+DEFAULT_SECONDS = 25
+
+
+def _matches(path: str, patterns) -> bool:
+    return any(fnmatch(path, pattern) for pattern in patterns)
+
+
+def plan(changed, durations=None, budget=70.0):
+    """Què passa el hook. Torna (proves, verificació completa obligatòria, motius).
+
+    - Un fitxer e2e canviat es passa ell mateix.
+    - Compartit o desconegut: només el conjunt mínim i la completa obligatòria.
+    - Del mapa: les seves proves i el conjunt mínim, si el temps estimat no passa de `budget`;
+      si en passa, només el conjunt mínim i la completa obligatòria.
+    """
+    durations = {**SECONDS, **(durations or {})}
+    selected, reasons = {SMOKE}, []
+    full = False
+    for path in changed:
+        if path.startswith(f"{E2E_DIR}/test_") and path.endswith(".py"):
+            selected.add(path.rsplit("/", 1)[1])
+            continue
+        if _matches(path, SHARED):
+            full = True
+            reasons.append(f"compartit: {path}")
+            continue
+        tests = [test for test, patterns in MAP.items() if _matches(path, patterns)]
+        if not tests:
+            full = True
+            reasons.append(f"sense prova e2e al mapa: {path}")
+            continue
+        selected.update(tests)
+    estimate = sum(durations.get(test, DEFAULT_SECONDS) for test in selected)
+    if estimate > budget:
+        full = True
+        reasons.append(f"selecció massa llarga: uns {estimate:.0f} s")
+        selected = {SMOKE}
+    return sorted(selected), full, reasons
