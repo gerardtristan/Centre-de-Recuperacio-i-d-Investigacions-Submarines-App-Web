@@ -124,3 +124,38 @@ figure { margin: 0; }
 .navegacio-compte ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
 .navegacio-compte a { display: inline-flex; align-items: center; min-height: var(--tactil); }
 .navegacio-compte a[aria-current="page"] { font-weight: var(--p-semi); color: var(--c-text); }
+/* «Surt» (T-M01-46): l'última peça del menú, a la dreta; és un botó perquè és un POST */
+.navegacio-compte ul { align-items: center; }
+.navegacio-compte .sortida { margin-left: auto; }
+
+/* Navegació de l'administració (T-M01-46; sistema de disseny §6.1; wireframe admin.html): barra
+   lateral fosca als dos temes, amb les entrades que el servidor ha deixat passar. Fins a 1023 px
+   va sota la capçalera i, amb JavaScript (menu-admin.js posa «menu-plegable» a l'arrel), queda
+   plegada darrere del botó «Menú». A partir de 1024 px és una columna fixa. */
+.barra-lateral { display: flex; flex-direction: column; gap: var(--e-4); padding: var(--e-4); background: var(--c-lateral-fons); color: var(--c-lateral-text); }
+.menu-plegable .barra-lateral { display: none; }
+.menu-plegable .barra-lateral.oberta { display: flex; }
+.barra-lateral :focus-visible { outline-color: var(--c-lateral-focus); }
+.lateral-nav ul { list-style: none; display: grid; gap: var(--e-1); }
+.lateral-nav a { display: flex; align-items: center; min-height: var(--tactil); padding: var(--e-1) var(--e-3); border-radius: var(--r-m); color: var(--c-lateral-text-2); text-decoration: none; font-weight: var(--p-semi); }
+.lateral-nav a:hover { background: var(--c-lateral-fons-2); color: var(--c-lateral-text); }
+/* Entrada actual: barra daurada + negreta + fons (§2.5), mai només el color */
+.lateral-nav a[aria-current="page"] { color: var(--c-lateral-text); font-weight: var(--p-negreta); background: var(--c-lateral-fons-2); box-shadow: inset var(--v-activa) 0 0 var(--c-accent); }
+.lateral-compte { display: grid; justify-items: start; gap: var(--e-1); padding-top: var(--e-3); border-top: var(--v-fina) solid var(--c-lateral-fons-2); font-size: var(--t-s); overflow-wrap: anywhere; }
+.lateral-estat { color: var(--c-lateral-text-2); }
+.lateral-compte .boto { --neu-base: var(--c-lateral-fons); margin-top: var(--e-2); color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); box-shadow: none; }
+.lateral-compte .boto:hover { background: var(--c-lateral-fons-2); box-shadow: none; }
+/* Capçalera amb el botó «Menú»: el logotip a l'esquerra i la resta a la dreta, en l'ordre del teclat */
+.capcalera-compte .boto-menu { margin-left: auto; }
+.capcalera-compte .boto-menu + .selector-tema { margin-left: 0; }
+/* Inici de l'administració: les mateixes entrades del menú, com a llista d'enllaços */
+ul.enllacos { list-style: none; }
+@media (min-width: 1024px) {
+  .amb-barra-lateral { display: grid; grid-template-columns: var(--lateral-ample) minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
+  .amb-barra-lateral > .capcalera-compte { grid-column: 1 / -1; }
+  /* El contingut no s'estira fins a baix: els seus blocs queden junts, com sense la barra */
+  .amb-barra-lateral > main { align-self: start; }
+  .barra-lateral, .menu-plegable .barra-lateral { display: flex; }
+  .capcalera-compte .boto-menu { display: none; }
+  .capcalera-compte .boto-menu + .selector-tema { margin-left: auto; }
+}

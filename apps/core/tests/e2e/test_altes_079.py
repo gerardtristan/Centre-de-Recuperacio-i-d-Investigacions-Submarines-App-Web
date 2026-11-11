@@ -92,7 +92,7 @@ def test_approval_sends_the_invitation_and_the_person_creates_the_account(
     page.get_by_label("Correu electrònic").fill("laia.dorada@example.org")
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
-    expect(page.get_by_role("button", name="Sortir")).to_be_visible()
+    expect(page.get_by_role("button", name="Surt")).to_be_visible()
 
 
 def test_minor_without_document_shows_the_possible_duplicate(

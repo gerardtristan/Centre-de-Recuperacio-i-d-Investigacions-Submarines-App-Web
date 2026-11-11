@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.utils import timezone
 
@@ -29,3 +31,9 @@ def make_admin(db):
         return account
 
     return make
+
+
+def main_of(html):
+    """Només el contingut de la pàgina (`<main>`), sense la navegació comuna: el menú porta el
+    formulari de «Surt» (T-M01-46), que no és cap acció sobre les dades de la pantalla."""
+    return re.search(r"<main\b.*</main>", html, re.S).group(0)

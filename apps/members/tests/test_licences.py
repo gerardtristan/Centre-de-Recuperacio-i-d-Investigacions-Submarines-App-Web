@@ -18,7 +18,10 @@ from django.urls import reverse
 from apps.accounts.models import Account
 from apps.core.models import AuditEntry, Person
 from apps.core.permission_catalog import SCOPE_READ
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 from apps.members import licences, services
 from apps.members.models import LicenceRecord
 from apps.members.services import InactiveAccount, OwnMemberChange
@@ -390,7 +393,7 @@ class TestOwnMember:
         assert "Anual FECDAS" in page
         assert reverse(ADD, args=[member.pk]) not in page
         assert reverse(EDIT, args=[member.pk, record.pk]) not in page
-        page = client.get(reverse(ADD, args=[member.pk])).content.decode()
+        page = main_of(client.get(reverse(ADD, args=[member.pk])).content.decode())
         assert "És el teu soci" in page and 'method="post"' not in page
 
     @pytest.mark.parametrize("edit", [False, True])

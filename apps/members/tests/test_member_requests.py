@@ -23,7 +23,10 @@ from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person, RolePermission
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 from apps.members import cards, fees
 from apps.members import member_requests as mr
 from apps.members.fee_rules import local_today
@@ -204,7 +207,7 @@ def test_member_detail_links_to_create_a_leave_only_with_p7(make_admin, marta): 
 def test_full_member_sees_the_downgrade_rule_without_a_promised_notice(db):
     # 073: el text explica la regla i no promet cap avís ni cap sol·licitud que encara no existeix.
     member = make_member(type_code="full")
-    page = personal_client(account_for(member)).get(reverse(CHANGE)).content.decode()
+    page = main_of(personal_client(account_for(member)).get(reverse(CHANGE)).content.decode())
     assert "efectiu en la pròxima renovació de la quota anual" in page
     assert "encara no està disponible" in page
     assert "avisarem" not in page.lower()
@@ -836,7 +839,7 @@ def test_ca_m01_74_unpaid_fee_blocks_the_change_on_request_and_on_approval(
     member, account = marta
     add_unpaid_fee(member)
     client = personal_client(account)
-    page = client.get(reverse(CHANGE)).content.decode()
+    page = main_of(client.get(reverse(CHANGE)).content.decode())
     assert "Tens una quota sense pagar" in page and 'method="post"' not in page
     response = client.post(reverse(CHANGE))
     assert "Tens una quota sense pagar" in response.content.decode()

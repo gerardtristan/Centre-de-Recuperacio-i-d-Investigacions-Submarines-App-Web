@@ -19,7 +19,10 @@ from apps.accounts.models import Account
 from apps.core import persons
 from apps.core.models import AuditEntry, Person, Role, RolePermission
 from apps.core.permission_catalog import SCOPE_ALL
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 from apps.members import member_edit, services
 from apps.members.models import Member, MemberJoinDateChange, MembershipType
 from apps.members.services import InactiveAccount, OwnMemberChange
@@ -409,7 +412,7 @@ class TestOwnMember:
     def test_form_is_not_offered(self, make_admin, name):  # noqa: F811
         member = a_member()
         own = make_admin("secretary", person=member.person)
-        page = admin_client(own).get(reverse(name, args=[member.pk])).content.decode()
+        page = main_of(admin_client(own).get(reverse(name, args=[member.pk])).content.decode())
         assert "És el teu soci" in page
         assert 'method="post"' not in page
 

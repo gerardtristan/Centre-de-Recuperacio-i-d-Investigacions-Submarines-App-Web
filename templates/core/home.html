@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 {% load i18n %}
+{# Inici de l'àrea de socis: només el nom de la persona de la sessió. «Surt» és al menú de l'àrea, com a totes les pantalles (T-M01-46). #}
 
 {% block content %}
   <h1>{% translate "Plataforma del C.R.I.S." %}</h1>
   <p>{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
   <p><a href="{% url 'accounts:security' %}">{% translate "Seguretat del compte" %}</a></p>
-  <form method="post" action="{% url 'accounts:logout' %}">
-    {% csrf_token %}
-    <button type="submit">{% translate "Sortir" %}</button>
-  </form>
 {% endblock %}

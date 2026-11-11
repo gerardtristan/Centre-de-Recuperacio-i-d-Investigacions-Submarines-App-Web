@@ -16,7 +16,10 @@ from django.utils import timezone
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core.models import AuditEntry, Person, Role, RolePermission
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import (
+    main_of,
+    make_admin,  # noqa: F401 (fixture)
+)
 
 URL = reverse("administration:audit_log")
 TZ = timezone.get_default_timezone()
@@ -317,7 +320,7 @@ def test_no_write_methods(people, log, method, who):
 
 
 def test_screen_offers_no_way_to_modify_or_delete(people, log):
-    content = client_for(people["m6"]).get(URL).content.decode()
+    content = main_of(client_for(people["m6"]).get(URL).content.decode())
     forms = re.findall(r"<form\b[^>]*>", content)
     assert len(forms) == 1  # només el dels filtres
     assert 'method="get"' in forms[0]

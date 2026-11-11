@@ -1,22 +1,20 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
+{# Inici de l'administració. Les seccions són les mateixes entrades del menú comú (T-M01-46): les calcula el servidor #}
+{# amb els permisos del compte i aquí no se'n duplica la llista. Un enllaç no és cap control: cada vista torna a #}
+{# comprovar el permís. El compte actiu, l'estat del TOTP i «Surt» són a la barra lateral, com a totes les pantalles. #}
 
 {% block title %}{% translate "Administració" %} · C.R.I.S.{% endblock %}
 
 {% block content %}
   <h1>{% translate "Administració del C.R.I.S." %}</h1>
   <p>{% blocktranslate with username=user.get_username %}Has entrat com a {{ username }}.{% endblocktranslate %}</p>
-  {% if can_reset %}<p><a href="{% url 'administration:accounts' %}">{% translate "Comptes d'administrador" %}</a></p>{% endif %}
-  {% if can_import %}<p><a href="{% url 'administration:cluber_preview' %}">{% translate "Importació de Cluber: prova" %}</a></p>{% endif %}
-  {% if can_members %}<p><a href="{% url 'administration:members_list' %}">{% translate "Llistat de socis" %}</a></p>{% endif %}
-  {% if can_requests %}<p><a href="{% url 'administration:join_requests' %}">{% translate "Altes pendents" %}</a></p>{% endif %}
-  {% if can_requests %}<p><a href="{% url 'administration:member_requests' %}">{% translate "Sol·licituds de socis" %}</a></p>{% endif %}
-  {% if can_licences %}<p><a href="{% url 'administration:licence_bulk_confirm' %}">{% translate "Llicències pendents de confirmar" %}</a></p>{% endif %}
-  {% if can_fees %}<p><a href="{% url 'administration:fees' %}">{% translate "Quotes i impagats" %}</a></p>{% endif %}
-  {% if can_join %}<p><a href="{% url 'administration:join_in_person' %}">{% translate "Alta presencial" %}</a></p>{% endif %}
-  {% if can_audit %}<p><a href="{% url 'administration:audit_log' %}">{% translate "Registre d'activitat" %}</a></p>{% endif %}
-  <form method="post" action="{% url 'administration:logout' %}">
-    {% csrf_token %}
-    <button type="submit">{% translate "Sortir" %}</button>
-  </form>
+  {% if admin_nav.sections %}
+    <ul class="enllacos">
+      {% for entry in admin_nav.sections %}<li><a href="{{ entry.url }}">{{ entry.label }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>{% translate "Aquest compte encara no té accés a cap secció. Parla-ho amb un administrador del club." %}</p>
+  {% endif %}
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# Pàgines de l'administració: zona, títol i inici propis. La barra lateral d'admin.html encara no hi és (T-M01-38: pendent). #}
+{# Pàgines de l'administració: zona, títol i inici propis. La barra lateral (menú segons els permisos, compte actiu, #}
+{# estat del TOTP i «Surt») la posa la plantilla base quan hi ha una sessió vàlida de l'administració (T-M01-46). #}
 {% block zona %}admin{% endblock %}
 {% block titol_zona %}{% translate "Administració" %}{% endblock %}
 {% block inici %}{% url 'administration:home' %}{% endblock %}

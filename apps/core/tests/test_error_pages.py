@@ -94,7 +94,8 @@ def test_404_in_the_administration_does_not_tell_whether_the_object_exists(login
     assert body(existing) == body(unknown)
     html = existing.content.decode()
     assert NOT_FOUND_TITLE in html
-    assert 'class="zona-admin"' in html
+    # Zona i menú de l'administració (T-M01-46): surten de la sessió, no de l'adreça.
+    assert 'class="zona-admin amb-barra-lateral"' in html
     assert f'href="{reverse("administration:home")}"' in html
     assert "Existeix" not in html and "members." not in html and "permís" not in html
 
