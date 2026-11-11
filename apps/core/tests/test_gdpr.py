@@ -246,8 +246,9 @@ def test_ca_19_1_open_session_of_the_person_is_closed(login_as, handler, persona
     assert session.get(reverse("core:home")).status_code == 200
     erasure.approve(pending, by=handler)
     response = session.get(reverse("core:home"))
-    assert response.status_code == 302
-    assert response["Location"].startswith(reverse("accounts:login"))
+    # Sessió tancada: «La sessió ha caducat» amb el botó cap a l'entrada (081, punt 22).
+    assert response.status_code == 401
+    assert f'href="{reverse("accounts:login")}?next=' in response.content.decode()
 
 
 # --- Rebutjar -------------------------------------------------------------------------------
