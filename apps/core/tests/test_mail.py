@@ -36,24 +36,6 @@ class OtherProviderBackend(BaseEmailBackend):
         return len(messages)
 
 
-@pytest.fixture
-def email_templates(tmp_path, settings):
-    """Plantilles inventades en una carpeta temporal, abans de les del projecte."""
-    folder = tmp_path / "emails"
-    folder.mkdir()
-
-    def write(name, language, subject, body, html=None):
-        (folder / f"{name}.{language}.subject.txt").write_text(subject, encoding="utf-8")
-        (folder / f"{name}.{language}.txt").write_text(body, encoding="utf-8")
-        if html is not None:
-            (folder / f"{name}.{language}.html").write_text(html, encoding="utf-8")
-
-    templates = [dict(settings.TEMPLATES[0])]
-    templates[0]["DIRS"] = [tmp_path, *templates[0]["DIRS"]]
-    settings.TEMPLATES = templates
-    return write
-
-
 def _queue_test(person=None, to="anna@example.org", **context):
     return mail.queue_email("prova", to=to, person=person, context=context)
 
@@ -200,7 +182,9 @@ def test_active_language_is_restored_after_rendering(email_templates, make_perso
         assert translation.get_language() == "ca"
 
 
-def test_missing_catalan_template_is_an_error():
+def test_missing_catalan_template_is_an_error(monkeypatch):
+    # Amb la prioritat declarada (RN-A8), el que falla és que no hi ha el fitxer.
+    monkeypatch.setitem(mail.TEMPLATE_PRIORITIES, "no-existeix", OutgoingEmail.Priority.REMINDER)
     with pytest.raises(TemplateDoesNotExist):
         mail.queue_email("no-existeix", to="anna@example.org")
 

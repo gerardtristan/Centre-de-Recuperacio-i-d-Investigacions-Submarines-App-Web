@@ -1,4 +1,4 @@
-"""Correu de la plataforma, versió mínima (spec 00, annex A; decisions 004, 012, 019, 042 i 061).
+"""Correu de la plataforma (spec 00, annex A; decisions 004, 012, 019, 042 i 061).
 
 Tots els mòduls envien correus amb `queue_email`; cap no parla amb el proveïdor. El transport
 és el `EMAIL_BACKEND` de Django configurat per entorn (SMTP a producció): canviar de Brevo a
@@ -7,6 +7,8 @@ Scaleway Transactional Email, o a qualsevol altre, és canviar la configuració.
 - Plantilles pròpies a `templates/emails/`, una per llengua: `<nom>.<llengua>.subject.txt`,
   `<nom>.<llengua>.txt` i, opcional, `<nom>.<llengua>.html`. Es tria la llengua de
   `persons.language_for(persona)` i, si no hi ha la plantilla, la catalana (061, punt 7).
+- Cada plantilla declara la seva prioritat a `TEMPLATE_PRIORITIES` (RN-A8, V-07). Sense
+  prioritat declarada, `queue_email` la rebutja.
 - El correu es genera en posar-lo a la cua, dins de `translation.override`: la cua no té cap
   petició ni cap `Accept-Language`. El missatge guarda la llengua amb què s'ha generat.
 - L'enviament el fa la cua de tasques (RN-A13) dins la mateixa transacció: si l'acció es desfà,
@@ -15,8 +17,20 @@ Scaleway Transactional Email, o a qualsevol altre, és canviar la configuració.
 - Les persones anonimitzades no reben correus (RN-A14). Es comprova en posar-lo a la cua: un
   correu posat abans d'anonimitzar (la confirmació d'un esborrat RGPD) surt igualment.
 
-Fora d'abast ara: comptador diari, reserva i tandes, avís del 80 %, butlletí i avisos del
-proveïdor (RN-A3 a RN-A6, RN-A9 i RN-A10); s'hi afegeixen quan calguin.
+Límit diari (T-M00-06; RN-A3, RN-A4 i RN-A6; V-07). El dia és el de l'hora local.
+- Compta en enviar, no en posar a la cua: el primer intent d'un correu gasta un enviament del
+  dia (`EmailDailyUsage`, amb la fila bloquejada) i els reintents no en gasten cap altre
+  (CA-A9). Un intent que falla el gasta igualment: el comptador mai no queda per sota del que
+  ha pogut rebre el proveïdor.
+- Amb el límit ple (`EMAIL_DAILY_LIMIT`), el correu queda «ajornat» (CA-A4). Torna a la cua
+  quan hi ha lloc, que és l'endemà, per l'ordre de V-07 i abans que cap correu nou (CA-A5): ho
+  fan `release_deferred`, que la cua crida cada hora, i el primer enviament del dia.
+- El butlletí només pot gastar el límit menys `EMAIL_TRANSACTIONAL_RESERVE` (RN-A4).
+- Un sol avís al dia en arribar al `EMAIL_ALERT_THRESHOLD_PCT` del límit (CA-A3): una entrada
+  al registre d'activitat i un correu a `EMAIL_ALERT_TO`, si n'hi ha (Q-26 [A validar]).
+
+Fora d'abast ara: tandes i consentiment del butlletí i avisos del proveïdor (RN-A5, RN-A9 i
+RN-A10); s'hi afegeixen quan calguin.
 """
 
 import re
@@ -28,13 +42,40 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template, render_to_string
 from django.utils import timezone, translation
 
-from .models import OutgoingEmail, Person
+from . import audit
+from .models import EmailDailyUsage, OutgoingEmail, Person
 from .persons import language_for
 
 _TEMPLATE_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # RN-A12: res que sembli una contrasenya o un secret entra al context d'una plantilla. Els
 # enllaços d'un sol ús sí que hi poden anar (verificació, recuperació, convidat).
 _FORBIDDEN_CONTEXT_PARTS = ("password", "contrasenya", "secret", "totp", "recovery_code")
+
+ALERT_TEMPLATE = "avis-limit-correu"
+_Priority = OutgoingEmail.Priority
+# RN-A8: la prioritat de cada plantilla de `templates/emails/`, en un sol lloc. És l'ordre en
+# què surten els correus ajornats (V-07). Una plantilla nova s'hi afegeix abans de fer-la
+# servir: una prova compara aquesta llista amb la carpeta.
+TEMPLATE_PRIORITIES = {
+    # Recuperació i verificació de comptes (porten l'enllaç que deixa entrar).
+    "recuperacio-contrasenya": _Priority.ACCOUNT,
+    "verificacio-correu": _Priority.ACCOUNT,
+    "canvi-correu": _Priority.ACCOUNT,
+    "invitacio-compte": _Priority.ACCOUNT,  # fa de verificació (079, A-11)
+    # Confirmacions i avisos d'una cosa que ja ha passat.
+    "alta-aprovada": _Priority.CONFIRMATION,
+    "alta-rebutjada": _Priority.CONFIRMATION,
+    "baixa-efectiva": _Priority.CONFIRMATION,
+    "rebut-sollicitud-alta": _Priority.CONFIRMATION,
+    "avis-canvi-correu": _Priority.CONFIRMATION,
+    "restabliment-acces": _Priority.CONFIRMATION,
+    "avis-canvi-diners": _Priority.CONFIRMATION,
+    "avis-quota-tresorer": _Priority.CONFIRMATION,
+    ALERT_TEMPLATE: _Priority.CONFIRMATION,
+    # Recordatoris.
+    "recordatori-quota": _Priority.REMINDER,
+    "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
+}
 
 
 class EmailDeliveryError(Exception):
@@ -82,6 +123,10 @@ def queue_email(
     """
     if not _TEMPLATE_NAME.match(template):
         raise ValueError(f"Nom de plantilla no vàlid: «{template}».")
+    if template not in TEMPLATE_PRIORITIES:
+        raise ValueError(
+            f"La plantilla «{template}» no té prioritat declarada a TEMPLATE_PRIORITIES (RN-A8)."
+        )
     if person is not None and person.status == Person.Status.ANONYMISED:
         return None
     context = dict(context or {})
@@ -100,12 +145,122 @@ def queue_email(
             language=language,
             to_address=to,
             person=person,
+            priority=TEMPLATE_PRIORITIES[template],
             subject=subject[:255],
             body_text=body_text,
             body_html=body_html,
         )
         send_email.defer(email_id=email.pk)
     return email
+
+
+# --- Límit diari ----------------------------------------------------------------------------
+
+
+def _lock_usage(day) -> EmailDailyUsage:
+    """Dins d'una transacció: el comptador del dia, bloquejat fins que s'acaba. Tot el que
+    compta, ajorna o avisa passa amb aquesta fila bloquejada, d'un en un."""
+    EmailDailyUsage.objects.get_or_create(day=day)
+    return EmailDailyUsage.objects.select_for_update().get(day=day)
+
+
+def _take_slot(usage: EmailDailyUsage, priority: int) -> bool:
+    """Gasta un enviament del dia, si en queda. El butlletí no pot gastar la reserva dels
+    transaccionals (RN-A4)."""
+    limit = settings.EMAIL_DAILY_LIMIT
+    if usage.used >= limit:
+        return False
+    if priority == _Priority.NEWSLETTER:
+        if usage.newsletter >= limit - settings.EMAIL_TRANSACTIONAL_RESERVE:
+            return False
+        usage.newsletter += 1
+    usage.used += 1
+    return True
+
+
+def _release(usage: EmailDailyUsage) -> int:
+    """Els correus ajornats que caben al dia tornen a la cua, per l'ordre de V-07 (CA-A5)."""
+    from .tasks import send_email
+
+    room = max(settings.EMAIL_DAILY_LIMIT - usage.used, 0)
+    deferred = (
+        OutgoingEmail.objects.select_for_update()
+        .filter(status=OutgoingEmail.Status.DEFERRED)
+        .order_by("priority", "created_at", "pk")
+    )
+    released = 0
+    for email in deferred[:room]:
+        # El primer que no hi cap atura la resta: els que venen darrere tenen menys prioritat.
+        if not _take_slot(usage, email.priority):
+            break
+        email.status = OutgoingEmail.Status.QUEUED
+        email.counted_on = usage.day
+        email.save(update_fields=["status", "counted_on"])
+        send_email.defer(email_id=email.pk)
+        released += 1
+    return released
+
+
+def _save_usage(usage: EmailDailyUsage) -> None:
+    """Desa el comptador i, la primera vegada del dia que arriba al llindar, avisa (RN-A6).
+
+    Qui rep l'avís és la Q-26 [A validar]: sempre queda al registre d'activitat i el correu
+    només surt cap a les adreces d'`EMAIL_ALERT_TO`. Cap dada personal ni al registre ni al
+    correu: només el dia i els números.
+    """
+    limit = settings.EMAIL_DAILY_LIMIT
+    reached = usage.used * 100 >= limit * settings.EMAIL_ALERT_THRESHOLD_PCT
+    if usage.used and reached and usage.warned_at is None:
+        usage.warned_at = timezone.now()
+        audit.record(
+            audit.Action.EMAIL_LIMIT_ALERT,
+            actor=audit.system("core.mail"),
+            target=usage,
+            details={"day": usage.day.isoformat(), "used": usage.used, "limit": limit},
+        )
+        for address in settings.EMAIL_ALERT_TO:
+            queue_email(
+                ALERT_TEMPLATE,
+                to=address,
+                context={"day": usage.day, "used": usage.used, "limit": limit},
+            )
+    usage.save()
+
+
+def release_deferred(today=None) -> int:
+    """Torna a la cua els correus ajornats que caben al comptador d'avui i en torna el nombre
+    (CA-A4, CA-A5). Idempotent: mentre el límit és ple no en surt cap, i el que no hi cap un
+    dia espera el següent."""
+    with transaction.atomic():
+        usage = _lock_usage(today or timezone.localdate())
+        released = _release(usage)
+        _save_usage(usage)
+    return released
+
+
+def _admit(email_id: int, today) -> bool:
+    """Diu si el correu es pot enviar ara. El primer intent gasta un enviament del dia o, amb
+    el límit ple, deixa el correu ajornat (CA-A4); un reintent ja té el seu (CA-A9)."""
+    with transaction.atomic():
+        email = OutgoingEmail.objects.select_for_update().filter(pk=email_id).first()
+        if email is None or email.status != OutgoingEmail.Status.QUEUED:
+            return False
+        if email.counted_on is not None:
+            return True
+        usage = _lock_usage(today or timezone.localdate())
+        # V-07: els ajornats «surten primer»; passen al davant de qualsevol correu nou.
+        _release(usage)
+        admitted = _take_slot(usage, email.priority)
+        if admitted:
+            email.counted_on = usage.day
+        else:
+            email.status = OutgoingEmail.Status.DEFERRED
+        email.save(update_fields=["status", "counted_on"])
+        _save_usage(usage)
+    return admitted
+
+
+# --- Enviament ------------------------------------------------------------------------------
 
 
 def _close(email: OutgoingEmail, status: str) -> None:
@@ -116,12 +271,16 @@ def _close(email: OutgoingEmail, status: str) -> None:
         email.sent_at = timezone.now()
 
 
-def deliver(email_id: int) -> None:
-    """Envia un correu de la cua. Idempotent: si ja no espera, no fa res.
+def deliver(email_id: int, *, today=None) -> None:
+    """Envia un correu de la cua. Idempotent: si ja no espera, no fa res. Amb el límit diari
+    ple, el deixa ajornat i no l'envia.
 
     Si el proveïdor falla, compta l'intent i aixeca `EmailDeliveryError` perquè la cua el torni
     a provar. En arribar a `EMAIL_MAX_ATTEMPTS`, el dona per fallit i no el reintenta més.
     """
+    # En una transacció pròpia i curta: el comptador no queda bloquejat mentre dura l'enviament.
+    if not _admit(email_id, today):
+        return
     error = None
     with transaction.atomic():
         email = OutgoingEmail.objects.select_for_update().filter(pk=email_id).first()

@@ -146,6 +146,15 @@ DEFAULT_FROM_EMAIL = EMAIL_FROM_TRANSACCIONAL
 SERVER_EMAIL = EMAIL_FROM_TRANSACCIONAL
 # Intents d'enviament d'un correu abans de donar-lo per fallit (i esborrar-ne el cos).
 EMAIL_MAX_ATTEMPTS = env.int("EMAIL_MAX_ATTEMPTS", default=5)
+# Límit diari del proveïdor, sumant totes les categories (RN-A3), i la part que el butlletí no
+# pot gastar perquè es reserva per als transaccionals (RN-A4, V-07). Els dies són en hora local.
+EMAIL_DAILY_LIMIT = env.int("EMAIL_DAILY_LIMIT", default=300)
+EMAIL_TRANSACTIONAL_RESERVE = env.int("EMAIL_TRANSACTIONAL_RESERVE", default=100)
+# Un sol avís al dia quan els enviaments arriben a aquest percentatge del límit (RN-A6). Qui el
+# rep és la Q-26 [A validar]: sense adreces (separades per comes), només queda al registre
+# d'activitat.
+EMAIL_ALERT_THRESHOLD_PCT = env.int("EMAIL_ALERT_THRESHOLD_PCT", default=80)
+EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])
 
 # Fitxers privats (annex B de la spec 00; decisió 005; V-08). Fora de producció, un
 # emmagatzematge local que imita Scaleway; producció hi posa Scaleway (prod.py).

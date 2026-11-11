@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -678,14 +678,27 @@ class OutgoingEmail(models.Model):
     """Registre d'enviaments (spec 00, annex A, RN-A7): plantilla, destinatari, llengua, estat
     i data. Es crea en posar el correu a la cua (`mail.queue_email`).
 
-    El cos només es guarda mentre el correu espera: s'esborra quan s'ha enviat bé o quan
-    s'esgoten els intents, perquè pot portar enllaços d'un sol ús (RN-A12). Mai cap adjunt.
+    El cos només es guarda mentre el correu espera (a la cua o ajornat): s'esborra quan s'ha
+    enviat bé o quan s'esgoten els intents, perquè pot portar enllaços d'un sol ús (RN-A12).
+    Mai cap adjunt.
     """
 
     class Status(models.TextChoices):
         QUEUED = "queued", _("A la cua")
+        # El límit diari era ple quan havia de sortir: surt l'endemà (RN-A3, CA-A4).
+        DEFERRED = "deferred", _("Ajornat")
         SENT = "sent", _("Enviat")
         FAILED = "failed", _("Fallit")
+
+    class Priority(models.IntegerChoices):
+        """Ordre de sortida dels correus ajornats (V-07): el número més baix surt primer. El
+        butlletí és l'única categoria que no és transaccional (RN-A2, RN-A4)."""
+
+        ACCOUNT = 1, _("Recuperació i verificació de comptes")
+        GUEST_LINK = 2, _("Enllaços de convidat")
+        CONFIRMATION = 3, _("Confirmacions")
+        REMINDER = 4, _("Recordatoris")
+        NEWSLETTER = 5, _("Butlletí")
 
     template = models.CharField(_("plantilla"), max_length=100)
     # Llengua amb què s'ha generat (061, punt 7): la de la plantilla que s'ha fet servir.
@@ -705,7 +718,15 @@ class OutgoingEmail(models.Model):
     status = models.CharField(
         _("estat"), max_length=8, choices=Status.choices, default=Status.QUEUED
     )
+    # La declara la plantilla a `mail.TEMPLATE_PRIORITIES` (RN-A8); aquí queda la que tenia en
+    # posar el correu a la cua.
+    priority = models.PositiveSmallIntegerField(
+        _("prioritat"), choices=Priority.choices, default=Priority.CONFIRMATION
+    )
     attempts = models.PositiveSmallIntegerField(_("intents"), default=0)
+    # Dia (hora local) del comptador diari que ha gastat aquest correu, des del primer intent:
+    # un reintent no en gasta cap altre (CA-A9). Buit mentre no s'ha intentat cap enviament.
+    counted_on = models.DateField(_("dia del comptador"), null=True, blank=True)
     # Només el tipus d'error i un tros del missatge del servidor, mai el cos.
     last_error = models.CharField(_("darrer error"), max_length=255, blank=True)
     created_at = models.DateTimeField(_("posat a la cua"), auto_now_add=True)
@@ -716,13 +737,21 @@ class OutgoingEmail(models.Model):
         verbose_name_plural = _("correus enviats")
         constraints = [
             models.CheckConstraint(
-                condition=Q(status__in=["queued", "sent", "failed"]),
+                condition=Q(status__in=["queued", "deferred", "sent", "failed"]),
                 name="outgoing_email_status_valid",
             ),
             # Un correu que ja no espera no guarda el cos.
             models.CheckConstraint(
-                condition=Q(status="queued") | Q(body_text="", body_html=""),
+                condition=Q(status__in=["queued", "deferred"]) | Q(body_text="", body_html=""),
                 name="outgoing_email_body_only_while_queued",
+            ),
+            models.CheckConstraint(
+                condition=Q(priority__in=[1, 2, 3, 4, 5]), name="outgoing_email_priority_valid"
+            ),
+            # Un correu ajornat encara no ha gastat cap dia del comptador.
+            models.CheckConstraint(
+                condition=~Q(status="deferred") | Q(counted_on__isnull=True),
+                name="outgoing_email_deferred_not_counted",
             ),
             models.CheckConstraint(
                 condition=Q(status="sent", sent_at__isnull=False)
@@ -734,6 +763,32 @@ class OutgoingEmail(models.Model):
 
     def __str__(self):
         return f"{self.template} ({self.get_status_display()})"
+
+
+class EmailDailyUsage(models.Model):
+    """Comptador diari dels correus (spec 00, annex A, RN-A3, RN-A4 i RN-A6): una fila per dia
+    (hora local). Només l'escriu `mail`, amb la fila bloquejada: dos enviaments alhora no passen
+    del límit ni envien dos avisos."""
+
+    day = models.DateField(_("dia"), unique=True)
+    # Correus que han gastat el límit d'aquest dia, de totes les categories.
+    used = models.PositiveIntegerField(_("enviaments"), default=0)
+    # D'aquests, els del butlletí, que no pot passar del límit menys la reserva (RN-A4).
+    newsletter = models.PositiveIntegerField(_("enviaments del butlletí"), default=0)
+    # Moment de l'únic avís del dia per haver arribat al llindar (RN-A6).
+    warned_at = models.DateTimeField(_("avís enviat"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("comptador diari de correus")
+        verbose_name_plural = _("comptadors diaris de correus")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(newsletter__lte=F("used")), name="email_daily_usage_newsletter_in_used"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.day}: {self.used}"
 
 
 class PrivateFile(models.Model):

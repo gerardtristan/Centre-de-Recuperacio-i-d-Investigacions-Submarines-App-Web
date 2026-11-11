@@ -44,6 +44,7 @@ class Action:
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"
     FILE_URL_ISSUED = "files.url_issued"
     FILE_DELETED = "files.deleted"
+    EMAIL_LIMIT_ALERT = "mail.daily_limit_alert"  # RN-A6: un sol avís al dia
     CLUBER_PREVIEW = "members.cluber_import.preview"
     CLUBER_IMPORT_CONFIRMED = "members.cluber_import.confirmed"
     JOIN_REQUEST_CREATED = "members.join_request.created"
