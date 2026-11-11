@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import és la diferència entre quotes (Q-049 de la 072), calculat com el càrrec que es crea en aprovar-lo; venç una setmana després (RN-M01-76). Amb una quota sense pagar no es pot demanar (RN-M01-75). #}
-{% block title %}{% translate "Canvi a ple dret" %} · C.R.I.S.{% endblock %}
+{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import és la diferència entre quotes (Q-049 de la 072), calculat com el càrrec que es crea en aprovar-lo; venç una setmana després (RN-M01-76). Amb una quota sense pagar no es pot demanar (RN-M01-75).  T-M01-45 (5): el títol és el de l'entrada del menú, «Canvi de tipus», també per al soci de ple dret, i el de la sol·licitud pendent té la mateixa forma que el de la baixa. #}
+{% block title %}{% translate "Canvi de tipus" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
-  <h1>{% translate "Canvi a ple dret" %}</h1>
+  <h1>{% translate "Canvi de tipus" %}</h1>
   {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
 
   {% if pending %}
     <section class="targeta" aria-labelledby="pendent-titol">
-      <h2 id="pendent-titol">{% translate "Ja tens una sol·licitud pendent" %}</h2>
+      <h2 id="pendent-titol">{% translate "Ja tens una sol·licitud de canvi de tipus pendent" %}</h2>
       <p>{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}La vas enviar el {{ date }}. La secretaria la revisarà.{% endblocktranslate %}</p>
     </section>
   {% elif problem %}
