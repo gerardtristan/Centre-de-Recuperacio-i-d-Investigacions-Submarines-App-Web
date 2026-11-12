@@ -88,12 +88,12 @@
 | **PostgreSQL** | Base de dades única i cua de tasques | Al VPS | 0 € | — | Ha de tenir RAM suficient al mateix VPS | `pg_dump` estàndard |
 | **Scaleway Object Storage** | Fitxers privats (factures, justificants, fotos, PDF) i bucket de còpies | França (París) | ≈0,0146 €/GB/mes (Standard Multi-AZ); per a uns 20 GB, < 1 € | — | Sortida de dades gratuïta fins a 75 GB/mes | API S3: es migra amb rclone a qualsevol proveïdor compatible |
 | **Cloudflare Pages + DNS** | Web pública i PWA estàtiques; DNS de cris1954.cat (si el club en controla el DNS, P-25). Opció futura: Email Routing per als àlies d'administrador | Xarxa global; empresa dels EUA (transferència documentada, marc UE-EUA) [A validar] | 0 € | — | Pages no ha d'allotjar dades personals | HTML estàtic: qualsevol allotjament estàtic; DNS exportable en fitxer de zona |
-| **Brevo** | Correu transaccional i butlletí. Remitent a cris1954.cat amb resposta a cris@cris.es | França / UE | Gratuït: 0 € · Starter: des d'uns 9 $/mes (5.000 correus/mes, sense límit diari) [A validar a brevo.com] | Cap | Gratuït: 300 enviaments/dia sumant-ho tot; marca de Brevo als correus | Plantilles i llista de subscriptors viuen a la plataforma; canviar de proveïdor = canviar credencials SMTP/API |
+| **Brevo** | Correu transaccional i butlletí. Remitent cris@cris.es, que també rep les respostes (decisió 085; abans, una adreça de cris1954.cat amb resposta a cris@cris.es, decisió 019) | França / UE | Gratuït: 0 € · Starter: des d'uns 9 $/mes (5.000 correus/mes, sense límit diari) [A validar a brevo.com] | Cap | Gratuït: 300 enviaments/dia sumant-ho tot; marca de Brevo als correus | Plantilles i llista de subscriptors viuen a la plataforma; canviar de proveïdor = canviar credencials SMTP/API |
 | **Stripe** | Targeta, Apple Pay, Google Pay, Bizum, domiciliació SEPA | Entitat contractant a la UE (Irlanda); possibles transferències als EUA (documentades) [A validar al DPA] | 0 € fix; comissions per cobrament (§3) | Cap | Bizum s'ha d'activar al compte del club [A validar]; SEPA: devolucions sense motiu fins a 8 setmanes | Exportació de clients i pagaments; migració de mandats SEPA a demanar a Stripe [A validar] |
 | **Transferència bancària** | Cobrament sense comissió de passarel·la | Banc del club | 0 € (comissions del banc [A validar]) | Compte existent | Conciliació amb CSV, no instantània | Independent de qualsevol proveïdor |
 | **UptimeRobot** | Avís de caiguda de la web i l'API | Fora del VPS; ubicació de l'empresa [A validar] | 0 € (pla gratuït) | Cap | Només comprova URL públiques; no rep dades de socis | Qualsevol altre monitor extern |
 | **GlitchTip o Sentry** | Seguiment d'errors amb traça | Sentry: Frankfurt (empresa dels EUA); GlitchTip: instància a la UE segons la seva web [A validar totes dues] | 0 € (GlitchTip: 1.000 esdeveniments/mes; Sentry: pla Developer) | Cap | La regió de Sentry no es pot canviar un cop creada l'organització | Tots dos fan servir el mateix SDK; GlitchTip es pot autoallotjar |
-| **Domini cris1954.cat** | Plataforma, web nova i remitent dels correus | — | 0 € addicionals (ja pagat pel club) | Existent | Control del DNS [A validar, P-25] | Transferible a qualsevol registrador |
+| **Domini cris1954.cat** | Plataforma i web nova (el remitent dels correus és a cris.es des de la decisió 085) | — | 0 € addicionals (ja pagat pel club) | Existent | Control del DNS [A validar, P-25] | Transferible a qualsevol registrador |
 | **cris.es** | Adreça de contacte cris@cris.es (resposta dels correus) | — | No canvia | Existent | La plataforma no en toca el DNS | — |
 | **cris.barcelona** | Web WordPress actual | — | No canvia | Existent | Redirecció cap a la web nova [A validar, P-25] | — |
 
@@ -112,9 +112,9 @@ Cap eina de la decisió inicial canvia. Les tres peces afegides passen els crite
 | Web pública i PWA | `cris1954.cat` (i `www`) → Cloudflare Pages |
 | API i administració | Subdomini de cris1954.cat cap al VPS (per exemple, `api.`) [A validar el nom]. L'entrada d'administració és una ruta discreta de l'API |
 | DNS | El club controla el DNS de cris1954.cat i de cris.es (confirmat el 27/10/2026); qui té l'accés concret [A validar, P-25]. **Recomanació** ([023](decisions/023-gestio-del-dns.md)): delegar la zona de cris1954.cat a Cloudflare després de fer inventari dels registres actuals, i guardar les credencials del registrador i de Cloudflare en un gestor de contrasenyes compartit amb dues persones |
-| Correu sortint | Brevo amb remitent `…@cris1954.cat` [A validar el nom] i capçalera de resposta a `cris@cris.es` |
-| SPF | Registre TXT a cris1954.cat que autoritza Brevo |
-| DKIM | Clau de Brevo publicada a cris1954.cat |
+| Correu sortint | Brevo amb remitent `cris@cris.es`, que també rep les respostes (decisió 085) |
+| SPF | Registre TXT a **cris.es** que autoritza Brevo, sense treure el del servei de correu actual del club (decisió 085; cal accés al DNS de cris.es, P-25) |
+| DKIM | Clau de Brevo publicada a **cris.es** (decisió 085) |
 | DMARC | Registre a cris1954.cat; començar en mode d'observació i endurir-lo quan els informes estiguin nets (checklist G1) |
 | cris.es | No es toca: només rep les respostes a cris@cris.es |
 | cris.barcelona | Redirecció cap a cris1954.cat [A validar, P-25] |
@@ -422,7 +422,7 @@ Les tasques amb temps d'espera (marcades ⏳) han de començar ja: vegeu §9.3.
 - [ ] Crear el compte de **Hetzner** (Cloud i Storage Box), activar el doble factor i fixar un límit o alerta de despesa.
 - [ ] Crear el compte de **Scaleway**, regió París, amb doble factor; crear els buckets privats per entorn i el bucket de còpies amb claus separades.
 - [ ] Crear el compte de **Cloudflare** i afegir-hi **cris1954.cat**; canviar els servidors de noms al registrador **només** després de copiar tots els registres actuals.
-- [ ] Crear el compte de **Brevo**, verificar **cris1954.cat** com a domini remitent, publicar-hi SPF, DKIM i DMARC (checklist G1) i configurar la resposta a cris@cris.es.
+- [ ] Crear el compte de **Brevo**, verificar **cris.es** com a domini remitent i publicar-hi SPF, DKIM i DMARC (checklist G1; decisió 085: els correus surten de cris@cris.es). Cal l'accés al DNS de cris.es, que ara gestiona una empresa per compte de la junta.
 - [ ] Crear el monitor a **UptimeRobot** amb avís al correu del responsable.
 - [ ] Confirmar per escrit la regió de dades de **GlitchTip** o **Sentry**; si és Sentry, triar la regió UE en crear l'organització (no es pot canviar després).
 
