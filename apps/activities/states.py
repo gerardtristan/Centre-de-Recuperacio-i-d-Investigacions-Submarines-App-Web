@@ -33,9 +33,11 @@ al registre d'activitat amb l'estat anterior, el nou, qui l'ha fet i el motiu.
 
 **Senyal:** `mark_done` envia `extensions.activity_done` dins la mateixa transacció (T-M02-09).
 
-**Fora d'aquesta peça:** tancar per places plenes (no hi ha inscripcions fins a la T-M02-11 i la
-T-M02-12), l'efecte de cancel·lar sobre inscripcions i càrrecs (T-M02-15), els avisos als inscrits
-(T-M02-21) i els esdeveniments `activity.cancelled` (T-M02-35).
+**Omplir les places no tanca les inscripcions** (decisió 088): l'activitat continua `open` i qui
+arriba després va a la llista d'espera. El sistema només tanca per la data límit.
+
+**Fora d'aquesta peça:** l'efecte de cancel·lar sobre inscripcions i càrrecs (T-M02-15), els
+avisos als inscrits (T-M02-21) i els esdeveniments `activity.cancelled` (T-M02-35).
 """
 
 import datetime
