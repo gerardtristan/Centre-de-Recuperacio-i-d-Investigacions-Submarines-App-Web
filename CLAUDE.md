@@ -53,7 +53,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Actiu:** cada PR porta l'etiqueta `risc:baix`, `risc:mitja` o `risc:alt`. Les de risc baix i mitjà es fusionen amb el CI verd i una revisió automàtica, sense esperar el propietari. **El propietari aprova abans les `risc:alt`**: diners, pagaments, permisos, autenticació, RGPD, xifratge, importacions, migracions, dependències noves, el CI, aquest fitxer i les regles del pla. No fusionis mai una PR `risc:alt` sense un sí escrit del propietari. Mida: menys de 800 línies per PR i, com a màxim, 400 de codi d'aplicació. Al final de cada sessió, deixa un resum de 5 línies per al propietari: què s'ha fusionat sense ell, què espera la seva aprovació i quines preguntes noves hi ha al tauler.
 - **Inactiu (regla anterior):** res no es fusiona sense la validació d'una persona.
 
-### D5 — Baranes: cobertura i entorn de proves: **inactiu**
+### D5 — Baranes: cobertura i entorn de proves: **actiu**
 - **Actiu:** el CI mesura la cobertura (`pytest-cov`) i falla si baixa del llindar de `.github/workflows/ci.yml`; el llindar només puja. L'entorn de proves temporal està aprovat, però **no es crea fins que el propietari digui que sí al cost**.
 - **Inactiu (regla anterior):** la cobertura no es mesura al CI; l'aplicació només corre en local.
 

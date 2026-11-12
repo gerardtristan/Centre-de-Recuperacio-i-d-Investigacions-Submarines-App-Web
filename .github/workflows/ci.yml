@@ -39,8 +39,9 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
-      - name: Proves
-        run: pytest
+      - name: Proves i cobertura
+        # Cobertura de línies i branques d'`apps/` (decisió 089, D5).
+        run: pytest --cov --cov-report=term
       - name: Comprovació de desplegament
         run: |
           export DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"

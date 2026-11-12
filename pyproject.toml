@@ -38,6 +38,10 @@ dev = [
     # del projecte l'11/11/2026.
     "axe-playwright-python==0.1.8",
     "ruff>=0.7,<1",
+    # Cobertura al CI (decisió 089, D5, aprovada pel propietari el 13/11/2026). `coverage` es
+    # limita per sota de la 7.17.3, que tenia un dia quan es va afegir.
+    "pytest-cov>=7.1,<8",
+    "coverage>=7.10.6,<7.17.3",
 ]
 
 [build-system]
@@ -54,6 +58,15 @@ python_files = ["test_*.py"]
 # Les e2e (navegador, T-M00-07) només amb `pytest -m e2e`: l'últim -m de la línia d'ordres mana.
 addopts = "--strict-markers -m 'not e2e'"
 markers = ["e2e: prova al navegador amb Playwright i live_server (T-M00-07)"]
+
+[tool.coverage.run]
+# Només s'activa amb `pytest --cov` (el CI). Línies i branques del codi d'aplicació.
+branch = true
+source = ["apps"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+skip_covered = true
 
 [tool.ruff]
 line-length = 100
