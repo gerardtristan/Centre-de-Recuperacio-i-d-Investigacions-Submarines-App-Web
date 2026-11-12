@@ -18,6 +18,11 @@ on:
       - docs/preguntes-externes.md
       - tools/linia-cronologica/**
       - .github/workflows/linia-cronologica.yml
+  # Una resposta enviada des del tauler de preguntes obre un issue (escenari de Make):
+  # es regenera perquè la pregunta surti com a enviada. En tancar-lo, torna a sortir si la
+  # pregunta encara és oberta a les fonts.
+  issues:
+    types: [opened, edited, closed, reopened, deleted]
   # Xarxa de seguretat, per si algun avís no arriba.
   schedule:
     - cron: "17 5 * * *"
@@ -43,6 +48,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      issues: read
     steps:
       # El generador sempre és el de la branca per defecte; de les altres branques
       # només se'n llegeix el text (cap codi seu s'executa amb el secret).
@@ -52,7 +58,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install "cryptography>=43,<51" "pillow>=10,<13"
+      - run: pip install "cryptography>=43,<51" "pillow>=10,<13" "pyyaml>=6,<7"
       - name: Tria la branca que es llegeix
         id: branca
         env:
@@ -80,13 +86,23 @@ jobs:
             --jq '.workflow_runs[] | select(.name == "CI") | {n: .run_number, sha: .head_sha, ev: .event, c: .conclusion, t: .created_at}' \
             > runs.jsonl || { echo "::warning::No s'han pogut llegir les execucions del CI."; : > runs.jsonl; }
           wc -l runs.jsonl
+      - name: Respostes del tauler (issues oberts)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" \
+            --jq '[.[] | {number, html_url, body, pull_request}]' | jq -s 'add // []' > respostes.json \
+            || { echo "::warning::No s'han pogut llegir els issues."; echo '[]' > respostes.json; }
+          jq length respostes.json
       - name: Genera i xifra
         env:
           TIMELINE_PASSPHRASE: ${{ secrets.TIMELINE_PASSPHRASE }}
+          TAULER_PASSPHRASE: ${{ secrets.TAULER_PASSPHRASE }}
+          TAULER_WEBHOOK_URL: ${{ secrets.TAULER_WEBHOOK_URL }}
           REF: ${{ steps.branca.outputs.ref }}
         run: |
           python tools/linia-cronologica/generate.py --ref "$REF" --runs runs.jsonl \
-            --encrypt --out public/index.html
+            --answers respostes.json --encrypt --out public/index.html
           printf 'User-agent: *\nDisallow: /\n' > public/robots.txt
       - uses: actions/upload-pages-artifact@v3
         with:

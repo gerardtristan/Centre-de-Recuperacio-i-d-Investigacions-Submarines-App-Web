@@ -16,6 +16,7 @@ La plataforma està preparada per traduir-se, amb el català com a única llengu
 - `docs/arquitectura-integracions.md`: components, proveïdors externs, fluxos de pagament, variables d'entorn i riscos.
 - `docs/decisions/`: una decisió per fitxer (NNN-nom.md). `docs/decisions/pendents.md`: contradiccions i decisions que ha de validar la junta.
 - `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
+- `docs/decisions/tauler-preguntes.yml`: opcions A a D i recomanació de Claude per a les preguntes del tauler de la línia cronològica (decisió 086). Quan facis una pregunta amb opcions al responsable, afegeix-la-hi.
 - `docs/diari-de-construccio/`: diari de construcció, una entrada per tasca acabada, amb l'índex, les regles de contingut i la convenció de captures al seu `README.md`.
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.

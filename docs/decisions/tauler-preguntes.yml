@@ -1,0 +1,164 @@
+# Tauler de preguntes pendents: opcions i recomanació de Claude
+#
+# El tauler és un apartat de la línia cronològica, protegit amb una segona contrasenya
+# (tools/linia-cronologica/README.md). Mostra totes les preguntes obertes que el generador ja llegeix:
+# docs/decisions/pendents.md (oberts i preguntes de les tandes), l'apèndix de preguntes de
+# docs/planning.md (#preguntes) i docs/preguntes-externes.md.
+#
+# Aquest fitxer NO repeteix el text de les preguntes: només hi afegeix les opcions A a D i quina
+# recomana Claude, escrita en el moment de fer la pregunta (mai per la IA de Make). Una pregunta
+# sense entrada aquí surt al tauler només amb la resposta lliure.
+#
+# Clau: l'identificador tal com surt a la font (P-49, «S-M01-04», «S-M01-12, 13»...). Les preguntes
+# de les tandes de pendents.md llegeixen les opcions de la columna «Opcions» i no cal posar-les aquí.
+#
+# Camps de cada entrada:
+#   punt        (opcional) quina part concreta de la pregunta responen les opcions
+#   opcions     de 2 a 4, amb les claus A, B, C i D
+#   recomanada  la clau que recomana Claude
+#   perque      per què, en una o dues frases
+#   data        quan es va escriure la recomanació (AAAA-MM-DD)
+#
+# Preguntes noves que Claude fa en un fil i que no són a cap altra font: van a «noves», amb
+# un identificador F-NNN que no es reutilitza, i també porten:
+#   pregunta, context, responsable, tasques (llista), bloqueja (true si atura una tasca)
+# Quan la resposta s'incorpora al pla o a una decisió, l'entrada de «noves» s'esborra.
+
+opcions:
+  P-07:
+    opcions:
+      A: No es desa res del certificat mèdic; el centre de busseig o l'instructor el comprova fora de la plataforma.
+      B: Només la data fins a la qual és vàlid, sense cap document ni cap altra dada.
+      C: El soci declara en inscriure's que té el certificat vigent (sí o no), sense desar cap data.
+      D: Decidir-ho amb l'assessor de protecció de dades abans de triar.
+    recomanada: A
+    perque: >-
+      La regla «cap dada de salut a la plataforma» és del CLAUDE.md, i fins i tot una data de validesa
+      revela que la persona té (o no) un certificat mèdic. A és l'única opció que no obre cap
+      excepció; si més endavant cal, es pot passar a C sense migrar dades.
+    data: 2026-11-12
+
+  P-11:
+    opcions:
+      A: El CLAUDE.md fa de constitució i no es crea cap fitxer nou.
+      B: Crear docs/constitution.md amb els principis i deixar al CLAUDE.md només les instruccions per a Claude.
+    recomanada: A
+    perque: >-
+      El CLAUDE.md ja té les regles que s'han de complir sempre; un segon fitxer duplicaria el contingut,
+      cosa que el mateix CLAUDE.md prohibeix.
+    data: 2026-11-12
+
+  P-13:
+    opcions:
+      A: Anonimitzar les entrevistes (rols en lloc de noms, sense dades de contacte) i pujar-les a docs/context/.
+      B: No pujar-les mai; només un resum anonimitzat de les conclusions.
+      C: Deixar-les fora del repositori tal com estan ara.
+    recomanada: B
+    perque: >-
+      Un resum de conclusions dona el mateix valor per al projecte i elimina el risc que una frase concreta
+      permeti identificar algú. Anonimitzar un text sencer és més feina i més fàcil de fer malament.
+    data: 2026-11-12
+
+  P-14:
+    opcions:
+      A: Fer una versió nova del document incremental amb el context v4 i moure l'actual a docs/arxiu/.
+      B: Mantenir l'actual com a vigent i afegir-hi un annex amb els canvis del context v4.
+      C: No tocar-lo fins a la propera entrega de l'assignatura.
+    recomanada: C
+    perque: >-
+      És un lliurament de l'assignatura: el moment natural de fer-ne la versió nova és la propera entrega,
+      i llavors es fa com diu A (versió nova i l'antiga a l'arxiu, que mai s'esborra).
+    data: 2026-11-12
+
+  P-22:
+    opcions:
+      A: Claude genera un .docx nou amb els textos de substitució aplicats i el PDF corresponent.
+      B: Aplicar els textos a mà al .docx actual.
+      C: Deixar el .docx com a document històric i remetre al pla (docs/planning.md) per a la versió vigent.
+    recomanada: C
+    perque: >-
+      El pla és la font única de l'especificació (decisió 047); mantenir el .docx al dia duplica feina cada
+      vegada que canvia una regla. Una nota a la portada que remeti al pla evita confusions.
+    data: 2026-11-12
+
+  P-38:
+    opcions:
+      A: Fase futura, després del mòdul 02 (que registra l'assistència); llavors es decideixen fites i punts.
+      B: Només la bitàcola (sortides i hores), sense insígnies ni punts.
+      C: Bitàcola i insígnies, sense punts.
+      D: Treure-ho del wireframe del compte personal fins que la junta ho demani.
+    recomanada: A
+    perque: >-
+      Les dades de la bitàcola surten de l'assistència del mòdul 02, que encara no existeix. Decidir ara
+      fites i punts seria decidir sobre dades que no tenim.
+    data: 2026-11-12
+
+  P-39:
+    opcions:
+      A: Corregir el nom a la propera versió del document incremental (lligat a la P-14).
+      B: Fer ara una versió corregida només amb el nom.
+    recomanada: A
+    perque: Els fitxers de text del repositori ja estan corregits; el PDF es pot esperar a la propera versió.
+    data: 2026-11-12
+
+  P-41:
+    opcions:
+      A: Cap foto sense autor i permís registrats, consentiment de les persones que hi surtin i text de crèdit fix.
+      B: Al principi, només fotos sense persones reconeixibles (fons marí, material, instal·lacions).
+      C: Fotos amb persones només de socis que ho hagin acceptat al seu perfil.
+      D: Cap foto fins que la web pública (mòdul 07) estigui a punt de sortir.
+    recomanada: B
+    perque: >-
+      B permet tenir galeria des del primer dia sense haver de gestionar consentiments; A és la regla per a
+      quan s'hi vulguin afegir fotos amb persones.
+    data: 2026-11-12
+
+  P-48:
+    opcions:
+      A: No; un sol tresorer i cap acció amb doble aprovació.
+      B: Només com a opció futura, si la junta la demana per a devolucions a partir d'un import.
+    recomanada: A
+    perque: >-
+      El club té un sol tresorer i la regla del projecte és no fer de la doble aprovació un requisit.
+      Si la junta ho vol més endavant, es reobre amb una decisió nova.
+    data: 2026-11-12
+
+  P-49:
+    punt: "(1) quines llengües vol el club i on"
+    opcions:
+      A: Només català a tota la plataforma, de moment (la plataforma ja queda preparada per traduir-se, 061).
+      B: Català i castellà només a la web pública.
+      C: Català i castellà a la web pública i als correus; l'àrea de socis i l'administració, només en català.
+      D: Català, castellà i anglès a la web pública; la resta, només en català.
+    recomanada: A
+    perque: >-
+      Cada llengua activa demana una persona que tradueixi i revisi cada canvi, també dels textos legals.
+      Sense aquesta persona, la 061 ja diu que la llengua no s'activa; és millor decidir-ho quan hi sigui.
+    data: 2026-11-12
+
+  P-53:
+    punt: "si la cua de la T-M01-39 és condició del nivell 1 de producció (Q-086)"
+    opcions:
+      A: No és condició del nivell 1; es fa quan toqui, com qualsevol altra tasca.
+      B: Només és condició si la mesura darrere del proxy encara mostra una diferència apreciable (més de 5 ms de mediana).
+      C: Sí, és condició del nivell 1 sigui quin sigui el resultat de la mesura.
+    recomanada: B
+    perque: >-
+      La diferència es va mesurar en local; darrere del proxy i de la xarxa pot quedar amagada pel soroll.
+      Decidir amb la mesura real evita fer una cua que potser no cal.
+    data: 2026-11-12
+
+  P-61:
+    punt: "(2) si el «suspens» d'un termini impagat és la marca manual d'impagat (040) o un bloqueig automàtic"
+    opcions:
+      A: La marca manual d'impagat (040); la plataforma proposa el candidat i el tresorer el confirma amb motiu, com amb la quota (085, J-4).
+      B: Bloqueig automàtic l'endemà del venciment del termini.
+      C: Bloqueig automàtic amb un avís previ al soci uns dies abans.
+      D: Ajornar-ho fins que comenci la T-M01-49.
+    recomanada: A
+    perque: >-
+      Fa servir el mateix mecanisme que ja està aprovat per a la quota anual (040 i 085), així el soci i el
+      tresorer veuen una sola regla i no cal cap estat nou.
+    data: 2026-11-12
+
+noves: {}
