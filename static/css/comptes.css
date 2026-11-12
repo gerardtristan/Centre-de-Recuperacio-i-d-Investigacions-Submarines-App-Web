@@ -1,0 +1,178 @@
+/* ==========================================================================
+   Pantalles de comptes (T-M01-38), segons design/wireframes/comptes.html, aprovat el
+   05/11/2026. Només peces de tokens.css: formularis, avisos i botons plans (031);
+   capçalera sense barra lateral (032); taula apilada de l'administració (034).
+   Els afinaments de cada pàgina viuen aquí, no a tokens.css (034).
+   ========================================================================== */
+
+/* capcalera-compte: logotip, zona i tema; sense navegació (032) */
+.capcalera-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); min-height: var(--capcalera-alcada); padding: var(--e-2) var(--e-4); border-bottom: var(--v-fina) solid var(--c-linia); border-top: var(--v-activa) solid var(--c-zona); }
+.capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
+.capcalera-compte img { width: var(--logo-capcalera); height: auto; }
+.capcalera-compte .titol-zona { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-weight: var(--p-negreta); font-size: var(--t-l); }
+.capcalera-compte .selector-tema { margin-left: auto; }
+/* T-M01-45 (2): «Sistema», «Clar» i «Fosc» es llegeixen també al mòbil, com al wireframe
+   (tokens.css només els mostra a partir de 600 px). A 320 px el selector passa a la seva fila. */
+.capcalera-compte .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
+
+/* Cos: una columna estreta per als formularis, més ampla per a les llistes */
+.cos-compte { max-width: 28rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
+.cos-ample { max-width: 60rem; }
+.cos-compte h1 { font-size: var(--t-2xl); margin: 0; }
+.cos-compte p, .cos-compte h2, .cos-compte h3 { margin: 0; }
+/* Blocs d'estat: el mateix espai entre avís, formulari i enllaços que el cos (ajust aprovat) */
+.cos-compte > div:not(.avis), .cos-compte > section { display: grid; gap: var(--e-4); }
+.formulari { display: grid; gap: var(--e-4); }
+.formulari fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--e-2); }
+.formulari legend { font-weight: var(--p-semi); font-size: var(--t-s); margin-bottom: var(--e-1); }
+.camp .ajuda, .camp .ajuda ul { font-size: var(--t-s); color: var(--c-text-2); margin: 0; }
+.camp .ajuda ul { padding-left: var(--e-5); }
+/* T-M01-45 (6): la vora de focus dels camps és la de 3 px dels botons i els enllaços (§9);
+   tokens.css li posava la de 2 px (--v-plena) */
+.camp input:focus-visible, .camp select:focus-visible, .camp textarea:focus-visible { outline-width: var(--v-focus); }
+/* Errors de Django (de camp, d'una opció i generals del formulari): el mateix estil a tot arreu */
+.cos-compte .errorlist { list-style: none; margin: 0; padding: 0; font-size: var(--t-s); color: var(--c-error-text); font-weight: var(--p-semi); }
+.camp input[aria-invalid="true"] { border-color: var(--c-error); }
+.accions { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+.enllacos { display: grid; gap: var(--e-1); }
+.enllacos a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.passos { padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+
+/* QR: radi només a la zona de silenci (4 mòduls); els mòduls no es retallen ni s'arrodoneixen (ajust aprovat) */
+figure { margin: 0; }
+.qr { width: 11rem; height: 11rem; border: var(--v-fina) dashed var(--c-linia-forta); border-radius: var(--r-m); overflow: hidden; background: #fff; }
+.qr svg { display: block; width: 100%; height: 100%; border-radius: var(--r-m); }
+.clau, .credencial { font-family: var(--f-codi); font-size: var(--t-l); overflow-wrap: anywhere; }
+.codis { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); font-family: var(--f-codi); }
+
+/* Taula apilada al mòbil i taula a partir de 600 px: el mateix patró d'admin.html */
+.taula { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+.taula thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.taula, .taula tbody, .taula tr, .taula td, .taula th[scope="row"] { display: block; }
+.taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
+.taula td { display: flex; justify-content: space-between; align-items: center; gap: var(--e-3); padding: var(--e-1) 0; }
+.taula td::before { content: attr(data-etiqueta); color: var(--c-text-2); }
+.taula .cel-nom { text-align: left; font-weight: var(--p-semi); font-size: var(--t-m); }
+.taula td.cel-accions { justify-content: flex-end; }
+.taula td.cel-accions::before { content: none; }
+.taula caption { text-align: left; font-size: var(--t-s); color: var(--c-text-2); margin-bottom: var(--e-2); }
+@media (min-width: 600px) {
+  .taula { display: table; }
+  .taula thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; display: table-header-group; }
+  .taula tbody { display: table-row-group; }
+  .taula tr { display: table-row; padding: 0; }
+  .taula th { text-align: left; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia-forta); }
+  .taula th[scope="row"], .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); vertical-align: middle; }
+  .taula td::before { content: none; }
+  .taula .cel-nom { font-size: var(--t-s); }
+  .taula td.cel-accions { text-align: right; }
+}
+
+/* Registre d'activitat (T-M01-07b): filtres en graella i valors llargs que es parteixen a 320 px */
+.filtres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--e-3); }
+.taula .cel-valor { overflow-wrap: anywhere; min-width: 0; text-align: right; }
+/* La llegenda, a tota l'amplada mentre la taula és apilada (display: block) */
+.taula caption { display: block; }
+@media (min-width: 600px) { .taula .cel-valor { text-align: left; } .taula caption { display: table-caption; } }
+
+/* Formulari d'alta (T-M01-13): el tipus de soci es parteix en dues línies a 320 px i els textos
+   legals es despleguen amb el teclat */
+.formulari .segmentat { flex-wrap: wrap; border-radius: var(--r-m); }
+/* Textos legals: enllaços que obren una finestra (textos-legals.js); sense JavaScript, els textos
+   sencers queden a la secció .textos-legals de la mateixa pàgina */
+.enllacos-legals { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+.enllacos-legals a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.textos-legals { font-size: var(--t-s); }
+.textos-legals article { display: grid; gap: var(--e-2); }
+.textos-legals h2 { font-size: var(--t-l); }
+.textos-legals h3, .dialeg-text .dialeg-cap h3 { margin: 0; font-size: var(--t-l); }
+.dialeg-text .dialeg-cos { font-size: var(--t-s); }
+.dialeg-text .dialeg-cos:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: calc(-1 * var(--v-focus)); }
+/* «Què passa després»: secció secundària sota el formulari */
+.despres { padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); font-size: var(--t-s); color: var(--c-text-2); }
+.despres h2 { font-size: var(--t-l); color: var(--c-text); }
+/* La casella no s'encongeix quan l'etiqueta ocupa més d'una línia (es veia més petita a 320 px) */
+.casella input { flex-shrink: 0; }
+/* Part del formulari que es recalcula amb la data de naixement: el mateix espai que la resta */
+.part-variable { display: grid; gap: var(--e-4); }
+/* Bloc del pare, la mare o el tutor legal (només menors): títol gran i separat de la resta */
+.representant { padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); }
+.formulari .representant legend { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-size: var(--t-xl); font-weight: var(--p-negreta); color: var(--c-text); }
+/* Marca dels textos legals obligatoris */
+.etiqueta-obligatori { font-size: var(--t-s); font-weight: var(--p-semi); white-space: nowrap; }
+
+/* Fitxa del soci (T-M01-15): parells etiqueta-valor i historial, sense desbordar a 320 px */
+.dades-soci { margin: 0; display: grid; gap: var(--e-2); }
+.dades-soci div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-1) var(--e-3); padding-bottom: var(--e-2); border-bottom: var(--v-fina) solid var(--c-linia); }
+.dades-soci dt { color: var(--c-text-2); }
+.dades-soci dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
+.historial { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-3); font-size: var(--t-s); }
+.historial li { display: grid; gap: var(--e-1); overflow-wrap: anywhere; }
+/* Exportació: «Exporta» obre, just a sota, una llista emergent amb els dos formats (details natiu) */
+.menu-exporta { position: relative; display: inline-block; }
+.menu-exporta > summary { list-style: none; cursor: pointer; }
+.menu-exporta > summary::-webkit-details-marker { display: none; }
+.menu-exporta[open] > summary span { display: inline-block; transform: rotate(180deg); }
+.menu-exporta .menu-opcions { position: absolute; z-index: 10; top: calc(100% + var(--e-1)); left: 0; display: grid; gap: var(--e-1); min-width: 12rem; padding: var(--e-2); background: var(--c-superficie); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-m); box-shadow: var(--ombra-flotant); }
+.menu-exporta .menu-opcions .boto { justify-content: flex-start; width: 100%; }
+/* «Pagada fins al dd/mm/aaaa» es pot partir en dues línies a 320 px */
+.estat-quota { white-space: normal; }
+
+/* Altes pendents (T-M01-14): una targeta per sol·licitud; el títol i l'estat es parteixen a 320 px */
+.altes-targeta { display: grid; gap: var(--e-3); }
+.altes-targeta > h2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); overflow-wrap: anywhere; }
+.altes-rebuig > summary { list-style: none; cursor: pointer; width: fit-content; }
+.altes-rebuig > summary::-webkit-details-marker { display: none; }
+.altes-rebuig[open] > summary { margin-bottom: var(--e-3); }
+
+/* Navegació de l'àrea del soci (T-M01-16): a tota l'amplada sota la marca, es parteix a 320 px */
+.navegacio-compte { order: 3; flex-basis: 100%; }
+.navegacio-compte ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
+.navegacio-compte a { display: inline-flex; align-items: center; min-height: var(--tactil); }
+.navegacio-compte a[aria-current="page"] { font-weight: var(--p-semi); color: var(--c-text); }
+
+/* Carnet (T-M01-19; 079, RN-M01-85 i 92): el QR centrat amb la seva explicació */
+.carnet-qr { display: grid; gap: var(--e-2); justify-items: center; text-align: center; }
+/* Impressió i «Desa com a PDF»: només el contingut de la pàgina, sense capçalera, navegació ni accions.
+   El tema clar el força static/js/imprimeix.js mentre s'imprimeix. */
+@media print {
+  /* «!important»: és una utilitat, i ha de guanyar els «display» de les regles de disposició del cos. */
+  .capcalera-compte, .salt, .no-imprimeix { display: none !important; }
+  .cos-compte { max-width: none; padding: 0; }
+  .targeta { box-shadow: none; break-inside: avoid; }
+}
+/* «Surt» (T-M01-46): l'última peça del menú, a la dreta; és un botó perquè és un POST */
+.navegacio-compte ul { align-items: center; }
+.navegacio-compte .sortida { margin-left: auto; }
+
+/* Navegació de l'administració (T-M01-46; sistema de disseny §6.1; wireframe admin.html): barra
+   lateral fosca als dos temes, amb les entrades que el servidor ha deixat passar. Fins a 1023 px
+   va sota la capçalera i, amb JavaScript (menu-admin.js posa «menu-plegable» a l'arrel), queda
+   plegada darrere del botó «Menú». A partir de 1024 px és una columna fixa. */
+.barra-lateral { display: flex; flex-direction: column; gap: var(--e-4); padding: var(--e-4); background: var(--c-lateral-fons); color: var(--c-lateral-text); }
+.menu-plegable .barra-lateral { display: none; }
+.menu-plegable .barra-lateral.oberta { display: flex; }
+.barra-lateral :focus-visible { outline-color: var(--c-lateral-focus); }
+.lateral-nav ul { list-style: none; display: grid; gap: var(--e-1); }
+.lateral-nav a { display: flex; align-items: center; min-height: var(--tactil); padding: var(--e-1) var(--e-3); border-radius: var(--r-m); color: var(--c-lateral-text-2); text-decoration: none; font-weight: var(--p-semi); }
+.lateral-nav a:hover { background: var(--c-lateral-fons-2); color: var(--c-lateral-text); }
+/* Entrada actual: barra daurada + negreta + fons (§2.5), mai només el color */
+.lateral-nav a[aria-current="page"] { color: var(--c-lateral-text); font-weight: var(--p-negreta); background: var(--c-lateral-fons-2); box-shadow: inset var(--v-activa) 0 0 var(--c-accent); }
+.lateral-compte { display: grid; justify-items: start; gap: var(--e-1); padding-top: var(--e-3); border-top: var(--v-fina) solid var(--c-lateral-fons-2); font-size: var(--t-s); overflow-wrap: anywhere; }
+.lateral-estat { color: var(--c-lateral-text-2); }
+.lateral-compte .boto { --neu-base: var(--c-lateral-fons); margin-top: var(--e-2); color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); box-shadow: none; }
+.lateral-compte .boto:hover { background: var(--c-lateral-fons-2); box-shadow: none; }
+/* Capçalera amb el botó «Menú»: el logotip a l'esquerra i la resta a la dreta, en l'ordre del teclat */
+.capcalera-compte .boto-menu { margin-left: auto; }
+.capcalera-compte .boto-menu + .selector-tema { margin-left: 0; }
+/* Inici de l'administració: les mateixes entrades del menú, com a llista d'enllaços */
+ul.enllacos { list-style: none; }
+@media (min-width: 1024px) {
+  .amb-barra-lateral { display: grid; grid-template-columns: var(--lateral-ample) minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
+  .amb-barra-lateral > .capcalera-compte { grid-column: 1 / -1; }
+  /* El contingut no s'estira fins a baix: els seus blocs queden junts, com sense la barra */
+  .amb-barra-lateral > main { align-self: start; }
+  .barra-lateral, .menu-plegable .barra-lateral { display: flex; }
+  .capcalera-compte .boto-menu { display: none; }
+  .capcalera-compte .boto-menu + .selector-tema { margin-left: auto; }
+}

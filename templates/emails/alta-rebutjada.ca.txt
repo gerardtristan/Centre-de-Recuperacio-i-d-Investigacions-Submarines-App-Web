@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M01-14: TEXT PROVISIONAL [A validar: junta i secretaria]. Cap dada de la persona ni el motiu del rebuig (si el correu ha d'incloure el motiu està pendent de decidir). #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "L'administració del C.R.I.S. ha revisat la sol·licitud d'alta com a soci feta amb aquestes dades i no l'ha pogut aprovar." %}
+
+{% translate "Si tens cap dubte, respon a aquest correu." %}
+
+{% translate "Si no has demanat l'alta, no cal que facis res." %}
+{% endautoescape %}

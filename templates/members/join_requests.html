@@ -1,0 +1,101 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-14: altes pendents (P3a per veure-les, P3 per resoldre-les). La data de naixement només hi arriba amb C1 i els documents, amb C2 (la vista no els posa al context). Amagar els botons no és cap control: el servei torna a comprovar el permís i el conflicte d'interès. #}
+{% block title %}{% translate "Altes pendents" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+  <h1>{% translate "Altes pendents" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. Si s'ha d'eximir de la quota, ho fa qui té el permís des de la fitxa del soci, un cop aprovada l'alta. La persona rep un correu amb un enllaç d'un sol ús per crear el seu compte; als menors de 14 anys no se'ls n'envia cap." %}</p>
+
+  {% for row in rows %}
+    {% with jr=row.request person=row.person %}
+    <section class="targeta altes-targeta" aria-labelledby="alta-{{ jr.pk }}">
+      <h2 id="alta-{{ jr.pk }}">{{ person }} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent de revisar" %}</span></h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Tipus" %}</dt><dd>{{ jr.requested_type.name }}</dd></div>
+        <div><dt>{% translate "Sol·licitud" %}</dt><dd><time datetime="{{ jr.created_at|date:'c' }}">{{ jr.created_at|date:"d/m/Y" }}</time> · {{ jr.get_channel_display }}</dd></div>
+        {% if show_birth_date %}<div><dt>{% translate "Data de naixement" %}</dt><dd>{{ row.birth_date|date:"d/m/Y"|default:_("Falta") }}</dd></div>{% endif %}
+        {% if row.age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ row.age_band.label }}</dd></div>{% endif %}
+        {% if show_identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ row.document|default:"—" }}</dd></div>{% endif %}
+        <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
+        {% if jr.guardian_last_name %}
+          <div><dt>{% translate "Pare, mare o tutor legal" %}</dt><dd>{{ jr.guardian_first_name }} {{ jr.guardian_last_name }}{% if row.guardian_document %} · <span class="codi">{{ row.guardian_document }}</span>{% endif %}{% if jr.guardian_email %}<br>{{ jr.guardian_email }} · {{ jr.guardian_phone }}{% endif %}</dd></div>
+        {% endif %}
+        {% if row.new_contact %}
+          <div><dt>{% translate "Contacte nou escrit a la sol·licitud" %}</dt><dd>{{ jr.new_contact_email|default:"—" }}{% if jr.new_contact_phone %} · {{ jr.new_contact_phone }}{% endif %}</dd></div>
+        {% endif %}
+        {% if row.former %}
+          <div><dt>{% translate "Soci existent" %}</dt><dd>{% blocktranslate with number=row.former.member_number|default:"—" status=row.former.get_status_display %}Número {{ number }} · {{ status }}{% endblocktranslate %}</dd></div>
+        {% endif %}
+      </dl>
+
+      {% if row.matches %}
+        <div class="avis avis-avis" role="note">
+          <strong>{% translate "Possible duplicat" %}</strong>
+          {% if "document" in row.matches %}{% translate "El document coincideix amb el d'una persona que ja és a la plataforma: la sol·licitud va a aquella persona, però la pot haver enviat qualsevol. Comprova la identitat abans d'aprovar." %}{% endif %}
+          {% if "email" in row.matches %}{% translate "El correu coincideix amb el d'una altra persona de la plataforma." %}{% endif %}
+          {% if "name_phone" in row.matches %}{% translate "El nom i el telèfon coincideixen amb els d'una altra persona de la plataforma." %}{% endif %}
+          {% translate "No es fusiona sol: revisa-ho abans d'aprovar." %}
+        </div>
+      {% endif %}
+
+      {% if row.similar %}
+        <div class="avis avis-avis" role="note">
+          <strong>{% translate "Possible duplicat d'un menor sense document" %}</strong>
+          {% translate "Ja hi ha persones a la plataforma amb el mateix nom, cognoms i data de naixement:" %}
+          {% for other in row.similar %}{% if other %}{% blocktranslate with number=other.member_number|default:"—" status=other.get_status_display %}soci número {{ number }} ({{ status }}){% endblocktranslate %}{% else %}{% translate "persona sense soci" %}{% endif %}{% if forloop.last %}.{% else %}; {% endif %}{% endfor %}
+          {% translate "No es fusiona sol: revisa-ho abans d'aprovar." %}
+        </div>
+      {% endif %}
+      {% if row.birth_conflict %}
+        <div class="avis avis-avis" role="note"><strong>{% translate "Data de naixement diferent" %}</strong>{% translate "La data de naixement de la sol·licitud no és la que ja té la persona. En aprovar, la de la persona no canvia: si cal, corregeix-la després des de la fitxa." %}</div>
+      {% endif %}
+
+      {% if row.own %}
+        <div class="avis avis-sistema" role="note"><strong>{% translate "És la teva sol·licitud" %}</strong>{% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
+      {% elif can_resolve %}
+        {% if row.blocker %}
+          <div class="avis avis-avis" role="note"><strong>{% translate "No es pot aprovar" %}</strong>{{ row.blocker }}</div>
+        {% else %}
+          <form class="formulari" method="post" action="{% url 'administration:join_approve' jr.pk %}">
+            {% csrf_token %}
+            {% if row.identity_check %}
+              <label class="casella"><input type="checkbox" name="identitat_comprovada" value="1" required> <span>{% translate "He comprovat la identitat de la persona" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.guardian_check %}
+              <label class="casella"><input type="checkbox" name="representant_comprovat" value="1" required> <span>{% translate "He comprovat el document del pare, la mare o el tutor legal" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.similar %}
+              <label class="casella"><input type="checkbox" name="duplicats_revisats" value="1" required> <span>{% translate "He revisat les persones amb el mateix nom, cognoms i data de naixement" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></span></label>
+            {% endif %}
+            {% if row.new_contact %}
+              <label class="casella"><input type="checkbox" name="actualitza_contacte" value="1"> <span>{% translate "Actualitza el correu i el telèfon de la persona amb els de la sol·licitud" %}</span></label>
+            {% endif %}
+            <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Aprova l'alta" %}</button></div>
+          </form>
+        {% endif %}
+        <details class="altes-rebuig">
+          <summary class="boto boto-text">{% translate "Rebutja…" %}</summary>
+          <form class="formulari" method="post" action="{% url 'administration:join_reject' jr.pk %}">
+            {% csrf_token %}
+            <div class="camp">
+              <label for="motiu-{{ jr.pk }}">{% translate "Motiu del rebuig" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+              <textarea id="motiu-{{ jr.pk }}" name="motiu" rows="3" required></textarea>
+              <p class="ajuda">{% translate "Queda a la sol·licitud i al registre d'activitat. La persona rep un correu sense el motiu." %}</p>
+            </div>
+            <div class="accions"><button class="boto" type="submit">{% translate "Rebutja la sol·licitud" %}</button></div>
+          </form>
+        </details>
+      {% endif %}
+    </section>
+    {% endwith %}
+  {% empty %}
+    <p>{% translate "No hi ha cap alta pendent." %}</p>
+  {% endfor %}
+
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
+{% endblock %}

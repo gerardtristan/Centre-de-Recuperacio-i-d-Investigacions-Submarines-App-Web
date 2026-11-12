@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "ecc@ecc": false,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": false,
+    "taste-skill@taste-skill": false,
+    "agent-skills@addy-agent-skills": false,
+    "ponytail@ponytail": false,
+    "example-skills@anthropic-agent-skills": false
+  },
+  "permissions": {
+    "deny": ["mcp__21st"]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop_check.py\"",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

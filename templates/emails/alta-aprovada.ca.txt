@@ -1,0 +1,8 @@
+{% load i18n %}{# 079 (RN-M01-87): TEXT PROVISIONAL [A validar: junta i secretaria]. Avís sense enllaç d'un sol ús per a qui ja té compte personal. Cap dada de la persona. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "El C.R.I.S. ha aprovat la teva sol·licitud d'alta com a soci. Ja tens un compte a la plataforma: entra-hi amb el teu correu i la teva contrasenya per veure la quota i, quan estigui pagada, el carnet." %}
+
+{{ link }}
+
+{% translate "Si no recordes la contrasenya, a la pàgina d'entrada en pots demanar una de nova. Si no has demanat l'alta, respon a aquest correu." %}
+{% endautoescape %}

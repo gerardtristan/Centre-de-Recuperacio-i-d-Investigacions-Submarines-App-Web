@@ -1,12 +1,14 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.4 (27/10/2026). La 1.4 incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
+- **Versió:** 1.6 (11/11/2026). La 1.6 descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
+- La 1.5 (03/11/2026) afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
+- La 1.4 (27/10/2026) incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
 - La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
 - **Versió anterior:** 1.2, etapa 3: sistema de disseny i wireframes de baixa fidelitat.
   - La 1.1 afegeix l'estil neumòrfic limitat (§6.4) i el selector de tema segmentat (§7).
   - La 1.2 afegeix l'estructura d'immersió del compte personal (§6.5), els tokens de profunditat, carnet i moviment (§2.6 i §4.1), el logotip més gran a la pública i la secció `centre-recuperacio-investigacio`.
 - **Decisions:** [030](decisions/030-sistema-de-disseny.md) (substitueix la 009), ampliada per la [031](decisions/031-estil-neumorfic-limitat.md), per la [032](decisions/032-immersio-socis-i-centre.md) i per la [034](decisions/034-patrons-magic-portfolio.md).
-- **Fitxers:** `design/wireframes/tokens.css` (font de veritat dels valors), `publica.html`, `socis.html` i `admin.html`.
+- **Fitxers:** `static/css/tokens.css` (font de veritat dels valors, una sola còpia que fan servir la plataforma i els prototips des de la T-M01-38), `static/css/fonts.css` (fonts allotjades al servidor; llicència a `static/fonts/README.md`) i els prototips `design/wireframes/publica.html`, `socis.html`, `admin.html` i `comptes.html`.
 - **Abast:** estructura i regles. **No és el disseny final.** No hi ha l'editor (etapa 4). L'únic moviment és el del compte personal (§4.1).
 
 ## 1. Principis
@@ -17,6 +19,8 @@
 5. Mòbil, tauleta i escriptori són tres disposicions pensades per separat, no una sola que s'estira.
 
 ## 2. Tokens de color
+> **Atenció (detectat a la T-M01-02):** `tokens.css` porta la paleta revisada el 31/10/2026 (primitius `--abisme`, `--boira`, `--pissarra`, `--posidonia`, `--llauto`…), que el mateix fitxer diu que està «pendent de registrar com a decisió». Els valors d'aquesta secció són els de la 1.4 i ja no coincideixen amb els del fitxer. Mentre no hi hagi decisió, la font de veritat és `tokens.css`, i les comprovacions de contrast de la 1.5 (§6.7) s'han fet amb els seus valors [A validar: decisió de la paleta].
+
 Els noms són en català, sense accents (vegeu §11). Cada color de zona i d'estat té tres tokens: el **decoratiu** (vores, punts, barres), el de **text** (text, etiquetes, enllaços) i el **fons tenyit**.
 
 ### 2.1 Superfícies, text i accions
@@ -104,6 +108,8 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 
 **Allotjament:** als wireframes, les fonts es carreguen de Google Fonts. **En producció s'han d'allotjar a `assets/fonts/` amb la llicència documentada** [A validar]. Totes tres són, segons consta, de llicència SIL Open Font License 1.1; cal comprovar-ho i desar el fitxer `OFL.txt` de cada família al costat de les fonts. Allotjar-les nosaltres també evita enviar l'adreça IP dels visitants a Google (RGPD).
 
+**Risc que continua obert (1.5):** els tres wireframes carreguen les fonts de Google Fonts. Les pantalles del mòdul 01 són dins d'aquests tres fitxers i comparteixen aquella càrrega: no se n'ha afegit cap de nova. Fins que les fonts s'allotgin a `assets/fonts/`, qui obre un wireframe connectat a internet envia la seva adreça IP a Google; sense connexió, es veuen les alternatives del sistema.
+
 ## 4. Espaiat, formes i mides
 - **Espaiat:** `--e-1` a `--e-8` = 4, 8, 12, 16, 24, 32, 48 i 64 px. No se'n fan servir d'altres.
 - **Radis:** `--r-s` 4, `--r-m` 8, `--r-l` 12 i `--r-pastilla` (forma de pastilla).
@@ -164,7 +170,7 @@ El CSS s'escriu de mòbil a escriptori a les tres zones, encara que la pública 
 | `projectes` (després del Centre) | Targetes tipus memòria una a sota de l'altra: xips, títol, **Objectiu / Dades / Resultats** i enllaç | 2 columnes | 2 columnes |
 | `noticies` (després de `medi-ambient`) | Llista d'entrades: la data a l'esquerra (dia gran i mes), un xip de tipus, el títol enllaçat i un resum | Igual, amb una columna de data més ampla | Igual |
 | `galeria` | Columnes tipus maçoneria: 2, amb peu de foto (lloc i any); espais reservats | 3 columnes | 4 columnes |
-| `fer-se-soci` | 1 targeta per fila | 2 targetes | 2 targetes en 2/3 de l'amplada |
+| `fer-se-soci` | Text, avís de pagament i botó, sense preus (els preus són al formulari `#alta`, des del 03/11/2026) | Igual | Igual |
 | `contacte` | Dades i, a sota, el formulari | 2 columnes | 2 columnes |
 | `peu` (amb `butlleti` a dalt) | Butlletí (correu, consentiment, botó «Subscriu-me») i, a sota, 1 columna; logotip de 120 px | Butlletí en 2 columnes; peu en 2 columnes | Igual; peu en 4 columnes |
 
@@ -191,6 +197,25 @@ Canvis d'id respecte a la 1.1: `pagaments-pendents` passa a `franja-estat` (el d
 | `material-assignat`, `activitat-recent` | A sota | A sota | Columna dreta (4 de 12 columnes) |
 | `programa-i-notes` | 1 columna | 2 columnes | 2 columnes, amplada sencera |
 
+### 5.2 Pantalles del mòdul 01 (T-M01-02)
+S'obren amb l'adreça. A la pública i al compte personal, amaguen la portada; a l'administració, són vistes de Socis i accepten el rol a l'adreça (`#vista&rol=…`). La correspondència amb els processos és a `docs/planning.md`, M01-5.
+
+| Pantalla | Fitxer i adreça | Mòbil | Escriptori |
+|---|---|---|---|
+| Sol·licitud d'alta | `publica.html#alta` | Formulari en una columna i «Què passa després» a sota | Formulari (7) i columna lateral fixa (5) |
+| Verificació del carnet | `publica.html#verificar` | Una targeta amb el resultat | Igual, amb l'amplada d'un text |
+| Llistat de socis | `admin.html#vista-socis-llistat` | Cada fila és un bloc amb etiquetes | Taula sencera |
+| Fitxa del soci | `admin.html#vista-socis-fitxa` | Capçalera i pestanyes (Dades, Historial, Quotes, Llicència) | Igual, dades en dues columnes |
+| Sol·licituds | `admin.html#vista-socis-sollicituds` | Pestanyes (Altes, Canvis de tipus, Baixes) i una targeta per sol·licitud | Targetes en dues columnes |
+| Alta presencial | `admin.html#vista-socis-alta` | Formulari en una columna | Formulari (7) i notes (5) |
+| Quotes i impagats | `admin.html#vista-socis-quotes` | Generació a dalt; taula en blocs | Xifres en una fila i taula sencera |
+| Importació de Cluber | `admin.html#vista-socis-cluber` | Fitxer, importació final i resultat, un a sota de l'altre | Fitxer (7) i importació final (5); resultat a tota l'amplada |
+| El meu perfil | `socis.html#perfil` | Una columna | Dades (7) i, al costat, consentiments, llicència, sol·licituds i dades (5) |
+| Canvi a ple dret, baixa, esborrar el compte | `socis.html#canvi-tipus`, `#baixa`, `#esborrar` | Una columna | Columna estreta centrada |
+| No trobat | `socis.html#no-trobat` | Una targeta | Igual |
+
+Les pantalles del compte personal són planes, com pagar i els avisos (§6.5): sense degradat, ona ni moviment.
+
 ## 6. Components
 Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (estructura). Classes en català.
 
@@ -215,6 +240,24 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Codi i import | `codi`, `import` | JetBrains Mono; xifres tabulars als imports |
 | Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
+| Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |
+| Barra lateral de l'administració (1.6) | `barra-lateral`, `lateral-nav`, `lateral-compte`, `lateral-estat`; el `<body>` porta `amb-barra-lateral` | A `comptes.css`. Fosca als dos temes (`--c-lateral-*`). Les entrades les posa el servidor segons els permisos; vegeu §6.1 |
+| Botó «Menú» (1.6) | `boto boto-petit boto-menu` | Només per sota de 1024 px i amb JavaScript. `aria-expanded` i `aria-controls="barra-lateral"`; vegeu §6.1 |
+| «Surt» (1.6) | `boto boto-petit` dins d'un formulari | Sempre un POST amb CSRF, mai un enllaç. Un sol text a tot arreu: «Surt» |
+
+**Components del prototip interactiu (ja existien des del 31/10/2026; es documenten a la 1.5 perquè les pantalles del mòdul 01 els reutilitzen).** Són a `tokens.css` i `interaccions.js` (JavaScript propi, sense dependències ni CDN, decisió 046).
+
+| Component | Classe i funció | Regles |
+|---|---|---|
+| Diàleg | `dialeg` (`dialeg-cap`, `dialeg-cos`, `dialeg-peu`), `<dialog>` natiu amb `showModal()` | Reté el focus i es tanca amb Esc o amb el botó «Tanca» (`aria-label`). En obrir-lo, el focus va al primer camp; en tancar-lo, torna al botó que l'ha obert. Accions a baix: «Torna» o «Cancel·la» i l'acció principal |
+| Botó dinàmic | `boto-dinamic`, `CRIS.botoDinamic(boto)` | Canvia de text i d'icona («Desant…», «Desat») sense salts d'amplada; mentre treballa porta `aria-busy` i `aria-disabled`. El resultat també s'anuncia en text |
+| Interruptor | `interruptor` amb `role="switch"` i `aria-checked` | Estat amb posició, icona i text «Sí» o «No», mai només color. Nom amb `aria-labelledby` |
+| Pestanyes | `pestanyes`, `pestanya`, `panells`; `CRIS.pestanyes(llista)` | Patró ARIA de pestanyes: fletxes, Inici i Fi; subratllat elàstic daurat. Una pestanya que el rol no pot veure no surt |
+| Control segmentat | `segmentat` | Botons de ràdio dins d'un `fieldset` amb llegenda; l'opció triada porta ✓, negreta i relleu |
+| Zona per pujar fitxers | `zona-magnetica`, `CRIS.zonaMagnetica(zona)` | També amb clic o Intro. Comprova el tipus i la mida i mostra l'error en text. Amb `data-csv`, resumeix el fitxer com un extracte bancari (per això la importació de Cluber no el fa servir) |
+| Regió viva | `anunci`, `CRIS.anuncia(text)` | Anuncia els canvis d'estat al lector de pantalla |
+
+`boto-tactil`, `impressora` i el subratllat de la navegació encara no tenen fila: no els fa servir cap pantalla nova [A completar].
 
 ### 6.1 Navegació
 - Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc. **Regla (034):** la pastilla no s'allarga. A l'escriptori mostra 6 enllaços i «Més», i les seccions noves van dins de «Més». Els enllaços que surten de «Més» només a l'escriptori porten la classe `nav-escriptori`, i les seves còpies dins de «Més», `nav-no-escriptori`. Així cada enllaç només es veu i es llegeix una vegada a cada mida.
@@ -222,8 +265,31 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
 
-### 6.2 Menús i blocs per rol (matriu provisional, P-04)
-Surt de la spec 00, §2.4 i §2.5. **No està validada per la junta**, i el wireframe ho diu amb l'avís «Matriu de permisos provisional (pendent de la junta)».
+**Navegació a la plataforma (1.6, T-M01-46).** És la del wireframe `admin.html`, amb aquestes precisions:
+- **Entrades.** Una per pantalla que existeix, no per mòdul: Inici, Llistat de socis, Altes pendents, Alta presencial, Sol·licituds de socis, Llicències pendents de confirmar, Quotes i impagats, Importació de Cluber, Comptes d'administrador i Registre d'activitat. Quan hi hagi més mòduls, s'agruparan com al wireframe.
+- **Filtrada al servidor.** Una entrada només arriba a l'HTML si el compte té el permís que la ruta declara (`apps/members/permissions.py` i `apps/accounts/navigation.py`); no s'amaga amb CSS. No és cap control: cada vista torna a comprovar el permís.
+- **Compte.** Sota les entrades: el nom d'usuari del compte actiu (`codi`), «Compte d'administrador · TOTP actiu» i «Surt» (formulari POST amb CSRF). Cap altra dada.
+- **Escriptori (1024 px o més).** Columna fixa de `--lateral-ample`, sota la capçalera. El botó «Menú» no hi és.
+- **Mòbil i tauleta (fins a 1023 px).** La barra va sota la capçalera, a tota l'amplada, plegada darrere del botó «☰ Menú». El botó l'obre i la tanca (Intro o Espai); Esc la tanca i torna el focus al botó. No tapa la pàgina ni reté el focus: l'ordre del tabulador és el de la pantalla (logotip, «Menú», tema, entrades, «Surt», contingut). Sense JavaScript, la barra es veu sempre oberta.
+- **Diferències amb el wireframe, pendents:** el carril de 72 px amb icones de la tauleta (la plataforma encara no té el joc d'icones; de 600 a 1023 px es comporta com el mòbil) i el selector de tema dins del panell (a la plataforma n'hi ha un de sol, a la capçalera).
+- **Entrada actual:** `aria-current="page"`, barra daurada (`--v-activa`, `--c-accent`), negreta i fons `--c-lateral-fons-2`; també quan s'és en una pantalla que en penja (la fitxa d'un soci marca «Llistat de socis»).
+- **Contrast** (calculat amb els valors de `tokens.css`, clar i fosc): text de les entrades sobre la barra, 6,7:1 i 7,4:1; entrada actual sobre el seu fons, 7,9:1 i 9,2:1; focus daurat sobre la barra, 10:1 o més.
+- **Compte personal.** Navegació en text a la capçalera (el dock és de la portada, pendent). «Surt» és l'última peça de la llista, com a botó petit, a totes les pantalles de l'àrea.
+
+### 6.2 Menús i blocs per rol
+**Socis (1.5):** segueix la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) ([matriu](planning.md#rols-i-permisos-059-matriu)). El selector «Veure com» porta els onze rols de gestió de la 059.
+
+| Pantalla de Socis | Rols que la veuen |
+|---|---|
+| Llistat i fitxa (P4) | Administrador i Secretaria, amb totes les dades; Tresorer en consulta, amb les dades mínimes per cobrar |
+| Sol·licituds (P3a, P3, P7) | Administrador, Secretaria, Tresorer i President. El Tresorer i el President no veuen la data de naixement ni el document (C1, C2) |
+| Alta presencial (P2) | Administrador i Secretaria |
+| Quotes i impagats (P8, P9, P10) | Administrador i Tresorer generen; només el Tresorer marca impagats; la Secretaria consulta l'estat sense imports |
+| Importació de Cluber (P18) | Administrador |
+
+La barra lateral obre a cada rol la primera pantalla de Socis que pot veure (al President, Sol·licituds).
+
+**Resta de mòduls (matriu provisional, P-04, pendent d'adaptar a la 059).** Surt de la spec 00, §2.4 i §2.5, i l'avís del selector ho diu. Amb els rols nous de la 059 (President, Junta, Resp. comunicació i Resp. botiga), aquestes pantalles mostren «Sense accés a aquesta pantalla» fins que s'adaptin. La vista «Permisos per rol» encara diu «059 no trobada» i té la matriu antiga: s'actualitzarà amb la T-RP-03.
 
 | Mòdul del menú | Rols que el veuen |
 |---|---|
@@ -248,6 +314,7 @@ A la fitxa d'una sortida:
 |---|---|---|
 | Pagat, Vigent, Inscripció confirmada, Places lliures, Lliurat | ✓ | `estat-ok` |
 | Pendent, Per recollir | ◷ | `estat-avis` |
+| Estat del soci (M01): «Pendent de la primera quota» (`pending`), «Actiu», «Impagat», «Impagat · quota pagada, revisa-ho» (el tresorer encara no l'ha desmarcat; 040) i «Baixa» | ◷, ✓, ✕, ✕, ■ | `estat-avis`, `estat-ok`, `estat-error`, `estat-error`, `estat-neutre` |
 | Caduca aviat, Últimes places | ! | `estat-avis` |
 | Cancel·lat, Completa, Sense llicència | ✕ | `estat-error` |
 | Sistema (missatge automàtic) | ⚙ | `estat-sistema` |
@@ -294,7 +361,7 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
   - Darrere: QR [A validar], tipus, data d'alta, quota i llicència.
   - Es gira amb un botó visible, «Mostra el darrere» o «Mostra el davant», amb `aria-pressed`. La cara amagada porta `aria-hidden`.
   - Sense moviment, el gir és instantani.
-- **No soci:** en lloc del carnet, una invitació a fer-se soci (targeta plana amb les quotes d'exemple [A validar] i el botó principal «Fes-te soci»).
+- **No soci:** en lloc del carnet, una invitació a fer-se soci (targeta plana amb les quotes, validades el 03/11/2026, i el botó principal «Fes-te soci»).
 - **Franja d'estat:**
   - Plana, gran i a tota l'amplada, just sota la portada.
   - Amb pendents: «◷ N pagaments pendents», el detall i el botó «Paga ara» de 56 px d'alçada. El text fa 15,2:1 i 12,3:1, i el botó 8,1:1 i 9,8:1.
@@ -320,9 +387,33 @@ El relleu tou (dues ombres, una de fosca i una de clara, del mateix to que el fo
 
   Aquests afinaments són a l'estil de `socis.html`, no a `tokens.css`, i així no arriben a l'administració.
 
+### 6.7 Patrons d'interacció i de seguretat del mòdul 01 (1.5)
+Les accions equivalents fan servir els mateixos noms, passos i respostes a les tres zones:
+- **Aprovar i validar:** botó principal («Aprova l'alta», «Aprova el canvi», «Valida la baixa») que canvia a «Aprovant…» i deixa el resultat en text, amb el focus a sobre.
+- **Rebutjar i accions amb motiu:** «Rebutja…», «Marca impagat…» i «Crea una baixa» obren un diàleg amb el motiu obligatori. Sense motiu, error a prop del camp i el focus hi torna.
+- **Formularis:** etiqueta sempre visible, error a sota del camp (`aria-invalid` i `aria-describedby`), focus al primer camp amb error i recompte d'errors anunciat.
+- **Confirmacions:** la baixa del soci es confirma en un diàleg; l'esborrat del compte, amb una casella explícita («Entenc que no es pot desfer»).
+- **Acció irreversible a l'administració (T-M01-22, `/gestio/rgpd/`):** aprovar un esborrat RGPD demana, al mateix formulari, la casella explícita, la contrasenya i el codi TOTP de qui aprova (reautenticació a la mateixa petició). Abans del formulari, una llista «Què passarà en aprovar-la» amb frases sense imports ni dades personals. Rebutjar és un formulari a part amb el motiu obligatori. Si no es pot aprovar, un `avis avis-error` diu per què i el formulari d'aprovar no surt. Pantalles sense wireframe propi: només components existents (`taula`, `dades-soci`, `targeta`, `formulari`, `camp`, `casella`, `avis`, `accions`, `boto`).
+- **Descàrrega de les dades pròpies (T-M01-22, perfil):** un botó prepara el fitxer i, un cop preparat, un enllaç amb aspecte de botó el descarrega; al costat, fins quan es pot descarregar i l'avís que conté dades personals.
+- **Resultat que no es desa:** «La sessió ha caducat» i «Ja no tens permís per fer aquesta acció» diuen que no s'ha desat res i no mostren cap dada.
+- **Missatges que no revelen dades:** el formulari d'alta respon igual si el document ja existeix; la verificació respon igual per a un testimoni desconegut, revocat o impagat, i el límit de peticions no diu el llindar.
+- **Accés denegat:** a l'administració, les pantalles noves fan servir el patró existent «Sense accés a aquesta pantalla» quan el rol no hi té permís. «No s'ha trobat la pàgina» només on el pla ho exigeix: un soci que obre dades d'un altre (CA-M01-25). Si l'administració també ha de respondre «no trobat» per rol és una diferència per revisar [A validar].
+- **Minimització:** el document surt emmascarat al compte personal; el Tresorer i el President veuen «major d'edat» en lloc de la data de naixement; cap llistat porta la data de naixement; la importació de Cluber mostra els errors per línia sense repetir dades del fitxer.
+- **Simulació i servidor:** amagar un element per rol al prototip és una simulació. Cada pantalla porta una nota «Al servidor» amb el control real.
+
+Contrast comprovat amb els valors de `tokens.css` als dos temes, en 27 combinacions per tema (resum al diari de la T-M01-02). Per sota del mínim: el daurat de la barra activa sobre el fons de zona al tema clar (1,16:1; és decoratiu i ara porta una vora fosca de 6,98:1) i la pista de l'interruptor actiu al tema fosc (1,64:1; component existent, amb l'estat també en text) [A completar: T-M01-28].
+
+### 6.8 Impressió i carnet en PDF (decisió 079)
+El carnet es desa com a PDF amb la impressió del navegador; el servidor no genera cap PDF.
+- **`no-imprimeix`:** classe per a tot el que no ha de sortir al paper (avisos, botons, enllaços, formularis). La capçalera i l'enllaç «Vés al contingut» ja no s'imprimeixen mai.
+- **`[data-imprimeix]`:** botó que obre la impressió («Desa com a PDF»). Surt amagat (`hidden`) i el mostra `static/js/imprimeix.js`; sense JavaScript es pot imprimir igualment des del navegador.
+- **Tema:** mentre s'imprimeix, `imprimeix.js` força el tema clar i després torna a posar el que hi havia.
+- **`carnet-qr`:** el QR del carnet (peça `qr`, §6) centrat amb la seva explicació a sota.
+- Estils a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
-- El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Al mòbil només es veuen les icones, però el text continua disponible per al lector de pantalla. A partir de tauleta es veuen la icona i el text.
+- El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Als prototips, al mòbil només es veuen les icones (el text continua disponible per al lector de pantalla) i a partir de tauleta, la icona i el text. **A la plataforma (T-M01-45), la capçalera de comptes, socis i administració mostra la icona i el text a totes les mides**, com demana la revisió de pantalles; a 320 px el selector passa a la seva fila (`comptes.css`).
 - Desa la tria a `localStorage` amb la clau `cris-tema` (`light` o `dark`); a «Sistema», la clau s'esborra. Si una pàgina té més d'un selector (l'administració en té un a la barra lateral del mòbil i un a la barra superior), tots dos queden sincronitzats.
 - Un petit script al `<head>` aplica el tema desat abans de pintar la pàgina, perquè no es vegi el canvi. Si `localStorage` no està disponible, el selector funciona igual però no se'n recorda.
 - El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el selector.
@@ -374,7 +465,7 @@ No se n'ha copiat codi, imatges, logotips ni textos. Tampoc no s'ha fet servir l
 | Referència | Zona | Què se n'ha agafat | Llicència |
 |---|---|---|---|
 | [Card Stack Portfolio](https://21st.dev/@kedhareswer/templates/card-stack-portfolio-website-template) (Kedhareswer Naidu) | Socis | Targetes grans i navegació persistent (aquí, el dock). El moviment del carnet és disseny propi, en CSS | No indica cap llicència [A validar si se'n volgués reutilitzar codi] |
-| [Saasly](https://21st.dev/@tailgrids/templates/tailgrids-saasly) (TailGrids) | Admin i pública | Xifres en targetes, jerarquia neta, targetes de preu per a `fer-se-soci`. Nota: és una pàgina de presentació, no un panell, i la barra lateral i la taula són disseny propi | Llicència TailGrids: ús comercial i en projectes de clients permès; **no** es pot revendre, redistribuir ni fer servir en generadors d'interfícies [A validar si se'n reutilitzés codi] |
+| [Saasly](https://21st.dev/@tailgrids/templates/tailgrids-saasly) (TailGrids) | Admin i pública | Xifres en targetes, jerarquia neta, targetes de preu per a `fer-se-soci` (ja no s'usen: des del 03/11/2026 els preus només surten al formulari d'alta). Nota: és una pàgina de presentació, no un panell, i la barra lateral i la taula són disseny propi | Llicència TailGrids: ús comercial i en projectes de clients permès; **no** es pot revendre, redistribuir ni fer servir en generadors d'interfícies [A validar si se'n reutilitzés codi] |
 | [Magic Portfolio](https://21st.dev/@larsen66/templates/magic-portfolio-for-next-js) (Once UI; once-ui.com/products/magic-portfolio) | Pública, i socis només en tipografia | Barra de navegació en forma de pastilla, botó de tema a la capçalera, etiquetes de secció i xips. Des de la 034, també: treball destacat (sortida destacada), casos d'estudi (memòries de projectes), entrades amb data (notícies i conferències), galeria, subscripció al butlletí i ritme tipogràfic. Anàlisi completa a [analisi-magic-portfolio.md](analisi-magic-portfolio.md) | **CC BY-NC 4.0**: cal citar l'autor i no se'n permet l'ús comercial. No en copiem codi, textos ni imatges; si mai se'n volgués reutilitzar codi, cal validar si l'ús del club és «no comercial» [A validar] |
 
 **Nota d'atribució:** alguns patrons visuals de la web pública i del compte personal s'inspiren en *Magic Portfolio*, de Once UI (llicència CC BY-NC 4.0). N'agraïm el treball. No se n'ha copiat codi, textos ni imatges: els patrons s'han reimplementat en HTML i CSS propis, amb els tokens d'aquest sistema.
@@ -396,12 +487,14 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 2. **Tema:** triar Sistema, Clar o Fosc al selector de la capçalera (a `admin.html` al mòbil, dins de «Menú»). La tria es manté en recarregar i en canviar de pàgina. **Més contrast:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-contrast: more*. Per provar el mode «Sistema», cal canviar el tema del sistema operatiu o, a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-color-scheme*.
 3. **Mides:** a les eines de desenvolupament (F12), activar el mode de dispositiu (Ctrl+Maj+M) i provar 390 px (mòbil), 820 px (tauleta) i 1440 px (escriptori).
 4. **Demostració:** a `socis.html`, triar «Soci amb pagaments pendents», «Soci al dia» o «Persona no sòcia (alumne)», i prémer «Mostra el darrere» per girar el carnet. A `admin.html`, canviar «Veure com» per veure els menús i blocs de cada rol.
-5. **Reduir moviment:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-reduced-motion: reduce*. Cal recarregar la pàgina per veure-hi la portada sense animació d'entrada.
+5. **Mòdul 01 (1.5):** `publica.html#alta` i `#verificar`; `admin.html#vista-socis-llistat&rol=tresorer` (qualsevol vista de §5.2 amb qualsevol rol de la 059); `socis.html#perfil`, `#canvi-tipus`, `#baixa`, `#esborrar` i `#no-trobat`. Cada pantalla té la seva franja «Demostració» (per exemple, sessió caducada, llistat buit o resultat de la verificació), i la importació de Cluber té un CSV d'exemple inventat.
+6. **Marques de revisió:** el botó «Amaga les marques de revisió» de la franja del prototip amaga les etiquetes [A validar] i les notes «Al servidor» per veure la pantalla neta. Es manté en recarregar i en canviar de pàgina. Només amaga peces de demostració: no canvia cap control ni cap permís simulat.
+7. **Reduir moviment:** a les eines de desenvolupament, *Rendering → Emulate CSS media feature prefers-reduced-motion: reduce*. Cal recarregar la pàgina per veure-hi la portada sense animació d'entrada.
 
 ## 14. Pendents [A validar]
 - Que el club validi la paleta, la regla de les fletxes i els ajustos de §2.3.
 - Matriu de permisos dels menús i blocs (P-04).
-- Quotes d'exemple (35 € simpatitzant i 90 € ple dret, del context v4), què inclou cada quota, adreça i horari del local, i tipus de llicència.
+- Què inclou cada quota (els preus, 35 € simpatitzant i 90 € ple dret, els va validar el responsable del projecte el 03/11/2026), adreça i horari del local, i tipus de llicència.
 - Si el carnet té codi QR i foto.
 - El nom del departament de les sortides.
 - Versions del logotip (reduïda i SVG) i nom del fitxer de la versió fosca (§8).
@@ -410,4 +503,5 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 - Compte personal (032): la bitàcola (d'on surten les sortides i les hores, i si el club vol insígnies) i el contingut del darrere del carnet.
 - Web pública (032): els textos de `centre-recuperacio-investigacio`. El nom del club ja és fixat (§8).
 - Fase futura: bitàcola, insígnies i punts per participació en activitats i cursos (P-38 a `pendents.md`).
+- 1.5: registrar com a decisió la paleta revisada el 31/10 i actualitzar §2; adaptar a la 059 les pantalles d'Activitats, Tresoreria i Usuaris i rols; si l'administració ha de respondre «no trobat» per rol; el contrast de l'interruptor actiu al tema fosc i el focus del selector de calendari natiu del camp de data (T-M01-28); documentar `boto-tactil`, `impressora` i el subratllat.
 - Web pública (034): contingut real de projectes i notícies (P-40), fotos i drets d'imatge (P-41), servei del butlletí (P-42) i qui manté el contingut (P-43).

@@ -1,0 +1,4 @@
+{% load i18n %}
+{# Casella d'acceptació d'un text legal (068): qui accepta, l'enllaç que obre el text en una finestra, la versió i la marca d'obligatori o, amb `optional`, d'opcional (T-M01-41). Error enllaçat i aria-invalid (B8). #}
+<label class="casella"><input type="checkbox" name="{{ field.html_name }}" id="{{ field.auto_id }}"{% if field.value %} checked{% endif %}{% if field.errors %} aria-invalid="true" aria-describedby="{{ field.auto_id }}_error"{% endif %}> <span>{{ intro }} <a href="#text-{{ kind }}" data-obre-text>{{ label }}</a> <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span> {% if optional %}<span class="text-2">{% translate "opcional" %}</span>{% else %}<strong class="etiqueta-obligatori">{% translate "obligatori" %}</strong>{% endif %}</span></label>
+{{ field.errors }}

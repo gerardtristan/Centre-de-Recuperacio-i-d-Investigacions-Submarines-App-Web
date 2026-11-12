@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M00-02: pàgina del convidat (spec 00, HU-02; decisió 021). Seguretat i privacitat: ruta pública declarada; el testimoni no és a l'adreça d'aquesta pàgina ni a la sessió (la sessió només guarda l'identificador intern de l'enllaç) i l'enllaç es torna a comprovar al servidor a cada petició; només es mostra el càrrec de l'enllaç (concepte, import i estat), cap dada personal i cap dada d'una altra persona (CA-02.2); el mateix text per a un enllaç desconegut, caducat, revocat o substituït, sense cap dada (CA-02.3); un càrrec pagat només mostra l'estat (CA-02.4); la pantalla no diu el límit d'intents ni el temps d'espera (CA-02.7). El pagament és del 05b: aquí no hi ha cap botó de pagament ni se'n simula cap. #}
+{% block title %}{% translate "El teu pagament" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Pagaments" %}{% endblock %}
+{% block inici %}{% url 'core:guest' %}{% endblock %}
+{% block content %}
+  <h1>{% translate "El teu pagament" %}</h1>
+  {% if state == "limited" %}
+    <div class="avis avis-avis" role="alert">
+      <strong>{% translate "Massa intents seguits" %}</strong>
+      {% translate "Torna-ho a provar d'aquí a una estona." %}
+    </div>
+  {% elif state == "open" %}
+    <section class="targeta" aria-labelledby="carrec-titol">
+      <h2 id="carrec-titol">{{ charge.concept }}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Import" %}</dt><dd class="import">{{ amount }}</dd></div>
+        <div><dt>{% translate "Estat" %}</dt><dd>{% if charge.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Pagat" %}</span>{% elif charge.status == "pending" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Retornat" %}</span>{% endif %}</dd></div>
+      </dl>
+    </section>
+    {% if can_pay %}
+      <div class="avis avis-avis" role="status">
+        <strong>{% translate "El pagament en línia encara no està disponible" %}</strong>
+        {% translate "Si tens cap dubte, respon el correu on has rebut aquest enllaç." %}
+      </div>
+    {% elif charge.status == "paid" %}
+      <div class="avis avis-ok" role="status">{% translate "Aquest pagament ja està fet. No cal que facis res més." %}</div>
+    {% endif %}
+    <p class="text-2">{% blocktranslate with date=expires_at|date:"d/m/Y" %}Aquest enllaç funciona fins al {{ date }}.{% endblocktranslate %}</p>
+  {% else %}
+    <div>
+      <div class="avis avis-error" role="alert">{% translate "Aquest enllaç no és vàlid o ha caducat." %}</div>
+      <p>{% translate "Si l'has rebut del C.R.I.S. i ja no et funciona, en pots demanar un de nou amb el teu correu." %}</p>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'core:guest_link_request' %}">{% translate "Demana un enllaç nou" %}</a></div>
+    </div>
+  {% endif %}
+{% endblock %}

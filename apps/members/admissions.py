@@ -1,0 +1,486 @@
+"""Altes pendents: aprovar i rebutjar (T-M01-14; P-M01-A passos 4, 5a i 5b; CA-M01-03 a 05;
+RN-M01-05 i RN-M01-06; decisions 039, 059 i 067).
+
+Serveis autoritzats amb P3 (`members.requests.approve_join`). Cada servei comprova el compte, el
+permís i el conflicte d'interès ABANS d'obrir la transacció (contracte de `services.py`): així
+l'intent rebutjat queda registrat encara que l'operació no es faci.
+
+Aprovar:
+- Persona sense soci: soci «pendent» amb el número `últim + 1` del comptador, bloquejat amb
+  `SELECT … FOR UPDATE` (RN-M01-05, CA-M01-04), la llavor de l'avatar amb `new_avatar_seed`,
+  l'entrada inicial de l'historial i el registre d'activitat amb el valor anterior. Si el número
+  que tocaria ja és d'un altre soci, es rebutja: no se salta cap número ni se'n reutilitza cap.
+- Persona amb un soci de baixa: readmissió amb `_readmit` (067), mateix registre i mateix número;
+  el comptador no avança. Tot, i l'aprovació de la sol·licitud, en una sola transacció.
+- **Quota i exempts (retoc del 09/11/2026, 072):**
+  - qui ha de pagar queda «pendent» amb la quota anual íntegra del tipus (070), creada amb
+    `fees.issue_annual_fee` (número d'ordre de la P-54, sortida E), venciment el dia de
+    l'aprovació; passa a actiu quan es confirma el pagament (`services.on_fee_paid`);
+  - un exempt per edat (068, P-57 opció 1) passa a «actiu» en aprovar-lo, sense quota ni càrrec
+    de 0 €, amb el motiu «Sense quota exigible (RN-M01-65)» i amb carnet (Q-001, Q-002).
+- **Acceptacions (Q-044):** les del sol·licitant passen a `core.Consent` amb la versió exacta que
+  va acceptar i la referència a la sol·licitud; les del representant es queden a la sol·licitud,
+  excepte el consentiment d'imatges d'un menor de 14 anys, que va a la persona del menor amb el
+  representant com a qui el dona (072, opció A, l'única excepció; T-M01-41). El butlletí marcat
+  pel representant es queda a la sol·licitud.
+- **Representant (Q-043, opció 2):** per aprovar l'alta d'un menor, cal confirmar que s'ha
+  comprovat el document del representant; queda al registre (sense cap còpia del document).
+- **Contacte nou (Q-042, opció 1):** si la sol·licitud porta un correu o un telèfon diferents dels
+  de la persona existent, qui aprova decideix si els actualitza (`persons.update`, amb registre).
+- **Decisió 079 (11/11/2026; RN-M01-87 i 88, CA-M01-90 a 95):**
+  - **Invitació (A-11):** en aprovar, `accounts.invitations.send_for_approved_join` envia a la
+    persona l'enllaç d'un sol ús per crear el compte personal o, si ja en té, un avís sense
+    enllaç. Cap per a un menor de 14 anys (Q-012) ni per a un de 14 a 17 sense correu propi.
+  - **Identitat (A-12):** si el document coincideix amb una persona existent, n'hi ha prou amb
+    la confirmació de qui aprova; l'entrada del registre guarda qui i quan.
+  - **Menors sense document (A-15):** es poden aprovar. Si hi ha persones amb el mateix nom,
+    cognoms i data de naixement (`similar_minors`), qui aprova les veu i ha de confirmar que ho
+    ha revisat; queda al registre.
+  - **Readmissió amb un altre tipus (A-05):** es readmet i, tot seguit, es canvia el tipus al
+    demanat, amb historial; la quota és la íntegra del tipus nou.
+  - **Data d'alta (A-14):** el dia de l'aprovació. **Document del representant (A-16):** cap
+    còpia, només la marca al registre.
+  - **Data de naixement:** la de la sol·licitud es copia a la persona si no en té
+    (`persons.set_birth_date`); si en té una de diferent, no es toca i la pantalla n'avisa.
+- **No aprova** (es pot rebutjar): una sol·licitud sense data de naixement; la d'una persona que
+  ja és sòcia i no és de baixa.
+
+Rebutjar: amb motiu (CA-M01-05), sense soci ni número; s'avisa per correu, sense cap dada ni el
+motiu, **a l'adreça escrita a la sol·licitud** (079, A-13): la del representant per a un menor
+(RN-M01-78) o la que va escriure el sol·licitant, encara que el document coincidís amb una
+persona existent, i amb el mateix text en tots dos casos.
+"""
+
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
+from django.http import Http404
+from django.utils import timezone
+from django.utils.translation import gettext as _
+
+from apps.accounts import invitations
+from apps.core import audit, consents, mail, persons
+from apps.core.models import Consent, Person
+from apps.core.permissions import has_perm
+from apps.core.persons import age_on
+
+from . import cards, fees, recipients
+from .fee_rules import first_fee_year
+from .join import GUARDIAN_CONSENT_TEXT
+from .models import (
+    JoinAcceptance,
+    Member,
+    MemberRequest,
+    MembershipNumberCounter,
+    MemberStatusChange,
+    new_avatar_seed,
+)
+from .services import (
+    OWN_MEMBER_REJECTED,
+    OwnMemberChange,
+    _change_status,
+    _change_type,
+    _check_account_active,
+    _readmit,
+)
+
+__all__ = [
+    "approval_blocker",
+    "approve_join",
+    "birth_date_conflict",
+    "needs_identity_check",
+    "reject_join",
+    "similar_minors",
+]
+
+APPROVE_PERMISSION = "members.requests.approve_join"  # P3
+DOCUMENT_PERMISSION = "members.field.identity"  # C2
+APPROVED = "members.join_request.approved"
+REJECTED = "members.join_request.rejected"
+MEMBER_CREATED = "members.member_created"
+REJECTION_TEMPLATE = "alta-rebutjada"
+EXEMPT_REASON = "Sense quota exigible (RN-M01-65)"
+
+S = Member.Status
+R = MemberRequest.Status
+
+
+def needs_identity_check(join_request) -> bool:
+    """El document coincidia amb una persona existent (CA-M01-02): la sol·licitud va a aquella
+    persona, però l'ha pogut enviar qualsevol."""
+    return any(w.get("match") == "document" for w in join_request.duplicate_warning or [])
+
+
+def _is_own(join_request, by) -> bool:
+    return by.person_id == join_request.person_id
+
+
+def approval_blocker(join_request) -> str | None:
+    """Motiu pel qual no es pot aprovar, o None. El mateix text a la pantalla i al servei."""
+    if join_request.kind != MemberRequest.Kind.JOIN or join_request.status != R.PENDING:
+        return _("Aquesta sol·licitud ja no està pendent.")
+    if join_request.birth_date is None:
+        return _("No es pot aprovar sense la data de naixement.")
+    member = Member.objects.filter(person=join_request.person).first()
+    if member is not None and member.status != S.LEFT:
+        return _("Aquesta persona ja és sòcia.")
+    return None
+
+
+def similar_minors(join_request) -> list[Person]:
+    """079 (A-15, RN-M01-88): per a l'alta d'un menor sense document, les altres persones actives
+    amb el mateix nom, cognoms i data de naixement (la de la persona o la d'una alta seva).
+    Només és un avís per a qui aprova: mai es fusionen perfils (RN-07)."""
+    person = join_request.person
+    if (
+        not join_request.guardian_id_document_number
+        or person.id_document_number
+        or join_request.birth_date is None
+    ):
+        return []
+    birth = join_request.birth_date
+    return list(
+        Person.objects.filter(
+            Q(birth_date=birth)
+            | Q(member_requests__kind=MemberRequest.Kind.JOIN, member_requests__birth_date=birth),
+            status=Person.Status.ACTIVE,
+            first_name__iexact=person.first_name,
+            last_name__iexact=person.last_name,
+        )
+        .exclude(pk=person.pk)
+        .distinct()
+        .order_by("pk")
+    )
+
+
+def birth_date_conflict(join_request) -> bool:
+    """La persona ja té una data de naixement i no és la de la sol·licitud: no es toca."""
+    known = join_request.person.birth_date
+    return known is not None and join_request.birth_date not in (None, known)
+
+
+def _authorise(join_request, by, request, operation) -> None:
+    # Ordre: compte actiu, permís (sense permís, «no trobat»), conflicte d'interès registrat.
+    _check_account_active(by)
+    if not has_perm(by, APPROVE_PERMISSION):
+        raise Http404
+    if _is_own(join_request, by):
+        audit.record(
+            OWN_MEMBER_REJECTED,
+            actor=by,
+            target=join_request,
+            details={"operation": operation},
+            request=request,
+        )
+        raise OwnMemberChange(_("No pots resoldre la teva pròpia sol·licitud d'alta."))
+
+
+def _next_number() -> int:
+    counter = MembershipNumberCounter.objects.select_for_update().get(pk=1)
+    number = counter.last_number + 1
+    # 039: mai el número d'un altre soci, actiu o de baixa. Un comptador desfasat es corregeix a
+    # mà, no saltant números en silenci.
+    if Member.objects.filter(member_number=number).exists():
+        raise ValidationError(
+            _("El número %(n)s ja és d'un altre soci: cal revisar el comptador.") % {"n": number}
+        )
+    counter.last_number = number
+    counter.save(update_fields=["last_number"])
+    return number
+
+
+def _create_member(join_request, *, by, today, request) -> Member:
+    number = _next_number()
+    member = Member.objects.create(
+        person=join_request.person,
+        member_number=number,
+        type=join_request.requested_type,
+        status=S.PENDING,
+        joined_on=today,
+        avatar_seed=new_avatar_seed(),  # l'únic punt que la genera (lectura de la 060)
+    )
+    MemberStatusChange.objects.create(
+        member=member,
+        from_status="",
+        to_status=S.PENDING,
+        from_type=None,
+        to_type=member.type,
+        effective_on=today,
+        actor_account=by,
+    )
+    audit.record_changes(
+        MEMBER_CREATED,
+        actor=by,
+        target=member,
+        changes={
+            "member_number": (None, number),
+            "status": ("", S.PENDING),
+            "type": (None, member.type.code),
+            "joined_on": (None, today),
+        },
+        request=request,
+    )
+    return member
+
+
+def needs_guardian_check(join_request) -> bool:
+    """Alta d'un menor (porta les dades del representant): Q-043, opció 2."""
+    return bool(join_request.guardian_id_document_number)
+
+
+def document_blocker(join_request, sees_document: bool) -> str | None:
+    """075 (RN-M01-84, provisional fins que decideixi la junta): una alta que demana comprovar
+    el document (coincidència de document o representant d'un menor) només l'aprova qui el pot
+    veure (C2). Sense C2 no es mostra cap casella i la comprovació no es dona per feta."""
+    if sees_document or not (
+        needs_identity_check(join_request) or needs_guardian_check(join_request)
+    ):
+        return None
+    return _(
+        "Cal comprovar el document d'identitat: l'ha d'aprovar una persona que el pugui veure."
+    )
+
+
+def is_exempt(join_request, today) -> bool:
+    """Exempt per edat el dia de l'aprovació (068, RN-M01-65)."""
+    return today.year < first_fee_year(join_request.birth_date)
+
+
+def _check_approvable(
+    join_request, identity_checked, guardian_checked, sees_document, duplicates_reviewed
+) -> int:
+    """Torna quantes persones semblants ha revisat qui aprova (079, A-15)."""
+    blocker = approval_blocker(join_request) or document_blocker(join_request, sees_document)
+    if blocker is None and needs_identity_check(join_request) and not identity_checked:
+        blocker = _("Cal confirmar que has comprovat la identitat de la persona.")
+    if blocker is None and needs_guardian_check(join_request) and not guardian_checked:
+        blocker = _("Cal confirmar que has comprovat el document del representant.")
+    similar = len(similar_minors(join_request)) if blocker is None else 0
+    if similar and not duplicates_reviewed:
+        blocker = _(
+            "Cal confirmar que has revisat les persones amb el mateix nom, cognoms i data de "
+            "naixement."
+        )
+    if blocker:
+        raise ValidationError(blocker)
+    return similar
+
+
+def _grant_applicant_acceptances(join_request, *, by, request) -> int:
+    """Q-044: les acceptacions del sol·licitant, amb la versió que va acceptar. Excepció (072,
+    opció A, l'única excepció; T-M01-41): el consentiment d'imatges que el representant dona
+    per a un menor de 14 anys va a la persona del menor, amb el representant com a qui el dona.
+    Les altres acceptacions del representant, també el butlletí, es queden a la sol·licitud."""
+    by_guardian = JoinAcceptance.AcceptedBy.GUARDIAN
+    accepted = JoinAcceptance.objects.filter(
+        Q(accepted_by=JoinAcceptance.AcceptedBy.APPLICANT)
+        | Q(accepted_by=by_guardian, legal_text__kind=GUARDIAN_CONSENT_TEXT),
+        request=join_request,
+    ).select_related("legal_text", "recorded_by")
+    for acceptance in accepted:
+        consents.grant_accepted(
+            join_request.person,
+            acceptance.legal_text,
+            channel=acceptance.channel,
+            recorded_by=acceptance.recorded_by,
+            by=by,
+            request=request,
+            source={"join_request": join_request.pk},
+            given_by=(
+                Consent.GivenBy.GUARDIAN
+                if acceptance.accepted_by == by_guardian
+                else Consent.GivenBy.PERSON
+            ),
+        )
+    return len(accepted)
+
+
+def _update_contact(join_request, *, by, request) -> list[str]:
+    """Q-042: només si qui aprova ho ha triat i la sol·licitud porta contacte nou."""
+    values = {}
+    if join_request.new_contact_email:
+        values["contact_email"] = join_request.new_contact_email
+    if join_request.new_contact_phone:
+        values["phone"] = join_request.new_contact_phone
+    if not values:
+        return []
+    return persons.update(join_request.person, by=by, request=request, **values)
+
+
+def approve_join(
+    join_request,
+    *,
+    by,
+    identity_checked=False,
+    guardian_checked=False,
+    update_contact=False,
+    duplicates_reviewed=False,
+    request=None,
+) -> Member:
+    """Aprova una alta pendent (P-M01-A, pas 5a). `member.access_mail_sent` diu si s'ha enviat
+    el correu d'accés (invitació o avís; la pantalla no distingeix quin, 079)."""
+    _authorise(join_request, by, request, "approve_join")
+    sees_document = has_perm(by, DOCUMENT_PERMISSION)
+    today = timezone.localdate()
+    with transaction.atomic():
+        _check_account_active(by, lock=True)
+        former = Member.objects.filter(person_id=join_request.person_id).first()
+        readmission = former is not None and former.status == S.LEFT
+        if readmission:
+            # 067: `_readmit` bloqueja el soci i després la sol·licitud, i torna a validar; per
+            # no invertir l'ordre dels bloquejos, aquí la sol·licitud no es bloqueja abans.
+            current = MemberRequest.objects.select_related("person", "requested_type").get(
+                pk=join_request.pk
+            )
+            reviewed = _check_approvable(
+                current, identity_checked, guardian_checked, sees_document, duplicates_reviewed
+            )
+            member = _readmit(former, current, by=by, effective_on=today, request=request)
+            if member.type_id != current.requested_type_id:
+                # 079 (A-05, P-68): el tipus es tria en tornar.
+                member = _change_type(
+                    member,
+                    current.requested_type,
+                    by=by,
+                    effective_on=today,
+                    reason=_("Tipus triat en la readmissió."),
+                    request=request,
+                )
+        else:
+            current = (
+                MemberRequest.objects.select_for_update(of=("self",))
+                .select_related("person", "requested_type")
+                .get(pk=join_request.pk)
+            )
+            reviewed = _check_approvable(
+                current, identity_checked, guardian_checked, sees_document, duplicates_reviewed
+            )
+            member = _create_member(current, by=by, today=today, request=request)
+
+        member = Member.objects.select_related("person", "type").get(pk=member.pk)
+        exempt = is_exempt(current, today)
+        fee = None
+        if exempt:
+            # Q-001: actiu en aprovar-lo, sense quota, i amb carnet (Q-002, fins al 31/12).
+            _change_status(member, S.ACTIVE, by=by, effective_on=today, reason=EXEMPT_REASON)
+        else:
+            fee = fees.issue_annual_fee(member, period=today.year, due_on=today, by=by)
+        granted = _grant_applicant_acceptances(current, by=by, request=request)
+        contact = _update_contact(current, by=by, request=request) if update_contact else []
+        # 079 (RN-M01-88, punt 7): la data de la sol·licitud passa a la persona si no en té.
+        person = Person.objects.get(pk=member.person_id)
+        birth_copied = person.birth_date is None and persons.set_birth_date(
+            person, current.birth_date, by=by, request=request, source="join_request"
+        )
+
+        audit.record(
+            APPROVED,
+            actor=by,
+            target=current,
+            field="status",
+            old=R.PENDING,
+            new=R.APPROVED,
+            details={
+                "member_id": member.pk,
+                "readmission": readmission,
+                "identity_checked": needs_identity_check(current),
+                "guardian_checked": needs_guardian_check(current),
+                "similar_minors_reviewed": reviewed,
+                "birth_date_copied": bool(birth_copied),
+                "exempt": exempt,
+                "annual_fee_id": fee.pk if fee else None,
+                "consents_granted": granted,
+                "contact_updated": contact,
+            },
+            request=request,
+        )
+        current.status = R.APPROVED
+        current.member = member
+        current.resolved_by = by
+        current.resolved_at = timezone.now()
+        current.effective_on = today
+        current.save(
+            update_fields=["status", "member", "resolved_by", "resolved_at", "effective_on"]
+        )
+        if exempt:
+            cards.replace_card(member, by=by, reason=_("Carnet d'un soci exempt per edat."))
+        # 079 (RN-M01-87): invitació per crear el compte, o avís si ja en té. Dins la transacció:
+        # si l'aprovació es desfà, no surt cap correu.
+        sent = invitations.send_for_approved_join(person, by=by, request=request)
+    member.refresh_from_db()
+    member.access_mail_sent = sent is not None
+    return member
+
+
+def rejection_address(join_request, today=None) -> str:
+    """079 (A-13, P-69): l'adreça escrita a la sol·licitud. Per a un menor, la regla de
+    RN-M01-78 amb el correu del representant; el correu propi és el que es va escriure (el
+    «contacte nou» si el document coincidia amb una persona existent)."""
+    own = join_request.new_contact_email or join_request.person.contact_email
+    birth = join_request.birth_date
+    today = today or timezone.localdate()
+    age = age_on(birth, today) if birth and birth <= today else None
+    return recipients.address_for(age, own, join_request.guardian_email)
+
+
+def reject_join(join_request, *, by, reason, request=None) -> MemberRequest:
+    """Rebutja una alta pendent amb motiu (P-M01-A, pas 5b; CA-M01-05)."""
+    _authorise(join_request, by, request, "reject_join")
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu del rebuig."))
+    with transaction.atomic():
+        _check_account_active(by, lock=True)
+        current = (
+            MemberRequest.objects.select_for_update(of=("self",))
+            .select_related("person")
+            .get(pk=join_request.pk)
+        )
+        if current.kind != MemberRequest.Kind.JOIN or current.status != R.PENDING:
+            raise ValidationError(_("Aquesta sol·licitud ja no està pendent."))
+        audit.record_changes(
+            REJECTED,
+            actor=by,
+            target=current,
+            changes={"status": (current.status, R.REJECTED)},
+            reason=reason,
+            request=request,
+        )
+        current.status = R.REJECTED
+        current.resolution_reason = reason
+        current.resolved_by = by
+        current.resolved_at = timezone.now()
+        current.save(update_fields=["status", "resolution_reason", "resolved_by", "resolved_at"])
+        to = rejection_address(current)
+        if to:
+            # Sense cap dada ni el motiu, i el mateix text tant si la persona ja existia com si
+            # no (079, A-13). Si el document coincidia, el correu no es lliga a la persona
+            # existent: l'ha pogut enviar qualsevol. Dins la transacció: si es desfà, no surt.
+            person = None if needs_identity_check(current) else current.person
+            mail.queue_email(REJECTION_TEMPLATE, to=to, person=person)
+    return current
+
+
+INVITE_PERMISSION = "core.people.manage"  # M2: perfils d'altres i els seus comptes personals
+MEMBERS_LIST_PERMISSION = "members.list"  # P4
+
+
+def can_invite(by, member, permissions=None) -> bool:
+    """Per mostrar el botó: M2 amb edició, P4 i una persona que pot rebre la invitació."""
+    return (
+        has_perm(by, INVITE_PERMISSION, write=True, permissions=permissions)
+        and has_perm(by, MEMBERS_LIST_PERMISSION, permissions=permissions)
+        and member.status != S.LEFT
+        and invitations.eligible(member.person)
+    )
+
+
+def resend_invitation(member, *, by, request=None) -> bool:
+    """079 (especificació de la invitació, punt 7): torna a enviar la invitació del compte
+    personal d'un soci que no és de baixa. Torna si s'ha enviat. Sense permís, «no trobat»."""
+    _check_account_active(by)
+    if not (has_perm(by, INVITE_PERMISSION, write=True) and has_perm(by, MEMBERS_LIST_PERMISSION)):
+        raise Http404
+    if member.status == S.LEFT:
+        return False
+    return invitations.send(member.person, by=by, request=request)

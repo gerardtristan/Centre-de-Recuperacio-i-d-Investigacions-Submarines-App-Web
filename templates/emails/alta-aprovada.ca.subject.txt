@@ -1,0 +1,1 @@
+{% load i18n %}{# 079: TEXT PROVISIONAL [A validar: junta i secretaria] #}{% translate "La teva alta al C.R.I.S. està aprovada" %}

@@ -1,0 +1,129 @@
+# Diari de construcció
+
+Un sol diari de com es construeix la plataforma, tasca a tasca, per preparar després explicacions, presentacions i un documental. Cada tasca acabada té una entrada d'una pàgina com a màxim (unes 50 línies), feta amb la [plantilla](_plantilla.md).
+
+Una tasca no està acabada sense la seva entrada (definició de «fet» del `CLAUDE.md`). L'entrada va en un commit propi, just després del de la tasca, amb el missatge «Diari: T-XXX-NN». L'estat del CI l'afegeix el responsable quan el coneix; mentrestant, hi diu [A comprovar].
+
+L'entrada no copia el pla: resumeix i enllaça la secció de [`docs/planning.md`](../planning.md) i les decisions de [`docs/decisions/`](../decisions/). Els termes tècnics en anglès s'expliquen a l'apartat «Termes nous» de l'entrada on surten per primera vegada.
+
+## Regles de contingut
+S'apliquen a tot: entrades, captures, fragments de codi i vídeos.
+
+- Cap dada real de socis ni de cap persona. Només dades inventades.
+- Cap secret: ni claus, ni contrasenyes, ni secrets o QR del doble factor, ni codis de recuperació.
+- Cap captura amb persones reals, ni amb noms, correus o fotos reals.
+- Cap detall que ajudi un atacant: ni la ruta de l'administració, ni els llindars i temps de bloqueig, ni noms d'usuari d'administració reals, ni claus.
+- Cap captura de terminal que mostri contrasenyes generades.
+
+## Captures
+- **Només per a tasques amb pantalla.** Si la tasca no en té, l'evidència és la sortida de les proves i fragments de codi.
+- **Què es captura:** només la finestra del navegador, amb un perfil net (sense extensions, marcadors ni historial a la vista), sense la barra de tasques ni notificacions.
+- **Pantalles d'administració:** sense la barra d'adreces, perquè no se'n vegi la ruta.
+- **No es capturen mai:** l'alta del doble factor (QR i clau) ni la pantalla dels codis de recuperació.
+- **Dades:** les de l'ordre de dades inventades (vegeu el `README.md` del projecte), amb una base de dades local i separada.
+- **Carpeta i nom:** `captures/AAAA-MM-DD_HHMM_tasca_pantalla.png`, per exemple `2026-11-02_1255_T-M01-09_llista-carrecs.png`. L'hora és la de la captura (Europa/Madrid).
+- **Mida:** uns 300 KB i 1.600 px d'amplada com a màxim. El CI rebutja qualsevol fitxer de `captures/` de més de 500 KB.
+- **Peu**, sota la imatge:
+  `*02/11/2026 12:55 (Europa/Madrid) · local, dades inventades (llavor 1954) · commit 8cb6dc5*`
+
+## Vídeos
+Fora de Git (el `.gitignore` ja exclou `*.mp4`). A l'entrada hi va el nom del fitxer, on és guardat, la durada i el commit que mostra.
+
+## Fragments de codi i sortida de proves
+Com a text, mai com a imatge, amb una línia a sobre: `apps/core/charges.py · commit 8cb6dc5 · 02/11/2026`. Curts: només el que s'explica.
+
+La sortida de proves porta el commit, la data d'execució i l'entorn: `Sortida de proves · commit 8cb6dc5 · executada el 02/11/2026 en local (PostgreSQL 16)`. Només la línia de resum (`692 passed`), sense temps ni rutes locals.
+
+## Índex
+«Proves» és el total de proves de la suite en aquell commit (comptades amb `pytest --collect-only`), no les proves noves.
+
+| Tasca | Títol | Data i hora | Commit | Proves | CI |
+|---|---|---|---|---|---|
+| [T-M01-03](T-M01-03.md) | Esquelet del projecte | 01/11/2026 00:04 | ee78d4b, 82332bc | 10 | verd (#1) |
+| [T-M01-04](T-M01-04.md) | Persona i model d'usuari | 01/11/2026 00:16 | a2babcd | 66 | vermell (#2) |
+| [T-M01-05](T-M01-05.md) | Entrades separades i doble factor (en part) | 01/11/2026 00:31 | d5abc59 | 133 | vermell (#3) |
+| [T-M01-06](T-M01-06.md) | Rols i permisos | 01/11/2026 07:28 | 3b9f947 | 561 | verd (#4) |
+| [T-M01-07](T-M01-07.md) | Registre d'activitat immutable | 02/11/2026 00:33 | a8ff23d | 616 | vermell (#5) |
+| [T-M01-08](T-M01-08.md) | Textos legals i consentiments | 02/11/2026 12:24 | f14ed71 | 636 | verd (#6) |
+| [T-M01-09](T-M01-09.md) | Càrrec, pagament i departament | 02/11/2026 12:55 | 8cb6dc5 | 692 | verd (#7) |
+| [T-M01-09b](T-M01-09b.md) | Preparada per traduir-se | 02/11/2026 13:46 | b7996f5, 18b8a73, b6cc76c, 4dc17e2 | 707 | verd (#8) |
+| [T-M01-10](T-M01-10.md) | Correu mínim i fitxers privats | 03/11/2026 00:40 | ba27a1e, d70f300, d67ea3b, 93279ff | 795 | verd (a 4c8c143) |
+| [T-M01-02](T-M01-02.md) | Wireframes que falten del mòdul 01 (revisió aprovada el 03/11/2026) | 03/11/2026 02:13 | 994c200, 28402de, 961117b, f37c182, 2d86a35, 2ab6390, a1c9adc, ac5aaf6, 6c0ba5b, 9b69ff9 | 795 | verd (PR #4, dues execucions; també a 47d9b84; tancament a aca95cc) |
+| [T-M01-05](T-M01-05.md) | Comptes: correu, doble factor personal, restabliment i càrrega (segona tanda, en part) | 03/11/2026 17:05 | 3e4b1ae, be08bed, cd80f9e, c5dc59f, 5b75d08, 43673af | 880 | verd (PR #4, sis feines, dues execucions; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: demanar els enllaços i restablir un altre compte (tercera tanda; pendent de revisió) | 03/11/2026 18:14 | a8fe478, cf5e7f3, 0802245, 2b671cd | 926 | verd (0bfcee8; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: revisió al navegador i correcció dels formularis dels enllaços (E1; en part) | 03/11/2026 21:15 | ad5d53d | 946 | verd (942b80a; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: ajustos de la decisió 066 (reenviament i límit d'origen; en part) | 04/11/2026 01:40 | fc49620, b56dc5e | 951 | verd (e316e40; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: reenviament múltiple, proves i comprovació al navegador (en part) | 04/11/2026 02:11 | 4e62231 | 956 | verd (e316e40, dues execucions; confirmat pel responsable) |
+| [T-M01-05](T-M01-05.md) | Comptes: tancament, **Feta** (aprovada pel responsable el 04/11/2026; no tanca la T-M01-38, la T-M00-06, la T-M01-39 ni les comprovacions de desplegament) | 04/11/2026 02:31 | e316e40 (referència) | 956 | verd (e316e40; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01 (en part: `avatar_seed` aturat; pendent de revisió) | 04/11/2026 03:03 | 19ba4c7, a501793 | 1014 | verd (d3d1064, dues execucions; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: llavor de l'avatar, decisions pendents i neteja de les proves (segona tanda; pendent de revisió) | 04/11/2026 12:21 | a0e111e, ba89284 | 1017 | verd a 28cd481, que la inclou (confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: format de la llavor, prova de la quota i readmissió (tercera tanda; pendent de revisió) | 04/11/2026 12:35 | 0ca680a, a34f5a1 | 1025 | verd (28cd481, dues execucions; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: readmissió i llavor de Cluber (quarta tanda, només documentació; pendent de revisió) | 04/11/2026 12:40 | 48d9ed6 | 1025 | verd (7b2c586, dues execucions; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: decisió de la readmissió i pregunta de les quotes (cinquena tanda, només documentació; pendent de revisió) | 04/11/2026 12:48 | 1c87847 | 1025 | verd (b1b2ebc, dues execucions; confirmat pel responsable) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: pregunta de les quotes per a la junta (sisena tanda, només documentació; pendent de revisió) | 04/11/2026 12:52 | 1e0b2f4 | 1025 | sense CI propi; inclòs a a446ece, verd (referència) |
+| [T-M01-11](T-M01-11.md) | Models del mòdul 01: tancament, **Feta** (aprovada pel responsable el 04/11/2026 dins l'abast actual; no tanca la P-54, les garanties de la quota, les transicions, la llavor de la importació ni les excepcions d'anonimització) | 04/11/2026 13:15 | a446ece (referència) i el commit del tancament | 1025 | verd a a446ece (referència); el commit del tancament: [A comprovar] |
+| [T-M01-12](T-M01-12.md) | Estats del soci i transicions (en part: sense la part del carnet de CA-M01-09; pendent de revisió) | 04/11/2026 13:45 | f4624d0, 8653602 | 1102 | verd a 1647d72 (proves, secrets i captures, dues execucions; confirmat pel responsable) |
+| [T-M01-12](T-M01-12.md) | Estats del soci i transicions: revisió (data de la readmissió, compte no actiu, bloqueig; segona tanda, en part; pendent de revisió) | 04/11/2026 14:13 | 812517f, 5447517, 0b5fa5d, 289277d | 1113 | verd a 081868b (confirmat pel responsable) |
+| [T-M01-12](T-M01-12.md) | Estats del soci i transicions: tancament, **Feta** (aprovada pel responsable el 04/11/2026 dins l'abast actual; no tanca la validesa del carnet, l'historial dels importats, les proves de l'intent als punts d'entrada, el canvi de tipus ni la P-54) | 04/11/2026 | 081868b (referència) i el commit del tancament | 1113 | verd a 081868b (referència); el commit del tancament: [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova (en part: lector CSV i previsualització sense escriptures; sense `ImportBatch`, CA-20.8 ni pantalla; pendent de revisió) | 04/11/2026 17:50 | f7465a6, 5e078c7, 0389010, c710080 | 1188 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: revisió (dades mínimes en memòria, resum segur, números molt llargs; segona tanda, en part; pendent de revisió) | 04/11/2026 18:06 | f879b95, 3cd9662, 57560df | 1200 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: número d'un soci d'una persona anonimitzada (tercera tanda, en part; pendent de revisió) | 04/11/2026 18:14 | 66348b5, ce7bbaa | 1208 | verd a #89 (PR #4; comprovat visualment pel responsable); associació amb bf1eef6 [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: nucli compartit del lot i de la línia, procedència i CA-20.8 (quarta tanda, en part; pendent de revisió) | 04/11/2026 18:49 | bbdfb96, 3d64cff | 1282 | vermell a #92 (5add66b) i #93 (PR #4): dates dels lots de prova |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: correcció de la cronologia dels lots de prova (CI #92 i #93; en part) | 04/11/2026 | 366c1d4 | 1291 | verd a #94 (push de 26fae2f) i #95 (PR #4); comprovat visualment pel responsable |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: autorevisió ampliada (NUL, restriccions exactes i restauració de migracions; autorevisió; en part) | 04/11/2026 19:42 | 18a393b, 7adbf6d, b3f1276 | 1292 | verd a #96 (push de 6a18a75) i #97 (PR #4); comprovat visualment pel responsable |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: correccions de la segona revisió d'IA (capçaleres, llargades i conflicte; segona revisió d'IA; en part) | 04/11/2026 20:17 | 1874e4a, e878958 | 1310 | verd a #98 (push de e4c3620) i #99 (PR #4); comprovat visualment pel responsable |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: pantalla de la prova (P18, CSRF, pujada en memòria i registre; en part; comprovació manual pendent) | 04/11/2026 21:37 | 9e7f1c7, df37c51 | 1339 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber: validació funcional de la pantalla pel responsable (en part: falten el CI del codi actual i la porta de la checklist; Q-23 pendent) | 05/11/2026 | 29d8073 (referència) i el commit d'aquesta entrada | 1339 | [A comprovar] |
+| [T-M01-24](T-M01-24.md) | Importació de Cluber, fase de prova: tancament, **Feta** (aprovada pel responsable el 05/11/2026; no tanca Q-23, les equivalències ni la T-M01-25) | 05/11/2026 | af5aaa5 (referència) i el commit del tancament | 1343 | verd a #104 i #105 sobre af5aaa5 (confirmat pel responsable); el commit del tancament: [A comprovar] |
+| [T-M01-38](T-M01-38.md) | Plantilla base, fulls d'estil i pantalles de comptes (Feta el 05/11/2026; pantalles validades pel responsable) | 05/11/2026 01:54 | [sense commit] | 1382 | [A comprovar] |
+| [T-M01-07b](T-M01-07b.md) | Consulta del registre d'activitat (Feta el 05/11/2026; pantalla validada pel responsable; pendents: lector de pantalla, altres navegadors i CI) | 05/11/2026 16:10 | [sense commit] | 1427 | [A comprovar] |
+| [T-M01-13](T-M01-13.md) | Formulari «Fer-se soci» i alta presencial (**Feta**; P-61, P-33 i P-56 obertes; P-57 resolta el 09/11/2026, [072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)) | 09/11/2026 | 7fa8b97 | 1572 | verd: #112 i #113 (710b15f) |
+| [T-M01-15](T-M01-15.md) | Llistat i fitxa de soci, estat de la quota i exportació en .xlsx i CSV (**Feta**, abast reduït; R2-13, P-61, Q-052 i R2-21 oberts; Q-079, P-57, P-54 i P-58 resolts el 09/11/2026, [072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md)) | 09/11/2026 | 1dafae2 | 1657 | [A comprovar]: sense push; ha de validar XlsxWriter |
+| [T-M01-33](T-M01-33.md) | Data de naixement a la persona, `persons.age_band` i visibilitat per rol (**Feta**, 11/11/2026, decisió 080; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 331cfb2 i tasques de la nit | 3807 | verd a 9b44e2d (43003784504 i 43003792799) |
+| [T-M01-24b](T-M01-24b.md) | Importació de Cluber adaptada al format real: UTF-8 o Windows-1252, IBAN descartat, equivalències i tipus per nom o preu (**Feta**, 10/11/2026, validada per l'usuari sense revisió visual de la previsualització; l'exportació només porta socis actius; P-62 a la T-M01-25) | 09/11/2026 | 3c6d0b5, fd11cc9 | 1767 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-25](T-M01-25.md) | Importació de Cluber, fase final: tipus de document, empremta canònica, desfer i polítiques a la primera entrada (**implementada, pendent de validació**, 11/11/2026; bloquejada fins al 05a) | 11/11/2026 (nit) | c82f018 | 3515 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-AJ-01](T-AJ-01.md) | Peça comuna d'ajustos: `Setting`, `SettingVersion`, lectura, canvi amb permís del catàleg, data d'entrada en vigor i avís dels canvis de diners (**feta en part**, tall del 10/11/2026: S-AJ-02 resolt, cal canviar els destinataris de l'avís; S-AJ-01 oberta) | 09/11/2026 | b7bfc2e | 1738 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-14](T-M01-14.md) | Altes pendents: aprovar amb número bloquejat i readmissió, rebutjar amb motiu, quota íntegra, exempts actius, acceptacions a la persona i, amb la 079, invitació del compte personal, menors sense document i readmissió amb un altre tipus (**Feta**, 12/11/2026, decisió 085; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 (nit) | e3e7b64 | 3227 | verd a f1a76f1 |
+| [T-M01-18](T-M01-18.md) | Quotes i impagats: marca manual d'impagat, generació i renovació, recordatoris i, amb la 079, un sol càlcul de «vàlid fins al» i avís al tresorer per correu (**implementada, pendent de validació**, 11/11/2026; els terminis passen a la T-M01-49; no tanca: textos dels recordatoris, importats i regla d'impagat de la junta) | 11/11/2026 (nit) | c1095a7 | 3283 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-15b](T-M01-15b.md) | Editar les dades d'un soci (P5) i corregir la data d'alta (P6) amb motiu obligatori (**Feta**, 11/11/2026, decisió 081: la concreció A-08 de la 079 no bloqueja; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 1ee96b0 | 3807 | verd a acc257d (43021508276 i 43021516761) |
+| [T-M01-23](T-M01-23.md) | Registre mínim de llicència a la fitxa: veure, afegir i corregir (**Feta**, 10/11/2026, validada per l'usuari sense revisió visual completa; caducitat obligatòria en un registre nou acceptada) | 09/11/2026 | 00c6de6 | 1869 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-30](T-M01-30.md) | Servei de lectura de la llicència: `licence_record` i `licence_records`, sense cap escriptura (**Feta**, 10/11/2026, validada per l'usuari sense pantalla; supòsits 1 i 2 acceptats) | 09/11/2026 | f3ec865 | 1884 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-34](T-M01-34.md) | Caducitat desconeguda a la fitxa, al carnet i a `members.licence_record` (**Feta**, 10/11/2026, validada per l'usuari sense revisió visual completa; «pendent de confirmar» al 02, [A validar: secretaria]) | 09/11/2026 | 930b743 | 1893 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-36](T-M01-36.md) | Confirmació en bloc de les caducitats d'any natural pendents i declaració del soci (**Feta**, 10/11/2026, validada pel responsable; decisió 085: l'any només pot ser l'actual o el següent; RN-M01-50 passa al mòdul 02) | 10/11/2026 | 198f0f9 (codi de 180bdf8), 34a3550 | 3940; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M01-16](T-M01-16.md) | Àrea del soci: perfil, quotes, sol·licituds, consentiments i canvi del correu d'entrada (**feta en part**, 10/11/2026; pantalles validades pel responsable; queda el rebut de CA-M01-12, T-M05b-07) | 10/11/2026 | 198f0f9 (codi de 180bdf8) | 3160 | verd a 180bdf8 (42811548125) |
+| [T-M01-19](T-M01-19.md) | Carnet: emissió, validesa, revocació, pàgina i darrere i, amb la 079, QR calculat amb clau del servidor, PDF des del navegador, revocació amb P21 i carnet nou a petició del soci (**implementada, pendent de validació**, 11/11/2026; decisió 085: NIF al darrere; no tanca: importats) | 11/11/2026 (nit) | 59544be, dd74eab, f703598 | 3940; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M01-26](T-M01-26.md) | Serveis oferts a altres mòduls i `on_fee_paid` segons la 079 (**Feta**, 11/11/2026, decisió 081: la A-17 no bloqueja i la P-61 és de la T-M01-49; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | ed787e5 | 3807 | verd a acc257d (43021508276 i 43021516761) |
+| [T-M01-20](T-M01-20.md) | Verificació pública del carnet amb limitació de peticions (**Feta**, 10/11/2026, validada per l'usuari sense revisió visual completa; selector de tema a la T-M01-45) | 09/11/2026 | 553c24f | 1756 | verd a 180bdf8 (42811548125) i dfa6517 (42849078087) |
+| [T-M01-21](T-M01-21.md) | Web instal·lable: manifest, service worker i carnet sense connexió, provat en un navegador amb la 079 (**feta en part**, 11/11/2026; falta: N, prova en un mòbil real, peces de la T-M01-45) | 11/11/2026 (nit) | d33161b | — | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-17](T-M01-17.md) | Canvi de tipus i baixa: sol·licitud i resolució, baixa programada, suplement a 7 dies, P7a, P4 i P10 (**Feta**, 10/11/2026, validada pel responsable; decisió 085: textos i termini aprovats; el que queda és de les T-M01-40, 42 i 43) | 10/11/2026 | 198f0f9 (codi de 180bdf8) | 3160 | verd a f1a76f1 |
+| [T-M01-41](T-M01-41.md) | Canvis del formulari d'alta: butlletí i imatges, contacte del representant, destinatari de les comunicacions d'un menor i passaport només presencial (**Feta**, 10/11/2026, validada pel responsable; decisió 085: textos definitius de l'equip, sense revisió d'un assessor) | 10/11/2026 | 198f0f9 (codi de 180bdf8), 4857f94 | 3940; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M00-05](T-M00-05.md) | Servei de reautenticació i sessions tancades quan un compte queda bloquejat per intents (**Feta**, 10/11/2026, aprovada pel responsable; RN-M01-80, CA-M01-79; no tanca: la finestra de 15 minuts del 05a, risc acceptat P-52) | 10/11/2026 | 42e243f | 3160 | verd a 180bdf8 (42811548125) |
+| [T-M01-22](T-M01-22.md) | RGPD del M01: exportació, atenció de les sol·licituds d'esborrat i anonimització (**implementada, pendent de validació**, 11/11/2026; decisió 085: motiu al correu de rebuig; queden les notes a l'exportació i el canal presencial dels menors) | 11/11/2026 (nit) | ece153b, 8445921, 7766400 | 3940; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M01-37](T-M01-37.md) | Permisos del 01 per cel·la: cada ruta i els serveis principals contra la matriu inicial, franja d'edat a les altes pendents (**Feta**, 10/11/2026, aprovada pel responsable; CA-RP-13, CA-M01-45; no tanca: la revisió de la matriu inicial amb el club, President sense P4, casella sense C2) | 10/11/2026 | 8c96168 | 3160 | verd a 180bdf8 (42811548125) |
+| [T-M01-27](T-M01-27.md) | Dades de prova inventades per a la revisió: socis de cada cas, quotes, carnets, llicències, textos provisionals, fitxer de Cluber i comptes de rol amb TOTP de prova (**Feta**, 10/11/2026, aprovada pel responsable; 074, punt 21; 075, punt 8; no tanca: previsualització de Cluber al navegador, ordre en un altre ordinador) | 10/11/2026 | 6d871bd, 180bdf8 | 3160 | verd a 180bdf8 (42811548125) |
+| [T-M00-07](T-M00-07.md) | Verificació al navegador i verificació en tres capes: hook de 90 s amb mapa d'e2e, verificació completa explícita i CI (**Feta**, 11/11/2026, decisió 081) | 11/11/2026 | 6e62023 | 3926; 39 e2e | verd a c441e9d (43084998593 i 43085015294) |
+
+### Eines
+Peces que no són tasques del pla però que fan servir les entrades (per exemple, per fer captures).
+
+| Eina | Títol | Data i hora | Commit | Proves | CI |
+|---|---|---|---|---|---|
+| [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | verd (#9) |
+| [CI i gitleaks](eina-ci-i-gitleaks.md) | Cerca de secrets: excepció i permisos | 02/11/2026 23:43 | 383c0df, 2a381b5, d1dab31 | 722 | verd (#14 a la PR #4; el push de d7cd1c3 també en verd) |
+| [CI i gitleaks](eina-ci-i-gitleaks.md) | Decisió 083: dues empremtes d'un fals positiu d'una prova; gitleaks en local abans del push | 11/11/2026 | c441e9d | 69 commits, cap troballa | verd a c441e9d (43084998593 i 43085015294) |
+| [T-M01-42](T-M01-42.md) | Pas de ple dret a simpatitzant: sol·licitud, retirada mentre és pendent i resolució a «Sol·licituds», sense càrrec (**implementada, pendent de validació**, 11/11/2026; risc: sense la T-M01-43 la renovació surt a preu de ple dret) | 11/11/2026 (nit) | 30e1bf1 | — | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-48](T-M01-48.md) | Recorregut connectat dels wireframes, abast petit (**Feta**, 11/11/2026, decisió 080; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 46ad293 | 3807 | verd a 9b44e2d (43003784504 i 43003792799) |
+| [T-M00-06](T-M00-06.md) | Límit diari, reserva i prioritat dels correus; avís del 80 % a cris@cris.es a producció (**Feta**, 11/11/2026, decisions 081 i 084) | 11/11/2026 | eafd977, 8226d2c, 60ca23c | 3930; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M01-39](T-M01-39.md) | Cua de «He oblidat la contrasenya»: mesura abans, part (a) (**feta en part**, 11/11/2026; cal repetir-la sense càrrega) | 11/11/2026 (nit) | bc4ceaa | 3476 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-35](T-M01-35.md) | Data de naixement que falta: avís, camp al perfil, i data declarada i comprovada després per la secretaria (**Feta**, 11/11/2026, decisions 081 i 082; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 95125ea, 6c73807, a909f8c | 3926; 39 e2e | verd a c441e9d (43084998593 i 43085015294) |
+| [T-M00-02](T-M00-02.md) | Enllaços de convidat (**Feta**, 12/11/2026, decisió 085; CA-02.9 és del 05b; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 (nit) | 0a69365 | 3721 | verd a f1a76f1 |
+| [T-M00-04](T-M00-04.md) | Dades bloquejades i consulta per obligació legal, M13 ; destrucció als 6 anys (**Feta**, 12/11/2026, decisió 085; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 (nit) | 8445921, efc41ed | 3940; 39 e2e | verd a 6a034e6 (43126877504 i 43126882189) |
+| [T-M00-03](T-M00-03.md) | Comptes d'emergència (**Feta**, 12/11/2026, decisió 085: custòdia de l'administrador; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 (nit) | 774531a, 0ecef34 | 3807 | verd a f1a76f1 |
+| [T-M01-46](T-M01-46.md) | Navegació comuna de l'administració i «Surt» (**Feta**, 11/11/2026, decisió 080; revisió visual i wireframe a la T-F1-01, no feta encara; diari conjunt amb la 45 i la 47) | 11/11/2026 | 4bb8fe0, 317f906 | 3807 | verd a 9b44e2d (43003784504 i 43003792799) |
+| [T-M01-47](T-M01-47.md) | Pàgines 404 i 500 pròpies (**Feta**, 11/11/2026, decisió 080; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 65289be | 3807 | verd a 9b44e2d (43003784504 i 43003792799) |
+| [T-M01-45](T-M01-45.md) | Correccions de la revisió de pantalles (**feta en part**, 11/11/2026) | 11/11/2026 (nit) | bac4cd9 a a2d71a9 | 3807 | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
+| [T-M01-28](T-M01-28.md) | Revisió d'accessibilitat i de permisos del M01 (**feta en part**, 11/11/2026; axe sense errors greus; falta la revisió amb lector de pantalla) | 11/11/2026 | 19fe6a0, 9d4bb9c | 1157 de permisos; 3 e2e (axe i pròpies) | no comprovat (sense push) |
+| [T-M01-29](T-M01-29.md) | Guies de la secretaria i del tresorer (**Feta**, 12/11/2026, decisió 085: aprovades pel responsable) | 11/11/2026 | branca night/2026-11-11-a11y | — (documentació) | no comprovat (sense push) |
+| [T-M01-50](T-M01-50.md) | Importació de Cluber també en Excel (.xlsx), amb les mateixes regles, sense fórmules ni macros (**Feta**, 11/11/2026, decisió 081, punt 23; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 29f0188 | 3926; 39 e2e | verd a c441e9d (43084998593 i 43085015294) |
+| [T-M01-51](T-M01-51.md) | Restabliment presencial del doble factor del compte personal (M2; **Feta**, 11/11/2026, decisió 081, punt 24; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 6c73807, a63cd70 | 3926; 39 e2e | verd a c441e9d (43084998593 i 43085015294) |
+| [T-M01-40](T-M01-40.md) | Eximir o anul·lar una quota amb el permís P22, motiu i reautenticació (**Feta**, 12/11/2026) | 12/11/2026 | 571f5d0, 6d3e164 | 4030; 42 e2e | verd a ea5eb20 (43198409529 i 43198420245) |

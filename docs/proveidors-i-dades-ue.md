@@ -51,7 +51,7 @@ L'app no guarda mai dades de targeta ni credencials del banc.
 ### Comunicació
 | Servei | Proveïdor | Seu | Servidors | Dades que rep | Contracte art. 28 | Estat |
 |---|---|---|---|---|---|---|
-| Correu transaccional i butlletí | Brevo ([004](decisions/004-correu.md)) | França | [A verificar subencarregats] | Nom, correu i contingut | Sí | A verificar (042: es manté només si es verifica) |
+| Correu transaccional i butlletí | Brevo ([004](decisions/004-correu.md), [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)) | França | Afirmat pel responsable del projecte el 03/11/2026 | Nom, correu i contingut | Sí | Es manté ([062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md)) |
 | Correu (alternativa) | Scaleway Transactional Email | França | França | Les mateixes | Sí | A verificar |
 | Bústia de la junta | Gmail (ús actual) | EUA | Global | Tot el que s'hi escriu | — | **CONFLICTE** |
 | Bústia (alternativa) | mailbox.org o correu d'OVHcloud | Alemanya / França | Alemanya / França | Tot el que s'hi escriu | Sí | A verificar |
@@ -114,6 +114,5 @@ L'app no guarda mai dades de targeta ni credencials del banc.
 
 ## 3. Pendents d'aquest registre
 - Respostes del banc i de PaynoPain: [pendents.md](decisions/pendents.md), P-45.
-- Subencarregats de Brevo (P-46).
 - Programa de facturació de la gestoria (P-02).
 - Registrador del domini i DNS (P-25).

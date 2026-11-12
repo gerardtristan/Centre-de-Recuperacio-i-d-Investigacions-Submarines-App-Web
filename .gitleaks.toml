@@ -1,0 +1,17 @@
+# Configuració de gitleaks: les regles per defecte i una sola excepció.
+#
+# Format de gitleaks 8.24.3, la versió per defecte de gitleaks/gitleaks-action@v2. Les llistes
+# globals [[allowlists]] (amb targetRules) són de la 8.25.0; aquí l'excepció va dins de la regla
+# amb [[rules.allowlists]], que s'afegeix a les excepcions de la regla per defecte (8.21.0 o
+# posterior). No es canvia res més de la regla: ni l'expressió ni la descripció.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Contrasenya inventada de les proves (CLAUDE.md): no és cap secret real."
+# Només el valor exacte del secret trobat; cap ruta ni fitxer.
+regexes = ['''^contrasenya-de-proves-1954$''']

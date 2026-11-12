@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Confirmar el correu" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Confirmar el correu" %}</h1>
+  {% if sent %}
+    <div>
+      <div class="avis avis-ok" role="status">{{ message }}</div>
+      {# Es pot tornar a demanar mentre duri l'estat (066, punt 1); cada petició passa pels límits de RN-M01-58. #}
+      <form class="formulari" method="post">
+        {% csrf_token %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Torna'm a enviar l'enllaç de confirmació" %}</button></div>
+      </form>
+      <p class="enllacos"><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+    </div>
+  {% else %}
+    <div>
+      <div class="avis avis-avis" role="alert">{{ message }}</div>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></div>
+    </div>
+  {% endif %}
+{% endblock %}

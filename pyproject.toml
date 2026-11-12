@@ -1,0 +1,69 @@
+[project]
+name = "plataforma-cris"
+version = "0.1.0"
+description = "Plataforma del C.R.I.S.: socis, activitats, material, tresoreria i llicències"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # Client de l'emmagatzematge d'objectes (API S3) per als fitxers privats (decisió 005).
+    "boto3>=1.43,<2",
+    "cryptography>=44",
+    "Django>=5.2,<5.3",
+    "django-environ>=0.11,<1",
+    "django-storages[s3]>=1.14.6,<2",
+    # Cua de tasques sobre PostgreSQL, amb el mateix psycopg 3 (decisió 012).
+    "procrastinate>=3.10,<4",
+    "psycopg[binary]>=3.2,<4",
+    "pyotp>=2.9,<3",
+    "qrcode>=8,<9",
+    # Exportació del llistat de socis en .xlsx (T-M01-15, RN-M01-71); sèrie 3.2 per decisió del
+    # responsable del projecte (09/11/2026). Només escriu, sense dependències ni xarxa.
+    "XlsxWriter>=3.2,<3.3",
+    # Importació de Cluber en Excel (.xlsx) (decisió 081, punt 23; P-63; T-M01-50). Només llegeix,
+    # sense executar fórmules ni macros. defusedxml protegeix el XML del fitxer (openpyxl el fa
+    # servir si hi és).
+    "openpyxl>=3.1.5,<3.2",
+    "defusedxml>=0.7.1,<0.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-django>=4.9,<5",
+    # Proves e2e al navegador (T-M00-07, aprovades pel responsable del projecte el 10/11/2026).
+    # Playwright fixat a la 1.64: la 1.65 tenia un dia quan es va afegir.
+    "pytest-playwright>=0.10,<0.11",
+    "playwright>=1.64,<1.65",
+    # Auditoria d'accessibilitat (T-M01-28; Q-082 de la 072: axe amb Playwright). Només per a
+    # proves: porta axe-core 4.12.1 dins del paquet i no el descarrega. Autoritzada pel responsable
+    # del projecte l'11/11/2026.
+    "axe-playwright-python==0.1.8",
+    "ruff>=0.7,<1",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["config*", "apps*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+testpaths = ["apps"]
+python_files = ["test_*.py"]
+# Les e2e (navegador, T-M00-07) només amb `pytest -m e2e`: l'últim -m de la línia d'ordres mana.
+addopts = "--strict-markers -m 'not e2e'"
+markers = ["e2e: prova al navegador amb Playwright i live_server (T-M00-07)"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# El diari cita fragments de codi tal com eren en un commit: no es reformaten.
+extend-exclude = ["static/vendor", "docs/diari-de-construccio"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "INT"]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/**/tests/*.py" = ["S101"]
+"apps/*/migrations/*.py" = ["E501"]

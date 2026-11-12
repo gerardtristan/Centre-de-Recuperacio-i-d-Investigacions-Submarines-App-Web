@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-16 (RN-M01-79): el correu d'entrada només canvia amb aquest POST, mai en obrir l'enllaç. #}
+{% block title %}{% translate "Confirmar el correu nou" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Confirmar el correu nou" %}</h1>
+  {% if state == "ready" %}
+    <div>
+      <p>{% blocktranslate %}Confirma que vols entrar a l'àrea de socis amb <strong>{{ new_email }}</strong>. Fins que no ho confirmis, continues entrant amb el correu actual.{% endblocktranslate %}</p>
+      <form method="post">
+        {% csrf_token %}
+        <button class="boto boto-principal" type="submit">{% translate "Confirmar el correu nou" %}</button>
+      </form>
+    </div>
+  {% elif state == "done" %}
+    <div>
+      <div class="avis avis-ok" role="status">{% translate "Correu canviat. A partir d'ara entres a l'àrea de socis amb l'adreça nova." %}</div>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'members:profile' %}">{% translate "Anar al perfil" %}</a></div>
+    </div>
+  {% else %}
+    <div>
+      <div class="avis avis-error" role="alert">{% translate "No s'ha pogut canviar el correu: l'enllaç no és vàlid, ha caducat o aquesta adreça ja no es pot fer servir. El correu d'entrada no ha canviat." %}</div>
+      <p class="enllacos"><a href="{% url 'members:profile' %}">{% translate "Anar al perfil" %}</a></p>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Doble factor" %} · C.R.I.S.{% endblock %}
+{# La vista d'administració no passa «area»: com al text de sota, tot el que no és «personal» és administració. #}
+{% block zona %}{% if area == "personal" %}soci{% else %}admin{% endif %}{% endblock %}
+{% block titol_zona %}{% if area == "personal" %}{% translate "Àrea de socis" %}{% else %}{% translate "Administració" %}{% endif %}{% endblock %}
+{% block inici %}{% if area == "personal" %}{% url 'core:home' %}{% else %}{% url 'administration:home' %}{% endif %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Activa el doble factor" %}</h1>
+  {% if area == "personal" %}
+    <p>{% translate "A partir d'ara, per entrar a l'àrea de socis caldrà també un codi de l'aplicació d'autenticació del mòbil." %}</p>
+  {% else %}
+    <p>{% translate "Per entrar a l'administració cal un codi de l'aplicació d'autenticació del mòbil." %}</p>
+  {% endif %}
+  <ol class="passos">
+    <li>{% translate "Obre l'aplicació d'autenticació i afegeix un compte nou." %}</li>
+    <li>{% translate "Escaneja aquest codi QR, o escriu la clau a mà." %}</li>
+    <li>{% translate "Escriu el codi de sis xifres que et mostra l'aplicació." %}</li>
+  </ol>
+  <figure class="targeta">
+    {# El QR el genera el servidor (apps/accounts/totp.py); el contenidor li dona les cantonades. #}
+    <div class="qr" role="img" aria-label="{% translate 'Codi QR per afegir el compte a l’aplicació d’autenticació' %}">{{ qr_svg|safe }}</div>
+    <figcaption>{% translate "Clau:" %} <code class="clau">{{ secret_groups|join:" " }}</code></figcaption>
+  </figure>
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% with field=form.code %}{% include "accounts/_camp.html" %}{% endwith %}
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Activar" %}</button></div>
+  </form>
+  {% if area == "personal" %}<p class="enllacos"><a href="{% url 'accounts:security' %}">{% translate "Cancel·lar" %}</a></p>{% endif %}
+{% endblock %}

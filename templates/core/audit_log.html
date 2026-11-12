@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-07b: només lectura (CA-14.3). L'únic formulari és el de filtres, amb GET; cap acció sobre les entrades. #}
+{% block title %}{% translate "Registre d'activitat" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Registre d'activitat" %}</h1>
+  {% if not show_ip %}<p>{% translate "Només hi surten les entrades de dades de socis." %}</p>{% endif %}
+
+  <form class="formulari" method="get" action="{% url 'administration:audit_log' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:audit_log' %}">{% translate "Treu els filtres" %}</a>
+    </div>
+  </form>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} entrada, de la més recent a la més antiga{% plural %}{{ total }} entrades, de la més recent a la més antiga{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Data i hora" %}</th>
+        <th scope="col">{% translate "Qui" %}</th>
+        <th scope="col">{% translate "Acció" %}</th>
+        <th scope="col">{% translate "Objecte" %}</th>
+        <th scope="col">{% translate "Camp" %}</th>
+        <th scope="col">{% translate "Valor anterior" %}</th>
+        <th scope="col">{% translate "Valor nou" %}</th>
+        <th scope="col">{% translate "Motiu" %}</th>
+        {% if show_ip %}<th scope="col">{% translate "Adreça IP" %}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with entry=row.entry %}
+        <tr>
+          <th scope="row" class="cel-nom"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d/m/Y H:i:s" }}</time></th>
+          <td data-etiqueta="{% translate 'Qui' %}" class="cel-valor">
+            {% if entry.actor_kind == "account" %}{{ entry.actor_account.login }}{% if entry.actor_person %} · {{ entry.actor_person }}{% endif %}
+            {% elif entry.actor_kind == "guest" %}{% translate "Convidat" %}{% if entry.actor_person %} · {{ entry.actor_person }}{% endif %}
+            {% elif entry.actor_kind == "system" %}{% translate "Sistema" %} · {{ entry.actor_origin }}
+            {% else %}{% translate "Sense identificar" %}{% endif %}
+          </td>
+          <td data-etiqueta="{% translate 'Acció' %}" class="cel-valor">{{ entry.action }}</td>
+          <td data-etiqueta="{% translate 'Objecte' %}" class="cel-valor">{% if entry.target_type %}{{ entry.target_type }} {{ entry.target_id }}{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Camp' %}" class="cel-valor">{{ entry.field|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Valor anterior' %}" class="cel-valor">{{ row.old|default_if_none:"—" }}</td>
+          <td data-etiqueta="{% translate 'Valor nou' %}" class="cel-valor">{{ row.new|default_if_none:"—" }}</td>
+          <td data-etiqueta="{% translate 'Motiu' %}" class="cel-valor">{{ entry.reason|default:"—" }}</td>
+          {% if show_ip %}<td data-etiqueta="{% translate 'Adreça IP' %}" class="cel-valor">{{ row.ip|default_if_none:"—" }}</td>{% endif %}
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="{% if show_ip %}9{% else %}8{% endif %}">{% translate "Cap entrada amb aquests filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines del registre' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Més recents" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Més antigues" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

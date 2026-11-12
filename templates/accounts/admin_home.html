@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# Inici de l'administració. Les seccions són les mateixes entrades del menú comú (T-M01-46): les calcula el servidor #}
+{# amb els permisos del compte i aquí no se'n duplica la llista. Un enllaç no és cap control: cada vista torna a #}
+{# comprovar el permís. El compte actiu, l'estat del TOTP i «Surt» són a la barra lateral, com a totes les pantalles. #}
+
+{% block title %}{% translate "Administració" %} · C.R.I.S.{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Administració del C.R.I.S." %}</h1>
+  {% include "accounts/_avis_emergencia.html" %}
+  <p>{% blocktranslate with username=user.get_username %}Has entrat com a {{ username }}.{% endblocktranslate %}</p>
+  {% if admin_nav.sections %}
+    <ul class="enllacos">
+      {% for entry in admin_nav.sections %}<li><a href="{{ entry.url }}">{{ entry.label }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>{% translate "Aquest compte encara no té accés a cap secció. Parla-ho amb un administrador del club." %}</p>
+  {% endif %}
+{% endblock %}

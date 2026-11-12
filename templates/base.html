@@ -1,0 +1,46 @@
+{% load static i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}C.R.I.S.{% endblock %}</title>
+  {# Sense «defer»: aplica el tema desat abans de pintar. Fitxer propi, cap codi en línia (066). #}
+  <script src="{% static 'js/tema.js' %}"></script>
+  {# Tot servit des del VPS: fonts, estils i HTMX, mai des d'un CDN (decisions 035 i 046) #}
+  <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/comptes.css' %}">
+  <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+  {# Web instal·lable i carnet sense connexió (T-M01-21; decisió 041) #}
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/icones/cris-180.png' %}">
+  <script src="{% static 'js/pwa.js' %}" data-service-worker="{% url 'core:service_worker' %}" defer></script>
+  {# Menú de l'administració (T-M01-46): només amb una sessió vàlida de l'administració. Sense «defer»: plega la barra abans de pintar. #}
+  {% if admin_nav %}<script src="{% static 'js/menu-admin.js' %}"></script>{% endif %}
+</head>
+<body class="zona-{% block zona %}soci{% endblock %}{% if admin_nav %} amb-barra-lateral{% endif %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>
+  <header class="capcalera-compte">
+    <a class="marca" href="{% block inici %}{% url 'core:home' %}{% endblock %}">
+      <img class="logo-clar" src="{% static 'marca/CRIS_SenseFons.png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
+      <img class="logo-fosc" src="{% static 'marca/CRIS_Blanc_per fons Negre (Blanc).png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
+      <span class="titol-zona">{% block titol_zona %}{% translate "Àrea de socis" %}{% endblock %}</span>
+    </a>
+    {# El botó només es mostra amb JavaScript (menu-admin.js); sense, la barra lateral es veu sempre. #}
+    {% if admin_nav %}<button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="barra-lateral" hidden><span aria-hidden="true">☰</span> {% translate "Menú" %}</button>{% endif %}
+    <fieldset class="selector-tema" hidden>
+      <legend class="visualment-amagat">{% translate "Tema" %}</legend>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">{% translate "Sistema" %}</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">{% translate "Clar" %}</span></span></label>
+      <label><input class="visualment-amagat" type="radio" name="tema" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">{% translate "Fosc" %}</span></span></label>
+    </fieldset>
+    {# Després del selector (T-M01-45, punt 6): es veu a sota i el Tab hi arriba en el mateix ordre. #}
+    {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
+  </header>
+  {# Menú construït al servidor segons els permisos del compte; `admin_nav` és buit fora d'una sessió d'administració. #}
+  {% if admin_nav %}{% include "accounts/_admin_nav.html" %}{% endif %}
+  <main id="contingut" class="cos-compte {% block cos_classe %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

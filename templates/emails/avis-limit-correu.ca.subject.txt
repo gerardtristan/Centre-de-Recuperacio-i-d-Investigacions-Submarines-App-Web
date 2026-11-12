@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M00-06 (RN-A6): TEXT PROVISIONAL [A validar: Q-26, qui el rep] #}{% blocktranslate %}Correu de la plataforma del C.R.I.S.: {{ used }} de {{ limit }} enviaments d'avui{% endblocktranslate %}

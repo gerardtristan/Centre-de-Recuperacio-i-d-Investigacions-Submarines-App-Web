@@ -28,5 +28,19 @@ Thumbs.db
 desktop.ini
 ~$*
 
+# Python i Django
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.e2e-captures/
+staticfiles/
+*.sqlite3
+
+# Fitxers locals de desenvolupament (emmagatzematge privat simulat)
+var/
+
 # Línia cronològica generada en local sense xifrar: no es puja (tools/linia-cronologica/README.md)
 CRIS_linia_cronologica.html

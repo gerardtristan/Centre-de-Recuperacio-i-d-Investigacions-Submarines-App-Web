@@ -44,7 +44,7 @@ Spec-Driven Development (SDD) vol dir escriure primer una especificació clara i
 - Seguretat: autenticació i permís a cada endpoint, doble factor per a administradors, secrets fora del repositori, registre d'activitat.
 - Arquitectura: monòlit modular; una app no escriu als models d'una altra, només a través de serveis.
 - Proves: cada criteri d'acceptació té una prova; càlculs econòmics amb cobertura completa.
-- Definició de fet: pipeline verd, proves passades, porta corresponent de la checklist revisada, documentació actualitzada.
+- Definició de fet: pipeline verd, proves passades, porta corresponent de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
 - Canvis: es modifica primer l'especificació i després el codi.
 
 ## 5. Plantilla d'especificació (spec.md)

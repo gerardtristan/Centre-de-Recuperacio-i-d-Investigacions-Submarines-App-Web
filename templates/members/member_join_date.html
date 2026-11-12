@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-15b: corregir la data d'alta (P6; HU-M01-07, RN-M01-22). L'historial guarda el valor anterior; el servidor torna a comprovar el permís i el conflicte d'interès. #}
+{% block title %}{% translate "Corregeix la data d'alta" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{% translate "Corregeix la data d'alta" %}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  <p class="text-2">{% blocktranslate with date=member.joined_on|date:"d/m/Y" %}Data actual: {{ date }}{% endblocktranslate %}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</p>
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "És el teu soci: no pots editar-ne les dades des de l'administració." %}</div>
+  {% else %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% with field=form.joined_on %}{% include "accounts/_camp.html" %}{% endwith %}
+      {# Patró «casella» fora de `.camp` (T-M01-45, punt 3): dins de `.camp` la casella s'estirava. #}
+      <label class="casella" for="{{ form.approximate.id_for_label }}">{{ form.approximate }} <span>{{ form.approximate.label }}</span></label>
+      <p class="text-2" id="{{ form.approximate.auto_id }}_helptext">{{ form.approximate.help_text }}</p>
+      {# 079 (A-23, RN-M01-90): motiu obligatori; el servei el torna a exigir. #}
+      {% with field=form.reason %}{% include "accounts/_camp.html" %}{% endwith %}
+      <p class="ajuda">{% translate "La correcció queda a l'historial del soci, amb el valor anterior, i al registre d'activitat, amb el motiu." %}</p>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa la data" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

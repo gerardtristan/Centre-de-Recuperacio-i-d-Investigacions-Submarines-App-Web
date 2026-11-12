@@ -1,0 +1,87 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M01-15: llistat de socis (P4). Només lectura. Les columnes que no surten per a un compte no s'envien: ho decideix la vista (roster.Visibility), no la plantilla. #}
+{% block title %}{% translate "Llistat de socis" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Llistat de socis" %}</h1>
+  {% if not vis.full %}<p class="text-2">{% translate "Consulta amb les dades mínimes per cobrar: número, nom, tipus, estat i quota." %}</p>{% endif %}
+
+  {% if no_members %}
+    <section aria-labelledby="buit-titol">
+      <h2 id="buit-titol">{% translate "Encara no hi ha socis" %}</h2>
+      {% if can_import or can_join %}<p>{% translate "Importa'ls de Cluber o dona'n d'alta un." %}</p>{% endif %}
+      <div class="accions">
+        {% if can_import %}<a class="boto" href="{% url 'administration:cluber_preview' %}">{% translate "Importació de Cluber" %}</a>{% endif %}
+        {% if can_join %}<a class="boto" href="{% url 'administration:join_in_person' %}">{% translate "Alta presencial" %}</a>{% endif %}
+      </div>
+    </section>
+  {% else %}
+    <form class="formulari" method="get" action="{% url 'administration:members_list' %}" novalidate>
+      <fieldset class="filtres">
+        <legend>{% translate "Cerca i filtres" %}</legend>
+        {% for field in form %}{% if field.name == "sense_data" or field.name == "sense_comprovar" %}<label class="casella" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>{% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+      </fieldset>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:members_list' %}">{% translate "Treu els filtres" %}</a>
+      </div>
+    </form>
+
+    {% if can_export %}
+      {# POST amb CSRF: l'exportació queda al registre i no s'ha de poder fer amb un enllaç. #}
+      <form class="exporta" method="post" action="{% url 'administration:members_export' %}">
+        {% csrf_token %}
+        {% for field in form %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}">{% endfor %}
+        {# Llista emergent sense JavaScript: «Exporta» l'obre i la tanca; cada opció envia el formulari amb el seu format. #}
+        <details class="menu-exporta">
+          <summary class="boto">{% translate "Exporta" %} <span aria-hidden="true">▾</span></summary>
+          <div class="menu-opcions" role="group" aria-label="{% translate "Format de l'exportació" %}">
+            {% for value, label in export_formats %}<button class="boto boto-petit" type="submit" name="format" value="{{ value }}">{{ label }}</button>{% endfor %}
+          </div>
+        </details>
+      </form>
+      <script src="{% static 'js/menu-exporta.js' %}" defer></script>
+    {% endif %}
+
+    <table class="taula">
+      <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} soci{% plural %}{{ total }} socis{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Soci" %}</th>
+          <th scope="col">{% translate "Tipus" %}</th>
+          <th scope="col">{% translate "Estat del soci" %}</th>
+          {% if vis.fees %}<th scope="col">{% translate "Quota" %}</th>{% endif %}
+          {% if vis.full %}<th scope="col">{% translate "Data d'alta" %}</th>{% endif %}
+          {% if vis.birth_date %}<th scope="col">{% translate "Dades" %}</th>{% endif %}
+          <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member, fee in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
+            <td data-etiqueta="{% translate 'Tipus' %}">{{ member.type.name }}</td>
+            <td data-etiqueta="{% translate 'Estat del soci' %}">{% include "members/_member_status.html" %}</td>
+            {% if vis.fees %}<td data-etiqueta="{% translate 'Quota' %}">{% include "members/_fee_state.html" %}</td>{% endif %}
+            {% if vis.full %}<td data-etiqueta="{% translate "Data d'alta" %}"><span>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} <span class="text-2">({% translate "aproximada" %})</span>{% endif %}</span></td>{% endif %}
+            {# Només si falta: la data mai no surt al llistat (RN-M01-48). #}
+            {% if vis.birth_date %}<td data-etiqueta="{% translate 'Dades' %}">{% if member.person.birth_date %}—{% else %}{% include "members/_sense_data.html" %}{% endif %}</td>{% endif %}
+            <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:member_detail' member.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ member.person }}</span></a></td>
+          </tr>
+        {% empty %}
+          <tr><td>{% translate "Cap soci coincideix amb la cerca i els filtres." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if page.paginator.num_pages > 1 %}
+      <nav class="accions" aria-label="{% translate 'Pàgines del llistat' %}">
+        {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Anterior" %}</a>{% endif %}
+        <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+        {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Següent" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

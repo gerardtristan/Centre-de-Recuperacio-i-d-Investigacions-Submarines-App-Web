@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M01-22; decisió 085 (A-3, opció B): article 12.4 del RGPD. El correu diu el motiu que ha escrit qui ha resolt la sol·licitud i com es pot reclamar. Cap altra dada de la persona. Text redactat per l'equip sense revisió d'un assessor de protecció de dades. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "L'administració del C.R.I.S. ha revisat la teva sol·licitud d'esborrat de dades i no l'ha pogut aprovar. Les teves dades i el teu compte continuen com estaven." %}
+
+{% translate "Motiu:" %} {{ reason }}
+
+{% translate "Si no hi estàs d'acord, pots respondre aquest correu perquè ho tornem a revisar. També tens dret a presentar una reclamació davant l'Agència Espanyola de Protecció de Dades (www.aepd.es) i a acudir als tribunals." %}
+{% endautoescape %}

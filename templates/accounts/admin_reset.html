@@ -1,0 +1,26 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{% block title %}{% translate "Restablir l'accés" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% blocktranslate with username=target.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</h1>
+  {% if own_account %}
+    <div class="avis avis-error" role="alert">{% translate "Ningú no pot restablir el seu propi compte per aquesta via." %}</div>
+  {% else %}
+    <div>
+      <p>{% translate "Fes-ho només si la persona ha perdut l'accés i n'has comprovat la identitat." %}</p>
+      {% if no_address_warning %}<div class="avis avis-avis" role="alert">{{ no_address_warning }}</div>{% endif %}
+      {{ form.non_field_errors }}
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        <fieldset>
+          <legend>{{ form.what.label }}</legend>
+          {% for radio in form.what %}<label class="casella" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+          {{ form.what.errors }}
+        </fieldset>
+        {% for field in form %}{% if field.name != "what" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Restablir" %}</button></div>
+      </form>
+    </div>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:accounts' %}">{% translate "Tornar als comptes" %}</a></p>
+{% endblock %}

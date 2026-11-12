@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# 079 (RN-M01-87): crear el compte personal amb la invitació de l'alta aprovada. Seguretat: el testimoni no és a l'adreça d'aquesta pàgina (és a la sessió); el compte només es crea amb un POST; el mateix text per a un enllaç desconegut, caducat, ja fet servir o que no es pot completar; la pàgina no mostra cap dada de la persona (ni el nom ni el correu). #}
+{% block title %}{% translate "Crear el compte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Crear el compte" %}</h1>
+  {% if state == "ready" %}
+    <div>
+      <p>{% translate "Tria una contrasenya per al teu compte de l'àrea de socis. Entraràs amb el correu on has rebut aquest enllaç." %}</p>
+      {% if form.errors %}<div class="avis avis-error" role="alert">{% translate "Revisa els camps marcats." %}</div>{% endif %}
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crear el compte" %}</button></div>
+      </form>
+    </div>
+  {% elif state == "done" %}
+    <div>
+      <div class="avis avis-ok" role="status">{% translate "Compte creat. Ja pots entrar a l'àrea de socis amb el teu correu i la contrasenya que has triat." %}</div>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:login' %}">{% translate "Entrar" %}</a></div>
+    </div>
+  {% else %}
+    <div>
+      <div class="avis avis-error" role="alert">{% translate "Aquest enllaç no és vàlid o ha caducat." %}</div>
+      <p>{% translate "Si l'has rebut del C.R.I.S. i ja no et funciona, demana a la secretaria que te'n torni a enviar un." %}</p>
+      <p class="enllacos"><a href="{% url 'accounts:login' %}">{% translate "Anar a l'entrada" %}</a></p>
+    </div>
+  {% endif %}
+{% endblock %}

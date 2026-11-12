@@ -1,0 +1,16 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{% block title %}{% translate "Codis de recuperació" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Codis de recuperació" %}</h1>
+  <div class="avis avis-avis" role="alert">
+    {% blocktranslate trimmed %}
+      Només els veuràs ara. Guarda'ls fora de línia (en paper o al gestor de contrasenyes del
+      club). Cada codi serveix una sola vegada si perds el mòbil.
+    {% endblocktranslate %}
+  </div>
+  <ul class="codis">
+    {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
+  </ul>
+  <div class="accions"><a class="boto boto-principal" href="{{ continue_url }}">{% translate "Ja els he guardat" %}</a></div>
+{% endblock %}

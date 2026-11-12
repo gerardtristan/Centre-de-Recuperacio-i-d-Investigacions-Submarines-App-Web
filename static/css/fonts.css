@@ -1,0 +1,9 @@
+/* Fonts allotjades al servidor (decisions 035 i 046; T-M01-38). Fitxers oficials sense
+   modificar, amb la llicència al costat: static/fonts/README.md. */
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/barlow-condensed/BarlowCondensed-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/barlow-condensed/BarlowCondensed-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Source Sans 3"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/source-sans-3/SourceSans3-Regular.ttf.woff2") format("woff2"); }
+@font-face { font-family: "Source Sans 3"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/source-sans-3/SourceSans3-Semibold.ttf.woff2") format("woff2"); }
+@font-face { font-family: "Source Sans 3"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/source-sans-3/SourceSans3-Bold.ttf.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/jetbrains-mono/JetBrainsMono-Medium.woff2") format("woff2"); }

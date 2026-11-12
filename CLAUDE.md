@@ -5,6 +5,7 @@ Plataforma app-web pròpia per al C.R.I.S. (club de busseig de Barcelona): socis
 
 ## Idioma
 Català per a documents, interfície i comentaris de cara a l'usuari. Noms de codi coherents (decidir-ho una vegada i no barrejar).
+La plataforma està preparada per traduir-se, amb el català com a única llengua activa i la de reserva (decisió 061): tota cadena que veu l'usuari es marca com a traduïble (regla a `docs/planning.md#idiomes`). Quines llengües i qui les tradueix: P-49 [A validar].
 
 ## On és cada cosa
 - `README.md`: estat del projecte i mapa de carpetes.
@@ -15,6 +16,7 @@ Català per a documents, interfície i comentaris de cara a l'usuari. Noms de co
 - `docs/arquitectura-integracions.md`: components, proveïdors externs, fluxos de pagament, variables d'entorn i riscos.
 - `docs/decisions/`: una decisió per fitxer (NNN-nom.md). `docs/decisions/pendents.md`: contradiccions i decisions que ha de validar la junta.
 - `docs/context/`: fonts originals (instruccions). `entrevistes.docx` no és al repositori (dades personals) [A validar fins que s'anonimitzi].
+- `docs/diari-de-construccio/`: diari de construcció, una entrada per tasca acabada, amb l'índex, les regles de contingut i la convenció de captures al seu `README.md`.
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
 - `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada. La spec 04 v2 és a l'arxiu (`docs/arxiu/spec-04-tresoreria-v2-2026-10-27.md`) des que es va aprovar la secció M04.
@@ -41,6 +43,15 @@ Estructura de diners (decisió 027): la 00 té l'estructura bàsica de càrrec i
 Duplicar activitats és un servei comú previst a la 00 que es construeix al mòdul 02 (decisió 026).
 Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00–M12) fan servir altres numeracions; la correspondència és a `docs/planning.md#numeracio`.
 
+## Domini (resum; les regles són al pla, enllaçades)
+- **Persona** (`core.Person`): una per ésser humà, activa o anonimitzada. **Compte** (`accounts.Account`): personal o d'administrador; pendent, actiu o desactivat. Rols i permisos són dades ([matriu](docs/planning.md#rols-i-permisos-059-matriu)).
+- **Soci** (`members.Member`, un per persona; [entitats](docs/planning.md#M01-6-entitats), [regles](docs/planning.md#M01-7-regles)): pendent → actiu; actiu ↔ impagat (només a mà, P9, amb motiu); pendent, actiu o impagat → baixa; baixa → pendent només per readmissió. Cada canvi deixa una fila a l'historial, que no es modifica.
+- **Sol·licitud** (`MemberRequest`): alta, canvi de tipus o baixa; pendent → aprovada o rebutjada. Qui la cancel·la: [P-72](docs/decisions/pendents.md).
+- **Quota** (`AnnualFee`) sobre un **càrrec** (`core.Charge`, en cèntims: pendent, pagat, retornat o anul·lat) amb **pagaments** (`Payment`). Renovació 12 mesos després del pagament confirmat (070). «Està al corrent?» té tres respostes al codi: [P-71](docs/decisions/pendents.md).
+- **Carnet** (`MemberCard`): vàlid si no està revocat, el soci és actiu i el «vàlid fins al» (`cards.valid_until`) no ha passat.
+- Registre d'activitat, textos legals, consentiments i historial: només s'hi afegeixen files.
+- Flux principal ([processos](docs/planning.md#M01-5-processos)): «Fer-se soci» (web o presencial) → l'administració aprova i assigna el número → quota → pagament confirmat → actiu i carnet.
+
 ## Regles que sempre s'han de complir
 - Diners en cèntims (enter), moviments immutables; les correccions són anul·lacions amb motiu. Marge d'una activitat = ingressos - despeses - cost de material.
 - Tot ingrés i tota despesa té departament (centre de cost); les comissions de quotes van a «General / Quotes de socis».
@@ -51,10 +62,11 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Permisos en dos nivells: rol i objecte (el soci només veu el seu; l'instructor només les seves sessions). Els permisos de cada rol són dades: només l'administrador assigna i retira rols i edita els permisos des de l'app, amb TOTP, nota, resum dels afectats i registre, i mai pot quedar cap administrador operatiu. El President no gestiona usuaris, rols ni permisos. Les regles de seguretat i d'integritat són codi i no s'editen (decisió 059; configuració inicial a `docs/planning.md#rols-i-permisos-059-matriu`). Veure el dashboard no dona accés a cap dada personal.
 - Cada persona té un únic perfil. Un administrador té dos comptes lligats al perfil: personal (abans «compte de soci», decisió 029; entra amb correu únic, recupera i verifica per correu) i administrador (entra amb nom d'usuari únic per l'entrada separada; pot tenir diversos rols; correu no únic i només per a notificacions; **mai** recupera la contrasenya per correu: la restableix un altre administrador o s'hi entra amb codis de recuperació fora de línia). El registre d'activitat guarda quin compte ha fet cada acció (decisions 015 i 018).
 - Doble factor (TOTP) obligatori per a qualsevol compte que entri per l'administració (inclosos instructor i Departament d'Història) i per als comptes d'emergència; opcional per als comptes personals.
-- Esborrar les dades d'una persona (RGPD) vol dir desactivar-ne els comptes i anonimitzar-ne les dades personals; els registres econòmics (factures, cobraments, despeses, moviments) no s'eliminen mai: les dades personals que hi surten es bloquegen i, passat el termini legal [A verificar: gestoria, Q-14], s'anonimitzen (decisió 058, punt 7); al registre d'activitat, el que identifica la persona se substitueix per una referència anònima (decisió 028).
-- Domini de la plataforma: cris1954.cat. Remitent dels correus a cris1954.cat amb resposta a cris@cris.es (decisió 019).
+- Esborrar les dades d'una persona (RGPD) vol dir desactivar-ne els comptes i anonimitzar-ne les dades personals; els registres econòmics (factures, cobraments, despeses, moviments) no s'eliminen mai: les dades personals que hi surten es bloquegen i, passat el termini legal [A verificar: gestoria, Q-14], s'anonimitzen (decisió 058, punt 7); al registre d'activitat, el que identifica la persona se substitueix per una referència, «A-NNNN» (decisió 028; «referència», no «anònima», decisió 082).
+- Domini de la plataforma: cris1954.cat. Els correus surten de cris@cris.es, que també rep les respostes (decisió 085, que substitueix el remitent de la 019); cal el domini cris.es autenticat al proveïdor de correu abans de producció.
 - Registre d'activitat (qui, quan, què, valor anterior) en dades de socis i diners.
 - Secrets fora del repositori. Cap clau ni contrasenya al codi, als registres ni als exemples.
+- Proves: cap secret real mai. Les credencials de proves fan servir sempre el valor únic `contrasenya-de-proves-1954` (excepció de valor de gitleaks, a `.gitleaks.toml`). Les úniques altres excepcions són les empremtes exactes de tres falsos positius de l'historial a `.gitleaksignore`, tots de la regla `generic-api-key`: decisió 076 (10/11/2026; `apps/members/demo_data.py`, commit `6d871bd`), decisió 077 (10/11/2026; la cita d'aquell fals positiu a la primera versió de la 076, commit `a31d6b4`) i decisió 083 (11/11/2026; un valor inventat d'una prova a `apps/members/tests/test_totp_reset_081.py`, commit `6c73807`, línies 165 i 166). Corregir el valor al HEAD no treu la troballa de l'historial: abans d'un push es passa gitleaks en local sobre el mateix rang que el CI. No s'hi afegeix cap patró genèric ni cap altra empremta sense una decisió nova, i un document que descriu un fals positiu no en cita el text. Si cal un altre valor que sembli un secret, la línia porta `gitleaks:allow` i un comentari que digui per què.
 - Notificacions de pagament: verificar la firma i ser idempotents; mai donar un pagament per fet només pel navegador.
 - Mètodes (decisions 017 i 058): quotes amb targeta guardada (el mètode recomanat si el proveïdor permet guardar-la; si no, la domiciliació SEPA), domiciliació SEPA, targeta, Bizum o transferència (permesa, sense obligar-hi); inscripcions i llicències amb targeta, Bizum o transferència. La domiciliació només s'aplica a pagaments recurrents. Registre manual amb motiu [A validar, P-12].
 - Domiciliacions: avís previ, reintent controlat, alternativa de pagament si falla i estat «retornat» amb conseqüències definides a la spec 05b.
@@ -67,12 +79,16 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 
 ## Qualitat
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
+- **Disseny amb seguretat i privacitat.** Tota tasca de disseny (wireframes, plantilles, pantalles) indica, per a cada flux, els requisits de seguretat i privacitat aplicables i els aplica: separació de comptes, permisos per rol i objecte, minimització i emmascarament, missatges que no revelen dades ni l'existència de comptes, confirmacions, motius i verificacions, i estats d'error, accés denegat i sessió caducada. Amagar un element a la interfície no és un control: els wireframes distingeixen la simulació visual dels controls que s'apliquen al servidor.
+- **Interfície.** Només classes de `static/css/tokens.css` i components de `docs/design-system.md`; cap `style=` ni cap color, mida o espai sense token. Una peça nova va primer al sistema de disseny (document i CSS) i després a la plantilla.
 - No es fusiona res si el pipeline falla.
-- Definició de fet: proves passades, pipeline verd, porta de la checklist revisada, documentació actualitzada.
+- Definició de fet: proves passades, pipeline verd, **comprovat al navegador** (`pytest -m e2e` en verd i les captures a 1280 i 390 px de les pantalles tocades, mirades; skill `webapp-testing`), porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
+- **Error → primer la prova que el reprodueix** (ha de fallar) i després l'arreglo. Si l'arreglo depèn d'una decisió pendent, la prova va amb `xfail` i la referència, i no s'arregla.
+- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca al pla amb el seu estat («**Feta**» o «Feta en part»), la data i l'estat del CI. Quan toca, l'apartat «Propera tasca» el calcula la skill `propera-tasca` (`.claude/skills/propera-tasca/`), que llegeix el pla per àncores. No es comença cap altra tasca sense confirmació.
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
-Comandes: [completar quan existeixi el projecte: instal·lar, executar, proves, lint, migracions].
+Comandes: instal·lar `pip install -e ".[dev]"`; executar `python manage.py runserver`; proves `pytest`; proves al navegador `pytest -m e2e apps/core/tests/e2e --reuse-db` (la primera vegada, `PLAYWRIGHT_BROWSERS_PATH=0 python -m playwright install chromium-headless-shell`; captures a `.e2e-captures/`; el hook de fi de torn en passa una selecció en 90 s com a màxim); verificació completa abans del commit quan el hook la deixa pendent `python tools/verifica.py` (decisió 081); lint `ruff check . && ruff format --check .`; migracions `python manage.py makemigrations` / `migrate`; dades inventades per a captures `python manage.py seed_demo_data` (només en local, amb una base de dades buida). Model d'usuari: `accounts.Account` (compte personal o d'administrador), lligat a `core.Person`. Detall al README.
 
 ## Comportament
 - Abans de fer canvis grans, proposa el pla i espera confirmació.

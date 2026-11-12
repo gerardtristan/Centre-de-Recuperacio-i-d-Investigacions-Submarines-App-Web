@@ -1,0 +1,23 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{% block title %}{% translate "Alta presencial" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Alta presencial" %}</h1>
+  {% if unavailable %}
+    <div class="avis avis-avis" role="status">{% translate "No hi ha publicats tots els textos legals de l'alta: no es pot desar cap sol·licitud." %}</div>
+  {% else %}
+    {% if done %}
+      {% if done.already_pending %}
+        <div class="avis avis-avis" role="status"><strong>{% translate "No s'ha creat cap sol·licitud nova" %}</strong>{% translate "Aquesta persona ja té una sol·licitud d'alta pendent. Revisa-la a Sol·licituds." %}</div>
+      {% else %}
+        <div class="avis avis-ok" role="status"><strong>{% translate "Sol·licitud desada" %}</strong>{% translate "Queda pendent de revisar a Sol·licituds." %}</div>
+        {% if done.duplicate %}
+          <div class="avis avis-avis" role="status"><strong>{% translate "Possible duplicat" %}</strong>{% translate "Coincideix el document, el correu o el nom i el telèfon amb una persona registrada. La sol·licitud porta l'avís: revisa-ho abans d'aprovar-la." %}</div>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    <p class="text-2">{% translate "La sol·licitud queda pendent de revisar a Sol·licituds." %}</p>
+    {% include "members/_join_form.html" with in_person=True %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
+{% endblock %}

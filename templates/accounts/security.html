@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Seguretat del compte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <h1>{% translate "Seguretat del compte" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <section class="targeta" aria-labelledby="doble-factor">
+    <h2 id="doble-factor">{% translate "Doble factor" %}</h2>
+    {% if has_totp %}
+      <p><span class="estat estat-ok">✓ {% translate "Actiu" %}</span></p>
+      <p>{% translate "Actiu: per entrar, a més de la contrasenya, et demanem el codi de l'aplicació d'autenticació." %}</p>
+      <h3>{% translate "Desactivar el doble factor" %}</h3>
+      <p>{% translate "Per confirmar que ets tu, escriu la contrasenya i un codi de l'aplicació." %}</p>
+      {{ disable_form.non_field_errors }}
+      <form class="formulari" method="post" action="{% url 'accounts:totp_disable' %}" novalidate>
+        {% csrf_token %}
+        {% for field in disable_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Desactivar" %}</button></div>
+      </form>
+    {% else %}
+      <p><span class="estat estat-neutre">○ {% translate "No actiu" %}</span></p>
+      <p>{% translate "No actiu. Si l'actives, per entrar et demanarem també un codi de l'aplicació d'autenticació del mòbil." %}</p>
+      <p>{% translate "El compte personal no té codis de recuperació: abans d'activar-lo, assegura't que no perdràs l'accés a l'aplicació." %}</p>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:totp_enrol' %}">{% translate "Activar el doble factor" %}</a></div>
+    {% endif %}
+  </section>
+  <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a></p>
+{% endblock %}

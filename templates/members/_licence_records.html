@@ -1,0 +1,33 @@
+{% load i18n %}
+{# T-M01-23: registre mínim de llicència (RN-M01-29, P19). Amagar els enllaços no és cap control: el servidor torna a comprovar P19 sencer, P4 i el conflicte d'interès (S-M01-22). Res s'esborra (RN-M01-36). Caducitat buida: «caducitat desconeguda» (RN-M01-50, T-M01-34). Declarada pel soci: es mostra amb la marca i no és vigent fins que es confirma (RN-M01-77). #}
+{% if visible %}
+  <section aria-labelledby="llicencia-titol">
+    <h2 id="llicencia-titol">{% translate "Llicència" %}</h2>
+    {% if records %}
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Registre mínim de llicència" %}</caption>
+        <thead><tr><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Data d'alta" %}</th><th scope="col">{% translate "Data de caducitat" %}</th><th scope="col">{% translate "Origen" %}</th>{% if can_manage and not own %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for record in records %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ record.licence_type }}</th>
+              <td data-etiqueta="{% translate "Data d'alta" %}"><time datetime="{{ record.issued_on|date:'Y-m-d' }}">{{ record.issued_on|date:"d/m/Y" }}</time></td>
+              <td data-etiqueta="{% translate 'Data de caducitat' %}">{% if record.expires_on %}<time datetime="{{ record.expires_on|date:'Y-m-d' }}">{{ record.expires_on|date:"d/m/Y" }}</time>{% if record.expiry_declared %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Declarada pel soci, pendent de confirmar" %}</span>{% endif %}{% else %}{% translate "caducitat desconeguda" %}{% endif %}</td>
+              <td data-etiqueta="{% translate 'Origen' %}">{{ record.get_source_display }}</td>
+              {% if can_manage and not own %}<td class="cel-accions"><a href="{% url 'administration:licence_edit' member.pk record.pk %}">{% if record.expiry_declared %}{% translate "Confirma o corregeix" %}{% else %}{% translate "Corregeix" %}{% endif %}<span class="visualment-amagat"> {{ record.licence_type }}</span></a></td>{% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>{% translate "No hi ha cap llicència registrada." %}</p>
+    {% endif %}
+    {% if can_manage %}
+      {% if own %}
+        <p class="text-2">{% translate "És el teu soci: no pots canviar-ne la llicència des de l'administració." %}</p>
+      {% else %}
+        <p class="accions"><a class="boto boto-petit" href="{% url 'administration:licence_add' member.pk %}">{% translate "Afegeix una llicència" %}</a></p>
+      {% endif %}
+    {% endif %}
+  </section>
+{% endif %}

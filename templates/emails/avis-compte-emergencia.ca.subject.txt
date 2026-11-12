@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Avís: s'ha fet servir un compte d'emergència del C.R.I.S." %}

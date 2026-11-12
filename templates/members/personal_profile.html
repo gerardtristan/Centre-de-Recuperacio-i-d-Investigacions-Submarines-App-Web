@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. La data de naixement que falta, a dalt (T-M01-35). Fora d'aquesta tasca: el canvi de tipus i la baixa (T-M01-17). Exportar i esborrar (T-M01-22) són a «Les meves dades», al final. #}
+{% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
+  <h1>{% translate "El meu perfil" %}</h1>
+  <p class="text-2">{% translate "Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu." %}</p>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {# T-M01-35 (RN-M01-55, CA-M01-43): avís i camp per completar la data de naixement, només si falta. Seguretat: és la persona de la sessió; un cop desada, només la corregeix la secretaria (el servidor no accepta canviar-la des d'aquí); una data futura es rebutja al servidor; el registre no guarda la data. #}
+  {% if birth_date_form %}
+    <section class="targeta" aria-labelledby="naixement-titol">
+      <h2 id="naixement-titol">{% translate "Falta la teva data de naixement" %}</h2>
+      {% if birth_date_missing %}<div class="avis avis-avis" role="note">{% translate "El club la necessita per tramitar la llicència i per a l'edat mínima d'alguns cursos. Mentre no hi sigui, pots continuar fent tot el que ja feies." %}</div>{% endif %}
+      <form class="formulari" method="post" action="{% url 'members:birth_date' %}" novalidate>
+        {% csrf_token %}
+        {% for field in birth_date_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <p class="ajuda">{% translate "Un cop desada, només la secretaria la pot corregir." %}</p>
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa la data" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="targeta" aria-labelledby="dades-titol">
+    <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
+      <div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>
+      {% if member.member_number %}<div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ member.member_number }}</dd></div>{% endif %}
+      <div><dt>{% translate "Correu d'entrada" %}</dt><dd>{{ user.login }}</dd></div>
+    </dl>
+    <p class="text-2">{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p>
+
+    <h3>{% translate "Contacte" %}</h3>
+    {{ form.non_field_errors }}
+    <form class="formulari" method="post" action="{% url 'members:profile' %}" novalidate>
+      {% csrf_token %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els canvis" %}</button></div>
+    </form>
+
+    <h3 id="correu-titol">{% translate "Canviar el correu d'entrada" %}</h3>
+    <form class="formulari" method="post" action="{% url 'members:change_email' %}" aria-labelledby="correu-titol" novalidate>
+      {% csrf_token %}
+      {% if email_form.non_field_errors %}<div class="avis avis-error" role="alert">{{ email_form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in email_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto" type="submit">{% translate "Envia l'enllaç de confirmació" %}</button></div>
+    </form>
+  </section>
+
+  <section class="targeta" aria-labelledby="consentiments-titol">
+    <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
+    {% if consents or optional_consents %}
+      <ul class="historial">
+        {% for label, consent in consents %}
+          <li>
+            <strong>{{ label }}</strong>
+            <span>{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</span>
+            <span class="text-2">{% blocktranslate with date=consent.created_at|date:"d/m/Y" version=consent.legal_text.version %}El {{ date }} · versió {{ version }}{% endblocktranslate %}</span>
+          </li>
+        {% endfor %}
+        {# Q-031: opcionals amb text vigent. Cada canvi és una fila nova; la persona surt de la sessió. #}
+        {% for kind, label, consent, text in optional_consents %}
+          <li>
+            <strong id="consentiment-{{ kind }}">{{ label }}</strong>
+            <span>{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% elif consent %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "No donat" %}</span>{% endif %}</span>
+            <span class="text-2">{% if consent %}{% blocktranslate with date=consent.created_at|date:"d/m/Y" version=consent.legal_text.version %}El {{ date }} · versió {{ version }}{% endblocktranslate %} · {% endif %}{% translate "Opcional. El pots donar o retirar quan vulguis." %}</span>
+            <details><summary>{% blocktranslate with version=text.version %}Llegeix el text (versió {{ version }}){% endblocktranslate %}</summary>{{ text.content|linebreaks }}</details>
+            <form method="post" action="{% url 'members:consent' %}">
+              {% csrf_token %}
+              <input type="hidden" name="kind" value="{{ kind }}">
+              {% if consent.action == "granted" %}
+                <input type="hidden" name="action" value="withdraw">
+                <button class="boto boto-petit" type="submit" aria-describedby="consentiment-{{ kind }}">{% translate "Retira el consentiment" %}</button>
+              {% else %}
+                <input type="hidden" name="action" value="grant">
+                <button class="boto boto-petit" type="submit" aria-describedby="consentiment-{{ kind }}">{% translate "Dona el consentiment" %}</button>
+              {% endif %}
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>{% translate "No hi ha cap consentiment registrat." %}</p>
+    {% endif %}
+  </section>
+
+  {% if member %}
+    {# T-M01-36 (RN-M01-77): el soci només pot declarar una caducitat desconeguda; el servidor torna a comprovar que el registre és seu i que no en té cap. #}
+    <section class="targeta" aria-labelledby="llicencia-titol">
+      <h2 id="llicencia-titol">{% translate "Llicència" %}</h2>
+      {% for record, declare in licence_records %}
+        <dl class="dades-soci">
+          <div><dt>{% translate "Tipus" %}</dt><dd>{{ record.licence_type }}</dd></div>
+          <div><dt>{% translate "Data d'alta" %}</dt><dd><time datetime="{{ record.issued_on|date:'Y-m-d' }}">{{ record.issued_on|date:"d/m/Y" }}</time></dd></div>
+          <div><dt>{% translate "Caducitat" %}</dt><dd>{% if record.expires_on %}<time datetime="{{ record.expires_on|date:'Y-m-d' }}">{{ record.expires_on|date:"d/m/Y" }}</time>{% if record.expiry_declared %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Declarada per tu · pendent que la secretaria la confirmi" %}</span>{% endif %}{% else %}<span class="estat estat-neutre">{% translate "Caducitat desconeguda" %}</span>{% endif %}</dd></div>
+        </dl>
+        {% if declare %}
+          <form class="formulari" method="post" action="{% url 'members:declare_expiry' record.pk %}" novalidate>
+            {% csrf_token %}
+            {% for field in declare %}{% include "accounts/_camp.html" %}{% endfor %}
+            <div class="accions"><button class="boto" type="submit">{% translate "Declara la caducitat" %}<span class="visualment-amagat"> {{ record.licence_type }}</span></button></div>
+          </form>
+        {% endif %}
+      {% empty %}
+        <p>{% translate "No hi ha cap llicència registrada." %}</p>
+      {% endfor %}
+      <p class="text-2">{% translate "El tipus i la data d'alta els porta la secretaria." %}</p>
+    </section>
+  {% endif %}
+
+  <section class="targeta" aria-labelledby="sollicituds-titol">
+    <h2 id="sollicituds-titol">{% translate "Sol·licituds" %}</h2>
+    {% if requests %}
+      <ul class="historial">
+        {% for item in requests %}
+          <li>
+            <strong>{{ item.get_kind_display }}</strong>
+            <span>{{ item.get_status_display }}</span>
+            <span class="text-2">{% blocktranslate with date=item.created_at|date:"d/m/Y" %}Enviada el {{ date }}{% endblocktranslate %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-2">{% translate "No tens cap sol·licitud." %}</p>
+    {% endif %}
+  </section>
+
+  {# T-M01-22 (P-M01-F; CA-M01-18): descarregar les dades pròpies i demanar l'esborrat. El fitxer es prepara amb la persona de la sessió; l'enllaç porta un identificador aleatori i el servidor torna a comprovar que el fitxer és seu abans de donar la URL signada (5 minuts). Cap dada d'altres persones, cap testimoni ni empremta. #}
+  <section class="targeta" aria-labelledby="rgpd-titol" id="les-meves-dades">
+    <h2 id="rgpd-titol">{% translate "Les meves dades" %}</h2>
+    <p class="text-2">{% translate "Pots demanar una còpia de totes les dades que la plataforma guarda de tu, en un fitxer JSON." %}</p>
+    {% if export %}
+      <p><a class="boto" href="{% url 'core:private_file' export.pk %}">{% translate "Descarrega el fitxer amb les meves dades" %}</a></p>
+      <p class="text-2">{% blocktranslate with created=export.created_at|date:"d/m/Y H:i" expires=export.expires_at|date:"d/m/Y" %}Preparat el {{ created }}. Es pot descarregar fins al {{ expires }}; després s'esborra. Conté dades personals: desa'l en un lloc segur.{% endblocktranslate %}</p>
+    {% endif %}
+    <form method="post" action="{% url 'members:export_data' %}">
+      {% csrf_token %}
+      <div class="accions"><button class="boto" type="submit">{% if export %}{% translate "Torna a preparar el fitxer" %}{% else %}{% translate "Prepara el fitxer amb les meves dades" %}{% endif %}</button></div>
+    </form>
+    <p><a href="{% url 'members:erase' %}">{% translate "Esborra el meu compte" %}</a></p>
+  </section>
+{% endblock %}

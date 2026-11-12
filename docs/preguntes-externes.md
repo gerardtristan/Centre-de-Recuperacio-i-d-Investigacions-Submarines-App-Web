@@ -117,7 +117,7 @@ Preguntes a [preguntes-informatica](planning.md#preguntes-informatica).
 >
 > Estem acabant el pla de l'aplicació del club i, abans d'entrar en producció, hi ha algunes decisions tècniques que són teves.
 >
-> 1. Correu: amb quin remitent i quin proveïdor enviem els correus? Si és Brevo, els seus subencarregats són tots dins la UE? (P-46, S-M01-19)
+> 1. Correu: amb quin remitent enviem els correus? (S-M01-19; el proveïdor, Brevo, ja és decidit a la 062)
 > 2. Quina eina fem servir per auditar l'accessibilitat? (S-M01-20)
 > 3. Xifratge: quina biblioteca fem servir, com separem els rols de la base de dades i qui guarda la còpia de la clau? (S-M05a-10)
 > 4. A quina hora corren les comprovacions diàries, qui rep l'avís si es corregeix alguna cosa i on es veu el resum? (RN-M01-41, RN-M01-43)
@@ -151,7 +151,7 @@ Preguntes a [preguntes-tresorer](planning.md#preguntes-tresorer).
 
 **Estat (29/10/2026, [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md)):**
 - **Resposta:** 2 (P-28): Cluber no guarda la data de caducitat de les llicències; s'importen com a «pendents de confirmar» ([M01-addenda-058](planning.md#M01-addenda-058), [M06-addenda-058](planning.md#M06-addenda-058)).
-- **Oberta:** 1 (Q-23), la mostra anonimitzada de l'exportació de Cluber.
+- **Resolta per al format** (09/11/2026, [071](decisions/071-importacio-de-cluber-format-real-i-iban-descartat.md)): 1 (Q-23), amb una mostra inventada; ja no cal la mostra anonimitzada. Continuen obertes, amb el tresorer, les dates i la columna «Renovació» ([P-62](decisions/pendents.md)).
 
 > Hola,
 >

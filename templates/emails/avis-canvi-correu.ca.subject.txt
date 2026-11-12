@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "El correu d'entrada del teu compte del C.R.I.S. ha canviat" %}

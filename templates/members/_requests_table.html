@@ -1,0 +1,25 @@
+{% load i18n %}
+<table class="taula">
+  <thead>
+    <tr>
+      <th scope="col">{% translate "Soci" %}</th>
+      <th scope="col">{% translate "Número" %}</th>
+      <th scope="col">{% translate "Tipus" %}</th>
+      <th scope="col">{% translate "Canal" %}</th>
+      <th scope="col">{% translate "Enviada" %}</th>
+      <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in rows %}
+      <tr>
+        <td data-etiqueta="{% translate 'Soci' %}">{{ item.person }}</td>
+        <td class="codi" data-etiqueta="{% translate 'Número' %}">{{ item.member.member_number|default:_("Sense número") }}</td>
+        <td data-etiqueta="{% translate 'Tipus' %}">{{ item.member.type.name }}{% if item.requested_type %} → {{ item.requested_type.name }}{% endif %}</td>
+        <td data-etiqueta="{% translate 'Canal' %}">{{ item.get_channel_display }}</td>
+        <td data-etiqueta="{% translate 'Enviada' %}">{{ item.created_at|date:"d/m/Y" }}</td>
+        <td class="cel-accions"><a href="{% url 'administration:member_request_detail' item.pk %}">{% blocktranslate with name=item.person %}Obre la sol·licitud: {{ name }}{% endblocktranslate %}</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

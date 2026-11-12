@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M01-17: sol·licitar la baixa (C6; HU-M01-10; P-M01-C pas 1; wireframe socis.html#baixa). Explicació prèvia amb textos provisionals validats per a la revisió (074, punt 8); el text definitiu és de la secretaria (Q-058). #}
+{% block title %}{% translate "Sol·licita la baixa" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
+  <h1>{% translate "Sol·licita la baixa" %}</h1>
+
+  {% if member.status == "left" %}
+    <section class="targeta" aria-labelledby="no-titol">
+      <h2 id="no-titol">{% translate "Ja ets de baixa" %}</h2>
+      <p>{% translate "No cal que facis res més." %}</p>
+    </section>
+  {% elif pending %}
+    <section class="targeta" aria-labelledby="pendent-titol">
+      {% if pending.status == "approved" %}
+        <h2 id="pendent-titol">{% translate "Ja tens una baixa programada" %}</h2>
+        <p>{% blocktranslate with date=pending.effective_on|date:"d/m/Y" %}La secretaria l'ha validada amb data efectiva {{ date }}. Aquell dia rebràs un correu de confirmació.{% endblocktranslate %}</p>
+      {% else %}
+        <h2 id="pendent-titol">{% translate "Ja tens una sol·licitud de baixa pendent" %}</h2>
+        <p>{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}La vas enviar el {{ date }}. La secretaria la revisarà.{% endblocktranslate %}</p>
+      {% endif %}
+    </section>
+  {% else %}
+    <section class="targeta" aria-labelledby="que-titol">
+      <h2 id="que-titol">{% translate "Què passarà" %}</h2>
+      <ul>
+        <li>{% translate "La secretaria validarà la sol·licitud i fixarà la data efectiva de la baixa." %}</li>
+        <li>{% translate "Les quotes pendents que vencen abans de la data efectiva, o el mateix dia, les continuaràs devent. Les que vencen després s'anul·laran." %}</li>
+        <li>{% translate "A partir de la data efectiva, el carnet de soci deixarà de ser vàlid." %}</li>
+        <li>{% translate "Mantindràs el compte personal per consultar els teus rebuts." %}</li>
+        <li>{% translate "Quan la baixa sigui efectiva, rebràs un correu de confirmació." %}</li>
+        <li>{% translate "El teu número de soci queda reservat: si tornes, el recuperes." %}</li>
+      </ul>
+    </section>
+    <form class="targeta formulari" method="post" action="{% url 'members:leave' %}" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Sol·licita la baixa" %}</button></div>
+    </form>
+  {% endif %}
+  <p><a href="{% url 'members:profile' %}">{% translate "Torna al perfil" %}</a></p>
+{% endblock %}

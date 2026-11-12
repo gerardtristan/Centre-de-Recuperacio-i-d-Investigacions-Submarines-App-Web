@@ -1,0 +1,65 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-22: sol·licituds d'esborrat RGPD (P-M01-F, pas 4; M11, `core.gdpr.handle`). Seguretat i privacitat: el servidor exigeix M11 (sense permís, «no trobat»); només es mostra el nom de qui ho demana i la data, sense document, correu, adreça ni imports; una persona ja anonimitzada surt només amb la referència. Només lectura: resoldre és a la pantalla de cada sol·licitud. #}
+{% block title %}{% translate "Sol·licituds RGPD" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Protecció de dades" %}</p>
+  <h1>{% translate "Sol·licituds RGPD" %}</h1>
+  <p class="text-2">{% translate "Sol·licituds d'esborrat de dades. Aprovar-ne una l'executa: no es pot desfer." %}</p>
+  <section aria-labelledby="pendents-titol">
+    <h2 id="pendents-titol">{% blocktranslate with total=pending|length %}Pendents ({{ total }}){% endblocktranslate %}</h2>
+    {% if pending %}
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Persona" %}</th>
+            <th scope="col">{% translate "Enviada" %}</th>
+            <th scope="col">{% translate "Canal" %}</th>
+            <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in pending %}
+            <tr>
+              <td class="cel-nom" data-etiqueta="{% translate 'Persona' %}">{{ item.person }}</td>
+              <td data-etiqueta="{% translate 'Enviada' %}">{{ item.created_at|date:"d/m/Y" }}</td>
+              <td data-etiqueta="{% translate 'Canal' %}">{{ item.get_channel_display }}</td>
+              <td class="cel-accions"><a href="{% url 'administration:gdpr_request_detail' item.pk %}">{% blocktranslate with name=item.person %}Obre la sol·licitud: {{ name }}{% endblocktranslate %}</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-2">{% translate "No hi ha cap sol·licitud pendent." %}</p>
+    {% endif %}
+  </section>
+  <section aria-labelledby="resoltes-titol">
+    <h2 id="resoltes-titol">{% translate "Resoltes" %}</h2>
+    {% if resolved %}
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Persona" %}</th>
+            <th scope="col">{% translate "Estat" %}</th>
+            <th scope="col">{% translate "Resolta" %}</th>
+            <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in resolved %}
+            <tr>
+              <td class="cel-nom" data-etiqueta="{% translate 'Persona' %}">{{ item.person }}</td>
+              <td data-etiqueta="{% translate 'Estat' %}">{{ item.get_status_display }}</td>
+              <td data-etiqueta="{% translate 'Resolta' %}">{{ item.resolved_at|date:"d/m/Y" }}</td>
+              <td class="cel-accions"><a href="{% url 'administration:gdpr_request_detail' item.pk %}">{% blocktranslate with name=item.person %}Obre la sol·licitud: {{ name }}{% endblocktranslate %}</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-2">{% translate "Encara no se n'ha resolt cap." %}</p>
+    {% endif %}
+  </section>
+  <p><a href="{% url 'administration:home' %}">{% translate "Torna a l'inici de l'administració" %}</a></p>
+{% endblock %}

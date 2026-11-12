@@ -1,0 +1,63 @@
+{% load i18n static %}
+{% comment %}Formulari d'alta (T-M01-13), el mateix per a la web i per a l'alta presencial. El servidor ho torna a validar tot.
+   Les marques [A validar] només surten a l'alta presencial (administració), mai al formulari públic.{% endcomment %}
+<form class="formulari" method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors or form.text_versions.errors %}
+    <div class="avis avis-error" role="alert">{{ form.non_field_errors }}{{ form.text_versions.errors }}</div>
+  {% endif %}
+  {# Sempre les versions vigents, també en tornar a mostrar el formulari amb errors. #}
+  <input type="hidden" name="text_versions" value="{{ form.fields.text_versions.initial }}">
+  <p class="text-2">{% translate "Tots els camps són obligatoris, excepte els que diuen «opcional»." %}</p>
+
+  <fieldset>
+    <legend>{% translate "Dades personals" %}</legend>
+    {% with field=form.first_name %}{% include "accounts/_camp.html" %}{% endwith %}
+    {% with field=form.last_name %}{% include "accounts/_camp.html" %}{% endwith %}
+    {# La data va abans del document: d'ella depèn si el document és obligatori (només majors d'edat). #}
+    {% with field=form.birth_date %}{% include "accounts/_camp.html" %}{% endwith %}
+    {# Resum de l'edat: es torna a calcular al servidor en canviar la data i s'anuncia. #}
+    <p id="resum-edat" class="ajuda text-2" aria-live="polite">{{ form.age_summary }}</p>
+    {# Passaport: només a l'alta presencial (Q-017); a la web el camp no existeix. #}
+    {% if form.in_person %}{% with field=form.id_document_kind %}{% include "accounts/_camp.html" %}{% endwith %}{% endif %}
+    {# L'etiqueta del document la recalcula el servidor (vista prèvia, fora de banda). #}
+    <div class="camp">
+      <label for="{{ form.id_document.id_for_label }}"><span id="etiqueta-document">{{ form.id_document.label }}</span></label>
+      {{ form.id_document }}
+      {{ form.id_document.errors }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{% translate "Contacte" %}</legend>
+    {# Obligatoris per als majors d'edat i opcionals per als menors (Q-011): l'etiqueta la recalcula el servidor (vista prèvia, fora de banda). #}
+    <div class="camp">
+      <label for="{{ form.contact_email.id_for_label }}"><span id="etiqueta-correu">{{ form.contact_email.label }}</span></label>
+      {{ form.contact_email }}
+      {{ form.contact_email.errors }}
+    </div>
+    <div class="camp">
+      <label for="{{ form.phone.id_for_label }}"><span id="etiqueta-telefon">{{ form.phone.label }}</span></label>
+      {{ form.phone }}
+      {{ form.phone.errors }}
+    </div>
+    {% with field=form.address %}{% include "accounts/_camp.html" %}{% endwith %}
+  </fieldset>
+
+  {% include "members/_join_variable.html" %}
+
+  <div class="accions"><button class="boto boto-principal" type="submit">{% if in_person %}{% translate "Desa la sol·licitud" %}{% else %}{% translate "Envia la sol·licitud" %}{% endif %}</button></div>
+</form>
+
+{% comment %}Textos sencers a la mateixa pàgina: sense JavaScript, els enllaços hi porten. Amb JavaScript,
+   cada text passa a una finestra integrada (textos-legals.js) i aquesta secció s'amaga.{% endcomment %}
+<section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+  <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+  {% for kind, label, text in form.legal %}
+    <article id="text-{{ kind }}" aria-labelledby="text-{{ kind }}-titol">
+      <h3 id="text-{{ kind }}-titol">{{ label }} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+      <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+    </article>
+  {% endfor %}
+</section>
+<script src="{% static 'js/textos-legals.js' %}" defer></script>

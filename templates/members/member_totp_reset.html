@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# Decisió 081, punt 24 (P-52; RN-M01-104): restabliment presencial del doble factor del compte personal (M2 i P4). Comprovació de la identitat en persona amb el document (que ha de coincidir amb el de la fitxa i no es desa), motiu i codi TOTP de qui ho fa. Amagar el botó no és cap control: el servei ho torna a comprovar tot. Cap camí per correu. #}
+{% block title %}{% translate "Restableix el doble factor" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{% translate "Restableix el doble factor" %}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "Ningú no pot restablir el doble factor del seu propi compte." %}</div>
+  {% elif not account %}
+    <div class="avis avis-avis" role="status">{% translate "Aquest soci no té cap compte personal amb el doble factor activat." %}</div>
+  {% else %}
+    <p>{% translate "Fes-ho només en persona, quan el soci ha perdut el mòbil o l'aplicació d'autenticació. Comprova'n la identitat amb el document original: mai per correu ni per telèfon." %}</p>
+    <p class="text-2">{% translate "S'eliminarà el doble factor del compte i se'n tancaran totes les sessions. El soci rebrà un avís i podrà tornar a activar-lo a «Seguretat»." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% with field=form.document %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.identity_checked %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.note %}{% include "accounts/_camp.html" %}{% endwith %}
+      {% with field=form.code %}{% include "accounts/_camp.html" %}{% endwith %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Restableix el doble factor" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

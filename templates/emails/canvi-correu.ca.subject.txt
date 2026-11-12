@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Confirma el teu correu nou a la plataforma del C.R.I.S." %}

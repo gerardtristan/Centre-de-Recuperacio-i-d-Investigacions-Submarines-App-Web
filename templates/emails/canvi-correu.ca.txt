@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Algú ha demanat que aquesta adreça passi a ser el correu d'entrada d'un compte de l'àrea de socis del C.R.I.S. Si has estat tu, obre aquest enllaç i confirma-ho:" %}
+
+{{ link }}
+
+{% blocktranslate count hours=hours %}L'enllaç caduca d'aquí a {{ hours }} hora i només serveix una vegada.{% plural %}L'enllaç caduca d'aquí a {{ hours }} hores i només serveix una vegada.{% endblocktranslate %}
+
+{% translate "Si no ho has demanat tu, no cal que facis res: sense confirmar-ho, no canvia res." %}
+{% endautoescape %}

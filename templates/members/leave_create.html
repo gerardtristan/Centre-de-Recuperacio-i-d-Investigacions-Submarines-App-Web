@@ -1,0 +1,16 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-17: crea una baixa per decisió de la junta (P7; P-M01-C pas 1; diàleg «Crea una baixa» de admin.html#vista-socis-fitxa). La data efectiva es fixa en validar-la. #}
+{% block title %}{% translate "Crea una baixa" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+  <h1>{% translate "Crea una baixa" %}</h1>
+  <p>{% blocktranslate with name=member.person %}Per decisió de la junta. Es crea la sol·licitud de baixa de <strong>{{ name }}</strong>; la data efectiva es fixa en validar-la a Sol·licituds.{% endblocktranslate %}</p>
+  <form class="formulari" method="post" action="{% url 'administration:member_leave_create' member.pk %}" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea la sol·licitud de baixa" %}</button></div>
+  </form>
+  <p><a href="{% url 'administration:member_requests' %}">{% translate "Torna a les sol·licituds" %}</a></p>
+{% endblock %}

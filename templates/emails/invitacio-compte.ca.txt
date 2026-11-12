@@ -1,0 +1,12 @@
+{% load i18n %}{# 079 (RN-M01-87): TEXT PROVISIONAL [A validar: junta i secretaria]. Cap dada de la persona. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "El C.R.I.S. ha aprovat la teva sol·licitud d'alta com a soci. Per crear el teu compte de l'àrea de socis i triar la contrasenya, obre aquest enllaç:" %}
+
+{{ link }}
+
+{% blocktranslate count hours=hours %}L'enllaç caduca d'aquí a {{ hours }} hora i només serveix una vegada.{% plural %}L'enllaç caduca d'aquí a {{ hours }} hores i només serveix una vegada.{% endblocktranslate %}
+
+{% translate "Des de l'àrea de socis podràs veure la teva quota i, quan estigui pagada, el carnet." %}
+
+{% translate "Si l'enllaç ha caducat, respon a aquest correu i la secretaria te'n tornarà a enviar un. Si no has demanat l'alta, no cal que facis res." %}
+{% endautoescape %}

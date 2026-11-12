@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Per activar el teu compte a la plataforma del C.R.I.S., obre aquest enllaç i confirma el correu:" %}
+
+{{ link }}
+
+{% blocktranslate count hours=hours %}L'enllaç caduca d'aquí a {{ hours }} hora i només serveix una vegada.{% plural %}L'enllaç caduca d'aquí a {{ hours }} hores i només serveix una vegada.{% endblocktranslate %}
+
+{% translate "Si no has creat cap compte, no cal que facis res: sense confirmar, el compte no s'activa." %}
+{% endautoescape %}

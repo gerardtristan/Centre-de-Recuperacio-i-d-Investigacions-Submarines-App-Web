@@ -1,0 +1,6 @@
+{# Resposta de la vista prèvia (HTMX): la part variable i, fora de banda, el resum de l'edat que s'anuncia i les etiquetes del document, el correu i el telèfon (obligatoris o opcionals segons l'edat). #}
+{% include "members/_join_variable.html" %}
+<p id="resum-edat" hx-swap-oob="innerHTML">{{ form.age_summary }}</p>
+<span id="etiqueta-document" hx-swap-oob="innerHTML">{{ form.id_document.label }}</span>
+<span id="etiqueta-correu" hx-swap-oob="innerHTML">{{ form.contact_email.label }}</span>
+<span id="etiqueta-telefon" hx-swap-oob="innerHTML">{{ form.phone.label }}</span>

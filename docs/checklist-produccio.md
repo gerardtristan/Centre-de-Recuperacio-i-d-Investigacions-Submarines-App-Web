@@ -72,6 +72,8 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | C8 | Registre d'activitat | Qui, quan, què i valor anterior en dades de socis i diners | Es consulta des de l'administració | 1 |
 | C9 | Pagaments | Verificar la firma de cada notificació del proveïdor, notificacions idempotents, mai donar un pagament per fet només pel navegador. Stripe en mode de proves fora dels dos nivells de producció (decisió 025). Al nivell 1 (05a), mode real només per a mandats i cap cobrament real; al nivell 2 (05b), producció completa. La plataforma no guarda l'IBAN, excepte xifrat al mandat (044) | Proves amb notificacions repetides i falsificades; proves de domiciliació fallida, reintent i rebut retornat; prova que al nivell 1 no es pot crear cap cobrament real; revisió del model de dades: l'únic camp amb IBAN és el xifrat del mandat (044) | 2 |
 | C10 | Fitxers pujats | Tipus i mida limitats, emmagatzematge privat, enllaços temporals | Prova amb fitxers maliciosos | 2 |
+| C11 | Usuaris de la base de dades | Dos usuaris de PostgreSQL: un per a les migracions (propietari de les taules) i un altre per a l'app en funcionament, sense ser propietari ni superusuari, de manera que no pugui desactivar els disparadors del registre d'activitat (T-M01-07) ni canviar l'estructura | Comprovar que l'usuari de l'app no pot fer `ALTER TABLE core_auditentry DISABLE TRIGGER` ni `DROP TRIGGER` | 1 |
+| C12 | Claus del QR del carnet | `CARD_QR_KEYS` (una o més parelles «identificador:clau», separades per comes; clau de 32 caràcters o més) i `CARD_QR_ACTIVE_KEY` (l'identificador amb què s'emet) només a l'entorn, mai al repositori ni als registres. Obligatòries a producció: sense, l'aplicació no arrenca (comprovació `members.E001`). Rotació (079, A-01): cada carnet porta la versió i l'identificador de la clau, i una clau es pot rotar sense reemetre tots els carnets: s'afegeix la nova, es posa com a activa i es conserva l'antiga mentre hi hagi carnets que la facin servir. Si una clau es filtra: s'afegeix la nova com a activa, `python manage.py reemet_carnets --clau <identificador> --motiu "…"` revoca i reemet els carnets d'aquella clau, i després es treu la vella | La comprovació de desplegament del CI arrenca producció amb una clau de mostra generada en cada execució; prova de la rotació i de `reemet_carnets` (`apps/members/tests/test_cards_079.py`); simulacre de rotació a staging | 2 |
 
 ### D. Dades i continuïtat
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
@@ -101,12 +103,12 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | F4 | Imatges OG i favicon | Logotip del club per a previsualitzacions en xarxes i icona de l'app | Prova en xarxes | 3 |
 | F5 | Optimització d'imatges | Formats moderns, mides adaptades i càrrega diferida | Informe de rendiment | 3 |
 | F6 | Memòria cau | Memòria cau del navegador per a recursos estàtics i del servidor per a pàgines públiques | Capçaleres comprovades | 3 |
-| F7 | Idioma | Català i, si es decideix, castellà i anglès amb etiquetes d'idioma | Revisió | 3 |
+| F7 | Idioma | Català i, si es decideix, castellà i anglès amb etiquetes d'idioma. Totes les cadenes que veu l'usuari, marcades com a traduïbles ([061](decisions/061-plataforma-preparada-per-traduir.md)); cap llengua activa sense les seves traduccions revisades (P-49) | Revisió | 3 |
 
 ### G. Correu
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
-| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a cris1954.cat (domini remitent); les respostes van a cris@cris.es (decisió 019) | Comprovador de correu | 2 |
+| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a **cris.es**, que és el domini remitent des de la decisió 085 (els correus surten de cris@cris.es, que també rep les respostes); cal l'accés al DNS de cris.es i no trencar el correu actual del club | Comprovador de correu | 2 |
 | G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
 | G3 | Correu de confirmació del mandat | En signar un mandat, el soci rep un correu des de cris1954.cat (resposta a cris@cris.es) amb la referència del mandat, l'ID de creditor, la data de signatura i com revocar-lo. Si l'envia Stripe o la plataforma és [A validar] | Prova de principi a fi en mode de proves; revisió del text amb la junta | 3 · N1 |
 
