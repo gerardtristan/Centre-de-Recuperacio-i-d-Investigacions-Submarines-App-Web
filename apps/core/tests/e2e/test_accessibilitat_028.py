@@ -232,12 +232,24 @@ def _rule(rule: dict) -> dict:
     }
 
 
+# Cert quan no queda cap transició ni animació amb final en marxa (les que no acaben mai, com un
+# indicador que gira, no compten). `getAnimations()` aplica abans els estils pendents.
+SETTLED_JS = """
+() => document.getAnimations().every((animation) => {
+  const timing = animation.effect && animation.effect.getComputedTiming();
+  return animation.playState !== "running" || !timing || timing.endTime === Infinity;
+})
+"""
+
+
 def axe_audit(page) -> dict:
     """axe en clar i en fosc: violacions greus, avisos i el que necessita revisió manual."""
     out = {}
     for theme in THEMES:
         page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
-        page.wait_for_timeout(500)  # transicions de color del tema
+        # Les transicions de color del tema han d'haver acabat: una espera fixa no ho garanteix
+        # en un ordinador carregat, i axe llegiria colors a mig canvi. Si no acaben, falla aquí.
+        page.wait_for_function(SETTLED_JS)
         response = AXE.run(page, options=AXE_OPTIONS).response
         violations = response["violations"]
         out[theme] = {
@@ -402,3 +414,22 @@ def test_the_checks_detect_known_defects(page):
     found = {r["regla"] for r in axe_audit(page)["light"]["violacions"]}
     for rule in ("image-alt", "button-name", "link-name", "label", "document-title"):
         assert rule in found, (rule, found)
+
+
+def test_the_audit_reads_each_theme_after_its_transitions(page):
+    """Control de l'auditoria: axe ha de llegir els colors de cada tema quan les transicions del
+    canvi han acabat, trigui el que trigui el navegador. Amb una espera fixa, en un ordinador
+    carregat axe llegia el text del tema clar sobre el fons del fosc i donava un contrast fals
+    d'1,33 (verificació completa del 12/11/2026). Aquí la transició comença tard expressament."""
+    page.set_content(
+        """<!doctype html><html lang="ca"><head><title>Transició lenta</title><style>
+        :root { --fons: #ffffff; --text: #253745; }
+        :root[data-theme="dark"] { --fons: #11212d; --text: #f4f7f8; }
+        body { background: var(--fons); color: var(--text); }
+        p { color: var(--text); transition: color 180ms linear 1500ms; }
+        </style></head><body><main><h1>Transició lenta</h1>
+        <p>Text que canvia de color amb retard</p></main></body></html>"""
+    )
+    found = axe_audit(page)
+    for theme in THEMES:
+        assert found[theme]["violacions"] == [], (theme, found[theme]["violacions"])
