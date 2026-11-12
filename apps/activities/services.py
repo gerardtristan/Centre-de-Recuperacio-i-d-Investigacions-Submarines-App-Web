@@ -48,7 +48,14 @@ from apps.core.models import Department, Person, Setting
 from apps.core.permissions import accounts_with_perm
 
 from . import catalogue, permissions, states
-from .models import Activity, EnvironmentalProject, EnvironmentalSubtype, OutingType
+from .models import (
+    Activity,
+    CertificationLevel,
+    EnvironmentalProject,
+    EnvironmentalSubtype,
+    OutingType,
+    TrainingCatalogueEntry,
+)
 
 ACTIVITY_CREATED = "activities.activity.created"
 ACTIVITY_UPDATED = "activities.activity.updated"
@@ -81,6 +88,10 @@ _COMMON_FIELDS = (
     "responsible",
     "forecast_url",
     "department",
+    # Requisits de l'addenda de la 058 (T-M02-29 i T-M02-32).
+    "min_level",
+    "specialities_rule",
+    "min_age",
 )
 # Camps que `update_activity` deixa canviar. La classe, la fitxa del catàleg i l'estat, mai.
 EDITABLE_FIELDS = {
@@ -93,6 +104,7 @@ _FOREIGN_KEYS = {
     "outing_type": OutingType,
     "subtype": EnvironmentalSubtype,
     "project": EnvironmentalProject,
+    "min_level": CertificationLevel,
 }
 _MAX_LENGTH = {name: Activity._meta.get_field(name).max_length for name in _TEXT_FIELDS}
 _https = URLValidator(schemes=["https"])
@@ -153,6 +165,15 @@ def _clean(data: dict) -> dict:
         Activity.RequirementsMode.values
     ):
         raise ValidationError(_("El mode de requisits ha de ser «avís» o «bloqueig»."))
+    if "min_level" in out and out["min_level"] is not None:
+        if not isinstance(out["min_level"], CertificationLevel):
+            raise ValidationError(_("Tria el nivell mínim de la llista de nivells."))
+    if "specialities_rule" in out and out["specialities_rule"] not in (
+        Activity.SpecialitiesRule.values
+    ):
+        raise ValidationError(_("Cal dir si calen totes les especialitats o alguna."))
+    if "min_age" in out:
+        out["min_age"] = catalogue._min_age(out["min_age"])
     if "responsible" in out:
         person = out["responsible"]
         if not isinstance(person, Person) or person.status != Person.Status.ACTIVE:
@@ -246,10 +267,32 @@ def _create(*, by, request, details, **fields) -> Activity:
     return activity
 
 
-def _defaults(data: dict) -> dict:
+def _defaults(data: dict, source_mode: str = "") -> dict:
+    """Valors que no s'han donat. El mode de requisits és el de la fitxa o del tipus i, si no en
+    té, l'ajust general (RN-M02-29; CA-M02-34)."""
     data.setdefault("payment_window_hours", _setting(PAYMENT_WINDOW_KEY))
-    data.setdefault("requirements_mode", _setting(REQUIREMENTS_MODE_KEY))
+    data.setdefault("requirements_mode", source_mode or _setting(REQUIREMENTS_MODE_KEY))
     return data
+
+
+def _check_new_level(level) -> None:
+    if level is not None and not level.active:
+        raise ValidationError(_("Aquest nivell està desactivat."))
+
+
+def _specialities(entries, keep=()) -> list:
+    """Especialitats exigides: fitxes del catàleg d'especialitats. Una de desactivada només s'hi
+    pot quedar si l'activitat ja la demanava."""
+    entries = list(entries or ())
+    for entry in entries:
+        if (
+            not isinstance(entry, TrainingCatalogueEntry)
+            or entry.kind != TrainingCatalogueEntry.Kind.SPECIALITY
+        ):
+            raise ValidationError(_("Tria les especialitats del catàleg d'especialitats."))
+        if not entry.active and entry.pk not in keep:
+            raise ValidationError(_("Una de les especialitats està desactivada."))
+    return entries
 
 
 _REQUIRED = ("title", "starts_on", "ends_on", "registration_closes_at", "responsible")
@@ -273,7 +316,9 @@ def _reject_unknown(data: dict, allowed) -> None:
 
 
 @transaction.atomic
-def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> Activity:
+def create_course(
+    *, by, catalogue_entry, today=None, request=None, required_specialities=(), **data
+) -> Activity:
     """Crea un curs en esborrany a partir d'una fitxa del catàleg. El que no es doni es copia de
     la fitxa: places, preus vigents avui, si és oberta a no socis i departament."""
     permissions.require(by, permissions.MANAGE)
@@ -289,8 +334,11 @@ def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> A
     data.setdefault("price_non_member_cents", current.non_member_cents)
     data.setdefault("open_to_non_members", catalogue_entry.open_to_non_members)
     data.setdefault("department", catalogue_entry.department)
+    data.setdefault("min_age", catalogue_entry.min_age)
     _require_fields(data, _REQUIRED)
-    data = _clean(_defaults(data))
+    data = _clean(_defaults(data, catalogue_entry.default_requirements_mode))
+    _check_new_level(data.get("min_level"))
+    specialities = _specialities(required_specialities)
     _check_dates(data["starts_on"], data["ends_on"], data["registration_closes_at"])
     differs = _differs(data, current)
     if differs and not data.get("price_override_note"):
@@ -309,6 +357,7 @@ def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> A
         catalogue_entry=catalogue_entry,
         **data,
     )
+    activity.required_specialities.set(specialities)
     if differs:
         _notify_price_override(activity, by=by, catalogue_price=current)
     return activity
@@ -316,7 +365,15 @@ def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> A
 
 @transaction.atomic
 def create_outing(
-    *, by, outing_type, subtype=None, project=None, today=None, request=None, **data
+    *,
+    by,
+    outing_type,
+    subtype=None,
+    project=None,
+    today=None,
+    request=None,
+    required_specialities=(),
+    **data,
 ) -> Activity:
     """Crea una sortida en esborrany. El subtipus i el projecte, només si el tipus és de medi
     ambient (CA-M02-03). El departament, si no es dona, és el del tipus."""
@@ -325,9 +382,11 @@ def create_outing(
     catalogue.check_outing_classification(outing_type, subtype, project)
     data.setdefault("department", outing_type.default_department)
     _require_fields(data, (*_REQUIRED, "max_places", *PRICE_FIELDS))
-    data = _clean(_defaults(data))
+    data = _clean(_defaults(data, outing_type.default_requirements_mode))
     _check_dates(data["starts_on"], data["ends_on"], data["registration_closes_at"])
-    return _create(
+    _check_new_level(data.get("min_level"))
+    specialities = _specialities(required_specialities)
+    activity = _create(
         by=by,
         request=request,
         details={},
@@ -337,6 +396,8 @@ def create_outing(
         project=project,
         **data,
     )
+    activity.required_specialities.set(specialities)
+    return activity
 
 
 def _logged(name, value):
@@ -344,7 +405,9 @@ def _logged(name, value):
 
 
 @transaction.atomic
-def update_activity(activity, *, by, today=None, request=None, **fields) -> list[str]:
+def update_activity(
+    activity, *, by, today=None, request=None, required_specialities=None, **fields
+) -> list[str]:
     """Canvia dades d'una activitat que encara no s'ha fet ni cancel·lat. Torna els camps que han
     canviat; el registre en guarda el valor anterior."""
     permissions.require(by, permissions.MANAGE)
@@ -360,6 +423,12 @@ def update_activity(activity, *, by, today=None, request=None, **fields) -> list
         if value is not None and not isinstance(value, _FOREIGN_KEYS[name]):
             raise ValidationError(_("El subtipus o el projecte no és vàlid."))
     fields = _clean(fields)
+    if "min_level" in fields and fields["min_level"] != locked.min_level:
+        _check_new_level(fields["min_level"])
+    held = sorted(locked.required_specialities.values_list("pk", flat=True))
+    wanted = held
+    if required_specialities is not None:
+        wanted = sorted(e.pk for e in _specialities(required_specialities, keep=held))
     merged = {
         name: fields.get(name, getattr(locked, name)) for name in EDITABLE_FIELDS[locked.kind]
     }
@@ -383,20 +452,34 @@ def update_activity(activity, *, by, today=None, request=None, **fields) -> list
                     _("El preu és diferent del del catàleg: cal escriure'n el motiu.")
                 )
             notify = current
-    if not changes:
+    if not changes and wanted == held:
         return []
     for name in changes:
         setattr(locked, name, fields[name])
         setattr(activity, name, fields[name])
-    locked.save(update_fields=[*changes, "updated_at"])
-    audit.record_changes(
-        ACTIVITY_UPDATED,
-        actor=by,
-        target=locked,
-        changes=changes,
-        reason=merged["price_override_note"] if price_changed else "",
-        request=request,
-    )
+    if changes:
+        locked.save(update_fields=[*changes, "updated_at"])
+        audit.record_changes(
+            ACTIVITY_UPDATED,
+            actor=by,
+            target=locked,
+            changes=changes,
+            reason=merged["price_override_note"] if price_changed else "",
+            request=request,
+        )
+    changed = sorted(changes)
+    if wanted != held:
+        locked.required_specialities.set(wanted)
+        audit.record(
+            ACTIVITY_UPDATED,
+            actor=by,
+            target=locked,
+            field="required_specialities",
+            old=held,
+            new=wanted,
+            request=request,
+        )
+        changed = sorted([*changed, "required_specialities"])
     if notify is not None:
         _notify_price_override(locked, by=by, catalogue_price=notify)
-    return sorted(changes)
+    return changed

@@ -176,6 +176,7 @@ def test_ca_m02_02_editing_the_price_away_from_the_catalogue_warns_too(client, m
         price_non_member_cents="70",
         payment_window_hours="72",
         requirements_mode="warn",
+        specialities_rule="all",
         department=course.department.pk,
         responsible=course.responsible.pk,
     )
@@ -279,6 +280,7 @@ def test_editing_saves_the_changes_with_the_previous_value(client, manager):
         title="Títol nou inventat",
         payment_window_hours="72",
         requirements_mode="warn",
+        specialities_rule="all",
         department=outing.department.pk,
         responsible=outing.responsible.pk,
     )
@@ -374,7 +376,7 @@ def test_an_activity_whose_day_has_passed_is_marked_done(client, manager):
     assert past.status == S.DONE
     page = detail(client, past)
     assert "Activitat marcada com a feta" in page
-    assert "Cancel·la l&#x27;activitat" not in page and ">Edita<" not in page
+    assert "Cancel·la l'activitat" not in page and ">Edita<" not in page
 
 
 def test_a_step_that_does_not_exist_or_does_not_apply_changes_nothing(client, manager):
@@ -600,3 +602,73 @@ def test_the_detail_shows_no_personal_data_beyond_names(client, manager):
     assert str(person) in page
     assert "responsable.inventada@example.org" not in page
     assert 'href="https://example.org/previsio"' in page  # només un enllaç (RN-M02-24)
+
+
+# --- Requisits a la pantalla (T-M02-29 i T-M02-32) ------------------------------------------------
+
+
+def test_requirements_are_set_on_the_form_and_shown_on_the_detail(client, manager):
+    from apps.activities import catalogue
+    from apps.activities.models import TrainingCatalogueEntry
+
+    level = catalogue.create_level(by=manager, name="Nivell inventat B1", rank=10)
+    first, second = (
+        an_entry(manager, kind=TrainingCatalogueEntry.Kind.SPECIALITY, name=f"Especialitat {x}")
+        for x in "AB"
+    )
+    course_entry = an_entry(manager, name="Curs que no és una especialitat")
+    form = text(client.get(OUTING_ADD))
+    assert "Especialitat A" in form and "Nivell inventat B1" in form
+    assert (
+        f'value="{course_entry.pk}"'
+        not in form.split("Especialitats exigides")[1].split("</fieldset>")[0]
+    )
+    data = outing_data(
+        manager,
+        min_level=level.pk,
+        required_specialities=[first.pk, second.pk],
+        specialities_rule="any",
+        min_age="16",
+    )
+    assert client.post(OUTING_ADD, data).status_code == 303
+    outing = Activity.objects.get()
+    assert (outing.min_level, outing.specialities_rule, outing.min_age) == (level, "any", 16)
+    assert set(outing.required_specialities.all()) == {first, second}
+    page = detail(client, outing)
+    assert "Nivell inventat B1" in page and "Cal alguna d'aquestes especialitats" in page
+    assert "16 anys" in page
+    # Una fitxa de curs no es pot enviar com a especialitat.
+    response = client.post(
+        OUTING_ADD, outing_data(manager, title="Una altra", required_specialities=[course_entry.pk])
+    )
+    assert response.status_code == 200
+    assert Activity.objects.count() == 1
+
+
+def test_editing_keeps_and_changes_the_requirements(client, manager):
+    from apps.activities import catalogue
+    from apps.activities.models import TrainingCatalogueEntry
+
+    level = catalogue.create_level(by=manager, name="Nivell inventat B1", rank=10)
+    speciality = an_entry(
+        manager, kind=TrainingCatalogueEntry.Kind.SPECIALITY, name="Especialitat A"
+    )
+    outing = an_outing(manager, min_level=level, required_specialities=[speciality], min_age=16)
+    edit = url("activity_edit", outing.pk)
+    form = text(client.get(edit))
+    assert "checked" in form and "selected" in form
+    data = outing_data(
+        manager,
+        title=outing.title,
+        payment_window_hours="72",
+        requirements_mode="block",
+        specialities_rule="all",
+        department=outing.department.pk,
+        responsible=outing.responsible.pk,
+        min_level=level.pk,
+        min_age="",
+    )
+    assert client.post(edit, data).status_code == 303
+    outing.refresh_from_db()
+    assert (outing.requirements_mode, outing.min_age, outing.min_level) == ("block", None, level)
+    assert not outing.required_specialities.exists()  # s'han desmarcat

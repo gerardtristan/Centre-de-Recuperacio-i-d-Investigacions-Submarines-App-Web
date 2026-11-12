@@ -1,0 +1,47 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-29: llista de nivells de titulació (AC6; addenda de la 058; RN-M02-27). L'ordre diu quin nivell és més alt. S'afegeixen i es desactiven; res no s'esborra. Cap dada personal: aquí no hi ha les titulacions de ningú. #}
+{% block title %}{% translate "Nivells de titulació" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Nivells de titulació" %}</h1>
+  {% include "activities/_missatges.html" %}
+  <p class="text-2">{% translate "Una activitat pot demanar un nivell mínim: compleix qui té aquell nivell o un de més alt." %}</p>
+  {% if levels %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=levels|length %}{{ total }} nivell{% plural %}{{ total }} nivells{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Nivell" %}</th>
+          <th scope="col">{% translate "Ordre" %}</th>
+          <th scope="col">{% translate "Agència o federació" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Accions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for level in levels %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ level.name }}</th>
+            <td data-etiqueta="{% translate 'Ordre' %}">{{ level.rank }}</td>
+            <td data-etiqueta="{% translate 'Agència o federació' %}">{{ level.agency|default:"—" }}</td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_active.html" with active=level.active %}</td>
+            <td class="cel-accions">{% url 'administration:certification_level_active' level.pk as toggle_url %}{% include "activities/_toggle.html" with action=toggle_url active=level.active name=level.name %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Encara no hi ha cap nivell." %}</p>
+  {% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    <fieldset>
+      <legend>{% translate "Afegeix un nivell" %}</legend>
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Afegeix el nivell" %}</button></div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

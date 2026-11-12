@@ -83,6 +83,9 @@ ROUTES: dict = {
     "administration:outing_types": _read_then_write(AC6),
     "administration:outing_type_active": _both((AC6, WRITE)),
     "administration:outing_subtype_active": _both((AC6, WRITE)),
+    "administration:outing_type_mode": _both((AC6, WRITE)),  # T-M02-29
+    "administration:certification_levels": _read_then_write(AC6),
+    "administration:certification_level_active": _both((AC6, WRITE)),
     "administration:projects": _read_then_write(AC6),
     "administration:project_detail": _both((AC6, READ)),
     # --- Activitats (T-M02-06; AC7) ---

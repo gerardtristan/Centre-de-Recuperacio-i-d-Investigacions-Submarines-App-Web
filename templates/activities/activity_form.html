@@ -9,7 +9,21 @@
   <form class="formulari" method="post" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% for field in form %}
+      {% if field.name == "required_specialities" %}
+        <fieldset>
+          <legend>{{ field.label }}</legend>
+          {% for box in field %}
+            <label class="casella" for="{{ box.id_for_label }}">{{ box.tag }} <span>{{ box.choice_label }}</span></label>
+          {% empty %}
+            <p class="text-2">{% translate "El catàleg d'especialitats encara no en té cap." %}</p>
+          {% endfor %}
+          {{ field.errors }}
+        </fieldset>
+      {% else %}
+        {% include "accounts/_camp.html" %}
+      {% endif %}
+    {% endfor %}
     <p class="ajuda">{% if activity %}{% translate "Cada canvi queda al registre d'activitat amb el valor anterior." %}{% else %}{% translate "L'activitat es crea en esborrany: no surt enlloc fins que es publica." %}{% endif %}</p>
     <div class="accions">
       <button class="boto boto-principal" type="submit">{% translate "Desa l'activitat" %}</button>

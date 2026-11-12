@@ -91,6 +91,16 @@ def test_manager_keeps_the_catalogue_and_changes_a_price(page, live_server, mana
     review("tipus-de-sortida")
     audit(page, "tipus-de-sortida", accessibility)
 
+    # Nivells de titulació (T-M02-29): la llista que fan servir els requisits de les activitats.
+    press(page, "link", "Nivells de titulació")
+    expect(page.get_by_text("Encara no hi ha cap nivell.")).to_be_visible()
+    page.get_by_label("Nom del nivell").fill("Nivell inventat B1")
+    page.get_by_label("Ordre").fill("10")
+    press(page, "button", "Afegeix el nivell")
+    expect(page.get_by_text("Nivell afegit.")).to_be_visible()
+    review("nivells")
+    audit(page, "nivells", accessibility)
+
     press(page, "link", "Projectes de medi ambient")
     page.get_by_label("Nom del projecte").fill("Projecte inventat de neteja")
     page.get_by_label("Objectiu").fill("Objectiu inventat.")

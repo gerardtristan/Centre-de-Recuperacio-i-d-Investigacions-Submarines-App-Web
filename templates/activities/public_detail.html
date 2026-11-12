@@ -18,6 +18,9 @@
     {% if activity.open_to_non_members %}<div><dt>{% translate "Preu per als no socis" %}</dt><dd class="import">{{ activity.price_non_member }}</dd></div>{% else %}<div><dt>{% translate "Qui s'hi pot inscriure" %}</dt><dd>{% translate "Només socis del club" %}</dd></div>{% endif %}
     {% if activity.registration_open %}<div><dt>{% translate "Inscripcions fins al" %}</dt><dd><time datetime="{{ activity.registration_closes_at|date:'c' }}">{{ activity.registration_closes_at|date:"d/m/Y H:i" }}</time></dd></div>{% endif %}
     {% if activity.required_level %}<div><dt>{% translate "Titulació mínima" %}</dt><dd>{{ activity.required_level }}</dd></div>{% endif %}
+    {% if activity.min_level %}<div><dt>{% translate "Nivell mínim" %}</dt><dd>{{ activity.min_level }}</dd></div>{% endif %}
+    {% if activity.specialities %}<div><dt>{% if activity.any_speciality %}{% translate "Cal alguna d'aquestes especialitats" %}{% else %}{% translate "Especialitats exigides" %}{% endif %}</dt><dd>{{ activity.specialities|join:", " }}</dd></div>{% endif %}
+    {% if activity.min_age %}<div><dt>{% translate "Edat mínima" %}</dt><dd>{% blocktranslate count years=activity.min_age %}{{ years }} any{% plural %}{{ years }} anys{% endblocktranslate %}</dd></div>{% endif %}
     {% if activity.licence_required %}<div><dt>{% translate "Llicència" %}</dt><dd>{% translate "Cal llicència vigent" %}</dd></div>{% endif %}
     {% if activity.forecast_url %}<div><dt>{% translate "Previsió marítima" %}</dt><dd><a href="{{ activity.forecast_url }}" rel="noopener noreferrer">{% translate "Obre la previsió" %}</a></dd></div>{% endif %}
   </dl>

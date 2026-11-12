@@ -20,6 +20,7 @@ from apps.accounts.models import Account
 from apps.activities import catalogue, sessions
 from apps.activities.models import (
     Activity,
+    CertificationLevel,
     EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
@@ -66,6 +67,8 @@ OBJECT_FOR_ROUTE = {
     "administration:catalogue_entry_prices": "entry",
     "administration:catalogue_entry_active": "entry",
     "administration:outing_type_active": "outing_type",
+    "administration:outing_type_mode": "outing_type",
+    "administration:certification_level_active": "level",
     "administration:outing_subtype_active": "subtype",
     "administration:project_detail": "project",
 }
@@ -97,6 +100,7 @@ def world(make_admin):  # noqa: F811
         project=catalogue.create_project(
             by=issuer, name="Projecte inventat", objective="Objectiu.", department=general()
         ),
+        level=catalogue.create_level(by=issuer, name="Nivell inventat", rank=10),
         personal=personal,
     )
 
@@ -123,7 +127,12 @@ def snapshot():
     return (
         list(TrainingCatalogueEntry.objects.order_by("pk").values_list("pk", "active", "name")),
         TrainingCataloguePrice.objects.count(),
-        list(OutingType.objects.order_by("pk").values_list("pk", "active")),
+        list(
+            OutingType.objects.order_by("pk").values_list(
+                "pk", "active", "default_requirements_mode"
+            )
+        ),
+        list(CertificationLevel.objects.order_by("pk").values_list("pk", "active")),
         list(EnvironmentalSubtype.objects.order_by("pk").values_list("pk", "active")),
         EnvironmentalProject.objects.count(),
         list(Activity.objects.order_by("pk").values_list("pk", "status", "title")),
@@ -213,6 +222,9 @@ VALID_POSTS = {
         "subtipus-name": "Subtipus nou inventat",
     },
     "administration:outing_type_active": {"actiu": "0"},
+    "administration:outing_type_mode": {"mode": "block"},
+    "administration:certification_levels": {"name": "Un altre nivell", "rank": "20"},
+    "administration:certification_level_active": {"actiu": "0"},
     "administration:outing_subtype_active": {"actiu": "0"},
     "administration:projects": {
         "name": "Un altre projecte",

@@ -382,3 +382,64 @@ def test_a_project_needs_a_name_and_an_objective(client):
     assert response.status_code == 200
     assert "Cal escriure l&#x27;objectiu del projecte" in text(response)
     assert not EnvironmentalProject.objects.exists()
+
+
+# --- Nivells i mode per defecte (T-M02-29; addenda de la 058) -------------------------------------
+
+LEVELS = reverse("administration:certification_levels")
+
+
+def test_levels_are_added_and_deactivated_from_their_screen(client):
+    from apps.activities.models import CertificationLevel
+
+    assert "Encara no hi ha cap nivell" in text(client.get(LEVELS))
+    assert client.post(LEVELS, {"name": "Nivell inventat B1", "rank": "10"}).status_code == 303
+    assert client.post(LEVELS, {"name": "Nivell inventat B2", "rank": "20"}).status_code == 303
+    response = client.post(LEVELS, {"name": "Un altre", "rank": "10"})
+    assert response.status_code == 200
+    assert "Ja hi ha un nivell amb aquest ordre" in text(response)
+    assert "Aquest camp és obligatori" in text(client.post(LEVELS, {"name": "", "rank": ""}))
+    assert list(CertificationLevel.objects.values_list("name", "rank")) == [
+        ("Nivell inventat B1", 10),
+        ("Nivell inventat B2", 20),
+    ]
+    level = CertificationLevel.objects.get(rank=10)
+    toggle = reverse("administration:certification_level_active", args=[level.pk])
+    assert client.post(toggle, {"actiu": "0"}).status_code == 303
+    level.refresh_from_db()
+    assert level.active is False
+    # Un nivell desactivat no es pot triar per a una activitat nova.
+    form = text(client.get(reverse("administration:activity_outing_add")))
+    assert "Nivell inventat B2" in form and "Nivell inventat B1" not in form
+
+
+def test_ca_m02_34_the_default_mode_of_a_type_is_changed_from_the_screen(client, manager):
+    """CA-M02-34 per la pantalla: es posa «bloqueig» al tipus i la sortida nova hi neix."""
+    seniors = OutingType.objects.get(name="Sèniors")
+    url = reverse("administration:outing_type_mode", args=[seniors.pk])
+    assert client.get(url).status_code == 405
+    assert client.post(url, {"mode": "block"}).status_code == 303
+    seniors.refresh_from_db()
+    assert seniors.default_requirements_mode == "block"
+    assert "Mode per defecte de «Sèniors» desat" in text(client.get(TYPES))
+    client.post(url, {"mode": "inventat"})
+    seniors.refresh_from_db()
+    assert seniors.default_requirements_mode == "block"
+    outing = an_outing(manager, outing_type=seniors)
+    assert outing.requirements_mode == "block"
+    client.post(url, {"mode": ""})
+    seniors.refresh_from_db()
+    assert seniors.default_requirements_mode == ""
+
+
+def test_an_entry_keeps_its_default_mode_and_minimum_age(client):
+    data = entry_data(default_requirements_mode="block", min_age="14")
+    assert client.post(reverse("administration:catalogue_course_add"), data).status_code == 303
+    entry = TrainingCatalogueEntry.objects.get()
+    assert (entry.default_requirements_mode, entry.min_age) == ("block", 14)
+    response = client.post(
+        reverse("administration:catalogue_course_add"),
+        entry_data(name="Un altre curs", min_age="150"),
+    )
+    assert response.status_code == 200
+    assert TrainingCatalogueEntry.objects.count() == 1

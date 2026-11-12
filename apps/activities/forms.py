@@ -20,9 +20,11 @@ from apps.core.permissions import accounts_with_perm
 from . import permissions, sessions
 from .models import (
     Activity,
+    CertificationLevel,
     EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
+    RequirementsMode,
     Session,
     TrainingCatalogueEntry,
 )
@@ -81,6 +83,24 @@ def _moment(label, **kwargs):
     )
 
 
+DEFAULT_MODES = (("", _("El de l'ajust general")), *RequirementsMode.choices)
+
+
+def _default_mode():
+    return forms.ChoiceField(
+        label=_("Mode de requisits per defecte"),
+        choices=DEFAULT_MODES,
+        required=False,
+        help_text=_("El que copien les activitats noves. Cada activitat el pot canviar."),
+    )
+
+
+def _min_age(help_text):
+    return forms.IntegerField(
+        label=_("Edat mínima"), min_value=1, max_value=99, required=False, help_text=help_text
+    )
+
+
 def _departments():
     return Department.objects.filter(active=True).order_by("name")
 
@@ -114,6 +134,8 @@ class CatalogueEntryForm(forms.Form):
         help_text=_("En euros. Es pot deixar en blanc."),
     )
     open_to_non_members = forms.BooleanField(label=_("Oberta a no socis"), required=False)
+    default_requirements_mode = _default_mode()
+    min_age = _min_age(_("En anys. En blanc, sense edat mínima. La copien les activitats noves."))
     department = forms.ModelChoiceField(label=_("Departament"), queryset=Department.objects.none())
 
     PRICES = ("price_member_cents", "price_non_member_cents", "reinforcement_price_cents")
@@ -124,6 +146,8 @@ class CatalogueEntryForm(forms.Form):
         "requirements",
         "default_places",
         "open_to_non_members",
+        "default_requirements_mode",
+        "min_age",
         "department",
     )
 
@@ -174,10 +198,22 @@ class OutingTypeForm(forms.Form):
     default_department = forms.ModelChoiceField(
         label=_("Departament per defecte"), queryset=Department.objects.none()
     )
+    default_requirements_mode = _default_mode()
 
     def __init__(self, data=None):
         super().__init__(data)
         self.fields["default_department"].queryset = _departments()
+
+
+class LevelForm(forms.Form):
+    name = forms.CharField(label=_("Nom del nivell"), max_length=60)
+    rank = forms.IntegerField(
+        label=_("Ordre"),
+        min_value=1,
+        max_value=999,
+        help_text=_("Un número més alt és un nivell més alt. No es pot repetir."),
+    )
+    agency = forms.CharField(label=_("Agència o federació"), max_length=60, required=False)
 
 
 class SubtypeForm(forms.Form):
@@ -200,6 +236,11 @@ class ProjectForm(forms.Form):
 
 
 # --- Activitats (T-M02-06) ------------------------------------------------------------------------
+
+
+class EntryNameField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, entry):
+        return entry.name
 
 
 class EntryChoiceField(forms.ModelChoiceField):
@@ -262,7 +303,30 @@ class ActivityForm(forms.Form):
         label=_("Termini de pagament (hores)"), min_value=1, max_value=720, required=False
     )
     open_to_non_members = forms.BooleanField(label=_("Oberta a no socis"), required=False)
-    required_level = forms.CharField(label=_("Titulació mínima"), max_length=60, required=False)
+    required_level = forms.CharField(
+        label=_("Titulació mínima (text)"),
+        max_length=60,
+        required=False,
+        help_text=_("Només informatiu. El que es comprova és el nivell mínim."),
+    )
+    min_level = forms.ModelChoiceField(
+        label=_("Nivell mínim"),
+        queryset=CertificationLevel.objects.none(),
+        required=False,
+        help_text=_("Compleix qui té aquest nivell o un de més alt."),
+    )
+    required_specialities = EntryNameField(
+        label=_("Especialitats exigides"),
+        queryset=TrainingCatalogueEntry.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    specialities_rule = forms.ChoiceField(
+        label=_("Quantes especialitats calen"),
+        choices=Activity.SpecialitiesRule.choices,
+        required=False,
+    )
+    min_age = _min_age(_("En anys. En blanc, sense edat mínima."))
     licence_required = forms.BooleanField(label=_("Cal llicència vigent"), required=False)
     requirements_mode = forms.ChoiceField(
         label=_("Si algú no compleix els requisits"),
@@ -285,13 +349,24 @@ class ActivityForm(forms.Form):
     COURSE_ONLY = ("catalogue_entry",)
     OUTING_ONLY = ("outing_type", "subtype", "project")
     COPIED_FROM_ENTRY = ("max_places", "price_member_cents", "price_non_member_cents")
-    OPTIONAL_DEFAULTS = ("payment_window_hours", "requirements_mode", "department")
+    OPTIONAL_DEFAULTS = (
+        "payment_window_hours",
+        "requirements_mode",
+        "department",
+        "specialities_rule",
+    )
 
     def __init__(self, data=None, *, kind, activity=None, user=None):
         self.kind, self.activity = kind, activity
         initial = {}
         if activity is not None:
-            initial = {name: getattr(activity, name) for name in self.base_fields}
+            initial = {
+                name: getattr(activity, name)
+                for name in self.base_fields
+                if name != "required_specialities"
+            }
+            held = list(activity.required_specialities.values_list("pk", flat=True))
+            initial["required_specialities"] = held
         elif user is not None:
             initial = {"responsible": user.person_id}
         super().__init__(data, initial=initial)
@@ -306,6 +381,16 @@ class ActivityForm(forms.Form):
             ).order_by("first_name", "last_name", "pk")
         self.fields["responsible"].queryset = people
         self.fields["department"].queryset = _departments()
+        levels = CertificationLevel.objects.filter(active=True)
+        specialities = TrainingCatalogueEntry.objects.filter(
+            kind=TrainingCatalogueEntry.Kind.SPECIALITY, active=True
+        )
+        if activity is not None:
+            # El que ja demana s'hi manté encara que ara estigui desactivat.
+            levels = levels | CertificationLevel.objects.filter(pk=activity.min_level_id)
+            specialities = specialities | activity.required_specialities.all()
+        self.fields["min_level"].queryset = levels.distinct().order_by("rank")
+        self.fields["required_specialities"].queryset = specialities.distinct().order_by("name")
         if course and activity is None:
             self.fields["catalogue_entry"].queryset = TrainingCatalogueEntry.objects.filter(
                 active=True
@@ -341,9 +426,13 @@ class ActivityForm(forms.Form):
         que s'ha deixat en blanc perquè es copiï o prengui el valor per defecte no s'hi posa."""
         data = dict(self.cleaned_data)
         if self.activity is None:
-            for name in (*self.COPIED_FROM_ENTRY, *self.OPTIONAL_DEFAULTS):
+            blank = [*self.COPIED_FROM_ENTRY, *self.OPTIONAL_DEFAULTS]
+            if self.kind == Activity.Kind.COURSE:
+                blank.append("min_age")  # en blanc, la de la fitxa del catàleg
+            for name in blank:
                 if name in data and data[name] in (None, ""):
                     del data[name]
+        data["required_specialities"] = list(data.get("required_specialities") or ())
         return data
 
 

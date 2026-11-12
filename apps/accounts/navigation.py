@@ -92,6 +92,7 @@ ENTRIES = (
         _("Catàleg d'especialitats"),
         ("administration:catalogue_speciality_add",),
     ),
+    ("administration:certification_levels", _("Nivells de titulació"), ()),
     ("administration:outing_types", _("Tipus de sortida"), ()),
     ("administration:projects", _("Projectes de medi ambient"), ("administration:project_detail",)),
     ("administration:guest_links", _("Enllaços de convidat"), ()),

@@ -53,6 +53,9 @@
       <div><dt>{% translate "Oberta a no socis" %}</dt><dd>{% if activity.open_to_non_members %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</dd></div>
       <div><dt>{% translate "Termini de pagament" %}</dt><dd>{% blocktranslate count hours=activity.payment_window_hours %}{{ hours }} hora{% plural %}{{ hours }} hores{% endblocktranslate %}</dd></div>
       {% if activity.required_level %}<div><dt>{% translate "Titulació mínima" %}</dt><dd>{{ activity.required_level }}</dd></div>{% endif %}
+      {% if activity.min_level %}<div><dt>{% translate "Nivell mínim" %}</dt><dd>{{ activity.min_level }}</dd></div>{% endif %}
+      {% if specialities %}<div><dt>{% if any_speciality %}{% translate "Cal alguna d'aquestes especialitats" %}{% else %}{% translate "Especialitats exigides" %}{% endif %}</dt><dd>{{ specialities|join:", " }}</dd></div>{% endif %}
+      {% if activity.min_age %}<div><dt>{% translate "Edat mínima" %}</dt><dd>{% blocktranslate count years=activity.min_age %}{{ years }} any{% plural %}{{ years }} anys{% endblocktranslate %}</dd></div>{% endif %}
       <div><dt>{% translate "Cal llicència vigent" %}</dt><dd>{% if activity.licence_required %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</dd></div>
       <div><dt>{% translate "Si algú no compleix els requisits" %}</dt><dd>{{ activity.get_requirements_mode_display }}</dd></div>
       <div><dt>{% translate "Persona responsable" %}</dt><dd>{{ activity.responsible }}</dd></div>

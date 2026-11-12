@@ -16,6 +16,7 @@
           <th scope="col">{% translate "Tipus" %}</th>
           <th scope="col">{% translate "Medi ambient" %}</th>
           <th scope="col">{% translate "Departament" %}</th>
+          <th scope="col">{% translate "Mode de requisits per defecte" %}</th>
           <th scope="col">{% translate "Estat" %}</th>
           <th scope="col">{% translate "Accions" %}</th>
         </tr>
@@ -26,6 +27,16 @@
             <th scope="row" class="cel-nom">{{ type.name }}</th>
             <td data-etiqueta="{% translate 'Medi ambient' %}">{% if type.is_environmental %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>
             <td data-etiqueta="{% translate 'Departament' %}">{{ type.default_department.name }}</td>
+            <td data-etiqueta="{% translate 'Mode de requisits per defecte' %}">
+              <form method="post" action="{% url 'administration:outing_type_mode' type.pk %}">
+                {% csrf_token %}
+                <div class="camp">
+                  <label class="visualment-amagat" for="mode-{{ type.pk }}">{% blocktranslate with name=type.name %}Mode de requisits per defecte de «{{ name }}»{% endblocktranslate %}</label>
+                  <select id="mode-{{ type.pk }}" name="mode">{% for value, label in modes %}<option value="{{ value }}"{% if value == type.default_requirements_mode %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                </div>
+                <button class="boto boto-petit" type="submit">{% translate "Desa el mode" %}<span class="visualment-amagat">: {{ type.name }}</span></button>
+              </form>
+            </td>
             <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_active.html" with active=type.active %}</td>
             <td class="cel-accions">{% url 'administration:outing_type_active' type.pk as toggle_url %}{% include "activities/_toggle.html" with action=toggle_url active=type.active name=type.name %}</td>
           </tr>

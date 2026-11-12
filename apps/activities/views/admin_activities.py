@@ -58,7 +58,13 @@ FILTERS = (
 def _activity(pk):
     return get_object_or_404(
         Activity.objects.select_related(
-            "catalogue_entry", "outing_type", "subtype", "project", "department", "responsible"
+            "catalogue_entry",
+            "outing_type",
+            "subtype",
+            "project",
+            "department",
+            "responsible",
+            "min_level",
         ),
         pk=pk,
     )
@@ -192,6 +198,8 @@ def activity_detail_view(request, pk):
         "session_rows": session_rows,
         "needs_instructor": bool(without_instructor),
         "blocks": activity.programme_blocks.all(),
+        "specialities": [entry.name for entry in activity.required_specialities.all()],
+        "any_speciality": activity.specialities_rule == Activity.SpecialitiesRule.ANY,
         "steps": _steps(activity, today),
         "last_day": states.last_day(activity),
     }

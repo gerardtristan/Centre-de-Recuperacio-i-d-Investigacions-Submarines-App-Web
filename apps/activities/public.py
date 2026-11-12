@@ -77,6 +77,10 @@ class PublicActivity:
     price_non_member: str
     open_to_non_members: bool
     required_level: str
+    min_level: str
+    specialities: tuple[str, ...]
+    any_speciality: bool
+    min_age: int | None
     licence_required: bool
     registration_open: bool
     registration_closes_at: datetime.datetime
@@ -100,6 +104,9 @@ def _data(activity, *, detail: bool) -> PublicActivity:
             PublicBlock(b.starts_at, b.ends_at, b.label, b.location, b.responsible_label)
             for b in activity.programme_blocks.all()
         )
+    specialities = ()
+    if detail:
+        specialities = tuple(e.name for e in activity.required_specialities.all())
     if activity.kind == Activity.Kind.COURSE:
         type_label = activity.catalogue_entry.get_kind_display()
     else:
@@ -122,6 +129,10 @@ def _data(activity, *, detail: bool) -> PublicActivity:
         price_non_member=euros(activity.price_non_member_cents),
         open_to_non_members=activity.open_to_non_members,
         required_level=activity.required_level,
+        min_level=activity.min_level.name if activity.min_level_id else "",
+        specialities=specialities,
+        any_speciality=activity.specialities_rule == Activity.SpecialitiesRule.ANY,
+        min_age=activity.min_age,
         licence_required=activity.licence_required,
         registration_open=activity.status == S.OPEN,
         registration_closes_at=activity.registration_closes_at,
@@ -145,7 +156,7 @@ def get_activity(pk, *, today=None) -> PublicActivity:
     """Les dades públiques d'una activitat. `NotFound` si no existeix o no és pública."""
     activity = (
         _public(today or timezone.localdate())
-        .select_related("catalogue_entry", "outing_type", "subtype")
+        .select_related("catalogue_entry", "outing_type", "subtype", "min_level")
         .filter(pk=pk)
         .first()
     )

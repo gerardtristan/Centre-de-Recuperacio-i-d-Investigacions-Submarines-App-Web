@@ -56,6 +56,17 @@ urlpatterns = [
         catalogue.outing_subtype_active_view,
         name="outing_subtype_active",
     ),
+    path(
+        "sortides/tipus/<int:pk>/mode/",
+        catalogue.outing_type_mode_view,
+        name="outing_type_mode",
+    ),
+    path("cataleg/nivells/", catalogue.certification_levels_view, name="certification_levels"),
+    path(
+        "cataleg/nivells/<int:pk>/estat/",
+        catalogue.certification_level_active_view,
+        name="certification_level_active",
+    ),
     path("projectes/", catalogue.projects_view, name="projects"),
     path("projectes/<int:pk>/", catalogue.project_detail_view, name="project_detail"),
     # --- Activitats (T-M02-06) ---

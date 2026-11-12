@@ -259,6 +259,16 @@ SERVICES = {
             by=by, name="Tipus inventat", default_department=general()
         ),
     ),
+    "catalogue.create_level": (
+        AC6,
+        lambda w, by: catalogue.create_level(by=by, name="Nivell inventat", rank=5),
+    ),
+    "catalogue.set_outing_type_mode": (
+        AC6,
+        lambda w, by: catalogue.set_outing_type_mode(
+            OutingType.objects.get(name="Sèniors"), "block", by=by
+        ),
+    ),
     "catalogue.create_subtype": (
         AC6,
         lambda w, by: catalogue.create_subtype(by=by, name="Subtipus inventat"),

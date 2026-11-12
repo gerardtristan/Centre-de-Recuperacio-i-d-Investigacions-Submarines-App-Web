@@ -11,6 +11,7 @@
 """
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -22,13 +23,16 @@ from apps.core.permissions import permission_required
 
 from .. import catalogue
 from ..forms import (
+    DEFAULT_MODES,
     CatalogueEntryForm,
+    LevelForm,
     OutingTypeForm,
     PriceChangeForm,
     ProjectForm,
     SubtypeForm,
 )
 from ..models import (
+    CertificationLevel,
     EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
@@ -240,6 +244,7 @@ def outing_types_view(request):
         "subtypes": EnvironmentalSubtype.objects.all(),
         "type_form": type_form,
         "subtype_form": subtype_form,
+        "modes": DEFAULT_MODES,
     }
     return render(request, "activities/outing_types.html", context)
 
@@ -288,3 +293,55 @@ def project_detail_view(request, pk):
     outings = project.activities.select_related("outing_type", "subtype").order_by("-starts_on")
     context = {"project": project, "outings": outings}
     return render(request, "activities/project_detail.html", context)
+
+
+@never_cache
+@permission_required(CATALOGUE, write=True)
+@require_POST
+def outing_type_mode_view(request, pk):
+    """Canvia el mode de requisits per defecte d'un tipus de sortida (RN-M02-29; CA-M02-34)."""
+    outing_type = get_object_or_404(OutingType, pk=pk)
+    try:
+        changed = catalogue.set_outing_type_mode(
+            outing_type, request.POST.get("mode", ""), by=request.user, request=request
+        )
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        if changed:
+            messages.success(
+                request,
+                _("Mode per defecte de «%(name)s» desat. Les sortides ja creades no canvien.")
+                % {"name": outing_type.name},
+            )
+        else:
+            messages.info(request, _("No hi havia cap canvi per desar."))
+    return see_other("administration:outing_types")
+
+
+# --- Nivells de titulació (addenda de la 058) -----------------------------------------------------
+
+
+@never_cache
+@permission_required(CATALOGUE)
+@require_http_methods(["GET", "POST"])
+def certification_levels_view(request):
+    form = LevelForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if run(
+            request,
+            form,
+            lambda: catalogue.create_level(by=request.user, request=request, **form.cleaned_data),
+            _("Nivell afegit."),
+        ):
+            return see_other("administration:certification_levels")
+    context = {"levels": catalogue.levels(), "form": form}
+    return render(request, "activities/certification_levels.html", context)
+
+
+@never_cache
+@permission_required(CATALOGUE, write=True)
+@require_POST
+def certification_level_active_view(request, pk):
+    level = get_object_or_404(CertificationLevel, pk=pk)
+    return _toggle(request, level, "administration:certification_levels")

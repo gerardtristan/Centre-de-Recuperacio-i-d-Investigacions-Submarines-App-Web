@@ -3,6 +3,8 @@
 - **Catàleg** (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20): fitxes de cursos i d'especialitats,
   preus amb versions, tipus de sortida, subtipus i projectes.
 - **Activitat, sessió i bloc de programa** (T-M02-03; M02-6; RN-M02-02 i RN-M02-20).
+- **Nivells, requisits i titulacions** (T-M02-23, T-M02-29 i T-M02-32; addenda de la 058):
+  `CertificationLevel`, els camps de requisits de l'activitat i `DiverCertification`.
 
 Regles comunes:
 - Imports en cèntims (enters, ≥ 0: una activitat pot ser gratuïta, L-M02-06).
@@ -14,9 +16,9 @@ Regles comunes:
   `apps.activities.sessions`.
 
 Encara no existeixen, i cap codi no els simula: `Activity.cost_centre` (el centre de cost és de la
-04), `Session.reinforcement_for` (la inscripció és de la T-M02-11), els camps de l'addenda de la
-058 (`min_level`, especialitats exigides i edat mínima: T-M02-29 i T-M02-32) i la resta d'entitats
-(inscripcions, assistència, avaluacions, titulacions i resultats ambientals).
+04), `Session.reinforcement_for` (la inscripció és de la T-M02-11),
+`DiverCertification.course_outcome` (el resultat del curs és de la T-M02-19) i la resta
+d'entitats (inscripcions, assistència, avaluacions i resultats ambientals).
 """
 
 from django.conf import settings
@@ -25,6 +27,13 @@ from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import AppendOnlyModel, Department, Person
+
+
+class RequirementsMode(models.TextChoices):
+    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+
+    WARN = "warn", _("Avís")
+    BLOCK = "block", _("Bloqueig")
 
 
 class TrainingCatalogueEntry(models.Model):
@@ -50,6 +59,16 @@ class TrainingCatalogueEntry(models.Model):
         _("preu del reforç (cèntims)"), null=True, blank=True
     )
     open_to_non_members = models.BooleanField(_("oberta a no socis"), default=False)
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
+    # Edat mínima que copien les activitats noves (RN-M02-33). Buit: sense edat mínima.
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
@@ -74,6 +93,14 @@ class TrainingCatalogueEntry(models.Model):
             ),
             models.CheckConstraint(
                 condition=Q(default_places__gt=0), name="trainingcatalogueentry_places_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="trainingcatalogueentry_default_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="trainingcatalogueentry_min_age_valid",
             ),
         ]
 
@@ -130,12 +157,26 @@ class OutingType(models.Model):
         related_name="+",
         verbose_name=_("departament per defecte"),
     )
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
     active = models.BooleanField(_("actiu"), default=True)
 
     class Meta:
         verbose_name = _("tipus de sortida")
         verbose_name_plural = _("tipus de sortida")
         ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="outingtype_default_mode_valid",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -191,6 +232,25 @@ class EnvironmentalProject(models.Model):
         return self.name
 
 
+class CertificationLevel(models.Model):
+    """Nivell de titulació de busseig, amb un ordre: un `rank` més alt és un nivell més alt
+    (addenda de la 058; RN-M02-27). La llista la manté el responsable de cursos i sortides; no
+    porta dades inicials [A verificar: FECDAS, S-M02-11]."""
+
+    name = models.CharField(_("nom"), max_length=60, unique=True)
+    rank = models.PositiveSmallIntegerField(_("ordre"), unique=True)
+    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    active = models.BooleanField(_("actiu"), default=True)
+
+    class Meta:
+        verbose_name = _("nivell de titulació")
+        verbose_name_plural = _("nivells de titulació")
+        ordering = ["rank"]
+
+    def __str__(self):
+        return self.name
+
+
 class Activity(models.Model):
     """Una activitat: un curs (d'una fitxa del catàleg) o una sortida (d'un tipus). L'estat només
     canvia amb `apps.activities.states` (RN-M02-02)."""
@@ -209,9 +269,11 @@ class Activity(models.Model):
         CLOSED = "closed", _("Tancada econòmicament")
         CANCELLED = "cancelled", _("Cancel·lada")
 
-    class RequirementsMode(models.TextChoices):
-        WARN = "warn", _("Avís")
-        BLOCK = "block", _("Bloqueig")
+    class SpecialitiesRule(models.TextChoices):
+        ALL = "all", _("Totes")
+        ANY = "any", _("Alguna")
+
+    RequirementsMode = RequirementsMode  # el mateix de les fitxes i els tipus (RN-M02-29)
 
     kind = models.CharField(_("classe"), max_length=10, choices=Kind.choices)
     title = models.CharField(_("títol"), max_length=140)
@@ -274,6 +336,29 @@ class Activity(models.Model):
     price_override_note = models.TextField(_("motiu del preu diferent del catàleg"), blank=True)
     open_to_non_members = models.BooleanField(_("oberta a no socis"), default=False)
     required_level = models.CharField(_("titulació mínima"), max_length=60, blank=True)
+    # Requisits de l'addenda de la 058 (RN-M02-27, 28 i 33). `min_level` fa la funció de
+    # `required_level`, que queda com a text informatiu.
+    min_level = models.ForeignKey(
+        CertificationLevel,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("nivell mínim"),
+    )
+    required_specialities = models.ManyToManyField(
+        TrainingCatalogueEntry,
+        blank=True,
+        related_name="required_by",
+        verbose_name=_("especialitats exigides"),
+    )
+    specialities_rule = models.CharField(
+        _("quantes especialitats calen"),
+        max_length=3,
+        choices=SpecialitiesRule.choices,
+        default=SpecialitiesRule.ALL,
+    )
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
     licence_required = models.BooleanField(_("cal llicència vigent"), default=False)
     requirements_mode = models.CharField(
         _("si no es compleixen els requisits"),
@@ -346,6 +431,14 @@ class Activity(models.Model):
                 condition=Q(ends_on__gte=F("starts_on")), name="activity_ends_after_it_starts"
             ),
             models.CheckConstraint(condition=Q(max_places__gt=0), name="activity_places_positive"),
+            models.CheckConstraint(
+                condition=Q(specialities_rule__in=["all", "any"]),
+                name="activity_specialities_rule_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="activity_min_age_valid",
+            ),
             models.CheckConstraint(
                 condition=~Q(status="cancelled") | ~Q(cancellation_reason=""),
                 name="activity_cancelled_has_reason",
@@ -434,3 +527,93 @@ class ProgrammeBlock(models.Model):
 
     def __str__(self):
         return f"{self.starts_at:%H:%M} {self.label}"
+
+
+class DiverCertification(models.Model):
+    """Titulació de busseig d'una persona: un nivell o una especialitat (T-M02-23; M02-6 i
+    addenda de la 058; RN-M02-10, RN-M02-30 i RN-M02-32). És una dada personal: només la veu qui
+    té permís i surt a l'exportació RGPD de la persona. Cap foto ni escaneig del carnet.
+
+    - `source`: `club_course` (un curs del club), `declared` (ho diu la persona) o `imported`.
+    - Verificada: `verified_by` i `verified_at` informats. En mode de bloqueig només compten les
+      verificades i les del club (RN-M02-30)."""
+
+    class Source(models.TextChoices):
+        CLUB_COURSE = "club_course", _("Curs del club")
+        DECLARED = "declared", _("Declarada")
+        IMPORTED = "imported", _("Importada")
+
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="diver_certifications",
+        verbose_name=_("persona"),
+    )
+    level = models.ForeignKey(
+        CertificationLevel,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="certifications",
+        verbose_name=_("nivell"),
+    )
+    speciality = models.ForeignKey(
+        TrainingCatalogueEntry,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="certifications",
+        verbose_name=_("especialitat"),
+    )
+    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    issuer = models.CharField(_("qui l'ha emesa"), max_length=120, blank=True)
+    number = models.CharField(_("número de la titulació"), max_length=40, blank=True)
+    certificate_number = models.CharField(_("número del certificat"), max_length=40, blank=True)
+    issued_on = models.DateField(_("data"), null=True, blank=True)
+    source = models.CharField(_("origen"), max_length=12, choices=Source.choices)
+    instructor = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("instructor"),
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("verificada per"),
+    )
+    verified_at = models.DateTimeField(_("verificada el"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("titulació")
+        verbose_name_plural = _("titulacions")
+        ordering = ["person_id", "pk"]
+        indexes = [models.Index(fields=["person"], name="divercert_person_idx")]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(level__isnull=False) | Q(speciality__isnull=False),
+                name="divercert_level_or_speciality",
+            ),
+            models.CheckConstraint(
+                condition=Q(source__in=["club_course", "declared", "imported"]),
+                name="divercert_source_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(verified_by__isnull=True, verified_at__isnull=True)
+                | Q(verified_by__isnull=False, verified_at__isnull=False),
+                name="divercert_verified_by_and_at_together",
+            ),
+        ]
+
+    def __str__(self):
+        return str(self.level or self.speciality)
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verified_by_id is not None
