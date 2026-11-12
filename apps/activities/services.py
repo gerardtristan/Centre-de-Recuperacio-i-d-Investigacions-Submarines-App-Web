@@ -66,8 +66,12 @@ PRICE_NOTICE_SENT = "activities.activity.price_notice_sent"
 # d'ajustos; quan la T-M02-28 les declari, `_setting` llegirà el valor vigent.
 PAYMENT_WINDOW_KEY = "activities.default_payment_window_hours"  # VC-21
 REQUIREMENTS_MODE_KEY = "activities.default_requirements_mode"  # VC-24
+OFFER_HOURS_KEY = "activities.offer_accept_hours"  # VC-22
+REMINDER_DAYS_KEY = "activities.reminder_days_before"  # VC-23
 _INITIAL_SETTINGS = {
     PAYMENT_WINDOW_KEY: 72,
+    OFFER_HOURS_KEY: 48,
+    REMINDER_DAYS_KEY: 2,
     REQUIREMENTS_MODE_KEY: Activity.RequirementsMode.WARN.value,
 }
 
@@ -115,6 +119,9 @@ def _setting(key):
         return business_settings.get(key)
     except Setting.DoesNotExist:
         return _INITIAL_SETTINGS[key]
+
+
+setting = _setting  # per a la resta de peces del 02
 
 
 def _positive(value, message) -> int:

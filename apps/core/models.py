@@ -665,6 +665,16 @@ class Charge(UndeletableModel):
     )
     # Mòdul que l'ha creat: «members», «activities», «licences»…
     origin = models.CharField(_("mòdul d'origen"), max_length=30)
+    # Activitat a què correspon (spec 00: «opcional, quan existeixi la 02»). L'omple el 02 en
+    # crear el càrrec d'una inscripció o d'un reforç; la resta de càrrecs no en tenen.
+    activity = models.ForeignKey(
+        "activities.Activity",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="charges",
+        verbose_name=_("activitat"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

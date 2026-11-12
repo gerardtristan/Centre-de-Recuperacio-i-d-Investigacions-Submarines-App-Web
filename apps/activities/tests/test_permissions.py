@@ -25,14 +25,17 @@ from apps.accounts.models import Account
 from apps.activities import (
     catalogue,
     duplicate,
+    enrolment,
     environment,
     permissions,
     services,
     sessions,
     states,
+    waitlist,
 )
 from apps.activities.models import (
     Activity,
+    Enrolment,
     EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
@@ -51,10 +54,12 @@ from conftest import PASSWORD
 
 from .helpers import (
     BEFORE_DEADLINE,
+    PUBLISHED,
     REASON,
     TODAY,
     a_course,
     a_done_environmental_outing,
+    a_member,
     a_person,
     an_entry,
     an_outing,
@@ -207,6 +212,7 @@ def test_roles_outside_the_table_have_nothing_of_the_module(make_admin):  # noqa
 # --- Serveis: el permís també fora de la vista ----------------------------------------------------
 
 AC6, AC7 = permissions.CATALOGUE, permissions.MANAGE
+AC16 = permissions.WAITLIST
 
 
 @pytest.fixture
@@ -232,7 +238,21 @@ def world(make_admin):  # noqa: F811
     personal = Account.objects.create_personal(own, "propia@example.org", PASSWORD)
     personal.status = Account.Status.ACTIVE
     personal.save()
+    # Una sortida amb una plaça: la primera inscripció ha caducat (plaça lliure) i dues
+    # persones esperen.
+    full = an_outing(issuer, title="Sortida plena inventada", max_places=1)
+    states.publish(full, by=issuer, now=PUBLISHED)
+    rows = []
+    for _ in range(3):
+        member = a_member()
+        rows.append(
+            enrolment.enrol(
+                full, member.person, channel="account", actor=member, now=BEFORE_DEADLINE
+            )
+        )
+    Enrolment.objects.filter(pk=rows[0].pk).update(status=Enrolment.Status.EXPIRED)
     return SimpleNamespace(
+        waiting=rows[1:],
         entry=entry,
         course=course,
         session=session,
@@ -340,6 +360,14 @@ SERVICES = {
         AC7,
         lambda w, by: sessions.cancel_session(w.session, by=by, reason=REASON),
     ),
+    "waitlist.move": (
+        AC16,
+        lambda w, by: waitlist.move(w.waiting[1], 1, by=by, reason=REASON),
+    ),
+    "waitlist.offer_to": (
+        AC16,
+        lambda w, by: waitlist.offer_to(w.waiting[0], by=by, now=BEFORE_DEADLINE),
+    ),
     "sessions.set_programme": (
         AC7,
         lambda w, by: sessions.set_programme(
@@ -362,6 +390,7 @@ def snapshot():
         list(Session.objects.order_by("pk").values_list("pk", "cancelled", "location")),
         Session.instructors.through.objects.count(),
         ProgrammeBlock.objects.count(),
+        list(Enrolment.objects.order_by("pk").values_list("pk", "status", "waitlist_position")),
         AuditEntry.objects.count(),
     )
 
@@ -370,7 +399,7 @@ def test_every_service_that_changes_data_is_in_the_table():
     """Tota funció pública dels serveis del 02 que rep `by` comprova un permís i té la seva fila
     a `SERVICES`: un servei nou sense permís o sense prova fa fallar això."""
     found = set()
-    for module in (catalogue, services, states, sessions, duplicate, environment):
+    for module in (catalogue, services, states, sessions, duplicate, environment, waitlist):
         short = module.__name__.rsplit(".", 1)[-1]
         for name, function in inspect.getmembers(module, inspect.isfunction):
             if function.__module__ != module.__name__ or name.startswith("_"):

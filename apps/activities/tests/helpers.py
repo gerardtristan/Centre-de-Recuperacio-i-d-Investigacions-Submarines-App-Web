@@ -128,3 +128,78 @@ def a_done_environmental_outing(by, **fields):
     Activity.objects.filter(pk=outing.pk).update(status=Activity.Status.DONE)
     outing.refresh_from_db()
     return outing
+
+
+# --- Inscripcions (T-M02-11 i següents) ----------------------------------------------------------
+
+PUBLISHED = at(2027, 5, 20, 9)  # abans de BEFORE_DEADLINE
+_member_numbers = itertools.count(9001)
+
+
+def a_member(first="Sòcia", *, status="active", account=True):
+    """Una persona sòcia inventada, amb el compte personal actiu. Torna el compte (o la persona,
+    si `account=False`)."""
+    from apps.members.models import Member, MembershipType
+
+    number = next(_member_numbers)
+    person = Person.objects.create(first_name=first, last_name="Prova", origin=Person.Origin.WEB)
+    Member.objects.create(
+        person=person,
+        member_number=number,
+        type=MembershipType.objects.get(code="full"),
+        status=status,
+        joined_on=datetime.date(2019, 3, 12),
+    )
+    if not account:
+        return person
+    return a_personal_account(person, f"soci{number}@example.org")
+
+
+def a_personal_account(person=None, email=None):
+    """Un compte personal actiu d'una persona que no és sòcia (o de la que es doni)."""
+    from apps.accounts.models import Account
+
+    person = person or a_person("Convidada")
+    email = email or f"persona{next(_numbers)}@example.org"
+    account = Account.objects.create_personal(person, email)
+    account.status = Account.Status.ACTIVE
+    account.save()
+    return account
+
+
+def an_open_outing(by, **fields):
+    """Una sortida publicada, amb les inscripcions obertes fins a `CLOSES`."""
+    from apps.activities import states
+
+    outing = an_outing(by, **fields)
+    states.publish(outing, by=by, now=PUBLISHED)
+    outing.refresh_from_db()
+    return outing
+
+
+def an_open_course(by, entry=None, **fields):
+    from apps.activities import states
+
+    course = a_course(by, entry, **fields)
+    states.publish(course, by=by, now=PUBLISHED)
+    course.refresh_from_db()
+    return course
+
+
+def pay(charge):
+    """Pagament confirmat pel proveïdor (mode de proves), amb el servei real de la 00. No avisa
+    el 02: això ho fa l'esdeveniment `charge.paid` (T-M05b-21)."""
+    from apps.core import audit, charges
+    from apps.core.models import Payment
+
+    payment = Payment.objects.create(
+        charge=charge,
+        method=Payment.Method.CARD,
+        amount_cents=charge.amount_cents,
+        provider_status="prova",
+        provider_reference=f"PROVA-{charge.pk}",
+        paid_at=timezone.now(),
+    )
+    charges.mark_paid(charge, payment, origin="provider", by=audit.system("proves"))
+    charge.refresh_from_db()
+    return payment

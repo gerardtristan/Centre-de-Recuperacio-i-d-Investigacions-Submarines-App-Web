@@ -73,9 +73,18 @@ def deactivate_department(department: Department, *, by) -> None:
 
 @transaction.atomic
 def create_charge(
-    person, *, kind: str, amount_cents: int, concept: str, origin: str, by, department=None
+    person,
+    *,
+    kind: str,
+    amount_cents: int,
+    concept: str,
+    origin: str,
+    by,
+    department=None,
+    activity=None,
 ) -> Charge:
-    """Crea un càrrec pendent. Les quotes van sempre a «General» (CA-15.8; Q-18)."""
+    """Crea un càrrec pendent. Les quotes van sempre a «General» (CA-15.8; Q-18). `activity`:
+    l'activitat del 02 a què correspon (inscripcions i reforç); una quota no en té."""
     # Abans de `full_clean`, que convertiria 12.5 en 12 sense dir res.
     validate_cents(amount_cents)
     if kind == Charge.Kind.FEE:
@@ -83,6 +92,8 @@ def create_charge(
         if department is not None and department != general:
             raise ValidationError(_("Les quotes van al departament «General»."))
         department = general
+        if activity is not None:
+            raise ValidationError(_("Una quota no és de cap activitat."))
     if department is None:
         raise ValidationError(_("Tot càrrec necessita un departament (RN-62)."))
     charge = Charge(
@@ -92,6 +103,7 @@ def create_charge(
         concept=concept.strip(),
         origin=origin,
         department=department,
+        activity=activity,
     )
     charge.full_clean()
     charge.save()
@@ -104,6 +116,7 @@ def create_charge(
             "amount_cents": amount_cents,
             "department": department.name,
             "origin": origin,
+            **({"activity": activity.pk} if activity is not None else {}),
         },
     )
     return charge
