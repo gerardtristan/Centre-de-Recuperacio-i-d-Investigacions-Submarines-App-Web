@@ -57,7 +57,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Actiu:** el CI mesura la cobertura (`pytest-cov`) i falla si baixa del llindar de `.github/workflows/ci.yml`; el llindar només puja. L'entorn de proves temporal està aprovat, però **no es crea fins que el propietari digui que sí al cost**.
 - **Inactiu (regla anterior):** la cobertura no es mesura al CI; l'aplicació només corre en local.
 
-### D6 — Branca del mòdul 02 aparcada: **inactiu**
+### D6 — Branca del mòdul 02 aparcada: **actiu**
 - **Actiu:** `feature/t-m02-activitats` queda aparcada (etiqueta i nota a `docs/estat/M02.md`). No s'hi treballa ni es fusiona fins que existeixi la llesca del primer cobrament. No s'esborra.
 - **Inactiu (regla anterior):** s'hi pot continuar treballant.
 
