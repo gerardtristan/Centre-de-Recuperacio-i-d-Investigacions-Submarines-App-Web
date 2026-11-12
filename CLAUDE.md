@@ -49,7 +49,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Actiu:** la fase 1 es construeix per llesques que travessen el 04, el 05a i el 05b (apartat 3 del pla d'acceleració), respectant les dependències entre tasques. La primera és el primer cobrament amb un proveïdor fals. Cada llesca acaba amb una prova de flux sencer.
 - **Inactiu (regla anterior):** mòdul sencer darrere mòdul sencer: 04 → 05a → 05b.
 
-### D4 — Classes de PR per risc: **inactiu**
+### D4 — Classes de PR per risc: **actiu**
 - **Actiu:** cada PR porta l'etiqueta `risc:baix`, `risc:mitja` o `risc:alt`. Les de risc baix i mitjà es fusionen amb el CI verd i una revisió automàtica, sense esperar el propietari. **El propietari aprova abans les `risc:alt`**: diners, pagaments, permisos, autenticació, RGPD, xifratge, importacions, migracions, dependències noves, el CI, aquest fitxer i les regles del pla. No fusionis mai una PR `risc:alt` sense un sí escrit del propietari. Mida: menys de 800 línies per PR i, com a màxim, 400 de codi d'aplicació. Al final de cada sessió, deixa un resum de 5 línies per al propietari: què s'ha fusionat sense ell, què espera la seva aprovació i quines preguntes noves hi ha al tauler.
 - **Inactiu (regla anterior):** res no es fusiona sense la validació d'una persona.
 
