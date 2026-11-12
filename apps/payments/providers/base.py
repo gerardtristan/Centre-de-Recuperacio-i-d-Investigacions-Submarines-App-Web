@@ -1,12 +1,8 @@
 """Adaptador del proveïdor de pagaments (M05a-8; decisió 043; T-M05a-03).
 
-La resta de l'aplicació només crida aquesta interfície: canviar de proveïdor no toca res més.
-Cap mètode rep ni retorna dades de targeta ni cap IBAN: només imports en cèntims, identificadors
-del proveïdor i referències opaques.
-
-La salvaguarda del nivell 1 (RN-M05a-11) és aquí i no a cada implementació: `create_order` i
-`charge_saved_card` no arriben al proveïdor si l'entorn és el real i els cobraments reals no
-estan autoritzats.
+La resta de l'aplicació només crida aquesta interfície. Cap mètode rep ni retorna dades de
+targeta ni cap IBAN: només imports en cèntims, identificadors del proveïdor i referències opaques.
+La salvaguarda del nivell 1 (RN-M05a-11) és aquí i no a cada implementació.
 """
 
 from abc import ABC, abstractmethod

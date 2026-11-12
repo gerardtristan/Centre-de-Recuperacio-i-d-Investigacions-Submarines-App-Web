@@ -1,11 +1,6 @@
 """Proveïdor fals: sense xarxa, per a les proves i per al desenvolupament local (T-M05a-03).
-
-Es comporta com un proveïdor real davant de l'adaptador: obre ordres, signa les notificacions
-amb HMAC i en rebutja les que no quadren. No es pot fer servir amb l'entorn real.
-
-Les ordres viuen en memòria, dins del procés: n'hi ha prou per a les proves i per a un servidor
-local d'un sol procés.
-"""
+Obre ordres, signa les notificacions amb HMAC i rebutja les que no quadren. Només arrenca amb
+l'entorn de proves. Les ordres viuen en memòria, dins del procés."""
 
 import hashlib
 import hmac
