@@ -85,3 +85,10 @@ Ordre anterior (substituït): 00 → 01 → 02 → 03 → 04 → 05 → 06 → 0
 - Especificacions massa grans: descompondre un mòdul abans de planificar-lo.
 - Requisits vagues emmagatzemats en markdown: cada criteri s'escriu de manera comprovable i s'aclareix amb la junta.
 - Divergència entre spec i codi: revisar la spec a cada canvi de regla i comparar-la amb el codi abans de tancar el mòdul.
+
+## 10. Prova d'acceleració (decisió 089)
+Prova de dues setmanes des del 13/11/2026 ([089](decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md); [pla](plans/pla-acceleracio.md)). Les regles i el seu estat (actiu o inactiu) són als interruptors D1 a D6 de [`CLAUDE.md`](../CLAUDE.md); aquí només es diu quins punts d'aquest document substitueixen mentre són actius.
+
+- **D2, tres tipus de dubte.** Substitueix «Decisions pendents» del §4 i el pas 2 del §6. Un dubte reversible o configurable es construeix amb una opció per defecte. Un d'irreversible es construeix apagat i no s'activa a producció sense resposta. Cada dubte nou va al tauler de preguntes amb opcions A a D i la recomanació.
+- **D4, classes de PR per risc.** Substitueix el final del pas 5 del §6 («es fusiona només si ho validen la IA i una persona»). Cada PR porta l'etiqueta `risc:baix`, `risc:mitja` o `risc:alt`. Les de risc baix i mitjà es fusionen amb el CI verd i una revisió automàtica. El propietari aprova abans les que toquen diners, permisos, RGPD o migracions, i la resta de la llista de risc alt de la 089.
+- **D1, D3, D5 i D6** no canvien cap punt d'aquest document.

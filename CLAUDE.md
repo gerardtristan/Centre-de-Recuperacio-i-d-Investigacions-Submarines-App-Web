@@ -20,17 +20,48 @@ La plataforma està preparada per traduir-se, amb el català com a única llengu
 - `docs/diari-de-construccio/`: diari de construcció, una entrada per tasca acabada, amb l'índex, les regles de contingut i la convenció de captures al seu `README.md`.
 - `docs/entregues/`: lliuraments de l'assignatura. `docs/arxiu/`: versions antigues (mai s'esborren).
 - `design/`: mapa de la plataforma i arbre de processos (HTML). `assets/marca/`: logotips.
+- `docs/plans/pla-acceleracio.md`: pla d'acceleració (decisió 089). `docs/estat/`: estat de les tasques per mòdul quan D1 és actiu.
 - `docs/planning.md`: **font única** de l'especificació i el pla de cada mòdul, amb 14 seccions i àncores estables (decisió 047). `specs/00-base-comuna/spec.md` és vigent fins que el mòdul 00 tingui secció aprovada. La spec 04 v2 és a l'arxiu (`docs/arxiu/spec-04-tresoreria-v2-2026-10-27.md`) des que es va aprovar la secció M04.
 No carreguis tot al començar. Llegeix només el que cal per a la tasca.
 
 ## Com es treballa (Spec-Driven Development)
 1. No s'escriu codi d'un mòdul sense la seva secció de `docs/planning.md` aprovada (decisió 047).
-2. Si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, no implementis aquesta part: pregunta.
+2. Si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, no implementis aquesta part: pregunta. (→ D2)
 3. Flux: spec, aclarir, pla, tasques, implementar. Una tasca = un canvi petit amb proves.
-4. Si canvia una regla, actualitza primer `docs/planning.md` i després el codi. No dupliquis el contingut del pla en cap altre fitxer: enllaça-hi per l'àncora.
+4. Si canvia una regla, actualitza primer `docs/planning.md` i després el codi. No dupliquis el contingut del pla en cap altre fitxer: enllaça-hi per l'àncora. (→ D1)
 5. Formalitat segons risc: spec completa per a finances, pagaments, autenticació, permisos, RGPD i importacions; spec d'una pàgina per a contingut web, dashboard i conferències; només ticket per a errors petits.
 
-## Mòduls (ordre de construcció, decisions 024 i 060)
+## Prova d'acceleració: interruptors D1 a D6 (decisió 089)
+Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari decideix si es manté. Pla: `docs/plans/pla-acceleracio.md`. Detall i registre: `docs/decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md`.
+- **Actiu:** val la regla nova, encara que la regla anterior continuï escrita en un altre apartat d'aquest fitxer (hi és marcada amb «→ D1» … «→ D6»).
+- **Inactiu:** val la regla anterior.
+- **Si el propietari escriu «revoca la decisió N»:** en un sol commit titulat «DN (089): revocada», posa DN a **inactiu**, restaura la regla anterior d'aquell punt (el que la 089 llista a «En revocar») i afegeix una fila al registre d'estat de la 089. No toquis cap altre interruptor.
+
+### D1 — Especificació de la fase 1 congelada: **inactiu**
+- **Actiu:** les seccions i les addendes dels mòduls 01, 04, 05a i 05b queden com són a l'etiqueta `spec-fase1-v1`; no s'hi afegeix cap addenda. Un canvi o un dubte nou va a `docs/decisions/pendents.md` i no atura la feina. Una regla congelada només es canvia amb una decisió numerada i una sola edició al lloc de la regla, en una PR `risc:alt`. L'estat de les tasques s'apunta a `docs/estat/<mòdul>.md` (una línia per tasca) i la fila del pla no s'edita.
+- **Inactiu (regla anterior):** un canvi de regla s'escriu primer a `docs/planning.md`, amb una addenda datada; la fila de la tasca acabada es marca al pla amb l'estat, la data i el CI.
+
+### D2 — Tres tipus de dubte: **inactiu**
+- **Actiu:** un dubte **reversible** (un text, un detall que es canvia sense tocar dades) o **configurable** (un valor, que va a «Ajustos») es construeix amb una opció per defecte i la tasca es tanca. Un d'**irreversible** (diners, model de dades que afecta dades reals, RGPD, seguretat, permisos, el que veurà un soci real) es construeix amb l'opció més conservadora darrere d'un interruptor de configuració apagat i **no s'activa a producció sense resposta**. Cada dubte nou va a `pendents.md` (tipus, opció per defecte, què bloqueja, qui respon, tasca) i al tauler de preguntes (`docs/decisions/tauler-preguntes.yml`) amb opcions A a D i la recomanació.
+- **Inactiu (regla anterior):** si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, aquella part no s'implementa: es pregunta.
+
+### D3 — Llesques verticals: **inactiu**
+- **Actiu:** la fase 1 es construeix per llesques que travessen el 04, el 05a i el 05b (apartat 3 del pla d'acceleració), respectant les dependències entre tasques. La primera és el primer cobrament amb un proveïdor fals. Cada llesca acaba amb una prova de flux sencer.
+- **Inactiu (regla anterior):** mòdul sencer darrere mòdul sencer: 04 → 05a → 05b.
+
+### D4 — Classes de PR per risc: **inactiu**
+- **Actiu:** cada PR porta l'etiqueta `risc:baix`, `risc:mitja` o `risc:alt`. Les de risc baix i mitjà es fusionen amb el CI verd i una revisió automàtica, sense esperar el propietari. **El propietari aprova abans les `risc:alt`**: diners, pagaments, permisos, autenticació, RGPD, xifratge, importacions, migracions, dependències noves, el CI, aquest fitxer i les regles del pla. No fusionis mai una PR `risc:alt` sense un sí escrit del propietari. Mida: menys de 800 línies per PR i, com a màxim, 400 de codi d'aplicació. Al final de cada sessió, deixa un resum de 5 línies per al propietari: què s'ha fusionat sense ell, què espera la seva aprovació i quines preguntes noves hi ha al tauler.
+- **Inactiu (regla anterior):** res no es fusiona sense la validació d'una persona.
+
+### D5 — Baranes: cobertura i entorn de proves: **inactiu**
+- **Actiu:** el CI mesura la cobertura (`pytest-cov`) i falla si baixa del llindar de `.github/workflows/ci.yml`; el llindar només puja. L'entorn de proves temporal està aprovat, però **no es crea fins que el propietari digui que sí al cost**.
+- **Inactiu (regla anterior):** la cobertura no es mesura al CI; l'aplicació només corre en local.
+
+### D6 — Branca del mòdul 02 aparcada: **inactiu**
+- **Actiu:** `feature/t-m02-activitats` queda aparcada (etiqueta i nota a `docs/estat/M02.md`). No s'hi treballa ni es fusiona fins que existeixi la llesca del primer cobrament. No s'esborra.
+- **Inactiu (regla anterior):** s'hi pot continuar treballant.
+
+## Mòduls (ordre de construcció, decisions 024 i 060; → D3)
 Numeració fixa (`docs/planning.md#estat`): 00 Base comuna, 01 Socis i carnet digital, 02 Activitats (cursos i sortides), 03 Material, 04 Tresoreria (part mínima), 05a Alta del mètode de pagament i mandats, 05b Cobraments, 06 Llicències, 07 Web pública, 08 Dashboard, 09 Marge, despeses, ajuts i facturació (abans «resta de la 04»), 10 Missatges i xat per activitat, 11 Departament d'Història i conferències, 12 Idees noves (avatars de fauna marina i bitàcola), 13 Botiga en línia (fora d'abast ara). Cap mòdul no canvia de número; un de nou s'afegeix al final. El número no és l'ordre de construcció.
 
 **Ordre de construcció:**
@@ -82,10 +113,10 @@ Nota: el document de funcionalitats (0–11) i el mapa de la plataforma v8 (M00�
 - Cada criteri d'acceptació té una prova. Càlculs econòmics amb cobertura completa.
 - **Disseny amb seguretat i privacitat.** Tota tasca de disseny (wireframes, plantilles, pantalles) indica, per a cada flux, els requisits de seguretat i privacitat aplicables i els aplica: separació de comptes, permisos per rol i objecte, minimització i emmascarament, missatges que no revelen dades ni l'existència de comptes, confirmacions, motius i verificacions, i estats d'error, accés denegat i sessió caducada. Amagar un element a la interfície no és un control: els wireframes distingeixen la simulació visual dels controls que s'apliquen al servidor.
 - **Interfície.** Només classes de `static/css/tokens.css` i components de `docs/design-system.md`; cap `style=` ni cap color, mida o espai sense token. Una peça nova va primer al sistema de disseny (document i CSS) i després a la plantilla.
-- No es fusiona res si el pipeline falla.
+- No es fusiona res si el pipeline falla. (Qui valida una fusió: → D4.)
 - Definició de fet: proves passades, pipeline verd, **comprovat al navegador** (`pytest -m e2e` en verd i les captures a 1280 i 390 px de les pantalles tocades, mirades; skill `webapp-testing`), porta de la checklist revisada, documentació actualitzada i entrada al diari de construcció (`docs/diari-de-construccio/`), en un commit propi després del de la tasca.
 - **Error → primer la prova que el reprodueix** (ha de fallar) i després l'arreglo. Si l'arreglo depèn d'una decisió pendent, la prova va amb `xfail` i la referència, i no s'arregla.
-- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca al pla amb el seu estat («**Feta**» o «Feta en part»), la data i l'estat del CI. Quan toca, l'apartat «Propera tasca» el calcula la skill `propera-tasca` (`.claude/skills/propera-tasca/`), que llegeix el pla per àncores. No es comença cap altra tasca sense confirmació.
+- **Propera tasca.** Abans de l'informe final, la fila de la tasca acabada es marca al pla amb el seu estat («**Feta**» o «Feta en part»), la data i l'estat del CI. Quan toca, l'apartat «Propera tasca» el calcula la skill `propera-tasca` (`.claude/skills/propera-tasca/`), que llegeix el pla per àncores. No es comença cap altra tasca sense confirmació. (On s'apunta l'estat: → D1.)
 
 ## Pila (acordada; detall a `docs/arquitectura-integracions.md`)
 Django + HTMX servit des del VPS (plantilles de Django, HTMX sense CDN; decisió 046), PostgreSQL, cua de tasques sobre PostgreSQL (sense Redis), Coolify en un VPS de Hetzner (UE), amb la web pública i la web instal·lable servides des del mateix VPS (decisions 041 i 046), fitxers a Scaleway Object Storage (París), correu amb Brevo, pagaments amb un proveïdor dins la UE darrere d'un adaptador (decisió 043; candidat PaynoPain [A verificar]).
