@@ -193,12 +193,13 @@ def test_missing_catalan_template_is_an_error(monkeypatch):
 
 
 def test_delivery_uses_club_sender_and_reply_to(make_person):
-    """CA-A1: remitent de cris1954.cat i resposta a cris@cris.es (decisió 019)."""
+    """CA-A1, amb el remitent de la decisió 085 (I-2): els correus surten de cris@cris.es, que
+    també és l'adreça de resposta. Substitueix el remitent de cris1954.cat de la 019."""
     email = _queue_test(make_person())
     tasks.send_email(email_id=email.pk)
 
     [message] = django_mail.outbox
-    assert message.from_email == "C.R.I.S. <no-respon@cris1954.cat>"
+    assert message.from_email == "C.R.I.S. <cris@cris.es>"
     assert message.reply_to == ["cris@cris.es"]
     assert message.to == ["anna@example.org"]
     assert message.subject == "Correu de prova de la plataforma del C.R.I.S."

@@ -129,7 +129,8 @@ def _transition(charge: Charge, new_status: str, *, by, reason: str = "", detail
     locked.status = new_status
     if new_status == S.CANCELLED:
         locked.cancel_reason = reason.strip()
-    locked.save(update_fields=["status", "cancel_reason", "updated_at"])
+        locked.cancel_category = (details or {}).get("category", "")
+    locked.save(update_fields=["status", "cancel_reason", "cancel_category", "updated_at"])
     charge.refresh_from_db()
     return charge
 
@@ -150,8 +151,12 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
 
 
 @transaction.atomic
-def cancel(charge: Charge, reason: str, *, by) -> Charge:
-    """Pendent o pagat (devolució total) → anul·lat, amb motiu (CA-15.5)."""
+def cancel(charge: Charge, reason: str, *, by, category: str = "") -> Charge:
+    """Pendent o pagat (devolució total) → anul·lat, amb motiu (CA-15.5). `category`: buida o
+    «exemption» (RN-M01-72); queda al càrrec i al registre."""
     if not reason.strip():
         raise ValidationError(_("Per anul·lar un càrrec cal un motiu."))
-    return _transition(charge, S.CANCELLED, by=by, reason=reason)
+    if category and category not in Charge.CancelCategory.values:
+        raise ValidationError(_("Categoria d'anul·lació desconeguda."))
+    details = {"category": category} if category else None
+    return _transition(charge, S.CANCELLED, by=by, reason=reason, details=details)

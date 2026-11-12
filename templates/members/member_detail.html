@@ -22,6 +22,41 @@
     {% endif %}
   </dl>
 
+  {# T-M01-40 (RN-M01-72 i RN-M01-94; 085): les quotes del soci, només amb P10. Amb P22, eximir-ne o anul·lar-ne una de pendent, en una pantalla a part amb motiu i reautenticació. El servidor torna a comprovar el permís i el conflicte d'interès; amagar l'enllaç no és cap control. #}
+  {% if vis.fees %}
+    <section aria-labelledby="quotes-titol">
+      <h2 id="quotes-titol">{% translate "Quotes" %}</h2>
+      {% if fee_rows %}
+        <table class="taula">
+          <caption class="visualment-amagat">{% translate "Quotes del soci, de la més recent a la més antiga" %}</caption>
+          <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_exempt %}<th scope="col">{% translate "Accions" %}</th>{% endif %}</tr></thead>
+          <tbody>
+            {% for row in fee_rows %}
+              <tr>
+                <th scope="row" class="cel-nom">{{ row.fee.charge.concept }} <span class="text-2">({{ row.fee.period }})</span></th>
+                <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
+                <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.fee.due_on|date:'Y-m-d' }}">{{ row.fee.due_on|date:"d/m/Y" }}</time></td>
+                <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>
+                {% if can_exempt %}
+                  <td class="cel-accions">
+                    {% if row.open %}
+                      {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
+                      <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>
+                    {% else %}
+                      <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
+                    {% endif %}
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>{% translate "Encara no té cap quota." %}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+
   {# 079 (A-21, RN-M01-92): el carnet vigent i, amb P21 i P4, revocar-lo amb motiu. El servidor torna a comprovar el permís, el motiu i el conflicte d'interès; aquí no surt mai el testimoni ni el QR. #}
   <section aria-labelledby="carnet-titol">
     <h2 id="carnet-titol">{% translate "Carnet" %}</h2>

@@ -106,18 +106,18 @@ def _lock_pending(erasure_request) -> tuple[Person, ErasureRequest]:
     return person, locked
 
 
-def _notify(person, template) -> None:
+def _notify(person, template, context=None) -> None:
     """Avís a qui ho va demanar: al correu d'entrada del seu compte personal i, si no en té, al
-    de contacte. Sense cap dada de la persona al text."""
+    de contacte. Sense cap dada de la persona al text, tret del motiu d'un rebuig."""
     personal = person.accounts.filter(kind="personal").first()
     to = personal.login if personal else person.contact_email
     if to:
-        mail.queue_email(template, to=to, person=person)
+        mail.queue_email(template, to=to, person=person, context=context or {})
 
 
 def reject(erasure_request, *, by, reason, request=None) -> ErasureRequest:
-    """Rebutja la sol·licitud amb motiu obligatori. La persona continua activa i rep un avís
-    sense el motiu (text provisional)."""
+    """Rebutja la sol·licitud amb motiu obligatori. La persona continua activa i rep un correu
+    amb el motiu i amb la manera de reclamar (decisió 085, A-3; article 12.4 del RGPD)."""
     ensure_can_resolve(erasure_request, by, request=request)
     reason = (reason or "").strip()
     if not reason:
@@ -139,7 +139,7 @@ def reject(erasure_request, *, by, reason, request=None) -> ErasureRequest:
             reason=reason,
             request=request,
         )
-        _notify(person, REJECTED_EMAIL)
+        _notify(person, REJECTED_EMAIL, {"reason": reason})
     erasure_request.refresh_from_db()
     return erasure_request
 

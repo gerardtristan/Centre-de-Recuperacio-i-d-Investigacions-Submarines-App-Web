@@ -100,19 +100,27 @@ La secretaria comprovarà la meva identitat abans d'aprovar l'alta (Q-043).
 
 ## 4. Butlletí (`newsletter`)
 
-☐ Vull rebre el butlletí del C.R.I.S. al meu correu.
+> **Text definitiu (decisió 085, G-4; 12/11/2026).** Redactat per l'equip per delegació del responsable del projecte, sense revisió d'un assessor de protecció de dades. És el de `apps/members/join.py` (`OPTIONAL_TEXT_CONTENT`).
 
-La casella està **desmarcada per defecte**. Pots donar-te de baixa en qualsevol moment des del perfil o amb l'enllaç de cada butlletí. Sense aquest consentiment no rebràs el butlletí, però sí els avisos de la teva condició de soci.
+☐ Vull rebre per correu electrònic el butlletí del C.R.I.S., amb notícies i activitats del club. És opcional: si no l'accepto, puc ser soci igualment i només rebré els avisos necessaris de la meva condició de soci. Puc retirar aquest consentiment en qualsevol moment, des del meu perfil o amb l'enllaç de baixa de cada butlletí. El responsable de les dades és el C.R.I.S.; la resta d'informació és a la política de privacitat.
+
+La casella està **desmarcada per defecte**.
+
+**Base:** consentiment (RGPD, article 6.1.a) i consentiment exprés per a les comunicacions per correu electrònic (LSSI, article 21). Cada butlletí ha de portar l'enllaç de baixa.
 
 ---
 
 ## 5. Imatges (`images`)
 
-☐ Autoritzo el C.R.I.S. a publicar fotos i vídeos on surto, presos en activitats del club, a [A validar: web del club, xarxes socials, butlletí, memòries].
+> **Text definitiu (decisió 085, G-4; 12/11/2026).** Redactat per l'equip per delegació del responsable del projecte, sense revisió d'un assessor de protecció de dades.
 
-La casella està **desmarcada per defecte**. Pots retirar el consentiment en qualsevol moment des del perfil. Les publicacions noves deixaran d'incloure't i retirarem les existents que depenguin del club, dins del que sigui possible.
+☐ Autoritzo el C.R.I.S. a publicar fotos i vídeos on se'm pugui reconèixer, fets en activitats del club, al web del club, a les seves xarxes socials i a les seves publicacions (butlletí i memòries), només per donar a conèixer les activitats del club i sense cap ús comercial. És opcional i gratuït: si no l'accepto, puc ser soci i participar en les activitats igualment. Puc retirar aquesta autorització en qualsevol moment des del meu perfil: des d'aleshores no es publicaran imatges noves on se'm reconegui, i puc demanar que es retirin les que ja hi ha als canals del club. Per a un menor de 14 anys, l'autorització la dona el pare, la mare o el tutor legal. El responsable de les dades és el C.R.I.S.; la resta d'informació és a la política de privacitat.
 
-**Menors de 14 anys:** consent el pare, la mare o el tutor legal. El consentiment queda registrat al perfil del menor, i hi consta que l'ha donat el representant (decisió del 09/11/2026) [A validar: assessor de protecció de dades; LO 1/1982, art. 3].
+La casella està **desmarcada per defecte**.
+
+**Base:** consentiment (RGPD, article 6.1.a) i consentiment exprés per a l'ús de la imatge (Llei orgànica 1/1982, article 2). **Menors:** a partir dels 14 anys consent el mateix menor (LOPDGDD, article 7; decisió 085, A-5); per sota, el representant, i queda registrat al perfil del menor que l'ha donat ell.
+
+**On es publiquen:** el text ho limita al web del club, les seves xarxes socials i les seves publicacions. Si el club vol publicar en un altre lloc, cal una versió nova del text i un consentiment nou.
 
 ---
 

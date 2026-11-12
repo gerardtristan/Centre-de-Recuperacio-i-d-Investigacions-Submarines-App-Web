@@ -13,14 +13,16 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
-from apps.accounts import personal_reset
+from apps.accounts import personal_reset, reauth
 from apps.accounts.forms import PersonalTotpResetForm
-from apps.accounts.security import AREA_ADMIN, WRONG_CODE, confirm_code
-from apps.core.models import Person
+from apps.accounts.security import AREA_ADMIN, WRONG_CODE, WRONG_PASSWORD, confirm_code
+from apps.core import charges
+from apps.core.models import Charge, Person
 from apps.core.permissions import permission_required, request_permissions, require_perm
-from apps.members import admissions, birth_date, cards, member_edit, roster
-from apps.members.models import Member
-from apps.members.services import OwnMemberChange
+from apps.members import admissions, birth_date, cards, fees, member_edit, roster
+from apps.members.forms import FeeResolveForm
+from apps.members.models import AnnualFee, Member
+from apps.members.services import OwnMemberChange, ensure_not_own_member
 
 
 def _to_detail(member):
@@ -225,3 +227,87 @@ def member_card_revoke_view(request, pk):
                 ),
             )
     return _to_detail(member)
+
+
+# --- Eximir o anul·lar una quota (T-M01-40) ---------------------------------------------------
+
+EXEMPT, CANCEL = "exempt", "cancel"
+
+
+def _fee_resolve(request, pk, fee_pk, mode):
+    """P22 amb edició, P4 i P10. Motiu i reautenticació a la mateixa petició (RN-M01-94); el
+    servei torna a comprovar el permís, el motiu, l'estat del càrrec i el conflicte d'interès.
+    Una quota d'un altre soci o que no existeix: «no trobat»."""
+    member = _member(request, pk)
+    require_perm(request, roster.FEES)
+    fee = get_object_or_404(
+        AnnualFee.objects.select_related("charge"), pk=fee_pk, member_id=member.pk
+    )
+    own = member.person_id == request.user.person_id
+    form = FeeResolveForm(request.POST or None, has_totp=request.user.has_totp)
+    if request.method == "POST":
+        try:
+            if own:
+                ensure_not_own_member(member, request.user, request=request)
+            if form.is_valid():
+                error = reauth.require_recent_auth(
+                    request,
+                    0,
+                    password=form.cleaned_data["password"],
+                    code=form.cleaned_data.get("code", ""),
+                )
+                if error is not None:
+                    field = {WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error)
+                    form.add_error(field, error)
+                    form.data = form.data.copy()
+                    form.data.pop("code", None)
+                else:
+                    service = fees.exempt_fee if mode == EXEMPT else fees.cancel_fee
+                    service(
+                        fee, by=request.user, reason=form.cleaned_data["reason"], request=request
+                    )
+                    member.refresh_from_db()
+                    if mode == CANCEL:
+                        message = _("Quota anul·lada. Queda al registre d'activitat.")
+                    elif member.status == Member.Status.UNPAID:
+                        message = _(
+                            "Quota eximida. El soci continua marcat com a impagat: si ja no "
+                            "deu res, desmarca'l a «Quotes»."
+                        )
+                    else:
+                        message = _("Quota eximida. El soci és actiu i té el carnet vigent.")
+                    messages.success(request, message)
+                    return _to_detail(member)
+        except OwnMemberChange as error:
+            messages.error(request, error.args[0])
+            return _to_detail(member)
+        except ValidationError as error:
+            form.add_error(None, error)
+    context = {
+        "member": member,
+        "person": member.person,
+        "fee": fee,
+        "amount": charges.euros(fee.charge.amount_cents),
+        "mode": mode,
+        "own": own,
+        "open": fee.charge.status == Charge.Status.PENDING,
+        "until": fees.twelve_months_after(fee.due_on),
+        "form": form,
+    }
+    return render(request, "members/member_fee_resolve.html", context)
+
+
+@never_cache
+@permission_required(fees.EXEMPT_PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def member_fee_exempt_view(request, pk, fee_pk):
+    """RN-M01-72 i RN-M01-94 (CA-M01-65 a 67): eximir la quota d'un període."""
+    return _fee_resolve(request, pk, fee_pk, EXEMPT)
+
+
+@never_cache
+@permission_required(fees.EXEMPT_PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def member_fee_cancel_view(request, pk, fee_pk):
+    """072 (quarta instrucció, punt 4) i 085 (G-2): anul·lar una quota amb motiu."""
+    return _fee_resolve(request, pk, fee_pk, CANCEL)

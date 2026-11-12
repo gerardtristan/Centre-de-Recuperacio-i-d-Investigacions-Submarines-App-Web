@@ -1,1 +1,1 @@
-{% load i18n %}{# T-M01-22: TEXT PROVISIONAL [A validar: junta i assessor de protecció de dades] #}{% translate "La teva sol·licitud d'esborrat de dades al C.R.I.S." %}
+{% load i18n %}{# T-M01-22; decisió 085 (A-3) #}{% translate "La teva sol·licitud d'esborrat de dades al C.R.I.S." %}

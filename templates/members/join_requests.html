@@ -9,7 +9,7 @@
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. La persona rep un correu amb un enllaç d'un sol ús per crear el seu compte; als menors de 14 anys no se'ls n'envia cap." %}</p>
+  <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. Si s'ha d'eximir de la quota, ho fa qui té el permís des de la fitxa del soci, un cop aprovada l'alta. La persona rep un correu amb un enllaç d'un sol ús per crear el seu compte; als menors de 14 anys no se'ls n'envia cap." %}</p>
 
   {% for row in rows %}
     {% with jr=row.request person=row.person %}

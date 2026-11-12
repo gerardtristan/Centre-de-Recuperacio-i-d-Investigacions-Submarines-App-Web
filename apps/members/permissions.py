@@ -34,6 +34,7 @@ P11 = "members.export"
 P18 = "members.cluber_import.run"
 P19 = "members.licence_record.manage"
 P21 = "members.card.revoke"
+P22 = "members.fees.exempt"
 
 
 def _both(*needs):
@@ -82,6 +83,9 @@ ROUTES = {
     "administration:member_totp_reset": _both((M2, WRITE), (P4, READ)),
     # 081, punt 16: C1 el comprova el servei (`birth_date.can_check`).
     "administration:member_birth_date_check": _both((P5, WRITE), (P4, READ)),
+    # T-M01-40 (RN-M01-72 i RN-M01-94; 085): eximir o anul·lar una quota des de la fitxa.
+    "administration:member_fee_exempt": _both((P22, WRITE), (P4, READ), (P10, READ)),
+    "administration:member_fee_cancel": _both((P22, WRITE), (P4, READ), (P10, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

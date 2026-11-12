@@ -50,7 +50,7 @@ from apps.members import (
 )
 from apps.members import privacy as members_privacy
 from apps.members.demo_data import _Builder
-from apps.members.join import PROVISIONAL_OPTIONAL_TEXTS
+from apps.members.join import OPTIONAL_TEXT_CONTENT
 from apps.members.models import (
     AnnualFee,
     Member,
@@ -83,7 +83,7 @@ def staff(make_admin):  # noqa: F811
     handler = make_admin("administrator")
     for kind in ("privacy", "membership_terms", "guardian_authorization"):
         consents.publish_text(kind, f"Text de prova: {kind}.", by=handler)
-    for kind, content in PROVISIONAL_OPTIONAL_TEXTS.items():
+    for kind, content in OPTIONAL_TEXT_CONTENT.items():
         consents.publish_text(kind, content, by=handler)
     builder = _Builder(secretary=worker, treasurer=worker, admin=handler, password=PASSWORD)
     return SimpleNamespace(worker=worker, handler=handler, builder=builder)

@@ -23,6 +23,15 @@ Decisió 079 (11/11/2026):
 - La marca d'impagat admet una data passada i mai una de futura (A-18): ho fa el servei
   d'estats (`services._check_effective_on`).
 - **Fora d'aquesta tasca:** el pagament a terminis és de la T-M01-49 (A-04, RN-M01-91; P-61).
+
+T-M01-40 (12/11/2026; RN-M01-72 i RN-M01-94; decisió 085, J-2 i G-2):
+- `exempt_fee`: exempció puntual d'una quota anual pendent, amb el permís P22
+  («Eximir o anul·lar una quota», del Tresorer) i motiu. Anul·la el càrrec amb la categoria
+  «exempció» i desa el període eximit (`FeeExemption`); un soci pendent passa a actiu amb
+  carnet. La reautenticació la fa la vista, a la mateixa petició.
+- `cancel_fee` passa a demanar el mateix permís P22 (072, quarta instrucció, punt 4: la pantalla
+  d'anul·lar va «amb el mateix permís i el mateix motiu obligatori que l'exempció»). Abans
+  demanava P8 amb edició (Q-057) i no tenia pantalla.
 """
 
 import datetime
@@ -37,9 +46,10 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit, charges, mail
 from apps.core.models import Charge, Person
 
-from . import cards, recipients, roster
+from . import cards, recipients, roster, validity
 from .fee_rules import first_fee_year, local_today
-from .models import AnnualFee, FeeReminder, Member
+from .models import AnnualFee, FeeExemption, FeeReminder, Member
+from .validity import twelve_months_after
 
 S = Member.Status
 VIEW = roster.FEES  # P10
@@ -109,21 +119,131 @@ def issue_type_change_supplement(member, target_type, *, period, due_on, by) -> 
 
 
 EDIT_PERMISSION = "members.fees.generate"  # P8, el permís d'edició de quotes (Q-057)
+EXEMPT_PERMISSION = "members.fees.exempt"  # P22, eximir o anul·lar una quota (RN-M01-72; 085)
 CANCELLED_FEE = "members.fee.cancelled"
+EXEMPTED_FEE = "members.fee.exempted"
+EXEMPTION = Charge.CancelCategory.EXEMPTION
 
 
-def cancel_fee(fee, *, by, reason, request=None) -> AnnualFee:
-    """Anul·la (perdona) una quota pendent o retornada, amb motiu (Q-057 de la 072): ho pot fer
-    qui té permís d'edició de quotes (P8 amb edició); amb només lectura, no. Sempre és una
-    anul·lació del càrrec, mai un esborrat (RN-67)."""
+def _reject_returned(charge) -> None:
+    """RN-67 (spec 00): què es fa amb un càrrec retornat és de la 05b (Q-22); avui no té cap
+    transició. Es diu clar, en lloc de l'error genèric de la taula de transicions."""
+    if charge.status == Charge.Status.RETURNED:
+        raise ValidationError(
+            _(
+                "Una quota retornada encara no es pot eximir ni anul·lar: es resoldrà amb el "
+                "mòdul de cobraments."
+            )
+        )
+
+
+def can_exempt(by, permissions=None) -> bool:
+    """Per mostrar o no l'acció: el control és el dels serveis (`exempt_fee`, `cancel_fee`)."""
+    from apps.core.permissions import has_perm
+
+    return has_perm(by, EXEMPT_PERMISSION, write=True, permissions=permissions)
+
+
+def _require_exempt_permission(by) -> None:
     from django.http import Http404
 
     from apps.accounts.models import Account
     from apps.core.permissions import has_perm
 
-    if not isinstance(by, Account) or not has_perm(by, EDIT_PERMISSION, write=True):
+    if not isinstance(by, Account) or not has_perm(by, EXEMPT_PERMISSION, write=True):
         raise Http404
+
+
+def cancel_fee(fee, *, by, reason, request=None) -> AnnualFee:
+    """Anul·la (perdona) una quota pendent, amb motiu (Q-057 de la 072). Ho pot fer
+    qui té P22 amb edició, el mateix permís que l'exempció (072, quarta instrucció, punt 4; 085,
+    G-2). Sempre és una anul·lació del càrrec, mai un esborrat (RN-67). No dona cap dret: per
+    deixar el període com a resolt, `exempt_fee`."""
+    _require_exempt_permission(by)
     return cancel_fee_checked(fee, by=by, reason=reason, request=request)
+
+
+def exempt_fee(fee, *, by, reason, request=None) -> FeeExemption:
+    """Exempció puntual d'una quota (RN-M01-72 i RN-M01-94; CA-M01-65 a 67). P22 amb edició i
+    motiu; la reautenticació és de la vista.
+
+    - Només una quota anual amb el càrrec pendent i sense cap pagament a mitges. Una de pagada
+      no: seria una devolució (05b). Una de retornada, tampoc encara: RN-67 deixa les
+      transicions des de «retornat» a la 05b (Q-22). Un suplement s'anul·la, no s'eximeix.
+    - El càrrec queda anul·lat amb la categoria «exempció»; mai un pagament de 0 €.
+    - El període eximit va del venciment de la quota (data d'aprovació en una alta; data de
+      renovació en un soci que ja ho és) fins al mateix dia de l'any següent. Si ja ha acabat,
+      eximir-la no donaria cap dret: es rebutja i cal anul·lar-la.
+    - Soci pendent → actiu, amb carnet (com quan paga). Actiu → continua actiu i, si no té
+      carnet, se n'emet un. Impagat → continua impagat: la marca és manual (040). Baixa → no.
+    """
+    from .services import _change_status, _check_account_active, ensure_not_own_member
+
+    _require_exempt_permission(by)
+    _check_account_active(by)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu per eximir la quota."))
+    ensure_not_own_member(fee.member, by, request=request)
+    today = local_today()
+    with transaction.atomic():
+        member = Member.objects.select_for_update(of=("self",)).get(pk=fee.member_id)
+        locked = AnnualFee.objects.select_related("charge").get(pk=fee.pk)
+        if locked.kind != AnnualFee.Kind.ANNUAL:
+            raise ValidationError(
+                _("Només es pot eximir una quota anual. Un suplement s'anul·la, no s'eximeix.")
+            )
+        _reject_returned(locked.charge)
+        if locked.charge.status != Charge.Status.PENDING:
+            raise ValidationError(
+                _("Només es pot eximir una quota pendent. Una de pagada seria una devolució.")
+            )
+        if locked.charge.payments.exists():
+            raise ValidationError(
+                _("Aquesta quota té pagaments a mitges: no es pot eximir (terminis, P-61).")
+            )
+        if member.status == Member.Status.LEFT:
+            raise ValidationError(
+                _("Aquesta persona és baixa: la quota es pot anul·lar, però no eximir.")
+            )
+        until = twelve_months_after(locked.due_on)
+        if until < today:
+            raise ValidationError(
+                _(
+                    "El període d'aquesta quota ja ha acabat: eximir-la no donaria cap dret. "
+                    "Si no s'ha de cobrar, anul·la-la."
+                )
+            )
+        charges.cancel(locked.charge, reason, by=by, category=EXEMPTION)
+        exemption = FeeExemption.objects.create(
+            fee=locked, starts_on=locked.due_on, valid_until=until, granted_by=by
+        )
+        audit.record(
+            EXEMPTED_FEE,
+            actor=by,
+            target=locked,
+            reason=reason,
+            details={
+                "starts_on": locked.due_on.isoformat(),
+                "valid_until": until.isoformat(),
+                "member_status": member.status,
+            },
+            request=request,
+        )
+        if member.status == Member.Status.PENDING:
+            _change_status(
+                member,
+                Member.Status.ACTIVE,
+                by=by,
+                effective_on=today,
+                reason=_("Quota eximida."),
+                request=request,
+            )
+            cards.replace_card(member, by=by, reason=_("Carnet nou en eximir-se la quota."))
+        elif member.status == Member.Status.ACTIVE:
+            if cards.active_card(member) is None:
+                cards.issue_card(member, by=by, request=request)
+    return exemption
 
 
 def cancel_fee_checked(fee, *, by, reason, request=None) -> AnnualFee:
@@ -139,8 +259,9 @@ def cancel_fee_checked(fee, *, by, reason, request=None) -> AnnualFee:
     ensure_not_own_member(fee.member, by, request=request)
     with transaction.atomic():
         locked = AnnualFee.objects.select_related("charge").get(pk=fee.pk)
-        if locked.charge.status not in UNPAID_CHARGE:
-            raise ValidationError(_("Només es pot anul·lar una quota pendent o retornada."))
+        _reject_returned(locked.charge)
+        if locked.charge.status != Charge.Status.PENDING:
+            raise ValidationError(_("Només es pot anul·lar una quota pendent."))
         charges.cancel(locked.charge, reason, by=by)
         audit.record(CANCELLED_FEE, actor=by, target=locked, reason=reason, request=request)
     fee.refresh_from_db()
@@ -198,7 +319,12 @@ def next_fee_due(member) -> datetime.date | None:
         return None  # P-61: cap regla per als pagaments parcials
     if any(fee.charge.status in UNPAID_CHARGE for fee in member.annual_fees):
         return None  # ja n'hi ha una de viva sense pagar
-    dates = [d for d in (cards._paid_until(member), cards._cluber_until(member)) if d]
+    candidates = (
+        cards._paid_until(member),
+        cards._cluber_until(member),
+        validity.exempted_until(member),  # RN-M01-72: la renovació arriba en acabar l'exempció
+    )
+    dates = [d for d in candidates if d]
     if dates:
         return max(dates)
     if not member.annual_fees:

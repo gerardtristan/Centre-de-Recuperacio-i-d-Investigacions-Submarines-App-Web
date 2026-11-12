@@ -31,7 +31,7 @@ from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
 from apps.members import demo_data
-from apps.members.join import PROVISIONAL_OPTIONAL_TEXTS
+from apps.members.join import OPTIONAL_TEXT_CONTENT
 
 ORIGIN = "seed_demo_data"
 ADMIN_LOGIN = "admin-demo"
@@ -165,7 +165,7 @@ class Command(BaseCommand):
             ("privacy", "Text de prova de la política de privacitat, versió 1."),
             ("privacy", "Text de prova de la política de privacitat, versió 2."),
             # Butlletí i imatges: textos PROVISIONALS [A validar: Q-16 i Q-028] (074, punt 16).
-            *PROVISIONAL_OPTIONAL_TEXTS.items(),
+            *OPTIONAL_TEXT_CONTENT.items(),
             # Formulari d'alta (T-M01-13). Textos de prova: no serveixen per a producció (H1).
             ("membership_terms", "Text de prova de les condicions de soci, versió 1."),
             ("adult_declaration", "Text de prova: declaro que soc major d'edat."),

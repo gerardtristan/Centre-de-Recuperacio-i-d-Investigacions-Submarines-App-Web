@@ -2,6 +2,7 @@
 CA-19.3 i RN-91). Només dades inventades.
 """
 
+import datetime
 import json
 import re
 
@@ -10,7 +11,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 
 from apps.core import crypto, locked_data, privacy
-from apps.core.models import AuditEntry, LockedIdentity, Person
+from apps.core.models import AuditEntry, Charge, LockedIdentity, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_guest_links import admin_client
 from apps.members.tests.test_cards import paid_member
@@ -162,3 +163,51 @@ class TestScreens:
             text = re.sub(r'value="[^"]*"', "", client.get(url).content.decode())
             for value in (original["cognoms"], "12345678Z"):
                 assert value not in text, url
+
+
+class TestRetention085:
+    """CA-19.5 i RN-90, amb el termini de la decisió 085 (G-1): les dades bloquejades es
+    destrueixen quan han passat 6 anys des del tancament de l'exercici de l'últim registre
+    econòmic de la persona. Els registres econòmics no s'esborren mai."""
+
+    def test_the_term_is_six_years_after_the_year_of_the_last_economic_record(self, blocked):
+        locked, _original = blocked
+        year = locked_data.last_record_date(locked).year
+        assert locked_data.retention_years() == 6
+        assert locked_data.expires_on(locked) == datetime.date(year + 6, 12, 31)
+
+    def test_ca_19_5_expired_data_is_destroyed_and_recorded_with_the_reference(self, blocked):
+        locked, original = blocked
+        person = locked.person
+        charges_before = Charge.objects.filter(person=person).count()
+        limit = locked_data.expires_on(locked)
+
+        assert locked_data.destroy_expired(today=limit) == 0  # l'últim dia encara hi són
+        assert LockedIdentity.objects.filter(pk=locked.pk).exists()
+
+        assert locked_data.destroy_expired(today=limit + datetime.timedelta(days=1)) == 1
+        assert not LockedIdentity.objects.filter(pk=locked.pk).exists()
+        # Els registres econòmics continuen, sense cap dada personal.
+        assert Charge.objects.filter(person=person).count() == charges_before
+        entry = AuditEntry.objects.get(action=locked_data.DESTROYED)
+        assert entry.actor_kind == AuditEntry.ActorKind.SYSTEM
+        assert entry.target_id == str(person.pk)
+        assert entry.details == {
+            "reference": person.anonymous_ref,
+            "retention_years": 6,
+            "last_record_year": limit.year - 6,
+        }
+        assert not leaks(original)
+        # Idempotent: tornar-la a executar no fa res.
+        assert locked_data.destroy_expired(today=limit + datetime.timedelta(days=2)) == 0
+
+    def test_the_term_is_configurable(self, blocked, settings):
+        locked, _original = blocked
+        year = locked_data.last_record_date(locked).year
+        settings.LOCKED_DATA_RETENTION_YEARS = 10
+        assert locked_data.expires_on(locked).year == year + 10
+
+    def test_the_daily_task_is_registered(self):
+        from apps.core import tasks
+
+        assert tasks.destroy_expired_locked_data.name == "core.destroy_expired_locked_data"

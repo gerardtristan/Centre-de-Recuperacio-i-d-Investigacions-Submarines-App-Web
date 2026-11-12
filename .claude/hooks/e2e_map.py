@@ -211,6 +211,16 @@ MAP = {
         "templates/members/personal_profile.html",
     ),
     "test_sessio_caducada_081.py": ("templates/accounts/session_expired.html",),
+    "test_exempcio_040.py": (
+        "apps/members/fees.py",
+        "apps/members/validity.py",
+        "apps/members/views/admin.py",
+        "apps/members/views/admin_member_edit.py",
+        "apps/core/charges.py",
+        "templates/members/member_detail.html",
+        "templates/members/member_fee_resolve.html",
+        "templates/members/_charge_status.html",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.

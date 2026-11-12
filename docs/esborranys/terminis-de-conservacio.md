@@ -1,5 +1,7 @@
 # Terminis de conservació: esborrany
 
+> **Decisió [085](../decisions/085-respostes-del-responsable-a-les-preguntes-pendents-de-t-m00-i-t-m01.md) (12/11/2026, G-1):** queda fixat i implementat el termini de les **dades bloquejades** d'una persona esborrada: 6 anys des del 31/12 de l'any de l'últim registre econòmic, i després es destrueixen (fila 3). Triat per l'equip per delegació del responsable, sense validació d'una gestoria. La resta de files continua sent una proposta.
+
 > **ESBORRANY. NO VIGENT. A VALIDAR: gestoria i assessor de protecció de dades.** No es pot aplicar. Respon a la Q-027 (Q-14 de la spec 00), segons la [decisió 072](../decisions/072-respostes-del-responsable-a-la-ronda-1-de-pendents.md). Les bases legals les ha consultat l'equip en fonts secundàries el 09/11/2026: cada una porta **[A verificar]** fins que la gestoria la confirmi amb el text oficial.
 
 ## Principis que ja són decisió

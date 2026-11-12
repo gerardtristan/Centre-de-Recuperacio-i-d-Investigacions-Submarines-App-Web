@@ -598,6 +598,40 @@ class AnnualFee(UndeletableModel):
         return f"{self.member_id} {self.period} {self.kind}"
 
 
+class FeeExemption(AppendOnlyModel):
+    """Exempció puntual d'una quota (T-M01-40; RN-M01-72 i RN-M01-94; decisió 085, J-2). El
+    càrrec de la quota queda anul·lat amb la categoria «exempció» i aquesta fila diu quin període
+    compta com a resolt: del venciment de la quota (la data d'aprovació en una alta, la de
+    renovació en un soci que ja ho és) fins al mateix dia de l'any següent. No s'edita ni
+    s'esborra; es desfà creant una quota nova del mateix període (P-54, sortida E). El motiu és
+    al càrrec i al registre d'activitat, no aquí."""
+
+    fee = models.OneToOneField(
+        AnnualFee, on_delete=models.PROTECT, related_name="exemption", verbose_name=_("quota")
+    )
+    starts_on = models.DateField(_("inici del període eximit"))
+    valid_until = models.DateField(_("vàlid fins al"))
+    granted_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("compte que l'ha concedit"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("exempció de quota")
+        verbose_name_plural = _("exempcions de quota")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(valid_until__gt=F("starts_on")), name="feeexemption_period_valid"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.fee_id} {self.starts_on}–{self.valid_until}"
+
+
 class FeeReminder(models.Model):
     """Recordatori enviat d'una quota (T-M01-18; RN-M01-14, Q-061). Una fila per quota i dia:
     tornar a executar la tasca no envia el mateix recordatori dues vegades. Sense cap dada

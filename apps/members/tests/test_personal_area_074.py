@@ -19,7 +19,7 @@ from apps.accounts.sessions import AREA_SESSION_KEY
 from apps.core import audit, consents, crypto
 from apps.core.models import AuditEntry, Consent, OutgoingEmail, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.members.join import PROVISIONAL_OPTIONAL_TEXTS
+from apps.members.join import OPTIONAL_TEXT_CONTENT
 from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
@@ -55,7 +55,7 @@ def texts(make_admin):  # noqa: F811
     publisher = make_admin("administrator")
     return {
         kind: consents.publish_text(kind, content, by=publisher)
-        for kind, content in PROVISIONAL_OPTIONAL_TEXTS.items()
+        for kind, content in OPTIONAL_TEXT_CONTENT.items()
     }
 
 
@@ -123,7 +123,8 @@ class TestOptionalConsents:
         }
         body = page.content.decode()
         assert body.count('name="action" value="grant"') == 2
-        assert "TEXT PROVISIONAL" in body
+        assert "TEXT PROVISIONAL" not in body and "A validar" not in body  # 085, G-4
+        assert "Vull rebre per correu electrònic el butlletí del C.R.I.S." in body
 
     def test_grant_creates_a_web_consent_with_the_current_text_and_audit(
         self, as_anna, anna, texts

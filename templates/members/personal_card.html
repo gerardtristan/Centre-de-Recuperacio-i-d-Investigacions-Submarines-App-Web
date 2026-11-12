@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
-{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió: la ruta no porta cap identificador. Validesa: RN-M01-18, 070 i 072 («vàlid fins al»: càlcul únic de la 079, RN-M01-86). Darrere del carnet: el del wireframe aprovat (Q-065). Seguretat i privacitat (079, RN-M01-85 i 92): el QR es torna a calcular al servidor a cada visita i no es desa enlloc; la resposta és «no-store»; el QR només porta l'adreça de verificació, que mostra «vàlid», el número i el nom de pila; demanar un carnet nou és un POST amb CSRF i invalida el QR anterior; imprimir (o desar com a PDF) només treu el carnet, sense navegació ni botons. El text legal serà configurable a la pantalla d'ajustos (VC-03, T-M01-32); el NIF del club, [A validar], no es mostra fins que se sàpiga. #}
+{# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió: la ruta no porta cap identificador. Validesa: RN-M01-18, 070 i 072 («vàlid fins al»: càlcul únic de la 079, RN-M01-86). Darrere del carnet: el del wireframe aprovat (Q-065). Seguretat i privacitat (079, RN-M01-85 i 92): el QR es torna a calcular al servidor a cada visita i no es desa enlloc; la resposta és «no-store»; el QR només porta l'adreça de verificació, que mostra «vàlid», el número i el nom de pila; demanar un carnet nou és un POST amb CSRF i invalida el QR anterior; imprimir (o desar com a PDF) només treu el carnet, sense navegació ni botons. El text legal serà configurable a la pantalla d'ajustos (VC-03, T-M01-32); el NIF del club surt al darrere del carnet (decisió 085, J-6). #}
 {% block title %}{% translate "El meu carnet" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Carnet" %}</p>
@@ -41,7 +41,7 @@
         <div><dt>{% translate "Quota" %}</dt><dd>{% if exempt %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Exempt per edat fins al {{ date }}{% endblocktranslate %}{% elif validity.until %}{% blocktranslate with date=validity.until|date:"d/m/Y" %}Pagada fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
         <div><dt>{% translate "Llicència" %}</dt><dd>{% if licence.declared_expires_on %}{% blocktranslate with date=licence.declared_expires_on|date:"d/m/Y" %}Caducitat desconeguda (declarada per tu: {{ date }}, pendent que la secretaria la confirmi){% endblocktranslate %}{% elif licence and licence.expiry_unknown %}{% translate "Caducitat desconeguda" %}{% elif licence %}{% blocktranslate with date=licence.expires_on|date:"d/m/Y" %}Fins al {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</dd></div>
       </dl>
-      <p class="text-2">{% translate "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es. C.R.I.S. · cris1954.cat" %}</p>
+      <p class="text-2">{% translate "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es." %} {% blocktranslate %}C.R.I.S. · NIF {{ club_tax_id }} · cris1954.cat{% endblocktranslate %}</p>
     </section>
     {# 079 (A-20): el PDF és la impressió del navegador. El botó surt amagat i el mostra static/js/imprimeix.js; sense JavaScript, es pot imprimir igualment des del menú del navegador. #}
     <div class="accions no-imprimeix">

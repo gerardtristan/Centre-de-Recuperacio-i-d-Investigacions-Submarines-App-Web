@@ -25,6 +25,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import Account
@@ -189,8 +190,11 @@ def confirm_in_bulk(record_ids, *, year, by, request=None) -> int:
     ids = {int(pk) for pk in record_ids}
     if not ids:
         raise ValidationError(NOTHING_SELECTED)
-    if isinstance(year, bool) or not isinstance(year, int) or not 1 <= year <= 9999:
-        raise ValidationError(_("Cal un any vàlid."))
+    if isinstance(year, bool) or not isinstance(year, int) or year not in allowed_years():
+        raise ValidationError(
+            _("L'any de caducitat ha de ser %(this)s o %(next)s.")
+            % {"this": allowed_years()[0], "next": allowed_years()[1]}
+        )
     expires_on = datetime.date(year, 12, 31)
     own = LicenceRecord.objects.filter(pk__in=ids, member__person_id=by.person_id).first()
     if own is not None:
@@ -276,6 +280,17 @@ class DeclareExpiryForm(forms.Form):
     )
 
 
+def _current_year() -> int:
+    return timezone.localdate().year
+
+
+def allowed_years() -> tuple[int, int]:
+    """Decisió 085 (S-4, opció B): en confirmar en bloc només es pot posar l'any actual o el
+    següent. Evita que un error de teclat deixi llicències vigents durant anys."""
+    year = _current_year()
+    return (year, year + 1)
+
+
 class BulkConfirmForm(forms.Form):
     records = forms.ModelMultipleChoiceField(
         label=_("Registres"),
@@ -289,10 +304,27 @@ class BulkConfirmForm(forms.Form):
     )
     year = forms.IntegerField(
         label=_("Any de caducitat"),
-        min_value=1,
-        max_value=9999,
-        help_text=_("Les llicències seleccionades caducaran el 31/12 d'aquest any."),
+        help_text=_(
+            "Les llicències seleccionades caducaran el 31/12 d'aquest any. Només pot ser "
+            "l'any actual o el següent."
+        ),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        this_year, next_year = allowed_years()
+        self.fields["year"].min_value = this_year
+        self.fields["year"].max_value = next_year
+        self.fields["year"].widget.attrs.update({"min": this_year, "max": next_year})
+
+    def clean_year(self):
+        year = self.cleaned_data["year"]
+        if year not in allowed_years():
+            raise forms.ValidationError(
+                _("L'any de caducitat ha de ser %(this)s o %(next)s.")
+                % {"this": allowed_years()[0], "next": allowed_years()[1]}
+            )
+        return year
 
 
 class LicenceRecordForm(forms.Form):

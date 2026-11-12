@@ -9,7 +9,9 @@ mòduls (`services`). Abans hi havia tres respostes que podien no coincidir (P-7
 - els que paguen: un any des del pagament confirmat, fins al mateix dia de l'any següent
   (`twelve_months_after`; el 29/02 passa al 28/02);
 - els exempts per edat sense cap quota: el 31/12 de l'últim any exempt (Q-002);
-- els importats de Cluber: un any des de «Data alta/renovació» (Q-076) [A validar: tresorer].
+- els importats de Cluber: un any des de «Data alta/renovació» (Q-076) [A validar: tresorer];
+- una quota eximida (RN-M01-72 i RN-M01-94; T-M01-40): un any des del venciment de la quota,
+  mentre no s'hagi emès una quota posterior del mateix període (que és com es desfà).
 Amb pagaments parcials no n'hi ha cap: els terminis no tenen cap regla aprovada (P-61, T-M01-49).
 
 Funcions pures sobre un soci carregat amb `roster.with_fee_data` (quotes anuals, càrrecs,
@@ -83,12 +85,44 @@ def cluber_until(member) -> date | None:
     return twelve_months_after(renewed) if renewed and member.cluber_id else None
 
 
+def exempted_until(member) -> date | None:
+    """RN-M01-72 i RN-M01-94: final del període de la darrera quota eximida que continua vigent.
+    Una exempció deixa de comptar quan hi ha una quota posterior del mateix període (així es
+    desfà, P-54 sortida E; també passa amb la quota d'una readmissió el mateix any)."""
+    last = {}
+    for fee in member.annual_fees:
+        last[fee.period] = max(last.get(fee.period, 0), fee.sequence)
+    dates = [
+        fee.exemption.valid_until
+        for fee in member.annual_fees
+        if fee.sequence == last[fee.period] and getattr(fee, "exemption", None) is not None
+    ]
+    return max(dates) if dates else None
+
+
 def valid_until(member) -> date | None:
     """«Vàlid fins al» del soci, o `None` si no en té cap o si hi ha pagaments parcials."""
     if has_partial_payments(member):
         return None
-    dates = [d for d in (paid_until(member), exempt_until(member), cluber_until(member)) if d]
+    candidates = (
+        paid_until(member),
+        exempt_until(member),
+        cluber_until(member),
+        exempted_until(member),
+    )
+    dates = [d for d in candidates if d]
     return max(dates) if dates else None
+
+
+def waived_now(member, today: date) -> bool:
+    """El «vàlid fins al» vigent surt només d'una quota eximida (no d'un pagament)."""
+    until = exempted_until(member)
+    return (
+        until is not None
+        and today <= until
+        and valid_until(member) == until
+        and until not in (paid_until(member), cluber_until(member))
+    )
 
 
 def exempt_now(member, today: date) -> bool:

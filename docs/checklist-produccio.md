@@ -108,7 +108,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 ### G. Correu
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
-| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a cris1954.cat (domini remitent); les respostes van a cris@cris.es (decisió 019) | Comprovador de correu | 2 |
+| G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a **cris.es**, que és el domini remitent des de la decisió 085 (els correus surten de cris@cris.es, que també rep les respostes); cal l'accés al DNS de cris.es i no trencar el correu actual del club | Comprovador de correu | 2 |
 | G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
 | G3 | Correu de confirmació del mandat | En signar un mandat, el soci rep un correu des de cris1954.cat (resposta a cris@cris.es) amb la referència del mandat, l'ID de creditor, la data de signatura i com revocar-lo. Si l'envia Stripe o la plataforma és [A validar] | Prova de principi a fi en mode de proves; revisió del text amb la junta | 3 · N1 |
 

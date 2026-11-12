@@ -51,7 +51,8 @@ class RejectForm(forms.Form):
     reason = forms.CharField(
         label=gettext_lazy("Motiu del rebuig"),
         help_text=gettext_lazy(
-            "Obligatori. Queda al registre d'activitat; el correu a la persona no el porta."
+            "Obligatori. Queda al registre d'activitat i s'envia a la persona per correu: "
+            "no hi escriguis dades d'altres persones."
         ),
         max_length=2000,
         widget=forms.Textarea(attrs={"rows": 3}),

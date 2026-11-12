@@ -13,7 +13,7 @@ from procrastinate.contrib.django.models import ProcrastinateJob
 
 from apps.core import audit, mail, tasks
 from apps.core.models import AuditEntry, EmailDailyUsage, OutgoingEmail
-from conftest import CommittedDataTestCase, run_together
+from conftest import PASSWORD, CommittedDataTestCase, run_together
 
 pytestmark = pytest.mark.django_db
 
@@ -467,3 +467,105 @@ class TestConcurrentDeliveries(CommittedDataTestCase):
 
         assert len(django_mail.outbox) == 1
         assert EmailDailyUsage.objects.get().used == 1
+
+
+# --- Adreça de l'avís a producció (decisió 084) ---------------------------------------------
+
+CLUB_ADDRESS = "cris@cris.es"
+
+
+def _production_alert_addresses(extra_env=None):
+    """`EMAIL_ALERT_TO` tal com la carrega la configuració de producció, en un procés a part i
+    amb valors de mostra generats aquí (cap secret real). No envia res ni toca cap base."""
+    import json
+    import os
+    import secrets
+    import subprocess
+    import sys
+
+    from cryptography.fernet import Fernet
+    from django.conf import settings as current
+
+    env = {k: v for k, v in os.environ.items() if k != "EMAIL_ALERT_TO"}
+    env.update(
+        {
+            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
+            "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
+            "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
+            "CARD_QR_KEYS": f"ci:{secrets.token_urlsafe(32)}",
+            "CARD_QR_ACTIVE_KEY": "ci",
+            "DJANGO_ALLOWED_HOSTS": "cris1954.cat",
+            "EMAIL_HOST": "smtp.example.invalid",
+            "EMAIL_HOST_USER": "proves",
+            "EMAIL_HOST_PASSWORD": PASSWORD,
+            "S3_BUCKET_FITXERS": "cris-ci",
+            "S3_ENDPOINT_URL": "https://s3.example.invalid",
+            "S3_ACCESS_KEY_ID": "proves",
+            "S3_SECRET_ACCESS_KEY": PASSWORD,
+            **(extra_env or {}),
+        }
+    )
+    env.setdefault("DATABASE_URL", "postgres://cris:cris-ci@localhost:5432/cris")
+    code = (
+        "import json, django; from django.conf import settings; "
+        "from django.core import checks; django.setup(); "
+        "ids = [m.id for m in checks.run_checks(include_deployment_checks=True)]; "
+        "print(json.dumps({'to': list(settings.EMAIL_ALERT_TO), 'ids': ids}))"
+    )
+    done = subprocess.run(  # noqa: S603 (ordre fixa d'aquesta prova)
+        [sys.executable, "-c", code],
+        cwd=current.BASE_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return json.loads(done.stdout.strip().splitlines()[-1])
+
+
+def test_084_production_sends_the_alert_to_the_club_address_by_default():
+    """Decisió 084: a producció l'avís va a l'adreça de l'administrador que ha donat el
+    responsable, sense que calgui cap variable d'entorn, i la comprovació de desplegament no
+    marca l'avís com a no operatiu."""
+    result = _production_alert_addresses()
+    assert result["to"] == [CLUB_ADDRESS]
+    assert "core.W001" not in result["ids"] and "core.E001" not in result["ids"]
+
+
+def test_084_the_environment_variable_still_overrides_it():
+    result = _production_alert_addresses({"EMAIL_ALERT_TO": "administracio@example.invalid"})
+    assert result["to"] == ["administracio@example.invalid"]
+
+
+def test_084_outside_production_there_is_no_default_address():
+    """Desenvolupament i proves: cap adreça per defecte, perquè mai no surti un avís de prova
+    cap a la bústia real del club. Es llegeix el text de la configuració comuna, no el valor
+    carregat, que pot venir d'una variable d'entorn de qui executa les proves."""
+    from django.conf import settings as current
+
+    base = (current.BASE_DIR / "config" / "settings" / "base.py").read_text(encoding="utf-8")
+    assert 'EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])' in base
+    assert CLUB_ADDRESS not in base.split("EMAIL_ALERT_TO = env.list")[1].splitlines()[0]
+
+
+def test_084_the_alert_goes_only_to_the_configured_address(spec_limits, make_person):
+    """L'avís del 80 % va només a l'adreça configurada: ni als comptes d'administrador, ni als
+    socis, ni a cap altra adreça. La bústia és la de proves: no surt cap correu real."""
+    from apps.accounts.models import Account
+
+    Account.objects.create_admin(
+        make_person("Nora", "Admin"), "nora.admin", PASSWORD, notification_email="nora@example.org"
+    )
+    spec_limits.EMAIL_DAILY_LIMIT = 5
+    spec_limits.EMAIL_ALERT_TO = [CLUB_ADDRESS]
+    for n in range(4):
+        _deliver(_queue(to=f"soci{n}@example.org"))
+
+    alerts = OutgoingEmail.objects.filter(template=mail.ALERT_TEMPLATE)
+    assert [a.to_address for a in alerts] == [CLUB_ADDRESS]
+    assert _alerts().get().details["recipients"] == 1
+    _deliver(alerts.get())
+    sent_to = [to for message in django_mail.outbox for to in message.to]
+    assert sent_to.count(CLUB_ADDRESS) == 1
+    assert "nora@example.org" not in sent_to
+    assert set(sent_to) == {CLUB_ADDRESS, *(f"soci{n}@example.org" for n in range(4))}

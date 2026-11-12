@@ -241,6 +241,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         touches_money=True,
     ),
     _perm(
+        "members.fees.exempt",
+        "P22",
+        _("Eximir o anul·lar una quota, amb motiu"),
+        # RN-M01-72 i RN-M01-94; decisió 085 (J-2): el Tresorer. La pantalla d'anul·lar una quota
+        # demana el mateix permís (072, quarta instrucció, punt 4).
+        requires=("members.fees.view",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
         "members.unpaid.mark",
         "P9",
         _("Marcar i desmarcar impagat"),

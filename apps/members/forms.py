@@ -550,3 +550,17 @@ class EraseAccountForm(ReauthForm):
         label=_("Entenc que, un cop fet, l'esborrat no es pot desfer."),
         error_messages={"required": _("Marca la casella per confirmar que ho entens.")},
     )
+
+
+class FeeResolveForm(ReauthForm):
+    """Eximir o anul·lar una quota (T-M01-40; RN-M01-72 i RN-M01-94): motiu obligatori i, a la
+    mateixa petició, la contrasenya i el codi de qui ho fa."""
+
+    reason = forms.CharField(
+        label=_("Motiu"),
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Queda al càrrec i al registre d'activitat. No hi escriguis dades de salut."),
+        error_messages={"required": _("Cal el motiu.")},
+    )
+    field_order = ["reason", "password", "code"]

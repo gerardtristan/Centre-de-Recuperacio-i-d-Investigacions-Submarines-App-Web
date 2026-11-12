@@ -149,11 +149,16 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)
-# Remitent sense bústia real a cris1954.cat, amb resposta a l'adreça del club (decisió 019).
+# Remitent: l'adreça del club, que també rep les respostes (decisió 085, I-2; substitueix el
+# remitent sense bústia de cris1954.cat de la 019). Per enviar des de cris.es, el proveïdor de
+# correu ha de tenir aquest domini autenticat (SPF i DKIM): condició de producció.
 # El nom que es mostra es canvia amb la mateixa variable: "Nom <adreça>".
-EMAIL_FROM_TRANSACCIONAL = env(
-    "EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <no-respon@cris1954.cat>"
-)
+EMAIL_FROM_TRANSACCIONAL = env("EMAIL_FROM_TRANSACCIONAL", default="C.R.I.S. <cris@cris.es>")
+# Anys que es conserven les dades bloquejades després del 31/12 de l'any de l'últim registre
+# econòmic de la persona (CA-19.5; decisió 085, G-1). Passat el termini, es destrueixen.
+LOCKED_DATA_RETENTION_YEARS = env.int("LOCKED_DATA_RETENTION_YEARS", default=6)
+# NIF del club (decisió 085, J-6): surt al darrere del carnet. És una dada pública de l'entitat.
+CLUB_TAX_ID = env("CLUB_TAX_ID", default="V08591042")
 EMAIL_REPLY_TO = env("EMAIL_REPLY_TO", default="cris@cris.es")
 DEFAULT_FROM_EMAIL = EMAIL_FROM_TRANSACCIONAL
 SERVER_EMAIL = EMAIL_FROM_TRANSACCIONAL
@@ -163,9 +168,10 @@ EMAIL_MAX_ATTEMPTS = env.int("EMAIL_MAX_ATTEMPTS", default=5)
 # pot gastar perquè es reserva per als transaccionals (RN-A4, V-07). Els dies són en hora local.
 EMAIL_DAILY_LIMIT = env.int("EMAIL_DAILY_LIMIT", default=300)
 EMAIL_TRANSACTIONAL_RESERVE = env.int("EMAIL_TRANSACTIONAL_RESERVE", default=100)
-# Un sol avís al dia quan els enviaments arriben a aquest percentatge del límit (RN-A6). Qui el
-# rep és la Q-26 [A validar]: sense adreces (separades per comes), només queda al registre
-# d'activitat.
+# Un sol avís al dia quan els enviaments arriben a aquest percentatge del límit (RN-A6). El rep
+# només l'administrador (decisió 081, punt 21). Aquí, per a desenvolupament i proves, no hi ha
+# cap adreça per defecte i l'avís només queda al registre d'activitat; producció hi posa la del
+# club (prod.py, decisió 084).
 EMAIL_ALERT_THRESHOLD_PCT = env.int("EMAIL_ALERT_THRESHOLD_PCT", default=80)
 EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])
 

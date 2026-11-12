@@ -5,7 +5,7 @@ from django.conf import settings
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
 
-from . import files, mail
+from . import files, locked_data, mail
 
 
 # Reintents espaiats: 4, 16, 64, 256… segons. Qui decideix quan s'atura és `mail.deliver`, amb
@@ -26,6 +26,14 @@ def send_email(email_id: int) -> None:
 @app.task(name="core.release_deferred_emails", queue="maintenance")
 def release_deferred_emails(timestamp: int) -> None:
     mail.release_deferred()
+
+
+# Cada dia, de matinada: destrueix les dades bloquejades amb el termini de conservació vençut
+# (CA-19.5, RN-90; decisió 085, G-1). Els registres econòmics no es toquen.
+@app.periodic(cron="45 3 * * *")
+@app.task(name="core.destroy_expired_locked_data", queue="maintenance")
+def destroy_expired_locked_data(timestamp: int) -> None:
+    locked_data.destroy_expired()
 
 
 # Cada dia, de matinada: esborra les exportacions RGPD caducades (V-08).

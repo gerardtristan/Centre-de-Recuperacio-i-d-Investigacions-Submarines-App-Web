@@ -64,23 +64,32 @@ GUARDIAN_CONSENT_TEXT = "images"
 RECEIPT_TEMPLATE = "rebut-sollicitud-alta"
 IN_PERSON_PERMISSION = "members.create_in_person"  # P2
 
-# Textos PROVISIONALS del butlletí i de les imatges (074, punt 16; esborrany
-# `docs/esborranys/textos-legals.md`, seccions 4 i 5). [A validar: Q-16 i Q-028, gestoria i
-# assessor de protecció de dades.] No serveixen per recollir consentiments reals: no es
-# publiquen amb cap migració; només els publiquen les proves i l'ordre de dades de prova.
-PROVISIONAL_OPTIONAL_TEXTS = {
+# Textos del butlletí i de les imatges (decisió 085, G-4; Q-16 i Q-028). Redactats per l'equip
+# a partir de la normativa (RGPD, articles 6, 7 i 13; LSSI, article 21; LOPDGDD, article 7;
+# Llei orgànica 1/1982), per delegació del responsable del projecte i **sense revisió d'un
+# assessor de protecció de dades**. No es publiquen amb cap migració: els publica
+# l'administrador com a text legal amb versió (M12); les proves i l'ordre de dades de prova els
+# fan servir tal com són. Canviar-los és publicar-ne una versió nova, no tocar aquest fitxer.
+OPTIONAL_TEXT_CONTENT = {
     "newsletter": (
-        "TEXT PROVISIONAL [A validar: Q-16 i Q-028]. Vull rebre el butlletí del C.R.I.S. al "
-        "correu. És opcional: sense aquest consentiment també es pot ser soci i es reben els "
-        "avisos de la condició de soci. Es pot retirar en qualsevol moment des del perfil o amb "
-        "l'enllaç de cada butlletí."
+        "Vull rebre per correu electrònic el butlletí del C.R.I.S., amb notícies i activitats "
+        "del club. És opcional: si no l'accepto, puc ser soci igualment i només rebré els "
+        "avisos necessaris de la meva condició de soci. Puc retirar aquest consentiment en "
+        "qualsevol moment, des del meu perfil o amb l'enllaç de baixa de cada butlletí. El "
+        "responsable de les dades és el C.R.I.S.; la resta d'informació és a la política de "
+        "privacitat."
     ),
     "images": (
-        "TEXT PROVISIONAL [A validar: Q-16 i Q-028]. Autoritzo el C.R.I.S. a publicar fotos i "
-        "vídeos on surt la persona sòcia, presos en activitats del club, a [A validar: on es "
-        "publiquen]. És opcional i es pot retirar en qualsevol moment des del perfil: les "
-        "publicacions noves deixaran d'incloure-la. Per a un menor de 14 anys, el consentiment "
-        "el dona el pare, la mare o el tutor legal."
+        "Autoritzo el C.R.I.S. a publicar fotos i vídeos on se'm pugui reconèixer, fets en "
+        "activitats del club, al web del club, a les seves xarxes socials i a les seves "
+        "publicacions (butlletí i memòries), només per donar a conèixer les activitats del "
+        "club i sense cap ús comercial. És opcional i gratuït: si no l'accepto, puc ser soci i "
+        "participar en les activitats igualment. Puc retirar aquesta autorització en qualsevol "
+        "moment des del meu perfil: des d'aleshores no es publicaran imatges noves on se'm "
+        "reconegui, i puc demanar que es retirin les que ja hi ha als canals del club. Per a "
+        "un menor de 14 anys, l'autorització la dona el pare, la mare o el tutor legal. El "
+        "responsable de les dades és el C.R.I.S.; la resta d'informació és a la política de "
+        "privacitat."
     ),
 }
 

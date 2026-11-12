@@ -1,0 +1,42 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-40 (RN-M01-72 i RN-M01-94; 072, quarta instrucció, punt 4; 085, J-2 i G-2): eximir o anul·lar una quota. P22 amb edició, P4 i P10. Motiu obligatori i reautenticació (contrasenya i codi) a la mateixa petició. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, el motiu, l'estat del càrrec i el conflicte d'interès. No s'hi mostra cap dada personal més que el nom i el número. #}
+{% block title %}{% if mode == "exempt" %}{% translate "Eximeix la quota" %}{% else %}{% translate "Anul·la la quota" %}{% endif %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{% if mode == "exempt" %}{% translate "Eximeix la quota" %}{% else %}{% translate "Anul·la la quota" %}{% endif %}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Quota" %}</dt><dd>{{ fee.charge.concept }} ({{ fee.period }})</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd>{{ amount }}</dd></div>
+    <div><dt>{% translate "Venciment" %}</dt><dd>{{ fee.due_on|date:"d/m/Y" }}</dd></div>
+    <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" with charge=fee.charge %}</dd></div>
+  </dl>
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "Ningú no pot eximir ni anul·lar una quota seva. Ho ha de fer una altra persona amb permís." %}</div>
+  {% elif not open %}
+    <div class="avis avis-avis" role="status">{% translate "Aquesta quota no és pendent: no s'hi pot fer res des d'aquí. Una de pagada només es pot retornar, i una de retornada es resoldrà amb el mòdul de cobraments." %}</div>
+  {% else %}
+    {% if mode == "exempt" %}
+      {% if member.status == "unpaid" %}
+        <p>{% blocktranslate with date=until|date:"d/m/Y" %}Aquesta quota no es cobrarà i el període compta com a resolt fins al {{ date }}. El soci continua marcat com a impagat fins que el desmarquis a «Quotes».{% endblocktranslate %}</p>
+      {% else %}
+        <p>{% blocktranslate with date=until|date:"d/m/Y" %}Aquesta quota no es cobrarà. El període compta com a resolt: el soci queda actiu i el carnet és vàlid fins al {{ date }}.{% endblocktranslate %}</p>
+      {% endif %}
+      <p class="text-2">{% translate "No és un pagament: el càrrec queda anul·lat amb la categoria «exempció». Per desfer-ho caldrà crear una quota nova del mateix període." %}</p>
+    {% else %}
+      <p>{% translate "Aquesta quota no es cobrarà i deixarà de constar com a deute. No dona cap dret: el soci no queda al corrent pel fet d'anul·lar-la." %}</p>
+      <p class="text-2">{% translate "Si el que es vol és que el soci no pagui aquest període i continuï al corrent, cal eximir-la, no anul·lar-la." %}</p>
+    {% endif %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% if mode == "exempt" %}{% translate "Eximeix la quota" %}{% else %}{% translate "Anul·la la quota" %}{% endif %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

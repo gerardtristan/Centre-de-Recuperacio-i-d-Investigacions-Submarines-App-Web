@@ -641,6 +641,11 @@ class Charge(UndeletableModel):
         RETURNED = "returned", _("Retornat")
         CANCELLED = "cancelled", _("Anul·lat")
 
+    class CancelCategory(models.TextChoices):
+        # RN-M01-72 (T-M01-40): una exempció és una anul·lació amb aquesta categoria, mai un
+        # pagament de 0 €. Sense categoria, és una anul·lació corrent.
+        EXEMPTION = "exemption", _("Exempció")
+
     person = models.ForeignKey(
         Person, on_delete=models.PROTECT, related_name="charges", verbose_name=_("persona deutora")
     )
@@ -655,6 +660,9 @@ class Charge(UndeletableModel):
         "estat", max_length=10, choices=Status.choices, default=Status.PENDING
     )
     cancel_reason = models.TextField(_("motiu d'anul·lació"), blank=True)
+    cancel_category = models.CharField(
+        _("categoria de l'anul·lació"), max_length=12, choices=CancelCategory.choices, blank=True
+    )
     # Mòdul que l'ha creat: «members», «activities», «licences»…
     origin = models.CharField(_("mòdul d'origen"), max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -676,6 +684,11 @@ class Charge(UndeletableModel):
             models.CheckConstraint(
                 condition=~Q(status="cancelled") | ~Q(cancel_reason=""),
                 name="charge_cancel_has_reason",
+            ),
+            models.CheckConstraint(
+                condition=Q(cancel_category="")
+                | (Q(cancel_category="exemption") & Q(status="cancelled")),
+                name="charge_cancel_category_valid",
             ),
         ]
         indexes = [models.Index(fields=["person", "status"], name="charge_person_status_idx")]
