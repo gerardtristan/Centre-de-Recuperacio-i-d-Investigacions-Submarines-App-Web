@@ -40,8 +40,9 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
       - name: Proves i cobertura
-        # Cobertura de línies i branques d'`apps/` (decisió 089, D5).
-        run: pytest --cov --cov-report=term
+        # Cobertura de línies i branques d'`apps/` (decisió 089, D5). Llindar: el valor mesurat el
+        # 13/11/2026 (97,66 %), arrodonit avall. Només pot pujar.
+        run: pytest --cov --cov-report=term --cov-fail-under=97.6
       - name: Comprovació de desplegament
         run: |
           export DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
