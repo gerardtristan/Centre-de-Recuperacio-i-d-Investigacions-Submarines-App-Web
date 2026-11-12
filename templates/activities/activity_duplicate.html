@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-07: duplicar una activitat (AC7; decisió 026; RN-M02-21). La còpia neix en esborrany amb les dates desplaçades i sense res del que ha passat a l'original. El servei torna a comprovar el permís i que la fitxa, el tipus i el subtipus encara es puguin triar. #}
+{% block title %}{% translate "Duplica l'activitat" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{% translate "Duplica l'activitat" %}</h1>
+  <p>{{ activity.title }}</p>
+  <p>{% blocktranslate with start=activity.starts_on|date:"d/m/Y" %}L'original comença el {{ start }}. La còpia es crea en esborrany, amb el programa i les sessions desplaçats els mateixos dies, i sense cap inscripció ni resultat.{% endblocktranslate %}</p>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Crea la còpia" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

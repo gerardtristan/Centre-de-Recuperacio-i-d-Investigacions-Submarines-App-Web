@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-08: llistat públic d'activitats (AC1). Pàgina pública declarada. Només activitats publicades i no acabades; cap nom de persona ni cap dada d'inscrits. Les places lliures i el botó d'inscriure's arribaran amb la T-M02-11 i la T-M02-12. #}
+{% block title %}{% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Activitats" %}{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Cursos i sortides" %}</h1>
+  <nav class="accions" aria-label="{% translate "Classe d'activitat" %}">
+    {% for value, label in kinds %}<a class="boto boto-petit" href="{% url 'activities:list' %}{% if value %}?classe={{ value }}{% endif %}"{% if value == kind %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+  </nav>
+  {% for activity in activities %}
+    <article class="targeta" aria-labelledby="activitat-{{ activity.pk }}">
+      <p><span class="xip">{{ activity.kind_label }}</span> <span class="text-2">{{ activity.type_label }}</span></p>
+      <h2 id="activitat-{{ activity.pk }}"><a href="{% url 'activities:detail' activity.pk %}">{{ activity.title }}</a></h2>
+      <p><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}{% if activity.location %} · {{ activity.location }}{% endif %}</p>
+      <p>{% if activity.registration_open %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Inscripcions obertes" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Inscripcions tancades" %}</span>{% endif %}</p>
+    </article>
+  {% empty %}
+    <p>{% translate "Ara no hi ha cap activitat oberta." %}</p>
+  {% endfor %}
+{% endblock %}

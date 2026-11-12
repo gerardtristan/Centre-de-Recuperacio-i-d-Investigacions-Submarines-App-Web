@@ -75,6 +75,7 @@ ENTRIES = (
             "administration:activity_edit",
             "administration:activity_reopen",
             "administration:activity_cancel",
+            "administration:activity_duplicate",
             "administration:activity_programme",
             "administration:session_add",
             "administration:session_edit",

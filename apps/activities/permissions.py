@@ -69,6 +69,9 @@ def _read_then_write(code):
 
 # Ruta → el que demana (com al 01).
 ROUTES: dict = {
+    # --- Públiques (T-M02-08; AC1): activitats publicades, sense cap dada personal ---
+    "activities:list": PUBLIC,
+    "activities:detail": PUBLIC,
     # --- Catàlegs (T-M02-05; AC6) ---
     "administration:catalogue_courses": _both((AC6, READ)),
     "administration:catalogue_specialities": _both((AC6, READ)),
@@ -91,6 +94,7 @@ ROUTES: dict = {
     "administration:activity_step": _both((AC7, WRITE)),
     "administration:activity_reopen": _both((AC7, WRITE)),
     "administration:activity_cancel": _both((AC7, WRITE)),
+    "administration:activity_duplicate": _both((AC7, WRITE)),  # T-M02-07
     "administration:activity_programme": _both((AC7, WRITE)),
     "administration:session_add": _both((AC7, WRITE)),
     "administration:session_edit": _both((AC7, WRITE)),

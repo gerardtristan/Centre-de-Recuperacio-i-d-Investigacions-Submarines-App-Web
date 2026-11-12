@@ -358,6 +358,13 @@ class ReopenForm(forms.Form):
     )
 
 
+class DuplicateForm(forms.Form):
+    new_start = _date(
+        _("Data d'inici de la còpia"),
+        help_text=_("Totes les dates i hores es desplacen els mateixos dies."),
+    )
+
+
 class ReasonForm(forms.Form):
     reason = forms.CharField(
         label=_("Motiu"),

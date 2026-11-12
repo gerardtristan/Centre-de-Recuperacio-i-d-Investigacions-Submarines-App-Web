@@ -212,3 +212,51 @@ def test_someone_without_the_permission_gets_not_found_by_typing_the_address(
         response = page.goto(f"{live_server.url}{path}")
         assert response.status == 404, path
         expect(page.get_by_role("heading", level=1)).not_to_contain_text("Activitats")
+
+
+def test_a_visitor_sees_what_is_published_and_the_manager_duplicates_it(
+    page, live_server, manager, review, page_checks
+):
+    """T-M02-08 i T-M02-07: sense entrar, un visitant veu el llistat i el detall d'una activitat
+    publicada (i «no trobat» si és un esborrany, CA-M02-05). Després el responsable la duplica."""
+    from apps.activities import states
+    from apps.activities.tests.helpers import an_outing
+
+    outing = an_outing(manager, title="Immersió inventada publicada", location="Port inventat")
+    states.publish(outing, by=manager)
+    draft = an_outing(manager, title="Esborrany inventat que no s'ha de veure")
+    accessibility = {}
+
+    page.goto(f"{live_server.url}/activitats/")
+    expect(page.get_by_role("heading", name="Cursos i sortides")).to_be_visible()
+    expect(page.get_by_role("link", name="Immersió inventada publicada")).to_be_visible()
+    expect(page.get_by_text("Esborrany inventat")).to_have_count(0)
+    review("public-llistat")
+    audit(page, "public-llistat", accessibility)
+
+    press(page, "link", "Immersió inventada publicada")
+    expect(page.get_by_role("heading", name="Immersió inventada publicada")).to_be_visible()
+    expect(page.get_by_text("Inscripcions obertes")).to_be_visible()
+    expect(page.get_by_text("Només socis del club")).to_be_visible()
+    review("public-detall")
+    audit(page, "public-detall", accessibility)
+
+    page_checks.expect(404, f"/activitats/{draft.pk}/")
+    response = page.goto(f"{live_server.url}/activitats/{draft.pk}/")
+    assert response.status == 404
+
+    login_admin(page, live_server.url, manager.login)
+    page.goto(f"{live_server.url}/{ADMIN}/activitats/{outing.pk}/")
+    press(page, "link", "Duplica…")
+    expect(page.get_by_role("heading", name="Duplica l'activitat")).to_be_visible()
+    page.get_by_label("Data d'inici de la còpia").fill("2028-06-13")
+    review("duplica")
+    audit(page, "duplica", accessibility)
+    press(page, "button", "Crea la còpia")
+    expect(page.get_by_text("Còpia creada en esborrany.")).to_be_visible()
+    expect(page.get_by_text("Duplicada de")).to_be_visible()
+    review("fitxa-copia")
+    copy = Activity.objects.get(duplicated_from=outing)
+    assert (copy.status, str(copy.starts_on)) == (Activity.Status.DRAFT, "2028-06-13")
+
+    assert not problems(accessibility), "; ".join(problems(accessibility))

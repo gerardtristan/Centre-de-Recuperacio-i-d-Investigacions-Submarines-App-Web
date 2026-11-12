@@ -22,7 +22,7 @@ import pytest
 from django.http import Http404
 
 from apps.accounts.models import Account
-from apps.activities import catalogue, permissions, services, sessions, states
+from apps.activities import catalogue, duplicate, permissions, services, sessions, states
 from apps.activities.models import (
     Activity,
     EnvironmentalProject,
@@ -271,6 +271,10 @@ SERVICES = {
     ),
     "services.create_course": (AC7, lambda w, by: a_course(by, w.entry, title="Un altre curs")),
     "services.create_outing": (AC7, lambda w, by: an_outing(by, title="Una altra sortida")),
+    "duplicate.duplicate": (
+        AC7,
+        lambda w, by: duplicate.duplicate(w.open_outing, at(2028, 6, 13).date(), by=by),
+    ),
     "services.update_activity": (
         AC7,
         lambda w, by: services.update_activity(w.course, by=by, title="Títol nou inventat"),
@@ -341,7 +345,7 @@ def test_every_service_that_changes_data_is_in_the_table():
     """Tota funció pública dels serveis del 02 que rep `by` comprova un permís i té la seva fila
     a `SERVICES`: un servei nou sense permís o sense prova fa fallar això."""
     found = set()
-    for module in (catalogue, services, states, sessions):
+    for module in (catalogue, services, states, sessions, duplicate):
         short = module.__name__.rsplit(".", 1)[-1]
         for name, function in inspect.getmembers(module, inspect.isfunction):
             if function.__module__ != module.__name__ or name.startswith("_"):
@@ -420,7 +424,7 @@ def test_a_read_only_scope_shows_but_does_not_change(make_admin):  # noqa: F811
 # --- CA-M02-35 (la part que ja existeix) ----------------------------------------------------------
 
 
-def test_ca_m02_35_the_treasurer_creates_and_publishes_but_neither_calls_the_roll_nor_assesses(
+def test_ca_m02_35_the_treasurer_creates_publishes_and_duplicates_but_does_not_call_the_roll(
     make_admin,  # noqa: F811
 ):
     """CA-M02-35: el tresorer crea i publica una activitat. Duplicar és de la T-M02-07. No té ni
@@ -431,6 +435,8 @@ def test_ca_m02_35_the_treasurer_creates_and_publishes_but_neither_calls_the_rol
     outing = an_outing(treasurer)
     states.publish(outing, by=treasurer, now=BEFORE_DEADLINE)
     assert outing.status == Activity.Status.OPEN
+    copy = duplicate.duplicate(outing, at(2028, 6, 13).date(), by=treasurer)
+    assert (copy.status, copy.duplicated_from) == (Activity.Status.DRAFT, outing)
     for code in (
         permissions.ATTENDANCE,
         permissions.ASSESSMENT,

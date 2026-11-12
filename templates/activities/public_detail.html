@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-08: detall públic d'una activitat (AC1; CA-M02-05). Pàgina pública declarada. Només dades de l'activitat: cap inscrit, cap instructor i cap responsable amb nom. La previsió marítima és només un enllaç (RN-M02-24): cap giny ni script d'un tercer. #}
+{% block title %}{{ activity.title }} · {% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Activitats" %}{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{{ activity.kind_label }} · {{ activity.type_label }}</p>
+  <h1>{{ activity.title }}</h1>
+  <p>{% if activity.registration_open %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Inscripcions obertes" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Inscripcions tancades" %}</span>{% endif %}</p>
+  {% if activity.description %}<p>{{ activity.description|linebreaksbr }}</p>{% endif %}
+  <dl class="dades-fitxa">
+    <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
+    {% if activity.location %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.location }}</dd></div>{% endif %}
+    {% if activity.meeting_point %}<div><dt>{% translate "Punt de trobada" %}</dt><dd>{{ activity.meeting_point }}</dd></div>{% endif %}
+    <div><dt>{% translate "Places" %}</dt><dd>{{ activity.max_places }}</dd></div>
+    <div><dt>{% translate "Preu per als socis" %}</dt><dd class="import">{{ activity.price_member }}</dd></div>
+    {% if activity.open_to_non_members %}<div><dt>{% translate "Preu per als no socis" %}</dt><dd class="import">{{ activity.price_non_member }}</dd></div>{% else %}<div><dt>{% translate "Qui s'hi pot inscriure" %}</dt><dd>{% translate "Només socis del club" %}</dd></div>{% endif %}
+    {% if activity.registration_open %}<div><dt>{% translate "Inscripcions fins al" %}</dt><dd><time datetime="{{ activity.registration_closes_at|date:'c' }}">{{ activity.registration_closes_at|date:"d/m/Y H:i" }}</time></dd></div>{% endif %}
+    {% if activity.required_level %}<div><dt>{% translate "Titulació mínima" %}</dt><dd>{{ activity.required_level }}</dd></div>{% endif %}
+    {% if activity.licence_required %}<div><dt>{% translate "Llicència" %}</dt><dd>{% translate "Cal llicència vigent" %}</dd></div>{% endif %}
+    {% if activity.forecast_url %}<div><dt>{% translate "Previsió marítima" %}</dt><dd><a href="{{ activity.forecast_url }}" rel="noopener noreferrer">{% translate "Obre la previsió" %}</a></dd></div>{% endif %}
+  </dl>
+
+  {% if activity.sessions %}
+    <section aria-labelledby="sessions-titol">
+      <h2 id="sessions-titol">{% translate "Sessions" %}</h2>
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Sessions de l'activitat, per ordre" %}</caption>
+        <thead><tr><th scope="col">{% translate "Sessió" %}</th><th scope="col">{% translate "Horari" %}</th><th scope="col">{% translate "Lloc" %}</th></tr></thead>
+        <tbody>
+          {% for session in activity.sessions %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ session.kind }}</th>
+              <td data-etiqueta="{% translate 'Horari' %}"><span><time datetime="{{ session.starts_at|date:'c' }}">{{ session.starts_at|date:"d/m/Y H:i" }}</time> – {{ session.ends_at|date:"H:i" }}</span></td>
+              <td data-etiqueta="{% translate 'Lloc' %}">{{ session.location|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+  {% if activity.blocks %}
+    <section aria-labelledby="programa-titol">
+      <h2 id="programa-titol">{% translate "Programa del dia" %}</h2>
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Programa del dia, per ordre" %}</caption>
+        <thead><tr><th scope="col">{% translate "Hora" %}</th><th scope="col">{% translate "Què s'hi fa" %}</th><th scope="col">{% translate "Lloc" %}</th><th scope="col">{% translate "Qui se n'encarrega" %}</th></tr></thead>
+        <tbody>
+          {% for block in activity.blocks %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ block.starts_at|time:"H:i" }}{% if block.ends_at %} – {{ block.ends_at|time:"H:i" }}{% endif %}</th>
+              <td data-etiqueta="{% translate "Què s'hi fa" %}">{{ block.label }}</td>
+              <td data-etiqueta="{% translate 'Lloc' %}">{{ block.location|default:"—" }}</td>
+              <td data-etiqueta="{% translate "Qui se n'encarrega" %}">{{ block.responsible_label|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'activities:list' %}">{% translate "Totes les activitats" %}</a></p>
+{% endblock %}

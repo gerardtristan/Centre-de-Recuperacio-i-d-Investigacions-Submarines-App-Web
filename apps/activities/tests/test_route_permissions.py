@@ -28,7 +28,7 @@ from apps.activities.models import (
     TrainingCatalogueEntry,
     TrainingCataloguePrice,
 )
-from apps.activities.permissions import ROUTES
+from apps.activities.permissions import PUBLIC, ROUTES
 from apps.core.models import AuditEntry, OutgoingEmail, Role
 from apps.core.permissions import has_perm
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -57,7 +57,8 @@ MODULE_ROUTES = {
     for name, view, kwargs in _routes()
     if view.__module__.startswith("apps.activities.")
 }
-NAMES = sorted(ROUTES)
+NAMES = sorted(name for name, need in ROUTES.items() if isinstance(need, dict))
+PUBLIC_NAMES = {name for name, need in ROUTES.items() if need == PUBLIC}
 
 # Quin objecte va al paràmetre `pk` de cada ruta; per defecte, l'activitat.
 OBJECT_FOR_ROUTE = {
@@ -141,17 +142,21 @@ def test_every_route_of_the_module_declares_its_permission():
 
 
 def test_every_route_is_in_the_administration_and_declares_get_and_post():
-    for name, need in ROUTES.items():
+    for name in NAMES:
+        need = ROUTES[name]
         assert name.startswith("administration:"), name
         assert set(need) == {"GET", "POST"}, name
         # Cap pantalla del 02 es desa només amb un permís de consulta.
         assert all(write for _code, write in need["POST"]) or need["POST"] == need["GET"], name
 
 
-def test_no_route_of_the_module_is_public():
+def test_declared_public_routes_are_the_public_ones():
     from apps.core.tests.test_access import PUBLIC_ROUTES
 
-    assert not set(MODULE_ROUTES) & set(PUBLIC_ROUTES)
+    assert PUBLIC_NAMES == set(MODULE_ROUTES) & set(PUBLIC_ROUTES)
+    assert PUBLIC_NAMES == {"activities:list", "activities:detail"}
+    # Cap ruta de l'administració no és pública.
+    assert not {name for name in PUBLIC_NAMES if name.startswith("administration:")}
 
 
 # --- CA-RP-13: ruta × rol, a partir de la matriu carregada ----------------------------------------

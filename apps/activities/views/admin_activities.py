@@ -26,8 +26,15 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.core.charges import euros
 from apps.core.permissions import permission_required
 
-from .. import catalogue, services, sessions, states
-from ..forms import ActivityForm, ProgrammeForm, ReasonForm, ReopenForm, SessionForm
+from .. import catalogue, duplicate, services, sessions, states
+from ..forms import (
+    ActivityForm,
+    DuplicateForm,
+    ProgrammeForm,
+    ReasonForm,
+    ReopenForm,
+    SessionForm,
+)
 from ..models import Activity, Session
 from ..permissions import MANAGE
 from . import run, see_other
@@ -397,3 +404,31 @@ def activity_programme_view(request, pk):
             return _to_detail(activity)
     context = {"form": form, "activity": activity}
     return render(request, "activities/programme_form.html", context)
+
+
+# --- Duplicar (T-M02-07) --------------------------------------------------------------------------
+
+
+@never_cache
+@permission_required(MANAGE, write=True)
+@require_http_methods(["GET", "POST"])
+def activity_duplicate_view(request, pk):
+    """Crea una còpia en esborrany amb les dates desplaçades (decisió 026; RN-M02-21)."""
+    activity = _activity(pk)
+    form = DuplicateForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        created = []
+        saved = run(
+            request,
+            form,
+            lambda: created.append(
+                duplicate.duplicate(
+                    activity, form.cleaned_data["new_start"], by=request.user, request=request
+                )
+            ),
+            _("Còpia creada en esborrany. Revisa-la i publica-la quan estigui a punt."),
+        )
+        if saved:
+            return _to_detail(created[0])
+    context = {"form": form, "activity": activity}
+    return render(request, "activities/activity_duplicate.html", context)

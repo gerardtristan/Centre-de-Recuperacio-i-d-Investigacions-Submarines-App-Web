@@ -232,6 +232,8 @@ MAP = {
         "apps/activities/states.py",
         "apps/activities/sessions.py",
         "apps/activities/forms.py",
+        "apps/activities/duplicate.py",
+        "apps/activities/public.py",
         "apps/activities/views/*",
         "templates/activities/*",
     ),

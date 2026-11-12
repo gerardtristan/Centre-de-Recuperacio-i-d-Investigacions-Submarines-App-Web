@@ -70,6 +70,11 @@ urlpatterns = [
     path("activitats/<int:pk>/reobre/", activities.activity_reopen_view, name="activity_reopen"),
     path("activitats/<int:pk>/cancella/", activities.activity_cancel_view, name="activity_cancel"),
     path(
+        "activitats/<int:pk>/duplica/",
+        activities.activity_duplicate_view,
+        name="activity_duplicate",
+    ),
+    path(
         "activitats/<int:pk>/programa/",
         activities.activity_programme_view,
         name="activity_programme",
