@@ -3,6 +3,7 @@
 - **Què és:** l'únic fitxer del pla de tots els mòduls i la **font única de la seva especificació** ([047](decisions/047-planning-font-unica-de-l-especificacio.md)). S'hi afegeixen mòduls amb la mateixa estructura de 14 seccions. Cap altre fitxer en copia el contingut: s'hi enllaça per l'àncora.
 - **Data de la versió:** 31/10/2026, amb els ajustos de la [060](decisions/060-ajustos-de-l-auditoria-del-pla.md) (la data només identifica la versió; el pla no té calendari, [038](decisions/038-planificar-sense-dates.md)).
 - **Com s'aprova:** cada secció de mòdul passa d'«escrit» a «aprovat» quan el responsable del projecte l'aprova. Cap mòdul nou s'afegeix fins que l'anterior està aprovat, excepte quan el responsable del projecte en demana diversos alhora perquè depenen entre ells (04, 05a i 05b; 02 i 03; 09 i 06, que depenen tots dos del 05b).
+- **Congelació de la fase 1 ([089](decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md), D1):** mentre l'interruptor D1 de [`CLAUDE.md`](../CLAUDE.md) sigui actiu, les seccions i les addendes dels mòduls 01, 04, 05a i 05b queden com són a l'etiqueta de Git `spec-fase1-v1`. No s'hi afegeix cap addenda ni s'edita cap fila de tasca. Els canvis i els dubtes nous van a [`pendents.md`](decisions/pendents.md) i no aturen la feina; l'estat de les tasques noves, a [`docs/estat/`](estat/README.md).
 
 <a id="estat"></a>
 ## 1. Estat i numeració dels mòduls
