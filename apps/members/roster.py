@@ -124,11 +124,12 @@ def filtered_members(data, *, can_search_document, can_see_birth_date=False):
 
 @dataclass(frozen=True)
 class FeeState:
-    kind: str  # PAID_UNTIL, PENDING o EXEMPT
+    kind: str  # PAID_UNTIL, WAIVED, PENDING o EXEMPT
     until: date | None = None
 
 
 PAID_UNTIL = "paid_until"
+WAIVED = "waived"  # quota eximida (RN-M01-72; T-M01-40)
 PENDING = "pending"
 EXEMPT = "exempt"
 
@@ -143,7 +144,7 @@ def with_fee_data(members):
         Prefetch(
             "fees",
             queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.ANNUAL)
-            .select_related("charge")
+            .select_related("charge", "exemption")
             .prefetch_related("charge__payments"),
             to_attr="annual_fees",
         ),
@@ -166,6 +167,7 @@ def fee_state(member, today: date | None = None) -> FeeState | None:
     - «Sense quota»: el «vàlid fins al» vigent surt de l'exempció per edat (068, Q-002).
     - «Pagada fins al»: té un «vàlid fins al» que no ha passat (pagament confirmat o renovació
       de Cluber), encara que la renovació ja estigui emesa i pendent.
+    - «Eximida fins al»: el «vàlid fins al» vigent surt d'una quota eximida (RN-M01-72).
     - «Pendent»: no té cap «vàlid fins al» vigent i té una quota anual amb el càrrec pendent i
       el venciment passat, o una amb el càrrec retornat.
     - La resta (cap quota, una de pendent que encara no ha vençut, anul·lades): res.
@@ -179,6 +181,8 @@ def fee_state(member, today: date | None = None) -> FeeState | None:
     if until is not None and today <= until:
         if validity.exempt_now(member, today):
             return FeeState(EXEMPT)
+        if validity.waived_now(member, today):
+            return FeeState(WAIVED, until)
         return FeeState(PAID_UNTIL, until)
     for fee in member.annual_fees:
         status = fee.charge.status

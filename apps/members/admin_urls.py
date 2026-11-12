@@ -54,6 +54,16 @@ urlpatterns = [
         name="member_card_revoke",
     ),
     path(
+        "socis/<int:pk>/quotes/<int:fee_pk>/eximeix/",
+        admin_member_edit.member_fee_exempt_view,
+        name="member_fee_exempt",
+    ),
+    path(
+        "socis/<int:pk>/quotes/<int:fee_pk>/anulla/",
+        admin_member_edit.member_fee_cancel_view,
+        name="member_fee_cancel",
+    ),
+    path(
         "socis/<int:pk>/llicencies/nova/",
         admin_licences.licence_add_view,
         name="licence_add",

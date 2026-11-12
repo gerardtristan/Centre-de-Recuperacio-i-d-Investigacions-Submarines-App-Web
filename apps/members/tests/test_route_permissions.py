@@ -59,6 +59,7 @@ OBJECT_FOR_PARAM = {
     "record_pk": "record",
     "record_id": "own_record",
     "fee_id": "own_fee",
+    "fee_pk": "fee",  # T-M01-40: una quota del soci «other»
 }
 OBJECT_FOR_ROUTE = {
     "administration:join_approve": "join_request",
@@ -316,6 +317,15 @@ LICENCE = {
     "expires_on": datetime.date(2026, 12, 31),
 }
 P = "members."
+
+
+def _due_today(fee):
+    """Una quota amb el període encara obert, sigui quin sigui el dia que s'executa la prova."""
+    fee.due_on = TODAY
+    fee.save()
+    return fee
+
+
 SERVICES = {
     # nom: (permisos que calen, crida)
     "approve_join": (
@@ -344,8 +354,13 @@ SERVICES = {
         lambda w, by: member_requests.cancel_overdue_supplement(w.change, by=by, reason=REASON),
     ),
     "cancel_fee": (
-        ((P + "fees.generate", True),),
+        # 072 (quarta instrucció, punt 4) i 085: el mateix permís que l'exempció (P22).
+        ((P + "fees.exempt", True),),
         lambda w, by: fees.cancel_fee(w.fee, by=by, reason=REASON),
+    ),
+    "exempt_fee": (
+        ((P + "fees.exempt", True),),
+        lambda w, by: fees.exempt_fee(_due_today(w.fee), by=by, reason=REASON),
     ),
     "mark_unpaid": (
         ((P + "unpaid.mark", True),),

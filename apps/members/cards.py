@@ -141,8 +141,8 @@ def issue_card(member, *, by, request=None) -> str:
         if loaded.status != Member.Status.ACTIVE or valid_until(loaded) is None:
             raise CardNotAllowed(
                 _(
-                    "Només té carnet un soci actiu amb la quota pagada, exempt per edat o "
-                    "importat amb la renovació de Cluber."
+                    "Només té carnet un soci actiu amb la quota pagada o eximida, exempt per "
+                    "edat o importat amb la renovació de Cluber."
                 )
             )
         if active_card(loaded) is not None:

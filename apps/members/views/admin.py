@@ -30,7 +30,8 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.accounts import personal_reset
-from apps.core import audit, persons
+from apps.core import audit, charges, persons
+from apps.core.models import Charge
 from apps.core.permissions import (
     has_perm,
     permission_required,
@@ -286,6 +287,26 @@ def members_list_view(request):
     return render(request, "members/member_list.html", context)
 
 
+def _fee_rows(member):
+    """Les quotes del soci per a la fitxa (T-M01-40), de la més recent a la més antiga."""
+    rows = []
+    for fee in (
+        AnnualFee.objects.filter(member=member)
+        .select_related("charge", "exemption")
+        .order_by("-period", "-sequence", "-pk")
+    ):
+        rows.append(
+            {
+                "fee": fee,
+                "amount": charges.euros(fee.charge.amount_cents),
+                "open": fee.charge.status == Charge.Status.PENDING,
+                "annual": fee.kind == AnnualFee.Kind.ANNUAL,
+                "exemption": getattr(fee, "exemption", None),
+            }
+        )
+    return rows
+
+
 @never_cache
 @permission_required(roster.LIST)
 @require_GET
@@ -343,6 +364,12 @@ def member_detail_view(request, pk):
         # 079 (A-21, RN-M01-92): el carnet vigent i, amb P21, revocar-lo amb motiu.
         "card": cards.active_card(member),
         "can_revoke_card": cards.can_revoke(request.user, perms),
+        # T-M01-40: les quotes del soci (P10) i, amb P22, eximir-ne o anul·lar-ne una. Els
+        # serveis tornen a comprovar el permís, el motiu i el conflicte d'interès.
+        "fee_rows": _fee_rows(member) if vis.fees else [],
+        "can_exempt": vis.fees
+        and member.person_id != request.user.person_id
+        and fees.can_exempt(request.user, perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(
