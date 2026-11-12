@@ -67,6 +67,7 @@ omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]
 skip_covered = true
+precision = 2
 
 [tool.ruff]
 line-length = 100
