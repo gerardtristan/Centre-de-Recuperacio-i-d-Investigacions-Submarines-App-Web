@@ -45,7 +45,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Actiu:** un dubte **reversible** (un text, un detall que es canvia sense tocar dades) o **configurable** (un valor, que va a «Ajustos») es construeix amb una opció per defecte i la tasca es tanca. Un d'**irreversible** (diners, model de dades que afecta dades reals, RGPD, seguretat, permisos, el que veurà un soci real) es construeix amb l'opció més conservadora darrere d'un interruptor de configuració apagat i **no s'activa a producció sense resposta**. Cada dubte nou va a `pendents.md` (tipus, opció per defecte, què bloqueja, qui respon, tasca) i al tauler de preguntes (`docs/decisions/tauler-preguntes.yml`) amb opcions A a D i la recomanació.
 - **Inactiu (regla anterior):** si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, aquella part no s'implementa: es pregunta.
 
-### D3 — Llesques verticals: **inactiu**
+### D3 — Llesques verticals: **actiu**
 - **Actiu:** la fase 1 es construeix per llesques que travessen el 04, el 05a i el 05b (apartat 3 del pla d'acceleració), respectant les dependències entre tasques. La primera és el primer cobrament amb un proveïdor fals. Cada llesca acaba amb una prova de flux sencer.
 - **Inactiu (regla anterior):** mòdul sencer darrere mòdul sencer: 04 → 05a → 05b.
 
