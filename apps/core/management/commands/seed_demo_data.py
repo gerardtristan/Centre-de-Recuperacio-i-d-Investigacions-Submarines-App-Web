@@ -11,6 +11,9 @@ Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisi
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
 socis. Només es creen quan l'ordre pot córrer (`check_can_run`): fora de desenvolupament amb
 `DEBUG`, o amb una base que no sigui local i buida, es nega i no crea res.
+
+També crea les dades inventades del mòdul 02 (T-M02-25, `apps/activities/demo_data.py`): catàleg,
+activitats en diversos estats i resultats ambientals.
 """
 
 import random
@@ -26,6 +29,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
 from apps.accounts.totp import DEMO_TOTP_SECRET
+from apps.activities import demo_data as activities_demo_data
 from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
@@ -44,6 +48,8 @@ ROLE_ACCOUNTS = [
     ("tresorer-demo", "Tresorer", Role.Code.TREASURER),
     ("president-demo", "President", Role.Code.PRESIDENT),
     ("instructor-demo", "Instructor", Role.Code.INSTRUCTOR),
+    # Mòdul 02 (T-M02-25): catàlegs, activitats i resultats ambientals.
+    ("cursos-demo", "Cursos", Role.Code.COURSES_MANAGER),
 ]
 CLUBER_FILE = Path(tempfile.gettempdir()) / "cris-cluber-inventat.csv"
 ALLOWED_SETTINGS = {"config.settings.dev", "config.settings.test"}
@@ -125,6 +131,10 @@ class Command(BaseCommand):
         out(
             f"Llavor {seed}: {counts['people']} persones, {counts['charges']} càrrecs, "
             f"{counts['consents']} consentiments."
+        )
+        out(
+            f"Mòdul 02: {counts['catalogue_entries']} fitxes del catàleg i "
+            f"{counts['activities']} activitats (entra amb cursos-demo)."
         )
         out("")
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
@@ -236,5 +246,17 @@ class Command(BaseCommand):
             password=PASSWORD,
             with_cluber_batch=with_cluber_batch,
         )
-        counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
+        # Mòdul 02 (T-M02-25): catàleg, activitats en diversos estats i resultats ambientals.
+        m02 = activities_demo_data.create(
+            manager=accounts[Role.Code.COURSES_MANAGER],
+            instructor=accounts[Role.Code.INSTRUCTOR],
+            department=activities,
+        )
+        counts = {
+            "people": len(people),
+            "charges": n_charges,
+            "consents": n_consents,
+            "activities": m02.activities,
+            "catalogue_entries": m02.entries,
+        }
         return counts, review
