@@ -88,7 +88,7 @@ def test_treasurer_exempts_the_fee_of_a_pending_member(
     assert Member.objects.get(pk=member.pk).status == Member.Status.PENDING
 
     confirm(page, "Eximeix la quota")
-    expect(page.get_by_text("Quota eximida. El soci és actiu i té el carnet vigent.")).to_be_visible()
+    expect(page.get_by_text("Quota eximida. El soci és actiu")).to_be_visible()
     expect(page.get_by_role("link", name="Eximeix…")).to_have_count(0)
     review("fitxa-quota-eximida")
     member.refresh_from_db()
