@@ -25,3 +25,8 @@ STORAGES = {
         "OPTIONS": {"location": tempfile.mkdtemp(prefix="cris-fitxers-proves-")},
     },
 }
+
+# Proveïdor de pagaments fals, sense xarxa (T-M05a-03): cap prova surt cap a fora.
+PAYMENTS_PROVIDER = "fake"
+PAYMENTS_ENVIRONMENT = "sandbox"
+PAYMENTS_LIVE_CHARGES_ALLOWED = False

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.members",
+    "apps.payments",
 ]
 
 MIDDLEWARE = [
@@ -92,6 +93,13 @@ LOGIN_URL = "accounts:login"
 # Entrada d'administració separada, en una ruta discreta (arquitectura §5).
 ADMIN_URL_PATH = env("ADMIN_URL_PATH", default="gestio").strip("/")
 TOTP_ISSUER_NAME = env("TOTP_ISSUER_NAME", default="C.R.I.S.")
+
+# Pagaments (05a; decisió 043). Sense proveïdor configurat no es pot cobrar res. Amb l'entorn
+# real («live»), cap cobrament sense PAYMENTS_LIVE_CHARGES_ALLOWED, que només s'activa al nivell 2
+# amb l'autorització de la junta (RN-M05a-11; decisió 025).
+PAYMENTS_PROVIDER = env("PAYMENTS_PROVIDER", default="")
+PAYMENTS_ENVIRONMENT = env("PAYMENTS_ENVIRONMENT", default="sandbox")
+PAYMENTS_LIVE_CHARGES_ALLOWED = env.bool("PAYMENTS_LIVE_CHARGES_ALLOWED", default=False)
 
 # Adreça pública de la plataforma, per als enllaços dels correus (verificació i recuperació):
 # la cua no té cap petició d'on treure-la. Domini: decisió 019.
