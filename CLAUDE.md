@@ -37,7 +37,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Inactiu:** val la regla anterior.
 - **Si el propietari escriu «revoca la decisió N»:** en un sol commit titulat «DN (089): revocada», posa DN a **inactiu**, restaura la regla anterior d'aquell punt (el que la 089 llista a «En revocar») i afegeix una fila al registre d'estat de la 089. No toquis cap altre interruptor.
 
-### D1 — Especificació de la fase 1 congelada: **inactiu**
+### D1 — Especificació de la fase 1 congelada: **actiu**
 - **Actiu:** les seccions i les addendes dels mòduls 01, 04, 05a i 05b queden com són a l'etiqueta `spec-fase1-v1`; no s'hi afegeix cap addenda. Un canvi o un dubte nou va a `docs/decisions/pendents.md` i no atura la feina. Una regla congelada només es canvia amb una decisió numerada i una sola edició al lloc de la regla, en una PR `risc:alt`. L'estat de les tasques s'apunta a `docs/estat/<mòdul>.md` (una línia per tasca) i la fila del pla no s'edita.
 - **Inactiu (regla anterior):** un canvi de regla s'escriu primer a `docs/planning.md`, amb una addenda datada; la fila de la tasca acabada es marca al pla amb l'estat, la data i el CI.
 
