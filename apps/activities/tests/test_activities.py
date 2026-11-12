@@ -116,6 +116,15 @@ def test_creating_is_recorded_without_personal_data(manager):
     }
 
 
+def test_the_description_has_no_length_limit(manager):
+    """Error trobat amb les pantalles (T-M02-06): la descripció no té llargada màxima i el servei
+    la comparava amb `None`."""
+    long_text = "Descripció inventada. " * 200
+    course = a_course(manager, description=f"  {long_text}  ")
+    assert course.description == long_text.strip()
+    assert services.update_activity(course, by=manager, description="Una altra.") == ["description"]
+
+
 def test_what_the_manager_writes_wins_over_the_entry(manager):
     entry = an_entry(manager, default_places=8)
     course = a_course(manager, entry, max_places=6, open_to_non_members=True)

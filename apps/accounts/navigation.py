@@ -1,9 +1,10 @@
 """Navegació comuna de l'administració (T-M01-46; sistema de disseny §6.1 i §6.2).
 
 El menú es construeix al servidor amb els permisos del compte: una entrada només hi surt si el
-compte té el permís que la ruta declara (`apps/members/permissions.py` per a les rutes del 01;
-`BASE_ROUTES` per a les de la 00). No és cap control: cada vista torna a comprovar el permís.
-Només ajuda a no ensenyar enllaços que respondrien «no trobat».
+compte té el permís que la ruta declara (`apps/members/permissions.py` per a les rutes del 01,
+`apps/activities/permissions.py` per a les del 02 i `BASE_ROUTES` per a les de la 00). No és cap
+control: cada vista torna a comprovar el permís. Només ajuda a no ensenyar enllaços que
+respondrien «no trobat».
 
 - Sense una sessió vàlida de l'administració no hi ha menú i no es fa cap consulta.
 - Es calcula com a màxim una vegada per petició, i només si la plantilla el fa servir (un
@@ -17,6 +18,7 @@ from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext_lazy as _
 
+from apps.activities.permissions import ROUTES as ACTIVITY_ROUTES
 from apps.core.permissions import has_perm, request_permissions
 from apps.members.permissions import READ, ROUTES
 
@@ -63,6 +65,34 @@ ENTRIES = (
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
     ("administration:fees", _("Quotes i impagats"), ()),
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
+    (
+        "administration:activities",
+        _("Activitats"),
+        (
+            "administration:activity_detail",
+            "administration:activity_course_add",
+            "administration:activity_outing_add",
+            "administration:activity_edit",
+            "administration:activity_reopen",
+            "administration:activity_cancel",
+            "administration:activity_programme",
+            "administration:session_add",
+            "administration:session_edit",
+            "administration:session_cancel",
+        ),
+    ),
+    (
+        "administration:catalogue_courses",
+        _("Catàleg de cursos"),
+        ("administration:catalogue_course_add",),
+    ),
+    (
+        "administration:catalogue_specialities",
+        _("Catàleg d'especialitats"),
+        ("administration:catalogue_speciality_add",),
+    ),
+    ("administration:outing_types", _("Tipus de sortida"), ()),
+    ("administration:projects", _("Projectes de medi ambient"), ("administration:project_detail",)),
     ("administration:guest_links", _("Enllaços de convidat"), ()),
     (
         "administration:gdpr_requests",
@@ -107,7 +137,9 @@ class AdminNav:
 
 def route_needs(name):
     """Grups de permisos de la ruta `name`: n'hi ha prou amb un grup sencer."""
-    return BASE_ROUTES.get(name) or (ROUTES[name]["GET"],)
+    if name in BASE_ROUTES:
+        return BASE_ROUTES[name]
+    return ((ROUTES.get(name) or ACTIVITY_ROUTES[name])["GET"],)
 
 
 def _allowed(account, name, permissions) -> bool:

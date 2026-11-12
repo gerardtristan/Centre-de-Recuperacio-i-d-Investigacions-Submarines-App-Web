@@ -1,0 +1,44 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: projectes de medi ambient (AC6; P-M02-A, pas 3). Un projecte no s'esborra si té sortides. Els resultats (residus, espècies i fotos) són de la T-M02-20. Cap dada personal. #}
+{% block title %}{% translate "Projectes de medi ambient" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Projectes de medi ambient" %}</h1>
+  {% include "activities/_missatges.html" %}
+  {% if projects %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=projects|length %}{{ total }} projecte{% plural %}{{ total }} projectes{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Projecte" %}</th>
+          <th scope="col">{% translate "Departament" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ project.name }}</th>
+            <td data-etiqueta="{% translate 'Departament' %}">{{ project.department.name }}</td>
+            <td data-etiqueta="{% translate 'Estat' %}">{{ project.get_status_display }}</td>
+            <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:project_detail' project.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ project.name }}</span></a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Encara no hi ha cap projecte." %}</p>
+  {% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    <fieldset>
+      <legend>{% translate "Crea un projecte" %}</legend>
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el projecte" %}</button></div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

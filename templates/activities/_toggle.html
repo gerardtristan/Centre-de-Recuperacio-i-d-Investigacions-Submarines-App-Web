@@ -1,0 +1,10 @@
+{% load i18n %}<form method="post" action="{{ action }}">
+  {% csrf_token %}
+  {% if active %}
+    <input type="hidden" name="actiu" value="0">
+    <button class="boto boto-petit" type="submit">{% translate "Desactiva" %}<span class="visualment-amagat">: {{ name }}</span></button>
+  {% else %}
+    <input type="hidden" name="actiu" value="1">
+    <button class="boto boto-petit" type="submit">{% translate "Torna a activar" %}<span class="visualment-amagat">: {{ name }}</span></button>
+  {% endif %}
+</form>

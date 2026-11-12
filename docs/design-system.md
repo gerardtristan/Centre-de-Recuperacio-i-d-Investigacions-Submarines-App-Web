@@ -238,6 +238,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Caixa d'imatge | `caixa-imatge` | Substitueix qualsevol imatge als wireframes |
 | Camp | `camp`, `casella` | Etiqueta sempre visible; mínim 44 px |
 | Codi i import | `codi`, `import` | JetBrains Mono; xifres tabulars als imports |
+| Llista de dades d'una fitxa | `dades-soci` (fitxa del soci) i `dades-fitxa` (la resta: activitat, preus del catàleg, projecte) | A `comptes.css`. Una `<dl>` amb un `<div>` per parella: l'etiqueta a l'esquerra en `--c-text-2` i el valor a la dreta; passen a dues línies quan no hi caben. Mateixa regla per a les dues classes |
 | Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 | Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |
@@ -317,6 +318,8 @@ A la fitxa d'una sortida:
 | Estat del soci (M01): «Pendent de la primera quota» (`pending`), «Actiu», «Impagat», «Impagat · quota pagada, revisa-ho» (el tresorer encara no l'ha desmarcat; 040) i «Baixa» | ◷, ✓, ✕, ✕, ■ | `estat-avis`, `estat-ok`, `estat-error`, `estat-error`, `estat-neutre` |
 | Caduca aviat, Últimes places | ! | `estat-avis` |
 | Cancel·lat, Completa, Sense llicència | ✕ | `estat-error` |
+| Estat d'una activitat (M02): «Esborrany», «Oberta», «Tancada a inscripcions», «En curs», «Finalitzada», «Tancada econòmicament» i «Cancel·lada» | ■, ✓, !, ◷, ■, ■, ✕ | `estat-neutre`, `estat-ok`, `estat-avis`, `estat-info`, `estat-neutre`, `estat-neutre`, `estat-error` |
+| Fitxa, tipus o subtipus del catàleg (M02): «Disponible» i «Desactivat» | ✓, ■ | `estat-ok`, `estat-neutre` |
 | Sistema (missatge automàtic) | ⚙ | `estat-sistema` |
 
 ### 6.4 Estil neumòrfic limitat (decisió 031)

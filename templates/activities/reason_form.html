@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: cancel·lar una activitat o una sessió, sempre amb motiu (AC7; RN-M02-02). No s'esborra res: queda cancel·lat amb el motiu al registre d'activitat. El servei torna a comprovar el permís, l'estat i el motiu. #}
+{% block title %}{{ title }} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ activity.title }}</p>
+  <div class="avis avis-avis">{{ lead }}</div>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{{ button }}</button>
+      <a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "No ho facis" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

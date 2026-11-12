@@ -1,0 +1,25 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: programa del dia per blocs (AC7; P-M02-B, pas 2). Es desa sencer i en l'ordre de les files; les files en blanc no compten. «Qui se n'encarrega» és una funció, mai un nom, un correu ni un telèfon: el servei ho rebutja. #}
+{% block title %}{% translate "Programa del dia" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{% translate "Programa del dia" %}</h1>
+  <p>{{ activity.title }}</p>
+  <p class="text-2">{% translate "Omple una fila per bloc, en ordre. Deixa en blanc les que no facis servir; per treure un bloc, buida'n la fila." %}</p>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for number, fields in form.grouped %}
+      <fieldset>
+        <legend>{% blocktranslate %}Bloc {{ number }}{% endblocktranslate %}</legend>
+        {% for field in fields %}{% include "accounts/_camp.html" %}{% endfor %}
+      </fieldset>
+    {% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Desa el programa" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

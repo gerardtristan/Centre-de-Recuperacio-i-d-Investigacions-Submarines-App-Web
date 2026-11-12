@@ -14,9 +14,13 @@ versions i data d'entrada en vigor, tipus de sortida, subtipus de medi ambient i
   (`activities.catalogue.manage`); sense, «no trobat», també cridat fora d'una vista. Llegir el
   catàleg (`entries`, `price_on`) no demana cap permís aquí: ho decideix qui ho mostra.
 
+- **Avís del canvi de preu** (T-M02-05; RN-AJ-04; segona part de CA-M02-26): `change_prices`
+  crida `business_settings.notify_money_change`, la peça comuna que envia el correu al tresorer i
+  a la junta amb el preu anterior, el nou, qui l'ha canviat, el motiu i la data. Qui el rep ho
+  decideix aquella peça (T-AJ-01), no aquest mòdul.
+
 **Fora d'aquesta peça**, i sense cap codi que ho simuli:
-- les **pantalles** i l'**avís del canvi de preu** al tresorer i a la junta (segona part de
-  CA-M02-26) són de la T-M02-05;
+- les **pantalles** són a `apps/activities/views/admin_catalogue.py` (T-M02-05);
 - la llista de nivells, el mode de requisits per defecte i l'edat mínima són de les T-M02-29 i
   T-M02-32.
 
@@ -32,7 +36,8 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, business_settings
+from apps.core.charges import euros
 
 from . import permissions
 from .models import (
@@ -291,7 +296,37 @@ def change_prices(
         reason=note,
         request=request,
     )
+    business_settings.notify_money_change(
+        what=_("Preu del catàleg: %(name)s") % {"name": entry.name},
+        previous=describe_prices(current),
+        new=describe_prices(price_on(entry, valid_from)),
+        changed_by=by,
+        note=note,
+        effective_from=valid_from,
+    )
     return version
+
+
+def describe_prices(price: Price) -> str:
+    """Els preus en una línia, per al correu de l'avís i per a les pantalles."""
+    text = _("soci %(member)s; no soci %(non_member)s") % {
+        "member": euros(price.member_cents),
+        "non_member": euros(price.non_member_cents),
+    }
+    if price.reinforcement_cents is not None:
+        text += _("; reforç %(amount)s") % {"amount": euros(price.reinforcement_cents)}
+    return text
+
+
+def price_versions(entry):
+    """Totes les versions dels preus de la fitxa, de la més recent a la més antiga."""
+    return entry.prices.select_related("changed_by__person").order_by("-valid_from", "-pk")
+
+
+def next_price(entry, today: datetime.date) -> Price | None:
+    """El primer canvi de preu que encara ha d'entrar en vigor, o `None`."""
+    upcoming = entry.prices.filter(valid_from__gt=today).order_by("valid_from", "pk").first()
+    return price_on(entry, upcoming.valid_from) if upcoming else None
 
 
 # --- Tipus, subtipus i projectes ------------------------------------------------------------------

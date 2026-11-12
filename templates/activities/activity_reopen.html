@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: reobrir les inscripcions (AC7; RN-M02-02, l'únic pas enrere). El servei comprova que la data límit sigui futura i que no passi del dia d'inici. #}
+{% block title %}{% translate "Reobre les inscripcions" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{% translate "Reobre les inscripcions" %}</h1>
+  <p>{{ activity.title }}</p>
+  <p>{% blocktranslate with date=activity.registration_closes_at|date:"d/m/Y H:i" start=activity.starts_on|date:"d/m/Y" %}Data límit actual: {{ date }}. L'activitat comença el {{ start }}.{% endblocktranslate %}</p>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Reobre les inscripcions" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "No ho facis" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

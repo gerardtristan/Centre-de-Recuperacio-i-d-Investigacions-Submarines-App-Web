@@ -77,6 +77,7 @@ TEMPLATE_PRIORITIES = {
     "restabliment-acces": _Priority.CONFIRMATION,
     "avis-canvi-diners": _Priority.CONFIRMATION,
     "avis-quota-tresorer": _Priority.CONFIRMATION,
+    "avis-preu-activitat": _Priority.CONFIRMATION,  # RN-M02-06 (T-M02-06)
     "avis-compte-emergencia": _Priority.CONFIRMATION,  # CA-10.2 (T-M00-03)
     "restabliment-doble-factor": _Priority.CONFIRMATION,  # P-52 (081, punt 24; T-M01-51)
     "esborrat-fet": _Priority.CONFIRMATION,  # RGPD (T-M01-22)

@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "S'ha desat una activitat amb un preu diferent del que té el catàleg." %}
+
+{% translate "Activitat:" %} {{ title }}
+{% translate "Data d'inici:" %} {{ starts_on|date:"d/m/Y" }}
+{% translate "Preu del catàleg:" %} {{ catalogue_prices }}
+{% translate "Preu de l'activitat:" %} {{ activity_prices }}
+{% translate "Qui l'ha desat:" %} {{ changed_by }}
+{% translate "Motiu:" %} {{ note }}
+
+{% translate "Aquest correu només és un avís: el preu ja s'ha desat i no cal cap aprovació. El canvi queda al registre d'activitat." %}
+{% endautoescape %}

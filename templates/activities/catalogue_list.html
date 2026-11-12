@@ -1,0 +1,48 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: catàleg de cursos o d'especialitats, dues pantalles separades (RN-M02-01). Permís AC6: el servidor el comprova a la vista i a cada servei; amagar un botó no és cap control. Cap dada personal. #}
+{% block title %}{{ list_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{{ list_title }}</h1>
+  {% include "activities/_missatges.html" %}
+  <p class="text-2">{% translate "El preu que es mostra és el d'avui. Una activitat nova copia el preu vigent el dia que es crea; les que ja existeixen no canvien." %}</p>
+  <div class="accions">
+    <a class="boto boto-principal" href="{% url add_url %}">{{ add_title }}</a>
+  </div>
+  {% if rows %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=rows|length %}{{ total }} fitxa{% plural %}{{ total }} fitxes{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Fitxa" %}</th>
+          <th scope="col">{% translate "Places" %}</th>
+          <th scope="col">{% translate "Preu de soci" %}</th>
+          <th scope="col">{% translate "Preu de no soci" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Accions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ row.entry.name }}{% if row.entry.level %}<br><span class="text-2">{{ row.entry.level }}</span>{% endif %}</th>
+            <td data-etiqueta="{% translate 'Places' %}">{{ row.entry.default_places }}</td>
+            <td data-etiqueta="{% translate 'Preu de soci' %}"><span class="import">{{ row.price.member }}</span></td>
+            <td data-etiqueta="{% translate 'Preu de no soci' %}"><span><span class="import">{{ row.price.non_member }}</span>{% if row.next %}<br><span class="text-2">{% blocktranslate with date=row.next.valid_from|date:"d/m/Y" member=row.next.member non_member=row.next.non_member %}Des del {{ date }}: {{ member }} i {{ non_member }}{% endblocktranslate %}</span>{% endif %}</span></td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_active.html" with active=row.entry.active %}</td>
+            <td class="cel-accions">
+              <a class="boto boto-petit" href="{% url 'administration:catalogue_entry_edit' row.entry.pk %}">{% translate "Edita" %}<span class="visualment-amagat">: {{ row.entry.name }}</span></a>
+              <a class="boto boto-petit" href="{% url 'administration:catalogue_entry_prices' row.entry.pk %}">{% translate "Preus" %}<span class="visualment-amagat">: {{ row.entry.name }}</span></a>
+              {% url 'administration:catalogue_entry_active' row.entry.pk as toggle_url %}
+              {% include "activities/_toggle.html" with action=toggle_url active=row.entry.active name=row.entry.name %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Encara no hi ha cap fitxa en aquest catàleg." %}</p>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: canviar els preus d'una fitxa (AC6; RN-M02-05; CA-M02-01 i CA-M02-26). Cada canvi és una versió nova amb data d'entrada en vigor i motiu; no toca cap activitat ja creada i avisa per correu el tresorer i la junta (RN-AJ-04). L'historial només s'hi afegeix. #}
+{% block title %}{% translate "Preus" %} · {{ entry.name }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{{ list_title }}</p>
+  <h1>{% blocktranslate with name=entry.name %}Preus de «{{ name }}»{% endblocktranslate %}</h1>
+  <dl class="dades-fitxa">
+    <div><dt>{% translate "Preu de soci, avui" %}</dt><dd class="import">{{ current.member }}</dd></div>
+    <div><dt>{% translate "Preu de no soci, avui" %}</dt><dd class="import">{{ current.non_member }}</dd></div>
+    {% if current.reinforcement %}<div><dt>{% translate "Classe de reforç, avui" %}</dt><dd class="import">{{ current.reinforcement }}</dd></div>{% endif %}
+  </dl>
+
+  <section aria-labelledby="canvi-titol">
+    <h2 id="canvi-titol">{% translate "Canvia els preus" %}</h2>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <p class="ajuda">{% translate "Les activitats ja creades conserven el seu preu. El canvi queda al registre d'activitat amb el valor anterior." %}</p>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa els preus" %}</button>
+        <a class="boto boto-text" href="{% url list_url %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  </section>
+
+  <section aria-labelledby="historial-titol">
+    <h2 id="historial-titol">{% translate "Historial de preus" %}</h2>
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Versions dels preus, de la més recent a la més antiga" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "En vigor des del" %}</th>
+          <th scope="col">{% translate "Soci" %}</th>
+          <th scope="col">{% translate "No soci" %}</th>
+          <th scope="col">{% translate "Reforç" %}</th>
+          <th scope="col">{% translate "Motiu" %}</th>
+          <th scope="col">{% translate "Qui" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for version in versions %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ version.valid_from|date:'Y-m-d' }}">{{ version.valid_from|date:"d/m/Y" }}</time>{% if version.upcoming %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Encara no vigent" %}</span>{% endif %}</th>
+            <td data-etiqueta="{% translate 'Soci' %}"><span class="import">{{ version.member }}</span></td>
+            <td data-etiqueta="{% translate 'No soci' %}"><span class="import">{{ version.non_member }}</span></td>
+            <td data-etiqueta="{% translate 'Reforç' %}"><span class="import">{{ version.reinforcement|default:"—" }}</span></td>
+            <td data-etiqueta="{% translate 'Motiu' %}"><span>{{ version.note }}</span></td>
+            <td data-etiqueta="{% translate 'Qui' %}"><span>{{ version.changed_by|default:"—" }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <p class="enllacos"><a href="{% url list_url %}">{% blocktranslate %}Tornar a «{{ list_title }}»{% endblocktranslate %}</a></p>
+{% endblock %}

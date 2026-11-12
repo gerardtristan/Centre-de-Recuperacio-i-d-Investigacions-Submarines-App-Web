@@ -9,8 +9,9 @@ l'administrador.
   compte sense el permís amb edició rep «no trobat» (Http404), també si el servei es crida fora
   d'una vista. El compte personal i un actor que no és un compte no tenen mai permisos de rol
   (059, punt 4.2); el sistema (tasques de la cua) no passa per aquí.
-- **Rutes.** `ROUTES` és buit perquè el 02 encara no té cap vista (T-M02-05 i T-M02-06). Cada ruta
-  nova s'hi ha de declarar; la prova per cel·la falla si n'apareix una que no hi és.
+- **Rutes.** `ROUTES` diu què demana cada ruta del mòdul, per mètode, com al 01. Cada ruta nova
+  s'hi ha de declarar: la prova per cel·la (`tests/test_route_permissions.py`) falla si n'apareix
+  una que no hi és, i compara la resposta real de cada ruta per a cada rol.
 - **Per objecte** (T-M02-04; RN-43 de la 00, RN-RP-04; CA-M02-16). L'abast «les seves sessions»
   (AC8, AC9, AC10a, AC10b, AC12, AC20 i C3) el comprova `teaches`, registrada al motor comú: una
   sessió és «seva» si la persona del compte hi fa classe, i una activitat, si fa classe en alguna
@@ -55,8 +56,46 @@ AC19 = INCOME = "activities.income.view"
 AC20 = REPORTS = "activities.reports.view"
 C3 = STUDENT_FIELDS = "activities.field.student_for_instructor"
 
-# Ruta → el que demana (com al 01). Encara no hi ha cap vista.
-ROUTES: dict = {}
+
+def _both(*needs):
+    """GET i POST demanen el mateix (el permís es comprova abans que el mètode)."""
+    return {"GET": needs, "POST": needs}
+
+
+def _read_then_write(code):
+    """Pantalles que es llegeixen amb el permís i hi desen amb edició."""
+    return {"GET": ((code, READ),), "POST": ((code, WRITE),)}
+
+
+# Ruta → el que demana (com al 01).
+ROUTES: dict = {
+    # --- Catàlegs (T-M02-05; AC6) ---
+    "administration:catalogue_courses": _both((AC6, READ)),
+    "administration:catalogue_specialities": _both((AC6, READ)),
+    "administration:catalogue_course_add": _both((AC6, WRITE)),
+    "administration:catalogue_speciality_add": _both((AC6, WRITE)),
+    "administration:catalogue_entry_edit": _both((AC6, WRITE)),
+    "administration:catalogue_entry_prices": _both((AC6, WRITE)),
+    "administration:catalogue_entry_active": _both((AC6, WRITE)),
+    "administration:outing_types": _read_then_write(AC6),
+    "administration:outing_type_active": _both((AC6, WRITE)),
+    "administration:outing_subtype_active": _both((AC6, WRITE)),
+    "administration:projects": _read_then_write(AC6),
+    "administration:project_detail": _both((AC6, READ)),
+    # --- Activitats (T-M02-06; AC7) ---
+    "administration:activities": _both((AC7, READ)),
+    "administration:activity_detail": _both((AC7, READ)),
+    "administration:activity_course_add": _both((AC7, WRITE)),
+    "administration:activity_outing_add": _both((AC7, WRITE)),
+    "administration:activity_edit": _both((AC7, WRITE)),
+    "administration:activity_step": _both((AC7, WRITE)),
+    "administration:activity_reopen": _both((AC7, WRITE)),
+    "administration:activity_cancel": _both((AC7, WRITE)),
+    "administration:activity_programme": _both((AC7, WRITE)),
+    "administration:session_add": _both((AC7, WRITE)),
+    "administration:session_edit": _both((AC7, WRITE)),
+    "administration:session_cancel": _both((AC7, WRITE)),
+}
 
 
 def teaches(account, obj) -> bool:

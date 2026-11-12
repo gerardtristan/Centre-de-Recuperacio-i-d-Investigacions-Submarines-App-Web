@@ -1,0 +1,28 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: afegir o editar una sessió (AC7; P-M02-B, pas 2). Només es poden triar instructors amb el rol d'instructor en un compte actiu; el servei ho torna a comprovar. De cada instructor només es mostra el nom. #}
+{% block title %}{{ title }} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ activity.title }}</p>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% if field.name != "instructors" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+    <fieldset>
+      <legend>{{ form.instructors.label }}</legend>
+      {% for box in form.instructors %}
+        <label class="casella" for="{{ box.id_for_label }}">{{ box.tag }} <span>{{ box.choice_label }}</span></label>
+      {% empty %}
+        <p>{% translate "Encara no hi ha cap compte amb el rol d'instructor." %}</p>
+      {% endfor %}
+      {{ form.instructors.errors }}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Desa la sessió" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

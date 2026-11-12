@@ -225,6 +225,16 @@ MAP = {
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
     "test_accessibilitat_028.py": ("templates/*.html",),
+    # Catàlegs i activitats del mòdul 02 (T-M02-05 i T-M02-06).
+    "test_activitats_m02.py": (
+        "apps/activities/catalogue.py",
+        "apps/activities/services.py",
+        "apps/activities/states.py",
+        "apps/activities/sessions.py",
+        "apps/activities/forms.py",
+        "apps/activities/views/*",
+        "templates/activities/*",
+    ),
 }
 
 SECONDS = {
@@ -232,6 +242,7 @@ SECONDS = {
     "test_accessibilitat_028.py": 120,
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
+    "test_activitats_m02.py": 65,
 }
 DEFAULT_SECONDS = 25
 

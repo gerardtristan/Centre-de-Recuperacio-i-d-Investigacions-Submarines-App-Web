@@ -102,10 +102,10 @@ figure { margin: 0; }
 .etiqueta-obligatori { font-size: var(--t-s); font-weight: var(--p-semi); white-space: nowrap; }
 
 /* Fitxa del soci (T-M01-15): parells etiqueta-valor i historial, sense desbordar a 320 px */
-.dades-soci { margin: 0; display: grid; gap: var(--e-2); }
-.dades-soci div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-1) var(--e-3); padding-bottom: var(--e-2); border-bottom: var(--v-fina) solid var(--c-linia); }
-.dades-soci dt { color: var(--c-text-2); }
-.dades-soci dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
+.dades-soci, .dades-fitxa { margin: 0; display: grid; gap: var(--e-2); }
+.dades-soci div, .dades-fitxa div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-1) var(--e-3); padding-bottom: var(--e-2); border-bottom: var(--v-fina) solid var(--c-linia); }
+.dades-soci dt, .dades-fitxa dt { color: var(--c-text-2); }
+.dades-soci dd, .dades-fitxa dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
 .historial { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-3); font-size: var(--t-s); }
 .historial li { display: grid; gap: var(--e-1); overflow-wrap: anywhere; }
 /* Exportació: «Exporta» obre, just a sota, una llista emergent amb els dos formats (details natiu) */

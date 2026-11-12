@@ -1,0 +1,67 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: llistat d'activitats (AC7). Només dades de l'activitat; cap nom d'inscrit ni cap dada personal. El servidor comprova el permís a la vista; sense, «no trobat». #}
+{% block title %}{% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Activitats" %}</h1>
+  {% include "activities/_missatges.html" %}
+  <div class="accions">
+    <a class="boto boto-principal" href="{% url 'administration:activity_course_add' %}">{% translate "Curs nou" %}</a>
+    <a class="boto" href="{% url 'administration:activity_outing_add' %}">{% translate "Sortida nova" %}</a>
+  </div>
+  <form class="formulari" method="get" action="{% url 'administration:activities' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      <div class="camp">
+        <label for="filtre-classe">{% translate "Classe" %}</label>
+        <select id="filtre-classe" name="classe">{% for value, label in kinds %}<option value="{{ value }}"{% if value == kind %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      </div>
+      <div class="camp">
+        <label for="filtre-estat">{% translate "Estat" %}</label>
+        <select id="filtre-estat" name="estat">{% for value, label in filters %}<option value="{{ value }}"{% if value == state %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      </div>
+    </fieldset>
+    <div class="accions">
+      <button class="boto" type="submit">{% translate "Filtra" %}</button>
+      {% if filtered %}<a class="boto boto-text" href="{% url 'administration:activities' %}">{% translate "Treu els filtres" %}</a>{% endif %}
+    </div>
+  </form>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} activitat{% plural %}{{ total }} activitats{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Activitat" %}</th>
+        <th scope="col">{% translate "Classe" %}</th>
+        <th scope="col">{% translate "Dates" %}</th>
+        <th scope="col">{% translate "Places" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for activity in page %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ activity.title }}</th>
+          <td data-etiqueta="{% translate 'Classe' %}"><span class="xip">{{ activity.get_kind_display }}</span></td>
+          <td data-etiqueta="{% translate 'Dates' %}"><span><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</span></td>
+          <td data-etiqueta="{% translate 'Places' %}">{{ activity.max_places }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_activity_status.html" %}</td>
+          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ activity.title }}</span></a></td>
+        </tr>
+      {% empty %}
+        <tr><td>{% translate "Cap activitat coincideix amb els filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines del llistat' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Anterior" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Següent" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

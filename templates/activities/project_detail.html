@@ -1,0 +1,43 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: fitxa d'un projecte de medi ambient (AC6). Només el projecte i les seves sortides; la suma de residus, les espècies i les fotos són de la T-M02-20. Cap dada personal ni cap nom d'inscrit. #}
+{% block title %}{{ project.name }} · {% translate "Projectes de medi ambient" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Projecte de medi ambient" %}</p>
+  <h1>{{ project.name }}</h1>
+  <dl class="dades-fitxa">
+    <div><dt>{% translate "Objectiu" %}</dt><dd>{{ project.objective }}</dd></div>
+    <div><dt>{% translate "Departament" %}</dt><dd>{{ project.department.name }}</dd></div>
+    <div><dt>{% translate "Estat" %}</dt><dd>{{ project.get_status_display }}</dd></div>
+  </dl>
+  <section aria-labelledby="sortides-titol">
+    <h2 id="sortides-titol">{% translate "Sortides del projecte" %}</h2>
+    {% if outings %}
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Sortides del projecte, de la més recent a la més antiga" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Sortida" %}</th>
+            <th scope="col">{% translate "Data" %}</th>
+            <th scope="col">{% translate "Subtipus" %}</th>
+            <th scope="col">{% translate "Estat" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activity in outings %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ activity.title }}</th>
+              <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
+              <td data-etiqueta="{% translate 'Subtipus' %}">{{ activity.subtype.name|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_activity_status.html" %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>{% translate "Aquest projecte encara no té cap sortida." %}</p>
+    {% endif %}
+  </section>
+  <p class="enllacos"><a href="{% url 'administration:projects' %}">{% translate "Tornar als projectes" %}</a></p>
+{% endblock %}

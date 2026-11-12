@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-06: crear o editar un curs o una sortida (AC7; P-M02-B, passos 1 i 3). El servei torna a comprovar totes les regles: preu diferent del catàleg només amb motiu (RN-M02-06), subtipus només a medi ambient (CA-M02-03) i dates coherents. La llista de responsables només ofereix qui pot gestionar activitats. #}
+{% block title %}{{ title }} · {% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{{ title }}</h1>
+  {% if activity %}<p>{{ activity.title }}</p>{% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <p class="ajuda">{% if activity %}{% translate "Cada canvi queda al registre d'activitat amb el valor anterior." %}{% else %}{% translate "L'activitat es crea en esborrany: no surt enlloc fins que es publica." %}{% endif %}</p>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Desa l'activitat" %}</button>
+      {% if activity %}<a class="boto boto-text" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Cancel·la" %}</a>{% else %}<a class="boto boto-text" href="{% url 'administration:activities' %}">{% translate "Cancel·la" %}</a>{% endif %}
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activities' %}">{% translate "Tornar a les activitats" %}</a></p>
+{% endblock %}

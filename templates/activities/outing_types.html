@@ -1,0 +1,80 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: tipus de sortida i subtipus de medi ambient (AC6; P-M02-A, pas 3). S'afegeixen i es desactiven; res no s'esborra. Un valor desactivat no es pot triar per a una sortida nova. Cap dada personal. #}
+{% block title %}{% translate "Tipus de sortida" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Tipus de sortida" %}</h1>
+  {% include "activities/_missatges.html" %}
+
+  <section aria-labelledby="tipus-titol">
+    <h2 id="tipus-titol">{% translate "Tipus" %}</h2>
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Tipus de sortida" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Tipus" %}</th>
+          <th scope="col">{% translate "Medi ambient" %}</th>
+          <th scope="col">{% translate "Departament" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Accions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for type in types %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ type.name }}</th>
+            <td data-etiqueta="{% translate 'Medi ambient' %}">{% if type.is_environmental %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>
+            <td data-etiqueta="{% translate 'Departament' %}">{{ type.default_department.name }}</td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_active.html" with active=type.active %}</td>
+            <td class="cel-accions">{% url 'administration:outing_type_active' type.pk as toggle_url %}{% include "activities/_toggle.html" with action=toggle_url active=type.active name=type.name %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="form" value="tipus">
+      <fieldset>
+        <legend>{% translate "Afegeix un tipus" %}</legend>
+        {% if type_form.non_field_errors %}<div class="avis avis-error" role="alert">{{ type_form.non_field_errors }}</div>{% endif %}
+        {% for field in type_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      </fieldset>
+      <div class="accions"><button class="boto" type="submit">{% translate "Afegeix el tipus" %}</button></div>
+    </form>
+  </section>
+
+  <section aria-labelledby="subtipus-titol">
+    <h2 id="subtipus-titol">{% translate "Subtipus de medi ambient" %}</h2>
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Subtipus de medi ambient" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Subtipus" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Accions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subtype in subtypes %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ subtype.name }}</th>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_active.html" with active=subtype.active %}</td>
+            <td class="cel-accions">{% url 'administration:outing_subtype_active' subtype.pk as toggle_url %}{% include "activities/_toggle.html" with action=toggle_url active=subtype.active name=subtype.name %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="form" value="subtipus">
+      <fieldset>
+        <legend>{% translate "Afegeix un subtipus" %}</legend>
+        {% if subtype_form.non_field_errors %}<div class="avis avis-error" role="alert">{{ subtype_form.non_field_errors }}</div>{% endif %}
+        {% for field in subtype_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      </fieldset>
+      <div class="accions"><button class="boto" type="submit">{% translate "Afegeix el subtipus" %}</button></div>
+    </form>
+  </section>
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

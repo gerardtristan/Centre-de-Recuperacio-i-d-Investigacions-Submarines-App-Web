@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05: afegir o editar una fitxa del catàleg (AC6). Els preus només s'escriuen en crear-la; després es canvien a la pantalla de preus, amb motiu i data. El servei torna a comprovar-ho tot i ho deixa al registre amb el valor anterior. #}
+{% block title %}{{ title }} · {{ list_title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{{ list_title }}</p>
+  <h1>{{ title }}</h1>
+  {% if entry %}<p>{{ entry.name }}</p>{% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% if entry %}<p class="ajuda">{% translate "Els preus es canvien a la pantalla «Preus», amb el motiu i la data d'entrada en vigor." %}</p>{% endif %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Desa la fitxa" %}</button>
+      <a class="boto boto-text" href="{% url list_url %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+  <p class="enllacos"><a href="{% url list_url %}">{% blocktranslate %}Tornar a «{{ list_title }}»{% endblocktranslate %}</a></p>
+{% endblock %}

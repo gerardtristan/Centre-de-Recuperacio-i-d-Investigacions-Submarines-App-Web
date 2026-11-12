@@ -84,3 +84,32 @@ def an_outing(by, **fields):
     }
     data = {"max_places": 12, "price_member_cents": 4500, "price_non_member_cents": 6000, **fields}
     return services.create_outing(by=by, today=TODAY, **classification, **common_data(**data))
+
+
+def client_for(account):
+    """Un client amb la sessió de l'àrea que toca al compte, com si hagués entrat (amb TOTP)."""
+    import time
+
+    from django.test import Client
+
+    from apps.accounts.models import Account
+    from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
+    from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
+
+    client = Client()
+    client.force_login(account)
+    session = client.session
+    session[AREA_SESSION_KEY] = (
+        AREA_PERSONAL if account.kind == Account.Kind.PERSONAL else AREA_ADMIN
+    )
+    session[AUTH_AT_SESSION_KEY] = time.time()
+    session.save()
+    return client
+
+
+def admin_with_mail(make_admin, role, address):
+    """Un compte d'administrador amb correu de notificació (els avisos només van a qui en té)."""
+    account = make_admin(role)
+    account.notification_email = address
+    account.save()
+    return account

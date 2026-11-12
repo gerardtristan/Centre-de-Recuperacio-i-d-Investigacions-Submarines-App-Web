@@ -21,10 +21,17 @@ CA-M02-01 a CA-M02-03 i CA-M02-26, la part de les dades).
   VC-24) es llegeixen de la peça d'ajustos si la clau ja hi és declarada (T-M02-28); si no, val el
   valor inicial del pla.
 
-**Fora d'aquesta peça:** el centre de cost (04), l'avís al tresorer del preu diferent (cal la
-safata d'avisos i la plantilla del correu: T-M02-06), els avisos als inscrits quan canvia el
+- **Avís del preu diferent** (RN-M02-06; segona part de CA-M02-02): quan un curs es desa amb un
+  preu diferent del catàleg, `_notify_price_override` posa a la cua un correu per a cada compte que
+  fa les devolucions de les activitats (AC18 amb edició: el tresorer, a la configuració inicial),
+  dins la mateixa transacció. La llista surt de la matriu vigent, com a RN-M01-89. El correu no
+  porta cap dada personal més que el nom de qui ho ha desat.
+
+**Fora d'aquesta peça:** el centre de cost (04), l'**avís a l'app** del preu diferent (la safata
+d'avisos de la 00, `notices.post`, encara no existeix), els avisos als inscrits quan canvia el
 programa (T-M02-21), no baixar les places per sota de les ocupades (L-M02-03, T-M02-12), duplicar
-(T-M02-07), els camps de l'addenda de la 058 (T-M02-29 i T-M02-32) i les pantalles (T-M02-06).
+(T-M02-07) i els camps de l'addenda de la 058 (T-M02-29 i T-M02-32). Les pantalles són a
+`apps/activities/views/admin_activities.py` (T-M02-06).
 """
 
 import datetime
@@ -35,14 +42,18 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit, business_settings
+from apps.core import audit, business_settings, mail
+from apps.core.charges import euros
 from apps.core.models import Department, Person, Setting
+from apps.core.permissions import accounts_with_perm
 
 from . import catalogue, permissions, states
 from .models import Activity, EnvironmentalProject, EnvironmentalSubtype, OutingType
 
 ACTIVITY_CREATED = "activities.activity.created"
 ACTIVITY_UPDATED = "activities.activity.updated"
+PRICE_NOTICE_TEMPLATE = "avis-preu-activitat"
+PRICE_NOTICE_SENT = "activities.activity.price_notice_sent"
 
 # Valors inicials del pla (M02-6, «Valors configurables») mentre la clau no sigui a la peça
 # d'ajustos; quan la T-M02-28 les declari, `_setting` llegirà el valor vigent.
@@ -106,7 +117,8 @@ def _clean(data: dict) -> dict:
     for name in _TEXT_FIELDS:
         if name in out:
             out[name] = (out[name] or "").strip()
-            if len(out[name]) > _MAX_LENGTH[name]:
+            limit = _MAX_LENGTH[name]  # la descripció no en té
+            if limit is not None and len(out[name]) > limit:
                 raise ValidationError(
                     _("El text és massa llarg (màxim, %(max)s caràcters).")
                     % {"max": _MAX_LENGTH[name]}
@@ -173,6 +185,47 @@ def _differs(prices: dict, reference) -> bool:
         reference.member_cents,
         reference.non_member_cents,
     )
+
+
+def _prices_line(member_cents, non_member_cents) -> str:
+    return _("soci %(member)s; no soci %(non_member)s") % {
+        "member": euros(member_cents),
+        "non_member": euros(non_member_cents),
+    }
+
+
+def _notify_price_override(activity, *, by, catalogue_price) -> int:
+    """RN-M02-06: avisa per correu qui fa les devolucions de les activitats (el tresorer) que
+    l'activitat té un preu diferent del catàleg. Una adreça rep un sol correu. Torna quants n'ha
+    posat a la cua; queda al registre d'activitat."""
+    context = {
+        "title": activity.title,
+        "starts_on": activity.starts_on,
+        "catalogue_prices": _prices_line(
+            catalogue_price.member_cents, catalogue_price.non_member_cents
+        ),
+        "activity_prices": _prices_line(
+            activity.price_member_cents, activity.price_non_member_cents
+        ),
+        "changed_by": str(by.person),
+        "note": activity.price_override_note,
+    }
+    sent = set()
+    for account in accounts_with_perm(permissions.REFUND_EXECUTE, write=True):
+        address = account.notification_email
+        if not address or address in sent:
+            continue
+        if mail.queue_email(
+            PRICE_NOTICE_TEMPLATE, to=address, person=account.person, context=context
+        ):
+            sent.add(address)
+    audit.record(
+        PRICE_NOTICE_SENT,
+        actor=audit.system("activities.notify_price_override"),
+        target=activity,
+        details={"recipients": len(sent)},
+    )
+    return len(sent)
 
 
 def _create(*, by, request, details, **fields) -> Activity:
@@ -248,7 +301,7 @@ def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> A
             "catalogue_price_member_cents": current.member_cents,
             "catalogue_price_non_member_cents": current.non_member_cents,
         }
-    return _create(
+    activity = _create(
         by=by,
         request=request,
         details=details,
@@ -256,6 +309,9 @@ def create_course(*, by, catalogue_entry, today=None, request=None, **data) -> A
         catalogue_entry=catalogue_entry,
         **data,
     )
+    if differs:
+        _notify_price_override(activity, by=by, catalogue_price=current)
+    return activity
 
 
 @transaction.atomic
@@ -318,12 +374,15 @@ def update_activity(activity, *, by, today=None, request=None, **fields) -> list
         if getattr(locked, name) != value
     }
     price_changed = any(name in changes for name in PRICE_FIELDS)
+    notify = None
     if price_changed and locked.kind == Activity.Kind.COURSE:
         current = catalogue.price_on(locked.catalogue_entry, today or timezone.localdate())
-        if _differs(merged, current) and not merged["price_override_note"]:
-            raise ValidationError(
-                _("El preu és diferent del del catàleg: cal escriure'n el motiu.")
-            )
+        if _differs(merged, current):
+            if not merged["price_override_note"]:
+                raise ValidationError(
+                    _("El preu és diferent del del catàleg: cal escriure'n el motiu.")
+                )
+            notify = current
     if not changes:
         return []
     for name in changes:
@@ -338,4 +397,6 @@ def update_activity(activity, *, by, today=None, request=None, **fields) -> list
         reason=merged["price_override_note"] if price_changed else "",
         request=request,
     )
+    if notify is not None:
+        _notify_price_override(locked, by=by, catalogue_price=notify)
     return sorted(changes)
