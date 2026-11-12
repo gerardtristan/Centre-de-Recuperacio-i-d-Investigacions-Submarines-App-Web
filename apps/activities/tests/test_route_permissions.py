@@ -22,6 +22,7 @@ from apps.activities.models import (
     Activity,
     CertificationLevel,
     EnvironmentalProject,
+    EnvironmentalResult,
     EnvironmentalSubtype,
     OutingType,
     ProgrammeBlock,
@@ -39,6 +40,7 @@ from conftest import PASSWORD
 from .helpers import (
     REASON,
     a_course,
+    a_done_environmental_outing,
     a_person,
     an_entry,
     an_outing,
@@ -71,6 +73,7 @@ OBJECT_FOR_ROUTE = {
     "administration:certification_level_active": "level",
     "administration:outing_subtype_active": "subtype",
     "administration:project_detail": "project",
+    "administration:activity_results": "env_outing",
 }
 
 
@@ -95,6 +98,7 @@ def world(make_admin):  # noqa: F811
         activity=course,
         session=session,
         outing=an_outing(issuer),
+        env_outing=a_done_environmental_outing(issuer),
         outing_type=outing_type("Sèniors"),
         subtype=EnvironmentalSubtype.objects.get(name="Neteja"),
         project=catalogue.create_project(
@@ -140,6 +144,7 @@ def snapshot():
         ProgrammeBlock.objects.count(),
         AuditEntry.objects.count(),
         OutgoingEmail.objects.count(),
+        EnvironmentalResult.objects.count(),
     )
 
 
@@ -233,6 +238,7 @@ VALID_POSTS = {
     },
     "administration:activity_step": {"pas": "publica"},
     "administration:activity_cancel": {"reason": REASON},
+    "administration:activity_results": {"waste_grams": "12,5"},
     "administration:activity_edit": {"title": "Títol canviat"},
     "administration:session_add": {"kind": "sea", **WHEN},
     "administration:session_edit": {"kind": "pool", "location": "Un altre lloc", **WHEN},

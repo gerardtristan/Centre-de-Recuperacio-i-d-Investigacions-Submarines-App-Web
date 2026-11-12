@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M02-05: fitxa d'un projecte de medi ambient (AC6). Només el projecte i les seves sortides; la suma de residus, les espècies i les fotos són de la T-M02-20. Cap dada personal ni cap nom d'inscrit. #}
+{# T-M02-20: fitxa d'un projecte de medi ambient (AC14; P-M02-G, pas 3; CA-M02-21). Les sortides del projecte, la suma de residus i les espècies de totes. Les factures i l'ajut hi apareixeran amb el 09. No es publica (RN-M02-23). Cap dada personal ni cap nom d'inscrit. #}
 {% block title %}{{ project.name }} · {% translate "Projectes de medi ambient" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -10,10 +10,13 @@
     <div><dt>{% translate "Objectiu" %}</dt><dd>{{ project.objective }}</dd></div>
     <div><dt>{% translate "Departament" %}</dt><dd>{{ project.department.name }}</dd></div>
     <div><dt>{% translate "Estat" %}</dt><dd>{{ project.get_status_display }}</dd></div>
+    <div><dt>{% translate "Sortides amb resultats" %}</dt><dd>{% blocktranslate with done=summary.with_results total=rows|length %}{{ done }} de {{ total }}{% endblocktranslate %}</dd></div>
+    <div><dt>{% translate "Residus recollits, en total" %}</dt><dd class="import">{{ summary.total_kilos }}</dd></div>
+    <div><dt>{% translate "Espècies observades" %}</dt><dd>{{ summary.species|join:", "|default:"—" }}</dd></div>
   </dl>
   <section aria-labelledby="sortides-titol">
     <h2 id="sortides-titol">{% translate "Sortides del projecte" %}</h2>
-    {% if outings %}
+    {% if rows %}
       <table class="taula">
         <caption class="visualment-amagat">{% translate "Sortides del projecte, de la més recent a la més antiga" %}</caption>
         <thead>
@@ -22,16 +25,20 @@
             <th scope="col">{% translate "Data" %}</th>
             <th scope="col">{% translate "Subtipus" %}</th>
             <th scope="col">{% translate "Estat" %}</th>
+            <th scope="col">{% translate "Residus" %}</th>
           </tr>
         </thead>
         <tbody>
-          {% for activity in outings %}
+          {% for row in rows %}
+            {% with activity=row.activity %}
             <tr>
-              <th scope="row" class="cel-nom">{{ activity.title }}</th>
+              <th scope="row" class="cel-nom"><a href="{% url 'administration:activity_results' activity.pk %}">{{ activity.title }}</a></th>
               <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
               <td data-etiqueta="{% translate 'Subtipus' %}">{{ activity.subtype.name|default:"—" }}</td>
               <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_activity_status.html" %}</td>
+              <td data-etiqueta="{% translate 'Residus' %}"><span class="import">{{ row.result.kilos|default:"—" }}</span></td>
             </tr>
+            {% endwith %}
           {% endfor %}
         </tbody>
       </table>
@@ -39,5 +46,5 @@
       <p>{% translate "Aquest projecte encara no té cap sortida." %}</p>
     {% endif %}
   </section>
-  <p class="enllacos"><a href="{% url 'administration:projects' %}">{% translate "Tornar als projectes" %}</a></p>
+  <p class="enllacos"><a href="{% url 'administration:environment' %}">{% translate "Tornar als resultats ambientals" %}</a></p>
 {% endblock %}

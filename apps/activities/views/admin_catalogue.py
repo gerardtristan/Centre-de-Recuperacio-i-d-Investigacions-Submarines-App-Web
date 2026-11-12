@@ -38,7 +38,7 @@ from ..models import (
     OutingType,
     TrainingCatalogueEntry,
 )
-from ..permissions import CATALOGUE
+from ..permissions import CATALOGUE, ENVIRONMENT, can
 from . import run, see_other
 
 K = TrainingCatalogueEntry.Kind
@@ -281,18 +281,13 @@ def projects_view(request):
             _("Projecte creat."),
         ):
             return see_other("administration:projects")
-    context = {"projects": EnvironmentalProject.objects.select_related("department"), "form": form}
+    context = {
+        "projects": EnvironmentalProject.objects.select_related("department"),
+        "form": form,
+        # La fitxa del projecte és d'AC14 (resultats ambientals): l'enllaç només hi surt amb.
+        "can_see_results": can(request.user, ENVIRONMENT, write=False),
+    }
     return render(request, "activities/projects.html", context)
-
-
-@never_cache
-@permission_required(CATALOGUE)
-@require_GET
-def project_detail_view(request, pk):
-    project = get_object_or_404(EnvironmentalProject.objects.select_related("department"), pk=pk)
-    outings = project.activities.select_related("outing_type", "subtype").order_by("-starts_on")
-    context = {"project": project, "outings": outings}
-    return render(request, "activities/project_detail.html", context)
 
 
 @never_cache

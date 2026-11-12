@@ -1,0 +1,70 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-20: resultats ambientals (AC14; P-M02-G). Projectes amb el que acumulen i sortides de medi ambient amb els seus resultats. Amb «Cons.» es veu i no es desa res: el servidor ho comprova a cada vista i a cada servei. Res d'això es publica (RN-M02-23). Cap dada personal. #}
+{% block title %}{% translate "Resultats ambientals" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Resultats ambientals" %}</h1>
+  {% include "activities/_missatges.html" %}
+
+  <section aria-labelledby="projectes-titol">
+    <h2 id="projectes-titol">{% translate "Projectes" %}</h2>
+    {% if projects %}
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Projectes de medi ambient i el que acumulen" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Projecte" %}</th>
+            <th scope="col">{% translate "Sortides" %}</th>
+            <th scope="col">{% translate "Residus recollits" %}</th>
+            <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in projects %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ row.project.name }}</th>
+              <td data-etiqueta="{% translate 'Sortides' %}">{{ row.summary.outings|length }}</td>
+              <td data-etiqueta="{% translate 'Residus recollits' %}"><span class="import">{{ row.summary.total_kilos }}</span></td>
+              <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:project_detail' row.project.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ row.project.name }}</span></a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>{% translate "Encara no hi ha cap projecte." %}</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="sortides-titol">
+    <h2 id="sortides-titol">{% translate "Sortides de medi ambient" %}</h2>
+    {% if rows %}
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Sortides de medi ambient, de la més recent a la més antiga" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Sortida" %}</th>
+            <th scope="col">{% translate "Data" %}</th>
+            <th scope="col">{% translate "Projecte" %}</th>
+            <th scope="col">{% translate "Resultats" %}</th>
+            <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ row.activity.title }}</th>
+              <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.activity.starts_on|date:'Y-m-d' }}">{{ row.activity.starts_on|date:"d/m/Y" }}</time></td>
+              <td data-etiqueta="{% translate 'Projecte' %}">{{ row.activity.project.name|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Resultats' %}">{% if row.has_results %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Registrats" %}</span>{% if row.kilos %} <span class="import">{{ row.kilos }}</span>{% endif %}{% elif row.can_record %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendents" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Encara no s'ha fet" %}</span>{% endif %}</td>
+              <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:activity_results' row.activity.pk %}">{% translate "Resultats" %}<span class="visualment-amagat">: {{ row.activity.title }}</span></a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>{% translate "Encara no hi ha cap sortida de medi ambient publicada." %}</p>
+    {% endif %}
+  </section>
+  <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a></p>
+{% endblock %}

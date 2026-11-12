@@ -270,3 +270,57 @@ def test_a_visitor_sees_what_is_published_and_the_manager_duplicates_it(
     assert (copy.status, str(copy.starts_on)) == (Activity.Status.DRAFT, "2028-06-13")
 
     assert not problems(accessibility), "; ".join(problems(accessibility))
+
+
+def test_manager_records_environmental_results_and_the_board_only_reads(
+    page, live_server, manager, review
+):
+    """T-M02-20 (AC14; CA-M02-21): el responsable registra els resultats d'una sortida de medi
+    ambient ja feta i la fitxa del projecte en suma els residus. La Junta, que el té de consulta,
+    ho veu sense cap formulari."""
+    from apps.activities import catalogue, environment
+    from apps.activities.tests.helpers import a_done_environmental_outing, general
+
+    project = catalogue.create_project(
+        by=manager, name="Projecte inventat de neteja", objective="Objectiu.", department=general()
+    )
+    first = a_done_environmental_outing(manager, project=project, title="Neteja inventada del port")
+    second = a_done_environmental_outing(manager, project=project, title="Neteja inventada del far")
+    environment.record_results(second, by=manager, waste_grams=8000, species="Nacra")
+    accessibility = {}
+
+    login_admin(page, live_server.url, manager.login)
+    press(page, "link", "Resultats ambientals")
+    expect(page.get_by_role("heading", name="Resultats ambientals")).to_be_visible()
+    expect(page.get_by_text("Pendents")).to_be_visible()
+    review("medi-ambient")
+    audit(page, "medi-ambient", accessibility)
+
+    page.goto(f"{live_server.url}/{ADMIN}/activitats/{first.pk}/resultats/")
+    expect(page.get_by_role("heading", name="Neteja inventada del port")).to_be_visible()
+    page.get_by_label("Residus recollits (kg)").fill("dotze")
+    press(page, "button", "Desa els resultats")
+    expect(page.get_by_text("Escriu els quilos amb xifres")).to_be_visible()
+    page.get_by_label("Residus recollits (kg)").fill("12,5")
+    page.get_by_label("Espècies observades").fill("Nacra\nPop roquer")
+    review("resultats")
+    audit(page, "resultats", accessibility)
+    press(page, "button", "Desa els resultats")
+    expect(page.get_by_text("Resultats desats.")).to_be_visible()
+    assert environment.results_for(first).waste_grams == 12500
+
+    page.goto(f"{live_server.url}/{ADMIN}/projectes/{project.pk}/")
+    expect(page.get_by_text("20,5 kg")).to_be_visible()  # 12,5 + 8
+    review("projecte-resultats")
+    audit(page, "projecte-resultats", accessibility)
+    assert not problems(accessibility), "; ".join(problems(accessibility))
+
+    # La Junta: «Cons.». Veu els resultats i no té cap formulari.
+    press(page, "button", "Surt")
+    expect(page.get_by_label("Nom d'usuari")).to_be_visible()  # la sortida ha acabat
+    board = make_admin("junta.prova", "board")
+    login_admin(page, live_server.url, board.login)
+    page.goto(f"{live_server.url}/{ADMIN}/activitats/{first.pk}/resultats/")
+    expect(page.get_by_text("12,5 kg")).to_be_visible()
+    expect(page.get_by_role("button", name="Desa els resultats")).to_have_count(0)
+    review("resultats-consulta")

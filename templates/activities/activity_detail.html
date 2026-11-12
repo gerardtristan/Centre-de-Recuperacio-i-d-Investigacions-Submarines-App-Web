@@ -34,6 +34,7 @@
 
   <div class="accions">
     <a class="boto" href="{% url 'administration:activity_duplicate' activity.pk %}">{% translate "Duplica…" %}</a>
+    {% if results_link %}<a class="boto" href="{% url 'administration:activity_results' activity.pk %}">{% translate "Resultats ambientals" %}</a>{% endif %}
   </div>
 
   <section aria-labelledby="dades-titol">

@@ -87,7 +87,10 @@ ROUTES: dict = {
     "administration:certification_levels": _read_then_write(AC6),
     "administration:certification_level_active": _both((AC6, WRITE)),
     "administration:projects": _read_then_write(AC6),
-    "administration:project_detail": _both((AC6, READ)),
+    # --- Medi ambient (T-M02-20; AC14: la Junta el té només de consulta) ---
+    "administration:environment": _both((AC14, READ)),
+    "administration:project_detail": _both((AC14, READ)),
+    "administration:activity_results": _read_then_write(AC14),
     # --- Activitats (T-M02-06; AC7) ---
     "administration:activities": _both((AC7, READ)),
     "administration:activity_detail": _both((AC7, READ)),

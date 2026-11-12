@@ -1,0 +1,42 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-20: resultats d'una sortida de medi ambient (AC14; P-M02-G). Només per a sortides de medi ambient ja fetes. Amb «Cons.» es veuen i el formulari no hi surt; el servidor rebutja igualment un enviament sense edició. No es publiquen enlloc (RN-M02-23). De persones, només el nom de qui els ha registrat. Les fotos no hi són encara. #}
+{% block title %}{% translate "Resultats ambientals" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Resultats ambientals" %}</p>
+  <h1>{{ activity.title }}</h1>
+  {% include "activities/_missatges.html" %}
+  <p><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.subtype %} · {{ activity.subtype.name }}{% endif %}{% if activity.project %} · {{ activity.project.name }}{% endif %}</p>
+
+  {% if result %}
+    <section aria-labelledby="desats-titol">
+      <h2 id="desats-titol">{% translate "Resultats registrats" %}</h2>
+      <dl class="dades-fitxa">
+        <div><dt>{% translate "Residus recollits" %}</dt><dd class="import">{{ result.kilos|default:"—" }}</dd></div>
+        <div><dt>{% translate "Espècies observades" %}</dt><dd>{{ result.species|join:", "|default:"—" }}</dd></div>
+        <div><dt>{% translate "Registrats per" %}</dt><dd>{{ result.recorded_by }} · <time datetime="{{ result.recorded_at|date:'c' }}">{{ result.recorded_at|date:"d/m/Y H:i" }}</time></dd></div>
+      </dl>
+      {% if result.observations %}<p>{{ result.observations|linebreaksbr }}</p>{% endif %}
+    </section>
+  {% elif not can_record %}
+    <div class="avis avis-avis" role="status">{% translate "Els resultats es registren quan la sortida ja s'ha fet." %}</div>
+  {% else %}
+    <p>{% translate "Encara no s'han registrat els resultats d'aquesta sortida." %}</p>
+  {% endif %}
+
+  {% if can_edit and can_record %}
+    <section aria-labelledby="formulari-titol">
+      <h2 id="formulari-titol">{% if result %}{% translate "Corregeix els resultats" %}{% else %}{% translate "Registra els resultats" %}{% endif %}</h2>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <p class="ajuda">{% translate "Aquests resultats no es publiquen enlloc des d'aquí. Cada canvi queda al registre d'activitat amb el valor anterior." %}</p>
+        <div class="accions">
+          <button class="boto boto-principal" type="submit">{% translate "Desa els resultats" %}</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:environment' %}">{% translate "Tornar als resultats ambientals" %}</a></p>
+{% endblock %}

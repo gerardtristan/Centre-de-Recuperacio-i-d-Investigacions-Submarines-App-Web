@@ -26,7 +26,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.core.charges import euros
 from apps.core.permissions import permission_required
 
-from .. import catalogue, duplicate, services, sessions, states
+from .. import catalogue, duplicate, environment, services, sessions, states
 from ..forms import (
     ActivityForm,
     DuplicateForm,
@@ -36,7 +36,7 @@ from ..forms import (
     SessionForm,
 )
 from ..models import Activity, Session
-from ..permissions import MANAGE
+from ..permissions import ENVIRONMENT, MANAGE, can
 from . import run, see_other
 
 S = Activity.Status
@@ -201,6 +201,9 @@ def activity_detail_view(request, pk):
         "specialities": [entry.name for entry in activity.required_specialities.all()],
         "any_speciality": activity.specialities_rule == Activity.SpecialitiesRule.ANY,
         "steps": _steps(activity, today),
+        # L'enllaç als resultats, només per a sortides de medi ambient i amb AC14.
+        "results_link": environment.is_environmental(activity)
+        and can(request.user, ENVIRONMENT, write=False),
         "last_day": states.last_day(activity),
     }
     return render(request, "activities/activity_detail.html", context)

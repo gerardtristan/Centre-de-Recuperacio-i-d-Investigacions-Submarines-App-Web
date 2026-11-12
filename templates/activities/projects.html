@@ -23,7 +23,7 @@
             <th scope="row" class="cel-nom">{{ project.name }}</th>
             <td data-etiqueta="{% translate 'Departament' %}">{{ project.department.name }}</td>
             <td data-etiqueta="{% translate 'Estat' %}">{{ project.get_status_display }}</td>
-            <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:project_detail' project.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ project.name }}</span></a></td>
+            <td class="cel-accions">{% if can_see_results %}<a class="boto boto-petit" href="{% url 'administration:project_detail' project.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ project.name }}</span></a>{% else %}<span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>

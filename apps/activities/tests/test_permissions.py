@@ -22,7 +22,15 @@ import pytest
 from django.http import Http404
 
 from apps.accounts.models import Account
-from apps.activities import catalogue, duplicate, permissions, services, sessions, states
+from apps.activities import (
+    catalogue,
+    duplicate,
+    environment,
+    permissions,
+    services,
+    sessions,
+    states,
+)
 from apps.activities.models import (
     Activity,
     EnvironmentalProject,
@@ -46,6 +54,7 @@ from .helpers import (
     REASON,
     TODAY,
     a_course,
+    a_done_environmental_outing,
     a_person,
     an_entry,
     an_outing,
@@ -86,6 +95,7 @@ PLAN = {
     "C3": ("activities.field.student_for_instructor", {INSTR: OWN}),
 }
 PROTECTED = {"C3"}
+CELLS_BY_CODE = {code: cells for code, cells in PLAN.values()}
 OWN_SESSIONS_ONLY = {"AC10a", "AC10b", "AC12", "C3"}  # RN-RP-04
 MODULE = [p for p in PERMISSIONS if p.module == "activities"]
 
@@ -228,6 +238,7 @@ def world(make_admin):  # noqa: F811
         session=session,
         open_outing=open_outing,
         closed_outing=closed_outing,
+        env_outing=a_done_environmental_outing(issuer),
         teacher=make_admin(INSTR).person,
         personal=personal,
     )
@@ -284,6 +295,10 @@ SERVICES = {
     "duplicate.duplicate": (
         AC7,
         lambda w, by: duplicate.duplicate(w.open_outing, at(2028, 6, 13).date(), by=by),
+    ),
+    "environment.record_results": (
+        permissions.ENVIRONMENT,
+        lambda w, by: environment.record_results(w.env_outing, by=by, waste_grams=1000),
     ),
     "services.update_activity": (
         AC7,
@@ -355,7 +370,7 @@ def test_every_service_that_changes_data_is_in_the_table():
     """Tota funció pública dels serveis del 02 que rep `by` comprova un permís i té la seva fila
     a `SERVICES`: un servei nou sense permís o sense prova fa fallar això."""
     found = set()
-    for module in (catalogue, services, states, sessions, duplicate):
+    for module in (catalogue, services, states, sessions, duplicate, environment):
         short = module.__name__.rsplit(".", 1)[-1]
         for name, function in inspect.getmembers(module, inspect.isfunction):
             if function.__module__ != module.__name__ or name.startswith("_"):
@@ -375,8 +390,9 @@ def test_service_checks_the_permission_outside_the_view(make_admin, world, servi
     code, call = SERVICES[service]
     by = world.personal if who == PERSONAL else make_admin(who)
     allowed = has_perm(by, code, write=True)
-    # Amb la configuració inicial, AC6 i AC7 els tenen els quatre rols que gestionen activitats.
-    assert allowed == (who in FOUR)
+    # Amb la configuració inicial: AC6 i AC7, els quatre rols que gestionen activitats; AC14,
+    # els mateixos sense el tresorer (la Junta el té només de consulta).
+    assert allowed == (CELLS_BY_CODE[code].get(who) == ALL)
     before = snapshot()
     if allowed:
         call(world, by)

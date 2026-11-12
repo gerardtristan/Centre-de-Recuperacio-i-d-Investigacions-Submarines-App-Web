@@ -234,6 +234,7 @@ MAP = {
         "apps/activities/forms.py",
         "apps/activities/duplicate.py",
         "apps/activities/public.py",
+        "apps/activities/environment.py",
         "apps/activities/views/*",
         "templates/activities/*",
     ),
@@ -244,7 +245,7 @@ SECONDS = {
     "test_accessibilitat_028.py": 120,
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
-    "test_activitats_m02.py": 65,
+    "test_activitats_m02.py": 90,
 }
 DEFAULT_SECONDS = 25
 

@@ -7,6 +7,7 @@ from django.urls import path
 from .models import TrainingCatalogueEntry
 from .views import admin_activities as activities
 from .views import admin_catalogue as catalogue
+from .views import admin_environment as environment
 
 COURSE = {"kind": TrainingCatalogueEntry.Kind.COURSE}
 SPECIALITY = {"kind": TrainingCatalogueEntry.Kind.SPECIALITY}
@@ -68,7 +69,14 @@ urlpatterns = [
         name="certification_level_active",
     ),
     path("projectes/", catalogue.projects_view, name="projects"),
-    path("projectes/<int:pk>/", catalogue.project_detail_view, name="project_detail"),
+    # --- Medi ambient (T-M02-20; AC14) ---
+    path("medi-ambient/", environment.environment_view, name="environment"),
+    path("projectes/<int:pk>/", environment.project_detail_view, name="project_detail"),
+    path(
+        "activitats/<int:pk>/resultats/",
+        environment.activity_results_view,
+        name="activity_results",
+    ),
     # --- Activitats (T-M02-06) ---
     path("activitats/", activities.activities_view, name="activities"),
     path("activitats/curs/nou/", activities.activity_course_add_view, name="activity_course_add"),

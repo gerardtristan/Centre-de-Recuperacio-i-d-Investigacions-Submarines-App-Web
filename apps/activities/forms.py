@@ -32,6 +32,7 @@ from .models import (
 DATE_ERROR = _("Escriu una data vàlida, per exemple 14/06/2027.")
 MOMENT_ERROR = _("Escriu el dia i l'hora, per exemple 14/06/2027 09:00.")
 TIME_ERROR = _("Escriu una hora vàlida, per exemple 09:30.")
+_KILOS = re.compile(r"^(\d{1,6})(?:[.,](\d{1,3}))?$")
 _EUROS = re.compile(r"^(\d{1,6})(?:[.,](\d{1,2}))?$")
 
 
@@ -552,3 +553,67 @@ class ProgrammeForm(forms.Form):
             if any(value not in (None, "") for value in row.values()):
                 rows.append(row)
         return rows
+
+
+# --- Resultats ambientals (T-M02-20) --------------------------------------------------------------
+
+
+class KilosField(forms.Field):
+    """Un pes en quilos, amb fins a tres decimals, que es desa en grams (enter)."""
+
+    widget = forms.TextInput
+    default_error_messages = {
+        "invalid": _("Escriu els quilos amb xifres, per exemple 12,5."),
+    }
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.widget.attrs.update({"inputmode": "decimal", "autocomplete": "off", "maxlength": 11})
+
+    def to_python(self, value):
+        text = str(value or "").lower().replace("kg", "").replace(" ", "").strip()
+        if not text:
+            return None
+        match = _KILOS.match(text)
+        if not match:
+            raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
+        return int(match.group(1)) * 1000 + int((match.group(2) or "0").ljust(3, "0"))
+
+    def prepare_value(self, value):
+        if isinstance(value, int) and not isinstance(value, bool):
+            whole, rest = divmod(value, 1000)
+            decimals = f"{rest:03d}".rstrip("0")
+            return f"{whole},{decimals}" if decimals else str(whole)
+        return value
+
+
+class ResultsForm(forms.Form):
+    waste_grams = KilosField(
+        label=_("Residus recollits (kg)"),
+        required=False,
+        help_text=_("En quilos, amb decimals si cal. En blanc, si no s'han pesat."),
+    )
+    species = forms.CharField(
+        label=_("Espècies observades"),
+        required=False,
+        widget=_text(5),
+        max_length=2000,
+        help_text=_("Una espècie per línia."),
+    )
+    observations = forms.CharField(
+        label=_("Observacions"),
+        required=False,
+        widget=_text(4),
+        max_length=2000,
+        help_text=_("Sense dades de salut ni dades de persones."),
+    )
+
+    def __init__(self, data=None, *, result=None):
+        initial = {}
+        if result is not None:
+            initial = {
+                "waste_grams": result.waste_grams,
+                "species": result.species,
+                "observations": result.observations,
+            }
+        super().__init__(data, initial=initial)

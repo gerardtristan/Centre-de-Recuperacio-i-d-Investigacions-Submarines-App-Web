@@ -113,3 +113,18 @@ def admin_with_mail(make_admin, role, address):
     account.notification_email = address
     account.save()
     return account
+
+
+def a_done_environmental_outing(by, **fields):
+    """Una sortida de medi ambient (subtipus «Neteja») que ja s'ha fet."""
+    from apps.activities.models import Activity, EnvironmentalSubtype
+
+    outing = an_outing(
+        by,
+        outing_type=outing_type("Medi ambient"),
+        subtype=EnvironmentalSubtype.objects.get(name="Neteja"),
+        **fields,
+    )
+    Activity.objects.filter(pk=outing.pk).update(status=Activity.Status.DONE)
+    outing.refresh_from_db()
+    return outing
