@@ -1,8 +1,10 @@
 """Catàlegs, tipus, subtipus, projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i
 RN-M02-05; VC-20; primera part de CA-M02-01 i de CA-M02-26).
 
-No hi ha cap pantalla ni cap permís encara: els serveis d'aquest fitxer són la capa de dades del
-catàleg (les pantalles són de la T-M02-05 i els permisos, de la T-M02-33). Només dades inventades.
+No hi ha cap pantalla encara (T-M02-05): els serveis d'aquest fitxer són la capa de dades del
+catàleg. Des de la T-M02-33 demanen el permís AC6 amb edició, que el responsable de cursos i
+sortides té a la configuració inicial; les proves per rol són a `test_permissions.py`. Només dades
+inventades.
 """
 
 import datetime

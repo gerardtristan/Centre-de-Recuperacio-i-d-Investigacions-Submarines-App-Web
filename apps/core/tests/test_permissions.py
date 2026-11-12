@@ -39,7 +39,8 @@ MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor
 def test_codes_are_unique_and_prefixed_by_module():
     codes = [p.code for p in PERMISSIONS]
     assert len(codes) == len(set(codes))
-    assert {p.module for p in PERMISSIONS} <= {"core", "members"}
+    # Cada mòdul hi afegeix els seus quan es construeix (060): el 02, amb la T-M02-33.
+    assert {p.module for p in PERMISSIONS} <= {"core", "members", "activities"}
     refs = [p.ref for p in PERMISSIONS]
     assert len(refs) == len(set(refs))
 
@@ -102,9 +103,20 @@ def test_initial_matrix_cell(make_admin, perm, role):
 
 
 @pytest.mark.django_db
-def test_communications_shop_and_board_start_without_permissions(make_admin):
-    for role in (R.COMMUNICATIONS_MANAGER, R.SHOP_MANAGER, R.BOARD):
+def test_communications_and_shop_start_without_permissions(make_admin):
+    # Matriu inicial de la 059, «Fora de la matriu»: comencen sense cap permís.
+    for role in (R.COMMUNICATIONS_MANAGER, R.SHOP_MANAGER):
         assert effective_permissions(make_admin(role)) == {}
+
+
+@pytest.mark.django_db
+def test_the_board_starts_with_only_two_read_only_permissions(make_admin):
+    # La Junta no té res de la 00 ni del 01. La matriu del 02 (T-M02-33) li dona només la
+    # consulta dels resultats ambientals (AC14) i dels informes operatius (AC20).
+    assert effective_permissions(make_admin(R.BOARD)) == {
+        "activities.environment.manage": "read",
+        "activities.reports.view": "read",
+    }
 
 
 # --- Motor -------------------------------------------------------------------------------

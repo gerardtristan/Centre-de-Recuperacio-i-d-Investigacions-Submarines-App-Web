@@ -10,10 +10,11 @@ versions i data d'entrada en vigor, tipus de sortida, subtipus de medi ambient i
   d'entrada en vigor que no pot ser passada (com la peça d'ajustos, RN-AJ-03). El registre
   d'activitat guarda el valor anterior de cada preu que canvia (CA-M02-01).
 - **Res no s'esborra:** fitxes, tipus i subtipus es desactiven (`set_active`).
+- **Permís (T-M02-33):** tot servei que canvia el catàleg demana AC6 amb edició
+  (`activities.catalogue.manage`); sense, «no trobat», també cridat fora d'una vista. Llegir el
+  catàleg (`entries`, `price_on`) no demana cap permís aquí: ho decideix qui ho mostra.
 
 **Fora d'aquesta peça**, i sense cap codi que ho simuli:
-- els **permisos** (AC6: qui manté el catàleg) són de la T-M02-33; cap vista no crida encara
-  aquests serveis, i quan n'hi hagi una haurà de comprovar el permís abans;
 - les **pantalles** i l'**avís del canvi de preu** al tresorer i a la junta (segona part de
   CA-M02-26) són de la T-M02-05;
 - la llista de nivells, el mode de requisits per defecte i l'edat mínima són de les T-M02-29 i
@@ -33,6 +34,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 
+from . import permissions
 from .models import (
     EnvironmentalProject,
     EnvironmentalSubtype,
@@ -118,6 +120,7 @@ def create_entry(
     request=None,
 ) -> TrainingCatalogueEntry:
     """Crea una fitxa i la primera versió dels seus preus, vigent des d'avui."""
+    permissions.require(by, permissions.CATALOGUE)
     if kind not in TrainingCatalogueEntry.Kind.values:
         raise ValidationError(_("El catàleg ha de ser el de cursos o el d'especialitats."))
     name = _name(name)
@@ -163,6 +166,7 @@ def create_entry(
 def update_entry(entry, *, by, request=None, **fields) -> list[str]:
     """Canvia dades de la fitxa que no són preus. Torna els camps que han canviat; el registre
     en guarda el valor anterior (P-M02-A, pas 2)."""
+    permissions.require(by, permissions.CATALOGUE)
     unknown = set(fields) - set(EDITABLE_FIELDS)
     if unknown:
         raise ValidationError(
@@ -196,6 +200,7 @@ def update_entry(entry, *, by, request=None, **fields) -> list[str]:
 
 def set_active(obj, active: bool, *, by, request=None) -> bool:
     """Activa o desactiva una fitxa, un tipus o un subtipus. Torna si ha canviat."""
+    permissions.require(by, permissions.CATALOGUE)
     if not isinstance(obj, TrainingCatalogueEntry | OutingType | EnvironmentalSubtype):
         raise ValidationError(_("Això no es pot activar ni desactivar."))
     with transaction.atomic():
@@ -252,6 +257,7 @@ def change_prices(
 ) -> TrainingCataloguePrice:
     """Afegeix una versió dels preus, vigent des de `valid_from` (avui o més endavant). El motiu
     és obligatori. No toca cap activitat ja creada (RN-M02-05)."""
+    permissions.require(by, permissions.CATALOGUE)
     today = today or timezone.localdate()
     note = (note or "").strip()
     if not note:
@@ -292,6 +298,7 @@ def change_prices(
 
 
 def _create_named(model, *, by, name, request, **fields):
+    permissions.require(by, permissions.CATALOGUE)
     name = _name(name)
     if model.objects.filter(name=name).exists():
         raise ValidationError(_("Ja n'hi ha un amb aquest nom."))
@@ -326,7 +333,8 @@ def check_outing_classification(outing_type, subtype=None, project=None) -> None
     ambient ha de tenir subtipus; una que no ho és no pot tenir ni subtipus ni projecte. El
     projecte és opcional. Un tipus o un subtipus desactivat no es pot triar (és el que vol dir
     desactivar-lo, P-M02-A pas 3); si un projecte acabat es pot fer servir no ho diu cap regla i
-    aquí no es comprova. La cridarà el servei que desa una activitat (T-M02-06)."""
+    aquí no es comprova. La criden el servei que desa una sortida (`services.create_outing`) i el
+    que l'edita (`services.update_activity`)."""
     if outing_type is None:
         raise ValidationError(_("Cal triar el tipus de sortida."))
     if not outing_type.active:

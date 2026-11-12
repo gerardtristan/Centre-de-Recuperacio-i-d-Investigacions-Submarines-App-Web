@@ -60,6 +60,9 @@ def _perm(*args, initial=None, **kwargs) -> Permission:
 
 
 _ALL = SCOPE_ALL
+# 059, addenda del M02: el tresorer i el President gestionen activitats completes, com el
+# responsable de cursos i sortides i l'administrador.
+_ACTIVITY_MANAGERS = (R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT)
 
 PERMISSIONS: tuple[Permission, ...] = (
     # --- 00 Base comuna ---------------------------------------------------------------------
@@ -332,6 +335,175 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Camps: document d'identitat, adreça i consentiments d'altres"),
         kind="field",
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    # --- 02 Activitats (cursos i sortides) --------------------------------------------------
+    # T-M02-33: la matriu inicial de la 059 («02 Activitats»), cel·la per cel·la. AC1 a AC4 són
+    # accions públiques o pròpies i no tenen permís de rol. CF1 i CF2 (conferències) són del
+    # mòdul 11 i es declararan amb ell. «Cons.» és l'abast de només consulta.
+    _perm(
+        "activities.enrol_in_person",
+        "AC5",
+        _("Inscriure presencialment una altra persona"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_personal_data=True,
+        touches_money=True,
+    ),
+    _perm(
+        "activities.catalogue.manage",
+        "AC6",
+        _("Mantenir el catàleg de cursos i especialitats, tipus, subtipus, projectes i preus"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_money=True,
+    ),
+    _perm(
+        "activities.manage",
+        "AC7",
+        _("Crear, editar, publicar, cancel·lar i duplicar activitats"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_money=True,
+    ),
+    _perm(
+        "activities.participants.view",
+        "AC8",
+        _("Llista de participants amb requisits"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ, SCOPE_OWN_SESSIONS),
+        initial={
+            R.INSTRUCTOR: SCOPE_OWN_SESSIONS,
+            R.EQUIPMENT_MANAGER: SCOPE_READ,  # la conserva per assignar material (D-06)
+            **dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        },
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.attendance.record",
+        "AC9",
+        _("Passar llista i registrar incidències"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={
+            R.INSTRUCTOR: SCOPE_OWN_SESSIONS,
+            R.COURSES_MANAGER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_personal_data=True,
+    ),
+    # AC10a, AC10b i AC12 només admeten «les seves sessions» (RN-RP-04): ho fa qui fa classe a la
+    # sessió, tingui el rol que tingui.
+    _perm(
+        "activities.assessment.record",
+        "AC10a",
+        _("Avaluar pràctiques"),
+        allowed_scopes=(SCOPE_OWN_SESSIONS,),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.reinforcement.propose",
+        "AC10b",
+        _("Proposar classes de reforç"),
+        allowed_scopes=(SCOPE_OWN_SESSIONS,),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.reinforcement.decide",
+        "AC11",
+        _("Confirmar o rebutjar (programar) classes de reforç"),
+        initial={R.COURSES_MANAGER: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "activities.outcome.record",
+        "AC12",
+        _("Registrar apte o no apte"),
+        allowed_scopes=(SCOPE_OWN_SESSIONS,),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.certificate.issue",
+        "AC13",
+        _("Emetre el certificat"),
+        initial={R.COURSES_MANAGER: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.environment.manage",
+        "AC14",
+        _("Resultats ambientals i fitxa de projecte"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.COURSES_MANAGER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+            R.BOARD: SCOPE_READ,
+        },
+    ),
+    _perm(
+        "activities.message.send",
+        "AC15",
+        _("Enviar un missatge als inscrits"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.waitlist.manage",
+        "AC16",
+        _("Gestionar la llista d'espera a mà"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.refund.propose",
+        "AC17",
+        _("Proposar una devolució per cancel·lació"),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_money=True,
+    ),
+    _perm(
+        "activities.refund.execute",
+        "AC18",
+        # És la part del 02 de B5 (05b): fer o rebutjar una proposta de devolució. La devolució
+        # mateixa la fa el 05b, que hi demanarà B5 quan existeixi (T-M05b-25).
+        _("Fer la devolució d'una proposta, o rebutjar-la"),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "activities.income.view",
+        "AC19",
+        _("Veure els imports cobrats d'una activitat"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        # S-M02-18: el responsable els consulta de totes les activitats.
+        initial={R.COURSES_MANAGER: SCOPE_READ, R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "activities.reports.view",
+        "AC20",
+        _("Informes operatius"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ, SCOPE_OWN_SESSIONS),
+        initial={
+            R.INSTRUCTOR: SCOPE_OWN_SESSIONS,
+            R.EQUIPMENT_MANAGER: SCOPE_READ,
+            R.BOARD: SCOPE_READ,
+            **dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        },
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.field.student_for_instructor",
+        "C3",
+        _(
+            "Camps de l'alumne per a l'instructor: nom, titulació, llicència sí o no, "
+            "assistència i avaluacions"
+        ),
+        kind="field",
+        allowed_scopes=(SCOPE_OWN_SESSIONS,),
+        protected=True,
+        protected_by="059; S-M02-17",
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS},
         touches_personal_data=True,
     ),
 )
