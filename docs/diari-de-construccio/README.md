@@ -128,3 +128,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-51](T-M01-51.md) | Restabliment presencial del doble factor del compte personal (M2; **Feta**, 11/11/2026, decisió 081, punt 24; revisió visual a la T-F1-01, no feta encara) | 11/11/2026 | 6c73807, a63cd70 | 3926; 39 e2e | verd a c441e9d (43084998593 i 43085015294) |
 | [T-M01-40](T-M01-40.md) | Eximir o anul·lar una quota amb el permís P22, motiu i reautenticació (**Feta**, 12/11/2026) | 12/11/2026 | 571f5d0, 6d3e164 | 4030; 42 e2e | verd a ea5eb20 (43198409529 i 43198420245) |
 | [T-M05a-03](T-M05a-03.md) | Adaptador del proveïdor de pagaments i proveïdor fals (**en curs**: PR `risc:alt`, espera l'aprovació del propietari) | 13/11/2026 | PR #12 | 60 noves | [A comprovar] |
+| [T-M04-01](T-M04-01.md) | Comptes de tresoreria i comptes inicials (**Feta**, 13/11/2026; aprovada pel propietari) | 13/11/2026 | PR #15 | 23 noves | [A comprovar] |
