@@ -31,9 +31,11 @@ al registre d'activitat amb l'estat anterior, el nou, qui l'ha fet i el motiu.
 - `mark_done` aplica abans els passos del sistema que ja toquen, perquè el responsable no depengui
   de si la cua ha passat.
 
+**Senyal:** `mark_done` envia `extensions.activity_done` dins la mateixa transacció (T-M02-09).
+
 **Fora d'aquesta peça:** tancar per places plenes (no hi ha inscripcions fins a la T-M02-11 i la
 T-M02-12), l'efecte de cancel·lar sobre inscripcions i càrrecs (T-M02-15), els avisos als inscrits
-(T-M02-21), els esdeveniments `activity.cancelled` (T-M02-35) i els senyals (T-M02-09).
+(T-M02-21) i els esdeveniments `activity.cancelled` (T-M02-35).
 """
 
 import datetime
@@ -46,7 +48,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 
-from . import permissions
+from . import extensions, permissions
 from .models import Activity
 
 S = Activity.Status
@@ -56,6 +58,7 @@ STATUS_CHANGED = "activities.activity.status_changed"
 CLOCK_ORIGIN = "activities.clock"
 
 _BEFORE_DONE = (S.DRAFT, S.OPEN, S.REGISTRATION_CLOSED, S.IN_PROGRESS)
+EDITABLE_STATUSES = _BEFORE_DONE  # una activitat es pot editar fins que es fa o es cancel·la
 _TRANSITIONS = {
     K.COURSE: {
         S.DRAFT: {S.OPEN, S.CANCELLED},
@@ -250,7 +253,10 @@ def mark_done(activity, *, by, now=None, request=None) -> Activity:
             _("No es pot marcar com a feta abans del dia de l'última sessió o de la sortida.")
         )
     _apply(locked, S.DONE, actor=by, now=now, request=request)
-    return _refresh(activity, locked)
+    _refresh(activity, locked)
+    # Dins la mateixa transacció: si un mòdul subscrit falla, l'activitat no queda feta a mitges.
+    extensions.activity_done.send(sender=Activity, activity=activity, by=by)
+    return activity
 
 
 @transaction.atomic

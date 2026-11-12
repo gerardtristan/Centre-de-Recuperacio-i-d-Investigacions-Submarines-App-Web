@@ -9,11 +9,13 @@
   permís amb edició, també cridat fora d'una vista, i no canvia res.
 - **Rutes:** el 02 encara no té cap vista; una ruta nova sense declarar fa fallar la prova.
 
-Fora d'aquestes proves, perquè encara no existeix: l'abast per objecte «les seves sessions»
-(T-M02-04) i les vistes (T-M02-05, T-M02-06 i T-M02-16). Només dades inventades.
+L'abast per objecte «les seves sessions» (T-M02-04) és a `test_object_permissions.py`. Fora
+d'aquestes proves, perquè encara no existeixen: les vistes (T-M02-05, T-M02-06 i T-M02-16). Només
+dades inventades.
 """
 
 import inspect
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -103,9 +105,7 @@ def test_own_and_public_actions_and_conferences_are_not_role_permissions():
 
 def test_the_module_constants_are_the_catalog_codes():
     constants = {
-        value
-        for name, value in vars(permissions).items()
-        if name.isupper() and isinstance(value, str) and value.startswith("activities.")
+        value for name, value in vars(permissions).items() if re.fullmatch(r"AC\d+[AB]?|C3", name)
     }
     assert constants == {p.code for p in MODULE}
     assert permissions.AC6 == permissions.CATALOGUE == "activities.catalogue.manage"

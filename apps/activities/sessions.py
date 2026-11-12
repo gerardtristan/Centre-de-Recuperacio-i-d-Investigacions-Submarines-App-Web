@@ -9,6 +9,12 @@
 - **Programa del dia** (`set_programme`): la llista de blocs sencera, en ordre. Qui se n'encarrega
   és una funció («cap d'immersió»), mai un nom ni dades de contacte.
 - **Permís:** AC7 amb edició; sense, «no trobat».
+- **Un instructor que deixa de ser-ho** (L-M02-05; decisió 086; RN-RP-12):
+  `release_former_instructors` treu de les sessions futures qui ja no pot fer classe i ho deixa al
+  registre, sessió per sessió. Passa en retirar el rol (dins la mateixa transacció, i al registre
+  hi surt qui l'ha retirat) i, per als altres casos (compte desactivat, persona anonimitzada),
+  amb la tasca de la cua. Ningú no s'hi torna a posar sol. `sessions_without_instructor` dona les
+  sessions futures que s'han quedat sense ningú; mostrar-les marcades és de la T-M02-06.
 
 El pla no limita les sessions als cursos ni el programa a les sortides (CA-M02-04 parla d'una
 activitat amb sessions i blocs), i aquí tampoc es limita.
@@ -36,6 +42,9 @@ SESSION_UPDATED = "activities.session.updated"
 SESSION_CANCELLED = "activities.session.cancelled"
 INSTRUCTORS_CHANGED = "activities.session.instructors_changed"
 PROGRAMME_CHANGED = "activities.programme.changed"
+
+INSTRUCTOR_RELEASED = "activities.session.instructor_released"
+RELEASE_ORIGIN = "activities.former_instructors"
 
 SESSION_FIELDS = ("kind", "starts_at", "ends_at", "location", "is_practice")
 BLOCK_FIELDS = ("starts_at", "ends_at", "label", "location", "responsible_label")
@@ -224,6 +233,56 @@ def cancel_session(session, *, by, reason, request=None) -> Session:
     session.cancelled, session.cancellation_reason = True, reason
     audit.record(SESSION_CANCELLED, actor=by, target=locked, reason=reason, request=request)
     return session
+
+
+# --- Instructors que deixen de ser-ho (L-M02-05) --------------------------------------------------
+
+
+def _future_sessions(now):
+    """Sessions que encara s'han de fer: futures, no cancel·lades i d'una activitat viva."""
+    return Session.objects.filter(
+        starts_at__gt=now, cancelled=False, activity__status__in=states.EDITABLE_STATUSES
+    )
+
+
+@transaction.atomic
+def release_former_instructors(*, now=None, actor=None) -> list[int]:
+    """Treu de les sessions futures les persones que ja no poden fer classe. Les sessions
+    passades conserven qui hi va fer classe. Es pot cridar tantes vegades com calgui. Torna les
+    sessions canviades."""
+    now = now or timezone.now()
+    actor = actor or audit.system(RELEASE_ORIGIN)
+    still_teaching = instructor_people().values("pk")
+    gone = (
+        Session.instructors.through.objects.filter(session__in=_future_sessions(now))
+        .exclude(person_id__in=still_teaching)
+        .values_list("session_id", "person_id")
+    )
+    by_session: dict[int, set[int]] = {}
+    for session_id, person_id in gone:
+        by_session.setdefault(session_id, set()).add(person_id)
+    for session_id in sorted(by_session):
+        session = Session.objects.select_for_update().get(pk=session_id)
+        before = set(session.instructors.values_list("pk", flat=True))
+        leaving = by_session[session_id] & before
+        if not leaving:
+            continue
+        session.instructors.remove(*leaving)
+        audit.record(
+            INSTRUCTOR_RELEASED,
+            actor=actor,
+            target=session,
+            field="instructors",
+            old=sorted(before),
+            new=sorted(before - leaving),
+            reason=_("Ha deixat de tenir el rol d'instructor."),
+        )
+    return sorted(by_session)
+
+
+def sessions_without_instructor(now=None):
+    """Sessions futures sense cap instructor, perquè el responsable n'hi posi un."""
+    return _future_sessions(now or timezone.now()).filter(instructors__isnull=True)
 
 
 # --- Programa del dia -----------------------------------------------------------------------------
