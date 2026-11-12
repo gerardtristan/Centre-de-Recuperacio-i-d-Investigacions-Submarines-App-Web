@@ -60,3 +60,11 @@ def test_safeguard_lets_charges_through_only_when_allowed(settings):
         base.ensure_charges_allowed()
     settings.PAYMENTS_LIVE_CHARGES_ALLOWED = True
     base.ensure_charges_allowed()
+
+
+@pytest.mark.parametrize("environment", ["LIVE", "produccio", "", None])
+def test_safeguard_treats_an_unknown_environment_as_the_real_one(settings, environment):
+    settings.PAYMENTS_ENVIRONMENT = environment
+    settings.PAYMENTS_LIVE_CHARGES_ALLOWED = True
+    with pytest.raises(base.LiveChargesNotAllowed):
+        base.ensure_charges_allowed()

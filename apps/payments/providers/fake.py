@@ -42,7 +42,7 @@ class FakeProvider(base.PaymentProvider):
     code = "fake"
 
     def __init__(self):
-        if settings.PAYMENTS_ENVIRONMENT == base.LIVE:
+        if settings.PAYMENTS_ENVIRONMENT != base.SANDBOX:
             raise ImproperlyConfigured("El proveïdor fals no es pot fer servir amb l'entorn real.")
 
     def capabilities(self) -> base.Capabilities:
@@ -74,7 +74,8 @@ class FakeProvider(base.PaymentProvider):
     def verify_notification(self, request) -> base.ProviderNotification:
         body = request.body
         signature = request.headers.get(SIGNATURE_HEADER, "")
-        if not signature or not hmac.compare_digest(signature, sign(body)):
+        # En bytes: `compare_digest` no accepta text amb caràcters que no siguin ASCII.
+        if not signature or not hmac.compare_digest(signature.encode(), sign(body).encode()):
             raise base.InvalidSignature
         try:
             data = json.loads(body)

@@ -79,10 +79,17 @@ def test_never_opens_a_network_connection(provider, notify, monkeypatch):
     provider.get_order(order.external_id)
 
 
-def test_cannot_be_used_with_the_real_environment(settings):
-    settings.PAYMENTS_ENVIRONMENT = "live"
+@pytest.mark.parametrize("environment", ["live", "LIVE", "produccio", ""])
+def test_can_only_be_used_with_the_test_environment(settings, environment):
+    settings.PAYMENTS_ENVIRONMENT = environment
     with pytest.raises(ImproperlyConfigured):
         fake.FakeProvider()
+
+
+def test_signature_with_unexpected_characters_is_rejected_not_an_error(provider):
+    body, _ = signed(valid_payload())
+    with pytest.raises(base.InvalidSignature):
+        provider.verify_notification(post(body, {fake.SIGNATURE_HEADER: "firma-ñ-€"}))
 
 
 def test_notification_signed_with_another_key_is_rejected(provider):

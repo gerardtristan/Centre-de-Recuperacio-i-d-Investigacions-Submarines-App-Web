@@ -16,8 +16,9 @@ from uuid import UUID
 
 from django.conf import settings
 
-ENVIRONMENTS = ("sandbox", "live")
+SANDBOX = "sandbox"
 LIVE = "live"
+ENVIRONMENTS = (SANDBOX, LIVE)
 
 # Mètodes que passen pel proveïdor. La transferència i la domiciliació no hi passen (05b).
 CARD = "card"
@@ -108,9 +109,13 @@ class Capabilities:
 
 
 def ensure_charges_allowed() -> None:
-    """RN-M05a-11: amb l'entorn real, cap cobrament sense `PAYMENTS_LIVE_CHARGES_ALLOWED`."""
-    if settings.PAYMENTS_ENVIRONMENT == LIVE and not settings.PAYMENTS_LIVE_CHARGES_ALLOWED:
-        raise LiveChargesNotAllowed
+    """RN-M05a-11: amb l'entorn real, cap cobrament sense `PAYMENTS_LIVE_CHARGES_ALLOWED`.
+    Falla tancada: un entorn que no és «sandbox» es tracta com el real."""
+    if settings.PAYMENTS_ENVIRONMENT == SANDBOX:
+        return
+    if settings.PAYMENTS_ENVIRONMENT == LIVE and settings.PAYMENTS_LIVE_CHARGES_ALLOWED:
+        return
+    raise LiveChargesNotAllowed
 
 
 class PaymentProvider(ABC):
