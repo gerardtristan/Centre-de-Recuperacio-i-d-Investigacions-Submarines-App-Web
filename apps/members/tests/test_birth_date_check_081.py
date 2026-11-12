@@ -18,6 +18,7 @@ from html import unescape
 import pytest
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.core import persons
 from apps.core.models import AuditEntry, PrivateFile
@@ -89,7 +90,10 @@ def test_secretary_marks_it_checked_without_storing_any_document(minor, secretar
     assert MINOR_BIRTH.isoformat() not in str(entry.old_value) + str(entry.new_value)
     assert not PrivateFile.objects.exists()
     text = detail(client, minor)
-    assert f"(comprovada el {minor.person.birth_date_checked_at:%d/%m/%Y})" in text
+    # La pantalla mostra la data en hora local (Europe/Madrid), no en UTC: entre les 23 h i les
+    # 24 h UTC el dia és diferent.
+    checked_on = timezone.localtime(minor.person.birth_date_checked_at)
+    assert f"(comprovada el {checked_on:%d/%m/%Y})" in text
     assert "Marca la data com a comprovada" not in text
     # L'exempció no ha canviat: ja hi era abans de comprovar-la.
     assert cards.is_exempt(cards.load_member(minor.pk))
