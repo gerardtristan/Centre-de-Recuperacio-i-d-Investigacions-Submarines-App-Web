@@ -186,3 +186,24 @@ noves:
       respon moltes preguntes sense haver-les de fer, i si no convenç es destrueix sense cost pendent.
       El servidor de proves dels pagaments (C) no cal fins que hi hagi proveïdor.
     data: 2026-11-13
+
+  F-002:
+    pregunta: Les cinc branques de nit de l'11/11 ja són a master. Les esborro, amb les seves carpetes de treball?
+    context: >-
+      Comprovat el 13/11/2026 (pla d'acceleració, diagnosi h). Són night/2026-11-11-ui, -correu,
+      -guest, -rgpd i -simp, totes locals. Entre el 88 % i el 100 % de les línies de codi de cada una
+      són literalment a master; la resta són migracions que es van renumerar en integrar-les i línies
+      retocades. No hi ha cap funció que només existeixi en una d'aquestes branques, però no és una
+      igualtat del 100 %.
+    responsable: Responsable del projecte (tu)
+    tasques: []
+    bloqueja: false
+    opcions:
+      A: Sí, esborra les branques i les carpetes de treball.
+      B: Esborra només les carpetes de treball i conserva les branques fins al final de la prova.
+      C: No toquis res.
+    recomanada: B
+    perque: >-
+      Les carpetes ocupen espai i confonen; les branques no costen res. Conservar-les dues setmanes
+      cobreix el cas que alguna línia retocada en integrar s'hagi perdut sense voler.
+    data: 2026-11-13
