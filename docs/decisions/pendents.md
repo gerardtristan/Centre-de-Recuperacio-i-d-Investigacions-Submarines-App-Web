@@ -2,6 +2,8 @@
 
 Contradiccions entre documents i decisions que l'equip no pot resoldre sol. **No s'implementa la part afectada fins que la junta respongui.** Quan es resol un punt, es crea o s'actualitza la decisió numerada corresponent i el punt passa a «Resolts», amb la data i l'origen.
 
+**Mentre l'interruptor D2 de `CLAUDE.md` sigui actiu ([089](089-prova-d-acceleracio-interruptors-d1-a-d6.md)), un dubte nou no atura la tasca.** Cada fila nova diu, a la columna «Estat»: el **tipus** (reversible, configurable o irreversible, amb la paraula sencera), l'**opció per defecte** amb què es construeix, **què bloqueja** (res, el nivell 1, el nivell 2 o l'activació d'una funció) i **qui respon**. També té una entrada a [`tauler-preguntes.yml`](tauler-preguntes.yml) amb opcions A a D i la recomanació. Un dubte reversible o configurable es construeix amb l'opció per defecte i la tasca es tanca. Un d'irreversible es construeix apagat i no s'activa a producció sense resposta. Les files anteriors al 13/11/2026 no porten aquests camps.
+
 Llegenda: **R** = l'equip ja hi ha fet una recomanació; **—** = només es constata la contradicció.
 
 ## Oberts

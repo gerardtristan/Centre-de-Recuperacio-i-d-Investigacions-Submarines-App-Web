@@ -41,7 +41,7 @@ Prova de dues setmanes, del 13/11/2026 al 27/11/2026; llavors el propietari deci
 - **Actiu:** les seccions i les addendes dels mòduls 01, 04, 05a i 05b queden com són a l'etiqueta `spec-fase1-v1`; no s'hi afegeix cap addenda. Un canvi o un dubte nou va a `docs/decisions/pendents.md` i no atura la feina. Una regla congelada només es canvia amb una decisió numerada i una sola edició al lloc de la regla, en una PR `risc:alt`. L'estat de les tasques s'apunta a `docs/estat/<mòdul>.md` (una línia per tasca) i la fila del pla no s'edita.
 - **Inactiu (regla anterior):** un canvi de regla s'escriu primer a `docs/planning.md`, amb una addenda datada; la fila de la tasca acabada es marca al pla amb l'estat, la data i el CI.
 
-### D2 — Tres tipus de dubte: **inactiu**
+### D2 — Tres tipus de dubte: **actiu**
 - **Actiu:** un dubte **reversible** (un text, un detall que es canvia sense tocar dades) o **configurable** (un valor, que va a «Ajustos») es construeix amb una opció per defecte i la tasca es tanca. Un d'**irreversible** (diners, model de dades que afecta dades reals, RGPD, seguretat, permisos, el que veurà un soci real) es construeix amb l'opció més conservadora darrere d'un interruptor de configuració apagat i **no s'activa a producció sense resposta**. Cada dubte nou va a `pendents.md` (tipus, opció per defecte, què bloqueja, qui respon, tasca) i al tauler de preguntes (`docs/decisions/tauler-preguntes.yml`) amb opcions A a D i la recomanació.
 - **Inactiu (regla anterior):** si una spec té una pregunta oberta ([A validar]) que afecta una regla de negoci, aquella part no s'implementa: es pregunta.
 
