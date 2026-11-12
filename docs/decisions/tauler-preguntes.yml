@@ -161,4 +161,28 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
-noves: {}
+noves:
+  F-001:
+    pregunta: Creem l'entorn de proves temporal perquè puguis obrir la plataforma des del navegador? Quin?
+    context: >-
+      Decisió 089, D5: l'entorn està aprovat però no es crea sense el teu sí al cost. Preus de Hetzner
+      Cloud sense IVA (arquitectura, §2, i consulta del 13/11/2026): CX23 (2 vCPU, 4 GB) 5,99 €/mes amb
+      IPv4, uns 0,01 €/hora; CX33 (4 vCPU, 8 GB) 8,99 €/mes. Es factura per hores i es pot destruir quan
+      vulguis: les dues setmanes de la prova amb un CX23 costen uns 3 €. Només hi ha dades inventades,
+      el servidor és a Alemanya, s'hi entra amb contrasenya i els correus no surten. Cal que tu creïs
+      el compte de Hetzner amb un mitjà de pagament (no ho puc fer jo) i que comprovis a la consola
+      que el CX23 es pot demanar: algunes fonts diuen que hi ha restriccions d'estoc.
+    responsable: Responsable del projecte (tu)
+    tasques: []
+    bloqueja: false
+    opcions:
+      A: Sí, un CX23 temporal amb una adreça provisional (sense tocar el DNS); es destrueix quan s'acabi la prova. Uns 6 €/mes, 3 € les dues setmanes.
+      B: Sí, un CX23 temporal amb l'adreça proves.cris1954.cat. El mateix cost; cal accés al DNS (P-25).
+      C: Sí, un CX33 que després es queda com a servidor de proves dels pagaments. Uns 9 €/mes.
+      D: Ara no. Es continua només en local i tu valides amb captures.
+    recomanada: A
+    perque: >-
+      És l'opció més barata i no depèn de qui té l'accés al DNS. Veure les pantalles funcionant
+      respon moltes preguntes sense haver-les de fer, i si no convenç es destrueix sense cost pendent.
+      El servidor de proves dels pagaments (C) no cal fins que hi hagi proveïdor.
+    data: 2026-11-13
