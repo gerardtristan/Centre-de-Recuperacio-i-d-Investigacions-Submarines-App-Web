@@ -276,7 +276,7 @@ class ReceiptCounter(models.Model):
     l'avança amb `SELECT … FOR UPDATE` dins la mateixa transacció que emet el rebut, i així no
     queda cap forat."""
 
-    year = models.PositiveSmallIntegerField(_("any"), primary_key=True)
+    year = models.PositiveSmallIntegerField(_("any"), unique=True)
     last_number = models.PositiveIntegerField(_("últim número"), default=0)
 
     class Meta:
