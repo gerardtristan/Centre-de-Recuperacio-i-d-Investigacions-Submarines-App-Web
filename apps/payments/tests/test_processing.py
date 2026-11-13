@@ -6,12 +6,14 @@ Cada prova fa el camí sencer: el soci obre l'intent (`start_payment`), el prove
 notificació signada a l'endpoint, que la desa i la posa a la cua, i la cua la processa."""
 
 import json
+import time
 from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from django.db import transaction
 from django.test import Client
 from django.urls import reverse
 from procrastinate.contrib.django.models import ProcrastinateJob
@@ -102,6 +104,17 @@ def state(attempt, fee):
 
 def incomes():
     return Movement.objects.filter(kind=Movement.Kind.INCOME)
+
+
+def paying_attempt(email, **member):
+    """Un soci pendent amb l'intent de pagar la quota obert. `member`: camps de `make_member`."""
+    member = make_member(status=Member.Status.PENDING, **member)
+    fee = add_fee(member)
+    account = Account.objects.create_personal(member.person, email, PASSWORD)
+    account.status = Account.Status.ACTIVE
+    account.save()
+    start = checkout.start_payment(fee.charge, "card", account)
+    return Attempt.objects.get(pk=start.attempt_id), fee
 
 
 class TestPaid:
@@ -337,8 +350,13 @@ class TestSafetyNet:
         processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
 
-    def test_l_m05b_01_an_order_that_cannot_be_read_goes_to_review(self, attempt, fee, transit):
+    def test_l_m05b_01_an_order_that_cannot_be_read_goes_to_review(
+        self, attempt, fee, transit, monkeypatch
+    ):
         fake.reset()  # el proveïdor ja no la coneix
+        processing.safety_net()  # una caiguda curta: es torna a provar l'endemà (revisió de la #27)
+        assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
+        monkeypatch.setattr(processing, "SAFETY_NET_GIVE_UP", timedelta(0))
         processing.safety_net()
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)
         assert "consultar l'ordre" in attempt.review_reason
@@ -355,10 +373,37 @@ class TestSafetyNet:
         processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
 
-    def test_an_error_in_one_order_does_not_stop_the_others(self, attempt, fee, monkeypatch):
-        fake.FakeProvider().notification(attempt.provider_order_id, base.PAID)
-        processing.safety_net()  # sense compte de trànsit: falla, queda al registre i continua
+    def test_an_error_in_one_order_does_not_stop_the_others(
+        self, attempt, fee, transit, monkeypatch
+    ):
+        other, other_fee = paying_attempt(
+            "bernat.prova@example.org", first="Bernat", number=1288, document="87654321X"
+        )
+        for each in (attempt, other):
+            fake.FakeProvider().notification(each.provider_order_id, base.PAID)
+        pay = processing._pay
+
+        def fail_first(paid, *args):
+            if paid.pk == attempt.pk:
+                raise RuntimeError("error que es repeteix")
+            return pay(paid, *args)
+
+        monkeypatch.setattr(processing, "_pay", fail_first)
+        processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
+        assert state(other, other_fee) == (S.PAID, Charge.Status.PAID)
+        # Si l'error es repeteix, l'ordre cobrada no queda en curs per sempre: va «a revisar».
+        monkeypatch.setattr(processing, "SAFETY_NET_GIVE_UP", timedelta(0))
+        processing.safety_net()
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)
+        assert "tancar l'intent" in attempt.review_reason
+
+    def test_an_unknown_status_goes_to_review(self, attempt, fee, transit, monkeypatch):
+        unknown = base.OrderState(attempt.provider_order_id, "REFUSED_BY_ISSUER", 9000, "EUR")
+        monkeypatch.setattr(fake.FakeProvider, "get_order", lambda self, order_id: unknown)
+        processing.safety_net()
+        assert state(attempt, fee)[0] == S.TO_REVIEW
+        assert "estat desconegut" in attempt.review_reason
 
 
 class TestSimultaneous(CommittedDataTestCase):
@@ -384,4 +429,33 @@ class TestSimultaneous(CommittedDataTestCase):
         assert results == [R.PROCESSED, R.PROCESSED]
         assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
         assert Payment.objects.count() == 1 and incomes().count() == 1
+        fake.reset()
+
+    def test_ca_m05b_07_a_charge_paid_by_reconciliation_meanwhile_is_a_duplicate(self):
+        """Revisió de la #27: el càrrec es llegeix bloquejat. Si el tresorer el concilia mentre
+        es processa la notificació, el resultat és «a revisar» com a duplicat, no un error."""
+        fake.reset()
+        TreasuryAccount.objects.create(name="Trànsit", kind="transit", provider_code="fake")
+        attempt, fee = paying_attempt("anna@example.org")
+        notify(attempt)
+        event = ProviderEvent.objects.get().pk
+
+        def reconcile():
+            with transaction.atomic():
+                charge = Charge.objects.select_for_update().get(pk=fee.charge_id)
+                transfer = Payment.objects.create(
+                    charge=charge, method=Payment.Method.TRANSFER, amount_cents=9000
+                )
+                charges.mark_paid(charge, transfer, origin="reconciliation", by=audit.system("p"))
+                time.sleep(1)  # el càrrec queda bloquejat mentre arriba la notificació
+
+        def process():
+            time.sleep(0.3)
+            return processing.process_notification(event)
+
+        results = run_together([reconcile, process])
+
+        assert results[1] == R.TO_REVIEW
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PAID)
+        assert attempt.review_reason.startswith("Pagament duplicat")
         fake.reset()
