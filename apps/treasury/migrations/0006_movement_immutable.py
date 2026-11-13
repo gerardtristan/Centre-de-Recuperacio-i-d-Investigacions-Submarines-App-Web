@@ -4,7 +4,7 @@ es rebutgen UPDATE, DELETE i TRUNCATE. «Anul·lat» es dedueix del contramovime
 això cap excepció no cal.
 
 Els permisos de PostgreSQL de RNF-T2 (treure UPDATE i DELETE a l'usuari de l'aplicació) no són
-aquí: avui la plataforma té un sol usuari de base de dades, que és l'amo de les taules (P-75).
+aquí: avui la plataforma té un sol usuari de base de dades, que és l'amo de les taules (P-80).
 
 Desfer-la treu els activadors i la funció; la taula i les dades queden com estaven.
 """
