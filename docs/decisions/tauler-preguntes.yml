@@ -173,4 +173,17 @@ opcions:
       Sense sortida d'«a revisar», el tresorer no pot tancar cap cas. Mentrestant val la A.
     data: 2026-11-13
 
+  P-79:
+    opcions:
+      A: Esperar; el càrrec no es pot tornar a provar fins que l'intent acabi sol (notificació del proveïdor o xarxa de seguretat).
+      B: Reprendre; mentre l'intent és en curs, «Paga ara» torna el soci a la mateixa ordre del proveïdor, sense intent ni ordre nous.
+      C: Fer caducar l'intent amb targeta al cap d'un temps configurable (per exemple, 30 minuts) i deixar-ne començar un de nou.
+      D: Esperar la resposta del proveïdor (P-45) sobre si una ordre es pot cancel·lar i quan caduca.
+    recomanada: B
+    perque: >-
+      Amb la A, qui tanca la pàgina sense voler es queda sense poder pagar fins l'endemà. La B no pot
+      cobrar dues vegades, perquè és la mateixa ordre, i no depèn de cap resposta del proveïdor. La C
+      necessita abans la P-78 (confirmacions tardanes). Mentrestant val la A.
+    data: 2026-11-13
+
 noves: {}
