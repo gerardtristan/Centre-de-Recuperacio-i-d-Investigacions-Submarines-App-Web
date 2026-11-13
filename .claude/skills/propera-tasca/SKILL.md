@@ -19,10 +19,14 @@ El fitxer té més de 6.000 línies. Treballa amb números de línia:
 3. Només les files de tasques: `grep -nE '^\| *T-' docs/planning.md` i queda't amb les que cauen dins dels rangs del punt 2. Si una fila és llarga, llegeix-la amb `Read` i `offset`/`limit` d'una línia.
 4. Per comprovar una dependència d'un altre mòdul, busca'n només la fila: `grep -nE '^\| *T-M04-03 ' docs/planning.md`.
 
+## 1 bis. L'estat és a `docs/estat/` (decisió 089, D1)
+
+Mentre l'interruptor D1 de `CLAUDE.md` sigui actiu, l'estat d'una tasca es llegeix de `docs/estat/<mòdul>.md` (`M00.md` porta també T-RP i T-AJ): `grep -nE '^\| *T-M04-' docs/estat/M04.md`. Quatre estats: per fer, en curs, feta i bloquejada. El pla es continua llegint per a l'ordre de les files i per a «Depèn de». Si una tasca no té fila a `docs/estat/`, val l'estat de la seva fila del pla. Amb D1 inactiu, s'ignora aquest apartat.
+
 ## 2. Criteri
 
 1. **Recorregut:** la taula principal del mòdul, després les addendes en l'ordre del fitxer i, al final, els apèndixs comuns (T-RP, T-AJ, T-M00).
-2. **Propera:** la primera fila del recorregut que no està marcada «**Feta**» i que té totes les dependències («Depèn de») marcades «**Feta**». «Feta en part» compta com a no feta.
+2. **Propera:** la primera fila del recorregut que no està «feta» i que té totes les dependències («Depèn de») «fetes». «En curs», «bloquejada» i «feta en part» compten com a no fetes; una tasca «bloquejada» no pot ser la propera.
 3. **Font:** fitxer, línia i fila de la taula, i cada dependència comprovada amb el seu estat.
 4. Les altres candidates vàlides es llisten com a informació, sense triar-ne cap.
 5. **Contrast amb el diari:** si l'estat del pla i l'índex de `docs/diari-de-construccio/README.md` no coincideixen, es llisten totes les candidates amb el motiu i decideix el responsable del projecte. Si no es pot determinar amb seguretat, es diu.

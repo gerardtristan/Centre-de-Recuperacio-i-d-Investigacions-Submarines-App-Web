@@ -85,6 +85,15 @@ STATUS_MARKS = [
     ("pendent", r"\*\*No començada"),
     ("feta", r"\*\*Feta\*\*"),
 ]
+# Estat apuntat a docs/estat/ (decisió 089, D1): quatre estats i cap més. Si una tasca hi és,
+# el seu estat mana sobre el que diu la fila del pla.
+STATUS_DIR = "docs/estat/"
+STATUS_FILE_STATES = {
+    "feta": "feta",
+    "en curs": "curs",
+    "per fer": "pendent",
+    "bloquejada": "pendent",
+}
 BLOCKED_RE = re.compile(
     r"(bloquejad\w* per (?:la|el|les|els) "
     r"(?:P-|Q-|S-|junta|tresorer|banc|gestoria|secretaria|FECDAS|PaynoPain)(?:[^;.)]|\.(?=\d)){0,80}"
@@ -399,6 +408,14 @@ class History:
     def find(self, short: str) -> dict | None:
         return next((c for full, c in self.commits.items() if full.startswith(short)), None)
 
+    def find_pr(self, reference: str) -> dict | None:
+        """El commit d'una PR fusionada per aixafament: el títol acaba amb «(#N)»."""
+        m = re.search(r"#(\d+)", reference or "")
+        if not m:
+            return None
+        tail = f"(#{m.group(1)})"
+        return next((c for c in self.commits.values() if c["s"].endswith(tail)), None)
+
     def ancestors(self, sha: str) -> set[str]:
         if sha not in self._ancestors:
             self._ancestors[sha] = set(self.repo.git("rev-list", sha).split())
@@ -469,6 +486,37 @@ def parse_diary(repo: Repo, report: dict) -> tuple[dict, dict]:
     report["files_read"].append("docs/diari-de-construccio/README.md (índex)")
     report["files_read"].append(f"docs/diari-de-construccio/: {len(entries)} entrades")
     return index, entries
+
+
+def parse_status_files(repo: Repo, report: dict) -> dict:
+    """Files de docs/estat/<mòdul>.md: tasca, estat, data, PR i bloqueig o nota."""
+    entries = {}
+    for path in sorted(repo.ls(STATUS_DIR)):
+        if not path.endswith(".md") or os.path.basename(path) == "README.md":
+            continue
+        count = 0
+        for number, line in enumerate(repo.show(path).split("\n"), 1):
+            m = re.match(rf"\|\s*\**({TASK_ID})\b", line)
+            if not m:
+                continue
+            row = cells(line)
+            state = row[1].strip("* ").lower() if len(row) > 1 else ""
+            if len(row) < 4 or state not in STATUS_FILE_STATES:
+                report["files_missing"].append(
+                    f"{path}:{number}: fila no vàlida (calen tasca, estat, data, PR i nota; "
+                    "estats: per fer, en curs, feta, bloquejada)."
+                )
+                continue
+            entries[m.group(1)] = {
+                "state": state,
+                "date": row[2],
+                "pr": row[3],
+                "note": row[4] if len(row) > 4 else "",
+                "src": f"{path}:{number}",
+            }
+            count += 1
+        report["files_read"].append(f"{path} ({count} tasques)")
+    return entries
 
 
 def diary_status(title: str) -> str | None:
@@ -584,7 +632,10 @@ def parse_decisions(repo: Repo, report: dict, all_ids: list[str]) -> list[dict]:
 # ----------------------------------------------------------------------------- per tasca
 
 
-def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: list[str]) -> None:
+def enrich_task(
+    task: dict, plan_extra: dict, history: History, diary, all_ids: list[str], filed=None
+) -> None:
+    """`filed`: la fila de la tasca a docs/estat/, si n'hi ha (decisió 089, D1)."""
     index, entries = diary
     id_set = set(all_ids)
     feta = task["feta"]
@@ -592,6 +643,15 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
     hits = status_hits(feta)
     position, status, quote = hits[-1] if hits else (None, "pendent", "")
     task.update(status=status, statusQuote=quote, phase=MODULE_PHASE[task["mod"]], notes=notes)
+    if filed:
+        task.update(
+            planStatus=status,
+            status=STATUS_FILE_STATES[filed["state"]],
+            statusQuote=f"«{filed['state']}» a {filed['src']}",
+            statusFile=filed,
+        )
+        if filed["state"] == "bloquejada":
+            task["blocked"] = {"quote": filed["note"] or "Bloquejada", "line": task["line"]}
     if quote.startswith("**Feta per a la"):
         task["statusNote"] = (
             "El pla diu literalment «Feta per a la 00 i el 01»: es mostra com a «feta en part»."
@@ -614,6 +674,8 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
     if not date and hits:
         date = re.search(r"(\d{2}/\d{2}/\d{4})", feta[hits[0][0] :])
     task["date"] = date.group(1) if date else ""
+    if filed and re.fullmatch(r"\d{2}/\d{2}/\d{4}", filed["date"]):
+        task["date"] = filed["date"]
 
     commits = []
     for source in (segment, feta if hits else ""):
@@ -623,6 +685,9 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
                 commits.append(commit)
         if commits:
             break
+    merged = history.find_pr(filed["pr"]) if filed else None
+    if merged:
+        commits = [merged] + [c for c in commits if c is not merged]
     task["commits"] = [{"h": c["h"], "d": c["d"][:16], "s": c["s"]} for c in commits[:6]]
     task["commitsAll"] = len(commits)
     if commits:
@@ -637,6 +702,8 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
     for m in re.finditer(ci_re, segment):
         if m.group(1).strip() not in declared:
             declared.append(m.group(1).strip())
+    if merged and filed["state"] == "feta":
+        declared.append("CI verd: la PR és a `master`, que està protegida (decisió 089)")
     task["ciDeclared"] = declared[-4:]
 
     open_items = []
@@ -647,6 +714,14 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
             open_items.append(m.group(1).strip(" :") + ": " + m.group(2).strip())
         if open_items:
             break
+    if (
+        filed
+        and filed["state"] != "feta"
+        and not filed["note"].startswith(("—", "(pla,"))
+        and filed["note"]
+        and not open_items
+    ):
+        open_items.append("Nota: " + filed["note"])
     task["noTanca"] = open_items[-3:]
 
     rows = index.get(task["id"], [])
@@ -656,6 +731,8 @@ def enrich_task(task: dict, plan_extra: dict, history: History, diary, all_ids: 
     conflicts = []
     if rows:
         other = diary_status(rows[-1]["title"])
+        if filed:  # a docs/estat/ no hi ha «feta en part»: és «en curs»
+            other = {"feta_part": "curs", "validacio": "curs"}.get(other, other)
         if other and other != task["status"]:
             conflicts.append(
                 {
@@ -911,8 +988,9 @@ def collect(repo: Repo, runs: list[dict], issues: list[dict] | None = None) -> t
             "Fitxer de preguntes de la ronda 2 (R2): no trobat al repositori."
         )
 
+    filed = parse_status_files(repo, report)
     for task in tasks:
-        enrich_task(task, plan_extra, history, diary, all_ids)
+        enrich_task(task, plan_extra, history, diary, all_ids, filed.get(task["id"]))
     estimate_costs(tasks, report)
     questions = link_everything(tasks, decisions, pending, batch, plan_extra, external, all_ids)
     board = tauler.build(
