@@ -6,10 +6,10 @@ xarxa de seguretat) donen un intent per pagat; mai el navegador (RN-M05b-05). To
 el pagament, el càrrec, l'ingrés de la tresoreria i l'estat del soci canvien a la mateixa
 transacció.
 
-Falta: el correu al soci i l'avís per correu al tresorer necessiten plantilles noves, que es
-declaren a la 00 (`mail.TEMPLATE_PRIORITIES`); el rebut és la T-M05b-07. Mentrestant, el que va
-«a revisar» queda a l'intent, a la notificació i al registre d'activitat (T-M05b-16 en fa la
-llista)."""
+En pagar-se, el rebut i el correu al pagador (`receipts.issue`, T-M05b-07). El que va «a
+revisar» queda a l'intent, a la notificació i al registre d'activitat (T-M05b-16 en fa la
+llista), i qui té el permís de la tresoreria en rep l'avís per correu (CA-M05b-05; P-86, opció
+per defecte)."""
 
 import logging
 from datetime import timedelta
@@ -18,12 +18,13 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit, charges
+from apps.core import audit, charges, mail
 from apps.core.models import Charge
+from apps.core.permissions import accounts_with_perm
 from apps.members import services as members
 from apps.treasury import services as treasury
 
-from . import attempts
+from . import attempts, receipts
 from .models import PaymentAttempt, ProviderEvent
 from .providers import base, get_provider
 
@@ -33,6 +34,8 @@ S = PaymentAttempt.Status
 ORIGIN = "payments.processing"
 TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
+REVIEW_TEMPLATE = "avis-pagament-revisar"
+REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
 # `safety_net_age_minutes` (VC-17; 60): passa a `PaymentSettings` amb la T-M05b-22.
 SAFETY_NET_AGE = timedelta(minutes=60)
 # Una ordre que la xarxa no pot tancar es torna a provar l'endemà; passat aquest temps va «a
@@ -136,6 +139,7 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
         provider_reference=state.external_id,
     )
     treasury.record_income(payment, origin="provider", by=by)
+    receipts.issue(attempt)
     fee = getattr(charge, "annual_fee", None)
     if fee is not None:
         members.on_fee_paid(fee.pk)
@@ -148,7 +152,24 @@ def _review(attempt: PaymentAttempt | None, source, reason: str) -> str:
         attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
     else:
         audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
+    _mail_review(attempt, source, reason)
     return R.TO_REVIEW
+
+
+def _mail_review(attempt, source, reason: str) -> None:
+    """L'avís al tresorer (CA-M05b-05): el motiu i les referències internes, cap dada personal.
+    Un sol correu per adreça; va a la mateixa transacció que el canvi."""
+    context = {
+        "reason": reason,
+        "attempt_id": attempt.pk if attempt else None,
+        "event_id": source.pk if isinstance(source, ProviderEvent) else None,
+    }
+    sent = set()
+    for account in accounts_with_perm(REVIEW_PERMISSION):
+        address = account.notification_email
+        if address and address not in sent:
+            mail.queue_email(REVIEW_TEMPLATE, to=address, person=account.person, context=context)
+            sent.add(address)
 
 
 def safety_net() -> None:

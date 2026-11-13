@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M05b-07: rebut d'un pagament propi (RN-M05b-19; M05b-8, «Rutes»). És un rebut, no una factura (P-47). Seguretat i privacitat: només el compte personal de la persona del càrrec (un d'un altre, sense rebut o inexistent: «no trobat», al servidor, i registre); cap dada personal, només el que demana RN-M05b-19. PDF: la impressió del navegador, com el carnet (079, A-20; P-85): imprimir o desar com a PDF treu només el rebut, sense navegació ni botons. Res no es desa. #}
+{% block title %}{% blocktranslate with number=receipt.number %}Rebut {{ number }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Rebut" %}</h1>
+  <section class="targeta" aria-label="{% translate 'Rebut' %}">
+    <dl class="dades-soci">
+      <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ receipt.number }}</dd></div>
+      <div><dt>{% translate "Data" %}</dt><dd>{{ receipt.issued_at|date:"d/m/Y" }}</dd></div>
+      <div><dt>{% translate "Concepte" %}</dt><dd>{{ charge.concept }}</dd></div>
+      <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
+      <div><dt>{% translate "Departament" %}</dt><dd>{{ charge.department.name }}</dd></div>
+      <div><dt>{% translate "Mètode" %}</dt><dd>{{ receipt.attempt.get_method_display }}</dd></div>
+      {% if receipt.attempt.provider_order_id %}<div><dt>{% translate "Referència" %}</dt><dd class="codi">{{ receipt.attempt.provider_order_id }}</dd></div>{% endif %}
+    </dl>
+    <p class="text-2">{% translate "Rebut del pagament. No és una factura." %} {% blocktranslate %}C.R.I.S. · NIF {{ club_tax_id }} · cris1954.cat{% endblocktranslate %}</p>
+  </section>
+  <div class="accions no-imprimeix">
+    <button class="boto" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
+  </div>
+  <p class="enllacos no-imprimeix"><a href="{% url 'payments:charge' charge.pk %}">{% translate "Tornar al pagament" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}

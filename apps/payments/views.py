@@ -7,6 +7,7 @@ del navegador (`?tornada=ok`) no canvia res ni dona res per pagat (CA-M05b-02, R
 Per objecte (M05b-4): cadascú només veu i paga els seus càrrecs; un d'un altre o que no
 existeix és «no trobat» en tots dos casos, i l'intent queda al registre (com CA-M01-25)."""
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -20,7 +21,7 @@ from apps.core import audit, charges
 from apps.core.models import Charge
 
 from . import attempts, checkout, webhooks
-from .models import PaymentAttempt
+from .models import PaymentAttempt, Receipt
 from .providers import base, fake, get_provider
 from .providers.base import ProviderError, ProviderNotConfigured
 
@@ -98,6 +99,28 @@ def attempt_status_view(request, attempt_id):
     if attempt is None:
         _not_found(request, PaymentAttempt, attempt_id)
     return render(request, "payments/_status.html", _status_context(attempt.charge))
+
+
+@never_cache
+@require_GET
+def receipt_view(request, attempt_id):
+    """`/socis/pagaments/{intent}/rebut/` (RN-M05b-19): el rebut d'un pagament propi, que es desa
+    com a PDF des del navegador (P-85). D'un altre, sense rebut o inexistent: «no trobat»."""
+    receipt = (
+        Receipt.objects.select_related("attempt__charge__department")
+        .filter(attempt_id=attempt_id, attempt__charge__person=request.user.person)
+        .first()
+    )
+    if receipt is None:
+        _not_found(request, PaymentAttempt, attempt_id)
+    charge = receipt.attempt.charge
+    context = {
+        "receipt": receipt,
+        "charge": charge,
+        "amount": charges.euros(charge.amount_cents),
+        "club_tax_id": settings.CLUB_TAX_ID,
+    }
+    return render(request, "payments/receipt.html", context)
 
 
 # --- Proveïdor fals: la pàgina on es «paga». Només amb l'entorn de proves -----------------------

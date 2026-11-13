@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05b-07 (CA-M05b-05): TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Un pagament ha quedat a revisar" %}

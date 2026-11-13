@@ -2,6 +2,7 @@
 <div id="estat-pagament" class="formulari"{% if state == "in_progress" %} hx-get="{% url 'payments:attempt_status' status.attempt.pk %}" hx-trigger="every 3s" hx-swap="outerHTML" hx-headers='{"X-CRIS-Automatica": "1"}'{% endif %}>
   {% if state == "paid" %}
     <div class="avis avis-ok"><strong><span aria-hidden="true">✓</span> {% translate "Pagat" %}</strong>{% translate "El pagament s'ha confirmat. No cal que facis res més." %}</div>
+    {% if status.attempt.receipt %}<p class="enllacos"><a href="{% url 'payments:receipt' status.attempt.pk %}">{% translate "Veure el rebut" %}</a></p>{% endif %}
   {% elif state == "in_progress" %}
     <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> {% translate "Estem confirmant el pagament" %}</strong>{% translate "Esperem que el proveïdor de pagaments ens ho confirmi. Aquesta pàgina s'actualitza sola." %} {% translate "Mentrestant no en pots començar cap altre: si has sortit de la pàgina de pagament sense acabar, podràs tornar-ho a provar quan el proveïdor ens digui que no s'ha completat." %}</div>
   {% elif state == "failed" %}

@@ -68,7 +68,7 @@ class TestEntity:
         assert names == set(
             "id charge method amount_cents status provider_code provider_order_id "
             "idempotency_key expires_at guest_link started_by review_reason created_at "
-            "updated_at".split()
+            "updated_at receipt".split()  # `receipt`: la relació inversa del rebut (T-M05b-07)
         )
         assert not [n for n in names if any(w in n for w in ("iban", "pan", "cvv", "card"))]
         # Tall de targeta: l'intent no referencia el mandat (docs/estat/M05a.md).

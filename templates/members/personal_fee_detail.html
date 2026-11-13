@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-16: detall d'una quota pròpia (CA-M01-12, CA-M01-25). Una quota d'un altre o inexistent dona «no trobat». El rebut (número R-AAAA-NNNNNN) és del 05b (RN-M05b-19): aquí no se'n genera cap. #}
+{# T-M01-16: detall d'una quota pròpia (CA-M01-12, CA-M01-25). Una quota d'un altre o inexistent dona «no trobat». El rebut (número R-AAAA-NNNNNN) és del 05b (RN-M05b-19): l'enllaç porta a la pantalla de pagament, que el mostra si n'hi ha. #}
 {% block title %}{{ fee.charge.concept }} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Quotes" %}</p>
@@ -13,6 +13,6 @@
     {% if payment %}<div><dt>{% translate "Mètode" %}</dt><dd>{{ payment.get_method_display }}</dd></div>{% endif %}
   </dl>
   {# T-M05b-04: el pagament és a la pantalla del 05b, que torna a comprovar que el càrrec és seu. #}
-  {% if fee.charge.status == "pending" %}<div class="accions"><a class="boto boto-principal" href="{% url 'payments:charge' fee.charge_id %}">{% translate "Paga ara" %}</a></div>{% endif %}
+  {% if fee.charge.status == "pending" %}<div class="accions"><a class="boto boto-principal" href="{% url 'payments:charge' fee.charge_id %}">{% translate "Paga ara" %}</a></div>{% elif fee.charge.status == "paid" %}<p class="enllacos"><a href="{% url 'payments:charge' fee.charge_id %}">{% translate "Veure el pagament" %}</a></p>{% endif %}
   <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>
 {% endblock %}
