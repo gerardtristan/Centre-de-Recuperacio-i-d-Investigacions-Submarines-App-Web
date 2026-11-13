@@ -104,7 +104,9 @@ def test_every_menu_route_has_no_parameters_and_a_declared_permission():
 
 
 def test_every_admin_screen_carries_the_menu_the_account_and_the_logout(login_as, make_admin):  # noqa: F811
-    account = make_admin("administrator", username="marta.adm")
+    account = make_admin(
+        "administrator", "treasurer", username="marta.adm"
+    )  # M9 només el té el tresorer
     client = login_as(account, AREA_ADMIN)
     member = a_member("Fitxa")
     children = {

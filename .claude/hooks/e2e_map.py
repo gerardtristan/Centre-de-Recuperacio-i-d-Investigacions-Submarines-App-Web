@@ -152,6 +152,11 @@ MAP = {
         "templates/members/member_totp_reset.html",
         "templates/members/_member_edit_links.html",
     ),
+    "test_extracte_bancari.py": (
+        "apps/core/imports/bank_statement.py",
+        "apps/core/views/bank_statement.py",
+        "templates/core/bank_statement.html",
+    ),
     "test_enllacos_convidat.py": (
         "apps/core/guest_links.py",
         "apps/core/views/guest.py",

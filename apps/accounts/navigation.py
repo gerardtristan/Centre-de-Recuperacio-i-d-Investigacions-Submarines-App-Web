@@ -38,6 +38,7 @@ BASE_ROUTES = {
     "administration:locked_data": ((("core.locked_data.view", READ),),),  # M13 (T-M00-04)
     "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:treasury_movements": ((("treasury.view", READ),),),
+    "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
 }
 
 # Ruta de l'entrada, text i les altres pantalles que en pengen (també la marquen com a actual).
@@ -66,6 +67,7 @@ ENTRIES = (
     ("administration:fees", _("Quotes i impagats"), ()),
     ("administration:treasury_accounts", _("Tresoreria: comptes i saldos"), ()),
     ("administration:treasury_movements", _("Tresoreria: moviments"), ()),
+    ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
     ("administration:guest_links", _("Enllaços de convidat"), ()),
     (

@@ -3,7 +3,7 @@ dins de l'espai de noms `administration` (sessió d'administració i TOTP)."""
 
 from django.urls import path
 
-from .views import audit, gdpr, guest, locked_data
+from .views import audit, bank_statement, gdpr, guest, locked_data
 
 urlpatterns = [
     path("registre/", audit.audit_log_view, name="audit_log"),
@@ -24,5 +24,17 @@ urlpatterns = [
         "enllacos-convidat/<int:pk>/revoca/",
         guest.guest_link_revoke_view,
         name="guest_link_revoke",
+    ),
+    # T-M00-01: importació de l'extracte bancari, amb M9 per a totes tres.
+    path("importacions/extracte/", bank_statement.bank_statement_view, name="bank_statement"),
+    path(
+        "importacions/extracte/confirma/",
+        bank_statement.bank_statement_confirm_view,
+        name="bank_statement_confirm",
+    ),
+    path(
+        "importacions/extracte/<int:pk>/desfes/",
+        bank_statement.bank_statement_undo_view,
+        name="bank_statement_undo",
     ),
 ]
