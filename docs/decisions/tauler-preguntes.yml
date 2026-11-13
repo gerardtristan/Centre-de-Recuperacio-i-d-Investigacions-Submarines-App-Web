@@ -161,6 +161,30 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
+  P-80:
+    opcions:
+      A: Dos usuaris de base de dades en desplegar, un per a les migracions i un per a l'aplicació; el de l'aplicació, sense UPDATE, DELETE ni TRUNCATE a les taules on només s'afegeixen files.
+      B: Un sol usuari i només l'activador, com ara, i deixar-ho escrit com a risc acceptat.
+      C: Dos usuaris també en local i al CI, perquè una prova ho comprovi a cada canvi.
+    recomanada: A
+    perque: >-
+      L'activador ja atura qualsevol canvi, també amb una consulta directa; el segon usuari és una
+      barrera més per si algú treu l'activador. Només té sentit on hi ha dades reals, i per això es fa
+      en desplegar i no en local (C duplicaria la configuració de totes les proves).
+    data: 2026-11-13
+
+  P-81:
+    opcions:
+      A: Com s'ha construït; les quotes van a «General / Quotes de socis» i les inscripcions i llicències, sense centre de cost fins que el càrrec en porti (segona meitat de la T-M04-02), que es fa abans de cobrar-ne cap de debò.
+      B: Rebutjar l'ingrés d'una inscripció o d'una llicència fins que el càrrec porti centre de cost.
+      C: Que qui crida el servei (pagaments, activitats o llicències) li digui el centre de cost.
+    recomanada: A
+    perque: >-
+      A la fase 1 només es cobren quotes, i el pla ja diu on van. Un ingrés sense centre de cost és un
+      estat que el model admet; B deixaria un cobrament confirmat sense apuntar, i C faria que cada
+      mòdul sabés coses de la tresoreria que després caldria desfer.
+    data: 2026-11-13
+
 noves:
   F-003:
     pregunta: Com fem que cada apartat d'ajustos tingui per rol els permisos «veure» i «veure i editar»?

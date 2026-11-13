@@ -131,3 +131,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M04-01](T-M04-01.md) | Comptes de tresoreria i comptes inicials (**Feta**, 13/11/2026; aprovada pel propietari) | 13/11/2026 | PR #15 | 23 noves | verd (PR a `master`, protegida) |
 | [T-M05a-04](T-M05a-04.md) | Notificacions del proveïdor de pagaments: verificar, desar i respondre (**Feta**, 13/11/2026) | 13/11/2026 | PR #17 | 21 noves | verd (PR a `master`, protegida) |
 | [Llesca 1](llesca-1-flux-fer-se-soci.md) | Prova al navegador del flux sencer «fer-se soci», de la sol·licitud al carnet verificat (**Feta**, 13/11/2026; el registre manual del pagament, P-12, amb `xfail`) | 13/11/2026 10:18 | PR #20 | 2 noves (e2e) | [A comprovar] |
+| [T-M04-03](T-M04-03.md) | Moviment de tresoreria immutable i «anul·lat» derivat (PR oberta, `risc:alt`: espera l'aprovació del propietari) | 13/11/2026 10:11 | PR #19 | 31 noves | [A comprovar] |
+| [T-M04-05](T-M04-05.md) | `record_income`: l'ingrés d'un cobrament confirmat, una sola vegada (PR oberta, `risc:alt`, apilada sobre la #19: espera l'aprovació del propietari) | 13/11/2026 10:39 | PR #22 | 34 noves | [A comprovar] |
