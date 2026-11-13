@@ -119,7 +119,10 @@ class TestImmutable:
         assert row(movement.pk) == before
 
     def test_ca_t06_3_a_direct_truncate_is_rejected(self, movement):
-        with pytest.raises(DatabaseError, match="TRUNCATE"), transaction.atomic():
+        # Amb les claus foranes de la fila nova encara per comprovar, PostgreSQL rebutja el
+        # TRUNCATE ell sol, abans de l'activador: es comproven primer, i el rebuig és l'activador.
+        connection.check_constraints()
+        with pytest.raises(DatabaseError, match=IMMUTABLE), transaction.atomic():
             with connection.cursor() as cursor:
                 cursor.execute("TRUNCATE treasury_movement CASCADE")
         assert Movement.objects.filter(pk=movement.pk).exists()
@@ -192,6 +195,15 @@ class TestAccount:
         with pytest.raises(ValidationError, match="desactivat"):
             Movement.objects.create(**reversal_of(movement, **fields))
         assert list(Movement.objects.all()) == [movement]  # els que ja hi eren es conserven
+
+    def test_ca_t01_3_the_account_is_checked_in_the_database_not_in_memory(self, fields, cash):
+        # Un altre procés desactiva el compte després que aquest l'hagi llegit.
+        TreasuryAccount.objects.filter(pk=cash.pk).update(active=False)
+        assert fields["account"].active  # la còpia en memòria encara diu «actiu»
+        with pytest.raises(ValidationError, match="desactivat"):
+            Movement.objects.create(**fields)
+        with pytest.raises(ValidationError, match="desactivat"):
+            Movement.objects.bulk_create([Movement(**fields)])
 
     def test_ca_t01_3_an_account_with_movements_cannot_be_deleted_with_direct_sql(self, movement):
         with pytest.raises(IntegrityError), transaction.atomic():

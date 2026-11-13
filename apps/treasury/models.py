@@ -116,12 +116,18 @@ class CostCentre(UndeletableModel):
         return cls.objects.filter(active=True, department__active=True).select_related("department")
 
 
+def _active_account_ids() -> set:
+    """De la base de dades: la còpia en memòria d'un compte pot ser d'abans de desactivar-lo."""
+    return set(TreasuryAccount.objects.filter(active=True).values_list("pk", flat=True))
+
+
 class MovementQuerySet(AppendOnlyQuerySet):
     def bulk_create(self, objs, *args, **kwargs):
         # `bulk_create` no passa per `save`: les regles del moviment nou s'apliquen igualment.
         objs = list(objs)
+        active_accounts = _active_account_ids()
         for movement in objs:
-            movement.validate_new()
+            movement.validate_new(active_accounts)
         return super().bulk_create(objs, *args, **kwargs)
 
     def with_reversal(self):
@@ -292,11 +298,13 @@ class Movement(AppendOnlyModel):
             self.validate_new()
         super().save(*args, **kwargs)
 
-    def validate_new(self) -> None:
+    def validate_new(self, active_accounts=None) -> None:
         """Les regles que una restricció d'una sola fila no pot comprovar a la base de dades.
         Que el contramoviment sigui el mirall de l'original (P-M04-C) és de la T-M04-08."""
         validate_cents(self.amount_cents)
-        if not self.account.active:
+        if active_accounts is None:
+            active_accounts = _active_account_ids()
+        if self.account_id not in active_accounts:
             # CA-T01.3
             raise ValidationError(gettext("Un compte desactivat no admet moviments nous."))
         if self.cost_centre and self.cost_centre.department_id != self.department_id:
