@@ -17,17 +17,20 @@ from apps.core.models import Charge
 from apps.payments.models import PaymentAttempt
 from apps.payments.providers import fake
 from apps.treasury.models import TreasuryAccount
+from conftest import PASSWORD
 
 from .test_flux_primer_euro import run_queue
 from .test_pagament_targeta import EMAIL, POLL, pending  # noqa: F401
-from conftest import PASSWORD
 
 pytestmark = pytest.mark.e2e
 S = PaymentAttempt.Status
 
 
 def test_ca_m05b_06_bizum_waits_times_out_and_can_be_tried_again(
-    page, live_server, pending, capture  # noqa: F811
+    page,
+    live_server,
+    pending,  # noqa: F811
+    capture,
 ):
     fee, base_url = pending, live_server.url
     TreasuryAccount.objects.create(
