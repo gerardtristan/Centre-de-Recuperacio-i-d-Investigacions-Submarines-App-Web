@@ -8,6 +8,9 @@ serveis. Cap ruta hi arriba: un ingrés mai neix d'una petició del navegador (R
 - El càrrec i el pagament només es llegeixen, i de la base de dades: la còpia de qui crida pot
   ser antiga.
 - Data de valor en un període tancat (RN-T31): arriba amb la T-M04-20.
+
+`create_transit_account` (T-M04-17; RN-T01 i RN-T08): el compte de trànsit d'un proveïdor de
+cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup.py`).
 """
 
 from django.conf import settings
@@ -26,6 +29,7 @@ from .models import Movement, TreasuryAccount
 
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
+TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
 
 # Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
 SEPA_REMITTANCE = "sepa_remittance"
@@ -94,6 +98,25 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
         details={"payment": payment.pk, "origin": origin},
     )
     return movement
+
+
+@transaction.atomic
+def create_transit_account(provider_code: str, name: str) -> TreasuryAccount:
+    """El compte de trànsit del proveïdor, o l'existent (M04-8). Idempotent: la base de dades
+    només admet un trànsit per proveïdor, i el que ja hi és es torna tal com és, sense
+    reanomenar-lo ni reactivar-lo (desactivar-lo és cosa del tresorer). Un nom que ja fa servir
+    un altre compte és un error de configuració i no es tapa (`IntegrityError`)."""
+    account, created = TreasuryAccount.objects.get_or_create(
+        kind=TreasuryAccount.Kind.TRANSIT, provider_code=provider_code, defaults={"name": name}
+    )
+    if created:
+        audit.record(
+            TRANSIT_ACCOUNT_CREATED,
+            actor=audit.system("treasury.create_transit_account"),
+            target=account,
+            details={"provider_code": provider_code, "name": name},
+        )
+    return account
 
 
 def _system_or_account(by) -> bool:
