@@ -267,6 +267,24 @@ class TestRejected:
             record(payment, origin=origin)
         assert nothing_was_recorded()
 
+    @pytest.mark.parametrize("who", ["nobody", "anonymous", "guest"])
+    def test_ca_t03_4_rn_t13_an_income_needs_the_system_or_an_account_behind_it(
+        self, payment, person, who
+    ):
+        # Sense això, l'ingrés s'apuntava i al registre hi quedava «anònim» o un convidat.
+        by = {"nobody": None, "anonymous": audit.ANONYMOUS, "guest": audit.guest(person, 1)}[who]
+        with pytest.raises(services.BrowserOriginRejected):
+            record(payment, by=by)
+        assert nothing_was_recorded()
+
+    def test_ca_t03_3_a_repetition_for_a_charge_no_longer_paid_is_rejected_too(self, payment):
+        # L'estat del càrrec es mira abans que l'ingrés que ja hi és: ni ingrés nou ni repetició.
+        first = record(payment)
+        Charge.objects.filter(pk=payment.charge_id).update(status="returned")
+        with pytest.raises(services.ChargeNotPaid):
+            record(payment)
+        assert list(incomes()) == [first] and not logged(services.INCOME_REPEATED).exists()
+
     def test_ca_t03_4_no_browser_request_reaches_the_treasury(self):
         def callbacks(patterns):
             for pattern in patterns:

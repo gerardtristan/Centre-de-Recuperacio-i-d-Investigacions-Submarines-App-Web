@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 from apps.core.charges import PAID_ORIGINS
-from apps.core.models import Charge, Payment
+from apps.core.models import AuditEntry, Charge, Payment
 from apps.members import services as members
 
 from .models import CostCentre, Movement, TreasuryAccount
@@ -54,6 +54,9 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
         raise BrowserOriginRejected(
             _("Un ingrés només s'apunta des del proveïdor o des de la conciliació.")
         )
+    if not _system_or_account(by):
+        # RN-T13: el registre ha de dir qui. Ni anònim ni un convidat (que ve del navegador).
+        raise BrowserOriginRejected(_("Un ingrés l'apunta el sistema o un compte, mai ningú més."))
     payment = Payment.objects.select_related("charge__department").get(pk=payment.pk)
     charge = payment.charge
     if charge.status != Charge.Status.PAID:
@@ -91,6 +94,12 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
         details={"payment": payment.pk, "origin": origin},
     )
     return movement
+
+
+def _system_or_account(by) -> bool:
+    if isinstance(by, audit.Actor):
+        return by.kind == AuditEntry.ActorKind.SYSTEM
+    return isinstance(by, get_user_model())
 
 
 def _income_of(payment: Payment) -> Movement | None:
