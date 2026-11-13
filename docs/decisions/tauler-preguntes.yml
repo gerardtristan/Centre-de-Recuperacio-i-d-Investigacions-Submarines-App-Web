@@ -196,6 +196,17 @@ opcions:
       necessita abans la P-78 (confirmacions tardanes). Mentrestant val la A.
     data: 2026-11-13
 
+  P-84:
+    opcions:
+      A: Com s'ha construït; el 05b crea el pagament de la 00 en una sola funció i no s'envia cap correu fins més endavant.
+      B: Una PR petita de la 00 (després de la T-M04-02) amb el servei que crea el pagament i les dues plantilles de correu; el 05b el crida.
+      C: Que l'intent de pagament del 05b substitueixi el pagament de la 00 (un sol model).
+    recomanada: B
+    perque: >-
+      Compleix la regla dels serveis i la conciliació de la 04 (T-M04-12) en necessitarà el mateix servei.
+      La C és un canvi de model de dades gran sobre peces ja fetes. Mentrestant val la A.
+    data: 2026-11-13
+
   P-81:
     opcions:
       A: Com s'ha construït; les quotes van a «General / Quotes de socis» i les inscripcions i llicències, sense centre de cost fins que el càrrec en porti (segona meitat de la T-M04-02), que es fa abans de cobrar-ne cap de debò.

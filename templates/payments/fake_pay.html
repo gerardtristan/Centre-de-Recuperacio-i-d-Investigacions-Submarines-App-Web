@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05b-04: pàgina de pagament del proveïdor fals (`providers.fake`). Fa el paper d'una pàgina de fora de la plataforma: ruta pública declarada que només respon amb el proveïdor fals, que només arrenca amb l'entorn de proves. No hi ha cap camp de targeta. «Paga» i «Denega» envien la notificació signada, servidor a servidor; «Torna sense pagar» no n'envia cap (un intent deixat a mitges, P-83). #}
+{% block title %}{% translate "Pagament de proves" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Proveïdor de proves" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Pagament de proves" %}</h1>
+  <div class="avis avis-sistema"><strong>{% translate "Proveïdor fals" %}</strong>{% translate "Aquesta pàgina fa el paper del proveïdor de pagaments a l'entorn de proves. No es cobra res i no s'hi escriu cap targeta." %}</div>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
+    <div><dt>{% translate "Ordre" %}</dt><dd><span class="codi">{{ order.external_id }}</span></dd></div>
+  </dl>
+  <form method="post" class="accions">{% csrf_token %}
+    <button class="boto boto-principal" type="submit" name="resultat" value="pay">{% translate "Paga" %}</button>
+    <button class="boto" type="submit" name="resultat" value="deny">{% translate "Denega el pagament" %}</button>
+    <button class="boto" type="submit" name="resultat" value="leave">{% translate "Torna sense pagar" %}</button>
+  </form>
+{% endblock %}

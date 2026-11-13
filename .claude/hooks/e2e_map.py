@@ -233,6 +233,18 @@ MAP = {
         "apps/members/validity.py",
         "apps/members/cards.py",
     ),
+    "test_flux_primer_euro.py": (
+        "apps/payments/processing.py",
+        "apps/payments/webhooks.py",
+        "apps/treasury/services.py",
+    ),
+    "test_pagament_targeta.py": (
+        "apps/payments/views.py",
+        "apps/payments/checkout.py",
+        "apps/payments/providers/fake.py",
+        "templates/payments/*",
+        "templates/members/personal_fee_detail.html",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
