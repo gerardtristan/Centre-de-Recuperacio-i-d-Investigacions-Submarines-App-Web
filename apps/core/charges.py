@@ -15,11 +15,12 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
+from django.utils import timezone
 from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 
 from . import audit
-from .models import Charge, Department, validate_cents
+from .models import Charge, Department, Payment, validate_cents
 from .permissions import has_perm
 
 S = Charge.Status
@@ -151,6 +152,34 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
 
 
 @transaction.atomic
+@transaction.atomic
+def record_payment(
+    charge: Charge,
+    *,
+    method: str,
+    origin: str,
+    by,
+    provider_status: str = "",
+    provider_reference: str = "",
+    transfer_reference: str = "",
+) -> Payment:
+    """Pagament confirmat (P-84): crea el pagament amb l'import del càrrec (RN-M05b-02) i passa
+    el càrrec a pagat, tot o res. Les altres apps creen el pagament només per aquí. `origin`:
+    «provider» o «reconciliation», com a `mark_paid`."""
+    locked = Charge.objects.select_for_update().get(pk=charge.pk)
+    payment = Payment.objects.create(
+        charge=locked,
+        method=method,
+        amount_cents=locked.amount_cents,
+        provider_status=provider_status,
+        provider_reference=provider_reference,
+        transfer_reference=transfer_reference,
+        paid_at=timezone.now(),
+    )
+    mark_paid(locked, payment, origin=origin, by=by)
+    return payment
+
+
 def cancel(charge: Charge, reason: str, *, by, category: str = "") -> Charge:
     """Pendent o pagat (devolució total) → anul·lat, amb motiu (CA-15.5). `category`: buida o
     «exemption» (RN-M01-72); queda al càrrec i al registre."""

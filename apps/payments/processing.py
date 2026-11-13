@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, charges
-from apps.core.models import Charge, Payment
+from apps.core.models import Charge
 from apps.members import services as members
 from apps.treasury import services as treasury
 
@@ -127,16 +127,14 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
     quota, l'avís al 01 (`members.on_fee_paid`, que activa el soci i n'emet el carnet)."""
     by = _system()
     attempt = attempts.transition(attempt, S.PAID, by=by)
-    # shortcut: el 05b crea el pagament de la 00 perquè la 00 encara no té el servei (P-84).
-    payment = Payment.objects.create(
-        charge=charge,
+    payment = charges.record_payment(
+        charge,
         method=attempt.method,
-        amount_cents=attempt.amount_cents,
+        origin="provider",
+        by=by,
         provider_status=state.status,
         provider_reference=state.external_id,
-        paid_at=timezone.now(),
     )
-    charges.mark_paid(charge, payment, origin="provider", by=by)
     treasury.record_income(payment, origin="provider", by=by)
     fee = getattr(charge, "annual_fee", None)
     if fee is not None:

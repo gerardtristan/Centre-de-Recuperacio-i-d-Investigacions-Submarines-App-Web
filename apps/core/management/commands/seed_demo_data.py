@@ -205,15 +205,14 @@ class Command(BaseCommand):
             n_charges += 1
             outcome = rng.choice(["pending", "paid", "paid", "cancelled"])
             if outcome == "paid":
-                payment = Payment.objects.create(
-                    charge=fee,
+                charges.record_payment(
+                    fee,
                     method=Payment.Method.CARD,
-                    amount_cents=fee.amount_cents,
+                    origin="provider",
+                    by=system,
                     provider_status="prova",
                     provider_reference=f"PROVA-{fee.pk}",
-                    paid_at=timezone.now(),
                 )
-                charges.mark_paid(fee, payment, origin="provider", by=system)
             elif outcome == "cancelled":
                 charges.cancel(fee, "Dada de prova: anul·lat per mostrar l'estat.", by=admin)
 
