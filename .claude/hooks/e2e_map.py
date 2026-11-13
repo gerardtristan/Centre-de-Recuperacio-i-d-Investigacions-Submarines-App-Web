@@ -120,6 +120,11 @@ MAP = {
         "templates/accounts/admin_accounts.html",
         "templates/accounts/admin_home.html",
     ),
+    "test_tresoreria.py": (
+        "apps/treasury/views.py",
+        "apps/treasury/balances.py",
+        "templates/treasury/*.html",
+    ),
     "test_dades_bloquejades.py": (
         "apps/core/locked_data.py",
         "apps/core/views/locked_data.py",

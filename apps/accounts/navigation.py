@@ -36,6 +36,8 @@ BASE_ROUTES = {
     "administration:gdpr_requests": ((("core.gdpr.handle", READ),),),  # M11 (T-M01-22)
     "administration:guest_links": ((("core.guest_links.manage", READ),),),  # M5 (T-M00-02)
     "administration:locked_data": ((("core.locked_data.view", READ),),),  # M13 (T-M00-04)
+    "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
+    "administration:treasury_movements": ((("treasury.view", READ),),),
 }
 
 # Ruta de l'entrada, text i les altres pantalles que en pengen (també la marquen com a actual).
@@ -62,6 +64,8 @@ ENTRIES = (
     ),
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
     ("administration:fees", _("Quotes i impagats"), ()),
+    ("administration:treasury_accounts", _("Tresoreria: comptes i saldos"), ()),
+    ("administration:treasury_movements", _("Tresoreria: moviments"), ()),
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
     ("administration:guest_links", _("Enllaços de convidat"), ()),
     (

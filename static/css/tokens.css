@@ -337,6 +337,9 @@ img { max-width: 100%; display: block; }
 
 .codi { font-family: var(--f-codi); font-weight: var(--p-normal); font-size: 0.95em; }
 .import { font-family: var(--f-codi); font-weight: var(--p-mitja); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Sentit d'un moviment (T-M04-15, B8): el color acompanya el signe «+» o «−», mai sol */
+.import-entrada { color: var(--c-ok-text); }
+.import-sortida { color: var(--c-error-text); }
 .xifra-viva { font-variant-numeric: tabular-nums; }
 .text-2 { color: var(--c-text-2); }
 .icona-svg { width: 1em; height: 1em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
