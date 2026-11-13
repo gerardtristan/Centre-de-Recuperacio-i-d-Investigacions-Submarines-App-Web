@@ -6,6 +6,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
@@ -263,3 +264,56 @@ class PaymentAttempt(UndeletableModel):
             if changed:
                 self.check_transition(stored["status"], self.status)
         super().save(*args, update_fields=update_fields, **kwargs)
+
+
+class ReceiptLocked(Exception):
+    """Un rebut emès no canvia: el número i l'intent queden fixats (RN-M05b-19)."""
+
+
+class ReceiptCounter(models.Model):
+    """Últim número de rebut de cada any (RN-M05b-19). Com el comptador del número de soci, no
+    és una seqüència de PostgreSQL, que consumiria números en desfer una transacció: el servei
+    l'avança amb `SELECT … FOR UPDATE` dins la mateixa transacció que emet el rebut, i així no
+    queda cap forat."""
+
+    year = models.PositiveSmallIntegerField(_("any"), unique=True)
+    last_number = models.PositiveIntegerField(_("últim número"), default=0)
+
+    class Meta:
+        verbose_name = _("comptador de rebuts")
+        verbose_name_plural = _("comptadors de rebuts")
+
+    def __str__(self):
+        return f"{self.year}: {self.last_number}"
+
+
+class ReceiptQuerySet(UndeletableQuerySet):
+    def update(self, **kwargs):
+        raise ReceiptLocked
+
+
+class Receipt(UndeletableModel):
+    """Rebut d'un intent pagat (M05b-6; T-M05b-07). És un rebut, no una factura (P-47). El
+    concepte, l'import, el departament i el mètode surten del càrrec i de l'intent: no es
+    copien. Es crea amb `apps.payments.receipts.issue`."""
+
+    objects = ReceiptQuerySet.as_manager()
+
+    attempt = models.OneToOneField(
+        PaymentAttempt, on_delete=models.PROTECT, related_name="receipt", verbose_name=_("intent")
+    )
+    number = models.CharField(_("número"), max_length=20, unique=True)
+    # L'any del número és el de l'emissió, en hora local: el servei passa la mateixa hora.
+    issued_at = models.DateTimeField(_("emès"), default=timezone.now, editable=False)
+
+    class Meta:
+        verbose_name = _("rebut")
+        verbose_name_plural = _("rebuts")
+
+    def __str__(self):
+        return self.number
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ReceiptLocked
+        super().save(*args, **kwargs)

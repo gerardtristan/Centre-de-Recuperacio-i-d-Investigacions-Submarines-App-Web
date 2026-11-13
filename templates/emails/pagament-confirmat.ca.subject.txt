@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05b-07 (CA-M05b-03): TEXT PROVISIONAL [A validar: tresorer]. #}{% blocktranslate %}Pagament confirmat: rebut {{ number }}{% endblocktranslate %}

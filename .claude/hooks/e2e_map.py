@@ -238,6 +238,10 @@ MAP = {
         "apps/payments/webhooks.py",
         "apps/treasury/services.py",
     ),
+    "test_rebut.py": (
+        "apps/payments/receipts.py",
+        "templates/payments/receipt.html",
+    ),
     "test_pagament_targeta.py": (
         "apps/payments/views.py",
         "apps/payments/checkout.py",

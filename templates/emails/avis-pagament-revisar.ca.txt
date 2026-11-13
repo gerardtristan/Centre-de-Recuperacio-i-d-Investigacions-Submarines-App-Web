@@ -1,0 +1,12 @@
+{% load i18n %}{# T-M05b-07 (CA-M05b-05; P-86): TEXT PROVISIONAL [A validar: tresorer]. Només el motiu i les referències internes: cap nom ni cap altra dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Un pagament ha quedat «a revisar» i no s'ha donat per pagat." %}
+
+{% translate "Motiu:" %} {{ reason }}
+{% if attempt_id %}{% translate "Intent de pagament:" %} {{ attempt_id }}
+{% endif %}{% if event_id %}{% translate "Notificació del proveïdor:" %} {{ event_id }}
+{% endif %}
+{% translate "Revisa'l a la plataforma abans de fer cap devolució." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

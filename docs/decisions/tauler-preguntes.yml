@@ -219,4 +219,26 @@ opcions:
       mòdul sabés coses de la tresoreria que després caldria desfer.
     data: 2026-11-13
 
+  P-85:
+    opcions:
+      A: Com el carnet; la pàgina del rebut es desa com a PDF des del navegador, sense cap fitxer desat.
+      B: Un generador de PDF al servidor (dependència nova) i descàrrega directa, sense desar el fitxer.
+      C: Generar el PDF en confirmar-se el pagament i desar-lo com a fitxer privat (annex B), amb URL signada.
+    recomanada: A
+    perque: >-
+      És el que la 079 ja va triar per al carnet, no afegeix cap dependència i el rebut no es desa
+      dues vegades. La C obliga a bloquejar i esborrar un fitxer més en un esborrat RGPD.
+    data: 2026-11-13
+
+  P-86:
+    opcions:
+      A: Qui té el permís de la tresoreria (T1), amb correu de notificació.
+      B: Un permís nou només per a l'avís dels pagaments a revisar, que l'administrador assigna.
+      C: Una adreça fixa del tresorer als ajustos.
+    recomanada: A
+    perque: >-
+      Avui només el tresorer i l'administrador tenen T1, i l'avís no porta dades personals. Quan la
+      T-M05b-16 tingui permís propi, l'avís el pot fer servir sense tocar res més.
+    data: 2026-11-13
+
 noves:

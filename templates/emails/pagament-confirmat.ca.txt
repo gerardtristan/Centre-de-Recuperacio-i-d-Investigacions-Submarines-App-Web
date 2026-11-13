@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M05b-07 (CA-M05b-03; RN-M05b-19): TEXT PROVISIONAL [A validar: tresorer]. Només el concepte, l'import i el número del rebut; el rebut s'obre a la plataforma, amb sessió. Cap adjunt (RN-A12). #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Hem rebut el pagament de {{ amount }} per «{{ concept }}». Gràcies!{% endblocktranslate %}
+
+{% blocktranslate %}El número del rebut és {{ number }}. El pots veure i desar com a PDF a la plataforma:{% endblocktranslate %}
+
+{{ link }}
+
+{% translate "Si no reconeixes aquest pagament, respon aquest correu." %}
+{% endautoescape %}

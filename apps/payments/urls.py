@@ -18,6 +18,7 @@ urlpatterns = [
         views.attempt_status_view,
         name="attempt_status",
     ),
+    path("socis/pagaments/<int:attempt_id>/rebut/", views.receipt_view, name="receipt"),
     # Proveïdor fals (`providers.fake.PAY_PATH`): només hi respon amb el proveïdor fals.
     path("pagaments/prova/<str:order_id>/", views.fake_pay_view, name="fake_pay"),
 ]
