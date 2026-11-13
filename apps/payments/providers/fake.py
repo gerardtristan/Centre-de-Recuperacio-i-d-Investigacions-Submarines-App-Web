@@ -7,7 +7,7 @@ import hmac
 import json
 import logging
 import urllib.request
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from django.conf import settings
@@ -26,6 +26,8 @@ PAY_PATH = "/pagaments/prova/"
 logger = logging.getLogger(__name__)
 _orders: dict[str, base.OrderState] = {}
 _urls: dict[str, base.OrderUrls] = {}
+# Quan caduca cada ordre de Bizum que el titular no confirma a l'app del banc.
+_bizum_expiry: dict[str, datetime] = {}
 
 
 def sign(body: bytes, key: str = SIGNING_KEY) -> str:
@@ -36,6 +38,7 @@ def reset() -> None:
     """Oblida les ordres en memòria (entre proves)."""
     _orders.clear()
     _urls.clear()
+    _bizum_expiry.clear()
 
 
 class FakeProvider(base.PaymentProvider):
@@ -60,6 +63,8 @@ class FakeProvider(base.PaymentProvider):
         expires_at = (
             timezone.now() + timedelta(minutes=BIZUM_MINUTES) if method == base.BIZUM else None
         )
+        if expires_at:
+            expires_at = _bizum_expiry.setdefault(external_id, expires_at)
         return base.ProviderOrder(
             external_id=external_id,
             pay_url=f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/",
@@ -68,9 +73,19 @@ class FakeProvider(base.PaymentProvider):
 
     def get_order(self, external_id: str) -> base.OrderState:
         try:
-            return _orders[external_id]
+            order = _orders[external_id]
         except KeyError:
             raise base.ProviderError(f"Ordre desconeguda: {external_id}") from None
+        # Un Bizum sense confirmar caduca sol. Com ho fa el proveïdor real és P-45 punt 13.
+        expiry = _bizum_expiry.get(external_id)
+        if order.status == base.PENDING and expiry and timezone.now() >= expiry:
+            order = _orders[external_id] = base.OrderState(
+                external_id, base.EXPIRED, order.amount_cents, order.currency
+            )
+        return order
+
+    def is_bizum(self, external_id: str) -> bool:
+        return external_id in _bizum_expiry
 
     def verify_notification(self, request) -> base.ProviderNotification:
         body = request.body

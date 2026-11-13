@@ -138,8 +138,11 @@ class TestCreate:
         assert entry.actor_account == personal_account
         assert entry.details == {"charge": charge.pk, "method": "card", "amount_cents": 9000}
 
-    @pytest.mark.parametrize("method", ["bizum", "transfer", "direct_debit", "saved_card", "cash"])
-    def test_card_slice_only_card_attempts_can_be_started(self, charge, method):
+    def test_a_bizum_attempt_can_be_started(self, charge):
+        assert attempts.create_attempt(charge, M.BIZUM).method == M.BIZUM
+
+    @pytest.mark.parametrize("method", ["transfer", "direct_debit", "saved_card", "cash"])
+    def test_only_card_and_bizum_attempts_can_be_started(self, charge, method):
         with pytest.raises(attempts.MethodNotAllowed):
             attempts.create_attempt(charge, method)
         assert not Attempt.objects.exists()

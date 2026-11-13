@@ -1,8 +1,12 @@
-{% load i18n %}{# T-M05b-04: estat del pagament tal com el diu el servidor (`payments.payment_status`; M05b-5, «Estats visibles»). Mentre és en curs, HTMX el torna a demanar cada pocs segons (P-M05b-A, pas 4), com a petició automàtica que no allarga la sessió i s'atura quan l'estat ja no ho és. Intent deixat a mitges (P-83, opció per defecte): no es reprèn ni en caduca cap; la pantalla ho explica i no deixa començar-ne un altre. #}{% with state=status.state %}
+{% load i18n %}{# T-M05b-04: estat del pagament tal com el diu el servidor (`payments.payment_status`; M05b-5, «Estats visibles»). Mentre és en curs, HTMX el torna a demanar cada pocs segons (P-M05b-A, pas 4), com a petició automàtica que no allarga la sessió i s'atura quan l'estat ja no ho és. Intent deixat a mitges (P-83, opció per defecte): no es reprèn ni en caduca cap; la pantalla ho explica i no deixa començar-ne un altre. Bizum (P-M05b-B; RN-M05b-07; CA-M05b-06): mentre s'espera, «Esperant confirmació a l'app del teu banc»; passats 15 minuts, «No s'ha confirmat a temps» i es pot tornar a provar, però l'intent no es tanca a la pantalla: el nou només s'obre si el proveïdor diu que l'ordre ja no està oberta (`checkout._close_timed_out_bizum`). En aquest estat ja no es torna a demanar, perquè el botó no canviï sota el focus. Cap telèfon: el Bizum s'autoritza a la pàgina del proveïdor. #}{% with state=status.state %}
 <div id="estat-pagament" class="formulari"{% if state == "in_progress" %} hx-get="{% url 'payments:attempt_status' status.attempt.pk %}" hx-trigger="every 3s" hx-swap="outerHTML" hx-headers='{"X-CRIS-Automatica": "1"}'{% endif %}>
   {% if state == "paid" %}
     <div class="avis avis-ok"><strong><span aria-hidden="true">✓</span> {% translate "Pagat" %}</strong>{% translate "El pagament s'ha confirmat. No cal que facis res més." %}</div>
     {% if status.attempt.receipt %}<p class="enllacos"><a href="{% url 'payments:receipt' status.attempt.pk %}">{% translate "Veure el rebut" %}</a></p>{% endif %}
+  {% elif state == "in_progress" and status.attempt.method == "bizum" %}
+    <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> {% translate "Esperant confirmació a l'app del teu banc" %}</strong>{% translate "Obre l'app del teu banc i confirma el Bizum. Aquesta pàgina s'actualitza sola." %}</div>
+  {% elif state == "timed_out" %}
+    <div class="avis avis-error"><strong><span aria-hidden="true">✕</span> {% translate "No s'ha confirmat a temps" %}</strong>{% translate "No ens ha arribat la confirmació del Bizum i el càrrec continua pendent. Pots tornar-ho a provar o pagar amb targeta. Si l'acabes de confirmar a l'app del banc, torna a carregar la pàgina abans de pagar de nou." %}</div>
   {% elif state == "in_progress" %}
     <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> {% translate "Estem confirmant el pagament" %}</strong>{% translate "Esperem que el proveïdor de pagaments ens ho confirmi. Aquesta pàgina s'actualitza sola." %} {% translate "Mentrestant no en pots començar cap altre: si has sortit de la pàgina de pagament sense acabar, podràs tornar-ho a provar quan el proveïdor ens digui que no s'ha completat." %}</div>
   {% elif state == "failed" %}
@@ -12,7 +16,7 @@
   {% else %}
     <div class="avis avis-sistema"><strong>{% translate "No es pot pagar" %}</strong>{% translate "Aquest càrrec no està pendent de pagament." %}</div>
   {% endif %}
-  {% if state == "pending" or state == "failed" %}
-    <form method="post" action="{% url 'payments:pay_card' charge.pk %}" class="accions">{% csrf_token %}<button class="boto boto-principal" type="submit">{% translate "Paga amb targeta" %}</button></form>
+  {% if state == "pending" or state == "failed" or state == "timed_out" %}
+    <form method="post" action="{% url 'payments:pay_card' charge.pk %}" class="accions">{% csrf_token %}<button class="boto boto-principal" type="submit">{% translate "Paga amb targeta" %}</button>{% if bizum %}<button class="boto" type="submit" formaction="{% url 'payments:pay_bizum' charge.pk %}">{% translate "Paga amb Bizum" %}</button>{% endif %}</form>
   {% endif %}
 </div>{% endwith %}

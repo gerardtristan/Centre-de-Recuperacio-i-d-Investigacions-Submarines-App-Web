@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .models import PaymentAttempt
 
 app_name = "payments"
 
@@ -12,7 +13,18 @@ urlpatterns = [
     ),
     # Compte personal (M05b-8, «Rutes»). Sessió obligatòria per defecte (RN-40).
     path("socis/pagaments/<int:charge_id>/", views.charge_view, name="charge"),
-    path("socis/pagaments/<int:charge_id>/targeta/", views.pay_card_view, name="pay_card"),
+    path(
+        "socis/pagaments/<int:charge_id>/targeta/",
+        views.pay_view,
+        {"method": PaymentAttempt.Method.CARD},
+        name="pay_card",
+    ),
+    path(
+        "socis/pagaments/<int:charge_id>/bizum/",
+        views.pay_view,
+        {"method": PaymentAttempt.Method.BIZUM},
+        name="pay_bizum",
+    ),
     path(
         "socis/pagaments/<int:attempt_id>/estat/",
         views.attempt_status_view,

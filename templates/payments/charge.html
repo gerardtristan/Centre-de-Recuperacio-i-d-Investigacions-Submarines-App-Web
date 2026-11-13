@@ -10,6 +10,6 @@
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
   </dl>
   <div aria-live="polite">{% include "payments/_status.html" %}</div>
-  <p class="text-2">{% translate "La targeta s'escriu a la pàgina del proveïdor de pagaments: el club no la veu ni la desa." %}</p>
+  <p class="text-2">{% translate "La targeta i el Bizum es fan a la pàgina del proveïdor de pagaments: el club no veu ni desa la targeta ni el telèfon." %}</p>
   {% if user.person.member %}<p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>{% endif %}
 {% endblock %}
