@@ -21,6 +21,9 @@ SECURE_REFERRER_POLICY = "same-origin"
 # Enllaços dels correus sempre cap al domini de la plataforma, amb HTTPS (decisió 019).
 PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="https://cris1954.cat").rstrip("/")
 
+# Decisió 092: amb el proveïdor o el banc ficticis, l'aplicació no arrenca (payments/checks.py).
+FAKE_INTEGRATIONS_FORBIDDEN = True
+
 # Claus del QR del carnet (079, RN-M01-85): pròpies i obligatòries; mai la derivada de proves.
 CARD_QR_KEYS = env.list("CARD_QR_KEYS")
 CARD_QR_ACTIVE_KEY = env("CARD_QR_ACTIVE_KEY")
