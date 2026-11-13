@@ -1,0 +1,118 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M00-01: importació de l'extracte bancari (M9; spec 00, HU-21). Seguretat i privacitat: M9 al servidor (sense permís, «no trobat»; el menú no hi enllaça); el fitxer no es desa i es llegeix en memòria; cap IBAN ni número de compte o de targeta: el concepte arriba tapat i les línies amb error no mostren cap valor, només la fila i el motiu; confirmar i desfer són POST amb CSRF, desfer amb motiu, i tots dos queden al registre d'activitat. Amagar un botó no és cap control: el servei torna a comprovar M9, la caducitat del testimoni i les línies conciliades. #}
+{% block title %}{% translate "Extracte bancari" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Extracte bancari" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if error %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha importat res." %}</strong> {{ error }}</div>{% endif %}
+
+  {% if preview %}
+    <h2>{% translate "Previsualització" %}</h2>
+    <p role="status">{% translate "Encara no s'ha importat res. El fitxer no s'ha desat. Els números de compte i de targeta del concepte surten tapats." %}</p>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Línies noves" %}</dt><dd>{{ preview.counts.new }}</dd></div>
+      <div><dt>{% translate "Duplicades (ja importades)" %}</dt><dd>{{ preview.counts.duplicate }}</dd></div>
+      <div><dt>{% translate "Amb error" %}</dt><dd>{{ preview.counts.error }}</dd></div>
+    </dl>
+    <table class="taula">
+      <caption>{% translate "Línies del fitxer (la capçalera és la fila 1)" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Fila" %}</th>
+          <th scope="col">{% translate "Resultat" %}</th>
+          <th scope="col">{% translate "Data" %}</th>
+          <th scope="col">{% translate "Concepte" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+          <th scope="col" class="cel-import">{% translate "Saldo" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in preview.lines %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ line.row }}</th>
+            <td data-etiqueta="{% translate 'Resultat' %}">
+              {% if line.result == "new" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Nova" %}</span>
+              {% elif line.result == "duplicate" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Duplicada: no s'importa" %}</span>
+              {% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Amb error" %}</span>{% for text in line.shown.errors %} {{ text }}{% endfor %}{% endif %}
+            </td>
+            {% if line.codes %}
+              <td data-etiqueta="{% translate 'Data' %}">—</td><td data-etiqueta="{% translate 'Concepte' %}">—</td><td data-etiqueta="{% translate 'Import' %}" class="cel-import">—</td><td data-etiqueta="{% translate 'Saldo' %}" class="cel-import">—</td>
+            {% else %}
+              <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ line.date }}">{{ line.shown.date|date:"d/m/Y" }}</time></td>
+              <td data-etiqueta="{% translate 'Concepte' %}" class="cel-valor">{{ line.concept|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import {% if line.amount >= 0 %}import-entrada{% else %}import-sortida{% endif %}">{{ line.shown.amount }}</span></td>
+              <td data-etiqueta="{% translate 'Saldo' %}" class="cel-import"><span class="import">{{ line.shown.balance|default:"—" }}</span></td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if preview.counts.new %}
+      <form class="formulari targeta" method="post" action="{% url 'administration:bank_statement_confirm' %}" aria-labelledby="confirma-titol">
+        {% csrf_token %}
+        <h2 id="confirma-titol">{% translate "Confirmar la importació" %}</h2>
+        <input type="hidden" name="testimoni" value="{{ preview.token }}">
+        <p>{% blocktranslate count counter=preview.counts.new %}S'importarà {{ counter }} línia nova; les duplicades no es tornen a importar.{% plural %}S'importaran {{ counter }} línies noves; les duplicades no es tornen a importar.{% endblocktranslate %}</p>
+        {% if preview.counts.error %}<label class="casella"><input type="checkbox" name="exclou_errors" value="1" required> <span>{% translate "Exclou les línies amb error (surten al resum de la importació)" %}</span></label>{% endif %}
+        <div class="accions">
+          <button class="boto boto-principal" type="submit">{% translate "Confirma la importació" %}</button>
+          <a class="boto boto-text" href="{% url 'administration:bank_statement' %}">{% translate "Cancel·la" %}</a>
+        </div>
+      </form>
+    {% else %}
+      <p><a href="{% url 'administration:bank_statement' %}">{% translate "Torna a l'extracte bancari" %}</a></p>
+    {% endif %}
+  {% else %}
+    <form class="formulari targeta" method="post" enctype="multipart/form-data" action="{% url 'administration:bank_statement' %}" aria-labelledby="puja-titol">
+      {% csrf_token %}
+      <h2 id="puja-titol">{% translate "Importar un extracte" %}</h2>
+      <div class="camp">
+        <label for="id_fitxer">{% translate "Fitxer CSV del banc" %}</label>
+        <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv" required aria-describedby="ajuda-fitxer">
+        <p class="ajuda" id="ajuda-fitxer">{% blocktranslate with separator=profile.delimiter date=profile.date concept=profile.concept amount=profile.amount balance=profile.balance %}CSV en UTF-8, separat per «{{ separator }}», d'1 MB com a màxim, amb les columnes «{{ date }}», «{{ concept }}», «{{ amount }}» i «{{ balance }}» a la capçalera. Les altres columnes no es llegeixen. El fitxer no es desa. Fora de producció, només fitxers inventats.{% endblocktranslate %}</p>
+      </div>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Previsualitza" %}</button></div>
+    </form>
+
+    <table class="taula">
+      <caption>{% translate "Extractes importats, del més recent al més antic" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Importat el" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Noves" %}</th>
+          <th scope="col">{% translate "Duplicades" %}</th>
+          <th scope="col">{% translate "Excloses" %}</th>
+          <th scope="col">{% translate "Desfer" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for batch in batches %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ batch.created_at|date:"d/m/Y H:i" }}</th>
+            <td data-etiqueta="{% translate 'Estat' %}">{% if batch.status == "confirmed" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ batch.get_status_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ batch.get_status_display }}</span>{% endif %}</td>
+            <td data-etiqueta="{% translate 'Noves' %}">{{ batch.new_count }}</td>
+            <td data-etiqueta="{% translate 'Duplicades' %}">{{ batch.duplicate_count }}</td>
+            <td data-etiqueta="{% translate 'Excloses' %}">{{ batch.excluded_count }}</td>
+            <td data-etiqueta="{% translate 'Desfer' %}">
+              {% if batch.status == "confirmed" %}
+                <form class="formulari" method="post" action="{% url 'administration:bank_statement_undo' batch.pk %}">
+                  {% csrf_token %}
+                  <div class="camp">
+                    <label for="motiu-{{ batch.pk }}">{% translate "Motiu per desfer-lo" %}</label>
+                    <input type="text" id="motiu-{{ batch.pk }}" name="motiu" maxlength="500" required>
+                  </div>
+                  <button class="boto boto-petit" type="submit">{% translate "Desfés" %}</button>
+                </form>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">{% translate "Encara no s'ha importat cap extracte." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

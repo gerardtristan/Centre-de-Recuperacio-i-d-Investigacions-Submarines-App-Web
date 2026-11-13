@@ -55,6 +55,8 @@ class Action:
     CLUBER_PREVIEW = "members.cluber_import.preview"
     CLUBER_IMPORT_CONFIRMED = "members.cluber_import.confirmed"
     BANK_STATEMENT_PREVIEW = "core.bank_statement.preview"  # T-M00-01 (RN-98)
+    BANK_STATEMENT_CONFIRMED = "core.bank_statement.confirmed"
+    BANK_STATEMENT_UNDONE = "core.bank_statement.undone"
     JOIN_REQUEST_CREATED = "members.join_request.created"
     JOIN_REQUEST_LIMITED = "members.join_request.limited"
     MEMBERS_EXPORTED = "members.list.exported"

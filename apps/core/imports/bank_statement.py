@@ -1,8 +1,8 @@
 """Importació de l'extracte bancari en CSV (T-M00-01; spec 00, HU-21, RN-92 a RN-101 i V-06).
 
-Tres passos (RN-92). Aquí, el primer: `preview` llegeix i valida el fitxer sense escriure cap
-línia, i l'intent queda al registre d'activitat (RN-98), sense cap valor. Confirmar i desfer, i la
-pantalla, són la segona part de la tasca.
+Tres passos (RN-92): `preview` llegeix i valida el fitxer sense escriure cap línia; `confirm`
+torna a mirar els duplicats i crea el lot confirmat amb les seves línies; `undo` el desfà si cap
+línia no està conciliada. Els tres queden al registre d'activitat (RN-98), sense cap valor.
 
 - **Perfil:** el format del banc encara no se sap (P-45 punt 10, Q-24; P-89). Les columnes, el
   separador, el format de la data i el separador decimal surten de
@@ -14,8 +14,8 @@ pantalla, són la segona part de la tasca.
   codis; els missatges no repeteixen mai el contingut d'una cel·la.
 - **Fitxer original** (RN-101): no es desa; només la seva empremta.
 - Entre la previsualització i la confirmació, les línies normalitzades viatgen signades al
-  formulari (`signing`), lligades al compte: el servidor no les desa abans de confirmar i no se'n
-  pot canviar res.
+  formulari (`signing`), lligades al compte i amb caducitat: el servidor no les desa abans de
+  confirmar i no se'n pot canviar res.
 """
 
 import csv
@@ -28,15 +28,19 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core import signing
 from django.core.exceptions import PermissionDenied
+from django.db import connection, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .. import audit
-from ..models import ImportLine
+from ..models import ImportBatch, ImportLine
 from ..permissions import has_perm
-from . import statement_lines
+from . import add_lines, open_confirmed, statement_lines
 
 PERMISSION = "core.bank_statement.import"  # M9
+MAX_BYTES = 1024 * 1024
 MAX_LINES = 2000
+TOKEN_MAX_AGE = 60 * 60  # segons
 _SALT = "apps.core.imports.bank_statement"
 
 NEW, DUPLICATE, ERROR = "new", "duplicate", "error"
@@ -57,6 +61,14 @@ MESSAGES = {
     "format": _("El fitxer no té les columnes de l'extracte que s'esperen."),
     "no_lines": _("El fitxer no té cap línia de moviments."),
     "too_many_lines": _("El fitxer té massa línies: parteix-lo en extractes més curts."),
+    "expired": _("La previsualització ha caducat o no és vàlida: torna a pujar el fitxer."),
+    "errors_not_excluded": _(
+        "Hi ha línies amb error: marca que les vols excloure o corregeix el fitxer."
+    ),
+    "nothing_to_import": _("No hi ha cap línia nova per importar."),
+    "reason": _("Escriu el motiu."),
+    "not_confirmed": _("Aquest extracte no està confirmat: no es pot desfer."),
+    "reconciled": _("No es pot desfer: alguna línia de l'extracte ja està conciliada."),
 }
 LINE_MESSAGES = {
     "field_count": _("La línia no té el mateix nombre de columnes que la capçalera."),
@@ -216,3 +228,96 @@ def preview(data: bytes, *, by, request=None) -> dict:
     payload = {"by": by.pk, "sha": details["file_sha256"], "lines": lines}
     token = signing.dumps(payload, salt=_SALT, compress=True)
     return {"lines": lines, "counts": counts, "token": token}
+
+
+def _stored(line: dict) -> dict:
+    if line["result"] == NEW:
+        return {
+            "row": line["row"],
+            "result": ImportLine.Result.NEW,
+            "value_date": datetime.date.fromisoformat(line["date"]),
+            "amount_cents": line["amount"],
+            "concept": line["concept"],
+            "balance_cents": line["balance"],
+        }
+    if line["result"] == DUPLICATE:
+        return {"row": line["row"], "result": ImportLine.Result.DUPLICATE}
+    return {"row": line["row"], "result": ImportLine.Result.EXCLUDED, "codes": line["codes"]}
+
+
+@transaction.atomic
+def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatch:
+    """Pas 3 (CA-21.3): lot confirmat amb una línia per fila. Si es rebutja, no escriu res."""
+    _check(by)
+    try:
+        payload = signing.loads(token, salt=_SALT, max_age=TOKEN_MAX_AGE)
+    except signing.BadSignature:
+        raise Rejected("expired") from None
+    if payload["by"] != by.pk:
+        raise Rejected("expired")
+    with connection.cursor() as cursor:  # dues confirmacions alhora no dupliquen línies
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [_SALT])
+    lines = classify(payload["lines"])
+    counts = _counts(lines)
+    if counts[ERROR] and not exclude_errors:
+        raise Rejected("errors_not_excluded")
+    if not counts[NEW]:
+        raise Rejected("nothing_to_import")
+    batch = open_confirmed(
+        ImportBatch.Kind.BANK_STATEMENT,
+        file_sha256=payload["sha"],
+        by=by,
+        counts={
+            "new_count": counts[NEW],
+            "duplicate_count": counts[DUPLICATE],
+            "error_count": counts[ERROR],
+            "excluded_count": counts[ERROR],
+        },
+    )
+    add_lines(batch, [_stored(line) for line in lines])
+    audit.record(
+        audit.Action.BANK_STATEMENT_CONFIRMED,
+        actor=by,
+        target=batch,
+        details={"counts": counts},
+        request=request,
+    )
+    return batch
+
+
+def _reconciled(batch: ImportBatch) -> bool:
+    # shortcut: qualsevol fila d'un altre model que apunti a una línia del lot bloqueja el desfer
+    # (V-06); quan la T-M04-12 permeti desfer conciliacions, que compti només les vigents.
+    return any(
+        relation.related_model._default_manager.filter(
+            **{f"{relation.field.name}__batch": batch}
+        ).exists()
+        for relation in ImportLine._meta.related_objects
+    )
+
+
+@transaction.atomic
+def undo(batch: ImportBatch, *, by, reason: str, request=None) -> ImportBatch:
+    """CA-21.4: el lot passa a desfet i les seves línies deixen de sortir a la conciliació.
+    Les línies no s'esborren."""
+    _check(by)
+    if not reason.strip():
+        raise Rejected("reason")
+    batch = ImportBatch.objects.select_for_update().get(
+        pk=batch.pk, kind=ImportBatch.Kind.BANK_STATEMENT
+    )
+    if batch.status != ImportBatch.Status.CONFIRMED:
+        raise Rejected("not_confirmed")
+    if _reconciled(batch):
+        raise Rejected("reconciled")
+    batch.status = ImportBatch.Status.UNDONE
+    batch.undone_by, batch.undone_at = by, timezone.now()
+    batch.save(update_fields=["status", "undone_by", "undone_at"])
+    audit.record(
+        audit.Action.BANK_STATEMENT_UNDONE,
+        actor=by,
+        target=batch,
+        reason=reason,
+        request=request,
+    )
+    return batch

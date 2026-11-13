@@ -219,16 +219,4 @@ opcions:
       mòdul sabés coses de la tresoreria que després caldria desfer.
     data: 2026-11-13
 
-  P-89:
-    opcions:
-      A: Mantenir el perfil d'ara i ajustar-lo (columnes, separador, data) quan el tresorer porti una mostra anonimitzada; només UTF-8 i el concepte tapat.
-      B: A, i acceptar també fitxers en Windows-1252 (com la importació de Cluber).
-      C: Importar el format Norma 43 del banc en lloc d'un CSV.
-      D: Deixar que el tresorer configuri el perfil des d'Ajustos.
-    recomanada: A
-    perque: >-
-      Sense una mostra real, qualsevol format és una suposició; el perfil es canvia sense tocar cap dada
-      desada. B o C només si la mostra ho demana, i D quan la pantalla d'ajustos (T-AJ-02) existeixi.
-    data: 2026-11-13
-
 noves:
