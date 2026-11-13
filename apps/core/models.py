@@ -656,6 +656,15 @@ class Charge(UndeletableModel):
     department = models.ForeignKey(
         Department, on_delete=models.PROTECT, related_name="charges", verbose_name=_("departament")
     )
+    # Segon nivell del departament (M04-6, RN-T10). La 04 en llegeix el de l'ingrés.
+    cost_centre = models.ForeignKey(
+        "treasury.CostCentre",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="charges",
+        verbose_name=_("centre de cost"),
+    )
     status = models.CharField(
         "estat", max_length=10, choices=Status.choices, default=Status.PENDING
     )
@@ -702,6 +711,16 @@ class Charge(UndeletableModel):
             raise ValidationError(
                 gettext("Un departament desactivat no es pot triar per a càrrecs nous.")
             )
+        if self._state.adding and self.cost_centre_id:
+            centre = self.cost_centre
+            if centre.department_id != self.department_id:
+                raise ValidationError(
+                    gettext("El centre de cost ha de ser del departament del càrrec.")
+                )
+            if not centre.active:  # CA-T14.2
+                raise ValidationError(
+                    gettext("Un centre de cost desactivat no es pot triar per a càrrecs nous.")
+                )
         super().save(*args, **kwargs)
 
 
