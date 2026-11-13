@@ -74,6 +74,8 @@ figure { margin: 0; }
 /* La llegenda, a tota l'amplada mentre la taula és apilada (display: block) */
 .taula caption { display: block; }
 @media (min-width: 600px) { .taula .cel-valor { text-align: left; } .taula caption { display: table-caption; } }
+/* Imports a la dreta (T-M04-15, B8). Apilada, la cel·la ja els posa a la dreta (flex) */
+@media (min-width: 600px) { .taula .cel-import { text-align: right; } }
 
 /* Formulari d'alta (T-M01-13): el tipus de soci es parteix en dues línies a 320 px i els textos
    legals es despleguen amb el teclat */

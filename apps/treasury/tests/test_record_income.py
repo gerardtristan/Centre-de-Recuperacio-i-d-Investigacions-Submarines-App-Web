@@ -294,10 +294,11 @@ class TestRejected:
                     yield pattern.callback
 
         modules = {callback.__module__ for callback in callbacks(get_resolver().url_patterns)}
-        assert modules and not any(module.startswith("apps.treasury") for module in modules)
+        # Les úniques vistes de la 04 són les pantalles de només lectura (T-M04-15), que el
+        # bucle de sota també revisa.
+        treasury = {module for module in modules if module.startswith("apps.treasury")}
+        assert modules and treasury <= {"apps.treasury.views"}
         apps_dir = Path(services.__file__).parents[1]
-        assert not list((apps_dir / "treasury").glob("urls*"))
-        assert not list((apps_dir / "treasury").glob("views*"))
         # Cap vista de cap altra app no crida el servei: ho fan el processament de les
         # notificacions (05b) i la conciliació (04), mai una petició.
         views = [*apps_dir.glob("*/views.py"), *apps_dir.glob("*/views/*.py")]
