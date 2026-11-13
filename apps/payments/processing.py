@@ -35,6 +35,10 @@ TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
 # `safety_net_age_minutes` (VC-17; 60): passa a `PaymentSettings` amb la T-M05b-22.
 SAFETY_NET_AGE = timedelta(minutes=60)
+# Una ordre que la xarxa no pot tancar es torna a provar l'endemà; passat aquest temps va «a
+# revisar» (L-M05b-01). Així una caiguda curta del proveïdor no tanca un intent que potser es
+# pagarà i obre la porta a pagar dues vegades. shortcut: constant fins a la T-M05b-22.
+SAFETY_NET_GIVE_UP = timedelta(hours=24)
 # Estat normalitzat del proveïdor → estat de l'intent que encara és «en curs».
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}
 
@@ -90,14 +94,17 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
     verificada o de la consulta de la xarxa de seguretat. Torna el resultat de la notificació.
     Cap import ve de fora: el pagament i l'ingrés porten l'import del càrrec (RN-M05b-02)."""
     with transaction.atomic():
-        # L'intent bloquejat: dues notificacions de la mateixa ordre van una darrere l'altra.
+        # El càrrec i després l'intent, bloquejats en el mateix ordre que `start_payment`: una
+        # conciliació o una altra notificació del mateix càrrec van una darrere l'altra.
+        charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
-        charge = Charge.objects.get(pk=attempt.charge_id)
         if state.status == base.PENDING or attempt.status == S.PAID:
             return R.PROCESSED  # encara no s'ha decidit, o ja és pagat (CA-M05b-04)
         if (state.amount_cents, state.currency) != (attempt.amount_cents, charge.currency):
             reason = _("L'import o la moneda de l'ordre no coincideixen amb l'intent.")
             return _review(attempt, source, reason)  # CA-M05b-05
+        if state.status not in (base.PAID, *_CLOSED_BY):
+            return _review(attempt, source, _("El proveïdor torna un estat desconegut."))
         if state.status != base.PAID:
             if attempt.status == S.IN_PROGRESS:
                 attempts.transition(attempt, _CLOSED_BY[state.status], by=_system())
@@ -149,8 +156,8 @@ def _review(attempt: PaymentAttempt | None, source, reason: str) -> str:
 def safety_net() -> None:
     """Xarxa de seguretat, cada dia: processa les notificacions que s'hagin quedat «rebudes» i
     consulta al proveïdor les ordres en curs de fa més de `SAFETY_NET_AGE` sense notificació.
-    Si no es poden consultar, l'intent va «a revisar» (L-M05b-01). Un error en una ordre no
-    atura les altres."""
+    Si no es pot consultar o tancar, es torna a provar l'endemà i, passat `SAFETY_NET_GIVE_UP`,
+    l'intent va «a revisar» (L-M05b-01). Un error en una ordre no atura les altres."""
     limit = timezone.now() - SAFETY_NET_AGE
     stuck = ProviderEvent.objects.filter(result=R.RECEIVED, received_at__lt=limit)
     for event_id in stuck.values_list("pk", flat=True):
@@ -159,15 +166,30 @@ def safety_net() -> None:
     stale = PaymentAttempt.objects.filter(
         status=S.IN_PROGRESS, provider_code=provider.code, created_at__lt=limit
     ).exclude(provider_order_id="")
-    for attempt in stale:
+    give_up = timezone.now() - SAFETY_NET_GIVE_UP
+    for attempt in stale.order_by("pk"):
         try:
-            try:
-                # Fora de la transacció: la consulta és una crida de xarxa.
-                state = provider.get_order(attempt.provider_order_id)
-            except base.ProviderError:
-                with transaction.atomic():
-                    _review(attempt, None, _("No s'ha pogut consultar l'ordre al proveïdor."))
-                continue
+            # Fora de la transacció: la consulta és una crida de xarxa.
+            state = provider.get_order(attempt.provider_order_id)
+        except base.ProviderError:
+            _give_up(attempt, give_up, _("No s'ha pogut consultar l'ordre al proveïdor."))
+            continue
+        try:
             settle(attempt, state)
         except Exception:
             logger.exception("Xarxa de seguretat: no s'ha pogut tancar l'intent %s", attempt.pk)
+            _give_up(attempt, give_up, _("La xarxa de seguretat no ha pogut tancar l'intent."))
+
+
+def _give_up(attempt: PaymentAttempt, give_up, reason: str) -> None:
+    """Passat `SAFETY_NET_GIVE_UP`, l'intent que no es pot tancar va «a revisar» perquè el
+    tresorer el vegi; abans, es deixa en curs per tornar-hi l'endemà."""
+    if attempt.created_at >= give_up:
+        return
+    try:
+        with transaction.atomic():
+            _review(attempt, None, reason)
+    except Exception:
+        logger.exception(
+            "Xarxa de seguretat: no s'ha pogut deixar a revisar l'intent %s", attempt.pk
+        )
