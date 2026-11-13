@@ -24,7 +24,8 @@ urlpatterns = [
         name="change_temporary_credential",
     ),
     path("sortir/", views.logout_view, {"area": AREA_ADMIN}, name="logout"),
-    # Rutes d'administració de la 00 i del M01, dins d'aquest mateix espai de noms.
+    # Rutes d'administració de la 00, del M01 i de la 04, dins d'aquest mateix espai de noms.
     path("", include("apps.core.admin_urls")),
     path("", include("apps.members.admin_urls")),
+    path("", include("apps.treasury.admin_urls")),
 ]

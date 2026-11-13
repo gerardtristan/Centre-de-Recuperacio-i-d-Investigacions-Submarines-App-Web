@@ -12,5 +12,7 @@
     <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" with charge=fee.charge %}</dd></div>
     {% if payment %}<div><dt>{% translate "Mètode" %}</dt><dd>{{ payment.get_method_display }}</dd></div>{% endif %}
   </dl>
+  {# T-M05b-04: el pagament és a la pantalla del 05b, que torna a comprovar que el càrrec és seu. #}
+  {% if fee.charge.status == "pending" %}<div class="accions"><a class="boto boto-principal" href="{% url 'payments:charge' fee.charge_id %}">{% translate "Paga ara" %}</a></div>{% endif %}
   <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>
 {% endblock %}

@@ -237,7 +237,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Xip | `xip` | Tipus d'element (Sortida, Curs) |
 | Caixa d'imatge | `caixa-imatge` | Substitueix qualsevol imatge als wireframes |
 | Camp | `camp`, `casella` | Etiqueta sempre visible; mínim 44 px |
-| Codi i import | `codi`, `import` | JetBrains Mono; xifres tabulars als imports |
+| Codi i import | `codi`, `import` (+ `import-entrada`, `import-sortida`); cel·la `cel-import` dins de `taula` | JetBrains Mono; xifres tabulars als imports. El sentit d'un moviment porta signe («+» o «−») i color (`--c-ok-text` o `--c-error-text`), mai només color. A la `taula`, la columna d'imports (capçalera i cel·les) porta `cel-import` i va a la dreta (T-M04-15) |
 | Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 | Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |
@@ -394,6 +394,7 @@ Les accions equivalents fan servir els mateixos noms, passos i respostes a les t
 - **Formularis:** etiqueta sempre visible, error a sota del camp (`aria-invalid` i `aria-describedby`), focus al primer camp amb error i recompte d'errors anunciat.
 - **Confirmacions:** la baixa del soci es confirma en un diàleg; l'esborrat del compte, amb una casella explícita («Entenc que no es pot desfer»).
 - **Acció irreversible a l'administració (T-M01-22, `/gestio/rgpd/`):** aprovar un esborrat RGPD demana, al mateix formulari, la casella explícita, la contrasenya i el codi TOTP de qui aprova (reautenticació a la mateixa petició). Abans del formulari, una llista «Què passarà en aprovar-la» amb frases sense imports ni dades personals. Rebutjar és un formulari a part amb el motiu obligatori. Si no es pot aprovar, un `avis avis-error` diu per què i el formulari d'aprovar no surt. Pantalles sense wireframe propi: només components existents (`taula`, `dades-soci`, `targeta`, `formulari`, `camp`, `casella`, `avis`, `accions`, `boto`).
+- **Pantalles de tresoreria de només lectura (T-M04-15, primer tall: `/gestio/tresoreria/` i `/gestio/tresoreria/moviments/`):** sense wireframe propi; només components existents (`taula`, `formulari`, `filtres`, `camp`, `avis`, `estat`, `accions`, `boto`, `import` amb `cel-import`). L'únic formulari és el de filtres, amb GET. Un moviment anul·lat continua a la llista amb `estat estat-error` «✕ Anul·lat» (CA-T06.1). Sense el permís T1, «no trobat» (059); el menú no hi enllaça.
 - **Descàrrega de les dades pròpies (T-M01-22, perfil):** un botó prepara el fitxer i, un cop preparat, un enllaç amb aspecte de botó el descarrega; al costat, fins quan es pot descarregar i l'avís que conté dades personals.
 - **Resultat que no es desa:** «La sessió ha caducat» i «Ja no tens permís per fer aquesta acció» diuen que no s'ha desat res i no mostren cap dada.
 - **Missatges que no revelen dades:** el formulari d'alta respon igual si el document ja existeix; la verificació respon igual per a un testimoni desconegut, revocat o impagat, i el límit de peticions no diu el llindar.

@@ -6,4 +6,6 @@ class PaymentsConfig(AppConfig):
     verbose_name = "Pagaments"
 
     def ready(self):
-        from . import checks  # noqa: F401 (registra les comprovacions d'arrencada)
+        from . import checks  # registra les comprovacions d'arrencada
+
+        checks.refuse_fake_integrations()
