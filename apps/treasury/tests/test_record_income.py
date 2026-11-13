@@ -144,7 +144,7 @@ class TestIncome:
         assert nothing_was_recorded()
 
     def test_ca_t03_1_a_charge_that_is_not_a_fee_has_no_cost_centre_yet(self, person, transit):
-        # El càrrec encara no porta centre de cost (segona meitat de la T-M04-02; P-76).
+        # El càrrec encara no porta centre de cost (segona meitat de la T-M04-02; P-81).
         courses = Department.objects.create(name="Cursos")
         movement = record(paid(person, kind="enrolment", department=courses))
         assert (movement.department, movement.cost_centre) == (courses, None)

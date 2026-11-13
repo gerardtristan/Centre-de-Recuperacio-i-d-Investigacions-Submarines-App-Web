@@ -145,7 +145,7 @@ def _income_account(method: str) -> TreasuryAccount:
 
 def _cost_centre(charge: Charge) -> CostCentre | None:
     """RN-T10: el del càrrec. El càrrec encara no en porta (segona meitat de la T-M04-02):
-    mentrestant, una quota va a «Quotes de socis» (S-M04-06) i la resta, sense (P-76)."""
+    mentrestant, una quota va a «Quotes de socis» (S-M04-06) i la resta, sense (P-81)."""
     if charge.kind != Charge.Kind.FEE:
         return None
     return CostCentre.objects.filter(department=charge.department, name=FEES_COST_CENTRE).first()
