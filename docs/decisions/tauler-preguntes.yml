@@ -161,16 +161,4 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
-  P-74:
-    opcions:
-      A: No desar el cos; només l'empremta i els camps normalitzats (ordre, estat, import i moneda).
-      B: Desar el cos xifrat durant un termini curt (per exemple, 90 dies) i després esborrar-lo.
-      C: Desar el cos xifrat mentre es conservi el pagament.
-    recomanada: A
-    perque: >-
-      És el que menys dades guarda i ja n'hi ha prou per processar i per demostrar què es va rebre
-      (l'empremta). El proveïdor conserva l'original. Es pot passar a B més endavant sense tocar
-      el que ja hi ha desat.
-    data: 2026-11-13
-
 noves: {}
