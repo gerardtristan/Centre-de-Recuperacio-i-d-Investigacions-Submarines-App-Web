@@ -1,0 +1,17 @@
+{% load i18n %}{# T-M05b-04: estat del pagament tal com el diu el servidor (`payments.payment_status`; M05b-5, «Estats visibles»). Mentre és en curs, HTMX el torna a demanar cada pocs segons (P-M05b-A, pas 4), com a petició automàtica que no allarga la sessió i s'atura quan l'estat ja no ho és. Intent deixat a mitges (P-83, opció per defecte): no es reprèn ni en caduca cap; la pantalla ho explica i no deixa començar-ne un altre. #}{% with state=status.state %}
+<div id="estat-pagament" class="formulari"{% if state == "in_progress" %} hx-get="{% url 'payments:attempt_status' status.attempt.pk %}" hx-trigger="every 3s" hx-swap="outerHTML" hx-headers='{"X-CRIS-Automatica": "1"}'{% endif %}>
+  {% if state == "paid" %}
+    <div class="avis avis-ok"><strong><span aria-hidden="true">✓</span> {% translate "Pagat" %}</strong>{% translate "El pagament s'ha confirmat. No cal que facis res més." %}</div>
+  {% elif state == "in_progress" %}
+    <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> {% translate "Estem confirmant el pagament" %}</strong>{% translate "Esperem que el proveïdor de pagaments ens ho confirmi. Aquesta pàgina s'actualitza sola." %} {% translate "Mentrestant no en pots començar cap altre: si has sortit de la pàgina de pagament sense acabar, podràs tornar-ho a provar quan el proveïdor ens digui que no s'ha completat." %}</div>
+  {% elif state == "failed" %}
+    <div class="avis avis-error"><strong><span aria-hidden="true">✕</span> {% translate "No s'ha completat" %}</strong>{% translate "L'últim intent de pagament no s'ha completat i no s'ha cobrat res. Pots tornar-ho a provar." %}</div>
+  {% elif state == "pending" %}
+    <p><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent" %}</span></p>
+  {% else %}
+    <div class="avis avis-sistema"><strong>{% translate "No es pot pagar" %}</strong>{% translate "Aquest càrrec no està pendent de pagament." %}</div>
+  {% endif %}
+  {% if state == "pending" or state == "failed" %}
+    <form method="post" action="{% url 'payments:pay_card' charge.pk %}" class="accions">{% csrf_token %}<button class="boto boto-principal" type="submit">{% translate "Paga amb targeta" %}</button></form>
+  {% endif %}
+</div>{% endwith %}
