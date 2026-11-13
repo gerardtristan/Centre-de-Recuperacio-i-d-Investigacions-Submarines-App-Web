@@ -160,15 +160,15 @@ El 01 ja té gairebé totes les peces. La llesca no afegeix funcions: demostra q
 
 | Llesca | Què pot fer una persona en acabar | Tasques principals | Depèn de fora? |
 |---|---|---|---|
-| **3. Transferència i conciliació** | El soci veu la referència única, el tresorer importa l'extracte i el sistema proposa i confirma el cobrament | T-M04-10, T-M00-01, T-M04-11, T-M04-12, T-M04-14, T-M05b-06 | Format de l'extracte (P-45 punt 10): es fa amb un perfil de CSV configurable |
+| **3. Transferència i conciliació** | El soci veu la referència única, el tresorer importa l'extracte i el sistema proposa i confirma el cobrament | T-M04-10, T-M00-01, T-M04-11, T-M04-12, T-M04-14, T-M05b-06 No: banc fictici amb extracte Norma 43 ([092](../decisions/092-carril-extern-amb-proveidor-i-banc-ficticis.md)); format real [A verificar: P-45 punt 10] |
 | **4. Mandat SEPA signat** | El soci tria la domiciliació, escriu l'IBAN i signa el mandat; el tresorer en veu la llista emmascarada | T-M05a-02, T-M05a-07 a T-M05a-11, T-M05a-14, T-M05a-17 | Identificador de creditor (marcador al text) |
 | **Porta del nivell 1** | La campanya de mandats es pot fer amb dades reals i sense cap cobrament | T-M05a-06, T-M05a-13, T-M05a-16, T-M05a-18, T-M05a-19 i la llista de preguntes de tipus I del nivell 1 | **Sí:** proveïdor contractat i autorització de la junta |
-| **5. Remesa i retornats** | El tresorer prepara la remesa, genera el fitxer, registra un retornat i el sistema reintenta o proposa una alternativa | T-M05b-01, T-M05b-09 a T-M05b-12, T-M05b-27, T-M04-13 | Versió del fitxer i mostra del banc: es valida contra l'esquema estàndard i s'ajusta |
-| **6. Devolucions, rebut i liquidacions** | Es torna un cobrament, el soci rep el rebut i la liquidació del proveïdor quadra amb tresoreria | T-M04-06 a T-M04-08, T-M05b-07, T-M05b-13, T-M05b-14, T-M05b-16, T-M05b-21 | Format de la liquidació |
+| **5. Remesa i retornats** | El tresorer prepara la remesa, genera el fitxer, registra un retornat i el sistema reintenta o proposa una alternativa | T-M05b-01, T-M05b-09 a T-M05b-12, T-M05b-27, T-M04-13 No: banc fictici amb pain.008 i pain.002 (092); es valida contra l'esquema estàndard i s'ajusta quan respongui el banc |
+| **6. Devolucions, rebut i liquidacions** | Es torna un cobrament, el soci rep el rebut i la liquidació del proveïdor quadra amb tresoreria | T-M04-06 a T-M04-08, T-M05b-07, T-M05b-13, T-M05b-14, T-M05b-16, T-M05b-21 No: liquidació del proveïdor fictici (092); format real [A verificar: P-45 punt 9] |
 | **7. Tancament de la fase 1** | Arqueig, traspassos, exportació, pagaments de convidats, ajustos, guies i la revisió visual conjunta | T-M04-04, T-M04-09, T-M04-16, T-M04-18 a T-M04-20, T-M05b-08, T-M05b-17 a T-M05b-20, T-AJ-02, T-M05a-20, T-F1-01 | — |
 | **Porta del nivell 2** | Cobraments reals i migració única de Cluber | T-M05b-19 i la llista de preguntes de tipus I del nivell 2 | **Sí:** proveïdor en mode real i autorització de la junta |
 
-Les tasques que només tenen sentit amb el proveïdor real (T-M05a-05, T-M05a-12, T-M05a-23, T-M05a-26, T-M05b-15, T-M05b-24 i T-M05b-26) formen un **carril extern**: comencen el dia que el proveïdor doni l'entorn de proves i no aturen cap llesca.
+El **carril extern** (T-M05a-12, T-M05a-23, T-M05a-26, T-M05b-15, T-M05b-24 i T-M05b-26) ja no espera P-44 i P-45: es fa contra un proveïdor fictici «tipus PaynoPain» i un banc fictici, darrere del mateix adaptador, apagats a producció i sense xarxa ([092](../decisions/092-carril-extern-amb-proveidor-i-banc-ficticis.md)). Continuen bloquejats fins que hi hagi proveïdor real: la implementació del proveïdor real en mode de proves (T-M05a-05), activar el mode real, la certificació i les portes del nivell 1 i 2.
 
 ### Fase 2 — una llesca mínima per mòdul
 
@@ -426,7 +426,7 @@ Interfície de l'adaptador i `FakeProvider` (T-M05a-03), signatura de `treasury.
 | Refer feina quan una resposta no sigui l'opció per defecte | Només es tanquen sols els dubtes barats de desfer (R i C). Els cars queden apagats |
 | Una PR groga introdueix un error sense que cap persona l'hagi mirat | Només arriba a l'entorn de proves, amb dades inventades. Les portes de producció mantenen la revisió completa. Tot es pot revertir |
 | Els interruptors s'acumulen i ningú no sap què és apagat | Cada interruptor té una fila a `pendents.md` i surt a la llista de la seva porta. A cada porta, o s'activa o s'esborra |
-| El proveïdor real es comporta diferent del fals | El carril extern comença tan bon punt hi hagi entorn de proves del proveïdor. Les proves de contracte es tornen a passar contra el real |
+| El proveïdor real es comporta diferent del fals | El carril extern es fa contra un proveïdor i un banc ficticis amb els formats desconeguts marcats [A verificar] (092). Quan hi hagi entorn de proves del proveïdor, només canvia l'adaptador concret i les proves de contracte es tornen a passar contra el real |
 | L'entorn de proves té un cost | És temporal i es pot crear i destruir ([010](../decisions/010-entorns.md)). El cost s'ha de confirmar abans d'aprovar la tasca 3 [A verificar: preu vigent] |
 | El propietari continua sent el coll d'ampolla | El límit de 10 preguntes i de 3 PR vermelles fa visible la cua. Si s'omple, s'atura un carril en lloc d'acumular feina |
 

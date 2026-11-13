@@ -1037,6 +1037,27 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M01: els valors que el text 
 |---|---|---|---|---|---|
 | T-M01-32 | Pantalla d'ajustos del 01 (VC-01 a VC-04), versions del preu del tipus amb data d'entrada en vigor i lectura dels valors des de les tasques i el carnet ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/members/settings.py`, vistes, migració | T-AJ-02, T-M01-18, T-M01-19 | CA-M01-35 a 37; proves del M01 en verd |
 
+**Ampliació de la [091](decisions/091-valors-del-01-editables-des-de-l-app.md) (13/11/2026; resposta del propietari a [P-79](decisions/pendents.md), opció A).** Els valors i les llistes del 01 que encara són al codi passen als ajustos. Cap import no canvia. Per a VC-02, aquest bloc val per sobre de la taula de dalt i de l'[apèndix](#valors-configurables).
+
+| VC | Clau | Valor inicial | Rang (proposta) | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-02 (substitueix les dues claus) | `members.fee_reminder_offsets`: llista de dies respecte del venciment (negatiu, abans; 0, el mateix dia; positiu, després si no s'ha pagat) | −15, −1, 0, 15, 30 (RN-M01-14, precisió de la 072) | D'1 a 10 valors, cadascun de −90 a 90, sense repetits | Tresorer | — |
+| VC-53 | `members.type_change_supplement_due_days`: dies entre l'aprovació del canvi a ple dret i el venciment del suplement (RN-M01-76) | 7 (085, T-1) | 1 a 30 | Tresorer | — (s'aplica als canvis aprovats després; no toca cap suplement creat) |
+
+| ID | Regla |
+|---|---|
+| RN-M01-106 | Els recordatoris de quota (RN-M01-14) fan servir la llista de VC-02 vigent el dia d'enviar-los; cap variable d'entorn no la fixa. El venciment del suplement (RN-M01-76) surt de VC-53 vigent el dia de l'aprovació, i els textos que el diuen en llegeixen el valor |
+| RN-M01-107 | **Tipus de soci com a dada.** Cap regla no depèn del codi d'un tipus (`supporter`, `full`): cada regla llegeix un atribut del tipus (per exemple, si paga quota o l'edat mínima). Els dos tipus actuals conserven exactament RN-M01-64, les regles de la 073 i les de la 074. Des de la pantalla d'ajustos del 01 es crea, s'edita i es desactiva un tipus amb aquests atributs; un tipus amb socis no s'esborra. Cada canvi va al registre amb el valor anterior |
+
+- **CA-M01-123** (substitueix CA-M01-36) Donat VC-02 a −10, 0 i 20, quan corre la tasca de recordatoris, llavors avisa 10 dies abans, el mateix dia i, si no s'ha pagat, 20 dies després; una llista buida, amb un 91 o amb un valor repetit es rebutja i no es desa res.
+- **CA-M01-124** Donat VC-53 canviat a 10, quan s'aprova un canvi a ple dret, llavors el suplement venç 10 dies després de l'aprovació i la pantalla ho diu; els suplements creats abans conserven el seu venciment.
+- **CA-M01-125** Donat un tipus nou creat des dels ajustos amb els mateixos atributs que un dels tipus actuals, quan una persona en sol·licita l'alta, llavors s'hi apliquen les mateixes regles d'edat i de quota que al tipus original, sense cap canvi de codi; un tipus amb socis no es pot esborrar.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M01-32 (ampliada) | A més del que diu la fila de dalt: VC-02 com a llista i VC-53, i els textos que diuen el termini del suplement | S | els de dalt, `apps/members/member_requests.py`, `apps/members/fees.py` | Les de dalt | CA-M01-35, 37, 123 i 124 |
+| T-M01-52 | Tipus de soci com a dada: atributs del tipus en lloc dels codis fixos (RN-M01-107) i crear, editar i desactivar tipus des de la pantalla d'ajustos del 01 | M | `apps/members/models.py`, `fee_rules.py`, `member_requests.py`, migració | T-M01-32 | CA-M01-125; proves del M01 en verd |
+
 
 <a id="M01-addenda-058"></a>
 ## M01 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): data de naixement (00), caducitat desconeguda i conservació
@@ -4099,7 +4120,7 @@ Aprovada el 31/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix el 
 
 **Entitats**
 - `Place` (lloc): `name` (`CharField(120)`, únic sense distingir majúscules), `active` (bool), `notes` (`TextField`, màx. 1000; internes, amb el text d'ajuda «Sense dades personals ni de salut»), `created_by`, `created_at`. Serveix per a qualsevol lloc d'una activitat: un lloc de sortida, una piscina o l'aula del club. No s'esborra mai si té activitats, sessions o blocs (`PROTECT`): es desactiva. Dades inicials: cap; la llista i els preus els carrega el club [A validar: responsable de cursos i sortides].
-- `PlacePrice` (preu estàndard de la sortida en aquell lloc, amb versions): `place` (FK), `price_member_cents`, `price_non_member_cents` (`PositiveIntegerField`), `valid_from` (`DateField`), `changed_by` (compte), `changed_at`, `note`. Només s'hi afegeixen files, com `TrainingCataloguePrice`. Un lloc sense cap fila no té preu estàndard (per exemple, l'aula). Dos preus, soci i no soci, com el catàleg i l'activitat: opció per defecte de [P-77](decisions/pendents.md).
+- `PlacePrice` (preu estàndard de la sortida en aquell lloc, amb versions): `place` (FK), `price_member_cents`, `price_non_member_cents` (`PositiveIntegerField`), `valid_from` (`DateField`), `changed_by` (compte), `changed_at`, `note`. Només s'hi afegeixen files, com `TrainingCataloguePrice`. Un lloc sense cap fila no té preu estàndard (per exemple, l'aula). Dos preus, soci i no soci, com el catàleg i l'activitat: resposta del propietari a [P-77](decisions/pendents.md) (13/11/2026, opció A).
 - El **centre de busseig habitual** del lloc és del 03 (`PlaceUsualCentre`, [RN-M03-23](#M03-addenda-llocs)), perquè el 02 es construeix abans que el 03 i una app no escriu als models d'una altra. Al formulari del lloc surt com un bloc registrat pel 03 (punt d'extensió de la T-M02-09); sense el 03, no surt.
 - `Activity`: `location` se substitueix per `place` (FK `Place`, `PROTECT`; obligatori a les sortides, opcional als cursos, que tenen el lloc a cada sessió). Camps nous: `standard_price_member_cents` i `standard_price_non_member_cents` (null; còpia del preu estàndard en crear l'activitat: del lloc a les sortides, del catàleg als cursos), `material_cost_cents` i `standard_material_cost_cents` (null; cost de material previst per participant i la seva còpia estàndard) i `material_cost_note` (`TextField`). `meeting_point` continua sent text lliure: és el punt concret de trobada (un moll, una hora).
 - `Session`: `location` se substitueix per `place` (FK, obligatori). `ProgrammeBlock`: `location` se substitueix per `place` (FK null; buit vol dir el lloc de l'activitat).
@@ -4126,7 +4147,7 @@ Aprovada el 31/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix el 
 | AC23 | Canviar el cost de material previst d'una activitat, amb nota | — | — | Les seves | — | Sí | — | Sí | — | — | Els mateixos que els costos previstos del 09 (MG5) |
 | C7 | Camp: cost de material previst d'una activitat | — | — | Les seves | Sí | Sí | — | Sí | Sí | Cons. | Els mateixos que el marge (MG6) més el responsable de material; l'instructor no el veu, com el marge (MT12) |
 
-Mentre [P-75](decisions/pendents.md) (permís «veure» dels ajustos, F-003) sigui oberta, AC21 i AC22 ja segueixen el model de dos permisos que demana el propietari. Els altres apartats d'ajustos del 02 (VC-20 a VC-25) continuen amb un sol permís fins que es resolgui.
+AC21 i AC22 són els dos nivells de RN-RP-22 per a l'apartat «Llocs» (resposta a [P-75](decisions/pendents.md), 13/11/2026). Els altres apartats d'ajustos del 02 (VC-20 a VC-25) segueixen RN-RP-22.
 
 **Ajustos del 02 (T-M02-28).** La pantalla d'ajustos del mòdul té un apartat **«Llocs»**: llista amb el nom, actiu o no, el preu estàndard vigent i el programat, el centre habitual (si existeix el 03), les notes i quantes activitats el fan servir; formulari de lloc; historial de preus. Els valors de la taula de [M02-6](#M02-6-entitats) («Valors configurables») no canvien. A l'[apèndix de valors configurables](#valors-configurables), VC-52.
 
@@ -4670,7 +4691,7 @@ Aprovada el 31/10/2026. **No canvia cap regla** del M03: RN-M03-20 i L-M03-05 s'
 | Afegir i canviar tarifes | Versions amb data d'inici; una tarifa usada no es modifica (RN-M03-06, CA-M03-05) | Sí |
 | Deixar de llogar un equip en un centre sense substituir-ne la tarifa | Només hi ha `superseded_by`; cap manera de retirar una línia | **No**: RN-M03-26 b) |
 | Data d'entrada en vigor, registre i avís dels canvis de diners | Versions i avís (bloc de valors de [M03-6](#M03-6-entitats)); la data pot ser passada i la nota no és obligatòria | **En part**: RN-M03-26 c) |
-| Permisos «veure» i «veure i editar» | MT8 ja té «Cons.» (veure) i «Sí» (veure i editar) a la configuració inicial | Sí (quan es resolgui [P-75](decisions/pendents.md), es parteix en dos permisos sense canviar qui té què) |
+| Permisos «veure» i «veure i editar» | MT8 ja té «Cons.» (veure) i «Sí» (veure i editar) a la configuració inicial | Sí ([P-75](decisions/pendents.md) resolta: dos nivells per apartat, RN-RP-22, sense canviar qui té què) |
 | Lligam amb el lloc | No existeix | **No**: RN-M03-23 a 25 |
 
 **Entitats**
@@ -6551,7 +6572,7 @@ Acceptada el 28/10/2026 ([055](decisions/055-ajustos-configurables-i-addendes.md
 | RN-AJ-02 | **Canvi:** `settings.change(key, value, user, note, effective_from)` comprova al servidor el rol (sense permís, «no trobat»), el tipus i el rang (fora de rang es rebutja i no es desa res). Crea una `SettingVersion` i escriu al registre d'activitat qui, quan, el valor anterior i el compte. Tornar al valor inicial és un canvi més |
 | RN-AJ-03 | **Data d'entrada en vigor:** si el valor afecta diners, la data és obligatòria i no pot ser anterior a avui, i la nota també és obligatòria. El canvi no toca el que ja s'ha demanat, inscrit o cobrat: cada mòdul llegeix el valor a la data que fixa la seva regla. Un canvi programat es desfà amb un altre canvi amb la mateixa data |
 | RN-AJ-04 | **Avís dels canvis de diners (condició a de la 055):** tot canvi d'un valor que afecta diners (quotes, preus, tarifes, recàrrecs, comissions), sigui un `Setting` o una fila d'un catàleg o d'una tarifa, envia un correu al tresorer i a la junta amb el valor, el valor anterior, el nou, qui l'ha canviat, la nota i la data d'entrada en vigor. Els catàlegs i les tarifes el criden amb `settings.notify_money_change`. El correu va per la cua i es reintenta; si falla, el canvi no es desfà. És un avís: no cal cap segona aprovació. Si algun import ha de ser «només amb ratificació»: [A validar: junta, S-AJ-01] **Destinataris (S-AJ-02, resolt pel responsable del projecte el 10/11/2026):** reben l'avís els comptes que poden editar aquell valor al seu mòdul (el permís `settings.edit.<clau>`, o el d'edició del catàleg o de la tarifa); les mencions «el tresorer i la junta (RN-AJ-04)» d'aquest pla s'entenen amb aquesta precisió. |
-| RN-AJ-05 | **Pantalla base:** per a cada mòdul, la llista dels seus valors amb el valor vigent, el programat (si n'hi ha), el valor inicial, el rang i l'historial. Només la veuen els rols amb permís sobre algun valor del mòdul |
+| RN-AJ-05 | **Pantalla base:** per a cada mòdul, la llista dels seus valors amb el valor vigent, el programat (si n'hi ha), el valor inicial, el rang i l'historial. Només la veuen els rols amb el permís de l'apartat amb «Cons.» o «Sí» (RN-RP-22) |
 
 **Supòsits**
 | ID | Supòsit | Proposta | Qui ho valida |
@@ -6870,6 +6891,7 @@ El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, m
 | RN-RP-19 | **Nom del permís d'ajustos:** `settings.edit.<clau>` (RN-RP-17). On la [059](decisions/059-rols-i-permisos-editables.md) diu `settings.edit_<mòdul>`, val `settings.edit.<clau>` |
 | RN-RP-20 | **Un administrador es desactiva a si mateix** (precisió aprovada el 31/10/2026). Només es permet si queda almenys un altre administrador operatiu (RN-RP-13). En confirmar-ho, **es tanquen totes les sessions actives del seu compte d'administrador**, també la de la petició en curs, que acaba amb la sortida de l'administració. El canvi queda al registre d'activitat i s'avisa per correu els altres comptes amb el rol administrador. El compte personal de la mateixa persona no es toca. La feina és a la T-RP-02 |
 | RN-RP-21 | **Editar demana consultar** (precisió aprovada el 02/11/2026). P5 (editar dades d'un soci) i P6 (corregir la data d'alta) demanen P4 (llistat i fitxa de socis) amb qualsevol abast. Al catàleg és `requires` i s'aplica RN-RP-03: un rol no pot tenir P5 o P6 sense P4. La configuració inicial ja ho compleix |
+| RN-RP-22 | **Dos nivells per apartat d'ajustos** (resposta del propietari a [P-75](decisions/pendents.md), 13/11/2026, opció B). Cada apartat d'ajustos (el de cada mòdul i els que en pengen, com «Llocs» del 02) té un permís `settings.section.<apartat>` amb dos nivells, com la resta de la matriu: «Cons.» (veure l'apartat: valors vigents, programats, inicials, rang i historial) i «Sí» (veure'l i editar-ne tots els valors). `settings.edit.<clau>` (RN-RP-17) es manté per donar a un rol l'edició només d'una part dels valors, i demana el permís de l'apartat amb «Cons.» (RN-RP-03). Sense el permís de l'apartat, «no trobat»; amb «Cons.» i sense permís d'edició, una petició directa d'edició es rebutja amb «no trobat» i queda al registre. Configuració inicial: tenen «Cons.» de l'apartat els rols que avui poden editar algun valor del mòdul; cap rol no hi guanya accés. Només l'administrador ho canvia (059). La feina és a la T-AJ-02 (pantalla) i a la T-RP-05 (catàleg) |
 
 **Precisions de la T-RP-01 aprovades el 02/11/2026**
 - **P10:** el «Cons.» de la secretaria és «Sí», perquè P10 ja és un permís de consulta.
