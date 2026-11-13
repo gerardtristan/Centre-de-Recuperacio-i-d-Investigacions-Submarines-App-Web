@@ -42,7 +42,13 @@ from apps.accounts.models import Account
 from apps.core import charges
 from apps.core.models import Charge, OutgoingEmail, Payment
 from apps.members import cards, validity
-from apps.members.models import Member, MemberCard, MemberRequest, MembershipNumberCounter
+from apps.members.models import (
+    AnnualFee,
+    Member,
+    MemberCard,
+    MemberRequest,
+    MembershipNumberCounter,
+)
 from conftest import PASSWORD
 
 from .conftest import login_admin, make_admin
@@ -55,6 +61,7 @@ FIRST_NAME = "Mar"
 LAST_NAME = "Sirena Inventada"
 FULL_NAME = f"{FIRST_NAME} {LAST_NAME}"
 EMAIL = "mar.sirena@example.org"
+DOCUMENT = "12345678Z"
 
 P12 = (
     "P-12 (docs/decisions/pendents.md; RN-72 de la 00): el registre manual del pagament no té "
@@ -107,7 +114,8 @@ def confirm_payment_with_the_service(page, builder, fee):
 
 
 # --- El flux ------------------------------------------------------------------------------------
-def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
+def join_flow(page, base_url, builder, secretary, other, pay, shoot=lambda name: None):
+    """`other` és un altre soci, amb la seva quota: la persona nova no n'ha de veure res."""
     full = builder.full
     amount = charges.euros(full.annual_fee_cents)
     last_number = MembershipNumberCounter.objects.get(pk=1).last_number
@@ -120,7 +128,7 @@ def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
     page.get_by_label("Cognoms", exact=True).fill(LAST_NAME)
     page.get_by_label("Data de naixement").fill("1990-05-20")
     expect(page.locator("#etiqueta-document")).to_have_text("Document d'identitat (DNI o NIE)")
-    page.get_by_label("Document d'identitat (DNI o NIE)", exact=True).fill("12345678Z")
+    page.get_by_label("Document d'identitat (DNI o NIE)", exact=True).fill(DOCUMENT)
     page.get_by_label("Correu electrònic", exact=True).fill(EMAIL)
     page.get_by_label("Telèfon", exact=True).fill("600 000 002")
     # El botó d'opció és amagat a la vista: es tria amb la seva etiqueta, com fa una persona.
@@ -137,6 +145,15 @@ def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
     assert join.status == MemberRequest.Status.PENDING
     assert join.channel == MemberRequest.Channel.WEB
     assert not Member.objects.filter(person=join.person).exists()  # encara no és cap soci
+    # Les acceptacions queden a la sol·licitud, amb el text (i la versió), qui accepta i el canal.
+    accepted = {
+        (a.legal_text.kind, a.legal_text.version, a.accepted_by, a.channel)
+        for a in join.acceptances.select_related("legal_text")
+    }
+    assert accepted == {
+        ("privacy", 1, "applicant", "web"),
+        ("membership_terms", 1, "applicant", "web"),
+    }
     assert OutgoingEmail.objects.filter(template="rebut-sollicitud-alta", to_address=EMAIL).exists()
 
     # 2. Secretaria (doble factor): aprova l'alta. Número, quota del tipus i invitació.
@@ -180,6 +197,9 @@ def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
     expect(page.get_by_role("heading", name="Les meves quotes")).to_be_visible()
     expect(fee_row).to_contain_text(amount)
     expect(fee_row).to_contain_text("Pendent")
+    # Hi ha la quota d'un altre soci, del mateix període: aquí només surt la seva (CA-M01-12).
+    assert AnnualFee.objects.filter(member=other, period=fee.period).exists()
+    expect(page.locator("tbody tr")).to_have_count(1)
     shoot("3-quota-pendent")
     account_nav.get_by_role("link", name="El meu carnet").click()
     expect(page.get_by_text("Ara no tens cap carnet.")).to_be_visible()
@@ -220,6 +240,7 @@ def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
     account_nav.get_by_role("link", name="Les meves quotes").click()
     expect(detail(page, "Estat de la quota")).to_contain_text(f"Pagada fins al {until:%d/%m/%Y}")
     expect(fee_row).to_contain_text(f"Pagada el {paid_on:%d/%m/%Y}")
+    expect(page.locator("tbody tr")).to_have_count(1)  # només la seva (CA-M01-12)
     shoot("6-quota-pagada")
     account_nav.get_by_role("link", name="El meu carnet").click()
     expect(page.get_by_role("heading", name="El meu carnet")).to_be_visible()
@@ -238,22 +259,26 @@ def join_flow(page, base_url, builder, secretary, pay, shoot=lambda name: None):
     expect(page.get_by_role("heading", name="Vàlid", exact=True)).to_be_visible()
     expect(detail(page, "Número de soci")).to_have_text(str(member.member_number))
     expect(detail(page, "Nom")).to_have_text(FIRST_NAME)
-    expect(page.get_by_text(LAST_NAME)).to_have_count(0)  # cap altra dada (CA-M01-13)
-    expect(page.get_by_text(EMAIL)).to_have_count(0)
+    # Cap altra dada, comprovat a l'HTML sencer i no només al text que es veu (CA-M01-13).
+    html = page.content()
+    for private in (LAST_NAME, EMAIL, DOCUMENT):
+        assert private not in html
     shoot("7-verificacio-valida")
     assert Member.objects.get(pk=member.pk).status == Member.Status.ACTIVE
 
 
 def test_ca_m01_01_03_06_12_13_join_flow_from_the_request_to_the_verified_card(
-    page, live_server, builder, secretary, capture
+    page, live_server, builder, secretary, member, capture
 ):
     """Tots els trams que existeixen, al navegador; el pagament (P-12), pels serveis."""
-    join_flow(page, live_server.url, builder, secretary, confirm_payment_with_the_service, capture)
+    pay = confirm_payment_with_the_service
+    join_flow(page, live_server.url, builder, secretary, member, pay, capture)
 
 
 @pytest.mark.xfail(strict=True, raises=MissingStep, reason=P12)
 def test_ca_m01_01_03_06_12_13_join_flow_with_the_manual_payment_on_screen(
-    page, live_server, builder, secretary
+    page, live_server, builder, secretary, member
 ):
     """El flux encadenat sencer, també amb el registre manual del pagament a la pantalla."""
-    join_flow(page, live_server.url, builder, secretary, register_manual_payment_on_screen)
+    pay = register_manual_payment_on_screen
+    join_flow(page, live_server.url, builder, secretary, member, pay)
