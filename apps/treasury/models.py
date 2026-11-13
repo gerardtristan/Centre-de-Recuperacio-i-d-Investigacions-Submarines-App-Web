@@ -1,11 +1,21 @@
 """Tresoreria, part mínima (M04-6). Cap altra app escriu en aquests models: ho fa amb els
 serveis de la 04 (M04-8)."""
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Department, UndeletableModel
+from apps.core.models import (
+    AppendOnlyModel,
+    AppendOnlyQuerySet,
+    Department,
+    Payment,
+    UndeletableModel,
+    validate_cents,
+)
 
 
 class TreasuryAccount(UndeletableModel):
@@ -104,3 +114,192 @@ class CostCentre(UndeletableModel):
         """Els que es poden triar per a un càrrec o un moviment nou (CA-T14.2): actius i d'un
         departament actiu."""
         return cls.objects.filter(active=True, department__active=True).select_related("department")
+
+
+class MovementQuerySet(AppendOnlyQuerySet):
+    def bulk_create(self, objs, *args, **kwargs):
+        # `bulk_create` no passa per `save`: les regles del moviment nou s'apliquen igualment.
+        objs = list(objs)
+        for movement in objs:
+            movement.validate_new()
+        return super().bulk_create(objs, *args, **kwargs)
+
+    def with_reversal(self):
+        """Per a un llistat: porta el contramoviment de cada fila a la mateixa consulta, i
+        `is_reversed` no en fa cap més."""
+        return self.select_related("reversal")
+
+
+class Movement(AppendOnlyModel):
+    """Moviment de tresoreria (M04-6; RN-T05 a RN-T07). Només s'hi afegeixen files: el model ho
+    impedeix a l'ORM i els activadors de la migració 0006 a la base de dades, també amb una
+    consulta directa (CA-T06.3). Una correcció és un contramoviment (`kind = reversal`) que
+    apunta l'original amb `reverses`; «anul·lat» es dedueix d'aquest enllaç i no és cap camp
+    (RN-T25, CA-T17.1). El concepte no porta mai noms de persones (RNF-T4)."""
+
+    class Direction(models.TextChoices):
+        IN = "in", _("Entrada")
+        OUT = "out", _("Sortida")
+
+    class Kind(models.TextChoices):
+        INCOME = "income", _("Ingrés de cobrament")
+        FEE = "fee", _("Comissió")
+        REFUND = "refund", _("Devolució")
+        RETURN = "return", _("Retorn")
+        TRANSFER = "transfer", _("Traspàs")
+        CASH_ADJUSTMENT = "cash_adjustment", _("Ajust d'arqueig")
+        REVERSAL = "reversal", _("Contramoviment")
+
+    account = models.ForeignKey(
+        TreasuryAccount,
+        on_delete=models.PROTECT,
+        related_name="movements",
+        verbose_name=_("compte"),
+    )
+    direction = models.CharField(_("sentit"), max_length=3, choices=Direction.choices)
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    value_date = models.DateField(_("data de valor"))
+    recorded_at = models.DateTimeField(_("data de registre"), auto_now_add=True)
+    kind = models.CharField(_("tipus"), max_length=15, choices=Kind.choices)
+    concept = models.CharField(_("concepte"), max_length=140)
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="movements",
+        verbose_name=_("departament"),
+    )
+    cost_centre = models.ForeignKey(
+        CostCentre,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="movements",
+        verbose_name=_("centre de cost"),
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="movements",
+        verbose_name=_("pagament"),
+    )
+    # L'altra pota d'un traspàs. Com que cap fila no es modifica, només la segona pota apunta la
+    # primera; la primera troba la segona per la relació inversa (`linked_from`).
+    linked_movement = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="linked_from",
+        verbose_name=_("altra pota del traspàs"),
+    )
+    # OneToOne: un moviment només s'anul·la una vegada, i ho garanteix la base de dades.
+    reverses = models.OneToOneField(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="reversal",
+        verbose_name=_("moviment que anul·la"),
+    )
+    reason = models.TextField(_("motiu"), blank=True)
+    # Sense compte: l'ha creat el sistema (una notificació del proveïdor, una tasca).
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+
+    objects = MovementQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("moviment")
+        verbose_name_plural = _("moviments")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_cents__gt=0), name="movement_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(direction__in=["in", "out"]), name="movement_direction_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    kind__in=[
+                        "income",
+                        "fee",
+                        "refund",
+                        "return",
+                        "transfer",
+                        "cash_adjustment",
+                        "reversal",
+                    ]
+                ),
+                name="movement_kind_valid",
+            ),
+            # RN-T05 i RN-T12: departament obligatori, tret dels traspassos, que no en porten.
+            # El contramoviment porta el del moviment que anul·la (si és un traspàs, cap).
+            models.CheckConstraint(
+                condition=Q(kind="reversal")
+                | (Q(kind="transfer") & Q(department__isnull=True))
+                | (~Q(kind="transfer") & Q(department__isnull=False)),
+                name="movement_department_unless_transfer",
+            ),
+            # RN-T09: cada pagament genera, com a màxim, un ingrés de cobrament.
+            models.UniqueConstraint(
+                fields=["payment"],
+                condition=Q(kind="income"),
+                name="movement_one_income_per_payment",
+            ),
+            # RN-T25: només un contramoviment apunta el moviment que anul·la.
+            models.CheckConstraint(
+                condition=(Q(kind="reversal") & Q(reverses__isnull=False))
+                | (~Q(kind="reversal") & Q(reverses__isnull=True)),
+                name="movement_reverses_only_reversal",
+            ),
+            models.CheckConstraint(
+                condition=~Q(kind__in=["reversal", "cash_adjustment"]) | Q(reason__regex=r"\S"),
+                name="movement_reason_required",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["account", "value_date"], name="movement_account_date_idx"),
+            models.Index(
+                fields=["department", "cost_centre", "value_date"],
+                name="movement_dept_centre_date_idx",
+            ),
+        ]
+
+    def __str__(self):
+        sign = "+" if self.direction == self.Direction.IN else "−"
+        return f"{self.get_kind_display()} {sign}{self.amount_cents} c ({self.account})"
+
+    @property
+    def is_reversed(self) -> bool:
+        """«Anul·lat» (RN-T25): té un contramoviment que l'apunta. La fila no canvia mai."""
+        try:
+            return self.reversal is not None
+        except Movement.DoesNotExist:
+            return False
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.validate_new()
+        super().save(*args, **kwargs)
+
+    def validate_new(self) -> None:
+        """Les regles que una restricció d'una sola fila no pot comprovar a la base de dades.
+        Que el contramoviment sigui el mirall de l'original (P-M04-C) és de la T-M04-08."""
+        validate_cents(self.amount_cents)
+        if not self.account.active:
+            # CA-T01.3
+            raise ValidationError(gettext("Un compte desactivat no admet moviments nous."))
+        if self.cost_centre and self.cost_centre.department_id != self.department_id:
+            raise ValidationError(
+                gettext("El centre de cost ha de ser del departament del moviment.")
+            )
