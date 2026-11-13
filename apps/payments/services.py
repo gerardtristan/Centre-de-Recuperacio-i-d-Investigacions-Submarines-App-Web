@@ -1,7 +1,10 @@
-"""Serveis que el mòdul de pagaments ofereix a la resta de l'aplicació (M05a-8)."""
+"""Serveis que el mòdul de pagaments ofereix a la resta de l'aplicació (M05a-8 i M05b-8)."""
 
+from .checkout import PaymentStart, start_payment
 from .providers import get_provider
 from .providers.base import PaymentProvider
+
+__all__ = ["PaymentStart", "provider", "start_payment"]
 
 
 def provider() -> PaymentProvider:
