@@ -1,7 +1,7 @@
 # 092. Carril extern amb un proveïdor i un banc ficticis mentre no responguin PaynoPain i el banc
 
 - **Data:** 13/11/2026
-- **Estat:** Proposta (instrucció escrita del propietari del 13/11/2026; PR `risc:alt`, pendent del seu sí)
+- **Estat:** Acceptada (propietari, instrucció escrita del 13/11/2026; PR #31 aprovada el mateix dia)
 - **Origen:** el carril extern del [pla d'acceleració](../plans/pla-acceleracio.md#llesques-3-a-7--completar-la-fase-1) esperava l'entorn de proves del proveïdor, i [P-44 i P-45](pendents.md) no tenen resposta.
 
 ## Decisió
