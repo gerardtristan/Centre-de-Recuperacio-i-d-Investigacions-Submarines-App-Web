@@ -161,4 +161,16 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
+  P-78:
+    opcions:
+      A: Deixar la llista com és; el que no hi encaixa ho resol el tresorer a mà, fora de l'intent.
+      B: Afegir només la confirmació tardana (fallit, caducat o abandonat passen a pagat, o a revisar si el càrrec ja era pagat).
+      C: La B i, a més, sortir d'«a revisar» (a pagat o a fallit, amb motiu del tresorer) i «creat → cancel·lat».
+      D: Esperar la resposta del proveïdor (P-45) abans de tocar la llista.
+    recomanada: C
+    perque: >-
+      Sense la B no es pot complir RN-M05b-08: un pagament vàlid que arriba tard no es podria apuntar.
+      Sense sortida d'«a revisar», el tresorer no pot tancar cap cas. Mentrestant val la A.
+    data: 2026-11-13
+
 noves: {}
