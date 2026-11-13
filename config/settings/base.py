@@ -99,6 +99,8 @@ TOTP_ISSUER_NAME = env("TOTP_ISSUER_NAME", default="C.R.I.S.")
 # real («live»), cap cobrament sense PAYMENTS_LIVE_CHARGES_ALLOWED, que només s'activa al nivell 2
 # amb l'autorització de la junta (RN-M05a-11; decisió 025).
 PAYMENTS_PROVIDER = env("PAYMENTS_PROVIDER", default="")
+# Prefix de les referències de transferència (RN-T20, VC-10): d'1 a 12 majúscules o xifres.
+TRANSFER_REFERENCE_PREFIX = env("TRANSFER_REFERENCE_PREFIX", default="CRIS")
 PAYMENTS_ENVIRONMENT = env("PAYMENTS_ENVIRONMENT", default="sandbox")
 PAYMENTS_LIVE_CHARGES_ALLOWED = env.bool("PAYMENTS_LIVE_CHARGES_ALLOWED", default=False)
 # Decisió 092: el proveïdor i el banc ficticis no arrenquen on això és cert (producció, prod.py).
