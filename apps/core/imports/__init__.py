@@ -6,7 +6,7 @@ només es crea en confirmar i neix confirmat (T-M01-25); les transicions (desfer
 
 from django.utils import timezone
 
-from .models import ImportBatch, ImportLine
+from ..models import ImportBatch, ImportLine
 
 
 def open_confirmed(kind: str, *, file_sha256: str, by, counts: dict) -> ImportBatch:
@@ -28,3 +28,14 @@ def open_confirmed(kind: str, *, file_sha256: str, by, counts: dict) -> ImportBa
 def add_lines(batch: ImportBatch, lines: list[dict]) -> None:
     """Línies del lot: `row`, `result`, `codes` (llista tancada) i, opcional, `person`."""
     ImportLine.objects.bulk_create(ImportLine(batch=batch, **line) for line in lines)
+
+
+def statement_lines(batch: ImportBatch | None = None):
+    """Línies de l'extracte que la conciliació (04, T-M04-11) pot casar: les noves dels lots
+    confirmats. Les d'un lot desfet hi deixen de sortir (CA-21.4)."""
+    lines = ImportLine.objects.filter(
+        batch__kind=ImportBatch.Kind.BANK_STATEMENT,
+        batch__status=ImportBatch.Status.CONFIRMED,
+        result=ImportLine.Result.NEW,
+    )
+    return lines if batch is None else lines.filter(batch=batch)

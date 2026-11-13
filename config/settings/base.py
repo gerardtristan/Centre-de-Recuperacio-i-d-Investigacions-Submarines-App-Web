@@ -200,6 +200,18 @@ PRIVATE_FILES_SIGNED_URL_TTL = env.int("S3_SIGNED_URL_TTL_SECONDS", default=300)
 # Mida màxima d'un fitxer pujat: 10 MB (V-08 de la spec 00; la checklist C10 només demana
 # que estigui limitada).
 UPLOAD_MAX_BYTES = env.int("UPLOAD_MAX_BYTES", default=10 * 1024 * 1024)
+# Perfil del CSV de l'extracte bancari (T-M00-01). Supòsit fins que el banc doni una mostra
+# anonimitzada (P-45 punt 10, S-M04-03; P-89): noms de les columnes de la capçalera (sense
+# distingir majúscules; «balance» buit si no n'hi ha), separador, data i separador decimal.
+BANK_STATEMENT_CSV_PROFILE = {
+    "delimiter": ";",
+    "date": "Data",
+    "date_format": "%d/%m/%Y",
+    "concept": "Concepte",
+    "amount": "Import",
+    "balance": "Saldo",
+    "decimal": ",",
+}
 # Dies que es conserva una exportació RGPD abans d'esborrar-la (V-08).
 GDPR_EXPORT_RETENTION_DAYS = env.int("GDPR_EXPORT_RETENTION_DAYS", default=7)
 

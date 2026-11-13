@@ -54,6 +54,7 @@ class Action:
     EMAIL_LIMIT_ALERT = "mail.daily_limit_alert"  # RN-A6: un sol avís al dia
     CLUBER_PREVIEW = "members.cluber_import.preview"
     CLUBER_IMPORT_CONFIRMED = "members.cluber_import.confirmed"
+    BANK_STATEMENT_PREVIEW = "core.bank_statement.preview"  # T-M00-01 (RN-98)
     JOIN_REQUEST_CREATED = "members.join_request.created"
     JOIN_REQUEST_LIMITED = "members.join_request.limited"
     MEMBERS_EXPORTED = "members.list.exported"

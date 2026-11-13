@@ -1018,7 +1018,9 @@ IMPORT_LINE_CODES = (
     "duplicate_member_number",
     "identity_conflict",
     "member_number_unavailable",
-    "date_invalid",  # 071 (T-M01-25)
+    "date_invalid",  # 071 (T-M01-25); també l'extracte bancari (T-M00-01)
+    "amount_invalid",  # T-M00-01
+    "balance_invalid",  # T-M00-01
     # Advertiments
     "member_number_leading_zeros",
     "match_without_document_type",
@@ -1183,6 +1185,12 @@ class ImportLine(UndeletableModel):
         related_name="+",
         verbose_name=_("persona"),
     )
+    # Extracte bancari (T-M00-01; V-06): només el que la conciliació necessita, i només a les
+    # línies noves. Mai cap IBAN: el concepte arriba amb els números de compte tapats.
+    value_date = models.DateField(_("data"), null=True, blank=True)
+    amount_cents = models.BigIntegerField(_("import en cèntims"), null=True, blank=True)
+    concept = models.CharField(_("concepte"), max_length=255, blank=True)
+    balance_cents = models.BigIntegerField(_("saldo en cèntims"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("línia d'importació")
@@ -1197,6 +1205,21 @@ class ImportLine(UndeletableModel):
             models.CheckConstraint(
                 condition=Q(result__in=["new", "matching"]) | Q(person__isnull=True),
                 name="importline_person_only_new_or_matching",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    value_date__isnull=True,
+                    amount_cents__isnull=True,
+                    balance_cents__isnull=True,
+                    concept="",
+                )
+                | Q(
+                    result="new",
+                    person__isnull=True,
+                    value_date__isnull=False,
+                    amount_cents__isnull=False,
+                ),
+                name="importline_statement_values_only_new",
             ),
             # Només codis de la llista; un element NULL no hi és mai contingut (<@).
             models.CheckConstraint(
