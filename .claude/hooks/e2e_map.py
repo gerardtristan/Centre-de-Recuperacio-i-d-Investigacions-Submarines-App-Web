@@ -254,6 +254,12 @@ MAP = {
         "templates/payments/*",
         "templates/members/personal_fee_detail.html",
     ),
+    "test_pagament_bizum.py": (
+        "apps/payments/views.py",
+        "apps/payments/checkout.py",
+        "apps/payments/providers/fake.py",
+        "templates/payments/*",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
