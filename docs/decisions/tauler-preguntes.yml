@@ -202,4 +202,61 @@ noves:
     perque: >-
       Ho demanes tu (13/11/2026; regla a la PR #24) i la feina dels valors és petita, perquè la T-M01-32 ja ha de fer la pantalla
       d'ajustos del 01. Fer-ho ara evita una segona tanda sobre el mateix mòdul.
+  F-004:
+    pregunta: Quan canvia el preu estàndard d'un lloc (per exemple, de 45 a 50 €), què passa amb les sortides que ja s'hi havien creat?
+    context: >-
+      Addenda de llocs del mòdul 02 (PR de la proposta, 13/11/2026). En crear una sortida es copia el preu
+      estàndard vigent del lloc; aquesta pregunta és què passa després. Per als cursos, el pla ja diu que un
+      canvi de preu del catàleg no toca les activitats creades (RN-M02-05). Les inscripcions ja fetes
+      conserven sempre el seu preu (RN-M02-04). Pendents: P-76.
+    responsable: Responsable del projecte (tu), amb el tresorer
+    tasques: [T-M02-37, T-M02-40]
+    bloqueja: false
+    opcions:
+      A: Es conserva el preu que tenia, en qualsevol estat. Si cal, el responsable el canvia a mà amb nota.
+      B: S'actualitza a les sortides en esborrany; les publicades conserven el seu.
+      C: S'actualitza a totes les que encara no tenen cap inscripció.
+      D: En desar el preu nou, la pantalla mostra les sortides afectades i qui el canvia tria a quines s'aplica (només sense inscripcions).
+    recomanada: A
+    perque: >-
+      És el mateix criteri que el catàleg de cursos i cap preu publicat canvia sense que algú ho decideixi.
+      Una sortida en esborrany es pot corregir a mà en un moment; B és l'alternativa raonable si es
+      creen moltes sortides amb antelació.
+    data: 2026-11-13
+  F-005:
+    pregunta: El preu estàndard d'un lloc ha de tenir un sol import o dos (soci i no soci)?
+    context: >-
+      Addenda de llocs del mòdul 02. Les activitats i el catàleg de cursos ja tenen preu de soci i de no
+      soci. Pendents: P-77.
+    responsable: Responsable del projecte (tu)
+    tasques: [T-M02-37]
+    bloqueja: false
+    opcions:
+      A: Dos imports, soci i no soci, com el catàleg.
+      B: Un import (el de soci); el de no soci s'escriu a mà a cada sortida.
+      C: Un import i el de no soci surt d'un recàrrec fix, que és un ajust del mòdul.
+    recomanada: A
+    perque: >-
+      Fa servir el mateix model que el catàleg i l'activitat, i evita haver d'escriure el preu de no soci
+      a cada sortida. Si el club vol un recàrrec fix, C es pot afegir després sense perdre dades.
+    data: 2026-11-13
+  F-006:
+    pregunta: Quan prepares una sortida o un curs, el «cost de material» que es pot canviar respecte de l'estàndard és el cost per al club o el preu que paga el participant?
+    context: >-
+      Addenda de llocs dels mòduls 02 i 03. La fórmula del marge (CLAUDE.md) parla de «cost de material»
+      com a cost per al club. El participant paga el material llogat al preu de la tarifa del centre
+      (RN-M03-06 i 11). L'estàndard proposat: material típic per la tarifa de cost del centre habitual del
+      lloc o, si no n'hi ha, pel cost d'ús del club (RN-M03-25), que ha de validar el tresorer. Pendents: P-78.
+    responsable: Responsable del projecte (tu), amb el tresorer
+    tasques: [T-M02-40, T-M03-27]
+    bloqueja: false
+    opcions:
+      A: Cost previst per al club, per participant. És una previsió per al marge; no canvia el que paga ningú.
+      B: Preu del material llogat per al participant en aquella activitat, en lloc del de la tarifa del centre.
+      C: Totes dues coses, cadascuna amb la seva nota.
+      D: Res a la fitxa de l'activitat; el cost previst es posa només al mòdul 09 (costos previstos).
+    recomanada: A
+    perque: >-
+      A ajuda a fixar el preu de la sortida i no toca cap import cobrat. B canvia el que paga un soci i
+      afecta el marge dels lloguers; si es vol, cal decidir-ho a part.
     data: 2026-11-13

@@ -119,11 +119,13 @@
    - [Addenda de la 058: instructors, nivells, especialitats, titulacions i edat mínima](#M02-addenda-058)
    - [Addenda de la 059: permisos editables i configuració inicial](#M02-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M02-addenda-060)
+   - [Addenda del 13/11/2026: llocs, preu estàndard de la sortida i cost de material previst](#M02-addenda-llocs) (proposta)
 11. [Mòdul 03 — Material](#M03) · [resum](#M03-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M03-1-intencio) · 2. [Dependències](#M03-2-dependencies) · 3. [Capacitats](#M03-3-capacitats) · 4. [Rols](#M03-4-rols) · 5. [Processos](#M03-5-processos) · 6. [Entitats](#M03-6-entitats) · 7. [Regles](#M03-7-regles)
    8. [Serveis](#M03-8-serveis) · 9. [Criteris](#M03-9-criteris) · 10. [Tasques](#M03-10-tasques) · 11. [Proves](#M03-11-proves) · 12. [Seguretat](#M03-12-seguretat) · 13. [Riscos](#M03-13-riscos) · 14. [Aprovar](#M03-14-aprovar)
    - [Addenda de la 059: permisos editables i configuració inicial](#M03-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M03-addenda-060)
+   - [Addenda del 13/11/2026: centre habitual del lloc, cost de material estàndard i centres i tarifes](#M03-addenda-llocs) (proposta)
 12. [Mòdul 09 — Marge, despeses, ajuts i facturació](#M09) · [resum](#M09-resum) · **aprovat** (28/10/2026)
    1. [Intenció](#M09-1-intencio) · 2. [Dependències](#M09-2-dependencies) · 3. [Capacitats](#M09-3-capacitats) · 4. [Rols](#M09-4-rols) · 5. [Processos](#M09-5-processos) · 6. [Entitats](#M09-6-entitats) · 7. [Regles](#M09-7-regles)
    8. [Serveis](#M09-8-serveis) · 9. [Criteris](#M09-9-criteris) · 10. [Tasques](#M09-10-tasques) · 11. [Proves](#M09-11-proves) · 12. [Seguretat](#M09-12-seguretat) · 13. [Riscos](#M09-13-riscos) · 14. [Aprovar](#M09-14-aprovar)
@@ -4090,6 +4092,66 @@ Aprovada el 31/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix el 
 | T-M02-35 | `enrolment.cancelled` i `activity.cancelled` com a esdeveniments de la 049 | S | `apps/activities/cancellation.py`, `apps/core/events.py` | T-M02-15, T-M05b-21 | CA-M02-38 |
 | T-M02-36 | Cancel·lació amb un intent en curs: `void_pending_since`, reintent d'anul·lació i proposta de devolució si s'acaba pagant | S | `apps/activities/cancellation.py`, `charges.py`, tasques de la cua | T-M02-15, T-M02-10 | CA-M02-39 |
 
+<a id="M02-addenda-llocs"></a>
+## M02 — Addenda del 13/11/2026: llocs com a dada editable, preu estàndard de la sortida i cost de material previst
+
+**Proposta del 13/11/2026, pendent de l'aprovació del propietari** (PR `risc:alt`; s'aprova en fusionar-la). Aplica als llocs la regla de [valors de negoci](#regles) i la peça d'[ajustos](#valors-configurables-055) de la [055](decisions/055-ajustos-configurables-i-addendes.md), amb els permisos de la [059](decisions/059-rols-i-permisos-editables.md). Necessitat del propietari: tot valor i tot element de llista, també els llocs de sortida (per exemple, les Illes Medes) i els centres de busseig, s'ha de poder afegir i editar des de l'app en qualsevol moment, sense tocar codi ni desplegar. **Què substitueix:** el camp de text lliure `location` d'`Activity`, `Session` i `ProgrammeBlock` ([M02-6](#M02-6-entitats)). **Què precisa:** RN-M02-06 (la referència de la nota passa a ser el preu estàndard copiat en crear l'activitat) i RN-M02-21 (duplicar copia el lloc). La resta de regles del 02 no canvia. La part del 03 és a l'[addenda del 03](#M03-addenda-llocs).
+
+**Entitats**
+- `Place` (lloc): `name` (`CharField(120)`, únic sense distingir majúscules), `active` (bool), `notes` (`TextField`, màx. 1000; internes, amb el text d'ajuda «Sense dades personals ni de salut»), `created_by`, `created_at`. Serveix per a qualsevol lloc d'una activitat: un lloc de sortida, una piscina o l'aula del club. No s'esborra mai si té activitats, sessions o blocs (`PROTECT`): es desactiva. Dades inicials: cap; la llista i els preus els carrega el club [A validar: responsable de cursos i sortides].
+- `PlacePrice` (preu estàndard de la sortida en aquell lloc, amb versions): `place` (FK), `price_member_cents`, `price_non_member_cents` (`PositiveIntegerField`), `valid_from` (`DateField`), `changed_by` (compte), `changed_at`, `note`. Només s'hi afegeixen files, com `TrainingCataloguePrice`. Un lloc sense cap fila no té preu estàndard (per exemple, l'aula). Dos preus, soci i no soci, com el catàleg i l'activitat: opció per defecte de [P-77](decisions/pendents.md).
+- El **centre de busseig habitual** del lloc és del 03 (`PlaceUsualCentre`, [RN-M03-23](#M03-addenda-llocs)), perquè el 02 es construeix abans que el 03 i una app no escriu als models d'una altra. Al formulari del lloc surt com un bloc registrat pel 03 (punt d'extensió de la T-M02-09); sense el 03, no surt.
+- `Activity`: `location` se substitueix per `place` (FK `Place`, `PROTECT`; obligatori a les sortides, opcional als cursos, que tenen el lloc a cada sessió). Camps nous: `standard_price_member_cents` i `standard_price_non_member_cents` (null; còpia del preu estàndard en crear l'activitat: del lloc a les sortides, del catàleg als cursos), `material_cost_cents` i `standard_material_cost_cents` (null; cost de material previst per participant i la seva còpia estàndard) i `material_cost_note` (`TextField`). `meeting_point` continua sent text lliure: és el punt concret de trobada (un moll, una hora).
+- `Session`: `location` se substitueix per `place` (FK, obligatori). `ProgrammeBlock`: `location` se substitueix per `place` (FK null; buit vol dir el lloc de l'activitat).
+
+**Regles**
+| ID | Regla |
+|---|---|
+| RN-M02-38 | **El lloc és una dada.** Qui té AC22 crea, edita, desactiva i reactiva llocs en qualsevol moment des de l'apartat «Llocs» dels ajustos del 02, sense desplegar. Un lloc desactivat no surt al selector de les activitats, sessions i blocs nous; els que ja el tenen el conserven i el mostren. Un lloc amb activitats, sessions o blocs no s'esborra. Cada canvi va al registre d'activitat amb el valor anterior |
+| RN-M02-39 | **Preu estàndard amb data d'entrada en vigor.** Un preu estàndard nou o canviat és una fila de `PlacePrice` amb `valid_from` no anterior a avui i nota obligatòria (RN-AJ-03). Avisa per correu amb `settings.notify_money_change` (RN-AJ-04). El valor vigent en una data és el de la fila amb la `valid_from` més gran que no la passa (com RN-AJ-01) |
+| RN-M02-40 | **Còpia en crear l'activitat.** En crear una sortida, es copia el preu estàndard vigent avui del lloc a `price_*` i a `standard_price_*`. Als cursos, el preu i la còpia estàndard surten del catàleg (RN-M02-05); el preu del lloc no s'hi aplica. Si el lloc no té preu estàndard, `standard_price_*` queda buit i el responsable escriu el preu sense nota. Canviar el lloc d'una activitat en esborrany torna a copiar el preu estàndard del lloc nou; en una activitat oberta o posterior, no toca cap preu (el responsable el pot canviar amb RN-M02-41) i avisa els inscrits (RN-M02-18). Les inscripcions ja fetes conserven el seu preu (RN-M02-04) |
+| RN-M02-41 | **Preu diferent de l'estàndard (precisa RN-M02-06).** El responsable amb AC7 pot posar a l'activitat un preu diferent de l'estàndard. Si `price_member_cents` o `price_non_member_cents` difereix de la seva còpia estàndard, `price_override_note` és obligatòria, s'avisa el tresorer i el canvi va al registre amb el valor anterior. La comparació es fa amb la còpia de l'activitat, no amb el preu vigent avui del lloc o del catàleg |
+| RN-M02-42 | **Canvi del preu estàndard d'un lloc.** No canvia cap activitat ja creada, en cap estat: conserva el preu i la còpia estàndard que tenia. Opció per defecte de [P-76](decisions/pendents.md), amb el mateix criteri que RN-M02-05 per al catàleg |
+| RN-M02-43 | **Cost de material previst.** En crear l'activitat, `standard_material_cost_cents` i `material_cost_cents` prenen el cost estàndard per participant que calcula el 03 ([RN-M03-25](#M03-addenda-llocs)); sense el 03, queden buits. Qui té AC23 pot canviar `material_cost_cents`; si difereix de l'estàndard, `material_cost_note` és obligatòria i el canvi va al registre. És una **previsió**: no crea cap càrrec ni canvia cap import que pagui un participant. El 09 la fa servir com a cost de material del marge previst (RN-M09-06) només mentre l'activitat no té costos de material reals del 03 (RN-M03-09 i 10), mai tots dos alhora. Què és aquest cost: opció per defecte de [P-78](decisions/pendents.md) |
+| RN-M02-44 | **Duplicar (precisa RN-M02-21).** Es copien el lloc de l'activitat, de les sessions i dels blocs, i els preus amb la seva còpia estàndard i la nota. Si un lloc copiat està desactivat, el camp queda buit i s'ha de triar un lloc actiu abans de publicar. El cost de material previst es torna a calcular |
+| RN-M02-45 | **Què es mostra.** El detall públic, «Les meves activitats», els avisos i el calendari descarregable (RN-M02-25) mostren el nom del lloc. Mai les notes del lloc, el centre habitual, la còpia estàndard ni el cost de material |
+| RN-M02-46 | **Permisos al servidor.** Veure l'apartat «Llocs» demana AC21; crear, editar, desactivar i canviar preus estàndard, AC22 (que demana AC21, RN-RP-03). Sense AC21, «no trobat». Amb AC21 i sense AC22, la llista es veu sense cap control d'edició i una petició directa d'edició es rebutja amb «no trobat» i queda al registre. El selector de lloc del formulari d'activitat mostra el nom i el preu estàndard dels llocs actius a qui té AC7, sense AC21. El cost de material previst només el veu qui té C7 |
+
+**Permisos nous** (afegeixen files a la [matriu](#rols-i-permisos-059-matriu) del 02 sense editar-la; configuració inicial, editable des de l'editor de permisos, T-RP-03)
+
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Criteri de la configuració inicial |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AC21 | Llocs: veure (llista, preus estàndard i historial, centre habitual, notes) | — | — | Sí | Sí | Sí | — | Sí | Sí | — | Qui manté el catàleg (AC6) i el responsable de material, que hi lliga els centres |
+| AC22 | Llocs i preus estàndard: veure i editar | — | — | Sí | — | Sí | — | Sí | Sí | — | Els mateixos que els preus del catàleg (AC6, 059: «cursos i especialitats») |
+| AC23 | Canviar el cost de material previst d'una activitat, amb nota | — | — | Les seves | — | Sí | — | Sí | — | — | Els mateixos que els costos previstos del 09 (MG5) |
+| C7 | Camp: cost de material previst d'una activitat | — | — | Les seves | Sí | Sí | — | Sí | Sí | Cons. | Els mateixos que el marge (MG6) més el responsable de material; l'instructor no el veu, com el marge (MT12) |
+
+Mentre [P-75](decisions/pendents.md) (permís «veure» dels ajustos, F-003) sigui oberta, AC21 i AC22 ja segueixen el model de dos permisos que demana el propietari. Els altres apartats d'ajustos del 02 (VC-20 a VC-25) continuen amb un sol permís fins que es resolgui.
+
+**Ajustos del 02 (T-M02-28).** La pantalla d'ajustos del mòdul té un apartat **«Llocs»**: llista amb el nom, actiu o no, el preu estàndard vigent i el programat, el centre habitual (si existeix el 03), les notes i quantes activitats el fan servir; formulari de lloc; historial de preus. Els valors de la taula de [M02-6](#M02-6-entitats) («Valors configurables») no canvien. A l'[apèndix de valors configurables](#valors-configurables), VC-52.
+
+**Criteris d'acceptació**
+- **CA-M02-41** Donat un lloc amb dues activitats, quan algú amb AC22 el vol esborrar, llavors no hi ha cap opció d'esborrar-lo i una petició directa es rebutja; quan el desactiva, llavors no surt al selector d'una activitat nova i les dues activitats el continuen mostrant.
+- **CA-M02-42** Donat un compte amb AC22, quan crea el lloc «Lloc de prova» (inventat) des dels ajustos, llavors surt al selector d'activitats a la petició següent, sense cap desplegament, i el registre guarda qui i quan.
+- **CA-M02-43** Donat un lloc amb preu estàndard de 4500 (soci) i 6000 (no soci), quan es crea una sortida en aquest lloc, llavors l'activitat té aquests preus i la mateixa còpia estàndard, i no cal nota; quan el responsable posa 4000 al preu de soci sense nota, llavors es rebutja; amb nota, es desa, el tresorer rep l'avís i el registre guarda el 4500 anterior.
+- **CA-M02-44** Donat el preu estàndard d'un lloc de 4500, quan algú amb AC22 el canvia a 5000 amb entrada en vigor demà, llavors una sortida creada avui copia 4500 i una creada demà, 5000; les sortides creades abans conserven els seus preus en qualsevol estat (RN-M02-42); una data anterior a avui o sense nota es rebutja; el canvi envia un sol avís (RN-AJ-04).
+- **CA-M02-45** Donat una activitat amb un cost de material estàndard de 2500, quan un compte amb AC23 hi posa 1800 sense nota, llavors es rebutja; amb nota, es desa i va al registre, i no es crea ni canvia cap càrrec. Un instructor de la sessió no veu el camp.
+- **CA-M02-46** Donat un compte amb AC21 i sense AC22, quan obre «Llocs», llavors veu la llista sense controls d'edició; quan envia directament una edició, llavors rep «no trobat», no canvia res i queda al registre. Un compte sense AC21 rep «no trobat» en obrir l'apartat.
+- **CA-M02-47** Donat un curs, quan s'hi afegeix una sessió sense lloc, llavors es rebutja; un bloc del programa sense lloc mostra el de l'activitat. Donat una activitat amb un lloc desactivat, quan es duplica, llavors el lloc queda buit i no es pot publicar fins que se'n tria un d'actiu.
+- **CA-M02-48** Donat un lloc amb notes i centre habitual, quan es mira el detall públic o es descarrega el calendari, llavors hi surt el nom del lloc i mai les notes, el centre, la còpia estàndard ni el cost de material.
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M02-37 | `Place` i `PlacePrice` (versions); `place` en lloc de `location` a `Activity`, `Session` i `ProgrammeBlock`; camps de còpia estàndard i de cost de material; migració reversible | M | `apps/activities/models.py`, migració | T-M02-03 | RN-M02-38 a 40; CA-M02-41, 47 |
+| T-M02-38 | Declarar AC21, AC22, AC23 i C7 al catàleg de permisos i comprovar-los a vistes i serveis | XS | `apps/activities/permissions.py` | T-M02-33, T-M02-37 | RN-M02-46; proves per cel·la (CA-RP-13) |
+| T-M02-39 | Apartat «Llocs» dels ajustos del 02: llista, formulari, desactivar, preus amb data d'entrada en vigor, historial i avís de canvi de diners | M | `apps/activities/views/admin_places.py`, plantilles | T-M02-37, T-M02-38, T-AJ-02 | CA-M02-41, 42, 44, 46 |
+| T-M02-40 | Lloc i preus a la fitxa de l'activitat: selector, còpia estàndard, nota obligatòria, cost de material previst (AC23, C7), duplicar, detall públic i calendari | M | `apps/activities/services.py`, `forms.py`, `duplicate.py`, `public.py`, `ics.py` | T-M02-37, T-M02-38, T-M02-06, T-M02-07, T-M02-08 | CA-M02-43, 45, 47, 48 |
+
+La T-M02-28 (pantalla d'ajustos) inclou l'apartat de la T-M02-39 quan totes dues existeixin.
+
+**Branca aparcada del 02 (D6).** Aquesta addenda no la toca. Quan torni, l'afecta així: els camps `location` dels models (`Activity`, `Session`, `ProgrammeBlock`) i la migració `0003`, i els que els llegeixen o escriuen (`forms.py`, `sessions.py`, `services.py`, `duplicate.py`, `public.py`, `ics.py`, `demo_data.py`, tres plantilles i set fitxers de proves) passen a fer servir `place`. Com que no hi ha dades reals, n'hi ha prou amb una migració que creï els llocs a partir dels textos diferents que hi hagi en una base de dades local. Els identificadors nous comencen després dels de la branca (CA-M02-40 hi és ocupat per la decisió 088 pròpia de la branca): no n'hi ha cap de repetit.
+
 ---
 
 <a id="M03"></a>
@@ -4594,6 +4656,46 @@ Aprovada el 31/10/2026. **No canvia cap regla** del M03: RN-M03-20 i L-M03-05 s'
 | ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
 |---|---|---|---|---|---|
 | T-M03-24 | Subscriptor de `enrolment.cancelled` i `activity.cancelled` en lloc dels senyals; llistes enviades a «avisar el centre» | S | `apps/equipment/assignments.py`, `rentals.py` | T-M03-16, T-M02-35 | CA-M03-21, 22 |
+
+<a id="M03-addenda-llocs"></a>
+## M03 — Addenda del 13/11/2026: centre habitual del lloc, cost de material estàndard i centres i tarifes en qualsevol moment
+
+**Proposta del 13/11/2026, pendent de l'aprovació del propietari** (PR `risc:alt`), amb l'[addenda de llocs del 02](#M02-addenda-llocs). No canvia cap regla del 03: hi afegeix el lligam amb el lloc i tanca els buits que deixa la T-M03-05 per a «afegir i editar en qualsevol moment».
+
+**Comprovació de la T-M03-05 (centres i tarifes)**
+| Què demana el propietari | Què diu el 03 | Cobert? |
+|---|---|---|
+| Afegir un centre en qualsevol moment | `DiveCentre` és una dada (VC-27, MT8) | Sí |
+| Editar-lo i deixar de fer-lo servir | Té `active`, però cap regla diu que no s'esborra ni què passa a les assignacions noves | **No**: RN-M03-26 a) |
+| Afegir i canviar tarifes | Versions amb data d'inici; una tarifa usada no es modifica (RN-M03-06, CA-M03-05) | Sí |
+| Deixar de llogar un equip en un centre sense substituir-ne la tarifa | Només hi ha `superseded_by`; cap manera de retirar una línia | **No**: RN-M03-26 b) |
+| Data d'entrada en vigor, registre i avís dels canvis de diners | Versions i avís (bloc de valors de [M03-6](#M03-6-entitats)); la data pot ser passada i la nota no és obligatòria | **En part**: RN-M03-26 c) |
+| Permisos «veure» i «veure i editar» | MT8 ja té «Cons.» (veure) i «Sí» (veure i editar) a la configuració inicial | Sí (quan es resolgui [P-75](decisions/pendents.md), es parteix en dos permisos sense canviar qui té què) |
+| Lligam amb el lloc | No existeix | **No**: RN-M03-23 a 25 |
+
+**Entitats**
+- `PlaceUsualCentre`: `place` (OneToOne a `Place` del 02, només lectura), `centre` (FK `DiveCentre`, `PROTECT`), `changed_by`, `changed_at`. Una fila per lloc, com a màxim. Cada canvi va al registre amb el valor anterior.
+- `CentreRate`: camp nou `retired_on` (`DateField` null): des d'aquella data, la línia no surt en assignacions noves.
+
+**Regles**
+| ID | Regla |
+|---|---|
+| RN-M03-23 | **Centre habitual del lloc.** S'escull al formulari del lloc del 02, en un bloc que registra el 03 (`activities.register_place_section`), amb el permís AC22. Només s'hi poden triar centres actius. Si es desactiva un centre que és habitual d'algun lloc, el lloc el conserva i surt marcat «centre habitual desactivat» a l'apartat «Llocs» fins que algú el canvia |
+| RN-M03-24 | **Proposta de centre.** En assignar material llogat (`origin = rented`) d'una activitat, el centre que es proposa és l'habitual del lloc de la sessió (si en té) o de l'activitat, si és actiu. Es pot canviar per qualsevol altre centre actiu |
+| RN-M03-25 | **Cost de material estàndard** (`equipment.standard_material_cost(activity)`, per participant): per a cada línia del material típic de l'activitat (RN-M03-17), quantitat × preu de cost de la tarifa vigent el primer dia de l'activitat al centre habitual del lloc per a aquell tipus de material; si no n'hi ha, quantitat × cost d'ús del club (RN-M03-08) × dies de l'activitat. Sense material típic, 0. És la proposta per defecte de [P-78](decisions/pendents.md) [A validar: tresorer]. El 02 el copia a l'activitat (RN-M02-43); no crea cap assignació ni cap càrrec |
+| RN-M03-26 | **Centres i tarifes en qualsevol moment.** a) Un centre amb tarifes, assignacions o que és habitual d'un lloc no s'esborra: es desactiva, i un centre desactivat no surt en assignacions noves; les antigues el conserven. b) Una línia de tarifa es pot retirar amb `retired_on` sense crear-ne cap versió nova; les assignacions anteriors conserven els imports (RN-M03-06). c) Una versió nova d'una tarifa té `valid_from` no anterior a avui i nota obligatòria, va al registre i avisa (RN-AJ-03 i RN-AJ-04) |
+
+**Criteris d'acceptació**
+- **CA-M03-23** Donat el «Lloc de prova» amb el centre habitual «Centre A» (inventats), quan el responsable de material assigna material llogat a una sortida en aquest lloc, llavors el centre proposat és el Centre A; si el Centre A està desactivat, no se'n proposa cap i el lloc surt marcat a «Llocs».
+- **CA-M03-24** Donat el material típic «equip complet» × 1 i una tarifa de cost vigent de 2500 al centre habitual, quan es calcula el cost estàndard, llavors és 2500; sense tarifa per a aquest tipus i amb un cost d'ús de 200 per dia en una sortida d'un dia, 200; sense material típic, 0.
+- **CA-M03-25** Donat un centre amb tarifes, quan es vol esborrar, llavors no es pot i es desactiva; desactivat, no surt en una assignació nova. Donat una línia retirada, quan s'assigna material, llavors no surt i les assignacions anteriors conserven els imports. Una versió nova amb una data anterior a avui o sense nota es rebutja; amb una data futura, es desa i envia un avís (RN-AJ-04).
+
+**Tasques**
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M03-25 | Centres i tarifes en qualsevol moment: desactivar sense esborrar, retirar una línia, data d'entrada en vigor no anterior a avui amb nota i avís | S | `apps/equipment/models.py`, vistes | T-M03-05 | CA-M03-25 |
+| T-M03-26 | Centre habitual del lloc: `PlaceUsualCentre`, bloc al formulari del lloc del 02 i proposta de centre en assignar | S | `apps/equipment/places.py`, plantilles | T-M03-05, T-M03-08, T-M02-39 | CA-M03-23 |
+| T-M03-27 | `equipment.standard_material_cost` i registre al 02 com a calculador del cost de material previst | S | `apps/equipment/costs.py` | T-M03-06, T-M03-26, T-M02-40 | CA-M03-24 |
 
 ---
 
@@ -6429,6 +6531,7 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **058** vol dir 
 | VC-49 | 09 | `billing.vat_rate_by_charge_kind` (RN-M09-29) | Ajustos | Ajustos, per tipus de càrrec | Inscripció (cursos, sortides i material): tipus [A verificar: gestoria]; quota i llicència: exemptes | Tipus d'IVA vigents [A verificar: gestoria] | Tresorer | Sí, amb avís (RN-AJ-04) | Sí | 058 |
 | VC-50 | 09 | `billing.vat_exemption_text` (RN-M09-29) | Ajustos | Ajustos (text) | [A verificar: gestoria] | Text | Tresorer | Sí | Sí | 058 |
 | VC-51 | 09 (ajuts) | `amendment_term_days` per convocatòria (RN-M09A-23) | Dada | Dada (camp opcional de la convocatòria) | Buit | Buit o ≥ 1 | Tresorer | Sí | — | 058 (sense prioritat) |
+| VC-52 | 02 | Llocs (`Place`) i preu estàndard de la sortida per lloc (`PlacePrice`); centre habitual del lloc (03) | Text lliure (`location`) | Dada, amb data d'entrada en vigor per als preus ([addenda](#M02-addenda-llocs)) | Cap lloc | Noms únics; preus ≥ 0 | Qui té AC22 (configuració inicial: RCS, tresorer, administrador i President) | Sí, amb nota i avís (RN-AJ-04) | Sí (preus) | Addenda del 13/11/2026 (proposta) |
 
 **Fora d'aquesta llista.** Els valors de la spec 00 són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. Els rols i els permisos són dades editables per l'administrador ([059](decisions/059-rols-i-permisos-editables.md)): la configuració inicial és a l'[apèndix de rols i permisos](#rols-i-permisos-059-matriu), i qui canvia cada valor d'aquesta llista és un permís `settings.edit.<clau>` (RN-RP-17). La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i és a la [055](#valors-configurables-055).
 
