@@ -183,6 +183,18 @@ opcions:
       Sense sortida d'«a revisar», el tresorer no pot tancar cap cas. Mentrestant val la A.
     data: 2026-11-13
 
+  P-81:
+    opcions:
+      A: Com s'ha construït; les quotes van a «General / Quotes de socis» i les inscripcions i llicències, sense centre de cost fins que el càrrec en porti (segona meitat de la T-M04-02), que es fa abans de cobrar-ne cap de debò.
+      B: Rebutjar l'ingrés d'una inscripció o d'una llicència fins que el càrrec porti centre de cost.
+      C: Que qui crida el servei (pagaments, activitats o llicències) li digui el centre de cost.
+    recomanada: A
+    perque: >-
+      A la fase 1 només es cobren quotes, i el pla ja diu on van. Un ingrés sense centre de cost és un
+      estat que el model admet; B deixaria un cobrament confirmat sense apuntar, i C faria que cada
+      mòdul sabés coses de la tresoreria que després caldria desfer.
+    data: 2026-11-13
+
 noves:
   F-003:
     pregunta: Com fem que cada apartat d'ajustos tingui per rol els permisos «veure» i «veure i editar»?
