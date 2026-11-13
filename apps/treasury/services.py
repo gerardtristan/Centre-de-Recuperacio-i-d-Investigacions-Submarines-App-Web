@@ -1,0 +1,155 @@
+"""Serveis de la tresoreria (M04-8). Cap altra app escriu als models de la 04: crida aquests
+serveis. Cap ruta hi arriba: un ingrés mai neix d'una petició del navegador (RN-71, CA-T03.4).
+
+`record_income` (T-M04-05; P-M04-A; CA-T03.x): l'ingrés d'un cobrament confirmat. El criden el
+05b, en processar una notificació verificada, i la mateixa 04, en confirmar una conciliació.
+- Idempotent (RN-T09, LT1): la base de dades només admet un ingrés per pagament (restricció
+  `movement_one_income_per_payment`). La repetició torna l'ingrés que ja hi era i queda al registre.
+- El càrrec i el pagament només es llegeixen, i de la base de dades: la còpia de qui crida pot
+  ser antiga.
+- Data de valor en un període tancat (RN-T31): arriba amb la T-M04-20.
+"""
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
+from django.utils import timezone
+from django.utils.translation import gettext as _
+
+from apps.core import audit
+from apps.core.charges import PAID_ORIGINS
+from apps.core.models import Charge, Payment
+from apps.members import services as members
+
+from .models import CostCentre, Movement, TreasuryAccount
+
+INCOME_RECORDED = "treasury.income_recorded"
+INCOME_REPEATED = "treasury.income_repeated"
+
+# Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
+SEPA_REMITTANCE = "sepa_remittance"
+# S-M04-06: l'ingrés d'una quota va a «General / Quotes de socis».
+FEES_COST_CENTRE = "Quotes de socis"
+
+
+class ChargeNotPaid(ValidationError):
+    """El càrrec del pagament no és «pagat» (CA-T03.3)."""
+
+
+class BrowserOriginRejected(ValidationError):
+    """L'ingrés no ve del proveïdor ni d'una conciliació confirmada (RN-71, CA-T03.4)."""
+
+
+class IncomeAccountUnavailable(ValidationError):
+    """No hi ha un únic compte actiu on apuntar l'ingrés d'aquest mètode (RN-T08)."""
+
+
+@transaction.atomic
+def record_income(payment: Payment, *, origin: str, by) -> Movement:
+    """Apunta l'ingrés d'un pagament amb el càrrec «pagat» i el torna; si ja hi era, torna
+    l'existent sense crear res (CA-T03.1 i CA-T03.2). `origin` i `by`, com a
+    `charges.mark_paid`: «provider» o «reconciliation», i el sistema o el tresorer."""
+    if origin not in PAID_ORIGINS:
+        raise BrowserOriginRejected(
+            _("Un ingrés només s'apunta des del proveïdor o des de la conciliació.")
+        )
+    payment = Payment.objects.select_related("charge__department").get(pk=payment.pk)
+    charge = payment.charge
+    if charge.status != Charge.Status.PAID:
+        raise ChargeNotPaid(_("Només s'apunta l'ingrés d'un càrrec «pagat»."))
+    movement = _income_of(payment)
+    if movement is None:
+        try:
+            # En un punt de desament: si la base de dades rebutja el duplicat, la transacció de
+            # qui crida continua.
+            with transaction.atomic():
+                movement = _create_income(payment, charge, by)
+        except IntegrityError:
+            # Una altra crida ha apuntat l'ingrés entre la comprovació i la inserció.
+            movement = _income_of(payment)
+            if movement is None:
+                raise
+        else:
+            audit.record(
+                INCOME_RECORDED,
+                actor=by,
+                target=movement,
+                details={
+                    "payment": payment.pk,
+                    "charge": charge.pk,
+                    "amount_cents": movement.amount_cents,
+                    "account": movement.account.name,
+                    "origin": origin,
+                },
+            )
+            return movement
+    audit.record(
+        INCOME_REPEATED,
+        actor=by,
+        target=movement,
+        details={"payment": payment.pk, "origin": origin},
+    )
+    return movement
+
+
+def _income_of(payment: Payment) -> Movement | None:
+    return Movement.objects.filter(payment=payment, kind=Movement.Kind.INCOME).first()
+
+
+def _create_income(payment: Payment, charge: Charge, by) -> Movement:
+    paid_on = timezone.localdate(payment.paid_at) if payment.paid_at else timezone.localdate()
+    return Movement.objects.create(
+        account=_income_account(payment.method),
+        direction=Movement.Direction.IN,
+        amount_cents=payment.amount_cents,
+        value_date=paid_on,
+        kind=Movement.Kind.INCOME,
+        concept=_concept(charge),
+        department=charge.department,
+        cost_centre=_cost_centre(charge),
+        payment=payment,
+        # Sense compte: l'ha apuntat el sistema (una notificació del proveïdor).
+        recorded_by=by if isinstance(by, get_user_model()) else None,
+    )
+
+
+def _income_account(method: str) -> TreasuryAccount:
+    """RN-T08. Ha de ser un sol compte i actiu: si no, l'ingrés no s'apunta enlloc."""
+    kind, method_of = TreasuryAccount.Kind, Payment.Method
+    accounts = TreasuryAccount.objects.filter(active=True)
+    if method in (method_of.CARD, method_of.BIZUM):
+        accounts = accounts.filter(kind=kind.TRANSIT, provider_code=settings.PAYMENTS_PROVIDER)
+    elif method == method_of.DIRECT_DEBIT:
+        accounts = accounts.filter(kind=kind.TRANSIT, provider_code=SEPA_REMITTANCE)
+    elif method == method_of.TRANSFER:
+        accounts = accounts.filter(kind=kind.BANK)
+    else:  # Manual: «caixa o bancari (quan es resolgui P-12)».
+        accounts = accounts.none()
+    found = list(accounts[:2])
+    if len(found) != 1:
+        raise IncomeAccountUnavailable(
+            _("No hi ha un únic compte de tresoreria actiu per a aquest mètode de pagament.")
+        )
+    return found[0]
+
+
+def _cost_centre(charge: Charge) -> CostCentre | None:
+    """RN-T10: el del càrrec. El càrrec encara no en porta (segona meitat de la T-M04-02):
+    mentrestant, una quota va a «Quotes de socis» (S-M04-06) i la resta, sense (P-76)."""
+    if charge.kind != Charge.Kind.FEE:
+        return None
+    return CostCentre.objects.filter(department=charge.department, name=FEES_COST_CENTRE).first()
+
+
+def _concept(charge: Charge) -> str:
+    """RNF-T4: tipus, número de soci i referència del càrrec; mai el nom ni el text lliure."""
+    parts = [charge.get_kind_display()]
+    try:
+        number = members.get_member_summary(charge.person).number
+    except members.NotAMember:
+        number = None
+    if number:
+        parts.append(_("soci %(number)s") % {"number": number})
+    parts.append(_("càrrec %(id)s") % {"id": charge.pk})
+    return " · ".join(parts)
