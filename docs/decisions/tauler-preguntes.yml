@@ -161,4 +161,43 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
-noves: {}
+noves:
+  F-003:
+    pregunta: Com fem que cada apartat d'ajustos tingui per rol els permisos «veure» i «veure i editar»?
+    context: >-
+      Ho demanes per a tots els ajustos (13/11/2026). El pla només té el permís d'editar cada valor
+      (settings.edit.<clau>, decisions 059 i 060) i la pantalla la veu qui en pot editar algun (RN-AJ-05).
+      Encara no hi ha cap pantalla d'ajustos feta, així que no cal desfer res. Revisió:
+      docs/estat/revisio-valors-configurables.md. Pendents: P-75.
+    responsable: Responsable del projecte (tu)
+    tasques: [T-AJ-02, T-RP-03]
+    bloqueja: false
+    opcions:
+      A: Un permís nou «veure» per apartat (settings.view.<mòdul>) a més del d'editar cada valor; al principi, el «veure» el tenen els mateixos rols que editen.
+      B: Un sol permís per apartat amb dos nivells, «Cons.» (veure) i «Sí» (veure i editar), com la resta de la matriu.
+      C: Dos permisos per apartat (veure i veure i editar) en lloc d'un per valor.
+      D: Deixar-ho com diu el pla (només qui edita, veu).
+    recomanada: B
+    perque: >-
+      La matriu ja fa servir «Cons.» i «Sí» i el codi ja sap rebutjar una edició amb «Cons.», així que
+      no cal cap mecanisme nou. Es manté un permís d'editar per valor dins l'apartat, de manera que es
+      pot donar a un rol només una part dels valors (per exemple, els preus al tresorer).
+    data: 2026-11-13
+  F-007:
+    pregunta: Fem editables des de l'app el termini del suplement (7 dies) i els recordatoris de quota (−15, −1, 0, +15, +30 dies)?
+    context: >-
+      La revisió del codi els troba escrits al codi o en una variable d'entorn. El primer no té cap tasca;
+      el segon té la T-M01-32, però la clau del pla no pot desar els cinc dies. El 01 és congelat (D1):
+      afegir-los demana una decisió numerada i una PR risc:alt. Pendents: P-79.
+    responsable: Responsable del projecte (tu), amb el tresorer
+    tasques: [T-M01-32]
+    bloqueja: false
+    opcions:
+      A: Sí, tots dos, ampliant la T-M01-32 amb una decisió nova.
+      B: Només els recordatoris (arreglar la clau de VC-02); el suplement es queda al codi.
+      C: Ara no; es revisa quan acabi la prova d'acceleració (27/11/2026).
+    recomanada: A
+    perque: >-
+      És el que demana la regla nova i la feina és petita, perquè la T-M01-32 ja ha de fer la pantalla
+      d'ajustos del 01. Fer-ho ara evita una segona tanda sobre el mateix mòdul.
+    data: 2026-11-13
