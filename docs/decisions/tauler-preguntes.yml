@@ -250,3 +250,20 @@ noves:
       Ho demanes tu (13/11/2026; regla a la PR #24) i la feina dels valors és petita, perquè la T-M01-32 ja ha de fer la pantalla
       d'ajustos del 01. Fer-ho ara evita una segona tanda sobre el mateix mòdul.
     data: 2026-11-13
+  F-005:
+    pregunta: El preu estàndard d'un lloc ha de tenir un sol import o dos (soci i no soci)?
+    context: >-
+      Addenda de llocs del mòdul 02. Les activitats i el catàleg de cursos ja tenen preu de soci i de no
+      soci. Pendents: P-77.
+    responsable: Responsable del projecte (tu)
+    tasques: [T-M02-37]
+    bloqueja: false
+    opcions:
+      A: Dos imports, soci i no soci, com el catàleg.
+      B: Un import (el de soci); el de no soci s'escriu a mà a cada sortida.
+      C: Un import i el de no soci surt d'un recàrrec fix, que és un ajust del mòdul.
+    recomanada: A
+    perque: >-
+      Fa servir el mateix model que el catàleg i l'activitat, i evita haver d'escriure el preu de no soci
+      a cada sortida. Si el club vol un recàrrec fix, C es pot afegir després sense perdre dades.
+    data: 2026-11-13
