@@ -296,3 +296,74 @@ class TestCancelling:
         with pytest.raises(ProtectedError), transaction.atomic():
             person.delete()
         assert Charge.objects.count() == Payment.objects.count() == 1
+
+
+class TestRecordPayment:
+    """P-84: el servei de la 00 que crea el pagament d'una confirmació (proveïdor o conciliació)
+    i passa el càrrec a pagat. Cap altra app escriu `Payment` directament."""
+
+    def test_it_creates_the_payment_with_the_charge_amount_and_pays_the_charge(
+        self, admin, person, courses
+    ):
+        charge = new_charge(person, admin, department=courses)
+        payment = charges.record_payment(
+            charge,
+            method=Payment.Method.CARD,
+            origin="provider",
+            by=SYSTEM,
+            provider_status="paid",
+            provider_reference="fake-1",
+        )
+        charge.refresh_from_db()
+        assert charge.status == S.PAID
+        assert (payment.charge, payment.method, payment.amount_cents) == (
+            charge,
+            "card",
+            charge.amount_cents,
+        )
+        assert (payment.provider_status, payment.provider_reference) == ("paid", "fake-1")
+        assert payment.paid_at is not None
+        row = AuditEntry.objects.get(action="charges.status_changed")
+        assert row.details == {"origin": "provider", "payment": payment.pk}
+
+    def test_a_reconciliation_by_the_treasurer(self, admin, treasurer, person, courses):
+        charge = new_charge(person, admin, department=courses)
+        payment = charges.record_payment(
+            charge,
+            method=Payment.Method.TRANSFER,
+            origin="reconciliation",
+            by=treasurer,
+            transfer_reference="CRIS-0001",
+        )
+        assert payment.transfer_reference == "CRIS-0001"
+        assert Charge.objects.get(pk=charge.pk).status == S.PAID
+
+    @pytest.mark.parametrize("origin", ["browser", "manual", ""])
+    def test_an_untrusted_origin_leaves_nothing(self, admin, person, courses, origin):
+        charge = new_charge(person, admin, department=courses)
+        with pytest.raises(ValidationError):
+            charges.record_payment(charge, method="card", origin=origin, by=admin)
+        assert not Payment.objects.exists()
+        assert Charge.objects.get(pk=charge.pk).status == S.PENDING
+
+    def test_a_charge_that_is_not_pending_leaves_nothing(self, admin, person, courses):
+        charge = new_charge(person, admin, department=courses)
+        first = charges.record_payment(charge, method="card", origin="provider", by=SYSTEM)
+        with pytest.raises(ValidationError):
+            charges.record_payment(charge, method="bizum", origin="provider", by=SYSTEM)
+        assert list(Payment.objects.all()) == [first]
+
+    def test_no_other_app_creates_a_payment_directly(self):
+        """Una app no escriu als models d'una altra (CLAUDE.md): fora de la 00, el pagament
+        només es crea amb `charges.record_payment`."""
+        from pathlib import Path
+
+        root = Path(django_apps.get_app_config("core").path).parent
+        writers = [
+            str(path.relative_to(root))
+            for path in root.rglob("*.py")
+            if "tests" not in path.parts
+            and path.parts[len(root.parts)] != "core"
+            and "Payment.objects.create(" in path.read_text(encoding="utf-8")
+        ]
+        assert writers == []
