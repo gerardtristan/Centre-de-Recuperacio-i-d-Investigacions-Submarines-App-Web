@@ -262,6 +262,7 @@ body.locked nav.views,body.locked #back,body.locked .search,body.locked #print{d
           <li><span class="b feta">✓ Feta</span></li>
           <li><span class="b feta_part">◐ Feta en part</span></li>
           <li><span class="b validacio">◇ Implementada, pendent de validació</span></li>
+          <li><span class="b curs">◇ En curs</span></li>
           <li><span class="b pendent">○ Pendent</span></li>
           <li><span class="b bloq">⛔ Bloquejada (ho diu el pla)</span></li>
           <li><span class="b retirada">Retirada</span></li>
@@ -404,7 +405,7 @@ function build(){
   var h='<h2>Resum</h2><p class="small muted">'+tot+' tasques a <code>docs/planning.md</code>. «Feta en part» i «implementada, pendent de validació» compten com a no fetes (regla del <code>CLAUDE.md</code>).</p>';
   h+=barHtml(cn,tot,'Progrés global');
   h+='<div class="sumgrid">';
-  ['feta','feta_part','validacio','pendent','retirada'].forEach(function(k){if(cn[k])h+='<button type="button" class="stat" data-setstate="'+k+'"><b>'+cn[k]+'</b><span class="b '+k+'">'+SL[k]+'</span></button>'});
+  ['feta','feta_part','validacio','curs','pendent','retirada'].forEach(function(k){if(cn[k])h+='<button type="button" class="stat" data-setstate="'+k+'"><b>'+cn[k]+'</b><span class="b '+k+'">'+SL[k]+'</span></button>'});
   h+='<button type="button" class="stat" data-setstate="bloq"><b>'+nb+'</b><span class="b bloq">Bloquejades</span></button></div>';
   h+='<div class="tw"><table><caption class="sr">Tasques per mòdul i estat</caption><thead><tr><th>Mòdul</th><th>Fase</th><th class="n">Tasques</th><th class="n">Feta</th><th class="n">En part</th><th class="n">Per validar</th><th class="n">Pendent</th><th>Progrés</th></tr></thead><tbody>';
   D.modorder.forEach(function(m){
@@ -416,7 +417,7 @@ function build(){
   /* filtres */
   fill('f-f',[['','Totes']].concat([1,2,3].map(function(p){return [String(p),PH[p]]})));
   fill('f-m',[['','Tots']].concat(D.modorder.filter(function(m){return D.tasks.some(function(t){return t.mod===m})}).map(function(m){return [m,m+' · '+D.modname[m]]})));
-  fill('f-s',[['','Tots'],['feta','Feta'],['feta_part','Feta en part'],['validacio','Implementada, pendent de validació'],['pendent','Pendent'],['bloq','Bloquejada'],['retirada','Retirada'],['conf','Fonts que no coincideixen']]);
+  fill('f-s',[['','Tots'],['feta','Feta'],['feta_part','Feta en part'],['validacio','Implementada, pendent de validació'],['curs','En curs'],['pendent','Pendent'],['bloq','Bloquejada'],['retirada','Retirada'],['conf','Fonts que no coincideixen']]);
   var ow={};D.tasks.forEach(function(t){t.owners.forEach(function(o){ow[o]=1})});
   fill('f-r',[['','Tots']].concat(Object.keys(ow).sort().map(function(o){return [o,o]})).concat([['-','Cap responsable consta']]));
   fill('f-c',[['','Tots'],['alt','Alt'],['mitja','Mitjà'],['baix','Baix'],['sense','Sense estimar']]);
