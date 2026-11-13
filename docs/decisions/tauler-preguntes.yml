@@ -219,4 +219,16 @@ opcions:
       mòdul sabés coses de la tresoreria que després caldria desfer.
     data: 2026-11-13
 
+  P-88:
+    opcions:
+      A: Com s'ha construït; el trànsit que crea la instal·lació (migrate) no deixa entrada al registre, com els comptes inicials, i el que es creï des d'una pantalla, sí.
+      B: Que sempre en deixi, amb el sistema com a actor, i adaptar les proves del 00 i del 01 que compten les entrades del registre.
+      C: Una entrada al registre per a tots els comptes creats per la instal·lació (també «Caixa» i «Banc principal»), en una tasca del 00.
+    recomanada: A
+    perque: >-
+      El compte ja diu quan es va crear i qui el crea és sempre la instal·lació, igual que els comptes
+      inicials. La B toca proves del 00 sense guanyar cap dada; la C té sentit si la junta vol el registre
+      de tota la configuració. Mentrestant val la A.
+    data: 2026-11-13
+
 noves:
