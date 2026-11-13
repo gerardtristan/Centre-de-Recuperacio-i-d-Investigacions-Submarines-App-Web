@@ -131,3 +131,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M04-01](T-M04-01.md) | Comptes de tresoreria i comptes inicials (**Feta**, 13/11/2026; aprovada pel propietari) | 13/11/2026 | PR #15 | 23 noves | verd (PR a `master`, protegida) |
 | [T-M05a-04](T-M05a-04.md) | Notificacions del proveïdor de pagaments: verificar, desar i respondre (**Feta**, 13/11/2026) | 13/11/2026 | PR #17 | 21 noves | verd (PR a `master`, protegida) |
 | [T-M05b-03](T-M05b-03.md) | Intent de pagament: model, transicions i un sol intent en curs per càrrec, tall de targeta (**Feta**, 13/11/2026; pendent de l'aprovació del propietari) | 13/11/2026 | PR #21 | 141 noves | [A comprovar] |
+| [T-M05b-04](T-M05b-04.md) | Començar un pagament amb targeta: el servei `start_payment` sobre l'adaptador (en part: sense pantalla, tornada del navegador ni Bizum; pendent de l'aprovació del propietari) | 13/11/2026 | PR #23 | 29 noves | [A comprovar] |
