@@ -126,7 +126,7 @@ class AttemptStatus(models.TextChoices):
 
 # RN-M05b-03, sencera. «Pagat» no torna enrere: les correccions són devolucions o retorns. El
 # que la regla no preveu (una confirmació tardana, sortir d'«a revisar», entrar a «cancel·lat»)
-# no hi és mentre no es respongui la P-78.
+# no hi és mentre no es respongui la P-82.
 ATTEMPT_TRANSITIONS = frozenset(
     (old, new)
     for old, targets in {

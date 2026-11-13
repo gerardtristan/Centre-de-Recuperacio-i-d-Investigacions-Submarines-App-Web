@@ -221,6 +221,13 @@ MAP = {
         "templates/members/member_fee_resolve.html",
         "templates/members/_charge_status.html",
     ),
+    # El flux sencer «fer-se soci» (llesca 1) encadena tots els trams: es lliga als fitxers que
+    # decideixen si el soci està al corrent i si el carnet val, que ja demanen la verificació
+    # completa. Així el hook de fi de torn no s'allarga.
+    "test_flux_fer_se_soci.py": (
+        "apps/members/validity.py",
+        "apps/members/cards.py",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
