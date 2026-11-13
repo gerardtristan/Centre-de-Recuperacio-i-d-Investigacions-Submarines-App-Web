@@ -18,12 +18,11 @@ def transits(code):
 
 
 def test_the_configured_provider_already_has_its_transit_account(settings):
-    """La base de proves surt de `migrate` i ningú no l'ha creat a mà."""
+    """La base de proves surt de `migrate` i ningú no l'ha creat a mà. Com els comptes inicials,
+    no deixa cap entrada al registre d'activitat (P-88)."""
     account = transits(settings.PAYMENTS_PROVIDER).get()
     assert account.active
-    assert AuditEntry.objects.filter(
-        action=treasury.TRANSIT_ACCOUNT_CREATED, target_id=str(account.pk)
-    ).exists()
+    assert not AuditEntry.objects.filter(action=treasury.TRANSIT_ACCOUNT_CREATED).exists()
 
 
 def test_migrate_creates_the_transit_account_of_a_newly_configured_provider(settings, monkeypatch):

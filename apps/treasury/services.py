@@ -101,18 +101,21 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
 
 
 @transaction.atomic
-def create_transit_account(provider_code: str, name: str) -> TreasuryAccount:
+def create_transit_account(provider_code: str, name: str, *, by=None) -> TreasuryAccount:
     """El compte de trànsit del proveïdor, o l'existent (M04-8). Idempotent: la base de dades
     només admet un trànsit per proveïdor, i el que ja hi és es torna tal com és, sense
     reanomenar-lo ni reactivar-lo (desactivar-lo és cosa del tresorer). Un nom que ja fa servir
-    un altre compte és un error de configuració i no es tapa (`IntegrityError`)."""
+    un altre compte és un error de configuració i no es tapa (`IntegrityError`).
+    `by` (un compte o el sistema) queda al registre d'activitat. Sense `by`, el crea la
+    instal·lació en acabar `migrate` i, com els comptes inicials de les migracions, no hi deixa
+    cap entrada (P-88)."""
     account, created = TreasuryAccount.objects.get_or_create(
         kind=TreasuryAccount.Kind.TRANSIT, provider_code=provider_code, defaults={"name": name}
     )
-    if created:
+    if created and by is not None:
         audit.record(
             TRANSIT_ACCOUNT_CREATED,
-            actor=audit.system("treasury.create_transit_account"),
+            actor=by,
             target=account,
             details={"provider_code": provider_code, "name": name},
         )

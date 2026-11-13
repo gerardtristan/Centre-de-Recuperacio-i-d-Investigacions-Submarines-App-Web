@@ -9,6 +9,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
+from apps.core import audit
 from apps.core.models import AuditEntry, Payment
 from apps.treasury import services
 from apps.treasury.models import TreasuryAccount
@@ -17,6 +18,7 @@ from apps.treasury.tests.test_record_income import paid, record
 pytestmark = pytest.mark.django_db
 
 CREATED = services.TRANSIT_ACCOUNT_CREATED
+SYSTEM = audit.system("proves-t-m04-17")
 
 
 def params(service):
@@ -29,7 +31,7 @@ def created_entries(account):
 
 class TestSignatures:
     def test_create_transit_account_takes_the_provider_and_the_name(self):
-        assert params(services.create_transit_account) == ["provider_code", "name"]
+        assert params(services.create_transit_account) == ["provider_code", "name", "by"]
 
     def test_record_income_takes_the_payment_and_says_who_and_from_where(self):
         assert params(services.record_income) == ["payment", "origin", "by"]
@@ -41,7 +43,7 @@ class TestSignatures:
 
 class TestCreateTransitAccount:
     def test_a_new_provider_gets_an_active_transit_account_and_it_is_logged(self):
-        account = services.create_transit_account("card_provider", "Trànsit targeta")
+        account = services.create_transit_account("card_provider", "Trànsit targeta", by=SYSTEM)
         assert (account.kind, account.provider_code) == ("transit", "card_provider")
         assert (account.name, account.active, account.last4) == ("Trànsit targeta", True, None)
         entry = created_entries(account).get()
@@ -49,13 +51,17 @@ class TestCreateTransitAccount:
         assert entry.details == {"provider_code": "card_provider", "name": "Trànsit targeta"}
 
     def test_calling_it_again_returns_the_existing_one_without_touching_it(self):
-        first = services.create_transit_account("card_provider", "Trànsit targeta")
+        first = services.create_transit_account("card_provider", "Trànsit targeta", by=SYSTEM)
         TreasuryAccount.objects.filter(pk=first.pk).update(active=False)
-        again = services.create_transit_account("card_provider", "Un altre nom")
+        again = services.create_transit_account("card_provider", "Un altre nom", by=SYSTEM)
         assert again == first
         assert (again.name, again.active) == ("Trànsit targeta", False)  # el tresorer el desactiva
         assert TreasuryAccount.objects.filter(provider_code="card_provider").count() == 1
         assert created_entries(first).count() == 1
+
+    def test_p_88_without_who_it_is_the_installation_and_it_is_not_logged(self):
+        account = services.create_transit_account("card_provider", "Trànsit targeta")
+        assert not created_entries(account).exists()
 
     def test_each_provider_has_its_own(self):
         card = services.create_transit_account("card_provider", "Trànsit targeta")
