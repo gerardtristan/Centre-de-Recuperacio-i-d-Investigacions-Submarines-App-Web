@@ -246,6 +246,8 @@ class PaymentAttempt(UndeletableModel):
 
     def save(self, *args, update_fields=None, **kwargs):
         if self._state.adding:
+            if self.status != self.Status.CREATED:  # RN-M05b-03: tot intent neix «creat»
+                raise InvalidTransition(f"— → {self.status}")
             validate_cents(self.amount_cents)
             if self.amount_cents != self.charge.amount_cents:
                 raise ValidationError(gettext("L'import de l'intent ha de ser el del càrrec."))

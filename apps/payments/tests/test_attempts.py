@@ -157,6 +157,11 @@ class TestTransitions:
     def test_rn_m05b_03_the_table_is_exactly_the_one_of_the_plan(self):
         assert ATTEMPT_TRANSITIONS == ALLOWED
 
+    @pytest.mark.parametrize("status", sorted(set(S.values) - {S.CREATED}))
+    def test_rn_m05b_03_an_attempt_is_always_born_created(self, charge, status):
+        with pytest.raises(InvalidTransition):  # ni «pagat» d'entrada, desant el model directament
+            Attempt.objects.create(charge=charge, method=M.CARD, amount_cents=9000, status=status)
+
     @pytest.mark.parametrize(("old", "new"), sorted(ALLOWED))
     def test_rn_m05b_03_allowed_transition(self, charge, old, new):
         attempt = raw(charge, old, new)
