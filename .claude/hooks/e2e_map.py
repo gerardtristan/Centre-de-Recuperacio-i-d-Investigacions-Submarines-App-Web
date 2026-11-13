@@ -228,6 +228,11 @@ MAP = {
         "apps/members/validity.py",
         "apps/members/cards.py",
     ),
+    "test_flux_primer_euro.py": (
+        "apps/payments/processing.py",
+        "apps/payments/webhooks.py",
+        "apps/treasury/services.py",
+    ),
     "test_pagament_targeta.py": (
         "apps/payments/views.py",
         "apps/payments/checkout.py",
