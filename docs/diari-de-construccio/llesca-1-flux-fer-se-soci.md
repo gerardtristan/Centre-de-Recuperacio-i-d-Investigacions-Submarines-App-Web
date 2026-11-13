@@ -23,6 +23,8 @@ No és una tasca del pla: és la prova amb què acaba la llesca 1 del [pla d'acc
 ## Problemes trobats
 - El dia de l'aprovació, l'«estat de la quota» general d'un soci nou surt buit («—»), tot i que la fila de la quota diu «Pendent». És el que diu la regla vigent ([079](../decisions/079-respostes-del-responsable-al-grup-a-de-t-m00-i-t-m01.md), RN-M01-86): una quota pendent que encara no ha vençut no dona cap estat. La prova mira la fila de la quota i no fixa aquest buit; queda apuntat per si es vol revisar.
 - El soci amb la quota pendent no té encara cap botó per pagar: és del 05b (pas 6 de P-M01-A).
+- **La revisió va trobar tres comprovacions que no podien fallar.** Només hi havia una quota a la base, de manera que «només veu les seves» passava sempre; la verificació només mirava el text visible i no l'HTML sencer; i les acceptacions de la sol·licitud no es miraven. Ara hi ha un altre soci amb quota, es mira l'HTML sencer i es comproven les acceptacions. Es va demostrar espatllant l'aplicació a propòsit, en local i sense desar-ho: la prova d'abans passava i la d'ara falla.
+- **El primer CI va sortir vermell.** Cada prova al navegador ha de ser al mapa que fa servir la comprovació de fi de torn (`.claude/hooks/e2e_map.py`), i la nova no hi era. S'hi ha afegit lligada a dos fitxers que ja demanaven la verificació completa, perquè la comprovació de fi de torn no s'allargui.
 
 ## Com se sap que funciona
 - CA-M01-01, CA-M01-03, CA-M01-06, CA-M01-12 i CA-M01-13, encadenats en una sola prova.
