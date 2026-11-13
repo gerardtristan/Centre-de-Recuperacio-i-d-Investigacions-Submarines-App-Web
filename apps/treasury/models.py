@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import UndeletableModel
+from apps.core.models import Department, UndeletableModel
 
 
 class TreasuryAccount(UndeletableModel):
@@ -64,3 +64,43 @@ class TreasuryAccount(UndeletableModel):
 
     def __str__(self):
         return self.name
+
+
+class CostCentre(UndeletableModel):
+    """Centre de cost: el segon nivell d'un departament (HU-T14; RN-T22 i RN-T23; decisió 013).
+    La llista la fixa la junta; d'inici només hi ha els de CA-T14.1. No s'esborra: es desactiva,
+    i un de desactivat no es pot triar per a càrrecs ni moviments nous (CA-T14.2)."""
+
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name="cost_centres",
+        verbose_name=_("departament"),
+    )
+    name = models.CharField(_("nom"), max_length=80)
+    active = models.BooleanField(_("actiu"), default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("centre de cost")
+        verbose_name_plural = _("centres de cost")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["department", "name"], name="cost_centre_unique_in_department"
+            ),
+            models.CheckConstraint(condition=~Q(name=""), name="cost_centre_name_not_empty"),
+        ]
+
+    def __str__(self):
+        return self.full_name
+
+    @property
+    def full_name(self) -> str:
+        """«General / Quotes de socis» (CA-T14.1)."""
+        return f"{self.department.name} / {self.name}"
+
+    @classmethod
+    def selectable(cls):
+        """Els que es poden triar per a un càrrec o un moviment nou (CA-T14.2): actius i d'un
+        departament actiu."""
+        return cls.objects.filter(active=True, department__active=True).select_related("department")
