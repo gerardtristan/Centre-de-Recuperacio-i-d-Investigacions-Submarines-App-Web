@@ -101,6 +101,8 @@ TOTP_ISSUER_NAME = env("TOTP_ISSUER_NAME", default="C.R.I.S.")
 PAYMENTS_PROVIDER = env("PAYMENTS_PROVIDER", default="")
 PAYMENTS_ENVIRONMENT = env("PAYMENTS_ENVIRONMENT", default="sandbox")
 PAYMENTS_LIVE_CHARGES_ALLOWED = env.bool("PAYMENTS_LIVE_CHARGES_ALLOWED", default=False)
+# Decisió 092: el proveïdor i el banc ficticis no arrenquen on això és cert (producció, prod.py).
+FAKE_INTEGRATIONS_FORBIDDEN = False
 
 # Adreça pública de la plataforma, per als enllaços dels correus (verificació i recuperació):
 # la cua no té cap petició d'on treure-la. Domini: decisió 019.

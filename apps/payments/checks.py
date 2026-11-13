@@ -3,6 +3,7 @@ cobrar per error (RN-M05a-11) ni fer servir el proveïdor fals amb l'entorn real
 
 from django.conf import settings
 from django.core.checks import Error, register
+from django.core.exceptions import ImproperlyConfigured
 
 from .providers import REGISTRY
 from .providers.base import ENVIRONMENTS, LIVE
@@ -31,3 +32,15 @@ def payments_settings(app_configs, **kwargs):
             )
         )
     return errors
+
+
+def refuse_fake_integrations() -> None:
+    """Decisió 092: el proveïdor fictici no arrenca a producció ni amb l'entorn real. Es crida a
+    `ready()`, de manera que cap procés (web, cua, `manage.py`) no arrenca: les comprovacions de
+    `check` no corren amb el servidor web."""
+    forbidden = settings.FAKE_INTEGRATIONS_FORBIDDEN or settings.PAYMENTS_ENVIRONMENT == LIVE
+    if settings.PAYMENTS_PROVIDER == "fake" and forbidden:
+        raise ImproperlyConfigured(
+            "Decisió 092: el proveïdor de pagaments fictici no es pot fer servir a producció "
+            "ni amb l'entorn real. Configura PAYMENTS_PROVIDER amb el proveïdor real."
+        )

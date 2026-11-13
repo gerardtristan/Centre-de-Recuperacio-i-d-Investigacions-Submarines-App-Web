@@ -103,15 +103,14 @@ class _Builder:
 
     def pay(self, fee) -> None:
         """Pagament confirmat pel proveïdor (mode de proves) i avís al 01."""
-        payment = Payment.objects.create(
-            charge=fee.charge,
+        charges.record_payment(
+            fee.charge,
             method=Payment.Method.CARD,
-            amount_cents=fee.charge.amount_cents,
+            origin="provider",
+            by=self.system,
             provider_status="prova",
             provider_reference=f"PROVA-{fee.charge.pk}",
-            paid_at=timezone.now(),
         )
-        charges.mark_paid(fee.charge, payment, origin="provider", by=self.system)
         services.on_fee_paid(fee.pk)
 
     def paid_member(self, first, last, email, mtype, **accept) -> Member:

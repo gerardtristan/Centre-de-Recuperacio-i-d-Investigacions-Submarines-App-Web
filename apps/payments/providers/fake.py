@@ -5,6 +5,8 @@ l'entorn de proves. Les ordres viuen en memòria, dins del procés."""
 import hashlib
 import hmac
 import json
+import logging
+import urllib.request
 from datetime import timedelta
 from uuid import UUID, uuid4
 
@@ -18,10 +20,12 @@ from . import base
 SIGNING_KEY = "contrasenya-de-proves-1954"
 SIGNATURE_HEADER = "X-Fake-Signature"
 BIZUM_MINUTES = 15
-# La pàgina de pagament de prova arriba amb el flux de pagament (T-M05b-04).
+# La pàgina de pagament de prova (T-M05b-04): `views.fake_pay_view`.
 PAY_PATH = "/pagaments/prova/"
 
+logger = logging.getLogger(__name__)
 _orders: dict[str, base.OrderState] = {}
+_urls: dict[str, base.OrderUrls] = {}
 
 
 def sign(body: bytes, key: str = SIGNING_KEY) -> str:
@@ -31,6 +35,7 @@ def sign(body: bytes, key: str = SIGNING_KEY) -> str:
 def reset() -> None:
     """Oblida les ordres en memòria (entre proves)."""
     _orders.clear()
+    _urls.clear()
 
 
 class FakeProvider(base.PaymentProvider):
@@ -51,6 +56,7 @@ class FakeProvider(base.PaymentProvider):
             external_id,
             base.OrderState(external_id, base.PENDING, charge.amount_cents, charge.currency),
         )
+        _urls.setdefault(external_id, urls)
         expires_at = (
             timezone.now() + timedelta(minutes=BIZUM_MINUTES) if method == base.BIZUM else None
         )
@@ -127,3 +133,20 @@ class FakeProvider(base.PaymentProvider):
             sort_keys=True,
         ).encode()
         return body, {SIGNATURE_HEADER: sign(body, key)}
+
+    def complete(self, external_id: str, status: str) -> str:
+        """El que fa la pàgina de pagament de prova quan la persona hi tria un resultat: envia
+        la notificació signada a la plataforma, servidor a servidor, i torna l'adreça on va el
+        navegador. Amb `PENDING` no envia res: la persona ha tancat la pàgina sense pagar."""
+        urls = _urls[external_id]
+        if status != base.PENDING:
+            body, headers = self.notification(external_id, status)
+            headers = {**headers, "Content-Type": "application/json"}
+            # L'adreça és la de la plataforma (`PUBLIC_SITE_URL`), mai una que arribi de fora.
+            request = urllib.request.Request(urls.notification, body, headers, method="POST")  # noqa: S310
+            try:
+                urllib.request.urlopen(request, timeout=10).close()  # noqa: S310
+            except OSError:
+                # Com un proveïdor de veritat: la tornada del navegador no depèn de l'avís.
+                logger.warning("No s'ha pogut enviar la notificació de l'ordre %s", external_id)
+        return urls.return_ok if status == base.PAID else urls.return_ko

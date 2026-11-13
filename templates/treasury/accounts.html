@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (primer tall), C1: comptes amb el saldo calculat a partir dels moviments (RN-T02, CA-T02.1). Només lectura: cap camp escriu el saldo i l'únic formulari és el de la data, amb GET. Permís T1 al servidor. Cap IBAN: només els quatre darrers dígits (RN-T03). #}
+{% block title %}{% translate "Comptes i saldos" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Comptes i saldos" %}</h1>
+  <p>{% translate "El saldo el calcula la plataforma: entrades menys sortides amb data de valor fins al dia triat. No s'escriu a mà." %}</p>
+
+  <form class="formulari" method="get" action="{% url 'administration:treasury_accounts' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Data del saldo" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Mostra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:treasury_accounts' %}">{% translate "Avui" %}</a>
+    </div>
+  </form>
+
+  {% if not has_movements %}
+    <div class="avis" role="note"><strong>{% translate "Encara no hi ha cap moviment" %}</strong>{% translate "Els saldos sortiran dels cobraments confirmats, les comissions, les devolucions i els traspassos que es registrin." %}</div>
+  {% endif %}
+
+  <table class="taula">
+    <caption>{% blocktranslate with date=on|date:"d/m/Y" %}Saldo de cada compte el {{ date }}{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Compte" %}</th>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col" class="cel-import">{% translate "Saldo" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with account=row.account %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ account.name }}{% if account.last4 %} <span class="codi">·{{ account.last4 }}</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Tipus' %}">{{ account.get_kind_display }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if account.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Desactivat" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Saldo' %}" class="cel-import"><span class="import">{{ row.balance }}</span></td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="4">{% translate "Encara no hi ha cap compte de tresoreria." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'administration:treasury_movements' %}">{% translate "Mira els moviments" %}</a></p>
+{% endblock %}

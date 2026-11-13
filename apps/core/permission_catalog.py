@@ -334,6 +334,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
+    # --- 04 Tresoreria ----------------------------------------------------------------------
+    _perm(
+        "treasury.view",
+        "T1",
+        _("Veure comptes, saldos i moviments"),
+        # Matriu inicial de la 059: la Junta, [A validar] al M04-4, comença sense.
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})
