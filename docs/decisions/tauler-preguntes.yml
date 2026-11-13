@@ -202,6 +202,7 @@ noves:
     perque: >-
       Ho demanes tu (13/11/2026; regla a la PR #24) i la feina dels valors és petita, perquè la T-M01-32 ja ha de fer la pantalla
       d'ajustos del 01. Fer-ho ara evita una segona tanda sobre el mateix mòdul.
+    data: 2026-11-13
   F-004:
     pregunta: Quan canvia el preu estàndard d'un lloc (per exemple, de 45 a 50 €), què passa amb les sortides que ja s'hi havien creat?
     context: >-
