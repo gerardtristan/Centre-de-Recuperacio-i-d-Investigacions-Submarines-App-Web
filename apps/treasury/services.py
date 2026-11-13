@@ -22,15 +22,13 @@ from apps.core.charges import PAID_ORIGINS
 from apps.core.models import AuditEntry, Charge, Payment
 from apps.members import services as members
 
-from .models import CostCentre, Movement, TreasuryAccount
+from .models import Movement, TreasuryAccount
 
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
 
 # Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
 SEPA_REMITTANCE = "sepa_remittance"
-# S-M04-06: l'ingrés d'una quota va a «General / Quotes de socis».
-FEES_COST_CENTRE = "Quotes de socis"
 
 
 class ChargeNotPaid(ValidationError):
@@ -57,7 +55,9 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
     if not _system_or_account(by):
         # RN-T13: el registre ha de dir qui. Ni anònim ni un convidat (que ve del navegador).
         raise BrowserOriginRejected(_("Un ingrés l'apunta el sistema o un compte, mai ningú més."))
-    payment = Payment.objects.select_related("charge__department").get(pk=payment.pk)
+    payment = Payment.objects.select_related("charge__department", "charge__cost_centre").get(
+        pk=payment.pk
+    )
     charge = payment.charge
     if charge.status != Charge.Status.PAID:
         raise ChargeNotPaid(_("Només s'apunta l'ingrés d'un càrrec «pagat»."))
@@ -116,7 +116,7 @@ def _create_income(payment: Payment, charge: Charge, by) -> Movement:
         kind=Movement.Kind.INCOME,
         concept=_concept(charge),
         department=charge.department,
-        cost_centre=_cost_centre(charge),
+        cost_centre=charge.cost_centre,  # RN-T10
         payment=payment,
         # Sense compte: l'ha apuntat el sistema (una notificació del proveïdor).
         recorded_by=by if isinstance(by, get_user_model()) else None,
@@ -141,14 +141,6 @@ def _income_account(method: str) -> TreasuryAccount:
             _("No hi ha un únic compte de tresoreria actiu per a aquest mètode de pagament.")
         )
     return found[0]
-
-
-def _cost_centre(charge: Charge) -> CostCentre | None:
-    """RN-T10: el del càrrec. El càrrec encara no en porta (segona meitat de la T-M04-02):
-    mentrestant, una quota va a «Quotes de socis» (S-M04-06) i la resta, sense (P-81)."""
-    if charge.kind != Charge.Kind.FEE:
-        return None
-    return CostCentre.objects.filter(department=charge.department, name=FEES_COST_CENTRE).first()
 
 
 def _concept(charge: Charge) -> str:

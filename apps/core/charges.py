@@ -34,6 +34,9 @@ TRANSITIONS = {
 
 PAID_ORIGINS = {"provider", "reconciliation"}
 
+# S-M04-06: el centre de cost de les quotes, dins «General» (dades inicials de la T-M04-02).
+FEES_COST_CENTRE = "Quotes de socis"
+
 
 def euros(cents: int) -> str:
     """Un import en cèntims, per mostrar-lo: «120,00 €» en la llengua activa."""
@@ -73,9 +76,18 @@ def deactivate_department(department: Department, *, by) -> None:
 
 @transaction.atomic
 def create_charge(
-    person, *, kind: str, amount_cents: int, concept: str, origin: str, by, department=None
+    person,
+    *,
+    kind: str,
+    amount_cents: int,
+    concept: str,
+    origin: str,
+    by,
+    department=None,
+    cost_centre=None,
 ) -> Charge:
-    """Crea un càrrec pendent. Les quotes van sempre a «General» (CA-15.8; Q-18)."""
+    """Crea un càrrec pendent. Les quotes van sempre a «General / Quotes de socis» (CA-15.8,
+    Q-18, S-M04-06). La resta porta el centre de cost que es triï, del seu departament, o cap."""
     # Abans de `full_clean`, que convertiria 12.5 en 12 sense dir res.
     validate_cents(amount_cents)
     if kind == Charge.Kind.FEE:
@@ -83,6 +95,10 @@ def create_charge(
         if department is not None and department != general:
             raise ValidationError(_("Les quotes van al departament «General»."))
         department = general
+        fees = general.cost_centres.get(name=FEES_COST_CENTRE)
+        if cost_centre is not None and cost_centre != fees:
+            raise ValidationError(_("Les quotes van al centre de cost «Quotes de socis»."))
+        cost_centre = fees
     if department is None:
         raise ValidationError(_("Tot càrrec necessita un departament (RN-62)."))
     charge = Charge(
@@ -92,6 +108,7 @@ def create_charge(
         concept=concept.strip(),
         origin=origin,
         department=department,
+        cost_centre=cost_centre,
     )
     charge.full_clean()
     charge.save()
@@ -103,6 +120,7 @@ def create_charge(
             "kind": kind,
             "amount_cents": amount_cents,
             "department": department.name,
+            "cost_centre": cost_centre.name if cost_centre else None,
             "origin": origin,
         },
     )
