@@ -47,10 +47,9 @@ def clean_orders(settings):
 
 @pytest.fixture
 def transit():
-    """RN-T08: el compte de trànsit del proveïdor on va l'ingrés (el crea la T-M04-17)."""
-    return TreasuryAccount.objects.create(
-        name="Trànsit del proveïdor de proves", kind="transit", provider_code="fake"
-    )
+    """RN-T08: el compte de trànsit del proveïdor on va l'ingrés. Ja hi és: el crea `migrate`
+    (T-M04-17, `apps/payments/setup.py`)."""
+    return TreasuryAccount.objects.get(kind="transit", provider_code="fake")
 
 
 @pytest.fixture
@@ -316,7 +315,9 @@ class TestError:
     def test_an_error_rolls_everything_back_and_the_safety_net_recovers_it(
         self, attempt, fee, monkeypatch
     ):
-        notify(attempt)  # sense compte de trànsit: l'ingrés no es pot apuntar (RN-T08)
+        transit = TreasuryAccount.objects.filter(kind="transit", provider_code="fake")
+        transit.update(active=False)  # sense compte de trànsit actiu: no hi ha ingrés (RN-T08)
+        notify(attempt)
         assert run_queue() == [R.ERROR]
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
         assert not Payment.objects.exists() and not incomes().exists()
@@ -324,7 +325,7 @@ class TestError:
         assert entry.details == {"error": "IncomeAccountUnavailable"}
         assert processing.process_notification(ProviderEvent.objects.get().pk) == R.ERROR
 
-        TreasuryAccount.objects.create(name="Trànsit", kind="transit", provider_code="fake")
+        transit.update(active=True)
         monkeypatch.setattr(processing, "SAFETY_NET_AGE", timedelta(0))
         processing.safety_net()
         assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
@@ -409,7 +410,6 @@ class TestSafetyNet:
 class TestSimultaneous(CommittedDataTestCase):
     def test_ca_m05b_04_two_events_of_the_same_order_at_once_pay_once(self):
         fake.reset()
-        TreasuryAccount.objects.create(name="Trànsit", kind="transit", provider_code="fake")
         member = make_member(status=Member.Status.PENDING)
         fee = add_fee(member)
         account = Account.objects.create_personal(member.person, "anna@example.org", PASSWORD)
@@ -435,7 +435,6 @@ class TestSimultaneous(CommittedDataTestCase):
         """Revisió de la #27: el càrrec es llegeix bloquejat. Si el tresorer el concilia mentre
         es processa la notificació, el resultat és «a revisar» com a duplicat, no un error."""
         fake.reset()
-        TreasuryAccount.objects.create(name="Trànsit", kind="transit", provider_code="fake")
         attempt, fee = paying_attempt("anna@example.org")
         notify(attempt)
         event = ProviderEvent.objects.get().pk

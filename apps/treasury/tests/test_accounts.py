@@ -26,7 +26,8 @@ def rejected(**fields):
 
 class TestInitialAccounts:
     def test_ca_t01_1_cash_and_main_bank_exist_after_the_migrations(self):
-        accounts = {a.name: a for a in TreasuryAccount.objects.all()}
+        # El trànsit del proveïdor configurat també hi és (T-M04-17): CA-T01.1 parla dels altres.
+        accounts = {a.name: a for a in TreasuryAccount.objects.exclude(kind=K.TRANSIT)}
         assert set(accounts) == {"Caixa", "Banc principal"}
         assert accounts["Caixa"].kind == K.CASH
         assert accounts["Banc principal"].kind == K.BANK

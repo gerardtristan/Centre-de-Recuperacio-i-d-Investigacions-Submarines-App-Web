@@ -41,14 +41,12 @@ TREASURER = "tresoreria.prova"  # el de `join_flow`, que el crea al tram 4
 
 @pytest.fixture
 def card_payments(settings, live_server):
-    """Proveïdor fals amb la tornada i l'avís a aquest servidor, i el compte de trànsit del
-    proveïdor on va l'ingrés (RN-T08; el crearà la T-M04-17)."""
+    """Proveïdor fals amb la tornada i l'avís a aquest servidor. Torna el compte de trànsit del
+    proveïdor on va l'ingrés (RN-T08), que ningú no crea a mà: ja hi és des de `migrate`
+    (T-M04-17)."""
     settings.PUBLIC_SITE_URL = live_server.url
     fake.reset()
-    transit = TreasuryAccount.objects.create(
-        name="Trànsit del proveïdor de proves", kind="transit", provider_code="fake"
-    )
-    yield transit
+    yield TreasuryAccount.objects.get(kind="transit", provider_code="fake")
     fake.reset()
 
 
