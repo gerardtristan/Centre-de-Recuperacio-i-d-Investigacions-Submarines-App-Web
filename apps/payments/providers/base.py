@@ -118,6 +118,9 @@ class PaymentProvider(ABC):
     """Interfície que implementa cada proveïdor. `code` l'identifica a les dades."""
 
     code: str
+    # Adreces des d'on el proveïdor envia les notificacions, si en publica la llista
+    # (CA-M05a-10). Buida: no es comprova l'origen, només la firma.
+    allowed_ips: tuple[str, ...] = ()
 
     @abstractmethod
     def capabilities(self) -> Capabilities:

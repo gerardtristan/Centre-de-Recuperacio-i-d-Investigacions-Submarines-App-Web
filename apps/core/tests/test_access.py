@@ -45,6 +45,8 @@ PUBLIC_ROUTES = {
     "core:guest",
     "core:guest_link",
     "core:guest_link_request",
+    # Notificacions del proveïdor de pagaments (M05a-8): només POST; la firma és la credencial.
+    "payments:provider_notification",
 }
 
 SAMPLE_VALUES = {
