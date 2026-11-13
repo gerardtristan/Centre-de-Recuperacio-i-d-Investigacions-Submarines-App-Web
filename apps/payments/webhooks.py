@@ -1,7 +1,8 @@
 """Recepció de les notificacions del proveïdor (arquitectura §4.2, punts 1 a 3; T-M05a-04).
 
-Verifica, desa i respon. No processa res: el que queda «rebut» ho processa el 05b (T-M05b-05),
-que també recull el que no s'hagi processat a temps (xarxa de seguretat)."""
+Verifica, desa, la posa a la cua i respon. No processa res: el que queda «rebut» ho processa la
+cua (`processing.process_notification`, T-M05b-05), i la xarxa de seguretat recull el que no
+s'hagi processat a temps."""
 
 import hashlib
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from apps.accounts.security import client_ip
 
 from .models import ProviderEvent
 from .providers.base import InvalidSignature, MalformedNotification, PaymentProvider
+from .tasks import process_notification
 
 R = ProviderEvent.Result
 
@@ -69,6 +71,8 @@ def receive(provider: PaymentProvider, request) -> Received:
     try:
         with transaction.atomic():
             event = ProviderEvent.objects.create(**fields)
+            # A la mateixa transacció: la feina de la cua existeix si i només si la fila hi és.
+            process_notification.defer(event_id=event.pk)
     except IntegrityError:
         # CA-M05a-11: ja la teníem. Es respon correcte i no es torna a processar.
         ProviderEvent.objects.create(**fields, result=R.IGNORED_DUPLICATE)
