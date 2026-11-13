@@ -1037,6 +1037,27 @@ Aprovada el 28/10/2026. **No canvia cap regla** del M01: els valors que el text 
 |---|---|---|---|---|---|
 | T-M01-32 | Pantalla d'ajustos del 01 (VC-01 a VC-04), versions del preu del tipus amb data d'entrada en vigor i lectura dels valors des de les tasques i el carnet ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/members/settings.py`, vistes, migració | T-AJ-02, T-M01-18, T-M01-19 | CA-M01-35 a 37; proves del M01 en verd |
 
+**Ampliació de la [091](decisions/091-valors-del-01-editables-des-de-l-app.md) (13/11/2026; resposta del propietari a [P-79](decisions/pendents.md), opció A).** Els valors i les llistes del 01 que encara són al codi passen als ajustos. Cap import no canvia. Per a VC-02, aquest bloc val per sobre de la taula de dalt i de l'[apèndix](#valors-configurables).
+
+| VC | Clau | Valor inicial | Rang (proposta) | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-02 (substitueix les dues claus) | `members.fee_reminder_offsets`: llista de dies respecte del venciment (negatiu, abans; 0, el mateix dia; positiu, després si no s'ha pagat) | −15, −1, 0, 15, 30 (RN-M01-14, precisió de la 072) | D'1 a 10 valors, cadascun de −90 a 90, sense repetits | Tresorer | — |
+| VC-53 | `members.type_change_supplement_due_days`: dies entre l'aprovació del canvi a ple dret i el venciment del suplement (RN-M01-76) | 7 (085, T-1) | 1 a 30 | Tresorer | — (s'aplica als canvis aprovats després; no toca cap suplement creat) |
+
+| ID | Regla |
+|---|---|
+| RN-M01-106 | Els recordatoris de quota (RN-M01-14) fan servir la llista de VC-02 vigent el dia d'enviar-los; cap variable d'entorn no la fixa. El venciment del suplement (RN-M01-76) surt de VC-53 vigent el dia de l'aprovació, i els textos que el diuen en llegeixen el valor |
+| RN-M01-107 | **Tipus de soci com a dada.** Cap regla no depèn del codi d'un tipus (`supporter`, `full`): cada regla llegeix un atribut del tipus (per exemple, si paga quota o l'edat mínima). Els dos tipus actuals conserven exactament RN-M01-64, les regles de la 073 i les de la 074. Des de la pantalla d'ajustos del 01 es crea, s'edita i es desactiva un tipus amb aquests atributs; un tipus amb socis no s'esborra. Cada canvi va al registre amb el valor anterior |
+
+- **CA-M01-123** (substitueix CA-M01-36) Donat VC-02 a −10, 0 i 20, quan corre la tasca de recordatoris, llavors avisa 10 dies abans, el mateix dia i, si no s'ha pagat, 20 dies després; una llista buida, amb un 91 o amb un valor repetit es rebutja i no es desa res.
+- **CA-M01-124** Donat VC-53 canviat a 10, quan s'aprova un canvi a ple dret, llavors el suplement venç 10 dies després de l'aprovació i la pantalla ho diu; els suplements creats abans conserven el seu venciment.
+- **CA-M01-125** Donat un tipus nou creat des dels ajustos amb els mateixos atributs que un dels tipus actuals, quan una persona en sol·licita l'alta, llavors s'hi apliquen les mateixes regles d'edat i de quota que al tipus original, sense cap canvi de codi; un tipus amb socis no es pot esborrar.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M01-32 (ampliada) | A més del que diu la fila de dalt: VC-02 com a llista i VC-53, i els textos que diuen el termini del suplement | S | els de dalt, `apps/members/member_requests.py`, `apps/members/fees.py` | Les de dalt | CA-M01-35, 37, 123 i 124 |
+| T-M01-52 | Tipus de soci com a dada: atributs del tipus en lloc dels codis fixos (RN-M01-107) i crear, editar i desactivar tipus des de la pantalla d'ajustos del 01 | M | `apps/members/models.py`, `fee_rules.py`, `member_requests.py`, migració | T-M01-32 | CA-M01-125; proves del M01 en verd |
+
 
 <a id="M01-addenda-058"></a>
 ## M01 — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): data de naixement (00), caducitat desconeguda i conservació
