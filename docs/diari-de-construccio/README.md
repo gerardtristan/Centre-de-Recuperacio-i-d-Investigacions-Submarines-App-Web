@@ -129,3 +129,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-40](T-M01-40.md) | Eximir o anul·lar una quota amb el permís P22, motiu i reautenticació (**Feta**, 12/11/2026) | 12/11/2026 | 571f5d0, 6d3e164 | 4030; 42 e2e | verd a ea5eb20 (43198409529 i 43198420245) |
 | [T-M05a-03](T-M05a-03.md) | Adaptador del proveïdor de pagaments i proveïdor fals (**Feta**, 13/11/2026; aprovada pel propietari) | 13/11/2026 | PR #12 | 60 noves | verd (PR a `master`, protegida) |
 | [T-M04-01](T-M04-01.md) | Comptes de tresoreria i comptes inicials (**Feta**, 13/11/2026; aprovada pel propietari) | 13/11/2026 | PR #15 | 23 noves | verd (PR a `master`, protegida) |
+| [T-M05a-04](T-M05a-04.md) | Notificacions del proveïdor de pagaments: verificar, desar i respondre (**Feta**, 13/11/2026) | 13/11/2026 | PR #17 | 21 noves | verd (PR a `master`, protegida) |
