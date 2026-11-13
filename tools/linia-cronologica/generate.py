@@ -714,7 +714,13 @@ def enrich_task(
             open_items.append(m.group(1).strip(" :") + ": " + m.group(2).strip())
         if open_items:
             break
-    if filed and filed["state"] != "feta" and filed["note"] not in ("", "—") and not open_items:
+    if (
+        filed
+        and filed["state"] != "feta"
+        and not filed["note"].startswith(("—", "(pla,"))
+        and filed["note"]
+        and not open_items
+    ):
         open_items.append("Nota: " + filed["note"])
     task["noTanca"] = open_items[-3:]
 
