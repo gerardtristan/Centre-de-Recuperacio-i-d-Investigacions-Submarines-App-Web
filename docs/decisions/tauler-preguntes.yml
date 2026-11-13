@@ -173,7 +173,7 @@ opcions:
       Sense sortida d'«a revisar», el tresorer no pot tancar cap cas. Mentrestant val la A.
     data: 2026-11-13
 
-  P-79:
+  P-83:
     opcions:
       A: Esperar; el càrrec no es pot tornar a provar fins que l'intent acabi sol (notificació del proveïdor o xarxa de seguretat).
       B: Reprendre; mentre l'intent és en curs, «Paga ara» torna el soci a la mateixa ordre del proveïdor, sense intent ni ordre nous.
