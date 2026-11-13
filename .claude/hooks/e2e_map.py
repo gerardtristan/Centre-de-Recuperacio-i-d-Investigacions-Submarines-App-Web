@@ -120,6 +120,11 @@ MAP = {
         "templates/accounts/admin_accounts.html",
         "templates/accounts/admin_home.html",
     ),
+    "test_tresoreria.py": (
+        "apps/treasury/views.py",
+        "apps/treasury/balances.py",
+        "templates/treasury/*.html",
+    ),
     "test_dades_bloquejades.py": (
         "apps/core/locked_data.py",
         "apps/core/views/locked_data.py",
@@ -227,6 +232,18 @@ MAP = {
     "test_flux_fer_se_soci.py": (
         "apps/members/validity.py",
         "apps/members/cards.py",
+    ),
+    "test_flux_primer_euro.py": (
+        "apps/payments/processing.py",
+        "apps/payments/webhooks.py",
+        "apps/treasury/services.py",
+    ),
+    "test_pagament_targeta.py": (
+        "apps/payments/views.py",
+        "apps/payments/checkout.py",
+        "apps/payments/providers/fake.py",
+        "templates/payments/*",
+        "templates/members/personal_fee_detail.html",
     ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la

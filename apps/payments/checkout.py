@@ -24,10 +24,14 @@ REDIRECT = "redirect"
 IFRAME = "iframe"
 
 # On torna el navegador en sortir del proveïdor: la pantalla de pagament del càrrec (M05b-8,
-# «Rutes»). La ruta arriba amb les vistes; fins llavors cap pantalla no crida `start_payment`.
+# «Rutes»; `payments:charge`).
 RETURN_PATH = "/socis/pagaments/{charge}/?tornada={result}"
 
 S = PaymentAttempt.Status
+
+# Estats que veu el soci (M05b-5, «Estats visibles»), i «tancat» per a un càrrec anul·lat o
+# retornat, que no es paga des d'aquesta pantalla.
+PENDING, IN_PROGRESS, PAID, FAILED, CLOSED = "pending", "in_progress", "paid", "failed", "closed"
 
 
 class NotOwnCharge(attempts.ChargeNotPayable):
@@ -44,6 +48,29 @@ class PaymentStart:
     kind: str
     amount_cents: int
     url: str | None = None
+
+
+@dataclass(frozen=True)
+class PaymentStatus:
+    state: str
+    attempt: PaymentAttempt | None  # l'últim intent, si n'hi ha
+
+
+def payment_status(charge: Charge) -> PaymentStatus:
+    """`payments.payment_status`: el que diu la base de dades, mai el navegador (RN-M05b-05).
+    Un intent abandonat torna el càrrec a «pendent»; un de fallit o caducat, a «fallit»."""
+    stored = Charge.objects.get(pk=charge.pk)
+    last = stored.attempts.order_by("-created_at", "-pk").first()
+    if stored.status == Charge.Status.PAID:
+        return PaymentStatus(PAID, last)
+    if stored.status != Charge.Status.PENDING:
+        return PaymentStatus(CLOSED, last)
+    status = last.status if last else None
+    if status in (S.IN_PROGRESS, S.SENT_TO_BANK):
+        return PaymentStatus(IN_PROGRESS, last)
+    if status in (S.FAILED, S.EXPIRED):
+        return PaymentStatus(FAILED, last)
+    return PaymentStatus(PENDING, last)
 
 
 def _in_progress(charge) -> bool:

@@ -47,6 +47,9 @@ PUBLIC_ROUTES = {
     "core:guest_link_request",
     # Notificacions del proveïdor de pagaments (M05a-8): només POST; la firma és la credencial.
     "payments:provider_notification",
+    # Pàgina de pagament del proveïdor fals (T-M05b-04): fa el paper d'una pàgina de fora; només
+    # respon amb el proveïdor fals, que només arrenca amb l'entorn de proves.
+    "payments:fake_pay",
 }
 
 SAMPLE_VALUES = {

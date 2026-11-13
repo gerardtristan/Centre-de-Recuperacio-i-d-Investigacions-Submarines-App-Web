@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (primer tall), C8 sense l'exportació: moviments amb filtres per compte, departament i dates. Només lectura (RN-T07): l'únic formulari és el de filtres, amb GET. Permís T1 al servidor. Un moviment anul·lat no desapareix: surt marcat (CA-T06.1, RN-T25). Imports amb signe, color i xifres tabulars, a la dreta (B8). El concepte no porta noms (RNF-T4). #}
+{% block title %}{% translate "Moviments de tresoreria" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <h1>{% translate "Moviments de tresoreria" %}</h1>
+
+  <form class="formulari" method="get" action="{% url 'administration:treasury_movements' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:treasury_movements' %}">{% translate "Treu els filtres" %}</a>
+    </div>
+  </form>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} moviment, del més recent al més antic per data de valor{% plural %}{{ total }} moviments, del més recent al més antic per data de valor{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Data de valor" %}</th>
+        <th scope="col">{% translate "Compte" %}</th>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Concepte" %}</th>
+        <th scope="col">{% translate "Departament" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col" class="cel-import">{% translate "Import" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with movement=row.movement %}
+        <tr>
+          <th scope="row" class="cel-nom"><time datetime="{{ movement.value_date|date:'Y-m-d' }}">{{ movement.value_date|date:"d/m/Y" }}</time></th>
+          <td data-etiqueta="{% translate 'Compte' %}" class="cel-valor">{{ movement.account.name }}</td>
+          <td data-etiqueta="{% translate 'Tipus' %}" class="cel-valor">{{ movement.get_kind_display }}</td>
+          <td data-etiqueta="{% translate 'Concepte' %}" class="cel-valor">{{ movement.concept }}</td>
+          <td data-etiqueta="{% translate 'Departament' %}" class="cel-valor">{% if movement.cost_centre %}{{ movement.cost_centre.full_name }}{% elif movement.department %}{{ movement.department.name }}{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if movement.is_reversed %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Anul·lat" %}</span>{% else %}<span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Vigent" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import {% if movement.direction == 'in' %}import-entrada{% else %}import-sortida{% endif %}">{{ row.amount }}</span></td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="7">{% translate "Cap moviment amb aquests filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines dels moviments' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Més recents" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Més antics" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+{% endblock %}
