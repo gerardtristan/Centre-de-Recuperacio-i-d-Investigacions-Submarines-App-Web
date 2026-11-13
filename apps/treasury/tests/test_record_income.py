@@ -31,7 +31,16 @@ def new_transit(provider_code=None, name="Trànsit del proveïdor de proves"):
     )
 
 
-def paid(person, *, method=M.CARD, amount=9000, received=None, kind="fee", department=None):
+def paid(
+    person,
+    *,
+    method=M.CARD,
+    amount=9000,
+    received=None,
+    kind="fee",
+    department=None,
+    cost_centre=None,
+):
     """Un pagament amb el càrrec ja «pagat», com el deixen el 05b o la conciliació."""
     charge = charges.create_charge(
         person,
@@ -41,6 +50,7 @@ def paid(person, *, method=M.CARD, amount=9000, received=None, kind="fee", depar
         origin="proves",
         by=SYSTEM,
         department=department,
+        cost_centre=cost_centre,
     )
     payment = Payment.objects.create(
         charge=charge, method=method, amount_cents=received or amount, paid_at=PAID_AT
@@ -143,9 +153,13 @@ class TestIncome:
             record(paid(person, method=method))
         assert nothing_was_recorded()
 
-    def test_ca_t03_1_a_charge_that_is_not_a_fee_has_no_cost_centre_yet(self, person, transit):
-        # El càrrec encara no porta centre de cost (segona meitat de la T-M04-02; P-81).
+    def test_ca_t03_1_rn_t10_the_income_takes_the_cost_centre_of_the_charge(self, person, transit):
+        # Ja no hi ha la regla provisional de la P-81: el centre de cost surt del càrrec.
         courses = Department.objects.create(name="Cursos")
+        open_water = CostCentre.objects.create(department=courses, name="Open Water")
+        payment = paid(person, kind="enrolment", department=courses, cost_centre=open_water)
+        movement = record(payment)
+        assert (movement.department, movement.cost_centre) == (courses, open_water)
         movement = record(paid(person, kind="enrolment", department=courses))
         assert (movement.department, movement.cost_centre) == (courses, None)
 

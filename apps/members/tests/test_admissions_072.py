@@ -64,6 +64,7 @@ class TestFee:
         assert fee.charge.kind == Charge.Kind.FEE
         assert fee.charge.status == Charge.Status.PENDING
         assert fee.charge.department.name == Department.GENERAL
+        assert fee.charge.cost_centre.full_name == "General / Quotes de socis"  # S-M04-06
 
     def test_a_live_fee_of_the_same_period_is_not_duplicated(self, secretary):
         member = admissions.approve_join(a_request(), by=secretary)

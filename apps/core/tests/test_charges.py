@@ -2,6 +2,7 @@
 RN-60 a RN-76). Només dades inventades."""
 
 from decimal import Decimal
+from importlib import import_module
 
 import pytest
 from django.apps import apps as django_apps
@@ -19,6 +20,7 @@ from apps.core.models import (
     Role,
     UndeletableError,
 )
+from apps.treasury.models import CostCentre
 
 pytestmark = pytest.mark.django_db
 R = Role.Code
@@ -54,6 +56,7 @@ def new_charge(person, by, kind="enrolment", amount_cents=12000, department=None
         concept=kwargs.pop("concept", "Curs Open Water"),
         origin=kwargs.pop("origin", "activities"),
         department=department,
+        cost_centre=kwargs.pop("cost_centre", None),
         by=by,
     )
 
@@ -129,11 +132,41 @@ class TestCreatingCharges:
         # CA-15.8
         charge = new_charge(person, admin, kind="fee", amount_cents=9000, origin="members")
         assert charge.department.name == "General"
+        assert charge.cost_centre.full_name == "General / Quotes de socis"  # S-M04-06
         assert (charge.status, charge.currency) == (S.PENDING, "EUR")
 
     def test_a_fee_cannot_go_elsewhere(self, admin, person, courses):
         with pytest.raises(ValidationError):
             new_charge(person, admin, kind="fee", department=courses)
+
+    def test_a_fee_cannot_go_to_another_cost_centre(self, admin, person):
+        licences = CostCentre.objects.get(name="Llicències")
+        with pytest.raises(ValidationError, match="Quotes de socis"):
+            new_charge(person, admin, kind="fee", cost_centre=licences)
+        assert not Charge.objects.exists()
+
+    def test_another_charge_takes_a_cost_centre_of_its_department(self, admin, person, courses):
+        # M04-6: FK null. Sense centre de cost, el càrrec es crea igual.
+        centre = CostCentre.objects.create(department=courses, name="Open Water")
+        assert (
+            new_charge(person, admin, department=courses, cost_centre=centre).cost_centre == centre
+        )
+        assert new_charge(person, admin, department=courses).cost_centre is None
+
+    def test_the_cost_centre_must_be_of_the_department_of_the_charge(self, admin, person, courses):
+        licences = CostCentre.objects.get(name="Llicències")  # de «General»
+        with pytest.raises(ValidationError, match="departament del càrrec"):
+            new_charge(person, admin, department=courses, cost_centre=licences)
+        assert not Charge.objects.exists()
+
+    def test_ca_t14_2_a_deactivated_cost_centre_takes_no_new_charges(self, admin, person, courses):
+        centre = CostCentre.objects.create(department=courses, name="Open Water", active=False)
+        with pytest.raises(ValidationError, match="desactivat"):
+            new_charge(person, admin, department=courses, cost_centre=centre)
+        CostCentre.objects.filter(name="Quotes de socis").update(active=False)
+        with pytest.raises(ValidationError, match="desactivat"):
+            new_charge(person, admin, kind="fee")
+        assert not Charge.objects.exists()
 
     def test_unknown_kind_is_refused(self, admin, person, courses):
         with pytest.raises(ValidationError):
@@ -147,8 +180,25 @@ class TestCreatingCharges:
             "kind": "enrolment",
             "amount_cents": 12000,
             "department": "Cursos",
+            "cost_centre": None,
             "origin": "activities",
         }
+        new_charge(person, admin, kind="fee", amount_cents=9000)
+        fee = AuditEntry.objects.filter(action="charges.created").latest("pk")
+        assert fee.details["cost_centre"] == "Quotes de socis"
+
+    def test_migration_puts_existing_fees_in_their_cost_centre(self, person, courses):
+        # Migració 0029: les quotes que ja hi eren, a «General / Quotes de socis»; la resta, igual.
+        general = Department.objects.get(name="General")
+        fields = {"person": person, "concept": "x", "amount_cents": 9000, "origin": "test"}
+        fee = Charge.objects.create(kind="fee", department=general, **fields)
+        other = Charge.objects.create(kind="enrolment", department=courses, **fields)
+        module = import_module("apps.core.migrations.0029_charge_cost_centre")
+        module.fees_to_their_cost_centre(django_apps, None)
+        fee.refresh_from_db()
+        other.refresh_from_db()
+        assert fee.cost_centre.full_name == "General / Quotes de socis"
+        assert other.cost_centre is None
 
 
 class TestPayments:

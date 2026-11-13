@@ -61,10 +61,10 @@ UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
 
 
 def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> AnnualFee:
-    """Quota sobre un càrrec «quota» a «General» (la 00 ho imposa). P-54, sortida E (072): si les
-    quotes d'aquest tipus i període estan anul·lades, se'n crea una de nova amb el número d'ordre
-    següent; si n'hi ha cap de viva (pendent, pagada o retornada), es rebutja. Qui crida ja ha
-    comprovat el permís i és dins la transacció que bloqueja el soci."""
+    """Quota sobre un càrrec «quota» a «General / Quotes de socis» (la 00 ho imposa; S-M04-06).
+    P-54, sortida E (072): si les quotes d'aquest tipus i període estan anul·lades, se'n crea una
+    de nova amb el número d'ordre següent; si n'hi ha cap de viva (pendent, pagada o retornada),
+    es rebutja. Qui crida ja ha comprovat el permís i és dins la transacció que bloqueja el soci."""
     same = AnnualFee.objects.filter(member=member, period=period, kind=kind)
     if same.exclude(charge__status=Charge.Status.CANCELLED).exists():
         raise ValidationError(_("Aquest soci ja té una quota d'aquest tipus i període."))
