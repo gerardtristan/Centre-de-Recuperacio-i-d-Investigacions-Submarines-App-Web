@@ -44,7 +44,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-28 | feta | 16/11/2026 | #82 | Ajuda de l'àrea del soci: índex de temes, preguntes plegades per tema (`details name`) i Ctrl+F; cerca pròpia i «Copiar l'enllaç» desactivats |
 | T-DX-29 Calendari d'un dia (Asueto), en construcció | feta | 16/11/2026 | #98 | Dia amb excepció a l'administració: línia amb nanses, activitats fora ratllades amb la primera hora lliure; res no es mou fins a «Aplica» |
 | T-DX-30 Reasigna, en construcció | feta | 16/11/2026 | #88 | `/en-construccio/reassignar/`: agenda del dia amb les sessions de qui falta, proposta («→ qui» o «sense lloc»), marge d'hora i confirmar-ho tot; mòdul 02 aparcat (D6) |
-| T-DX-31 Publicar activitats (Averia i Pregon), en construcció | per fer | — | — | — |
+| T-DX-31 Publicar activitats (Averia i Pregon), en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-32 Avaries del material (Averia), en construcció | feta | 16/11/2026 | #95 | `/en-construccio/avaries-material/`: tipus, preguntes per tipus, descripció i fotos, i la fitxa de la peça; proposta (el pla té «a revisió», no el formulari) |
 | T-DX-33 Finances per àmbit (Gastos), en construcció | feta | 16/11/2026 | #96 | `/en-construccio/finances-ambit/`: anell de despeses per àmbit (SVG amb atributs) i taula d'ingressos, despeses i resultat en format català; àmbits d'exemple (Q-17) |
 | T-DX-34 Factures (Emisor), en construcció | feta | 16/11/2026 | #100 | `/en-construccio/factures/`: rebut o factura, dades fiscals del destinatari i la fulla que s'omple; facturació desactivada (P-02, P-47); P-93 (C) |
