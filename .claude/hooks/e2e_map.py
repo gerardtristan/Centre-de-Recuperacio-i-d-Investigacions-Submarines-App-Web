@@ -184,6 +184,7 @@ MAP = {
         "templates/accounts/admin_home.html",
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_vigencia_admin.py": ("templates/members/_licence_records.html",),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",

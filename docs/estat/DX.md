@@ -26,7 +26,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-11 Tramite i Emisor: el rebut | feta | 16/11/2026 | #62 | P-93 (C): només el segell. La ranura i la impressió en blanc i negre, de Tramite |
 | T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | bloquejada | — | — | La pantalla de transferència és la T-M05b-06 (pilot), encara per fer; la T-M04-10 només ha deixat el servei `transfer_reference` |
 | T-DX-13 Vigencia: quota i llicència a l'àrea del soci | feta | 16/11/2026 | #63 | Compte enrere al servidor; dies d'avís = recordatoris de VC-02 (cap valor nou). A «Les meves quotes» i a la llicència del perfil |
-| T-DX-14 Vigencia: llicències a l'administració | per fer | — | — | — |
+| T-DX-14 Vigencia: llicències a l'administració | feta | 16/11/2026 | #64 | Llicència de la fitxa de l'administració. La confirmació en bloc no en porta (sense data). Arreglat el desbordament a 320 px d'una llicència declarada |
 | T-DX-15 Autentico: verificació del carnet | per fer | — | — | Mateixes dades que ara (RN-M01-26) |
 | T-DX-16 Deposito: panell de revisió a altes pendents i sol·licituds | per fer | — | — | — |
 | T-DX-17 Oleaje: portada de l'àrea del soci | per fer | — | — | Substitueix l'ona de la 032 |
