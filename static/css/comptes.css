@@ -51,6 +51,10 @@ figure { margin: 0; }
 .taula tr { padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); }
 .taula td { display: flex; justify-content: space-between; align-items: center; gap: var(--e-3); padding: var(--e-1) 0; }
 .taula td::before { content: attr(data-etiqueta); color: var(--c-text-2); }
+/* Un valor llarg (una etiqueta d'estat llarga, la regla de Vigencia) passa a la línia següent en lloc
+   de desbordar a 320 px (trobat a la T-DX-14 amb una llicència declarada pel soci) */
+.taula td { flex-wrap: wrap; }
+.taula td .estat { white-space: normal; }
 .taula .cel-nom { text-align: left; font-weight: var(--p-semi); font-size: var(--t-m); }
 .taula td.cel-accions { justify-content: flex-end; }
 .taula td.cel-accions::before { content: none; }

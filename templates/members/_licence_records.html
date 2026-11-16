@@ -1,4 +1,5 @@
 {% load i18n vigencia %}
+{# Vigencia (T-DX-13 i T-DX-14): els dies que queden d'una llicència amb caducitat confirmada, a l'àrea del soci i a la fitxa de l'administració; una declarada pendent de confirmar no compta. #}
 {# T-M01-23: registre mínim de llicència (RN-M01-29, P19). Amagar els enllaços no és cap control: el servidor torna a comprovar P19 sencer, P4 i el conflicte d'interès (S-M01-22). Res s'esborra (RN-M01-36). Caducitat buida: «caducitat desconeguda» (RN-M01-50, T-M01-34). Declarada pel soci: es mostra amb la marca i no és vigent fins que es confirma (RN-M01-77). #}
 {% if visible %}
   <section aria-labelledby="llicencia-titol">
@@ -12,7 +13,7 @@
             <tr>
               <th scope="row" class="cel-nom">{{ record.licence_type }}</th>
               <td data-etiqueta="{% translate "Data d'alta" %}"><time datetime="{{ record.issued_on|date:'Y-m-d' }}">{{ record.issued_on|date:"d/m/Y" }}</time></td>
-              <td data-etiqueta="{% translate 'Data de caducitat' %}">{% if record.expires_on %}<time datetime="{{ record.expires_on|date:'Y-m-d' }}">{{ record.expires_on|date:"d/m/Y" }}</time>{% if record.expiry_declared %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Declarada pel soci, pendent de confirmar" %}</span>{% endif %}{% else %}{% translate "caducitat desconeguda" %}{% endif %}{% if own and record.expires_on and not record.expiry_declared %}{% vigencia record.expires_on "llicencia" %}{% endif %}</td>
+              <td data-etiqueta="{% translate 'Data de caducitat' %}">{% if record.expires_on %}<time datetime="{{ record.expires_on|date:'Y-m-d' }}">{{ record.expires_on|date:"d/m/Y" }}</time>{% if record.expiry_declared %} <span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Declarada pel soci, pendent de confirmar" %}</span>{% endif %}{% else %}{% translate "caducitat desconeguda" %}{% endif %}{% if record.expires_on and not record.expiry_declared %}{% vigencia record.expires_on "llicencia" %}{% endif %}</td>
               <td data-etiqueta="{% translate 'Origen' %}">{{ record.get_source_display }}</td>
               {% if can_manage and not own %}<td class="cel-accions"><a href="{% url 'administration:licence_edit' member.pk record.pk %}">{% if record.expiry_declared %}{% translate "Confirma o corregeix" %}{% else %}{% translate "Corregeix" %}{% endif %}<span class="visualment-amagat"> {{ record.licence_type }}</span></a></td>{% endif %}
             </tr>

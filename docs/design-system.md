@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.18 (16/11/2026). La 1.18 afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
+- **Versió:** 1.19 (16/11/2026). La 1.19 posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
+- La 1.18 (16/11/2026) afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
 - La 1.17 (16/11/2026) afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
 - La 1.16 (16/11/2026) afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
 - La 1.15 (16/11/2026) afegeix Ramillete, la navegació de l'àrea del soci al mòbil (§6.12, T-DX-08).
@@ -483,7 +484,7 @@ Del recurs Vigencia ([pla dels recursos externs](plans/recursos-disseny-extern.m
 - **Dies d'avís:** per a la quota, els recordatoris d'abans del venciment (VC-02, `MEMBER_FEE_REMINDER_OFFSETS`, que passarà a Ajustos a la T-M01-32). Cap valor nou al codi. La llicència no en té cap de definit i no en porta.
 - **Trams:** verd; avís des del primer dia d'avís; vermell un cop vençuda. L'escala del dibuix és de 60 dies (no és cap regla: a partir d'aquí, la barra és plena) i s'allarga si un dia d'avís és més llunyà.
 - **Dibuix:** un SVG amb atributs (cap `style=`), decoratiu; el text («Queden 23 dies», «Venç avui», «Va vèncer fa 2 dies») ho diu tot.
-- **On:** «Les meves quotes» i la llicència del perfil del soci (la seva, si té data i no és declarada pendent de confirmar). Del recurs no s'hi fa: el lliscador de temps, «Renovar» (renovar és pagar) ni l'`.ics` d'avisos.
+- **On:** «Les meves quotes» i la llicència, al perfil del soci i a la fitxa de l'administració (T-DX-14), si té data de caducitat i no és declarada pendent de confirmar. La confirmació en bloc no en porta: hi surten llicències sense data. Del recurs no s'hi fa: el lliscador de temps, «Renovar» (renovar és pagar) ni l'`.ics` d'avisos.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
