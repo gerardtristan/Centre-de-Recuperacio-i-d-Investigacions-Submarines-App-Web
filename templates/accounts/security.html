@@ -24,5 +24,10 @@
       <div class="accions"><a class="boto boto-principal" href="{% url 'accounts:totp_enrol' %}">{% translate "Activar el doble factor" %}</a></div>
     {% endif %}
   </section>
+  <section class="targeta" aria-labelledby="aparenca">
+    <h2 id="aparenca">{% translate "Aparença" %}</h2>
+    <p>{% translate "Per defecte, la plataforma fa servir el tema clar o fosc del teu dispositiu («Sistema»). La tria es desa en aquest dispositiu." %}</p>
+    {% include "_selector_tema.html" %}
+  </section>
   <p class="enllacos"><a href="{% url 'core:home' %}">{% translate "Tornar a l'inici" %}</a></p>
 {% endblock %}

@@ -103,10 +103,21 @@ def test_point_5_create_a_leave_does_not_weigh_like_edit(make_admin):  # noqa: F
     assert "boto-text" in leave.group(1).split()
 
 
-# --- Punt 6: el selector de tema i el menú personal en l'ordre en què es veuen -------------------
+# --- Punt 6, revisat a la T-DX-05b: el tema és a la configuració del compte, no a la capçalera ---
 
 
-def test_point_6_theme_selector_comes_before_the_personal_menu_in_tab_order(marta):  # noqa: F811
+def test_t_dx_05b_theme_selector_is_in_the_account_settings_not_in_the_header(marta):  # noqa: F811
     _member, account = marta
-    html = personal_client(account).get(reverse("core:home")).content.decode()
-    assert 0 < html.index('class="selector-tema"') < html.index('class="navegacio-compte"')
+    client = personal_client(account)
+    home = client.get(reverse("core:home")).content.decode()
+    assert "selector-tema" not in home and "data-eclipse" not in home
+    settings = client.get(reverse("accounts:security")).content.decode()
+    assert 'class="selector-tema selector-tema-ajust"' in settings
+    assert "Aparença" in settings
+
+
+def test_t_dx_05b_admin_home_has_the_theme_selector(make_admin):  # noqa: F811
+    html = admin_client(make_admin("secretary")).get(reverse("administration:home"))
+    html = html.content.decode()
+    assert 'class="selector-tema selector-tema-ajust"' in html
+    assert html.index('class="selector-tema') > html.index('id="contingut"')

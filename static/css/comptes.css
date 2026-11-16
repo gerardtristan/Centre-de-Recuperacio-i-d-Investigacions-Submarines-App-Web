@@ -10,10 +10,9 @@
 .capcalera-compte .marca { display: flex; align-items: center; gap: var(--e-2); color: var(--c-text); text-decoration: none; min-height: var(--tactil); }
 .capcalera-compte img { width: var(--logo-capcalera); height: auto; }
 .capcalera-compte .titol-zona { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-weight: var(--p-negreta); font-size: var(--t-l); }
-.capcalera-compte .selector-tema { margin-left: auto; }
-/* T-M01-45 (2): «Sistema», «Clar» i «Fosc» es llegeixen també al mòbil, com al wireframe
-   (tokens.css només els mostra a partir de 600 px). A 320 px el selector passa a la seva fila. */
-.capcalera-compte .selector-tema .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
+/* A la configuració del compte (T-DX-05b; abans a la capçalera, T-M01-45 punt 2): «Sistema», «Clar» i
+   «Fosc» es llegeixen a totes les mides (tokens.css només els mostra a partir de 600 px). */
+.selector-tema-ajust .text-opcio { position: static; width: auto; height: auto; overflow: visible; clip: auto; font-size: var(--t-s); }
 
 /* Cos: una columna estreta per als formularis, més ampla per a les llistes */
 .cos-compte { max-width: 28rem; margin: 0 auto; padding: var(--e-5) var(--e-4); display: grid; gap: var(--e-4); }
@@ -166,7 +165,6 @@ figure { margin: 0; }
 .lateral-compte .boto:hover { background: var(--c-lateral-fons-2); box-shadow: none; }
 /* Capçalera amb el botó «Menú»: el logotip a l'esquerra i la resta a la dreta, en l'ordre del teclat */
 .capcalera-compte .boto-menu { margin-left: auto; }
-.capcalera-compte .boto-menu + .selector-tema { margin-left: 0; }
 /* Inici de l'administració: les mateixes entrades del menú, com a llista d'enllaços */
 ul.enllacos { list-style: none; }
 @media (min-width: 1024px) {
@@ -176,5 +174,4 @@ ul.enllacos { list-style: none; }
   .amb-barra-lateral > main { align-self: start; }
   .barra-lateral, .menu-plegable .barra-lateral { display: flex; }
   .capcalera-compte .boto-menu { display: none; }
-  .capcalera-compte .boto-menu + .selector-tema { margin-left: auto; }
 }
