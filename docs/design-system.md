@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.8 (16/11/2026). La 1.8 porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
+- **Versió:** 1.9 (16/11/2026). La 1.9 porta la paleta d'estats a OKLCH amb la mateixa lluminositat per rol, les vores amb transparència i la superfície flotant (§15.4, T-DX-02), i corregeix l'ordre d'elevació.
+- La 1.8 (16/11/2026) porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
 - La 1.7 (16/11/2026) afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
 - La 1.6 (11/11/2026) descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
 - La 1.5 (03/11/2026) afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
@@ -585,7 +586,7 @@ Tres llistes de regles que valen per a **tota la interfície**: les pantalles no
 | 20 | Animate useful feedback | cada animació respon a una acció o a un canvi d'estat. L'única animació contínua permesa és Oleaje, lenta i desactivable, i s'atura amb prefers-reduced-motion. |
 
 ### 15.4 Tokens que concreten les regles
-Els de moviment i els radis ja són a `tokens.css` (T-DX-01, amb els noms que ja existien). Els de color hi entren a la T-DX-02; fins llavors manen els valors actuals.
+Tots són a `tokens.css`: els de moviment i els radis des de la T-DX-01 (amb els noms que ja existien) i els de color des de la T-DX-02.
 
 **Moviment** (B2, B5, B6, B9, B17, C4). Amb `prefers-reduced-motion: reduce`, totes les durades passen a 0 i l'escala de premut a 1, com ja fa `tokens.css`.
 
@@ -615,14 +616,14 @@ La 1.7 proposava `--m-icona`, `--m-corba-entrada` i `--m-corba-desplacament`: no
 .radi-concentric { --r-interior: max(0px, calc(var(--r-exterior) - var(--farciment))); }
 ```
 
-**Color** (C3, C5, C6, C7, D2, D10).
-- **OKLCH amb alternativa:** cada token es declara primer en hexadecimal (el valor actual) i després, dins de `@supports (color: oklch(0 0 0))`, en `oklch()`. Els navegadors que no l'entenen es queden amb el primer.
-- **Mateixa lluminositat als estats:** pagat, pendent, retornat i anul·lat; actiu, impagat i baixa. Objectiu per rol (es fixa a la T-DX-02 i es comprova amb la calculadora de contrast): text d'estat L ≈ 0,45 al clar i ≈ 0,82 al fosc; decoratiu L ≈ 0,62 i ≈ 0,70; fons tenyit L ≈ 0,94 i ≈ 0,28. El to (H) de cada rol és fix; els temes només canvien L i C.
-- **Vores amb transparència:** `--c-linia` = `color-mix(in oklch, var(--c-text) 16%, transparent)`; `--c-linia-forta` amb el percentatge que doni 3:1 (vores de camps, WCAG 1.4.11). Alternativa: el hexadecimal actual.
-- **Profunditat al fosc:** l'ordre d'elevació és `--c-fons` (0) < `--c-superficie` (1) < `--c-superficie-2` (2: menús, diàlegs) < `--c-superficie-flotant` (3, nou: avisos, pestanya arrossegada). Al fosc, cada nivell és més clar que l'anterior; l'ombra no creix.
-- **Degradats:** `linear-gradient(in oklch, …)` i `radial-gradient(in oklch, …)`, amb un degradat en sRGB com a alternativa.
+**Color** (C3, C5, C6, C7, D2, D10). A `tokens.css` des de la T-DX-02:
+- **OKLCH amb alternativa:** els colors d'estat i la superfície flotant es declaren primer en hexadecimal i després, dins de `@supports (color: oklch(0 0 0))`, en `oklch()`. L'hexadecimal és el mateix color arrodonit, així que tots els navegadors veuen el mateix. Els primitius de marca (`--abisme`, `--llauto`, `--posidonia`…) i la resta de tokens queden en hexadecimal: són exactes i no tenen res a igualar.
+- **Mateixa lluminositat als estats** (`ok`, `avis`, `error`, `info` i `sistema`, que pinten pagat, pendent, retornat, anul·lat, actiu, impagat i baixa): al clar, decoratiu L 0,42, text L 0,33 i fons tenyit L 0,84; al fosc, decoratiu i text L 0,80 i fons tenyit L 0,31. El to (H) de cada estat és el mateix als dos temes. El fons tenyit de l'avís al clar continua sent el daurat de marca (`--llauto`, L 0,84).
+- **Vores amb transparència:** dins de `@supports (color: color-mix(in oklch, red, blue))`, `--c-linia` és el color del text amb un 14 % (clar) o un 20 % (fosc), que fa 1,3:1 com abans, i `--c-linia-forta` amb un 68 % (clar) o un 48 % (fosc), que dona 3:1 o més sobre el fons, el contenidor i el pou (WCAG 1.4.11). Sense `color-mix()`, els hexadecimals d'abans.
+- **Profunditat al fosc:** l'ordre d'elevació és `--c-fons` (0) < `--c-superficie-2` (el pou intermedi) < `--c-superficie` (1: targetes) < `--c-superficie-flotant` (2, nou: menús, diàlegs, avisos). Al fosc, cada nivell és més clar que l'anterior (L 0,24, 0,28, 0,33 i 0,37) i l'ombra no creix. Al clar, la flotant és la més clara (L 0,90) i l'ombra fa la resta. (La 1.7 posava el pou per sobre del contenidor: era un error.)
+- **Degradats:** els nous, en `linear-gradient(in oklch, …)` o `radial-gradient(in oklch, …)`, amb un degradat en sRGB a la línia anterior com a alternativa. Els que ja hi ha són gairebé neutres (blancs i transparents sobre el mateix to) i ja barregen en `oklab`: no tenen gris al mig i no es canvien.
 - **Accent:** un de sol, `--c-accent` (el daurat de `tokens.css`). Si és o no el color del logotip depèn de la decisió de la paleta, encara pendent (§2) [A validar].
-- **Contrast:** 4,5:1 el text normal i 3:1 el text gran i les icones, comprovat als dos temes després de convertir. El text «suau» (`--c-text-2`) es revisa.
+- **Contrast:** el text d'estat fa com a mínim 4,82:1 i el decoratiu 3,32:1 sobre el fons, el contenidor, el pou i el seu fons tenyit, als dos temes. Ho comprova `apps/core/tests/test_tokens_color.py`, que també vigila que l'hexadecimal i l'`oklch()` siguin el mateix color.
 
 **Xifres** (D7, D14, D16). `font-variant-numeric: tabular-nums` a taules, imports, saldos, comptadors i dates, alineats a la dreta. Monoespai (`--f-codi`) només per al número de soci, la referència de transferència i el número de rebut: els imports deixen de ser monoespai.
 

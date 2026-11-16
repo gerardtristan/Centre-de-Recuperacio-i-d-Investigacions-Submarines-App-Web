@@ -29,6 +29,7 @@
   --c-fons: var(--boira);
   --c-superficie: var(--pissarra);
   --c-superficie-2: #BCC3C4;      /* pou intermedi */
+  --c-superficie-flotant: #DCE0DF; /* menús, diàlegs, avisos (C6) */
   --c-text: var(--abisme);        /* 10,6:1 fons · 6,7:1 contenidor */
   --c-text-2: var(--casc);        /* 7,9:1 fons · 5,0:1 contenidor */
   --c-linia: #AEB7B9;             /* decorativa */
@@ -69,11 +70,13 @@
   --c-admin: var(--casc);        --c-admin-text: var(--abisme);      --c-admin-fons: #B5BEC0;
 
   /* Estats: decoratiu / text / fons tenyit (sempre amb símbol i text, mai només color) */
-  --c-ok: var(--posidonia);  --c-ok-text: #013F31;            --c-ok-fons: #B4CCC2;
-  --c-avis: #7A5D00;         --c-avis-text: var(--llauto-text); --c-avis-fons: var(--llauto);
-  --c-error: #8E2A22;        --c-error-text: #6A1712;          --c-error-fons: #E6C4BF;
-  --c-info: #12384F;         --c-info-text: #12384F;           --c-info-fons: #B9CEDA;
-  --c-sistema: #3A2C70;      --c-sistema-text: #3A2C70;        --c-sistema-fons: #C9C3E0;
+  /* Mateixa lluminositat OKLCH per rol (C5): decoratiu L 0,42, text L 0,33, fons tenyit L 0,84.
+     Aquests hexadecimals són l'alternativa; els valors oklch() són a @supports, més avall. */
+  --c-ok: #005B46;           --c-ok-text: #024032;             --c-ok-fons: #B9D1C7;
+  --c-avis: #614900;         --c-avis-text: #423305;           --c-avis-fons: var(--llauto);
+  --c-error: #88241D;        --c-error-text: #64110D;          --c-error-fons: #E3C1BC;
+  --c-info: #2C516A;         --c-info-text: #133950;           --c-info-fons: #B9CEDA;
+  --c-sistema: #4C4086;      --c-sistema-text: #35276A;        --c-sistema-fons: #CCC6E3;
 
   /* Relleu neumòrfic: una ombra fosca i una de clara del mateix to, per a cada superfície */
   --neu-fons-fosca: #A3AAAA;  --neu-fons-clara: #F0F2F1;
@@ -98,6 +101,7 @@
     --c-fons: var(--abisme);
     --c-superficie: var(--casc);
     --c-superficie-2: #1B2C39;
+    --c-superficie-flotant: #304351;
     --c-text: #E6EAE9;              /* 13,5:1 fons · 10,1:1 contenidor */
     --c-text-2: var(--pissarra);    /* 6,7:1 fons · 5,0:1 contenidor */
     --c-linia: #34495A;
@@ -116,11 +120,11 @@
     --c-publica: #43C59E; --c-publica-text: #43C59E; --c-publica-fons: #12392F;
     --c-soci: var(--llauto); --c-soci-text: var(--llauto); --c-soci-fons: #3A3110;
     --c-admin: var(--pissarra); --c-admin-text: var(--boira); --c-admin-fons: #2E4252;
-    --c-ok: #43C59E;   --c-ok-text: #43C59E;   --c-ok-fons: #12392F;
-    --c-avis: var(--llauto); --c-avis-text: var(--llauto); --c-avis-fons: #3A3110;
-    --c-error: #FF9A8F; --c-error-text: #FF9A8F; --c-error-fons: #3E2427;
-    --c-info: #8CC4E0;  --c-info-text: #8CC4E0;  --c-info-fons: #1C3A4D;
-    --c-sistema: #C3B5F5; --c-sistema-text: #C3B5F5; --c-sistema-fons: #2A2547;
+    --c-ok: #59D8B0;   --c-ok-text: #59D8B0;   --c-ok-fons: #11382E;
+    --c-avis: #E7B725; --c-avis-text: #E7B725; --c-avis-fons: #39300F;
+    --c-error: #FFA096; --c-error-text: #FFA096; --c-error-fons: #42282B;
+    --c-info: #8FC7E3;  --c-info-text: #8FC7E3;  --c-info-fons: #163446;
+    --c-sistema: #C1B3F3; --c-sistema-text: #C1B3F3; --c-sistema-fons: #2F2B4D;
     --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
     --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
     --c-llum-interior: rgba(255, 255, 255, .08);
@@ -139,6 +143,7 @@
   --c-fons: var(--abisme);
   --c-superficie: var(--casc);
   --c-superficie-2: #1B2C39;
+  --c-superficie-flotant: #304351;
   --c-text: #E6EAE9;
   --c-text-2: var(--pissarra);
   --c-linia: #34495A;
@@ -157,11 +162,11 @@
   --c-publica: #43C59E; --c-publica-text: #43C59E; --c-publica-fons: #12392F;
   --c-soci: var(--llauto); --c-soci-text: var(--llauto); --c-soci-fons: #3A3110;
   --c-admin: var(--pissarra); --c-admin-text: var(--boira); --c-admin-fons: #2E4252;
-  --c-ok: #43C59E;   --c-ok-text: #43C59E;   --c-ok-fons: #12392F;
-  --c-avis: var(--llauto); --c-avis-text: var(--llauto); --c-avis-fons: #3A3110;
-  --c-error: #FF9A8F; --c-error-text: #FF9A8F; --c-error-fons: #3E2427;
-  --c-info: #8CC4E0;  --c-info-text: #8CC4E0;  --c-info-fons: #1C3A4D;
-  --c-sistema: #C3B5F5; --c-sistema-text: #C3B5F5; --c-sistema-fons: #2A2547;
+  --c-ok: #59D8B0;   --c-ok-text: #59D8B0;   --c-ok-fons: #11382E;
+  --c-avis: #E7B725; --c-avis-text: #E7B725; --c-avis-fons: #39300F;
+  --c-error: #FFA096; --c-error-text: #FFA096; --c-error-fons: #42282B;
+  --c-info: #8FC7E3;  --c-info-text: #8FC7E3;  --c-info-fons: #163446;
+  --c-sistema: #C1B3F3; --c-sistema-text: #C1B3F3; --c-sistema-fons: #2F2B4D;
   --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
   --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
   --c-llum-interior: rgba(255, 255, 255, .08);
@@ -173,6 +178,48 @@
   --c-ocea-text: #E6EAE9;
   --c-ocea-text-2: var(--boira);
   --c-caustica: rgba(204, 208, 207, .07);
+}
+
+/* ---------- OKLCH (C5) i vores amb transparència (C3) ----------
+   Els navegadors sense oklch() o sense color-mix() es queden amb els hexadecimals de dalt.
+   Els temes només canvien L i C: el to (H) de cada estat és el mateix als dos.
+   Contrastos comprovats als dos temes (design-system §15.4 i diari de la T-DX-02). */
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --c-ok: oklch(0.42 0.083 170.3);   --c-ok-text: oklch(0.33 0.063 171.9);   --c-ok-fons: oklch(0.84 0.029 168.6);
+    --c-avis: oklch(0.42 0.086 87.4);  --c-avis-text: oklch(0.33 0.063 89.1);
+    --c-error: oklch(0.42 0.136 28.5); --c-error-text: oklch(0.33 0.117 28.3); --c-error-fons: oklch(0.84 0.039 27.8);
+    --c-info: oklch(0.42 0.059 239);   --c-info-text: oklch(0.33 0.059 239);   --c-info-fons: oklch(0.84 0.028 232.7);
+    --c-sistema: oklch(0.42 0.113 288.6); --c-sistema-text: oklch(0.33 0.113 288.6); --c-sistema-fons: oklch(0.84 0.041 295);
+    --c-superficie-flotant: oklch(0.903 0.005 179.7);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+    --c-ok: oklch(0.80 0.127 169.2);    --c-ok-text: oklch(0.80 0.127 169.2);    --c-ok-fons: oklch(0.31 0.048 173.4);
+    --c-avis: oklch(0.80 0.155 88);     --c-avis-text: oklch(0.80 0.155 88);     --c-avis-fons: oklch(0.31 0.051 94);
+    --c-error: oklch(0.80 0.114 26.8);  --c-error-text: oklch(0.80 0.114 26.8);  --c-error-fons: oklch(0.31 0.040 12.3);
+    --c-info: oklch(0.80 0.070 230.4);  --c-info-text: oklch(0.80 0.070 230.4);  --c-info-fons: oklch(0.31 0.049 238.4);
+    --c-sistema: oklch(0.80 0.090 294.3); --c-sistema-text: oklch(0.80 0.090 294.3); --c-sistema-fons: oklch(0.31 0.061 288.7);
+    --c-superficie-flotant: oklch(0.373 0.034 242.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --c-ok: oklch(0.80 0.127 169.2);    --c-ok-text: oklch(0.80 0.127 169.2);    --c-ok-fons: oklch(0.31 0.048 173.4);
+    --c-avis: oklch(0.80 0.155 88);     --c-avis-text: oklch(0.80 0.155 88);     --c-avis-fons: oklch(0.31 0.051 94);
+    --c-error: oklch(0.80 0.114 26.8);  --c-error-text: oklch(0.80 0.114 26.8);  --c-error-fons: oklch(0.31 0.040 12.3);
+    --c-info: oklch(0.80 0.070 230.4);  --c-info-text: oklch(0.80 0.070 230.4);  --c-info-fons: oklch(0.31 0.049 238.4);
+    --c-sistema: oklch(0.80 0.090 294.3); --c-sistema-text: oklch(0.80 0.090 294.3); --c-sistema-fons: oklch(0.31 0.061 288.7);
+    --c-superficie-flotant: oklch(0.373 0.034 242.4);
+  }
+}
+@supports (color: color-mix(in oklch, red, blue)) {
+  /* Vores: el color del text amb transparència, perquè serveixin sobre qualsevol fons.
+     Decorativa ≈ 1,3:1; forta ≥ 3:1 sobre fons, contenidor i pou (WCAG 1.4.11). */
+  :root { --c-linia: color-mix(in oklch, var(--c-text) 14%, transparent); --c-linia-forta: color-mix(in oklch, var(--c-text) 68%, transparent); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --c-linia: color-mix(in oklch, var(--c-text) 20%, transparent); --c-linia-forta: color-mix(in oklch, var(--c-text) 48%, transparent); }
+  }
+  :root[data-theme="dark"] { --c-linia: color-mix(in oklch, var(--c-text) 20%, transparent); --c-linia-forta: color-mix(in oklch, var(--c-text) 48%, transparent); }
 }
 
 /* ---------- Escales (iguals als dos temes) ---------- */
