@@ -488,9 +488,9 @@ Del recurs Vigencia ([pla dels recursos externs](plans/recursos-disseny-extern.m
 - **On:** «Les meves quotes» i la llicència, al perfil del soci i a la fitxa de l'administració (T-DX-14), si té data de caducitat i no és declarada pendent de confirmar. La confirmació en bloc no en porta: hi surten llicències sense data. Del recurs no s'hi fa: el lliscador de temps, «Renovar» (renovar és pagar) ni l'`.ics` d'avisos.
 
 ### 6.16 Autentico: el segell de la verificació del carnet (T-DX-15)
-Del recurs Autentico ([pla dels recursos externs](plans/recursos-disseny-extern.md)): el resultat com un full de paper amb un segell de goma que hi cau, amb la icona i el color del veredicte.
+Del recurs Autentico ([pla dels recursos externs](plans/recursos-disseny-extern.md)): un segell de goma que cau sobre el resultat, amb la icona i el color del veredicte. El resultat fa servir la superfície del tema i no el paper clar del recurs: amb el paper, al tema fosc el text d'estat no arribava al contrast mínim (axe).
 - **Peça:** `templates/members/card_verify.html` (pàgina pública de verificació, T-M01-20) i `static/css/autentico.css`.
-- **Segell:** «Vàlid» (✓, `--posidonia`) o «No vàlid» (✕, `--c-error`), sota les dades i a la dreta, una sola vegada amb `--m-panell` i `--m-corba-molla`. Decoratiu (`aria-hidden`): el títol ja diu el resultat. Quan la verificació està bloquejada per massa comprovacions, no hi ha segell.
+- **Segell:** «Vàlid» (✓, `--c-ok-text`) o «No vàlid» (✕, `--c-error-text`), sota les dades i a la dreta, una sola vegada amb `--m-panell` i `--m-corba-molla`. Decoratiu (`aria-hidden`): el títol ja diu el resultat. Quan la verificació està bloquejada per massa comprovacions, no hi ha segell.
 - **Seguretat:** la pàgina diu exactament el mateix que abans (RN-M01-26: si és vàlid, el número i el nom de pila; si no, res). La verificació la fa el servidor amb el testimoni de l'enllaç; del recurs no s'hi fa el codi HMAC calculat al navegador, perquè la clau no pot sortir del servidor.
 
 ## 7. Temes clar i fosc
