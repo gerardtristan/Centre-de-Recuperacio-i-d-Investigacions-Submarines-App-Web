@@ -179,6 +179,12 @@ MAP = {
         "templates/accounts/admin_home.html",
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_errata.py": (
+        "templates/_errata.html",
+        "static/css/errata.css",
+        "static/js/errata.js",
+        "templates/members/_join_form.html",
+    ),
     "test_pas_a_simpatitzant_073.py": (
         "apps/members/member_requests.py",
         "apps/members/views/personal_requests.py",
