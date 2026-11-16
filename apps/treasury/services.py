@@ -9,6 +9,10 @@ serveis. Cap ruta hi arriba: un ingrés mai neix d'una petició del navegador (R
   ser antiga.
 - Data de valor en un període tancat (RN-T31): arriba amb la T-M04-20.
 
+`record_fee` (T-M04-06; P-M04-A, pas 3; RN-T10; CA-T04.1 a CA-T04.3): la comissió coneguda d'un
+cobrament, com a sortida del compte on va entrar l'ingrés, amb el departament i el centre de cost
+del càrrec. L'import el dona el proveïdor: la plataforma no en calcula cap.
+
 `create_transit_account` (T-M04-17; RN-T01 i RN-T08): el compte de trànsit d'un proveïdor de
 cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup.py`).
 
@@ -26,7 +30,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 from apps.core.charges import PAID_ORIGINS
-from apps.core.models import AuditEntry, Charge, Payment
+from apps.core.models import AuditEntry, Charge, Payment, validate_cents
 from apps.core.permissions import has_perm
 from apps.members import services as members
 
@@ -35,6 +39,8 @@ from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04
 
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
+FEE_RECORDED = "treasury.fee_recorded"
+FEE_REPEATED = "treasury.fee_repeated"
 TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
 MOVEMENT_REVERSED = "treasury.movement_reversed"
 REVERSE = "treasury.reverse"  # T5, «Anul·lar un moviment amb motiu» (M04-4)
@@ -54,6 +60,18 @@ class BrowserOriginRejected(ValidationError):
 
 class IncomeAccountUnavailable(ValidationError):
     """No hi ha un únic compte actiu on apuntar l'ingrés d'aquest mètode (RN-T08)."""
+
+
+class InvalidAmount(ValidationError):
+    """La comissió no és un enter positiu de cèntims o passa de l'import cobrat."""
+
+
+class IncomeNotRecorded(ValidationError):
+    """El pagament no té cap ingrés vigent: la comissió no té d'on sortir (P-M04-A)."""
+
+
+class FeeAlreadyRecorded(ValidationError):
+    """El pagament ja té una comissió vigent d'un altre import (P-116)."""
 
 
 class AlreadyReversed(ValidationError):
@@ -115,6 +133,64 @@ def record_income(payment: Payment, *, origin: str, by) -> Movement:
         details={"payment": payment.pk, "origin": origin},
     )
     return movement
+
+
+@transaction.atomic
+def record_fee(payment: Payment, amount_cents: int, *, by) -> Movement:
+    """Apunta la comissió coneguda d'un pagament i la torna (HU-T04; CA-T04.1 a CA-T04.3): una
+    sortida del compte del seu ingrés, amb la data de valor, el departament i el centre de cost
+    de l'ingrés, que són els del càrrec (RN-T10): una quota, a «General / Quotes de socis»; una
+    inscripció, al de l'activitat; una llicència, a «General / Llicències» (RN-M06-10, VT-04).
+    Idempotent: si el pagament ja en té una del mateix import, la torna sense crear-ne cap; d'un
+    altre import, es rebutja (P-116). La comissió d'una liquidació és de la T-M04-13."""
+    try:
+        validate_cents(amount_cents)
+    except ValidationError as error:
+        raise InvalidAmount(error.messages) from None
+    if not _system_or_account(by):
+        raise BrowserOriginRejected(
+            _("Una comissió l'apunta el sistema o un compte, mai ningú més.")
+        )
+    # El pany del pagament fa que dues crides alhora no apuntin dues comissions.
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    if amount_cents > payment.amount_cents:
+        raise InvalidAmount(_("La comissió no pot passar de l'import cobrat."))
+    income = _income_of(payment)
+    if income is None or income.is_reversed:
+        raise IncomeNotRecorded(_("Aquest pagament no té cap ingrés vigent: no hi ha comissió."))
+    fee = Movement.objects.filter(
+        payment=payment, kind=Movement.Kind.FEE, reversal__isnull=True
+    ).first()
+    if fee is not None:
+        if fee.amount_cents != amount_cents:
+            raise FeeAlreadyRecorded(_("Aquest pagament ja té una comissió d'un altre import."))
+        audit.record(FEE_REPEATED, actor=by, target=fee, details={"payment": payment.pk})
+        return fee
+    # RN-T31: la data de valor dins un període tancat passa al període obert (T-M04-20).
+    fee = Movement.objects.create(
+        account=income.account,
+        direction=Movement.Direction.OUT,
+        amount_cents=amount_cents,
+        value_date=income.value_date,
+        kind=Movement.Kind.FEE,
+        concept=f"{_('Comissió')} · {income.concept}"[:140],
+        department=income.department,
+        cost_centre=income.cost_centre,
+        payment=payment,
+        recorded_by=by if isinstance(by, get_user_model()) else None,
+    )
+    audit.record(
+        FEE_RECORDED,
+        actor=by,
+        target=fee,
+        details={
+            "payment": payment.pk,
+            "amount_cents": amount_cents,
+            "account": fee.account.name,
+            "cost_centre": fee.cost_centre.full_name if fee.cost_centre else None,
+        },
+    )
+    return fee
 
 
 @transaction.atomic

@@ -565,6 +565,28 @@ opcions:
       i el marge del 09 llegeix aquest estat. Amb la A, l'estat d'un moviment sempre és d'un sol pas.
     data: 2026-11-16
 
+  P-116:
+    opcions:
+      A: Com s'ha construït; una comissió vigent per pagament. El mateix import torna l'existent; un altre import es rebutja i el tresorer la corregeix amb una anul·lació i una de nova.
+      B: Diverses comissions per pagament; cada crida n'apunta una.
+      C: Una per pagament, i un import diferent substitueix l'anterior amb una anul·lació automàtica.
+    recomanada: A
+    perque: >-
+      Una notificació repetida del proveïdor no pot duplicar una despesa. Si l'import canvia, és un senyal que cal mirar
+      a mà: la C ho amagaria i la B duplicaria diners. La comissió de retorn té el seu propi camí (T-M04-07).
+    data: 2026-11-17
+
+  P-117:
+    opcions:
+      A: Com s'ha construït; cap marca al moviment. El centre de cost «General / Llicències» és el provisional (S-M04-07).
+      B: Un camp «provisional» al centre de cost, que la pantalla mostra al costat de cada moviment.
+      C: Una nota al concepte del moviment.
+    recomanada: A
+    perque: >-
+      Els moviments no es modifiquen, així que una marca al moviment no es podria treure quan la junta decideixi la Q-19.
+      Si cal veure-ho a la pantalla, la B és una millora petita sobre els centres de cost, sense tocar cap import.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).
