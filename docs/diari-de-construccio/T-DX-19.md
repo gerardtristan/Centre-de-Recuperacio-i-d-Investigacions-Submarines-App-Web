@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 19:01 | e1af0e6 | Cap de nova (les comunes la troben sola) | [A comprovar] (PR #81) |
+| 16/11/2026 20:01 | 16d542e | Cap de nova (les comunes la troben sola) | [A comprovar] (PR #81) |
 
 **En tres línies:** hi ha la pantalla «Rols i permisos» en construcció, el disseny de l'editor de permisos que farà la T-RP-03. És la matriu de l'Avisador girada cap als permisos: un permís per fila i un rol per columna, amb el canvi pendent marcat i el valor d'abans en text. A sota, el resum en paraules amb els comptes afectats i el formulari de desar (nota, TOTP i casella), desactivat.
 
@@ -26,14 +26,14 @@
 - `apps/core/tests/e2e/test_previews.py -k rols_permisos`: etiqueta i títol visibles i captures a 1280, 390 i 320 px, en clar i en fosc, mirades.
 
 ## Evidències
-- «Rols i permisos» a 1280 px: `captures/2026-11-16_1901_T-DX-19_rols_permisos-1280.png`
+- «Rols i permisos» a 1280 px: `captures/2026-11-16_2001_T-DX-19_rols_permisos-1280.png`
 
-  ![La matriu de permisos amb un canvi pendent al Tresorer, les files protegides i, a sota, el resum i el formulari de desar](captures/2026-11-16_1901_T-DX-19_rols_permisos-1280.png)
+  ![La matriu de permisos amb un canvi pendent al Tresorer, les files protegides i, a sota, el resum i el formulari de desar](captures/2026-11-16_2001_T-DX-19_rols_permisos-1280.png)
 
-  *16/11/2026 19:01 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit e1af0e6*
-- A 320 px, en fosc: `captures/2026-11-16_1901_T-DX-19_rols_permisos-320-fosc.png`
+  *16/11/2026 20:01 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit 16d542e*
+- A 320 px, en fosc: `captures/2026-11-16_2001_T-DX-19_rols_permisos-320-fosc.png`
 
-  *16/11/2026 19:01 (Europa/Madrid) · local, prova e2e · commit e1af0e6*
+  *16/11/2026 20:01 (Europa/Madrid) · local, prova e2e · commit 16d542e*
 - Sortida de proves · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/previews apps/core/tests/test_under_construction.py -q
