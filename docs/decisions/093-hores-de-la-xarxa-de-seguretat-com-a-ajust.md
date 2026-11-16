@@ -24,7 +24,8 @@ L'edició del pla és una sola: un bloc nou al final de l'[addenda de la 055 del
 
 - Cap comportament no canvia en desplegar: el valor inicial és el de la constant.
 - La constant `SAFETY_NET_GIVE_UP` passa a ser la clau de l'ajust, com `SAFETY_NET_AGE`, i desapareix la nota `shortcut:`.
-- Allargar el termini deixa més temps en curs un intent que potser s'ha pagat; escurçar-lo no pot baixar de 24 hores, i per tant cap caiguda curta del proveïdor no envia un intent a revisar abans del reintent de l'endemà.
+- Allargar el termini deixa més temps en curs un intent que potser s'ha pagat; escurçar-lo no pot baixar de 24 hores.
+- Les hores es compten des que comença l'intent, no des del primer error (com feia la constant). Amb 24, un intent que comença poc abans de la passada de la xarxa (dins de `safety_net_age_minutes`) es consulta per primer cop l'endemà amb més de 24 hores, i un sol error ja l'envia a revisar. Comptar des del primer error demanaria un camp nou a l'intent: queda fora d'aquesta decisió i anotat a la [P-102](pendents.md).
 - La PR és `risc:alt` (pagaments, permisos, migracions) i la revisa el propietari.
 
 ## Fonts
