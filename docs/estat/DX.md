@@ -48,7 +48,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-32 Avaries del material (Averia), en construcció | per fer | — | — | — |
 | T-DX-33 Finances per àmbit (Gastos), en construcció | per fer | — | — | — |
 | T-DX-34 Factures (Emisor), en construcció | per fer | — | — | — |
-| T-DX-35 Dashboard (Parrilla), en construcció | per fer | — | — | — |
+| T-DX-35 Dashboard (Parrilla), en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-36 Editor de la web (Probador i Pregon), en construcció | per fer | — | — | — |
 | T-DX-37 Fotos (Fototeca i Expositor), en construcció | per fer | — | — | — |
 | T-DX-38 Convite, en construcció | per fer | — | — | P-99 (A) |
