@@ -110,7 +110,8 @@ class TestCardOrder:
 
     def test_ca_m05b_01_no_card_field_travels_through_the_platform(self):
         names = {field.name for field in dataclasses.fields(checkout.PaymentStart)}
-        assert names == {"attempt_id", "kind", "amount_cents", "url"}
+        # La referència i l'IBAN del club són de la transferència (M05b-8; T-M05b-06).
+        assert names == {"attempt_id", "kind", "amount_cents", "url", "reference", "club_iban"}
         assert not names & set(FORBIDDEN_FIELDS)
         assert not [n for n in inspect.signature(checkout.start_payment).parameters if "card" in n]
 
@@ -220,8 +221,8 @@ class TestTwoAtOnce(CommittedDataTestCase):
 
 
 class TestRefusals:
-    @pytest.mark.parametrize("method", ["transfer", "direct_debit", "saved_card", "", "x"])
-    def test_only_card_and_bizum_for_now(self, charge, personal_account, orders, method):
+    @pytest.mark.parametrize("method", ["direct_debit", "saved_card", "", "x"])
+    def test_only_card_bizum_and_transfer_for_now(self, charge, personal_account, orders, method):
         with pytest.raises(attempts.MethodNotAllowed):
             checkout.start_payment(charge, method, personal_account)
         assert nothing_started(charge, orders)

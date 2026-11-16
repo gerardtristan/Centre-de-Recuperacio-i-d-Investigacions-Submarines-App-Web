@@ -398,4 +398,45 @@ opcions:
       equivalent si es vol conservar la llargada visual dels grups; la C afebleix una prova que ja ha trobat errors.
     data: 2026-11-16
 
+  P-136:
+    opcions:
+      A: Triar targeta o Bizum deixa la transferència «abandonada», amb avís a la pantalla (com s'ha fet).
+      B: El nou mètode espera fins que la transferència arribi o torni a «pendent» (P-139).
+      C: Com la A, però el soci ha de confirmar que encara no ha fet la transferència.
+    recomanada: A
+    perque: >-
+      La B deixaria el soci sense cap altra manera de pagar durant setmanes. Un pagament doble ja el detecta la
+      conciliació (LT6) i es torna; la C afegeix un pas que no evita res que la A no avisi.
+    data: 2026-11-16
+  P-137:
+    opcions:
+      A: Càrrec pagat, sense rebut, i una entrada al registre perquè el tresorer ho vegi (com s'ha fet).
+      B: Esperar que la targeta o el Bizum acabin i llavors emetre el rebut de la transferència.
+      C: Deixar la targeta o el Bizum «abandonats» i emetre el rebut de seguida.
+    recomanada: B
+    perque: >-
+      El soci ha de tenir el rebut del que ha pagat. Amb la B ningú no toca un intent del proveïdor que encara pot
+      arribar; la A és la base segura mentre no es construeix.
+    data: 2026-11-16
+  P-138:
+    opcions:
+      A: Les plantilles no canvien.
+      B: Pas 2 «Confirmació del pagament» per a tots els mètodes, i al rebut la referència de la transferència.
+      C: Pas 2 propi per a la transferència («Arriba al banc del club») i la referència al rebut.
+    recomanada: C
+    perque: >-
+      El text ha de dir qui confirma cada pagament, i RN-M05b-19 demana la referència al rebut. És feina de la
+      sessió de disseny, que és la propietària de les dues plantilles.
+    data: 2026-11-16
+  P-139:
+    opcions:
+      A: Ara no caduca res; la transferència espera fins que arriba o el soci tria un altre mètode.
+      B: Tasca nova al 05b; als 30 dies (`transfer_reminder_days`), «pendent» i un recordatori amb un text de la junta.
+      C: Com la B, però sense tornar a «pendent»; només el recordatori.
+    recomanada: B
+    perque: >-
+      És el que diu P-M05b-C, pas 4. Amb la P-136, el soci no queda bloquejat mentrestant, i per això la A és una
+      base segura fins que hi hagi tasca.
+    data: 2026-11-16
+
 noves:

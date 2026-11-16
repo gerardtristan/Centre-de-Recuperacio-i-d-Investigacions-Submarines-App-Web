@@ -19,6 +19,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.core import audit, charges
 from apps.core.models import Charge
+from apps.treasury import services as treasury
 
 from . import attempts, checkout, webhooks
 from .models import PaymentAttempt, Receipt
@@ -63,11 +64,30 @@ def _offers_bizum() -> bool:
         return False
 
 
+def _transfer(status):
+    """CA-M05b-10: mentre s'espera una transferència, l'IBAN del club, l'import i la referència
+    del càrrec, cadascun amb el valor que copia el botó (l'import, sense el símbol de l'euro)."""
+    attempt = status.attempt
+    if status.state != checkout.IN_PROGRESS or attempt.method != PaymentAttempt.Method.TRANSFER:
+        return None
+    iban, cents = checkout.transfer_iban(), attempt.amount_cents
+    return {
+        "iban": iban,
+        "iban_grouped": " ".join(iban[i : i + 4] for i in range(0, len(iban), 4)),
+        "amount": charges.euros(cents),
+        "amount_copy": f"{cents // 100},{cents % 100:02d}",
+        "reference": treasury.transfer_reference(attempt.charge),
+    }
+
+
 def _status_context(charge):
+    status = checkout.payment_status(charge)
     return {
         "charge": charge,
-        "status": checkout.payment_status(charge),
+        "status": status,
         "bizum": _offers_bizum(),
+        "transfer_offered": bool(checkout.transfer_iban()),
+        "transfer": _transfer(status),
     }
 
 
@@ -85,7 +105,8 @@ def charge_view(request, charge_id):
 @require_POST
 def pay_view(request, charge_id, method):
     """«Paga amb targeta» o «Paga amb Bizum» (P-M05b-A i B, passos 1 i 2): el navegador va a la
-    pàgina del proveïdor. Amb un intent en curs no se'n comença cap altre (RN-M05b-04; P-83,
+    pàgina del proveïdor. «Paga per transferència» (P-M05b-C): torna a la pantalla, que mostra
+    les dades per fer-la. Amb un intent en curs no se'n comença cap altre (RN-M05b-04; P-83,
     opció per defecte): la pantalla explica que s'espera la confirmació."""
     charge = _own_charge(request, charge_id)
     try:
@@ -102,8 +123,11 @@ def pay_view(request, charge_id, method):
         unavailable = {
             PaymentAttempt.Method.CARD: _("Ara no es pot pagar amb targeta."),
             PaymentAttempt.Method.BIZUM: _("Ara no es pot pagar amb Bizum."),
+            PaymentAttempt.Method.TRANSFER: _("Ara no es pot pagar per transferència."),
         }
         messages.error(request, f"{unavailable[method]} {_('Torna-ho a provar més tard.')}")
+        return redirect("payments:charge", charge.pk)
+    if start.kind == checkout.TRANSFER_DETAILS:
         return redirect("payments:charge", charge.pk)
     # shortcut: sempre redirecció; el camp incrustat (`checkout.IFRAME`) arriba amb el proveïdor
     # real, si en té (P-45 punt 4). El proveïdor fals no en té.

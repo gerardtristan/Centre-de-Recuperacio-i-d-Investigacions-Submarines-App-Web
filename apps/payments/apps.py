@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
 
 
 class PaymentsConfig(AppConfig):
@@ -14,3 +14,10 @@ class PaymentsConfig(AppConfig):
         from .setup import ensure_transit_account
 
         post_migrate.connect(ensure_transit_account, sender=self)
+
+        from apps.core.models import Payment
+
+        from .transfers import on_payment_saved
+
+        # T-M05b-06: una transferència conciliada a la 04 dona l'intent per pagat i el rebut.
+        post_save.connect(on_payment_saved, sender=Payment, dispatch_uid="payments.transfer_paid")
