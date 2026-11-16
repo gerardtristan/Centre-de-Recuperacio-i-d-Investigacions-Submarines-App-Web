@@ -576,6 +576,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
               <button class="boto boto-petit" type="button" data-justificant="cap-creus"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg>Justificant</button>
             </li>
           </ul>
+          <p class="nomes-soci">Quota: per domiciliació. <a href="#pagaments-metode">Com pago la quota</a></p>
         </section>
 
         <section id="bitacola" class="targeta" aria-labelledby="bitacola-titol">
@@ -877,6 +878,188 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     </div>
   </section>
 
+  <!-- ---------- Com pago la quota (05a C1; P-M05a-A; RN-M05a-01 i 19; CA-M05a-01 i 19) ---------- -->
+  <section id="pagaments-metode" class="pantalla-soci" aria-labelledby="metode-quota-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#historial-pagaments"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna als pagaments</a>
+        <p><span class="etiqueta-seccio">Pagaments</span></p>
+        <h1 id="metode-quota-titol">Com pago la quota</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-metode">
+        <span class="demo-titol" id="demo-metode">Demostració · resposta del servidor:</span>
+        <label><input type="checkbox" id="demo-tokenitzacio"> El proveïdor permet guardar la targeta</label>
+        <label><input type="checkbox" id="demo-metode-sessio"> La sessió ha caducat en desar</label>
+      </div>
+      <form class="targeta form-perfil" id="form-metode" novalidate>
+        <p>Ara pagues la quota per <strong>domiciliació</strong> (mandat <span class="codi">CRIS000427M01</span>).</p>
+        <h2 id="metode-quota-pregunta">Com vols pagar-la a partir d'ara?</h2>
+        <div class="form-perfil" role="radiogroup" aria-labelledby="metode-quota-pregunta">
+          <label class="casella" data-opcio="targeta" hidden><input type="radio" name="metode-quota" value="targeta"> <span><strong>Targeta guardada (recomanada)</strong><br><span class="text-2">La guardes una vegada al camp segur del proveïdor i la quota es cobra sola cada any.</span></span></label>
+          <label class="casella"><input type="radio" name="metode-quota" value="domiciliacio"> <span><strong>Domiciliació bancària<span id="recomana-domiciliacio"> (recomanada)</span></strong><br><span class="text-2">Signes un mandat SEPA amb el teu IBAN i el banc paga la quota cada any. El pots revocar quan vulguis.</span></span></label>
+          <label class="casella"><input type="radio" name="metode-quota" value="cada-vegada"> <span><strong>Pagar cada vegada</strong><br><span class="text-2">Quan es generi la quota, la pagues amb targeta, Bizum o transferència.</span></span></label>
+        </div>
+        <button class="boto boto-principal" type="submit" id="desa-metode" data-icona="fletxa">Continua</button>
+        <p class="resultat-perfil" id="resultat-metode" role="status" hidden></p>
+      </form>
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Només el compte personal d'un soci i només el seu mètode (A1). Una persona que no és sòcia, o un compte d'administrador, rep «no trobat». Cap rol de l'administració no tria per un soci.</li>
+          <li>Les opcions surten de <code>capabilities()</code> i de <code>tokenization_enabled</code>: sense tokenització, l'opció de la targeta no arriba a l'HTML (no s'amaga amb CSS) i es recomana la domiciliació (CA-M05a-01 i 19). Aquí la casella de demostració ho simula.</li>
+          <li>Desar la preferència guarda la data i el compte, i queda al registre d'activitat. «Pagar cada vegada» es desa sense cap pas més (P-M05a-A).</li>
+          <li>Amb un mandat actiu, triar «pagar cada vegada» no el revoca: la pantalla diu com fer-ho <span class="a-validar">A validar: P-134</span>.</li>
+          <li>Sessió caducada: no es desa res.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- Mandat SEPA: signar, veure, canviar l'IBAN i revocar (05a C2 i C3; P-M05a-B i C) ---------- -->
+  <section id="pagaments-mandat" class="pantalla-soci" aria-labelledby="mandat-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#pagaments-metode"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna a «Com pago la quota»</a>
+        <p><span class="etiqueta-seccio">Pagaments</span></p>
+        <h1 id="mandat-titol">Mandat de domiciliació</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-mandat">
+        <span class="demo-titol" id="demo-mandat">Demostració · veure com:</span>
+        <label><input type="radio" name="demo-mandat" value="actiu" checked> Soci amb mandat actiu</label>
+        <label><input type="radio" name="demo-mandat" value="sense"> Soci sense mandat</label>
+        <label><input type="checkbox" data-reautentica="mandat-contrasenya confirma-pag-contrasenya"> Fa més de 15 minuts que ha entrat</label>
+        <span class="demo-titol">En signar:</span>
+        <label><input type="radio" name="demo-signa" value="correcte" checked> Correcte</label>
+        <label><input type="radio" name="demo-signa" value="iban"> IBAN no vàlid</label>
+        <label><input type="radio" name="demo-signa" value="pais"> País no admès</label>
+        <label><input type="radio" name="demo-signa" value="sessio"> Sessió caducada</label>
+      </div>
+
+      <section class="targeta" id="mandat-actiu" aria-labelledby="mandat-actiu-titol">
+        <h2 id="mandat-actiu-titol">El teu mandat</h2>
+        <dl class="dades">
+          <dt>Estat</dt><dd id="mandat-estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></dd>
+          <dt>Referència</dt><dd><span class="codi" id="mandat-ref">CRIS000427M01</span></dd>
+          <dt>Titular</dt><dd>Marta Puig Ferrer</dd>
+          <dt>IBAN</dt><dd><span class="codi">ES•• •••• •••• •••• •••• 1332</span></dd>
+          <dt>Creditor</dt><dd>C.R.I.S. · identificador <span class="a-validar">A verificar: banc (P-45 punt 5)</span></dd>
+          <dt>Signat el</dt><dd id="mandat-data">12/11/2026</dd>
+        </dl>
+        <div class="accions-perfil" id="mandat-accions">
+          <button class="boto" type="button" id="canvia-iban">Canvia l'IBAN</button>
+          <button class="boto" type="button" id="obre-revoca">Revoca el mandat…</button>
+        </div>
+        <p class="resultat-perfil" id="resultat-mandat-fet" role="status" hidden></p>
+      </section>
+
+      <form class="targeta form-perfil" id="form-mandat" novalidate hidden>
+        <h2 id="form-mandat-titol" tabindex="-1">Signa el mandat SEPA</h2>
+        <p class="text-2" id="mandat-substitueix" hidden>En signar-lo, el mandat <span class="codi">CRIS000427M01</span> es revocarà amb el motiu «substituït».</p>
+        <div class="camp">
+          <label for="mandat-titular">Titular del compte</label>
+          <input id="mandat-titular" type="text" autocomplete="name" value="Marta Puig Ferrer" aria-describedby="mandat-titular-error">
+          <p class="error-camp" id="mandat-titular-error" hidden></p>
+        </div>
+        <label class="casella"><input type="checkbox" id="mandat-altre-titular"> <span>El titular del compte és una altra persona i m'ha autoritzat <span class="a-validar">A validar: junta i banc (L-M05a-01)</span></span></label>
+        <div class="camp">
+          <label for="mandat-iban">IBAN</label>
+          <input id="mandat-iban" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="42" aria-describedby="mandat-iban-ajuda mandat-iban-error">
+          <p class="ajuda" id="mandat-iban-ajuda">Es desa xifrat. Després només en veuràs els quatre últims caràcters.</p>
+          <p class="error-camp" id="mandat-iban-error" hidden></p>
+        </div>
+        <section aria-labelledby="text-mandat-titol">
+          <h3 id="text-mandat-titol">Què acceptes</h3>
+          <dl class="dades">
+            <dt>Creditor</dt><dd>Centre de Recuperació i d'Investigacions Submarines (C.R.I.S.)</dd>
+            <dt>Identificador</dt><dd><span class="a-validar">A verificar: banc (P-45 punt 5)</span></dd>
+            <dt>Tipus</dt><dd>Recurrent: la quota de cada any</dd>
+            <dt>Referència</dt><dd><span class="codi" id="mandat-ref-nova">CRIS000427M02</span></dd>
+            <dt>Text i drets</dt><dd>Text del mandat i drets de devolució, versió vigent <span class="a-validar">A validar: junta (T-M05a-01)</span></dd>
+          </dl>
+        </section>
+        <label class="casella"><input type="checkbox" id="mandat-accepto" aria-describedby="mandat-accepto-error"> <span>Accepto el mandat SEPA amb aquest text.</span></label>
+        <p class="error-camp" id="mandat-accepto-error" hidden></p>
+        <div class="camp" hidden>
+          <label for="mandat-contrasenya">Contrasenya</label>
+          <input id="mandat-contrasenya" type="password" autocomplete="current-password" aria-describedby="mandat-contrasenya-ajuda mandat-contrasenya-error">
+          <p class="ajuda" id="mandat-contrasenya-ajuda">Fa més de 15 minuts que has entrat: torna-la a escriure per confirmar que ets tu.</p>
+          <p class="error-camp" id="mandat-contrasenya-error" hidden></p>
+        </div>
+        <div class="accions-perfil">
+          <button class="boto boto-principal" type="submit" id="signa-mandat" data-icona="check">Signa el mandat</button>
+          <button class="boto boto-text" type="button" id="cancela-mandat" hidden>Cancel·la</button>
+        </div>
+        <p class="resultat-perfil" id="resultat-mandat" role="status" hidden></p>
+      </form>
+
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Només el compte personal i només el mandat propi (A2). El mandat d'un altre soci per URL respon «no trobat» i queda al registre (CA-M05a-14). Un administrador no revoca el seu mandat des de l'administració.</li>
+          <li>IBAN (044, RN-M05a-05 i 06): es valida al servidor (format del país i mòdul 97). Si no és vàlid, no es desa ni es registra cap part, i el camp torna buit: la resposta no repeteix mai l'IBAN rebutjat. Si és vàlid, només es desa xifrat a <code>MandateBankAccount</code>; a cap pantalla, correu, registre ni error no surt sencer.</li>
+          <li>Reautenticació (RN-M05a-12): signar, canviar l'IBAN i revocar demanen la contrasenya si l'última entrada té més de 15 minuts, i el codi TOTP si el compte en té. Ho decideix el servidor; aquí ho simula la casella. Després d'un error, la contrasenya es buida.</li>
+          <li>En signar: referència única que no es reutilitza (RN-M05a-03), text i versió, data i hora, compte i canal; l'anterior passa a «revocat (substituït)» (RN-M05a-02). Correu G3 amb la referència, l'identificador de creditor, la data i com revocar-lo, sense l'IBAN (CA-M05a-04).</li>
+          <li>Revocar: efectiu per a les remeses que es generin després; si n'hi ha una d'enviada, s'avisa el tresorer (RN-M05a-09). La preferència passa a «pagar cada vegada» i el soci rep un correu.</li>
+          <li>Text del mandat i identificador de creditor: no són a la plataforma fins a la T-M05a-01. Sense identificador, la campanya no s'obre a producció (RN-M05a-04).</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- Targeta guardada, condicional al proveïdor (05a C4; P-M05a-D; RN-M05a-10, 20 i 23) ---------- -->
+  <section id="pagaments-targeta" class="pantalla-soci" aria-labelledby="targeta-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#pagaments-metode"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna a «Com pago la quota»</a>
+        <p><span class="etiqueta-seccio">Pagaments</span></p>
+        <h1 id="targeta-titol">Targeta per a la quota</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-targeta">
+        <span class="demo-titol" id="demo-targeta">Demostració · veure com:</span>
+        <label><input type="radio" name="demo-targeta" value="cap" checked> Sense targeta</label>
+        <label><input type="radio" name="demo-targeta" value="guardada"> Targeta guardada</label>
+        <label><input type="radio" name="demo-targeta" value="caducada"> Targeta caducada</label>
+        <label><input type="checkbox" data-reautentica="targeta-contrasenya confirma-pag-contrasenya"> Fa més de 15 minuts que ha entrat</label>
+      </div>
+      <section class="targeta form-perfil" data-targeta="cap" aria-labelledby="targeta-cap-titol">
+        <h2 id="targeta-cap-titol">Guarda una targeta</h2>
+        <p class="nota-segura"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.4 3 7.8 7 9 4-1.2 7-4.6 7-9v-5z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span>Escriuràs la targeta al camp segur del proveïdor i t'autenticaràs amb el teu banc. El club no veu ni guarda mai el número ni el codi de seguretat.</span></p>
+        <div class="caixa-imatge">Camp segur del proveïdor <span class="a-validar">A verificar: P-45 punt 6</span></div>
+        <div class="camp" hidden>
+          <label for="targeta-contrasenya">Contrasenya</label>
+          <input id="targeta-contrasenya" type="password" autocomplete="current-password" aria-describedby="targeta-contrasenya-ajuda targeta-contrasenya-error">
+          <p class="ajuda" id="targeta-contrasenya-ajuda">Fa més de 15 minuts que has entrat: torna-la a escriure per confirmar que ets tu.</p>
+          <p class="error-camp" id="targeta-contrasenya-error" hidden></p>
+        </div>
+        <button class="boto boto-principal" type="button" id="guarda-targeta" data-icona="targeta">Guarda la targeta</button>
+      </section>
+      <section class="targeta" data-targeta="guardada" aria-labelledby="targeta-guardada-titol" hidden>
+        <h2 id="targeta-guardada-titol">La teva targeta</h2>
+        <dl class="dades">
+          <dt>Estat</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Activa</span></dd>
+          <dt>Targeta</dt><dd><span class="codi">•••• 4821</span></dd>
+          <dt>Caduca</dt><dd>08/2029</dd>
+        </dl>
+        <button class="boto" type="button" id="esborra-targeta">Esborra la targeta…</button>
+      </section>
+      <section class="targeta" data-targeta="caducada" aria-labelledby="targeta-caducada-titol" hidden>
+        <h2 id="targeta-caducada-titol">La teva targeta ha caducat</h2>
+        <div class="avis avis-avis"><strong>No es pot fer servir</strong>La targeta <span class="codi">•••• 4821</span> va caducar el 08/2026. Guarda'n una de nova o tria un altre mètode.</div>
+        <button class="boto boto-principal" type="button" id="targeta-nova" data-icona="targeta">Guarda una targeta nova</button>
+      </section>
+      <p class="resultat-perfil" id="resultat-targeta" role="status" hidden></p>
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Només si el proveïdor declara la tokenització i està activada; si no, la ruta respon «no trobat» i l'opció no surt (CA-M05a-01, L-M05a-09). Només la targeta pròpia (A3).</li>
+          <li>El camp és del proveïdor (<code>frame-src</code> només amb el seu domini). La targeta es dona per guardada amb la notificació verificada, mai en tornar del proveïdor; es desa només l'identificador del proveïdor, els quatre últims dígits i la caducitat (RN-M05a-10, CA-M05a-15).</li>
+          <li>Guardar demana sessió recent (RN-M05a-12). Esborrar també, en aquest esbós <span class="a-validar">A validar: P-132</span>.</li>
+          <li>Una targeta caducada o denegada no torna a ser activa (RN-M05a-23). L'avís de caducitat surt 30 dies abans (VC-48) <span class="a-validar">A validar: tresorer</span>.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
   <!-- ---------- No trobat (CA-M01-25: un soci que obre dades d'un altre) ---------- -->
   <section id="no-trobat" class="pantalla-soci" aria-labelledby="no-trobat-titol" hidden>
     <div class="contenidor pantalla-cos estreta">
@@ -1053,6 +1236,28 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     <div class="dialeg-peu">
       <button class="boto" type="button" data-tanca>Torna</button>
       <button class="boto boto-principal" type="submit" id="confirma-baixa" data-icona="check">Sí, sol·licita la baixa</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ==================== Diàleg: revocar el mandat o esborrar la targeta (05a; RN-M05a-12) ==================== -->
+<dialog class="dialeg" id="dialeg-confirma-pag" aria-labelledby="confirma-pag-titol">
+  <form method="dialog" id="form-confirma-pag" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="confirma-pag-titol">Confirmes?</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p id="confirma-pag-text"></p>
+      <div class="camp" hidden>
+        <label for="confirma-pag-contrasenya">Contrasenya</label>
+        <input id="confirma-pag-contrasenya" type="password" autocomplete="current-password" aria-describedby="confirma-pag-contrasenya-error">
+        <p class="error-camp" id="confirma-pag-contrasenya-error" hidden></p>
+      </div>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-pag-boto" data-icona="check">Sí</button>
     </div>
   </form>
 </dialog>
@@ -1308,16 +1513,17 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   }
 
   (function () {
-    const PANTALLES = ['perfil', 'canvi-tipus', 'baixa', 'esborrar', 'no-trobat'];
+    const PANTALLES = ['perfil', 'canvi-tipus', 'baixa', 'esborrar', 'no-trobat', 'pagaments-metode', 'pagaments-mandat', 'pagaments-targeta'];
     const portada = [g('portada'), document.querySelector('main > .profunditat')];
     const perfil = nav.querySelector('a[href="#perfil"]');
+    const pagaments = nav.querySelector('a[href="#historial-pagaments"]');
     function ruta(enCarregar) {
       const id = location.hash.slice(1);
       const p = PANTALLES.includes(id) ? id : null;
       portada.forEach(s => { s.hidden = !!p; });
       PANTALLES.forEach(x => { g(x).hidden = x !== p; });
       if (p === 'no-trobat') { enllacos.forEach(x => x.removeAttribute('aria-current')); }
-      else if (p) marca(perfil);
+      else if (p) marca(p.startsWith('pagaments') ? pagaments : perfil);
       else if (!enCarregar) {
         const enllac = enllacos.find(a => a.getAttribute('href') === '#' + id);
         if (enllac) marca(enllac);
@@ -1503,6 +1709,126 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
       [casella, contrasenya, codi].forEach(x => { x.disabled = true; });
       resultat(p, 'avis-ok', 'Sol·licitud d\'esborrat rebuda', 'L\'administració la revisarà i t\'avisarà per correu. Mentrestant, el compte continua actiu.', true);
     });
+  })();
+
+  /* ---------- Pagaments de la quota (T-M05a-02): mètode, mandat i targeta ---------- */
+  (function () {
+    const tria = nom => document.querySelector('input[name="' + nom + '"]:checked').value;
+    const sessioCaducadaPag = p => resultat(p, 'avis-error', 'La sessió ha caducat', 'No s\'ha desat res. Torna a entrar al compte personal.', true);
+    // Reautenticació (RN-M05a-12): la decideix el servidor; aquí, la casella de demostració mostra el camp
+    document.querySelectorAll('[data-reautentica]').forEach(c => c.addEventListener('change', () => {
+      c.dataset.reautentica.split(' ').forEach(id => { g(id).closest('.camp').hidden = !c.checked; });
+    }));
+    const contrasenyaOk = input => input.closest('.camp').hidden || errorCamp(input, input.value ? '' : 'Escriu la contrasenya.') || (input.focus(), false);
+
+    // Diàleg de confirmació compartit: revocar el mandat i esborrar la targeta
+    const dc = g('dialeg-confirma-pag'), pw = g('confirma-pag-contrasenya'), bdc = CRIS.botoDinamic(g('confirma-pag-boto'));
+    let enConfirmar = null;
+    function confirma(titol, text, boto, fet) {
+      g('confirma-pag-titol').textContent = titol; g('confirma-pag-text').textContent = text;
+      pw.value = ''; errorCamp(pw, ''); bdc.posa(boto, 'check'); enConfirmar = fet;
+      dc.showModal();
+    }
+    dc.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dc.close()));
+    g('form-confirma-pag').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdc.estaOcupat || !contrasenyaOk(pw)) return;
+      await bdc.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 700 }]);
+      pw.value = ''; dc.close(); enConfirmar();
+    });
+
+    /* Com pago la quota: l'opció de la targeta només si el proveïdor la permet (CA-M05a-01 i 19) */
+    const tok = g('demo-tokenitzacio');
+    function opcions() {
+      const targeta = document.querySelector('[data-opcio="targeta"]');
+      targeta.hidden = !tok.checked; g('recomana-domiciliacio').hidden = tok.checked;
+      if (!tok.checked) targeta.querySelector('input').checked = false;
+    }
+    tok.addEventListener('change', opcions); opcions();
+    g('form-metode').addEventListener('submit', e => {
+      e.preventDefault();
+      const r = document.querySelector('input[name="metode-quota"]:checked'), p = g('resultat-metode');
+      if (!r) return resultat(p, 'avis-error', 'Tria com vols pagar', 'No s\'ha desat res.', true);
+      if (g('demo-metode-sessio').checked) return sessioCaducadaPag(p);
+      if (r.value === 'cada-vegada') return resultat(p, 'avis-ok', 'Desat', 'Pagaràs cada quota amb targeta, Bizum o transferència quan es generi. El mandat continua actiu: si no el vols, revoca\'l a «Mandat de domiciliació».', true);
+      location.hash = r.value === 'targeta' ? 'pagaments-targeta' : 'pagaments-mandat';
+    });
+
+    /* Mandat: signar (o canviar l'IBAN, que és signar-ne un de nou) i revocar */
+    const titular = g('mandat-titular'), iban = g('mandat-iban'), accepto = g('mandat-accepto'), contrasenya = g('mandat-contrasenya');
+    const bdm = CRIS.botoDinamic(g('signa-mandat'));
+    function formulari(canvi) {
+      g('form-mandat').hidden = false;
+      g('mandat-substitueix').hidden = !canvi; g('cancela-mandat').hidden = !canvi;
+      g('mandat-ref-nova').textContent = canvi ? 'CRIS000427M02' : 'CRIS000427M01';
+      g('form-mandat-titol').textContent = canvi ? 'Mandat nou amb un altre IBAN' : 'Signa el mandat SEPA';
+    }
+    function pintaMandat() {
+      const actiu = tria('demo-mandat') === 'actiu';
+      g('mandat-actiu').hidden = !actiu;
+      g('form-mandat').hidden = actiu;
+      if (!actiu) formulari(false);
+    }
+    document.querySelectorAll('input[name="demo-mandat"]').forEach(r => r.addEventListener('change', pintaMandat));
+    pintaMandat();
+    g('canvia-iban').addEventListener('click', () => { formulari(true); g('form-mandat-titol').focus(); });
+    g('cancela-mandat').addEventListener('click', () => { g('form-mandat').hidden = true; iban.value = ''; g('canvia-iban').focus(); });
+    g('form-mandat').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdm.estaOcupat) return;
+      const p = g('resultat-mandat'); p.hidden = true;
+      const ok = [errorCamp(titular, titular.value.trim() ? '' : 'Escriu el nom del titular del compte.'),
+        errorCamp(iban, iban.value.trim() ? '' : 'Escriu l\'IBAN.'),
+        errorCamp(accepto, accepto.checked ? '' : 'Marca la casella per acceptar el mandat.')];
+      const primer = [titular, iban, accepto][ok.indexOf(false)];
+      if (primer) return primer.focus();
+      if (!contrasenyaOk(contrasenya)) return;
+      await bdm.flux([{ text: 'Comprovant…', icona: 'carrega', gira: true, ms: 700 }]);
+      bdm.posa(bdm.inicial.text, bdm.inicial.icona);
+      contrasenya.value = '';
+      const r = tria('demo-signa');
+      if (r === 'sessio') return sessioCaducadaPag(p);
+      // L'IBAN rebutjat no es torna a mostrar: el camp queda buit (CA-M05a-02)
+      iban.value = '';
+      if (r !== 'correcte') {
+        const m = r === 'iban' ? 'L\'IBAN no és vàlid. Revisa\'l i torna\'l a escriure.' : 'El banc del club no admet IBAN d\'aquest país per domiciliar.';
+        errorCamp(iban, m); iban.focus(); CRIS.anuncia(m); return;
+      }
+      accepto.checked = false;
+      g('mandat-ref').textContent = g('mandat-ref-nova').textContent;
+      g('mandat-data').textContent = '16/11/2026';
+      g('mandat-estat').innerHTML = '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span>';
+      g('mandat-accions').hidden = false;
+      g('form-mandat').hidden = true; g('mandat-actiu').hidden = false;
+      resultat(g('resultat-mandat-fet'), 'avis-ok', 'Mandat signat', 'T\'hem enviat un correu amb la referència, l\'identificador de creditor, la data i com revocar-lo.', true);
+    });
+    g('obre-revoca').addEventListener('click', () => confirma('Revoques el mandat?',
+      'No es cobrarà cap quota més amb el mandat ' + g('mandat-ref').textContent + '. Pagaràs cada quota amb targeta, Bizum o transferència, i rebràs un correu.',
+      'Sí, revoca\'l', () => {
+        g('mandat-estat').innerHTML = '<span class="estat estat-neutre"><span aria-hidden="true">■</span> Revocat</span>';
+        g('mandat-accions').hidden = true;
+        resultat(g('resultat-mandat-fet'), 'avis-ok', 'Mandat revocat', 'A partir d\'ara pagaràs cada quota quan es generi. T\'hem enviat un correu.', true);
+      }));
+
+    /* Targeta guardada (condicional): es dona per guardada amb la notificació verificada del proveïdor */
+    const pintaTargeta = v => document.querySelectorAll('[data-targeta]').forEach(s => { s.hidden = s.dataset.targeta !== v; });
+    document.querySelectorAll('input[name="demo-targeta"]').forEach(r => r.addEventListener('change', () => { g('resultat-targeta').hidden = true; pintaTargeta(r.value); }));
+    const bdt = CRIS.botoDinamic(g('guarda-targeta'));
+    g('guarda-targeta').addEventListener('click', async () => {
+      const tpw = g('targeta-contrasenya');
+      if (bdt.estaOcupat || !contrasenyaOk(tpw)) return;
+      await bdt.flux([{ text: 'Obrint el camp segur…', icona: 'carrega', gira: true, ms: 700 }, { text: 'Esperant el proveïdor…', icona: 'carrega', gira: true, ms: 900 }]);
+      bdt.posa(bdt.inicial.text, bdt.inicial.icona); tpw.value = '';
+      pintaTargeta('guardada');
+      resultat(g('resultat-targeta'), 'avis-ok', 'Targeta guardada', 'La quota es cobrarà amb la targeta •••• 4821.', true);
+    });
+    g('targeta-nova').addEventListener('click', () => pintaTargeta('cap'));
+    g('esborra-targeta').addEventListener('click', () => confirma('Esborres la targeta?',
+      'La quota ja no es cobrarà amb la targeta •••• 4821. La pagaràs cada vegada amb targeta, Bizum o transferència.',
+      'Sí, esborra-la', () => {
+        pintaTargeta('cap');
+        resultat(g('resultat-targeta'), 'avis-ok', 'Targeta esborrada', 'Pagaràs cada quota quan es generi.', true);
+      }));
   })();
 })();
 </script>
