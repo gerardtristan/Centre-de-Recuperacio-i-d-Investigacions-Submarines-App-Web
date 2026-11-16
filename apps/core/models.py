@@ -781,6 +781,36 @@ class Payment(UndeletableModel):
         super().save(*args, **kwargs)
 
 
+class PaymentCancellation(AppendOnlyModel):
+    """Anul·lació d'un pagament (045; CA-T10.5): el pagament no es toca ni s'esborra, i una fila
+    nova diu que ja no compta, amb el motiu i qui l'ha anul·lat. Només INSERT, també a la base de
+    dades (migració 0034). La crea `charges.revert_paid_transfer`."""
+
+    payment = models.OneToOneField(
+        Payment, on_delete=models.PROTECT, related_name="cancellation", verbose_name=_("pagament")
+    )
+    reason = models.TextField(_("motiu"))
+    cancelled_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("anul·lat per"),
+    )
+    cancelled_at = models.DateTimeField(_("data de l'anul·lació"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("anul·lació de pagament")
+        verbose_name_plural = _("anul·lacions de pagament")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(reason__regex=r"\S"), name="payment_cancellation_reason_required"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.payment_id}"
+
+
 class GuestLink(models.Model):
     """Enllaç de convidat (spec 00, HU-02, RN-30 a RN-33, V-02; decisió 021). Només se'n desa
     l'empremta SHA-256 del testimoni: el testimoni en clar només existeix dins del correu

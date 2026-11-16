@@ -593,7 +593,7 @@ def fees_view(request):
     )
     to_review = []
     for fee in fees.payments_to_review():  # 079 (A-17, RN-M01-89)
-        payments = list(fee.charge.payments.all())
+        payments = charges.active_payments(fee.charge)
         to_review.append(
             {
                 "fee": fee,
