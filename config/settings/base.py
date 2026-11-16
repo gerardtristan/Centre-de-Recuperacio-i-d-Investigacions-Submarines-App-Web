@@ -107,6 +107,11 @@ FAKE_INTEGRATIONS_FORBIDDEN = False
 # Prefix de les referències de transferència (RN-T20, VC-10): d'1 a 12 majúscules o xifres.
 TRANSFER_REFERENCE_PREFIX = env("TRANSFER_REFERENCE_PREFIX", default="CRIS")
 
+# Pantalles «En construcció» (T-DX-03; design-system §6.9): disseny i contingut d'exemple, sense
+# cap ruta que escrigui. Encès, les veu tothom (local i entorn de proves). Apagat (producció), només
+# els comptes d'administrador amb el permís core.under_construction.view (P-90, resposta C).
+SHOW_UNDER_CONSTRUCTION = env.bool("SHOW_UNDER_CONSTRUCTION", default=False)
+
 # Adreça pública de la plataforma, per als enllaços dels correus (verificació i recuperació):
 # la cua no té cap petició d'on treure-la. Domini: decisió 019.
 PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="http://localhost:8000").rstrip("/")

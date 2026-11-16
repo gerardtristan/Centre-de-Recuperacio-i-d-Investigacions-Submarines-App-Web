@@ -63,6 +63,13 @@ _ALL = SCOPE_ALL
 
 PERMISSIONS: tuple[Permission, ...] = (
     # --- 00 Base comuna ---------------------------------------------------------------------
+    # P-90 (resposta C, 16/11/2026): a producció, les pantalles «En construcció» només les veu
+    # qui té aquest permís, que l'administrador assigna per rol. Comença sense cap rol.
+    _perm(
+        "core.under_construction.view",
+        "DX1",
+        _("Veure les pantalles en construcció (disseny i contingut d'exemple, sense dades reals)"),
+    ),
     _perm(
         "core.people.manage",
         "M2",

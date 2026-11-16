@@ -8,3 +8,6 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.
 
 # Proveïdor de pagaments fals, sense xarxa (T-M05a-03).
 PAYMENTS_PROVIDER = env("PAYMENTS_PROVIDER", default="fake")
+
+# En local, les pantalles «En construcció» es veuen (T-DX-03).
+SHOW_UNDER_CONSTRUCTION = env.bool("SHOW_UNDER_CONSTRUCTION", default=True)

@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.20 (16/11/2026). La 1.20 afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
+- **Versió:** 1.22 (16/11/2026). La 1.22 fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
+- La 1.20 (16/11/2026) afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
 - La 1.19 (16/11/2026) posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
 - La 1.18 (16/11/2026) afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
 - La 1.17 (16/11/2026) afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
@@ -429,12 +430,13 @@ El carnet es desa com a PDF amb la impressió del navegador; el servidor no gene
 - Estils a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
 
 ### 6.9 Etiqueta «En construcció»
-Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla dels recursos externs §1](plans/recursos-disseny-extern.md#1-abast)). **Definida aquí; el CSS es fa a la T-DX-03.**
+Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla dels recursos externs §1](plans/recursos-disseny-extern.md#1-abast)). **Feta a la T-DX-03:** `templates/_en_construccio.html` (`{% include "_en_construccio.html" with id="…" %}` dins d'un contenidor `en-construccio-bloc`), `static/css/en-construccio.css` i el decorador `apps/core/under_construction.py`.
 - **Classe:** `en-construccio`. Pastilla petita a dalt a la dreta del bloc (`position: absolute` dins d'un contenidor `position: relative`), text `--t-xs`, `--c-text-2` sobre `--c-superficie-2`, vora amb transparència (C3), radi `--r-pastilla`, farciment `--e-1` `--e-2`. Sense icona, sense animació i sense color d'estat: no és cap estat del negoci (D1).
 - **Text:** «En construcció», traduïble (`{% translate %}`). Per al lector de pantalla, el bloc porta `aria-describedby` cap a l'etiqueta.
 - **On:** a tota la pantalla quan res no és funcional; només al bloc que no ho és quan la pantalla és en part funcional. Mai al costat d'una dada real.
 - **Al servidor (control, no simulació):** la vista només accepta `GET`; els formularis van dins d'un `fieldset disabled`; el contingut és d'exemple, inventat i fix, i no llegeix ni escriu cap model. En local i a l'entorn de proves, `SHOW_UNDER_CONSTRUCTION` les mostra a tothom; a producció està apagat i només les veuen els comptes d'administrador amb el permís «Veure pantalles en construcció», mai els socis ni la web pública ([P-90](decisions/pendents.md), resposta C). El servidor no arrenca a producció amb l'ajust encès (T-DX-03). Sense accés, la ruta respon 404 i no surt al menú.
-- **Prova:** cada pantalla «En construcció» té una prova que comprova que l'etiqueta hi és i que cap mètode que escriu (`POST`, `PUT`, `PATCH`, `DELETE`) no és acceptat. Quan la pantalla es torna funcional, la prova se substitueix i l'etiqueta se'n va.
+- **Prova:** `apps/core/tests/test_under_construction.py` recorre totes les rutes amb el decorador i comprova que cap mètode que escriu (`POST`, `PUT`, `PATCH`, `DELETE`) no és acceptat (405). Cada pantalla, a més, comprova que porta l'etiqueta. Quan la pantalla es torna funcional, la vista deixa el decorador, la prova se substitueix i l'etiqueta se'n va.
+- **Permís:** `core.under_construction.view` (P-90, resposta C), sense cap rol al començament; l'assigna l'administrador des de l'editor de permisos. Els socis i la web pública no tenen permisos, així que a producció no les veuen mai.
 
 ### 6.10 Errata: resum d'errors d'un formulari (T-DX-06)
 Del recurs Errata ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la fulla de correccions amb el segell, el títol amb el nombre d'errors i un enllaç numerat per camp.
