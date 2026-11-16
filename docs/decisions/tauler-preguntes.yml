@@ -398,6 +398,19 @@ opcions:
       equivalent si es vol conservar la llargada visual dels grups; la C afebleix una prova que ja ha trobat errors.
     data: 2026-11-16
 
+  P-122:
+    opcions:
+      A: Com s'ha construït; l'intent passa de «pagat» a «cancel·lat» i el rebut s'anul·la amb una nota (fila nova).
+      B: Un estat nou de l'intent, «revertit», per distingir-lo d'un intent cancel·lat abans de pagar.
+      C: L'intent es queda «pagat» i l'índex «un sol pagat per càrrec» exclou els intents amb el pagament anul·lat.
+      D: L'intent passa «a revisar» amb el motiu i el tresorer el tanca a mà (T-M05b-16).
+    recomanada: A
+    perque: >-
+      Fa servir un estat que ja és a la llista de M05b-6 i el rebut no es toca, com diu la 045. La C deixaria dos
+      intents «pagats» per al mateix càrrec i el rebut antic semblaria vàlid; la D obligaria el tresorer a fer dues
+      vegades la mateixa correcció.
+    data: 2026-11-16
+
   P-136:
     opcions:
       A: Triar targeta o Bizum deixa la transferència «abandonada», amb avís a la pantalla (com s'ha fet).
