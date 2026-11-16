@@ -39,3 +39,12 @@ def test_without_a_known_provider_nothing_is_created(settings, code):
     before = TreasuryAccount.objects.count()
     setup.ensure_transit_account(apps=apps)
     assert TreasuryAccount.objects.count() == before
+
+
+def test_a_backwards_migrate_does_not_touch_the_accounts(settings, monkeypatch):
+    """Revisió de la #39: en desfer migracions, el model real pot tenir columnes que la taula ja
+    no té. No es crea res; el proper `migrate` endavant el crearà."""
+    monkeypatch.setitem(providers.REGISTRY, "nou_proveidor", providers.REGISTRY["fake"])
+    settings.PAYMENTS_PROVIDER = "nou_proveidor"
+    setup.ensure_transit_account(apps=apps, plan=[(object(), True)])
+    assert not transits("nou_proveidor").exists()

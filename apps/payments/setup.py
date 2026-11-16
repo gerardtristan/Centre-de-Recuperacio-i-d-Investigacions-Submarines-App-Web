@@ -14,7 +14,10 @@ from apps.treasury import services as treasury
 from .providers import REGISTRY
 
 
-def ensure_transit_account(*, apps, **kwargs):
+def ensure_transit_account(*, apps, plan=None, **kwargs):
+    # En desfer migracions, el model real pot tenir columnes que la taula ja no té.
+    if any(backwards for _migration, backwards in plan or ()):
+        return
     code = settings.PAYMENTS_PROVIDER
     if code not in REGISTRY:  # sense proveïdor (o un de desconegut, payments.E002): res a fer
         return
