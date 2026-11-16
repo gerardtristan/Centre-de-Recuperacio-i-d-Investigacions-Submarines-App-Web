@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 12:40 | 90c6caa | 2 noves al navegador | [A comprovar] (PR #52) |
+| 16/11/2026 12:40 | e6012ea | 2 noves al navegador | [A comprovar] (PR #52) |
 
 **En tres línies:** quan algú envia el formulari per fer-se soci i hi falta alguna cosa, a dalt de tot surt «Hi ha 6 errors» amb una llista. Cada element de la llista porta al camp que s'ha de corregir. El lector de pantalla ho anuncia en carregar la pàgina, i els missatges al costat de cada camp continuen on eren.
 
@@ -34,11 +34,11 @@
 
   ![Formulari d'alta amb el resum «Hi ha 6 errors»](captures/2026-11-16_1240_T-DX-06_fer-se-soci-errors-1280.png)
 
-  *16/11/2026 12:40 (Europa/Madrid) · local, prova e2e, formulari buit · commit 90c6caa*
+  *16/11/2026 12:40 (Europa/Madrid) · local, prova e2e, formulari buit · commit e6012ea*
 - A 320 px, en fosc: `captures/2026-11-16_1240_T-DX-06_fer-se-soci-errors-320-fosc.png`
 
-  *16/11/2026 12:40 (Europa/Madrid) · local, prova e2e, formulari buit · commit 90c6caa*
-- Sortida de proves · commit 90c6caa · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 12:40 (Europa/Madrid) · local, prova e2e, formulari buit · commit e6012ea*
+- Sortida de proves · commit e6012ea · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/members -q
   2368 passed
