@@ -89,8 +89,14 @@ def test_treasurer_confirms_and_undoes_a_reconciliation(
     lines(treasurer, (9000, f"TRANSF {transfer_reference(quota)} J INVENTAT"))
 
     login_admin(page, live_server.url, treasurer.login)
-    page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
+    # Hi arriba pel menú (T-DX-44): l'entrada només surt amb T1.
+    entry = page.locator("#barra-lateral").get_by_role("link", name="Tresoreria: conciliació")
+    entry.click()
     expect(page.get_by_role("heading", name="Conciliació")).to_be_visible()
+    expect(page).to_have_url(
+        f"{live_server.url}{reverse('administration:treasury_reconciliation')}"
+    )
+    expect(entry).to_have_attribute("aria-current", "page")
     row = page.get_by_role("row", name="02/11/2026")
     expect(row).to_contain_text("J INVENTAT")
     expect(row).to_contain_text("Proposada")
