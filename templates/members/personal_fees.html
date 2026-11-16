@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n vigencia %}
 {# T-M01-16: les meves quotes (C8; CA-M01-12; L-M01-09). Només les quotes del soci de la sessió. L'estat general és el de la T-M01-15 (070); sense regla (pagaments parcials, P-61), no es mostra res. El rebut és del 05b (RN-M05b-19). #}
 {% block title %}{% translate "Les meves quotes" %} · C.R.I.S.{% endblock %}
 {% block content %}
@@ -8,6 +8,8 @@
   <dl class="dades-soci">
     <div><dt>{% translate "Estat de la quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>
   </dl>
+  {# Vigencia (T-DX-13): els dies que queden fins al venciment, calculats al servidor. #}
+  {% if fee.kind == "paid_until" or fee.kind == "waived" %}{% vigencia fee.until "quota" %}{% endif %}
   {% if rows %}
     <table class="taula">
       <caption class="visualment-amagat">{% translate "Les teves quotes, de la més recent a la més antiga" %}</caption>

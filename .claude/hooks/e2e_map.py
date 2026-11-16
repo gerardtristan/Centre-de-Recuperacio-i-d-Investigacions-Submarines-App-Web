@@ -184,6 +184,11 @@ MAP = {
         "templates/accounts/admin_home.html",
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_vigencia.py": (
+        "apps/members/templatetags/vigencia.py",
+        "templates/members/_vigencia.html",
+        "static/css/vigencia.css",
+    ),
     "test_ramillete.py": (
         "static/js/ramillete.js",
         "static/css/ramillete.css",
