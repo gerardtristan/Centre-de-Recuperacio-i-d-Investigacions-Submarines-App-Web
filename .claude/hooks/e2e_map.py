@@ -184,6 +184,12 @@ MAP = {
         "templates/accounts/admin_home.html",
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_solapas.py": (
+        "static/js/solapas.js",
+        "static/css/solapas.css",
+        "templates/members/member_detail.html",
+        "templates/members/request_detail.html",
+    ),
     "test_errata.py": (
         "templates/_errata.html",
         "static/css/errata.css",

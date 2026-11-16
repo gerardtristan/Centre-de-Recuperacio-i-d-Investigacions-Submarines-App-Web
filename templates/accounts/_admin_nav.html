@@ -14,7 +14,7 @@
   <div class="lateral-compte">
     <span class="codi">{{ admin_nav.username }}</span>
     <span class="lateral-estat">{% if admin_nav.totp_active %}{% translate "Compte d'administrador · TOTP actiu" %}{% else %}{% translate "Compte d'administrador · TOTP no activat" %}{% endif %}</span>
-    <form method="post" action="{% url 'administration:logout' %}">
+    <form method="post" action="{% url 'administration:logout' %}" data-buida-solapes>
       {% csrf_token %}
       <button class="boto boto-petit" type="submit">{% translate "Surt" %}</button>
     </form>

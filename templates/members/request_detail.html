@@ -2,6 +2,7 @@
 {% load i18n %}
 {# T-M01-17 i T-M01-42: una sol·licitud de canvi de tipus (també el pas a simpatitzant, 073) o de baixa (P3a per veure-la, P7 per resoldre-la, P7a o P8 amb edició per anul·lar el suplement vençut; la llista de quotes d'una baixa i la data de la renovació d'un pas a simpatitzant, només amb P10). Amagar els formularis no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès en desar. #}
 {% block title %}{{ item.get_kind_display }} · {{ item.person }} · C.R.I.S.{% endblock %}
+{% block solapa %}<meta name="cris-solapa" content="{{ item.get_kind_display }} {{ item.pk }}">{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
   <h1>{{ item.get_kind_display }}: {{ item.person }}</h1>
