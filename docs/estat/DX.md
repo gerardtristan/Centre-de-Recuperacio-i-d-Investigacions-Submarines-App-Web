@@ -61,9 +61,10 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 (A); P-95: sense veu |
 | T-DX-40 Social (Seguir i Monograma de fauna), en construcció | per fer | — | — | — |
 | T-DX-41 | feta | 16/11/2026 | #103 | P-92 (A). Signatures de correu a l'administració: càrrec i contacte del club (cap nom ni telèfon personal), plantilla i color entre tokens, vista prèvia; copiar, desactivat |
-| T-DX-42 Apoderado: avisos i textos legals, en construcció | per fer | — | — | P-91 |
+| T-DX-42 Apoderado: avisos i textos legals, en construcció | en curs | 16/11/2026 | — | P-91 |
 | T-DX-11b Ranura: rebut anul·lat («Anul·lat» i la nota, mai el segell de pagat) | feta | 16/11/2026 | #110 | Petició del pilot després de la #105 (`ReceiptCancellation`, 045). Primitiu `--grana`; de pas, el rebut ja no sobresurt a 320 px |
 | T-DX-43 Menú de l'administració: «Pagaments: mètodes i mandats» | feta | 16/11/2026 | #PR | Petició del pilot després de la #108 (T-M05a-14). Només amb A4 (`payments.mandates.view`); el menú no és cap control, la vista torna a comprovar el permís |
 | T-DX-44 Menú de l'administració: «Tresoreria: conciliació» | feta | 16/11/2026 | #116 | Petició del pilot després de la #115. Només amb T1 (`treasury.view`), com la vista |
 | T-DX-45 Menú del soci: «Com pago la quota» i «Mandat de domiciliació» | feta | 16/11/2026 | #120 | Petició del pilot després de la #113 i la #117. Capçalera i ventall de Ramillete. El mandat, només amb `MANDATE_SIGNING_ENABLED` (la vista respon 404 si és apagat) |
 | T-DX-46 Menú de l'administració: «Pagaments: campanya de mandats» | feta | 17/11/2026 | #128 | Petició del pilot després de la #125. Només amb A4 (`payments.mandates.view`, lectura), com la vista; A5 només obre, envia i tanca a dins |
+| T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
