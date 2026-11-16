@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 14:03 | d27ce8f | 2 noves i 3 adaptades | [A comprovar] (PR #55) |
+| 16/11/2026 14:03 | 771b454 | 2 noves i 3 adaptades | [A comprovar] (PR #55) |
 
 **En tres línies:** quan has entrat, la capçalera ja no té el selector de tema. Ara és a la configuració del compte: els socis el troben a «Seguretat del compte», dins del bloc «Aparença», i l'administració a l'inici. Per defecte, la plataforma fa servir el tema del dispositiu («Sistema»).
 
@@ -36,11 +36,11 @@
 
   ![Seguretat del compte amb el bloc Aparença](captures/2026-11-16_1403_T-DX-05b_seguretat-aparenca-390.png)
 
-  *16/11/2026 14:03 (Europa/Madrid) · local, prova e2e, soci inventat · commit d27ce8f*
+  *16/11/2026 14:03 (Europa/Madrid) · local, prova e2e, soci inventat · commit 771b454*
 - La mateixa pantalla a 320 px en fosc: `captures/2026-11-16_1403_T-DX-05b_seguretat-aparenca-320-fosc.png`
 
-  *16/11/2026 14:03 (Europa/Madrid) · local, prova e2e, soci inventat · commit d27ce8f*
-- Sortida de proves · commit d27ce8f · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 14:03 (Europa/Madrid) · local, prova e2e, soci inventat · commit 771b454*
+- Sortida de proves · commit 771b454 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -m e2e apps/core/tests/e2e -q
   57 passed, 1 xfailed
