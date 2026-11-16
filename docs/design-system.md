@@ -1,6 +1,6 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.23 (16/11/2026). La 1.23 afegeix Deposito, el panell de revisió d'altes i sol·licituds (§6.17, T-DX-16).
+- **Versió:** 1.24 (16/11/2026). La 1.24 afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
 - La 1.22 (16/11/2026) fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
 - La 1.20 (16/11/2026) afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
 - La 1.19 (16/11/2026) posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
@@ -159,7 +159,7 @@ Al compte personal i mai en accions crítiques. Des de la 1.8, la llista sencera
 |---|---|---|
 | `--m-entrada` | 300 ms (abans 700, B9) | Entrada de la portada (apareix i puja 24 px), una sola vegada |
 | `--m-gir` | 400 ms (abans 650, B9) | Gir del carnet |
-| `--m-ona` × `--m-ona-repeticions` | 2,4 s × 2 | Ona de la portada. S'atura sola abans de 5 s, així que no cal cap botó de pausa (WCAG 2.2.2). La substituirà Oleaje (T-DX-17) |
+| `--m-ona` × `--m-ona-repeticions` | 2,4 s × 2 | Ona de la portada dels wireframes (032). S'atura sola abans de 5 s, així que no cal cap botó de pausa (WCAG 2.2.2). A la plataforma, Oleaje (§6.18) la substitueix |
 | `--m-rapid` | 180 ms | Transicions petites (botons, enllaços, menús) |
 | `--m-corba` | `cubic-bezier(.23, 1, .32, 1)` | Corba d'entrada |
 
@@ -502,6 +502,14 @@ Del panell del negoci del recurs Deposito ([pla dels recursos externs](plans/rec
 - **On:** «Altes pendents» («N altes per revisar»; «Aprova l'alta» i «Rebutja…» a la mateixa fila) i «Sol·licituds» (canvis de tipus i baixes per revisar).
 - **Seguretat:** cap canvi en el que es pot fer. El servidor torna a comprovar el permís en aprovar o rebutjar; el motiu continua sent obligatori.
 - **Del recurs no s'hi fa:** els motius de rebuig predefinits (seria una llista de negoci, i el pla no en defineix cap) ni els comptadors de confirmades i rebutjades (caldria una consulta nova). La part de les transferències és la T-DX-12, quan existeixi la pantalla (T-M05b-06).
+
+### 6.18 Oleaje: la portada de l'àrea del soci (T-DX-17)
+Del recurs Oleaje ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la secció que puja amb la vora en ona. Substitueix l'ona de la portada de la 032.
+- **Peça:** `static/css/oleaje.css`. `oleaje-portada`: capçalera amb degradat marí (`--abisme` → `--casc` → `--posidonia`, interpolat en OKLCH dins de `@supports`), la salutació i, a baix, una ona SVG (`oleaje-vora`, `aria-hidden`, de `--ona-alcada`) del color del fons de la pàgina, amb una franja d'escuma. `oleaje-seccio`: el bloc de sota, amb el fons de superfície i l'ona a sobre, fora del flux, perquè no quedi cap buit.
+- **Moviment:** el bloc puja i s'aclareix en entrar a la vista, lligat al desplaçament (`animation-timeline: view()`), només amb CSS. Sense suport, el bloc ja és al seu lloc. Cap animació contínua, així que no cal cap ajust per desactivar-la (D20); amb `prefers-reduced-motion`, `tokens.css` l'atura. Funció (D6): marca el canvi de secció.
+- **On:** l'inici del compte personal. El bloc («La teva quota») porta l'estat de la quota, els dies que queden (Vigencia, §6.15) i els accessos al carnet i a les quotes (D13: el més important de l'àrea, a dalt). L'etiqueta és `member_home_summary` (`apps/members/templatetags/member_notices.py`); la 00 no importa cap mòdul.
+- **Seguretat i privacitat:** només les dades del soci de la sessió, i només al compte personal (el d'administrador no en mostra res, decisions 015 i 018). Sense soci, cap bloc. L'estat de la quota surt del servidor (070, P-71).
+- **Del recurs no s'hi fa:** l'ona que s'agita segons la velocitat i la paral·laxi (demanarien JavaScript i una animació contínua sense una funció escrita) ni la web pública (la 07 no té pantalla encara).
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
