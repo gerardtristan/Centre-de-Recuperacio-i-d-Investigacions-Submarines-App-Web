@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import mandate_views, views
+from . import mandate_views, preference_views, views
 from .models import PaymentAttempt
 
 app_name = "payments"
@@ -38,6 +38,7 @@ urlpatterns = [
         name="attempt_status",
     ),
     path("socis/pagaments/<int:attempt_id>/rebut/", views.receipt_view, name="receipt"),
+    path("socis/pagaments/metode/", preference_views.fee_method_view, name="fee_method"),
     # Proveïdor fals (`providers.fake.PAY_PATH`): només hi respon amb el proveïdor fals.
     path("pagaments/prova/<str:order_id>/", views.fake_pay_view, name="fake_pay"),
 ]

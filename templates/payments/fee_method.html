@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05a-11: «Com pago la quota» (P-M05a-A; CA-M05a-01; wireframe socis.html#pagaments-metode; P-130, opció A: «casella» amb botó de ràdio). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió (qualsevol altra persona, «no trobat»); les opcions que el proveïdor no ofereix no arriben a l'HTML i el servidor les rebutja; domiciliació només amb un mandat actiu i targeta guardada només amb una targeta activa; desar queda al registre d'activitat. Cap IBAN: només la referència del mandat. Sessió caducada: el middleware, sense desar res. #}
+{% block title %}{% translate "Com pago la quota" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Com pago la quota" %}</h1>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  <form class="targeta formulari" method="post" action="{% url 'payments:fee_method' %}">
+    {% csrf_token %}
+    {% if not preference %}
+      <p>{% translate "Encara no has triat com pagues la quota." %}</p>
+    {% elif preference.method == "direct_debit" %}
+      <p>{% blocktranslate with reference=preference.mandate.reference %}Ara pagues la quota per <strong>domiciliació</strong> (mandat <span class="codi">{{ reference }}</span>).{% endblocktranslate %}</p>
+    {% elif preference.method == "saved_card" %}
+      <p>{% blocktranslate with last4=preference.saved_card.last4 %}Ara pagues la quota amb la <strong>targeta guardada</strong> acabada en <span class="codi">{{ last4 }}</span>.{% endblocktranslate %}</p>
+    {% else %}
+      <p>{% translate "Ara pagues la quota <strong>cada vegada</strong> que es genera." %}</p>
+      {% if mandate %}
+        <div class="avis avis-sistema">
+          {% blocktranslate with reference=mandate.reference %}El mandat <span class="codi">{{ reference }}</span> continua actiu, però no es fa servir per cobrar la quota. Si no el vols, el pots revocar a la pàgina del mandat.{% endblocktranslate %}
+          {% if mandate_url %}<a href="{{ mandate_url }}">{% translate "Veure el mandat" %}</a>{% endif %}
+          <span class="a-validar">{% translate "A validar: P-134" %}</span>
+        </div>
+      {% endif %}
+    {% endif %}
+    <h2 id="metode-quota-pregunta">{% if preference %}{% translate "Com vols pagar-la a partir d'ara?" %}{% else %}{% translate "Com vols pagar-la?" %}{% endif %}</h2>
+    <div role="radiogroup" aria-labelledby="metode-quota-pregunta">
+      {% for option in options %}
+        <label class="casella"><input type="radio" name="method" value="{{ option.value }}" required{% if option.checked %} checked{% endif %}> <span><strong>{{ option.label }}{% if option.recommended %} {% translate "(recomanada)" %}{% endif %}</strong><br><span class="text-2">{{ option.help }}</span></span></label>
+      {% endfor %}
+    </div>
+    <button class="boto boto-principal" type="submit">{% translate "Continua" %}</button>
+  </form>
+  <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>
+{% endblock %}

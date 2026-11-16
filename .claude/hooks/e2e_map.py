@@ -135,6 +135,11 @@ MAP = {
         "apps/payments/forms.py",
         "templates/payments/mandate.html",
     ),
+    "test_metode_quota.py": (
+        "apps/payments/preference_views.py",
+        "apps/payments/preferences.py",
+        "templates/payments/fee_method.html",
+    ),
     "test_tresoreria.py": (
         "apps/treasury/views.py",
         "apps/treasury/admin_urls.py",

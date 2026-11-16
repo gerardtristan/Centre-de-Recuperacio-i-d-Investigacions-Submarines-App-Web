@@ -567,4 +567,26 @@ opcions:
       no hi ha domiciliació. En signar-ne un de nou, la preferència es torna a lligar al mandat nou (T-M05a-09 i 11).
     data: 2026-11-16
 
+  P-196:
+    opcions:
+      A: Només la capacitat del proveïdor (`capabilities().tokenization`) ara; amb `ProviderConfig`, totes dues (com s'ha fet).
+      B: Un paràmetre de l'entorn per activar-la, a més de la capacitat del proveïdor.
+      C: No oferir-la fins que existeixi `ProviderConfig` amb `tokenization_enabled`.
+    recomanada: A
+    perque: >-
+      No cal cap paràmetre nou i el proveïdor fals ja diu que no. Avui la C dona el mateix resultat; la diferència
+      només apareix amb un proveïdor real que tokenitzi abans de fer `ProviderConfig`.
+    data: 2026-11-16
+
+  P-197:
+    opcions:
+      A: No es desa res i es porta a signar el mandat; després, el soci torna a triar (com s'ha fet).
+      B: Signar el mandat des d'aquest flux deixa la preferència a «domiciliació» (és respondre que sí a la P-125 només aquí).
+      C: Es desa una preferència «domiciliació pendent de mandat» (cal un estat nou i una migració).
+    recomanada: B
+    perque: >-
+      Per al soci, triar domiciliació i signar és un sol pas; tornar a triar és un pas de més. Mentre la P-125 no
+      es respongui, la A no desa cap preferència sense mandat ni canvia res que el soci no hagi triat.
+    data: 2026-11-16
+
 noves:
