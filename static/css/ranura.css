@@ -1,0 +1,35 @@
+/* El rebut (T-DX-11; recursos Tramite i Emisor a design/extern/; design-system §6.14). De Tramite:
+   el comprovant surt d'una ranura i, en imprimir, va en blanc i negre. D'Emisor (P-93, opció C): el
+   segell que cau sobre el document. Només tokens. Una sola vegada en carregar; sense moviment amb
+   prefers-reduced-motion (tokens.css atura les animacions). */
+.rebut-ranura {
+  position: relative; z-index: 2; height: var(--e-3); margin: 0 auto calc(var(--e-2) * -1); width: calc(100% + var(--e-4));
+  max-width: calc(var(--amplada-text) + var(--e-4)); border-radius: var(--r-pastilla);
+  background: linear-gradient(in oklch, var(--abisme), var(--casc));
+  box-shadow: inset 0 var(--v-plena) var(--e-1) color-mix(in oklch, var(--abisme) 80%, transparent);
+}
+.rebut-sortida { overflow: hidden; padding: 0 var(--e-5) var(--e-6); margin: 0 calc(var(--e-5) * -1) calc(var(--e-5) * -1); }
+.rebut-paper {
+  position: relative; background: var(--paper); color: var(--abisme);
+  animation: rebut-surt calc(var(--m-panell) * 1.2) var(--m-corba) both;
+}
+.rebut-paper .text-2, .rebut-paper dt { color: var(--casc); }
+@keyframes rebut-surt { from { transform: translateY(-100%); } to { transform: none; } }
+/* El segell: cau quan el paper ja és fora, sota les dades i a la dreta (no en tapa cap) */
+.rebut-segell {
+  display: grid; justify-items: center; justify-self: end; gap: 0; width: fit-content;
+  margin: var(--e-4) var(--e-3) var(--e-3) auto; padding: var(--e-1) var(--e-3); border: var(--v-plena) solid var(--posidonia); border-radius: var(--r-s);
+  box-shadow: 0 0 0 var(--e-1) var(--paper), 0 0 0 calc(var(--e-1) + var(--v-fina)) color-mix(in oklch, var(--posidonia) 45%, transparent);
+  color: var(--posidonia); font-family: var(--f-titol); font-weight: var(--p-negreta); text-transform: uppercase; letter-spacing: var(--ll-etiqueta);
+  transform: rotate(-7deg); opacity: .9; pointer-events: none;
+  animation: rebut-segell var(--m-panell) var(--m-corba-molla) calc(var(--m-panell) * 1.2) both;
+}
+.rebut-segell-data { font-family: var(--f-text); font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+@keyframes rebut-segell { from { transform: rotate(-7deg) scale(1.7); opacity: 0; } to { transform: rotate(-7deg); opacity: .9; } }
+/* Paper: sempre clar, també al tema fosc (com el justificant, --paper) */
+@media print {
+  .rebut-sortida { overflow: visible; padding: 0; margin: 0; }
+  .rebut-paper, .rebut-segell { animation: none; filter: grayscale(1); }
+  .rebut-paper { background: none; }
+  .rebut-segell { border-color: currentColor; box-shadow: none; color: var(--abisme); }
+}

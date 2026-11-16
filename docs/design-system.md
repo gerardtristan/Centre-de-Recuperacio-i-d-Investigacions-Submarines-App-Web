@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.16 (16/11/2026). La 1.16 afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
+- **Versió:** 1.17 (16/11/2026). La 1.17 afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
+- La 1.16 (16/11/2026) afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
 - La 1.15 (16/11/2026) afegeix Ramillete, la navegació de l'àrea del soci al mòbil (§6.12, T-DX-08).
 - La 1.14 (16/11/2026) afegeix Solapas, les pestanyes de les fitxes obertes a l'administració (§6.11, T-DX-07).
 - La 1.13 (16/11/2026) porta el tema a la configuració del compte (§7, T-DX-05b).
@@ -465,6 +466,14 @@ Del recurs Tramite ([pla dels recursos externs](plans/recursos-disseny-extern.md
 - **Passos:** 1 «Tria com pagar», 2 «Confirmació del proveïdor», 3 «Pagament completat». Surten de l'estat que diu el servidor (`payments.payment_status`): pendent → pas 1 ara; en curs → pas 2 ara; fallat o «No s'ha confirmat a temps» → pas 2 en avís (!); pagat → els tres fets i el segell. Un càrrec que no es pot pagar no porta passos. El pas actual porta `aria-current="step"` i cada pas diu el seu estat al lector de pantalla.
 - **Regles:** sense temps simulat (el recurs omplia la línia amb la durada de cada pas, que aquí no se sap) i sense animació contínua (D20). El segell només surt quan el servidor ha confirmat el pagament (B10), mai en tornar del proveïdor. El pas 3 no es diu «Pagat»: aquest text és el de l'estat, i només surt quan ho és.
 - **Encara no:** el rebut que surt per la ranura i la impressió en blanc i negre (T-DX-11).
+
+### 6.14 El rebut: la ranura i el segell (T-DX-11)
+De Tramite, el comprovant que surt d'una ranura i s'imprimeix en blanc i negre; d'Emisor (P-93, opció C), el segell que cau sobre el document ([pla dels recursos externs](plans/recursos-disseny-extern.md)).
+- **Peça:** `templates/payments/receipt.html` i `static/css/ranura.css`. El paper és `--paper`, clar als dos temes, com el justificant.
+- **Moviment:** en carregar la pàgina, el rebut surt de la ranura (`--m-panell` × 1,2) i després cau el segell «Pagat» amb la data (`--m-corba-molla`). Una sola vegada; sense moviment amb `prefers-reduced-motion`.
+- **El segell només hi és perquè el rebut existeix:** el rebut només es crea quan el servidor ha confirmat el pagament (B10, RN-M05b-19). Va sota les dades, alineat a la dreta, i no en tapa cap. Per al lector de pantalla és decoratiu (les dades ja ho diuen).
+- **Imprimir o desar com a PDF:** sense ranura ni animació, el paper sense fons i el segell en blanc i negre.
+- **Captures:** la *fixture* `capture` de les e2e espera que acabin les animacions finites abans de fer la foto.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

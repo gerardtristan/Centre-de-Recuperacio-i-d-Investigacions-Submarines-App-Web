@@ -141,6 +141,16 @@ def page_checks(page):
     assert not problems, "Problemes al navegador:\n" + "\n".join(problems)
 
 
+def settle(page):
+    """Espera que acabin les animacions de la pàgina (el rebut que surt, el segell…) abans de la
+    captura. Totes són finites (D20: l'única contínua seria Oleaje, que s'atura sola en proves)."""
+    page.evaluate(
+        "() => Promise.all(document.getAnimations()"
+        ".filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished))"
+        ".catch(() => null)"
+    )
+
+
 @pytest.fixture
 def capture(page, request):
     folder = CAPTURES / request.node.name
@@ -148,6 +158,7 @@ def capture(page, request):
     def shoot(name):
         for width in WIDTHS:
             page.set_viewport_size({"width": width, "height": 900})
+            settle(page)
             page.screenshot(path=folder / f"{name}-{width}.png", full_page=True)
         page.set_viewport_size({"width": WIDTHS[0], "height": 900})
 

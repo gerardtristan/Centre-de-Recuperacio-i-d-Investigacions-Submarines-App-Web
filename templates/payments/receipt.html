@@ -5,7 +5,10 @@
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
   <h1>{% translate "Rebut" %}</h1>
-  <section class="targeta" aria-label="{% translate 'Rebut' %}">
+  {# Tramite i Emisor (T-DX-11; design-system §6.14): el rebut surt d'una ranura una sola vegada i porta el segell de pagat. El rebut només existeix quan el servidor ha confirmat el pagament (B10). En imprimir, sense ranura ni animació i en blanc i negre. #}
+  <div class="rebut-ranura no-imprimeix" aria-hidden="true"></div>
+  <div class="rebut-sortida">
+  <section class="targeta rebut-paper" aria-label="{% translate 'Rebut' %}">
     <dl class="dades-soci">
       <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ receipt.number }}</dd></div>
       <div><dt>{% translate "Data" %}</dt><dd>{{ receipt.issued_at|date:"d/m/Y" }}</dd></div>
@@ -15,8 +18,10 @@
       <div><dt>{% translate "Mètode" %}</dt><dd>{{ receipt.attempt.get_method_display }}</dd></div>
       {% if receipt.attempt.provider_order_id %}<div><dt>{% translate "Referència" %}</dt><dd class="codi">{{ receipt.attempt.provider_order_id }}</dd></div>{% endif %}
     </dl>
+    <p class="rebut-segell" aria-hidden="true"><span>{% translate "Pagat" %}</span><span class="rebut-segell-data">{{ receipt.issued_at|date:"d/m/Y" }}</span></p>
     <p class="text-2">{% translate "Rebut del pagament. No és una factura." %} {% blocktranslate %}C.R.I.S. · NIF {{ club_tax_id }} · cris1954.cat{% endblocktranslate %}</p>
   </section>
+  </div>
   <div class="accions no-imprimeix">
     <button class="boto" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
   </div>

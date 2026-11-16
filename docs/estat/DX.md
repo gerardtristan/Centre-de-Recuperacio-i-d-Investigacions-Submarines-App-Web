@@ -23,7 +23,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-08 Ramillete: navegació de l'àrea del soci | feta | 16/11/2026 | #58 | Per sota de 600 px i amb JavaScript. «Surt» es queda a la capçalera (un sol «Surt» per pantalla, T-M01-46) |
 | T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | P-98 (C) |
 | T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | feta | 16/11/2026 | #60 | Passos de l'estat del servidor dins de `_status.html`; Bizum inclòs. El rebut amb la ranura és la T-DX-11 |
-| T-DX-11 Tramite i Emisor: el rebut | per fer | — | — | P-93: només el segell |
+| T-DX-11 Tramite i Emisor: el rebut | feta | 16/11/2026 | #62 | P-93 (C): només el segell. La ranura i la impressió en blanc i negre, de Tramite |
 | T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | bloquejada | — | — | Fins que la PR #41 (T-M04-10) sigui a `master` |
 | T-DX-13 Vigencia: quota i llicència a l'àrea del soci | per fer | — | — | El compte enrere surt del servidor (070, P-71) |
 | T-DX-14 Vigencia: llicències a l'administració | per fer | — | — | — |
