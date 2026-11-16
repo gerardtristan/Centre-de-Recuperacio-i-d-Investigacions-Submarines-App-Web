@@ -301,17 +301,4 @@ opcions:
       ordinador compartit; la C és un model nou per a un benefici petit.
     data: 2026-11-16
 
-  P-87:
-    opcions:
-      A: En tornar a provar, preguntar l'estat de l'ordre al proveïdor; si encara és oberta, el nou intent s'espera i la pantalla ho diu.
-      B: Tancar l'intent a la pantalla als 15 minuts (caducat) i deixar-ne obrir un de nou de seguida.
-      C: Cancel·lar l'ordre al proveïdor en tornar a provar, si el proveïdor ho permet (P-45), i obrir-ne una de nova.
-      D: Esperar la resposta del proveïdor (P-45 punt 13) abans de deixar tornar a provar.
-    recomanada: A
-    perque: >-
-      La A no pot cobrar dues vegades i no inventa res del proveïdor: només aplica l'estat que ell
-      dona. La B deixaria una confirmació tardana «a revisar» sense pagar el càrrec (P-82) i permetria
-      pagar dues vegades. La C és la millor si el proveïdor deixa cancel·lar, però això és la P-45.
-    data: 2026-11-13
-
 noves:
