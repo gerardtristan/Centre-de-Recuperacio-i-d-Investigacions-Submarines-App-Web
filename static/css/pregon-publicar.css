@@ -1,0 +1,20 @@
+/* Pregon (T-DX-31; recurs a design/extern/; design-system §16, T-DX-31): la vista prèvia en compartir.
+   Del recurs: tres targetes (xat, xarxa social i correu) amb el mateix títol i la mateixa descripció
+   retallats a la mida de cada una, i la llista de comprovacions. Les etiquetes meta, al servidor. */
+.pregon { display: grid; gap: var(--e-3); min-inline-size: 0; }
+.pregon h2 { font-size: var(--t-l); text-wrap: balance; }
+.pregon-targetes, .pregon-comprovacions { display: grid; gap: var(--e-3); margin: 0; padding: 0; list-style: none; }
+.pregon-targeta {
+  display: grid; gap: var(--e-1); padding: var(--e-3); overflow: hidden;
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); background: var(--c-fons);
+}
+.pregon-targeta p { margin: 0; }
+.pregon-canal { font-size: var(--t-xs); font-weight: var(--p-semi); color: var(--c-text-2); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; }
+.pregon-imatge { min-block-size: var(--e-8); padding: var(--e-2); border-radius: var(--r-m); color: var(--c-text-2); font-size: var(--t-s); }
+.pregon-xat { grid-template-columns: var(--e-8) minmax(0, 1fr); column-gap: var(--e-3); }
+.pregon-xat .pregon-canal { grid-column: 1 / -1; }
+.pregon-xat .pregon-imatge { grid-row: span 2; }
+.pregon-titol { font-weight: var(--p-semi); }
+.pregon-text { font-size: var(--t-s); color: var(--c-text-2); }
+.pregon-domini { font-size: var(--t-s); color: var(--c-text-2); overflow-wrap: anywhere; }
+.pregon-comprovacions .estat { white-space: normal; justify-self: start; }

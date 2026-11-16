@@ -1,0 +1,15 @@
+/* Averia (T-DX-31; recurs a design/extern/; design-system §16, T-DX-31): el formulari per publicar.
+   Del recurs: les preguntes segons el tipus (aquí, d'activitat) i la foto que es redueix i perd la
+   ubicació. La validació del fitxer i la neteja de l'EXIF seran també al servidor. */
+.averia { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.averia h1 { margin: 0; }
+.averia-columnes { display: grid; gap: var(--e-5); }
+@media (min-width: 1024px) { .averia-columnes { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+.averia-form { display: grid; gap: var(--e-4); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.averia-form .segmentat { display: flex; flex-wrap: wrap; gap: var(--e-1); margin: 0; padding: var(--e-1); border: 0; }
+.averia-form .segmentat legend { padding: 0; margin-bottom: var(--e-2); font-weight: var(--p-semi); font-size: var(--t-s); }
+/* Les preguntes del tipus triat, agrupades amb espai (D15), no amb una caixa */
+.averia-preguntes { display: grid; gap: var(--e-3); padding-inline-start: var(--e-3); border-inline-start: var(--v-activa) solid var(--c-linia); }
+@media (min-width: 600px) { .averia-preguntes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .averia-etiqueta { grid-column: 1 / -1; } }
+.averia-etiqueta { margin: 0; font-weight: var(--p-semi); font-size: var(--t-s); color: var(--c-text-2); }
+.averia-accions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-2); }
