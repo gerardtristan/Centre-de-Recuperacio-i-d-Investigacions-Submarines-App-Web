@@ -369,6 +369,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    _perm(
+        "settings.edit.payments.safety_net_give_up_hours",
+        "AJ5b-3",
+        _("Hores que la xarxa de seguretat torna a provar una ordre abans de deixar-la a revisar"),
+        requires=("settings.section.payments",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

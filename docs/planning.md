@@ -3322,6 +3322,22 @@ Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: d
 |---|---|---|---|---|---|
 | T-M05b-22 | Pantalla d'ajustos del 05b (VC-16 a VC-18) sobre els `PaymentSettings` i la peça comuna ([055](decisions/055-ajustos-configurables-i-addendes.md)) | S | `apps/payments/views/settings.py` | T-AJ-02, T-M05b-05, T-M05b-12 | CA-M05b-26, 27 |
 
+**Ampliació de la [093](decisions/093-hores-de-la-xarxa-de-seguretat-com-a-ajust.md) (16/11/2026; instrucció escrita del propietari).** VC-17 té un tercer valor: les hores que la xarxa de seguretat torna a provar una ordre que no pot tancar abans de deixar l'intent «a revisar» ([L-M05b-01](#M05b-9-criteris)), que fins ara eren una constant del codi. Cap comportament no canvia. Per a VC-17, aquest bloc val per sobre de la taula de dalt i de l'[apèndix](#valors-configurables).
+
+| VC | Clau | Valor inicial | Rang (proposta, [P-102](decisions/pendents.md)) | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-17 (tercer valor) | `payments.safety_net_give_up_hours`: hores des que comença l'intent | 24 (el que feia servir el codi) | 24 a 168 | Administrador | — (no afecta diners; val a la passada següent de la xarxa) |
+
+| ID | Regla |
+|---|---|
+| RN-M05b-31 | La xarxa de seguretat torna a provar cada dia una ordre en curs que no pot consultar o tancar; quan l'intent fa més hores que el valor vigent de `payments.safety_net_give_up_hours`, va «a revisar» amb el motiu. Abans, es queda en curs |
+
+- **CA-M05b-33** Donat un intent en curs de fa 30 hores que la xarxa de seguretat no pot consultar al proveïdor, quan l'ajust val 48, llavors l'intent es queda en curs; quan val 24, va «a revisar». L'administrador posa l'ajust a 48 i queda al registre amb el valor anterior; 23 i 169 es rebutgen; qui no té l'edició rep «no trobat».
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M05b-28 | Hores de la xarxa de seguretat com a ajust de VC-17: permís AJ5b-3, migració de l'ajust i lectura a `processing.safety_net` ([093](decisions/093-hores-de-la-xarxa-de-seguretat-com-a-ajust.md)) | S | `apps/payments/processing.py`, `apps/core/permission_catalog.py`, migracions | T-M05b-22 | CA-M05b-33 |
+
 
 <a id="M05b-addenda-058"></a>
 ## M05b — Addenda de la [058](decisions/058-respostes-fecdas-gestoria-i-cursos.md): import extra del retorn i reintent de la targeta

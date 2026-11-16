@@ -38,11 +38,10 @@ REVIEW_TEMPLATE = "avis-pagament-revisar"
 REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
 # VC-17: minuts sense notificació abans que la xarxa de seguretat pregunti al proveïdor.
 SAFETY_NET_AGE = "payments.safety_net_age_minutes"
-# Una ordre que la xarxa no pot tancar es torna a provar l'endemà; passat aquest temps va «a
-# revisar» (L-M05b-01). Així una caiguda curta del proveïdor no tanca un intent que potser es
-# pagarà i obre la porta a pagar dues vegades. shortcut: constant; no és a VC-17 i la T-M05b-22
-# no l'ha convertit en ajust (cal decidir-ho abans).
-SAFETY_NET_GIVE_UP = timedelta(hours=24)
+# VC-17 (decisió 093): una ordre que la xarxa no pot tancar es torna a provar l'endemà; passades
+# aquestes hores va «a revisar» (L-M05b-01). Així una caiguda curta del proveïdor no tanca un
+# intent que potser es pagarà i obre la porta a pagar dues vegades.
+SAFETY_NET_GIVE_UP = "payments.safety_net_give_up_hours"
 # Estat normalitzat del proveïdor → estat de l'intent que encara és «en curs».
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}
 
@@ -177,8 +176,9 @@ def safety_net() -> None:
     """Xarxa de seguretat, cada dia: processa les notificacions que s'hagin quedat «rebudes» i
     consulta al proveïdor les ordres en curs de fa més de `SAFETY_NET_AGE` minuts (ajust) sense
     notificació.
-    Si no es pot consultar o tancar, es torna a provar l'endemà i, passat `SAFETY_NET_GIVE_UP`,
-    l'intent va «a revisar» (L-M05b-01). Un error en una ordre no atura les altres."""
+    Si no es pot consultar o tancar, es torna a provar l'endemà i, passades `SAFETY_NET_GIVE_UP`
+    hores (ajust), l'intent va «a revisar» (L-M05b-01). Un error en una ordre no atura les altres.
+    """
     limit = timezone.now() - timedelta(minutes=business_settings.get(SAFETY_NET_AGE))
     stuck = ProviderEvent.objects.filter(result=R.RECEIVED, received_at__lt=limit)
     for event_id in stuck.values_list("pk", flat=True):
@@ -187,7 +187,7 @@ def safety_net() -> None:
     stale = PaymentAttempt.objects.filter(
         status=S.IN_PROGRESS, provider_code=provider.code, created_at__lt=limit
     ).exclude(provider_order_id="")
-    give_up = timezone.now() - SAFETY_NET_GIVE_UP
+    give_up = timezone.now() - timedelta(hours=business_settings.get(SAFETY_NET_GIVE_UP))
     for attempt in stale.order_by("pk"):
         try:
             # Fora de la transacció: la consulta és una crida de xarxa.
@@ -203,8 +203,8 @@ def safety_net() -> None:
 
 
 def _give_up(attempt: PaymentAttempt, give_up, reason: str) -> None:
-    """Passat `SAFETY_NET_GIVE_UP`, l'intent que no es pot tancar va «a revisar» perquè el
-    tresorer el vegi; abans, es deixa en curs per tornar-hi l'endemà."""
+    """Passades `SAFETY_NET_GIVE_UP` hores, l'intent que no es pot tancar va «a revisar» perquè
+    el tresorer el vegi; abans, es deixa en curs per tornar-hi l'endemà."""
     if attempt.created_at >= give_up:
         return
     try:

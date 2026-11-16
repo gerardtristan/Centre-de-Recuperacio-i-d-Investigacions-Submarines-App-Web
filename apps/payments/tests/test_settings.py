@@ -30,6 +30,7 @@ pytestmark = pytest.mark.django_db
 
 R = Role.Code
 BIZUM, AGE = attempts.BIZUM_UI_TIMEOUT, processing.SAFETY_NET_AGE
+GIVE_UP = processing.SAFETY_NET_GIVE_UP
 
 
 @pytest.fixture(autouse=True)
@@ -48,11 +49,14 @@ def test_vc_17_values_come_from_the_migration_with_their_ranges():
     assert [(s.key, s.initial_value, s.min_value, s.max_value) for s in rows] == [
         (BIZUM, 15, 5, 30),
         (AGE, 60, 30, 240),
+        (GIVE_UP, 24, 24, 168),
     ]
     assert not any(s.affects_money or s.effective_dated for s in rows)
 
 
-@pytest.mark.parametrize(("key", "low", "high"), [(BIZUM, 5, 30), (AGE, 30, 240)])
+@pytest.mark.parametrize(
+    ("key", "low", "high"), [(BIZUM, 5, 30), (AGE, 30, 240), (GIVE_UP, 24, 168)]
+)
 def test_vc_17_range_is_checked(admin, key, low, high):
     for value in (low - 1, high + 1):
         with pytest.raises(ValidationError):
@@ -109,9 +113,32 @@ def test_vc_17_the_safety_net_waits_the_configured_minutes(admin, fee, account, 
     assert state(attempt, fee)[0] == Attempt.Status.PAID
 
 
+def test_ca_m05b_33_the_safety_net_gives_up_after_the_configured_hours(
+    admin,
+    fee,  # noqa: F811
+    account,  # noqa: F811
+    transit,  # noqa: F811
+    make_admin,  # noqa: F811
+):
+    attempt = Attempt.objects.get(pk=checkout.start_payment(fee.charge, "card", account).attempt_id)
+    fake.reset()  # el proveïdor ja no coneix l'ordre: la xarxa no la pot consultar
+    minutes_pass(attempt, 30 * 60, provider_closes=False)
+    business_settings.change(GIVE_UP, 48, admin, note="Prova")
+    processing.safety_net()
+    assert state(attempt, fee)[0] == Attempt.Status.IN_PROGRESS  # 30 hores < 48: l'endemà
+    entry = AuditEntry.objects.get(action=business_settings.ACTION_CHANGED, field=GIVE_UP)
+    assert (entry.old_value, entry.new_value) == (24, 48)
+    with pytest.raises(Http404):  # el tresorer el veu però no l'edita
+        business_settings.change(GIVE_UP, 24, make_admin(R.TREASURER))
+    business_settings.change(GIVE_UP, 24, admin)
+    processing.safety_net()
+    assert state(attempt, fee)[0] == Attempt.Status.TO_REVIEW
+    assert "consultar l'ordre" in attempt.review_reason
+
+
 class TestSettingsMigrationIsReversible(CommittedDataTestCase):
-    """Desfer i tornar a aplicar la 0004 funciona i deixa els mateixos ajustos (mateixa clau
-    primària): si es recreessin, la neteja d'aquesta classe, que esborra les files noves, els
+    """Desfer i tornar a aplicar la 0004 i la 0005 funciona i deixa els mateixos ajustos (mateixa
+    clau primària): si es recreessin, la neteja d'aquesta classe, que esborra les files noves, els
     faria desaparèixer de la base de proves reutilitzada (revisió de la PR #49)."""
 
     def test_backwards_and_forwards_keeps_the_same_rows(self):
@@ -124,6 +151,6 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         finally:
             MigrationExecutor(connection).migrate(leaves)
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
-        assert after == before and len(after) == 2
+        assert after == before and len(after) == 3
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
