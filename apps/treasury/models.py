@@ -13,6 +13,7 @@ from apps.core.models import (
     AppendOnlyQuerySet,
     Charge,
     Department,
+    ImportLine,
     Payment,
     UndeletableModel,
     validate_cents,
@@ -330,3 +331,55 @@ class TransferReference(AppendOnlyModel):
 
     def __str__(self):
         return self.reference
+
+
+class StatementLineState(UndeletableModel):
+    """Estat d'una línia de l'extracte a la conciliació (M04-6; RN-T14, RN-T15): pendent →
+    proposada → conciliada; pendent → exclosa. «A revisar» és una marca amb el seu motiu. La
+    línia de la 00 no es toca mai. El manté `reconciliation.refresh` (T-M04-11)."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pendent")
+        PROPOSED = "proposed", _("Proposada")
+        RECONCILED = "reconciled", _("Conciliada")
+        EXCLUDED = "excluded", _("Exclosa")
+
+    class ReviewReason(models.TextChoices):
+        AMOUNT_MISMATCH = "amount_mismatch", _("L'import no coincideix amb el dels càrrecs")
+        CHARGE_NOT_PENDING = "charge_not_pending", _("El càrrec ja no està pendent")
+        UNKNOWN_REFERENCE = "unknown_reference", _("La referència no és de cap càrrec")
+        REPEATED_REFERENCE = "repeated_reference", _("El càrrec ja és en una altra proposta")
+        AMOUNT_ONLY = "amount_only", _("Sense referència: un sol càrrec pendent amb aquest import")
+
+    # related_name="+": una relació oculta no bloqueja desfer l'extracte
+    # (`bank_statement._reconciled` només compta les visibles); l'estat no és una conciliació.
+    statement_line = models.OneToOneField(
+        ImportLine, on_delete=models.PROTECT, related_name="+", verbose_name=_("línia")
+    )
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    to_review = models.BooleanField(_("a revisar"), default=False)
+    review_reason = models.CharField(
+        _("motiu de la revisió"), max_length=20, choices=ReviewReason.choices, blank=True
+    )
+    # La proposta que el tresorer confirmarà (T-M04-12): un càrrec, o diversos si la línia en
+    # porta les referències i la suma és exacta (LT5).
+    proposed_charges = models.ManyToManyField(
+        Charge, blank=True, related_name="+", verbose_name=_("càrrecs proposats")
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("estat de línia de l'extracte")
+        verbose_name_plural = _("estats de línies de l'extracte")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(to_review=False, review_reason="")
+                | (Q(to_review=True) & ~Q(review_reason="")),
+                name="statement_line_review_reason_iff_flag",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_status_display()} ({self.statement_line_id})"

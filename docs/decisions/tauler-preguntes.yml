@@ -242,4 +242,16 @@ opcions:
       La B no depèn de cap valor de l'entorn. Es decideix amb la T-M04-11, que és qui la fa servir; mentrestant val la A.
     data: 2026-11-16
 
+  P-101:
+    opcions:
+      A: Com s'ha construït; com CA-T09.3, «a revisar» només si hi ha un sol càrrec pendent del mateix import; la resta, «pendents».
+      B: Com LT2, tota línia d'entrada sense referència va «a revisar».
+      C: «A revisar» si hi ha almenys un càrrec pendent del mateix import, encara que n'hi hagi més d'un.
+    recomanada: A
+    perque: >-
+      La llista «a revisar» ha de servir per al que demana una decisió; amb la B s'hi barrejarien liquidacions i
+      abonaments que no són quotes. Totes les línies pendents ja surten a la conciliació, i el canvi es pot fer en
+      qualsevol moment perquè l'estat es torna a calcular.
+    data: 2026-11-16
+
 noves:
