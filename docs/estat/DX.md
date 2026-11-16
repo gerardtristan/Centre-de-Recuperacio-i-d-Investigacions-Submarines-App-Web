@@ -49,7 +49,8 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-33 Finances per àmbit (Gastos), en construcció | per fer | — | — | — |
 | T-DX-34 Factures (Emisor), en construcció | per fer | — | — | — |
 | T-DX-35 | feta | 16/11/2026 | #86 | Dashboard de l'administració: reixa de ginys de dotze columnes amb xifres agregades d'exemple (cap nom), paleta i disposició com a dades; res no s'arrossega ni es desa |
-| T-DX-36 Editor de la web (Probador i Pregon), en construcció | per fer | — | — | — |
+| T-DX-36 Editor de la web (Probador i Pregon), en construcció | en curs | 16/11/2026 | — | — |
+| T-DX-35 Dashboard (Parrilla), en construcció | per fer | — | — | — |
 | T-DX-37 Fotos (Fototeca i Expositor), en construcció | per fer | — | — | — |
 | T-DX-38 Convite, en construcció | per fer | — | — | P-99 (A) |
 | T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 (A); P-95: sense veu |
