@@ -21,6 +21,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
+from apps.accounts.sessions import AUTOMATIC_HEADER
 from apps.core import consents
 from apps.core.crypto import encrypt
 from apps.core.models import AccountRole, Person, Role
@@ -72,10 +73,23 @@ class PageChecks:
         self.problems = []
         self.expected = set()  # (estat, camí) que la prova espera
         self.downloads = set()  # camins de descàrregues que la prova espera
+        # Consultes automàtiques (HTMX cada pocs segons) que han trobat la sessió ja tancada.
+        self.automatic_denied = set()
+        self._console_resource = []  # (camí, text): es resolen en acabar
         page.on("console", self._console)
         page.on("pageerror", lambda error: self.problems.append(f"JavaScript: {error}"))
         page.on("requestfailed", self._failed)
         page.on("response", self._response)
+
+    def final_problems(self):
+        """Els problemes, sense el missatge de consola de les consultes automàtiques denegades
+        (Chromium l'escriu a part de la resposta, i pot arribar abans o després)."""
+        console = [
+            f"consola: {text}"
+            for path, text in self._console_resource
+            if path not in self.automatic_denied
+        ]
+        return self.problems + console
 
     def expect(self, status, path):
         self.expected.add((status, path))
@@ -91,7 +105,11 @@ class PageChecks:
         declared = message.text.startswith("Failed to load resource") and any(
             path == expected for _, expected in self.expected
         )
-        if message.type == "error" and not declared:
+        if message.type != "error" or declared:
+            return
+        if message.text.startswith("Failed to load resource"):
+            self._console_resource.append((path, message.text))
+        else:
             self.problems.append(f"consola: {message.text}")
 
     def _failed(self, request):
@@ -103,9 +121,15 @@ class PageChecks:
         self.problems.append(f"petició fallida: {request.method} {request.url} ({request.failure})")
 
     def _response(self, response):
-        if response.status >= 400 and (response.status, urlparse(response.url).path) not in (
-            self.expected
-        ):
+        path = urlparse(response.url).path
+        ((header, value),) = AUTOMATIC_HEADER.items()
+        if response.status in (401, 403) and response.request.headers.get(header.lower()) == value:
+            # Una consulta automàtica que surt quan la sessió s'acaba (en sortir, en canviar de
+            # compte o en acabar la prova) no és cap error de la pàgina. Si la prova en depèn,
+            # el seu `expect` ja falla.
+            self.automatic_denied.add(path)
+            return
+        if response.status >= 400 and (response.status, path) not in self.expected:
             self.problems.append(f"{response.status} {response.request.method} {response.url}")
 
 
@@ -113,7 +137,8 @@ class PageChecks:
 def page_checks(page):
     checks = PageChecks(page)
     yield checks
-    assert not checks.problems, "Problemes al navegador:\n" + "\n".join(checks.problems)
+    problems = checks.final_problems()
+    assert not problems, "Problemes al navegador:\n" + "\n".join(problems)
 
 
 @pytest.fixture
