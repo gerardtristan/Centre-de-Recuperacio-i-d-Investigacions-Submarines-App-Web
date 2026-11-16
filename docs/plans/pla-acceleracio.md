@@ -196,7 +196,7 @@ El límit real no és quant de codi es pot escriure alhora, sinó **quant en pot
 | **B. Pagaments** | `apps/payments` (nova) | A i C | Els contractes de la llesca 2 |
 | **C. Tancament del 01** | `apps/members` | A i B | — |
 | **N. Nucli** | `apps/core`, `apps/accounts` | **Amb ningú: un sol canvi obert alhora** | — |
-| **D. Disseny** (16/11/2026) | `static/css`, `static/js`, plantilles comunes ([recursos externs](recursos-disseny-extern.md), [`estat/DX.md`](../estat/DX.md)) | A, B i C, **una sola tasca alhora**; si xoca amb A o B, cedeix | Res; el que toqui `apps/core` o `apps/accounts` passa pel nucli |
+| **D. Disseny** (16/11/2026) | `static/css`, `static/js`, plantilles comunes ([recursos externs](recursos-disseny-extern.md), [`estat/DX.md`](../estat/DX.md)) | A, B i C, dins el màxim de tres carrils oberts; **una sola tasca alhora**; si xoca amb A o B, cedeix | Res; el que toqui `apps/core` o `apps/accounts` passa pel nucli |
 
 - **A i B es troben en un contracte.** Abans de separar-se, s'escriuen i es proven les signatures on es toquen: `treasury.record_income`, l'adaptador del proveïdor i l'esdeveniment `charge.paid`. Cada carril treballa contra el contracte i contra un doble de prova de l'altre.
 - **El nucli és el punt de xoc.** `apps/core/models.py` fa 1.290 línies i hi escriu tothom (el càrrec, els permisos, els ajustos). Un canvi al nucli va en una PR pròpia, petita, que es fusiona abans que les que la necessiten.

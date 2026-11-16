@@ -23,7 +23,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | Lloc per defecte de P-98 (reversible) |
 | T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | per fer | — | — | Bizum quan la PR #38 sigui a `master`. Carril de pagaments primer |
 | T-DX-11 Tramite i Emisor: el rebut | per fer | — | — | P-93: només el segell |
-| T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | per fer | — | — | Després de la PR #41 (T-M04-10) |
+| T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | bloquejada | — | — | Fins que la PR #41 (T-M04-10) sigui a `master` |
 | T-DX-13 Vigencia: quota i llicència a l'àrea del soci | per fer | — | — | El compte enrere surt del servidor (070, P-71) |
 | T-DX-14 Vigencia: llicències a l'administració | per fer | — | — | — |
 | T-DX-15 Autentico: verificació del carnet | per fer | — | — | Mateixes dades que ara (RN-M01-26) |
