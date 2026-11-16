@@ -60,17 +60,17 @@ def transfer_reference(charge: Charge) -> str:
             return existing
         try:
             # En un punt de desament: si la base de dades rebutja el duplicat, la transacció de
-            # qui crida continua.
+            # qui crida continua. La fila i la seva entrada al registre van juntes.
             with transaction.atomic():
                 row = TransferReference.objects.create(charge=charge, reference=new_reference())
+                audit.record(
+                    REFERENCE_CREATED,
+                    actor=audit.system("treasury.transfer_reference"),
+                    target=row,
+                    details={"charge": charge.pk, "reference": row.reference},
+                )
         except IntegrityError:
             continue  # una altra crida l'ha creada per a aquest càrrec, o el codi ja existia
-        audit.record(
-            REFERENCE_CREATED,
-            actor=audit.system("treasury.transfer_reference"),
-            target=row,
-            details={"charge": charge.pk, "reference": row.reference},
-        )
         return row.reference
     raise IntegrityError("No s'ha pogut generar una referència de transferència única.")
 

@@ -141,6 +141,23 @@ class TestService:
             assert TransferReference.objects.count() == 1
 
 
+class TestAuditTogether(CommittedDataTestCase):
+    def test_review_41_no_reference_without_its_audit_entry(self):
+        """Revisió de la #41: sense transacció de qui crida, si l'entrada del registre falla, la
+        referència tampoc no es desa (si no, la crida següent la tornaria sense registre)."""
+        person = Person.objects.create(first_name="Núria", last_name="Coll", origin="web")
+        charge = new_charge(person)
+
+        def broken(*args, **kwargs):
+            raise RuntimeError("registre caigut")
+
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(references.audit, "record", broken)
+            with pytest.raises(RuntimeError):
+                services.transfer_reference(charge)
+        assert not TransferReference.objects.filter(charge=charge).exists()
+
+
 class TestSimultaneous(CommittedDataTestCase):
     def test_rn_t20_two_first_requests_at_once_give_the_same_reference(self):
         person = Person.objects.create(first_name="Núria", last_name="Coll", origin="web")
