@@ -17,6 +17,8 @@ from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.business_settings import section_code
+from apps.core.permission_catalog import CATALOG
 from apps.core.permissions import has_perm, request_permissions
 from apps.members.permissions import READ, ROUTES
 
@@ -39,6 +41,10 @@ BASE_ROUTES = {
     "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:treasury_movements": ((("treasury.view", READ),),),
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
+    # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
+    "administration:settings": tuple(
+        ((code, READ),) for code in CATALOG if code.startswith(section_code(""))
+    ),
 }
 
 # Ruta de l'entrada, text i les altres pantalles que en pengen (també la marquen com a actual).
@@ -86,6 +92,11 @@ ENTRIES = (
         ("administration:reset_credentials",),
     ),
     ("administration:audit_log", _("Registre d'activitat"), ()),
+    (
+        "administration:settings",
+        _("Ajustos"),
+        ("administration:settings_section", "administration:setting_detail"),
+    ),
 )
 
 _REQUEST_CACHE_ATTR = "_cris_admin_nav"

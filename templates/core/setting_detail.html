@@ -1,0 +1,59 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-AJ-02: un valor d'ajustos, el formulari segons el tipus i l'historial (055, RN-AJ-02 a 05, CA-AJ-05; RN-RP-22). Seguretat i privacitat: el servidor exigeix `settings.section.<apartat>` (sense permís, o amb una clau que no és de l'apartat, «no trobat»); el formulari només surt a qui pot editar el valor, però el control és el servei: un POST sense permís d'edició es rebutja amb «no trobat» i queda al registre. El tipus, el rang, la data d'entrada en vigor i la nota es comproven al servidor; si no passen, no es desa res. L'historial mostra el nom d'usuari del compte d'administrador que ha fet el canvi, com el registre d'activitat. #}
+{% block title %}{{ row.label }} · {{ title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:settings_section' section %}">{{ title }}</a></p>
+  <h1>{{ row.label }}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Clau" %}</dt><dd><span class="codi">{{ row.setting.key }}</span></dd></div>
+    <div><dt>{% translate "Vigent" %}</dt><dd>{{ row.current }}</dd></div>
+    {% if row.scheduled %}<div><dt>{% translate "Programat" %}</dt><dd>{% blocktranslate with value=row.scheduled date=row.scheduled_from|date:"d/m/Y" %}{{ value }} des del {{ date }}{% endblocktranslate %}</dd></div>{% endif %}
+    <div><dt>{% translate "Inicial" %}</dt><dd>{{ row.initial }}</dd></div>
+    <div><dt>{% translate "Rang" %}</dt><dd>{{ row.range }}</dd></div>
+  </dl>
+  {% if row.editable %}
+    <form class="formulari targeta" method="post" aria-labelledby="canvi-titol" novalidate>
+      {% csrf_token %}
+      <h2 id="canvi-titol">{% translate "Canvia el valor" %}</h2>
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el valor" %}</button></div>
+    </form>
+  {% else %}
+    <p class="text-2">{% translate "Pots veure aquest valor, però no canviar-lo." %}</p>
+  {% endif %}
+  <section aria-labelledby="historial-titol">
+    <h2 id="historial-titol">{% translate "Historial" %}</h2>
+    {% if history %}
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Quan" %}</th>
+            <th scope="col">{% translate "Qui" %}</th>
+            <th scope="col">{% translate "Anterior" %}</th>
+            <th scope="col">{% translate "Nou" %}</th>
+            <th scope="col">{% translate "En vigor des de" %}</th>
+            <th scope="col">{% translate "Nota" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for version, previous, value in history %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ version.changed_at|date:"d/m/Y H:i" }}</th>
+              <td data-etiqueta="{% translate 'Qui' %}"><span class="codi">{{ version.changed_by.get_username }}</span></td>
+              <td data-etiqueta="{% translate 'Anterior' %}">{{ previous }}</td>
+              <td data-etiqueta="{% translate 'Nou' %}">{{ value }}</td>
+              <td data-etiqueta="{% translate 'En vigor des de' %}">{{ version.effective_from|date:"d/m/Y"|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Nota' %}">{{ version.note|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-2">{% translate "Encara no s'ha canviat mai: val el valor inicial." %}</p>
+    {% endif %}
+  </section>
+{% endblock %}

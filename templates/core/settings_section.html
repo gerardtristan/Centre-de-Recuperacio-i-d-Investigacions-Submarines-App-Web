@@ -1,0 +1,37 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-AJ-02: valors d'un apartat d'ajustos (055, RN-AJ-05; RN-RP-22). Seguretat i privacitat: el servidor exigeix `settings.section.<apartat>` (sense permís, «no trobat»); «Canvia» només surt a qui pot editar el valor («Sí» de l'apartat o `settings.edit.<clau>`), però amagar-lo no és el control: el servei rebutja l'edició sense permís amb «no trobat» i la deixa al registre. Cap dada personal. #}
+{% block title %}{{ title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:settings' %}">{% translate "Ajustos" %}</a></p>
+  <h1>{{ title }}</h1>
+  {% if rows %}
+    <table class="taula">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Valor" %}</th>
+          <th scope="col">{% translate "Vigent" %}</th>
+          <th scope="col">{% translate "Programat" %}</th>
+          <th scope="col">{% translate "Inicial" %}</th>
+          <th scope="col">{% translate "Rang" %}</th>
+          <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ row.label }}<br><span class="codi">{{ row.setting.key }}</span></th>
+            <td data-etiqueta="{% translate 'Vigent' %}"><strong>{{ row.current }}</strong></td>
+            <td data-etiqueta="{% translate 'Programat' %}">{% if row.scheduled %}{% blocktranslate with value=row.scheduled date=row.scheduled_from|date:"d/m/Y" %}{{ value }} des del {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</td>
+            <td data-etiqueta="{% translate 'Inicial' %}">{{ row.initial }}</td>
+            <td data-etiqueta="{% translate 'Rang' %}">{{ row.range }}</td>
+            <td class="cel-accions"><a href="{% url 'administration:setting_detail' section row.setting.key %}">{% if row.editable %}{% blocktranslate with label=row.label %}Canvia: {{ label }}{% endblocktranslate %}{% else %}{% blocktranslate with label=row.label %}Historial: {{ label }}{% endblocktranslate %}{% endif %}</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-2">{% translate "Aquest apartat encara no té cap valor." %}</p>
+  {% endif %}
+{% endblock %}
