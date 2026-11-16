@@ -754,3 +754,9 @@ Del recurs Vistazo ([pla dels recursos externs](plans/recursos-disseny-extern.md
 - **Pantalla:** `/en-construccio/projectes/`, «Projectes», a l'àrea del soci, amb quatre projectes d'exemple.
 - **Quan funcioni:** projectes i fotos com a dades; només fotos amb el consentiment de les persones que s'hi reconeixen (T-M01-08, P-41), sense EXIF i desades a la UE.
 - **Del recurs no s'hi fa:** la finestra que segueix el cursor i s'inclina amb la velocitat (cal JavaScript continu), la cortina entre fotos ni les fotos de la demostració (D11).
+### T-DX-28 Recoveco: ajuda i preguntes freqüents
+Del recurs Recoveco ([pla dels recursos externs](plans/recursos-disseny-extern.md)): l'índex de temes amb el número romà i el comptador, les preguntes plegades per tema i la cerca del navegador que obre la resposta. Lloc: l'ajuda de l'àrea del soci (i, amb la mateixa peça, la de l'administració i les preguntes freqüents de la web pública, 07).
+- **Peça:** `static/css/recoveco.css`. `recoveco-index` (temes amb `recoveco-rom` i el nombre de preguntes; a l'escriptori, a l'esquerra i fix en desplaçar), `recoveco-grup` (un tema) i `recoveco-p` (un `details` per pregunta, amb `name` per tema: obrir-ne una tanca l'anterior; la ratlla marina i el «+» que es torna «−»). La drecera que es mostra és <kbd>Ctrl</kbd> <kbd>F</kbd> (B19; al Mac, ⌘F).
+- **Pantalla:** `/en-construccio/ajuda/`, «Ajuda i preguntes freqüents», a l'àrea del soci, amb tres temes i sis preguntes d'exemple. La cerca pròpia i «Copiar l'enllaç a aquesta resposta» van dins d'un `fieldset disabled`.
+- **Quan funcioni:** preguntes i respostes com a dades editables (regla «Valors i llistes»); cap resposta no revela dades d'un compte ni si un correu hi és registrat.
+- **Del recurs no s'hi fa:** el cercador propi amb comptador i fletxes, «Copiar l'enllaç» amb el subratllat de la frase exacta (cal JavaScript; per a quan funcioni) ni les dreceres `/`, `R` i les fletxes.

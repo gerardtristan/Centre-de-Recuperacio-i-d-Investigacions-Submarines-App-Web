@@ -40,7 +40,8 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-25 Marcador, en construcció | per fer | — | — | — |
 | T-DX-26 Desfile i Oleaje a la portada pública, en construcció | per fer | — | — | Desfile sense avanç automàtic |
 | T-DX-27 Vistazo: projectes, en construcció | feta | 16/11/2026 | #79 | Projectes del Departament d'Història a l'àrea del soci: files que s'obren i finestra decorativa en degradat (sense fotos) |
-| T-DX-28 Recoveco: ajuda i preguntes freqüents, en construcció | per fer | — | — | — |
+| T-DX-28 Recoveco: ajuda i preguntes freqüents, en construcció | en curs | 16/11/2026 | — | — |
+| T-DX-28 | feta | 16/11/2026 | #82 | Ajuda de l'àrea del soci: índex de temes, preguntes plegades per tema (`details name`) i Ctrl+F; cerca pròpia i «Copiar l'enllaç» desactivats |
 | T-DX-29 Calendari d'un dia (Asueto), en construcció | per fer | — | — | — |
 | T-DX-30 Reasigna, en construcció | per fer | — | — | — |
 | T-DX-31 Publicar activitats (Averia i Pregon), en construcció | per fer | — | — | — |
