@@ -1,0 +1,24 @@
+/* Marcador (T-DX-25; recurs a design/extern/; design-system §16, T-DX-25): guardar activitats.
+   Del recurs: la cinta de punt de llibre que cau del cantell de la targeta quan es guarda. Aquí
+   cau una sola vegada en aparèixer, amb la molla de tokens.css (B5), sense física de cadena ni JS.
+   Amb prefers-reduced-motion, tokens.css l'atura. */
+.marcador { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.marcador h1 { margin: 0; text-wrap: balance; }
+.marcador-llistes { display: grid; gap: var(--e-4); margin: 0; padding: 0; border: 0; }
+.marcador-llistes h2 { margin: var(--e-2) 0 0; font-size: var(--t-l); }
+.marcador-graella { display: grid; gap: var(--e-4); margin: 0; padding: 0; list-style: none; }
+@media (min-width: 600px) { .marcador-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.marcador-targeta { position: relative; display: grid; justify-items: start; align-content: start; gap: var(--e-2); }
+.marcador-targeta h3 { margin: 0; padding-inline-end: var(--e-6); font-size: var(--t-l); text-wrap: balance; }
+.marcador-quan { margin: 0; color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.marcador-boto { margin-top: var(--e-2); }
+.marcador-boto[aria-pressed="true"] { color: var(--c-ok-text); border-color: color-mix(in oklab, var(--c-ok), transparent 40%); }
+/* La cinta: penja del cantell de dalt, amb l'osca en V a baix */
+.marcador-cinta {
+  position: absolute; top: calc(-1 * var(--v-plena)); right: var(--e-5); inline-size: var(--e-5); block-size: var(--e-7);
+  background: linear-gradient(to bottom, var(--c-accent-premut), var(--c-accent) var(--e-3));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - var(--e-3)), 0 100%);
+  transform-origin: top center;
+  animation: marcador-cau var(--m-panell) var(--m-corba-molla) var(--m-preparacio) both;
+}
+@keyframes marcador-cau { from { transform: scaleY(0); } to { transform: none; } }
