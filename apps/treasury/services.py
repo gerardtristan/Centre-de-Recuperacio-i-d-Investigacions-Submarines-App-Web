@@ -26,6 +26,7 @@ from apps.core.models import AuditEntry, Charge, Payment
 from apps.members import services as members
 
 from .models import Movement, TreasuryAccount
+from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04-10)
 
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"

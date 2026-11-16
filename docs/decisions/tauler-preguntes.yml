@@ -231,4 +231,15 @@ opcions:
       de tota la configuració. Mentrestant val la A.
     data: 2026-11-13
 
+  P-100:
+    opcions:
+      A: Com s'ha construït; només val el prefix actual i el prefix no es canvia un cop hi hagi referències emeses.
+      B: Es valida el codi i el control amb qualsevol prefix ben format, i la conciliació busca la referència a la base de dades.
+      C: Es guarda la llista de prefixos que s'han fet servir i es validen tots.
+    recomanada: B
+    perque: >-
+      La referència que té el soci no caduca mai (M04-6), i la conciliació l'ha de buscar igualment a la base de dades.
+      La B no depèn de cap valor de l'entorn. Es decideix amb la T-M04-11, que és qui la fa servir; mentrestant val la A.
+    data: 2026-11-16
+
 noves:

@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.models import (
     AppendOnlyModel,
     AppendOnlyQuerySet,
+    Charge,
     Department,
     Payment,
     UndeletableModel,
@@ -311,3 +312,21 @@ class Movement(AppendOnlyModel):
             raise ValidationError(
                 gettext("El centre de cost ha de ser del departament del moviment.")
             )
+
+
+class TransferReference(AppendOnlyModel):
+    """Referència de transferència d'un càrrec (M04-6; RN-T20): una per càrrec, única i que no
+    canvia mai. La crea `treasury.transfer_reference` (`references.py`)."""
+
+    charge = models.OneToOneField(
+        Charge, on_delete=models.PROTECT, related_name="+", verbose_name=_("càrrec")
+    )
+    reference = models.CharField(_("referència"), max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("referència de transferència")
+        verbose_name_plural = _("referències de transferència")
+
+    def __str__(self):
+        return self.reference

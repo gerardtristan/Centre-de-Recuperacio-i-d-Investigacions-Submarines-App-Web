@@ -104,6 +104,9 @@ PAYMENTS_LIVE_CHARGES_ALLOWED = env.bool("PAYMENTS_LIVE_CHARGES_ALLOWED", defaul
 # Decisió 092: el proveïdor i el banc ficticis no arrenquen on això és cert (producció, prod.py).
 FAKE_INTEGRATIONS_FORBIDDEN = False
 
+# Prefix de les referències de transferència (RN-T20, VC-10): d'1 a 12 majúscules o xifres.
+TRANSFER_REFERENCE_PREFIX = env("TRANSFER_REFERENCE_PREFIX", default="CRIS")
+
 # Adreça pública de la plataforma, per als enllaços dels correus (verificació i recuperació):
 # la cua no té cap petició d'on treure-la. Domini: decisió 019.
 PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="http://localhost:8000").rstrip("/")
