@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.10 (16/11/2026). La 1.10 posa el motor de tema de Duermevela (§7, T-DX-04).
+- **Versió:** 1.11 (16/11/2026). La 1.11 afegeix Errata, el resum d'errors dels formularis (§6.10, T-DX-06).
+- La 1.10 (16/11/2026) posa el motor de tema de Duermevela (§7, T-DX-04).
 - La 1.9 (16/11/2026) porta la paleta d'estats a OKLCH amb la mateixa lluminositat per rol, les vores amb transparència i la superfície flotant (§15.4, T-DX-02), i corregeix l'ordre d'elevació.
 - La 1.8 (16/11/2026) porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
 - La 1.7 (16/11/2026) afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
@@ -425,6 +426,16 @@ Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla 
 - **On:** a tota la pantalla quan res no és funcional; només al bloc que no ho és quan la pantalla és en part funcional. Mai al costat d'una dada real.
 - **Al servidor (control, no simulació):** la vista només accepta `GET`; els formularis van dins d'un `fieldset disabled`; el contingut és d'exemple, inventat i fix, i no llegeix ni escriu cap model. En local i a l'entorn de proves, `SHOW_UNDER_CONSTRUCTION` les mostra a tothom; a producció està apagat i només les veuen els comptes d'administrador amb el permís «Veure pantalles en construcció», mai els socis ni la web pública ([P-90](decisions/pendents.md), resposta C). El servidor no arrenca a producció amb l'ajust encès (T-DX-03). Sense accés, la ruta respon 404 i no surt al menú.
 - **Prova:** cada pantalla «En construcció» té una prova que comprova que l'etiqueta hi és i que cap mètode que escriu (`POST`, `PUT`, `PATCH`, `DELETE`) no és acceptat. Quan la pantalla es torna funcional, la prova se substitueix i l'etiqueta se'n va.
+
+### 6.10 Errata: resum d'errors d'un formulari (T-DX-06)
+Del recurs Errata ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la fulla de correccions amb el segell, el títol amb el nombre d'errors i un enllaç numerat per camp.
+- **Peça:** `templates/_errata.html` (`{% include "_errata.html" %}` a dalt del formulari, amb `form` al context), `static/css/errata.css` i `static/js/errata.js`, carregats a la plantilla base.
+- **Quan surt:** només si el servidor ha tornat el formulari amb errors. Un element per camp amb errors (el primer missatge) i un per als errors generals; el títol és concret: «Hi ha N errors» (`form.errors|length`; D17). Els errors d'un camp ocult i els generals surten com a «Formulari», sense enllaç.
+- **Comportament:** en carregar la pàgina, el focus va al resum (`role="alert"`, `tabindex="-1"`); cada enllaç porta al seu camp i hi posa el focus. Sense JavaScript, el resum es veu igual i l'enllaç salta al camp. Els missatges al costat de cada camp es mantenen.
+- **Estil:** vora `--v-plena` de `--c-error`, ombra desplaçada de `--c-error-fons`, fons `--c-superficie-flotant`; números amb `--c-error-fons` i `--c-error-text` i xifres tabulars; cada enllaç fa com a mínim `--tactil` d'alt.
+- **Seguretat:** els missatges són els del servidor i no diuen mai si un compte existeix.
+- **Encara no:** la validació en sortir de cada camp, l'índex de seccions i el «Tot correcte» del recurs. Demanen repetir al navegador les regles del servidor; es faran en una tasca pròpia.
+- **On és:** el formulari «Fer-se soci» (web i alta presencial). Els altres formularis s'hi afegeixen quan es toquin.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
