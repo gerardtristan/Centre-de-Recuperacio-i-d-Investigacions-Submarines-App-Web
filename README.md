@@ -44,6 +44,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   wireframes/                  prototips de les pantalles (HTML, amb els tokens de static/)
   recorreguts/                 índex dels recorreguts pels wireframes (index.html, obert des del disc);
                                dades a recorreguts.json i comprovació amb `python design/recorreguts/comprova.py`
+  extern/                      recursos de disseny externs, els zip originals sense canvis (pla a docs/plans/recursos-disseny-extern.md)
 /assets/marca/                 logotips del club
 /config/                       projecte Django: settings per entorn (base, dev, prod, test) i URL
 /apps/                         core (base comuna, 00), accounts (comptes), members (socis, 01)

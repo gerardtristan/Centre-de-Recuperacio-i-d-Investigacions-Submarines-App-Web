@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.6 (11/11/2026). La 1.6 descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
+- **Versió:** 1.7 (16/11/2026). La 1.7 afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
+- La 1.6 (11/11/2026) descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
 - La 1.5 (03/11/2026) afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
 - La 1.4 (27/10/2026) incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
 - La 1.3 fixa el nom del club, fa més petit el selector de tema i compacta el compte personal (§4).
@@ -112,7 +113,7 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 
 ## 4. Espaiat, formes i mides
 - **Espaiat:** `--e-1` a `--e-8` = 4, 8, 12, 16, 24, 32, 48 i 64 px. No se'n fan servir d'altres.
-- **Radis:** `--r-s` 4, `--r-m` 8, `--r-l` 12 i `--r-pastilla` (forma de pastilla).
+- **Radis:** `--r-s` 6, `--r-m` 10, `--r-l` 16, `--r-xl` 22 i `--r-pastilla` (forma de pastilla), els valors de `tokens.css` (aquest punt deia 4, 8 i 12 i no hi coincidia). Un radi interior es calcula amb `--r-interior` (§15.4, regla C1).
 - **Vores:** `--v-fina` 1 px; `--v-activa` 3 px (element actiu i vora de zona); `--v-focus` 3 px; `--v-plena` 2 px (peces neumòrfiques amb més contrast).
 - **Avatar:** `--avatar` 56 px.
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
@@ -413,6 +414,14 @@ El carnet es desa com a PDF amb la impressió del navegador; el servidor no gene
 - **`carnet-qr`:** el QR del carnet (peça `qr`, §6) centrat amb la seva explicació a sota.
 - Estils a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
 
+### 6.9 Etiqueta «En construcció»
+Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla dels recursos externs §1](plans/recursos-disseny-extern.md#1-abast)). **Definida aquí; el CSS es fa a la T-DX-03.**
+- **Classe:** `en-construccio`. Pastilla petita a dalt a la dreta del bloc (`position: absolute` dins d'un contenidor `position: relative`), text `--t-xs`, `--c-text-2` sobre `--c-superficie-2`, vora amb transparència (C3), radi `--r-pastilla`, farciment `--e-1` `--e-2`. Sense icona, sense animació i sense color d'estat: no és cap estat del negoci (D1).
+- **Text:** «En construcció», traduïble (`{% translate %}`). Per al lector de pantalla, el bloc porta `aria-describedby` cap a l'etiqueta.
+- **On:** a tota la pantalla quan res no és funcional; només al bloc que no ho és quan la pantalla és en part funcional. Mai al costat d'una dada real.
+- **Al servidor (control, no simulació):** la vista només accepta `GET`; els formularis van dins d'un `fieldset disabled`; el contingut és d'exemple, inventat i fix, i no llegeix ni escriu cap model. Amb `SHOW_UNDER_CONSTRUCTION` apagat (producció, [P-90](decisions/pendents.md)), la ruta respon 404 i no surt al menú.
+- **Prova:** cada pantalla «En construcció» té una prova que comprova que l'etiqueta hi és i que cap mètode que escriu (`POST`, `PUT`, `PATCH`, `DELETE`) no és acceptat. Quan la pantalla es torna funcional, la prova se substitueix i l'etiqueta se'n va.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Als prototips, al mòbil només es veuen les icones (el text continua disponible per al lector de pantalla) i a partir de tauleta, la icona i el text. **A la plataforma (T-M01-45), la capçalera de comptes, socis i administració mostra la icona i el text a totes les mides**, com demana la revisió de pantalles; a 320 px el selector passa a la seva fila (`comptes.css`).
@@ -507,3 +516,117 @@ Si s'adopta React i Tailwind, els tokens d'aquest document es poden traslladar a
 - Fase futura: bitàcola, insígnies i punts per participació en activitats i cursos (P-38 a `pendents.md`).
 - 1.5: registrar com a decisió la paleta revisada el 31/10 i actualitzar §2; adaptar a la 059 les pantalles d'Activitats, Tresoreria i Usuaris i rols; si l'administració ha de respondre «no trobat» per rol; el contrast de l'interruptor actiu al tema fosc i el focus del selector de calendari natiu del camp de data (T-M01-28); documentar `boto-tactil`, `impressora` i el subratllat.
 - Web pública (034): contingut real de projectes i notícies (P-40), fotos i drets d'imatge (P-41), servei del butlletí (P-42) i qui manté el contingut (P-43).
+
+## 15. Regles B, C i D dels recursos externs
+Tres llistes de regles que valen per a **tota la interfície**: les pantalles noves i les que es toquin. Vénen amb els recursos de `design/extern/` ([pla dels recursos externs](plans/recursos-disseny-extern.md)). Es copien tal com les va donar el propietari: el nom de cada regla és l'original, en anglès, i no es tradueix ni es reanomena; l'ordre i el text no canvien. Els conflictes amb regles anteriors es resolen al [§5 del pla](plans/recursos-disseny-extern.md#5-conflictes-i-com-es-resolen).
+
+### 15.1 Taula B. 20 Principles of UX & Animation (com s'apliquen al C.R.I.S.)
+| # | Regla | Com s'aplica al C.R.I.S. |
+|---|---|---|
+| 1 | Squash & stretch | només en elements tàctils petits quan es premen (botó primari, Marcador, Seguir, Comanda per apuntar-se), amb una escala del 4 al 6 % com a màxim. Mai en text, imports, dates ni dades d'un soci. |
+| 2 | Anticipation wind-up | una preparació breu (60–120 ms) abans dels moviments grans: obrir una pestanya nova de Solapas, desplegar Tramite o Camilla, tancar un diàleg. |
+| 3 | Staging the focus | una sola cosa en focus. En obrir un diàleg de confirmació (pagar, aprovar una sol·licitud, assignar un número de soci), la resta de la pantalla queda en segon pla. Mai dues animacions grans alhora. |
+| 4 | Pose to pose | cada component animat té un estat inicial i un de final amb nom (keyframes o variables CSS, i les classes d'HTMX htmx-added i htmx-settling), mai cadenes de setTimeout. |
+| 5 | Follow through | les molles acaben amb un petit rebot, i els fills arriben 20–40 ms després del pare (stagger), per exemple les files d'una llista que es carrega amb HTMX. |
+| 6 | Slow in & slow out | cap transició lineal, tret dels progressos continus. Tres tokens: entrada (ease-out), sortida (ease-in) i desplaçament (ease-in-out). |
+| 7 | Moving in arcs | els desplaçaments llargs segueixen una corba: una activitat que «vola» cap a la icona de Marcador en guardar-la, la transició de Duermevela, l'entrada a Convite. |
+| 8 | Secondary action | les partícules i els detalls només acompanyen una acció principal (guardar, apuntar-se, una fita) i mai no la tapen. |
+| 9 | Snappy timing | microinteraccions de 100–200 ms, panells de 200–300 ms, i res que bloquegi més de 400 ms. Tota animació es pot interrompre. |
+| 10 | Exaggerated feedback | només en moments rars i importants, com l'alta confirmada amb el carnet emès, la quota pagada o la primera inscripció a una sortida, i mai a cada clic. El d'un pagament només surt quan el servidor l'ha confirmat, mai pel navegador sol. |
+| 11 | Solid drawing in 3D | el mapa 3D dels llocs d'immersió (Illes Medes, quan existeixi), Oleaje i els avatars de fauna comparteixen llum, profunditat i perspectiva, amb una sola font de llum per a les ombres. |
+| 12 | Overall appeal | els avatars de fauna marina (Monograma) tenen personalitat, però no distreuen de la feina. Cap mascota inventada. |
+| 13 | Fitts's law | el que més s'usa és gran i a prop de l'acció anterior: «Pagar» al costat de l'import, «Aprovar» al costat de la sol·licitud. |
+| 14 | Bigger hit areas | mínim 44×44 px al mòbil (la web instal·lable és la principal per als socis) i 32×32 px a l'escriptori, mai menys de 24×24 (WCAG 2.5.8). Si la icona és petita, s'amplia l'àrea amb un pseudoelement, i les files de taula es poden clicar senceres. |
+| 15 | Hick's law | poques opcions visibles alhora, i les rares sota «Més». A Ajustos, la informació es mostra a poc a poc (divulgació progressiva). |
+| 16 | Miller's law | grups de 5 a 9 elements: el menú de l'administració, les targetes de Parrilla, les columnes per defecte de les taules. |
+| 17 | Doherty threshold | resposta visible en menys de 400 ms. El que trigui més (importar l'extracte, preparar una remesa, generar el PDF del rebut o del carnet) mostra un esquelet o el progrés, i es pot cancel·lar si es pot. |
+| 18 | Postel's law | les entrades són tolerants (dates com «dl», «15/11» o «demà»; imports com «35», «35,00», «35.00 €» o «35 €», que es desen en cèntims; telèfons amb espais o sense). La sortida és estricta, en format català: 1.234,56 € i dd/mm/aaaa. |
+| 19 | Jakob's law | convencions conegudes: Ctrl+K per cercar, Esc per tancar, Ctrl+Z i desfer on el pla en preveu (per exemple, importar un extracte), doble clic per editar, arrossegar per reordenar, i un calendari com els habituals. Els registres econòmics no s'esborren mai: no tenen «Supr». |
+| 20 | Frequency of use | les accions freqüents al lloc més accessible, i les rares als menús. Si cal mesurar-ho, només en local i sense enviar res enlloc. |
+
+### 15.2 Taula C. 10 Niche Design Hacks
+| # | Regla | Com s'aplica al C.R.I.S. |
+|---|---|---|
+| 1 | Concentric radius | radi interior = radi exterior − padding, amb una variable calculada als tokens. |
+| 2 | Masked edges | mask-image amb degradat a les llistes i els panells desplaçables (moviments del tresorer, Teletipo, Solapas quan no hi caben, calendari), en lloc de tallar en sec. |
+| 3 | Alpha borders | les vores, sempre amb transparència sobre el fons i mai amb grisos opacs, perquè funcionin en clar i en fosc. |
+| 4 | Blurred icon swaps | quan una icona canvia (Marcador «guardar» → «guardat», Seguir → Seguint, copiar la referència de transferència → ✓), opacitat + escala + desenfocament durant 150–200 ms. |
+| 5 | OKLCH palettes | tokens.css passa a oklch(), amb la mateixa lluminositat percebuda entre els colors d'estat (pagat, pendent, retornat i anul·lat; actiu, impagat i baixa). Els temes clar i fosc (Eclipse i Duermevela) només canvien L i C, sense tocar els components. Hi ha alternativa per als navegadors sense oklch, i els contrastos es tornen a comprovar després de convertir. |
+| 6 | Dark mode depth | com més elevació, més clara és la superfície (no més ombra). L'ordre queda documentat als tokens. |
+| 7 | OKLCH gradients | linear-gradient(in oklch, …) i radials en oklch, per evitar el gris del mig (Oleaje, capçaleres, Vistazo). |
+| 8 | Dynamic viewport | dvh/dvw i container queries, perquè la web s'adapti al mòbil quan surt el teclat, en girar la pantalla o en obrir un panell. |
+| 9 | Matched icon weight | el traç de les icones segueix el pes del text que acompanyen, amb un sol joc d'icones i una sola caixa. |
+| 10 | Multiply blending | per a superposicions de color sobre fotos en el tema clar (Vistazo, Convite, Fototeca, Expositor); en fosc, screen o plus-lighter quan toqui. Només on aporti. |
+
+### 15.3 Taula D. 20 Ways to Unslop AI Designs
+| # | Regla | Com s'aplica al C.R.I.S. |
+|---|---|---|
+| 1 | Delete filler badges | fora les insígnies decoratives («Nou», «IA», «Beta»); només insígnies d'estat amb significat (pagat, pendent, retornat, actiu, impagat, baixa). |
+| 2 | Add an accent colour | un sol color d'accent, el de la marca del C.R.I.S. (assets/marca/), fet servir amb mesura. |
+| 3 | Drop redundant labels | fora les etiquetes que repeteixen el que ja es veu. |
+| 4 | Keep icons consistent | icones coherents, d'un sol joc. |
+| 5 | Unitalicize random words | cap cursiva aleatòria. |
+| 6 | Remove embellishments | fora els adorns que no informen. |
+| 7 | Mono only where needed | monoespai només on calgui (número de soci, referència de transferència, número de rebut). Per a les xifres, tabular-nums. |
+| 8 | Inner radius = outer - padding | com a la taula C, punt 1. |
+| 9 | Use a design system | cap color, radi, ombra, espai o durada escrits a mà fora de tokens.css. |
+| 10 | Improve text contrast | 4,5:1 per al text normal, i 3:1 per al text gran i les icones. Cal revisar el text «suau». |
+| 11 | Show the actual product | estats buits i portades amb dades de la demostració (seed_demo_data, sempre inventades) o fotos reals del club, no il·lustracions genèriques. Les fotos amb persones identificables només amb consentiment. |
+| 12 | Wrap headlines properly | text-wrap: balance als títols i pretty als paràgrafs. |
+| 13 | Enlarge the main feature | la funció principal de cada pantalla, més gran: a l'àrea del soci, l'estat de la quota i el carnet; a Tresoreria, el saldo i el que queda per conciliar; a Pagament, el botó de pagar. |
+| 14 | Align by eye, not pixels | correcció òptica de les icones, i xifres alineades a la dreta. |
+| 15 | Group with spacing | agrupar amb espai, no amb caixes i línies, i l'escala d'espais als tokens. |
+| 16 | Use tabular nums | xifres tabulars a taules, imports, saldos, comptadors i dates. |
+| 17 | Make headlines specific | títols concrets («2 quotes pendents de pagament», no «Tauler»). |
+| 18 | Add loading states | estats de càrrega a tot el que pugui trigar (millor esquelets que un spinner sol). |
+| 19 | Emphasize the CTA | un sol botó primari per pantalla. |
+| 20 | Animate useful feedback | cada animació respon a una acció o a un canvi d'estat. L'única animació contínua permesa és Oleaje, lenta i desactivable, i s'atura amb prefers-reduced-motion. |
+
+### 15.4 Tokens que concreten les regles
+Proposats en aquesta versió; entren a `tokens.css` a la T-DX-01 (moviment i radis) i a la T-DX-02 (color). Fins llavors manen els valors actuals de `tokens.css`.
+
+**Moviment** (B2, B5, B6, B9, B17, C4). Amb `prefers-reduced-motion: reduce`, totes les durades passen a 0 i l'escala de premut a 1, com ja fa `tokens.css`.
+
+| Token | Valor | Regla |
+|---|---|---|
+| `--m-rapid` | 150 ms (ja existeix) | B9: microinteraccions (100–200 ms) |
+| `--m-icona` | 180 ms | C4: canvi d'icona amb opacitat, escala i desenfocament |
+| `--m-panell` | 250 ms | B9: panells, diàlegs, Solapas, Tramite, Camilla (200–300 ms) |
+| `--m-preparacio` | 90 ms | B2: preparació abans d'un moviment gran (60–120 ms) |
+| `--m-escalonat` | 30 ms | B5: retard de cada fill respecte de l'anterior (20–40 ms) |
+| `--m-llindar` | 400 ms | B9 i B17: cap animació bloqueja més; si el servidor triga més, esquelet o progrés |
+| `--m-entrada` | 300 ms (abans 700) | Entrada de la portada del soci (032 revisada, B9) |
+| `--m-gir` | 400 ms (abans 600) | Gir del carnet (032 revisada, B9) |
+| `--m-oleaje` | 8 s per cicle | D20: l'única animació contínua, lenta |
+| `--m-corba-entrada` | `cubic-bezier(.2, .7, .2, 1)` (l'actual `--m-corba`) | B6: entrada, ease-out |
+| `--m-corba-sortida` | `cubic-bezier(.4, 0, 1, 1)` | B6: sortida, ease-in |
+| `--m-corba-desplacament` | `cubic-bezier(.65, 0, .35, 1)` | B6: desplaçament, ease-in-out |
+| `--m-corba-molla` | `linear(0, .36 18%, .81 36%, 1.04 52%, 1.06 62%, 1.01 78%, 1)`; sense suport de `linear()`, `--m-corba-entrada` | B5: rebot final petit |
+| `--escala-premut` | 0.95 | B1: 5 % (entre el 4 i el 6 %) |
+
+**Radis concèntrics** (C1, D8). Una propietat personalitzada es resol on es declara, així que `--r-interior` no pot anar a `:root`: va a la classe `radi-concentric` del contenidor, que defineix `--r-exterior` i `--farciment`, i els fills fan servir `border-radius: var(--r-interior)`.
+
+```css
+.radi-concentric { --r-interior: max(0px, calc(var(--r-exterior) - var(--farciment))); }
+```
+
+**Color** (C3, C5, C6, C7, D2, D10).
+- **OKLCH amb alternativa:** cada token es declara primer en hexadecimal (el valor actual) i després, dins de `@supports (color: oklch(0 0 0))`, en `oklch()`. Els navegadors que no l'entenen es queden amb el primer.
+- **Mateixa lluminositat als estats:** pagat, pendent, retornat i anul·lat; actiu, impagat i baixa. Objectiu per rol (es fixa a la T-DX-02 i es comprova amb la calculadora de contrast): text d'estat L ≈ 0,45 al clar i ≈ 0,82 al fosc; decoratiu L ≈ 0,62 i ≈ 0,70; fons tenyit L ≈ 0,94 i ≈ 0,28. El to (H) de cada rol és fix; els temes només canvien L i C.
+- **Vores amb transparència:** `--c-linia` = `color-mix(in oklch, var(--c-text) 16%, transparent)`; `--c-linia-forta` amb el percentatge que doni 3:1 (vores de camps, WCAG 1.4.11). Alternativa: el hexadecimal actual.
+- **Profunditat al fosc:** l'ordre d'elevació és `--c-fons` (0) < `--c-superficie` (1) < `--c-superficie-2` (2: menús, diàlegs) < `--c-superficie-flotant` (3, nou: avisos, pestanya arrossegada). Al fosc, cada nivell és més clar que l'anterior; l'ombra no creix.
+- **Degradats:** `linear-gradient(in oklch, …)` i `radial-gradient(in oklch, …)`, amb un degradat en sRGB com a alternativa.
+- **Accent:** un de sol, `--c-accent` (el daurat de `tokens.css`). Si és o no el color del logotip depèn de la decisió de la paleta, encara pendent (§2) [A validar].
+- **Contrast:** 4,5:1 el text normal i 3:1 el text gran i les icones, comprovat als dos temes després de convertir. El text «suau» (`--c-text-2`) es revisa.
+
+**Xifres** (D7, D14, D16). `font-variant-numeric: tabular-nums` a taules, imports, saldos, comptadors i dates, alineats a la dreta. Monoespai (`--f-codi`) només per al número de soci, la referència de transferència i el número de rebut: els imports deixen de ser monoespai.
+
+**Estats de càrrega** (B17, D18, D20). Classe `esquelet`: blocs de la forma del contingut, de color `--c-superficie-2`, **estàtics** (sense brillantor que es mogui, per D20). Es mostren al moment de la petició (`htmx-request`); si el procés pot superar `--m-llindar`, una barra de progrés i «Cancel·la» quan es pot.
+
+### 15.5 Comprovació per a cada pantalla nova
+Abans de donar per acabada una pantalla nova o tocada, es comprova i s'anota al diari de construcció:
+1. **Taula B:** cap animació bloqueja més de 400 ms ni s'encavalca amb una altra de gran; totes es poden interrompre i fan servir els tokens de moviment; amb `prefers-reduced-motion` no es mou res. Àrees tàctils de 44×44 px al mòbil i 32×32 px a l'escriptori. Un sol focus en els diàlegs. Entrades tolerants i sortida en format català.
+2. **Taula C:** radis interiors amb `--r-interior`; vores amb transparència; llistes desplaçables amb vora emmascarada; alçades amb `dvh`; icones del joc comú amb el traç del text.
+3. **Taula D:** cap insígnia decorativa; un sol botó primari; títols concrets; xifres tabulars; monoespai només on toca; estats buits amb dades de la demostració; esquelet a tot el que pot trigar; contrast 4,5:1 i 3:1 als dos temes.
+4. **Tokens:** cap color, radi, ombra, espai ni durada fora de `tokens.css`; cap `style=`.
+5. **Captures** a 1280 i 390 px, en clar i en fosc, mirades.
