@@ -184,6 +184,11 @@ MAP = {
         "templates/accounts/admin_home.html",
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
+    "test_ramillete.py": (
+        "static/js/ramillete.js",
+        "static/css/ramillete.css",
+        "templates/members/_ramillete.html",
+    ),
     "test_solapas.py": (
         "static/js/solapas.js",
         "static/css/solapas.css",

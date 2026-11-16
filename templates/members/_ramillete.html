@@ -1,0 +1,22 @@
+{% load i18n %}{% comment %}Ramillete (T-DX-08; recurs a design/extern/; design-system §6.12): la navegació de l'àrea del soci
+   al mòbil. Una barra a baix amb les pàgines que més es fan servir i un botó central «Més» que
+   s'obre en ventall amb les rares (B15). A partir de 600 px no es veu: hi ha la navegació de la
+   capçalera. Els mateixos enllaços i les mateixes condicions que _personal_nav.html; amagar un
+   enllaç no és cap control. «Surt» és un POST amb CSRF.{% endcomment %}{% with current=request.resolver_match.view_name %}
+<nav class="ramillete" aria-label="{% translate 'Compte personal (mòbil)' %}" data-ramillete>
+  <ul class="ramillete-barra">
+    <li><a class="ramillete-pestanya" href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4z"/></svg>{% translate "Inici" %}</a></li>
+    {% if user.person.member %}<li><a class="ramillete-pestanya" href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2zM9 8.5h6M9 12h6"/></svg>{% translate "Quotes" %}</a></li>{% endif %}
+    <li class="ramillete-accio">
+      <button class="ramillete-boto" type="button" aria-expanded="false" aria-controls="ramillete-menu" aria-label="{% translate 'Més opcions' %}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
+      <ul class="ramillete-menu" id="ramillete-menu">
+        {% if user.person.member %}<li><a class="ramillete-item" href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>
+        <li><a class="ramillete-item" href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
+        <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" %} aria-current="page"{% endif %}>{% translate "Seguretat i aparença" %}</a></li>
+        <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="ramillete-item" type="submit">{% translate "Surt" %}</button></form></li>
+      </ul>
+    </li>
+    {% if user.person.member %}<li><a class="ramillete-pestanya" href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M7 10.5h4M7 14h7"/></svg>{% translate "Carnet" %}</a></li>{% endif %}
+    <li><a class="ramillete-pestanya" href="{% url 'members:profile' %}"{% if current == "members:profile" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>{% translate "Perfil" %}</a></li>
+  </ul>
+</nav>{% endwith %}
