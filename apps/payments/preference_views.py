@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
-from django.urls import NoReverseMatch, reverse
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
@@ -54,14 +54,8 @@ def _own_member(request) -> Member:
 
 
 def _mandate_url() -> str | None:
-    # shortcut: la pàgina del mandat és de la T-M05a-09 (#113) i va apagada; quan sigui a master,
-    # n'hi ha prou amb `reverse` i el paràmetre.
-    if not getattr(settings, "MANDATE_SIGNING_ENABLED", False):
-        return None
-    try:
-        return reverse("payments:mandate")
-    except NoReverseMatch:
-        return None
+    # La pàgina del mandat (T-M05a-09) va apagada fins que la junta n'aprovi el text.
+    return reverse("payments:mandate") if settings.MANDATE_SIGNING_ENABLED else None
 
 
 def _save(request, member):
