@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 17:40 | 5669516 | 13 noves | [A comprovar] (PR #66, `risc:alt`) |
+| 16/11/2026 17:40 | a0aabe3 | 13 noves | [A comprovar] (PR #66, `risc:alt`) |
 
 **En tres línies:** la plataforma ja pot ensenyar pantalles de mòduls que encara no s'han fet, amb el seu disseny i un contingut inventat. Porten una etiqueta petita, «En construcció», i no poden desar ni enviar res. En local es veuen sempre; a producció només les veu qui tingui un permís que, d'entrada, no té ningú.
 
@@ -33,7 +33,7 @@
 - Bateria sencera: 4.829 proves unitàries i 63 e2e (1 xfail que ja hi era).
 
 ## Evidències
-- Sortida de proves · commit 5669516 · executada el 16/11/2026 en local (PostgreSQL 16):
+- Sortida de proves · commit a0aabe3 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/core/tests/test_under_construction.py apps/core/tests/test_permissions.py -q
   491 passed
