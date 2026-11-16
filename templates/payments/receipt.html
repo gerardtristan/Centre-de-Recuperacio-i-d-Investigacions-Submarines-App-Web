@@ -18,7 +18,13 @@
       <div><dt>{% translate "Mètode" %}</dt><dd>{{ receipt.attempt.get_method_display }}</dd></div>
       {% if receipt.attempt.provider_order_id %}<div><dt>{% translate "Referència" %}</dt><dd class="codi">{{ receipt.attempt.provider_order_id }}</dd></div>{% endif %}
     </dl>
+    {% if receipt.cancellation %}
+    {# T-DX-11b: un rebut anul·lat (ReceiptCancellation, 045) no porta mai el segell de pagat: «Anul·lat», la data i la nota. #}
+    <p class="rebut-segell es-anullat" aria-hidden="true"><span>{% translate "Anul·lat" %}</span><span class="rebut-segell-data">{{ receipt.cancellation.cancelled_at|date:"d/m/Y" }}</span></p>
+    <p class="rebut-nota-anullacio"><strong>{% blocktranslate with date=receipt.cancellation.cancelled_at|date:"d/m/Y" %}Rebut anul·lat el {{ date }}.{% endblocktranslate %}</strong> {{ receipt.cancellation.note }}</p>
+    {% else %}
     <p class="rebut-segell" aria-hidden="true"><span>{% translate "Pagat" %}</span><span class="rebut-segell-data">{{ receipt.issued_at|date:"d/m/Y" }}</span></p>
+    {% endif %}
     <p class="text-2">{% translate "Rebut del pagament. No és una factura." %} {% blocktranslate %}C.R.I.S. · NIF {{ club_tax_id }} · cris1954.cat{% endblocktranslate %}</p>
   </section>
   </div>

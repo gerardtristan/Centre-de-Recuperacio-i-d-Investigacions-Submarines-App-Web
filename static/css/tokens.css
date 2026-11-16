@@ -19,6 +19,7 @@
   --llauto: #f5c43a;      /* daurat: acció principal, element actiu, avisos */
   --llauto-text: #3d2e00; /* text sobre el daurat: 8,1:1 */
   --paper: #F4F5F2;       /* paper del justificant (igual als dos temes) */
+  --grana: #88241D;       /* segell «Anul·lat» sobre el paper (igual als dos temes): 8,3:1 sobre --paper */
 }
 
 /* ---------- Tema clar (per defecte si el sistema no demana fosc) ---------- */

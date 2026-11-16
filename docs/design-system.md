@@ -481,6 +481,8 @@ De Tramite, el comprovant que surt d'una ranura i s'imprimeix en blanc i negre; 
 - **El segell només hi és perquè el rebut existeix:** el rebut només es crea quan el servidor ha confirmat el pagament (B10, RN-M05b-19). Va sota les dades, alineat a la dreta, i no en tapa cap. Per al lector de pantalla és decoratiu (les dades ja ho diuen).
 - **Imprimir o desar com a PDF:** sense ranura ni animació, el paper sense fons i el segell en blanc i negre.
 - **Captures:** la *fixture* `capture` de les e2e espera que acabin les animacions finites abans de fer la foto.
+- **Rebut anul·lat (T-DX-11b; 045, M05b-6):** si el rebut té una anul·lació (`receipt.cancellation`), el segell diu «Anul·lat» amb la data de l'anul·lació, en `--grana` (primitiu nou, igual als dos temes, 8,3:1 sobre `--paper`), i no cau: no és cap celebració (B10). A sota, «Rebut anul·lat el dd/mm/aaaa.» i la nota. Mai el segell «Pagat» en un rebut anul·lat. El rebut no s'esborra (només s'hi afegeix l'anul·lació).
+- **Amplada (arreglat a la T-DX-11b):** el marge negatiu de `.rebut-sortida` iguala el farciment de `.cos-compte`; abans sobresortia 8 px a 320 px.
 
 ### 6.15 Vigencia: els dies que queden (T-DX-13)
 Del recurs Vigencia ([pla dels recursos externs](plans/recursos-disseny-extern.md)): els dies exactes que queden sobre una regla, amb els dies d'avís marcats i la barra que canvia de color en passar-los.
