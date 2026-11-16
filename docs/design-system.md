@@ -747,3 +747,10 @@ Del recurs Baliza ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - **Pantalla:** `/en-construccio/novetats/`, «Novetats i avisos», a l'àrea del soci, amb tres novetats d'exemple.
 - **Quan funcioni:** una novetat no mostrarà mai dades d'una altra persona, i el navegador només recordarà quins identificadors s'han vist (pla dels recursos externs). «Entès» i les preferències (Avisador) són d'aquella tasca.
 - **Del recurs no s'hi fa:** el batec continu (D20), el marc que ensenya un element de la pantalla ni «Amagar consells».
+
+### T-DX-27 Vistazo: projectes
+Del recurs Vistazo ([pla dels recursos externs](plans/recursos-disseny-extern.md)): l'índex en files grans, les altres files que s'apaguen i la finestra amb la imatge que apareix amb un rebot. Lloc: els projectes del Departament d'Història (11).
+- **Peça:** `static/css/vistazo.css`. `vistazo-fila` (un `details` per projecte: número, nom, tipus; obert, la imatge i la nota), `vistazo-finestra` (de tauleta amunt, en passar-hi per sobre o amb el focus, decorativa i darrere del text) i `vistazo-imatge` (a la fila oberta; al mòbil, el primer toc la mostra). En lloc de foto, degradats en OKLCH dels tokens d'estat (`vistazo-to-1` a `-4`, C7).
+- **Pantalla:** `/en-construccio/projectes/`, «Projectes», a l'àrea del soci, amb quatre projectes d'exemple.
+- **Quan funcioni:** projectes i fotos com a dades; només fotos amb el consentiment de les persones que s'hi reconeixen (T-M01-08, P-41), sense EXIF i desades a la UE.
+- **Del recurs no s'hi fa:** la finestra que segueix el cursor i s'inclina amb la velocitat (cal JavaScript continu), la cortina entre fotos ni les fotos de la demostració (D11).
