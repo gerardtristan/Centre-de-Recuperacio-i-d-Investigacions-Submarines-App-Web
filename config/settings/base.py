@@ -133,6 +133,15 @@ CARD_QR_KEYS_REQUIRED = False
 # xifra la de versió més alta. Sense cap clau no es pot xifrar cap IBAN (no hi ha clau per defecte).
 MANDATE_ENCRYPTION_KEYS = env.list("MANDATE_ENCRYPTION_KEYS", default=[])
 
+# Signatura del mandat al compte personal (T-M05a-09). Apagada per defecte: no s'encén a
+# producció fins que la junta aprovi el text del mandat i el correu G3 (T-M05a-01; D2).
+MANDATE_SIGNING_ENABLED = env.bool("MANDATE_SIGNING_ENABLED", default=False)
+# Identificador de creditor SEPA del club (RN-M05a-04): el dona el banc (P-45 punt 5). Buit, la
+# pantalla mostra la marca [A verificar] i no es pot signar.
+SEPA_CREDITOR_IDENTIFIER = env("SEPA_CREDITOR_IDENTIFIER", default="")
+# Minuts després dels quals signar torna a demanar la contrasenya (RN-M05a-12, VC-12, S-M05a-12).
+MANDATE_REAUTH_MINUTES = env.int("MANDATE_REAUTH_MINUTES", default=15)
+
 # Proxies de confiança davant de Django: decideix d'on es llegeix l'IP d'origen
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)

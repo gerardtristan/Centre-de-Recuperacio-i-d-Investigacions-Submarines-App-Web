@@ -373,6 +373,44 @@ opcions:
     perque: >-
       És la més simple i deixa la decisió al tresorer; el camp «closed_at» ja existeix.
     data: 2026-11-16
+  P-123:
+    opcions:
+      A: Qualsevol IBAN vàlid (format i dígits de control), com s'ha construït.
+      B: Només IBAN espanyols (ES) fins que el banc confirmi la zona SEPA que admet.
+      C: La llista de països SEPA que doni el banc, com a dada editable a «Ajustos».
+    recomanada: C
+    perque: >-
+      És una llista de negoci, i la regla del projecte la vol com a dada. Mentre el banc no respongui, la signatura
+      continua apagada a producció i la A no arriba a cap soci real.
+    data: 2026-11-16
+  P-124:
+    opcions:
+      A: Soci actiu o impagat, amb número (com s'ha construït).
+      B: Només el soci actiu.
+      C: També el soci pendent amb número (readmissió), perquè la primera quota ja vagi domiciliada.
+    recomanada: A
+    perque: >-
+      Un soci impagat que vol domiciliar la quota és el cas que més ho necessita; el pendent encara no té número.
+    data: 2026-11-16
+  P-125:
+    opcions:
+      A: Signar no toca la preferència; la canvia la pantalla del mètode (T-M05a-11), com s'ha construït.
+      B: Signar posa la preferència a «domiciliació» amb aquest mandat.
+      C: Signar la canvia només si el soci no en tenia cap.
+    recomanada: B
+    perque: >-
+      Qui signa un mandat vol pagar per domiciliació; amb la A podria quedar un mandat actiu que la remesa no fa servir.
+      La B és una línia a la T-M05a-11, que és qui toca `preferences.py`.
+    data: 2026-11-16
+  P-126:
+    opcions:
+      A: No compta com a intent fallit si el formulari no portava el camp (com s'ha construït).
+      B: Compta sempre, com una contrasenya buida a qualsevol altre formulari de reautenticació.
+    recomanada: A
+    perque: >-
+      El soci no ha pogut escriure cap contrasenya; comptar-ho el podria bloquejar sense haver-se equivocat. Una
+      contrasenya buida escrita al camp sí que compta.
+    data: 2026-11-16
 
   P-112:
     opcions:

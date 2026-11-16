@@ -11,3 +11,6 @@ PAYMENTS_PROVIDER = env("PAYMENTS_PROVIDER", default="fake")
 
 # En local, les pantalles «En construcció» es veuen (T-DX-03).
 SHOW_UNDER_CONSTRUCTION = env.bool("SHOW_UNDER_CONSTRUCTION", default=True)
+
+# En local, la signatura del mandat es pot provar amb el text d'esborrany (T-M05a-09).
+MANDATE_SIGNING_ENABLED = env.bool("MANDATE_SIGNING_ENABLED", default=True)
