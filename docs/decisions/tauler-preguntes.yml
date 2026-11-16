@@ -219,86 +219,40 @@ opcions:
       mòdul sabés coses de la tresoreria que després caldria desfer.
     data: 2026-11-13
 
-  P-90:
+  P-97:
     opcions:
-      A: Apagat a producció per a tothom; només es veuen en local i a l'entorn de proves.
-      B: Només els comptes d'administrador (amb TOTP), mai a l'àrea del soci ni a la web pública.
-      C: Un permís propi, «Veure pantalles en construcció», que l'administrador assigna per rol; mai als socis ni a la web pública. Sense assignar, és com la A.
-      D: Tothom, també els socis i la web pública.
-    recomanada: C
-    perque: >-
-      Els permisos són dades (059): la junta pot ensenyar el programa sencer a qui vulgui sense que cap soci
-      vegi contingut inventat. Mentre ningú no tingui el permís, val la A.
-    data: 2026-11-16
-
-  P-91:
-    opcions:
-      A: Confirmar la lectura d'avisos de la junta i acceptar textos legals a l'àrea del soci (01); les autoritzacions d'activitat amb firma, a la 02.
-      B: Firmar el mandat SEPA amb el dit al 05a.
-      C: Només com a estructura de navegació mòbil de l'àrea del soci, sense firmes.
-      D: No fer-lo servir.
+      A: La carcassa de Teletipo per als xats (lateral de converses amb comptadors, rotlle de missatges, J/K, «Tot llegit»), amb Amanuense com a caixó d'escriure. El lector de canals no s'aprofita.
+      B: Teletipo com a lector de notícies a l'àrea del soci (canals del club o de la federació), i els xats amb un component propi.
+      C: Les dues coses.
+      D: No fer-lo servir; els xats, amb un component propi del sistema de disseny.
     recomanada: A
     perque: >-
-      El mandat el signa el flux del proveïdor (043) i una firma dibuixada no hi afegeix validesa.
-      Els avisos que es confirmen encaixen amb els textos legals versionats que ja existeixen.
+      És el que vols per als xats i la forma (llista amb comptadors i un rotlle que es llegeix amb el teclat)
+      hi encaixa. La B demanaria llegir canals externs des del servidor, una funció que el pla no té.
     data: 2026-11-16
 
-  P-92:
+  P-98:
     opcions:
-      A: Eina de signatures de correu a l'administració per a la junta i el club (càrrec, cris@cris.es).
-      B: Antefirma al peu dels documents del club (rebuts, certificats) amb el càrrec de qui signa.
-      C: Les dues.
-      D: No fer-lo servir.
-    recomanada: A
-    perque: >-
-      És el que fa el recurs de debò. La B toca documents econòmics i caldria una regla nova al pla.
-    data: 2026-11-16
-
-  P-93:
-    opcions:
-      A: Factures del club a la 09, amb NIF, NIE o CIF validat.
-      B: «Vull factura» a la pantalla de pagament de la fase 1, amb les dades fiscals.
-      C: Ara, només l'estètica del rebut (segell, fulla que s'omple); les factures, a la 09 (A).
+      A: Només novetats; les notificacions, amb un component propi del sistema de disseny.
+      B: Baliza adaptada com a centre de notificacions (la píndola amb comptador i la llista), sense balizes de novetats.
+      C: Les dues; la píndola i la llista com a centre de notificacions, i les balizes per a les novetats (una sola vegada, un sol batec).
       D: No fer-lo servir.
     recomanada: C
     perque: >-
-      La B és una funció nova a l'especificació congelada (D1) i depèn de la P-02. La C aprofita el recurs
-      ja i deixa la factura per al mòdul que li toca.
+      La píndola amb comptador i la llista que porta a cada element ja són un centre de notificacions, i les
+      balizes serveixen per dir que una pantalla ha deixat d'estar en construcció.
     data: 2026-11-16
 
-  P-94:
+  P-99:
     opcions:
-      A: Camilla és el flux d'inscripció (activitat, sessió, dades, confirmar, .ics, «Les meves inscripcions»); Comanda, les opcions de cada activitat (lloguer de material, «tria'n una»).
-      B: Camilla és el pagament de la quota; Comanda, la inscripció.
-      C: Camilla per demanar hora a la secretaria (alta presencial); Comanda, la inscripció.
-      D: Només Comanda, per a tot.
+      A: Capçalera de la fitxa d'una activitat i de les conferències (data, places que queden, «M'hi apunto» que obre Camilla, afegir al calendari); les fotos del lloc, amb Fototeca i Expositor; el mapa 3D, més endavant.
+      B: Només per a esdeveniments de la web pública (conferències, presentacions).
+      C: Esperar un altre recurs per a la pantalla de fotos del lloc i no fer servir Convite.
+      D: No fer-lo servir.
     recomanada: A
     perque: >-
-      Cada recurs fa el que fa de debò. El pagament ja el fan Tramite i Deposito, i la B en tindria dos.
-    data: 2026-11-16
-
-  P-95:
-    opcions:
-      A: No fer servir Amanuense fins que hi hagi un reconeixement de veu que funcioni dins del dispositiu.
-      B: Fer-lo servir només quan el navegador digui que reconeix al dispositiu, i amagar-lo si no [A verificar compatibilitat].
-      C: Fer-lo servir amb el servei del navegador i un avís a l'usuari.
-      D: Un servei de reconeixement propi dins de la UE (dependència nova).
-    recomanada: A
-    perque: >-
-      La C envia la veu fora de la UE (035). La B depèn d'una funció dels navegadors que no hem verificat;
-      quan es verifiqui, es pot passar a la B.
-    data: 2026-11-16
-
-  P-96:
-    opcions:
-      A: Només a la pàgina; en tancar una pestanya amb canvis, s'avisa i es perd. Res al navegador.
-      B: La llista de pestanyes (identificador i número, sense noms) a sessionStorage; el contingut només a la pàgina.
-      C: Esborranys al servidor, per compte (model nou).
-      D: Esborranys al localStorage, com el recurs.
-    recomanada: B
-    perque: >-
-      Conserva les pestanyes en navegar sense deixar dades personals a l'ordinador. La D les deixaria en un
-      ordinador compartit; la C és un model nou per a un benefici petit.
+      Fa bé el que fa (apuntar-se, places i calendari) i encaixa a la fitxa de qualsevol activitat. Les fotos
+      del lloc ja tenen recursos propis.
     data: 2026-11-16
 
 noves:
