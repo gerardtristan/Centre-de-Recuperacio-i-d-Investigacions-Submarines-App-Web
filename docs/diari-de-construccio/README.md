@@ -182,3 +182,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05a-14](T-M05a-14.md) | Llistat de mètodes i mandats per al tresorer, amb l'IBAN emmascarat; permís A4 i la Secretaria sense (P-193) | 16/11/2026 21:41 | b84936d | 4994; 1 e2e nova | [A comprovar] |
 | [T-DX-11b](T-DX-11b.md) | Ranura: el rebut anul·lat diu «Anul·lat» i la nota, mai el segell de pagat (carril de disseny) | 16/11/2026 22:06 | 4fa6e45 (PR #110) | 2 noves | [A comprovar] |
 | [T-M04-12d](T-M04-12d.md) | Desfer una conciliació (045): desfeta només INSERT, contramoviment de l'ingrés, càrrec a pendent, avís sense tocar el soci (P-110) i extracte desbloquejat; la T-M04-12 queda sencera, sense pantalla (P-113) | 16/11/2026 23:00 | d401923 | 8 noves | [A comprovar] |
+| [T-DX-43](T-DX-43.md) | «Pagaments: mètodes i mandats» al menú de l'administració, només amb A4 (carril de disseny) | 16/11/2026 22:20 | fcf2994 (PR #111) | 2 e2e ampliades | [A comprovar] |
