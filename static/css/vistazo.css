@@ -1,0 +1,58 @@
+/* Vistazo (T-DX-27; recurs a design/extern/; design-system §16, T-DX-27): els projectes del Departament d'Història.
+   Del recurs: l'índex en files grans, les altres files s'apaguen i la finestra amb la imatge apareix amb un
+   rebot en passar-hi per sobre. Sense JavaScript: la finestra no segueix el cursor i, en lloc de foto,
+   és un degradat decoratiu en OKLCH (C7). Al mòbil, el primer toc obre la fila (details). */
+.vistazo { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.vistazo h1 { margin-top: 0; }
+.vistazo-cap {
+  display: flex; justify-content: space-between; padding: 0 var(--e-1) var(--e-2);
+  font-size: var(--t-xs); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; color: var(--c-text-2);
+}
+.vistazo-llista { list-style: none; margin: 0; padding: 0; border-top: var(--v-fina) solid var(--c-linia-forta); }
+.vistazo-fila { border-bottom: var(--v-fina) solid var(--c-linia-forta); }
+.vistazo-fila > summary {
+  position: relative; display: grid; grid-template-columns: var(--e-6) 1fr; align-items: center; gap: var(--e-3);
+  min-block-size: var(--tactil-gran); padding: var(--e-3) var(--e-1); cursor: pointer; list-style: none;
+  transition: opacity var(--m-rapid) var(--m-corba);
+}
+.vistazo-fila > summary::-webkit-details-marker { display: none; }
+.vistazo-num { font-size: var(--t-s); color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.vistazo-nom {
+  position: relative; z-index: 1; font-family: var(--f-titol); font-size: var(--t-l); font-weight: var(--p-mitja);
+  line-height: var(--a-titol); overflow-wrap: anywhere; transition: transform var(--m-entrada) var(--m-corba);
+}
+.vistazo-tipus {
+  display: none; position: relative; z-index: 1; font-size: var(--t-xs); letter-spacing: var(--ll-etiqueta); text-transform: uppercase;
+  color: var(--c-text-2);
+}
+/* Amb una fila triada, les altres s'apaguen (com al recurs) */
+.vistazo-llista:has(summary:hover, summary:focus-visible) summary:not(:hover, :focus-visible) { opacity: .45; }
+.vistazo-fila > summary:hover .vistazo-nom, .vistazo-fila > summary:focus-visible .vistazo-nom,
+.vistazo-fila[open] .vistazo-nom { transform: translateX(var(--e-4)); }
+/* La finestra: decorativa, darrere del text; apareix amb un rebot curt (corba de molla), no es mou sola */
+.vistazo-finestra {
+  display: none; position: absolute; z-index: 0; inset-block-start: 50%; inset-inline-end: var(--e-8);
+  inline-size: var(--e-8); block-size: calc(var(--e-8) + var(--e-4)); border-radius: var(--r-m);
+  box-shadow: var(--ombra-flotant); pointer-events: none;
+  transform: translateY(-50%) scale(0); transition: transform var(--m-entrada) var(--m-corba-molla);
+}
+.vistazo-fila > summary:hover .vistazo-finestra, .vistazo-fila > summary:focus-visible .vistazo-finestra {
+  transform: translateY(-50%) rotate(-3deg) scale(1);
+}
+.vistazo-to-1 { background: linear-gradient(160deg in oklch, var(--c-mari), var(--c-info)); }
+.vistazo-to-2 { background: linear-gradient(160deg in oklch, var(--c-accent), var(--c-avis)); }
+.vistazo-to-3 { background: linear-gradient(160deg in oklch, var(--c-info), var(--c-sistema)); }
+.vistazo-to-4 { background: linear-gradient(160deg in oklch, var(--c-sistema), var(--c-mari)); }
+.vistazo-nota { display: grid; gap: var(--e-3); padding: 0 var(--e-1) var(--e-4) calc(var(--e-6) + var(--e-3) + var(--e-1)); color: var(--c-text-2); }
+.vistazo-nota p { margin: 0; }
+/* La imatge de la fila oberta (al mòbil, el primer toc la mostra, com al recurs; a l'escriptori no tapa la nota) */
+.vistazo-imatge { display: block; block-size: var(--e-8); border-radius: var(--r-m); }
+
+/* De tauleta amunt, com al recurs: files grans, el tipus a la dreta i la finestra en passar-hi per sobre */
+@media (min-width: 600px) {
+  .vistazo { padding: var(--e-5); }
+  .vistazo-fila > summary { grid-template-columns: var(--e-7) 1fr auto; }
+  .vistazo-nom { font-size: var(--t-2xl); }
+  .vistazo-tipus, .vistazo-finestra { display: block; }
+  .vistazo-nota { padding-inline-start: calc(var(--e-7) + var(--e-3) + var(--e-1)); }
+}

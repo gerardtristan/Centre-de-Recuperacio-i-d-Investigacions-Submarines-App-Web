@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/vistazo.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-27 Vistazo: els projectes del Departament d'Història. En construcció: contingut d'exemple, res no es desa (design-system §16, T-DX-27). #}
+  <section class="en-construccio-bloc vistazo" aria-describedby="ec-projectes">
+    {% include "_en_construccio.html" with id="ec-projectes" %}
+    <h1>{{ screen_title }}</h1>
+    <p class="text-2">{% translate "Els projectes del Departament d'Història. Passa per sobre d'un projecte o toca'l per veure'n la imatge." %}</p>
+    <div class="vistazo-cap" aria-hidden="true"><span>{% translate "Índex" %}</span><span>{% blocktranslate count n=projects|length %}{{ n }} projecte{% plural %}{{ n }} projectes{% endblocktranslate %}</span></div>
+    <ol class="vistazo-llista">
+      {% for project in projects %}
+      <li>
+        <details class="vistazo-fila" id="{{ project.id }}"{% if forloop.first %} open{% endif %}>
+          <summary>
+            <span class="vistazo-num">{{ forloop.counter|stringformat:"02d" }}</span>
+            <span class="vistazo-nom">{{ project.name }}</span>
+            <span class="vistazo-tipus">{{ project.kind }}</span>
+            <span class="vistazo-finestra vistazo-to-{{ project.to }}" aria-hidden="true"></span>
+          </summary>
+          <div class="vistazo-nota"><span class="vistazo-imatge vistazo-to-{{ project.to }}" aria-hidden="true"></span><p>{{ project.note }}</p></div>
+        </details>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+{% endblock %}
