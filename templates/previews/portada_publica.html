@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block zona %}publica{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/desfile.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-26 Desfile i Oleaje: la portada pública. En construcció: contingut d'exemple, res no es desa (design-system §16, T-DX-26). Oleaje: les classes de §6.18, no copiades. #}
+  <section class="en-construccio-bloc desfile-portada" aria-describedby="ec-portada-publica">
+    {% include "_en_construccio.html" with id="ec-portada-publica" %}
+    <header class="oleaje-portada">
+      <h1>{{ screen_title }}</h1>
+      <p class="oleaje-salutacio">{% translate "Club de busseig de Barcelona" %}</p>
+      <fieldset disabled class="desfile-crida">
+        <legend class="visualment-amagat">{% translate "Fer-se soci" %}</legend>
+        <button type="button" class="boto boto-principal">{% translate "Fes-te soci" %}</button>
+      </fieldset>
+      <svg class="oleaje-vora" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 40V22C150 6 300 6 450 18S750 34 900 20 1100 4 1200 14V40Z"/></svg>
+    </header>
+    <section class="oleaje-seccio" aria-labelledby="desfile-titol">
+      <svg class="oleaje-vora" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 40V22C150 6 300 6 450 18S750 34 900 20 1100 4 1200 14V40Z"/></svg>
+      <div class="oleaje-contingut">
+        <div class="desfile-cap">
+          <h2 id="desfile-titol">{% translate "Properes sortides i cursos" %}</h2>
+          <fieldset disabled class="desfile-controls">
+            <legend class="visualment-amagat">{% translate "Recórrer les activitats" %}</legend>
+            <p class="desfile-comptador" aria-live="polite">{% blocktranslate with n=acts|length %}1 / {{ n }}{% endblocktranslate %}</p>
+            <button type="button" class="boto boto-petit" aria-label="{% translate 'Anterior' %}"><span aria-hidden="true">←</span></button>
+            <button type="button" class="boto boto-petit" aria-label="{% translate 'Següent' %}"><span aria-hidden="true">→</span></button>
+          </fieldset>
+        </div>
+        <ol class="desfile-pista" tabindex="0" aria-label="{% translate 'Properes activitats, es desplaça amb les fletxes' %}">
+          {% for act in acts %}
+          <li class="targeta desfile-targeta" aria-label="{% blocktranslate with i=forloop.counter n=acts|length %}{{ i }} de {{ n }}{% endblocktranslate %}">
+            <span class="xip">{{ act.kind }}</span>
+            <h3>{{ act.title }}</h3>
+            <p class="desfile-quan">{{ act.when }}</p>
+            <p class="desfile-preu">{% translate "Des de" %} <span class="import">{{ act.price }}</span></p>
+          </li>
+          {% endfor %}
+        </ol>
+        <progress class="desfile-progres" max="{{ acts|length }}" value="1">{% blocktranslate with n=acts|length %}1 de {{ n }}{% endblocktranslate %}</progress>
+      </div>
+    </section>
+  </section>
+{% endblock %}
