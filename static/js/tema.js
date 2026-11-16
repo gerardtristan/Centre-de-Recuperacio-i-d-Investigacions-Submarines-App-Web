@@ -36,6 +36,8 @@
       document.head.appendChild(meta);
     }
     meta.setAttribute('content', token('--c-fons'));
+    // Avisa els controls (Eclipse) que el tema que es veu pot haver canviat.
+    document.dispatchEvent(new CustomEvent('cris:tema'));
   }
   function marca(t) {
     document.querySelectorAll('.selector-tema input').forEach(function (i) { i.checked = i.value === t; });
@@ -81,6 +83,15 @@
     }
     actual = t;
   }
+
+  // Per als altres controls de tema (Eclipse, T-DX-05): triar i saber quin tema es veu.
+  window.CrisTema = {
+    tria: tria,
+    fosc: function () {
+      var t = arrel.getAttribute('data-theme');
+      return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+  };
 
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.selector-tema input').forEach(function (i) {

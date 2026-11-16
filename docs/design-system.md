@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.11 (16/11/2026). La 1.11 afegeix Errata, el resum d'errors dels formularis (§6.10, T-DX-06).
+- **Versió:** 1.12 (16/11/2026). La 1.12 posa Eclipse a la part pública (§7, T-DX-05).
+- La 1.11 (16/11/2026). La 1.11 afegeix Errata, el resum d'errors dels formularis (§6.10, T-DX-06).
 - La 1.10 (16/11/2026) posa el motor de tema de Duermevela (§7, T-DX-04).
 - La 1.9 (16/11/2026) porta la paleta d'estats a OKLCH amb la mateixa lluminositat per rol, les vores amb transparència i la superfície flotant (§15.4, T-DX-02), i corregeix l'ordre d'elevació.
 - La 1.8 (16/11/2026) porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
@@ -445,6 +446,7 @@ Del recurs Errata ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el selector.
 
 - **Motor Duermevela (T-DX-04, 1.10).** `static/js/tema.js` (es manté el nom del fitxer) porta el motor del recurs Duermevela adaptat: (1) la tria passa a les altres pestanyes obertes amb l'esdeveniment `storage`, sense recarregar ni cortina; (2) la barra del navegador (`<meta name="theme-color">`, que crea el mateix guió) pren `--c-fons` del tema actiu, també quan el sistema canvia amb «Sistema»; (3) el canvi es revela amb una cortina circular que surt de l'opció triada (`document.startViewTransition`), de `--m-panell` i amb `--m-corba-entra-surt`. Sense l'API, amb moviment reduït o si el color no canvia (per exemple, «Sistema» quan el sistema ja demana el mateix tema), el canvi és directe. `tokens.css` treu el fos per defecte de `::view-transition-old(root)` i `::view-transition-new(root)`. La funció de la cortina (regla D6) és dir d'on ve el canvi. La il·lustració de l'habitació i el mesurador de destells del recurs no s'hi fan servir.
+- **Eclipse a la part pública (T-DX-05, 1.12; decisió del propietari del 16/11/2026).** Sense sessió, la capçalera porta l'interruptor de dia i nit del recurs Eclipse (`templates/_eclipse.html`, `static/css/eclipse.css`, `static/js/eclipse.js`) en lloc del selector. En obrir la pàgina mostra el tema que es veu, és a dir, el del sistema si no s'ha triat res. Si es canvia, la tria queda fixada i surt el botó «Com el sistema», que torna a seguir el sistema. El tema el posa `tema.js` (`window.CrisTema`, amb la cortina de Duermevela que surt de l'interruptor), i l'interruptor segueix els canvis que arriben d'una altra pestanya o del sistema (esdeveniment `cris:tema`). El sol és el daurat de marca. Mida: `--selector-alcada` d'alt i àrea tàctil de 44 px amb un pseudoelement. Respecte del recurs, sense animacions infinites (D20: les estrelles no titil·len i la corona no gira) i sense l'onda pròpia de canvi de tema. Els valors que calcula el JavaScript van a variables de CSS. Amb sessió, de moment continua el selector de tres opcions; passarà a la configuració del compte a la T-DX-05b.
 ## 8. Logotips
 | On | Fitxer |
 |---|---|
