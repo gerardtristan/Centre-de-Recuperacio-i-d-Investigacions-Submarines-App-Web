@@ -20,6 +20,11 @@ El criden la importació en confirmar o desfer un extracte (senyal `bank_stateme
 proposta d'una línia. Cada càrrec passa a «pagat» amb un pagament per transferència i el seu
 ingrés al banc; si és una quota, s'avisa el 01. Desfer-la (CA-T10.4 a CA-T10.6, 045) espera la
 transició «pagat → pendent» del nucli.
+
+`exclude()` (T-M04-14; RN-T15, CA-T12.1, LT11): el tresorer exclou una línia pendent amb motiu
+obligatori. No crea cap moviment ni toca cap càrrec; la línia surt de la llista «a revisar».
+`to_review()` és aquesta llista (CA-T13.1): les línies obertes amb la marca i el motiu. Els
+pagaments «a revisar» del 05b encara no hi són (P-191). Permisos: P-190.
 """
 
 from django.core.exceptions import ValidationError
@@ -41,7 +46,11 @@ from .references import references_in, transfer_reference
 
 STATE_CHANGED = "treasury.statement_line_state_changed"
 CONFIRMED = "treasury.reconciliation_confirmed"
+EXCLUDED = "treasury.statement_line_excluded"
 RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» (M04-4)
+# T8, «Excloure una línia»: el mateix permís que T4, perquè la matriu dona totes dues només al
+# tresorer i un permís nou seria del nucli (P-190, opció per defecte).
+EXCLUDE = RECONCILE
 OPEN = (StatementLineState.Status.PENDING, StatementLineState.Status.PROPOSED)
 Reason = StatementLineState.ReviewReason
 
@@ -82,7 +91,9 @@ def _snapshot(status, reason, charge_ids):
 PLAIN = _snapshot(StatementLineState.Status.PENDING, "", [])
 
 
-def _apply(state, status, reason, charges, *, created, actor=None) -> None:
+def _apply(
+    state, status, reason, charges, *, created, actor=None, action=STATE_CHANGED, why=""
+) -> None:
     """Desa l'estat si ha canviat i en deixa l'entrada al registre."""
     new = _snapshot(status, reason, sorted(charge.pk for charge in charges))
     old = None
@@ -98,11 +109,12 @@ def _apply(state, status, reason, charges, *, created, actor=None) -> None:
     state.save()
     state.proposed_charges.set(charges)
     audit.record(
-        STATE_CHANGED,
+        action,
         actor=actor or audit.system("treasury.reconciliation"),
         target=state,
         old=old,
         new=new,
+        reason=why,
         details={"line": state.statement_line_id},
     )
 
@@ -231,3 +243,47 @@ def on_statement_changed(sender, batch, **kwargs) -> None:
     """CA-T09.1: les línies d'un extracte confirmat neixen amb estat; les d'un de desfet deixen
     de ser proposades."""
     refresh()
+
+
+@transaction.atomic
+def exclude(line, *, reason: str, by) -> StatementLineState:
+    """CA-T12.1: estat «exclosa» amb el motiu, i res més: cap moviment, cap càrrec (RN-T14).
+    Només una línia pendent d'un extracte vigent (RN-T15; una proposada, P-192). Una línia
+    exclosa no torna enrere ni la toca `refresh()`."""
+    if not has_perm(by, EXCLUDE, write=True):
+        raise Http404
+    reason = (reason or "").strip()
+    if not reason:
+        raise ReconciliationRejected(_("Per excloure una línia cal escriure'n el motiu."))
+    refresh()  # també agafa el pany
+    state = (
+        StatementLineState.objects.select_for_update()
+        .filter(statement_line=line, statement_line__in=statement_lines())
+        .prefetch_related("proposed_charges")
+        .first()
+    )
+    if state is None or state.status != StatementLineState.Status.PENDING:
+        raise ReconciliationRejected(_("Aquesta línia ja no està pendent: no es pot excloure."))
+    state.exclusion_reason = reason
+    _apply(
+        state,
+        StatementLineState.Status.EXCLUDED,
+        "",
+        [],
+        created=False,
+        actor=by,
+        action=EXCLUDED,
+        why=reason,
+    )
+    return state
+
+
+def to_review():
+    """CA-T13.1: les línies obertes d'un extracte vigent marcades «a revisar», per data."""
+    return (
+        StatementLineState.objects.filter(
+            to_review=True, status__in=OPEN, statement_line__in=statement_lines()
+        )
+        .select_related("statement_line")
+        .order_by("statement_line__value_date", "statement_line__pk")
+    )

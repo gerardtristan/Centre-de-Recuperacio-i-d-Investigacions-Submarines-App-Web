@@ -439,4 +439,35 @@ opcions:
       base segura fins que hi hagi tasca.
     data: 2026-11-16
 
+  P-190:
+    opcions:
+      A: Dos codis nous al catàleg del nucli (T8 i T10), amb les cel·les de la matriu, en una tasca del nucli.
+      B: Excloure amb T4 i la llista amb T1, sense cap codi nou (com s'ha fet).
+      C: Com la B ara, i passar a la A quan algú hagi de tenir T4 sense T8 (o T1 sense T10).
+    recomanada: C
+    perque: >-
+      Avui les cel·les inicials són idèntiques i un codi nou tocaria el nucli, que té feina oberta en paral·lel.
+      La B ja és tancada (cap rol nou no hi entra); la separació només cal si la junta vol rols diferents.
+    data: 2026-11-16
+  P-191:
+    opcions:
+      A: Només les línies de l'extracte; cada mena de pagament es revisa a la seva pantalla.
+      B: Les línies ara; els intents del 05b s'hi afegeixen quan la T-M05b-16 doni un servei de lectura.
+      C: Una llista única amb línies, intents del 05b, quotes d'A-17 i cobraments de liquidacions.
+    recomanada: B
+    perque: >-
+      Respecta l'ordre dels mòduls (la 04 no depèn del 05b) i compleix CA-T13.1 quan el 05b existeixi. La C
+      duplicaria la pantalla de quotes, que ja té A-17.
+    data: 2026-11-16
+  P-192:
+    opcions:
+      A: Només una línia pendent; una exclusió no es desfà (com s'ha fet).
+      B: També una línia proposada; una exclusió no es desfà.
+      C: Com la B, i el tresorer pot desfer una exclusió amb motiu (torna a pendent, amb registre).
+    recomanada: C
+    perque: >-
+      Una proposta només és un suggeriment i el pas 3 de P-M04-E ja preveu excloure-la. Desfer amb motiu evita
+      que un error del tresorer quedi per sempre; no mou diners. La A és la lectura literal de RN-T15.
+    data: 2026-11-16
+
 noves:

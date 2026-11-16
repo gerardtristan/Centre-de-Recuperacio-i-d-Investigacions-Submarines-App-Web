@@ -8,4 +8,10 @@ from . import views
 urlpatterns = [
     path("tresoreria/", views.accounts_view, name="treasury_accounts"),
     path("tresoreria/moviments/", views.movements_view, name="treasury_movements"),
+    path("tresoreria/revisar/", views.review_view, name="treasury_review"),
+    path(
+        "tresoreria/revisar/<int:line_id>/excloure/",
+        views.exclude_view,
+        name="treasury_exclude_line",
+    ),
 ]
