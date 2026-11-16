@@ -506,4 +506,27 @@ opcions:
       excloure-la; és un canvi petit al recàlcul, que es pot fer en qualsevol moment perquè l'estat es torna a calcular.
     data: 2026-11-16
 
+  P-194:
+    opcions:
+      A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).
+      B: Sense cap cobrament, des de la signatura; caduca l'endemà de complir-se els 36 mesos.
+      C: Un mandat que no s'ha cobrat mai no caduca fins al primer cobrament.
+      D: Sense cap cobrament, des de la data de la primera remesa prevista.
+    recomanada: A
+    perque: >-
+      Un mandat que no es fa servir mai no pot quedar actiu per sempre, i la signatura és l'única data segura.
+      Caducar el mateix dia és la lectura prudent: si el banc admet aquell dia, només cal passar a la B.
+    data: 2026-11-16
+
+  P-195:
+    opcions:
+      A: La preferència no es toca; sense mandat actiu, la quota es paga com a RN-M05a-15 (com s'ha fet).
+      B: La preferència passa a «pagar cada vegada», amb registre.
+      C: S'esborra la preferència (el soci torna a «sense resposta») i entra a la campanya següent.
+    recomanada: A
+    perque: >-
+      No canvia cap dada que el soci hagi triat i el resultat per cobrar és el mateix que la B: sense mandat actiu
+      no hi ha domiciliació. En signar-ne un de nou, la preferència es torna a lligar al mandat nou (T-M05a-09 i 11).
+    data: 2026-11-16
+
 noves:
