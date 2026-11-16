@@ -37,6 +37,10 @@ def payments_settings(app_configs, **kwargs):
         crypto._parse(tuple(settings.MANDATE_ENCRYPTION_KEYS))
     except ImproperlyConfigured as error:
         errors.append(Error(str(error), id="payments.E005"))
+    if getattr(settings, "MANDATE_ENCRYPTION_KEYS_REQUIRED", False) and not (
+        settings.MANDATE_ENCRYPTION_KEYS
+    ):
+        errors.append(Error("Falta MANDATE_ENCRYPTION_KEYS (044).", id="payments.E006"))
     return errors
 
 

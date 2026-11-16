@@ -1,5 +1,5 @@
-"""Models dels pagaments (M05a-6 i M05b-6). Cap camp amb dades de targeta ni cap IBAN en aquest
-fitxer."""
+"""Models dels pagaments (M05a-6 i M05b-6). Cap camp amb dades de targeta. L'IBAN només és a
+`MandateBankAccount.iban_ciphertext`, xifrat (044)."""
 
 import uuid
 
@@ -329,3 +329,94 @@ class Receipt(UndeletableModel):
         if not self._state.adding:
             raise ReceiptLocked
         super().save(*args, **kwargs)
+
+
+# 05a: mandats SEPA (T-M05a-08; M05a-6; decisió 044). La preferència de mètode, la targeta
+# guardada i la campanya arriben en una segona part.
+
+MANDATE_REFERENCE = r"^CRIS[0-9]{6}M[0-9]{2}$"  # RN-M05a-03
+
+
+class MandateStatus(models.TextChoices):
+    ACTIVE = "active", _("actiu")
+    REVOKED = "revoked", _("revocat")
+    EXPIRED = "expired", _("caducat")
+    BLOCKED = "blocked", _("bloquejat")
+
+
+class SepaMandate(UndeletableModel):
+    """Mandat SEPA d'un soci (M05a-6). Un sol mandat actiu per soci (RN-M05a-02). L'IBAN no és
+    aquí: és a `MandateBankAccount`, xifrat. Es crea amb `apps.payments.mandates`."""
+
+    Status = MandateStatus
+    REPLACED = "substituït"  # motiu de RN-M05a-02
+
+    member = models.ForeignKey("members.Member", on_delete=models.PROTECT, related_name="+")
+    reference = models.CharField(_("referència"), max_length=35, unique=True)
+    holder_name = models.CharField(_("titular del compte"), max_length=70)
+    holder_is_member = models.BooleanField(_("el titular és el soci"))
+    signed_at = models.DateTimeField(_("signat el"))
+    sequence_type = models.CharField(_("tipus"), max_length=10, default="recurrent")
+    creditor_identifier = models.CharField(_("identificador de creditor"), max_length=35)
+    legal_text = models.ForeignKey("core.LegalText", on_delete=models.PROTECT, related_name="+")
+    signed_by_account = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+"
+    )
+    evidence = models.JSONField(_("prova de la signatura"), default=dict)
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.ACTIVE
+    )
+    revoked_at = models.DateTimeField(_("revocat el"), null=True, blank=True)
+    revoked_reason = models.CharField(_("motiu de la revocació"), max_length=200, blank=True)
+    revoked_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    last_collection_on = models.DateField(_("últim cobrament"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("mandat SEPA")
+        verbose_name_plural = _("mandats SEPA")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["member"], condition=Q(status="active"), name="sepa_mandate_one_active"
+            ),
+            models.CheckConstraint(
+                condition=Q(reference__regex=MANDATE_REFERENCE), name="sepa_mandate_reference"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=MandateStatus.values), name="sepa_mandate_status_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(sequence_type="recurrent"), name="sepa_mandate_recurrent"
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(status="revoked") & Q(revoked_at__isnull=False) & ~Q(revoked_reason="")
+                )
+                | (~Q(status="revoked") & Q(revoked_at__isnull=True)),
+                name="sepa_mandate_revoked_has_date_and_reason",
+            ),
+        ]
+
+    def __str__(self):
+        return self.reference
+
+
+class MandateBankAccount(models.Model):
+    """L'únic lloc de la plataforma amb un IBAN (044, CA-M05a-07): xifrat amb
+    `apps.payments.crypto`. Cap `__str__` que el mostri i fora de l'administrador de Django."""
+
+    mandate = models.OneToOneField(
+        SepaMandate, on_delete=models.PROTECT, related_name="bank_account"
+    )
+    iban_ciphertext = models.BinaryField()
+    key_version = models.PositiveSmallIntegerField()
+    iban_country = models.CharField(max_length=2)
+    iban_last4 = models.CharField(max_length=4)
+
+    class Meta:
+        verbose_name = _("compte del mandat")
+        verbose_name_plural = _("comptes dels mandats")
+
+    def __str__(self):
+        return f"{self.iban_country} … {self.iban_last4}"
