@@ -220,8 +220,8 @@ class TestTwoAtOnce(CommittedDataTestCase):
 
 
 class TestRefusals:
-    @pytest.mark.parametrize("method", ["bizum", "transfer", "direct_debit", "saved_card", "", "x"])
-    def test_only_card_in_this_slice(self, charge, personal_account, orders, method):
+    @pytest.mark.parametrize("method", ["transfer", "direct_debit", "saved_card", "", "x"])
+    def test_only_card_and_bizum_for_now(self, charge, personal_account, orders, method):
         with pytest.raises(attempts.MethodNotAllowed):
             checkout.start_payment(charge, method, personal_account)
         assert nothing_started(charge, orders)

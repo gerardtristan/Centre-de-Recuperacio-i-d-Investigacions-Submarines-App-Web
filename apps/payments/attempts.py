@@ -1,7 +1,7 @@
 """Intents de pagament: crear-los i canviar-ne l'estat (T-M05b-03; RN-M05b-02, 03 i 04).
 
-Tall de targeta (decisió 089, D3): només s'obren intents amb targeta. Els altres mètodes s'hi
-afegeixen a la seva tasca; cap línia d'aquí toca el mandat."""
+S'obren intents amb targeta i amb Bizum, els dos mètodes que passen pel proveïdor (T-M05b-04). La
+transferència i la domiciliació s'hi afegeixen a la seva tasca; cap línia d'aquí toca el mandat."""
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -12,7 +12,7 @@ from apps.core.models import Charge
 
 from .models import PaymentAttempt
 
-ENABLED_METHODS = frozenset({PaymentAttempt.Method.CARD})
+ENABLED_METHODS = frozenset({PaymentAttempt.Method.CARD, PaymentAttempt.Method.BIZUM})
 
 
 class MethodNotAllowed(Exception):

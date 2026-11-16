@@ -55,8 +55,20 @@ def _own_charge(request, charge_id) -> Charge:
     return charge or _not_found(request, Charge, charge_id)
 
 
+def _offers_bizum() -> bool:
+    """Les pantalles només ofereixen el que el proveïdor declara (`capabilities`)."""
+    try:
+        return get_provider().capabilities().bizum
+    except ProviderError:
+        return False
+
+
 def _status_context(charge):
-    return {"charge": charge, "status": checkout.payment_status(charge)}
+    return {
+        "charge": charge,
+        "status": checkout.payment_status(charge),
+        "bizum": _offers_bizum(),
+    }
 
 
 @never_cache
@@ -71,17 +83,27 @@ def charge_view(request, charge_id):
 
 @never_cache
 @require_POST
-def pay_card_view(request, charge_id):
-    """«Paga amb targeta» (P-M05b-A, passos 1 i 2): el navegador va a la pàgina del proveïdor.
-    Amb un intent en curs no se'n comença cap altre (RN-M05b-04; P-83, opció per defecte): la
-    pantalla ja explica que s'espera la confirmació."""
+def pay_view(request, charge_id, method):
+    """«Paga amb targeta» o «Paga amb Bizum» (P-M05b-A i B, passos 1 i 2): el navegador va a la
+    pàgina del proveïdor. Amb un intent en curs no se'n comença cap altre (RN-M05b-04; P-83,
+    opció per defecte): la pantalla explica que s'espera la confirmació."""
     charge = _own_charge(request, charge_id)
     try:
-        start = checkout.start_payment(charge, PaymentAttempt.Method.CARD, request.user)
-    except (attempts.AttemptInProgress, attempts.AttemptAlreadyPaid, attempts.ChargeNotPayable):
+        start = checkout.start_payment(charge, method, request.user)
+    except attempts.AttemptInProgress:
+        messages.error(
+            request,
+            _("El pagament anterior encara no s'ha tancat. Torna-ho a provar d'aquí a una estona."),
+        )
+        return redirect("payments:charge", charge.pk)
+    except (attempts.AttemptAlreadyPaid, attempts.ChargeNotPayable):
         return redirect("payments:charge", charge.pk)
     except (attempts.MethodNotAllowed, ProviderError):
-        messages.error(request, _("Ara no es pot pagar amb targeta. Torna-ho a provar més tard."))
+        unavailable = {
+            PaymentAttempt.Method.CARD: _("Ara no es pot pagar amb targeta."),
+            PaymentAttempt.Method.BIZUM: _("Ara no es pot pagar amb Bizum."),
+        }
+        messages.error(request, f"{unavailable[method]} {_('Torna-ho a provar més tard.')}")
         return redirect("payments:charge", charge.pk)
     # shortcut: sempre redirecció; el camp incrustat (`checkout.IFRAME`) arriba amb el proveïdor
     # real, si en té (P-45 punt 4). El proveïdor fals no en té.
@@ -143,5 +165,9 @@ def fake_pay_view(request, order_id):
         if result is None:
             raise Http404
         return HttpResponseRedirect(provider.complete(order_id, result))
-    context = {"order": order, "amount": charges.euros(order.amount_cents)}
+    context = {
+        "order": order,
+        "amount": charges.euros(order.amount_cents),
+        "bizum": provider.is_bizum(order_id),
+    }
     return render(request, "payments/fake_pay.html", context)

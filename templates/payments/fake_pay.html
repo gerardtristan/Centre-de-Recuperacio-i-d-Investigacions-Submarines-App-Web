@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M05b-04: pàgina de pagament del proveïdor fals (`providers.fake`). Fa el paper d'una pàgina de fora de la plataforma: ruta pública declarada que només respon amb el proveïdor fals, que només arrenca amb l'entorn de proves. No hi ha cap camp de targeta. «Paga» i «Denega» envien la notificació signada, servidor a servidor; «Torna sense pagar» no n'envia cap (un intent deixat a mitges, P-83). #}
+{# T-M05b-04: pàgina de pagament del proveïdor fals (`providers.fake`). Fa el paper d'una pàgina de fora de la plataforma: ruta pública declarada que només respon amb el proveïdor fals, que només arrenca amb l'entorn de proves. No hi ha cap camp de targeta. «Paga» i «Denega» envien la notificació signada, servidor a servidor; «Torna sense pagar» no n'envia cap (un intent deixat a mitges, P-83). Amb Bizum, els botons fan el paper de la confirmació a l'app del banc (P-M05b-B); no s'hi escriu cap telèfon. #}
 {% block title %}{% translate "Pagament de proves" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Proveïdor de proves" %}{% endblock %}
 {% block content %}
@@ -10,9 +10,18 @@
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
     <div><dt>{% translate "Ordre" %}</dt><dd><span class="codi">{{ order.external_id }}</span></dd></div>
   </dl>
+  {% if bizum %}
+  <p>{% translate "Bizum: fes com si confirmessis el pagament a l'app del teu banc." %}</p>
+  <form method="post" class="accions">{% csrf_token %}
+    <button class="boto boto-principal" type="submit" name="resultat" value="pay">{% translate "Confirma a l'app del banc" %}</button>
+    <button class="boto" type="submit" name="resultat" value="deny">{% translate "Rebutja a l'app del banc" %}</button>
+    <button class="boto" type="submit" name="resultat" value="leave">{% translate "Torna sense confirmar" %}</button>
+  </form>
+  {% else %}
   <form method="post" class="accions">{% csrf_token %}
     <button class="boto boto-principal" type="submit" name="resultat" value="pay">{% translate "Paga" %}</button>
     <button class="boto" type="submit" name="resultat" value="deny">{% translate "Denega el pagament" %}</button>
     <button class="boto" type="submit" name="resultat" value="leave">{% translate "Torna sense pagar" %}</button>
   </form>
+  {% endif %}
 {% endblock %}
