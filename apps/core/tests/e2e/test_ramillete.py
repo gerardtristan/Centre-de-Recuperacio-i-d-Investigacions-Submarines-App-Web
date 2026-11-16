@@ -39,7 +39,7 @@ def test_mobile_bar_and_the_more_fan(page, live_server, builder, member, review,
 
     more.click()
     expect(more).to_have_attribute("aria-expanded", "true")
-    expect(bar(page).get_by_role("link", name="Canvi de tipus")).to_be_focused()
+    expect(bar(page).get_by_role("link", name="Com pago la quota")).to_be_focused()
     review("ventall-obert")
     page.set_viewport_size(MOBILE)  # la captura acaba a 1280 px
     page.keyboard.press("Escape")
