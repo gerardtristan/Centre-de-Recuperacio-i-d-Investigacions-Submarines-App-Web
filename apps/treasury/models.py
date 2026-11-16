@@ -363,6 +363,8 @@ class StatementLineState(UndeletableModel):
     review_reason = models.CharField(
         _("motiu de la revisió"), max_length=20, choices=ReviewReason.choices, blank=True
     )
+    # El motiu que escriu el tresorer en excloure-la (RN-T15, CA-T12.1; T-M04-14).
+    exclusion_reason = models.TextField(_("motiu de l'exclusió"), blank=True)
     # La proposta que el tresorer confirmarà (T-M04-12): un càrrec, o diversos si la línia en
     # porta les referències i la suma és exacta (LT5).
     proposed_charges = models.ManyToManyField(
@@ -378,6 +380,11 @@ class StatementLineState(UndeletableModel):
                 condition=Q(to_review=False, review_reason="")
                 | (Q(to_review=True) & ~Q(review_reason="")),
                 name="statement_line_review_reason_iff_flag",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="excluded", to_review=False) & ~Q(exclusion_reason="")
+                | (~Q(status="excluded") & Q(exclusion_reason="")),
+                name="statement_line_excluded_iff_reason",
             ),
         ]
 

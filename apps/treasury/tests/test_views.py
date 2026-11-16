@@ -17,13 +17,16 @@ from apps.core.tests.conftest import (
     make_admin,  # noqa: F401 (fixture)
 )
 from apps.treasury.balances import balances
-from apps.treasury.models import CostCentre, Movement, TreasuryAccount
+from apps.treasury.models import CostCentre, Movement, StatementLineState, TreasuryAccount
+from apps.treasury.references import check_character
+from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import PAID_AT, new_transit, paid, record
 
 pytestmark = pytest.mark.django_db
 ACCOUNTS = reverse("administration:treasury_accounts")
 MOVEMENTS = reverse("administration:treasury_movements")
-ROUTES = (ACCOUNTS, MOVEMENTS)
+REVIEW = reverse("administration:treasury_review")
+ROUTES = (ACCOUNTS, MOVEMENTS, REVIEW)  # REVIEW: T10, les mateixes cel·les que T1 (P-190)
 R = Role.Code
 MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor", "guest")]
 WITH_T1 = {R.TREASURER, R.ADMINISTRATOR}  # matriu inicial de la 059
@@ -207,3 +210,49 @@ def test_a_reversed_date_range_is_an_error_and_the_end_does_not_filter(treasurer
 
 def test_without_movements_it_says_so(treasurer):
     assert "Cap moviment amb aquests filtres." in page(treasurer, MOVEMENTS)
+
+
+# --- «A revisar» i exclusions (T-M04-14; C6, T8, T10; CA-T12.1, CA-T13.1) ------------------
+
+
+def exclude_url(line):
+    return reverse("administration:treasury_exclude_line", args=[line.pk])
+
+
+def test_ca_t13_1_empty_list_says_there_is_nothing_to_review(treasurer):
+    assert "No hi ha res a revisar." in page(treasurer, REVIEW)
+
+
+def test_ca_t13_1_a_line_to_review_shows_its_reason_without_the_concept(make_admin, settings):  # noqa: F811
+    settings.TRANSFER_REFERENCE_PREFIX = "CRIS"
+    account = make_admin(R.TREASURER)
+    reference = f"CRIS-AB2CD-{check_character('AB2CD')}"  # vàlida, però de cap càrrec
+    (line,) = lines(account, (777, f"{reference} PAGAT PER JOAN INVENTAT"))
+    html = page(client_for(account), REVIEW)
+    assert "La referència no és de cap càrrec" in html and "7,77" in html
+    assert "INVENTAT" not in html  # el concepte només es veu a la conciliació (M04-4)
+    assert exclude_url(line) in html
+    # L'administrador veu la llista (T10) però no pot excloure (T8): ni formulari ni POST.
+    admin = client_for(make_admin(R.ADMINISTRATOR))
+    assert exclude_url(line) not in page(admin, REVIEW)
+    assert admin.post(exclude_url(line), {"motiu": "Prova"}).status_code == 404
+
+
+def test_ca_t12_1_excluding_from_the_screen(make_admin):  # noqa: F811
+    account = make_admin(R.TREASURER)
+    (line,) = lines(account, (-1230, "REBUT LLUM"))
+    client = client_for(account)
+    assert client.get(exclude_url(line)).status_code == 405
+    response = client.post(exclude_url(line), {"motiu": ""}, follow=True)
+    assert "cal escriure&#x27;n el motiu" in response.content.decode()
+    response = client.post(exclude_url(line), {"motiu": "Despesa"}, follow=True)
+    assert "Línia exclosa. No s&#x27;ha creat cap moviment." in response.content.decode()
+    state = StatementLineState.objects.get(statement_line=line)
+    assert (state.status, state.exclusion_reason) == ("excluded", "Despesa")
+    assert not Movement.objects.exists()
+    assert (
+        client.post(
+            reverse("administration:treasury_exclude_line", args=[999999]), {"motiu": "x"}
+        ).status_code
+        == 404
+    )

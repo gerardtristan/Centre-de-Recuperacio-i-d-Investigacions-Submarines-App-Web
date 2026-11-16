@@ -5,24 +5,32 @@ i llista de moviments amb filtres. Només lectura: només GET, i l'únic formula
 - Cap IBAN: del compte només surten el nom, el tipus i els quatre darrers dígits (RN-T03).
 - Cap nom de persona: el concepte del moviment no en porta (RNF-T4).
 - Un moviment anul·lat continua a la llista, marcat (CA-T06.1, RN-T25).
+
+«A revisar» (T-M04-14, C6; CA-T12.1, CA-T13.1): les línies de l'extracte amb el motiu, i el
+formulari per excloure'n una (POST, T8 al servidor). Sense el concepte de la línia, que pot
+portar noms de fora del club i només es veu a la conciliació (M04-4, per objecte).
 """
 
 from django import forms
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.core.charges import euros
+from apps.core.imports import statement_lines
 from apps.core.models import Department
-from apps.core.permissions import permission_required
+from apps.core.permissions import has_perm, permission_required
 
+from . import reconciliation
 from .balances import balances
 from .models import Movement, TreasuryAccount
 
-VIEW = "treasury.view"  # T1
+VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
 PER_PAGE = 50
 
 
@@ -102,3 +110,34 @@ def movements_view(request):
     )
     rows = [{"movement": m, "amount": _signed(m)} for m in page]
     return render(request, "treasury/movements.html", {"form": form, "page": page, "rows": rows})
+
+
+@never_cache
+@permission_required(VIEW)
+@require_GET
+def review_view(request):
+    reconciliation.refresh()  # els càrrecs canvien: la llista es calcula abans de mostrar-la
+    rows = [
+        {
+            "state": state,
+            "line": state.statement_line,
+            "amount": euros(state.statement_line.amount_cents),
+        }
+        for state in reconciliation.to_review()
+    ]
+    can_exclude = has_perm(request.user, reconciliation.EXCLUDE, write=True)
+    return render(request, "treasury/review.html", {"rows": rows, "can_exclude": can_exclude})
+
+
+@never_cache
+@permission_required(reconciliation.EXCLUDE, write=True)
+@require_POST
+def exclude_view(request, line_id):
+    line = get_object_or_404(statement_lines(), pk=line_id)
+    try:
+        reconciliation.exclude(line, reason=request.POST.get("motiu", ""), by=request.user)
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, _("Línia exclosa. No s'ha creat cap moviment."))
+    return redirect("administration:treasury_review")

@@ -4,7 +4,7 @@ RN-T18; CA-T09.1 a CA-T09.3; LT2 a LT6). Només dades inventades."""
 import datetime
 
 import pytest
-from django.db import DatabaseError, connection, transaction
+from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.http import Http404
 
 from apps.accounts.models import Account
@@ -222,7 +222,10 @@ class TestRefresh:
     def test_closed_lines_are_not_touched(self, treasurer, charge, closed):
         quota = charge()
         (line,) = lines(treasurer, (9000, ref(quota)))
-        StatementLineState.objects.create(statement_line=line, status=closed)
+        reason = "Prova" if closed == State.EXCLUDED else ""
+        StatementLineState.objects.create(
+            statement_line=line, status=closed, exclusion_reason=reason
+        )
         reconciliation.refresh()
         assert state(line) == (closed, "", [])
 
@@ -375,3 +378,81 @@ class TestConfirm:
         ):
             with pytest.raises(DatabaseError), transaction.atomic(), connection.cursor() as cur:
                 cur.execute(sql)
+
+
+class TestExclude:
+    """T-M04-14: excloure una línia (RN-T15, CA-T12.1, LT11) i la llista «a revisar» (CA-T13.1)."""
+
+    def test_ca_t12_1_excluding_needs_a_reason_and_creates_no_movement(self, treasurer, charge):
+        quota = charge()
+        (line,) = lines(treasurer, (9500, f"TRANSF {ref(quota)} INVENTAT"))
+        for blank in ("", "   "):
+            with pytest.raises(reconciliation.ReconciliationRejected, match="motiu"):
+                reconciliation.exclude(line, reason=blank, by=treasurer)
+        excluded = reconciliation.exclude(line, reason=" Ingrés d'una altra entitat ", by=treasurer)
+        excluded.refresh_from_db()
+        assert (excluded.status, excluded.exclusion_reason) == (
+            State.EXCLUDED,
+            "Ingrés d'una altra entitat",
+        )
+        assert excluded.to_review is False and not excluded.proposed_charges.exists()
+        quota.refresh_from_db()
+        assert quota.status == Charge.Status.PENDING
+        assert not Movement.objects.exists() and not Payment.objects.exists()
+        # RN-T13: al registre, amb el compte, el motiu i l'estat anterior; sense el concepte.
+        entry = AuditEntry.objects.get(action=reconciliation.EXCLUDED)
+        assert entry.reason == "Ingrés d'una altra entitat"
+        assert entry.old_value["review_reason"] == "amount_mismatch"
+        assert entry.new_value["status"] == "excluded"
+        assert entry.actor_account_id == treasurer.pk
+        assert "INVENTAT" not in str((entry.details, entry.old_value, entry.new_value))
+        # Ja no torna enrere ni es pot excloure dues vegades.
+        reconciliation.refresh()
+        assert state(line)[0] == State.EXCLUDED
+        with pytest.raises(reconciliation.ReconciliationRejected, match="pendent"):
+            reconciliation.exclude(line, reason="Una altra vegada", by=treasurer)
+
+    def test_lt11_an_outgoing_line_can_be_excluded(self, treasurer):
+        (line,) = lines(treasurer, (-1230, "REBUT LLUM"))
+        reconciliation.exclude(line, reason="Despesa amb factura, fins al 09", by=treasurer)
+        assert state(line)[0] == State.EXCLUDED
+
+    def test_rn_t15_only_a_pending_line_of_a_current_statement(self, treasurer, charge):
+        quota = charge()
+        proposed, undone = lines(treasurer, (9000, ref(quota)), (500, "INGRES"))
+        reconciliation.refresh()
+        with pytest.raises(reconciliation.ReconciliationRejected):  # P-192
+            reconciliation.exclude(proposed, reason="Prova", by=treasurer)
+        bs.undo(undone.batch, by=treasurer, reason="Extracte equivocat (prova)")
+        with pytest.raises(reconciliation.ReconciliationRejected):
+            reconciliation.exclude(undone, reason="Prova", by=treasurer)
+        assert not StatementLineState.objects.filter(status=State.EXCLUDED).exists()
+
+    def test_t8_only_the_treasurer(self, treasurer, make_admin, make_person):  # noqa: F811
+        """M04-4, T8: només el tresorer (P-190); la resta, «no trobat»; el sistema, tampoc."""
+        (line,) = lines(treasurer, (-1230, "REBUT LLUM"))
+        member = Account.objects.create_personal(make_person(), "soci@example.org", PASSWORD)
+        for who in (make_admin("administrator"), make_admin("secretary"), member, SYSTEM):
+            with pytest.raises(Http404):
+                reconciliation.exclude(line, reason="Prova", by=who)
+        assert not StatementLineState.objects.filter(status=State.EXCLUDED).exists()
+
+    def test_excluded_needs_a_reason_also_in_the_database(self, treasurer):
+        (line,) = lines(treasurer, (-1230, "REBUT LLUM"))
+        with pytest.raises(IntegrityError), transaction.atomic():
+            StatementLineState.objects.create(statement_line=line, status=State.EXCLUDED)
+
+    def test_ca_t13_1_the_list_has_the_open_lines_to_review_with_their_reason(
+        self, treasurer, charge
+    ):
+        quota, other = charge(), charge(3500)
+        # Una a revisar, una de proposada i una de pendent sense marca: només hi surt la primera.
+        mismatch, _proposed, _plain = lines(
+            treasurer, (9500, ref(quota)), (3500, ref(other)), (-100, "REBUT")
+        )
+        reconciliation.refresh()
+        assert list(reconciliation.to_review()) == [
+            StatementLineState.objects.get(statement_line=mismatch)
+        ]
+        reconciliation.exclude(mismatch, reason="Prova", by=treasurer)
+        assert not reconciliation.to_review().exists()
