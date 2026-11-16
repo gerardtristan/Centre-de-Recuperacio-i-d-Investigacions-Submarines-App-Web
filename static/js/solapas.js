@@ -22,10 +22,17 @@
   document.addEventListener('DOMContentLoaded', function () {
     var tira = document.querySelector('[data-solapes]');
     // «Surt»: la llista se'n va amb la sessió.
-    document.querySelectorAll('[data-buida-solapes]').forEach(function (f) {
+    document.querySelectorAll('.lateral-compte form').forEach(function (f) {
       f.addEventListener('submit', function () { try { sessionStorage.removeItem(CLAU); } catch (e) { /* res */ } });
     });
     if (!tira) return;
+    // El menú «+N» el crea el guió: sense JavaScript no faria res.
+    var mes = document.createElement('div');
+    mes.className = 'solapes-mes';
+    mes.hidden = true;
+    mes.innerHTML = '<button class="boto-solapes" type="button" aria-expanded="false" aria-haspopup="menu"><span class="solapes-mes-n">+0</span></button><ul role="menu" hidden></ul>';
+    mes.querySelector('button').setAttribute('aria-label', tira.dataset.mes);
+    tira.append(mes);
     var estat = llegeix();
     var aqui = location.pathname;
     var meta = document.querySelector('meta[name="cris-solapa"]');

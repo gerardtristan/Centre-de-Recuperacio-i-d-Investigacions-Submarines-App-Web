@@ -42,7 +42,7 @@
   {# Menú construït al servidor segons els permisos del compte; `admin_nav` és buit fora d'una sessió d'administració. #}
   {% if admin_nav %}{% include "accounts/_admin_nav.html" %}{% endif %}
   <main id="contingut" class="cos-compte {% block cos_classe %}{% endblock %}">
-    {% if admin_nav %}<nav class="solapes" aria-label="{% translate 'Fitxes obertes' %}" data-solapes data-inici="{% url 'administration:home' %}" data-tanca="{% translate 'Tanca %s' %}" data-avis-canvis="{% translate 'Aquesta fitxa té canvis sense desar. Si la tanques, es perden. Vols tancar-la?' %}" hidden><ul class="solapes-llista"></ul><div class="solapes-mes" hidden><button type="button" aria-expanded="false" aria-haspopup="menu" aria-label="{% translate 'Més fitxes obertes' %}"><span class="solapes-mes-n">+0</span></button><ul role="menu" hidden></ul></div></nav>{% endif %}
+    {% if admin_nav %}<nav class="solapes" aria-label="{% translate 'Fitxes obertes' %}" data-solapes data-inici="{% url 'administration:home' %}" data-tanca="{% translate 'Tanca %s' %}" data-avis-canvis="{% translate 'Aquesta fitxa té canvis sense desar. Si la tanques, es perden. Vols tancar-la?' %}" data-mes="{% translate 'Més fitxes obertes' %}" hidden><ul class="solapes-llista"></ul></nav>{% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>
