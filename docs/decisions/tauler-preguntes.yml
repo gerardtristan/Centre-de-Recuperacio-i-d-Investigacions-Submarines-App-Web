@@ -219,40 +219,4 @@ opcions:
       mòdul sabés coses de la tresoreria que després caldria desfer.
     data: 2026-11-13
 
-  P-97:
-    opcions:
-      A: La carcassa de Teletipo per als xats (lateral de converses amb comptadors, rotlle de missatges, J/K, «Tot llegit»), amb Amanuense com a caixó d'escriure. El lector de canals no s'aprofita.
-      B: Teletipo com a lector de notícies a l'àrea del soci (canals del club o de la federació), i els xats amb un component propi.
-      C: Les dues coses.
-      D: No fer-lo servir; els xats, amb un component propi del sistema de disseny.
-    recomanada: A
-    perque: >-
-      És el que vols per als xats i la forma (llista amb comptadors i un rotlle que es llegeix amb el teclat)
-      hi encaixa. La B demanaria llegir canals externs des del servidor, una funció que el pla no té.
-    data: 2026-11-16
-
-  P-98:
-    opcions:
-      A: Només novetats; les notificacions, amb un component propi del sistema de disseny.
-      B: Baliza adaptada com a centre de notificacions (la píndola amb comptador i la llista), sense balizes de novetats.
-      C: Les dues; la píndola i la llista com a centre de notificacions, i les balizes per a les novetats (una sola vegada, un sol batec).
-      D: No fer-lo servir.
-    recomanada: C
-    perque: >-
-      La píndola amb comptador i la llista que porta a cada element ja són un centre de notificacions, i les
-      balizes serveixen per dir que una pantalla ha deixat d'estar en construcció.
-    data: 2026-11-16
-
-  P-99:
-    opcions:
-      A: Capçalera de la fitxa d'una activitat i de les conferències (data, places que queden, «M'hi apunto» que obre Camilla, afegir al calendari); les fotos del lloc, amb Fototeca i Expositor; el mapa 3D, més endavant.
-      B: Només per a esdeveniments de la web pública (conferències, presentacions).
-      C: Esperar un altre recurs per a la pantalla de fotos del lloc i no fer servir Convite.
-      D: No fer-lo servir.
-    recomanada: A
-    perque: >-
-      Fa bé el que fa (apuntar-se, places i calendari) i encaixa a la fitxa de qualsevol activitat. Les fotos
-      del lloc ja tenen recursos propis.
-    data: 2026-11-16
-
 noves:

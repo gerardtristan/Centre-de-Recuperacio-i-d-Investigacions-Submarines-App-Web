@@ -245,7 +245,7 @@ Una tasca = un recurs en un lloc, menys de 400 línies de codi d'aplicació, pe�
 6. T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci».
 7. T-DX-07 Solapas a l'administració.
 8. T-DX-08 Ramillete: navegació de l'àrea del soci.
-9. T-DX-09 Baliza: novetats i notificacions (segons P-98), en construcció.
+9. T-DX-09 Baliza: novetats i notificacions (P-98), en construcció.
 
 **Bloc B: pantalles funcionals de la fase 1**
 10. T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum).
@@ -263,7 +263,7 @@ Una tasca = un recurs en un lloc, menys de 400 línies de codi d'aplicació, pe�
 22. T-DX-22 Deposito: transferències i pagaments a revisar, en construcció fins a la T-M04-12 i la T-M05b-16.
 
 **Bloc C: pantalles en construcció dels mòduls que falten** (una tasca per pantalla, en aquest ordre: primer el que veu el soci)
-T-DX-23 Calendari general (Horario, després Solape). T-DX-24 Activitats i inscripció (Camilla i Comanda, P-94). T-DX-25 Marcador. T-DX-26 Desfile i Oleaje a la portada pública. T-DX-27 Vistazo: projectes. T-DX-28 Recoveco: ajuda i preguntes freqüents. T-DX-29 Calendari d'un dia (Asueto). T-DX-30 Reasigna. T-DX-31 Publicar activitats (Averia i Pregon). T-DX-32 Avaries del material (Averia). T-DX-33 Finances per àmbit (Gastos). T-DX-34 Factures (Emisor). T-DX-35 Dashboard (Parrilla). T-DX-36 Editor de la web (Probador i Pregon). T-DX-37 Fotos (Fototeca i Expositor). T-DX-38 Convite (segons P-99). T-DX-39 Xats (Teletipo segons P-97; Amanuense com a caixó d'escriure, sense veu). T-DX-40 Social (Seguir i Monograma de fauna). T-DX-41 Signatures (Antefirma). T-DX-42 Apoderado (P-91).
+T-DX-23 Calendari general (Horario, després Solape). T-DX-24 Activitats i inscripció (Camilla i Comanda, P-94). T-DX-25 Marcador. T-DX-26 Desfile i Oleaje a la portada pública. T-DX-27 Vistazo: projectes. T-DX-28 Recoveco: ajuda i preguntes freqüents. T-DX-29 Calendari d'un dia (Asueto). T-DX-30 Reasigna. T-DX-31 Publicar activitats (Averia i Pregon). T-DX-32 Avaries del material (Averia). T-DX-33 Finances per àmbit (Gastos). T-DX-34 Factures (Emisor). T-DX-35 Dashboard (Parrilla). T-DX-36 Editor de la web (Probador i Pregon). T-DX-37 Fotos (Fototeca i Expositor). T-DX-38 Convite (P-99). T-DX-39 Xats (Teletipo, P-97; Amanuense com a caixó d'escriure, sense veu). T-DX-40 Social (Seguir i Monograma de fauna). T-DX-41 Signatures (Antefirma). T-DX-42 Apoderado (P-91).
 
 ## 8. Dubtes
 
@@ -276,7 +276,9 @@ T-DX-23 Calendari general (Horario, després Solape). T-DX-24 Activitats i inscr
 - **P-95** Amanuense: sense veu, com a caixó d'escriure dels xats. El dictat, quan es facin els xats, amb un reconeixement de veu instal·lat al servidor de la UE (dependència nova, `risc:alt`, amb el sí del propietari). Mai el de Google ni cap altre de fora de la UE.
 - **P-96** Solapas: **B**, la llista de pestanyes (identificador i número, sense noms) a `sessionStorage` i el contingut només a la pàgina.
 
-**Oberts** (a [`pendents.md`](../decisions/pendents.md) i al [tauler](../decisions/tauler-preguntes.yml), amb opcions A a D i la recomanació):
-- **P-97** Teletipo no és un xat. Per defecte, la seva carcassa per als xats.
-- **P-98** Baliza no són notificacions. Per defecte, novetats i la píndola com a centre de notificacions.
-- **P-99** Convite no té fotos ni mapa. Per defecte, la capçalera de la fitxa d'una activitat.
+**Resolts també el 16/11/2026** (a [`pendents.md`](../decisions/pendents.md)):
+- **P-97** Teletipo: **A**, la seva carcassa per als xats, amb Amanuense com a caixó d'escriure.
+- **P-98** Baliza: **C**, novetats (un sol batec) i la píndola amb la llista com a centre de notificacions.
+- **P-99** Convite: **A**, la capçalera de la fitxa d'una activitat i de les conferències.
+
+No queda cap dubte obert d'aquest pla.

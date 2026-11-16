@@ -12,7 +12,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 
 | Tasca | Estat | Data | PR | Bloqueig o nota |
 |---|---|---|---|---|
-| T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`) | per fer | — | — | Inclou el canvi local de `tokens.css` del propietari (selector de tema més petit, logotips més grans; resposta del 16/11/2026: s'incorpora a la tasca) |
+| T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`) | per fer | — | — | Inclou **només els logotips més grans** del canvi local del propietari (`--logo-capcalera` 56 px, `--logo-lateral` 64, `--logo-peu` 160, `--logo-publica` 96, `--logo-publica-mobil` 64), aplicats sobre `master` sense esborrar res (p. ex. les classes de la T-M04-15). Els canvis del selector de tema es descarten: val la T-M01-45 fins a la T-DX-04 i la T-DX-05 (resposta del propietari del 16/11/2026, que substitueix l'anotació anterior) |
 | T-DX-02 Paleta OKLCH amb alternativa, vores amb transparència i profunditat del tema fosc; contrastos tornats a comprovar | per fer | — | — | Després de la T-DX-01 |
 | T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION`, el permís «Veure pantalles en construcció» (P-90) i la prova comuna de només lectura | per fer | — | — | `risc:alt` (permís nou) i nucli: cap altre canvi obert a `apps/core` |
 | T-DX-04 Duermevela: motor de tema (substitueix `tema.js`, manté la clau `cris-tema`) | per fer | — | — | — |
@@ -20,7 +20,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci» | per fer | — | — | — |
 | T-DX-07 Solapas a l'administració | per fer | — | — | P-96: llista de pestanyes a `sessionStorage`, sense noms |
 | T-DX-08 Ramillete: navegació de l'àrea del soci | per fer | — | — | — |
-| T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | Lloc per defecte de P-98 (reversible) |
+| T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | P-98 (C) |
 | T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | per fer | — | — | Bizum quan la PR #38 sigui a `master`. Carril de pagaments primer |
 | T-DX-11 Tramite i Emisor: el rebut | per fer | — | — | P-93: només el segell |
 | T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | bloquejada | — | — | Fins que la PR #41 (T-M04-10) sigui a `master` |
@@ -49,8 +49,8 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-35 Dashboard (Parrilla), en construcció | per fer | — | — | — |
 | T-DX-36 Editor de la web (Probador i Pregon), en construcció | per fer | — | — | — |
 | T-DX-37 Fotos (Fototeca i Expositor), en construcció | per fer | — | — | — |
-| T-DX-38 Convite, en construcció | per fer | — | — | Lloc per defecte de P-99 (reversible) |
-| T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 per defecte; P-95: sense veu |
+| T-DX-38 Convite, en construcció | per fer | — | — | P-99 (A) |
+| T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 (A); P-95: sense veu |
 | T-DX-40 Social (Seguir i Monograma de fauna), en construcció | per fer | — | — | — |
 | T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
 | T-DX-42 Apoderado: avisos i textos legals, en construcció | per fer | — | — | P-91 |
