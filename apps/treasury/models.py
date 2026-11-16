@@ -383,3 +383,36 @@ class StatementLineState(UndeletableModel):
 
     def __str__(self):
         return f"{self.get_status_display()} ({self.statement_line_id})"
+
+
+class Reconciliation(AppendOnlyModel):
+    """Conciliació confirmada pel tresorer (M04-6; RN-T16, RN-T17): una línia de l'extracte
+    casada amb un o més càrrecs. Només INSERT, també a la base de dades (migració 0010). La crea
+    `reconciliation.confirm` (T-M04-12); desfer-la serà una fila nova (`ReconciliationUndo`, 045).
+    Els moviments i la liquidació (`matched_movements`, `settlement`) arriben amb la seva tasca."""
+
+    # Relació visible: una línia conciliada bloqueja desfer l'extracte (V-06,
+    # `bank_statement._reconciled`).
+    statement_line = models.ForeignKey(
+        ImportLine,
+        on_delete=models.PROTECT,
+        related_name="reconciliations",
+        verbose_name=_("línia"),
+    )
+    matched_charges = models.ManyToManyField(
+        Charge, related_name="+", verbose_name=_("càrrecs casats")
+    )
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("confirmada per"),
+    )
+    confirmed_at = models.DateTimeField(_("data de la confirmació"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("conciliació")
+        verbose_name_plural = _("conciliacions")
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.pk} ({self.statement_line_id})"
