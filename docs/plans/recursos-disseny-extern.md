@@ -1,7 +1,7 @@
 # Recursos de disseny externs: inventari, encaix, mapa i ordre
 
-- **Versió:** 1 (16/11/2026). **Estat:** proposta de la fase 1 (només documentació). La fase 2 comença quan el propietari aprovi aquest mapa.
-- **Font:** els 34 fitxers `design/extern/moxen-*.zip`, copiats sense cap canvi des de la carpeta local `design/Extern` (mateix nom i mateix contingut, comprovat amb SHA-256). Són la font original i no s'esborren.
+- **Versió:** 2 (16/11/2026). **Estat:** mapa aprovat pel propietari el 16/11/2026 (PR #45). La 2 hi afegeix els quatre recursos que faltaven (Convite, Teletipo, Solape i Baliza), les respostes a les P-90 a P-96 i les preguntes noves P-97 a P-99. Les tasques T-DX són a la cua de [`docs/estat/DX.md`](../estat/DX.md).
+- **Font:** els 38 fitxers `design/extern/moxen-*.zip`, copiats sense cap canvi des de la carpeta local `design/Extern` (mateix nom i mateix contingut, comprovat amb SHA-256). Són la font original i no s'esborren.
 - **Regles de disseny:** les taules B, C i D són a [`design-system.md` §15](../design-system.md#15-regles-b-c-i-d-dels-recursos-externs), amb els noms originals.
 - **Què no fa aquest document:** no canvia cap regla congelada del pla (D1 de la [089](../decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md)). Quan un recurs demana una funció que el pla no té, aquí es diu «proposta» i la pantalla va «En construcció» fins que una decisió l'afegeixi.
 
@@ -11,16 +11,16 @@
 
 - **Pantalla funcional:** la que ja té codi. Té les seves dades i els seus permisos, com ara.
 - **Pantalla «En construcció»:** disseny i interaccions visuals (obrir, navegar, pestanyes), però no desa, no envia i no modifica res. Al servidor només respon a `GET` (cap ruta que escrigui), els formularis van dins d'un `fieldset disabled` i el contingut és d'exemple, inventat i fix, sense llegir ni escriure cap model. A dalt a la dreta porta l'etiqueta «En construcció» ([`design-system.md` §6.9](../design-system.md#69-etiqueta-en-construcció)). Si només un bloc no és funcional, l'etiqueta va només en aquell bloc.
-- **Interruptor:** les pantalles «En construcció» només existeixen si l'ajust `SHOW_UNDER_CONSTRUCTION` és encès (variable d'entorn: encès en local i a l'entorn de proves, **apagat a producció**). Apagat, la ruta respon 404 i el menú no les mostra. Qui les podria veure a producció és la [P-90](../decisions/pendents.md) (irreversible, D2).
+- **Interruptor:** en local i a l'entorn de proves, l'ajust `SHOW_UNDER_CONSTRUCTION` (variable d'entorn) les mostra a tothom. **A producció està apagat** i només les veuen els comptes d'administrador amb el permís «Veure pantalles en construcció», que l'administrador assigna per rol i mai als socis ni a la web pública ([P-90](../decisions/pendents.md), resposta C). Mentre ningú no tingui el permís, a producció no les veu ningú. Sense accés, la ruta respon 404 i el menú no les mostra.
 - **Quan una tasca s'acaba,** l'etiqueta se'n va, la prova «només lectura» es substitueix per les proves de la tasca i la pantalla passa a ser funcional.
 
 **Res no es perd.** Cada recurs conserva el seu nom original (Solapas, Vigencia, Tramite…) com a nom del component: classe `.vigencia`, fitxers `static/css/vigencia.css` i `static/js/vigencia.js`. Els noms són noms propis i no es tradueixen, tot i que la resta del codi segueixi la convenció de §11 del sistema de disseny.
 
-**Falten quatre fonts.** L'encàrrec cita 38 recursos i a `design/Extern` n'hi ha 34. **Convite, Teletipo, Solape i Baliza no hi són.** Són al mapa i a l'ordre amb el lloc que demanes, però no es poden inventariar ni adaptar fins que el propietari afegeixi els zip. Mentrestant, les seves pantalles no es comencen.
+**Les quatre fonts que faltaven** (Convite, Teletipo, Solape i Baliza) es van afegir el 16/11/2026. Ara hi ha els 38 zip a `design/extern/`, idèntics als de la carpeta local (SHA-256 a §2.1). **Tres no són el que diu el nom:** Teletipo és un lector de canals RSS, no un xat ([P-97](../decisions/pendents.md)); Baliza són marques de novetats, no notificacions ([P-98](../decisions/pendents.md)); Convite és la targeta d'un esdeveniment, sense fotos ni mapa ([P-99](../decisions/pendents.md)). Cap dels quatre no envia dades fora de la UE, tret de la tipografia, que se substitueix per la local com a tots els altres.
 
 ## 2. Inventari: què és cada recurs de debò
 
-**Comú a tots:** són demostracions de Moxen (`index.html` amb un `.css` i un `.js` propis i un `README.md` en castellà i en anglès). JavaScript sense biblioteques ni passos de compilació («Dependencias: Ninguna»), variables CSS al principi del full d'estil i `prefers-reduced-motion` a tots. **Tots carreguen una tipografia de fora (Google Fonts o Fontshare)**, que no es pot fer servir (decisions 035 i 046). Cinc porten fotos d'arxiu amb `CREDITOS.md` (Desfile, Expositor, Fototeca, Seguir i Vistazo; arquitectura, ceràmica i paisatge): són de la demostració i no surten mai a la plataforma (regla D11). Mides en línies de JS / CSS.
+**Comú a tots:** són demostracions de Moxen (`index.html` amb un `.css` i un `.js` propis i un `README.md` en castellà i en anglès). JavaScript sense biblioteques ni passos de compilació («Dependencias: Ninguna»), variables CSS al principi del full d'estil i `prefers-reduced-motion` a tots. **Tots carreguen una tipografia de fora (Google Fonts o Fontshare)**, que no es pot fer servir (decisions 035 i 046). Sis porten fotos d'arxiu amb `CREDITOS.md` (Convite, Desfile, Expositor, Fototeca, Seguir i Vistazo; arquitectura, ceràmica, quadres i paisatge): són de la demostració i no surten mai a la plataforma (regla D11). Mides en línies de JS / CSS.
 
 | Recurs | Què és de debò | Mida | Com s'adapta a la pila (es conserva el disseny; canvia el que diu la columna) |
 |---|---|---|---|
@@ -57,15 +57,25 @@
 | Monograma | Avatar generatiu a partir d'un nom (iniciales, bloques, ondas, mosaico), «Otra variante», paletes, copiar SVG i descarregar | 525 / 211 | **Mai a partir del nom:** a partir de `Member.avatar_seed` (RN-M01-30). Paletes amb tokens |
 | Seguir | Botó «Seguir» → «Siguiendo» amb goma, comptador que roda, anell de l'avatar i partícules | 131 / 152 | Comptador del servidor; seguir és opcional i els perfils són privats per defecte |
 | Desfile | Carrusel amb el desplaçament i l'imant del navegador, «3 / 8», barra de progrés, avanç automàtic amb pausa i el motiu de la pausa | 262 / 148 | Sense avanç automàtic per defecte (D20). Targetes fora de vista inertes, com al recurs |
-| Amanuense | **No és un xat:** dictat per veu en un camp de text, amb text provisional i definitiu, puntuació dictada, paraules dubtoses i «Desfer dictat» | 924 / 273 | Fa servir el reconeixement de veu del navegador, que a Chrome envia l'àudio a servidors de fora de la UE. [P-95](../decisions/pendents.md) |
-| Convite | — (falta la font) | — | — |
-| Teletipo | — (falta la font) | — | — |
-| Solape | — (falta la font) | — | — |
-| Baliza | — (falta la font) | — | — |
+| Amanuense | **No és un xat:** dictat per veu en un camp de text, amb text provisional i definitiu, puntuació dictada, paraules dubtoses i «Desfer dictat» | 924 / 273 | **Es fa servir sense veu** ([P-95](../decisions/pendents.md), resposta del propietari): el seu disseny és el caixó d'escriure dels xats. El reconeixement de veu del navegador no es fa servir mai (a Chrome, l'àudio surt cap a Google, fora de la UE). El dictat arribarà amb els xats, amb un reconeixement instal·lat al servidor de la UE (dependència nova, `risc:alt`, amb el sí del propietari) |
+| Convite | **Targeta d'un esdeveniment, sense fotos ni mapa:** la data és un full de calendari; «Assistiré» encén la plaça següent de la barra i «Queden 12» roda fins a 11; «Afegir al calendari» dona un `.ics` real, l'enllaç o el text, i el full vola en arc fins a la icona; «La meva hora» converteix l'hora del lloc a la teva; campana de recordatori | 616 (JS + CSS) | Places i inscripció del servidor; «Assistiré» passa a «M'hi apunto» i obre el flux d'inscripció (Camilla, P-94) i no apunta ningú pel navegador. `.ics` al servidor. Fora «La meva hora» (totes les activitats són en hora local). L'enllaç copiat és el de la plataforma. Una foto d'arxiu (`CREDITOS.md`), que no es fa servir. Lloc: [P-99](../decisions/pendents.md) |
+| Teletipo | **Lector de canals RSS/Atom i OPML, no un xat:** en deixar-hi un fitxer, cada font entra al lateral amb el seu comptador i els articles s'imprimeixen al rotlle com tires de teletip; l'article s'obre net (sense guions ni rastrejadors, sense `utm_*` ni `fbclid`) i la tira passa a gris; J i K per recórrer, M marca, S desa, «Tot llegit». Llegeix fitxers locals amb `DOMParser`; no fa cap petició a la xarxa; desa llegits i desats al `localStorage` | 1388 (JS + CSS, 4 fitxers) | Per als xats (P-97, recomanació A) es conserva la carcassa: lateral de converses amb comptadors, rotlle de missatges, J/K i «Tot llegit». Els missatges els pinta el servidor amb l'escapat de Django; els llegits es desen al servidor. El lector de canals no es fa servir |
+| Solape | **Encavalcaments entre calendaris** (és el que diu el nom): llegeix dos `.ics` de debò (línies plegades, zones horàries, repeticions amb excepcions) en una agenda per dies, un to per calendari; el que es trepitja es cus amb una ziga-zaga taronja i va a una llista de xocs; «Moure a les 10:30» o «Ometre aquesta vegada»; comptador amb segell ✓; «Exportar .ics unit» | 1287 (JS + CSS) | Els calendaris són del club (activitats, sessions d'instructors, embarcació i material) i els xocs els calcula el servidor. No s'importa cap calendari personal d'un soci. L'exportació `.ics` es genera al servidor amb el permís de qui la demana |
+| Baliza | **Marques de novetats, no notificacions:** unes balizes bateguen al costat del que és nou i obren una nota ancorada amb fletxa; «Entès» les apaga; una píndola compta el que s'ha descobert i la seva llista porta a cada baliza; «Amagar consells» les envia a la píndola i queda recordat al `localStorage` | 783 (JS + CSS) | El batec continu xoca amb D20: es fa un sol batec en aparèixer. Al navegador només es recorda quines novetats s'han vist (identificadors, sense dades personals). Lloc: [P-98](../decisions/pendents.md) |
+
+### 2.1 Còpia dels quatre últims
+Copiats a `design/extern/` sense cap canvi, amb el nom original. SHA-256 (iguals als de `design/Extern` de la carpeta principal):
+
+| Fitxer | SHA-256 |
+|---|---|
+| `moxen-convite.zip` | `3b0149b0a081b59de63cbc468c175fc8a2e09acfec4c987eba1de65b0097a779` |
+| `moxen-teletipo.zip` | `db6d025fb677d1661d2385ae00312f29bb917a5110b463c907e12ccfd65433aa` |
+| `moxen-solape.zip` | `632fba2e666328caa53a3ead315c6d4f8d8db3115754b6abe5d7e391a230ad01` |
+| `moxen-baliza.zip` | `35d924537fc52ebee8e15467ab18a46f8a322586825d016d2a988539444124e7` |
 
 ## 3. Encaix tècnic (regles comunes)
 
-1. **Sense dependències noves.** Tots els recursos són JavaScript sense biblioteques. Si una adaptació en demanés una, és `risc:alt` i passa pel propietari. L'única que ho podria demanar és Amanuense (P-95).
+1. **Sense dependències noves.** Tots els recursos són JavaScript sense biblioteques. Si una adaptació en demanés una, és `risc:alt` i passa pel propietari. L'única prevista és el reconeixement de veu per al dictat d'Amanuense, instal·lat al servidor de la UE (P-95), que espera els xats.
 2. **Res de fora de la UE ni de cap CDN** (035, 046). Fora les fonts de Google i de Fontshare: es fa servir la tipografia de `static/css/fonts.css`. El canvi de tipus de lletra és l'única diferència visual buscada.
 3. **CSS:** cada full del recurs passa a `static/css/<recurs>.css`. Les seves variables de color, mida, radi, ombra i durada se substitueixen per tokens de `tokens.css` (si en falta un, s'afegeix primer al sistema de disseny). Cap `style=` a les plantilles: els valors que calcula el servidor van amb `<meter>`, `<progress>`, atributs d'SVG o classes per tram; els que calcula el JavaScript (posicions d'arrossegament) van amb `element.style.setProperty` sobre una variable CSS.
 4. **JavaScript:** `static/js/<recurs>.js`, carregat amb `defer` i sense guions en línia (excepte el del tema al `<head>`, que ja existeix). La pantalla funciona sense JavaScript; el JavaScript l'anima. Els estats animats es basen en classes amb nom (B4), també `htmx-added` i `htmx-settling`.
@@ -107,11 +117,11 @@
 | Camilla | Pagaments o apuntar-se | Proposta: flux d'inscripció per passos (P-94) | 02 · 2 | sí (aparcada) | Fora qualsevol camp de salut; convidat amb enllaç segur | — |
 | Errata | Camp que falta o amb error | Tots els formularis | 00 · 1 | spec 00 | Missatges que no revelen l'existència de comptes | Textos d'ajuda |
 | Pregon | Editor de la web i publicar posts | Vista prèvia en compartir una activitat | 07 · 2 | no | Publicar demana permís; imatges amb consentiment | Textos i imatges |
-| Convite | Entrar a una activitat amb les fotos del lloc; després, mapa 3D | — | 02, 12 · 2 | 02 sí; 12 no | Fotos amb consentiment; ubicació del lloc, mai la de les persones | — |
-| Teletipo | Xats | — | 10 · després | no | Per activitat: només els inscrits i qui la gestiona | — |
-| Amanuense | Xats | Dictar a la bitàcola (12) | 10, 12 · després | no | Àudio: [P-95](../decisions/pendents.md) | — |
-| Solape | Calendaris | — | 02 · 2 | sí (aparcada) | — | — |
-| Baliza | Notificacions | — | 00 · 1 (estructura) | spec 00 | Una notificació no mostra dades d'una altra persona | Preferències (Avisador) |
+| Convite | Entrar a una activitat amb les fotos del lloc; després, mapa 3D | Capçalera de la fitxa d'una activitat (data, places que queden, «M'hi apunto» que obre Camilla, afegir al calendari) i de les conferències de l'11; les fotos del lloc, amb Fototeca i Expositor; el mapa 3D, més endavant (12) | 02 · 2; 11 i 12 · després | 02 sí (aparcada); 11 i 12 no | Places que queden sense dir qui hi va; l'`.ics` no porta dades de cap persona; fotos amb consentiment i ubicació del lloc, mai la de les persones | Recordatori per defecte |
+| Teletipo | Xats | Carcassa dels xats: converses per activitat i generals, entre administradors i socis (P-97) | 10 · després | no | Una conversa d'activitat només la veuen els inscrits i qui la gestiona; un missatge no s'obre fora de la conversa; text escapat, sense HTML ni rastrejadors | — |
+| Amanuense | Xats | Caixó d'escriure dels xats, sense veu (P-95); el dictat per veu (xats i bitàcola de la 12), quan es facin els xats, amb el reconeixement instal·lat al servidor de la UE | 10, 12 · després | no | Mai cap reconeixement de veu de fora de la UE. Amb veu, l'àudio no es desa: només el text, i el soci el revisa abans d'enviar | — |
+| Solape | Calendaris | Xocs del calendari de l'administració (sessions d'un instructor, embarcació, material); exportar el calendari del club en `.ics` | 02 · 2 | sí (aparcada) | Només qui gestiona activitats veu els xocs de tots; l'instructor, els seus. L'`.ics` exportat només porta activitats que el compte pot veure | Tons per calendari (tokens) |
+| Baliza | Notificacions | Novetats: quan una pantalla deixa d'estar «En construcció», una baliza ho diu una sola vegada. La píndola amb comptador i la seva llista, com a centre de notificacions (P-98, recomanació C) | 00 · 1 (estructura) | spec 00 | Una notificació no mostra dades d'una altra persona; al navegador només els identificadors de les novetats vistes | Preferències (Avisador) |
 | Parrilla | Dashboard configurable | — | 08 · 2 | no | Cap dada personal (regla del dashboard) | Ginys per compte |
 | Probador | Configurar la web sense codi | — | 07 · 2 | no | Només qui edita la web | Plantilla i color |
 | Fototeca | Pujar i compartir fotos (fauna) | — | 12 · després | no | EXIF fora; persones amb consentiment | Carpetes i etiquetes |
@@ -140,7 +150,11 @@
 | Emisor desa empreses al `localStorage` | Es desen al servidor, amb permís |
 | Camilla és una clínica | Fora especialitats i dades de pacient; cap dada de salut |
 | Monograma fa l'avatar a partir del nom | A partir de `avatar_seed` (RN-M01-30) |
-| Amanuense envia la veu fora de la UE | Apagat fins a la resposta de P-95 |
+| Amanuense envia la veu fora de la UE | Resolt (P-95): sense veu; el dictat, només amb un reconeixement al servidor de la UE |
+| Baliza batega sense parar, contra D20 i D1 (Delete filler badges) | Un sol batec en aparèixer; la nota diu què ha canviat (informa, no decora) i desapareix en veure-la |
+| Teletipo i Baliza desen estat al `localStorage` | Teletipo: els llegits, al servidor. Baliza: només identificadors de novetats |
+| Convite «La meva hora» | Fora: totes les activitats són en hora local |
+| Solape llegeix `.ics` de qualsevol origen | No s'importa cap calendari personal; només calendaris del club |
 | Avisador «Solo lo importante» i «Restaurar» als permisos | Són canvis de permisos com qualsevol altre: passen pel resum dels afectats, la nota i el TOTP |
 | Recoveco fa servir `⌘F` | `Ctrl+F` (i `⌘F` al Mac); la cerca general és `Ctrl+K` (B19) |
 
@@ -155,7 +169,7 @@
 | Navegació de l'àrea del soci | Funcional | Ramillete |
 | Selector de tema | Funcional | Duermevela, Eclipse |
 | Errors de formulari | Funcional (tots els formularis) | Errata |
-| Notificacions | En construcció (falta la font) | Baliza |
+| Notificacions i novetats | En construcció | Baliza |
 | 403, 404, 500 i sessió caducada | Funcional | — |
 | Etiqueta «En construcció» | Peça nova | — |
 
@@ -171,7 +185,7 @@ Entrar, codi de doble factor, seguretat del compte, verificar el correu, canviar
 | Pagar per transferència | En part: referència (T-M04-10, PR #41) funcional quan es fusioni; comprovant en construcció (proposta) | Deposito |
 | Rebut | Funcional | Tramite, Emisor (segell) |
 | Carnet | Funcional | — |
-| Fer-se soci, canvi de tipus, baixa, esborrar les dades, exportar, consentiments, textos legals | Funcional | Errata; Apoderado (P-91) |
+| Fer-se soci, canvi de tipus, baixa, esborrar les dades, exportar, consentiments, textos legals | Funcional | Errata; Apoderado (P-91: avisos i textos legals) |
 | Calendari | En construcció | Horario, Solape |
 | Activitats, inscripció i les meves inscripcions | En construcció | Camilla, Comanda, Marcador, Desfile |
 | Fotos | En construcció | Fototeca, Expositor, Convite |
@@ -225,13 +239,13 @@ Una tasca = un recurs en un lloc, menys de 400 línies de codi d'aplicació, pe�
 **Bloc A: estructura comuna**
 1. T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`).
 2. T-DX-02 Paleta OKLCH amb alternativa, vores amb transparència i profunditat del tema fosc; contrastos tornats a comprovar.
-3. T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION` i la prova comuna «només lectura».
+3. T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION` (el servidor no arrenca a producció amb l'ajust encès), el permís «Veure pantalles en construcció» (P-90) i la prova comuna «només lectura».
 4. T-DX-04 Duermevela: motor de tema (substitueix `tema.js`).
 5. T-DX-05 Eclipse: control de tema a la web pública i a l'àrea del soci.
 6. T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci».
 7. T-DX-07 Solapas a l'administració.
 8. T-DX-08 Ramillete: navegació de l'àrea del soci.
-9. T-DX-09 Baliza (quan hi hagi la font), en construcció.
+9. T-DX-09 Baliza: novetats i notificacions (P-98), en construcció.
 
 **Bloc B: pantalles funcionals de la fase 1**
 10. T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum).
@@ -249,18 +263,22 @@ Una tasca = un recurs en un lloc, menys de 400 línies de codi d'aplicació, pe�
 22. T-DX-22 Deposito: transferències i pagaments a revisar, en construcció fins a la T-M04-12 i la T-M05b-16.
 
 **Bloc C: pantalles en construcció dels mòduls que falten** (una tasca per pantalla, en aquest ordre: primer el que veu el soci)
-23. Calendari general (Horario, després Solape). 24. Activitats i inscripció (Camilla i Comanda, segons P-94). 25. Marcador. 26. Desfile i Oleaje a la portada pública. 27. Vistazo: projectes. 28. Recoveco: ajuda i preguntes freqüents. 29. Calendari d'un dia (Asueto). 30. Reasigna. 31. Publicar activitats (Averia i Pregon). 32. Avaries del material (Averia). 33. Finances per àmbit (Gastos). 34. Factures (Emisor). 35. Dashboard (Parrilla). 36. Editor de la web (Probador i Pregon). 37. Fotos (Fototeca i Expositor). 38. Convite. 39. Xats (Teletipo; Amanuense segons P-95). 40. Social (Seguir i Monograma de fauna). 41. Signatures (Antefirma). 42. Apoderado (segons P-91).
+T-DX-23 Calendari general (Horario, després Solape). T-DX-24 Activitats i inscripció (Camilla i Comanda, P-94). T-DX-25 Marcador. T-DX-26 Desfile i Oleaje a la portada pública. T-DX-27 Vistazo: projectes. T-DX-28 Recoveco: ajuda i preguntes freqüents. T-DX-29 Calendari d'un dia (Asueto). T-DX-30 Reasigna. T-DX-31 Publicar activitats (Averia i Pregon). T-DX-32 Avaries del material (Averia). T-DX-33 Finances per àmbit (Gastos). T-DX-34 Factures (Emisor). T-DX-35 Dashboard (Parrilla). T-DX-36 Editor de la web (Probador i Pregon). T-DX-37 Fotos (Fototeca i Expositor). T-DX-38 Convite (P-99). T-DX-39 Xats (Teletipo, P-97; Amanuense com a caixó d'escriure, sense veu). T-DX-40 Social (Seguir i Monograma de fauna). T-DX-41 Signatures (Antefirma). T-DX-42 Apoderado (P-91).
 
-## 8. Dubtes oberts
+## 8. Dubtes
 
-A [`pendents.md`](../decisions/pendents.md) i al [tauler](../decisions/tauler-preguntes.yml), amb opcions A a D i la recomanació:
+**Resolts pel propietari el 16/11/2026** (a [`pendents.md`](../decisions/pendents.md)):
+- **P-90** Pantalles «En construcció» a producció: **C**, un permís propi que l'administrador assigna per rol, mai als socis ni a la web pública. Sense assignar, no les veu ningú.
+- **P-91** Apoderado: **A**, avisos i textos legals a l'àrea del soci; autoritzacions d'activitat a la 02.
+- **P-92** Antefirma: **A**, eina de signatures de correu de l'administració.
+- **P-93** Emisor: **C**, el segell al rebut ara i les factures a la 09.
+- **P-94** Camilla és el flux d'inscripció i Comanda les opcions (**A**).
+- **P-95** Amanuense: sense veu, com a caixó d'escriure dels xats. El dictat, quan es facin els xats, amb un reconeixement de veu instal·lat al servidor de la UE (dependència nova, `risc:alt`, amb el sí del propietari). Mai el de Google ni cap altre de fora de la UE.
+- **P-96** Solapas: **B**, la llista de pestanyes (identificador i número, sense noms) a `sessionStorage` i el contingut només a la pàgina.
 
-- **P-90** Qui veu les pantalles «En construcció» a producció (irreversible). Per defecte, ningú.
-- **P-91** Apoderado: on. Per defecte, avisos i textos legals a l'àrea del soci.
-- **P-92** Antefirma: on. Per defecte, eina de signatures de correu de l'administració.
-- **P-93** Emisor: on. Per defecte, el segell al rebut ara i les factures a la 09.
-- **P-94** Camilla i Comanda: qui fa què. Per defecte, Camilla és el flux d'inscripció i Comanda les opcions.
-- **P-95** Amanuense: la veu surt de la UE. Per defecte, apagat.
-- **P-96** Solapas: on es guarda el que s'ha escrit. Per defecte, només a la pàgina.
+**Resolts també el 16/11/2026** (a [`pendents.md`](../decisions/pendents.md)):
+- **P-97** Teletipo: **A**, la seva carcassa per als xats, amb Amanuense com a caixó d'escriure.
+- **P-98** Baliza: **C**, novetats (un sol batec) i la píndola amb la llista com a centre de notificacions.
+- **P-99** Convite: **A**, la capçalera de la fitxa d'una activitat i de les conferències.
 
-**Falten fonts** (no és un dubte del pla): Convite, Teletipo, Solape i Baliza.
+No queda cap dubte obert d'aquest pla.
