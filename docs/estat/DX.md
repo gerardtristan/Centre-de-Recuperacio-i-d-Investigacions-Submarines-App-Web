@@ -43,7 +43,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-28 Recoveco: ajuda i preguntes freqüents, en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-28 | feta | 16/11/2026 | #82 | Ajuda de l'àrea del soci: índex de temes, preguntes plegades per tema (`details name`) i Ctrl+F; cerca pròpia i «Copiar l'enllaç» desactivats |
 | T-DX-29 Calendari d'un dia (Asueto), en construcció | per fer | — | — | — |
-| T-DX-30 Reasigna, en construcció | per fer | — | — | — |
+| T-DX-30 Reasigna, en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-31 Publicar activitats (Averia i Pregon), en construcció | per fer | — | — | — |
 | T-DX-32 Avaries del material (Averia), en construcció | per fer | — | — | — |
 | T-DX-33 Finances per àmbit (Gastos), en construcció | per fer | — | — | — |
