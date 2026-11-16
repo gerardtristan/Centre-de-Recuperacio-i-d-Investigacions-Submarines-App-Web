@@ -13,6 +13,7 @@ from django.utils import timezone
 from playwright.sync_api import expect
 
 from apps.core.models import OutgoingEmail
+from apps.payments.models import Receipt, ReceiptCancellation
 from apps.treasury.models import TreasuryAccount
 from conftest import PASSWORD
 
@@ -22,7 +23,13 @@ from .test_pagament_targeta import EMAIL, pending  # noqa: F401 (fixture)
 pytestmark = pytest.mark.e2e
 
 
-def test_rn_m05b_19_the_member_pays_and_opens_the_receipt(page, live_server, pending, capture):  # noqa: F811
+def test_rn_m05b_19_the_member_pays_and_opens_the_receipt(
+    page,
+    live_server,
+    pending,  # noqa: F811
+    capture,
+    review,
+):
     fee, base_url = pending, live_server.url
     # El compte de trànsit del proveïdor (RN-T08) ja hi és des de `migrate` (T-M04-17).
     transit = TreasuryAccount.objects.filter(kind="transit", provider_code="fake", active=True)
@@ -60,3 +67,12 @@ def test_rn_m05b_19_the_member_pays_and_opens_the_receipt(page, live_server, pen
     capture("3-quota-pagada")
     page.get_by_role("link", name="Veure el pagament").click()
     expect(page.get_by_role("link", name="Veure el rebut")).to_be_visible()
+
+    # Rebut anul·lat (T-DX-11b; 045): «Anul·lat» i la nota, mai el segell de pagat.
+    receipt = Receipt.objects.get(number=number)
+    ReceiptCancellation.objects.create(receipt=receipt, note="Pagament duplicat (exemple).")
+    page.goto(f"{base_url}/socis/pagaments/{receipt.attempt.pk}/rebut/")
+    expect(page.locator(".rebut-segell")).to_contain_text("Anul·lat")
+    expect(page.locator(".rebut-segell")).not_to_contain_text("Pagat")
+    expect(main).to_contain_text("Pagament duplicat (exemple).")
+    review("4-rebut-anullat")

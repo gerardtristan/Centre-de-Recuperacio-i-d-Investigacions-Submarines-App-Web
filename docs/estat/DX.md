@@ -56,3 +56,4 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-40 Social (Seguir i Monograma de fauna), en construcció | per fer | — | — | — |
 | T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
 | T-DX-42 Apoderado: avisos i textos legals, en construcció | per fer | — | — | P-91 |
+| T-DX-11b Ranura: rebut anul·lat («Anul·lat» i la nota, mai el segell de pagat) | feta | 16/11/2026 | #PR | Petició del pilot després de la #105 (`ReceiptCancellation`, 045). Primitiu `--grana`; de pas, el rebut ja no sobresurt a 320 px |
