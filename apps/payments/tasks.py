@@ -3,7 +3,7 @@ la crida."""
 
 from procrastinate.contrib.django import app
 
-from . import processing
+from . import expiry, processing
 
 
 # P-M05b-D, pas 3: l'endpoint desa la notificació, respon i la posa a la cua.
@@ -17,3 +17,10 @@ def process_notification(event_id: int) -> None:
 @app.task(name="payments.safety_net", queue="maintenance")
 def safety_net(timestamp: int) -> None:
     processing.safety_net()
+
+
+# Cada dia, de matinada: caduca els mandats sense cobraments en 36 mesos (T-M05a-15; RN-M05a-08).
+@app.periodic(cron="40 4 * * *")
+@app.task(name="payments.expire_mandates", queue="maintenance")
+def expire_mandates(timestamp: int) -> None:
+    expiry.expire_mandates()
