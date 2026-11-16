@@ -1,0 +1,34 @@
+/* Pregon (T-DX-36; recurs a design/extern/; design-system §16, T-DX-36): la vista en compartir una pàgina.
+   Del recurs: el títol i la descripció amb el comptador de caràcters en anell i les tres targetes (xat, xarxa
+   social i correu) que es reescriuen alhora. La imatge és una il·lustració decorativa amb els tokens. */
+.pregon-editor { display: grid; gap: var(--e-3); }
+.pregon-editor .camp textarea { resize: vertical; }
+.pregon .pregon-editor .ajuda { margin: 0; }
+.pregon-cap-camp { display: flex; align-items: center; justify-content: space-between; gap: var(--e-2); }
+.pregon-compte { display: inline-flex; align-items: center; gap: var(--e-1); font-size: var(--t-xs); color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.pregon-compte svg { inline-size: var(--e-5); block-size: var(--e-5); }
+.pregon-compte circle { fill: none; stroke-width: 3; }
+.pregon-anell-fons { stroke: var(--c-linia); }
+.pregon-anell { stroke: var(--c-mari); stroke-linecap: round; }
+.pregon-targetes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--e-8) * 3.5)), 1fr)); }
+.pregon-targeta { display: grid; gap: var(--e-2); align-content: start; min-inline-size: 0; }
+.pregon .pregon-on { margin: 0; font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: var(--ll-etiqueta); text-transform: uppercase; color: var(--c-text-2); }
+.pregon-targeta p { margin: 0; }
+.pregon .pregon-titol { font-weight: var(--p-semi); }
+.pregon .pregon-host { font-size: var(--t-xs); color: var(--c-text-2); }
+.pregon .pregon-desc { font-size: var(--t-s); color: var(--c-text-2); }
+.pregon-imatge { display: block; inline-size: 100%; aspect-ratio: 1.91 / 1; border-radius: var(--r-m); }
+.pi-cel { fill: var(--c-superficie-2); }
+.pi-sol { fill: var(--c-accent); }
+.pi-mar { fill: var(--c-info); }
+.pi-fons { fill: var(--c-mari); }
+/* Xat: una bombolla; xarxa social: la caixa amb la imatge gran; correu: la fila amb la imatge petita */
+.pregon-bombolla { display: grid; gap: var(--e-1); padding: var(--e-2); border-radius: var(--r-l) var(--r-l) var(--r-l) var(--r-s); background: var(--c-mari); color: var(--c-mari-sobre); }
+.pregon-bombolla .pregon-host { color: var(--c-mari-sobre); }
+.pregon-caixa { display: grid; gap: var(--e-1); padding: var(--e-2); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-l); background: var(--c-fons); }
+.pregon-fila { display: grid; grid-template-columns: var(--e-8) minmax(0, 1fr); gap: var(--e-2); padding: var(--e-2); border-radius: var(--r-l); background: var(--c-fons); }
+.pregon-fila .pregon-imatge { aspect-ratio: 1; }
+
+@media (min-width: 1024px) {
+  .pregon-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
