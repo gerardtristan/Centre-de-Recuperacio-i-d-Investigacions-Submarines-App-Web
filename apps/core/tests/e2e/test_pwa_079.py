@@ -79,9 +79,13 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     account = builder.personal(member.person)
     login_personal(page, base, account)
 
-    # El soci tria el tema fosc: és una preferència del dispositiu (localStorage).
+    # El soci tria el tema fosc a la configuració del compte (T-DX-05b): és una preferència del
+    # dispositiu (localStorage).
+    page.goto(f"{base}/compte/seguretat/")
     # Clic amb el ratolí al mig de l'opció «Fosc», com faria una persona.
-    box = page.locator('.selector-tema label:has(input[value="dark"])').bounding_box()
+    dark = page.locator('.selector-tema label:has(input[value="dark"])')
+    dark.scroll_into_view_if_needed()
+    box = dark.bounding_box()
     page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     assert page.evaluate("localStorage.getItem('cris-tema')") == "dark"
 

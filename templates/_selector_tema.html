@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}Selector de tema Sistema / Clar / Fosc a la configuració del compte (T-DX-05b; design-system §7).
+   Per defecte, «Sistema». El motor és tema.js (Duermevela): desa la tria al dispositiu i la passa
+   a les altres pestanyes. Surt amagat i el mostra tema.js quan funciona.{% endcomment %}
+<fieldset class="selector-tema selector-tema-ajust" hidden>
+  <legend class="visualment-amagat">{% translate "Tema" %}</legend>
+  <label><input class="visualment-amagat" type="radio" name="tema" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">{% translate "Sistema" %}</span></span></label>
+  <label><input class="visualment-amagat" type="radio" name="tema" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">{% translate "Clar" %}</span></span></label>
+  <label><input class="visualment-amagat" type="radio" name="tema" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">{% translate "Fosc" %}</span></span></label>
+</fieldset>

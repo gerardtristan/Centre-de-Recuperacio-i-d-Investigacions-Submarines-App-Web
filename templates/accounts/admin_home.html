@@ -18,4 +18,10 @@
   {% else %}
     <p>{% translate "Aquest compte encara no té accés a cap secció. Parla-ho amb un administrador del club." %}</p>
   {% endif %}
+  {# El tema és una preferència del dispositiu (T-DX-05b): l'administració no té cap altra pàgina de configuració del compte. #}
+  <section class="targeta" aria-labelledby="aparenca">
+    <h2 id="aparenca">{% translate "Aparença" %}</h2>
+    <p>{% translate "Per defecte, la plataforma fa servir el tema clar o fosc del teu dispositiu («Sistema»). La tria es desa en aquest dispositiu." %}</p>
+    {% include "_selector_tema.html" %}
+  </section>
 {% endblock %}

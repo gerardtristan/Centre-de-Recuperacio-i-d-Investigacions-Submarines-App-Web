@@ -23,8 +23,9 @@ def _no_motion(page):
 
 
 def test_point_2_theme_selector_shows_its_labels_at_320(page, live_server, builder, member, review):
-    # Amb sessió (a la part pública hi ha l'interruptor Eclipse, T-DX-05).
+    # Amb sessió, a la configuració del compte (T-DX-05 i T-DX-05b).
     login_personal(page, live_server, builder, member)
+    page.goto(f"{live_server.url}/compte/seguretat/")
     page.set_viewport_size(NARROW)
     selector = page.locator(".selector-tema")
     expect(selector).to_be_visible()
@@ -32,7 +33,7 @@ def test_point_2_theme_selector_shows_its_labels_at_320(page, live_server, build
         text = selector.locator(".text-opcio", has_text=label)
         expect(text).to_be_visible()
         assert text.bounding_box()["width"] > 10, label  # no és el text amagat d'1 px
-    review("inici-selector-tema")
+    review("seguretat-selector-tema")
 
 
 def login_personal(page, live_server, builder, member):
@@ -64,15 +65,13 @@ def test_point_5_create_a_leave_is_a_text_button(page, live_server, secretary, m
     review("fitxa-accions")
 
 
-def test_point_6_tab_reaches_the_theme_before_the_personal_menu(
+def test_point_6_tab_goes_from_the_logo_to_the_personal_menu(
     page, live_server, builder, member, review
 ):
-    """A l'àrea personal el selector es veu a sobre del menú: el Tab també hi arriba abans."""
+    """Des de la T-DX-05b el tema és a la configuració: després del logotip, el Tab va al menú."""
     login_personal(page, live_server, builder, member)
     page.set_viewport_size(NARROW)
     page.locator(".capcalera-compte .marca").focus()
-    page.keyboard.press("Tab")
-    expect(page.locator(".selector-tema input:checked")).to_be_focused()
     page.keyboard.press("Tab")
     expect(page.get_by_role("link", name="Inici")).to_be_focused()
     review("inici-ordre-del-tabulador")
