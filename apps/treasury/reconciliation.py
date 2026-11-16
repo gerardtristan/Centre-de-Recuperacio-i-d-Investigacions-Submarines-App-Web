@@ -274,7 +274,7 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
                 _("Un dels càrrecs ja no està pagat per aquesta transferència: no es pot desfer.")
             )
         income = Movement.objects.get(payment=transfers[0], kind=Movement.Kind.INCOME)
-        services.reverse_income(income, reason=reason, by=by)
+        services.reverse(income, reason=reason, by=by, origin=services.RECONCILIATION)
         revert_paid_transfer(charge, reason, by=by)
         fee = getattr(charge, "annual_fee", None)
         if fee is not None:

@@ -358,6 +358,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
+    _perm(
+        "treasury.reverse",
+        "T5",
+        _("Anul·lar un moviment amb motiu"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
     # --- 05a Alta del mètode de pagament i mandats -------------------------------------------
     _perm(
         "payments.mandates.view",
