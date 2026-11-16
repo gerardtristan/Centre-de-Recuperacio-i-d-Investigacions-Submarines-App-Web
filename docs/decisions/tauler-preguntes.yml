@@ -304,6 +304,8 @@ opcions:
       El saldo del banc a la plataforma ha de coincidir amb el de l'extracte el mateix dia, i això només passa si l'ingrés
       porta la data del banc. Com que la importació desa una sola data per línia (P-103), la A i la C coincideixen fins
       que es resolgui aquella pregunta.
+    data: 2026-11-16
+
   P-120:
     opcions:
       A: Com s'ha construït; Fernet de `cryptography` (ja és dependència), una clau per versió, xifra la més alta.
