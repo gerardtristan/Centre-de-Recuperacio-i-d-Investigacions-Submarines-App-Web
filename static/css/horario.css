@@ -1,0 +1,72 @@
+/* Horario (T-DX-23; recurs a design/extern/; design-system §16, T-DX-23): el calendari general del soci.
+   Del recurs: la setmana en graella, les activitats com a blocs a la seva hora i les hores que es
+   trepitgen ratllades en el color d'avís. Al mòbil i a la tauleta, una agenda per dies; la graella,
+   a partir de 1024 px. Les files són classes per tram (hNN = hora d'inici, dN = hores), sense style=. */
+.horario { --horario-hora: var(--e-8); padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.horario h1 { margin: 0; text-wrap: balance; }
+.horario-cap { display: grid; gap: var(--e-3); margin-bottom: var(--e-4); }
+.horario-setmana { margin: 0; color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.horario-navega { display: flex; flex-wrap: wrap; gap: var(--e-2); border: 0; margin: 0; padding: 0; }
+.horario-llegenda { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-4); margin: 0; padding: 0; list-style: none; font-size: var(--t-s); color: var(--c-text-2); }
+.horario-llegenda li { display: flex; align-items: center; gap: var(--e-2); }
+.horario-mostra { display: grid; place-items: center; font-size: var(--t-xs); color: var(--c-ok-text); inline-size: var(--e-4); block-size: var(--e-4); border-radius: var(--r-s); border: var(--v-fina) solid var(--c-linia-forta); background: var(--c-fons); }
+.horario-xocs { margin-bottom: var(--e-5); }
+.horario-xocs p { margin: var(--e-1) 0 0; }
+
+/* El ratllat de l'encavalcament (C3: vora amb transparència; sense colors escrits a mà) */
+.horario-mostra.es-xoc, .horario-tope {
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--c-avis), transparent 35%) 0 var(--v-plena), transparent var(--v-plena) var(--e-2));
+  border-color: var(--c-avis);
+}
+.horario-mostra.es-inscrit, .horario-acte.es-inscrit { background: var(--c-ok-fons); border-color: color-mix(in oklab, var(--c-ok), transparent 40%); }
+
+/* Mòbil: agenda per dies */
+.horario-hores { display: none; }
+.horario-dies, .horario-actes { margin: 0; padding: 0; list-style: none; }
+.horario-dies { display: grid; gap: var(--e-4); }
+.horario-dia h2 { margin: 0 0 var(--e-2); font-size: var(--t-m); font-variant-numeric: tabular-nums; }
+.horario-actes { display: grid; gap: var(--e-2); }
+.horario-acte {
+  display: grid; justify-items: start; gap: var(--e-1); padding: var(--e-2) var(--e-3);
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); background: var(--c-fons);
+  animation: horario-entra var(--m-panell) var(--m-corba) both;
+}
+.horario-acte strong { font-size: var(--t-s); line-height: var(--a-titol); }
+.horario-acte .estat { white-space: normal; }
+.horario-acte.es-xoc { border-color: var(--c-avis); box-shadow: inset var(--v-activa) 0 0 var(--c-avis); }
+.horario-dades { font-size: var(--t-s); color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.horario-buit { font-size: var(--t-s); color: var(--c-text-2); }
+.horario-tope { display: none; }
+@keyframes horario-entra { from { opacity: 0; transform: translateY(var(--e-1)); } }
+
+/* Escriptori: la setmana en graella, de 08:00 a 22:00 (14 files d'una hora) */
+@media (min-width: 1024px) {
+  .horario-graella { display: grid; grid-template-columns: auto 1fr; gap: var(--e-2); }
+  .horario-hores {
+    display: grid; grid-template-rows: repeat(14, var(--horario-hora)); margin: calc(var(--t-m) * 2 + var(--e-2)) 0 0; padding: 0;
+    list-style: none; font-size: var(--t-xs); color: var(--c-text-2); font-variant-numeric: tabular-nums;
+  }
+  .horario-dies { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--e-1); }
+  .horario-dia h2 { block-size: calc(var(--t-m) * 2); font-size: var(--t-s); text-align: center; text-wrap: balance; }
+  .horario-actes {
+    grid-template-rows: repeat(14, var(--horario-hora)); gap: 0; border-radius: var(--r-m); background-color: var(--c-superficie-2);
+    background-image: linear-gradient(to bottom, var(--c-linia) var(--v-fina), transparent var(--v-fina));
+    background-size: 100% var(--horario-hora);
+  }
+  .horario-acte, .horario-tope { grid-column: 1; margin: var(--v-fina) var(--e-1); min-block-size: 0; overflow: hidden; }
+  .horario-acte { align-content: start; margin-inline-start: var(--e-3); padding: var(--e-1) var(--e-2); }
+  .horario-acte .xip, .horario-lloc { display: none; }
+  .horario-estat-text { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* L'encavalcament: una franja ratllada al marge esquerre de la columna, a les hores exactes */
+  .horario-tope { display: block; justify-self: start; inline-size: var(--e-2); margin-inline: 0; border-radius: var(--r-s); }
+  .horario-buit { grid-row: 1 / -1; align-self: center; justify-self: center; }
+  /* La segona de dues activitats que es trepitgen, desplaçada i a sobre, com als calendaris habituals */
+  .horario-acte.es-xoc + .horario-acte.es-xoc { margin-inline-start: var(--e-6); box-shadow: inset var(--v-activa) 0 0 var(--c-avis), var(--ombra-flotant); }
+  /* Fila d'inici (hora) i alçada (hores) */
+  .h08 { grid-row-start: 1; } .h09 { grid-row-start: 2; } .h10 { grid-row-start: 3; } .h11 { grid-row-start: 4; }
+  .h12 { grid-row-start: 5; } .h13 { grid-row-start: 6; } .h14 { grid-row-start: 7; } .h15 { grid-row-start: 8; }
+  .h16 { grid-row-start: 9; } .h17 { grid-row-start: 10; } .h18 { grid-row-start: 11; } .h19 { grid-row-start: 12; }
+  .h20 { grid-row-start: 13; } .h21 { grid-row-start: 14; }
+  .d1 { grid-row-end: span 1; } .d2 { grid-row-end: span 2; } .d3 { grid-row-end: span 3; }
+  .d4 { grid-row-end: span 4; } .d5 { grid-row-end: span 5; } .d6 { grid-row-end: span 6; }
+}
