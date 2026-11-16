@@ -59,7 +59,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-39 | feta | 16/11/2026 | #99 | P-97 (A); P-95: sense veu. Xats a l'àrea del soci: converses amb comptadors i rotlle de tires (Teletipo) i caixó d'escriure sense micròfon (Amanuense), amb prova |
 | T-DX-37 Fotos (Fototeca i Expositor), en construcció | per fer | — | — | — |
 | T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 (A); P-95: sense veu |
-| T-DX-40 Social (Seguir i Monograma de fauna), en construcció | per fer | — | — | — |
+| T-DX-40 Social (Seguir i Monograma de fauna), en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-41 | feta | 16/11/2026 | #103 | P-92 (A). Signatures de correu a l'administració: càrrec i contacte del club (cap nom ni telèfon personal), plantilla i color entre tokens, vista prèvia; copiar, desactivat |
 | T-DX-42 Apoderado: avisos i textos legals, en construcció | en curs | 16/11/2026 | — | P-91 |
 | T-DX-11b Ranura: rebut anul·lat («Anul·lat» i la nota, mai el segell de pagat) | feta | 16/11/2026 | #110 | Petició del pilot després de la #105 (`ReceiptCancellation`, 045). Primitiu `--grana`; de pas, el rebut ja no sobresurt a 320 px |
