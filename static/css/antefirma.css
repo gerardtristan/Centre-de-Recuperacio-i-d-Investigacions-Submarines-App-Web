@@ -1,0 +1,49 @@
+/* Antefirma (T-DX-41; recurs a design/extern/; design-system §16, T-DX-41): les signatures de correu (P-92, A).
+   Del recurs: les dades, la vista prèvia en un full de correu, les plantilles, el color i els botons de copiar.
+   La vista prèvia fa servir els tokens; només el text copiat (quan funcioni) portarà estils en línia. */
+.antefirma { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.antefirma h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.antefirma-app { display: grid; gap: var(--e-5); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.antefirma-dades { display: grid; gap: var(--e-3); align-content: start; }
+.antefirma .antefirma-dades .ajuda { margin: 0; }
+.antefirma-grup { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.antefirma-grup legend { padding: 0; margin-block-end: var(--e-2); font-weight: var(--p-semi); font-size: var(--t-s); }
+.antefirma .segmentat { flex-wrap: wrap; }
+.antefirma .segmentat .opcio { padding: 0 var(--e-3); }
+.antefirma-colors { display: flex; flex-wrap: wrap; gap: var(--e-3); }
+.antefirma-color { display: inline-flex; align-items: center; gap: var(--e-2); min-block-size: var(--tactil); }
+.antefirma-color:has(input:checked) { font-weight: var(--p-negreta); }
+.antefirma-mostra { inline-size: var(--e-5); block-size: var(--e-5); border-radius: 50%; box-shadow: inset 0 0 0 var(--v-fina) var(--c-linia-forta); }
+.antefirma-color input:checked + .antefirma-mostra { box-shadow: 0 0 0 var(--v-plena) var(--c-fons), 0 0 0 calc(2 * var(--v-plena)) var(--c-text); }
+.antefirma-mostra-accent { background: var(--c-accent); }
+.antefirma-mostra-mari { background: var(--c-mari); }
+.antefirma-previa { display: grid; gap: var(--e-3); align-content: start; min-inline-size: 0; }
+.antefirma-previa h2 { margin: 0; font-size: var(--t-l); }
+/* El full de correu: la signatura entra una sola vegada (D20) */
+.antefirma-full {
+  display: grid; gap: var(--e-4); padding: var(--e-5) var(--e-4); border-radius: var(--r-l);
+  background: var(--c-fons); box-shadow: var(--ombra-flotant);
+}
+.antefirma .antefirma-full p { margin: 0; }
+.antefirma-signatura {
+  display: flex; align-items: center; gap: var(--e-3); min-inline-size: 0; padding-block-start: var(--e-3);
+  border-block-start: var(--v-plena) solid var(--c-mari);
+  animation: antefirma-entra var(--m-entrada) var(--m-corba) both;
+}
+.antefirma-segell {
+  display: grid; place-items: center; flex: none; inline-size: var(--e-7); block-size: var(--e-7); border-radius: 50%;
+  background: var(--c-mari); color: var(--c-mari-sobre); font-family: var(--f-titol); font-size: var(--t-xl);
+  font-weight: var(--p-negreta);
+}
+.antefirma .antefirma-carrec { font-weight: var(--p-negreta); }
+.antefirma .antefirma-area { font-size: var(--t-s); color: var(--c-text-2); }
+.antefirma .antefirma-contacte { font-size: var(--t-s); color: var(--c-mari-text); overflow-wrap: anywhere; }
+.antefirma-accions { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+@keyframes antefirma-entra { from { opacity: 0; transform: translateY(var(--e-1)); } }
+
+@media (min-width: 600px) {
+  .antefirma { padding: var(--e-5); }
+}
+@media (min-width: 1024px) {
+  .antefirma-app { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; }
+}
