@@ -8,6 +8,7 @@ import pytest
 from playwright.sync_api import expect
 
 from apps.core import imports
+from apps.core.tests.test_bank_statement_norma43 import STATEMENT as NORMA43
 
 from .conftest import login_admin, make_admin
 
@@ -31,7 +32,7 @@ def test_treasurer_imports_and_undoes_a_statement(page, live_server, transaction
     expect(page.get_by_text("Encara no s'ha importat cap extracte.")).to_be_visible()
     review("buida")
 
-    page.get_by_label("Fitxer CSV del banc").set_input_files(
+    page.get_by_label("Fitxer de l'extracte del banc").set_input_files(
         {"name": "extracte-inventat.csv", "mimeType": "text/csv", "buffer": CSV}
     )
     page.get_by_role("button", name="Previsualitza").click()
@@ -52,3 +53,23 @@ def test_treasurer_imports_and_undoes_a_statement(page, live_server, transaction
     expect(page.get_by_text("Extracte desfet")).to_be_visible()
     assert not imports.statement_lines().exists()
     review("desfet")
+
+
+def test_treasurer_imports_a_norma43_statement(page, live_server, transactional_db, review):
+    """T-M00-09: el mateix flux amb el fitxer Norma 43 del banc; saldo calculat i targeta tapada."""
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    page.get_by_role("main").get_by_role("link", name="Tresoreria: extracte bancari").click()
+    page.get_by_label("Fitxer de l'extracte del banc").set_input_files(
+        {"name": "extracte-inventat.n43", "mimeType": "text/plain", "buffer": NORMA43}
+    )
+    page.get_by_role("button", name="Previsualitza").click()
+    expect(page.get_by_role("heading", name="Previsualització")).to_be_visible()
+    expect(page.get_by_text("TRANSF DE PROVA INVENTADA CRIS-AB2CD-K")).to_be_visible()
+    expect(page.get_by_text("PAGAMENT TARGETA [número tapat]")).to_be_visible()
+    expect(page.get_by_text("4111")).to_have_count(0)
+    review("norma43-previsualitzacio")
+
+    page.get_by_role("button", name="Confirma la importació").click()
+    expect(page.get_by_text("Extracte importat")).to_be_visible()
+    assert imports.statement_lines().count() == 2

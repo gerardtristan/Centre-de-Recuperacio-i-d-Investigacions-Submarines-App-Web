@@ -64,7 +64,7 @@ class TestScreen:
             ("Data;Concepte\n01/11/2026;Ç\n".encode("cp1252"), "extracte.csv", "no és permès"),
             (b"Fecha;Concepto\n01/11/2026;x\n", "extracte.csv", str(bs.MESSAGES["format"])),
             (HEADER.encode() + b"\n\n", "extracte.csv", str(bs.MESSAGES["no_lines"])),
-            (STATEMENT, "extracte.txt", "Aquest tipus de fitxer no és permès."),
+            (STATEMENT, "extracte.xls", "Aquest tipus de fitxer no és permès."),
         ],
         ids=["empty", "pdf", "cp1252", "columns", "header-only", "extension"],
     )

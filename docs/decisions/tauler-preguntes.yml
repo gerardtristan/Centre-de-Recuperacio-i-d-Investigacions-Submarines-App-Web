@@ -267,4 +267,18 @@ opcions:
       reclami, i el rang es pot canviar sense tocar cap intent.
     data: 2026-11-16
 
+  P-103:
+    opcions:
+      A: Com s'ha construït; data d'operació, concepte amb els registres 23 i les referències, un sol compte en euros, fitxer sencer o res.
+      B: Com la A, però amb la data de valor.
+      C: Com la A, però acceptant diversos comptes en un fitxer (caldria triar el compte a la pantalla).
+      D: Esperar la mostra del banc (P-45 punt 10); mentrestant, la A.
+    recomanada: A
+    perque: >-
+      La data d'operació és la que veu el tresorer a la banca en línia i la que porten els pagaments del proveïdor, i per
+      tant la que ajuda més a conciliar. Un sol compte per fitxer evita barrejar comptes a la conciliació (si el club en
+      fa servir més d'un, la C), i un fitxer amb uns totals que no quadren és un fitxer malmès: millor tornar-lo a
+      descarregar que importar-ne una part amb saldos equivocats.
+    data: 2026-11-16
+
 noves:

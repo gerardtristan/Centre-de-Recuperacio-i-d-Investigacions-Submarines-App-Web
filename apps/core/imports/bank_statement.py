@@ -12,6 +12,9 @@ línia no està conciliada. Els tres queden al registre d'activitat (RN-98), sen
 - **Cap IBAN** (044): al concepte, tot el que sembla un IBAN o un número de compte o de targeta
   es tapa abans de mostrar-lo o desar-lo. Les línies amb error no guarden cap valor, només els
   codis; els missatges no repeteixen mai el contingut d'una cel·la.
+- **Norma 43** (T-M00-09; P-103): si la primera línia és un registre «11», el fitxer es llegeix
+  com a quadern 43 de l'AEB (`_parse_norma43`) i en surten les mateixes línies normalitzades. Un
+  sol compte, en euros; el número de compte de la capçalera no es llegeix mai.
 - **Fitxer original** (RN-101): no es desa; només la seva empremta.
 - Entre la previsualització i la confirmació, les línies normalitzades viatgen signades al
   formulari (`signing`), lligades al compte i amb caducitat: el servidor no les desa abans de
@@ -70,6 +73,11 @@ MESSAGES = {
         "Hi ha línies amb error: marca que les vols excloure o corregeix el fitxer."
     ),
     "nothing_to_import": _("No hi ha cap línia nova per importar."),
+    "norma43": _(
+        "El fitxer Norma 43 no és complet o els totals no quadren: torna'l a descarregar del banc."
+    ),
+    "several_accounts": _("El fitxer té moviments de més d'un compte: descarrega'n un per compte."),
+    "currency": _("L'extracte no és en euros."),
     "reason": _("Escriu el motiu."),
     "not_confirmed": _("Aquest extracte no està confirmat: no es pot desfer."),
     "reconciled": _("No es pot desfer: alguna línia de l'extracte ja està conciliada."),
@@ -139,6 +147,82 @@ def _line(row: int, cells: list, width: int, index: dict, profile: dict) -> dict
     }
 
 
+def _n43_cents(sign: str, digits: str) -> int:
+    """Import de 14 xifres amb dos decimals implícits; clau 1 = deure (surt), 2 = haver (entra)."""
+    if sign not in ("1", "2") or not digits.isdigit() or int(digits) >= _LIMIT_CENTS:
+        raise Rejected("norma43")
+    return -int(digits) if sign == "1" else int(digits)
+
+
+def _n43_count(digits: str) -> int:
+    if not digits.isdigit():
+        raise Rejected("norma43")
+    return int(digits)
+
+
+def _parse_norma43(text: str) -> list[dict]:
+    """Quadern 43 de l'AEB: registres de 80 posicions (11 capçalera del compte, 22 moviment, 23
+    concepte, 24 divisa, 33 final del compte, 88 final del fitxer). Un fitxer malmès o amb uns
+    totals que no quadren es rebutja sencer: la línia no es pot excloure perquè el saldo de les
+    següents en depèn. Data: la d'operació; saldo: l'inicial més els moviments (P-103)."""
+    lines, state, balance = [], "start", 0
+    totals = {"1": [0, 0], "2": [0, 0]}  # nombre i suma de càrrecs (1) i d'abonaments (2)
+    for row, record in enumerate(text.splitlines(), start=1):
+        record = record.rstrip().ljust(80)
+        kind = record[:2]
+        if kind == "  ":
+            continue
+        if kind == "11":
+            if state != "start":
+                raise Rejected("several_accounts" if state == "closed" else "norma43")
+            if record[47:50] != "978":
+                raise Rejected("currency")
+            balance, state = _n43_cents(record[32], record[33:47]), "open"
+        elif kind == "22" and state == "open":
+            if len(lines) == MAX_LINES:
+                raise Rejected("too_many_lines")
+            try:
+                value_date = datetime.datetime.strptime(record[10:16], "%y%m%d").date()
+            except ValueError:
+                raise Rejected("norma43") from None
+            amount = _n43_cents(record[27], record[28:42])
+            balance += amount
+            totals[record[27]][0] += 1
+            totals[record[27]][1] += abs(amount)
+            lines.append(
+                {
+                    "row": row,
+                    "date": value_date.isoformat(),
+                    "amount": amount,
+                    "parts": [record[64:80], record[52:64]],  # referències 2 i 1
+                    "balance": balance,
+                    "codes": [],
+                }
+            )
+        elif kind == "23" and state == "open" and lines:
+            lines[-1]["parts"][-2:-2] = [record[4:42], record[42:80]]
+        elif kind == "24" and state == "open" and lines:
+            continue  # equivalència en una altra divisa: l'import en euros ja és al 22
+        elif kind == "33" and state == "open":
+            expected = {
+                "1": [_n43_count(record[20:25]), _n43_count(record[25:39])],
+                "2": [_n43_count(record[39:44]), _n43_count(record[44:58])],
+            }
+            if expected != totals or _n43_cents(record[58], record[59:73]) != balance:
+                raise Rejected("norma43")
+            state = "closed"
+        elif kind == "88" and state == "closed":
+            state = "end"
+        else:
+            raise Rejected("norma43")
+    if state not in ("closed", "end"):
+        raise Rejected("norma43")
+    for line in lines:
+        parts = (part.strip() for part in line.pop("parts"))
+        line["concept"] = mask(" ".join(part for part in parts if part.strip("0")))
+    return lines
+
+
 def parse(data: bytes) -> list[dict]:
     """Línies normalitzades del fitxer, o `Rejected` si no és un extracte (CA-21.5)."""
     profile = settings.BANK_STATEMENT_CSV_PROFILE
@@ -146,6 +230,11 @@ def parse(data: bytes) -> list[dict]:
         text = data.decode("utf-8-sig")
     except UnicodeDecodeError:
         raise Rejected("encoding") from None
+    if text.startswith("11"):
+        lines = _parse_norma43(text)
+        if not lines:
+            raise Rejected("no_lines")
+        return lines
     columns = {
         key: profile[key] for key in ("date", "concept", "amount", "balance") if profile.get(key)
     }

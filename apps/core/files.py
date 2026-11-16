@@ -39,6 +39,8 @@ from .permissions import has_perm
 # V-08: tipus permesos als fitxers pujats; el CSV, només a les importacions.
 UPLOAD_TYPES = frozenset({"application/pdf", "image/jpeg", "image/png", "image/webp", "image/heic"})
 IMPORT_TYPES = frozenset({"text/csv"})
+# L'extracte bancari també pot ser un fitxer de text Norma 43 (T-M00-09).
+BANK_STATEMENT_TYPES = frozenset({"text/csv", "text/plain"})
 
 _EXTENSIONS = {
     "application/pdf": {".pdf"},
@@ -47,6 +49,7 @@ _EXTENSIONS = {
     "image/webp": {".webp"},
     "image/heic": {".heic", ".heif"},
     "text/csv": {".csv"},
+    "text/plain": {".n43", ".txt"},
 }
 _HEIC_BRANDS = {b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1"}
 
@@ -109,10 +112,10 @@ def validate_upload(uploaded, *, allowed=UPLOAD_TYPES) -> str:
     head = uploaded.read(64 * 1024)
     uploaded.seek(0)
     detected = _detect(head)
-    if detected is None and "text/csv" in allowed and _looks_like_text(head):
-        detected = "text/csv"
-
     extension = Path(uploaded.name or "").suffix.lower()
+    if detected is None and _looks_like_text(head):
+        detected = "text/plain" if extension in _EXTENSIONS["text/plain"] else "text/csv"
+
     if detected not in allowed or extension not in _EXTENSIONS[detected]:
         raise ValidationError(gettext("Aquest tipus de fitxer no és permès."), code="type")
     return detected
