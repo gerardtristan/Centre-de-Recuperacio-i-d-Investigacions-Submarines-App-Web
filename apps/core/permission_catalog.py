@@ -347,7 +347,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).
     # Pagaments (05b, VC-17): «Cons.» per als rols que avui hi poden editar algun valor
-    # (VC-16 és del tresorer; arriba amb les remeses); els dos valors, només l'administrador.
+    # (VC-16 és del tresorer; arriba amb les remeses); els tres valors, només l'administrador.
     _perm(
         "settings.section.payments",
         "AJ5b",
@@ -366,6 +366,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         "settings.edit.payments.safety_net_age_minutes",
         "AJ5b-2",
         _("Minuts sense notificació abans de preguntar l'estat d'un pagament al proveïdor"),
+        requires=("settings.section.payments",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.payments.safety_net_give_up_hours",
+        "AJ5b-3",
+        _("Hores que la xarxa de seguretat torna a provar una ordre abans de deixar-la a revisar"),
         requires=("settings.section.payments",),
         initial={R.ADMINISTRATOR: _ALL},
     ),

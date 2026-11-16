@@ -365,13 +365,12 @@ class TestSafetyNet:
         processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
 
-    def test_l_m05b_01_an_order_that_cannot_be_read_goes_to_review(
-        self, attempt, fee, transit, monkeypatch
-    ):
+    def test_l_m05b_01_an_order_that_cannot_be_read_goes_to_review(self, attempt, fee, transit):
         fake.reset()  # el proveïdor ja no la coneix
         processing.safety_net()  # una caiguda curta: es torna a provar l'endemà (revisió de la #27)
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
-        monkeypatch.setattr(processing, "SAFETY_NET_GIVE_UP", timedelta(0))
+        attempt.created_at -= timedelta(hours=25)  # passen les 24 hores de l'ajust (VC-17, 093)
+        attempt.save(update_fields=["created_at"])
         processing.safety_net()
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)
         assert "consultar l'ordre" in attempt.review_reason
@@ -418,7 +417,8 @@ class TestSafetyNet:
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
         assert state(other, other_fee) == (S.PAID, Charge.Status.PAID)
         # Si l'error es repeteix, l'ordre cobrada no queda en curs per sempre: va «a revisar».
-        monkeypatch.setattr(processing, "SAFETY_NET_GIVE_UP", timedelta(0))
+        attempt.created_at -= timedelta(hours=25)  # passen les 24 hores de l'ajust (VC-17, 093)
+        attempt.save(update_fields=["created_at"])
         processing.safety_net()
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)
         assert "tancar l'intent" in attempt.review_reason

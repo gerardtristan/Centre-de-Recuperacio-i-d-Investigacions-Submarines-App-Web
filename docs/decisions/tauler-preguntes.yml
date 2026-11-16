@@ -254,4 +254,17 @@ opcions:
       qualsevol moment perquè l'estat es torna a calcular.
     data: 2026-11-16
 
+  P-102:
+    opcions:
+      A: Com s'ha construït; de 24 a 168 hores (d'un dia a una setmana).
+      B: De 24 a 72 hores (com a màxim tres reintents de la xarxa).
+      C: D'1 a 168 hores, perquè la xarxa també pugui deixar a revisar el mateix dia.
+      D: Decidir-ho amb el tresorer quan es vegi l'ús real; mentrestant, la A.
+    recomanada: A
+    perque: >-
+      La xarxa de seguretat passa un cop al dia: per sota de 24 hores, un sol reintent fallat ja enviaria l'intent a revisar
+      i una caiguda curta del proveïdor l'hi portaria. Una setmana és prou perquè el tresorer el vegi abans que el soci
+      reclami, i el rang es pot canviar sense tocar cap intent.
+    data: 2026-11-16
+
 noves:

@@ -13,21 +13,28 @@ from .conftest import login_admin, make_admin
 pytestmark = pytest.mark.e2e
 
 KEY = "payments.bizum_ui_timeout_minutes"
+GIVE_UP = "payments.safety_net_give_up_hours"
 LABEL = "Minuts que la pantalla espera la confirmació d'un Bizum"
+GIVE_UP_LABEL = (
+    "Hores que la xarxa de seguretat torna a provar una ordre abans de deixar-la a revisar"
+)
 
 
 def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_server, review):
-    # La crea la migració del 05b (T-M05b-22); aquí, si encara no hi és.
-    Setting.objects.get_or_create(
-        key=KEY,
-        defaults={"module": "payments", "value_type": "integer", "initial_value": 15,
-                  "min_value": 5, "max_value": 30},
-    )  # fmt: skip
+    # Les creen les migracions del 05b (T-M05b-22 i 28); aquí, si encara no hi són.
+    for key, initial, low, high in ((KEY, 15, 5, 30), (GIVE_UP, 24, 24, 168)):
+        Setting.objects.get_or_create(
+            key=key,
+            defaults={"module": "payments", "value_type": "integer", "initial_value": initial,
+                      "min_value": low, "max_value": high},
+        )  # fmt: skip
     admin = make_admin("admin.prova", "administrator")
     login_admin(page, live_server.url, admin.login)
     page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
     page.get_by_role("link", name="Ajustos de pagaments").click()
     expect(page.get_by_role("heading", name="Ajustos de pagaments")).to_be_visible()
+    # El valor de la 093 (T-M05b-28).
+    expect(page.get_by_role("link", name=f"Canvia: {GIVE_UP_LABEL}")).to_be_visible()
     review("apartat")
 
     page.get_by_role("link", name=f"Canvia: {LABEL}").click()
