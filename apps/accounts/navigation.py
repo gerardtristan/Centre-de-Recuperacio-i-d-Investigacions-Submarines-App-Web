@@ -40,6 +40,7 @@ BASE_ROUTES = {
     "administration:locked_data": ((("core.locked_data.view", READ),),),  # M13 (T-M00-04)
     "administration:treasury_accounts": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:treasury_movements": ((("treasury.view", READ),),),
+    "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -74,6 +75,7 @@ ENTRIES = (
     ("administration:fees", _("Quotes i impagats"), ()),
     ("administration:treasury_accounts", _("Tresoreria: comptes i saldos"), ()),
     ("administration:treasury_movements", _("Tresoreria: moviments"), ()),
+    ("administration:treasury_reconciliation", _("Tresoreria: conciliació"), ()),  # T-DX-44
     ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:payments_mandates", _("Pagaments: mètodes i mandats"), ()),  # T-DX-43
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),

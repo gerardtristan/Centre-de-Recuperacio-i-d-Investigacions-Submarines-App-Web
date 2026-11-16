@@ -58,3 +58,4 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-42 Apoderado: avisos i textos legals, en construcció | per fer | — | — | P-91 |
 | T-DX-11b Ranura: rebut anul·lat («Anul·lat» i la nota, mai el segell de pagat) | feta | 16/11/2026 | #110 | Petició del pilot després de la #105 (`ReceiptCancellation`, 045). Primitiu `--grana`; de pas, el rebut ja no sobresurt a 320 px |
 | T-DX-43 Menú de l'administració: «Pagaments: mètodes i mandats» | feta | 16/11/2026 | #PR | Petició del pilot després de la #108 (T-M05a-14). Només amb A4 (`payments.mandates.view`); el menú no és cap control, la vista torna a comprovar el permís |
+| T-DX-44 Menú de l'administració: «Tresoreria: conciliació» | feta | 16/11/2026 | #116 | Petició del pilot després de la #115. Només amb T1 (`treasury.view`), com la vista |
