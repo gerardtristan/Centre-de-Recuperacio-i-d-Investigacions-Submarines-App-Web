@@ -9,6 +9,11 @@ i llista de moviments amb filtres. Només lectura: només GET, i l'únic formula
 «A revisar» (T-M04-14, C6; CA-T12.1, CA-T13.1): les línies de l'extracte amb el motiu, i el
 formulari per excloure'n una (POST, T8 al servidor). Sense el concepte de la línia, que pot
 portar noms de fora del club i només es veu a la conciliació (M04-4, per objecte).
+
+Conciliació (T-M04-15, segon tall; C5 i C6; P-M04-E, passos 3 i 5): les línies dels extractes
+vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs proposats o casats.
+«Confirma» (`reconciliation.confirm`) i «Desfés» amb motiu (`reconciliation.undo`) són POST amb
+T4 al servidor; veure-la és T1. Del càrrec, el nom de la persona, el concepte i l'import (M04-4).
 """
 
 from django import forms
@@ -28,7 +33,7 @@ from apps.core.permissions import has_perm, permission_required
 
 from . import reconciliation
 from .balances import balances
-from .models import Movement, TreasuryAccount
+from .models import Movement, Reconciliation, StatementLineState, TreasuryAccount
 
 VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
 PER_PAGE = 50
@@ -140,4 +145,80 @@ def exclude_view(request, line_id):
         messages.error(request, " ".join(error.messages))
     else:
         messages.success(request, _("Línia exclosa. No s'ha creat cap moviment."))
+    # Només aquests dos destins: cap redirecció oberta.
+    if request.POST.get("des_de") == "conciliacio":
+        return redirect("administration:treasury_reconciliation")
     return redirect("administration:treasury_review")
+
+
+@never_cache
+@permission_required(VIEW)
+@require_GET
+def reconciliation_view(request):
+    reconciliation.refresh()  # els càrrecs canvien: les propostes es calculen abans de mostrar-les
+    states = (
+        StatementLineState.objects.filter(statement_line__in=statement_lines())
+        .select_related("statement_line")
+        .prefetch_related("proposed_charges__person")
+        .order_by("-statement_line__value_date", "-statement_line__pk")
+    )
+    page = Paginator(states, PER_PAGE).get_page(request.GET.get("pagina"))
+    live = {
+        found.statement_line_id: found
+        for found in Reconciliation.objects.filter(
+            statement_line__in=[state.statement_line_id for state in page], undo__isnull=True
+        )
+    }
+    rows = [
+        {
+            "state": state,
+            "line": state.statement_line,
+            "amount": euros(state.statement_line.amount_cents),
+            "charges": [
+                {"charge": charge, "amount": euros(charge.amount_cents)}
+                for charge in state.proposed_charges.all()
+            ],
+            "reconciliation": live.get(state.statement_line_id),
+        }
+        for state in page
+    ]
+    context = {
+        "page": page,
+        "rows": rows,
+        "can_reconcile": has_perm(request.user, reconciliation.RECONCILE, write=True),
+    }
+    return render(request, "treasury/reconciliation.html", context)
+
+
+def _back_to_reconciliation(request, action, success):
+    try:
+        action()
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, success)
+    return redirect("administration:treasury_reconciliation")
+
+
+@never_cache
+@permission_required(reconciliation.RECONCILE, write=True)
+@require_POST
+def confirm_view(request, line_id):
+    line = get_object_or_404(statement_lines(), pk=line_id)
+    return _back_to_reconciliation(
+        request,
+        lambda: reconciliation.confirm(line, by=request.user),
+        _("Conciliació confirmada: els càrrecs consten com a pagats i l'ingrés és al banc."),
+    )
+
+
+@never_cache
+@permission_required(reconciliation.RECONCILE, write=True)
+@require_POST
+def undo_view(request, reconciliation_id):
+    found = get_object_or_404(Reconciliation, pk=reconciliation_id)
+    return _back_to_reconciliation(
+        request,
+        lambda: reconciliation.undo(found, reason=request.POST.get("motiu", ""), by=request.user),
+        _("Conciliació desfeta: els càrrecs tornen a estar pendents i l'ingrés s'ha compensat."),
+    )

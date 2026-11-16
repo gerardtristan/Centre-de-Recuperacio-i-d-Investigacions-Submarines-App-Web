@@ -1,0 +1,100 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés» i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). #}
+{% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Conciliació" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <p class="text-2">{% translate "Les línies dels extractes importats. La plataforma proposa; només el tresorer confirma. Confirmar posa els càrrecs en «pagat» i apunta l'ingrés al banc; desfer-ho torna els càrrecs a «pendent» i compensa l'ingrés, amb el motiu." %}</p>
+  <p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>
+
+  {% if rows %}
+    <table class="taula">
+      <caption>{% translate "Línies de l'extracte, de la més recent a la més antiga per data de valor" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Data de valor" %}</th>
+          <th scope="col">{% translate "Concepte" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+          <th scope="col">{% translate "Estat" %}</th>
+          <th scope="col">{% translate "Càrrecs" %}</th>
+          {% if can_reconcile %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ row.line.value_date|date:'Y-m-d' }}">{{ row.line.value_date|date:"d/m/Y" }}</time></th>
+            <td data-etiqueta="{% translate 'Concepte' %}">{{ row.line.concept }}</td>
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+            <td data-etiqueta="{% translate 'Estat' %}">
+              {% if row.state.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.state.get_status_display }}</span>
+              {% elif row.state.status == "proposed" %}<span class="estat estat-info"><span aria-hidden="true">→</span> {{ row.state.get_status_display }}</span>
+              {% elif row.state.status == "excluded" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ row.state.get_status_display }}</span>
+              {% elif row.state.to_review %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}: {{ row.state.get_review_reason_display }}</span>
+              {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.state.get_status_display }}</span>{% endif %}
+            </td>
+            <td data-etiqueta="{% translate 'Càrrecs' %}">
+              {% if row.charges %}
+                <ul>
+                  {% for item in row.charges %}<li>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></li>{% endfor %}
+                </ul>
+              {% else %}—{% endif %}
+            </td>
+            {% if can_reconcile %}
+              <td data-etiqueta="{% translate 'Acció' %}">
+                {% if row.state.status == "proposed" %}
+                  <form method="post" action="{% url 'administration:treasury_confirm_line' row.line.pk %}">
+                    {% csrf_token %}
+                    <button class="boto boto-petit" type="submit">{% translate "Confirma" %}</button>
+                  </form>
+                {% elif row.reconciliation %}
+                  <details class="altes-rebuig">
+                    <summary class="boto boto-text">{% translate "Desfés…" %}</summary>
+                    <form class="formulari" method="post" action="{% url 'administration:treasury_undo_reconciliation' row.reconciliation.pk %}">
+                      {% csrf_token %}
+                      <div class="camp">
+                        <label for="desfes-{{ row.line.pk }}">{% translate "Motiu per desfer-la" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                        <textarea id="desfes-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
+                        <p class="ajuda">{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}</p>
+                      </div>
+                      <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
+                    </form>
+                  </details>
+                {% elif row.state.status == "pending" %}
+                  <details class="altes-rebuig">
+                    <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
+                    <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="des_de" value="conciliacio">
+                      <div class="camp">
+                        <label for="motiu-{{ row.line.pk }}">{% translate "Motiu de l'exclusió" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                        <textarea id="motiu-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
+                        <p class="ajuda">{% translate "Queda a la línia i al registre d'activitat. No s'esborra res." %}</p>
+                      </div>
+                      <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
+                    </form>
+                  </details>
+                {% else %}—{% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if page.paginator.num_pages > 1 %}
+      <nav class="accions" aria-label="{% translate 'Pàgines de les línies' %}">
+        {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Més recents" %}</a>{% endif %}
+        <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+        {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Més antigues" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p>{% translate "No hi ha cap línia d'extracte per conciliar. Primer cal importar l'extracte del banc." %}</p>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+{% endblock %}

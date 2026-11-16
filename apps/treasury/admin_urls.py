@@ -8,6 +8,17 @@ from . import views
 urlpatterns = [
     path("tresoreria/", views.accounts_view, name="treasury_accounts"),
     path("tresoreria/moviments/", views.movements_view, name="treasury_movements"),
+    path("tresoreria/conciliacio/", views.reconciliation_view, name="treasury_reconciliation"),
+    path(
+        "tresoreria/conciliacio/<int:line_id>/confirma/",
+        views.confirm_view,
+        name="treasury_confirm_line",
+    ),
+    path(
+        "tresoreria/conciliacio/desfes/<int:reconciliation_id>/",
+        views.undo_view,
+        name="treasury_undo_reconciliation",
+    ),
     path("tresoreria/revisar/", views.review_view, name="treasury_review"),
     path(
         "tresoreria/revisar/<int:line_id>/excloure/",

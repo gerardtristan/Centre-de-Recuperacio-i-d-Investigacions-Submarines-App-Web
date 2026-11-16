@@ -132,6 +132,8 @@ MAP = {
     ),
     "test_tresoreria.py": (
         "apps/treasury/views.py",
+        "apps/treasury/admin_urls.py",
+        "apps/treasury/reconciliation.py",
         "apps/treasury/balances.py",
         "templates/treasury/*.html",
     ),
