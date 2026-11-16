@@ -1,0 +1,22 @@
+/* Emisor (T-DX-34; recurs a design/extern/; design-system §16, T-DX-34): emetre la factura d'un càrrec.
+   Del recurs: triar rebut o factura, el formulari de la factura i, al costat, la fulla que s'omple. La
+   fulla és paper clar als dos temes (--paper i --abisme, com el rebut de §6.14), sense segell: la
+   factura encara no existeix. Només tokens. */
+.emisor { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.emisor h1 { margin-top: 0; }
+.emisor .avis { margin-bottom: var(--e-5); }
+.emisor-cols { display: grid; gap: var(--e-5); }
+.emisor .emisor-form { min-width: 0; gap: var(--e-4); }
+.emisor-carrec { margin: 0; font-weight: var(--p-semi); }
+.emisor .segmentat { border-radius: var(--r-m); inline-size: fit-content; }
+.emisor-full {
+  min-width: 0; align-self: start; padding: var(--e-5); border-radius: var(--r-l);
+  background: var(--paper); color: var(--abisme); border: var(--v-fina) solid var(--c-linia);
+}
+.emisor-full h2 { margin: 0 0 var(--e-3); font-size: var(--t-xl); color: var(--abisme); }
+/* Dins del paper, els colors secundaris són els del paper, no els del tema */
+.emisor-full dt, .emisor-nota { color: var(--casc); }
+.emisor-full .dades-soci div { border-color: color-mix(in oklab, var(--paper), var(--abisme) 18%); }
+.emisor-full .a-validar { color: var(--casc); border-color: var(--casc); }
+.emisor-nota { margin: var(--e-4) 0 0; font-size: var(--t-s); }
+@media (min-width: 1024px) { .emisor-cols { grid-template-columns: 1fr 1fr; align-items: start; } }
