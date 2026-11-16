@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 14:29 | b4a10b4, d165ebb | 3 noves al navegador | [A comprovar] (PR #57) |
+| 16/11/2026 14:29 | 2de4c7c, 9ff485d | 3 noves al navegador | [A comprovar] (PR #57) |
 
 **En tres línies:** a l'administració, cada fitxa de soci o de sol·licitud que obres queda en una pestanya a dalt del contingut («Soci 12», «Baixa 34»). Així pots anar d'una a l'altra sense tornar a buscar-les. Les pestanyes es poden tancar i reordenar, i les que no hi caben passen a un menú «+N».
 
@@ -29,21 +29,21 @@
   - Tancar l'activa obre l'altra, i «Surt» buida la llista.
   - Arrossegar canvia l'ordre, sense obrir cap fitxa.
   - Escriure en un formulari posa el punt, i en tancar-la es pregunta.
-- Bateria sencera al navegador: 60 passades i 1 xfail que ja hi era. Proves unitàries: 4.742 passades i les 4 que s'han arreglat a `d165ebb`, que ara passen.
+- Bateria sencera al navegador: 60 passades i 1 xfail que ja hi era. Proves unitàries: 4.742 passades i les 4 que s'han arreglat a `9ff485d`, que ara passen.
 
 ## Evidències
 - Dues fitxes obertes, a 1280 px: `captures/2026-11-16_1429_T-DX-07_dues-fitxes-1280.png`
 
   ![Fitxa d'un soci amb les pestanyes Soci 1 i Soci 2](captures/2026-11-16_1429_T-DX-07_dues-fitxes-1280.png)
 
-  *16/11/2026 14:29 (Europa/Madrid) · local, prova e2e, socis inventats · commit b4a10b4*
+  *16/11/2026 14:29 (Europa/Madrid) · local, prova e2e, socis inventats · commit 2de4c7c*
 - A 320 px, en fosc: `captures/2026-11-16_1429_T-DX-07_dues-fitxes-320-fosc.png`
 
-  *16/11/2026 14:29 (Europa/Madrid) · local, prova e2e, socis inventats · commit b4a10b4*
-- Sortida de proves · commit d165ebb · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 14:29 (Europa/Madrid) · local, prova e2e, socis inventats · commit 2de4c7c*
+- Sortida de proves · commit 9ff485d · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/accounts/tests/test_navigation.py apps/members/tests/test_cluber_views.py -q
   53 passed
-  $ pytest -m e2e apps/core/tests/e2e -q        (a b4a10b4)
+  $ pytest -m e2e apps/core/tests/e2e -q        (a 2de4c7c)
   60 passed, 1 xfailed
   ```
