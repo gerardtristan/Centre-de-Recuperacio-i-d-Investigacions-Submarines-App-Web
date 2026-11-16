@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.15 (16/11/2026). La 1.15 afegeix Ramillete, la navegació de l'àrea del soci al mòbil (§6.12, T-DX-08).
+- **Versió:** 1.16 (16/11/2026). La 1.16 afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
+- La 1.15 (16/11/2026) afegeix Ramillete, la navegació de l'àrea del soci al mòbil (§6.12, T-DX-08).
 - La 1.14 (16/11/2026) afegeix Solapas, les pestanyes de les fitxes obertes a l'administració (§6.11, T-DX-07).
 - La 1.13 (16/11/2026) porta el tema a la configuració del compte (§7, T-DX-05b).
 - La 1.12 (16/11/2026) posa Eclipse a la part pública (§7, T-DX-05).
@@ -457,6 +458,13 @@ Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.
 - **Teclat:** el focus va a la primera opció en obrir; Tab i les fletxes hi queden atrapats; Esc el tanca i torna al botó; tocar fora també el tanca.
 - **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`).
 - **Del recurs no s'hi fa:** la barra lateral a partir de 760 px (a l'escriptori, la capçalera ja fa aquesta feina) ni les fulles de cada acció.
+
+### 6.13 Tramite: els passos d'un pagament (T-DX-10)
+Del recurs Tramite ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la línia de passos que s'omple d'una etapa a la següent, l'etapa en groc quan el proveïdor no completa el pagament i el segell en confirmar-se.
+- **Peça:** `templates/payments/_tramite.html` (dins de `_status.html`, que HTMX torna a demanar cada 3 s mentre és en curs) i `static/css/tramite.css`.
+- **Passos:** 1 «Tria com pagar», 2 «Confirmació del proveïdor», 3 «Pagament completat». Surten de l'estat que diu el servidor (`payments.payment_status`): pendent → pas 1 ara; en curs → pas 2 ara; fallat o «No s'ha confirmat a temps» → pas 2 en avís (!); pagat → els tres fets i el segell. Un càrrec que no es pot pagar no porta passos. El pas actual porta `aria-current="step"` i cada pas diu el seu estat al lector de pantalla.
+- **Regles:** sense temps simulat (el recurs omplia la línia amb la durada de cada pas, que aquí no se sap) i sense animació contínua (D20). El segell només surt quan el servidor ha confirmat el pagament (B10), mai en tornar del proveïdor. El pas 3 no es diu «Pagat»: aquest text és el de l'estat, i només surt quan ho és.
+- **Encara no:** el rebut que surt per la ranura i la impressió en blanc i negre (T-DX-11).
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

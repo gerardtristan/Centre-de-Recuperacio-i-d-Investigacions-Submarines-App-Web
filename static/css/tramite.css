@@ -1,0 +1,28 @@
+/* Tramite (T-DX-10; recurs a design/extern/; design-system §6.13): els passos d'un pagament. Del
+   recurs: la línia que s'omple d'un pas al següent, l'etapa en groc quan el proveïdor no completa
+   el pagament i el segell en confirmar-se. Només tokens; sense temps simulat ni animació contínua. */
+.tramite { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 var(--e-4); padding: 0; list-style: none; counter-reset: none; }
+.tramite-pas {
+  position: relative; display: grid; justify-items: center; gap: var(--e-1); padding-top: var(--e-1);
+  text-align: center; font-size: var(--t-s); color: var(--c-text-2);
+}
+/* La línia entre passos: plena fins al pas fet */
+.tramite-pas + .tramite-pas::before {
+  content: ""; position: absolute; top: calc(var(--e-1) + var(--e-5) / 2); right: 50%; width: 100%; height: var(--v-plena);
+  background: var(--c-linia); transform-origin: left center;
+}
+.tramite-pas.es-fet + .tramite-pas::before, .tramite-pas.es-fet::before, .tramite-pas.es-actual::before, .tramite-pas.es-avis::before { background: var(--c-ok); }
+.tramite-pas.es-avis::before { background: var(--c-avis); }
+.tramite-marca {
+  position: relative; z-index: 1; display: grid; place-items: center; width: var(--e-5); height: var(--e-5); border-radius: 50%;
+  border: var(--v-plena) solid var(--c-linia-forta); background: var(--c-fons);
+  font-weight: var(--p-semi); font-variant-numeric: tabular-nums; color: var(--c-text-2);
+}
+.tramite-pas.es-fet .tramite-marca { border-color: var(--c-ok); background: var(--c-ok-fons); color: var(--c-ok-text); }
+.tramite-pas.es-actual { color: var(--c-text); font-weight: var(--p-semi); }
+.tramite-pas.es-actual .tramite-marca { border-color: var(--c-text); color: var(--c-text); }
+.tramite-pas.es-avis { color: var(--c-avis-text); font-weight: var(--p-semi); }
+.tramite-pas.es-avis .tramite-marca { border-color: var(--c-avis); background: var(--c-avis-fons); color: var(--c-avis-text); }
+/* Pagat, confirmat pel servidor: el segell, una sola vegada (B10) */
+.tramite-pas.es-final .tramite-marca { animation: tramite-segell var(--m-panell) var(--m-corba-molla) both; }
+@keyframes tramite-segell { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
