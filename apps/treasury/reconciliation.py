@@ -12,10 +12,13 @@ torna a calcular les que encara són obertes (pendents o proposades), perquè el
 - **Pendent**: la resta (sortides, línies sense cap coincidència). Que tota línia sense
   referència vagi a revisar (LT2) és la P-101.
 Cada canvi d'estat queda al registre d'activitat (RN-T13), sense el concepte de la línia.
+Les línies d'un extracte desfet que eren obertes tornen a pendent, sense proposta.
+El criden la importació en confirmar o desfer un extracte (senyal `bank_statement.changed`) i,
+abans de mostrar o confirmar res, les pantalles de la T-M04-12 i la T-M04-14.
 """
 
 from django.db import connection, transaction
-from django.db.models import Count
+from django.db.models import Count, Max
 
 from apps.core import audit
 from apps.core.imports import statement_lines
@@ -29,13 +32,14 @@ OPEN = (StatementLineState.Status.PENDING, StatementLineState.Status.PROPOSED)
 Reason = StatementLineState.ReviewReason
 
 
-def _evaluate(line, charges_by_reference, single_amounts, taken):
-    """(estat, motiu de la revisió, càrrecs proposats) d'una línia."""
+def _evaluate(line, found, charges_by_reference, single_charge_by_amount, taken):
+    """(estat, motiu de la revisió, càrrecs proposats) d'una línia; `found`, les seves
+    referències vàlides."""
     if line.amount_cents <= 0:
         return StatementLineState.Status.PENDING, "", []
-    found = references_in(line.concept)
     if not found:
-        reason = Reason.AMOUNT_ONLY if line.amount_cents in single_amounts else ""
+        single = single_charge_by_amount.get(line.amount_cents)
+        reason = Reason.AMOUNT_ONLY if single is not None and single not in taken else ""
         return StatementLineState.Status.PENDING, reason, []
     charges = [charges_by_reference.get(reference) for reference in found]
     if None in charges:
@@ -61,67 +65,98 @@ def _snapshot(status, reason, charge_ids):
     }
 
 
+PLAIN = _snapshot(StatementLineState.Status.PENDING, "", [])
+
+
+def _apply(state, status, reason, charges, *, created) -> None:
+    """Desa l'estat si ha canviat i en deixa l'entrada al registre."""
+    new = _snapshot(status, reason, sorted(charge.pk for charge in charges))
+    old = None
+    if not created:
+        old = _snapshot(
+            state.status,
+            state.review_reason,
+            sorted(charge.pk for charge in state.proposed_charges.all()),
+        )
+        if old == new:
+            return
+    state.status, state.to_review, state.review_reason = status, bool(reason), reason
+    state.save()
+    state.proposed_charges.set(charges)
+    audit.record(
+        STATE_CHANGED,
+        actor=audit.system("treasury.reconciliation"),
+        target=state,
+        old=old,
+        new=new,
+        details={"line": state.statement_line_id},
+    )
+
+
 @transaction.atomic
 def refresh() -> None:
     """Estat de totes les línies obertes. Idempotent: si res no ha canviat, no escriu res."""
     with connection.cursor() as cursor:  # dues actualitzacions alhora no es trepitgen
         cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [STATE_CHANGED])
+    current = statement_lines()
+    # Línies d'un extracte desfet: deixen de ser a conciliar, i la seva proposta també.
+    for state in (
+        StatementLineState.objects.filter(status__in=OPEN)
+        .exclude(statement_line__in=current)
+        .prefetch_related("proposed_charges")
+    ):
+        _apply(state, StatementLineState.Status.PENDING, "", [], created=False)
     # shortcut: recalcula totes les línies obertes a cada crida (centenars l'any); si en
     # fossin desenes de milers, que només recalculi les dels càrrecs que han canviat.
-    lines = list(statement_lines().order_by("value_date", "pk"))
+    lines = list(current.order_by("value_date", "pk"))
     states = {
         state.statement_line_id: state
-        for state in StatementLineState.objects.filter(
-            statement_line__in=[line.pk for line in lines]
-        ).prefetch_related("proposed_charges")
+        for state in StatementLineState.objects.filter(statement_line__in=current).prefetch_related(
+            "proposed_charges"
+        )
     }
-    found = {reference for line in lines for reference in references_in(line.concept)}
+    found = {line.pk: references_in(line.concept) for line in lines}
     charges_by_reference = {
         row.reference: row.charge
-        for row in TransferReference.objects.filter(reference__in=found).select_related("charge")
+        for row in TransferReference.objects.filter(
+            reference__in={reference for refs in found.values() for reference in refs}
+        ).select_related("charge")
     }
-    amounts = {line.amount_cents for line in lines if line.amount_cents > 0}
-    single_amounts = {
-        row["amount_cents"]
-        for row in Charge.objects.filter(status=Charge.Status.PENDING, amount_cents__in=amounts)
+    single_charge_by_amount = {
+        row["amount_cents"]: row["charge_id"]
+        for row in Charge.objects.filter(
+            status=Charge.Status.PENDING,
+            amount_cents__in={line.amount_cents for line in lines if line.amount_cents > 0},
+        )
         .values("amount_cents")
-        .annotate(n=Count("pk"))
+        .annotate(n=Count("pk"), charge_id=Max("pk"))
         if row["n"] == 1
     }
     taken, new_plain = set(), []
-    for line in lines:
+    # Primer les línies amb referència: un càrrec ja proposat no compta per a les que no en
+    # tenen (AMOUNT_ONLY).
+    for line in sorted(lines, key=lambda line: not found[line.pk]):
         state = states.get(line.pk)
         if state is not None and state.status not in OPEN:
             continue
-        status, reason, charges = _evaluate(line, charges_by_reference, single_amounts, taken)
-        new = _snapshot(status, reason, sorted(charge.pk for charge in charges))
-        if state is None:
-            if new == _snapshot(StatementLineState.Status.PENDING, "", []):
-                new_plain.append(StatementLineState(statement_line=line))
-                continue
-            state, old = StatementLineState(statement_line=line), None
-        else:
-            old = _snapshot(
-                state.status,
-                state.review_reason,
-                sorted(charge.pk for charge in state.proposed_charges.all()),
-            )
-            if old == new:
-                continue
-        state.status, state.to_review, state.review_reason = status, bool(reason), reason
-        state.save()
-        state.proposed_charges.set(charges)
-        audit.record(
-            STATE_CHANGED,
-            actor=audit.system("treasury.reconciliation"),
-            target=state,
-            old=old,
-            new=new,
-            details={"line": line.pk},
+        status, reason, charges = _evaluate(
+            line, found[line.pk], charges_by_reference, single_charge_by_amount, taken
+        )
+        if state is None and _snapshot(status, reason, []) == PLAIN:
+            new_plain.append(StatementLineState(statement_line=line))
+            continue
+        created = state is None
+        _apply(
+            state or StatementLineState(statement_line=line),
+            status,
+            reason,
+            charges,
+            created=created,
         )
     StatementLineState.objects.bulk_create(new_plain)
 
 
-def on_statement_confirmed(sender, batch, **kwargs) -> None:
-    """CA-T09.1: les línies d'un extracte confirmat neixen amb estat."""
+def on_statement_changed(sender, batch, **kwargs) -> None:
+    """CA-T09.1: les línies d'un extracte confirmat neixen amb estat; les d'un de desfet deixen
+    de ser proposades."""
     refresh()

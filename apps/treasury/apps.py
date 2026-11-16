@@ -10,6 +10,6 @@ class TreasuryConfig(AppConfig):
 
         from . import reconciliation
 
-        bank_statement.confirmed.connect(
-            reconciliation.on_statement_confirmed, dispatch_uid="treasury.reconciliation"
+        bank_statement.changed.connect(
+            reconciliation.on_statement_changed, dispatch_uid="treasury.reconciliation"
         )

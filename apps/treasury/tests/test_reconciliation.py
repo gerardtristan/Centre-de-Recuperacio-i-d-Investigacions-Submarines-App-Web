@@ -163,6 +163,15 @@ class TestStates:
         assert state(first) == (State.PROPOSED, "", [quota])
         assert state(second) == (State.PENDING, Reason.REPEATED_REFERENCE, [])
 
+    def test_review_53_a_charge_already_proposed_does_not_count_for_amount_only(
+        self, treasurer, charge
+    ):
+        quota = charge()
+        no_reference, with_reference = lines(treasurer, (9000, "TRANSF"), (9000, ref(quota)))
+        reconciliation.refresh()
+        assert state(with_reference) == (State.PROPOSED, "", [quota])
+        assert state(no_reference) == (State.PENDING, "", [])
+
     def test_outgoing_line_with_a_reference_stays_pending(self, treasurer, charge):
         quota = charge()
         (line,) = lines(treasurer, (-9000, f"DEVOLUCIO {ref(quota)}"))
@@ -217,6 +226,8 @@ class TestRefresh:
         reconciliation.refresh()
         assert bs._reconciled(line.batch) is False  # l'estat no és cap conciliació
         bs.undo(line.batch, by=treasurer, reason="Extracte equivocat (prova)")
+        # Revisió de la #53: en desfer, la línia deixa de ser proposada (senyal `changed`).
+        assert state(line) == (State.PENDING, "", [])
         (again,) = lines(treasurer, (9000, ref(quota)))
         reconciliation.refresh()
         assert state(again) == (State.PROPOSED, "", [quota])
@@ -236,6 +247,10 @@ class TestReferencesIn:
             f"transf cris-{code.lower()}-{c.lower()}",
             f"TRANSF CRIS {code} {c} QUOTA",
             f"TRANSF/CRIS{code}{c}/QUOTA",
+            f"TRANSF CRIS - {code} - {c}",  # revisió de la #53
+            f"TRANSF CRIS.{code}.{c}",
+            f"TRANSF CRIS/{code}/{c}",
+            f"TRANSF CRIS_{code}_{c}",
             f"{reference} {reference}",
         ]:
             assert references.references_in(text) == [reference], text

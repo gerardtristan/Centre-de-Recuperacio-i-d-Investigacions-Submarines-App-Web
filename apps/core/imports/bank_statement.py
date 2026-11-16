@@ -43,8 +43,9 @@ MAX_BYTES = 1024 * 1024
 MAX_LINES = 2000
 TOKEN_MAX_AGE = 60 * 60  # segons
 _SALT = "apps.core.imports.bank_statement"
-# Lot confirmat, dins la mateixa transacció: la 04 dona estat a les línies noves (T-M04-11).
-confirmed = Signal()
+# Lot confirmat o desfet, dins la mateixa transacció: la 04 torna a calcular l'estat de les
+# línies a conciliar (T-M04-11).
+changed = Signal()
 
 NEW, DUPLICATE, ERROR = "new", "duplicate", "error"
 MASK = "[número tapat]"
@@ -278,7 +279,6 @@ def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatc
         },
     )
     add_lines(batch, [_stored(line) for line in lines])
-    confirmed.send(sender=ImportBatch, batch=batch)
     audit.record(
         audit.Action.BANK_STATEMENT_CONFIRMED,
         actor=by,
@@ -286,6 +286,7 @@ def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatc
         details={"counts": counts},
         request=request,
     )
+    changed.send(sender=ImportBatch, batch=batch)
     return batch
 
 
@@ -325,4 +326,5 @@ def undo(batch: ImportBatch, *, by, reason: str, request=None) -> ImportBatch:
         reason=reason,
         request=request,
     )
+    changed.send(sender=ImportBatch, batch=batch)
     return batch
