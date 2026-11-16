@@ -179,12 +179,18 @@ def change(key: str, value, user, note: str = "", effective_from=None) -> Settin
     `ValidationError` i no es desa res. Tornar al valor inicial és un canvi més. El correu dels
     canvis de diners va per la cua: si falla, el canvi es manté."""
     setting = Setting.objects.filter(key=key).first()
-    if setting is None or not can_view(user, setting.module):
+    perms = permissions.effective_permissions(user)
+    if setting is None or not can_view(user, setting.module, perms=perms):
         raise Http404
-    if not can_edit(user, setting):
-        audit.record(ACTION_DENIED, actor=user, target=setting, field=setting.key)
-        raise Http404
+    if not can_edit(user, setting, perms=perms):
+        deny(user, setting)
     return _save(setting.pk, value, user, note, effective_from)
+
+
+def deny(user, setting: Setting, request=None):
+    """RN-RP-22: una edició de qui només veu l'apartat queda al registre i és «no trobat»."""
+    audit.record(ACTION_DENIED, actor=user, target=setting, field=setting.key, request=request)
+    raise Http404
 
 
 @transaction.atomic

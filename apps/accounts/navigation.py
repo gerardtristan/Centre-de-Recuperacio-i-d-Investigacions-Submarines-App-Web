@@ -124,7 +124,7 @@ class AdminNav:
 
 def route_needs(name):
     """Grups de permisos de la ruta `name`: n'hi ha prou amb un grup sencer."""
-    return BASE_ROUTES.get(name) or (ROUTES[name]["GET"],)
+    return BASE_ROUTES[name] if name in BASE_ROUTES else (ROUTES[name]["GET"],)
 
 
 def _allowed(account, name, permissions) -> bool:

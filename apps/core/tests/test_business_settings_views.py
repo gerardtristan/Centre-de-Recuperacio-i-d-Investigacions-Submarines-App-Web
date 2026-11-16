@@ -161,3 +161,14 @@ def test_menu_shows_settings_only_with_a_section_permission(make_admin):
     index = reverse("administration:settings")
     assert admin_client(make_admin(R.COURSES_MANAGER)).get(index).status_code == 404
     assert b"Ajustos de prova" in admin_client(make_admin(R.PRESIDENT)).get(index).content
+
+
+def test_menu_without_any_settings_section_hides_the_entry_instead_of_failing(
+    make_admin, monkeypatch
+):
+    # Revisió de la PR #48: sense cap apartat al catàleg, la ruta no té cap grup de permisos.
+    from apps.accounts import navigation
+
+    monkeypatch.setitem(navigation.BASE_ROUTES, "administration:settings", ())
+    home = admin_client(make_admin(R.ADMINISTRATOR)).get(reverse("administration:home"))
+    assert home.status_code == 200 and b"/ajustos/" not in home.content

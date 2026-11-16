@@ -167,7 +167,7 @@ def setting_detail_view(request, section, key):
     setting = get_object_or_404(Setting, module=section, key=key)
     row = _row(setting, request.user, request_permissions(request))
     if request.method == "POST" and not row["editable"]:
-        service.change(setting.key, None, request.user)  # registra la petició i «no trobat»
+        service.deny(request.user, setting, request)
     data = request.POST if request.method == "POST" else None
     form = ValueForm(setting, data, current=service.get(setting.key))
     if form.is_bound and form.is_valid():
