@@ -584,6 +584,30 @@ opcions:
       i el marge del 09 llegeix aquest estat. Amb la A, l'estat d'un moviment sempre és d'un sol pas.
     data: 2026-11-16
 
+  P-118:
+    opcions:
+      A: Com s'ha construït; devolucions i retorn sumen junts fins a l'import cobrat. Després d'un retorn, cap devolució; amb devolucions, el retorn es rebutja i va «a revisar».
+      B: El retorn no compta amb les devolucions; cadascun té el seu límit.
+      C: El retorn s'apunta sempre, i si amb les devolucions passa de l'import, la diferència va «a revisar».
+    recomanada: A
+    perque: >-
+      Amb la B es podria tornar dues vegades el mateix import (una devolució i un retorn del banc) sense que res avisés.
+      La C és la més fidel al banc però apunta més sortides que diners cobrats; la A atura el cas estrany perquè el
+      tresorer el miri, que és rar i ha de ser a mà.
+    data: 2026-11-17
+
+  P-119:
+    opcions:
+      A: Com s'ha construït; cada crida apunta una devolució, el límit de l'import cobrat i el pany del pagament n'eviten l'excés, i el 05b la crida una vegada per devolució.
+      B: Afegir un identificador de la devolució al moviment (migració) i tornar l'existent si es repeteix.
+      C: Rebutjar dues devolucions del mateix import el mateix dia.
+    recomanada: B
+    perque: >-
+      Una repetició del 05b (un reintent després d'un error) podria apuntar dues vegades una devolució parcial, i el
+      límit només l'atura si passa de l'import. La B ho resol del tot amb poc codi; la C rebutjaria casos legítims.
+      Fins que es decideixi, la A no deixa mai tornar més del cobrat.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).
