@@ -33,7 +33,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-18 Monograma: avatar per defecte a partir de `avatar_seed` | feta | 16/11/2026 | #76 | Avatar SVG del servidor (blocs, ones o mosaic; 4 paletes de la marca) a partir de la llavor, mai del nom (RN-M01-30), a la portada i al perfil |
 | T-DX-19 Avisador: rols i permisos, en construcció | feta | 16/11/2026 | #81 | `/en-construccio/rols-permisos/`: matriu permís × rol, resum dels afectats, nota i TOTP, files protegides; funcional amb la T-RP-03 |
 | T-DX-20 Avisador: ajustos, en construcció | per fer | — | — | Funcional quan es faci la T-AJ-02 |
-| T-DX-21 Cartola: pendents per antiguitat, en construcció | en curs | 16/11/2026 | — | Pantalla proposada; el pla no la té (D1) |
+| T-DX-21 Cartola: pendents per antiguitat, en construcció | feta | 16/11/2026 | #84 | `/en-construccio/pendents-antiguitat/`: socis × trams de dies amb una fitxa per càrrec, totals amb els comptadors de Deposito; pantalla proposada, el pla no la té (D1) |
 | T-DX-22 Deposito: transferències i pagaments a revisar, en construcció | per fer | — | — | Funcional amb la T-M04-12 i la T-M05b-16 |
 | T-DX-23 Calendari general (Horario, després Solape), en construcció | feta | 16/11/2026 | #80 | Setmana en graella (agenda per dies al mòbil) amb el ratllat dels encavalcaments; Solape, més endavant |
 | T-DX-24 Activitats i inscripció (Camilla i Comanda), en construcció | feta | 16/11/2026 | #83 | P-94 (A): passos de Camilla amb la línia de Tramite i opcions amb regles de Comanda; cap dada de salut |

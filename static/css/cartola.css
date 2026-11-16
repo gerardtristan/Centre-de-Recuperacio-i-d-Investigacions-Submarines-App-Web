@@ -1,0 +1,17 @@
+/* Cartola (T-DX-21; recurs a design/extern/; design-system §16, T-DX-21): càrrecs pendents i retornats
+   per antiguitat. Del recurs: una fila per soci, una columna per tram de dies i una fitxa per càrrec, amb
+   els filtres per estat i l'exportació a dalt. Els totals de cada tram fan servir els comptadors de
+   Deposito (§6.17). Només tokens. */
+.cartola { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.cartola h1 { margin-top: 0; }
+.cartola-intro { margin: 0 0 var(--e-4); color: var(--c-text-2); max-width: var(--amplada-text); }
+.cartola .cartola-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-3); margin-bottom: var(--e-4); }
+.cartola-matriu { min-width: 0; overflow-x: auto; }
+.cartola-fitxes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.cartola-fitxes li {
+  display: grid; gap: var(--e-1); justify-items: start; padding: var(--e-2) var(--e-3);
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); background: var(--c-superficie-2);
+}
+.cartola-buit { color: var(--c-text-2); }
+.cartola .deposito-comptadors b { white-space: nowrap; }
+@media (min-width: 600px) { .cartola .taula td { vertical-align: top; } }
