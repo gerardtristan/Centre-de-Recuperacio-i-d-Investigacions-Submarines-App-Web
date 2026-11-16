@@ -195,11 +195,11 @@ El límit real no és quant de codi es pot escriure alhora, sinó **quant en pot
 | **A. Tresoreria** | `apps/treasury` (nova) | B i C | Els contractes de la llesca 2 |
 | **B. Pagaments** | `apps/payments` (nova) | A i C | Els contractes de la llesca 2 |
 | **C. Tancament del 01** | `apps/members` | A i B | — |
-| **N. Nucli** | `apps/core`, `apps/accounts` | **Amb ningú: un sol canvi obert alhora** | — |
+| **N. Nucli** | `apps/core`, `apps/accounts` | **Amb un altre canvi al nucli només si no comparteixen cap fitxer** (propietari, 16/11/2026); les migracions del nucli compten com a fitxer compartit (dues alhora deixarien dues fulles). Qui fusiona segon fa el rebase | — |
 | **D. Disseny** (16/11/2026) | `static/css`, `static/js`, plantilles comunes ([recursos externs](recursos-disseny-extern.md), [`estat/DX.md`](../estat/DX.md)) | A, B i C, dins el màxim de tres carrils oberts; **una sola tasca alhora**; si xoca amb A o B, cedeix | Res; el que toqui `apps/core` o `apps/accounts` passa pel nucli |
 
 - **A i B es troben en un contracte.** Abans de separar-se, s'escriuen i es proven les signatures on es toquen: `treasury.record_income`, l'adaptador del proveïdor i l'esdeveniment `charge.paid`. Cada carril treballa contra el contracte i contra un doble de prova de l'altre.
-- **El nucli és el punt de xoc.** `apps/core/models.py` fa 1.290 línies i hi escriu tothom (el càrrec, els permisos, els ajustos). Un canvi al nucli va en una PR pròpia, petita, que es fusiona abans que les que la necessiten.
+- **El nucli és el punt de xoc.** `apps/core/models.py` fa 1.290 línies i hi escriu tothom (el càrrec, els permisos, els ajustos). Un canvi al nucli va en una PR pròpia, petita, que es fusiona abans que les que la necessiten. Abans d'obrir-ne un mentre n'hi ha un altre d'obert, es comparen els fitxers de totes dues PR (també de l'altra sessió) i s'avisa l'altra sessió.
 - **No poden anar en paral·lel:** la remesa (llesca 5) amb el mandat (llesca 4) ni amb les liquidacions del 04; el 06 i la inscripció del 02 amb res fins que existeixi la llesca 2.
 - **A la fase 2**, un cop existeixi la llesca 2: el 06, el catàleg del 02 i el nucli de despeses del 09 poden anar alhora. El 03 espera la llesca mínima del 02.
 
