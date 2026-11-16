@@ -313,7 +313,7 @@
         <li data-rols="admin cursos material tresorer instructor historia"><a href="#" data-vista="vista-activitat" aria-current="page"><span class="icona" data-icona="ona"></span><span>Activitats</span></a></li>
         <li data-rols="admin material cursos instructor tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="llista"></span><span>Material</span></a></li>
         <li data-rols="admin tresorer"><a href="#" data-vista="vista-tresoreria"><span class="icona" data-icona="banc"></span><span>Tresoreria</span></a></li>
-        <li data-rols="admin tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="targeta"></span><span>Pagaments</span></a></li>
+        <li data-rols="admin tresorer secretaria"><a href="#" data-vista="vista-pagaments-campanya"><span class="icona" data-icona="targeta"></span><span>Pagaments</span></a></li>
         <li data-rols="admin secretaria cursos tresorer"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="escut"></span><span>Llicències</span></a></li>
         <li data-rols="admin historia"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="casa"></span><span>Web</span></a></li>
         <li data-rols="admin secretaria cursos material tresorer historia"><a href="#" data-vista="vista-buida"><span class="icona" data-icona="taula"></span><span>Dashboard</span></a></li>
@@ -375,7 +375,7 @@
           <option value="botiga">Resp. botiga</option>
         </select>
       </label>
-      <span class="estat estat-avis" role="note"><span aria-hidden="true">!</span> Rols de la decisió 059. Només Socis segueix la configuració inicial; Activitats, Tresoreria i Usuaris i rols encara mostren la matriu provisional (pendents d'adaptar)</span>
+      <span class="estat estat-avis" role="note"><span aria-hidden="true">!</span> Rols de la decisió 059. Només Socis i Pagaments segueixen la configuració inicial; Activitats, Tresoreria i Usuaris i rols encara mostren la matriu provisional (pendents d'adaptar)</span>
       <p class="descripcio-rol" id="descripcio-rol" aria-live="polite"></p>
     </div>
 
@@ -649,7 +649,7 @@
       </div>
 
       <!-- ==================== Socis: navegació del mòdul (T-M01-02) ==================== -->
-      <nav class="vista-subnav" id="subnav-socis" aria-label="Socis" hidden>
+      <nav class="vista-subnav" id="subnav-socis" data-prefix="vista-socis" aria-label="Socis" hidden>
         <ul class="subnav">
           <li data-rols="admin secretaria tresorer"><a href="#vista-socis-llistat" data-vista="vista-socis-llistat">Llistat</a></li>
           <li data-rols="admin secretaria tresorer president"><a href="#vista-socis-sollicituds" data-vista="vista-socis-sollicituds">Sol·licituds</a></li>
@@ -1400,7 +1400,7 @@
               <li>Les transferències amb referència (per exemple <span class="codi">CRS-SRT014-0427</span>) es proposen per conciliar.</li>
               <li>Res no es dona per cobrat fins que ho confirmes.</li>
             </ol>
-            <div class="avis" style="margin-top: var(--e-4)"><strong>Dades bancàries</strong>La plataforma no guarda cap IBAN de socis.</div>
+            <div class="avis" style="margin-top: var(--e-4)"><strong>Dades bancàries</strong>Els números de compte del concepte surten tapats. L'IBAN dels socis només es guarda xifrat al mandat (044).</div>
           </section>
         </div>
       </div>
@@ -1436,6 +1436,200 @@
             <li><span><span class="registre-quan">20/10/2026 10:12</span> · <span class="registre-qui">jordi.adm</span></span><span>Rol tresorer: «Importar l'extracte bancari» Sí (abans No)</span></li>
           </ul>
         </section>
+      </div>
+
+      <!-- ==================== Pagaments: navegació del mòdul (T-M05a-02) ==================== -->
+      <nav class="vista-subnav" id="subnav-pagaments" data-prefix="vista-pagaments" aria-label="Pagaments" hidden>
+        <ul class="subnav">
+          <li data-rols="admin tresorer"><a href="#vista-pagaments-campanya" data-vista="vista-pagaments-campanya">Campanya de mandats</a></li>
+          <li data-rols="admin tresorer secretaria"><a href="#vista-pagaments-mandats" data-vista="vista-pagaments-mandats">Mètodes i mandats</a></li>
+          <li data-rols="admin"><a href="#vista-pagaments-configuracio" data-vista="vista-pagaments-configuracio">Configuració</a></li>
+        </ul>
+      </nav>
+
+      <!-- ==================== Vista: campanya de mandats (05a C5; P-M05a-E; RN-M05a-14) ==================== -->
+      <div id="vista-pagaments-campanya" class="vista" data-acces="admin tresorer" data-molla="Pagaments|Campanya de mandats" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Campanya de mandats</h1>
+          </div>
+          <p class="text-2">Cada soci actiu tria com pagarà la quota abans de la primera remesa (022).</p>
+        </div>
+        <div class="avis avis-avis"><strong>Identificador de creditor sense confirmar</strong>Sense l'identificador del banc, la campanya no es pot enviar a producció (RN-M05a-04). <span class="a-validar">A verificar: banc (P-45 punt 5)</span></div>
+        <div class="demo" role="group" aria-labelledby="demo-campanya">
+          <span class="demo-titol" id="demo-campanya">Demostració</span>
+          <label><input type="radio" name="demo-campanya" value="0" checked> Encara no s'ha enviat</label>
+          <label><input type="radio" name="demo-campanya" value="1"> Enviada, cap resposta</label>
+          <label><input type="radio" name="demo-campanya" value="2"> Enviada, amb respostes</label>
+        </div>
+        <section class="targeta" aria-labelledby="recompte-campanya-titol">
+          <h2 id="recompte-campanya-titol">Com pagaran els 150 socis actius</h2>
+          <ul class="xifres-resum" aria-label="Socis per mètode triat">
+            <li class="xifra"><span class="xifra-etiqueta">Domiciliació</span><span class="xifra-valor" data-xifres="0 0 100">0</span></li>
+            <li class="xifra"><span class="xifra-etiqueta">Targeta guardada</span><span class="xifra-valor" data-xifres="0 0 10">0</span></li>
+            <li class="xifra"><span class="xifra-etiqueta">Pagar cada vegada</span><span class="xifra-valor" data-xifres="20 20 30">20</span></li>
+            <li class="xifra xifra-marge"><span class="xifra-etiqueta">Sense resposta</span><span class="xifra-valor" data-xifres="130 130 10">130</span></li>
+          </ul>
+          <p class="formula" id="campanya-cobertura" aria-live="polite">Invitació no enviada.</p>
+        </section>
+        <section class="targeta" aria-labelledby="invitacio-titol">
+          <h2 id="invitacio-titol">Invitació i recordatoris</h2>
+          <dl class="meta-graella dades-soci">
+            <div><dt>Destinataris</dt><dd>130 socis actius sense mètode</dd></div>
+            <div><dt>Sense compte personal activat</dt><dd>42: l'enllaç els porta a activar-lo primer</dd></div>
+            <div><dt>Text</dt><dd>Versió vigent <span class="a-validar">A validar: junta (T-M05a-01)</span></dd></div>
+            <div><dt>Recordatoris</dt><dd>Als 7 i als 14 dies (Ajustos, VC-11) i un d'últim quan fixis la remesa <span class="a-validar">A validar: tresorer</span></dd></div>
+          </dl>
+          <div class="accions-form">
+            <button class="boto boto-principal" type="button" id="envia-campanya" data-icona="fletxa">Envia 130 invitacions…</button>
+          </div>
+          <p class="resultat-desar" id="resultat-campanya" role="status" hidden></p>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Només el tresorer i l'administrador (A5), amb el compte d'administrador i TOTP. La resta: «Sense accés a aquesta pantalla».</li>
+            <li>Una invitació per soci actiu sense mètode, una sola vegada (únic campanya i soci); cap recordatori a qui ja ha triat (RN-M05a-14, CA-M05a-12). Els dies es llegeixen dels ajustos en enviar (RN-M05a-18).</li>
+            <li>Els recomptes són <code>payments.campaign_status</code>; la pantalla no mostra cap nom ni cap dada bancària. Enviar queda al registre d'activitat amb la versió del text.</li>
+            <li>Qui no triï res paga cada quota amb targeta, Bizum o transferència (RN-M05a-15). Com i quan es tanca la campanya: <span class="a-validar">A validar: P-135</span>.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: mètodes i mandats per soci (05a C6 i C8; A4, A6, A9) ==================== -->
+      <div id="vista-pagaments-mandats" class="vista" data-acces="admin tresorer secretaria" data-molla="Pagaments|Mètodes i mandats" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Mètodes i mandats</h1>
+          </div>
+          <p class="text-2" data-rols="admin tresorer">L'IBAN surt sempre emmascarat. Ningú no el veu sencer.</p>
+          <p class="text-2" data-rols="secretaria">La secretaria només veu si cada soci té mètode.</p>
+        </div>
+        <section class="targeta" aria-labelledby="mandats-titol">
+          <h2 id="mandats-titol">Socis actius</h2>
+          <div class="eines eines-quotes" data-rols="admin tresorer">
+            <div class="camp">
+              <label for="filtre-metode">Mètode</label>
+              <select id="filtre-metode"><option value="">Tots</option><option value="domiciliacio">Domiciliació</option><option value="targeta">Targeta guardada</option><option value="cada-vegada">Pagar cada vegada</option><option value="cap">Sense resposta</option></select>
+            </div>
+            <p class="recompte xifra-viva" id="recompte-mandats" aria-live="polite">5 de 5 socis</p>
+          </div>
+          <table class="taula" id="taula-mandats">
+            <caption class="visualment-amagat">Mètode de pagament de la quota de cada soci actiu</caption>
+            <thead>
+              <tr>
+                <th scope="col">Soci</th>
+                <th scope="col" data-rols="admin tresorer">Mètode</th>
+                <th scope="col" data-rols="admin tresorer">Mandat o targeta</th>
+                <th scope="col" data-rols="admin tresorer">IBAN</th>
+                <th scope="col" data-rols="secretaria">Té mètode</th>
+                <th scope="col" data-rols="admin tresorer"><span class="visualment-amagat">Accions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-metode="domiciliacio">
+                <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
+                <td data-etiqueta="Mètode" data-rols="admin tresorer">Domiciliació</td>
+                <td data-etiqueta="Mandat" data-rols="admin tresorer" data-estat-mandat><span><span class="codi">CRIS000427M01</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></span></td>
+                <td data-etiqueta="IBAN" data-rols="admin tresorer"><span class="codi">ES•• •••• •••• •••• •••• 1332</span></td>
+                <td data-etiqueta="Té mètode" data-rols="secretaria">Sí</td>
+                <td class="cel-accions" data-rols="admin tresorer"><button class="boto boto-petit" type="button" data-revoca="CRIS000427M01" data-nom-soci="Marta Puig Ferrer (soci 0427)">Revoca…<span class="visualment-amagat"> el mandat de Marta Puig Ferrer</span></button></td>
+              </tr>
+              <tr data-metode="targeta">
+                <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
+                <td data-etiqueta="Mètode" data-rols="admin tresorer">Targeta guardada</td>
+                <td data-etiqueta="Targeta" data-rols="admin tresorer"><span class="codi">•••• 4821 · 08/2029</span></td>
+                <td data-etiqueta="IBAN" data-rols="admin tresorer">—</td>
+                <td data-etiqueta="Té mètode" data-rols="secretaria">Sí</td>
+                <td class="cel-accions" data-rols="admin tresorer"></td>
+              </tr>
+              <tr data-metode="cada-vegada">
+                <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
+                <td data-etiqueta="Mètode" data-rols="admin tresorer">Pagar cada vegada</td>
+                <td data-etiqueta="Mandat" data-rols="admin tresorer">—</td>
+                <td data-etiqueta="IBAN" data-rols="admin tresorer">—</td>
+                <td data-etiqueta="Té mètode" data-rols="secretaria">Sí</td>
+                <td class="cel-accions" data-rols="admin tresorer"></td>
+              </tr>
+              <tr data-metode="cap">
+                <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
+                <td data-etiqueta="Mètode" data-rols="admin tresorer"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Sense resposta</span></td>
+                <td data-etiqueta="Mandat" data-rols="admin tresorer">—</td>
+                <td data-etiqueta="IBAN" data-rols="admin tresorer">—</td>
+                <td data-etiqueta="Té mètode" data-rols="secretaria">No</td>
+                <td class="cel-accions" data-rols="admin tresorer"></td>
+              </tr>
+              <tr data-metode="domiciliacio">
+                <td class="cel-nom">Marc Riera Sala<span class="codi">Soci 0356</span></td>
+                <td data-etiqueta="Mètode" data-rols="admin tresorer">Domiciliació</td>
+                <td data-etiqueta="Mandat" data-rols="admin tresorer" data-estat-mandat><span><span class="codi">CRIS000356M02</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> Actiu</span></span></td>
+                <td data-etiqueta="IBAN" data-rols="admin tresorer"><span class="codi">ES•• •••• •••• •••• •••• 7710</span></td>
+                <td data-etiqueta="Té mètode" data-rols="secretaria">Sí</td>
+                <td class="cel-accions" data-rols="admin tresorer"><span class="text-2" data-rols="tresorer">És el teu mandat: revoca'l des del compte personal</span><button class="boto boto-petit" type="button" data-rols="admin" data-revoca="CRIS000356M02" data-nom-soci="Marc Riera Sala (soci 0356)">Revoca…<span class="visualment-amagat"> el mandat de Marc Riera Sala</span></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Tresorer i administrador (A4): mètode, referència, estat i IBAN emmascarat (país i quatre últims). Secretaria: només «té mètode: sí o no»; la resta de columnes no arriben a l'HTML. Amagar-les aquí és una simulació.</li>
+            <li>Ningú no veu l'IBAN sencer (A9, regla protegida de la 044) i no hi ha cap exportació amb IBAN.</li>
+            <li>Revocar a petició escrita del soci (A6): motiu obligatori, registre d'activitat, correu al soci i avís si ja hi ha una remesa enviada (RN-M05a-09). Ningú no revoca el seu propi mandat des de l'administració, i el servidor ho comprova encara que s'enviï. Reautenticació: <span class="a-validar">A validar: P-133</span>.</li>
+            <li>Sessió caducada o permís retirat: no es desa res i no es mostra cap dada.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: configuració del proveïdor i nivell (05a C7; A7, A8; P-M05a-F i G) ==================== -->
+      <div id="vista-pagaments-configuracio" class="vista" data-acces="admin" data-molla="Pagaments|Configuració" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Proveïdor i nivell de producció</h1>
+          </div>
+          <p class="text-2">Només lectura: els valors són a la configuració del servidor <span class="a-validar">A validar: P-131</span></p>
+        </div>
+        <section class="targeta" aria-labelledby="nivell-titol">
+          <h2 id="nivell-titol">Nivell de producció</h2>
+          <dl class="meta-graella dades-soci">
+            <div><dt>Ara</dt><dd><span class="estat estat-neutre"><span aria-hidden="true">■</span> Proves: cap dada real</span></dd></div>
+            <div><dt>Cobraments i remeses reals</dt><dd><span class="estat estat-neutre"><span aria-hidden="true">■</span> No permesos</span></dd></div>
+            <div><dt>Importació final de Cluber</dt><dd><span class="estat estat-neutre"><span aria-hidden="true">■</span> Bloquejada</span></dd></div>
+            <div><dt>Identificador de creditor</dt><dd><span class="estat estat-avis"><span aria-hidden="true">!</span> Sense confirmar</span></dd></div>
+          </dl>
+          <p class="formula">El nivell 1 (dades reals, cap cobrament) i el nivell 2 (cobraments) demanen l'autorització escrita de la junta (025). Es canvien al servidor, mai des d'aquesta pantalla.</p>
+        </section>
+        <section class="targeta" aria-labelledby="proveidor-titol">
+          <h2 id="proveidor-titol">Proveïdor de pagaments</h2>
+          <dl class="meta-graella dades-soci">
+            <div><dt>Proveïdor</dt><dd>Fictici, entorn de proves <span class="a-validar">A verificar: P-44</span></dd></div>
+            <div><dt>Targeta</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Sí</span></dd></div>
+            <div><dt>Bizum</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Sí</span></dd></div>
+            <div><dt>Guardar targetes</dt><dd><span class="estat estat-neutre"><span aria-hidden="true">■</span> No</span> <span class="a-validar">A verificar: P-45 punt 6</span></dd></div>
+            <div><dt>Compte de trànsit</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Creat</span></dd></div>
+            <div><dt>Trànsit «Remeses SEPA»</dt><dd><span class="estat estat-avis"><span aria-hidden="true">◷</span> Arriba amb les remeses</span></dd></div>
+          </dl>
+        </section>
+        <section class="targeta" aria-labelledby="claus-titol">
+          <h2 id="claus-titol">Claus</h2>
+          <dl class="meta-graella dades-soci">
+            <div><dt>Claus del proveïdor</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Configurades</span></dd></div>
+            <div><dt>Clau de xifratge dels IBAN</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> Configurada · versió 1</span></dd></div>
+            <div><dt>Còpia de la clau fora del servidor</dt><dd><span class="a-validar">A validar: junta (S-M05a-09)</span></dd></div>
+          </dl>
+          <p class="formula">Els valors de les claus no surten mai. La rotació la fa l'administrador amb informàtica, fora d'aquesta pantalla (P-M05a-G).</p>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Només l'administrador (A7). Les claus i els secrets són variables d'entorn: la pantalla només diu si hi són, mai el valor ni una part.</li>
+            <li>Les capacitats són les que declara <code>capabilities()</code>; les pantalles del soci només ofereixen el que hi diu «Sí».</li>
+            <li><code>PAYMENTS_LIVE_CHARGES_ALLOWED</code> fals: l'adaptador rebutja qualsevol cobrament amb claus de producció i no es pot generar cap remesa (RN-M05a-11).</li>
+          </ul>
+        </aside>
       </div>
 
       <div id="vista-buida" class="vista" hidden data-acces="admin secretaria cursos material tresorer instructor historia" data-molla="Mòdul">
@@ -1636,6 +1830,48 @@
   </form>
 </dialog>
 
+<!-- ==================== Diàleg: revocar un mandat a petició del soci (05a A6) ==================== -->
+<dialog class="dialeg" id="dialeg-revoca-mandat" aria-labelledby="revoca-mandat-titol">
+  <form method="dialog" id="form-revoca-mandat" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="revoca-mandat-titol">Revoca el mandat</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p id="revoca-mandat-resum"></p>
+      <p class="text-2">Només a petició escrita del soci. Pagarà cada quota quan es generi i rebrà un correu. Si ja hi ha una remesa enviada al banc amb aquest mandat, rebràs un avís.</p>
+      <div class="camp">
+        <label for="revoca-mandat-motiu">Motiu</label>
+        <textarea id="revoca-mandat-motiu" rows="3" aria-describedby="revoca-mandat-motiu-ajuda revoca-mandat-motiu-error"></textarea>
+        <p class="ajuda" id="revoca-mandat-motiu-ajuda">Obligatori: com i quan ha arribat la petició. Queda al registre d'activitat.</p>
+        <p class="error-camp" id="revoca-mandat-motiu-error" hidden></p>
+      </div>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-revoca-mandat" data-icona="check">Revoca el mandat</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ==================== Diàleg: enviar la campanya de mandats (05a A5) ==================== -->
+<dialog class="dialeg" id="dialeg-campanya" aria-labelledby="campanya-titol">
+  <form method="dialog" id="form-campanya" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="campanya-titol">Envies 130 invitacions?</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p>Cada soci actiu sense mètode rebrà un correu i un avís a l'app amb l'enllaç a «Com pago la quota». No es pot desfer.</p>
+      <p class="text-2">Els recordatoris sortiran sols als 7 i als 14 dies, només a qui no hagi triat.</p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-campanya" data-icona="fletxa">Sí, envia-les</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- ==================== Diàleg: rebutjar una sol·licitud (motiu obligatori) ==================== -->
 <dialog class="dialeg" id="dialeg-rebutja" aria-labelledby="rebutja-titol">
   <form method="dialog" id="form-rebutja" novalidate>
@@ -1707,17 +1943,18 @@
     molla.innerHTML = parts.map((p, i) => i === parts.length - 1 ? '<li><span aria-current="page"' + (p.indexOf('-20') > 0 ? ' class="codi"' : '') + '></span></li>' : '<li><a href="#"></a></li>').join('');
     molla.querySelectorAll('li > *').forEach((n, i) => { n.textContent = parts[i]; });
     if (id === 'vista-activitat') pestanyes.refresca();
-    // Socis (T-M01-02): navegació del mòdul, pestanyes i adreça amb la vista i el rol (#vista&rol=…)
-    const subnav = document.getElementById('subnav-socis');
-    subnav.hidden = !(id.startsWith('vista-socis') && pot);
-    subnav.querySelectorAll('a').forEach(a => { if (a.dataset.vista === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    // Socis (T-M01-02) i Pagaments (T-M05a-02): navegació del mòdul, pestanyes i adreça amb la vista i el rol (#vista&rol=…)
+    document.querySelectorAll('.vista-subnav').forEach(subnav => {
+      subnav.hidden = !(id.startsWith(subnav.dataset.prefix) && pot);
+      subnav.querySelectorAll('a').forEach(a => { if (a.dataset.vista === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    });
     if (pot && pestanyesVista[id]) pestanyesVista[id].refresca();
     if (history.replaceState) history.replaceState(null, '', '#' + id + '&rol=' + rol);
   }
   function marcaLateral(id) {
-    const socis = id.startsWith('vista-socis');
+    const m = modul(id);
     document.querySelectorAll('.lateral-nav a').forEach(x => {
-      const si = socis ? (x.dataset.vista || '').startsWith('vista-socis') : x.dataset.vista === id;
+      const si = m ? (x.dataset.vista || '').startsWith(m) : x.dataset.vista === id;
       if (si) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current');
     });
   }
@@ -1730,7 +1967,7 @@
   }
   // Enllaços entre pantalles de Socis: navegació del mòdul i botons com «Obre la fitxa»
   document.addEventListener('click', e => {
-    const a = e.target.closest('#subnav-socis a[data-vista], [data-obre-vista]');
+    const a = e.target.closest('.vista-subnav a[data-vista], [data-obre-vista]');
     if (!a) return;
     e.preventDefault();
     ves(a.dataset.vista || a.dataset.obreVista);
@@ -1740,26 +1977,28 @@
     document.querySelectorAll('.lateral-nav a').forEach(x => x.removeAttribute('aria-current'));
     a.setAttribute('aria-current', 'page');
     menu(false);
-    // Socis: la primera pantalla del mòdul que el rol pot veure (el President, Sol·licituds)
-    const id = a.dataset.vista.startsWith('vista-socis') ? primeraSocis() : a.dataset.vista;
+    // Mòduls amb subpantalles: la primera que el rol pot veure (el President, Sol·licituds; la Secretaria, Mètodes i mandats)
+    const m = modul(a.dataset.vista);
+    const id = m ? primera(m) || a.dataset.vista : a.dataset.vista;
     mostra(id);
     document.getElementById('contingut').focus({ preventScroll: true });
   }));
-  function primeraSocis() {
-    const li = Array.from(document.querySelectorAll('#subnav-socis li')).find(x => x.dataset.rols.split(' ').includes(rolActual()));
-    return li ? li.querySelector('a').dataset.vista : 'vista-socis-llistat';
+  function modul(id) { return ['vista-socis', 'vista-pagaments'].find(m => id.startsWith(m)); }
+  function primera(m) {
+    const li = Array.from(document.querySelectorAll('[data-prefix="' + m + '"] li')).find(x => x.dataset.rols.split(' ').includes(rolActual()));
+    return li && li.querySelector('a').dataset.vista;
   }
   document.getElementById('contingut').tabIndex = -1;
 
   /* ---------- «Veure com»: rols de la 059. Socis segueix la configuració inicial;
      la resta de pantalles, encara la matriu provisional (spec 00, §2.4) ---------- */
   const descripcions = {
-    admin: 'Administrador: a Socis, tot excepte marcar impagats (059). Altres pantalles (provisional): ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
+    admin: 'Administrador: a Socis, tot excepte marcar impagats (059). A Pagaments (05a): campanya, mandats amb l\'IBAN emmascarat i configuració, només de lectura. Altres pantalles (provisional): ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
     cursos: 'Resp. cursos i sortides: a Socis, cap pantalla (la llicència, en consulta, la veurà al 06). Altres pantalles (provisional): gestiona la sortida i en veu el marge; no registra despeses.',
-    tresorer: 'Tresorer: a Socis, resol sol·licituds sense veure el document ni la data de naixement, consulta el llistat amb dades mínimes, genera quotes i marca impagats (059). Altres pantalles (provisional): consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
+    tresorer: 'Tresorer: a Socis, resol sol·licituds sense veure el document ni la data de naixement, consulta el llistat amb dades mínimes, genera quotes i marca impagats (059). A Pagaments (05a): campanya i mandats amb l\'IBAN emmascarat; revoca a petició escrita, mai el seu. Altres pantalles (provisional): consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
     material: 'Resp. material: a Socis, cap pantalla (059). Altres pantalles (provisional): consulta la sortida per assignar material; no en veu els diners ni els participants.',
     instructor: 'Instructor: a Socis, cap pantalla (059). Altres pantalles (provisional): només si fa classe en aquesta sortida; no en veu els diners.',
-    secretaria: 'Secretaria: a Socis, sol·licituds, altes presencials, llistat i fitxa amb totes les dades, i consulta de quotes (059). Altres pantalles (provisional): no gestiona cursos ni sortides.',
+    secretaria: 'Secretaria: a Socis, sol·licituds, altes presencials, llistat i fitxa amb totes les dades, i consulta de quotes (059). A Pagaments (05a), només si cada soci té mètode. Altres pantalles (provisional): no gestiona cursos ni sortides.',
     historia: 'Dept. Història: a Socis, cap pantalla (059). Altres pantalles (provisional): només conferències i contingut històric.',
     president: 'President: a Socis, consulta i resol sol·licituds d\'alta, de canvi de tipus i de baixa, sense veure el document ni la data de naixement; no veu el llistat ni la fitxa (059). Les altres pantalles encara no estan adaptades a la 059.',
     junta: 'Junta: a Socis, cap permís (059). Les altres pantalles encara no estan adaptades a la 059.',
@@ -2523,6 +2762,69 @@
     const blob = linies => URL.createObjectURL(new Blob([linies.join('\n')], { type: 'text/csv' }));
     g('csv-cluber').href = blob([cap].concat(files.map(f => f.join(';'))));
     g('csv-cluber-iban').href = blob([cap + ';iban'].concat(files.slice(0, 2).map(f => f.join(';') + ';')));
+  })();
+
+  /* ---------- Pagaments (T-M05a-02): campanya de mandats i revocació a petició del soci ---------- */
+  (function () {
+    const g = id => document.getElementById(id);
+    const cobertura = ['Invitació no enviada. 20 socis ja havien triat «pagar cada vegada».', 'Encara no ha respost ningú: 130 pendents.', '110 de 150 (73 %) amb cobrament automàtic previst a la primera remesa.'];
+    function campanya(i) {
+      document.querySelectorAll('[data-xifres]').forEach(x => { x.textContent = x.dataset.xifres.split(' ')[i]; });
+      g('campanya-cobertura').textContent = cobertura[i];
+      g('envia-campanya').hidden = i > 0;
+    }
+    document.querySelectorAll('input[name="demo-campanya"]').forEach(r => r.addEventListener('change', () => { g('resultat-campanya').hidden = true; campanya(+r.value); }));
+    const dCamp = g('dialeg-campanya'), bdC = CRIS.botoDinamic(g('confirma-campanya'));
+    g('envia-campanya').addEventListener('click', () => { bdC.posa(bdC.inicial.text, bdC.inicial.icona); dCamp.showModal(); });
+    dCamp.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dCamp.close()));
+    g('form-campanya').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdC.estaOcupat) return;
+      await bdC.flux([{ text: 'Enviant…', icona: 'carrega', gira: true, ms: 800 }]);
+      dCamp.close();
+      document.querySelector('input[name="demo-campanya"][value="1"]').checked = true;
+      campanya(1);
+      const p = g('resultat-campanya');
+      p.className = 'resultat-desar avis avis-ok';
+      p.innerHTML = '<strong>Invitacions a la cua</strong>130 correus i avisos. El recompte s\'actualitza a mesura que els socis responen.';
+      p.hidden = false; p.tabIndex = -1; p.focus();
+      CRIS.anuncia('130 invitacions a la cua.');
+    });
+
+    // Filtre per mètode (només el tresorer i l'administrador el veuen)
+    const files = document.querySelectorAll('#taula-mandats tbody tr');
+    g('filtre-metode').addEventListener('input', e => {
+      let n = 0;
+      files.forEach(tr => { tr.hidden = !!e.target.value && tr.dataset.metode !== e.target.value; if (!tr.hidden) n++; });
+      g('recompte-mandats').textContent = n + ' de ' + files.length + ' socis';
+    });
+
+    // Revocar a petició escrita: motiu obligatori
+    const dRev = g('dialeg-revoca-mandat'), motiu = g('revoca-mandat-motiu'), bdR = CRIS.botoDinamic(g('confirma-revoca-mandat'));
+    let boto = null;
+    document.querySelectorAll('[data-revoca]').forEach(b => b.addEventListener('click', () => {
+      boto = b;
+      g('revoca-mandat-resum').textContent = 'Mandat ' + b.dataset.revoca + ' de ' + b.dataset.nomSoci + '.';
+      motiu.value = ''; errorCamp(motiu, ''); bdR.posa(bdR.inicial.text, bdR.inicial.icona);
+      dRev.showModal(); motiu.focus();
+    }));
+    dRev.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dRev.close()));
+    g('form-revoca-mandat').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdR.estaOcupat) return;
+      if (!errorCamp(motiu, motiu.value.trim() ? '' : 'Escriu el motiu. És obligatori per revocar un mandat.')) { motiu.focus(); return; }
+      await bdR.flux([{ text: 'Revocant…', icona: 'carrega', gira: true, ms: 700 }]);
+      dRev.close();
+      const fila = boto.closest('tr');
+      fila.querySelector('[data-estat-mandat] .estat').outerHTML = '<span class="estat estat-neutre"><span aria-hidden="true">■</span> Revocat</span>';
+      fila.querySelector('[data-etiqueta="Mètode"]').textContent = 'Pagar cada vegada';
+      fila.dataset.metode = 'cada-vegada';
+      const acc = boto.closest('.cel-accions');
+      acc.innerHTML = '<span class="text-2"></span>';
+      acc.firstChild.textContent = 'Revocat · motiu: ' + motiu.value.trim();
+      acc.tabIndex = -1; acc.focus();
+      CRIS.anuncia('Mandat ' + boto.dataset.revoca + ' revocat.');
+    });
   })();
 
   // Adreça: #vista[&rol=…] obre una vista amb un rol (per revisar i fer captures)

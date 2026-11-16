@@ -318,6 +318,58 @@ opcions:
       per les consultes i els registres de la base de dades, contra la 044; la D afegeix un proveïdor i un punt de
       fallada per a un club petit. La B només protegeix contra qui ja pot escriure a la base de dades, i s'hi pot passar
       més endavant amb una rotació.
+  P-130:
+    opcions:
+      A: «casella» amb botó de ràdio, títol en negreta i descripció, dins d'un grup (com s'ha fet).
+      B: Un component nou «opció amb descripció» al sistema de disseny (tokens.css i design-system.md).
+      C: «segmentat» per triar i la descripció de l'opció triada a sota.
+    recomanada: A
+    perque: >-
+      Fa la feina amb components que ja existeixen i és accessible. Si la sessió de disseny vol una peça pròpia (B), les plantilles només canvien de classe.
+    data: 2026-11-16
+  P-131:
+    opcions:
+      A: Només de lectura a l'app; els valors es canvien a la configuració del servidor amb un desplegament.
+      B: L'administrador els canvia a l'app, amb TOTP, nota i registre, com els permisos (059).
+      C: Com la B, però activar la targeta guardada també demana l'autorització de la junta.
+    recomanada: A
+    perque: >-
+      Activar un mètode de pagament canvia el que veu un soci real i depèn del contracte amb el proveïdor; un canvi de configuració revisat és més segur. Es pot passar a B quan hi hagi proveïdor triat.
+    data: 2026-11-16
+  P-132:
+    opcions:
+      A: Com revocar el mandat; confirmació, contrasenya si la sessió té més de 15 minuts i «pagar cada vegada».
+      B: Confirmació sense contrasenya; «pagar cada vegada».
+      C: Confirmació i contrasenya sempre (com esborrar el compte).
+    recomanada: A
+    perque: >-
+      Fa servir la mateixa regla que les altres accions sobre el mètode de pagament (RN-M05a-12) i el soci no queda mai sense mètode definit.
+    data: 2026-11-16
+  P-133:
+    opcions:
+      A: Motiu obligatori i registre, sense tornar a demanar el codi TOTP.
+      B: Motiu i el codi TOTP a la mateixa petició, com aprovar un esborrat RGPD.
+    recomanada: A
+    perque: >-
+      La revocació és a petició del soci i no mou diners; el compte d'administrador ja ha entrat amb TOTP. Si la junta la vol tractar com una acció irreversible, la B.
+    data: 2026-11-16
+  P-134:
+    opcions:
+      A: El mandat es queda actiu sense fer-se servir; la remesa segueix la preferència i la pantalla diu com revocar-lo.
+      B: Triar «pagar cada vegada» revoca el mandat sol, amb el motiu «canvi de mètode».
+      C: Preguntar-ho al soci en el moment de triar (revocar-lo o no).
+    recomanada: C
+    perque: >-
+      El soci decideix i no queda cap mandat oblidat. Mentre no es respongui, la A no cobra ningú per domiciliació contra la seva tria.
+    data: 2026-11-16
+  P-135:
+    opcions:
+      A: El tresorer la tanca amb un botó i confirmació; tancar-la atura els recordatoris.
+      B: Es tanca sola quan el tresorer fixa la primera remesa.
+      C: No es tanca mai; una campanya nova substitueix l'anterior.
+    recomanada: A
+    perque: >-
+      És la més simple i deixa la decisió al tresorer; el camp «closed_at» ja existeix.
     data: 2026-11-16
 
 noves:
