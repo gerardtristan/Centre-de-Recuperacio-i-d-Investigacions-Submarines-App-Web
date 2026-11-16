@@ -107,6 +107,8 @@ FAKE_INTEGRATIONS_FORBIDDEN = False
 
 # Prefix de les referències de transferència (RN-T20, VC-10): d'1 a 12 majúscules o xifres.
 TRANSFER_REFERENCE_PREFIX = env("TRANSFER_REFERENCE_PREFIX", default="CRIS")
+# VC-09, només a l'entorn: canviar on paguen els socis és un risc de frau (#valors-configurables)
+CLUB_IBAN_TRANSFERENCIES = env("CLUB_IBAN_TRANSFERENCIES", default="")
 
 # Pantalles «En construcció» (T-DX-03; design-system §6.9): disseny i contingut d'exemple, sense
 # cap ruta que escrigui. Encès, les veu tothom (local i entorn de proves). Apagat (producció), només

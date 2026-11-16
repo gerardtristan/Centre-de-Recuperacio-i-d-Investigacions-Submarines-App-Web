@@ -100,7 +100,7 @@ def _timed_out(attempt: PaymentAttempt) -> bool:
 def transfer_iban() -> str:
     """L'IBAN del club per pagar per transferència (RN-T03; VC-09, `CLUB_IBAN_TRANSFERENCIES`),
     sense espais. Buit: la transferència no s'ofereix ni es pot començar (falla tancada)."""
-    return "".join(getattr(settings, "CLUB_IBAN_TRANSFERENCIES", "").split()).upper()
+    return "".join(settings.CLUB_IBAN_TRANSFERENCIES.split()).upper()
 
 
 def _abandon_waiting_transfer(charge: Charge, actor) -> None:
