@@ -6,6 +6,7 @@ import time
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Account, FailedLogin
 from apps.accounts.security import AREA_PERSONAL
@@ -176,7 +177,8 @@ class TestConfirmationEmail:
         assert mandate.reference in email.subject
         body = email.body_text
         assert mandate.reference in body and CREDITOR in body
-        assert mandate.signed_at.strftime("%d/%m/%Y") in body
+        # El correu porta la data local (Europa/Madrid), no la UTC: entre les 23 i les 24 h UTC canvia.
+        assert timezone.localdate(mandate.signed_at).strftime("%d/%m/%Y") in body
         assert "ES … 0001" in body and URL in body
         assert IBAN[4:] not in body + email.subject + email.body_html
 
