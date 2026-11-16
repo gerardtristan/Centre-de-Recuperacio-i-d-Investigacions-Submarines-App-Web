@@ -29,6 +29,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
+from django.dispatch import Signal
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -42,6 +43,8 @@ MAX_BYTES = 1024 * 1024
 MAX_LINES = 2000
 TOKEN_MAX_AGE = 60 * 60  # segons
 _SALT = "apps.core.imports.bank_statement"
+# Lot confirmat, dins la mateixa transacció: la 04 dona estat a les línies noves (T-M04-11).
+confirmed = Signal()
 
 NEW, DUPLICATE, ERROR = "new", "duplicate", "error"
 MASK = "[número tapat]"
@@ -275,6 +278,7 @@ def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatc
         },
     )
     add_lines(batch, [_stored(line) for line in lines])
+    confirmed.send(sender=ImportBatch, batch=batch)
     audit.record(
         audit.Action.BANK_STATEMENT_CONFIRMED,
         actor=by,
@@ -287,7 +291,8 @@ def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatc
 
 def _reconciled(batch: ImportBatch) -> bool:
     # shortcut: qualsevol fila d'un altre model que apunti a una línia del lot bloqueja el desfer
-    # (V-06); quan la T-M04-12 permeti desfer conciliacions, que compti només les vigents.
+    # (V-06), menys les relacions ocultes (l'estat de la línia de la 04 no és cap conciliació);
+    # quan la T-M04-12 permeti desfer conciliacions, que compti només les vigents.
     return any(
         relation.related_model._default_manager.filter(
             **{f"{relation.field.name}__batch": batch}

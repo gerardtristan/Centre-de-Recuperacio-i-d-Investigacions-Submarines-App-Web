@@ -47,6 +47,24 @@ def is_valid(reference: str) -> bool:
     )
 
 
+def references_in(text: str) -> list[str]:
+    """Referències vàlides que apareixen en un text (el concepte d'una línia de l'extracte), en
+    la forma desada i sense repetir. El banc o qui paga poden canviar els guions per espais,
+    treure'ls o escriure en minúscules; el caràcter de control continua decidint (P-100: només
+    el prefix configurat ara)."""
+    prefix = _prefix()
+    pattern = (
+        rf"(?<![A-Z0-9]){prefix}[- ]?([{ALPHABET}]{{{CODE_LENGTH}}})[- ]?([{ALPHABET}])(?![A-Z0-9])"
+    )
+    return list(
+        dict.fromkeys(
+            f"{prefix}-{code}-{check}"
+            for code, check in re.findall(pattern, " ".join(text.upper().split()))
+            if check == check_character(code)
+        )
+    )
+
+
 def new_reference() -> str:
     code = "".join(secrets.choice(ALPHABET) for _ in range(CODE_LENGTH))
     return f"{_prefix()}-{code}-{check_character(code)}"
