@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 18:21 | e91535a, 4491f5e | 2 noves | [A comprovar] (PR #69) |
+| 16/11/2026 18:21 | f7b09bf, fecff06 | 2 noves | [A comprovar] (PR #69) |
 
 **En tres línies:** a «Altes pendents», a dalt de tot es veu quantes n'hi ha per revisar, amb el número en ambre si n'hi ha cap. A cada alta, «Aprova l'alta» i «Rebutja…» són l'una al costat de l'altra, i el motiu del rebuig s'obre a sota. A «Sol·licituds», el mateix comptador per als canvis de tipus i les baixes.
 
@@ -29,14 +29,14 @@
 
   ![Altes pendents amb el comptador i les accions en una fila](captures/2026-11-16_1821_T-DX-16_altes-pendents-1280.png)
 
-  *16/11/2026 18:21 (Europa/Madrid) · local, prova e2e, persona inventada · commit e91535a*
+  *16/11/2026 18:21 (Europa/Madrid) · local, prova e2e, persona inventada · commit f7b09bf*
 - A 320 px, en fosc: `captures/2026-11-16_1821_T-DX-16_altes-pendents-320-fosc.png`
 
-  *16/11/2026 18:21 (Europa/Madrid) · local, prova e2e · commit e91535a*
+  *16/11/2026 18:21 (Europa/Madrid) · local, prova e2e · commit f7b09bf*
 - Sortida de proves · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/members/tests/test_deposito.py apps/members/tests/test_admissions.py apps/members/tests/test_member_requests.py -q
   136 passed
-  $ pytest -m e2e apps/core/tests/e2e/test_duermevela.py -q        (a 4491f5e)
+  $ pytest -m e2e apps/core/tests/e2e/test_duermevela.py -q        (a fecff06)
   5 passed
   ```
