@@ -15,6 +15,18 @@ def birth_date_notice(context):
     return {"show": person is not None and birth_date.missing_for(person)}
 
 
+def session_member(context):
+    """El soci de la persona de la sessió, només al compte personal: el d'administrador no és la
+    porta del soci (decisions 015 i 018). Sense soci, cap."""
+    from ..models import Member
+
+    user = context.get("user")
+    person = getattr(user, "person", None) if getattr(user, "is_authenticated", False) else None
+    if person is None or getattr(user, "kind", None) != "personal":
+        return None
+    return Member.objects.filter(person=person).first()
+
+
 @register.inclusion_tag("members/_home_resum.html", takes_context=True)
 def member_home_summary(context):
     """Portada de l'àrea de socis (T-DX-17, D13): l'estat de la quota, els dies que queden i el
@@ -22,12 +34,7 @@ def member_home_summary(context):
     from .. import roster
     from ..models import Member
 
-    user = context.get("user")
-    person = getattr(user, "person", None) if getattr(user, "is_authenticated", False) else None
-    # Només al compte personal: el d'administrador no és la porta del soci (decisions 015 i 018).
-    if person is None or getattr(user, "kind", None) != "personal":
-        return {"show": False}
-    member = Member.objects.filter(person=person).first()
+    member = session_member(context)
     if member is None:
         return {"show": False}
     loaded = roster.with_fee_data(Member.objects.filter(pk=member.pk)).get()

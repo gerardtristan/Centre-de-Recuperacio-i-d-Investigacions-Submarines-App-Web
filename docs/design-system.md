@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.24 (16/11/2026). La 1.24 afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
+- **Versió:** 1.25 (16/11/2026). La 1.25 afegeix Monograma, l'avatar per defecte del soci (§6.19, T-DX-18).
+- La 1.24 (16/11/2026) afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
 - La 1.22 (16/11/2026) fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
 - La 1.20 (16/11/2026) afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
 - La 1.19 (16/11/2026) posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
@@ -510,6 +511,13 @@ Del recurs Oleaje ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - **On:** l'inici del compte personal. El bloc («La teva quota») porta l'estat de la quota, els dies que queden (Vigencia, §6.15) i els accessos al carnet i a les quotes (D13: el més important de l'àrea, a dalt). L'etiqueta és `member_home_summary` (`apps/members/templatetags/member_notices.py`); la 00 no importa cap mòdul.
 - **Seguretat i privacitat:** només les dades del soci de la sessió, i només al compte personal (el d'administrador no en mostra res, decisions 015 i 018). Sense soci, cap bloc. L'estat de la quota surt del servidor (070, P-71).
 - **Del recurs no s'hi fa:** l'ona que s'agita segons la velocitat i la paral·laxi (demanarien JavaScript i una animació contínua sense una funció escrita) ni la web pública (la 07 no té pantalla encara).
+
+### 6.19 Monograma: l'avatar per defecte (T-DX-18)
+Del recurs Monograma ([pla dels recursos externs](plans/recursos-disseny-extern.md)): un avatar generatiu fet de blocs, ones o mosaic, amb paletes, que dona sempre la mateixa imatge per a la mateixa entrada. Aquí l'entrada és la llavor del soci, **mai el nom** (RN-M01-30, T-M01-11).
+- **Peça:** les etiquetes `{% monograma llavor %}` i `{% session_monograma %}` (`apps/members/templatetags/monograma.py`) i `static/css/monograma.css`. El servidor dibuixa un SVG en línia de 120 × 120 a partir de l'SHA-512 de `Member.avatar_seed`: el primer octet tria el patró (blocs 3 × 3 o mosaic 5 × 5, simètrics, o ones amb un sol) i el segon, una de quatre paletes; la resta, les formes. Cada forma porta una classe (`monograma-fons`, `monograma-c1` a `monograma-c4`) i la paleta (`monograma-paleta-0` a `-3`) hi posa colors de la marca (`--abisme`, `--casc`, `--posidonia`, `--boira`, `--pissarra`, `--pissarra-fosca`, `--llauto`, `--paper`): cap color ni `style=` a l'SVG. Rodó, de `--e-8`, amb una vora fina de `--c-linia-forta` perquè el fons no es perdi sobre un fons del mateix color. `monograma-titol` el posa al costat del títol.
+- **On:** la portada de l'àrea del soci (dins d'`oleaje-portada`, §6.18) i «El meu perfil», al costat del títol. Cap pantalla de l'administració.
+- **Seguretat i privacitat:** només l'avatar del soci de la sessió, i a la portada només al compte personal (com el bloc de la quota, decisions 015 i 018). El dibuix surt només de la llavor, aleatòria i fixada en l'alta, així que no revela res de la persona i corregir el nom no el canvia; la llavor no surt a la pàgina. Decoratiu (`aria-hidden`, sense `title` ni text): el nom o el títol del costat són el text. Sense llavor o sense soci, res.
+- **Del recurs no s'hi fa:** les inicials (sortirien del nom), «Otra variante» (l'avatar no es tria), el selector de paleta i d'estil, l'animació en canviar, ni copiar o descarregar l'SVG. Els avatars de fauna marina són el mòdul 12.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

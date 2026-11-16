@@ -172,6 +172,13 @@ MAP = {
         "apps/core/views/guest.py",
         "templates/core/guest*.html",
     ),
+    "test_monograma.py": (
+        "apps/members/templatetags/monograma.py",
+        "apps/members/templatetags/member_notices.py",
+        "templates/core/home.html",
+        "templates/members/personal_profile.html",
+        "static/css/monograma.css",
+    ),
     "test_naixement_035.py": (
         "apps/members/birth_date.py",
         "apps/members/views/personal.py",
