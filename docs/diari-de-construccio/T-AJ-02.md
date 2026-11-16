@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 11:30 | 93d3465 (PR #48) | 17 noves, 2 canviades i 1 al navegador | [A comprovar] |
+| 16/11/2026 12:20 | 93d3465, a3d8934 (PR #48) | 18 noves, 2 canviades i 1 al navegador | CI: no s'ha pogut executar, facturació de GitHub [A comprovar] |
 
 **En tres línies:** l'administració té ara un apartat «Ajustos» on es veuen i es canvien els valors de negoci (terminis, dies, imports) sense tocar el codi. Cada valor mostra el que val ara, el que valdrà si hi ha un canvi programat, el valor inicial, el rang permès i l'historial de canvis. Qui només el pot consultar el veu, però no el pot canviar, i si ho intenta queda apuntat.
 
@@ -22,6 +22,7 @@
 ## Problemes trobats
 - La primera versió de la vista passava de les 400 línies de codi d'aplicació de la PR (D4): s'ha compactat el formulari en una sola classe.
 - Els imports en euros s'escriuen amb coma: el camp decimal ha de ser localitzat.
+- La revisió automàtica (PR #48) va trobar que el menú fallava (KeyError) si el catàleg no tenia cap apartat d'ajustos: prova que ho reprodueix i arreglo. També: el rebuig té un servei propi (`deny`) i `change` calcula els permisos una sola vegada.
 
 ## Com se sap que funciona
 - CA-AJ-01 (fora de rang, «No s'ha desat res.» i cap versió), CA-AJ-02 (sense apartat, «no trobat» a les tres rutes; amb només «Cons.», «no trobat» i entrada al registre), CA-AJ-05 (historial a la pantalla).
@@ -35,7 +36,7 @@
 - Sortida de proves · commit 93d3465 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -q
-  4673 passed, 51 deselected
+  4674 passed, 51 deselected
   $ pytest -q -m e2e apps/core/tests/e2e/test_ajustos.py apps/core/tests/e2e/test_navegacio.py
   3 passed
   ```
