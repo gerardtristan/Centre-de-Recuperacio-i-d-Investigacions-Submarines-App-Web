@@ -1,0 +1,16 @@
+/* Monograma (T-DX-18; recurs a design/extern/; design-system §6.19): l'avatar per defecte del soci,
+   dibuixat pel servidor a partir de la llavor (mai del nom). La paleta tria quatre colors de la marca;
+   cada forma de l'SVG porta la classe del seu color. Decoratiu: el nom del costat és el text. */
+/* Rodó, amb una vora fina perquè el fons de l'avatar no es perdi sobre un fons del mateix color. */
+.monograma { width: var(--e-8); height: var(--e-8); flex: none; border-radius: var(--r-pastilla); overflow: hidden; box-shadow: 0 0 0 var(--v-fina) var(--c-linia-forta); }
+.monograma-paleta-0 { --monograma-fons: var(--abisme); --monograma-1: var(--posidonia); --monograma-2: var(--llauto); --monograma-3: var(--boira); --monograma-4: var(--pissarra); }
+.monograma-paleta-1 { --monograma-fons: var(--posidonia); --monograma-1: var(--abisme); --monograma-2: var(--llauto); --monograma-3: var(--paper); --monograma-4: var(--casc); }
+.monograma-paleta-2 { --monograma-fons: var(--boira); --monograma-1: var(--abisme); --monograma-2: var(--posidonia); --monograma-3: var(--llauto); --monograma-4: var(--pissarra-fosca); }
+.monograma-paleta-3 { --monograma-fons: var(--casc); --monograma-1: var(--llauto); --monograma-2: var(--paper); --monograma-3: var(--posidonia); --monograma-4: var(--pissarra); }
+.monograma-fons { fill: var(--monograma-fons); }
+.monograma-c1 { fill: var(--monograma-1); }
+.monograma-c2 { fill: var(--monograma-2); }
+.monograma-c3 { fill: var(--monograma-3); }
+.monograma-c4 { fill: var(--monograma-4); }
+/* L'avatar al costat del títol (portada i perfil) */
+.monograma-titol { display: flex; align-items: center; gap: var(--e-4); }

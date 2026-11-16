@@ -5,8 +5,11 @@
 {% block content %}
   {# Oleaje (T-DX-17): la portada amb la vora en ona; el bloc de la quota i el carnet puja en desplaçar. #}
   <section class="oleaje-portada">
-    <h1>{% translate "Plataforma del C.R.I.S." %}</h1>
-    <p class="oleaje-salutacio">{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
+    {# Monograma (T-DX-18): l'avatar per defecte del soci de la sessió, a partir de la llavor; mai del nom. #}
+    {% load monograma %}<div class="monograma-titol">{% session_monograma %}<div>
+      <h1>{% translate "Plataforma del C.R.I.S." %}</h1>
+      <p class="oleaje-salutacio">{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
+    </div></div>
     <svg class="oleaje-vora" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 40V22C150 6 300 6 450 18S750 34 900 20 1100 4 1200 14V40Z"/></svg>
   </section>
   {% load member_notices %}{% birth_date_notice %}

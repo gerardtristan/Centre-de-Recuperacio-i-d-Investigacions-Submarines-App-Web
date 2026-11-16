@@ -4,7 +4,8 @@
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
-  <h1>{% translate "El meu perfil" %}</h1>
+  {# Monograma (T-DX-18): l'avatar per defecte, a partir de la llavor del soci de la sessió; mai del nom. #}
+  <header class="monograma-titol">{% if member %}{% load monograma %}{% monograma member.avatar_seed %}{% endif %}<h1>{% translate "El meu perfil" %}</h1></header>
   <p class="text-2">{% translate "Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu." %}</p>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {# T-M01-35 (RN-M01-55, CA-M01-43): avís i camp per completar la data de naixement, només si falta. Seguretat: és la persona de la sessió; un cop desada, només la corregeix la secretaria (el servidor no accepta canviar-la des d'aquí); una data futura es rebutja al servidor; el registre no guarda la data. #}
