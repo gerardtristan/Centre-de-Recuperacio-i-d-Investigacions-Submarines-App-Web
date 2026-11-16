@@ -351,8 +351,8 @@ class StatementLineState(UndeletableModel):
         REPEATED_REFERENCE = "repeated_reference", _("El càrrec ja és en una altra proposta")
         AMOUNT_ONLY = "amount_only", _("Sense referència: un sol càrrec pendent amb aquest import")
 
-    # related_name="+": una relació oculta no bloqueja desfer l'extracte
-    # (`bank_statement._reconciled` només compta les visibles); l'estat no és una conciliació.
+    # L'estat no és cap conciliació: no bloqueja desfer l'extracte (V-06; només ho fa una
+    # `Reconciliation` vigent, `reconciliation.has_live_reconciliations`).
     statement_line = models.OneToOneField(
         ImportLine, on_delete=models.PROTECT, related_name="+", verbose_name=_("línia")
     )
@@ -395,11 +395,11 @@ class StatementLineState(UndeletableModel):
 class Reconciliation(AppendOnlyModel):
     """Conciliació confirmada pel tresorer (M04-6; RN-T16, RN-T17): una línia de l'extracte
     casada amb un o més càrrecs. Només INSERT, també a la base de dades (migració 0010). La crea
-    `reconciliation.confirm` (T-M04-12); desfer-la serà una fila nova (`ReconciliationUndo`, 045).
+    `reconciliation.confirm` (T-M04-12); desfer-la és una fila nova (`ReconciliationUndo`, 045).
     Els moviments i la liquidació (`matched_movements`, `settlement`) arriben amb la seva tasca."""
 
-    # Relació visible: una línia conciliada bloqueja desfer l'extracte (V-06,
-    # `bank_statement._reconciled`).
+    # Una conciliació vigent (sense desfeta) bloqueja desfer l'extracte (V-06): la 04 ho respon
+    # al senyal `bank_statement.reconciled_lines` (`reconciliation.has_live_reconciliations`).
     statement_line = models.ForeignKey(
         ImportLine,
         on_delete=models.PROTECT,
@@ -423,3 +423,33 @@ class Reconciliation(AppendOnlyModel):
 
     def __str__(self):
         return f"{self._meta.verbose_name} {self.pk} ({self.statement_line_id})"
+
+
+class ReconciliationUndo(AppendOnlyModel):
+    """Desfeta d'una conciliació (M04-6; RN-T19; 045; CA-T10.4 a CA-T10.6): una per conciliació,
+    amb el motiu, qui i quan. Una conciliació és vigent si no en té. Només INSERT, també a la base
+    de dades (migració 0012). La crea `reconciliation.undo`."""
+
+    reconciliation = models.OneToOneField(
+        Reconciliation, on_delete=models.PROTECT, related_name="undo", verbose_name=_("conciliació")
+    )
+    reason = models.TextField(_("motiu"))
+    undone_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("desfeta per"),
+    )
+    undone_at = models.DateTimeField(_("data de la desfeta"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("desfeta de conciliació")
+        verbose_name_plural = _("desfetes de conciliació")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(reason__regex=r"\S"), name="reconciliation_undo_reason_required"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.reconciliation_id}"

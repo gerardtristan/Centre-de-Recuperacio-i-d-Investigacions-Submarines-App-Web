@@ -31,6 +31,7 @@ from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
 TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
+INCOME_REVERSED = "treasury.income_reversed"
 
 # Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
 SEPA_REMITTANCE = "sepa_remittance"
@@ -181,3 +182,37 @@ def _concept(charge: Charge) -> str:
         parts.append(_("soci %(number)s") % {"number": number})
     parts.append(_("càrrec %(id)s") % {"id": charge.pk})
     return " · ".join(parts)
+
+
+@transaction.atomic
+def reverse_income(movement: Movement, *, reason: str, by) -> Movement:
+    """Contramoviment d'un ingrés de cobrament en desfer la seva conciliació (045; P-M04-C, pas
+    3; RN-T07, RN-T25): mateix compte, import, departament i centre de cost, sentit contrari i
+    enllaçat a l'original, amb el motiu. L'original no es toca. Només el crida
+    `reconciliation.undo`: l'anul·lació manual d'un ingrés es rebutja (CA-T06.2).
+    shortcut: és el mínim de la T-M04-08 per a la 045; el servei general `reverse` (amb
+    `AlreadyReversed` i el període tancat) arriba amb aquella tasca i amb la T-M04-20."""
+    movement = Movement.objects.get(pk=movement.pk)
+    if movement.kind != Movement.Kind.INCOME:
+        raise ValidationError(_("Només es pot compensar així un ingrés de cobrament."))
+    reversal = Movement.objects.create(
+        account=movement.account,
+        direction=Movement.Direction.OUT,
+        amount_cents=movement.amount_cents,
+        value_date=timezone.localdate(),
+        kind=Movement.Kind.REVERSAL,
+        concept=movement.concept,
+        department=movement.department,
+        cost_centre=movement.cost_centre,
+        reverses=movement,  # OneToOne: un segon contramoviment el rebutja la base de dades
+        reason=reason.strip(),
+        recorded_by=by,
+    )
+    audit.record(
+        INCOME_REVERSED,
+        actor=by,
+        target=reversal,
+        reason=reason,
+        details={"reverses": movement.pk, "amount_cents": movement.amount_cents},
+    )
+    return reversal

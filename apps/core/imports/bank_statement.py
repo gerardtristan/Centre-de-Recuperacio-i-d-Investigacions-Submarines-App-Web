@@ -49,6 +49,9 @@ _SALT = "apps.core.imports.bank_statement"
 # Lot confirmat o desfet, dins la mateixa transacció: la 04 torna a calcular l'estat de les
 # línies a conciliar (T-M04-11).
 changed = Signal()
+# V-06: un lot amb alguna línia conciliada (vigent) no es desfà. Hi respon la 04 (`True` si en
+# té), perquè el nucli no l'importa.
+reconciled_lines = Signal()
 
 NEW, DUPLICATE, ERROR = "new", "duplicate", "error"
 MASK = "[número tapat]"
@@ -380,15 +383,7 @@ def confirm(token: str, *, by, exclude_errors=False, request=None) -> ImportBatc
 
 
 def _reconciled(batch: ImportBatch) -> bool:
-    # shortcut: qualsevol fila d'un altre model que apunti a una línia del lot bloqueja el desfer
-    # (V-06), menys les relacions ocultes (l'estat de la línia de la 04 no és cap conciliació);
-    # quan la T-M04-12 permeti desfer conciliacions, que compti només les vigents.
-    return any(
-        relation.related_model._default_manager.filter(
-            **{f"{relation.field.name}__batch": batch}
-        ).exists()
-        for relation in ImportLine._meta.related_objects
-    )
+    return any(answer for _receiver, answer in reconciled_lines.send(ImportBatch, batch=batch))
 
 
 @transaction.atomic

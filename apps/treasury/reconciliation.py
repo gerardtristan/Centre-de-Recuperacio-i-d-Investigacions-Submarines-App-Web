@@ -34,19 +34,27 @@ from django.http import Http404
 from django.utils.translation import gettext as _
 
 from apps.core import audit
-from apps.core.charges import record_payment
+from apps.core.charges import active_payments, record_payment, revert_paid_transfer
 from apps.core.imports import statement_lines
 from apps.core.models import Charge, Payment
 from apps.core.permissions import has_perm
+from apps.members import fees as member_fees
 from apps.members import services as members
 
 from . import services
-from .models import Reconciliation, StatementLineState, TransferReference
+from .models import (
+    Movement,
+    Reconciliation,
+    ReconciliationUndo,
+    StatementLineState,
+    TransferReference,
+)
 from .references import references_in, transfer_reference
 
 STATE_CHANGED = "treasury.statement_line_state_changed"
 CONFIRMED = "treasury.reconciliation_confirmed"
 EXCLUDED = "treasury.statement_line_excluded"
+UNDONE = "treasury.reconciliation_undone"
 RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» (M04-4)
 # T8, «Excloure una línia»: el mateix permís que T4, perquè la matriu dona totes dues només al
 # tresorer i un permís nou seria del nucli (P-190, opció per defecte).
@@ -237,6 +245,62 @@ def confirm(line, *, by) -> Reconciliation:
         },
     )
     return reconciliation
+
+
+@transaction.atomic
+def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUndo:
+    """Desfà una conciliació vigent amb motiu (RN-T19; 045; CA-T10.4 i CA-T10.5), tot o res:
+    per a cada càrrec casat, el contramoviment de l'ingrés i «pagat → pendent» amb el pagament
+    anul·lat (`charges.revert_paid_transfer`; el 05b hi reacciona sol); si és una quota, l'avís
+    a qui edita les quotes, sense tocar el soci ni el carnet (P-110, opció per defecte). La línia
+    torna a «pendent» i es torna a calcular: amb la mateixa referència, es tornarà a proposar."""
+    _ensure_can_reconcile(by)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ReconciliationRejected(_("Per desfer una conciliació cal escriure'n el motiu."))
+    refresh()  # també agafa el pany
+    reconciliation = Reconciliation.objects.select_for_update().get(pk=reconciliation.pk)
+    if ReconciliationUndo.objects.filter(reconciliation=reconciliation).exists():
+        raise ReconciliationRejected(_("Aquesta conciliació ja està desfeta."))
+    matched = list(reconciliation.matched_charges.order_by("pk"))
+    for charge in matched:
+        transfers = [
+            payment
+            for payment in active_payments(charge)
+            if payment.method == Payment.Method.TRANSFER
+        ]
+        if charge.status != Charge.Status.PAID or len(transfers) != 1:
+            raise ReconciliationRejected(
+                _("Un dels càrrecs ja no està pagat per aquesta transferència: no es pot desfer.")
+            )
+        income = Movement.objects.get(payment=transfers[0], kind=Movement.Kind.INCOME)
+        services.reverse_income(income, reason=reason, by=by)
+        revert_paid_transfer(charge, reason, by=by)
+        fee = getattr(charge, "annual_fee", None)
+        if fee is not None:
+            member_fees.notify_fee_editors(fee, member_fees.NOTICE_TRANSFER_REVERTED)
+    done = ReconciliationUndo.objects.create(
+        reconciliation=reconciliation, reason=reason, undone_by=by
+    )
+    state = StatementLineState.objects.select_for_update().get(
+        statement_line=reconciliation.statement_line_id
+    )
+    _apply(state, StatementLineState.Status.PENDING, "", [], created=False, actor=by)
+    audit.record(
+        UNDONE,
+        actor=by,
+        target=reconciliation,
+        reason=reason,
+        details={"line": reconciliation.statement_line_id, "charges": [c.pk for c in matched]},
+    )
+    refresh()
+    return done
+
+
+def has_live_reconciliations(sender, batch, **kwargs) -> bool:
+    """V-06 (`bank_statement.reconciled_lines`): el lot té alguna línia amb una conciliació
+    vigent, sense desfeta? Llavors l'extracte no es pot desfer."""
+    return Reconciliation.objects.filter(statement_line__batch=batch, undo__isnull=True).exists()
 
 
 def on_statement_changed(sender, batch, **kwargs) -> None:
