@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 12:50 | f569996 | 3 noves | [A comprovar] (PR #47) |
+| 16/11/2026 11:27 | f569996 | 3 noves | [A comprovar] (PR #47) |
 
 **En tres línies:** és la primera tasca del carril de disseny dels recursos externs. Les durades i les corbes de les animacions ja són valors amb nom, que segueixen les regles B i C del sistema de disseny, i cap no frena l'usuari més de 400 ms. El logotip del club és més gran a totes les capçaleres.
 
@@ -29,11 +29,11 @@
 - Captures de l'àrea personal i de l'administració a 1280, 390 i 320 px, mirades.
 
 ## Evidències
-- Captura: `captures/2026-11-16_1250_T-DX-01_area-personal-390.png`
+- Captura: `captures/2026-11-16_1127_T-DX-01_area-personal-390.png`
 
-  ![Àrea de socis a 390 px amb el logotip de 56 px](captures/2026-11-16_1250_T-DX-01_area-personal-390.png)
+  ![Àrea de socis a 390 px amb el logotip de 56 px](captures/2026-11-16_1127_T-DX-01_area-personal-390.png)
 
-  *16/11/2026 12:50 (Europa/Madrid) · local, dades inventades de la prova e2e · commit f569996*
+  *16/11/2026 11:27 (Europa/Madrid) · local, dades inventades de la prova e2e · commit f569996*
 - Sortida de proves · commit f569996 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/core/tests/test_tokens_moviment.py apps/accounts/tests/test_pages.py -q
