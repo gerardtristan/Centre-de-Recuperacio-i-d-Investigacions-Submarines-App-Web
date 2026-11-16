@@ -231,11 +231,11 @@
   --capcalera-alcada: 64px;
   --lateral-ample: 248px;
   --lateral-carril: 76px;
-  --logo-capcalera: 40px;
-  --logo-lateral: 48px;
-  --logo-peu: 120px;
-  --logo-publica-mobil: 52px;
-  --logo-publica: 72px;
+  --logo-capcalera: 56px;
+  --logo-lateral: 64px;
+  --logo-peu: 160px;
+  --logo-publica-mobil: 64px;
+  --logo-publica: 96px;
   --icona: 1.25rem;
   --carnet-amplada: 22rem;
   --carnet-proporcio: 1.586;   /* 85,6 × 54 mm */
@@ -252,18 +252,33 @@
   --c-carnet-zona: var(--llauto);
   --c-carnet-mari: var(--posidonia);
 
-  /* Moviment: corbes i durades amb nom (les sortides, més curtes que les entrades) */
+  /* Moviment (design-system §4.1 i §15.4; regles B i C): corbes i durades amb nom.
+     Res no bloqueja més de --m-llindar (B9, B17). */
   --m-sortida: 150ms;
-  --m-rapid: 180ms;
+  --m-rapid: 180ms;                 /* microinteraccions i canvi d'icona (B9, C4) */
   --m-amplada: 260ms;
-  --m-entrada: 700ms;
-  --m-gir: 650ms;
+  --m-panell: 250ms;                /* panells i diàlegs (B9: 200–300 ms) */
+  --m-preparacio: 90ms;             /* preparació abans d'un moviment gran (B2: 60–120 ms) */
+  --m-escalonat: 30ms;              /* retard de cada fill (B5: 20–40 ms) */
+  --m-llindar: 400ms;               /* llindar de Doherty: a partir d'aquí, esquelet o progrés */
+  --m-entrada: 300ms;
+  --m-gir: 400ms;
   --m-ona: 2400ms;
   --m-ona-repeticions: 2;           /* 4,8 s: s'atura sola abans de 5 s */
-  --m-corba: cubic-bezier(.23, 1, .32, 1);       /* sortida suau */
-  --m-corba-entra-surt: cubic-bezier(.77, 0, .175, 1);
-  --m-corba-sortida: cubic-bezier(.4, 0, 1, 1);
+  --m-oleaje: 8s;                   /* l'única animació contínua, lenta (D20) */
+  --m-corba: cubic-bezier(.23, 1, .32, 1);       /* entrada (ease-out) */
+  --m-corba-entra-surt: cubic-bezier(.77, 0, .175, 1);  /* desplaçament (ease-in-out) */
+  --m-corba-sortida: cubic-bezier(.4, 0, 1, 1);  /* sortida (ease-in) */
+  --m-corba-molla: var(--m-corba);  /* rebot final (B5); el valor real, a @supports */
+  --escala-premut: 0.95;            /* B1: 5 %, entre el 4 i el 6 % */
 }
+@supports (transition-timing-function: linear(0, 1)) {
+  :root { --m-corba-molla: linear(0, .36 18%, .81 36%, 1.04 52%, 1.06 62%, 1.01 78%, 1); }
+}
+
+/* Radis concèntrics (C1, D8): el contenidor defineix --r-exterior i --farciment i els fills
+   fan servir var(--r-interior). Va en una classe i no a :root perquè es resol on es declara. */
+.radi-concentric { --r-interior: max(0px, calc(var(--r-exterior) - var(--farciment))); }
 
 /* Zona activa: cada pàgina posa la classe al <body> */
 .zona-publica { --c-zona: var(--c-publica); --c-zona-text: var(--c-publica-text); --c-zona-fons: var(--c-publica-fons); --c-lateral-zona: var(--c-lateral-publica); }
@@ -319,7 +334,7 @@ img { max-width: 100%; display: block; }
 /* Reduir moviment: les durades passen a 0 i s'atura qualsevol animació de CSS.
    Les animacions fetes amb JavaScript ho comproven a interaccions.js. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --m-sortida: 0ms; --m-rapid: 0ms; --m-amplada: 0ms; --m-entrada: 0ms; --m-gir: 0ms; --m-ona: 0ms; --m-ona-repeticions: 0; }
+  :root { --m-sortida: 0ms; --m-rapid: 0ms; --m-amplada: 0ms; --m-panell: 0ms; --m-preparacio: 0ms; --m-escalonat: 0ms; --m-entrada: 0ms; --m-gir: 0ms; --m-ona: 0ms; --m-ona-repeticions: 0; --m-oleaje: 0ms; --escala-premut: 1; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
