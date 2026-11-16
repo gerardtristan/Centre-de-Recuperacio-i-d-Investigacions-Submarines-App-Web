@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/fototeca.css' %}"><link rel="stylesheet" href="{% static 'css/expositor.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-37 Fototeca i Expositor: les fotos. En construcció: contingut d'exemple, cap foto real, res no es puja ni es desa (design-system §16, T-DX-37). #}
+  <section class="en-construccio-bloc fototeca" aria-describedby="ec-fotos">
+    {% include "_en_construccio.html" with id="ec-fotos" %}
+    <h1>{{ screen_title }}</h1>
+    <fieldset disabled class="fototeca-app">
+      <legend class="visualment-amagat">{% translate "Biblioteca de fotos" %}</legend>
+      <nav class="fototeca-lateral" aria-label="{% translate 'Carpetes' %}">
+        <p class="fototeca-seccio">{% translate "Carpetes" %}</p>
+        <ul class="fototeca-carpetes">
+          {% for folder in folders %}
+          <li><button type="button" class="fototeca-carpeta"{% if folder.current %} aria-current="true"{% endif %}><span class="fototeca-icona" aria-hidden="true"></span>{{ folder.name }}<span class="fototeca-n xifra-viva">{{ folder.count }}</span></button></li>
+          {% endfor %}
+        </ul>
+        <div class="fototeca-espai">
+          <p>{% blocktranslate with pct=used %}{{ pct }} % de l'espai fet servir{% endblocktranslate %}</p>
+          <meter min="0" max="100" value="{{ used }}">{{ used }} %</meter>
+        </div>
+      </nav>
+      <div class="fototeca-principal">
+        <div class="fototeca-barra">
+          <p class="fototeca-triades">{% blocktranslate count n=2 %}{{ n }} foto triada{% plural %}{{ n }} fotos triades{% endblocktranslate %}</p>
+          <button type="button" class="boto boto-petit">{% translate "Moure a una carpeta" %}</button>
+        </div>
+        <ul class="fototeca-graella" aria-label="{% translate 'Fotos de la carpeta' %}">
+          {% for photo in photos %}
+          <li>
+            <label class="fototeca-foto">
+              <input class="visualment-amagat" type="checkbox"{% if photo.selected %} checked{% endif %}>
+              <span class="fototeca-imatge fotos-to-{{ photo.to }}" aria-hidden="true"></span>
+              <span class="fototeca-marca" aria-hidden="true">✓</span>
+              <span class="fototeca-nom">{{ photo.name }}</span>
+            </label>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <aside class="fototeca-detall" aria-labelledby="fototeca-detall-h">
+        <h2 id="fototeca-detall-h">{% translate "Detalls" %}</h2>
+        <span class="fototeca-imatge fotos-to-1" aria-hidden="true"></span>
+        <div class="camp">
+          <label for="fototeca-nom">{% translate "Nom" %}</label>
+          <input id="fototeca-nom" type="text" value="{{ detail.name }}">
+        </div>
+        <p class="fototeca-seccio">{% translate "Etiquetes" %}</p>
+        <ul class="fototeca-etiquetes">{% for tag in detail.tags %}<li class="xip">{{ tag }}</li>{% endfor %}</ul>
+      </aside>
+    </fieldset>
+
+    <section class="expositor" aria-labelledby="expositor-h">
+      <h2 id="expositor-h">{% translate "Pujar fotos a «Sortides»" %}</h2>
+      <ol class="expositor-regles">
+        <li>{% translate "La primera foto és la portada." %}</li>
+        <li>{% blocktranslate with px=min_side %}De {{ px }} px o més per costat.{% endblocktranslate %}</li>
+        <li>{% translate "Només fotos on les persones que s'hi reconeixen hi han donat el consentiment." %}</li>
+      </ol>
+      <fieldset disabled class="expositor-cos">
+        <legend class="visualment-amagat">{% translate "Pujar fotos" %}</legend>
+        <div class="zona-magnetica expositor-zona">
+          <button type="button" class="zm-tria"><span class="zm-rajola" aria-hidden="true">+</span>{% translate "Tria les fotos o deixa-les aquí" %}</button>
+        </div>
+        <ul class="expositor-graella">
+          {% for item in uploads %}
+          <li class="expositor-cel es-{{ item.state }}">
+            <span class="fototeca-imatge fotos-to-{{ item.to }}" aria-hidden="true"></span>
+            {% if item.cover %}<span class="expositor-portada">{% translate "Portada" %}</span>{% endif %}
+            {% if item.state == "pujant" %}<span class="expositor-anell" aria-hidden="true"><svg viewBox="0 0 24 24"><circle class="expositor-anell-fons" cx="12" cy="12" r="9"/><circle class="expositor-anell-valor" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="{{ item.pct }} 100" transform="rotate(-90 12 12)"/></svg></span>{% endif %}
+            <p class="expositor-peu">
+              <span class="expositor-nom">{{ item.name }}</span>
+              {% if item.state == "llesta" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Llesta" %}</span>
+              {% elif item.state == "pujant" %}<span class="estat estat-info">{% blocktranslate with pct=item.pct %}Pujant, {{ pct }} %{% endblocktranslate %}</span>
+              {% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% blocktranslate with px=min_side %}Massa petita: menys de {{ px }} px{% endblocktranslate %}</span>{% endif %}
+            </p>
+            {% if item.state == "llesta" and not item.cover %}<button type="button" class="boto boto-text boto-petit">{% translate "Fer portada" %}</button>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="expositor-accions">
+          <p class="expositor-estat">{% blocktranslate count n=2 %}{{ n }} foto llesta{% plural %}{{ n }} fotos llestes{% endblocktranslate %}</p>
+          <button type="button" class="boto boto-principal">{% translate "Desar a la carpeta" %}</button>
+        </div>
+      </fieldset>
+    </section>
+  </section>
+{% endblock %}
