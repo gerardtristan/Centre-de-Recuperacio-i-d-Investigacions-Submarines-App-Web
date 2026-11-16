@@ -372,6 +372,8 @@ opcions:
     recomanada: A
     perque: >-
       És la més simple i deixa la decisió al tresorer; el camp «closed_at» ja existeix.
+    data: 2026-11-16
+
   P-112:
     opcions:
       A: Com s'ha construït; només el Tresorer. L'Administrador se'l pot donar des de l'editor de permisos si cal.
