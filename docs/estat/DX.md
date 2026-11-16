@@ -36,7 +36,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-21 Cartola: pendents per antiguitat, en construcció | per fer | — | — | Pantalla proposada; el pla no la té (D1) |
 | T-DX-22 Deposito: transferències i pagaments a revisar, en construcció | per fer | — | — | Funcional amb la T-M04-12 i la T-M05b-16 |
 | T-DX-23 Calendari general (Horario, després Solape), en construcció | feta | 16/11/2026 | #80 | Setmana en graella (agenda per dies al mòbil) amb el ratllat dels encavalcaments; Solape, més endavant |
-| T-DX-24 Activitats i inscripció (Camilla i Comanda), en construcció | per fer | — | — | P-94 |
+| T-DX-24 Activitats i inscripció (Camilla i Comanda), en construcció | feta | 16/11/2026 | #83 | P-94 (A): passos de Camilla amb la línia de Tramite i opcions amb regles de Comanda; cap dada de salut |
 | T-DX-25 Marcador, en construcció | per fer | — | — | — |
 | T-DX-26 Desfile i Oleaje a la portada pública, en construcció | per fer | — | — | Desfile sense avanç automàtic |
 | T-DX-27 Vistazo: projectes, en construcció | feta | 16/11/2026 | #79 | Projectes del Departament d'Història a l'àrea del soci: files que s'obren i finestra decorativa en degradat (sense fotos) |
