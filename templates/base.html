@@ -33,6 +33,8 @@
   {# Menú de l'administració (T-M01-46): només amb una sessió vàlida de l'administració. Sense «defer»: plega la barra abans de pintar. #}
   {% if admin_nav %}<script src="{% static 'js/menu-admin.js' %}"></script>{% endif %}
   {% if admin_nav %}<link rel="stylesheet" href="{% static 'css/solapas.css' %}"><script src="{% static 'js/solapas.js' %}" defer></script>{% endif %}
+  {# Estils propis d'una pantalla (les «En construcció», design-system §16): no toquen la base. #}
+  {% block estils %}{% endblock %}
 </head>
 <body class="zona-{% block zona %}soci{% endblock %}{% if admin_nav %} amb-barra-lateral{% endif %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>

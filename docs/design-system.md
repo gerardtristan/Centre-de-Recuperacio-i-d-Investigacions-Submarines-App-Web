@@ -725,3 +725,17 @@ Abans de donar per acabada una pantalla nova o tocada, es comprova i s'anota al 
 3. **Taula D:** cap insígnia decorativa; un sol botó primari; títols concrets; xifres tabulars; monoespai només on toca; estats buits amb dades de la demostració; esquelet a tot el que pot trigar; contrast 4,5:1 i 3:1 als dos temes.
 4. **Tokens:** cap color, radi, ombra, espai ni durada fora de `tokens.css`; cap `style=`.
 5. **Captures** a 1280 i 390 px, en clar i en fosc, mirades.
+
+## 16. Pantalles «En construcció»
+Com es fa una pantalla del carril de disseny que encara no funciona (etiqueta i control al servidor: §6.9). **Feta a la T-DX-09.**
+- **Una pantalla, fitxers nous i res més:** `apps/previews/screens/<nom>.py` (amb `TITLE`, traduïble, i, si cal, `CONTEXT`, contingut d'exemple inventat i fix, mai cap consulta), `templates/previews/<nom>.html` i, si cal, `static/css/<recurs>.css`, que la plantilla enllaça al bloc `estils` de la base. La ruta és `/en-construccio/<nom>/` (els «_» passen a «-»), i l'índex de totes és a `/en-construccio/`. Rutes, índex i proves les troben soles: afegir una pantalla no toca cap fitxer de codi comú, i diverses pantalles es poden fer alhora (decisió 094, punt 3).
+- **La plantilla:** el contingut va dins d'un `en-construccio-bloc` amb l'etiqueta (`{% include "_en_construccio.html" with id="ec-<nom>" %}`) i `aria-describedby`; els formularis i els botons que farien alguna cosa, dins d'un `fieldset disabled`. Només classes i tokens del sistema; una peça nova, primer en aquest document: una subsecció per pantalla, titulada amb el número de la tasca («### T-DX-NN Recurs: pantalla»), perquè diverses pantalles fetes alhora no xoquin.
+- **Proves, comunes:** `apps/previews/tests/test_screens.py` (títol i plantilla, etiqueta, cap `style=`, només GET, 404 sense accés, a l'índex) i `apps/core/tests/e2e/test_previews.py` (etiqueta visible i captures a 1280, 390 i 320 px, en clar i en fosc). Quan la pantalla es torna funcional, el fitxer surt de `apps/previews/screens` i les proves de la tasca la cobreixen.
+- **Al menú:** encara no. L'enllaç a l'índex al menú de l'administració, per a qui tingui accés, queda pendent: el menú és codi del nucli (`apps/accounts/navigation.py`).
+
+### T-DX-09 Baliza: novetats i avisos
+Del recurs Baliza ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la baliza al costat del que és nou, la nota que s'obre i la píndola amb el comptador. Lloc: el centre d'avisos del soci (P-98, resposta C).
+- **Peça:** `static/css/baliza.css`. `baliza-pindola` (comptador «N novetats per descobrir»), `baliza-punt` (la baliza, de `--c-accent`, amb **un sol batec en aparèixer**, no continu, D20) i `baliza-item` (un `details` per novetat: la nota i «Entès» s'obren a sota; les vistes, amb ✓ i el text secundari).
+- **Pantalla:** `/en-construccio/novetats/`, «Novetats i avisos», a l'àrea del soci, amb tres novetats d'exemple.
+- **Quan funcioni:** una novetat no mostrarà mai dades d'una altra persona, i el navegador només recordarà quins identificadors s'han vist (pla dels recursos externs). «Entès» i les preferències (Avisador) són d'aquella tasca.
+- **Del recurs no s'hi fa:** el batec continu (D20), el marc que ensenya un element de la pantalla ni «Amagar consells».
