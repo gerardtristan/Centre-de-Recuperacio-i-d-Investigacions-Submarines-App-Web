@@ -469,7 +469,7 @@ Del recurs Tramite ([pla dels recursos externs](plans/recursos-disseny-extern.md
 
 ### 6.14 El rebut: la ranura i el segell (T-DX-11)
 De Tramite, el comprovant que surt d'una ranura i s'imprimeix en blanc i negre; d'Emisor (P-93, opció C), el segell que cau sobre el document ([pla dels recursos externs](plans/recursos-disseny-extern.md)).
-- **Peça:** `templates/payments/receipt.html` i `static/css/rebut.css`. El paper és `--paper`, clar als dos temes, com el justificant.
+- **Peça:** `templates/payments/receipt.html` i `static/css/ranura.css`. El paper és `--paper`, clar als dos temes, com el justificant.
 - **Moviment:** en carregar la pàgina, el rebut surt de la ranura (`--m-panell` × 1,2) i després cau el segell «Pagat» amb la data (`--m-corba-molla`). Una sola vegada; sense moviment amb `prefers-reduced-motion`.
 - **El segell només hi és perquè el rebut existeix:** el rebut només es crea quan el servidor ha confirmat el pagament (B10, RN-M05b-19). Va sota les dades, alineat a la dreta, i no en tapa cap. Per al lector de pantalla és decoratiu (les dades ja ho diuen).
 - **Imprimir o desar com a PDF:** sense ranura ni animació, el paper sense fons i el segell en blanc i negre.
