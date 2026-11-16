@@ -1,0 +1,69 @@
+/* Recoveco (T-DX-28; recurs a design/extern/; design-system §16, T-DX-28): l'ajuda i les preguntes freqüents.
+   Del recurs: l'índex de temes amb el número romà i el comptador, les preguntes plegades per tema (obrir-ne una
+   tanca l'anterior del mateix tema, amb `details name`) i la cerca del navegador, que obre la resposta sola.
+   Sense JavaScript: la cerca pròpia i «Copiar l'enllaç» van desactivats. */
+.recoveco { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.recoveco h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.recoveco-app { display: grid; gap: var(--e-4); }
+.recoveco-index { padding: var(--e-3); border-radius: var(--r-l); background: var(--c-fons); }
+.recoveco-index-t {
+  margin: 0 0 var(--e-2); font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: var(--ll-etiqueta);
+  text-transform: uppercase; color: var(--c-text-2);
+}
+.recoveco-temes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-1); }
+.recoveco-temes a {
+  display: flex; align-items: center; gap: var(--e-3); min-block-size: var(--tactil); padding: 0 var(--e-2);
+  border-radius: var(--r-m); color: var(--c-text); text-decoration: none;
+}
+.recoveco-temes a:hover { background: var(--c-pindola); }
+.recoveco-n { margin-inline-start: auto; font-size: var(--t-xs); color: var(--c-text-2); white-space: nowrap; }
+.recoveco-rom {
+  display: grid; place-items: center; flex: none; inline-size: var(--e-6); block-size: var(--e-6); border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--v-plena) var(--c-mari); font-family: var(--f-titol); font-size: var(--t-xs);
+  font-weight: var(--p-semi); color: var(--c-mari-text);
+}
+.recoveco .recoveco-drecera { margin: var(--e-3) 0 0; font-size: var(--t-s); }
+.recoveco-drecera kbd {
+  padding: 0 var(--e-1); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-s);
+  font-family: var(--f-codi); font-size: var(--t-xs);
+}
+.recoveco-cos { display: grid; gap: var(--e-4); align-content: start; min-inline-size: 0; }
+.recoveco-cerca, .recoveco-accions { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+.recoveco-grup {
+  padding-block-end: var(--e-2); border-radius: var(--r-l); background: var(--c-fons);
+  scroll-margin-top: var(--capcalera-alcada);
+}
+.recoveco-grup h2 { display: flex; align-items: center; gap: var(--e-3); margin: 0; padding: var(--e-3) var(--e-4); font-size: var(--t-l); }
+.recoveco-grup h2 .recoveco-rom { margin-inline-start: auto; }
+.recoveco-p { position: relative; border-top: var(--v-fina) solid var(--c-linia); }
+/* La ratlla marina a l'esquerra de la pregunta oberta, com al recurs */
+.recoveco-p::before {
+  content: ""; position: absolute; inset-inline-start: 0; inset-block: var(--e-2); inline-size: var(--v-activa);
+  border-radius: 0 var(--r-s) var(--r-s) 0; background: var(--c-mari); transform: scaleY(0); transform-origin: top;
+  transition: transform var(--m-entrada) var(--m-corba);
+}
+.recoveco-p[open]::before { transform: scaleY(1); }
+.recoveco-p > summary {
+  display: flex; align-items: center; gap: var(--e-3); min-block-size: var(--tactil); padding: var(--e-2) var(--e-4);
+  list-style: none; cursor: pointer; font-weight: var(--p-semi);
+}
+.recoveco-p > summary::-webkit-details-marker { display: none; }
+.recoveco-p > summary:hover { background: var(--c-pindola); }
+.recoveco-p[open] > summary { color: var(--c-mari-text); }
+/* El «+» que es torna «−» en obrir */
+.recoveco-mes { position: relative; flex: none; margin-inline-start: auto; inline-size: var(--e-3); block-size: var(--e-3); }
+.recoveco-mes::before, .recoveco-mes::after {
+  content: ""; position: absolute; inset-inline: 0; inset-block-start: 50%; block-size: var(--v-plena);
+  border-radius: var(--r-s); background: currentColor; transform: translateY(-50%);
+  transition: transform var(--m-rapid) var(--m-corba);
+}
+.recoveco-mes::after { transform: translateY(-50%) rotate(90deg); }
+.recoveco-p[open] .recoveco-mes::after { transform: translateY(-50%) rotate(0deg); }
+.recoveco-resp { display: grid; gap: var(--e-2); justify-items: start; padding: 0 var(--e-4) var(--e-3); }
+
+/* A l'escriptori, l'índex a l'esquerra i fix en desplaçar, com al recurs */
+@media (min-width: 1024px) {
+  .recoveco { padding: var(--e-5); }
+  .recoveco-app { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); align-items: start; }
+  .recoveco-index { position: sticky; top: var(--capcalera-alcada); }
+}
