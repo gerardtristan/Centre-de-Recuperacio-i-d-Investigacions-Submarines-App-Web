@@ -1,0 +1,14 @@
+{% load i18n %}{% comment %}Vigencia (T-DX-13; design-system §6.15): els dies que queden, calculats al servidor
+   (apps/members/templatetags/vigencia.py). La regla és un SVG amb atributs (cap style=): la barra
+   mesura els dies que queden fins a l'escala i les marques són els dies d'avís. El text diu el
+   mateix per al lector de pantalla; el dibuix és decoratiu.{% endcomment %}
+{% if show %}
+<div class="vigencia vigencia-{{ level }}">
+  <p class="vigencia-dies">{% if days > 0 %}{% blocktranslate count n=days %}Queda {{ n }} dia{% plural %}Queden {{ n }} dies{% endblocktranslate %}{% elif days == 0 %}{% if kind == "quota" %}{% translate "Venç avui" %}{% else %}{% translate "Caduca avui" %}{% endif %}{% else %}{% if kind == "quota" %}{% blocktranslate count n=ago %}Va vèncer fa {{ n }} dia{% plural %}Va vèncer fa {{ n }} dies{% endblocktranslate %}{% else %}{% blocktranslate count n=ago %}Va caducar fa {{ n }} dia{% plural %}Va caducar fa {{ n }} dies{% endblocktranslate %}{% endif %}{% endif %}</p>
+  <svg class="vigencia-regla" viewBox="0 0 {{ window }} 10" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <rect class="vigencia-pista" x="0" y="3" width="{{ window }}" height="4" rx="2"/>
+    <rect class="vigencia-barra" x="0" y="3" width="{{ bar }}" height="4" rx="2"/>
+    {% for mark in marks %}<line class="vigencia-marca{% if bar <= mark %} es-passada{% endif %}" x1="{{ mark }}" x2="{{ mark }}" y1="0" y2="10"/>{% endfor %}
+  </svg>
+</div>
+{% endif %}

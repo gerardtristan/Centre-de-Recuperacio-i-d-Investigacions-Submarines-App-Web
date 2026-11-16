@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.17 (16/11/2026). La 1.17 afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
+- **Versió:** 1.18 (16/11/2026). La 1.18 afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
+- La 1.17 (16/11/2026) afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
 - La 1.16 (16/11/2026) afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
 - La 1.15 (16/11/2026) afegeix Ramillete, la navegació de l'àrea del soci al mòbil (§6.12, T-DX-08).
 - La 1.14 (16/11/2026) afegeix Solapas, les pestanyes de les fitxes obertes a l'administració (§6.11, T-DX-07).
@@ -474,6 +475,15 @@ De Tramite, el comprovant que surt d'una ranura i s'imprimeix en blanc i negre; 
 - **El segell només hi és perquè el rebut existeix:** el rebut només es crea quan el servidor ha confirmat el pagament (B10, RN-M05b-19). Va sota les dades, alineat a la dreta, i no en tapa cap. Per al lector de pantalla és decoratiu (les dades ja ho diuen).
 - **Imprimir o desar com a PDF:** sense ranura ni animació, el paper sense fons i el segell en blanc i negre.
 - **Captures:** la *fixture* `capture` de les e2e espera que acabin les animacions finites abans de fer la foto.
+
+### 6.15 Vigencia: els dies que queden (T-DX-13)
+Del recurs Vigencia ([pla dels recursos externs](plans/recursos-disseny-extern.md)): els dies exactes que queden sobre una regla, amb els dies d'avís marcats i la barra que canvia de color en passar-los.
+- **Peça:** l'etiqueta `{% vigencia data "quota" %}` o `"llicencia"` (`apps/members/templatetags/vigencia.py`), `templates/members/_vigencia.html` i `static/css/vigencia.css`.
+- **El servidor fa el compte:** dies = data − data local (`local_today`), mai el rellotge del navegador. La data és la que ja dona el servidor: «Pagada fins al» o «Eximida fins al» (070, P-71) o la caducitat de la llicència.
+- **Dies d'avís:** per a la quota, els recordatoris d'abans del venciment (VC-02, `MEMBER_FEE_REMINDER_OFFSETS`, que passarà a Ajustos a la T-M01-32). Cap valor nou al codi. La llicència no en té cap de definit i no en porta.
+- **Trams:** verd; avís des del primer dia d'avís; vermell un cop vençuda. L'escala del dibuix és de 60 dies (no és cap regla: a partir d'aquí, la barra és plena) i s'allarga si un dia d'avís és més llunyà.
+- **Dibuix:** un SVG amb atributs (cap `style=`), decoratiu; el text («Queden 23 dies», «Venç avui», «Va vèncer fa 2 dies») ho diu tot.
+- **On:** «Les meves quotes» i la llicència del perfil del soci (la seva, si té data i no és declarada pendent de confirmar). Del recurs no s'hi fa: el lliscador de temps, «Renovar» (renovar és pagar) ni l'`.ics` d'avisos.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

@@ -1,0 +1,15 @@
+/* Vigencia (T-DX-13; recurs a design/extern/; design-system §6.15): els dies que queden sobre una
+   regla, amb els dies d'avís marcats; la barra canvia de color en passar l'avís i en vèncer. Del
+   recurs: la regla, les marques d'avís i el color per tram. Només tokens; el dibuix és un SVG amb
+   atributs (cap style=). */
+.vigencia { display: grid; gap: var(--e-1); max-width: var(--amplada-text); margin: var(--e-2) 0 var(--e-4); }
+.vigencia-dies { margin: 0; font-weight: var(--p-semi); font-variant-numeric: tabular-nums; }
+.vigencia-regla { display: block; width: 100%; height: var(--e-3); overflow: visible; }
+.vigencia-pista { fill: var(--c-superficie-2); }
+.vigencia-barra { fill: var(--c-ok); transition: width var(--m-panell) var(--m-corba); }
+.vigencia-avis .vigencia-barra { fill: var(--c-avis); }
+.vigencia-error .vigencia-barra { fill: var(--c-error); }
+.vigencia-avis .vigencia-dies { color: var(--c-avis-text); }
+.vigencia-error .vigencia-dies { color: var(--c-error-text); }
+.vigencia-marca { stroke: var(--c-text-2); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+.vigencia-marca.es-passada { stroke: var(--c-avis-text); }
