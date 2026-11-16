@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.13 (16/11/2026). La 1.13 porta el tema a la configuració del compte (§7, T-DX-05b).
+- **Versió:** 1.14 (16/11/2026). La 1.14 afegeix Solapas, les pestanyes de les fitxes obertes a l'administració (§6.11, T-DX-07).
+- La 1.13 (16/11/2026) porta el tema a la configuració del compte (§7, T-DX-05b).
 - La 1.12 (16/11/2026) posa Eclipse a la part pública (§7, T-DX-05).
 - La 1.11 (16/11/2026) afegeix Errata, el resum d'errors dels formularis (§6.10, T-DX-06).
 - La 1.10 (16/11/2026) posa el motor de tema de Duermevela (§7, T-DX-04).
@@ -438,6 +439,14 @@ Del recurs Errata ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - **Seguretat:** els missatges són els del servidor i no diuen mai si un compte existeix.
 - **Encara no:** la validació en sortir de cada camp, l'índex de seccions i el «Tot correcte» del recurs. Demanen repetir al navegador les regles del servidor; es faran en una tasca pròpia.
 - **On és:** el formulari «Fer-se soci» (web i alta presencial). Els altres formularis s'hi afegeixen quan es toquin.
+
+### 6.11 Solapas: pestanyes de les fitxes obertes (T-DX-07)
+Del recurs Solapas ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la pestanya arrodonida per dalt que s'uneix amb la fulla, la franja de color de l'activa, la × que surt en passar-hi o a l'activa, el punt de canvis sense desar i el menú «+N» amb les que no hi caben.
+- **Peça:** `static/js/solapas.js` i `static/css/solapas.css`; la tira és a `base.html`, a dalt del contingut, només amb una sessió de l'administració. Una fitxa que es vol a les pestanyes posa `{% block solapa %}<meta name="cris-solapa" content="…">{% endblock %}`. De moment, la fitxa del soci («Soci 12») i la de les sol·licituds («Baixa 34»).
+- **Què es desa (P-96, opció B):** la llista de pestanyes (adreça i etiqueta, **sense noms**) a `sessionStorage`, que només viu en aquesta pestanya del navegador. El contingut no es desa enlloc. «Surt» (el formulari de `.lateral-compte`) la buida.
+- **Comportament:** cada pestanya és un enllaç a la fitxa, i el servidor torna a comprovar el permís en obrir-la. En tancar l'activa s'obre la de la dreta o, si era l'última, la de l'esquerra; sense cap pestanya, l'inici de l'administració. Es reordenen arrossegant o amb Alt+← i Alt+→. Quan no hi caben, les que fa més que no s'obren passen al menú «+N» (mai l'activa), i la tira té la vora emmascarada (C2). Si la fitxa activa té canvis sense desar, la pestanya porta un punt i, en tancar-la, es demana confirmació.
+- **Mides:** cada pestanya fa `--tactil` d'alt; la × i el «+N» es veuen de `--selector-alcada` amb una àrea de 44 px.
+- **Del recurs no s'hi fa:** el panell lateral de registres (la navegació és la barra lateral de sempre) i els esborranys en tancar una pestanya (P-96).
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

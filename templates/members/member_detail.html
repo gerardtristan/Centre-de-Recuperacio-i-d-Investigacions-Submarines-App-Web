@@ -2,6 +2,7 @@
 {% load i18n %}
 {# T-M01-15: fitxa del soci (P4). Editar (P5) i corregir la data d'alta (P6) són pantalles a part (T-M01-15b; inclusions _member_edit_links i _join_date_history). Data de naixement només amb C1; la resta veu la franja d'edat (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
 {% block title %}{{ person }} · {% translate "Fitxa del soci" %} · C.R.I.S.{% endblock %}
+{% block solapa %}<meta name="cris-solapa" content="{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% blocktranslate with pk=member.pk %}Soci sense número · fitxa {{ pk }}{% endblocktranslate %}{% endif %}">{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>

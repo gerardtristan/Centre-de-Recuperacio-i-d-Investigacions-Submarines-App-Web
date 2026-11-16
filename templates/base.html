@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}C.R.I.S.{% endblock %}</title>
+  {# Solapas (T-DX-07): una fitxa de l'administració que es vol a les pestanyes hi posa la seva etiqueta, sense noms (P-96). #}
+  {% block solapa %}{% endblock %}
   {# Sense «defer»: aplica el tema desat abans de pintar. Fitxer propi, cap codi en línia (066). #}
   <script src="{% static 'js/tema.js' %}"></script>
   {# Tot servit des del VPS: fonts, estils i HTMX, mai des d'un CDN (decisions 035 i 046) #}
@@ -21,6 +23,7 @@
   <script src="{% static 'js/pwa.js' %}" data-service-worker="{% url 'core:service_worker' %}" defer></script>
   {# Menú de l'administració (T-M01-46): només amb una sessió vàlida de l'administració. Sense «defer»: plega la barra abans de pintar. #}
   {% if admin_nav %}<script src="{% static 'js/menu-admin.js' %}"></script>{% endif %}
+  {% if admin_nav %}<link rel="stylesheet" href="{% static 'css/solapas.css' %}"><script src="{% static 'js/solapas.js' %}" defer></script>{% endif %}
 </head>
 <body class="zona-{% block zona %}soci{% endblock %}{% if admin_nav %} amb-barra-lateral{% endif %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>
@@ -39,6 +42,7 @@
   {# Menú construït al servidor segons els permisos del compte; `admin_nav` és buit fora d'una sessió d'administració. #}
   {% if admin_nav %}{% include "accounts/_admin_nav.html" %}{% endif %}
   <main id="contingut" class="cos-compte {% block cos_classe %}{% endblock %}">
+    {% if admin_nav %}<nav class="solapes" aria-label="{% translate 'Fitxes obertes' %}" data-solapes data-inici="{% url 'administration:home' %}" data-tanca="{% translate 'Tanca %s' %}" data-avis-canvis="{% translate 'Aquesta fitxa té canvis sense desar. Si la tanques, es perden. Vols tancar-la?' %}" data-mes="{% translate 'Més fitxes obertes' %}" hidden><ul class="solapes-llista"></ul></nav>{% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>
