@@ -14,7 +14,7 @@ from apps.payments.models import Receipt
 from apps.payments.providers import base, fake
 from apps.payments.tests.test_checkout import SITE, new_charge
 from apps.treasury import reconciliation
-from apps.treasury.tests.test_reconciliation import lines, reconciler, ref, treasurer  # noqa: F401
+from apps.treasury.tests.test_reconciliation import lines, ref, treasurer  # noqa: F401
 
 pytestmark = pytest.mark.django_db
 S = Attempt.Status
@@ -135,10 +135,10 @@ class TestReconciled:
         self,
         charge,
         member,
-        reconciler,  # noqa: F811
+        treasurer,  # noqa: F811
     ):
         pay_by_transfer(member, charge)
-        confirm(charge, reconciler)
+        confirm(charge, treasurer)
         attempt = Attempt.objects.get()
         assert attempt.status == S.PAID
         receipt = Receipt.objects.get(attempt=attempt)
@@ -153,9 +153,9 @@ class TestReconciled:
     def test_paid_without_the_screen_still_gets_an_attempt_and_a_receipt(
         self,
         charge,
-        reconciler,  # noqa: F811
+        treasurer,  # noqa: F811
     ):
-        confirm(charge, reconciler)
+        confirm(charge, treasurer)
         attempt = Attempt.objects.get()
         assert (attempt.method, attempt.status, attempt.started_by) == (TRANSFER, S.PAID, None)
         assert Receipt.objects.filter(attempt=attempt).exists()
@@ -164,10 +164,10 @@ class TestReconciled:
         self,
         charge,
         personal_account,
-        reconciler,  # noqa: F811
+        treasurer,  # noqa: F811
     ):
         checkout.start_payment(charge, Attempt.Method.CARD, personal_account)
-        confirm(charge, reconciler)
+        confirm(charge, treasurer)
         charge.refresh_from_db()
         assert charge.status == Charge.Status.PAID
         assert not Attempt.objects.filter(method=TRANSFER).exists()

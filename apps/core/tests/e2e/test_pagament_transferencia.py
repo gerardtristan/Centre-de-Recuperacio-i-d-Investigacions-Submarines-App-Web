@@ -6,13 +6,10 @@ amb «Copia». La pantalla no dona res per pagat: el tresorer confirma la concil
 de l'extracte (aquí, el servei de la 04, que encara no té pantalla) i, en tornar-hi, el soci veu
 «Pagat» i el rebut."""
 
-from types import MappingProxyType
-
 import pytest
 from playwright.sync_api import expect
 
-from apps.core import permission_catalog, permissions
-from apps.core.models import Charge, Role, RolePermission
+from apps.core.models import Charge
 from apps.payments.models import PaymentAttempt
 from apps.treasury import reconciliation
 from apps.treasury.tests.test_reconciliation import lines, ref
@@ -25,16 +22,8 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.fixture
-def reconciler(transactional_db, monkeypatch):
-    """El tresorer amb T4, que encara no és al catàleg del nucli: la prova l'hi posa com a
-    `apps/treasury/tests/test_reconciliation.py` (T-M04-12)."""
-    code = reconciliation.RECONCILE
-    t4 = permission_catalog.Permission(code, "T4", "Conciliar i desfer una conciliació")
-    catalog = MappingProxyType({**permission_catalog.CATALOG, code: t4})
-    for module in (permissions, reconciliation):
-        monkeypatch.setattr(module, "CATALOG", catalog)
-    treasurer = Role.objects.get(code="treasurer")
-    RolePermission.objects.create(role=treasurer, permission_code=code, scope="all")
+def reconciler(transactional_db):
+    """El tresorer, que té T4 a la configuració inicial (T-M04-12b)."""
     return make_admin("tresoreria.prova", "treasurer")
 
 
