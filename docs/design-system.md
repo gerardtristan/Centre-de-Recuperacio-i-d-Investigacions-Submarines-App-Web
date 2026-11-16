@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.7 (16/11/2026). La 1.7 afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
+- **Versió:** 1.8 (16/11/2026). La 1.8 porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
+- La 1.7 (16/11/2026) afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
 - La 1.6 (11/11/2026) descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
 - La 1.5 (03/11/2026) afegeix els wireframes del mòdul 01 (T-M01-02): les pantalles de §5.2, els components del prototip interactiu que ja existien i ara es documenten (§6), la navegació de Socis amb la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) (§6.2) i els patrons d'interacció i de seguretat de §6.7. No canvia cap token ni cap regla.
 - La 1.4 (27/10/2026) incorpora patrons de Magic Portfolio com a referència visual (decisió 034): una sortida destacada a la portada, projectes, notícies i conferències, una galeria, el butlletí i l'afinament de les targetes i els xips dels socis (§5.1, §6.6 i §10).
@@ -118,7 +119,7 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 - **Avatar:** `--avatar` 56 px.
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
 - **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-carril` 72 px (tauleta, administració), `--capcalera-alcada` 64 px. `--lateral-soci`, `--columna-dreta` i `--barra-inferior-alcada` són de l'estructura anterior dels socis; ara no es fan servir, però es conserven fins que es validi la nova.
-- **Logotip:** `--logo-capcalera` 40 px (socis i administració), `--logo-publica-mobil` 52 px i `--logo-publica` 72 px (capçalera pública), `--logo-peu` 120 px (peu de la pública).
+- **Logotip:** `--logo-capcalera` 56 px (socis i administració), `--logo-lateral` 64 px (barra lateral), `--logo-publica-mobil` 64 px i `--logo-publica` 96 px (capçalera pública), `--logo-peu` 160 px (peu de la pública). Abans eren 40, 48, 52, 72 i 120 px; els va fer més grans el propietari el 16/11/2026 (T-DX-01). Amb el logotip de 56 px, la capçalera dels comptes fa 72 px d'alt (`--capcalera-alcada` és el mínim).
 - **Selector de tema:** `--selector-alcada` 32 px (alçada visible de cada opció), `--selector-opcio` 40 px (amplada mínima visible), `--selector-icona` 12 px (icones i ✓), text de 14 px a partir de tauleta i farciment del contenidor de 2 px. L'àrea tàctil continua sent de **44 × 44 px**: un pseudoelement invisible de l'etiqueta l'amplia 6 px amunt i avall i 2 px a cada costat, sense que es vegi més gran. La vora (`--c-linia-forta` o `--neu-vora`, ≥3:1), el focus i la llegenda «Tema» no canvien.
 - **Compte personal:** `--portada-alcada` 64svh (alçada mínima de la portada **a partir de tauleta**; al mòbil, la portada fa l'alçada del contingut), `--carnet-amplada` 22rem (×1,25 a l'escriptori), `--carnet-proporcio` 1,586 (la d'una targeta física), `--dock-alcada` 64 px, `--dock-carnet` 60 px, `--tactil-gran` 56 px (accions crítiques: pagar), `--carril-targeta` 85 % (targetes del carril al mòbil) i `--ona-alcada` 32 px.
 - **Espai vertical del compte personal (1.3):**
@@ -138,15 +139,15 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
   El carnet manté la mida i la proporció. Al mòbil de 390 × 844 px, la franja de pagaments ja es veu sense desplaçar la pàgina, fins i tot amb les barres de demostració del wireframe.
 
 ### 4.1 Moviment (decisió 032)
-Només a tres llocs del compte personal i mai en accions crítiques:
+Al compte personal i mai en accions crítiques. Des de la 1.8, la llista sencera de tokens de moviment és a §15.4; aquí queden els de la 032, amb els valors de `tokens.css`:
 
 | Token | Valor | On |
 |---|---|---|
-| `--m-entrada` | 700 ms | Entrada de la portada (apareix i puja 24 px), una sola vegada |
-| `--m-gir` | 600 ms | Gir del carnet |
-| `--m-ona` × `--m-ona-repeticions` | 2,4 s × 2 | Ona de la portada. S'atura sola abans de 5 s, així que no cal cap botó de pausa (WCAG 2.2.2) |
-| `--m-rapid` | 150 ms | Reserva per a transicions petites; encara no es fa servir |
-| `--m-corba` | `cubic-bezier(.2, .7, .2, 1)` | Corba comuna |
+| `--m-entrada` | 300 ms (abans 700, B9) | Entrada de la portada (apareix i puja 24 px), una sola vegada |
+| `--m-gir` | 400 ms (abans 650, B9) | Gir del carnet |
+| `--m-ona` × `--m-ona-repeticions` | 2,4 s × 2 | Ona de la portada. S'atura sola abans de 5 s, així que no cal cap botó de pausa (WCAG 2.2.2). La substituirà Oleaje (T-DX-17) |
+| `--m-rapid` | 180 ms | Transicions petites (botons, enllaços, menús) |
+| `--m-corba` | `cubic-bezier(.23, 1, .32, 1)` | Corba d'entrada |
 
 Amb `prefers-reduced-motion: reduce` (l'usuari demana menys moviment al sistema), els tokens passen a 0 i `tokens.css` atura qualsevol animació i transició. La portada apareix directament, l'ona queda quieta i el carnet es gira a l'instant.
 
@@ -583,26 +584,29 @@ Tres llistes de regles que valen per a **tota la interfície**: les pantalles no
 | 20 | Animate useful feedback | cada animació respon a una acció o a un canvi d'estat. L'única animació contínua permesa és Oleaje, lenta i desactivable, i s'atura amb prefers-reduced-motion. |
 
 ### 15.4 Tokens que concreten les regles
-Proposats en aquesta versió; entren a `tokens.css` a la T-DX-01 (moviment i radis) i a la T-DX-02 (color). Fins llavors manen els valors actuals de `tokens.css`.
+Els de moviment i els radis ja són a `tokens.css` (T-DX-01, amb els noms que ja existien). Els de color hi entren a la T-DX-02; fins llavors manen els valors actuals.
 
 **Moviment** (B2, B5, B6, B9, B17, C4). Amb `prefers-reduced-motion: reduce`, totes les durades passen a 0 i l'escala de premut a 1, com ja fa `tokens.css`.
 
 | Token | Valor | Regla |
 |---|---|---|
-| `--m-rapid` | 150 ms (ja existeix) | B9: microinteraccions (100–200 ms) |
-| `--m-icona` | 180 ms | C4: canvi d'icona amb opacitat, escala i desenfocament |
+| `--m-rapid` | 180 ms | B9 i C4: microinteraccions i canvi d'icona (100–200 ms) |
+| `--m-sortida` | 150 ms | B6: les sortides, més curtes que les entrades |
 | `--m-panell` | 250 ms | B9: panells, diàlegs, Solapas, Tramite, Camilla (200–300 ms) |
+| `--m-amplada` | 260 ms | B9: canvis d'amplada (barra lateral) |
 | `--m-preparacio` | 90 ms | B2: preparació abans d'un moviment gran (60–120 ms) |
 | `--m-escalonat` | 30 ms | B5: retard de cada fill respecte de l'anterior (20–40 ms) |
 | `--m-llindar` | 400 ms | B9 i B17: cap animació bloqueja més; si el servidor triga més, esquelet o progrés |
 | `--m-entrada` | 300 ms (abans 700) | Entrada de la portada del soci (032 revisada, B9) |
-| `--m-gir` | 400 ms (abans 600) | Gir del carnet (032 revisada, B9) |
+| `--m-gir` | 400 ms (abans 650) | Gir del carnet (032 revisada, B9) |
 | `--m-oleaje` | 8 s per cicle | D20: l'única animació contínua, lenta |
-| `--m-corba-entrada` | `cubic-bezier(.2, .7, .2, 1)` (l'actual `--m-corba`) | B6: entrada, ease-out |
+| `--m-corba` | `cubic-bezier(.23, 1, .32, 1)` | B6: entrada, ease-out |
 | `--m-corba-sortida` | `cubic-bezier(.4, 0, 1, 1)` | B6: sortida, ease-in |
-| `--m-corba-desplacament` | `cubic-bezier(.65, 0, .35, 1)` | B6: desplaçament, ease-in-out |
-| `--m-corba-molla` | `linear(0, .36 18%, .81 36%, 1.04 52%, 1.06 62%, 1.01 78%, 1)`; sense suport de `linear()`, `--m-corba-entrada` | B5: rebot final petit |
+| `--m-corba-entra-surt` | `cubic-bezier(.77, 0, .175, 1)` | B6: desplaçament, ease-in-out |
+| `--m-corba-molla` | `linear(0, .36 18%, .81 36%, 1.04 52%, 1.06 62%, 1.01 78%, 1)`; sense suport de `linear()`, `--m-corba` | B5: rebot final petit |
 | `--escala-premut` | 0.95 | B1: 5 % (entre el 4 i el 6 %) |
+
+La 1.7 proposava `--m-icona`, `--m-corba-entrada` i `--m-corba-desplacament`: no es creen, perquè `--m-rapid`, `--m-corba` i `--m-corba-entra-surt` ja fan aquesta feina i canviar-los el nom tocaria tots els components.
 
 **Radis concèntrics** (C1, D8). Una propietat personalitzada es resol on es declara, així que `--r-interior` no pot anar a `:root`: va a la classe `radi-concentric` del contenidor, que defineix `--r-exterior` i `--farciment`, i els fills fan servir `border-radius: var(--r-interior)`.
 
