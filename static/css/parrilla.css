@@ -1,0 +1,72 @@
+/* Parrilla (T-DX-35; recurs a design/extern/; design-system §16, T-DX-35): el dashboard configurable.
+   Del recurs: la reixa de ginys de dotze columnes, la capçalera amb l'agafador, «Treure» i el tirador de la
+   mida, la paleta de ginys i la disposició com a dades. Sense JavaScript: res no s'arrossega ni es desa.
+   Només xifres agregades (regla del dashboard: veure'l no dona accés a cap dada personal). */
+.parrilla { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.parrilla h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.parrilla-cos { display: grid; gap: var(--e-4); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.parrilla-accions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-2); }
+.parrilla-reixa { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); grid-template-columns: minmax(0, 1fr); }
+.parrilla-giny {
+  position: relative; display: grid; align-content: start; gap: var(--e-3); min-inline-size: 0;
+  padding: var(--e-3) var(--e-4) var(--e-5); border-radius: var(--r-l); background: var(--c-fons);
+  box-shadow: var(--neu-relleu-petit);
+}
+.parrilla-cap { display: flex; align-items: center; gap: var(--e-2); min-inline-size: 0; }
+.parrilla-cap h2 { margin: 0; font-size: var(--t-m); }
+.parrilla-agafador { color: var(--c-text-2); cursor: grab; }
+.parrilla-agafador circle { fill: currentColor; stroke: none; }
+.parrilla-etiq { font-size: var(--t-xs); color: var(--c-text-2); }
+.parrilla-treure, .parrilla-tirador {
+  display: grid; place-items: center; inline-size: var(--tactil); block-size: var(--tactil); padding: 0;
+  border: 0; background: transparent; color: var(--c-text-2); border-radius: var(--r-m);
+}
+.parrilla-treure { margin-inline-start: auto; }
+.parrilla-tirador { position: absolute; inset-inline-end: 0; inset-block-end: 0; cursor: nwse-resize; }
+.parrilla-xifra { margin: 0; font-family: var(--f-titol); font-size: var(--t-3xl); line-height: var(--a-titol); }
+.parrilla .parrilla-peu { margin: 0; font-size: var(--t-s); }
+/* Barres: la més alta = 100; el color és el marí (acció secundària), mai un color d'estat */
+.parrilla-barres { display: block; inline-size: 100%; block-size: calc(var(--e-8) + var(--e-6)); fill: var(--c-mari); }
+.parrilla-eix { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); font-size: var(--t-xs); color: var(--c-text-2); }
+.parrilla-anell { display: grid; place-items: center; }
+.parrilla-anell > * { grid-area: 1 / 1; }
+.parrilla-anell svg { inline-size: calc(var(--e-8) * 2); block-size: calc(var(--e-8) * 2); }
+.parrilla-anell circle { fill: none; stroke-width: 3.5; }
+.parrilla-anell-fons { stroke: var(--c-linia); }
+.parrilla-anell-valor { stroke: var(--c-mari); stroke-linecap: round; }
+.parrilla-anell .parrilla-xifra { font-size: var(--t-xl); }
+/* Mapa de calor: set dies per setmana, quatre nivells del mateix to (no és un estat) */
+.parrilla-calor { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--e-1); }
+.parrilla-calor span { aspect-ratio: 1; border-radius: var(--r-s); }
+.parrilla-n0 { background: var(--c-superficie-2); }
+.parrilla-n1 { background: color-mix(in oklab, var(--c-mari), var(--c-superficie-2) 65%); }
+.parrilla-n2 { background: color-mix(in oklab, var(--c-mari), var(--c-superficie-2) 35%); }
+.parrilla-n3 { background: var(--c-mari); }
+.parrilla-llista { list-style: none; margin: 0; padding: 0; display: grid; }
+.parrilla-llista li {
+  display: flex; justify-content: space-between; gap: var(--e-3); padding: var(--e-2) 0;
+  border-bottom: var(--v-fina) solid var(--c-linia);
+}
+.parrilla-lateral { display: grid; gap: var(--e-3); align-content: start; min-inline-size: 0; }
+.parrilla-panell { display: grid; gap: var(--e-2); padding: var(--e-4); border-radius: var(--r-l); background: var(--c-superficie-2); }
+.parrilla-panell h2 { margin: 0; font-size: var(--t-l); }
+.parrilla-paleta { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.parrilla-paleta .boto { inline-size: 100%; justify-content: flex-start; }
+.parrilla-codi { margin: 0; padding: var(--e-3); white-space: pre-wrap; overflow-wrap: anywhere; border-radius: var(--r-m); background: var(--c-fons); font-size: var(--t-xs); }
+
+/* Tauleta: dues columnes de ginys */
+@media (min-width: 600px) {
+  .parrilla { padding: var(--e-5); }
+  .parrilla-reixa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .parrilla-amp-5, .parrilla-amp-6 { grid-column: span 2; }
+}
+/* Escriptori: la reixa de dotze columnes del recurs i el lateral a la dreta */
+@media (min-width: 1024px) {
+  .parrilla-cos { grid-template-columns: minmax(0, 1fr) minmax(0, calc(var(--e-8) * 4)); align-items: start; }
+  .parrilla-accions { grid-column: 1 / -1; }
+  .parrilla-reixa { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .parrilla-amp-3 { grid-column: span 3; }
+  .parrilla-amp-4 { grid-column: span 4; }
+  .parrilla-amp-5 { grid-column: span 5; }
+  .parrilla-amp-6 { grid-column: span 6; }
+}

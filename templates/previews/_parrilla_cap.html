@@ -1,0 +1,8 @@
+{% load i18n %}{# T-DX-35 Parrilla: la capçalera d'un giny (agafador, nom, etiqueta i «Treure») i el tirador de la mida. Botons desactivats pel fieldset de la pantalla. #}
+<header class="parrilla-cap">
+  <svg class="parrilla-agafador icona-svg" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="4" r="1.2"/><circle cx="11" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/><circle cx="11" cy="12" r="1.2"/></svg>
+  <h2>{{ name }}</h2>
+  {% if tag %}<span class="parrilla-etiq">{{ tag }}</span>{% endif %}
+  <button type="button" class="parrilla-treure" aria-label="{% blocktranslate %}Treure «{{ name }}»{% endblocktranslate %}"><svg class="icona-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+</header>
+<button type="button" class="parrilla-tirador" aria-label="{% blocktranslate %}Canviar la mida de «{{ name }}»{% endblocktranslate %}"><svg class="icona-svg" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 4L4 10M10 8l-2 2"/></svg></button>

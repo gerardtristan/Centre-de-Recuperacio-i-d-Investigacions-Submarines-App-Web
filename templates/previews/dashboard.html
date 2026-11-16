@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/parrilla.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-35 Parrilla: el dashboard configurable. En construcció: xifres agregades d'exemple, res no es desa (design-system §16, T-DX-35). #}
+  <section class="en-construccio-bloc parrilla" aria-describedby="ec-dashboard">
+    {% include "_en_construccio.html" with id="ec-dashboard" %}
+    <h1>{{ screen_title }}</h1>
+    <p class="text-2">{% translate "Arrossega un giny per la capçalera; el tirador de la cantonada en canvia la mida. Només xifres agregades: cap dada personal." %}</p>
+    <fieldset disabled class="parrilla-cos">
+      <legend class="visualment-amagat">{% translate "Disposició del dashboard" %}</legend>
+      <div class="parrilla-accions">
+        <button type="button" class="boto">{% translate "Restaurar" %}</button>
+        <button type="button" class="boto boto-principal">{% translate "Desar la disposició" %}</button>
+      </div>
+      <ul class="parrilla-reixa" aria-label="{% translate 'Ginys del dashboard' %}">
+        <li class="parrilla-giny parrilla-amp-4">
+          {% include "previews/_parrilla_cap.html" with name=_("Socis actius") tag=_("Ara") %}
+          <p class="parrilla-xifra xifra-viva">{{ active_members }}</p>
+          <p class="parrilla-peu"><span class="estat estat-ok">+{{ new_this_month }}</span> {% translate "aquest mes" %}</p>
+        </li>
+        <li class="parrilla-giny parrilla-amp-5">
+          {% include "previews/_parrilla_cap.html" with name=_("Altes per mes") tag=_("Sis mesos") %}
+          <svg class="parrilla-barres" viewBox="0 0 120 100" preserveAspectRatio="none" aria-hidden="true">
+            <g transform="matrix(1 0 0 -1 0 100)">{% for bar in signups %}<rect x="{% widthratio forloop.counter0 1 20 %}" y="0" width="14" height="{{ bar.h }}" rx="2"/>{% endfor %}</g>
+          </svg>
+          <ol class="parrilla-eix">{% for bar in signups %}<li><span class="visualment-amagat">{{ bar.value }} · </span>{{ bar.month }}</li>{% endfor %}</ol>
+        </li>
+        <li class="parrilla-giny parrilla-amp-3">
+          {% include "previews/_parrilla_cap.html" with name=_("Quotes al corrent") tag="" %}
+          <div class="parrilla-anell">
+            <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="parrilla-anell-fons" cx="18" cy="18" r="15.915"/><circle class="parrilla-anell-valor" cx="18" cy="18" r="15.915" stroke-dasharray="{{ up_to_date }} 100" transform="rotate(-90 18 18)"/></svg>
+            <p class="parrilla-xifra xifra-viva">{{ up_to_date }} %</p>
+          </div>
+        </li>
+        <li class="parrilla-giny parrilla-amp-6">
+          {% include "previews/_parrilla_cap.html" with name=_("Inscripcions") tag=_("Per dia, quatre setmanes") %}
+          <div class="parrilla-calor" aria-hidden="true">{% for week in weeks %}{% for level in week %}<span class="parrilla-n{{ level }}"></span>{% endfor %}{% endfor %}</div>
+          <p class="parrilla-peu text-2">{% translate "Més intens: més inscripcions aquell dia." %}</p>
+        </li>
+        <li class="parrilla-giny parrilla-amp-6">
+          {% include "previews/_parrilla_cap.html" with name=_("Places lliures") tag=_("Aquest mes") %}
+          <ul class="parrilla-llista">
+            {% for row in places %}<li><span>{{ row.name }}</span><span class="xifra-viva">{{ row.free }}</span></li>{% endfor %}
+          </ul>
+        </li>
+      </ul>
+      <aside class="parrilla-lateral">
+        <section class="parrilla-panell" aria-labelledby="parrilla-paleta-h">
+          <h2 id="parrilla-paleta-h">{% translate "Ginys" %}</h2>
+          <p class="text-2">{% translate "Arrossega'n un al dashboard." %}</p>
+          <ul class="parrilla-paleta">{% for item in palette %}<li><button type="button" class="boto boto-petit">{{ item }}</button></li>{% endfor %}</ul>
+        </section>
+        <section class="parrilla-panell" aria-labelledby="parrilla-dades-h">
+          <h2 id="parrilla-dades-h">{% translate "Disposició" %}</h2>
+          <p class="text-2">{% translate "Cada giny: [x, y, amplada, alçada]" %}</p>
+          <pre class="parrilla-codi codi">{{ layout }}</pre>
+        </section>
+      </aside>
+    </fieldset>
+  </section>
+{% endblock %}
