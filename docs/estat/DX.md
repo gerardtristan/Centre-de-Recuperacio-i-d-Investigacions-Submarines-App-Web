@@ -20,7 +20,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-05b Tema a la configuració del compte (socis i administració), per defecte «Sistema»; el selector surt de la capçalera | feta | 16/11/2026 | #55 | Decisió del propietari del 16/11/2026. Socis: «Aparença» a «Seguretat del compte»; administració: a l'inici. Substitueix la T-M01-45 (selector a la capçalera) |
 | T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci» | feta | 16/11/2026 | #52 | Resum «Hi ha N errors» amb un enllaç per camp, al formulari d'alta (web i presencial). La validació en sortir de cada camp queda per a més endavant |
 | T-DX-07 Solapas a l'administració | feta | 16/11/2026 | #57 | P-96 (B): adreça i etiqueta sense noms a `sessionStorage`. Fitxa del soci i de les sol·licituds; les altres fitxes s'hi afegeixen amb el bloc `solapa` |
-| T-DX-08 Ramillete: navegació de l'àrea del soci | en curs | 16/11/2026 | — | — |
+| T-DX-08 Ramillete: navegació de l'àrea del soci | feta | 16/11/2026 | #58 | Per sota de 600 px i amb JavaScript. «Surt» es queda a la capçalera (un sol «Surt» per pantalla, T-M01-46) |
 | T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | P-98 (C) |
 | T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | per fer | — | — | Bizum quan la PR #38 sigui a `master`. Carril de pagaments primer |
 | T-DX-11 Tramite i Emisor: el rebut | per fer | — | — | P-93: només el segell |
