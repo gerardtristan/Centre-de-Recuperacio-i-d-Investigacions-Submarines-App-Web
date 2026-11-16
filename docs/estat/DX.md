@@ -29,7 +29,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-14 Vigencia: llicències a l'administració | feta | 16/11/2026 | #64 | Llicència de la fitxa de l'administració. La confirmació en bloc no en porta (sense data). Arreglat el desbordament a 320 px d'una llicència declarada |
 | T-DX-15 Autentico: verificació del carnet | feta | 16/11/2026 | #67 | Segell «Vàlid» o «No vàlid» a la verificació pública; cap dada nova (RN-M01-26); sense codi HMAC al navegador |
 | T-DX-16 Deposito: panell de revisió a altes pendents i sol·licituds | feta | 16/11/2026 | #69 | Comptadors «per revisar» i accions en una fila a Altes pendents i Sol·licituds. Sense motius predefinits (cap llista al pla) |
-| T-DX-17 Oleaje: portada de l'àrea del soci | per fer | — | — | Substitueix l'ona de la 032 |
+| T-DX-17 Oleaje: portada de l'àrea del soci | en curs | 16/11/2026 | — | Substitueix l'ona de la 032 |
 | T-DX-18 Monograma: avatar per defecte a partir de `avatar_seed` | per fer | — | — | Mai a partir del nom (RN-M01-30) |
 | T-DX-19 Avisador: rols i permisos, en construcció | per fer | — | — | Funcional quan es faci la T-RP-03 |
 | T-DX-20 Avisador: ajustos, en construcció | per fer | — | — | Funcional quan es faci la T-AJ-02 |
