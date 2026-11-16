@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.19 (16/11/2026). La 1.19 posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
+- **Versió:** 1.20 (16/11/2026). La 1.20 afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
+- La 1.19 (16/11/2026) posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
 - La 1.18 (16/11/2026) afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
 - La 1.17 (16/11/2026) afegeix el rebut amb la ranura i el segell (§6.14, T-DX-11).
 - La 1.16 (16/11/2026) afegeix Tramite, els passos d'un pagament (§6.13, T-DX-10).
@@ -485,6 +486,12 @@ Del recurs Vigencia ([pla dels recursos externs](plans/recursos-disseny-extern.m
 - **Trams:** verd; avís des del primer dia d'avís; vermell un cop vençuda. L'escala del dibuix és de 60 dies (no és cap regla: a partir d'aquí, la barra és plena) i s'allarga si un dia d'avís és més llunyà.
 - **Dibuix:** un SVG amb atributs (cap `style=`), decoratiu; el text («Queden 23 dies», «Venç avui», «Va vèncer fa 2 dies») ho diu tot.
 - **On:** «Les meves quotes» i la llicència, al perfil del soci i a la fitxa de l'administració (T-DX-14), si té data de caducitat i no és declarada pendent de confirmar. La confirmació en bloc no en porta: hi surten llicències sense data. Del recurs no s'hi fa: el lliscador de temps, «Renovar» (renovar és pagar) ni l'`.ics` d'avisos.
+
+### 6.16 Autentico: el segell de la verificació del carnet (T-DX-15)
+Del recurs Autentico ([pla dels recursos externs](plans/recursos-disseny-extern.md)): el resultat com un full de paper amb un segell de goma que hi cau, amb la icona i el color del veredicte.
+- **Peça:** `templates/members/card_verify.html` (pàgina pública de verificació, T-M01-20) i `static/css/autentico.css`.
+- **Segell:** «Vàlid» (✓, `--posidonia`) o «No vàlid» (✕, `--c-error`), sota les dades i a la dreta, una sola vegada amb `--m-panell` i `--m-corba-molla`. Decoratiu (`aria-hidden`): el títol ja diu el resultat. Quan la verificació està bloquejada per massa comprovacions, no hi ha segell.
+- **Seguretat:** la pàgina diu exactament el mateix que abans (RN-M01-26: si és vàlid, el número i el nom de pila; si no, res). La verificació la fa el servidor amb el testimoni de l'enllaç; del recurs no s'hi fa el codi HMAC calculat al navegador, perquè la clau no pot sortir del servidor.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.

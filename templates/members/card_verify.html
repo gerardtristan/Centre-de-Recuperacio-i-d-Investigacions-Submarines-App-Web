@@ -11,17 +11,20 @@
       {% translate "Torna-ho a provar d'aquí a una estona." %}
     </div>
   {% elif valid %}
-    <section class="targeta resultat-verificacio" aria-labelledby="resultat-titol">
+    <section class="targeta resultat-verificacio autentico autentico-valid" aria-labelledby="resultat-titol">
       <h2 id="resultat-titol"><span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span></h2>
       <dl class="dades-soci">
         <div><dt>{% translate "Número de soci" %}</dt><dd>{{ result.member_number }}</dd></div>
         <div><dt>{% translate "Nom" %}</dt><dd>{{ result.first_name }}</dd></div>
       </dl>
+      {# Autentico (T-DX-15): el segell que cau sobre el full. Decoratiu: el títol ja ho diu. #}
+      <p class="autentico-segell" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m5 12.5 4.5 4.5L19 7"/></svg><b>{% translate "Vàlid" %}</b></p>
     </section>
   {% else %}
-    <section class="targeta resultat-verificacio" aria-labelledby="resultat-titol">
+    <section class="targeta resultat-verificacio autentico autentico-no-valid" aria-labelledby="resultat-titol">
       <h2 id="resultat-titol"><span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No vàlid" %}</span></h2>
       <p>{% translate "Aquest carnet no és vàlid en aquest moment." %}</p>
+      <p class="autentico-segell" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg><b>{% translate "No vàlid" %}</b></p>
     </section>
   {% endif %}
   <p class="text-2">{% translate "Mostra si el carnet és vàlid i, si ho és, el número de soci i el nom de pila." %}</p>

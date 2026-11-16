@@ -1,0 +1,19 @@
+/* Autentico (T-DX-15; recurs a design/extern/; design-system §6.16): el resultat de la verificació
+   del carnet com un full de paper amb el segell que hi cau. Del recurs: el full, el segell de goma
+   amb la icona i el color del veredicte. La verificació la fa el servidor amb el testimoni de
+   l'enllaç (T-M01-20): aquí no hi ha cap codi ni cap clau. Només tokens. */
+.autentico { position: relative; background: var(--paper); color: var(--abisme); overflow: hidden; }
+.autentico .estat { background: none; }
+.autentico dt, .autentico p:not(.autentico-segell) { color: var(--casc); }
+.autentico-segell {
+  display: inline-flex; align-items: center; gap: var(--e-2); width: fit-content; margin: var(--e-4) 0 0 auto; align-self: flex-end; justify-self: end;
+  padding: var(--e-2) var(--e-3); border: var(--v-activa) solid currentColor; border-radius: var(--r-m);
+  font-family: var(--f-titol); text-transform: uppercase; letter-spacing: var(--ll-etiqueta);
+  transform: rotate(-4deg); opacity: .9;
+  animation: autentico-segell var(--m-panell) var(--m-corba-molla) var(--m-preparacio) both;
+}
+.autentico-segell b { font-size: var(--t-xl); font-weight: var(--p-negreta); }
+.autentico-segell svg { width: var(--e-5); height: var(--e-5); fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.autentico-valid .autentico-segell { color: var(--posidonia); }
+.autentico-no-valid .autentico-segell { color: var(--c-error); }
+@keyframes autentico-segell { from { transform: rotate(-4deg) scale(1.6); opacity: 0; } to { transform: rotate(-4deg); opacity: .9; } }
