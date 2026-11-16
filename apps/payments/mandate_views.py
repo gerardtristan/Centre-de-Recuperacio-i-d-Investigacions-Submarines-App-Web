@@ -28,7 +28,7 @@ from apps.core.persons import language_for
 from apps.members.models import Member
 
 from . import mandates
-from .forms import MandateForm
+from .forms import MandateForm, RecentAuthForm
 from .models import SepaMandate
 
 MANDATE_TEXT = "sepa_mandate"
@@ -64,19 +64,29 @@ def _reauth_error(request, form, minutes):
     return error
 
 
+def _active(member) -> SepaMandate | None:
+    mandates_ = SepaMandate.objects.select_related("bank_account")
+    return mandates_.filter(member=member, status=SepaMandate.Status.ACTIVE).first()
+
+
 @sensitive_post_parameters("iban", "password", "code")
 @never_cache
 @require_http_methods(["GET", "POST"])
 def mandate_view(request):
-    if not settings.MANDATE_SIGNING_ENABLED:
-        raise Http404
     member, account = _own_member(request), request.user
+    active = _active(member)
+    signing = settings.MANDATE_SIGNING_ENABLED
+    # Apagada, la pàgina només existeix per a qui té un mandat actiu, per poder-lo revocar (P-127).
+    if not signing and active is None:
+        raise Http404
     person = account.person
     text = consents.current_text(MANDATE_TEXT, language_for(person))
     creditor = settings.SEPA_CREDITOR_IDENTIFIER
     minutes = settings.MANDATE_REAUTH_MINUTES
     form = None
-    if text is not None and creditor:
+    # Amb un mandat actiu, el formulari (canviar l'IBAN) només surt quan el soci el demana.
+    wanted = active is None or "canvia" in request.GET or request.method == "POST"
+    if signing and text is not None and creditor and wanted:
         form = MandateForm(
             request.POST or None,
             has_totp=account.has_totp,
@@ -109,13 +119,9 @@ def mandate_view(request):
             form.data = form.data.copy()
             for name in ("iban", "code"):
                 form.data.pop(name, None)
-    active = (
-        SepaMandate.objects.select_related("bank_account")
-        .filter(member=member, status=SepaMandate.Status.ACTIVE)
-        .first()
-    )
     context = {
         "active": active,
+        "signing": signing and text is not None and bool(creditor),
         "form": form,
         "text": text,
         "creditor": creditor,
@@ -123,3 +129,39 @@ def mandate_view(request):
         "reauth_minutes": minutes,
     }
     return render(request, "payments/mandate.html", context)
+
+
+@sensitive_post_parameters("password", "code")
+@never_cache
+@require_http_methods(["GET", "POST"])
+def revoke_view(request):
+    """«Revoca el mandat» (T-M05a-10; P-M05a-C): confirmació i, si la sessió no és recent, la
+    contrasenya (RN-M05a-12; CA-M05a-08). Funciona encara que la signatura estigui apagada
+    (P-127). Sense mandat actiu no hi ha res a revocar."""
+    member, account = _own_member(request), request.user
+    after = "payments:mandate" if settings.MANDATE_SIGNING_ENABLED else "payments:fee_method"
+    active = _active(member)
+    if active is None:
+        return redirect(after)
+    minutes = settings.MANDATE_REAUTH_MINUTES
+    form = RecentAuthForm(
+        # Amb la sessió recent, el POST no porta cap camp: el formulari ha d'estar lligat igualment.
+        request.POST if request.method == "POST" else None,
+        has_totp=account.has_totp,
+        ask_password=not reauth.is_recent(request, minutes),
+    )
+    if request.method == "POST" and form.is_valid():
+        if _reauth_error(request, form, minutes) is None:
+            mandates.revoke_mandate(member, by=account)
+            messages.success(
+                request,
+                _(
+                    "Mandat %(reference)s revocat. A partir d'ara pagaràs cada quota amb "
+                    "targeta, Bizum o transferència quan es generi."
+                )
+                % {"reference": active.reference},
+            )
+            return redirect(after)
+        form.data = form.data.copy()
+        form.data.pop("code", None)
+    return render(request, "payments/mandate_revoke.html", {"active": active, "form": form})

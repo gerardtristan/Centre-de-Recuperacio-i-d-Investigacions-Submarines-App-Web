@@ -134,6 +134,7 @@ MAP = {
         "apps/payments/mandate_views.py",
         "apps/payments/forms.py",
         "templates/payments/mandate.html",
+        "templates/payments/mandate_revoke.html",
     ),
     "test_metode_quota.py": (
         "apps/payments/preference_views.py",

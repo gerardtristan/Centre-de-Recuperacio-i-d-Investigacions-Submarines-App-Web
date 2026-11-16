@@ -12,7 +12,22 @@ from apps.accounts.forms import ReauthForm
 from . import mandates
 
 
-class MandateForm(ReauthForm):
+class RecentAuthForm(ReauthForm):
+    """La contrasenya (i el codi) només si la sessió no és recent (RN-M05a-12). Sol, és el
+    formulari de revocar (T-M05a-10)."""
+
+    def __init__(self, *args, has_totp: bool, ask_password: bool, **kwargs):
+        super().__init__(*args, has_totp=has_totp, **kwargs)
+        self.fields["password"].help_text = _(
+            "Fa una estona que has entrat: torna-la a escriure per confirmar que ets tu."
+        )
+        if not ask_password:
+            # La sessió és recent: el servidor no demana res (es torna a comprovar en desar).
+            del self.fields["password"]
+            self.fields.pop("code", None)
+
+
+class MandateForm(RecentAuthForm):
     field_order = ["holder_name", "other_holder", "iban", "accept", "password", "code"]
 
     holder_name = forms.CharField(
@@ -38,16 +53,6 @@ class MandateForm(ReauthForm):
         label=_("Accepto el mandat SEPA amb aquest text."),
         error_messages={"required": _("Marca la casella per acceptar el mandat.")},
     )
-
-    def __init__(self, *args, has_totp: bool, ask_password: bool, **kwargs):
-        super().__init__(*args, has_totp=has_totp, **kwargs)
-        self.fields["password"].help_text = _(
-            "Fa una estona que has entrat: torna-la a escriure per confirmar que ets tu."
-        )
-        if not ask_password:
-            # La sessió és recent: el servidor no demana res (es torna a comprovar en desar).
-            del self.fields["password"]
-            self.fields.pop("code", None)
 
     def clean_iban(self):
         return mandates.validate_iban(self.cleaned_data["iban"])

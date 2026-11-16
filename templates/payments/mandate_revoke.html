@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05a-10: revocar el mandat (P-M05a-C; wireframe socis.html#pagaments-mandat, diàleg de confirmació). Pàgina de confirmació en lloc del diàleg: funciona sense JavaScript i el servidor decideix si cal la contrasenya. Seguretat i privacitat, al servidor: només el mandat actiu del soci de la sessió; la contrasenya, i el codi si el compte té TOTP, quan la sessió no és recent (RN-M05a-12), i el servidor ho torna a comprovar; IBAN només emmascarat («…», P-121). Funciona amb la signatura apagada (P-127). #}
+{% block title %}{% translate "Revoca el mandat" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Revoques el mandat?" %}</h1>
+  <form class="targeta formulari" method="post" action="{% url 'payments:mandate_revoke' %}" novalidate>
+    {% csrf_token %}
+    <p>{% blocktranslate with reference=active.reference iban=active.bank_account %}No es cobrarà cap quota més amb el mandat {{ reference }} (compte {{ iban }}). Pagaràs cada quota amb targeta, Bizum o transferència quan es generi.{% endblocktranslate %}</p>
+    <p class="text-2">{% translate "Les quotes que ja s'hagin enviat al banc abans d'ara es poden cobrar igualment." %} <span class="a-validar">{% translate "A verificar: banc (RN-M05a-09)" %}</span></p>
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
+    {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Sí, revoca'l" %}</button>
+      <a class="boto" href="{% url 'payments:mandate' %}">{% translate "Torna" %}</a>
+    </div>
+  </form>
+{% endblock %}

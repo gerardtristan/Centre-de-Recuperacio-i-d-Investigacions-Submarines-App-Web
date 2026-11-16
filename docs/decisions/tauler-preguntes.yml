@@ -411,6 +411,25 @@ opcions:
       El soci no ha pogut escriure cap contrasenya; comptar-ho el podria bloquejar sense haver-se equivocat. Una
       contrasenya buida escrita al camp sí que compta.
     data: 2026-11-16
+  P-127:
+    opcions:
+      A: Revocar sempre funciona; amb la signatura apagada, la pàgina només surt a qui té un mandat actiu (com s'ha construït).
+      B: Com la A, i el menú també mostra «Mandat de domiciliació» a qui té un mandat actiu.
+      C: Amb la signatura apagada, només el tresorer revoca, a petició escrita (A6).
+    recomanada: B
+    perque: >-
+      Un soci ha de poder retirar l'autorització sobre el seu compte quan vulgui, sense dependre d'un correu antic.
+      La B és la A més una línia al menú, que és de la sessió de disseny.
+    data: 2026-11-17
+  P-128:
+    opcions:
+      A: Només passa a «pagar cada vegada» si era la domiciliació o no n'hi havia cap; la targeta guardada es manté (com s'ha construït).
+      B: Sempre passa a «pagar cada vegada», com diu P-M05a-C literalment.
+    recomanada: A
+    perque: >-
+      Revocar el mandat no diu res de la targeta; canviar-la sense que el soci ho demani faria fallar un cobrament que
+      el soci esperava.
+    data: 2026-11-17
 
   P-112:
     opcions:
