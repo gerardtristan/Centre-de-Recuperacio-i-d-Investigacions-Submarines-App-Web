@@ -1,0 +1,20 @@
+/* Comanda (T-DX-24; recurs a design/extern/; design-system §16, T-DX-24): les opcions d'una inscripció.
+   Del recurs: cada grup d'opcions amb la seva regla («Tria'n un», «Tria'n fins a 3») i el botó que no
+   s'encén fins que tot val. Fora la cuina simulada. La validació serà al servidor. */
+.comanda { display: grid; gap: var(--e-4); margin: 0; padding: 0; border: 0; }
+.comanda > legend { padding: 0; margin-bottom: var(--e-2); }
+.comanda > legend h2 { margin: 0; }
+.comanda-grup { display: grid; gap: var(--e-1); margin: 0; padding: var(--e-3) var(--e-4); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); background: var(--c-fons); }
+.comanda-grup.es-incomplet { border-color: var(--c-avis); box-shadow: inset var(--v-activa) 0 0 var(--c-avis); }
+/* La llegenda dins del grup, no damunt de la vora (float: l'única manera de treure-la del contorn) */
+.comanda-grup > legend { float: left; inline-size: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-1) var(--e-2); padding: 0; margin-bottom: var(--e-1); }
+.comanda-nom { font-weight: var(--p-semi); }
+.comanda-regla { font-size: var(--t-s); color: var(--c-text-2); }
+.comanda-opcio { align-items: center; }
+.comanda-opcio input { margin-top: 0; }
+.comanda-opcio .import, .comanda-sense { margin-inline-start: auto; font-size: var(--t-s); }
+.comanda-sense { color: var(--c-text-2); white-space: nowrap; }
+.comanda-total { display: flex; justify-content: space-between; align-items: baseline; font-weight: var(--p-semi); font-size: var(--t-l); }
+.comanda-falta { color: var(--c-avis-text); font-weight: var(--p-semi); }
+/* El botó que espera: desactivat (aria-disabled) fins que totes les regles es compleixen */
+.comanda-continua { inline-size: 100%; }

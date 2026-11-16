@@ -1,0 +1,27 @@
+/* Camilla (T-DX-24; recurs a design/extern/; design-system §16, T-DX-24): la inscripció per passos.
+   Del recurs: el flux per passos (fa servir la línia de Tramite, §6.13, amb quatre passos), la
+   sessió triada que es pot tornar a obrir i les franges completes apagades. Del recurs no hi ha res
+   de salut: era una clínica. */
+.camilla { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.camilla h1 { margin: 0; text-wrap: balance; }
+.camilla h2 { font-size: var(--t-l); text-wrap: balance; }
+.camilla-passos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.camilla-activitat { display: grid; justify-items: start; gap: var(--e-1); }
+.camilla-sessio { border-radius: var(--r-l); background: var(--c-fons); }
+.camilla-sessio > summary {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2);
+  min-block-size: var(--tactil); padding: var(--e-2) var(--e-4); cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.camilla-canvia { color: var(--c-enllac); font-weight: var(--p-semi); }
+.camilla-franges { display: grid; gap: var(--e-2); margin: 0; padding: 0 var(--e-4) var(--e-4); border: 0; }
+.camilla-franges legend { padding: 0; margin-bottom: var(--e-2); font-weight: var(--p-semi); font-size: var(--t-s); }
+.camilla-franja {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); min-block-size: var(--tactil);
+  padding: var(--e-2) var(--e-3); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); font-variant-numeric: tabular-nums;
+}
+.camilla-franja:has(input:checked) { border-color: var(--c-ok); box-shadow: inset 0 0 0 var(--v-fina) var(--c-ok); }
+/* Franja completa: apagada i ratllada, però el text d'estat ho diu (mai només el color) */
+.camilla-franja.es-completa > span:first-of-type { color: var(--c-text-2); text-decoration: line-through; }
+.camilla-franja .estat { margin-inline-start: auto; }
+.camilla-meves ul { display: grid; gap: var(--e-2); margin: var(--e-2) 0 0; padding: 0; list-style: none; }
+.camilla-meves li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); }
