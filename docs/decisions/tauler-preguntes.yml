@@ -494,4 +494,16 @@ opcions:
       Mentre la junta no ho aprovi, la A és la base segura; la C dona més dades bancàries de les que cal.
     data: 2026-11-16
 
+  P-113:
+    opcions:
+      A: Com s'ha construït; torna a pendent, es torna a calcular i, amb la mateixa referència, es torna a proposar.
+      B: Torna a pendent i no es torna a proposar mai amb els càrrecs de la conciliació desfeta.
+      C: Torna a pendent i va «a revisar» amb el motiu «conciliació desfeta», sense proposta, fins que el tresorer la casi o l'exclogui.
+    recomanada: C
+    perque: >-
+      Si el pagador va escriure la referència d'una altra persona, la proposta tornarà a ser la mateixa i el tresorer
+      la tornaria a confirmar per error. La C ho deixa a la llista que el tresorer ja mira, amb el motiu, i permet
+      excloure-la; és un canvi petit al recàlcul, que es pot fer en qualsevol moment perquè l'estat es torna a calcular.
+    data: 2026-11-16
+
 noves:

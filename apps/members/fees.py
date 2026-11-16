@@ -413,6 +413,7 @@ def send_due_reminders(today=None) -> int:
 NOTICE_TEMPLATE = "avis-quota-tresorer"
 NOTICE_PAID_WHILE_UNPAID = "paid_while_unpaid"
 NOTICE_RETURNED = "returned"
+NOTICE_TRANSFER_REVERTED = "transfer_reverted"  # 045, P-110
 NOTICE_SENT = "members.fee.treasurer_notified"
 
 
