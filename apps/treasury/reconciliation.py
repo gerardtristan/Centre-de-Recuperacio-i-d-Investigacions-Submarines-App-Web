@@ -32,7 +32,6 @@ from apps.core import audit
 from apps.core.charges import record_payment
 from apps.core.imports import statement_lines
 from apps.core.models import Charge, Payment
-from apps.core.permission_catalog import CATALOG
 from apps.core.permissions import has_perm
 from apps.members import services as members
 
@@ -176,9 +175,7 @@ class ReconciliationRejected(ValidationError):
 
 
 def _ensure_can_reconcile(by) -> None:
-    # shortcut: el permís T4 encara no és al catàleg del nucli; fins que hi sigui, ningú no
-    # confirma (falla tancat). Quan el nucli l'hi afegeixi, cal treure `RECONCILE in CATALOG`.
-    if not (RECONCILE in CATALOG and has_perm(by, RECONCILE, write=True)):
+    if not has_perm(by, RECONCILE, write=True):
         raise Http404
 
 

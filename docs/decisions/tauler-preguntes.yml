@@ -374,4 +374,16 @@ opcions:
       És la més simple i deixa la decisió al tresorer; el camp «closed_at» ja existeix.
     data: 2026-11-16
 
+  P-112:
+    opcions:
+      A: Com s'ha construït; només el Tresorer. L'Administrador se'l pot donar des de l'editor de permisos si cal.
+      B: El Tresorer i l'Administrador des del principi.
+      C: L'Administrador només per desfer (la 045), no per confirmar.
+    recomanada: A
+    perque: >-
+      RN-T16 diu que només el tresorer confirma una conciliació, i el M04-4 tracta el tresorer com una sola persona.
+      Si el tresorer falta, l'Administrador es pot donar el permís en un minut, i el canvi queda al registre amb nota
+      i TOTP; donar-lo d'entrada vol dir que un compte més pot marcar quotes com a pagades.
+    data: 2026-11-16
+
 noves:

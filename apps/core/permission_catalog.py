@@ -350,6 +350,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    _perm(
+        "treasury.reconcile",
+        "T4",
+        _("Conciliar i desfer una conciliació"),
+        # L'Administrador, [A validar] al M04-4, comença sense (P-112).
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).

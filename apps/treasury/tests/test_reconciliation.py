@@ -2,20 +2,21 @@
 RN-T18; CA-T09.1 a CA-T09.3; LT2 a LT6). Només dades inventades."""
 
 import datetime
-from types import MappingProxyType
 
 import pytest
 from django.db import DatabaseError, connection, transaction
 from django.http import Http404
 
-from apps.core import audit, charges, imports, permission_catalog, permissions
+from apps.accounts.models import Account
+from apps.core import audit, charges, imports
 from apps.core.imports import bank_statement as bs
-from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment, Role, RolePermission
+from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member
 from apps.treasury import reconciliation, references
 from apps.treasury.models import Movement, Reconciliation, StatementLineState, TreasuryAccount
+from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
 SYSTEM = audit.system("proves-t-m04-11")
@@ -267,31 +268,16 @@ class TestReferencesIn:
             assert references.references_in(text) == [], text
 
 
-@pytest.fixture
-def reconciler(treasurer, monkeypatch):
-    """El tresorer amb T4. El permís encara no és al catàleg del nucli (T-M04-12): la prova
-    l'hi posa com el posarà el nucli, amb la cel·la inicial del tresorer (M04-4)."""
-    code = reconciliation.RECONCILE
-    t4 = permission_catalog.Permission(code, "T4", "Conciliar i desfer una conciliació")
-    catalog = MappingProxyType({**permission_catalog.CATALOG, code: t4})
-    for module in (permissions, reconciliation):
-        monkeypatch.setattr(module, "CATALOG", catalog)
-    RolePermission.objects.create(
-        role=Role.objects.get(code="treasurer"), permission_code=code, scope="all"
-    )
-    return treasurer
-
-
 class TestConfirm:
     """T-M04-12: confirmar la proposta (CA-T10.1 a CA-T10.3; RN-T16, RN-T17, RN-T18)."""
 
     def test_ca_t10_1_confirming_a_transfer_pays_the_charge_and_records_the_income(
-        self, reconciler, charge
+        self, treasurer, charge
     ):
         quota = charge()
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(quota)} QUOTA"))
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)} QUOTA"))
         reconciliation.refresh()
-        done = reconciliation.confirm(line, by=reconciler)
+        done = reconciliation.confirm(line, by=treasurer)
         quota.refresh_from_db()
         assert quota.status == Charge.Status.PAID
         (payment,) = Payment.objects.all()
@@ -300,89 +286,86 @@ class TestConfirm:
         (income,) = Movement.objects.all()
         assert (income.payment, income.kind, income.amount_cents) == (payment, "income", 9000)
         assert income.account == TreasuryAccount.objects.get(kind="bank")
-        assert income.recorded_by == reconciler
-        assert (done.statement_line, done.confirmed_by) == (line, reconciler)
+        assert income.recorded_by == treasurer
+        assert (done.statement_line, done.confirmed_by) == (line, treasurer)
         assert list(done.matched_charges.all()) == [quota]
         assert state(line) == (State.RECONCILED, "", [quota])
         # RN-T13: qui ho confirma, al registre.
         entry = AuditEntry.objects.get(action=reconciliation.CONFIRMED)
-        assert entry.actor_account == reconciler
+        assert entry.actor_account == treasurer
         assert entry.details == {"line": line.pk, "charges": [quota.pk], "amount_cents": 9000}
         changed = AuditEntry.objects.filter(action=reconciliation.STATE_CHANGED).last()
-        assert changed.actor_account == reconciler
+        assert changed.actor_account == treasurer
 
-    def test_ca_t10_1_a_fee_activates_the_member(self, reconciler):
+    def test_ca_t10_1_a_fee_activates_the_member(self, treasurer):
         member = make_member(status=Member.Status.PENDING)
         fee = add_fee(member)
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(fee.charge)}"))
-        reconciliation.confirm(line, by=reconciler)
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(fee.charge)}"))
+        reconciliation.confirm(line, by=treasurer)
         member.refresh_from_db()
         assert member.status == Member.Status.ACTIVE  # `members.on_fee_paid`
 
-    def test_ca_t10_2_one_line_for_several_charges_with_the_exact_sum(self, reconciler, charge):
+    def test_ca_t10_2_one_line_for_several_charges_with_the_exact_sum(self, treasurer, charge):
         first, second = charge(9000), charge(3500)
-        (line,) = lines(reconciler, (12500, f"QUOTES {ref(first)} {ref(second)}"))
-        done = reconciliation.confirm(line, by=reconciler)
+        (line,) = lines(treasurer, (12500, f"QUOTES {ref(first)} {ref(second)}"))
+        done = reconciliation.confirm(line, by=treasurer)
         assert set(done.matched_charges.all()) == {first, second}
         assert set(Charge.objects.values_list("status", flat=True)) == {Charge.Status.PAID}
         assert Movement.objects.filter(kind="income").count() == 2
 
     def test_ca_t10_2_several_charges_without_the_exact_sum_are_not_confirmed(
-        self, reconciler, charge
+        self, treasurer, charge
     ):
         first, second = charge(9000), charge(3500)
-        (line,) = lines(reconciler, (12000, f"QUOTES {ref(first)} {ref(second)}"))
+        (line,) = lines(treasurer, (12000, f"QUOTES {ref(first)} {ref(second)}"))
         with pytest.raises(reconciliation.ReconciliationRejected):
-            reconciliation.confirm(line, by=reconciler)
+            reconciliation.confirm(line, by=treasurer)
         assert not Payment.objects.exists() and not Reconciliation.objects.exists()
 
-    def test_a_charge_cancelled_after_the_proposal_is_not_confirmed(self, reconciler, charge):
+    def test_a_charge_cancelled_after_the_proposal_is_not_confirmed(self, treasurer, charge):
         quota = charge()
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(quota)}"))
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)}"))
         reconciliation.refresh()
         charges.cancel(quota, "Anul·lada (prova)", by=SYSTEM)
         with pytest.raises(reconciliation.ReconciliationRejected):
-            reconciliation.confirm(line, by=reconciler)
+            reconciliation.confirm(line, by=treasurer)
         assert not Payment.objects.exists() and not Movement.objects.exists()
 
-    def test_ca_t10_3_a_reconciled_line_is_not_used_again(self, reconciler, charge):
+    def test_ca_t10_3_a_reconciled_line_is_not_used_again(self, treasurer, charge):
         quota = charge()
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(quota)}"))
-        reconciliation.confirm(line, by=reconciler)
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)}"))
+        reconciliation.confirm(line, by=treasurer)
         with pytest.raises(reconciliation.ReconciliationRejected, match="ja està conciliada"):
-            reconciliation.confirm(line, by=reconciler)
+            reconciliation.confirm(line, by=treasurer)
         reconciliation.refresh()
         assert state(line) == (State.RECONCILED, "", [quota])
         assert Reconciliation.objects.count() == Payment.objects.count() == 1
         # V-06: un extracte amb una línia conciliada no es desfà.
         with pytest.raises(bs.Rejected) as rejected:
-            bs.undo(line.batch, by=reconciler, reason="Extracte equivocat (prova)")
+            bs.undo(line.batch, by=treasurer, reason="Extracte equivocat (prova)")
         assert rejected.value.code == "reconciled"
 
-    def test_a_line_without_proposal_is_not_confirmed(self, reconciler):
-        (line,) = lines(reconciler, (9000, "TRANSF SENSE REFERENCIA"))
+    def test_a_line_without_proposal_is_not_confirmed(self, treasurer):
+        (line,) = lines(treasurer, (9000, "TRANSF SENSE REFERENCIA"))
         with pytest.raises(reconciliation.ReconciliationRejected, match="cap proposta"):
-            reconciliation.confirm(line, by=reconciler)
+            reconciliation.confirm(line, by=treasurer)
 
-    def test_rn_t16_without_t4_nobody_confirms(self, reconciler, make_admin, charge):  # noqa: F811
+    def test_rn_t16_only_the_treasurer_has_t4(self, treasurer, make_admin, make_person, charge):  # noqa: F811
+        """M04-4, T4: només el tresorer (l'administrador, [A validar], comença sense: P-112).
+        La resta, «no trobat»; el sistema tampoc no concilia mai sol."""
         quota = charge()
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(quota)}"))
-        for who in (make_admin("secretary"), SYSTEM):
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)}"))
+        member = Account.objects.create_personal(make_person(), "soci@example.org", PASSWORD)
+        for who in (make_admin("administrator"), make_admin("secretary"), member, SYSTEM):
             with pytest.raises(Http404):
                 reconciliation.confirm(line, by=who)
         assert not Payment.objects.exists()
+        assert reconciliation.confirm(line, by=treasurer).confirmed_by == treasurer
 
-    def test_until_the_core_catalog_has_t4_it_fails_closed(self, treasurer, charge):
-        assert reconciliation.RECONCILE not in permission_catalog.CATALOG
+    def test_ck_c8_reconciliations_are_append_only_also_in_sql(self, treasurer, charge):
         quota = charge()
         (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)}"))
-        with pytest.raises(Http404):
-            reconciliation.confirm(line, by=treasurer)
-
-    def test_ck_c8_reconciliations_are_append_only_also_in_sql(self, reconciler, charge):
-        quota = charge()
-        (line,) = lines(reconciler, (9000, f"TRANSF {ref(quota)}"))
-        done = reconciliation.confirm(line, by=reconciler)
+        done = reconciliation.confirm(line, by=treasurer)
         with pytest.raises(AppendOnlyError):
             done.save()
         for sql in (
