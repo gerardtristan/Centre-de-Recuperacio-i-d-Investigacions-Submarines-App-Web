@@ -6,7 +6,7 @@ from datetime import date, datetime
 import pytest
 from django.utils import timezone
 
-from apps.core.models import AuditEntry
+from apps.core.models import AuditEntry, OutgoingEmail
 from apps.payments import expiry, tasks
 from apps.payments.models import FeePaymentPreference, MandateBankAccount, SepaMandate
 from apps.payments.tests.test_mandates import account, member, sign, text  # noqa: F401
@@ -95,3 +95,27 @@ def test_la_tasca_diaria_crida_el_servei(monkeypatch):
     monkeypatch.setattr(expiry, "expire_mandates", lambda: called.append(True))
     tasks.expire_mandates(timestamp=0)
     assert called == [True]
+
+
+def test_rn_m05a_08_el_soci_rep_un_avis_una_sola_vegada_sense_l_iban(sign, member):  # noqa: F811
+    member.person.contact_email = "anna.prova@example.org"
+    member.person.save()
+    mandate = dated(sign(), signed=date(2023, 1, 10))
+
+    assert expiry.expire_mandates(today=date(2026, 1, 9)) == 0
+    assert not OutgoingEmail.objects.exists()
+    expiry.expire_mandates(today=date(2026, 1, 10))
+    expiry.expire_mandates(today=date(2026, 1, 11))
+
+    email = OutgoingEmail.objects.get()
+    assert email.template == "mandat-caducat" and email.to_address == "anna.prova@example.org"
+    assert mandate.reference in email.subject and "ES … 0001" in email.body_text
+    assert "/socis/pagaments/mandat/" in email.body_text
+    assert "00000000000001" not in email.subject + email.body_text
+
+
+def test_sense_adreca_caduca_igualment_i_no_envia_res(sign):  # noqa: F811
+    mandate = dated(sign(), signed=date(2023, 1, 10))
+    assert expiry.expire_mandates(today=date(2026, 1, 10)) == 1
+    assert status(mandate) == S.EXPIRED
+    assert not OutgoingEmail.objects.exists()

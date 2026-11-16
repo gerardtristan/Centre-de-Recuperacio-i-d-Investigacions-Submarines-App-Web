@@ -6,12 +6,13 @@ import time
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Account, FailedLogin
 from apps.accounts.security import AREA_PERSONAL
 from apps.accounts.sessions import AUTH_AT_SESSION_KEY
 from apps.accounts.tests.test_reauth import NOT_IT
-from apps.core.models import AuditEntry, LegalText
+from apps.core.models import AuditEntry, LegalText, OutgoingEmail
 from apps.members.models import Member
 from apps.members.tests.test_cards import make_member
 from apps.payments.models import MandateBankAccount, SepaMandate
@@ -39,7 +40,10 @@ def text():
 
 @pytest.fixture
 def member():
-    return make_member()
+    member = make_member()
+    member.person.contact_email = "anna.prova@example.org"
+    member.person.save()
+    return member
 
 
 @pytest.fixture
@@ -160,3 +164,24 @@ class TestReauthentication:
         settings.MANDATE_REAUTH_MINUTES = 30
         age_session(browser, 16)
         assert sign(browser).status_code == 302
+
+
+class TestConfirmationEmail:
+    def test_ca_m05a_04_g3_has_reference_creditor_date_and_how_to_revoke_but_not_the_iban(
+        self, browser, text
+    ):
+        sign(browser)
+        email = OutgoingEmail.objects.get(template="mandat-signat")
+        mandate = SepaMandate.objects.get()
+        assert email.to_address == "anna.prova@example.org"
+        assert mandate.reference in email.subject
+        body = email.body_text
+        assert mandate.reference in body and CREDITOR in body
+        # El correu porta la data local, no la UTC (entre les 23 i les 24 h UTC canvia).
+        assert timezone.localdate(mandate.signed_at).strftime("%d/%m/%Y") in body
+        assert "ES … 0001" in body and URL in body
+        assert IBAN[4:] not in body + email.subject + email.body_html
+
+    def test_nothing_is_sent_when_the_signature_fails(self, browser, text):
+        sign(browser, iban=BAD_IBAN)
+        assert not OutgoingEmail.objects.exists()

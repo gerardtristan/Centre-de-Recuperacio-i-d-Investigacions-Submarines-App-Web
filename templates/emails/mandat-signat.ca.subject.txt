@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-09, G3 (CA-M05a-04): TEXT PROVISIONAL [A validar: junta] (T-M05a-01). #}{% blocktranslate %}Mandat de domiciliació signat: {{ reference }}{% endblocktranslate %}

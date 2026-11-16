@@ -3,8 +3,8 @@
 Un mandat actiu caduca quan fa 36 mesos de l'últim cobrament (`last_collection_on`) o, si no se
 n'ha cobrat mai cap, de la signatura ([P-194](docs/decisions/pendents.md)). No s'esborra res:
 l'estat passa a «caducat» i el registre d'activitat en guarda el motiu. La preferència de pagament
-del soci no es toca ([P-195](docs/decisions/pendents.md)). L'avís al soci per signar-ne un de nou
-encara no hi és: necessita una plantilla de correu.
+del soci no es toca ([P-195](docs/decisions/pendents.md)). El soci rep un correu per signar-ne un
+de nou (`mandat-caducat`, T-M05a-09), a la mateixa transacció, per la cua.
 """
 
 import calendar
@@ -15,6 +15,7 @@ from django.utils import timezone
 
 from apps.core import audit
 
+from . import mandates
 from .models import SepaMandate
 
 # VC-13: es queda al codi (regla SEPA, no és un valor de negoci editable) [A verificar: banc].
@@ -59,4 +60,5 @@ def expire_mandates(today: date | None = None) -> int:
             reason=REASON,
             details={"reference": mandate.reference, "expires_on": str(expires_on(mandate))},
         )
+        mandates.mail_member(mandates.EXPIRED_TEMPLATE, mandate)
     return len(expired)

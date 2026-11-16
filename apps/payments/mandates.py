@@ -7,17 +7,22 @@ porta l'IBAN.
 
 import re
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 
-from apps.core import audit
+from apps.core import audit, mail
+from apps.members import recipients
 from apps.members.models import Member
 
 from . import crypto
 from .models import MandateBankAccount, SepaMandate
 
+SIGNED_TEMPLATE = "mandat-signat"  # G3
+EXPIRED_TEMPLATE = "mandat-caducat"
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 
 
@@ -101,3 +106,21 @@ def create_mandate(
         details={"reference": reference, "legal_text": legal_text.pk},
     )
     return mandate
+
+
+def mail_member(template: str, mandate: SepaMandate) -> None:
+    """Correu al soci del mandat (al representant, si és menor: RN-M01-78), per la cua: el G3 en
+    signar-lo (CA-M05a-04) i l'avís de caducitat (RN-M05a-08). Porta la referència,
+    l'identificador de creditor, la data i l'IBAN emmascarat (P-121); mai l'IBAN sencer."""
+    person = mandate.member.person
+    to = recipients.email_for(person)
+    if not to:
+        return
+    context = {
+        "reference": mandate.reference,
+        "creditor": mandate.creditor_identifier,
+        "signed_on": timezone.localdate(mandate.signed_at),
+        "masked_iban": str(mandate.bank_account),
+        "link": settings.PUBLIC_SITE_URL + reverse("payments:mandate"),
+    }
+    mail.queue_email(template, to=to, person=person, context=context)

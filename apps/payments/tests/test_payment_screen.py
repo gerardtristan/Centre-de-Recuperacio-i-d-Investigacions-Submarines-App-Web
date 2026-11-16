@@ -116,12 +116,20 @@ class TestPaymentStatus:
 
 
 class TestPaymentScreen:
-    def test_the_member_sees_the_amount_and_can_pay_by_card(self, member, charge):
+    def test_the_member_sees_the_amount_and_can_pay_by_card(self, member, charge, monkeypatch):
+        # El testimoni CSRF és aleatori i pot contenir «cvv»: es fixa per reproduir-ho sempre.
+        token = "cvv".ljust(64, "a")
+        monkeypatch.setattr("django.template.context_processors.get_token", lambda request: token)
         response = member.get(screen(charge))
         html = response.content.decode()
         assert response.status_code == 200
         assert "90,00" in html and PAY in html
-        assert 'type="password"' not in html and "cvv" not in html.lower()
+        # Cap camp de targeta ni de contrasenya, ni «CVV» al text visible. No es mira l'HTML
+        # sencer: el testimoni CSRF (aleatori) hi surt i pot contenir «cvv».
+        fields = re.findall(r"<(?:input|select|textarea)[^>]*>", html)
+        fields = [field.lower() for field in fields if "csrfmiddlewaretoken" not in field]
+        assert not any('type="password"' in f or "cvv" in f or '"cc-' in f for f in fields)
+        assert "cvv" not in re.sub(r"<[^>]+>", " ", html).lower()
 
     def test_ca_m05b_01_pay_takes_the_browser_to_the_provider_page(self, member, charge):
         response = start(member, charge)
