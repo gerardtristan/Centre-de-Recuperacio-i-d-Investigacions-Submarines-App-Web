@@ -11,8 +11,10 @@
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/comptes.css' %}">
   <link rel="stylesheet" href="{% static 'css/errata.css' %}">
+  <link rel="stylesheet" href="{% static 'css/eclipse.css' %}">
   <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/errata.js' %}" defer></script>
+  <script src="{% static 'js/eclipse.js' %}" defer></script>
   {# Web instal·lable i carnet sense connexió (T-M01-21; decisió 041) #}
   <link rel="manifest" href="{% static 'manifest.json' %}">
   <link rel="apple-touch-icon" href="{% static 'img/icones/cris-180.png' %}">
@@ -30,12 +32,15 @@
     </a>
     {# El botó només es mostra amb JavaScript (menu-admin.js); sense, la barra lateral es veu sempre. #}
     {% if admin_nav %}<button class="boto boto-petit boto-menu" type="button" aria-expanded="false" aria-controls="barra-lateral" hidden><span aria-hidden="true">☰</span> {% translate "Menú" %}</button>{% endif %}
+    {# Tema (decisió del propietari del 16/11/2026): a la part pública, l'interruptor Eclipse; amb sessió, el selector, fins que passi a la configuració del compte (T-DX-05b). #}
+    {% if user.is_authenticated %}
     <fieldset class="selector-tema" hidden>
       <legend class="visualment-amagat">{% translate "Tema" %}</legend>
       <label><input class="visualment-amagat" type="radio" name="tema" value="sistema"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">◐</span><span class="text-opcio">{% translate "Sistema" %}</span></span></label>
       <label><input class="visualment-amagat" type="radio" name="tema" value="light"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">○</span><span class="text-opcio">{% translate "Clar" %}</span></span></label>
       <label><input class="visualment-amagat" type="radio" name="tema" value="dark"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span aria-hidden="true">●</span><span class="text-opcio">{% translate "Fosc" %}</span></span></label>
     </fieldset>
+    {% else %}{% include "_eclipse.html" %}{% endif %}
     {# Després del selector (T-M01-45, punt 6): es veu a sota i el Tab hi arriba en el mateix ordre. #}
     {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_personal_nav.html" %}{% endif %}
   </header>

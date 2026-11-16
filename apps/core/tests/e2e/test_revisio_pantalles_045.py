@@ -22,16 +22,17 @@ def _no_motion(page):
     page.emulate_media(reduced_motion="reduce")
 
 
-def test_point_2_theme_selector_shows_its_labels_at_320(page, live_server, review):
+def test_point_2_theme_selector_shows_its_labels_at_320(page, live_server, builder, member, review):
+    # Amb sessió (a la part pública hi ha l'interruptor Eclipse, T-DX-05).
+    login_personal(page, live_server, builder, member)
     page.set_viewport_size(NARROW)
-    page.goto(f"{live_server.url}/entrar/")
     selector = page.locator(".selector-tema")
     expect(selector).to_be_visible()
     for label in ("Sistema", "Clar", "Fosc"):
         text = selector.locator(".text-opcio", has_text=label)
         expect(text).to_be_visible()
         assert text.bounding_box()["width"] > 10, label  # no és el text amagat d'1 px
-    review("entrada-selector-tema")
+    review("inici-selector-tema")
 
 
 def login_personal(page, live_server, builder, member):

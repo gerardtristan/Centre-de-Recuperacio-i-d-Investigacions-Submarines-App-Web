@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}Eclipse (T-DX-05; design-system §7): l'interruptor de dia i nit de la part pública.
+   Tot el que hi ha dins del botó és decorat (aria-hidden); el botó és l'interruptor de debò
+   (role="switch"). Surt amagat i el mostra eclipse.js quan funciona. «Com el sistema» només es
+   veu quan la tria és manual (eclipse.css).{% endcomment %}
+<div class="eclipse-tema" hidden>
+  <button class="eclipse" type="button" role="switch" aria-checked="false" aria-label="{% translate 'Tema fosc' %}" data-eclipse>
+    <span class="eclipse-cel" aria-hidden="true">
+      <span class="eclipse-nit"></span>
+      <span class="eclipse-halos"><i></i><i></i><i></i></span>
+      <span class="eclipse-estrelles"><i></i><i></i><i class="eclipse-destell"></i><i></i><i></i><i></i><i class="eclipse-destell"></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="eclipse-astre"><span class="eclipse-forma"><span class="eclipse-corona"></span><span class="eclipse-sol"><span class="eclipse-lluna"><i></i><i></i><i></i></span></span><span class="eclipse-diamant"></span></span></span>
+      <span class="eclipse-nuvols eclipse-nuvols-darrere"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="eclipse-nuvols eclipse-nuvols-davant"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    </span>
+    <span class="eclipse-canto" aria-hidden="true"></span>
+  </button>
+  <button class="boto boto-petit eclipse-sistema" type="button" data-tema-sistema>{% translate "Com el sistema" %}</button>
+</div>
