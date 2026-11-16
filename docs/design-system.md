@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.9 (16/11/2026). La 1.9 porta la paleta d'estats a OKLCH amb la mateixa lluminositat per rol, les vores amb transparència i la superfície flotant (§15.4, T-DX-02), i corregeix l'ordre d'elevació.
+- **Versió:** 1.10 (16/11/2026). La 1.10 posa el motor de tema de Duermevela (§7, T-DX-04).
+- La 1.9 (16/11/2026) porta la paleta d'estats a OKLCH amb la mateixa lluminositat per rol, les vores amb transparència i la superfície flotant (§15.4, T-DX-02), i corregeix l'ordre d'elevació.
 - La 1.8 (16/11/2026) porta a `tokens.css` els tokens de moviment i els radis concèntrics de §15.4 (T-DX-01), amb els noms que ja existien, i fa més grans els logotips (§4; decisió del propietari del 16/11/2026).
 - La 1.7 (16/11/2026) afegeix les regles de disseny B, C i D amb els seus noms originals i els tokens que les concreten (§15), l'etiqueta «En construcció» (§6.9) i corregeix els radis de §4. Els tokens nous de §15.4 encara no són a `tokens.css`: hi entren a les tasques T-DX-01 i T-DX-02 del [pla dels recursos externs](plans/recursos-disseny-extern.md).
 - La 1.6 (11/11/2026) descriu la navegació comuna tal com és a la plataforma (T-M01-46): la barra lateral de l'administració, el botó «Menú» i «Surt» (§6 i §6.1). No canvia cap token.
@@ -432,6 +433,7 @@ Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla 
 - Un petit script al `<head>` aplica el tema desat abans de pintar la pàgina, perquè no es vegi el canvi. Si `localStorage` no està disponible, el selector funciona igual però no se'n recorda.
 - El tema manual es fixa a `<html data-theme="light|dark">`. Els tokens foscos són dues vegades a `tokens.css`: una per a la preferència del sistema i una altra per al tema triat amb el selector.
 
+- **Motor Duermevela (T-DX-04, 1.10).** `static/js/tema.js` (es manté el nom del fitxer) porta el motor del recurs Duermevela adaptat: (1) la tria passa a les altres pestanyes obertes amb l'esdeveniment `storage`, sense recarregar ni cortina; (2) la barra del navegador (`<meta name="theme-color">`, que crea el mateix guió) pren `--c-fons` del tema actiu, també quan el sistema canvia amb «Sistema»; (3) el canvi es revela amb una cortina circular que surt de l'opció triada (`document.startViewTransition`), de `--m-panell` i amb `--m-corba-entra-surt`. Sense l'API, amb moviment reduït o si el color no canvia (per exemple, «Sistema» quan el sistema ja demana el mateix tema), el canvi és directe. `tokens.css` treu el fos per defecte de `::view-transition-old(root)` i `::view-transition-new(root)`. La funció de la cortina (regla D6) és dir d'on ve el canvi. La il·lustració de l'habitació i el mesurador de destells del recurs no s'hi fan servir.
 ## 8. Logotips
 | On | Fitxer |
 |---|---|

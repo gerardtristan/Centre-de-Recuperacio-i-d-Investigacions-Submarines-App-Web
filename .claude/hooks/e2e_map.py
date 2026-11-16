@@ -102,6 +102,7 @@ MAP = {
         "templates/members/card_verify.html",
         "static/js/imprimeix.js",
     ),
+    "test_duermevela.py": ("static/js/tema.js",),
     "test_pwa_079.py": (
         "static/js/service-worker.js",
         "static/js/carnet-copia.js",
