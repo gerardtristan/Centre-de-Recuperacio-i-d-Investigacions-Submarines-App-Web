@@ -39,7 +39,8 @@ MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor
 def test_codes_are_unique_and_prefixed_by_module():
     codes = [p.code for p in PERMISSIONS]
     assert len(codes) == len(set(codes))
-    assert {p.module for p in PERMISSIONS} <= {"core", "members", "treasury", "settings"}
+    modules = {"core", "members", "treasury", "payments", "settings"}
+    assert {p.module for p in PERMISSIONS} <= modules
     refs = [p.ref for p in PERMISSIONS]
     assert len(refs) == len(set(refs))
 

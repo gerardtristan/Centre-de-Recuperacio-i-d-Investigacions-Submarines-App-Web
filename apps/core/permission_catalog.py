@@ -358,6 +358,17 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
+    # --- 05a Alta del mètode de pagament i mandats -------------------------------------------
+    _perm(
+        "payments.mandates.view",
+        "A4",
+        _("Veure mètodes i mandats de tots els socis (IBAN emmascarat)"),
+        # «Cons.» només ensenya «té mètode: sí/no». La Secretaria, [A validar] al M05a-4,
+        # comença sense (P-193).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).

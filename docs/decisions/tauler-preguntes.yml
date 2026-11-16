@@ -483,4 +483,15 @@ opcions:
       que un error del tresorer quedi per sempre; no mou diners. La A és la lectura literal de RN-T15.
     data: 2026-11-16
 
+  P-193:
+    opcions:
+      A: La Secretaria no hi té accés (com s'ha fet).
+      B: La Secretaria hi té «Cons.»: només veu «té mètode: sí/no», sense mètode, mandat, targeta ni IBAN.
+      C: La Secretaria ho veu tot, com el tresorer, amb l'IBAN emmascarat.
+    recomanada: B
+    perque: >-
+      És el que proposa el M05a-4 i li serveix per avisar els socis sense mètode sense veure cap dada bancària.
+      Mentre la junta no ho aprovi, la A és la base segura; la C dona més dades bancàries de les que cal.
+    data: 2026-11-16
+
 noves:
