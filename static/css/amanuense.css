@@ -1,0 +1,12 @@
+/* Amanuense (T-DX-39; recurs a design/extern/; design-system §16, T-DX-39): el caixó d'escriure dels xats.
+   Sense veu ni dictat (P-95): no hi ha cap botó de micròfon. El dictat, si arriba, amb un reconeixement de veu
+   instal·lat al servidor de la UE, mai el del navegador. */
+.amanuense {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--e-2);
+  padding: var(--e-2); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-l); background: var(--c-fons);
+}
+.amanuense-text {
+  min-block-size: var(--tactil); padding: var(--e-2); border: 0; border-radius: var(--r-m); resize: vertical;
+  background: transparent; color: var(--c-text); font: inherit;
+}
+.amanuense-text::placeholder { color: var(--c-text-2); }

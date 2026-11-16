@@ -1,0 +1,47 @@
+/* Teletipo (T-DX-39; recurs a design/extern/; design-system §16, T-DX-39): la carcassa dels xats (P-97, A).
+   Del recurs: el lateral amb els comptadors, el rotlle de tires, «Tot llegit» i J/K. Del lector de canals RSS no
+   s'aprofita res. Els missatges són text escapat pel servidor; sense JavaScript, res no s'envia ni es desa. */
+.teletipo { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.teletipo h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.teletipo-app { display: grid; gap: var(--e-4); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.teletipo-lateral { padding: var(--e-2); border-radius: var(--r-l); background: var(--c-lateral-fons); color: var(--c-lateral-text); }
+.teletipo-converses { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-1); }
+.teletipo-fila {
+  display: flex; align-items: center; gap: var(--e-2); inline-size: 100%; min-block-size: var(--tactil);
+  padding: var(--e-1) var(--e-3); border: 0; border-radius: var(--r-m); background: transparent;
+  color: inherit; font: inherit; text-align: start;
+}
+.teletipo-fila[aria-current] { background: var(--c-lateral-text); color: var(--c-lateral-fons); }
+.teletipo-fila-t { display: grid; flex: 1; min-inline-size: 0; font-weight: var(--p-semi); }
+.teletipo-fila-t small { font-size: var(--t-xs); font-weight: var(--p-normal); }
+.teletipo-compte {
+  display: grid; place-items: center; min-inline-size: var(--e-5); padding: 0 var(--e-2); border-radius: var(--r-pastilla);
+  background: var(--c-accent); color: var(--c-accent-text); font-size: var(--t-xs); font-weight: var(--p-negreta);
+}
+.teletipo-rotlle { display: grid; gap: var(--e-3); align-content: start; min-inline-size: 0; }
+.teletipo-cap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); }
+.teletipo-cap h2 { margin: 0; font-size: var(--t-l); }
+.teletipo .teletipo-drecera { font-size: var(--t-s); }
+.teletipo-drecera kbd { padding: 0 var(--e-1); border: var(--v-fina) solid var(--c-linia-forta); border-radius: var(--r-s); font-family: var(--f-codi); font-size: var(--t-xs); }
+/* El rotlle: cada missatge és una tira de paper que entra una sola vegada (D20) */
+.teletipo-missatges { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.teletipo-tira {
+  display: grid; gap: var(--e-1); max-inline-size: 85%; padding: var(--e-2) var(--e-3);
+  border-inline-start: var(--v-activa) solid var(--c-linia); border-radius: var(--r-s) var(--r-m) var(--r-m) var(--r-s);
+  background: var(--c-fons); color: var(--c-text-2);
+  animation: teletipo-entra var(--m-entrada) var(--m-corba) both;
+}
+.teletipo-tira.es-nou { border-inline-start-color: var(--c-accent-vora); color: var(--c-text); }
+.teletipo-tira.es-meu { justify-self: end; border-inline-start: 0; border-inline-end: var(--v-activa) solid var(--c-mari); }
+.teletipo-tira p { margin: 0; }
+.teletipo .teletipo-qui { display: flex; align-items: center; gap: var(--e-1); font-size: var(--t-xs); font-weight: var(--p-semi); }
+.teletipo-qui time { font-weight: var(--p-normal); color: var(--c-text-2); }
+.teletipo-punt { inline-size: var(--e-2); block-size: var(--e-2); border-radius: 50%; background: var(--c-accent-vora); }
+@keyframes teletipo-entra { from { opacity: 0; transform: translateY(calc(-1 * var(--e-2))); } }
+
+@media (min-width: 600px) {
+  .teletipo { padding: var(--e-5); }
+}
+@media (min-width: 1024px) {
+  .teletipo-app { grid-template-columns: calc(var(--e-8) * 4) minmax(0, 1fr); align-items: start; }
+}

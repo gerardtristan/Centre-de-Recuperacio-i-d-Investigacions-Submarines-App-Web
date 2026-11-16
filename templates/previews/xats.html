@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/teletipo.css' %}"><link rel="stylesheet" href="{% static 'css/amanuense.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-39 Teletipo (P-97, A) i Amanuense (P-95: sense veu): els xats. En construcció: contingut d'exemple, res no s'envia (design-system §16, T-DX-39). #}
+  <section class="en-construccio-bloc teletipo" aria-describedby="ec-xats">
+    {% include "_en_construccio.html" with id="ec-xats" %}
+    <h1>{{ screen_title }}</h1>
+    <fieldset disabled class="teletipo-app">
+      <legend class="visualment-amagat">{% translate "Converses" %}</legend>
+      <nav class="teletipo-lateral" aria-label="{% translate 'Converses' %}">
+        <ul class="teletipo-converses">
+          {% for chat in chats %}
+          <li><button type="button" class="teletipo-fila"{% if chat.current %} aria-current="true"{% endif %}>
+            <span class="teletipo-fila-t">{{ chat.name }}<small>{{ chat.kind }}</small></span>
+            {% if chat.unread %}<span class="teletipo-compte xifra-viva">{{ chat.unread }}<span class="visualment-amagat"> {% translate "sense llegir" %}</span></span>{% endif %}
+          </button></li>
+          {% endfor %}
+        </ul>
+      </nav>
+      <div class="teletipo-rotlle">
+        <div class="teletipo-cap">
+          <h2>{{ chats.0.name }}</h2>
+          <button type="button" class="boto boto-petit">{% translate "Tot llegit" %}</button>
+        </div>
+        <p class="teletipo-drecera text-2">{% blocktranslate %}<kbd>J</kbd> i <kbd>K</kbd> per passar de missatge.{% endblocktranslate %}</p>
+        <ol class="teletipo-missatges" aria-label="{% translate 'Missatges' %}">
+          {% for msg in messages %}
+          <li class="teletipo-tira{% if msg.mine %} es-meu{% endif %}{% if not msg.read %} es-nou{% endif %}">
+            <p class="teletipo-qui">{% if not msg.read %}<span class="teletipo-punt" aria-hidden="true"></span><span class="visualment-amagat">{% translate "Nou:" %} </span>{% endif %}{{ msg.who }} <time>{{ msg.time }}</time></p>
+            <p>{{ msg.text }}</p>
+          </li>
+          {% endfor %}
+        </ol>
+        {# Amanuense: el caixó d'escriure, sense veu ni dictat (P-95) #}
+        <div class="amanuense">
+          <label for="amanuense-text" class="visualment-amagat">{% translate "Missatge" %}</label>
+          <textarea id="amanuense-text" class="amanuense-text" rows="2" placeholder="{% translate 'Escriu un missatge' %}"></textarea>
+          <button type="button" class="boto boto-principal amanuense-envia">{% translate "Envia" %}</button>
+        </div>
+      </div>
+    </fieldset>
+  </section>
+{% endblock %}

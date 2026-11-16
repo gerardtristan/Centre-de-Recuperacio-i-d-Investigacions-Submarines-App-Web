@@ -56,7 +56,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-36 Editor de la web (Probador i Pregon), en construcció | per fer | — | — | — |
 | T-DX-37 | feta | 16/11/2026 | #97 | Fotos a l'àrea del soci: carpetes, selecció i detalls (Fototeca) i graella de pujada amb anell, massa petita amb el motiu i portada (Expositor); degradats en lloc de fotos; P-41 abans de fer-la funcional |
 | T-DX-38 Convite, en construcció | per fer | — | — | P-99 (A) |
-| T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | en curs | 16/11/2026 | — | P-97 (A); P-95: sense veu |
+| T-DX-39 | feta | 16/11/2026 | #99 | P-97 (A); P-95: sense veu. Xats a l'àrea del soci: converses amb comptadors i rotlle de tires (Teletipo) i caixó d'escriure sense micròfon (Amanuense), amb prova |
 | T-DX-40 Social (Seguir i Monograma de fauna), en construcció | per fer | — | — | — |
 | T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
 | T-DX-42 Apoderado: avisos i textos legals, en construcció | per fer | — | — | P-91 |
