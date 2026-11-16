@@ -1,0 +1,12 @@
+/* Etiqueta «En construcció» (T-DX-03; design-system §6.9): petita i discreta, a dalt a la dreta del
+   bloc que encara no és funcional. Només tokens; sense icona, animació ni color d'estat (D1). */
+.en-construccio-bloc { position: relative; }
+.en-construccio {
+  position: absolute; top: var(--e-2); right: var(--e-2); z-index: 1;
+  padding: var(--e-1) var(--e-2); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-pastilla);
+  background: var(--c-superficie-2); color: var(--c-text-2);
+  font-size: var(--t-xs); font-weight: var(--p-semi); line-height: var(--a-titol); letter-spacing: var(--ll-etiqueta);
+  pointer-events: none;
+}
+/* El contingut d'exemple es reconeix: els formularis van desactivats al servidor (fieldset disabled) */
+.en-construccio-bloc fieldset[disabled] { opacity: .85; }

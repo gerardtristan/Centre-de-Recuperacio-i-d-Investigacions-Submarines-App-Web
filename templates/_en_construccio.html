@@ -1,0 +1,4 @@
+{% load i18n %}{% comment %}Etiqueta «En construcció» (T-DX-03; design-system §6.9). Va a dalt a la dreta del bloc que no
+   és funcional, dins d'un contenidor `en-construccio-bloc`, que n'apunta l'id amb aria-describedby:
+   {% include "_en_construccio.html" with id="ec-calendari" %}. Sense icona, sense animació i sense
+   color d'estat: no és cap estat del negoci (D1).{% endcomment %}<span class="en-construccio" id="{{ id|default:'en-construccio' }}">{% translate "En construcció" %}</span>
