@@ -1,0 +1,26 @@
+/* Baliza (T-DX-09; recurs a design/extern/; design-system §16, T-DX-09): les novetats i el centre d'avisos.
+   Del recurs: la baliza al costat del que és nou, la nota que s'obre i la píndola amb el comptador.
+   Un sol batec en aparèixer, no continu (D20); amb prefers-reduced-motion, tokens.css l'atura. */
+.baliza { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.baliza h1 { margin-top: 0; }
+.baliza-pindola {
+  display: flex; inline-size: fit-content; align-items: center; gap: var(--e-2); margin: 0 0 var(--e-4);
+  padding: var(--e-1) var(--e-3); border-radius: var(--r-pastilla); font-size: var(--t-s); font-weight: var(--p-semi);
+  border: var(--v-fina) solid color-mix(in oklab, var(--c-accent), transparent 40%);
+}
+.baliza-punt {
+  inline-size: var(--e-3); block-size: var(--e-3); flex: none; border-radius: 50%; background: var(--c-accent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--c-accent), transparent 30%);
+  animation: baliza-batec var(--m-entrada) var(--m-corba-sortida) var(--m-preparacio) 1 both;
+}
+@keyframes baliza-batec { to { box-shadow: 0 0 0 var(--e-2) transparent; } }
+.baliza-llista { border: 0; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.baliza-item { border-radius: var(--r-l); background: var(--c-fons); }
+.baliza-item > summary {
+  display: flex; align-items: center; gap: var(--e-3); min-block-size: var(--tactil); padding: var(--e-2) var(--e-4);
+  cursor: pointer; font-weight: var(--p-semi);
+}
+.baliza-item:not(.es-nova) > summary { font-weight: var(--p-normal); color: var(--c-text-2); }
+.baliza-vista { inline-size: var(--e-3); text-align: center; color: var(--c-text-2); }
+.baliza-nota { padding: 0 var(--e-4) var(--e-4) calc(var(--e-4) + var(--e-3) + var(--e-3)); }
+.baliza-nota p { margin-top: 0; }

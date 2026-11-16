@@ -191,6 +191,7 @@ MAP = {
         "templates/core/home.html",
         "static/css/oleaje.css",
     ),
+    "test_previews.py": ("apps/previews/*", "templates/previews/*"),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Pantalles en construcció" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  {# Índex de les pantalles «En construcció» (design-system §16): es construeix sol a partir de apps/previews/screens. #}
+  <h1>{% translate "Pantalles en construcció" %}</h1>
+  <p>{% translate "Dissenys de pantalles que encara no funcionen. Només es poden mirar: no desen ni envien res, i el contingut és d'exemple." %}</p>
+  <ul>
+    {% for name, title in screens %}<li><a href="{% url 'previews:'|add:name %}">{{ title }}</a></li>{% empty %}<li>{% translate "Encara no n'hi ha cap." %}</li>{% endfor %}
+  </ul>
+{% endblock %}
