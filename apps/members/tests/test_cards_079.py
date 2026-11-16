@@ -64,7 +64,8 @@ def personal_client(member):
 
 def qr_path_data(html):
     """El dibuix del QR (el camí de l'SVG), per comparar-ne dos."""
-    found = re.search(r'<path d="([^"]+)"', html)
+    # Només dins del QR: la pàgina pot dur altres icones en SVG (la barra Ramillete, T-DX-08).
+    found = re.search(r'<div class="qr"[^>]*>.*?<path d="([^"]+)"', html, re.S)
     return found.group(1) if found else None
 
 

@@ -14,9 +14,11 @@
   <link rel="stylesheet" href="{% static 'css/comptes.css' %}">
   <link rel="stylesheet" href="{% static 'css/errata.css' %}">
   <link rel="stylesheet" href="{% static 'css/eclipse.css' %}">
+  <link rel="stylesheet" href="{% static 'css/ramillete.css' %}">
   <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/errata.js' %}" defer></script>
   <script src="{% static 'js/eclipse.js' %}" defer></script>
+  <script src="{% static 'js/ramillete.js' %}" defer></script>
   {# Web instal·lable i carnet sense connexió (T-M01-21; decisió 041) #}
   <link rel="manifest" href="{% static 'manifest.json' %}">
   <link rel="apple-touch-icon" href="{% static 'img/icones/cris-180.png' %}">
@@ -45,5 +47,7 @@
     {% if admin_nav %}<nav class="solapes" aria-label="{% translate 'Fitxes obertes' %}" data-solapes data-inici="{% url 'administration:home' %}" data-tanca="{% translate 'Tanca %s' %}" data-avis-canvis="{% translate 'Aquesta fitxa té canvis sense desar. Si la tanques, es perden. Vols tancar-la?' %}" data-mes="{% translate 'Més fitxes obertes' %}" hidden><ul class="solapes-llista"></ul></nav>{% endif %}
     {% block content %}{% endblock %}
   </main>
+  {# Al mòbil, la navegació de l'àrea del soci com a barra a baix (Ramillete, T-DX-08), després del contingut. #}
+  {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_ramillete.html" %}{% endif %}
 </body>
 </html>

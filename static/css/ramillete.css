@@ -1,0 +1,70 @@
+/* Ramillete (T-DX-08; recurs a design/extern/; design-system §6.12): la barra de l'àrea del soci al
+   mòbil, amb el botó central rodó que s'obre en ventall cap amunt. Del recurs: la barra a baix, la
+   marca de la pestanya activa, el botó que gira (+ → ×) i les accions que surten del botó una
+   darrere l'altra. Només tokens. A partir de 600 px no es veu (hi ha la navegació de la capçalera). */
+.ramillete { display: none; }
+@media (max-width: 599px) {
+  /* Només quan funciona el guió (ramillete.js posa .ramillete-actiu a <html>): sense JavaScript, la capçalera de sempre */
+  .ramillete-actiu .ramillete {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 0 var(--e-2) env(safe-area-inset-bottom); background: var(--c-superficie-flotant);
+    border-top: var(--v-fina) solid var(--c-linia);
+  }
+  /* Amb la barra, la capçalera només deixa «Surt» (un sol «Surt» per pantalla) i el contingut no queda a sota */
+  .ramillete-actiu .navegacio-compte li:not(.sortida) { display: none; }
+  .ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + env(safe-area-inset-bottom)); }
+}
+.ramillete-barra { display: flex; align-items: stretch; justify-content: space-around; margin: 0; padding: 0; list-style: none; }
+.ramillete-barra > li { flex: 1; display: flex; justify-content: center; }
+.ramillete-pestanya {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--e-1);
+  width: 100%; min-height: var(--dock-alcada); font-size: var(--t-xs); font-weight: var(--p-semi); color: var(--c-text-2); text-decoration: none;
+}
+.ramillete-pestanya svg, .ramillete-boto svg { width: var(--e-5); height: var(--e-5); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ramillete-pestanya[aria-current="page"] { color: var(--c-text); }
+.ramillete-pestanya[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 50%; width: var(--e-5); height: var(--e-1); margin-left: calc(var(--e-5) / -2); border-radius: 0 0 var(--r-s) var(--r-s); background: var(--c-accent); }
+.ramillete-pestanya:focus-visible, .ramillete-item:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: calc(-1 * var(--v-focus)); border-radius: var(--r-m); }
+/* El botó central, per sobre de la barra */
+.ramillete-accio { position: relative; flex: 0 0 auto !important; }
+.ramillete-boto {
+  display: grid; place-items: center; width: var(--tactil-gran); height: var(--tactil-gran); margin-top: calc(var(--e-5) * -1);
+  border: 0; border-radius: 50%; background: var(--c-accent); color: var(--c-accent-text); cursor: pointer;
+  box-shadow: 0 0 0 var(--e-1) var(--c-superficie-flotant), var(--ombra-flotant);
+  transition: transform var(--m-panell) var(--m-corba-molla), background-color var(--m-rapid) var(--m-corba);
+}
+.ramillete-boto svg { stroke-width: 2.4; transition: transform var(--m-panell) var(--m-corba-molla); }
+.ramillete-boto:active { transform: scale(var(--escala-premut)); }
+.ramillete-boto:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
+.ramillete-boto[aria-expanded="true"] { background: var(--c-text); color: var(--c-fons); }
+.ramillete-boto[aria-expanded="true"] svg { transform: rotate(135deg); }
+/* El ventall: les opcions rares surten del botó, cap amunt, una darrere l'altra */
+.ramillete-menu {
+  position: absolute; left: 50%; bottom: calc(100% + var(--e-4)); width: 15rem; margin: 0 0 0 -7.5rem; padding: 0; list-style: none;
+  display: flex; flex-direction: column-reverse; gap: var(--e-2); visibility: hidden; transition: visibility 0s var(--m-panell);
+}
+.ramillete.es-obert .ramillete-menu { visibility: visible; transition-delay: 0s; }
+.ramillete-menu > li { --n: 0; }
+.ramillete-menu > li:nth-child(2) { --n: 1; }
+.ramillete-menu > li:nth-child(3) { --n: 2; }
+.ramillete-menu > li:nth-child(4) { --n: 3; }
+.ramillete-menu form { margin: 0; }
+.ramillete-item {
+  display: flex; align-items: center; width: 100%; min-height: var(--tactil); padding: 0 var(--e-4); border: var(--v-fina) solid var(--c-linia);
+  border-radius: var(--r-l); background: var(--c-superficie-flotant); color: var(--c-text); font: inherit; font-weight: var(--p-semi);
+  text-align: left; text-decoration: none; cursor: pointer; box-shadow: var(--ombra-flotant);
+  opacity: 0; transform: translateY(calc((var(--n) + 1) * var(--tactil))) scale(.5);
+  transition: transform var(--m-panell) var(--m-corba-sortida), opacity var(--m-rapid);
+}
+.ramillete-item[aria-current="page"] { border-color: var(--c-accent-vora); }
+.ramillete.es-obert .ramillete-item {
+  opacity: 1; transform: none;
+  transition: transform var(--m-panell) var(--m-corba-molla), opacity var(--m-rapid);
+  transition-delay: calc(var(--n) * var(--m-escalonat));
+}
+@media (hover: hover) { .ramillete-item:hover { background: var(--c-superficie-2); } }
+/* El vel darrere del ventall: una sola cosa en focus (B3) */
+.ramillete::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; background: color-mix(in oklch, var(--c-fons) 70%, transparent);
+  opacity: 0; visibility: hidden; transition: opacity var(--m-panell), visibility 0s var(--m-panell);
+}
+.ramillete.es-obert::before { opacity: 1; visibility: visible; transition-delay: 0s; }

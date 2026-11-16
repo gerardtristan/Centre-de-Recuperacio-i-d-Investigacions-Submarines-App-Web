@@ -68,9 +68,9 @@ def test_point_5_create_a_leave_is_a_text_button(page, live_server, secretary, m
 def test_point_6_tab_goes_from_the_logo_to_the_personal_menu(
     page, live_server, builder, member, review
 ):
-    """Des de la T-DX-05b el tema és a la configuració: després del logotip, el Tab va al menú."""
+    """Des de la T-DX-05b el tema és a la configuració: després del logotip, el Tab va al menú.
+    A l'escriptori: al mòbil, el menú és la barra de baix (Ramillete, T-DX-08)."""
     login_personal(page, live_server, builder, member)
-    page.set_viewport_size(NARROW)
     page.locator(".capcalera-compte .marca").focus()
     page.keyboard.press("Tab")
     expect(page.get_by_role("link", name="Inici")).to_be_focused()

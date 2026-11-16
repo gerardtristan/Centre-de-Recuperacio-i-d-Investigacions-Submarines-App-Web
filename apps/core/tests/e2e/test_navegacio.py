@@ -115,7 +115,8 @@ def test_personal_menu_logs_out_with_the_keyboard(page, live_server, builder, me
     expect(logout).to_be_visible()
     review("perfil-amb-surt")
     page.set_viewport_size(MOBILE)
-    page.get_by_role("link", name="Baixa").focus()
+    # Al mòbil, la capçalera només deixa «Surt»; la resta és a la barra de baix (T-DX-08).
+    page.locator(".capcalera-compte .marca").focus()
     page.keyboard.press("Tab")
     expect(logout).to_be_focused()
     page.keyboard.press("Enter")
