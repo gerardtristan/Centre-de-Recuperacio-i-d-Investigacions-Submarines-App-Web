@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 17:23 | d770364 | 1 nova al navegador | [A comprovar] (PR #64) |
+| 16/11/2026 17:23 | 4dfe26b | 1 nova al navegador | [A comprovar] (PR #64) |
 
 **En tres línies:** a la fitxa d'un soci, l'administració veu quants dies queden de cada llicència amb caducitat confirmada: en verd si és vigent i en vermell si ha caducat («Va caducar fa 3 dies»). Una llicència que el soci ha declarat i encara no s'ha confirmat no en mostra cap. De pas, s'ha arreglat que aquesta fitxa no cabés en un mòbil petit quan hi havia una llicència declarada.
 
@@ -28,11 +28,11 @@
 
   ![Llicències de la fitxa amb els dies que queden](captures/2026-11-16_1723_T-DX-14_fitxa-llicencies-1280.png)
 
-  *16/11/2026 17:23 (Europa/Madrid) · local, prova e2e, soci i llicències inventats · commit d770364*
+  *16/11/2026 17:23 (Europa/Madrid) · local, prova e2e, soci i llicències inventats · commit 4dfe26b*
 - A 320 px, sense desplaçament: `captures/2026-11-16_1723_T-DX-14_fitxa-llicencies-320.png`
 
-  *16/11/2026 17:23 (Europa/Madrid) · local, prova e2e · commit d770364*
-- Sortida de proves · commit d770364 · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 17:23 (Europa/Madrid) · local, prova e2e · commit 4dfe26b*
+- Sortida de proves · commit 4dfe26b · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -q
   4792 passed
