@@ -2,7 +2,7 @@
    al mòbil. Una barra a baix amb les pàgines que més es fan servir i un botó central «Més» que
    s'obre en ventall amb les rares (B15). A partir de 600 px no es veu: hi ha la navegació de la
    capçalera. Els mateixos enllaços i les mateixes condicions que _personal_nav.html; amagar un
-   enllaç no és cap control. «Surt» és a la capçalera, també al mòbil (un sol «Surt» per pantalla, T-M01-46).{% endcomment %}{% with current=request.resolver_match.view_name %}
+   enllaç no és cap control. «Surt» és a la capçalera, també al mòbil (un sol «Surt» per pantalla, T-M01-46).{% endcomment %}{% load payments_nav %}{% mandate_signing_enabled as mandate_on %}{% with current=request.resolver_match.view_name %}
 <nav class="ramillete" aria-label="{% translate 'Compte personal (mòbil)' %}" data-ramillete>
   <ul class="ramillete-barra">
     <li><a class="ramillete-pestanya" href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4z"/></svg>{% translate "Inici" %}</a></li>
@@ -10,7 +10,9 @@
     <li class="ramillete-accio">
       <button class="ramillete-boto" type="button" aria-expanded="false" aria-controls="ramillete-menu" aria-label="{% translate 'Més opcions' %}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
       <ul class="ramillete-menu" id="ramillete-menu">
-        {% if user.person.member %}<li><a class="ramillete-item" href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>
+        {% if user.person.member %}<li><a class="ramillete-item" href="{% url 'payments:fee_method' %}"{% if current == "payments:fee_method" %} aria-current="page"{% endif %}>{% translate "Com pago la quota" %}</a></li>
+        {% if mandate_on %}<li><a class="ramillete-item" href="{% url 'payments:mandate' %}"{% if current == "payments:mandate" %} aria-current="page"{% endif %}>{% translate "Mandat de domiciliació" %}</a></li>{% endif %}
+        <li><a class="ramillete-item" href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>
         <li><a class="ramillete-item" href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
         <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" %} aria-current="page"{% endif %}>{% translate "Seguretat i aparença" %}</a></li>
       </ul>
