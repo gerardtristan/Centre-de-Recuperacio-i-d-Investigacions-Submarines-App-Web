@@ -1,0 +1,21 @@
+/* Avisador (T-DX-19; recurs a design/extern/; design-system §16, T-DX-19): l'editor de permisos dels rols.
+   Del recurs: la matriu (files × columnes), el resum «en paraules» que acompanya cada canvi i les files
+   bloquejades. El resum i el formulari, a sota de la matriu. Només tokens. */
+.avisador { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.avisador h1 { margin-top: 0; }
+.avisador-intro { margin: 0 0 var(--e-4); color: var(--c-text-2); max-width: var(--amplada-text); }
+.avisador .avis { margin-bottom: var(--e-5); }
+.avisador .avisador-cols { min-width: 0; gap: var(--e-5); }
+.avisador-matriu { min-width: 0; overflow-x: auto; }
+.avisador-matriu select { min-block-size: var(--tactil); max-inline-size: 100%; font: inherit; }
+/* Canvi pendent: vora daurada i el valor d'abans en text, mai només color */
+.avisador .es-canviada select { border: var(--v-plena) solid var(--c-accent-vora); border-radius: var(--r-s); }
+.avisador-abans { display: block; font-size: var(--t-xs); color: var(--c-text-2); }
+.avisador .es-protegida .cel-nom { color: var(--c-text-2); }
+.avisador-lateral { display: grid; gap: var(--e-4); align-items: start; min-width: 0; }
+.avisador-lateral h2 { font-size: var(--t-l); margin: 0 0 var(--e-2); }
+.avisador-lateral h3 { font-size: var(--t-s); margin: var(--e-4) 0 var(--e-1); }
+.avisador-lateral .camp { margin-bottom: var(--e-3); }
+.avisador-resum { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-1); }
+/* La matriu necessita l'amplada: el resum i el formulari van a sota, en dues columnes si hi caben */
+.avisador-lateral { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--carnet-amplada)), 1fr)); }
