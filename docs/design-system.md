@@ -888,3 +888,11 @@ Del recurs Seguir ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - **Pantalla:** `/en-construccio/social/`, «Social», a l'àrea del soci, amb llavors d'exemple per als avatars i tres socis d'exemple (només un nom inventat i el recompte de seguidors). Tot dins de `fieldset disabled`.
 - **Quan funcioni:** seguir és opcional i els perfils són privats per defecte; el comptador el dona el servidor; l'avatar surt de `Member.avatar_seed` (RN-M01-30), mai del nom; els avatars de fauna marina, amb la bitàcola (12).
 - **Del recurs no s'hi fa:** la goma del botó, el comptador que roda, el batec de l'avatar ni les partícules (cal JavaScript i són moviment de més, D20); de Monograma, l'avatar a partir del nom, «Copiar SVG» ni «Descarregar».
+
+### T-DX-12 Deposito: pagar per transferència i el comprovant
+Del recurs Deposito ([pla dels recursos externs](plans/recursos-disseny-extern.md)): copiar les dades del compte, un camp o tots, i pujar el comprovant i seguir-ne l'estat.
+- **Funcional, a la pantalla de pagament (`templates/payments/_status.html`):** a més dels «Copia» de cada dada (T-M05b-06), «Copia-ho tot» copia l'IBAN del club, l'import i la referència, una per línia, amb el mateix `copia.js`. Surt amagat sense porta-retalls, com els altres.
+- **En construcció, `/en-construccio/comprovant-transferencia/`:** el comprovant (imatge o PDF), els passos amb Tramite (enviat, en revisió, confirmat o rebutjat amb el motiu) i l'estat. És una proposta: el pla no té comprovant (D1).
+- **Quan funcioni:** el comprovant serà un fitxer privat (`core.validate_upload`), només el veuran la persona i la tresoreria, i confirmar o rebutjar serà una acció amb permís, motiu i registre. El pagament es continua confirmant només amb l'extracte del banc (B10).
+- **Del recurs no s'hi fa:** el panell del negoci per revisar comprovants (és la T-DX-22, en construcció).
+

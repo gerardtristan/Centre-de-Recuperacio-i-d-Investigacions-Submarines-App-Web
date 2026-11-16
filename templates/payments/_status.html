@@ -11,6 +11,8 @@
       <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ transfer.amount }}</span> <button class="boto boto-petit" type="button" data-copia="{{ transfer.amount_copy }}" data-copiat="{% translate 'Import copiat' %}" hidden>{% translate "Copia l'import" %}</button></dd></div>
       <div><dt>{% translate "Referència (al concepte)" %}</dt><dd><span class="codi">{{ transfer.reference }}</span> <button class="boto boto-petit" type="button" data-copia="{{ transfer.reference }}" data-copiat="{% translate 'Referència copiada' %}" hidden>{% translate "Copia la referència" %}</button></dd></div>
     </dl>
+    {# Deposito (T-DX-12): les tres dades d'un cop, una per línia, per enganxar-les a l'app del banc. Mateix copia.js. #}
+    <p class="accions"><button class="boto" type="button" data-copia="{% translate 'IBAN' %}: {{ transfer.iban }}&#10;{% translate 'Import' %}: {{ transfer.amount_copy }}&#10;{% translate 'Concepte' %}: {{ transfer.reference }}" data-copiat="{% translate 'Dades copiades' %}" hidden>{% translate "Copia-ho tot" %}</button></p>
     <p class="text-2">{% translate "Si ja l'has feta, no paguis d'una altra manera: es cobraria dues vegades i caldria tornar-te'n un." %}</p>
   {% elif state == "in_progress" and status.attempt.method == "bizum" %}
     <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> {% translate "Esperant confirmació a l'app del teu banc" %}</strong>{% translate "Obre l'app del teu banc i confirma el Bizum. Aquesta pàgina s'actualitza sola." %}</div>
