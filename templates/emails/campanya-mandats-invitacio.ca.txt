@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M05a-13 (P-M05a-E, pas 3): el cos és el text versionat de la invitació (`mandate_campaign_invitation`), TEXT PROVISIONAL [A validar: junta] (T-M05a-01; esborrany a docs/esborranys/invitacio-campanya-mandats.md). Cap dada personal ni bancària. #}{% autoescape off %}{% translate "Hola," %}
+
+{{ text }}
+
+{% translate "Tria com vols pagar la quota a la plataforma:" %}
+
+{{ link }}
+
+{% translate "Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

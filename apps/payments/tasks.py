@@ -3,7 +3,10 @@ la crida."""
 
 from procrastinate.contrib.django import app
 
-from . import expiry, processing
+from apps.accounts.models import Account
+
+from . import campaigns, expiry, processing
+from .models import MandateCampaign
 
 
 # P-M05b-D, pas 3: l'endpoint desa la notificació, respon i la posa a la cua.
@@ -24,3 +27,17 @@ def safety_net(timestamp: int) -> None:
 @app.task(name="payments.expire_mandates", queue="maintenance")
 def expire_mandates(timestamp: int) -> None:
     expiry.expire_mandates()
+
+
+# P-M05a-E, pas 3: el tresorer confirma l'enviament i les invitacions surten per la cua.
+@app.task(name="payments.send_campaign_invitations", queue="payments")
+def send_campaign_invitations(campaign_id: int, account_id: int) -> None:
+    campaign = MandateCampaign.objects.get(pk=campaign_id)
+    campaigns.send_invitations(campaign, by=Account.objects.get(pk=account_id))
+
+
+# Cada dia al matí: recordatoris de la campanya de mandats (RN-M05a-14).
+@app.periodic(cron="30 9 * * *")
+@app.task(name="payments.campaign_reminders", queue="maintenance")
+def campaign_reminders(timestamp: int) -> None:
+    campaigns.send_due_reminders()
