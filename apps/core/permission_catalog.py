@@ -343,6 +343,32 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
+    # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
+    # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).
+    # Pagaments (05b, VC-17): «Cons.» per als rols que avui hi poden editar algun valor
+    # (VC-16 és del tresorer; arriba amb les remeses); els dos valors, només l'administrador.
+    _perm(
+        "settings.section.payments",
+        "AJ5b",
+        _("Ajustos de pagaments"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.payments.bizum_ui_timeout_minutes",
+        "AJ5b-1",
+        _("Minuts que la pantalla espera la confirmació d'un Bizum"),
+        requires=("settings.section.payments",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.payments.safety_net_age_minutes",
+        "AJ5b-2",
+        _("Minuts sense notificació abans de preguntar l'estat d'un pagament al proveïdor"),
+        requires=("settings.section.payments",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

@@ -68,7 +68,16 @@ def test_settings(monkeypatch):
         )
         for key in grants
     }
+    # RN-RP-22: `settings.edit.<clau>` demana l'apartat amb «Cons.» (RN-RP-03).
+    section = settings_service.section_code("members")
+    extra[section] = Permission(
+        code=section, ref="TEST-S", description="members", allowed_scopes=("all", "read")
+    )
     monkeypatch.setattr(permissions, "CATALOG", {**CATALOG, **extra})
+    for role in (R.TREASURER, R.ADMINISTRATOR, R.SECRETARY):
+        RolePermission.objects.create(
+            role=Role.objects.get(code=role), permission_code=section, scope="read"
+        )
     for key, roles in grants.items():
         for role in roles:
             RolePermission.objects.create(
@@ -253,11 +262,42 @@ def test_unknown_key_gets_not_found_without_revealing_it(treasurer):
         settings_service.change("members.no_existeix", 1, treasurer)
 
 
-def test_setting_without_catalog_permission_is_a_programming_error(treasurer):
+def test_setting_of_a_section_without_catalog_permission_is_a_programming_error(treasurer):
+    Setting.objects.create(key="treasury.sense_apartat", module="treasury",
+                           value_type=T.INTEGER, initial_value=1)  # fmt: skip
+    with pytest.raises(ImproperlyConfigured):
+        settings_service.change("treasury.sense_apartat", 2, treasurer)
+
+
+def test_rn_rp_22_read_only_section_rejects_a_direct_edit_and_records_it(make_admin):
     Setting.objects.create(key="members.sense_permis", module="members", value_type=T.INTEGER,
                            initial_value=1)  # fmt: skip
-    with pytest.raises(ImproperlyConfigured):
+    treasurer = make_admin(R.TREASURER)
+    with pytest.raises(Http404):
         settings_service.change("members.sense_permis", 2, treasurer)
+    assert not SettingVersion.objects.exists()
+    entry = AuditEntry.objects.get(action=settings_service.ACTION_DENIED)
+    assert (entry.actor_account, entry.field) == (treasurer, "members.sense_permis")
+
+
+def test_rn_rp_22_without_the_section_an_edit_permission_is_not_enough(make_admin):
+    account = make_admin(R.PRESIDENT)
+    RolePermission.objects.create(role=Role.objects.get(code=R.PRESIDENT),
+                                  permission_code=settings_service.permission_code(DAYS),
+                                  scope="all")  # fmt: skip
+    with pytest.raises(Http404):
+        settings_service.change(DAYS, 10, account)
+    assert not AuditEntry.objects.filter(action=settings_service.ACTION_DENIED).exists()
+
+
+def test_rn_rp_22_full_section_edits_every_value(make_admin):
+    RolePermission.objects.filter(
+        role__code=R.SECRETARY, permission_code=settings_service.section_code("members")
+    ).update(scope="all")
+    secretary = make_admin(R.SECRETARY)
+    settings_service.change(DAYS, 10, secretary)
+    settings_service.change(UNGRANTED, True, secretary)
+    assert (settings_service.get(DAYS), settings_service.get(UNGRANTED)) == (10, True)
 
 
 # --- CA-AJ-03: data d'entrada en vigor ---------------------------------------------------------

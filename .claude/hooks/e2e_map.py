@@ -125,6 +125,10 @@ MAP = {
         "apps/treasury/balances.py",
         "templates/treasury/*.html",
     ),
+    "test_ajustos.py": (
+        "apps/core/views/business_settings.py",
+        "templates/core/setting*.html",
+    ),
     "test_dades_bloquejades.py": (
         "apps/core/locked_data.py",
         "apps/core/views/locked_data.py",

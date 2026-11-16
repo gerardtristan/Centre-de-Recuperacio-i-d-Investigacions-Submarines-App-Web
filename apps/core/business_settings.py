@@ -2,15 +2,16 @@
 
 - `get(key, at)`: el valor vigent a la data `at` (RN-AJ-01). Cap mòdul escriu un valor de
   negoci al codi: el llegeix d'aquí.
-- `change(key, value, user, note, effective_from)`: comprova al servidor el permís del catàleg
-  `settings.edit.<clau>` (sense permís, «no trobat»; RN-RP-17, RN-RP-19), el tipus i el rang,
+- `change(key, value, user, note, effective_from)`: comprova al servidor el permís (RN-RP-22:
+  `settings.section.<apartat>` amb «Sí», o `settings.edit.<clau>` amb l'apartat amb «Cons.»;
+  sense permís, «no trobat», i amb «Cons.» la petició queda al registre), el tipus i el rang,
   la data i la nota dels valors de diners (RN-AJ-03), i crea la versió i l'entrada del
   registre d'activitat dins la mateixa transacció (RN-AJ-02).
 - `notify_money_change(...)`: l'avís per correu dels canvis de diners al tresorer i a la junta
   (RN-AJ-04). El fa servir `change` i el criden els catàlegs i les tarifes dels mòduls.
 
-La pantalla és de la T-AJ-02. Les claus i els permisos `settings.edit.<clau>` els declara cada
-mòdul quan construeix la seva pantalla d'ajustos.
+La pantalla és de la T-AJ-02 (`views/business_settings.py`). L'apartat és el `module` de
+l'ajust. Les claus les crea cada mòdul amb una migració; els permisos, el catàleg.
 """
 
 import datetime
@@ -22,11 +23,12 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from . import audit, mail
+from . import audit, mail, permissions
 from .models import Role, Setting, SettingVersion
 from .permissions import has_perm
 
 ACTION_CHANGED = "settings.changed"
+ACTION_DENIED = "settings.change_denied"
 EMAIL_TEMPLATE = "avis-canvi-diners"
 
 T = Setting.ValueType
@@ -34,6 +36,28 @@ T = Setting.ValueType
 
 def permission_code(key: str) -> str:
     return f"settings.edit.{key}"
+
+
+def section_code(section: str) -> str:
+    return f"settings.section.{section}"
+
+
+def can_view(user, section: str, *, perms=None) -> bool:
+    """RN-RP-22: «Cons.» o «Sí» de l'apartat. Un apartat que no és al catàleg és un error."""
+    return has_perm(user, section_code(section), permissions=perms)
+
+
+def can_edit(user, setting: Setting, *, perms=None) -> bool:
+    """RN-RP-22: «Sí» de l'apartat, o `settings.edit.<clau>` amb l'apartat amb «Cons.»
+    (RN-RP-03; el motor no dedueix cap permís, per això es demanen tots dos)."""
+    if has_perm(user, section_code(setting.module), write=True, permissions=perms):
+        return True
+    code = permission_code(setting.key)
+    return (
+        code in permissions.CATALOG
+        and can_view(user, setting.module, perms=perms)
+        and has_perm(user, code, write=True, permissions=perms)
+    )
 
 
 def _in_range(setting: Setting, number: int) -> bool:
@@ -148,14 +172,30 @@ def _check_dates_and_note(setting: Setting, note: str, effective_from):
     return effective_from
 
 
-@transaction.atomic
 def change(key: str, value, user, note: str = "", effective_from=None) -> SettingVersion:
-    """RN-AJ-02 i 03. Sense permís o amb una clau que no existeix, «no trobat» (Http404); fora
-    de tipus o de rang, `ValidationError` i no es desa res. Tornar al valor inicial és un canvi
-    més. El correu dels canvis de diners va per la cua: si falla, el canvi es manté."""
-    setting = Setting.objects.select_for_update().filter(key=key).first()
-    if setting is None or not has_perm(user, permission_code(key), write=True):
+    """RN-AJ-02 i 03. Sense permís o amb una clau que no existeix, «no trobat» (Http404); qui
+    veu l'apartat però no pot editar el valor també rep «no trobat», i la petició queda al
+    registre (RN-RP-22; fora de la transacció, perquè no es desfaci). Fora de tipus o de rang,
+    `ValidationError` i no es desa res. Tornar al valor inicial és un canvi més. El correu dels
+    canvis de diners va per la cua: si falla, el canvi es manté."""
+    setting = Setting.objects.filter(key=key).first()
+    perms = permissions.effective_permissions(user)
+    if setting is None or not can_view(user, setting.module, perms=perms):
         raise Http404
+    if not can_edit(user, setting, perms=perms):
+        deny(user, setting)
+    return _save(setting.pk, value, user, note, effective_from)
+
+
+def deny(user, setting: Setting, request=None):
+    """RN-RP-22: una edició de qui només veu l'apartat queda al registre i és «no trobat»."""
+    audit.record(ACTION_DENIED, actor=user, target=setting, field=setting.key, request=request)
+    raise Http404
+
+
+@transaction.atomic
+def _save(pk, value, user, note, effective_from) -> SettingVersion:
+    setting = Setting.objects.select_for_update().get(pk=pk)
     note = (note or "").strip()
     validate_value(setting, value)
     effective_from = _check_dates_and_note(setting, note, effective_from)
