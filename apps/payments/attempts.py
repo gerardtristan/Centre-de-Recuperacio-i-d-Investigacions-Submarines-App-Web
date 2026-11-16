@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.models import Charge
 
 from .models import PaymentAttempt
@@ -31,6 +31,10 @@ class AttemptAlreadyPaid(Exception):
     """RN-M05b-04: el càrrec ja té un intent pagat."""
 
 
+# VC-17: minuts que la pantalla espera un Bizum. Només de la pantalla: la caducitat de l'ordre
+# la fixa el proveïdor (P-45 punt 13).
+BIZUM_UI_TIMEOUT = "payments.bizum_ui_timeout_minutes"
+
 # Els dos índexs únics parcials de RN-M05b-04, amb l'error que en surt.
 _CONFLICTS = {
     "payment_attempt_one_in_progress": AttemptInProgress,
@@ -47,8 +51,16 @@ def create_attempt(charge: Charge, method: str, *, started_by=None) -> PaymentAt
     charge = Charge.objects.get(pk=charge.pk)  # l'estat i l'import desats, no una còpia vella
     if charge.status != Charge.Status.PENDING:
         raise ChargeNotPayable(charge.status)
+    # RN-M05b-24: un Bizum en curs conserva el termini amb què ha començat.
+    timeout = (
+        business_settings.get(BIZUM_UI_TIMEOUT) if method == PaymentAttempt.Method.BIZUM else None
+    )
     attempt = PaymentAttempt.objects.create(
-        charge=charge, method=method, amount_cents=charge.amount_cents, started_by=started_by
+        charge=charge,
+        method=method,
+        amount_cents=charge.amount_cents,
+        started_by=started_by,
+        ui_timeout_minutes=timeout,
     )
     details = {"charge": charge.pk, "method": method, "amount_cents": attempt.amount_cents}
     actor = started_by or audit.system("payments")

@@ -1,9 +1,9 @@
 """Pagar amb Bizum (T-M05b-04, la resta; P-M05b-B; RN-M05b-04, 05, 07 i 08; CA-M05b-06).
 Proveïdor fals, sense xarxa. Només dades inventades i cap telèfon.
 
-Els 15 minuts són de la pantalla (RN-M05b-07): l'intent no es tanca a la pantalla, i el nou només
-s'obre quan el proveïdor diu que l'ordre ja no és oberta. La caducitat real del proveïdor és la
-P-45 punt 13; el fals fa caducar l'ordre sola."""
+Els 15 minuts (l'ajust inicial de VC-17) són de la pantalla (RN-M05b-07): l'intent no es tanca
+a la pantalla, i el nou només s'obre quan el proveïdor diu que l'ordre ja no és oberta. La
+caducitat real del proveïdor és la P-45 punt 13; el fals fa caducar l'ordre sola."""
 
 import re
 from datetime import timedelta

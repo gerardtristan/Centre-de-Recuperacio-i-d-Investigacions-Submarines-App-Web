@@ -161,7 +161,15 @@ class PaymentAttempt(UndeletableModel):
     Status = AttemptStatus
     # No canvien mai després de crear l'intent.
     IDENTITY_FIELDS = frozenset(
-        {"charge_id", "method", "amount_cents", "idempotency_key", "guest_link_id", "started_by_id"}
+        {
+            "charge_id",
+            "method",
+            "amount_cents",
+            "idempotency_key",
+            "guest_link_id",
+            "started_by_id",
+            "ui_timeout_minutes",
+        }
     )
 
     objects = PaymentAttemptQuerySet.as_manager()
@@ -200,6 +208,10 @@ class PaymentAttempt(UndeletableModel):
         verbose_name=_("iniciat per"),
     )
     review_reason = models.TextField(_("motiu de la revisió"), blank=True)
+    # Bizum: els minuts que la pantalla l'espera, desats en obrir-lo (VC-17, RN-M05b-24).
+    ui_timeout_minutes = models.PositiveSmallIntegerField(
+        _("minuts d'espera a la pantalla"), null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

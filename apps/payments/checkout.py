@@ -40,9 +40,6 @@ logger = logging.getLogger(__name__)
 # tanqui, i una confirmació que arribi tard es processa com qualsevol altra.
 PENDING, IN_PROGRESS, PAID, FAILED, CLOSED = "pending", "in_progress", "paid", "failed", "closed"
 TIMED_OUT = "timed_out"
-# `bizum_ui_timeout_minutes` (VC-17; 15). Només de la pantalla: la caducitat de l'ordre la fixa
-# el proveïdor (P-45 punt 13). shortcut: constant fins que la T-M05b-22 creï `PaymentSettings`.
-BIZUM_UI_TIMEOUT = timedelta(minutes=15)
 
 
 class NotOwnCharge(attempts.ChargeNotPayable):
@@ -87,8 +84,11 @@ def payment_status(charge: Charge) -> PaymentStatus:
 
 
 def _timed_out(attempt: PaymentAttempt) -> bool:
-    """RN-M05b-07: un Bizum que fa `BIZUM_UI_TIMEOUT` que espera la confirmació."""
-    return attempt.method == BIZUM and attempt.created_at <= timezone.now() - BIZUM_UI_TIMEOUT
+    """RN-M05b-07: un Bizum que fa més minuts dels que espera la pantalla (VC-17) que espera la
+    confirmació. Valen els minuts desats a l'intent en obrir-lo (RN-M05b-24)."""
+    if attempt.method != BIZUM:
+        return False
+    return attempt.created_at <= timezone.now() - timedelta(minutes=attempt.ui_timeout_minutes)
 
 
 def _owns(actor, charge) -> bool:
