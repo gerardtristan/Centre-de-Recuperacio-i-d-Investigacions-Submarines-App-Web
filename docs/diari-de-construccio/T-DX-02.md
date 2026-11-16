@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 12:10 | ff09b38 | 6 noves | [A comprovar] (PR #50) |
+| 16/11/2026 12:10 | dd22419 | 6 noves | [A comprovar] (PR #50) |
 
 **En tres línies:** els colors que diuen l'estat d'una quota o d'un soci (pagat, pendent, retornat, impagat…) ara tenen tots la mateixa lluminositat, així cap no crida més que un altre i tots es llegeixen igual de bé, en clar i en fosc. Les vores fan servir el color del text amb transparència i es veuen sobre qualsevol fons. Hi ha un color nou per als menús i els diàlegs que floten.
 
@@ -33,11 +33,11 @@
 
   ![Quotes i impagats amb les etiquetes d'estat noves](captures/2026-11-16_1210_T-DX-02_quotes-i-impagats-1280.png)
 
-  *16/11/2026 12:10 (Europa/Madrid) · local, dades inventades de la prova e2e · commit ff09b38*
+  *16/11/2026 12:10 (Europa/Madrid) · local, dades inventades de la prova e2e · commit dd22419*
 - La mateixa pantalla a 320 px (fosc): `captures/2026-11-16_1210_T-DX-02_quotes-i-impagats-320-fosc.png`
 
-  *16/11/2026 12:10 (Europa/Madrid) · local, dades inventades de la prova e2e · commit ff09b38*
-- Sortida de proves · commit ff09b38 · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 12:10 (Europa/Madrid) · local, dades inventades de la prova e2e · commit dd22419*
+- Sortida de proves · commit dd22419 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/core/tests/test_tokens_color.py apps/core/tests/test_tokens_moviment.py -q
   9 passed
