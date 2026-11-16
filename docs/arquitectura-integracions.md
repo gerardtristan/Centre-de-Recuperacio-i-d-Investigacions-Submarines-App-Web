@@ -309,6 +309,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `TOTP_ISSUER_NAME` | Nom que surt a l'aplicació d'autenticació |
 | `FIELD_ENCRYPTION_KEYS` | Claus Fernet per xifrar camps sensibles (secrets TOTP), separades per comes; la primera xifra i totes desxifren (rotació). Es guarden fora de línia com les de les còpies |
 | `CARD_QR_KEYS`, `CARD_QR_ACTIVE_KEY` | Claus del QR del carnet (decisió 079): «identificador:clau» separades per comes, i l'identificador de la que es fa servir per emetre. Obligatòries a producció. Per rotar: s'afegeix la nova, es posa com a activa i es conserva l'antiga; si una s'ha filtrat, `manage.py reemet_carnets --clau <id>` i després es treu. Es guarden fora de línia com les de les còpies |
+| `MANDATE_ENCRYPTION_KEYS` | Claus de l'IBAN del mandat (044, `apps/payments/crypto.py`): «versió:clau Fernet» separades per comes. Xifra la de versió més alta; cada IBAN es desxifra només amb la clau de la seva versió (`key_version`). Sense cap clau no es desa cap mandat: no hi ha clau per defecte. Rotació i restauració: checklist C13. Còpia fora del servidor per les persones que fixi la junta |
 | `DJANGO_NUM_PROXIES` | Proxies de confiança davant de Django (1 amb Coolify); decideix d'on es llegeix l'IP per al límit d'intents |
 
 ### Fitxers (Scaleway)

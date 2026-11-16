@@ -126,6 +126,10 @@ CARD_QR_KEYS = env.list("CARD_QR_KEYS", default=[])
 CARD_QR_ACTIVE_KEY = env("CARD_QR_ACTIVE_KEY", default="")
 CARD_QR_KEYS_REQUIRED = False
 
+# Claus de l'IBAN del mandat (044; `apps/payments/crypto.py`): «versió:clau» separades per comes;
+# xifra la de versió més alta. Sense cap clau no es pot xifrar cap IBAN (no hi ha clau per defecte).
+MANDATE_ENCRYPTION_KEYS = env.list("MANDATE_ENCRYPTION_KEYS", default=[])
+
 # Proxies de confiança davant de Django: decideix d'on es llegeix l'IP d'origen
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)

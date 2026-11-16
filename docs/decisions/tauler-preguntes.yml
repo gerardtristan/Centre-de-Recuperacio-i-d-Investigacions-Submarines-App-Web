@@ -304,6 +304,18 @@ opcions:
       El saldo del banc a la plataforma ha de coincidir amb el de l'extracte el mateix dia, i això només passa si l'ingrés
       porta la data del banc. Com que la importació desa una sola data per línia (P-103), la A i la C coincideixen fins
       que es resolgui aquella pregunta.
+  P-120:
+    opcions:
+      A: Com s'ha construït; Fernet de `cryptography` (ja és dependència), una clau per versió, xifra la més alta.
+      B: AES-256-GCM de `cryptography` amb l'identificador de la fila com a dades associades, perquè un xifrat no es pugui moure a una altra fila.
+      C: Xifrar a PostgreSQL amb pgcrypto.
+      D: Un gestor de claus extern de la UE (per exemple, el de Scaleway) que guardi la clau mestra.
+    recomanada: A
+    perque: >-
+      Fernet és xifratge autenticat, ja s'usa per als secrets TOTP i no afegeix cap dependència. La C fa passar la clau
+      per les consultes i els registres de la base de dades, contra la 044; la D afegeix un proveïdor i un punt de
+      fallada per a un club petit. La B només protegeix contra qui ja pot escriure a la base de dades, i s'hi pot passar
+      més endavant amb una rotació.
     data: 2026-11-16
 
 noves:

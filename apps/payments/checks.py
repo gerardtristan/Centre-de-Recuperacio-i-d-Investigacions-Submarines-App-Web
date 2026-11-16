@@ -1,10 +1,12 @@
 """Comprovacions d'arrencada dels pagaments (`manage.py check`): la configuració no pot deixar
-cobrar per error (RN-M05a-11) ni fer servir el proveïdor fals amb l'entorn real."""
+cobrar per error (RN-M05a-11), fer servir el proveïdor fals amb l'entorn real ni portar una clau
+del mandat mal formada (044)."""
 
 from django.conf import settings
 from django.core.checks import Error, register
 from django.core.exceptions import ImproperlyConfigured
 
+from . import crypto
 from .providers import REGISTRY
 from .providers.base import ENVIRONMENTS, LIVE
 
@@ -31,6 +33,10 @@ def payments_settings(app_configs, **kwargs):
                 id="payments.E004",
             )
         )
+    try:
+        crypto._parse(tuple(settings.MANDATE_ENCRYPTION_KEYS))
+    except ImproperlyConfigured as error:
+        errors.append(Error(str(error), id="payments.E005"))
     return errors
 
 
