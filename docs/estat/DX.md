@@ -17,7 +17,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION`, el permís «Veure pantalles en construcció» (P-90) i la prova comuna de només lectura | per fer | — | — | `risc:alt` (permís nou) i nucli: cap altre canvi obert a `apps/core` |
 | T-DX-04 Duermevela: motor de tema (substitueix `tema.js`, manté la clau `cris-tema`) | feta | 16/11/2026 | #51 | Motor a `static/js/tema.js` (es manté el nom): pestanyes sincronitzades, `theme-color` i cortina de `--m-panell`; directe amb moviment reduït |
 | T-DX-05 Eclipse: control de tema a la web pública i a l'àrea del soci | per fer | — | — | Després de la T-DX-04 |
-| T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci» | per fer | — | — | — |
+| T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci» | feta | 16/11/2026 | #52 | Resum «Hi ha N errors» amb un enllaç per camp, al formulari d'alta (web i presencial). La validació en sortir de cada camp queda per a més endavant |
 | T-DX-07 Solapas a l'administració | per fer | — | — | P-96: llista de pestanyes a `sessionStorage`, sense noms |
 | T-DX-08 Ramillete: navegació de l'àrea del soci | per fer | — | — | — |
 | T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | P-98 (C) |

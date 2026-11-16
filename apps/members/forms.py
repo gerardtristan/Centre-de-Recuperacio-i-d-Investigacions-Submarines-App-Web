@@ -133,14 +133,16 @@ class JoinForm(forms.Form):
     # Un text, una casella, totes obligatòries (09/11/2026). L'autorització del representant
     # (`guardian_authorization`) només ho és per als menors.
     accept_privacy = forms.BooleanField(
+        label=_("Política de privacitat"),  # surt al resum d'errors (Errata, T-DX-06)
         error_messages={
             "required": _("Cal acceptar la política de privacitat per enviar la sol·licitud.")
-        }
+        },
     )
     accept_membership_terms = forms.BooleanField(
+        label=_("Condicions de soci"),  # surt al resum d'errors (Errata, T-DX-06)
         error_messages={
             "required": _("Cal acceptar les condicions de soci per enviar la sol·licitud.")
-        }
+        },
     )
     # Opcionals i desmarcats (Q-031): només marcats si la petició els porta marcats. Sense text
     # vigent del tipus, el camp no existeix.

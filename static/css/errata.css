@@ -1,0 +1,40 @@
+/* Errata (T-DX-06; recurs a design/extern/; design-system §6.10): el resum d'errors d'un formulari.
+   Del recurs: la fulla de correccions amb el segell, el títol amb el nombre d'errors i un enllaç
+   numerat per camp. Només tokens; la numeració la fa un comptador de CSS. */
+.errata {
+  display: grid; grid-template-columns: var(--avatar) minmax(0, 1fr); gap: var(--e-4);
+  margin: 0 0 var(--e-5); padding: var(--e-4) var(--e-5);
+  background: var(--c-superficie-flotant); color: var(--c-text);
+  border: var(--v-plena) solid var(--c-error); border-radius: var(--r-m);
+  box-shadow: var(--e-2) var(--e-2) 0 var(--c-error-fons);
+}
+.errata:focus { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
+.errata-segell { width: var(--avatar); height: var(--avatar); fill: none; stroke: var(--c-error); stroke-width: 2.4; stroke-linecap: round; }
+.errata-punt { fill: var(--c-error); stroke: none; }
+.errata-cos { min-width: 0; }
+.errata-cos h2 { font-size: var(--t-xl); margin: 0; }
+.errata-cos > p { margin: var(--e-1) 0 0; color: var(--c-text-2); }
+.errata-llista { list-style: none; margin: var(--e-3) 0 0; padding: 0; counter-reset: errata; }
+.errata-llista li { counter-increment: errata; border-top: var(--v-fina) solid var(--c-linia); }
+.errata-element {
+  display: grid; grid-template-columns: var(--e-6) minmax(0, 1fr); align-items: center; gap: var(--e-3);
+  min-height: var(--tactil); padding: var(--e-2); border-radius: var(--r-s); color: inherit; text-decoration: none;
+}
+.errata-element::before {
+  content: counter(errata); display: grid; place-items: center; height: var(--e-5); border-radius: var(--r-s);
+  background: var(--c-error-fons); color: var(--c-error-text);
+  font-size: var(--t-xs); font-weight: var(--p-semi); font-variant-numeric: tabular-nums;
+}
+a.errata-element { transition: background-color var(--m-rapid) var(--m-corba); }
+@media (hover: hover) {
+  a.errata-element:hover { background: var(--c-error-fons); }
+  a.errata-element:hover b { text-decoration: underline; text-underline-offset: 0.18em; }
+}
+a.errata-element:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: calc(-1 * var(--v-focus)); }
+.errata-t { display: grid; min-width: 0; }
+.errata-t b { font-weight: var(--p-semi); }
+.errata-t span { color: var(--c-error-text); font-size: var(--t-s); }
+@media (max-width: 599px) {
+  .errata { grid-template-columns: minmax(0, 1fr); gap: var(--e-2); padding: var(--e-4); }
+  .errata-segell { width: var(--e-6); height: var(--e-6); }
+}
