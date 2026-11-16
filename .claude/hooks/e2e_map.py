@@ -300,6 +300,14 @@ MAP = {
         "apps/payments/providers/fake.py",
         "templates/payments/*",
     ),
+    "test_pagament_transferencia.py": (
+        "apps/payments/views.py",
+        "apps/payments/checkout.py",
+        "apps/payments/transfers.py",
+        "apps/treasury/reconciliation.py",
+        "templates/payments/*",
+        "static/js/copia.js",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.

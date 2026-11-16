@@ -26,6 +26,12 @@ urlpatterns = [
         name="pay_bizum",
     ),
     path(
+        "socis/pagaments/<int:charge_id>/transferencia/",
+        views.pay_view,
+        {"method": PaymentAttempt.Method.TRANSFER},
+        name="pay_transfer",
+    ),
+    path(
         "socis/pagaments/<int:attempt_id>/estat/",
         views.attempt_status_view,
         name="attempt_status",
