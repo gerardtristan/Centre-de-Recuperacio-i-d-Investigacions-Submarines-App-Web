@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 12:27 | ff90744 | 3 noves al navegador | [A comprovar] (PR #51) |
+| 16/11/2026 12:27 | c444257 | 3 noves al navegador | [A comprovar] (PR #51) |
 
 **En tres línies:** si algú canvia el tema clar o fosc en una pestanya, les altres pestanyes obertes de la plataforma canvien soles, sense recarregar. La barra del navegador del mòbil pren el color del tema. El canvi es veu com una cortina rodona que surt del botó triat, i és directe per a qui demana menys moviment.
 
@@ -35,8 +35,8 @@
 
   ![Pàgina d'entrada a 320 px en fosc](captures/2026-11-16_1227_T-DX-04_entrada-320-fosc.png)
 
-  *16/11/2026 12:27 (Europa/Madrid) · local, prova e2e · commit ff90744*
-- Sortida de proves · commit ff90744 · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 12:27 (Europa/Madrid) · local, prova e2e · commit c444257*
+- Sortida de proves · commit c444257 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -m e2e apps/core/tests/e2e/test_duermevela.py -q
   3 passed
