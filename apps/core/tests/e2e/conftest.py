@@ -68,6 +68,9 @@ def transactional_db(_async_unsafe_only_in_e2e, django_db_setup, django_db_block
             MembershipNumberCounter.objects.filter(pk=1).update(last_number=counter)
 
 
+STATIC_RESOURCE_TYPES = frozenset({"script", "stylesheet", "image", "font"})
+
+
 class PageChecks:
     def __init__(self, page):
         self.problems = []
@@ -116,6 +119,16 @@ class PageChecks:
         path = urlparse(request.url).path
         if request.failure == "net::ERR_ABORTED" and any(
             path.startswith(prefix) for prefix in self.downloads
+        ):
+            return
+        # Un fitxer estàtic (guió, full d'estil, imatge, lletra) que la pàgina encara carregava
+        # quan la prova n'ha obert una altra: Chromium l'avorta. No és cap error de la pàgina, i
+        # un fitxer que falta surt com a 404 a `_response`, mai aquí. Una petició de dades (fetch
+        # o XHR, HTMX) avortada continua comptant.
+        if (
+            request.failure == "net::ERR_ABORTED"
+            and request.resource_type in STATIC_RESOURCE_TYPES
+            and path.startswith("/static/")
         ):
             return
         self.problems.append(f"petició fallida: {request.method} {request.url} ({request.failure})")
