@@ -15,7 +15,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`) | feta | 16/11/2026 | #47 | Tokens de moviment (§15.4) amb els noms que ja existien, `.radi-concentric` i els logotips més grans del propietari (només els logotips; el selector de tema no canvia). Els components fan servir els tokens nous a partir de les tasques següents |
 | T-DX-02 Paleta OKLCH amb alternativa, vores amb transparència i profunditat del tema fosc; contrastos tornats a comprovar | feta | 16/11/2026 | #50 | Estats en OKLCH amb la mateixa L per rol i hexadecimal de reserva; vores amb `color-mix()`; `--c-superficie-flotant`. Els primitius de marca queden en hexadecimal |
 | T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION`, el permís «Veure pantalles en construcció» (P-90) i la prova comuna de només lectura | per fer | — | — | `risc:alt` (permís nou) i nucli: cap altre canvi obert a `apps/core` |
-| T-DX-04 Duermevela: motor de tema (substitueix `tema.js`, manté la clau `cris-tema`) | per fer | — | — | — |
+| T-DX-04 Duermevela: motor de tema (substitueix `tema.js`, manté la clau `cris-tema`) | en curs | 16/11/2026 | — | — |
 | T-DX-05 Eclipse: control de tema a la web pública i a l'àrea del soci | per fer | — | — | Després de la T-DX-04 |
 | T-DX-06 Errata: resum d'errors, començant pel formulari «Fer-se soci» | per fer | — | — | — |
 | T-DX-07 Solapas a l'administració | per fer | — | — | P-96: llista de pestanyes a `sessionStorage`, sense noms |
