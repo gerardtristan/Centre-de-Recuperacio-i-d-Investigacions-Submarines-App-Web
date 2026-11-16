@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 12:20 | 93d3465, a3d8934 (PR #48) | 18 noves, 2 canviades i 1 al navegador | CI: no s'ha pogut executar, facturació de GitHub [A comprovar] |
+| 16/11/2026 12:20 | 93d3465, a3d8934 (PR #48) | 18 noves, 2 canviades i 1 al navegador | verd a 7c4842b (execució 43852237712) |
 
 **En tres línies:** l'administració té ara un apartat «Ajustos» on es veuen i es canvien els valors de negoci (terminis, dies, imports) sense tocar el codi. Cada valor mostra el que val ara, el que valdrà si hi ha un canvi programat, el valor inicial, el rang permès i l'historial de canvis. Qui només el pot consultar el veu, però no el pot canviar, i si ho intenta queda apuntat.
 
