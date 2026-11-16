@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05a-09: signar el mandat SEPA (P-M05a-B; wireframe socis.html#pagaments-mandat). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió; la ruta no existeix fins que la junta aprovi el text (MANDATE_SIGNING_ENABLED). L'IBAN es valida al servidor, no torna mai a la pantalla (ni quan és invàlid) i només surt emmascarat («…», P-121). La contrasenya, i el codi si el compte té TOTP, només quan la sessió no és recent (RN-M05a-12); amagar el camp no és cap control: el servidor ho torna a comprovar en desar. #}
+{% block title %}{% translate "Mandat de domiciliació" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Mandat de domiciliació" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+
+  {% if active %}
+    <section class="targeta" aria-labelledby="mandat-actiu-titol">
+      <h2 id="mandat-actiu-titol">{% translate "El teu mandat" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Estat" %}</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ active.get_status_display|capfirst }}</span></dd></div>
+        <div><dt>{% translate "Referència" %}</dt><dd class="codi">{{ active.reference }}</dd></div>
+        <div><dt>{% translate "Titular" %}</dt><dd>{{ active.holder_name }}</dd></div>
+        <div><dt>{% translate "IBAN" %}</dt><dd class="codi">{{ active.bank_account }}</dd></div>
+        <div><dt>{% translate "Creditor" %}</dt><dd>C.R.I.S. · <span class="codi">{{ active.creditor_identifier }}</span></dd></div>
+        <div><dt>{% translate "Signat el" %}</dt><dd>{{ active.signed_at|date:"d/m/Y" }}</dd></div>
+      </dl>
+    </section>
+  {% endif %}
+
+  {% if form %}
+    <form class="targeta formulari" method="post" action="{% url 'payments:mandate' %}" novalidate>
+      {% csrf_token %}
+      <h2>{% if active %}{% translate "Canvia l'IBAN: signa un mandat nou" %}{% else %}{% translate "Signa el mandat SEPA" %}{% endif %}</h2>
+      {% if active %}<p class="text-2">{% blocktranslate with reference=active.reference %}En signar-lo, el mandat {{ reference }} es revocarà amb el motiu «substituït».{% endblocktranslate %}</p>{% endif %}
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% include "accounts/_camp.html" with field=form.holder_name %}
+      {% include "accounts/_camp.html" with field=form.other_holder %}
+      <p class="text-2"><span class="a-validar">{% translate "A validar: junta i banc (L-M05a-01)" %}</span></p>
+      {% include "accounts/_camp.html" with field=form.iban %}
+      <section aria-labelledby="text-mandat-titol">
+        <h3 id="text-mandat-titol">{% translate "Què acceptes" %}</h3>
+        <dl class="dades-soci">
+          <div><dt>{% translate "Creditor" %}</dt><dd>Centre de Recuperació i d'Investigacions Submarines (C.R.I.S.)</dd></div>
+          <div><dt>{% translate "Identificador" %}</dt><dd class="codi">{{ creditor }}</dd></div>
+          <div><dt>{% translate "Tipus" %}</dt><dd>{% translate "Recurrent: la quota de cada any" %}</dd></div>
+          <div><dt>{% translate "Referència" %}</dt><dd class="codi">{{ next_reference }}</dd></div>
+          <div><dt>{% translate "Versió del text" %}</dt><dd>{{ text.version }}</dd></div>
+        </dl>
+        {{ text.content|linebreaks }}
+      </section>
+      {% include "accounts/_camp.html" with field=form.accept %}
+      {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
+      {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Signa el mandat" %}</button></div>
+    </form>
+  {% else %}
+    <section class="targeta" aria-labelledby="no-disponible-titol">
+      <h2 id="no-disponible-titol">{% translate "Encara no es pot signar el mandat" %}</h2>
+      <p>{% translate "Falta el text del mandat aprovat o l'identificador de creditor del club. Mentrestant, pots pagar la quota amb targeta, Bizum o transferència." %}</p>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Identificador de creditor" %}</dt><dd>{% if creditor %}<span class="codi">{{ creditor }}</span>{% else %}<span class="a-validar">{% translate "A verificar: banc (P-45 punt 5)" %}</span>{% endif %}</dd></div>
+      </dl>
+    </section>
+  {% endif %}
+  <p><a href="{% url 'members:fees' %}">{% translate "Torna a les meves quotes" %}</a></p>
+{% endblock %}

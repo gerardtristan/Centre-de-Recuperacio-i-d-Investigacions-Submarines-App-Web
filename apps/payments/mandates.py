@@ -1,7 +1,8 @@
 """Desar un mandat SEPA amb l'IBAN xifrat (T-M05a-08; RN-M05a-02, 03, 05 i 06; decisió 044).
 
-La signatura (text vigent, reautenticació de RN-M05a-12, correu G3) és de la T-M05a-09, que crida
-`create_mandate`. Cap missatge d'error, registre ni entrada del registre d'activitat porta l'IBAN.
+La signatura (text vigent i reautenticació de RN-M05a-12) és a `mandate_views`, que crida
+`create_mandate` (T-M05a-09). Cap missatge d'error, registre ni entrada del registre d'activitat
+porta l'IBAN.
 """
 
 import re
@@ -31,6 +32,13 @@ def validate_iban(value: str) -> str:
     raise ValidationError(gettext("L'IBAN no és vàlid. Revisa'l i torna-ho a provar."))
 
 
+def next_reference(member: Member) -> str:
+    """La referència que tindrà el mandat següent del soci (RN-M05a-03): mai se'n reutilitza
+    cap, perquè els mandats no s'esborren."""
+    ordinal = SepaMandate.objects.filter(member=member).count() + 1
+    return f"CRIS{member.member_number:06d}M{ordinal:02d}"
+
+
 @transaction.atomic
 def create_mandate(
     member: Member,
@@ -50,8 +58,7 @@ def create_mandate(
     member = Member.objects.select_for_update().get(pk=member.pk)
     if member.member_number is None:
         raise ValueError("El soci encara no té número: no pot signar cap mandat.")
-    ordinal = SepaMandate.objects.filter(member=member).count() + 1
-    reference = f"CRIS{member.member_number:06d}M{ordinal:02d}"
+    reference = next_reference(member)
     now = timezone.now()
     for previous in SepaMandate.objects.filter(member=member, status=SepaMandate.Status.ACTIVE):
         previous.status = SepaMandate.Status.REVOKED
