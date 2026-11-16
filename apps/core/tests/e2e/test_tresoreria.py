@@ -73,3 +73,39 @@ def test_treasurer_excludes_a_line_to_review(page, live_server, transactional_db
     expect(page.get_by_role("status")).to_contain_text("Línia exclosa")
     expect(page.get_by_text("No hi ha res a revisar.")).to_be_visible()
     review("a-revisar-buida")
+
+
+def test_treasurer_confirms_and_undoes_a_reconciliation(
+    page, live_server, transactional_db, review
+):
+    """T-M04-15, segon tall (C5, C6): una transferència amb la referència i l'import exactes surt
+    «proposada» amb el càrrec; el tresorer la confirma i després la desfà amb el motiu (045)."""
+    person = Person.objects.create(first_name="Jordi", last_name="Prova Inventat", origin="web")
+    quota = charges.create_charge(
+        person, kind="fee", amount_cents=9000, concept="Quota 2026", origin="proves",
+        by=audit.system("proves-e2e"),
+    )  # fmt: skip
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    lines(treasurer, (9000, f"TRANSF {transfer_reference(quota)} J INVENTAT"))
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
+    expect(page.get_by_role("heading", name="Conciliació")).to_be_visible()
+    row = page.get_by_role("row", name="02/11/2026")
+    expect(row).to_contain_text("J INVENTAT")
+    expect(row).to_contain_text("Proposada")
+    expect(row).to_contain_text("Jordi Prova Inventat")
+    review("conciliacio-proposada")
+
+    row.get_by_role("button", name="Confirma").click()
+    expect(page.get_by_role("status")).to_contain_text("Conciliació confirmada")
+    expect(row).to_contain_text("Conciliada")
+    review("conciliacio-conciliada")
+
+    row.get_by_text("Desfés…").click()
+    row.get_by_label("Motiu per desfer-la").fill("Casada amb el càrrec equivocat (prova)")
+    review("conciliacio-desfer-motiu")
+    row.get_by_role("button", name="Desfés la conciliació").click()
+    expect(page.get_by_role("status")).to_contain_text("Conciliació desfeta")
+    # P-113 (opció per defecte): amb la mateixa referència, la línia es torna a proposar.
+    expect(row).to_contain_text("Proposada")
