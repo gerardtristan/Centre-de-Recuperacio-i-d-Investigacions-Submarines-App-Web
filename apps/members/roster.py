@@ -145,7 +145,7 @@ def with_fee_data(members):
             "fees",
             queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.ANNUAL)
             .select_related("charge", "exemption")
-            .prefetch_related("charge__payments"),
+            .prefetch_related("charge__payments__cancellation"),
             to_attr="annual_fees",
         ),
         Prefetch(

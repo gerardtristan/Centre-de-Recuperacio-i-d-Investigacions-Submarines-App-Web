@@ -27,6 +27,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.accounts import email_links, reauth, tokens
 from apps.accounts.security import WRONG_CODE, WRONG_PASSWORD
 from apps.core import audit, consents, erasure, persons, privacy
+from apps.core.charges import active_payments
 from apps.core.models import Charge, Consent
 
 from .. import birth_date, join, licences, roster
@@ -309,7 +310,7 @@ def declare_expiry_view(request, record_id):
 
 
 def _fee_row(fee):
-    payments = list(fee.charge.payments.all())
+    payments = active_payments(fee.charge)
     paid_on = None
     # Data del pagament només si n'hi ha exactament un, com a l'estat de la quota (T-M01-15).
     if fee.charge.status == Charge.Status.PAID and len(payments) == 1:
@@ -334,7 +335,7 @@ def fees_view(request):
     fees = (
         AnnualFee.objects.filter(member=member)
         .select_related("charge")
-        .prefetch_related("charge__payments")
+        .prefetch_related("charge__payments__cancellation")
         .order_by("-period", "-id")
     )
     context = {
@@ -351,7 +352,7 @@ def fee_detail_view(request, fee_id):
     """Una quota pròpia. Una d'un altre o una que no existeix: «no trobat» i registre."""
     fee = (
         AnnualFee.objects.select_related("charge")
-        .prefetch_related("charge__payments")
+        .prefetch_related("charge__payments__cancellation")
         .filter(pk=fee_id, member__person=request.user.person)
         .first()
     )
@@ -365,5 +366,5 @@ def fee_detail_view(request, fee_id):
         )
         raise Http404
     row = _fee_row(fee)
-    payment = fee.charge.payments.all()[0] if row["paid_on"] else None
+    payment = active_payments(fee.charge)[0] if row["paid_on"] else None
     return render(request, "members/personal_fee_detail.html", {**row, "payment": payment})

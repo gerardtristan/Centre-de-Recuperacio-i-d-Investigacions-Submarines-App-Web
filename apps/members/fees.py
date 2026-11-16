@@ -198,7 +198,7 @@ def exempt_fee(fee, *, by, reason, request=None) -> FeeExemption:
             raise ValidationError(
                 _("Només es pot eximir una quota pendent. Una de pagada seria una devolució.")
             )
-        if locked.charge.payments.exists():
+        if charges.active_payments(locked.charge):
             raise ValidationError(
                 _("Aquesta quota té pagaments a mitges: no es pot eximir (terminis, P-61).")
             )
@@ -472,7 +472,7 @@ def payments_to_review() -> list[AnnualFee]:
     return list(
         AnnualFee.objects.filter(pk__in=pending)
         .select_related("member__person", "member__type", "charge")
-        .prefetch_related("charge__payments")
+        .prefetch_related("charge__payments__cancellation")
         .order_by("pk")
     )
 

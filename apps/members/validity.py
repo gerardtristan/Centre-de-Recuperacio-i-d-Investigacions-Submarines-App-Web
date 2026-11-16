@@ -23,6 +23,7 @@ from datetime import date
 
 from django.utils import timezone
 
+from apps.core.charges import active_payments
 from apps.core.models import Charge
 
 from .fee_rules import first_fee_year
@@ -41,7 +42,7 @@ def has_partial_payments(member) -> bool:
     return any(
         p.amount_cents < fee.charge.amount_cents
         for fee in member.annual_fees
-        for p in fee.charge.payments.all()
+        for p in active_payments(fee.charge)
     )
 
 
@@ -51,7 +52,7 @@ def paid_until(member) -> date | None:
     data i encara pendent no treu la validesa del període ja pagat."""
     paid_on = []
     for fee in member.annual_fees:
-        payments = list(fee.charge.payments.all())
+        payments = active_payments(fee.charge)
         if any(p.amount_cents < fee.charge.amount_cents for p in payments):
             return None
         if fee.charge.status != Charge.Status.PAID:

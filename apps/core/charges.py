@@ -7,7 +7,7 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
   confirmada pel tresorer (04). El registre manual està bloquejat per P-12 (RN-72) i cap vista
   del navegador no crida `mark_paid` (RN-71, CA-15.7).
 - Transicions que hi afegeixen altres tasques: «retornat → pendent» (048, T-M05b-01) i
-  «pagat → pendent» (045, T-M04-12).
+  «pagat → pendent» (045, T-M04-12), que només fa `revert_paid_transfer`.
 """
 
 from decimal import Decimal
@@ -20,7 +20,7 @@ from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 
 from . import audit
-from .models import Charge, Department, Payment, validate_cents
+from .models import Charge, Department, Payment, PaymentCancellation, validate_cents
 from .permissions import has_perm
 
 S = Charge.Status
@@ -33,7 +33,13 @@ TRANSITIONS = {
     (S.PAID, S.CANCELLED),  # devolució total
 }
 
+# 045: «pagat → pendent», fora de TRANSITIONS perquè només la fa `revert_paid_transfer`.
+REVERT_TRANSFER = (S.PAID, S.PENDING)
+
 PAID_ORIGINS = {"provider", "reconciliation"}
+
+RECONCILE = "treasury.reconcile"  # T4 (M04-4): conciliar i desfer una conciliació
+PAYMENT_CANCELLED = "charges.payment_cancelled"
 
 # S-M04-06: el centre de cost de les quotes, dins «General» (dades inicials de la T-M04-02).
 FEES_COST_CENTRE = "Quotes de socis"
@@ -128,9 +134,11 @@ def create_charge(
     return charge
 
 
-def _transition(charge: Charge, new_status: str, *, by, reason: str = "", details=None) -> Charge:
+def _transition(
+    charge: Charge, new_status: str, *, by, reason: str = "", details=None, allowed=TRANSITIONS
+) -> Charge:
     locked = Charge.objects.select_for_update().get(pk=charge.pk)
-    if (locked.status, new_status) not in TRANSITIONS:
+    if (locked.status, new_status) not in allowed:
         raise ValidationError(
             _("Un càrrec «%(current)s» no pot passar a «%(new)s».")
             % {"current": locked.get_status_display(), "new": Charge.Status(new_status).label}
@@ -207,3 +215,50 @@ def cancel(charge: Charge, reason: str, *, by, category: str = "") -> Charge:
         raise ValidationError(_("Categoria d'anul·lació desconeguda."))
     details = {"category": category} if category else None
     return _transition(charge, S.CANCELLED, by=by, reason=reason, details=details)
+
+
+def active_payments(charge: Charge) -> list[Payment]:
+    """Els pagaments del càrrec que compten: els que no tenen anul·lació (045). Amb la
+    precàrrega `payments__cancellation` no fa cap consulta."""
+    return [payment for payment in charge.payments.all() if not hasattr(payment, "cancellation")]
+
+
+@transaction.atomic
+def revert_paid_transfer(charge: Charge, reason: str, *, by) -> PaymentCancellation:
+    """045 (CA-T10.5, CA-T10.6): «pagat → pendent» d'un càrrec que una transferència conciliada
+    va posar en «pagat» per error. El pagament queda anul·lat amb el mateix motiu, tot o res i al
+    registre. Només amb T4 (el tresorer); sense, «no trobat». Targeta, Bizum i domiciliació es
+    corregeixen amb una devolució. No toca el soci ni el carnet (P-110), ni la tresoreria: el
+    contramoviment i la línia de l'extracte són de qui crida (la conciliació de la 04)."""
+    if not has_perm(by, RECONCILE, write=True):
+        raise Http404
+    if not reason.strip():
+        raise ValidationError(_("Per tornar un càrrec a pendent cal un motiu."))
+    locked = Charge.objects.select_for_update().get(pk=charge.pk)
+    if locked.status != S.PAID:
+        raise ValidationError(_("Només es pot tornar a pendent un càrrec pagat."))
+    payments = active_payments(locked)
+    # Una transferència només arriba a «pagat» per la conciliació (RN-T18; `mark_paid`).
+    if len(payments) != 1 or payments[0].method != Payment.Method.TRANSFER:
+        raise ValidationError(
+            _("Només una transferència conciliada torna a pendent; la resta, amb una devolució.")
+        )
+    cancellation = PaymentCancellation.objects.create(
+        payment=payments[0], reason=reason.strip(), cancelled_by=by
+    )
+    audit.record(
+        PAYMENT_CANCELLED,
+        actor=by,
+        target=payments[0],
+        reason=reason,
+        details={"charge": locked.pk, "origin": "045"},
+    )
+    _transition(
+        charge,
+        S.PENDING,
+        by=by,
+        reason=reason,
+        details={"origin": "045", "payment": payments[0].pk},
+        allowed={REVERT_TRANSFER},
+    )
+    return cancellation
