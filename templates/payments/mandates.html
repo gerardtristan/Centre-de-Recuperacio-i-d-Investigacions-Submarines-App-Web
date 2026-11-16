@@ -1,0 +1,56 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M05a-14, C6: mètode de pagament de la quota de cada soci actiu (wireframe admin.html#vista-pagaments-mandats). Permís A4 al servidor. Amb «Cons.» la vista només posa «té mètode» al context: les altres columnes no arriben a l'HTML. L'IBAN, sempre emmascarat i mai desxifrat (A9, P-121). Revocar (A6) és d'una altra tasca. #}
+{% block title %}{% translate "Mètodes i mandats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Mètodes i mandats" %}</h1>
+  {% if full %}
+    <p class="text-2">{% translate "L'IBAN surt sempre emmascarat. Ningú no el veu sencer." %}</p>
+    <form class="formulari" method="get" action="{% url 'administration:payments_mandates' %}" novalidate>
+      <fieldset class="filtres">
+        <legend>{% translate "Filtres" %}</legend>
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      </fieldset>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:payments_mandates' %}">{% translate "Treu els filtres" %}</a>
+      </div>
+    </form>
+  {% else %}
+    <p class="text-2">{% translate "Només es veu si cada soci té mètode de pagament." %}</p>
+  {% endif %}
+
+  <table class="taula">
+    <caption>{% blocktranslate with shown=rows|length count total=total %}{{ shown }} de {{ total }} soci actiu{% plural %}{{ shown }} de {{ total }} socis actius{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Soci" %}</th>
+        {% if full %}
+          <th scope="col">{% translate "Mètode" %}</th>
+          <th scope="col">{% translate "Mandat o targeta" %}</th>
+          <th scope="col">{% translate "IBAN" %}</th>
+        {% else %}
+          <th scope="col">{% translate "Té mètode" %}</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with member=row.member %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ member.person }} <span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
+          {% if full %}
+            <td data-etiqueta="{% translate 'Mètode' %}">{% if row.preference %}{{ row.preference.get_method_display|capfirst }}{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense resposta" %}</span>{% endif %}</td>
+            <td data-etiqueta="{% translate 'Mandat o targeta' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.reference }}</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.mandate.get_status_display|capfirst }}</span>{% elif row.card %}<span class="codi">{{ row.card }}{% if row.card.expiry_month %} · {{ row.card.expiry_month|stringformat:"02d" }}/{{ row.card.expiry_year }}{% endif %}</span>{% else %}—{% endif %}</td>
+            <td data-etiqueta="{% translate 'IBAN' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.bank_account.iban_country }} … {{ row.mandate.bank_account.iban_last4 }}</span>{% else %}—{% endif %}</td>
+          {% else %}
+            <td data-etiqueta="{% translate 'Té mètode' %}">{% if row.has_method %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>
+          {% endif %}
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="{% if full %}4{% else %}2{% endif %}">{% translate "Cap soci actiu amb aquest filtre." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

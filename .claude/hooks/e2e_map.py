@@ -126,6 +126,10 @@ MAP = {
         "templates/accounts/admin_accounts.html",
         "templates/accounts/admin_home.html",
     ),
+    "test_mandats.py": (
+        "apps/payments/admin_views.py",
+        "templates/payments/mandates.html",
+    ),
     "test_tresoreria.py": (
         "apps/treasury/views.py",
         "apps/treasury/balances.py",
