@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 15:45 | af0919e | 6 noves | [A comprovar] (PR #60) |
+| 16/11/2026 15:45 | 5a0cca3 | 6 noves | [A comprovar] (PR #60) |
 
 **En tres línies:** a la pantalla de pagament, el soci veu en quin pas és: «Tria com pagar», «Confirmació del proveïdor» i «Pagament completat». Si el proveïdor no completa el pagament, el pas de la confirmació surt en groc; quan el servidor el confirma, els tres passos queden fets. La pàgina s'actualitza sola mentre s'espera, com ja feia.
 
@@ -30,11 +30,11 @@
 
   ![Passos del pagament amb la confirmació en avís](captures/2026-11-16_1545_T-DX-10_no-confirmat-390.png)
 
-  *16/11/2026 15:45 (Europa/Madrid) · local, prova e2e, proveïdor fals, soci inventat · commit af0919e*
+  *16/11/2026 15:45 (Europa/Madrid) · local, prova e2e, proveïdor fals, soci inventat · commit 5a0cca3*
 - Pagat, a 1280 px: `captures/2026-11-16_1545_T-DX-10_pagat-1280.png`
 
-  *16/11/2026 15:45 (Europa/Madrid) · local, prova e2e, proveïdor fals · commit af0919e*
-- Sortida de proves · commit af0919e · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 15:45 (Europa/Madrid) · local, prova e2e, proveïdor fals · commit 5a0cca3*
+- Sortida de proves · commit 5a0cca3 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -q
   4774 passed
