@@ -24,9 +24,8 @@ pytestmark = pytest.mark.e2e
 
 def test_rn_m05b_19_the_member_pays_and_opens_the_receipt(page, live_server, pending, capture):  # noqa: F811
     fee, base_url = pending, live_server.url
-    TreasuryAccount.objects.create(
-        name="Trànsit del proveïdor de proves", kind="transit", provider_code="fake"
-    )
+    # El compte de trànsit del proveïdor (RN-T08) ja hi és des de `migrate` (T-M04-17).
+    assert TreasuryAccount.objects.filter(kind="transit", provider_code="fake", active=True)
     page.goto(f"{base_url}/entrar/")
     page.get_by_label("Correu electrònic").fill(EMAIL)
     page.get_by_label("Contrasenya").fill(PASSWORD)
