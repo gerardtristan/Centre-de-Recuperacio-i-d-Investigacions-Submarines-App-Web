@@ -19,7 +19,7 @@ from django.urls import reverse
 from procrastinate.contrib.django.models import ProcrastinateJob
 
 from apps.accounts.models import Account
-from apps.core import audit, charges
+from apps.core import audit, business_settings, charges
 from apps.core.models import AuditEntry, Charge, Department, Payment
 from apps.members.models import Member, MemberCard
 from apps.members.tests.test_cards import add_fee, make_member
@@ -87,6 +87,14 @@ def notify(attempt, status=base.PAID, *, event_id="e-1", **overrides):
         body = json.dumps({**json.loads(body), **overrides}, sort_keys=True).encode()
         headers = {fake.SIGNATURE_HEADER: fake.sign(body)}
     return Client().post(URL, data=body, content_type="application/json", headers=headers)
+
+
+REAL_GET = business_settings.get
+
+
+def no_wait(monkeypatch):
+    """La xarxa de seguretat no espera: l'ajust de VC-17 val 0 (fora de rang, només a la prova)."""
+    monkeypatch.setattr(business_settings, "get", lambda key, at=None: 0)
 
 
 def run_queue():
@@ -326,7 +334,7 @@ class TestError:
         assert processing.process_notification(ProviderEvent.objects.get().pk) == R.ERROR
 
         transit.update(active=True)
-        monkeypatch.setattr(processing, "SAFETY_NET_AGE", timedelta(0))
+        no_wait(monkeypatch)
         processing.safety_net()
         assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
         assert incomes().count() == 1
@@ -335,7 +343,7 @@ class TestError:
 class TestSafetyNet:
     @pytest.fixture(autouse=True)
     def no_age(self, monkeypatch):
-        monkeypatch.setattr(processing, "SAFETY_NET_AGE", timedelta(0))
+        no_wait(monkeypatch)
 
     def test_an_order_paid_without_notification_is_closed_by_the_safety_net(
         self, attempt, fee, transit
@@ -369,7 +377,7 @@ class TestSafetyNet:
         assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
 
     def test_a_recent_order_waits(self, attempt, fee, transit, monkeypatch):
-        monkeypatch.setattr(processing, "SAFETY_NET_AGE", timedelta(minutes=60))
+        monkeypatch.setattr(business_settings, "get", REAL_GET)  # l'ajust inicial: 60 minuts
         fake.FakeProvider().notification(attempt.provider_order_id, base.PAID)
         processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)

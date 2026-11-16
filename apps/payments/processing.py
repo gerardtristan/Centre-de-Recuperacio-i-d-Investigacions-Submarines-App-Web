@@ -18,7 +18,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit, charges, mail
+from apps.core import audit, business_settings, charges, mail
 from apps.core.models import Charge
 from apps.core.permissions import accounts_with_perm
 from apps.members import services as members
@@ -36,8 +36,8 @@ TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
 REVIEW_TEMPLATE = "avis-pagament-revisar"
 REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
-# `safety_net_age_minutes` (VC-17; 60): passa a `PaymentSettings` amb la T-M05b-22.
-SAFETY_NET_AGE = timedelta(minutes=60)
+# VC-17: minuts sense notificació abans que la xarxa de seguretat pregunti al proveïdor.
+SAFETY_NET_AGE = "payments.safety_net_age_minutes"
 # Una ordre que la xarxa no pot tancar es torna a provar l'endemà; passat aquest temps va «a
 # revisar» (L-M05b-01). Així una caiguda curta del proveïdor no tanca un intent que potser es
 # pagarà i obre la porta a pagar dues vegades. shortcut: constant fins a la T-M05b-22.
@@ -174,10 +174,11 @@ def _mail_review(attempt, source, reason: str) -> None:
 
 def safety_net() -> None:
     """Xarxa de seguretat, cada dia: processa les notificacions que s'hagin quedat «rebudes» i
-    consulta al proveïdor les ordres en curs de fa més de `SAFETY_NET_AGE` sense notificació.
+    consulta al proveïdor les ordres en curs de fa més de `SAFETY_NET_AGE` minuts (ajust) sense
+    notificació.
     Si no es pot consultar o tancar, es torna a provar l'endemà i, passat `SAFETY_NET_GIVE_UP`,
     l'intent va «a revisar» (L-M05b-01). Un error en una ordre no atura les altres."""
-    limit = timezone.now() - SAFETY_NET_AGE
+    limit = timezone.now() - timedelta(minutes=business_settings.get(SAFETY_NET_AGE))
     stuck = ProviderEvent.objects.filter(result=R.RECEIVED, received_at__lt=limit)
     for event_id in stuck.values_list("pk", flat=True):
         process_notification(event_id)
