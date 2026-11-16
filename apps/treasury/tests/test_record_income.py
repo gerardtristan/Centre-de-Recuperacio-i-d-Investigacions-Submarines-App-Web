@@ -26,9 +26,8 @@ M = Payment.Method
 
 
 def new_transit(provider_code=None, name="Trànsit del proveïdor de proves"):
-    return TreasuryAccount.objects.create(
-        name=name, kind="transit", provider_code=provider_code or settings.PAYMENTS_PROVIDER
-    )
+    """El del proveïdor configurat ja hi és des de `migrate` (T-M04-17): es torna l'existent."""
+    return services.create_transit_account(provider_code or settings.PAYMENTS_PROVIDER, name)
 
 
 def paid(
@@ -115,8 +114,8 @@ class TestIncome:
     @pytest.mark.parametrize(
         ("method", "account"),
         [
-            (M.CARD, "Trànsit del proveïdor de proves"),
-            (M.BIZUM, "Trànsit del proveïdor de proves"),
+            (M.CARD, "Trànsit del proveïdor «fake»"),  # el de `migrate` (T-M04-17)
+            (M.BIZUM, "Trànsit del proveïdor «fake»"),
             (M.DIRECT_DEBIT, "Remeses SEPA"),
             (M.TRANSFER, "Banc principal"),
         ],
@@ -139,7 +138,9 @@ class TestIncome:
         self, person, settings, case
     ):
         method = M.CARD
-        if case == "transit-off":
+        if case == "no-transit":  # un proveïdor configurat sense el seu trànsit
+            settings.PAYMENTS_PROVIDER = "sense_transit"
+        elif case == "transit-off":
             TreasuryAccount.objects.filter(pk=new_transit().pk).update(active=False)
         elif case == "no-provider":
             new_transit()

@@ -33,9 +33,9 @@ def test_ca_m05b_06_bizum_waits_times_out_and_can_be_tried_again(
     capture,
 ):
     fee, base_url = pending, live_server.url
-    TreasuryAccount.objects.create(
-        name="Trànsit del proveïdor de proves", kind="transit", provider_code="fake"
-    )
+    # El compte de trànsit del proveïdor (RN-T08) ja hi és des de `migrate` (T-M04-17).
+    transit = TreasuryAccount.objects.filter(kind="transit", provider_code="fake", active=True)
+    assert transit.exists()
     page.goto(f"{base_url}/entrar/")
     page.get_by_label("Correu electrònic").fill(EMAIL)
     page.get_by_label("Contrasenya").fill(PASSWORD)
