@@ -16,6 +16,7 @@ import pytest
 from django.db import transaction
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 from procrastinate.contrib.django.models import ProcrastinateJob
 
 from apps.accounts.models import Account
@@ -93,11 +94,12 @@ REAL_GET = business_settings.get
 
 
 def no_wait(monkeypatch):
-    """La xarxa de seguretat no espera: el seu ajust val 0 (fora de rang, només a la prova)."""
+    """La xarxa de seguretat no espera: el seu ajust val -1 (fora de rang, només a la prova).
+    Amb 0, una fila creada en el mateix tic del rellotge que el límit no hi entra (`__lt`)."""
     monkeypatch.setattr(
         business_settings,
         "get",
-        lambda key, at=None: 0 if key == processing.SAFETY_NET_AGE else REAL_GET(key, at),
+        lambda key, at=None: -1 if key == processing.SAFETY_NET_AGE else REAL_GET(key, at),
     )
 
 
@@ -376,6 +378,16 @@ class TestSafetyNet:
 
     def test_a_notification_left_in_the_queue_is_processed(self, attempt, fee, transit):
         notify(attempt)  # la feina de la cua s'ha perdut
+        processing.safety_net()
+        assert ProviderEvent.objects.get().result == R.PROCESSED
+        assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
+
+    def test_the_same_clock_tick_does_not_hide_a_notification(
+        self, attempt, fee, transit, monkeypatch
+    ):
+        tick = timezone.now()
+        monkeypatch.setattr(timezone, "now", lambda: tick)  # el rellotge no avança
+        notify(attempt)  # la notificació neix al mateix tic que el límit de la xarxa
         processing.safety_net()
         assert ProviderEvent.objects.get().result == R.PROCESSED
         assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
