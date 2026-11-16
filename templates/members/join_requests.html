@@ -11,6 +11,10 @@
   {% endfor %}
   <p class="text-2">{% translate "En aprovar una alta, la persona passa a soci pendent amb el número següent i es crea la quota anual del seu tipus; quan la paga, passa a actiu. Un menor exempt per edat passa a actiu directament, sense quota. Si s'ha d'eximir de la quota, ho fa qui té el permís des de la fitxa del soci, un cop aprovada l'alta. La persona rep un correu amb un enllaç d'un sol ús per crear el seu compte; als menors de 14 anys no se'ls n'envia cap." %}</p>
 
+  {# Deposito (T-DX-16): el comptador del panell de revisió. #}
+  <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
+    <li{% if rows %} class="es-pendent"{% endif %}><b>{{ rows|length }}</b><span>{% blocktranslate count n=rows|length %}alta per revisar{% plural %}altes per revisar{% endblocktranslate %}</span></li>
+  </ul>
   {% for row in rows %}
     {% with jr=row.request person=row.person %}
     <section class="targeta altes-targeta" aria-labelledby="alta-{{ jr.pk }}">
@@ -58,6 +62,7 @@
       {% if row.own %}
         <div class="avis avis-sistema" role="note"><strong>{% translate "És la teva sol·licitud" %}</strong>{% translate "No la pots resoldre tu. Ho ha de fer una altra persona amb permís." %}</div>
       {% elif can_resolve %}
+        <div class="deposito-accions">
         {% if row.blocker %}
           <div class="avis avis-avis" role="note"><strong>{% translate "No es pot aprovar" %}</strong>{{ row.blocker }}</div>
         {% else %}
@@ -90,6 +95,7 @@
             <div class="accions"><button class="boto" type="submit">{% translate "Rebutja la sol·licitud" %}</button></div>
           </form>
         </details>
+        </div>
       {% endif %}
     </section>
     {% endwith %}

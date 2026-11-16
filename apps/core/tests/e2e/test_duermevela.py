@@ -61,6 +61,8 @@ def test_the_choice_reaches_the_other_tabs_and_the_browser_bar(
 def test_with_reduced_motion_the_change_is_immediate(page, live_server, page_checks, capture):
     page.emulate_media(reduced_motion="reduce", color_scheme="light")
     page.goto(f"{live_server.url}/entrar/")
+    # L'interruptor només es mostra quan eclipse.js ja l'ha enganxat: abans, el clic no faria res.
+    expect(switch(page)).to_be_visible()
     capture("entrada-dia")
     # El clic i la lectura en un sol pas: sense cortina, el tema ja hi és en tornar del clic.
     changed = page.evaluate(
