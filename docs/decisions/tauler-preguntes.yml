@@ -386,4 +386,16 @@ opcions:
       i TOTP; donar-lo d'entrada vol dir que un compte més pot marcar quotes com a pagades.
     data: 2026-11-16
 
+  P-121:
+    opcions:
+      A: Com s'ha construït; el·lipsi, «ES … 1234», sense cap caràcter prohibit.
+      B: Asteriscs amb els grups de RN-M05a-06, «ES** **** **** **** **** 1234».
+      C: Mantenir «•» i treure U+2022 de la llista de la prova dels punts volats (es perd la protecció contra «l•l»).
+      D: Mantenir «•» només a les plantilles, escrit com a entitat HTML («&bull;»), i deixar la prova com està.
+    recomanada: A
+    perque: >-
+      No toca la prova que protegeix el punt volat i amaga el mateix: el país i els quatre darrers dígits. La B és
+      equivalent si es vol conservar la llargada visual dels grups; la C afebleix una prova que ja ha trobat errors.
+    data: 2026-11-16
+
 noves:

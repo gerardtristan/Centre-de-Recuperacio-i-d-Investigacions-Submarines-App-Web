@@ -236,7 +236,11 @@ class TestPayments:
                     f in name for f in forbidden if "_" in f
                 ):
                     offenders.append(f"{model._meta.label}.{field.name}")
-        assert offenders == []
+        # 044: l'única excepció, el compte xifrat del mandat (CA-M05a-07, apps/payments).
+        assert offenders == [
+            f"payments.MandateBankAccount.iban_{name}"
+            for name in ("ciphertext", "country", "last4")
+        ]
 
 
 class TestTransitions:
