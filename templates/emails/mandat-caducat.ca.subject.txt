@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-09, RN-M05a-08: TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate %}El mandat de domiciliació {{ reference }} ha caducat{% endblocktranslate %}

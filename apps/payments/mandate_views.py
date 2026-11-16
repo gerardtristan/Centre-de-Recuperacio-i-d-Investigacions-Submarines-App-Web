@@ -13,6 +13,7 @@ RN-M05a-02 a 07 i 12; CA-M05a-02, 03 i 08; wireframe `socis.html#pagaments-manda
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
@@ -85,16 +86,18 @@ def mandate_view(request):
         if request.method == "POST" and form.is_valid():
             error = _reauth_error(request, form, minutes)
             if error is None:
-                mandate = mandates.create_mandate(
-                    member,
-                    iban=form.cleaned_data["iban"],
-                    holder_name=form.cleaned_data["holder_name"],
-                    holder_is_member=not form.cleaned_data["other_holder"],
-                    legal_text=text,
-                    account=account,
-                    creditor_identifier=creditor,
-                    evidence={"channel": "web", "text_version": text.version},
-                )
+                with transaction.atomic():
+                    mandate = mandates.create_mandate(
+                        member,
+                        iban=form.cleaned_data["iban"],
+                        holder_name=form.cleaned_data["holder_name"],
+                        holder_is_member=not form.cleaned_data["other_holder"],
+                        legal_text=text,
+                        account=account,
+                        creditor_identifier=creditor,
+                        evidence={"channel": "web", "text_version": text.version},
+                    )
+                    mandates.mail_member(mandates.SIGNED_TEMPLATE, mandate)
                 messages.success(
                     request,
                     _("Mandat signat. La referència és %(reference)s.")

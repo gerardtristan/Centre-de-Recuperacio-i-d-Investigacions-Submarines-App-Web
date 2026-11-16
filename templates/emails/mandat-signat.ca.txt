@@ -1,0 +1,15 @@
+{% load i18n %}{# T-M05a-09, correu G3 (CA-M05a-04; RN-M05a-07): TEXT PROVISIONAL [A validar: junta] (T-M05a-01). Referència, identificador de creditor, data de signatura, com revocar-lo i l'IBAN emmascarat («…», P-121); mai l'IBAN sencer (RN-M05a-06). Surt de cris1954.cat amb resposta a cris@cris.es (019). #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with date=signed_on|date:"d/m/Y" %}Has signat el mandat de domiciliació SEPA de la quota de soci del C.R.I.S. el {{ date }}.{% endblocktranslate %}
+
+{% blocktranslate %}Referència del mandat: {{ reference }}
+Identificador de creditor: {{ creditor }}
+Compte: {{ masked_iban }}
+Tipus: recurrent (la quota de cada any){% endblocktranslate %}
+
+{% translate "Rebràs un avís abans de cada càrrec. Pots revocar el mandat quan vulguis des de la plataforma:" %}
+
+{{ link }}
+
+{% translate "Si no has signat aquest mandat, respon aquest correu." %}
+{% endautoescape %}
