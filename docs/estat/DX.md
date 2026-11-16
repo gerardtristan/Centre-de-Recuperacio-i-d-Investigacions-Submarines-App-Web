@@ -12,7 +12,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 
 | Tasca | Estat | Data | PR | Bloqueig o nota |
 |---|---|---|---|---|
-| T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`) | bloquejada | — | — | Abans de començar, el propietari decideix si el seu canvi local de `tokens.css` (selector de tema més petit, logotips més grans) entra a la tasca o es descarta |
+| T-DX-01 Tokens de moviment i radis (§15.4: durades, corbes, escala de premut, `--r-interior`) | per fer | — | — | Inclou el canvi local de `tokens.css` del propietari (selector de tema més petit, logotips més grans; resposta del 16/11/2026: s'incorpora a la tasca) |
 | T-DX-02 Paleta OKLCH amb alternativa, vores amb transparència i profunditat del tema fosc; contrastos tornats a comprovar | per fer | — | — | Després de la T-DX-01 |
 | T-DX-03 Etiqueta «En construcció», l'ajust `SHOW_UNDER_CONSTRUCTION`, el permís «Veure pantalles en construcció» (P-90) i la prova comuna de només lectura | per fer | — | — | `risc:alt` (permís nou) i nucli: cap altre canvi obert a `apps/core` |
 | T-DX-04 Duermevela: motor de tema (substitueix `tema.js`, manté la clau `cris-tema`) | per fer | — | — | — |
