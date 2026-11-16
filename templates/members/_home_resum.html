@@ -1,0 +1,17 @@
+{% load i18n vigencia %}{% comment %}Portada de l'àrea de socis (T-DX-17; Oleaje, design-system §6.18): el bloc que puja amb la vora
+   en ona en desplaçar. L'estat de la quota i el carnet són el més important de l'àrea (D13). Només
+   les dades del soci de la sessió; l'estat surt del servidor (070, P-71).{% endcomment %}
+{% if show %}
+<section class="oleaje-seccio" aria-labelledby="resum-quota">
+  <svg class="oleaje-vora" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 40V22C150 6 300 6 450 18S750 34 900 20 1100 4 1200 14V40Z"/></svg>
+  <div class="oleaje-contingut">
+    <h2 id="resum-quota">{% translate "La teva quota" %}</h2>
+    <p class="oleaje-estat">{% include "members/_fee_state.html" %}</p>
+    {% if fee.kind == "paid_until" or fee.kind == "waived" %}{% vigencia fee.until "quota" %}{% endif %}
+    <p class="accions">
+      <a class="boto boto-principal" href="{% url 'members:card' %}">{% translate "El meu carnet" %}</a>
+      <a class="boto" href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a>
+    </p>
+  </div>
+</section>
+{% endif %}

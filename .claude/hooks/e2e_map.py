@@ -185,6 +185,12 @@ MAP = {
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
     "test_vigencia_admin.py": ("templates/members/_licence_records.html",),
+    "test_oleaje.py": (
+        "apps/members/templatetags/member_notices.py",
+        "templates/members/_home_resum.html",
+        "templates/core/home.html",
+        "static/css/oleaje.css",
+    ),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",
