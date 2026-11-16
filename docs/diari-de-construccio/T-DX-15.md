@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 16/11/2026 18:00 | 4cf82f4, cc4e2c0 | 3 noves | [A comprovar] (PR #67) |
+| 16/11/2026 18:00 | 53f4e06, e89b210 | 3 noves | [A comprovar] (PR #67) |
 
 **En tres línies:** quan algú escaneja el QR d'un carnet, la pàgina de verificació hi posa un segell de goma: «Vàlid» en verd o «No vàlid» en vermell. La pàgina diu exactament el mateix que abans, ni més ni menys. Si s'han fet massa comprovacions seguides, no hi ha segell.
 
@@ -29,11 +29,11 @@
 
   ![Verificació del carnet amb el segell Vàlid](captures/2026-11-16_1800_T-DX-15_verificacio-1280.png)
 
-  *16/11/2026 18:00 (Europa/Madrid) · local, prova e2e, soci inventat · commit cc4e2c0*
+  *16/11/2026 18:00 (Europa/Madrid) · local, prova e2e, soci inventat · commit e89b210*
 - A 320 px, en fosc: `captures/2026-11-16_1800_T-DX-15_verificacio-320-fosc.png`
 
-  *16/11/2026 18:00 (Europa/Madrid) · local, prova e2e · commit cc4e2c0*
-- Sortida de proves · commit cc4e2c0 · executada el 16/11/2026 en local (PostgreSQL 16):
+  *16/11/2026 18:00 (Europa/Madrid) · local, prova e2e · commit e89b210*
+- Sortida de proves · commit e89b210 · executada el 16/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest -m e2e apps/core/tests/e2e/test_accessibilitat_028.py apps/core/tests/e2e/test_carnet_079.py -q
   6 passed
