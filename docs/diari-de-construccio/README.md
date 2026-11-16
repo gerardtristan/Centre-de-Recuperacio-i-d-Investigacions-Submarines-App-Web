@@ -180,3 +180,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-29](T-M05b-29.md) | La 045 al 05b: l'intent de transferència es cancel·la i el rebut s'anul·la amb una nota; el càrrec es torna a pagar (P-122; implementada, pendent de validació) | 16/11/2026 20:39 | b122be3 | 4 noves | [A comprovar] |
 | [T-DX-28](T-DX-28.md) | Recoveco: ajuda i preguntes freqüents de l'àrea del soci, en construcció (temes plegats amb `details name` i Ctrl+F, sense JavaScript; carril de disseny) | 16/11/2026 20:13 | 838a16a (PR #82) | cap de nova | [A comprovar] |
 | [T-M05a-14](T-M05a-14.md) | Llistat de mètodes i mandats per al tresorer, amb l'IBAN emmascarat; permís A4 i la Secretaria sense (P-193) | 16/11/2026 21:41 | b84936d | 4994; 1 e2e nova | [A comprovar] |
+| [T-DX-11b](T-DX-11b.md) | Ranura: el rebut anul·lat diu «Anul·lat» i la nota, mai el segell de pagat (carril de disseny) | 16/11/2026 22:06 | 4fa6e45 (PR #110) | 2 noves | [A comprovar] |
