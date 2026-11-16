@@ -69,9 +69,9 @@
       {% csrf_token %}
       <h2 id="puja-titol">{% translate "Importar un extracte" %}</h2>
       <div class="camp">
-        <label for="id_fitxer">{% translate "Fitxer CSV del banc" %}</label>
-        <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv" required aria-describedby="ajuda-fitxer">
-        <p class="ajuda" id="ajuda-fitxer">{% blocktranslate with separator=profile.delimiter date=profile.date concept=profile.concept amount=profile.amount balance=profile.balance %}CSV en UTF-8, separat per «{{ separator }}», d'1 MB com a màxim, amb les columnes «{{ date }}», «{{ concept }}», «{{ amount }}» i «{{ balance }}» a la capçalera. Les altres columnes no es llegeixen. El fitxer no es desa. Fora de producció, només fitxers inventats.{% endblocktranslate %}</p>
+        <label for="id_fitxer">{% translate "Fitxer de l'extracte del banc (CSV o Norma 43)" %}</label>
+        <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv,.n43,.txt" required aria-describedby="ajuda-fitxer">
+        <p class="ajuda" id="ajuda-fitxer">{% blocktranslate with separator=profile.delimiter date=profile.date concept=profile.concept amount=profile.amount balance=profile.balance %}CSV en UTF-8, separat per «{{ separator }}», d'1 MB com a màxim, amb les columnes «{{ date }}», «{{ concept }}», «{{ amount }}» i «{{ balance }}» a la capçalera. Les altres columnes no es llegeixen. També s'accepta el fitxer Norma 43 del banc (.n43 o .txt), d'un sol compte i en euros. El fitxer no es desa. Fora de producció, només fitxers inventats.{% endblocktranslate %}</p>
       </div>
       <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Previsualitza" %}</button></div>
     </form>

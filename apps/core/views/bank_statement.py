@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_http_methods, require_POST
 
 from ..charges import euros
-from ..files import IMPORT_TYPES, validate_upload
+from ..files import BANK_STATEMENT_TYPES, validate_upload
 from ..imports import bank_statement
 from ..imports.bank_statement import PERMISSION, Rejected
 from ..models import ImportBatch
@@ -81,9 +81,9 @@ def _upload(request, handler):
     if handler.too_large:
         return _page(request, error=_("El fitxer supera la mida màxima d'1 MB."), status=413)
     if len(files) != 1:
-        return _page(request, error=_("Tria un sol fitxer CSV."), status=400)
+        return _page(request, error=_("Tria un sol fitxer."), status=400)
     try:
-        validate_upload(files[0], allowed=IMPORT_TYPES)
+        validate_upload(files[0], allowed=BANK_STATEMENT_TYPES)
         preview = bank_statement.preview(files[0].read(), by=request.user, request=request)
     except ValidationError as exc:
         return _page(request, error=exc.messages[0], status=400)
