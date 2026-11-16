@@ -58,6 +58,7 @@ def test_admin_menu_follows_the_permissions_and_logs_out_with_the_keyboard(
     # La secretaria no té el registre d'activitat ni els comptes: no són a la pàgina.
     expect(page.get_by_role("link", name="Registre d'activitat")).to_have_count(0)
     expect(page.get_by_role("link", name="Comptes d'administrador")).to_have_count(0)
+    expect(page.get_by_role("link", name="Pagaments: mètodes i mandats")).to_have_count(0)  # A4
     sidebar.get_by_role("link", name="Llistat de socis").click()
     expect(page.get_by_role("heading", name="Llistat de socis")).to_be_visible()
     expect(sidebar.get_by_role("link", name="Llistat de socis")).to_have_attribute(
