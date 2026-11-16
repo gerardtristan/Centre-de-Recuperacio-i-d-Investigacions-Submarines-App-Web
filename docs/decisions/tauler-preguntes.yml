@@ -318,6 +318,8 @@ opcions:
       per les consultes i els registres de la base de dades, contra la 044; la D afegeix un proveïdor i un punt de
       fallada per a un club petit. La B només protegeix contra qui ja pot escriure a la base de dades, i s'hi pot passar
       més endavant amb una rotació.
+    data: 2026-11-16
+
   P-130:
     opcions:
       A: «casella» amb botó de ràdio, títol en negreta i descripció, dins d'un grup (com s'ha fet).
