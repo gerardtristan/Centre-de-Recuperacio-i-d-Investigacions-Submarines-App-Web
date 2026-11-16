@@ -2,7 +2,7 @@
    al mòbil. Una barra a baix amb les pàgines que més es fan servir i un botó central «Més» que
    s'obre en ventall amb les rares (B15). A partir de 600 px no es veu: hi ha la navegació de la
    capçalera. Els mateixos enllaços i les mateixes condicions que _personal_nav.html; amagar un
-   enllaç no és cap control. «Surt» és un POST amb CSRF.{% endcomment %}{% with current=request.resolver_match.view_name %}
+   enllaç no és cap control. «Surt» és a la capçalera, també al mòbil (un sol «Surt» per pantalla, T-M01-46).{% endcomment %}{% with current=request.resolver_match.view_name %}
 <nav class="ramillete" aria-label="{% translate 'Compte personal (mòbil)' %}" data-ramillete>
   <ul class="ramillete-barra">
     <li><a class="ramillete-pestanya" href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4z"/></svg>{% translate "Inici" %}</a></li>
@@ -13,7 +13,6 @@
         {% if user.person.member %}<li><a class="ramillete-item" href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>
         <li><a class="ramillete-item" href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
         <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" %} aria-current="page"{% endif %}>{% translate "Seguretat i aparença" %}</a></li>
-        <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="ramillete-item" type="submit">{% translate "Surt" %}</button></form></li>
       </ul>
     </li>
     {% if user.person.member %}<li><a class="ramillete-pestanya" href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M7 10.5h4M7 14h7"/></svg>{% translate "Carnet" %}</a></li>{% endif %}

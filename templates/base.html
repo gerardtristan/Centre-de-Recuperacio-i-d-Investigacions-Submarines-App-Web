@@ -47,5 +47,7 @@
     {% if admin_nav %}<nav class="solapes" aria-label="{% translate 'Fitxes obertes' %}" data-solapes data-inici="{% url 'administration:home' %}" data-tanca="{% translate 'Tanca %s' %}" data-avis-canvis="{% translate 'Aquesta fitxa té canvis sense desar. Si la tanques, es perden. Vols tancar-la?' %}" data-mes="{% translate 'Més fitxes obertes' %}" hidden><ul class="solapes-llista"></ul></nav>{% endif %}
     {% block content %}{% endblock %}
   </main>
+  {# Al mòbil, la navegació de l'àrea del soci com a barra a baix (Ramillete, T-DX-08), després del contingut. #}
+  {% if user.is_authenticated and user.kind == "personal" %}{% include "members/_ramillete.html" %}{% endif %}
 </body>
 </html>

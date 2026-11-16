@@ -451,9 +451,9 @@ Del recurs Solapas ([pla dels recursos externs](plans/recursos-disseny-extern.md
 
 ### 6.12 Ramillete: navegació de l'àrea del soci al mòbil (T-DX-08)
 Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la barra a baix amb la marca de la pàgina activa i el botó central rodó que gira (+ → ×) i obre en ventall cap amunt les opcions rares, una darrere l'altra, amb un vel darrere (B3, B15).
-- **Peça:** `templates/members/_ramillete.html` (inclosa a `_personal_nav.html`), `static/css/ramillete.css` i `static/js/ramillete.js`.
-- **Contingut:** a la barra, «Inici», «Quotes», «Carnet» i «Perfil»; al ventall, «Canvi de tipus», «Baixa», «Seguretat i aparença» i «Surt» (un POST amb CSRF). Les mateixes condicions que la navegació de la capçalera; amagar un enllaç no és cap control.
-- **Quan:** per sota de 600 px i només amb JavaScript (`ramillete.js` posa `.ramillete-actiu` a `<html>`). Llavors la capçalera no repeteix els enllaços i el cos deixa espai a baix (`--dock-alcada`). Sense JavaScript, o a partir de 600 px, la navegació de la capçalera de sempre.
+- **Peça:** `templates/members/_ramillete.html` (inclosa a `base.html` després del contingut, per als comptes personals), `static/css/ramillete.css` i `static/js/ramillete.js`.
+- **Contingut:** a la barra, «Inici», «Quotes», «Carnet» i «Perfil»; al ventall, «Canvi de tipus», «Baixa» i «Seguretat i aparença». «Surt» es queda a la capçalera, també al mòbil (un sol «Surt» per pantalla, T-M01-46). Les mateixes condicions que la navegació de la capçalera; amagar un enllaç no és cap control.
+- **Quan:** per sota de 600 px i només amb JavaScript (`ramillete.js` posa `.ramillete-actiu` a `<html>`). Llavors la capçalera només deixa «Surt» i el cos deixa espai a baix (`--dock-alcada`). Sense JavaScript, o a partir de 600 px, la navegació de la capçalera de sempre.
 - **Teclat:** el focus va a la primera opció en obrir; Tab i les fletxes hi queden atrapats; Esc el tanca i torna al botó; tocar fora també el tanca.
 - **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`).
 - **Del recurs no s'hi fa:** la barra lateral a partir de 760 px (a l'escriptori, la capçalera ja fa aquesta feina) ni les fulles de cada acció.

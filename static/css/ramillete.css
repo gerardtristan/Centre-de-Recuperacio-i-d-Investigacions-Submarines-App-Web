@@ -10,8 +10,8 @@
     padding: 0 var(--e-2) env(safe-area-inset-bottom); background: var(--c-superficie-flotant);
     border-top: var(--v-fina) solid var(--c-linia);
   }
-  /* Amb la barra, la capçalera no repeteix els enllaços i el contingut no queda a sota */
-  .ramillete-actiu .navegacio-compte { display: none; }
+  /* Amb la barra, la capçalera només deixa «Surt» (un sol «Surt» per pantalla) i el contingut no queda a sota */
+  .ramillete-actiu .navegacio-compte li:not(.sortida) { display: none; }
   .ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + env(safe-area-inset-bottom)); }
 }
 .ramillete-barra { display: flex; align-items: stretch; justify-content: space-around; margin: 0; padding: 0; list-style: none; }

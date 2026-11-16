@@ -1,6 +1,6 @@
 """Ramillete, la navegació de l'àrea del soci al mòbil (T-DX-08): a baix, les pàgines que més
 es fan servir i el botó «Més», que s'obre en ventall amb les rares; Esc i tocar fora el tanquen,
-i «Surt» hi és. A partir de 600 px no es veu i queda la navegació de la capçalera.
+i «Surt» es queda a la capçalera. A partir de 600 px no es veu i queda la navegació de la capçalera.
 """
 
 import pytest
@@ -29,7 +29,10 @@ def test_mobile_bar_and_the_more_fan(page, live_server, builder, member, review,
     page.set_viewport_size(MOBILE)
     login_personal(page, live_server, builder, member)
     expect(bar(page)).to_be_visible()
-    expect(page.get_by_role("navigation", name="Compte personal", exact=True)).to_be_hidden()
+    # La capçalera només deixa «Surt» (un sol «Surt» per pantalla).
+    header = page.get_by_role("navigation", name="Compte personal", exact=True)
+    expect(header.get_by_role("link", name="Inici")).to_be_hidden()
+    expect(page.get_by_role("button", name="Surt")).to_be_visible()
     expect(bar(page).get_by_role("link", name="Inici")).to_have_attribute("aria-current", "page")
     more = bar(page).get_by_role("button", name="Més opcions")
     expect(bar(page).get_by_role("link", name="Baixa")).to_be_hidden()
@@ -53,10 +56,7 @@ def test_mobile_bar_and_the_more_fan(page, live_server, builder, member, review,
     # La barra no tapa el final de la pàgina.
     padding = page.evaluate("parseFloat(getComputedStyle(document.body).paddingBottom)")
     assert padding >= bar(page).bounding_box()["height"] - 1
-
-    more.click()
-    bar(page).get_by_role("button", name="Surt").click()
-    expect(page).to_have_url(f"{live_server.url}/entrar/")
+    assert bar(page).get_by_role("button", name="Surt").count() == 0
 
 
 def test_wide_screens_keep_the_header_navigation(page, live_server, builder, member, page_checks):

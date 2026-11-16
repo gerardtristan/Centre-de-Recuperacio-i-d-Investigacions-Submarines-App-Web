@@ -10,5 +10,3 @@
     <li class="sortida"><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="boto boto-petit" type="submit">{% translate "Surt" %}</button></form></li>
   </ul>
 </nav>{% endwith %}
-{# Al mòbil, la mateixa navegació com a barra a baix amb el botó «Més» (Ramillete, T-DX-08). #}
-{% include "members/_ramillete.html" %}
