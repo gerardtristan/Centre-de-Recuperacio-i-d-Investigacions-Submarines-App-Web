@@ -281,4 +281,29 @@ opcions:
       descarregar que importar-ne una part amb saldos equivocats.
     data: 2026-11-16
 
+  P-110:
+    opcions:
+      A: La plataforma no toca el soci; la correcció avisa per correu qui pot editar les quotes, que decideix a mà.
+      B: El soci torna a l'estat que tenia abans de la quota (pendent) i el carnet es revoca.
+      C: El soci continua actiu fins al «vàlid fins al» anterior a la quota corregida i el carnet nou es revoca.
+      D: La 045 no s'admet sobre una quota que ja ha activat un soci; es corregeix amb una devolució.
+    recomanada: A
+    perque: >-
+      L'error és del tresorer, no del soci: canviar-li l'estat o revocar-li el carnet sense que ningú ho miri pot deixar
+      fora d'una sortida algú que sí ha pagat (la transferència correcta sovint arriba el mateix dia). Amb l'avís, la
+      secretaria ho resol en minuts, i la B o la C es poden afegir després sense tocar cap dada ja desada.
+    data: 2026-11-16
+
+  P-111:
+    opcions:
+      A: La data de valor de la línia de l'extracte (cal que el nucli deixi passar una data a record_payment).
+      B: Com s'ha construït; la data en què el tresorer confirma la conciliació.
+      C: La data d'operació de la línia, que és la que desa avui la importació (P-103), encara que no sigui la de valor.
+    recomanada: A
+    perque: >-
+      El saldo del banc a la plataforma ha de coincidir amb el de l'extracte el mateix dia, i això només passa si l'ingrés
+      porta la data del banc. Com que la importació desa una sola data per línia (P-103), la A i la C coincideixen fins
+      que es resolgui aquella pregunta.
+    data: 2026-11-16
+
 noves:

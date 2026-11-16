@@ -13,21 +13,36 @@ torna a calcular les que encara són obertes (pendents o proposades), perquè el
   referència vagi a revisar (LT2) és la P-101.
 Cada canvi d'estat queda al registre d'activitat (RN-T13), sense el concepte de la línia.
 Les línies d'un extracte desfet que eren obertes tornen a pendent, sense proposta.
-El criden la importació en confirmar o desfer un extracte (senyal `bank_statement.changed`) i,
-abans de mostrar o confirmar res, les pantalles de la T-M04-12 i la T-M04-14.
+El criden la importació en confirmar o desfer un extracte (senyal `bank_statement.changed`),
+`confirm` i, abans de mostrar res, les pantalles de la T-M04-14 i la T-M04-15.
+
+`confirm()` (T-M04-12; P-M04-E passos 3 i 4; CA-T10.1 a CA-T10.3): el tresorer confirma la
+proposta d'una línia. Cada càrrec passa a «pagat» amb un pagament per transferència i el seu
+ingrés al banc; si és una quota, s'avisa el 01. Desfer-la (CA-T10.4 a CA-T10.6, 045) espera la
+transició «pagat → pendent» del nucli.
 """
 
+from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 from django.db.models import Count, Max
+from django.http import Http404
+from django.utils.translation import gettext as _
 
 from apps.core import audit
+from apps.core.charges import record_payment
 from apps.core.imports import statement_lines
-from apps.core.models import Charge
+from apps.core.models import Charge, Payment
+from apps.core.permission_catalog import CATALOG
+from apps.core.permissions import has_perm
+from apps.members import services as members
 
-from .models import StatementLineState, TransferReference
-from .references import references_in
+from . import services
+from .models import Reconciliation, StatementLineState, TransferReference
+from .references import references_in, transfer_reference
 
 STATE_CHANGED = "treasury.statement_line_state_changed"
+CONFIRMED = "treasury.reconciliation_confirmed"
+RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» (M04-4)
 OPEN = (StatementLineState.Status.PENDING, StatementLineState.Status.PROPOSED)
 Reason = StatementLineState.ReviewReason
 
@@ -68,7 +83,7 @@ def _snapshot(status, reason, charge_ids):
 PLAIN = _snapshot(StatementLineState.Status.PENDING, "", [])
 
 
-def _apply(state, status, reason, charges, *, created) -> None:
+def _apply(state, status, reason, charges, *, created, actor=None) -> None:
     """Desa l'estat si ha canviat i en deixa l'entrada al registre."""
     new = _snapshot(status, reason, sorted(charge.pk for charge in charges))
     old = None
@@ -85,7 +100,7 @@ def _apply(state, status, reason, charges, *, created) -> None:
     state.proposed_charges.set(charges)
     audit.record(
         STATE_CHANGED,
-        actor=audit.system("treasury.reconciliation"),
+        actor=actor or audit.system("treasury.reconciliation"),
         target=state,
         old=old,
         new=new,
@@ -154,6 +169,65 @@ def refresh() -> None:
             created=created,
         )
     StatementLineState.objects.bulk_create(new_plain)
+
+
+class ReconciliationRejected(ValidationError):
+    """La línia no té cap proposta per confirmar, o ja està conciliada (CA-T10.3)."""
+
+
+def _ensure_can_reconcile(by) -> None:
+    # shortcut: el permís T4 encara no és al catàleg del nucli; fins que hi sigui, ningú no
+    # confirma (falla tancat). Quan el nucli l'hi afegeixi, cal treure `RECONCILE in CATALOG`.
+    if not (RECONCILE in CATALOG and has_perm(by, RECONCILE, write=True)):
+        raise Http404
+
+
+@transaction.atomic
+def confirm(line, *, by) -> Reconciliation:
+    """Confirma la proposta de la línia (RN-T16: sempre un compte amb T4, mai el sistema).
+    Abans la torna a calcular: si un càrrec ha canviat o la suma ja no és exacta, no hi ha
+    proposta (CA-T10.2). Tot o res."""
+    _ensure_can_reconcile(by)
+    refresh()  # també agafa el pany: dues confirmacions de la mateixa línia no es trepitgen
+    state = (
+        StatementLineState.objects.select_for_update()
+        .filter(statement_line=line)
+        .select_related("statement_line")
+        .first()
+    )
+    if state is not None and state.status == StatementLineState.Status.RECONCILED:
+        raise ReconciliationRejected(_("Aquesta línia ja està conciliada."))
+    if state is None or state.status != StatementLineState.Status.PROPOSED:
+        raise ReconciliationRejected(_("Aquesta línia no té cap proposta per confirmar."))
+    matched = list(state.proposed_charges.order_by("pk"))
+    for charge in matched:
+        payment = record_payment(
+            charge,
+            method=Payment.Method.TRANSFER,
+            origin="reconciliation",
+            by=by,
+            transfer_reference=transfer_reference(charge),
+        )
+        services.record_income(payment, origin="reconciliation", by=by)
+        fee = getattr(charge, "annual_fee", None)
+        if fee is not None:
+            members.on_fee_paid(fee.pk)
+    reconciliation = Reconciliation.objects.create(
+        statement_line=state.statement_line, confirmed_by=by
+    )
+    reconciliation.matched_charges.set(matched)
+    _apply(state, StatementLineState.Status.RECONCILED, "", matched, created=False, actor=by)
+    audit.record(
+        CONFIRMED,
+        actor=by,
+        target=reconciliation,
+        details={
+            "line": state.statement_line_id,
+            "charges": [charge.pk for charge in matched],
+            "amount_cents": state.statement_line.amount_cents,
+        },
+    )
+    return reconciliation
 
 
 def on_statement_changed(sender, batch, **kwargs) -> None:
