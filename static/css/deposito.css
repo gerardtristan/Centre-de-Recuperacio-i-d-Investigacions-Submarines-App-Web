@@ -1,0 +1,17 @@
+/* Deposito (T-DX-16; recurs a design/extern/; design-system §6.17): el panell de revisió de
+   l'administració. Del recurs: els comptadors de dalt («per revisar», en ambre si n'hi ha) i les
+   accions de cada element en una fila (aprovar i rebutjar al costat, B13), amb el motiu del rebuig
+   que s'obre a sota. Només tokens. */
+.deposito-comptadors { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: 0 0 var(--e-4); padding: 0; list-style: none; }
+.deposito-comptadors li {
+  display: flex; align-items: baseline; gap: var(--e-2); padding: var(--e-2) var(--e-3);
+  border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); background: var(--c-superficie-2);
+}
+.deposito-comptadors b { font-size: var(--t-xl); font-weight: var(--p-negreta); font-variant-numeric: tabular-nums; line-height: var(--a-titol); }
+.deposito-comptadors span { font-size: var(--t-s); color: var(--c-text-2); }
+/* Ambre a la vora i al número, no al fons: un fons daurat semblaria el botó principal (D19) */
+.deposito-comptadors .es-pendent { border-color: var(--c-avis); }
+.deposito-comptadors .es-pendent b { color: var(--c-avis-text); }
+.deposito-accions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--e-3); }
+.deposito-accions > form { margin: 0; }
+.deposito-accions > details[open] { flex-basis: 100%; }

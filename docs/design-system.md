@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.22 (16/11/2026). La 1.22 fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
+- **Versió:** 1.23 (16/11/2026). La 1.23 afegeix Deposito, el panell de revisió d'altes i sol·licituds (§6.17, T-DX-16).
+- La 1.22 (16/11/2026) fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
 - La 1.20 (16/11/2026) afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
 - La 1.19 (16/11/2026) posa Vigencia a la llicència de la fitxa de l'administració (§6.15, T-DX-14) i deixa que un valor llarg passi a la línia següent a les taules apilades del mòbil.
 - La 1.18 (16/11/2026) afegeix Vigencia, els dies que queden de la quota i de la llicència (§6.15, T-DX-13).
@@ -494,6 +495,13 @@ Del recurs Autentico ([pla dels recursos externs](plans/recursos-disseny-extern.
 - **Peça:** `templates/members/card_verify.html` (pàgina pública de verificació, T-M01-20) i `static/css/autentico.css`.
 - **Segell:** «Vàlid» (✓, `--c-ok-text`) o «No vàlid» (✕, `--c-error-text`), sota les dades i a la dreta, una sola vegada amb `--m-panell` i `--m-corba-molla`. Decoratiu (`aria-hidden`): el títol ja diu el resultat. Quan la verificació està bloquejada per massa comprovacions, no hi ha segell.
 - **Seguretat:** la pàgina diu exactament el mateix que abans (RN-M01-26: si és vàlid, el número i el nom de pila; si no, res). La verificació la fa el servidor amb el testimoni de l'enllaç; del recurs no s'hi fa el codi HMAC calculat al navegador, perquè la clau no pot sortir del servidor.
+
+### 6.17 Deposito: el panell de revisió (T-DX-16)
+Del panell del negoci del recurs Deposito ([pla dels recursos externs](plans/recursos-disseny-extern.md)): els comptadors de dalt i les accions de cada element en una sola fila.
+- **Peça:** `static/css/deposito.css`. Comptadors `deposito-comptadors` (llista: número en xifres tabulars i text, «es-pendent» amb la vora i el número en ambre; el fons no, perquè semblaria el botó principal, D19) i fila d'accions `deposito-accions` (aprovar i rebutjar al costat, B13; el motiu del rebuig s'obre a sota a tota l'amplada).
+- **On:** «Altes pendents» («N altes per revisar»; «Aprova l'alta» i «Rebutja…» a la mateixa fila) i «Sol·licituds» (canvis de tipus i baixes per revisar).
+- **Seguretat:** cap canvi en el que es pot fer. El servidor torna a comprovar el permís en aprovar o rebutjar; el motiu continua sent obligatori.
+- **Del recurs no s'hi fa:** els motius de rebuig predefinits (seria una llista de negoci, i el pla no en defineix cap) ni els comptadors de confirmades i rebutjades (caldria una consulta nova). La part de les transferències és la T-DX-12, quan existeixi la pantalla (T-M05b-06).
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
