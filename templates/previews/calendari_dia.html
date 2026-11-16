@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/asueto.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-29 Asueto: el dia concret i les seves excepcions. En construcció: contingut d'exemple, res no es desa ni es mou (design-system §16, T-DX-29). #}
+  <section class="en-construccio-bloc asueto" aria-describedby="ec-calendari-dia">
+    {% include "_en_construccio.html" with id="ec-calendari-dia" %}
+    <h1>{{ screen_title }}</h1>
+    <p class="asueto-dia"><strong>{{ day }}</strong> · {{ usual }}</p>
+    <fieldset disabled class="asueto-excepcio">
+      <legend class="visualment-amagat">{% translate "Excepció d'aquest dia" %}</legend>
+      <fieldset class="segmentat">
+        <legend>{% translate "Horari d'aquest dia" %}</legend>
+        <label><input class="visualment-amagat" type="radio" name="mode"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{% translate "Com sempre" %}</span></label>
+        <label><input class="visualment-amagat" type="radio" name="mode" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{% translate "Un altre horari" %}</span></label>
+        <label><input class="visualment-amagat" type="radio" name="mode"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{% translate "Tancat" %}</span></label>
+      </fieldset>
+      <div class="asueto-camps">
+        <div class="camp"><label for="asueto-obre">{% translate "Obre" %}</label><input id="asueto-obre" type="time" value="17:00"></div>
+        <div class="camp"><label for="asueto-tanca">{% translate "Tanca" %}</label><input id="asueto-tanca" type="time" value="19:00"></div>
+        <div class="camp"><label for="asueto-motiu">{% translate "Motiu" %}</label><select id="asueto-motiu"><option>{% translate "Assemblea del club" %}</option></select></div>
+      </div>
+    </fieldset>
+
+    <div class="asueto-linia" aria-hidden="true">
+      <ol class="asueto-hores">{% for h in hours %}<li>{{ h }}</li>{% endfor %}</ol>
+      <div class="asueto-franja asueto-habitual c17 s6"></div>
+      <div class="asueto-franja asueto-obert c17 s2"><span class="asueto-nansa"></span><span class="asueto-nansa"></span></div>
+      {% for act in acts %}<div class="asueto-barra {{ act.start }} {{ act.span }}{% if not act.fits %} es-fora{% endif %}">{{ act.title }}</div>{% endfor %}
+    </div>
+
+    <h2>{% blocktranslate count n=2 %}{{ n }} activitat ja no hi cap{% plural %}{{ n }} activitats ja no hi caben{% endblocktranslate %}</h2>
+    <fieldset disabled class="asueto-llista">
+      <legend class="visualment-amagat">{% translate "Activitats d'aquest dia" %}</legend>
+      <ul>
+        {% for act in acts %}
+        <li class="asueto-acte{% if not act.fits %} es-fora{% endif %}">
+          <span><strong>{{ act.title }}</strong> <span class="asueto-hora">{{ act.hours }}</span></span>
+          {% if act.fits %}
+          <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Hi cap" %}</span>
+          {% else %}
+          <span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Queda fora de l'horari" %}</span>
+          <span class="asueto-lliure">{{ act.free }}</span>
+          <button type="button" class="boto boto-petit">{% translate "Mou-la" %}<span class="visualment-amagat">: {{ act.title }}</span></button>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="asueto-nota">{% translate "Res no es mou fins que apliques l'excepció. Moure una activitat avisa les persones inscrites." %}</p>
+      <div class="asueto-accions">
+        <button type="button" class="boto">{% translate "Restableix" %}</button>
+        <button type="button" class="boto boto-principal">{% translate "Aplica l'excepció" %}</button>
+      </div>
+    </fieldset>
+  </section>
+{% endblock %}
