@@ -10,7 +10,13 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Charge, UndeletableModel, UndeletableQuerySet, validate_cents
+from apps.core.models import (
+    AppendOnlyModel,
+    Charge,
+    UndeletableModel,
+    UndeletableQuerySet,
+    validate_cents,
+)
 
 
 class ProviderEventLocked(Exception):
@@ -137,6 +143,9 @@ ATTEMPT_TRANSITIONS = frozenset(
     }.items()
     for new in targets
 )
+# 045 (T-M05b-29): una transferència conciliada amb el càrrec equivocat. L'intent pagat queda
+# «cancel·lat» (P-122) perquè el càrrec, que torna a pendent, es pugui tornar a pagar.
+REVERT_TRANSFER = ("paid", "cancelled")
 
 
 class PaymentAttemptQuerySet(UndeletableQuerySet):
@@ -254,7 +263,8 @@ class PaymentAttempt(UndeletableModel):
     def check_transition(self, old: str, new: str) -> None:
         """RN-M05b-03. Només una domiciliació s'envia al banc: una targeta no hi arriba mai."""
         to_bank = new == self.Status.SENT_TO_BANK and self.method != self.Method.DIRECT_DEBIT
-        if (old, new) not in ATTEMPT_TRANSITIONS or to_bank:
+        revert = (old, new) == REVERT_TRANSFER and self.method == self.Method.TRANSFER
+        if ((old, new) not in ATTEMPT_TRANSITIONS and not revert) or to_bank:
             raise InvalidTransition(f"{old} → {new}")
 
     def save(self, *args, update_fields=None, **kwargs):
@@ -329,6 +339,30 @@ class Receipt(UndeletableModel):
         if not self._state.adding:
             raise ReceiptLocked
         super().save(*args, **kwargs)
+
+
+class ReceiptCancellation(AppendOnlyModel):
+    """Anul·lació d'un rebut (M05b-6: «anul·la el rebut amb una nota, no l'esborra»; 045). El
+    rebut no es toca: una fila nova diu que ja no val. Només INSERT, també a la base de dades
+    (migració 0008)."""
+
+    receipt = models.OneToOneField(
+        Receipt, on_delete=models.PROTECT, related_name="cancellation", verbose_name=_("rebut")
+    )
+    note = models.TextField(_("nota"))
+    cancelled_at = models.DateTimeField(_("data de l'anul·lació"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("anul·lació de rebut")
+        verbose_name_plural = _("anul·lacions de rebut")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(note__regex=r"\S"), name="receipt_cancellation_note_required"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.receipt_id}"
 
 
 # 05a: mètode de pagament de la quota i mandats SEPA (T-M05a-08; M05a-6; decisió 044).

@@ -96,18 +96,15 @@ class TestRevertPaidTransfer:
         with pytest.raises(ValidationError, match="devolució"):
             charges.revert_paid_transfer(charge, "Un altre error (prova)", by=treasurer)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="T-M04-12c: l'intent de transferència «pagat» del 05b (T-M05b-06) no es desfà amb "
-        "la 045, i la transferència nova xoca amb `payment_attempt_one_paid`. És de la part del "
-        "05b de desfer una conciliació (apps/payments).",
-    )
     def test_the_charge_can_then_be_paid_again_by_transfer(self, admin, treasurer, person, courses):
+        # T-M05b-29: el 05b cancel·la l'intent pagat i anul·la el rebut (payments/transfers.py).
         charge, _payment = self.paid(person, admin, treasurer, courses)
         charges.revert_paid_transfer(charge, "Càrrec equivocat (prova)", by=treasurer)
         charges.record_payment(
             charge, method=Payment.Method.TRANSFER, origin="reconciliation", by=treasurer
         )
+        charge.refresh_from_db()
+        assert charge.status == S.PAID
 
     @pytest.mark.parametrize(
         "method", [Payment.Method.CARD, Payment.Method.BIZUM, Payment.Method.DIRECT_DEBIT]

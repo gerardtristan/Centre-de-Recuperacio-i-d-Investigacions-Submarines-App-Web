@@ -2,15 +2,16 @@
 P-137, opcions per defecte). Només dades inventades: l'IBAN del club és de proves."""
 
 import pytest
+from django.db import DatabaseError, connection, transaction
 from django.urls import reverse
 
 from apps.accounts.security import AREA_PERSONAL
 from apps.core import audit, charges
-from apps.core.models import AuditEntry, Charge, Payment
+from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.payments import attempts, checkout, transfers
+from apps.payments.models import InvalidTransition, Receipt, ReceiptCancellation
 from apps.payments.models import PaymentAttempt as Attempt
-from apps.payments.models import Receipt
 from apps.payments.providers import base, fake
 from apps.payments.tests.test_checkout import SITE, new_charge
 from apps.treasury import reconciliation
@@ -181,3 +182,73 @@ class TestReconciled:
         charges.record_payment(charge, method="card", origin="provider", by=audit.system("proves"))
         assert Attempt.objects.get().status == S.IN_PROGRESS  # ho fa el processament, no aquí
         assert not Receipt.objects.exists()
+
+
+class TestReverted:
+    """045 (T-M05b-29; P-122, opció per defecte): el tresorer torna a pendent un càrrec que una
+    transferència conciliada va pagar per error. L'intent pagat queda cancel·lat i el rebut,
+    anul·lat amb una nota; res s'esborra, i el càrrec es torna a pagar amb un intent i un rebut
+    nous."""
+
+    REASON = "Càrrec equivocat (prova)"
+
+    def revert(self, charge, by):
+        return charges.revert_paid_transfer(charge, self.REASON, by=by)
+
+    def test_revert_then_transfer_again_gives_a_new_attempt_and_receipt(
+        self,
+        charge,
+        treasurer,  # noqa: F811
+    ):
+        confirm(charge, treasurer)
+        old = Receipt.objects.get()
+        self.revert(charge, treasurer)
+
+        old.refresh_from_db()
+        assert old.attempt.status == S.CANCELLED
+        assert old.cancellation.note == f"045: {self.REASON}"
+        entry = AuditEntry.objects.get(action=transfers.RECEIPT_CANCELLED)
+        assert (entry.actor_account, entry.reason) == (treasurer, self.REASON)
+
+        charges.record_payment(charge, method="transfer", origin="reconciliation", by=treasurer)
+
+        new = Receipt.objects.exclude(pk=old.pk).get()
+        assert new.attempt.status == S.PAID and new.number != old.number
+        assert not hasattr(new, "cancellation")
+        assert sorted(Attempt.objects.values_list("status", flat=True)) == ["cancelled", "paid"]
+
+    def test_the_receipt_cancellation_is_never_changed(
+        self,
+        charge,
+        treasurer,  # noqa: F811
+    ):
+        confirm(charge, treasurer)
+        self.revert(charge, treasurer)
+        cancellation = ReceiptCancellation.objects.get()
+        with pytest.raises(AppendOnlyError):
+            cancellation.save()
+        with pytest.raises(AppendOnlyError):
+            cancellation.delete()
+        for sql in ("UPDATE {} SET note = 'x'", "DELETE FROM {}"):
+            with pytest.raises(DatabaseError), transaction.atomic(), connection.cursor() as cur:
+                cur.execute(sql.format(ReceiptCancellation._meta.db_table))
+
+    def test_p_137_a_transfer_without_attempt_reverts_without_touching_the_card(
+        self,
+        charge,
+        personal_account,
+        treasurer,  # noqa: F811
+    ):
+        checkout.start_payment(charge, Attempt.Method.CARD, personal_account)
+        confirm(charge, treasurer)
+        self.revert(charge, treasurer)
+        assert Attempt.objects.get().status == S.IN_PROGRESS
+        assert not ReceiptCancellation.objects.exists()
+
+    def test_only_a_transfer_attempt_can_leave_paid(self, charge):
+        by = audit.system("proves")
+        attempt = attempts.create_attempt(charge, Attempt.Method.CARD)
+        attempt = attempts.transition(attempt, S.IN_PROGRESS, by=by)
+        attempt = attempts.transition(attempt, S.PAID, by=by)
+        with pytest.raises(InvalidTransition):
+            attempts.transition(attempt, S.CANCELLED, by=by)

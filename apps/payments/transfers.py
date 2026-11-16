@@ -7,20 +7,26 @@ es fa la part del 05b, a la mateixa transacció: l'intent de transferència que 
 «pagat» (o se n'obre un, si el soci ha pagat sense passar per la pantalla) i s'emet el rebut,
 amb el correu al pagador. Si alguna cosa falla, la conciliació es desfà sencera.
 
-shortcut: escolta el `post_save` del pagament de la 00; quan existeixi l'esdeveniment
-`charge.paid` (049, T-M05b-21), s'hi subscriu i aquest senyal se'n va."""
+A l'inrevés (045; T-M05b-29): quan el tresorer torna a pendent un càrrec que una transferència
+conciliada va pagar per error (`charges.revert_paid_transfer`), l'intent pagat passa a
+«cancel·lat» (P-122) i el seu rebut queda anul·lat amb una nota, a la mateixa transacció. Res
+s'esborra, i el càrrec es pot tornar a pagar amb un intent i un rebut nous.
+
+shortcut: escolta el `post_save` del pagament i de l'anul·lació de la 00; quan existeixin els
+esdeveniments (049, T-M05b-21), s'hi subscriu i aquests senyals se'n van."""
 
 from django.db import transaction
 
 from apps.core import audit
-from apps.core.models import Payment
+from apps.core.models import Payment, PaymentCancellation
 
 from . import attempts, receipts
-from .models import PaymentAttempt
+from .models import PaymentAttempt, Receipt, ReceiptCancellation
 
 S = PaymentAttempt.Status
 TRANSFER = PaymentAttempt.Method.TRANSFER
 RECEIPT_PENDING = "payments.transfer_receipt_pending"
+RECEIPT_CANCELLED = "payments.receipt_cancelled"
 
 
 def on_payment_saved(sender, instance: Payment, created: bool, **kwargs) -> None:
@@ -43,3 +49,19 @@ def on_payment_saved(sender, instance: Payment, created: bool, **kwargs) -> None
         audit.record(RECEIPT_PENDING, actor=by, target=charge, reason=reason)
         return
     receipts.issue(attempt)
+
+
+def on_cancellation_saved(sender, instance: PaymentCancellation, created: bool, **kwargs) -> None:
+    payment = instance.payment
+    if not created or payment.method != Payment.Method.TRANSFER:
+        return
+    paid = PaymentAttempt.objects.filter(charge=payment.charge, method=TRANSFER, status=S.PAID)
+    attempt = paid.first()
+    if attempt is None:  # P-137: la transferència es va conciliar sense intent pagat ni rebut
+        return
+    by, reason = instance.cancelled_by, instance.reason
+    attempt = attempts.transition(attempt, S.CANCELLED, by=by, reason=reason)
+    receipt = Receipt.objects.filter(attempt=attempt).first()
+    if receipt is not None:
+        ReceiptCancellation.objects.create(receipt=receipt, note=f"045: {reason}")
+        audit.record(RECEIPT_CANCELLED, actor=by, target=receipt, reason=reason)
