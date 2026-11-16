@@ -68,3 +68,4 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-45 Menú del soci: «Com pago la quota» i «Mandat de domiciliació» | feta | 16/11/2026 | #120 | Petició del pilot després de la #113 i la #117. Capçalera i ventall de Ramillete. El mandat, només amb `MANDATE_SIGNING_ENABLED` (la vista respon 404 si és apagat) |
 | T-DX-46 Menú de l'administració: «Pagaments: campanya de mandats» | feta | 17/11/2026 | #128 | Petició del pilot després de la #125. Només amb A4 (`payments.mandates.view`, lectura), com la vista; A5 només obre, envia i tanca a dins |
 | T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
+| T-DX-42 | feta | 16/11/2026 | #106 | P-91 (A). Àrea del soci: avisos de la junta que es confirmen (amb el dia i l'hora) i textos legals amb la versió acceptada o la nova per acceptar; sense signatura amb el dit |

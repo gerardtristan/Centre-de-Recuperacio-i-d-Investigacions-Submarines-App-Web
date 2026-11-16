@@ -1,0 +1,31 @@
+/* Apoderado (T-DX-42; recurs a design/extern/; design-system §16, T-DX-42): avisos de la junta i textos legals
+   (P-91, A). Del recurs: el missatge que passa a llegit en obrir-lo, el que demana confirmar la lectura amb un
+   toc i queda confirmat amb el dia i l'hora, i l'acceptació que no es pot fer dues vegades. Sense signatura amb
+   el dit: les autoritzacions d'activitat són de la 02. */
+.apoderado { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.apoderado h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.apoderado-cos { display: grid; gap: var(--e-5); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.apoderado-cos > section { display: grid; gap: var(--e-3); }
+.apoderado h2 { margin: 0; font-size: var(--t-l); }
+.apoderado-llista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.apoderado-avis { border-radius: var(--r-l); background: var(--c-fons); border-inline-start: var(--v-activa) solid transparent; }
+.apoderado-avis.es-confirmar { border-inline-start-color: var(--c-avis); }
+.apoderado-avis > summary {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2);
+  min-block-size: var(--tactil); padding: var(--e-2) var(--e-4); cursor: pointer;
+}
+.apoderado-avis-t { display: grid; font-weight: var(--p-semi); }
+.apoderado-avis-t small { font-size: var(--t-xs); font-weight: var(--p-normal); color: var(--c-text-2); }
+.apoderado-avis.es-llegit .apoderado-avis-t { font-weight: var(--p-normal); }
+.apoderado-avis-cos { display: grid; gap: var(--e-3); justify-items: start; padding: 0 var(--e-4) var(--e-4); }
+.apoderado .apoderado-avis-cos p, .apoderado .apoderado-legal p { margin: 0; }
+.apoderado-legal {
+  display: grid; gap: var(--e-2); justify-items: start; padding: var(--e-3) var(--e-4);
+  border-radius: var(--r-l); background: var(--c-fons);
+}
+.apoderado-legal.es-nou { border-inline-start: var(--v-activa) solid var(--c-avis); }
+.apoderado .apoderado-legal-t { font-weight: var(--p-semi); }
+
+@media (min-width: 600px) {
+  .apoderado { padding: var(--e-5); }
+}
