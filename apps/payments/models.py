@@ -331,10 +331,62 @@ class Receipt(UndeletableModel):
         super().save(*args, **kwargs)
 
 
-# 05a: mandats SEPA (T-M05a-08; M05a-6; decisió 044). La preferència de mètode, la targeta
-# guardada i la campanya arriben en una segona part.
+# 05a: mètode de pagament de la quota i mandats SEPA (T-M05a-08; M05a-6; decisió 044).
 
 MANDATE_REFERENCE = r"^CRIS[0-9]{6}M[0-9]{2}$"  # RN-M05a-03
+
+
+class FeeMethod(models.TextChoices):
+    DIRECT_DEBIT = "direct_debit", _("domiciliació")
+    SAVED_CARD = "saved_card", _("targeta guardada")
+    PAY_EACH_TIME = "pay_each_time", _("pagar cada vegada")
+
+
+class SavedCardStatus(models.TextChoices):
+    ACTIVE = "active", _("activa")
+    REMOVED = "removed", _("esborrada")
+    EXPIRED = "expired", _("caducada")
+
+
+class SavedCard(models.Model):
+    """Targeta guardada al proveïdor (RN-M05a-10; condicional a la P-45, punt 6): només la
+    referència del proveïdor i el que es mostra. Mai el número ni el codi de seguretat."""
+
+    Status = SavedCardStatus
+
+    person = models.ForeignKey("core.Person", on_delete=models.PROTECT, related_name="+")
+    provider_code = models.CharField(_("proveïdor"), max_length=30)
+    provider_card_id = models.CharField(_("identificador del proveïdor"), max_length=100)
+    last4 = models.CharField(_("quatre darrers dígits"), max_length=4)
+    expiry_month = models.PositiveSmallIntegerField(_("mes de caducitat"), null=True, blank=True)
+    expiry_year = models.PositiveSmallIntegerField(_("any de caducitat"), null=True, blank=True)
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.ACTIVE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("targeta guardada")
+        verbose_name_plural = _("targetes guardades")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider_code", "provider_card_id"], name="saved_card_unique_provider_id"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=SavedCardStatus.values), name="saved_card_status_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(last4__regex=r"^[0-9]{4}$"), name="saved_card_last4_digits"
+            ),
+            models.CheckConstraint(
+                condition=Q(expiry_month__isnull=True)
+                | Q(expiry_month__gte=1, expiry_month__lte=12),
+                name="saved_card_expiry_month_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"… {self.last4}"
 
 
 class MandateStatus(models.TextChoices):
@@ -420,3 +472,92 @@ class MandateBankAccount(models.Model):
 
     def __str__(self):
         return f"{self.iban_country} … {self.iban_last4}"
+
+
+class FeePaymentPreference(models.Model):
+    """Com vol pagar la quota el soci (RN-M05a-01). Cap fila = «sense resposta».
+
+    La preferència i l'estat del mandat són independents: «pagar cada vegada» amb un mandat
+    actiu és vàlid (P-134, opció per defecte A: el mandat es queda actiu i la remesa segueix la
+    preferència). Si la resposta és la C, només canvia el flux de la pantalla, no les dades."""
+
+    Method = FeeMethod
+
+    member = models.OneToOneField("members.Member", on_delete=models.PROTECT, related_name="+")
+    method = models.CharField(_("mètode"), max_length=14, choices=Method.choices)
+    since = models.DateTimeField(_("des de"), default=timezone.now)
+    set_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
+    mandate = models.ForeignKey(
+        SepaMandate, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    saved_card = models.ForeignKey(
+        SavedCard, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = _("mètode de pagament de la quota")
+        verbose_name_plural = _("mètodes de pagament de la quota")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(method__in=FeeMethod.values), name="fee_preference_method_valid"
+            ),
+            models.CheckConstraint(
+                condition=~Q(method="direct_debit") | Q(mandate__isnull=False),
+                name="fee_preference_direct_debit_has_mandate",
+            ),
+            models.CheckConstraint(
+                condition=~Q(method="saved_card") | Q(saved_card__isnull=False),
+                name="fee_preference_saved_card_has_card",
+            ),
+        ]
+
+    def __str__(self):
+        return self.method
+
+
+class MandateCampaign(models.Model):
+    """Campanya de mandats nous (escenari B, 022). Les invitacions són de la T-M05a-13."""
+
+    name = models.CharField(_("nom"), max_length=120)
+    opened_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
+    opened_at = models.DateTimeField(_("oberta el"), default=timezone.now)
+    closed_at = models.DateTimeField(_("tancada el"), null=True, blank=True)
+    invitation_text = models.ForeignKey(
+        "core.LegalText", on_delete=models.PROTECT, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = _("campanya de mandats")
+        verbose_name_plural = _("campanyes de mandats")
+
+    def __str__(self):
+        return self.name
+
+
+class MandateCampaignRecipient(models.Model):
+    campaign = models.ForeignKey(
+        MandateCampaign, on_delete=models.PROTECT, related_name="recipients"
+    )
+    member = models.ForeignKey("members.Member", on_delete=models.PROTECT, related_name="+")
+    invited_at = models.DateTimeField(_("convidat el"))
+    reminders_sent = models.PositiveSmallIntegerField(_("recordatoris enviats"), default=0)
+    last_reminder_at = models.DateTimeField(_("últim recordatori"), null=True, blank=True)
+    answered_at = models.DateTimeField(_("ha respost el"), null=True, blank=True)
+    answer = models.CharField(_("resposta"), max_length=14, choices=FeeMethod.choices, blank=True)
+
+    class Meta:
+        verbose_name = _("destinatari de la campanya")
+        verbose_name_plural = _("destinataris de la campanya")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["campaign", "member"], name="campaign_recipient_unique"
+            ),
+            models.CheckConstraint(
+                condition=(Q(answer="") & Q(answered_at__isnull=True))
+                | (Q(answer__in=FeeMethod.values) & Q(answered_at__isnull=False)),
+                name="campaign_recipient_answer_with_date",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.campaign_id}/{self.member_id}"
