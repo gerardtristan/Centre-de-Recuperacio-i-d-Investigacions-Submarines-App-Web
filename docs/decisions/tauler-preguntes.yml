@@ -544,6 +544,27 @@ opcions:
       excloure-la; és un canvi petit al recàlcul, que es pot fer en qualsevol moment perquè l'estat es torna a calcular.
     data: 2026-11-16
 
+  P-114:
+    opcions:
+      A: Com s'ha construït; una pota de traspàs no s'anul·la. Un traspàs equivocat es corregeix amb un traspàs de sentit contrari.
+      B: Anul·lar una pota anul·la les dues alhora, amb el mateix motiu.
+      C: Cada pota s'anul·la per separat.
+    recomanada: A
+    perque: >-
+      Un traspàs de sentit contrari ja és un servei del pla (P-M04-D), queda enllaçat i es concilia amb l'extracte com
+      qualsevol altre. La B és raonable però és codi nou sobre diners; la C deixa els dos comptes desquadrats.
+    data: 2026-11-16
+
+  P-115:
+    opcions:
+      A: Com s'ha construït; un contramoviment no s'anul·la. Una anul·lació equivocada es corregeix amb un moviment nou amb motiu.
+      B: Un contramoviment es pot anul·lar (un contramoviment del contramoviment), amb motiu.
+    recomanada: A
+    perque: >-
+      Una cadena d'anul·lacions fa difícil saber si un moviment compta o no (RN-T25 diu «anul·lat» si té contramoviment)
+      i el marge del 09 llegeix aquest estat. Amb la A, l'estat d'un moviment sempre és d'un sol pas.
+    data: 2026-11-16
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).

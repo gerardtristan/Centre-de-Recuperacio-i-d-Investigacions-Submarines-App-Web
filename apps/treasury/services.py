@@ -11,18 +11,23 @@ serveis. Cap ruta hi arriba: un ingrés mai neix d'una petició del navegador (R
 
 `create_transit_account` (T-M04-17; RN-T01 i RN-T08): el compte de trànsit d'un proveïdor de
 cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup.py`).
+
+`reverse` (T-M04-08; P-M04-C; RN-T27): l'anul·lació amb contramoviment, manual (T5) o en desfer
+una conciliació (045). El període tancat (RN-T28, RN-T30) arriba amb la T-M04-20.
 """
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit
 from apps.core.charges import PAID_ORIGINS
 from apps.core.models import AuditEntry, Charge, Payment
+from apps.core.permissions import has_perm
 from apps.members import services as members
 
 from .models import Movement, TreasuryAccount
@@ -31,7 +36,9 @@ from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04
 INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
 TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
-INCOME_REVERSED = "treasury.income_reversed"
+MOVEMENT_REVERSED = "treasury.movement_reversed"
+REVERSE = "treasury.reverse"  # T5, «Anul·lar un moviment amb motiu» (M04-4)
+MANUAL, RECONCILIATION = "manual", "reconciliation"  # qui demana `reverse`
 
 # Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
 SEPA_REMITTANCE = "sepa_remittance"
@@ -47,6 +54,14 @@ class BrowserOriginRejected(ValidationError):
 
 class IncomeAccountUnavailable(ValidationError):
     """No hi ha un únic compte actiu on apuntar l'ingrés d'aquest mètode (RN-T08)."""
+
+
+class AlreadyReversed(ValidationError):
+    """El moviment ja té contramoviment: només s'anul·la una vegada (RN-T27, CA-T17.1)."""
+
+
+class NotReversible(ValidationError):
+    """Aquest moviment no s'anul·la per aquest camí (CA-T06.2; P-114; P-115)."""
 
 
 @transaction.atomic
@@ -185,34 +200,80 @@ def _concept(charge: Charge) -> str:
 
 
 @transaction.atomic
-def reverse_income(movement: Movement, *, reason: str, by) -> Movement:
-    """Contramoviment d'un ingrés de cobrament en desfer la seva conciliació (045; P-M04-C, pas
-    3; RN-T07, RN-T25): mateix compte, import, departament i centre de cost, sentit contrari i
-    enllaçat a l'original, amb el motiu. L'original no es toca. Només el crida
-    `reconciliation.undo`: l'anul·lació manual d'un ingrés es rebutja (CA-T06.2).
-    shortcut: és el mínim de la T-M04-08 per a la 045; el servei general `reverse` (amb
-    `AlreadyReversed` i el període tancat) arriba amb aquella tasca i amb la T-M04-20."""
+def reverse(movement: Movement, *, reason: str, by, origin: str = MANUAL) -> Movement:
+    """Anul·la un moviment amb motiu (T-M04-08; P-M04-C; RN-T07, RN-T25, RN-T27; CA-T06.1): el
+    contramoviment mirall (mateix compte, import, departament i centre de cost; sentit contrari;
+    enllaçat amb `reverses`) amb data d'avui (RN-T29). L'original no es toca i es mostra anul·lat.
+    `origin`: «manual» (una persona amb T5, des de la pantalla o el 09) o «reconciliation»
+    (`reconciliation.undo`, que ja ha comprovat T4 i només hi passa ingressos de cobrament)."""
+    if origin not in (MANUAL, RECONCILIATION):
+        raise ValueError(origin)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Per anul·lar un moviment cal escriure'n el motiu."))
+    if origin == MANUAL and not has_perm(by, REVERSE, write=True):
+        raise Http404
     movement = Movement.objects.get(pk=movement.pk)
-    if movement.kind != Movement.Kind.INCOME:
-        raise ValidationError(_("Només es pot compensar així un ingrés de cobrament."))
-    reversal = Movement.objects.create(
-        account=movement.account,
-        direction=Movement.Direction.OUT,
-        amount_cents=movement.amount_cents,
-        value_date=timezone.localdate(),
-        kind=Movement.Kind.REVERSAL,
-        concept=movement.concept,
-        department=movement.department,
-        cost_centre=movement.cost_centre,
-        reverses=movement,  # OneToOne: un segon contramoviment el rebutja la base de dades
-        reason=reason.strip(),
-        recorded_by=by,
-    )
+    if movement.is_reversed:
+        raise AlreadyReversed(_("Aquest moviment ja està anul·lat."))
+    if origin == MANUAL:
+        _ensure_manually_reversible(movement)
+        # RN-T28 i RN-T30: aquí va el bloqueig de període tancat (`PeriodClosed`), només per a
+        # l'anul·lació manual; el de la conciliació és d'origen extern i mai es rebutja (RN-T31).
+        # Arriba amb la T-M04-20 (`register_movement_guard`): fins llavors no hi ha períodes.
+    elif movement.kind != Movement.Kind.INCOME:
+        raise NotReversible(_("Desfer una conciliació només anul·la ingressos de cobrament."))
+    try:
+        with transaction.atomic():
+            reversal = Movement.objects.create(
+                account=movement.account,
+                direction=_OPPOSITE[movement.direction],
+                amount_cents=movement.amount_cents,
+                value_date=timezone.localdate(),
+                kind=Movement.Kind.REVERSAL,
+                concept=movement.concept,
+                department=movement.department,
+                cost_centre=movement.cost_centre,
+                reverses=movement,
+                reason=reason,
+                recorded_by=by,
+            )
+    except IntegrityError:
+        # Una altra anul·lació ha entrat entre la comprovació i la inserció (OneToOne).
+        if Movement.objects.filter(reverses=movement).exists():
+            raise AlreadyReversed(_("Aquest moviment ja està anul·lat.")) from None
+        raise
     audit.record(
-        INCOME_REVERSED,
+        MOVEMENT_REVERSED,
         actor=by,
         target=reversal,
         reason=reason,
-        details={"reverses": movement.pk, "amount_cents": movement.amount_cents},
+        details={
+            "reverses": movement.pk,
+            "kind": movement.kind,
+            "amount_cents": movement.amount_cents,
+            "origin": origin,
+        },
     )
     return reversal
+
+
+_OPPOSITE = {
+    Movement.Direction.IN: Movement.Direction.OUT,
+    Movement.Direction.OUT: Movement.Direction.IN,
+}
+
+
+def _ensure_manually_reversible(movement: Movement) -> None:
+    kind = Movement.Kind
+    if movement.kind == kind.INCOME:
+        # CA-T06.2: es fa amb una devolució (05b) o desfent la conciliació.
+        raise NotReversible(
+            _("Un ingrés de cobrament no s'anul·la: cal una devolució o desfer la conciliació.")
+        )
+    if movement.kind == kind.REVERSAL:
+        # P-115 (opció conservadora): desfer una anul·lació no és cap correcció prevista.
+        raise NotReversible(_("Un contramoviment no s'anul·la."))
+    if movement.kind == kind.TRANSFER:
+        # P-114 (opció conservadora): una pota sola desquadraria els dos comptes.
+        raise NotReversible(_("Una pota d'un traspàs no s'anul·la sola."))
