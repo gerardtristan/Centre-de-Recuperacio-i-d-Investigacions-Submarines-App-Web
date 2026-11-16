@@ -22,7 +22,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-07 Solapas a l'administració | feta | 16/11/2026 | #57 | P-96 (B): adreça i etiqueta sense noms a `sessionStorage`. Fitxa del soci i de les sol·licituds; les altres fitxes s'hi afegeixen amb el bloc `solapa` |
 | T-DX-08 Ramillete: navegació de l'àrea del soci | feta | 16/11/2026 | #58 | Per sota de 600 px i amb JavaScript. «Surt» es queda a la capçalera (un sol «Surt» per pantalla, T-M01-46) |
 | T-DX-09 Baliza: novetats i notificacions, en construcció | per fer | — | — | P-98 (C) |
-| T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | per fer | — | — | Bizum quan la PR #38 sigui a `master`. Carril de pagaments primer |
+| T-DX-10 Tramite: estat del pagament (càrrec, targeta, Bizum) | en curs | 16/11/2026 | — | Bizum quan la PR #38 sigui a `master`. Carril de pagaments primer |
 | T-DX-11 Tramite i Emisor: el rebut | per fer | — | — | P-93: només el segell |
 | T-DX-12 Deposito: pagar per transferència; el comprovant, en construcció | bloquejada | — | — | Fins que la PR #41 (T-M04-10) sigui a `master` |
 | T-DX-13 Vigencia: quota i llicència a l'àrea del soci | per fer | — | — | El compte enrere surt del servidor (070, P-71) |

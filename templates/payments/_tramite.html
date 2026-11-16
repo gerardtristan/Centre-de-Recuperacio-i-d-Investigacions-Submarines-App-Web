@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}Tramite (T-DX-10; recurs a design/extern/; design-system §6.13): els passos d'un pagament tal com
+   els diu el servidor (`payments.payment_status`), dins de _status.html, que HTMX torna a demanar
+   mentre és en curs. Sense temps simulat i sense animació contínua (D20). El segell de «Pagat» només
+   surt quan el servidor l'ha confirmat (B10). Cap dada personal: només l'estat.{% endcomment %}
+{% if state != "closed" %}{# «closed»: el càrrec no es pot pagar (sense passos) #}
+<ol class="tramite tramite-{{ state }}" aria-label="{% translate 'Passos del pagament' %}">
+  <li class="tramite-pas {% if state == 'pending' %}es-actual{% else %}es-fet{% endif %}"{% if state == 'pending' %} aria-current="step"{% endif %}>
+    <span class="tramite-marca" aria-hidden="true">1</span><span>{% translate "Tria com pagar" %}</span>
+    <span class="visualment-amagat">{% if state == 'pending' %}{% translate "(ara)" %}{% else %}{% translate "(fet)" %}{% endif %}</span>
+  </li>
+  <li class="tramite-pas {% if state == 'in_progress' %}es-actual{% elif state == 'paid' %}es-fet{% elif state == 'failed' or state == 'timed_out' %}es-avis{% endif %}"{% if state == 'in_progress' or state == 'failed' or state == 'timed_out' %} aria-current="step"{% endif %}>
+    <span class="tramite-marca" aria-hidden="true">{% if state == 'failed' or state == 'timed_out' %}!{% else %}2{% endif %}</span><span>{% translate "Confirmació del proveïdor" %}</span>
+    <span class="visualment-amagat">{% if state == 'in_progress' %}{% translate "(ara)" %}{% elif state == 'paid' %}{% translate "(fet)" %}{% elif state == 'failed' or state == 'timed_out' %}{% translate "(no s'ha completat)" %}{% endif %}</span>
+  </li>
+  <li class="tramite-pas {% if state == 'paid' %}es-fet es-final{% endif %}">
+    <span class="tramite-marca" aria-hidden="true">{% if state == 'paid' %}✓{% else %}3{% endif %}</span><span>{% translate "Pagament completat" %}</span>
+    <span class="visualment-amagat">{% if state == 'paid' %}{% translate "(fet)" %}{% endif %}</span>
+  </li>
+</ol>
+{% endif %}
