@@ -29,6 +29,10 @@ CARD_QR_KEYS = env.list("CARD_QR_KEYS")
 CARD_QR_ACTIVE_KEY = env("CARD_QR_ACTIVE_KEY")
 CARD_QR_KEYS_REQUIRED = True
 
+# Clau de l'IBAN del mandat (044; checklist C13): obligatòria; sense, l'aplicació no arrenca.
+MANDATE_ENCRYPTION_KEYS = env.list("MANDATE_ENCRYPTION_KEYS")
+MANDATE_ENCRYPTION_KEYS_REQUIRED = True
+
 # Correu: el proveïdor real s'ha de declarar sencer; mai la bústia de proves local per defecte.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST")

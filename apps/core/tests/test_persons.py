@@ -146,7 +146,9 @@ def test_no_model_has_iban_or_health_fields():
     forbidden = ("iban", "health", "salut", "medical", "medic")
     project_models = [m for m in apps.get_models() if m.__module__.startswith("apps.")]
     fields = [f"{m.__name__}.{f.name}" for m in project_models for f in m._meta.get_fields()]
-    assert not [f for f in fields if any(word in f.lower() for word in forbidden)]
+    # 044: l'única excepció, el compte xifrat del mandat (CA-M05a-07, apps/payments).
+    mandate = {f"MandateBankAccount.iban_{name}" for name in ("ciphertext", "country", "last4")}
+    assert not [f for f in fields if any(w in f.lower() for w in forbidden) and f not in mandate]
 
 
 def test_preferred_language_defaults_to_catalan():
