@@ -1,0 +1,15 @@
+/* Averia (T-DX-32; recurs a design/extern/; design-system §16, T-DX-32): comunicar una avaria d'una peça
+   del material. Del recurs: triar el tipus, les preguntes que porta cada tipus, explicar-ho i les fotos.
+   Al costat, la fitxa de la peça. Només tokens. */
+.averia { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.averia h1 { margin-top: 0; }
+.averia-intro { margin: 0 0 var(--e-4); color: var(--c-text-2); max-width: var(--amplada-text); }
+.averia .averia-cols { gap: var(--e-5); }
+.averia .averia-form { min-width: 0; gap: var(--e-4); }
+.averia .segmentat { flex-wrap: wrap; border-radius: var(--r-m); inline-size: fit-content; max-inline-size: 100%; }
+.averia .averia-preguntes { padding: var(--e-3) var(--e-4); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); }
+.averia-pregunta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2) var(--e-4); }
+.averia-peca { min-width: 0; align-self: start; }
+.averia-peca h2 { margin: 0 0 var(--e-3); font-size: var(--t-l); }
+.averia-peca .ajuda { margin: var(--e-3) 0 0; font-size: var(--t-s); color: var(--c-text-2); }
+@media (min-width: 1024px) { .averia .averia-cols { grid-template-columns: 3fr 2fr; align-items: start; } }
