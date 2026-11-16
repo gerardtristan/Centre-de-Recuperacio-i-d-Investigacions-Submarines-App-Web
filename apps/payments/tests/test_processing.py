@@ -93,8 +93,12 @@ REAL_GET = business_settings.get
 
 
 def no_wait(monkeypatch):
-    """La xarxa de seguretat no espera: l'ajust de VC-17 val 0 (fora de rang, només a la prova)."""
-    monkeypatch.setattr(business_settings, "get", lambda key, at=None: 0)
+    """La xarxa de seguretat no espera: el seu ajust val 0 (fora de rang, només a la prova)."""
+    monkeypatch.setattr(
+        business_settings,
+        "get",
+        lambda key, at=None: 0 if key == processing.SAFETY_NET_AGE else REAL_GET(key, at),
+    )
 
 
 def run_queue():

@@ -9,7 +9,7 @@ from django.http import Http404
 from django.urls import reverse
 
 from apps.core import business_settings
-from apps.core.models import AuditEntry, Role, Setting
+from apps.core.models import AuditEntry, Person, Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401
 from apps.core.tests.test_guest_links import admin_client
 from apps.payments import attempts, checkout, processing
@@ -110,13 +110,20 @@ def test_vc_17_the_safety_net_waits_the_configured_minutes(admin, fee, account, 
 
 
 class TestSettingsMigrationIsReversible(CommittedDataTestCase):
-    """Desfer la 0004 treu els dos valors si no s'han canviat; tornar-la a aplicar els recrea."""
+    """Desfer i tornar a aplicar la 0004 funciona i deixa els mateixos ajustos (mateixa clau
+    primària): si es recreessin, la neteja d'aquesta classe, que esborra les files noves, els
+    faria desaparèixer de la base de proves reutilitzada (revisió de la PR #49)."""
 
-    def test_backwards_and_forwards(self):
+    def test_backwards_and_forwards_keeps_the_same_rows(self):
+        person = Person.objects.create(first_name="Prova", origin="in_person")
+        bizum = attempts.create_attempt(new_charge(person), "bizum")
+        before = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
         leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
         try:
             MigrationExecutor(connection).migrate([("payments", "0003_receipt")])
-            assert not Setting.objects.filter(module="payments").exists()
         finally:
             MigrationExecutor(connection).migrate(leaves)
-        assert Setting.objects.filter(module="payments").count() == 2
+        after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
+        assert after == before and len(after) == 2
+        # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
+        assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15

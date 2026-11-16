@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Account
-from apps.core import audit, business_settings
+from apps.core import audit
 from apps.core.models import Charge
 
 from . import attempts, processing
@@ -85,12 +85,10 @@ def payment_status(charge: Charge) -> PaymentStatus:
 
 def _timed_out(attempt: PaymentAttempt) -> bool:
     """RN-M05b-07: un Bizum que fa més minuts dels que espera la pantalla (VC-17) que espera la
-    confirmació. Valen els minuts desats a l'intent en obrir-lo (RN-M05b-24); un intent d'abans
-    d'aquest camp pren l'ajust vigent."""
+    confirmació. Valen els minuts desats a l'intent en obrir-lo (RN-M05b-24)."""
     if attempt.method != BIZUM:
         return False
-    minutes = attempt.ui_timeout_minutes or business_settings.get(attempts.BIZUM_UI_TIMEOUT)
-    return attempt.created_at <= timezone.now() - timedelta(minutes=minutes)
+    return attempt.created_at <= timezone.now() - timedelta(minutes=attempt.ui_timeout_minutes)
 
 
 def _owns(actor, charge) -> bool:

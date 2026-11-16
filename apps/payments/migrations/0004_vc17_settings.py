@@ -12,6 +12,10 @@ SETTINGS = [
 
 
 def load(apps, schema_editor):
+    # RN-M05b-24: els Bizum que ja eren en curs conserven els 15 minuts que tenien.
+    apps.get_model("payments", "PaymentAttempt").objects.filter(
+        method="bizum", ui_timeout_minutes__isnull=True
+    ).update(ui_timeout_minutes=15)
     Setting = apps.get_model("core", "Setting")
     for key, initial, low, high in SETTINGS:
         Setting.objects.get_or_create(
@@ -22,11 +26,9 @@ def load(apps, schema_editor):
 
 
 def unload(apps, schema_editor):
-    # Un valor ja canviat té historial, que no s'esborra mai: llavors l'ajust es queda i, si es
-    # torna a aplicar la migració, es reaprofita.
-    apps.get_model("core", "Setting").objects.filter(
-        key__in=[key for key, *_ in SETTINGS], versions__isnull=True
-    ).delete()
+    """Els ajustos es queden: un valor canviat té historial, que no s'esborra mai, i tornar a
+    aplicar la migració els reaprofita (mateixa fila). Sense cap codi que els llegeixi, no fan
+    res. El camp de l'intent sí que se'n va."""
 
 
 class Migration(migrations.Migration):

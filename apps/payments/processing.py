@@ -40,7 +40,8 @@ REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
 SAFETY_NET_AGE = "payments.safety_net_age_minutes"
 # Una ordre que la xarxa no pot tancar es torna a provar l'endemà; passat aquest temps va «a
 # revisar» (L-M05b-01). Així una caiguda curta del proveïdor no tanca un intent que potser es
-# pagarà i obre la porta a pagar dues vegades. shortcut: constant fins a la T-M05b-22.
+# pagarà i obre la porta a pagar dues vegades. shortcut: constant; no és a VC-17 i la T-M05b-22
+# no l'ha convertit en ajust (cal decidir-ho abans).
 SAFETY_NET_GIVE_UP = timedelta(hours=24)
 # Estat normalitzat del proveïdor → estat de l'intent que encara és «en curs».
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}

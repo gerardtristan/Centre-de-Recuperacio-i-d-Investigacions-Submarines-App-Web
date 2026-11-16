@@ -31,11 +31,11 @@ class AttemptAlreadyPaid(Exception):
     """RN-M05b-04: el càrrec ja té un intent pagat."""
 
 
-# Els dos índexs únics parcials de RN-M05b-04, amb l'error que en surt.
 # VC-17: minuts que la pantalla espera un Bizum. Només de la pantalla: la caducitat de l'ordre
 # la fixa el proveïdor (P-45 punt 13).
 BIZUM_UI_TIMEOUT = "payments.bizum_ui_timeout_minutes"
 
+# Els dos índexs únics parcials de RN-M05b-04, amb l'error que en surt.
 _CONFLICTS = {
     "payment_attempt_one_in_progress": AttemptInProgress,
     "payment_attempt_one_paid": AttemptAlreadyPaid,
