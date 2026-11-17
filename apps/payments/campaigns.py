@@ -118,11 +118,29 @@ def to_invite(campaign: MandateCampaign | None) -> list[tuple]:
     return [(member, recipients.email_for(member.person)) for member in members]
 
 
-def send_invitations(campaign: MandateCampaign, *, by) -> int:
-    """CA-M05a-12: només els socis actius sense mètode. Torna quants n'ha convidat."""
+def to_invite_each_time(campaign: MandateCampaign | None) -> list[tuple]:
+    """RN-M05a-22: socis actius que paguen cada vegada (per transferència, Bizum o targeta) i que
+    aquesta campanya encara no ha convidat, amb l'adreça ("" si no en tenen)."""
+    each_time = FeePaymentPreference.objects.filter(method=FeeMethod.PAY_EACH_TIME)
+    members = _active_members().filter(pk__in=each_time.values("member")).select_related("person")
+    if campaign is not None:
+        members = members.exclude(pk__in=campaign.recipients.values("member"))
+    return [(member, recipients.email_for(member.person)) for member in members]
+
+
+def send_each_time_invitations(campaign: MandateCampaign, *, by) -> int:
+    """CA-M05a-21: la invitació opcional a passar a targeta guardada o domiciliació, una sola
+    vegada per soci i campanya. No canvia el mètode de ningú i no porta recordatoris (només els
+    reben els socis sense mètode). Torna quants n'ha convidat."""
+    return send_invitations(campaign, by=by, each_time=True)
+
+
+def send_invitations(campaign: MandateCampaign, *, by, each_time: bool = False) -> int:
+    """CA-M05a-12: només els socis actius sense mètode (o, amb `each_time`, els qui paguen cada
+    vegada, CA-M05a-21). Torna quants n'ha convidat."""
     check_can_send(campaign)
     sent = 0
-    for member, address in to_invite(campaign):
+    for member, address in (to_invite_each_time if each_time else to_invite)(campaign):
         if not address:
             continue
         with transaction.atomic():
@@ -136,7 +154,11 @@ def send_invitations(campaign: MandateCampaign, *, by) -> int:
         "payments.campaign.invitations_sent",
         actor=by,
         target=campaign,
-        details={"sent": sent, "text_version": campaign.invitation_text.version},
+        details={
+            "sent": sent,
+            "text_version": campaign.invitation_text.version,
+            **({"each_time": True} if each_time else {}),
+        },
     )
     return sent
 

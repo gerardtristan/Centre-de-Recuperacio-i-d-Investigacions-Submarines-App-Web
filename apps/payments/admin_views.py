@@ -111,14 +111,18 @@ def _campaign_action(request, campaign):
             messages.success(request, _("Campanya oberta. Revisa-la i envia les invitacions."))
         else:
             messages.error(request, _("Escriu el nom de la campanya."))
-    elif action in ("send", "close") and campaign is None:
+    elif action in ("send", "send_each_time", "close") and campaign is None:
         raise campaigns.Closed
-    elif action in ("send", "close") and request.POST.get("confirm") != "1":
+    elif action in ("send", "send_each_time", "close") and request.POST.get("confirm") != "1":
         return action
-    elif action == "send":
+    elif action in ("send", "send_each_time"):
         campaigns.check_can_send(campaign)
         # Dins de la transacció de la petició, com `mail.queue_email`: si falla, no queda cap feina.
-        tasks.send_campaign_invitations.defer(campaign_id=campaign.pk, account_id=request.user.pk)
+        # RN-M05a-22, CA-M05a-21 (T-M05a-23): la invitació opcional a qui paga cada vegada.
+        extra = {"each_time": True} if action == "send_each_time" else {}
+        tasks.send_campaign_invitations.defer(
+            campaign_id=campaign.pk, account_id=request.user.pk, **extra
+        )
         messages.success(request, _("Les invitacions s'estan enviant per la cua de correu."))
     elif action == "close":
         campaigns.close_campaign(campaign, by=request.user)
@@ -149,6 +153,7 @@ def campaign_view(request):
         "answered": campaign is not None
         and campaign.recipients.filter(answered_at__isnull=False).exists(),
         "to_invite": len(pending) - without_email,
+        "each_time": sum(1 for _m, address in campaigns.to_invite_each_time(campaign) if address),
         "without_email": without_email,
         "reminder_days": campaigns.reminder_days(),
         "blocked": campaigns.blocking_reason(),

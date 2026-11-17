@@ -9,6 +9,7 @@ from procrastinate.contrib.django.models import ProcrastinateJob
 from apps.core.models import LegalText, Person
 from apps.members.tests.test_cards import make_member
 from apps.payments import campaigns
+from apps.payments.models import FeePaymentPreference
 
 from .conftest import login_admin, make_admin
 
@@ -28,6 +29,10 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
         Person.objects.filter(pk=member.person_id).update(contact_email=f"{first}@example.org")
     make_member("Laia", number=502, document="00000003A")  # sense correu
     treasurer = make_admin("tresoreria.prova", "treasurer")
+    # Paga cada vegada: rep la invitació opcional (RN-M05a-22, T-M05a-23), no la de sense mètode.
+    pau = make_member("Pau", number=615, document="00000004G")
+    Person.objects.filter(pk=pau.person_id).update(contact_email="pau@example.org")
+    FeePaymentPreference.objects.create(member=pau, method="pay_each_time", set_by=treasurer)
 
     login_admin(page, live_server.url, treasurer.login)
     # Hi arriba pel menú (T-DX-46): l'entrada només surt amb A4.
@@ -52,6 +57,12 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
     page.get_by_role("button", name="Sí, envia-les").click()
     expect(page.get_by_role("status")).to_contain_text("s'estan enviant")
     assert ProcrastinateJob.objects.filter(task_name="payments.send_campaign_invitations").exists()
+
+    page.get_by_role("button", name="Convida 1 soci que paga cada vegada…").click()
+    expect(page.get_by_role("alert")).to_contain_text("No canvia el mètode de ningú")
+    review("campanya-mandats-cada-vegada")
+    page.get_by_role("button", name="Sí, envia-les").click()
+    expect(page.get_by_role("status")).to_contain_text("s'estan enviant")
 
     page.get_by_role("button", name="Tanca la campanya…").click()
     page.get_by_role("button", name="Sí, tanca-la").click()

@@ -13,12 +13,17 @@ la P-45, punt 6: es construeix contra el proveïdor fals, que declara que la sap
 - La referència del proveïdor no surt a cap pantalla, registre d'activitat ni correu.
 """
 
+import calendar
+from datetime import date
+
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
+from django.utils import timezone
 
-from apps.core import audit
-from apps.core.models import Person
+from apps.core import audit, business_settings, mail
+from apps.core.models import AuditEntry, Person
+from apps.members import recipients
 from apps.members.models import Member
 
 from . import preferences
@@ -29,6 +34,10 @@ STARTED = "payments.card_setup.started"
 SAVED = "payments.saved_card.saved"
 REPLACED = "payments.saved_card.replaced"
 FAILED = "payments.card_setup.failed"
+EXPIRY_NOTICE = "payments.saved_card.expiry_notice"
+EXPIRY_TEMPLATE = "targeta-caduca"
+# VC-48 (RN-M05a-20): dies abans de la caducitat; valor inicial 30 (060) [A validar: tresorer].
+NOTICE_DAYS = "payments.card_expiry_notice_days"
 ACTOR = audit.system("payments.cards")
 CURRENCY = "EUR"  # la de l'autorització de 0 €: la dels càrrecs del club (`Charge.currency`)
 KNOWN = (base.PAID, base.DENIED, base.EXPIRED)
@@ -151,3 +160,39 @@ def give_up(setup: CardSetup, before) -> None:
 def waiting(person) -> bool:
     """Hi ha una autenticació començada que el proveïdor encara no ha confirmat."""
     return CardSetup.objects.filter(person=person, status=IN_PROGRESS).exists()
+
+
+def expires_on(card: SavedCard) -> date | None:
+    """L'últim dia del mes de caducitat, si el proveïdor l'ha donat."""
+    if card.expiry_year is None or card.expiry_month is None:
+        return None
+    last = calendar.monthrange(card.expiry_year, card.expiry_month)[1]
+    return date(card.expiry_year, card.expiry_month, last)
+
+
+def send_expiry_notices(today: date | None = None) -> int:
+    """CA-M05a-20 (RN-M05a-20): cada dia, un sol avís per correu a qui té una targeta activa que
+    caduca d'aquí a menys dies que VC-48, amb l'enllaç per guardar-ne una de nova. Torna quants
+    n'ha enviat. L'avís a l'app espera el servei d'avisos de la 00."""
+    today = today or timezone.localdate()
+    days = business_settings.get(NOTICE_DAYS, today)
+    noticed = AuditEntry.objects.filter(action=EXPIRY_NOTICE, target_type="payments.savedcard")
+    done = {int(pk) for pk in noticed.values_list("target_id", flat=True)}
+    sent = 0
+    active = SavedCard.objects.filter(status=SavedCard.Status.ACTIVE, expiry_year__isnull=False)
+    for card in active.exclude(pk__in=done).select_related("person"):
+        end = expires_on(card)
+        if end is None or not 0 <= (end - today).days < days:
+            continue
+        address = recipients.email_for(card.person)
+        with transaction.atomic():
+            if address:
+                context = {
+                    "last4": card.last4,
+                    "expiry": f"{card.expiry_month:02d}/{card.expiry_year}",
+                    "link": settings.PUBLIC_SITE_URL + reverse("payments:saved_card"),
+                }
+                mail.queue_email(EXPIRY_TEMPLATE, to=address, person=card.person, context=context)
+                sent += 1
+            audit.record(EXPIRY_NOTICE, actor=ACTOR, target=card, details={"sent": bool(address)})
+    return sent

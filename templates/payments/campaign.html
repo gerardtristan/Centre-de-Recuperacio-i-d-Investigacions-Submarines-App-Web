@@ -57,6 +57,16 @@
               <a class="boto boto-text" href="{% url 'administration:payments_campaign' %}">{% translate "Cancel·la" %}</a>
             </div>
           </form>
+        {% elif confirm == "send_each_time" %}
+          <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_each_time"><input type="hidden" name="confirm" value="1">
+            <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'enviament" %}</strong>{% blocktranslate count total=each_time %}S'enviarà {{ total }} invitació opcional a qui paga cada vegada. No canvia el mètode de ningú, no porta recordatoris i cada soci la rep una sola vegada.{% plural %}S'enviaran {{ total }} invitacions opcionals a qui paga cada vegada. No canvien el mètode de ningú, no porten recordatoris i cada soci la rep una sola vegada.{% endblocktranslate %}</div>
+            <div class="accions">
+              <button class="boto boto-principal" type="submit">{% translate "Sí, envia-les" %}</button>
+              <a class="boto boto-text" href="{% url 'administration:payments_campaign' %}">{% translate "Cancel·la" %}</a>
+            </div>
+          </form>
         {% elif confirm == "close" %}
           <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
             {% csrf_token %}
@@ -71,6 +81,7 @@
           <form class="accions" method="post" action="{% url 'administration:payments_campaign' %}">
             {% csrf_token %}
             {% if to_invite and not blocked %}<button class="boto boto-principal" type="submit" name="action" value="send">{% blocktranslate count total=to_invite %}Envia {{ total }} invitació…{% plural %}Envia {{ total }} invitacions…{% endblocktranslate %}</button>{% endif %}
+            {% if each_time and not blocked %}<button class="boto" type="submit" name="action" value="send_each_time">{% blocktranslate count total=each_time %}Convida {{ total }} soci que paga cada vegada…{% plural %}Convida {{ total }} socis que paguen cada vegada…{% endblocktranslate %}</button>{% endif %}
             <button class="boto" type="submit" name="action" value="close">{% translate "Tanca la campanya…" %}</button>
           </form>
         {% endif %}

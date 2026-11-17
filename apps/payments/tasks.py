@@ -5,7 +5,7 @@ from procrastinate.contrib.django import app
 
 from apps.accounts.models import Account
 
-from . import campaigns, checkout, expiry, processing, settlements
+from . import campaigns, cards, checkout, expiry, processing, settlements
 from .models import MandateCampaign
 
 
@@ -44,11 +44,19 @@ def charge_saved_cards(timestamp: int) -> None:
     checkout.charge_due_saved_cards()
 
 
+# Cada dia, al matí: l'avís de caducitat de les targetes guardades (T-M05a-23; CA-M05a-20).
+@app.periodic(cron="40 9 * * *")
+@app.task(name="payments.card_expiry_notices", queue="maintenance")
+def card_expiry_notices(timestamp: int) -> None:
+    cards.send_expiry_notices()
+
+
 # P-M05a-E, pas 3: el tresorer confirma l'enviament i les invitacions surten per la cua.
 @app.task(name="payments.send_campaign_invitations", queue="payments")
-def send_campaign_invitations(campaign_id: int, account_id: int) -> None:
+def send_campaign_invitations(campaign_id: int, account_id: int, each_time: bool = False) -> None:
     campaign = MandateCampaign.objects.get(pk=campaign_id)
-    campaigns.send_invitations(campaign, by=Account.objects.get(pk=account_id))
+    by = Account.objects.get(pk=account_id)
+    campaigns.send_invitations(campaign, by=by, each_time=each_time)
 
 
 # Cada dia al matí: recordatoris de la campanya de mandats (RN-M05a-14).

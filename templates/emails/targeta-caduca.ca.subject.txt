@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-23, RN-M05a-20: TEXT PROVISIONAL [A validar: junta]. #}{% translate "La teva targeta guardada caduca aviat" %}

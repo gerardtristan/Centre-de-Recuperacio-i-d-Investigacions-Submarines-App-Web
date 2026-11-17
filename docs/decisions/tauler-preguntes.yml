@@ -838,4 +838,24 @@ opcions:
       sol avís.
     data: 2026-11-17
 
+  P-307:
+    opcions:
+      A: El mateix text i la mateixa plantilla de la campanya, sense recordatoris.
+      B: Un text propi, versionat com els altres, que la junta aprova amb els de la T-M05a-01.
+    recomanada: B
+    perque: >-
+      El text de la campanya parla als socis sense mètode; qui ja paga cada vegada necessita saber que és
+      opcional i que res no canvia si no respon. A és el que hi ha fet mentre la junta no aprova el text.
+    data: 2026-11-17
+
+  P-308:
+    opcions:
+      A: Fins que arribi la tasca del nucli amb els permisos d'edició, els ajustos només es canvien amb una migració de dades revisada.
+      B: Afegir ara els permisos al catàleg (el Tresorer), amb una migració de `core` per a cada tasca.
+    recomanada: A
+    perque: >-
+      Una sola tasca del nucli afegeix tots els permisos d'edició pendents alhora i evita migracions de `core`
+      en paral·lel; mentrestant, els valors inicials són els de l'opció per defecte i ningú no els canvia sense revisió.
+    data: 2026-11-17
+
 noves:
