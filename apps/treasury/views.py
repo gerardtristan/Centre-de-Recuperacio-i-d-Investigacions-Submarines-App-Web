@@ -284,29 +284,35 @@ def undo_view(request, reconciliation_id):
 @require_http_methods(["GET", "POST"])
 def match_view(request, line_id):
     line = get_object_or_404(statement_lines(), pk=line_id)
-    query = request.GET.get("cerca", request.POST.get("cerca", "")).strip()[:200]
-    context = {"line": line, "amount": euros(line.amount_cents), "query": query}
-    if request.method == "GET":
-        found = reconciliation.pending_charges(query)
-        context["found"] = [{"charge": c, "amount": euros(c.amount_cents)} for c in found]
-        return render(request, "treasury/match.html", context)
-    selected = request.POST.getlist("carrec")
+    data = request.POST if request.method == "POST" else request.GET
+    query = data.get("cerca", "").strip()[:200]
+    selected = data.getlist("carrec")
     # Un valor que no és un identificador buida la tria: el servei la rebutja sencera.
     ids = [
         int(value) for value in selected if value.isascii() and value.isdigit() and len(value) <= 18
     ]
     ids = ids if len(ids) == len(selected) else []
-    if request.POST.get("confirma"):
-        return _back_to_reconciliation(
-            request,
-            lambda: reconciliation.match(line, ids, by=request.user),
-            _("Línia casada: els càrrecs consten com a pagats i l'ingrés és al banc."),
-        )
+    context = {"line": line, "amount": euros(line.amount_cents), "query": query}
+    if request.method == "GET":
+        reconciliation.refresh()  # com la conciliació: l'estat de la línia, al dia
+        context["matchable"] = reconciliation.matchable_state(line) is not None
+        found, context["more"] = reconciliation.pending_charges(query)
+        context["found"] = [
+            {"charge": c, "amount": euros(c.amount_cents), "checked": c.pk in ids} for c in found
+        ]
+        return render(request, "treasury/match.html", context)
     try:
+        if request.POST.get("confirma"):
+            reconciliation.match(line, ids, by=request.user)
+            messages.success(
+                request, _("Línia casada: els càrrecs consten com a pagats i l'ingrés és al banc.")
+            )
+            return redirect("administration:treasury_reconciliation")
         matched = reconciliation.check_match(line, ids, by=request.user)
     except ValidationError as error:
+        # Torna a la cerca amb la tria, perquè el tresorer la corregeixi.
         messages.error(request, " ".join(error.messages))
         url = reverse("administration:treasury_match_line", args=[line.pk])
-        return redirect(f"{url}?{urlencode({'cerca': query})}")
+        return redirect(f"{url}?{urlencode({'cerca': query, 'carrec': ids}, doseq=True)}")
     context["matched"] = [{"charge": c, "amount": euros(c.amount_cents)} for c in matched]
     return render(request, "treasury/match.html", context)

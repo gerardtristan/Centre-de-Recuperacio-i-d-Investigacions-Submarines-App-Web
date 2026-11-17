@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-12e (P-M04-E, pas 3; LT2; RN-T17): casar a mà una línia pendent amb un o més càrrecs pendents. Cerca per referència o número de soci (com a màxim 20, cap IBAN), revisió amb la suma i confirmació. T4 al servidor en tots els passos; POST amb CSRF. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, l'estat, la suma i que cap càrrec sigui d'una altra proposta. #}
+{# T-M04-12e (P-M04-E, pas 3; LT2; RN-T17): casar a mà una línia pendent amb un o més càrrecs pendents. Cerca per referència o número de soci (els 20 més recents, cap IBAN; els que tenen un cobrament en curs o són a una altra proposta, sense casella), revisió amb la suma i confirmació. T4 al servidor en tots els passos; POST amb CSRF. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, l'estat, la suma i que cap càrrec sigui d'una altra proposta. #}
 {% block title %}{% translate "Casa la línia a mà" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
@@ -14,7 +14,9 @@
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
   </dl>
 
-  {% if matched %}
+  {% if not matched and not matchable %}
+    <p>{% translate "Aquesta línia no està pendent o no és d'entrada: no es pot casar." %}</p>
+  {% elif matched %}
     <table class="taula">
       <caption>{% translate "Càrrecs triats" %}</caption>
       <thead><tr><th scope="col">{% translate "Persona" %}</th><th scope="col">{% translate "Concepte" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th></tr></thead>
@@ -50,8 +52,13 @@
         <fieldset>
           <legend>{% blocktranslate with amount=amount %}Tria els càrrecs que sumen {{ amount }}{% endblocktranslate %}</legend>
           {% for item in found %}
-            <label class="casella"><input type="checkbox" name="carrec" value="{{ item.charge.pk }}"> <span>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></span></label>
+            {% if item.charge.collecting or item.charge.proposed %}
+              <p>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span> <span class="estat estat-neutre">{% if item.charge.collecting %}{% translate "té un cobrament en curs" %}{% else %}{% translate "és a la proposta d'una altra línia" %}{% endif %}</span></p>
+            {% else %}
+              <label class="casella"><input type="checkbox" name="carrec" value="{{ item.charge.pk }}"{% if item.checked %} checked{% endif %}> <span>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></span></label>
+            {% endif %}
           {% endfor %}
+          {% if more %}<p class="ajuda">{% blocktranslate with limit=found|length %}N'hi ha més: afina la cerca. Només surten els {{ limit }} més recents.{% endblocktranslate %}</p>{% endif %}
         </fieldset>
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el casament" %}</button></div>
       </form>

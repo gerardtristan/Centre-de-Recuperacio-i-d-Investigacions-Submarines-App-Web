@@ -35,7 +35,7 @@ from datetime import datetime, time
 
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
-from django.db.models import Count, Max, Q
+from django.db.models import Count, Exists, Max, OuterRef, Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -47,6 +47,7 @@ from apps.core.models import Charge, Payment
 from apps.core.permissions import has_perm
 from apps.members import fees as member_fees
 from apps.members import services as members
+from apps.payments.models import PaymentAttempt
 
 from . import services
 from .models import (
@@ -226,29 +227,56 @@ def confirm(line, *, by) -> Reconciliation:
     return _reconcile(state, list(state.proposed_charges.order_by("pk")), by=by)
 
 
+def _flagged(charges):
+    """Els càrrecs amb dues marques: `collecting`, un cobrament en curs que el pagaria per una
+    altra banda (targeta o Bizum en curs, o una domiciliació d'una remesa enviada al banc; la
+    transferència que s'espera no, que és la que es casa); `proposed`, a la proposta d'una línia."""
+    attempts = PaymentAttempt.objects.filter(charge=OuterRef("pk"))
+    collecting = attempts.filter(
+        Q(status=PaymentAttempt.Status.SENT_TO_BANK)
+        | Q(status=PaymentAttempt.Status.IN_PROGRESS) & ~Q(method=PaymentAttempt.Method.TRANSFER)
+    )
+    proposed = StatementLineState.objects.filter(
+        status=StatementLineState.Status.PROPOSED, proposed_charges=OuterRef("pk")
+    )
+    return charges.annotate(collecting=Exists(collecting), proposed=Exists(proposed))
+
+
+def matchable_state(line):
+    """L'estat de la línia si es pot casar a mà (d'entrada, pendent, d'un extracte vigent), o
+    None. Llegeix l'estat desat: `match` el torna a calcular abans de pagar res."""
+    state = (
+        StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
+        .select_related("statement_line")
+        .first()
+    )
+    if state is None or state.status != StatementLineState.Status.PENDING:
+        return None
+    return state if state.statement_line.amount_cents > 0 else None
+
+
 def _matchable(line, charge_ids, *, lock):
     """(estat, càrrecs) d'un casament a mà, o `ReconciliationRejected`: una línia d'entrada
-    pendent d'un extracte vigent i càrrecs pendents, de cap altra proposta, que sumin
-    exactament l'import (RN-T17, RN-T17b)."""
-    states = StatementLineState.objects.filter(
-        statement_line=line, statement_line__in=statement_lines()
-    ).select_related("statement_line")
-    charges = Charge.objects.filter(pk__in=set(charge_ids)).order_by("pk")
-    if lock:
-        states, charges = states.select_for_update(), charges.select_for_update()
-    state = states.first()
-    if state is None or state.status != StatementLineState.Status.PENDING:
-        raise ReconciliationRejected(_("Aquesta línia ja no està pendent: no es pot casar."))
-    if state.statement_line.amount_cents <= 0:
-        raise ReconciliationRejected(_("Només es pot casar una línia d'entrada."))
-    matched = list(charges)
+    pendent d'un extracte vigent i càrrecs pendents, sense cap cobrament en curs ni a cap altra
+    proposta, que sumin exactament l'import (RN-T17, RN-T17b)."""
+    if lock:  # bloqueja la línia i els càrrecs fins que acabi la transacció
+        StatementLineState.objects.select_for_update().filter(statement_line=line).first()
+        list(Charge.objects.select_for_update().filter(pk__in=set(charge_ids)))
+    state = matchable_state(line)
+    if state is None:
+        raise ReconciliationRejected(
+            _("Aquesta línia no està pendent o no és d'entrada: no es pot casar.")
+        )
+    matched = list(_flagged(Charge.objects.filter(pk__in=set(charge_ids))).order_by("pk"))
     if not matched or len(matched) != len(set(charge_ids)):
         raise ReconciliationRejected(_("Tria un o més càrrecs pendents."))
     if any(charge.status != Charge.Status.PENDING for charge in matched):
         raise ReconciliationRejected(_("Un dels càrrecs ja no està pendent."))
-    if StatementLineState.objects.filter(
-        status=StatementLineState.Status.PROPOSED, proposed_charges__in=matched
-    ).exists():
+    if any(charge.collecting for charge in matched):
+        raise ReconciliationRejected(
+            _("Un dels càrrecs té un cobrament en curs (targeta, Bizum o domiciliació).")
+        )
+    if any(charge.proposed for charge in matched):
         raise ReconciliationRejected(
             _("Un dels càrrecs ja és a la proposta d'una altra línia: confirma aquella.")
         )
@@ -262,10 +290,9 @@ def _matchable(line, charge_ids, *, lock):
 
 
 def check_match(line, charge_ids, *, by) -> list[Charge]:
-    """Pas de revisió del casament a mà: les mateixes comprovacions que `match`, sense pagar
-    res."""
+    """Pas de revisió del casament a mà: les mateixes comprovacions que `match` sobre l'estat
+    desat, sense pagar res ni recalcular les propostes."""
     _ensure_can_reconcile(by)
-    refresh()
     return _matchable(line, charge_ids, lock=False)[1]
 
 
@@ -273,7 +300,7 @@ def check_match(line, charge_ids, *, by) -> list[Charge]:
 def match(line, charge_ids, *, by) -> Reconciliation:
     """Casar a mà (T-M04-12e; P-M04-E pas 3; LT2): el tresorer casa una línia pendent amb un o
     més càrrecs pendents que en sumen l'import exacte. Després, el mateix que `confirm` (i es
-    desfà amb `undo`)."""
+    desfà amb `undo`), sense inventar cap referència que la línia no porti."""
     _ensure_can_reconcile(by)
     refresh()  # també agafa el pany
     state, matched = _matchable(line, charge_ids, lock=True)
@@ -284,13 +311,20 @@ def _reconcile(state, matched, *, by, manual=False) -> Reconciliation:
     """Pagament per transferència, ingrés al banc i avís al 01 de cada càrrec; conciliació i
     línia «conciliada». Dins la transacció de qui la crida."""
     line_date = state.statement_line.value_date
+    if manual:  # només la referència que porta la línia (RN-T20: no se n'inventa cap)
+        carried = set(references_in(state.statement_line.concept))
+        found = TransferReference.objects.filter(charge__in=matched, reference__in=carried)
+        references = {charge.pk: "" for charge in matched}
+        references.update(found.values_list("charge_id", "reference"))
+    else:
+        references = {charge.pk: transfer_reference(charge) for charge in matched}
     for charge in matched:
         payment = record_payment(
             charge,
             method=Payment.Method.TRANSFER,
             origin="reconciliation",
             by=by,
-            transfer_reference=transfer_reference(charge),
+            transfer_reference=references[charge.pk],
             # P-111 (095): el dia de valor de la línia, perquè el saldo quadri amb l'extracte.
             paid_at=timezone.make_aware(datetime.combine(line_date, time.min)),
         )
@@ -370,10 +404,11 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
 SEARCH_LIMIT = 20
 
 
-def pending_charges(query: str) -> list[Charge]:
-    """Càrrecs pendents per casar a mà: per referències de transferència (amb les variants que
-    llegeix `references_in`) o números de soci, diversos separats per espais. Cap cerca per nom.
-    Com a màxim `SEARCH_LIMIT`."""
+def pending_charges(query: str) -> tuple[list[Charge], bool]:
+    """Càrrecs pendents per casar a mà, els més recents primer: per referències de transferència
+    (amb les variants que llegeix `references_in`) o números de soci, diversos separats per
+    espais. Cap cerca per nom. Com a màxim `SEARCH_LIMIT`, i si n'hi ha més. Cada càrrec porta
+    les marques de `_flagged`."""
     query = (query or "")[:200]
     numbers = [
         int(word)
@@ -384,7 +419,8 @@ def pending_charges(query: str) -> list[Charge]:
         pk__in=TransferReference.objects.filter(reference__in=references_in(query)).values("charge")
     )
     pending = Charge.objects.filter(found, status=Charge.Status.PENDING).select_related("person")
-    return list(pending.order_by("pk")[:SEARCH_LIMIT])
+    charges = list(_flagged(pending).order_by("-pk")[: SEARCH_LIMIT + 1])
+    return charges[:SEARCH_LIMIT], len(charges) > SEARCH_LIMIT
 
 
 def has_live_reconciliations(sender, batch, **kwargs) -> bool:
