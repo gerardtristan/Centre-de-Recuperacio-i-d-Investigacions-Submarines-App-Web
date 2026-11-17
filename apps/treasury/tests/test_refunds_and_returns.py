@@ -1,6 +1,8 @@
 """`record_refund` i `record_return`: devolucions i rebuts retornats (T-M04-07; HU-T05; P-M04-B;
 RN-T11; CA-T05.1 a CA-T05.4; P-118). Només dades inventades."""
 
+from uuid import uuid4
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -95,6 +97,21 @@ class TestRefund:
         first = refund(payment, 12000)
         services.reverse(first, reason="Apuntada per error (prova)", by=make_admin("treasurer"))
         assert refund(payment, 12000).amount_cents == 12000
+
+    def test_p_119_a_repeated_refund_id_returns_the_existing_refund(self, payment):
+        # Decisió 095, P-119 (B): l'identificador de la devolució va al moviment.
+        key = uuid4()
+        first = services.record_refund(payment, 4000, reason=REASON, by=SYSTEM, refund_id=key)
+        assert first.refund_id == key
+        again = services.record_refund(payment, 4000, reason=REASON, by=SYSTEM, refund_id=key)
+        assert again == first and len(rows(payment, K.REFUND)) == 1
+        assert AuditEntry.objects.filter(action=services.REFUND_RECORDED).count() == 1
+        # Dues devolucions parcials iguals amb identificadors diferents són legítimes.
+        services.record_refund(payment, 4000, reason=REASON, by=SYSTEM, refund_id=uuid4())
+        assert len(rows(payment, K.REFUND)) == 2
+        # El mateix identificador amb un altre import no és la mateixa devolució.
+        with pytest.raises(ValidationError):
+            services.record_refund(payment, 1000, reason=REASON, by=SYSTEM, refund_id=key)
 
     def test_ca_t05_2_the_original_fee_is_not_given_back(self, payment):
         fee = services.record_fee(payment, 180, by=SYSTEM)
