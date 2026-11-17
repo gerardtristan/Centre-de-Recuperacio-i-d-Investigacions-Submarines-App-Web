@@ -161,16 +161,6 @@ opcions:
       tresorer veuen una sola regla i no cal cap estat nou.
     data: 2026-11-12
 
-  P-80:
-    opcions:
-      A: Dos usuaris de base de dades en desplegar, un per a les migracions i un per a l'aplicació; el de l'aplicació, sense UPDATE, DELETE ni TRUNCATE a les taules on només s'afegeixen files.
-      B: Un sol usuari i només l'activador, com ara, i deixar-ho escrit com a risc acceptat.
-      C: Dos usuaris també en local i al CI, perquè una prova ho comprovi a cada canvi.
-    recomanada: A
-    perque: >-
-      L'activador ja atura qualsevol canvi, també amb una consulta directa; el segon usuari és una
-      barrera més per si algú treu l'activador. Només té sentit on hi ha dades reals, i per això es fa
-      en desplegar i no en local (C duplicaria la configuració de totes les proves).
   P-82:
     opcions:
       A: Deixar la llista com és; el que no hi encaixa ho resol el tresorer a mà, fora de l'intent.
@@ -281,31 +271,6 @@ opcions:
       descarregar que importar-ne una part amb saldos equivocats.
     data: 2026-11-16
 
-  P-110:
-    opcions:
-      A: La plataforma no toca el soci; la correcció avisa per correu qui pot editar les quotes, que decideix a mà.
-      B: El soci torna a l'estat que tenia abans de la quota (pendent) i el carnet es revoca.
-      C: El soci continua actiu fins al «vàlid fins al» anterior a la quota corregida i el carnet nou es revoca.
-      D: La 045 no s'admet sobre una quota que ja ha activat un soci; es corregeix amb una devolució.
-    recomanada: A
-    perque: >-
-      L'error és del tresorer, no del soci: canviar-li l'estat o revocar-li el carnet sense que ningú ho miri pot deixar
-      fora d'una sortida algú que sí ha pagat (la transferència correcta sovint arriba el mateix dia). Amb l'avís, la
-      secretaria ho resol en minuts, i la B o la C es poden afegir després sense tocar cap dada ja desada.
-    data: 2026-11-16
-
-  P-111:
-    opcions:
-      A: La data de valor de la línia de l'extracte (cal que el nucli deixi passar una data a record_payment).
-      B: Com s'ha construït; la data en què el tresorer confirma la conciliació.
-      C: La data d'operació de la línia, que és la que desa avui la importació (P-103), encara que no sigui la de valor.
-    recomanada: A
-    perque: >-
-      El saldo del banc a la plataforma ha de coincidir amb el de l'extracte el mateix dia, i això només passa si l'ingrés
-      porta la data del banc. Com que la importació desa una sola data per línia (P-103), la A i la C coincideixen fins
-      que es resolgui aquella pregunta.
-    data: 2026-11-16
-
   P-120:
     opcions:
       A: Com s'ha construït; Fernet de `cryptography` (ja és dependència), una clau per versió, xifra la més alta.
@@ -329,15 +294,6 @@ opcions:
     perque: >-
       Fa la feina amb components que ja existeixen i és accessible. Si la sessió de disseny vol una peça pròpia (B), les plantilles només canvien de classe.
     data: 2026-11-16
-  P-131:
-    opcions:
-      A: Només de lectura a l'app; els valors es canvien a la configuració del servidor amb un desplegament.
-      B: L'administrador els canvia a l'app, amb TOTP, nota i registre, com els permisos (059).
-      C: Com la B, però activar la targeta guardada també demana l'autorització de la junta.
-    recomanada: A
-    perque: >-
-      Activar un mètode de pagament canvia el que veu un soci real i depèn del contracte amb el proveïdor; un canvi de configuració revisat és més segur. Es pot passar a B quan hi hagi proveïdor triat.
-    data: 2026-11-16
   P-132:
     opcions:
       A: Com revocar el mandat; confirmació, contrasenya si la sessió té més de 15 minuts i «pagar cada vegada».
@@ -354,15 +310,6 @@ opcions:
     recomanada: A
     perque: >-
       La revocació és a petició del soci i no mou diners; el compte d'administrador ja ha entrat amb TOTP. Si la junta la vol tractar com una acció irreversible, la B.
-    data: 2026-11-16
-  P-134:
-    opcions:
-      A: El mandat es queda actiu sense fer-se servir; la remesa segueix la preferència i la pantalla diu com revocar-lo.
-      B: Triar «pagar cada vegada» revoca el mandat sol, amb el motiu «canvi de mètode».
-      C: Preguntar-ho al soci en el moment de triar (revocar-lo o no).
-    recomanada: C
-    perque: >-
-      El soci decideix i no queda cap mandat oblidat. Mentre no es respongui, la A no cobra ningú per domiciliació contra la seva tria.
     data: 2026-11-16
   P-135:
     opcions:
@@ -392,35 +339,6 @@ opcions:
     perque: >-
       Un soci impagat que vol domiciliar la quota és el cas que més ho necessita; el pendent encara no té número.
     data: 2026-11-16
-  P-125:
-    opcions:
-      A: Signar no toca la preferència; la canvia la pantalla del mètode (T-M05a-11), com s'ha construït.
-      B: Signar posa la preferència a «domiciliació» amb aquest mandat.
-      C: Signar la canvia només si el soci no en tenia cap.
-    recomanada: B
-    perque: >-
-      Qui signa un mandat vol pagar per domiciliació; amb la A podria quedar un mandat actiu que la remesa no fa servir.
-      La B és una línia a la T-M05a-11, que és qui toca `preferences.py`.
-    data: 2026-11-16
-  P-126:
-    opcions:
-      A: No compta com a intent fallit si el formulari no portava el camp (com s'ha construït).
-      B: Compta sempre, com una contrasenya buida a qualsevol altre formulari de reautenticació.
-    recomanada: A
-    perque: >-
-      El soci no ha pogut escriure cap contrasenya; comptar-ho el podria bloquejar sense haver-se equivocat. Una
-      contrasenya buida escrita al camp sí que compta.
-    data: 2026-11-16
-  P-127:
-    opcions:
-      A: Revocar sempre funciona; amb la signatura apagada, la pàgina només surt a qui té un mandat actiu (com s'ha construït).
-      B: Com la A, i el menú també mostra «Mandat de domiciliació» a qui té un mandat actiu.
-      C: Amb la signatura apagada, només el tresorer revoca, a petició escrita (A6).
-    recomanada: B
-    perque: >-
-      Un soci ha de poder retirar l'autorització sobre el seu compte quan vulgui, sense dependre d'un correu antic.
-      La B és la A més una línia al menú, que és de la sessió de disseny.
-    data: 2026-11-17
   P-128:
     opcions:
       A: Només passa a «pagar cada vegada» si era la domiciliació o no n'hi havia cap; la targeta guardada es manté (com s'ha construït).
@@ -430,18 +348,6 @@ opcions:
       Revocar el mandat no diu res de la targeta; canviar-la sense que el soci ho demani faria fallar un cobrament que
       el soci esperava.
     data: 2026-11-17
-
-  P-112:
-    opcions:
-      A: Com s'ha construït; només el Tresorer. L'Administrador se'l pot donar des de l'editor de permisos si cal.
-      B: El Tresorer i l'Administrador des del principi.
-      C: L'Administrador només per desfer (la 045), no per confirmar.
-    recomanada: A
-    perque: >-
-      RN-T16 diu que només el tresorer confirma una conciliació, i el M04-4 tracta el tresorer com una sola persona.
-      Si el tresorer falta, l'Administrador es pot donar el permís en un minut, i el canvi queda al registre amb nota
-      i TOTP; donar-lo d'entrada vol dir que un compte més pot marcar quotes com a pagades.
-    data: 2026-11-16
 
   P-121:
     opcions:
@@ -509,16 +415,6 @@ opcions:
       base segura fins que hi hagi tasca.
     data: 2026-11-16
 
-  P-190:
-    opcions:
-      A: Dos codis nous al catàleg del nucli (T8 i T10), amb les cel·les de la matriu, en una tasca del nucli.
-      B: Excloure amb T4 i la llista amb T1, sense cap codi nou (com s'ha fet).
-      C: Com la B ara, i passar a la A quan algú hagi de tenir T4 sense T8 (o T1 sense T10).
-    recomanada: C
-    perque: >-
-      Avui les cel·les inicials són idèntiques i un codi nou tocaria el nucli, que té feina oberta en paral·lel.
-      La B ja és tancada (cap rol nou no hi entra); la separació només cal si la junta vol rols diferents.
-    data: 2026-11-16
   P-191:
     opcions:
       A: Només les línies de l'extracte; cada mena de pagament es revisa a la seva pantalla.
@@ -540,17 +436,6 @@ opcions:
       que un error del tresorer quedi per sempre; no mou diners. La A és la lectura literal de RN-T15.
     data: 2026-11-16
 
-  P-193:
-    opcions:
-      A: La Secretaria no hi té accés (com s'ha fet).
-      B: "La Secretaria hi té «Cons.»: només veu «té mètode: sí/no», sense mètode, mandat, targeta ni IBAN."
-      C: La Secretaria ho veu tot, com el tresorer, amb l'IBAN emmascarat.
-    recomanada: B
-    perque: >-
-      És el que proposa el M05a-4 i li serveix per avisar els socis sense mètode sense veure cap dada bancària.
-      Mentre la junta no ho aprovi, la A és la base segura; la C dona més dades bancàries de les que cal.
-    data: 2026-11-16
-
   P-113:
     opcions:
       A: Com s'ha construït; torna a pendent, es torna a calcular i, amb la mateixa referència, es torna a proposar.
@@ -563,82 +448,6 @@ opcions:
       excloure-la; és un canvi petit al recàlcul, que es pot fer en qualsevol moment perquè l'estat es torna a calcular.
     data: 2026-11-16
 
-  P-114:
-    opcions:
-      A: Com s'ha construït; una pota de traspàs no s'anul·la. Un traspàs equivocat es corregeix amb un traspàs de sentit contrari.
-      B: Anul·lar una pota anul·la les dues alhora, amb el mateix motiu.
-      C: Cada pota s'anul·la per separat.
-    recomanada: A
-    perque: >-
-      Un traspàs de sentit contrari ja és un servei del pla (P-M04-D), queda enllaçat i es concilia amb l'extracte com
-      qualsevol altre. La B és raonable però és codi nou sobre diners; la C deixa els dos comptes desquadrats.
-    data: 2026-11-16
-
-  P-115:
-    opcions:
-      A: Com s'ha construït; un contramoviment no s'anul·la. Una anul·lació equivocada es corregeix amb un moviment nou amb motiu.
-      B: Un contramoviment es pot anul·lar (un contramoviment del contramoviment), amb motiu.
-    recomanada: A
-    perque: >-
-      Una cadena d'anul·lacions fa difícil saber si un moviment compta o no (RN-T25 diu «anul·lat» si té contramoviment)
-      i el marge del 09 llegeix aquest estat. Amb la A, l'estat d'un moviment sempre és d'un sol pas.
-    data: 2026-11-16
-
-  P-118:
-    opcions:
-      A: Com s'ha construït; devolucions i retorn sumen junts fins a l'import cobrat. Després d'un retorn, cap devolució; amb devolucions, el retorn es rebutja i va «a revisar».
-      B: El retorn no compta amb les devolucions; cadascun té el seu límit.
-      C: El retorn s'apunta sempre, i si amb les devolucions passa de l'import, la diferència va «a revisar».
-    recomanada: A
-    perque: >-
-      Amb la B es podria tornar dues vegades el mateix import (una devolució i un retorn del banc) sense que res avisés.
-      La C és la més fidel al banc però apunta més sortides que diners cobrats; la A atura el cas estrany perquè el
-      tresorer el miri, que és rar i ha de ser a mà.
-    data: 2026-11-17
-
-  P-119:
-    opcions:
-      A: Com s'ha construït; cada crida apunta una devolució, el límit de l'import cobrat i el pany del pagament n'eviten l'excés, i el 05b la crida una vegada per devolució.
-      B: Afegir un identificador de la devolució al moviment (migració) i tornar l'existent si es repeteix.
-      C: Rebutjar dues devolucions del mateix import el mateix dia.
-    recomanada: B
-    perque: >-
-      Una repetició del 05b (un reintent després d'un error) podria apuntar dues vegades una devolució parcial, i el
-      límit només l'atura si passa de l'import. La B ho resol del tot amb poc codi; la C rebutjaria casos legítims.
-      Fins que es decideixi, la A no deixa mai tornar més del cobrat.
-    data: 2026-11-17
-
-  P-220:
-    opcions:
-      A: Com s'ha construït; no s'apunta res i no es pot confirmar fins que es resolgui a mà (tall següent).
-      B: Es poden confirmar les partides conegudes; la resta queda pendent.
-      C: S'espera que el proveïdor l'enviï corregida, amb un altre identificador.
-    recomanada: A
-    perque: >-
-      Amb la B el net no quadraria amb l'abonament del banc. La A no apunta diners a mitges; amb la pantalla, el
-      tresorer la podrà casar a mà amb els cobraments del període (RN-T21).
-    data: 2026-11-17
-
-  P-221:
-    opcions:
-      A: Com s'ha construït; la comissió porta la data de l'ingrés.
-      B: La comissió porta la data de la liquidació.
-    recomanada: A
-    perque: >-
-      La despesa queda al mes del cobrament que la genera, arribi amb la notificació o amb la liquidació.
-    data: 2026-11-17
-
-  P-222:
-    opcions:
-      A: Com s'ha construït; un traspàs a mà només entre comptes bancaris i de caixa.
-      B: També amb el trànsit, i la liquidació descompta el que ja s'ha traspassat.
-      C: També amb el trànsit, sense cap comprovació.
-    recomanada: A
-    perque: >-
-      El trànsit es buida amb la liquidació; un traspàs a mà mouria dues vegades els mateixos diners. La B demana una
-      regla nova per a la liquidació.
-    data: 2026-11-17
-
   P-223:
     opcions:
       A: Com s'ha construït; cap comprovació del saldo de l'origen.
@@ -648,16 +457,6 @@ opcions:
     perque: >-
       El saldo calculat pot anar per darrere de la realitat (un extracte pendent) i la B o la C rebutjarien traspassos
       reals. Un traspàs equivocat es corregeix amb un altre en sentit contrari, i l'arqueig ensenya la diferència.
-    data: 2026-11-17
-
-  P-224:
-    opcions:
-      A: Com s'ha construït; es rebutja una data futura.
-      B: S'admet una data futura al traspàs (previsió), no a l'arqueig.
-    recomanada: A
-    perque: >-
-      Els moviments no es modifiquen: un traspàs previst que no arriba a passar demanaria un altre traspàs per
-      corregir-lo. Un arqueig futur no es pot haver comptat.
     data: 2026-11-17
 
   P-225:
@@ -681,27 +480,6 @@ opcions:
       proveïdor només envia notificacions o fitxers, canvia l'adaptador i la resta continua igual.
     data: 2026-11-17
 
-  P-227:
-    opcions:
-      A: Com s'ha construït; no s'apunta res i queda al registre d'activitat, sense correu.
-      B: Com la A, i un correu a qui té el permís de la tresoreria.
-      C: Es desa «a revisar» a la 04 amb les xifres tal com arriben.
-    recomanada: B
-    perque: >-
-      Cap opció apunta diners que no quadren. La B fa que el tresorer se n'assabenti sense haver de mirar el registre;
-      es deixa la A fins que es decideixi perquè el correu és un text nou. La C demana canviar la 04.
-    data: 2026-11-17
-
-  P-228:
-    opcions:
-      A: Com s'ha construït; es registra amb motiu, import i qui la fa, sense fitxer.
-      B: Cal pujar el justificant del banc (xifrat, com els documents d'ajuts).
-    recomanada: A
-    perque: >-
-      El justificant ja surt a l'extracte, i la conciliació hi casarà la devolució. Desar fitxers del banc demana
-      el xifratge i el control d'accés de la 051.
-    data: 2026-11-17
-
   P-229:
     opcions:
       A: Com s'ha construït; sense correu ni anotació fins que el nucli i disseny hi posin les plantilles.
@@ -710,17 +488,6 @@ opcions:
     perque: >-
       El correu i el rebut són textos per al soci i tenen propietari (nucli i disseny); la devolució ja queda a la 04,
       al càrrec i al registre.
-    data: 2026-11-17
-
-  P-250:
-    opcions:
-      A: Com s'ha construït; queda pendent, bloqueja l'import i es completa amb la mateixa clau.
-      B: El tresorer la pot descartar amb motiu (tasca nova).
-      C: Es descarta sola passat un temps.
-    recomanada: B
-    perque: >-
-      Una devolució pendent pot haver arribat al proveïdor; descartar-la sola (C) podria tornar diners dues vegades.
-      La B és segura amb el motiu i el registre; mentrestant la A no apunta res a mitges.
     data: 2026-11-17
 
   P-251:
@@ -831,29 +598,6 @@ opcions:
       La C és la més clara per a l'administrador, però toca l'editor de permisos del nucli.
     data: 2026-11-17
 
-  P-213:
-    opcions:
-      A: Abans del nivell 2, l'anonimització crida un servei del 05a que bloqueja els mandats actius (com es proposa).
-      B: El 05b no cobra mai un mandat d'una persona anonimitzada (comprovació a la remesa), sense canviar l'estat.
-      C: Totes dues.
-    recomanada: C
-    perque: >-
-      La A deixa l'estat coherent amb L-M05a-06 i la B és la xarxa de seguretat al punt on es mouen diners.
-      Cap de les dues no és urgent mentre no hi hagi remeses.
-    data: 2026-11-17
-
-  P-240:
-    opcions:
-      A: En registrar el retorn, el pagament queda anul·lat amb el motiu del banc i només el tresorer el registra (com s'ha fet).
-      B: El pagament continua comptant i el mòdul 01 només compta els pagaments posteriors a l'últim retorn (canvi al 01).
-      C: El pagament s'anul·la en reobrir el càrrec, no en retornar-lo.
-      D: Un estat «retornat» al pagament de la 00, que també admet el sistema com a autor (canvi de model).
-    recomanada: A
-    perque: >-
-      Fa servir l'anul·lació que ja existeix (045), sense canviar cap model ni el 01, i un càrrec reobert i tornat a
-      pagar té un sol pagament que compta. La D només cal si els retorns s'han de registrar sols, sense el tresorer.
-    data: 2026-11-17
-
   P-241:
     opcions:
       A: La referència del pagament (transferència o proveïdor) i, si no n'hi ha, la de la liquidació (com s'ha fet).
@@ -874,58 +618,6 @@ opcions:
     recomanada: A
     perque: >-
       L'Excel en català el llegeix com a número sense cap pas més; el separador de milers el pot convertir en text.
-    data: 2026-11-17
-
-  P-243:
-    opcions:
-      A: Cap codi nou; la vista de quotes continua amb P10 (com s'ha fet).
-      B: Un codi propi per a T11, amb les mateixes cel·les, per si algun dia es separen.
-      C: Esborrar T11 de la matriu del pla.
-    recomanada: A
-    perque: >-
-      Les dues files diuen el mateix i tenen les mateixes cel·les; dos codis iguals a l'editor confondrien
-      l'administrador.
-    data: 2026-11-17
-
-  P-244:
-    opcions:
-      A: La Secretaria comença sense B7; l'administrador l'hi pot donar sencer (com s'ha fet).
-      B: Un abast nou «només quotes» al motor de permisos.
-      C: La Secretaria comença amb B7 sencer (també inscripcions i llicències).
-    recomanada: A
-    perque: >-
-      És l'opció més estreta mentre la pantalla de B7 no existeix; la B és un canvi del nucli que només val la
-      pena si la Secretaria l'ha de fer servir de debò.
-    data: 2026-11-17
-
-  P-230:
-    opcions:
-      A: Les quotes pendents que vencen com a molt el dia del cobrament; el període és una etiqueta (com s'ha fet).
-      B: Només les quotes del període triat (l'any de la quota), vencin quan vencin.
-      C: Les del període triat i que, a més, vencen com a molt el dia del cobrament.
-    recomanada: A
-    perque: >-
-      Amb la 070 cada quota venç en una data pròpia: la A no cobra mai una quota abans del venciment i no en deixa cap de vençuda fora.
-    data: 2026-11-17
-
-  P-231:
-    opcions:
-      A: Entra si ha triat la domiciliació i té un mandat actiu; el rebut porta el mandat actiu (com s'ha fet).
-      B: No entra fins que el soci torna a desar la preferència amb el mandat nou.
-      C: Signar un mandat nou actualitza la preferència (canvia la P-125).
-    recomanada: A
-    perque: >-
-      El soci ja havia triat la domiciliació i el mandat actiu és el vigent; la B el deixaria fora sense que ho sàpiga.
-    data: 2026-11-17
-
-  P-232:
-    opcions:
-      A: El rebut queda sense avís, la remesa es queda en esborrany i el tresorer avisa per una altra via (com s'ha fet).
-      B: El rebut es treu de la remesa automàticament.
-      C: No es pot confirmar la remesa mentre hi hagi cap deutor sense adreça.
-    recomanada: A
-    perque: >-
-      No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer pot avisar per telèfon o en persona.
     data: 2026-11-17
 
   P-283:
@@ -963,18 +655,6 @@ opcions:
       sol. L'avís és poca feina quan hi hagi el primer subscriptor (el 02).
     data: 2026-11-17
 
-  P-281:
-    opcions:
-      A: Com està. Les devolucions no passen per la salvaguarda del nivell 1, ni tampoc el que només registra (notificacions, xarxa de seguretat, liquidacions, conciliació).
-      B: Les devolucions per l'adaptador també s'aturen amb el nivell 1; el que només registra, no.
-      C: S'atura tot el que parla amb el proveïdor amb el nivell 1, també el que només registra.
-      D: Les devolucions s'aturen amb el nivell 1 llevat de les de pagaments fets al nivell 2.
-    recomanada: A
-    perque: >-
-      Amb el nivell 1 no hi ha pagaments reals per tornar, de manera que la B no protegeix res; en canvi, si el
-      nivell 2 es desactiva, la B i la C deixarien diners de socis sense tornar o sense registrar.
-    data: 2026-11-17
-
   P-282:
     opcions:
       A: Comprovació d'arrencada. A producció, amb un proveïdor configurat, l'entorn ha de ser «live» (el nivell 1 és «live» sense autorització per cobrar).
@@ -985,16 +665,6 @@ opcions:
     perque: >-
       Atura l'error abans que arribi a cap soci i no canvia res a l'entorn de proves. Si algun dia hi ha una
       preproducció amb la configuració de producció, la comprovació es pot silenciar allà a propòsit.
-    data: 2026-11-17
-
-  P-246:
-    opcions:
-      A: El rebut continua amb el senyal, a la mateixa transacció que el pagament (com s'ha fet).
-      B: El rebut passa a ser un subscriptor de charge.paid i surt per la cua, uns segons més tard.
-    recomanada: A
-    perque: >-
-      Un pagament sense el seu rebut, encara que sigui uns segons, és el que el tresorer veuria estrany; amb la A
-      la conciliació i el rebut van junts. La B només val la pena quan el rebut sigui lent o depengui de fora.
     data: 2026-11-17
 
   P-233:
@@ -1014,35 +684,6 @@ opcions:
     recomanada: A
     perque: >-
       La versió del banc encara no se sap i la llicència de l'XSD no és clara; el fitxer ja s'ha validat a mà sense errors.
-    data: 2026-11-17
-
-  P-235:
-    opcions:
-      A: El compte de les transferències (com s'ha fet).
-      B: Un compte propi per a les remeses, configurat a part.
-    recomanada: A
-    perque: >-
-      El club té un compte conegut i el pla no en parla d'un altre (P-45 punt 11).
-    data: 2026-11-17
-
-  P-236:
-    opcions:
-      A: No es genera el fitxer i es diu quins mandats són (com s'ha fet).
-      B: Es treu el rebut automàticament (intent fallit, càrrec pendent) i es genera la resta.
-    recomanada: A
-    perque: >-
-      Mai cobra un mandat revocat i no canvia cap import sense que el tresorer ho vegi.
-    data: 2026-11-17
-
-  P-247:
-    opcions:
-      A: El nom només amb P4, «Llistat i fitxa de socis», amb qualsevol abast (com s'ha fet).
-      B: El nom a tothom qui té B6.
-      C: Un permís de camp nou, «nom del pagador», a la matriu.
-    recomanada: A
-    perque: >-
-      Fa servir un permís que ja diu qui pot veure els socis, i si l'administrador el treu d'un rol, el llistat
-      continua servint sense noms. La C només cal si algú ha de veure els pagaments sense poder veure els socis.
     data: 2026-11-17
 
   P-280:
@@ -1065,16 +706,6 @@ opcions:
     recomanada: A
     perque: >-
       És el cas més habitual de les remeses SEPA; la C també hi cap amb comissió zero, i la B demana un altre flux.
-    data: 2026-11-17
-
-  P-290:
-    opcions:
-      A: L'intent domiciliat passa a «cancel·lat» i el rebut s'anul·la amb una nota, com la 045 (com s'ha fet).
-      B: L'intent passa a «fallit» i el rebut s'anul·la.
-      C: Un estat nou «retornat» per a l'intent (demana una migració).
-    recomanada: A
-    perque: >-
-      Fa servir el camí ja aprovat per a la 045 i no cal cap migració; el rebut domiciliat ja diu «retornat».
     data: 2026-11-17
 
   P-291:
@@ -1115,6 +746,19 @@ opcions:
     recomanada: B
     perque: >-
       És el que demana el pas 2 de P-M05a-E i és un canvi petit a la pantalla que ja existeix.
+    data: 2026-11-17
+
+  P-293:
+    opcions:
+      A: Un servei de facturació homologat amb API que emet, registra, envia a l'Agència Tributària i torna l'estat de cada factura, amb dades a la UE i contracte d'encarregat; la plataforma hi parla per l'adaptador del 09.
+      B: El programa de facturació de la gestoria, si té API de Verifactu i compleix les mateixes condicions; la plataforma li envia les dades de cada factura.
+      C: L'aplicació de facturació gratuïta de l'Agència Tributària, feta a mà; la plataforma no s'hi integra.
+      D: Demanar pressupost a dos o tres serveis amb API i decidir-ho amb la gestoria amb una taula (dades a la UE, contracte d'encarregat, API de consulta de l'estat, preu per factura).
+    recomanada: A
+    perque: >-
+      La 095 demana una integració que emeti, registri, enviï i consulti l'estat de cada factura, i
+      només un servei amb API ho fa darrere d'un adaptador. C no s'hi integra. B val si el programa de
+      la gestoria té API i compleix la 035; si no, A.
     data: 2026-11-17
 
 noves:
