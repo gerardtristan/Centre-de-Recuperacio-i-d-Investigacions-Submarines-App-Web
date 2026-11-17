@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 17/11/2026 14:35 | b2c229ba | al navegador i axe | [A comprovar] |
+| 17/11/2026 14:35 | 03102fd9 | al navegador i axe | [A comprovar] |
 
 **En tres línies:** el wireframe del soci encara tenia el diàleg de pagament d'abans de les pantalles reals: pujada del comprovant de la transferència, justificants numerats `JUS-` i un diàleg «Justificant». Ara «Paga ara» porta a la pantalla de pagar un càrrec i cada pagament fet porta al rebut, les dues de la T-M05b-02, que quadren amb `templates/payments/`. Una transferència es confirma quan arriba a l'extracte, no amb cap comprovant.
 
@@ -29,10 +29,10 @@
 
   ![Portada del soci amb la franja de pagaments pendents, el botó Paga ara i la llista de pagaments amb els botons Rebut](captures/2026-11-17_1435_T-DX-53_portada-paga-ara-1280.png)
 
-  *17/11/2026 14:35 (Europa/Madrid) · local, wireframe, dades inventades · commit b2c229ba*
+  *17/11/2026 14:35 (Europa/Madrid) · local, wireframe, dades inventades · commit 03102fd9*
 - Pantalla de pagar un càrrec a 390 px, en fosc: `captures/2026-11-17_1435_T-DX-53_pagaments-carrec-390-fosc.png`
 
-  *17/11/2026 14:35 (Europa/Madrid) · local, wireframe, dades inventades · commit b2c229ba*
+  *17/11/2026 14:35 (Europa/Madrid) · local, wireframe, dades inventades · commit 03102fd9*
 - Sortida de proves · executada el 17/11/2026 en local:
   ```
   $ python design/recorreguts/comprova.py

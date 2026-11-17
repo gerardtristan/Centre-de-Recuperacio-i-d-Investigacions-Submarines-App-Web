@@ -270,4 +270,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [P-134](P-134.md) | «Pagar cada vegada» amb un mandat actiu: la pantalla pregunta si es revoca; si no, queda actiu i fora de les remeses (095) | 17/11/2026 | 12ba0e0b | 1 canviada | [A comprovar] |
 | [P-119](P-119.md) | Identificador de devolució al moviment: una devolució repetida torna la que ja existeix (migració treasury/0016; 095) | 17/11/2026 | 4e784086 | 1 nova | [A comprovar] |
 | [T-DX-52](T-DX-52.md) | Contrast que axe pot calcular: Ramillete i Errata en sRGB; segell del rebut i text de la transferència, comprovats a mà (carril de disseny) | 17/11/2026 14:22 | fbe6f2df (PR #185) | 1 comprovació nova | [A comprovar] |
-| [T-DX-53](T-DX-53.md) | Wireframes sense el diàleg antic «Paga ara»: «Paga ara» i «Rebut» porten a les pantalles de pagar i del rebut (carril de disseny) | 17/11/2026 14:35 | b2c229ba | al navegador i axe | [A comprovar] |
+| [T-DX-53](T-DX-53.md) | Wireframes sense el diàleg antic «Paga ara»: «Paga ara» i «Rebut» porten a les pantalles de pagar i del rebut (carril de disseny) | 17/11/2026 14:35 | 03102fd9 | al navegador i axe | [A comprovar] |
