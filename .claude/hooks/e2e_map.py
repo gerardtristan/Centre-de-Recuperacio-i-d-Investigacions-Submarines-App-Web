@@ -130,6 +130,11 @@ MAP = {
         "apps/payments/admin_views.py",
         "templates/payments/mandates.html",
     ),
+    "test_campanya_mandats.py": (
+        "apps/payments/admin_views.py",
+        "apps/payments/campaigns.py",
+        "templates/payments/campaign.html",
+    ),
     "test_mandat_signatura.py": (
         "apps/payments/mandate_views.py",
         "apps/payments/forms.py",

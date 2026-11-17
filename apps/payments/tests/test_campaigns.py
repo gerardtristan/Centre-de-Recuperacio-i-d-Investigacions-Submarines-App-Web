@@ -132,7 +132,7 @@ def test_ca_m05a_12_nomes_es_convida_els_socis_actius_sense_metode(
     assert "Text de prova de la invitació." in email.body_text
     assert "https://cris1954.cat/socis/pagaments/metode/" in email.body_text
     entry = AuditEntry.objects.get(action="payments.campaign.invitations_sent")
-    assert entry.details == {"sent": 1}
+    assert entry.details == {"sent": 1, "text_version": 1}
 
 
 def test_tornar_a_enviar_nomes_convida_els_que_falten(campaign, treasurer, anna):

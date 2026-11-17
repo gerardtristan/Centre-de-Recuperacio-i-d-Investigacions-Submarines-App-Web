@@ -694,4 +694,15 @@ opcions:
       Evita que un soci rebi invitacions duplicades; tornar a enviar ja convida els socis nous.
     data: 2026-11-17
 
+  P-212:
+    opcions:
+      A: Cal A4 per entrar; amb A5 sense A4, «no trobat» (com s'ha fet).
+      B: Amb A5 sense A4 s'entra a la pantalla, però sense cap recompte.
+      C: A5 implica A4 (l'editor de permisos no deixa donar A5 sense A4).
+    recomanada: A
+    perque: >-
+      Els recomptes són dades de pagament d'A4 i la matriu inicial dona tots dos permisos als mateixos rols.
+      La C és la més clara per a l'administrador, però toca l'editor de permisos del nucli.
+    data: 2026-11-17
+
 noves:

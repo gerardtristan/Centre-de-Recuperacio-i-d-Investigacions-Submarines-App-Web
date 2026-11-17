@@ -19,6 +19,7 @@ from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext
 
 from apps.core import audit, consents, mail
 from apps.members import recipients
@@ -92,23 +93,39 @@ def _link() -> str:
     return settings.PUBLIC_SITE_URL + reverse("payments:fee_method")
 
 
-def _check_open(campaign: MandateCampaign) -> None:
+def check_can_send(campaign: MandateCampaign) -> None:
     _require_signing()
     if campaign.closed_at is not None:
         raise Closed
 
 
+def blocking_reason() -> str | None:
+    """Per què no es pot obrir ni enviar cap campanya ara, per a la pantalla; None si es pot."""
+    if not settings.MANDATE_SIGNING_ENABLED:
+        return gettext("La signatura del mandat no està activada: no es pot obrir ni enviar res.")
+    if not settings.SEPA_CREDITOR_IDENTIFIER:
+        return gettext("Falta l'identificador de creditor del banc (RN-M05a-04).")
+    if consents.current_text(INVITATION_TEXT) is None:
+        return gettext("Falta publicar el text de la invitació (T-M05a-01).")
+    return None
+
+
+def to_invite(campaign: MandateCampaign | None) -> list[tuple]:
+    """Socis actius sense mètode que encara no s'han convidat, amb l'adreça ("" si no en
+    tenen: no es conviden i els atén la secretaria, P-199)."""
+    members = _without_method(_active_members()).select_related("person")
+    if campaign is not None:
+        members = members.exclude(pk__in=campaign.recipients.values("member"))
+    return [(member, recipients.email_for(member.person)) for member in members]
+
+
 def send_invitations(campaign: MandateCampaign, *, by) -> int:
     """CA-M05a-12: només els socis actius sense mètode. Torna quants n'ha convidat."""
-    _check_open(campaign)
-    invited = MandateCampaignRecipient.objects.filter(campaign=campaign).values("member")
+    check_can_send(campaign)
     sent = 0
-    for member in (
-        _without_method(_active_members()).exclude(pk__in=invited).select_related("person")
-    ):
-        address = recipients.email_for(member.person)
+    for member, address in to_invite(campaign):
         if not address:
-            continue  # sense correu: surt al recompte i l'atén la secretaria (P-199)
+            continue
         with transaction.atomic():
             MandateCampaignRecipient.objects.create(
                 campaign=campaign, member=member, invited_at=timezone.now()
@@ -117,7 +134,10 @@ def send_invitations(campaign: MandateCampaign, *, by) -> int:
             mail.queue_email(INVITATION_TEMPLATE, to=address, person=member.person, context=context)
         sent += 1
     audit.record(
-        "payments.campaign.invitations_sent", actor=by, target=campaign, details={"sent": sent}
+        "payments.campaign.invitations_sent",
+        actor=by,
+        target=campaign,
+        details={"sent": sent, "text_version": campaign.invitation_text.version},
     )
     return sent
 
@@ -169,7 +189,7 @@ def record_answer(member, method: str) -> None:
     ).update(answer=method, answered_at=timezone.now())
 
 
-def campaign_status(campaign: MandateCampaign) -> dict:
+def campaign_status(campaign: MandateCampaign | None) -> dict:
     """Recompte dels socis actius per resposta (P-M05a-E, pas 5), i quants s'han convidat."""
     active = _active_members()
     methods = FeePaymentPreference.objects.filter(member__in=active).values_list(
@@ -183,7 +203,7 @@ def campaign_status(campaign: MandateCampaign) -> dict:
         **counts,
         "no_answer": total - sum(counts.values()),
         "active": total,
-        "invited": campaign.recipients.count(),
+        "invited": campaign.recipients.count() if campaign else 0,
     }
 
 
