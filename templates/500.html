@@ -19,8 +19,9 @@
   <a class="salt" href="#contingut">{% translate "Vés al contingut" %}</a>
   <header class="capcalera-compte">
     <a class="marca" href="{% url 'core:home' %}">
-      <img class="logo-clar" src="{% static 'marca/CRIS_SenseFons.png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
-      <img class="logo-fosc" src="{% static 'marca/CRIS_Blanc_per fons Negre (Blanc).png' %}" alt="{% translate 'Logotip del C.R.I.S.' %}">
+      {# Logotip (T-DX-51): 192 px, AVIF o WebP amb PNG de reserva. «lazy»: el del tema que no es veu (display: none) no es descarrega. #}
+      <picture class="logo-clar"><source type="image/avif" srcset="{% static 'img/marca/cris-clar-192.avif' %}"><source type="image/webp" srcset="{% static 'img/marca/cris-clar-192.webp' %}"><img src="{% static 'img/marca/cris-clar-192.png' %}" width="192" height="205" loading="lazy" decoding="async" alt="{% translate 'Logotip del C.R.I.S.' %}"></picture>
+      <picture class="logo-fosc"><source type="image/avif" srcset="{% static 'img/marca/cris-fosc-192.avif' %}"><source type="image/webp" srcset="{% static 'img/marca/cris-fosc-192.webp' %}"><img src="{% static 'img/marca/cris-fosc-192.png' %}" width="192" height="205" loading="lazy" decoding="async" alt="{% translate 'Logotip del C.R.I.S.' %}"></picture>
       <span class="titol-zona">C.R.I.S.</span>
     </a>
   </header>

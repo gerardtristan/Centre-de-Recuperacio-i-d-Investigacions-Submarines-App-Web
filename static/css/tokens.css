@@ -944,6 +944,8 @@ img { max-width: 100%; display: block; }
 :root[data-theme="dark"] .logo-clar { display: none; }
 :root[data-theme="dark"] .logo-fosc { display: block; }
 .logo-sempre-fosc { display: block; }
+/* T-DX-51: <picture> porta la classe (amagat, no ocupa lloc ni es descarrega); la imatge, en bloc. */
+.logo-clar > img, .logo-fosc > img { display: block; }
 
 /* ==========================================================================
    Més contrast: sense relleu ni degradats; vores plenes
