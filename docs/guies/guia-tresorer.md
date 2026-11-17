@@ -43,7 +43,7 @@ Quan una persona demana l'esborrat de les seves dades, les quotes i els pagament
 - Fes servir aquestes dades només per a l'obligació legal que has escrit; no les copiïs fora de la plataforma.
 
 ## 7. Què encara no fa la plataforma
-- **Cobrar:** el pagament en línia, les domiciliacions, les remeses i la conciliació són de les parts 05a i 05b.
+- **Cobrar:** el pagament en línia, les remeses i la conciliació ja tenen pantalles; vegeu la [guia de la tresoreria](guia-tresoreria.md) i la [guia de remeses, retornats i devolucions](guia-cobraments.md).
 - **Pagament en tres terminis:** tasca T-M01-49, pendent dels punts oberts de la P-61.
 
 **Renovacions i recordatoris: no cal fer res.** Cada dia, a primera hora, la plataforma genera la quota de renovació dels socis que vencen aviat (el dia del primer recordatori) i envia els recordatoris que toquen, un sol cop per quota i dia. Els recordatoris després del venciment només s'envien si la quota no s'ha pagat. Els dies dels recordatoris estan confirmats (decisió 085). Falta decidir des de quina data compten els 12 mesos d'un soci importat de Cluber.
