@@ -32,3 +32,16 @@ def test_the_parent_entry_is_current_on_its_child_pages(login_as, make_admin, pa
     assert response.status_code == 200
     html = response.content.decode()
     assert f'<a href="{reverse(parent)}" aria-current="page">' in html
+
+
+def test_accounts_entry_is_current_on_the_roles_screen(login_as, make_admin):  # noqa: F811
+    """T-DX-55: la pantalla de rols d'un compte (T-RP-02) porta paràmetre i no té entrada pròpia;
+    «Comptes d'administrador», d'on s'obre, queda marcada."""
+    admin = make_admin("administrator")
+    other = make_admin("treasurer")
+    response = login_as(admin, AREA_ADMIN).get(
+        reverse("administration:account_roles", args=[other.pk])
+    )
+    assert response.status_code == 200
+    accounts = reverse("administration:accounts")
+    assert f'<a href="{accounts}" aria-current="page">' in response.content.decode()
