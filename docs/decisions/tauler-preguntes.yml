@@ -761,4 +761,27 @@ opcions:
       la gestoria té API i compleix la 035; si no, A.
     data: 2026-11-17
 
+  P-300:
+    opcions:
+      A: Al nivell 2, F1-F6, E6 i B6 s'apliquen a les pàgines públiques que hi hagi llavors i al carnet; la resta, amb la 07 i el 02.
+      B: El nivell 2 espera la web pública (07) i el 02 sencers, com diu ara la checklist.
+      C: F1-F6 i E6 surten del nivell 2 i passen a ser condició de publicar la 07.
+    recomanada: A
+    perque: >-
+      Deixar Cluber no ha d'esperar mòduls de la fase 2, però les pàgines públiques que ja existeixen sí que han de
+      complir els punts; la C també serveix, però demana canviar la checklist.
+    data: 2026-11-17
+
+  P-301:
+    opcions:
+      A: El propietari fa la revisió amb un mòbil, una tauleta i un lector de pantalla, seguint una llista com la de la T-M05a-18, després que el pilot afegeixi axe a les pantalles de la 04 i del 05b.
+      B: Ho proven dos o tres socis voluntaris de la junta, amb dades inventades a l'entorn de proves.
+      C: Un servei de dispositius al núvol, només amb dades inventades.
+      D: Només l'emulació de Chromium i axe fins després del nivell 2.
+    recomanada: A
+    perque: >-
+      L'auditoria automàtica la pot fer el pilot sense ningú; el que només veu una persona (Safari, tauleta, lector de
+      pantalla) és poca feina amb una llista. La D no compleix B5 ni B8 «N2».
+    data: 2026-11-17
+
 noves:
