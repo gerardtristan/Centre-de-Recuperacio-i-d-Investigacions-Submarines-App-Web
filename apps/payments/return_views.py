@@ -19,7 +19,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_http_methods, require_POST
@@ -152,13 +152,17 @@ def returns_file_confirm_view(request):
             _("La previsualització ha caducat o algun rebut ha canviat. Torna a pujar el fitxer."),
         )
     else:
+        total = sum(results.values())
         messages.success(
             request,
-            _(
+            ngettext(
+                "Fitxer registrat: %(total)s retorn. Si espera la teva decisió, és a «Per "
+                "decidir»; si no, ja s'ha aplicat l'alternativa de pagament.",
                 "Fitxer registrat: %(total)s retorns. A «Per decidir» hi ha els que esperen la "
-                "teva decisió; als altres ja s'ha aplicat l'alternativa de pagament."
+                "teva decisió; als altres ja s'ha aplicat l'alternativa de pagament.",
+                total,
             )
-            % {"total": sum(results.values())},
+            % {"total": total},
         )
     return redirect("administration:payments_returns")
 

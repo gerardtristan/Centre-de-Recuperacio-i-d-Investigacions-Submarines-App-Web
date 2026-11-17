@@ -117,7 +117,7 @@ def validate_upload(uploaded, *, allowed=UPLOAD_TYPES) -> str:
     detected = _detect(head)
     extension = Path(uploaded.name or "").suffix.lower()
     if detected is None and _looks_like_text(head):
-        if head.removeprefix(b"\xef\xbb\xbf").lstrip().startswith(b"<?xml"):
+        if head.removeprefix(b"\xef\xbb\xbf").lstrip().startswith(b"<"):
             detected = "application/xml"
         else:
             detected = "text/plain" if extension in _EXTENSIONS["text/plain"] else "text/csv"

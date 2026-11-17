@@ -76,5 +76,5 @@ def test_treasurer_uploads_the_bank_returns_file(
     review("retornats-fitxer-previsualitzacio")
     page.get_by_role("button", name="Confirma els retorns").click()
 
-    expect(page.get_by_role("status")).to_contain_text("Fitxer registrat: 1 retorns")
+    expect(page.get_by_role("status")).to_contain_text("Fitxer registrat: 1 retorn.")
     expect(page.get_by_text("No hi ha cap retorn per decidir.")).to_be_visible()

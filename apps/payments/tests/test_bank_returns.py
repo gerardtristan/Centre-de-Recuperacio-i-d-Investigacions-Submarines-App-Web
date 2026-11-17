@@ -73,9 +73,10 @@ def test_llegeix_els_rebuts_rebutjats_i_ignora_la_resta():
         pain002(tx("R1", status="ACCP")),  # cap retornat
         pain002(tx("R1"), tx("R1")),  # referència repetida
         pain002(tx("", "AM04")),  # sense referència
-        pain002(tx("R1", "AM4")),  # codi no vàlid
         pain002(tx("R1", amount="35.001")),  # import
         pain002(tx("R1", amount="-3")),
+        pain002(tx("R1", amount="NaN")),
+        pain002(tx("R1", fee="Infinity")),
         pain002(tx("R1", amount="35.00").replace("EUR", "USD")),  # moneda
         b'<?xml version="1.0"?><!DOCTYPE d [<!ENTITY a "x">]><Document>&a;</Document>',
     ],
@@ -83,6 +84,21 @@ def test_llegeix_els_rebuts_rebutjats_i_ignora_la_resta():
 def test_un_fitxer_trencat_es_rebutja_sencer(data):
     with pytest.raises(bank_returns.Rejected):
         bank_returns.parse(data)
+
+
+def test_comissio_zero_i_codi_no_reconegut_no_rebutgen_el_fitxer():
+    data = pain002(tx("R1", fee="0.00"), tx("R2", "AM4")).replace(
+        b"<Cd>AM4</Cd>", b"<Prtry>PROPI</Prtry>"
+    )
+    first, second = bank_returns.parse(data)
+    assert first["fee_cents"] is None
+    assert second["reason_code"] == ""
+
+
+def test_codi_no_reconegut_queda_per_entrar_a_ma(collected, treasurer):  # noqa: F811
+    data = pain002(tx(collected[0].end_to_end_id, "AM4"), tx(collected[1].end_to_end_id))
+    result = bank_returns.preview(data, by=treasurer)
+    assert result["counts"] == {"bad_code": 1, "ready": 1}
 
 
 def test_previsualitza_i_confirma_tot_alhora(collected, treasurer):  # noqa: F811
@@ -148,6 +164,10 @@ def test_sense_b4_amb_edicio_no_trobat(collected, make_admin):  # noqa: F811
 
 def test_el_tipus_xml_nomes_val_per_als_retornats():
     upload = SimpleUploadedFile("retornats.xml", pain002(tx("R1")))
+    bare = pain002(tx("R1")).split(b"?>", 1)[1]  # la declaració XML és opcional
+    assert files.validate_upload(
+        SimpleUploadedFile("r.xml", b"\xef\xbb\xbf\n" + bare), allowed=files.BANK_RETURNS_TYPES
+    )
     assert files.validate_upload(upload, allowed=files.BANK_RETURNS_TYPES) == "application/xml"
     for allowed in (files.IMPORT_TYPES, files.BANK_STATEMENT_TYPES, files.UPLOAD_TYPES):
         with pytest.raises(files.ValidationError):
@@ -170,7 +190,7 @@ def test_pantalla_puja_previsualitza_i_confirma(collected, treasurer):  # noqa: 
     token = response.context["file_preview"]["token"]
     response = client.post(CONFIRM_URL, {"testimoni": token}, follow=True)
     html = main_of(response.content.decode())
-    assert "Fitxer registrat: 1 retorns" in html and "Reintent (intent 2)" in html
+    assert "Fitxer registrat: 1 retorn." in html and "Reintent (intent 2)" in html
 
 
 def test_pantalla_errors_del_fitxer(collected, treasurer):  # noqa: F811

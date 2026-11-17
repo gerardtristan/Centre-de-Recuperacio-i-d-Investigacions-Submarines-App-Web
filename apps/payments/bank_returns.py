@@ -7,7 +7,8 @@ previsualització i la confirmació, no se'n registra cap.
 
 - El fitxer no es desa; al registre d'activitat queda la seva empremta SHA-256 i el recompte.
 - Un rebut que ja consta com a retornat surt com a «ja registrat» i no es torna a registrar.
-- Si el fitxer porta l'import original i no quadra amb el rebut, la línia surt amb error.
+- Si el fitxer porta l'import original i no quadra amb el rebut, la línia surt amb error; si no
+  porta cap codi de motiu reconegut (per exemple, un de propi del banc), surt per entrar-la a mà.
 - El fitxer sencer es rebutja si no és un pain.002 llegible o una referència hi surt dues vegades.
 
 shortcut: format de l'estàndard ISO 20022 (pain.002.001.03 i posteriors, sense mirar la versió);
@@ -22,16 +23,18 @@ from decimal import Decimal, InvalidOperation
 from defusedxml.ElementTree import ParseError, fromstring
 from django.core import signing
 from django.db import transaction
+from django.http import Http404
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, charges
+from apps.core.permissions import has_perm
 
 from . import returns
 from .models import DirectDebitItem
 
 SALT = "apps.payments.bank_returns"
 TOKEN_MAX_AGE = 60 * 60  # segons: una previsualització d'abans de fa una hora ja no es confirma
-READY, DONE, UNKNOWN, ERROR = "ready", "done", "unknown", "error"
+READY, DONE, UNKNOWN, ERROR, BAD_CODE = "ready", "done", "unknown", "error", "bad_code"
 
 
 class Rejected(Exception):
@@ -44,6 +47,11 @@ class Rejected(Exception):
 
 class Stale(Exception):
     """La previsualització ha caducat o algun rebut ha canviat: cal tornar-la a fer."""
+
+
+def _ensure_b4(by) -> None:
+    if not has_perm(by, charges.RETURNS, write=True):
+        raise Http404
 
 
 def _local(tag: str) -> str:
@@ -64,7 +72,7 @@ def _text(node, path: str) -> str:
     return (found.text or "").strip() if found is not None else ""
 
 
-def _cents(node, path: str) -> int | None:
+def _cents(node, path: str, *, zero_is_none=False) -> int | None:
     found = _find(node, path)
     if found is None:
         return None
@@ -74,7 +82,11 @@ def _cents(node, path: str) -> int | None:
         value = Decimal((found.text or "").strip())
     except InvalidOperation:
         raise Rejected(_("El fitxer porta un import que no es pot llegir.")) from None
-    if value <= 0 or value != value.quantize(Decimal("0.01")):
+    if not value.is_finite() or value < 0 or value != value.quantize(Decimal("0.01")):
+        raise Rejected(_("El fitxer porta un import que no es pot llegir."))
+    if value == 0:
+        if zero_is_none:
+            return None
         raise Rejected(_("El fitxer porta un import que no es pot llegir."))
     return int(value * 100)
 
@@ -97,14 +109,14 @@ def parse(data: bytes) -> list[dict]:
                 continue
             reference = _text(tx, "OrgnlEndToEndId")
             code = _text(tx, "StsRsnInf/Rsn/Cd").upper()
-            if not reference or not returns.CODE.fullmatch(code):
-                raise Rejected(_("Hi ha un rebut sense referència o sense un codi de motiu vàlid."))
+            if not reference:
+                raise Rejected(_("Hi ha un rebut retornat sense referència."))
             lines.append(
                 {
                     "end_to_end_id": reference,
                     "reason_code": code,
                     "amount_cents": _cents(tx, "OrgnlTxRef/Amt/InstdAmt"),
-                    "fee_cents": _cents(tx, "ChrgsInf/Amt"),
+                    "fee_cents": _cents(tx, "ChrgsInf/Amt", zero_is_none=True),
                 }
             )
     if not lines:
@@ -114,28 +126,31 @@ def parse(data: bytes) -> list[dict]:
     return lines
 
 
-def _classify(line: dict) -> tuple[str, DirectDebitItem | None]:
-    item = (
-        DirectDebitItem.objects.filter(end_to_end_id=line["end_to_end_id"]).order_by("-pk").first()
-    )
+def _classify(line: dict, item: DirectDebitItem | None) -> str:
     if item is None:
-        return UNKNOWN, None
+        return UNKNOWN
     if item.status == DirectDebitItem.Status.RETURNED:
-        return DONE, item
-    if item.status != DirectDebitItem.Status.COLLECTED:
-        return ERROR, item
-    if line["amount_cents"] is not None and line["amount_cents"] != item.amount_cents:
-        return ERROR, item
-    return READY, item
+        return DONE
+    if item.status != DirectDebitItem.Status.COLLECTED or (
+        line["amount_cents"] is not None and line["amount_cents"] != item.amount_cents
+    ):
+        return ERROR
+    if not returns.CODE.fullmatch(line["reason_code"]):
+        return BAD_CODE
+    return READY
 
 
 def preview(data: bytes, *, by) -> dict:
     """Línies amb el seu estat i el testimoni signat per confirmar les que estan a punt."""
-    returns._ensure_b4(by)
+    _ensure_b4(by)
     lines = parse(data)
+    items = DirectDebitItem.objects.select_related("attempt__charge").in_bulk(
+        [line["end_to_end_id"] for line in lines], field_name="end_to_end_id"
+    )
     ready = []
     for line in lines:
-        line["status"], line["item"] = _classify(line)
+        line["item"] = items.get(line["end_to_end_id"])
+        line["status"] = _classify(line, line["item"])
         if line["status"] == READY:
             ready.append(
                 [line["item"].pk, line["reason_code"], line["fee_cents"], line["end_to_end_id"]]
@@ -149,7 +164,7 @@ def preview(data: bytes, *, by) -> dict:
 @transaction.atomic
 def confirm(token: str, *, by) -> Counter:
     """Registra tots els rebuts de la previsualització o cap. Torna el recompte per proposta."""
-    returns._ensure_b4(by)
+    _ensure_b4(by)
     try:
         payload = signing.loads(token, salt=SALT, max_age=TOKEN_MAX_AGE)
     except signing.BadSignature:

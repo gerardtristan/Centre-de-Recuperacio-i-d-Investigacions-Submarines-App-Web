@@ -41,11 +41,12 @@
               <td data-etiqueta="{% translate 'Resultat' %}">
                 {% if line.status == "ready" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Es registrarà" %}</span>
                 {% elif line.status == "done" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Ja registrat: no es torna a registrar" %}</span>
+                {% elif line.status == "bad_code" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Sense codi de motiu reconegut: entra'l a mà" %}</span>
                 {% elif line.status == "unknown" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Cap rebut amb aquesta referència" %}</span>
                 {% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No quadra: el rebut no consta com a cobrat o l'import és diferent" %}</span>{% endif %}
               </td>
               <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{% if line.item %}{{ line.item.amount_cents|euros }}{% elif line.amount_cents %}{{ line.amount_cents|euros }}{% else %}—{% endif %}</span></td>
-              <td data-etiqueta="{% translate 'Motiu' %}"><span class="codi">{{ line.reason_code }}</span></td>
+              <td data-etiqueta="{% translate 'Motiu' %}">{% if line.reason_code %}<span class="codi">{{ line.reason_code }}</span>{% else %}—{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
