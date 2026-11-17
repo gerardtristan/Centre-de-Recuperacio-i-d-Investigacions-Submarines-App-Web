@@ -78,6 +78,7 @@ Part Verifactu de la P-02 i la P-47.
 2. Es fa **darrere d'un adaptador**, com el de pagaments ([043](043-proveidor-de-pagaments-dins-la-ue.md)), al **mòdul 09**. No es programa Verifactu a casa.
 3. El proveïdor ha de complir les normes del projecte: dades només dins la UE ([035](035-dades-nomes-dins-ue.md)), contracte d'encarregat del tractament (RGPD, art. 28), i tots els valors configurables (sèries, textos d'exempció, tipus d'IVA) a «Ajustos».
 4. Quin servei homologat es tria és una pregunta nova, la **P-293** ([pendents](pendents.md), [tauler](tauler-preguntes.yml)), que respon el propietari amb la gestoria.
+   - **Resposta del propietari a la P-293 (17/11/2026): A**, un servei de facturació homologat amb API (emissió, registre, enviament a l'Agència Tributària i consulta de l'estat), amb dades a la UE i contracte d'encarregat, darrere de l'adaptador. La gestoria no fa servir cap servei de Verifactu, i per això la B (el programa de la gestoria) queda descartada. **Provisional** fins que la gestoria ho confirmi per escrit. El proveïdor concret encara s'ha de triar.
 5. El 09 no és de la fase 1 i no és congelat: la regla s'afegeix a [M09-7](../planning.md#M09-7-regles) en una PR `risc:alt`. **Ara no es construeix cap codi de Verifactu.**
 
 ## Conseqüències
