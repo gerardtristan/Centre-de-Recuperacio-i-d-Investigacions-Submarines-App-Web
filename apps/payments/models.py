@@ -261,6 +261,11 @@ class PaymentAttempt(UndeletableModel):
     def __str__(self):
         return f"{self.get_method_display()} {self.amount_cents} c ({self.get_status_display()})"
 
+    @property
+    def payment_method(self) -> str:
+        """El mètode del pagament de la 00: una targeta guardada hi és una «targeta»."""
+        return self.Method.CARD if self.method == self.Method.SAVED_CARD else self.method
+
     def check_transition(self, old: str, new: str) -> None:
         """RN-M05b-03. Només una domiciliació s'envia al banc: una targeta no hi arriba mai."""
         to_bank = new == self.Status.SENT_TO_BANK and self.method != self.Method.DIRECT_DEBIT
@@ -561,6 +566,37 @@ class MandateBankAccount(models.Model):
 
     def __str__(self):
         return f"{self.iban_country} … {self.iban_last4}"
+
+
+class SavedCardAttempt(models.Model):
+    """La targeta guardada amb què s'ha obert un intent (T-M05b-15): un intent que es reprèn ha de
+    ser amb la mateixa targeta. Fora de l'intent, que no porta cap dada de targeta (CA-M05b-25)."""
+
+    attempt = models.OneToOneField(PaymentAttempt, on_delete=models.PROTECT, related_name="+")
+    card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
+
+    class Meta:
+        verbose_name = _("targeta d'un intent")
+        verbose_name_plural = _("targetes dels intents")
+
+    def __str__(self):
+        return str(self.attempt_id)
+
+
+class SavedCardNotice(models.Model):
+    """Una quota que la targeta guardada no ha pogut cobrar i de la qual ja s'ha avisat (T-M05b-15):
+    una sola vegada per càrrec, també a la base de dades."""
+
+    charge = models.OneToOneField("core.Charge", on_delete=models.PROTECT, related_name="+")
+    reason = models.TextField(_("motiu"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís de quota no cobrada amb la targeta")
+        verbose_name_plural = _("avisos de quotes no cobrades amb la targeta")
+
+    def __str__(self):
+        return str(self.charge_id)
 
 
 class FeePaymentPreference(models.Model):

@@ -5,7 +5,7 @@ from procrastinate.contrib.django import app
 
 from apps.accounts.models import Account
 
-from . import campaigns, expiry, processing, settlements
+from . import campaigns, checkout, expiry, processing, settlements
 from .models import MandateCampaign
 
 
@@ -34,6 +34,14 @@ def expire_mandates(timestamp: int) -> None:
 @app.task(name="payments.import_settlements", queue="maintenance")
 def import_settlements(timestamp: int) -> None:
     settlements.import_settlements()
+
+
+# Cada dia, de matinada: les quotes vençudes dels socis que paguen amb la targeta guardada
+# (T-M05b-15; P-302). Després de la xarxa de seguretat.
+@app.periodic(cron="0 5 * * *")
+@app.task(name="payments.charge_saved_cards", queue="maintenance")
+def charge_saved_cards(timestamp: int) -> None:
+    checkout.charge_due_saved_cards()
 
 
 # P-M05a-E, pas 3: el tresorer confirma l'enviament i les invitacions surten per la cua.

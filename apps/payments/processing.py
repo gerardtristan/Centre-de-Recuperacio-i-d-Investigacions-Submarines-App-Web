@@ -17,6 +17,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import audit, business_settings, charges, mail
 from apps.core.models import Charge
@@ -31,6 +32,11 @@ from .providers import base, get_provider
 logger = logging.getLogger(__name__)
 R = ProviderEvent.Result
 S = PaymentAttempt.Status
+SAVED_CARD = PaymentAttempt.Method.SAVED_CARD
+UNFINISHED_SAVED_CARD = gettext_lazy(
+    "No consta si el proveïdor va rebre el cobrament amb la targeta guardada: comprova-ho al "
+    "proveïdor abans de cobrar la quota d'una altra manera."
+)
 ORIGIN = "payments.processing"
 TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
@@ -60,7 +66,8 @@ def process_notification(event_id: int) -> str:
             if event.result != R.RECEIVED:
                 return event.result
             result = _process(event)
-            _close(event, result)
+            if result != R.RECEIVED:  # «rebuda»: s'espera la xarxa de seguretat
+                _close(event, result)
             return result
     except Exception as error:
         logger.exception("No s'ha pogut processar la notificació %s", event_id)
@@ -89,6 +96,13 @@ def _process(event: ProviderEvent) -> str:
     if attempt is None:
         setup = cards.setup_for(event)  # guardar una targeta (T-M05a-12)
         if setup is None:
+            # Pot arribar abans que es desi l'ordre de la targeta guardada (T-M05b-15): s'espera la
+            # xarxa de seguretat. Si el proveïdor real ho permet, [A verificar: P-45].
+            unfinished = PaymentAttempt.objects.filter(
+                status=S.IN_PROGRESS, method=SAVED_CARD, provider_code=event.provider_code
+            )
+            if unfinished.filter(provider_order_id="").exists():
+                return R.RECEIVED
             return _review(None, event, _("La notificació no és de cap ordre coneguda."))
         state = base.OrderState(
             event.order_id, event.event_type, event.amount_cents, event.currency
@@ -139,7 +153,8 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
     attempt = attempts.transition(attempt, S.PAID, by=by)
     payment = charges.record_payment(
         charge,
-        method=attempt.method,
+        # Per a la 00 i la tresoreria, una targeta guardada és una targeta.
+        method=attempt.payment_method,
         origin="provider",
         by=by,
         provider_status=state.status,
@@ -207,6 +222,16 @@ def safety_net() -> None:
         except Exception:
             logger.exception("Xarxa de seguretat: no s'ha pogut tancar l'intent %s", attempt.pk)
             _give_up(attempt, give_up, _("La xarxa de seguretat no ha pogut tancar l'intent."))
+    # Targeta guardada sense ordre desada: la crida va fallar i ningú no l'ha represa (T-M05b-15).
+    unfinished = PaymentAttempt.objects.filter(
+        status=S.IN_PROGRESS,
+        method=SAVED_CARD,
+        provider_code=provider.code,
+        provider_order_id="",
+        created_at__lt=give_up,
+    )
+    for attempt in unfinished:
+        _give_up(attempt, give_up, UNFINISHED_SAVED_CARD)
     for setup in cards.stale_setups(provider.code, limit):
         # Les autenticacions de targeta igual (T-M05a-12): es torna a consultar l'ordre i la
         # targeta, i la que no es tanca passades les hores es dona per abandonada.

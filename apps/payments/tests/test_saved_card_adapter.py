@@ -2,6 +2,7 @@
 proveïdor fals i els models. Sense xarxa; només dades inventades."""
 
 from dataclasses import replace
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -75,10 +76,12 @@ def test_zero_euros_only_for_a_card_setup(provider):
         verify(provider, body, {fake.SIGNATURE_HEADER: fake.sign(body)})
 
 
-def test_charging_a_saved_card_is_not_there_yet(provider):
-    # El cobrament amb la targeta guardada arriba amb la T-M05b-15.
-    with pytest.raises(base.NotSupported):
-        provider.charge_saved_card(a_charge(), None, uuid4())
+def test_charging_a_saved_card_asks_for_authentication_only_when_the_bank_wants_it(provider):
+    card = SimpleNamespace(provider_card_id=CARD.card_ref)
+    assert provider.charge_saved_card(a_charge(), card, uuid4()).pay_url == ""
+
+    provider.require_authentication(CARD.card_ref)
+    assert provider.charge_saved_card(a_charge(), card, uuid4()).pay_url  # RN-M05b-20
 
 
 @pytest.mark.django_db
