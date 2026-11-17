@@ -255,3 +255,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05a-22](T-M05a-22.md) | Dies dels recordatoris de la campanya de mandats com a ajust (VC-11), editable pel tresorer | 17/11/2026 | 57c9afbf | noves | [A comprovar] |
 | [T-M05a-21](T-M05a-21.md) | Guia del tresorer per a la campanya, els mètodes i els mandats; ajuda per als socis sobre el correu de la campanya (P-305, P-306) | 17/11/2026 13:25 | 549fc075 | cap de nova | [A comprovar] |
 | [T-DX-50](T-DX-50.md) | «Pantalles en construcció» al menú de l'administració, i arreglat el 401 (carril de disseny) | 17/11/2026 12:27 | 916bc079 (PR #174) | 7 noves | [A comprovar] |
+| [T-M05b-19](T-M05b-19.md) | Portes del nivell 2: revisió de l'evidència dels 16 punts (8 parcials, 5 falten, 2 del servidor, 1 de la junta); no passa cap porta (092, punt 7); dubtes P-300 i P-301 | 17/11/2026 13:30 | 6f93a76b | cap nova | [A comprovar] |
