@@ -58,7 +58,7 @@ class FakeProvider(base.PaymentProvider):
 
     def capabilities(self) -> base.Capabilities:
         return base.Capabilities(
-            card=True, bizum=True, tokenization=False, refund_bizum=True, embedded_field=False
+            card=True, bizum=True, tokenization=True, refund_bizum=True, embedded_field=False
         )
 
     def _create_order(self, charge, method, urls, idempotency_key: UUID) -> base.ProviderOrder:

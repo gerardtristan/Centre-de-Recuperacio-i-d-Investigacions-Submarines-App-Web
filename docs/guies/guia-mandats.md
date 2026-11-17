@@ -33,7 +33,7 @@ Al menú, **Pagaments: mètodes i mandats**. Hi surten tots els socis actius amb
 
 **Atenció:** la columna **Mandat o targeta** només mostra el mandat **actiu**. Un soci amb «domiciliació» i un guió (—) vol dir que el seu mandat ja no és actiu (caducat o bloquejat, vegeu el punt 4): no entrarà a la remesa fins que en signi un de nou. El recompte de la campanya també el compta a «Domiciliació» ([P-305](../decisions/pendents.md)).
 
-**Targeta guardada:** encara no està feta [pendent: T-M05a-12]. Depèn que el proveïdor de pagaments permeti guardar targetes ([P-45](../decisions/pendents.md), punt 6). Fins llavors, els socis no la veuen com a opció.
+**Targeta guardada:** feta contra el proveïdor de proves; amb el real, depèn que permeti guardar targetes ([P-45](../decisions/pendents.md), punt 6), i si no ho permet els socis no la veuen com a opció. La columna **Mandat o targeta** mostra els quatre darrers dígits i la caducitat; ni tu ni el soci no veieu mai el número. Cada soci té com a molt una targeta activa: si en guarda una de nova, l'anterior queda esborrada ([P-297](../decisions/pendents.md)).
 
 ## 4. Els estats d'un mandat
 - **Actiu:** el soci l'ha signat i es pot fer servir a les remeses. Cada soci en té com a molt un ([RN-M05a-02](../planning.md#M05a-7-regles)).
@@ -50,7 +50,7 @@ Al menú, **Pagaments: mètodes i mandats**. Hi surten tots els socis actius amb
 
 ## 6. Què encara no es pot fer
 - Signar mandats i obrir la campanya: apagat fins que la junta aprovi els textos [pendent: T-M05a-01].
-- Guardar la targeta [pendent: T-M05a-12].
+- Esborrar la targeta guardada [pendent: P-132] i cobrar-hi la quota [pendent: T-M05b-15].
 - Connectar el proveïdor de pagaments real en mode de proves [pendent: T-M05a-05].
 - Monitoratge, alertes i marxa enrere del flux de mandats, necessaris per al nivell 1 [pendent: T-M05a-19].
 - La importació final de Cluber [pendent: T-M05a-20]. Els mandats de Cluber no s'importen ([RN-M05a-16](../planning.md#M05a-7-regles)).

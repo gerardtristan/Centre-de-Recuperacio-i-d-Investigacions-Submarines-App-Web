@@ -164,6 +164,13 @@ MAP = {
         "apps/payments/preferences.py",
         "templates/payments/fee_method.html",
     ),
+    "test_targeta_guardada.py": (
+        "apps/payments/card_views.py",
+        "apps/payments/cards.py",
+        "apps/payments/providers/fake.py",
+        "templates/payments/saved_card.html",
+        "templates/payments/fake_pay.html",
+    ),
     "test_tresoreria.py": (
         "apps/treasury/views.py",
         "apps/treasury/admin_urls.py",

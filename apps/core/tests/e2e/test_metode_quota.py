@@ -1,6 +1,6 @@
 """«Com pago la quota» al navegador (T-M05a-11; P-M05a-A; CA-M05a-01; P-134, opció per defecte).
-Proveïdor fals, sense tokenització: la targeta guardada no surt. Pantalles a 1280, 390 i 320 px
-(clar i fosc). Només dades inventades."""
+Proveïdor fals, que guarda targetes (092): la targeta guardada surt recomanada (RN-M05a-19).
+Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades inventades."""
 
 import pytest
 from playwright.sync_api import expect
@@ -27,8 +27,8 @@ def test_member_chooses_how_to_pay_the_fee(page, live_server, builder, member, r
     expect(page.get_by_role("heading", name="Com pago la quota")).to_be_visible()
     expect(page.get_by_text("Encara no has triat com pagues la quota.")).to_be_visible()
     options = page.get_by_role("radiogroup", name="Com vols pagar-la?").get_by_role("radio")
-    expect(options).to_have_count(2)  # sense tokenització, cap targeta guardada
-    expect(page.get_by_text("Domiciliació bancària (recomanada)")).to_be_visible()
+    expect(options).to_have_count(3)
+    expect(page.get_by_text("Targeta guardada (recomanada)")).to_be_visible()
     review("metode-quota")
 
     page.get_by_label("Domiciliació bancària").check()

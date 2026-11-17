@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import mandate_views, preference_views, views
+from . import card_views, mandate_views, preference_views, views
 from .models import PaymentAttempt
 
 app_name = "payments"
@@ -40,6 +40,7 @@ urlpatterns = [
     ),
     path("socis/pagaments/<int:attempt_id>/rebut/", views.receipt_view, name="receipt"),
     path("socis/pagaments/metode/", preference_views.fee_method_view, name="fee_method"),
+    path("socis/pagaments/targeta/", card_views.saved_card_view, name="saved_card"),
     # Convidat (T-M05b-08): públiques declarades; la credencial és l'enllaç de la sessió. Sota
     # `pagaments/` perquè `convidat/<testimoni>/` (core) no prengui cap camí com a testimoni.
     path("pagaments/convidat/", views.guest_charge_view, name="guest_charge"),

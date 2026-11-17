@@ -805,4 +805,34 @@ opcions:
       memòria del VPS i un servei més a mantenir. Si el VPS no hi arriba, B si es verifica la UE.
     data: 2026-11-17
 
+  P-297:
+    opcions:
+      A: Una sola targeta activa; la nova deixa l'anterior «esborrada» i la preferència passa a la nova.
+      B: Diverses targetes actives; el soci tria amb quina es paga la quota.
+      C: Per guardar-ne una de nova, cal esborrar abans l'anterior.
+    recomanada: A
+    perque: >-
+      És com el mandat (RN-M05a-02): una sola targeta per cobrar la quota, sense passos de més per al soci.
+    data: 2026-11-17
+
+  P-298:
+    opcions:
+      A: Sí; quan el proveïdor confirma la targeta, la quota es paga amb aquesta targeta.
+      B: No; el soci ho ha de triar després a «Com pago la quota».
+      C: La pantalla de la targeta pregunta si es fa servir per a la quota.
+    recomanada: A
+    perque: >-
+      És el que ja va decidir la 095 per al mandat (P-125), i qui guarda una targeta per a la quota vol pagar-la així.
+    data: 2026-11-17
+
+  P-299:
+    opcions:
+      A: De moment no; es marca «esborrada» a la plataforma i, quan respongui el proveïdor real, l'adaptador l'esborra també allà si ho permet.
+      B: No s'esborra mai al proveïdor.
+      C: No es guarda cap targeta nova fins que se sàpiga si l'API ho permet.
+    recomanada: A
+    perque: >-
+      Minimitza dades sense bloquejar la feina: la plataforma ja no la fa servir, i l'esborrat al proveïdor arriba quan se sàpiga com.
+    data: 2026-11-17
+
 noves:

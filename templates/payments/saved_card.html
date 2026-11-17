@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05a-12: guardar una targeta per a les quotes (P-M05a-D; wireframe socis.html#pagaments-targeta). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió, i «no trobat» si el proveïdor no guarda targetes; la targeta s'escriu a la pàgina del proveïdor i aquí només surten els quatre darrers dígits i la caducitat (CA-M05a-15), mai la referència del proveïdor; la contrasenya, i el codi si el compte té TOTP, quan la sessió no és recent (RN-M05a-12), i el servidor ho torna a comprovar; la tornada del navegador no guarda res, només la notificació verificada. Esborrar la targeta (P-132) encara no hi és. #}
+{% block title %}{% translate "Targeta per a la quota" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Targeta per a la quota" %}</h1>
+  {% if waiting %}<div class="avis avis-sistema" role="status"><strong>{% translate "Estem confirmant la targeta" %}</strong>{% translate "El proveïdor encara no ens l'ha confirmada. Torna a carregar la pàgina d'aquí a uns segons." %}</div>{% endif %}
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+  {% if not_saved %}<div class="avis avis-error" role="alert">{% translate "No s'ha guardat cap targeta. Ho pots tornar a provar o triar un altre mètode." %}</div>{% endif %}
+
+  {% if card %}
+    <section class="targeta" aria-labelledby="targeta-guardada-titol">
+      <h2 id="targeta-guardada-titol">{% translate "La teva targeta" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Estat" %}</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ card.get_status_display|capfirst }}</span></dd></div>
+        <div><dt>{% translate "Targeta" %}</dt><dd class="codi">… {{ card.last4 }}</dd></div>
+        {% if card.expiry_month %}<div><dt>{% translate "Caduca" %}</dt><dd>{{ card.expiry_month|stringformat:"02d" }}/{{ card.expiry_year }}</dd></div>{% endif %}
+      </dl>
+    </section>
+  {% endif %}
+
+  <form class="targeta formulari" method="post" action="{% url 'payments:saved_card' %}" novalidate>
+    {% csrf_token %}
+    <h2>{% if card %}{% translate "Guarda una targeta nova" %}{% else %}{% translate "Guarda una targeta" %}{% endif %}</h2>
+    {% if card %}<p class="text-2">{% blocktranslate with last4=card.last4 %}La nova substituirà la targeta acabada en {{ last4 }}.{% endblocktranslate %}</p>{% endif %}
+    <div class="avis avis-sistema">{% translate "Escriuràs la targeta a la pàgina segura del proveïdor i t'autenticaràs amb el teu banc. El club no veu ni guarda mai el número ni el codi de seguretat." %} <span class="a-validar">{% translate "A verificar: P-45 punt 6" %}</span></div>
+    {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus #}
+    {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
+    {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Guarda la targeta" %}</button></div>
+  </form>
+  <p class="enllacos"><a href="{% url 'payments:fee_method' %}">{% translate "Torna a «Com pago la quota»" %}</a></p>
+{% endblock %}

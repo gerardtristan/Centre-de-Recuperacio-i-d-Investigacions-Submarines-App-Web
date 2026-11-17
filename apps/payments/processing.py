@@ -24,7 +24,7 @@ from apps.core.permissions import accounts_with_perm
 from apps.members import services as members
 from apps.treasury import services as treasury
 
-from . import attempts, receipts
+from . import attempts, cards, receipts
 from .models import PaymentAttempt, ProviderEvent
 from .providers import base, get_provider
 
@@ -87,7 +87,14 @@ def _process(event: ProviderEvent) -> str:
         .first()
     )
     if attempt is None:
-        return _review(None, event, _("La notificació no és de cap ordre coneguda."))
+        setup = cards.setup_for(event)  # guardar una targeta (T-M05a-12)
+        if setup is None:
+            return _review(None, event, _("La notificació no és de cap ordre coneguda."))
+        state = base.OrderState(
+            event.order_id, event.event_type, event.amount_cents, event.currency
+        )
+        reason = cards.settle_setup(setup, state)
+        return _review(None, event, reason) if reason else R.PROCESSED
     state = base.OrderState(event.order_id, event.event_type, event.amount_cents, event.currency)
     return settle(attempt, state, source=event)
 
@@ -200,6 +207,17 @@ def safety_net() -> None:
         except Exception:
             logger.exception("Xarxa de seguretat: no s'ha pogut tancar l'intent %s", attempt.pk)
             _give_up(attempt, give_up, _("La xarxa de seguretat no ha pogut tancar l'intent."))
+    for setup in cards.stale_setups(provider.code, limit):
+        # Les autenticacions de targeta igual (T-M05a-12): es torna a consultar l'ordre i la
+        # targeta, i la que no es tanca passades les hores es dona per abandonada.
+        try:
+            state = provider.get_order(setup.provider_order_id)
+            with transaction.atomic():
+                if reason := cards.settle_setup(setup, state):
+                    _review(None, setup, reason)
+        except Exception:
+            logger.exception("Xarxa de seguretat: no s'ha pogut tancar l'autenticació %s", setup.pk)
+        cards.give_up(setup, give_up)
 
 
 def _give_up(attempt: PaymentAttempt, give_up, reason: str) -> None:
