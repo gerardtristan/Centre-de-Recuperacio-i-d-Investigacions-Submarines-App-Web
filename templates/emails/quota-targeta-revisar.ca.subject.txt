@@ -1,1 +1,1 @@
-{% load i18n %}{# T-M05b-15: TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Una quota amb la targeta guardada per revisar" %}
+{% load i18n %}{# T-M05b-15: TEXT PROVISIONAL [A validar: tresorer]. #}{% if reviewed %}{% translate "Una quota amb la targeta guardada per revisar" %}{% else %}{% translate "Quota no cobrada amb la targeta guardada" %}{% endif %}

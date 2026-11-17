@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 import pytest
 from django.db import connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 from django.db.models import F
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
@@ -28,6 +29,7 @@ from apps.payments.providers import base, fake
 from apps.payments.tests.test_fee_method import active_account
 from apps.payments.tests.test_preferences import card, prefer
 from apps.payments.tests.test_processing import no_wait, notify, run_queue
+from conftest import CommittedDataTestCase
 
 pytestmark = pytest.mark.django_db
 S = PaymentAttempt.Status
@@ -367,6 +369,13 @@ def test_the_automatic_charge_is_off_by_default(saved, fee, settings, caplog):
 # --- Avisos (T-M05b-15b): un sol punt d'entrada, `processing.saved_card_outcome` ---
 
 
+def next_day():
+    """L'endemà, per als correus: un sol intent per dia."""
+    SavedCardNotice.objects.exclude(tried_on=None).update(
+        tried_on=timezone.localdate() - timedelta(days=1)
+    )
+
+
 def alternatives():
     return OutgoingEmail.objects.filter(template="alternativa-pagament")
 
@@ -418,6 +427,7 @@ def test_a_failed_email_is_retried_the_next_day(saved, fee, monkeypatch, treasur
     assert not SavedCardNotice.objects.get().notified and not review_emails().exists()
 
     monkeypatch.setattr(returns, "send_alternative", real)
+    next_day()
     checkout.charge_due_saved_cards()
     assert SavedCardNotice.objects.get().notified and alternatives().count() == 1
 
@@ -503,6 +513,7 @@ def test_a_retry_says_nothing_about_a_fee_paid_in_between(saved, fee, monkeypatc
     checkout.charge_due_saved_cards()
     monkeypatch.undo()
     pay(fee)
+    next_day()
 
     checkout.charge_due_saved_cards()
     assert not alternatives().exists() and not review_emails().exists()
@@ -515,6 +526,7 @@ def test_emails_that_keep_failing_end_up_to_review(saved, fee, monkeypatch, trea
     monkeypatch.setattr(returns, "send_alternative", broken)
     for _day in range(processing.NOTICE_TRIES + 1):
         checkout.charge_due_saved_cards()
+        next_day()
 
     assert OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).count() == 1
     checkout.charge_due_saved_cards()  # no hi torna
@@ -594,3 +606,83 @@ def test_the_safety_net_keeps_why_it_gave_up(saved, fee, monkeypatch):
     processing.safety_net()
     entry = AuditEntry.objects.get(action=processing.OUTCOME)
     assert "consultar l'ordre" in entry.details["detail"]
+
+
+# --- Novena revisió de #198 ---
+
+
+def test_the_emails_of_a_notice_are_tried_once_a_day(saved, fee, monkeypatch, treasurer):
+    saved.status = "removed"
+    saved.save()
+    calls = []
+
+    def counting(*args, **kwargs):
+        calls.append(1)
+        raise RuntimeError("correu caigut")
+
+    monkeypatch.setattr(returns, "send_alternative", counting)
+    checkout.charge_due_saved_cards()
+    checkout.charge_due_saved_cards()  # el mateix dia, cap segon intent
+    assert len(calls) == 1 and SavedCardNotice.objects.get().tries == 1
+
+
+def test_the_escalation_stays_to_review_even_if_its_email_fails(saved, fee, monkeypatch, treasurer):
+    saved.status = "removed"
+    saved.save()
+    monkeypatch.setattr(returns, "send_alternative", broken)
+    checkout.charge_due_saved_cards()
+    yesterday = timezone.localdate() - timedelta(days=1)
+    SavedCardNotice.objects.update(tries=processing.NOTICE_TRIES, tried_on=yesterday)
+    monkeypatch.setattr(processing, "_mail_review", broken)
+    checkout.charge_due_saved_cards()
+
+    notice = SavedCardNotice.objects.get()
+    assert notice.notified
+    reason = AuditEntry.objects.filter(action=processing.TO_REVIEW).latest("pk").reason
+    assert str(processing.OUTCOMES["card_closed"]) in reason and "card_closed" not in reason
+
+
+def test_a_failing_outcome_after_a_provider_error_keeps_both_errors(
+    saved, fee, monkeypatch, caplog
+):
+    def down(*args, **kwargs):
+        raise base.ProviderError("temps esgotat")
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", down)
+    monkeypatch.setattr(processing, "saved_card_outcome", broken)
+    with pytest.raises(base.ProviderError):
+        checkout.charge_saved_card(fee.charge, saved)
+    assert only_attempt(fee).status == S.IN_PROGRESS  # per a la xarxa de seguretat
+    assert "temps esgotat" in caplog.text
+
+
+def test_a_day_with_nothing_to_do_does_not_need_the_provider(monkeypatch):
+    monkeypatch.setattr(checkout, "get_provider", broken)
+    assert checkout.charge_due_saved_cards() == 0
+
+
+def test_a_denial_has_a_neutral_subject(saved, fee, treasurer):
+    checkout.charge_due_saved_cards()
+    notify(only_attempt(fee), base.DENIED)
+    run_queue()
+    assert review_emails().get().subject == "Quota no cobrada amb la targeta guardada"
+
+
+def test_arrears_are_still_said_while_pending(saved, fee):
+    notice = SavedCardNotice(charge=fee.charge, card=saved, case=checkout.ARREARS)
+    assert checkout._still_applies(notice, fake.FakeProvider, timezone.localdate())
+
+
+class TestExistingNoticesWereSent(CommittedDataTestCase):
+    """0018: els avisos que ja hi havia (de la 15a) no es tornen a enviar."""
+
+    def test_rows_before_the_migration_are_notified(self):
+        member = make_member(number=1290, document="11223344B")
+        saved = card(member, provider_card_id="c-mig")
+        notice = SavedCardNotice.objects.create(charge=add_fee(member).charge, card=saved, case="x")
+        leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
+        try:
+            MigrationExecutor(connection).migrate([("payments", "0017_cobrament_targeta_guardada")])
+        finally:
+            MigrationExecutor(connection).migrate(leaves)
+        assert SavedCardNotice.objects.get(pk=notice.pk).notified

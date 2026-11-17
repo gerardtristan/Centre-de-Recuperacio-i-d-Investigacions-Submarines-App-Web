@@ -17,6 +17,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+from django.utils.text import format_lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -239,13 +240,14 @@ def saved_card_outcome(charge: Charge, case: str, *, card, attempt=None, detail:
         details = {"charge": charge.pk, "case": case, "detail": detail}
         by = audit.system(SAVED_CARD_ACTOR)
         audit.record(OUTCOME, actor=by, target=attempt or charge, details=details)
-    if not notice.notified:
+    if not notice.notified and notice.tried_on != timezone.localdate():
         _send(notice)
 
 
 def _send(notice: SavedCardNotice) -> None:
     """Els correus d'un avís (al soci, si és cosa seva, i al tresorer) i la marca, en un punt de
-    restauració propi: si un falla, només ells es tornen a provar (`retry_outcomes`)."""
+    restauració propi: si un falla, només ells es tornen a provar (`retry_outcomes`), un cop per
+    dia (`tried_on`; `tries` compta els dies)."""
     charge, case = notice.charge, notice.case
     try:
         with transaction.atomic():
@@ -255,13 +257,13 @@ def _send(notice: SavedCardNotice) -> None:
             )
             erased = charge.person.status == Person.Status.ANONYMISED
             fee = getattr(charge, "annual_fee", None)
-            ref = {"fee": fee.pk if fee else None, "charge": charge.pk}
-            context = {
+            context = {  # la plantilla compon la referència a la llengua del correu
                 "concept": charge.concept,
-                "ref": (_("quota %(fee)s, càrrec %(charge)s") if fee else _("càrrec %(charge)s"))
-                % ref,
+                "fee_id": fee.pk if fee else "",
+                "charge_id": charge.pk,
                 "reason": OUTCOMES[case],
                 "maybe_charged": case in MAYBE_CHARGED,
+                "reviewed": case not in NOT_REVIEWED,
                 "erased": erased,
                 "no_email": member and not sent and not erased,
                 "member_told": sent,
@@ -272,7 +274,8 @@ def _send(notice: SavedCardNotice) -> None:
             notice.save(update_fields=["notified"])
     except Exception:
         logger.exception("No s'han pogut enviar els avisos del càrrec %s", charge.pk)
-        SavedCardNotice.objects.filter(pk=notice.pk).update(tries=F("tries") + 1)
+        tried = {"tries": F("tries") + 1, "tried_on": timezone.localdate()}
+        SavedCardNotice.objects.filter(pk=notice.pk).update(**tried)
 
 
 def retry_outcomes(still_applies) -> None:
@@ -286,22 +289,34 @@ def retry_outcomes(still_applies) -> None:
                 charge = Charge.objects.select_for_update().get(pk=charge_id)
                 notice = SavedCardNotice.objects.select_for_update().get(pk=pk)
                 notice.charge = charge
-                if notice.notified:
-                    continue
+                if notice.notified or notice.tried_on == timezone.localdate():
+                    continue  # ja enviat, o ja provat avui
                 if charge.status != Charge.Status.PENDING or not still_applies(notice):
                     notice.notified = True  # res a dir: ja no toca
                     notice.save(update_fields=["notified"])
                 elif notice.tries >= NOTICE_TRIES:
-                    reason = _(
-                        "No s'han pogut enviar els avisos de la targeta guardada (%(case)s)."
-                    )
-                    mark_for_review(None, charge, reason % {"case": notice.case})
-                    notice.notified = True
-                    notice.save(update_fields=["notified"])
+                    _give_up_notice(notice, charge)
                 else:
                     _send(notice)
         except Exception:
             logger.exception("No s'ha pogut tornar a provar l'avís %s", pk)
+
+
+def _give_up_notice(notice: SavedCardNotice, charge: Charge) -> None:
+    """Passats `NOTICE_TRIES` dies: «a revisar», que queda encara que el correu al tresorer falli
+    (el correu, en un punt de restauració propi, com a `_send`)."""
+    reason = format_lazy(
+        gettext_lazy("No s'han pogut enviar els avisos de la targeta guardada: {}"),
+        OUTCOMES[notice.case],
+    )
+    _review_entry(None, charge, str(reason))
+    try:
+        with transaction.atomic():
+            _mail_review(None, charge, reason)
+    except Exception:
+        logger.exception("No s'ha pogut avisar el tresorer de l'avís %s", notice.pk)
+    notice.notified = True
+    notice.save(update_fields=["notified"])
 
 
 def _card_of(attempt: PaymentAttempt):

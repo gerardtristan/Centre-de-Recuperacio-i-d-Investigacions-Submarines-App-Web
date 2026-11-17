@@ -404,11 +404,16 @@ def charge_saved_card(
         raise
     try:
         return _charge(attempt, card, provider)
-    except ProviderError:
-        # L'intent conserva la seva ordre: la xarxa de seguretat la consulta; el tresorer ho sap ja.
-        with transaction.atomic():
-            locked = Charge.objects.select_for_update().get(pk=attempt.charge_id)
-            processing.saved_card_outcome(locked, "provider_error", card=card)
+    except ProviderError as error:
+        # L'intent conserva la seva ordre, «en curs»: la xarxa de seguretat la consulta.
+        try:
+            with transaction.atomic():
+                locked = Charge.objects.select_for_update().get(pk=attempt.charge_id)
+                processing.saved_card_outcome(locked, "provider_error", card=card)
+        except Exception:
+            logger.exception(
+                "Sense avís de l'error del proveïdor (%r), intent %s", error, attempt.pk
+            )
         raise
 
 
@@ -418,13 +423,13 @@ def _still_applies(notice, provider, today) -> bool:
         return _unusable(notice.card, notice.charge, provider(), today) == notice.case
     if notice.case == TRANSFER_WAITING:
         return notice.charge.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists()
-    return True
+    return True  # la resta (també ARREARS i OPEN_FAILED): mentre la quota sigui pendent
 
 
 def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
     """Una quota que aquesta targeta no pot cobrar, pel motiu `case`, sota el bloqueig del càrrec:
     els avisos una sola vegada per càrrec, targeta i motiu (`processing.saved_card_outcome`). La
-    quota es continua provant cada dia: quan el motiu desapareix, es cobra."""
+    quota es continua provant cada dia (els arreus, no: surten de la llista un cop dits)."""
     with transaction.atomic():
         charge = Charge.objects.select_for_update().get(pk=charge.pk)
         processing.saved_card_outcome(charge, case, card=card)
