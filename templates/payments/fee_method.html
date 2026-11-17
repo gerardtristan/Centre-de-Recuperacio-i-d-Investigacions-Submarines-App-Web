@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M05a-11: «Com pago la quota» (P-M05a-A; CA-M05a-01; wireframe socis.html#pagaments-metode; P-130, opció A: «casella» amb botó de ràdio). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió (qualsevol altra persona, «no trobat»); les opcions que el proveïdor no ofereix no arriben a l'HTML i el servidor les rebutja; domiciliació només amb un mandat actiu i targeta guardada només amb una targeta activa; desar queda al registre d'activitat. Cap IBAN: només la referència del mandat. Sessió caducada: el middleware, sense desar res. #}
+{# T-M05a-11: «Com pago la quota» (P-M05a-A; CA-M05a-01; wireframe socis.html#pagaments-metode; P-130, opció A: «casella» amb botó de ràdio). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió (qualsevol altra persona, «no trobat»); les opcions que el proveïdor no ofereix no arriben a l'HTML i el servidor les rebutja; domiciliació només amb un mandat actiu i targeta guardada només amb una targeta activa; desar queda al registre d'activitat. Cap IBAN: només la referència del mandat. Sessió caducada: el middleware, sense desar res. Errors (T-M05a-18, B8): `novalidate`, perquè sense cap opció triada surti el missatge del servidor en català i amb `role="alert"`, i no el del navegador. #}
 {% block title %}{% translate "Com pago la quota" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
@@ -10,7 +10,7 @@
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
 
-  <form class="targeta formulari" method="post" action="{% url 'payments:fee_method' %}">
+  <form class="targeta formulari" method="post" action="{% url 'payments:fee_method' %}" novalidate>
     {% csrf_token %}
     {% if not preference %}
       <p>{% translate "Encara no has triat com pagues la quota." %}</p>
