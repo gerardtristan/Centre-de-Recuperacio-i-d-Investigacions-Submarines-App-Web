@@ -254,3 +254,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M04-21](T-M04-21.md) | Permisos de tresoreria i pagaments comprovats a cada ruta i a cada servei; set serveis que només confiaven en la pantalla ara també es neguen (T-M04-21, T-M05a-25, T-M05b-25) | 17/11/2026 | 8203f6b8 | 7 noves | [A comprovar] |
 | [T-M05a-22](T-M05a-22.md) | Dies dels recordatoris de la campanya de mandats com a ajust (VC-11), editable pel tresorer | 17/11/2026 | 57c9afbf | noves | [A comprovar] |
 | [T-M05a-21](T-M05a-21.md) | Guia del tresorer per a la campanya, els mètodes i els mandats; ajuda per als socis sobre el correu de la campanya (P-305, P-306) | 17/11/2026 13:25 | 549fc075 | cap de nova | [A comprovar] |
+| [T-DX-50](T-DX-50.md) | «Pantalles en construcció» al menú de l'administració, i arreglat el 401 (carril de disseny) | 17/11/2026 12:27 | 916bc079 (PR #174) | 7 noves | [A comprovar] |
