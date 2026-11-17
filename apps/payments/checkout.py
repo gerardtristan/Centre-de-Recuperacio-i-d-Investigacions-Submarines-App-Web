@@ -29,6 +29,7 @@ from .models import (
     PaymentAttempt,
     SavedCard,
     SavedCardAttempt,
+    SavedCardNotice,
 )
 from .providers import get_provider
 from .providers.base import OrderUrls, ProviderError
@@ -289,6 +290,7 @@ CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING, OTHER_
     "card_closed", "not_member", "preference", "provider", "not_fee", "transfer_waiting",
     "other_person",
 )  # fmt: skip
+ARREARS = "arrears"
 
 
 def _expired(card: SavedCard, today) -> bool:
@@ -300,12 +302,12 @@ def _expired(card: SavedCard, today) -> bool:
 def _unusable(card: SavedCard | None, charge: Charge, provider, today) -> str | None:
     """Per què la targeta no pot cobrar la quota (un cas d'`OUTCOMES`), o None si pot: la targeta
     activa i no caducada, del proveïdor, de la preferència «targeta guardada» d'un soci actiu o
-    impagat, per a una quota anual seva."""
+    impagat (un de pendent, no: P-309, opció per defecte), per a una quota anual seva."""
     fee = getattr(charge, "annual_fee", None)
     if fee is None:
         return NOT_FEE
     if fee.member.status not in (Member.Status.ACTIVE, Member.Status.UNPAID):
-        return NOT_MEMBER
+        return NOT_MEMBER  # P-309: un soci pendent paga la quota que l'activa des de la pantalla
     if not FeePaymentPreference.objects.filter(
         member_id=fee.member_id, method=SAVED_CARD, saved_card=card
     ).exists():
@@ -437,9 +439,9 @@ def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
 
 def due_saved_card_charges(today):
     """Les quotes pendents que ja han vençut dels socis que paguen amb la targeta guardada, amb
-    la targeta de la preferència (P-302: el dia del venciment). Només les que vencen d'ençà que
-    el soci va triar la targeta: les anteriors no es cobren mai sense avís. Què se'n fa ho decideix
-    `charge_saved_card`, sota el bloqueig del càrrec."""
+    la targeta de la preferència (P-302: el dia del venciment), i si vencen d'ençà que el soci va
+    triar la targeta: les anteriors no es cobren, i el tresorer ho sap (`ARREARS`). Què se'n fa
+    ho decideix `charge_saved_card`, sota el bloqueig del càrrec."""
     preferences = FeePaymentPreference.objects.filter(method=SAVED_CARD).select_related(
         "saved_card"
     )
@@ -454,11 +456,12 @@ def due_saved_card_charges(today):
         .exclude(
             attempts__in=SavedCardAttempt.objects.filter(reached_provider=True).values("attempt")
         )
+        .exclude(pk__in=SavedCardNotice.objects.filter(case=ARREARS).values("charge"))  # ja dit
         .select_related("annual_fee")
         .order_by("pk")
     )
     member = lambda c: c.annual_fee.member_id  # noqa: E731
-    return [(c, cards[member(c)]) for c in due if c.annual_fee.due_on >= since[member(c)]]
+    return [(c, cards[member(c)], c.annual_fee.due_on >= since[member(c)]) for c in due]
 
 
 def charge_due_saved_cards() -> int:
@@ -470,9 +473,11 @@ def charge_due_saved_cards() -> int:
     processing.retry_outcomes(lambda notice: _still_applies(notice, provider, today))
     due = due_saved_card_charges(today)
     started = 0
-    for charge, card in due:
+    for charge, card, chosen_before in due:
         try:
             try:
+                if not chosen_before:  # vençuda abans de triar la targeta: no es cobra
+                    raise CardNotUsable(_unusable(card, charge, provider, today) or ARREARS)
                 charge_saved_card(charge, card, provider=provider, today=today)
                 started += 1
             except CardNotUsable as error:
