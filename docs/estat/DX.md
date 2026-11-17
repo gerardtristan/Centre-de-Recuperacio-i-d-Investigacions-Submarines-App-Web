@@ -32,7 +32,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-17 Oleaje: portada de l'àrea del soci | feta | 16/11/2026 | #71 | Capçalera amb ona i bloc «La teva quota» (estat, Vigencia, carnet) que puja en desplaçar, només amb CSS. Substitueix l'ona de la 032 |
 | T-DX-18 Monograma: avatar per defecte a partir de `avatar_seed` | feta | 16/11/2026 | #76 | Avatar SVG del servidor (blocs, ones o mosaic; 4 paletes de la marca) a partir de la llavor, mai del nom (RN-M01-30), a la portada i al perfil |
 | T-DX-19 Avisador: rols i permisos, en construcció | feta | 16/11/2026 | #81 | `/en-construccio/rols-permisos/`: matriu permís × rol, resum dels afectats, nota i TOTP, files protegides; funcional amb la T-RP-03 |
-| T-DX-20 Avisador: ajustos, en construcció | per fer | — | — | Funcional quan es faci la T-AJ-02 |
+| T-DX-20 Avisador: ajustos, en construcció | no cal | 17/11/2026 | — | Superada: la T-AJ-02 (#48) ja va fer la pantalla d'ajustos real (`/gestio/ajustos/`). Una pantalla en construcció al costat de dades reals aniria contra el §6.9 (decidit a la T-DX-44, #116) |
 | T-DX-21 Cartola: pendents per antiguitat, en construcció | feta | 16/11/2026 | #84 | `/en-construccio/pendents-antiguitat/`: socis × trams de dies amb una fitxa per càrrec, totals amb els comptadors de Deposito; pantalla proposada, el pla no la té (D1) |
 | T-DX-22 Deposito: transferències i pagaments a revisar, en construcció | feta | 16/11/2026 | #104 | `/en-construccio/revisar-pagaments/`: panell de §6.17 per a transferències (confirmar o excloure amb motiu) i pagaments a revisar; cap IBAN; funcional amb la T-M04-12 i la T-M05b-16 |
 | T-DX-23 Calendari general (Horario, després Solape), en construcció | feta | 16/11/2026 | #80 | Setmana en graella (agenda per dies al mòbil) amb el ratllat dels encavalcaments; Solape, més endavant |
@@ -40,7 +40,6 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-25 Marcador, en construcció | feta | 16/11/2026 | #87 | Activitats guardades amb la cinta que cau una sola vegada (CSS, sense física); no soci: només identificadors al navegador |
 | T-DX-26 Desfile i Oleaje a la portada pública, en construcció | feta | 16/11/2026 | #94 | Desfile sense avanç automàtic: capçalera d'Oleaje (classes de §6.18) i carril amb scroll-snap, comptador i progrés |
 | T-DX-27 Vistazo: projectes, en construcció | feta | 16/11/2026 | #79 | Projectes del Departament d'Història a l'àrea del soci: files que s'obren i finestra decorativa en degradat (sense fotos) |
-| T-DX-28 Recoveco: ajuda i preguntes freqüents, en construcció | en curs | 16/11/2026 | — | — |
 | T-DX-28 | feta | 16/11/2026 | #82 | Ajuda de l'àrea del soci: índex de temes, preguntes plegades per tema (`details name`) i Ctrl+F; cerca pròpia i «Copiar l'enllaç» desactivats |
 | T-DX-29 Calendari d'un dia (Asueto), en construcció | feta | 16/11/2026 | #98 | Dia amb excepció a l'administració: línia amb nanses, activitats fora ratllades amb la primera hora lliure; res no es mou fins a «Aplica» |
 | T-DX-30 Reasigna, en construcció | feta | 16/11/2026 | #88 | `/en-construccio/reassignar/`: agenda del dia amb les sessions de qui falta, proposta («→ qui» o «sense lloc»), marge d'hora i confirmar-ho tot; mòdul 02 aparcat (D6) |
@@ -49,27 +48,18 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-33 Finances per àmbit (Gastos), en construcció | feta | 16/11/2026 | #96 | `/en-construccio/finances-ambit/`: anell de despeses per àmbit (SVG amb atributs) i taula d'ingressos, despeses i resultat en format català; àmbits d'exemple (Q-17) |
 | T-DX-34 Factures (Emisor), en construcció | feta | 16/11/2026 | #100 | `/en-construccio/factures/`: rebut o factura, dades fiscals del destinatari i la fulla que s'omple; facturació desactivada (P-02, P-47); P-93 (C) |
 | T-DX-35 | feta | 16/11/2026 | #86 | Dashboard de l'administració: reixa de ginys de dotze columnes amb xifres agregades d'exemple (cap nom), paleta i disposició com a dades; res no s'arrossega ni es desa |
-| T-DX-36 Editor de la web (Probador i Pregon), en construcció | en curs | 16/11/2026 | — | — |
-| T-DX-35 Dashboard (Parrilla), en construcció | per fer | — | — | — |
 | T-DX-36 | feta | 16/11/2026 | #89 | Editor de la web a l'administració: plantilles com a miniatures, dispositiu i color d'accent només entre tokens (Probador); vista en compartir amb comptador i tres targetes (Pregon); res no es desa ni es publica |
-| T-DX-37 Fotos (Fototeca i Expositor), en construcció | en curs | 16/11/2026 | — | — |
-| T-DX-36 Editor de la web (Probador i Pregon), en construcció | per fer | — | — | — |
 | T-DX-37 | feta | 16/11/2026 | #97 | Fotos a l'àrea del soci: carpetes, selecció i detalls (Fototeca) i graella de pujada amb anell, massa petita amb el motiu i portada (Expositor); degradats en lloc de fotos; P-41 abans de fer-la funcional |
 | T-DX-38 Convite, en construcció | feta | 16/11/2026 | #102 | P-99 (A): capçalera de la fitxa amb el full de calendari, les places sense noms i «M'hi apunto»; sense «La meva hora» |
 | T-DX-39 | feta | 16/11/2026 | #99 | P-97 (A); P-95: sense veu. Xats a l'àrea del soci: converses amb comptadors i rotlle de tires (Teletipo) i caixó d'escriure sense micròfon (Amanuense), amb prova |
-| T-DX-37 Fotos (Fototeca i Expositor), en construcció | per fer | — | — | — |
-| T-DX-39 Xats (Teletipo; Amanuense com a caixó d'escriure, sense veu), en construcció | per fer | — | — | P-97 (A); P-95: sense veu |
-| T-DX-40 Social (Seguir i Monograma de fauna), en construcció | en curs | 16/11/2026 | — | — |
+| T-DX-40 | feta | 16/11/2026 | #107 | Social a l'àrea del soci: perfil privat per defecte, variants de l'avatar amb el Monograma de la T-DX-18 (llavors d'exemple, mai el nom) i «Seguir»/«✓ Seguint» amb el recompte; els avatars de fauna, amb la 12 |
 | T-DX-41 | feta | 16/11/2026 | #103 | P-92 (A). Signatures de correu a l'administració: càrrec i contacte del club (cap nom ni telèfon personal), plantilla i color entre tokens, vista prèvia; copiar, desactivat |
-| T-DX-42 Apoderado: avisos i textos legals, en construcció | en curs | 16/11/2026 | — | P-91 |
+| T-DX-42 | feta | 16/11/2026 | #106 | P-91 (A). Àrea del soci: avisos de la junta que es confirmen (amb el dia i l'hora) i textos legals amb la versió acceptada o la nova per acceptar; sense signatura amb el dit |
 | T-DX-11b Ranura: rebut anul·lat («Anul·lat» i la nota, mai el segell de pagat) | feta | 16/11/2026 | #110 | Petició del pilot després de la #105 (`ReceiptCancellation`, 045). Primitiu `--grana`; de pas, el rebut ja no sobresurt a 320 px |
 | T-DX-43 Menú de l'administració: «Pagaments: mètodes i mandats» | feta | 16/11/2026 | #PR | Petició del pilot després de la #108 (T-M05a-14). Només amb A4 (`payments.mandates.view`); el menú no és cap control, la vista torna a comprovar el permís |
 | T-DX-44 Menú de l'administració: «Tresoreria: conciliació» | feta | 16/11/2026 | #116 | Petició del pilot després de la #115. Només amb T1 (`treasury.view`), com la vista |
 | T-DX-45 Menú del soci: «Com pago la quota» i «Mandat de domiciliació» | feta | 16/11/2026 | #120 | Petició del pilot després de la #113 i la #117. Capçalera i ventall de Ramillete. El mandat, només amb `MANDATE_SIGNING_ENABLED` (la vista respon 404 si és apagat) |
 | T-DX-46 Menú de l'administració: «Pagaments: campanya de mandats» | feta | 17/11/2026 | #128 | Petició del pilot després de la #125. Només amb A4 (`payments.mandates.view`, lectura), com la vista; A5 només obre, envia i tanca a dins |
-| T-DX-40 | feta | 16/11/2026 | #107 | Social a l'àrea del soci: perfil privat per defecte, variants de l'avatar amb el Monograma de la T-DX-18 (llavors d'exemple, mai el nom) i «Seguir»/«✓ Seguint» amb el recompte; els avatars de fauna, amb la 12 |
-| T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
-| T-DX-42 | feta | 16/11/2026 | #106 | P-91 (A). Àrea del soci: avisos de la junta que es confirmen (amb el dia i l'hora) i textos legals amb la versió acceptada o la nova per acceptar; sense signatura amb el dit |
 | T-DX-47 Menú de l'administració: «Pagaments: llistat» i «Pagaments: remeses» | feta | 17/11/2026 | #146 | Petició del pilot després de la #140 i la #142. Llistat amb B6 (`payments.view`), remeses amb B3 (`payments.remittances`), com les vistes |
 | T-DX-48 Contrast de Ramillete (P-283), Errata als formularis del mandat i `.codi` que parteix | feta | 17/11/2026 | #154 | Peticions del pilot després de la #150 i per a la #151. Treu l'`xfail` i la «incidència coneguda» de `test_accessibilitat_mandat.py` |
 | T-DX-49 Menú de l'administració: les pantalles de tresoreria marquen l'entrada d'on surten | feta | 17/11/2026 | #155 | Petició del pilot després de la #152. Sense entrades noves (traspàs, arqueig i liquidacions s'obren des de «Comptes i saldos»; Hick) |
