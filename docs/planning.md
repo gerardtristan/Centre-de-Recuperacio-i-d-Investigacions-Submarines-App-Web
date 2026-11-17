@@ -1821,7 +1821,7 @@ Decisió del responsable del projecte de l'11/11/2026. La revisió manual de les
 **Fora d'abast.**
 - **09** (fase 2): marge per activitat, despeses amb factura, ajuts i justificació, facturació i Verifactu (P-02, P-47), tancament de període, pressupostos.
 - Integració amb el proveïdor, notificacions, mandats, remeses, pantalles de pagament (05a i 05b). La 04 només ofereix els serveis de [M04-8](#M04-8-serveis).
-- Registre manual de cobraments: bloquejat per P-12 (RN-72 de la 00).
+- Registre manual de cobraments: es va fer a part, a la tasca P-12 (17/11/2026; M14, `services.record_manual_payment`), amb les opcions per defecte de la P-331, la P-332 i la P-333.
 - Connexió directa amb el banc (PSD2 o agregadors): l'extracte entra en fitxer.
 - Despeses que no són comissions: s'exclouen amb motiu fins al 09.
 - Monedes que no siguin l'euro.
@@ -2025,7 +2025,7 @@ Regles de la 00 que la 04 no canvia (027, RN-76): RN-60 a RN-73.
 | RN-T05 | Un moviment té compte, sentit, import enter positiu en cèntims, data de valor i de registre, tipus, concepte, departament i centre de cost (excepte traspassos) i origen | RN-60, RN-62 |
 | RN-T06 | Tipus: ingrés de cobrament, comissió, devolució, retorn, traspàs (dues potes), ajust d'arqueig i contramoviment | ARQ §4.1 a §4.7 |
 | RN-T07 | Els moviments no es modifiquen ni s'esborren; una correcció és un contramoviment amb motiu | CLAUDE.md; RN-61 |
-| RN-T08 | Compte de l'ingrés segons el mètode: targeta i Bizum → trànsit del proveïdor; domiciliació → trànsit de les remeses SEPA (RN-T24); transferència → bancari; manual → caixa o bancari (quan es resolgui P-12) | ARQ §4.1, §4.6, §4.7 |
+| RN-T08 | Compte de l'ingrés segons el mètode: targeta i Bizum → trànsit del proveïdor; domiciliació → trànsit de les remeses SEPA (RN-T24); transferència → bancari; manual → la caixa o el compte bancari actiu que tria qui el registra (P-12; P-332) | ARQ §4.1, §4.6, §4.7 |
 | RN-T09 | Cada pagament genera com a màxim un ingrés de cobrament (unicitat a la base de dades) | ARQ §4.2, punt 5 |
 | RN-T10 | L'ingrés porta el departament i el centre de cost del càrrec. Comissió: quotes → «General / Quotes de socis»; inscripcions → activitat i departament de l'activitat; llicències → Q-19 (provisional «General / Llicències») | 013; RN-63 a RN-65 |
 | RN-T11 | Devolucions i retorns són sortides noves; la comissió no es recupera; la suma de devolucions no supera l'import cobrat | RN-73; 013 |
@@ -2880,7 +2880,7 @@ Aprovada el 31/10/2026. **No canvia cap regla** del M05a: completa RN-M05a-20 pe
 - Pas al nivell 2.
 
 **Fora d'abast.**
-- Registre manual i efectiu (P-12, RN-72 de la 00).
+- Registre manual i efectiu: es va fer a part, a la tasca P-12 (17/11/2026); el rebut surt igual que el d'una transferència (intent «manual»).
 - Facturació i Verifactu (P-02, P-47).
 - Pagaments sortints en fitxer pain.001 (P-45 punt 12; 09).
 - Iniciació de transferència per PSD2 [A verificar: P-45 punt 14].
@@ -3042,7 +3042,7 @@ App `payments` (la mateixa del 05a).
 | Camp | Tipus | Restriccions |
 |---|---|---|
 | `charge` | FK càrrec (00, PROTECT) | — |
-| `method` | `card`, `bizum`, `transfer`, `direct_debit`, `saved_card` | Domiciliació només per a quotes (RN-69) |
+| `method` | `card`, `bizum`, `transfer`, `direct_debit`, `saved_card`, `manual` | Domiciliació només per a quotes (RN-69). `manual`: només l'obre el sistema, per al rebut d'un pagament registrat a mà (P-12) |
 | `amount_cents` | `PositiveIntegerField` | = import del càrrec en crear-lo |
 | `status` | `created`, `in_progress`, `sent_to_bank`, `paid`, `failed`, `expired`, `abandoned`, `to_review`, `cancelled` | Transicions de RN-M05b-03 |
 | `provider_code`, `provider_order_id` | null | Únic `(provider_code, provider_order_id)` |
@@ -3090,7 +3090,7 @@ App `payments` (la mateixa del 05a).
 | RN-M05b-02 | L'import de l'ordre el fixa el servidor a partir del càrrec. El concepte enviat al proveïdor porta el tipus, el període i el número de soci o la referència, mai el nom; l'identificador de client és intern, mai el DNI ni el correu | RNF-T4; `integracio-paylands.md` §2 |
 | RN-M05b-03 | Transicions de l'intent: `created → in_progress → paid / failed / expired / abandoned / to_review`; `created → sent_to_bank → paid / failed`; `paid` no torna enrere (les correccions són devolucions o retorns) | Proposta |
 | RN-M05b-04 | Un càrrec té com a molt un intent en curs. Començar-ne un de nou marca l'anterior com a `abandoned` si el proveïdor permet cancel·lar-lo [A verificar]; si no, el nou es bloqueja fins que l'anterior acabi o caduqui | Proposta |
-| RN-M05b-05 | Un càrrec només passa a «pagat» per una notificació verificada del proveïdor, una conciliació confirmada pel tresorer (transferència i remesa) o, quan es resolgui P-12, un registre manual. Mai pel navegador | RN-71 de la 00 |
+| RN-M05b-05 | Un càrrec només passa a «pagat» per una notificació verificada del proveïdor, una conciliació confirmada pel tresorer (transferència i remesa) o un registre manual amb motiu i M14 (P-12; 072, Q-037). Mai pel navegador | RN-71 de la 00 |
 | RN-M05b-06 | Notificacions: verificació, desament per identificador únic, resposta immediata, processament a la cua, comprovació d'import, moneda i càrrec, transicions vàlides, registre (arquitectura §4.2). Les crides sortints porten clau d'idempotència | ARQ §4.2; CLAUDE.md |
 | RN-M05b-07 | Bizum: a la pantalla, 15 minuts sense confirmació → «No s'ha confirmat a temps»; la caducitat real la fixa el proveïdor [A verificar: P-45 punt 13] | Annex D; proposta |
 | RN-M05b-08 | Una confirmació vàlida que arriba tard s'accepta si el càrrec continua «pendent». Si el càrrec ja s'havia pagat per una altra via, l'intent passa «a revisar» com a **pagament duplicat** i el tresorer en fa la devolució | Proposta (LT6 de la 04) |
@@ -6711,7 +6711,7 @@ Font: taula «Què pot fer cada rol» del responsable del projecte (30/10/2026),
 | M11 | Atendre sol·licituds RGPD d'altres persones | — | — | — | — | — | — | Sí | — | — | S-M01-14 |
 | M12 | Publicar versions noves dels textos legals | — | — | — | — | — | — | Sí | — | — | Únic candidat |
 | M13 | Consultar dades bloquejades | — | — | — | — | Sí | — | Sí | — | — | **Protegit** (028) |
-| M14 | Registrar un cobrament manual | Bloquejat fins a P-12; no surt a l'editor | | | | | | | | | — |
+| M14 | Registrar un cobrament manual | — | — | — | — | Sí | — | — | — | — | Nou (P-12; 072, Q-037: qui veu i edita la tresoreria; demana T1). L'Administrador comença sense: P-331 |
 
 ### 01 Socis i carnet
 | # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
@@ -6912,7 +6912,7 @@ El pla les esmentava ([M01-2](#M01-2-dependencies)) però no tenien cap tasca, m
 
 **Precisions de la T-RP-01 aprovades el 02/11/2026**
 - **P10:** el «Cons.» de la secretaria és «Sí», perquè P10 ja és un permís de consulta.
-- **M14** (registrar un cobrament manual) no és al catàleg fins que es resolgui P-12.
+- **M14** (registrar un cobrament manual) és al catàleg des de la tasca P-12 (17/11/2026), només amb el Tresorer (P-331).
 - **Comptes d'emergència:** tenen el rol administrador, però no compten com a administrador operatiu (RN-RP-13). Per això poden fer servir l'excepció de RN-RP-18.
 - **Bloqueig temporal** (V-01): no és un estat del compte, sinó una data de final (`locked_until`). Mentre dura, el compte no compta com a operatiu (RN-RP-13), i torna a comptar-hi sol quan s'acaba.
 
