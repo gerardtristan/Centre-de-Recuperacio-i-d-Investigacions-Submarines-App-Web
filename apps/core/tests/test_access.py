@@ -50,6 +50,14 @@ PUBLIC_ROUTES = {
     # Pàgina de pagament del proveïdor fals (T-M05b-04): fa el paper d'una pàgina de fora; només
     # respon amb el proveïdor fals, que només arrenca amb l'entorn de proves.
     "payments:fake_pay",
+    # Pagament del convidat (T-M05b-08; decisió 021): l'enllaç de la 00 obert al navegador és la
+    # credencial; sense, a `core:guest`.
+    "payments:guest_charge",
+    "payments:guest_pay_card",
+    "payments:guest_pay_bizum",
+    "payments:guest_pay_transfer",
+    "payments:guest_status",
+    "payments:guest_receipt",
 }
 
 SAMPLE_VALUES = {

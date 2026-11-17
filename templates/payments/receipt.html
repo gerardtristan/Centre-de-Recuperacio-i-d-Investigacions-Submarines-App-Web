@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
-{# T-M05b-07: rebut d'un pagament propi (RN-M05b-19; M05b-8, «Rutes»). És un rebut, no una factura (P-47). Seguretat i privacitat: només el compte personal de la persona del càrrec (un d'un altre, sense rebut o inexistent: «no trobat», al servidor, i registre); cap dada personal, només el que demana RN-M05b-19. PDF: la impressió del navegador, com el carnet (079, A-20; P-85): imprimir o desar com a PDF treu només el rebut, sense navegació ni botons. Res no es desa. #}
+{# T-M05b-07: rebut d'un pagament propi (RN-M05b-19; M05b-8, «Rutes»). És un rebut, no una factura (P-47). Seguretat i privacitat: només el compte personal de la persona del càrrec (un d'un altre, sense rebut o inexistent: «no trobat», al servidor, i registre); cap dada personal, només el que demana RN-M05b-19. PDF: la impressió del navegador, com el carnet (079, A-20; P-85): imprimir o desar com a PDF treu només el rebut, sense navegació ni botons. Res no es desa. El convidat (T-M05b-08; CA-02.4) hi arriba amb l'enllaç de la 00 obert en aquest navegador i veu el rebut del seu càrrec, el mateix contingut. #}
+{% block titol_zona %}{% if guest %}{% translate "Pagaments" %}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block title %}{% blocktranslate with number=receipt.number %}Rebut {{ number }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
@@ -31,6 +32,6 @@
   <div class="accions no-imprimeix">
     <button class="boto" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
   </div>
-  <p class="enllacos no-imprimeix"><a href="{% url 'payments:charge' charge.pk %}">{% translate "Tornar al pagament" %}</a></p>
+  <p class="enllacos no-imprimeix"><a href="{{ back }}">{% translate "Tornar al pagament" %}</a></p>
   <script src="{% static 'js/imprimeix.js' %}" defer></script>
 {% endblock %}

@@ -45,7 +45,7 @@ EMAIL = "mar@example.org"
 INVENTED = "testimoni-inventat-que-no-es-de-cap-enllac"
 INVALID = "Aquest enllaç no és vàlid o ha caducat."
 LIMITED = "Massa intents seguits"
-NOT_YET = "El pagament en línia encara no està disponible"
+PAY_NOW = "Paga ara"  # porta a la pantalla de pagament del 05b (T-M05b-08)
 FAILURES = limits.GUEST_FAILED_WINDOW.max_count
 
 
@@ -233,11 +233,11 @@ class TestCa022GuestPage:
         assert "noindex" in response["X-Robots-Tag"]
         assert response["Referrer-Policy"] == "same-origin"
 
-    def test_ca_02_2_no_payment_is_offered_yet(self, client, admin, charge):
-        # El pagament és del 05b: cap formulari ni cap botó, només l'avís.
+    def test_ca_02_2_payment_is_a_link_to_the_05b_screen(self, client, admin, charge):
+        # El pagament és del 05b (T-M05b-08): aquí només l'enllaç, sense cap identificador.
         _, token = send(charge, admin)
         text = main(open_link(client, token))
-        assert NOT_YET in text
+        assert PAY_NOW in text and 'href="/pagaments/convidat/"' in text
         assert "<form" not in text and "<button" not in text
 
     def test_ca_02_2_the_object_comes_from_the_link_never_from_the_address(
@@ -335,7 +335,7 @@ class TestCa024PaidCharge:
         pay(charge)
         text = main(open_link(client, token))
         assert "Open Water" in text and "Pagat" in text and "Pendent" not in text
-        assert NOT_YET not in text and "<form" not in text and "<button" not in text
+        assert PAY_NOW not in text and "<form" not in text and "<button" not in text
         resolved = guest_links.resolve(token)
         assert resolved == link and not guest_links.can_pay(resolved)
 

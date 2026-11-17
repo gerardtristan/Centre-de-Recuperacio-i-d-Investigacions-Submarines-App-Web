@@ -40,6 +40,29 @@ urlpatterns = [
     ),
     path("socis/pagaments/<int:attempt_id>/rebut/", views.receipt_view, name="receipt"),
     path("socis/pagaments/metode/", preference_views.fee_method_view, name="fee_method"),
+    # Convidat (T-M05b-08): públiques declarades; la credencial és l'enllaç de la sessió. Sota
+    # `pagaments/` perquè `convidat/<testimoni>/` (core) no prengui cap camí com a testimoni.
+    path("pagaments/convidat/", views.guest_charge_view, name="guest_charge"),
+    path(
+        "pagaments/convidat/targeta/",
+        views.guest_pay_view,
+        {"method": PaymentAttempt.Method.CARD},
+        name="guest_pay_card",
+    ),
+    path(
+        "pagaments/convidat/bizum/",
+        views.guest_pay_view,
+        {"method": PaymentAttempt.Method.BIZUM},
+        name="guest_pay_bizum",
+    ),
+    path(
+        "pagaments/convidat/transferencia/",
+        views.guest_pay_view,
+        {"method": PaymentAttempt.Method.TRANSFER},
+        name="guest_pay_transfer",
+    ),
+    path("pagaments/convidat/estat/", views.guest_status_view, name="guest_status"),
+    path("pagaments/convidat/rebut/", views.guest_receipt_view, name="guest_receipt"),
     # Proveïdor fals (`providers.fake.PAY_PATH`): només hi respon amb el proveïdor fals.
     path("pagaments/prova/<str:order_id>/", views.fake_pay_view, name="fake_pay"),
 ]
