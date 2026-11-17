@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Account, FailedLogin
 from apps.accounts.tests.test_reauth import NOT_IT
-from apps.core.models import AuditEntry
+from apps.core.models import AuditEntry, OutgoingEmail
 from apps.members.tests.test_cards import make_member
 from apps.payments import mandates
 from apps.payments.models import FeePaymentPreference, SepaMandate
@@ -115,6 +115,25 @@ class TestRevoke:
     def test_without_an_active_mandate_there_is_nothing_to_confirm(self, browser, text):  # noqa: F811
         assert browser.get(REVOKE).url == URL
         assert not AuditEntry.objects.filter(action="payments.mandate.revoked").exists()
+
+
+class TestRevocationEmail:
+    def test_p_m05a_c_the_member_gets_an_email_with_the_reference_and_masked_iban_only(
+        self,
+        browser,  # noqa: F811
+        mandate,
+    ):
+        browser.post(REVOKE)
+        email = OutgoingEmail.objects.get(template="mandat-revocat")
+        assert email.to_address == "anna.prova@example.org"
+        assert mandate.reference in email.subject
+        assert mandate.reference in email.body_text and "ES … 0001" in email.body_text
+        assert IBAN[4:] not in email.subject + email.body_text + email.body_html
+
+    def test_a_failed_password_sends_nothing(self, browser, mandate):  # noqa: F811
+        age_session(browser, 16)
+        browser.post(REVOKE, {"password": NOT_IT})
+        assert not OutgoingEmail.objects.filter(template="mandat-revocat").exists()
 
 
 class TestChangeIban:

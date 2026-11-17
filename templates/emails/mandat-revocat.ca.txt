@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M05a-10, revocació des del compte personal (P-M05a-C): TEXT PROVISIONAL [A validar: junta]. Només la referència i l'IBAN emmascarat («…», P-121); mai l'IBAN sencer (RN-M05a-06). Que una remesa ja enviada es pugui retirar és [A verificar: banc] (RN-M05a-09). #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Has revocat el mandat de domiciliació {{ reference }} (compte {{ masked_iban }}). No el farem servir per cobrar cap quota més.{% endblocktranslate %}
+
+{% translate "A partir d'ara pagaràs cada quota amb targeta, Bizum o transferència quan es generi. Si vols tornar a domiciliar-la, pots signar un mandat nou a la plataforma." %}
+
+{% translate "Si no has revocat aquest mandat, respon aquest correu." %}
+{% endautoescape %}
