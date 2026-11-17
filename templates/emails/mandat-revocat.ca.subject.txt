@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-10, P-M05a-C: TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate %}Mandat de domiciliació {{ reference }} revocat{% endblocktranslate %}

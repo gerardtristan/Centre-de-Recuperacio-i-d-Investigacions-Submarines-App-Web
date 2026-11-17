@@ -23,6 +23,7 @@ from .models import FeeMethod, MandateBankAccount, SepaMandate
 
 SIGNED_TEMPLATE = "mandat-signat"  # G3
 EXPIRED_TEMPLATE = "mandat-caducat"
+REVOKED_TEMPLATE = "mandat-revocat"
 MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 
@@ -61,9 +62,10 @@ def _revoke(mandate: SepaMandate, reason: str, by, now, **details) -> None:
 @transaction.atomic
 def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
     """El soci revoca el seu mandat actiu (P-M05a-C): passa a «revocat» amb la data i el motiu, i
-    la preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». Torna
-    el mandat, o None si no n'hi havia cap d'actiu. Funciona encara que la signatura estigui
-    apagada (P-127): un soci sempre ha de poder revocar."""
+    la preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». El soci
+    rep un correu (`mandat-revocat`), a la mateixa transacció, per la cua. Torna el mandat, o
+    None si no n'hi havia cap d'actiu. Funciona encara que la signatura estigui apagada (P-127):
+    un soci sempre ha de poder revocar."""
     mandate = (
         SepaMandate.objects.select_for_update()
         .filter(member=member, status=SepaMandate.Status.ACTIVE)
@@ -72,6 +74,7 @@ def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
     if mandate is None:
         return None
     _revoke(mandate, MEMBER_REQUEST, by, timezone.now())
+    mail_member(REVOKED_TEMPLATE, mandate)
     preference = preferences.current(member)
     if preference is None or preference.method == FeeMethod.DIRECT_DEBIT:
         preferences.set_preference(member, FeeMethod.PAY_EACH_TIME, by=by)
@@ -133,8 +136,9 @@ def create_mandate(
 
 def mail_member(template: str, mandate: SepaMandate) -> None:
     """Correu al soci del mandat (al representant, si és menor: RN-M01-78), per la cua: el G3 en
-    signar-lo (CA-M05a-04) i l'avís de caducitat (RN-M05a-08). Porta la referència,
-    l'identificador de creditor, la data i l'IBAN emmascarat (P-121); mai l'IBAN sencer."""
+    signar-lo (CA-M05a-04), la revocació (P-M05a-C) i l'avís de caducitat (RN-M05a-08). Porta la
+    referència, l'identificador de creditor, la data i l'IBAN emmascarat (P-121); mai l'IBAN
+    sencer."""
     person = mandate.member.person
     to = recipients.email_for(person)
     if not to:
