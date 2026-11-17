@@ -237,3 +237,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-16](T-M05b-16.md) | Llistat de pagaments i «a revisar» per al tresorer (B6), només lectura; el nom del pagador amb P4 (P-247) | 17/11/2026 05:36 | 1965606 | 5676 | [A comprovar] |
 | [T-M04-18](T-M04-18.md) | Dades de prova inventades de la tresoreria a `seed_demo_data` (moviments, liquidacions, extractes CSV i Norma 43, conciliació i remeses) | 17/11/2026 06:02 | 46904f1 | 5675 | [A comprovar] |
 | [T-DX-47](T-DX-47.md) | «Pagaments: llistat» i «Pagaments: remeses» al menú de l'administració (carril de disseny) | 17/11/2026 06:43 | a28e1db (PR #146) | 3 e2e ampliades | [A comprovar] |
+| [T-M05b-13](T-M05b-13.md) | Devolucions per l'adaptador i des del banc, idempotents per la clau (`RefundRequest`, `payments/0012`; B5); total → càrrec i rebut anul·lats (P-228, P-229, P-250, P-251) | 17/11/2026 05:00 | 8fb5d19 | 5829 | [A comprovar] |

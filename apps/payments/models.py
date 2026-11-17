@@ -681,3 +681,52 @@ class DirectDebitItem(UndeletableModel):
 
     def __str__(self):
         return self.end_to_end_id
+
+
+class RefundRequest(UndeletableModel):
+    """Devolució que fa el club (M05b-6; P-M05b-G; T-M05b-13). La clau és la de la petició del
+    tresorer: la mateixa clau és la mateixa devolució, de manera que un reintent després d'un
+    error no la torna a fer al proveïdor ni l'apunta dues vegades a la 04 (P-118, P-119). La
+    crea `apps.payments.refunds.refund`; només canvia «pendent → feta»."""
+
+    class Channel(models.TextChoices):
+        PROVIDER = "provider", _("Proveïdor")
+        BANK = "bank", _("Banc")
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pendent")
+        DONE = "done", _("Feta")
+
+    key = models.UUIDField(_("clau"), unique=True)
+    payment = models.ForeignKey(
+        "core.Payment", on_delete=models.PROTECT, related_name="+", verbose_name=_("pagament")
+    )
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    reason = models.TextField(_("motiu"))
+    channel = models.CharField(_("canal"), max_length=8, choices=Channel.choices)
+    status = models.CharField(
+        _("estat"), max_length=7, choices=Status.choices, default=Status.PENDING
+    )
+    provider_refund_id = models.CharField(_("devolució del proveïdor"), max_length=100, blank=True)
+    requested_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+    done_at = models.DateTimeField(_("feta el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("devolució")
+        verbose_name_plural = _("devolucions")
+        constraints = [
+            models.CheckConstraint(condition=Q(amount_cents__gt=0), name="refund_amount_positive"),
+            models.CheckConstraint(condition=Q(reason__regex=r"\S"), name="refund_reason_required"),
+            models.CheckConstraint(
+                condition=Q(channel__in=["provider", "bank"]), name="refund_channel_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(status="pending", done_at__isnull=True)
+                | Q(status="done", done_at__isnull=False),
+                name="refund_done_at_iff_done",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_status_display()} {self.amount_cents} c ({self.payment_id})"

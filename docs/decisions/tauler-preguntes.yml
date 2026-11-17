@@ -692,6 +692,48 @@ opcions:
       es deixa la A fins que es decideixi perquè el correu és un text nou. La C demana canviar la 04.
     data: 2026-11-17
 
+  P-228:
+    opcions:
+      A: Com s'ha construït; es registra amb motiu, import i qui la fa, sense fitxer.
+      B: Cal pujar el justificant del banc (xifrat, com els documents d'ajuts).
+    recomanada: A
+    perque: >-
+      El justificant ja surt a l'extracte, i la conciliació hi casarà la devolució. Desar fitxers del banc demana
+      el xifratge i el control d'accés de la 051.
+    data: 2026-11-17
+
+  P-229:
+    opcions:
+      A: Com s'ha construït; sense correu ni anotació fins que el nucli i disseny hi posin les plantilles.
+      B: Un correu genèric ja, amb la plantilla d'avisos existent.
+    recomanada: A
+    perque: >-
+      El correu i el rebut són textos per al soci i tenen propietari (nucli i disseny); la devolució ja queda a la 04,
+      al càrrec i al registre.
+    data: 2026-11-17
+
+  P-250:
+    opcions:
+      A: Com s'ha construït; queda pendent, bloqueja l'import i es completa amb la mateixa clau.
+      B: El tresorer la pot descartar amb motiu (tasca nova).
+      C: Es descarta sola passat un temps.
+    recomanada: B
+    perque: >-
+      Una devolució pendent pot haver arribat al proveïdor; descartar-la sola (C) podria tornar diners dues vegades.
+      La B és segura amb el motiu i el registre; mentrestant la A no apunta res a mitges.
+    data: 2026-11-17
+
+  P-251:
+    opcions:
+      A: Com s'ha construït; ni el soci ni el carnet canvien (com la P-110).
+      B: Si era la quota vigent, el soci passa a impagat.
+      C: El tresorer rep un avís per decidir-ho.
+    recomanada: C
+    perque: >-
+      L'impagat és manual (040) i una devolució total pot ser un error del club, no del soci. La C fa que algú ho miri
+      sense canviar l'estat sol; la A és l'opció per defecte fins que es decideixi.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).
