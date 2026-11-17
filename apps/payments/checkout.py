@@ -21,9 +21,10 @@ from apps.core.models import Charge, GuestLink, Person
 from apps.treasury import services as treasury
 
 from . import attempts, processing
+from .guards import ensure_charges_allowed
 from .models import PaymentAttempt
 from .providers import get_provider
-from .providers.base import OrderUrls, ensure_charges_allowed
+from .providers.base import OrderUrls
 
 # Què ha de fer la pantalla amb `PaymentStart.url`: enviar-hi el navegador o incrustar-la.
 REDIRECT = "redirect"
@@ -210,6 +211,9 @@ def start_payment(charge: Charge, method: str, actor) -> PaymentStart:
     Errors: `MethodNotAllowed`, `NotOwnCharge` i `ChargeNotPayable`, `AttemptInProgress`
     (RN-M05b-04: el nou s'espera), `LiveChargesNotAllowed` i els altres `ProviderError`. Amb
     qualsevol error no en queda res: ni intent ni ordre que algú pugui pagar."""
+    # Nivell 1: tampoc cap transferència, que també és un cobrament real (RN-M05a-11). Abans de
+    # la transacció, perquè la negativa quedi al registre (CA-M05a-09).
+    ensure_charges_allowed("start_payment")
     if method not in attempts.ENABLED_METHODS:
         raise attempts.MethodNotAllowed(method)
     if _owns(actor, charge):
@@ -221,8 +225,6 @@ def start_payment(charge: Charge, method: str, actor) -> PaymentStart:
         if not _owns(actor, stored):
             raise NotOwnCharge
         by, payer = _payer(actor)
-        # Nivell 1: tampoc cap transferència, que també és un cobrament real (RN-M05a-11).
-        ensure_charges_allowed()
         if method == TRANSFER:
             return _start_transfer(stored, by, payer)
         provider = get_provider()

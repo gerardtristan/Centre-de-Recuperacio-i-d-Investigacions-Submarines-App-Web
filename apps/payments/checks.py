@@ -33,6 +33,16 @@ def payments_settings(app_configs, **kwargs):
                 id="payments.E004",
             )
         )
+    # Producció amb l'entorn de proves del proveïdor: un pagament de proves donaria per pagat un
+    # càrrec real (T-M05a-06; P-282). El nivell 1 de producció és «live» sense autorització.
+    if code and environment != LIVE and settings.FAKE_INTEGRATIONS_FORBIDDEN:
+        errors.append(
+            Error(
+                "A producció, PAYMENTS_ENVIRONMENT ha de ser «live»: el nivell 1 és «live» amb "
+                "PAYMENTS_LIVE_CHARGES_ALLOWED fals.",
+                id="payments.E007",
+            )
+        )
     try:
         crypto._parse(tuple(settings.MANDATE_ENCRYPTION_KEYS))
     except ImproperlyConfigured as error:
