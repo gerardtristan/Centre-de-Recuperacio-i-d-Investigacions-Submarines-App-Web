@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core.models import Role
+from apps.core.models import Department, Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.treasury import services, settlements
 from apps.treasury.balances import balance
@@ -150,3 +150,46 @@ def test_confirmar_una_liquidacio_demana_t4(make_admin, two):  # noqa: F811
     url = reverse("administration:treasury_settlement_confirm", args=[settlement.pk])
     assert client.post(url).status_code == 404
     assert ProviderSettlement.objects.get(pk=settlement.pk).status == settlements.Status.RECEIVED
+
+
+# --- T-M04-15d: anul·lar despeses i altres ingressos (#153) i el període tancat --------------
+
+
+def margins_movement(kind, bank, by):
+    general = Department.objects.get(name="General")
+    record = services.record_expense if kind == "expense" else services.record_other_income
+    return record(
+        bank, 4200, value_date=timezone.localdate(), department=general,
+        concept="Factura de prova", by=by,
+    )  # fmt: skip
+
+
+@pytest.mark.parametrize("kind", ["expense", "other_income"])
+def test_una_despesa_o_un_altre_ingres_s_anullen_amb_motiu(client, accounts, treasurer, kind):
+    bank, _cash = accounts
+    movement = margins_movement(kind, bank, treasurer)
+    url = reverse("administration:treasury_reverse", args=[movement.pk])
+    listing = main_of(client.get(reverse("administration:treasury_movements")).content.decode())
+    assert url in listing
+    assert "Revisa l'anul·lació" in main_of(client.get(url).content.decode())
+
+    client.post(url, {"reason": "Factura duplicada (prova)", "confirm": "1"})
+
+    reversal = Movement.objects.get(kind=Movement.Kind.REVERSAL)
+    assert reversal.reverses == movement and reversal.reason == "Factura duplicada (prova)"
+    assert balance(bank, timezone.localdate()) == 0
+
+
+def test_dins_un_periode_tancat_surt_l_error_i_no_es_desa_res(
+    client, accounts, treasurer, monkeypatch
+):
+    bank, _cash = accounts
+    movement = margins_movement("expense", bank, treasurer)
+    monkeypatch.setattr(services, "_GUARDS", [])
+    services.register_movement_guard(timezone.localdate)  # tancat fins avui (RN-T30)
+    url = reverse("administration:treasury_reverse", args=[movement.pk])
+
+    html = main_of(client.post(url, {"reason": "Prova", "confirm": "1"}).content.decode())
+
+    assert "període tancat" in html
+    assert not Movement.objects.filter(kind=Movement.Kind.REVERSAL).exists()

@@ -251,3 +251,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-48](T-DX-48.md) | Contrast de Ramillete (P-283), Errata als formularis del mandat i .codi que parteix (carril de disseny) | 17/11/2026 08:38 | d077e26 (PR #154) | 1 xfail convertida | [A comprovar] |
 | [T-M04-15c](T-M04-15c.md) | Pantalles de tresoreria que mouen diners: traspàs, arqueig amb ajust, anul·lar amb motiu i liquidacions amb confirmació, tot en dos passos | 17/11/2026 09:30 | 052ed8c | 5811; 9 noves, 1 e2e | [A comprovar] |
 | [T-DX-49](T-DX-49.md) | Les pantalles de tresoreria marquen l'entrada del menú d'on surten (carril de disseny) | 17/11/2026 09:26 | 14968b4 (PR #155) | 5 noves | [A comprovar] |
+| [T-M04-15d](T-M04-15d.md) | Anul·lar despeses i altres ingressos des de la pantalla; error del període tancat al formulari | 17/11/2026 11:30 | [A comprovar] | 3 noves | [A comprovar] |
