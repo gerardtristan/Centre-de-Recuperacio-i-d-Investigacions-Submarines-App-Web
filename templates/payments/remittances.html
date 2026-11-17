@@ -1,0 +1,84 @@
+{% extends "base_admin.html" %}
+{% load i18n payments_money %}
+{# T-M05b-09 i 10, C5: remeses de quotes domiciliades (P-M05b-E, passos 1 a 3). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: totes les rutes demanen B3 (sense, «no trobat»); previsualitzar i confirmar, B3 amb edició i POST amb CSRF (sense, el formulari no arriba a l'HTML i el servidor respon «no trobat»); confirmar és un segon pas. Cap IBAN a la pantalla: només la referència del mandat. Amb el nivell 1, el servidor rebutja la remesa. #}
+{% block title %}{% translate "Remeses" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Remeses" %}</h1>
+  <p class="text-2">{% translate "Quotes pendents dels socis que han triat la domiciliació, amb mandat actiu. Cada deutor rep l'avís previ en confirmar-la." %}</p>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  {% if can_manage %}
+    <section class="targeta" aria-labelledby="nova-titol">
+      <h2 id="nova-titol">{% translate "Nova remesa" %}</h2>
+      <form class="formulari" method="post" action="{% url 'administration:payments_remittances' %}" novalidate>
+        {% csrf_token %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        {% if preview %}
+          <dl class="dades-soci">
+            <div><dt>{% translate "Rebuts" %}</dt><dd>{{ preview.included|length }}</dd></div>
+            <div><dt>{% translate "Import total" %}</dt><dd><span class="import">{{ preview.total_cents|euros }}</span></dd></div>
+            <div><dt>{% translate "Excloses" %}</dt><dd>{{ preview.excluded|length }}</dd></div>
+          </dl>
+          {% if preview.excluded %}
+            <table class="taula">
+              <caption>{% translate "Quotes que no entren i per què" %}</caption>
+              <thead><tr><th scope="col">{% translate "Soci" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th><th scope="col">{% translate "Motiu" %}</th></tr></thead>
+              <tbody>
+                {% for fee, reason in preview.excluded %}
+                  <tr>
+                    <th scope="row" class="cel-nom">{{ fee.member.person }} <span class="codi">{% blocktranslate with number=fee.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
+                    <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ fee.charge.amount_cents|euros }}</span></td>
+                    <td data-etiqueta="{% translate 'Motiu' %}"><span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ reason }}</span></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+          {% if preview.included %}
+            <input type="hidden" name="confirm" value="1"><input type="hidden" name="previewed" value="{{ form.cleaned_data.collection_date|date:'Y-m-d' }}">
+            <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma la remesa" %}</strong>{% blocktranslate count total=preview.included|length %}Es crearà {{ total }} rebut i el deutor rebrà l'avís previ per correu.{% plural %}Es crearan {{ total }} rebuts i cada deutor rebrà l'avís previ per correu.{% endblocktranslate %}</div>
+            <div class="accions">
+              <button class="boto boto-principal" type="submit">{% translate "Sí, crea la remesa" %}</button>
+              <a class="boto boto-text" href="{% url 'administration:payments_remittances' %}">{% translate "Cancel·la" %}</a>
+            </div>
+          {% else %}
+            <p>{% translate "No hi ha cap quota per cobrar en aquesta data." %}</p>
+          {% endif %}
+        {% else %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Previsualitza" %}</button></div>
+        {% endif %}
+      </form>
+    </section>
+  {% endif %}
+
+  <table class="taula">
+    <caption>{% translate "Remeses creades" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Període" %}</th>
+        <th scope="col">{% translate "Cobrament" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col">{% translate "Rebuts" %}</th>
+        <th scope="col" class="cel-import">{% translate "Import" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for remittance in remittances %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:payments_remittance' remittance.pk %}">{{ remittance.period }}</a></th>
+          <td data-etiqueta="{% translate 'Cobrament' %}"><time datetime="{{ remittance.collection_date|date:'Y-m-d' }}">{{ remittance.collection_date|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "payments/_remittance_status.html" %}</td>
+          <td data-etiqueta="{% translate 'Rebuts' %}">{{ remittance.item_count }}</td>
+          <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ remittance.total_cents|euros }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">{% translate "Encara no hi ha cap remesa." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
