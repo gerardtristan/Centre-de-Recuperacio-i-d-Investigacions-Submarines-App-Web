@@ -209,3 +209,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-32](T-DX-32.md) | Averia: comunicar una avaria del material, en construcció (pantalla proposada; preguntes per tipus, fotos i fitxa de la peça; carril de disseny) | 16/11/2026 21:25 | 0041fdf (PR #95) | Cap de nova | [A comprovar] |
 | [T-DX-46](T-DX-46.md) | «Pagaments: campanya de mandats» al menú de l'administració, només amb A4 (carril de disseny) | 17/11/2026 01:31 | 3e83f99 (PR #128) | 2 e2e ampliades | [A comprovar] |
 | [T-M05a-10](T-M05a-10b.md) | Segona part: correu al soci en revocar el mandat (text provisional, només referència i IBAN emmascarat) | 17/11/2026 01:54 | 20d01cd | 5252 | [A comprovar] |
+| [T-DX-33](T-DX-33.md) | Gastos: finances per àmbit, en construcció (anell de despeses i taula de resultat per centre de cost, en format català; carril de disseny) | 16/11/2026 21:30 | 16317d6 (PR #96) | 2 noves | [A comprovar] |

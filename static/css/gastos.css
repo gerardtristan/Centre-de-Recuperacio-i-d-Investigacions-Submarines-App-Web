@@ -1,0 +1,28 @@
+/* Gastos (T-DX-33; recurs a design/extern/; design-system §16, T-DX-33): ingressos, despeses i resultat
+   per àmbit. Del recurs: l'anell de segments amb el total al mig, la llegenda per àmbit i el canvi de
+   mes. L'anell és SVG amb atributs (sense style=); els colors, de tokens.css, i cada àmbit també surt
+   en text a la llegenda i a la taula (mai només color). Sense moviment. */
+.gastos { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.gastos h1 { margin-top: 0; }
+.gastos .gastos-mes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); margin-bottom: var(--e-4); }
+.gastos-mes-nom { margin: 0; min-width: 0; font-weight: var(--p-semi); }
+.gastos-mes-nav { display: flex; align-items: center; gap: var(--e-2); margin-inline-end: auto; }
+.gastos-cols { display: grid; gap: var(--e-5); }
+.gastos-anell { margin: 0; display: grid; justify-items: center; gap: var(--e-3); position: relative; }
+.gastos-anell svg { inline-size: 100%; max-inline-size: var(--carnet-amplada); display: block; }
+.gastos-pista { stroke: var(--c-linia); }
+.gastos-seg-1 { stroke: var(--c-mari); background: var(--c-mari); }
+.gastos-seg-2 { stroke: var(--c-accent); background: var(--c-accent); }
+.gastos-seg-3 { stroke: var(--c-info); background: var(--c-info); }
+.gastos-seg-4 { stroke: var(--c-sistema); background: var(--c-sistema); }
+/* El total, al mig de l'anell: la mateixa cel·la de la graella que l'SVG */
+.gastos-anell svg, .gastos-centre { grid-area: 1 / 1; }
+.gastos-centre { align-self: center; display: grid; justify-items: center; gap: var(--e-1); }
+.gastos-centre span { font-size: var(--t-s); color: var(--c-text-2); }
+.gastos-centre b { font-size: var(--t-l); }
+.gastos-llegenda { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-1); font-size: var(--t-s); }
+.gastos-llegenda li { display: flex; align-items: center; gap: var(--e-2); }
+.gastos-mostra { inline-size: var(--e-3); block-size: var(--e-3); border-radius: var(--r-s); flex: none; }
+.gastos-taula { min-width: 0; overflow-x: auto; }
+.gastos-total th, .gastos-total td { font-weight: var(--p-negreta); }
+@media (min-width: 1024px) { .gastos-cols { grid-template-columns: 2fr 3fr; align-items: start; } }

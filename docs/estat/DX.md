@@ -46,7 +46,7 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-30 Reasigna, en construcció | feta | 16/11/2026 | #88 | `/en-construccio/reassignar/`: agenda del dia amb les sessions de qui falta, proposta («→ qui» o «sense lloc»), marge d'hora i confirmar-ho tot; mòdul 02 aparcat (D6) |
 | T-DX-31 Publicar activitats (Averia i Pregon), en construcció | per fer | — | — | — |
 | T-DX-32 Avaries del material (Averia), en construcció | feta | 16/11/2026 | #95 | `/en-construccio/avaries-material/`: tipus, preguntes per tipus, descripció i fotos, i la fitxa de la peça; proposta (el pla té «a revisió», no el formulari) |
-| T-DX-33 Finances per àmbit (Gastos), en construcció | per fer | — | — | — |
+| T-DX-33 Finances per àmbit (Gastos), en construcció | feta | 16/11/2026 | #96 | `/en-construccio/finances-ambit/`: anell de despeses per àmbit (SVG amb atributs) i taula d'ingressos, despeses i resultat en format català; àmbits d'exemple (Q-17) |
 | T-DX-34 Factures (Emisor), en construcció | per fer | — | — | — |
 | T-DX-35 | feta | 16/11/2026 | #86 | Dashboard de l'administració: reixa de ginys de dotze columnes amb xifres agregades d'exemple (cap nom), paleta i disposició com a dades; res no s'arrossega ni es desa |
 | T-DX-36 Editor de la web (Probador i Pregon), en construcció | en curs | 16/11/2026 | — | — |
