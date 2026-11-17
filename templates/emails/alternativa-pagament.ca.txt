@@ -1,0 +1,12 @@
+{% load i18n %}{# T-M05b-12, alternativa de pagament després d'un rebut retornat (P-M05b-F; CA-M05b-19 i 20): TEXT PROVISIONAL [A validar: junta]. Cap IBAN ni codi del banc. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}El banc ha retornat el rebut domiciliat de «{{ concept }}» ({{ amount }}). No el tornarem a passar pel banc.{% endblocktranslate %}
+
+{% translate "Pots pagar-lo amb targeta, Bizum o transferència des d'aquest enllaç:" %}
+{{ link }}
+{% if mandate_link %}
+{% translate "El banc ens diu que el compte de la domiciliació ja no es pot fer servir. Si vols continuar domiciliant les quotes, signa un mandat nou amb un altre compte:" %}
+{{ mandate_link }}
+{% endif %}
+{% translate "Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

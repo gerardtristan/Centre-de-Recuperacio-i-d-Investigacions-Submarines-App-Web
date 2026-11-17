@@ -15,6 +15,7 @@ P-M05b-E, passos 1 a 3; RN-M05b-10 i 11; CA-M05b-12, 13 i 16).
   l'IBAN emmascarat (P-121). Cap cobrament real: el fitxer pain.008 és de la T-M05b-10.
 """
 
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -42,6 +43,7 @@ from .models import (
     PaymentAttempt,
     SepaMandate,
 )
+from .returns import max_attempts
 
 PRENOTIFICATION_DAYS = "payments.prenotification_days"  # VC-16 (S-M05b-06)
 PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
@@ -52,6 +54,7 @@ ERASED = _("Dades personals esborrades")
 NO_MANDATE = _("Sense mandat actiu")
 NOT_DIRECT_DEBIT = _("No ha triat la domiciliació")
 IN_PROGRESS = _("Té un pagament en curs o en una altra remesa")
+EXHAUSTED = _("Intents esgotats")
 
 
 class PrenotificationTooLate(Exception):
@@ -106,6 +109,13 @@ def preview(collection_date: date) -> Preview:
             charge__in=[fee.charge_id for fee in fees], status__in=IN_FLIGHT
         ).values_list("charge_id", flat=True)
     )
+    # RN-M05b-15 i 30: cap càrrec rep més rebuts dels permesos (els anteriors són retornats).
+    tries = Counter(
+        DirectDebitItem.objects.filter(
+            attempt__charge__in=[fee.charge_id for fee in fees]
+        ).values_list("attempt__charge_id", flat=True)
+    )
+    limit = max_attempts()
     result = Preview()
     for fee in fees:
         mandate = mandates.get(fee.member_id)
@@ -119,6 +129,8 @@ def preview(collection_date: date) -> Preview:
             result.excluded.append((fee, NOT_DIRECT_DEBIT))
         elif fee.charge_id in busy:
             result.excluded.append((fee, IN_PROGRESS))
+        elif tries[fee.charge_id] >= limit:
+            result.excluded.append((fee, EXHAUSTED))
         else:
             result.included.append((fee, mandate))
     return result
@@ -150,8 +162,6 @@ def build_remittance(period: str, collection_date: date, actor) -> DirectDebitRe
             started_by=actor,
         )
         attempts.transition(attempt, PaymentAttempt.Status.SENT_TO_BANK, by=actor)
-        # shortcut: sense retorns encara (T-M05b-11), cap càrrec torna a una remesa; el límit
-        # de `max_direct_debit_attempts` (RN-M05b-15) s'hi afegeix amb els reintents.
         previous = DirectDebitItem.objects.filter(attempt__charge=fee.charge).count()
         DirectDebitItem.objects.create(
             remittance=remittance,
