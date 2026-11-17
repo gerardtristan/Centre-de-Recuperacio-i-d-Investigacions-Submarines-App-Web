@@ -269,12 +269,16 @@ def record_refund(payment: Payment, amount_cents: int, *, reason: str, by) -> Mo
 
 
 @transaction.atomic
-def record_return(payment: Payment, fee_cents: int | None = None, *, by) -> Movement:
+def record_return(
+    payment: Payment, fee_cents: int | None = None, *, by, account: TreasuryAccount | None = None
+) -> Movement:
     """Apunta un rebut retornat o un contracàrrec (HU-T05; P-M04-B; CA-T05.3): una sortida de
     tot l'import cobrat del compte de l'ingrés, amb el seu departament i centre de cost i data
     d'avui, i, si n'hi ha, la comissió de retorn al mateix compte i departament, enllaçada al
     retorn. Un pagament només es retorna una vegada (`AlreadyReturned`), i mai si ja té
-    devolucions (P-118). El càrrec el canvia qui crida (05b, P-M05b-F)."""
+    devolucions (P-118). El càrrec el canvia qui crida (05b, P-M05b-F). `account`: el compte d'on
+    surten si els diners ja no són al de l'ingrés (P-286: el banc, si el trànsit ja s'hi ha
+    traspassat)."""
     if fee_cents is not None:
         _validate_amount(fee_cents)
     payment, income = _live_income(payment, by)
@@ -282,10 +286,10 @@ def record_return(payment: Payment, fee_cents: int | None = None, *, by) -> Move
         raise AlreadyReturned(_("Aquest pagament ja està retornat."))
     if _given_back(payment):
         raise RefundExceedsPaid(_("Aquest pagament ja té devolucions: el retorn s'ha de revisar."))
-    returned = _outgoing(income, Movement.Kind.RETURN, income.amount_cents, by)
+    returned = _outgoing(income, Movement.Kind.RETURN, income.amount_cents, by, account=account)
     _record(RETURN_RECORDED, by, returned)
     if fee_cents is not None:
-        fee = _outgoing(income, Movement.Kind.FEE, fee_cents, by, linked=returned)
+        fee = _outgoing(income, Movement.Kind.FEE, fee_cents, by, linked=returned, account=account)
         _record(FEE_RECORDED, by, fee)
     return returned
 
@@ -320,12 +324,15 @@ def _given_back(payment: Payment) -> int:
     return rows.aggregate(total=Sum("amount_cents"))["total"] or 0
 
 
-def _outgoing(income, kind, amount_cents, by, *, value_date=None, reason="", linked=None):
-    """Sortida del compte de l'ingrés, amb el seu departament i centre de cost (RN-T10).
+def _outgoing(
+    income, kind, amount_cents, by, *, value_date=None, reason="", linked=None, account=None
+):
+    """Sortida del compte de l'ingrés (o d'`account`), amb el seu departament i centre de cost
+    (RN-T10).
     RN-T31: la data de valor dins un període tancat passa al període obert (T-M04-20)."""
     return _create_movement(
         by,
-        account=income.account,
+        account=account or income.account,
         direction=Movement.Direction.OUT,
         amount_cents=amount_cents,
         value_date=value_date or timezone.localdate(),

@@ -15,6 +15,7 @@ from apps.payments.models import DirectDebitItem, PaymentAttempt, ReceiptCancell
 from apps.payments.tests.test_remittance_settlement import (  # noqa: F401 (fixtures)
     club,
     sent,
+    sepa_balance,
     treasurer,
 )
 from apps.payments.tests.test_remittances import (  # noqa: F401 (fixtures)
@@ -156,3 +157,18 @@ def test_el_maxim_d_intents_es_l_ajust_vc_16(collected, treasurer):  # noqa: F81
     assert returns.register_return(collected[0], "AM04", by=treasurer) == returns.SENT
     excluded = dict(remittances.preview(collection_date()).excluded)
     assert excluded[collected[0].attempt.charge.annual_fee] == remittances.EXHAUSTED
+
+
+def test_p_286_el_retorn_d_una_remesa_liquidada_surt_del_banc(collected, treasurer):  # noqa: F811
+    """El net de la remesa ja és al banc (RN-T24): el banc carrega el retorn i la comissió al
+    compte del club, i el trànsit «Remeses SEPA» no queda en negatiu."""
+    returns.register_return(collected[0], "AM04", fee_cents=300, by=treasurer)
+
+    returned = Movement.objects.get(kind="return")
+    fee = Movement.objects.get(kind="fee", linked_movement=returned)
+    assert returned.account.kind == fee.account.kind == "bank"
+    assert (returned.department, returned.cost_centre) == (
+        returned.payment.movements.get(kind="income").department,
+        returned.payment.movements.get(kind="income").cost_centre,
+    )
+    assert sepa_balance() == 0
