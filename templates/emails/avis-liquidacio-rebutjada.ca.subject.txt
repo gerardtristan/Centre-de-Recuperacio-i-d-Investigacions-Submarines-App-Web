@@ -1,0 +1,1 @@
+{% load i18n %}{# P-227 (decisió 095): TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Una liquidació del proveïdor no quadra" %}

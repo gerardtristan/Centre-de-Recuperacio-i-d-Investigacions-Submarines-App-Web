@@ -1,0 +1,12 @@
+{% load i18n %}{# P-227 (decisió 095): TEXT PROVISIONAL [A validar: tresorer]. Només les referències del proveïdor i el motiu: cap nom ni cap altra dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Una liquidació del proveïdor de pagaments no quadra i no s'ha apuntat a la tresoreria." %}
+
+{% translate "Proveïdor:" %} {{ provider }}
+{% translate "Liquidació:" %} {{ external_id }}
+{% translate "Motiu:" %} {{ errors|join:" " }}
+
+{% translate "Revisa-la amb el proveïdor. Mentre no arribi una liquidació correcta, el trànsit del proveïdor no es buida." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

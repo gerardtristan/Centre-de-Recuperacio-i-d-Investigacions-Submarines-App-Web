@@ -13,7 +13,9 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from apps.core import audit
+from apps.core import audit, mail
+from apps.core.models import AuditEntry
+from apps.core.permissions import accounts_with_perm
 from apps.treasury import settlements as treasury
 
 from .providers import base, get_provider
@@ -21,6 +23,8 @@ from .providers import base, get_provider
 logger = logging.getLogger(__name__)
 ORIGIN = "payments.settlements"
 REJECTED = "payments.settlement_rejected"
+REJECTED_TEMPLATE = "avis-liquidacio-rebutjada"
+TREASURY_PERMISSION = "treasury.view"  # T1, com l'avís d'un pagament a revisar
 # Dies enrere que es tornen a demanar cada dia: una consulta que falla un dia es recupera
 # l'endemà, i les que ja hi són es descarten (P-226).
 LOOKBACK_DAYS = 7
@@ -28,8 +32,9 @@ LOOKBACK_DAYS = 7
 
 def import_settlements(*, today=None) -> list:
     """Desa a la 04 els abonaments nous del proveïdor configurat i els torna. Idempotent: els
-    que la 04 ja té es descarten. Un abonament que no quadra no es desa i queda al registre
-    (P-227); els altres continuen. Sense proveïdor, sense liquidacions o amb el proveïdor
+    que la 04 ja té es descarten. Un abonament que no quadra no es desa, queda al registre i, la
+    primera vegada, s'avisa per correu qui té el permís de tresoreria (P-227, decisió 095); els
+    altres continuen. Sense proveïdor, sense liquidacions o amb el proveïdor
     caigut, no es fa res (l'endemà es torna a provar)."""
     since = (today or timezone.localdate()) - timedelta(days=LOOKBACK_DAYS)
     by = audit.system(ORIGIN)
@@ -49,6 +54,7 @@ def import_settlements(*, today=None) -> list:
             continue
         except treasury.SettlementRejected as error:
             logger.warning("Liquidació %s rebutjada: %s", report.external_id, error.messages)
+            _mail_rejected(provider.code, report.external_id, error.messages)
             audit.record(
                 REJECTED,
                 actor=by,
@@ -59,6 +65,23 @@ def import_settlements(*, today=None) -> list:
                 },
             )
     return recorded
+
+
+def _mail_rejected(provider_code: str, external_id: str, errors: list) -> None:
+    """Un sol correu per liquidació i adreça: la consulta torna cada dia els darrers dies
+    (P-226), i un rebuig que ja és al registre ja s'ha avisat. Cap dada personal."""
+    already = AuditEntry.objects.filter(
+        action=REJECTED, details__provider=provider_code, details__external_id=external_id
+    ).exists()
+    if already:
+        return
+    context = {"provider": provider_code, "external_id": external_id, "errors": errors}
+    sent = set()
+    for account in accounts_with_perm(TREASURY_PERMISSION):
+        address = account.notification_email
+        if address and address not in sent:
+            mail.queue_email(REJECTED_TEMPLATE, to=address, person=account.person, context=context)
+            sent.add(address)
 
 
 def to_data(report: base.ProviderSettlementReport) -> treasury.SettlementData:
