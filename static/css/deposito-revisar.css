@@ -1,0 +1,11 @@
+/* Deposito (T-DX-22; recurs a design/extern/; design-system §16, T-DX-22): transferències i pagaments a
+   revisar. Reutilitza el panell de revisió de §6.17 (deposito.css: comptadors i fila d'accions); aquí
+   només hi ha el bloc de la pantalla i el de cada element. Només tokens. */
+.revisar { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.revisar h1 { margin-top: 0; }
+.revisar > h2 { margin: var(--e-5) 0 var(--e-3); font-size: var(--t-l); }
+.revisar-element { display: grid; gap: var(--e-3); margin-bottom: var(--e-3); }
+.revisar-element h3 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); margin: 0; font-size: var(--t-m); }
+/* La fila d'accions és un fieldset desactivat: sense la vora ni el marge del navegador */
+.revisar .deposito-accions { border: 0; margin: 0; padding: 0; min-width: 0; }
+.revisar .deposito-accions .avis { flex-basis: 100%; margin: 0; }
