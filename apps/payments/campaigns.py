@@ -6,8 +6,8 @@
 - Convidar: un correu per soci actiu sense mètode i amb adreça. Tornar-ho a fer només convida
   els que falten. Sense la signatura encesa no surt res (salvaguarda dura: la invitació porta a
   una pàgina que ha de funcionar).
-- Recordatoris: a qui no ha triat, als dies de `REMINDER_DAYS` de la invitació. El darrer
-  recordatori, quan el tresorer fixa la remesa, és del 05b.
+- Recordatoris: a qui no ha triat, als dies des de la invitació de l'ajust VC-11
+  (`REMINDER_DAYS`). El darrer recordatori, quan el tresorer fixa la remesa, és del 05b.
 - Recompte per resposta, i tancar (P-135, opció per defecte A): tancada, no surt res més.
 
 Cap correu porta dades bancàries; el registre d'activitat només porta recomptes.
@@ -21,7 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 
-from apps.core import audit, consents, mail
+from apps.core import audit, business_settings, consents, mail
 from apps.members import recipients
 from apps.members.models import Member
 from apps.members.services import active_members_for_mandates
@@ -31,9 +31,8 @@ from .models import FeeMethod, FeePaymentPreference, MandateCampaign, MandateCam
 INVITATION_TEXT = "mandate_campaign_invitation"
 INVITATION_TEMPLATE = "campanya-mandats-invitacio"
 REMINDER_TEMPLATE = "campanya-mandats-recordatori"
-# RN-M05a-14 (7 i 14 dies). VC-11 (`payments.mandate_campaign_reminder_days`) els passa a un
-# ajust: ho fa la T-M05a-22, que en llegeix el valor aquí.
-REMINDER_DAYS = (7, 14)
+# VC-11 (RN-M05a-14): dies des de la invitació, de 1 a 60; inicialment 7 i 14 (T-M05a-22).
+REMINDER_DAYS = "payments.mandate_campaign_reminder_days"
 ACTOR = audit.system("payments.campaign_reminders")
 
 
@@ -142,10 +141,15 @@ def send_invitations(campaign: MandateCampaign, *, by) -> int:
     return sent
 
 
-def _reminders_due(recipient: MandateCampaignRecipient, today) -> int:
+def reminder_days(today=None) -> list[int]:
+    """Els dies de VC-11 vigents (per defecte, avui)."""
+    return business_settings.get(REMINDER_DAYS, today or timezone.localdate())
+
+
+def _reminders_due(recipient: MandateCampaignRecipient, today, days: list[int]) -> int:
     """Quants recordatoris tocarien avui des de la invitació."""
     invited_on = timezone.localdate(recipient.invited_at)
-    return sum(invited_on + timedelta(days=days) <= today for days in REMINDER_DAYS)
+    return sum(invited_on + timedelta(days=n) <= today for n in days)
 
 
 def send_due_reminders(today=None) -> int:
@@ -154,15 +158,16 @@ def send_due_reminders(today=None) -> int:
     if not settings.MANDATE_SIGNING_ENABLED:
         return 0
     today = today or timezone.localdate()
+    days = reminder_days(today)
     pending = MandateCampaignRecipient.objects.filter(
         campaign__closed_at__isnull=True,
         answered_at__isnull=True,
-        reminders_sent__lt=len(REMINDER_DAYS),
+        reminders_sent__lt=len(days),
         member__in=_without_method(_active_members()),
     ).select_related("member__person")
     sent = 0
     for recipient in pending:
-        due = _reminders_due(recipient, today)
+        due = _reminders_due(recipient, today, days)
         if due <= recipient.reminders_sent:
             continue
         address = recipients.email_for(recipient.member.person)

@@ -5,15 +5,21 @@ el rellotge controlat (`today`) i el dia local (`timezone.localdate`)."""
 from datetime import timedelta
 
 import pytest
+from django.core.exceptions import ValidationError
+from django.http import Http404
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Account
-from apps.core.models import AuditEntry, LegalText, OutgoingEmail, Person
+from apps.core import business_settings
+from apps.core.models import AuditEntry, LegalText, OutgoingEmail, Person, Role
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import make_member
 from apps.payments import campaigns, preferences, tasks
 from apps.payments.models import MandateCampaign, MandateCampaignRecipient
 from apps.payments.tests.test_preferences import prefer
+from apps.treasury.tests.test_views import client_for
 from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
@@ -173,6 +179,34 @@ def test_recordatoris_als_7_i_als_14_dies_i_cap_mes(campaign, treasurer, anna):
     recipient.refresh_from_db()
     assert recipient.reminders_sent == 2
     assert emails(REMINDER) == ["anna.prova@example.org"] * 2
+
+
+def test_ca_m05a_18_els_dies_dels_recordatoris_son_l_ajust_vc_11(
+    campaign,
+    treasurer,
+    anna,
+    make_admin,  # noqa: F811
+):
+    tresorer = make_admin(Role.Code.TREASURER)
+    for wrong in ([0, 10], [5, 61]):
+        with pytest.raises(ValidationError):
+            business_settings.change(campaigns.REMINDER_DAYS, wrong, tresorer)
+    with pytest.raises(Http404):  # VC-11: només el Tresorer
+        business_settings.change(
+            campaigns.REMINDER_DAYS, [5, 10], make_admin(Role.Code.ADMINISTRATOR)
+        )
+    business_settings.change(campaigns.REMINDER_DAYS, [5, 10], tresorer, note="Prova")
+    entry = AuditEntry.objects.get(
+        action=business_settings.ACTION_CHANGED, field=campaigns.REMINDER_DAYS
+    )
+    assert (entry.old_value, entry.new_value) == ([7, 14], [5, 10])
+
+    campaigns.send_invitations(campaign, by=treasurer)
+    today = timezone.localdate(campaign.recipients.get().invited_at)
+    sent = [campaigns.send_due_reminders(today=today + timedelta(days=n)) for n in range(4, 15)]
+    assert sent == [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]  # dies 5 i 10
+    page = client_for(tresorer).get(reverse("administration:payments_campaign"))
+    assert "Dies des de la invitació: 5, 10" in page.content.decode()
 
 
 def test_p_210_si_se_n_ha_saltat_un_nomes_n_envia_un(campaign, treasurer, anna):

@@ -150,7 +150,7 @@ def campaign_view(request):
         and campaign.recipients.filter(answered_at__isnull=False).exists(),
         "to_invite": len(pending) - without_email,
         "without_email": without_email,
-        "reminder_days": campaigns.REMINDER_DAYS,
+        "reminder_days": campaigns.reminder_days(),
         "blocked": campaigns.blocking_reason(),
         "can_send": can_send,
         "confirm": confirm,
