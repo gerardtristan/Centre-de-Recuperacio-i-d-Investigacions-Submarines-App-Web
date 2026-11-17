@@ -2,13 +2,13 @@
 coneguda i `declined` (RN-M05b-28). Una targeta caducada o denegada no torna a ser activa ni es fa
 servir. Proveïdor fals, sense xarxa; només dades inventades."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 from django.db import IntegrityError, transaction
 
 from apps.accounts.security import AREA_PERSONAL
-from apps.core.models import AuditEntry
+from apps.core.models import AuditEntry, OutgoingEmail
 from apps.members.tests.test_cards import add_fee, make_member
 from apps.payments import cards, checkout
 from apps.payments.models import PaymentAttempt, SavedCard
@@ -87,3 +87,20 @@ def test_one_active_card_still_allows_closed_ones(member):
     card(member, provider_card_id="c")
     with pytest.raises(IntegrityError), transaction.atomic():
         card(member, provider_card_id="d")
+
+
+@pytest.mark.xfail(reason="T-M05a-26 aturada (17/11/2026): falta caducar a la tasca de cobrament")
+def test_ca_m05a_22_the_daily_charge_closes_the_card_and_links_a_new_one(
+    member, account, monkeypatch
+):
+    saved = card(member, expiry_month=3, expiry_year=2026)
+    prefer(member, account, "saved_card", saved_card=saved, since=datetime(2025, 12, 1, tzinfo=UTC))
+    add_fee(member)
+    monkeypatch.setattr(checkout.timezone, "localdate", lambda *args: date(2026, 4, 15))
+
+    checkout.charge_due_saved_cards()  # sense la tasca de les 9:40
+
+    saved.refresh_from_db()
+    assert saved.status == "expired" and not PaymentAttempt.objects.exists()
+    (email,) = OutgoingEmail.objects.filter(template="alternativa-pagament")
+    assert "https://socis.example.org/socis/pagaments/targeta/" in email.body_text
