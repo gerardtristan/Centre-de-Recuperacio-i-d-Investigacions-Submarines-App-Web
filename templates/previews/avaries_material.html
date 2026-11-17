@@ -1,0 +1,65 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/averia.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-32 Averia: comunicar una avaria d'una peça del material (mòdul 03). Proposta: el pla té l'estat «a revisió» però no aquest formulari (D1). En construcció: contingut d'exemple, res no s'envia (design-system §16, T-DX-32). Quan funcioni: només els rols amb permís sobre el material; les fotos es validen pel contingut i se'n treu l'EXIF al servidor, sense persones identificables ni cap dada de salut; només el responsable de material passa la peça a revisió. #}
+  <section class="en-construccio-bloc averia" aria-describedby="ec-avaries_material">
+    {% include "_en_construccio.html" with id="ec-avaries_material" %}
+    <h1>{{ screen_title }}</h1>
+    <p class="averia-intro">{% translate "Què li passa a una peça del club. Pantalla proposada: el pla té l'estat «a revisió», però no aquest formulari ni les preguntes per tipus." %}</p>
+    <form class="formulari averia-cols" method="get" action="">
+      <fieldset disabled class="averia-form">
+        <legend class="visualment-amagat">{% translate "Avaria (exemple)" %}</legend>
+        <div class="camp">
+          <span class="etiqueta" id="averia-tipus">{% translate "Tipus de peça" %}</span>
+          <div class="segmentat" role="group" aria-labelledby="averia-tipus">
+            {% for label in types %}
+            <label><input class="visualment-amagat" type="radio" name="tipus"{% if forloop.counter0 == type %} checked{% endif %}><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ label }}</span></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="camp">
+          <label for="averia-peca">{% translate "Peça" %}</label>
+          <select id="averia-peca"><option>{{ item.code }} · {{ item.type }}</option></select>
+        </div>
+        <fieldset class="averia-preguntes">
+          <legend>{% blocktranslate with type=item.type %}Preguntes del tipus «{{ type }}»{% endblocktranslate %}</legend>
+          {% for question in questions %}
+          <div class="averia-pregunta">
+            <span id="{{ question.id }}">{{ question.text }}</span>
+            <div class="segmentat" role="group" aria-labelledby="{{ question.id }}">
+              {% for answer in answers %}
+              <label><input class="visualment-amagat" type="radio" name="{{ question.id }}"{% if answer == question.answer %} checked{% endif %}><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ answer }}</span></label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </fieldset>
+        <div class="camp">
+          <label for="averia-text">{% translate "Explica-ho amb les teves paraules" %}</label>
+          <textarea id="averia-text" rows="3">{{ description }}</textarea>
+        </div>
+        <div class="camp">
+          <label for="averia-fotos">{% translate "Fotos de la peça (opcional)" %}</label>
+          <input id="averia-fotos" type="file" accept="image/*" multiple>
+          <p class="ajuda">{% translate "Només la peça: cap persona. Se'n treu la ubicació de la foto en desar-la." %}</p>
+        </div>
+        <div class="accions">
+          <button type="submit" class="boto boto-principal">{% translate "Envia l'avaria" %}</button>
+        </div>
+      </fieldset>
+      <section class="targeta averia-peca" aria-labelledby="averia-peca-t">
+        <h2 id="averia-peca-t">{% translate "La peça" %}</h2>
+        <dl class="dades-soci">
+          <div><dt>{% translate "Codi" %}</dt><dd><span class="codi">{{ item.code }}</span></dd></div>
+          <div><dt>{% translate "Tipus" %}</dt><dd>{{ item.type }}</dd></div>
+          <div><dt>{% translate "Estat" %}</dt><dd><span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Disponible" %}</span></dd></div>
+          <div><dt>{% translate "Propera revisió" %}</dt><dd>{{ item.review }}</dd></div>
+        </dl>
+        <p class="ajuda">{% translate "El responsable de material decideix si la peça passa a revisió; mentre hi és, no es pot assignar." %}</p>
+      </section>
+    </form>
+  </section>
+{% endblock %}
