@@ -18,5 +18,5 @@
 
 - Les etiquetes `risc:*` es mantenen: diuen què s'ha de revisar amb més cura, però ja no qui fusiona.
 - Continua vigent la D2: un dubte irreversible es construeix apagat i no s'activa a producció sense resposta. Activar-lo és «tocar producció», i per tant cal preguntar.
-- [A validar: propietari] El text s'ha escrit per a la sessió PILOT. S'entén que també val per a la sessió de DISSENY (carril D) i les seves `risc:alt`; si no és així, es corregeix aquí.
+- **També per a la sessió de DISSENY (carril D)** (propietari, 17/11/2026; instrucció escrita): «La decisió 094 val també per al carril de disseny: marca-la com a aprovada. Fusiona les teves PR risc:alt tu mateix quan tinguin el CI en verd, la revisió automàtica sense res pendent i compleixin totes les normes. Pregunta'm només abans de tocar diners reals o producció, esborrar dades o canviar una norma del pla.» Les mateixes tres condicions i les mateixes tres excepcions que per a la sessió PILOT.
 - En revocar-la, torna la D4 tal com era: «el propietari aprova abans les `risc:alt`».
