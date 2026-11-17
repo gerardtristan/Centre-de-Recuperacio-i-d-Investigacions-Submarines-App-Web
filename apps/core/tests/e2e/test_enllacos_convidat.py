@@ -69,8 +69,8 @@ def test_admin_sends_the_link_and_the_guest_opens_it(page, live_server, texts, r
     expect(page).to_have_url(f"{live_server.url}/convidat/")
     expect(page.get_by_role("heading", name=CONCEPT)).to_be_visible()
     expect(page.get_by_text("120,00 €")).to_be_visible()
-    expect(page.get_by_text("El pagament en línia encara no està disponible")).to_be_visible()
-    assert page.get_by_role("button").count() == 0  # cap pagament: és del 05b
+    expect(page.get_by_role("link", name="Paga ara")).to_be_visible()  # pantalla del 05b
+    assert page.get_by_role("button").count() == 0
     assert "Mar" not in page.locator("main").inner_text()
     review("convidat-pendent")
 

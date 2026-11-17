@@ -45,12 +45,17 @@ def issue(attempt: PaymentAttempt) -> Receipt:
 
 def _mail_payer(receipt: Receipt) -> None:
     """CA-M05b-03: el correu al pagador (al representant, si és menor: RN-M01-78). Només el
-    concepte, l'import i el número; el rebut s'obre a la plataforma, amb sessió."""
+    concepte, l'import i el número; el rebut s'obre a la plataforma, amb sessió (el convidat, amb
+    l'enllaç obert en aquest navegador)."""
     charge = receipt.attempt.charge
     to = recipients.email_for(charge.person)
     if not to:
         return
-    link = reverse("payments:receipt", args=[receipt.attempt_id])
+    # El convidat no té compte: el seu rebut s'obre amb l'enllaç de la 00 (T-M05b-08; P-280).
+    if receipt.attempt.guest_link_id:
+        link = reverse("payments:guest_receipt")
+    else:
+        link = reverse("payments:receipt", args=[receipt.attempt_id])
     context = {
         "concept": charge.concept,
         "amount": charges.euros(charge.amount_cents),

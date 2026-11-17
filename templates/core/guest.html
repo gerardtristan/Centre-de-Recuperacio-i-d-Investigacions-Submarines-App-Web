@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M00-02: pàgina del convidat (spec 00, HU-02; decisió 021). Seguretat i privacitat: ruta pública declarada; el testimoni no és a l'adreça d'aquesta pàgina ni a la sessió (la sessió només guarda l'identificador intern de l'enllaç) i l'enllaç es torna a comprovar al servidor a cada petició; només es mostra el càrrec de l'enllaç (concepte, import i estat), cap dada personal i cap dada d'una altra persona (CA-02.2); el mateix text per a un enllaç desconegut, caducat, revocat o substituït, sense cap dada (CA-02.3); un càrrec pagat només mostra l'estat (CA-02.4); la pantalla no diu el límit d'intents ni el temps d'espera (CA-02.7). El pagament és del 05b: aquí no hi ha cap botó de pagament ni se'n simula cap. #}
+{# T-M00-02: pàgina del convidat (spec 00, HU-02; decisió 021). Seguretat i privacitat: ruta pública declarada; el testimoni no és a l'adreça d'aquesta pàgina ni a la sessió (la sessió només guarda l'identificador intern de l'enllaç) i l'enllaç es torna a comprovar al servidor a cada petició; només es mostra el càrrec de l'enllaç (concepte, import i estat), cap dada personal i cap dada d'una altra persona (CA-02.2); el mateix text per a un enllaç desconegut, caducat, revocat o substituït, sense cap dada (CA-02.3); un càrrec pagat només mostra l'estat (CA-02.4); la pantalla no diu el límit d'intents ni el temps d'espera (CA-02.7). «Paga ara» porta a la pantalla de pagament del 05b (T-M05b-08), que torna a comprovar l'enllaç al servidor; un càrrec pagat només ofereix el rebut. #}
 {% block title %}{% translate "El teu pagament" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Pagaments" %}{% endblock %}
 {% block inici %}{% url 'core:guest' %}{% endblock %}
@@ -20,12 +20,10 @@
       </dl>
     </section>
     {% if can_pay %}
-      <div class="avis avis-avis" role="status">
-        <strong>{% translate "El pagament en línia encara no està disponible" %}</strong>
-        {% translate "Si tens cap dubte, respon el correu on has rebut aquest enllaç." %}
-      </div>
+      <div class="accions"><a class="boto boto-principal" href="{% url 'payments:guest_charge' %}">{% translate "Paga ara" %}</a></div>
     {% elif charge.status == "paid" %}
       <div class="avis avis-ok" role="status">{% translate "Aquest pagament ja està fet. No cal que facis res més." %}</div>
+      <p class="enllacos"><a href="{% url 'payments:guest_receipt' %}">{% translate "Veure el rebut" %}</a></p>
     {% endif %}
     <p class="text-2">{% blocktranslate with date=expires_at|date:"d/m/Y" %}Aquest enllaç funciona fins al {{ date }}.{% endblocktranslate %}</p>
   {% else %}

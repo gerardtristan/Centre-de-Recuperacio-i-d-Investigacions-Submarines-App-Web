@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
-{# T-M05b-04: pantalla de pagament d'un càrrec propi i on torna el navegador des del proveïdor (P-M05b-A, passos 1, 4 i 6; CA-M05b-01, 02 i 08). Seguretat i privacitat: només el compte personal de la persona del càrrec (un d'un altre o inexistent: «no trobat», al servidor, i registre); l'estat surt sempre del servidor, mai de la tornada del navegador; cap camp de targeta: la targeta s'escriu a la pàgina del proveïdor; cap dada personal a la pantalla més enllà del concepte i l'import. Sessió caducada: el middleware (HTMX: HX-Redirect). #}
+{# T-M05b-04: pantalla de pagament d'un càrrec propi i on torna el navegador des del proveïdor (P-M05b-A, passos 1, 4 i 6; CA-M05b-01, 02 i 08). Seguretat i privacitat: només el compte personal de la persona del càrrec (un d'un altre o inexistent: «no trobat», al servidor, i registre); l'estat surt sempre del servidor, mai de la tornada del navegador; cap camp de targeta: la targeta s'escriu a la pàgina del proveïdor; cap dada personal a la pantalla més enllà del concepte i l'import. Sessió caducada: el middleware (HTMX: HX-Redirect). Convidat (T-M05b-08; CA-M05b-09; decisió 021): la mateixa pantalla, sense compte; l'únic accés és l'enllaç de la 00 obert en aquest navegador, que el servidor torna a comprovar a cada petició (revocat, substituït o caducat: a la pàgina del convidat, sense dir per què); cap identificador a l'adreça i cap dada de la persona. #}
 {% block title %}{% translate "Pagament" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% if guest %}{% translate "Pagaments" %}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block inici %}{% if guest %}{% url 'core:guest' %}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
   <h1>{{ charge.concept }}</h1>
@@ -11,6 +13,6 @@
   </dl>
   <div aria-live="polite">{% include "payments/_status.html" %}</div>
   <p class="text-2">{% translate "La targeta i el Bizum es fan a la pàgina del proveïdor de pagaments: el club no veu ni desa la targeta ni el telèfon." %}</p>
-  {% if user.person.member %}<p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>{% endif %}
+  {% if not guest and user.person.member %}<p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>{% endif %}
   <script src="{% static 'js/copia.js' %}" defer></script>
 {% endblock %}

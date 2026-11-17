@@ -46,9 +46,12 @@ _CONFLICTS = {
 
 
 @transaction.atomic
-def create_attempt(charge: Charge, method: str, *, started_by=None) -> PaymentAttempt:
+def create_attempt(
+    charge: Charge, method: str, *, started_by=None, guest_link=None
+) -> PaymentAttempt:
     """Obre un intent «creat» per a un càrrec pendent, amb l'import del càrrec (RN-M05b-02): no
-    hi ha manera de passar-ne un altre. `started_by`: el compte que paga, o res si és el sistema."""
+    hi ha manera de passar-ne un altre. `started_by`: el compte que paga, o res si és el sistema
+    o un convidat; `guest_link`: l'enllaç amb què paga el convidat (T-M05b-08)."""
     if method not in ENABLED_METHODS:
         raise MethodNotAllowed(method)
     charge = Charge.objects.get(pk=charge.pk)  # l'estat i l'import desats, no una còpia vella
@@ -63,10 +66,14 @@ def create_attempt(charge: Charge, method: str, *, started_by=None) -> PaymentAt
         method=method,
         amount_cents=charge.amount_cents,
         started_by=started_by,
+        guest_link=guest_link,
         ui_timeout_minutes=timeout,
     )
     details = {"charge": charge.pk, "method": method, "amount_cents": attempt.amount_cents}
-    actor = started_by or audit.system("payments")
+    if guest_link is not None:
+        actor = audit.guest(guest_link.person, guest_link.pk)
+    else:
+        actor = started_by or audit.system("payments")
     audit.record("payments.attempt_created", actor=actor, target=attempt, details=details)
     return attempt
 

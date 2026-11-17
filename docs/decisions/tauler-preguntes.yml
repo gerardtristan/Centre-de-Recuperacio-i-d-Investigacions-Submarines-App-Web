@@ -998,4 +998,16 @@ opcions:
       continua servint sense noms. La C només cal si algú ha de veure els pagaments sense poder veure els socis.
     data: 2026-11-17
 
+  P-280:
+    opcions:
+      A: Com s'ha construït. El rebut s'obre al navegador on s'ha obert l'enllaç i mentre funciona (7 dies); el correu ja porta el número, el concepte i l'import.
+      B: El correu de pagament confirmat porta el rebut en PDF adjunt.
+      C: Demanar un enllaç nou amb el correu també renova l'enllaç d'un càrrec pagat, només per veure'n el rebut (canvi a la 00).
+      D: El convidat el demana al club, que l'hi envia a mà.
+    recomanada: A
+    perque: >-
+      No toca la 00 ni guarda cap fitxer, i el correu ja serveix de comprovant. Si els convidats el demanen
+      sovint, la C és la més petita i manté la mateixa resposta per a qualsevol adreça.
+    data: 2026-11-17
+
 noves:

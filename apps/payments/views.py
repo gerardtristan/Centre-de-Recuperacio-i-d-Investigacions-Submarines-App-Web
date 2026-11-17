@@ -5,19 +5,29 @@ de pagament del proveïdor fals.
 La pantalla del soci només mostra l'estat que diu el servidor (`payment_status`): la tornada
 del navegador (`?tornada=ok`) no canvia res ni dona res per pagat (CA-M05b-02, RN-M05b-05).
 Per objecte (M05b-4): cadascú només veu i paga els seus càrrecs; un d'un altre o que no
-existeix és «no trobat» en tots dos casos, i l'intent queda al registre (com CA-M01-25)."""
+existeix és «no trobat» en tots dos casos, i l'intent queda al registre (com CA-M01-25).
+
+Convidat (T-M05b-08; CA-M05b-09; decisió 021): `/pagaments/convidat/...`, rutes públiques
+declarades. La credencial és l'enllaç de la 00 obert en aquest navegador
+(`guest_links.for_request`, que el torna a comprovar a cada petició); el càrrec surt sempre de
+l'enllaç, mai de l'adreça. Sense enllaç que funcioni, a la pàgina del convidat de la 00, que no
+diu per què. El pagament segueix les mateixes regles que el del soci (`checkout.start_payment`
+amb l'enllaç)."""
+
+from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit, charges
+from apps.core import audit, charges, guest_links
 from apps.core.models import Charge
 from apps.treasury import services as treasury
 
@@ -80,11 +90,28 @@ def _transfer(status):
     }
 
 
-def _status_context(charge):
+def _urls(charge, attempt, guest):
+    """Les adreces de la pantalla: les del soci porten el càrrec o l'intent; les del convidat, cap
+    identificador (l'enllaç de la sessió diu quin càrrec és)."""
+    if guest:
+        names = ("pay_card", "pay_bizum", "pay_transfer", "status", "receipt")
+        return {name: reverse(f"payments:guest_{name}") for name in names}
+    urls = {
+        f"pay_{m}": reverse(f"payments:pay_{m}", args=[charge.pk])
+        for m in ("card", "bizum", "transfer")
+    }
+    if attempt is not None:
+        urls["status"] = reverse("payments:attempt_status", args=[attempt.pk])
+        urls["receipt"] = reverse("payments:receipt", args=[attempt.pk])
+    return urls
+
+
+def _status_context(charge, guest=False):
     status = checkout.payment_status(charge)
     return {
         "charge": charge,
         "status": status,
+        "urls": _urls(charge, status.attempt, guest),
         "bizum": _offers_bizum(),
         "transfer_offered": bool(checkout.transfer_iban()),
         "transfer": _transfer(status),
@@ -101,24 +128,21 @@ def charge_view(request, charge_id):
     return render(request, "payments/charge.html", context)
 
 
-@never_cache
-@require_POST
-def pay_view(request, charge_id, method):
+def _pay(request, charge, method, actor, back):
     """«Paga amb targeta» o «Paga amb Bizum» (P-M05b-A i B, passos 1 i 2): el navegador va a la
-    pàgina del proveïdor. «Paga per transferència» (P-M05b-C): torna a la pantalla, que mostra
-    les dades per fer-la. Amb un intent en curs no se'n comença cap altre (RN-M05b-04; P-83,
-    opció per defecte): la pantalla explica que s'espera la confirmació."""
-    charge = _own_charge(request, charge_id)
+    pàgina del proveïdor. «Paga per transferència» (P-M05b-C): torna a la pantalla (`back`), que
+    mostra les dades per fer-la. Amb un intent en curs no se'n comença cap altre (RN-M05b-04;
+    P-83, opció per defecte): la pantalla explica que s'espera la confirmació."""
     try:
-        start = checkout.start_payment(charge, method, request.user)
+        start = checkout.start_payment(charge, method, actor)
     except attempts.AttemptInProgress:
         messages.error(
             request,
             _("El pagament anterior encara no s'ha tancat. Torna-ho a provar d'aquí a una estona."),
         )
-        return redirect("payments:charge", charge.pk)
+        return back
     except (attempts.AttemptAlreadyPaid, attempts.ChargeNotPayable):
-        return redirect("payments:charge", charge.pk)
+        return back
     except (attempts.MethodNotAllowed, ProviderError):
         unavailable = {
             PaymentAttempt.Method.CARD: _("Ara no es pot pagar amb targeta."),
@@ -126,12 +150,19 @@ def pay_view(request, charge_id, method):
             PaymentAttempt.Method.TRANSFER: _("Ara no es pot pagar per transferència."),
         }
         messages.error(request, f"{unavailable[method]} {_('Torna-ho a provar més tard.')}")
-        return redirect("payments:charge", charge.pk)
+        return back
     if start.kind == checkout.TRANSFER_DETAILS:
-        return redirect("payments:charge", charge.pk)
+        return back
     # shortcut: sempre redirecció; el camp incrustat (`checkout.IFRAME`) arriba amb el proveïdor
     # real, si en té (P-45 punt 4). El proveïdor fals no en té.
     return HttpResponseRedirect(start.url)
+
+
+@never_cache
+@require_POST
+def pay_view(request, charge_id, method):
+    charge = _own_charge(request, charge_id)
+    return _pay(request, charge, method, request.user, redirect("payments:charge", charge.pk))
 
 
 @never_cache
@@ -159,14 +190,87 @@ def receipt_view(request, attempt_id):
     )
     if receipt is None:
         _not_found(request, PaymentAttempt, attempt_id)
+    back = reverse("payments:charge", args=[receipt.attempt.charge_id])
+    return _render_receipt(request, receipt, back)
+
+
+def _render_receipt(request, receipt, back, guest=False):
     charge = receipt.attempt.charge
     context = {
         "receipt": receipt,
         "charge": charge,
         "amount": charges.euros(charge.amount_cents),
         "club_tax_id": settings.CLUB_TAX_ID,
+        "back": back,
+        "guest": guest,
     }
     return render(request, "payments/receipt.html", context)
+
+
+# --- Convidat (T-M05b-08): l'enllaç de la 00 obert en aquest navegador és la credencial ---------
+
+
+def _guest(view):
+    """Ruta pública declarada (RN-40) que només respon amb un enllaç que funciona. Sense, a la
+    pàgina del convidat de la 00 (HTMX: HX-Redirect), que no diu si l'enllaç existeix."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        link = guest_links.for_request(request)
+        if link is None:
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=204)
+                response["HX-Redirect"] = reverse("core:guest")
+                return response
+            return redirect("core:guest")
+        response = view(request, link, *args, **kwargs)
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    return login_not_required(never_cache(wrapper))
+
+
+@_guest
+@require_GET
+def guest_charge_view(request, link):
+    """`/pagaments/convidat/`: la pantalla de pagament del càrrec de l'enllaç i on torna el
+    navegador del proveïdor (CA-02.9: «s'està confirmant»; la tornada no canvia res)."""
+    charge = link.charge
+    context = {
+        **_status_context(charge, guest=True),
+        "amount": charges.euros(charge.amount_cents),
+        "guest": True,
+    }
+    return render(request, "payments/charge.html", context)
+
+
+@_guest
+@require_POST
+def guest_pay_view(request, link, method):
+    return _pay(request, link.charge, method, link, redirect("payments:guest_charge"))
+
+
+@_guest
+@require_GET
+def guest_status_view(request, link):
+    return render(request, "payments/_status.html", _status_context(link.charge, guest=True))
+
+
+@_guest
+@require_GET
+def guest_receipt_view(request, link):
+    """CA-02.4: amb el càrrec pagat, el rebut del seu últim pagament. Sense rebut (per exemple,
+    un pagament registrat a mà), a la pantalla, que en mostra l'estat."""
+    receipt = (
+        Receipt.objects.select_related("attempt__charge__department")
+        .filter(attempt__charge=link.charge)
+        .order_by("-pk")
+        .first()
+    )
+    if receipt is None:
+        return redirect("payments:guest_charge")
+    return _render_receipt(request, receipt, reverse("payments:guest_charge"), guest=True)
 
 
 # --- Proveïdor fals: la pàgina on es «paga». Només amb l'entorn de proves -----------------------
