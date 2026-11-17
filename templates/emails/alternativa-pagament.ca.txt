@@ -1,6 +1,6 @@
-{% load i18n %}{# T-M05b-12, alternativa de pagament després d'un rebut retornat (P-M05b-F; CA-M05b-19 i 20): TEXT PROVISIONAL [A validar: junta]. Cap IBAN ni codi del banc. #}{% autoescape off %}{% translate "Hola," %}
+{% load i18n %}{# T-M05b-12, alternativa de pagament després d'un rebut retornat (P-M05b-F; CA-M05b-19 i 20) o d'una targeta guardada que no s'ha cobrat (T-M05b-15): TEXT PROVISIONAL [A validar: junta]. Cap IBAN ni codi del banc. #}{% autoescape off %}{% translate "Hola," %}
 
-{% blocktranslate %}El banc ha retornat el rebut domiciliat de «{{ concept }}» ({{ amount }}). No el tornarem a passar pel banc.{% endblocktranslate %}
+{% if unusable %}{% blocktranslate %}La teva targeta guardada ja no es pot fer servir per pagar «{{ concept }}» ({{ amount }}).{% endblocktranslate %}{% elif saved_card %}{% blocktranslate %}No hem pogut cobrar «{{ concept }}» ({{ amount }}) amb la teva targeta guardada.{% endblocktranslate %}{% else %}{% blocktranslate %}El banc ha retornat el rebut domiciliat de «{{ concept }}» ({{ amount }}). No el tornarem a passar pel banc.{% endblocktranslate %}{% endif %}
 
 {% translate "Pots pagar-lo amb targeta, Bizum o transferència des d'aquest enllaç:" %}
 {{ link }}

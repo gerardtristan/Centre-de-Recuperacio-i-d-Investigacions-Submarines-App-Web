@@ -174,7 +174,7 @@ def confirm(item: DirectDebitItem, decision: str, *, by, note: str = "") -> bool
     charges.reopen_returned(charge, note.strip() or default, by=by)
     sent = False
     if decision == ALTERNATIVE:
-        sent = _send_alternative(
+        sent = send_alternative(
             charge, new_mandate=item.mandate.status == SepaMandate.Status.BLOCKED
         )
     audit.record(
@@ -199,9 +199,13 @@ def _settled_into(payment):
     return transfer.account
 
 
-def _send_alternative(charge, *, new_mandate: bool) -> bool:
+def send_alternative(
+    charge, *, new_mandate: bool, saved_card: bool = False, unusable: bool = False
+) -> bool:
     """L'enllaç per pagar amb targeta, Bizum o transferència i, si cal, el de signar un mandat
-    nou. Cap IBAN ni codi del banc al correu."""
+    nou. Cap IBAN ni codi del banc al correu. `saved_card`: no s'ha pogut cobrar amb la targeta
+    guardada (T-M05b-15b), en lloc d'un rebut retornat; `unusable`: la targeta ja no serveix i no
+    s'ha intentat cap cobrament."""
     to = recipients.email_for(charge.person)
     if not to:
         return False
@@ -212,6 +216,8 @@ def _send_alternative(charge, *, new_mandate: bool) -> bool:
         "mandate_link": (
             settings.PUBLIC_SITE_URL + reverse("payments:mandate") if new_mandate else ""
         ),
+        "saved_card": saved_card,
+        "unusable": unusable,
     }
     return (
         mail.queue_email(ALTERNATIVE_TEMPLATE, to=to, person=charge.person, context=context)
