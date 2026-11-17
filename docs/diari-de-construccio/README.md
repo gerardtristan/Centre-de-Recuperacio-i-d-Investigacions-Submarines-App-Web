@@ -224,3 +224,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-38](T-DX-38.md) | Convite: capçalera de la fitxa d'una activitat, en construcció (full de calendari, places sense noms i «M'hi apunto»; P-99; carril de disseny) | 16/11/2026 21:43 | b570bc1 (PR #102) | cap de nova | [A comprovar] |
 | [T-M04-04](T-M04-04.md) | Saldos: `balance(compte, data)` a `balances.py` i prova de volum de RNF-T7 (50.000 moviments inventats, menys d'un segon) | 17/11/2026 03:46 | 8eb3807 | 1 nova | [A comprovar] |
 | [T-DX-41](T-DX-41.md) | Antefirma: signatures de correu de l'administració, en construcció (càrrec i contacte del club, cap nom; P-92; carril de disseny) | 16/11/2026 21:43 | b75ca76 (PR #103) | cap de nova | [A comprovar] |
+| [T-M04-16](T-M04-16.md) | Exportació CSV dels moviments per a la gestoria (T9) i permisos de la fase 1 que faltaven (T2, T3, B3 a B7; B4 als retornats); P-241 a P-244 | 17/11/2026 04:35 | ee66bd4 | 5628 | [A comprovar] |
