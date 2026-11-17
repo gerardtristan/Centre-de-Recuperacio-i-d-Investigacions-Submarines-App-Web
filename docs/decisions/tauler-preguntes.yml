@@ -736,4 +736,16 @@ opcions:
       Cap de les dues no és urgent mentre no hi hagi remeses.
     data: 2026-11-17
 
+  P-240:
+    opcions:
+      A: En registrar el retorn, el pagament queda anul·lat amb el motiu del banc i només el tresorer el registra (com s'ha fet).
+      B: El pagament continua comptant i el mòdul 01 només compta els pagaments posteriors a l'últim retorn (canvi al 01).
+      C: El pagament s'anul·la en reobrir el càrrec, no en retornar-lo.
+      D: Un estat «retornat» al pagament de la 00, que també admet el sistema com a autor (canvi de model).
+    recomanada: A
+    perque: >-
+      Fa servir l'anul·lació que ja existeix (045), sense canviar cap model ni el 01, i un càrrec reobert i tornat a
+      pagar té un sol pagament que compta. La D només cal si els retorns s'han de registrar sols, sense el tresorer.
+    data: 2026-11-17
+
 noves:
