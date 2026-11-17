@@ -187,3 +187,13 @@ def test_mobile_tab_bar_contrast_in_dark(page, live_server, flow):
     results = {}
     audit(page, "soci-com-pago-390", results)
     assert not problems(results), " | ".join(problems(results))  # P-283 (T-DX-48)
+    # T-DX-52: axe ha de poder calcular el contrast de les pestanyes (no «revisió manual»): una
+    # barreja en oklch de dos grisos dona un to «none» que axe no sap llegir.
+    for theme, result in results["soci-com-pago-390"]["axe"].items():
+        manual = [
+            str(node["selector"])
+            for rule in result["revisio_manual"]
+            if rule["regla"] == "color-contrast"
+            for node in rule["elements"]
+        ]
+        assert not [m for m in manual if "ramillete-pestanya" in m], (theme, manual)

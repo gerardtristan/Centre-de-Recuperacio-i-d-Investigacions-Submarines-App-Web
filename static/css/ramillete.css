@@ -20,7 +20,8 @@
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--e-1);
   width: 100%; min-height: var(--dock-alcada); font-size: var(--t-xs); font-weight: var(--p-semi); text-decoration: none;
   /* P-283 (T-DX-48): --c-text-2 sobre la barra flotant feia 4,18:1 al fosc; barrejat amb --c-text passa de 4,5:1 als dos temes i continua diferent de l'activa (--c-text i la marca) */
-  color: color-mix(in oklch, var(--c-text-2) 55%, var(--c-text));
+  /* T-DX-52: en srgb, no en oklch: dos grisos en oklch donen un to «none» i axe no en calcula el contrast */
+  color: color-mix(in srgb, var(--c-text-2) 55%, var(--c-text));
 }
 .ramillete-pestanya svg, .ramillete-boto svg { width: var(--e-5); height: var(--e-5); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .ramillete-pestanya[aria-current="page"] { color: var(--c-text); }
