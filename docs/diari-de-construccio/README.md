@@ -264,3 +264,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [P-250](P-250.md) | Descartar amb motiu una devolució pendent (B5; migració payments/0015; 095) | 17/11/2026 | 77a66465 | 4 noves | [A comprovar] |
 | [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c | 6499 sense e2e; 14 noves | [A comprovar] |
 | [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c, a0757f78 | 6514 sense e2e; 29 noves | [A comprovar] |
+| [T-DX-51](T-DX-51.md) | Logotips ajustats (192 px, AVIF o WebP) i només el del tema que es veu: de 845 KB a uns 14 KB per pàgina (carril de disseny) | 17/11/2026 14:01 | 7b19e24b (PR #181) | 6 noves | [A comprovar] |
