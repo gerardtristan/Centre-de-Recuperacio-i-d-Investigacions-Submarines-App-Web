@@ -268,3 +268,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-B8](T-B8-axe-tresoreria-05b.md) | Auditoria d'accessibilitat (axe) de les 15 pantalles de la 04 i les 26 del 05b, a 1280 i 390 px: cap violació greu | 17/11/2026 | 7dea85d9 | 5 noves al navegador | [A comprovar] |
 | [T-M05a-12](T-M05a-12.md) | Targeta guardada per a les quotes amb el proveïdor fictici (092): autenticació al proveïdor, targeta desada només amb la notificació; dubtes P-297 a P-299 | 17/11/2026 | 4a1fc647 (#189), cb2ad9bf | 6617; 27 noves i 1 al navegador | [A comprovar] |
 | [P-134](P-134.md) | «Pagar cada vegada» amb un mandat actiu: la pantalla pregunta si es revoca; si no, queda actiu i fora de les remeses (095) | 17/11/2026 | 12ba0e0b | 1 canviada | [A comprovar] |
+| [P-119](P-119.md) | Identificador de devolució al moviment: una devolució repetida torna la que ja existeix (migració treasury/0016; 095) | 17/11/2026 | 4e784086 | 1 nova | [A comprovar] |
