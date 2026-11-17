@@ -32,6 +32,7 @@ from .providers import get_provider
 
 REFUND = "payments.refund"  # B5, «Fer devolucions» (M05b-4)
 REFUNDED = "payments.refunded"
+DISCARDED = "payments.refund_discarded"
 Channel, Status = RefundRequest.Channel, RefundRequest.Status
 
 
@@ -67,6 +68,8 @@ def _request(payment, amount_cents, reason, key, by) -> RefundRequest:
     if request is not None:
         if (request.payment_id, request.amount_cents) != (payment.pk, amount_cents):
             raise RefundRejected(_("Aquesta clau ja és d'una altra devolució."))
+        if request.status == Status.DISCARDED:
+            raise RefundRejected(_("Aquesta devolució està descartada: fes-ne una de nova."))
         return request
     if payment.charge.status != Charge.Status.PAID:
         raise RefundRejected(_("Només es torna un pagament d'un càrrec «pagat»."))
@@ -121,9 +124,36 @@ def _complete(request: RefundRequest, by) -> RefundRequest:
     return request
 
 
+@transaction.atomic
+def discard(request: RefundRequest, *, reason: str, by) -> RefundRequest:
+    """Descarta amb motiu una devolució que s'ha quedat pendent (P-250, decisió 095): deixa de
+    comptar per al límit de l'import (RN-T11) i la seva clau ja no es pot completar. No apunta
+    res a la 04 ni crida el proveïdor. Una del proveïdor, el tresorer l'ha de comprovar abans al
+    proveïdor: si s'hagués fet, descartar-la la deixaria sense apuntar. Només B5."""
+    if not has_perm(by, REFUND, write=True):
+        raise Http404
+    reason = (reason or "").strip()
+    if not reason:
+        raise RefundRejected(_("Per descartar una devolució cal un motiu."))
+    request = RefundRequest.objects.select_for_update().get(pk=request.pk)
+    if request.status != Status.PENDING:
+        raise RefundRejected(_("Només es descarta una devolució pendent."))
+    request.status, request.discarded_at = Status.DISCARDED, timezone.now()
+    request.discarded_by, request.discard_reason = by, reason
+    request.save(update_fields=["status", "discarded_at", "discarded_by", "discard_reason"])
+    audit.record(
+        DISCARDED,
+        actor=by,
+        target=request.payment.charge,
+        reason=reason,
+        details={"payment": request.payment_id, "amount_cents": request.amount_cents},
+    )
+    return request
+
+
 def _refunded(payment: Payment, *, done_only=False) -> int:
     """Cèntims ja tornats o en curs de tornar d'aquest pagament."""
-    rows = RefundRequest.objects.filter(payment=payment)
+    rows = RefundRequest.objects.filter(payment=payment).exclude(status=Status.DISCARDED)
     if done_only:
         rows = rows.filter(status=Status.DONE)
     return rows.aggregate(total=Sum("amount_cents"))["total"] or 0

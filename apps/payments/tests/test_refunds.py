@@ -187,3 +187,53 @@ class TestRefund:
             do(payment, 100, treasurer)
         assert RefundRequest.objects.get().status == RefundRequest.Status.PENDING
         assert status(payment) == Charge.Status.PAID
+
+
+class TestDiscard:
+    """P-250 (decisió 095, B): qui té B5 descarta amb motiu una devolució pendent."""
+
+    @pytest.fixture
+    def pending(self, card, treasurer, monkeypatch):
+        original = fake.FakeProvider.refund
+
+        def down(self, *args):
+            raise base.ProviderError("caigut")
+
+        monkeypatch.setattr(fake.FakeProvider, "refund", down)
+        key = uuid4()
+        with pytest.raises(base.ProviderError):
+            do(card, 4000, treasurer, key=key)
+        monkeypatch.setattr(fake.FakeProvider, "refund", original)
+        return RefundRequest.objects.get(key=key)
+
+    def test_p_250_a_pending_refund_is_discarded_with_its_reason(self, pending, card, treasurer):
+        why = "El proveïdor confirma que no l'ha feta (prova)"
+        discarded = refunds.discard(pending, reason=f"  {why} ", by=treasurer)
+        assert discarded.status == RefundRequest.Status.DISCARDED
+        assert (discarded.discard_reason, discarded.discarded_by) == (why, treasurer)
+        assert discarded.discarded_at and discarded.done_at is None
+        entry = AuditEntry.objects.get(action=refunds.DISCARDED)
+        assert (entry.actor_account, entry.reason) == (treasurer, why)
+        assert entry.details == {"payment": card.pk, "amount_cents": 4000}
+        # Ja no compta per al límit (RN-T11) i la seva clau no es torna a fer servir.
+        with pytest.raises(refunds.RefundRejected):
+            do(card, 4000, treasurer, key=pending.key)
+        do(card, 12_000, treasurer)
+        assert refunded(card) == [12_000]
+
+    def test_only_a_pending_refund(self, card, treasurer):
+        done = do(card, 4000, treasurer)
+        with pytest.raises(refunds.RefundRejected):
+            refunds.discard(done, reason=REASON, by=treasurer)
+        assert RefundRequest.objects.get().status == RefundRequest.Status.DONE
+
+    @pytest.mark.parametrize("reason", ["", "   "])
+    def test_a_reason_is_required(self, pending, treasurer, reason):
+        with pytest.raises(refunds.RefundRejected):
+            refunds.discard(pending, reason=reason, by=treasurer)
+        assert RefundRequest.objects.get().status == RefundRequest.Status.PENDING
+
+    def test_b5_only(self, pending, make_admin):
+        with pytest.raises(Http404):
+            refunds.discard(pending, reason=REASON, by=make_admin("secretary"))
+        assert RefundRequest.objects.get().status == RefundRequest.Status.PENDING
