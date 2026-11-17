@@ -99,7 +99,9 @@ def _complete(request: RefundRequest, by) -> RefundRequest:
     if request.status == Status.DONE:
         return request
     payment = request.payment
-    treasury.record_refund(payment, request.amount_cents, reason=request.reason, by=by)
+    treasury.record_refund(
+        payment, request.amount_cents, reason=request.reason, by=by, refund_id=request.key
+    )
     total = _refunded(payment, done_only=True) + request.amount_cents == payment.amount_cents
     if total:
         charges.cancel(payment.charge, request.reason, by=by)

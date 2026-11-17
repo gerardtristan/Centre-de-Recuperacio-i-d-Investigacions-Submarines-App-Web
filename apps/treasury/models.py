@@ -230,6 +230,11 @@ class Movement(AppendOnlyModel):
         verbose_name=_("liquidació"),
     )
     reason = models.TextField(_("motiu"), blank=True)
+    # L'identificador d'una devolució (la clau del 05b): la mateixa devolució no s'apunta dues
+    # vegades (P-119, decisió 095). Únic; buit en la resta de moviments.
+    refund_id = models.UUIDField(
+        _("identificador de la devolució"), null=True, blank=True, unique=True
+    )
     # Sense compte: l'ha creat el sistema (una notificació del proveïdor, una tasca).
     recorded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

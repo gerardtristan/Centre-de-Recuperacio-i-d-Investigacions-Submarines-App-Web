@@ -250,20 +250,32 @@ def record_fee(payment: Payment, amount_cents: int, *, by) -> Movement:
 
 
 @transaction.atomic
-def record_refund(payment: Payment, amount_cents: int, *, reason: str, by) -> Movement:
+def record_refund(
+    payment: Payment, amount_cents: int, *, reason: str, by, refund_id=None
+) -> Movement:
     """Apunta una devolució que ha fet el club, total o parcial (HU-T05; P-M04-B; CA-T05.1,
     CA-T05.2 i CA-T05.4): una sortida nova del compte de l'ingrés, amb el seu departament i
     centre de cost i data d'avui. L'ingrés no canvia i la comissió no es retorna (RN-T11). La
     suma de les devolucions i el retorn vigents no passa mai de l'import cobrat (P-118). El
-    càrrec el canvia qui crida (05b, RN-M05b-17)."""
+    càrrec el canvia qui crida (05b, RN-M05b-17). `refund_id`: l'identificador de la devolució
+    (el 05b hi passa la clau); si ja hi és, torna la devolució que ja existeix sense apuntar res
+    (P-119, decisió 095). Sense, cada crida apunta una devolució nova."""
     _validate_amount(amount_cents)
     reason = (reason or "").strip()
     if not reason:
         raise ValidationError(_("Una devolució necessita el motiu."))
     payment, income = _live_income(payment, by)
+    if refund_id is not None:
+        existing = Movement.objects.filter(refund_id=refund_id).first()
+        if existing is not None:
+            if (existing.payment_id, existing.amount_cents) != (payment.pk, amount_cents):
+                raise ValidationError(_("Aquest identificador ja és d'una altra devolució."))
+            return existing
     if _given_back(payment) + amount_cents > income.amount_cents:
         raise RefundExceedsPaid(_("La suma de les devolucions passaria de l'import cobrat."))
-    refund = _outgoing(income, Movement.Kind.REFUND, amount_cents, by, reason=reason)
+    refund = _outgoing(
+        income, Movement.Kind.REFUND, amount_cents, by, reason=reason, refund_id=refund_id
+    )
     _record(REFUND_RECORDED, by, refund, reason=reason)
     return refund
 
@@ -325,7 +337,16 @@ def _given_back(payment: Payment) -> int:
 
 
 def _outgoing(
-    income, kind, amount_cents, by, *, value_date=None, reason="", linked=None, account=None
+    income,
+    kind,
+    amount_cents,
+    by,
+    *,
+    value_date=None,
+    reason="",
+    linked=None,
+    account=None,
+    refund_id=None,
 ):
     """Sortida del compte de l'ingrés (o d'`account`), amb el seu departament i centre de cost
     (RN-T10).
@@ -343,6 +364,7 @@ def _outgoing(
         payment=income.payment,
         linked_movement=linked,
         reason=reason,
+        refund_id=refund_id,
         recorded_by=by if isinstance(by, get_user_model()) else None,
     )
 
