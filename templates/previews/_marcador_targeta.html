@@ -1,0 +1,9 @@
+{% load i18n %}
+<li class="targeta marcador-targeta{% if act.saved %} es-guardada{% endif %}">
+  {% if act.saved %}<span class="marcador-cinta" aria-hidden="true"></span>{% endif %}
+  <span class="xip">{{ act.kind }}</span>
+  <h3>{{ act.title }}</h3>
+  <p class="marcador-quan">{{ act.when }}</p>
+  <span class="estat {% if act.last %}estat-avis{% else %}estat-ok{% endif %}"><span aria-hidden="true">{% if act.last %}!{% else %}✓{% endif %}</span> {{ act.places }}</span>
+  <button type="button" class="boto boto-petit marcador-boto" aria-pressed="{% if act.saved %}true{% else %}false{% endif %}">{% if act.saved %}<span aria-hidden="true">✓</span> {% translate "Guardada" %}{% else %}{% translate "Guarda" %}{% endif %}<span class="visualment-amagat">: {{ act.title }}</span></button>
+</li>
