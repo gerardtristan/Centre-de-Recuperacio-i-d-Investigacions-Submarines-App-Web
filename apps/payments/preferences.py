@@ -53,7 +53,14 @@ def current(member) -> FeePaymentPreference | None:
 def fee_payment_method(member) -> str | None:
     """Servei de M05a-8: `direct_debit`, `saved_card`, `pay_each_time` o `None` (sense resposta)."""
     preference = current(member)
-    return preference.method if preference else None
+    if preference is None:
+        return None
+    if (
+        preference.method == FeeMethod.DIRECT_DEBIT
+        and preference.mandate.status != SepaMandate.Status.ACTIVE
+    ):
+        return None  # un mandat caducat o bloquejat no serveix per cobrar (P-195; L-M05a-06)
+    return preference.method
 
 
 def active_mandate(member) -> SepaMandate | None:
