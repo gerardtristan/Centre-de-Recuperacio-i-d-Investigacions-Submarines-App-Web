@@ -1,0 +1,78 @@
+# Entorn de proves temporal (decisió 090; docs/entorn-de-proves.md). Mai amb dades reals.
+# Tot corre al mateix servidor de la UE: base de dades, aplicació, cua, bústia de proves i Caddy.
+# Les variables surten de /opt/cris/.env, generat al servidor (cloud-config.yaml); cap secret
+# al repositori.
+name: cris-proves
+
+x-app: &app
+  build:
+    context: ../..
+  image: cris-proves:actual
+  restart: unless-stopped
+  env_file: /opt/cris/.env
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.staging
+  depends_on:
+    db:
+      condition: service_healthy
+  volumes:
+    - fitxers:/app/var
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cris
+      POSTGRES_DB: cris
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+    volumes:
+      - dades-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cris -d cris"]
+      interval: 5s
+      retries: 20
+
+  web:
+    <<: *app
+    command: ["web"]
+    volumes:
+      - fitxers:/app/var
+      - estatics:/app/staticfiles-compartits
+    # Copia els estàtics de la imatge al volum que serveix el Caddy i arrenca.
+    entrypoint: ["/bin/sh", "-c", "cp -a /app/staticfiles/. /app/staticfiles-compartits/ && exec /app/deploy/proves/entrypoint.sh web"]
+
+  worker:
+    <<: *app
+    command: ["worker"]
+    depends_on:
+      web:
+        condition: service_started
+
+  # Bústia de proves: rep tots els correus i no n'envia cap a fora.
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    restart: unless-stopped
+    environment:
+      MP_WEBROOT: /bustia/
+      MP_MAX_MESSAGES: 2000
+
+  caddy:
+    image: caddy:2.10.2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: /opt/cris/.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - estatics:/srv/static:ro
+      - caddy-dades:/data
+    depends_on:
+      - web
+
+volumes:
+  dades-postgres:
+  fitxers:
+  estatics:
+  caddy-dades:

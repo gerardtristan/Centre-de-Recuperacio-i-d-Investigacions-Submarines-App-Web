@@ -29,6 +29,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Servidor de l'entorn de proves (decisió 090; Dockerfile). gunicorn fixat a la 23.0, de l'agost
+# del 2024; no és a la instal·lació de desenvolupament.
+deploy = ["gunicorn>=23.0,<23.1"]
 dev = [
     "pytest>=8,<9",
     "pytest-django>=4.9,<5",

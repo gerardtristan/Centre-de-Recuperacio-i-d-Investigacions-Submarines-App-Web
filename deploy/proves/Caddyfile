@@ -1,0 +1,26 @@
+# Entorn de proves (decisió 090): HTTPS automàtic, contrasenya al davant de tot i sense indexar.
+# DOMINI i ACCES_HASH surten de /opt/cris/.env (cloud-config.yaml).
+{$DOMINI} {
+	basic_auth {
+		{$ACCES_USUARI:proves} {$ACCES_HASH}
+	}
+	header {
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+	handle /robots.txt {
+		respond "User-agent: *
+Disallow: /
+"
+	}
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+	handle /bustia* {
+		reverse_proxy mailpit:8025
+	}
+	handle {
+		reverse_proxy web:8000
+	}
+}
