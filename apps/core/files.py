@@ -41,6 +41,8 @@ UPLOAD_TYPES = frozenset({"application/pdf", "image/jpeg", "image/png", "image/w
 IMPORT_TYPES = frozenset({"text/csv"})
 # L'extracte bancari també pot ser un fitxer de text Norma 43 (T-M00-09).
 BANK_STATEMENT_TYPES = frozenset({"text/csv", "text/plain"})
+# El fitxer de retornats del banc és XML (pain.002; T-M05b-12b).
+BANK_RETURNS_TYPES = frozenset({"application/xml"})
 
 _EXTENSIONS = {
     "application/pdf": {".pdf"},
@@ -50,6 +52,7 @@ _EXTENSIONS = {
     "image/heic": {".heic", ".heif"},
     "text/csv": {".csv"},
     "text/plain": {".n43", ".txt"},
+    "application/xml": {".xml"},
 }
 _HEIC_BRANDS = {b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1"}
 
@@ -114,7 +117,10 @@ def validate_upload(uploaded, *, allowed=UPLOAD_TYPES) -> str:
     detected = _detect(head)
     extension = Path(uploaded.name or "").suffix.lower()
     if detected is None and _looks_like_text(head):
-        detected = "text/plain" if extension in _EXTENSIONS["text/plain"] else "text/csv"
+        if head.removeprefix(b"\xef\xbb\xbf").lstrip().startswith(b"<?xml"):
+            detected = "application/xml"
+        else:
+            detected = "text/plain" if extension in _EXTENSIONS["text/plain"] else "text/csv"
 
     if detected not in allowed or extension not in _EXTENSIONS[detected]:
         raise ValidationError(gettext("Aquest tipus de fitxer no és permès."), code="type")

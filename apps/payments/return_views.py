@@ -8,6 +8,8 @@ M05b-4; T-M05b-27).
   reintent possible, el rebut surt a «Per decidir» amb la proposta; si no, l'alternativa ja
   s'ha enviat (P-292).
 - Cap IBAN ni nom a la pantalla: el número de soci, el concepte i l'import (minimització).
+- Fitxer de retornats del banc (pain.002; T-M05b-12b): pujar-lo i confirmar-lo demanen B4 amb
+  edició. Es llegeix en memòria i fins a 1 MB, com l'extracte (RN-101), i no es desa.
 """
 
 from decimal import Decimal
@@ -19,13 +21,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core.charges import RETURNS  # B4
+from apps.core.files import BANK_RETURNS_TYPES, validate_upload
 from apps.core.models import Charge
 from apps.core.permissions import has_perm, permission_required, require_perm
+from apps.core.views.bank_statement import _InMemory
 
-from . import returns
+from . import bank_returns, returns
 from .models import DirectDebitItem
 
 RESULTS = {
@@ -77,15 +82,7 @@ def _register(request, form) -> bool:
     return True
 
 
-@never_cache
-@permission_required(RETURNS)
-@require_http_methods(["GET", "POST"])
-def returns_view(request):
-    form = ReturnForm(request.POST or None)
-    if request.method == "POST":
-        require_perm(request, RETURNS, write=True)
-        if form.is_valid() and _register(request, form):
-            return redirect("administration:payments_returns")
+def _page(request, form=None, *, file_preview=None, file_error=None, status=200):
     pending = (
         DirectDebitItem.objects.filter(
             status=DirectDebitItem.Status.RETURNED,
@@ -95,11 +92,75 @@ def returns_view(request):
         .order_by("returned_on", "pk")
     )
     context = {
-        "form": form,
+        "form": form or ReturnForm(),
         "pending": [(item, returns.can_retry(item)) for item in pending],
         "can_manage": has_perm(request.user, RETURNS, write=True),
+        "file_preview": file_preview,
+        "file_error": file_error,
     }
-    return render(request, "payments/returns.html", context)
+    return render(request, "payments/returns.html", context, status=status)
+
+
+@never_cache
+@permission_required(RETURNS)
+@require_http_methods(["GET", "POST"])
+def returns_view(request):
+    form = ReturnForm(request.POST or None)
+    if request.method == "POST":
+        require_perm(request, RETURNS, write=True)
+        if form.is_valid() and _register(request, form):
+            return redirect("administration:payments_returns")
+    return _page(request, form)
+
+
+@csrf_exempt
+@never_cache
+@permission_required(RETURNS, write=True)
+@require_POST
+def returns_file_view(request):
+    handler = _InMemory(request)
+    request.upload_handlers = [handler]  # abans que res llegeixi el POST
+    return _upload_returns_file(request, handler)
+
+
+@csrf_protect
+def _upload_returns_file(request, handler):
+    files = request.FILES.getlist("fitxer")
+    if handler.too_large:
+        return _page(request, file_error=_("El fitxer supera la mida màxima d'1 MB."), status=413)
+    if len(files) != 1:
+        return _page(request, file_error=_("Tria un sol fitxer."), status=400)
+    try:
+        validate_upload(files[0], allowed=BANK_RETURNS_TYPES)
+        preview = bank_returns.preview(files[0].read(), by=request.user)
+    except ValidationError as exc:
+        return _page(request, file_error=exc.messages[0], status=400)
+    except bank_returns.Rejected as exc:
+        return _page(request, file_error=exc.message, status=400)
+    return _page(request, file_preview=preview)
+
+
+@never_cache
+@permission_required(RETURNS, write=True)
+@require_POST
+def returns_file_confirm_view(request):
+    try:
+        results = bank_returns.confirm(request.POST.get("testimoni", ""), by=request.user)
+    except bank_returns.Stale:
+        messages.error(
+            request,
+            _("La previsualització ha caducat o algun rebut ha canviat. Torna a pujar el fitxer."),
+        )
+    else:
+        messages.success(
+            request,
+            _(
+                "Fitxer registrat: %(total)s retorns. A «Per decidir» hi ha els que esperen la "
+                "teva decisió; als altres ja s'ha aplicat l'alternativa de pagament."
+            )
+            % {"total": sum(results.values())},
+        )
+    return redirect("administration:payments_returns")
 
 
 @never_cache
