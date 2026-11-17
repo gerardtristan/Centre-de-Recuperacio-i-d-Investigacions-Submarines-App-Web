@@ -35,11 +35,15 @@ from .models import Movement, ProviderSettlement, TreasuryAccount
 VIEW = "treasury.view"  # T1
 OWN = (TreasuryAccount.Kind.BANK, TreasuryAccount.Kind.CASH)
 # Els que una persona pot anul·lar (P-114, P-115, CA-T06.2); la resta es corregeix d'altra manera.
+# Els que la pantalla deixa anul·lar: els mateixos que `services.reverse` accepta a mà. Dins un
+# període tancat, el servei respon `PeriodClosed` i surt al formulari (RN-T30; T-M04-15d).
 REVERSIBLE = (
     Movement.Kind.FEE,
     Movement.Kind.REFUND,
     Movement.Kind.RETURN,
     Movement.Kind.CASH_ADJUSTMENT,
+    Movement.Kind.EXPENSE,
+    Movement.Kind.OTHER_INCOME,
 )
 PROBLEMS = {
     "unknown_payment": _("Cap cobrament amb aquesta referència"),

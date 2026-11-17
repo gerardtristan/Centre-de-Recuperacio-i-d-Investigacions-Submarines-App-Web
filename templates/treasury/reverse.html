@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15 (tercer tall), C7: anul·lar un moviment amb motiu (P-M04-C; RN-T07, RN-T25; CA-T06.1 i CA-T06.2). Sense wireframe propi: segueix les pantalles de tresoreria. Seguretat: T5 amb edició al servidor, POST amb CSRF, motiu obligatori i dos passos. L'original no canvia: es crea el contramoviment amb data d'avui. Un ingrés de cobrament, un traspàs o un contramoviment no s'anul·len aquí (el servei també ho rebutja). #}
+{# T-M04-15 (tercer tall), C7: anul·lar un moviment amb motiu (P-M04-C; RN-T07, RN-T25; CA-T06.1 i CA-T06.2). Sense wireframe propi: segueix les pantalles de tresoreria. Seguretat: T5 amb edició al servidor, POST amb CSRF, motiu obligatori i dos passos. L'original no canvia: es crea el contramoviment amb data d'avui. Un ingrés de cobrament, un traspàs o un contramoviment no s'anul·len aquí (el servei també ho rebutja). Despeses i altres ingressos (T-M04-15d), sí; dins un període tancat, el servei respon `PeriodClosed` i l'error surt al formulari sense desar res (RN-T30). #}
 {% block title %}{% translate "Anul·lar un moviment" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>

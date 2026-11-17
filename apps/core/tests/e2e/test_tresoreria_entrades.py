@@ -1,13 +1,16 @@
 """Tresoreria que mou diners, tercer tall de la T-M04-15: el tresorer fa un arqueig amb ajust,
 registra un traspàs de la caixa al banc, anul·la l'ajust amb motiu i confirma una liquidació del
-proveïdor. Tot en dos passos. Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades
-inventades."""
+proveïdor. I anul·la una despesa, i dins un període tancat veu l'error (T-M04-15d). Tot en dos
+passos. Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades inventades."""
 
 import pytest
 from django.conf import settings
+from django.utils import timezone
 from playwright.sync_api import expect
 
-from apps.core.models import Person
+from apps.core.models import Department, Person
+from apps.treasury import services
+from apps.treasury.models import Movement, TreasuryAccount
 from apps.treasury.tests.test_record_income import new_transit
 from apps.treasury.tests.test_settlements import collected, record_it
 
@@ -65,3 +68,39 @@ def test_treasurer_counts_transfers_reverses_and_settles(
     page.get_by_role("link", name="Confirma…").click()
     page.get_by_role("button", name="Sí, confirma-la").click()
     expect(page.get_by_role("status")).to_contain_text("Liquidació confirmada")
+
+
+def test_treasurer_reverses_an_expense_and_meets_a_closed_period(
+    page, live_server, transactional_db, review, monkeypatch
+):
+    """T-M04-15d: una despesa (#153) es pot anul·lar des dels moviments; dins un període
+    tancat, l'error del servei surt al formulari i no es desa res (RN-T30)."""
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    bank = TreasuryAccount.objects.get(name="Banc principal")
+    general = Department.objects.get(name="General")
+    for concept in ("Factura de l'aire comprimit (prova)", "Factura de la llum (prova)"):
+        services.record_expense(bank, 4200, value_date=timezone.localdate(), department=general,
+                                concept=concept, by=treasurer)  # fmt: skip
+    login_admin(page, live_server.url, treasurer.login)
+    movements = f"{live_server.url}/{settings.ADMIN_URL_PATH}/tresoreria/moviments/"
+
+    page.goto(movements)
+    page.get_by_role("row", name="Factura de la llum (prova)").get_by_role(
+        "link", name="Anul·la…"
+    ).click()
+    page.get_by_label("Motiu").fill("Factura duplicada (prova)")
+    page.get_by_role("button", name="Revisa l'anul·lació").click()
+    page.get_by_role("button", name="Sí, anul·la el moviment").click()
+    expect(page.get_by_role("status")).to_contain_text("Moviment anul·lat")
+
+    monkeypatch.setattr(services, "_GUARDS", [])
+    services.register_movement_guard(timezone.localdate)  # període tancat fins avui
+    page.get_by_role("row", name="Factura de l'aire comprimit (prova)").get_by_role(
+        "link", name="Anul·la…"
+    ).click()
+    page.get_by_label("Motiu").fill("Prova en període tancat")
+    page.get_by_role("button", name="Revisa l'anul·lació").click()
+    page.get_by_role("button", name="Sí, anul·la el moviment").click()
+    expect(page.locator(".avis-error")).to_contain_text("període tancat")
+    review("tresoreria-anullacio-periode-tancat")
+    assert Movement.objects.filter(kind=Movement.Kind.REVERSAL).count() == 1
