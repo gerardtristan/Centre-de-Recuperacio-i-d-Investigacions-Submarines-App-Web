@@ -4,8 +4,9 @@ producció.
 Crea persones fictícies, textos legals de prova (inclosos els provisionals del butlletí i de les
 imatges, [A validar]), consentiments, un departament i càrrecs en diversos estats, i els socis de
 la revisió (T-M01-27, `apps/members/demo_data.py`): quotes, carnets, sol·licituds, llicències i
-un fitxer de Cluber inventat. Tot passa pels serveis, perquè el registre d'activitat quedi com
-quedaria de debò.
+un fitxer de Cluber inventat. També la tresoreria (T-M04-18, `apps/treasury/demo_data.py`):
+moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. Tot passa pels
+serveis, perquè el registre d'activitat quedi com quedaria de debò.
 
 Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisió, amb la
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
@@ -32,6 +33,7 @@ from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
 from apps.members import demo_data
 from apps.members.join import OPTIONAL_TEXT_CONTENT
+from apps.treasury import demo_data as treasury_demo
 
 ORIGIN = "seed_demo_data"
 ADMIN_LOGIN = "admin-demo"
@@ -125,6 +127,12 @@ class Command(BaseCommand):
         out(
             f"Llavor {seed}: {counts['people']} persones, {counts['charges']} càrrecs, "
             f"{counts['consents']} consentiments."
+        )
+        treasury = counts["treasury"]
+        out(
+            f"Tresoreria: {treasury['movements']} moviments, {treasury['settlements']} "
+            f"liquidacions, {treasury['statements']} extractes (CSV i Norma 43) i remeses "
+            f"«{treasury['remittances'][0]}» i «{treasury['remittances'][1]}»."
         )
         out("")
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
@@ -235,5 +243,13 @@ class Command(BaseCommand):
             password=PASSWORD,
             with_cluber_batch=with_cluber_batch,
         )
+        # Tresoreria (T-M04-18): moviments, liquidacions, extractes, conciliació i remeses.
+        treasury = treasury_demo.create(
+            treasurer=accounts[Role.Code.TREASURER],
+            secretary=accounts[Role.Code.SECRETARY],
+            admin=admin,
+            review=review,
+            password=PASSWORD,
+        )
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
-        return counts, review
+        return {**counts, "treasury": treasury}, review
