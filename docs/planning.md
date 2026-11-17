@@ -1885,7 +1885,7 @@ Llegenda com a [M01-4](#M01-4-rols). Totes les accions de gestió es fan amb el 
 | T1 | Veure comptes, saldos i moviments | — | — | — | — | — | — | — | Sí | — | — | [A validar] (P-04) | Sí | — |
 | T2 | Crear i desactivar comptes | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | T3 | Mantenir departaments i centres de cost | — | — | — | — | — | — | — | [A validar] | — | — | — | Sí | — |
-| T4 | Conciliar i desfer una conciliació | — | — | — | — | — | — | — | Sí | — | — | — | [A validar] | — |
+| T4 | Conciliar i desfer una conciliació | — | — | — | — | — | — | — | Sí | — | — | — | — ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-112) | — |
 | T5 | Anul·lar un moviment amb motiu | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | T6 | Registrar un traspàs | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | T7 | Registrar un arqueig | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
@@ -2432,7 +2432,7 @@ Llegenda com a [M01-4](#M01-4-rols). «Propi» es fa amb el compte personal; la 
 | A1 | Triar el mètode de pagament de la quota | — | — | Propi | Propi si és soci | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) |
 | A2 | Signar, canviar l'IBAN o revocar el seu mandat | — | — | Propi | Propi si és soci | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) |
 | A3 | Guardar o esborrar la seva targeta (condicional) | — | — | Propi | Propi si és soci | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) | (ídem) |
-| A4 | Veure mètodes i mandats de tots els socis (IBAN emmascarat) | — | — | — | — | Consulta (només «té mètode: sí/no») [A validar] | — | — | Sí | — | — | — | Sí | — |
+| A4 | Veure mètodes i mandats de tots els socis (IBAN emmascarat) | — | — | — | — | Consulta (només «té mètode: sí/no») ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-193) | — | — | Sí | — | — | — | Sí | — |
 | A5 | Enviar la campanya i els recordatoris | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | A6 | Revocar un mandat a petició escrita del soci, amb motiu | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | A7 | Configurar el proveïdor i les claus (per variables d'entorn) | — | — | — | — | — | — | — | — | — | — | — | Sí | — |
@@ -2453,7 +2453,7 @@ Llegenda com a [M01-4](#M01-4-rols). «Propi» es fa amb el compte personal; la 
 |---|---|---|---|
 | 1 | Soci | Obre «Com pago la quota» des de la franja de pagaments o des de l'avís de la campanya | `/socis/pagaments/metode` |
 | 2 | Sistema | Mostra les opcions disponibles: domiciliació (recomanada), targeta guardada (només si el proveïdor ho permet i està activat) i pagar cada vegada | — |
-| 3 | Soci | Tria. Domiciliació → P-M05a-B. Targeta → P-M05a-D. Pagar cada vegada → es desa la preferència i ja està | — |
+| 3 | Soci | Tria. Domiciliació → P-M05a-B. Targeta → P-M05a-D. Pagar cada vegada → es desa la preferència; si té un mandat actiu, se li pregunta si el vol revocar, i si no respon el mandat queda actiu però no entra a cap remesa ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-134) | — |
 | 4 | Sistema | Desa la preferència amb data i compte, i la registra | — |
 
 ### P-M05a-B Signar el mandat SEPA
@@ -2941,7 +2941,7 @@ Llegenda com a [M01-4](#M01-4-rols).
 | B4 | Registrar retornats i decidir el reintent | — | — | — | — | — | — | — | Sí | — | — | — | — | — |
 | B5 | Fer devolucions | — | — | — | — | — | — | — | Sí | — | — | — | [A validar] | — |
 | B6 | Veure tots els pagaments, en curs, fallits i «a revisar» | — | — | — | — | — | Consulta de les seves activitats (fase 2) [A validar] | — | Sí | — | — | — | Sí | — |
-| B7 | Reenviar l'alternativa de pagament o l'enllaç de convidat | — | — | — | — | Sí (quotes) [A validar] | Sí (inscripcions, fase 2) [A validar] | — | Sí | — | — | — | Sí | — |
+| B7 | Reenviar l'alternativa de pagament o l'enllaç de convidat | — | — | — | — | — ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-244: l'administrador l'hi pot donar sencer) | Sí (inscripcions, fase 2) [A validar] | — | Sí | — | — | — | Sí | — |
 | B8 | Passar al nivell 2 (configuració) | — | — | — | — | — | — | — | — | — | — | — | Sí, amb l'autorització escrita de la junta | — |
 
 **Per objecte.** Un soci o un convidat només pot pagar i veure els seus càrrecs; un enllaç de convidat només dona accés al càrrec o la inscripció que porta (V-02). **Un sol tresorer**: cap devolució ni remesa necessita una segona aprovació (P-48). El fitxer de la remesa (amb IBAN) només el pot descarregar el tresorer, i cada descàrrega queda al registre.
@@ -5038,6 +5038,7 @@ Categories de despesa i proveïdors (VC-33) ja són dades. **No s'aplica** VC-35
 | RN-M09-26 | **Tancar amb excepcions documentades** [A validar: tresorer, S-M09-15]. Si la llista de control no és buida, el tresorer pot tancar el període indicant, element per element, quins es porten al període següent, cadascun amb motiu obligatori. Les excepcions queden a `PeriodEvent.exceptions` i al registre d'activitat, i cada element portat surt a la llista de control del període següent fins que es resol: aquell període no es pot tancar sense resoldre'l o tornar-lo a portar amb un motiu nou. Un element sense excepció continua bloquejant el tancament | 27/10/2026 |
 | RN-M09-27 | **Registre i escriptura única de la marca d'il·legible** (addenda mínima, 28/10/2026). Marcar un document i substituir-lo creen cadascun una entrada al registre d'activitat **de la `DocumentIllegibleMark`** (mai de la fila d'`Expense`), amb qui, quan, quin document (`expense`, `document`) i el motiu o el document nou. `replaced_at` només passa de buit a una data una vegada i no es canvia ni s'esborra mai: ho fa complir un **activador de PostgreSQL** (com l'activador «només INSERT» dels moviments de la 04), que rebutja qualsevol altre UPDATE i qualsevol DELETE, i també el servei | CLAUDE.md; RN-M09-25 |
 | RN-M09-28 | **Canvi de la durada del període** ([055](decisions/055-ajustos-configurables-i-addendes.md), condició b). Un canvi de `margin.period_length` només s'aplica als períodes que es creen després: els que ja existeixen, oberts o tancats, no canvien. El període nou comença **l'endemà** del darrer període existent i dura un mes o tres a partir d'aquell dia, sense forats ni solapaments (restricció d'exclusió de `Period`) | 28/10/2026 |
+| RN-M09-33 | **Verifactu per un servei homologat** ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), definitiva). El club fa servir Verifactu: totes les factures queden controlades (emissió, registre, enviament a l'Agència Tributària i consulta de l'estat de cada factura) per un servei homologat, darrere d'un adaptador com el de pagaments ([043](decisions/043-proveidor-de-pagaments-dins-la-ue.md)). No es programa Verifactu a casa. El proveïdor compleix la [035](decisions/035-dades-nomes-dins-ue.md) (dades només a la UE), signa contracte d'encarregat del tractament, i les sèries, els textos d'exempció i els tipus d'IVA són ajustos. Quin servei: P-293 | 17/11/2026; P-02, P-47 |
 
 **Exemples numèrics** (dades inventades)
 - **Sortida d'un dia a les Medes, 10 participants a 60 € (F §7):** inscripcions 10 × 6000 = **60.000**; embarcació −25.000; aire 20 × 600 = −12.000; material llogat 3 × 2500 = −7500; material del club 7 × 350 = −2450; instructor voluntari 0. Marge = 60.000 − 25.000 − 12.000 − 7500 − 2450 = **13.050 cèntims (130,50 €)**. Percentatge 13.050 ÷ 60.000 = 21,75 % → **21,8 %**. Per participant 13.050 ÷ 10 = **1305 (13,05 €)**. Els ajuts no hi surten.
@@ -6766,7 +6767,7 @@ Font: taula «Què pot fer cada rol» del responsable del projecte (30/10/2026),
 | B4 | Registrar retornats i decidir el reintent | — | — | — | — | Sí | — | — | — | — | — |
 | B5 | Fer devolucions | — | — | — | — | Sí | — | — | — | — | Admin. [A validar] passa a — (D-10) |
 | B6 | Veure tots els pagaments, en curs, fallits i «a revisar» | — | — | — | — | Sí | — | Sí | — | — | RCS [A validar] passa a — |
-| B7 | Reenviar l'alternativa de pagament o l'enllaç de convidat | — | Sí (quotes) | — | — | Sí | — | Sí | — | — | S-M05b-13 |
+| B7 | Reenviar l'alternativa de pagament o l'enllaç de convidat | — | — | — | — | Sí | — | Sí | — | — | S-M05b-13; Secr. passa a — ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-244) |
 | B8 | Passar al nivell 2 | — | — | — | — | — | — | Sí, amb l'autorització escrita de la junta | — | — | **Protegit** (025) |
 
 ### 02 Activitats (cursos i sortides)
