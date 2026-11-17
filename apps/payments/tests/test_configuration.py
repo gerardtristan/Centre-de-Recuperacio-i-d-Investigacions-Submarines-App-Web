@@ -63,21 +63,17 @@ def test_live_charges_without_the_real_environment_is_an_error(settings):
     assert payment_errors() == {"payments.E004"}
 
 
-def test_safeguard_lets_charges_through_only_when_allowed(settings):
-    base.ensure_charges_allowed()  # entorn de proves: cap restricció
-    settings.PAYMENTS_ENVIRONMENT = "live"
-    with pytest.raises(base.LiveChargesNotAllowed):
-        base.ensure_charges_allowed()
-    settings.PAYMENTS_LIVE_CHARGES_ALLOWED = True
-    base.ensure_charges_allowed()
-
-
-@pytest.mark.parametrize("environment", ["LIVE", "produccio", "", None])
-def test_safeguard_treats_an_unknown_environment_as_the_real_one(settings, environment):
-    settings.PAYMENTS_ENVIRONMENT = environment
-    settings.PAYMENTS_LIVE_CHARGES_ALLOWED = True
-    with pytest.raises(base.LiveChargesNotAllowed):
-        base.ensure_charges_allowed()
+def test_production_with_the_provider_test_environment_is_an_error(settings, monkeypatch):
+    """T-M05a-06 (P-282): a producció, un pagament de proves donaria per pagat un càrrec real."""
+    monkeypatch.setitem(checks.REGISTRY, "real", "apps.payments.providers.fake.FakeProvider")
+    settings.FAKE_INTEGRATIONS_FORBIDDEN = True
+    settings.PAYMENTS_PROVIDER = "real"
+    assert payment_errors() == {"payments.E007"}
+    settings.PAYMENTS_ENVIRONMENT = "live"  # nivell 1: «live», sense autorització per cobrar
+    assert payment_errors() == set()
+    settings.PAYMENTS_PROVIDER = ""  # sense proveïdor no es pot cobrar res
+    settings.PAYMENTS_ENVIRONMENT = "sandbox"
+    assert payment_errors() == set()
 
 
 # --- Decisió 092: el proveïdor fictici no arrenca a producció ---------------------------------

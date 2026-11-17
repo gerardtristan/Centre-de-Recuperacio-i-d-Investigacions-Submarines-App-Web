@@ -33,6 +33,7 @@ from apps.treasury import services as treasury
 from apps.treasury.models import StatementLineState
 
 from . import attempts, receipts
+from .guards import requires_charges
 from .models import (
     DirectDebitItem,
     DirectDebitRemittance,
@@ -41,7 +42,6 @@ from .models import (
     PaymentAttempt,
     SepaMandate,
 )
-from .providers.base import ensure_charges_allowed
 
 PRENOTIFICATION_DAYS = "payments.prenotification_days"  # VC-16 (S-M05b-06)
 PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
@@ -124,12 +124,12 @@ def preview(collection_date: date) -> Preview:
     return result
 
 
+@requires_charges("build_remittance")  # CA-M05b-16: amb el nivell 1, cap remesa
 @transaction.atomic
 def build_remittance(period: str, collection_date: date, actor) -> DirectDebitRemittance:
     """P-M05b-E, passos 2 i 3: comprova el nivell 2 i el termini de l'avís previ i crea la
     remesa en esborrany, un rebut per quota i un intent «enviat al banc» per càrrec. Dos
     tresorers alhora: l'índex únic d'intents en curs (RN-M05b-04) fa fallar el segon."""
-    ensure_charges_allowed()  # CA-M05b-16: amb el nivell 1, cap remesa
     if collection_date < earliest_collection_date():
         raise PrenotificationTooLate
     selection = preview(collection_date)
@@ -258,6 +258,7 @@ def candidate_lines(remittance: DirectDebitRemittance, fees_cents: int = 0):
     )
 
 
+@requires_charges("settle_remittance")  # CA-M05b-17: amb el nivell 1, res no es liquida
 @transaction.atomic
 def settle_remittance(
     remittance: DirectDebitRemittance, line, *, fees_cents: int = 0, by
@@ -267,7 +268,6 @@ def settle_remittance(
     SEPA», el rebut i el correu al soci, l'avís al 01 si és una quota i l'últim cobrament del
     mandat. Després, la liquidació a la 04 amb una partida per rebut, confirmada amb la línia
     (comissions i traspàs al banc; T4, que comprova la 04)."""
-    ensure_charges_allowed()
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.SENT_TO_BANK:
         raise WrongStatus(remittance.status)

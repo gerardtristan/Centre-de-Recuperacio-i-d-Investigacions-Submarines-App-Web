@@ -65,7 +65,10 @@ class ProviderContract:
                     self.order(provider, method=method)
 
     def test_no_order_with_the_real_environment_unless_charges_are_allowed(
-        self, provider, settings
+        self,
+        provider,
+        settings,
+        db,  # la negativa queda al registre d'activitat (CA-M05a-09)
     ):
         settings.PAYMENTS_ENVIRONMENT = "live"
         settings.PAYMENTS_LIVE_CHARGES_ALLOWED = False

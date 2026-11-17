@@ -2,15 +2,14 @@
 
 La resta de l'aplicació només crida aquesta interfície. Cap mètode rep ni retorna dades de
 targeta ni cap IBAN: només imports en cèntims, identificadors del proveïdor i referències opaques.
-La salvaguarda del nivell 1 (RN-M05a-11) és aquí i no a cada implementació.
+La salvaguarda del nivell 1 (RN-M05a-11; `apps/payments/guards.py`) la criden aquests mètodes i no
+cada implementació.
 """
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from uuid import UUID
-
-from django.conf import settings
 
 SANDBOX = "sandbox"
 LIVE = "live"
@@ -127,14 +126,10 @@ class Capabilities:
     embedded_field: bool
 
 
-def ensure_charges_allowed() -> None:
-    """RN-M05a-11: amb l'entorn real, cap cobrament sense `PAYMENTS_LIVE_CHARGES_ALLOWED`.
-    Falla tancada: un entorn que no és «sandbox» es tracta com el real."""
-    if settings.PAYMENTS_ENVIRONMENT == SANDBOX:
-        return
-    if settings.PAYMENTS_ENVIRONMENT == LIVE and settings.PAYMENTS_LIVE_CHARGES_ALLOWED:
-        return
-    raise LiveChargesNotAllowed
+def _guard(operation: str) -> None:
+    from ..guards import ensure_charges_allowed  # guards importa aquest mòdul
+
+    ensure_charges_allowed(operation)
 
 
 class PaymentProvider(ABC):
@@ -154,7 +149,7 @@ class PaymentProvider(ABC):
     ) -> ProviderOrder:
         """Obre una ordre de cobrament per a un càrrec. Amb la mateixa clau d'idempotència,
         torna la mateixa ordre."""
-        ensure_charges_allowed()
+        _guard("create_order")
         if method not in ORDER_METHODS or not getattr(self.capabilities(), method):
             raise NotSupported(method)
         return self._create_order(charge, method, urls, idempotency_key)
@@ -189,7 +184,7 @@ class PaymentProvider(ABC):
     def charge_saved_card(self, charge, saved_card, idempotency_key: UUID) -> ProviderOrder:
         """Condicional: cobra amb una targeta guardada. És un cobrament: passa per la
         salvaguarda."""
-        ensure_charges_allowed()
+        _guard("charge_saved_card")
         if not self.capabilities().tokenization:
             raise NotSupported("tokenization")
         return self._charge_saved_card(charge, saved_card, idempotency_key)

@@ -25,9 +25,9 @@ from apps.core import audit
 
 from . import crypto
 from .checkout import transfer_iban
+from .guards import requires_charges
 from .mandates import validate_iban
 from .models import DirectDebitItem, DirectDebitRemittance, SepaMandate
-from .providers.base import ensure_charges_allowed
 
 FILE_FORMAT = "pain.008.001.02"
 NAMESPACE = f"urn:iso:std:iso:20022:tech:xsd:{FILE_FORMAT}"
@@ -171,12 +171,12 @@ def check(content: bytes) -> None:
                 raise InvalidFile(f"El camp {name} és buit, massa llarg o té caràcters no SEPA.")
 
 
+@requires_charges("remittance_file")
 @transaction.atomic
 def remittance_file(remittance: DirectDebitRemittance, actor) -> bytes:
     """`payments.remittance_file` (M05b-8): el fitxer de la remesa, en memòria. En desa
     l'empremta i ho registra; no desa el fitxer. El permís B3 el comprova la pantalla, que arriba
     amb el catàleg del nucli."""
-    ensure_charges_allowed()
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.NOTIFIED:
         raise RemittanceNotReady(remittance.status)
