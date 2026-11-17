@@ -10,7 +10,14 @@ from django.http import Http404
 from django.test.utils import CaptureQueriesContext
 
 from apps.core import audit, charges
-from apps.core.models import AuditEntry, Charge, Payment, PaymentCancellation, Role
+from apps.core.models import (
+    AuditEntry,
+    Charge,
+    Payment,
+    PaymentCancellation,
+    Role,
+    RolePermission,
+)
 
 pytestmark = pytest.mark.django_db
 R = Role.Code
@@ -102,6 +109,15 @@ class TestMarkReturned:
                 charges.mark_returned(charge, AM04, by=who)
         charge.refresh_from_db()
         assert charge.status == S.PAID and not PaymentCancellation.objects.exists()
+
+    def test_it_is_b4_not_t4(self, admin, treasurer, person):
+        # B4 (M05b-4) al catàleg: sense la cel·la, ni el tresorer, encara que tingui T4.
+        charge, _payment = paid_fee(person, admin)
+        RolePermission.objects.filter(permission_code=charges.RETURNS).delete()
+        with pytest.raises(Http404):
+            charges.mark_returned(charge, AM04, by=treasurer)
+        with pytest.raises(Http404):
+            charges.reopen_returned(charge, "Prova", by=treasurer)
 
     def test_all_or_nothing(self, admin, treasurer, person):
         charge, _payment = paid_fee(person, admin)

@@ -8,6 +8,7 @@ from . import views
 urlpatterns = [
     path("tresoreria/", views.accounts_view, name="treasury_accounts"),
     path("tresoreria/moviments/", views.movements_view, name="treasury_movements"),
+    path("tresoreria/moviments/exporta/", views.export_view, name="treasury_export"),
     path("tresoreria/conciliacio/", views.reconciliation_view, name="treasury_reconciliation"),
     path(
         "tresoreria/conciliacio/<int:line_id>/confirma/",

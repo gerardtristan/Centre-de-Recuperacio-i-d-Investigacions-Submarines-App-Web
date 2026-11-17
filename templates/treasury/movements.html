@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15 (primer tall), C8 sense l'exportació: moviments amb filtres per compte, departament i dates. Només lectura (RN-T07): l'únic formulari és el de filtres, amb GET. Permís T1 al servidor. Un moviment anul·lat no desapareix: surt marcat (CA-T06.1, RN-T25). Imports amb signe, color i xifres tabulars, a la dreta (B8). El concepte no porta noms (RNF-T4). #}
+{# T-M04-15 (primer tall) i T-M04-16, C8: moviments amb filtres per compte, departament, centre de cost i dates, i l'exportació CSV amb els mateixos filtres (POST, T9 al servidor; el botó només surt amb T9, però amagar-lo no és el control). Només lectura (RN-T07): els filtres van per GET i l'exportació no escriu cap moviment. Permís T1 al servidor. Un moviment anul·lat no desapareix: surt marcat (CA-T06.1, RN-T25). Imports amb signe, color i xifres tabulars, a la dreta (B8). El concepte no porta noms (RNF-T4). #}
 {% block title %}{% translate "Moviments de tresoreria" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -16,6 +16,13 @@
       <a class="boto boto-text" href="{% url 'administration:treasury_movements' %}">{% translate "Treu els filtres" %}</a>
     </div>
   </form>
+  {% if can_export %}
+    <form class="accions" method="post" action="{% url 'administration:treasury_export' %}">
+      {% csrf_token %}
+      {% for field in form %}{% if field.value %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value }}">{% endif %}{% endfor %}
+      <button class="boto" type="submit">{% translate "Descarrega el CSV per a la gestoria" %}</button>
+    </form>
+  {% endif %}
 
   <table class="taula">
     <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} moviment, del més recent al més antic per data de valor{% plural %}{{ total }} moviments, del més recent al més antic per data de valor{% endblocktranslate %}</caption>
