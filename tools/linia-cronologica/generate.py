@@ -88,6 +88,28 @@ STATUS_FILE_STATES = {
     "per fer": "pendent",
     "bloquejada": "pendent",
 }
+
+
+def status_file_state(state: str) -> str | None:
+    """Estat de la pàgina per a l'estat d'una fila de docs/estat/; None si no s'entén.
+
+    A més dels quatre estats del README, les sessions hi escriuen variants («implementada,
+    pendent de validació», «feta, pendent de revisió», «feta en part»...): la pàgina ja té
+    estats per a aquestes, i ignorar-les feia tornar la tasca a l'estat del pla («per fer»).
+    """
+    if state in STATUS_FILE_STATES:
+        return STATUS_FILE_STATES[state]
+    if state.startswith("feta en part"):
+        return "feta_part"
+    if state.startswith(("implementada", "feta,")):
+        return "validacio"
+    if state.startswith(("en curs", "esborrany")):
+        return "curs"
+    if state == "no cal":
+        return "retirada"
+    return None
+
+
 BLOCKED_RE = re.compile(
     r"(bloquejad\w* per (?:la|el|les|els) "
     r"(?:P-|Q-|S-|junta|tresorer|banc|gestoria|secretaria|FECDAS|PaynoPain)(?:[^;.)]|\.(?=\d)){0,80}"
@@ -495,7 +517,7 @@ def parse_status_files(repo: Repo, report: dict) -> dict:
                 continue
             row = cells(line)
             state = row[1].strip("* ").lower() if len(row) > 1 else ""
-            if len(row) < 4 or state not in STATUS_FILE_STATES:
+            if len(row) < 4 or status_file_state(state) is None:
                 report["files_missing"].append(
                     f"{path}:{number}: fila no vàlida (calen tasca, estat, data, PR i nota; "
                     "estats: per fer, en curs, feta, bloquejada)."
@@ -640,7 +662,7 @@ def enrich_task(
     if filed:
         task.update(
             planStatus=status,
-            status=STATUS_FILE_STATES[filed["state"]],
+            status=status_file_state(filed["state"]),
             statusQuote=f"«{filed['state']}» a {filed['src']}",
             statusFile=filed,
         )
@@ -725,7 +747,7 @@ def enrich_task(
     conflicts = []
     if rows:
         other = diary_status(rows[-1]["title"])
-        if filed:  # a docs/estat/ no hi ha «feta en part»: és «en curs»
+        if filed and task["status"] == "curs":  # el traspàs del 13/11 hi va posar «en curs»
             other = {"feta_part": "curs", "validacio": "curs"}.get(other, other)
         if other and other != task["status"]:
             conflicts.append(
