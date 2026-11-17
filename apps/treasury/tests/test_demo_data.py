@@ -39,7 +39,7 @@ def test_t_m04_18_the_command_loads_the_treasury(seeded):
     assert CashCount.objects.count() == 2
 
     batches = ImportBatch.objects.filter(kind=ImportBatch.Kind.BANK_STATEMENT)
-    assert batches.count() == 2
+    assert batches.count() == 3  # el tercer, l'abonament de la remesa dels pagaments (T-M05b-17)
     states = set(
         StatementLineState.objects.filter(statement_line__in=statement_lines()).values_list(
             "status", flat=True
@@ -52,12 +52,15 @@ def test_t_m04_18_the_command_loads_the_treasury(seeded):
         "received",
         "to_review",
     }
+    # La remesa avisada la liquiden les dades dels pagaments (T-M05b-17), que també bloquegen un
+    # dels tres mandats amb un retorn «MD01».
     assert set(DirectDebitRemittance.objects.values_list("status", flat=True)) == {
-        "notified",
+        "settled",
         "draft",
     }
-    assert SepaMandate.objects.filter(status=SepaMandate.Status.ACTIVE).count() == 3
-    # Els saldos surten dels moviments i quadren: el trànsit liquidat no és negatiu.
+    assert SepaMandate.objects.filter(status=SepaMandate.Status.ACTIVE).count() == 2
+    # Els saldos surten dels moviments i quadren: el trànsit liquidat no és negatiu, tampoc
+    # «Remeses SEPA» amb els dos retorns de la remesa liquidada (P-286, opció C).
     last = movements.latest("value_date").value_date
     assert {a.name: a.balance_cents for a in balances(last) if a.balance_cents < 0} == {}
 
