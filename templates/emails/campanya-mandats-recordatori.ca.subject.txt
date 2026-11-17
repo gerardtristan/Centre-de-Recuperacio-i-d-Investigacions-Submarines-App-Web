@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-13 (RN-M05a-14): TEXT PROVISIONAL [A validar: junta]. #}{% translate "Recordatori: tria com vols pagar la quota" %}

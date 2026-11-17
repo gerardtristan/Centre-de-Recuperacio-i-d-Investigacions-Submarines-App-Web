@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from apps.core import audit
 
+from . import campaigns
 from .models import FeeMethod, FeePaymentPreference, SavedCard, SepaMandate
 from .providers import get_provider
 from .providers.base import ProviderError
@@ -84,6 +85,7 @@ def set_preference(member, method: str, *, by) -> FeePaymentPreference:
     preference.method, preference.mandate, preference.saved_card = method, mandate, card
     preference.since, preference.set_by = timezone.now(), by
     preference.save()
+    campaigns.record_answer(member, method)
     audit.record(
         "payments.fee_preference.set",
         actor=by,

@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-13 (P-M05a-E, pas 3): TEXT PROVISIONAL [A validar: junta] (T-M05a-01). #}{% translate "Com vols pagar la quota del C.R.I.S.?" %}

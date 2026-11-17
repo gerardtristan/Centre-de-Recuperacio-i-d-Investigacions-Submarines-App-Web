@@ -610,4 +610,45 @@ opcions:
       es respongui, la A no desa cap preferència sense mandat ni canvia res que el soci no hagi triat.
     data: 2026-11-16
 
+  P-198:
+    opcions:
+      A: El mateix enllaç per a tothom; sense compte, porta a l'entrada i cal activar-lo per una altra via (com s'ha fet).
+      B: Als socis sense compte, la invitació porta l'enllaç d'activació del compte (cal un servei d'accounts).
+      C: Als socis sense compte, només l'avís en persona de la secretaria.
+    recomanada: B
+    perque: >-
+      Amb la B el soci fa un sol clic. Cal un servei nou a `apps/accounts` que generi l'enllaç; mentre no hi
+      és, la A funciona sense tocar el nucli.
+    data: 2026-11-17
+
+  P-199:
+    opcions:
+      A: No es convida; surt a «sense resposta» i l'atén la secretaria (com s'ha fet).
+      B: Es registra com a convidat «sense correu» perquè surti apart al recompte (cal un camp o una migració).
+      C: Es convida el representant o el contacte d'emergència.
+    recomanada: A
+    perque: >-
+      No inventa cap adreça ni cap camp, i la pantalla de la campanya pot comptar els sense correu sense desar
+      res més.
+    data: 2026-11-17
+
+  P-210:
+    opcions:
+      A: Un sol recordatori; els que tocaven es donen per enviats (com s'ha fet).
+      B: Un recordatori per dia fins a posar-se al dia.
+      C: Tots els que tocaven, el mateix dia.
+    recomanada: A
+    perque: >-
+      Ningú no rep dos correus seguits pel mateix motiu, i l'últim recordatori arriba igualment.
+    data: 2026-11-17
+
+  P-211:
+    opcions:
+      A: Una sola campanya oberta; per obrir-ne una altra, es tanca l'anterior (com s'ha fet).
+      B: Diverses obertes alhora, i cada soci rep les invitacions de cadascuna.
+    recomanada: A
+    perque: >-
+      Evita que un soci rebi invitacions duplicades; tornar a enviar ja convida els socis nous.
+    data: 2026-11-17
+
 noves:
