@@ -31,6 +31,7 @@
         <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="open">
+          {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
           {% include "accounts/_camp.html" with field=form.name %}
           <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Obre la campanya" %}</button></div>
         </form>

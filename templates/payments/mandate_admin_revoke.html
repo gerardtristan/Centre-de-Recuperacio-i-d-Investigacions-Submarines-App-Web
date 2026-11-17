@@ -18,6 +18,7 @@
   {% else %}
     <form class="targeta formulari" method="post" action="{% url 'administration:payments_mandate_revoke' mandate.pk %}" novalidate>
       {% csrf_token %}
+      {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
       <p>{% translate "No es cobrarà cap quota més amb aquest mandat. El soci pagarà cada quota amb targeta, Bizum o transferència, i rebrà un correu." %}</p>
       {% include "accounts/_camp.html" with field=form.reason %}
       <div class="accions">
