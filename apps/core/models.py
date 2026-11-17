@@ -811,6 +811,45 @@ class PaymentCancellation(AppendOnlyModel):
         return f"{self._meta.verbose_name} {self.payment_id}"
 
 
+class Event(AppendOnlyModel):
+    """Esdeveniment pendent de lliurar (decisió 049; T-M05b-21): s'escriu a la mateixa transacció
+    que el canvi que l'origina, amb la feina de la cua que el lliura. Només INSERT. La càrrega no
+    porta dades personals: identificadors, tipus i imports. El crea `events.emit`."""
+
+    name = models.CharField(_("esdeveniment"), max_length=60)
+    payload = models.JSONField(_("dades"), encoder=DjangoJSONEncoder)
+    created_at = models.DateTimeField(_("data"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("esdeveniment")
+        verbose_name_plural = _("esdeveniments")
+
+    def __str__(self):
+        return f"{self.name} {self.pk}"
+
+
+class EventDelivery(AppendOnlyModel):
+    """Lliurament fet d'un esdeveniment a un subscriptor (049): un per parella, garantit per la
+    base de dades, i escrit a la mateixa transacció que la feina del subscriptor. Si l'esdeveniment
+    torna a arribar, ja hi és i el subscriptor no es torna a executar."""
+
+    event = models.ForeignKey(
+        Event, on_delete=models.PROTECT, related_name="deliveries", verbose_name=_("esdeveniment")
+    )
+    subscriber = models.CharField(_("subscriptor"), max_length=200)
+    delivered_at = models.DateTimeField(_("data del lliurament"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("lliurament d'esdeveniment")
+        verbose_name_plural = _("lliuraments d'esdeveniments")
+        constraints = [
+            models.UniqueConstraint(fields=["event", "subscriber"], name="event_delivery_once"),
+        ]
+
+    def __str__(self):
+        return f"{self.event} → {self.subscriber}"
+
+
 class GuestLink(models.Model):
     """Enllaç de convidat (spec 00, HU-02, RN-30 a RN-33, V-02; decisió 021). Només se'n desa
     l'empremta SHA-256 del testimoni: el testimoni en clar només existeix dins del correu

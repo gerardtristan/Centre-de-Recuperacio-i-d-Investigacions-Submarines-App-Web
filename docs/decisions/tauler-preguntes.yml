@@ -886,4 +886,26 @@ opcions:
       No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer pot avisar per telèfon o en persona.
     data: 2026-11-17
 
+  P-245:
+    opcions:
+      A: 8 intents en unes hores, i després la feina queda fallida i al registre (com s'ha fet).
+      B: Els mateixos intents i, en acabar, un avís per correu a l'administrador.
+      C: Els mateixos intents i una pantalla per tornar a enviar els esdeveniments fallits.
+      D: Un ajust a «Ajustos» per triar el nombre d'intents.
+    recomanada: B
+    perque: >-
+      Un subscriptor que falla sempre vol dir un error de programa; el registre ho guarda, però ningú no el mira
+      sol. L'avís és poca feina quan hi hagi el primer subscriptor (el 02).
+    data: 2026-11-17
+
+  P-246:
+    opcions:
+      A: El rebut continua amb el senyal, a la mateixa transacció que el pagament (com s'ha fet).
+      B: El rebut passa a ser un subscriptor de charge.paid i surt per la cua, uns segons més tard.
+    recomanada: A
+    perque: >-
+      Un pagament sense el seu rebut, encara que sigui uns segons, és el que el tresorer veuria estrany; amb la A
+      la conciliació i el rebut van junts. La B només val la pena quan el rebut sigui lent o depengui de fora.
+    data: 2026-11-17
+
 noves:

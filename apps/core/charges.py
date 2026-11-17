@@ -20,7 +20,7 @@ from django.utils import timezone
 from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 
-from . import audit
+from . import audit, events
 from .models import (
     AuditEntry,
     Charge,
@@ -185,7 +185,19 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
         )
     if payment.charge_id != charge.pk:
         raise ValidationError(_("El pagament no és d'aquest càrrec."))
-    return _transition(charge, S.PAID, by=by, details={"origin": origin, "payment": payment.pk})
+    _transition(charge, S.PAID, by=by, details={"origin": origin, "payment": payment.pk})
+    # 049: a la mateixa transacció, per qualsevol camí (proveïdor, transferència o remesa). El 02
+    # hi afegirà l'activitat quan el càrrec en tingui.
+    events.emit(
+        events.CHARGE_PAID,
+        {
+            "charge": charge.pk,
+            "kind": charge.kind,
+            "origin": charge.origin,
+            "amount_cents": charge.amount_cents,
+        },
+    )
+    return charge
 
 
 @transaction.atomic
