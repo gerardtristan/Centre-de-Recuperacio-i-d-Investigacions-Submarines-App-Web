@@ -131,7 +131,8 @@ class TestSigning:
         assert mandate.bank_account.iban_last4 == "0001"
         page = browser.get(URL).content.decode()
         assert "ES … 0001" in page and IBAN[4:] not in page
-        assert "CRIS001287M02" in page  # la referència del mandat següent, si canvia l'IBAN
+        # La referència del mandat següent, al formulari per canviar l'IBAN.
+        assert "CRIS001287M02" in browser.get(URL + "?canvia=1").content.decode()
 
     def test_another_holder_is_declared(self, browser, text):
         sign(browser, holder_name="Pere Prova", other_holder="on")

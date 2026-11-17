@@ -18,11 +18,12 @@ from apps.core import audit, mail
 from apps.members import recipients
 from apps.members.models import Member
 
-from . import crypto
-from .models import MandateBankAccount, SepaMandate
+from . import crypto, preferences
+from .models import FeeMethod, MandateBankAccount, SepaMandate
 
 SIGNED_TEMPLATE = "mandat-signat"  # G3
 EXPIRED_TEMPLATE = "mandat-caducat"
+MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 
 
@@ -42,6 +43,41 @@ def next_reference(member: Member) -> str:
     cap, perquè els mandats no s'esborren."""
     ordinal = SepaMandate.objects.filter(member=member).count() + 1
     return f"CRIS{member.member_number:06d}M{ordinal:02d}"
+
+
+def _revoke(mandate: SepaMandate, reason: str, by, now, **details) -> None:
+    mandate.status = SepaMandate.Status.REVOKED
+    mandate.revoked_at, mandate.revoked_reason, mandate.revoked_by = now, reason, by
+    mandate.save(update_fields=["status", "revoked_at", "revoked_reason", "revoked_by"])
+    audit.record(
+        "payments.mandate.revoked",
+        actor=by,
+        target=mandate,
+        reason=reason,
+        details={"reference": mandate.reference, **details},
+    )
+
+
+@transaction.atomic
+def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
+    """El soci revoca el seu mandat actiu (P-M05a-C): passa a «revocat» amb la data i el motiu, i
+    la preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». Torna
+    el mandat, o None si no n'hi havia cap d'actiu. Funciona encara que la signatura estigui
+    apagada (P-127): un soci sempre ha de poder revocar."""
+    mandate = (
+        SepaMandate.objects.select_for_update()
+        .filter(member=member, status=SepaMandate.Status.ACTIVE)
+        .first()
+    )
+    if mandate is None:
+        return None
+    _revoke(mandate, MEMBER_REQUEST, by, timezone.now())
+    preference = preferences.current(member)
+    if preference is None or preference.method == FeeMethod.DIRECT_DEBIT:
+        preferences.set_preference(member, FeeMethod.PAY_EACH_TIME, by=by)
+    # shortcut: encara no hi ha remeses (05b), de manera que no hi ha cap remesa enviada per
+    # avisar el tresorer (RN-M05a-09); l'avís s'hi afegeix amb les remeses.
+    return mandate
 
 
 @transaction.atomic
@@ -66,20 +102,7 @@ def create_mandate(
     reference = next_reference(member)
     now = timezone.now()
     for previous in SepaMandate.objects.filter(member=member, status=SepaMandate.Status.ACTIVE):
-        previous.status = SepaMandate.Status.REVOKED
-        previous.revoked_at, previous.revoked_reason, previous.revoked_by = (
-            now,
-            SepaMandate.REPLACED,
-            account,
-        )
-        previous.save(update_fields=["status", "revoked_at", "revoked_reason", "revoked_by"])
-        audit.record(
-            "payments.mandate.revoked",
-            actor=account,
-            target=previous,
-            reason=SepaMandate.REPLACED,
-            details={"reference": previous.reference, "replaced_by": reference},
-        )
+        _revoke(previous, SepaMandate.REPLACED, account, now, replaced_by=reference)
     mandate = SepaMandate.objects.create(
         member=member,
         reference=reference,

@@ -13,6 +13,7 @@ urlpatterns = [
     ),
     # Compte personal (M05b-8, «Rutes»). Sessió obligatòria per defecte (RN-40).
     path("socis/pagaments/mandat/", mandate_views.mandate_view, name="mandate"),
+    path("socis/pagaments/mandat/revoca/", mandate_views.revoke_view, name="mandate_revoke"),
     path("socis/pagaments/<int:charge_id>/", views.charge_view, name="charge"),
     path(
         "socis/pagaments/<int:charge_id>/targeta/",
