@@ -9,7 +9,6 @@ import pytest
 from django.core.management import call_command
 from django.test import override_settings
 
-from apps.core.models import Charge
 from apps.payments.models import (
     DirectDebitItem,
     DirectDebitRemittance,
@@ -49,8 +48,13 @@ def test_t_m05b_17_the_command_loads_the_payments(seeded):
     remittance = DirectDebitRemittance.objects.get(status="settled")
     assert set(remittance.items.values_list("status", flat=True)) == {"returned"}
     assert set(remittance.items.values_list("return_reason_code", flat=True)) == {"AM04", "MD01"}
-    returned = Charge.objects.filter(attempts__direct_debit_item__remittance=remittance)
-    assert set(returned.values_list("status", flat=True)) == {"returned"}  # proposta pendent
+    # AM04: el reintent espera la decisió del tresorer (càrrec «retornat»). MD01 bloqueja el
+    # mandat, no hi ha reintent possible i l'alternativa surt sola (T-M05b-27): torna a pendent.
+    by_code = {
+        item.return_reason_code: item.attempt.charge.status
+        for item in remittance.items.select_related("attempt__charge")
+    }
+    assert by_code == {"AM04": "returned", "MD01": "pending"}
     assert DirectDebitItem.objects.filter(status="included").exists()  # la remesa en esborrany
 
     refund = RefundRequest.objects.get()
