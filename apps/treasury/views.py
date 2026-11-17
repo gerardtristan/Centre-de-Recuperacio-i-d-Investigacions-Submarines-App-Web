@@ -36,7 +36,7 @@ from apps.core.imports import statement_lines
 from apps.core.models import Department
 from apps.core.permissions import has_perm, permission_required
 
-from . import exports, reconciliation
+from . import entry_views, exports, reconciliation, services
 from .balances import balances
 from .models import CostCentre, Movement, Reconciliation, StatementLineState, TreasuryAccount
 
@@ -99,7 +99,14 @@ def accounts_view(request):
     on = (form.is_valid() and form.cleaned_data["on"]) or timezone.localdate()
     rows = [{"account": a, "balance": euros(a.balance_cents)} for a in balances(on)]
     has_movements = Movement.objects.exists()
-    context = {"form": form, "on": on, "rows": rows, "has_movements": has_movements}
+    context = {
+        "form": form,
+        "on": on,
+        "rows": rows,
+        "has_movements": has_movements,
+        "can_transfer": has_perm(request.user, services.TRANSFER, write=True),
+        "can_count": has_perm(request.user, services.CASH_COUNT, write=True),
+    }
     return render(request, "treasury/accounts.html", context)
 
 
@@ -130,7 +137,15 @@ def movements_view(request):
     page = Paginator(movements.order_by("-value_date", "-recorded_at", "-id"), PER_PAGE).get_page(
         request.GET.get("pagina")
     )
-    rows = [{"movement": m, "amount": _signed(m)} for m in page]
+    can_reverse = has_perm(request.user, services.REVERSE, write=True)
+    rows = [
+        {
+            "movement": m,
+            "amount": _signed(m),
+            "reversible": can_reverse and m.kind in entry_views.REVERSIBLE,
+        }
+        for m in page
+    ]
     can_export = has_perm(request.user, EXPORT)
     context = {"form": form, "page": page, "rows": rows, "can_export": can_export}
     return render(request, "treasury/movements.html", context)

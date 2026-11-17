@@ -3,7 +3,7 @@ dins de l'espai de noms `administration` (sessió d'administració i TOTP). Cap 
 
 from django.urls import path
 
-from . import views
+from . import entry_views, views
 
 urlpatterns = [
     path("tresoreria/", views.accounts_view, name="treasury_accounts"),
@@ -25,5 +25,19 @@ urlpatterns = [
         "tresoreria/revisar/<int:line_id>/excloure/",
         views.exclude_view,
         name="treasury_exclude_line",
+    ),
+    # Tercer tall de la T-M04-15: traspàs, arqueig, anul·lar i liquidacions.
+    path("tresoreria/traspas/", entry_views.transfer_view, name="treasury_transfer"),
+    path("tresoreria/arqueig/", entry_views.cash_count_view, name="treasury_cash_count"),
+    path(
+        "tresoreria/moviments/<int:movement_id>/anulla/",
+        entry_views.reverse_view,
+        name="treasury_reverse",
+    ),
+    path("tresoreria/liquidacions/", entry_views.settlements_view, name="treasury_settlements"),
+    path(
+        "tresoreria/liquidacions/<int:settlement_id>/confirma/",
+        entry_views.settlement_confirm_view,
+        name="treasury_settlement_confirm",
     ),
 ]

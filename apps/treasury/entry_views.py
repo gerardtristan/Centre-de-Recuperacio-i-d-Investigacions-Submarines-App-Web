@@ -1,0 +1,247 @@
+"""Pantalles de tresoreria que mouen diners (T-M04-15, tercer tall; C3, C4 i C7 de M04-3; P-M04-C,
+P-M04-D i P-M04-F). Sense wireframe propi (`admin.html` només té l'extracte): segueixen les
+pantalles de tresoreria que ja hi ha.
+
+- Traspàs (T6, `services.record_transfer`), arqueig (T7, `services.record_cash_count`) i anul·lar
+  un moviment amb motiu (T5, `services.reverse`): permís amb edició al servidor (també el
+  torna a comprovar el servei); sense, «no trobat».
+- Tot el que mou diners es fa en dos passos: el primer POST mostra què passarà (els comptes,
+  l'import, el saldo calculat i la diferència) i el segon ho fa. Un error del servei no desa res
+  i surt al formulari.
+- Liquidacions del proveïdor (T1 per veure-les; T4 per confirmar una de «rebuda»,
+  `settlements.confirm`, també en dos passos). Els motius de les «a revisar», amb el codi del
+  problema i la referència del cobrament, sense cap nom.
+- Imports en euros amb coma («12,50»), convertits a cèntims abans de cridar el servei.
+"""
+
+from decimal import Decimal
+
+from django import forms
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_http_methods
+
+from apps.core.charges import euros
+from apps.core.permissions import has_perm, permission_required
+
+from . import services, settlements
+from .balances import balance
+from .models import Movement, ProviderSettlement, TreasuryAccount
+
+VIEW = "treasury.view"  # T1
+OWN = (TreasuryAccount.Kind.BANK, TreasuryAccount.Kind.CASH)
+# Els que una persona pot anul·lar (P-114, P-115, CA-T06.2); la resta es corregeix d'altra manera.
+REVERSIBLE = (
+    Movement.Kind.FEE,
+    Movement.Kind.REFUND,
+    Movement.Kind.RETURN,
+    Movement.Kind.CASH_ADJUSTMENT,
+)
+PROBLEMS = {
+    "unknown_payment": _("Cap cobrament amb aquesta referència"),
+    "repeated_line": _("Línia repetida a la liquidació"),
+    "no_income": _("El cobrament no té l'ingrés al trànsit del proveïdor"),
+    "amount_mismatch": _("L'import no és el del cobrament"),
+    "refunded": _("El cobrament té devolucions o un retorn"),
+    "already_settled": _("El cobrament ja és en una altra liquidació"),
+}
+
+
+def _euros(label, minimum):
+    return forms.DecimalField(
+        label=label, min_value=Decimal(minimum), max_digits=11, decimal_places=2, localize=True
+    )
+
+
+def _cents(value: Decimal) -> int:
+    return int(value * 100)
+
+
+def _date(label):
+    return forms.DateField(
+        label=label, widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
+
+
+class TransferForm(forms.Form):
+    source = forms.ModelChoiceField(
+        TreasuryAccount.objects.filter(active=True, kind__in=OWN).order_by("name"),
+        label=_("Des del compte"),
+    )
+    destination = forms.ModelChoiceField(
+        TreasuryAccount.objects.filter(active=True, kind__in=OWN).order_by("name"),
+        label=_("Cap al compte"),
+    )
+    amount = _euros(_("Import (€)"), "0.01")
+    value_date = _date(_("Data de valor"))
+    concept = forms.CharField(label=_("Concepte"), max_length=140)
+
+
+class CashCountForm(forms.Form):
+    account = forms.ModelChoiceField(
+        TreasuryAccount.objects.filter(active=True, kind=TreasuryAccount.Kind.CASH).order_by(
+            "name"
+        ),
+        label=_("Caixa"),
+    )
+    counted = _euros(_("Import comptat (€)"), "0")
+    counted_on = _date(_("Data de l'arqueig"))
+    adjustment_reason = forms.CharField(
+        label=_("Motiu de l'ajust"),
+        required=False,
+        max_length=500,
+        help_text=_(
+            "Només si cal ajustar la diferència; sense motiu, l'arqueig no crea cap moviment."
+        ),
+    )
+
+
+class ReasonForm(forms.Form):
+    reason = forms.CharField(
+        label=_("Motiu"), max_length=500, widget=forms.Textarea(attrs={"rows": 3})
+    )
+
+
+def _two_steps(request, form, template, extra, act, done):
+    """El primer POST valida i mostra la confirmació; el segon (`confirm=1`) crida `act`. Un
+    `ValidationError` del servei surt al formulari i no desa res."""
+    confirm = False
+    if request.method == "POST" and form.is_valid():
+        if request.POST.get("confirm") == "1":
+            try:
+                act(form.cleaned_data)
+            except ValidationError as error:
+                form.add_error(None, error)
+            else:
+                messages.success(request, done)
+                return redirect("administration:treasury_movements")
+        else:
+            confirm = True
+    return render(request, template, {"form": form, "confirm": confirm, **extra(form)})
+
+
+@never_cache
+@permission_required(services.TRANSFER, write=True)
+@require_http_methods(["GET", "POST"])
+def transfer_view(request):
+    form = TransferForm(request.POST or None, initial={"value_date": timezone.localdate()})
+
+    def act(data):
+        services.record_transfer(
+            data["source"],
+            data["destination"],
+            _cents(data["amount"]),
+            value_date=data["value_date"],
+            concept=data["concept"],
+            by=request.user,
+        )
+
+    def extra(form):
+        amount = form.cleaned_data.get("amount") if form.is_valid() else None
+        return {"amount": euros(_cents(amount)) if amount else None}
+
+    return _two_steps(request, form, "treasury/transfer.html", extra, act, _("Traspàs registrat."))
+
+
+@never_cache
+@permission_required(services.CASH_COUNT, write=True)
+@require_http_methods(["GET", "POST"])
+def cash_count_view(request):
+    form = CashCountForm(request.POST or None, initial={"counted_on": timezone.localdate()})
+
+    def act(data):
+        services.record_cash_count(
+            data["account"],
+            _cents(data["counted"]),
+            counted_on=data["counted_on"],
+            by=request.user,
+            adjustment_reason=data["adjustment_reason"],
+        )
+
+    def extra(form):
+        if not form.is_valid() or form.cleaned_data["counted_on"] > timezone.localdate():
+            return {}
+        data = form.cleaned_data
+        computed = balance(data["account"], data["counted_on"])
+        difference = _cents(data["counted"]) - computed
+        return {
+            "computed": euros(computed),
+            "counted": euros(_cents(data["counted"])),
+            "difference": euros(difference) if difference >= 0 else f"−{euros(-difference)}",
+            "has_difference": bool(difference),
+        }
+
+    return _two_steps(
+        request, form, "treasury/cash_count.html", extra, act, _("Arqueig registrat.")
+    )
+
+
+@never_cache
+@permission_required(services.REVERSE, write=True)
+@require_http_methods(["GET", "POST"])
+def reverse_view(request, movement_id):
+    movement = get_object_or_404(
+        Movement.objects.with_reversal().select_related("account"), pk=movement_id
+    )
+    form = ReasonForm(request.POST or None)
+
+    def act(data):
+        services.reverse(movement, reason=data["reason"], by=request.user)
+
+    def extra(form):
+        sign = "+" if movement.direction == Movement.Direction.IN else "−"
+        return {
+            "movement": movement,
+            "amount": f"{sign}{euros(movement.amount_cents)}",
+            "reversible": movement.kind in REVERSIBLE and not movement.is_reversed,
+        }
+
+    return _two_steps(request, form, "treasury/reverse.html", extra, act, _("Moviment anul·lat."))
+
+
+@never_cache
+@permission_required(VIEW)
+@require_GET
+def settlements_view(request):
+    rows = [
+        {
+            "settlement": s,
+            "gross": euros(s.gross_cents),
+            "fees": euros(s.fees_cents),
+            "net": euros(s.net_cents),
+            "problems": [
+                (note.get("reference", ""), PROBLEMS.get(note.get("problem"), note.get("problem")))
+                for note in s.review_notes
+            ],
+        }
+        for s in ProviderSettlement.objects.order_by("-settled_on", "-pk")
+    ]
+    can_confirm = has_perm(request.user, settlements.RECONCILE, write=True)
+    context = {"rows": rows, "can_confirm": can_confirm}
+    return render(request, "treasury/settlements.html", context)
+
+
+@never_cache
+@permission_required(settlements.RECONCILE, write=True)
+@require_http_methods(["GET", "POST"])
+def settlement_confirm_view(request, settlement_id):
+    settlement = get_object_or_404(ProviderSettlement, pk=settlement_id)
+    if request.method == "POST":
+        try:
+            settlements.confirm(settlement, by=request.user)
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+        else:
+            messages.success(request, _("Liquidació confirmada: comissions i traspàs al banc."))
+        return redirect("administration:treasury_settlements")
+    context = {
+        "settlement": settlement,
+        "net": euros(settlement.net_cents),
+        "fees": euros(settlement.fees_cents),
+        "items": settlement.items.count(),
+    }
+    return render(request, "treasury/settlement_confirm.html", context)

@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (tercer tall), C5: liquidacions dels proveïdors de cobrament i de les remeses (P-M04-F; RN-T21, RN-T24; CA-T11.1 i CA-T11.2). Sense wireframe propi: segueix les pantalles de tresoreria. Veure-les és T1; «Confirma…» surt només amb T4 i porta a un segon pas, i el servidor ho torna a comprovar. De les «a revisar», el motiu i la referència del cobrament: cap nom ni dada bancària. #}
+{% block title %}{% translate "Liquidacions" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Liquidacions" %}</h1>
+  <p class="text-2">{% translate "Els abonaments agrupats del proveïdor i de les remeses. Confirmar-ne una apunta les comissions i passa el net del compte de trànsit al banc." %}</p>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} liquidació, de la més recent a la més antiga{% plural %}{{ total }} liquidacions, de la més recent a la més antiga{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Abonament" %}</th>
+        <th scope="col">{% translate "Origen" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col" class="cel-import">{% translate "Brut" %}</th>
+        <th scope="col" class="cel-import">{% translate "Comissions" %}</th>
+        <th scope="col" class="cel-import">{% translate "Net" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with settlement=row.settlement %}
+        <tr>
+          <th scope="row" class="cel-nom"><time datetime="{{ settlement.settled_on|date:'Y-m-d' }}">{{ settlement.settled_on|date:"d/m/Y" }}</time> <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></th>
+          <td data-etiqueta="{% translate 'Origen' %}">{{ settlement.get_source_display }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">
+            {% if settlement.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ settlement.get_status_display }}</span>
+            {% elif settlement.status == "to_review" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ settlement.get_status_display }}</span>
+              {% for reference, problem in row.problems %}<p class="text-2"><span class="codi">{{ reference }}</span> {{ problem }}</p>{% endfor %}
+            {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ settlement.get_status_display }}</span>
+              {% if can_confirm %} <a class="boto boto-petit" href="{% url 'administration:treasury_settlement_confirm' settlement.pk %}">{% translate "Confirma…" %}</a>{% endif %}
+            {% endif %}
+          </td>
+          <td data-etiqueta="{% translate 'Brut' %}" class="cel-import"><span class="import">{{ row.gross }}</span></td>
+          <td data-etiqueta="{% translate 'Comissions' %}" class="cel-import"><span class="import">{{ row.fees }}</span></td>
+          <td data-etiqueta="{% translate 'Net' %}" class="cel-import"><span class="import">{{ row.net }}</span></td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="6">{% translate "Encara no hi ha cap liquidació." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+{% endblock %}

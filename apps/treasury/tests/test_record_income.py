@@ -309,13 +309,17 @@ class TestRejected:
                     yield pattern.callback
 
         modules = {callback.__module__ for callback in callbacks(get_resolver().url_patterns)}
-        # Les úniques vistes de la 04 són les pantalles de només lectura (T-M04-15), que el
-        # bucle de sota també revisa.
+        # Les úniques vistes de la 04 són les pantalles de la T-M04-15 (també les que mouen
+        # diners, `entry_views`, que no apunten cap ingrés), que el bucle de sota també revisa.
         treasury = {module for module in modules if module.startswith("apps.treasury")}
-        assert modules and treasury <= {"apps.treasury.views"}
+        assert modules and treasury <= {"apps.treasury.views", "apps.treasury.entry_views"}
         apps_dir = Path(services.__file__).parents[1]
         # Cap vista de cap altra app no crida el servei: ho fan el processament de les
         # notificacions (05b) i la conciliació (04), mai una petició.
-        views = [*apps_dir.glob("*/views.py"), *apps_dir.glob("*/views/*.py")]
+        views = [
+            *apps_dir.glob("*/views.py"),
+            *apps_dir.glob("*/views/*.py"),
+            *apps_dir.glob("*/*_views.py"),
+        ]
         assert views
         assert not [v for v in views if "record_income" in v.read_text(encoding="utf-8")]

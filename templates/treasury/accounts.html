@@ -45,5 +45,10 @@
       {% endfor %}
     </tbody>
   </table>
-  <p class="enllacos"><a href="{% url 'administration:treasury_movements' %}">{% translate "Mira els moviments" %}</a></p>
+  <p class="enllacos">
+    <a href="{% url 'administration:treasury_movements' %}">{% translate "Mira els moviments" %}</a>
+    <a href="{% url 'administration:treasury_settlements' %}">{% translate "Mira les liquidacions" %}</a>
+    {% if can_transfer %}<a href="{% url 'administration:treasury_transfer' %}">{% translate "Registra un traspàs" %}</a>{% endif %}
+    {% if can_count %}<a href="{% url 'administration:treasury_cash_count' %}">{% translate "Fes un arqueig de caixa" %}</a>{% endif %}
+  </p>
 {% endblock %}

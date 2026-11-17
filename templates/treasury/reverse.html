@@ -1,0 +1,35 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (tercer tall), C7: anul·lar un moviment amb motiu (P-M04-C; RN-T07, RN-T25; CA-T06.1 i CA-T06.2). Sense wireframe propi: segueix les pantalles de tresoreria. Seguretat: T5 amb edició al servidor, POST amb CSRF, motiu obligatori i dos passos. L'original no canvia: es crea el contramoviment amb data d'avui. Un ingrés de cobrament, un traspàs o un contramoviment no s'anul·len aquí (el servei també ho rebutja). #}
+{% block title %}{% translate "Anul·lar un moviment" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Anul·lar un moviment" %}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Data de valor" %}</dt><dd>{{ movement.value_date|date:"d/m/Y" }}</dd></div>
+    <div><dt>{% translate "Compte" %}</dt><dd>{{ movement.account.name }}</dd></div>
+    <div><dt>{% translate "Tipus" %}</dt><dd>{{ movement.get_kind_display }}</dd></div>
+    <div><dt>{% translate "Concepte" %}</dt><dd>{{ movement.concept }}</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd><span class="import {% if movement.direction == 'in' %}import-entrada{% else %}import-sortida{% endif %}">{{ amount }}</span></dd></div>
+  </dl>
+  {% if not reversible %}
+    <div class="avis" role="note"><strong>{% translate "Aquest moviment no s'anul·la aquí" %}</strong>{% if movement.is_reversed %}{% translate "Ja està anul·lat." %}{% else %}{% translate "Un ingrés de cobrament es corregeix amb una devolució o desfent la conciliació, i un traspàs, amb un altre en sentit contrari." %}{% endif %}</div>
+  {% else %}
+    <form class="formulari" method="post" action="{% url 'administration:treasury_reverse' movement.pk %}" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
+      {% include "accounts/_camp.html" with field=form.reason %}
+      {% if confirm %}
+        <input type="hidden" name="confirm" value="1">
+        <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'anul·lació" %}</strong>{% translate "Es crearà un contramoviment del mateix import en sentit contrari, amb data d'avui. L'original continuarà a la llista, marcat com a anul·lat." %}</div>
+        <div class="accions">
+          <button class="boto boto-principal" type="submit">{% translate "Sí, anul·la el moviment" %}</button>
+          <a class="boto boto-text" href="{% url 'administration:treasury_movements' %}">{% translate "Cancel·la" %}</a>
+        </div>
+      {% else %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa l'anul·lació" %}</button></div>
+      {% endif %}
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_movements' %}">{% translate "Torna als moviments" %}</a></p>
+{% endblock %}
