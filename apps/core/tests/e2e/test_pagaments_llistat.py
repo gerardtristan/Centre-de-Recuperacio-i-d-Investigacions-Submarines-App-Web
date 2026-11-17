@@ -38,8 +38,12 @@ def test_treasurer_sees_what_to_review_and_filters(page, live_server, transactio
     treasurer = make_admin("tresoreria.prova", "treasurer")
 
     login_admin(page, live_server.url, treasurer.login)
-    page.goto(f"{live_server.url}{reverse('administration:payments_list')}")
+    # Hi arriba pel menú (T-DX-47): l'entrada només surt amb B6.
+    entry = page.locator("#barra-lateral").get_by_role("link", name="Pagaments: llistat")
+    entry.click()
     expect(page.get_by_role("heading", name="Pagaments i «a revisar»")).to_be_visible()
+    expect(page).to_have_url(f"{live_server.url}{reverse('administration:payments_list')}")
+    expect(entry).to_have_attribute("aria-current", "page")
     to_review = page.get_by_role("table", name="1 intent de pagament a revisar")
     expect(to_review).to_contain_text("L'import de la notificació no quadra (prova)")
     expect(to_review).to_contain_text("Pere Prova Inventat")
