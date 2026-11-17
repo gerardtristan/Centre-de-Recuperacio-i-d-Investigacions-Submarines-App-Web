@@ -1,0 +1,58 @@
+/* Asueto (T-DX-29; recurs a design/extern/; design-system §16, T-DX-29): el calendari d'un dia.
+   Del recurs: l'horari del dia com una línia amb les nanses d'obrir i tancar, les activitats que ja
+   no hi caben ratllades amb la primera hora lliure, «Mou-la» i «Aplica». Les columnes són classes
+   per tram (cHH = hora d'inici, sN = hores), sense style=. */
+.asueto { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.asueto h1 { margin: 0; }
+.asueto h2 { font-size: var(--t-l); text-wrap: balance; }
+.asueto-dia { color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.asueto-dia strong { color: var(--c-text); }
+.asueto-excepcio { display: grid; gap: var(--e-4); margin: 0; padding: 0; border: 0; }
+.asueto-excepcio .segmentat { display: flex; flex-wrap: wrap; gap: var(--e-1); margin: 0; padding: var(--e-1); border: 0; }
+.asueto-excepcio .segmentat legend { padding: 0; margin-bottom: var(--e-2); font-weight: var(--p-semi); font-size: var(--t-s); }
+.asueto-camps { display: grid; gap: var(--e-3); }
+@media (min-width: 600px) { .asueto-camps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* La línia del dia: sis columnes d'una hora, de 17:00 a 23:00 */
+.asueto-linia {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); row-gap: var(--e-1);
+  padding: var(--e-3); border-radius: var(--r-l); background: var(--c-fons); font-size: var(--t-s);
+}
+.asueto-hores { display: contents; list-style: none; }
+.asueto-hores li { grid-row: 1; color: var(--c-text-2); font-variant-numeric: tabular-nums; font-size: var(--t-xs); }
+.asueto-franja { grid-row: 2; block-size: var(--e-4); border-radius: var(--r-pastilla); }
+.asueto-habitual { border: var(--v-fina) dashed var(--c-linia-forta); }
+.asueto-obert { position: relative; background: color-mix(in oklab, var(--c-ok), transparent 55%); }
+.asueto-nansa {
+  position: absolute; top: 50%; inline-size: var(--e-2); block-size: var(--e-5); translate: -50% -50%;
+  border-radius: var(--r-pastilla); background: var(--c-ok); box-shadow: 0 0 0 var(--v-plena) var(--c-fons);
+}
+.asueto-nansa:first-child { left: 0; }
+.asueto-nansa:last-child { left: 100%; }
+.asueto-barra {
+  overflow: hidden; padding: var(--e-1) var(--e-2); border-radius: var(--r-s); white-space: nowrap; text-overflow: ellipsis;
+  background: var(--c-superficie-2); border: var(--v-fina) solid var(--c-linia);
+}
+/* Fora de l'horari: ratllada en el color d'avís (com a Horario, T-DX-23) */
+.asueto-barra.es-fora {
+  color: var(--c-avis-text); border-color: var(--c-avis);
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--c-avis), transparent 65%) 0 var(--v-plena), transparent var(--v-plena) var(--e-2)), var(--c-superficie-2);
+}
+.c17 { grid-column-start: 1; } .c18 { grid-column-start: 2; } .c19 { grid-column-start: 3; }
+.c20 { grid-column-start: 4; } .c21 { grid-column-start: 5; } .c22 { grid-column-start: 6; }
+.s1 { grid-column-end: span 1; } .s2 { grid-column-end: span 2; } .s3 { grid-column-end: span 3; }
+.s4 { grid-column-end: span 4; } .s6 { grid-column-end: span 6; }
+
+.asueto-llista { margin: 0; padding: 0; border: 0; }
+.asueto-llista ul { display: grid; gap: var(--e-2); margin: 0 0 var(--e-4); padding: 0; list-style: none; }
+.asueto-acte {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3);
+  padding: var(--e-2) var(--e-3); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-m); background: var(--c-fons);
+}
+.asueto-acte > :first-child { flex: 1 1 100%; }
+@media (min-width: 600px) { .asueto-acte > :first-child { flex-basis: 0; } }
+.asueto-acte.es-fora { border-color: var(--c-avis); box-shadow: inset var(--v-activa) 0 0 var(--c-avis); }
+.asueto-hora, .asueto-lliure { color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+.asueto-lliure { font-size: var(--t-s); }
+.asueto-nota { color: var(--c-text-2); font-size: var(--t-s); }
+.asueto-accions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-2); margin-top: var(--e-3); }
