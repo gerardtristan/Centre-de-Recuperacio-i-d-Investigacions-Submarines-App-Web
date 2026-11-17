@@ -44,7 +44,7 @@
         <div><dt>{% translate "Per convidar" %}</dt><dd>{% blocktranslate count total=to_invite %}{{ total }} soci actiu sense mètode{% plural %}{{ total }} socis actius sense mètode{% endblocktranslate %}</dd></div>
         <div><dt>{% translate "Sense correu" %}</dt><dd>{% blocktranslate count total=without_email %}{{ total }}: l'atén la secretaria{% plural %}{{ total }}: els atén la secretaria{% endblocktranslate %}</dd></div>
         <div><dt>{% translate "Text" %}</dt><dd>{% blocktranslate with version=campaign.invitation_text.version %}Versió {{ version }}{% endblocktranslate %} <span class="a-validar">{% translate "A validar: junta (T-M05a-01)" %}</span></dd></div>
-        <div><dt>{% translate "Recordatoris" %}</dt><dd>{% blocktranslate with first=reminder_days.0 second=reminder_days.1 %}Als {{ first }} i als {{ second }} dies de la invitació{% endblocktranslate %} <span class="a-validar">{% translate "A validar: tresorer" %}</span></dd></div>
+        <div><dt>{% translate "Recordatoris" %}</dt><dd>{% blocktranslate with days=reminder_days|join:", " %}Dies des de la invitació: {{ days }}{% endblocktranslate %} <span class="a-validar">{% translate "A validar: tresorer" %}</span></dd></div>
       </dl>
       {% if can_send %}
         {% if confirm == "send" %}

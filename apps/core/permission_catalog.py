@@ -476,7 +476,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).
     # Pagaments (05b): «Cons.» per als rols que hi poden editar algun valor. VC-17, només
-    # l'administrador; VC-16, només el tresorer.
+    # l'administrador; VC-11 i VC-16, només el tresorer.
     _perm(
         "settings.section.payments",
         "AJ5b",
@@ -517,6 +517,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         "settings.edit.payments.max_direct_debit_attempts",
         "AJ5b-5",
         _("Màxim d'intents de domiciliació per càrrec"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
+    # VC-11 (T-M05a-22): l'edita el Tresorer (apèndix de valors configurables).
+    _perm(
+        "settings.edit.payments.mandate_campaign_reminder_days",
+        "AJ5b-6",
+        _("Dies dels recordatoris de la campanya de mandats"),
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
