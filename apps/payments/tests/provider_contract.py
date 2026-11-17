@@ -9,6 +9,7 @@ Cada implementació hi hereta en un fitxer de proves propi i hi aporta dues pece
 """
 
 import dataclasses
+from datetime import date
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -142,6 +143,15 @@ class ProviderContract:
         with pytest.raises(base.NotSupported):
             provider.charge_saved_card(a_charge(), object(), uuid4())
 
+    # --- Liquidacions (P-M05b-H; [A verificar: P-45 punt 9]) ---
+
+    def test_settlements_are_listed_or_not_supported(self, provider):
+        try:
+            reports = provider.list_settlements(date(2026, 1, 1))
+        except base.NotSupported:
+            return  # el tresorer casa per període (RN-T21)
+        assert all(isinstance(report, base.ProviderSettlementReport) for report in reports)
+
 
 def test_no_contract_type_can_carry_card_or_bank_data():
     for contract_type in (
@@ -150,6 +160,8 @@ def test_no_contract_type_can_carry_card_or_bank_data():
         base.ProviderNotification,
         base.ProviderRefund,
         base.OrderUrls,
+        base.SettledOperation,
+        base.ProviderSettlementReport,
     ):
         names = {field.name for field in dataclasses.fields(contract_type)}
         assert not names & set(FORBIDDEN_FIELDS), contract_type.__name__

@@ -7,7 +7,7 @@ La salvaguarda del nivell 1 (RN-M05a-11) és aquí i no a cada implementació.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from django.conf import settings
@@ -96,6 +96,29 @@ class ProviderRefund:
 
 
 @dataclass(frozen=True)
+class SettledOperation:
+    """Un cobrament dins d'un abonament: l'ordre (la referència del pagament), l'import i, si
+    el proveïdor la detalla, la comissió."""
+
+    order_id: str
+    amount_cents: int
+    fee_cents: int | None = None
+
+
+@dataclass(frozen=True)
+class ProviderSettlementReport:
+    """Un abonament agrupat del proveïdor al banc (P-M05b-H; RN-T21). El format real és
+    [A verificar: P-45 punt 9]: cada implementació hi tradueix el seu."""
+
+    external_id: str
+    settled_on: date
+    gross_cents: int
+    fees_cents: int
+    net_cents: int
+    operations: tuple[SettledOperation, ...]
+
+
+@dataclass(frozen=True)
 class Capabilities:
     card: bool
     bizum: bool
@@ -153,6 +176,11 @@ class PaymentProvider(ABC):
     @abstractmethod
     def refund(self, payment, amount_cents: int, idempotency_key: UUID) -> ProviderRefund:
         """Torna tot o part d'un pagament. No és un cobrament: no passa per la salvaguarda."""
+
+    def list_settlements(self, since: date) -> list[ProviderSettlementReport]:
+        """Els abonaments al banc des de `since`, inclòs (P-M05b-H). Si el proveïdor no en
+        dona, `NotSupported`: el tresorer casa la línia del banc per període (RN-T21)."""
+        raise NotSupported("settlements")
 
     def start_card_setup(self, person, urls: OrderUrls) -> str:
         """Condicional (RN-M05a-10): adreça on el titular autentica la targeta."""
