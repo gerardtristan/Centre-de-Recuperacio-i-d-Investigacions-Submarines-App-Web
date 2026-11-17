@@ -14,8 +14,7 @@ RN-M05b-14, 15 i 18; CA-M05b-18 a 20).
   la quota torna a la remesa següent; com a molt `payments.max_direct_debit_attempts` rebuts per
   càrrec (VC-16).
 
-shortcut: entrada manual del codi; el lector del fitxer de retornats del banc (pain.002, banc
-fals de la 092) ve després, perquè el format real és [A verificar: P-45 punt 5].
+El fitxer de retornats del banc (pain.002) passa per aquí mateix: `bank_returns` (T-M05b-12b).
 """
 
 import re

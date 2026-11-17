@@ -44,6 +44,16 @@ urlpatterns = [
     # Retornats (T-M05b-12 i 27; B4).
     path("pagaments/retornats/", return_views.returns_view, name="payments_returns"),
     path(
+        "pagaments/retornats/fitxer/",
+        return_views.returns_file_view,
+        name="payments_returns_file",
+    ),
+    path(
+        "pagaments/retornats/fitxer/confirma/",
+        return_views.returns_file_confirm_view,
+        name="payments_returns_file_confirm",
+    ),
+    path(
         "pagaments/retornats/<int:item_id>/decisio/",
         return_views.return_decision_view,
         name="payments_return_decision",

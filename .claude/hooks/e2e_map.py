@@ -150,6 +150,7 @@ MAP = {
     "test_retornats.py": (
         "apps/payments/return_views.py",
         "apps/payments/returns.py",
+        "apps/payments/bank_returns.py",
         "templates/payments/returns.html",
     ),
     "test_mandat_signatura.py": (

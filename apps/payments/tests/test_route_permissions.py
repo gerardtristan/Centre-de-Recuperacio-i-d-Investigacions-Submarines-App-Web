@@ -72,6 +72,8 @@ ADMIN_ROUTES = {
     "administration:payments_remittance_settle": {"POST": {w(B3), w(T4)}},
     "administration:payments_returns": {"GET": {r(B4)}, "POST": {r(B4), w(B4)}},
     "administration:payments_return_decision": {"POST": {w(B4)}},
+    "administration:payments_returns_file": {"POST": {w(B4)}},
+    "administration:payments_returns_file_confirm": {"POST": {w(B4)}},
 }
 
 # Compte personal: accions pròpies (M05a-4 i M05b-4), sense cap permís de rol; l'objecte el

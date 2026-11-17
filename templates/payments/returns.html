@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n payments_money %}
-{# T-M05b-12 i 27, retornats (P-M05b-F; B4). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: totes les rutes demanen B4 (sense, «no trobat»); registrar i decidir, B4 amb edició i POST amb CSRF (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat»). Cap IBAN ni nom: número de soci, concepte i import. Un rebut sense cap reintent possible no surt a «Per decidir»: l'alternativa ja s'ha aplicat en registrar-lo (P-292). #}
+{# T-M05b-12 i 27, retornats (P-M05b-F; B4). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: totes les rutes demanen B4 (sense, «no trobat»); registrar i decidir, B4 amb edició i POST amb CSRF (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat»). Cap IBAN ni nom: número de soci, concepte i import. Un rebut sense cap reintent possible no surt a «Per decidir»: l'alternativa ja s'ha aplicat en registrar-lo (P-292). Fitxer del banc (pain.002, T-M05b-12b): pujar-lo i confirmar-lo, B4 amb edició al servidor; el testimoni de la confirmació va signat i el servei torna a comprovar cada rebut. #}
 {% block title %}{% translate "Retornats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -22,6 +22,62 @@
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Registra el retorn" %}</button></div>
       </form>
     </section>
+
+    {% if file_preview %}
+      <table class="taula">
+        <caption>{% translate "Fitxer del banc: previsualització" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Rebut" %}</th>
+            <th scope="col">{% translate "Resultat" %}</th>
+            <th scope="col" class="cel-import">{% translate "Import" %}</th>
+            <th scope="col">{% translate "Motiu" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in file_preview.lines %}
+            <tr>
+              <th scope="row" class="cel-nom"><span class="codi">{{ line.end_to_end_id }}</span>{% if line.item %} {{ line.item.attempt.charge.concept }}{% endif %}</th>
+              <td data-etiqueta="{% translate 'Resultat' %}">
+                {% if line.status == "ready" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Es registrarà" %}</span>
+                {% elif line.status == "done" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Ja registrat: no es torna a registrar" %}</span>
+                {% elif line.status == "bad_code" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Sense codi de motiu reconegut: entra'l a mà" %}</span>
+                {% elif line.status == "unknown" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Cap rebut amb aquesta referència" %}</span>
+                {% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No quadra: el rebut no consta com a cobrat o l'import és diferent" %}</span>{% endif %}
+              </td>
+              <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{% if line.item %}{{ line.item.amount_cents|euros }}{% elif line.amount_cents %}{{ line.amount_cents|euros }}{% else %}—{% endif %}</span></td>
+              <td data-etiqueta="{% translate 'Motiu' %}">{% if line.reason_code %}<span class="codi">{{ line.reason_code }}</span>{% else %}—{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if file_preview.token %}
+        <form class="formulari targeta" method="post" action="{% url 'administration:payments_returns_file_confirm' %}" aria-labelledby="confirma-fitxer-titol">
+          {% csrf_token %}
+          <h2 id="confirma-fitxer-titol">{% translate "Confirmar els retorns del fitxer" %}</h2>
+          <input type="hidden" name="testimoni" value="{{ file_preview.token }}">
+          <p>{% blocktranslate count counter=file_preview.counts.ready %}Es registrarà {{ counter }} retorn. Les línies que no quadren no es registren: si cal, entra-les a mà.{% plural %}Es registraran {{ counter }} retorns. Les línies que no quadren no es registren: si cal, entra-les a mà.{% endblocktranslate %}</p>
+          <div class="accions">
+            <button class="boto boto-principal" type="submit">{% translate "Confirma els retorns" %}</button>
+            <a class="boto boto-text" href="{% url 'administration:payments_returns' %}">{% translate "Cancel·la" %}</a>
+          </div>
+        </form>
+      {% else %}
+        <p>{% translate "En aquest fitxer no hi ha cap retorn nou per registrar." %} <a href="{% url 'administration:payments_returns' %}">{% translate "Torna als retornats" %}</a></p>
+      {% endif %}
+    {% else %}
+      <form class="formulari targeta" method="post" enctype="multipart/form-data" action="{% url 'administration:payments_returns_file' %}" aria-labelledby="fitxer-titol">
+        {% csrf_token %}
+        <h2 id="fitxer-titol">{% translate "Importa el fitxer de retornats del banc" %}</h2>
+        {% if file_error %}<div class="avis avis-error" role="alert">{{ file_error }}</div>{% endif %}
+        <div class="camp">
+          <label for="id_fitxer_retornats">{% translate "Fitxer de retornats (XML)" %}</label>
+          <input type="file" id="id_fitxer_retornats" name="fitxer" accept=".xml,application/xml" required aria-describedby="ajuda-fitxer-retornats">
+          <p class="ajuda" id="ajuda-fitxer-retornats">{% translate "El fitxer de rebuts retornats que dona el banc (pain.002), d'1 MB com a màxim. Primer en veuràs la previsualització. El fitxer no es desa. Fora de producció, només fitxers inventats." %}</p>
+        </div>
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Previsualitza" %}</button></div>
+      </form>
+    {% endif %}
   {% endif %}
 
   <table class="taula">

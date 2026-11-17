@@ -34,7 +34,15 @@ Al detall de la remesa, prem **Descarrega el fitxer pain.008**. El fitxer es gen
 Encara no es pot fer des de la plataforma [pendent: T-M05b-11]. Quan hi sigui, marcar-la com a enviada demanarà confirmar que has esborrat el fitxer, i l'abonament del banc es casarà a la conciliació com una liquidació ([P-M05b-E, passos 6 a 8](../planning.md#M05b-5-processos)).
 
 ## 6. Rebuts retornats
-Encara no hi ha pantalla de retornats [pendent: T-M05b-12]. La plataforma ja sap passar un càrrec de «pagat» a «retornat» i reobrir-lo, però ningú no ho fa encara des d'una pantalla. Quan hi sigui, el reintent o l'alternativa de pagament dependran del motiu del banc ([P-M05b-F](../planning.md#M05b-5-processos), [regles](../planning.md#M05b-7-regles)). Dubte obert: què passa amb el pagament retornat ([P-240](../decisions/pendents.md)).
+Pantalla **Retornats** (adreça `pagaments/retornats/` de l'administració) ([P-M05b-F](../planning.md#M05b-5-processos), [regles](../planning.md#M05b-7-regles)). Hi tens dues maneres de registrar els rebuts que el banc ha tornat:
+- **D'un en un:** a **Registra un retorn**, escriu la **Referència del rebut** (l'identificador d'extrem a extrem que surt a l'extracte o al fitxer del banc), el **Codi de motiu** (per exemple AM04) i, si n'hi ha, la **Comissió de retorn**. Prem **Registra el retorn**.
+- **Amb el fitxer del banc:** a **Importa el fitxer de retornats del banc**, tria el fitxer XML de retornats (pain.002) i prem **Previsualitza**. La taula diu què passarà amb cada rebut: **Es registrarà**, **Ja registrat** (no es torna a registrar), **Cap rebut amb aquesta referència** o **No quadra** (el rebut no consta com a cobrat o l'import és diferent). Prem **Confirma els retorns**: es registren tots els que estan a punt o, si mentrestant n'ha canviat algun, cap. Llavors torna a pujar el fitxer. El fitxer no es desa. El format que envia el banc de debò encara està per confirmar [A verificar: banc, P-45 punt 5].
+
+En registrar un retorn, la quota queda retornada, la tresoreria apunta la sortida i la comissió, i el soci rep l'avís. Segons el motiu, la plataforma proposa:
+- **Reintent** (fons insuficients, AM04): la quota torna a la remesa següent. Quantes vegades com a molt és un ajust (2 d'entrada).
+- **Alternativa de pagament** (la resta de motius): el soci rep un enllaç per pagar d'una altra manera. Amb compte tancat o sense mandat (AC04, MD01), el mandat queda bloquejat i el soci rep també l'enllaç per signar-ne un de nou.
+
+Els que esperen la teva decisió surten a **Per decidir**. Si no queda cap reintent possible, l'alternativa s'aplica i s'envia en registrar-lo ([P-292](../decisions/pendents.md)). Quins codis arriben de debò: [P-291](../decisions/pendents.md).
 
 ## 7. Devolucions
 Tornar diners a un soci (una devolució que inicia el club) encara no es pot fer des de la plataforma [pendent: T-M05b-13]. El procés previst és a [P-M05b-G](../planning.md#M05b-5-processos). Mentrestant, una devolució es fa fora de la plataforma i s'ha d'anotar quan la funció hi sigui.
