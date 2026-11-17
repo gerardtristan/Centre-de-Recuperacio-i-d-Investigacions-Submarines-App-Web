@@ -2,7 +2,9 @@
 RN-T16, RN-T17, RN-T17b). Només dades inventades."""
 
 import pytest
+from django.db import connection
 from django.http import Http404
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from apps.core import charges
@@ -132,6 +134,12 @@ class TestMatch:
                 reconciliation.match(line, [charge(9000).pk], by=treasurer)
         assert Reconciliation.objects.count() == 1
 
+    def test_a_line_that_now_has_a_proposal_says_so(self, treasurer, charge):  # noqa: F811
+        quota = charge(9000)
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)}"))
+        with pytest.raises(Rejected, match="ja té una proposta: revisa-la i confirma-la"):
+            reconciliation.match(line, [quota.pk], by=treasurer)
+
     def test_no_charge_or_an_unknown_one_is_refused(self, treasurer):
         (line,) = lines(treasurer, (9000, "TRANSF"))
         for ids in ([], [999999]):
@@ -220,6 +228,17 @@ class TestNoDoubleCharge:
         reconciliation.match(second, [by_transfer.pk], by=treasurer)
         assert PaymentAttempt.objects.get(charge=by_transfer).status == PaymentAttempt.Status.PAID
 
+    @pytest.mark.parametrize("method", ["card", "bizum"])
+    def test_a_card_or_bizum_to_review_may_be_charged_and_blocks(self, treasurer, charge, method):  # noqa: F811
+        quota = charge(9000)
+        attempt = attempts.create_attempt(quota, method)
+        attempt = attempts.transition(attempt, PaymentAttempt.Status.IN_PROGRESS, by=SYSTEM)
+        attempts.transition(attempt, PaymentAttempt.Status.TO_REVIEW, by=SYSTEM)
+        (line,) = lines(treasurer, (9000, "TRANSF"))
+        with pytest.raises(Rejected, match="cobrament en curs"):
+            reconciliation.match(line, [quota.pk], by=treasurer)
+        assert not Payment.objects.exists()
+
     def test_the_search_shows_them_without_a_checkbox(self, treasurer, signer, text, charge):  # noqa: F811
         fee = sent_remittance_fee(signer, text, treasurer)
         proposed = charge(3500)
@@ -260,6 +279,7 @@ class TestMatchView:
         assert "M INVENTADA" in html and f'value="{quota.pk}"' in html and "IBAN" not in html
         html = main_of(client.post(match_url(line), {"carrec": quota.pk}).content.decode())
         assert "Confirma el casament" in html and no_money_moved()
+        assert 'role="status"' in html and 'role="alert"' not in html  # no és cap error
         response = client.post(match_url(line), {"carrec": quota.pk, "confirma": "1"}, follow=True)
         assert "Línia casada" in response.content.decode()
         quota.refresh_from_db()
@@ -309,8 +329,12 @@ class TestMatchView:
         reconciliation.confirm(done, by=treasurer)
         client = client_for(treasurer)
         for line in (out, done):
-            html = main_of(client.get(match_url(line), {"cerca": ref(quota)}).content.decode())
+            with CaptureQueriesContext(connection) as queries:
+                response = client.get(match_url(line), {"cerca": ref(quota)})
+            html = main_of(response.content.decode())
             assert "no es pot casar" in html and 'name="cerca"' not in html
+            # Sense cap cerca de càrrecs: ni la consulta.
+            assert not [q for q in queries if "treasury_transferreference" in q["sql"]]
 
     def test_the_review_screen_links_here(self, treasurer, charge):  # noqa: F811
         quota = charge(9000)

@@ -180,7 +180,7 @@ def test_treasurer_matches_a_line_by_hand(page, live_server, transactional_db, r
     review("casa-a-ma-cerca")
 
     page.get_by_role("button", name="Revisa el casament").click()
-    expect(page.get_by_role("alert")).to_contain_text("Els càrrecs sumen 125,00 €")
+    expect(page.get_by_role("status")).to_contain_text("Els càrrecs sumen 125,00 €")
     review("casa-a-ma-revisio")
     page.get_by_role("button", name="Sí, casa-la").click()
     expect(page.get_by_role("status")).to_contain_text("Línia casada")
