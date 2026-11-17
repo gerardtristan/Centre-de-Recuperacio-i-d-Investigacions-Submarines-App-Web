@@ -20,9 +20,10 @@ from urllib.parse import urlsplit
 
 from django.core.exceptions import ImproperlyConfigured
 
-# Al codi i no a l'entorn: qui posa el DSN no ha de poder posar també el host permès. Buida fins
-# que el propietari respongui la P-294; el host s'hi afegeix amb una PR revisada.
-ERROR_TRACKING_ALLOWED_HOSTS = ()
+# Al codi i no a l'entorn: qui posa el DSN no ha de poder posar també el host permès; un host nou
+# entra amb una PR revisada. P-294 (propietari, 17/11/2026): GlitchTip autoallotjat al mateix VPS
+# de Hetzner (UE). El nom del subdomini és [A validar] (arquitectura §2, «Domini i DNS»).
+ERROR_TRACKING_ALLOWED_HOSTS = ("errors.cris1954.cat",)
 
 MASK = "[tapat]"
 _SAFE_HEADERS = {"user-agent", "content-type", "accept", "accept-language"}
