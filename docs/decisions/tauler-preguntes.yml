@@ -543,7 +543,7 @@ opcions:
   P-193:
     opcions:
       A: La Secretaria no hi té accés (com s'ha fet).
-      B: La Secretaria hi té «Cons.»: només veu «té mètode: sí/no», sense mètode, mandat, targeta ni IBAN.
+      B: "La Secretaria hi té «Cons.»: només veu «té mètode: sí/no», sense mètode, mandat, targeta ni IBAN."
       C: La Secretaria ho veu tot, com el tresorer, amb l'IBAN emmascarat.
     recomanada: B
     perque: >-
@@ -980,7 +980,7 @@ opcions:
       A: Comprovació d'arrencada. A producció, amb un proveïdor configurat, l'entorn ha de ser «live» (el nivell 1 és «live» sense autorització per cobrar).
       B: A més, la salvaguarda atura els cobraments a producció amb l'entorn de proves.
       C: Només un avís a la comprovació, sense aturar el desplegament.
-      D: Res: és responsabilitat de qui configura el desplegament.
+      D: "Res: és responsabilitat de qui configura el desplegament."
     recomanada: A
     perque: >-
       Atura l'error abans que arribi a cap soci i no canvia res a l'entorn de proves. Si algun dia hi ha una
