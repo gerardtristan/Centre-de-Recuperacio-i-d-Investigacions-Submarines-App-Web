@@ -1097,4 +1097,24 @@ opcions:
       Compleix CA-M05b-19 i 20 i la 048 alhora: quan no hi ha res a triar, registrar el retorn ja és la decisió del tresorer.
     data: 2026-11-17
 
+  P-305:
+    opcions:
+      A: Com s'ha construït; la guia del tresorer explica que «domiciliació» amb un guió vol dir que el mandat ja no és actiu.
+      B: El llistat mostra el darrer mandat amb el seu estat (caducat o bloquejat) i el recompte separa «domiciliació sense mandat actiu».
+      C: En caducar o bloquejar-se el mandat, la preferència passa sola a «pagar cada vegada».
+    recomanada: B
+    perque: >-
+      El tresorer ha de saber a qui cal demanar un mandat nou abans de la remesa; B ho mostra sense canviar la tria del soci, i C la canviaria sense que ell ho sàpiga.
+    data: 2026-11-17
+
+  P-306:
+    opcions:
+      A: Com s'ha construït; el tresorer llegeix el text aprovat per la junta fora de la plataforma i la pantalla en mostra la versió.
+      B: La pantalla de la campanya mostra el text sencer a la confirmació de l'enviament.
+      C: Esperar la pantalla de textos editables de la 00 (T-M00-08).
+    recomanada: B
+    perque: >-
+      És el que demana el pas 2 de P-M05a-E i és un canvi petit a la pantalla que ja existeix.
+    data: 2026-11-17
+
 noves:

@@ -39,3 +39,13 @@ Si tens un mandat actiu, a **Mandat de domiciliació** prem **Revoca el mandat�
 - Si una pàgina diu que no es pot pagar amb un mètode, torna-ho a provar més tard o tria'n un altre.
 - Si et diu que el pagament anterior encara no s'ha tancat, espera una estona: no se'n pot començar un de nou mentre l'altre està en curs.
 - Per a qualsevol dubte, respon un dels correus que t'envia el club.
+
+## 6. El correu «Com vols pagar la quota del C.R.I.S.?»
+Afegit a la T-M05a-21 [A validar: tresorer]. Quan el club obri la campanya de mandats, els socis que encara no han triat com paguen la quota reben aquest correu. El text definitiu l'aprova la junta [A validar: junta].
+1. Obre l'enllaç del correu. Et porta a **Com pago la quota** (si cal, entra abans al teu compte).
+2. Tria una opció i prem **Continua**, com al [punt 2](#2-triar-com-pagues-la-quota-cada-any). Si tries la domiciliació, signa el mandat ([punt 3](#3-el-mandat-de-domiciliació)).
+3. Ja està. Si no tries res, rebràs algun recordatori. Si no tries mai, quan es generi la quota la podràs pagar amb targeta, Bizum o transferència.
+
+El correu no et demana mai l'IBAN ni cap dada bancària: l'escrius només a la plataforma, dins el teu compte. No l'enviïs per correu.
+
+**Si reps un correu que diu que el teu mandat ha caducat** (36 mesos sense cap cobrament) **o que el banc ha retornat un rebut perquè el compte és tancat**, el mandat ja no serveix: signa'n un de nou a **Mandat de domiciliació** o paga la quota d'una altra manera.

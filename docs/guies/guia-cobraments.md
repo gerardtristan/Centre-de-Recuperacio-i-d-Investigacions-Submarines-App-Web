@@ -41,3 +41,5 @@ Tornar diners a un soci (una devolució que inicia el club) encara no es pot fer
 
 ## 8. Mandats
 La pantalla **Pagaments: mètodes i mandats** (al menú) mostra els mandats dels socis, sempre amb l'IBAN emmascarat. Amb **Revoca…**, el motiu i **Sí, revoca'l** es revoca un mandat: no es cobrarà cap quota més amb aquest mandat i el soci rep un correu. El teu propi mandat no el pots revocar des de l'administració, només des del teu compte personal. La signatura dels mandats per part dels socis està apagada fins que la junta aprovi el text ([ajuda per als socis](ajuda-socis-pagaments.md#3-el-mandat-de-domiciliació)).
+
+La campanya de mandats, qui té quin mètode i els estats d'un mandat són a la [guia de mètodes, mandats i campanya](guia-mandats.md).
