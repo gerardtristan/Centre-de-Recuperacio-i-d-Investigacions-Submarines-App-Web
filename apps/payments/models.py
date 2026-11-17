@@ -410,6 +410,10 @@ class SavedCard(models.Model):
             models.UniqueConstraint(
                 fields=["provider_code", "provider_card_id"], name="saved_card_unique_provider_id"
             ),
+            # P-297: una sola targeta activa per persona (T-M05a-12).
+            models.UniqueConstraint(
+                fields=["person"], condition=Q(status="active"), name="saved_card_one_active"
+            ),
             models.CheckConstraint(
                 condition=Q(status__in=SavedCardStatus.values), name="saved_card_status_valid"
             ),
@@ -425,6 +429,50 @@ class SavedCard(models.Model):
 
     def __str__(self):
         return f"… {self.last4}"
+
+
+class CardSetup(models.Model):
+    """Una autenticació per guardar una targeta, oberta al proveïdor (P-M05a-D, pas 2;
+    T-M05a-12). Lliga l'ordre del proveïdor amb la persona i el compte que l'han començada: només
+    una notificació d'una autenticació començada aquí guarda una targeta."""
+
+    class Status(models.TextChoices):
+        IN_PROGRESS = "in_progress", _("en curs")
+        SAVED = "saved", _("guardada")
+        FAILED = "failed", _("no guardada")
+
+    person = models.ForeignKey("core.Person", on_delete=models.PROTECT, related_name="+")
+    started_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
+    provider_code = models.CharField(_("proveïdor"), max_length=30)
+    provider_order_id = models.CharField(_("ordre del proveïdor"), max_length=100)
+    status = models.CharField(
+        _("estat"), max_length=12, choices=Status.choices, default=Status.IN_PROGRESS
+    )
+    saved_card = models.ForeignKey(
+        SavedCard, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("autenticació de targeta")
+        verbose_name_plural = _("autenticacions de targeta")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider_code", "provider_order_id"], name="card_setup_unique_order"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["in_progress", "saved", "failed"]),
+                name="card_setup_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="saved") | Q(saved_card__isnull=False),
+                name="card_setup_saved_has_card",
+            ),
+        ]
+
+    def __str__(self):
+        return self.status
 
 
 class MandateStatus(models.TextChoices):

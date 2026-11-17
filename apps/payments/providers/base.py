@@ -118,6 +118,17 @@ class ProviderSettlementReport:
 
 
 @dataclass(frozen=True)
+class ProviderCard:
+    """Una targeta guardada al proveïdor (RN-M05a-10): la seva referència opaca i el que es
+    mostra, si el proveïdor ho torna [A verificar: P-45 punt 6]. Mai el número ni el codi."""
+
+    card_ref: str
+    last4: str
+    expiry_month: int | None = None
+    expiry_year: int | None = None
+
+
+@dataclass(frozen=True)
 class Capabilities:
     card: bool
     bizum: bool
@@ -177,8 +188,21 @@ class PaymentProvider(ABC):
         dona, `NotSupported`: el tresorer casa la línia del banc per període (RN-T21)."""
         raise NotSupported("settlements")
 
-    def start_card_setup(self, person, urls: OrderUrls) -> str:
-        """Condicional (RN-M05a-10): adreça on el titular autentica la targeta."""
+    def start_card_setup(self, person, urls: OrderUrls) -> ProviderOrder:
+        """Condicional (RN-M05a-10): obre l'autenticació inicial del titular per guardar una
+        targeta (per exemple, una autorització de 0 € amb 3DS [A verificar: P-45 punt 6]) i
+        torna l'ordre amb l'adreça on el titular l'escriu. No és cap cobrament: guardar-la és
+        recollir el mètode, que el nivell 1 permet. La targeta arriba amb la notificació."""
+        if not self.capabilities().tokenization:
+            raise NotSupported("tokenization")
+        return self._start_card_setup(person, urls)
+
+    def _start_card_setup(self, person, urls: OrderUrls) -> ProviderOrder:
+        raise NotSupported("tokenization")
+
+    def get_card_setup(self, external_id: str) -> ProviderCard:
+        """La targeta que ha guardat una autenticació acabada, consultada al proveïdor (servidor a
+        servidor): mai la que digui el navegador."""
         raise NotSupported("tokenization")
 
     def charge_saved_card(self, charge, saved_card, idempotency_key: UUID) -> ProviderOrder:
