@@ -13,6 +13,7 @@
         <th scope="col">{% translate "Estat" %}</th>
         <th scope="col">{% translate "Doble factor" %}</th>
         <th scope="col">{% translate "Contrasenya temporal" %}</th>
+        <th scope="col">{% translate "Rols" %}</th>
         <th scope="col">{% translate "Accions" %}</th>
       </tr>
     </thead>
@@ -23,10 +24,11 @@
           <td data-etiqueta="{% translate 'Estat' %}"><span class="estat {% if account.status == 'active' %}estat-ok{% else %}estat-neutre{% endif %}">{% if account.status == 'active' %}✓{% elif account.status == 'disabled' %}×{% else %}○{% endif %} {{ account.get_status_display }}</span></td>
           <td data-etiqueta="{% translate 'Doble factor' %}">{% if account.has_totp %}✓ {% translate "Actiu" %}{% else %}○ {% translate "Pendent d'alta" %}{% endif %}</td>
           <td data-etiqueta="{% translate 'Contrasenya temporal' %}">{% if account.must_change_password %}<span class="estat estat-avis">! {% translate "Pendent de canviar" %}</span>{% else %}—{% endif %}</td>
-          <td class="cel-accions">{% if account.pk != user.pk %}<a class="boto boto-petit" href="{% url 'administration:reset_credentials' account.pk %}">{% blocktranslate with username=account.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</a>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Rols' %}">{% for item in account.active_roles %}{{ item.role }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+          <td class="cel-accions">{% if can_manage_roles %}<a class="boto boto-petit" href="{% url 'administration:account_roles' account.pk %}">{% blocktranslate with username=account.login %}Rols de {{ username }}{% endblocktranslate %}</a> {% endif %}{% if account.pk != user.pk %}<a class="boto boto-petit" href="{% url 'administration:reset_credentials' account.pk %}">{% blocktranslate with username=account.login %}Restablir l'accés de {{ username }}{% endblocktranslate %}</a>{% elif not can_manage_roles %}—{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="5">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
+        <tr><td colspan="6">{% translate "Encara no hi ha cap compte d'administrador." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

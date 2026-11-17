@@ -781,4 +781,15 @@ opcions:
       pantalla) és poca feina amb una llista. La D no compleix B5 ni B8 «N2».
     data: 2026-11-17
 
+  P-330:
+    opcions:
+      A: No; el rol nou val a la petició següent i la sessió ja es va obrir amb TOTP.
+      B: Sí, quan el rol assignat dona accés a dades personals o a diners; cal marcar quins permisos ho fan.
+      C: Sí, sempre que s'assigna qualsevol rol; el compte afectat torna a entrar amb TOTP.
+    recomanada: C
+    perque: >-
+      És la lectura més segura de RN-RP-11 i no demana classificar cada permís; l'únic cost és que el compte
+      afectat torna a entrar, i assignar rols passa poques vegades.
+    data: 2026-11-17
+
 noves:

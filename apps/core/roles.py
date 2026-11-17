@@ -2,9 +2,9 @@
 
 Aquí hi ha les regles; les pantalles són de la T-RP-02 i l'editor, de la T-RP-03. Cada canvi
 deixa la seva entrada al registre d'activitat (RN-RP-08) dins la mateixa transacció, amb els
-rols que tenia qui actua abans de canviar res (RN-RP-15). Els avisos per correu de la T-RP-02
-i de RN-RP-18 (junta i administradors) continuen pendents; el de CA-08.4 al compte restablert,
-sí que s'envia.
+rols que tenia qui actua abans de canviar res (RN-RP-15). Assignar i retirar un rol avisa per
+correu (RN-RP-09). Els avisos de RN-RP-18 i RN-RP-20 continuen pendents; el de CA-08.4 al compte
+restablert, sí que s'envia.
 """
 
 from dataclasses import dataclass
@@ -33,6 +33,11 @@ SECOND_TREASURER = gettext_lazy(
     "Ja hi ha un altre compte actiu amb el rol tresorer. El club treballa amb un sol tresorer "
     "(P-48); es pot desar igualment."
 )
+LAST_ROLE = gettext_lazy(
+    "El compte es quedarà sense cap rol: se'n tancaran les sessions i continuarà actiu, sense "
+    "accés a l'administració (RN-RP-11)."
+)
+ROLE_NOTICE_TEMPLATE = "avis-canvi-rol"
 
 
 def operational_admins(now=None):
@@ -65,6 +70,70 @@ def _lock_operational_admins() -> set[int]:
     return set(Account.objects.select_for_update().filter(pk__in=ids).values_list("pk", flat=True))
 
 
+def leaves_no_operational_admin(account) -> bool:
+    """Per al resum (CA-RP-06): si treure-li el rol administrador deixaria la plataforma sense
+    cap administrador operatiu. Sense bloquejar res: el servei ho torna a comprovar."""
+    operational = set(operational_admins().values_list("pk", flat=True))
+    return account.pk in operational and not (operational - {account.pk})
+
+
+def _other_active_treasurer(account) -> bool:
+    return (
+        AccountRole.objects.filter(
+            role__code=Role.Code.TREASURER,
+            removed_at__isnull=True,
+            admin_account__status=Account.Status.ACTIVE,
+        )
+        .exclude(admin_account=account)
+        .exists()
+    )
+
+
+def change_warnings(account, role_code: str, *, assign: bool) -> list:
+    """Avisos del resum abans de desar (RN-RP-07): un sol tresorer (RN-RP-14) i el compte que es
+    queda sense cap rol (RN-RP-11)."""
+    if assign:
+        return (
+            [SECOND_TREASURER]
+            if role_code == Role.Code.TREASURER and _other_active_treasurer(account)
+            else []
+        )
+    others = AccountRole.objects.filter(admin_account=account, removed_at__isnull=True)
+    return [] if others.exclude(role__code=role_code).exists() else [LAST_ROLE]
+
+
+def _notify_role_change(account, role, *, by, assigned: bool) -> None:
+    """RN-RP-09: correu a tots els comptes amb el rol administrador o President i al compte
+    afectat. Només els noms d'usuari, el rol i quan: cap dada personal de terceres persones."""
+    recipients = (
+        Account.objects.filter(kind=Account.Kind.ADMIN, status=Account.Status.ACTIVE)
+        .filter(
+            Q(pk=account.pk)
+            | Q(
+                role_assignments__role__code__in=[Role.Code.ADMINISTRATOR, Role.Code.PRESIDENT],
+                role_assignments__removed_at__isnull=True,
+            )
+        )
+        .exclude(notification_email="")
+        .select_related("person")
+        .distinct()
+    )
+    context = {
+        "username": account.login,
+        "actor": by.login,
+        "role": str(role),
+        "assigned": assigned,
+        "when": timezone.now(),
+    }
+    for recipient in recipients:
+        mail.queue_email(
+            ROLE_NOTICE_TEMPLATE,
+            to=recipient.notification_email,
+            person=recipient.person,
+            context=context,
+        )
+
+
 def _would_leave_no_operational_admin(account) -> bool:
     operational = _lock_operational_admins()
     return account.pk in operational and not (operational - {account.pk})
@@ -85,8 +154,9 @@ def _active_assignment(account, role_code):
 
 
 @transaction.atomic
-def assign_role(account: Account, role_code: str, *, by: Account) -> list[str]:
-    """Assigna un rol de gestió a un compte d'administrador. Torna els avisos del resum."""
+def assign_role(account: Account, role_code: str, *, by: Account, note: str = "") -> list[str]:
+    """Assigna un rol de gestió a un compte d'administrador. Torna els avisos del resum. La nota
+    va al registre (RN-RP-08); la pantalla l'exigeix."""
     _ensure_can_manage_accounts(by)
     role = Role.objects.filter(code=role_code, is_management=True).first()
     if role is None:
@@ -96,27 +166,22 @@ def assign_role(account: Account, role_code: str, *, by: Account) -> list[str]:
     if _active_assignment(account, role_code):
         return []
 
-    warnings = []
-    if role_code == Role.Code.TREASURER:
-        others = (
-            AccountRole.objects.filter(
-                role__code=Role.Code.TREASURER,
-                removed_at__isnull=True,
-                admin_account__status=Account.Status.ACTIVE,
-            )
-            .exclude(admin_account=account)
-            .exists()
-        )
-        if others:
-            warnings.append(SECOND_TREASURER)  # RN-RP-14: avís, no bloqueig
-
-    audit.record(audit.Action.ROLE_ASSIGNED, actor=by, target=account, field="role", new=role_code)
+    warnings = change_warnings(account, role_code, assign=True)  # RN-RP-14: avís, no bloqueig
+    audit.record(
+        audit.Action.ROLE_ASSIGNED,
+        actor=by,
+        target=account,
+        field="role",
+        new=role_code,
+        reason=note,
+    )
     AccountRole.objects.create(admin_account=account, role=role, assigned_by=by)
+    _notify_role_change(account, role, by=by, assigned=True)
     return warnings
 
 
 @transaction.atomic
-def remove_role(account: Account, role_code: str, *, by: Account) -> None:
+def remove_role(account: Account, role_code: str, *, by: Account, note: str = "") -> None:
     """Retira un rol. Té efecte a la petició següent (RN-RP-10). Si el compte es queda sense
     cap rol, se'n tanquen les sessions però continua actiu (RN-RP-11)."""
     _ensure_can_manage_accounts(by)
@@ -126,12 +191,20 @@ def remove_role(account: Account, role_code: str, *, by: Account) -> None:
     if role_code == Role.Code.ADMINISTRATOR and _would_leave_no_operational_admin(account):
         raise ValidationError(NO_OPERATIONAL_ADMIN)
 
-    audit.record(audit.Action.ROLE_REMOVED, actor=by, target=account, field="role", old=role_code)
+    audit.record(
+        audit.Action.ROLE_REMOVED,
+        actor=by,
+        target=account,
+        field="role",
+        old=role_code,
+        reason=note,
+    )
     assignment.removed_at = timezone.now()
     assignment.removed_by = by
     assignment.save(update_fields=["removed_at", "removed_by"])
     if not AccountRole.objects.filter(admin_account=account, removed_at__isnull=True).exists():
         account.end_all_sessions()
+    _notify_role_change(account, assignment.role, by=by, assigned=False)
     # RN-RP-12 (responsables orfes) s'aplicarà quan hi hagi activitats i sessions (02).
 
 

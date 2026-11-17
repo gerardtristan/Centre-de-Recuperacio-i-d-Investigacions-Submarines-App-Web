@@ -1,0 +1,77 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-RP-02: rols d'un compte d'administrador (059 i 060; RN-RP-07 a 14). Seguretat i privacitat: només M3, protegit i exclusiu de l'administrador, comprovat al servidor (la resta de rols, també el President, «no trobat»). El resum (GET) no desa res; desar és un POST amb CSRF, nota, casella de revisió i un codi TOTP nou de qui ho fa, i els errors no diuen quants intents queden. Només surten noms d'usuari i rols, cap dada personal. Si el canvi deixaria la plataforma sense cap administrador operatiu, un avís ho diu i el formulari no surt; el servidor ho torna a comprovar igualment en desar. #}
+{% block title %}{% blocktranslate with username=account.login %}Rols de {{ username }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Comptes d'administrador" %}</p>
+  <h1>{% blocktranslate with username=account.login %}Rols de {{ username }}{% endblocktranslate %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% if shortage %}<div class="avis avis-avis" role="status"><strong>{% translate "Menys de dos administradors operatius" %}</strong> {% translate "Si l'únic que queda perd l'accés, ningú no podrà gestionar comptes ni rols." %}</div>{% endif %}
+
+  <table class="taula">
+    <caption>{% translate "Rols actius del compte" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Rol" %}</th>
+        <th scope="col">{% translate "Des de" %}</th>
+        <th scope="col">{% translate "Accions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in active %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ item.role }}</th>
+          <td data-etiqueta="{% translate 'Des de' %}">{{ item.assigned_at|date:"d/m/Y" }}</td>
+          <td class="cel-accions"><a class="boto boto-petit" href="?action=remove&amp;role={{ item.role.code }}">{% blocktranslate with role=item.role %}Retira el rol {{ role }}…{% endblocktranslate %}</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Aquest compte no té cap rol: no pot fer res a l'administració." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if assignable %}
+    <form class="formulari" method="get" action="">
+      <input type="hidden" name="action" value="assign">
+      <div class="camp">
+        <label for="rol-nou">{% translate "Assigna un rol" %}</label>
+        <select id="rol-nou" name="role">
+          {% for role in assignable %}<option value="{{ role.code }}"{% if change and change.1 == role %} selected{% endif %}>{{ role }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Mostra el resum" %}</button></div>
+    </form>
+  {% endif %}
+
+  {% if change %}
+    <section class="targeta" aria-labelledby="resum-titol">
+      <h2 id="resum-titol">{% translate "Què canviarà" %}</h2>
+      <ul>
+        <li>{% if change.0 %}{% blocktranslate with role=change.1 username=account.login %}S'assignarà el rol {{ role }} al compte {{ username }}.{% endblocktranslate %}{% else %}{% blocktranslate with role=change.1 username=account.login %}Es retirarà el rol {{ role }} al compte {{ username }}.{% endblocktranslate %}{% endif %}</li>
+        <li>{% translate "Té efecte a la petició següent del compte." %}</li>
+        <li>{% translate "S'avisarà per correu els comptes amb el rol administrador o President i el compte afectat." %}</li>
+      </ul>
+      <h3>{% translate "1 compte afectat" %}</h3>
+      <ul><li><span class="codi">{{ account.login }}</span></li></ul>
+      {% for warning in warnings %}<div class="avis avis-avis" role="status">{{ warning }}</div>{% endfor %}
+    </section>
+    {% if blocked %}
+      <div class="avis avis-error" role="alert"><strong>{% translate "Ara no es pot retirar." %}</strong> {{ blocked_message }}</div>
+    {% else %}
+      <form class="formulari targeta" method="post" action="" aria-labelledby="desa-titol" novalidate>
+        {% csrf_token %}
+        <h2 id="desa-titol">{% translate "Desa el canvi" %}</h2>
+        {{ form.action }}{{ form.role }}
+        {% include "accounts/_camp.html" with field=form.note %}
+        {% include "accounts/_camp.html" with field=form.code %}
+        {% include "accounts/_camp.html" with field=form.reviewed %}
+        <div class="accions">
+          <button class="boto boto-principal" type="submit">{% if change.0 %}{% translate "Assigna el rol" %}{% else %}{% translate "Retira el rol" %}{% endif %}</button>
+          <a class="boto boto-text" href="?">{% translate "Cancel·la" %}</a>
+        </div>
+      </form>
+    {% endif %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:accounts' %}">{% translate "Tornar als comptes" %}</a></p>
+{% endblock %}

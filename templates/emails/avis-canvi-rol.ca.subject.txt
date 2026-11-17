@@ -1,0 +1,1 @@
+{% load i18n %}{% if assigned %}{% translate "Avís: s'ha assignat un rol a un compte d'administrador del C.R.I.S." %}{% else %}{% translate "Avís: s'ha retirat un rol a un compte d'administrador del C.R.I.S." %}{% endif %}

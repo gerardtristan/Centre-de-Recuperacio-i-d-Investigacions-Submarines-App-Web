@@ -86,6 +86,7 @@ TEMPLATE_PRIORITIES = {
     "avis-pagament-revisar": _Priority.CONFIRMATION,  # CA-M05b-05 (T-M05b-07; P-84)
     "avis-liquidacio-rebutjada": _Priority.CONFIRMATION,  # P-227 (095; T-M05b-14)
     "avis-compte-emergencia": _Priority.CONFIRMATION,  # CA-10.2 (T-M00-03)
+    "avis-canvi-rol": _Priority.CONFIRMATION,  # RN-RP-09 (T-RP-02)
     "restabliment-doble-factor": _Priority.CONFIRMATION,  # P-52 (081, punt 24; T-M01-51)
     "esborrat-fet": _Priority.CONFIRMATION,  # RGPD (T-M01-22)
     "esborrat-rebutjat": _Priority.CONFIRMATION,
