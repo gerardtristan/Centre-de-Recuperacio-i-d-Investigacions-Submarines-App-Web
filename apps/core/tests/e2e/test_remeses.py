@@ -1,6 +1,7 @@
 """Remeses al navegador (T-M05b-09 i 10; C5, B3; P-M05b-E, passos 1 a 5): el tresorer
 previsualitza la remesa, la confirma (els avisos previs surten per la cua), en veu el detall amb
-l'IBAN emmascarat i descarrega el fitxer pain.008. Pantalles a 1280, 390 i 320 px (clar i fosc).
+l'IBAN emmascarat, descarrega el fitxer pain.008, la marca com a enviada i casa l'abonament del
+banc (T-M05b-11b). Pantalles a 1280, 390 i 320 px (clar i fosc).
 Només dades inventades."""
 
 import pytest
@@ -9,6 +10,7 @@ from playwright.sync_api import expect
 from apps.accounts.models import Account
 from apps.core.models import LegalText
 from apps.members.tests.test_cards import make_member
+from apps.payments.tests.test_remittance_settlement import bank_line
 from apps.payments.tests.test_remittances import iban, new_member
 from conftest import PASSWORD
 
@@ -57,3 +59,19 @@ def test_treasurer_previews_confirms_and_downloads_a_remittance(
     with page.expect_download() as download:
         page.get_by_role("button", name="Descarrega el fitxer pain.008").click()
     assert download.value.suggested_filename.endswith("-pain.008.001.02.xml")
+
+    # Pas 6: enviada al banc, amb la confirmació de l'esborrat (044).
+    page.reload()
+    page.get_by_label("He esborrat el fitxer del dispositiu").check()
+    page.get_by_role("button", name="Marca com a enviada al banc").click()
+    expect(page.get_by_role("status")).to_contain_text("enviada al banc")
+
+    # Pas 8: l'abonament arriba a l'extracte i el tresorer el casa (CA-T16.1).
+    bank_line(12500, treasurer)
+    page.get_by_role("button", name="Cerca l'abonament").click()
+    page.get_by_role("button", name="Casa aquesta línia…").click()
+    expect(page.get_by_role("alert")).to_contain_text("2 quotes passen a pagades")
+    review("remeses-abonament-confirma")
+    page.get_by_role("button", name="Sí, casa l'abonament").click()
+    expect(page.get_by_role("status")).to_contain_text("Abonament casat")
+    expect(page.get_by_text("Liquidada")).to_be_visible()

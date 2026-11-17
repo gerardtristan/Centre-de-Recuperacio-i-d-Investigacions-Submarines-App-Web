@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n payments_money %}
-{# T-M05b-09 i 10, C5: detall d'una remesa (P-M05b-E, passos 4 i 5). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: B3 per veure-la; reenviar avisos i descarregar, B3 amb edició i POST amb CSRF. L'IBAN surt emmascarat (P-121) i no es desxifra per a la pantalla: només el porta el fitxer, que es genera a cada descàrrega i no es desa (RN-M05b-12); de la descàrrega en queda l'empremta i el registre. #}
+{# T-M05b-09, 10 i 11b, C5: detall d'una remesa (P-M05b-E, passos 4 a 8). Marcar-la enviada demana B3 amb edició i la casella de l'esborrat; casar l'abonament, B3 i T4 amb edició, una línia candidata tornada a comprovar al servidor i un segon pas de confirmació. Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: B3 per veure-la; reenviar avisos i descarregar, B3 amb edició i POST amb CSRF. L'IBAN surt emmascarat (P-121) i no es desxifra per a la pantalla: només el porta el fitxer, que es genera a cada descàrrega i no es desa (RN-M05b-12); de la descàrrega en queda l'empremta i el registre. #}
 {% block title %}{% blocktranslate with period=remittance.period %}Remesa {{ period }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -31,8 +31,57 @@
         {% endif %}
       </div>
       {% if remittance.status == "notified" %}<p class="text-2">{% translate "El fitxer porta els IBAN sencers: puja'l a la banca en línia i esborra'l del dispositiu." %} <span class="a-validar">{% translate "A verificar: versió del banc (P-233)" %}</span></p>{% endif %}
+      {% if remittance.status == "notified" and remittance.file_hash %}
+        <form class="formulari" method="post" action="{% url 'administration:payments_remittance_sent' remittance.pk %}">
+          {% csrf_token %}
+          {% include "accounts/_camp.html" with field=sent_form.file_deleted %}
+          <div class="accions"><button class="boto" type="submit">{% translate "Marca com a enviada al banc" %}</button></div>
+        </form>
+      {% endif %}
     {% endif %}
   </section>
+
+  {% if can_settle and remittance.status == "sent_to_bank" %}
+    <section class="targeta" aria-labelledby="abonament-titol">
+      <h2 id="abonament-titol">{% translate "Casa l'abonament del banc" %}</h2>
+      {% if confirm_line %}
+        <form class="formulari" method="post" action="{% url 'administration:payments_remittance_settle' remittance.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="line" value="{{ confirm_line.pk }}"><input type="hidden" name="fee" value="{{ settle_form.cleaned_data.fee|default_if_none:0|floatformat:2 }}"><input type="hidden" name="confirm" value="1">
+          <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'abonament" %}</strong>{% blocktranslate count total=remittance.item_count with amount=confirm_line.amount_cents|euros day=confirm_line.value_date|date:"d/m/Y" %}La línia del {{ day }} ({{ amount }}) liquida la remesa: {{ total }} quota passa a pagada i el soci rep el rebut. No es pot desfer.{% plural %}La línia del {{ day }} ({{ amount }}) liquida la remesa: {{ total }} quotes passen a pagades i cada soci rep el rebut. No es pot desfer.{% endblocktranslate %}</div>
+          <div class="accions">
+            <button class="boto boto-principal" type="submit">{% translate "Sí, casa l'abonament" %}</button>
+            <a class="boto boto-text" href="{% url 'administration:payments_remittance' remittance.pk %}">{% translate "Cancel·la" %}</a>
+          </div>
+        </form>
+      {% else %}
+        <form class="formulari" method="get" action="{% url 'administration:payments_remittance' remittance.pk %}" novalidate>
+          {% include "accounts/_camp.html" with field=settle_form.fee %}
+          <div class="accions"><button class="boto" type="submit">{% translate "Cerca l'abonament" %}</button></div>
+        </form>
+        {% if candidates is not None %}
+          <table class="taula">
+            <caption>{% blocktranslate with amount=net_cents|euros %}Línies de l'extracte de {{ amount }} que poden ser l'abonament{% endblocktranslate %}</caption>
+            <thead><tr><th scope="col">{% translate "Data" %}</th><th scope="col">{% translate "Concepte" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th><th scope="col"><span class="visualment-amagat">{% translate "Acció" %}</span></th></tr></thead>
+            <tbody>
+              {% for line in candidates %}
+                <tr>
+                  <th scope="row" class="cel-nom"><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time></th>
+                  <td data-etiqueta="{% translate 'Concepte' %}" class="cel-valor">{{ line.concept|default:"—" }}</td>
+                  <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ line.amount_cents|euros }}</span></td>
+                  <td data-etiqueta="{% translate 'Acció' %}">
+                    <form method="post" action="{% url 'administration:payments_remittance_settle' remittance.pk %}">{% csrf_token %}<input type="hidden" name="line" value="{{ line.pk }}"><input type="hidden" name="fee" value="{{ settle_form.cleaned_data.fee|default_if_none:0|floatformat:2 }}"><button class="boto boto-petit" type="submit">{% translate "Casa aquesta línia…" %}</button></form>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4">{% translate "Cap línia oberta de l'extracte amb aquest import a partir del dia del cobrament." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      {% endif %}
+    </section>
+  {% endif %}
 
   <table class="taula">
     <caption>{% translate "Rebuts" %}</caption>
