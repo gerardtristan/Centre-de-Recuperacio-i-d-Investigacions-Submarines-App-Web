@@ -928,6 +928,29 @@ opcions:
       No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer pot avisar per telèfon o en persona.
     data: 2026-11-17
 
+  P-283:
+    opcions:
+      A: La sessió de disseny aclareix el color del text de les pestanyes en fosc fins a 4,5:1 com a mínim.
+      B: Text de les pestanyes més gran o en negreta (14 px en negreta només demana 3:1).
+      C: Fons de la barra més fosc en el tema fosc.
+      D: S'accepta com està fins al nivell 2.
+    recomanada: A
+    perque: >-
+      És el canvi més petit i no toca la mida ni la composició de la barra; la D deixaria el nivell 1 sense B8.
+    data: 2026-11-17
+
+  P-284:
+    opcions:
+      A: El propietari prova el flux amb el seu mòbil i un altre de l'altre sistema (iOS i Android), seguint la llista de la T-M05a-18.
+      B: Ho proven dos o tres socis voluntaris de la junta, amb dades inventades a l'entorn de proves.
+      C: Un servei de dispositius al núvol, només amb dades inventades.
+      D: Només l'emulació de Chromium fins al nivell 2.
+    recomanada: A
+    perque: >-
+      Són cinc pantalles i mitja hora de feina; un telèfon real troba el que l'emulació no veu (teclat de l'IBAN,
+      Safari, lector de pantalla). La D no compleix B5 «N1».
+    data: 2026-11-17
+
   P-245:
     opcions:
       A: 8 intents en unes hores, i després la feina queda fallida i al registre (com s'ha fet).

@@ -357,6 +357,12 @@ MAP = {
         "templates/payments/*",
         "templates/core/guest.html",
     ),
+    # Accessibilitat del flux de mandat (T-M05a-18) a tres amplades: triga més que el pressupost.
+    "test_accessibilitat_mandat.py": (
+        "templates/payments/fee_method.html",
+        "templates/payments/mandate*.html",
+        "templates/payments/campaign.html",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
@@ -366,6 +372,7 @@ MAP = {
 SECONDS = {
     SMOKE: 35,
     "test_accessibilitat_028.py": 120,
+    "test_accessibilitat_mandat.py": 120,
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
 }
