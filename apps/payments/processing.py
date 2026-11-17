@@ -164,6 +164,18 @@ def _review(attempt: PaymentAttempt | None, source, reason: str) -> str:
     return R.TO_REVIEW
 
 
+def mark_for_review(attempt, source, reason: str, *, notify: bool = True) -> str:
+    """«A revisar» des de fora d'aquest mòdul: l'entrada `TO_REVIEW` al registre (la llista «a
+    revisar» en surt) i, si `notify`, l'avís al tresorer."""
+    if attempt is not None and attempt.status == S.IN_PROGRESS:
+        attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
+    else:
+        audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
+    if notify:
+        _mail_review(attempt, source, reason)
+    return R.TO_REVIEW
+
+
 def _mail_review(attempt, source, reason: str) -> None:
     """L'avís al tresorer (CA-M05b-05): el motiu i les referències internes, cap dada personal.
     Un sol correu per adreça; va a la mateixa transacció que el canvi."""

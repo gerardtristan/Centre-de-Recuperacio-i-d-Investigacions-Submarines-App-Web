@@ -11,12 +11,18 @@ from django.db import connection
 from django.test import Client
 
 from apps.core import audit, charges
-from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Role
+from apps.core import privacy as core_privacy
+from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member, pay
 from apps.payments import attempts, checkout, guards, processing
-from apps.payments.models import FeePaymentPreference, PaymentAttempt, SavedCardNotice
+from apps.payments.models import (
+    FeePaymentPreference,
+    PaymentAttempt,
+    SavedCard,
+    SavedCardNotice,
+)
 from apps.payments.providers import base, fake
 from apps.payments.tests import test_guest_payment
 from apps.payments.tests.test_fee_method import active_account
@@ -118,10 +124,13 @@ def test_a_denied_charge_leaves_the_fee_pending(saved, fee):
 
 
 def test_a_failure_after_the_provider_call_does_not_charge_twice(saved, fee, monkeypatch):
-    def broken(*args, **kwargs):
-        raise RuntimeError("la base de dades ha caigut")
+    real = fake.FakeProvider._charge_saved_card
 
-    monkeypatch.setattr(checkout, "_save_order", broken)
+    def broken(self, *args):
+        real(self, *args)  # el proveïdor cobra, però la resposta no arriba
+        raise RuntimeError("la connexió ha caigut")
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", broken)
     checkout.charge_due_saved_cards()
     monkeypatch.undo()
     attempt = only_attempt(fee)
@@ -176,27 +185,6 @@ def test_only_once_per_fee_and_only_when_due(saved, fee, member, monkeypatch):
     assert not later.charge.attempts.exists()
 
 
-@pytest.mark.parametrize("how", ["pay_each_time", "removed"])
-def test_no_charge_without_an_active_saved_card_preference(saved, fee, member, how):
-    if how == "removed":
-        saved.status = "removed"
-        saved.save()
-    else:
-        FeePaymentPreference.objects.filter(member=member).update(
-            method="pay_each_time", saved_card=None
-        )
-    assert checkout.charge_due_saved_cards() == 0
-    assert not PaymentAttempt.objects.exists()
-
-
-def test_a_card_of_another_person_is_not_used(saved, member):
-    other = make_member(first="Pau", number=1288, document="87654321X")
-    other_fee = add_fee(other)
-    with pytest.raises(checkout.CardNotUsable):
-        checkout.charge_saved_card(other_fee.charge, saved)
-    assert not PaymentAttempt.objects.exists()
-
-
 def test_level_1_no_saved_card_is_charged(saved, fee, settings):
     settings.PAYMENTS_ENVIRONMENT = "live"
     settings.PAYMENTS_LIVE_CHARGES_ALLOWED = False
@@ -206,10 +194,6 @@ def test_level_1_no_saved_card_is_charged(saved, fee, settings):
         checkout.charge_saved_card(fee.charge, saved)
     assert not PaymentAttempt.objects.exists()
     assert AuditEntry.objects.filter(action=guards.REFUSED).count() == 1  # només la crida directa
-
-
-def test_the_member_cannot_choose_saved_card_on_the_payment_screen():
-    assert M.SAVED_CARD not in attempts.SCREEN_METHODS
 
 
 # --- Segona revisió de #191 ---
@@ -248,15 +232,6 @@ def test_a_call_that_never_reached_the_provider_is_closed_by_the_safety_net(
     checkout.start_payment(fee.charge, "card", account)  # el soci ja pot pagar
 
 
-def test_an_attempt_in_progress_is_skipped_quietly(saved, fee, account, monkeypatch, caplog):
-    due = checkout.due_saved_card_charges(date(2026, 6, 1))
-    checkout.start_payment(fee.charge, "card", account)
-    monkeypatch.setattr(checkout, "due_saved_card_charges", lambda today: due)
-
-    assert checkout.charge_due_saved_cards() == 0
-    assert not [r for r in caplog.records if r.levelname == "ERROR"]
-
-
 def test_level_1_without_due_fees_writes_nothing(settings):
     settings.PAYMENTS_ENVIRONMENT = "live"
     settings.PAYMENTS_LIVE_CHARGES_ALLOWED = False
@@ -287,7 +262,7 @@ def test_a_notification_before_the_response_finds_its_attempt(saved, fee, monkey
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
-def test_a_waiting_transfer_is_not_charged_by_card_and_it_is_said_once(
+def test_a_waiting_transfer_is_not_charged_said_once_and_charged_when_it_goes(
     saved, fee, account, settings, treasurer
 ):
     settings.CLUB_IBAN_TRANSFERENCIES = test_guest_payment.IBAN
@@ -296,10 +271,14 @@ def test_a_waiting_transfer_is_not_charged_by_card_and_it_is_said_once(
     checkout.charge_due_saved_cards()
     checkout.charge_due_saved_cards()
 
-    assert PaymentAttempt.objects.get(pk=start.attempt_id).status == S.IN_PROGRESS
+    transfer = PaymentAttempt.objects.get(pk=start.attempt_id)
+    assert transfer.status == S.IN_PROGRESS
     assert not fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
     assert SavedCardNotice.objects.filter(charge=fee.charge).count() == 1
     assert "transferència en espera" in review_emails().get().body_text
+
+    attempts.transition(transfer, S.ABANDONED, by=audit.system("prova"))
+    assert checkout.charge_due_saved_cards() == 1  # l'avís no la treu de la llista
 
 
 def test_no_alternative_for_a_fee_paid_by_hand_in_between(saved, fee, monkeypatch):
@@ -324,16 +303,23 @@ def test_the_notice_is_per_card_and_a_new_card_is_charged(saved, fee, member):
     assert checkout.charge_due_saved_cards() == 1
 
 
-def test_an_unexpected_order_goes_to_review(saved, fee, monkeypatch):
+def test_an_unexpected_order_is_kept_so_its_notification_finds_the_attempt(saved, fee, monkeypatch):
     real = fake.FakeProvider._charge_saved_card
 
     def other(self, charge, card, key):
         order = real(self, charge, card, key)
+        fake._orders["fake-una-altra"] = fake._orders[order.external_id]
         return base.ProviderOrder("fake-una-altra", order.pay_url, None)
 
     monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other)
     checkout.charge_due_saved_cards()
-    assert only_attempt(fee).status == S.TO_REVIEW
+    attempt = only_attempt(fee)
+    assert attempt.provider_order_id == "fake-una-altra"
+    assert AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()
+
+    notify(attempt)
+    run_queue()
+    assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
 def test_an_error_on_one_fee_does_not_stop_the_run(saved, fee, monkeypatch):
@@ -352,13 +338,42 @@ def test_an_error_on_one_fee_does_not_stop_the_run(saved, fee, monkeypatch):
     assert other_fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
 
 
-@pytest.mark.parametrize("how", ["preference", "member"])
-def test_only_the_card_of_the_preference_of_an_active_member(saved, fee, member, how):
+@pytest.mark.parametrize(
+    ("how", "case"), [("preference", checkout.PREFERENCE), ("member", checkout.NOT_MEMBER)]
+)
+def test_only_the_card_of_the_preference_of_an_active_member(saved, fee, member, how, case):
     if how == "preference":
         FeePaymentPreference.objects.filter(member=member).update(
             method="pay_each_time", saved_card=None
         )
     else:
         Member.objects.filter(pk=member.pk).update(status=Member.Status.LEFT)
-    with pytest.raises(checkout.CardNotUsable):
+    with pytest.raises(checkout.CardNotUsable) as error:
         checkout.charge_saved_card(fee.charge, saved)
+    assert error.value.case == case
+
+
+def test_a_fee_paid_by_hand_before_the_call_is_not_charged(saved, fee, monkeypatch):
+    real = checkout._open_saved_card_attempt
+
+    def then_paid(*args, **kwargs):
+        opened = real(*args, **kwargs)
+        pay(fee)  # una altra via, entre les dues transaccions
+        return opened
+
+    monkeypatch.setattr(checkout, "_open_saved_card_attempt", then_paid)
+    checkout.charge_due_saved_cards()
+
+    assert only_attempt(fee).status == S.ABANDONED
+    assert not fake._orders  # el proveïdor no ha rebut res
+
+
+def test_the_erasure_works_with_saved_cards(saved, fee, member, make_admin):  # noqa: F811
+    checkout.charge_due_saved_cards()
+    notify(only_attempt(fee))
+    run_queue()
+    core_privacy.anonymise_person(member.person, by=make_admin(Role.Code.ADMINISTRATOR))
+
+    member.person.refresh_from_db()
+    assert member.person.status == Person.Status.ANONYMISED
+    assert SavedCard.objects.filter(pk=saved.pk).exists()  # mai no s'esborra

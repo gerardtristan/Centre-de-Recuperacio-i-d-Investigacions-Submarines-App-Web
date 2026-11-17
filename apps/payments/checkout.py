@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy
 from apps.accounts.models import Account
 from apps.core import audit, guest_links
 from apps.core.models import Charge, GuestLink, Person
-from apps.members import services as members
+from apps.members.models import Member
 from apps.treasury import services as treasury
 
 from . import attempts, processing
@@ -269,13 +269,11 @@ def start_payment(charge: Charge, method: str, actor) -> PaymentStart:
 
 
 class CardNotUsable(attempts.ChargeNotPayable):
-    """La targeta no serveix per a aquest càrrec: no n'hi ha, no és activa, ha caducat, no és de
-    la persona del càrrec o és d'un altre proveïdor, o el càrrec no és una quota anual."""
+    """La targeta guardada no pot cobrar aquesta quota; `case` diu per què (`CASES`)."""
 
-
-class TransferWaiting(attempts.ChargeNotPayable):
-    """El soci espera una transferència: si ja l'ha feta, cobrar la targeta seria cobrar dues
-    vegades. No es cobra i es diu al tresorer."""
+    def __init__(self, case: str):
+        super().__init__(case)
+        self.case = case
 
 
 class AlreadyAttempted(attempts.ChargeNotPayable):
@@ -286,8 +284,23 @@ class AlreadyAttempted(attempts.ChargeNotPayable):
 NOT_CHARGED = "payments.saved_card.not_charged"
 SAVED_CARD_ACTOR = "payments.saved_card"
 AUTHENTICATION = gettext_lazy("RN-M05b-20: el banc demana autenticació")
-TRANSFER_WAITING = gettext_lazy("Té una transferència en espera: no es cobra la targeta.")
-NOT_USABLE = gettext_lazy("La targeta guardada no hi és, ha caducat o ja no serveix.")
+NOT_PENDING = gettext_lazy("La quota ha deixat d'estar pendent abans de cobrar-la.")
+# Per què una targeta guardada no cobra una quota: el motiu per al tresorer i si s'avisa el soci
+# (T-M05b-15b). Només la targeta que ja no serveix és cosa del soci; la resta, del tresorer.
+CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING = (
+    "card_closed", "not_member", "preference", "provider", "not_fee", "transfer_waiting",
+)  # fmt: skip
+CASES = {
+    CARD_CLOSED: (gettext_lazy("La targeta guardada ja no es pot fer servir."), True),
+    NOT_MEMBER: (gettext_lazy("La persona ja no és sòcia activa ni impagada."), False),
+    PREFERENCE: (gettext_lazy("La preferència de la quota ja no és aquesta targeta."), False),
+    PROVIDER: (gettext_lazy("La targeta és d'un altre proveïdor."), False),
+    NOT_FEE: (gettext_lazy("El càrrec no és una quota anual."), False),
+    TRANSFER_WAITING: (
+        gettext_lazy("Té una transferència en espera: no es cobra la targeta."),
+        False,
+    ),
+}
 
 
 def _expired(card: SavedCard, today) -> bool:
@@ -296,42 +309,49 @@ def _expired(card: SavedCard, today) -> bool:
     return (card.expiry_year, card.expiry_month) < (today.year, today.month)
 
 
-def _usable(card: SavedCard | None, charge: Charge, provider) -> bool:
-    """La targeta activa, no caducada i del proveïdor, de la preferència «targeta guardada» d'un
-    soci actiu o impagat, per a una quota anual seva."""
+def _unusable(card: SavedCard | None, charge: Charge, provider) -> str | None:
+    """Per què la targeta no pot cobrar la quota (un cas de `CASES`), o None si pot: la targeta
+    activa i no caducada, del proveïdor, de la preferència «targeta guardada» d'un soci actiu o
+    impagat, per a una quota anual seva."""
     fee = getattr(charge, "annual_fee", None)
-    return (
-        card is not None
-        and fee is not None
-        and card.status == SavedCard.Status.ACTIVE
-        and card.person_id == charge.person_id
-        and card.provider_code == provider.code
-        and not _expired(card, timezone.localdate())
-        and FeePaymentPreference.objects.filter(
-            member_id=fee.member_id, method=SAVED_CARD, saved_card=card
-        ).exists()
-        and members.is_member(charge.person)
-    )
+    if fee is None:
+        return NOT_FEE
+    if fee.member.status not in (Member.Status.ACTIVE, Member.Status.UNPAID):
+        return NOT_MEMBER
+    if not FeePaymentPreference.objects.filter(
+        member_id=fee.member_id, method=SAVED_CARD, saved_card=card
+    ).exists():
+        return PREFERENCE
+    if card.provider_code != provider.code:
+        return PROVIDER
+    if (
+        card.status != SavedCard.Status.ACTIVE
+        or card.person_id != charge.person_id
+        or _expired(card, timezone.localdate())
+    ):
+        return CARD_CLOSED
+    return None
 
 
 def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
-    """Sota el bloqueig del càrrec i de la targeta (llegida de nou): les comprovacions i l'intent
-    «en curs», amb la targeta i l'identificador que tindrà l'ordre al proveïdor, desats abans de
-    cobrar. Així la notificació el troba encara que arribi abans que la resposta, i si la crida
-    falla, la xarxa de seguretat pregunta per aquella ordre (cap segon cobrament). Torna
+    """Primera transacció, sota el bloqueig del càrrec i de la targeta (llegida de nou): les
+    comprovacions i l'intent «en curs», amb la targeta i l'identificador que tindrà l'ordre al
+    proveïdor, desats abans de cobrar. Així la notificació el troba encara que arribi abans que
+    la resposta, i si la crida falla, la xarxa de seguretat pregunta per aquella ordre. Torna
     l'intent i la targeta."""
     by = audit.system(SAVED_CARD_ACTOR)
     with transaction.atomic():
         stored = Charge.objects.select_for_update().get(pk=charge.pk)
         if card is not None:
             card = SavedCard.objects.select_for_update().filter(pk=card.pk).first()
-        if not _usable(card, stored, provider):
-            raise CardNotUsable
+        if card is None:
+            raise CardNotUsable(PREFERENCE)
+        if case := _unusable(card, stored, provider):
+            raise CardNotUsable(case)
         if stored.attempts.filter(method=SAVED_CARD).exists():
             raise AlreadyAttempted
-        waiting = stored.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER)
-        if waiting.exists():
-            raise TransferWaiting
+        if stored.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists():
+            raise CardNotUsable(TRANSFER_WAITING)  # si ja l'ha feta, pagaria dues vegades
         if _in_progress(stored):
             raise attempts.AttemptInProgress
         attempt = attempts.create_attempt(stored, SAVED_CARD)
@@ -343,21 +363,35 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
         return attempt, card
 
 
-def _save_order(attempt: PaymentAttempt, order, card: SavedCard) -> PaymentAttempt:
-    """La resposta del proveïdor. Una ordre que no és la que s'esperava va «a revisar». Si el
-    banc demana autenticació (RN-M05b-20, P-303), l'intent es tanca de seguida: ningú no la pot
-    completar fora de sessió, i l'adreça no es desa ni s'envia enlloc."""
+def _charge(attempt: PaymentAttempt, card: SavedCard, provider) -> PaymentAttempt:
+    """Segona transacció, amb el mateix ordre de bloqueig que `settle` (càrrec i després intent):
+    si la quota ja no és pendent o l'import ha canviat, l'intent es tanca sense cobrar; si no, es
+    cobra l'import de l'intent. Una ordre diferent de l'esperada es desa (la seva notificació
+    trobarà l'intent) i va «a revisar». Si el banc demana autenticació (RN-M05b-20, P-303),
+    l'intent es tanca de seguida: ningú no la pot completar fora de sessió, i l'adreça no es desa
+    ni s'envia enlloc."""
     by = audit.system(SAVED_CARD_ACTOR)
     with transaction.atomic():
+        charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
+        if attempt.status != S.IN_PROGRESS:
+            return attempt
+        if charge.status != Charge.Status.PENDING or charge.amount_cents != attempt.amount_cents:
+            reason = str(NOT_PENDING)
+            return attempts.transition(attempt, S.ABANDONED, by=by, reason=reason)
+        order = provider.charge_saved_card(charge, card, attempt.idempotency_key)
         details = {"provider": attempt.provider_code, "order": order.external_id, "card": card.pk}
         audit.record("payments.order_created", actor=by, target=attempt, details=details)
         if order.external_id != attempt.provider_order_id:
-            reason = _("El proveïdor ha tornat una altra ordre: %(order)s") % {
-                "order": order.external_id
+            expected = attempt.provider_order_id
+            attempt.provider_order_id = order.external_id
+            attempt.save(update_fields=["provider_order_id", "updated_at"])
+            reason = _("El proveïdor ha tornat l'ordre %(order)s en lloc de %(expected)s.") % {
+                "order": order.external_id,
+                "expected": expected,
             }
-            processing._review(attempt, None, reason)
-        elif order.pay_url and attempt.status == S.IN_PROGRESS:
+            processing.mark_for_review(None, attempt, reason)
+        elif order.pay_url:
             attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AUTHENTICATION))
     return attempt
 
@@ -365,38 +399,36 @@ def _save_order(attempt: PaymentAttempt, order, card: SavedCard) -> PaymentAttem
 def charge_saved_card(charge: Charge, card: SavedCard | None, *, provider=None) -> PaymentAttempt:
     """Cobra una quota amb la targeta guardada de la seva persona, sense que hi intervingui
     (T-M05b-15; RN-M05b-20). L'obre el sistema; «pagat» només arriba amb la notificació.
-    `provider`: el de la tasca diària, que ja ha passat la salvaguarda. Errors: `CardNotUsable`,
+    `provider`: el de la tasca diària, que ja ha comprovat el nivell. Errors: `CardNotUsable`,
     `AlreadyAttempted`, `AttemptInProgress`, `LiveChargesNotAllowed` i els del proveïdor (amb
     l'intent «en curs» i la seva ordre, que tanca la xarxa de seguretat)."""
     if provider is None:
         ensure_charges_allowed("charge_saved_card")  # abans de cap transacció (CA-M05a-09)
         provider = get_provider()
     attempt, card = _open_saved_card_attempt(charge, card, provider)
-    # Fora de la transacció: si falla res després, l'intent i la seva ordre ja hi són.
-    order = provider.charge_saved_card(attempt.charge, card, attempt.idempotency_key)
-    return _save_order(attempt, order, card)
+    return _charge(attempt, card, provider)
 
 
-def _not_charged(charge: Charge, card: SavedCard | None, reason: str) -> None:
-    """Una quota que aquesta targeta no pot cobrar: una sola vegada per targeta (marca a la base
-    de dades, sota el bloqueig del càrrec), al registre i «a revisar» per al tresorer. Amb una
-    targeta nova es torna a provar. Els avisos al soci són de la T-M05b-15b."""
+def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
+    """Una quota que aquesta targeta no pot cobrar, pel motiu `case`: al registre i «a revisar»
+    per al tresorer, una sola vegada per càrrec, targeta i motiu (la marca, a la base de dades i
+    sota el bloqueig del càrrec). La quota es continua provant cada dia: quan el motiu desapareix,
+    es cobra. Els avisos al soci són de la T-M05b-15b."""
     with transaction.atomic():
         charge = Charge.objects.select_for_update().get(pk=charge.pk)
-        notice, new = SavedCardNotice.objects.get_or_create(
-            charge=charge, card=card, defaults={"reason": reason}
-        )
+        notice, new = SavedCardNotice.objects.get_or_create(charge=charge, card=card, case=case)
         if not new:
             return
+        reason = str(CASES[case][0])
         by = audit.system(SAVED_CARD_ACTOR)
-        audit.record(NOT_CHARGED, actor=by, target=charge, reason=str(reason))
-        processing._review(None, charge, str(reason))
+        audit.record(NOT_CHARGED, actor=by, target=charge, reason=reason, details={"case": case})
+        processing.mark_for_review(None, charge, reason)
 
 
 def due_saved_card_charges(today):
     """Les quotes pendents que ja han vençut dels socis que paguen amb la targeta guardada, amb
-    la targeta de la preferència, si encara no s'ha avisat per aquesta targeta (P-302: el dia del
-    venciment). Què se'n fa ho decideix `charge_saved_card`, sota el bloqueig del càrrec."""
+    la targeta de la preferència (P-302: el dia del venciment). Què se'n fa ho decideix
+    `charge_saved_card`, sota el bloqueig del càrrec."""
     preferences = FeePaymentPreference.objects.filter(method=SAVED_CARD)
     cards = {p.member_id: p.saved_card for p in preferences.select_related("saved_card")}
     due = (
@@ -409,10 +441,7 @@ def due_saved_card_charges(today):
         .select_related("annual_fee")
         .order_by("pk")
     )
-    notices = SavedCardNotice.objects.filter(charge__in=due)
-    noticed = set(notices.values_list("charge_id", "card_id"))
-    pairs = [(c, cards[c.annual_fee.member_id]) for c in due]
-    return [(c, card) for c, card in pairs if (c.pk, card.pk) not in noticed]
+    return [(c, cards[c.annual_fee.member_id]) for c in due]
 
 
 def charge_due_saved_cards() -> int:
@@ -430,10 +459,8 @@ def charge_due_saved_cards() -> int:
             try:
                 charge_saved_card(charge, card, provider=provider)
                 started += 1
-            except CardNotUsable:
-                _not_charged(charge, card, NOT_USABLE)
-            except TransferWaiting:
-                _not_charged(charge, card, TRANSFER_WAITING)
+            except CardNotUsable as error:
+                _not_charged(charge, card, error.case)
             except (attempts.ChargeNotPayable, attempts.AttemptInProgress):
                 pass  # ja té un intent, o ja no és pendent
         except Exception:
