@@ -6,9 +6,12 @@ name: Línia cronològica
 on:
   # Cada vegada que acaba el CI d'una branca (verd o vermell): hi ha hagut un push
   # i el número i el resultat de l'execució ja es poden mostrar.
+  # Només les branques on el CI corre per push: el CI d'una PR (tasca/*, fix/*...) no
+  # publica res i, si es posava en marxa, cancel·lava la publicació en curs.
   workflow_run:
     workflows: [CI]
     types: [completed]
+    branches: [master, "feature/**"]
   push:
     branches: [master]
     paths:
@@ -32,7 +35,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: linia-cronologica
+  # Una execució que no publicarà res (el CI d'una PR des d'una branca feature/*) va al seu
+  # propi grup: així no cancel·la la publicació de veritat que estigui en curs.
+  group: >-
+    ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event != 'push'
+    && format('linia-buida-{0}', github.run_id) || 'linia-cronologica' }}
   cancel-in-progress: true
 
 jobs:
