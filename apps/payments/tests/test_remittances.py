@@ -118,7 +118,7 @@ def test_ca_m05b_12_previsualitzacio_amb_130_rebuts_i_20_exclosos(signer, text):
     assert not DirectDebitRemittance.objects.exists()
 
 
-def test_motius_d_exclusio(signer, text):
+def test_motius_d_exclusio(signer, text, treasurer):
     included = new_member(1, signer=signer, text=text)
     no_mandate = new_member(2, mandate=False)
     each_time = new_member(3, debit=False, signer=signer, text=text)
@@ -128,7 +128,7 @@ def test_motius_d_exclusio(signer, text):
         busy.charge.attempts.get(), PaymentAttempt.Status.IN_PROGRESS, by=audit.system("proves")
     )
     revoked = new_member(5, signer=signer, text=text)
-    mandates.revoke_mandate(revoked.member, by=signer)
+    mandates.revoke_mandate(revoked.member, by=treasurer)  # A6
     new_fee(
         included.member, due_on=collection_date() + timedelta(days=1), period=2027
     )  # encara no venç

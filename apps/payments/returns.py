@@ -23,12 +23,14 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings, charges, mail
 from apps.core.models import Charge
+from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members import services as members
 from apps.treasury import services as treasury
@@ -66,6 +68,11 @@ class RetryNotAllowed(Exception):
     """RN-M05b-15: intents esgotats o sense mandat actiu."""
 
 
+def _ensure_b4(by) -> None:
+    if not has_perm(by, charges.RETURNS, write=True):
+        raise Http404
+
+
 def max_attempts() -> int:
     """Rebuts domiciliats per càrrec com a molt, amb el valor vigent avui (VC-16)."""
     return business_settings.get(MAX_ATTEMPTS)
@@ -83,7 +90,8 @@ def register_return(
     item: DirectDebitItem, reason_code: str, *, fee_cents: int | None = None, by
 ) -> str:
     """P-M05b-F, passos 1 a 3. Torna `RETRY` o `ALTERNATIVE`; el tresorer la confirma amb
-    `confirm`. Sense B4, «no trobat» (`charges.mark_returned`)."""
+    `confirm`. Sense B4, «no trobat», abans de mirar res (T-M05b-25)."""
+    _ensure_b4(by)
     code = (reason_code or "").strip().upper()
     if not CODE.fullmatch(code):
         raise ValidationError(_("El codi de motiu del banc té quatre lletres o xifres."))
@@ -147,7 +155,8 @@ def register_return(
 @transaction.atomic
 def confirm(item: DirectDebitItem, decision: str, *, by, note: str = "") -> bool:
     """P-M05b-F, passos 4 i 5 (048): reintent o alternativa. Torna si s'ha posat a la cua el
-    correu de l'alternativa (sense adreça o amb el reintent, no)."""
+    correu de l'alternativa (sense adreça o amb el reintent, no). Sense B4, «no trobat»."""
+    _ensure_b4(by)
     if decision not in (RETRY, ALTERNATIVE):
         raise ValueError(decision)
     item = DirectDebitItem.objects.select_related("attempt__charge__person", "mandate").get(

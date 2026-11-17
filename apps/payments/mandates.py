@@ -10,12 +10,15 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 from django.views.decorators.debug import sensitive_variables
 
+from apps.accounts.models import Account
 from apps.core import audit, mail
+from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members.models import Member
 
@@ -25,6 +28,7 @@ from .models import FeeMethod, MandateBankAccount, SepaMandate
 SIGNED_TEMPLATE = "mandat-signat"  # G3
 EXPIRED_TEMPLATE = "mandat-caducat"
 REVOKED_TEMPLATE = "mandat-revocat"
+REVOKE = "payments.mandates.revoke"  # A6 (M05a-4)
 MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 
@@ -60,6 +64,12 @@ def _revoke(mandate: SepaMandate, reason: str, by, now, **details) -> None:
     )
 
 
+def _is_own(account, member) -> bool:
+    # Només el compte personal: un compte d'administrador no té accions pròpies (059, punt 4.2).
+    personal = getattr(account, "kind", None) == Account.Kind.PERSONAL
+    return personal and account.person_id == member.person_id
+
+
 @transaction.atomic
 def revoke_mandate(member: Member, *, by, reason: str = MEMBER_REQUEST) -> SepaMandate | None:
     """Revoca el mandat actiu del soci (P-M05a-C): ell mateix des del compte personal o el tresorer
@@ -67,7 +77,9 @@ def revoke_mandate(member: Member, *, by, reason: str = MEMBER_REQUEST) -> SepaM
     preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». El soci
     rep un correu (`mandat-revocat`), a la mateixa transacció, per la cua. Torna el mandat, o
     None si no n'hi havia cap d'actiu. Funciona encara que la signatura estigui apagada (P-127):
-    un soci sempre ha de poder revocar."""
+    un soci sempre ha de poder revocar. Ningú més, sense A6: «no trobat» (T-M05a-25)."""
+    if not (_is_own(by, member) or has_perm(by, REVOKE, write=True)):
+        raise Http404
     mandate = (
         SepaMandate.objects.select_for_update()
         .filter(member=member, status=SepaMandate.Status.ACTIVE)

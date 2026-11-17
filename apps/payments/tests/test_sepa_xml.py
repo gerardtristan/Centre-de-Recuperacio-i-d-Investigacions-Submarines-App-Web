@@ -98,7 +98,7 @@ def test_nomes_una_remesa_avisada_te_fitxer(remittance, treasurer):  # noqa: F81
 
 def test_un_mandat_revocat_despres_de_l_avis_atura_el_fitxer(remittance, treasurer, signer):  # noqa: F811
     revoked = SepaMandate.objects.order_by("member__member_number").first()
-    mandates.revoke_mandate(revoked.member, by=signer)
+    mandates.revoke_mandate(revoked.member, by=treasurer)  # A6
 
     with pytest.raises(sepa_xml.MandateNoLongerActive) as error:
         sepa_xml.remittance_file(remittance, treasurer)
