@@ -258,6 +258,7 @@ def candidate_lines(remittance: DirectDebitRemittance, fees_cents: int = 0):
     )
 
 
+@requires_charges("settle_remittance")  # CA-M05b-17: amb el nivell 1, res no es liquida
 @transaction.atomic
 def settle_remittance(
     remittance: DirectDebitRemittance, line, *, fees_cents: int = 0, by
@@ -267,7 +268,6 @@ def settle_remittance(
     SEPA», el rebut i el correu al soci, l'avís al 01 si és una quota i l'últim cobrament del
     mandat. Després, la liquidació a la 04 amb una partida per rebut, confirmada amb la línia
     (comissions i traspàs al banc; T4, que comprova la 04)."""
-    ensure_charges_allowed()
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.SENT_TO_BANK:
         raise WrongStatus(remittance.status)
