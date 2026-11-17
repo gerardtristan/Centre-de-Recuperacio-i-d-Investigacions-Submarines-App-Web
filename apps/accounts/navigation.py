@@ -20,7 +20,9 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.business_settings import section_code
 from apps.core.permission_catalog import CATALOG
 from apps.core.permissions import has_perm, request_permissions
+from apps.core.under_construction import PERMISSION as UNDER_CONSTRUCTION
 from apps.members.permissions import READ, ROUTES
+from apps.previews.screens import discover
 
 from .security import AREA_ADMIN
 from .sessions import session_area_is_valid
@@ -46,6 +48,8 @@ BASE_ROUTES = {
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
+    # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
+    "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
     "administration:settings": tuple(
         ((code, READ),) for code in CATALOG if code.startswith(section_code(""))
@@ -125,6 +129,11 @@ ENTRIES = (
         ("administration:reset_credentials",),
     ),
     ("administration:audit_log", _("Registre d'activitat"), ()),
+    (
+        "administration:previews:index",
+        _("Pantalles en construcció"),
+        tuple(f"administration:previews:{name}" for name, _module in discover()),
+    ),  # T-DX-50
     (
         "administration:settings",
         _("Ajustos"),

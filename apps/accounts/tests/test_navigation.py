@@ -23,9 +23,10 @@ from apps.accounts.navigation import ENTRIES, admin_nav_for, admin_navigation, r
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import ADMIN_MAX_AGE_SECONDS, AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core import consents
-from apps.core.models import Role
+from apps.core.models import Role, RolePermission
 from apps.core.permissions import has_perm
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.under_construction import PERMISSION as UNDER_CONSTRUCTION
 from apps.members.permissions import ROUTES
 from apps.members.tests.test_route_permissions import a_member
 
@@ -107,6 +108,9 @@ def test_every_admin_screen_carries_the_menu_the_account_and_the_logout(login_as
     account = make_admin(
         "administrator", "treasurer", username="marta.adm"
     )  # M9 només el té el tresorer
+    RolePermission.objects.create(  # DX1 no el té cap rol d'entrada (P-90; T-DX-50)
+        role=Role.objects.get(code="administrator"), permission_code=UNDER_CONSTRUCTION, scope="all"
+    )
     client = login_as(account, AREA_ADMIN)
     member = a_member("Fitxa")
     children = {
