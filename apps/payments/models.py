@@ -117,6 +117,7 @@ class AttemptMethod(models.TextChoices):
     TRANSFER = "transfer", _("Transferència")
     DIRECT_DEBIT = "direct_debit", _("Domiciliació")
     SAVED_CARD = "saved_card", _("Targeta guardada")
+    MANUAL = "manual", _("Manual")  # P-12: només l'obre el sistema, per al rebut
 
 
 class AttemptStatus(models.TextChoices):

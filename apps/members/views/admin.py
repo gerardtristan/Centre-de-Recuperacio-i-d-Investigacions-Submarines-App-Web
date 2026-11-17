@@ -370,6 +370,10 @@ def member_detail_view(request, pk):
         "can_exempt": vis.fees
         and member.person_id != request.user.person_id
         and fees.can_exempt(request.user, perms),
+        # P-12: el pagament a mà d'una quota pendent (M14), a la pantalla de tresoreria.
+        "can_record_payment": vis.fees
+        and member.person_id != request.user.person_id
+        and has_perm(request.user, charges.MANUAL_PAYMENT, write=True, permissions=perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(

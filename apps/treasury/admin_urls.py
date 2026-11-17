@@ -39,6 +39,11 @@ urlpatterns = [
         entry_views.reverse_view,
         name="treasury_reverse",
     ),
+    path(
+        "tresoreria/carrecs/<int:charge_id>/pagament-a-ma/",
+        entry_views.manual_payment_view,
+        name="treasury_manual_payment",
+    ),
     path("tresoreria/liquidacions/", entry_views.settlements_view, name="treasury_settlements"),
     path(
         "tresoreria/liquidacions/<int:settlement_id>/confirma/",

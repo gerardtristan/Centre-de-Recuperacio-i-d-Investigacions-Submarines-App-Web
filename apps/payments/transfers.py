@@ -27,27 +27,31 @@ from .models import PaymentAttempt, Receipt, ReceiptCancellation
 
 S = PaymentAttempt.Status
 TRANSFER = PaymentAttempt.Method.TRANSFER
+RECEIPT_ON_SAVE = (Payment.Method.TRANSFER, Payment.Method.MANUAL)
 RECEIPT_PENDING = "payments.transfer_receipt_pending"
 RECEIPT_CANCELLED = "payments.receipt_cancelled"
 
 
 def on_payment_saved(sender, instance: Payment, created: bool, **kwargs) -> None:
-    if not created or instance.method != Payment.Method.TRANSFER:
+    """També el pagament registrat a mà (P-12; `charges.record_manual_payment`): un intent
+    «manual» que neix pagat, amb el seu rebut, igual que una transferència sense intent."""
+    if not created or instance.method not in RECEIPT_ON_SAVE:
         return
+    method = instance.method
     charge = instance.charge  # encara «pendent»: `record_payment` el passa a pagat després
     by = audit.system("payments")
-    attempt = PaymentAttempt.objects.filter(charge=charge, method=TRANSFER, status=S.IN_PROGRESS)
+    attempt = PaymentAttempt.objects.filter(charge=charge, method=method, status=S.IN_PROGRESS)
     attempt = attempt.first()
     try:
         with transaction.atomic():
             if attempt is None:
-                attempt = attempts.create_attempt(charge, TRANSFER)
+                attempt = attempts.create_attempt(charge, method)
                 attempt = attempts.transition(attempt, S.IN_PROGRESS, by=by)
             attempt = attempts.transition(attempt, S.PAID, by=by)
     except attempts.AttemptInProgress:
         # P-137 (opció per defecte): una targeta o un Bizum encara en curs ocupa l'únic lloc del
         # càrrec. El càrrec queda pagat igualment; el rebut, no, i el tresorer ho veu al registre.
-        reason = "P-137: transferència conciliada amb un altre intent en curs; sense rebut"
+        reason = "P-137: pagament confirmat amb un altre intent en curs; sense rebut"
         audit.record(RECEIPT_PENDING, actor=by, target=charge, reason=reason)
         return
     receipts.issue(attempt)

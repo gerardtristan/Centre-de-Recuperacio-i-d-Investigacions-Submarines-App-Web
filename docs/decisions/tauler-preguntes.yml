@@ -846,4 +846,36 @@ opcions:
       sol avís.
     data: 2026-11-17
 
+  P-331:
+    opcions:
+      A: Només el Tresorer, com la conciliació (T4), que també dona càrrecs per pagats; l'administrador el pot donar a un altre rol des de l'editor.
+      B: El Tresorer i l'Administrador, els dos rols que avui veuen i editen la tresoreria (lectura literal de la Q-037).
+      C: El Tresorer i la Junta.
+    recomanada: A
+    perque: >-
+      Un pagament a mà dona un càrrec per pagat sense cap prova del banc ni del proveïdor: com menys
+      comptes ho puguin fer, millor. Si cal, s'amplia des de l'editor sense tocar el codi.
+    data: 2026-11-17
+
+  P-332:
+    opcions:
+      A: Un sol mètode «manual»; el compte on entra (caixa o banc) diu si era efectiu o un ingrés al banc.
+      B: Dos mètodes, «efectiu» i «presencial» (per exemple, un TPV del club), cadascun amb el seu compte.
+    recomanada: A
+    perque: >-
+      La caixa o el banc ja diuen on són els diners i el saldo quadra igual; un segon mètode només cal si
+      el club cobra presencialment d'alguna altra manera (TPV), que avui no consta.
+    data: 2026-11-17
+
+  P-333:
+    opcions:
+      A: Com la 045 per a les transferències, amb M14 i motiu: el càrrec torna a pendent, el pagament queda anul·lat, l'ingrés té el seu contramoviment i el rebut queda anul·lat, tot o res.
+      B: Només com una devolució feta pel club: el càrrec passa a anul·lat i surt una sortida del mateix compte; el soci no torna a deure res.
+      C: No es corregeix a la plataforma; el Tresorer ho resol amb un altre moviment i una nota.
+    recomanada: A
+    perque: >-
+      Un error de registre no és una devolució: el soci continua devent la quota. La 045 ja resol el mateix cas
+      per a les transferències i es pot reutilitzar sense cap regla nova de diners.
+    data: 2026-11-17
+
 noves:

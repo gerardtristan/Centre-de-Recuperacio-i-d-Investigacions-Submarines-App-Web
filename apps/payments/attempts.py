@@ -14,11 +14,12 @@ from apps.core.models import Charge
 from .models import PaymentAttempt
 
 # Els que tria el soci a la pantalla de pagament; la targeta guardada l'obre el sistema
-# (`checkout.charge_saved_card`, T-M05b-15).
+# (`checkout.charge_saved_card`, T-M05b-15), i el manual, el rebut d'un pagament registrat a mà
+# (`transfers.on_payment_saved`, P-12).
 SCREEN_METHODS = frozenset(
     {PaymentAttempt.Method.CARD, PaymentAttempt.Method.BIZUM, PaymentAttempt.Method.TRANSFER}
 )
-ENABLED_METHODS = SCREEN_METHODS | {PaymentAttempt.Method.SAVED_CARD}
+ENABLED_METHODS = SCREEN_METHODS | {PaymentAttempt.Method.SAVED_CARD, PaymentAttempt.Method.MANUAL}
 
 
 class MethodNotAllowed(Exception):

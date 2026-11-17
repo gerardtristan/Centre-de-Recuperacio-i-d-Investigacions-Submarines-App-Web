@@ -35,6 +35,7 @@ T1, T4, T5 = "treasury.view", "treasury.reconcile", "treasury.reverse"
 T6, T7, T9 = "treasury.transfer", "treasury.cash_count", "treasury.export"
 A4, A5, A6 = "payments.mandates.view", "payments.campaign.send", "payments.mandates.revoke"
 B3, B4, B5, B6 = "payments.remittances", "payments.returns", "payments.refund", "payments.view"
+M14 = "core.charges.record_manual"  # P-12
 
 
 def r(code):  # consulta
@@ -60,6 +61,7 @@ ADMIN_ROUTES = {
     "administration:treasury_cash_count": {"GET": {w(T7)}, "POST": {w(T7)}},
     "administration:treasury_reverse": {"GET": {w(T5)}, "POST": {w(T5)}},
     "administration:treasury_settlements": {"GET": {r(T1)}},
+    "administration:treasury_manual_payment": {"GET": {w(M14)}, "POST": {w(M14)}},
     "administration:treasury_settlement_confirm": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:payments_list": {"GET": {r(B6)}},
     "administration:payments_mandates": {"GET": {r(A4)}},
@@ -184,6 +186,10 @@ SERVICE_CHECKS = {
         T7,
         lambda by: services.record_cash_count(None, 0, counted_on=None, by=by),
     ),
+    services.record_manual_payment: (
+        M14,
+        lambda by: services.record_manual_payment(None, account=None, reason="x", by=by),
+    ),
     settlements.confirm: (T4, lambda by: settlements.confirm(None, by=by)),
     reconciliation.confirm: (T4, lambda by: reconciliation.confirm(None, by=by)),
     reconciliation.undo: (T4, lambda by: reconciliation.undo(None, reason="x", by=by)),
@@ -212,6 +218,7 @@ SERVICE_CHECKS = {
 UNCHECKED = {
     services.register_movement_guard: "registre de guardes en arrencar",
     services.closed_until: "consulta",
+    services.manual_payment_accounts: "consulta",
     services.record_income: "el sistema, amb un pagament confirmat (notificació, T4 o B3)",
     services.record_fee: "liquidació (T4) o notificació del proveïdor",
     services.record_refund: "`refunds.refund` (B5)",

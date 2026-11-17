@@ -12,6 +12,9 @@ pantalles de tresoreria que ja hi ha.
   `settlements.confirm`, també en dos passos). Els motius de les «a revisar», amb el codi del
   problema i la referència del cobrament, sense cap nom.
 - Imports en euros amb coma («12,50»), convertits a cèntims abans de cridar el servei.
+- Pagament a mà d'un càrrec pendent (P-12; M14, `services.record_manual_payment`), també en dos
+  passos: el compte on entra, el motiu i, abans de desar, l'import i qui paga. S'hi arriba des
+  de la fitxa del soci i hi torna.
 """
 
 from decimal import Decimal
@@ -20,12 +23,15 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.core import charges
 from apps.core.charges import euros
+from apps.core.models import Charge
 from apps.core.permissions import has_perm, permission_required
 
 from . import services, settlements
@@ -110,7 +116,20 @@ class ReasonForm(forms.Form):
     )
 
 
-def _two_steps(request, form, template, extra, act, done):
+class ManualPaymentForm(forms.Form):
+    account = forms.ModelChoiceField(
+        services.manual_payment_accounts(), label=_("Compte on entra"), empty_label=None
+    )
+    reason = forms.CharField(
+        label=_("Motiu"),
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_("Queda al pagament i al registre d'activitat. No hi escriguis dades de salut."),
+        error_messages={"required": _("Cal el motiu.")},
+    )
+
+
+def _two_steps(request, form, template, extra, act, done, back="administration:treasury_movements"):
     """El primer POST valida i mostra la confirmació; el segon (`confirm=1`) crida `act`. Un
     `ValidationError` del servei surt al formulari i no desa res."""
     confirm = False
@@ -122,7 +141,7 @@ def _two_steps(request, form, template, extra, act, done):
                 form.add_error(None, error)
             else:
                 messages.success(request, done)
-                return redirect("administration:treasury_movements")
+                return redirect(back)
         else:
             confirm = True
     return render(request, template, {"form": form, "confirm": confirm, **extra(form)})
@@ -249,3 +268,41 @@ def settlement_confirm_view(request, settlement_id):
         "items": settlement.items.count(),
     }
     return render(request, "treasury/settlement_confirm.html", context)
+
+
+@never_cache
+@permission_required(charges.MANUAL_PAYMENT, write=True)
+@require_http_methods(["GET", "POST"])
+def manual_payment_view(request, charge_id):
+    """P-12: registrar a mà el pagament d'un càrrec pendent. El servei torna a comprovar el
+    permís, el compte, el motiu, l'estat i que el càrrec no sigui de qui el registra."""
+    charge = get_object_or_404(Charge.objects.select_related("person"), pk=charge_id)
+    fee = getattr(charge, "annual_fee", None)
+    back = (
+        reverse("administration:member_detail", args=[fee.member_id])
+        if fee is not None
+        else reverse("administration:treasury_movements")
+    )
+    form = ManualPaymentForm(request.POST or None)
+
+    def act(data):
+        services.record_manual_payment(
+            charge, account=data["account"], reason=data["reason"], by=request.user
+        )
+
+    def extra(form):
+        try:
+            number = services.members.get_member_summary(charge.person).number
+        except services.members.NotAMember:
+            number = None
+        return {
+            "charge": charge,
+            "number": number,
+            "amount": euros(charge.amount_cents),
+            "open": charge.status == Charge.Status.PENDING,
+            "own": charge.person_id == request.user.person_id,
+            "back": back,
+        }
+
+    done = _("Pagament registrat: el càrrec és pagat, l'ingrés és a la tresoreria i hi ha rebut.")
+    return _two_steps(request, form, "treasury/manual_payment.html", extra, act, done, back)

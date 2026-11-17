@@ -347,6 +347,9 @@ MAP = {
     "test_flux_fer_se_soci.py": (
         "apps/members/validity.py",
         "apps/members/cards.py",
+        # P-12: el tram 4, el pagament a mà, només el cobreix aquest flux.
+        "apps/treasury/entry_views.py",
+        "templates/treasury/manual_payment.html",
     ),
     "test_flux_primer_euro.py": (
         "apps/payments/processing.py",
