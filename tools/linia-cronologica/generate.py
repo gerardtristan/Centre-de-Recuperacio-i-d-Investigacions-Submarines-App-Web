@@ -12,10 +12,7 @@ i el `git log`. No inventa res: el que no troba surt com a «no trobat» a la p�
 Ús al workflow (xifrat; la contrasenya ve de la variable d'entorn `TIMELINE_PASSPHRASE`):
 
     python tools/linia-cronologica/generate.py --ref origin/master --runs runs.jsonl \
-        --answers respostes.json --encrypt --out public/index.html
-
-El tauler de preguntes pendents (tauler.py) es xifra a part amb `TAULER_PASSPHRASE`; l'adreça del
-webhook de Make que rep les respostes ve de `TAULER_WEBHOOK_URL` i només va dins la part xifrada.
+        --encrypt --out public/index.html
 """
 
 from __future__ import annotations
@@ -33,13 +30,10 @@ import sys
 import zoneinfo
 from pathlib import Path
 
-import tauler
-
 HERE = Path(__file__).resolve().parent
 TASK_ID = r"T-[A-Za-z0-9]+-\d+[a-z]?"
 MIN_PASSPHRASE = 16
 KDF_ITERATIONS = 600_000
-WEBHOOK_RE = re.compile(r"^https://hook\.eu\d\.make\.com/[A-Za-z0-9]+$")
 
 MODULE_NAMES = {
     "00": "Base comuna (peces de la 00 i apèndixs comuns)",
@@ -958,7 +952,7 @@ def decrypt_payload(box: dict, passphrase: str) -> bytes:
     return AESGCM(key).decrypt(base64.b64decode(box["iv"]), base64.b64decode(box["ct"]), None)
 
 
-def collect(repo: Repo, runs: list[dict], issues: list[dict] | None = None) -> tuple[dict, dict]:
+def collect(repo: Repo, runs: list[dict]) -> dict:
     report = {"files_read": [], "files_missing": []}
     plan = repo.show("docs/planning.md")
     if not plan:
@@ -993,15 +987,6 @@ def collect(repo: Repo, runs: list[dict], issues: list[dict] | None = None) -> t
         enrich_task(task, plan_extra, history, diary, all_ids, filed.get(task["id"]))
     estimate_costs(tasks, report)
     questions = link_everything(tasks, decisions, pending, batch, plan_extra, external, all_ids)
-    board = tauler.build(
-        questions,
-        pending,
-        batch,
-        tasks,
-        tauler.load_options(repo, report),
-        tauler.parse_answers(issues or []),
-        report,
-    )
 
     now = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Madrid"))
     data = {
@@ -1020,19 +1005,7 @@ def collect(repo: Repo, runs: list[dict], issues: list[dict] | None = None) -> t
         "generated": now.strftime("%d/%m/%Y %H:%M"),
         "generatedIso": now.isoformat(timespec="seconds"),
     }
-    board.update(generated=data["generated"], generatedIso=data["generatedIso"])
-    return data, board
-
-
-def load_issues(path: str | None) -> list[dict]:
-    """Issues oberts del repositori (JSON de l'API de GitHub), per saber què ja s'ha respost."""
-    if not path:
-        return []
-    try:
-        issues = json.loads(Path(path).read_text(encoding="utf-8") or "[]")
-    except (OSError, ValueError):
-        return []
-    return [i for i in issues if isinstance(i, dict) and "pull_request" not in i]
+    return data
 
 
 def seal(payload: str, variable: str) -> str:
@@ -1054,7 +1027,6 @@ def main() -> None:
     parser.add_argument("--repo", default=".", help="camí del repositori (per defecte, l'actual)")
     parser.add_argument("--ref", default="HEAD", help="referència de Git que es llegeix")
     parser.add_argument("--runs", help="execucions del CI en JSON Lines (opcional)")
-    parser.add_argument("--answers", help="issues oberts del repositori en JSON (opcional)")
     parser.add_argument("--out", required=True, help="fitxer HTML de sortida")
     parser.add_argument(
         "--encrypt",
@@ -1064,33 +1036,15 @@ def main() -> None:
     args = parser.parse_args()
 
     repo = Repo(args.repo, args.ref)
-    data, board = collect(repo, load_runs(args.runs), load_issues(args.answers))
-    board["webhook"] = os.environ.get("TAULER_WEBHOOK_URL", "").strip()
-    if board["webhook"] and not WEBHOOK_RE.match(board["webhook"]):
-        sys.exit(
-            "TAULER_WEBHOOK_URL no és un webhook de Make a la UE (https://hook.euN.make.com/...)."
-        )
-    # El tauler només es publica xifrat amb la seva contrasenya; sense, la pàgina surt sense tauler.
-    with_board = not args.encrypt or bool(os.environ.get("TAULER_PASSPHRASE"))
-    data["tauler"] = with_board
+    data = collect(repo, load_runs(args.runs))
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    board_payload = json.dumps(board, ensure_ascii=False, separators=(",", ":"))
     if args.encrypt:
         payload = seal(payload, "TIMELINE_PASSPHRASE")
-        if with_board:
-            if os.environ.get("TAULER_PASSPHRASE") == os.environ.get("TIMELINE_PASSPHRASE"):
-                sys.exit("TAULER_PASSPHRASE ha de ser diferent de TIMELINE_PASSPHRASE.")
-            board_payload = seal(board_payload, "TAULER_PASSPHRASE")
-        else:
-            print("Avís: sense TAULER_PASSPHRASE, la pàgina es publica sense el tauler.")
-    if not with_board:
-        board_payload = "null"
 
     html = (HERE / "template.html").read_text(encoding="utf-8")
     light = logo_data_uri(repo, "assets/marca/CRIS_SenseFons.png") or FALLBACK_LOGO
     dark = logo_data_uri(repo, "assets/marca/CRIS_Blanc_per fons Negre (Blanc).png") or light
     html = html.replace("__LOGODARK__", dark).replace("__LOGO__", light)
-    html = html.replace("__TAULER__", board_payload.replace("</", "<\\/"))
     html = html.replace("__DATA__", payload.replace("</", "<\\/"))
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -1102,19 +1056,8 @@ def main() -> None:
     print(
         f"{out} ({mode}): {len(data['tasks'])} tasques ({summary}); "
         f"{len(data['decisions'])} decisions; {len(data['pend'])} pendents; "
-        f"{data['runs']} execucions del CI. Tauler: "
-        + (
-            f"{len(board['items'])} preguntes "
-            f"({sum(1 for i in board['items'] if i['opts'])} amb opcions), "
-            f"{len(board['sent'])} enviades"
-            + (", amb webhook" if board["webhook"] else ", sense webhook")
-            if with_board
-            else "no es publica"
-        )
-        + "."
+        f"{data['runs']} execucions del CI."
     )
-    for problem in board["problems"]:
-        print(f"Avís del tauler: {problem}")
 
 
 if __name__ == "__main__":

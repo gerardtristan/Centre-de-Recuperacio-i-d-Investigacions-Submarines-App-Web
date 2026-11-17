@@ -143,36 +143,6 @@ details.raw summary{cursor:pointer;color:var(--accent)}
 .rank{font-size:1.2rem;font-weight:700;min-width:2.2rem;text-align:right}
 ol.crit{margin:.5rem 0;padding-left:1.6rem}
 ol.crit li{margin:.3rem 0}
-/* tauler de preguntes */
-.tq-list{list-style:none;margin:.6rem 0 0;padding:0;display:flex;flex-direction:column;gap:.7rem}
-.tq{border:1px solid var(--border);border-radius:12px;padding:.7rem .8rem;background:var(--surface)}
-.tq.ready{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
-.tq-h{display:flex;flex-wrap:wrap;gap:.3rem .6rem;align-items:baseline}
-.tq-h .id{font-family:ui-monospace,Consolas,monospace;font-weight:700;font-size:.86rem}
-.tq-h strong{flex:1 1 260px;min-width:0;overflow-wrap:anywhere}
-.tq fieldset{border:0;margin:.5rem 0 0;padding:0;display:flex;flex-direction:column;gap:.35rem;min-width:0}
-.opt{display:flex;gap:.5rem;align-items:flex-start;border:1px solid var(--border);border-radius:8px;padding:.4rem .55rem;cursor:pointer;background:var(--bg)}
-.opt:hover{border-color:var(--accent)}
-.opt input{margin-top:.3rem;flex:none}
-.opt .ok{font-family:ui-monospace,Consolas,monospace;font-weight:700;flex:none}
-.opt .ot{min-width:0;overflow-wrap:anywhere;flex:1}
-.opt.rec{border-color:var(--feta-fg)}
-.opt:has(input:checked){border-color:var(--accent);background:var(--surface2)}
-.b.rec{background:var(--feta-bg);color:var(--feta-fg)}
-.why{margin:0 0 0 1.6rem;color:var(--muted)}
-.tq textarea{width:100%;min-height:4.2rem;padding:.4rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);resize:vertical;font:inherit;color:inherit}
-.tq .tl{font-size:.8rem;color:var(--muted)}
-.tq details{margin-top:.4rem}
-.tq details summary{cursor:pointer;color:var(--accent);font-size:.86rem}
-.tq .ctx{font-size:.88rem;border-left:3px solid var(--border);padding:.2rem .6rem;margin:.3rem 0}
-.tbar{position:sticky;bottom:0;z-index:20;margin:.8rem -1rem -1rem;padding:.6rem 1rem;background:var(--surface);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:center;border-radius:0 0 12px 12px}
-.tbar .grow{flex:1 1 200px;min-width:0}
-.tbar p{margin:0}
-.twarn{border:2px solid var(--part-fg);background:var(--part-bg);color:var(--part-fg);border-radius:8px;padding:.5rem .7rem;margin:.6rem 0}
-.terr{color:var(--bloq-fg);font-weight:600}
-.tsent{margin-top:1rem}
-.tsent li{margin:.2rem 0}
-.tfilters{margin-top:.4rem}
 .tfilters input[type=search]{min-height:36px;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:.2rem .5rem;width:100%}
 .mt{margin-top:.8rem}
 @media(max-width:640px){.tbar{margin:.8rem -.6rem -1rem}}
@@ -226,7 +196,6 @@ body.locked nav.views,body.locked #back,body.locked .search,body.locked #print{d
     <button type="button" data-view="pend">Pendents</button>
     <button type="button" data-view="desb">Què desbloqueja</button>
     <button type="button" data-view="crit">Camí crític</button>
-    <button type="button" data-view="tauler" id="nav-tauler" hidden>Preguntes pendents</button>
     <button type="button" data-view="fonts">Fonts i criteris</button>
   </nav>
 </header>
@@ -276,13 +245,11 @@ body.locked nav.views,body.locked #back,body.locked .search,body.locked #print{d
     <section class="view card" id="v-pend" hidden aria-labelledby="h-pend"></section>
     <section class="view card" id="v-desb" hidden aria-labelledby="h-desb"></section>
     <section class="view card" id="v-crit" hidden aria-labelledby="h-crit"></section>
-    <section class="view card" id="v-tauler" hidden aria-labelledby="h-tauler"></section>
     <section class="view card" id="v-fonts" hidden aria-labelledby="h-fonts"></section>
   </div>
   <aside class="card dwrap" id="detail" hidden aria-label="Detall de l'element obert" tabindex="-1"></aside>
 </main>
 <script type="application/json" id="data">__DATA__</script>
-<script type="application/json" id="tauler">__TAULER__</script>
 <script>
 (function(){
 'use strict';
@@ -308,8 +275,6 @@ function decryptBox(box,pass){
   }).then(function(buf){return JSON.parse(new TextDecoder().decode(buf))});
 }
 function decrypt(pass){return decryptBox(RAW,pass)}
-var TKEY='cris-tauler-clau',TSENT='cris-tauler-enviades';
-var TRAW=null;try{TRAW=JSON.parse($('tauler').textContent)}catch(e){TRAW=null}
 function unlocked(D){
   $('lock').hidden=true;$('views').hidden=false;document.body.classList.remove('locked');
   if(RAW.enc)$('relock').hidden=false;
@@ -333,7 +298,7 @@ function lockScreen(){
   var saved=null;try{saved=localStorage.getItem(KEY)}catch(e){}
   if(saved)attempt(saved,true,true);else inp.focus();
 }
-$('relock').addEventListener('click',function(){try{localStorage.removeItem(KEY);localStorage.removeItem(TKEY)}catch(e){}location.reload()});
+$('relock').addEventListener('click',function(){try{localStorage.removeItem(KEY)}catch(e){}location.reload()});
 
 function start(D){
 var T=new Map(),DEC=new Map(),PEND=new Map();
@@ -722,177 +687,7 @@ function wire(){
   window.addEventListener('hashchange',function(){var st=parse(location.hash);if(ser(st)!==ser(S)){stack.push(ser(S));S=st;apply({scroll:true})}});
 }
 
-/* ---------- tauler de preguntes pendents (segona contrasenya) ---------- */
-function buildTauler(){
-  var box=$('v-tauler');
-  if(!D.tauler||!TRAW)return;
-  $('nav-tauler').hidden=false;
-  if(TRAW.enc)tauLock(box);else tauStart(box,TRAW);
-}
-function tauLock(box){
-  box.innerHTML='<h2 id="h-tauler">Preguntes pendents</h2>'+
-    '<p>Aquest apartat té una contrasenya pròpia, diferent de la de la línia cronològica. Es desxifra en aquest navegador i no s\'envia enlloc.</p>'+
-    '<form id="tlockform" autocomplete="off" class="mt"><label for="tpass">Contrasenya del tauler</label>'+
-    '<input id="tpass" type="password" autocomplete="off" required>'+
-    '<label class="chk"><input type="checkbox" id="tremember"> Recorda-la en aquest dispositiu</label>'+
-    '<button class="btn primary" id="tunlock" type="submit">Obre el tauler</button>'+
-    '<p id="tlockmsg" role="alert" class="small terr"></p></form>';
-  var form=$('tlockform'),inp=$('tpass'),btn=$('tunlock'),msg=$('tlockmsg');
-  function attempt(pass,remember,silent){
-    btn.disabled=true;msg.textContent=silent?'':'Desxifrant…';
-    decryptBox(TRAW,pass).then(function(B){
-      if(remember){try{localStorage.setItem(TKEY,pass)}catch(e){}}
-      inp.value='';tauStart(box,B);
-    }).catch(function(){
-      btn.disabled=false;try{localStorage.removeItem(TKEY)}catch(e){}
-      msg.textContent=silent?'':'La contrasenya del tauler no és correcta.';if(!silent)inp.focus();
-    });
-  }
-  form.addEventListener('submit',function(ev){ev.preventDefault();if(inp.value)attempt(inp.value,$('tremember').checked,false)});
-  var saved=null;try{saved=localStorage.getItem(TKEY)}catch(e){}
-  if(saved)attempt(saved,true,true);
-}
-function tauStart(box,B){
-  var sentLocal={};try{sentLocal=JSON.parse(localStorage.getItem(TSENT)||'{}')||{}}catch(e){sentLocal={}}
-  var gen=Date.parse(B.generatedIso||'')||0;
-  Object.keys(sentLocal).forEach(function(k){if(!(Date.parse(sentLocal[k].t)>gen))delete sentLocal[k]});
-  function saveSent(){try{localStorage.setItem(TSENT,JSON.stringify(sentLocal))}catch(e){}}
-  saveSent();
-  var items=B.items.filter(function(i){return !sentLocal[i.key]});
-  var ans={};
-  var F={o:'',m:'',b:false,x:false,q:''};
-  var ME='Responsable del projecte (tu)';
-  var owners={},mods={};
-  B.items.forEach(function(i){i.owners.forEach(function(o){owners[o]=(owners[o]||0)+1});i.mods.forEach(function(m){mods[m]=1})});
-  var ownerList=Object.keys(owners).sort(function(a,b){return (a===ME?-1:b===ME?1:a.localeCompare(b,'ca'))});
-  var modList=D.modorder.filter(function(m){return mods[m]});
-  function optLabel(it,k){var o=it.opts.filter(function(x){return x.k===k})[0];return o?k+') '+o.t:''}
-  function card(it,n){
-    var h='<li class="tq" data-k="'+esc(it.key)+'" id="tq-'+n+'"><div class="tq-h"><span class="id">'+esc(it.key)+'</span><strong>'+rich(it.q)+'</strong></div>';
-    h+='<div class="chips small">';
-    if(it.blocks)h+='<span class="b bloq"><span aria-hidden="true">⛔</span> Atura '+it.unblocks.length+(it.unblocks.length===1?' tasca':' tasques')+'</span>';
-    it.owners.forEach(function(o){h+='<span class="b cost">'+esc(o)+'</span>'});
-    if(it.origin==='fil')h+='<span class="b validacio">Pregunta d\'un fil</span>';
-    h+='</div>';
-    if(it.punt)h+='<p class="small"><strong>Les opcions responen:</strong> '+rich(it.punt)+'</p>';
-    if(it.detail||it.recTeam||it.tasks.length){
-      h+='<details><summary>Context i tasques</summary>';
-      if(it.detail)h+='<div class="ctx txt">'+rich(it.detail)+'</div>';
-      if(it.recTeam&&it.recTeam!=='—')h+='<p class="small"><strong>Proposta escrita al pla:</strong> '+rich(it.recTeam)+'</p>';
-      if(it.estat)h+='<p class="small"><strong>Estat a la font:</strong> '+rich(it.estat)+'</p>';
-      if(it.tasks.length)h+='<p class="small"><strong>Tasques vinculades:</strong></p>'+listGo(it.tasks);
-      h+='<p class="small muted">Font: <code>'+esc(it.src)+'</code></p></details>';
-    }
-    h+='<fieldset><legend class="sr">Resposta a '+esc(it.key)+'</legend>';
-    it.opts.forEach(function(o){
-      var rec=o.k===it.rec;
-      h+='<label class="opt'+(rec?' rec':'')+'"><input type="radio" name="tq-r-'+n+'" value="'+o.k+'"><span class="ok">'+o.k+'</span><span class="ot">'+rich(o.t)+(rec?' <span class="b rec"><span aria-hidden="true">★</span> Recomanació de Claude</span>':'')+'</span></label>';
-      if(rec&&it.why)h+='<p class="small why">Per què: '+rich(it.why)+(it.recDate?' <span class="muted">('+esc(it.recDate)+')</span>':'')+'</p>';
-    });
-    if(it.opts.length)h+='<label class="opt"><input type="radio" name="tq-r-'+n+'" value="propia"><span class="ot">Resposta pròpia (escriu-la a sota)</span></label>';
-    else h+='<p class="small muted">Aquesta pregunta encara no té opcions: escriu la resposta.</p>';
-    h+='<label class="tl" for="tq-t-'+n+'">'+(it.opts.length?'Resposta pròpia o comentari':'La teva resposta')+'</label><textarea id="tq-t-'+n+'" data-n="'+n+'" maxlength="4000"></textarea>';
-    h+='<div><button type="button" class="btn" data-tclear="'+n+'">Esborra la resposta</button></div></fieldset></li>';
-    return h;
-  }
-  var h='<h2 id="h-tauler">Preguntes pendents</h2>';
-  h+='<p class="small muted">Totes les preguntes obertes del pla, dels pendents i de les tandes, i les que t\'he fet als fils. La recomanació (★) l\'he escrit jo en fer la pregunta. Tria una opció o escriu la teva resposta i envia-les: les enviades desapareixen d\'aquesta llista. Dades del '+esc(B.generated)+'.</p>';
-  if(!B.webhook)h+='<div class="twarn" role="note"><strong>L\'enviament encara no està configurat.</strong> Falta el secret <code>TAULER_WEBHOOK_URL</code> al repositori: pots preparar les respostes, però no enviar-les.</div>';
-  h+='<form class="filters tfilters" id="tfilters" aria-label="Filtres del tauler" onsubmit="return false">'+
-    '<label>Qui ha de respondre<select id="tf-o"><option value="">Tothom</option>'+ownerList.map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+' ('+owners[o]+')</option>'}).join('')+'</select></label>'+
-    '<label>Mòdul<select id="tf-m"><option value="">Tots</option>'+modList.map(function(m){return '<option value="'+m+'">'+m+' '+esc(D.modname[m]||'')+'</option>'}).join('')+'</select></label>'+
-    '<label>Cerca<input type="search" id="tf-q" autocomplete="off" placeholder="Text o codi"></label>'+
-    '<label class="chk"><input type="checkbox" id="tf-b"> Només les que aturen una tasca</label>'+
-    '<label class="chk"><input type="checkbox" id="tf-x"> Només les que tenen opcions</label></form>';
-  h+='<p class="small muted" id="tcount" role="status"></p><ol class="tq-list" id="tlist">'+items.map(function(it,i){return card(it,i)}).join('')+'</ol>';
-  h+='<p class="muted" id="tempty" hidden>Cap pregunta amb aquests filtres.</p>';
-  h+='<div class="tbar"><p class="grow" id="tsel" role="status">Cap resposta preparada.</p><button type="button" class="btn primary" id="tsend" disabled>Envia les respostes</button><p class="small grow" id="tmsg" role="alert"></p></div>';
-  h+='<details class="raw tsent" id="tsentbox"><summary>Enviades, pendents que les incorpori (<span id="tsentn">0</span>)</summary><ul class="small" id="tsentlist"></ul></details>';
-  box.innerHTML=h;
-  var byN=items;
-  function ready(n){var a=ans[n];if(!a)return false;if(a.opt&&a.opt!=='propia')return true;return !!(a.text&&a.text.trim())}
-  function readyList(){var r=[];byN.forEach(function(it,n){if(it&&ready(n))r.push(n)});return r}
-  function renderSent(){
-    var rows=[];
-    B.sent.forEach(function(it){rows.push('<li><code>'+esc(it.key)+'</code> '+rich(it.q)+' · '+(it.issue&&it.issue.url?'<a href="'+esc(it.issue.url)+'" target="_blank" rel="noopener">issue #'+esc(it.issue.n)+'</a>':'issue obert')+'</li>')});
-    Object.keys(sentLocal).forEach(function(k){if(B.sent.some(function(s){return s.key===k}))return;var s=sentLocal[k];rows.push('<li><code>'+esc(k)+'</code> '+esc(s.q||'')+' · '+(s.url?'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">issue'+(s.n?' #'+esc(s.n):'')+'</a>':'enviada')+' <span class="muted">(ara mateix; surt aquí fins que es regeneri la pàgina)</span></li>')});
-    $('tsentn').textContent=rows.length;$('tsentlist').innerHTML=rows.join('')||'<li class="muted">Cap.</li>';
-  }
-  function refresh(){
-    var q=fold(F.q.trim()),shown=0,total=0;
-    byN.forEach(function(it,n){
-      var el=$('tq-'+n);if(!it||!el)return;total++;
-      var ok=(!F.o||it.owners.indexOf(F.o)>=0)&&(!F.m||it.mods.indexOf(F.m)>=0)&&(!F.b||it.blocks)&&(!F.x||it.opts.length)&&
-        (!q||fold(it.key+' '+it.q+' '+it.detail+' '+it.tasks.join(' ')).indexOf(q)>=0);
-      el.hidden=!ok&&!ready(n);if(!el.hidden)shown++;
-      el.classList.toggle('ready',ready(n));
-    });
-    $('tcount').textContent='Es mostren '+shown+' de '+total+' preguntes obertes ('+byN.filter(function(i){return i&&i.opts.length}).length+' amb opcions, '+byN.filter(function(i){return i&&i.blocks}).length+' que aturen alguna tasca). Les que ja has preparat sempre es mostren.';
-    $('tempty').hidden=shown>0;
-    var r=readyList();
-    $('tsel').textContent=r.length?(r.length===1?'1 resposta preparada: ':r.length+' respostes preparades: ')+r.map(function(n){return byN[n].key}).join(', '):'Cap resposta preparada.';
-    $('tsend').disabled=!r.length||!B.webhook||sending;
-    $('tsend').textContent=r.length>1?'Envia les '+r.length+' respostes':'Envia la resposta';
-  }
-  var sending=false;
-  box.addEventListener('change',function(ev){
-    var t=ev.target;
-    if(t.type==='radio'&&t.name.indexOf('tq-r-')===0){var n=+t.name.slice(5);ans[n]=ans[n]||{};ans[n].opt=t.value;refresh();return}
-    if(t.id==='tf-o'){F.o=t.value}else if(t.id==='tf-m'){F.m=t.value}else if(t.id==='tf-b'){F.b=t.checked}else if(t.id==='tf-x'){F.x=t.checked}else return;
-    refresh();
-  });
-  box.addEventListener('input',function(ev){
-    var t=ev.target;
-    if(t.id==='tf-q'){F.q=t.value;refresh();return}
-    if(t.tagName==='TEXTAREA'&&t.dataset.n){var n=+t.dataset.n;ans[n]=ans[n]||{};ans[n].text=t.value;
-      if(t.value.trim()&&!ans[n].opt&&byN[n].opts.length){var own=document.querySelector('input[name="tq-r-'+n+'"][value="propia"]');if(own){own.checked=true;ans[n].opt='propia'}}
-      refresh()}
-  });
-  box.addEventListener('click',function(ev){
-    var c=ev.target.closest('[data-tclear]');if(!c)return;var n=+c.getAttribute('data-tclear');delete ans[n];
-    document.querySelectorAll('input[name="tq-r-'+n+'"]').forEach(function(r){r.checked=false});$('tq-t-'+n).value='';refresh();
-  });
-  function payload(it,a){
-    var text=(a.text||'').trim(),own=!a.opt||a.opt==='propia';
-    var resposta=own?'Resposta pròpia: '+text:optLabel(it,a.opt)+(text?'\nComentari: '+text:'');
-    var now=new Date(),when=now.toLocaleString('ca-ES',{timeZone:'Europe/Madrid'});
-    var cos=['<!-- tauler-id: '+it.key+' -->','**Pregunta ('+it.key+'):** '+it.q];
-    if(it.punt)cos.push('**Part que es respon:** '+it.punt);
-    cos.push('**Resposta:** '+(own?'resposta pròpia':optLabel(it,a.opt)));
-    if(text)cos.push('**Text del responsable:**\n\n> '+text.replace(/\n/g,'\n> '));
-    if(it.opts.length)cos.push('**Recomanació de Claude:** '+(it.rec?optLabel(it,it.rec):'cap'));
-    cos.push('**Qui ha de respondre, segons el pla:** '+it.owners.join(', '));
-    if(it.tasks.length)cos.push('**Tasques vinculades:** '+it.tasks.join(', '));
-    cos.push('**Font:** `'+it.src+'`');
-    cos.push('_Enviada des del tauler de preguntes de la línia cronològica el '+when+'. Claude la incorpora al pla o a una decisió i tanca aquest issue._');
-    return {tauler_id:it.key,titol:('Resposta del tauler: '+it.key+' · '+it.q.replace(/[*`\[\]]/g,'')).slice(0,180),cos:cos.join('\n\n'),pregunta:it.q+(it.punt?' ('+it.punt+')':''),resposta:resposta,enviada:now.toISOString()};
-  }
-  function sendOne(n){
-    var it=byN[n],p=payload(it,ans[n]);
-    return fetch(B.webhook,{method:'POST',body:new URLSearchParams(p),referrerPolicy:'no-referrer',credentials:'omit'}).then(function(res){
-      if(!res.ok)throw new Error('http '+res.status);
-      return res.text().then(function(tx){var j={};try{j=JSON.parse(tx)}catch(e){}return j});
-    }).then(function(j){
-      sentLocal[it.key]={t:new Date().toISOString(),q:it.q,n:j.issue||'',url:j.url||''};saveSent();
-      var el=$('tq-'+n);if(el)el.remove();byN[n]=null;delete ans[n];
-    });
-  }
-  $('tsend').addEventListener('click',function(){
-    var list=readyList();if(!list.length||sending)return;
-    sending=true;refresh();var done=0;$('tmsg').textContent='Enviant…';$('tmsg').classList.remove('terr');
-    (function next(){
-      if(!list.length){sending=false;$('tmsg').textContent=done===1?'Enviada. Desapareixerà del tot quan es regeneri la pàgina.':done+' respostes enviades. Desapareixeran del tot quan es regeneri la pàgina.';renderSent();refresh();return}
-      var n=list.shift(),key=byN[n].key;
-      sendOne(n).then(function(){done++;next()}).catch(function(err){
-        sending=false;$('tmsg').classList.add('terr');
-        $('tmsg').textContent=(err&&err.name==='TypeError'?'No s\'ha pogut confirmar l\'enviament de '+key+': pot ser que hagi arribat igualment. Mira els issues del repositori abans de tornar-la a enviar.':'No s\'ha pogut enviar '+key+' ('+(err&&err.message||'error')+').')+(done?' Les '+done+' anteriors sí que s\'han enviat.':'')+(list.length?' Les altres no s\'han enviat.':'');
-        renderSent();refresh();
-      });
-    })();
-  });
-  renderSent();refresh();
-}
-build();buildIndex();buildTauler();wire();
+build();buildIndex();wire();
 S=parse(location.hash);apply({scroll:true});
 window.__CRIS={state:function(){return S},crit:function(){return CRIT},counts:function(){var c={};D.tasks.forEach(function(t){c[t.mod]=(c[t.mod]||0)+1});return c},domCounts:function(){var c={};document.querySelectorAll('.mod').forEach(function(m){c[m.dataset.mod]=m.querySelectorAll('ol>li').length});return c}};
 }
