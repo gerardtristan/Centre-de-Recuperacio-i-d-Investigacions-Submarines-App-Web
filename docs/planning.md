@@ -3018,7 +3018,7 @@ Com la targeta, amb aquestes diferències:
 ### P-M05b-G Devolució iniciada pel club
 | Pas | Qui | Què passa |
 |---|---|---|
-| 1 | Tresorer | Obre el pagament, tria «Devolució», escriu import (total o parcial) i motiu |
+| 1 | Tresorer | Obre el pagament, tria «Devolució», escriu import (total o parcial), motiu i el codi TOTP, que el servidor comprova abans de fer res ([096](decisions/096-totp-a-les-devolucions.md)) |
 | 2 | Sistema | Comprova que la suma de devolucions no supera l'import cobrat (RN-T11) |
 | 3 | Sistema | **Targeta:** `refund` per l'adaptador amb clau d'idempotència. **Bizum:** igual si el proveïdor ho admet [A verificar: P-45 punt 7]; si no, transferència des del banc. **Transferència i domiciliació:** el tresorer la fa des del banc i la registra amb justificant |
 | 4 | Sistema | `treasury.record_refund`; si és total, càrrec «pagat → anul·lat» (RN-67); si és parcial, el càrrec continua «pagat» (RN-M05b-17); correu al pagador |
