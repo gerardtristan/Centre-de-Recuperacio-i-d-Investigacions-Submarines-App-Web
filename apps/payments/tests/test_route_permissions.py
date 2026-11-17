@@ -230,6 +230,7 @@ UNCHECKED = {
     remittances.candidate_lines: "consulta (la vista demana B3)",
     returns.max_attempts: "consulta",
     returns.can_retry: "consulta",
+    returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",
     mandates.next_reference: "càlcul",
     mandates.create_mandate: "el soci mateix des del compte personal (A2)",

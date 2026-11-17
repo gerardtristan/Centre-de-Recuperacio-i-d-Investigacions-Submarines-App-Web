@@ -15,17 +15,20 @@ import logging
 from datetime import timedelta
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
+from django.utils.text import format_lazy
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge
+from apps.core.models import Charge, Person
 from apps.core.permissions import accounts_with_perm
 from apps.members import services as members
 from apps.treasury import services as treasury
 
-from . import attempts, cards, receipts
-from .models import PaymentAttempt, ProviderEvent
+from . import attempts, cards, receipts, returns
+from .models import PaymentAttempt, ProviderEvent, SavedCardAttempt, SavedCardNotice
 from .providers import base, get_provider
 
 logger = logging.getLogger(__name__)
@@ -35,6 +38,35 @@ ORIGIN = "payments.processing"
 TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
 REVIEW_TEMPLATE = "avis-pagament-revisar"
+# Resultats de la targeta guardada (T-M05b-15b): el motiu; a qui s'avisa el soci (l'alternativa)
+# i què no queda «a revisar». El tresorer en rep sempre l'avís, amb la quota i el càrrec.
+TREASURER_TEMPLATE = "quota-targeta-revisar"
+SAVED_CARD_ACTOR = "payments.saved_card"
+OUTCOME = "payments.saved_card.outcome"
+OUTCOMES = {
+    "denied": gettext_lazy("El banc ha denegat el cobrament amb la targeta guardada."),
+    "order_expired": gettext_lazy("L'ordre del cobrament amb la targeta guardada ha caducat."),
+    "authentication": gettext_lazy("El banc demana autenticació per cobrar amb la targeta."),
+    "amount_changed": gettext_lazy("L'import de la quota ha canviat abans de cobrar-la."),
+    "provider_error": gettext_lazy("El proveïdor no ha respost en cobrar amb la targeta."),
+    "unexpected_order": gettext_lazy("El proveïdor ha tornat una ordre diferent de l'esperada."),
+    "give_up": gettext_lazy("La xarxa de seguretat no ha pogut tancar l'intent."),
+    "card_closed": gettext_lazy("La targeta guardada ja no es pot fer servir."),
+    "not_member": gettext_lazy("La persona ja no és sòcia activa ni impagada."),
+    "preference": gettext_lazy("La preferència de la quota ja no és aquesta targeta."),
+    "provider": gettext_lazy("La targeta és d'un altre proveïdor."),
+    "not_fee": gettext_lazy("El càrrec no és una quota anual."),
+    "other_person": gettext_lazy("Dades incoherents: la targeta és d'una altra persona."),
+    "transfer_waiting": gettext_lazy("Té una transferència en espera: no es cobra la targeta."),
+    "arrears": gettext_lazy("La quota va vèncer fa massa dies: es paga des de la pantalla."),
+    "open_failed": gettext_lazy("No s'ha pogut obrir l'intent al proveïdor."),
+}
+TELL_MEMBER = {"denied", "order_expired", "authentication", "card_closed", "arrears"}
+NO_TREASURER_EMAIL = {"arrears"}  # «a revisar», sense correu: no inunda el tresorer en migrar
+NOT_REVIEWED = {"denied", "order_expired", "authentication"}  # la resta, «a revisar»
+# L'ordre potser s'ha cobrat: el tresorer ho comprova al proveïdor abans de demanar res al soci.
+MAYBE_CHARGED = {"provider_error", "unexpected_order", "give_up"}
+NOTICE_TRIES = 3  # dies que es tornen a provar els correus d'un avís; després, «a revisar»
 REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
 # VC-17: minuts sense notificació abans que la xarxa de seguretat pregunti al proveïdor.
 SAFETY_NET_AGE = "payments.safety_net_age_minutes"
@@ -117,7 +149,9 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
             return _review(attempt, source, _("El proveïdor torna un estat desconegut."))
         if state.status != base.PAID:
             if attempt.status == S.IN_PROGRESS:
-                attempts.transition(attempt, _CLOSED_BY[state.status], by=_system())
+                attempt = attempts.transition(attempt, _CLOSED_BY[state.status], by=_system())
+                if attempt.method == PaymentAttempt.Method.SAVED_CARD:
+                    on_saved_card_failed(attempt, charge)  # «alternativa de pagament si falla»
             return R.PROCESSED
         if attempt.status != S.IN_PROGRESS:
             # P-82, opció per defecte: RN-M05b-03 no deixa tornar a obrir un intent tancat. El
@@ -153,14 +187,18 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
         members.on_fee_paid(fee.pk)
 
 
-def mark_for_review(attempt, source, reason: str) -> str:
-    """«A revisar»: l'intent en curs hi passa amb el motiu; si l'intent ja estava tancat o no
-    n'hi ha, el motiu queda al registre (`TO_REVIEW`, d'on surt la llista «a revisar»), sobre la
-    notificació, el càrrec o l'intent. I l'avís al tresorer."""
+def _review_entry(attempt, source, reason: str) -> None:
     if attempt is not None and attempt.status == S.IN_PROGRESS:
         attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
     else:
         audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
+
+
+def mark_for_review(attempt, source, reason: str) -> str:
+    """«A revisar»: l'intent en curs hi passa amb el motiu; si l'intent ja estava tancat o no
+    n'hi ha, el motiu queda al registre (`TO_REVIEW`, d'on surt la llista «a revisar»), sobre la
+    notificació, el càrrec o l'intent. I l'avís al tresorer."""
+    _review_entry(attempt, source, reason)
     _mail_review(attempt, source, reason)
     return R.TO_REVIEW
 
@@ -176,12 +214,130 @@ def _mail_review(attempt, source, reason: str) -> None:
         "attempt_id": attempt.pk if attempt else None,
         "event_id": source.pk if isinstance(source, ProviderEvent) else None,
     }
+    notify_treasurers(REVIEW_TEMPLATE, context)
+
+
+def notify_treasurers(template: str, context: dict) -> None:
+    """Un correu a cada adreça de qui té el permís de la tresoreria (P-86), a la transacció de
+    qui el crida. `context`: només referències internes, cap dada personal."""
     sent = set()
     for account in accounts_with_perm(REVIEW_PERMISSION):
         address = account.notification_email
         if address and address not in sent:
-            mail.queue_email(REVIEW_TEMPLATE, to=address, person=account.person, context=context)
+            mail.queue_email(template, to=address, person=account.person, context=context)
             sent.add(address)
+
+
+def saved_card_outcome(charge: Charge, case: str, *, card, attempt=None, detail: str = "") -> None:
+    """Punt d'entrada únic dels resultats de la targeta guardada (T-M05b-15b; `OUTCOMES`), amb el
+    càrrec ja bloquejat per qui crida. A la seva transacció i una sola vegada per càrrec, targeta i
+    motiu: la fila, el registre (amb `detail`, el motiu concret) i, si cal, «a revisar». Els
+    correus van a part (`_send`): si fallen, no desfan res d'això."""
+    notice, new = SavedCardNotice.objects.get_or_create(charge=charge, card=card, case=case)
+    if new:
+        if case not in NOT_REVIEWED:
+            _review_entry(attempt, charge, f"{OUTCOMES[case]} {detail}".strip())
+        details = {"charge": charge.pk, "case": case, "detail": detail}
+        by = audit.system(SAVED_CARD_ACTOR)
+        audit.record(OUTCOME, actor=by, target=attempt or charge, details=details)
+    if not notice.notified and notice.tried_on != timezone.localdate():
+        _send(notice)
+
+
+def _send(notice: SavedCardNotice) -> None:
+    """Els correus d'un avís (al soci, si és cosa seva, i al tresorer) i la marca, en un punt de
+    restauració propi: si un falla, només ells es tornen a provar (`retry_outcomes`), un cop per
+    dia (`tried_on`; `tries` compta els dies)."""
+    charge, case = notice.charge, notice.case
+    try:
+        with transaction.atomic():
+            member = case in TELL_MEMBER
+            sent = member and returns.send_alternative(
+                charge, new_mandate=False, saved_card=True, unusable=case == "card_closed"
+            )
+            erased = charge.person.status == Person.Status.ANONYMISED
+            fee = getattr(charge, "annual_fee", None)
+            context = {  # la plantilla compon la referència a la llengua del correu
+                "concept": charge.concept,
+                "fee_id": fee.pk if fee else "",
+                "charge_id": charge.pk,
+                "reason": OUTCOMES[case],
+                "maybe_charged": case in MAYBE_CHARGED,
+                "reviewed": case not in NOT_REVIEWED,
+                "erased": erased,
+                "no_email": member and not sent and not erased,
+                "member_told": sent,
+            }
+            if case not in NO_TREASURER_EMAIL:
+                notify_treasurers(TREASURER_TEMPLATE, context)
+            notice.notified = True
+            notice.save(update_fields=["notified"])
+    except Exception:
+        logger.exception("No s'han pogut enviar els avisos del càrrec %s", charge.pk)
+        tried = {"tries": F("tries") + 1, "tried_on": timezone.localdate()}
+        SavedCardNotice.objects.filter(pk=notice.pk).update(**tried)
+
+
+def retry_outcomes(still_applies) -> None:
+    """Cada dia, els avisos amb correus que van fallar, un per un i amb el càrrec bloquejat: només
+    si la quota continua pendent i el motiu encara hi és (`still_applies(notice)`); si no, ja no
+    cal. Passats `NOTICE_TRIES` dies, el càrrec va «a revisar» i el tresorer en rep l'avís."""
+    for pk in SavedCardNotice.objects.filter(notified=False).values_list("pk", flat=True):
+        try:
+            with transaction.atomic():
+                charge_id = SavedCardNotice.objects.get(pk=pk).charge_id
+                charge = Charge.objects.select_for_update().get(pk=charge_id)
+                notice = SavedCardNotice.objects.select_for_update().get(pk=pk)
+                notice.charge = charge
+                if notice.notified or notice.tried_on == timezone.localdate():
+                    continue  # ja enviat, o ja provat avui
+                if charge.status != Charge.Status.PENDING or not still_applies(notice):
+                    notice.notified = True  # res a dir: ja no toca
+                    notice.save(update_fields=["notified"])
+                elif notice.tries >= NOTICE_TRIES:
+                    _give_up_notice(notice, charge)
+                else:
+                    _send(notice)
+        except Exception:
+            logger.exception("No s'ha pogut tornar a provar l'avís %s", pk)
+
+
+def _give_up_notice(notice: SavedCardNotice, charge: Charge) -> None:
+    """Passats `NOTICE_TRIES` dies: «a revisar», que queda encara que el correu al tresorer falli
+    (el correu, en un punt de restauració propi, com a `_send`)."""
+    reason = format_lazy(
+        gettext_lazy("No s'han pogut enviar els avisos de la targeta guardada: {}"),
+        OUTCOMES[notice.case],
+    )
+    _review_entry(None, charge, str(reason))
+    try:
+        with transaction.atomic():
+            _mail_review(None, charge, reason)
+    except Exception:
+        logger.exception("No s'ha pogut avisar el tresorer de l'avís %s", notice.pk)
+    notice.notified = True
+    notice.save(update_fields=["notified"])
+
+
+def _card_of(attempt: PaymentAttempt):
+    return SavedCardAttempt.objects.get(attempt=attempt).card
+
+
+def on_saved_card_failed(attempt: PaymentAttempt, charge: Charge) -> None:
+    """Un intent amb la targeta guardada que es tanca sense pagar, amb el càrrec ja bloquejat per
+    `settle`: l'alternativa, si la quota continua pendent."""
+    if charge.status != Charge.Status.PENDING:
+        return
+    case = {S.EXPIRED: "order_expired", S.FAILED: "denied"}.get(attempt.status)
+    try:
+        with transaction.atomic():
+            if case is None:
+                raise ValueError(attempt.status)  # cap estat que el soci hagi de saber
+            saved_card_outcome(charge, case, card=_card_of(attempt))
+    except Exception:  # sense la targeta o amb un estat inesperat: el tresorer ho revisa
+        logger.exception("Intent %s amb la targeta guardada sense avís", attempt.pk)
+        reason = _("Intent %(attempt)s amb la targeta guardada tancat sense avís al soci.")
+        mark_for_review(None, charge, reason % {"attempt": attempt.pk})
 
 
 def safety_net() -> None:
@@ -232,7 +388,12 @@ def _give_up(attempt: PaymentAttempt, give_up, reason: str) -> None:
         return
     try:
         with transaction.atomic():
-            _review(attempt, None, reason)
+            if attempt.method == PaymentAttempt.Method.SAVED_CARD:
+                charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
+                card = _card_of(attempt)
+                saved_card_outcome(charge, "give_up", card=card, attempt=attempt, detail=reason)
+            else:
+                _review(attempt, None, reason)
     except Exception:
         logger.exception(
             "Xarxa de seguretat: no s'ha pogut deixar a revisar l'intent %s", attempt.pk
