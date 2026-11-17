@@ -376,6 +376,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
+    _perm(
+        "payments.campaign.send",
+        "A5",
+        _("Enviar la campanya i els recordatoris"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).

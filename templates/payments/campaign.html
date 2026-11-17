@@ -1,0 +1,79 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M05a-13, C5: campanya de mandats (P-M05a-E; wireframe admin.html#vista-pagaments-campanya). Seguretat i privacitat, al servidor: veure els recomptes demana A4; obrir, enviar i tancar, A5 (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat» al POST); enviar i tancar es confirmen en un segon pas; amb la signatura del mandat apagada no s'envia res. Només recomptes: cap nom ni dada bancària. #}
+{% block title %}{% translate "Campanya de mandats" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Campanya de mandats" %}</h1>
+  <p class="text-2">{% translate "Cada soci actiu tria com pagarà la quota abans de la primera remesa." %}</p>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if blocked %}<div class="avis avis-avis"><strong>{% translate "No es pot enviar cap campanya" %}</strong>{{ blocked }}</div>{% endif %}
+
+  <section class="targeta" aria-labelledby="recompte-titol">
+    <h2 id="recompte-titol">{% blocktranslate count total=status.active %}Com pagarà el soci actiu{% plural %}Com pagaran els {{ total }} socis actius{% endblocktranslate %}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Domiciliació" %}</dt><dd>{{ status.direct_debit }}</dd></div>
+      <div><dt>{% translate "Targeta guardada" %}</dt><dd>{{ status.saved_card }}</dd></div>
+      <div><dt>{% translate "Pagar cada vegada" %}</dt><dd>{{ status.pay_each_time }}</dd></div>
+      <div><dt>{% translate "Sense resposta" %}</dt><dd>{{ status.no_answer }}</dd></div>
+    </dl>
+    {% if campaign and status.invited and not answered %}<p class="text-2">{% translate "Encara no ha respost ningú." %}</p>{% endif %}
+  </section>
+
+  <section class="targeta" aria-labelledby="campanya-titol">
+    <h2 id="campanya-titol">{% translate "Invitació i recordatoris" %}</h2>
+    {% if not campaign %}
+      <p>{% translate "No hi ha cap campanya oberta." %}</p>
+      {% if can_send and not blocked %}
+        <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="open">
+          {% include "accounts/_camp.html" with field=form.name %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Obre la campanya" %}</button></div>
+        </form>
+      {% endif %}
+    {% else %}
+      <dl class="dades-soci">
+        <div><dt>{% translate "Campanya" %}</dt><dd>{{ campaign.name }}</dd></div>
+        <div><dt>{% translate "Oberta el" %}</dt><dd>{{ campaign.opened_at|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Convidats" %}</dt><dd>{{ status.invited }}</dd></div>
+        <div><dt>{% translate "Per convidar" %}</dt><dd>{% blocktranslate count total=to_invite %}{{ total }} soci actiu sense mètode{% plural %}{{ total }} socis actius sense mètode{% endblocktranslate %}</dd></div>
+        <div><dt>{% translate "Sense correu" %}</dt><dd>{% blocktranslate count total=without_email %}{{ total }}: l'atén la secretaria{% plural %}{{ total }}: els atén la secretaria{% endblocktranslate %}</dd></div>
+        <div><dt>{% translate "Text" %}</dt><dd>{% blocktranslate with version=campaign.invitation_text.version %}Versió {{ version }}{% endblocktranslate %} <span class="a-validar">{% translate "A validar: junta (T-M05a-01)" %}</span></dd></div>
+        <div><dt>{% translate "Recordatoris" %}</dt><dd>{% blocktranslate with first=reminder_days.0 second=reminder_days.1 %}Als {{ first }} i als {{ second }} dies de la invitació{% endblocktranslate %} <span class="a-validar">{% translate "A validar: tresorer" %}</span></dd></div>
+      </dl>
+      {% if can_send %}
+        {% if confirm == "send" %}
+          <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send"><input type="hidden" name="confirm" value="1">
+            <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'enviament" %}</strong>{% blocktranslate count total=to_invite %}S'enviarà {{ total }} invitació per correu. Cada soci la rep una sola vegada.{% plural %}S'enviaran {{ total }} invitacions per correu. Cada soci la rep una sola vegada.{% endblocktranslate %}</div>
+            <div class="accions">
+              <button class="boto boto-principal" type="submit">{% translate "Sí, envia-les" %}</button>
+              <a class="boto boto-text" href="{% url 'administration:payments_campaign' %}">{% translate "Cancel·la" %}</a>
+            </div>
+          </form>
+        {% elif confirm == "close" %}
+          <form class="formulari" method="post" action="{% url 'administration:payments_campaign' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="close"><input type="hidden" name="confirm" value="1">
+            <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el tancament" %}</strong>{% translate "Un cop tancada, no s'enviarà cap invitació ni cap recordatori més." %}</div>
+            <div class="accions">
+              <button class="boto boto-principal" type="submit">{% translate "Sí, tanca-la" %}</button>
+              <a class="boto boto-text" href="{% url 'administration:payments_campaign' %}">{% translate "Cancel·la" %}</a>
+            </div>
+          </form>
+        {% else %}
+          <form class="accions" method="post" action="{% url 'administration:payments_campaign' %}">
+            {% csrf_token %}
+            {% if to_invite and not blocked %}<button class="boto boto-principal" type="submit" name="action" value="send">{% blocktranslate count total=to_invite %}Envia {{ total }} invitació…{% plural %}Envia {{ total }} invitacions…{% endblocktranslate %}</button>{% endif %}
+            <button class="boto" type="submit" name="action" value="close">{% translate "Tanca la campanya…" %}</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </section>
+{% endblock %}
