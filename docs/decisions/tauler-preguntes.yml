@@ -759,6 +759,7 @@ opcions:
       La 095 demana una integració que emeti, registri, enviï i consulti l'estat de cada factura, i
       només un servei amb API ho fa darrere d'un adaptador. C no s'hi integra. B val si el programa de
       la gestoria té API i compleix la 035; si no, A.
+    data: 2026-11-17
 
   P-310:
     opcions:
@@ -777,7 +778,6 @@ opcions:
     recomanada: A
     perque: >-
       Una devolució treu diners del club i no es pot desfer; un pas més només per a aquesta acció costa poc.
-    data: 2026-11-17
     data: 2026-11-17
 
   P-300:
