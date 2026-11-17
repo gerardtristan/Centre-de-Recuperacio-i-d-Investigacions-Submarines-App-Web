@@ -49,6 +49,7 @@ REOPEN_RETURNED = (S.RETURNED, S.PENDING)
 PAID_ORIGINS = {"provider", "reconciliation"}
 
 RECONCILE = "treasury.reconcile"  # T4 (M04-4): conciliar i desfer una conciliació
+RETURNS = "payments.returns"  # B4 (M05b-4): registrar retornats i decidir el reintent
 PAYMENT_CANCELLED = "charges.payment_cancelled"
 
 # S-M04-06: el centre de cost de les quotes, dins «General» (dades inicials de la T-M04-02).
@@ -281,9 +282,7 @@ def _cancel_payment(payment: Payment, reason: str, *, by, origin: str) -> Paymen
 
 
 def _can_handle_returns(by) -> bool:
-    # shortcut: T4 fa de B4 («Registrar retornats i decidir el reintent», només el tresorer,
-    # M05b-4) fins que el catàleg tingui B4 (T-M05b-12); llavors, B4.
-    return has_perm(by, RECONCILE, write=True)
+    return has_perm(by, RETURNS, write=True)
 
 
 @transaction.atomic

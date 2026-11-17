@@ -351,6 +351,21 @@ PERMISSIONS: tuple[Permission, ...] = (
         touches_money=True,
     ),
     _perm(
+        "treasury.accounts.manage",
+        "T2",
+        _("Crear i desactivar comptes"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "treasury.cost_centres.manage",
+        "T3",
+        _("Mantenir departaments i centres de cost"),
+        # El Tresorer, [A validar] al M04-4, comença sense (S-M04-09).
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
         "treasury.reconcile",
         "T4",
         _("Conciliar i desfer una conciliació"),
@@ -379,6 +394,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    _perm(
+        "treasury.export",
+        "T9",
+        _("Exportar moviments en CSV"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    # T8 i T10 fan servir T4 i T1 mentre la P-190 sigui oberta; T11, P10 (P-243).
     # --- 05a Alta del mètode de pagament i mandats -------------------------------------------
     _perm(
         "payments.mandates.view",
@@ -401,6 +424,51 @@ PERMISSIONS: tuple[Permission, ...] = (
         "payments.mandates.revoke",
         "A6",
         _("Revocar un mandat a petició escrita del soci, amb motiu"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    # A7, A8 i B8 són configuració de l'entorn (variables i claus), no accions de l'app; A9 no
+    # el té ningú i cap pantalla no ensenya l'IBAN (044).
+    # --- 05b Cobraments ------------------------------------------------------------------------
+    _perm(
+        "payments.remittances",
+        "B3",
+        _("Generar remeses, descarregar el fitxer i marcar-lo enviat"),
+        protected=True,
+        protected_by="044",  # el fitxer porta els IBAN
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+        touches_personal_data=True,
+    ),
+    _perm(
+        "payments.returns",
+        "B4",
+        _("Registrar retornats i decidir el reintent"),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "payments.refund",
+        "B5",
+        _("Fer devolucions"),
+        # L'Administrador, [A validar] al M05b-4, comença sense (D-10).
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "payments.view",
+        "B6",
+        _("Veure tots els pagaments, en curs, fallits i «a revisar»"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+        touches_personal_data=True,
+    ),
+    _perm(
+        "payments.resend",
+        "B7",
+        _("Reenviar l'alternativa de pagament o l'enllaç de convidat"),
+        # La Secretaria, «Sí (quotes)» a la matriu, comença sense: cap abast no limita a les
+        # quotes (P-244).
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),

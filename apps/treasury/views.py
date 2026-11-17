@@ -14,28 +14,35 @@ Conciliació (T-M04-15, segon tall; C5 i C6; P-M04-E, passos 3 i 5): les línies
 vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs proposats o casats.
 «Confirma» (`reconciliation.confirm`) i «Desfés» amb motiu (`reconciliation.undo`) són POST amb
 T4 al servidor; veure-la és T1. Del càrrec, el nom de la persona, el concepte i l'import (M04-4).
+
+Exportació CSV (T-M04-16, C8; CA-T15.1): els moviments amb els mateixos filtres que la llista,
+per POST i amb T9 al servidor; cada exportació queda al registre amb els filtres i les files.
 """
 
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.core import audit
 from apps.core.charges import euros
 from apps.core.imports import statement_lines
 from apps.core.models import Department
 from apps.core.permissions import has_perm, permission_required
 
-from . import reconciliation
+from . import exports, reconciliation
 from .balances import balances
-from .models import Movement, Reconciliation, StatementLineState, TreasuryAccount
+from .models import CostCentre, Movement, Reconciliation, StatementLineState, TreasuryAccount
 
 VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
+EXPORT = "treasury.export"  # T9, «Exportar moviments en CSV» (M04-4)
+EXPORTED = "treasury.movements_exported"
 PER_PAGE = 50
 
 
@@ -59,6 +66,12 @@ class MovementFilterForm(forms.Form):
     department = forms.ModelChoiceField(
         Department.objects.order_by("name"),
         label=_("Departament"),
+        required=False,
+        empty_label=_("Tots"),
+    )
+    cost_centre = forms.ModelChoiceField(
+        CostCentre.objects.select_related("department").order_by("department__name", "name"),
+        label=_("Centre de cost"),
         required=False,
         empty_label=_("Tots"),
     )
@@ -90,31 +103,53 @@ def accounts_view(request):
     return render(request, "treasury/accounts.html", context)
 
 
+def _filtered(form):
+    """Els moviments dels filtres vàlids: els no vàlids surten com a error i no filtren."""
+    data = {}
+    if form.is_bound:
+        form.is_valid()
+        data = form.cleaned_data
+    movements = Movement.objects.all()
+    for field in ("account", "department", "cost_centre"):
+        if data.get(field):
+            movements = movements.filter(**{field: data[field]})
+    if data.get("date_from"):
+        movements = movements.filter(value_date__gte=data["date_from"])
+    if data.get("date_to"):
+        movements = movements.filter(value_date__lte=data["date_to"])
+    return movements, data
+
+
 @never_cache
 @permission_required(VIEW)
 @require_GET
 def movements_view(request):
     form = MovementFilterForm(request.GET or None)
-    data = {}
-    if form.is_bound:
-        form.is_valid()  # els camps vàlids filtren; els no vàlids surten com a error i no filtren
-        data = form.cleaned_data
-    movements = Movement.objects.with_reversal().select_related(
-        "account", "department", "cost_centre"
-    )
-    if data.get("account"):
-        movements = movements.filter(account=data["account"])
-    if data.get("department"):
-        movements = movements.filter(department=data["department"])
-    if data.get("date_from"):
-        movements = movements.filter(value_date__gte=data["date_from"])
-    if data.get("date_to"):
-        movements = movements.filter(value_date__lte=data["date_to"])
+    movements, _data = _filtered(form)
+    movements = movements.with_reversal().select_related("account", "department", "cost_centre")
     page = Paginator(movements.order_by("-value_date", "-recorded_at", "-id"), PER_PAGE).get_page(
         request.GET.get("pagina")
     )
     rows = [{"movement": m, "amount": _signed(m)} for m in page]
-    return render(request, "treasury/movements.html", {"form": form, "page": page, "rows": rows})
+    can_export = has_perm(request.user, EXPORT)
+    context = {"form": form, "page": page, "rows": rows, "can_export": can_export}
+    return render(request, "treasury/movements.html", context)
+
+
+@never_cache
+@permission_required(EXPORT)
+@require_POST
+def export_view(request):
+    movements, data = _filtered(MovementFilterForm(request.POST))
+    content, total = exports.movements_csv(movements)
+    response = HttpResponse(content, content_type="text/csv; charset=utf-8")
+    today = timezone.localdate()
+    response["Content-Disposition"] = f'attachment; filename="moviments-{today:%Y-%m-%d}.csv"'
+    filters = {field: request.POST[field] for field in data if data[field]}
+    audit.record(
+        EXPORTED, actor=request.user, details={"filters": filters, "rows": total}, request=request
+    )
+    return response
 
 
 @never_cache

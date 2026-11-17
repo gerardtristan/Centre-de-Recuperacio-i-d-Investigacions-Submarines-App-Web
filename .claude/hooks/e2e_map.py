@@ -152,6 +152,7 @@ MAP = {
         "apps/treasury/admin_urls.py",
         "apps/treasury/reconciliation.py",
         "apps/treasury/balances.py",
+        "apps/treasury/exports.py",
         "templates/treasury/*.html",
     ),
     "test_ajustos.py": (

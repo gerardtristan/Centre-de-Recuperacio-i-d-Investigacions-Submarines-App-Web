@@ -790,4 +790,48 @@ opcions:
       pagar té un sol pagament que compta. La D només cal si els retorns s'han de registrar sols, sense el tresorer.
     data: 2026-11-17
 
+  P-241:
+    opcions:
+      A: La referència del pagament (transferència o proveïdor) i, si no n'hi ha, la de la liquidació (com s'ha fet).
+      B: El número intern del moviment.
+      C: Totes dues, en dues columnes.
+      D: La columna buida fins que la gestoria digui què necessita.
+    recomanada: A
+    perque: >-
+      És la que es troba a l'extracte del banc o a la liquidació del proveïdor, que és el que la gestoria
+      ha de casar, i no porta cap dada personal.
+    data: 2026-11-17
+
+  P-242:
+    opcions:
+      A: Coma decimal, sense separador de milers ni símbol (1234,56), entrada i sortida separades (com s'ha fet).
+      B: Amb separador de milers (1.234,56).
+      C: Punt decimal (1234.56), per a programes que no siguin l'Excel en català.
+    recomanada: A
+    perque: >-
+      L'Excel en català el llegeix com a número sense cap pas més; el separador de milers el pot convertir en text.
+    data: 2026-11-17
+
+  P-243:
+    opcions:
+      A: Cap codi nou; la vista de quotes continua amb P10 (com s'ha fet).
+      B: Un codi propi per a T11, amb les mateixes cel·les, per si algun dia es separen.
+      C: Esborrar T11 de la matriu del pla.
+    recomanada: A
+    perque: >-
+      Les dues files diuen el mateix i tenen les mateixes cel·les; dos codis iguals a l'editor confondrien
+      l'administrador.
+    data: 2026-11-17
+
+  P-244:
+    opcions:
+      A: La Secretaria comença sense B7; l'administrador l'hi pot donar sencer (com s'ha fet).
+      B: Un abast nou «només quotes» al motor de permisos.
+      C: La Secretaria comença amb B7 sencer (també inscripcions i llicències).
+    recomanada: A
+    perque: >-
+      És l'opció més estreta mentre la pantalla de B7 no existeix; la B és un canvi del nucli que només val la
+      pena si la Secretaria l'ha de fer servir de debò.
+    data: 2026-11-17
+
 noves:
