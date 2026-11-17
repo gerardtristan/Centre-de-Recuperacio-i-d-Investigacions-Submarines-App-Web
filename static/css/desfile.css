@@ -1,0 +1,31 @@
+/* Desfile (T-DX-26; recurs a design/extern/; design-system §16, T-DX-26): el carril de la portada pública.
+   Del recurs: el desplaçament i l'imant del navegador (scroll-snap), el comptador «1 / 5», la barra
+   de progrés i les fletxes. Sense avanç automàtic (D20). La capçalera i l'ona són d'Oleaje (§6.18). */
+/* La pista no ha d'eixamplar la graella de la pàgina (min-content de les targetes) */
+.desfile-portada { grid-template-columns: minmax(0, 1fr); overflow: hidden; border-radius: var(--r-xl); }
+.desfile-portada > * { min-inline-size: 0; }
+.desfile-portada .oleaje-portada { margin-bottom: 0; }
+.desfile-crida { margin: var(--e-5) 0 0; padding: 0; border: 0; }
+/* Desactivat (en construcció), però llegible sobre el degradat */
+.desfile-crida .boto:disabled { color: var(--c-carnet-text); border-color: currentColor; }
+.desfile-cap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-3); margin-bottom: var(--e-4); }
+.desfile-controls { display: flex; align-items: center; gap: var(--e-2); margin: 0; padding: 0; border: 0; }
+.desfile-comptador { margin: 0 var(--e-2) 0 0; font-variant-numeric: tabular-nums; color: var(--c-text-2); }
+.desfile-pista {
+  display: grid; grid-auto-flow: column; grid-auto-columns: var(--carril-targeta); gap: var(--e-4);
+  margin: 0; padding: var(--e-1) var(--e-1) var(--e-4); list-style: none;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--e-1);
+  /* C2: la vora de la dreta s'esvaeix en lloc de tallar en sec */
+  mask-image: linear-gradient(to right, var(--c-text) calc(100% - var(--e-6)), transparent);
+}
+.desfile-pista:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--v-fina); }
+@media (min-width: 600px) { .desfile-pista { grid-auto-columns: calc((100% - var(--e-4)) / 2); } }
+@media (min-width: 1024px) { .desfile-pista { grid-auto-columns: calc((100% - 2 * var(--e-4)) / 3); } }
+.desfile-targeta { display: grid; justify-items: start; align-content: start; gap: var(--e-2); scroll-snap-align: start; }
+.desfile-targeta h3 { margin: 0; font-size: var(--t-l); text-wrap: balance; }
+.desfile-quan, .desfile-preu { margin: 0; font-variant-numeric: tabular-nums; }
+.desfile-quan { color: var(--c-text-2); }
+.desfile-progres { appearance: none; inline-size: 100%; block-size: var(--e-1); border: 0; border-radius: var(--r-pastilla); background: var(--c-linia); overflow: hidden; }
+.desfile-progres::-webkit-progress-bar { background: var(--c-linia); }
+.desfile-progres::-webkit-progress-value { background: var(--c-accent); }
+.desfile-progres::-moz-progress-bar { background: var(--c-accent); }
