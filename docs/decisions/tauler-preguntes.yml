@@ -945,4 +945,15 @@ opcions:
       Mai cobra un mandat revocat i no canvia cap import sense que el tresorer ho vegi.
     data: 2026-11-17
 
+  P-247:
+    opcions:
+      A: El nom només amb P4, «Llistat i fitxa de socis», amb qualsevol abast (com s'ha fet).
+      B: El nom a tothom qui té B6.
+      C: Un permís de camp nou, «nom del pagador», a la matriu.
+    recomanada: A
+    perque: >-
+      Fa servir un permís que ja diu qui pot veure els socis, i si l'administrador el treu d'un rol, el llistat
+      continua servint sense noms. La C només cal si algú ha de veure els pagaments sense poder veure els socis.
+    data: 2026-11-17
+
 noves:

@@ -1,0 +1,138 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M05b-16: llistat de pagaments i «a revisar» del tresorer. Permís B6 al servidor. Només lectura: l'únic formulari és el filtre, amb GET. El nom del pagador només arriba al context amb P4 (P-247); amagar-lo aquí no és el control. Cap IBAN ni dada de targeta. Tancar un «a revisar» encara no es pot (P-82). #}
+{% block title %}{% translate "Pagaments" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Pagaments i «a revisar»" %}</h1>
+
+  <h2>{% translate "A revisar" %}</h2>
+  {% if not review and not events and not receipts %}
+    <p>{% translate "No hi ha cap pagament a revisar." %}</p>
+  {% endif %}
+
+  {% if review %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=review|length %}{{ total }} intent de pagament a revisar{% plural %}{{ total }} intents de pagament a revisar{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Data" %}</th>
+          <th scope="col">{% translate "Càrrec" %}</th>
+          {% if names %}<th scope="col">{% translate "Pagador" %}</th>{% endif %}
+          <th scope="col">{% translate "Mètode" %}</th>
+          <th scope="col">{% translate "Motiu" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in review %}{% with attempt=row.attempt %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ attempt.updated_at|date:'c' }}">{{ attempt.updated_at|date:"d/m/Y H:i" }}</time></th>
+            <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
+            {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
+            <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
+            <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if events %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=events|length %}{{ total }} notificació del proveïdor sense cap intent que hi quadri{% plural %}{{ total }} notificacions del proveïdor sense cap intent que hi quadri{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Rebuda" %}</th>
+          <th scope="col">{% translate "Proveïdor" %}</th>
+          <th scope="col">{% translate "Tipus" %}</th>
+          <th scope="col">{% translate "Ordre" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in events %}{% with event=row.event %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ event.received_at|date:'c' }}">{{ event.received_at|date:"d/m/Y H:i" }}</time></th>
+            <td data-etiqueta="{% translate 'Proveïdor' %}" class="cel-valor">{{ event.provider_code }}</td>
+            <td data-etiqueta="{% translate 'Tipus' %}" class="cel-valor">{{ event.event_type|default:"—" }}</td>
+            <td data-etiqueta="{% translate 'Ordre' %}" class="cel-valor"><span class="codi">{{ event.order_id|default:"—" }}</span></td>
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount|default:"—" }}</span></td>
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if receipts %}
+    <table class="taula">
+      <caption>{% blocktranslate count total=receipts|length %}{{ total }} transferència conciliada sense rebut{% plural %}{{ total }} transferències conciliades sense rebut{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Càrrec" %}</th>
+          {% if names %}<th scope="col">{% translate "Pagador" %}</th>{% endif %}
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in receipts %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ row.charge.concept }}</th>
+            {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <h2>{% translate "Tots els intents de pagament" %}</h2>
+  <form class="formulari" method="get" action="{% url 'administration:payments_list' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:payments_list' %}">{% translate "Treu els filtres" %}</a>
+    </div>
+  </form>
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=page.paginator.count %}{{ total }} intent, del més recent al més antic{% plural %}{{ total }} intents, del més recent al més antic{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Data" %}</th>
+        <th scope="col">{% translate "Càrrec" %}</th>
+        {% if names %}<th scope="col">{% translate "Pagador" %}</th>{% endif %}
+        <th scope="col">{% translate "Mètode" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col" class="cel-import">{% translate "Import" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with attempt=row.attempt %}
+        <tr>
+          <th scope="row" class="cel-nom"><time datetime="{{ attempt.created_at|date:'c' }}">{{ attempt.created_at|date:"d/m/Y H:i" }}</time></th>
+          <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
+          {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
+          <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if attempt.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "to_review" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "failed" or attempt.status == "expired" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ attempt.get_status_display }}</span>{% else %}{{ attempt.get_status_display }}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="{% if names %}6{% else %}5{% endif %}">{% translate "Cap intent de pagament amb aquests filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="accions" aria-label="{% translate 'Pàgines dels intents' %}">
+      {% if page.has_previous %}<a class="boto boto-petit" href="{% querystring pagina=page.previous_page_number %}">{% translate "Més recents" %}</a>{% endif %}
+      <span aria-current="page">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Pàgina {{ number }} de {{ total }}{% endblocktranslate %}</span>
+      {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Més antics" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+{% endblock %}
