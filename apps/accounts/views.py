@@ -12,6 +12,7 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_not_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -22,7 +23,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit, roles
-from apps.core.permissions import permission_required
+from apps.core.models import AccountRole
+from apps.core.permissions import has_perm, permission_required
 
 from . import email_links, emergency, invitations, tokens, totp
 from .forms import (
@@ -564,10 +566,16 @@ def personal_totp_disable_view(request):
 def admin_accounts_view(request):
     """Llista mínima dels comptes d'administrador per al restabliment (HU-08), només amb M4.
     Sense permís, «no trobat». Només el que cal per decidir: nom d'usuari, estat, si té el
-    doble factor i si té una contrasenya temporal pendent. La T-RP-02 l'ampliarà."""
+    doble factor, si té una contrasenya temporal pendent i els rols actius (T-RP-02)."""
+    active_roles = Prefetch(
+        "role_assignments",
+        AccountRole.objects.filter(removed_at__isnull=True).select_related("role"),
+        to_attr="active_roles",
+    )
     accounts = (
         Account.objects.filter(kind=Account.Kind.ADMIN)
         .select_related("totp_device")
+        .prefetch_related(active_roles)
         .order_by("login")
     )
     return render(
@@ -575,6 +583,7 @@ def admin_accounts_view(request):
         "accounts/admin_accounts.html",
         {
             "accounts": accounts,
+            "can_manage_roles": has_perm(request.user, "core.accounts.manage"),
             "emergency_ready": emergency.warning_for(request.user),
             "emergency_minimum": emergency.MINIMUM,
         },

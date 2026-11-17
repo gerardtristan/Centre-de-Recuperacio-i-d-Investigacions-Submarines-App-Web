@@ -126,6 +126,14 @@ MAP = {
         "templates/accounts/admin_accounts.html",
         "templates/accounts/admin_home.html",
     ),
+    "test_rols.py": (
+        "apps/core/roles.py",
+        "apps/core/admin_urls.py",
+        "apps/core/views/roles.py",
+        "templates/emails/avis-canvi-rol.*",
+        "templates/core/account_roles.html",
+        "templates/accounts/admin_accounts.html",
+    ),
     "test_pagaments_llistat.py": (
         "apps/payments/payment_admin_views.py",
         "templates/payments/payments.html",

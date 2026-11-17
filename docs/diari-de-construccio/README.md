@@ -262,7 +262,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [P-125](P-125.md) | Signar el mandat passa la preferència a la domiciliació amb aquest mandat (095) | 17/11/2026 | d2c83b18 | 1 nova | [A comprovar] |
 | [P-111](P-111.md) | L'ingrés d'una transferència conciliada porta la data de valor de la línia de l'extracte (`record_payment` accepta `paid_at`; 095) | 17/11/2026 | 43ca0fcd | 1 nova | [A comprovar] |
 | [P-250](P-250.md) | Descartar amb motiu una devolució pendent (B5; migració payments/0015; 095) | 17/11/2026 | 77a66465 | 4 noves | [A comprovar] |
-| [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c, a0757f78 | 6514 sense e2e; 29 noves | [A comprovar] |
+| [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c, a0757f78 | 6514 sense e2e; 30 noves | [A comprovar] |
 | [T-DX-51](T-DX-51.md) | Logotips ajustats (192 px, AVIF o WebP) i només el del tema que es veu: de 845 KB a uns 14 KB per pàgina (carril de disseny) | 17/11/2026 14:01 | 7b19e24b (PR #181) | 6 noves | [A comprovar] |
 | [T-B8](T-B8-axe-tresoreria-05b.md) | Auditoria d'accessibilitat (axe) de les 15 pantalles de la 04 i les 26 del 05b, a 1280 i 390 px: cap violació greu | 17/11/2026 | 7dea85d9 | 5 noves al navegador | [A comprovar] |
 | [T-M05a-12](T-M05a-12.md) | Targeta guardada per a les quotes amb el proveïdor fictici (092): autenticació al proveïdor, targeta desada només amb la notificació; dubtes P-297 a P-299 | 17/11/2026 | 4a1fc647 (#189), cb2ad9bf | 6617; 27 noves i 1 al navegador | [A comprovar] |
@@ -274,3 +274,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-54](T-DX-54.md) | Proves dels logotips també a Firefox i WebKit (Safari): un sol logotip descarregat als tres motors (carril de disseny) | 17/11/2026 14:49 | 31bad555 (PR #194) | 4 casos nous | [A comprovar] |
 | [P-294](P-294.md) | GlitchTip autoallotjat al VPS del club: `errors.cris1954.cat` a la llista autoritzada i guia d'instal·lació (sense encendre) | 17/11/2026 | bd2cc4b2 | 30; 1 nova | [A comprovar] |
 | [P-127](P-127.md) | L'entrada «Mandat de domiciliació» surt a qui té un mandat actiu, també amb la signatura apagada, per poder-lo revocar sempre (095) | 17/11/2026 | 604dc478 | 1 nova | [A comprovar] |
+| [T-RP-02](T-RP-02.md) | Assignar i retirar rols des de la pantalla: resum, nota, codi TOTP, registre i correu (pilot) | 17/11/2026 | 2cf591df, fa50b7e9 | 40 noves; 1 e2e | [A comprovar] |

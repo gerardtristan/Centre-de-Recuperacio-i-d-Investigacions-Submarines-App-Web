@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% if assigned %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte «{{ actor }}» ha assignat el rol «{{ role }}» al compte d'administrador «{{ username }}».{% endblocktranslate %}{% else %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte «{{ actor }}» ha retirat el rol «{{ role }}» al compte d'administrador «{{ username }}».{% endblocktranslate %}{% endif %}
+
+{% translate "Nota de qui ha fet el canvi:" %} {{ note }}
+
+{% translate "Reps aquest avís perquè tens el rol administrador o President, o perquè el canvi és del teu compte. Aquest correu no porta cap enllaç." %}
+
+{% translate "Si ningú no esperava aquest canvi, revisa el registre d'activitat i avisa la junta tan aviat com puguis." %}
+{% endautoescape %}
