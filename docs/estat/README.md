@@ -9,5 +9,5 @@ Mentre l'interruptor D1 de [`CLAUDE.md`](../../CLAUDE.md) sigui actiu (decisió 
 
 ## El que queda del format antic
 
-- Les tasques del 00 i del 01 es van passar aquí el 13/11/2026 tal com les llegia la línia cronològica. Les que el pla donava per «feta en part» o «implementada, pendent de validació» hi consten com a **en curs**, amb el que queda a la nota. Partir-les en una part feta i una de bloquejada, cas per cas, encara no s'ha fet.
+- Les tasques del 00 i del 01 es van passar aquí el 13/11/2026 tal com les llegia la línia cronològica. Les que el pla donava per «feta en part» o «implementada, pendent de validació» hi consten com a **en curs**, amb el que queda a la nota. El 17/11/2026 es van partir segons el §2.5 del [pla d'acceleració](../plans/pla-acceleracio.md) (00, 01, 04, 05a i 05b): la part feta, «feta» (amb «Pendent de validació del propietari» a la nota quan cal) i el que queda, una fila nova «per fer» o «bloquejada» amb el seu bloqueig.
 - L'historial de cada tasca antiga continua a la seva fila del pla, que ja no s'edita.
