@@ -856,4 +856,15 @@ opcions:
       ho sàpiga.
     data: 2026-11-17
 
+  P-232:
+    opcions:
+      A: El rebut queda sense avís, la remesa es queda en esborrany i el tresorer avisa per una altra via (com s'ha fet).
+      B: El rebut es treu de la remesa automàticament.
+      C: No es pot confirmar la remesa mentre hi hagi cap deutor sense adreça.
+    recomanada: A
+    perque: >-
+      No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer
+      pot avisar per telèfon o en persona.
+    data: 2026-11-17
+
 noves:

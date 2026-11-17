@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings, charges
-from apps.core.models import AuditEntry, Charge, LegalText, Role
+from apps.core.models import AuditEntry, Charge, LegalText, OutgoingEmail, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import AnnualFee
 from apps.members.tests.test_cards import make_member
@@ -72,8 +72,15 @@ def new_fee(member, cents=9000, due_on=None, period=2026):
     )
 
 
-def new_member(n, *, mandate=True, debit=True, signer=None, text=None, cents=9000):
-    member = make_member(first=f"Soci{n}", number=n, document=f"{n:08d}{LETTERS[n % 23]}")
+def new_member(n, *, mandate=True, debit=True, signer=None, text=None, cents=9000, email=True):
+    member = make_member(
+        first=f"Soci{n}",
+        number=n,
+        document=f"{n:08d}{LETTERS[n % 23]}",
+    )
+    if email:
+        member.person.contact_email = f"soci{n}@example.org"
+        member.person.save(update_fields=["contact_email"])
     if mandate:
         signed = mandates.create_mandate(
             member,
@@ -146,7 +153,11 @@ def test_confirmar_crea_la_remesa_els_rebuts_i_els_intents(signer, text, treasur
 
     remittance = remittances.build_remittance("2026-12", collection_date(), treasurer)
 
-    assert (remittance.status, remittance.item_count, remittance.total_cents) == ("draft", 2, 12500)
+    assert (remittance.status, remittance.item_count, remittance.total_cents) == (
+        "notified",
+        2,
+        12500,
+    )
     items = DirectDebitItem.objects.filter(remittance=remittance).order_by("amount_cents")
     assert [i.attempt.charge_id for i in items] == [first.charge_id, second.charge_id]
     for item in items:
@@ -154,7 +165,7 @@ def test_confirmar_crea_la_remesa_els_rebuts_i_els_intents(signer, text, treasur
         assert item.attempt.status == PaymentAttempt.Status.SENT_TO_BANK
         assert item.mandate.status == SepaMandate.Status.ACTIVE
         assert item.amount_cents == item.attempt.charge.amount_cents
-        assert (item.attempt_number, item.prenotified_at) == (1, None)
+        assert item.attempt_number == 1
         assert len(item.end_to_end_id) <= 35
     entry = AuditEntry.objects.get(action="payments.remittance.created")
     assert entry.actor_account == treasurer
@@ -193,3 +204,41 @@ def test_ca_m05b_16_amb_el_nivell_1_no_es_genera_cap_remesa(signer, text, treasu
 def test_sense_cap_quota_no_es_crea_cap_remesa(treasurer):
     with pytest.raises(remittances.EmptyRemittance):
         remittances.build_remittance("2026-12", collection_date(), treasurer)
+
+
+def test_ca_m05b_14_cada_deutor_rep_l_avis_previ_sense_l_iban_complet(signer, text, treasurer):
+    first = new_member(1, signer=signer, text=text, cents=3500)
+    new_member(2, signer=signer, text=text)
+    new_member(3, mandate=False)  # exclòs: cap avís
+    date = remittances.earliest_collection_date()
+
+    remittance = remittances.build_remittance("2026-12", date, treasurer)
+
+    assert remittance.status == DirectDebitRemittance.Status.NOTIFIED
+    assert not DirectDebitItem.objects.filter(prenotified_at__isnull=True).exists()
+    emails = OutgoingEmail.objects.filter(template=remittances.PRENOTIFICATION_TEMPLATE)
+    assert sorted(e.to_address for e in emails) == ["soci1@example.org", "soci2@example.org"]
+    email = emails.get(to_address="soci1@example.org")
+    mandate = SepaMandate.objects.get(member=first.member, status=SepaMandate.Status.ACTIVE)
+    assert date.strftime("%d/%m/%Y") in email.subject + email.body_text
+    for part in ("35,00 €", mandate.reference, "ES00ZZZ00000000", "ES … 0001"):
+        assert part in email.body_text
+    for e in emails:
+        assert iban(1) not in e.subject + e.body_text + e.body_html
+        assert iban(2) not in e.subject + e.body_text + e.body_html
+
+    # Tornar-ho a cridar no reenvia res.
+    assert remittances.send_prenotifications(remittance) == []
+    assert emails.count() == 2
+
+
+def test_un_deutor_sense_adreca_deixa_la_remesa_en_esborrany(signer, text, treasurer):
+    new_member(1, signer=signer, text=text)
+    silent = new_member(2, signer=signer, text=text, email=False)
+
+    remittance = remittances.build_remittance("2026-12", collection_date(), treasurer)
+
+    assert remittance.status == DirectDebitRemittance.Status.DRAFT
+    pending = remittances.send_prenotifications(remittance)
+    assert [item.attempt.charge_id for item in pending] == [silent.charge_id]
+    assert OutgoingEmail.objects.filter(template=remittances.PRENOTIFICATION_TEMPLATE).count() == 1

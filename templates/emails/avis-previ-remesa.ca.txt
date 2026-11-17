@@ -1,0 +1,12 @@
+{% load i18n %}{# T-M05b-09, avís previ de la domiciliació (RN-M05b-11; CA-M05b-14): TEXT PROVISIONAL [A validar: junta]. Data, import, referència del mandat, identificador de creditor i l'IBAN emmascarat («…», P-121); mai l'IBAN sencer (044). Surt de cris1954.cat amb resposta a cris@cris.es (019). #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with date=collection_date|date:"d/m/Y" %}El C.R.I.S. cobrarà per domiciliació el rebut següent el {{ date }}:{% endblocktranslate %}
+
+{% blocktranslate %}Concepte: {{ concept }}
+Import: {{ amount }}
+Referència del mandat: {{ reference }}
+Identificador de creditor: {{ creditor }}
+Compte: {{ masked_iban }}{% endblocktranslate %}
+
+{% translate "No cal que facis res. Si alguna dada no és correcta, respon aquest correu abans de la data del cobrament." %}
+{% endautoescape %}

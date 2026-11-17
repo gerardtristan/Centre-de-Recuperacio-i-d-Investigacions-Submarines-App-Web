@@ -6,8 +6,9 @@ P-M05b-E, passos 1 a 3; RN-M05b-10 i 11; CA-M05b-12, 13 i 16).
   [P-230](docs/decisions/pendents.md)). La resta surt a la llista d'excloses amb el motiu.
 - Confirmar-la demana el nivell 2 (RN-M05a-11, `ensure_charges_allowed`) i una data de cobrament
   que deixi temps per a l'avís previ (RN-M05b-11, `payments.prenotification_days`).
-- Cap IBAN: la previsualització i el registre només porten la referència del mandat. Cap
-  cobrament real: el fitxer pain.008 és de la T-M05b-10.
+- En confirmar-la, cada deutor rep l'avís previ per la cua (P-M05b-E, pas 4; CA-M05b-14).
+- Cap IBAN: la previsualització i el registre només porten la referència del mandat, i l'avís,
+  l'IBAN emmascarat (P-121). Cap cobrament real: el fitxer pain.008 és de la T-M05b-10.
 """
 
 from dataclasses import dataclass, field
@@ -17,8 +18,9 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit, business_settings
+from apps.core import audit, business_settings, charges, mail
 from apps.core.models import Charge
+from apps.members import recipients
 from apps.members.models import AnnualFee
 
 from . import attempts
@@ -33,6 +35,7 @@ from .models import (
 from .providers.base import ensure_charges_allowed
 
 PRENOTIFICATION_DAYS = "payments.prenotification_days"  # VC-16 (S-M05b-06)
+PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
 IN_FLIGHT = (PaymentAttempt.Status.IN_PROGRESS, PaymentAttempt.Status.SENT_TO_BANK)
 
 # Motius d'exclusió de la previsualització.
@@ -151,4 +154,51 @@ def build_remittance(period: str, collection_date: date, actor) -> DirectDebitRe
             "excluded": len(selection.excluded),
         },
     )
+    send_prenotifications(remittance)
+    remittance.refresh_from_db()
     return remittance
+
+
+@transaction.atomic
+def send_prenotifications(remittance: DirectDebitRemittance) -> list[DirectDebitItem]:
+    """P-M05b-E, pas 4 (RN-M05b-11, CA-M05b-14): l'avís previ a cada deutor que encara no l'ha
+    rebut, per la cua i dins la transacció. La remesa passa a «avisada» quan tots l'han rebut.
+    Torna els rebuts sense avís (sense adreça o persona anonimitzada) perquè el tresorer avisi
+    per una altra via ([P-232](docs/decisions/pendents.md)); es pot tornar a cridar."""
+    remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
+    items = remittance.items.filter(prenotified_at__isnull=True).select_related(
+        "attempt__charge__person", "mandate__bank_account"
+    )
+    now, pending = timezone.now(), []
+    for item in items:
+        charge = item.attempt.charge
+        to = recipients.email_for(charge.person)
+        context = {
+            "collection_date": remittance.collection_date,
+            "amount": charges.euros(item.amount_cents),
+            "concept": charge.concept,
+            "reference": item.mandate.reference,
+            "creditor": item.mandate.creditor_identifier,
+            "masked_iban": str(item.mandate.bank_account),
+        }
+        if (
+            not to
+            or mail.queue_email(
+                PRENOTIFICATION_TEMPLATE, to=to, person=charge.person, context=context
+            )
+            is None
+        ):
+            pending.append(item)
+            continue
+        item.prenotified_at = now
+        item.save(update_fields=["prenotified_at"])
+    if not pending and remittance.status == DirectDebitRemittance.Status.DRAFT:
+        remittance.status = DirectDebitRemittance.Status.NOTIFIED
+        remittance.save(update_fields=["status"])
+    audit.record(
+        "payments.remittance.prenotified",
+        actor=audit.system("payments"),
+        target=remittance,
+        details={"sent": len(items) - len(pending), "without_notice": len(pending)},
+    )
+    return pending
