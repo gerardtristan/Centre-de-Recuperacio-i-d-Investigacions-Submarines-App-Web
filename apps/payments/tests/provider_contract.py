@@ -165,6 +165,7 @@ def test_no_contract_type_can_carry_card_or_bank_data():
         base.OrderUrls,
         base.SettledOperation,
         base.ProviderSettlementReport,
+        base.ProviderCard,
     ):
         names = {field.name for field in dataclasses.fields(contract_type)}
         assert not names & set(FORBIDDEN_FIELDS), contract_type.__name__

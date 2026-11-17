@@ -22,6 +22,8 @@ SIGNATURE_HEADER = "X-Fake-Signature"
 BIZUM_MINUTES = 15
 # La pàgina de pagament de prova (T-M05b-04): `views.fake_pay_view`.
 PAY_PATH = "/pagaments/prova/"
+# Ordres per guardar una targeta: una autorització de 0 € (format [A verificar: P-45 punt 6]).
+SETUP_PREFIX = "fake-setup-"
 
 logger = logging.getLogger(__name__)
 _orders: dict[str, base.OrderState] = {}
@@ -30,6 +32,8 @@ _urls: dict[str, base.OrderUrls] = {}
 _bizum_expiry: dict[str, datetime] = {}
 # Els abonaments al banc que ha fet el proveïdor (`settle`), en l'ordre en què els ha fet.
 _settlements: list[base.ProviderSettlementReport] = []
+# La targeta que ha guardat cada autenticació acabada.
+_cards: dict[str, base.ProviderCard] = {}
 
 
 def sign(body: bytes, key: str = SIGNING_KEY) -> str:
@@ -42,6 +46,7 @@ def reset() -> None:
     _urls.clear()
     _bizum_expiry.clear()
     _settlements.clear()
+    _cards.clear()
 
 
 class FakeProvider(base.PaymentProvider):
@@ -73,6 +78,19 @@ class FakeProvider(base.PaymentProvider):
             pay_url=f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/",
             expires_at=expires_at,
         )
+
+    def _start_card_setup(self, person, urls) -> base.ProviderOrder:
+        external_id = f"{SETUP_PREFIX}{uuid4().hex}"
+        _orders[external_id] = base.OrderState(external_id, base.PENDING, 0, "EUR")
+        _urls[external_id] = urls
+        pay_url = f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/"
+        return base.ProviderOrder(external_id=external_id, pay_url=pay_url, expires_at=None)
+
+    def get_card_setup(self, external_id: str) -> base.ProviderCard:
+        try:
+            return _cards[external_id]
+        except KeyError:
+            raise base.ProviderError(f"Cap targeta guardada amb l'ordre {external_id}") from None
 
     def get_order(self, external_id: str) -> base.OrderState:
         try:
@@ -109,11 +127,13 @@ class FakeProvider(base.PaymentProvider):
         except (ValueError, KeyError, TypeError, AttributeError) as error:
             raise base.MalformedNotification(type(error).__name__) from None
         amount = notification.amount_cents
+        # Només l'autorització per guardar una targeta pot ser de 0 €.
+        least = 0 if notification.order_id.startswith(SETUP_PREFIX) else 1
         if (
             notification.status not in base.ORDER_STATUSES
             or isinstance(amount, bool)
             or not isinstance(amount, int)
-            or amount <= 0
+            or amount < least
         ):
             raise base.MalformedNotification("contingut")
         return notification
@@ -135,11 +155,23 @@ class FakeProvider(base.PaymentProvider):
     # --- El que faria el proveïdor de veritat: només per a proves i desenvolupament ---
 
     def notification(
-        self, external_id: str, status: str, *, event_id: str | None = None, key: str = SIGNING_KEY
+        self,
+        external_id: str,
+        status: str,
+        *,
+        event_id: str | None = None,
+        key: str = SIGNING_KEY,
+        card: base.ProviderCard | None = None,
     ) -> tuple[bytes, dict]:
         """Cos i capçaleres de la notificació que enviaria el proveïdor per a aquesta ordre.
-        Amb el mateix `event_id`, és la mateixa notificació repetida."""
+        Amb el mateix `event_id`, és la mateixa notificació repetida. Una autenticació de
+        targeta acceptada la guarda (`card`, o una d'inventada que caduca d'aquí a tres anys)."""
         order = self.get_order(external_id)
+        if status == base.PAID and external_id.startswith(SETUP_PREFIX):
+            year = timezone.localdate().year + 3
+            _cards.setdefault(
+                external_id, card or base.ProviderCard(f"fake-card-{uuid4().hex}", "4242", 12, year)
+            )
         _orders[external_id] = base.OrderState(
             external_id, status, order.amount_cents, order.currency
         )
