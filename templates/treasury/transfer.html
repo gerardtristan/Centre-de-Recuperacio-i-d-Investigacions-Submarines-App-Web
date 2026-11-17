@@ -1,0 +1,25 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (tercer tall), C3: traspàs entre dos comptes propis, bancaris o de caixa (P-M04-D; CA-T07.1). Sense wireframe propi (admin.html no en té): segueix les pantalles de tresoreria. Seguretat: T6 amb edició al servidor (sense, «no trobat»), POST amb CSRF i dos passos: el primer mostra el traspàs i el segon el registra. Un error del servei no desa res. Cap IBAN ni cap nom: el concepte no n'ha de portar (RNF-T4). #}
+{% block title %}{% translate "Traspàs entre comptes" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Traspàs entre comptes" %}</h1>
+  <p class="text-2">{% translate "Una sortida d'un compte i una entrada a l'altre, del mateix import. Un traspàs equivocat es corregeix amb un altre en sentit contrari." %}</p>
+  <form class="formulari" method="post" action="{% url 'administration:treasury_transfer' %}" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% if confirm %}
+      <input type="hidden" name="confirm" value="1">
+      <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el traspàs" %}</strong>{% blocktranslate with amount=amount source=form.cleaned_data.source.name destination=form.cleaned_data.destination.name %}Sortiran {{ amount }} de «{{ source }}» i entraran a «{{ destination }}».{% endblocktranslate %}</div>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Sí, registra el traspàs" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:treasury_transfer' %}">{% translate "Cancel·la" %}</a>
+      </div>
+    {% else %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el traspàs" %}</button></div>
+    {% endif %}
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+{% endblock %}

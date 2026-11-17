@@ -166,6 +166,12 @@ MAP = {
         "apps/treasury/exports.py",
         "templates/treasury/*.html",
     ),
+    "test_tresoreria_entrades.py": (
+        "apps/treasury/entry_views.py",
+        "apps/treasury/admin_urls.py",
+        "apps/treasury/settlements.py",
+        "templates/treasury/*.html",
+    ),
     "test_ajustos.py": (
         "apps/core/views/business_settings.py",
         "templates/core/setting*.html",

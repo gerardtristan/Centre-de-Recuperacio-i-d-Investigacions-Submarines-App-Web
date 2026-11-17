@@ -1,10 +1,11 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15 (primer tall) i T-M04-16, C8: moviments amb filtres per compte, departament, centre de cost i dates, i l'exportació CSV amb els mateixos filtres (POST, T9 al servidor; el botó només surt amb T9, però amagar-lo no és el control). Només lectura (RN-T07): els filtres van per GET i l'exportació no escriu cap moviment. Permís T1 al servidor. Un moviment anul·lat no desapareix: surt marcat (CA-T06.1, RN-T25). Imports amb signe, color i xifres tabulars, a la dreta (B8). El concepte no porta noms (RNF-T4). #}
+{# T-M04-15 (primer i tercer tall) i T-M04-16, C8: «Anul·la…» només surt amb T5 i per als tipus que es poden anul·lar (el servidor ho torna a comprovar); moviments amb filtres per compte, departament, centre de cost i dates, i l'exportació CSV amb els mateixos filtres (POST, T9 al servidor; el botó només surt amb T9, però amagar-lo no és el control). Només lectura (RN-T07): els filtres van per GET i l'exportació no escriu cap moviment. Permís T1 al servidor. Un moviment anul·lat no desapareix: surt marcat (CA-T06.1, RN-T25). Imports amb signe, color i xifres tabulars, a la dreta (B8). El concepte no porta noms (RNF-T4). #}
 {% block title %}{% translate "Moviments de tresoreria" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <h1>{% translate "Moviments de tresoreria" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
 
   <form class="formulari" method="get" action="{% url 'administration:treasury_movements' %}" novalidate>
     <fieldset class="filtres">
@@ -45,7 +46,7 @@
           <td data-etiqueta="{% translate 'Tipus' %}" class="cel-valor">{{ movement.get_kind_display }}</td>
           <td data-etiqueta="{% translate 'Concepte' %}" class="cel-valor">{{ movement.concept }}</td>
           <td data-etiqueta="{% translate 'Departament' %}" class="cel-valor">{% if movement.cost_centre %}{{ movement.cost_centre.full_name }}{% elif movement.department %}{{ movement.department.name }}{% else %}—{% endif %}</td>
-          <td data-etiqueta="{% translate 'Estat' %}">{% if movement.is_reversed %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Anul·lat" %}</span>{% else %}<span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Vigent" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if movement.is_reversed %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Anul·lat" %}</span>{% else %}<span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Vigent" %}</span>{% if row.reversible %} <a class="boto boto-text boto-petit" href="{% url 'administration:treasury_reverse' movement.pk %}">{% translate "Anul·la…" %}</a>{% endif %}{% endif %}</td>
           <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import {% if movement.direction == 'in' %}import-entrada{% else %}import-sortida{% endif %}">{{ row.amount }}</span></td>
         </tr>
       {% endwith %}{% empty %}

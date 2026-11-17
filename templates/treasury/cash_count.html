@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-15 (tercer tall), C4: arqueig d'una caixa amb l'ajust opcional (P-M04-D; CA-T08.1; VT-06). Sense wireframe propi: segueix les pantalles de tresoreria. Seguretat: T7 amb edició al servidor, POST amb CSRF i dos passos: el primer mostra el saldo calculat i la diferència, el segon registra l'arqueig (i l'ajust, només amb motiu). L'arqueig no es modifica: l'ajust es demana ara o mai (P-225). #}
+{% block title %}{% translate "Arqueig de caixa" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Arqueig de caixa" %}</h1>
+  <p class="text-2">{% translate "Compta el que hi ha a la caixa. La plataforma el compara amb el saldo calculat a la mateixa data." %}</p>
+  <form class="formulari" method="post" action="{% url 'administration:treasury_cash_count' %}" novalidate>
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% if confirm %}
+      <dl class="dades-soci">
+        <div><dt>{% translate "Saldo calculat" %}</dt><dd><span class="import">{{ computed }}</span></dd></div>
+        <div><dt>{% translate "Comptat" %}</dt><dd><span class="import">{{ counted }}</span></dd></div>
+        <div><dt>{% translate "Diferència" %}</dt><dd><span class="import">{{ difference }}</span></dd></div>
+      </dl>
+      <input type="hidden" name="confirm" value="1">
+      <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'arqueig" %}</strong>{% if has_difference and form.cleaned_data.adjustment_reason %}{% blocktranslate with amount=difference %}Es registrarà l'arqueig i un ajust de {{ amount }} a «General / Ajustos de caixa».{% endblocktranslate %}{% elif has_difference %}{% translate "Es registrarà l'arqueig amb la diferència, sense cap ajust: després no es pot afegir." %}{% else %}{% translate "Es registrarà l'arqueig: no hi ha cap diferència." %}{% endif %}</div>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Sí, registra l'arqueig" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:treasury_cash_count' %}">{% translate "Cancel·la" %}</a>
+      </div>
+    {% else %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa l'arqueig" %}</button></div>
+    {% endif %}
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+{% endblock %}
