@@ -670,6 +670,28 @@ opcions:
       A, un ajust tardà és un arqueig nou amb el seu motiu.
     data: 2026-11-17
 
+  P-226:
+    opcions:
+      A: Com s'ha construït; consulta diària dels últims 7 dies a l'adaptador.
+      B: Notificació del proveïdor a l'endpoint de les notificacions, amb una migració per desar-la.
+      C: Fitxer de liquidacions que puja el tresorer.
+    recomanada: A
+    perque: >-
+      Mentre no se sap com ho fa PaynoPain, la consulta no toca cap model i es recupera sola si un dia falla. Si el
+      proveïdor només envia notificacions o fitxers, canvia l'adaptador i la resta continua igual.
+    data: 2026-11-17
+
+  P-227:
+    opcions:
+      A: Com s'ha construït; no s'apunta res i queda al registre d'activitat, sense correu.
+      B: Com la A, i un correu a qui té el permís de la tresoreria.
+      C: Es desa «a revisar» a la 04 amb les xifres tal com arriben.
+    recomanada: B
+    perque: >-
+      Cap opció apunta diners que no quadren. La B fa que el tresorer se n'assabenti sense haver de mirar el registre;
+      es deixa la A fins que es decideixi perquè el correu és un text nou. La C demana canviar la 04.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).

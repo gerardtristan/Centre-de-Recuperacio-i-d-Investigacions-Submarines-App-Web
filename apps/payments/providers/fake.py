@@ -28,6 +28,8 @@ _orders: dict[str, base.OrderState] = {}
 _urls: dict[str, base.OrderUrls] = {}
 # Quan caduca cada ordre de Bizum que el titular no confirma a l'app del banc.
 _bizum_expiry: dict[str, datetime] = {}
+# Els abonaments al banc que ha fet el proveïdor (`settle`), en l'ordre en què els ha fet.
+_settlements: list[base.ProviderSettlementReport] = []
 
 
 def sign(body: bytes, key: str = SIGNING_KEY) -> str:
@@ -35,10 +37,11 @@ def sign(body: bytes, key: str = SIGNING_KEY) -> str:
 
 
 def reset() -> None:
-    """Oblida les ordres en memòria (entre proves)."""
+    """Oblida les ordres i els abonaments en memòria (entre proves)."""
     _orders.clear()
     _urls.clear()
     _bizum_expiry.clear()
+    _settlements.clear()
 
 
 class FakeProvider(base.PaymentProvider):
@@ -126,6 +129,9 @@ class FakeProvider(base.PaymentProvider):
             status="done",
         )
 
+    def list_settlements(self, since) -> list[base.ProviderSettlementReport]:
+        return [report for report in _settlements if report.settled_on >= since]
+
     # --- El que faria el proveïdor de veritat: només per a proves i desenvolupament ---
 
     def notification(
@@ -148,6 +154,25 @@ class FakeProvider(base.PaymentProvider):
             sort_keys=True,
         ).encode()
         return body, {SIGNATURE_HEADER: sign(body, key)}
+
+    def settle(
+        self, operations, *, fees_cents: int, settled_on=None, external_id: str | None = None
+    ) -> base.ProviderSettlementReport:
+        """L'abonament agrupat que faria el proveïdor al banc: les operacions (ordre, import),
+        el brut, les comissions sense detall i el net. Format triat per l'equip, [A verificar:
+        P-45 punt 9]."""
+        operations = tuple(base.SettledOperation(order, amount) for order, amount in operations)
+        gross = sum(operation.amount_cents for operation in operations)
+        report = base.ProviderSettlementReport(
+            external_id=external_id or f"fake-settlement-{uuid4().hex}",
+            settled_on=settled_on or timezone.localdate(),
+            gross_cents=gross,
+            fees_cents=fees_cents,
+            net_cents=gross - fees_cents,
+            operations=operations,
+        )
+        _settlements.append(report)
+        return report
 
     def complete(self, external_id: str, status: str) -> str:
         """El que fa la pàgina de pagament de prova quan la persona hi tria un resultat: envia
