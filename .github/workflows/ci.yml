@@ -90,8 +90,9 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e ".[dev]"
-      - name: Chromium de Playwright
-        run: python -m playwright install --with-deps chromium-headless-shell
+      # Firefox i WebKit (el motor de Safari), només per a test_logotip.py (T-DX-54); la resta, Chromium.
+      - name: Navegadors de Playwright
+        run: python -m playwright install --with-deps chromium-headless-shell firefox webkit
       - name: Proves e2e
         run: pytest -m e2e apps/core/tests/e2e
       - name: Captures de les proves e2e (només si fallen)
