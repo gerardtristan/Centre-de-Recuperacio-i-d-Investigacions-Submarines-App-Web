@@ -759,6 +759,25 @@ opcions:
       La 095 demana una integració que emeti, registri, enviï i consulti l'estat de cada factura, i
       només un servei amb API ho fa darrere d'un adaptador. C no s'hi integra. B val si el programa de
       la gestoria té API i compleix la 035; si no, A.
+
+  P-310:
+    opcions:
+      A: A la fitxa del soci, «Quotes», un botó per reenviar l'alternativa d'una quota pendent o retornada; registre.
+      B: Una llista pròpia a Pagaments per a la secretaria, només amb les quotes amb alternativa pendent, sense imports de tercers.
+      C: Només el tresorer, fins que la junta ho torni a mirar.
+    recomanada: A
+    perque: >-
+      La secretaria ja treballa a la fitxa del soci i hi veu les quotes; no cal obrir-li cap pantalla de pagaments amb dades d'altres socis.
+    data: 2026-11-17
+
+  P-311:
+    opcions:
+      A: El codi TOTP al mateix diàleg de la devolució, amb l'import i el motiu.
+      B: Import, motiu i confirmació, sense tornar a demanar el codi (com la P-133).
+    recomanada: A
+    perque: >-
+      Una devolució treu diners del club i no es pot desfer; un pas més només per a aquesta acció costa poc.
+    data: 2026-11-17
     data: 2026-11-17
 
   P-300:

@@ -564,6 +564,12 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
           <h2 id="pagaments-titol">Pagaments</h2>
           <ul class="llista-pagaments" id="llista-pagaments">
             <li class="nomes-soci">
+              <span class="concepte">Sortida Illes Medes</span>
+              <span class="import">45,00 €</span>
+              <span class="meta"><span>15/11/2026</span><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span></span>
+              <a class="boto boto-petit" href="#pagaments-carrec">Paga<span class="visualment-amagat"> la sortida Illes Medes</span></a>
+            </li>
+            <li class="nomes-soci">
               <span class="concepte">Quota 2026 · ple dret</span>
               <span class="import">90,00 €</span>
               <span class="meta"><span>05/01/2026</span><span>Domiciliació</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></span>
@@ -1060,6 +1066,127 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     </div>
   </section>
 
+  <!-- ---------- Pagar un càrrec: els quatre estats, Bizum i transferència (05b B1 i B2; P-M05b-A, B i C; «Estats visibles») ---------- -->
+  <section id="pagaments-carrec" class="pantalla-soci" aria-labelledby="carrec-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#historial-pagaments"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna als pagaments</a>
+        <p><span class="etiqueta-seccio">Pagaments</span></p>
+        <h1 id="carrec-titol">Sortida Illes Medes</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-carrec">
+        <span class="demo-titol" id="demo-carrec">Demostració · estat que diu el servidor:</span>
+        <label><input type="radio" name="demo-carrec" value="pendent" checked> Pendent</label>
+        <label><input type="radio" name="demo-carrec" value="en-curs"> En curs: targeta</label>
+        <label><input type="radio" name="demo-carrec" value="bizum"> En curs: Bizum</label>
+        <label><input type="radio" name="demo-carrec" value="bizum-temps"> Bizum: 15 minuts sense confirmar</label>
+        <label><input type="radio" name="demo-carrec" value="transferencia"> En curs: transferència</label>
+        <label><input type="radio" name="demo-carrec" value="domiciliacio"> En curs: domiciliació (quota)</label>
+        <label><input type="radio" name="demo-carrec" value="pagat"> Pagat</label>
+        <label><input type="radio" name="demo-carrec" value="fallit"> Fallit</label>
+        <label><input type="checkbox" id="demo-carrec-sessio"> La sessió ha caducat en pagar</label>
+        <a href="#no-trobat">Obre el càrrec d'un altre soci</a>
+      </div>
+
+      <section class="targeta" aria-labelledby="carrec-titol">
+        <dl class="dades">
+          <dt>Import</dt><dd><span class="import" id="carrec-import">45,00 €</span></dd>
+          <dt>Concepte</dt><dd id="carrec-detall">Sortida Illes Medes · 15/11/2026</dd>
+        </dl>
+        <div id="estat-pagament" role="status">
+          <p data-estat-pag="pendent"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Pendent</span> Encara no l'has pagat. Tria com vols pagar.</p>
+          <div class="avis avis-avis" data-estat-pag="en-curs" hidden><strong><span aria-hidden="true">◷</span> En curs: estem confirmant el pagament</strong>Esperem que el proveïdor de pagaments ens ho confirmi. Aquesta pàgina s'actualitza sola. Mentrestant no en pots començar cap altre.</div>
+          <div class="avis avis-avis" data-estat-pag="bizum" hidden><strong><span aria-hidden="true">◷</span> En curs: esperant confirmació a l'app del teu banc</strong>Obre l'app del teu banc i confirma el Bizum. Aquesta pàgina s'actualitza sola.</div>
+          <div class="avis avis-error" data-estat-pag="bizum-temps" hidden><strong><span aria-hidden="true">✕</span> Fallit: no s'ha confirmat a temps</strong>No ens ha arribat la confirmació del Bizum i no s'ha cobrat res. Pots tornar-ho a provar o pagar d'una altra manera. Si l'acabes de confirmar a l'app del banc, torna a carregar la pàgina abans de pagar de nou.</div>
+          <div data-estat-pag="transferencia" hidden>
+            <div class="avis avis-avis"><strong><span aria-hidden="true">◷</span> En curs: esperant la transferència</strong>Fes-la des del teu banc amb aquestes dades i escriu la referència al concepte. El pagament es confirma quan arriba a l'extracte del banc del club; llavors rebràs el rebut per correu.</div>
+            <dl class="dades-transferencia">
+              <div><dt>IBAN del club</dt><dd><span class="codi">ES00 0000 0000 0000 0000 0000</span> <button class="boto boto-petit" type="button" data-icona="copia" data-copia="ES0000000000000000000000" data-copiat="IBAN copiat">Copia l'IBAN</button></dd></div>
+              <div><dt>Import</dt><dd><span class="import">45,00 €</span> <button class="boto boto-petit" type="button" data-icona="copia" data-copia="45,00" data-copiat="Import copiat">Copia l'import</button></dd></div>
+              <div><dt>Referència (al concepte)</dt><dd><span class="codi">CRS-SRT014-0427</span> <button class="boto boto-petit" type="button" data-icona="copia" data-copia="CRS-SRT014-0427" data-copiat="Referència copiada">Copia la referència</button></dd></div>
+            </dl>
+            <p><button class="boto" type="button" data-copia="IBAN: ES0000000000000000000000&#10;Import: 45,00&#10;Concepte: CRS-SRT014-0427" data-copiat="Dades copiades" data-icona="copia">Copia-ho tot</button></p>
+            <p class="text-2">Si ja l'has feta, no paguis d'una altra manera: es cobraria dues vegades i caldria tornar-te'n un. Si en 30 dies no ha arribat, et farem un recordatori i el pagament tornarà a «Pendent» <span class="a-validar">A validar: tresorer (S-M05b-10)</span></p>
+          </div>
+          <div class="avis avis-avis" data-estat-pag="domiciliacio" hidden><strong><span aria-hidden="true">◷</span> En curs: es cobrarà el 05/01/2027 per domiciliació</strong>Amb el mandat <span class="codi">CRIS000427M01</span>. T'hem enviat l'avís previ. No cal que facis res.</div>
+          <div data-estat-pag="pagat" hidden>
+            <div class="avis avis-ok"><strong><span aria-hidden="true">✓</span> Pagat</strong>El pagament s'ha confirmat. No cal que facis res més.</div>
+            <p><a href="#pagaments-rebut">Veure el rebut</a></p>
+          </div>
+          <div class="avis avis-error" data-estat-pag="fallit" hidden><strong><span aria-hidden="true">✕</span> Fallit: no s'ha completat</strong>L'últim intent de pagament no s'ha completat i no s'ha cobrat res. Pots tornar-ho a provar o pagar d'una altra manera.</div>
+        </div>
+        <div class="accions-perfil" id="carrec-accions">
+          <button class="boto boto-principal" type="button" data-paga="en-curs" data-icona="targeta">Paga amb targeta</button>
+          <button class="boto" type="button" data-paga="bizum" data-icona="mobil">Paga amb Bizum</button>
+          <button class="boto" type="button" data-paga="transferencia" data-icona="banc">Paga per transferència</button>
+        </div>
+        <p class="resultat-perfil" id="resultat-carrec" role="status" hidden></p>
+        <p class="nota-segura"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.4 3 7.8 7 9 4-1.2 7-4.6 7-9v-5z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span>La targeta i el Bizum es fan a la pàgina del proveïdor de pagaments: el club no veu ni desa la targeta ni el telèfon. Camp incrustat o pàgina del proveïdor <span class="a-validar">A verificar: P-45 punt 4</span></span></p>
+      </section>
+
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Només el compte personal de la persona del càrrec (B1, B2). El càrrec d'un altre o inexistent respon «no trobat», com l'enllaç de dalt, i queda al registre. El convidat hi arriba amb l'enllaç de la 00, que el servidor torna a comprovar a cada petició (caducat o revocat: sense dir per què); l'adreça no porta cap identificador.</li>
+          <li>L'estat surt sempre del servidor (<code>payments.payment_status</code>), mai de la tornada del navegador: «Pagat» només amb la notificació verificada del proveïdor o la conciliació confirmada pel tresorer (RN-M05b-05). Mentre és en curs (targeta i Bizum), HTMX el torna a demanar cada pocs segons sense allargar la sessió.</li>
+          <li>L'import de l'ordre el posa el servidor a partir del càrrec, amb clau d'idempotència; el concepte que rep el proveïdor porta el número de soci o la referència, mai el nom (RN-M05b-02). Un sol intent en curs per càrrec (RN-M05b-04): els botons no surten i el servidor ho rebutja igualment.</li>
+          <li>Bizum: «No s'ha confirmat a temps» surt passats els minuts de l'ajust (VC-17, 15 d'entrada) que l'intent desa en començar; no tanca l'intent, i una confirmació vàlida que arribi tard s'accepta (RN-M05b-07 i 08). La caducitat real: <span class="a-validar">A verificar: P-45 punt 13</span>.</li>
+          <li>Transferència: l'IBAN del club surt de la configuració (VC-09), mai cap IBAN d'un soci; la referència és única per càrrec (RN-T20). Pagar d'una altra manera deixa la transferència «abandonada» (P-136).</li>
+          <li>Domiciliació (només quotes, RN-M05b-01): l'intent és «enviat al banc» i no es pot pagar ni anul·lar fins que acabi (RN-M05b-22). Mètodes que no ofereix el proveïdor: el botó no arriba a l'HTML.</li>
+          <li>Sessió caducada: no es comença cap pagament i es torna a l'entrada. Cap dada personal a la pantalla més enllà del concepte i l'import.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ---------- Rebut (05b B2; RN-M05b-17 i 19; P-47: rebut, no factura) ---------- -->
+  <section id="pagaments-rebut" class="pantalla-soci" aria-labelledby="rebut-titol" hidden>
+    <div class="contenidor pantalla-cos estreta">
+      <div>
+        <a class="boto boto-text boto-petit" href="#pagaments-carrec"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Torna al pagament</a>
+        <p><span class="etiqueta-seccio">Pagaments</span></p>
+        <h1 id="rebut-titol">Rebut</h1>
+      </div>
+      <div class="demo" role="group" aria-labelledby="demo-rebut">
+        <span class="demo-titol" id="demo-rebut">Demostració · veure com:</span>
+        <label><input type="radio" name="demo-rebut" value="pagat" checked> Pagat</label>
+        <label><input type="radio" name="demo-rebut" value="parcial"> Amb una devolució parcial</label>
+        <label><input type="radio" name="demo-rebut" value="anullat"> Anul·lat (devolució total)</label>
+      </div>
+      <section class="targeta" aria-label="Rebut R-2026-000412">
+        <dl class="dades">
+          <dt>Número</dt><dd><span class="codi">R-2026-000412</span></dd>
+          <dt>Data</dt><dd>17/11/2026</dd>
+          <dt>Concepte</dt><dd>Sortida Illes Medes</dd>
+          <dt>Import</dt><dd><span class="import">45,00 €</span></dd>
+          <dt>Departament</dt><dd>Activitats / Sortides</dd>
+          <dt>Mètode</dt><dd>Targeta</dd>
+          <dt>Referència</dt><dd><span class="codi">ORD-7F3K2Q</span></dd>
+        </dl>
+        <p data-rebut="pagat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat el 17/11/2026</span></p>
+        <div data-rebut="parcial" hidden>
+          <p><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat el 17/11/2026</span></p>
+          <p class="text-2">Devolució parcial de <span class="import">15,00 €</span> el 20/11/2026: el club ha anul·lat el dinar de la sortida. <span class="a-validar">A validar: anotació al rebut (P-229)</span></p>
+        </div>
+        <div data-rebut="anullat" hidden>
+          <p><span class="estat estat-neutre"><span aria-hidden="true">■</span> Anul·lat el 20/11/2026</span></p>
+          <p class="text-2"><strong>Rebut anul·lat el 20/11/2026.</strong> Devolució total: el club ha anul·lat la sortida pel mal temps.</p>
+        </div>
+        <p class="text-2">Rebut del pagament. No és una factura. C.R.I.S. · NIF <span class="a-validar">A verificar: gestoria</span> · cris1954.cat</p>
+        <div class="accions-perfil"><a class="boto" href="#" aria-disabled="true" data-icona="pdf">Desa com a PDF (prototip)</a></div>
+      </section>
+      <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+        <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+        <ul>
+          <li>Només el rebut d'un pagament propi (B2) o, per al convidat, el del càrrec del seu enllaç. Un d'un altre, sense rebut o inexistent: «no trobat» i registre.</li>
+          <li>El rebut només existeix quan el servidor ha confirmat el pagament; el número <code>R-AAAA-NNNNNN</code> és correlatiu per any i sense forats (RN-M05b-19) <span class="a-validar">A validar: S-M05b-11</span>.</li>
+          <li>Cap nom, document ni dada bancària: només el que demana RN-M05b-19. El PDF el fa la impressió del navegador i no es desa res.</li>
+          <li>Una devolució total anul·la el rebut amb una nota i no l'esborra mai; una de parcial el deixa pagat (RN-M05b-17). Anul·lat no porta mai el segell de «Pagat».</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
   <!-- ---------- No trobat (CA-M01-25: un soci que obre dades d'un altre) ---------- -->
   <section id="no-trobat" class="pantalla-soci" aria-labelledby="no-trobat-titol" hidden>
     <div class="contenidor pantalla-cos estreta">
@@ -1513,7 +1640,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   }
 
   (function () {
-    const PANTALLES = ['perfil', 'canvi-tipus', 'baixa', 'esborrar', 'no-trobat', 'pagaments-metode', 'pagaments-mandat', 'pagaments-targeta'];
+    const PANTALLES = ['perfil', 'canvi-tipus', 'baixa', 'esborrar', 'no-trobat', 'pagaments-metode', 'pagaments-mandat', 'pagaments-targeta', 'pagaments-carrec', 'pagaments-rebut'];
     const portada = [g('portada'), document.querySelector('main > .profunditat')];
     const perfil = nav.querySelector('a[href="#perfil"]');
     const pagaments = nav.querySelector('a[href="#historial-pagaments"]');
@@ -1829,6 +1956,49 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
         pintaTargeta('cap');
         resultat(g('resultat-targeta'), 'avis-ok', 'Targeta esborrada', 'Pagaràs cada quota quan es generi.', true);
       }));
+  })();
+
+  /* ---------- Pagar un càrrec i rebut (T-M05b-02): l'estat el diu el servidor; aquí, la demostració ---------- */
+  (function () {
+    const QUOTA = { titol: 'Quota 2027 · ple dret', import: '90,00 €', detall: 'Quota 2027 · soci 0427' };
+    const SORTIDA = { titol: 'Sortida Illes Medes', import: '45,00 €', detall: 'Sortida Illes Medes · 15/11/2026' };
+    // Estats on es pot (tornar a) pagar; amb la transferència en curs, es pot pagar d'una altra manera (P-136)
+    const POT_PAGAR = ['pendent', 'fallit', 'bizum-temps', 'transferencia'];
+    function pinta(estat) {
+      const c = estat === 'domiciliacio' ? QUOTA : SORTIDA;
+      g('carrec-titol').textContent = c.titol; g('carrec-import').textContent = c.import; g('carrec-detall').textContent = c.detall;
+      document.querySelectorAll('[data-estat-pag]').forEach(x => { x.hidden = x.dataset.estatPag !== estat; });
+      g('carrec-accions').hidden = !POT_PAGAR.includes(estat);
+      g('carrec-accions').querySelectorAll('[data-paga]').forEach(b => {
+        b.hidden = estat === 'transferencia' && b.dataset.paga === 'transferencia';
+        b.classList.toggle('boto-principal', b.dataset.paga === 'en-curs' && estat !== 'transferencia');
+      });
+      document.querySelector('input[name="demo-carrec"][value="' + estat + '"]').checked = true;
+    }
+    document.querySelectorAll('input[name="demo-carrec"]').forEach(r => r.addEventListener('change', () => { g('resultat-carrec').hidden = true; pinta(r.value); }));
+    pinta('pendent');
+    // Pagar: la targeta i el Bizum van a la pàgina del proveïdor; en tornar, «en curs» fins que el servidor ho confirmi
+    g('carrec-accions').addEventListener('click', e => {
+      const b = e.target.closest('[data-paga]');
+      if (!b) return;
+      if (g('demo-carrec-sessio').checked) return resultat(g('resultat-carrec'), 'avis-error', 'La sessió ha caducat', 'No s\'ha començat cap pagament. Torna a entrar al compte personal.', true);
+      g('resultat-carrec').hidden = true;
+      pinta(b.dataset.paga);
+      g('estat-pagament').querySelector('[data-estat-pag="' + b.dataset.paga + '"]').scrollIntoView({ block: 'nearest' });
+    });
+    // Copiar les dades de la transferència
+    g('pagaments-carrec').querySelectorAll('[data-copia]').forEach(b => {
+      const bd = CRIS.botoDinamic(b);
+      b.addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copia).catch(() => {});
+        bd.posa(b.dataset.copiat, 'fet', { fet: true }); CRIS.anuncia(b.dataset.copiat);
+        setTimeout(() => bd.posa(bd.inicial.text, bd.inicial.icona), 1200);
+      });
+    });
+    // Rebut: pagat, amb una devolució parcial o anul·lat
+    document.querySelectorAll('input[name="demo-rebut"]').forEach(r => r.addEventListener('change', () => {
+      document.querySelectorAll('[data-rebut]').forEach(x => { x.hidden = x.dataset.rebut !== r.value; });
+    }));
   })();
 })();
 </script>

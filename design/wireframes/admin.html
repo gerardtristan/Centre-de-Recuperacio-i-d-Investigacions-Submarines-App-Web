@@ -1443,6 +1443,9 @@
         <ul class="subnav">
           <li data-rols="admin tresorer"><a href="#vista-pagaments-campanya" data-vista="vista-pagaments-campanya">Campanya de mandats</a></li>
           <li data-rols="admin tresorer secretaria"><a href="#vista-pagaments-mandats" data-vista="vista-pagaments-mandats">Mètodes i mandats</a></li>
+          <li data-rols="admin tresorer"><a href="#vista-pagaments-llistat" data-vista="vista-pagaments-llistat">Pagaments i «a revisar»</a></li>
+          <li data-rols="tresorer"><a href="#vista-pagaments-remeses" data-vista="vista-pagaments-remeses">Remeses</a></li>
+          <li data-rols="tresorer"><a href="#vista-pagaments-retornats" data-vista="vista-pagaments-retornats">Retornats</a></li>
           <li data-rols="admin"><a href="#vista-pagaments-configuracio" data-vista="vista-pagaments-configuracio">Configuració</a></li>
         </ul>
       </nav>
@@ -1628,6 +1631,378 @@
             <li>Només l'administrador (A7). Les claus i els secrets són variables d'entorn: la pantalla només diu si hi són, mai el valor ni una part.</li>
             <li>Les capacitats són les que declara <code>capabilities()</code>; les pantalles del soci només ofereixen el que hi diu «Sí».</li>
             <li><code>PAYMENTS_LIVE_CHARGES_ALLOWED</code> fals: l'adaptador rebutja qualsevol cobrament amb claus de producció i no es pot generar cap remesa (RN-M05a-11).</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: pagaments i «a revisar», amb la devolució (05b B5 i B6; P-M05b-G; RN-M05b-08 i 17) ==================== -->
+      <div id="vista-pagaments-llistat" class="vista" data-acces="admin tresorer" data-molla="Pagaments|Pagaments i «a revisar»" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Pagaments i «a revisar»</h1>
+          </div>
+          <p class="text-2" data-rols="tresorer">Obre un pagament cobrat per fer-ne la devolució.</p>
+          <p class="text-2" data-rols="admin">Només consulta: les devolucions les fa el tresorer.</p>
+        </div>
+        <div class="demo" role="group" aria-labelledby="demo-pag-llistat">
+          <span class="demo-titol" id="demo-pag-llistat">Demostració</span>
+          <label>Resultat de la devolució:
+            <select id="demo-devolucio">
+              <option value="ok">Es fa</option>
+              <option value="caducada">Sessió caducada</option>
+              <option value="retirat">Permís retirat</option>
+            </select>
+          </label>
+        </div>
+        <ul class="xifres-resum" aria-label="Intents de pagament per estat">
+          <li class="xifra"><span class="xifra-etiqueta">En curs</span><span class="xifra-valor">2</span></li>
+          <li class="xifra"><span class="xifra-etiqueta">Fallits (últims 30 dies)</span><span class="xifra-valor">1</span></li>
+          <li class="xifra xifra-marge"><span class="xifra-etiqueta">A revisar</span><span class="xifra-valor">1</span></li>
+        </ul>
+
+        <section class="targeta" aria-labelledby="revisar-titol">
+          <h2 id="revisar-titol">A revisar</h2>
+          <table class="taula">
+            <caption class="visualment-amagat">1 intent de pagament a revisar</caption>
+            <thead><tr><th scope="col">Data i càrrec</th><th scope="col">Pagador</th><th scope="col">Mètode</th><th scope="col">Motiu</th><th scope="col" class="num">Import</th><th scope="col"><span class="visualment-amagat">Accions</span></th></tr></thead>
+            <tbody>
+              <tr data-pagament="Quota 2026 · ple dret|Jordi Soler Mas (soci 0311)|Bizum|9000|0">
+                <td class="cel-nom">16/11/2026 21:04<span class="codi">Quota 2026 · ple dret</span></td>
+                <td data-etiqueta="Pagador">Jordi Soler Mas · soci 0311</td>
+                <td data-etiqueta="Mètode">Bizum</td>
+                <td data-etiqueta="Motiu"><span><span class="estat estat-avis"><span aria-hidden="true">!</span> Pagament duplicat</span> <span class="text-2">La quota ja s'havia pagat per transferència.</span></span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer" data-estat-dev><button class="boto boto-petit" type="button" data-devolucio>Devolució…<span class="visualment-amagat"> del Bizum de Jordi Soler Mas</span></button></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="formula">Tancar un «a revisar» sense devolució encara no es pot <span class="a-validar">A validar: P-82</span></p>
+        </section>
+
+        <section class="targeta" aria-labelledby="intents-titol">
+          <h2 id="intents-titol">Tots els intents de pagament</h2>
+          <div class="eines eines-quotes">
+            <div class="camp">
+              <label for="filtre-estat-pag">Estat</label>
+              <select id="filtre-estat-pag"><option value="">Tots</option><option value="pagat">Pagat</option><option value="en-curs">En curs</option><option value="fallit">Fallit</option></select>
+            </div>
+            <p class="recompte xifra-viva" id="recompte-pag" aria-live="polite">5 de 5 intents</p>
+          </div>
+          <table class="taula" id="taula-pagaments">
+            <caption class="visualment-amagat">Intents de pagament, del més recent al més antic</caption>
+            <thead><tr><th scope="col">Data i càrrec</th><th scope="col">Pagador</th><th scope="col">Mètode</th><th scope="col">Estat</th><th scope="col" class="num">Import</th><th scope="col"><span class="visualment-amagat">Accions</span></th></tr></thead>
+            <tbody>
+              <tr data-estat="pagat" data-pagament="Sortida Illes Medes|Marta Puig Ferrer (soci 0427)|Targeta|4500|0">
+                <td class="cel-nom">17/11/2026 10:12<span class="codi">Sortida Illes Medes</span></td>
+                <td data-etiqueta="Pagador">Marta Puig Ferrer · soci 0427</td>
+                <td data-etiqueta="Mètode">Targeta</td>
+                <td data-etiqueta="Estat" data-estat-pag><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">45,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer" data-estat-dev><button class="boto boto-petit" type="button" data-devolucio>Devolució…<span class="visualment-amagat"> de la sortida de Marta Puig Ferrer</span></button></td>
+              </tr>
+              <tr data-estat="en-curs">
+                <td class="cel-nom">17/11/2026 09:58<span class="codi">Sortida Illes Medes</span></td>
+                <td data-etiqueta="Pagador">Oriol Mas Font · soci 0239</td>
+                <td data-etiqueta="Mètode">Bizum</td>
+                <td data-etiqueta="Estat"><span class="estat estat-avis"><span aria-hidden="true">◷</span> En curs</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">45,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer"></td>
+              </tr>
+              <tr data-estat="fallit">
+                <td class="cel-nom">16/11/2026 18:30<span class="codi">Curs d'iniciació</span></td>
+                <td data-etiqueta="Pagador">Convidat (enllaç)</td>
+                <td data-etiqueta="Mètode">Targeta</td>
+                <td data-etiqueta="Estat"><span class="estat estat-error"><span aria-hidden="true">✕</span> Fallit</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">120,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer"></td>
+              </tr>
+              <tr data-estat="en-curs">
+                <td class="cel-nom">16/11/2026 12:00<span class="codi">Quota 2027 · simpatitzant</span></td>
+                <td data-etiqueta="Pagador">Laia Ferrer Vila · soci 0502</td>
+                <td data-etiqueta="Mètode">Transferència</td>
+                <td data-etiqueta="Estat"><span class="estat estat-avis"><span aria-hidden="true">◷</span> Esperant la transferència</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">35,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer"></td>
+              </tr>
+              <tr data-estat="pagat" data-pagament="Sortida Cap de Creus|Núria Camps Roig (soci 0718)|Bizum|4500|0">
+                <td class="cel-nom">02/10/2026 19:41<span class="codi">Sortida Cap de Creus</span></td>
+                <td data-etiqueta="Pagador">Núria Camps Roig · soci 0718</td>
+                <td data-etiqueta="Mètode">Bizum</td>
+                <td data-etiqueta="Estat" data-estat-pag><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">45,00 €</span></td>
+                <td class="cel-accions" data-rols="tresorer" data-estat-dev><button class="boto boto-petit" type="button" data-devolucio>Devolució…<span class="visualment-amagat"> de la sortida de Núria Camps Roig</span></button></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="resultat-desar" id="resultat-devolucio" role="status" hidden></p>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Veure (B6): tresorer i administrador, amb el compte d'administrador i TOTP. La resta: «Sense accés a aquesta pantalla». Només lectura: l'únic formulari és el filtre, amb GET.</li>
+            <li>El nom del pagador només arriba amb P4 (P-247); amagar-lo aquí no és el control. Cap IBAN ni dada de targeta. Un convidat surt com a «Convidat (enllaç)», sense el testimoni de l'enllaç.</li>
+            <li>Devolució (B5): només el tresorer (059). Per a l'administrador, el botó no arriba a l'HTML i el servei respon «no trobat» encara que s'enviï. Motiu obligatori, import en cèntims i la suma de devolucions mai per sobre del que s'ha cobrat (RN-T11), comprovat al servidor. Clau d'idempotència: una doble pulsació no torna dues vegades (CA-M05b-22).</li>
+            <li>Targeta: per l'adaptador. Bizum: el proveïdor no en fa devolucions (S-M05b-04, <span class="a-validar">A verificar: P-45 punt 7</span>): el tresorer fa la transferència des del banc i aquí la registra (P-228). Transferència i domiciliació, igual.</li>
+            <li>Total: càrrec «anul·lat» i rebut anul·lat amb una nota; parcial: el càrrec continua «pagat» (RN-M05b-17). Tot queda al registre d'activitat amb el valor anterior; el correu al pagador: P-229.</li>
+            <li>Sessió caducada o permís retirat: no es torna res i no es mostra cap dada nova.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: remeses (05b B3; P-M05b-E; RN-M05b-10 a 12, RN-M05b-30) ==================== -->
+      <div id="vista-pagaments-remeses" class="vista" data-acces="tresorer" data-molla="Pagaments|Remeses" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Remeses</h1>
+          </div>
+          <p class="text-2">Quotes pendents dels socis que han triat la domiciliació, amb mandat actiu. Cada deutor rep l'avís previ en confirmar-la.</p>
+        </div>
+        <div class="demo" role="group" aria-labelledby="demo-remeses">
+          <span class="demo-titol" id="demo-remeses">Demostració</span>
+          <label>Resultat:
+            <select id="demo-remesa">
+              <option value="ok">Correcte</option>
+              <option value="avis">Data massa propera</option>
+              <option value="nivell">Nivell 2 no actiu</option>
+              <option value="caducada">Sessió caducada</option>
+            </select>
+          </label>
+        </div>
+
+        <section class="targeta" aria-labelledby="nova-remesa-titol">
+          <h2 id="nova-remesa-titol">Nova remesa</h2>
+          <form class="form-despesa" id="form-remesa" novalidate>
+            <div class="camp">
+              <label for="remesa-periode">Període</label>
+              <select id="remesa-periode"><option>Quotes 2027</option></select>
+            </div>
+            <div class="camp">
+              <label for="remesa-data">Data de cobrament</label>
+              <input id="remesa-data" type="date" value="2027-01-05" aria-describedby="remesa-data-ajuda remesa-data-error">
+              <p class="ajuda" id="remesa-data-ajuda">Com a mínim 14 dies després d'avui, perquè surti l'avís previ (ajust VC-16) <span class="a-validar">A verificar: banc (S-M05b-06)</span></p>
+              <p class="error-camp" id="remesa-data-error" hidden></p>
+            </div>
+            <div class="accions-form"><button class="boto boto-principal" type="submit" id="previsualitza-remesa">Previsualitza</button></div>
+          <p class="resultat-desar" id="resultat-remesa" role="alert" hidden></p>
+
+          <div id="previa-remesa" class="form-despesa" hidden>
+            <h3>Previsualització</h3>
+            <dl class="meta-graella">
+              <div><dt>Rebuts</dt><dd>130</dd></div>
+              <div><dt>Import total</dt><dd><span class="import">6.750,00 €</span></dd></div>
+              <div><dt>Excloses</dt><dd>3</dd></div>
+            </dl>
+            <h4>Quotes que no entren i per què</h4>
+            <table class="taula">
+              <caption class="visualment-amagat">Quotes que no entren i per què</caption>
+              <thead><tr><th scope="col">Soci</th><th scope="col" class="num">Import</th><th scope="col">Motiu</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="cel-nom">Laia Ferrer Vila<span class="codi">Soci 0502</span></td>
+                  <td data-etiqueta="Import" class="num"><span class="import">35,00 €</span></td>
+                  <td data-etiqueta="Motiu"><span><span class="estat estat-neutre"><span aria-hidden="true">■</span> Intents esgotats</span> <span class="text-2">Proposta: alternativa de pagament (targeta, Bizum o transferència).</span></span></td>
+                </tr>
+                <tr>
+                  <td class="cel-nom">Pau Vidal Roca<span class="codi">Soci 0611</span></td>
+                  <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                  <td data-etiqueta="Motiu"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Mandat bloquejat</span></td>
+                </tr>
+                <tr>
+                  <td class="cel-nom">Oriol Mas Font<span class="codi">Soci 0239</span></td>
+                  <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                  <td data-etiqueta="Motiu"><span class="estat estat-neutre"><span aria-hidden="true">■</span> Té un pagament en curs</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="avis avis-avis"><strong>Confirma la remesa</strong>Es crearan 130 rebuts i cada deutor rebrà l'avís previ per correu, amb la data, l'import, la referència del mandat i l'identificador de creditor.</div>
+            <div class="accions-form">
+              <button class="boto boto-principal" type="button" id="crea-remesa" data-icona="check">Sí, crea la remesa</button>
+              <button class="boto boto-text" type="button" id="cancela-remesa">Cancel·la</button>
+            </div>
+          </div>
+          </form>
+        </section>
+
+        <section class="targeta" id="detall-remesa" aria-labelledby="detall-remesa-titol" hidden tabindex="-1">
+          <h2 id="detall-remesa-titol">Remesa 2027-01</h2>
+          <dl class="meta-graella">
+            <div><dt>Estat</dt><dd id="remesa-estat"><span class="estat estat-info"><span aria-hidden="true">✉</span> Avisada</span></dd></div>
+            <div><dt>Data de cobrament</dt><dd>05/01/2027</dd></div>
+            <div><dt>Rebuts</dt><dd>130</dd></div>
+            <div><dt>Import total</dt><dd><span class="import">6.750,00 €</span></dd></div>
+            <div><dt>Sense avís previ</dt><dd>0</dd></div>
+            <div><dt>Últim fitxer</dt><dd id="remesa-fitxer">—</dd></div>
+          </dl>
+          <div class="accions-form" id="remesa-descarrega">
+            <button class="boto boto-principal" type="button" id="descarrega-remesa" data-icona="fitxer">Descarrega el fitxer pain.008</button>
+          </div>
+          <p class="text-2" id="remesa-avis-iban">El fitxer porta els IBAN sencers: puja'l a la banca en línia i esborra'l del dispositiu el mateix dia, sense enviar-lo per correu ni desar-lo en carpetes sincronitzades. <span class="a-validar">A verificar: versió del banc (P-233)</span></p>
+          <form class="form-despesa" id="form-enviada" novalidate hidden>
+            <label class="casella"><input type="checkbox" id="remesa-esborrat" aria-describedby="remesa-esborrat-error"> <span>He pujat el fitxer al banc i l'he esborrat del dispositiu.</span></label>
+            <p class="error-camp" id="remesa-esborrat-error" hidden></p>
+            <div class="accions-form"><button class="boto" type="submit" id="marca-enviada" data-icona="check">Marca com a enviada al banc</button></div>
+          </form>
+          <p class="resultat-desar" id="resultat-detall-remesa" role="status" hidden></p>
+          <h3>Rebuts (3 de 130)</h3>
+          <table class="taula">
+            <caption class="visualment-amagat">Rebuts (3 de 130)</caption>
+            <thead><tr><th scope="col">Soci</th><th scope="col" class="num">Import</th><th scope="col">Mandat</th><th scope="col">IBAN</th><th scope="col">Avís previ</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="cel-nom">Marta Puig Ferrer<span class="codi">Soci 0427</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                <td data-etiqueta="Mandat"><span class="codi">CRIS000427M01</span></td>
+                <td data-etiqueta="IBAN"><span class="codi">ES•• … 1332</span></td>
+                <td data-etiqueta="Avís previ"><span class="estat estat-ok"><span aria-hidden="true">✓</span> 17/11/2026</span></td>
+              </tr>
+              <tr>
+                <td class="cel-nom">Jordi Soler Mas<span class="codi">Soci 0311</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                <td data-etiqueta="Mandat"><span class="codi">CRIS000311M01</span></td>
+                <td data-etiqueta="IBAN"><span class="codi">ES•• … 2045</span></td>
+                <td data-etiqueta="Avís previ"><span class="estat estat-ok"><span aria-hidden="true">✓</span> 17/11/2026</span></td>
+              </tr>
+              <tr>
+                <td class="cel-nom">Marc Riera Sala<span class="codi">Soci 0356</span></td>
+                <td data-etiqueta="Import" class="num"><span class="import">35,00 €</span></td>
+                <td data-etiqueta="Mandat"><span class="codi">CRIS000356M02</span></td>
+                <td data-etiqueta="IBAN"><span class="codi">ES•• … 7710</span></td>
+                <td data-etiqueta="Avís previ"><span class="estat estat-ok"><span aria-hidden="true">✓</span> 17/11/2026</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="targeta" aria-labelledby="remeses-creades-titol">
+          <h2 id="remeses-creades-titol">Remeses creades</h2>
+          <table class="taula">
+            <caption class="visualment-amagat">Remeses creades</caption>
+            <thead><tr><th scope="col">Període</th><th scope="col">Cobrament</th><th scope="col">Estat</th><th scope="col">Rebuts</th><th scope="col" class="num">Import</th></tr></thead>
+            <tbody>
+              <tr id="fila-remesa-nova" hidden>
+                <td class="cel-nom"><a href="#detall-remesa">2027-01</a></td>
+                <td data-etiqueta="Cobrament">05/01/2027</td>
+                <td data-etiqueta="Estat" id="fila-remesa-estat"><span class="estat estat-info"><span aria-hidden="true">✉</span> Avisada</span></td>
+                <td data-etiqueta="Rebuts">130</td>
+                <td data-etiqueta="Import" class="num"><span class="import">6.750,00 €</span></td>
+              </tr>
+              <tr>
+                <td class="cel-nom">2026-01</td>
+                <td data-etiqueta="Cobrament">05/01/2026</td>
+                <td data-etiqueta="Estat"><span class="estat estat-ok"><span aria-hidden="true">✓</span> Liquidada</span></td>
+                <td data-etiqueta="Rebuts">128</td>
+                <td data-etiqueta="Import" class="num"><span class="import">6.580,00 €</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Només el tresorer (B3, regla protegida pel fitxer amb IBAN), amb el compte d'administrador i TOTP. L'administrador i la resta: «Sense accés a aquesta pantalla»; per URL, «no trobat».</li>
+            <li>Previsualitzar no desa res. Confirmar és un segon pas amb POST i CSRF; el servidor torna a calcular la selecció: només quotes «pendent» amb mandat actiu i sense intent en curs, mai en dues remeses obertes (RN-M05b-10), ni una amb els intents esgotats (RN-M05b-30). Rebutja la data si no deixa temps per a l'avís previ (RN-M05b-11) i qualsevol remesa sense el nivell 2 (RN-M05a-11).</li>
+            <li>L'IBAN surt emmascarat (país i quatre últims) i no es desxifra per a la pantalla. El fitxer es genera a cada descàrrega amb els IBAN desxifrats, no es desa, i en queda l'empremta, qui i quan al registre (RN-M05b-12). Enllaç d'un sol ús que caduca: <span class="a-validar">A validar: tresorer (M05b-12)</span>.</li>
+            <li>«Enviada al banc» demana la casella de l'esborrat (044) i queda al registre; després, la remesa es casa a la tresoreria amb l'abonament (RN-M05b-13), no aquí.</li>
+            <li>Cap nom a l'avís previ fora del correu del mateix deutor. Sessió caducada: no es crea res.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- ==================== Vista: retornats, reintent i alternativa (05b B4; P-M05b-F; RN-M05b-14, 15 i 30) ==================== -->
+      <div id="vista-pagaments-retornats" class="vista" data-acces="tresorer" data-molla="Pagaments|Retornats" hidden>
+        <div class="cap-vista">
+          <div>
+            <span class="etiqueta-seccio">Pagaments</span>
+            <h1>Retornats</h1>
+          </div>
+          <p class="text-2">Rebuts domiciliats que el banc ha tornat. En registrar-ne un, la quota queda retornada i la tresoreria apunta la sortida i la comissió.</p>
+        </div>
+        <div class="demo" role="group" aria-labelledby="demo-retornats">
+          <span class="demo-titol" id="demo-retornats">Demostració</span>
+          <label>Resultat en desar:
+            <select id="demo-retorn">
+              <option value="ok">Es desa</option>
+              <option value="caducada">Sessió caducada</option>
+              <option value="retirat">Permís retirat</option>
+            </select>
+          </label>
+        </div>
+
+        <section class="targeta" aria-labelledby="nou-retorn-titol">
+          <h2 id="nou-retorn-titol">Registra un retorn</h2>
+          <form class="form-despesa" id="form-retorn" novalidate>
+            <div class="camp">
+              <label for="retorn-rebut">Rebut</label>
+              <select id="retorn-rebut" aria-describedby="retorn-rebut-error"><option value="">Tria el rebut</option><option>CRIS202701-0427 · soci 0427</option><option>CRIS202701-0356 · soci 0356</option></select>
+              <p class="error-camp" id="retorn-rebut-error" hidden></p>
+            </div>
+            <div class="camp">
+              <label for="retorn-codi">Codi de motiu del banc</label>
+              <select id="retorn-codi" aria-describedby="retorn-codi-ajuda"><option value="AM04">AM04 · Fons insuficients</option><option value="MS02">MS02 · Refús del deutor</option><option value="MD06">MD06 · Devolució del deutor</option><option value="AC04">AC04 · Compte tancat</option><option value="MD01">MD01 · Sense mandat</option><option value="">Un altre o cap</option></select>
+              <p class="ajuda" id="retorn-codi-ajuda">Quins codis arriben: <span class="a-validar">A verificar: banc (P-45 punt 5)</span></p>
+            </div>
+            <div class="camp camp-import">
+              <label for="retorn-comissio">Comissió de retorn (€)</label>
+              <input id="retorn-comissio" inputmode="decimal" autocomplete="off" value="0,00" aria-describedby="retorn-comissio-ajuda">
+              <p class="ajuda" id="retorn-comissio-ajuda">La paga el club, a «General / Quotes de socis» <span class="a-validar">A validar: junta (RN-M05b-16)</span></p>
+            </div>
+            <div class="accions-form"><button class="boto boto-principal" type="submit" id="registra-retorn" data-icona="check">Registra el retorn</button></div>
+          </form>
+          <p class="resultat-desar" id="resultat-retorn" role="status" hidden></p>
+        </section>
+
+        <section class="targeta" aria-labelledby="per-decidir-titol">
+          <h2 id="per-decidir-titol">Per decidir</h2>
+          <table class="taula" id="taula-retornats">
+            <caption class="visualment-amagat">Retorns amb un reintent possible</caption>
+            <thead><tr><th scope="col">Rebut</th><th scope="col">Soci</th><th scope="col" class="num">Import</th><th scope="col">Motiu</th><th scope="col">Proposta</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="cel-nom"><span class="codi">CRIS202701-0311</span> Quota 2027</td>
+                <td data-etiqueta="Soci">0311</td>
+                <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                <td data-etiqueta="Motiu"><span><span class="codi">AM04</span> 08/01/2027</span></td>
+                <td class="cel-accions" data-retorn="0311"><button class="boto boto-petit" type="button" data-decisio="reintent">Reintent (intent 2 de 2)<span class="visualment-amagat"> per al soci 0311</span></button><button class="boto boto-petit" type="button" data-decisio="alternativa">Envia l'alternativa<span class="visualment-amagat"> al soci 0311</span></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="targeta" aria-labelledby="alternativa-titol">
+          <h2 id="alternativa-titol">Alternativa ja enviada</h2>
+          <p class="text-2">Sense cap reintent possible, l'alternativa surt en registrar el retorn (P-292).</p>
+          <table class="taula">
+            <caption class="visualment-amagat">Retorns sense reintent: alternativa enviada</caption>
+            <thead><tr><th scope="col">Rebut</th><th scope="col">Soci</th><th scope="col" class="num">Import</th><th scope="col">Motiu</th><th scope="col">Què s'ha fet</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="cel-nom"><span class="codi">CRIS202701-0502</span> Quota 2027</td>
+                <td data-etiqueta="Soci">0502</td>
+                <td data-etiqueta="Import" class="num"><span class="import">35,00 €</span></td>
+                <td data-etiqueta="Motiu"><span><span class="codi">AM04</span> segon retorn</span></td>
+                <td data-etiqueta="Què s'ha fet"><span><span class="estat estat-neutre"><span aria-hidden="true">■</span> Intents esgotats</span> <span class="text-2">Fora de totes les remeses.</span></span></td>
+              </tr>
+              <tr>
+                <td class="cel-nom"><span class="codi">CRIS202701-0611</span> Quota 2027</td>
+                <td data-etiqueta="Soci">0611</td>
+                <td data-etiqueta="Import" class="num"><span class="import">90,00 €</span></td>
+                <td data-etiqueta="Motiu"><span class="codi">AC04</span></td>
+                <td data-etiqueta="Què s'ha fet"><span><span class="estat estat-neutre"><span aria-hidden="true">■</span> Mandat bloquejat</span> <span class="text-2">Alternativa i petició d'un mandat nou.</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        <aside class="demo nota-servidor" aria-label="Notes per a la implementació">
+          <span class="demo-titol">Al servidor (no és part de la pantalla)</span>
+          <ul>
+            <li>Només el tresorer (B4), amb el compte d'administrador i TOTP. La resta: «Sense accés a aquesta pantalla»; per URL, «no trobat». Formularis amb POST i CSRF.</li>
+            <li>Cap IBAN ni nom: referència del rebut, número de soci, concepte i import.</li>
+            <li>Registrar: càrrec «pagat → retornat», sortida i comissió a la tresoreria, avís al tresorer; l'impagat continua sent manual (040). La proposta segueix el codi (RN-M05b-15; codis fora de la llista: P-291).</li>
+            <li>Reintent o alternativa: el càrrec torna a «pendent» amb motiu i registre (RN-M05b-14, 048). Màxim 2 intents per domiciliació (VC-16): el segon retorn treu la quota de totes les remeses (RN-M05b-30) i el servidor no deixa triar el reintent encara que s'enviï.</li>
+            <li>Reenviar l'alternativa d'una quota (B7) també el pot fer la secretaria, però no veu aquesta pantalla: on ho fa, <span class="a-validar">A validar: P-310</span>.</li>
+            <li>Sessió caducada o permís retirat: no es desa res.</li>
           </ul>
         </aside>
       </div>
@@ -1830,6 +2205,43 @@
   </form>
 </dialog>
 
+<!-- ==================== Diàleg: devolució d'un pagament (05b B5; P-M05b-G; RN-T11, RN-M05b-17) ==================== -->
+<dialog class="dialeg" id="dialeg-devolucio" aria-labelledby="devolucio-titol">
+  <form method="dialog" id="form-devolucio" novalidate>
+    <div class="dialeg-cap">
+      <h2 id="devolucio-titol">Devolució</h2>
+      <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+    <div class="dialeg-cos">
+      <p id="devolucio-resum"></p>
+      <div class="avis avis-avis" id="devolucio-banc" hidden><strong>Des del banc</strong>El proveïdor no fa devolucions de Bizum: fes la transferència des del banc del club i registra-la aquí. <span class="a-validar">A verificar: P-45 punt 7</span></div>
+      <div class="camp camp-import">
+        <label for="devolucio-import">Import (€)</label>
+        <input id="devolucio-import" inputmode="decimal" autocomplete="off" aria-describedby="devolucio-import-ajuda devolucio-import-error">
+        <p class="ajuda" id="devolucio-import-ajuda"></p>
+        <p class="error-camp" id="devolucio-import-error" hidden></p>
+      </div>
+      <div class="camp">
+        <label for="devolucio-motiu">Motiu</label>
+        <textarea id="devolucio-motiu" rows="3" aria-describedby="devolucio-motiu-ajuda devolucio-motiu-error"></textarea>
+        <p class="ajuda" id="devolucio-motiu-ajuda">Obligatori. Queda al registre d'activitat i el veu el pagador.</p>
+        <p class="error-camp" id="devolucio-motiu-error" hidden></p>
+      </div>
+      <div class="camp camp-totp">
+        <label for="devolucio-totp">Codi TOTP del teu compte</label>
+        <input id="devolucio-totp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="devolucio-totp-ajuda devolucio-totp-error">
+        <p class="ajuda" id="devolucio-totp-ajuda">Prototip: qualsevol codi de 6 xifres. Demanar-lo aquí <span class="a-validar">A validar: P-311</span></p>
+        <p class="error-camp" id="devolucio-totp-error" hidden></p>
+      </div>
+      <p class="text-2">Si tornes tot l'import, el càrrec i el rebut queden anul·lats. La comissió no es recupera. No es pot desfer.</p>
+    </div>
+    <div class="dialeg-peu">
+      <button class="boto" type="button" data-tanca>Torna</button>
+      <button class="boto boto-principal" type="submit" id="confirma-devolucio" data-icona="check">Fes la devolució</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- ==================== Diàleg: revocar un mandat a petició del soci (05a A6) ==================== -->
 <dialog class="dialeg" id="dialeg-revoca-mandat" aria-labelledby="revoca-mandat-titol">
   <form method="dialog" id="form-revoca-mandat" novalidate>
@@ -1993,9 +2405,9 @@
   /* ---------- «Veure com»: rols de la 059. Socis segueix la configuració inicial;
      la resta de pantalles, encara la matriu provisional (spec 00, §2.4) ---------- */
   const descripcions = {
-    admin: 'Administrador: a Socis, tot excepte marcar impagats (059). A Pagaments (05a): campanya, mandats amb l\'IBAN emmascarat i configuració, només de lectura. Altres pantalles (provisional): ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
+    admin: 'Administrador: a Socis, tot excepte marcar impagats (059). A Pagaments (05a): campanya, mandats amb l\'IBAN emmascarat i configuració, només de lectura; (05b) consulta els pagaments i «a revisar», sense devolucions, remeses ni retornats. Altres pantalles (provisional): ho veu i ho gestiona tot, inclosos els usuaris i els rols.',
     cursos: 'Resp. cursos i sortides: a Socis, cap pantalla (la llicència, en consulta, la veurà al 06). Altres pantalles (provisional): gestiona la sortida i en veu el marge; no registra despeses.',
-    tresorer: 'Tresorer: a Socis, resol sol·licituds sense veure el document ni la data de naixement, consulta el llistat amb dades mínimes, genera quotes i marca impagats (059). A Pagaments (05a): campanya i mandats amb l\'IBAN emmascarat; revoca a petició escrita, mai el seu. Altres pantalles (provisional): consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
+    tresorer: 'Tresorer: a Socis, resol sol·licituds sense veure el document ni la data de naixement, consulta el llistat amb dades mínimes, genera quotes i marca impagats (059). A Pagaments (05a): campanya i mandats amb l\'IBAN emmascarat; revoca a petició escrita, mai el seu. (05b): pagaments i «a revisar», devolucions, remeses amb el fitxer i retornats. Altres pantalles (provisional): consulta la sortida, en veu els diners, registra despeses i importa l\'extracte.',
     material: 'Resp. material: a Socis, cap pantalla (059). Altres pantalles (provisional): consulta la sortida per assignar material; no en veu els diners ni els participants.',
     instructor: 'Instructor: a Socis, cap pantalla (059). Altres pantalles (provisional): només si fa classe en aquesta sortida; no en veu els diners.',
     secretaria: 'Secretaria: a Socis, sol·licituds, altes presencials, llistat i fitxa amb totes les dades, i consulta de quotes (059). A Pagaments (05a), només si cada soci té mètode. Altres pantalles (provisional): no gestiona cursos ni sortides.',
@@ -2824,6 +3236,145 @@
       acc.firstChild.textContent = 'Revocat · motiu: ' + motiu.value.trim();
       acc.tabIndex = -1; acc.focus();
       CRIS.anuncia('Mandat ' + boto.dataset.revoca + ' revocat.');
+    });
+  })();
+
+  /* ---------- Pagaments (T-M05b-02): llistat i devolució, remeses i retornats ---------- */
+  (function () {
+    const g = id => document.getElementById(id);
+    // Resultat de demostració: si la sessió ha caducat o el permís s'ha retirat, el servidor no desa res
+    function noDesa(select, lloc) {
+      const r = g(select).value;
+      if (r === 'ok') return false;
+      lloc.className = 'resultat-desar avis avis-error';
+      lloc.innerHTML = r === 'caducada'
+        ? '<strong>La sessió ha caducat</strong>No s\'ha desat res. Torna a entrar amb el teu nom d\'usuari i el codi TOTP.'
+        : '<strong>No s\'ha pogut desar</strong>Ja no tens permís per fer aquesta acció. No s\'ha desat res.';
+      lloc.hidden = false; lloc.tabIndex = -1; lloc.focus();
+      return true;
+    }
+    function fet(lloc, titol, text) {
+      lloc.className = 'resultat-desar avis avis-ok';
+      lloc.innerHTML = '<strong></strong><span></span>';
+      lloc.querySelector('strong').textContent = titol; lloc.querySelector('span').textContent = text;
+      lloc.hidden = false; lloc.tabIndex = -1; lloc.focus();
+      CRIS.anuncia(titol + '. ' + text);
+    }
+
+    /* Llistat: filtre per estat */
+    const files = document.querySelectorAll('#taula-pagaments tbody tr');
+    g('filtre-estat-pag').addEventListener('input', e => {
+      let n = 0;
+      files.forEach(tr => { tr.hidden = !!e.target.value && tr.dataset.estat !== e.target.value; if (!tr.hidden) n++; });
+      g('recompte-pag').textContent = n + ' de ' + files.length + ' intents';
+    });
+
+    /* Devolució (B5): import fins al que queda per tornar (RN-T11), motiu i codi */
+    const dDev = g('dialeg-devolucio'), imp = g('devolucio-import'), motiu = g('devolucio-motiu'), totp = g('devolucio-totp');
+    const bdD = CRIS.botoDinamic(g('confirma-devolucio'));
+    let fila = null, dades = null;
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-devolucio]');
+      if (!b) return;
+      fila = b.closest('tr');
+      const [concepte, pagador, metode, cobrat, tornat] = fila.dataset.pagament.split('|');
+      dades = { concepte, pagador, metode, resta: +cobrat - +tornat };
+      g('devolucio-resum').textContent = concepte + ' · ' + pagador + ' · ' + metode + ' · cobrat ' + CRIS.euros(+cobrat) + '.';
+      g('devolucio-banc').hidden = metode !== 'Bizum';
+      g('devolucio-import-ajuda').textContent = 'Com a molt ' + CRIS.euros(dades.resta) + '. Parcial o total.';
+      imp.value = (dades.resta / 100).toFixed(2).replace('.', ','); motiu.value = ''; totp.value = '';
+      [imp, motiu, totp].forEach(x => errorCamp(x, ''));
+      bdD.posa(bdD.inicial.text, bdD.inicial.icona);
+      dDev.showModal(); motiu.focus();
+    });
+    dDev.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dDev.close()));
+    g('form-devolucio').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (bdD.estaOcupat) return;
+      const c = CRIS.centims(imp.value);
+      const ok = [
+        errorCamp(imp, c === null || c <= 0 ? 'Escriu un import més gran que zero, en euros.' : c > dades.resta ? 'No pots tornar més del que queda: ' + CRIS.euros(dades.resta) + '.' : ''),
+        errorCamp(motiu, motiu.value.trim() ? '' : 'Escriu el motiu. És obligatori per fer una devolució.'),
+        errorCamp(totp, /^\d{6}$/.test(totp.value) ? '' : 'Escriu les 6 xifres del codi.')];
+      const primer = [imp, motiu, totp][ok.indexOf(false)];
+      if (primer) return primer.focus();
+      await bdD.flux([{ text: 'Tornant…', icona: 'carrega', gira: true, ms: 700 }]);
+      totp.value = ''; dDev.close();
+      const lloc = g('resultat-devolucio');
+      if (noDesa('demo-devolucio', lloc)) return;
+      const total = c === dades.resta;
+      const estat = fila.querySelector('[data-estat-pag]');
+      if (estat) estat.innerHTML = total ? '<span class="estat estat-neutre"><span aria-hidden="true">■</span> Anul·lat: devolució total</span>' : '<span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagat · devolució de ' + CRIS.euros(c) + '</span>';
+      if (total) fila.querySelector('[data-estat-dev]').innerHTML = '<span class="text-2">Tornat</span>';
+      else { const [a, b, m, cob, tor] = fila.dataset.pagament.split('|'); fila.dataset.pagament = [a, b, m, cob, +tor + c].join('|'); }
+      fet(lloc, total ? 'Devolució total feta' : 'Devolució parcial feta',
+        (dades.metode === 'Bizum' ? 'Registrada la transferència des del banc. ' : 'Tornat per la targeta. ') + (total ? 'El càrrec i el rebut queden anul·lats.' : 'El càrrec continua pagat i el rebut porta la devolució.'));
+    });
+
+    /* Remeses (B3): previsualitzar, crear, descarregar el fitxer i marcar-la enviada */
+    const data = g('remesa-data');
+    g('form-remesa').addEventListener('submit', e => {
+      e.preventDefault();
+      const lloc = g('resultat-remesa'), r = g('demo-remesa').value;
+      lloc.hidden = true; g('previa-remesa').hidden = true; errorCamp(data, '');
+      if (!data.value) { errorCamp(data, 'Tria la data de cobrament.'); return data.focus(); }
+      if (r === 'avis') { errorCamp(data, 'Amb aquesta data, l\'avís previ no arriba 14 dies abans. Tria una data posterior.'); return data.focus(); }
+      if (r === 'nivell') { lloc.className = 'resultat-desar avis avis-error'; lloc.innerHTML = '<strong>No es pot crear cap remesa</strong>Els cobraments reals no estan permesos en aquest entorn (nivell 2 no actiu).'; lloc.hidden = false; return; }
+      if (r === 'caducada') { lloc.className = 'resultat-desar avis avis-error'; lloc.innerHTML = '<strong>La sessió ha caducat</strong>No s\'ha desat res. Torna a entrar amb el teu nom d\'usuari i el codi TOTP.'; lloc.hidden = false; return; }
+      g('previa-remesa').hidden = false; g('crea-remesa').focus();
+    });
+    g('cancela-remesa').addEventListener('click', () => { g('previa-remesa').hidden = true; data.focus(); });
+    const bdCrea = CRIS.botoDinamic(g('crea-remesa'));
+    g('crea-remesa').addEventListener('click', async () => {
+      if (bdCrea.estaOcupat) return;
+      await bdCrea.flux([{ text: 'Creant…', icona: 'carrega', gira: true, ms: 700 }]);
+      bdCrea.posa(bdCrea.inicial.text, bdCrea.inicial.icona);
+      g('previa-remesa').hidden = true;
+      g('fila-remesa-nova').hidden = false; g('detall-remesa').hidden = false; g('detall-remesa').focus();
+      CRIS.anuncia('Remesa 2027-01 creada. Avisos previs a la cua: 130.');
+    });
+    const bdFit = CRIS.botoDinamic(g('descarrega-remesa'));
+    g('descarrega-remesa').addEventListener('click', async () => {
+      if (bdFit.estaOcupat) return;
+      await bdFit.flux([{ text: 'Generant…', icona: 'carrega', gira: true, ms: 800 }]);
+      bdFit.posa(bdFit.inicial.text, bdFit.inicial.icona);
+      g('remesa-fitxer').innerHTML = '<span class="codi">pain.008.001.02 · 3f9a1c07e2b4…</span>';
+      g('form-enviada').hidden = false;
+      fet(g('resultat-detall-remesa'), 'Fitxer descarregat (prototip: no es baixa res)', 'L\'empremta i la descàrrega queden al registre. Puja\'l al banc i esborra\'l del dispositiu.');
+    });
+    g('form-enviada').addEventListener('submit', e => {
+      e.preventDefault();
+      const c = g('remesa-esborrat');
+      if (!errorCamp(c, c.checked ? '' : 'Marca la casella: abans de marcar-la enviada, l\'has d\'haver esborrat del dispositiu.')) return c.focus();
+      const env = '<span class="estat estat-info"><span aria-hidden="true">↗</span> Enviada al banc</span>';
+      g('remesa-estat').innerHTML = env; g('fila-remesa-estat').innerHTML = env;
+      g('form-enviada').hidden = true; g('remesa-descarrega').hidden = true; g('remesa-avis-iban').hidden = true;
+      fet(g('resultat-detall-remesa'), 'Remesa enviada al banc', 'Quan arribi l\'abonament, casa\'l a Tresoreria. Fins llavors, els socis veuen la quota «en curs».');
+    });
+
+    /* Retornats (B4): registrar i decidir el reintent o l'alternativa */
+    g('form-retorn').addEventListener('submit', e => {
+      e.preventDefault();
+      const rebut = g('retorn-rebut'), lloc = g('resultat-retorn');
+      lloc.hidden = true;
+      if (!errorCamp(rebut, rebut.value ? '' : 'Tria el rebut retornat.')) return rebut.focus();
+      if (noDesa('demo-retorn', lloc)) return;
+      const codi = g('retorn-codi').value;
+      const proposta = codi === 'AM04' ? 'Proposta: reintent a la remesa següent (surt a «Per decidir»).'
+        : codi === 'AC04' || codi === 'MD01' ? 'Mandat bloquejat: el soci rep l\'alternativa i la petició d\'un mandat nou.'
+          : 'Sense reintent: el soci rep l\'alternativa de pagament.';
+      fet(lloc, 'Retorn registrat', 'La quota queda retornada i la tresoreria apunta la sortida i la comissió. ' + proposta);
+      rebut.value = '';
+    });
+    g('taula-retornats').addEventListener('click', e => {
+      const b = e.target.closest('[data-decisio]');
+      if (!b) return;
+      const cel = b.closest('[data-retorn]');
+      if (noDesa('demo-retorn', g('resultat-retorn'))) return;
+      cel.innerHTML = '<span class="text-2"></span>';
+      cel.firstChild.textContent = b.dataset.decisio === 'reintent' ? 'Reintent a la remesa següent (intent 2 de 2). La quota torna a pendent.' : 'Alternativa enviada: el soci pot pagar amb targeta, Bizum o transferència. La quota torna a pendent.';
+      cel.tabIndex = -1; cel.focus();
+      CRIS.anuncia(cel.textContent);
     });
   })();
 
