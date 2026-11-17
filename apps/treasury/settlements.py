@@ -20,7 +20,7 @@ from apps.core.models import Payment, validate_cents
 from apps.core.permissions import has_perm
 
 from . import services
-from .models import Movement, ProviderSettlement, SettlementItem, TreasuryAccount
+from .models import ProviderSettlement, SettlementItem, TreasuryAccount
 
 RECORDED = "treasury.settlement_recorded"
 CONFIRMED = "treasury.settlement_confirmed"
@@ -139,17 +139,14 @@ def confirm(settlement: ProviderSettlement, *, by) -> ProviderSettlement:
         "provider": settlement.provider_code,
         "id": settlement.external_id,
     }
-    leg = {
-        "amount_cents": settlement.net_cents,
-        "value_date": settlement.settled_on,
-        "kind": Movement.Kind.TRANSFER,
-        "concept": concept[:140],
-        "settlement": settlement,
-        "recorded_by": by,
-    }
-    out = Movement.objects.create(account=transit, direction=Movement.Direction.OUT, **leg)
-    Movement.objects.create(
-        account=bank, direction=Movement.Direction.IN, linked_movement=out, **leg
+    services.transfer_legs(
+        transit,
+        bank,
+        settlement.net_cents,
+        value_date=settlement.settled_on,
+        concept=concept[:140],
+        by=by,
+        settlement=settlement,
     )
     settlement.status = Status.RECONCILED
     settlement.save(update_fields=["status"])

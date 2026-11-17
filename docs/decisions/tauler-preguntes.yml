@@ -628,6 +628,48 @@ opcions:
       La despesa queda al mes del cobrament que la genera, arribi amb la notificació o amb la liquidació.
     data: 2026-11-17
 
+  P-222:
+    opcions:
+      A: Com s'ha construït; un traspàs a mà només entre comptes bancaris i de caixa.
+      B: També amb el trànsit, i la liquidació descompta el que ja s'ha traspassat.
+      C: També amb el trànsit, sense cap comprovació.
+    recomanada: A
+    perque: >-
+      El trànsit es buida amb la liquidació; un traspàs a mà mouria dues vegades els mateixos diners. La B demana una
+      regla nova per a la liquidació.
+    data: 2026-11-17
+
+  P-223:
+    opcions:
+      A: Com s'ha construït; cap comprovació del saldo de l'origen.
+      B: Es rebutja si deixa la caixa en negatiu; el banc, sense comprovació.
+      C: Es rebutja si deixa qualsevol compte en negatiu.
+    recomanada: A
+    perque: >-
+      El saldo calculat pot anar per darrere de la realitat (un extracte pendent) i la B o la C rebutjarien traspassos
+      reals. Un traspàs equivocat es corregeix amb un altre en sentit contrari, i l'arqueig ensenya la diferència.
+    data: 2026-11-17
+
+  P-224:
+    opcions:
+      A: Com s'ha construït; es rebutja una data futura.
+      B: S'admet una data futura al traspàs (previsió), no a l'arqueig.
+    recomanada: A
+    perque: >-
+      Els moviments no es modifiquen: un traspàs previst que no arriba a passar demanaria un altre traspàs per
+      corregir-lo. Un arqueig futur no es pot haver comptat.
+    data: 2026-11-17
+
+  P-225:
+    opcions:
+      A: Com s'ha construït; l'ajust es demana amb l'arqueig, després de veure la diferència a la pantalla.
+      B: Un servei a part crea l'ajust després, enllaçat a l'últim arqueig sense ajust.
+    recomanada: A
+    perque: >-
+      L'arqueig no es modifica i porta l'ajust (M04-6). La B demanaria canviar el model o una taula d'enllaç; amb la
+      A, un ajust tardà és un arqueig nou amb el seu motiu.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).

@@ -546,3 +546,53 @@ class ReconciliationUndo(AppendOnlyModel):
 
     def __str__(self):
         return f"{self._meta.verbose_name} {self.reconciliation_id}"
+
+
+class CashCount(AppendOnlyModel):
+    """Arqueig d'un compte de caixa (M04-6; HU-T08; P-M04-D; CA-T08.1): l'import comptat, el
+    saldo calculat a la mateixa data i la diferència. No crea cap moviment sol; si el tresorer ho
+    demana, porta l'ajust (VT-06) que ha creat la mateixa crida. Només INSERT, també a la base de
+    dades (migració 0014). El crea `services.record_cash_count`."""
+
+    account = models.ForeignKey(
+        TreasuryAccount,
+        on_delete=models.PROTECT,
+        related_name="cash_counts",
+        verbose_name=_("compte"),
+    )
+    counted_on = models.DateField(_("data de l'arqueig"))
+    counted_cents = models.PositiveBigIntegerField(_("import comptat (cèntims)"))
+    computed_cents = models.BigIntegerField(_("saldo calculat (cèntims)"))
+    difference_cents = models.BigIntegerField(_("diferència (cèntims)"))
+    adjustment = models.OneToOneField(
+        Movement,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="cash_count",
+        verbose_name=_("ajust"),
+    )
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    recorded_at = models.DateTimeField(_("data de registre"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("arqueig")
+        verbose_name_plural = _("arqueigs")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(difference_cents=F("counted_cents") - F("computed_cents")),
+                name="cash_count_difference_is_counted_minus_computed",
+            ),
+            models.CheckConstraint(
+                condition=Q(adjustment__isnull=True) | ~Q(difference_cents=0),
+                name="cash_count_adjustment_only_with_difference",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.account} {self.counted_on}"

@@ -23,3 +23,8 @@ def balances(on):
     return TreasuryAccount.objects.annotate(
         balance_cents=_total(Movement.Direction.IN, on) - _total(Movement.Direction.OUT, on)
     ).order_by("-active", "kind", "name")
+
+
+def balance(account, on) -> int:
+    """El saldo d'un compte a la data `on`, en cèntims (pot ser negatiu)."""
+    return balances(on).get(pk=account.pk).balance_cents
