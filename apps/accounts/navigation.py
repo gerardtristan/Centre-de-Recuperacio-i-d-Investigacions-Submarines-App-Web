@@ -76,9 +76,32 @@ ENTRIES = (
     ),
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
     ("administration:fees", _("Quotes i impagats"), ()),
-    ("administration:treasury_accounts", _("Tresoreria: comptes i saldos"), ()),
-    ("administration:treasury_movements", _("Tresoreria: moviments"), ()),
-    ("administration:treasury_reconciliation", _("Tresoreria: conciliació"), ()),  # T-DX-44
+    # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
+    (
+        "administration:treasury_accounts",
+        _("Tresoreria: comptes i saldos"),
+        (
+            "administration:treasury_transfer",
+            "administration:treasury_cash_count",
+            "administration:treasury_settlements",
+            "administration:treasury_settlement_confirm",
+        ),
+    ),
+    (
+        "administration:treasury_movements",
+        _("Tresoreria: moviments"),
+        ("administration:treasury_export", "administration:treasury_reverse"),
+    ),
+    (
+        "administration:treasury_reconciliation",
+        _("Tresoreria: conciliació"),
+        (
+            "administration:treasury_confirm_line",
+            "administration:treasury_undo_reconciliation",
+            "administration:treasury_review",
+            "administration:treasury_exclude_line",
+        ),
+    ),  # T-DX-44
     ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:payments_list", _("Pagaments: llistat"), ()),  # T-DX-47
     ("administration:payments_remittances", _("Pagaments: remeses"), ()),  # T-DX-47
