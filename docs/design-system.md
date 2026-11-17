@@ -469,7 +469,8 @@ Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.
 - **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`).
 - **Del recurs no s'hi fa:** la barra lateral a partir de 760 px (a l'escriptori, la capçalera ja fa aquesta feina) ni les fulles de cada acció.
 
-- **Contrast (T-DX-48, P-283):** les pestanyes inactives fan servir `color-mix(in oklch, var(--c-text-2) 55%, var(--c-text))`: `--c-text-2` sobre la barra flotant feia 4,18:1 al fosc. Continuen diferents de l'activa (`--c-text` i la marca).
+- **Contrast (T-DX-48, P-283):** les pestanyes inactives fan servir `color-mix(in srgb, var(--c-text-2) 55%, var(--c-text))`: `--c-text-2` sobre la barra flotant feia 4,18:1 al fosc. Continuen diferents de l'activa (`--c-text` i la marca).
+- **Barreja en sRGB (T-DX-52):** barrejant dos grisos en oklch, el resultat té el to «none», i axe no en sap calcular el contrast (el deixa per a revisió manual). En sRGB, axe el calcula: més de 4,5:1 als dos temes, i la prova de `test_accessibilitat_mandat.py` ho comprova. Errata fa servir la mateixa barreja. Regla: un color de text fet amb `color-mix()` es barreja `in srgb`. Les ombres i els vels poden continuar en oklch.
 
 ### 6.13 Tramite: els passos d'un pagament (T-DX-10)
 Del recurs Tramite ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la línia de passos que s'omple d'una etapa a la següent, l'etapa en groc quan el proveïdor no completa el pagament i el segell en confirmar-se.
