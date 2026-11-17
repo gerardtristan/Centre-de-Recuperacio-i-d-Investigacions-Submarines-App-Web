@@ -6,6 +6,6 @@
   <h1>{% translate "Pantalles en construcció" %}</h1>
   <p>{% translate "Dissenys de pantalles que encara no funcionen. Només es poden mirar: no desen ni envien res, i el contingut és d'exemple." %}</p>
   <ul>
-    {% for name, title in screens %}<li><a href="{% url 'previews:'|add:name %}">{{ title }}</a></li>{% empty %}<li>{% translate "Encara no n'hi ha cap." %}</li>{% endfor %}
+    {% for url, title in screens %}<li><a href="{{ url }}">{{ title }}</a></li>{% empty %}<li>{% translate "Encara no n'hi ha cap." %}</li>{% endfor %}
   </ul>
 {% endblock %}
