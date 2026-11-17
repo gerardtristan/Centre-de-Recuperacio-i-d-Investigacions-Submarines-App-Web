@@ -608,6 +608,26 @@ opcions:
       Fins que es decideixi, la A no deixa mai tornar més del cobrat.
     data: 2026-11-17
 
+  P-220:
+    opcions:
+      A: Com s'ha construït; no s'apunta res i no es pot confirmar fins que es resolgui a mà (tall següent).
+      B: Es poden confirmar les partides conegudes; la resta queda pendent.
+      C: S'espera que el proveïdor l'enviï corregida, amb un altre identificador.
+    recomanada: A
+    perque: >-
+      Amb la B el net no quadraria amb l'abonament del banc. La A no apunta diners a mitges; amb la pantalla, el
+      tresorer la podrà casar a mà amb els cobraments del període (RN-T21).
+    data: 2026-11-17
+
+  P-221:
+    opcions:
+      A: Com s'ha construït; la comissió porta la data de l'ingrés.
+      B: La comissió porta la data de la liquidació.
+    recomanada: A
+    perque: >-
+      La despesa queda al mes del cobrament que la genera, arribi amb la notificació o amb la liquidació.
+    data: 2026-11-17
+
   P-194:
     opcions:
       A: Sense cap cobrament, des de la signatura; caduca el dia que es compleixen els 36 mesos (com s'ha fet).

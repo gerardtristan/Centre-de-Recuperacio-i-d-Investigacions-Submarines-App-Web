@@ -4,7 +4,7 @@ serveis de la 04 (M04-8)."""
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
@@ -214,6 +214,15 @@ class Movement(AppendOnlyModel):
         related_name="reversal",
         verbose_name=_("moviment que anul·la"),
     )
+    # La liquidació del proveïdor d'on surt el moviment (els dos del traspàs del net, T-M04-13).
+    settlement = models.ForeignKey(
+        "ProviderSettlement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="movements",
+        verbose_name=_("liquidació"),
+    )
     reason = models.TextField(_("motiu"), blank=True)
     # Sense compte: l'ha creat el sistema (una notificació del proveïdor, una tasca).
     recorded_by = models.ForeignKey(
@@ -314,6 +323,89 @@ class Movement(AppendOnlyModel):
             raise ValidationError(
                 gettext("El centre de cost ha de ser del departament del moviment.")
             )
+
+
+class ProviderSettlement(UndeletableModel):
+    """Liquidació d'un proveïdor de cobrament (M04-6; RN-T21; T-M04-13): l'abonament agrupat,
+    amb el brut, les comissions, el net i una partida per cobrament (`SettlementItem`). Només
+    canvia l'estat: rebuda → conciliada; «a revisar» quan una línia no és d'un cobrament conegut
+    (CA-T11.2), amb els problemes a `review_notes`. El format real és [A verificar: P-45]."""
+
+    class Status(models.TextChoices):
+        RECEIVED = "received", _("Rebuda")
+        RECONCILED = "reconciled", _("Conciliada")
+        TO_REVIEW = "to_review", _("A revisar")
+
+    class Source(models.TextChoices):
+        NOTIFICATION = "notification", _("Notificació")
+        FILE = "file", _("Fitxer")
+        MANUAL = "manual", _("Manual")
+        REMITTANCE = "remittance", _("Remesa")
+
+    provider_code = models.CharField(_("proveïdor"), max_length=30)
+    external_id = models.CharField(_("identificador del proveïdor"), max_length=100)
+    settled_on = models.DateField(_("data de l'abonament"))
+    gross_cents = models.PositiveBigIntegerField(_("brut (cèntims)"))
+    fees_cents = models.PositiveBigIntegerField(_("comissions (cèntims)"))
+    net_cents = models.PositiveBigIntegerField(_("net (cèntims)"))
+    status = models.CharField(_("estat"), max_length=10, choices=Status.choices)
+    source = models.CharField(_("origen"), max_length=12, choices=Source.choices)
+    review_notes = models.JSONField(_("problemes"), default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("liquidació")
+        verbose_name_plural = _("liquidacions")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider_code", "external_id"], name="settlement_unique_per_provider"
+            ),
+            models.CheckConstraint(
+                condition=Q(net_cents=F("gross_cents") - F("fees_cents")),
+                name="settlement_net_is_gross_minus_fees",
+            ),
+            models.CheckConstraint(
+                condition=Q(gross_cents__gt=0) & Q(net_cents__gt=0),
+                name="settlement_amounts_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["received", "reconciled", "to_review"]),
+                name="settlement_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(source__in=["notification", "file", "manual", "remittance"]),
+                name="settlement_source_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.provider_code} {self.external_id}"
+
+
+class SettlementItem(AppendOnlyModel):
+    """Una partida de la liquidació: un cobrament (un pagament només és en una liquidació),
+    l'import i, si el proveïdor la detalla, la comissió (M04-6; S-M04-05)."""
+
+    settlement = models.ForeignKey(
+        ProviderSettlement,
+        on_delete=models.PROTECT,
+        related_name="items",
+        verbose_name=_("liquidació"),
+    )
+    payment = models.OneToOneField(
+        Payment, on_delete=models.PROTECT, related_name="+", verbose_name=_("pagament")
+    )
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    fee_cents = models.PositiveBigIntegerField(_("comissió (cèntims)"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("partida de liquidació")
+        verbose_name_plural = _("partides de liquidació")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_cents__gt=0), name="settlement_item_amount_positive"
+            ),
+        ]
 
 
 class TransferReference(AppendOnlyModel):
