@@ -290,7 +290,7 @@ CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING, OTHER_
     "card_closed", "not_member", "preference", "provider", "not_fee", "transfer_waiting",
     "other_person",
 )  # fmt: skip
-ARREARS, OPEN_FAILED = "arrears", "open_failed"
+ARREARS, OPEN_FAILED, PENDING_MEMBER = "arrears", "open_failed", "pending_member"
 # P-302: dies des del venciment que una quota es cobra fora de sessió (7 [A validar: tresorer]).
 WINDOW = "payments.saved_card_charge_window_days"
 
@@ -304,10 +304,12 @@ def _expired(card: SavedCard, today) -> bool:
 def _unusable(card: SavedCard | None, charge: Charge, provider, today) -> str | None:
     """Per què la targeta no pot cobrar la quota (un cas d'`OUTCOMES`), o None si pot: la targeta
     activa i no caducada, del proveïdor, de la preferència «targeta guardada» d'un soci actiu o
-    impagat, per a una quota anual seva."""
+    impagat (un de pendent, no: P-309, opció per defecte), per a una quota anual seva."""
     fee = getattr(charge, "annual_fee", None)
     if fee is None:
         return NOT_FEE
+    if fee.member.status == Member.Status.PENDING:
+        return PENDING_MEMBER  # P-309 (opció per defecte «no»): paga la quota que l'activa
     if fee.member.status not in (Member.Status.ACTIVE, Member.Status.UNPAID):
         return NOT_MEMBER
     if card is None:
@@ -419,7 +421,15 @@ def charge_saved_card(
 
 def _still_applies(notice, provider, today) -> bool:
     """El motiu d'un avís encara hi és (per tornar a provar-ne els correus)."""
-    if notice.case in (CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, OTHER_PERSON):
+    if notice.case in (
+        CARD_CLOSED,
+        NOT_MEMBER,
+        PENDING_MEMBER,
+        PREFERENCE,
+        PROVIDER,
+        NOT_FEE,
+        OTHER_PERSON,
+    ):
         return _unusable(notice.card, notice.charge, provider(), today) == notice.case
     if notice.case == TRANSFER_WAITING:
         return notice.charge.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists()

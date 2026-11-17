@@ -792,4 +792,37 @@ opcions:
       afectat torna a entrar, i assignar rols passa poques vegades.
     data: 2026-11-17
 
+  P-302:
+    opcions:
+      A: Una tasca diària cobra les quotes pendents vençudes fa com a molt 7 dies (ajust), una sola vegada per quota, sense avís previ; les més antigues es paguen des de la pantalla.
+      B: Com A, amb un correu uns dies abans que avisi del cobrament i de la targeta (quatre darrers dígits).
+      C: El tresorer fixa el dia del cobrament, com a la remesa.
+    recomanada: B
+    perque: >-
+      Cobrar el dia del venciment no demana feina al tresorer; un avís previ evita sorpreses al soci i
+      és el que ja es fa amb la domiciliació. A és el que hi ha fet i B s'hi afegeix sense canviar res.
+    data: 2026-11-17
+
+  P-303:
+    opcions:
+      A: L'intent es tanca de seguida, l'adreça del banc no es desa ni s'envia, i el soci rep l'alternativa de pagament.
+      B: L'intent espera l'autenticació i el soci rep l'enllaç del banc per completar-la.
+      C: No es fa cap cobrament amb la targeta guardada si el proveïdor pot demanar autenticació.
+    recomanada: A
+    perque: >-
+      Ningú no pot autenticar l'ordre fora de sessió, així que no pot cobrar: cap doble cobrament, cap intent
+      encallat i cap enllaç del banc en correus. La B fa esperar el soci i depèn que el proveïdor la tanqui.
+    data: 2026-11-17
+
+  P-309:
+    opcions:
+      A: Sí, si té targeta i preferència «targeta guardada»; es cobra com qualsevol altra quota.
+      B: No; la primera quota es paga sempre des de la pantalla, i la targeta guardada només per a les renovacions.
+    recomanada: B
+    perque: >-
+      La quota que activa el soci (també el readmès) és la que obre el carnet: millor que la pagui ell, a la
+      pantalla, que no pas un cobrament automàtic d'una preferència que potser ja no vol. El tresorer en rep un
+      sol avís.
+    data: 2026-11-17
+
 noves:
