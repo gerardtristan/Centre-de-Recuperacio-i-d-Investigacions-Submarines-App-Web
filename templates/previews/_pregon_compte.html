@@ -1,0 +1,2 @@
+{% load i18n %}{# T-DX-36 Pregon: el comptador de caràcters amb l'anell (pathLength=100: el traç és el percentatge del màxim). #}
+<span class="pregon-compte"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="pregon-anell-fons" cx="12" cy="12" r="9"/><circle class="pregon-anell" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="{% widthratio n max 100 %} 100" transform="rotate(-90 12 12)"/></svg>{% blocktranslate %}{{ n }} de {{ max }}{% endblocktranslate %}</span>

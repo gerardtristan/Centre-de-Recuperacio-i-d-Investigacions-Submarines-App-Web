@@ -1,0 +1,59 @@
+/* Probador (T-DX-36; recurs a design/extern/; design-system §16, T-DX-36): l'editor de la web pública.
+   Del recurs: la galeria de plantilles com a miniatures vives, el marc d'escriptori, els botons de dispositiu
+   i el color d'accent. El color només pot ser un token (no hi ha lliscador de matís) i res no es desa. */
+.probador { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.probador h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.probador-cos { display: grid; gap: var(--e-5); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.probador-bloc { display: grid; gap: var(--e-3); min-inline-size: 0; }
+.probador-bloc h2 { margin: 0; font-size: var(--t-l); }
+.probador-galeria { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fill, minmax(calc(var(--e-8) * 2), 1fr)); }
+.probador-miniatura {
+  display: grid; gap: var(--e-2); inline-size: 100%; padding: var(--e-2); border: var(--v-plena) solid transparent;
+  border-radius: var(--r-l); background: var(--c-fons); color: var(--c-text); font: inherit; text-align: start;
+  transition: transform var(--m-rapid) var(--m-corba);
+}
+.probador-miniatura:hover { transform: translateY(calc(-1 * var(--e-1))) rotate(-1deg); }
+.probador-miniatura.es-triada { border-color: var(--c-accent-vora); }
+.probador-nom { font-weight: var(--p-semi); font-size: var(--t-s); }
+/* La miniatura: blocs genèrics que es recomponen segons la plantilla */
+.probador-mini {
+  display: grid; gap: var(--e-1); padding: var(--e-1); aspect-ratio: 4 / 3; border-radius: var(--r-m);
+  background: var(--c-superficie-2); grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto;
+}
+.probador-mini > span { border-radius: var(--r-s); background: var(--c-linia); }
+.probador-mini .pm-cap { grid-column: 1 / -1; block-size: var(--e-2); background: var(--c-text-2); }
+.probador-mini .pm-heroi { grid-column: 1 / -1; background: linear-gradient(160deg in oklch, var(--c-mari), var(--c-info)); }
+.probador-mini .pm-bloc { block-size: var(--e-4); }
+.probador-mini-llista .pm-heroi { grid-column: 1 / 2; grid-row: 2 / 4; }
+.probador-mini-llista .pm-bloc { grid-column: 2 / -1; }
+.probador-mini-blog .pm-heroi { grid-column: 1 / 3; }
+.probador-mini-blog .pm-bloc:first-of-type { grid-column: 3; grid-row: 2; block-size: auto; }
+.probador-mini.es-gran { gap: var(--e-2); padding: var(--e-3); aspect-ratio: 16 / 9; border-radius: 0 0 var(--r-m) var(--r-m); }
+.probador-mini.es-gran .pm-cap { block-size: var(--e-4); }
+.probador-mini.es-gran .pm-cap, .probador-mini.es-gran .pm-heroi { box-shadow: inset 0 0 0 var(--v-plena) var(--c-accent); }
+.probador-controls { display: flex; flex-wrap: wrap; gap: var(--e-4); }
+.probador-grup { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.probador-grup legend { padding: 0; margin-block-end: var(--e-2); font-weight: var(--p-semi); font-size: var(--t-s); }
+.probador-colors { display: flex; flex-wrap: wrap; gap: var(--e-3); }
+.probador-color { display: inline-flex; align-items: center; gap: var(--e-2); min-block-size: var(--tactil); }
+.probador .segmentat { flex-wrap: wrap; }
+.probador .segmentat .opcio { padding: 0 var(--e-3); }
+/* El color triat: anella i negreta, mai només el color */
+.probador-color:has(input:checked) { font-weight: var(--p-negreta); }
+.probador-color input:checked + .probador-mostra { box-shadow: 0 0 0 var(--v-plena) var(--c-fons), 0 0 0 calc(2 * var(--v-plena)) var(--c-text); }
+.probador-color input:focus-visible + .probador-mostra { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
+.probador-mostra { inline-size: var(--e-5); block-size: var(--e-5); border-radius: 50%; box-shadow: inset 0 0 0 var(--v-fina) var(--c-linia-forta); }
+.probador-mostra-accent { background: var(--c-accent); }
+.probador-mostra-mari { background: var(--c-mari); }
+.probador-mostra-info { background: var(--c-info); }
+/* El marc d'escriptori amb la plantilla triada */
+.probador-marc { max-inline-size: calc(var(--e-8) * 8); overflow: hidden; border-radius: var(--r-l); background: var(--c-fons); box-shadow: var(--ombra-flotant); }
+.probador-barra { display: flex; align-items: center; gap: var(--e-1); padding: var(--e-2) var(--e-3); background: var(--c-superficie-2); }
+.probador-barra > span:not(.probador-adreca) { inline-size: var(--e-2); block-size: var(--e-2); border-radius: 50%; background: var(--c-linia-forta); }
+.probador-adreca { margin-inline-start: var(--e-3); font-size: var(--t-xs); color: var(--c-text-2); }
+.probador-accions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-2); }
+
+@media (min-width: 600px) {
+  .probador { padding: var(--e-5); }
+}
