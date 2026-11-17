@@ -908,4 +908,41 @@ opcions:
       la conciliació i el rebut van junts. La B només val la pena quan el rebut sigui lent o depengui de fora.
     data: 2026-11-17
 
+  P-233:
+    opcions:
+      A: pain.008.001.02, sempre RCUR, entitats NOTPROVIDED i el nom actual, fins que el banc doni la mostra (com s'ha fet).
+      B: Esperar la mostra del banc abans de generar cap fitxer.
+    recomanada: A
+    perque: >-
+      És l'estàndard SEPA Core que accepten els bancs espanyols i no es cobra res fins al nivell 2.
+    data: 2026-11-17
+
+  P-234:
+    opcions:
+      A: Cap dependència ara; regles de l'esquema al codi i xmlschema amb l'XSD quan el banc doni la versió (com s'ha fet).
+      B: Afegir xmlschema ara i validar contra l'XSD a cada generació.
+      C: Afegir lxml ara.
+    recomanada: A
+    perque: >-
+      La versió del banc encara no se sap i la llicència de l'XSD no és clara; el fitxer ja s'ha validat a mà sense errors.
+    data: 2026-11-17
+
+  P-235:
+    opcions:
+      A: El compte de les transferències (com s'ha fet).
+      B: Un compte propi per a les remeses, configurat a part.
+    recomanada: A
+    perque: >-
+      El club té un compte conegut i el pla no en parla d'un altre (P-45 punt 11).
+    data: 2026-11-17
+
+  P-236:
+    opcions:
+      A: No es genera el fitxer i es diu quins mandats són (com s'ha fet).
+      B: Es treu el rebut automàticament (intent fallit, càrrec pendent) i es genera la resta.
+    recomanada: A
+    perque: >-
+      Mai cobra un mandat revocat i no canvia cap import sense que el tresorer ho vegi.
+    data: 2026-11-17
+
 noves:

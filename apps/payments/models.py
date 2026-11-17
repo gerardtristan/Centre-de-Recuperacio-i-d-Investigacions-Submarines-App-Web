@@ -619,6 +619,9 @@ class DirectDebitRemittance(UndeletableModel):
     )
     item_count = models.PositiveIntegerField(_("rebuts"))
     total_cents = models.PositiveBigIntegerField(_("import total (cèntims)"))
+    # Empremta i versió de l'últim fitxer pain.008 generat; el fitxer no es desa (RN-M05b-12).
+    file_hash = models.CharField(_("empremta del fitxer"), max_length=64, blank=True)
+    file_format = models.CharField(_("format del fitxer"), max_length=20, blank=True)
     created_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
     created_at = models.DateTimeField(auto_now_add=True)
 
