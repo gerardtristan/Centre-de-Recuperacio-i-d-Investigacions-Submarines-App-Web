@@ -58,7 +58,7 @@ def test_ca_m05a_22_a_card_past_its_expiry_becomes_expired_and_is_not_used(
     entry = AuditEntry.objects.get(action=cards.EXPIRED)
     assert (entry.old_value, entry.new_value) == ("active", "expired")
 
-    monkeypatch.setattr(checkout.timezone, "localdate", lambda: date(2026, 4, 15))
+    monkeypatch.setattr(checkout.timezone, "localdate", lambda *args: date(2026, 4, 15))
     checkout.charge_due_saved_cards()
     assert not PaymentAttempt.objects.exists()
 
