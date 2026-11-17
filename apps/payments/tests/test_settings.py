@@ -156,3 +156,14 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         assert after == before and len(after) == 5
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
+
+
+@pytest.mark.parametrize(
+    ("key", "value"), [(remittances.PRENOTIFICATION_DAYS, 20), (returns.MAX_ATTEMPTS, 3)]
+)
+def test_vc_16_only_the_treasurer_edits(make_admin, admin, key, value):  # noqa: F811
+    for other in (admin, make_admin(R.SECRETARY)):
+        with pytest.raises(Http404):
+            business_settings.change(key, value, other)
+    business_settings.change(key, value, make_admin(R.TREASURER))
+    assert business_settings.get(key) == value
