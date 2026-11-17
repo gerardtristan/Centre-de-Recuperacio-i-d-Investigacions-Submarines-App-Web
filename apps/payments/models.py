@@ -569,8 +569,9 @@ class MandateBankAccount(models.Model):
 
 
 class SavedCardAttempt(models.Model):
-    """La targeta guardada amb què s'ha obert un intent (T-M05b-15): un intent que es reprèn ha de
-    ser amb la mateixa targeta. Fora de l'intent, que no porta cap dada de targeta (CA-M05b-25)."""
+    """La targeta guardada amb què s'ha obert un intent (T-M05b-15). Fora de l'intent, que no
+    porta cap dada de targeta (CA-M05b-25). PROTECT: una targeta guardada no s'esborra mai, ni a
+    l'esborrat RGPD; només es marca «esborrada», «caducada» o «denegada»."""
 
     attempt = models.OneToOneField(PaymentAttempt, on_delete=models.PROTECT, related_name="+")
     card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
@@ -584,19 +585,21 @@ class SavedCardAttempt(models.Model):
 
 
 class SavedCardNotice(models.Model):
-    """Una quota que una targeta guardada no ha pogut cobrar i de la qual ja s'ha avisat
-    (T-M05b-15): una sola vegada per càrrec i targeta. Amb una targeta nova, es torna a provar."""
+    """Ja s'ha avisat que una targeta guardada no pot cobrar una quota, per un motiu (T-M05b-15):
+    serveix només per no repetir l'avís; la quota es continua provant cada dia."""
 
     charge = models.ForeignKey("core.Charge", on_delete=models.PROTECT, related_name="+")
     card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
-    reason = models.TextField(_("motiu"))
+    case = models.CharField(_("motiu"), max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = _("avís de quota no cobrada amb la targeta")
         verbose_name_plural = _("avisos de quotes no cobrades amb la targeta")
         constraints = [
-            models.UniqueConstraint(fields=["charge", "card"], name="saved_card_notice_once")
+            models.UniqueConstraint(
+                fields=["charge", "card", "case"], name="saved_card_notice_once"
+            )
         ]
 
     def __str__(self):
