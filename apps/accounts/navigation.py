@@ -43,6 +43,7 @@ BASE_ROUTES = {
     "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
+    "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
     "administration:settings": tuple(
         ((code, READ),) for code in CATALOG if code.startswith(section_code(""))
@@ -78,6 +79,7 @@ ENTRIES = (
     ("administration:treasury_reconciliation", _("Tresoreria: conciliació"), ()),  # T-DX-44
     ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:payments_mandates", _("Pagaments: mètodes i mandats"), ()),  # T-DX-43
+    ("administration:payments_campaign", _("Pagaments: campanya de mandats"), ()),  # T-DX-46
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
     ("administration:guest_links", _("Enllaços de convidat"), ()),
     (
