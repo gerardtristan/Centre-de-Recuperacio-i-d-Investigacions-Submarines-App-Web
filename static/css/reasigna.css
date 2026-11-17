@@ -1,0 +1,23 @@
+/* Reasigna (T-DX-30; recurs a design/extern/; design-system §16, T-DX-30): repartir les sessions d'un
+   instructor que falta. Del recurs: l'agenda del dia amb les sessions afectades marcades, la proposta
+   de cada una («→ qui», o «sense lloc»), el marge d'hora i confirmar-ho tot alhora. Sense el vol de
+   les cites (seria moviment de decoració). Només tokens. */
+.reasigna { padding: var(--e-5); background: var(--c-superficie); border-radius: var(--r-xl); }
+.reasigna h1 { margin-top: 0; }
+.reasigna-intro { margin: 0 0 var(--e-4); color: var(--c-text-2); }
+.reasigna .reasigna-cols { gap: var(--e-5); }
+.reasigna-agenda { min-width: 0; overflow-x: auto; }
+/* Sessió de qui falta: vora ambre a l'esquerra i l'estat «! Falta» en text, mai només color */
+.reasigna .es-afectada { box-shadow: inset var(--v-activa) 0 0 var(--c-avis); padding-left: var(--e-3); }
+@media (min-width: 600px) {
+  .reasigna .es-afectada { box-shadow: none; }
+  .reasigna .es-afectada > :first-child { box-shadow: inset var(--v-activa) 0 0 var(--c-avis); }
+}
+.reasigna-cap { font-weight: var(--p-semi); }
+.reasigna-marge, .reasigna-igual { color: var(--c-text-2); }
+.reasigna .reasigna-panell { min-width: 0; padding: var(--e-5); display: grid; gap: var(--e-3); align-content: start; }
+.reasigna-panell h2 { margin: 0; font-size: var(--t-l); }
+.reasigna-panell .segmentat { flex-wrap: wrap; border-radius: var(--r-m); }
+.reasigna-llista { margin: 0; padding-left: var(--e-5); display: grid; gap: var(--e-2); }
+.reasigna-panell .ajuda { margin: 0; font-size: var(--t-s); color: var(--c-text-2); }
+@media (min-width: 1024px) { .reasigna .reasigna-cols { grid-template-columns: 3fr 2fr; align-items: start; } }
