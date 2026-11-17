@@ -140,6 +140,13 @@ MAP = {
         "apps/payments/campaigns.py",
         "templates/payments/campaign.html",
     ),
+    "test_remeses.py": (
+        "apps/payments/remittance_views.py",
+        "apps/payments/remittances.py",
+        "apps/payments/sepa_xml.py",
+        "templates/payments/remittance*.html",
+        "templates/payments/_remittance_status.html",
+    ),
     "test_mandat_signatura.py": (
         "apps/payments/mandate_views.py",
         "apps/payments/forms.py",
