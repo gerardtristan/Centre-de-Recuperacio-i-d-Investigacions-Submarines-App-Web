@@ -6,7 +6,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.core.models import AuditEntry
+from apps.core.models import AuditEntry, OutgoingEmail, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.payments import settlements, tasks
 from apps.payments.providers import base, fake
@@ -97,6 +97,32 @@ class TestImport:
         entry = AuditEntry.objects.get(action=settlements.REJECTED)
         assert entry.details["external_id"] == "BAD" and entry.details["provider"] == "fake"
         assert entry.details["errors"]
+
+    def test_p_227_whoever_has_treasury_permission_gets_one_email(
+        self,
+        provider,
+        two,
+        make_admin,  # noqa: F811
+    ):
+        # Decisió 095, P-227 (B): no s'apunta res i s'avisa per correu qui té T1.
+        treasurer = make_admin(Role.Code.TREASURER)
+        treasurer.notification_email = "tresoreria@example.org"
+        treasurer.save()
+        make_admin(Role.Code.SECRETARY)  # sense T1: no rep res
+        fake._settlements.append(
+            base.ProviderSettlementReport(
+                "BAD", TODAY, 9000, 50, 9000, (base.SettledOperation("fake-ord-a", 9000),)
+            )
+        )
+        settlements.import_settlements()
+        (email,) = OutgoingEmail.objects.filter(template=settlements.REJECTED_TEMPLATE)
+        assert email.to_address == "tresoreria@example.org"
+        assert "BAD" in email.body_text and "no quadren" in email.body_text
+        assert "Núria" not in email.body_text + email.subject  # cap dada personal
+        # L'endemà es torna a demanar (P-226) i es torna a rebutjar, però no es torna a avisar.
+        settlements.import_settlements()
+        assert AuditEntry.objects.filter(action=settlements.REJECTED).count() == 2
+        assert OutgoingEmail.objects.filter(template=settlements.REJECTED_TEMPLATE).count() == 1
 
     def test_the_detailed_fee_passes_through(self):
         report = base.ProviderSettlementReport(
