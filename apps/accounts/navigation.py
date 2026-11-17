@@ -42,6 +42,8 @@ BASE_ROUTES = {
     "administration:treasury_movements": ((("treasury.view", READ),),),
     "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
+    "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
+    "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -78,6 +80,8 @@ ENTRIES = (
     ("administration:treasury_movements", _("Tresoreria: moviments"), ()),
     ("administration:treasury_reconciliation", _("Tresoreria: conciliació"), ()),  # T-DX-44
     ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
+    ("administration:payments_list", _("Pagaments: llistat"), ()),  # T-DX-47
+    ("administration:payments_remittances", _("Pagaments: remeses"), ()),  # T-DX-47
     ("administration:payments_mandates", _("Pagaments: mètodes i mandats"), ()),  # T-DX-43
     ("administration:payments_campaign", _("Pagaments: campanya de mandats"), ()),  # T-DX-46
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),

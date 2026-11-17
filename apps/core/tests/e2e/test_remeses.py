@@ -31,8 +31,12 @@ def test_treasurer_previews_confirms_and_downloads_a_remittance(
     treasurer = make_admin("tresoreria.prova", "treasurer")
 
     login_admin(page, live_server.url, treasurer.login)
-    page.goto(f"{live_server.url}/{settings.ADMIN_URL_PATH}/pagaments/remeses/")
+    # Hi arriba pel menú (T-DX-47): l'entrada només surt amb B3.
+    entry = page.locator("#barra-lateral").get_by_role("link", name="Pagaments: remeses")
+    entry.click()
     expect(page.get_by_role("heading", name="Remeses", exact=True)).to_be_visible()
+    expect(page).to_have_url(f"{live_server.url}/{settings.ADMIN_URL_PATH}/pagaments/remeses/")
+    expect(entry).to_have_attribute("aria-current", "page")
     expect(page.get_by_text("Encara no hi ha cap remesa.")).to_be_visible()
     page.get_by_label("Període").fill("2026-12")
     page.get_by_role("button", name="Previsualitza").click()
