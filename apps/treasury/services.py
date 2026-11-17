@@ -27,6 +27,8 @@ comptes propis (T6) i l'arqueig de la caixa (T7), amb l'ajust opcional. El perí
 dos (RN-T31: mai es rebutgen) arriba amb la T-M04-20.
 """
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -60,6 +62,11 @@ TRANSFER_RECORDED = "treasury.transfer_recorded"
 CASH_COUNTED = "treasury.cash_counted"
 TRANSFER = "treasury.transfer"  # T6, «Registrar un traspàs» (M04-4)
 CASH_COUNT = "treasury.cash_count"  # T7, «Registrar un arqueig» (M04-4)
+EXPENSE_RECORDED = "treasury.expense_recorded"
+OTHER_INCOME_RECORDED = "treasury.other_income_recorded"
+MOVED_TO_OPEN_PERIOD = "treasury.movement_moved_to_open_period"
+# RN-T33: les funcions registrades amb `register_movement_guard` (el 09); buida, cap bloqueig.
+_GUARDS: list = []
 # VT-06: el centre de cost dels ajustos d'arqueig (dades inicials, migració 0004).
 CASH_ADJUSTMENTS = ("General", "Ajustos de caixa")
 
@@ -113,6 +120,56 @@ class TransferRejected(ValidationError):
 
 class CashCountRejected(ValidationError):
     """L'arqueig no és d'un compte de caixa, o l'ajust no es pot fer."""
+
+
+class PeriodClosed(ValidationError):
+    """RN-T28 i RN-T30: la data de valor és dins un període tancat (moviment del 09 o anul·lació
+    manual)."""
+
+
+class InvalidDepartment(ValidationError):
+    """El departament o el centre de cost no es pot triar, o el centre no és del departament."""
+
+
+class ExpenseRejected(ValidationError):
+    """A la despesa o a l'ingrés li falta alguna dada."""
+
+
+def register_movement_guard(guard):
+    """RN-T33 (053): `guard()` torna la data fins a la qual el període és tancat, o res. La 04
+    aplica RN-T30 o RN-T31 segons l'origen del moviment i no depèn de qui la registra (el 09)."""
+    _GUARDS.append(guard)
+    return guard
+
+
+def closed_until():
+    """L'últim dia tancat segons els bloquejos registrats, o `None` (CA-T21, CA-T25)."""
+    return max(filter(None, (guard() for guard in _GUARDS)), default=None)
+
+
+def _create_movement(by, *, blocking=False, **fields) -> Movement:
+    """L'únic lloc on la 04 crea un moviment. Amb la data de valor dins un període tancat: si
+    `blocking` (el 09 i les anul·lacions manuals, RN-T30), `PeriodClosed`; si no (origen extern,
+    RN-T31), entra el primer dia del període obert amb la data real a `original_value_date`, i
+    queda al registre d'activitat."""
+    closed, original = closed_until(), None
+    if closed is not None and fields["value_date"] <= closed:
+        if blocking:
+            raise PeriodClosed(_("La data de valor és dins un període tancat."))
+        original, fields["value_date"] = fields["value_date"], closed + timedelta(days=1)
+    movement = Movement.objects.create(original_value_date=original, **fields)
+    if original is not None:
+        audit.record(
+            MOVED_TO_OPEN_PERIOD,
+            actor=by,
+            target=movement,
+            details={
+                "original_value_date": original.isoformat(),
+                "value_date": movement.value_date.isoformat(),
+                "kind": movement.kind,
+            },
+        )
+    return movement
 
 
 @transaction.atomic
@@ -266,7 +323,8 @@ def _given_back(payment: Payment) -> int:
 def _outgoing(income, kind, amount_cents, by, *, value_date=None, reason="", linked=None):
     """Sortida del compte de l'ingrés, amb el seu departament i centre de cost (RN-T10).
     RN-T31: la data de valor dins un període tancat passa al període obert (T-M04-20)."""
-    return Movement.objects.create(
+    return _create_movement(
+        by,
         account=income.account,
         direction=Movement.Direction.OUT,
         amount_cents=amount_cents,
@@ -331,7 +389,8 @@ def _income_of(payment: Payment) -> Movement | None:
 
 def _create_income(payment: Payment, charge: Charge, by) -> Movement:
     paid_on = timezone.localdate(payment.paid_at) if payment.paid_at else timezone.localdate()
-    return Movement.objects.create(
+    return _create_movement(
+        by,
         account=_income_account(payment.method),
         direction=Movement.Direction.IN,
         amount_cents=payment.amount_cents,
@@ -380,12 +439,16 @@ def _concept(charge: Charge) -> str:
 
 
 @transaction.atomic
-def reverse(movement: Movement, *, reason: str, by, origin: str = MANUAL) -> Movement:
+def reverse(
+    movement: Movement, *, reason: str, by, origin: str = MANUAL, value_date=None
+) -> Movement:
     """Anul·la un moviment amb motiu (T-M04-08; P-M04-C; RN-T07, RN-T25, RN-T27; CA-T06.1): el
     contramoviment mirall (mateix compte, import, departament i centre de cost; sentit contrari;
     enllaçat amb `reverses`) amb data d'avui (RN-T29). L'original no es toca i es mostra anul·lat.
     `origin`: «manual» (una persona amb T5, des de la pantalla o el 09) o «reconciliation»
-    (`reconciliation.undo`, que ja ha comprovat T4 i només hi passa ingressos de cobrament)."""
+    (`reconciliation.undo`, que ja ha comprovat T4 i només hi passa ingressos de cobrament).
+    `value_date` (avui, si no se'n dona cap): la manual dins un període tancat es rebutja
+    (`PeriodClosed`, RN-T30); la de la conciliació hi entra pel període obert (RN-T31)."""
     if origin not in (MANUAL, RECONCILIATION):
         raise ValueError(origin)
     reason = (reason or "").strip()
@@ -398,18 +461,17 @@ def reverse(movement: Movement, *, reason: str, by, origin: str = MANUAL) -> Mov
         raise AlreadyReversed(_("Aquest moviment ja està anul·lat."))
     if origin == MANUAL:
         _ensure_manually_reversible(movement)
-        # RN-T28 i RN-T30: aquí va el bloqueig de període tancat (`PeriodClosed`), només per a
-        # l'anul·lació manual; el de la conciliació és d'origen extern i mai es rebutja (RN-T31).
-        # Arriba amb la T-M04-20 (`register_movement_guard`): fins llavors no hi ha períodes.
     elif movement.kind != Movement.Kind.INCOME:
         raise NotReversible(_("Desfer una conciliació només anul·la ingressos de cobrament."))
     try:
         with transaction.atomic():
-            reversal = Movement.objects.create(
+            reversal = _create_movement(
+                by,
+                blocking=origin == MANUAL,
                 account=movement.account,
                 direction=_OPPOSITE[movement.direction],
                 amount_cents=movement.amount_cents,
-                value_date=timezone.localdate(),
+                value_date=value_date or timezone.localdate(),
                 kind=Movement.Kind.REVERSAL,
                 concept=movement.concept,
                 department=movement.department,
@@ -517,9 +579,9 @@ def transfer_legs(source, destination, amount_cents, *, value_date, concept, by,
         "settlement": settlement,
         "recorded_by": by if isinstance(by, get_user_model()) else None,
     }
-    out = Movement.objects.create(account=source, direction=Movement.Direction.OUT, **leg)
-    entry = Movement.objects.create(
-        account=destination, direction=Movement.Direction.IN, linked_movement=out, **leg
+    out = _create_movement(by, account=source, direction=Movement.Direction.OUT, **leg)
+    entry = _create_movement(
+        by, account=destination, direction=Movement.Direction.IN, linked_movement=out, **leg
     )
     return out, entry
 
@@ -552,7 +614,8 @@ def record_cash_count(
             raise CashCountRejected(_("No hi ha cap diferència per ajustar."))
         department, name = CASH_ADJUSTMENTS
         centre = CostCentre.selectable().get(department__name=department, name=name)
-        adjustment = Movement.objects.create(
+        adjustment = _create_movement(
+            by,
             account=account,
             direction=Movement.Direction.IN if difference > 0 else Movement.Direction.OUT,
             amount_cents=abs(difference),
@@ -588,3 +651,72 @@ def record_cash_count(
         },
     )
     return count
+
+
+@transaction.atomic
+def record_expense(
+    account, amount_cents, *, value_date, department, cost_centre=None, concept, by
+) -> Movement:
+    """Addenda de la 050 (RN-T26): despesa amb factura, sortida del compte amb departament i,
+    si n'hi ha, centre de cost. La crea només el 09, que en comprova el permís. Dins un període
+    tancat, `PeriodClosed` (RN-T30)."""
+    fields = {"kind": Movement.Kind.EXPENSE, "direction": Movement.Direction.OUT}
+    return _record_from_margins(
+        fields, account, amount_cents, value_date, department, cost_centre, concept, by
+    )
+
+
+@transaction.atomic
+def record_other_income(
+    account, amount_cents, *, value_date, department, cost_centre=None, concept, by
+) -> Movement:
+    """Addenda de la 050 (RN-T26): entrada que no és un càrrec (ajuts, patrocinis, donatius), amb
+    departament. La crea només el 09. Dins un període tancat, `PeriodClosed` (RN-T30)."""
+    fields = {"kind": Movement.Kind.OTHER_INCOME, "direction": Movement.Direction.IN}
+    return _record_from_margins(
+        fields, account, amount_cents, value_date, department, cost_centre, concept, by
+    )
+
+
+def _record_from_margins(
+    fields, account, amount_cents, value_date, department, cost_centre, concept, by
+) -> Movement:
+    if not _system_or_account(by):
+        raise BrowserOriginRejected(_("Un moviment l'apunta el sistema o un compte."))
+    _validate_amount(amount_cents)
+    concept = (concept or "").strip()
+    if not concept or len(concept) > 140:
+        raise ExpenseRejected(_("Cal un concepte de 140 caràcters com a màxim."))
+    centres = CostCentre.selectable().filter(department=department)
+    if (
+        department is None
+        or not department.active
+        or (cost_centre is not None and not centres.filter(pk=cost_centre.pk).exists())
+    ):
+        raise InvalidDepartment(_("Tria un departament actiu i un centre de cost seu."))
+    movement = _create_movement(
+        by,
+        blocking=True,
+        account=account,
+        amount_cents=amount_cents,
+        value_date=value_date,
+        concept=concept,
+        department=department,
+        cost_centre=cost_centre,
+        recorded_by=by if isinstance(by, get_user_model()) else None,
+        **fields,
+    )
+    action = EXPENSE_RECORDED if movement.kind == Movement.Kind.EXPENSE else OTHER_INCOME_RECORDED
+    audit.record(
+        action,
+        actor=by,
+        target=movement,
+        details={
+            "account": movement.account.name,
+            "amount_cents": amount_cents,
+            "value_date": value_date.isoformat(),
+            "department": department.name,
+            "cost_centre": cost_centre.full_name if cost_centre else None,
+        },
+    )
+    return movement

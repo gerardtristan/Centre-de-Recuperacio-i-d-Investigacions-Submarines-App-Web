@@ -157,6 +157,9 @@ class Movement(AppendOnlyModel):
         TRANSFER = "transfer", _("Traspàs")
         CASH_ADJUSTMENT = "cash_adjustment", _("Ajust d'arqueig")
         REVERSAL = "reversal", _("Contramoviment")
+        # Addenda de la 050 (RN-T26): els crea només el 09.
+        EXPENSE = "expense", _("Despesa")
+        OTHER_INCOME = "other_income", _("Altres ingressos")
 
     account = models.ForeignKey(
         TreasuryAccount,
@@ -167,6 +170,9 @@ class Movement(AppendOnlyModel):
     direction = models.CharField(_("sentit"), max_length=3, choices=Direction.choices)
     amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
     value_date = models.DateField(_("data de valor"))
+    # RN-T31 (053): la data de valor real d'un moviment d'origen extern que ha entrat al període
+    # obert perquè la seva era dins un període tancat. Buida en tots els altres.
+    original_value_date = models.DateField(_("data de valor original"), null=True, blank=True)
     recorded_at = models.DateTimeField(_("data de registre"), auto_now_add=True)
     kind = models.CharField(_("tipus"), max_length=15, choices=Kind.choices)
     concept = models.CharField(_("concepte"), max_length=140)
@@ -256,6 +262,8 @@ class Movement(AppendOnlyModel):
                         "transfer",
                         "cash_adjustment",
                         "reversal",
+                        "expense",
+                        "other_income",
                     ]
                 ),
                 name="movement_kind_valid",
