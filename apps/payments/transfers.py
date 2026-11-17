@@ -12,8 +12,10 @@ conciliada va pagar per error (`charges.revert_paid_transfer`), l'intent pagat p
 «cancel·lat» (P-122) i el seu rebut queda anul·lat amb una nota, a la mateixa transacció. Res
 s'esborra, i el càrrec es pot tornar a pagar amb un intent i un rebut nous.
 
-shortcut: escolta el `post_save` del pagament i de l'anul·lació de la 00; quan existeixin els
-esdeveniments (049, T-M05b-21), s'hi subscriu i aquests senyals se'n van."""
+shortcut: escolta el `post_save` del pagament i de l'anul·lació de la 00. `charge.paid` (049,
+T-M05b-21) ja existeix, però es lliura per la cua, després de confirmar-se la conciliació, i el
+rebut ha de sortir a la mateixa transacció que el pagament (T-M05b-07); l'anul·lació no és cap
+esdeveniment aprovat. Es mou quan es respongui la P-246."""
 
 from django.db import transaction
 

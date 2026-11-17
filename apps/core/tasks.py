@@ -5,7 +5,7 @@ from django.conf import settings
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
 
-from . import files, locked_data, mail
+from . import events, files, locked_data, mail
 
 
 # Reintents espaiats: 4, 16, 64, 256… segons. Qui decideix quan s'atura és `mail.deliver`, amb
@@ -41,3 +41,14 @@ def destroy_expired_locked_data(timestamp: int) -> None:
 @app.task(name="core.purge_expired_files", queue="maintenance")
 def purge_expired_files(timestamp: int) -> None:
     files.purge_expired()
+
+
+# 049 (T-M05b-21): lliura un esdeveniment als subscriptors, com a mínim una vegada. Reintents
+# espaiats (4, 16, 64… segons); els subscriptors que ja l'han rebut no es tornen a executar.
+@app.task(
+    name="core.deliver_event",
+    queue="events",
+    retry=RetryStrategy(max_attempts=events.MAX_ATTEMPTS, exponential_wait=4),
+)
+def deliver_event(event_id: int) -> None:
+    events.deliver(event_id)
