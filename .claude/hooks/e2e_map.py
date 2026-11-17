@@ -422,7 +422,7 @@ SECONDS = {
     "test_accessibilitat_05b.py": 170,
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
-    "test_logotip.py": 95,
+    "test_logotip.py": 130,  # tres motors (T-DX-54)
 }
 DEFAULT_SECONDS = 25
 
