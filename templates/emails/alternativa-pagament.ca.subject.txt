@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05b-12, P-M05b-F: TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate %}No s'ha pogut cobrar: {{ concept }}{% endblocktranslate %}

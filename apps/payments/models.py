@@ -144,7 +144,8 @@ ATTEMPT_TRANSITIONS = frozenset(
     for new in targets
 )
 # 045 (T-M05b-29): una transferència conciliada amb el càrrec equivocat. L'intent pagat queda
-# «cancel·lat» (P-122) perquè el càrrec, que torna a pendent, es pugui tornar a pagar.
+# «cancel·lat» (P-122) perquè el càrrec, que torna a pendent, es pugui tornar a pagar. El mateix
+# per a un rebut domiciliat que el banc retorna (T-M05b-12, P-290).
 REVERT_TRANSFER = ("paid", "cancelled")
 
 
@@ -263,7 +264,10 @@ class PaymentAttempt(UndeletableModel):
     def check_transition(self, old: str, new: str) -> None:
         """RN-M05b-03. Només una domiciliació s'envia al banc: una targeta no hi arriba mai."""
         to_bank = new == self.Status.SENT_TO_BANK and self.method != self.Method.DIRECT_DEBIT
-        revert = (old, new) == REVERT_TRANSFER and self.method == self.Method.TRANSFER
+        revert = (old, new) == REVERT_TRANSFER and self.method in (
+            self.Method.TRANSFER,
+            self.Method.DIRECT_DEBIT,
+        )
         if ((old, new) not in ATTEMPT_TRANSITIONS and not revert) or to_bank:
             raise InvalidTransition(f"{old} → {new}")
 
@@ -667,6 +671,9 @@ class DirectDebitItem(UndeletableModel):
     status = models.CharField(
         _("estat"), max_length=10, choices=Status.choices, default=Status.INCLUDED
     )
+    # Codi del banc i dia en què es registra el retorn (T-M05b-12; quins codis, P-291).
+    return_reason_code = models.CharField(_("codi del retorn"), max_length=4, blank=True)
+    returned_on = models.DateField(_("retornat el"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("rebut domiciliat")

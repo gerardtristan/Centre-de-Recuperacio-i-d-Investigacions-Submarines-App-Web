@@ -1067,4 +1067,33 @@ opcions:
       És el cas més habitual de les remeses SEPA; la C també hi cap amb comissió zero, i la B demana un altre flux.
     data: 2026-11-17
 
+  P-290:
+    opcions:
+      A: L'intent domiciliat passa a «cancel·lat» i el rebut s'anul·la amb una nota, com la 045 (com s'ha fet).
+      B: L'intent passa a «fallit» i el rebut s'anul·la.
+      C: Un estat nou «retornat» per a l'intent (demana una migració).
+    recomanada: A
+    perque: >-
+      Fa servir el camí ja aprovat per a la 045 i no cal cap migració; el rebut domiciliat ja diu «retornat».
+    data: 2026-11-17
+
+  P-291:
+    opcions:
+      A: Només AM04 es reintenta; AC04 i MD01 bloquegen el mandat; la resta, alternativa (com s'ha fet).
+      B: Els codis desconeguts també es reintenten mentre quedin intents.
+      C: Els codis desconeguts no proposen res i el tresorer tria.
+    recomanada: A
+    perque: >-
+      Tornar a passar un rebut que el soci ha refusat costa una comissió i molesta; l'alternativa no fa mal i el tresorer la pot canviar.
+    data: 2026-11-17
+
+  P-292:
+    opcions:
+      A: L'alternativa surt quan el tresorer la confirma, com diu la 048 (com s'ha fet).
+      B: L'alternativa surt sola en registrar el retorn quan no queden intents o el mandat s'ha bloquejat.
+    recomanada: A
+    perque: >-
+      La 048 és aprovada i demana la confirmació del tresorer per tornar el càrrec a pendent; la B s'hi pot passar sense canviar dades.
+    data: 2026-11-17
+
 noves:
