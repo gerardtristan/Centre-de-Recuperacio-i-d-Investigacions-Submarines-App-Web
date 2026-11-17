@@ -154,12 +154,14 @@ def test_t_m01_27_members_of_every_review_case(cluber_path):
     assert member("simpatitzant.pagat@example.org").type.code == "supporter"
     for email in ("simpatitzant.pagat@example.org", "ple.dret.pagat@example.org"):
         assert member(email).status == S.ACTIVE
-        assert member(email).fees.get().charge.status == Charge.Status.PAID
+        # La primera, pagada; Pau en té una altra de l'any vinent a la remesa (T-M04-18).
+        assert member(email).fees.order_by("pk").first().charge.status == Charge.Status.PAID
     exempt = member("exempt.edat@example.org")
     assert exempt.status == S.ACTIVE and not exempt.fees.exists()
     imported = Member.objects.filter(person__origin=Person.Origin.CLUBER_IMPORT)
     assert imported.count() == 2 and all(m.status == S.ACTIVE for m in imported)
-    assert ImportBatch.objects.filter(status=ImportBatch.Status.CONFIRMED).count() == 1
+    cluber_batches = ImportBatch.objects.filter(kind=ImportBatch.Kind.CLUBER)
+    assert cluber_batches.filter(status=ImportBatch.Status.CONFIRMED).count() == 1
     unpaid = member("impagat@example.org")
     assert unpaid.status == S.UNPAID
     assert unpaid.fees.get().charge.status == Charge.Status.RETURNED
@@ -231,7 +233,7 @@ def test_t_m01_27_cluber_file_is_read_by_the_preview(cluber_path):
     """Sense el lot confirmat, la previsualització llegeix el fitxer sense errors de format."""
     output = run("--without-cluber-batch", cluber_path=cluber_path)
     assert str(cluber_path) in output
-    assert not ImportBatch.objects.exists()
+    assert not ImportBatch.objects.filter(kind=ImportBatch.Kind.CLUBER).exists()
     assert not Member.objects.filter(person__origin=Person.Origin.CLUBER_IMPORT).exists()
     result = cluber.preview(cluber_path.read_bytes())
     assert result.rejected is None
