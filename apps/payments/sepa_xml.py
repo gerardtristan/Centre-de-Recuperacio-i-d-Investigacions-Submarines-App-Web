@@ -19,9 +19,11 @@ from decimal import Decimal
 from defusedxml.ElementTree import fromstring
 from django.conf import settings
 from django.db import transaction
+from django.http import Http404
 from django.utils import timezone
 
 from apps.core import audit
+from apps.core.permissions import has_perm
 
 from . import crypto
 from .checkout import transfer_iban
@@ -175,8 +177,9 @@ def check(content: bytes) -> None:
 @transaction.atomic
 def remittance_file(remittance: DirectDebitRemittance, actor) -> bytes:
     """`payments.remittance_file` (M05b-8): el fitxer de la remesa, en memòria. En desa
-    l'empremta i ho registra; no desa el fitxer. El permís B3 el comprova la pantalla, que arriba
-    amb el catàleg del nucli."""
+    l'empremta i ho registra; no desa el fitxer. Sense B3, «no trobat» (T-M05b-25)."""
+    if not has_perm(actor, "payments.remittances", write=True):
+        raise Http404
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.NOTIFIED:
         raise RemittanceNotReady(remittance.status)

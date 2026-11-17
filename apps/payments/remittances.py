@@ -20,12 +20,14 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from django.db import transaction
+from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, business_settings, charges, mail
 from apps.core.imports import statement_lines
 from apps.core.models import Charge, Payment, Person
+from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members import services as members
 from apps.members.models import AnnualFee
@@ -45,6 +47,7 @@ from .models import (
 )
 from .returns import max_attempts
 
+MANAGE = "payments.remittances"  # B3 (M05b-4)
 PRENOTIFICATION_DAYS = "payments.prenotification_days"  # VC-16 (S-M05b-06)
 PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
 IN_FLIGHT = (PaymentAttempt.Status.IN_PROGRESS, PaymentAttempt.Status.SENT_TO_BANK)
@@ -142,6 +145,8 @@ def build_remittance(period: str, collection_date: date, actor) -> DirectDebitRe
     """P-M05b-E, passos 2 i 3: comprova el nivell 2 i el termini de l'avís previ i crea la
     remesa en esborrany, un rebut per quota i un intent «enviat al banc» per càrrec. Dos
     tresorers alhora: l'índex únic d'intents en curs (RN-M05b-04) fa fallar el segon."""
+    if not has_perm(actor, MANAGE, write=True):  # B3, també al servei (T-M05b-25)
+        raise Http404
     if collection_date < earliest_collection_date():
         raise PrenotificationTooLate
     selection = preview(collection_date)
@@ -237,6 +242,8 @@ def send_prenotifications(remittance: DirectDebitRemittance) -> list[DirectDebit
 def mark_remittance_sent(remittance: DirectDebitRemittance, *, file_deleted: bool, by):
     """P-M05b-E, pas 6: el tresorer ha pujat el fitxer al banc i confirma que l'ha esborrat del
     dispositiu (044). Només una remesa avisada amb el fitxer descarregat."""
+    if not has_perm(by, MANAGE, write=True):  # B3, també al servei (T-M05b-25)
+        raise Http404
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.NOTIFIED or not remittance.file_hash:
         raise WrongStatus(remittance.status)
@@ -278,6 +285,8 @@ def settle_remittance(
     SEPA», el rebut i el correu al soci, l'avís al 01 si és una quota i l'últim cobrament del
     mandat. Després, la liquidació a la 04 amb una partida per rebut, confirmada amb la línia
     (comissions i traspàs al banc; T4, que comprova la 04)."""
+    if not has_perm(by, MANAGE, write=True):  # B3, també al servei (T-M05b-25)
+        raise Http404
     remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
     if remittance.status != DirectDebitRemittance.Status.SENT_TO_BANK:
         raise WrongStatus(remittance.status)
