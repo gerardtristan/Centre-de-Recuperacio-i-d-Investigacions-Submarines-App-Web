@@ -262,7 +262,6 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [P-125](P-125.md) | Signar el mandat passa la preferència a la domiciliació amb aquest mandat (095) | 17/11/2026 | d2c83b18 | 1 nova | [A comprovar] |
 | [P-111](P-111.md) | L'ingrés d'una transferència conciliada porta la data de valor de la línia de l'extracte (`record_payment` accepta `paid_at`; 095) | 17/11/2026 | 43ca0fcd | 1 nova | [A comprovar] |
 | [P-250](P-250.md) | Descartar amb motiu una devolució pendent (B5; migració payments/0015; 095) | 17/11/2026 | 77a66465 | 4 noves | [A comprovar] |
-| [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c | 6499 sense e2e; 14 noves | [A comprovar] |
 | [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c, a0757f78 | 6514 sense e2e; 29 noves | [A comprovar] |
 | [T-DX-51](T-DX-51.md) | Logotips ajustats (192 px, AVIF o WebP) i només el del tema que es veu: de 845 KB a uns 14 KB per pàgina (carril de disseny) | 17/11/2026 14:01 | 7b19e24b (PR #181) | 6 noves | [A comprovar] |
 | [T-B8](T-B8-axe-tresoreria-05b.md) | Auditoria d'accessibilitat (axe) de les 15 pantalles de la 04 i les 26 del 05b, a 1280 i 390 px: cap violació greu | 17/11/2026 | 7dea85d9 | 5 noves al navegador | [A comprovar] |
