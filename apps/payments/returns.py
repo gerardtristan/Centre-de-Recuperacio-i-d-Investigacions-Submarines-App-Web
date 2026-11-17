@@ -32,6 +32,7 @@ from apps.core.models import Charge
 from apps.members import recipients
 from apps.members import services as members
 from apps.treasury import services as treasury
+from apps.treasury.models import Movement
 
 from . import attempts
 from .models import DirectDebitItem, PaymentAttempt, Receipt, ReceiptCancellation, SepaMandate
@@ -96,7 +97,8 @@ def register_return(
     charge = item.attempt.charge
     reason = f"{code}: {LABELS.get(code, 'motiu del banc')}"
     cancellation = charges.mark_returned(charge, reason, by=by)
-    treasury.record_return(cancellation.payment, fee_cents, by=by)
+    payment = cancellation.payment
+    treasury.record_return(payment, fee_cents, by=by, account=_settled_into(payment))
     attempt = attempts.transition(
         item.attempt, PaymentAttempt.Status.CANCELLED, by=by, reason=reason
     )
@@ -175,6 +177,18 @@ def confirm(item: DirectDebitItem, decision: str, *, by, note: str = "") -> bool
         details={"decision": decision, "email_queued": sent},
     )
     return sent
+
+
+def _settled_into(payment):
+    """P-286 (opció C): un rebut cobrat ja és d'una remesa liquidada, de manera que el net ha
+    passat del trànsit «Remeses SEPA» al banc (RN-T24); el retorn i la comissió surten d'allà,
+    on els carrega el banc."""
+    transfer = Movement.objects.get(
+        kind=Movement.Kind.TRANSFER,
+        direction=Movement.Direction.IN,
+        settlement__items__payment=payment,
+    )
+    return transfer.account
 
 
 def _send_alternative(charge, *, new_mandate: bool) -> bool:
