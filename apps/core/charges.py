@@ -211,10 +211,12 @@ def record_payment(
     provider_status: str = "",
     provider_reference: str = "",
     transfer_reference: str = "",
+    paid_at=None,
 ) -> Payment:
     """Pagament confirmat (P-84): crea el pagament amb l'import del càrrec (RN-M05b-02) i passa
     el càrrec a pagat, tot o res. Les altres apps creen el pagament només per aquí. `origin`:
-    «provider» o «reconciliation», com a `mark_paid`."""
+    «provider» o «reconciliation», com a `mark_paid`. `paid_at`: per defecte, ara; la conciliació
+    hi passa el dia de valor de la línia de l'extracte (P-111, decisió 095)."""
     locked = Charge.objects.select_for_update().get(pk=charge.pk)
     payment = Payment.objects.create(
         charge=locked,
@@ -223,7 +225,7 @@ def record_payment(
         provider_status=provider_status,
         provider_reference=provider_reference,
         transfer_reference=transfer_reference,
-        paid_at=timezone.now(),
+        paid_at=paid_at or timezone.now(),
     )
     mark_paid(locked, payment, origin=origin, by=by)
     return payment

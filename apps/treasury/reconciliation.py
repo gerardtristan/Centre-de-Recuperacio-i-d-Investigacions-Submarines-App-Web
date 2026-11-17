@@ -27,10 +27,13 @@ obligatori. No crea cap moviment ni toca cap càrrec; la línia surt de la llist
 pagaments «a revisar» del 05b encara no hi són (P-191). Permisos: P-190.
 """
 
+from datetime import datetime, time
+
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 from django.db.models import Count, Max
 from django.http import Http404
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit
@@ -217,6 +220,7 @@ def confirm(line, *, by) -> Reconciliation:
     if state is None or state.status != StatementLineState.Status.PROPOSED:
         raise ReconciliationRejected(_("Aquesta línia no té cap proposta per confirmar."))
     matched = list(state.proposed_charges.order_by("pk"))
+    line_date = state.statement_line.value_date
     for charge in matched:
         payment = record_payment(
             charge,
@@ -224,6 +228,8 @@ def confirm(line, *, by) -> Reconciliation:
             origin="reconciliation",
             by=by,
             transfer_reference=transfer_reference(charge),
+            # P-111 (095): el dia de valor de la línia, perquè el saldo quadri amb l'extracte.
+            paid_at=timezone.make_aware(datetime.combine(line_date, time.min)),
         )
         services.record_income(payment, origin="reconciliation", by=by)
         fee = getattr(charge, "annual_fee", None)
