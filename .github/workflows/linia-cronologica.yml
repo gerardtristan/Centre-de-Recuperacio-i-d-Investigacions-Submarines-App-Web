@@ -34,18 +34,16 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  # Una execució que no publicarà res (el CI d'una PR des d'una branca feature/*) va al seu
-  # propi grup: així no cancel·la la publicació de veritat que estigui en curs.
-  group: >-
-    ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event != 'push'
-    && format('linia-buida-{0}', github.run_id) || 'linia-cronologica' }}
-  cancel-in-progress: true
+# La concurrència va a cada job, no a l'execució: un job que el seu `if` salta no entra
+# al grup, i així una execució que no publica res no cancel·la la de veritat.
 
 jobs:
   genera:
-    # Els CI de les PR no hi afegeixen res: el push de la mateixa branca ja l'ha disparat.
+    # El CI d'una PR (també des d'una branca feature/*) no publica res.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push'
+    concurrency:
+      group: linia-cronologica-genera
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -101,6 +99,10 @@ jobs:
 
   publica:
     needs: genera
+    # Un desplegament no es talla mai a mitges: el següent espera (i només el més nou).
+    concurrency:
+      group: linia-cronologica-publica
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       pages: write
