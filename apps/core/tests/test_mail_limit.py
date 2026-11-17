@@ -13,7 +13,7 @@ from procrastinate.contrib.django.models import ProcrastinateJob
 
 from apps.core import audit, mail, tasks
 from apps.core.models import AuditEntry, EmailDailyUsage, OutgoingEmail
-from conftest import PASSWORD, CommittedDataTestCase, run_together
+from conftest import PASSWORD, CommittedDataTestCase, run_together, run_with_production_settings
 
 pytestmark = pytest.mark.django_db
 
@@ -475,51 +475,17 @@ CLUB_ADDRESS = "cris@cris.es"
 
 
 def _production_alert_addresses(extra_env=None):
-    """`EMAIL_ALERT_TO` tal com la carrega la configuració de producció, en un procés a part i
-    amb valors de mostra generats aquí (cap secret real). No envia res ni toca cap base."""
+    """`EMAIL_ALERT_TO` tal com la carrega la configuració de producció, en un procés a part."""
     import json
-    import os
-    import secrets
-    import subprocess
-    import sys
 
-    from cryptography.fernet import Fernet
-    from django.conf import settings as current
-
-    env = {k: v for k, v in os.environ.items() if k != "EMAIL_ALERT_TO"}
-    env.update(
-        {
-            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
-            "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
-            "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
-            "CARD_QR_KEYS": f"ci:{secrets.token_urlsafe(32)}",
-            "CARD_QR_ACTIVE_KEY": "ci",
-            "DJANGO_ALLOWED_HOSTS": "cris1954.cat",
-            "EMAIL_HOST": "smtp.example.invalid",
-            "EMAIL_HOST_USER": "proves",
-            "EMAIL_HOST_PASSWORD": PASSWORD,
-            "S3_BUCKET_FITXERS": "cris-ci",
-            "S3_ENDPOINT_URL": "https://s3.example.invalid",
-            "S3_ACCESS_KEY_ID": "proves",
-            "S3_SECRET_ACCESS_KEY": PASSWORD,
-            **(extra_env or {}),
-        }
-    )
-    env.setdefault("DATABASE_URL", "postgres://cris:cris-ci@localhost:5432/cris")
     code = (
         "import json, django; from django.conf import settings; "
         "from django.core import checks; django.setup(); "
         "ids = [m.id for m in checks.run_checks(include_deployment_checks=True)]; "
         "print(json.dumps({'to': list(settings.EMAIL_ALERT_TO), 'ids': ids}))"
     )
-    done = subprocess.run(  # noqa: S603 (ordre fixa d'aquesta prova)
-        [sys.executable, "-c", code],
-        cwd=current.BASE_DIR,
-        env=env,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    done = run_with_production_settings(code, extra_env)
+    assert done.returncode == 0, done.stderr
     return json.loads(done.stdout.strip().splitlines()[-1])
 
 

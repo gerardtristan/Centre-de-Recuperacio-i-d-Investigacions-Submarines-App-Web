@@ -71,12 +71,7 @@ STORAGES = {
 }
 
 # Seguiment d'errors (checklist E4, R11; apps/core/error_tracking.py): sense DSN no s'activa. Amb
-# DSN, el host ha de ser a la llista de serveis amb dades a la UE (P-294) o l'aplicació no arrenca.
+# DSN, ha de ser https i el host ha de ser a la llista del codi (P-294) o l'aplicació no arrenca.
 ERROR_TRACKING_DSN = env("ERROR_TRACKING_DSN", default="")
-ERROR_TRACKING_ALLOWED_HOSTS = env.list("ERROR_TRACKING_ALLOWED_HOSTS", default=[])
 if ERROR_TRACKING_DSN:
-    error_tracking.init(
-        ERROR_TRACKING_DSN,
-        ERROR_TRACKING_ALLOWED_HOSTS,
-        env("ERROR_TRACKING_ENVIRONMENT", default="production"),
-    )
+    error_tracking.init(ERROR_TRACKING_DSN, env("ERROR_TRACKING_ENVIRONMENT", default="production"))

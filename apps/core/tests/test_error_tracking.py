@@ -3,60 +3,30 @@
 Cap prova no fa servir la xarxa: els hosts són `.invalid` i cap esdeveniment no s'envia."""
 
 import json
-import os
-import secrets
-import subprocess
-import sys
 
 import pytest
-from cryptography.fernet import Fernet
-from django.conf import settings as current
 from django.core.exceptions import ImproperlyConfigured
 
 from apps.core import error_tracking
-from conftest import PASSWORD
+from conftest import run_with_production_settings
 
 ALLOWED = "errors.example.invalid"
 DSN = f"https://clau-publica@{ALLOWED}/1"  # gitleaks:allow (DSN inventat; host .invalid)
+GUEST_SEGMENT = "Tq3ZxK8wLm2PvR7nYb4c"  # testimoni inventat d'un enllaç de convidat
+# Diu si l'SDK s'ha activat i amb quines opcions. La llista es fixa abans de `setup`, perquè la
+# configuració es carrega amb la que vol la prova (al codi és buida fins a la P-294).
+CODE = (
+    "import json, django, sentry_sdk; from apps.core import error_tracking as e; "
+    "e.ERROR_TRACKING_ALLOWED_HOSTS = {allowed!r}; django.setup(); c = sentry_sdk.get_client(); "
+    "keys = ['send_default_pii', 'include_local_variables', 'max_request_body_size', "
+    "'traces_sample_rate', 'environment']; "
+    "print(json.dumps({{'active': c.is_active(), "
+    "'options': {{k: c.options[k] for k in keys}} if c.is_active() else {{}}}}))"
+)
 
 
-def _production(extra_env):
-    """Carrega la configuració de producció en un procés a part, amb valors de mostra, i diu si
-    l'SDK s'ha activat i amb quines opcions."""
-    env = {k: v for k, v in os.environ.items() if not k.startswith("ERROR_TRACKING")}
-    env.update(
-        {
-            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
-            "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
-            "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
-            "CARD_QR_KEYS": f"ci:{secrets.token_urlsafe(32)}",
-            "CARD_QR_ACTIVE_KEY": "ci",
-            "DJANGO_ALLOWED_HOSTS": "cris1954.cat",
-            "EMAIL_HOST": "smtp.example.invalid",
-            "EMAIL_HOST_USER": "proves",
-            "EMAIL_HOST_PASSWORD": PASSWORD,
-            "S3_BUCKET_FITXERS": "cris-ci",
-            "S3_ENDPOINT_URL": "https://s3.example.invalid",
-            "S3_ACCESS_KEY_ID": "proves",
-            "S3_SECRET_ACCESS_KEY": PASSWORD,
-            **extra_env,
-        }
-    )
-    env.setdefault("DATABASE_URL", "postgres://cris:cris-ci@localhost:5432/cris")
-    code = (
-        "import json, django, sentry_sdk; django.setup(); c = sentry_sdk.get_client(); "
-        "keys = ['send_default_pii', 'include_local_variables', 'max_request_body_size', "
-        "'traces_sample_rate', 'environment']; "
-        "print(json.dumps({'active': c.is_active(), "
-        "'options': {k: c.options[k] for k in keys} if c.is_active() else {}}))"
-    )
-    return subprocess.run(  # noqa: S603 (ordre fixa d'aquesta prova)
-        [sys.executable, "-c", code],
-        cwd=current.BASE_DIR,
-        env=env,
-        capture_output=True,
-        text=True,
-    )
+def _production(extra_env, allowed=()):
+    return run_with_production_settings(CODE.format(allowed=tuple(allowed)), extra_env)
 
 
 def test_without_dsn_nothing_is_initialised():
@@ -72,9 +42,7 @@ def test_production_refuses_a_dsn_whose_host_is_not_allowed():
 
 
 def test_production_initialises_with_an_allowed_host_and_without_personal_data():
-    done = _production(
-        {"ERROR_TRACKING_DSN": DSN, "ERROR_TRACKING_ALLOWED_HOSTS": f"altre.invalid,{ALLOWED}"}
-    )
+    done = _production({"ERROR_TRACKING_DSN": DSN}, allowed=("altre.invalid", ALLOWED))
     assert done.returncode == 0, done.stderr
     assert json.loads(done.stdout.splitlines()[-1]) == {
         "active": True,
@@ -88,18 +56,28 @@ def test_production_initialises_with_an_allowed_host_and_without_personal_data()
     }
 
 
+def test_the_allowlist_is_code_not_environment():
+    """Qui posa el DSN no pot posar també el host permès: la llista és al codi i buida fins que
+    el propietari respongui la P-294."""
+    assert error_tracking.ERROR_TRACKING_ALLOWED_HOSTS == ()
+    done = _production({"ERROR_TRACKING_DSN": DSN, "ERROR_TRACKING_ALLOWED_HOSTS": ALLOWED})
+    assert done.returncode != 0
+
+
 @pytest.mark.parametrize(
     ("dsn", "allowed"),
     [
-        (DSN, []),
-        (DSN, ["sentry.invalid"]),
-        (f"https://clau@{ALLOWED}.altre.invalid/1", [ALLOWED]),
-        ("no-es-un-dsn", [ALLOWED]),
+        (DSN, ()),
+        (DSN, ("sentry.invalid",)),
+        (f"https://clau@{ALLOWED}.altre.invalid/1", (ALLOWED,)),
+        ("no-es-un-dsn", (ALLOWED,)),
+        (f"http://clau@{ALLOWED}/1", (ALLOWED,)),  # sense TLS
     ],
 )
-def test_init_rejects_hosts_outside_the_allowlist(dsn, allowed):
+def test_init_rejects_hosts_outside_the_allowlist(monkeypatch, dsn, allowed):
+    monkeypatch.setattr(error_tracking, "ERROR_TRACKING_ALLOWED_HOSTS", allowed)
     with pytest.raises(ImproperlyConfigured):
-        error_tracking.init(dsn, allowed, "production")
+        error_tracking.init(dsn, "production")
 
 
 def test_host_comparison_ignores_case_and_spaces():
@@ -184,8 +162,41 @@ def test_init_passes_the_filters_to_the_sdk(monkeypatch):
 
     calls = []
     monkeypatch.setattr(sentry_sdk, "init", lambda **kwargs: calls.append(kwargs))
-    error_tracking.init(DSN, [ALLOWED], "proves")
+    monkeypatch.setattr(error_tracking, "ERROR_TRACKING_ALLOWED_HOSTS", (ALLOWED,))
+    error_tracking.init(DSN, "proves")
     (options,) = calls
     assert options["before_send"] is error_tracking.before_send
     assert options["before_breadcrumb"] is error_tracking.before_breadcrumb
     assert options["send_default_pii"] is False and options["traces_sample_rate"] == 0
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "+34600000000",
+        "+34 600000000",
+        "+34-600-000-000",
+        "tel:+34700000000",
+        "00000000-T",
+        "00000000 T",
+        "X0000000-T",
+        "fe80::1",
+        "ip=::1",
+        "iban_ES0000000000000000000000",
+        "iban_GB00XXXX00000000000000",
+        "id:GB00XXXX00000000000000",
+    ],
+)
+def test_mask_covers_glued_and_separated_forms(text):
+    """Revisió de la #183: formes que el primer patró deixava passar senceres o a mitges."""
+    masked = error_tracking.mask(text)
+    assert not any(part in masked for part in ("0000", "::1", "fe80", "ES00", "GB00")), masked
+
+
+def test_transaction_hides_tokens_but_keeps_route_patterns():
+    raw = error_tracking.before_send({"transaction": f"/convidat/{GUEST_SEGMENT}/pagar/"}, None)
+    assert GUEST_SEGMENT not in raw["transaction"] and raw["transaction"].startswith("/convidat/")
+    route = "/gestio/socis/<int:pk>/quota/<slug:codi>/"
+    assert error_tracking.before_send({"transaction": route}, None)["transaction"] == route
+    email = error_tracking.before_send({"transaction": "/u/soci@example.invalid/"}, None)
+    assert "soci@" not in email["transaction"]
