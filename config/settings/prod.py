@@ -1,5 +1,7 @@
 """Producció (VPS de Hetzner amb Coolify, darrere del proxy que acaba l'HTTPS)."""
 
+from apps.core import error_tracking
+
 from .base import *  # noqa: F403
 from .base import env
 
@@ -67,3 +69,9 @@ STORAGES = {
         },
     },
 }
+
+# Seguiment d'errors (checklist E4, R11; apps/core/error_tracking.py): sense DSN no s'activa. Amb
+# DSN, ha de ser https i el host ha de ser a la llista del codi (P-294) o l'aplicació no arrenca.
+ERROR_TRACKING_DSN = env("ERROR_TRACKING_DSN", default="")
+if ERROR_TRACKING_DSN:
+    error_tracking.init(ERROR_TRACKING_DSN, env("ERROR_TRACKING_ENVIRONMENT", default="production"))

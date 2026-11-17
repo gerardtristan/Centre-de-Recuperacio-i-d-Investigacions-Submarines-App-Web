@@ -148,3 +148,50 @@ def login_as(client):
         return client
 
     return login
+
+
+def run_with_production_settings(code, extra_env=None):
+    """Executa `code` amb la configuració de producció en un procés a part, amb valors de mostra
+    generats aquí (cap secret real). No envia res ni toca cap base."""
+    import os
+    import secrets
+    import subprocess
+    import sys
+
+    from cryptography.fernet import Fernet
+    from django.conf import settings
+
+    # Sense les variables de qui executa les proves que canviarien el resultat.
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k != "EMAIL_ALERT_TO" and not k.startswith("ERROR_TRACKING")
+    }
+    env.update(
+        {
+            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
+            "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
+            "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
+            "MANDATE_ENCRYPTION_KEYS": "1:" + Fernet.generate_key().decode(),
+            "CARD_QR_KEYS": f"ci:{secrets.token_urlsafe(32)}",
+            "CARD_QR_ACTIVE_KEY": "ci",
+            "DJANGO_ALLOWED_HOSTS": "cris1954.cat",
+            "EMAIL_HOST": "smtp.example.invalid",
+            "EMAIL_HOST_USER": "proves",
+            "EMAIL_HOST_PASSWORD": PASSWORD,
+            "S3_BUCKET_FITXERS": "cris-ci",
+            "S3_ENDPOINT_URL": "https://s3.example.invalid",
+            "S3_ACCESS_KEY_ID": "proves",
+            "S3_SECRET_ACCESS_KEY": PASSWORD,
+            **(extra_env or {}),
+        }
+    )
+    env.setdefault("DATABASE_URL", "postgres://cris:cris-ci@localhost:5432/cris")
+    return subprocess.run(  # noqa: S603 (ordre fixa de les proves)
+        [sys.executable, "-c", code],
+        cwd=settings.BASE_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
