@@ -101,8 +101,8 @@ def preview(collection_date: date) -> Preview:
             member__in=members, method=FeeMethod.DIRECT_DEBIT
         ).values_list("member_id", flat=True)
     )
-    # El mandat actiu del soci, no el de la preferència: signar-ne un de nou revoca l'anterior
-    # sense tocar la preferència (P-125), i l'avís ha de portar la referència vigent.
+    # El mandat actiu del soci, no el de la preferència: l'avís ha de portar la referència vigent
+    # encara que un mandat s'hagi signat sense passar per la pantalla (dades de prova, P-125).
     mandates = {
         m.member_id: m
         for m in SepaMandate.objects.filter(member__in=members, status=SepaMandate.Status.ACTIVE)
