@@ -44,6 +44,7 @@ Preguntes a [preguntes-gestoria](planning.md#preguntes-gestoria).
 - **Respostes:** 2 (la llicència és ingrés del soci i despesa a la federació; tanca S-M06-11 i S-M09-14) i 3 (moviments tardans al període obert amb la data original; confirma RN-T31).
 - **Respostes en part:** 1 (es factura tot cobrament; cursos, sortides i material amb IVA; quotes i llicències exemptes. Obert: tipus d'IVA, text d'exempció, Verifactu i servei homologat, P-02 i P-47), 4 (els registres econòmics no s'eliminen mai; obert: el termini legal per anonimitzar-ne les dades personals, Q-14) i 5 (els donatius de persones es fan, amb certificat i model 182; substitueix S-M09-03. Obert: si el club pot emetre certificats deduïbles).
 - **Sense prioritat:** 6 (el termini d'esmena serà un camp opcional per convocatòria).
+- **Respostes provisionals del propietari (17/11/2026, [095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md)), fins que la gestoria les confirmi per escrit:** 1 (cursos, sortides i material amb IVA general; quotes i llicències exemptes; tipus d'IVA i text d'exempció provisionals; el club farà servir Verifactu amb un servei homologat, P-293) i 4 (Q-14: es mantenen 6 anys, 085-G1, configurable per tipus de document, a l'espera de saber si els ajuts públics demanen més temps).
 - Detall a [M09-addenda-058](planning.md#M09-addenda-058).
 
 > Bon dia,
