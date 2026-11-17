@@ -834,4 +834,34 @@ opcions:
       pena si la Secretaria l'ha de fer servir de debò.
     data: 2026-11-17
 
+  P-230:
+    opcions:
+      A: Les quotes pendents que vencen com a molt el dia del cobrament; el període és una etiqueta (com s'ha fet).
+      B: Només les quotes del període triat (l'any de la quota), vencin quan vencin.
+      C: Les del període triat i que, a més, vencen com a molt el dia del cobrament.
+    recomanada: A
+    perque: >-
+      Amb la 070 cada quota venç en una data pròpia: la A no cobra mai una quota abans del venciment i no en deixa cap de vençuda fora.
+    data: 2026-11-17
+
+  P-231:
+    opcions:
+      A: Entra si ha triat la domiciliació i té un mandat actiu; el rebut porta el mandat actiu (com s'ha fet).
+      B: No entra fins que el soci torna a desar la preferència amb el mandat nou.
+      C: Signar un mandat nou actualitza la preferència (canvia la P-125).
+    recomanada: A
+    perque: >-
+      El soci ja havia triat la domiciliació i el mandat actiu és el vigent; la B el deixaria fora sense que ho sàpiga.
+    data: 2026-11-17
+
+  P-232:
+    opcions:
+      A: El rebut queda sense avís, la remesa es queda en esborrany i el tresorer avisa per una altra via (com s'ha fet).
+      B: El rebut es treu de la remesa automàticament.
+      C: No es pot confirmar la remesa mentre hi hagi cap deutor sense adreça.
+    recomanada: A
+    perque: >-
+      No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer pot avisar per telèfon o en persona.
+    data: 2026-11-17
+
 noves:

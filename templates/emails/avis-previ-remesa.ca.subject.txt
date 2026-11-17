@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05b-09, avís previ (RN-M05b-11; CA-M05b-14): TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate with date=collection_date|date:"d/m/Y" %}Avís de cobrament de la quota el {{ date }}{% endblocktranslate %}
