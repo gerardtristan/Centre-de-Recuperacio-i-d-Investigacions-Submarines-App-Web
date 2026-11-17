@@ -263,3 +263,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [P-111](P-111.md) | L'ingrés d'una transferència conciliada porta la data de valor de la línia de l'extracte (`record_payment` accepta `paid_at`; 095) | 17/11/2026 | 43ca0fcd | 1 nova | [A comprovar] |
 | [P-250](P-250.md) | Descartar amb motiu una devolució pendent (B5; migració payments/0015; 095) | 17/11/2026 | 77a66465 | 4 noves | [A comprovar] |
 | [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c | 6499 sense e2e; 14 noves | [A comprovar] |
+| [E4](E4-seguiment-errors.md) | Seguiment d'errors (GlitchTip o Sentry) sense dades personals i només cap a hosts permesos; implementat, pendent de validació; servei a la P-294 | 17/11/2026 15:00 | b8c3ee5c, a0757f78 | 6514 sense e2e; 29 noves | [A comprovar] |
