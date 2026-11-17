@@ -598,3 +598,83 @@ class MandateCampaignRecipient(models.Model):
 
     def __str__(self):
         return f"{self.campaign_id}/{self.member_id}"
+
+
+class DirectDebitRemittance(UndeletableModel):
+    """Remesa de quotes domiciliades (M05b-6; T-M05b-09). Es crea amb
+    `apps.payments.remittances.build_remittance`. Cap IBAN: el fitxer pain.008 el genera la
+    T-M05b-10 a demanda, sense desar-lo."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Esborrany")
+        NOTIFIED = "notified", _("Avisada")
+        SENT_TO_BANK = "sent_to_bank", _("Enviada al banc")
+        SETTLED = "settled", _("Liquidada")
+        CANCELLED = "cancelled", _("Anul·lada")
+
+    period = models.CharField(_("període"), max_length=20)
+    collection_date = models.DateField(_("data de cobrament"))
+    status = models.CharField(
+        _("estat"), max_length=12, choices=Status.choices, default=Status.DRAFT
+    )
+    item_count = models.PositiveIntegerField(_("rebuts"))
+    total_cents = models.PositiveBigIntegerField(_("import total (cèntims)"))
+    created_by = models.ForeignKey("accounts.Account", on_delete=models.PROTECT, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("remesa")
+        verbose_name_plural = _("remeses")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=["draft", "notified", "sent_to_bank", "settled", "cancelled"]
+                ),
+                name="dd_remittance_status_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.period} ({self.collection_date})"
+
+
+class DirectDebitItem(UndeletableModel):
+    """Rebut domiciliat: una quota d'una remesa, amb el seu intent «enviat al banc» i el mandat
+    actiu en crear la remesa (M05b-6)."""
+
+    class Status(models.TextChoices):
+        INCLUDED = "included", _("Inclòs")
+        EXCLUDED = "excluded", _("Exclòs")
+        COLLECTED = "collected", _("Cobrat")
+        RETURNED = "returned", _("Retornat")
+
+    remittance = models.ForeignKey(
+        DirectDebitRemittance, on_delete=models.PROTECT, related_name="items"
+    )
+    attempt = models.OneToOneField(
+        PaymentAttempt, on_delete=models.PROTECT, related_name="direct_debit_item"
+    )
+    mandate = models.ForeignKey(SepaMandate, on_delete=models.PROTECT, related_name="+")
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    end_to_end_id = models.CharField(
+        _("identificador d'extrem a extrem"), max_length=35, unique=True
+    )
+    attempt_number = models.PositiveSmallIntegerField(_("intent"), default=1)
+    prenotified_at = models.DateTimeField(_("avís previ enviat"), null=True, blank=True)
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.INCLUDED
+    )
+
+    class Meta:
+        verbose_name = _("rebut domiciliat")
+        verbose_name_plural = _("rebuts domiciliats")
+        constraints = [
+            models.CheckConstraint(condition=Q(amount_cents__gt=0), name="dd_item_amount_positive"),
+            models.CheckConstraint(
+                condition=Q(status__in=["included", "excluded", "collected", "returned"]),
+                name="dd_item_status_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return self.end_to_end_id
