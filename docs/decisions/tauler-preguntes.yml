@@ -761,6 +761,25 @@ opcions:
       la gestoria té API i compleix la 035; si no, A.
     data: 2026-11-17
 
+  P-310:
+    opcions:
+      A: A la fitxa del soci, «Quotes», un botó per reenviar l'alternativa d'una quota pendent o retornada; registre.
+      B: Una llista pròpia a Pagaments per a la secretaria, només amb les quotes amb alternativa pendent, sense imports de tercers.
+      C: Només el tresorer, fins que la junta ho torni a mirar.
+    recomanada: A
+    perque: >-
+      La secretaria ja treballa a la fitxa del soci i hi veu les quotes; no cal obrir-li cap pantalla de pagaments amb dades d'altres socis.
+    data: 2026-11-17
+
+  P-311:
+    opcions:
+      A: El codi TOTP al mateix diàleg de la devolució, amb l'import i el motiu.
+      B: Import, motiu i confirmació, sense tornar a demanar el codi (com la P-133).
+    recomanada: A
+    perque: >-
+      Una devolució treu diners del club i no es pot desfer; un pas més només per a aquesta acció costa poc.
+    data: 2026-11-17
+
   P-300:
     opcions:
       A: Al nivell 2, F1-F6, E6 i B6 s'apliquen a les pàgines públiques que hi hagi llavors i al carnet; la resta, amb la 07 i el 02.
