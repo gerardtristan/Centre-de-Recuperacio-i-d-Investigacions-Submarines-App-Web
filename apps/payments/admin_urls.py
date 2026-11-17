@@ -31,4 +31,14 @@ urlpatterns = [
         remittance_views.remittance_file_view,
         name="payments_remittance_file",
     ),
+    path(
+        "pagaments/remeses/<int:remittance_id>/enviada/",
+        remittance_views.remittance_sent_view,
+        name="payments_remittance_sent",
+    ),
+    path(
+        "pagaments/remeses/<int:remittance_id>/abonament/",
+        remittance_views.remittance_settle_view,
+        name="payments_remittance_settle",
+    ),
 ]
