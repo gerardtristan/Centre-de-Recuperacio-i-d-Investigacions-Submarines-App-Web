@@ -37,10 +37,16 @@ def active_account(person, email):
 
 
 @pytest.fixture
-def tokenization(monkeypatch):
+def tokenization():
+    """El proveïdor fals guarda targetes (092)."""
+    assert fake.FakeProvider().capabilities().tokenization
+
+
+@pytest.fixture
+def no_tokenization(monkeypatch):
     original = fake.FakeProvider.capabilities
     monkeypatch.setattr(
-        fake.FakeProvider, "capabilities", lambda self: replace(original(self), tokenization=True)
+        fake.FakeProvider, "capabilities", lambda self: replace(original(self), tokenization=False)
     )
 
 
@@ -95,7 +101,9 @@ def test_p_134_pagar_cada_vegada_no_revoca_el_mandat(sign, member, account):
     assert (preference.method, preference.mandate) == ("pay_each_time", None)
 
 
-def test_ca_m05a_01_sense_tokenitzacio_la_targeta_guardada_no_es_pot_triar(member, account):
+def test_ca_m05a_01_sense_tokenitzacio_la_targeta_guardada_no_es_pot_triar(
+    no_tokenization, member, account
+):
     assert preferences.offered_methods() == ["direct_debit", "pay_each_time"]
     card(member)
     with pytest.raises(preferences.MethodNotOffered):
@@ -121,7 +129,9 @@ def test_amb_tokenitzacio_la_targeta_guardada_demana_una_targeta_activa(
 # --- Pantalla ---
 
 
-def test_ca_m05a_01_la_pantalla_nomes_mostra_el_que_ofereix_el_proveidor(client_of):
+def test_ca_m05a_01_la_pantalla_nomes_mostra_el_que_ofereix_el_proveidor(
+    no_tokenization, client_of
+):
     html = client_of.get(URL).content.decode()
 
     assert 'value="saved_card"' not in html
@@ -153,7 +163,7 @@ def test_domiciliacio_sense_mandat_no_desa_res_i_ho_explica(client_of):
     assert "cal signar el mandat SEPA" in response.content.decode()
 
 
-def test_una_opcio_que_no_s_ofereix_es_rebutja(client_of):
+def test_una_opcio_que_no_s_ofereix_es_rebutja(no_tokenization, client_of):
     response = client_of.post(URL, {"method": "saved_card"}, follow=True)
 
     assert not FeePaymentPreference.objects.exists()

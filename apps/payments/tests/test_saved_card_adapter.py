@@ -1,6 +1,5 @@
 """Targeta guardada, primera part (T-M05a-12a; RN-M05a-10; CA-M05a-15; P-297): l'adaptador, el
-proveïdor fals i els models. Cap pantalla encara: el fals continua sense declarar la
-tokenització, i aquí s'activa només per a la prova. Sense xarxa; només dades inventades."""
+proveïdor fals i els models. Sense xarxa; només dades inventades."""
 
 from dataclasses import replace
 from uuid import uuid4
@@ -42,7 +41,11 @@ def verify(provider, body, headers):
     return provider.verify_notification(request)
 
 
-def test_without_tokenization_there_is_no_card_setup():
+def test_without_tokenization_there_is_no_card_setup(monkeypatch):
+    original = fake.FakeProvider.capabilities
+    monkeypatch.setattr(
+        fake.FakeProvider, "capabilities", lambda self: replace(original(self), tokenization=False)
+    )
     with pytest.raises(base.NotSupported):
         fake.FakeProvider().start_card_setup(None, URLS)
 

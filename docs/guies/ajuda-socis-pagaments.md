@@ -27,6 +27,8 @@ A **Com pago la quota** tries una de les opcions que ofereix el club i prems **C
 
 L'opció recomanada porta «(recomanada)». Pots canviar d'opció quan vulguis.
 
+**Guardar la targeta:** si tries **Targeta guardada** i encara no en tens cap, vas a **Targeta per a la quota**. Prems **Guarda la targeta** (si fa estona que has entrat, et demana la contrasenya), escrius la targeta a la pàgina segura del proveïdor i t'autentiques amb el teu banc. En tornar, surt «Estem confirmant la targeta»: quan el proveïdor la confirma, hi veus els quatre darrers dígits i la caducitat, i la quota es pagarà amb aquesta targeta. El club no veu ni guarda mai el número ni el codi de seguretat. Si en guardes una de nova, substitueix l'anterior.
+
 ## 3. El mandat de domiciliació
 **Ara mateix encara no es pot signar el mandat.** Falta que la junta aprovi el text del mandat i l'identificador de creditor del club. Mentrestant, pots pagar la quota amb targeta, Bizum o transferència.
 

@@ -72,13 +72,7 @@ def _save(request, member):
             ),
         )
     except preferences.NeedsSavedCard:
-        messages.error(
-            request,
-            _(
-                "Per pagar amb la targeta guardada cal guardar-la, i encara no es pot fer "
-                "des de l'app."
-            ),
-        )
+        return redirect("payments:saved_card")
     except preferences.MethodNotOffered:
         messages.error(request, _("Tria una de les opcions."))
     else:
