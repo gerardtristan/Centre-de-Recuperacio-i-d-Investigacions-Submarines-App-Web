@@ -21,6 +21,10 @@ cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup
 
 `reverse` (T-M04-08; P-M04-C; RN-T27): l'anul·lació amb contramoviment, manual (T5) o en desfer
 una conciliació (045). El període tancat (RN-T28, RN-T30) arriba amb la T-M04-20.
+
+`record_transfer` i `record_cash_count` (T-M04-09; P-M04-D; CA-T07.1 i CA-T08.1): el traspàs entre
+comptes propis (T6) i l'arqueig de la caixa (T7), amb l'ajust opcional. El període tancat dels
+dos (RN-T31: mai es rebutgen) arriba amb la T-M04-20.
 """
 
 from django.conf import settings
@@ -38,7 +42,8 @@ from apps.core.models import AuditEntry, Charge, Payment, validate_cents
 from apps.core.permissions import has_perm
 from apps.members import services as members
 
-from .models import Movement, TreasuryAccount
+from .balances import balance
+from .models import CashCount, CostCentre, Movement, TreasuryAccount
 from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04-10)
 
 INCOME_RECORDED = "treasury.income_recorded"
@@ -51,6 +56,12 @@ TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
 MOVEMENT_REVERSED = "treasury.movement_reversed"
 REVERSE = "treasury.reverse"  # T5, «Anul·lar un moviment amb motiu» (M04-4)
 MANUAL, RECONCILIATION = "manual", "reconciliation"  # qui demana `reverse`
+TRANSFER_RECORDED = "treasury.transfer_recorded"
+CASH_COUNTED = "treasury.cash_counted"
+TRANSFER = "treasury.transfer"  # T6, «Registrar un traspàs» (M04-4)
+CASH_COUNT = "treasury.cash_count"  # T7, «Registrar un arqueig» (M04-4)
+# VT-06: el centre de cost dels ajustos d'arqueig (dades inicials, migració 0004).
+CASH_ADJUSTMENTS = ("General", "Ajustos de caixa")
 
 # Codi del compte de trànsit de les remeses SEPA (RN-T24; exemple de M04-6). El crea el 05a.
 SEPA_REMITTANCE = "sepa_remittance"
@@ -94,6 +105,14 @@ class AlreadyReversed(ValidationError):
 
 class NotReversible(ValidationError):
     """Aquest moviment no s'anul·la per aquest camí (CA-T06.2; P-114; P-115)."""
+
+
+class TransferRejected(ValidationError):
+    """El traspàs no és entre dos comptes propis diferents, o li falta alguna dada (RN-T12)."""
+
+
+class CashCountRejected(ValidationError):
+    """L'arqueig no és d'un compte de caixa, o l'ajust no es pot fer."""
 
 
 @transaction.atomic
@@ -438,3 +457,134 @@ def _ensure_manually_reversible(movement: Movement) -> None:
     if movement.kind == kind.TRANSFER:
         # P-114 (opció conservadora): una pota sola desquadraria els dos comptes.
         raise NotReversible(_("Una pota d'un traspàs no s'anul·la sola."))
+
+
+@transaction.atomic
+def record_transfer(
+    source: TreasuryAccount,
+    destination: TreasuryAccount,
+    amount_cents: int,
+    *,
+    value_date,
+    concept: str,
+    by,
+) -> tuple[Movement, Movement]:
+    """Registra un traspàs entre dos comptes propis, bancaris o de caixa (HU-T07; P-M04-D;
+    CA-T07.1): una sortida de l'origen i una entrada a la destinació, enllaçades, del mateix
+    import i sense departament (RN-T12). Torna les dues potes (sortida, entrada). Un trànsit no
+    hi entra: el buida la liquidació (P-222). Una data futura es rebutja (P-224). Es corregeix
+    amb un traspàs en sentit contrari (P-114)."""
+    if not has_perm(by, TRANSFER, write=True):
+        raise Http404
+    _validate_amount(amount_cents)
+    concept = (concept or "").strip()
+    if not concept or len(concept) > 140:
+        raise TransferRejected(_("Un traspàs necessita un concepte de 140 caràcters com a màxim."))
+    if value_date > timezone.localdate():
+        raise TransferRejected(_("Un traspàs no pot tenir una data de valor futura."))
+    own = {TreasuryAccount.Kind.BANK, TreasuryAccount.Kind.CASH}
+    if source.pk == destination.pk or {source.kind, destination.kind} - own:
+        raise TransferRejected(_("Un traspàs és entre dos comptes propis diferents."))
+    out, entry = transfer_legs(
+        source, destination, amount_cents, value_date=value_date, concept=concept, by=by
+    )
+    audit.record(
+        TRANSFER_RECORDED,
+        actor=by,
+        target=out,
+        details={
+            "from": out.account.name,
+            "to": entry.account.name,
+            "amount_cents": amount_cents,
+            "value_date": value_date.isoformat(),
+            "legs": [out.pk, entry.pk],
+        },
+    )
+    return out, entry
+
+
+def transfer_legs(source, destination, amount_cents, *, value_date, concept, by, settlement=None):
+    """Les dues potes d'un traspàs, sense comprovar cap permís: ho fa qui crida (`record_transfer`
+    amb T6, `settlements.confirm` amb T4). La segona apunta la primera (`linked_movement`).
+    Bloqueja els dos comptes, en ordre (sense interbloquejos), contra un arqueig simultani."""
+    pks = [source.pk, destination.pk]
+    list(TreasuryAccount.objects.select_for_update().filter(pk__in=pks).order_by("pk"))
+    leg = {
+        "amount_cents": amount_cents,
+        "value_date": value_date,
+        "kind": Movement.Kind.TRANSFER,
+        "concept": concept,
+        "settlement": settlement,
+        "recorded_by": by if isinstance(by, get_user_model()) else None,
+    }
+    out = Movement.objects.create(account=source, direction=Movement.Direction.OUT, **leg)
+    entry = Movement.objects.create(
+        account=destination, direction=Movement.Direction.IN, linked_movement=out, **leg
+    )
+    return out, entry
+
+
+@transaction.atomic
+def record_cash_count(
+    account: TreasuryAccount, counted_cents: int, *, counted_on, by, adjustment_reason: str = ""
+) -> CashCount:
+    """Registra l'arqueig d'una caixa (HU-T08; P-M04-D; CA-T08.1): el saldo calculat a
+    `counted_on` i la diferència (comptat − calculat). Sense `adjustment_reason`, cap moviment.
+    Amb motiu i diferència, l'ajust a «General / Ajustos de caixa» (VT-06) amb la data de
+    l'arqueig, que deixa el saldo igual al comptat, i l'arqueig el porta. L'ajust es demana en la
+    mateixa crida, perquè l'arqueig no es modifica (P-225). Una data futura es rebutja (P-224)."""
+    if not has_perm(by, CASH_COUNT, write=True):
+        raise Http404
+    if isinstance(counted_cents, bool) or not isinstance(counted_cents, int) or counted_cents < 0:
+        raise InvalidAmount(_("L'import comptat ha de ser un enter de cèntims, zero o més."))
+    if counted_on > timezone.localdate():
+        raise CashCountRejected(_("Un arqueig no pot tenir una data futura."))
+    # El pany: dos arqueigs alhora no fan dos ajustos de la mateixa diferència.
+    account = TreasuryAccount.objects.select_for_update().get(pk=account.pk)
+    if account.kind != TreasuryAccount.Kind.CASH:
+        raise CashCountRejected(_("L'arqueig només es fa d'un compte de caixa."))
+    computed = balance(account, counted_on)
+    difference = counted_cents - computed
+    reason = (adjustment_reason or "").strip()
+    adjustment = None
+    if reason:
+        if not difference:
+            raise CashCountRejected(_("No hi ha cap diferència per ajustar."))
+        department, name = CASH_ADJUSTMENTS
+        centre = CostCentre.selectable().get(department__name=department, name=name)
+        adjustment = Movement.objects.create(
+            account=account,
+            direction=Movement.Direction.IN if difference > 0 else Movement.Direction.OUT,
+            amount_cents=abs(difference),
+            value_date=counted_on,
+            kind=Movement.Kind.CASH_ADJUSTMENT,
+            concept=_("Ajust d'arqueig del %(date)s") % {"date": counted_on.strftime("%d/%m/%Y")},
+            department=centre.department,
+            cost_centre=centre,
+            reason=reason,
+            recorded_by=by,
+        )
+    count = CashCount.objects.create(
+        account=account,
+        counted_on=counted_on,
+        counted_cents=counted_cents,
+        computed_cents=computed,
+        difference_cents=difference,
+        adjustment=adjustment,
+        recorded_by=by,
+    )
+    audit.record(
+        CASH_COUNTED,
+        actor=by,
+        target=count,
+        reason=reason,
+        details={
+            "account": account.name,
+            "counted_on": counted_on.isoformat(),
+            "counted_cents": counted_cents,
+            "computed_cents": computed,
+            "difference_cents": difference,
+            "adjustment": adjustment.pk if adjustment else None,
+        },
+    )
+    return count

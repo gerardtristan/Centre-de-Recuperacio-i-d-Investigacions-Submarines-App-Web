@@ -365,6 +365,20 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    _perm(
+        "treasury.transfer",
+        "T6",
+        _("Registrar un traspàs"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "treasury.cash_count",
+        "T7",
+        _("Registrar un arqueig"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
     # --- 05a Alta del mètode de pagament i mandats -------------------------------------------
     _perm(
         "payments.mandates.view",
