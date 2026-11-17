@@ -210,3 +210,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-46](T-DX-46.md) | «Pagaments: campanya de mandats» al menú de l'administració, només amb A4 (carril de disseny) | 17/11/2026 01:31 | 3e83f99 (PR #128) | 2 e2e ampliades | [A comprovar] |
 | [T-M05a-10](T-M05a-10b.md) | Segona part: correu al soci en revocar el mandat (text provisional, només referència i IBAN emmascarat) | 17/11/2026 01:54 | 20d01cd | 5252 | [A comprovar] |
 | [T-DX-33](T-DX-33.md) | Gastos: finances per àmbit, en construcció (anell de despeses i taula de resultat per centre de cost, en format català; carril de disseny) | 16/11/2026 21:30 | 16317d6 (PR #96) | 2 noves | [A comprovar] |
+| [T-M04-13](T-M04-13.md) | Liquidacions del proveïdor, primer tall: `record_settlement`, repartiment de VT-05 i `confirm` (comissions i traspàs del net); «a revisar» no apunta res (P-220, P-221) | 17/11/2026 02:08 | 004ad38 | 18 noves | [A comprovar] |
