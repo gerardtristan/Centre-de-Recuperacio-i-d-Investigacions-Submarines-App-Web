@@ -224,7 +224,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 .fila-meta { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
 .pista-carril { font-size: var(--t-s); color: var(--c-ocea-text-2); margin: 0; }
 
-/* historial-pagaments: cada pagament té el seu justificant */
+/* historial-pagaments: cada pagament pagat té el seu rebut */
 .llista-pagaments { list-style: none; display: grid; }
 .llista-pagaments li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: center; padding: var(--e-3) 0; border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 14%); }
 .llista-pagaments li:last-child { border-bottom: 0; }
@@ -256,22 +256,12 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 .dades dt { color: var(--c-text-2); }
 .dades dd { margin: 0; font-weight: var(--p-semi); }
 
-/* ---------- Diàleg de pagament ---------- */
-.concepte-pagament { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: baseline; padding: var(--e-4); border-radius: var(--r-l); box-shadow: var(--neu-enfonsat); }
-.concepte-pagament .import { font-size: var(--t-xl); }
-.concepte-pagament p { margin: 0; }
-.metode { display: grid; gap: var(--e-3); }
-.metode .segmentat { width: 100%; }
-.metode .segmentat label { flex: 1; }
-.metode .segmentat .opcio { width: 100%; gap: var(--e-2); }
-.metode .segmentat .opcio .icona-svg { font-size: 16px; }
 .dades-transferencia { display: grid; gap: var(--e-2); margin: 0; }
 .dades-transferencia > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); padding: var(--e-2) var(--e-3); border-radius: var(--r-m); box-shadow: var(--neu-enfonsat); }
 .dades-transferencia dt { font-size: var(--t-s); color: var(--c-text-2); }
 .dades-transferencia dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); }
 .nota-segura { display: flex; gap: var(--e-2); align-items: start; margin: 0; font-size: var(--t-s); color: var(--c-text-2); }
 .nota-segura .icona-svg { flex: none; margin-top: 2px; font-size: 18px; color: var(--c-mari-text); }
-.pas-impressio { display: grid; gap: var(--e-4); justify-items: center; }
 
 /* ---------- Pantalles pròpies (T-M01-02): perfil, sol·licituds, esborrar i «no trobat» ----------
    Planes, com pagar i els avisos: sense degradat, ombra de profunditat ni moviment. */
@@ -362,7 +352,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   .portada::before, .ona, .cara::after, .isobates { display: none; }
   .salutacio-cap .etiqueta-seccio, .salutacio-cap p, .pista-carril { color: var(--c-text); }
   .cara { background: var(--c-carnet-2); border: var(--v-plena) solid var(--c-carnet-text); box-shadow: none; }
-  .insignia-icona, .avatar, .xifres-bitacola li, .concepte-pagament, .dades-transferencia > div { box-shadow: none; border: var(--v-plena) solid var(--c-text); }
+  .insignia-icona, .avatar, .xifres-bitacola li, .dades-transferencia > div { box-shadow: none; border: var(--v-plena) solid var(--c-text); }
   .navegacio-soci { box-shadow: none; border: var(--v-plena) solid var(--c-text); }
 }
 </style>
@@ -488,7 +478,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
             <p class="franja-text"><span aria-hidden="true">◷</span> <span id="franja-recompte"><span class="si-pendent-soci">2 pagaments pendents</span><span class="si-no-soci">1 pagament pendent</span></span></p>
             <p class="franja-detall" id="franja-detall"><span class="si-pendent-soci">Sortida Illes Medes <span class="import">45,00 €</span> · quota 2027 <span class="import">90,00 €</span> (domiciliació, 05/01/2027)</span><span class="si-no-soci">Curs d'iniciació <span class="import">120,00 €</span></span></p>
           </div>
-          <button class="boto-tactil tactil-daurat boto-gran" type="button" id="obre-pagament"><span class="bt-tecla">Paga ara</span></button>
+          <a class="boto-tactil tactil-daurat boto-gran" href="#pagaments-carrec" id="obre-pagament"><span class="bt-tecla">Paga ara</span></a>
         </div>
         <div class="franja-estat franja-ok si-al-dia" role="status">
           <p class="franja-text"><span aria-hidden="true">✓</span> Tot al dia</p>
@@ -573,13 +563,13 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
               <span class="concepte">Quota 2026 · ple dret</span>
               <span class="import">90,00 €</span>
               <span class="meta"><span>05/01/2026</span><span>Domiciliació</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></span>
-              <button class="boto boto-petit" type="button" data-justificant="quota-2026"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg>Justificant</button>
+              <a class="boto boto-petit" href="#pagaments-rebut"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg>Rebut<span class="visualment-amagat"> de la quota 2026</span></a>
             </li>
             <li>
               <span class="concepte">Sortida Cap de Creus</span>
               <span class="import">45,00 €</span>
               <span class="meta"><span>02/10/2026</span><span>Bizum</span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></span>
-              <button class="boto boto-petit" type="button" data-justificant="cap-creus"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg>Justificant</button>
+              <a class="boto boto-petit" href="#pagaments-rebut"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 8.5h6M9 12h6M9 15.5h3"/></svg>Rebut<span class="visualment-amagat"> de la sortida Cap de Creus</span></a>
             </li>
           </ul>
           <p class="nomes-soci">Quota: per domiciliació. <a href="#pagaments-metode">Com pago la quota</a></p>
@@ -1206,148 +1196,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
 
 </main>
 
-<!-- ==================== Diàleg: pagar un càrrec ==================== -->
-<dialog class="dialeg" id="dialeg-pagament" aria-labelledby="pagament-titol">
-  <div class="dialeg-cap">
-    <h2 id="pagament-titol">Paga la sortida</h2>
-    <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
-  </div>
 
-  <div class="dialeg-cos" id="pas-tria">
-    <div class="concepte-pagament">
-      <p><strong id="pagament-concepte">Sortida Illes Medes</strong><br><span class="text-2" id="pagament-subtitol">Dissabte 15/11/2026 · L'Estartit</span></p>
-      <span class="import" id="pagament-import">45,00 €</span>
-    </div>
-    <p class="text-2 nomes-soci" id="nota-quota">La quota 2027 (<span class="import">90,00 €</span>) es cobrarà per domiciliació el 05/01/2027: no cal pagar-la ara.</p>
-
-    <div class="metode" role="group" aria-labelledby="metode-titol">
-      <p class="etiqueta" id="metode-titol" style="margin: 0; font-weight: 600">Com vols pagar?</p>
-      <div class="segmentat">
-        <label><input class="visualment-amagat" type="radio" name="metode" value="targeta" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 14.5h3"/></svg>Targeta</span></label>
-        <label><input class="visualment-amagat" type="radio" name="metode" value="bizum"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/></svg>Bizum</span></label>
-        <label><input class="visualment-amagat" type="radio" name="metode" value="transferencia"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5 12 4.5l8.5 5M5.5 10v7M10 10v7M14 10v7M18.5 10v7M3.5 19.5h17"/></svg>Transferència</span></label>
-      </div>
-    </div>
-
-    <div id="metode-proveidor">
-      <p class="nota-segura"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.4 3 7.8 7 9 4-1.2 7-4.6 7-9v-5z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span>Escriuràs les dades al camp segur del proveïdor de pagament. El club no veu ni guarda mai el número de la targeta. Proveïdor <span class="a-validar">A validar: decisió 043</span></span></p>
-    </div>
-
-    <div id="metode-transferencia" hidden>
-      <dl class="dades-transferencia">
-        <div><dt>Referència (obligatòria al concepte)</dt><dd><span class="codi" id="referencia">CRS-SRT014-0427</span> <button class="boto boto-petit" type="button" id="copia-referencia" data-icona="copia">Copia la referència</button></dd></div>
-        <div><dt>Compte del club</dt><dd><span class="codi">ES00 0000 0000 0000 0000 0000</span> <span class="a-validar">A validar</span></dd></div>
-      </dl>
-      <div class="camp" style="margin-top: var(--e-4)">
-        <span class="etiqueta" id="comprovant-titol">Comprovant de la transferència (opcional)</span>
-        <div class="zona-magnetica" id="zona-comprovant" data-accepta="application/pdf,.pdf,image/*" data-mida-max="5242880" data-tipus="PDF o imatge" data-titol="Arrossega el comprovant aquí" aria-labelledby="comprovant-titol" role="group"></div>
-        <p class="ajuda">El pagament es dona per fet quan apareix a l'extracte del banc, no amb el comprovant. No hi pugis cap document mèdic.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="dialeg-cos pas-impressio" id="pas-impressio" hidden>
-    <section class="impressora" id="impressora-pagament" aria-label="Justificant de pagament" data-etapa="processant">
-      <div class="imp-maquina superficie">
-        <div class="imp-cap">
-          <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
-          <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
-          <span class="estat estat-neutre">Pagament segur</span>
-        </div>
-        <div class="imp-pantalla">
-          <div class="imp-fila">
-            <div><p class="imp-concepte" id="imp-concepte">Sortida Illes Medes</p><p class="imp-detall" id="imp-metode">Targeta · proveïdor de pagament</p></div>
-            <p class="imp-import" id="imp-import">45,00 €</p>
-          </div>
-          <div class="imp-estat"><span class="imp-indicador" aria-hidden="true"></span><div class="imp-etiqueta"></div></div>
-        </div>
-        <div class="imp-ranura" aria-hidden="true"></div>
-      </div>
-      <div class="imp-sortida">
-        <div class="imp-moviment">
-          <article class="imp-paper" aria-labelledby="paper-titol">
-            <h3 id="paper-titol">Justificant de pagament</h3>
-            <p>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines</p>
-            <hr>
-            <dl>
-              <div><dt>Número</dt><dd id="pp-numero">JUS-2026-000412</dd></div>
-              <div><dt>Data</dt><dd id="pp-data">31/10/2026 18:42</dd></div>
-              <div><dt>Persona</dt><dd id="pp-persona">Marta Puig Ferrer · 0427</dd></div>
-              <div><dt>Concepte</dt><dd id="pp-concepte">Sortida Illes Medes</dd></div>
-              <div><dt>Mètode</dt><dd id="pp-metode">Targeta</dd></div>
-              <div><dt>Departament</dt><dd id="pp-departament">Activitats / Sortides</dd></div>
-            </dl>
-            <hr>
-            <dl class="imp-total"><div><dt>Total</dt><dd id="pp-total">45,00 €</dd></div></dl>
-            <span class="imp-segell"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg><span id="pp-segell">Confirmat pel proveïdor</span></span>
-            <p style="margin-top: var(--e-3)">Justificant, no és una factura. <span class="a-validar">A validar</span></p>
-          </article>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div class="dialeg-peu" id="peu-tria">
-    <button class="boto" type="button" data-tanca>Cancel·la</button>
-    <button class="boto boto-principal boto-gran" type="button" id="confirma-pagament" data-icona="targeta">Paga 45,00 €</button>
-  </div>
-  <div class="dialeg-peu" id="peu-impressio" hidden>
-    <a class="boto" href="#" aria-disabled="true" id="descarrega-pdf">Descarrega el PDF (prototip)</a>
-    <button class="boto-tactil" type="button" data-tanca><span class="bt-tecla">Tanca</span></button>
-  </div>
-</dialog>
-
-<!-- ==================== Diàleg: veure un justificant ja cobrat ==================== -->
-<dialog class="dialeg" id="dialeg-justificant" aria-labelledby="justificant-titol">
-  <div class="dialeg-cap">
-    <h2 id="justificant-titol">Justificant</h2>
-    <button class="boto boto-text boto-tanca" type="button" data-tanca aria-label="Tanca"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
-  </div>
-  <div class="dialeg-cos pas-impressio">
-    <section class="impressora" id="impressora-justificant" aria-label="Justificant" data-etapa="processant" data-text-processant="Recuperant el justificant" data-text-imprimint="Imprimint el justificant" data-text-complet="Justificant a punt">
-      <div class="imp-maquina superficie">
-        <div class="imp-cap">
-          <img class="logo-fosc" src="../../assets/marca/CRIS_Blanc_per%20fons%20Negre%20(Blanc).png" alt="">
-          <img class="logo-clar" src="../../assets/marca/CRIS_SenseFons.png" alt="">
-          <span class="estat estat-neutre">Còpia</span>
-        </div>
-        <div class="imp-pantalla">
-          <div class="imp-fila">
-            <div><p class="imp-concepte" data-j="concepte"></p><p class="imp-detall" data-j="metode"></p></div>
-            <p class="imp-import" data-j="total"></p>
-          </div>
-          <div class="imp-estat"><span class="imp-indicador" aria-hidden="true"></span><div class="imp-etiqueta"></div></div>
-        </div>
-        <div class="imp-ranura" aria-hidden="true"></div>
-      </div>
-      <div class="imp-sortida">
-        <div class="imp-moviment">
-          <article class="imp-paper" aria-labelledby="paper-j-titol">
-            <h3 id="paper-j-titol">Justificant de cobrament</h3>
-            <p>C.R.I.S. · Centre de Recuperació i d'Investigacions Submarines</p>
-            <hr>
-            <dl>
-              <div><dt>Número</dt><dd data-j="numero"></dd></div>
-              <div><dt>Data</dt><dd data-j="data"></dd></div>
-              <div><dt>Persona</dt><dd>Marta Puig Ferrer · 0427</dd></div>
-              <div><dt>Concepte</dt><dd data-j="concepte"></dd></div>
-              <div><dt>Mètode</dt><dd data-j="metode"></dd></div>
-              <div><dt>Departament</dt><dd data-j="departament"></dd></div>
-            </dl>
-            <hr>
-            <dl class="imp-total"><div><dt>Total</dt><dd data-j="total"></dd></div></dl>
-            <span class="imp-segell"><svg class="icona-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg><span data-j="segell"></span></span>
-            <p style="margin-top: var(--e-3)">Justificant, no és una factura. <span class="a-validar">A validar</span></p>
-          </article>
-        </div>
-      </div>
-    </section>
-  </div>
-  <div class="dialeg-peu">
-    <a class="boto" href="#" aria-disabled="true">Descarrega el PDF (prototip)</a>
-    <button class="boto-tactil" type="button" data-tanca><span class="bt-tecla">Tanca</span></button>
-  </div>
-</dialog>
 
 <!-- ==================== Diàleg: confirmar la sol·licitud de baixa ==================== -->
 <dialog class="dialeg" id="dialeg-baixa" aria-labelledby="dialeg-baixa-titol">
@@ -1400,7 +1249,6 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
   document.querySelectorAll('input[name="persona"]').forEach(r => {
     r.addEventListener('change', () => { document.body.setAttribute('data-persona', r.value); });
   });
-  const persona = () => document.body.getAttribute('data-persona');
 
   /* ---------- Navegació: dock al mòbil; subratllat elàstic a partir de tauleta ---------- */
   const nav = document.getElementById('navegacio-soci');
@@ -1478,138 +1326,7 @@ body { padding-bottom: calc(var(--dock-alcada) + var(--e-6) + env(safe-area-inse
     });
   })();
 
-  /* ---------- Pagar: tria del mètode, botó dinàmic i impressora ---------- */
-  (function () {
-    const dialeg = document.getElementById('dialeg-pagament');
-    const pasTria = document.getElementById('pas-tria'), pasImp = document.getElementById('pas-impressio');
-    const peuTria = document.getElementById('peu-tria'), peuImp = document.getElementById('peu-impressio');
-    const confirma = document.getElementById('confirma-pagament');
-    const bd = CRIS.botoDinamic(confirma);
-    const imp = CRIS.impressora(document.getElementById('impressora-pagament'));
-    let pagat = { soci: false, alumne: false };
-    const carrecs = {
-      soci: { titol: 'Paga la sortida', concepte: 'Sortida Illes Medes', subtitol: 'Dissabte 15/11/2026 · L\'Estartit', centims: 4500, departament: 'Activitats / Sortides', referencia: 'CRS-SRT014-0427', persona: 'Marta Puig Ferrer · 0427' },
-      alumne: { titol: 'Paga el curs', concepte: 'Curs d\'iniciació al busseig', subtitol: 'Del 20/11 al 11/12/2026', centims: 12000, departament: 'Activitats / Cursos', referencia: 'CRS-CUR003-P1182', persona: 'Marta Puig Ferrer' }
-    };
-    const clau = () => persona() === 'no-soci' ? 'alumne' : 'soci';
-    const metode = () => dialeg.querySelector('input[name="metode"]:checked').value;
-    const noms = { targeta: 'Targeta', bizum: 'Bizum', transferencia: 'Transferència' };
 
-    function textBoto() {
-      const c = carrecs[clau()];
-      return metode() === 'transferencia' ? { text: 'He fet la transferència', icona: 'banc' } : { text: 'Paga ' + CRIS.euros(c.centims), icona: metode() === 'bizum' ? 'mobil' : 'targeta' };
-    }
-    dialeg.querySelectorAll('input[name="metode"]').forEach(r => r.addEventListener('change', () => {
-      const t = metode() === 'transferencia';
-      document.getElementById('metode-transferencia').hidden = !t;
-      document.getElementById('metode-proveidor').hidden = t;
-      const b = textBoto(); bd.posa(b.text, b.icona);
-    }));
-
-    function obre() {
-      const c = carrecs[clau()];
-      if (pagat[clau()]) return;
-      document.getElementById('pagament-titol').textContent = c.titol;
-      document.getElementById('pagament-concepte').textContent = c.concepte;
-      document.getElementById('pagament-subtitol').textContent = c.subtitol;
-      document.getElementById('pagament-import').textContent = CRIS.euros(c.centims);
-      document.getElementById('referencia').textContent = c.referencia;
-      pasTria.hidden = false; peuTria.hidden = false; pasImp.hidden = true; peuImp.hidden = true;
-      imp.etapa('processant');
-      dialeg.showModal();
-      const b = textBoto(); bd.posa(b.text, b.icona);
-    }
-    document.getElementById('obre-pagament').addEventListener('click', obre);
-    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
-
-    confirma.addEventListener('click', async () => {
-      if (bd.estaOcupat) return;
-      const c = carrecs[clau()], m = metode();
-      if (m === 'transferencia') {
-        // Sense justificant: es confirma quan la transferència arriba a l'extracte (conciliació)
-        await bd.flux([{ text: 'Desant…', icona: 'carrega', gira: true, ms: 800 }, { text: 'Avís desat', icona: 'fet', fet: true, ms: 900, anunci: 'Transferència anotada. Quedarà confirmada quan arribi a l\'extracte del banc.' }]);
-        dialeg.close();
-        posaFranja('Transferència pendent de conciliar', c.concepte + ' ' + CRIS.euros(c.centims) + ' · referència ' + c.referencia);
-        return;
-      }
-      await bd.flux([{ text: 'Connectant amb el proveïdor…', icona: 'carrega', gira: true, ms: 900 }]);
-      // Omple el justificant
-      const ara = new Date();
-      document.getElementById('imp-concepte').textContent = c.concepte;
-      document.getElementById('imp-metode').textContent = noms[m] + ' · proveïdor de pagament';
-      document.getElementById('imp-import').textContent = CRIS.euros(c.centims);
-      document.getElementById('pp-data').textContent = ara.toLocaleDateString('ca') + ' ' + ara.toLocaleTimeString('ca', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('pp-persona').textContent = c.persona;
-      document.getElementById('pp-concepte').textContent = c.concepte;
-      document.getElementById('pp-metode').textContent = noms[m];
-      document.getElementById('pp-departament').textContent = c.departament;
-      document.getElementById('pp-total').textContent = CRIS.euros(c.centims);
-      pasTria.hidden = true; peuTria.hidden = true; pasImp.hidden = false; peuImp.hidden = false;
-      document.getElementById('pagament-titol').textContent = 'Pagament en curs';
-      await imp.imprimeix({ ms: 1600 });
-      document.getElementById('pagament-titol').textContent = 'Pagament fet';
-      peuImp.querySelector('[data-tanca]').focus();
-      bd.posa(bd.inicial.text, bd.inicial.icona);
-      pagat[clau()] = true;
-      if (clau() === 'soci') {
-        posaFranja('1 pagament pendent', 'Quota 2027 ' + CRIS.euros(9000) + ' (domiciliació, 05/01/2027)', true);
-        const e = document.getElementById('estat-medes');
-        e.className = 'estat estat-ok'; e.innerHTML = '<span aria-hidden="true">✓</span> Inscripció pagada';
-      } else {
-        posaFranja('Cap pagament pendent', 'El curs d\'iniciació està pagat.', true);
-      }
-      afegeixAlHistorial(c, noms[m]);
-    });
-
-    function posaFranja(text, detall, senseBoto) {
-      document.getElementById('franja-recompte').textContent = text;
-      document.getElementById('franja-detall').textContent = detall;
-      document.getElementById('obre-pagament').hidden = !!senseBoto || text.indexOf('Transferència') === 0;
-    }
-    function afegeixAlHistorial(c, m) {
-      const li = document.createElement('li');
-      li.innerHTML = '<span class="concepte"></span><span class="import"></span><span class="meta"><span>Avui</span><span></span><span class="estat estat-ok"><span aria-hidden="true">✓</span> Pagada</span></span>';
-      li.querySelector('.concepte').textContent = c.concepte;
-      li.querySelector('.import').textContent = CRIS.euros(c.centims);
-      li.querySelector('.meta span:nth-child(2)').textContent = m;
-      document.getElementById('llista-pagaments').prepend(li);
-    }
-
-    /* Copiar la referència de la transferència */
-    const copia = document.getElementById('copia-referencia');
-    const bc = CRIS.botoDinamic(copia);
-    let temporitzador = null;
-    copia.addEventListener('click', () => {
-      const text = document.getElementById('referencia').textContent;
-      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
-      bc.posa('Copiada', 'fet', { fet: true });
-      CRIS.anuncia('Referència copiada');
-      clearTimeout(temporitzador);
-      temporitzador = setTimeout(() => bc.posa(bc.inicial.text, bc.inicial.icona), 1200);
-    });
-
-    CRIS.zonaMagnetica(document.getElementById('zona-comprovant'));
-  })();
-
-  /* ---------- Justificants de pagaments ja cobrats (quotes i activitats) ---------- */
-  (function () {
-    const dialeg = document.getElementById('dialeg-justificant');
-    const imp = CRIS.impressora(document.getElementById('impressora-justificant'));
-    const dades = {
-      'quota-2026': { numero: 'JUS-2026-000031', data: '05/01/2026', concepte: 'Quota 2026 · ple dret', metode: 'Domiciliació SEPA', departament: 'General / Quotes de socis', total: '90,00 €', segell: 'Cobrat · confirmat pel banc' },
-      'cap-creus': { numero: 'JUS-2026-000388', data: '02/10/2026', concepte: 'Sortida Cap de Creus', metode: 'Bizum', departament: 'Activitats / Sortides', total: '45,00 €', segell: 'Confirmat pel proveïdor' }
-    };
-    document.getElementById('historial-pagaments').addEventListener('click', e => {
-      const b = e.target.closest('[data-justificant]');
-      if (!b) return;
-      const d = dades[b.dataset.justificant];
-      Object.keys(d).forEach(k => dialeg.querySelectorAll('[data-j="' + k + '"]').forEach(x => { x.textContent = d[k]; }));
-      imp.etapa('processant');
-      dialeg.showModal();
-      imp.imprimeix({ ms: 600 });
-    });
-    dialeg.querySelectorAll('[data-tanca]').forEach(b => b.addEventListener('click', () => dialeg.close()));
-  })();
 
   /* ======================================================================
      Pantalles pròpies (T-M01-02): perfil, canvi a ple dret, baixa, esborrar
