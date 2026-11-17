@@ -272,3 +272,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-53](T-DX-53.md) | Wireframes sense el diàleg antic «Paga ara»: «Paga ara» i «Rebut» porten a les pantalles de pagar i del rebut (carril de disseny) | 17/11/2026 14:35 | 03102fd9 | al navegador i axe | [A comprovar] |
 | [T-DX-51](T-DX-51.md) | Logotips ajustats (192 px, AVIF o WebP) i només el del tema que es veu: de 845 KB a uns 14 KB per pàgina (carril de disseny) | 17/11/2026 14:01 | 774c10c9 (PR #181) | 6 noves | [A comprovar] |
 | [T-DX-54](T-DX-54.md) | Proves dels logotips també a Firefox i WebKit (Safari): un sol logotip descarregat als tres motors (carril de disseny) | 17/11/2026 14:49 | 31bad555 (PR #194) | 4 casos nous | [A comprovar] |
+| [P-294](P-294.md) | GlitchTip autoallotjat al VPS del club: `errors.cris1954.cat` a la llista autoritzada i guia d'instal·lació (sense encendre) | 17/11/2026 | bd2cc4b2 | 30; 1 nova | [A comprovar] |
