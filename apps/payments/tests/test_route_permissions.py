@@ -228,6 +228,7 @@ UNCHECKED = {
     reconciliation.on_statement_changed: "senyal de la importació",
     reconciliation.to_review: "consulta (la vista demana T1)",
     reconciliation.pending_charges: "consulta (la vista demana T4)",
+    reconciliation.matchable_state: "consulta (la vista demana T4)",
     remittances.earliest_collection_date: "consulta",
     remittances.preview: "consulta (la vista demana B3)",
     remittances.send_prenotifications: "`build_remittance` i la vista, amb B3",
