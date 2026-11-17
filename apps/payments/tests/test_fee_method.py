@@ -170,13 +170,23 @@ def test_una_opcio_que_no_s_ofereix_es_rebutja(no_tokenization, client_of):
     assert "Tria una de les opcions." in response.content.decode()
 
 
-def test_p_134_amb_mandat_actiu_i_pagar_cada_vegada_diu_com_revocar_lo(sign, client_of, member):
+@pytest.mark.parametrize("signing", [True, False])
+def test_p_134_amb_mandat_actiu_i_pagar_cada_vegada_pregunta_si_el_revoca(
+    sign, client_of, member, settings, signing
+):
+    # Resposta C de la P-134 (decisió 095): es pregunta; revocar funciona sempre (P-127).
+    settings.MANDATE_SIGNING_ENABLED = signing
     mandate = sign()
     client_of.post(URL, {"method": "pay_each_time"})
 
     html = client_of.get(URL).content.decode()
-    assert f'El mandat <span class="codi">{mandate.reference}</span> continua actiu' in html
+    assert f'Vols revocar el mandat <span class="codi">{mandate.reference}</span>?' in html
+    assert "continua actiu però no entra a cap remesa" in html
+    assert f'href="{reverse("payments:mandate_revoke")}"' in html
+    assert "A validar: P-134" not in html
     assert "ES55" not in html  # cap IBAN, ni emmascarat
+    # Si no respon, el mandat queda actiu.
+    assert SepaMandate.objects.get(pk=mandate.pk).status == SepaMandate.Status.ACTIVE
 
 
 def test_domiciliacio_amb_mandat_mostra_la_referencia(sign, client_of, member):

@@ -38,6 +38,7 @@ def test_member_chooses_how_to_pay_the_fee(page, live_server, builder, member, r
 
     page.get_by_label("Pagar cada vegada").check()
     page.get_by_role("button", name="Continua").click()
-    expect(page.get_by_text(f"El mandat {mandate.reference} continua actiu")).to_be_visible()
+    expect(page.get_by_text(f"Vols revocar el mandat {mandate.reference}?")).to_be_visible()
+    expect(page.get_by_role("link", name="Revoca el mandat…")).to_be_visible()
     expect(page.get_by_label("Pagar cada vegada")).to_be_checked()
     review("metode-quota-cada-vegada")
