@@ -1,0 +1,34 @@
+/* Expositor (T-DX-37; recurs a design/extern/; design-system §16, T-DX-37): la graella de pujada de fotos.
+   Del recurs: les regles a la vista, l'anell de pujada, la foto massa petita ratllada amb el motiu en text,
+   «Fer portada» i el recompte de fotos llestes. Sense JavaScript: no es reordena ni es puja res. */
+.expositor { display: grid; gap: var(--e-3); margin-block-start: var(--e-5); }
+.expositor h2 { margin: 0; font-size: var(--t-l); }
+.expositor-regles { margin: 0; padding-inline-start: var(--e-5); display: grid; gap: var(--e-1); color: var(--c-text-2); }
+.expositor-cos { display: grid; gap: var(--e-3); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.expositor-zona { min-height: auto; padding: var(--e-4); }
+.expositor-graella { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.expositor-cel { position: relative; min-inline-size: 0; display: grid; gap: var(--e-2); align-content: start; padding: var(--e-2); border-radius: var(--r-l); background: var(--c-fons); }
+.expositor .expositor-peu { display: grid; gap: var(--e-1); justify-items: start; margin: 0; }
+.expositor .estat { white-space: normal; }
+.expositor-nom { font-size: var(--t-xs); color: var(--c-text-2); overflow-wrap: anywhere; }
+.expositor-portada {
+  position: absolute; inset-block-start: var(--e-3); inset-inline-start: var(--e-3); padding: var(--e-1) var(--e-2);
+  border-radius: var(--r-pastilla); background: var(--c-accent); color: var(--c-accent-text); font-size: var(--t-xs); font-weight: var(--p-semi);
+}
+/* La que puja: atenuada amb l'anell al mig */
+.expositor-cel.es-pujant .fototeca-imatge { opacity: .5; }
+.expositor-anell { position: absolute; inset-inline: 0; inset-block-start: var(--e-6); display: grid; place-items: center; }
+.expositor-anell svg { inline-size: var(--e-7); block-size: var(--e-7); }
+.expositor-anell circle { fill: none; stroke-width: 3; }
+.expositor-anell-fons { stroke: var(--c-fons); }
+.expositor-anell-valor { stroke: var(--c-mari); stroke-linecap: round; }
+/* Massa petita: ratllada, i el motiu sempre en text (mai només el color) */
+.expositor-cel.es-petita .fototeca-imatge {
+  background: repeating-linear-gradient(135deg, var(--c-error-fons) 0 var(--e-2), var(--c-superficie-2) var(--e-2) var(--e-4));
+}
+.expositor-accions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--e-3); }
+.expositor .expositor-estat { margin: 0; font-weight: var(--p-semi); }
+
+@media (min-width: 600px) {
+  .expositor-graella { grid-template-columns: repeat(auto-fill, minmax(calc(var(--e-8) * 2.5), 1fr)); }
+}
