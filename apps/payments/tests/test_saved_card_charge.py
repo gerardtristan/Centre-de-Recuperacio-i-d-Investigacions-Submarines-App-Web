@@ -7,16 +7,23 @@ notificació. Els avisos al soci i al tresorer són de la T-M05b-15b."""
 from datetime import date, timedelta
 
 import pytest
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import F
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
+from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member, pay
 from apps.payments import attempts, checkout, guards, processing, returns
-from apps.payments.models import FeePaymentPreference, PaymentAttempt, SavedCardNotice
+from apps.payments.models import (
+    FeePaymentPreference,
+    PaymentAttempt,
+    SavedCardAttempt,
+    SavedCardNotice,
+)
 from apps.payments.providers import base, fake
 from apps.payments.tests.test_fee_method import active_account
 from apps.payments.tests.test_preferences import card, prefer
@@ -311,7 +318,8 @@ def test_p_302_only_fees_due_within_the_window_are_charged(saved, member, treasu
     assert AuditEntry.objects.filter(
         action=processing.TO_REVIEW, target_id=str(old.charge.pk)
     ).exists()
-    assert not OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).exists()
+    assert not review_emails().exists()  # cap correu al tresorer; el soci, l'alternativa
+    assert alternatives().count() == 1
     assert old.charge.pk not in [c.pk for c, _card in checkout.due_saved_card_charges(today)]
 
 
@@ -331,7 +339,7 @@ def test_an_opening_error_is_told_once(saved, fee, monkeypatch, treasurer):
     monkeypatch.setattr(fake.FakeProvider, "saved_card_order_id", unsupported)
     checkout.charge_due_saved_cards()
     checkout.charge_due_saved_cards()
-    assert OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).count() == 1
+    assert review_emails().count() == 1
 
 
 def test_no_card_is_the_preference_case(fee):
@@ -447,3 +455,142 @@ def test_a_case_of_the_treasurer_tells_only_the_treasurer(saved, fee, member, tr
 
     assert not alternatives().exists()
     assert "ja no és sòcia" in review_emails().get().body_text
+
+
+# --- Vuitena revisió de #198 ---
+
+
+def broken(*args, **kwargs):
+    raise RuntimeError("correu caigut")
+
+
+def other_order(pay_url=False):
+    real = fake.FakeProvider._charge_saved_card
+
+    def other(self, charge, card, key):
+        order = real(self, charge, card, key)
+        fake._orders["fake-una-altra"] = fake._orders[order.external_id]
+        return base.ProviderOrder(
+            "fake-una-altra", "https://banc.example.org/3ds" if pay_url else None, None
+        )
+
+    return other
+
+
+def test_an_email_error_never_undoes_the_review_of_an_unexpected_order(saved, fee, monkeypatch):
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other_order())
+    monkeypatch.setattr(processing, "notify_treasurers", broken)
+    attempt = checkout.charge_saved_card(fee.charge, saved)
+    monkeypatch.undo()
+
+    assert attempt.status == S.TO_REVIEW == only_attempt(fee).status  # el que torna, al dia
+    notify(only_attempt(fee))
+    assert run_queue() == ["to_review"]
+    assert not Payment.objects.filter(charge=fee.charge).exists()
+
+
+def test_an_unexpected_order_that_asks_for_authentication_is_closed(saved, fee, monkeypatch):
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other_order(pay_url=True))
+    attempt = checkout.charge_saved_card(fee.charge, saved)
+    assert attempt.status == S.ABANDONED
+    assert SavedCardNotice.objects.get().case == "authentication"
+
+
+def test_a_retry_says_nothing_about_a_fee_paid_in_between(saved, fee, monkeypatch, treasurer):
+    saved.status = "removed"
+    saved.save()
+    monkeypatch.setattr(returns, "send_alternative", broken)
+    checkout.charge_due_saved_cards()
+    monkeypatch.undo()
+    pay(fee)
+
+    checkout.charge_due_saved_cards()
+    assert not alternatives().exists() and not review_emails().exists()
+    assert SavedCardNotice.objects.get().notified  # ja no cal
+
+
+def test_emails_that_keep_failing_end_up_to_review(saved, fee, monkeypatch, treasurer):
+    saved.status = "removed"
+    saved.save()
+    monkeypatch.setattr(returns, "send_alternative", broken)
+    for _day in range(processing.NOTICE_TRIES + 1):
+        checkout.charge_due_saved_cards()
+
+    assert OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).count() == 1
+    checkout.charge_due_saved_cards()  # no hi torna
+    assert OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).count() == 1
+
+
+@pytest.mark.parametrize("case", ["provider_error", "unexpected_order", "give_up"])
+def test_the_treasurer_is_told_it_may_have_been_charged(saved, fee, treasurer, case):
+    with transaction.atomic():
+        processing.saved_card_outcome(fee.charge, case, card=saved)
+    text = review_emails().get().body_text
+    assert "pot ser que s'hagi cobrat" in text and "comprova-ho al proveïdor" in text
+    assert "no s'ha cobrat" not in text
+
+
+def test_a_charge_that_is_not_a_fee_has_no_empty_fee_reference(saved, member, treasurer):
+    other = charges.create_charge(
+        member.person, kind=Charge.Kind.FEE, amount_cents=4000, concept="Suplement",
+        origin="members", by=audit.system("prova"),
+    )  # fmt: skip
+    with transaction.atomic():
+        processing.saved_card_outcome(other, "not_fee", card=saved)
+    text = review_emails().get().body_text
+    assert f"càrrec {other.pk}" in text and "quota ," not in text
+
+
+def test_the_provider_error_outcome_runs_with_the_charge_locked(saved, fee, monkeypatch):
+    def down(*args, **kwargs):
+        raise base.ProviderError("temps esgotat")
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", down)
+    real, seen = processing.saved_card_outcome, []
+
+    def spy(charge, case, **kwargs):
+        last = connection.queries[-1]["sql"]
+        seen.append('FROM "core_charge"' in last and "FOR UPDATE" in last)
+        return real(charge, case, **kwargs)
+
+    monkeypatch.setattr(processing, "saved_card_outcome", spy)
+    with CaptureQueriesContext(connection), pytest.raises(base.ProviderError):
+        checkout.charge_saved_card(fee.charge, saved)
+    assert seen == [True]
+
+
+def test_a_failure_without_its_card_still_settles_and_is_reviewed(saved, fee):
+    checkout.charge_saved_card(fee.charge, saved)
+    SavedCardAttempt.objects.all().delete()
+    notify(only_attempt(fee), base.DENIED)
+
+    assert run_queue() == ["processed"]
+    assert only_attempt(fee).status == S.FAILED
+    assert AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()
+
+
+def test_an_unknown_closing_state_goes_to_review_without_telling_the_member(saved, fee):
+    attempt = checkout.charge_saved_card(fee.charge, saved)
+    attempt = attempts.transition(attempt, S.ABANDONED, by=audit.system("prova"))
+    with transaction.atomic():
+        processing.on_saved_card_failed(attempt, fee.charge)
+    assert not alternatives().exists()
+    assert AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()
+
+
+def test_the_safety_net_keeps_why_it_gave_up(saved, fee, monkeypatch):
+    checkout.charge_saved_card(fee.charge, saved)
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET created_at = created_at - %s",
+            [timedelta(hours=200)],
+        )
+
+    def down(*args, **kwargs):
+        raise base.ProviderError("temps esgotat")
+
+    monkeypatch.setattr(fake.FakeProvider, "get_order", down)
+    no_wait(monkeypatch)
+    processing.safety_net()
+    entry = AuditEntry.objects.get(action=processing.OUTCOME)
+    assert "consultar l'ordre" in entry.details["detail"]

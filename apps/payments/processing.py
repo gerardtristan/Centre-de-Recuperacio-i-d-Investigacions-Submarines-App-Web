@@ -15,6 +15,7 @@ import logging
 from datetime import timedelta
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -59,8 +60,12 @@ OUTCOMES = {
     "arrears": gettext_lazy("La quota va vèncer fa massa dies: es paga des de la pantalla."),
     "open_failed": gettext_lazy("No s'ha pogut obrir l'intent al proveïdor."),
 }
-TELL_MEMBER = {"denied", "order_expired", "authentication", "card_closed"}
+TELL_MEMBER = {"denied", "order_expired", "authentication", "card_closed", "arrears"}
+NO_TREASURER_EMAIL = {"arrears"}  # «a revisar», sense correu: no inunda el tresorer en migrar
 NOT_REVIEWED = {"denied", "order_expired", "authentication"}  # la resta, «a revisar»
+# L'ordre potser s'ha cobrat: el tresorer ho comprova al proveïdor abans de demanar res al soci.
+MAYBE_CHARGED = {"provider_error", "unexpected_order", "give_up"}
+NOTICE_TRIES = 3  # dies que es tornen a provar els correus d'un avís; després, «a revisar»
 REVIEW_PERMISSION = "treasury.view"  # T1; P-86, opció per defecte
 # VC-17: minuts sense notificació abans que la xarxa de seguretat pregunti al proveïdor.
 SAFETY_NET_AGE = "payments.safety_net_age_minutes"
@@ -222,52 +227,81 @@ def notify_treasurers(template: str, context: dict) -> None:
             sent.add(address)
 
 
-def saved_card_outcome(charge: Charge, case: str, *, card, attempt=None) -> None:
-    """Punt d'entrada únic dels resultats de la targeta guardada (T-M05b-15b; `OUTCOMES`): una fila
-    per càrrec, targeta i motiu, a la transacció de qui crida, i els avisos."""
-    notice, _new = SavedCardNotice.objects.get_or_create(charge=charge, card=card, case=case)
+def saved_card_outcome(charge: Charge, case: str, *, card, attempt=None, detail: str = "") -> None:
+    """Punt d'entrada únic dels resultats de la targeta guardada (T-M05b-15b; `OUTCOMES`), amb el
+    càrrec ja bloquejat per qui crida. A la seva transacció i una sola vegada per càrrec, targeta i
+    motiu: la fila, el registre (amb `detail`, el motiu concret) i, si cal, «a revisar». Els
+    correus van a part (`_send`): si fallen, no desfan res d'això."""
+    notice, new = SavedCardNotice.objects.get_or_create(charge=charge, card=card, case=case)
+    if new:
+        if case not in NOT_REVIEWED:
+            _review_entry(attempt, charge, f"{OUTCOMES[case]} {detail}".strip())
+        details = {"charge": charge.pk, "case": case, "detail": detail}
+        by = audit.system(SAVED_CARD_ACTOR)
+        audit.record(OUTCOME, actor=by, target=attempt or charge, details=details)
     if not notice.notified:
-        _notify(notice, attempt)
+        _send(notice)
 
 
-def _notify(notice: SavedCardNotice, attempt=None) -> None:
-    """La marca, el «a revisar» i els missatges, junts: si un correu falla, no queda res d'això i
-    `retry_outcomes` ho torna a provar l'endemà. No desfà mai el que ha fet qui crida."""
-    reason = OUTCOMES[notice.case]
-    member, review = notice.case in TELL_MEMBER, notice.case not in NOT_REVIEWED
-    charge = notice.charge
+def _send(notice: SavedCardNotice) -> None:
+    """Els correus d'un avís (al soci, si és cosa seva, i al tresorer) i la marca, en un punt de
+    restauració propi: si un falla, només ells es tornen a provar (`retry_outcomes`)."""
+    charge, case = notice.charge, notice.case
     try:
         with transaction.atomic():
-            if review:
-                _review_entry(attempt, charge, str(reason))
+            member = case in TELL_MEMBER
             sent = member and returns.send_alternative(
-                charge, new_mandate=False, saved_card=True, unusable=notice.case == "card_closed"
+                charge, new_mandate=False, saved_card=True, unusable=case == "card_closed"
             )
             erased = charge.person.status == Person.Status.ANONYMISED
             fee = getattr(charge, "annual_fee", None)
+            ref = {"fee": fee.pk if fee else None, "charge": charge.pk}
             context = {
                 "concept": charge.concept,
-                "charge_id": charge.pk,
-                "fee_id": fee.pk if fee else "",
-                "reason": reason,
+                "ref": (_("quota %(fee)s, càrrec %(charge)s") if fee else _("càrrec %(charge)s"))
+                % ref,
+                "reason": OUTCOMES[case],
+                "maybe_charged": case in MAYBE_CHARGED,
                 "erased": erased,
                 "no_email": member and not sent and not erased,
                 "member_told": sent,
             }
-            notify_treasurers(TREASURER_TEMPLATE, context)
-            details = {"charge": charge.pk, "case": notice.case, "sent": sent}
-            by = audit.system(SAVED_CARD_ACTOR)
-            audit.record(OUTCOME, actor=by, target=attempt or charge, details=details)
+            if case not in NO_TREASURER_EMAIL:
+                notify_treasurers(TREASURER_TEMPLATE, context)
             notice.notified = True
             notice.save(update_fields=["notified"])
     except Exception:
         logger.exception("No s'han pogut enviar els avisos del càrrec %s", charge.pk)
+        SavedCardNotice.objects.filter(pk=notice.pk).update(tries=F("tries") + 1)
 
 
-def retry_outcomes() -> None:
-    """Els avisos que no van sortir (un correu que va fallar), de nou."""
-    for notice in SavedCardNotice.objects.filter(notified=False).select_related("charge"):
-        _notify(notice)
+def retry_outcomes(still_applies) -> None:
+    """Cada dia, els avisos amb correus que van fallar, un per un i amb el càrrec bloquejat: només
+    si la quota continua pendent i el motiu encara hi és (`still_applies(notice)`); si no, ja no
+    cal. Passats `NOTICE_TRIES` dies, el càrrec va «a revisar» i el tresorer en rep l'avís."""
+    for pk in SavedCardNotice.objects.filter(notified=False).values_list("pk", flat=True):
+        try:
+            with transaction.atomic():
+                charge_id = SavedCardNotice.objects.get(pk=pk).charge_id
+                charge = Charge.objects.select_for_update().get(pk=charge_id)
+                notice = SavedCardNotice.objects.select_for_update().get(pk=pk)
+                notice.charge = charge
+                if notice.notified:
+                    continue
+                if charge.status != Charge.Status.PENDING or not still_applies(notice):
+                    notice.notified = True  # res a dir: ja no toca
+                    notice.save(update_fields=["notified"])
+                elif notice.tries >= NOTICE_TRIES:
+                    reason = _(
+                        "No s'han pogut enviar els avisos de la targeta guardada (%(case)s)."
+                    )
+                    mark_for_review(None, charge, reason % {"case": notice.case})
+                    notice.notified = True
+                    notice.save(update_fields=["notified"])
+                else:
+                    _send(notice)
+        except Exception:
+            logger.exception("No s'ha pogut tornar a provar l'avís %s", pk)
 
 
 def _card_of(attempt: PaymentAttempt):
@@ -277,9 +311,18 @@ def _card_of(attempt: PaymentAttempt):
 def on_saved_card_failed(attempt: PaymentAttempt, charge: Charge) -> None:
     """Un intent amb la targeta guardada que es tanca sense pagar, amb el càrrec ja bloquejat per
     `settle`: l'alternativa, si la quota continua pendent."""
-    if charge.status == Charge.Status.PENDING:
-        case = "order_expired" if attempt.status == S.EXPIRED else "denied"
-        saved_card_outcome(charge, case, card=_card_of(attempt))
+    if charge.status != Charge.Status.PENDING:
+        return
+    case = {S.EXPIRED: "order_expired", S.FAILED: "denied"}.get(attempt.status)
+    try:
+        with transaction.atomic():
+            if case is None:
+                raise ValueError(attempt.status)  # cap estat que el soci hagi de saber
+            saved_card_outcome(charge, case, card=_card_of(attempt))
+    except Exception:  # sense la targeta o amb un estat inesperat: el tresorer ho revisa
+        logger.exception("Intent %s amb la targeta guardada sense avís", attempt.pk)
+        reason = _("Intent %(attempt)s amb la targeta guardada tancat sense avís al soci.")
+        mark_for_review(None, charge, reason % {"attempt": attempt.pk})
 
 
 def safety_net() -> None:
@@ -332,7 +375,8 @@ def _give_up(attempt: PaymentAttempt, give_up, reason: str) -> None:
         with transaction.atomic():
             if attempt.method == PaymentAttempt.Method.SAVED_CARD:
                 charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
-                saved_card_outcome(charge, "give_up", card=_card_of(attempt), attempt=attempt)
+                card = _card_of(attempt)
+                saved_card_outcome(charge, "give_up", card=card, attempt=attempt, detail=reason)
             else:
                 _review(attempt, None, reason)
     except Exception:

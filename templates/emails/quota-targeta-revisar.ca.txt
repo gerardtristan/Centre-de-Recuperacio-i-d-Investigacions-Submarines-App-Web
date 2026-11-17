@@ -1,6 +1,6 @@
 {% load i18n %}{# T-M05b-15: avís al tresorer d'una quota que la targeta guardada no ha cobrat. TEXT PROVISIONAL [A validar: tresorer]. Només referències internes: cap nom ni cap altra dada personal. #}{% autoescape off %}{% translate "Hola," %}
 
-{% blocktranslate %}La quota «{{ concept }}» (quota {{ fee_id }}, càrrec {{ charge_id }}) no s'ha cobrat amb la targeta guardada i continua pendent.{% endblocktranslate %}
+{% if maybe_charged %}{% blocktranslate %}La quota «{{ concept }}» ({{ ref }}): pot ser que s'hagi cobrat amb la targeta guardada; comprova-ho al proveïdor abans de demanar res al soci.{% endblocktranslate %}{% else %}{% blocktranslate %}La quota «{{ concept }}» ({{ ref }}) no s'ha cobrat amb la targeta guardada i continua pendent.{% endblocktranslate %}{% endif %}
 
 {% translate "Motiu:" %} {{ reason }}
 {% if erased %}{% translate "Dades esborrades (RGPD): no s'avisa el soci." %}{% elif no_email %}{% translate "El soci no té cap adreça de correu: cal avisar-lo d'una altra manera." %}{% elif member_told %}{% translate "El soci ha rebut el correu per pagar-la d'una altra manera." %}{% endif %}
