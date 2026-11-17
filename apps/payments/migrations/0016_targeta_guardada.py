@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0043_settings_vc11_permission"),
-        ("payments", "0014_ajust_recordatoris_campanya"),
+        ("payments", "0015_devolucio_descartada"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
