@@ -1089,11 +1089,12 @@ opcions:
 
   P-292:
     opcions:
-      A: L'alternativa surt quan el tresorer la confirma, com diu la 048 (com s'ha fet).
-      B: L'alternativa surt sola en registrar el retorn quan no queden intents o el mandat s'ha bloquejat.
+      A: Sense cap reintent possible, surt en registrar el retorn (el tresorer que el registra n'és l'autor); amb un reintent possible, quan el tresorer tria l'alternativa (com s'ha fet).
+      B: Sempre quan el tresorer la confirma, també sense cap reintent possible.
+      C: Sempre en registrar el retorn, sense confirmació.
     recomanada: A
     perque: >-
-      La 048 és aprovada i demana la confirmació del tresorer per tornar el càrrec a pendent; la B s'hi pot passar sense canviar dades.
+      Compleix CA-M05b-19 i 20 i la 048 alhora: quan no hi ha res a triar, registrar el retorn ja és la decisió del tresorer.
     data: 2026-11-17
 
 noves:

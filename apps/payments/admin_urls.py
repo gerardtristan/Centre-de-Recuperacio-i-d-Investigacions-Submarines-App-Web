@@ -3,7 +3,7 @@ l'espai de noms `administration` (sessió d'administració i TOTP). Cap ruta pú
 
 from django.urls import path
 
-from . import admin_views, payment_admin_views, remittance_views
+from . import admin_views, payment_admin_views, remittance_views, return_views
 
 urlpatterns = [
     path("pagaments/", payment_admin_views.payments_view, name="payments_list"),  # T-M05b-16
@@ -40,5 +40,12 @@ urlpatterns = [
         "pagaments/remeses/<int:remittance_id>/abonament/",
         remittance_views.remittance_settle_view,
         name="payments_remittance_settle",
+    ),
+    # Retornats (T-M05b-12 i 27; B4).
+    path("pagaments/retornats/", return_views.returns_view, name="payments_returns"),
+    path(
+        "pagaments/retornats/<int:item_id>/decisio/",
+        return_views.return_decision_view,
+        name="payments_return_decision",
     ),
 ]

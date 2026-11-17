@@ -1,12 +1,13 @@
 {% extends "base_admin.html" %}
 {% load i18n payments_money %}
-{# T-M05b-09 i 10, C5: remeses de quotes domiciliades (P-M05b-E, passos 1 a 3). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: totes les rutes demanen B3 (sense, «no trobat»); previsualitzar i confirmar, B3 amb edició i POST amb CSRF (sense, el formulari no arriba a l'HTML i el servidor respon «no trobat»); confirmar és un segon pas. Cap IBAN a la pantalla: només la referència del mandat. Amb el nivell 1, el servidor rebutja la remesa. #}
+{# T-M05b-09, 10 i 27, C5: remeses de quotes domiciliades (P-M05b-E, passos 1 a 3). Sense wireframe propi; només components existents. Seguretat i privacitat, al servidor: totes les rutes demanen B3 (sense, «no trobat»); previsualitzar i confirmar, B3 amb edició i POST amb CSRF (sense, el formulari no arriba a l'HTML i el servidor respon «no trobat»); confirmar és un segon pas. Cap IBAN a la pantalla: només la referència del mandat. Amb el nivell 1, el servidor rebutja la remesa. #}
 {% block title %}{% translate "Remeses" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
   <h1>{% translate "Remeses" %}</h1>
   <p class="text-2">{% translate "Quotes pendents dels socis que han triat la domiciliació, amb mandat actiu. Cada deutor rep l'avís previ en confirmar-la." %}</p>
+  {% if can_see_returns %}<p><a href="{% url 'administration:payments_returns' %}">{% translate "Rebuts retornats" %}</a></p>{% endif %}
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
@@ -33,7 +34,7 @@
                   <tr>
                     <th scope="row" class="cel-nom">{{ fee.member.person }} <span class="codi">{% blocktranslate with number=fee.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
                     <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ fee.charge.amount_cents|euros }}</span></td>
-                    <td data-etiqueta="{% translate 'Motiu' %}"><span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ reason }}</span></td>
+                    <td data-etiqueta="{% translate 'Motiu' %}"><span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ reason }}</span>{% if reason == exhausted %} <span class="text-2">{% translate "Proposta: alternativa de pagament (targeta, Bizum o transferència)." %}</span>{% endif %}</td>
                   </tr>
                 {% endfor %}
               </tbody>
