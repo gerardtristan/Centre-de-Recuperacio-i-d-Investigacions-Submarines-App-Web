@@ -27,9 +27,9 @@ from apps.core import consents
 from apps.core.persons import language_for
 from apps.members.models import Member
 
-from . import mandates
+from . import mandates, preferences
 from .forms import MandateForm, RecentAuthForm
-from .models import SepaMandate
+from .models import FeeMethod, SepaMandate
 
 MANDATE_TEXT = "sepa_mandate"
 
@@ -107,6 +107,8 @@ def mandate_view(request):
                         creditor_identifier=creditor,
                         evidence={"channel": "web", "text_version": text.version},
                     )
+                    # Signar és triar la domiciliació amb aquest mandat (P-125, decisió 095).
+                    preferences.set_preference(member, FeeMethod.DIRECT_DEBIT, by=account)
                     mandates.mail_member(mandates.SIGNED_TEMPLATE, mandate)
                 messages.success(
                     request,

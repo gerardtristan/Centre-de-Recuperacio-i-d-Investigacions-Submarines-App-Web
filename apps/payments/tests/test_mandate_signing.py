@@ -15,13 +15,14 @@ from apps.accounts.tests.test_reauth import NOT_IT
 from apps.core.models import AuditEntry, LegalText, OutgoingEmail
 from apps.members.models import Member
 from apps.members.tests.test_cards import make_member
-from apps.payments.models import MandateBankAccount, SepaMandate
+from apps.payments.models import FeePaymentPreference, MandateBankAccount, SepaMandate
 from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
 
 URL = reverse("payments:mandate")
 IBAN = "ES5500000000000000000001"
+IBAN_2 = "ES2800000000000000000002"
 BAD_IBAN = "ES5600000000000000000001"  # un dígit de control canviat
 CREDITOR = "ES00ZZZ00000000"
 
@@ -133,6 +134,21 @@ class TestSigning:
         assert "ES … 0001" in page and IBAN[4:] not in page
         # La referència del mandat següent, al formulari per canviar l'IBAN.
         assert "CRIS001287M02" in browser.get(URL + "?canvia=1").content.decode()
+
+    def test_p_125_signing_sets_the_preference_to_direct_debit_with_this_mandate(
+        self, browser, text, member, account
+    ):
+        FeePaymentPreference.objects.create(member=member, method="pay_each_time", set_by=account)
+        sign(browser)
+        first = SepaMandate.objects.get()
+        preference = FeePaymentPreference.objects.get(member=member)
+        assert (preference.method, preference.mandate) == ("direct_debit", first)
+        assert preference.set_by == account
+        # Canviar l'IBAN signa un mandat nou: la preferència el segueix.
+        sign(browser, iban=IBAN_2)
+        second = SepaMandate.objects.get(status=SepaMandate.Status.ACTIVE)
+        assert FeePaymentPreference.objects.get(member=member).mandate == second
+        assert AuditEntry.objects.filter(action="payments.fee_preference.set").count() == 2
 
     def test_another_holder_is_declared(self, browser, text):
         sign(browser, holder_name="Pere Prova", other_holder="on")

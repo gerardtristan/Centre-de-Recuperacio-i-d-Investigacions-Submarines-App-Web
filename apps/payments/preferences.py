@@ -6,7 +6,8 @@
   comprovacions de la base de dades ho tornen a exigir). Sense, la pantalla porta a signar-lo o a
   guardar-la; aquí no es desa res.
 - «Pagar cada vegada» amb un mandat actiu el deixa actiu (P-134, opció per defecte A).
-- Signar un mandat no canvia la preferència (P-125, opció per defecte: no).
+- Signar un mandat des del compte personal passa la preferència a la domiciliació amb aquest
+  mandat (P-125, decisió 095); ho fa la vista de signatura.
 """
 
 from django.db import transaction
