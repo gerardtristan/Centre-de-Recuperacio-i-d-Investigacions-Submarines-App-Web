@@ -34,6 +34,8 @@ _bizum_expiry: dict[str, datetime] = {}
 _settlements: list[base.ProviderSettlementReport] = []
 # La targeta que ha guardat cada autenticació acabada.
 _cards: dict[str, base.ProviderCard] = {}
+# Targetes amb què el banc demana autenticació per cobrar (RN-M05b-20; `require_authentication`).
+_authentication: set[str] = set()
 
 
 def sign(body: bytes, key: str = SIGNING_KEY) -> str:
@@ -47,6 +49,7 @@ def reset() -> None:
     _bizum_expiry.clear()
     _settlements.clear()
     _cards.clear()
+    _authentication.clear()
 
 
 class FakeProvider(base.PaymentProvider):
@@ -85,6 +88,22 @@ class FakeProvider(base.PaymentProvider):
         _urls[external_id] = urls
         pay_url = f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/"
         return base.ProviderOrder(external_id=external_id, pay_url=pay_url, expires_at=None)
+
+    def _charge_saved_card(self, charge, saved_card, idempotency_key: UUID) -> base.ProviderOrder:
+        """Pagament directe amb la targeta guardada: l'ordre queda oberta fins a la notificació.
+        Si el banc demana autenticació, l'ordre porta l'adreça on el titular s'ha d'autenticar
+        (format [A verificar: P-45 punt 6])."""
+        external_id = self.saved_card_order_id(idempotency_key)
+        _orders.setdefault(
+            external_id,
+            base.OrderState(external_id, base.PENDING, charge.amount_cents, charge.currency),
+        )
+        needs_auth = saved_card.provider_card_id in _authentication
+        pay_url = f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/" if needs_auth else ""
+        return base.ProviderOrder(external_id=external_id, pay_url=pay_url, expires_at=None)
+
+    def saved_card_order_id(self, idempotency_key: UUID) -> str:
+        return f"fake-{idempotency_key.hex}"
 
     def get_card_setup(self, external_id: str) -> base.ProviderCard:
         try:
@@ -186,6 +205,10 @@ class FakeProvider(base.PaymentProvider):
             sort_keys=True,
         ).encode()
         return body, {SIGNATURE_HEADER: sign(body, key)}
+
+    def require_authentication(self, card_ref: str) -> None:
+        """El banc d'aquesta targeta demanarà autenticació en el proper cobrament."""
+        _authentication.add(card_ref)
 
     def settle(
         self, operations, *, fees_cents: int, settled_on=None, external_id: str | None = None

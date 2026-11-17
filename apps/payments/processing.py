@@ -139,7 +139,8 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
     attempt = attempts.transition(attempt, S.PAID, by=by)
     payment = charges.record_payment(
         charge,
-        method=attempt.method,
+        # Per a la 00 i la tresoreria, una targeta guardada és una targeta.
+        method=attempt.payment_method,
         origin="provider",
         by=by,
         provider_status=state.status,
@@ -152,15 +153,19 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
         members.on_fee_paid(fee.pk)
 
 
-def _review(attempt: PaymentAttempt | None, source, reason: str) -> str:
+def mark_for_review(attempt, source, reason: str) -> str:
     """«A revisar»: l'intent en curs hi passa amb el motiu; si l'intent ja estava tancat o no
-    n'hi ha, el motiu queda al registre, sobre la notificació o l'intent."""
+    n'hi ha, el motiu queda al registre (`TO_REVIEW`, d'on surt la llista «a revisar»), sobre la
+    notificació, el càrrec o l'intent. I l'avís al tresorer."""
     if attempt is not None and attempt.status == S.IN_PROGRESS:
         attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
     else:
         audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
     _mail_review(attempt, source, reason)
     return R.TO_REVIEW
+
+
+_review = mark_for_review
 
 
 def _mail_review(attempt, source, reason: str) -> None:

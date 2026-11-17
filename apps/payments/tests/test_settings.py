@@ -53,6 +53,7 @@ def test_vc_17_values_come_from_the_migration_with_their_ranges():
         (remittances.PRENOTIFICATION_DAYS, 14, 14, 30),  # VC-16 (T-M05b-09)
         (AGE, 60, 30, 240),
         (GIVE_UP, 24, 24, 168),
+        (checkout.WINDOW, 7, 0, 60),  # P-302 (T-M05b-15a)
     ]
     assert not any(s.affects_money or s.effective_dated for s in rows)
 
@@ -154,7 +155,7 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         finally:
             MigrationExecutor(connection).migrate(leaves)
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
-        assert after == before and len(after) == 6
+        assert after == before and len(after) == 7  # +1 de la T-M05b-15a
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
 

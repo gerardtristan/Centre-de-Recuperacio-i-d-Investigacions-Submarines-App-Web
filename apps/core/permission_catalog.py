@@ -528,6 +528,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
+    # T-M05b-15a: quants dies després del venciment es cobra una quota amb la targeta guardada.
+    _perm(
+        "settings.edit.payments.saved_card_charge_window_days",
+        "AJ5b-7",
+        _("Dies després del venciment en què es cobra una quota amb la targeta guardada"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})
