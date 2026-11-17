@@ -450,6 +450,8 @@ Del recurs Errata ([pla dels recursos externs](plans/recursos-disseny-extern.md)
 - **Encara no:** la validació en sortir de cada camp, l'índex de seccions i el «Tot correcte» del recurs. Demanen repetir al navegador les regles del servidor; es faran en una tasca pròpia.
 - **On és:** el formulari «Fer-se soci» (web i alta presencial). Els altres formularis s'hi afegeixen quan es toquin.
 
+- **On (T-DX-48):** també als formularis del mandat (signar, revocar el soci i el tresorer) i a obrir la campanya. Substitueix l'avís separat dels errors generals: dos `role="alert"` llegirien el mateix dues vegades. El text del resum fa servir la mateixa barreja que Ramillete, perquè dins d'una targeta `--c-text-2` no arribava a 4,5:1 al fosc. «Com pago la quota» no en porta: no té formulari de Django (els errors són un missatge després de redirigir).
+
 ### 6.11 Solapas: pestanyes de les fitxes obertes (T-DX-07)
 Del recurs Solapas ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la pestanya arrodonida per dalt que s'uneix amb la fulla, la franja de color de l'activa, la × que surt en passar-hi o a l'activa, el punt de canvis sense desar i el menú «+N» amb les que no hi caben.
 - **Peça:** `static/js/solapas.js` i `static/css/solapas.css`; la tira és a `base.html`, a dalt del contingut, només amb una sessió de l'administració. Una fitxa que es vol a les pestanyes posa `{% block solapa %}<meta name="cris-solapa" content="…">{% endblock %}`. De moment, la fitxa del soci («Soci 12») i la de les sol·licituds («Baixa 34»).
@@ -466,6 +468,8 @@ Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.
 - **Teclat:** el focus va a la primera opció en obrir; Tab i les fletxes hi queden atrapats; Esc el tanca i torna al botó; tocar fora també el tanca.
 - **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`).
 - **Del recurs no s'hi fa:** la barra lateral a partir de 760 px (a l'escriptori, la capçalera ja fa aquesta feina) ni les fulles de cada acció.
+
+- **Contrast (T-DX-48, P-283):** les pestanyes inactives fan servir `color-mix(in oklch, var(--c-text-2) 55%, var(--c-text))`: `--c-text-2` sobre la barra flotant feia 4,18:1 al fosc. Continuen diferents de l'activa (`--c-text` i la marca).
 
 ### 6.13 Tramite: els passos d'un pagament (T-DX-10)
 Del recurs Tramite ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la línia de passos que s'omple d'una etapa a la següent, l'etapa en groc quan el proveïdor no completa el pagament i el segell en confirmar-se.

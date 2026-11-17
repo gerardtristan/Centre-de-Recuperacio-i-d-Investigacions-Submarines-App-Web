@@ -30,7 +30,7 @@
       {% csrf_token %}
       <h2>{% if active %}{% translate "Canvia l'IBAN: signa un mandat nou" %}{% else %}{% translate "Signa el mandat SEPA" %}{% endif %}</h2>
       {% if active %}<p class="text-2">{% blocktranslate with reference=active.reference %}En signar-lo, el mandat {{ reference }} es revocarà amb el motiu «substituït».{% endblocktranslate %}</p>{% endif %}
-      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
       {% include "accounts/_camp.html" with field=form.holder_name %}
       {% include "accounts/_camp.html" with field=form.other_holder %}
       <p class="text-2"><span class="a-validar">{% translate "A validar: junta i banc (L-M05a-01)" %}</span></p>

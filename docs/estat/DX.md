@@ -71,3 +71,4 @@ Mapa, ordre i detall de cada tasca: [`plans/recursos-disseny-extern.md` §7](../
 | T-DX-41 Signatures de correu (Antefirma), en construcció | per fer | — | — | P-92 |
 | T-DX-42 | feta | 16/11/2026 | #106 | P-91 (A). Àrea del soci: avisos de la junta que es confirmen (amb el dia i l'hora) i textos legals amb la versió acceptada o la nova per acceptar; sense signatura amb el dit |
 | T-DX-47 Menú de l'administració: «Pagaments: llistat» i «Pagaments: remeses» | feta | 17/11/2026 | #146 | Petició del pilot després de la #140 i la #142. Llistat amb B6 (`payments.view`), remeses amb B3 (`payments.remittances`), com les vistes |
+| T-DX-48 Contrast de Ramillete (P-283), Errata als formularis del mandat i `.codi` que parteix | feta | 17/11/2026 | #PR | Peticions del pilot després de la #150 i per a la #151. Treu l'`xfail` i la «incidència coneguda» de `test_accessibilitat_mandat.py` |

@@ -75,7 +75,7 @@ def test_treasurer_revokes_a_mandate_on_written_request(
     expect(page.get_by_role("heading", name="Revoca el mandat")).to_be_visible()
     expect(page.get_by_text("ES … 0001")).to_be_visible()
     page.get_by_role("button", name="Sí, revoca'l").click()
-    expect(page.get_by_text("Cal el motiu.")).to_be_visible()
+    expect(page.locator("#id_reason_error")).to_contain_text("Cal el motiu.")
     page.get_by_label("Motiu").fill("Correu del soci del 15/11/2026.")
     review("revoca-mandat-admin")
     page.get_by_role("button", name="Sí, revoca'l").click()

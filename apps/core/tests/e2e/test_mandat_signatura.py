@@ -50,7 +50,7 @@ def test_member_signs_the_mandate(page, live_server, transactional_db, settings,
     page.get_by_label("Accepto el mandat SEPA amb aquest text.").check()
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Signa el mandat").click()
-    expect(page.get_by_text("L'IBAN no és vàlid")).to_be_visible()
+    expect(page.locator("#id_iban_error")).to_contain_text("L'IBAN no és vàlid")
     expect(page.get_by_label("IBAN")).to_have_value("")
     review("mandat-iban-no-valid")
 

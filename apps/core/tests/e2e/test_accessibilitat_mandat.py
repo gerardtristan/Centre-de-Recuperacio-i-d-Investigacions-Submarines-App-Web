@@ -9,9 +9,8 @@ revocació del tresorer (també amb errors) i la campanya. A més:
 - a 320 px cap pantalla es desplaça de costat;
 - sense sessió, la pantalla porta a l'entrada i hi torna després d'entrar.
 
-Una incidència coneguda és de la sessió de disseny i no es corregeix aquí (P-283): el contrast de
-les pestanyes de la barra inferior del mòbil en fosc (`.ramillete-pestanya`, 4,18:1). Es treu de la
-comprovació general i té la seva prova `xfail`, que passarà a fallar quan es corregeixi.
+El contrast de les pestanyes de la barra inferior del mòbil en fosc (`.ramillete-pestanya`, P-283)
+es va corregir a la T-DX-48: ja no hi ha cap incidència coneguda.
 
 Els informes es desen a `.e2e-captures/accessibilitat/`. Només dades inventades. El que necessita
 una persona o un telèfon real és al diari de la tasca."""
@@ -71,27 +70,6 @@ def each_width(page, name, results, prepare=None):
         if overflow > 0:
             results[f"{name}-{width}"]["structure"].append(f"es desplaça de costat ({overflow} px)")
     page.set_viewport_size({"width": 1280, "height": 900})
-
-
-KNOWN = ("color-contrast", ".ramillete-pestanya")  # P-283, sessió de disseny
-
-
-def known(rule) -> bool:
-    return rule["regla"] == KNOWN[0] and all(
-        KNOWN[1] in str(element["selector"]) for element in rule["elements"]
-    )
-
-
-def split_known(results) -> list[str]:
-    """Treu de les violacions la incidència coneguda i torna on surt."""
-    found = []
-    for name, result in results.items():
-        for theme, axe in result["axe"].items():
-            for rule in [rule for rule in axe["violacions"] if known(rule)]:
-                axe["violacions"].remove(rule)
-                axe.setdefault("coneguts", []).append(rule)
-                found.append(f"{name} ({theme})")
-    return found
 
 
 def errors_are_described(page, expected: set) -> None:
@@ -161,8 +139,6 @@ def test_member_mandate_flow(page, live_server, flow):
     assert "next=/socis/pagaments/metode/" in page.url
     audit(page, "soci-sense-sessio-1280", results)
 
-    found = split_known(results)
-    assert found, "La incidència coneguda ja no surt: treu-la de KNOWN i tanca la P-283."
     save(results, "mandat-soci")
     assert not problems(results), "\n".join(problems(results))
 
@@ -189,7 +165,7 @@ def test_treasurer_mandate_screens(page, live_server, flow):
     def empty_revoke():
         page.goto(f"{base}{revoke}")
         page.get_by_role("button", name="Sí, revoca'l").click()
-        expect(page.get_by_text("Cal el motiu.")).to_be_visible()
+        expect(page.locator("#id_reason_error")).to_contain_text("Cal el motiu.")
 
     each_width(page, "admin-revoca-errors", results, empty_revoke)
     errors_are_described(page, {"reason"})
@@ -197,12 +173,10 @@ def test_treasurer_mandate_screens(page, live_server, flow):
     page.goto(f"{base}{reverse('administration:payments_campaign')}")
     each_width(page, "admin-campanya", results)
 
-    split_known(results)
     save(results, "mandat-administracio")
     assert not problems(results), "\n".join(problems(results))
 
 
-@pytest.mark.xfail(strict=True, reason="P-283: contrast de .ramillete-pestanya en fosc (disseny)")
 def test_mobile_tab_bar_contrast_in_dark(page, live_server, flow):
     page.goto(f"{live_server.url}/entrar/")
     page.get_by_label("Correu electrònic").fill(EMAIL)
@@ -212,4 +186,4 @@ def test_mobile_tab_bar_contrast_in_dark(page, live_server, flow):
     page.goto(f"{live_server.url}{reverse('payments:fee_method')}")
     results = {}
     audit(page, "soci-com-pago-390", results)
-    assert not split_known(results)
+    assert not problems(results), " | ".join(problems(results))  # P-283 (T-DX-48)
