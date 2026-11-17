@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings, charges
-from apps.core.models import AuditEntry, Charge, LegalText, OutgoingEmail, Role
+from apps.core.models import AuditEntry, Charge, LegalText, OutgoingEmail, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import AnnualFee
 from apps.members.tests.test_cards import make_member
@@ -135,6 +135,14 @@ def test_motius_d_exclusio(signer, text):
     cancelled = new_fee(included.member, period=2025)
     charges.cancel(cancelled.charge, "Prova", by=audit.system("proves"))
 
+    erased = new_member(8, signer=signer, text=text)
+    # Persona anonimitzada amb el mandat encara actiu (cas que l'esborrat ja no deixa: P-213).
+    Person.objects.filter(pk=erased.member.person_id).update(
+        status=Person.Status.ANONYMISED, anonymous_ref="A-0008"
+    )
+    blocked = new_member(9, signer=signer, text=text)
+    SepaMandate.objects.filter(member=blocked.member).update(status=SepaMandate.Status.BLOCKED)
+
     selection = remittances.preview(collection_date())
 
     assert [fee for fee, _m in selection.included] == [included]
@@ -143,6 +151,8 @@ def test_motius_d_exclusio(signer, text):
         each_time: "No ha triat la domiciliació",
         busy: "Té un pagament en curs o en una altra remesa",
         revoked: "Sense mandat actiu",
+        erased: "Dades personals esborrades",
+        blocked: "Sense mandat actiu",
     }
 
 

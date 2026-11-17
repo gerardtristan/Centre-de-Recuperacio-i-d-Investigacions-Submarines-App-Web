@@ -3,7 +3,8 @@ P-M05b-E, passos 1 a 3; RN-M05b-10 i 11; CA-M05b-12, 13 i 16).
 
 - Entren les quotes «pendent» que vencen com a molt el dia del cobrament, d'un soci que ha triat
   la domiciliació i té un mandat actiu, sense cap intent en curs (RN-M05b-10; quines quotes,
-  [P-230](docs/decisions/pendents.md)). La resta surt a la llista d'excloses amb el motiu.
+  [P-230](docs/decisions/pendents.md)), mai d'una persona esborrada ni amb un mandat bloquejat
+  ([P-213](docs/decisions/pendents.md)). La resta surt a la llista d'excloses amb el motiu.
 - Confirmar-la demana el nivell 2 (RN-M05a-11, `ensure_charges_allowed`) i una data de cobrament
   que deixi temps per a l'avís previ (RN-M05b-11, `payments.prenotification_days`).
 - En confirmar-la, cada deutor rep l'avís previ per la cua (P-M05b-E, pas 4; CA-M05b-14).
@@ -19,7 +20,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge
+from apps.core.models import Charge, Person
 from apps.members import recipients
 from apps.members.models import AnnualFee
 
@@ -39,6 +40,7 @@ PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
 IN_FLIGHT = (PaymentAttempt.Status.IN_PROGRESS, PaymentAttempt.Status.SENT_TO_BANK)
 
 # Motius d'exclusió de la previsualització.
+ERASED = _("Dades personals esborrades")
 NO_MANDATE = _("Sense mandat actiu")
 NOT_DIRECT_DEBIT = _("No ha triat la domiciliació")
 IN_PROGRESS = _("Té un pagament en curs o en una altra remesa")
@@ -94,7 +96,11 @@ def preview(collection_date: date) -> Preview:
     result = Preview()
     for fee in fees:
         mandate = mandates.get(fee.member_id)
-        if mandate is None:
+        # P-213 (opció per defecte): mai una persona esborrada, encara que li quedi un mandat
+        # actiu; un mandat bloquejat ja no és actiu (L-M05a-06).
+        if fee.member.person.status == Person.Status.ANONYMISED:
+            result.excluded.append((fee, ERASED))
+        elif mandate is None:
             result.excluded.append((fee, NO_MANDATE))
         elif fee.member_id not in debit:
             result.excluded.append((fee, NOT_DIRECT_DEBIT))
