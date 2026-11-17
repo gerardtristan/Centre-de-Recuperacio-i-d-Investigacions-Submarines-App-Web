@@ -105,7 +105,6 @@ def fee_method_view(request):
     context = {
         "preference": preference,
         "mandate": preferences.active_mandate(member),
-        "mandate_url": _mandate_url(),
         "options": options,
     }
     return render(request, "payments/fee_method.html", context)

@@ -21,10 +21,11 @@
     {% else %}
       <p>{% translate "Ara pagues la quota <strong>cada vegada</strong> que es genera." %}</p>
       {% if mandate %}
+        {# P-134, resposta C (decisió 095): es pregunta; si no respon, el mandat queda actiu i la remesa no l'agafa perquè segueix la preferència. Revocar funciona sempre (P-127). #}
         <div class="avis avis-sistema">
-          {% blocktranslate with reference=mandate.reference %}El mandat <span class="codi">{{ reference }}</span> continua actiu, però no es fa servir per cobrar la quota. Si no el vols, el pots revocar a la pàgina del mandat.{% endblocktranslate %}
-          {% if mandate_url %}<a href="{{ mandate_url }}">{% translate "Veure el mandat" %}</a>{% endif %}
-          <span class="a-validar">{% translate "A validar: P-134" %}</span>
+          <p><strong>{% blocktranslate with reference=mandate.reference %}Vols revocar el mandat <span class="codi">{{ reference }}</span>?{% endblocktranslate %}</strong></p>
+          <p>{% translate "Si no fas res, el mandat continua actiu però no entra a cap remesa: no es fa servir per cobrar la quota." %}</p>
+          <a class="boto" href="{% url 'payments:mandate_revoke' %}">{% translate "Revoca el mandat…" %}</a>
         </div>
       {% endif %}
     {% endif %}
