@@ -6,8 +6,9 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
 - «Pagat» només arriba des del proveïdor (notificació verificada, 05b) o d'una conciliació
   confirmada pel tresorer (04). El registre manual està bloquejat per P-12 (RN-72) i cap vista
   del navegador no crida `mark_paid` (RN-71, CA-15.7).
-- Transicions que hi afegeixen altres tasques: «retornat → pendent» (048, T-M05b-01) i
-  «pagat → pendent» (045, T-M04-12), que només fa `revert_paid_transfer`.
+- Transicions que hi afegeixen altres tasques: «retornat → pendent» (048, T-M05b-01), que
+  només fa `reopen_returned`, i «pagat → pendent» (045, T-M04-12), que només fa
+  `revert_paid_transfer`.
 """
 
 from decimal import Decimal
@@ -20,7 +21,14 @@ from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 
 from . import audit
-from .models import Charge, Department, Payment, PaymentCancellation, validate_cents
+from .models import (
+    AuditEntry,
+    Charge,
+    Department,
+    Payment,
+    PaymentCancellation,
+    validate_cents,
+)
 from .permissions import has_perm
 
 S = Charge.Status
@@ -35,6 +43,8 @@ TRANSITIONS = {
 
 # 045: «pagat → pendent», fora de TRANSITIONS perquè només la fa `revert_paid_transfer`.
 REVERT_TRANSFER = (S.PAID, S.PENDING)
+# 048 (RN-M05b-14): «retornat → pendent», fora de TRANSITIONS perquè només la fa `reopen_returned`.
+REOPEN_RETURNED = (S.RETURNED, S.PENDING)
 
 PAID_ORIGINS = {"provider", "reconciliation"}
 
@@ -243,16 +253,7 @@ def revert_paid_transfer(charge: Charge, reason: str, *, by) -> PaymentCancellat
         raise ValidationError(
             _("Només una transferència conciliada torna a pendent; la resta, amb una devolució.")
         )
-    cancellation = PaymentCancellation.objects.create(
-        payment=payments[0], reason=reason.strip(), cancelled_by=by
-    )
-    audit.record(
-        PAYMENT_CANCELLED,
-        actor=by,
-        target=payments[0],
-        reason=reason,
-        details={"charge": locked.pk, "origin": "045"},
-    )
+    cancellation = _cancel_payment(payments[0], reason, by=by, origin="045")
     _transition(
         charge,
         S.PENDING,
@@ -262,3 +263,73 @@ def revert_paid_transfer(charge: Charge, reason: str, *, by) -> PaymentCancellat
         allowed={REVERT_TRANSFER},
     )
     return cancellation
+
+
+def _cancel_payment(payment: Payment, reason: str, *, by, origin: str) -> PaymentCancellation:
+    """El pagament no es toca: una fila nova diu que ja no compta, amb el motiu i qui."""
+    cancellation = PaymentCancellation.objects.create(
+        payment=payment, reason=reason.strip(), cancelled_by=by
+    )
+    audit.record(
+        PAYMENT_CANCELLED,
+        actor=by,
+        target=payment,
+        reason=reason,
+        details={"charge": payment.charge_id, "origin": origin},
+    )
+    return cancellation
+
+
+def _can_handle_returns(by) -> bool:
+    # shortcut: T4 fa de B4 («Registrar retornats i decidir el reintent», només el tresorer,
+    # M05b-4) fins que el catàleg tingui B4 (T-M05b-12); llavors, B4.
+    return has_perm(by, RECONCILE, write=True)
+
+
+@transaction.atomic
+def mark_returned(charge: Charge, reason: str, *, by) -> PaymentCancellation:
+    """RN-67 (CA-M05b-18): «pagat → retornat» quan el banc retorna un rebut domiciliat. `reason`:
+    el codi i el motiu del banc. El pagament queda anul·lat amb el mateix motiu (P-240, opció per
+    defecte): ja no compta per a la validesa del soci (RN-M05b-18) i, si el càrrec es reobre i es
+    torna a pagar, només compta el pagament nou. Tot o res i al registre. Només el tresorer (B4);
+    sense, «no trobat». Ni la sortida i la comissió del retorn (04) ni l'avís al soci
+    (`members.on_fee_returned`) són d'aquí: els fa el flux de retornats del 05b (T-M05b-12)."""
+    if not _can_handle_returns(by):
+        raise Http404
+    if not reason.strip():
+        raise ValidationError(_("Per marcar un càrrec com a retornat cal un motiu."))
+    locked = Charge.objects.select_for_update().get(pk=charge.pk)
+    if locked.status != S.PAID:
+        raise ValidationError(_("Només es pot marcar com a retornat un càrrec pagat."))
+    payments = active_payments(locked)
+    # Els retornats són de rebuts domiciliats (M05b-6, DirectDebitItem); la resta, devolució.
+    if len(payments) != 1 or payments[0].method != Payment.Method.DIRECT_DEBIT:
+        raise ValidationError(
+            _("Només es retorna un rebut domiciliat; la resta es corregeix amb una devolució.")
+        )
+    cancellation = _cancel_payment(payments[0], reason, by=by, origin="RN-M05b-14")
+    _transition(charge, S.RETURNED, by=by, reason=reason, details={"payment": payments[0].pk})
+    return cancellation
+
+
+@transaction.atomic
+def reopen_returned(charge: Charge, reason: str, *, by) -> Charge:
+    """048 (RN-M05b-14; CA-M05b-18): «retornat → pendent» quan el tresorer confirma un reintent a
+    una remesa posterior o envia l'alternativa de pagament. Motiu obligatori i al registre. El
+    retorn i la seva comissió ja són a la tresoreria i no es toquen; el pagament nou entra per
+    `record_payment`, amb el seu ingrés. Només el tresorer (B4) o el procés que aplica el reintent
+    que ell ha confirmat (un actor «sistema»); la resta, «no trobat». Quants intents i què es fa
+    segons el codi del retorn (RN-M05b-15) és del 05b."""
+    system = isinstance(by, audit.Actor) and by.kind == AuditEntry.ActorKind.SYSTEM
+    if not (system or _can_handle_returns(by)):
+        raise Http404
+    if not reason.strip():
+        raise ValidationError(_("Per tornar a pendent un càrrec retornat cal un motiu."))
+    return _transition(
+        charge,
+        S.PENDING,
+        by=by,
+        reason=reason,
+        details={"origin": "048"},
+        allowed={REOPEN_RETURNED},
+    )
