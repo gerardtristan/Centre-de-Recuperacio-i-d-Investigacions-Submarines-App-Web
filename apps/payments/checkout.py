@@ -14,7 +14,6 @@ from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.accounts.models import Account
@@ -33,7 +32,7 @@ from .models import (
     SavedCardNotice,
 )
 from .providers import get_provider
-from .providers.base import OrderUrls
+from .providers.base import OrderUrls, ProviderError
 
 # Què ha de fer la pantalla amb `PaymentStart.url`: enviar-hi el navegador o incrustar-la.
 REDIRECT = "redirect"
@@ -285,10 +284,13 @@ NOT_CHARGED = "payments.saved_card.not_charged"
 SAVED_CARD_ACTOR = "payments.saved_card"
 AUTHENTICATION = gettext_lazy("RN-M05b-20: el banc demana autenticació")
 NOT_PENDING = gettext_lazy("La quota ha deixat d'estar pendent abans de cobrar-la.")
+AMOUNT_CHANGED = gettext_lazy("L'import de la quota ha canviat abans de cobrar-la.")
+PROVIDER_ERROR = gettext_lazy("El proveïdor no ha respost en cobrar amb la targeta guardada.")
 # Per què una targeta guardada no cobra una quota: el motiu per al tresorer i si s'avisa el soci
 # (T-M05b-15b). Només la targeta que ja no serveix és cosa del soci; la resta, del tresorer.
-CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING = (
+CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING, OTHER_PERSON = (
     "card_closed", "not_member", "preference", "provider", "not_fee", "transfer_waiting",
+    "other_person",
 )  # fmt: skip
 CASES = {
     CARD_CLOSED: (gettext_lazy("La targeta guardada ja no es pot fer servir."), True),
@@ -296,6 +298,7 @@ CASES = {
     PREFERENCE: (gettext_lazy("La preferència de la quota ja no és aquesta targeta."), False),
     PROVIDER: (gettext_lazy("La targeta és d'un altre proveïdor."), False),
     NOT_FEE: (gettext_lazy("El càrrec no és una quota anual."), False),
+    OTHER_PERSON: (gettext_lazy("Dades incoherents: la targeta és d'una altra persona."), False),
     TRANSFER_WAITING: (
         gettext_lazy("Té una transferència en espera: no es cobra la targeta."),
         False,
@@ -324,11 +327,9 @@ def _unusable(card: SavedCard | None, charge: Charge, provider) -> str | None:
         return PREFERENCE
     if card.provider_code != provider.code:
         return PROVIDER
-    if (
-        card.status != SavedCard.Status.ACTIVE
-        or card.person_id != charge.person_id
-        or _expired(card, timezone.localdate())
-    ):
+    if card.person_id != charge.person_id:
+        return OTHER_PERSON
+    if card.status != SavedCard.Status.ACTIVE or _expired(card, timezone.localdate()):
         return CARD_CLOSED
     return None
 
@@ -366,32 +367,25 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
 def _charge(attempt: PaymentAttempt, card: SavedCard, provider) -> PaymentAttempt:
     """Segona transacció, amb el mateix ordre de bloqueig que `settle` (càrrec i després intent):
     si la quota ja no és pendent o l'import ha canviat, l'intent es tanca sense cobrar; si no, es
-    cobra l'import de l'intent. Una ordre diferent de l'esperada es desa (la seva notificació
-    trobarà l'intent) i va «a revisar». Si el banc demana autenticació (RN-M05b-20, P-303),
-    l'intent es tanca de seguida: ningú no la pot completar fora de sessió, i l'adreça no es desa
-    ni s'envia enlloc."""
+    cobra l'import de l'intent, amb el càrrec bloquejat durant la crida (com `start_payment`). Si
+    el banc demana autenticació (RN-M05b-20, P-303), l'intent es tanca de seguida: ningú no la pot
+    completar fora de sessió, i l'adreça no es desa ni s'envia enlloc."""
     by = audit.system(SAVED_CARD_ACTOR)
     with transaction.atomic():
         charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
         if attempt.status != S.IN_PROGRESS:
             return attempt
-        if charge.status != Charge.Status.PENDING or charge.amount_cents != attempt.amount_cents:
-            reason = str(NOT_PENDING)
-            return attempts.transition(attempt, S.ABANDONED, by=by, reason=reason)
+        if charge.status != Charge.Status.PENDING:
+            return attempts.transition(attempt, S.ABANDONED, by=by, reason=str(NOT_PENDING))
+        if charge.amount_cents != attempt.amount_cents:
+            attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AMOUNT_CHANGED))
+            processing.mark_for_review(None, charge, str(AMOUNT_CHANGED))
+            return attempt
         order = provider.charge_saved_card(charge, card, attempt.idempotency_key)
         details = {"provider": attempt.provider_code, "order": order.external_id, "card": card.pk}
         audit.record("payments.order_created", actor=by, target=attempt, details=details)
-        if order.external_id != attempt.provider_order_id:
-            expected = attempt.provider_order_id
-            attempt.provider_order_id = order.external_id
-            attempt.save(update_fields=["provider_order_id", "updated_at"])
-            reason = _("El proveïdor ha tornat l'ordre %(order)s en lloc de %(expected)s.") % {
-                "order": order.external_id,
-                "expected": expected,
-            }
-            processing.mark_for_review(None, attempt, reason)
-        elif order.pay_url:
+        if order.pay_url:
             attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AUTHENTICATION))
     return attempt
 
@@ -406,7 +400,12 @@ def charge_saved_card(charge: Charge, card: SavedCard | None, *, provider=None) 
         ensure_charges_allowed("charge_saved_card")  # abans de cap transacció (CA-M05a-09)
         provider = get_provider()
     attempt, card = _open_saved_card_attempt(charge, card, provider)
-    return _charge(attempt, card, provider)
+    try:
+        return _charge(attempt, card, provider)
+    except ProviderError:
+        # L'intent conserva la seva ordre: la xarxa de seguretat la consulta; el tresorer ho sap ja.
+        processing.mark_for_review(None, attempt.charge, str(PROVIDER_ERROR))
+        raise
 
 
 def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
@@ -427,10 +426,14 @@ def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
 
 def due_saved_card_charges(today):
     """Les quotes pendents que ja han vençut dels socis que paguen amb la targeta guardada, amb
-    la targeta de la preferència (P-302: el dia del venciment). Què se'n fa ho decideix
+    la targeta de la preferència (P-302: el dia del venciment). Només les que vencen d'ençà que
+    el soci va triar la targeta: les anteriors no es cobren mai sense avís. Què se'n fa ho decideix
     `charge_saved_card`, sota el bloqueig del càrrec."""
-    preferences = FeePaymentPreference.objects.filter(method=SAVED_CARD)
-    cards = {p.member_id: p.saved_card for p in preferences.select_related("saved_card")}
+    preferences = FeePaymentPreference.objects.filter(method=SAVED_CARD).select_related(
+        "saved_card"
+    )
+    cards = {p.member_id: p.saved_card for p in preferences}
+    since = {p.member_id: timezone.localdate(p.since) for p in preferences}
     due = (
         Charge.objects.filter(
             status=Charge.Status.PENDING,
@@ -441,14 +444,13 @@ def due_saved_card_charges(today):
         .select_related("annual_fee")
         .order_by("pk")
     )
-    return [(c, cards[c.annual_fee.member_id]) for c in due]
+    member = lambda c: c.annual_fee.member_id  # noqa: E731
+    return [(c, cards[member(c)]) for c in due if c.annual_fee.due_on >= since[member(c)]]
 
 
 def charge_due_saved_cards() -> int:
     """La tasca diària: cobra cada quota de `due_saved_card_charges` i torna quantes ordres ha
-    obert. Sense res per cobrar, no passa per la salvaguarda (cap negativa diària al registre);
-    si no, una sola salvaguarda i un sol proveïdor per passada. Un error en un càrrec no atura
-    els altres."""
+    obert. Un error en un càrrec no atura els altres."""
     if not charges_allowed():
         return 0  # nivell 1: res a cobrar, i res al registre cada dia
     due = due_saved_card_charges(timezone.localdate())

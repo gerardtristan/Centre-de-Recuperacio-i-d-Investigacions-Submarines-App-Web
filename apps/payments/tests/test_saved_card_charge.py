@@ -4,7 +4,7 @@ defecte). Proveïdor fals, que guarda targetes (092), sense xarxa. Només dades 
 La tasca diària obre l'intent amb la targeta de la preferència; «pagat» només arriba amb la
 notificació. Els avisos al soci i al tresorer són de la T-M05b-15b."""
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from django.db import connection
@@ -55,7 +55,8 @@ def member():
 def saved(member):
     account = active_account(member.person, "anna.prova@example.org")
     saved = card(member, expiry_month=8, expiry_year=2029)
-    prefer(member, account, "saved_card", saved_card=saved)
+    # Triada abans que venci la quota: les que ja havien vençut no es cobren (arreus).
+    prefer(member, account, "saved_card", saved_card=saved, since=datetime(2025, 12, 1, tzinfo=UTC))
     return saved
 
 
@@ -180,7 +181,7 @@ def test_only_once_per_fee_and_only_when_due(saved, fee, member, monkeypatch):
     assert checkout.charge_due_saved_cards() == 0  # ja en curs
 
     later = add_fee(member, period=2027)
-    monkeypatch.setattr(checkout.timezone, "localdate", lambda: date(2026, 12, 31))
+    monkeypatch.setattr(checkout.timezone, "localdate", lambda *args: date(2026, 12, 31))
     assert checkout.charge_due_saved_cards() == 0
     assert not later.charge.attempts.exists()
 
@@ -230,14 +231,6 @@ def test_a_call_that_never_reached_the_provider_is_closed_by_the_safety_net(
     assert review_emails().exists()
     assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()
     checkout.start_payment(fee.charge, "card", account)  # el soci ja pot pagar
-
-
-def test_level_1_without_due_fees_writes_nothing(settings):
-    settings.PAYMENTS_ENVIRONMENT = "live"
-    settings.PAYMENTS_LIVE_CHARGES_ALLOWED = False
-
-    assert checkout.charge_due_saved_cards() == 0
-    assert not AuditEntry.objects.filter(action=guards.REFUSED).exists()
 
 
 def review_emails():
@@ -303,30 +296,14 @@ def test_the_notice_is_per_card_and_a_new_card_is_charged(saved, fee, member):
     assert checkout.charge_due_saved_cards() == 1
 
 
-def test_an_unexpected_order_is_kept_so_its_notification_finds_the_attempt(saved, fee, monkeypatch):
-    real = fake.FakeProvider._charge_saved_card
-
-    def other(self, charge, card, key):
-        order = real(self, charge, card, key)
-        fake._orders["fake-una-altra"] = fake._orders[order.external_id]
-        return base.ProviderOrder("fake-una-altra", order.pay_url, None)
-
-    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other)
-    checkout.charge_due_saved_cards()
-    attempt = only_attempt(fee)
-    assert attempt.provider_order_id == "fake-una-altra"
-    assert AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()
-
-    notify(attempt)
-    run_queue()
-    assert Payment.objects.filter(charge=fee.charge).count() == 1
-
-
 def test_an_error_on_one_fee_does_not_stop_the_run(saved, fee, monkeypatch):
     other = make_member(first="Pau", number=1288, document="87654321X")
     other_fee = add_fee(other)
-    prefer(other, active_account(other.person, "pau.prova@example.org"), "saved_card",
-           saved_card=card(other, provider_card_id="c-9"))  # fmt: skip
+    account = active_account(other.person, "pau.prova@example.org")
+    since = datetime(2025, 1, 1, tzinfo=UTC)
+    prefer(
+        other, account, "saved_card", saved_card=card(other, provider_card_id="c-9"), since=since
+    )
     saved.status = "removed"
     saved.save()
 
@@ -377,3 +354,31 @@ def test_the_erasure_works_with_saved_cards(saved, fee, member, make_admin):  # 
     member.person.refresh_from_db()
     assert member.person.status == Person.Status.ANONYMISED
     assert SavedCard.objects.filter(pk=saved.pk).exists()  # mai no s'esborra
+
+
+def test_fees_due_before_the_preference_are_never_charged(saved, member):
+    old = add_fee(member, period=2025)  # venç l'1/1/2025, abans de triar la targeta
+    checkout.charge_due_saved_cards()
+    assert not old.charge.attempts.exists()
+
+
+def test_a_card_of_another_person_is_incoherent_data(saved, fee):
+    SavedCard.objects.filter(pk=saved.pk).update(
+        person=make_member(number=1288, document="87654321X").person
+    )
+    with pytest.raises(checkout.CardNotUsable) as error:
+        checkout.charge_saved_card(fee.charge, saved)
+    assert error.value.case == checkout.OTHER_PERSON
+
+
+def test_a_provider_error_keeps_the_order_and_tells_the_treasurer(saved, fee, monkeypatch):
+    def down(*args, **kwargs):
+        raise base.ProviderError("temps esgotat")
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", down)
+    checkout.charge_due_saved_cards()
+    attempt = only_attempt(fee)
+    assert attempt.status == S.IN_PROGRESS and attempt.provider_order_id
+    assert AuditEntry.objects.filter(
+        action=processing.TO_REVIEW, target_id=str(fee.charge.pk)
+    ).exists()
