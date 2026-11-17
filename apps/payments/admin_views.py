@@ -6,12 +6,12 @@ M05a-3; A4 i A9 de M05a-4; RN-M05a-06; wireframe `admin.html#vista-pagaments-man
 - El servidor tria les columnes per l'abast: amb «Cons.» només surt «té mètode: sí/no» i no es
   consulta cap mandat ni targeta. Amagar columnes a la plantilla no és el control.
 - L'IBAN, emmascarat (país i quatre darrers, P-121: «…»). No es desxifra mai: el text xifrat ni
-  tan sols es llegeix de la base de dades (A9, 044). Revocar (A6, C8) és d'una altra tasca.
+  tan sols es llegeix de la base de dades (A9, 044). Revocar (A6, C8): `mandate_revoke_view`.
 """
 
 from django import forms
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
@@ -19,7 +19,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core.permissions import READ_ONLY_SCOPES, has_perm, permission_required, require_perm
 from apps.members.models import Member
 
-from . import campaigns, tasks
+from . import campaigns, mandates, tasks
 from .models import FeeMethod, FeePaymentPreference, SepaMandate
 
 VIEW = "payments.mandates.view"  # A4
@@ -73,7 +73,13 @@ def mandates_view(request):
             card = preference.saved_card if method == FeeMethod.SAVED_CARD else None
             row.update(preference=preference, mandate=mandates.get(member.pk), card=card)
         rows.append(row)
-    context = {"rows": rows, "full": full, "form": form, "total": members.count()}
+    context = {
+        "rows": rows,
+        "full": full,
+        "form": form,
+        "total": members.count(),
+        "can_revoke": full and has_perm(request.user, REVOKE, write=True),
+    }
     return render(request, "payments/mandates.html", context)
 
 
@@ -151,3 +157,48 @@ def campaign_view(request):
         "form": OpenCampaignForm(),
     }
     return render(request, "payments/campaign.html", context)
+
+
+# --- Revocar un mandat a petició escrita (T-M05a-10; A6; P-M05a-C). Permís A6 al servidor; sense,
+# «no trobat». Motiu obligatori (la petició del soci) i pàgina de confirmació; sense tornar a
+# demanar el codi TOTP (P-133, opció per defecte). Un compte d'administrador no revoca el seu
+# propi mandat des d'aquí (M05a-4, «Per objecte»): ho fa des del compte personal.
+REVOKE = "payments.mandates.revoke"  # A6
+
+
+class RevokeForm(forms.Form):
+    reason = forms.CharField(
+        label=_("Motiu"),
+        max_length=200,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_(
+            "La petició escrita del soci (per exemple, el correu i la data). Queda al mandat i "
+            "al registre d'activitat. No hi escriguis dades de salut."
+        ),
+        error_messages={"required": _("Cal el motiu.")},
+    )
+
+
+@never_cache
+@permission_required(REVOKE, write=True)
+@require_http_methods(["GET", "POST"])
+def mandate_revoke_view(request, mandate_id):
+    mandate = get_object_or_404(
+        SepaMandate.objects.select_related("member__person", "bank_account").defer(
+            "bank_account__iban_ciphertext"
+        ),
+        pk=mandate_id,
+        status=SepaMandate.Status.ACTIVE,
+    )
+    own = mandate.member.person_id == request.user.person_id
+    form = RevokeForm(request.POST or None)
+    if request.method == "POST" and not own and form.is_valid():
+        mandates.revoke_mandate(mandate.member, by=request.user, reason=form.cleaned_data["reason"])
+        messages.success(
+            request,
+            _("Mandat %(reference)s revocat. El soci pagarà cada quota quan es generi.")
+            % {"reference": mandate.reference},
+        )
+        return redirect("administration:payments_mandates")
+    context = {"mandate": mandate, "form": form, "own": own}
+    return render(request, "payments/mandate_admin_revoke.html", context)

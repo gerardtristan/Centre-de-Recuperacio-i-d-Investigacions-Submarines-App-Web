@@ -129,6 +129,7 @@ MAP = {
     "test_mandats.py": (
         "apps/payments/admin_views.py",
         "templates/payments/mandates.html",
+        "templates/payments/mandate_admin_revoke.html",
     ),
     "test_campanya_mandats.py": (
         "apps/payments/admin_views.py",

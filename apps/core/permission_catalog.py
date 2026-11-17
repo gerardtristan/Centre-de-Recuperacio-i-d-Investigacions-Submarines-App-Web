@@ -383,6 +383,13 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
+    _perm(
+        "payments.mandates.revoke",
+        "A6",
+        _("Revocar un mandat a petició escrita del soci, amb motiu"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).

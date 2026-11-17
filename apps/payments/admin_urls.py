@@ -7,5 +7,10 @@ from . import admin_views
 
 urlpatterns = [
     path("pagaments/mandats/", admin_views.mandates_view, name="payments_mandates"),
+    path(
+        "pagaments/mandats/<int:mandate_id>/revoca/",
+        admin_views.mandate_revoke_view,
+        name="payments_mandate_revoke",
+    ),
     path("pagaments/campanya/", admin_views.campaign_view, name="payments_campaign"),
 ]
