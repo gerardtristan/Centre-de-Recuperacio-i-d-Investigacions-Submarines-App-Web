@@ -11,6 +11,21 @@ class PaymentsConfig(AppConfig):
 
         checks.refuse_fake_integrations()
 
+        # Esborrat RGPD i exportació (L-M05a-06): el nucli crida els mòduls registrats.
+        from apps.core import privacy as core_privacy
+
+        from . import privacy
+
+        core_privacy.register(
+            "pagaments",
+            core_privacy.Module(
+                export=privacy.export,
+                anonymise=privacy.anonymise,
+                audit_targets=privacy.audit_targets,
+                describe=privacy.describe,
+            ),
+        )
+
         from .setup import ensure_transit_account
 
         post_migrate.connect(ensure_transit_account, sender=self)

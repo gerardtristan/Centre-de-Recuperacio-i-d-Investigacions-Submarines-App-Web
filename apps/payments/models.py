@@ -479,7 +479,10 @@ class SepaMandate(UndeletableModel):
                 condition=(
                     Q(status="revoked") & Q(revoked_at__isnull=False) & ~Q(revoked_reason="")
                 )
-                | (~Q(status="revoked") & Q(revoked_at__isnull=True)),
+                # Un mandat revocat que després es bloqueja (esborrat RGPD, L-M05a-06) conserva
+                # la data i el motiu de la revocació.
+                | Q(status="blocked")
+                | (~Q(status__in=["revoked", "blocked"]) & Q(revoked_at__isnull=True)),
                 name="sepa_mandate_revoked_has_date_and_reason",
             ),
         ]
