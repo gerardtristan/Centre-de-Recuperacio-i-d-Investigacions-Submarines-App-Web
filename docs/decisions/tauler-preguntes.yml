@@ -748,19 +748,6 @@ opcions:
       És el que demana el pas 2 de P-M05a-E i és un canvi petit a la pantalla que ja existeix.
     data: 2026-11-17
 
-  P-293:
-    opcions:
-      A: Un servei de facturació homologat amb API que emet, registra, envia a l'Agència Tributària i torna l'estat de cada factura, amb dades a la UE i contracte d'encarregat; la plataforma hi parla per l'adaptador del 09.
-      B: El programa de facturació de la gestoria, si té API de Verifactu i compleix les mateixes condicions; la plataforma li envia les dades de cada factura.
-      C: L'aplicació de facturació gratuïta de l'Agència Tributària, feta a mà; la plataforma no s'hi integra.
-      D: Demanar pressupost a dos o tres serveis amb API i decidir-ho amb la gestoria amb una taula (dades a la UE, contracte d'encarregat, API de consulta de l'estat, preu per factura).
-    recomanada: A
-    perque: >-
-      La 095 demana una integració que emeti, registri, enviï i consulti l'estat de cada factura, i
-      només un servei amb API ho fa darrere d'un adaptador. C no s'hi integra. B val si el programa de
-      la gestoria té API i compleix la 035; si no, A.
-    data: 2026-11-17
-
   P-310:
     opcions:
       A: A la fitxa del soci, «Quotes», un botó per reenviar l'alternativa d'una quota pendent o retornada; registre.
