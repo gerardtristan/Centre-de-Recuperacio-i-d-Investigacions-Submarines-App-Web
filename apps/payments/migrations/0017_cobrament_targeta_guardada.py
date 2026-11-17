@@ -24,6 +24,7 @@ class Migration(migrations.Migration):
                 ID,
                 ("attempt", fk("payments.paymentattempt", one=True)),
                 ("card", fk("payments.savedcard")),
+                ("reached_provider", models.BooleanField(default=True)),
             ],
             options={
                 "verbose_name": "targeta d'un intent",

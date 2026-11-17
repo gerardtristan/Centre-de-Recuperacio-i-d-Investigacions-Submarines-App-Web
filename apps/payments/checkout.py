@@ -312,7 +312,7 @@ def _expired(card: SavedCard, today) -> bool:
     return (card.expiry_year, card.expiry_month) < (today.year, today.month)
 
 
-def _unusable(card: SavedCard | None, charge: Charge, provider) -> str | None:
+def _unusable(card: SavedCard | None, charge: Charge, provider, today) -> str | None:
     """Per què la targeta no pot cobrar la quota (un cas de `CASES`), o None si pot: la targeta
     activa i no caducada, del proveïdor, de la preferència «targeta guardada» d'un soci actiu o
     impagat, per a una quota anual seva."""
@@ -329,12 +329,12 @@ def _unusable(card: SavedCard | None, charge: Charge, provider) -> str | None:
         return PROVIDER
     if card.person_id != charge.person_id:
         return OTHER_PERSON
-    if card.status != SavedCard.Status.ACTIVE or _expired(card, timezone.localdate()):
+    if card.status != SavedCard.Status.ACTIVE or _expired(card, today):
         return CARD_CLOSED
     return None
 
 
-def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
+def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider, today):
     """Primera transacció, sota el bloqueig del càrrec i de la targeta (llegida de nou): les
     comprovacions i l'intent «en curs», amb la targeta i l'identificador que tindrà l'ordre al
     proveïdor, desats abans de cobrar. Així la notificació el troba encara que arribi abans que
@@ -347,9 +347,9 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
             card = SavedCard.objects.select_for_update().filter(pk=card.pk).first()
         if card is None:
             raise CardNotUsable(PREFERENCE)
-        if case := _unusable(card, stored, provider):
+        if case := _unusable(card, stored, provider, today):
             raise CardNotUsable(case)
-        if stored.attempts.filter(method=SAVED_CARD).exists():
+        if SavedCardAttempt.objects.filter(attempt__charge=stored, reached_provider=True).exists():
             raise AlreadyAttempted
         if stored.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists():
             raise CardNotUsable(TRANSFER_WAITING)  # si ja l'ha feta, pagaria dues vegades
@@ -376,9 +376,11 @@ def _charge(attempt: PaymentAttempt, card: SavedCard, provider) -> PaymentAttemp
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
         if attempt.status != S.IN_PROGRESS:
             return attempt
-        if charge.status != Charge.Status.PENDING:
-            return attempts.transition(attempt, S.ABANDONED, by=by, reason=str(NOT_PENDING))
-        if charge.amount_cents != attempt.amount_cents:
+        if charge.status != Charge.Status.PENDING or charge.amount_cents != attempt.amount_cents:
+            # No arriba al proveïdor: no bloqueja la quota, que es torna a provar l'endemà.
+            SavedCardAttempt.objects.filter(attempt=attempt).update(reached_provider=False)
+            if charge.status != Charge.Status.PENDING:
+                return attempts.transition(attempt, S.ABANDONED, by=by, reason=str(NOT_PENDING))
             attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AMOUNT_CHANGED))
             processing.mark_for_review(None, charge, str(AMOUNT_CHANGED))
             return attempt
@@ -390,16 +392,27 @@ def _charge(attempt: PaymentAttempt, card: SavedCard, provider) -> PaymentAttemp
     return attempt
 
 
-def charge_saved_card(charge: Charge, card: SavedCard | None, *, provider=None) -> PaymentAttempt:
+def charge_saved_card(
+    charge: Charge, card: SavedCard | None, *, provider=None, today=None
+) -> PaymentAttempt:
     """Cobra una quota amb la targeta guardada de la seva persona, sense que hi intervingui
     (T-M05b-15; RN-M05b-20). L'obre el sistema; «pagat» només arriba amb la notificació.
-    `provider`: el de la tasca diària, que ja ha comprovat el nivell. Errors: `CardNotUsable`,
+    `provider` i `today`: els de la tasca diària. Errors: `CardNotUsable`,
     `AlreadyAttempted`, `AttemptInProgress`, `LiveChargesNotAllowed` i els del proveïdor (amb
     l'intent «en curs» i la seva ordre, que tanca la xarxa de seguretat)."""
-    if provider is None:
-        ensure_charges_allowed("charge_saved_card")  # abans de cap transacció (CA-M05a-09)
-        provider = get_provider()
-    attempt, card = _open_saved_card_attempt(charge, card, provider)
+    ensure_charges_allowed("charge_saved_card")  # abans de cap transacció (CA-M05a-09)
+    provider = provider or get_provider()
+    try:
+        attempt, card = _open_saved_card_attempt(
+            charge, card, provider, today or timezone.localdate()
+        )
+    except ProviderError as error:  # per exemple, sense `saved_card_order_id`: no s'obre res
+        reason = gettext_lazy("No s'ha pogut obrir l'intent del càrrec %(charge)s: %(error)s") % {
+            "charge": charge.pk,
+            "error": type(error).__name__,
+        }
+        processing.mark_for_review(None, charge, reason)
+        raise
     try:
         return _charge(attempt, card, provider)
     except ProviderError:
@@ -440,7 +453,9 @@ def due_saved_card_charges(today):
             annual_fee__member_id__in=cards,
             annual_fee__due_on__lte=today,
         )
-        .exclude(attempts__method=SAVED_CARD)
+        .exclude(
+            attempts__in=SavedCardAttempt.objects.filter(reached_provider=True).values("attempt")
+        )
         .select_related("annual_fee")
         .order_by("pk")
     )
@@ -453,13 +468,14 @@ def charge_due_saved_cards() -> int:
     obert. Un error en un càrrec no atura els altres."""
     if not charges_allowed():
         return 0  # nivell 1: res a cobrar, i res al registre cada dia
-    due = due_saved_card_charges(timezone.localdate())
+    today = timezone.localdate()
+    due = due_saved_card_charges(today)
     provider = get_provider() if due else None
     started = 0
     for charge, card in due:
         try:
             try:
-                charge_saved_card(charge, card, provider=provider)
+                charge_saved_card(charge, card, provider=provider, today=today)
                 started += 1
             except CardNotUsable as error:
                 _not_charged(charge, card, error.case)

@@ -575,6 +575,8 @@ class SavedCardAttempt(models.Model):
 
     attempt = models.OneToOneField(PaymentAttempt, on_delete=models.PROTECT, related_name="+")
     card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
+    # Fals només si l'intent s'ha tancat abans de cridar el proveïdor: no compta com a cobrament.
+    reached_provider = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = _("targeta d'un intent")
