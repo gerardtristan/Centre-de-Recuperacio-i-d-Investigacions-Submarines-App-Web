@@ -1,0 +1,35 @@
+/* Seguir (T-DX-40; recurs a design/extern/; design-system §16, T-DX-40): la part social i els avatars.
+   Del recurs Seguir: el botó «Seguir» que passa a «✓ Seguint», el comptador de seguidors i l'anell de l'avatar.
+   Els avatars són el Monograma (T-DX-18, `monograma.css`), dibuixats a partir d'una llavor, mai del nom.
+   Sense goma, partícules ni comptador que roda (cal JavaScript; D20): res no es desa. */
+.seguir { padding: var(--e-4); background: var(--c-superficie); border-radius: var(--r-xl); }
+.seguir h1 { margin-top: var(--e-4); }  /* sota l'etiqueta «En construcció» */
+.seguir-cos { display: grid; gap: var(--e-5); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.seguir-cos > section { display: grid; gap: var(--e-3); justify-items: start; }
+.seguir h2 { margin: 0; font-size: var(--t-l); }
+.seguir .seguir-cos p { margin: 0; }
+.seguir-perfil { padding: var(--e-4); border-radius: var(--r-l); background: var(--c-fons); }
+.seguir-jo { display: flex; align-items: center; gap: var(--e-3); }
+.seguir-jo > div { display: grid; gap: var(--e-1); justify-items: start; }
+.seguir-variants { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--e-3); }
+.seguir-variant { display: block; border-radius: var(--r-pastilla); }
+.seguir-variant .monograma { width: var(--e-7); height: var(--e-7); }
+/* La variant triada: anella de dues capes, no només color */
+.seguir-variant:has(input:checked) .monograma { box-shadow: 0 0 0 var(--v-plena) var(--c-fons), 0 0 0 calc(2 * var(--v-plena)) var(--c-text); }
+.seguir-variant:has(input:focus-visible) { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
+.seguir-llista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); inline-size: 100%; }
+.seguir-fila {
+  display: flex; align-items: center; gap: var(--e-3); padding: var(--e-2) var(--e-3);
+  border-radius: var(--r-l); background: var(--c-fons);
+}
+.seguir-anell { display: block; border-radius: var(--r-pastilla); }
+.seguir-anell .monograma { width: var(--e-7); height: var(--e-7); }
+/* L'anell de l'avatar de qui segueixes (del recurs), dibuixat una sola vegada */
+.seguir-anell.es-seguit .monograma { box-shadow: 0 0 0 var(--v-plena) var(--c-fons), 0 0 0 calc(2 * var(--v-plena)) var(--c-mari); }
+.seguir-nom { display: grid; flex: 1; min-inline-size: 0; font-weight: var(--p-semi); }
+.seguir-nom small { font-size: var(--t-xs); font-weight: var(--p-normal); color: var(--c-text-2); }
+.seguir-boto[aria-pressed="true"] { color: var(--c-mari-text); border-color: var(--c-mari); }
+
+@media (min-width: 600px) {
+  .seguir { padding: var(--e-5); }
+}

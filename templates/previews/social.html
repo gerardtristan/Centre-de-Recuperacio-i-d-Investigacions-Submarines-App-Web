@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n static monograma %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/seguir.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-40 Seguir i Monograma: la part social i els avatars. En construcció: contingut d'exemple, res no es desa (design-system §16, T-DX-40). #}
+  <section class="en-construccio-bloc seguir" aria-describedby="ec-social">
+    {% include "_en_construccio.html" with id="ec-social" %}
+    <h1>{{ screen_title }}</h1>
+    <fieldset disabled class="seguir-cos">
+      <legend class="visualment-amagat">{% translate "Part social" %}</legend>
+      <section class="seguir-perfil" aria-labelledby="seguir-perfil-h">
+        <div class="seguir-jo">
+          {% monograma my_seed %}
+          <div>
+            <h2 id="seguir-perfil-h">{% translate "El teu perfil social" %}</h2>
+            <span class="estat estat-neutre">{% translate "Privat" %}</span>
+          </div>
+        </div>
+        <label class="casella"><input type="checkbox"> {% translate "Deixar que els altres socis vegin el meu perfil i em puguin seguir" %}</label>
+        <p class="text-2">{% translate "És opcional: el perfil és privat fins que ho tries." %}</p>
+      </section>
+      <section aria-labelledby="seguir-avatar-h">
+        <h2 id="seguir-avatar-h">{% translate "El teu avatar" %}</h2>
+        <p class="text-2">{% translate "Es dibuixa a partir d'una llavor a l'atzar, mai del teu nom. Aviat, també amb fauna marina." %}</p>
+        <ul class="seguir-variants">
+          {% for seed in variants %}
+          <li><label class="seguir-variant"><input class="visualment-amagat" type="radio" name="avatar"{% if forloop.first %} checked{% endif %}>{% monograma seed %}<span class="visualment-amagat">{% blocktranslate with n=forloop.counter %}Variant {{ n }}{% endblocktranslate %}</span></label></li>
+          {% endfor %}
+        </ul>
+        <button type="button" class="boto boto-petit">{% translate "Una altra variant" %}</button>
+      </section>
+      <section aria-labelledby="seguir-socis-h">
+        <h2 id="seguir-socis-h">{% translate "Socis amb el perfil obert" %}</h2>
+        <ul class="seguir-llista">
+          {% for person in people %}
+          <li class="seguir-fila">
+            <span class="seguir-anell{% if person.following %} es-seguit{% endif %}">{% monograma person.seed %}</span>
+            <span class="seguir-nom">{{ person.name }}<small class="xifra-viva">{% blocktranslate count n=person.followers %}{{ n }} seguidor{% plural %}{{ n }} seguidors{% endblocktranslate %}</small></span>
+            <button type="button" class="boto boto-petit seguir-boto" aria-pressed="{% if person.following %}true{% else %}false{% endif %}">{% if person.following %}<span aria-hidden="true">✓</span> {% translate "Seguint" %}{% else %}{% translate "Seguir" %}{% endif %}</button>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </fieldset>
+  </section>
+{% endblock %}
