@@ -1,0 +1,63 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-12e (P-M04-E, pas 3; LT2; RN-T17): casar a mà una línia pendent amb un o més càrrecs pendents. Cerca per referència o número de soci (com a màxim 20, cap IBAN), revisió amb la suma i confirmació. T4 al servidor en tots els passos; POST amb CSRF. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, l'estat, la suma i que cap càrrec sigui d'una altra proposta. #}
+{% block title %}{% translate "Casa la línia a mà" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
+  <h1>{% translate "Casa la línia a mà" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Data de valor" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time></dd></div>
+    <div><dt>{% translate "Concepte" %}</dt><dd>{{ line.concept }}</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
+  </dl>
+
+  {% if matched %}
+    <table class="taula">
+      <caption>{% translate "Càrrecs triats" %}</caption>
+      <thead><tr><th scope="col">{% translate "Persona" %}</th><th scope="col">{% translate "Concepte" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th></tr></thead>
+      <tbody>
+        {% for item in matched %}
+          <tr><th scope="row" class="cel-nom">{{ item.charge.person.first_name }} {{ item.charge.person.last_name }}</th><td data-etiqueta="{% translate 'Concepte' %}">{{ item.charge.concept }}</td><td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ item.amount }}</span></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form class="formulari" method="post" action="{% url 'administration:treasury_match_line' line.pk %}">
+      {% csrf_token %}
+      {% for item in matched %}<input type="hidden" name="carrec" value="{{ item.charge.pk }}">{% endfor %}
+      <input type="hidden" name="cerca" value="{{ query }}">
+      <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el casament" %}</strong>{% blocktranslate with amount=amount %}Els càrrecs sumen {{ amount }}, com la línia. Passaran a «pagat» per transferència i l'ingrés s'apuntarà al banc. Si t'equivoques, es desfà des de la conciliació, amb el motiu.{% endblocktranslate %}</div>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Sí, casa-la" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:treasury_match_line' line.pk %}?cerca={{ query|urlencode }}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% else %}
+    <form class="formulari" method="get" action="{% url 'administration:treasury_match_line' line.pk %}">
+      <div class="camp">
+        <label for="cerca">{% translate "Referències de transferència o números de soci" %}</label>
+        <input id="cerca" name="cerca" type="search" value="{{ query }}" maxlength="200" autocomplete="off" aria-describedby="cerca-ajuda">
+        <p class="ajuda" id="cerca-ajuda">{% translate "Pots escriure'n diverses, separades per espais. Només surten càrrecs pendents, com a màxim 20." %}</p>
+      </div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Cerca" %}</button></div>
+    </form>
+    {% if found %}
+      <form class="formulari" method="post" action="{% url 'administration:treasury_match_line' line.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="cerca" value="{{ query }}">
+        <fieldset>
+          <legend>{% blocktranslate with amount=amount %}Tria els càrrecs que sumen {{ amount }}{% endblocktranslate %}</legend>
+          {% for item in found %}
+            <label class="casella"><input type="checkbox" name="carrec" value="{{ item.charge.pk }}"> <span>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></span></label>
+          {% endfor %}
+        </fieldset>
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el casament" %}</button></div>
+      </form>
+    {% elif query %}
+      <p>{% translate "Cap càrrec pendent amb aquesta referència o aquest número de soci." %}</p>
+    {% endif %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Torna a la conciliació" %}</a></p>
+{% endblock %}

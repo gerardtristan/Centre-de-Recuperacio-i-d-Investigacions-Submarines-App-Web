@@ -148,3 +148,41 @@ def test_treasurer_downloads_the_csv_for_the_gestoria(
     assert lines_[0] == "Data;Compte;Concepte;Departament;Centre de cost;Entrada;Sortida;Referència"
     assert len(lines_) == 3 and "90,00" in text and "35,00" in text
     assert "Prova Inventat" not in text
+
+
+def test_treasurer_matches_a_line_by_hand(page, live_server, transactional_db, review):
+    """T-M04-12e (P-M04-E pas 3; LT2): una transferència sense referència per a dues quotes;
+    el tresorer busca els càrrecs per referència, en revisa la suma i la casa a mà."""
+    system = audit.system("proves-e2e")
+    quotes = [
+        charges.create_charge(
+            Person.objects.create(first_name=name, last_name="Prova Inventada", origin="web"),
+            kind="fee",
+            amount_cents=amount,
+            concept="Quota 2026",
+            origin="proves",
+            by=system,
+        )  # fmt: skip
+        for name, amount in (("Laia", 9000), ("Pau", 3500))
+    ]
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    lines(treasurer, (12500, "TRANSF QUOTES GERMANS INVENTATS"))
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
+    page.get_by_role("row", name="02/11/2026").get_by_role("link", name="Casa a mà…").click()
+    expect(page.get_by_role("heading", name="Casa la línia a mà")).to_be_visible()
+    search = " ".join(transfer_reference(quota) for quota in quotes)
+    page.get_by_label("Referències de transferència o números de soci").fill(search)
+    page.get_by_role("button", name="Cerca").click()
+    page.get_by_label("Laia Prova Inventada").check()
+    page.get_by_label("Pau Prova Inventada").check()
+    review("casa-a-ma-cerca")
+
+    page.get_by_role("button", name="Revisa el casament").click()
+    expect(page.get_by_role("alert")).to_contain_text("Els càrrecs sumen 125,00 €")
+    review("casa-a-ma-revisio")
+    page.get_by_role("button", name="Sí, casa-la").click()
+    expect(page.get_by_role("status")).to_contain_text("Línia casada")
+    expect(page.get_by_role("row", name="02/11/2026")).to_contain_text("Conciliada")
+    review("casa-a-ma-conciliada")

@@ -20,7 +20,7 @@ Les duplicades no es tornen a importar mai. Un cop importat, les línies noves j
 - **A revisar:** la plataforma no ha pogut proposar res. El motiu surt al costat: l'import no coincideix, el càrrec ja no està pendent, la referència no és de cap càrrec, el càrrec ja és en una altra proposta, o la línia no té referència i hi ha un sol càrrec pendent amb aquest import.
 - **Conciliada** i **Exclosa:** ja estan resoltes.
 
-Casar a mà una línia «a revisar» amb un càrrec encara no es pot fer des de la pantalla [pendent: T-M04-12].
+**Casar a mà** una línia pendent (també «a revisar»): prem **Casa a mà…**, escriu les referències de transferència o els números de soci (diversos, separats per espais) i prem **Cerca**. Marca els càrrecs i prem **Revisa el casament**: han de sumar exactament l'import de la línia. Si quadra, prem **Sí, casa-la**: passa el mateix que en confirmar una proposta, i es desfà igual (apartat 3). Casar una línia amb un moviment (per exemple, l'efectiu ingressat al banc) encara no es pot fer [pendent: T-M04-12f].
 
 ## 3. Desfer una conciliació
 A la línia conciliada, obre **Desfés…**, escriu el **motiu per desfer-la** i prem **Desfés la conciliació**. Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa amb un contramoviment. No s'esborra res, i el rebut d'una transferència queda anul·lat amb una nota (decisió [045](../decisions/045-correccio-transferencia-conciliada-per-error.md)).

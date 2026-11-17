@@ -120,6 +120,12 @@ def test_treasury_screens(page, live_server, transactional_db, settings):
     page.goto(admin_url(base, "treasury_reconciliation"))
     expect(page.get_by_role("row", name="02/11/2026")).to_contain_text("Proposada")
     screen(page, "tresoreria-conciliacio", results)
+    page.get_by_role("row", name="03/11/2026").get_by_role("link", name="Casa a mà…").click()
+    page.get_by_label("Referències de transferència o números de soci").fill(
+        transfer_reference(quotes[1])
+    )
+    page.get_by_role("button", name="Cerca").click()
+    screen(page, "tresoreria-casa-a-ma", results)
 
     page.goto(admin_url(base, "treasury_review"))
     expect(page.get_by_role("row", name="03/11/2026")).to_contain_text("95,00 €")

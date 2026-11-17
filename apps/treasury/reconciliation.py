@@ -18,8 +18,11 @@ El criden la importació en confirmar o desfer un extracte (senyal `bank_stateme
 
 `confirm()` (T-M04-12; P-M04-E passos 3 i 4; CA-T10.1 a CA-T10.3): el tresorer confirma la
 proposta d'una línia. Cada càrrec passa a «pagat» amb un pagament per transferència i el seu
-ingrés al banc; si és una quota, s'avisa el 01. Desfer-la (CA-T10.4 a CA-T10.6, 045) espera la
-transició «pagat → pendent» del nucli.
+ingrés al banc; si és una quota, s'avisa el 01. `undo()` la desfà (CA-T10.4 a CA-T10.6, 045).
+
+`match()` (T-M04-12e; P-M04-E pas 3; LT2; RN-T17): el tresorer casa a mà una línia d'entrada
+pendent amb un o més càrrecs pendents que en sumen l'import exacte, i passa el mateix que en
+confirmar una proposta. `pending_charges()` els busca per referència o número de soci.
 
 `exclude()` (T-M04-14; RN-T15, CA-T12.1, LT11): el tresorer exclou una línia pendent amb motiu
 obligatori. No crea cap moviment ni toca cap càrrec; la línia surt de la llista «a revisar».
@@ -27,17 +30,18 @@ obligatori. No crea cap moviment ni toca cap càrrec; la línia surt de la llist
 pagaments «a revisar» del 05b encara no hi són (P-191). Permisos: P-190.
 """
 
+import re
 from datetime import datetime, time
 
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit
-from apps.core.charges import active_payments, record_payment, revert_paid_transfer
+from apps.core.charges import active_payments, euros, record_payment, revert_paid_transfer
 from apps.core.imports import statement_lines
 from apps.core.models import Charge, Payment
 from apps.core.permissions import has_perm
@@ -219,7 +223,66 @@ def confirm(line, *, by) -> Reconciliation:
         raise ReconciliationRejected(_("Aquesta línia ja està conciliada."))
     if state is None or state.status != StatementLineState.Status.PROPOSED:
         raise ReconciliationRejected(_("Aquesta línia no té cap proposta per confirmar."))
-    matched = list(state.proposed_charges.order_by("pk"))
+    return _reconcile(state, list(state.proposed_charges.order_by("pk")), by=by)
+
+
+def _matchable(line, charge_ids, *, lock):
+    """(estat, càrrecs) d'un casament a mà, o `ReconciliationRejected`: una línia d'entrada
+    pendent d'un extracte vigent i càrrecs pendents, de cap altra proposta, que sumin
+    exactament l'import (RN-T17, RN-T17b)."""
+    states = StatementLineState.objects.filter(
+        statement_line=line, statement_line__in=statement_lines()
+    ).select_related("statement_line")
+    charges = Charge.objects.filter(pk__in=set(charge_ids)).order_by("pk")
+    if lock:
+        states, charges = states.select_for_update(), charges.select_for_update()
+    state = states.first()
+    if state is None or state.status != StatementLineState.Status.PENDING:
+        raise ReconciliationRejected(_("Aquesta línia ja no està pendent: no es pot casar."))
+    if state.statement_line.amount_cents <= 0:
+        raise ReconciliationRejected(_("Només es pot casar una línia d'entrada."))
+    matched = list(charges)
+    if not matched or len(matched) != len(set(charge_ids)):
+        raise ReconciliationRejected(_("Tria un o més càrrecs pendents."))
+    if any(charge.status != Charge.Status.PENDING for charge in matched):
+        raise ReconciliationRejected(_("Un dels càrrecs ja no està pendent."))
+    if StatementLineState.objects.filter(
+        status=StatementLineState.Status.PROPOSED, proposed_charges__in=matched
+    ).exists():
+        raise ReconciliationRejected(
+            _("Un dels càrrecs ja és a la proposta d'una altra línia: confirma aquella.")
+        )
+    total = sum(charge.amount_cents for charge in matched)
+    if total != state.statement_line.amount_cents:
+        raise ReconciliationRejected(
+            _("Els càrrecs sumen %(total)s i la línia és de %(amount)s: han de coincidir.")
+            % {"total": euros(total), "amount": euros(state.statement_line.amount_cents)}
+        )
+    return state, matched
+
+
+def check_match(line, charge_ids, *, by) -> list[Charge]:
+    """Pas de revisió del casament a mà: les mateixes comprovacions que `match`, sense pagar
+    res."""
+    _ensure_can_reconcile(by)
+    refresh()
+    return _matchable(line, charge_ids, lock=False)[1]
+
+
+@transaction.atomic
+def match(line, charge_ids, *, by) -> Reconciliation:
+    """Casar a mà (T-M04-12e; P-M04-E pas 3; LT2): el tresorer casa una línia pendent amb un o
+    més càrrecs pendents que en sumen l'import exacte. Després, el mateix que `confirm` (i es
+    desfà amb `undo`)."""
+    _ensure_can_reconcile(by)
+    refresh()  # també agafa el pany
+    state, matched = _matchable(line, charge_ids, lock=True)
+    return _reconcile(state, matched, by=by, manual=True)
+
+
+def _reconcile(state, matched, *, by, manual=False) -> Reconciliation:
+    """Pagament per transferència, ingrés al banc i avís al 01 de cada càrrec; conciliació i
+    línia «conciliada». Dins la transacció de qui la crida."""
     line_date = state.statement_line.value_date
     for charge in matched:
         payment = record_payment(
@@ -248,6 +311,7 @@ def confirm(line, *, by) -> Reconciliation:
             "line": state.statement_line_id,
             "charges": [charge.pk for charge in matched],
             "amount_cents": state.statement_line.amount_cents,
+            **({"manual": True} if manual else {}),  # casada a mà (T-M04-12e)
         },
     )
     return reconciliation
@@ -301,6 +365,26 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
     )
     refresh()
     return done
+
+
+SEARCH_LIMIT = 20
+
+
+def pending_charges(query: str) -> list[Charge]:
+    """Càrrecs pendents per casar a mà: per referències de transferència (amb les variants que
+    llegeix `references_in`) o números de soci, diversos separats per espais. Cap cerca per nom.
+    Com a màxim `SEARCH_LIMIT`."""
+    query = (query or "")[:200]
+    numbers = [
+        int(word)
+        for word in re.split(r"[\s,;]+", query)
+        if word.isascii() and word.isdigit() and len(word) < 10
+    ]
+    found = Q(person__member__member_number__in=numbers) | Q(
+        pk__in=TransferReference.objects.filter(reference__in=references_in(query)).values("charge")
+    )
+    pending = Charge.objects.filter(found, status=Charge.Status.PENDING).select_related("person")
+    return list(pending.order_by("pk")[:SEARCH_LIMIT])
 
 
 def has_live_reconciliations(sender, batch, **kwargs) -> bool:
