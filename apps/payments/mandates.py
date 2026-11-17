@@ -13,6 +13,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
+from django.views.decorators.debug import sensitive_variables
 
 from apps.core import audit, mail
 from apps.members import recipients
@@ -83,6 +84,9 @@ def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
     return mandate
 
 
+# Un error dins (la clau, la base de dades) no posa l'IBAN a l'informe d'error: s'amaguen totes
+# les variables d'aquest marc i dels de sota, i els arguments (CA-M05a-06; T-M05a-17).
+@sensitive_variables()
 @transaction.atomic
 def create_mandate(
     member: Member,

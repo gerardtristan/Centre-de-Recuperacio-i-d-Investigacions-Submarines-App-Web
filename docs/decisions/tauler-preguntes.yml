@@ -725,4 +725,15 @@ opcions:
       La C és la més clara per a l'administrador, però toca l'editor de permisos del nucli.
     data: 2026-11-17
 
+  P-213:
+    opcions:
+      A: Abans del nivell 2, l'anonimització crida un servei del 05a que bloqueja els mandats actius (com es proposa).
+      B: El 05b no cobra mai un mandat d'una persona anonimitzada (comprovació a la remesa), sense canviar l'estat.
+      C: Totes dues.
+    recomanada: C
+    perque: >-
+      La A deixa l'estat coherent amb L-M05a-06 i la B és la xarxa de seguretat al punt on es mouen diners.
+      Cap de les dues no és urgent mentre no hi hagi remeses.
+    data: 2026-11-17
+
 noves:
