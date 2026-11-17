@@ -22,7 +22,7 @@ def envia() -> None:
     uri = pyotp.TOTP(secret).provisioning_uri(name="proves", issuer_name="C.R.I.S. proves")
     body = f"""Entorn de proves del C.R.I.S. Només dades inventades.
 
-Administració: {site}{reverse('administration:login')}
+Administració: {site}{reverse("administration:login")}
 Comptes (contrasenya: {PASSWORD}):
 {accounts}
 
@@ -32,7 +32,7 @@ d'autenticació (Google Authenticator, Aegis, etc.) com a clau manual:
 o obre aquest enllaç des del mòbil:
   {uri}
 
-Àrea personal dels socis inventats: {site}{reverse('accounts:login')}
+Àrea personal dels socis inventats: {site}{reverse("accounts:login")}
 Els correus de la plataforma arriben a aquesta mateixa bústia: cap no surt a fora.
 """
     send_mail("Entorn de proves: com s'hi entra", body, None, [TO])
