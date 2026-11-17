@@ -1,1 +1,1 @@
-{% load i18n %}{# T-M05b-15: TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Una quota no s'ha pogut cobrar amb la targeta guardada" %}
+{% load i18n %}{# T-M05b-15: TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Una quota amb la targeta guardada per revisar" %}

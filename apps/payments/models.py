@@ -595,6 +595,7 @@ class SavedCardNotice(models.Model):
     case = models.CharField(_("motiu"), max_length=30)
     # Els avisos han sortit (T-M05b-15b); si un correu falla, l'endemà es torna a provar.
     notified = models.BooleanField(_("avisat"), default=False)
+    tries = models.PositiveSmallIntegerField(_("intents d'avisar"), default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

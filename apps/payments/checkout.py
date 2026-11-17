@@ -375,8 +375,12 @@ def _charge(attempt: PaymentAttempt, card: SavedCard, provider) -> PaymentAttemp
         if order.external_id != attempt.provider_order_id:
             attempt.provider_order_id = order.external_id  # la seva notificació el trobarà
             attempt.save(update_fields=["provider_order_id", "updated_at"])
-            processing.saved_card_outcome(charge, "unexpected_order", card=card, attempt=attempt)
-        elif order.pay_url:
+            if not order.pay_url:
+                processing.saved_card_outcome(
+                    charge, "unexpected_order", card=card, attempt=attempt
+                )
+                attempt.refresh_from_db()  # «a revisar»: cap notificació no el pagarà
+        if order.pay_url:
             attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AUTHENTICATION))
             processing.saved_card_outcome(charge, "authentication", card=card)
     return attempt
@@ -408,8 +412,18 @@ def charge_saved_card(
     except ProviderError:
         # L'intent conserva la seva ordre: la xarxa de seguretat la consulta; el tresorer ho sap ja.
         with transaction.atomic():
-            processing.saved_card_outcome(attempt.charge, "provider_error", card=card)
+            locked = Charge.objects.select_for_update().get(pk=attempt.charge_id)
+            processing.saved_card_outcome(locked, "provider_error", card=card)
         raise
+
+
+def _still_applies(notice, provider, today) -> bool:
+    """El motiu d'un avís encara hi és (per tornar a provar-ne els correus)."""
+    if notice.case in (CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, OTHER_PERSON):
+        return _unusable(notice.card, notice.charge, provider, today) == notice.case
+    if notice.case == TRANSFER_WAITING:
+        return notice.charge.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists()
+    return True
 
 
 def _not_charged(charge: Charge, card: SavedCard, case: str) -> None:
@@ -452,10 +466,9 @@ def charge_due_saved_cards() -> int:
     obert. Un error en un càrrec no atura els altres."""
     if not charges_allowed():
         return 0  # nivell 1: res a cobrar, i res al registre cada dia
-    processing.retry_outcomes()
-    today = timezone.localdate()
+    today, provider = timezone.localdate(), get_provider()
+    processing.retry_outcomes(lambda notice: _still_applies(notice, provider, today))
     due = due_saved_card_charges(today)
-    provider = get_provider() if due else None
     started = 0
     for charge, card in due:
         try:

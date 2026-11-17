@@ -1,5 +1,5 @@
 """T-M05b-15b: si els avisos d'un resultat de la targeta guardada han sortit; si un correu
-falla, queda fals i la tasca diària ho torna a provar."""
+falla, queda fals i la tasca diària ho torna a provar, com a molt `NOTICE_TRIES` vegades."""
 
 from django.db import migrations, models
 
@@ -12,5 +12,10 @@ class Migration(migrations.Migration):
             model_name="savedcardnotice",
             name="notified",
             field=models.BooleanField(default=False, verbose_name="avisat"),
+        ),
+        migrations.AddField(
+            model_name="savedcardnotice",
+            name="tries",
+            field=models.PositiveSmallIntegerField(default=0, verbose_name="intents d'avisar"),
         ),
     ]
