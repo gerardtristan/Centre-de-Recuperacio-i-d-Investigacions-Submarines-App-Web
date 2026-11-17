@@ -6,6 +6,7 @@ import datetime
 import pytest
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.http import Http404
+from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.core import audit, charges, imports
@@ -299,6 +300,17 @@ class TestConfirm:
         assert entry.details == {"line": line.pk, "charges": [quota.pk], "amount_cents": 9000}
         changed = AuditEntry.objects.filter(action=reconciliation.STATE_CHANGED).last()
         assert changed.actor_account == treasurer
+
+    def test_p_111_the_income_takes_the_value_date_of_the_line(self, treasurer, charge):
+        # Decisió 095, P-111 (A): el saldo del banc quadra amb l'extracte el dia de l'abonament.
+        quota = charge()
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)} QUOTA"))
+        assert line.value_date == datetime.date(2026, 11, 2)
+        reconciliation.refresh()
+        reconciliation.confirm(line, by=treasurer)
+        (payment,) = Payment.objects.all()
+        assert timezone.localdate(payment.paid_at) == line.value_date
+        assert Movement.objects.get().value_date == line.value_date
 
     def test_ca_t10_1_a_fee_activates_the_member(self, treasurer):
         member = make_member(status=Member.Status.PENDING)
