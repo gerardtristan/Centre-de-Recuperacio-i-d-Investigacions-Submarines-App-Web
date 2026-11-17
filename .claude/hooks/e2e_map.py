@@ -374,6 +374,13 @@ MAP = {
         "templates/payments/mandate*.html",
         "templates/payments/campaign.html",
     ),
+    # Transferència de principi a fi per les pantalles (T-M05b-18).
+    "test_principi_a_fi_transferencia.py": (
+        "templates/core/bank_statement.html",
+        "templates/treasury/reconciliation.html",
+        "apps/treasury/reconciliation.py",
+        "apps/core/imports/bank_statement.py",
+    ),
     # L'auditoria d'accessibilitat recorre 31 pantalles: qualsevol plantilla la necessita. Triga
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
