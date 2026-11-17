@@ -8,6 +8,9 @@ P-M05b-E, passos 1 a 3; RN-M05b-10 i 11; CA-M05b-12, 13 i 16).
 - Confirmar-la demana el nivell 2 (RN-M05a-11, `ensure_charges_allowed`) i una data de cobrament
   que deixi temps per a l'avís previ (RN-M05b-11, `payments.prenotification_days`).
 - En confirmar-la, cada deutor rep l'avís previ per la cua (P-M05b-E, pas 4; CA-M05b-14).
+- Marcar-la enviada (pas 6) i, quan arriba l'abonament, liquidar-la (pas 8; RN-M05b-13, RN-T24,
+  CA-M05b-17 i CA-T16.1): cada càrrec «pagat» per domiciliació, l'ingrés al trànsit «Remeses
+  SEPA», el rebut al soci i la liquidació a la 04, conciliada amb la línia del banc.
 - Cap IBAN: la previsualització i el registre només porten la referència del mandat, i l'avís,
   l'IBAN emmascarat (P-121). Cap cobrament real: el fitxer pain.008 és de la T-M05b-10.
 """
@@ -20,11 +23,16 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge, Person
+from apps.core.imports import statement_lines
+from apps.core.models import Charge, Payment, Person
 from apps.members import recipients
+from apps.members import services as members
 from apps.members.models import AnnualFee
+from apps.treasury import reconciliation, settlements
+from apps.treasury import services as treasury
+from apps.treasury.models import StatementLineState
 
-from . import attempts
+from . import attempts, receipts
 from .models import (
     DirectDebitItem,
     DirectDebitRemittance,
@@ -52,6 +60,11 @@ class PrenotificationTooLate(Exception):
 
 class EmptyRemittance(Exception):
     """Cap quota per cobrar: no es crea cap remesa."""
+
+
+class WrongStatus(Exception):
+    """La remesa no és a l'estat que demana el pas (avisada per enviar-la, enviada per
+    liquidar-la), o el fitxer no s'ha descarregat o esborrat."""
 
 
 @dataclass
@@ -208,3 +221,103 @@ def send_prenotifications(remittance: DirectDebitRemittance) -> list[DirectDebit
         details={"sent": len(items) - len(pending), "without_notice": len(pending)},
     )
     return pending
+
+
+@transaction.atomic
+def mark_remittance_sent(remittance: DirectDebitRemittance, *, file_deleted: bool, by):
+    """P-M05b-E, pas 6: el tresorer ha pujat el fitxer al banc i confirma que l'ha esborrat del
+    dispositiu (044). Només una remesa avisada amb el fitxer descarregat."""
+    remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
+    if remittance.status != DirectDebitRemittance.Status.NOTIFIED or not remittance.file_hash:
+        raise WrongStatus(remittance.status)
+    if not file_deleted:
+        raise WrongStatus("file_not_deleted")
+    remittance.status = DirectDebitRemittance.Status.SENT_TO_BANK
+    remittance.save(update_fields=["status"])
+    audit.record(
+        "payments.remittance.sent",
+        actor=by,
+        target=remittance,
+        details={"sha256": remittance.file_hash, "file_deleted": True},
+    )
+    return remittance
+
+
+def candidate_lines(remittance: DirectDebitRemittance, fees_cents: int = 0):
+    """CA-T16.1: les línies obertes de l'extracte que poden ser l'abonament de la remesa: el net
+    (total menys comissions) i a partir del dia del cobrament. Com abona el banc: P-237."""
+    closed = StatementLineState.objects.exclude(status__in=reconciliation.OPEN)
+    return (
+        statement_lines()
+        .filter(
+            amount_cents=remittance.total_cents - fees_cents,
+            value_date__gte=remittance.collection_date,
+        )
+        .exclude(pk__in=closed.values("statement_line"))
+        .order_by("value_date", "pk")
+    )
+
+
+@transaction.atomic
+def settle_remittance(
+    remittance: DirectDebitRemittance, line, *, fees_cents: int = 0, by
+) -> DirectDebitRemittance:
+    """P-M05b-E, pas 8 (CA-M05b-17, CA-T16.1): l'abonament de la línia `line` liquida la remesa,
+    tot o res. Cada rebut: intent i càrrec «pagat» per domiciliació, l'ingrés al trànsit «Remeses
+    SEPA», el rebut i el correu al soci, l'avís al 01 si és una quota i l'últim cobrament del
+    mandat. Després, la liquidació a la 04 amb una partida per rebut, confirmada amb la línia
+    (comissions i traspàs al banc; T4, que comprova la 04)."""
+    ensure_charges_allowed()
+    remittance = DirectDebitRemittance.objects.select_for_update().get(pk=remittance.pk)
+    if remittance.status != DirectDebitRemittance.Status.SENT_TO_BANK:
+        raise WrongStatus(remittance.status)
+    items = list(
+        remittance.items.filter(status=DirectDebitItem.Status.INCLUDED)
+        .select_related("attempt__charge", "mandate")
+        .order_by("pk")
+    )
+    treasury.create_transit_account(treasury.SEPA_REMITTANCE, str(_("Remeses SEPA")), by=by)
+    lines = []
+    for item in items:
+        attempt = attempts.transition(item.attempt, PaymentAttempt.Status.PAID, by=by)
+        charge = attempt.charge
+        payment = charges.record_payment(
+            charge,
+            method=Payment.Method.DIRECT_DEBIT,
+            origin="reconciliation",
+            by=by,
+            provider_reference=item.end_to_end_id,
+        )
+        treasury.record_income(payment, origin="reconciliation", by=by)
+        receipts.issue(attempt)
+        fee = getattr(charge, "annual_fee", None)
+        if fee is not None:
+            members.on_fee_paid(fee.pk)
+        item.status = DirectDebitItem.Status.COLLECTED
+        item.save(update_fields=["status"])
+        # El dia del càrrec al compte del deutor, per a la caducitat de 36 mesos (RN-M05a-08).
+        item.mandate.last_collection_on = remittance.collection_date
+        item.mandate.save(update_fields=["last_collection_on"])
+        lines.append(settlements.SettlementLine(item.end_to_end_id, item.amount_cents))
+    total = sum(line.amount_cents for line in lines)
+    data = settlements.SettlementData(
+        external_id=f"REM{remittance.pk:06d}",
+        settled_on=line.value_date,
+        gross_cents=total,
+        fees_cents=fees_cents,
+        net_cents=total - fees_cents,
+        lines=tuple(lines),
+    )
+    settlement = settlements.record_settlement(
+        treasury.SEPA_REMITTANCE, data, by=by, source="remittance"
+    )
+    settlements.confirm(settlement, by=by, statement_line=line)
+    remittance.status = DirectDebitRemittance.Status.SETTLED
+    remittance.save(update_fields=["status"])
+    audit.record(
+        "payments.remittance.settled",
+        actor=by,
+        target=remittance,
+        details={"settlement": settlement.pk, "items": len(items), "fees_cents": fees_cents},
+    )
+    return remittance
