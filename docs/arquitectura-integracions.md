@@ -350,9 +350,12 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 ### Observabilitat
 | Variable | Ús |
 |---|---|
-| `ERROR_TRACKING_DSN` | DSN de GlitchTip o Sentry |
-| `ERROR_TRACKING_ENVIRONMENT` | Nom de l'entorn als errors |
+| `ERROR_TRACKING_DSN` | DSN de GlitchTip o Sentry. Buida (per defecte): el seguiment d'errors no s'activa i no surt res per la xarxa. Només la llegeix la configuració de producció (`config/settings/prod.py`) |
+| `ERROR_TRACKING_ALLOWED_HOSTS` | Hosts permesos per al DSN, separats per comes: els del servei amb dades a la UE que triï el propietari ([P-294](decisions/pendents.md#oberts)). Buida per defecte: amb un DSN i el host fora de la llista, producció no arrenca |
+| `ERROR_TRACKING_ENVIRONMENT` | Nom de l'entorn als errors (per defecte `production`) |
 | `LOG_LEVEL` | Nivell dels registres |
+
+Què no s'envia mai al seguiment d'errors (`apps/core/error_tracking.py`; R11): el cos, les galetes, la cadena de consulta i l'URL de la petició (la ruta es veu a la transacció, sense valors), les capçaleres fora de `User-Agent`, `Content-Type`, `Accept` i `Accept-Language`, l'usuari, les variables locals, els `extra`, els paràmetres dels registres i les consultes SQL de les traces. Als missatges d'error i de registre es tapen els IBAN, les targetes i altres números llargs, els correus, els DNI i NIE, els telèfons i les IP. Sense traça de rendiment (`traces_sample_rate=0`), sense perfils ni repetició de sessions. Els identificadors interns (per exemple, el número d'un compte) sí que hi poden sortir.
 
 ### Còpies (al servidor, fora de l'aplicació)
 | Variable | Ús |

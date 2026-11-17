@@ -803,4 +803,15 @@ opcions:
       pantalla) és poca feina amb una llista. La D no compleix B5 ni B8 «N2».
     data: 2026-11-17
 
+  P-294:
+    opcions:
+      A: GlitchTip autoallotjat al mateix VPS de Hetzner (UE), amb la seva base de dades i còpies, i les alertes per correu a l'administrador.
+      B: El servei allotjat de GlitchTip, si les dades són a la UE i hi ha contracte d'encarregat [A verificar].
+      C: Sentry amb la regió de la UE (Frankfurt), triada en crear l'organització; empresa dels EUA.
+    recomanada: A
+    perque: >-
+      Les dades no surten del servidor del club i no cal cap encarregat del tractament nou; el cost és
+      memòria del VPS i un servei més a mantenir. Si el VPS no hi arriba, B si es verifica la UE.
+    data: 2026-11-17
+
 noves:
