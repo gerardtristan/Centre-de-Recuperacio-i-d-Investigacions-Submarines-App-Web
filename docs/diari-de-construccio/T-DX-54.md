@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 17/11/2026 14:49 | d64612fa | 8 casos nous (12 en total) | [A comprovar] (PR #PR) |
+| 17/11/2026 14:49 | d64612fa | 8 casos nous (12 en total) | [A comprovar] (PR #194) |
 
 **En tres línies:** la prova dels logotips de la T-DX-51 només corria a Chromium, i que el logotip amagat no es descarregui depèn del motor. Ara corre també a Firefox i a WebKit, el motor de Safari: als tres, en clar, en fosc i amb el tema triat a mà, es descarrega un sol logotip, el que es veu, en AVIF o WebP. El CI instal·la els tres motors.
 
