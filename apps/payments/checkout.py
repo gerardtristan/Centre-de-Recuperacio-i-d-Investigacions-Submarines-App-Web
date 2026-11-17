@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy
 
 from apps.accounts.models import Account
-from apps.core import audit, guest_links
+from apps.core import audit, business_settings, guest_links
 from apps.core.models import Charge, GuestLink, Person
 from apps.members.models import Member
 from apps.treasury import services as treasury
@@ -276,8 +276,25 @@ class CardNotUsable(attempts.ChargeNotPayable):
 
 
 class AlreadyAttempted(attempts.ChargeNotPayable):
-    """La quota ja té un intent amb la targeta guardada (el primer cobrament; els reintents són
-    de la T-M05b-24)."""
+    """La quota ja té els intents amb la targeta guardada que toquen: un en curs, un d'acabat
+    que no ha fallat, els reintents esgotats o encara no han passat els dies (RN-M05b-27)."""
+
+
+def card_tries(charge: Charge) -> list:
+    """Els intents amb la targeta guardada que han arribat (o poden haver arribat) al proveïdor."""
+    reached = SavedCardAttempt.objects.filter(reached_provider=True).values("attempt")
+    return list(charge.attempts.filter(pk__in=reached))
+
+
+def _retry_due(tries, now) -> bool:
+    """Un reintent toca si tots els intents anteriors han fallat (un d'abandonat, a revisar o
+    pagat no es reintenta), en queden i han passat els dies de l'ajust des de l'últim."""
+    if any(attempt.status not in processing.CARD_FAILED for attempt in tries):
+        return False
+    if len(tries) > business_settings.get(processing.RETRIES):
+        return False
+    last = max(tries, key=lambda attempt: attempt.pk)
+    return last.updated_at <= now - timedelta(days=business_settings.get(processing.RETRY_DAYS))
 
 
 SAVED_CARD_ACTOR = processing.SAVED_CARD_ACTOR
@@ -336,7 +353,8 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider, t
             raise CardNotUsable(PREFERENCE)
         if case := _unusable(card, stored, provider, today):
             raise CardNotUsable(case)
-        if SavedCardAttempt.objects.filter(attempt__charge=stored, reached_provider=True).exists():
+        tries = card_tries(stored)
+        if tries and not _retry_due(tries, timezone.now()):
             raise AlreadyAttempted
         if stored.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER).exists():
             raise CardNotUsable(TRANSFER_WAITING)  # si ja l'ha feta, pagaria dues vegades
@@ -452,9 +470,6 @@ def due_saved_card_charges(today):
             status=Charge.Status.PENDING,
             annual_fee__member_id__in=cards,
             annual_fee__due_on__lte=today,
-        )
-        .exclude(
-            attempts__in=SavedCardAttempt.objects.filter(reached_provider=True).values("attempt")
         )
         .exclude(pk__in=SavedCardNotice.objects.filter(case=ARREARS).values("charge"))  # ja dit
         .select_related("annual_fee")

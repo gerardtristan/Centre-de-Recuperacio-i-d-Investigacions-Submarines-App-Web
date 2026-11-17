@@ -11,7 +11,7 @@ from django.db import connection, transaction
 from django.db.models import F
 from django.test.utils import CaptureQueriesContext
 
-from apps.core import audit, charges
+from apps.core import audit, business_settings, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
@@ -113,13 +113,14 @@ def test_rn_m05b_20_authentication_closes_the_attempt_at_once(saved, fee, accoun
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
-def test_a_denied_charge_leaves_the_fee_pending(saved, fee):
+def test_a_denied_charge_leaves_the_fee_pending_until_the_retry(saved, fee):
     checkout.charge_due_saved_cards()
     notify(only_attempt(fee), base.DENIED)
     run_queue()
 
     fee.charge.refresh_from_db()
     assert (only_attempt(fee).status, fee.charge.status) == (S.FAILED, Charge.Status.PENDING)
+    assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()  # encara no
 
 
 def test_a_failure_after_the_provider_call_does_not_charge_twice(saved, fee, monkeypatch):
@@ -198,6 +199,17 @@ def test_level_1_no_saved_card_is_charged(saved, fee, settings):
 
 
 # --- Segona revisió de #191 ---
+
+
+@pytest.fixture
+def no_retries(monkeypatch):
+    """Sense reintents: l'avís toca a la primera denegació."""
+    real = business_settings.get
+    monkeypatch.setattr(
+        business_settings,
+        "get",
+        lambda key, at=None: 0 if key == processing.RETRIES else real(key, at),
+    )
 
 
 @pytest.fixture
@@ -342,7 +354,9 @@ def alternatives():
     return OutgoingEmail.objects.filter(template="alternativa-pagament")
 
 
-def test_a_denial_tells_member_and_treasurer_once_with_the_references(saved, fee, treasurer):
+def test_a_denial_tells_member_and_treasurer_once_with_the_references(
+    saved, fee, treasurer, no_retries
+):
     checkout.charge_due_saved_cards()
     notify(only_attempt(fee), base.DENIED)
     notify(only_attempt(fee), base.DENIED)  # repetida
@@ -530,7 +544,7 @@ def test_the_provider_error_outcome_runs_with_the_charge_locked(saved, fee, monk
     assert seen == [True]
 
 
-def test_a_failure_without_its_card_still_settles_and_is_reviewed(saved, fee):
+def test_a_failure_without_its_card_still_settles_and_is_reviewed(saved, fee, no_retries):
     checkout.charge_saved_card(fee.charge, saved)
     SavedCardAttempt.objects.all().delete()
     notify(only_attempt(fee), base.DENIED)
@@ -565,3 +579,84 @@ def test_the_safety_net_keeps_why_it_gave_up(saved, fee, monkeypatch):
     processing.safety_net()
     entry = AuditEntry.objects.get(action=processing.OUTCOME)
     assert "consultar l'ordre" in entry.details["detail"]
+
+
+# --- Reintents i alternativa (T-M05b-24; RN-M05b-27; CA-M05b-29; P-304) ---
+
+
+def deny_last(fee, *, days_ago=3):
+    """El proveïdor denega l'últim intent, i fa `days_ago` dies que es va tancar."""
+    attempt = PaymentAttempt.objects.filter(charge=fee.charge).latest("pk")
+    notify(attempt, base.DENIED, event_id=f"e-{attempt.pk}")
+    run_queue()
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET updated_at = updated_at - %s WHERE id = %s",
+            [timedelta(days=days_ago), attempt.pk],
+        )
+
+
+def age_attempts(days):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET updated_at = updated_at - %s",
+            [timedelta(days=days)],
+        )
+
+
+def test_rn_m05b_27_a_denied_charge_is_retried_after_the_days_of_the_setting(saved, fee):
+    checkout.charge_due_saved_cards()
+    deny_last(fee, days_ago=2)
+    assert checkout.charge_due_saved_cards() == 0  # encara no: 3 dies (P-304)
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET updated_at = updated_at - %s", [timedelta(days=1)]
+        )
+    assert checkout.charge_due_saved_cards() == 1
+    assert fee.charge.attempts.filter(method=M.SAVED_CARD).count() == 2
+
+
+def test_ca_m05b_29_when_the_retries_run_out_the_member_gets_the_alternative_once(saved, fee):
+    checkout.charge_due_saved_cards()
+    deny_last(fee)
+    checkout.charge_due_saved_cards()
+    deny_last(fee)
+    checkout.charge_due_saved_cards()
+    assert not alternatives().exists()
+    deny_last(fee)  # el tercer: 1 + 2 reintents
+
+    assert checkout.charge_due_saved_cards() == 0
+    assert fee.charge.attempts.filter(method=M.SAVED_CARD).count() == 3
+    email = alternatives().get()
+    assert "amb la teva targeta guardada" in email.body_text
+    assert f"/socis/pagaments/{fee.charge.pk}/" in email.body_text
+    fee.charge.refresh_from_db()
+    assert fee.charge.status == Charge.Status.PENDING
+    run_queue()  # una notificació repetida no torna a enviar res
+    assert alternatives().count() == 1
+
+
+def test_the_retries_are_a_setting(saved, fee, monkeypatch):
+    real = business_settings.get
+    monkeypatch.setattr(
+        business_settings,
+        "get",
+        lambda key, at=None: 0 if key == processing.RETRIES else real(key, at),
+    )
+    checkout.charge_due_saved_cards()
+    deny_last(fee)
+
+    assert alternatives().count() == 1
+    assert checkout.charge_due_saved_cards() == 0
+
+
+def test_no_retry_after_the_bank_asked_for_authentication(saved, fee):
+    fake.FakeProvider().require_authentication(saved.provider_card_id)
+    checkout.charge_due_saved_cards()
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET updated_at = updated_at - %s", [timedelta(days=30)]
+        )
+
+    assert checkout.charge_due_saved_cards() == 0

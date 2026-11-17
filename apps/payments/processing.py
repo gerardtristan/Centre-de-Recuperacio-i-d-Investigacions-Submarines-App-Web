@@ -301,6 +301,20 @@ def retry_outcomes(still_applies) -> None:
             logger.exception("No s'ha pogut tornar a provar l'avís %s", pk)
 
 
+# RN-M05b-27 (T-M05b-24; P-304): reintents i dies entre intents, ajustos [A validar: tresorer].
+RETRIES = "payments.saved_card_retries"
+RETRY_DAYS = "payments.saved_card_retry_days"
+CARD_FAILED = (S.FAILED, S.EXPIRED)
+
+
+def retries_left(charge_id) -> bool:
+    """Encara queden reintents: els intents fallits (denegats o caducats) no passen de l'ajust."""
+    failed = PaymentAttempt.objects.filter(
+        charge_id=charge_id, method=PaymentAttempt.Method.SAVED_CARD, status__in=CARD_FAILED
+    )
+    return failed.count() <= business_settings.get(RETRIES)
+
+
 def _card_of(attempt: PaymentAttempt):
     return SavedCardAttempt.objects.get(attempt=attempt).card
 
@@ -311,6 +325,8 @@ def on_saved_card_failed(attempt: PaymentAttempt, charge: Charge) -> None:
     if charge.status != Charge.Status.PENDING:
         return
     case = {S.EXPIRED: "order_expired", S.FAILED: "denied"}.get(attempt.status)
+    if case is not None and retries_left(charge.pk):
+        return  # CA-M05b-29: el reintent és el pla; l'avís, quan s'esgoten
     try:
         with transaction.atomic():
             if case is None:

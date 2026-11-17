@@ -5,10 +5,11 @@ quota no queda pendent sense un reintent previst ni el tresorer avisat. Proveïd
 dades inventades. La taula, amb l'enllaç a cada prova, és al cos de la PR i a
 `docs/estat/M05b.md`."""
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 from django.db import connection
+from django.utils import timezone
 
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person
 from apps.members.models import Member
@@ -141,8 +142,9 @@ def _amount_changed(ctx):
 # fila: (escenari, alternativa al soci, tresorer avisat, «a revisar», es torna a provar l'endemà)
 ROWS = {
     "pagat": (_notified(base.PAID), False, False, False, False),
-    "denegat": (_notified(base.DENIED), True, True, False, False),
-    "ordre caducada": (_notified(base.EXPIRED), True, True, False, False),
+    # T-M05b-24: mentre queden reintents, cap avís; el reintent és el pla.
+    "denegat": (_notified(base.DENIED), False, False, False, True),
+    "ordre caducada": (_notified(base.EXPIRED), False, False, False, True),
     "autenticació": (_authentication, True, True, False, False),
     "ja no pendent": (_wrap_open(lambda ctx: pay(ctx["fee"])), False, False, False, False),
     "import canviat": (_wrap_open(_amount_changed), False, True, True, True),
@@ -178,7 +180,10 @@ def test_every_terminal_state(row, saved, fee, member, account, treasurer, monke
     )
     assert reviewed == review
     due = checkout.due_saved_card_charges(date(2026, 12, 31))
-    assert any(c.pk == charge.pk and chosen for c, _card, chosen in due) == retried
+    tries = checkout.card_tries(charge)
+    later = timezone.now() + timedelta(days=30)  # els reintents (T-M05b-24), quan toquin
+    again = not tries or checkout._retry_due(tries, later)
+    assert (again and any(c.pk == charge.pk and chosen for c, _card, chosen in due)) == retried
     # Invariant: cap quota pendent sense reintent previst ni el tresorer avisat.
     assert charge.status != Charge.Status.PENDING or retried or told
     assert Person.objects.filter(pk=member.person_id).exists()

@@ -816,6 +816,17 @@ opcions:
       encallat i cap enllaç del banc en correus. La B fa esperar el soci i depèn que el proveïdor la tanqui.
     data: 2026-11-17
 
+  P-304:
+    opcions:
+      A: Dos reintents, cada tres dies, com a ajustos que edita el tresorer.
+      B: Un reintent, al cap de set dies.
+      C: Cap reintent; el soci rep l'alternativa a la primera denegació.
+    recomanada: A
+    perque: >-
+      Una denegació per falta de saldo sovint es resol en pocs dies, i és el mateix nombre d'intents que la
+      domiciliació (VC-16); com que són ajustos, el tresorer els canvia sense tocar el codi.
+    data: 2026-11-17
+
   P-309:
     opcions:
       A: Sí, si té targeta i preferència «targeta guardada»; es cobra com qualsevol altra quota.
