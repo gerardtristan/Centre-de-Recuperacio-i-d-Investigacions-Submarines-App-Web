@@ -261,3 +261,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-02](T-M05b-02.md) | Wireframes del 05b: pagar un càrrec amb els quatre estats, Bizum, transferència i rebut; pagaments i «a revisar» amb la devolució, remeses i retornats (P-310 i P-311) | 17/11/2026 12:48 | ecf3d20b (PR #176) | al navegador i axe | [A comprovar] |
 | [P-125](P-125.md) | Signar el mandat passa la preferència a la domiciliació amb aquest mandat (095) | 17/11/2026 | d2c83b18 | 1 nova | [A comprovar] |
 | [P-111](P-111.md) | L'ingrés d'una transferència conciliada porta la data de valor de la línia de l'extracte (`record_payment` accepta `paid_at`; 095) | 17/11/2026 | 43ca0fcd | 1 nova | [A comprovar] |
+| [P-250](P-250.md) | Descartar amb motiu una devolució pendent (B5; migració payments/0015; 095) | 17/11/2026 | 77a66465 | 4 noves | [A comprovar] |
