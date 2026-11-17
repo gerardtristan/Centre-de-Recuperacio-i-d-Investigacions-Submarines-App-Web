@@ -841,8 +841,7 @@ opcions:
       C: Les del període triat i que, a més, vencen com a molt el dia del cobrament.
     recomanada: A
     perque: >-
-      Amb la 070 cada quota venç en una data pròpia: la A no cobra mai una quota abans del venciment i no
-      en deixa cap de vençuda fora.
+      Amb la 070 cada quota venç en una data pròpia: la A no cobra mai una quota abans del venciment i no en deixa cap de vençuda fora.
     data: 2026-11-17
 
   P-231:
@@ -852,8 +851,7 @@ opcions:
       C: Signar un mandat nou actualitza la preferència (canvia la P-125).
     recomanada: A
     perque: >-
-      El soci ja havia triat la domiciliació i el mandat actiu és el vigent; la B el deixaria fora sense que
-      ho sàpiga.
+      El soci ja havia triat la domiciliació i el mandat actiu és el vigent; la B el deixaria fora sense que ho sàpiga.
     data: 2026-11-17
 
   P-232:
@@ -863,8 +861,7 @@ opcions:
       C: No es pot confirmar la remesa mentre hi hagi cap deutor sense adreça.
     recomanada: A
     perque: >-
-      No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer
-      pot avisar per telèfon o en persona.
+      No cobra mai sense avís (la remesa no passa a «avisada») i no deixa fora de cop una quota que el tresorer pot avisar per telèfon o en persona.
     data: 2026-11-17
 
 noves:
