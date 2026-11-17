@@ -387,12 +387,32 @@ MAP = {
     # més que el pressupost del hook, de manera que un canvi de plantilla sempre deixa la
     # verificació completa obligatòria.
     "test_accessibilitat_028.py": ("templates/*.html",),
+    # Auditoria d'accessibilitat (B8) de la tresoreria i del 05b, a dues amplades: com la 028,
+    # triga més que el pressupost del hook.
+    "test_accessibilitat_tresoreria.py": (
+        "templates/treasury/*.html",
+        "templates/core/bank_statement.html",
+    ),
+    "test_accessibilitat_05b.py": (
+        "templates/payments/payments.html",
+        "templates/payments/remittance*.html",
+        "templates/payments/returns.html",
+        "templates/payments/charge.html",
+        "templates/payments/_status.html",
+        "templates/payments/_tramite.html",
+        "templates/payments/receipt.html",
+        "templates/members/personal_fees.html",
+        "templates/members/personal_fee_detail.html",
+        "templates/core/setting*.html",
+    ),
 }
 
 SECONDS = {
     SMOKE: 35,
     "test_accessibilitat_028.py": 120,
     "test_accessibilitat_mandat.py": 120,
+    "test_accessibilitat_tresoreria.py": 100,
+    "test_accessibilitat_05b.py": 170,
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
     "test_logotip.py": 95,
