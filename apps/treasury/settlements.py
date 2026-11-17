@@ -3,8 +3,10 @@
 `record_settlement` (el crida el 05b) desa l'abonament agrupat; `fee_split` en dona la comissió de
 cada cobrament (CA-T04.4); `confirm` apunta comissions i traspàs en casar el net (CA-T11.1). El
 format real és [A verificar: P-45 punt 9]: `SettlementData` és la forma de la 04, i l'adaptador
-de cada proveïdor (092) hi tradueix el seu. Proposar la línia del banc (T-M04-11/12) i les
-remeses SEPA (RN-T24) són dels talls següents.
+de cada proveïdor (092) hi tradueix el seu. Una remesa SEPA (RN-T24, CA-T16.1) és una
+liquidació del trànsit «Remeses SEPA» que el 05b registra i confirma amb la línia de l'abonament
+(`confirm(..., statement_line=...)`). Proposar la línia del banc per a les liquidacions del
+proveïdor (T-M04-11/12) és d'un tall següent.
 """
 
 from dataclasses import dataclass
@@ -16,11 +18,18 @@ from django.http import Http404
 from django.utils.translation import gettext as _
 
 from apps.core import audit
+from apps.core.imports import statement_lines
 from apps.core.models import Payment, validate_cents
 from apps.core.permissions import has_perm
 
-from . import services
-from .models import ProviderSettlement, SettlementItem, TreasuryAccount
+from . import reconciliation, services
+from .models import (
+    ProviderSettlement,
+    Reconciliation,
+    SettlementItem,
+    StatementLineState,
+    TreasuryAccount,
+)
 
 RECORDED = "treasury.settlement_recorded"
 CONFIRMED = "treasury.settlement_confirmed"
@@ -120,11 +129,12 @@ def split(total: int, amounts: list[int]) -> list[int]:
 
 
 @transaction.atomic
-def confirm(settlement: ProviderSettlement, *, by) -> ProviderSettlement:
+def confirm(settlement: ProviderSettlement, *, by, statement_line=None) -> ProviderSettlement:
     """Confirma una liquidació rebuda (P-M04-F, pas 4; CA-T11.1): la comissió de cada cobrament
     al seu departament (`record_fee`; si ja n'hi ha una d'un altre import, es rebutja tot, P-116)
     i el traspàs del net del trànsit del proveïdor al banc, en dues potes enllaçades. Tot o res.
-    La crida la conciliació, amb T4 (RN-T16)."""
+    La crida la conciliació, amb T4 (RN-T16). Amb `statement_line` (la línia de l'abonament, del
+    mateix import que el net), la línia queda conciliada amb els càrrecs de la liquidació."""
     if not has_perm(by, RECONCILE, write=True):
         raise Http404
     settlement = ProviderSettlement.objects.select_for_update().get(pk=settlement.pk)
@@ -148,6 +158,8 @@ def confirm(settlement: ProviderSettlement, *, by) -> ProviderSettlement:
         by=by,
         settlement=settlement,
     )
+    if statement_line is not None:
+        _reconcile_line(statement_line, settlement, by)
     settlement.status = Status.RECONCILED
     settlement.save(update_fields=["status"])
     audit.record(
@@ -157,6 +169,29 @@ def confirm(settlement: ProviderSettlement, *, by) -> ProviderSettlement:
         details={"net_cents": settlement.net_cents, "fees_cents": settlement.fees_cents},
     )
     return settlement
+
+
+def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:
+    """CA-T16.1: la línia oberta de l'extracte amb l'import del net queda conciliada amb els
+    càrrecs de la liquidació. Desfer-la no es pot: no són transferències (es corregeixen amb un
+    retorn o una devolució)."""
+    reconciliation.refresh()  # també agafa el pany de les línies
+    state = StatementLineState.objects.select_for_update().filter(statement_line=line).first()
+    if (
+        line.amount_cents != settlement.net_cents
+        or not statement_lines().filter(pk=line.pk).exists()
+        or state is None
+        or state.status not in reconciliation.OPEN
+    ):
+        raise SettlementRejected(
+            _("Aquesta línia de l'extracte no es pot casar amb la liquidació.")
+        )
+    charges = [item.payment.charge for item in settlement.items.select_related("payment__charge")]
+    found = Reconciliation.objects.create(statement_line=line, confirmed_by=by)
+    found.matched_charges.set(charges)
+    reconciliation._apply(
+        state, StatementLineState.Status.RECONCILED, "", charges, created=False, actor=by
+    )
 
 
 def _check_totals(data: SettlementData) -> None:

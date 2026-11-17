@@ -1010,4 +1010,14 @@ opcions:
       sovint, la C és la més petita i manté la mateixa resposta per a qualsevol adreça.
     data: 2026-11-17
 
+  P-237:
+    opcions:
+      A: Un abonament per la remesa sencera; si descompta la comissió, el tresorer l'escriu i es casa el net (com s'ha fet).
+      B: Un abonament per rebut.
+      C: El brut a l'abonament i la comissió en una línia a part.
+    recomanada: A
+    perque: >-
+      És el cas més habitual de les remeses SEPA; la C també hi cap amb comissió zero, i la B demana un altre flux.
+    data: 2026-11-17
+
 noves:
