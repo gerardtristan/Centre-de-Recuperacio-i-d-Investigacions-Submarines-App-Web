@@ -235,3 +235,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-21](T-M05b-21.md) | Esdeveniment `charge.paid` (049): taula d'esdeveniments pendents, subscripcions, lliurament per la cua i un sol lliurament per subscriptor; cap subscriptor mogut (P-245, P-246) | 17/11/2026 05:18 | a306037 | 5652 | [A comprovar] |
 | [T-DX-12](T-DX-12.md) | Deposito: «Copia-ho tot» a la transferència i el comprovant en construcció (carril de disseny) | 16/11/2026 22:48 | 734376c (PR #114) | 1 nova | [A comprovar] |
 | [T-M05b-16](T-M05b-16.md) | Llistat de pagaments i «a revisar» per al tresorer (B6), només lectura; el nom del pagador amb P4 (P-247) | 17/11/2026 05:36 | 1965606 | 5676 | [A comprovar] |
+| [T-M04-18](T-M04-18.md) | Dades de prova inventades de la tresoreria a `seed_demo_data` (moviments, liquidacions, extractes CSV i Norma 43, conciliació i remeses) | 17/11/2026 06:02 | 46904f1 | 5675 | [A comprovar] |
