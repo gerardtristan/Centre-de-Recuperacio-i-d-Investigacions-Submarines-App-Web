@@ -89,22 +89,20 @@ def test_rn_m05b_20_the_due_fee_is_charged_without_the_member_and_paid_by_the_no
     assert Payment.objects.get(charge=fee.charge).method == Payment.Method.CARD
 
 
-def test_rn_m05b_20_authentication_keeps_the_attempt_and_sends_only_that_link(
-    saved, fee, account, settings
-):
-    settings.CLUB_IBAN_TRANSFERENCIES = test_guest_payment.IBAN
+def test_rn_m05b_20_authentication_closes_the_attempt_at_once(saved, fee, account):
+    """P-303: ningú no pot autenticar una ordre fora de sessió; l'intent es tanca i l'adreça del
+    banc no es desa ni s'envia. El soci pot pagar d'una altra manera i res no cobra dues vegades."""
     fake.FakeProvider().require_authentication(saved.provider_card_id)
 
     checkout.charge_due_saved_cards()
 
     attempt = only_attempt(fee)
-    fee.charge.refresh_from_db()
-    assert (attempt.status, fee.charge.status) == (S.IN_PROGRESS, Charge.Status.PENDING)
-    # Mentre espera, el soci no pot pagar d'una altra manera: cap segon cobrament possible.
-    for method in ("card", "transfer"):
-        with pytest.raises(attempts.AttemptInProgress):
-            checkout.start_payment(fee.charge, method, account)
-    notify(attempt)  # la confirma tard
+    assert (attempt.status, attempt.review_reason) == (S.ABANDONED, "")
+    assert "/pagaments/prova/" not in str(list(AuditEntry.objects.values_list("details", "reason")))
+    assert not OutgoingEmail.objects.exists()
+    start = checkout.start_payment(fee.charge, "card", account)
+    notify(PaymentAttempt.objects.get(pk=start.attempt_id))
+    notify(attempt, event_id="tard")  # una confirmació tardana de l'ordre tancada
     run_queue()
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
@@ -119,21 +117,17 @@ def test_a_denied_charge_leaves_the_fee_pending(saved, fee):
 
 
 def test_a_failure_after_the_provider_call_does_not_charge_twice(saved, fee, monkeypatch):
-    real = checkout._save_order
-
     def broken(*args, **kwargs):
         raise RuntimeError("la base de dades ha caigut")
 
     monkeypatch.setattr(checkout, "_save_order", broken)
     checkout.charge_due_saved_cards()
+    monkeypatch.undo()
     attempt = only_attempt(fee)
-    assert (attempt.status, attempt.provider_order_id) == (S.IN_PROGRESS, "")
+    assert attempt.status == S.IN_PROGRESS and attempt.provider_order_id  # desat abans
 
-    monkeypatch.setattr(checkout, "_save_order", real)
-    checkout.charge_due_saved_cards()  # la mateixa clau: la mateixa ordre
+    checkout.charge_due_saved_cards()  # l'endemà: no es torna a cobrar
     assert len(fake._orders) == 1
-    attempt = only_attempt(fee)
-    assert attempt.provider_order_id
     notify(attempt)
     assert run_queue() == ["processed"]
     assert Payment.objects.filter(charge=fee.charge).count() == 1
@@ -228,49 +222,29 @@ def treasurer(make_admin):  # noqa: F811
     return account
 
 
-def unfinished(fee, monkeypatch):
-    """Un intent que no va arribar a desar l'ordre (la crida al proveïdor va fallar)."""
-
-    def broken(*args, **kwargs):
+def test_a_call_that_never_reached_the_provider_is_closed_by_the_safety_net(
+    saved, fee, account, monkeypatch, treasurer
+):
+    def down(*args, **kwargs):
         raise base.ProviderError("temps esgotat")
 
-    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", broken)
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", down)
     checkout.charge_due_saved_cards()
     monkeypatch.undo()
     attempt = only_attempt(fee)
-    assert (attempt.status, attempt.provider_order_id) == (S.IN_PROGRESS, "")
-    return attempt
-
-
-def test_an_unfinished_attempt_is_closed_when_the_card_no_longer_works(
-    saved, fee, account, monkeypatch, treasurer
-):
-    attempt = unfinished(fee, monkeypatch)
-    saved.status = "removed"
-    saved.save()
-
-    checkout.charge_due_saved_cards()
-    attempt.refresh_from_db()
-    assert attempt.status == S.TO_REVIEW
-    # Potser el proveïdor ja ha cobrat: el tresorer ho revisa, i cap alternativa al soci.
-    assert review_emails().exists()
-    assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()
-    checkout.start_payment(fee.charge, "card", account)  # el soci ja pot pagar
-
-
-def test_the_safety_net_closes_an_old_unfinished_attempt(saved, fee, member, monkeypatch):
-    attempt = unfinished(fee, monkeypatch)
-    FeePaymentPreference.objects.filter(member=member).update(
-        method="pay_each_time", saved_card=None
-    )
     with connection.cursor() as cursor:
         cursor.execute(
             "UPDATE payments_paymentattempt SET created_at = created_at - %s",
             [timedelta(hours=25)],
         )
-    processing.safety_net()
+    no_wait(monkeypatch)
+    processing.safety_net()  # el proveïdor no coneix l'ordre: passades les hores, «a revisar»
+
     attempt.refresh_from_db()
     assert attempt.status == S.TO_REVIEW
+    assert review_emails().exists()
+    assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()
+    checkout.start_payment(fee.charge, "card", account)  # el soci ja pot pagar
 
 
 def test_an_attempt_in_progress_is_skipped_quietly(saved, fee, account, monkeypatch, caplog):
@@ -290,70 +264,36 @@ def test_level_1_without_due_fees_writes_nothing(settings):
     assert not AuditEntry.objects.filter(action=guards.REFUSED).exists()
 
 
-# --- Tercera revisió de #191: camins de doble cobrament ---
-
-
 def review_emails():
     return OutgoingEmail.objects.filter(template="avis-pagament-revisar")
 
 
-def test_an_unfinished_attempt_is_not_resumed_for_a_paid_fee(saved, fee, monkeypatch):
-    attempt = unfinished(fee, monkeypatch)
-    pay(fee)
-
-    with pytest.raises(attempts.ChargeNotPayable):
-        checkout.charge_saved_card(fee.charge, saved)
-    attempt.refresh_from_db()
-    assert attempt.status == S.TO_REVIEW and not fake._orders
-
-
-def test_an_unfinished_attempt_is_not_resumed_with_another_card(
-    saved, fee, member, account, monkeypatch
-):
-    attempt = unfinished(fee, monkeypatch)
-    saved.status = "removed"
-    saved.save()
-    new = card(member, provider_card_id="c-2")
-    FeePaymentPreference.objects.filter(member=member).update(saved_card=new)
-
-    checkout.charge_due_saved_cards()
-    attempt.refresh_from_db()
-    assert attempt.status == S.TO_REVIEW and not fake._orders
-
-
-def test_a_notification_before_the_order_is_saved_waits_for_the_safety_net(saved, fee, monkeypatch):
+def test_a_notification_before_the_response_finds_its_attempt(saved, fee, monkeypatch):
     real = fake.FakeProvider._charge_saved_card
 
     def fast_bank(self, charge, card, key):
         order = real(self, charge, card, key)
         body, headers = self.notification(order.external_id, base.PAID)
         Client().post(NOTIFY_URL, data=body, content_type="application/json", headers=headers)
-        assert run_queue() == ["received"]  # encara no troba l'intent: s'espera
+        assert run_queue() == ["processed"]  # l'intent ja porta l'ordre
         return order
 
     monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", fast_bank)
     checkout.charge_due_saved_cards()
-    monkeypatch.undo()
-    no_wait(monkeypatch)
-    processing.safety_net()
 
     fee.charge.refresh_from_db()
     assert fee.charge.status == Charge.Status.PAID
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
-def test_a_waiting_transfer_is_not_charged_by_card_and_the_treasurer_is_told_once(
-    saved, fee, account, settings, treasurer
-):
+def test_a_waiting_transfer_is_abandoned_like_start_payment(saved, fee, account, settings):
     settings.CLUB_IBAN_TRANSFERENCIES = test_guest_payment.IBAN
-    checkout.start_payment(fee.charge, "transfer", account)
+    start = checkout.start_payment(fee.charge, "transfer", account)
 
     checkout.charge_due_saved_cards()
-    checkout.charge_due_saved_cards()
 
-    assert not fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
-    assert SavedCardNotice.objects.filter(charge=fee.charge).count() == 1
-    assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()
+    assert PaymentAttempt.objects.get(pk=start.attempt_id).status == S.ABANDONED  # P-136
+    assert fee.charge.attempts.get(method=M.SAVED_CARD).status == S.IN_PROGRESS
 
 
 def test_no_alternative_for_a_fee_paid_by_hand_in_between(saved, fee, monkeypatch):
@@ -366,23 +306,25 @@ def test_no_alternative_for_a_fee_paid_by_hand_in_between(saved, fee, monkeypatc
     assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()
 
 
-def test_the_safety_net_only_closes_unfinished_attempts_of_its_provider(saved, fee, monkeypatch):
-    attempt = unfinished(fee, monkeypatch)
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "UPDATE payments_paymentattempt SET provider_code = 'altre', "
-            "created_at = created_at - %s",
-            [timedelta(hours=25)],
-        )
-    processing.safety_net()
-    attempt.refresh_from_db()
-    assert attempt.status == S.IN_PROGRESS
-
-
-def test_the_not_charged_marker_is_on_the_fee(saved, fee):
+def test_the_notice_is_per_card_and_a_new_card_is_charged(saved, fee, member):
     saved.status = "removed"
     saved.save()
     checkout.charge_due_saved_cards()
+    checkout.charge_due_saved_cards()
+    assert SavedCardNotice.objects.filter(charge=fee.charge, card=saved).count() == 1
 
-    assert SavedCardNotice.objects.filter(charge=fee.charge).exists()
-    assert checkout.due_saved_card_charges(date(2026, 6, 1)) == []
+    new = card(member, provider_card_id="c-2")
+    FeePaymentPreference.objects.filter(member=member).update(saved_card=new)
+    assert checkout.charge_due_saved_cards() == 1
+
+
+def test_an_unexpected_order_goes_to_review(saved, fee, monkeypatch):
+    real = fake.FakeProvider._charge_saved_card
+
+    def other(self, charge, card, key):
+        order = real(self, charge, card, key)
+        return base.ProviderOrder("fake-una-altra", order.pay_url, None)
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other)
+    checkout.charge_due_saved_cards()
+    assert only_attempt(fee).status == S.TO_REVIEW

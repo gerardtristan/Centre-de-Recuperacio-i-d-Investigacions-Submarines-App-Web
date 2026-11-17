@@ -1,5 +1,5 @@
-"""T-M05b-15: la targeta guardada amb què s'obre cada intent (per reprendre'l només amb la mateixa)
-i la marca d'una quota que la targeta no ha pogut cobrar i de la qual ja s'ha avisat."""
+"""T-M05b-15: la targeta guardada amb què s'obre cada intent i la marca d'una quota que una targeta
+no ha pogut cobrar (una sola vegada per càrrec i targeta)."""
 
 import django.db.models.deletion
 from django.db import migrations, models
@@ -55,8 +55,16 @@ class Migration(migrations.Migration):
                 ("reason", models.TextField(verbose_name="motiu")),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
+                    "card",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="payments.savedcard",
+                    ),
+                ),
+                (
                     "charge",
-                    models.OneToOneField(
+                    models.ForeignKey(
                         on_delete=django.db.models.deletion.PROTECT,
                         related_name="+",
                         to="core.charge",
@@ -66,6 +74,11 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "avís de quota no cobrada amb la targeta",
                 "verbose_name_plural": "avisos de quotes no cobrades amb la targeta",
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("charge", "card"), name="saved_card_notice_once"
+                    )
+                ],
             },
         ),
     ]

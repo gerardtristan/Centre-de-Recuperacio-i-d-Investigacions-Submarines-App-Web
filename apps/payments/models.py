@@ -584,16 +584,20 @@ class SavedCardAttempt(models.Model):
 
 
 class SavedCardNotice(models.Model):
-    """Una quota que la targeta guardada no ha pogut cobrar i de la qual ja s'ha avisat (T-M05b-15):
-    una sola vegada per càrrec, també a la base de dades."""
+    """Una quota que una targeta guardada no ha pogut cobrar i de la qual ja s'ha avisat
+    (T-M05b-15): una sola vegada per càrrec i targeta. Amb una targeta nova, es torna a provar."""
 
-    charge = models.OneToOneField("core.Charge", on_delete=models.PROTECT, related_name="+")
+    charge = models.ForeignKey("core.Charge", on_delete=models.PROTECT, related_name="+")
+    card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
     reason = models.TextField(_("motiu"))
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = _("avís de quota no cobrada amb la targeta")
         verbose_name_plural = _("avisos de quotes no cobrades amb la targeta")
+        constraints = [
+            models.UniqueConstraint(fields=["charge", "card"], name="saved_card_notice_once")
+        ]
 
     def __str__(self):
         return str(self.charge_id)
