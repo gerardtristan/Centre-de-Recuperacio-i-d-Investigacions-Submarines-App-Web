@@ -1,6 +1,8 @@
-"""Saldos calculats (RN-T02, CA-T02.1): el saldo d'un compte a una data és la suma de les entrades
-menys la de les sortides amb data de valor fins a aquella data. No es desa enlloc. Un
-contramoviment és de sentit contrari, de manera que un moviment anul·lat ja hi suma zero."""
+"""Saldos calculats (RN-T02; CA-T02.1 i CA-T02.2; T-M04-04): l'únic lloc on es calculen. El
+saldo d'un compte a una data és la suma de les entrades menys la de les sortides amb data de
+valor fins a aquella data. No es desa enlloc. Un contramoviment és de sentit contrari, de manera
+que un moviment anul·lat ja hi suma zero, i un trànsit liquidat torna a zero pel traspàs del net
+i les comissions (CA-T02.2)."""
 
 from django.db.models import Q, Sum, Value
 from django.db.models.functions import Coalesce
@@ -26,5 +28,6 @@ def balances(on):
 
 
 def balance(account, on) -> int:
-    """El saldo d'un compte a la data `on`, en cèntims (pot ser negatiu)."""
+    """El saldo d'un compte a la data `on`, en cèntims (RNF-T7: menys d'un segon amb 50.000
+    moviments). El mateix càlcul que `balances`, perquè només n'hi hagi un."""
     return balances(on).get(pk=account.pk).balance_cents
