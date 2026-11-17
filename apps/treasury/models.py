@@ -195,7 +195,8 @@ class Movement(AppendOnlyModel):
         verbose_name=_("pagament"),
     )
     # L'altra pota d'un traspàs. Com que cap fila no es modifica, només la segona pota apunta la
-    # primera; la primera troba la segona per la relació inversa (`linked_from`).
+    # primera; la primera troba la segona per la relació inversa (`linked_from`). També la
+    # comissió d'un retorn, que apunta el retorn (T-M04-07; així no compta com la del cobrament).
     linked_movement = models.ForeignKey(
         "self",
         on_delete=models.PROTECT,

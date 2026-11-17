@@ -13,6 +13,9 @@ serveis. Cap ruta hi arriba: un ingrés mai neix d'una petició del navegador (R
 cobrament, com a sortida del compte on va entrar l'ingrés, amb el departament i el centre de cost
 del càrrec. L'import el dona el proveïdor: la plataforma no en calcula cap.
 
+`record_refund` i `record_return` (T-M04-07; P-M04-B; RN-T11; CA-T05.1 a CA-T05.4): una devolució
+que fa el club o un rebut retornat, com a sortides noves; el càrrec el canvia el 05b.
+
 `create_transit_account` (T-M04-17; RN-T01 i RN-T08): el compte de trànsit d'un proveïdor de
 cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup.py`).
 
@@ -24,6 +27,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Sum
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -41,6 +45,8 @@ INCOME_RECORDED = "treasury.income_recorded"
 INCOME_REPEATED = "treasury.income_repeated"
 FEE_RECORDED = "treasury.fee_recorded"
 FEE_REPEATED = "treasury.fee_repeated"
+REFUND_RECORDED = "treasury.refund_recorded"
+RETURN_RECORDED = "treasury.return_recorded"
 TRANSIT_ACCOUNT_CREATED = "treasury.transit_account_created"
 MOVEMENT_REVERSED = "treasury.movement_reversed"
 REVERSE = "treasury.reverse"  # T5, «Anul·lar un moviment amb motiu» (M04-4)
@@ -72,6 +78,14 @@ class IncomeNotRecorded(ValidationError):
 
 class FeeAlreadyRecorded(ValidationError):
     """El pagament ja té una comissió vigent d'un altre import (P-116)."""
+
+
+class RefundExceedsPaid(ValidationError):
+    """Les devolucions i el retorn passarien de l'import cobrat (RN-T11, CA-T05.4; P-118)."""
+
+
+class AlreadyReturned(ValidationError):
+    """El pagament ja té un retorn vigent."""
 
 
 class AlreadyReversed(ValidationError):
@@ -142,55 +156,126 @@ def record_fee(payment: Payment, amount_cents: int, *, by) -> Movement:
     de l'ingrés, que són els del càrrec (RN-T10): una quota, a «General / Quotes de socis»; una
     inscripció, al de l'activitat; una llicència, a «General / Llicències» (RN-M06-10, VT-04).
     Idempotent: si el pagament ja en té una del mateix import, la torna sense crear-ne cap; d'un
-    altre import, es rebutja (P-116). La comissió d'una liquidació és de la T-M04-13."""
-    try:
-        validate_cents(amount_cents)
-    except ValidationError as error:
-        raise InvalidAmount(error.messages) from None
-    if not _system_or_account(by):
-        raise BrowserOriginRejected(
-            _("Una comissió l'apunta el sistema o un compte, mai ningú més.")
-        )
-    # El pany del pagament fa que dues crides alhora no apuntin dues comissions.
-    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    altre import, es rebutja (P-116). La comissió d'una liquidació és de la T-M04-13; la d'un
+    retorn l'apunta `record_return`, enllaçada al retorn, i aquí no compta."""
+    _validate_amount(amount_cents)
+    payment, income = _live_income(payment, by)
     if amount_cents > payment.amount_cents:
         raise InvalidAmount(_("La comissió no pot passar de l'import cobrat."))
-    income = _income_of(payment)
-    if income is None or income.is_reversed:
-        raise IncomeNotRecorded(_("Aquest pagament no té cap ingrés vigent: no hi ha comissió."))
-    fee = Movement.objects.filter(
-        payment=payment, kind=Movement.Kind.FEE, reversal__isnull=True
-    ).first()
+    fee = _live(payment, Movement.Kind.FEE).filter(linked_movement__isnull=True).first()
     if fee is not None:
         if fee.amount_cents != amount_cents:
             raise FeeAlreadyRecorded(_("Aquest pagament ja té una comissió d'un altre import."))
         audit.record(FEE_REPEATED, actor=by, target=fee, details={"payment": payment.pk})
         return fee
-    # RN-T31: la data de valor dins un període tancat passa al període obert (T-M04-20).
-    fee = Movement.objects.create(
+    fee = _outgoing(income, Movement.Kind.FEE, amount_cents, by, value_date=income.value_date)
+    _record(FEE_RECORDED, by, fee)
+    return fee
+
+
+@transaction.atomic
+def record_refund(payment: Payment, amount_cents: int, *, reason: str, by) -> Movement:
+    """Apunta una devolució que ha fet el club, total o parcial (HU-T05; P-M04-B; CA-T05.1,
+    CA-T05.2 i CA-T05.4): una sortida nova del compte de l'ingrés, amb el seu departament i
+    centre de cost i data d'avui. L'ingrés no canvia i la comissió no es retorna (RN-T11). La
+    suma de les devolucions i el retorn vigents no passa mai de l'import cobrat (P-118). El
+    càrrec el canvia qui crida (05b, RN-M05b-17)."""
+    _validate_amount(amount_cents)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Una devolució necessita el motiu."))
+    payment, income = _live_income(payment, by)
+    if _given_back(payment) + amount_cents > income.amount_cents:
+        raise RefundExceedsPaid(_("La suma de les devolucions passaria de l'import cobrat."))
+    refund = _outgoing(income, Movement.Kind.REFUND, amount_cents, by, reason=reason)
+    _record(REFUND_RECORDED, by, refund, reason=reason)
+    return refund
+
+
+@transaction.atomic
+def record_return(payment: Payment, fee_cents: int | None = None, *, by) -> Movement:
+    """Apunta un rebut retornat o un contracàrrec (HU-T05; P-M04-B; CA-T05.3): una sortida de
+    tot l'import cobrat del compte de l'ingrés, amb el seu departament i centre de cost i data
+    d'avui, i, si n'hi ha, la comissió de retorn al mateix compte i departament, enllaçada al
+    retorn. Un pagament només es retorna una vegada (`AlreadyReturned`), i mai si ja té
+    devolucions (P-118). El càrrec el canvia qui crida (05b, P-M05b-F)."""
+    if fee_cents is not None:
+        _validate_amount(fee_cents)
+    payment, income = _live_income(payment, by)
+    if _live(payment, Movement.Kind.RETURN).exists():
+        raise AlreadyReturned(_("Aquest pagament ja està retornat."))
+    if _given_back(payment):
+        raise RefundExceedsPaid(_("Aquest pagament ja té devolucions: el retorn s'ha de revisar."))
+    returned = _outgoing(income, Movement.Kind.RETURN, income.amount_cents, by)
+    _record(RETURN_RECORDED, by, returned)
+    if fee_cents is not None:
+        fee = _outgoing(income, Movement.Kind.FEE, fee_cents, by, linked=returned)
+        _record(FEE_RECORDED, by, fee)
+    return returned
+
+
+def _validate_amount(amount_cents) -> None:
+    try:
+        validate_cents(amount_cents)
+    except ValidationError as error:
+        raise InvalidAmount(error.messages) from None
+
+
+def _live_income(payment: Payment, by) -> tuple[Payment, Movement]:
+    """El pagament, amb el pany (dues crides alhora no apunten res dues vegades), i el seu
+    ingrés vigent: sense ingrés no hi ha res a descomptar (P-M04-A)."""
+    if not _system_or_account(by):
+        raise BrowserOriginRejected(_("Aquest moviment l'apunta el sistema o un compte."))
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    income = _income_of(payment)
+    if income is None or income.is_reversed:
+        raise IncomeNotRecorded(_("Aquest pagament no té cap ingrés vigent."))
+    return payment, income
+
+
+def _live(payment: Payment, *kinds):
+    """Els moviments del pagament d'aquests tipus que no estan anul·lats (RN-T25)."""
+    return Movement.objects.filter(payment=payment, kind__in=kinds, reversal__isnull=True)
+
+
+def _given_back(payment: Payment) -> int:
+    """Cèntims ja retornats al pagador: devolucions i retorn vigents (RN-T11, P-118)."""
+    rows = _live(payment, Movement.Kind.REFUND, Movement.Kind.RETURN)
+    return rows.aggregate(total=Sum("amount_cents"))["total"] or 0
+
+
+def _outgoing(income, kind, amount_cents, by, *, value_date=None, reason="", linked=None):
+    """Sortida del compte de l'ingrés, amb el seu departament i centre de cost (RN-T10).
+    RN-T31: la data de valor dins un període tancat passa al període obert (T-M04-20)."""
+    return Movement.objects.create(
         account=income.account,
         direction=Movement.Direction.OUT,
         amount_cents=amount_cents,
-        value_date=income.value_date,
-        kind=Movement.Kind.FEE,
-        concept=f"{_('Comissió')} · {income.concept}"[:140],
+        value_date=value_date or timezone.localdate(),
+        kind=kind,
+        concept=f"{Movement.Kind(kind).label} · {income.concept}"[:140],
         department=income.department,
         cost_centre=income.cost_centre,
-        payment=payment,
+        payment=income.payment,
+        linked_movement=linked,
+        reason=reason,
         recorded_by=by if isinstance(by, get_user_model()) else None,
     )
+
+
+def _record(action, by, movement, reason=""):
     audit.record(
-        FEE_RECORDED,
+        action,
         actor=by,
-        target=fee,
+        target=movement,
+        reason=reason,
         details={
-            "payment": payment.pk,
-            "amount_cents": amount_cents,
-            "account": fee.account.name,
-            "cost_centre": fee.cost_centre.full_name if fee.cost_centre else None,
+            "payment": movement.payment_id,
+            "amount_cents": movement.amount_cents,
+            "account": movement.account.name,
+            "cost_centre": movement.cost_centre.full_name if movement.cost_centre else None,
         },
     )
-    return fee
 
 
 @transaction.atomic
