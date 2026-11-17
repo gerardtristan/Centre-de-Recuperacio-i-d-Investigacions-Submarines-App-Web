@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# P-12 (RN-72 de la 00; 072, Q-037 i Q-038): registrar a mà el pagament d'un càrrec pendent, en efectiu o presencial. Sense wireframe propi: segueix les pantalles de tresoreria de dos passos. Seguretat: M14 amb edició al servidor (sense, «no trobat»), POST amb CSRF, motiu obligatori i dos passos: el primer mostra l'import, qui paga i el compte, i el segon ho registra. El servei ho torna a comprovar tot (permís, compte, motiu, estat i conflicte d'interès): amagar el formulari no és cap control. Només el nom i el número del soci; cap altra dada personal. #}
+{# P-12 (RN-72 de la 00; 072, Q-037 i Q-038): registrar a mà el pagament d'un càrrec pendent, en efectiu o presencial. Sense wireframe propi: segueix les pantalles de tresoreria de dos passos. Seguretat: M14 amb edició i P10 al servidor (sense, «no trobat»), POST amb CSRF, motiu obligatori i dos passos: el primer mostra l'import, qui paga, el compte i el motiu, i el segon registra exactament això (testimoni signat; el compte i el motiu ja no s'hi poden canviar). El servei ho torna a comprovar tot (permís amb el càrrec, compte, motiu, estat, pagament en curs i conflicte d'interès): amagar el formulari no és cap control. Només el nom i el número del soci; cap altra dada personal. #}
 {% block title %}{% translate "Registra un pagament a mà" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
@@ -15,20 +15,26 @@
     <div class="avis avis-error" role="alert">{% translate "Ningú no pot registrar el pagament d'un càrrec seu. Ho ha de fer una altra persona amb permís." %}</div>
   {% elif not open %}
     <div class="avis avis-avis" role="status">{% translate "Aquest càrrec no és pendent: no s'hi pot registrar cap pagament." %}</div>
+  {% elif not accounts %}
+    <div class="avis avis-avis" role="status">{% translate "No hi ha cap caixa ni compte bancari actiu on entri el pagament. Cal que n'hi hagi un a «Tresoreria: comptes i saldos»." %}</div>
   {% else %}
     <p class="text-2">{% translate "Per a un pagament en efectiu o presencial que ja s'ha cobrat. Es registra l'import sencer: el càrrec queda pagat, l'ingrés entra al compte que triïs i el pagador rep el rebut." %}</p>
     <form class="formulari" method="post" action="{% url 'administration:treasury_manual_payment' charge.pk %}" novalidate>
       {% csrf_token %}
-      {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
-      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
-      {% if confirm %}
-        <input type="hidden" name="confirm" value="1">
-        <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el pagament" %}</strong>{% blocktranslate with person=charge.person account=form.cleaned_data.account.name %}Es registraran {{ amount }} pagats per {{ person }}, que entraran a «{{ account }}». Queda al registre d'activitat amb el motiu.{% endblocktranslate %}</div>
+      {% for error in errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
+      {% if confirmed %}
+        <input type="hidden" name="token" value="{{ token }}">
+        <dl class="dades-soci">
+          <div><dt>{% translate "Compte on entra" %}</dt><dd>{{ confirmed.account.name }}</dd></div>
+          <div><dt>{% translate "Motiu" %}</dt><dd>{{ confirmed.reason }}</dd></div>
+        </dl>
+        <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el pagament" %}</strong>{% blocktranslate with person=charge.person account=confirmed.account.name %}Es registraran {{ amount }} pagats per {{ person }}, que entraran a «{{ account }}». Queda al registre d'activitat amb el motiu.{% endblocktranslate %}</div>
         <div class="accions">
           <button class="boto boto-principal" type="submit">{% translate "Sí, registra el pagament" %}</button>
-          <a class="boto boto-text" href="{{ back }}">{% translate "Cancel·la" %}</a>
+          <a class="boto boto-text" href="{% url 'administration:treasury_manual_payment' charge.pk %}">{% translate "Canvia-ho" %}</a>
         </div>
       {% else %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el pagament" %}</button></div>
       {% endif %}
     </form>

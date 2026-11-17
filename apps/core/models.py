@@ -747,7 +747,7 @@ class Payment(UndeletableModel):
         _("referència de transferència"), max_length=60, blank=True
     )
     paid_at = models.DateTimeField(_("data del pagament"), null=True, blank=True)
-    # Registre manual (P-12, encara bloquejat): qui i per què.
+    # Registre manual (P-12; `charges.record_manual_payment`): qui i per què.
     recorded_by = models.ForeignKey(
         "accounts.Account",
         on_delete=models.PROTECT,

@@ -273,6 +273,7 @@ class PaymentAttempt(UndeletableModel):
         revert = (old, new) == REVERT_TRANSFER and self.method in (
             self.Method.TRANSFER,
             self.Method.DIRECT_DEBIT,
+            self.Method.MANUAL,  # P-12: el pagament a mà anul·lat
         )
         if ((old, new) not in ATTEMPT_TRANSITIONS and not revert) or to_bank:
             raise InvalidTransition(f"{old} → {new}")

@@ -472,13 +472,13 @@ def record_manual_payment(charge: Charge, *, account: TreasuryAccount, reason: s
     del càrrec (RN-T10), el rebut (`payments.transfers`, al desar el pagament) i, si és una quota,
     el soci (`members.on_fee_paid`: actiu i carnet). Sense M14, «no trobat». Com es corregeix un
     error és la P-333: de moment, cap camí."""
-    if not has_perm(by, charges.MANUAL_PAYMENT, write=True):
-        raise Http404
-    if not manual_payment_accounts().filter(pk=account.pk).exists():
+    # El permís (M14, amb el càrrec) el comprova `charges.record_manual_payment`, primer de tot;
+    # el compte, després: un error de compte desfà el pagament.
+    payment = charges.record_manual_payment(charge, reason=reason, by=by)
+    if account is None or not manual_payment_accounts().filter(pk=account.pk).exists():
         raise IncomeAccountUnavailable(
             _("Un pagament a mà entra a la caixa o a un compte bancari actiu.")
         )
-    payment = charges.record_manual_payment(charge, reason=reason, by=by)
     charge = payment.charge
     movement = _create_income(payment, charge, by, account=account)
     audit.record(
@@ -500,13 +500,18 @@ def record_manual_payment(charge: Charge, *, account: TreasuryAccount, reason: s
     return movement
 
 
+def member_number(person):
+    """El número de soci de la persona, o res si no és sòcia (o encara no en té)."""
+    try:
+        return members.get_member_summary(person).number
+    except members.NotAMember:
+        return None
+
+
 def _concept(charge: Charge) -> str:
     """RNF-T4: tipus, número de soci i referència del càrrec; mai el nom ni el text lliure."""
     parts = [charge.get_kind_display()]
-    try:
-        number = members.get_member_summary(charge.person).number
-    except members.NotAMember:
-        number = None
+    number = member_number(charge.person)
     if number:
         parts.append(_("soci %(number)s") % {"number": number})
     parts.append(_("càrrec %(id)s") % {"id": charge.pk})

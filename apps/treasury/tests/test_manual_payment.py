@@ -4,21 +4,24 @@ M14 (inicialment, el Tresorer), motiu obligatori, només un càrrec pendent i ma
 o res: el càrrec pagat amb el pagament «manual», l'ingrés al compte triat (caixa o banc), el
 rebut, el soci actiu amb carnet i el registre d'activitat. Només dades inventades."""
 
+import re
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.urls import reverse
 
 from apps.accounts.models import Account
-from apps.core import audit, charges
-from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment
+from apps.core import audit, charges, permissions
+from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, RolePermission
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import cards, fees
 from apps.members import services as members
 from apps.members.fee_rules import local_today
 from apps.members.models import Member
 from apps.members.tests.test_roster import admin_client, make_member
-from apps.payments.models import PaymentAttempt, Receipt
+from apps.payments import attempts
+from apps.payments.models import PaymentAttempt, Receipt, ReceiptCancellation
 from apps.treasury import services
 from apps.treasury.models import Movement, TreasuryAccount
 from conftest import PASSWORD
@@ -69,6 +72,13 @@ def snapshot():
         Receipt.objects.count(),
         list(Member.objects.values_list("pk", "status")),
     )
+
+
+def review(client, url, account, reason=REASON):
+    """El primer pas: torna la resposta i el testimoni signat del que s'ha mostrat."""
+    response = client.post(url, {"account": account.pk, "reason": reason})
+    token = re.search(r'name="token" value="([^"]+)"', response.content.decode())
+    return response, token.group(1) if token else None
 
 
 def record(fee, by, account, reason=REASON):
@@ -194,6 +204,63 @@ class TestService:
             record(fee, treasurer, cash)
         assert snapshot() == before
 
+    @pytest.mark.parametrize(
+        ("method", "status"),
+        [
+            ("card", "in_progress"),
+            ("bizum", "in_progress"),
+            ("transfer", "in_progress"),
+            ("direct_debit", "sent_to_bank"),
+        ],
+    )
+    def test_no_double_charge_with_an_attempt_in_progress(
+        self, fee, treasurer, cash, method, status
+    ):
+        # Una domiciliació l'obre el sistema a la remesa; aquí, directament.
+        attempt = PaymentAttempt.objects.create(
+            charge=fee.charge, method=method, amount_cents=fee.charge.amount_cents
+        )
+        attempts.transition(attempt, status, by=audit.system("proves"))
+        before = snapshot()
+        with pytest.raises(ValidationError, match="pagament en curs"):
+            record(fee, treasurer, cash)
+        assert snapshot() == before
+
+    def test_if_the_receipt_cannot_be_issued_nothing_is_saved(
+        self, fee, treasurer, cash, monkeypatch
+    ):
+        def busy(*args, **kwargs):
+            raise attempts.AttemptInProgress
+
+        monkeypatch.setattr(attempts, "create_attempt", busy)
+        before = snapshot()
+        with pytest.raises(ValidationError):
+            record(fee, treasurer, cash)
+        assert snapshot() == before
+
+    def test_cancelling_a_manual_payment_cancels_its_receipt(self, fee, treasurer, cash):
+        payment = record(fee, treasurer, cash).payment
+        charges._cancel_payment(payment, "Registrat per error (prova)", by=treasurer, origin="P-12")
+        receipt = Receipt.objects.get(attempt__charge=fee.charge)
+        assert receipt.attempt.status == PaymentAttempt.Status.CANCELLED
+        assert ReceiptCancellation.objects.filter(receipt=receipt).exists()
+
+    def test_the_permission_is_checked_once_with_the_charge(
+        self, fee, treasurer, cash, monkeypatch
+    ):
+        seen = []
+        real = permissions.has_perm
+
+        def spy(account, code, obj=None, **kwargs):
+            seen.append((code, obj))
+            return real(account, code, obj, **kwargs)
+
+        monkeypatch.setattr(charges, "has_perm", spy)
+        monkeypatch.setattr(services, "has_perm", spy)
+        record(fee, treasurer, cash)
+        manual = [obj for code, obj in seen if code == charges.MANUAL_PAYMENT]
+        assert len(manual) == 1 and manual[0].pk == fee.charge_id
+
     def test_the_generic_paths_still_refuse_the_manual_origin(self, fee, treasurer):
         with pytest.raises(ValidationError):
             charges.record_payment(fee.charge, method="manual", origin="manual", by=treasurer)
@@ -211,7 +278,7 @@ class TestScreen:
     @pytest.mark.parametrize("role", ROLES_WITHOUT)
     def test_q_037_without_m14_not_found(self, fee, cash, make_admin, role):  # noqa: F811
         client, url = admin_client(make_admin(role)), reverse(URL, args=[fee.charge_id])
-        data = {"account": cash.pk, "reason": REASON, "confirm": "1"}
+        data = {"account": cash.pk, "reason": REASON}
         assert client.get(url).status_code == 404
         assert client.post(url, data).status_code == 404
         assert not Payment.objects.exists()
@@ -220,17 +287,57 @@ class TestScreen:
         client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
         page = client.get(url).content.decode()
         assert "90,00 €" in page and "Soci 1954" in page
-        first = client.post(url, {"account": cash.pk, "reason": REASON})
-        assert "Confirma el pagament" in first.content.decode()
+        first, token = review(client, url, cash)
+        assert "Confirma el pagament" in first.content.decode() and token
         assert not Payment.objects.exists()
-        done = client.post(url, {"account": cash.pk, "reason": REASON, "confirm": "1"})
+        done = client.post(url, {"token": token})
         assert done.status_code == 302
         assert done.url == reverse("administration:member_detail", args=[fee.member_id])
         assert Payment.objects.get().method == "manual"
 
+    def test_the_second_step_saves_exactly_what_was_confirmed(self, fee, treasurer, cash, bank):
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        first, token = review(client, url, cash)
+        # Al segon pas, el compte i el motiu ja no són camps del formulari.
+        assert 'name="reason"' not in first.content.decode()
+        changed = {"token": token, "account": bank.pk, "reason": "Un altre motiu"}
+        assert client.post(url, changed).status_code == 302
+        payment = Payment.objects.get()
+        assert (payment.reason, Movement.objects.get(payment=payment).account) == (REASON, cash)
+
+    def test_a_tampered_or_foreign_token_saves_nothing(self, fee, treasurer, cash, make_admin):  # noqa: F811
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        _, token = review(client, url, cash)
+        other = admin_client(make_admin("treasurer"))
+        for c, t in ((client, token + "x"), (other, token)):
+            assert "Torna a revisar" in c.post(url, {"token": t}).content.decode()
+        assert not Payment.objects.exists()
+
+    def test_without_fee_visibility_not_found(self, fee, treasurer, cash):
+        RolePermission.objects.filter(
+            role__code="treasurer", permission_code="members.fees.view"
+        ).delete()
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        assert client.get(url).status_code == 404
+        assert client.post(url, {"account": cash.pk, "reason": REASON}).status_code == 404
+
+    def test_without_an_active_cash_or_bank_account_it_says_so(self, fee, treasurer):
+        TreasuryAccount.objects.filter(kind__in=["cash", "bank"]).update(active=False)
+        page = admin_client(treasurer).get(reverse(URL, args=[fee.charge_id])).content.decode()
+        assert "No hi ha cap caixa ni compte bancari actiu" in page
+        assert 'name="reason"' not in page
+
+    def test_an_attempt_in_progress_is_refused_on_the_screen(self, fee, treasurer, cash):
+        attempt = attempts.create_attempt(fee.charge, PaymentAttempt.Method.CARD)
+        attempts.transition(attempt, PaymentAttempt.Status.IN_PROGRESS, by=audit.system("p"))
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        _, token = review(client, url, cash)
+        assert "pagament en curs" in client.post(url, {"token": token}).content.decode()
+        assert not Payment.objects.exists()
+
     def test_without_a_reason_the_form_says_so(self, fee, treasurer, cash):
         client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
-        response = client.post(url, {"account": cash.pk, "reason": "", "confirm": "1"})
+        response = client.post(url, {"account": cash.pk, "reason": ""})
         assert "Cal el motiu." in response.content.decode()
         assert not Payment.objects.exists()
 
@@ -241,6 +348,6 @@ class TestScreen:
 
     def test_post_without_csrf_is_refused(self, fee, treasurer, cash):
         client = admin_client(treasurer, csrf=True)
-        data = {"account": cash.pk, "reason": REASON, "confirm": "1"}
+        data = {"account": cash.pk, "reason": REASON}
         assert client.post(reverse(URL, args=[fee.charge_id]), data).status_code == 403
         assert not Payment.objects.exists()

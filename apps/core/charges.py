@@ -245,7 +245,7 @@ def record_manual_payment(charge: Charge, *, reason: str, by) -> Payment:
     al pagament i al registre; tot o res. Només amb M14; sense, «no trobat». Ningú no registra el
     pagament d'un càrrec seu. L'ingrés a la tresoreria i el soci són de qui crida
     (`treasury.services.record_manual_payment`)."""
-    if not has_perm(by, MANUAL_PAYMENT, write=True):
+    if charge is None or not has_perm(by, MANUAL_PAYMENT, charge, write=True):
         raise Http404
     if not reason.strip():
         raise ValidationError(_("Per registrar un pagament a mà cal un motiu."))

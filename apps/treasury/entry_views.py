@@ -12,15 +12,17 @@ pantalles de tresoreria que ja hi ha.
   `settlements.confirm`, també en dos passos). Els motius de les «a revisar», amb el codi del
   problema i la referència del cobrament, sense cap nom.
 - Imports en euros amb coma («12,50»), convertits a cèntims abans de cridar el servei.
-- Pagament a mà d'un càrrec pendent (P-12; M14, `services.record_manual_payment`), també en dos
-  passos: el compte on entra, el motiu i, abans de desar, l'import i qui paga. S'hi arriba des
-  de la fitxa del soci i hi torna.
+- Pagament a mà d'un càrrec pendent (P-12; M14 i P10, `services.record_manual_payment`), en dos
+  passos: el compte on entra i el motiu; després, l'import i qui paga. El segon pas desa
+  exactament el que s'ha mostrat: un testimoni signat (per compte i càrrec, 15 minuts), no els
+  camps del formulari. S'hi arriba des de la fitxa del soci i hi torna.
 """
 
 from decimal import Decimal
 
 from django import forms
 from django.contrib import messages
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -32,7 +34,8 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core import charges
 from apps.core.charges import euros
 from apps.core.models import Charge
-from apps.core.permissions import has_perm, permission_required
+from apps.core.permissions import has_perm, permission_required, require_perm
+from apps.members.roster import FEES
 
 from . import services, settlements
 from .balances import balance
@@ -129,7 +132,7 @@ class ManualPaymentForm(forms.Form):
     )
 
 
-def _two_steps(request, form, template, extra, act, done, back="administration:treasury_movements"):
+def _two_steps(request, form, template, extra, act, done):
     """El primer POST valida i mostra la confirmació; el segon (`confirm=1`) crida `act`. Un
     `ValidationError` del servei surt al formulari i no desa res."""
     confirm = False
@@ -141,7 +144,7 @@ def _two_steps(request, form, template, extra, act, done, back="administration:t
                 form.add_error(None, error)
             else:
                 messages.success(request, done)
-                return redirect(back)
+                return redirect("administration:treasury_movements")
         else:
             confirm = True
     return render(request, template, {"form": form, "confirm": confirm, **extra(form)})
@@ -270,12 +273,25 @@ def settlement_confirm_view(request, settlement_id):
     return render(request, "treasury/settlement_confirm.html", context)
 
 
+CONFIRM_MAX_AGE = 15 * 60  # segons que val el testimoni de la confirmació
+# Cert sempre: sense rebut, el servei no desa res (`payments.transfers.on_payment_saved`).
+MANUAL_DONE = _(
+    "Pagament registrat: el càrrec és pagat, l'ingrés és a la tresoreria i hi ha rebut."
+)
+
+
+def _token_salt(request, charge) -> str:
+    return f"treasury.manual_payment:{request.user.pk}:{charge.pk}"
+
+
 @never_cache
 @permission_required(charges.MANUAL_PAYMENT, write=True)
 @require_http_methods(["GET", "POST"])
 def manual_payment_view(request, charge_id):
-    """P-12: registrar a mà el pagament d'un càrrec pendent. El servei torna a comprovar el
-    permís, el compte, el motiu, l'estat i que el càrrec no sigui de qui el registra."""
+    """P-12: registrar a mà el pagament d'un càrrec pendent. També demana veure les quotes (P10),
+    com l'enllaç de la fitxa. El servei torna a comprovar el permís amb el càrrec, el compte, el
+    motiu, l'estat, el pagament en curs i que el càrrec no sigui de qui el registra."""
+    require_perm(request, FEES)
     charge = get_object_or_404(Charge.objects.select_related("person"), pk=charge_id)
     fee = getattr(charge, "annual_fee", None)
     back = (
@@ -283,26 +299,41 @@ def manual_payment_view(request, charge_id):
         if fee is not None
         else reverse("administration:treasury_movements")
     )
-    form = ManualPaymentForm(request.POST or None)
-
-    def act(data):
-        services.record_manual_payment(
-            charge, account=data["account"], reason=data["reason"], by=request.user
-        )
-
-    def extra(form):
+    token = request.POST.get("token")
+    form = ManualPaymentForm(None if token else (request.POST or None))
+    confirmed = None  # el compte i el motiu que s'han mostrat al segon pas
+    errors = []  # del segon pas: el formulari ja no hi és lligat
+    if token:
         try:
-            number = services.members.get_member_summary(charge.person).number
-        except services.members.NotAMember:
-            number = None
-        return {
-            "charge": charge,
-            "number": number,
-            "amount": euros(charge.amount_cents),
-            "open": charge.status == Charge.Status.PENDING,
-            "own": charge.person_id == request.user.person_id,
-            "back": back,
-        }
-
-    done = _("Pagament registrat: el càrrec és pagat, l'ingrés és a la tresoreria i hi ha rebut.")
-    return _two_steps(request, form, "treasury/manual_payment.html", extra, act, done, back)
+            data = signing.loads(token, salt=_token_salt(request, charge), max_age=CONFIRM_MAX_AGE)
+            account = services.manual_payment_accounts().get(pk=data["account"])
+            services.record_manual_payment(
+                charge, account=account, reason=data["reason"], by=request.user
+            )
+        except (signing.BadSignature, TreasuryAccount.DoesNotExist):
+            errors = [_("Torna a revisar el pagament: la confirmació no és vàlida.")]
+        except ValidationError as error:
+            errors = error.messages
+        else:
+            messages.success(request, MANUAL_DONE)
+            return redirect(back)
+    elif request.method == "POST" and form.is_valid():
+        confirmed = form.cleaned_data
+        token = signing.dumps(
+            {"account": confirmed["account"].pk, "reason": confirmed["reason"]},
+            salt=_token_salt(request, charge),
+        )
+    context = {
+        "form": form,
+        "errors": errors or form.non_field_errors(),
+        "confirmed": confirmed,
+        "token": token if confirmed else None,
+        "accounts": services.manual_payment_accounts().exists(),
+        "charge": charge,
+        "number": services.member_number(charge.person),
+        "amount": euros(charge.amount_cents),
+        "open": charge.status == Charge.Status.PENDING,
+        "own": charge.person_id == request.user.person_id,
+        "back": back,
+    }
+    return render(request, "treasury/manual_payment.html", context)
