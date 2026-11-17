@@ -206,8 +206,9 @@ class PaymentProvider(ABC):
         raise NotSupported("tokenization")
 
     def charge_saved_card(self, charge, saved_card, idempotency_key: UUID) -> ProviderOrder:
-        """Condicional: cobra amb una targeta guardada. És un cobrament: passa per la
-        salvaguarda."""
+        """Condicional: cobra amb una targeta guardada, sense el titular. És un cobrament: passa
+        per la salvaguarda. `pay_url` buit: el resultat arriba amb la notificació; ple: el banc
+        demana que el titular s'autentiqui en aquesta adreça (RN-M05b-20)."""
         _guard("charge_saved_card")
         if not self.capabilities().tokenization:
             raise NotSupported("tokenization")

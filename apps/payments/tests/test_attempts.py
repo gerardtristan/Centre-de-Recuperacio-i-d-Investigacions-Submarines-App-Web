@@ -145,8 +145,8 @@ class TestCreate:
     def test_a_transfer_attempt_can_be_started(self, charge):
         assert attempts.create_attempt(charge, M.TRANSFER).method == M.TRANSFER
 
-    @pytest.mark.parametrize("method", ["direct_debit", "saved_card", "cash"])
-    def test_only_card_bizum_and_transfer_attempts_can_be_started(self, charge, method):
+    @pytest.mark.parametrize("method", ["direct_debit", "cash"])
+    def test_only_card_bizum_transfer_and_saved_card_attempts_can_be_started(self, charge, method):
         with pytest.raises(attempts.MethodNotAllowed):
             attempts.create_attempt(charge, method)
         assert not Attempt.objects.exists()

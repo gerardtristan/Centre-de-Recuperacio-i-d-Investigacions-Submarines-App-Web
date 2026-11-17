@@ -13,9 +13,12 @@ from apps.core.models import Charge
 
 from .models import PaymentAttempt
 
-ENABLED_METHODS = frozenset(
+# Els que tria el soci a la pantalla de pagament; la targeta guardada l'obre el sistema
+# (`checkout.charge_saved_card`, T-M05b-15).
+SCREEN_METHODS = frozenset(
     {PaymentAttempt.Method.CARD, PaymentAttempt.Method.BIZUM, PaymentAttempt.Method.TRANSFER}
 )
+ENABLED_METHODS = SCREEN_METHODS | {PaymentAttempt.Method.SAVED_CARD}
 
 
 class MethodNotAllowed(Exception):

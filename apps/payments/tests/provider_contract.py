@@ -139,12 +139,23 @@ class ProviderContract:
         assert provider.refund(payment, 9000, uuid4()).amount_cents == 9000
 
     def test_saved_cards_only_if_the_provider_declares_them(self, provider):
-        if provider.capabilities().tokenization:
-            pytest.skip("El proveïdor guarda targetes: ho proven les seves proves pròpies.")
-        with pytest.raises(base.NotSupported):
-            provider.start_card_setup(object(), URLS)
-        with pytest.raises(base.NotSupported):
-            provider.charge_saved_card(a_charge(), object(), uuid4())
+        if not provider.capabilities().tokenization:
+            with pytest.raises(base.NotSupported):
+                provider.start_card_setup(object(), URLS)
+            with pytest.raises(base.NotSupported):
+                provider.charge_saved_card(a_charge(), object(), uuid4())
+
+    def test_a_provider_that_saves_cards_opens_setups_and_charges_them(self, provider):
+        if not provider.capabilities().tokenization:
+            pytest.skip("El proveïdor no guarda targetes.")
+        setup = provider.start_card_setup(object(), URLS)
+        assert isinstance(setup, base.ProviderOrder) and setup.external_id and setup.pay_url
+        card = SimpleNamespace(provider_card_id="targeta-de-prova")
+        key = uuid4()
+        order = provider.charge_saved_card(a_charge(), card, key)
+        assert isinstance(order, base.ProviderOrder) and order.external_id
+        assert provider.charge_saved_card(a_charge(), card, key) == order  # idempotent
+        assert provider.get_order(order.external_id).amount_cents == 9000
 
     # --- Liquidacions (P-M05b-H; [A verificar: P-45 punt 9]) ---
 
