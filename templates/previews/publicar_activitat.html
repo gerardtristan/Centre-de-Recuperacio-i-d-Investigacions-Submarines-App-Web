@@ -1,0 +1,70 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/averia-publicar.css' %}"><link rel="stylesheet" href="{% static 'css/pregon-publicar.css' %}">{% endblock %}
+{% block content %}
+  {# T-DX-31 Averia i Pregon: publicar una activitat. En construcció: contingut d'exemple, res no es desa ni es publica (design-system §16, T-DX-31). #}
+  <section class="en-construccio-bloc averia" aria-describedby="ec-publicar-activitat">
+    {% include "_en_construccio.html" with id="ec-publicar-activitat" %}
+    <h1>{{ screen_title }}</h1>
+    <div class="averia-columnes">
+      <fieldset disabled class="averia-form">
+        <legend class="visualment-amagat">{% translate "Dades de l'activitat" %}</legend>
+        <fieldset class="segmentat">
+          <legend>{% translate "Tipus d'activitat" %}</legend>
+          {% for kind in kinds %}<label><input class="visualment-amagat" type="radio" name="tipus"{% if forloop.first %} checked{% endif %}><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ kind }}</span></label>{% endfor %}
+        </fieldset>
+        <div class="camp">
+          <label for="averia-titol">{% translate "Títol" %}</label>
+          <input id="averia-titol" type="text" value="{{ title }}" aria-describedby="averia-titol-ajuda">
+          <p class="ajuda" id="averia-titol-ajuda">{% blocktranslate with n=title_count max=title_max %}{{ n }} de {{ max }} caràcters{% endblocktranslate %}</p>
+        </div>
+        <div class="camp">
+          <label for="averia-descripcio">{% translate "Descripció" %}</label>
+          <textarea id="averia-descripcio" rows="4">{{ description }}</textarea>
+        </div>
+        <div class="averia-preguntes">
+          <p class="averia-etiqueta">{% translate "Preguntes d'una sortida" %}</p>
+          {% for q in questions %}<div class="camp"><label for="averia-q{{ forloop.counter }}">{{ q.label }}</label><input id="averia-q{{ forloop.counter }}" type="text" value="{{ q.value }}"></div>{% endfor %}
+        </div>
+        <div class="camp">
+          <label for="averia-foto">{% translate "Imatge per compartir" %}</label>
+          <input id="averia-foto" type="file" accept="image/jpeg,image/png" aria-describedby="averia-foto-ajuda">
+          <p class="ajuda" id="averia-foto-ajuda">{% translate "JPG o PNG. Es redueix i se li treu la ubicació. Sense persones que es puguin reconèixer si no hi han donat el consentiment." %}</p>
+        </div>
+        <div class="averia-accions">
+          <button type="button" class="boto">{% translate "Desa l'esborrany" %}</button>
+          <button type="button" class="boto boto-principal">{% translate "Publica" %}</button>
+        </div>
+      </fieldset>
+
+      <aside class="pregon" aria-labelledby="pregon-titol">
+        <h2 id="pregon-titol">{% translate "Com es veurà en compartir-la" %}</h2>
+        <ul class="pregon-targetes">
+          <li class="pregon-targeta pregon-xat">
+            <p class="pregon-canal">{% translate "En un xat" %}</p>
+            <div class="caixa-imatge pregon-imatge">{% translate "Sense imatge" %}</div>
+            <p class="pregon-titol">{{ title }}</p>
+            <p class="pregon-domini">cris1954.cat</p>
+          </li>
+          <li class="pregon-targeta">
+            <p class="pregon-canal">{% translate "En una xarxa social" %}</p>
+            <div class="caixa-imatge pregon-imatge">{% translate "Sense imatge" %}</div>
+            <p class="pregon-titol">{{ title }}</p>
+            <p class="pregon-text">{{ description|truncatechars:90 }}</p>
+          </li>
+          <li class="pregon-targeta">
+            <p class="pregon-canal">{% translate "En un correu" %}</p>
+            <p class="pregon-titol">{{ title }}</p>
+            <p class="pregon-text">{{ description|truncatechars:140 }}</p>
+            <p class="pregon-domini">{{ url }}</p>
+          </li>
+        </ul>
+        <ul class="pregon-comprovacions" aria-label="{% translate 'Comprovacions' %}">
+          {% for c in checks %}<li class="estat {% if c.ok %}estat-ok{% else %}estat-avis{% endif %}"><span aria-hidden="true">{% if c.ok %}✓{% else %}!{% endif %}</span> {{ c.text }}</li>{% endfor %}
+        </ul>
+      </aside>
+    </div>
+  </section>
+{% endblock %}
