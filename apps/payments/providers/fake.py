@@ -93,7 +93,7 @@ class FakeProvider(base.PaymentProvider):
         """Pagament directe amb la targeta guardada: l'ordre queda oberta fins a la notificació.
         Si el banc demana autenticació, l'ordre porta l'adreça on el titular s'ha d'autenticar
         (format [A verificar: P-45 punt 6])."""
-        external_id = f"fake-{idempotency_key.hex}"
+        external_id = self.saved_card_order_id(idempotency_key)
         _orders.setdefault(
             external_id,
             base.OrderState(external_id, base.PENDING, charge.amount_cents, charge.currency),
@@ -101,6 +101,9 @@ class FakeProvider(base.PaymentProvider):
         needs_auth = saved_card.provider_card_id in _authentication
         pay_url = f"{settings.PUBLIC_SITE_URL}{PAY_PATH}{external_id}/" if needs_auth else ""
         return base.ProviderOrder(external_id=external_id, pay_url=pay_url, expires_at=None)
+
+    def saved_card_order_id(self, idempotency_key: UUID) -> str:
+        return f"fake-{idempotency_key.hex}"
 
     def get_card_setup(self, external_id: str) -> base.ProviderCard:
         try:

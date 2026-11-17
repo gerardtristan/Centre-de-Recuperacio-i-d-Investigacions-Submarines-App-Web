@@ -154,6 +154,7 @@ class ProviderContract:
         key = uuid4()
         order = provider.charge_saved_card(a_charge(), card, key)
         assert isinstance(order, base.ProviderOrder) and order.external_id
+        assert provider.saved_card_order_id(key) == order.external_id  # es coneix abans
         assert provider.charge_saved_card(a_charge(), card, key) == order  # idempotent
         assert provider.get_order(order.external_id).amount_cents == 9000
 
