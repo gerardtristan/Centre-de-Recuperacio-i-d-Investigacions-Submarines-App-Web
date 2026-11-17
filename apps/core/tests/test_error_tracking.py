@@ -57,11 +57,23 @@ def test_production_initialises_with_an_allowed_host_and_without_personal_data()
 
 
 def test_the_allowlist_is_code_not_environment():
-    """Qui posa el DSN no pot posar també el host permès: la llista és al codi i buida fins que
-    el propietari respongui la P-294."""
-    assert error_tracking.ERROR_TRACKING_ALLOWED_HOSTS == ()
+    """Qui posa el DSN no pot posar també el host permès: la llista és al codi."""
     done = _production({"ERROR_TRACKING_DSN": DSN, "ERROR_TRACKING_ALLOWED_HOSTS": ALLOWED})
     assert done.returncode != 0
+
+
+def test_p294_only_the_club_glitchtip_is_allowed():
+    """P-294: GlitchTip autoallotjat al VPS del club; cap altre servei, tampoc un de Sentry."""
+    assert error_tracking.ERROR_TRACKING_ALLOWED_HOSTS == ("errors.cris1954.cat",)
+    allowed = error_tracking.ERROR_TRACKING_ALLOWED_HOSTS
+    assert error_tracking.dsn_host_allowed("https://clau@errors.cris1954.cat/1", allowed)
+    for dsn in (
+        "http://clau@errors.cris1954.cat/1",
+        "https://clau@o1.ingest.de.sentry.io/1",
+        "https://clau@app.glitchtip.com/1",
+        "https://clau@errors.cris1954.cat.altre.invalid/1",
+    ):
+        assert not error_tracking.dsn_host_allowed(dsn, allowed), dsn
 
 
 @pytest.mark.parametrize(

@@ -350,11 +350,11 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 ### Observabilitat
 | Variable | Ús |
 |---|---|
-| `ERROR_TRACKING_DSN` | DSN de GlitchTip o Sentry. Buida (per defecte): el seguiment d'errors no s'activa i no surt res per la xarxa. Només la llegeix la configuració de producció (`config/settings/prod.py`) |
+| `ERROR_TRACKING_DSN` | DSN del GlitchTip del club (P-294). Buida (per defecte): el seguiment d'errors no s'activa i no surt res per la xarxa. Només la llegeix la configuració de producció (`config/settings/prod.py`) |
 | `ERROR_TRACKING_ENVIRONMENT` | Nom de l'entorn als errors (per defecte `production`) |
 | `LOG_LEVEL` | Nivell dels registres |
 
-El DSN ha de ser `https` i el host, a la llista `ERROR_TRACKING_ALLOWED_HOSTS` de `apps/core/error_tracking.py`; si no, producció no arrenca. La llista és al codi i no a l'entorn, perquè qui posa el DSN no pugui posar també el host: és buida fins que el propietari respongui la [P-294](decisions/pendents.md#oberts), i el host s'afegeix al codi amb una PR quan el propietari respongui.
+El DSN ha de ser `https` i el host, a la llista `ERROR_TRACKING_ALLOWED_HOSTS` de `apps/core/error_tracking.py`; si no, producció no arrenca. La llista és al codi i no a l'entorn, perquè qui posa el DSN no pugui posar també el host: hi ha només `errors.cris1954.cat`, el GlitchTip autoallotjat al mateix VPS que va triar el propietari ([P-294](decisions/pendents.md), 17/11/2026; nom del subdomini [A validar]). Un host nou entra al codi amb una PR revisada. Instal·lació i encesa: [`guies/servidor-glitchtip.md`](guies/servidor-glitchtip.md); no s'encén fins que el servidor existeixi i el propietari ho confirmi.
 
 Què no s'envia mai al seguiment d'errors (`apps/core/error_tracking.py`; R11): el cos, les galetes, la cadena de consulta i l'URL de la petició (a la transacció, els trossos del camí que semblen un testimoni es tapen), les capçaleres fora de `User-Agent`, `Content-Type`, `Accept` i `Accept-Language`, l'usuari, les variables locals, els `extra`, els paràmetres dels registres i les consultes SQL de les traces. Als missatges d'error i de registre es tapen els IBAN, les targetes i altres números llargs, els correus, els DNI i NIE, els telèfons i les IP. Sense traça de rendiment (`traces_sample_rate=0`), sense perfils ni repetició de sessions. Els identificadors interns (per exemple, el número d'un compte) sí que hi poden sortir.
 
