@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 17/11/2026 | 2cf591df | 30 noves i 1 e2e | [A comprovar] |
+| 17/11/2026 | 2cf591df, fa50b7e9 (revisió) | 40 noves i 1 e2e | [A comprovar] |
 
 **En tres línies:** fins ara, els rols dels comptes d'administrador només es podien canviar des del servidor. Ara l'administrador ho fa des de la llista de comptes: tria el rol, veu què canviarà i a qui afecta, i ho desa amb una nota i el codi de la seva aplicació d'autenticació. Tothom qui ho ha de saber en rep un correu.
 
@@ -19,6 +19,14 @@
 
 ## Problemes trobats
 - Si assignar un rol ha de tancar les sessions del compte, el pla no ho diu per a aquesta tasca (sí per a l'editor de permisos). No s'ha implementat: és la P-330.
+
+## Revisió de la PR #202
+Cada punt, primer amb una prova que fallava i després l'arreglo (fa50b7e9):
+- Un canvi que ja estava fet (un altre administrador s'hi ha avançat) diu «No s'ha desat res: el canvi ja estava fet», sense registre ni correu. `assign_role` torna `None` i `remove_role` llança `AlreadyDone`.
+- El codi TOTP només es gasta si el canvi es pot fer: les condicions (canvi vigent, últim administrador operatiu) es miren abans. Si el servei el rebutja igualment, el missatge diu que el codi ja s'ha fet servir.
+- Un GET només pren l'acció i el rol de l'adreça, mai la nota ni el codi.
+- La nota va al correu (el pla no diu què ha de portar, a part del canvi i de qui l'ha fet). El correu surt quan es confirma la transacció, fora dels bloquejos, i arriba al compte afectat encara que sigui pendent o desactivat.
+- Una sola regla d'«administrador operatiu» (`leaves_no_operational_admin`, amb `lock`) per a rols, desactivació, TOTP i RGPD.
 
 ## Com se sap que funciona
 - `apps/core/tests/test_roles_screen.py`: cada rol que no és administrador (també el President) rep «no trobat»; codi equivocat, nota o casella buides no canvien res; l'últim administrador operatiu no perd el rol; nota i valor anterior al registre; correus a qui toca; sessions tancades quan el compte perd l'únic rol (CA-RP-11, sense la part del 02).

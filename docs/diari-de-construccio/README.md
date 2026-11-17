@@ -274,4 +274,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-54](T-DX-54.md) | Proves dels logotips també a Firefox i WebKit (Safari): un sol logotip descarregat als tres motors (carril de disseny) | 17/11/2026 14:49 | 31bad555 (PR #194) | 4 casos nous | [A comprovar] |
 | [P-294](P-294.md) | GlitchTip autoallotjat al VPS del club: `errors.cris1954.cat` a la llista autoritzada i guia d'instal·lació (sense encendre) | 17/11/2026 | bd2cc4b2 | 30; 1 nova | [A comprovar] |
 | [P-127](P-127.md) | L'entrada «Mandat de domiciliació» surt a qui té un mandat actiu, també amb la signatura apagada, per poder-lo revocar sempre (095) | 17/11/2026 | 604dc478 | 1 nova | [A comprovar] |
-| [T-RP-02](T-RP-02.md) | Assignar i retirar rols des de la pantalla: resum, nota, codi TOTP, registre i correu (pilot) | 17/11/2026 | 2cf591df | 30 noves; 1 e2e | [A comprovar] |
+| [T-RP-02](T-RP-02.md) | Assignar i retirar rols des de la pantalla: resum, nota, codi TOTP, registre i correu (pilot) | 17/11/2026 | 2cf591df, fa50b7e9 | 40 noves; 1 e2e | [A comprovar] |
