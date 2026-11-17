@@ -25,6 +25,7 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.core.charges import RETURNS
 from apps.core.permissions import has_perm, permission_required, require_perm
 from apps.treasury.settlements import SettlementRejected
 
@@ -97,6 +98,8 @@ def remittances_view(request):
         "preview": preview,
         "remittances": DirectDebitRemittance.objects.order_by("-collection_date", "-pk"),
         "can_manage": has_perm(request.user, MANAGE, write=True),
+        "exhausted": remittances.EXHAUSTED,  # CA-M05b-32: la proposta d'alternativa
+        "can_see_returns": has_perm(request.user, RETURNS),
     }
     return render(request, "payments/remittances.html", context)
 

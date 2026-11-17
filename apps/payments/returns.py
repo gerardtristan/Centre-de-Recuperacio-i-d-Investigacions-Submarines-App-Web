@@ -5,7 +5,9 @@ RN-M05b-14, 15 i 18; CA-M05b-18 a 20).
   Tot o res: càrrec «retornat» i pagament anul·lat (00), la sortida i la comissió de retorn
   (04), l'intent «cancel·lat» i el rebut anul·lat amb una nota (P-290), l'avís a qui edita les
   quotes (01) i, si el compte és tancat o no hi ha mandat, el mandat «bloquejat». Torna la
-  proposta segons el codi (RN-M05b-15; codis desconeguts, P-291).
+  proposta segons el codi (RN-M05b-15; codis desconeguts, P-291). Si no queda cap reintent
+  possible (intents esgotats o sense mandat actiu), l'alternativa ja s'aplica i s'envia en
+  registrar-lo, amb el tresorer com a autor, i torna `SENT` (CA-M05b-19, 20 i 32; P-292).
 - `confirm`: el tresorer confirma o canvia la proposta (P-M05b-F, passos 4 i 5; P-292). El
   càrrec torna a «pendent» amb el motiu (048) i, amb l'alternativa, el soci rep el correu amb
   l'enllaç per pagar i, si el mandat s'ha bloquejat, el de signar-ne un de nou. Amb el reintent,
@@ -26,6 +28,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings, charges, mail
+from apps.core.models import Charge
 from apps.members import recipients
 from apps.members import services as members
 from apps.treasury import services as treasury
@@ -36,7 +39,7 @@ from .models import DirectDebitItem, PaymentAttempt, Receipt, ReceiptCancellatio
 MAX_ATTEMPTS = "payments.max_direct_debit_attempts"  # VC-16, RN-M05b-15
 ALTERNATIVE_TEMPLATE = "alternativa-pagament"
 
-RETRY, ALTERNATIVE = "retry", "alternative"
+RETRY, ALTERNATIVE, SENT = "retry", "alternative", "alternative_sent"
 # RN-M05b-15: els codis d'exemple de la regla. Quins arriben de veritat, [A verificar: banc].
 INSUFFICIENT_FUNDS = frozenset({"AM04"})
 NO_MANDATE = frozenset({"AC04", "MD01"})
@@ -133,6 +136,9 @@ def register_return(
             "fee_cents": fee_cents,
         },
     )
+    if proposal == ALTERNATIVE and not can_retry(item):
+        confirm(item, ALTERNATIVE, by=by, note=_("Cap reintent possible: alternativa de pagament"))
+        return SENT
     return proposal
 
 
@@ -147,7 +153,8 @@ def confirm(item: DirectDebitItem, decision: str, *, by, note: str = "") -> bool
     )
     charge = item.attempt.charge
     latest = DirectDebitItem.objects.filter(attempt__charge=charge).latest("pk")
-    if item.status != DirectDebitItem.Status.RETURNED or latest.pk != item.pk:
+    returned = item.status == DirectDebitItem.Status.RETURNED and latest.pk == item.pk
+    if not returned or charge.status != Charge.Status.RETURNED:
         raise NotReturned
     if decision == RETRY and not can_retry(item):
         raise RetryNotAllowed

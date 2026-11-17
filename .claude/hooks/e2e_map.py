@@ -147,6 +147,11 @@ MAP = {
         "templates/payments/remittance*.html",
         "templates/payments/_remittance_status.html",
     ),
+    "test_retornats.py": (
+        "apps/payments/return_views.py",
+        "apps/payments/returns.py",
+        "templates/payments/returns.html",
+    ),
     "test_mandat_signatura.py": (
         "apps/payments/mandate_views.py",
         "apps/payments/forms.py",

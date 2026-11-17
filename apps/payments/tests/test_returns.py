@@ -92,10 +92,11 @@ def test_ca_m05b_19_el_segon_retorn_no_proposa_cap_reintent(collected, treasurer
     settle(second, treasurer, n=2)  # l'intent nou es pot pagar: l'anterior és «cancel·lat»
     retry = second.items.get()
 
-    assert returns.register_return(retry, "AM04", by=treasurer) == returns.ALTERNATIVE
-    with pytest.raises(returns.RetryNotAllowed):
+    # Sense cap reintent possible, l'alternativa surt en registrar-lo (CA-M05b-19 i 32; P-292).
+    assert returns.register_return(retry, "AM04", by=treasurer) == returns.SENT
+    assert Charge.objects.get(pk=retry.attempt.charge_id).status == Charge.Status.PENDING
+    with pytest.raises(returns.NotReturned):  # ja no hi ha res a decidir
         returns.confirm(retry, returns.RETRY, by=treasurer)
-    assert returns.confirm(retry, returns.ALTERNATIVE, by=treasurer)
 
     email = OutgoingEmail.objects.get(template=returns.ALTERNATIVE_TEMPLATE)
     assert email.to_address == "soci1@example.org"
@@ -109,13 +110,10 @@ def test_ca_m05b_19_el_segon_retorn_no_proposa_cap_reintent(collected, treasurer
 def test_ca_m05b_20_compte_tancat_bloqueja_el_mandat(collected, treasurer):  # noqa: F811
     item = collected[1]
 
-    assert returns.register_return(item, "AC04", by=treasurer) == returns.ALTERNATIVE
+    assert returns.register_return(item, "AC04", by=treasurer) == returns.SENT
 
     item.mandate.refresh_from_db()
     assert item.mandate.status == SepaMandate.Status.BLOCKED
-    with pytest.raises(returns.RetryNotAllowed):
-        returns.confirm(item, returns.RETRY, by=treasurer)
-    returns.confirm(item, returns.ALTERNATIVE, by=treasurer)
     email = OutgoingEmail.objects.get(template=returns.ALTERNATIVE_TEMPLATE)
     assert "/socis/pagaments/mandat/" in email.body_text
     assert "AC04" not in email.body_text
@@ -124,9 +122,11 @@ def test_ca_m05b_20_compte_tancat_bloqueja_el_mandat(collected, treasurer):  # n
 
 
 def test_refus_del_deutor_i_codi_desconegut_van_a_l_alternativa(collected, treasurer):  # noqa: F811
+    # Amb un reintent possible, el tresorer decideix (P-292): encara no surt cap correu.
     assert returns.register_return(collected[0], "MS02", by=treasurer) == returns.ALTERNATIVE
     assert returns.register_return(collected[1], "ZZ99", by=treasurer) == returns.ALTERNATIVE
     assert SepaMandate.objects.filter(status="active").count() == 2
+    assert not OutgoingEmail.objects.filter(template=returns.ALTERNATIVE_TEMPLATE).exists()
 
 
 def test_nomes_amb_b4_i_sense_canvis_si_no(collected, treasurer, make_admin):  # noqa: F811
@@ -146,14 +146,13 @@ def test_errors_d_entrada(sent, collected, treasurer):  # noqa: F811
     with pytest.raises(returns.NotCollected):  # dues vegades, no
         returns.register_return(collected[0], "AM04", by=treasurer)
     returns.confirm(collected[0], returns.ALTERNATIVE, by=treasurer)
-    with pytest.raises(ValidationError):  # el càrrec ja és «pendent»
+    with pytest.raises(returns.NotReturned):  # el càrrec ja és «pendent»
         returns.confirm(collected[0], returns.ALTERNATIVE, by=treasurer)
 
 
 def test_el_maxim_d_intents_es_l_ajust_vc_16(collected, treasurer):  # noqa: F811
     Setting.objects.filter(key=returns.MAX_ATTEMPTS).update(initial_value=1)
 
-    assert returns.register_return(collected[0], "AM04", by=treasurer) == returns.ALTERNATIVE
-    returns.confirm(collected[0], returns.ALTERNATIVE, by=treasurer)
+    assert returns.register_return(collected[0], "AM04", by=treasurer) == returns.SENT
     excluded = dict(remittances.preview(collection_date()).excluded)
     assert excluded[collected[0].attempt.charge.annual_fee] == remittances.EXHAUSTED
