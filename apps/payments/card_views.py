@@ -48,8 +48,10 @@ def saved_card_view(request):
         form.data = form.data.copy()
         form.data.pop("code", None)
     back = request.GET.get("tornada")
+    active = preferences.active_card(member)
     context = {
-        "card": preferences.active_card(member),
+        "card": active,
+        "closed": None if active else cards.closed_card(member.person),  # RN-M05a-23
         "form": form,
         "waiting": back == "ok" and cards.waiting(member.person),
         "not_saved": back == "ko",

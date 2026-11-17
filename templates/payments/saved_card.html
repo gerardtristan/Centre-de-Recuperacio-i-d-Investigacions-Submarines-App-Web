@@ -20,9 +20,16 @@
     </section>
   {% endif %}
 
+  {% if closed %}
+    <section class="targeta" aria-labelledby="targeta-tancada-titol">
+      <h2 id="targeta-tancada-titol">{% if closed.status == "expired" %}{% translate "La teva targeta ha caducat" %}{% else %}{% translate "El banc ha denegat la teva targeta" %}{% endif %}</h2>
+      <div class="avis avis-avis"><strong>{% translate "No es pot fer servir" %}</strong>{% blocktranslate with last4=closed.last4 %}La targeta acabada en … {{ last4 }} ja no es pot fer servir per pagar la quota. Guarda'n una de nova o tria un altre mètode.{% endblocktranslate %}</div>
+    </section>
+  {% endif %}
+
   <form class="targeta formulari" method="post" action="{% url 'payments:saved_card' %}" novalidate>
     {% csrf_token %}
-    <h2>{% if card %}{% translate "Guarda una targeta nova" %}{% else %}{% translate "Guarda una targeta" %}{% endif %}</h2>
+    <h2>{% if card or closed %}{% translate "Guarda una targeta nova" %}{% else %}{% translate "Guarda una targeta" %}{% endif %}</h2>
     {% if card %}<p class="text-2">{% blocktranslate with last4=card.last4 %}La nova substituirà la targeta acabada en {{ last4 }}.{% endblocktranslate %}</p>{% endif %}
     <div class="avis avis-sistema">{% translate "Escriuràs la targeta a la pàgina segura del proveïdor i t'autenticaràs amb el teu banc. El club no veu ni guarda mai el número ni el codi de seguretat." %} <span class="a-validar">{% translate "A verificar: P-45 punt 6" %}</span></div>
     {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus #}

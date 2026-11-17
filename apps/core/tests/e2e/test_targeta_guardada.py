@@ -10,6 +10,7 @@ import re
 import pytest
 from playwright.sync_api import expect
 
+from apps.payments import cards
 from apps.payments.models import SavedCard
 from apps.payments.providers import fake
 
@@ -47,4 +48,11 @@ def test_member_saves_a_card_for_the_fee(page, live_server, settings, builder, m
 
     page.goto(f"{live_server.url}/socis/pagaments/metode/")
     expect(page.get_by_text("targeta guardada acabada en 4242")).to_be_visible()
+
+    # RN-M05a-23 (T-M05a-26): caducada, no es fa servir i la pantalla ho diu.
+    SavedCard.objects.update(expiry_month=1, expiry_year=2020)
+    assert cards.expire_cards() == 1
+    page.goto(f"{live_server.url}/socis/pagaments/targeta/")
+    expect(page.get_by_role("heading", name="La teva targeta ha caducat")).to_be_visible()
+    review("targeta-caducada")
     fake.reset()

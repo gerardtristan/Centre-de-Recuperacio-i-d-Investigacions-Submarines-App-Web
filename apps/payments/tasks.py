@@ -48,6 +48,7 @@ def charge_saved_cards(timestamp: int) -> None:
 @app.periodic(cron="40 9 * * *")
 @app.task(name="payments.card_expiry_notices", queue="maintenance")
 def card_expiry_notices(timestamp: int) -> None:
+    cards.expire_cards()  # RN-M05a-23 (T-M05a-26), abans de l'avís
     cards.send_expiry_notices()
 
 

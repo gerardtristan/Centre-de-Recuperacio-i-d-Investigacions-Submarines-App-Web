@@ -35,6 +35,7 @@ SAVED = "payments.saved_card.saved"
 REPLACED = "payments.saved_card.replaced"
 FAILED = "payments.card_setup.failed"
 EXPIRY_NOTICE = "payments.saved_card.expiry_notice"
+EXPIRED = "payments.saved_card.expired"
 EXPIRY_TEMPLATE = "targeta-caduca"
 # VC-48 (RN-M05a-20): dies abans de la caducitat; valor inicial 30 (060) [A validar: tresorer].
 NOTICE_DAYS = "payments.card_expiry_notice_days"
@@ -196,3 +197,30 @@ def send_expiry_notices(today: date | None = None) -> int:
                 sent += 1
             audit.record(EXPIRY_NOTICE, actor=ACTOR, target=card, details={"sent": bool(address)})
     return sent
+
+
+def expire_cards(today: date | None = None) -> int:
+    """RN-M05a-23 (CA-M05a-22): cada dia, una targeta activa amb la caducitat coneguda ja passada
+    passa a «caducada», amb el registre, i no es fa servir més. Torna quantes."""
+    today = today or timezone.localdate()
+    expired = 0
+    active = SavedCard.objects.filter(status=SavedCard.Status.ACTIVE, expiry_year__isnull=False)
+    for card in active:
+        end = expires_on(card)
+        if end is None or end >= today:
+            continue
+        with transaction.atomic():
+            card.status = SavedCard.Status.EXPIRED
+            card.save(update_fields=["status"])
+            audit.record(
+                EXPIRED, actor=ACTOR, target=card, field="status", old="active", new="expired"
+            )
+        expired += 1
+    return expired
+
+
+def closed_card(person) -> SavedCard | None:
+    """L'última targeta caducada o denegada, perquè la pantalla digui que cal guardar-ne una de
+    nova (RN-M05a-23)."""
+    cards = SavedCard.objects.filter(person=person, status__in=SavedCard.CLOSED)
+    return cards.order_by("-pk").first()

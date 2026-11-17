@@ -389,6 +389,11 @@ class SavedCardStatus(models.TextChoices):
     ACTIVE = "active", _("activa")
     REMOVED = "removed", _("esborrada")
     EXPIRED = "expired", _("caducada")
+    DECLINED = "declined", _("denegada")  # de manera definitiva (RN-M05b-28; T-M05a-26)
+
+
+class SavedCardClosed(Exception):
+    """RN-M05a-23: una targeta caducada o denegada no torna a ser activa."""
 
 
 class SavedCard(models.Model):
@@ -396,6 +401,8 @@ class SavedCard(models.Model):
     referència del proveïdor i el que es mostra. Mai el número ni el codi de seguretat."""
 
     Status = SavedCardStatus
+    Closed = SavedCardClosed
+    CLOSED = (SavedCardStatus.EXPIRED, SavedCardStatus.DECLINED)
 
     person = models.ForeignKey("core.Person", on_delete=models.PROTECT, related_name="+")
     provider_code = models.CharField(_("proveïdor"), max_length=30)
@@ -434,6 +441,13 @@ class SavedCard(models.Model):
 
     def __str__(self):
         return f"… {self.last4}"
+
+    def save(self, *args, **kwargs):
+        if self.pk and self.status == self.Status.ACTIVE:
+            stored = type(self).objects.filter(pk=self.pk).values_list("status", flat=True).first()
+            if stored in self.CLOSED:
+                raise SavedCardClosed(stored)
+        super().save(*args, **kwargs)
 
 
 class CardSetup(models.Model):
