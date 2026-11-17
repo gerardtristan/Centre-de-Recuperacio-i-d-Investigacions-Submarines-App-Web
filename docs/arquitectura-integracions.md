@@ -344,6 +344,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `STRIPE_LIVE_MODE_ALLOWED` | Fals per defecte; cert només amb l'autorització de la junta per al nivell 1 o 2 ([025](decisions/025-dos-nivells-de-produccio.md)) |
 | `STRIPE_LIVE_CHARGES_ALLOWED` | Fals fins al nivell 2 (producció completa). Mentre sigui fals, la plataforma no pot crear cap cobrament en mode real |
 | `STRIPE_API_VERSION` | Versió de l'API fixada |
+| `SAVED_CARD_AUTO_CHARGE_ENABLED` | Fals per defecte: la tasca diària no cobra cap quota amb la targeta guardada (T-M05b-15). Es pot guardar la targeta i triar-la igualment. S'encén amb el proveïdor real verificat (P-44, P-45) |
 | `CLUB_IBAN_TRANSFERENCIES` | IBAN que es mostra per a les transferències |
 | `TRANSFER_REFERENCE_PREFIX` | Prefix de les referències (per exemple, `CRIS`) |
 

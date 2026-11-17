@@ -11,6 +11,10 @@ def fk(to, one=False):
     return (models.OneToOneField if one else models.ForeignKey)(on_delete=PROTECT, related_name="+", to=to)  # fmt: skip
 
 
+def load(apps, schema_editor):  # P-302: la finestra de cobrament, 7 dies [A validar: tresorer]
+    apps.get_model("core", "Setting").objects.get_or_create(key="payments.saved_card_charge_window_days", defaults={"module": "payments", "value_type": "integer", "initial_value": 7, "min_value": 0, "max_value": 60})  # fmt: skip
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0043_settings_vc11_permission"),
@@ -50,4 +54,5 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
+        migrations.RunPython(load, migrations.RunPython.noop),  # l'ajust es queda
     ]

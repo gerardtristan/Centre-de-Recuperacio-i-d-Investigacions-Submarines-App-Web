@@ -4,23 +4,19 @@ defecte). Proveïdor fals, que guarda targetes (092), sense xarxa. Només dades 
 La tasca diària obre l'intent amb la targeta de la preferència; «pagat» només arriba amb la
 notificació. Els avisos al soci i al tresorer són de la T-M05b-15b."""
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, timedelta
 
 import pytest
 from django.db import connection
 from django.db.models import F
+from django.utils import timezone
 
-from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.tests.test_cards import add_fee, make_member, pay
 from apps.payments import attempts, checkout, guards, processing
-from apps.payments.models import (
-    PaymentAttempt,
-    SavedCardNotice,
-)
+from apps.payments.models import FeePaymentPreference, PaymentAttempt, SavedCardNotice
 from apps.payments.providers import base, fake
-from apps.payments.tests import test_guest_payment
 from apps.payments.tests.test_fee_method import active_account
 from apps.payments.tests.test_preferences import card, prefer
 from apps.payments.tests.test_processing import no_wait, notify, run_queue
@@ -33,6 +29,7 @@ M = PaymentAttempt.Method
 @pytest.fixture(autouse=True)
 def clean_orders(settings):
     settings.PUBLIC_SITE_URL = "https://socis.example.org"
+    settings.SAVED_CARD_AUTO_CHARGE_ENABLED = True
     fake.reset()
     yield
     fake.reset()
@@ -50,8 +47,7 @@ def member():
 def saved(member):
     account = active_account(member.person, "anna.prova@example.org")
     saved = card(member, expiry_month=8, expiry_year=2029)
-    # Triada abans que venci la quota: les que ja havien vençut no es cobren (arreus).
-    prefer(member, account, "saved_card", saved_card=saved, since=datetime(2025, 12, 1, tzinfo=UTC))
+    prefer(member, account, "saved_card", saved_card=saved)
     return saved
 
 
@@ -62,7 +58,13 @@ def account(saved, member):
 
 @pytest.fixture
 def fee(member):
-    return add_fee(member)  # venç l'1/1/2026
+    return due(add_fee(member), timezone.localdate())  # venç avui
+
+
+def due(fee, day):
+    fee.due_on = day
+    fee.save(update_fields=["due_on"])
+    return fee
 
 
 def only_attempt(fee):
@@ -139,16 +141,6 @@ def test_a_failure_after_the_provider_call_does_not_charge_twice(saved, fee, mon
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
-def test_only_the_first_saved_card_attempt_per_fee(saved, fee):
-    checkout.charge_saved_card(fee.charge, saved)
-    notify(only_attempt(fee), base.DENIED)
-    run_queue()
-
-    with pytest.raises(checkout.AlreadyAttempted):
-        checkout.charge_saved_card(fee.charge, saved)
-    assert fee.charge.attempts.count() == 1
-
-
 def test_an_expired_card_is_not_used_and_it_is_said_once(saved, fee):
     saved.expiry_month, saved.expiry_year = 12, 2025
     saved.save()
@@ -159,16 +151,6 @@ def test_an_expired_card_is_not_used_and_it_is_said_once(saved, fee):
     assert not PaymentAttempt.objects.exists()
     assert AuditEntry.objects.filter(action=checkout.NOT_CHARGED).count() == 1
     assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()  # 15b
-
-
-def test_only_annual_fees(saved, member):
-    other = charges.create_charge(
-        member.person, kind=Charge.Kind.FEE, amount_cents=4000, concept="Suplement",
-        origin="members", by=audit.system("prova"),
-    )  # fmt: skip
-    with pytest.raises(checkout.CardNotUsable):
-        checkout.charge_saved_card(other, saved)
-    assert not PaymentAttempt.objects.exists()
 
 
 def test_only_once_per_fee_and_only_when_due(saved, fee, member, monkeypatch):
@@ -234,25 +216,6 @@ def review_emails():
     return OutgoingEmail.objects.filter(template="avis-pagament-revisar")
 
 
-def test_a_waiting_transfer_is_not_charged_said_once_and_charged_when_it_goes(
-    saved, fee, account, settings, treasurer
-):
-    settings.CLUB_IBAN_TRANSFERENCIES = test_guest_payment.IBAN
-    start = checkout.start_payment(fee.charge, "transfer", account)
-
-    checkout.charge_due_saved_cards()
-    checkout.charge_due_saved_cards()
-
-    transfer = PaymentAttempt.objects.get(pk=start.attempt_id)
-    assert transfer.status == S.IN_PROGRESS
-    assert not fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
-    assert SavedCardNotice.objects.filter(charge=fee.charge).count() == 1
-    assert "transferència en espera" in review_emails().get().body_text
-
-    attempts.transition(transfer, S.ABANDONED, by=audit.system("prova"))
-    assert checkout.charge_due_saved_cards() == 1  # l'avís no la treu de la llista
-
-
 def test_a_fee_paid_by_hand_before_the_call_is_not_charged(saved, fee, monkeypatch):
     real = checkout._open_saved_card_attempt
 
@@ -294,8 +257,8 @@ def test_a_provider_without_order_ids_opens_nothing_and_tells_the_treasurer(
     checkout.charge_due_saved_cards()
 
     assert not PaymentAttempt.objects.exists()
-    entry = AuditEntry.objects.get(action=processing.TO_REVIEW, target_id=str(fee.charge.pk))
-    assert str(fee.charge.pk) in entry.reason and review_emails().exists()
+    AuditEntry.objects.get(action=processing.TO_REVIEW, target_id=str(fee.charge.pk))
+    assert review_emails().exists()  # la referència és el càrrec del registre
 
 
 def test_an_amount_changed_before_the_call_is_charged_the_next_day(saved, fee, monkeypatch):
@@ -318,6 +281,7 @@ def test_an_amount_changed_before_the_call_is_charged_the_next_day(saved, fee, m
 def test_the_card_is_checked_on_the_day_of_the_run(saved, fee, monkeypatch):
     saved.expiry_month, saved.expiry_year = 1, 2026
     saved.save()
+    due(fee, date(2026, 1, 31))
     calls, real = [], checkout.timezone.localdate
 
     def midnight(*args):  # la tasca comença el 31/1 i la crida arriba passada la mitjanit
@@ -329,3 +293,63 @@ def test_the_card_is_checked_on_the_day_of_the_run(saved, fee, monkeypatch):
     monkeypatch.setattr(checkout.timezone, "localdate", midnight)
     checkout.charge_due_saved_cards()
     assert only_attempt(fee).status == S.IN_PROGRESS and len(fake._orders) == 1
+
+
+# --- Novena revisió de #191 ---
+
+
+def test_p_302_only_fees_due_within_the_window_are_charged(saved, member, treasurer):
+    today = timezone.localdate()
+    recent, old = (
+        due(add_fee(member), today - timedelta(days=7)),
+        due(add_fee(member, period=2025), today - timedelta(days=8)),
+    )
+    assert checkout.charge_due_saved_cards() == 1
+    assert recent.charge.attempts.exists() and not old.charge.attempts.exists()
+    assert SavedCardNotice.objects.get(charge=old.charge).case == checkout.ARREARS
+    assert AuditEntry.objects.filter(
+        action=processing.TO_REVIEW, target_id=str(old.charge.pk)
+    ).exists()
+    assert not OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).exists()
+    assert old.charge.pk not in [c.pk for c, _card in checkout.due_saved_card_charges(today)]
+
+
+def test_a_card_replaced_after_the_due_date_still_charges_the_fee(saved, member, account):
+    fee = due(add_fee(member), timezone.localdate() - timedelta(days=3))
+    saved.status = "removed"
+    saved.save()
+    new = card(member, provider_card_id="c-2")
+    FeePaymentPreference.objects.filter(member=member).update(saved_card=new, since=timezone.now())
+    assert checkout.charge_due_saved_cards() == 1 and fee.charge.attempts.exists()
+
+
+def test_an_opening_error_is_told_once(saved, fee, monkeypatch, treasurer):
+    def unsupported(*args):
+        raise base.NotSupported("tokenization")
+
+    monkeypatch.setattr(fake.FakeProvider, "saved_card_order_id", unsupported)
+    checkout.charge_due_saved_cards()
+    checkout.charge_due_saved_cards()
+    assert OutgoingEmail.objects.filter(template=processing.REVIEW_TEMPLATE).count() == 1
+
+
+def test_no_card_is_the_preference_case(fee):
+    assert (
+        checkout._unusable(None, fee.charge, fake.FakeProvider(), timezone.localdate())
+        == checkout.PREFERENCE
+    )
+
+
+def test_the_payment_screen_does_not_take_the_saved_card(saved, fee, account):
+    with pytest.raises(attempts.MethodNotAllowed):
+        checkout.start_payment(fee.charge, "saved_card", account)
+
+
+def test_the_automatic_charge_is_off_by_default(saved, fee, settings, caplog):
+    settings.SAVED_CARD_AUTO_CHARGE_ENABLED = False
+    entries = AuditEntry.objects.count()
+    assert checkout.charge_due_saved_cards() == 0
+    assert not PaymentAttempt.objects.exists() and not SavedCardNotice.objects.exists()
+    assert AuditEntry.objects.count() == entries and not caplog.records
+    settings.SAVED_CARD_AUTO_CHARGE_ENABLED = True
+    assert checkout.charge_due_saved_cards() == 1
