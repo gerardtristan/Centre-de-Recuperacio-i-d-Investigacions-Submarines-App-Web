@@ -5,8 +5,10 @@ Crea persones fictícies, textos legals de prova (inclosos els provisionals del 
 imatges, [A validar]), consentiments, un departament i càrrecs en diversos estats, i els socis de
 la revisió (T-M01-27, `apps/members/demo_data.py`): quotes, carnets, sol·licituds, llicències i
 un fitxer de Cluber inventat. També la tresoreria (T-M04-18, `apps/treasury/demo_data.py`):
-moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. Tot passa pels
-serveis, perquè el registre d'activitat quedi com quedaria de debò.
+moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. I els pagaments
+(T-M05b-17, `apps/payments/demo_data.py`): intents en cada estat, notificacions, una remesa
+liquidada, retornats, una devolució, convidats i mandats. Tot passa pels serveis, perquè el
+registre d'activitat quedi com quedaria de debò.
 
 Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisió, amb la
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
@@ -33,6 +35,7 @@ from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
 from apps.members import demo_data
 from apps.members.join import OPTIONAL_TEXT_CONTENT
+from apps.payments import demo_data as payments_demo
 from apps.treasury import demo_data as treasury_demo
 
 ORIGIN = "seed_demo_data"
@@ -133,6 +136,12 @@ class Command(BaseCommand):
             f"Tresoreria: {treasury['movements']} moviments, {treasury['settlements']} "
             f"liquidacions, {treasury['statements']} extractes (CSV i Norma 43) i remeses "
             f"«{treasury['remittances'][0]}» i «{treasury['remittances'][1]}»."
+        )
+        payments = counts["payments"]
+        out(
+            f"Pagaments: {payments['attempts']} intents, {payments['notifications']} "
+            "notificacions, una remesa liquidada amb dos rebuts retornats, una devolució, "
+            "pagaments de convidats i mandats actius, revocat, caducat i bloquejat."
         )
         out("")
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
@@ -243,6 +252,8 @@ class Command(BaseCommand):
             password=PASSWORD,
             with_cluber_batch=with_cluber_batch,
         )
+        # Pagaments (T-M05b-17): el mandat caducat va abans de cap altre mandat (vegeu el mòdul).
+        payments_demo.expired_mandate(admin=admin, review=review)
         # Tresoreria (T-M04-18): moviments, liquidacions, extractes, conciliació i remeses.
         treasury = treasury_demo.create(
             treasurer=accounts[Role.Code.TREASURER],
@@ -251,5 +262,10 @@ class Command(BaseCommand):
             review=review,
             password=PASSWORD,
         )
+        # Pagaments (T-M05b-17): intents, notificacions, remesa liquidada, retornats, devolució,
+        # convidats i mandats.
+        payments = payments_demo.create(
+            treasurer=accounts[Role.Code.TREASURER], admin=admin, review=review
+        )
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
-        return {**counts, "treasury": treasury}, review
+        return {**counts, "treasury": treasury, "payments": payments}, review
