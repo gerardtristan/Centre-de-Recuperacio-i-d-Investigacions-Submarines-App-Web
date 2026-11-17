@@ -38,8 +38,14 @@ def launch(playwright, name, scheme):
         pytest.skip(f"{name} de Playwright no és instal·lat en aquest ordinador")
 
 
-@pytest.mark.parametrize("name", ENGINES)
-@pytest.mark.parametrize(("scheme", "saved", "kind"), CASES)
+# Chromium, els quatre casos; Firefox i WebKit, els dos que ho diuen tot (el fosc del sistema i
+# el tema triat a mà contra el del sistema): cada cas hi costa uns 7 s al CI, que espera tothom.
+RUNS = [("chromium", *case) for case in CASES] + [
+    (name, *CASES[i]) for name in ENGINES[1:] for i in (1, 2)
+]
+
+
+@pytest.mark.parametrize(("name", "scheme", "saved", "kind"), RUNS)
 def test_only_the_visible_logo_is_downloaded(playwright, live_server, name, scheme, saved, kind):
     browser = launch(playwright, name, scheme)
     context = browser.new_context(color_scheme=scheme)
