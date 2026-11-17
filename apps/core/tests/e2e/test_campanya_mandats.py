@@ -30,8 +30,14 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
     treasurer = make_admin("tresoreria.prova", "treasurer")
 
     login_admin(page, live_server.url, treasurer.login)
-    page.goto(f"{live_server.url}/gestio/pagaments/campanya/")
+    # Hi arriba pel menú (T-DX-46): l'entrada només surt amb A4.
+    entry = page.locator("#barra-lateral").get_by_role(
+        "link", name="Pagaments: campanya de mandats"
+    )
+    entry.click()
     expect(page.get_by_role("heading", name="Campanya de mandats")).to_be_visible()
+    expect(page).to_have_url(f"{live_server.url}/gestio/pagaments/campanya/")
+    expect(entry).to_have_attribute("aria-current", "page")
     expect(page.get_by_text("No hi ha cap campanya oberta.")).to_be_visible()
     page.get_by_label("Nom de la campanya").fill("Campanya de tardor")
     page.get_by_role("button", name="Obre la campanya").click()
