@@ -15,14 +15,16 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.accounts.models import Account
 from apps.core import audit, guest_links
 from apps.core.models import Charge, GuestLink, Person
+from apps.members import services as members
 from apps.treasury import services as treasury
 
 from . import attempts, processing
-from .guards import ensure_charges_allowed
+from .guards import charges_allowed, ensure_charges_allowed
 from .models import (
     FeePaymentPreference,
     PaymentAttempt,
@@ -31,7 +33,7 @@ from .models import (
     SavedCardNotice,
 )
 from .providers import get_provider
-from .providers.base import LiveChargesNotAllowed, OrderUrls
+from .providers.base import OrderUrls
 
 # Què ha de fer la pantalla amb `PaymentStart.url`: enviar-hi el navegador o incrustar-la.
 REDIRECT = "redirect"
@@ -271,6 +273,11 @@ class CardNotUsable(attempts.ChargeNotPayable):
     la persona del càrrec o és d'un altre proveïdor, o el càrrec no és una quota anual."""
 
 
+class TransferWaiting(attempts.ChargeNotPayable):
+    """El soci espera una transferència: si ja l'ha feta, cobrar la targeta seria cobrar dues
+    vegades. No es cobra i es diu al tresorer."""
+
+
 class AlreadyAttempted(attempts.ChargeNotPayable):
     """La quota ja té un intent amb la targeta guardada (el primer cobrament; els reintents són
     de la T-M05b-24)."""
@@ -278,7 +285,9 @@ class AlreadyAttempted(attempts.ChargeNotPayable):
 
 NOT_CHARGED = "payments.saved_card.not_charged"
 SAVED_CARD_ACTOR = "payments.saved_card"
-AUTHENTICATION = "RN-M05b-20: el banc demana autenticació"
+AUTHENTICATION = gettext_lazy("RN-M05b-20: el banc demana autenticació")
+TRANSFER_WAITING = gettext_lazy("Té una transferència en espera: no es cobra la targeta.")
+NOT_USABLE = gettext_lazy("La targeta guardada no hi és, ha caducat o ja no serveix.")
 
 
 def _expired(card: SavedCard, today) -> bool:
@@ -288,21 +297,29 @@ def _expired(card: SavedCard, today) -> bool:
 
 
 def _usable(card: SavedCard | None, charge: Charge, provider) -> bool:
+    """La targeta activa, no caducada i del proveïdor, de la preferència «targeta guardada» d'un
+    soci actiu o impagat, per a una quota anual seva."""
+    fee = getattr(charge, "annual_fee", None)
     return (
         card is not None
+        and fee is not None
         and card.status == SavedCard.Status.ACTIVE
         and card.person_id == charge.person_id
         and card.provider_code == provider.code
         and not _expired(card, timezone.localdate())
-        and getattr(charge, "annual_fee", None) is not None
+        and FeePaymentPreference.objects.filter(
+            member_id=fee.member_id, method=SAVED_CARD, saved_card=card
+        ).exists()
+        and members.is_member(charge.person)
     )
 
 
-def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider) -> PaymentAttempt:
+def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider):
     """Sota el bloqueig del càrrec i de la targeta (llegida de nou): les comprovacions i l'intent
     «en curs», amb la targeta i l'identificador que tindrà l'ordre al proveïdor, desats abans de
     cobrar. Així la notificació el troba encara que arribi abans que la resposta, i si la crida
-    falla, la xarxa de seguretat pregunta per aquella ordre (cap segon cobrament)."""
+    falla, la xarxa de seguretat pregunta per aquella ordre (cap segon cobrament). Torna
+    l'intent i la targeta."""
     by = audit.system(SAVED_CARD_ACTOR)
     with transaction.atomic():
         stored = Charge.objects.select_for_update().get(pk=charge.pk)
@@ -312,7 +329,9 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider) -
             raise CardNotUsable
         if stored.attempts.filter(method=SAVED_CARD).exists():
             raise AlreadyAttempted
-        _abandon_waiting_transfer(stored, by)  # com `start_payment` (P-136)
+        waiting = stored.attempts.filter(status=S.IN_PROGRESS, method=TRANSFER)
+        if waiting.exists():
+            raise TransferWaiting
         if _in_progress(stored):
             raise attempts.AttemptInProgress
         attempt = attempts.create_attempt(stored, SAVED_CARD)
@@ -321,7 +340,7 @@ def _open_saved_card_attempt(charge: Charge, card: SavedCard | None, provider) -
         attempt.provider_order_id = provider.saved_card_order_id(attempt.idempotency_key)
         attempt.save(update_fields=["provider_code", "provider_order_id", "updated_at"])
         SavedCardAttempt.objects.create(attempt=attempt, card=card)
-        return attempt
+        return attempt, card
 
 
 def _save_order(attempt: PaymentAttempt, order, card: SavedCard) -> PaymentAttempt:
@@ -339,7 +358,7 @@ def _save_order(attempt: PaymentAttempt, order, card: SavedCard) -> PaymentAttem
             }
             processing._review(attempt, None, reason)
         elif order.pay_url and attempt.status == S.IN_PROGRESS:
-            attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=AUTHENTICATION)
+            attempt = attempts.transition(attempt, S.ABANDONED, by=by, reason=str(AUTHENTICATION))
     return attempt
 
 
@@ -352,8 +371,7 @@ def charge_saved_card(charge: Charge, card: SavedCard | None, *, provider=None) 
     if provider is None:
         ensure_charges_allowed("charge_saved_card")  # abans de cap transacció (CA-M05a-09)
         provider = get_provider()
-    attempt = _open_saved_card_attempt(charge, card, provider)
-    card = SavedCardAttempt.objects.select_related("card").get(attempt=attempt).card
+    attempt, card = _open_saved_card_attempt(charge, card, provider)
     # Fora de la transacció: si falla res després, l'intent i la seva ordre ja hi són.
     order = provider.charge_saved_card(attempt.charge, card, attempt.idempotency_key)
     return _save_order(attempt, order, card)
@@ -371,25 +389,14 @@ def _not_charged(charge: Charge, card: SavedCard | None, reason: str) -> None:
         if not new:
             return
         by = audit.system(SAVED_CARD_ACTOR)
-        audit.record(NOT_CHARGED, actor=by, target=charge, reason=reason)
-        processing._review(None, charge, reason)
-
-
-def _first_try_due(charge: Charge) -> bool:
-    every = list(charge.attempts.all())
-    if any(a.method == SAVED_CARD for a in every):
-        return False
-    # Una transferència en espera no atura el cobrament (P-136); qualsevol altre intent, sí.
-    return not any(
-        a.status in (S.IN_PROGRESS, S.SENT_TO_BANK) and a.method != TRANSFER for a in every
-    )
+        audit.record(NOT_CHARGED, actor=by, target=charge, reason=str(reason))
+        processing._review(None, charge, str(reason))
 
 
 def due_saved_card_charges(today):
     """Les quotes pendents que ja han vençut dels socis que paguen amb la targeta guardada, amb
-    la targeta de la preferència, encara que ja no serveixi (aleshores, `_not_charged`, si encara
-    no s'ha avisat per aquesta targeta): el primer cobrament (P-302: el dia del venciment). Els
-    reintents són de la T-M05b-24."""
+    la targeta de la preferència, si encara no s'ha avisat per aquesta targeta (P-302: el dia del
+    venciment). Què se'n fa ho decideix `charge_saved_card`, sota el bloqueig del càrrec."""
     preferences = FeePaymentPreference.objects.filter(method=SAVED_CARD)
     cards = {p.member_id: p.saved_card for p in preferences.select_related("saved_card")}
     due = (
@@ -398,16 +405,14 @@ def due_saved_card_charges(today):
             annual_fee__member_id__in=cards,
             annual_fee__due_on__lte=today,
         )
+        .exclude(attempts__method=SAVED_CARD)
         .select_related("annual_fee")
-        .prefetch_related("attempts")
         .order_by("pk")
     )
-    noticed = set(SavedCardNotice.objects.values_list("charge_id", "card_id"))
-    return [
-        (c, cards[c.annual_fee.member_id])
-        for c in due
-        if _first_try_due(c) and (c.pk, cards[c.annual_fee.member_id].pk) not in noticed
-    ]
+    notices = SavedCardNotice.objects.filter(charge__in=due)
+    noticed = set(notices.values_list("charge_id", "card_id"))
+    pairs = [(c, cards[c.annual_fee.member_id]) for c in due]
+    return [(c, card) for c, card in pairs if (c.pk, card.pk) not in noticed]
 
 
 def charge_due_saved_cards() -> int:
@@ -415,24 +420,22 @@ def charge_due_saved_cards() -> int:
     obert. Sense res per cobrar, no passa per la salvaguarda (cap negativa diària al registre);
     si no, una sola salvaguarda i un sol proveïdor per passada. Un error en un càrrec no atura
     els altres."""
+    if not charges_allowed():
+        return 0  # nivell 1: res a cobrar, i res al registre cada dia
     due = due_saved_card_charges(timezone.localdate())
-    if not due:
-        return 0
-    try:
-        ensure_charges_allowed("charge_saved_card")
-    except LiveChargesNotAllowed:
-        return 0
-    provider = get_provider()
+    provider = get_provider() if due else None
     started = 0
     for charge, card in due:
         try:
-            charge_saved_card(charge, card, provider=provider)
-            started += 1
-        except CardNotUsable:
-            reason = _("La targeta guardada no hi és, ha caducat o ja no serveix.")
-            _not_charged(charge, card, reason)
-        except (attempts.ChargeNotPayable, attempts.AttemptInProgress):
-            continue  # ja té un intent, o ja no és pendent
+            try:
+                charge_saved_card(charge, card, provider=provider)
+                started += 1
+            except CardNotUsable:
+                _not_charged(charge, card, NOT_USABLE)
+            except TransferWaiting:
+                _not_charged(charge, card, TRANSFER_WAITING)
+            except (attempts.ChargeNotPayable, attempts.AttemptInProgress):
+                pass  # ja té un intent, o ja no és pendent
         except Exception:
             logger.exception("No s'ha pogut cobrar el càrrec %s amb la targeta guardada", charge.pk)
     return started

@@ -13,6 +13,7 @@ from django.test import Client
 from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member, pay
 from apps.payments import attempts, checkout, guards, processing
 from apps.payments.models import FeePaymentPreference, PaymentAttempt, SavedCardNotice
@@ -204,7 +205,7 @@ def test_level_1_no_saved_card_is_charged(saved, fee, settings):
     with pytest.raises(base.LiveChargesNotAllowed):
         checkout.charge_saved_card(fee.charge, saved)
     assert not PaymentAttempt.objects.exists()
-    assert AuditEntry.objects.filter(action=guards.REFUSED).count() == 2
+    assert AuditEntry.objects.filter(action=guards.REFUSED).count() == 1  # només la crida directa
 
 
 def test_the_member_cannot_choose_saved_card_on_the_payment_screen():
@@ -286,14 +287,19 @@ def test_a_notification_before_the_response_finds_its_attempt(saved, fee, monkey
     assert Payment.objects.filter(charge=fee.charge).count() == 1
 
 
-def test_a_waiting_transfer_is_abandoned_like_start_payment(saved, fee, account, settings):
+def test_a_waiting_transfer_is_not_charged_by_card_and_it_is_said_once(
+    saved, fee, account, settings, treasurer
+):
     settings.CLUB_IBAN_TRANSFERENCIES = test_guest_payment.IBAN
     start = checkout.start_payment(fee.charge, "transfer", account)
 
     checkout.charge_due_saved_cards()
+    checkout.charge_due_saved_cards()
 
-    assert PaymentAttempt.objects.get(pk=start.attempt_id).status == S.ABANDONED  # P-136
-    assert fee.charge.attempts.get(method=M.SAVED_CARD).status == S.IN_PROGRESS
+    assert PaymentAttempt.objects.get(pk=start.attempt_id).status == S.IN_PROGRESS
+    assert not fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
+    assert SavedCardNotice.objects.filter(charge=fee.charge).count() == 1
+    assert "transferència en espera" in review_emails().get().body_text
 
 
 def test_no_alternative_for_a_fee_paid_by_hand_in_between(saved, fee, monkeypatch):
@@ -328,3 +334,31 @@ def test_an_unexpected_order_goes_to_review(saved, fee, monkeypatch):
     monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other)
     checkout.charge_due_saved_cards()
     assert only_attempt(fee).status == S.TO_REVIEW
+
+
+def test_an_error_on_one_fee_does_not_stop_the_run(saved, fee, monkeypatch):
+    other = make_member(first="Pau", number=1288, document="87654321X")
+    other_fee = add_fee(other)
+    prefer(other, active_account(other.person, "pau.prova@example.org"), "saved_card",
+           saved_card=card(other, provider_card_id="c-9"))  # fmt: skip
+    saved.status = "removed"
+    saved.save()
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("avís trencat")
+
+    monkeypatch.setattr(checkout, "_not_charged", broken)
+    checkout.charge_due_saved_cards()
+    assert other_fee.charge.attempts.filter(method=M.SAVED_CARD).exists()
+
+
+@pytest.mark.parametrize("how", ["preference", "member"])
+def test_only_the_card_of_the_preference_of_an_active_member(saved, fee, member, how):
+    if how == "preference":
+        FeePaymentPreference.objects.filter(member=member).update(
+            method="pay_each_time", saved_card=None
+        )
+    else:
+        Member.objects.filter(pk=member.pk).update(status=Member.Status.LEFT)
+    with pytest.raises(checkout.CardNotUsable):
+        checkout.charge_saved_card(fee.charge, saved)
