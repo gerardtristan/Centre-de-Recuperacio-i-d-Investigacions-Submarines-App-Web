@@ -197,6 +197,7 @@ SERVICE_CHECKS = {
     ),
     sepa_xml.remittance_file: (B3, lambda by: sepa_xml.remittance_file(None, by)),
     refunds.refund: (B5, lambda by: refunds.refund(None, 1, reason="x", key=None, by=by)),
+    refunds.discard: (B5, lambda by: refunds.discard(None, reason="x", by=by)),
     returns.register_return: (B4, lambda by: returns.register_return(None, "AM04", by=by)),
     returns.confirm: (B4, lambda by: returns.confirm(None, returns.RETRY, by=by)),
     # A6, o el soci mateix des del compte personal (A2).
