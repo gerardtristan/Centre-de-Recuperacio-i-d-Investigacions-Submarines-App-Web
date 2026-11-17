@@ -1,0 +1,29 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M05a-10, A6: revocar un mandat a petició escrita del soci (P-M05a-C). Seguretat i privacitat, al servidor: permís A6 (sense, «no trobat»); només un mandat actiu; motiu obligatori; cap compte d'administrador no revoca el seu propi mandat des d'aquí (M05a-4); sense tornar a demanar el codi TOTP (P-133). IBAN emmascarat i mai desxifrat (A9, P-121). El soci rep el correu de revocació. #}
+{% block title %}{% translate "Revoca el mandat" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Revoca el mandat" %}</h1>
+  <section class="targeta" aria-labelledby="mandat-titol">
+    <h2 id="mandat-titol" class="codi">{{ mandate.reference }}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Soci" %}</dt><dd>{{ mandate.member.person }} <span class="codi">{% blocktranslate with number=mandate.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></dd></div>
+      <div><dt>{% translate "IBAN" %}</dt><dd class="codi">{{ mandate.bank_account }}</dd></div>
+      <div><dt>{% translate "Signat el" %}</dt><dd>{{ mandate.signed_at|date:"d/m/Y" }}</dd></div>
+    </dl>
+  </section>
+  {% if own %}
+    <div class="avis avis-error" role="alert"><strong>{% translate "És el teu mandat." %}</strong> {% translate "Des de l'administració no pots revocar el teu propi mandat. Fes-ho des del teu compte personal." %}</div>
+  {% else %}
+    <form class="targeta formulari" method="post" action="{% url 'administration:payments_mandate_revoke' mandate.pk %}" novalidate>
+      {% csrf_token %}
+      <p>{% translate "No es cobrarà cap quota més amb aquest mandat. El soci pagarà cada quota amb targeta, Bizum o transferència, i rebrà un correu." %}</p>
+      {% include "accounts/_camp.html" with field=form.reason %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Sí, revoca'l" %}</button>
+        <a class="boto" href="{% url 'administration:payments_mandates' %}">{% translate "Torna" %}</a>
+      </div>
+    </form>
+  {% endif %}
+{% endblock %}

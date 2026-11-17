@@ -1,11 +1,12 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M05a-14, C6: mètode de pagament de la quota de cada soci actiu (wireframe admin.html#vista-pagaments-mandats). Permís A4 al servidor. Amb «Cons.» la vista només posa «té mètode» al context: les altres columnes no arriben a l'HTML. L'IBAN, sempre emmascarat i mai desxifrat (A9, P-121). Revocar (A6) és d'una altra tasca. #}
+{# T-M05a-14, C6: mètode de pagament de la quota de cada soci actiu (wireframe admin.html#vista-pagaments-mandats). Permís A4 al servidor. Amb «Cons.» la vista només posa «té mètode» al context: les altres columnes no arriben a l'HTML. L'IBAN, sempre emmascarat i mai desxifrat (A9, P-121). Revocar (A6): l'enllaç només surt amb el permís i mai per al mandat propi, però el control és al servidor (mandate_revoke_view). #}
 {% block title %}{% translate "Mètodes i mandats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
   <h1>{% translate "Mètodes i mandats" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {% if full %}
     <p class="text-2">{% translate "L'IBAN surt sempre emmascarat. Ningú no el veu sencer." %}</p>
     <form class="formulari" method="get" action="{% url 'administration:payments_mandates' %}" novalidate>
@@ -42,7 +43,7 @@
           <th scope="row" class="cel-nom">{{ member.person }} <span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
           {% if full %}
             <td data-etiqueta="{% translate 'Mètode' %}">{% if row.preference %}{{ row.preference.get_method_display|capfirst }}{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense resposta" %}</span>{% endif %}</td>
-            <td data-etiqueta="{% translate 'Mandat o targeta' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.reference }}</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.mandate.get_status_display|capfirst }}</span>{% elif row.card %}<span class="codi">{{ row.card }}{% if row.card.expiry_month %} · {{ row.card.expiry_month|stringformat:"02d" }}/{{ row.card.expiry_year }}{% endif %}</span>{% else %}—{% endif %}</td>
+            <td data-etiqueta="{% translate 'Mandat o targeta' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.reference }}</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.mandate.get_status_display|capfirst }}</span>{% if can_revoke and member.person_id != user.person_id %} {% blocktranslate with reference=row.mandate.reference asvar revoke_label %}Revoca el mandat {{ reference }}…{% endblocktranslate %}<a class="boto boto-text boto-petit" href="{% url 'administration:payments_mandate_revoke' row.mandate.pk %}" aria-label="{{ revoke_label }}">{% translate "Revoca…" %}</a>{% endif %}{% elif row.card %}<span class="codi">{{ row.card }}{% if row.card.expiry_month %} · {{ row.card.expiry_month|stringformat:"02d" }}/{{ row.card.expiry_year }}{% endif %}</span>{% else %}—{% endif %}</td>
             <td data-etiqueta="{% translate 'IBAN' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.bank_account.iban_country }} … {{ row.mandate.bank_account.iban_last4 }}</span>{% else %}—{% endif %}</td>
           {% else %}
             <td data-etiqueta="{% translate 'Té mètode' %}">{% if row.has_method %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>

@@ -61,9 +61,10 @@ def _revoke(mandate: SepaMandate, reason: str, by, now, **details) -> None:
 
 
 @transaction.atomic
-def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
-    """El soci revoca el seu mandat actiu (P-M05a-C): passa a «revocat» amb la data i el motiu, i
-    la preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». El soci
+def revoke_mandate(member: Member, *, by, reason: str = MEMBER_REQUEST) -> SepaMandate | None:
+    """Revoca el mandat actiu del soci (P-M05a-C): ell mateix des del compte personal o el tresorer
+    a petició escrita, amb el motiu (A6). Passa a «revocat» amb la data i el motiu, i la
+    preferència, si era la domiciliació (o no n'hi havia), passa a «pagar cada vegada». El soci
     rep un correu (`mandat-revocat`), a la mateixa transacció, per la cua. Torna el mandat, o
     None si no n'hi havia cap d'actiu. Funciona encara que la signatura estigui apagada (P-127):
     un soci sempre ha de poder revocar."""
@@ -74,7 +75,7 @@ def revoke_mandate(member: Member, *, by) -> SepaMandate | None:
     )
     if mandate is None:
         return None
-    _revoke(mandate, MEMBER_REQUEST, by, timezone.now())
+    _revoke(mandate, reason, by, timezone.now())
     mail_member(REVOKED_TEMPLATE, mandate)
     preference = preferences.current(member)
     if preference is None or preference.method == FeeMethod.DIRECT_DEBIT:
