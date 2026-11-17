@@ -22,6 +22,10 @@ def test_administrator_assigns_a_role(page, live_server, texts, review):
     page.get_by_role("main").get_by_role("link", name="Comptes d'administrador").click()
     page.get_by_role("link", name="Rols de bernat.prova").click()
     expect(page.get_by_role("heading", name="Rols de bernat.prova")).to_be_visible()
+    # T-DX-55: sense entrada pròpia (porta el compte a la ruta); el menú marca d'on surt
+    expect(
+        page.locator("#barra-lateral").get_by_role("link", name="Comptes d'administrador")
+    ).to_have_attribute("aria-current", "page")
     review("rols-compte")
 
     page.get_by_label("Assigna un rol").select_option(label="Tresorer")

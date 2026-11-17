@@ -126,7 +126,7 @@ ENTRIES = (
     (
         "administration:accounts",
         _("Comptes d'administrador"),
-        ("administration:reset_credentials",),
+        ("administration:reset_credentials", "administration:account_roles"),  # T-DX-55
     ),
     ("administration:audit_log", _("Registre d'activitat"), ()),
     (
