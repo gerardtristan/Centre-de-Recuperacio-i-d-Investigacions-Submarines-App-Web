@@ -53,6 +53,7 @@ OUTCOMES = {
     "give_up": gettext_lazy("La xarxa de seguretat no ha pogut tancar l'intent."),
     "card_closed": gettext_lazy("La targeta guardada ja no es pot fer servir."),
     "not_member": gettext_lazy("La persona ja no és sòcia activa ni impagada."),
+    "pending_member": gettext_lazy("És sòcia pendent: paga la primera quota des de la pantalla."),
     "preference": gettext_lazy("La preferència de la quota ja no és aquesta targeta."),
     "provider": gettext_lazy("La targeta és d'un altre proveïdor."),
     "not_fee": gettext_lazy("El càrrec no és una quota anual."),
