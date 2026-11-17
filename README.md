@@ -36,7 +36,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
   funcionalitats-processos/    funcionalitats i processos per mòdul (.pdf i .docx)
   context/                     fonts originals (instruccions; entrevistes fora de Git)
   diari-de-construccio/        una entrada per tasca acabada, índex i captures
-  guies/                       guies d'ús per a la secretaria i el tresorer (esborrany, T-M01-29)
+  guies/                       guies d'ús per a la secretaria, el tresorer i els socis (esborranys, T-M01-29, T-M04-19, T-M05b-20)
   entregues/                   lliuraments de l'assignatura
   arxiu/                       versions antigues (mai s'esborren), p. ex. context v3
 /specs/                        spec 00 (vigent fins que el 00 tingui secció a planning.md; la 04 és a l'arxiu)
@@ -61,7 +61,7 @@ Dissenyar i construir, per mòduls prioritzats i validats amb la junta, una plat
 - [Arquitectura d'integracions](docs/arquitectura-integracions.md)
 - [Decisions](docs/decisions/) · [Pendents de validar](docs/decisions/pendents.md)
 - [Diari de construcció](docs/diari-de-construccio/README.md)
-- Guies d'ús (esborrany, pendents de revisió): [secretaria](docs/guies/guia-secretaria.md) · [tresorer](docs/guies/guia-tresorer.md)
+- Guies d'ús (esborrany, pendents de revisió): [secretaria](docs/guies/guia-secretaria.md) · [tresorer](docs/guies/guia-tresorer.md) · [tresoreria](docs/guies/guia-tresoreria.md) · [remeses, retornats i devolucions](docs/guies/guia-cobraments.md) · [ajuda per als socis: pagar la quota](docs/guies/ajuda-socis-pagaments.md)
 - [Document incremental (vigent)](docs/entregues/document-incremental.pdf)
 
 ## Fitxers fora del repositori
