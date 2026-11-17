@@ -587,12 +587,14 @@ class SavedCardAttempt(models.Model):
 
 
 class SavedCardNotice(models.Model):
-    """Ja s'ha avisat que una targeta guardada no pot cobrar una quota, per un motiu (T-M05b-15):
-    serveix només per no repetir l'avís; la quota es continua provant cada dia."""
+    """Un resultat d'una quota amb la targeta guardada, per càrrec, targeta i motiu (T-M05b-15):
+    serveix per avisar-ne una sola vegada; la quota es continua provant cada dia."""
 
     charge = models.ForeignKey("core.Charge", on_delete=models.PROTECT, related_name="+")
     card = models.ForeignKey(SavedCard, on_delete=models.PROTECT, related_name="+")
     case = models.CharField(_("motiu"), max_length=30)
+    # Els avisos han sortit (T-M05b-15b); si un correu falla, l'endemà es torna a provar.
+    notified = models.BooleanField(_("avisat"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

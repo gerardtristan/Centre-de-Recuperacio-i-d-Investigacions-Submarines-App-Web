@@ -11,10 +11,11 @@ from django.db import connection
 from django.db.models import F
 
 from apps.core import audit, charges
-from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Role
+from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member, pay
-from apps.payments import attempts, checkout, guards, processing
+from apps.payments import attempts, checkout, guards, processing, returns
 from apps.payments.models import (
     PaymentAttempt,
     SavedCardNotice,
@@ -102,7 +103,7 @@ def test_rn_m05b_20_authentication_closes_the_attempt_at_once(saved, fee, accoun
     attempt = only_attempt(fee)
     assert (attempt.status, attempt.review_reason) == (S.ABANDONED, "")
     assert "/pagaments/prova/" not in str(list(AuditEntry.objects.values_list("details", "reason")))
-    assert not OutgoingEmail.objects.exists()
+    assert "/pagaments/prova/" not in str(list(OutgoingEmail.objects.values_list("body_text")))
     start = checkout.start_payment(fee.charge, "card", account)
     notify(PaymentAttempt.objects.get(pk=start.attempt_id))
     notify(attempt, event_id="tard")  # una confirmació tardana de l'ordre tancada
@@ -157,8 +158,8 @@ def test_an_expired_card_is_not_used_and_it_is_said_once(saved, fee):
     checkout.charge_due_saved_cards()
 
     assert not PaymentAttempt.objects.exists()
-    assert AuditEntry.objects.filter(action=checkout.NOT_CHARGED).count() == 1
-    assert not OutgoingEmail.objects.filter(template="alternativa-pagament").exists()  # 15b
+    assert AuditEntry.objects.filter(action=processing.OUTCOME).count() == 1
+    assert OutgoingEmail.objects.filter(template="alternativa-pagament").count() == 1
 
 
 def test_only_annual_fees(saved, member):
@@ -231,7 +232,7 @@ def test_a_call_that_never_reached_the_provider_is_closed_by_the_safety_net(
 
 
 def review_emails():
-    return OutgoingEmail.objects.filter(template="avis-pagament-revisar")
+    return OutgoingEmail.objects.filter(template=processing.TREASURER_TEMPLATE)
 
 
 def test_a_waiting_transfer_is_not_charged_said_once_and_charged_when_it_goes(
@@ -329,3 +330,96 @@ def test_the_card_is_checked_on_the_day_of_the_run(saved, fee, monkeypatch):
     monkeypatch.setattr(checkout.timezone, "localdate", midnight)
     checkout.charge_due_saved_cards()
     assert only_attempt(fee).status == S.IN_PROGRESS and len(fake._orders) == 1
+
+
+# --- Avisos (T-M05b-15b): un sol punt d'entrada, `processing.saved_card_outcome` ---
+
+
+def alternatives():
+    return OutgoingEmail.objects.filter(template="alternativa-pagament")
+
+
+def test_a_denial_tells_member_and_treasurer_once_with_the_references(saved, fee, treasurer):
+    checkout.charge_due_saved_cards()
+    notify(only_attempt(fee), base.DENIED)
+    notify(only_attempt(fee), base.DENIED)  # repetida
+    run_queue()
+
+    (email,) = alternatives()
+    assert "amb la teva targeta guardada" in email.body_text
+    (notice,) = review_emails()
+    assert (
+        f"quota {fee.pk}, càrrec {fee.charge.pk}" in notice.body_text
+        and "denegat" in notice.body_text
+    )
+    entry = AuditEntry.objects.get(action=processing.OUTCOME)
+    assert entry.actor_origin == processing.SAVED_CARD_ACTOR
+
+
+@pytest.mark.parametrize("who", ["no_email", "erased"])
+def test_when_the_member_cannot_be_told_the_treasurer_knows_why(saved, fee, member, treasurer, who):
+    saved.status = "removed"
+    saved.save()
+    if who == "no_email":
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+    else:
+        Person.objects.filter(pk=member.person_id).update(
+            status=Person.Status.ANONYMISED, anonymous_ref="anon-prova"
+        )
+    checkout.charge_due_saved_cards()
+
+    assert not alternatives().exists()
+    text = review_emails().get().body_text
+    assert ("no té cap adreça" if who == "no_email" else "RGPD") in text
+
+
+def test_a_failed_email_is_retried_the_next_day(saved, fee, monkeypatch, treasurer):
+    saved.status = "removed"
+    saved.save()
+    real = returns.send_alternative
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("correu caigut")
+
+    monkeypatch.setattr(returns, "send_alternative", broken)
+    checkout.charge_due_saved_cards()
+    assert not SavedCardNotice.objects.get().notified and not review_emails().exists()
+
+    monkeypatch.setattr(returns, "send_alternative", real)
+    checkout.charge_due_saved_cards()
+    assert SavedCardNotice.objects.get().notified and alternatives().count() == 1
+
+
+def test_an_email_error_does_not_undo_closing_the_attempt(saved, fee, monkeypatch):
+    monkeypatch.setattr(returns, "send_alternative", lambda *a, **k: 1 / 0)
+    checkout.charge_due_saved_cards()
+    notify(only_attempt(fee), base.DENIED)
+
+    assert run_queue() == ["processed"]
+    assert only_attempt(fee).status == S.FAILED
+
+
+def test_an_unexpected_order_is_kept_and_reviewed(saved, fee, monkeypatch):
+    real = fake.FakeProvider._charge_saved_card
+
+    def other(self, charge, card, key):
+        order = real(self, charge, card, key)
+        fake._orders["fake-una-altra"] = fake._orders[order.external_id]
+        return base.ProviderOrder("fake-una-altra", order.pay_url, None)
+
+    monkeypatch.setattr(fake.FakeProvider, "_charge_saved_card", other)
+    checkout.charge_due_saved_cards()
+    attempt = only_attempt(fee)
+    assert (attempt.status, attempt.provider_order_id) == (S.TO_REVIEW, "fake-una-altra")
+
+    notify(attempt)  # la troba, però és a revisar: cap cobrament automàtic
+    assert run_queue() == ["to_review"]
+    assert not Payment.objects.filter(charge=fee.charge).exists()
+
+
+def test_a_case_of_the_treasurer_tells_only_the_treasurer(saved, fee, member, treasurer):
+    Member.objects.filter(pk=member.pk).update(status=Member.Status.LEFT)
+    checkout.charge_due_saved_cards()
+
+    assert not alternatives().exists()
+    assert "ja no és sòcia" in review_emails().get().body_text
