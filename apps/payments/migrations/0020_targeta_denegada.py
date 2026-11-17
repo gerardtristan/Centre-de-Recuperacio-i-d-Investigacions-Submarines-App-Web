@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0043_settings_vc11_permission"),
-        ("payments", "0018_avis_caducitat_targeta"),
+        ("payments", "0019_avis_caducitat_targeta"),
     ]
 
     operations = [
