@@ -40,7 +40,10 @@ class RoleChangeForm(forms.Form):
         label=gettext_lazy("Nota"),
         max_length=500,
         widget=forms.Textarea(attrs={"rows": 3}),
-        help_text=gettext_lazy("Obligatòria. Queda al registre d'activitat i va al correu d'avís."),
+        help_text=gettext_lazy(
+            "Obligatòria. Queda al registre d'activitat i va al correu d'avís: no hi escriguis "
+            "dades personals de ningú."
+        ),
         error_messages={"required": gettext_lazy("Escriu la nota del canvi.")},
     )
     code = forms.CharField(
@@ -57,17 +60,19 @@ class RoleChangeForm(forms.Form):
     )
 
 
+CODE_USED = gettext_lazy(
+    "El codi TOTP ja s'ha fet servir: si ho tornes a provar, escriu-ne un de nou."
+)
+
+
 def _change(data, active_codes):
-    """(assignar?, rol) si l'acció i el rol tenen sentit per a aquest compte; si no, None."""
-    if not data:
-        return None
+    """(assignar?, rol, ja fet?) si l'acció i el rol tenen sentit; si no, None. «Ja fet» vol dir
+    que el compte ja té (o ja no té) el rol: no hi ha res a desar."""
     action, code = data.get("action"), data.get("role")
     role = Role.objects.filter(code=code, is_management=True).first()
     if role is None or action not in (ASSIGN, REMOVE):
         return None
-    if (action == ASSIGN) == (code in active_codes):
-        return None
-    return action == ASSIGN, role
+    return action == ASSIGN, role, (action == ASSIGN) == (code in active_codes)
 
 
 @never_cache
@@ -82,36 +87,53 @@ def account_roles_view(request, pk):
     )
     active_codes = {item.role.code for item in active}
     posted = request.method == "POST"
-    data = request.POST if posted else request.GET
-    change = _change(data, active_codes)
-    form = RoleChangeForm(data) if posted else RoleChangeForm(initial=data.dict())
-    if posted and change is None:  # p. ex., un altre administrador ja ha fet el canvi
-        form.add_error(None, _("Aquest canvi ja no es pot fer amb els rols actuals del compte."))
-    elif posted and form.is_valid():
-        error = confirm_code(request, request.user, AREA_ADMIN, form.cleaned_data["code"])
-        if error is not None:
-            form.add_error("code" if error == WRONG_CODE else None, error)
-        else:
-            assign, role = change
-            service = roles.assign_role if assign else roles.remove_role
-            try:
-                service(account, role.code, by=request.user, note=form.cleaned_data["note"])
-            except ValidationError as exc:
-                form.add_error(None, exc)
-            else:
-                messages.success(
-                    request,
-                    _("Canvi desat. S'ha avisat per correu els comptes que ho han de saber."),
-                )
-                if has_perm(request.user, MANAGE):
-                    return redirect("administration:account_roles", pk=account.pk)
-                return redirect("administration:home")  # s'ha tret a si mateix el rol
+    if posted:
+        form = RoleChangeForm(request.POST)
+        change = _change(request.POST, active_codes)
+    else:  # de l'adreça, només l'acció i el rol: mai la nota ni el codi
+        initial = {key: request.GET.get(key) for key in ("action", "role")}
+        form = RoleChangeForm(initial=initial)
+        change = _change(initial, active_codes)
+    already = bool(change and change[2])
+    change = None if already else change
     blocked = bool(
         change
         and not change[0]
         and change[1].code == Role.Code.ADMINISTRATOR
         and roles.leaves_no_operational_admin(account)
     )
+    # Les condicions es miren abans de demanar el codi: un canvi que no es pot fer no el gasta.
+    if posted and already:
+        form.add_error(None, roles.ALREADY_DONE)
+    elif posted and change is None:
+        form.add_error(None, _("Aquest canvi no es pot fer."))
+    elif posted and not blocked and form.is_valid():
+        error = confirm_code(request, request.user, AREA_ADMIN, form.cleaned_data["code"])
+        if error is not None:
+            form.add_error("code" if error == WRONG_CODE else None, error)
+        else:
+            assign, role, _done = change
+            note = form.cleaned_data["note"]
+            try:
+                if assign:
+                    saved = roles.assign_role(account, role.code, by=request.user, note=note)
+                else:
+                    saved = roles.remove_role(account, role.code, by=request.user, note=note)
+            except roles.AlreadyDone:
+                form.add_error(None, roles.ALREADY_DONE)
+            except ValidationError as exc:
+                form.add_error(None, [*exc.messages, CODE_USED])
+            else:
+                if assign and saved is None:  # un altre administrador s'hi ha avançat
+                    form.add_error(None, roles.ALREADY_DONE)
+                else:
+                    messages.success(
+                        request,
+                        _("Canvi desat. S'ha avisat per correu els comptes que ho han de saber."),
+                    )
+                    if has_perm(request.user, MANAGE):
+                        return redirect("administration:account_roles", pk=account.pk)
+                    return redirect("administration:home")  # s'ha tret a si mateix el rol
     return render(
         request,
         "core/account_roles.html",
@@ -126,6 +148,7 @@ def account_roles_view(request, pk):
             if change
             else [],
             "blocked": blocked,
+            "already": already,
             "blocked_message": roles.NO_OPERATIONAL_ADMIN,
             "shortage": roles.admin_shortage_warning(),
             "form": form,

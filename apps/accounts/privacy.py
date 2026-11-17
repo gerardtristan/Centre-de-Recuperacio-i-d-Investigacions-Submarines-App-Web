@@ -51,7 +51,7 @@ def erasure_blocker(person) -> str:
     """Per què no es poden desactivar ara els comptes de la persona, o "" (RN-RP-13: mai cap
     administrador operatiu)."""
     for account in person.accounts.filter(kind=Account.Kind.ADMIN, status=Account.Status.ACTIVE):
-        if roles._would_leave_no_operational_admin(account):
+        if roles.leaves_no_operational_admin(account, lock=True):
             return str(roles.NO_OPERATIONAL_ADMIN)
     return ""
 

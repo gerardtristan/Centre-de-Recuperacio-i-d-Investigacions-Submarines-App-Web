@@ -6,7 +6,7 @@
   <p class="etiqueta-seccio">{% translate "Comptes d'administrador" %}</p>
   <h1>{% blocktranslate with username=account.login %}Rols de {{ username }}{% endblocktranslate %}</h1>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
-  {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{% if not already %}<strong>{% translate "No s'ha desat res." %}</strong> {% endif %}{{ form.non_field_errors|join:" " }}</div>{% endif %}
   {% if shortage %}<div class="avis avis-avis" role="status"><strong>{% translate "Menys de dos administradors operatius" %}</strong> {% translate "Si l'únic que queda perd l'accés, ningú no podrà gestionar comptes ni rols." %}</div>{% endif %}
 
   <table class="taula">

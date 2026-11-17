@@ -5,6 +5,7 @@ from datetime import timedelta
 
 import pyotp
 import pytest
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
@@ -12,7 +13,7 @@ from django.utils.html import escape
 from apps.accounts import totp
 from apps.accounts.models import TotpDevice
 from apps.accounts.security import AREA_ADMIN
-from apps.core import audit
+from apps.core import audit, roles
 from apps.core.models import AccountRole, AuditEntry, OutgoingEmail, Role
 from apps.core.roles import NO_OPERATIONAL_ADMIN, SECOND_TREASURER
 from apps.treasury.tests.test_views import client_for
@@ -21,6 +22,7 @@ pytestmark = pytest.mark.django_db
 R = Role.Code
 URL = "administration:account_roles"
 NOTE = "Canvi de càrrec acordat a la junta"
+ALREADY_DONE = "No s&#x27;ha desat res: el canvi ja estava fet."
 
 
 def active_roles(account):
@@ -153,12 +155,57 @@ class TestAssignAndRemove:
         assert active_roles(target) == {R.INSTRUCTOR}
         assert not AuditEntry.objects.filter(action=audit.Action.ROLE_ASSIGNED).exists()
 
-    def test_a_change_already_made_saves_nothing(self, pair, login_as):
+    def test_a_role_already_active_saves_nothing_and_says_so(self, pair, login_as):
+        # Revisió de #202, punt 1: ni «Canvi desat», ni registre, ni correu.
         admin, target = pair
         response = post(login_as(admin, AREA_ADMIN), target, "assign", R.INSTRUCTOR, actor=admin)
         html = response.content.decode()
-        assert "No s'ha desat res." in html and "ja no es pot fer" in html
+        assert ALREADY_DONE in html and "Canvi desat" not in html
         assert not AuditEntry.objects.filter(action=audit.Action.ROLE_ASSIGNED).exists()
+        assert not OutgoingEmail.objects.filter(template="avis-canvi-rol").exists()
+
+    @pytest.mark.parametrize("action", ["assign", "remove"])
+    def test_done_by_someone_else_in_between(self, pair, login_as, monkeypatch, action):
+        # La comprovació de la vista passa, però el servei troba el canvi ja fet (cursa).
+        admin, target = pair
+        role = R.SECRETARY if action == "assign" else R.INSTRUCTOR
+        if action == "assign":
+            monkeypatch.setattr(roles, "assign_role", lambda *a, **k: None)
+        else:
+
+            def already(*a, **k):
+                raise roles.AlreadyDone(roles.ALREADY_DONE)
+
+            monkeypatch.setattr(roles, "remove_role", already)
+        html = post(login_as(admin, AREA_ADMIN), target, action, role, actor=admin)
+        html = html.content.decode()
+        assert ALREADY_DONE in html and "Canvi desat" not in html
+
+    def test_a_change_no_longer_valid_does_not_use_up_the_code(self, pair, login_as):
+        # Punt 3: les condicions es miren abans de gastar el codi.
+        admin, target = pair
+        session = login_as(admin, AREA_ADMIN)
+        code = code_for(admin)
+        post(session, target, "assign", R.INSTRUCTOR, actor=admin, code=code)
+        post(session, admin, "remove", R.ADMINISTRATOR, actor=admin, code=code)
+        admin.refresh_from_db()
+        assert admin.failed_login_count == 0
+        assert (
+            post(session, target, "assign", R.SECRETARY, actor=admin, code=code).status_code == 302
+        )
+        assert R.SECRETARY in active_roles(target)
+
+    def test_a_service_failure_after_the_code_says_so(self, pair, login_as, monkeypatch):
+        admin, target = pair
+
+        def refuse(*a, **k):
+            raise ValidationError("Refusat a la prova.")
+
+        monkeypatch.setattr(roles, "assign_role", refuse)
+        response = post(login_as(admin, AREA_ADMIN), target, "assign", R.SECRETARY, actor=admin)
+        html = response.content.decode()
+        assert "No s'ha desat res." in html and "Refusat a la prova." in html
+        assert "El codi TOTP ja s&#x27;ha fet servir" in html
 
     def test_note_and_review_are_required(self, pair, login_as):
         admin, target = pair
@@ -191,7 +238,7 @@ class TestAssignAndRemove:
         assert theirs.get(reverse("administration:home")).status_code in (302, 401)
 
     def test_notifies_admins_the_affected_account_and_the_president(
-        self, pair, make_admin, login_as
+        self, pair, make_admin, login_as, django_capture_on_commit_callbacks
     ):
         # RN-RP-09: què ha canviat i qui ho ha fet, sense dades de terceres persones.
         admin, target = pair
@@ -203,7 +250,8 @@ class TestAssignAndRemove:
         treasurer = make_admin(R.TREASURER)
         treasurer.notification_email = "tresoreria@example.org"
         treasurer.save()
-        post(login_as(admin, AREA_ADMIN), target, "assign", R.SECRETARY, actor=admin)
+        with django_capture_on_commit_callbacks(execute=True):
+            post(login_as(admin, AREA_ADMIN), target, "assign", R.SECRETARY, actor=admin)
         sent = OutgoingEmail.objects.filter(template="avis-canvi-rol")
         assert set(sent.values_list("to_address", flat=True)) == {
             "anna@example.org",
@@ -212,3 +260,49 @@ class TestAssignAndRemove:
         }
         body = sent.first().body_text
         assert "bernat.instr" in body and "anna.admin" in body and "Secretaria" in body
+        assert NOTE in body  # punt 2: la nota també va al correu
+
+    @pytest.mark.parametrize("status", ["pending", "disabled"])
+    def test_the_affected_account_is_notified_whatever_its_status(
+        self, pair, login_as, django_capture_on_commit_callbacks, status
+    ):
+        # Punt 5: RN-RP-09, «als comptes afectats».
+        admin, target = pair
+        target.status = status
+        target.save()
+        with django_capture_on_commit_callbacks(execute=True):
+            post(login_as(admin, AREA_ADMIN), target, "assign", R.SECRETARY, actor=admin)
+        assert OutgoingEmail.objects.filter(
+            template="avis-canvi-rol", to_address="bernat@example.org"
+        ).exists()
+
+    def test_the_email_waits_for_the_commit(self, pair, django_capture_on_commit_callbacks):
+        # Punt 7: res a la cua fins que la transacció es confirma.
+        admin, target = pair
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            roles.assign_role(target, R.SECRETARY, by=admin, note=NOTE)
+            assert not OutgoingEmail.objects.filter(template="avis-canvi-rol").exists()
+        assert len(callbacks) == 1
+
+
+class TestQueryString:
+    def test_get_takes_only_action_and_role(self, pair, login_as):
+        # Punt 4: la nota i el codi mai no surten de l'adreça.
+        admin, target = pair
+        url = reverse(URL, args=[target.pk])
+        query = {"action": "assign", "role": R.SECRETARY, "note": "nota-a-l-url", "code": "123456"}
+        html = login_as(admin, AREA_ADMIN).get(url, query).content.decode()
+        assert 'name="code"' in html
+        assert "nota-a-l-url" not in html and "123456" not in html
+
+
+class TestServiceNoChange:
+    def test_assigning_an_active_role_changes_nothing(self, pair):
+        admin, target = pair
+        assert roles.assign_role(target, R.INSTRUCTOR, by=admin, note=NOTE) is None
+        assert not AuditEntry.objects.filter(action=audit.Action.ROLE_ASSIGNED).exists()
+
+    def test_removing_a_role_it_does_not_have_is_already_done(self, pair):
+        admin, target = pair
+        with pytest.raises(roles.AlreadyDone):
+            roles.remove_role(target, R.SECRETARY, by=admin, note=NOTE)
