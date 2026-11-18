@@ -28,3 +28,34 @@
   .oleaje-seccio { animation: oleaje-puja linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
 }
 @keyframes oleaje-puja { from { transform: translateY(var(--e-6)); opacity: .5; } to { transform: none; opacity: 1; } }
+
+/* Inici del soci a l'escriptori (T-DX-60; §5.1 i §6.18). La portada en dues columnes: 7/5 a
+   l'escriptori, iguals a la tauleta (sense tocar-se, --e-5) i l'una a sota de l'altra al mòbil.
+   A sota, 8/4. Els llindars són del cos (container queries, C8) i no de la finestra: a 1024 px
+   amb barra de desplaçament el cos fa una mica menys de 60rem, i a la tauleta mai arriba a 45rem. */
+.oleaje-graella, .inici-graella { display: grid; gap: var(--e-5); align-items: start; }
+.oleaje-graella > *, .inici-graella > * { min-width: 0; }
+.oleaje-columna { display: grid; gap: var(--e-5); }
+@container cos (min-width: 34rem) {
+  .oleaje-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container cos (min-width: 56rem) {
+  .oleaje-graella { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-6); }
+  /* «div.»: la regla de comptes.css per als fills del cos (gap --e-4) és més específica. */
+  .cos-compte > div.inici-graella { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--e-6); }
+}
+/* La quota i el carnet, sobre la superfície: el degradat és decoració i l'estat ha de tenir el
+   contrast de sempre (§6.5). Planes: cap ombra ni moviment. */
+.oleaje-portada .targeta { color: var(--c-text); box-shadow: none; display: grid; gap: var(--e-3); align-content: start; }
+.oleaje-portada .targeta h2 { margin: 0; }
+.oleaje-quota .vigencia { margin: 0; }
+
+/* Franja d'estat (§6.5): plana, a tota l'amplada; «Paga ara» de --tactil-gran, a sota al mòbil i
+   a la dreta quan hi cap. */
+.franja-estat { display: grid; gap: var(--e-3); }
+.franja-estat-llista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); }
+.franja-estat-llista li { display: grid; gap: var(--e-3); align-items: center; }
+.franja-estat .boto { box-shadow: none; }
+@container cos (min-width: 34rem) {
+  .franja-estat-llista li { grid-template-columns: minmax(0, 1fr) auto; }
+}

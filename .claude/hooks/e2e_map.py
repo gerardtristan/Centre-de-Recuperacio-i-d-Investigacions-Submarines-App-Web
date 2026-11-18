@@ -268,11 +268,14 @@ MAP = {
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
     "test_logotip.py": ("static/img/marca/*",),  # T-DX-51
-    "test_disposicio.py": ("static/css/disposicio.css",),  # T-DX-57
+    "test_disposicio.py": (  # T-DX-57; l'inici del soci, T-DX-60
+        "static/css/disposicio.css",
+        "templates/core/home.html",
+        "static/css/oleaje.css",
+    ),
     "test_vigencia_admin.py": ("templates/members/_licence_records.html",),
     "test_oleaje.py": (
         "apps/members/templatetags/member_notices.py",
-        "templates/members/_home_resum.html",
         "templates/core/home.html",
         "static/css/oleaje.css",
     ),

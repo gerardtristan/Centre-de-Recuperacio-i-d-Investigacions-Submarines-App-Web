@@ -24,6 +24,13 @@ def fee_warning_days() -> list[int]:
     return sorted({-offset for offset in offsets if offset <= 0}, reverse=True)
 
 
+def in_fee_warning_window(until) -> bool:
+    """A l'inici (T-DX-60), el compte enrere de la quota només surt des del primer dia d'avís
+    (VC-02): el mateix llindar que posa la regla en avís. Sense dies d'avís, mai."""
+    marks = fee_warning_days()
+    return until is not None and bool(marks) and (until - local_today()).days <= marks[0]
+
+
 @register.inclusion_tag("members/_vigencia.html")
 def vigencia(until, kind="quota"):
     if until is None:

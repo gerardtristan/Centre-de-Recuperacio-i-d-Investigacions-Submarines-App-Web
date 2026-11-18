@@ -9,7 +9,7 @@ from django.template import Context, Template
 from apps.core.models import Setting
 from apps.members import settings as values
 from apps.members.fee_rules import local_today
-from apps.members.templatetags.vigencia import vigencia
+from apps.members.templatetags.vigencia import in_fee_warning_window, vigencia
 
 pytestmark = pytest.mark.django_db
 
@@ -63,3 +63,16 @@ def test_the_text_says_the_same_as_the_ruler(days, text):
     )
     assert text in html
     assert "style=" not in html
+
+
+def test_the_home_countdown_window_is_the_first_reminder_day():
+    """T-DX-60: a l'inici, el compte enrere de la quota només des del primer dia d'avís (VC-02)."""
+    today = local_today()
+    assert in_fee_warning_window(today + timedelta(days=15))  # per defecte, 15 dies abans
+    assert not in_fee_warning_window(today + timedelta(days=16))
+    assert in_fee_warning_window(today - timedelta(days=1))
+    offsets([-30, 0])
+    assert in_fee_warning_window(today + timedelta(days=30))
+    offsets([15, 30])  # cap avís abans del venciment: mai
+    assert not in_fee_warning_window(today)
+    assert not in_fee_warning_window(None)
