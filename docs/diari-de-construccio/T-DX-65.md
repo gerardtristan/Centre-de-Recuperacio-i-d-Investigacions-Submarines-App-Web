@@ -17,7 +17,7 @@
   - `charge.html` i `receipt.html`: capçalera comuna; al rebut, «Desa com a PDF» és el botó principal.
   - `join_in_person.html`: capçalera comuna; Errata a la columna lateral (`_join_form.html` el deixa de posar amb `errata_outside`; la web pública, igual que abans).
   - `member_edit.html`: capçalera comuna; ajuda plegada «Què queda registrat?» amb la frase que hi havia.
-- Sistema de disseny 1.32 (§5.3, §6.10, §6.13 i §6.14). Fila a [`estat/DX.md`](../estat/DX.md).
+- Sistema de disseny 1.34 (§5.3, §6.10, §6.13 i §6.14). Fila a [`estat/DX.md`](../estat/DX.md).
 
 ## Decisions i perquè
 - **Errata primer al DOM i a la dreta a l'escriptori:** el propietari el volia a la columna lateral, però el focus i el lector de pantalla l'han de trobar primer. Es col·loca amb la graella, sense canviar l'ordre del DOM ni `errata.js`.

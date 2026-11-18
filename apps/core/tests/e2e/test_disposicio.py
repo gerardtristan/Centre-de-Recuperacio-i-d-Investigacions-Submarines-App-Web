@@ -8,10 +8,10 @@ import pytest
 from django.urls import reverse
 from playwright.sync_api import expect
 
-from apps.members.models import Member
-from apps.members.tests.test_cards import make_member
 from apps.core import audit, charges
 from apps.core.models import LegalText
+from apps.members.models import Member
+from apps.members.tests.test_cards import make_member
 
 from .conftest import login_admin, make_admin
 
@@ -79,6 +79,8 @@ COLUMNS_JS = """s => [...document.querySelector(s).children].slice(0, 2)
 def test_member_home_layout(page, live_server, builder, member):
     """T-DX-60: la portada 7/5 i la part de baix 8/4 a l'escriptori; dues columnes iguals que no
     es toquen a la tauleta; una a sota de l'altra al mòbil; res de costat a 320 px."""
+
+
 # T-DX-65: la columna principal d'un formulari i el primer element de la columna lateral (el resum
 # d'Errata, si n'hi ha, o l'ajuda): [esquerra, dreta, dalt] i l'amplada de la principal.
 FORM_JS = """() => {
@@ -216,6 +218,8 @@ def test_admin_lists_on_the_desktop(page, live_server):
     for name in ("administration:members_list", "administration:treasury_movements"):
         page.goto(f"{live_server.url}{reverse(name)}")
         assert page.evaluate(OVERFLOW_JS) <= 0, name
+
+
 def test_admin_forms_layout(page, live_server, secretary, member):
     """T-DX-65: l'alta presencial (amb errors) i l'edició de les dades d'un soci, a 40rem amb la
     columna lateral a l'escriptori."""
