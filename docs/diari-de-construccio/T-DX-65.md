@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 19:17 | 5a7988d6 | 2 e2e noves; 48 e2e, axe i 4.069 unitàries de socis i pagaments | [A comprovar] (PR #PR) |
+| 18/11/2026 19:17 | 5a7988d6 | 2 e2e noves; 48 e2e, axe i 4.069 unitàries de socis i pagaments | [A comprovar] (PR #246) |
 
 **En tres línies:** setena PR (7a) del programa d'escriptori que el propietari va aprovar el 18/11/2026 (§3.9 i §4). El perfil, el mandat, el pagament i el rebut del soci, l'alta presencial i l'edició de les dades d'un soci porten la capçalera comuna i, a l'ordinador, el formulari a 40rem amb una columna al costat: el resum d'errors (Errata) i l'ajuda plegada. El pagament porta els passos de Tramite al costat i el rebut, les accions. El mòbil manté l'ordre.
 
