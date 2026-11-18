@@ -12,7 +12,7 @@ Retoc del 09/11/2026 (072):
   venciment és el «vàlid fins al» del soci (070: mateix dia de l'any següent al pagament; Cluber:
   un any des de «Data alta/renovació», [A validar: tresorer]) o, per a un exempt, l'1 de gener
   del primer any de quota (Q-003). Res amb pagaments parcials ni amb una quota viva sense pagar.
-- `send_due_reminders`: recordatoris als dies de `MEMBER_FEE_REMINDER_OFFSETS` (Q-061), un sol
+- `send_due_reminders`: recordatoris als dies de VC-02 (Q-061; ajust, T-M01-32), un sol
   cop per quota i dia (`FeeReminder`); els posteriors al venciment, només si no s'ha pagat.
   Van a l'adreça de `recipients.email_for` (T-M01-41, RN-M01-78): un menor de 14 anys, o un de
   14 a 17 sense correu propi, els rep al correu del representant.
@@ -48,6 +48,7 @@ from apps.core import audit, charges, mail
 from apps.core.models import Charge, Person
 
 from . import cards, recipients, roster, validity
+from . import settings as values
 from .fee_rules import first_fee_year, local_today
 from .models import AnnualFee, FeeExemption, FeeReminder, Member, MemberRequest
 from .validity import twelve_months_after
@@ -84,13 +85,16 @@ def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> An
     )
 
 
-def issue_annual_fee(member, *, period: int, due_on: datetime.date, by, fee_type=None) -> AnnualFee:
-    """Quota anual íntegra del tipus del soci (070; RN-M01-13: l'import del tipus quan es
-    crea). `fee_type`: el tipus demanat per a la renovació, si no és el del soci (073)."""
+def issue_annual_fee(
+    member, *, period: int, due_on: datetime.date, by, fee_type=None, on=None
+) -> AnnualFee:
+    """Quota anual íntegra del tipus del soci (070; RN-M01-13 i 45: el preu vigent el dia `on`
+    en què es crea, avui si no se'n dona cap). `fee_type`: el tipus demanat per a la renovació,
+    si no és el del soci (073)."""
     return _issue_fee(
         member,
         kind=AnnualFee.Kind.ANNUAL,
-        amount_cents=(fee_type or member.type).annual_fee_cents,
+        amount_cents=values.annual_fee_cents(fee_type or member.type, on),
         concept=str(_("Quota de soci %(period)s") % {"period": period}),
         period=period,
         due_on=due_on,
@@ -101,7 +105,7 @@ def issue_annual_fee(member, *, period: int, due_on: datetime.date, by, fee_type
 def supplement_cents(member, target_type) -> int:
     """Q-049 (072): la diferència entre les quotes dels dos tipus (55 € de simpatitzant a ple
     dret), amb els imports vigents quan s'aprova el canvi."""
-    return target_type.annual_fee_cents - member.type.annual_fee_cents
+    return values.annual_fee_cents(target_type) - values.annual_fee_cents(member.type)
 
 
 def issue_type_change_supplement(member, target_type, *, period, due_on, by) -> AnnualFee:
@@ -310,7 +314,7 @@ def parse_date(value) -> datetime.date | None:
 
 
 def _lead_days() -> int:
-    offsets = settings.MEMBER_FEE_REMINDER_OFFSETS
+    offsets = values.fee_reminder_offsets()
     return max(0, -min(offsets)) if offsets else 0
 
 
@@ -369,6 +373,7 @@ def generate_due_fees(today=None, *, by=None) -> list[AnnualFee]:
                     due_on=due,
                     by=by,
                     fee_type=change.requested_type if change else None,
+                    on=today,
                 )
             except ValidationError:
                 continue  # ja hi ha una quota viva d'aquell període
@@ -388,7 +393,7 @@ def send_due_reminders(today=None) -> int:
     (Q-061). Si la tasca no ha corregut un dia, el recordatori es recupera mentre no arriba el
     següent; els anteriors perduts no s'envien tard."""
     today = today or local_today()
-    offsets = settings.MEMBER_FEE_REMINDER_OFFSETS
+    offsets = values.fee_reminder_offsets()
     pending = AnnualFee.objects.filter(
         kind=AnnualFee.Kind.ANNUAL,
         charge__status=Charge.Status.PENDING,

@@ -3,13 +3,13 @@ o d'una llicència sobre una regla, amb els dies d'avís marcats. El compte enre
 servidor amb la data local (mai el rellotge del navegador) a partir de la data que ja dona el
 servidor: «Pagada fins al» (070, P-71) o la caducitat de la llicència.
 
-Els dies d'avís de la quota són els dels recordatoris (VC-02, `MEMBER_FEE_REMINDER_OFFSETS`, els
-que van abans del venciment o el mateix dia): no hi ha cap valor nou al codi. La llicència no en té
-cap de definit, i la regla no n'hi posa."""
+Els dies d'avís de la quota són els dels recordatoris (VC-02, l'ajust de la T-M01-32, els que van
+abans del venciment o el mateix dia): no hi ha cap valor nou al codi. La llicència no en té cap de
+definit, i la regla no n'hi posa."""
 
 from django import template
-from django.conf import settings
 
+from .. import settings as member_settings
 from ..fee_rules import local_today
 
 register = template.Library()
@@ -20,9 +20,8 @@ WINDOW_DAYS = 60
 
 
 def fee_warning_days() -> list[int]:
-    return sorted(
-        {-offset for offset in settings.MEMBER_FEE_REMINDER_OFFSETS if offset <= 0}, reverse=True
-    )
+    offsets = member_settings.fee_reminder_offsets()
+    return sorted({-offset for offset in offsets if offset <= 0}, reverse=True)
 
 
 @register.inclusion_tag("members/_vigencia.html")

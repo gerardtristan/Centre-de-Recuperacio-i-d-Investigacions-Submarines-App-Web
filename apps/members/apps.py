@@ -8,11 +8,18 @@ class MembersConfig(AppConfig):
     def ready(self):
         # RGPD (T-M01-22): el M01 registra a la 00 la seva part de l'exportació i de
         # l'anonimització (contracte M01-8). La 00 no importa cap mòdul.
+        from apps.core import business_settings
         from apps.core import privacy as core_privacy
 
         from . import (
             checks,  # noqa: F401 (registra les comprovacions d'arrencada)
             privacy,
+        )
+        from . import settings as member_settings
+
+        # P-360: els recordatoris (VC-02) no poden començar abans de l'avís de renovació.
+        business_settings.register_check(
+            member_settings.FEE_REMINDER_OFFSETS, member_settings.check_reminders
         )
 
         core_privacy.register(

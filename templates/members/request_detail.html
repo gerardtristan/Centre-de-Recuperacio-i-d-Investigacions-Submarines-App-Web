@@ -58,7 +58,7 @@
       {% if downgrade %}
         <p>{% translate "En acceptar-lo no es crea cap càrrec ni cap suplement i el tipus no canvia ara: el soci continua de ple dret fins que acabi el període pagat i, en renovar, ho farà com a simpatitzant, amb la quota d'aquest tipus. No es retorna cap diferència de la quota actual. Un cop acceptat, el soci ja no el pot retirar." %}</p>
       {% elif item.kind == "change_type" %}
-        <p>{% blocktranslate with amount=supplement_amount %}En aprovar-lo es crea un suplement de {{ amount }}, la diferència entre les dues quotes, que venç d'aquí a una setmana. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% endblocktranslate %}</p>
+        <p>{% blocktranslate with amount=supplement_amount count days=supplement_days %}En aprovar-lo es crea un suplement de {{ amount }}, la diferència entre les dues quotes, que venç d'aquí a {{ days }} dia. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% plural %}En aprovar-lo es crea un suplement de {{ amount }}, la diferència entre les dues quotes, que venç d'aquí a {{ days }} dies. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% endblocktranslate %}</p>
       {% else %}
         <section aria-labelledby="consequencies-titol">
           <h2 id="consequencies-titol">{% translate "Què passarà en validar-la" %}</h2>

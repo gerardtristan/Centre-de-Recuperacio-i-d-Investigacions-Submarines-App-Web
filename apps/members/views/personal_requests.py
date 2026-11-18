@@ -16,6 +16,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .. import fees, member_requests
+from .. import settings as member_settings
 from ..fee_rules import SUPPORTER
 from ..models import MemberRequest, MembershipType
 from .personal import _own_member_or_404, euros
@@ -71,6 +72,7 @@ def _change_type_page(request, member, *, error="", withdraw_form=None):
         "supplement_amount": euros(fees.supplement_cents(member, target))
         if target and not problem
         else "",
+        "supplement_days": member_settings.supplement_due_days(),  # VC-53 (RN-M01-106)
     }
     return render(request, "members/personal_change_type.html", context)
 

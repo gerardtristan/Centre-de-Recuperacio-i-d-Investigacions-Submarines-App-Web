@@ -1,5 +1,5 @@
 """Pantalla base d'ajustos (T-AJ-02; 055, RN-AJ-05, CA-AJ-01, 02 i 05; RN-RP-22 i RN-RP-03).
-Només dades inventades. L'apartat «members» i les seves claus són de prova."""
+Només dades inventades. L'apartat «proves» i les seves claus són de prova."""
 
 import datetime
 
@@ -18,14 +18,14 @@ pytestmark = pytest.mark.django_db
 
 R = Role.Code
 T = Setting.ValueType
-DAYS, FEE, LIST = "members.v_days", "members.v_fee", "members.v_list"
+DAYS, FEE, LIST = "proves.v_days", "proves.v_fee", "proves.v_list"
 
 
 @pytest.fixture(autouse=True)
 def section(monkeypatch):
     """Secretaria: «Sí» de l'apartat. Tresorer: «Cons.» i editar només DAYS. President:
     «Cons.». Responsable de cursos: res."""
-    code = service.section_code("members")
+    code = service.section_code("proves")
     edit = service.permission_code(DAYS)
     extra = {
         code: Permission(code, "TEST-S", "Ajustos de prova", allowed_scopes=("all", "read")),
@@ -38,20 +38,20 @@ def section(monkeypatch):
         RolePermission.objects.create(
             role=Role.objects.get(code=role), permission_code=perm, scope=scope
         )
-    Setting.objects.create(key=DAYS, module="members", value_type=T.INTEGER, initial_value=15,
+    Setting.objects.create(key=DAYS, module="proves", value_type=T.INTEGER, initial_value=15,
                            min_value=1, max_value=90)  # fmt: skip
-    Setting.objects.create(key=FEE, module="members", value_type=T.CENTS, initial_value=3500,
+    Setting.objects.create(key=FEE, module="proves", value_type=T.CENTS, initial_value=3500,
                            min_value=1, affects_money=True, effective_dated=True)  # fmt: skip
-    Setting.objects.create(key=LIST, module="members", value_type=T.INTEGER_LIST,
+    Setting.objects.create(key=LIST, module="proves", value_type=T.INTEGER_LIST,
                            initial_value=[30, 7], min_value=1, max_value=60)  # fmt: skip
 
 
 def section_url():
-    return reverse("administration:settings_section", args=["members"])
+    return reverse("administration:settings_section", args=["proves"])
 
 
 def detail_url(key):
-    return reverse("administration:setting_detail", args=["members", key])
+    return reverse("administration:setting_detail", args=["proves", key])
 
 
 @pytest.mark.parametrize("role", [R.COURSES_MANAGER, R.MEMBER])
@@ -66,7 +66,7 @@ def test_without_the_section_permission_every_screen_is_not_found(make_admin, ro
 def test_unknown_section_or_key_of_another_section_is_not_found(make_admin):
     client = admin_client(make_admin(R.SECRETARY))
     assert client.get(reverse("administration:settings_section", args=["nope"])).status_code == 404
-    assert client.get(detail_url("members.no_existeix")).status_code == 404
+    assert client.get(detail_url("proves.no_existeix")).status_code == 404
     Setting.objects.create(key="payments.v_x", module="payments", value_type=T.INTEGER,
                            initial_value=1)  # fmt: skip
     assert client.get(detail_url("payments.v_x")).status_code == 404
@@ -146,7 +146,7 @@ def test_ca_aj_05_history_shows_who_previous_new_and_note(make_admin):
     ],
 )
 def test_form_field_follows_the_value_type(kind, extra, posted, expected):
-    setting = Setting(key="members.v", module="members", value_type=kind, initial_value=1, **extra)
+    setting = Setting(key="proves.v", module="proves", value_type=kind, initial_value=1, **extra)
     form = ValueForm(setting, {"value": posted})
     assert form.is_valid() is (expected is not None)
     if expected is not None:

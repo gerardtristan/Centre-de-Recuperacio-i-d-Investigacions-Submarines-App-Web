@@ -45,6 +45,8 @@ Pots consultar i resoldre les altes i els canvis de tipus, igual que la secretar
 
 **Pas a simpatitzant.** La renovació d'un soci amb el pas acceptat es genera a preu de simpatitzant (T-M01-43). Si el pas s'accepta amb la quota de renovació ja generada, sense pagar ni enviar al banc, s'anul·la i se'n genera una de simpatitzant. Si ja estava pagada abans d'hora o en curs de pagament, no es toca (es cobra a preu de ple dret), el tipus canvia igualment el dia de la renovació i reps un correu; ho decideix la P-334. Una quota ja vençuda no es toca mai: el pas s'aplica a la renovació següent. Si la quota de renovació lligada al pas s'anul·la i no se'n fa cap altra, reps un correu el dia de la renovació.
 
+**Ajustos de socis** (menú «Ajustos», T-M01-32). Hi canvies el preu de cada tipus de soci (amb la data des de quan val i una nota; les quotes ja creades no canvien i tu i la junta rebeu un correu), els dies dels recordatoris de quota (per exemple, «-15, -1, 0, 15, 30»: negatiu, abans del venciment; positiu, després si no s'ha pagat) i els dies per pagar el suplement del canvi a ple dret. Cada canvi queda a l'historial.
+
 ## 6. Dades bloquejades
 Quan una persona demana l'esborrat de les seves dades, les quotes i els pagaments no s'esborren. El nom i el document que hi surten queden **bloquejats i xifrats** durant 6 anys des del final de l'any de l'últim cobrament; després es destrueixen (decisió 085).
 - **Dades bloquejades** mostra només la referència («A-0001») i la data del bloqueig.

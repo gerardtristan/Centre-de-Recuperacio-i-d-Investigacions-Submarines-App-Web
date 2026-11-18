@@ -19,18 +19,14 @@ def card_qr_keys(app_configs, **kwargs):
 
 @register()
 def renewal_notice_before_fee(app_configs, **kwargs):
-    """T-M01-43 (CA-M01-70): l'avís de renovació ha de sortir abans que es generi la quota, que
-    es genera el dia del primer recordatori. Un mes en té com a mínim 28 dies."""
+    """T-M01-43 (CA-M01-70): l'avís de renovació surt com a mínim un mes abans. Els dies del
+    primer recordatori (VC-02) ara són un ajust de la base de dades i aquí no es poden llegir:
+    que l'avís arribi abans que la quota ho comprova l'ajust en desar-los (P-360)."""
     months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
-    offsets = settings.MEMBER_FEE_REMINDER_OFFSETS
-    lead = max(0, -min(offsets)) if offsets else 0
-    if months < 1 or months * 28 < lead:
+    if months < 1:
         return [
             Error(
-                f"MEMBER_RENEWAL_NOTICE_MONTHS={months} no obre la finestra de l'avís de "
-                f"renovació abans del primer recordatori ({-lead} dies, "
-                "MEMBER_FEE_REMINDER_OFFSETS): cal com a mínim 1 mes i més dies que el primer "
-                "recordatori.",
+                f"MEMBER_RENEWAL_NOTICE_MONTHS={months}: cal com a mínim 1 mes.",
                 id="members.E002",
             )
         ]

@@ -5,11 +5,11 @@ RN-M01-14). Els terminis (P-61) no estan implementats. Només dades inventades."
 from datetime import date, datetime
 
 import pytest
-from django.test import override_settings
 from django.utils import timezone
 
-from apps.core.models import Charge, OutgoingEmail, Person
+from apps.core.models import Charge, OutgoingEmail, Person, Setting
 from apps.members import fees
+from apps.members import settings as values
 from apps.members.models import AnnualFee, FeeReminder, Member
 from apps.members.tests.test_cards import add_fee, exempt_member, make_member, pay
 
@@ -111,8 +111,8 @@ class TestReminders:
         assert fees.send_due_reminders(date(2027, 3, 25)) == 0
         assert reminders() == 0
 
-    @override_settings(MEMBER_FEE_REMINDER_OFFSETS=(-7, 0))
     def test_offsets_are_configurable(self):
+        Setting.objects.filter(key=values.FEE_REMINDER_OFFSETS).update(initial_value=[0, -7])
         member = make_member()
         paid_on(member, date(2026, 3, 10))
         assert fees.generate_due_fees(date(2027, 3, 2)) == []  # 8 dies abans: encara no

@@ -34,10 +34,10 @@ pytestmark = pytest.mark.django_db
 R = Role.Code
 T = Setting.ValueType
 
-DAYS = "members.test_days"
-FEE = "members.test_fee"
-TEXT = "members.test_text"
-UNGRANTED = "members.test_ungranted"
+DAYS = "proves.test_days"
+FEE = "proves.test_fee"
+TEXT = "proves.test_text"
+UNGRANTED = "proves.test_ungranted"
 
 
 class FailingBackend(BaseEmailBackend):
@@ -69,9 +69,9 @@ def test_settings(monkeypatch):
         for key in grants
     }
     # RN-RP-22: `settings.edit.<clau>` demana l'apartat amb «Cons.» (RN-RP-03).
-    section = settings_service.section_code("members")
+    section = settings_service.section_code("proves")
     extra[section] = Permission(
-        code=section, ref="TEST-S", description="members", allowed_scopes=("all", "read")
+        code=section, ref="TEST-S", description="proves", allowed_scopes=("all", "read")
     )
     monkeypatch.setattr(permissions, "CATALOG", {**CATALOG, **extra})
     for role in (R.TREASURER, R.ADMINISTRATOR, R.SECRETARY):
@@ -86,18 +86,18 @@ def test_settings(monkeypatch):
                 scope="all",
             )
     Setting.objects.create(
-        key=DAYS, module="members", value_type=T.INTEGER, initial_value=15, min_value=1,
+        key=DAYS, module="proves", value_type=T.INTEGER, initial_value=15, min_value=1,
         max_value=90,
     )  # fmt: skip
     Setting.objects.create(
-        key=FEE, module="members", value_type=T.CENTS, initial_value=3500, min_value=1,
+        key=FEE, module="proves", value_type=T.CENTS, initial_value=3500, min_value=1,
         affects_money=True, effective_dated=True,
     )  # fmt: skip
     Setting.objects.create(
-        key=TEXT, module="members", value_type=T.TEXT, initial_value="Hola", max_length=300
+        key=TEXT, module="proves", value_type=T.TEXT, initial_value="Hola", max_length=300
     )
     Setting.objects.create(
-        key=UNGRANTED, module="members", value_type=T.BOOLEAN, initial_value=False
+        key=UNGRANTED, module="proves", value_type=T.BOOLEAN, initial_value=False
     )
 
 
@@ -127,7 +127,7 @@ def test_without_versions_get_returns_initial_value():
 
 def test_unknown_key_is_a_programming_error():
     with pytest.raises(Setting.DoesNotExist):
-        settings_service.get("members.no_existeix")
+        settings_service.get("proves.no_existeix")
 
 
 def test_setting_without_effective_date_returns_latest_value(treasurer):
@@ -185,7 +185,7 @@ def test_ca_aj_01_range_limits_are_accepted(treasurer, value):
     ],
 )
 def test_every_value_type_checks_type_and_range(definition, valid, invalid):
-    setting = Setting(key="members.x", module="members", initial_value=None, **definition)
+    setting = Setting(key="proves.x", module="proves", initial_value=None, **definition)
     for value in valid:
         settings_service.validate_value(setting, value)
     for value in invalid:
@@ -195,7 +195,7 @@ def test_every_value_type_checks_type_and_range(definition, valid, invalid):
 
 def test_setting_definition_is_checked():
     setting = Setting(
-        key="members.x", module="members", value_type=T.INTEGER, initial_value=0, min_value=1
+        key="proves.x", module="proves", value_type=T.INTEGER, initial_value=0, min_value=1
     )
     with pytest.raises(ValidationError):
         setting.clean()
@@ -208,7 +208,7 @@ def test_setting_definition_is_checked():
 def test_money_setting_must_be_effective_dated():
     with pytest.raises(IntegrityError), transaction.atomic():
         Setting.objects.create(
-            key="members.y", module="members", value_type=T.CENTS, initial_value=1,
+            key="proves.y", module="proves", value_type=T.CENTS, initial_value=1,
             affects_money=True, effective_dated=False,
         )  # fmt: skip
 
@@ -259,7 +259,7 @@ def test_ca_aj_02_removed_role_loses_permission_at_next_call(treasurer):
 
 def test_unknown_key_gets_not_found_without_revealing_it(treasurer):
     with pytest.raises(Http404):
-        settings_service.change("members.no_existeix", 1, treasurer)
+        settings_service.change("proves.no_existeix", 1, treasurer)
 
 
 def test_setting_of_a_section_without_catalog_permission_is_a_programming_error(treasurer):
@@ -270,14 +270,14 @@ def test_setting_of_a_section_without_catalog_permission_is_a_programming_error(
 
 
 def test_rn_rp_22_read_only_section_rejects_a_direct_edit_and_records_it(make_admin):
-    Setting.objects.create(key="members.sense_permis", module="members", value_type=T.INTEGER,
+    Setting.objects.create(key="proves.sense_permis", module="proves", value_type=T.INTEGER,
                            initial_value=1)  # fmt: skip
     treasurer = make_admin(R.TREASURER)
     with pytest.raises(Http404):
-        settings_service.change("members.sense_permis", 2, treasurer)
+        settings_service.change("proves.sense_permis", 2, treasurer)
     assert not SettingVersion.objects.exists()
     entry = AuditEntry.objects.get(action=settings_service.ACTION_DENIED)
-    assert (entry.actor_account, entry.field) == (treasurer, "members.sense_permis")
+    assert (entry.actor_account, entry.field) == (treasurer, "proves.sense_permis")
 
 
 def test_rn_rp_22_without_the_section_an_edit_permission_is_not_enough(make_admin):
@@ -292,7 +292,7 @@ def test_rn_rp_22_without_the_section_an_edit_permission_is_not_enough(make_admi
 
 def test_rn_rp_22_full_section_edits_every_value(make_admin):
     RolePermission.objects.filter(
-        role__code=R.SECRETARY, permission_code=settings_service.section_code("members")
+        role__code=R.SECRETARY, permission_code=settings_service.section_code("proves")
     ).update(scope="all")
     secretary = make_admin(R.SECRETARY)
     settings_service.change(DAYS, 10, secretary)

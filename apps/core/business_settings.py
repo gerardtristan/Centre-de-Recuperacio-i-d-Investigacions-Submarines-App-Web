@@ -34,6 +34,14 @@ EMAIL_TEMPLATE = "avis-canvi-diners"
 T = Setting.ValueType
 
 
+# Regla d'un sol valor que depèn d'un altre mòdul (P-360): la registra el mòdul al seu `ready`.
+EXTRA_CHECKS: dict = {}
+
+
+def register_check(key: str, check) -> None:
+    EXTRA_CHECKS[key] = check
+
+
 def permission_code(key: str) -> str:
     return f"settings.edit.{key}"
 
@@ -130,8 +138,17 @@ def validate_value(setting: Setting, value) -> None:
             raise ValidationError(_("El valor ha de ser una llista d'enters."))
         if not all(_in_range(setting, v) for v in value):
             raise _range_error(setting)
+        if len(set(value)) != len(value):
+            raise ValidationError(_("La llista no pot tenir valors repetits."))
+        # A la llista, `max_length` és el nombre màxim de valors (091, VC-02: d'1 a 10).
+        if setting.max_length is not None and len(value) > setting.max_length:
+            raise ValidationError(
+                _("La llista pot tenir com a màxim %(max)s valors.") % {"max": setting.max_length}
+            )
     else:  # pragma: no cover - el tipus és una llista tancada
         raise ValidationError(_("Tipus d'ajust desconegut."))
+    if check := EXTRA_CHECKS.get(setting.key):
+        check(value)
 
 
 def _value_at(setting: Setting, at: datetime.date):

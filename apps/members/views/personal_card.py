@@ -27,6 +27,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from .. import cards, services
+from .. import settings as member_settings
 from ..cards import CardNotAllowed
 from ..fee_rules import local_today
 from .personal import _own_member_or_404
@@ -40,12 +41,20 @@ def card_view(request):
     card = cards.active_card(loaded)
     today = local_today()
     svg = cards.qr_svg(card)
+    years = cards.years_of_membership(loaded, today)
+    classic = member_settings.classic_member_years()  # VC-04: 0, sense insígnia
     context = {
         "member": loaded,
         "person": loaded.person,
         "card": card,
         "validity": cards.validity(loaded, card, today) if card else None,
-        "years": cards.years_of_membership(loaded, today),
+        "years": years,
+        # RN-M01-23: mai amb una data d'alta aproximada.
+        "classic": bool(classic)
+        and years is not None
+        and not loaded.joined_on_is_approximate
+        and years >= classic,
+        "card_back_text": member_settings.card_back_text(),  # VC-03
         "exempt": cards.is_exempt(loaded),
         "licence": services.licence_record(loaded.person),
         # SVG generat pel servidor (qrcode), sense cap dada escrita per l'usuari.

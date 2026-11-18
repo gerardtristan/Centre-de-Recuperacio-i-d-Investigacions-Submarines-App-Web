@@ -484,6 +484,60 @@ PERMISSIONS: tuple[Permission, ...] = (
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).
+    # Socis (01; T-M01-32): «Cons.» per als rols que hi poden editar algun valor. Qui edita
+    # cada valor és la columna «Qui el canvia» de l'addenda de la 055 i de l'ampliació de la 091.
+    _perm(
+        "settings.section.members",
+        "AJ01",
+        _("Ajustos de socis"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ, R.SECRETARY: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.members.annual_fee_cents.full",
+        "AJ01-1",
+        _("Quota anual de soci de ple dret"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.members.annual_fee_cents.supporter",
+        "AJ01-2",
+        _("Quota anual de soci simpatitzant"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.members.fee_reminder_offsets",
+        "AJ01-3",
+        _("Dies dels recordatoris de quota respecte del venciment"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL},
+    ),
+    _perm(
+        "settings.edit.members.type_change_supplement_due_days",
+        "AJ01-4",
+        _("Dies per pagar el suplement del canvi a ple dret"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL},
+    ),
+    _perm(
+        "settings.edit.members.card_back_text",
+        "AJ01-5",
+        _("Text del darrere del carnet"),
+        requires=("settings.section.members",),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    # VC-04: «per decisió de la junta», l'edita l'administrador.
+    _perm(
+        "settings.edit.members.classic_member_years",
+        "AJ01-6",
+        _("Anys d'antiguitat per a la insígnia de soci clàssic (0, sense insígnia)"),
+        requires=("settings.section.members",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
     # Pagaments (05b): «Cons.» per als rols que hi poden editar algun valor. VC-17, només
     # l'administrador; VC-11 i VC-16, només el tresorer.
     _perm(

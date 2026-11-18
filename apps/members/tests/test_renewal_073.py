@@ -494,16 +494,11 @@ def test_months_before_with_months_after_of_payments():
     assert months_after(date(2026, 3, 10), -14) == date(2025, 1, 10)
 
 
-@pytest.mark.parametrize(
-    ("months", "offsets", "errors"),
-    [(1, (-15, -1, 0), 0), (1, (-30, -1), 1), (2, (-45,), 0), (0, (-15,), 1)],
-)
-def test_notice_window_must_open_before_the_first_reminder(months, offsets, errors):
+@pytest.mark.parametrize(("months", "errors"), [(1, 0), (2, 0), (0, 1)])
+def test_notice_window_is_at_least_one_month(months, errors):
     from apps.members.checks import renewal_notice_before_fee
 
-    with override_settings(
-        MEMBER_RENEWAL_NOTICE_MONTHS=months, MEMBER_FEE_REMINDER_OFFSETS=offsets
-    ):
+    with override_settings(MEMBER_RENEWAL_NOTICE_MONTHS=months):
         found = renewal_notice_before_fee(None)
     assert len(found) == errors
     assert all(error.id == "members.E002" for error in found)
