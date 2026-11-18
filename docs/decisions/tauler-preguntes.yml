@@ -915,6 +915,38 @@ opcions:
     perque: >-
       Fa servir el pas que ja existeix i no envia més d'un correu; B demana una pantalla i un pas
       nous al 05b, i C repetiria un recordatori que es diu «darrer».
+  P-364:
+    opcions:
+      A: Import exacte del net, del dia de l'abonament als 5 dies següents; si n'hi ha més d'una, decideix l'identificador al concepte; si no, «a revisar».
+      B: El mateix, amb una finestra més ampla (per exemple, 10 dies) per als caps de setmana i els festius.
+      C: Sense finestra de dates, només l'import exacte i l'identificador al concepte.
+    recomanada: A
+    perque: >-
+      Cinc dies cobreixen un cap de setmana llarg i, amb l'import exacte, fan poc probable una proposta
+      equivocada; el tresorer sempre la revisa abans de confirmar-la. Es canvia amb una constant quan el
+      proveïdor digui els seus terminis (P-45).
+    data: 2026-11-18
+
+  P-365:
+    opcions:
+      A: La liquidació torna a «rebuda» i es compensa el traspàs del net; les comissions es queden.
+      B: També es compensen les comissions, i en tornar-la a confirmar s'apunten de nou.
+      C: No es pot desfer; el tresorer ho corregeix amb un traspàs en sentit contrari.
+    recomanada: A
+    perque: >-
+      La comissió és del cobrament, no de la línia del banc: si el tresorer s'ha equivocat de línia, la
+      comissió continua sent certa. Si no ho és, ja es pot anul·lar a part amb el motiu.
+    data: 2026-11-18
+
+  P-366:
+    opcions:
+      A: Es manté el botó de «Liquidacions»; la línia que arriba després s'exclou amb el motiu.
+      B: Es treu el botó de «Liquidacions», i una liquidació del proveïdor només es confirma des de la conciliació, amb la seva línia.
+      C: Es manté el botó i la conciliació permet casar la línia amb una liquidació ja confirmada, sense moure diners.
+    recomanada: B
+    perque: >-
+      Amb la proposta de la línia, confirmar-la sense línia deixa el banc sense casar i el traspàs sense
+      prova; B és el que diu CA-T11.1 i treu codi. Mentre no es respongui, A no trenca res.
     data: 2026-11-18
 
   P-360:

@@ -18,6 +18,7 @@ Les duplicades no es tornen a importar mai. Un cop importat, les línies noves j
 **Tresoreria: conciliació** ([P-M04-E](../planning.md#M04-5-processos), [regles](../planning.md#M04-7-regles)). La plataforma proposa i només el tresorer confirma.
 - **Proposada:** la línia porta la referència d'un càrrec (o de diversos) i l'import quadra. Revisa els càrrecs de la columna **Càrrecs** i prem **Confirma**. Els càrrecs passen a «pagat», l'ingrés s'apunta al banc i el soci rep el rebut.
 - **A revisar:** la plataforma no ha pogut proposar res. El motiu surt al costat: l'import no coincideix, el càrrec ja no està pendent, la referència no és de cap càrrec, el càrrec ja és en una altra proposta, o la línia no té referència i hi ha un sol càrrec pendent amb aquest import.
+- **Proposada amb una liquidació:** la línia és l'abonament agrupat del proveïdor de pagaments (targetes i Bizum): l'import és el net d'una liquidació rebuda i la data, dels 5 dies següents ([P-M04-F](../planning.md#M04-5-processos), [P-364](../decisions/pendents.md)). La columna **Càrrecs** en diu el proveïdor i l'identificador. Prem **Revisa i confirma…**: hi veus el brut, la comissió de cada cobrament i el net; prem **Sí, confirma-la**. Les comissions s'apunten al departament de cada cobrament i el net passa del compte de trànsit al banc. Si dues liquidacions (o dues línies) tenen el mateix import, la línia queda «a revisar» i no es proposa res. Desfer-la (apartat 3) torna la liquidació a «rebuda» i compensa el traspàs; les comissions es queden ([P-365](../decisions/pendents.md)).
 - **Conciliada** i **Exclosa:** ja estan resoltes.
 
 **Casar a mà** una línia pendent (també «a revisar»): prem **Casa a mà…** (a la conciliació o a «A revisar»), escriu les referències de transferència o els números de soci (diversos, separats per espais) i prem **Cerca**. Un càrrec amb un cobrament en curs (una targeta o un Bizum en curs o «a revisar», o una remesa enviada al banc) o que ja és a la proposta d'una altra línia surt sense casella. Marca els càrrecs i prem **Revisa el casament**: han de sumar exactament l'import de la línia. Si quadra, prem **Sí, casa-la**: passa el mateix que en confirmar una proposta, i es desfà igual (apartat 3). Casar una línia amb un moviment (per exemple, l'efectiu ingressat al banc) encara no es pot fer [pendent: T-M04-12f].
@@ -39,7 +40,6 @@ A **Tresoreria: moviments**, posa els filtres que vulguis (per exemple, les date
 
 ## 7. Encara sense pantalla
 - **Traspassos entre comptes** (per exemple, de la caixa al banc) i **arqueig de caixa**: la plataforma ja els sap registrar, però encara no hi ha pantalla [pendent: T-M04-15]. Regles: [M04-7](../planning.md#M04-7-regles); dubtes oberts: [P-222 a P-225](../decisions/pendents.md).
-- **Liquidacions del proveïdor de pagaments** (l'ingrés agrupat de les targetes i els Bizum): arriben soles cada matinada, però la pantalla per confirmar-les encara no hi és [pendent: T-M04-13].
 
 ## 8. Si alguna cosa no quadra
 - Una pàgina que diu **«No s'ha trobat la pàgina»** pot voler dir que no tens el permís: les dues coses es veuen igual, a propòsit.
