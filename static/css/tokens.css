@@ -289,6 +289,8 @@
   --logo-publica-mobil: 64px;
   --logo-publica: 96px;
   --icona: 1.25rem;
+  --icona-nav: 1.5rem;          /* T-DX-58: icones de la navegació del mòbil */
+  --icona-gruix: 1.75;           /* T-DX-58: gruix del traç (C9: segueix el pes del text) */
   --carnet-amplada: 22rem;
   --carnet-proporcio: 1.586;   /* 85,6 × 54 mm */
   --dock-alcada: 64px;
@@ -414,6 +416,8 @@ img { max-width: 100%; display: block; }
 .import-sortida { color: var(--c-error-text); }
 .xifra-viva { font-variant-numeric: tabular-nums; }
 .text-2 { color: var(--c-text-2); }
+/* Joc d'icones (T-DX-58, §6.20): Lucide, a l'sprite static/img/icones.svg; {% icona "nom" %} */
+.icona { width: var(--icona); height: var(--icona); flex: none; vertical-align: -0.25em; fill: none; stroke: currentColor; stroke-width: var(--icona-gruix); stroke-linecap: round; stroke-linejoin: round; }
 .icona-svg { width: 1em; height: 1em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ==========================================================================
