@@ -251,6 +251,7 @@ UNCHECKED = {
     returns.max_attempts: "consulta",
     returns.can_retry: "consulta",
     returns.codes: "consulta (P-291)",
+    reviews.can_record_paid: "consulta (`close` la crida abans de «Pagat»)",
     returns.check_codes: "validació: la crida `business_settings.change`, amb el seu permís",
     returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",

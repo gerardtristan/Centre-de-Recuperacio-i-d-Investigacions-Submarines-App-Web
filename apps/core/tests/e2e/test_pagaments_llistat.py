@@ -82,5 +82,6 @@ def test_treasurer_closes_an_attempt_to_review(page, live_server, transactional_
     )
     expect(closed).to_contain_text("Ordre denegada al proveïdor (prova)")
     expect(closed).to_contain_text("Fallit")
-    expect(closed).to_contain_text("tresoreria.prova")
+    expect(closed).to_contain_text("Tresoreria Prova")  # el nom, mai el login
+    expect(closed).not_to_contain_text("tresoreria.prova")
     review("a-revisar-tancats")
