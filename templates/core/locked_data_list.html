@@ -4,9 +4,11 @@
 {% block title %}{% translate "Dades bloquejades" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Protecció de dades" %}</p>
-  <h1>{% translate "Dades bloquejades" %}</h1>
-  <p class="text-2">{% translate "Persones que han demanat l'esborrat de les seves dades i tenen registres econòmics. La llei obliga a conservar-ne la identitat fins al final del termini legal: només es consulta per complir una obligació legal, i cada consulta queda al registre amb el motiu." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Protecció de dades" %}</p>
+    <h1>{% translate "Dades bloquejades" %}</h1>
+    <p class="text-2">{% translate "Persones que han demanat l'esborrat de les seves dades i tenen registres econòmics. La llei obliga a conservar-ne la identitat fins al final del termini legal: només es consulta per complir una obligació legal, i cada consulta queda al registre amb el motiu." %}</p>
+  </header>
   {% if items %}
     <table class="taula">
       <caption>{% blocktranslate count total=items|length %}{{ total }} persona{% plural %}{{ total }} persones{% endblocktranslate %}</caption>
@@ -22,7 +24,7 @@
           <tr>
             <th scope="row" class="cel-nom">{{ item.person.anonymous_ref }}</th>
             <td data-etiqueta="{% translate 'Bloquejades el' %}">{{ item.locked_at|date:"d/m/Y" }}</td>
-            <td class="cel-accions"><a href="{% url 'administration:locked_data_detail' item.pk %}">{% blocktranslate with ref=item.person.anonymous_ref %}Consulta: {{ ref }}{% endblocktranslate %}</a></td>
+            <td class="cel-accions"><a class="enllac-fila" href="{% url 'administration:locked_data_detail' item.pk %}">{% blocktranslate with ref=item.person.anonymous_ref %}Consulta: {{ ref }}{% endblocktranslate %}</a></td>
           </tr>
         {% endfor %}
       </tbody>

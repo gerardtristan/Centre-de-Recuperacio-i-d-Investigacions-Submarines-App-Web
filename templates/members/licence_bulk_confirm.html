@@ -4,8 +4,14 @@
 {% block title %}{% translate "Llicències pendents de confirmar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
-  <h1>{% translate "Llicències pendents de confirmar" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+    <h1>{% translate "Llicències pendents de confirmar" %}</h1>
+  </header>
+  {# Deposito (T-DX-16): el comptador del panell de revisió, amb la llista que la vista ja dona. #}
+  <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
+    <li{% if records %} class="es-pendent"{% endif %}><b>{{ records|length }}</b><span>{% blocktranslate count n=records|length %}registre per confirmar{% plural %}registres per confirmar{% endblocktranslate %}</span></li>
+  </ul>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}

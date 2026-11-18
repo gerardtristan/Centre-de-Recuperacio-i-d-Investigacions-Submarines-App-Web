@@ -45,6 +45,8 @@
    de desplaçament, en fa ~59, T-DX-57b) */
 .graella-2 { display: grid; gap: var(--e-5); align-items: start; }
 .graella-2 > * { min-width: 0; }
+/* Una secció dins de la graella guarda l'espai intern que té com a fill directe del cos (T-DX-66) */
+.graella-2 > :where(section) { display: grid; gap: var(--e-4); align-content: start; }
 @container cos (min-width: 34rem) {
   .graella-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -68,6 +70,15 @@
 .graella-targetes { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
 .graella-targetes > * { min-width: 0; }
 
+/* barra-filtres (T-DX-66): el formulari de filtres d'un llistat. Fa tota l'amplada del cos (no el
+   --amplada-formulari); amb lloc, els camps en una fila que es parteix si no hi caben i els botons al
+   final, alineats a baix. Al mòbil, apilats com ara. */
+.cos-compte .formulari.barra-filtres { max-width: none; }
+@container cos (min-width: 37.5rem) {
+  .barra-filtres { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .barra-filtres .filtres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
+}
+
 /* Taules: capçalera fixa en baixar i fila ressaltada a partir de 600 px; la fila sencera porta a
    la fitxa quan té un enllaç .enllac-fila (B14). L'enllaç continua sent l'element enfocable. */
 @media (min-width: 600px) {
@@ -76,6 +87,10 @@
   .taula tbody tr:hover > * { background: color-mix(in oklab, var(--c-fons), var(--c-text) 5%); }
   .taula tr:has(.enllac-fila) { position: relative; cursor: pointer; }
   .taula .enllac-fila::after { content: ""; position: absolute; inset: 0; }
+  /* Un botó (.boto) és position: relative i s'encongeix amb :active (transform): tots dos
+     tancarien la capa dins del botó i el clic a una altra cel·la es perdria (T-DX-66) */
+  .taula .enllac-fila { position: static; }
+  .taula .enllac-fila:active { transform: none; }
 }
 
 /* desplacable-x: un carril o unes pestanyes que es desplacen de costat; la vora de la dreta

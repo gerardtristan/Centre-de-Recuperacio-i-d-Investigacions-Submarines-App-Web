@@ -4,22 +4,30 @@
 {% block title %}{% translate "Retornats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Retornats" %}</h1>
-  <p class="text-2">{% translate "Rebuts domiciliats que el banc ha tornat. En registrar-ne un, la quota queda retornada i la tresoreria apunta la sortida i la comissió." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Retornats" %}</h1>
+    <p class="text-2">{% translate "Rebuts domiciliats que el banc ha tornat. En registrar-ne un, la quota queda retornada i la tresoreria apunta la sortida i la comissió." %}</p>
+  </header>
+  {# Deposito (T-DX-16): el comptador del panell de revisió, amb la llista que la vista ja dona. #}
+  <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
+    <li{% if pending %} class="es-pendent"{% endif %}><b>{{ pending|length }}</b><span>{% blocktranslate count n=pending|length %}retorn per decidir{% plural %}retorns per decidir{% endblocktranslate %}</span></li>
+  </ul>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
 
   {% if can_manage %}
+    {# A l'escriptori, els dos formularis l'un al costat de l'altre; amb la previsualització, a sota (T-DX-66) #}
+    {% if not file_preview %}<div class="graella-2">{% endif %}
     <section class="targeta" aria-labelledby="nou-titol">
       <h2 id="nou-titol">{% translate "Registra un retorn" %}</h2>
       <form class="formulari" method="post" action="{% url 'administration:payments_returns' %}" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
         {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
-        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Registra el retorn" %}</button></div>
+        <div class="accions"><button class="boto{% if not file_preview %} boto-principal{% endif %}" type="submit">{% translate "Registra el retorn" %}</button></div>
       </form>
     </section>
 
@@ -75,9 +83,10 @@
           <input type="file" id="id_fitxer_retornats" name="fitxer" accept=".xml,application/xml" required aria-describedby="ajuda-fitxer-retornats">
           <p class="ajuda" id="ajuda-fitxer-retornats">{% translate "El fitxer de rebuts retornats que dona el banc (pain.002), d'1 MB com a màxim. Primer en veuràs la previsualització. El fitxer no es desa. Fora de producció, només fitxers inventats." %}</p>
         </div>
-        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Previsualitza" %}</button></div>
+        <div class="accions"><button class="boto" type="submit">{% translate "Previsualitza" %}</button></div>
       </form>
     {% endif %}
+    {% if not file_preview %}</div>{% endif %}
   {% endif %}
 
   <table class="taula">

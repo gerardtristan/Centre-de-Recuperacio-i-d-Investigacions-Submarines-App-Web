@@ -4,8 +4,11 @@
 {% block title %}{% translate "Llistat de socis" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <h1>{% translate "Llistat de socis" %}</h1>
-  {% if not vis.full %}<p class="text-2">{% translate "Consulta amb les dades mínimes per cobrar: número, nom, tipus, estat i quota." %}</p>{% endif %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+    <h1>{% translate "Llistat de socis" %}</h1>
+    {% if not vis.full %}<p class="text-2">{% translate "Consulta amb les dades mínimes per cobrar: número, nom, tipus, estat i quota." %}</p>{% endif %}
+  </header>
 
   {% if no_members %}
     <section aria-labelledby="buit-titol">
@@ -17,7 +20,7 @@
       </div>
     </section>
   {% else %}
-    <form class="formulari" method="get" action="{% url 'administration:members_list' %}" novalidate>
+    <form class="formulari barra-filtres" method="get" action="{% url 'administration:members_list' %}" novalidate>
       <fieldset class="filtres">
         <legend>{% translate "Cerca i filtres" %}</legend>
         {% for field in form %}{% if field.name == "sense_data" or field.name == "sense_comprovar" %}<label class="casella" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>{% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
@@ -67,7 +70,7 @@
             {% if vis.full %}<td data-etiqueta="{% translate "Data d'alta" %}"><span>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} <span class="text-2">({% translate "aproximada" %})</span>{% endif %}</span></td>{% endif %}
             {# Només si falta: la data mai no surt al llistat (RN-M01-48). #}
             {% if vis.birth_date %}<td data-etiqueta="{% translate 'Dades' %}">{% if member.person.birth_date %}—{% else %}{% include "members/_sense_data.html" %}{% endif %}</td>{% endif %}
-            <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:member_detail' member.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ member.person }}</span></a></td>
+            <td class="cel-accions"><a class="boto boto-petit enllac-fila" href="{% url 'administration:member_detail' member.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ member.person }}</span></a></td>
           </tr>
         {% empty %}
           <tr><td>{% translate "Cap soci coincideix amb la cerca i els filtres." %}</td></tr>
