@@ -2,7 +2,10 @@
 {% load i18n %}
 {% block title %}{% translate "Alta presencial" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <h1>{% translate "Alta presencial" %}</h1>
+  {# T-DX-65 (§5.3): capçalera comuna; a l'escriptori, el formulari de 40rem i, al costat, el resum d'errors (Errata, primer al DOM i amb el focus). Sense ajuda al costat: l'única que hi havia (el possible duplicat) només la pot veure qui té P3a (resposta neutra). Només disposició: els camps, el permís i el POST són els mateixos. #}
+  <header class="capcalera-pagina">
+    <h1>{% translate "Alta presencial" %}</h1>
+  </header>
   {% if unavailable %}
     <div class="avis avis-avis" role="status">{% translate "No hi ha publicats tots els textos legals de l'alta: no es pot desar cap sol·licitud." %}</div>
   {% else %}
@@ -17,7 +20,10 @@
       {% endif %}
     {% endif %}
     <p class="text-2">{% translate "La sol·licitud queda pendent de revisar a Sol·licituds." %}</p>
-    {% include "members/_join_form.html" with in_person=True %}
+    <div class="amb-columna-lateral lateral-formulari">
+      {% include "_errata.html" %}
+      <div class="columna-principal">{% include "members/_join_form.html" with in_person=True errata_outside=True %}</div>
+    </div>
   {% endif %}
   <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
 {% endblock %}

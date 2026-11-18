@@ -66,6 +66,23 @@
   .columna-lateral { position: sticky; top: var(--e-5); }
 }
 
+/* Formularis (T-DX-65): amb lateral-formulari, la columna principal fa com a màxim --amplada-formulari
+   i la lateral queda al costat, no a l'altra punta. El resum d'Errata va primer al DOM (el focus i el
+   lector de pantalla el troben primer, com abans) i, a l'escriptori, a dalt de la columna lateral;
+   l'ajuda, a sota. La fila 2 flexible fa que l'alçada del formulari no separi l'ajuda del resum. */
+.columna-principal { display: grid; gap: var(--e-4); align-content: start; }
+/* Els blocs de la columna, com els fills del cos a comptes.css: sense pes perquè les peces hi guanyin */
+.columna-principal > :where(div:not(.avis), section) { display: grid; gap: var(--e-4); }
+.lateral-formulari > .errata { margin: 0; }  /* l'espai el posa la graella */
+@container cos (min-width: 56rem) {
+  .amb-columna-lateral.lateral-formulari {
+    grid-template-columns: minmax(0, var(--amplada-formulari)) var(--lateral-ample); grid-template-rows: auto 1fr;
+  }
+  .lateral-formulari > .columna-principal { grid-column: 1; grid-row: 1 / span 2; }
+  .lateral-formulari > .errata { grid-column: 2; grid-row: 1; }
+  .lateral-formulari > .columna-lateral { grid-column: 2; }
+}
+
 /* graella-targetes: tantes columnes com hi caben (1, 2 o 3) */
 .graella-targetes { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
 .graella-targetes > * { min-width: 0; }

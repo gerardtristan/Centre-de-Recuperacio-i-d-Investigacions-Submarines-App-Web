@@ -3,8 +3,8 @@
    Les marques [A validar] només surten a l'alta presencial (administració), mai al formulari públic.{% endcomment %}
 <form class="formulari" method="post" novalidate>
   {% csrf_token %}
-  {# Errata (T-DX-06): resum de tots els errors, amb els generals i el dels textos legals. #}
-  {% include "_errata.html" %}
+  {# Errata (T-DX-06): resum de tots els errors, amb els generals i el dels textos legals. L'alta presencial el posa fora del formulari, a la columna lateral (T-DX-65). #}
+  {% if not errata_outside %}{% include "_errata.html" %}{% endif %}
   {# Sempre les versions vigents, també en tornar a mostrar el formulari amb errors. #}
   <input type="hidden" name="text_versions" value="{{ form.fields.text_versions.initial }}">
   <p class="text-2">{% translate "Tots els camps són obligatoris, excepte els que diuen «opcional»." %}</p>

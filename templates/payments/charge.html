@@ -5,13 +5,16 @@
 {% block titol_zona %}{% if guest %}{% translate "Pagaments" %}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block inici %}{% if guest %}{% url 'core:guest' %}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{{ charge.concept }}</h1>
+  {# T-DX-65 (§5.3 i §6.13): capçalera comuna; a l'escriptori, els passos de Tramite al costat del pagament (tramite.css), sense tocar _status.html, que HTMX torna a demanar sencer. Al mòbil, com abans. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{{ charge.concept }}</h1>
+  </header>
   {% for message in messages %}<div class="avis avis-error" role="alert">{{ message }}</div>{% endfor %}
   <dl class="dades-soci">
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
   </dl>
-  <div aria-live="polite">{% include "payments/_status.html" %}</div>
+  <div class="pagament-amb-passos" aria-live="polite">{% include "payments/_status.html" %}</div>
   <p class="text-2">{% translate "La targeta i el Bizum es fan a la pàgina del proveïdor de pagaments: el club no veu ni desa la targeta ni el telèfon." %}</p>
   {% if not guest and user.person.member %}<p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>{% endif %}
   <script src="{% static 'js/copia.js' %}" defer></script>
