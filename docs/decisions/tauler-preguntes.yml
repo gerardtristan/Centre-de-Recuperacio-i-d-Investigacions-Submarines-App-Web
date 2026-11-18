@@ -949,6 +949,17 @@ opcions:
       prova; B és el que diu CA-T11.1 i treu codi. Mentre no es respongui, A no trenca res.
     data: 2026-11-18
 
+  P-370:
+    opcions:
+      A: "Els comptes actius amb el rol administrador i, si el desactiva un altre, el compte afectat; el President, no."
+      B: Els mateixos que A i també els comptes amb el rol President, com als canvis de rols (RN-RP-09).
+      C: Només els altres administradors, també quan el desactiva un altre.
+    recomanada: A
+    perque: >-
+      És el que diu RN-RP-20 per als administradors, i qui perd l'accés ho sap encara que no hagi
+      estat ell; B afegeix el President a una acció que només gestiona l'administrador.
+    data: 2026-11-18
+
   P-360:
     opcions:
       A: S'accepta qualsevol llista dins del rang; si el primer recordatori és més d'un mes abans, l'avís de renovació no surt.
