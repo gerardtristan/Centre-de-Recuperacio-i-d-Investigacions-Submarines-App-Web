@@ -17,6 +17,8 @@ class MembersConfig(AppConfig):
         )
         from . import settings as member_settings
 
+        # T-M01-52: un sol permís per al preu de tots els tipus; la fila diu el nom del tipus.
+        business_settings.register_family("members.annual_fee_cents", _type_name)
         # P-360: els recordatoris (VC-02) no poden començar abans de l'avís de renovació.
         business_settings.register_check(
             member_settings.FEE_REMINDER_OFFSETS, member_settings.check_reminders
@@ -31,3 +33,9 @@ class MembersConfig(AppConfig):
                 describe=privacy.describe,
             ),
         )
+
+
+def _type_name(code):
+    from .models import MembershipType
+
+    return MembershipType.objects.filter(code=code).values_list("name", flat=True).first() or code

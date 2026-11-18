@@ -50,8 +50,21 @@ def register_check(key: str, check, *, normalise=None, lock_with=()) -> None:
         LOCK_WITH[key] = tuple(lock_with)
 
 
+# Famílies de claus amb un sol permís (`<prefix>.<sufix>` → `settings.edit.<prefix>`), per als
+# valors que es creen des de l'app (T-M01-52). `label(sufix)` dona el nom de la fila.
+FAMILIES: dict = {}
+
+
+def register_family(prefix: str, label) -> None:
+    FAMILIES[prefix] = label
+
+
+def family_of(key: str) -> str | None:
+    return next((p for p in FAMILIES if key.startswith(f"{p}.")), None)
+
+
 def permission_code(key: str) -> str:
-    return f"settings.edit.{key}"
+    return f"settings.edit.{family_of(key) or key}"
 
 
 def section_code(section: str) -> str:

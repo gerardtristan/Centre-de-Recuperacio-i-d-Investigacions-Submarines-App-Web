@@ -56,6 +56,13 @@ def _range(setting):
     return ", ".join(map(str, setting.choices)) or "—"
 
 
+def _label(key, perm):
+    family = service.family_of(key)
+    if family:
+        return f"{perm.description}: {service.FAMILIES[family](key.removeprefix(family + '.'))}"
+    return perm.description if perm else key
+
+
 def _row(setting, user, perms):
     today = timezone.localdate()
     perm = permissions.CATALOG.get(service.permission_code(setting.key))
@@ -66,7 +73,7 @@ def _row(setting, user, perms):
     )
     return {
         "setting": setting,
-        "label": perm.description if perm else setting.key,
+        "label": _label(setting.key, perm),
         "current": _show(setting, service.get(setting.key, today)),
         "initial": _show(setting, setting.initial_value),
         "scheduled": scheduled and _show(setting, scheduled.value),

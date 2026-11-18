@@ -204,7 +204,10 @@ MAP = {
         "apps/core/texts.py",
         "apps/members/settings.py",
         "apps/payments/returns.py",
+        "apps/members/types.py",
+        "apps/members/views/admin_types.py",
         "templates/core/setting*.html",
+        "templates/members/membership_type*.html",
     ),
     "test_dades_bloquejades.py": (
         "apps/core/locked_data.py",

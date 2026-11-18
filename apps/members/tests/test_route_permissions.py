@@ -66,6 +66,7 @@ OBJECT_FOR_ROUTE = {
     "administration:join_reject": "join_request",
     "administration:member_request_detail": "leave",
     "administration:fee_payment_reviewed": "fee",  # 079 (A-17): el paràmetre és una quota
+    "administration:membership_type_edit": "membership_type",  # T-M01-52
 }
 _numbers = iter(range(500, 10_000))
 
@@ -123,6 +124,7 @@ def world(make_admin):  # noqa: F811
     )
     return SimpleNamespace(
         other=other,
+        membership_type=other.type,
         record=a_record(other),
         fee=fees.issue_annual_fee(other, period=2026, due_on=datetime.date(2026, 3, 1), by=issuer),
         leave=MemberRequest.objects.create(

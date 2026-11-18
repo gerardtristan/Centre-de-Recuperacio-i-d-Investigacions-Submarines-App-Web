@@ -1,0 +1,27 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-52: un tipus de soci (091, RN-M01-107). Seguretat i privacitat: el servidor exigeix `settings.section.members` (sense permís, «no trobat»); el formulari només surt a qui pot editar els tipus, però el control és el servei: un POST sense permís es rebutja amb «no trobat» i queda al registre. Amb socis, el servei no deixa canviar el ple dret ni l'edat mínima ni desactivar-lo (P-374, P-375); no es desa res i se'n diu el motiu. Cap dada personal. #}
+{% block title %}{{ type.name }} · {% translate "Tipus de soci" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:membership_types' %}">{% translate "Tipus de soci" %}</a></p>
+  <h1>{{ type.name }}</h1>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Codi" %}</dt><dd><span class="codi">{{ type.code }}</span></dd></div>
+  </dl>
+  {% if editable %}
+    {% if has_members %}<div class="avis avis-avis" role="note">{% translate "Aquest tipus té socis: només se'n pot canviar el nom. El ple dret, l'edat mínima i l'estat queden com estan." %}</div>{% endif %}
+    <form class="formulari targeta" method="post" aria-labelledby="edita-titol" novalidate>
+      {% csrf_token %}
+      <h2 id="edita-titol">{% translate "Edita el tipus" %}</h2>
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el tipus" %}</button></div>
+    </form>
+  {% else %}
+    <dl class="dades-soci">
+      <div><dt>{% translate "De ple dret" %}</dt><dd>{% if type.full_rights %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</dd></div>
+      <div><dt>{% translate "Edat mínima" %}</dt><dd>{{ type.min_age }}</dd></div>
+      <div><dt>{% translate "Estat" %}</dt><dd>{% if type.active %}{% translate "Actiu" %}{% else %}{% translate "Inactiu" %}{% endif %}</dd></div>
+    </dl>
+  {% endif %}
+{% endblock %}

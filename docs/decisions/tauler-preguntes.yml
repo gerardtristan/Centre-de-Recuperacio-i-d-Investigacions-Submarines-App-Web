@@ -1054,4 +1054,36 @@ opcions:
       buida quan tot està revisat. C amaga casos sense que ningú els hagi mirat. Mentrestant val la A.
     data: 2026-11-18
 
+  P-374:
+    opcions:
+      A: "No: un tipus amb socis pendents, actius o impagats no es desactiva (com s'ha construït)."
+      B: "Sí: es desactiva i els seus socis el conserven fins a la baixa; ningú no s'hi pot donar d'alta."
+      C: "Sí, però abans la secretaria ha de passar els socis a un altre tipus."
+    recomanada: A
+    perque: >-
+      És el camí sense efectes sobre socis que ja paguen; B i C demanen regles noves per a la
+      renovació i els canvis de tipus d'aquests socis.
+    data: 2026-11-18
+
+  P-375:
+    opcions:
+      A: "No: d'un tipus amb socis només es canvia el nom (com s'ha construït)."
+      B: "Sí, amb un avís dels socis afectats i un motiu, i s'aplica a la renovació següent."
+    recomanada: A
+    perque: >-
+      Evita canviar les regles d'un soci a mig període; si cal un tipus diferent, se'n crea un de
+      nou. B demana un mecanisme de canvis programats que ara no existeix.
+    data: 2026-11-18
+
+  P-376:
+    opcions:
+      A: "Tresorer i administrador, amb un permís propi (com s'ha construït); la Secretaria els veu."
+      B: "Només l'administrador, per decisió de la junta."
+      C: "Tresorer, administrador i Secretaria."
+    recomanada: A
+    perque: >-
+      Un tipus porta un preu i regles de quota, i qui canvia el preu (VC-01) ja són el Tresorer i
+      l'administrador; és editable a la matriu sense cap canvi de codi.
+    data: 2026-11-18
+
 noves:

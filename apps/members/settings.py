@@ -30,8 +30,8 @@ def annual_fee_cents(membership_type, at=None) -> int:
     try:
         return business_settings.get(price_key(membership_type), at)
     except Setting.DoesNotExist:
-        # shortcut: un tipus sense ajust (només als tests) fa servir el preu inicial del tipus;
-        # la T-M01-52, que crearà tipus des dels ajustos, crearà l'ajust amb el tipus.
+        # Només un tipus creat sense la pantalla (als tests): la pantalla de tipus (T-M01-52)
+        # crea l'ajust amb el tipus, i fa servir el preu inicial del tipus.
         return membership_type.annual_fee_cents
 
 

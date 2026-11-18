@@ -3,7 +3,7 @@ l'espai de noms `administration` (sessió d'administració i TOTP)."""
 
 from django.urls import path
 
-from .views import admin, admin_licences, admin_member_edit, admin_requests
+from .views import admin, admin_licences, admin_member_edit, admin_requests, admin_types
 
 urlpatterns = [
     path("importacions/cluber/", admin.cluber_preview_view, name="cluber_preview"),
@@ -13,6 +13,9 @@ urlpatterns = [
     path("socis/altes/<int:pk>/rebutja/", admin.join_reject_view, name="join_reject"),
     path("socis/", admin.members_list_view, name="members_list"),
     path("socis/exporta/", admin.members_export_view, name="members_export"),
+    # T-M01-52: tipus de soci (091, RN-M01-107), amb els permisos dels ajustos de socis.
+    path("socis/tipus/", admin_types.types_view, name="membership_types"),
+    path("socis/tipus/<int:pk>/", admin_types.type_edit_view, name="membership_type_edit"),
     path("socis/<int:pk>/", admin.member_detail_view, name="member_detail"),
     path("quotes/", admin.fees_view, name="fees"),
     path("quotes/<int:pk>/impagat/", admin.fee_mark_unpaid_view, name="fee_mark_unpaid"),
