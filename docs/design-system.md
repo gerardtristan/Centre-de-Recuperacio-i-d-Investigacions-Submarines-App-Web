@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.29 (18/11/2026). La 1.29 redistribueix l'inici del soci a l'escriptori (T-DX-60, §5.1, §6.5 i §6.18): la portada només amb la salutació; a sota, la quota i el carnet en petit en dues columnes sobre el fons de la pàgina, la franja de pendents, i a sota els pagaments recents, la història i la llicència en 8/4; la quota ja no puja en desplaçar (D20, B10).
+- **Versió:** 1.33 (18/11/2026). La 1.33 fa els llistats de l'administració a l'escriptori (§5.3, T-DX-66, PR 7b): capçalera comuna, la peça `barra-filtres`, la fila sencera clicable també quan l'enllaç és un botó i les seccions dins de `graella-2` amb el seu espai.
+- La 1.29 (18/11/2026) redistribueix l'inici del soci a l'escriptori (T-DX-60, §5.1, §6.5 i §6.18): la portada només amb la salutació; a sota, la quota i el carnet en petit en dues columnes sobre el fons de la pàgina, la franja de pendents, i a sota els pagaments recents, la història i la llicència en 8/4; la quota ja no puja en desplaçar (D20, B10).
 - La 1.26 (18/11/2026) afegeix la disposició a l'escriptori (§5.3, T-DX-57): el cos creix per trams, amplades noves i les peces `capcalera-pagina`, `disposicio-pagina`, `graella-2`, `amb-columna-lateral`, `graella-targetes` i `desplacable-x`; els imports passen a xifres tabulars sense monoespai.
 - La 1.25 (16/11/2026) afegeix Monograma, l'avatar per defecte del soci (§6.19, T-DX-18).
 - La 1.24 (16/11/2026) afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
@@ -255,6 +256,8 @@ Dins del cos, un paràgraf no passa de `--amplada-text` (68ch), i un `formulari`
 - `amb-columna-lateral` (+ `columna-lateral` al fill): el contingut i una columna de `--lateral-ample` al costat (o a l'esquerra, amb `lateral-esquerra`), que es queda fixa en baixar a partir de 56rem. Per a l'ajuda, el resum d'errors d'Errata o els filtres.
 - `graella-targetes`: 1, 2 o 3 targetes per fila segons l'amplada (mínim 18rem cadascuna).
 - Taules (`taula`), a partir de 600 px: capçalera fixa en baixar, fila ressaltada en passar-hi el ratolí i, si la fila porta un enllaç `enllac-fila`, la fila sencera hi porta (B14). L'enllaç continua sent l'element enfocable i el que llegeix el lector de pantalla.
+- `barra-filtres` (al `formulari` de filtres d'un llistat, T-DX-66): fa tota l'amplada del cos (no el `--amplada-formulari`); quan la columna fa 37,5rem o més, els camps (`filtres`, mínim 11rem cadascun) en una fila que es parteix si no hi caben, i els botons al final, alineats a baix. Al mòbil, apilats com abans.
+- **Llistats de l'administració (T-DX-66):** `cos-ample`, `capcalera-pagina` (etiqueta, títol, frase i, si n'hi ha, un enllaç a `accions`), `barra-filtres` i taula. `enllac-fila` només a l'enllaç que ja hi havia cap a la fitxa (socis, sol·licituds, remeses, RGPD, dades bloquejades); mai on la fila té una altra acció (casella, formulari o dos enllaços). Si l'enllaç és un `boto`, perd la posició i l'encongiment de `:active` dins la taula, perquè la capa ocupi la fila. Les columnes per rol les decideix el servidor; a la tauleta no s'amaga cap columna. Comptadors de Deposito (§6.17) només amb el que la vista ja dona (altes, sol·licituds, retornats, llicències per confirmar).
 - `desplacable-x`: pestanyes o carrils que es desplacen de costat, amb la vora de la dreta esvaïda (C2).
 
 **Sense moviment nou:** cap animació d'entrada de pàgina (D20, B10). Les pantalles es redistribueixen per tasques (T-DX-58 en endavant); fins llavors, una pantalla que no ha canviat queda més ampla amb el mateix ordre.

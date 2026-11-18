@@ -4,8 +4,10 @@
 {% block title %}{% blocktranslate with period=remittance.period %}Remesa {{ period }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio"><a href="{% url 'administration:payments_remittances' %}">{% translate "Remeses" %}</a></p>
-  <h1>{% blocktranslate with period=remittance.period %}Remesa {{ period }}{% endblocktranslate %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:payments_remittances' %}">{% translate "Remeses" %}</a></p>
+    <h1>{% blocktranslate with period=remittance.period %}Remesa {{ period }}{% endblocktranslate %}</h1>
+  </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}

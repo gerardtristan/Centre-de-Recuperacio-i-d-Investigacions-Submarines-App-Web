@@ -4,7 +4,9 @@
 {% block title %}{% translate "Enllaços de convidat" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <h1>{% translate "Enllaços de convidat" %}</h1>
+  <header class="capcalera-pagina">
+    <h1>{% translate "Enllaços de convidat" %}</h1>
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
@@ -16,7 +18,7 @@
       <tr>
         <th scope="col">{% translate "Persona" %}</th>
         <th scope="col">{% translate "Concepte" %}</th>
-        <th scope="col">{% translate "Import" %}</th>
+        <th scope="col" class="cel-import">{% translate "Import" %}</th>
         <th scope="col">{% translate "Càrrec" %}</th>
         <th scope="col">{% translate "Enllaç" %}</th>
         <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
@@ -27,7 +29,7 @@
         <tr>
           <th scope="row" class="cel-nom">{{ charge.person }}</th>
           <td data-etiqueta="{% translate 'Concepte' %}">{{ charge.concept }}</td>
-          <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ amount }}</span></td>
+          <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ amount }}</span></td>
           <td data-etiqueta="{% translate 'Càrrec' %}">{% if charge.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Pagat" %}</span>{% elif charge.status == "pending" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Retornat" %}</span>{% endif %}</td>
           <td data-etiqueta="{% translate 'Enllaç' %}">{% if not link %}<span class="estat estat-neutre"><span aria-hidden="true">–</span> {% translate "Cap" %}</span>{% elif link.revoked_at %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Revocat" %}</span>{% elif link.is_live %}<span class="estat estat-ok estat-quota"><span aria-hidden="true">✓</span> {% blocktranslate with date=link.expires_at|date:"d/m/Y" %}Vigent fins al {{ date }}{% endblocktranslate %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Caducat" %}</span>{% endif %}</td>
           <td class="cel-accions">

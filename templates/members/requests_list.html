@@ -4,8 +4,10 @@
 {% block title %}{% translate "Sol·licituds de socis" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
-  <h1>{% translate "Sol·licituds" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+    <h1>{% translate "Sol·licituds" %}</h1>
+  </header>
   {# Deposito (T-DX-16): els comptadors del panell de revisió. #}
   <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
     <li{% if changes %} class="es-pendent"{% endif %}><b>{{ changes|length }}</b><span>{% blocktranslate count n=changes|length %}canvi de tipus per revisar{% plural %}canvis de tipus per revisar{% endblocktranslate %}</span></li>

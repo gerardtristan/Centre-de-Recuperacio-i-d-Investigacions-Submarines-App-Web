@@ -4,12 +4,14 @@
 {% block title %}{% translate "Mètodes i mandats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Mètodes i mandats" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Mètodes i mandats" %}</h1>
+  </header>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {% if full %}
     <p class="text-2">{% translate "L'IBAN surt sempre emmascarat. Ningú no el veu sencer." %}</p>
-    <form class="formulari" method="get" action="{% url 'administration:payments_mandates' %}" novalidate>
+    <form class="formulari barra-filtres" method="get" action="{% url 'administration:payments_mandates' %}" novalidate>
       <fieldset class="filtres">
         <legend>{% translate "Filtres" %}</legend>
         {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}

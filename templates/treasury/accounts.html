@@ -4,10 +4,13 @@
 {% block title %}{% translate "Comptes i saldos" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <h1>{% translate "Comptes i saldos" %}</h1>
-  <p>{% translate "El saldo el calcula la plataforma: entrades menys sortides amb data de valor fins al dia triat. No s'escriu a mà." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Comptes i saldos" %}</h1>
+    <p>{% translate "El saldo el calcula la plataforma: entrades menys sortides amb data de valor fins al dia triat. No s'escriu a mà." %}</p>
+  </header>
 
-  <form class="formulari" method="get" action="{% url 'administration:treasury_accounts' %}" novalidate>
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:treasury_accounts' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Data del saldo" %}</legend>
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}

@@ -4,10 +4,12 @@
 {% block title %}{% translate "Remeses" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Remeses" %}</h1>
-  <p class="text-2">{% translate "Quotes pendents dels socis que han triat la domiciliació, amb mandat actiu. Cada deutor rep l'avís previ en confirmar-la." %}</p>
-  {% if can_see_returns %}<p><a href="{% url 'administration:payments_returns' %}">{% translate "Rebuts retornats" %}</a></p>{% endif %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Remeses" %}</h1>
+    <p class="text-2">{% translate "Quotes pendents dels socis que han triat la domiciliació, amb mandat actiu. Cada deutor rep l'avís previ en confirmar-la." %}</p>
+    {% if can_see_returns %}<div class="accions"><a class="boto boto-text" href="{% url 'administration:payments_returns' %}">{% translate "Rebuts retornats" %}</a></div>{% endif %}
+  </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
@@ -71,7 +73,7 @@
     <tbody>
       {% for remittance in remittances %}
         <tr>
-          <th scope="row" class="cel-nom"><a href="{% url 'administration:payments_remittance' remittance.pk %}">{{ remittance.period }}</a></th>
+          <th scope="row" class="cel-nom"><a class="enllac-fila" href="{% url 'administration:payments_remittance' remittance.pk %}">{{ remittance.period }}</a></th>
           <td data-etiqueta="{% translate 'Cobrament' %}"><time datetime="{{ remittance.collection_date|date:'Y-m-d' }}">{{ remittance.collection_date|date:"d/m/Y" }}</time></td>
           <td data-etiqueta="{% translate 'Estat' %}">{% include "payments/_remittance_status.html" %}</td>
           <td data-etiqueta="{% translate 'Rebuts' %}">{{ remittance.item_count }}</td>

@@ -4,14 +4,16 @@
 {% block title %}{% translate "Quotes i impagats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
-  <h1>{% translate "Quotes i impagats" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+    <h1>{% translate "Quotes i impagats" %}</h1>
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
   <p class="text-2">{% translate "Socis actius i impagats. Un soci no passa mai a impagat sol: el marca i el desmarca el tresorer, amb motiu. «Pendent» vol dir que la quota ha vençut sense pagar o que el rebut s'ha retornat. La quota de renovació de cada soci es genera sola el dia del primer recordatori." %}</p>
 
-  <form class="formulari" method="get" action="{% url 'administration:fees' %}" novalidate>
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:fees' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Filtres" %}</legend>
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
@@ -90,7 +92,7 @@
           <tr>
             <th scope="col">{% translate "Soci" %}</th>
             <th scope="col">{% translate "Quota" %}</th>
-            <th scope="col">{% translate "Import" %}</th>
+            <th scope="col" class="cel-import">{% translate "Import" %}</th>
             <th scope="col">{% translate "Pagada el" %}</th>
             {% if can_review %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
           </tr>
@@ -100,7 +102,7 @@
             <tr>
               <th scope="row" class="cel-nom">{{ row.member.person }}<br><span class="codi">{% if row.member.member_number %}{% blocktranslate with number=row.member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
               <td data-etiqueta="{% translate 'Quota' %}">{{ row.fee.get_kind_display }} {{ row.fee.period }}</td>
-              <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
+              <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
               <td data-etiqueta="{% translate 'Pagada el' %}">{% if row.paid_at %}<time datetime="{{ row.paid_at|date:'c' }}">{{ row.paid_at|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
               {% if can_review %}
                 <td class="cel-accions">

@@ -4,10 +4,12 @@
 {% block title %}{% translate "Registre d'activitat" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <h1>{% translate "Registre d'activitat" %}</h1>
-  {% if not show_ip %}<p>{% translate "Només hi surten les entrades de dades de socis." %}</p>{% endif %}
+  <header class="capcalera-pagina">
+    <h1>{% translate "Registre d'activitat" %}</h1>
+    {% if not show_ip %}<p>{% translate "Només hi surten les entrades de dades de socis." %}</p>{% endif %}
+  </header>
 
-  <form class="formulari" method="get" action="{% url 'administration:audit_log' %}" novalidate>
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:audit_log' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Filtres" %}</legend>
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}

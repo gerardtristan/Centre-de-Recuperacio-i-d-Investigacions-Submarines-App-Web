@@ -18,7 +18,7 @@
         <td data-etiqueta="{% translate 'Tipus' %}">{{ item.member.type.name }}{% if item.requested_type %} → {{ item.requested_type.name }}{% endif %}</td>
         <td data-etiqueta="{% translate 'Canal' %}">{{ item.get_channel_display }}</td>
         <td data-etiqueta="{% translate 'Enviada' %}">{{ item.created_at|date:"d/m/Y" }}</td>
-        <td class="cel-accions"><a href="{% url 'administration:member_request_detail' item.pk %}">{% blocktranslate with name=item.person %}Obre la sol·licitud: {{ name }}{% endblocktranslate %}</a></td>
+        <td class="cel-accions"><a class="enllac-fila" href="{% url 'administration:member_request_detail' item.pk %}">{% blocktranslate with name=item.person %}Obre la sol·licitud: {{ name }}{% endblocktranslate %}</a></td>
       </tr>
     {% endfor %}
   </tbody>

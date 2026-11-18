@@ -4,6 +4,10 @@ Les tasques que redistribueixen cada pantalla (T-DX-58 en endavant) hi afegeixen
 
 import pytest
 from django.urls import reverse
+from playwright.sync_api import expect
+
+from apps.members.models import Member
+from apps.members.tests.test_cards import make_member
 
 from .conftest import login_admin, make_admin
 
@@ -91,3 +95,49 @@ def test_member_home_layout(page, live_server, builder, member):
     assert left[0] == right[0], (left, right)  # l'una a sota de l'altra
     page.set_viewport_size({"width": 320, "height": 800})
     assert page.evaluate(OVERFLOW_JS) <= 0
+STICKY_JS = "() => getComputedStyle(document.querySelector('.taula thead th')).position"
+FILTER_COLUMNS_JS = (
+    "() => getComputedStyle(document.querySelector('.barra-filtres'))"
+    ".gridTemplateColumns.split(' ').length"
+)
+
+
+def test_admin_lists_on_the_desktop(page, live_server):
+    """T-DX-66 (PR 7b): els llistats de l'administració a 1280 px fan més de 1000 px, tenen els
+    filtres en una fila amb els botons al costat i la capçalera de la taula fixa; la fila sencera
+    porta a la fitxa (és el mateix enllaç); a 390 px la taula és apilada i a 320 no desborda."""
+    for n in (1, 2, 3):
+        make_member(first=f"Fila{n}", number=40 + n, document=f"0000004{n}A")
+    treasurer = make_admin("tresoreria.llistats", "administrator", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    page.set_viewport_size({"width": 1280, "height": 900})
+    for name in (
+        "administration:members_list",
+        "administration:fees",
+        "administration:treasury_movements",
+    ):
+        page.goto(f"{live_server.url}{reverse(name)}")
+        assert page.evaluate(WIDTH_JS) > 1000, name
+        assert page.evaluate(OVERFLOW_JS) <= 0, name
+        assert page.evaluate(FILTER_COLUMNS_JS) == 2, name  # els camps i, al costat, els botons
+        expect(page.locator(".capcalera-pagina h1")).to_be_visible()
+
+    page.goto(f"{live_server.url}{reverse('administration:members_list')}")
+    assert page.evaluate(STICKY_JS) == "sticky"
+    row = page.locator("tbody tr").filter(has_text="Fila2")
+    box = row.locator("td").first.bounding_box()  # la cel·la del tipus: no és cap enllaç
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    member = Member.objects.get(member_number=42)
+    expect(page).to_have_url(
+        f"{live_server.url}{reverse('administration:member_detail', args=[member.pk])}"
+    )
+
+    page.set_viewport_size({"width": 390, "height": 800})
+    page.goto(f"{live_server.url}{reverse('administration:members_list')}")
+    assert page.evaluate(STICKY_JS) != "sticky"  # taula apilada, amb la capçalera amagada
+    assert page.evaluate(FILTER_COLUMNS_JS) == 1
+    expect(page.locator("tbody tr").first).to_have_css("display", "block")
+    page.set_viewport_size({"width": 320, "height": 800})
+    for name in ("administration:members_list", "administration:treasury_movements"):
+        page.goto(f"{live_server.url}{reverse(name)}")
+        assert page.evaluate(OVERFLOW_JS) <= 0, name

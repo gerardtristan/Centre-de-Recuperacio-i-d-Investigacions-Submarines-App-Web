@@ -4,8 +4,10 @@
 {% block title %}{% translate "Altes pendents" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Socis" %}</p>
-  <h1>{% translate "Altes pendents" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Socis" %}</p>
+    <h1>{% translate "Altes pendents" %}</h1>
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}

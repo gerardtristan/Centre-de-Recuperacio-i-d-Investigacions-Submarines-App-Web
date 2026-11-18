@@ -4,10 +4,13 @@
 {% block title %}{% translate "Moviments de tresoreria" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <h1>{% translate "Moviments de tresoreria" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Moviments de tresoreria" %}</h1>
+  </header>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
 
-  <form class="formulari" method="get" action="{% url 'administration:treasury_movements' %}" novalidate>
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:treasury_movements' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Filtres" %}</legend>
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
