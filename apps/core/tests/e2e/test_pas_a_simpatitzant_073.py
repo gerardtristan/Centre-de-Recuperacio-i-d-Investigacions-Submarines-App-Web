@@ -38,6 +38,8 @@ def test_full_member_requests_withdraws_and_the_secretary_accepts_another(
     ).to_be_visible()  # T-M01-45, punt 5
     expect(page.get_by_text("Actualment ets soci de ple dret.")).to_be_visible()
     expect(page.get_by_text("cap devolució de la quota del període actual")).to_be_visible()
+    # T-M01-43: la frase de l'avís previ.
+    expect(page.get_by_text("T'avisarem abans de la renovació", exact=False)).to_be_visible()
     review("explicacio")
     page.get_by_role("button", name="Envia la sol·licitud").click()
     expect(page.get_by_role("heading", name="Tens una sol·licitud pendent")).to_be_visible()

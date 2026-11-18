@@ -35,6 +35,7 @@ T-M01-40 (12/11/2026; RN-M01-72 i RN-M01-94; decisió 085, J-2 i G-2):
 """
 
 import datetime
+import logging
 
 from django import forms
 from django.conf import settings
@@ -48,7 +49,7 @@ from apps.core.models import Charge, Person
 
 from . import cards, recipients, roster, validity
 from .fee_rules import first_fee_year, local_today
-from .models import AnnualFee, FeeExemption, FeeReminder, Member
+from .models import AnnualFee, FeeExemption, FeeReminder, Member, MemberRequest
 from .validity import twelve_months_after
 
 S = Member.Status
@@ -58,6 +59,7 @@ GENERATED = "members.fee.generated"
 GENERATE_ORIGIN = "members.generate_due_fees"
 REMINDER_TEMPLATE = "recordatori-quota"
 UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
+logger = logging.getLogger(__name__)
 
 
 def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> AnnualFee:
@@ -404,6 +406,87 @@ def send_due_reminders(today=None) -> int:
                         "overdue": offset > 0,
                     },
                 )
+        sent += 1
+    return sent
+
+
+# --- Avís previ de la renovació (073 i 085, T-6; RN-M01-73 i RN-M01-93; CA-M01-70) -----------
+
+RENEWAL_NOTICE_TEMPLATE = "avis-renovacio"
+RENEWAL_NOTICE_SENT = "members.renewal_notice.sent"
+
+
+def _downgrade_state(member) -> str:
+    """Per al text de l'avís: «accepted», «pending» o "" (es convida a demanar-lo)."""
+    from .member_requests import accepted_downgrade, downgrades
+
+    if accepted_downgrade(member) is not None:
+        return "accepted"
+    if downgrades(member).filter(status=MemberRequest.Status.PENDING).exists():
+        return "pending"
+    return ""
+
+
+def _renewal_noticed(member, renews_on) -> bool:
+    from apps.core.models import AuditEntry
+
+    return AuditEntry.objects.filter(
+        action=RENEWAL_NOTICE_SENT,
+        target_type=Member._meta.label_lower,
+        target_id=str(member.pk),
+        details__renews_on=renews_on.isoformat(),
+    ).exists()
+
+
+def send_renewal_notices(today=None) -> int:
+    """Avís als socis de ple dret actius, sense cap baixa pendent ni programada (RN-M01-93,
+    punt 6), `MEMBER_RENEWAL_NOTICE_MONTHS` abans de la renovació (085, T-6). Una sola vegada per
+    renovació: l'entrada del registre d'activitat (soci i data) és la marca. Un dia perdut es
+    recupera mentre la quota no s'ha generat; un cop generada, `next_fee_due` ja no torna data.
+    La safata d'avisos de l'app no existeix encara: només correu."""
+    from apps.payments.expiry import months_after
+
+    from .member_requests import FULL, open_leaves
+
+    today = today or local_today()
+    months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
+    members = roster.with_fee_data(
+        Member.objects.select_related("person", "type").filter(
+            status=S.ACTIVE, type__code=FULL, person__status=Person.Status.ACTIVE
+        )
+    )
+    sent = 0
+    for member in members:
+        due = next_fee_due(member)
+        if due is None or not months_after(due, -months) <= today < due:
+            continue
+        try:
+            if open_leaves(member).exists():
+                continue
+            to = recipients.email_for(member.person, today=today)  # RN-M01-78
+            if not to:
+                # shortcut: sense adreça no es marca (surt si n'hi posen una a temps) i no s'avisa
+                # ningú; la llista «a revisar» per a la secretaria és de la T-M01-43c.
+                continue
+            with transaction.atomic():
+                Member.objects.select_for_update(of=("self",)).get(pk=member.pk)
+                if _renewal_noticed(member, due):
+                    continue
+                audit.record(
+                    RENEWAL_NOTICE_SENT,
+                    actor=audit.system("members.send_renewal_notices"),
+                    target=member,
+                    details={"renews_on": due.isoformat()},
+                )
+                mail.queue_email(
+                    RENEWAL_NOTICE_TEMPLATE,
+                    to=to,
+                    person=member.person,
+                    context={"renews_on": due, "downgrade": _downgrade_state(member)},
+                )
+        except Exception:
+            logger.exception("Avís de renovació del soci %s no enviat", member.pk)
+            continue
         sent += 1
     return sent
 

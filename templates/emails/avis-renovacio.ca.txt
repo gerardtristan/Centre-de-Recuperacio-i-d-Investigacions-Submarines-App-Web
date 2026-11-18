@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M01-43 (073, punt 6; 085, T-6): TEXT PROVISIONAL [A validar: secretaria i tresorer]. Sense cap import ni cap dada personal: només la data de renovació. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with date=renews_on|date:"d/m/Y" %}La teva quota de soci de ple dret es renova el {{ date }}.{% endblocktranslate %}
+
+{% if downgrade == "accepted" %}{% translate "Tens acceptat el pas a simpatitzant: en aquesta renovació passaràs a simpatitzant i la quota nova serà la d'aquest tipus." %}{% elif downgrade == "pending" %}{% translate "Tens una sol·licitud de pas a simpatitzant pendent: la secretaria la revisarà i, si l'accepta, passaràs a simpatitzant en aquesta renovació." %}{% else %}{% translate "Si vols passar a simpatitzant en aquesta renovació, demana-ho a «Canvi de tipus», al teu perfil, abans del cobrament de la nova quota. El canvi no comporta cap devolució de la quota del període actual." %}{% endif %}
+
+{% translate "Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

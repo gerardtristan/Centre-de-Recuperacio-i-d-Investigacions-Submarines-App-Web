@@ -94,8 +94,8 @@ def test_ca_m01_68_active_full_member_sees_the_rule_and_can_send_the_request(per
     assert "cap devolució de la quota del període actual" in page
     assert 'name="target" value="supporter"' in page
     assert "Envia la sol·licitud" in page
-    # La frase de l'avís previ només surt quan l'avís existeix (T-M01-43).
-    assert "avisarem" not in page.lower()
+    # La frase de l'avís previ surt des que l'avís existeix (T-M01-43).
+    assert "T'avisarem abans de la renovació" in page
     assert "suplement" not in page.lower()
 
 

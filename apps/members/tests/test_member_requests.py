@@ -204,14 +204,14 @@ def test_member_detail_links_to_create_a_leave_only_with_p7(make_admin, marta): 
 # --- Canvi a ple dret (P-M01-B, pas 1) ------------------------------------------------------
 
 
-def test_full_member_sees_the_downgrade_rule_without_a_promised_notice(db):
-    # 073: el text explica la regla i no promet cap avís que encara no existeix. La sol·licitud ja
-    # hi és des de la T-M01-42 (proves a `test_downgrade_073.py`).
+def test_full_member_sees_the_downgrade_rule_and_the_notice(db):
+    # 073: el text explica la regla i l'avís previ, que existeix des de la T-M01-43. La
+    # sol·licitud hi és des de la T-M01-42 (proves a `test_downgrade_073.py`).
     member = make_member(type_code="full")
     page = main_of(personal_client(account_for(member)).get(reverse(CHANGE)).content.decode())
     assert "Pots passar a simpatitzant en la pròxima renovació de la quota anual" in page
     assert "encara no està disponible" not in page
-    assert "avisarem" not in page.lower()
+    assert "T'avisarem abans de la renovació" in page
 
 
 def test_active_supporter_requests_the_change_without_any_charge(marta):
