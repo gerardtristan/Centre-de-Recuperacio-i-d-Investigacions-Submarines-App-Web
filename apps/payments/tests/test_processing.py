@@ -6,6 +6,7 @@ Cada prova fa el camí sencer: el soci obre l'intent (`start_payment`), el prove
 notificació signada a l'endpoint, que la desa i la posa a la cua, i la cua la processa."""
 
 import json
+import threading
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -317,6 +318,16 @@ class TestToReview:
         assert attempt.review_reason.startswith("Pagament duplicat")
         assert list(Payment.objects.all()) == [transfer]  # mai un segon pagament
 
+    def test_a_late_confirmation_of_a_cancelled_charge_says_so(self, attempt, fee, transit):
+        notify(attempt, base.DENIED, event_id="e-1")
+        run_queue()
+        charges.cancel(fee.charge, "Anul·lat (prova)", by=audit.system("proves"))
+        notify(attempt, base.PAID, event_id="e-2")
+        assert run_queue() == [R.PROCESSED, R.TO_REVIEW]
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.CANCELLED)
+        assert attempt.review_reason.startswith("Pagament d'un càrrec anul·lat")
+        assert not Payment.objects.exists()
+
     def test_a_confirmation_of_an_attempt_to_review_does_not_pay_it(self, attempt, fee, transit):
         notify(attempt, amount_cents=8000, event_id="e-1")
         notify(attempt, base.PAID, event_id="e-2")
@@ -517,8 +528,7 @@ class TestSimultaneous(CommittedDataTestCase):
 
         fake.reset()
         attempt, fee = paying_attempt("anna@example.org")
-        notify(attempt, amount_cents=8000)
-        run_queue()
+        attempt = attempts.transition(attempt, S.TO_REVIEW, by=audit.system("p"), reason="Prova")
         person = Person.objects.create(first_name="Tresorer", origin="in_person")
         treasurer = Account.objects.create_admin(person, "tresoreria.simultania")
         # Aquí es prova el bloqueig, no el permís (en una prova amb transaccions reals, la
@@ -527,6 +537,8 @@ class TestSimultaneous(CommittedDataTestCase):
         allowed.start()
         self.addCleanup(allowed.stop)
 
+        locked = threading.Event()
+
         def reconcile():
             with transaction.atomic():
                 charge = Charge.objects.select_for_update().get(pk=fee.charge_id)
@@ -534,13 +546,14 @@ class TestSimultaneous(CommittedDataTestCase):
                     charge=charge, method=Payment.Method.TRANSFER, amount_cents=9000
                 )
                 charges.mark_paid(charge, transfer, origin="reconciliation", by=audit.system("p"))
+                locked.set()  # el càrrec ja és bloquejat: la decisió s'hi haurà d'esperar
                 time.sleep(1)
 
         def decide():
-            time.sleep(0.3)
+            locked.wait(10)
             try:
                 reviews.close(attempt, outcome=S.PAID, note="Prova", by=treasurer)
-            except reviews.ChargeNotPending:
+            except reviews.PaidRefused:
                 return "refused"
 
         assert run_together([reconcile, decide])[1] == "refused"

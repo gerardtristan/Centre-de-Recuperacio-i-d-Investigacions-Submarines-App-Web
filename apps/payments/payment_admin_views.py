@@ -16,6 +16,7 @@
 from django import forms
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -72,9 +73,15 @@ def transfers_without_receipt():
 def payments_view(request):
     names = has_perm(request.user, NAMES)
     attempts = PaymentAttempt.objects.select_related("charge__person")
-    review = [_row(a, names) for a in attempts.filter(status=S.TO_REVIEW).order_by("-updated_at")]
+    # Tancat si té un tancament posterior a la darrera vegada que va passar «a revisar» (cap
+    # canvi de l'intent després: `updated_at`); els de la T-M05b-16b es queden tancats.
+    closed_since = ReviewClosure.objects.filter(
+        attempt=OuterRef("pk"), closed_at__gte=OuterRef("updated_at")
+    )
+    open_review = attempts.filter(status=S.TO_REVIEW).exclude(Exists(closed_since))
+    review = [_row(a, names) for a in open_review.order_by("-updated_at")]
     can_close = has_perm(request.user, VIEW, write=True)
-    closures = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by")
+    closures = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by__person")
     closed = [
         {**_row(c.attempt, names), "closure": c}
         for c in closures.order_by("-closed_at", "-pk")[:CLOSED_SHOWN]
@@ -128,6 +135,13 @@ def _notes(closure_ids) -> dict[str, str]:
 
 
 class CloseForm(forms.Form):
+    def __init__(self, *args, can_pay=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not can_pay:  # sense M14, «Pagat» no es pot triar (el servidor també ho comprova)
+            self.fields["outcome"].choices = [
+                c for c in self.fields["outcome"].choices if c[0] != S.PAID
+            ]
+
     outcome = forms.ChoiceField(
         label=_("Què ha passat"),
         choices=[
@@ -158,21 +172,16 @@ def review_close_view(request, attempt_id):
     attempt = get_object_or_404(
         PaymentAttempt.objects.select_related("charge__person"), pk=attempt_id, status=S.TO_REVIEW
     )
-    form = CloseForm(request.POST or None)
+    can_pay = reviews.can_record_paid(request.user, attempt.charge)
+    form = CloseForm(request.POST or None, can_pay=can_pay)
     if request.method == "POST" and form.is_valid():
         outcome = form.cleaned_data["outcome"]
         try:
             reviews.close(attempt, outcome=outcome, note=form.cleaned_data["note"], by=request.user)
         except reviews.NotClosable:
             messages.error(request, gettext("Aquest intent ja està tancat."))
-        except reviews.ChargeNotPending:
-            form.add_error(
-                "outcome",
-                gettext(
-                    "El càrrec ja no és pendent: no es pot registrar un altre pagament. Si el "
-                    "proveïdor l'ha cobrat, tria «Fallit» i fes-ne la devolució."
-                ),
-            )
+        except reviews.PaidRefused as refused:
+            form.add_error("outcome", str(refused))
         else:
             done = {
                 S.PAID: gettext("Intent tancat com a pagat: s'ha registrat el pagament."),
@@ -183,4 +192,5 @@ def review_close_view(request, attempt_id):
         if not form.errors:
             return redirect("administration:payments_list")
     context = {"row": _row(attempt, has_perm(request.user, NAMES)), "form": form}
+    context["can_pay"] = can_pay
     return render(request, "payments/review_close.html", context)

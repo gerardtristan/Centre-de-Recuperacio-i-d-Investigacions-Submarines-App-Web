@@ -5,14 +5,16 @@ tancament, registre i diners. Només dades inventades."""
 
 import pytest
 from django.db import DatabaseError, connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 from django.http import Http404
 from django.urls import reverse
 
+from apps.accounts.models import Account
 from apps.core import charges
 from apps.core import privacy as core_privacy
-from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment
+from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.payments import attempts, payment_admin_views, reviews
+from apps.payments import attempts, payment_admin_views, processing, reviews
 from apps.payments.models import PaymentAttempt, Receipt, ReviewClosure
 from apps.payments.tests.test_payments_list import (  # noqa: F401 (fixtures)
     MANAGEMENT_ROLES,
@@ -28,6 +30,7 @@ from apps.payments.tests.test_payments_list import (  # noqa: F401 (fixtures)
 from apps.payments.tests.test_processing import transit  # noqa: F401 (fixture)
 from apps.treasury.models import Movement
 from apps.treasury.tests.test_views import client_for
+from conftest import CommittedDataTestCase
 
 pytestmark = pytest.mark.django_db
 S = PaymentAttempt.Status
@@ -113,7 +116,7 @@ def test_097_paid_is_refused_if_the_charge_is_already_paid(treasurer, to_review)
         close_url(to_review), {"outcome": PAID, "note": NOTE}, follow=True
     )
     assert "El càrrec ja no és pendent" in response.content.decode()
-    with pytest.raises(reviews.ChargeNotPending):
+    with pytest.raises(reviews.PaidRefused):
         reviews.close(to_review, outcome=PAID, note=NOTE, by=treasurer)
     to_review.refresh_from_db()
     assert to_review.status == S.TO_REVIEW and not ReviewClosure.objects.exists()
@@ -175,7 +178,8 @@ def test_the_note_has_a_limit_also_in_the_service(treasurer, to_review):  # noqa
 
 
 def test_erasure_leaves_no_note(treasurer, to_review, make_admin):  # noqa: F811
-    # La taula de tancaments no té cap text lliure; la nota, al registre, passa a la referència.
+    # La taula de tancaments no té cap text del tresorer (el motiu és el del sistema); la nota,
+    # al registre, passa a la referència.
     reviews.close(to_review, outcome=FAILED, note=NOTE, by=treasurer)
     assert {f.name for f in ReviewClosure._meta.fields} == {
         "id",
@@ -183,6 +187,7 @@ def test_erasure_leaves_no_note(treasurer, to_review, make_admin):  # noqa: F811
         "closed_by",
         "closed_at",
         "outcome",
+        "review_reason",
     }
     payer = to_review.charge.person
     assert core_privacy.blockers(payer) == []
@@ -225,3 +230,99 @@ def test_append_only(treasurer, to_review):  # noqa: F811
     for sql in ("UPDATE {} SET closed_at = now()", "DELETE FROM {}"):
         with pytest.raises(DatabaseError), transaction.atomic(), connection.cursor() as cur:
             cur.execute(sql.format(ReviewClosure._meta.db_table))
+
+
+def test_paid_is_refused_with_another_attempt_that_may_collect(treasurer, to_review):  # noqa: F811
+    in_progress_again = attempts.create_attempt(to_review.charge, PaymentAttempt.Method.BIZUM)
+    attempts.transition(in_progress_again, S.IN_PROGRESS, by=SYSTEM)
+    response = client_for(treasurer).post(close_url(to_review), {"outcome": PAID, "note": NOTE})
+    assert "Un altre intent d&#x27;aquest càrrec encara el pot cobrar" in response.content.decode()
+    with pytest.raises(reviews.PaidRefused):
+        reviews.close(to_review, outcome=PAID, note=NOTE, by=treasurer)
+    assert not Payment.objects.exists() and not ReviewClosure.objects.exists()
+
+
+def test_paid_is_refused_when_the_amount_did_not_match(treasurer, person):  # noqa: F811
+    # CA-M05b-05: han entrat 80 €, no 90 €. La plataforma no apunta 90 €.
+    attempt = attempts.transition(
+        in_progress(fee(person)), S.TO_REVIEW, by=SYSTEM, reason=str(processing.AMOUNT_MISMATCH)
+    )
+    with pytest.raises(reviews.PaidRefused):
+        reviews.close(attempt, outcome=PAID, note=NOTE, by=treasurer)
+    assert not Payment.objects.exists()
+    reviews.close(attempt, outcome=FAILED, note=NOTE, by=treasurer)  # «Fallit» sí
+
+
+def test_paid_needs_the_manual_payment_permission(make_admin, to_review):  # noqa: F811
+    # L'administrador té B6 amb edició però no M14: no veu «Pagat» i el servidor el rebutja.
+    admin = make_admin(R.ADMINISTRATOR)
+    client = client_for(admin)
+    page = client.get(close_url(to_review)).content.decode()
+    assert "«Pagat» no està disponible" in page and 'value="paid"' not in page
+    response = client.post(close_url(to_review), {"outcome": PAID, "note": NOTE})
+    assert response.status_code == 200 and not ReviewClosure.objects.exists()
+    with pytest.raises(Http404):
+        reviews.close(to_review, outcome=PAID, note=NOTE, by=admin)
+    assert not Payment.objects.exists()
+    reviews.close(to_review, outcome=FAILED, note=NOTE, by=admin)
+
+
+def test_tancats_shows_the_reason_when_closed_and_not_the_login(treasurer, to_review):  # noqa: F811
+    reviews.close(to_review, outcome=FAILED, note=NOTE, by=treasurer)
+    attempts.transition(to_review, S.TO_REVIEW, by=SYSTEM, reason="Un altre motiu (prova)")
+    page = html(client_for(treasurer))
+    closed = page.split("Tancats", 1)[1].split("Tots els intents", 1)[0]
+    assert "L&#x27;import de la notificació no quadra (prova)" in closed
+    assert "Un altre motiu (prova)" not in closed
+    assert str(treasurer.person) in closed and treasurer.login not in closed
+
+
+def test_a_16b_closure_stays_closed(treasurer, to_review):  # noqa: F811
+    # Un tancament d'abans de la 0024: «sense decisió» i l'intent encara «a revisar».
+    ReviewClosure.objects.create(
+        attempt=to_review,
+        outcome=ReviewClosure.Outcome.UNDECIDED,
+        review_reason=to_review.review_reason,
+        closed_by=treasurer,
+    )
+    page = html(client_for(treasurer))
+    assert "No hi ha cap pagament a revisar." in page and "Sense decisió" in page
+    # Si torna «a revisar» després del tancament, torna a la llista oberta.
+    PaymentAttempt.objects.filter(pk=to_review.pk)  # el gestor no deixa `update`
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE payments_paymentattempt SET updated_at = now() + interval '1 minute' "
+            "WHERE id = %s",
+            [to_review.pk],
+        )
+    assert "1 intent de pagament a revisar" in html(client_for(treasurer))
+
+
+class TestMigration0024(CommittedDataTestCase):
+    """Un tancament de la T-M05b-16b, d'abans de la 0024: queda «sense decisió», amb el motiu, i
+    l'intent no torna a «A revisar»."""
+
+    def test_an_existing_closure_is_undecided_and_keeps_the_reason(self):
+        payer = Person.objects.create(first_name="Núria", last_name="Coll", origin="web")
+        attempt = attempts.transition(
+            in_progress(fee(payer)), S.TO_REVIEW, by=SYSTEM, reason="Motiu antic (prova)"
+        )
+        admin = Account.objects.create_admin(
+            Person.objects.create(first_name="Tresorer", origin="in_person"), "tresoreria.antiga"
+        )
+        leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
+        try:
+            MigrationExecutor(connection).migrate([("payments", "0023_permisos_095")])
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO payments_reviewclosure (attempt_id, closed_by_id, closed_at) "
+                    "VALUES (%s, %s, now())",
+                    [attempt.pk, admin.pk],
+                )
+        finally:
+            MigrationExecutor(connection).migrate(leaves)
+        closure = ReviewClosure.objects.get()
+        assert (closure.outcome, closure.review_reason) == ("undecided", "Motiu antic (prova)")
+        attempt.refresh_from_db()
+        assert attempt.status == S.TO_REVIEW
+        assert closure.closed_at >= attempt.updated_at  # la llista oberta el compta tancat

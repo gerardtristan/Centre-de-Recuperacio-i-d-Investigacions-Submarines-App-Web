@@ -116,10 +116,10 @@
             <th scope="row" class="cel-nom"><time datetime="{{ closure.closed_at|date:'c' }}">{{ closure.closed_at|date:"d/m/Y H:i" }}</time></th>
             <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
             {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
-            <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
+            <td data-etiqueta="{% translate 'Motiu' %}">{{ closure.review_reason|default:"—" }}</td>
             <td data-etiqueta="{% translate 'Decisió' %}" class="cel-valor">{{ closure.get_outcome_display }}</td>
             <td data-etiqueta="{% translate 'Nota' %}">{{ row.note|default:"—" }}</td>
-            <td data-etiqueta="{% translate 'Tancat per' %}" class="cel-valor"><span class="codi">{{ closure.closed_by }}</span></td>
+            <td data-etiqueta="{% translate 'Tancat per' %}" class="cel-valor">{{ closure.closed_by.person }}</td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
           </tr>
         {% endwith %}{% endfor %}

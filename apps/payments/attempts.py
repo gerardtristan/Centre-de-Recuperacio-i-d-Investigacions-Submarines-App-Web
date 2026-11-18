@@ -64,6 +64,13 @@ _CONFLICTS = {
 }
 
 
+def others_may_collect(attempt: PaymentAttempt) -> bool:
+    """Un altre intent del mateix càrrec encara pot cobrar-lo (en curs, al banc o «a revisar"):
+    pagar aquest seria cobrar dues vegades (097; la mateixa regla que el pagament a mà)."""
+    others = PaymentAttempt.objects.filter(charge_id=attempt.charge_id, status__in=MAY_BE_CHARGED)
+    return others.exclude(pk=attempt.pk).exists()
+
+
 @transaction.atomic
 def ensure_manual_payment_allowed(charge: Charge) -> None:
     """Guarda del pagament a mà (P-12), que la 00 crida abans de crear-lo

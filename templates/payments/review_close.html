@@ -23,6 +23,7 @@
       <fieldset>
         <legend>{{ form.outcome.label }}</legend>
         {% for radio in form.outcome %}<label class="casella" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        {% if not can_pay %}<p class="text-2">{% translate "«Pagat» no està disponible: registra un pagament i cal el permís de registrar pagaments a mà." %}</p>{% endif %}
         {{ form.outcome.errors }}
       </fieldset>
       {% include "accounts/_camp.html" with field=form.note %}

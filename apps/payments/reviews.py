@@ -3,8 +3,9 @@
 El tresorer en tria el resultat amb una nota obligatòria:
 - **Pagat** (RN-M05b-03: «a revisar → pagat»): el proveïdor l'ha cobrat. Es registra el
   pagament com ho fa una notificació (`processing.pay`: pagament, ingrés, rebut i, si és una
-  quota, l'avís al 01), només si el càrrec encara és pendent; si ja és pagat, es rebutja (mai dos
-  pagaments: el cobrament de més es torna amb una devolució).
+  quota, l'avís al 01). Demana també M14 (pagament a mà) i les seves guardes: el càrrec pendent i
+  no és seu, cap altre intent que el pugui cobrar, i que l'import quadri (CA-M05b-05); si no, es
+  rebutja (mai dos pagaments ni un import que no s'ha cobrat).
 - **Fallit** («a revisar → fallit»): no s'ha cobrat. No es mou cap diner.
 
 Queda una fila nova (`ReviewClosure`: qui, quan i el resultat) i l'entrada al registre d'activitat
@@ -16,6 +17,7 @@ from django.http import Http404
 from django.utils.translation import gettext as _
 
 from apps.core import audit
+from apps.core.charges import MANUAL_PAYMENT
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
 
@@ -32,8 +34,8 @@ class NotClosable(Exception):
     """L'intent ja no és «a revisar» (ja s'ha decidit)."""
 
 
-class ChargeNotPending(Exception):
-    """«Pagat» amb el càrrec que ja no és pendent: es pagaria dues vegades."""
+class PaidRefused(Exception):
+    """«Pagat» no es pot triar; el missatge diu per què."""
 
 
 def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClosure:
@@ -52,9 +54,11 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
         locked = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
         if locked.status != S.TO_REVIEW:
             raise NotClosable
-        if outcome == S.PAID and charge.status != Charge.Status.PENDING:
-            raise ChargeNotPending
-        closure = ReviewClosure.objects.create(attempt=locked, outcome=outcome, closed_by=by)
+        if outcome == S.PAID:
+            _check_paid(locked, charge, by)
+        closure = ReviewClosure.objects.create(
+            attempt=locked, outcome=outcome, review_reason=locked.review_reason, closed_by=by
+        )
         reason = _("Decisió del tresorer (tancament %(id)s)") % {"id": closure.pk}
         if outcome == S.PAID:
             processing.pay(
@@ -70,3 +74,38 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
         details = {"attempt": locked.pk, "outcome": outcome}
         audit.record(CLOSED, actor=by, target=closure, reason=note, details=details)
     return closure
+
+
+def can_record_paid(account, charge) -> bool:
+    """«Pagat» registra un pagament: a més de B6 amb edició, cal M14 (pagament a mà)."""
+    return has_perm(account, MANUAL_PAYMENT, charge, write=True)
+
+
+def _check_paid(attempt, charge, by) -> None:
+    """Les mateixes guardes que el pagament a mà (P-12), i l'import: mai dos pagaments ni un
+    import que no s'ha cobrat."""
+    if not can_record_paid(by, charge):
+        raise Http404
+    if charge.person_id == by.person_id:
+        raise PaidRefused(_("Ningú no pot registrar el pagament d'un càrrec seu."))
+    if charge.status != Charge.Status.PENDING:
+        raise PaidRefused(
+            _(
+                "El càrrec ja no és pendent: no es pot registrar un altre pagament. Si el "
+                "proveïdor l'ha cobrat, tria «Fallit» i fes-ne la devolució."
+            )
+        )
+    if attempt.review_reason == str(processing.AMOUNT_MISMATCH):
+        raise PaidRefused(
+            _(
+                "L'import cobrat no és el del càrrec: no es pot donar per pagat. Tria «Fallit» "
+                "i registra el que s'hagi cobrat amb un pagament a mà o una devolució."
+            )
+        )
+    if attempts.others_may_collect(attempt):
+        raise PaidRefused(
+            _(
+                "Un altre intent d'aquest càrrec encara el pot cobrar (en curs, al banc o a "
+                "revisar). Espera que acabi o decideix-lo primer."
+            )
+        )

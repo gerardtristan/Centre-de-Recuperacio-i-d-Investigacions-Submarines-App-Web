@@ -388,9 +388,16 @@ class ReviewClosure(AppendOnlyModel):
     quan i el resultat («pagat» o «fallit»), amb `reviews.close`. Només INSERT, també a la base de
     dades (migració 0022). Un intent en pot tenir més d'una: si torna «a revisar» (una
     confirmació tardana), es torna a decidir. La nota (text lliure) no és aquí: és al registre
-    d'activitat, que l'esborrat RGPD sí que pot anonimitzar."""
+    d'activitat, que l'esborrat RGPD sí que pot anonimitzar. `review_reason`: el motiu que tenia
+    l'intent en tancar-lo (si torna «a revisar», el de l'intent canvia)."""
 
-    OUTCOMES = (AttemptStatus.PAID, AttemptStatus.FAILED)
+    class Outcome(models.TextChoices):
+        PAID = "paid", _("Pagat")
+        FAILED = "failed", _("Fallit")
+        # Els tancaments de la T-M05b-16b, d'abans de poder triar (migració 0024).
+        UNDECIDED = "undecided", _("Sense decisió")
+
+    OUTCOMES = (Outcome.PAID, Outcome.FAILED)  # les que pot triar el tresorer
 
     attempt = models.ForeignKey(
         PaymentAttempt,
@@ -398,12 +405,8 @@ class ReviewClosure(AppendOnlyModel):
         related_name="review_closures",
         verbose_name=_("intent"),
     )
-    outcome = models.CharField(
-        _("decisió"),
-        max_length=12,
-        choices=[(o.value, o.label) for o in OUTCOMES],
-        default=AttemptStatus.FAILED,
-    )
+    outcome = models.CharField(_("decisió"), max_length=12, choices=Outcome.choices)
+    review_reason = models.TextField(_("motiu de la revisió"), blank=True)
     closed_by = models.ForeignKey(
         "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("tancat per")
     )

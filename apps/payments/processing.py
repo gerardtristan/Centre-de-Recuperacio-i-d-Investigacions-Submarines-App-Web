@@ -79,6 +79,8 @@ SAFETY_NET_GIVE_UP = "payments.safety_net_give_up_hours"
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}
 # 097 (P-82, opció C): intents tancats que una confirmació tardana encara pot pagar.
 LATE = (S.FAILED, S.EXPIRED, S.ABANDONED)
+# CA-M05b-05. `reviews.close` el reconeix: amb un import que no quadra, «Pagat» no es pot triar.
+AMOUNT_MISMATCH = gettext_lazy("L'import o la moneda de l'ordre no coincideixen amb l'intent.")
 
 
 def _system():
@@ -146,8 +148,7 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
         if state.status == base.PENDING or attempt.status == S.PAID:
             return R.PROCESSED  # encara no s'ha decidit, o ja és pagat (CA-M05b-04)
         if (state.amount_cents, state.currency) != (attempt.amount_cents, charge.currency):
-            reason = _("L'import o la moneda de l'ordre no coincideixen amb l'intent.")
-            return _review(attempt, source, reason)  # CA-M05b-05
+            return _review(attempt, source, str(AMOUNT_MISMATCH))  # CA-M05b-05
         if state.status not in (base.PAID, *_CLOSED_BY):
             return _review(attempt, source, _("El proveïdor torna un estat desconegut."))
         if state.status != base.PAID:
@@ -161,11 +162,21 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
             # «A revisar» o «cancel·lat»: el cobrament el revisa el tresorer (`reviews.close`).
             reason = _("Confirmació de pagament d'un intent que ja estava tancat.")
             return _review(attempt, source, reason)
+        # Mai un segon pagament: l'intent, també el tancat (097), queda «a revisar».
+        if charge.status == Charge.Status.CANCELLED:
+            reason = _("Pagament d'un càrrec anul·lat: cal retornar l'import.")
+            return _review(attempt, source, reason, reopen=late)
         if charge.status != Charge.Status.PENDING:
-            # RN-M05b-08 i CA-M05b-07: el càrrec ja s'havia pagat (o anul·lat) per una altra via.
-            # Mai un segon pagament: l'intent, també el tancat (097), queda «a revisar».
+            # RN-M05b-08 i CA-M05b-07: el càrrec ja s'havia pagat per una altra via.
             reason = _("Pagament duplicat: el càrrec ja no era pendent. Cal fer-ne la devolució.")
             return _review(attempt, source, reason, reopen=late)
+        if late and attempts.others_may_collect(attempt):
+            # Un altre intent (per exemple, una domiciliació ja al banc) encara el pot cobrar.
+            reason = _(
+                "Confirmació tardana amb un altre intent del càrrec en curs: no s'ha apuntat. "
+                "Cal revisar quin dels dos s'ha cobrat."
+            )
+            return _review(attempt, source, reason, reopen=True)
         # 097: una confirmació tardana d'un intent fallit, caducat o abandonat també el paga.
         pay(attempt, charge, by=_system(), status=state.status, reference=state.external_id)
         return R.PROCESSED
