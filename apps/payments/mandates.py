@@ -18,7 +18,7 @@ from django.utils.translation import gettext
 from django.views.decorators.debug import sensitive_variables
 
 from apps.accounts.models import Account
-from apps.core import audit, mail
+from apps.core import audit, business_settings, mail
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members.models import Member
@@ -40,6 +40,12 @@ REVOKED_IN_REMITTANCE = "payments.mandate.revoked_in_remittance"
 REVOKE = "payments.mandates.revoke"  # A6 (M05a-4)
 MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
+# P-123 (095, provisional fins que el banc ho confirmi): països admesos al mandat, un ajust que
+# edita el Tresorer; de bon principi, tota la zona SEPA (`payments/0024`).
+# La clau no diu «iban»: el registre d'activitat rebutja els camps amb aquest nom (RN-52).
+IBAN_COUNTRIES = "payments.mandate_countries"
+COUNTRY = re.compile(r"[A-Z]{2}")
+SEPARATORS = re.compile(r"[\s,;]+")
 
 
 def validate_iban(value: str) -> str:
@@ -51,6 +57,50 @@ def validate_iban(value: str) -> str:
         if int(digits) % 97 == 1:
             return iban
     raise ValidationError(gettext("L'IBAN no és vàlid. Revisa'l i torna-ho a provar."))
+
+
+def _split_countries(value: str) -> list[str]:
+    return [code for code in SEPARATORS.split(value.upper()) if code]
+
+
+def normalise_countries(value):
+    """Forma canònica: majúscules, ordenats i separats per «, ». Un valor que no és un text el
+    rebutja la peça d'ajustos."""
+    return ", ".join(sorted(_split_countries(value))) if isinstance(value, str) else value
+
+
+def check_countries(value: str) -> None:
+    """La comprovació de l'ajust, que `apps.PaymentsConfig.ready` registra a la peça d'ajustos:
+    almenys un país, codis de dues lletres i sense repetir."""
+    found = _split_countries(value)
+    if not found:
+        raise ValidationError(gettext("Hi ha d'haver almenys un país."))
+    if not all(COUNTRY.fullmatch(code) for code in found):
+        raise ValidationError(
+            gettext(
+                "Cada país és el codi de dues lletres de l'IBAN (per exemple, ES). Separa'ls amb "
+                "comes, espais o punts i comes."
+            )
+        )
+    if len(set(found)) != len(found):
+        raise ValidationError(gettext("La llista no pot tenir països repetits."))
+
+
+def iban_countries() -> set[str]:
+    """Els països admesos, amb el valor vigent avui (P-123)."""
+    return set(_split_countries(business_settings.get(IBAN_COUNTRIES)))
+
+
+def validate_mandate_iban(value: str) -> str:
+    """`validate_iban` i, a més, el país admès (P-M05a-B, pas 2; estat «País no admès» del
+    wireframe). L'error tampoc no porta el valor. Les remeses no ho tornen a mirar: un mandat
+    signat continua valent encara que el país es tregui de la llista."""
+    iban = validate_iban(value)
+    if iban[:2] not in iban_countries():
+        raise ValidationError(
+            gettext("El banc del club no admet IBAN d'aquest país per domiciliar.")
+        )
+    return iban
 
 
 def next_reference(member: Member) -> str:
@@ -160,7 +210,7 @@ def create_mandate(
 ) -> SepaMandate:
     """Desa un mandat actiu i l'IBAN xifrat. L'anterior actiu passa a revocat amb el motiu
     «substituït» (RN-M05a-02). La referència és la de RN-M05a-03 i no es reutilitza."""
-    iban = validate_iban(iban)
+    iban = validate_mandate_iban(iban)
     # Bloqueja el soci: dues signatures alhora no poden prendre el mateix ordinal.
     member = Member.objects.select_for_update().get(pk=member.pk)
     if member.member_number is None:

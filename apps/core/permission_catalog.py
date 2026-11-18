@@ -642,6 +642,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
+    # P-123 (095): qui l'edita no és al pla; el Tresorer, com els codis del banc [P-386].
+    _perm(
+        "settings.edit.payments.mandate_countries",
+        "AJ5b-10",
+        _("Països de l'IBAN admesos al mandat"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

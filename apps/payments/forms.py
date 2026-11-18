@@ -55,4 +55,4 @@ class MandateForm(RecentAuthForm):
     )
 
     def clean_iban(self):
-        return mandates.validate_iban(self.cleaned_data["iban"])
+        return mandates.validate_mandate_iban(self.cleaned_data["iban"])
