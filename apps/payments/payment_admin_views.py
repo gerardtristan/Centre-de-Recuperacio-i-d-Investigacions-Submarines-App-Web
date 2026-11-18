@@ -16,7 +16,7 @@
 from django import forms
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Exists, OuterRef
+from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -72,14 +72,13 @@ def transfers_without_receipt():
 @require_GET
 def payments_view(request):
     names = has_perm(request.user, NAMES)
-    attempts = PaymentAttempt.objects.select_related("charge__person")
-    # Tancat si té un tancament posterior a la darrera vegada que va passar «a revisar» (cap
-    # canvi de l'intent després: `updated_at`); els de la T-M05b-16b es queden tancats.
-    closed_since = ReviewClosure.objects.filter(
-        attempt=OuterRef("pk"), closed_at__gte=OuterRef("updated_at")
+    # Una decisió («Pagat» o «Fallit») treu l'intent d'«a revisar» a la mateixa transacció: tot
+    # intent «a revisar» és obert. Els tancats «sense decisió» (T-M05b-16b) hi surten marcats.
+    latest = ReviewClosure.objects.filter(attempt=OuterRef("pk")).order_by("-closed_at", "-pk")
+    attempts = PaymentAttempt.objects.select_related("charge__person").annotate(
+        closure_outcome=Subquery(latest.values("outcome")[:1])
     )
-    open_review = attempts.filter(status=S.TO_REVIEW).exclude(Exists(closed_since))
-    review = [_row(a, names) for a in open_review.order_by("-updated_at")]
+    review = [_row(a, names) for a in attempts.filter(status=S.TO_REVIEW).order_by("-updated_at")]
     can_close = has_perm(request.user, VIEW, write=True)
     closures = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by__person")
     closed = [
@@ -134,20 +133,23 @@ def _notes(closure_ids) -> dict[str, str]:
     return dict(entries.values_list("target_id", "reason"))
 
 
+OUTCOME_LABELS = {
+    ReviewClosure.Outcome.PAID: _("Pagat: el proveïdor l'ha cobrat. Es registra el pagament."),
+    ReviewClosure.Outcome.FAILED: _("Fallit: no s'ha cobrat. No es mou cap diner."),
+}
+
+
 class CloseForm(forms.Form):
     def __init__(self, *args, can_pay=True, **kwargs):
         super().__init__(*args, **kwargs)
         if not can_pay:  # sense M14, «Pagat» no es pot triar (el servidor també ho comprova)
             self.fields["outcome"].choices = [
-                c for c in self.fields["outcome"].choices if c[0] != S.PAID
+                c for c in self.fields["outcome"].choices if c[0] != ReviewClosure.Outcome.PAID
             ]
 
     outcome = forms.ChoiceField(
         label=_("Què ha passat"),
-        choices=[
-            (S.PAID, _("Pagat: el proveïdor l'ha cobrat. Es registra el pagament.")),
-            (S.FAILED, _("Fallit: no s'ha cobrat. No es mou cap diner.")),
-        ],
+        choices=[(o.value, OUTCOME_LABELS[o]) for o in ReviewClosure.OUTCOMES],
         widget=forms.RadioSelect,
         error_messages={"required": _("Tria si s'ha pagat o ha fallat.")},
     )
@@ -184,8 +186,12 @@ def review_close_view(request, attempt_id):
             form.add_error("outcome", str(refused))
         else:
             done = {
-                S.PAID: gettext("Intent tancat com a pagat: s'ha registrat el pagament."),
-                S.FAILED: gettext("Intent tancat com a fallit. No s'ha mogut cap diner."),
+                ReviewClosure.Outcome.PAID: gettext(
+                    "Intent tancat com a pagat: s'ha registrat el pagament."
+                ),
+                ReviewClosure.Outcome.FAILED: gettext(
+                    "Intent tancat com a fallit. No s'ha mogut cap diner."
+                ),
             }
             messages.success(request, done[outcome])
             return redirect("administration:payments_list")

@@ -28,12 +28,13 @@ from apps.members import services as members
 from apps.treasury import services as treasury
 
 from . import attempts, cards, receipts, returns
-from .models import PaymentAttempt, ProviderEvent, SavedCardAttempt, SavedCardNotice
+from .models import PaymentAttempt, ProviderEvent, ReviewCode, SavedCardAttempt, SavedCardNotice
 from .providers import base, get_provider
 
 logger = logging.getLogger(__name__)
 R = ProviderEvent.Result
 S = PaymentAttempt.Status
+C = ReviewCode
 ORIGIN = "payments.processing"
 TO_REVIEW = "payments.notification_to_review"
 ERROR = "payments.notification_error"
@@ -79,7 +80,7 @@ SAFETY_NET_GIVE_UP = "payments.safety_net_give_up_hours"
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}
 # 097 (P-82, opció C): intents tancats que una confirmació tardana encara pot pagar.
 LATE = (S.FAILED, S.EXPIRED, S.ABANDONED)
-# CA-M05b-05. `reviews.close` el reconeix: amb un import que no quadra, «Pagat» no es pot triar.
+# CA-M05b-05 (codi `ReviewCode.AMOUNT`: amb un import que no quadra, «Pagat» no es pot triar).
 AMOUNT_MISMATCH = gettext_lazy("L'import o la moneda de l'ordre no coincideixen amb l'intent.")
 
 
@@ -148,7 +149,8 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
         if state.status == base.PENDING or attempt.status == S.PAID:
             return R.PROCESSED  # encara no s'ha decidit, o ja és pagat (CA-M05b-04)
         if (state.amount_cents, state.currency) != (attempt.amount_cents, charge.currency):
-            return _review(attempt, source, str(AMOUNT_MISMATCH))  # CA-M05b-05
+            # CA-M05b-05. També si ja era «a revisar» per un altre motiu: «Pagat» no s'hi pot triar.
+            return _review(attempt, source, str(AMOUNT_MISMATCH), code=C.AMOUNT, update=True)
         if state.status not in (base.PAID, *_CLOSED_BY):
             return _review(attempt, source, _("El proveïdor torna un estat desconegut."))
         if state.status != base.PAID:
@@ -158,25 +160,32 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
                     on_saved_card_failed(attempt, charge)  # «alternativa de pagament si falla»
             return R.PROCESSED
         late = attempt.status in LATE
+        if attempt.status == S.TO_REVIEW:
+            # Una confirmació correcta no el paga sola: el motiu ho diu i el tresorer decideix. Si
+            # abans havia arribat un import que no quadra, aquell motiu es queda.
+            if attempt.review_code == C.AMOUNT:
+                return _review(attempt, source, str(AMOUNT_MISMATCH))
+            reason = _("El proveïdor ha confirmat el cobrament: decideix si es dona per pagat.")
+            return _review(attempt, source, reason, code=C.CONFIRMED, update=True)
         if attempt.status != S.IN_PROGRESS and not late:
-            # «A revisar» o «cancel·lat»: el cobrament el revisa el tresorer (`reviews.close`).
+            # «Cancel·lat»: el cobrament el revisa el tresorer.
             reason = _("Confirmació de pagament d'un intent que ja estava tancat.")
             return _review(attempt, source, reason)
         # Mai un segon pagament: l'intent, també el tancat (097), queda «a revisar».
         if charge.status == Charge.Status.CANCELLED:
             reason = _("Pagament d'un càrrec anul·lat: cal retornar l'import.")
-            return _review(attempt, source, reason, reopen=late)
+            return _review(attempt, source, reason, reopen=late, code=C.CANCELLED_CHARGE)
         if charge.status != Charge.Status.PENDING:
             # RN-M05b-08 i CA-M05b-07: el càrrec ja s'havia pagat per una altra via.
             reason = _("Pagament duplicat: el càrrec ja no era pendent. Cal fer-ne la devolució.")
-            return _review(attempt, source, reason, reopen=late)
+            return _review(attempt, source, reason, reopen=late, code=C.DUPLICATE)
         if late and attempts.others_may_collect(attempt):
             # Un altre intent (per exemple, una domiciliació ja al banc) encara el pot cobrar.
             reason = _(
                 "Confirmació tardana amb un altre intent del càrrec en curs: no s'ha apuntat. "
                 "Cal revisar quin dels dos s'ha cobrat."
             )
-            return _review(attempt, source, reason, reopen=True)
+            return _review(attempt, source, reason, reopen=True, code=C.IN_FLIGHT)
         # 097: una confirmació tardana d'un intent fallit, caducat o abandonat també el paga.
         pay(attempt, charge, by=_system(), status=state.status, reference=state.external_id)
         return R.PROCESSED
@@ -204,18 +213,22 @@ def pay(attempt, charge, *, by, status: str, reference: str, reason: str = "") -
         members.on_fee_paid(fee.pk)
 
 
-def _review_entry(attempt, source, reason: str, reopen: bool = False) -> None:
+def _review_entry(attempt, source, reason: str, reopen=False, code="", update=False) -> None:
     if attempt is not None and (attempt.status == S.IN_PROGRESS or reopen):
-        attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
+        attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason, code=code)
+    elif attempt is not None and update and attempt.status == S.TO_REVIEW:
+        attempts.update_review(attempt, reason=reason, code=code, by=_system())
     else:
         audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
 
 
-def mark_for_review(attempt, source, reason: str, *, reopen: bool = False) -> str:
+def mark_for_review(
+    attempt, source, reason: str, *, reopen: bool = False, code: str = "", update: bool = False
+) -> str:
     """«A revisar»: l'intent en curs hi passa amb el motiu; si l'intent ja estava tancat o no
     n'hi ha, el motiu queda al registre (`TO_REVIEW`, d'on surt la llista «a revisar»), sobre la
     notificació, el càrrec o l'intent. I l'avís al tresorer."""
-    _review_entry(attempt, source, reason, reopen)
+    _review_entry(attempt, source, reason, reopen, code, update)
     _mail_review(attempt, source, reason)
     return R.TO_REVIEW
 

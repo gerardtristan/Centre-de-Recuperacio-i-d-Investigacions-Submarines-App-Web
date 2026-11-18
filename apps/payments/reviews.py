@@ -22,12 +22,13 @@ from apps.core.models import Charge
 from apps.core.permissions import has_perm
 
 from . import attempts, processing
-from .models import PaymentAttempt, ReviewClosure
+from .models import PaymentAttempt, ReviewClosure, ReviewCode
 
 VIEW = "payments.view"  # B6
 CLOSED = "payments.review_closed"
 MAX_NOTE = 500
 S = PaymentAttempt.Status
+OUTCOME = ReviewClosure.Outcome
 
 
 class NotClosable(Exception):
@@ -41,7 +42,7 @@ class PaidRefused(Exception):
 def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClosure:
     if not has_perm(by, VIEW, write=True):
         raise Http404
-    if outcome not in ReviewClosure.OUTCOMES:
+    if outcome not in ReviewClosure.OUTCOMES:  # «sense decisió» no es tria
         raise ValueError(_("Tria si s'ha pagat o ha fallat."))
     note = (note or "").strip()
     if not note:
@@ -54,13 +55,13 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
         locked = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
         if locked.status != S.TO_REVIEW:
             raise NotClosable
-        if outcome == S.PAID:
+        if outcome == OUTCOME.PAID:
             _check_paid(locked, charge, by)
         closure = ReviewClosure.objects.create(
             attempt=locked, outcome=outcome, review_reason=locked.review_reason, closed_by=by
         )
         reason = _("Decisió del tresorer (tancament %(id)s)") % {"id": closure.pk}
-        if outcome == S.PAID:
+        if outcome == OUTCOME.PAID:
             processing.pay(
                 locked,
                 charge,
@@ -95,7 +96,7 @@ def _check_paid(attempt, charge, by) -> None:
                 "proveïdor l'ha cobrat, tria «Fallit» i fes-ne la devolució."
             )
         )
-    if attempt.review_reason == str(processing.AMOUNT_MISMATCH):
+    if attempt.review_code == ReviewCode.AMOUNT:
         raise PaidRefused(
             _(
                 "L'import cobrat no és el del càrrec: no es pot donar per pagat. Tria «Fallit» "

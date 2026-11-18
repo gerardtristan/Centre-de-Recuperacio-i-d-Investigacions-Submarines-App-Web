@@ -157,6 +157,18 @@ ATTEMPT_TRANSITIONS = frozenset(
 REVERT_TRANSFER = ("paid", "cancelled")
 
 
+class ReviewCode(models.TextChoices):
+    """Per què un intent és «a revisar», com a codi (no com el text, que es tradueix; 061). Les
+    guardes de `reviews.close` el fan servir; el motiu és el text que llegeix el tresorer."""
+
+    OTHER = "", _("altre")
+    AMOUNT = "amount", _("l'import o la moneda no quadren")
+    DUPLICATE = "duplicate", _("pagament duplicat")
+    CANCELLED_CHARGE = "cancelled", _("càrrec anul·lat")
+    IN_FLIGHT = "in_flight", _("un altre intent en curs")
+    CONFIRMED = "confirmed", _("el proveïdor n'ha confirmat el cobrament")
+
+
 class PaymentAttemptQuerySet(UndeletableQuerySet):
     def update(self, **kwargs):
         """Cap canvi en bloc: l'estat canvia fila a fila, amb `attempts.transition`."""
@@ -226,6 +238,9 @@ class PaymentAttempt(UndeletableModel):
         verbose_name=_("iniciat per"),
     )
     review_reason = models.TextField(_("motiu de la revisió"), blank=True)
+    review_code = models.CharField(
+        _("codi de la revisió"), max_length=12, choices=ReviewCode.choices, blank=True
+    )
     # Bizum: els minuts que la pantalla l'espera, desats en obrir-lo (VC-17, RN-M05b-24).
     ui_timeout_minutes = models.PositiveSmallIntegerField(
         _("minuts d'espera a la pantalla"), null=True, blank=True

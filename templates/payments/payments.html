@@ -37,7 +37,7 @@
             <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
             {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
             <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
-            <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
+            <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}{% if attempt.closure_outcome == "undecided" %} <span class="text-2">{% translate "(tancat sense decisió, T-M05b-16b)" %}</span>{% endif %}</td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
             {% if can_close %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:payments_review_close' attempt.pk %}">{% translate "Tanca" %}</a></td>{% endif %}
           </tr>
@@ -158,7 +158,7 @@
           <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
           {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
           <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
-          <td data-etiqueta="{% translate 'Estat' %}">{% if attempt.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "to_review" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "failed" or attempt.status == "expired" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ attempt.get_status_display }}</span>{% else %}{{ attempt.get_status_display }}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if attempt.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "to_review" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ attempt.get_status_display }}</span>{% if attempt.closure_outcome == "undecided" %} <span class="text-2">{% translate "(tancat sense decisió)" %}</span>{% endif %}{% elif attempt.status == "failed" or attempt.status == "expired" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ attempt.get_status_display }}</span>{% else %}{{ attempt.get_status_display }}{% endif %}{% if attempt.closure_outcome == "paid" or attempt.closure_outcome == "failed" %} <span class="text-2">{% translate "(decisió del tresorer)" %}</span>{% endif %}</td>
           <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
         </tr>
       {% endwith %}{% empty %}

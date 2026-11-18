@@ -1,6 +1,7 @@
 """Decisió del tresorer sobre un intent «a revisar» (T-M05b-16c; 097, P-82 opció C): el resultat
 («pagat» o «fallit»), el motiu de l'intent en tancar-lo i més d'un tancament per intent, si torna
-«a revisar».
+«a revisar»; i el codi del motiu «a revisar» de l'intent (`review_code`), que les guardes fan servir
+en lloc del text (061). Un intent que ja hi era queda amb el codi «altre».
 
 Els tancaments que ja hi hagi (T-M05b-16b) no van triar res: queden «sense decisió» i amb el
 motiu que té ara el seu intent, que encara és «a revisar» (no s'ha pogut tornar a canviar). La
@@ -55,4 +56,23 @@ class Migration(migrations.Migration):
             preserve_default=False,
         ),
         migrations.RunSQL(COPY_REASON_SQL, migrations.RunSQL.noop),
+        migrations.AddField(
+            model_name="paymentattempt",
+            name="review_code",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("", "altre"),
+                    ("amount", "l'import o la moneda no quadren"),
+                    ("duplicate", "pagament duplicat"),
+                    ("cancelled", "càrrec anul·lat"),
+                    ("in_flight", "un altre intent en curs"),
+                    ("confirmed", "el proveïdor n'ha confirmat el cobrament"),
+                ],
+                default="",
+                max_length=12,
+                verbose_name="codi de la revisió",
+            ),
+            preserve_default=False,
+        ),
     ]

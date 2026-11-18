@@ -23,11 +23,12 @@ from procrastinate.contrib.django.models import ProcrastinateJob
 from apps.accounts.models import Account
 from apps.core import audit, business_settings, charges
 from apps.core.models import AuditEntry, Charge, Department, Payment
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member, MemberCard
 from apps.members.tests.test_cards import add_fee, make_member
-from apps.payments import attempts, checkout, processing, services
+from apps.payments import attempts, checkout, processing, reviews, services
 from apps.payments.models import PaymentAttempt as Attempt
-from apps.payments.models import ProviderEvent, Receipt
+from apps.payments.models import ProviderEvent, Receipt, ReviewCode
 from apps.payments.providers import base, fake
 from apps.treasury.models import CostCentre, Movement, TreasuryAccount
 from conftest import PASSWORD, CommittedDataTestCase, run_together
@@ -326,6 +327,32 @@ class TestToReview:
         assert run_queue() == [R.PROCESSED, R.TO_REVIEW]
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.CANCELLED)
         assert attempt.review_reason.startswith("Pagament d'un càrrec anul·lat")
+        assert not Payment.objects.exists()
+
+    def test_a_correct_confirmation_of_an_attempt_to_review_updates_the_reason(
+        self, attempt, fee, transit
+    ):
+        processing.mark_for_review(attempt, None, "La xarxa de seguretat no ha pogut (prova)")
+        notify(attempt, base.PAID)
+        assert run_queue() == [R.TO_REVIEW]
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)  # no es paga sol
+        assert attempt.review_reason.startswith("El proveïdor ha confirmat el cobrament")
+        assert attempt.review_code == ReviewCode.CONFIRMED and not Payment.objects.exists()
+
+    def test_a_wrong_amount_after_the_safety_net_gave_up_blocks_paid(
+        self,
+        attempt,
+        fee,
+        transit,
+        make_admin,  # noqa: F811
+    ):
+        processing.mark_for_review(attempt, None, "La xarxa de seguretat no ha pogut (prova)")
+        notify(attempt, base.PAID, amount_cents=5000)  # 50 € d'una quota de 90 €
+        assert run_queue() == [R.TO_REVIEW]
+        attempt.refresh_from_db()
+        assert (attempt.status, attempt.review_code) == (S.TO_REVIEW, ReviewCode.AMOUNT)
+        with pytest.raises(reviews.PaidRefused):
+            reviews.close(attempt, outcome="paid", note="Prova", by=make_admin("treasurer"))
         assert not Payment.objects.exists()
 
     def test_a_confirmation_of_an_attempt_to_review_does_not_pay_it(self, attempt, fee, transit):

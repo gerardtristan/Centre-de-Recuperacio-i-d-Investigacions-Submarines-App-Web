@@ -64,6 +64,28 @@ _CONFLICTS = {
 }
 
 
+@transaction.atomic
+def update_review(attempt: PaymentAttempt, *, reason: str, code: str, by) -> PaymentAttempt:
+    """Un intent que ja és «a revisar» rep un fet nou del proveïdor: el motiu i el codi canvien
+    (l'estat no) i queda al registre amb el valor anterior."""
+    locked = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
+    if locked.status != PaymentAttempt.Status.TO_REVIEW:
+        raise ValidationError(_("Només es canvia el motiu d'un intent «a revisar»."))
+    old = locked.review_reason
+    locked.review_reason, locked.review_code = reason.strip(), code
+    locked.save(update_fields=["review_reason", "review_code", "updated_at"])
+    audit.record(
+        "payments.attempt_review_updated",
+        actor=by,
+        target=locked,
+        field="review_reason",
+        old=old,
+        new=locked.review_reason,
+        details={"code": code},
+    )
+    return locked
+
+
 def others_may_collect(attempt: PaymentAttempt) -> bool:
     """Un altre intent del mateix càrrec encara pot cobrar-lo (en curs, al banc o «a revisar"):
     pagar aquest seria cobrar dues vegades (097; la mateixa regla que el pagament a mà)."""
@@ -116,7 +138,9 @@ def create_attempt(
 
 
 @transaction.atomic
-def transition(attempt: PaymentAttempt, new_status: str, *, by, reason: str = "") -> PaymentAttempt:
+def transition(
+    attempt: PaymentAttempt, new_status: str, *, by, reason: str = "", code: str = ""
+) -> PaymentAttempt:
     """Canvia l'estat segons RN-M05b-03 i ho deixa al registre d'activitat, dins la mateixa
     transacció. `by`: un compte o un actor del registre (`audit.system`, `audit.guest`).
     «A revisar» demana el motiu."""
@@ -130,8 +154,8 @@ def transition(attempt: PaymentAttempt, new_status: str, *, by, reason: str = ""
     if new_status == PaymentAttempt.Status.TO_REVIEW:
         if not reason.strip():
             raise ValidationError(_("Per deixar un intent «a revisar» cal un motiu."))
-        locked.review_reason = reason.strip()
-        fields.append("review_reason")
+        locked.review_reason, locked.review_code = reason.strip(), code
+        fields += ["review_reason", "review_code"]
     locked.status = new_status
     try:
         with transaction.atomic():
