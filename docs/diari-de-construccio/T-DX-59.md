@@ -23,6 +23,8 @@
 - **«Més» del panell ja surt obert** si la pàgina actual hi és, perquè es vegi on ets.
 - **Amplada del panell:** `--lateral-ample`, el de l'administració; `--lateral-soci` no existia (només `--c-lateral-soci`, un color).
 
+- **Entrada actual del panell:** un to suau de la zona (24 %) i la barra daurada, no el fons daurat ple. Amb el fons ple, en clar semblava un segon botó principal al costat del de la pàgina (D19). Revisió de la sessió de disseny.
+
 ## Problemes trobats
 - axe (fosc, 1280 px): «Soci núm. 1» amb `--c-text-2` sobre la superfície flotant feia 4,18:1, el mateix cas que la P-283. Arreglat amb la barreja en sRGB de les pestanyes.
 - Dues proves unitàries comptaven un sol «Surt» i un sol avatar a l'HTML: ara n'hi ha un per mida (el CSS en deixa veure un). S'han adaptat.

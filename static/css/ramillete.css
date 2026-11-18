@@ -117,7 +117,9 @@
 }
 .ramillete-lateral-mes .ramillete-fletxa { margin-left: auto; }
 @media (hover: hover) { .ramillete-entrades a:hover, .ramillete-lateral-mes:hover, .ramillete-qr-menu a:hover { background: var(--c-superficie-2); } }
-.ramillete-entrades a[aria-current="page"] { background: var(--c-zona-fons); color: var(--c-zona-text); font-weight: var(--p-negreta); box-shadow: inset var(--v-activa) 0 0 var(--c-zona); }
+/* Entrada actual: un to suau de la zona i la barra daurada, no el fons ple (amb el fons ple semblava
+   un segon botó principal al costat del de la pàgina, D19) */
+.ramillete-entrades a[aria-current="page"] { background: color-mix(in srgb, var(--c-zona) 24%, var(--c-superficie-flotant)); color: var(--c-text); font-weight: var(--p-negreta); box-shadow: inset var(--v-activa) 0 0 var(--c-zona); }
 /* El compte, a baix: l'avatar, el nom de pila, el número i «Surt» */
 .ramillete-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); margin-top: auto; padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); }
 .ramillete-compte .monograma { width: var(--e-7); height: var(--e-7); }
