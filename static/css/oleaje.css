@@ -28,3 +28,31 @@
   .oleaje-seccio { animation: oleaje-puja linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
 }
 @keyframes oleaje-puja { from { transform: translateY(var(--e-6)); opacity: .5; } to { transform: none; opacity: 1; } }
+
+/* Inici del soci a l'escriptori (T-DX-60; §5.1 i §6.18). Sota la portada, la quota i el carnet sobre
+   el fons de la pàgina, agrupats amb espai (D15): 7/5 a l'escriptori, dues columnes iguals a la
+   tauleta (sense tocar-se, --e-5) i l'una a sota de l'altra al mòbil. A sota, 8/4. Els llindars
+   són del cos (C8) i no de la finestra: a 1024 px amb barra de desplaçament el cos fa una mica
+   menys de 60rem, i a la tauleta mai arriba a 45rem. «div.»: la regla de comptes.css per als fills
+   del cos (gap --e-4) és més específica que una sola classe. */
+.cos-compte > div.inici-portada, .cos-compte > div.inici-graella { display: grid; gap: var(--e-6); align-items: start; }
+.inici-portada > *, .inici-graella > * { min-width: 0; }
+.inici-quota, .inici-carnet { display: grid; gap: var(--e-3); align-content: start; }
+.inici-quota .vigencia { margin: 0; }
+@container cos (min-width: 34rem) {
+  .cos-compte > div.inici-portada { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-5); }
+}
+@container cos (min-width: 56rem) {
+  .cos-compte > div.inici-portada { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-6); }
+  .cos-compte > div.inici-graella { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+}
+
+/* Franja d'estat (§6.5): plana, a tota l'amplada; «Paga ara» de --tactil-gran, a sota al mòbil i
+   a la dreta quan hi cap. */
+.franja-estat { display: grid; gap: var(--e-3); }
+.franja-estat-llista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); }
+.franja-estat-llista li { display: grid; gap: var(--e-3); align-items: center; }
+.franja-estat .boto { box-shadow: none; }
+@container cos (min-width: 34rem) {
+  .franja-estat-llista li { grid-template-columns: minmax(0, 1fr) auto; }
+}

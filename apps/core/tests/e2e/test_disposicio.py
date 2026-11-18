@@ -61,3 +61,33 @@ def test_two_columns_on_tablet_and_proportions_beside_the_sidebar(page, live_ser
     page.set_viewport_size({"width": 390, "height": 900})
     page.goto(f"{live_server.url}{reverse('administration:members_list')}")
     assert page.evaluate(GRID_JS, "graella-2")[0] == 1
+
+
+# Amplades de la columna esquerra i la dreta d'una graella (els dos primers fills).
+COLUMNS_JS = """s => [...document.querySelector(s).children].slice(0, 2)
+    .map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.left), r.width]; })"""
+
+
+def test_member_home_layout(page, live_server, builder, member):
+    """T-DX-60: la portada 7/5 i la part de baix 8/4 a l'escriptori; dues columnes iguals que no
+    es toquen a la tauleta; una a sota de l'altra al mòbil; res de costat a 320 px."""
+    base = live_server.url
+    account = builder.personal(member.person)
+    page.goto(f"{base}/entrar/")
+    page.get_by_label("Correu electrònic").fill(account.login)
+    page.get_by_label("Contrasenya").fill(builder.password)
+    page.get_by_role("button", name="Entrar").click()
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto(f"{base}/")
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
+    assert right[0] > left[0] and abs(left[1] / right[1] - 7 / 5) < 0.1, (left, right)
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-graella")
+    assert right[0] > left[0] and abs(left[1] / right[1] - 8 / 4) < 0.15, (left, right)
+    page.set_viewport_size({"width": 800, "height": 900})
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
+    assert abs(left[1] - right[1]) < 2 and right[0] - (left[0] + left[1]) >= 24, (left, right)
+    page.set_viewport_size({"width": 390, "height": 800})
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
+    assert left[0] == right[0], (left, right)  # l'una a sota de l'altra
+    page.set_viewport_size({"width": 320, "height": 800})
+    assert page.evaluate(OVERFLOW_JS) <= 0
