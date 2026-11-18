@@ -2481,7 +2481,7 @@ Llegenda com a [M01-4](#M01-4-rols). «Propi» es fa amb el compte personal; la 
 | Pas | Qui | Què passa | Pantalla |
 |---|---|---|---|
 | 1 | Soci | Escriu el nom del titular del compte i l'IBAN. Si el titular no és el soci, ho declara [A validar: junta i banc] | `/socis/pagaments/mandat` |
-| 2 | Sistema | Valida l'IBAN (format i dígits de control, RN-M05a-05) i el país (zona SEPA admesa pel banc [A verificar: banc]) | — |
+| 2 | Sistema | Valida l'IBAN (format i dígits de control, RN-M05a-05) i el país (zona SEPA admesa pel banc [A verificar: banc]). Els països admesos són l'ajust `payments.mandate_countries` (VC-54), que de bon principi és tota la zona SEPA; si el país no hi és, «El banc del club no admet IBAN d'aquest país per domiciliar.» i no es desa res. Un mandat ja signat no es torna a mirar a la remesa ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-123) | — |
 | 3 | Soci | Llegeix el text del mandat: nom i identificador de creditor del club [A verificar: banc], tipus recurrent, drets de devolució, referència que tindrà; marca «Accepto» | — |
 | 4 | Sistema | Demana la contrasenya de nou si la sessió té més de 15 minuts (RN-M05a-12) | — |
 | 5 | Sistema | Crea el mandat amb referència única (RN-M05a-03), data i hora, versió del text i compte; xifra l'IBAN; revoca el mandat anterior si n'hi havia (RN-M05a-02) | — |
@@ -6562,6 +6562,7 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **058** vol dir 
 | VC-13 | 05a | Caducitat d'un mandat sense cobraments (RN-M05a-08) | Text | Codi | 36 mesos | — | — | — | — | Es queda (regla SEPA) [A verificar: banc] |
 | VC-14 | 05a | Mètodes actius del proveïdor (`card_enabled`, `bizum_enabled`, `tokenization_enabled`) | Dada (administrador, A7) | Dada | Segons el proveïdor | — | Administrador | Sí | — | — |
 | VC-15 | 05a | `PAYMENTS_LIVE_CHARGES_ALLOWED`, `SEPA_CREDITOR_ID`, `MANDATE_ENCRYPTION_KEYS`, claus del proveïdor | Entorn | Entorn | Fals; [A verificar: banc]; secret | — | Informàtica (nivells de producció, 025) | Desplegament | — | Es queda (seguretat i secrets) |
+| VC-54 | 05a | `payments.mandate_countries`: països de l'IBAN admesos al mandat (P-M05a-B, pas 2) | — (només es validaven el format i els dígits de control) | Ajustos (text) | Tota la zona SEPA: 41 codis de país de l'IBAN [A verificar: banc] | Codis de dues lletres de la zona SEPA, sense repetir, almenys un | Tresorer ([P-386](decisions/pendents.md)) | Sí | — | [095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md) (P-123, provisional fins que el banc ho confirmi) |
 | VC-16 | 05b | `PaymentSettings`: dies del recordatori de transferència i de l'avís previ, màxim d'intents de domiciliació | Base de dades amb registre | Ajustos (pantalla) | 30; 14; 2 | 7 a 60; 14 a 30 (avís previ, segons el text del mandat [A verificar: banc]); 1 a 3 | Tresorer | Sí | — | 055 (només la pantalla) |
 | VC-17 | 05b | `PaymentSettings`: minuts d'espera de Bizum i edat de la xarxa de seguretat | Base de dades amb registre | Ajustos, només administrador | 15; 60 | 5 a 30; 30 a 240 | Administrador | Sí | — | 055 (només la pantalla) |
 | VC-18 | 05b | Qui paga la comissió de retorn (`payments.return_fee_payer`, RN-M05b-16) i carnet amb una quota retornada (RN-M05b-18) | Valors configurables | Ajustos (commutadors) | El club; no vàlid. La 058 decideix que, al segon intent, la pagui el soci (RN-M05b-26), però el valor continua sent «el club» fins que la junta i el banc ho validin i ho cobreixin els estatuts | Club o soci | Administrador, per decisió de la junta | Sí | Sí | 055 (només la pantalla); 058 |
@@ -6785,6 +6786,7 @@ Font: taula «Què pot fer cada rol» del responsable del projecte (30/10/2026),
 | A4 | Veure mètodes i mandats de tots els socis (IBAN emmascarat) | — | Cons. («té mètode: sí o no») | — | — | Sí | — | Sí | — | — | S-M05a-13 |
 | A5 | Enviar la campanya i els recordatoris | — | — | — | — | Sí | — | Sí | — | — | — |
 | A6 | Revocar un mandat a petició escrita, amb motiu | — | — | — | — | Sí | — | Sí | — | — | — |
+| AJ5b-10 | Editar els països de l'IBAN admesos al mandat (VC-54) | — | — | — | — | Sí | — | — | — | — | + Tres. ([095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md), P-123; qui l'edita, [P-386](decisions/pendents.md)) |
 | A7 | Configurar el proveïdor (les claus, per variables d'entorn) | — | — | — | — | — | — | Sí | — | — | — |
 | A8 | Rotar la clau de xifratge (amb informàtica) | — | — | — | — | — | — | Sí | — | — | — |
 | A9 | Veure l'IBAN complet | — | — | — | — | — | — | — | — | — | **Protegit** (044): ningú |
