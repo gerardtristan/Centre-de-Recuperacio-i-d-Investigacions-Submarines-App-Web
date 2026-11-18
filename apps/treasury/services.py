@@ -424,6 +424,8 @@ def _create_income(payment: Payment, charge: Charge, by, account=None) -> Moveme
     paid_on = timezone.localdate(payment.paid_at) if payment.paid_at else timezone.localdate()
     return _create_movement(
         by,
+        # Un pagament a mà (amb compte triat) no entra mai en un període tancat (RN-T30).
+        blocking=account is not None,
         account=account or _income_account(payment.method),
         direction=Movement.Direction.IN,
         amount_cents=payment.amount_cents,
@@ -465,16 +467,19 @@ def manual_payment_accounts():
 
 
 @transaction.atomic
-def record_manual_payment(charge: Charge, *, account: TreasuryAccount, reason: str, by) -> Movement:
+def record_manual_payment(
+    charge: Charge, *, account: TreasuryAccount, reason: str, by, paid_on=None
+) -> Movement:
     """P-12: tot o res, el càrrec pagat amb el pagament «manual» i el motiu
     (`charges.record_manual_payment`, que també comprova M14, el motiu, l'estat i el conflicte
     d'interès), l'ingrés del mateix import al compte triat amb el departament i el centre de cost
-    del càrrec (RN-T10), el rebut (`payments.transfers`, al desar el pagament) i, si és una quota,
+    del càrrec (RN-T10) i la data de cobrament com a data de valor (mai en un període
+    tancat), el rebut (`payments.transfers`, al desar el pagament) i, si és una quota,
     el soci (`members.on_fee_paid`: actiu i carnet). Sense M14, «no trobat». Com es corregeix un
     error és la P-333: de moment, cap camí."""
     # El permís (M14, amb el càrrec) el comprova `charges.record_manual_payment`, primer de tot;
     # el compte, després: un error de compte desfà el pagament.
-    payment = charges.record_manual_payment(charge, reason=reason, by=by)
+    payment = charges.record_manual_payment(charge, reason=reason, by=by, paid_on=paid_on)
     if account is None or not manual_payment_accounts().filter(pk=account.pk).exists():
         raise IncomeAccountUnavailable(
             _("Un pagament a mà entra a la caixa o a un compte bancari actiu.")

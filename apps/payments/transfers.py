@@ -19,7 +19,6 @@ esdeveniment aprovat. Es mou quan es respongui la P-246."""
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit
 from apps.core.models import Payment, PaymentCancellation
@@ -28,13 +27,7 @@ from . import attempts, receipts
 from .models import PaymentAttempt, Receipt, ReceiptCancellation
 
 S = PaymentAttempt.Status
-TRANSFER = PaymentAttempt.Method.TRANSFER
 RECEIPT_ON_SAVE = (Payment.Method.TRANSFER, Payment.Method.MANUAL)
-IN_FLIGHT = (S.IN_PROGRESS, S.SENT_TO_BANK)
-MANUAL_IN_FLIGHT = _(
-    "Aquest càrrec té un pagament en curs (targeta, Bizum, transferència o domiciliació): no es "
-    "pot registrar a mà fins que acabi, per no cobrar-lo dues vegades."
-)
 RECEIPT_PENDING = "payments.transfer_receipt_pending"
 RECEIPT_CANCELLED = "payments.receipt_cancelled"
 
@@ -48,9 +41,8 @@ def on_payment_saved(sender, instance: Payment, created: bool, **kwargs) -> None
         return
     method = instance.method
     manual = method == Payment.Method.MANUAL
-    in_flight = PaymentAttempt.objects.filter(charge=instance.charge, status__in=IN_FLIGHT)
-    if manual and in_flight.exists():
-        raise ValidationError(MANUAL_IN_FLIGHT)
+    if manual:  # la 00 ja ho ha comprovat; aquí, per si de cas, dins la mateixa transacció
+        attempts.ensure_manual_payment_allowed(instance.charge)
     charge = instance.charge  # encara «pendent»: `record_payment` el passa a pagat després
     by = audit.system("payments")
     attempt = PaymentAttempt.objects.filter(charge=charge, method=method, status=S.IN_PROGRESS)
@@ -61,9 +53,13 @@ def on_payment_saved(sender, instance: Payment, created: bool, **kwargs) -> None
                 attempt = attempts.create_attempt(charge, method)
                 attempt = attempts.transition(attempt, S.IN_PROGRESS, by=by)
             attempt = attempts.transition(attempt, S.PAID, by=by)
+    except (attempts.AttemptAlreadyPaid, attempts.ChargeNotPayable):
+        if manual:
+            raise ValidationError(attempts.MANUAL_ALREADY_PAID) from None
+        raise
     except attempts.AttemptInProgress:
         if manual:
-            raise ValidationError(MANUAL_IN_FLIGHT) from None
+            raise ValidationError(attempts.MANUAL_IN_FLIGHT) from None
         # P-137 (opció per defecte): una targeta o un Bizum encara en curs ocupa l'únic lloc del
         # càrrec. El càrrec queda pagat igualment; el rebut, no, i el tresorer ho veu al registre.
         reason = "P-137: pagament confirmat amb un altre intent en curs; sense rebut"

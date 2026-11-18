@@ -7,6 +7,7 @@ el mandat."""
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import audit, business_settings
 from apps.core.models import Charge
@@ -20,6 +21,20 @@ SCREEN_METHODS = frozenset(
     {PaymentAttempt.Method.CARD, PaymentAttempt.Method.BIZUM, PaymentAttempt.Method.TRANSFER}
 )
 ENABLED_METHODS = SCREEN_METHODS | {PaymentAttempt.Method.SAVED_CARD, PaymentAttempt.Method.MANUAL}
+
+_S = PaymentAttempt.Status
+# En curs: encara pot acabar cobrat i el càrrec no admet cap altre intent ni cap remesa.
+IN_FLIGHT = (_S.IN_PROGRESS, _S.SENT_TO_BANK)
+# A més dels en curs, els «a revisar» (una targeta o un Bizum sense resposta clara): potser ja
+# s'han cobrat. Cap pagament a mà no hi conviu (P-12).
+MAY_BE_CHARGED = (*IN_FLIGHT, _S.TO_REVIEW)
+MANUAL_IN_FLIGHT = gettext_lazy(
+    "Aquest càrrec té un pagament en curs o per revisar (targeta, Bizum, transferència o "
+    "domiciliació): no es pot registrar a mà fins que es resolgui, per no cobrar-lo dues vegades."
+)
+MANUAL_ALREADY_PAID = gettext_lazy(
+    "Aquest càrrec ja té un pagament confirmat: no se'n pot registrar un altre a mà."
+)
 
 
 class MethodNotAllowed(Exception):
@@ -50,6 +65,17 @@ _CONFLICTS = {
 
 
 @transaction.atomic
+def ensure_manual_payment_allowed(charge: Charge) -> None:
+    """Guarda del pagament a mà (P-12), que la 00 crida abans de crear-lo
+    (`charges.register_manual_payment_guard`): cap intent que potser ja hagi cobrat el càrrec
+    ni cap intent pagat."""
+    states = PaymentAttempt.objects.filter(charge=charge).values_list("status", flat=True)
+    if any(status in MAY_BE_CHARGED for status in states):
+        raise ValidationError(MANUAL_IN_FLIGHT)
+    if _S.PAID in states:
+        raise ValidationError(MANUAL_ALREADY_PAID)
+
+
 def create_attempt(
     charge: Charge, method: str, *, started_by=None, guest_link=None
 ) -> PaymentAttempt:

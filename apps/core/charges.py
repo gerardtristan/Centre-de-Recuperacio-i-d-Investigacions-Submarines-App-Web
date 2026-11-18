@@ -11,6 +11,7 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
   `revert_paid_transfer`.
 """
 
+from datetime import datetime, time
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -238,13 +239,26 @@ def record_payment(
     return payment
 
 
+_MANUAL_PAYMENT_GUARDS = []
+
+
+def register_manual_payment_guard(guard):
+    """Els mòduls hi registren una comprovació del càrrec (bloquejat) abans d'un pagament a mà;
+    `guard(charge)` llança un `ValidationError` per rebutjar-lo. El 05b hi posa els intents en
+    curs o pagats (`payments.attempts.ensure_manual_payment_allowed`)."""
+    if guard not in _MANUAL_PAYMENT_GUARDS:
+        _MANUAL_PAYMENT_GUARDS.append(guard)
+    return guard
+
+
 @transaction.atomic
-def record_manual_payment(charge: Charge, *, reason: str, by) -> Payment:
+def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> Payment:
     """P-12 (RN-72; 072, Q-037 i Q-038): pendent → pagat per un pagament en efectiu o presencial
     que es registra a mà. Import sencer del càrrec, mètode «manual», motiu obligatori i qui ho fa,
     al pagament i al registre; tot o res. Només amb M14; sense, «no trobat». Ningú no registra el
-    pagament d'un càrrec seu. L'ingrés a la tresoreria i el soci són de qui crida
-    (`treasury.services.record_manual_payment`)."""
+    pagament d'un càrrec seu, ni amb una guarda registrada en contra (un altre intent en curs).
+    `paid_on`: la data de cobrament, avui per defecte i mai futura. L'ingrés a la tresoreria i el
+    soci són de qui crida (`treasury.services.record_manual_payment`)."""
     if charge is None or not has_perm(by, MANUAL_PAYMENT, charge, write=True):
         raise Http404
     if not reason.strip():
@@ -254,11 +268,21 @@ def record_manual_payment(charge: Charge, *, reason: str, by) -> Payment:
         raise ValidationError(_("Ningú no pot registrar el pagament d'un càrrec seu."))
     if locked.status != S.PENDING:
         raise ValidationError(_("Només es registra a mà el pagament d'un càrrec pendent."))
+    today = timezone.localdate()
+    paid_on = paid_on or today
+    if paid_on > today:
+        raise ValidationError(_("La data de cobrament no pot ser futura."))
+    for guard in _MANUAL_PAYMENT_GUARDS:
+        guard(locked)
     payment = Payment.objects.create(
         charge=locked,
         method=Payment.Method.MANUAL,
         amount_cents=locked.amount_cents,
-        paid_at=timezone.now(),
+        paid_at=(
+            timezone.now()
+            if paid_on == today
+            else timezone.make_aware(datetime.combine(paid_on, time.min))
+        ),
         recorded_by=by,
         reason=reason.strip(),
     )

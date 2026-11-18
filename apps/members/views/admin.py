@@ -386,6 +386,18 @@ def member_detail_view(request, pk):
             else []
         ),
     }
+    for row in context["fee_rows"]:  # M14 amb el càrrec (nivell d'objecte)
+        row["can_pay"] = (
+            context["can_record_payment"]
+            and row["open"]
+            and has_perm(
+                request.user,
+                charges.MANUAL_PAYMENT,
+                row["fee"].charge,
+                write=True,
+                permissions=perms,
+            )
+        )
     return render(request, "members/member_detail.html", context)
 
 

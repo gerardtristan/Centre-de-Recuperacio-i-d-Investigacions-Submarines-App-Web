@@ -5,15 +5,25 @@ o res: el càrrec pagat amb el pagament «manual», l'ingrés al compte triat (c
 rebut, el soci actiu amb carnet i el registre d'activitat. Només dades inventades."""
 
 import re
+from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
 from django.http import Http404
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.core import audit, charges, permissions
-from apps.core.models import AuditEntry, Charge, OutgoingEmail, Payment, RolePermission
+from apps.core.models import (
+    AuditEntry,
+    Charge,
+    Department,
+    OutgoingEmail,
+    Payment,
+    RolePermission,
+)
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import cards, fees
 from apps.members import services as members
@@ -22,6 +32,7 @@ from apps.members.models import Member
 from apps.members.tests.test_roster import admin_client, make_member
 from apps.payments import attempts
 from apps.payments.models import PaymentAttempt, Receipt, ReceiptCancellation
+from apps.payments.transfers import on_payment_saved
 from apps.treasury import services
 from apps.treasury.models import Movement, TreasuryAccount
 from conftest import PASSWORD
@@ -74,15 +85,33 @@ def snapshot():
     )
 
 
-def review(client, url, account, reason=REASON):
+def review(client, url, account, reason=REASON, paid_on=None):
     """El primer pas: torna la resposta i el testimoni signat del que s'ha mostrat."""
-    response = client.post(url, {"account": account.pk, "reason": reason})
+    paid_on = paid_on or timezone.localdate()
+    data = {"account": account.pk, "reason": reason, "paid_on": paid_on.isoformat()}
+    response = client.post(url, data)
     token = re.search(r'name="token" value="([^"]+)"', response.content.decode())
     return response, token.group(1) if token else None
 
 
-def record(fee, by, account, reason=REASON):
-    return services.record_manual_payment(fee.charge, account=account, reason=reason, by=by)
+def record(fee, by, account, reason=REASON, **kwargs):
+    return services.record_manual_payment(
+        fee.charge, account=account, reason=reason, by=by, **kwargs
+    )
+
+
+def in_flight(fee, method, status):
+    """Un intent del càrrec en aquest estat (una domiciliació l'obre el sistema a la remesa)."""
+    attempt = PaymentAttempt.objects.create(
+        charge=fee.charge, method=method, amount_cents=fee.charge.amount_cents
+    )
+    system = audit.system("proves")
+    if status == "to_review":
+        attempts.transition(attempt, "in_progress", by=system)
+        attempts.transition(attempt, status, by=system, reason="Resposta dubtosa (prova)")
+    else:
+        attempts.transition(attempt, status, by=system)
+    return attempt
 
 
 class TestService:
@@ -211,19 +240,61 @@ class TestService:
             ("bizum", "in_progress"),
             ("transfer", "in_progress"),
             ("direct_debit", "sent_to_bank"),
+            ("card", "to_review"),  # potser cobrat: el proveïdor no ha donat una resposta clara
+            ("bizum", "to_review"),
         ],
     )
     def test_no_double_charge_with_an_attempt_in_progress(
         self, fee, treasurer, cash, method, status
     ):
-        # Una domiciliació l'obre el sistema a la remesa; aquí, directament.
-        attempt = PaymentAttempt.objects.create(
-            charge=fee.charge, method=method, amount_cents=fee.charge.amount_cents
-        )
-        attempts.transition(attempt, status, by=audit.system("proves"))
+        in_flight(fee, method, status)
         before = snapshot()
         with pytest.raises(ValidationError, match="pagament en curs"):
             record(fee, treasurer, cash)
+        assert snapshot() == before
+
+    def test_the_core_service_itself_refuses_without_the_receipt_hook(self, fee, treasurer):
+        in_flight(fee, "card", "in_progress")
+        post_save.disconnect(sender=Payment, dispatch_uid="payments.transfer_paid")
+        try:
+            with pytest.raises(ValidationError, match="pagament en curs"):
+                charges.record_manual_payment(fee.charge, reason=REASON, by=treasurer)
+        finally:
+            post_save.connect(
+                on_payment_saved, sender=Payment, dispatch_uid="payments.transfer_paid"
+            )
+        assert not Payment.objects.exists()
+
+    def test_an_attempt_already_paid_is_a_message_not_an_error(self, fee, treasurer, cash):
+        # Un intent pagat d'un càrrec que torna a ser pendent (p. ex., retornat i reobert).
+        in_flight(fee, "card", "in_progress")
+        attempts.transition(PaymentAttempt.objects.get(), "paid", by=audit.system("proves"))
+        before = snapshot()
+        with pytest.raises(ValidationError, match="ja té un pagament confirmat"):
+            record(fee, treasurer, cash)
+        assert snapshot() == before
+
+    def test_the_date_of_receipt_sets_the_payment_and_the_value_date(self, fee, treasurer, cash):
+        yesterday = timezone.localdate() - timedelta(days=1)
+        movement = record(fee, treasurer, cash, paid_on=yesterday)
+        assert timezone.localdate(movement.payment.paid_at) == yesterday
+        assert movement.value_date == yesterday
+
+    def test_the_date_of_receipt_is_never_in_the_future(self, fee, treasurer, cash):
+        before = snapshot()
+        with pytest.raises(ValidationError, match="futur"):
+            record(fee, treasurer, cash, paid_on=timezone.localdate() + timedelta(days=1))
+        assert snapshot() == before
+
+    def test_the_date_of_receipt_is_never_in_a_closed_period(
+        self, fee, treasurer, cash, monkeypatch
+    ):
+        last_week = timezone.localdate() - timedelta(days=7)
+        monkeypatch.setattr(services, "_GUARDS", [])
+        services.register_movement_guard(lambda: last_week)
+        before = snapshot()
+        with pytest.raises(services.PeriodClosed):
+            record(fee, treasurer, cash, paid_on=last_week)
         assert snapshot() == before
 
     def test_if_the_receipt_cannot_be_issued_nothing_is_saved(
@@ -334,6 +405,57 @@ class TestScreen:
         _, token = review(client, url, cash)
         assert "pagament en curs" in client.post(url, {"token": token}).content.decode()
         assert not Payment.objects.exists()
+
+    def test_the_second_step_keeps_the_date_that_was_shown(self, fee, treasurer, cash):
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        two_days = timezone.localdate() - timedelta(days=2)
+        _, token = review(client, url, cash, paid_on=two_days)
+        client.post(url, {"token": token, "paid_on": timezone.localdate().isoformat()})
+        assert timezone.localdate(Payment.objects.get().paid_at) == two_days
+
+    def test_the_form_refuses_a_future_date(self, fee, treasurer, cash):
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        response, token = review(client, url, cash, paid_on=timezone.localdate() + timedelta(1))
+        assert token is None and "futur" in response.content.decode()
+
+    def test_an_attempt_already_paid_shows_a_message(self, fee, treasurer, cash):
+        in_flight(fee, "card", "in_progress")
+        attempts.transition(PaymentAttempt.objects.get(), "paid", by=audit.system("proves"))
+        client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])
+        _, token = review(client, url, cash)
+        response = client.post(url, {"token": token})
+        assert response.status_code == 200
+        assert "ja té un pagament confirmat" in response.content.decode()
+
+    def test_p10_only_for_a_fee(self, fee, treasurer, cash):
+        RolePermission.objects.filter(
+            role__code="treasurer", permission_code="members.fees.view"
+        ).delete()
+        courses = Department.objects.create(name="Cursos (prova)")
+        other = charges.create_charge(
+            fee.member.person,
+            kind=Charge.Kind.ENROLMENT,
+            amount_cents=4500,
+            concept="Inscripció (prova)",
+            origin="activities",
+            by=audit.system("proves"),
+            department=courses,
+        )
+        assert admin_client(treasurer).get(reverse(URL, args=[other.pk])).status_code == 200
+
+    def test_the_member_detail_checks_m14_with_each_charge(self, fee, treasurer, monkeypatch):
+        from apps.members.views import admin as member_views
+
+        seen = []
+        real = member_views.has_perm
+
+        def spy(account, code, obj=None, **kwargs):
+            seen.append((code, obj))
+            return real(account, code, obj, **kwargs)
+
+        monkeypatch.setattr(member_views, "has_perm", spy)
+        admin_client(treasurer).get(reverse("administration:member_detail", args=[fee.member_id]))
+        assert (charges.MANUAL_PAYMENT, fee.charge) in seen
 
     def test_without_a_reason_the_form_says_so(self, fee, treasurer, cash):
         client, url = admin_client(treasurer), reverse(URL, args=[fee.charge_id])

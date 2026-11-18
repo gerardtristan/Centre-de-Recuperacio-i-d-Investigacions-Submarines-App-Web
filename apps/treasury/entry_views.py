@@ -18,6 +18,7 @@ pantalles de tresoreria que ja hi ha.
   camps del formulari. S'hi arriba des de la fitxa del soci i hi torna.
 """
 
+from datetime import date
 from decimal import Decimal
 
 from django import forms
@@ -130,6 +131,13 @@ class ManualPaymentForm(forms.Form):
         help_text=_("Queda al pagament i al registre d'activitat. No hi escriguis dades de salut."),
         error_messages={"required": _("Cal el motiu.")},
     )
+    paid_on = _date(_("Data de cobrament"))
+
+    def clean_paid_on(self):
+        paid_on = self.cleaned_data["paid_on"]
+        if paid_on > timezone.localdate():
+            raise ValidationError(_("La data de cobrament no pot ser futura."))
+        return paid_on
 
 
 def _two_steps(request, form, template, extra, act, done):
@@ -288,19 +296,24 @@ def _token_salt(request, charge) -> str:
 @permission_required(charges.MANUAL_PAYMENT, write=True)
 @require_http_methods(["GET", "POST"])
 def manual_payment_view(request, charge_id):
-    """P-12: registrar a mà el pagament d'un càrrec pendent. També demana veure les quotes (P10),
-    com l'enllaç de la fitxa. El servei torna a comprovar el permís amb el càrrec, el compte, el
-    motiu, l'estat, el pagament en curs i que el càrrec no sigui de qui el registra."""
-    require_perm(request, FEES)
+    """P-12: registrar a mà el pagament d'un càrrec pendent. Si és una quota, també demana veure
+    les quotes (P10), com l'enllaç de la fitxa. El servei torna a comprovar el permís amb el
+    càrrec, el compte, el motiu, la data, l'estat, el pagament en curs i que el càrrec no sigui de
+    qui el registra."""
     charge = get_object_or_404(Charge.objects.select_related("person"), pk=charge_id)
     fee = getattr(charge, "annual_fee", None)
+    if fee is not None:
+        require_perm(request, FEES)
     back = (
         reverse("administration:member_detail", args=[fee.member_id])
         if fee is not None
         else reverse("administration:treasury_movements")
     )
     token = request.POST.get("token")
-    form = ManualPaymentForm(None if token else (request.POST or None))
+    form = ManualPaymentForm(
+        None if token else (request.POST or None),
+        initial={"paid_on": timezone.localdate()},
+    )
     confirmed = None  # el compte i el motiu que s'han mostrat al segon pas
     errors = []  # del segon pas: el formulari ja no hi és lligat
     if token:
@@ -308,7 +321,11 @@ def manual_payment_view(request, charge_id):
             data = signing.loads(token, salt=_token_salt(request, charge), max_age=CONFIRM_MAX_AGE)
             account = services.manual_payment_accounts().get(pk=data["account"])
             services.record_manual_payment(
-                charge, account=account, reason=data["reason"], by=request.user
+                charge,
+                account=account,
+                reason=data["reason"],
+                paid_on=date.fromisoformat(data["paid_on"]),
+                by=request.user,
             )
         except (signing.BadSignature, TreasuryAccount.DoesNotExist):
             errors = [_("Torna a revisar el pagament: la confirmació no és vàlida.")]
@@ -320,7 +337,11 @@ def manual_payment_view(request, charge_id):
     elif request.method == "POST" and form.is_valid():
         confirmed = form.cleaned_data
         token = signing.dumps(
-            {"account": confirmed["account"].pk, "reason": confirmed["reason"]},
+            {
+                "account": confirmed["account"].pk,
+                "reason": confirmed["reason"],
+                "paid_on": confirmed["paid_on"].isoformat(),
+            },
             salt=_token_salt(request, charge),
         )
     context = {

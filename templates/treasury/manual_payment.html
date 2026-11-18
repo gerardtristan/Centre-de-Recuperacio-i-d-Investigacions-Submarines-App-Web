@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# P-12 (RN-72 de la 00; 072, Q-037 i Q-038): registrar a mà el pagament d'un càrrec pendent, en efectiu o presencial. Sense wireframe propi: segueix les pantalles de tresoreria de dos passos. Seguretat: M14 amb edició i P10 al servidor (sense, «no trobat»), POST amb CSRF, motiu obligatori i dos passos: el primer mostra l'import, qui paga, el compte i el motiu, i el segon registra exactament això (testimoni signat; el compte i el motiu ja no s'hi poden canviar). El servei ho torna a comprovar tot (permís amb el càrrec, compte, motiu, estat, pagament en curs i conflicte d'interès): amagar el formulari no és cap control. Només el nom i el número del soci; cap altra dada personal. #}
+{# P-12 (RN-72 de la 00; 072, Q-037 i Q-038): registrar a mà el pagament d'un càrrec pendent, en efectiu o presencial. Sense wireframe propi: segueix les pantalles de tresoreria de dos passos. Seguretat: M14 amb edició i P10 al servidor (sense, «no trobat»), POST amb CSRF, motiu obligatori i dos passos: el primer mostra l'import, qui paga, el compte, la data de cobrament (mai futura) i el motiu, i el segon registra exactament això (testimoni signat; el compte i el motiu ja no s'hi poden canviar). El servei ho torna a comprovar tot (permís amb el càrrec, compte, motiu, estat, pagament en curs i conflicte d'interès): amagar el formulari no és cap control. Només el nom i el número del soci; cap altra dada personal. #}
 {% block title %}{% translate "Registra un pagament a mà" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
@@ -26,6 +26,7 @@
         <input type="hidden" name="token" value="{{ token }}">
         <dl class="dades-soci">
           <div><dt>{% translate "Compte on entra" %}</dt><dd>{{ confirmed.account.name }}</dd></div>
+          <div><dt>{% translate "Data de cobrament" %}</dt><dd>{{ confirmed.paid_on|date:"d/m/Y" }}</dd></div>
           <div><dt>{% translate "Motiu" %}</dt><dd>{{ confirmed.reason }}</dd></div>
         </dl>
         <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el pagament" %}</strong>{% blocktranslate with person=charge.person account=confirmed.account.name %}Es registraran {{ amount }} pagats per {{ person }}, que entraran a «{{ account }}». Queda al registre d'activitat amb el motiu.{% endblocktranslate %}</div>

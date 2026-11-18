@@ -41,7 +41,7 @@
                 {% if can_exempt or can_record_payment %}
                   <td class="cel-accions">
                     {% if row.open %}
-                      {% if can_record_payment %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
+                      {% if row.can_pay %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
                       {% if can_exempt %}
                         {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
                         <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>

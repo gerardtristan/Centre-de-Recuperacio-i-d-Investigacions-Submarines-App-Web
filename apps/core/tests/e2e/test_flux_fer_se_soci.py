@@ -81,6 +81,8 @@ def register_manual_payment(page, shoot):
     page.get_by_role("link", name=re.compile("Registra un pagament a mà")).click()
     expect(page.get_by_role("heading", name="Registra un pagament a mà")).to_be_visible()
     page.get_by_label("Compte on entra").select_option(label="Caixa")
+    # La data de cobrament surt amb la d'avui.
+    expect(page.get_by_label("Data de cobrament")).to_have_value(timezone.localdate().isoformat())
     page.get_by_label("Motiu").fill(REASON)
     page.get_by_role("button", name="Revisa el pagament").click()
     expect(page.get_by_text("Confirma el pagament")).to_be_visible()
@@ -198,7 +200,7 @@ def join_flow(page, base_url, builder, secretary, other, shoot):
     assert payment.amount_cents == full.annual_fee_cents
 
     # 5. Tresoreria: el soci és actiu, la quota és pagada fins d'aquí a 12 mesos i té carnet.
-    paid_on = day(Payment.objects.get(charge=fee.charge).paid_at)
+    paid_on = day(payment.paid_at)
     until = validity.twelve_months_after(paid_on)
     page.goto(f"{base_url}/{ADMIN}/socis/{member.pk}/")
     expect(detail(page, "Estat del soci")).to_contain_text("Actiu")
