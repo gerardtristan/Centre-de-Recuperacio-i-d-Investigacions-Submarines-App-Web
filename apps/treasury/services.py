@@ -49,7 +49,7 @@ from apps.core.permissions import has_perm
 from apps.members import services as members
 
 from .balances import balance
-from .models import CashCount, CostCentre, Movement, TreasuryAccount
+from .models import CashCount, CostCentre, Movement, ProviderSettlement, TreasuryAccount
 from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04-10)
 
 INCOME_RECORDED = "treasury.income_recorded"
@@ -531,7 +531,8 @@ def reverse(
     contramoviment mirall (mateix compte, import, departament i centre de cost; sentit contrari;
     enllaçat amb `reverses`) amb data d'avui (RN-T29). L'original no es toca i es mostra anul·lat.
     `origin`: «manual» (una persona amb T5, des de la pantalla o el 09) o «reconciliation»
-    (`reconciliation.undo`, que ja ha comprovat T4 i només hi passa ingressos de cobrament).
+    (`reconciliation.undo`, que ja ha comprovat T4 i només hi passa ingressos de cobrament i les
+    potes del traspàs d'una liquidació).
     `value_date` (avui, si no se'n dona cap): la manual dins un període tancat es rebutja
     (`PeriodClosed`, RN-T30); la de la conciliació hi entra pel període obert (RN-T31)."""
     if origin not in (MANUAL, RECONCILIATION):
@@ -546,8 +547,14 @@ def reverse(
         raise AlreadyReversed(_("Aquest moviment ja està anul·lat."))
     if origin == MANUAL:
         _ensure_manually_reversible(movement)
-    elif movement.kind != Movement.Kind.INCOME:
-        raise NotReversible(_("Desfer una conciliació només anul·la ingressos de cobrament."))
+    elif movement.kind != Movement.Kind.INCOME and not (
+        movement.kind == Movement.Kind.TRANSFER  # T-M04-13b: el traspàs d'una liquidació
+        and movement.settlement_id
+        and movement.settlement.source != ProviderSettlement.Source.REMITTANCE
+    ):
+        raise NotReversible(
+            _("Desfer una conciliació només anul·la ingressos i traspassos de liquidació.")
+        )
     try:
         with transaction.atomic():
             reversal = _create_movement(

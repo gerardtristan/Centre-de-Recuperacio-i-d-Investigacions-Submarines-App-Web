@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). #}
+{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). Una línia amb una liquidació del proveïdor (T-M04-13b) en mostra el proveïdor, l'identificador i el net, i «Revisa i confirma…» porta al pas de revisió. #}
 {% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -39,7 +39,9 @@
               {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.state.get_status_display }}</span>{% endif %}
             </td>
             <td data-etiqueta="{% translate 'Càrrecs' %}">
-              {% if row.charges %}
+              {% if row.state.proposed_settlement %}
+                {% with settlement=row.state.proposed_settlement %}<span>{% translate "Liquidació" %} <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></span>{% endwith %}
+              {% elif row.charges %}
                 <ul>
                   {% for item in row.charges %}<li>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></li>{% endfor %}
                 </ul>
@@ -47,11 +49,14 @@
             </td>
             {% if can_reconcile %}
               <td data-etiqueta="{% translate 'Acció' %}">
-                {% if row.state.status == "proposed" %}
+                {% if row.state.status == "proposed" and row.state.proposed_settlement %}
+                  <a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i confirma…" %}</a>
+                {% elif row.state.status == "proposed" %}
                   <form method="post" action="{% url 'administration:treasury_confirm_line' row.line.pk %}">
                     {% csrf_token %}
                     <button class="boto boto-petit" type="submit">{% translate "Confirma" %}</button>
                   </form>
+                {% elif row.reconciliation.settlement.source == "remittance" %}—
                 {% elif row.reconciliation %}
                   <details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Desfés…" %}</summary>
@@ -60,7 +65,7 @@
                       <div class="camp">
                         <label for="desfes-{{ row.line.pk }}">{% translate "Motiu per desfer-la" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="desfes-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}</p>
+                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
                     </form>

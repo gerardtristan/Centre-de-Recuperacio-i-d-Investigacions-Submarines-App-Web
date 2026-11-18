@@ -456,6 +456,10 @@ class StatementLineState(UndeletableModel):
         UNKNOWN_REFERENCE = "unknown_reference", _("La referència no és de cap càrrec")
         REPEATED_REFERENCE = "repeated_reference", _("El càrrec ja és en una altra proposta")
         AMOUNT_ONLY = "amount_only", _("Sense referència: un sol càrrec pendent amb aquest import")
+        SETTLEMENT_AMBIGUOUS = (
+            "settlement_ambiguous",
+            _("Més d'una liquidació o línia amb aquest import: cal triar-la"),
+        )
 
     # L'estat no és cap conciliació: no bloqueja desfer l'extracte (V-06; només ho fa una
     # `Reconciliation` vigent, `reconciliation.has_live_reconciliations`).
@@ -475,6 +479,15 @@ class StatementLineState(UndeletableModel):
     # porta les referències i la suma és exacta (LT5).
     proposed_charges = models.ManyToManyField(
         Charge, blank=True, related_name="+", verbose_name=_("càrrecs proposats")
+    )
+    # O la liquidació del proveïdor pel net (T-M04-13b; P-M04-F pas 2), mai totes dues coses.
+    proposed_settlement = models.ForeignKey(
+        "ProviderSettlement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("liquidació proposada"),
     )
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -502,7 +515,7 @@ class Reconciliation(AppendOnlyModel):
     """Conciliació confirmada pel tresorer (M04-6; RN-T16, RN-T17): una línia de l'extracte
     casada amb un o més càrrecs. Només INSERT, també a la base de dades (migració 0010). La crea
     `reconciliation.confirm` (T-M04-12); desfer-la és una fila nova (`ReconciliationUndo`, 045).
-    Els moviments i la liquidació (`matched_movements`, `settlement`) arriben amb la seva tasca."""
+    `settlement`: la liquidació casada pel net (T-M04-13b; `settlements.confirm`)."""
 
     # Una conciliació vigent (sense desfeta) bloqueja desfer l'extracte (V-06): la 04 ho respon
     # al senyal `bank_statement.reconciled_lines` (`reconciliation.has_live_reconciliations`).
@@ -514,6 +527,14 @@ class Reconciliation(AppendOnlyModel):
     )
     matched_charges = models.ManyToManyField(
         Charge, related_name="+", verbose_name=_("càrrecs casats")
+    )
+    settlement = models.ForeignKey(
+        "ProviderSettlement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="reconciliations",
+        verbose_name=_("liquidació"),
     )
     confirmed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

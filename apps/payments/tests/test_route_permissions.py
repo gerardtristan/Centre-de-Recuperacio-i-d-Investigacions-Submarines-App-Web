@@ -64,6 +64,7 @@ ADMIN_ROUTES = {
     # P10, a més, si el càrrec és una quota (test_manual_payment).
     "administration:treasury_manual_payment": {"GET": {w(M14)}, "POST": {w(M14)}},
     "administration:treasury_settlement_confirm": {"GET": {w(T4)}, "POST": {w(T4)}},
+    "administration:treasury_confirm_settlement_line": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:payments_list": {"GET": {r(B6)}},
     "administration:payments_mandates": {"GET": {r(A4)}},
     "administration:payments_mandate_revoke": {"GET": {w(A6)}, "POST": {w(A6)}},
@@ -192,6 +193,7 @@ SERVICE_CHECKS = {
         lambda by: services.record_manual_payment(None, account=None, reason="x", by=by),
     ),
     settlements.confirm: (T4, lambda by: settlements.confirm(None, by=by)),
+    settlements.confirm_line: (T4, lambda by: settlements.confirm_line(None, 0, by=by)),
     reconciliation.confirm: (T4, lambda by: reconciliation.confirm(None, by=by)),
     reconciliation.undo: (T4, lambda by: reconciliation.undo(None, reason="x", by=by)),
     reconciliation.exclude: (T4, lambda by: reconciliation.exclude(None, reason="x", by=by)),

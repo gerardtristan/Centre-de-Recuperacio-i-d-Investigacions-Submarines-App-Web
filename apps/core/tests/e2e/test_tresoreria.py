@@ -4,6 +4,8 @@ veu el saldo del trànsit i els moviments, i filtra per compte. Pantalles a 1280
 (clar i fosc). Només dades inventades.
 """
 
+from dataclasses import replace
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,7 @@ from apps.core.models import Person
 from apps.treasury.references import transfer_reference
 from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import new_transit, paid, record
+from apps.treasury.tests.test_settlements import collected, data, record_it
 
 from .conftest import login_admin, make_admin
 
@@ -186,3 +189,38 @@ def test_treasurer_matches_a_line_by_hand(page, live_server, transactional_db, r
     expect(page.get_by_role("status")).to_contain_text("Línia casada")
     expect(page.get_by_role("row", name="02/11/2026")).to_contain_text("Conciliada")
     review("casa-a-ma-conciliada")
+
+
+def test_treasurer_reconciles_a_provider_settlement(page, live_server, transactional_db, review):
+    """T-M04-13b (P-M04-F, passos 2 a 4): la línia del banc pel net d'una liquidació rebuda surt
+    proposada amb la liquidació; el tresorer en revisa les comissions, la confirma i la desfà amb
+    el motiu, i es torna a proposar."""
+    new_transit()
+    person = Person.objects.create(first_name="Pere", last_name="Prova Inventat", origin="web")
+    collected(person, 9000, "REF-A")
+    collected(person, 3500, "REF-B")
+    record_it(replace(data(), settled_on=date(2026, 11, 1)))
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    lines(treasurer, (12380, "ABONAMENT PROVEIDOR LIQ-001"))
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
+    row = page.get_by_role("row", name="02/11/2026")
+    expect(row).to_contain_text("Proposada")
+    expect(row).to_contain_text("LIQ-001")
+    review("conciliacio-liquidacio-proposada")
+
+    row.get_by_role("link", name="Revisa i confirma…").click()
+    expect(page.get_by_role("heading", name="Confirma la liquidació")).to_be_visible()
+    expect(page.get_by_role("row", name="REF-A")).to_contain_text("0,87 €")
+    review("conciliacio-liquidacio-confirma")
+    page.get_by_role("button", name="Sí, confirma-la").click()
+    expect(page.get_by_role("status")).to_contain_text("Liquidació conciliada")
+    expect(row).to_contain_text("Conciliada")
+
+    row.get_by_text("Desfés…").click()
+    row.get_by_label("Motiu per desfer-la").fill("Casada amb una altra liquidació (prova)")
+    row.get_by_role("button", name="Desfés la conciliació").click()
+    expect(page.get_by_role("status")).to_contain_text("la liquidació torna a «rebuda»")
+    # La mateixa parella no es torna a proposar (revisió de la #212, punt 8).
+    expect(row).to_contain_text("Pendent")

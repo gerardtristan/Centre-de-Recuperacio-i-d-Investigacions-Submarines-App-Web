@@ -5,8 +5,8 @@ cada cobrament (CA-T04.4); `confirm` apunta comissions i traspàs en casar el ne
 format real és [A verificar: P-45 punt 9]: `SettlementData` és la forma de la 04, i l'adaptador
 de cada proveïdor (092) hi tradueix el seu. Una remesa SEPA (RN-T24, CA-T16.1) és una
 liquidació del trànsit «Remeses SEPA» que el 05b registra i confirma amb la línia de l'abonament
-(`confirm(..., statement_line=...)`). Proposar la línia del banc per a les liquidacions del
-proveïdor (T-M04-11/12) és d'un tall següent.
+(`confirm(..., statement_line=...)`). La línia del banc pel net d'una liquidació del proveïdor
+la proposa `reconciliation.refresh` i el tresorer la confirma amb `confirm_line` (T-M04-13b).
 """
 
 from dataclasses import dataclass
@@ -137,6 +137,17 @@ def confirm(settlement: ProviderSettlement, *, by, statement_line=None) -> Provi
     mateix import que el net), la línia queda conciliada amb els càrrecs de la liquidació."""
     if not has_perm(by, RECONCILE, write=True):
         raise Http404
+    if statement_line is None:
+        reconciliation.refresh()  # també agafa el pany
+        if StatementLineState.objects.filter(
+            status=StatementLineState.Status.PROPOSED, proposed_settlement=settlement
+        ).exists():  # sense la línia, quedaria òrfena (revisió de la #212, punt 2)
+            raise SettlementRejected(
+                _(
+                    "Aquesta liquidació està proposada a una línia de l'extracte: "
+                    "confirma-la des de Conciliació."
+                )
+            )
     settlement = ProviderSettlement.objects.select_for_update().get(pk=settlement.pk)
     if settlement.status != Status.RECEIVED:
         raise SettlementRejected(_("Només es confirma una liquidació rebuda i sense problemes."))
@@ -166,15 +177,37 @@ def confirm(settlement: ProviderSettlement, *, by, statement_line=None) -> Provi
         CONFIRMED,
         actor=by,
         target=settlement,
-        details={"net_cents": settlement.net_cents, "fees_cents": settlement.fees_cents},
+        details={
+            "net_cents": settlement.net_cents,
+            "fees_cents": settlement.fees_cents,
+            **({"line": statement_line.pk} if statement_line is not None else {}),
+        },
     )
     return settlement
 
 
+@transaction.atomic
+def confirm_line(line, settlement_id: int, *, by) -> ProviderSettlement:
+    """T-M04-13b (P-M04-F pas 4; CA-T11.1): el tresorer confirma la liquidació proposada a la
+    línia, la mateixa que ha vist al pas de revisió (`settlement_id`); si la proposta ha canviat
+    o ja no hi és, es rebutja sense fer res. Després, `confirm` amb la línia."""
+    if not has_perm(by, RECONCILE, write=True):
+        raise Http404
+    reconciliation.refresh()  # també agafa el pany
+    state = StatementLineState.objects.filter(statement_line=line).first()
+    if (
+        state is None
+        or state.status != StatementLineState.Status.PROPOSED
+        or state.proposed_settlement_id != settlement_id
+    ):
+        raise SettlementRejected(_("Aquesta liquidació ja no es pot casar amb aquesta línia."))
+    return confirm(state.proposed_settlement, by=by, statement_line=line)
+
+
 def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:
-    """CA-T16.1: la línia oberta de l'extracte amb l'import del net queda conciliada amb els
-    càrrecs de la liquidació. Desfer-la no es pot: no són transferències (es corregeixen amb un
-    retorn o una devolució)."""
+    """CA-T11.1 i CA-T16.1: la línia oberta de l'extracte amb l'import del net queda conciliada
+    amb la liquidació i els seus càrrecs. La d'un proveïdor es desfà amb `reconciliation.undo`;
+    la d'una remesa no (són domiciliacions: es corregeixen amb un retorn o una devolució)."""
     reconciliation.refresh()  # també agafa el pany de les línies
     state = StatementLineState.objects.select_for_update().filter(statement_line=line).first()
     if (
@@ -187,10 +220,18 @@ def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:
             _("Aquesta línia de l'extracte no es pot casar amb la liquidació.")
         )
     charges = [item.payment.charge for item in settlement.items.select_related("payment__charge")]
-    found = Reconciliation.objects.create(statement_line=line, confirmed_by=by)
+    found = Reconciliation.objects.create(
+        statement_line=line, confirmed_by=by, settlement=settlement
+    )
     found.matched_charges.set(charges)
     reconciliation._apply(
-        state, StatementLineState.Status.RECONCILED, "", charges, created=False, actor=by
+        state,
+        StatementLineState.Status.RECONCILED,
+        "",
+        charges,
+        created=False,
+        actor=by,
+        settlement=settlement,
     )
 
 
