@@ -302,6 +302,23 @@ def exclude_view(request, line_id):
     return redirect("administration:home")
 
 
+# T-M04-14d (097, P-192): desfer una exclusió amb motiu, des de la conciliació, amb T8.
+@never_cache
+@permission_required(reconciliation.EXCLUDE, write=True)
+@require_POST
+def undo_exclusion_view(request, line_id):
+    line = get_object_or_404(statement_lines(), pk=line_id)
+    try:
+        reconciliation.undo_exclusion(line, reason=request.POST.get("motiu", ""), by=request.user)
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, _("Exclusió desfeta. La línia torna a estar oberta."))
+    if has_perm(request.user, VIEW):
+        return redirect("administration:treasury_reconciliation")
+    return redirect("administration:home")
+
+
 @never_cache
 @permission_required(VIEW)
 @require_GET

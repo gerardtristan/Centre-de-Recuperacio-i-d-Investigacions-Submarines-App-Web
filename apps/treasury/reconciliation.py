@@ -32,8 +32,10 @@ ingrés al banc; si és una quota, s'avisa el 01. `undo()` la desfà (CA-T10.4 a
 pendent amb un o més càrrecs pendents que en sumen l'import exacte, i passa el mateix que en
 confirmar una proposta. `pending_charges()` els busca per referència o número de soci.
 
-`exclude()` (T-M04-14; RN-T15, CA-T12.1, LT11): el tresorer exclou una línia pendent amb motiu
-obligatori. No crea cap moviment ni toca cap càrrec; la línia surt de la llista «a revisar».
+`exclude()` (T-M04-14; RN-T15, CA-T12.1, LT11): el tresorer exclou una línia pendent o proposada
+(T-M04-14d, 097) amb motiu obligatori. No crea cap moviment ni toca cap càrrec; la proposta es
+perd i la línia surt de la llista «a revisar». `undo_exclusion()` (T-M04-14d; 097, P-192) la torna
+a pendent amb motiu, que queda al registre, i `refresh()` la torna a proposar si escau.
 `to_review()` és aquesta llista (CA-T13.1): les línies obertes amb la marca i el motiu. Els
 pagaments «a revisar» del 05b encara no hi són (P-191). Permisos: P-190.
 """
@@ -72,6 +74,7 @@ from .references import references_in, transfer_reference
 STATE_CHANGED = "treasury.statement_line_state_changed"
 CONFIRMED = "treasury.reconciliation_confirmed"
 EXCLUDED = "treasury.statement_line_excluded"
+EXCLUSION_UNDONE = "treasury.statement_line_exclusion_undone"  # T-M04-14d (097, P-192)
 UNDONE = "treasury.reconciliation_undone"
 RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» (M04-4)
 EXCLUDE = "treasury.exclude"  # T8, «Excloure una línia de l'extracte» (P-190, 095)
@@ -585,8 +588,9 @@ def on_statement_changed(sender, batch, **kwargs) -> None:
 @transaction.atomic
 def exclude(line, *, reason: str, by) -> StatementLineState:
     """CA-T12.1: estat «exclosa» amb el motiu, i res més: cap moviment, cap càrrec (RN-T14).
-    Només una línia pendent d'un extracte vigent (RN-T15; una proposada, P-192). Una línia
-    exclosa no torna enrere ni la toca `refresh()`."""
+    Una línia pendent o proposada d'un extracte vigent (RN-T15; 097, P-192): la proposta es perd,
+    sense res confirmat. Una línia exclosa només torna enrere amb `undo_exclusion`; `refresh()`
+    no la toca."""
     if not has_perm(by, EXCLUDE, write=True):
         raise Http404
     reason = (reason or "").strip()
@@ -599,8 +603,10 @@ def exclude(line, *, reason: str, by) -> StatementLineState:
         .prefetch_related("proposed_charges")
         .first()
     )
-    if state is None or state.status != StatementLineState.Status.PENDING:
-        raise ReconciliationRejected(_("Aquesta línia ja no està pendent: no es pot excloure."))
+    if state is None or state.status not in OPEN:
+        raise ReconciliationRejected(
+            _("Aquesta línia ja no està pendent ni proposada: no es pot excloure.")
+        )
     state.exclusion_reason = reason
     _apply(
         state,
@@ -612,6 +618,41 @@ def exclude(line, *, reason: str, by) -> StatementLineState:
         action=EXCLUDED,
         why=reason,
     )
+    return state
+
+
+@transaction.atomic
+def undo_exclusion(line, *, reason: str, by) -> StatementLineState:
+    """RN-T15 (097, P-192): una línia exclosa d'un extracte vigent torna a pendent amb el motiu,
+    que queda al registre amb l'estat anterior i el motiu de l'exclusió. Després, `refresh()` la
+    torna a proposar si escau. Amb T8, com excloure-la."""
+    if not has_perm(by, EXCLUDE, write=True):
+        raise Http404
+    reason = (reason or "").strip()
+    if not reason:
+        raise ReconciliationRejected(_("Per desfer l'exclusió cal escriure'n el motiu."))
+    refresh()  # també agafa el pany
+    state = (
+        StatementLineState.objects.select_for_update()
+        .filter(statement_line=line, statement_line__in=statement_lines())
+        .first()
+    )
+    if state is None or state.status != StatementLineState.Status.EXCLUDED:
+        raise ReconciliationRejected(_("Aquesta línia no està exclosa."))
+    excluded_for, state.exclusion_reason = state.exclusion_reason, ""
+    old = _snapshot(state.status, "", [])
+    state.status = StatementLineState.Status.PENDING
+    state.save()
+    audit.record(
+        EXCLUSION_UNDONE,
+        actor=by,
+        target=state,
+        old=old,
+        new=_snapshot(state.status, "", []),
+        reason=reason,
+        details={"line": state.statement_line_id, "exclusion_reason": excluded_for},
+    )
+    refresh()  # la torna a proposar, o a marcar «a revisar», si escau
     return state
 
 

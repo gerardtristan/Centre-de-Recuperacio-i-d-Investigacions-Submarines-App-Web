@@ -41,6 +41,11 @@ urlpatterns = [
         views.settlement_review_close_view,
         name="treasury_settlement_review_close",
     ),
+    path(
+        "tresoreria/conciliacio/<int:line_id>/desfer-exclusio/",
+        views.undo_exclusion_view,
+        name="treasury_undo_exclusion",
+    ),
     # Tercer tall de la T-M04-15: traspàs, arqueig, anul·lar i liquidacions.
     path("tresoreria/traspas/", entry_views.transfer_view, name="treasury_transfer"),
     path("tresoreria/arqueig/", entry_views.cash_count_view, name="treasury_cash_count"),
