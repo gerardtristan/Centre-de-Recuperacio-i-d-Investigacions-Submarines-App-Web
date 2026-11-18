@@ -1676,6 +1676,27 @@ Acceptada pel responsable del projecte el 12/11/2026. No edita text aprovat; on 
 
 ---
 
+<a id="M00-textos-editables"></a>
+## M00 — Textos editables (T-M00-08): especificació d'una pàgina ([097](decisions/097-respostes-del-propietari-a-les-preguntes-obertes-del-18-11-2026.md))
+
+Decisions del propietari (18/11/2026). El 00 no és de la fase congelada ([089](decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md), D1). És una spec d'una pàgina (contingut), però toca correus de pagament: si cal canviar una regla congelada del 01, el 04, el 05a o el 05b, es fa amb una decisió. L'estat de les parts és a [`estat/M00.md`](estat/M00.md) (T-M00-08a a T-M00-08e).
+
+| Punt | Regla |
+|---|---|
+| **Quins textos** | L'assumpte i el cos dels correus i dels avisos de la plataforma, i els textos d'ajuda de les pantalles. **No hi entren els textos legals** (mandat SEPA, polítiques, consentiments): tenen versió, els aprova la junta i van pel seu flux propi (T-M01-08 i la pantalla de publicació de versions, M12). |
+| **Qui els edita** | Cada àrea de textos (per exemple socis, pagaments i tresoreria, general) té els permisos «veure» i «veure i editar», que l'administrador assigna per rol des de l'app ([059](decisions/059-rols-i-permisos-editables.md)). Matriu inicial: l'administrador edita totes les àrees i la Secretaria, la de socis (P-380). |
+| **Variables** | Cada plantilla té una llista tancada de variables (per exemple `nom`, `numero_soci`, `import`, `data`, `enllac`), sense cap codi de plantilla lliure: el text mai no es tracta com una plantilla. **Mai** IBAN, dades bancàries ni dades de salut. |
+| **Comprovació en desar** | El text es mostra amb dades inventades (vista prèvia). Es rebutja una variable desconeguda i la falta d'una variable obligatòria de la plantilla (per exemple, l'enllaç d'un correu de pagament). |
+| **Versions** | Cada canvi deixa una versió amb qui, quan i el valor anterior, i el registre d'activitat. Es pot tornar al text per defecte, que és al codi i traduïble. |
+
+**Criteris d'acceptació:**
+- **CA-M00-08.1:** desar un text amb una variable que no és a la llista de la plantilla falla i no crea cap versió.
+- **CA-M00-08.2:** desar un text sense una variable obligatòria falla i diu quina falta.
+- **CA-M00-08.3:** la vista prèvia només fa servir dades inventades.
+- **CA-M00-08.4:** qui té «veure» d'una àrea en llegeix els textos i no els pot desar; qui no en té cap permís rep «accés denegat», comprovat al servidor.
+- **CA-M00-08.5:** cap plantilla no ofereix una variable amb l'IBAN, dades bancàries o dades de salut.
+- **CA-M00-08.6:** tornar al text per defecte deixa una versió més, amb el valor anterior.
+
 <a id="M01-addenda-T-M01-40"></a>
 ## M01 — Concrecions de la T-M01-40: eximir o anul·lar una quota (12/11/2026)
 
@@ -2032,7 +2053,7 @@ Regles de la 00 que la 04 no canvia (027, RN-76): RN-60 a RN-73.
 | RN-T12 | Els traspassos entre comptes propis no són ingrés ni despesa i no porten departament | Spec 04 |
 | RN-T13 | Cada moviment, anul·lació, conciliació, exclusió i arqueig va al registre d'activitat | RN-50 |
 | RN-T14 | La 00 importa les línies de l'extracte; la 04 les casa i no n'altera les dades | 00, HU-21 |
-| RN-T15 | Estats d'una línia: pendent → proposada → conciliada; pendent → exclosa (amb motiu). «A revisar» és una marca | Spec 04 |
+| RN-T15 | Estats d'una línia: pendent → proposada → conciliada; pendent o proposada → exclosa (amb motiu); exclosa → pendent quan el tresorer desfà l'exclusió amb motiu, que queda al registre ([097](decisions/097-respostes-del-propietari-a-les-preguntes-obertes-del-18-11-2026.md), P-192). «A revisar» és una marca | Spec 04 |
 | RN-T16 | Només el tresorer confirma una conciliació; la plataforma mai concilia sola | ARQ §4.6; RN-71 |
 | RN-T17 | Una línia es concilia una sola vegada, amb un o més càrrecs, moviments o una liquidació, si la suma coincideix exactament | Spec 04 |
 | RN-T17b | Sense saldo a favor ni pagaments parcials: l'excés d'una transferència es retorna pel banc i es registra com a devolució; un pagament de menys queda «a revisar» | QT-05 |
@@ -3088,7 +3109,7 @@ App `payments` (la mateixa del 05a).
 |---|---|---|
 | RN-M05b-01 | Mètodes per càrrec: quota → domiciliació, targeta, Bizum, transferència; inscripció i llicència → targeta, Bizum, transferència | 017; RN-69 |
 | RN-M05b-02 | L'import de l'ordre el fixa el servidor a partir del càrrec. El concepte enviat al proveïdor porta el tipus, el període i el número de soci o la referència, mai el nom; l'identificador de client és intern, mai el DNI ni el correu | RNF-T4; `integracio-paylands.md` §2 |
-| RN-M05b-03 | Transicions de l'intent: `created → in_progress → paid / failed / expired / abandoned / to_review`; `created → sent_to_bank → paid / failed`; `paid` no torna enrere (les correccions són devolucions o retorns) | Proposta |
+| RN-M05b-03 | Transicions de l'intent: `created → in_progress → paid / failed / expired / abandoned / to_review`; `created → sent_to_bank → paid / failed`; `failed / expired / abandoned → paid` si una confirmació vàlida arriba tard i el càrrec encara és pendent, o `→ to_review` si el càrrec ja estava pagat (RN-M05b-08); `to_review → paid / failed`, amb el motiu del tresorer; `created → cancelled`; `paid` no torna enrere (les correccions són devolucions o retorns) ([097](decisions/097-respostes-del-propietari-a-les-preguntes-obertes-del-18-11-2026.md), P-82) | Proposta |
 | RN-M05b-04 | Un càrrec té com a molt un intent en curs. Començar-ne un de nou marca l'anterior com a `abandoned` si el proveïdor permet cancel·lar-lo [A verificar]; si no, el nou es bloqueja fins que l'anterior acabi o caduqui | Proposta |
 | RN-M05b-05 | Un càrrec només passa a «pagat» per una notificació verificada del proveïdor, una conciliació confirmada pel tresorer (transferència i remesa) o un registre manual amb motiu i M14 (P-12; 072, Q-037). Mai pel navegador | RN-71 de la 00 |
 | RN-M05b-06 | Notificacions: verificació, desament per identificador únic, resposta immediata, processament a la cua, comprovació d'import, moneda i càrrec, transicions vàlides, registre (arquitectura §4.2). Les crides sortints porten clau d'idempotència | ARQ §4.2; CLAUDE.md |
