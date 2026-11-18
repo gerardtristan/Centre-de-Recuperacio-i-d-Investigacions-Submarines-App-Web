@@ -40,7 +40,7 @@ Tot el que canvies queda al **registre d'activitat**, amb qui ho ha fet i quan.
 ## 5. Sol·licituds de socis: canvi de tipus, pas a simpatitzant i baixa
 A **Sol·licituds de socis** arriben les que fan els socis des de la seva àrea, i les baixes que crees tu.
 - **Canvi de simpatitzant a ple dret:** **Aprova el canvi**. Pot generar un suplement; si no es paga, el suplement vençut es pot anul·lar amb **Anul·la el suplement**.
-- **Pas a simpatitzant:** **Accepta el pas a simpatitzant**. El canvi s'aplica en la renovació següent, no abans. *Aquesta funció no es posarà en marxa fins que estigui feta la part que aplica el canvi en renovar (T-M01-43).*
+- **Pas a simpatitzant:** **Accepta el pas a simpatitzant**. El canvi s'aplica en la renovació següent, no abans: la quota de renovació es genera a preu de simpatitzant i, el dia que venç, el tipus canvia sol (historial i carnet nou). Si l'acceptes quan la quota de renovació ja s'ha generat i encara no s'ha pagat ni enviat al banc, la plataforma l'anul·la i en genera una a preu de simpatitzant. Un mes abans de la renovació, cada soci de ple dret rep un correu que li ho recorda.
 - **Baixa:** abans de validar-la, llegeix **«Què passarà en validar-la»**. Després, **Valida la baixa** o **Rebutja**, sempre amb motiu. Si el soci tenia un canvi de tipus pendent, es cancel·la amb el motiu «baixa».
 - Ningú no pot resoldre una sol·licitud seva.
 

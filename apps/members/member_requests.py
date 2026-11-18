@@ -32,8 +32,10 @@ Pas de ple dret a simpatitzant (073 i 079, RN-M01-73 i RN-M01-93; T-M01-42):
   suplement ni càrrec. Mentre és pendent, el soci el pot retirar (`withdraw_downgrade`: queda
   «cancel·lada», amb registre) i en pot fer un altre; és l'única sol·licitud que el soci retira.
 - La secretaria l'accepta o el rebutja amb P7 (`approve_type_change`, `reject`). Acceptar-lo **no
-  canvia el tipus** ni crea cap càrrec, cap tasca ni cap avís: el canvi s'aplica en renovar, i això
-  és de la T-M01-43 (punts 1, 5 i 7 de la 073, oberts).
+  canvia el tipus** ni crea cap càrrec: el canvi s'aplica en renovar (T-M01-43). Si la quota de
+  renovació ja s'ha generat i no s'ha pagat ni enviat al banc, es torna a generar a preu de
+  simpatitzant (085, T-5; `_reprice_renewal_fee`). El dia que venç, `apply_due_downgrades`
+  canvia el tipus.
 - **Contracte per a la T-M01-43** (`accepted_downgrade`): un pas acceptat i encara no aplicat és
   una sol·licitud `change_type` cap al tipus simpatitzant, `approved`, amb `effective_on` buit i
   sense `supplement_fee`. Qui l'apliqui en renovar hi escriu `effective_on` (el dia de la
@@ -66,8 +68,13 @@ from apps.core.permissions import has_perm
 
 from . import cards, fees, recipients
 from .fee_rules import SUPPORTER, local_today
-from .models import AnnualFee, Member, MemberRequest, MembershipType
-from .services import _change_status, _check_account_active, ensure_not_own_member
+from .models import AnnualFee, FeeReminder, Member, MemberRequest, MembershipType
+from .services import (
+    _change_status,
+    _change_type,
+    _check_account_active,
+    ensure_not_own_member,
+)
 
 FULL = "full"
 VIEW_PERMISSION = "members.requests.view"  # P3a
@@ -183,7 +190,18 @@ def accepted_downgrade(member) -> MemberRequest | None:
     """Contracte per a la T-M01-43: el pas a simpatitzant acceptat i encara no aplicat, o `None`.
     És la sol·licitud `change_type` cap a simpatitzant, `approved` i amb `effective_on` buit. Qui
     l'apliqui en renovar hi ha d'escriure `effective_on`; aquí no l'aplica ningú."""
-    return downgrades(member).filter(status=RS.APPROVED, effective_on__isnull=True).first()
+    pending = downgrades(member).filter(status=RS.APPROVED, effective_on__isnull=True)
+    # Només el de la condició de soci actual: un pas acceptat abans de l'última baixa no compta,
+    # encara que la baixa no l'hagi cancel·lat (readmissió; RN-M01-98).
+    left_at = (
+        member.status_changes.filter(to_status=Member.Status.LEFT)
+        .order_by("-created_at")
+        .values_list("created_at", flat=True)
+        .first()
+    )
+    if left_at is not None:
+        pending = pending.filter(resolved_at__gt=left_at)
+    return pending.first()
 
 
 def downgrade_problem(member) -> str:
@@ -356,6 +374,10 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
             if member.type.code != FULL:
                 raise RequestNotAllowed(_("Aquest soci ja no és de ple dret."))
             _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)
+            # `_lock_pending` ja ha bloquejat el soci; es torna a dir aquí perquè la quota es
+            # canvia amb la mateixa fila bloquejada que `generate_due_fees` (cap quota doble).
+            Member.objects.select_for_update(of=("self",)).get(pk=member.pk)
+            _reprice_renewal_fee(member, locked, by=by, request=request)
             member_request.refresh_from_db()
             return None
         if has_unpaid_fees(member):
@@ -377,6 +399,195 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
         MemberRequest.objects.filter(pk=locked.pk).update(supplement_fee=fee)
     member_request.refresh_from_db()
     return fee
+
+
+RENEWAL_FEE_IN_PROCESS = "members.downgrade.renewal_fee_in_process"
+RENEWAL_FEE_LINKED = "members.downgrade.renewal_fee_linked"
+DOWNGRADE_CARD_FAILED = "members.downgrade.card_failed"
+DOWNGRADES_ORIGIN = "members.apply_due_downgrades"
+
+
+def link_renewal_fee(change, fee, *, by, request=None) -> None:
+    """Lliga el pas acceptat a la quota de la renovació en què s'aplicarà, amb el valor anterior
+    al registre. La criden la generació de renovacions i l'acceptació del pas."""
+    old = MemberRequest.objects.filter(pk=change.pk).values_list("renewal_fee_id", flat=True)[0]
+    MemberRequest.objects.filter(pk=change.pk).update(renewal_fee=fee)
+    audit.record(
+        RENEWAL_FEE_LINKED,
+        actor=by,
+        target=change,
+        field="renewal_fee",
+        old=old,
+        new=fee.pk,
+        request=request,
+    )
+
+
+def _in_payment(charge) -> bool:
+    """No és pendent, té algun pagament o un intent obert: d'un altre mètode (targeta, Bizum o
+    remesa), o de la targeta guardada si ja ha arribat al proveïdor. Una targeta que no ha
+    cobrat (avís de rebutjada o caducada) no compta. Aleshores ja no s'anul·la ni es torna a
+    generar. `charge` ha de ser la fila bloquejada."""
+    from apps.payments.models import AttemptStatus, SavedCardAttempt
+
+    open_attempts = (
+        AttemptStatus.CREATED,
+        AttemptStatus.IN_PROGRESS,
+        AttemptStatus.SENT_TO_BANK,
+        AttemptStatus.TO_REVIEW,
+    )
+    attempts = charge.attempts.filter(status__in=open_attempts)
+    saved = SavedCardAttempt.objects.filter(attempt__in=attempts)
+    return bool(
+        charge.status != Charge.Status.PENDING
+        or charges.active_payments(charge)
+        or attempts.exclude(pk__in=saved.values("attempt_id")).exists()
+        or saved.filter(reached_provider=True).exists()
+    )
+
+
+def _renewal_fee(member) -> AnnualFee | None:
+    """La quota de la renovació que ve: una quota anual no anul·lada que encara no ha vençut
+    (la que `generate_due_fees` ha generat, o una de pagada abans d'hora). Una quota vençuda és
+    la del període en curs: no es lliga ni es torna a generar mai (res de retroactiu); el pas
+    s'aplica a la renovació següent."""
+    return (
+        AnnualFee.objects.filter(
+            member=member, kind=AnnualFee.Kind.ANNUAL, due_on__gt=local_today()
+        )
+        .exclude(charge__status=Charge.Status.CANCELLED)
+        .order_by("-due_on")
+        .first()
+    )
+
+
+def _reprice_renewal_fee(member, change, *, by, request=None) -> None:
+    """085, T-5: si el pas s'accepta amb la quota de renovació ja generada, sense pagar ni enviar
+    al banc, s'anul·la i se'n genera una a preu de simpatitzant, amb el mateix venciment i els
+    recordatoris ja enviats. Si ja està pagada, retornada o en curs de pagament (llegit amb el
+    càrrec bloquejat), no es toca (P-334, opció per defecte): el pas s'hi lliga igualment, de
+    manera que el tipus canvia el dia de la renovació, queda al registre i s'avisa qui pot
+    editar les quotes."""
+    fee = _renewal_fee(member)
+    if fee is None:
+        return  # encara no s'ha generat: ho farà `generate_due_fees` amb el preu nou
+    charge = Charge.objects.select_for_update().get(pk=fee.charge_id)
+    if _in_payment(charge):
+        audit.record(RENEWAL_FEE_IN_PROCESS, actor=by, target=fee, request=request)
+        fees.notify_fee_editors(fee, fees.NOTICE_DOWNGRADE_FULL_PRICE)
+        link_renewal_fee(change, fee, by=by, request=request)
+        return
+    charges.cancel(
+        charge,
+        _("Pas a simpatitzant acceptat: es genera la quota a preu de simpatitzant (085, T-5)."),
+        by=by,
+    )
+    new = fees.issue_annual_fee(
+        member, period=fee.period, due_on=fee.due_on, by=by, fee_type=change.requested_type
+    )
+    FeeReminder.objects.bulk_create(
+        FeeReminder(fee=new, offset_days=sent.offset_days, sent_on=sent.sent_on)
+        for sent in FeeReminder.objects.filter(fee=fee)
+    )
+    link_renewal_fee(change, new, by=by, request=request)
+
+
+def _notify_cancelled_renewal_fees(today) -> None:
+    """Un pas lligat a una quota anul·lada per un altre camí (correcció, exempció) que ningú no
+    ha substituït quan arriba la renovació: s'avisa una sola vegada qui pot editar les quotes.
+    Si la generació en fa una de nova, la torna a lligar i el pas s'aplica amb aquella."""
+    from apps.core.models import AuditEntry
+
+    stuck = MemberRequest.objects.filter(
+        kind=K.CHANGE_TYPE,
+        requested_type__code=SUPPORTER,
+        status=RS.APPROVED,
+        effective_on__isnull=True,
+        renewal_fee__due_on__lte=today,
+        renewal_fee__charge__status=Charge.Status.CANCELLED,
+    ).select_related("renewal_fee__member")
+    for item in stuck:
+        fee = item.renewal_fee
+        if AuditEntry.objects.filter(
+            action=fees.NOTICE_SENT,
+            target_type=AnnualFee._meta.label_lower,
+            target_id=str(fee.pk),
+            details__event=fees.NOTICE_DOWNGRADE_FEE_CANCELLED,
+        ).exists():
+            continue
+        fees.notify_fee_editors(fee, fees.NOTICE_DOWNGRADE_FEE_CANCELLED)
+
+
+def apply_due_downgrades(today=None) -> list[MemberRequest]:
+    """Tasca diària (073; RN-M01-73, CA-M01-69): el dia que venç la quota de renovació lligada al
+    pas, el tipus canvia amb aquella data efectiva, amb historial i registre, i carnet nou si en
+    tenia un. La quota anterior no es toca. Idempotent: `effective_on`, comprovat amb la fila
+    bloquejada, marca el pas com a aplicat i `accepted_downgrade` ja no el troba. Si el soci ja
+    és simpatitzant (canviat a mà), només es marca. El carnet va a part: si falla, el canvi de
+    tipus es manté i l'error queda al registre. Un error en un soci queda al registre de
+    l'aplicació i es continua amb els altres."""
+    today = today or local_today()
+    by = audit.system(DOWNGRADES_ORIGIN)
+    due = (
+        MemberRequest.objects.filter(
+            kind=K.CHANGE_TYPE,
+            requested_type__code=SUPPORTER,
+            status=RS.APPROVED,
+            effective_on__isnull=True,
+            renewal_fee__due_on__lte=today,
+        )
+        .exclude(renewal_fee__charge__status=Charge.Status.CANCELLED)
+        .order_by("pk")
+    )
+    applied = []
+    for item in due:
+        try:
+            with transaction.atomic():
+                member = (
+                    Member.objects.select_for_update(of=("self",))
+                    .select_related("type")
+                    .get(pk=item.member_id)
+                )
+                locked = MemberRequest.objects.select_for_update().get(pk=item.pk)
+                if locked.effective_on is not None or locked != accepted_downgrade(member):
+                    continue  # ja aplicat, o d'abans d'una baixa (no compta)
+                renews_on = locked.renewal_fee.due_on
+                changed = member.type_id != locked.requested_type_id
+                if changed:
+                    _change_type(
+                        member,
+                        locked.requested_type,
+                        by=by,
+                        effective_on=renews_on,
+                        reason=_("Pas a simpatitzant en renovar la quota (073)."),
+                    )
+                locked.effective_on = renews_on
+                locked.save(update_fields=["effective_on"])
+                if changed and member.status == Member.Status.ACTIVE:
+                    _replace_card_after_downgrade(member, locked, by=by)
+        except Exception:
+            logger.exception("Pas a simpatitzant %s no aplicat", item.pk)
+            continue
+        applied.append(locked)
+    try:
+        _notify_cancelled_renewal_fees(today)
+    except Exception:
+        logger.exception("Avís de quotes de renovació anul·lades no enviat")
+    return applied
+
+
+def _replace_card_after_downgrade(member, change, *, by) -> None:
+    """Carnet nou pel canvi de tipus, en un punt de desat propi: si falla, el canvi de tipus
+    continua fet i l'error queda al registre d'activitat i al de l'aplicació."""
+    try:
+        with transaction.atomic():
+            if cards.active_card(member):
+                cards.replace_card(member, by=by, reason=_("Carnet nou pel canvi de tipus."))
+    except Exception as exc:
+        logger.exception("Carnet nou del pas a simpatitzant %s no emès", change.pk)
+        audit.record(
+            DOWNGRADE_CARD_FAILED, actor=by, target=change, details={"error": type(exc).__name__}
+        )
 
 
 def _cancel_later_fees(member, effective_on, *, by, reason) -> list[int]:

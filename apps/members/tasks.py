@@ -9,13 +9,14 @@ from . import fees, member_requests
 logger = logging.getLogger(__name__)
 
 
-# Cada dia al matí: l'avís previ de la renovació (abans de generar la quota; T-M01-43a), les
-# quotes que vencen aviat i els recordatoris que toquen (T-M01-18; 070 i Q-061 de la 072). Tot
-# idempotent.
+# Cada dia al matí: el pas a simpatitzant que renova avui (073), l'avís previ de la renovació
+# (abans de generar la quota; T-M01-43), les quotes que vencen aviat i els recordatoris que toquen
+# (T-M01-18; 070 i Q-061 de la 072). Tot idempotent.
 @app.periodic(cron="0 6 * * *")
 @app.task(name="members.daily_fees", queue="maintenance")
 def daily_fees(timestamp: int) -> None:
     steps = (
+        member_requests.apply_due_downgrades,
         fees.send_renewal_notices,
         fees.generate_due_fees,
         fees.send_due_reminders,

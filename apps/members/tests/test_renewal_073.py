@@ -1,5 +1,6 @@
-"""Avís previ de la renovació (T-M01-43a; 073, 079 i 085; RN-M01-73, RN-M01-93; CA-M01-70).
-El pas a simpatitzant en renovar (CA-M01-69) és de la T-M01-43b. Només dades inventades."""
+"""Avís previ i pas a simpatitzant en renovar (T-M01-43; 073, 079 i 085; RN-M01-73, RN-M01-93;
+CA-M01-69 i CA-M01-70). Dates passades: el canvi de tipus no admet una data efectiva futura.
+Només dades inventades."""
 
 from datetime import date, datetime
 
@@ -7,11 +8,15 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 
-from apps.core.models import AuditEntry, OutgoingEmail
+from apps.core import audit
+from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.members import fees
-from apps.members.models import AnnualFee, MemberRequest, MembershipType
+from apps.members import cards, fees
+from apps.members import member_requests as mr
+from apps.members.models import AnnualFee, MemberCard, MemberRequest, MembershipType
+from apps.members.services import TYPE_CHANGED
 
+from .test_cards import pay
 from .test_downgrade_073 import downgrade_request, pay_annual_fee
 from .test_member_requests import leave_request, make_member
 
@@ -28,6 +33,32 @@ def full_member(first="Pere", **fields):
 
 def notices():
     return OutgoingEmail.objects.filter(template=fees.RENEWAL_NOTICE_TEMPLATE)
+
+
+def full_price_notices():
+    return AuditEntry.objects.filter(
+        action=fees.NOTICE_SENT, details__event=fees.NOTICE_DOWNGRADE_FULL_PRICE
+    ).count()
+
+
+def saved_card(member):
+    from apps.payments.models import SavedCard
+
+    return SavedCard.objects.create(
+        person=member.person,
+        provider_code="fake",
+        provider_card_id="targeta-prova",
+        last4="4242",
+        expiry_month=12,
+        expiry_year=2030,
+    )
+
+
+def price(code):
+    return MembershipType.objects.get(code=code).annual_fee_cents
+
+
+# --- CA-M01-70: avís un mes abans, una sola vegada i abans de la quota ----------------------
 
 
 @pytest.mark.django_db
@@ -97,6 +128,338 @@ class TestNotice:
 # --- CA-M01-69: en renovar, quota i tipus de simpatitzant -----------------------------------
 
 
+@pytest.mark.django_db
+class TestRenewal:
+    def accepted(self):
+        member = full_member()
+        cards.issue_card(member, by=audit.system("proves"))
+        change = downgrade_request(member, status=RS.APPROVED)
+        return member, change
+
+    def test_renewal_fee_is_priced_with_the_requested_type(self):
+        member, change = self.accepted()
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        assert fee.charge.amount_cents == price("supporter") != price("full")
+        assert fee.due_on == RENEWAL
+        change.refresh_from_db()
+        assert change.renewal_fee == fee
+        member.refresh_from_db()
+        assert member.type.code == "full"  # fins a la renovació, res no canvia
+
+    def test_type_changes_on_the_renewal_day_with_history_audit_and_new_card(self):
+        member, change = self.accepted()
+        old_card = cards.active_card(member)
+        fees.generate_due_fees(date(2026, 2, 23))
+        assert mr.apply_due_downgrades(date(2026, 3, 9)) == []
+        assert mr.apply_due_downgrades(RENEWAL) == [change]
+        member.refresh_from_db()
+        assert member.type.code == "supporter"
+        history = member.status_changes.get(to_type__code="supporter")
+        assert (history.from_type.code, history.effective_on) == ("full", RENEWAL)
+        assert AuditEntry.objects.filter(action=TYPE_CHANGED, target_id=str(member.pk)).exists()
+        change.refresh_from_db()
+        assert change.effective_on == RENEWAL and mr.accepted_downgrade(member) is None
+        old_card.refresh_from_db()
+        assert old_card.revoked_at is not None
+        assert MemberCard.objects.filter(member=member, revoked_at__isnull=True).count() == 1
+        # La quota del període anterior no es toca: cap devolució ni anul·lació.
+        previous = AnnualFee.objects.get(member=member, period=2025)
+        assert previous.charge.status == Charge.Status.PAID
+        # Idempotent: tornar-la a córrer no fa res més.
+        assert mr.apply_due_downgrades(date(2026, 3, 11)) == []
+        assert member.status_changes.filter(to_type__code="supporter").count() == 1
+
+    def test_without_a_downgrade_the_renewal_keeps_the_full_price(self):
+        member = full_member()
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        assert fee.charge.amount_cents == price("full")
+        assert mr.apply_due_downgrades(RENEWAL) == []
+        member.refresh_from_db()
+        assert member.type.code == "full"
+
+    def future(self):
+        """Soci de ple dret que renova el 10/03/2027 (dates futures: la quota encara no ha
+        vençut quan s'accepta el pas), amb la quota de renovació ja generada."""
+        member = make_member("Pere", type_code="full")
+        pay_annual_fee(member, timezone.make_aware(datetime(2026, 3, 10, 12)))
+        (fee,) = fees.generate_due_fees(date(2027, 2, 23))
+        return member, fee
+
+    def test_accepted_after_the_fee_is_generated_regenerates_it_085_t5(self, make_admin):  # noqa: F811
+        member, old = self.future()
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        old.charge.refresh_from_db()
+        assert old.charge.status == Charge.Status.CANCELLED
+        change.refresh_from_db()
+        new = change.renewal_fee
+        assert (new.charge.amount_cents, new.due_on, new.period) == (
+            price("supporter"),
+            old.due_on,
+            old.period,
+        )
+        assert new.charge.status == Charge.Status.PENDING
+        link = AuditEntry.objects.get(action=mr.RENEWAL_FEE_LINKED, target_id=str(change.pk))
+        assert (link.old_value, link.new_value) == (None, new.pk)
+
+    def test_reissued_fee_keeps_the_reminders_already_sent(self, make_admin):  # noqa: F811
+        member, old = self.future()
+        Person.objects.filter(pk=member.person_id).update(contact_email="pere@example.org")
+        assert fees.send_due_reminders(date(2027, 2, 23)) == 1  # 15 dies abans
+        mr.approve_type_change(downgrade_request(member), by=make_admin("secretary"))
+        assert fees.send_due_reminders(date(2027, 2, 24)) == 0
+        assert OutgoingEmail.objects.filter(template=fees.REMINDER_TEMPLATE).count() == 1
+
+    @pytest.mark.parametrize("in_process", ["attempt", "saved_card_reached"])
+    def test_fee_in_payment_keeps_its_price_and_is_linked_p334(
+        self,
+        make_admin,  # noqa: F811
+        in_process,
+    ):
+        from apps.payments import attempts
+        from apps.payments.models import SavedCardAttempt
+
+        member, old = self.future()
+        attempt = attempts.create_attempt(old.charge, "card")
+        if in_process == "saved_card_reached":
+            SavedCardAttempt.objects.create(
+                attempt=attempt, card=saved_card(member), reached_provider=True
+            )
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        old.charge.refresh_from_db()
+        assert old.charge.status == Charge.Status.PENDING  # ni anul·lada ni tornada a generar
+        change.refresh_from_db()
+        assert change.renewal_fee == old  # no queda encallat: el tipus canviarà igualment
+        assert AuditEntry.objects.filter(action=mr.RENEWAL_FEE_IN_PROCESS).exists()
+        assert full_price_notices() == 1
+
+    def test_payment_status_is_read_again_under_the_lock(
+        self,
+        make_admin,  # noqa: F811
+        monkeypatch,
+    ):
+        # Un pagament que arriba entre la lectura de la quota i l'anul·lació: la fila del càrrec
+        # es torna a llegir bloquejada i la quota no s'anul·la.
+        from apps.core import charges
+        from apps.core.models import Payment
+
+        member, fee = self.future()
+        stale = AnnualFee.objects.select_related("charge").get(pk=fee.pk)
+        payment = Payment.objects.create(
+            charge=fee.charge,
+            method=Payment.Method.DIRECT_DEBIT,
+            amount_cents=fee.charge.amount_cents,
+            paid_at=timezone.now(),
+        )
+        charges.mark_paid(fee.charge, payment, origin="provider", by=audit.system("proves"))
+        charges.mark_returned(fee.charge, "AM04 Fons insuficients", by=make_admin("treasurer"))
+        monkeypatch.setattr(mr, "_renewal_fee", lambda member: stale)
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        fee.charge.refresh_from_db()
+        assert fee.charge.status == Charge.Status.RETURNED
+        change.refresh_from_db()
+        assert change.renewal_fee == fee
+
+    @pytest.mark.parametrize("case", ["declined_notice", "saved_card_not_reached"])
+    def test_a_card_that_did_not_charge_does_not_count_as_being_paid(
+        self,
+        make_admin,  # noqa: F811
+        case,
+    ):
+        from apps.payments import attempts
+        from apps.payments.models import SavedCardAttempt, SavedCardNotice
+
+        member, old = self.future()
+        card = saved_card(member)
+        if case == "declined_notice":
+            SavedCardNotice.objects.create(charge=old.charge, card=card, case="declined")
+        else:
+            attempt = attempts.create_attempt(old.charge, "card")
+            SavedCardAttempt.objects.create(attempt=attempt, card=card, reached_provider=False)
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        old.charge.refresh_from_db()
+        assert old.charge.status == Charge.Status.CANCELLED
+        change.refresh_from_db()
+        assert change.renewal_fee.charge.amount_cents == price("supporter")
+
+    def test_renewal_fee_paid_early_is_linked_and_the_treasurer_notified(
+        self,
+        make_admin,  # noqa: F811
+    ):
+        member, fee = self.future()
+        pay(fee, timezone.make_aware(datetime(2026, 11, 17, 12)))  # abans del venciment
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        change.refresh_from_db()
+        assert change.renewal_fee == fee
+        fee.charge.refresh_from_db()
+        assert fee.charge.status == Charge.Status.PAID
+        assert full_price_notices() == 1
+
+    @pytest.mark.parametrize("case", ["pending", "returned"])
+    def test_overdue_fee_is_never_repriced_or_linked(
+        self,
+        make_admin,  # noqa: F811
+        case,
+    ):
+        # Quota de renovació vençuda el 10/03/2026 i pas acceptat després: res de retroactiu.
+        from apps.core import charges
+        from apps.core.models import Payment
+
+        member = full_member()
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        if case == "returned":
+            payment = Payment.objects.create(
+                charge=fee.charge,
+                method=Payment.Method.DIRECT_DEBIT,
+                amount_cents=fee.charge.amount_cents,
+                paid_at=timezone.make_aware(datetime(2026, 3, 10, 12)),
+            )
+            charges.mark_paid(fee.charge, payment, origin="provider", by=audit.system("proves"))
+            charges.mark_returned(fee.charge, "AM04 Fons insuficients", by=make_admin("treasurer"))
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        fee.charge.refresh_from_db()
+        assert fee.charge.status != Charge.Status.CANCELLED
+        change.refresh_from_db()
+        assert change.renewal_fee is None
+        assert full_price_notices() == 0
+        assert mr.apply_due_downgrades(date(2026, 4, 15)) == []
+        member.refresh_from_db()
+        assert member.type.code == "full"
+        if case == "pending":
+            # S'aplica a la renovació següent: 12 mesos després del pagament (20/04/2026).
+            pay(fee, timezone.make_aware(datetime(2026, 4, 20, 12)))
+            (renewal,) = fees.generate_due_fees(date(2027, 4, 5))
+            assert renewal.charge.amount_cents == price("supporter")
+            change.refresh_from_db()
+            assert change.renewal_fee == renewal
+
+    def test_current_period_fee_already_paid_is_not_the_renewal(
+        self,
+        make_admin,  # noqa: F811
+    ):
+        # La quota del període en curs, pagada i vençuda, no és la renovació: no es lliga.
+        member = full_member()
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        change.refresh_from_db()
+        assert change.renewal_fee is None
+        assert full_price_notices() == 0
+
+    def test_cancelled_renewal_fee_is_replaced_and_relinked(self):
+        from apps.core import charges
+
+        member, change = self.accepted()
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        charges.cancel(fee.charge, "Correcció inventada", by=audit.system("proves"))
+        (replacement,) = fees.generate_due_fees(date(2026, 2, 24))
+        change.refresh_from_db()
+        assert change.renewal_fee == replacement
+        assert replacement.charge.amount_cents == price("supporter")
+        assert mr.apply_due_downgrades(RENEWAL) == [change]
+
+    def test_cancelled_renewal_fee_without_replacement_is_notified_once(self):
+        from apps.core import charges
+
+        member, change = self.accepted()
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        charges.cancel(fee.charge, "Correcció inventada", by=audit.system("proves"))
+        assert mr.apply_due_downgrades(RENEWAL) == []
+        assert mr.apply_due_downgrades(date(2026, 3, 11)) == []
+        assert (
+            AuditEntry.objects.filter(
+                action=fees.NOTICE_SENT, details__event=fees.NOTICE_DOWNGRADE_FEE_CANCELLED
+            ).count()
+            == 1
+        )
+
+    def test_a_card_error_does_not_stop_the_type_change(self, monkeypatch):
+        member, change = self.accepted()
+        fees.generate_due_fees(date(2026, 2, 23))
+
+        def boom(*args, **kwargs):
+            raise RuntimeError("error inventat del carnet")
+
+        monkeypatch.setattr(mr.cards, "replace_card", boom)
+        assert mr.apply_due_downgrades(RENEWAL) == [change]
+        member.refresh_from_db()
+        assert member.type.code == "supporter"
+        change.refresh_from_db()
+        assert change.effective_on == RENEWAL
+        assert AuditEntry.objects.filter(action=mr.DOWNGRADE_CARD_FAILED).exists()
+
+    def test_renewal_fee_of_an_age_exempt_member_follows_next_fee_due(
+        self,
+        make_admin,  # noqa: F811
+    ):
+        from .test_cards import exempt_member
+
+        member = exempt_member(birth=date(2015, 5, 1), number=4321)
+        (old,) = fees.generate_due_fees(date(2029, 12, 17))  # primera quota: 01/01/2030
+        change = downgrade_request(member)
+        mr.approve_type_change(change, by=make_admin("secretary"))
+        old.charge.refresh_from_db()
+        assert old.charge.status == Charge.Status.CANCELLED
+        change.refresh_from_db()
+        assert change.renewal_fee.charge.amount_cents == price("supporter")
+
+    def test_member_already_supporter_is_marked_applied_without_error(self):
+        member, change = self.accepted()
+        fees.generate_due_fees(date(2026, 2, 23))
+        member.type = MembershipType.objects.get(code="supporter")  # canviat a mà
+        member.save(update_fields=["type"])
+        assert mr.apply_due_downgrades(RENEWAL) == [change]
+        change.refresh_from_db()
+        assert change.effective_on == RENEWAL
+        assert mr.apply_due_downgrades(date(2026, 3, 11)) == []
+
+    def test_one_failing_request_does_not_stop_the_others(self, monkeypatch):
+        first, change_a = self.accepted()
+        second = full_member("Joan")
+        change_b = downgrade_request(second, status=RS.APPROVED)
+        fees.generate_due_fees(date(2026, 2, 23))
+        real = mr._change_type
+
+        def boom(member, *args, **kwargs):
+            if member.pk == first.pk:
+                raise RuntimeError("error inventat")
+            return real(member, *args, **kwargs)
+
+        monkeypatch.setattr(mr, "_change_type", boom)
+        assert mr.apply_due_downgrades(RENEWAL) == [change_b]
+        change_a.refresh_from_db()
+        assert change_a.effective_on is None
+
+    def test_a_downgrade_from_before_a_leave_does_not_count(self):
+        from datetime import timedelta
+
+        from apps.members.models import MemberStatusChange
+
+        member = full_member()
+        change = downgrade_request(member, status=RS.APPROVED)
+        MemberRequest.objects.filter(pk=change.pk).update(
+            resolved_at=timezone.now() - timedelta(days=30)
+        )
+        # Baixa i readmissió sense passar per la validació de la baixa.
+        for to_status in ("left", "pending", "active"):
+            MemberStatusChange.objects.create(
+                member=member,
+                from_status=member.status,
+                to_status=to_status,
+                from_type=member.type,
+                to_type=member.type,
+                effective_on=date(2026, 1, 1),
+                reason="Motiu inventat",
+            )
+        assert mr.accepted_downgrade(member) is None
+        (fee,) = fees.generate_due_fees(date(2026, 2, 23))
+        assert fee.charge.amount_cents == price("full")
+
+
 def test_daily_task_goes_on_after_an_error(monkeypatch):
     from apps.members import tasks
 
@@ -105,12 +468,13 @@ def test_daily_task_goes_on_after_an_error(monkeypatch):
     def boom(*args, **kwargs):
         raise RuntimeError("error inventat")
 
-    monkeypatch.setattr(fees, "send_renewal_notices", boom)
+    monkeypatch.setattr(mr, "apply_due_downgrades", boom)
+    monkeypatch.setattr(fees, "send_renewal_notices", lambda: calls.append("avisos"))
     monkeypatch.setattr(fees, "generate_due_fees", lambda: calls.append("quotes"))
     monkeypatch.setattr(fees, "send_due_reminders", lambda: calls.append("recordatoris"))
     with pytest.raises(RuntimeError):
         tasks.daily_fees.func(0)
-    assert calls == ["quotes", "recordatoris"]
+    assert calls == ["avisos", "quotes", "recordatoris"]
 
 
 @pytest.mark.django_db
