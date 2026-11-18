@@ -58,3 +58,17 @@ def test_accounts_entry_is_current_on_the_deactivate_screen(login_as, make_admin
     assert response.status_code == 200
     accounts = reverse("administration:accounts")
     assert f'<a href="{accounts}" aria-current="page">' in response.content.decode()
+
+
+def test_types_entry_is_current_when_editing_a_type(login_as, make_admin):  # noqa: F811
+    """T-DX-56: «Tipus de soci» (T-M01-52) queda marcada també en editar-ne un."""
+    from apps.members.models import MembershipType
+
+    membership_type = MembershipType.objects.first()
+    assert membership_type, "la migració de dades crea els tipus inicials"
+    client = login_as(make_admin("administrator"), AREA_ADMIN)
+    url = reverse("administration:membership_type_edit", args=[membership_type.pk])
+    response = client.get(url)
+    assert response.status_code == 200
+    entry = reverse("administration:membership_types")
+    assert f'<a href="{entry}" aria-current="page">' in response.content.decode()

@@ -179,11 +179,15 @@ def test_secretary_previews_and_publishes_the_leave_email(page, live_server, rev
 
 
 def test_administrator_creates_a_type_with_its_price_and_deactivates_it(page, live_server, review):
-    # T-M01-52 (091, RN-M01-107): l'entrada del menú la posa la sessió de disseny.
+    # T-M01-52 (091, RN-M01-107); s'hi arriba pel menú (T-DX-56).
     admin = make_admin("admin.prova", "administrator")
     login_admin(page, live_server.url, admin.login)
-    page.goto(f"{live_server.url}/gestio/socis/tipus/")
+    sidebar = page.locator("#barra-lateral")
+    sidebar.get_by_role("link", name="Tipus de soci").click()
     expect(page.get_by_role("heading", name="Tipus de soci", exact=True)).to_be_visible()
+    expect(sidebar.get_by_role("link", name="Tipus de soci")).to_have_attribute(
+        "aria-current", "page"
+    )
     review("tipus-llista")
 
     page.get_by_label("Nom").fill("Juvenil")

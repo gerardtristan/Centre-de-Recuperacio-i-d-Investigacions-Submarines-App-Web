@@ -80,6 +80,11 @@ ENTRIES = (
     ),
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
     ("administration:fees", _("Quotes i impagats"), ()),
+    (
+        "administration:membership_types",
+        _("Tipus de soci"),
+        ("administration:membership_type_edit",),
+    ),  # T-DX-56 (T-M01-52)
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
     (
         "administration:treasury_accounts",
