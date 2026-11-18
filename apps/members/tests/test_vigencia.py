@@ -5,15 +5,19 @@ from datetime import timedelta
 
 import pytest
 from django.template import Context, Template
-from django.test import override_settings
 
+from apps.core.models import Setting
+from apps.members import settings as values
 from apps.members.fee_rules import local_today
 from apps.members.templatetags.vigencia import vigencia
 
-OFFSETS = (-15, -1, 0, 15, 30)
+pytestmark = pytest.mark.django_db
 
 
-@override_settings(MEMBER_FEE_REMINDER_OFFSETS=OFFSETS)
+def offsets(value):
+    Setting.objects.filter(key=values.FEE_REMINDER_OFFSETS).update(initial_value=value)
+
+
 @pytest.mark.parametrize(
     ("days", "level", "bar"),
     [
@@ -32,8 +36,8 @@ def test_days_level_and_bar_come_from_the_server_date(days, level, bar):
     assert result["window"] == 60
 
 
-@override_settings(MEMBER_FEE_REMINDER_OFFSETS=(-90, 0))
 def test_a_far_warning_day_stretches_the_scale():
+    offsets([-90, 0])
     result = vigencia(local_today() + timedelta(days=100), "quota")
     assert result["window"] == 90 and result["marks"] == [90] and result["level"] == "ok"
 
@@ -48,7 +52,6 @@ def test_no_date_shows_nothing():
     assert vigencia(None) == {"show": False}
 
 
-@override_settings(MEMBER_FEE_REMINDER_OFFSETS=OFFSETS)
 @pytest.mark.parametrize(
     ("days", "text"),
     [(1, "Queda 1 dia"), (23, "Queden 23 dies"), (0, "Venç avui"), (-2, "Va vèncer fa 2 dies")],

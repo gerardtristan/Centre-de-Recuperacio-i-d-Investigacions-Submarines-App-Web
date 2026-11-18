@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person, Role, RolePermission
 from apps.core.permissions import accounts_with_perm
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -285,11 +285,17 @@ class TestCaM0110GenerateOnce:
         departments = set(renewals.values_list("charge__department__name", flat=True))
         assert len(departments) == 1  # «General» (la 00 ho imposa per a les quotes)
 
-    def test_ca_m01_11_a_new_price_only_affects_fees_generated_afterwards(self):
+    def test_ca_m01_11_a_new_price_only_affects_fees_generated_afterwards(self, make_admin):  # noqa: F811
         first = paid_until(date(2027, 3, 10))
         second = paid_until(date(2027, 6, 10), first="Berta", number=1288, document="87654321X")
         (old,) = fees.generate_due_fees(date(2027, 2, 23))
-        MembershipType.objects.filter(code="full").update(annual_fee_cents=9500)
+        business_settings.change(  # VC-01 (T-M01-32): una versió nova del preu
+            "members.annual_fee_cents.full",
+            9500,
+            make_admin("treasurer"),
+            "Prova",
+            effective_from=timezone.localdate(),
+        )
         (new,) = fees.generate_due_fees(date(2027, 5, 26))
         assert (old.member, old.charge.amount_cents) == (first, 9000)
         assert (new.member, new.charge.amount_cents) == (second, 9500)

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import és la diferència entre quotes (Q-049 de la 072), calculat com el càrrec que es crea en aprovar-lo; venç una setmana després (RN-M01-76). Amb una quota sense pagar no es pot demanar (RN-M01-75).  T-M01-45 (5): el títol és el de l'entrada del menú, «Canvi de tipus», també per al soci de ple dret, i el de la sol·licitud pendent té la mateixa forma que el de la baixa. #}
+{# T-M01-17: canvi a ple dret (C6; HU-M01-09; P-M01-B pas 1; wireframe socis.html#canvi-tipus). L'import és la diferència entre quotes (Q-049 de la 072), calculat com el càrrec que es crea en aprovar-lo; venç els dies de VC-53 després (RN-M01-76; ajust, T-M01-32). Amb una quota sense pagar no es pot demanar (RN-M01-75).  T-M01-45 (5): el títol és el de l'entrada del menú, «Canvi de tipus», també per al soci de ple dret, i el de la sol·licitud pendent té la mateixa forma que el de la baixa. #}
 {% block title %}{% translate "Canvi de tipus" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
@@ -23,7 +23,7 @@
       <dl class="dades-soci">
         <div><dt>{% translate "Import del suplement" %}</dt><dd>{{ supplement_amount }}</dd></div>
       </dl>
-      <p class="text-2">{% translate "La secretaria revisarà la sol·licitud. Si l'aprova, tindràs una setmana per pagar el suplement. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement." %}</p>
+      <p class="text-2">{% blocktranslate count days=supplement_days %}La secretaria revisarà la sol·licitud. Si l'aprova, tindràs {{ days }} dia per pagar el suplement. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% plural %}La secretaria revisarà la sol·licitud. Si l'aprova, tindràs {{ days }} dies per pagar el suplement. El canvi de tipus es farà efectiu quan es confirmi el pagament del suplement.{% endblocktranslate %}</p>
       <form method="post" action="{% url 'members:change_type' %}">
         {% csrf_token %}
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la sol·licitud" %}</button></div>

@@ -195,6 +195,7 @@ MAP = {
     ),
     "test_ajustos.py": (
         "apps/core/views/business_settings.py",
+        "apps/members/settings.py",
         "templates/core/setting*.html",
     ),
     "test_dades_bloquejades.py": (

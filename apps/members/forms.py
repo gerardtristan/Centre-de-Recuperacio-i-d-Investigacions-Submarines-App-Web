@@ -24,6 +24,7 @@ from apps.core.models import Person
 from apps.core.normalization import normalize_document, normalize_email, normalize_phone
 
 from . import fee_rules
+from . import settings as member_settings
 from .models import MembershipType
 
 _DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE"
@@ -227,10 +228,9 @@ class JoinForm(forms.Form):
     def _type_label(self, membership_type) -> str:
         """Quota íntegra i anual (070); per als exempts, fins quan no paguen (068)."""
         name = membership_type.name
+        cents = member_settings.annual_fee_cents(membership_type, self.today)  # VC-01
         if self.birth is not None:
-            preview = fee_rules.fee_preview(
-                self.birth, membership_type.annual_fee_cents, self.today
-            )
+            preview = fee_rules.fee_preview(self.birth, cents, self.today)
             if preview.kind == "exempt":
                 return _("%(name)s · sense quota fins al 31/12/%(year)s") % {
                     "name": name,
@@ -239,7 +239,7 @@ class JoinForm(forms.Form):
             self.fee_note = True
         return _("%(name)s · quota anual de %(amount)s €") % {
             "name": name,
-            "amount": _euros(membership_type.annual_fee_cents),
+            "amount": _euros(cents),
         }
 
     def _set_labels(self):

@@ -28,6 +28,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.permissions import has_perm, permission_required, request_permissions, require_perm
 from apps.members import cards, fees, member_requests
+from apps.members import settings as member_settings
 from apps.members.fee_rules import local_today
 from apps.members.models import AnnualFee, Member, MemberRequest
 from apps.members.services import OwnMemberChange
@@ -218,6 +219,7 @@ def request_detail_view(request, pk):
             if kind == MemberRequest.Kind.CHANGE_TYPE and pending and not downgrade
             else ""
         ),
+        "supplement_days": member_settings.supplement_due_days(),  # VC-53 (RN-M01-106)
         "downgrade": downgrade,
         "supplement": fee,
         "supplement_state": SUPPLEMENT_STATES.get(state, ""),

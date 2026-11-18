@@ -23,8 +23,8 @@ Tanda del 10/11/2026 (074, RN-M01-74 a 76):
   `apply_due_leaves` una sola vegada. Aplicar-la: estat «baixa», quotes de la RN-M01-20, carnet
   revocat i correu, tot en una transacció. En validar-la, el canvi de tipus pendent es cancel·la.
 - Canvi a ple dret amb una quota sense pagar: es rebutja en demanar-lo i en aprovar-lo.
-- El suplement venç `SUPPLEMENT_DUE_DAYS` després d'aprovar-lo; vençut, l'anul·la qui té P7a
-  (075, RN-M01-82) o P8 amb edició (`cancel_overdue_supplement`). Mai sol.
+- El suplement venç els dies de VC-53 (ajust, T-M01-32) després d'aprovar-lo; vençut, l'anul·la
+  qui té P7a (075, RN-M01-82) o P8 amb edició (`cancel_overdue_supplement`). Mai sol.
 - Ruta `/gestio/socis/sollicituds/` confirmada (Q-052): el President hi resol amb P3a i P7.
 
 Pas de ple dret a simpatitzant (073 i 079, RN-M01-73 i RN-M01-93; T-M01-42):
@@ -67,6 +67,7 @@ from apps.core.models import Charge
 from apps.core.permissions import has_perm
 
 from . import cards, fees, recipients
+from . import settings as values
 from .fee_rules import SUPPORTER, local_today
 from .models import AnnualFee, FeeReminder, Member, MemberRequest, MembershipType
 from .services import (
@@ -86,10 +87,6 @@ LEAVE_EMAIL = "baixa-efectiva"
 RESOLVABLE = (MemberRequest.Kind.CHANGE_TYPE, MemberRequest.Kind.LEAVE)
 UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
 K, RS = MemberRequest.Kind, MemberRequest.Status
-# RN-M01-76 (074, punt 4): dies entre l'aprovació del canvi a ple dret i el venciment del
-# suplement. Una sola constant: el model d'ajustos (T-AJ-01) demana declarar la clau i el permís
-# amb la seva pantalla (T-AJ-02), que encara no hi és. [Efecte econòmic: A validar, tresorer]
-SUPPLEMENT_DUE_DAYS = 7
 LEAVES_ORIGIN = "members.apply_due_leaves"
 logger = logging.getLogger(__name__)
 
@@ -356,8 +353,9 @@ def has_unpaid_fees(member) -> bool:
 
 def approve_type_change(member_request, *, by, reason="", request=None) -> AnnualFee | None:
     """Aprova un canvi a ple dret (P7; Q-049, Q-050, Q-053): crea el suplement, que venç d'aquí a
-    `SUPPLEMENT_DUE_DAYS` (RN-M01-76), i deixa la sol·licitud aprovada sense data efectiva; el
-    canvi es fa quan es paga (`on_fee_paid`). Amb una quota sense pagar, es rebutja (RN-M01-75).
+    els dies de VC-53 vigents avui (RN-M01-76 i 106), i deixa la sol·licitud aprovada sense data
+    efectiva; el canvi es fa quan es paga (`on_fee_paid`). Amb una quota sense pagar, es rebutja
+    (RN-M01-75).
 
     Un pas a simpatitzant (073; RN-M01-93, punt 2) s'accepta sense suplement ni cap càrrec i
     torna `None`: el tipus no canvia i la sol·licitud queda com diu `accepted_downgrade`, perquè
@@ -392,7 +390,7 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
             member,
             locked.requested_type,
             period=today.year,
-            due_on=today + datetime.timedelta(days=SUPPLEMENT_DUE_DAYS),
+            due_on=today + datetime.timedelta(days=values.supplement_due_days(today)),
             by=by,
         )
         _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)

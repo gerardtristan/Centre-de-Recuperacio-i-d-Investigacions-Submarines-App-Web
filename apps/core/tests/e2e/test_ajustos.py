@@ -1,8 +1,12 @@
 """Ajustos al navegador (T-AJ-02; 055, RN-AJ-05, CA-AJ-01 i 05; RN-RP-22): l'administrador
 canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i el tresorer, amb
-«Cons.», veu el valor i l'historial sense formulari. Pantalles a 1280, 390 i 320 px."""
+«Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
+programa un preu i canvia els recordatoris. Pantalles a 1280, 390 i 320 px."""
+
+from datetime import timedelta
 
 import pytest
+from django.utils import timezone
 from playwright.sync_api import expect
 
 from apps.core import business_settings
@@ -60,3 +64,42 @@ def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_ser
     expect(page.get_by_text("Pots veure aquest valor, però no canviar-lo.")).to_be_visible()
     expect(page.get_by_role("button", name="Desa el valor")).to_have_count(0)
     review("nomes-consulta")
+
+
+def test_treasurer_schedules_a_member_price_and_edits_the_reminders(page, live_server, review):
+    # T-M01-32: l'apartat de socis (les claus les crea `members/0022`). El tresorer programa un
+    # preu nou amb data i nota (VC-01) i canvia la llista de recordatoris (VC-02); el text del
+    # darrere del carnet (VC-03) només el pot veure.
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    page.get_by_role("link", name="Ajustos de socis").click()
+    expect(page.get_by_role("heading", name="Ajustos de socis")).to_be_visible()
+    review("socis-apartat")
+
+    page.get_by_role("link", name="Canvia: Quota anual de soci simpatitzant").click()
+    page.get_by_label("Valor nou").fill("40,00")
+    page.get_by_label("En vigor des de").fill(
+        (timezone.localdate() + timedelta(days=30)).isoformat()
+    )
+    page.get_by_label("Nota").fill("Assemblea inventada")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("socis-preu-programat")
+    assert business_settings.get("members.annual_fee_cents.supporter") == 3500
+
+    page.get_by_role("link", name="Ajustos de socis").click()
+    expect(page.get_by_role("cell", name="40,00 € des del")).to_be_visible()
+    page.get_by_role("link", name="Canvia: Dies dels recordatoris de quota").click()
+    page.get_by_label("Valor nou").fill("-10, 0, 0")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    page.get_by_label("Valor nou").fill("-10, 0, 20")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("socis-recordatoris")
+    assert business_settings.get("members.fee_reminder_offsets") == [-10, 0, 20]
+
+    page.get_by_role("link", name="Ajustos de socis").click()
+    page.get_by_role("link", name="Historial: Text del darrere del carnet").click()
+    expect(page.get_by_text("Pots veure aquest valor, però no canviar-lo.")).to_be_visible()

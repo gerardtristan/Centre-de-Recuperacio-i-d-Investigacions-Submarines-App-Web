@@ -50,6 +50,8 @@ A **Llicències pendents de confirmar** surten les caducitats d'any natural que 
 ## 7. Quotes
 A **Quotes i impagats** pots veure l'estat de la quota de tots els socis, però marcar un impagat o revisar un pagament és feina del tresorer.
 
+**Text del darrere del carnet** (menú «Ajustos», «Ajustos de socis», T-M01-32): el pots canviar (fins a 300 caràcters) i queda a l'historial. La resta de valors d'aquell apartat els veus però no els canvies.
+
 ## 8. Què no fa la secretaria (i qui ho fa)
 - **Comptes d'administrador i permisos:** l'administrador.
 - **Sol·licituds d'esborrat de dades (RGPD):** qui té aquest permís, ara l'administrador.
