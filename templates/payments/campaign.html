@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M05a-13, C5: campanya de mandats (P-M05a-E; wireframe admin.html#vista-pagaments-campanya). Seguretat i privacitat, al servidor: veure els recomptes demana A4; obrir, enviar i tancar, A5 (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat» al POST); enviar i tancar es confirmen en un segon pas; amb la signatura del mandat apagada no s'envia res. Només recomptes: cap nom ni dada bancària. #}
+{# T-M05a-13, C5: campanya de mandats (P-M05a-E; wireframe admin.html#vista-pagaments-campanya). Seguretat i privacitat, al servidor: veure els recomptes demana A4; obrir, enviar i tancar, A5 (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat» al POST); enviar i tancar es confirmen en un segon pas, i la confirmació de l'enviament mostra el text sencer de la invitació de la campanya, el que porta cada correu, escapat (T-M05a-13d; 097, P-306 opció B); amb la signatura del mandat apagada no s'envia res. Només recomptes: cap nom ni dada bancària. #}
 {% block title %}{% translate "Campanya de mandats" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
@@ -52,6 +52,10 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="send"><input type="hidden" name="confirm" value="1">
             <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma l'enviament" %}</strong>{% blocktranslate count total=to_invite %}S'enviarà {{ total }} invitació per correu. Cada soci la rep una sola vegada.{% plural %}S'enviaran {{ total }} invitacions per correu. Cada soci la rep una sola vegada.{% endblocktranslate %}</div>
+            <section aria-labelledby="invitacio-titol">
+              <h3 id="invitacio-titol">{% blocktranslate with version=campaign.invitation_text.version %}Text de la invitació (versió {{ version }}){% endblocktranslate %}</h3>
+              <div class="text-legal-cos">{{ campaign.invitation_text.content|linebreaks }}</div>
+            </section>
             <div class="accions">
               <button class="boto boto-principal" type="submit">{% translate "Sí, envia-les" %}</button>
               <a class="boto boto-text" href="{% url 'administration:payments_campaign' %}">{% translate "Cancel·la" %}</a>
