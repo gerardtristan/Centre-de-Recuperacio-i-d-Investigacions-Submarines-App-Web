@@ -49,7 +49,11 @@ def card_view(request):
         "card": card,
         "validity": cards.validity(loaded, card, today) if card else None,
         "years": years,
-        "classic": bool(classic) and years is not None and years >= classic,
+        # RN-M01-23: mai amb una data d'alta aproximada.
+        "classic": bool(classic)
+        and years is not None
+        and not loaded.joined_on_is_approximate
+        and years >= classic,
         "card_back_text": member_settings.card_back_text(),  # VC-03
         "exempt": cards.is_exempt(loaded),
         "licence": services.licence_record(loaded.person),

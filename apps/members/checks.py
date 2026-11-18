@@ -21,7 +21,7 @@ def card_qr_keys(app_configs, **kwargs):
 def renewal_notice_before_fee(app_configs, **kwargs):
     """T-M01-43 (CA-M01-70): l'avís de renovació surt com a mínim un mes abans. Els dies del
     primer recordatori (VC-02) ara són un ajust de la base de dades i aquí no es poden llegir:
-    que l'avís arribi abans que la quota és la pregunta P-360."""
+    que l'avís arribi abans que la quota ho comprova l'ajust en desar-los (P-360)."""
     months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
     if months < 1:
         return [

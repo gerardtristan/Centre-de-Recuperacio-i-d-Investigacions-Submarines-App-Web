@@ -34,6 +34,14 @@ EMAIL_TEMPLATE = "avis-canvi-diners"
 T = Setting.ValueType
 
 
+# Regla d'un sol valor que depèn d'un altre mòdul (P-360): la registra el mòdul al seu `ready`.
+EXTRA_CHECKS: dict = {}
+
+
+def register_check(key: str, check) -> None:
+    EXTRA_CHECKS[key] = check
+
+
 def permission_code(key: str) -> str:
     return f"settings.edit.{key}"
 
@@ -139,6 +147,8 @@ def validate_value(setting: Setting, value) -> None:
             )
     else:  # pragma: no cover - el tipus és una llista tancada
         raise ValidationError(_("Tipus d'ajust desconegut."))
+    if check := EXTRA_CHECKS.get(setting.key):
+        check(value)
 
 
 def _value_at(setting: Setting, at: datetime.date):

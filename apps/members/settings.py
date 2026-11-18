@@ -6,6 +6,10 @@ La pantalla és la comuna (apartat «members»). Les claus les crea `members/002
 el catàleg i `core/0046`.
 """
 
+from django.conf import settings as django_settings
+from django.core.exceptions import ValidationError
+from django.utils.translation import ngettext
+
 from apps.core import business_settings
 from apps.core.models import Setting
 
@@ -31,13 +35,32 @@ def annual_fee_cents(membership_type, at=None) -> int:
         return membership_type.annual_fee_cents
 
 
-def fee_reminder_offsets(at=None) -> list[int]:
+def fee_reminder_offsets() -> list[int]:
     """RN-M01-14 i 106: dies respecte del venciment, en ordre."""
-    return sorted(business_settings.get(FEE_REMINDER_OFFSETS, at))
+    return sorted(business_settings.get(FEE_REMINDER_OFFSETS))
 
 
-def supplement_due_days(at=None) -> int:
-    return business_settings.get(SUPPLEMENT_DUE_DAYS, at)
+def check_reminders(offsets) -> None:
+    """P-360, opció B: la quota es genera el dia del primer recordatori, i l'avís de renovació
+    (T-M01-43, `MEMBER_RENEWAL_NOTICE_MONTHS` abans) ha de sortir abans. Un mes en té com a
+    mínim 28 dies. La registra `apps.MembersConfig.ready` per a VC-02."""
+    months = django_settings.MEMBER_RENEWAL_NOTICE_MONTHS
+    limit = months * 28
+    if -min(offsets) > limit:
+        message = ngettext(
+            "El primer recordatori pot ser com a màxim %(days)s dies abans del venciment: "
+            "l'avís de renovació, %(months)s mes abans, ha de sortir abans que es generi la "
+            "quota.",
+            "El primer recordatori pot ser com a màxim %(days)s dies abans del venciment: "
+            "l'avís de renovació, %(months)s mesos abans, ha de sortir abans que es generi la "
+            "quota.",
+            months,
+        )
+        raise ValidationError(message % {"days": limit, "months": months})
+
+
+def supplement_due_days() -> int:
+    return business_settings.get(SUPPLEMENT_DUE_DAYS)
 
 
 def card_back_text() -> str:

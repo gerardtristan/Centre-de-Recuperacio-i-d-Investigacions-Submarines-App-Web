@@ -194,3 +194,75 @@ def test_ca_m01_37_the_card_shows_the_badge_from_the_threshold(personal, years, 
     assert ("Soci clàssic" in html) is badge
     assert "Text del darrere de prova." in html
     assert "Carnet personal i intransferible" not in html
+
+
+# --- Revisió de la PR #211 ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize(("months", "value", "ok"), [(1, [-28, 0], True), (1, [-29, 0], False),
+                                                     (2, [-45, 0], True)])  # fmt: skip
+def test_p_360_reminders_cannot_start_before_the_renewal_notice(
+    make_admin,  # noqa: F811
+    settings,
+    months,
+    value,
+    ok,
+):
+    # P-360, opció B: la quota es genera el dia del primer recordatori i l'avís de renovació
+    # (T-M01-43) ha de sortir abans; un mes en té com a mínim 28 dies.
+    settings.MEMBER_RENEWAL_NOTICE_MONTHS = months
+    treasurer = make_admin("treasurer")
+    if ok:
+        business_settings.change(values.FEE_REMINDER_OFFSETS, value, treasurer)
+        assert values.fee_reminder_offsets() == value
+    else:
+        with pytest.raises(ValidationError, match="avís de renovació"):
+            business_settings.change(values.FEE_REMINDER_OFFSETS, value, treasurer)
+        assert values.fee_reminder_offsets() == [-15, -1, 0, 15, 30]
+
+
+def test_the_renewal_fee_takes_the_price_in_force_when_it_is_generated(make_admin):  # noqa: F811
+    # RN-M01-13 i CA-M01-35: el preu vigent el dia de generar la quota, encara que el preu nou
+    # entri en vigor abans del venciment.
+    paid_until(date(2027, 3, 10))
+    business_settings.change(
+        FULL_PRICE, 9500, make_admin("treasurer"), "Prova", effective_from=date(2027, 3, 1)
+    )
+    (fee,) = fees.generate_due_fees(date(2027, 2, 23))  # el preu nou comença l'1 de març
+    assert (fee.due_on, fee.charge.amount_cents) == (date(2027, 3, 10), 9000)
+
+
+def test_every_01_setting_has_an_edit_permission_in_the_catalog():
+    # Cap ajust que ningú no pugui editar pel seu permís (només hi ha preus dels dos tipus).
+    from apps.core.permission_catalog import CATALOG
+
+    keys = Setting.objects.filter(module="members").values_list("key", flat=True)
+    assert all(business_settings.permission_code(key) in CATALOG for key in keys)
+
+
+def test_an_approximate_join_date_never_gets_the_badge(personal):  # noqa: F811
+    # RN-M01-23 (text original): la insígnia només si la data d'alta no és aproximada.
+    set_value(values.CLASSIC_MEMBER_YEARS, 5)
+    member = make_member(joined_on=date(2001, 1, 1), joined_on_is_approximate=True)
+    pay(add_fee(member, period=timezone.localdate().year))
+    cards.issue_card(member, by=audit.system("proves"))
+    html = personal(member).get(reverse("members:card")).content.decode()
+    assert "Soci clàssic" not in html
+
+
+def test_the_cluber_import_matches_the_price_in_force_on_the_renewal_date(make_admin):  # noqa: F811
+    from apps.members.imports import cluber
+    from apps.members.tests.test_cluber_preview import build, only_row, record
+
+    start = timezone.localdate() + timedelta(days=10)
+    business_settings.change(SUPPORTER_PRICE, 4000, make_admin("treasurer"), "Prova",
+                             effective_from=start)  # fmt: skip
+    after = (start + timedelta(days=1)).strftime("%d/%m/%Y")
+    before = (start - timedelta(days=1)).strftime("%d/%m/%Y")
+    cells = {"Quota": "Quota anual 40€", "Preu total": "40", "Data alta/renovació": after}
+    row = only_row(cluber.preview(build([record(1, cells)])))
+    assert (row.member_type, row.member_type_by) == ("supporter", "price")
+    assert "total_price_differs" not in row.warnings
+    cells["Data alta/renovació"] = before
+    row = only_row(cluber.preview(build([record(1, cells)])))
+    assert row.member_type is None and "member_type" in row.pending

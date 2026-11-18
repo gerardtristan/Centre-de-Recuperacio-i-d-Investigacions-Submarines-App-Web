@@ -927,6 +927,15 @@ opcions:
       Manté la garantia de la T-M01-43 (l'avís abans de la quota) amb una sola regla nova al desar, sense
       canviar quan surt l'avís. A deixa un forat silenciós; C canvia la regla de la 085 (T-6).
     data: 2026-11-18
+  P-363:
+    opcions:
+      A: El llindar d'anys de VC-04 (055), que comença a 0 (cap insígnia), i mai amb una data d'alta aproximada.
+      B: Sense llindar automàtic; l'administració assigna la insígnia a mà a cada soci (072, Q-066), amb una tasca nova.
+    recomanada: A
+    perque: >-
+      A ja és construït i, amb el valor inicial 0, no dona cap insígnia: la junta pot triar més endavant
+      sense cap canvi de codi. B demana un camp nou i una pantalla, i és la regla de la 072 que la 055 no va citar.
+    data: 2026-11-18
   P-361:
     opcions:
       A: Un ajust de diners per tipus a la peça comuna (com s'ha construït); el camp del tipus és el preu inicial.

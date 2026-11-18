@@ -390,7 +390,7 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
             member,
             locked.requested_type,
             period=today.year,
-            due_on=today + datetime.timedelta(days=values.supplement_due_days(today)),
+            due_on=today + datetime.timedelta(days=values.supplement_due_days()),
             by=by,
         )
         _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)

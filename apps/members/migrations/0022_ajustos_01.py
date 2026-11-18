@@ -5,6 +5,7 @@ cèntims). VC-02 (llista, d'1 a 10 valors de -90 a 90), VC-03, VC-04 i VC-53. El
 
 from django.db import migrations
 
+PRICED_TYPES = ("full", "supporter")
 CARD_BACK = "Carnet personal i intransferible. Si el trobes, escriu a cris@cris.es."
 SETTINGS = [
     # clau, tipus, valor inicial, mínim, màxim, longitud màxima (a la llista, nombre de valors)
@@ -23,7 +24,9 @@ def load(apps, schema_editor):
             defaults={"module": "members", "value_type": kind, "initial_value": initial,
                       "min_value": low, "max_value": high, "max_length": length},
         )  # fmt: skip
-    for membership_type in apps.get_model("members", "MembershipType").objects.all():
+    # Només els tipus amb permís d'edició al catàleg (AJ01-1 i 2); la T-M01-52 farà la resta.
+    types = apps.get_model("members", "MembershipType").objects.filter(code__in=PRICED_TYPES)
+    for membership_type in types:
         Setting.objects.get_or_create(
             key=f"members.annual_fee_cents.{membership_type.code}",
             defaults={"module": "members", "value_type": "cents",

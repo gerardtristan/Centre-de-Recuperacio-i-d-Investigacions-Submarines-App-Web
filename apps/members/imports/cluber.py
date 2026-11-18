@@ -49,6 +49,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import ImportBatch, Person
 from apps.core.normalization import normalize_document
+from apps.members import settings as member_settings
 from apps.members.forms import parse_document
 from apps.members.models import Member, MembershipType
 
@@ -355,19 +356,21 @@ def normalize(value) -> tuple[dict, list]:
     return fields, errors
 
 
-def resolve_type(quota: str, types: list) -> tuple[MembershipType | None, str | None]:
+def resolve_type(quota: str, types: list, price=None) -> tuple[MembershipType | None, str | None]:
     """Tipus de soci a partir del text de «Quota» (071, punt 5).
 
     1r: el nom d'un sol tipus surt dins el text, per paraules senceres i sense majúscules ni
-    accents. 2n: l'únic preu del text coincideix amb la quota vigent d'un sol tipus. Si no, cap
-    tipus (pendent: el tria la secretaria). Torna `(tipus, "name" | "price" | None)`.
+    accents. 2n: l'únic preu del text coincideix amb la quota vigent d'un sol tipus (`price`:
+    el preu de cada tipus; per defecte, el vigent avui). Si no, cap tipus (pendent: el tria la
+    secretaria). Torna `(tipus, "name" | "price" | None)`.
     """
+    price = price or member_settings.annual_fee_cents
     folded = _fold(quota)
     by_name = [t for t in types if re.search(rf"(?<!\w){re.escape(_fold(t.name))}(?!\w)", folded)]
     if len(by_name) == 1:
         return by_name[0], "name"
     cents = price_in_text(quota)
-    by_price = [t for t in types if cents is not None and t.annual_fee_cents == cents]
+    by_price = [t for t in types if cents is not None and price(t) == cents]
     if len(by_price) == 1:
         return by_price[0], "price"
     return None, None
@@ -610,7 +613,8 @@ def _preview_csv(data: bytes, *, keep_values: bool = False) -> Preview:
                 return values[index[header]].strip() if header in index else ""
 
             _read_row(row, value, keep_values)
-            to_resolve.append((row, value(QUOTA), value(TOTAL_PRICE)))
+            paid_on = parse_date(value(LAST_RENEWAL))
+            to_resolve.append((row, value(QUOTA), value(TOTAL_PRICE), paid_on))
             for column, counter in catalogue.items():
                 if v := value(column):
                     counter[v] += 1
@@ -687,19 +691,28 @@ def _read_row(row: Row, value, keep_values: bool = False) -> None:
 
 def _resolve_types(result: Preview, to_resolve: list) -> None:
     """Tipus de soci de cada fila llegida (071, punt 5), amb una sola consulta. «Preu total» només
-    serveix per avisar si no coincideix amb la quota del tipus deduït (punt 6)."""
+    serveix per avisar si no coincideix amb la quota del tipus deduït (punt 6), la vigent el dia de
+    l'última renovació (VC-01, T-M01-32)."""
     if not to_resolve:
         return
     types = list(MembershipType.objects.filter(active=True).order_by("pk"))
     result.type_names = {t.code: t.name for t in types}
-    for row, quota, total in to_resolve:
-        membership_type, by = resolve_type(quota, types) if quota else (None, None)
+    prices = {}  # (tipus, data) → cèntims: una consulta per tipus i data, no per fila
+    for row, quota, total, paid_on in to_resolve:
+
+        def price(t, paid_on=paid_on):
+            # VC-01: el preu vigent el dia de «Data alta/renovació» (avui, si no n'hi ha).
+            if (t.pk, paid_on) not in prices:
+                prices[t.pk, paid_on] = member_settings.annual_fee_cents(t, paid_on)
+            return prices[t.pk, paid_on]
+
+        membership_type, by = resolve_type(quota, types, price) if quota else (None, None)
         if membership_type is None:
             row.pending.append("member_type")
             continue
         row.member_type, row.member_type_by = membership_type.code, by
         amount = _AMOUNT_RE.fullmatch(total)
-        if amount and _cents(amount.group(1)) != membership_type.annual_fee_cents:
+        if amount and _cents(amount.group(1)) != price(membership_type):
             row.warnings.append("total_price_differs")
 
 

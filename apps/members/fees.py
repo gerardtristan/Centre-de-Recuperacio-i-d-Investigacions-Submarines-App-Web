@@ -313,8 +313,8 @@ def parse_date(value) -> datetime.date | None:
 # --- Generació i recordatoris (retoc del 09/11/2026, 072) -----------------------------------
 
 
-def _lead_days(today) -> int:
-    offsets = values.fee_reminder_offsets(today)
+def _lead_days() -> int:
+    offsets = values.fee_reminder_offsets()
     return max(0, -min(offsets)) if offsets else 0
 
 
@@ -349,7 +349,7 @@ def generate_due_fees(today=None, *, by=None) -> list[AnnualFee]:
 
     today = today or local_today()
     by = by or audit.system(GENERATE_ORIGIN)
-    lead = datetime.timedelta(days=_lead_days(today))
+    lead = datetime.timedelta(days=_lead_days())
     members = roster.with_fee_data(
         Member.objects.select_related("person", "type").filter(
             status__in=REVIEWED, person__status=Person.Status.ACTIVE
@@ -393,7 +393,7 @@ def send_due_reminders(today=None) -> int:
     (Q-061). Si la tasca no ha corregut un dia, el recordatori es recupera mentre no arriba el
     següent; els anteriors perduts no s'envien tard."""
     today = today or local_today()
-    offsets = values.fee_reminder_offsets(today)
+    offsets = values.fee_reminder_offsets()
     pending = AnnualFee.objects.filter(
         kind=AnnualFee.Kind.ANNUAL,
         charge__status=Charge.Status.PENDING,
