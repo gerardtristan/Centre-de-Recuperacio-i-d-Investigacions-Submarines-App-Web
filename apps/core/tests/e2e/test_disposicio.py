@@ -95,6 +95,8 @@ def test_member_home_layout(page, live_server, builder, member):
     assert left[0] == right[0], (left, right)  # l'una a sota de l'altra
     page.set_viewport_size({"width": 320, "height": 800})
     assert page.evaluate(OVERFLOW_JS) <= 0
+
+
 STICKY_JS = "() => getComputedStyle(document.querySelector('.taula thead th')).position"
 FILTER_COLUMNS_JS = (
     "() => getComputedStyle(document.querySelector('.barra-filtres'))"
