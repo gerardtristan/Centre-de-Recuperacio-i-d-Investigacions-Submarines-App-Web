@@ -11,7 +11,7 @@ from django.utils import timezone
 from apps.accounts.models import Account
 from apps.core import audit, charges, imports
 from apps.core.imports import bank_statement as bs
-from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment
+from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment, Role, RolePermission
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import add_fee, make_member
@@ -448,6 +448,19 @@ class TestExclude:
             with pytest.raises(Http404):
                 reconciliation.exclude(line, reason="Prova", by=who)
         assert not StatementLineState.objects.filter(status=State.EXCLUDED).exists()
+
+    def test_t8_is_its_own_cell_not_t4(self, treasurer, make_admin):  # noqa: F811
+        """P-190 (095): T8 té codi propi. Sense la cel·la, el tresorer no exclou encara que tingui
+        T4; un rol amb T8 i sense T4 sí que exclou."""
+        first, second = lines(treasurer, (-1230, "REBUT LLUM"), (-500, "REBUT AIGUA"))
+        RolePermission.objects.filter(permission_code="treasury.exclude").delete()
+        with pytest.raises(Http404):
+            reconciliation.exclude(first, reason="Prova", by=treasurer)
+        RolePermission.objects.create(
+            role=Role.objects.get(code="secretary"), permission_code="treasury.exclude", scope="all"
+        )
+        reconciliation.exclude(second, reason="Prova", by=make_admin("secretary"))
+        assert state(second)[0] == State.EXCLUDED and state(first)[0] != State.EXCLUDED
 
     def test_excluded_needs_a_reason_also_in_the_database(self, treasurer):
         (line,) = lines(treasurer, (-1230, "REBUT LLUM"))

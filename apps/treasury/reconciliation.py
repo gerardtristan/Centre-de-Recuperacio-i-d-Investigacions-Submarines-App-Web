@@ -74,9 +74,8 @@ CONFIRMED = "treasury.reconciliation_confirmed"
 EXCLUDED = "treasury.statement_line_excluded"
 UNDONE = "treasury.reconciliation_undone"
 RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» (M04-4)
-# T8, «Excloure una línia»: el mateix permís que T4, perquè la matriu dona totes dues només al
-# tresorer i un permís nou seria del nucli (P-190, opció per defecte).
-EXCLUDE = RECONCILE
+EXCLUDE = "treasury.exclude"  # T8, «Excloure una línia de l'extracte» (P-190, 095)
+REVIEW = "treasury.review"  # T10, «Veure la llista "a revisar"» (P-190, 095)
 OPEN = (StatementLineState.Status.PENDING, StatementLineState.Status.PROPOSED)
 Reason = StatementLineState.ReviewReason
 AMBIGUOUS = Reason.SETTLEMENT_AMBIGUOUS

@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 
 from apps.accounts.security import AREA_PERSONAL
-from apps.core.models import Role, RolePermission
+from apps.core.models import Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.members.models import Member
 from apps.members.tests.test_cards import make_member
@@ -18,7 +18,7 @@ pytestmark = pytest.mark.django_db
 URL = reverse("administration:payments_mandates")
 R = Role.Code
 MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor", "guest")]
-WITH_A4 = {R.TREASURER, R.ADMINISTRATOR}  # la Secretaria comença sense (P-193)
+WITH_A4 = {R.TREASURER, R.ADMINISTRATOR, R.SECRETARY}  # la Secretaria, «Cons.» (P-193, 095)
 # Les mateixes fixtures que les proves del mandat.
 member, account, text, sign = (
     test_mandates.member,
@@ -61,7 +61,8 @@ def test_without_an_admin_session_it_asks_for_the_admin_login(client, personal_a
 
 def test_read_only_no_method_writes(make_admin):  # noqa: F811
     assert client_for(make_admin(R.TREASURER)).post(URL).status_code == 405
-    assert client_for(make_admin(R.SECRETARY)).post(URL).status_code == 404
+    assert client_for(make_admin(R.SECRETARY)).post(URL).status_code == 405
+    assert client_for(make_admin(R.BOARD)).post(URL).status_code == 404
 
 
 def test_treasurer_sees_method_mandate_card_and_masked_iban_never_decrypted(
@@ -92,11 +93,8 @@ def test_the_filter_by_method(make_admin, members):  # noqa: F811
 
 
 def test_consultation_scope_only_has_method_yes_or_no(make_admin, members):  # noqa: F811
-    """Si l'administrador dona a la Secretaria «Cons.» (P-193), només veu «té mètode: sí/no»:
-    cap mètode, referència, targeta ni IBAN arriba a l'HTML, i no hi ha filtre."""
-    RolePermission.objects.create(
-        role=Role.objects.get(code=R.SECRETARY), permission_code=admin_views.VIEW, scope="read"
-    )
+    """La Secretaria té «Cons.» de bon principi (P-193, 095): només veu «té mètode: sí/no»; cap
+    mètode, referència, targeta ni IBAN arriba a l'HTML, i no hi ha filtre."""
     page = html(client_for(make_admin(R.SECRETARY)), metode="saved_card")
     assert "Té mètode" in page and page.count(">Sí<") == 3 and page.count(">No<") == 1
     for hidden in ("CRIS001287M01", "ES …", "4242", "Domiciliació", "Targeta", "Filtra", "IBAN"):

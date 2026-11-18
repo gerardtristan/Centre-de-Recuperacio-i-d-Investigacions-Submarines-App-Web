@@ -58,7 +58,7 @@ from .models import (
     TreasuryAccount,
 )
 
-VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
+VIEW = "treasury.view"  # T1
 EXPORT = "treasury.export"  # T9, «Exportar moviments en CSV» (M04-4)
 EXPORTED = "treasury.movements_exported"
 PER_PAGE = 50
@@ -186,7 +186,7 @@ def export_view(request):
 
 
 @never_cache
-@permission_required(VIEW)
+@permission_required(reconciliation.REVIEW)
 @require_GET
 def review_view(request):
     reconciliation.refresh()  # els càrrecs canvien: la llista es calcula abans de mostrar-la
@@ -263,6 +263,8 @@ def reconciliation_view(request):
         "page": page,
         "rows": rows,
         "can_reconcile": has_perm(request.user, reconciliation.RECONCILE, write=True),
+        "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),
+        "can_review": has_perm(request.user, reconciliation.REVIEW),
     }
     return render(request, "treasury/reconciliation.html", context)
 

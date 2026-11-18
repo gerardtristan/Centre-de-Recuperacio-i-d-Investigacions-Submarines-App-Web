@@ -405,6 +405,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    # P-190 (095): T8 i T10 tenen cadascun el seu codi. Les cel·les, a `payments/0023`.
+    _perm(
+        "treasury.exclude",
+        "T8",
+        _("Excloure una línia de l'extracte, amb motiu"),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
     _perm(
         "treasury.export",
         "T9",
@@ -412,16 +420,22 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
-    # T8 i T10 fan servir T4 i T1 mentre la P-190 sigui oberta; T11, P10 (P-243).
+    _perm(
+        "treasury.review",
+        "T10",
+        _("Veure la llista «a revisar»"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    # T11 fa servir P10 (P-243).
     # --- 05a Alta del mètode de pagament i mandats -------------------------------------------
     _perm(
         "payments.mandates.view",
         "A4",
         _("Veure mètodes i mandats de tots els socis (IBAN emmascarat)"),
-        # «Cons.» només ensenya «té mètode: sí/no». La Secretaria, [A validar] al M05a-4,
-        # comença sense (P-193).
+        # «Cons.» només ensenya «té mètode: sí/no»: la Secretaria (P-193, 095).
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
-        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL, R.SECRETARY: SCOPE_READ},
         touches_personal_data=True,
     ),
     _perm(

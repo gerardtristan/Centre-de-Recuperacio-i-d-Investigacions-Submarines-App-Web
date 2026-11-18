@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 
 from apps.core import audit, charges
-from apps.core.models import Charge, Person, Role
+from apps.core.models import Charge, Person, Role, RolePermission
 from apps.core.tests.conftest import (
     main_of,
     make_admin,  # noqa: F401 (fixture)
@@ -117,3 +117,17 @@ def test_exclude_from_this_screen_comes_back_here(treasurer):
     assert response["Location"] == PAGE
     reconciliation.refresh()
     assert StatementLineState.objects.get(statement_line=line).status == "excluded"
+
+
+def test_without_t8_or_t10_the_screen_does_not_link_them(treasurer):
+    # P-190 (095): l'enllaç a la llista «a revisar» demana T10, i el botó «Exclou…», T8. Amagar-los
+    # no és el control: la vista i el servei tornen a comprovar el permís.
+    lines(treasurer, (4200, "INGRES DESCONEGUT"))
+    client = client_for(treasurer)
+    html = main_of(client.get(PAGE).content.decode())
+    assert "Mira les línies a revisar" in html and "Exclou…" in html
+    RolePermission.objects.filter(
+        permission_code__in=(reconciliation.EXCLUDE, reconciliation.REVIEW)
+    ).delete()
+    html = main_of(client.get(PAGE).content.decode())
+    assert "Mira les línies a revisar" not in html and "Exclou…" not in html

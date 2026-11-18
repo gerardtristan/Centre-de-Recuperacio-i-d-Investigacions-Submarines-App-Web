@@ -5,8 +5,8 @@ són accions pròpies (sense permís de rol) i les de convidat i del proveïdor,
 Cada servei públic dels mòduls de diners comprova el seu permís o diu per què no en demana cap.
 Una ruta o un servei nou sense declarar fa fallar la prova. Només dades inventades.
 
-Permisos que no tenen codi propi (P-190 i P-243): T8 (excloure una línia) fa servir T4; T10 (la
-llista «a revisar»), T1; T11 encara no té pantalla. A7, A8 i B8 són configuració de l'entorn;
+T8 (excloure una línia) i T10 (la llista «a revisar») tenen cadascun el seu codi (P-190, 095);
+T11 encara no té pantalla (P-243). A7, A8 i B8 són configuració de l'entorn;
 A9 no el té ningú. T2, T3 i B7 són al catàleg però encara no tenen cap pantalla ni servei."""
 
 import inspect
@@ -33,6 +33,7 @@ MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor
 
 T1, T4, T5 = "treasury.view", "treasury.reconcile", "treasury.reverse"
 T6, T7, T9 = "treasury.transfer", "treasury.cash_count", "treasury.export"
+T8, T10 = "treasury.exclude", "treasury.review"  # P-190 (095)
 A4, A5, A6 = "payments.mandates.view", "payments.campaign.send", "payments.mandates.revoke"
 B3, B4, B5, B6 = "payments.remittances", "payments.returns", "payments.refund", "payments.view"
 M14 = "core.charges.record_manual"  # P-12: pagament a mà
@@ -55,8 +56,8 @@ ADMIN_ROUTES = {
     "administration:treasury_confirm_line": {"POST": {w(T4)}},
     "administration:treasury_match_line": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:treasury_undo_reconciliation": {"POST": {w(T4)}},
-    "administration:treasury_review": {"GET": {r(T1)}},  # T10, amb T1 (P-190)
-    "administration:treasury_exclude_line": {"POST": {w(T4)}},  # T8, amb T4 (P-190)
+    "administration:treasury_review": {"GET": {r(T10)}},
+    "administration:treasury_exclude_line": {"POST": {w(T8)}},
     "administration:treasury_transfer": {"GET": {w(T6)}, "POST": {w(T6)}},
     "administration:treasury_cash_count": {"GET": {w(T7)}, "POST": {w(T7)}},
     "administration:treasury_reverse": {"GET": {w(T5)}, "POST": {w(T5)}},
@@ -197,7 +198,7 @@ SERVICE_CHECKS = {
     settlements.confirm_line: (T4, lambda by: settlements.confirm_line(None, 0, by=by)),
     reconciliation.confirm: (T4, lambda by: reconciliation.confirm(None, by=by)),
     reconciliation.undo: (T4, lambda by: reconciliation.undo(None, reason="x", by=by)),
-    reconciliation.exclude: (T4, lambda by: reconciliation.exclude(None, reason="x", by=by)),
+    reconciliation.exclude: (T8, lambda by: reconciliation.exclude(None, reason="x", by=by)),
     reconciliation.match: (T4, lambda by: reconciliation.match(None, [], by=by)),
     reconciliation.check_match: (T4, lambda by: reconciliation.check_match(None, [], by=by)),
     remittances.build_remittance: (B3, lambda by: remittances.build_remittance("x", None, by)),

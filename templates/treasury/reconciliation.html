@@ -10,7 +10,7 @@
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
   <p class="text-2">{% translate "Les línies dels extractes importats. La plataforma proposa; només el tresorer confirma. Confirmar posa els càrrecs en «pagat» i apunta l'ingrés al banc; desfer-ho torna els càrrecs a «pendent» i compensa l'ingrés, amb el motiu." %}</p>
-  <p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>
+  {% if can_review %}<p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>{% endif %}
 
   {% if rows %}
     <table class="taula">
@@ -73,7 +73,7 @@
                 {% elif row.state.status == "pending" %}
                   {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
                   {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
-                  <details class="altes-rebuig">
+                  {% if can_exclude %}<details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
                     <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">
                       {% csrf_token %}
@@ -85,7 +85,7 @@
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                     </form>
-                  </details>
+                  </details>{% endif %}
                 {% else %}—{% endif %}
               </td>
             {% endif %}
