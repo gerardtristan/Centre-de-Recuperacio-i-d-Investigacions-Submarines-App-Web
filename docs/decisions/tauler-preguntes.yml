@@ -869,8 +869,8 @@ opcions:
 
   P-333:
     opcions:
-      A: Com la 045 per a les transferències, amb M14 i motiu: el càrrec torna a pendent, el pagament queda anul·lat, l'ingrés té el seu contramoviment i el rebut queda anul·lat, tot o res.
-      B: Només com una devolució feta pel club: el càrrec passa a anul·lat i surt una sortida del mateix compte; el soci no torna a deure res.
+      A: "Com la 045 per a les transferències, amb M14 i motiu: el càrrec torna a pendent, el pagament queda anul·lat, l'ingrés té el seu contramoviment i el rebut queda anul·lat, tot o res."
+      B: "Només com una devolució feta pel club: el càrrec passa a anul·lat i surt una sortida del mateix compte; el soci no torna a deure res."
       C: No es corregeix a la plataforma; el Tresorer ho resol amb un altre moviment i una nota.
     recomanada: A
     perque: >-
