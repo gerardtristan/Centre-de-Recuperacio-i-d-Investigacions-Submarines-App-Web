@@ -17,8 +17,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from .. import fees, member_requests
 from .. import settings as member_settings
-from ..fee_rules import SUPPORTER
-from ..models import MemberRequest, MembershipType
+from ..models import MemberRequest
 from .personal import _own_member_or_404, euros
 
 
@@ -49,7 +48,7 @@ def _pending(member, kind):
 def _change_type_page(request, member, *, error="", withdraw_form=None):
     """«Canvi de tipus»: el soci de ple dret hi veu el pas a simpatitzant (073, CA-M01-68); la
     resta, el canvi a ple dret."""
-    if member.type.code == member_requests.FULL:
+    if member.type.full_rights:
         context = {
             "member": member,
             "error": error,
@@ -62,7 +61,7 @@ def _change_type_page(request, member, *, error="", withdraw_form=None):
         }
         return render(request, "members/personal_downgrade.html", context)
     problem = member_requests.type_change_problem(member)
-    target = MembershipType.objects.filter(code=member_requests.FULL, active=True).first()
+    target = member_requests.target_type(full_rights=True)
     context = {
         "member": member,
         "pending": _pending(member, MemberRequest.Kind.CHANGE_TYPE),
@@ -85,7 +84,7 @@ def change_type_view(request):
     if request.method == "POST":
         # El sentit del canvi el diu el formulari i el servei el torna a comprovar amb el tipus
         # real del soci: una petició manipulada no canvia res (CA-M01-71).
-        downgrade = request.POST.get("target") == SUPPORTER
+        downgrade = request.POST.get("target") == "supporter"  # valor del formulari, no un codi
         ask = (
             member_requests.request_downgrade if downgrade else member_requests.request_type_change
         )

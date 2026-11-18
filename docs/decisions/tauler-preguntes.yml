@@ -978,4 +978,15 @@ opcions:
       la junta de la 055 sense cap mecanisme nou; B duplica tot això per a dos valors.
     data: 2026-11-18
 
+  P-373:
+    opcions:
+      A: "El tipus actiu més antic amb l'atribut (com s'ha construït): crear un tipus nou no canvia on va cap canvi de tipus."
+      B: "Cada tipus diu a quin tipus es canvia (un camp «canvia a» a la pantalla de tipus)."
+      C: "El soci tria el tipus de destinació entre els actius amb l'atribut, i el preu del suplement surt del que triï."
+    recomanada: A
+    perque: >-
+      Manté exactament el comportament d'avui sense cap camp ni pas nou; B i C només calen si el club
+      crea un segon tipus de ple dret o de simpatitzant, i es poden afegir llavors.
+    data: 2026-11-18
+
 noves:

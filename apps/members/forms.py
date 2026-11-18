@@ -219,8 +219,8 @@ class JoinForm(forms.Form):
 
     def _set_types(self):
         field = self.fields["membership_type"]
-        if self.state == "under14":
-            field.queryset = field.queryset.filter(code=fee_rules.SUPPORTER)
+        if self.age is not None:  # RN-M01-64 i 107: l'edat mínima de cada tipus
+            field.queryset = field.queryset.filter(min_age__lte=self.age)
         self.fee_note = False
         labels = {t.pk: self._type_label(t) for t in field.queryset}
         field.label_from_instance = lambda obj: labels.get(obj.pk, obj.name)
@@ -416,7 +416,7 @@ class JoinForm(forms.Form):
             # El ple dret no és a les opcions: un formulari manipulat rep aquest missatge.
             self.errors["membership_type"] = self.error_class([UNDER14_TYPE])
         chosen = cleaned.get("membership_type")
-        if chosen is not None and not fee_rules.may_choose(chosen.code, age):
+        if chosen is not None and not fee_rules.may_choose(chosen, age):
             self.add_error("membership_type", UNDER14_TYPE)
         cleaned["minor"] = fee_rules.is_minor(age)
         if cleaned["minor"]:

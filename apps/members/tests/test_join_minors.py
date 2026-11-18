@@ -114,9 +114,11 @@ class TestRules:
         assert fee_rules.first_fee_year(date(2013, 3, 10)) == 2028
 
     def test_may_choose(self):
-        assert fee_rules.may_choose("supporter", 5)
-        assert not fee_rules.may_choose("full", 13)
-        assert fee_rules.may_choose("full", 14)
+        # RN-M01-107: l'edat mínima és un atribut del tipus (ple dret, 14; members/0023).
+        supporter, full = MembershipType(min_age=0), MembershipType(min_age=14)
+        assert fee_rules.may_choose(supporter, 5)
+        assert not fee_rules.may_choose(full, 13)
+        assert fee_rules.may_choose(full, 14)
 
     @pytest.mark.parametrize(
         ("birth", "on", "expected"),

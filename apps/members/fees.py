@@ -464,13 +464,13 @@ def send_renewal_notices(today=None) -> int:
     La safata d'avisos de l'app no existeix encara: només correu."""
     from apps.payments.expiry import months_after
 
-    from .member_requests import FULL, open_leaves
+    from .member_requests import open_leaves
 
     today = today or local_today()
     months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
     members = roster.with_fee_data(
         Member.objects.select_related("person", "type").filter(
-            status=S.ACTIVE, type__code=FULL, person__status=Person.Status.ACTIVE
+            status=S.ACTIVE, type__full_rights=True, person__status=Person.Status.ACTIVE
         )
     )
     sent = 0
