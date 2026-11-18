@@ -7,6 +7,7 @@
 - La 1.26 (18/11/2026) afegeix la disposició a l'escriptori (§5.3, T-DX-57): el cos creix per trams, amplades noves i les peces `capcalera-pagina`, `disposicio-pagina`, `graella-2`, `amb-columna-lateral`, `graella-targetes` i `desplacable-x`; els imports passen a xifres tabulars sense monoespai.
 - **Versió:** 1.26 (18/11/2026). La 1.26 afegeix la disposició a l'escriptori (§5.3, T-DX-57): el cos creix per trams, amplades noves i les peces `capcalera-pagina`, `disposicio-pagina`, `graella-2`, `amb-columna-lateral`, `graella-targetes` i `desplacable-x`; els imports passen a xifres tabulars sense monoespai.
 - **Versió:** 1.27 (18/11/2026). La 1.27 afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
+- La 1.26 (18/11/2026) afegeix la disposició a l'escriptori (§5.3, T-DX-57): el cos creix per trams, amplades noves i les peces `capcalera-pagina`, `disposicio-pagina`, `graella-2`, `amb-columna-lateral`, `graella-targetes` i `desplacable-x`; els imports passen a xifres tabulars sense monoespai.
 - La 1.25 (16/11/2026) afegeix Monograma, l'avatar per defecte del soci (§6.19, T-DX-18).
 - La 1.24 (16/11/2026) afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
 - La 1.22 (16/11/2026) fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
