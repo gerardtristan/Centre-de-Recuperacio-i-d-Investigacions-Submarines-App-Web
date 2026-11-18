@@ -395,6 +395,8 @@ class LegalText(AppendOnlyModel):
         related_name="+",
         verbose_name=_("publicat per"),
     )
+    # Per què es publica la versió (T-M00-08b); també queda al registre d'activitat.
+    note = models.TextField(_("nota"), blank=True, default="")
 
     class Meta:
         verbose_name = _("text legal")

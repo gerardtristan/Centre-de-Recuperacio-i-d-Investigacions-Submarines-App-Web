@@ -24,6 +24,7 @@ from functools import partial
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import dateformat, translation
+from django.utils.functional import lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -53,7 +54,25 @@ def _date(value) -> str:
 _AMOUNT = Var(gettext_lazy("import de la quota"), "55,00 €", lambda c: c["amount"])
 _DUE_ON = Var(gettext_lazy("data de venciment"), "15/12/2026", lambda c: _date(c["due_on"]))
 
+
+def _downgrade(context) -> str:
+    """Estat del pas a simpatitzant per triar la variant; qualsevol altre valor fa servir el
+    text general (com l'antic `{% else %}`)."""
+    state = context.get("downgrade")
+    return state if state in ("accepted", "pending") else ""
+
+
+# El paràgraf del pas a simpatitzant és l'única diferència entre les tres variants.
+_RENEWAL = gettext_lazy(
+    "La teva quota del C.R.I.S. es renova d'aquí a poc\n\nHola,\n\n"
+    "La teva quota de soci de ple dret es renova el {data}.\n\n"
+    "%(downgrade)s\n\n"
+    "Si tens cap dubte, respon aquest correu."
+)
+
 EMAILS = {
+    # T-M01-17: text aprovat (085, S-1/S-3). No diu res de les quotes
+    # pendents (RN-M01-20, P-50) ni del compte personal (Q-31).
     f"{SECTION}.baixa-efectiva": EmailText(
         "baixa-efectiva",
         gettext_lazy("Correu de baixa efectiva"),
@@ -69,6 +88,8 @@ EMAILS = {
             )
         },
     ),
+    # T-M01-18 (Q-061 de la 072): text aprovat (085, S-1/S-3), també el de
+    # la quota vençuda. Sense cap dada personal: només l'import i el venciment.
     f"{SECTION}.recordatori-quota": EmailText(
         "recordatori-quota",
         gettext_lazy("Recordatori de quota abans del venciment"),
@@ -94,12 +115,89 @@ EMAILS = {
         {"import": _AMOUNT, "data": _DUE_ON},
         when=lambda c: bool(c.get("overdue")),
     ),
+    # Avís de renovació (073, T-M01-43): un text per a cada estat del pas a simpatitzant.
+    # Text aprovat (085, S-1/S-3; 073, punt 6; 085, T-6). Sense cap
+    # import ni cap dada personal: només la data de renovació.
+    **{
+        f"{SECTION}.avis-renovacio{suffix}": EmailText(
+            "avis-renovacio",
+            label,
+            lazy(lambda p: str(_RENEWAL) % {"downgrade": p}, str)(paragraph),
+            {
+                "data": Var(
+                    gettext_lazy("data de renovació"), "15/01/2027", lambda c: _date(c["renews_on"])
+                )
+            },
+            when=lambda c, state=state: _downgrade(c) == state,
+        )
+        for suffix, state, label, paragraph in (
+            (
+                "",
+                "",
+                gettext_lazy("Avís de renovació"),
+                gettext_lazy(
+                    "Si vols passar a simpatitzant en aquesta renovació, demana-ho a «Canvi de "
+                    "tipus», al teu perfil, abans del cobrament de la nova quota. El canvi no "
+                    "comporta cap devolució de la quota del període actual."
+                ),
+            ),
+            (
+                "-pas-acceptat",
+                "accepted",
+                gettext_lazy("Avís de renovació amb el pas a simpatitzant acceptat"),
+                gettext_lazy(
+                    "Tens acceptat el pas a simpatitzant: en aquesta renovació passaràs a "
+                    "simpatitzant i la quota nova serà la d'aquest tipus."
+                ),
+            ),
+            (
+                "-pas-pendent",
+                "pending",
+                gettext_lazy("Avís de renovació amb el pas a simpatitzant pendent"),
+                gettext_lazy(
+                    "Tens una sol·licitud de pas a simpatitzant pendent: la secretaria la "
+                    "revisarà i, si l'accepta, passaràs a simpatitzant en aquesta renovació."
+                ),
+            ),
+        )
+    },
+    # T-M01-13: text aprovat (085, S-1/S-3). Cap dada de la persona: el
+    # text és el mateix tant si el document ja existia com si no (CA-M01-02).
+    f"{SECTION}.rebut-sollicitud-alta": EmailText(
+        "rebut-sollicitud-alta",
+        gettext_lazy("Rebut de la sol·licitud d'alta"),
+        gettext_lazy(
+            "Hem rebut la teva sol·licitud d'alta al C.R.I.S.\n\nHola,\n\n"
+            "Hem rebut una sol·licitud d'alta com a soci del C.R.I.S. amb aquesta adreça de "
+            "correu.\n\n"
+            "Aquest correu només confirma que l'hem rebuda: encara no és una alta aprovada. "
+            "L'administració del C.R.I.S. la revisarà i t'avisarà per correu.\n\n"
+            "Si no has demanat l'alta, no cal que facis res."
+        ),
+    ),
+    # T-M01-14: text aprovat (085, S-1/S-3). Cap dada de la persona i
+    # sense motiu (079, P-69, RN-M01-88).
+    f"{SECTION}.alta-rebutjada": EmailText(
+        "alta-rebutjada",
+        gettext_lazy("Sol·licitud d'alta rebutjada"),
+        gettext_lazy(
+            "La teva sol·licitud d'alta al C.R.I.S.\n\nHola,\n\n"
+            "L'administració del C.R.I.S. ha revisat la sol·licitud d'alta com a soci feta amb "
+            "aquestes dades i no l'ha pogut aprovar.\n\n"
+            "Si tens cap dubte, respon a aquest correu.\n\n"
+            "Si no has demanat l'alta, no cal que facis res."
+        ),
+    ),
 }
 TEMPLATES = frozenset(e.template for e in EMAILS.values())
 
 _VAR = re.compile(r"\{([a-z_]+)\}")
 # Només el que sembla una etiqueta (`<a ...>`, `</p>`, `<br/>`, `<!--`), no «<menys de 50 €».
 _TAG = re.compile(r"<!--|</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>")
+
+
+def looks_like_html(value: str) -> bool:
+    return bool(_TAG.search(value))
 
 
 def _names(entry: EmailText) -> str:
@@ -136,7 +234,7 @@ def is_editable(setting) -> bool:
     return setting.module == SECTION and setting.key in EMAILS
 
 
-def _lines(value):
+def normalise_lines(value):
     # El navegador envia els salts com a CR LF.
     return value.replace("\r\n", "\n") if isinstance(value, str) else value
 
@@ -144,7 +242,7 @@ def _lines(value):
 def normalise(key: str, value):
     """Salts de línia uniformes; el text per defecte desat sense canvis es desa buit, perquè
     continuï sent «per defecte» (i traduïble)."""
-    value = _lines(value)
+    value = normalise_lines(value)
     default = str(EMAILS[key].default)
     return "" if isinstance(value, str) and value.strip() == default.strip() else value
 
@@ -177,10 +275,11 @@ def status(key: str) -> str:
 
 
 def help_text(key: str) -> str:
+    names = ", ".join(f"{{{n}}} ({v.label})" for n, v in EMAILS[key].vars.items())
     return _(
         "La primera línia és l'assumpte i la resta, el cos del correu. Text pla, sense HTML. "
         "Variables: %(vars)s. Si el deixes buit, torna el text per defecte."
-    ) % {"vars": ", ".join(f"{{{n}}} ({v.label})" for n, v in EMAILS[key].vars.items())}
+    ) % {"vars": names or _("aquest correu no té variables")}
 
 
 def _fill(text: str, values: dict) -> tuple[str, str]:
@@ -192,7 +291,7 @@ def _fill(text: str, values: dict) -> tuple[str, str]:
         logger.warning("Variable sense valor en un text de correu: %s", match.group(1))
         return match.group(0)
 
-    text = _VAR.sub(value, _lines(text))
+    text = _VAR.sub(value, normalise_lines(text))
     subject, _sep, body = text.partition("\n")
     return " ".join(subject.split()), body.strip("\n") + "\n"
 

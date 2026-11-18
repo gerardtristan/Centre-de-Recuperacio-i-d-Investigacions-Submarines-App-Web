@@ -12,14 +12,17 @@ Qui pot registrar un consentiment presencial ho comprova la vista que crida el s
 l'alta presencial, P2); publicar, aquí mateix (M12).
 """
 
+import hashlib
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
-from . import audit
+from . import audit, texts
 from .models import Consent, LegalText
 from .permissions import has_perm
 from .persons import language_for
@@ -29,19 +32,73 @@ GRANTED = "consents.granted"
 WITHDRAWN = "consents.withdrawn"
 
 
-@transaction.atomic
-def publish_text(kind: str, content: str, *, by) -> LegalText:
-    if not has_perm(by, "core.legal_texts.publish"):
-        raise Http404
-    if not content.strip():
+PUBLISH_PERMISSION = "core.legal_texts.publish"  # M12
+# Tipus que es publiquen a la plataforma, amb el nom que veu la persona (una sola llista: també
+# la fan servir l'alta i el perfil). Només aquests surten a la pantalla de M12 (T-M00-08b).
+KINDS = {
+    "privacy": gettext_lazy("Política de privacitat"),
+    "membership_terms": gettext_lazy("Condicions de soci"),
+    "guardian_authorization": gettext_lazy("Autorització del pare, la mare o el tutor legal"),
+    "newsletter": gettext_lazy("Butlletí del club"),
+    "images": gettext_lazy("Ús d'imatges (fotos i vídeos)"),
+    "sepa_mandate": gettext_lazy("Text del mandat SEPA"),
+    "mandate_campaign_invitation": gettext_lazy("Invitació de la campanya de mandats"),
+}
+# Textos que només porta una importació (071, punt 15): són el que es va acceptar a Cluber i no
+# es publiquen mai des de la plataforma.
+IMPORTED_IMAGES_KIND = "cluber_images"
+IMPORTED_KINDS = frozenset({IMPORTED_IMAGES_KIND})
+
+
+def normalise(content: str) -> str:
+    return texts.normalise_lines(content).strip()
+
+
+def digest(content: str, note: str = "") -> str:
+    """Empremta del que s'ha revisat (text i nota): es publica només això."""
+    reviewed = f"{normalise(content)}\0{note.strip()}"
+    return hashlib.sha256(reviewed.encode()).hexdigest()
+
+
+def next_version(kind: str) -> int:
+    """La versió següent del tipus, comptant totes les llengües."""
+    return (LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0) + 1
+
+
+def validate_content(content: str) -> None:
+    if not normalise(content):
         raise ValidationError(_("El text no pot ser buit."))
+    # Text pla: es mostra escapat, mai com a plantilla; l'HTML no hi té lloc (T-M00-08b).
+    if texts.looks_like_html(content):
+        raise ValidationError(_("El text no pot portar etiquetes HTML: és text pla."))
+
+
+@transaction.atomic
+def publish_text(kind: str, content: str, *, by, note: str = "") -> LegalText:
+    if not has_perm(by, PUBLISH_PERMISSION, write=True):
+        raise Http404
+    if kind in IMPORTED_KINDS:
+        raise ValidationError(_("Aquest text ve d'una importació i no se'n publiquen versions."))
+    validate_content(content)
     # shortcut: dues publicacions simultànies del mateix tipus xoquen amb la restricció
     # d'unicitat i una falla sense desar res; amb un sol administrador que publica, n'hi ha prou.
-    last = LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0
-    text = LegalText(kind=kind, version=last + 1, content=content.strip(), published_by=by)
+    note = note.strip()
+    text = LegalText(
+        kind=kind,
+        version=next_version(kind),
+        content=normalise(content),
+        published_by=by,
+        note=note,
+    )
     text.full_clean()
     text.save()
-    audit.record(PUBLISHED, actor=by, target=text, details={"kind": kind, "version": text.version})
+    audit.record(
+        PUBLISHED,
+        actor=by,
+        target=text,
+        reason=note,
+        details={"kind": kind, "version": text.version},
+    )
     return text
 
 

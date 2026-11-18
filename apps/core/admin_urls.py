@@ -3,7 +3,16 @@ dins de l'espai de noms `administration` (sessió d'administració i TOTP)."""
 
 from django.urls import path
 
-from .views import audit, bank_statement, business_settings, gdpr, guest, locked_data, roles
+from .views import (
+    audit,
+    bank_statement,
+    business_settings,
+    gdpr,
+    guest,
+    legal_texts,
+    locked_data,
+    roles,
+)
 
 urlpatterns = [
     path("registre/", audit.audit_log_view, name="audit_log"),
@@ -40,6 +49,13 @@ urlpatterns = [
         "importacions/extracte/<int:pk>/desfes/",
         bank_statement.bank_statement_undo_view,
         name="bank_statement_undo",
+    ),
+    # T-M00-08b: versions dels textos legals, amb M12.
+    path("textos-legals/", legal_texts.legal_texts_view, name="legal_texts"),
+    path(
+        "textos-legals/<slug:kind>/",
+        legal_texts.legal_text_detail_view,
+        name="legal_text_detail",
     ),
     # T-AJ-02: ajustos de cada apartat, amb `settings.section.<apartat>` (RN-RP-22).
     path("ajustos/", business_settings.settings_index_view, name="settings"),

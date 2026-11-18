@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M00-08b: versions d'un text legal (M12; spec 00 HU-17, CA-17.2). Seguretat i privacitat: el servidor exigeix M12 (sense permís, «no trobat») i el servei ho torna a comprovar; publicar demana «Sí» de M12 («Cons.» només veu i revisa) i revisar abans el text i la nota; el servidor només publica el que s'ha revisat (empremta). Els tipus que només porta una importació no hi surten (071, punt 15). El text és pla i surt sempre escapat, mai com a plantilla; l'HTML es rebutja. Cap versió anterior no es modifica. L'historial mostra el nom d'usuari del compte d'administrador, com el registre d'activitat. #}
+{% block title %}{{ label }} · {% translate "Textos legals" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:legal_texts' %}">{% translate "Textos legals" %}</a></p>
+  <h1>{{ label }}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <form class="formulari targeta" method="post" aria-labelledby="nova-titol" novalidate>
+    {% csrf_token %}
+    <h2 id="nova-titol">{% blocktranslate with n=next_version %}Versió nova ({{ n }}){% endblocktranslate %}</h2>
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha publicat res." %}</strong> {% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% if review %}
+      {% if review.changed %}<div class="avis avis-avis" role="alert">{% translate "El text o la nota han canviat: revisa'ls abans de publicar." %}</div>{% endif %}
+      {% if not can_publish %}<p class="text-2">{% translate "Pots revisar el text, però no publicar-lo." %}</p>{% endif %}
+      <section aria-labelledby="revisio-titol">
+        <h3 id="revisio-titol">{% translate "Així el veurà la persona" %}</h3>
+        <div class="text-legal-cos">{{ review.content|linebreaks }}</div>
+      </section>
+      <input type="hidden" name="reviewed" value="{{ review.digest }}">
+    {% endif %}
+    <div class="accions">
+      <button class="boto" type="submit">{% translate "Revisa el text" %}</button>
+      {% if review and not review.changed and can_publish %}<button class="boto boto-principal" type="submit" name="publish">{% blocktranslate with n=next_version %}Publica la versió {{ n }}{% endblocktranslate %}</button>{% endif %}
+    </div>
+  </form>
+  <section aria-labelledby="versions-titol">
+    <h2 id="versions-titol">{% translate "Versions" %}</h2>
+    {% if versions %}
+      <table class="taula">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Versió" %}</th>
+            <th scope="col">{% translate "Llengua" %}</th>
+            <th scope="col">{% translate "Vigent des de" %}</th>
+            <th scope="col">{% translate "Qui" %}</th>
+            <th scope="col">{% translate "Nota" %}</th>
+            <th scope="col">{% translate "Text" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for version in versions %}
+            <tr>
+              <th scope="row" class="cel-nom">{{ version.version }}{% if version == current %} · {% translate "vigent" %}{% endif %}</th>
+              <td data-etiqueta="{% translate 'Llengua' %}">{{ version.language }}</td>
+              <td data-etiqueta="{% translate 'Vigent des de' %}">{{ version.published_at|date:"d/m/Y H:i" }}</td>
+              <td data-etiqueta="{% translate 'Qui' %}"><span class="codi">{{ version.published_by.get_username|default:"—" }}</span></td>
+              <td data-etiqueta="{% translate 'Nota' %}">{{ version.note|default:"—" }}</td>
+              <td data-etiqueta="{% translate 'Text' %}"><details><summary>{% translate "Llegeix-lo" %}</summary>{{ version.content|linebreaks }}</details></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-2">{% translate "Encara no s'ha publicat cap versió." %}</p>
+    {% endif %}
+  </section>
+{% endblock %}

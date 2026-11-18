@@ -1,1 +1,0 @@
-{% load i18n %}{# T-M01-13: TEXT PROVISIONAL [A validar: junta i secretaria] #}{% translate "Hem rebut la teva sol·licitud d'alta al C.R.I.S." %}

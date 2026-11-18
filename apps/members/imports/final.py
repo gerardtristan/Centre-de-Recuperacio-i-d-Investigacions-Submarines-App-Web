@@ -64,7 +64,7 @@ from . import cluber
 PERMISSION = "members.cluber_import.run"  # P18
 # Tipus del text del consentiment d'imatges de Cluber. Els tipus de text són dades (Q-16): si
 # ha de comptar com el consentiment d'imatges de la plataforma és part de la mateixa pregunta.
-IMAGE_CONSENT_KIND = "cluber_images"
+IMAGE_CONSENT_KIND = consents.IMPORTED_IMAGES_KIND
 IMAGE_CONSENT_LANGUAGE = "es"  # el text de la capçalera de Cluber és en castellà
 
 DUPLICATE_CODES = {"duplicate_document", "duplicate_member_number"}
