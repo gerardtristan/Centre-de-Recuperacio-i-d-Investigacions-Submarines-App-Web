@@ -28,16 +28,22 @@ class PaymentsConfig(AppConfig):
 
         from apps.core import business_settings
 
-        from . import returns
+        from . import mandates, returns
 
         # P-291: les llistes de codis de retorn no poden compartir cap codi.
         for key in returns.RETURN_CODE_LISTS:
             business_settings.register_check(
                 key,
                 returns.check_codes(key),
-                normalise=returns.normalise_codes,
+                normalise=business_settings.canonical_list,
                 lock_with=returns.RETURN_CODE_LISTS,
             )
+        # P-123: els països de l'IBAN admesos al mandat.
+        business_settings.register_check(
+            mandates.IBAN_COUNTRIES,
+            mandates.check_countries,
+            normalise=business_settings.canonical_list,
+        )
 
         from .setup import ensure_transit_account
 

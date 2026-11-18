@@ -1,6 +1,8 @@
 """Ajustos de pagaments (T-M05b-22; addenda de la 055 del 05b: VC-17, RN-M05b-24; RN-RP-22).
 Només dades inventades."""
 
+import importlib
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
@@ -12,7 +14,15 @@ from apps.core import business_settings
 from apps.core.models import AuditEntry, Person, Role, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401
 from apps.core.tests.test_guest_links import admin_client
-from apps.payments import attempts, campaigns, checkout, processing, remittances, returns
+from apps.payments import (
+    attempts,
+    campaigns,
+    checkout,
+    mandates,
+    processing,
+    remittances,
+    returns,
+)
 from apps.payments.models import PaymentAttempt as Attempt
 from apps.payments.providers import base, fake
 from apps.payments.tests.test_bizum import minutes_pass
@@ -32,6 +42,8 @@ R = Role.Code
 BIZUM, AGE = attempts.BIZUM_UI_TIMEOUT, processing.SAFETY_NET_AGE
 GIVE_UP = processing.SAFETY_NET_GIVE_UP
 
+SEPA = importlib.import_module("apps.payments.migrations.0024_paisos_iban").SEPA  # P-123
+
 
 @pytest.fixture(autouse=True)
 def clean_orders(settings):
@@ -49,6 +61,7 @@ def test_vc_17_values_come_from_the_migration_with_their_ranges():
     assert [(s.key, s.initial_value, s.min_value, s.max_value) for s in rows] == [
         (BIZUM, 15, 5, 30),
         (campaigns.REMINDER_DAYS, [7, 14], 1, 60),  # VC-11 (T-M05a-22)
+        (mandates.IBAN_COUNTRIES, SEPA, None, None),  # P-123
         (returns.MAX_ATTEMPTS, 2, 1, 3),  # VC-16 (T-M05b-12)
         (remittances.PRENOTIFICATION_DAYS, 14, 14, 30),  # VC-16 (T-M05b-09)
         (returns.BLOCK_CODES, "AC04, MD01", None, None),  # P-291
@@ -157,7 +170,7 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         finally:
             MigrationExecutor(connection).migrate(leaves)
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
-        assert after == before and len(after) == 9  # +1 de la T-M05b-15a, +2 de la P-291
+        assert after == before and len(after) == 10  # +1 T-M05b-15a, +2 P-291, +1 P-123
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
 

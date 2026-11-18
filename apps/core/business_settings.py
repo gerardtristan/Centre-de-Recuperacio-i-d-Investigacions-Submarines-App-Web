@@ -15,6 +15,7 @@ l'ajust. Les claus les crea cada mòdul amb una migració; els permisos, el cat�
 """
 
 import datetime
+import re
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -48,6 +49,20 @@ def register_check(key: str, check, *, normalise=None, lock_with=()) -> None:
         NORMALISERS[key] = normalise
     if lock_with:
         LOCK_WITH[key] = tuple(lock_with)
+
+
+# Llistes de codis en un ajust de text (P-291, P-123): separats per comes, espais o punts i
+# comes, i desats en majúscules, ordenats i separats per «, ».
+LIST_SEPARATORS = re.compile(r"[\s,;]+")
+
+
+def split_list(value: str) -> list[str]:
+    return [code for code in LIST_SEPARATORS.split(value.upper()) if code]
+
+
+def canonical_list(value):
+    """Forma canònica d'una llista de codis. Un valor que no és un text el rebutja la validació."""
+    return ", ".join(sorted(split_list(value))) if isinstance(value, str) else value
 
 
 # Famílies de claus amb un sol permís (`<prefix>.<sufix>` → `settings.edit.<prefix>`), per als

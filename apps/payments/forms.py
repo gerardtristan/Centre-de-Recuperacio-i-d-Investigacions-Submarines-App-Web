@@ -55,4 +55,5 @@ class MandateForm(RecentAuthForm):
     )
 
     def clean_iban(self):
+        # El país el mira `create_mandate`, amb una sola lectura de l'ajust (P-123).
         return mandates.validate_iban(self.cleaned_data["iban"])

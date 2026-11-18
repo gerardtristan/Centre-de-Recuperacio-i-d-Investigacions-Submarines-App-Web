@@ -1,7 +1,8 @@
 """Signar el mandat SEPA al navegador (T-M05a-09; P-M05a-B; CA-M05a-02, 03 i 08): sense
 identificador de creditor, la marca [A verificar]; amb el text d'esborrany, un IBAN amb els
-dígits de control canviats torna amb error i el camp buit; un de vàlid, amb la contrasenya,
-deixa el mandat actiu amb l'IBAN emmascarat («…», P-121). Només dades inventades."""
+dígits de control canviats o d'un país no admès (P-123) torna amb error i el camp buit; un de
+vàlid, amb la contrasenya, deixa el mandat actiu amb l'IBAN emmascarat («…», P-121). Només dades
+inventades."""
 
 from pathlib import Path
 
@@ -53,6 +54,15 @@ def test_member_signs_the_mandate(page, live_server, transactional_db, settings,
     expect(page.locator("#id_iban_error")).to_contain_text("L'IBAN no és vàlid")
     expect(page.get_by_label("IBAN")).to_have_value("")
     review("mandat-iban-no-valid")
+
+    # P-123: un IBAN vàlid d'un país que no és a la llista admesa (de bon principi, la zona SEPA).
+    page.get_by_label("IBAN").fill("TR20 0000 0000 0000 0000 0000 01")
+    page.get_by_label("Accepto el mandat SEPA amb aquest text.").check()
+    page.get_by_label("Contrasenya").fill(PASSWORD)
+    page.get_by_role("button", name="Signa el mandat").click()
+    expect(page.locator("#id_iban_error")).to_contain_text("no admet IBAN d'aquest país")
+    expect(page.get_by_label("IBAN")).to_have_value("")
+    review("mandat-pais-no-admes")
 
     page.get_by_label("IBAN").fill("ES55 0000 0000 0000 0000 0001")
     page.get_by_label("Accepto el mandat SEPA amb aquest text.").check()

@@ -18,7 +18,8 @@ from django.utils.translation import gettext
 from django.views.decorators.debug import sensitive_variables
 
 from apps.accounts.models import Account
-from apps.core import audit, mail
+from apps.core import audit, business_settings, mail
+from apps.core.models import Setting
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members.models import Member
@@ -40,6 +41,29 @@ REVOKED_IN_REMITTANCE = "payments.mandate.revoked_in_remittance"
 REVOKE = "payments.mandates.revoke"  # A6 (M05a-4)
 MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
+# P-123 (095, provisional fins que el banc ho confirmi): països admesos al mandat, un ajust que
+# edita el Tresorer; de bon principi, tota la zona SEPA (`payments/0024`).
+# La clau no diu «iban»: el registre d'activitat rebutja els camps amb aquest nom (RN-52).
+IBAN_COUNTRIES = "payments.mandate_countries"
+COUNTRY = re.compile(r"[A-Z]{2}")
+# Codis de país de l'IBAN (registre ISO 13616) dels països i territoris de la zona SEPA amb IBAN
+# propi [A verificar: banc]. Els que fan servir l'IBAN d'un altre país (Åland amb FI) ja hi són.
+SEPA_COUNTRIES = frozenset(
+    "AD AL AT BE BG CH CY CZ DE DK EE ES FI FR GB GI GR HR HU IE IS IT LI LT LU LV MC MD ME MK "
+    "MT NL NO PL PT RO SE SI SK SM VA".split()
+)
+
+# Països amb IBAN del registre ISO 13616 (SWIFT) [A verificar: registre vigent]: la llista
+# admesa en pot tenir qualsevol (p. ex. RS, si el banc l'admet), però no un codi que no existeix.
+IBAN_REGISTRY = frozenset(
+    "AD AE AL AT AZ BA BE BG BH BI BR BY CH CR CY CZ DE DJ DK DO EE EG ES FI FK FO FR GB GE GI "
+    "GL GR GT HN HR HU IE IL IQ IS IT JO KW KZ LB LC LI LT LU LV LY MC MD ME MK MN MR MT MU NI "
+    "NL NO OM PK PL PS PT QA RO RS RU SA SC SD SE SI SK SM SO ST SV TL TN TR UA VA VG XK YE".split()
+)
+
+
+class CountryNotAllowed(ValidationError):
+    """L'IBAN és vàlid, però el país no és a la llista admesa (P-123)."""
 
 
 def validate_iban(value: str) -> str:
@@ -51,6 +75,55 @@ def validate_iban(value: str) -> str:
         if int(digits) % 97 == 1:
             return iban
     raise ValidationError(gettext("L'IBAN no és vàlid. Revisa'l i torna-ho a provar."))
+
+
+def check_countries(value: str) -> None:
+    """La comprovació de l'ajust, que `apps.PaymentsConfig.ready` registra a la peça d'ajustos:
+    almenys un país, codis de dues lletres de països amb IBAN i sense repetir."""
+    found = business_settings.split_list(value)
+    if not found:
+        raise ValidationError(gettext("Hi ha d'haver almenys un país."))
+    if not all(COUNTRY.fullmatch(code) for code in found):
+        raise ValidationError(
+            gettext(
+                "Cada país és el codi de dues lletres de l'IBAN (per exemple, ES). Separa'ls amb "
+                "comes, espais o punts i comes."
+            )
+        )
+    if unknown := sorted(set(found) - IBAN_REGISTRY):
+        raise ValidationError(
+            gettext("Aquest codi no és cap país amb IBAN: %(codes)s.")
+            % {"codes": ", ".join(unknown)}
+        )
+    if len(set(found)) != len(found):
+        raise ValidationError(gettext("La llista no pot tenir països repetits."))
+
+
+def iban_countries() -> set[str]:
+    """Els països admesos, amb el valor vigent avui (P-123). Sense l'ajust, la zona SEPA."""
+    try:
+        return set(business_settings.split_list(business_settings.get(IBAN_COUNTRIES)))
+    except Setting.DoesNotExist:
+        return set(SEPA_COUNTRIES)
+
+
+def check_country(iban: str) -> None:
+    """`CountryNotAllowed` si el país de l'IBAN (ja validat) no és a la llista admesa (P-123).
+    L'error no porta el valor."""
+    if iban[:2] not in iban_countries():
+        raise CountryNotAllowed(
+            gettext("El banc del club no admet IBAN d'aquest país per domiciliar.")
+        )
+
+
+def validate_mandate_iban(value: str) -> str:
+    """`validate_iban` i, a més, el país admès (P-M05a-B, pas 2; estat «País no admès» del
+    wireframe). La crida `create_mandate`; la vista ja ho mira abans de la reautenticació, i
+    aquí es torna a mirar per si la llista ha canviat entremig. Les remeses no ho tornen a
+    mirar: un mandat signat continua valent encara que el país es tregui de la llista."""
+    iban = validate_iban(value)
+    check_country(iban)
+    return iban
 
 
 def next_reference(member: Member) -> str:
@@ -160,7 +233,7 @@ def create_mandate(
 ) -> SepaMandate:
     """Desa un mandat actiu i l'IBAN xifrat. L'anterior actiu passa a revocat amb el motiu
     «substituït» (RN-M05a-02). La referència és la de RN-M05a-03 i no es reutilitza."""
-    iban = validate_iban(iban)
+    iban = validate_mandate_iban(iban)
     # Bloqueja el soci: dues signatures alhora no poden prendre el mateix ordinal.
     member = Member.objects.select_for_update().get(pk=member.pk)
     if member.member_number is None:
