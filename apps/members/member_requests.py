@@ -56,7 +56,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Min, Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -65,6 +65,7 @@ from apps.accounts.models import Account
 from apps.core import audit, charges, mail
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
+from apps.core.persons import age_on
 
 from . import cards, fees, recipients
 from . import settings as values
@@ -114,15 +115,26 @@ def type_change_problem(member) -> str:
         return _(
             "Tens una quota sense pagar. Quan l'hagis pagada, podràs demanar el canvi a ple dret."
         )
+    full = MembershipType.objects.filter(full_rights=True, active=True)
+    target = target_type(full_rights=True, member=member)
+    if target is None and full.exists():  # RN-M01-64: l'edat mínima del tipus, avui
+        return _("Per demanar el canvi a ple dret cal tenir %(age)s anys complerts.") % {
+            "age": full.aggregate(age=Min("min_age"))["age"]
+        }
+    if target is not None and fees.supplement_cents(member, target) <= 0:
+        return _("Ara no es pot demanar el canvi a ple dret.")
     return ""
 
 
-def target_type(*, full_rights):
+def target_type(*, full_rights, member=None):
     """Tipus actiu cap al qual va un canvi (RN-M01-107): el de ple dret o, en el pas contrari,
-    el que no ho és. Amb més d'un, el més antic [A validar: P-373]."""
-    return (
-        MembershipType.objects.filter(full_rights=full_rights, active=True).order_by("pk").first()
-    )
+    el que no ho és, entre els que permet l'edat del soci avui (RN-M01-64). Amb més d'un, el
+    més antic [A validar: P-373]. Sense data de naixement, no es filtra per edat."""
+    types = MembershipType.objects.filter(full_rights=full_rights, active=True)
+    birth = member.person.birth_date if member is not None else None
+    if birth is not None:
+        types = types.filter(min_age__lte=age_on(birth, local_today()))
+    return types.order_by("pk").first()
 
 
 def open_leaves(member):
@@ -165,7 +177,7 @@ def request_type_change(member, *, by, request=None) -> MemberRequest:
     problem = type_change_problem(member)
     if problem:
         raise RequestNotAllowed(problem)
-    target = target_type(full_rights=True)
+    target = target_type(full_rights=True, member=member)
     if target is None:
         raise RequestNotAllowed(_("Ara no es pot demanar el canvi a ple dret."))
     return _create(
@@ -227,7 +239,7 @@ def request_downgrade(member, *, by, request=None) -> MemberRequest:
     problem = downgrade_problem(member)
     if problem:
         raise RequestNotAllowed(problem)
-    target = target_type(full_rights=False)
+    target = target_type(full_rights=False, member=member)
     if target is None:
         raise RequestNotAllowed(_("Ara no es pot demanar el pas a simpatitzant."))
     return _create(

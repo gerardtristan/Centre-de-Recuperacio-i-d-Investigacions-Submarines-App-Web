@@ -185,7 +185,7 @@ class TestMinors:
 
     def test_under_14_cannot_choose_full_even_with_a_tampered_form(self, today):
         response = submit(birth_date="2016-04-01", membership_type=full_type(), **GUARDIAN)
-        assert "Amb menys de 14 anys només es pot ser simpatitzant." in response.content.decode()
+        assert "Ple dret: a partir dels 14 anys complerts." in response.content.decode()
         assert nothing_created()
 
     @pytest.mark.parametrize("missing", list(GUARDIAN))
@@ -487,7 +487,8 @@ class TestPreview:
     def test_under_14_sees_only_supporter_without_fee(self, today):
         html = preview(birth_date="2016-04-01")
         assert "Simpatitzant · sense quota fins al 31/12/2030" in html
-        assert "Ple dret" not in html
+        assert "Ple dret ·" not in html  # no s'ofereix; el resum diu per què (091)
+        assert "Ple dret: a partir dels 14 anys complerts." in html
         assert 'name="guardian_first_name"' in html and "Menor de 14 anys" in html
 
     def test_turned_14_this_year_sees_both_types_without_an_amount(self, today):
@@ -508,7 +509,7 @@ class TestPreview:
         # Sense data (primera càrrega, també sense JavaScript) i per a un adult: no hi és.
         first = Client().get(reverse(PUBLIC)).content.decode().replace("&#x27;", "'")
         assert 'class="representant"' not in first and 'name="guardian_authorization"' not in first
-        assert "Els menors de 14 anys només poden ser simpatitzants, sense quota." in first
+        assert "Ple dret: a partir dels 14 anys complerts." in first
         assert 'class="representant"' not in preview(birth_date="2008-11-06")  # avui en fa 18
         # Un menor: la vista prèvia el mostra; sense JavaScript, l'enviament el torna amb errors.
         assert 'class="representant"' in preview(birth_date="2008-11-07")  # encara en té 17

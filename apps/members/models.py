@@ -62,6 +62,12 @@ class MembershipType(models.Model):
             models.CheckConstraint(
                 condition=Q(annual_fee_cents__gt=0), name="membershiptype_fee_positive"
             ),
+            # RN-M01-64: cap menor de 14 anys no pot ser de ple dret, sigui quin sigui el tipus.
+            models.CheckConstraint(
+                condition=Q(full_rights=False) | Q(min_age__gte=14),
+                name="membershiptype_full_rights_min_age",
+                violation_error_message=_("Un tipus de ple dret demana com a mínim 14 anys."),
+            ),
         ]
 
     def __str__(self):

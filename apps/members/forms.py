@@ -92,7 +92,9 @@ class JoinForm(forms.Form):
     local de Barcelona (`fee_rules`); el navegador no envia cap edat ni cap import.
 
     Estat segons la data de naixement que porta la petició (`self.state`): "unknown" (encara no
-    n'hi ha o no és vàlida), "adult", "minor" (14 a 17 anys) o "under14"."""
+    n'hi ha o no és vàlida), "adult", "minor" (14 a 17 anys) o "under14". Els llindars de 14 i
+    18 anys són legals (representant, consentiments i correu; Q-044, RN-M01-62 i RN-M01-78) i no
+    depenen de cap tipus: quins tipus es poden triar ho diu `min_age` de cada tipus (091)."""
 
     first_name = forms.CharField(label=_("Nom"), max_length=100)
     last_name = forms.CharField(label=_("Cognoms"), max_length=150)
@@ -218,9 +220,17 @@ class JoinForm(forms.Form):
         return value
 
     def _set_types(self):
+        """RN-M01-64 i 107: cada tipus té la seva edat mínima; els que l'edat deixa fora no
+        s'ofereixen i se'n diu el motiu. Sense data, se'n diu l'edat de cada un."""
         field = self.fields["membership_type"]
-        if self.age is not None:  # RN-M01-64 i 107: l'edat mínima de cada tipus
+        types = list(field.queryset)
+        if self.age is None:
+            self.too_young = []
+            limited = [t for t in types if t.min_age > 0]
+        else:
+            self.too_young = limited = [t for t in types if t.min_age > self.age]
             field.queryset = field.queryset.filter(min_age__lte=self.age)
+        self.type_age_note = " ".join(type_age_message(t) for t in limited)
         self.fee_note = False
         labels = {t.pk: self._type_label(t) for t in field.queryset}
         field.label_from_instance = lambda obj: labels.get(obj.pk, obj.name)
@@ -311,13 +321,14 @@ class JoinForm(forms.Form):
                 if self.in_person
                 else _("Dono el meu consentiment per a:")
             )
-        self.age_summary = {
+        guardian = {
             "under14": _(
-                "Menor de 14 anys: només pot ser simpatitzant, sense quota, i cal l'autorització "
-                "del pare, la mare o el tutor legal."
+                "Menor de 14 anys: cal l'autorització del pare, la mare o el tutor legal."
             ),
             "minor": _("Menor d'edat: cal l'autorització del pare, la mare o el tutor legal."),
         }.get(self.state, "")
+        notes = (guardian, self.type_age_note if self.age is not None else "")
+        self.age_summary = " ".join(str(note) for note in notes if note)
 
     @property
     def general_acceptances(self):
@@ -412,12 +423,16 @@ class JoinForm(forms.Form):
         for name in ("contact_email", "phone"):
             if name in cleaned and adult and not cleaned[name]:
                 self.add_error(name, self.fields[name].error_messages["required"])
-        if self.state == "under14" and "membership_type" in self.errors:
-            # El ple dret no és a les opcions: un formulari manipulat rep aquest missatge.
-            self.errors["membership_type"] = self.error_class([UNDER14_TYPE])
+        if "membership_type" in self.errors:
+            # Un tipus que l'edat deixa fora no és a les opcions: un formulari manipulat rep el
+            # motiu d'aquell tipus.
+            sent = str(self.data.get("membership_type", ""))
+            left_out = next((t for t in self.too_young if str(t.pk) == sent), None)
+            if left_out is not None:
+                self.errors["membership_type"] = self.error_class([type_age_message(left_out)])
         chosen = cleaned.get("membership_type")
         if chosen is not None and not fee_rules.may_choose(chosen, age):
-            self.add_error("membership_type", UNDER14_TYPE)
+            self.add_error("membership_type", type_age_message(chosen))
         cleaned["minor"] = fee_rules.is_minor(age)
         if cleaned["minor"]:
             self._clean_guardian(cleaned)
@@ -465,7 +480,13 @@ class JoinForm(forms.Form):
             self.add_error("guardian_authorization", GUARDIAN_AUTHORIZATION_REQUIRED)
 
 
-UNDER14_TYPE = _("Amb menys de 14 anys només es pot ser simpatitzant.")
+TYPE_MIN_AGE = _("%(name)s: a partir dels %(age)s anys complerts.")
+
+
+def type_age_message(membership_type) -> str:
+    return TYPE_MIN_AGE % {"name": membership_type.name, "age": membership_type.min_age}
+
+
 GUARDIAN_OWN_DOCUMENT = _(
     "El document del pare, la mare o el tutor legal ha de ser el seu, no el de la persona menor."
 )

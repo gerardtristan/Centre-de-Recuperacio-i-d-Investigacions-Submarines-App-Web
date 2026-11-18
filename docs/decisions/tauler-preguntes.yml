@@ -980,7 +980,7 @@ opcions:
 
   P-373:
     opcions:
-      A: "El tipus actiu més antic amb l'atribut (com s'ha construït): crear un tipus nou no canvia on va cap canvi de tipus."
+      A: "El tipus actiu més antic amb l'atribut que l'edat del soci permet (com s'ha construït): crear un tipus nou no canvia on va cap canvi de tipus."
       B: "Cada tipus diu a quin tipus es canvia (un camp «canvia a» a la pantalla de tipus)."
       C: "El soci tria el tipus de destinació entre els actius amb l'atribut, i el preu del suplement surt del que triï."
     recomanada: A

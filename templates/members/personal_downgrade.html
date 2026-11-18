@@ -42,7 +42,7 @@
       </ul>
       <form method="post" action="{% url 'members:change_type' %}">
         {% csrf_token %}
-        <input type="hidden" name="target" value="supporter">
+        <input type="hidden" name="direction" value="downgrade">
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la sol·licitud" %}</button></div>
       </form>
     </section>
