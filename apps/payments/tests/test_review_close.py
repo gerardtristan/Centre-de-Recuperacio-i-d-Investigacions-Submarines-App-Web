@@ -287,7 +287,7 @@ def test_tancats_shows_the_reason_when_closed_and_not_the_login(treasurer, to_re
 
 
 def test_a_16b_closure_is_still_open_and_can_be_decided(treasurer, to_review):  # noqa: F811
-    # Un tancament d'abans de la 0024: «sense decisió» i l'intent encara «a revisar». No compta
+    # Un tancament d'abans de la 0025: «sense decisió» i l'intent encara «a revisar». No compta
     # com a tancat: surt a «A revisar», marcat, i el tresorer el pot decidir.
     ReviewClosure.objects.create(
         attempt=to_review,
@@ -312,8 +312,8 @@ def test_an_unrelated_save_does_not_reopen_a_decided_attempt(treasurer, to_revie
     assert "No hi ha cap pagament a revisar." in html(client_for(treasurer))
 
 
-class TestMigration0024(CommittedDataTestCase):
-    """Un tancament de la T-M05b-16b, d'abans de la 0024: queda «sense decisió», amb el motiu, i
+class TestMigration0025(CommittedDataTestCase):
+    """Un tancament de la T-M05b-16b, d'abans de la 0025: queda «sense decisió», amb el motiu, i
     el codi «altre»."""
 
     def test_an_existing_closure_is_undecided_and_keeps_the_reason(self):
@@ -326,7 +326,7 @@ class TestMigration0024(CommittedDataTestCase):
         )
         leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
         try:
-            MigrationExecutor(connection).migrate([("payments", "0023_permisos_095")])
+            MigrationExecutor(connection).migrate([("payments", "0024_paisos_iban")])
             with connection.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO payments_reviewclosure (attempt_id, closed_by_id, closed_at) "

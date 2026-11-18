@@ -24,7 +24,7 @@ ALTER TABLE payments_reviewclosure ENABLE TRIGGER payments_reviewclosure_no_upda
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("payments", "0023_permisos_095"),
+        ("payments", "0024_paisos_iban"),
     ]
 
     operations = [

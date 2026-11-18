@@ -409,7 +409,7 @@ class ReviewClosure(AppendOnlyModel):
     class Outcome(models.TextChoices):
         PAID = "paid", _("Pagat")
         FAILED = "failed", _("Fallit")
-        # Els tancaments de la T-M05b-16b, d'abans de poder triar (migració 0024).
+        # Els tancaments de la T-M05b-16b, d'abans de poder triar (migració 0025).
         UNDECIDED = "undecided", _("Sense decisió")
 
     OUTCOMES = (Outcome.PAID, Outcome.FAILED)  # les que pot triar el tresorer
