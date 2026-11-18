@@ -1,50 +1,73 @@
 """T-M00-08d (097; especificació a planning.md#M00-textos-editables; P-380): els textos dels
 correus passen a una àrea per apartat. Cada àrea és un apartat d'ajustos amb «Cons.» (veure) i
 «Sí» (veure i editar). Ara tots els correus editables són de l'àrea de socis: l'apartat
-`texts` passa a ser `texts-members` (claus, mòdul i cel·les) i l'administrador hi passa de
-«Cons.» a «Sí» (matriu inicial de la 097), amb una versió nova de la matriu (060).
+`texts` passa a ser `texts-members` (claus, mòdul i cel·les) i l'administrador hi té «Sí»
+(matriu inicial de la 097), amb una versió nova de la matriu (060).
 
 Les versions dels textos no es toquen (van per la clau primària de l'ajust). Les entrades
-antigues del registre d'activitat conserven la clau d'abans."""
+antigues del registre d'activitat conserven la clau d'abans. Enrere, es torna al nom antic,
+l'administrador torna a «Cons.» i també queda una versió nova de la matriu: la història de la
+matriu mai no perd files (RN-RP-08)."""
 
 from django.db import migrations
-from django.db.models import Max
+from django.db.models import Max, Value
+from django.db.models.functions import Concat, Substr
 
 OLD, NEW = "texts", "texts-members"
 OLD_CODE, NEW_CODE = f"settings.section.{OLD}", f"settings.section.{NEW}"
 NOTE = "Textos dels correus per àrees: àrea de socis; l'administrador hi edita (T-M00-08d)."
+NOTE_BACK = "Desfeta la T-M00-08d: els textos tornen a un sol apartat; l'administrador, «Cons.»."
 
 
-def _move(apps, old, new, old_code, new_code, admin_scope):
+def _move(apps, old, new, old_code, new_code, admin_scope, note):
     Setting = apps.get_model("core", "Setting")
+    Role = apps.get_model("core", "Role")
     RolePermission = apps.get_model("core", "RolePermission")
-    for setting in Setting.objects.filter(module=old):
-        setting.key = new + setting.key.removeprefix(old)
-        setting.module = new
-        setting.save(update_fields=["key", "module"])
+    Setting.objects.filter(module=old).update(
+        key=Concat(Value(new), Substr("key", len(old) + 1)), module=new
+    )
     diff = []
     for cell in RolePermission.objects.filter(permission_code=old_code).select_related("role"):
-        scope = admin_scope if cell.role.code == "administrator" else cell.scope
-        RolePermission.objects.create(role=cell.role, permission_code=new_code, scope=scope)
-        diff.append({"role": cell.role.code, "permission": old_code, "before": cell.scope,
-                     "after": None})  # fmt: skip
-        diff.append({"role": cell.role.code, "permission": new_code, "before": None,
-                     "after": scope})  # fmt: skip
-        cell.delete()
-    return diff
-
-
-def load(apps, schema_editor):
-    diff = _move(apps, OLD, NEW, OLD_CODE, NEW_CODE, "all")
+        # Es reanomena la cel·la; si la nova ja hi era, hi passa l'abast de la vigent i l'antiga
+        # s'esborra (la restricció `rolepermission_unique` no es trenca mai).
+        target = RolePermission.objects.filter(role=cell.role, permission_code=new_code).first()
+        before = target.scope if target else None
+        if target is None:
+            cell.permission_code = new_code
+            cell.save(update_fields=["permission_code"])
+        else:
+            target.scope = cell.scope
+            target.save(update_fields=["scope"])
+            cell.delete()
+        role = cell.role.code
+        diff.append({"role": role, "permission": old_code, "before": cell.scope, "after": None})
+        diff.append({"role": role, "permission": new_code, "before": before, "after": cell.scope})
+    admin = Role.objects.get(code="administrator")
+    current = RolePermission.objects.filter(role=admin, permission_code=new_code).first()
+    if current is None or current.scope != admin_scope:
+        RolePermission.objects.update_or_create(
+            role=admin, permission_code=new_code, defaults={"scope": admin_scope}
+        )
+        diff.append(
+            {
+                "role": "administrator",
+                "permission": new_code,
+                "before": current.scope if current else None,
+                "after": admin_scope,
+            }
+        )
     if diff:
         Version = apps.get_model("core", "PermissionMatrixVersion")
         last = Version.objects.aggregate(n=Max("number"))["n"] or 0
-        Version.objects.create(number=last + 1, note=NOTE, diff=diff)
+        Version.objects.create(number=last + 1, note=note, diff=diff)
+
+
+def load(apps, schema_editor):
+    _move(apps, OLD, NEW, OLD_CODE, NEW_CODE, "all", NOTE)
 
 
 def unload(apps, schema_editor):
-    _move(apps, NEW, OLD, NEW_CODE, OLD_CODE, "read")
-    apps.get_model("core", "PermissionMatrixVersion").objects.filter(note=NOTE).delete()
+    _move(apps, NEW, OLD, NEW_CODE, OLD_CODE, "read", NOTE_BACK)
 
 
 class Migration(migrations.Migration):

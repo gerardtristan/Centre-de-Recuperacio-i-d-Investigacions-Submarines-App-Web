@@ -16,6 +16,7 @@ from apps.core import business_settings, mail, texts
 from apps.core.models import (
     AuditEntry,
     OutgoingEmail,
+    PermissionMatrixVersion,
     Role,
     RolePermission,
     Setting,
@@ -28,6 +29,7 @@ pytestmark = pytest.mark.django_db
 R = Role.Code
 AREA = "texts-members"
 CODE = f"settings.section.{AREA}"
+OLD_CODE = "settings.section.texts"
 LEAVE = f"{AREA}.baixa-efectiva"
 DUE = f"{AREA}.recordatori-quota"
 OVERDUE = f"{AREA}.recordatori-quota-vencuda"
@@ -322,18 +324,43 @@ def test_any_other_downgrade_state_gets_the_general_renewal_text():
     assert "demana-ho a «Canvi de tipus»" in email.body_text
 
 
-def test_the_area_migration_reverse_keeps_versions(make_admin):
+def _area_migration():
     from importlib import import_module
 
     from django.apps import apps as django_apps
 
-    migration = import_module("apps.core.migrations.0050_text_areas")
+    return import_module("apps.core.migrations.0050_text_areas"), django_apps
+
+
+def test_the_area_migration_reverse_keeps_versions_and_the_matrix_history(make_admin):
+    migration, django_apps = _area_migration()
     business_settings.change(f"{AREA}.alta-rebutjada", "Rebuig\n\nCos.", make_admin(R.SECRETARY))
+    versions = PermissionMatrixVersion.objects.count()
     migration.unload(django_apps, None)
     assert SettingVersion.objects.filter(setting__key="texts.alta-rebutjada").exists()
     assert not Setting.objects.filter(module=AREA).exists()
+    admin = RolePermission.objects.get(role__code=R.ADMINISTRATOR, permission_code=OLD_CODE)
+    assert admin.scope == "read"
+    assert PermissionMatrixVersion.objects.count() == versions + 1  # la història només creix
     migration.load(django_apps, None)
     assert SettingVersion.objects.filter(setting__key=f"{AREA}.alta-rebutjada").exists()
+    assert PermissionMatrixVersion.objects.count() == versions + 2
+    assert not RolePermission.objects.filter(permission_code=OLD_CODE).exists()
+
+
+def test_the_area_migration_gives_the_administrator_edit_even_without_a_previous_cell():
+    migration, django_apps = _area_migration()
+    migration.unload(django_apps, None)
+    RolePermission.objects.filter(role__code=R.ADMINISTRATOR, permission_code=OLD_CODE).delete()
+    # Una cel·la nova que ja hi era no trenca la restricció d'unicitat.
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.SECRETARY), permission_code=CODE, scope="read"
+    )
+    migration.load(django_apps, None)
+    cells = dict(
+        RolePermission.objects.filter(permission_code=CODE).values_list("role__code", "scope")
+    )
+    assert cells == {R.ADMINISTRATOR: "all", R.SECRETARY: "all"}
 
 
 # --- Àrees de textos (T-M00-08d; 097, CA-M00-08.4; P-380) -------------------------------------
@@ -346,7 +373,17 @@ def test_initial_cell_of_each_role_in_the_members_area(role):
     cell = RolePermission.objects.filter(role__code=role, permission_code=CODE).first()
     expected = {R.ADMINISTRATOR: "all", R.SECRETARY: "all"}.get(role)
     assert (cell.scope if cell else None) == expected
-    assert not RolePermission.objects.filter(permission_code="settings.section.texts").exists()
+
+
+def test_no_cell_of_the_old_section_is_left():
+    assert not RolePermission.objects.filter(permission_code=OLD_CODE).exists()
+
+
+def test_an_email_of_another_area_is_editable(monkeypatch):
+    other = texts.EmailText("prova", "Prova", "Assumpte\n\nCos")
+    monkeypatch.setitem(texts.EMAILS, "texts-payments.prova", other)
+    assert texts.is_editable(Setting(key="texts-payments.prova", module="texts-payments"))
+    assert not texts.is_editable(Setting(key="texts-payments.altre", module="texts-payments"))
 
 
 @pytest.mark.parametrize("role", [R.ADMINISTRATOR, R.SECRETARY])
@@ -358,6 +395,8 @@ def test_the_administrator_and_the_secretary_edit_the_members_area(make_admin, r
 
 
 def test_without_the_area_every_text_screen_is_not_found(make_admin):
+    # CA-M00-08.4 diu «accés denegat»; RN-RP-22, «no trobat» per a tot apartat d'ajustos.
+    # Construït «no trobat» fins que es respongui la P-391 (089, D2).
     client = admin_client(make_admin(R.TREASURER))
     assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 404
     assert client.get(url(LEAVE)).status_code == 404

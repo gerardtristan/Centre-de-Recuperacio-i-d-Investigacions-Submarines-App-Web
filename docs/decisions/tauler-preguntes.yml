@@ -1018,4 +1018,15 @@ opcions:
       P-291); es pot canviar a l'editor de permisos sense codi nou.
     data: 2026-11-18
 
+  P-391:
+    opcions:
+      A: "«No trobat» (404), com tots els apartats d'ajustos (RN-RP-22); com s'ha construït."
+      B: "«Accés denegat» (403) només per a les àrees de textos, com a excepció escrita a RN-RP-22."
+      C: "«Accés denegat» (403) per a tots els apartats d'ajustos, canviant RN-RP-22."
+    recomanada: A
+    perque: >-
+      La regla general dels apartats d'ajustos ja és «no trobat» i no revela si l'àrea existeix; B i C
+      demanen canviar el pla i una pantalla diferent per a un sol tipus d'apartat.
+    data: 2026-11-18
+
 noves:
