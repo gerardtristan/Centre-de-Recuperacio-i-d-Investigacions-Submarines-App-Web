@@ -61,7 +61,8 @@ def test_admin_menu_follows_the_permissions_and_logs_out_with_the_keyboard(
     # P-193 (095, B): la Secretaria té A4 «Cons.» (només «té mètode: sí/no»), i per tant l'entrada.
     expect(page.get_by_role("link", name="Pagaments: mètodes i mandats").first).to_be_visible()
     expect(page.get_by_role("link", name="Tresoreria: conciliació")).to_have_count(0)  # T1
-    expect(page.get_by_role("link", name="Pagaments: campanya de mandats").first).to_be_visible()  # A4 «Cons.»
+    # A4 «Cons.»
+    expect(page.get_by_role("link", name="Pagaments: campanya de mandats").first).to_be_visible()
     expect(page.get_by_role("link", name="Pagaments: llistat")).to_have_count(0)  # B6
     expect(page.get_by_role("link", name="Pagaments: remeses")).to_have_count(0)  # B3
     expect(page.get_by_role("link", name="Pantalles en construcció")).to_have_count(0)  # DX1
