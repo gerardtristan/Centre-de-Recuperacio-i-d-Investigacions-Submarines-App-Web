@@ -3,14 +3,15 @@ decisió 027). La 04 i el 05b hi construeixen al damunt sense canviar aquestes r
 
 - L'estat d'un càrrec només canvia aquí, amb les transicions de RN-67, i cada canvi queda al
   registre d'activitat dins la mateixa transacció.
-- «Pagat» només arriba des del proveïdor (notificació verificada, 05b) o d'una conciliació
-  confirmada pel tresorer (04). El registre manual està bloquejat per P-12 (RN-72) i cap vista
-  del navegador no crida `mark_paid` (RN-71, CA-15.7).
+- «Pagat» només arriba des del proveïdor (notificació verificada, 05b), d'una conciliació
+  confirmada pel tresorer (04) o d'un registre manual amb motiu (`record_manual_payment`, P-12 i
+  RN-72; 072, Q-037). Cap vista del navegador no crida `mark_paid` (RN-71, CA-15.7).
 - Transicions que hi afegeixen altres tasques: «retornat → pendent» (048, T-M05b-01), que
   només fa `reopen_returned`, i «pagat → pendent» (045, T-M04-12), que només fa
   `revert_paid_transfer`.
 """
 
+from datetime import datetime, time
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -50,6 +51,7 @@ PAID_ORIGINS = {"provider", "reconciliation"}
 
 RECONCILE = "treasury.reconcile"  # T4 (M04-4): conciliar i desfer una conciliació
 RETURNS = "payments.returns"  # B4 (M05b-4): registrar retornats i decidir el reintent
+MANUAL_PAYMENT = "core.charges.record_manual"  # M14: registrar un cobrament manual (P-12)
 PAYMENT_CANCELLED = "charges.payment_cancelled"
 
 # S-M04-06: el centre de cost de les quotes, dins «General» (dades inicials de la T-M04-02).
@@ -178,14 +180,21 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
     """Pendent → pagat. `origin`: «provider» (notificació verificada) o «reconciliation»
     (conciliació confirmada). `by` és qui ho confirma: el sistema o el tresorer."""
     if origin == "manual":
-        raise ValidationError(_("El registre manual de cobraments està bloquejat fins a P-12."))
+        raise ValidationError(
+            _("Un pagament a mà només es registra amb motiu des de la seva acció (P-12).")
+        )
     if origin not in PAID_ORIGINS:
         raise ValidationError(
             _("Un càrrec només passa a pagat des del proveïdor o la conciliació.")
         )
+    return _paid(charge, payment, origin=origin, by=by)
+
+
+def _paid(charge: Charge, payment: Payment, *, origin: str, by, reason: str = "") -> Charge:
     if payment.charge_id != charge.pk:
         raise ValidationError(_("El pagament no és d'aquest càrrec."))
-    _transition(charge, S.PAID, by=by, details={"origin": origin, "payment": payment.pk})
+    details = {"origin": origin, "payment": payment.pk}
+    _transition(charge, S.PAID, by=by, reason=reason, details=details)
     # 049: a la mateixa transacció, per qualsevol camí (proveïdor, transferència o remesa). El 02
     # hi afegirà l'activitat quan el càrrec en tingui.
     events.emit(
@@ -200,7 +209,6 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
     return charge
 
 
-@transaction.atomic
 @transaction.atomic
 def record_payment(
     charge: Charge,
@@ -228,6 +236,57 @@ def record_payment(
         paid_at=paid_at or timezone.now(),
     )
     mark_paid(locked, payment, origin=origin, by=by)
+    return payment
+
+
+_MANUAL_PAYMENT_GUARDS = []
+
+
+def register_manual_payment_guard(guard):
+    """Els mòduls hi registren una comprovació del càrrec (bloquejat) abans d'un pagament a mà;
+    `guard(charge)` llança un `ValidationError` per rebutjar-lo. El 05b hi posa els intents en
+    curs o pagats (`payments.attempts.ensure_manual_payment_allowed`)."""
+    if guard not in _MANUAL_PAYMENT_GUARDS:
+        _MANUAL_PAYMENT_GUARDS.append(guard)
+    return guard
+
+
+@transaction.atomic
+def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> Payment:
+    """P-12 (RN-72; 072, Q-037 i Q-038): pendent → pagat per un pagament en efectiu o presencial
+    que es registra a mà. Import sencer del càrrec, mètode «manual», motiu obligatori i qui ho fa,
+    al pagament i al registre; tot o res. Només amb M14; sense, «no trobat». Ningú no registra el
+    pagament d'un càrrec seu, ni amb una guarda registrada en contra (un altre intent en curs).
+    `paid_on`: la data de cobrament, avui per defecte i mai futura. L'ingrés a la tresoreria i el
+    soci són de qui crida (`treasury.services.record_manual_payment`)."""
+    if charge is None or not has_perm(by, MANUAL_PAYMENT, charge, write=True):
+        raise Http404
+    if not reason.strip():
+        raise ValidationError(_("Per registrar un pagament a mà cal un motiu."))
+    locked = Charge.objects.select_for_update().get(pk=charge.pk)
+    if locked.person_id == by.person_id:
+        raise ValidationError(_("Ningú no pot registrar el pagament d'un càrrec seu."))
+    if locked.status != S.PENDING:
+        raise ValidationError(_("Només es registra a mà el pagament d'un càrrec pendent."))
+    today = timezone.localdate()
+    paid_on = paid_on or today
+    if paid_on > today:
+        raise ValidationError(_("La data de cobrament no pot ser futura."))
+    for guard in _MANUAL_PAYMENT_GUARDS:
+        guard(locked)
+    payment = Payment.objects.create(
+        charge=locked,
+        method=Payment.Method.MANUAL,
+        amount_cents=locked.amount_cents,
+        paid_at=(
+            timezone.now()
+            if paid_on == today
+            else timezone.make_aware(datetime.combine(paid_on, time.min))
+        ),
+        recorded_by=by,
+        reason=reason.strip(),
+    )
+    _paid(locked, payment, origin="manual", by=by, reason=payment.reason)
     return payment
 
 

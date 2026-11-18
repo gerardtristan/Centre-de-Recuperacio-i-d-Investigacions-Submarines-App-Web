@@ -7,25 +7,15 @@ Cada tram es fa a la pantalla real i amb el rol que toca:
 2. Secretaria, amb doble factor: aprova l'alta; el soci queda pendent, amb número, quota i
    invitació (CA-M01-03).
 3. La persona: crea el compte amb la invitació, veu la quota pendent i encara no té carnet.
-4. Tresoreria, amb doble factor: veu la quota pendent i **registra el pagament a mà, amb motiu**.
+4. Tresoreria, amb doble factor: veu la quota pendent i **registra el pagament a mà, amb motiu**
+   (P-12; M14): tria la caixa, escriu el motiu, revisa l'import i el confirma.
 5. Tresoreria: veu el soci actiu, amb la quota pagada i el carnet emès (CA-M01-06).
 6. El soci: veu la quota pagada i el carnet amb el codi QR (CA-M01-12).
 7. Qualsevol, sense sessió: la verificació pública diu «Vàlid», el número i el nom de pila, i
    res més (CA-M01-13).
 
-**Tram que falta: el registre manual del pagament (pas 4).** No té pantalla ni servei: està
-bloquejat per P-12 (`docs/decisions/pendents.md`; RN-72 de la 00; `charges.mark_paid` rebutja
-l'origen «manual»). Per això hi ha dues proves amb els mateixos trams:
-
-- la del flux encadenat sencer, que busca el registre manual a la fitxa del soci i avui no el
-  troba: `xfail` estricte amb la referència a P-12. Només s'accepta que falli per aquest tram
-  (`raises=MissingStep`); si es trenca qualsevol altre, falla de debò;
-- la que passa: fa tots els altres trams al navegador i salta aquest amb els serveis que el
-  proveïdor de pagaments cridarà (`charges.mark_paid` i `services.on_fee_paid`, amb
-  `_Builder.pay`), sense SQL.
-
-Quan existeixi la pantalla de la P-12, cal adaptar `register_manual_payment_on_screen`, treure
-l'`xfail` i esborrar la prova que salta el tram.
+Tots els trams es fan a la pantalla real. El tram 4 abans només es podia saltar amb els serveis
+del proveïdor perquè la P-12 no tenia pantalla; ara la té (`treasury_manual_payment`).
 
 Només dades inventades. Les dates que es comparen amb la pantalla surten de l'hora local del
 pagament desat, no de l'hora en què s'executa la prova.
@@ -63,16 +53,7 @@ FULL_NAME = f"{FIRST_NAME} {LAST_NAME}"
 EMAIL = "mar.sirena@example.org"
 DOCUMENT = "12345678Z"
 
-P12 = (
-    "P-12 (docs/decisions/pendents.md; RN-72 de la 00): el registre manual del pagament no té "
-    "pantalla ni servei. És l'únic tram que falta del flux «fer-se soci»."
-)
-# Com es dirà, previsiblement, l'acció de la pantalla que falta (fitxa del soci, tresoreria).
-MANUAL_PAYMENT = re.compile(r"Registra\w* (el |un |)(pagament|cobrament)", re.IGNORECASE)
-
-
-class MissingStep(AssertionError):
-    """El flux s'atura en un tram que encara no té pantalla."""
+REASON = "Paga en efectiu a la secretaria (prova inventada)"
 
 
 def detail(page, term):
@@ -94,28 +75,27 @@ def login_personal(page, base_url):
     expect(page.get_by_role("button", name="Surt")).to_be_visible()
 
 
-# --- Tram 4: el pagament de la quota, de dues maneres ------------------------------------------
-def register_manual_payment_on_screen(page, builder, fee):
-    """El tresorer registra el pagament a mà, amb motiu, des de la fitxa del soci. Avui l'acció
-    no hi és (P-12): la pàgina ja és carregada i sencera, i es mira sense esperar."""
-    action = page.get_by_text(MANUAL_PAYMENT)
-    if action.count() == 0:
-        raise MissingStep(P12)
-    # A partir d'aquí, una suposició del que tindrà la pantalla: qui la construeixi l'ajusta.
-    action.first.click()
-    page.get_by_label("Motiu").fill("Paga en efectiu a la secretaria (prova inventada)")
-    page.get_by_role("button", name=MANUAL_PAYMENT).click()
-
-
-def confirm_payment_with_the_service(page, builder, fee):
-    """Salta el tram que falta: el pagament el confirmen els serveis de la 00 i del 01, com ho
-    farà la notificació verificada del proveïdor. Cap pantalla i cap SQL."""
-    builder.pay(fee)
+# --- Tram 4: el pagament de la quota, registrat a mà ---------------------------------------------
+def register_manual_payment(page, shoot):
+    """El tresorer registra el pagament a mà, amb motiu, des de la fitxa del soci (P-12)."""
+    page.get_by_role("link", name=re.compile("Registra un pagament a mà")).click()
+    expect(page.get_by_role("heading", name="Registra un pagament a mà")).to_be_visible()
+    page.get_by_label("Compte on entra").select_option(label="Caixa")
+    # La data de cobrament surt amb la d'avui.
+    expect(page.get_by_label("Data de cobrament")).to_have_value(timezone.localdate().isoformat())
+    page.get_by_label("Motiu").fill(REASON)
+    page.get_by_role("button", name="Revisa el pagament").click()
+    expect(page.get_by_text("Confirma el pagament")).to_be_visible()
+    shoot("4-pagament-a-ma-confirma")
+    page.get_by_role("button", name="Sí, registra el pagament").click()
+    expect(page.get_by_text("Pagament registrat")).to_be_visible()
 
 
 # --- El flux ------------------------------------------------------------------------------------
-def join_flow(page, base_url, builder, secretary, other, pay, shoot=lambda name: None):
-    """`other` és un altre soci, amb la seva quota: la persona nova no n'ha de veure res."""
+def join_flow(page, base_url, builder, secretary, other, shoot, pay=None):
+    """`other` és un altre soci, amb la seva quota: la persona nova no n'ha de veure res. `pay`
+    canvia el tram 4 (per defecte, el registre manual de la P-12; la llesca 2 hi paga amb
+    targeta)."""
     full = builder.full
     amount = charges.euros(full.annual_fee_cents)
     last_number = MembershipNumberCounter.objects.get(pk=1).last_number
@@ -216,10 +196,17 @@ def join_flow(page, base_url, builder, secretary, other, pay, shoot=lambda name:
     expect(fee_row).to_contain_text(amount)
     expect(fee_row).to_contain_text("Pendent")
     shoot("4-tresoreria-quota-pendent")
-    pay(page, builder, fee)
+    if pay is None:
+        register_manual_payment(page, shoot)
+        payment = Payment.objects.get(charge=fee.charge)
+        assert (payment.method, payment.reason) == (Payment.Method.MANUAL, REASON)
+    else:
+        pay(page, builder, fee)
+        payment = Payment.objects.get(charge=fee.charge)
+    assert payment.amount_cents == full.annual_fee_cents
 
     # 5. Tresoreria: el soci és actiu, la quota és pagada fins d'aquí a 12 mesos i té carnet.
-    paid_on = day(Payment.objects.get(charge=fee.charge).paid_at)
+    paid_on = day(payment.paid_at)
     until = validity.twelve_months_after(paid_on)
     page.goto(f"{base_url}/{ADMIN}/socis/{member.pk}/")
     expect(detail(page, "Estat del soci")).to_contain_text("Actiu")
@@ -270,15 +257,5 @@ def join_flow(page, base_url, builder, secretary, other, pay, shoot=lambda name:
 def test_ca_m01_01_03_06_12_13_join_flow_from_the_request_to_the_verified_card(
     page, live_server, builder, secretary, member, capture
 ):
-    """Tots els trams que existeixen, al navegador; el pagament (P-12), pels serveis."""
-    pay = confirm_payment_with_the_service
-    join_flow(page, live_server.url, builder, secretary, member, pay, capture)
-
-
-@pytest.mark.xfail(strict=True, raises=MissingStep, reason=P12)
-def test_ca_m01_01_03_06_12_13_join_flow_with_the_manual_payment_on_screen(
-    page, live_server, builder, secretary, member
-):
-    """El flux encadenat sencer, també amb el registre manual del pagament a la pantalla."""
-    pay = register_manual_payment_on_screen
-    join_flow(page, live_server.url, builder, secretary, member, pay)
+    """El flux encadenat sencer al navegador, també el registre manual del pagament (P-12)."""
+    join_flow(page, live_server.url, builder, secretary, member, capture)

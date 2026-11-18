@@ -484,7 +484,7 @@ Aquesta secció fixa **només l'estructura bàsica** (decisió 027). La 04 hi co
 | RN-69 | La domiciliació només s'admet en càrrecs de tipus quota (pagaments recurrents). Inscripcions i llicències: targeta, Bizum, transferència o manual | Decisió 017; CLAUDE |
 | RN-70 | Cap camp de la plataforma guarda un IBAN ni dades de targeta. Només es guarden identificadors de Stripe i la referència del mandat | Decisió 025 (la plataforma no guarda l'IBAN); decisió 017; CLAUDE; CK C9 (pagaments) |
 | RN-71 | Un càrrec no passa a «pagat» per una acció del navegador: només per una confirmació verificada del proveïdor (05b), una conciliació confirmada pel tresorer (04) o un registre manual | CLAUDE; ARQ §4.2 i §4.6 |
-| RN-72 | El registre manual porta motiu obligatori i, si n'hi ha, justificant. Qui el pot fer és P-12; fins que es resolgui, no s'implementa | Decisió 017; ARQ §4.7; P-12 |
+| RN-72 | El registre manual porta motiu obligatori i, si n'hi ha, justificant (opcional, Q-038). El fa qui té M14, que demana veure la tresoreria (072, Q-037; inicialment el Tresorer, P-331). Fet a la tasca P-12 (17/11/2026), encara sense el justificant | Decisió 017; ARQ §4.7; P-12; 072 |
 | RN-73 | Les devolucions i els retorns no modifiquen el pagament original: generen un moviment nou de signe contrari (a la 04), i la comissió no es recupera | ARQ §4.1; decisió 013 |
 | RN-74 | La llista de departaments la fixa la junta. L'únic decidit ara és «General / Quotes de socis» | Decisió 013; F §7 (pregunta per a la junta); Q-17 |
 | RN-75 | Un departament amb càrrecs o moviments no s'esborra; es desactiva | Conseqüència de RN-61. Proposta |

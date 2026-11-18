@@ -22,6 +22,10 @@ cobrament. El crida el 05a quan es configura el proveïdor (`apps/payments/setup
 `reverse` (T-M04-08; P-M04-C; RN-T27): l'anul·lació amb contramoviment, manual (T5) o en desfer
 una conciliació (045). El període tancat (RN-T28, RN-T30) arriba amb la T-M04-20.
 
+`record_manual_payment` (P-12; RN-72 de la 00; 072, Q-037 i Q-038): el pagament d'un càrrec
+pendent en efectiu o presencial, que el tresorer registra a mà amb motiu (M14). És l'única porta
+d'un ingrés que neix d'una pantalla, i només amb aquest permís (RN-71 en permet el registre manual).
+
 `record_transfer` i `record_cash_count` (T-M04-09; P-M04-D; CA-T07.1 i CA-T08.1): el traspàs entre
 comptes propis (T6) i l'arqueig de la caixa (T7), amb l'ajust opcional. El període tancat dels
 dos (RN-T31: mai es rebutgen) arriba amb la T-M04-20.
@@ -38,7 +42,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, charges
 from apps.core.charges import PAID_ORIGINS
 from apps.core.models import AuditEntry, Charge, Payment, validate_cents
 from apps.core.permissions import has_perm
@@ -416,11 +420,13 @@ def _income_of(payment: Payment) -> Movement | None:
     return Movement.objects.filter(payment=payment, kind=Movement.Kind.INCOME).first()
 
 
-def _create_income(payment: Payment, charge: Charge, by) -> Movement:
+def _create_income(payment: Payment, charge: Charge, by, account=None) -> Movement:
     paid_on = timezone.localdate(payment.paid_at) if payment.paid_at else timezone.localdate()
     return _create_movement(
         by,
-        account=_income_account(payment.method),
+        # Un pagament a mà (amb compte triat) no entra mai en un període tancat (RN-T30).
+        blocking=account is not None,
+        account=account or _income_account(payment.method),
         direction=Movement.Direction.IN,
         amount_cents=payment.amount_cents,
         value_date=paid_on,
@@ -444,7 +450,7 @@ def _income_account(method: str) -> TreasuryAccount:
         accounts = accounts.filter(kind=kind.TRANSIT, provider_code=SEPA_REMITTANCE)
     elif method == method_of.TRANSFER:
         accounts = accounts.filter(kind=kind.BANK)
-    else:  # Manual: «caixa o bancari (quan es resolgui P-12)».
+    else:  # Manual: el compte el tria qui el registra (`record_manual_payment`).
         accounts = accounts.none()
     found = list(accounts[:2])
     if len(found) != 1:
@@ -454,13 +460,63 @@ def _income_account(method: str) -> TreasuryAccount:
     return found[0]
 
 
+def manual_payment_accounts():
+    """RN-T08: un pagament a mà entra a la caixa o a un compte bancari actiu."""
+    kinds = (TreasuryAccount.Kind.CASH, TreasuryAccount.Kind.BANK)
+    return TreasuryAccount.objects.filter(active=True, kind__in=kinds).order_by("kind", "name")
+
+
+@transaction.atomic
+def record_manual_payment(
+    charge: Charge, *, account: TreasuryAccount, reason: str, by, paid_on=None
+) -> Movement:
+    """P-12: tot o res, el càrrec pagat amb el pagament «manual» i el motiu
+    (`charges.record_manual_payment`, que també comprova M14, el motiu, l'estat i el conflicte
+    d'interès), l'ingrés del mateix import al compte triat amb el departament i el centre de cost
+    del càrrec (RN-T10) i la data de cobrament com a data de valor (mai en un període
+    tancat), el rebut (`payments.transfers`, al desar el pagament) i, si és una quota,
+    el soci (`members.on_fee_paid`: actiu i carnet). Sense M14, «no trobat». Com es corregeix un
+    error és la P-333: de moment, cap camí."""
+    # El permís (M14, amb el càrrec) el comprova `charges.record_manual_payment`, primer de tot;
+    # el compte, després: un error de compte desfà el pagament.
+    payment = charges.record_manual_payment(charge, reason=reason, by=by, paid_on=paid_on)
+    if account is None or not manual_payment_accounts().filter(pk=account.pk).exists():
+        raise IncomeAccountUnavailable(
+            _("Un pagament a mà entra a la caixa o a un compte bancari actiu.")
+        )
+    charge = payment.charge
+    movement = _create_income(payment, charge, by, account=account)
+    audit.record(
+        INCOME_RECORDED,
+        actor=by,
+        target=movement,
+        reason=payment.reason,
+        details={
+            "payment": payment.pk,
+            "charge": charge.pk,
+            "amount_cents": movement.amount_cents,
+            "account": account.name,
+            "origin": "manual",
+        },
+    )
+    fee = getattr(charge, "annual_fee", None)
+    if fee is not None:
+        members.on_fee_paid(fee.pk)
+    return movement
+
+
+def member_number(person):
+    """El número de soci de la persona, o res si no és sòcia (o encara no en té)."""
+    try:
+        return members.get_member_summary(person).number
+    except members.NotAMember:
+        return None
+
+
 def _concept(charge: Charge) -> str:
     """RNF-T4: tipus, número de soci i referència del càrrec; mai el nom ni el text lliure."""
     parts = [charge.get_kind_display()]
-    try:
-        number = members.get_member_summary(charge.person).number
-    except members.NotAMember:
-        number = None
+    number = member_number(charge.person)
     if number:
         parts.append(_("soci %(number)s") % {"number": number})
     parts.append(_("càrrec %(id)s") % {"id": charge.pk})

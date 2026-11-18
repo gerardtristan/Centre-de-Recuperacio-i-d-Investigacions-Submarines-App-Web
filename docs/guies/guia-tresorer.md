@@ -28,6 +28,15 @@ A totes dues has d'escriure **el motiu** i tornar a posar la contrasenya i el co
 
 Límits: una quota pagada no es pot eximir (seria una devolució); una de retornada es resoldrà quan hi hagi el mòdul de cobraments; un soci marcat com a impagat continua impagat fins que el desmarquis.
 
+### Registrar un pagament a mà (efectiu o presencial)
+Quan un soci et paga la quota en mà, a la fitxa del soci, al costat de la quota pendent, prem **Registra un pagament a mà…**.
+- Tria el **compte on entren** els diners (la caixa, o el banc si l'has ingressat), la **data de cobrament** (avui, si no dius res; mai una data futura ni d'un període ja tancat) i escriu **el motiu** (per exemple, «Paga en efectiu a la secretaria»). Prem **Revisa el pagament**: la pantalla et mostra l'import i qui paga. Si és correcte, prem **Sí, registra el pagament**.
+- Es registra l'import sencer de la quota. En un sol pas, la quota queda pagada, l'ingrés entra al compte que has triat, el soci rep el rebut per correu i, si era pendent, passa a actiu i té el carnet. Queda al registre d'activitat amb el teu compte i el motiu.
+- Al segon pas ja no pots canviar el compte ni el motiu: si cal, prem **Canvia-ho** i torna-ho a revisar.
+- Si el soci té un pagament en curs o per revisar (targeta, Bizum, transferència o rebut domiciliat enviat al banc), la plataforma no deixa registrar-lo a mà, per no cobrar-lo dues vegades: espera que acabi.
+- No pots registrar el pagament d'una quota teva. Ara per ara, només el rol Tresorer ho pot fer (P-331).
+- Encara no pots adjuntar el comprovant, i un pagament registrat per error no es pot desfer des de la plataforma (P-333): anota-ho i avisa el responsable de la plataforma.
+
 ## 4. Llistat de socis (dades mínimes)
 El teu llistat mostra només el que cal per cobrar: número, nom, tipus, estat i quota. No hi veus el document, l'adreça ni la data de naixement; en lloc de la data, la fitxa et mostra la franja d'edat.
 

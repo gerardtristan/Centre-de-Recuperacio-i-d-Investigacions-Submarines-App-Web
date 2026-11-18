@@ -30,9 +30,14 @@ class PaymentsConfig(AppConfig):
 
         post_migrate.connect(ensure_transit_account, sender=self)
 
+        from apps.core import charges
         from apps.core.models import Payment, PaymentCancellation
 
+        from . import attempts
         from .transfers import on_cancellation_saved, on_payment_saved
+
+        # P-12: cap pagament a mà amb un intent que potser ja ha cobrat el càrrec.
+        charges.register_manual_payment_guard(attempts.ensure_manual_payment_allowed)
 
         # T-M05b-06: una transferència conciliada a la 04 dona l'intent per pagat i el rebut.
         post_save.connect(on_payment_saved, sender=Payment, dispatch_uid="payments.transfer_paid")

@@ -310,7 +310,8 @@ class TestRejected:
 
         modules = {callback.__module__ for callback in callbacks(get_resolver().url_patterns)}
         # Les úniques vistes de la 04 són les pantalles de la T-M04-15 (també les que mouen
-        # diners, `entry_views`, que no apunten cap ingrés), que el bucle de sota també revisa.
+        # diners, `entry_views`, que només apunten l'ingrés d'un pagament a mà amb M14, P-12), que
+        # el bucle de sota també revisa.
         treasury = {module for module in modules if module.startswith("apps.treasury")}
         assert modules and treasury <= {"apps.treasury.views", "apps.treasury.entry_views"}
         apps_dir = Path(services.__file__).parents[1]

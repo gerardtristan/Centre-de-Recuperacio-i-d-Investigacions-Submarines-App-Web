@@ -75,7 +75,8 @@ class TestEntity:
         # Tall de targeta: l'intent no referencia el mandat (docs/estat/M05a.md).
         related = {f.related_model._meta.label for f in Attempt._meta.fields if f.is_relation}
         assert related == {"core.Charge", "core.GuestLink", "accounts.Account"}
-        assert set(M.values) == {"card", "bizum", "transfer", "direct_debit", "saved_card"}
+        MANUAL = "manual"  # el rebut d'un pagament registrat a mà (P-12); cap pantalla no el tria
+        assert set(M.values) == {"card", "bizum", "transfer", "direct_debit", "saved_card", MANUAL}
         assert len(S.values) == 9
 
     def test_an_attempt_is_never_deleted_and_protects_its_charge(self, charge):

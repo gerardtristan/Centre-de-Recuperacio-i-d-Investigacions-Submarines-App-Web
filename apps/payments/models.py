@@ -117,6 +117,7 @@ class AttemptMethod(models.TextChoices):
     TRANSFER = "transfer", _("Transferència")
     DIRECT_DEBIT = "direct_debit", _("Domiciliació")
     SAVED_CARD = "saved_card", _("Targeta guardada")
+    MANUAL = "manual", _("Manual")  # P-12: només l'obre el sistema, per al rebut
 
 
 class AttemptStatus(models.TextChoices):
@@ -272,6 +273,7 @@ class PaymentAttempt(UndeletableModel):
         revert = (old, new) == REVERT_TRANSFER and self.method in (
             self.Method.TRANSFER,
             self.Method.DIRECT_DEBIT,
+            self.Method.MANUAL,  # P-12: el pagament a mà anul·lat
         )
         if ((old, new) not in ATTEMPT_TRANSITIONS and not revert) or to_bank:
             raise InvalidTransition(f"{old} → {new}")

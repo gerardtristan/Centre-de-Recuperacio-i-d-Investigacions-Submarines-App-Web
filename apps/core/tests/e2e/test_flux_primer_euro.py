@@ -103,4 +103,4 @@ def test_llesca_2_from_the_pending_fee_to_the_valid_card_paying_by_card(
             page.wait_for_timeout(1000)
         login_admin(page, base_url, TREASURER)
 
-    join_flow(page, live_server.url, builder, secretary, member, pay_by_card, capture)
+    join_flow(page, live_server.url, builder, secretary, member, capture, pay=pay_by_card)

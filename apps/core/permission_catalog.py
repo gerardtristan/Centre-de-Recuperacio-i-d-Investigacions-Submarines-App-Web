@@ -159,7 +159,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         touches_personal_data=True,
         touches_money=True,
     ),
-    # M14 (registrar un cobrament manual) queda bloquejat fins a P-12 i no surt a l'editor.
+    _perm(
+        "core.charges.record_manual",
+        "M14",
+        _("Registrar un cobrament manual (efectiu o presencial), amb motiu"),
+        # P-12 (072, Q-037): qui pot veure i editar la tresoreria. Comença només amb el Tresorer,
+        # com la conciliació (T4), que també dona càrrecs per pagats (P-331).
+        requires=("treasury.view",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
     # --- 01 Socis i carnet ------------------------------------------------------------------
     _perm(
         "members.create_in_person",

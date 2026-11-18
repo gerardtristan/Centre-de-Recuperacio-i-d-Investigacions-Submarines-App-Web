@@ -50,7 +50,7 @@ from .returns import max_attempts
 MANAGE = "payments.remittances"  # B3 (M05b-4)
 PRENOTIFICATION_DAYS = "payments.prenotification_days"  # VC-16 (S-M05b-06)
 PRENOTIFICATION_TEMPLATE = "avis-previ-remesa"
-IN_FLIGHT = (PaymentAttempt.Status.IN_PROGRESS, PaymentAttempt.Status.SENT_TO_BANK)
+IN_FLIGHT = attempts.IN_FLIGHT
 
 # Motius d'exclusió de la previsualització.
 ERASED = _("Dades personals esborrades")
