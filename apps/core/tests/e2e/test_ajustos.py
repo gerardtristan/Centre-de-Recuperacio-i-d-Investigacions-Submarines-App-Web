@@ -119,7 +119,7 @@ def test_treasurer_moves_a_return_code_to_another_action(page, live_server, revi
     page.get_by_role("link", name="Canvia: Codis de retorn que proposen un reintent").click()
     page.get_by_label("Valor nou").fill("AM04, MD01")
     page.get_by_role("button", name="Desa el valor").click()
-    expect(page.get_by_text("MD01 ja és a l'altra llista")).to_be_visible()
+    expect(page.get_by_text("MD01 ja és a una altra llista")).to_be_visible()
     review("codis-retorn-conflicte")
 
     page.get_by_role("link", name="Ajustos de pagaments").click()

@@ -36,10 +36,18 @@ T = Setting.ValueType
 
 # Regla d'un sol valor que depèn d'un altre mòdul (P-360): la registra el mòdul al seu `ready`.
 EXTRA_CHECKS: dict = {}
+NORMALISERS: dict = {}
+LOCK_WITH: dict = {}
 
 
-def register_check(key: str, check) -> None:
+def register_check(key: str, check, *, normalise=None, lock_with=()) -> None:
+    """`normalise`: forma canònica del valor, abans de validar-lo i desar-lo. `lock_with`: claus
+    que la comprovació llegeix; es bloquegen amb la que es desa, en ordre de clau (P-291)."""
     EXTRA_CHECKS[key] = check
+    if normalise is not None:
+        NORMALISERS[key] = normalise
+    if lock_with:
+        LOCK_WITH[key] = tuple(lock_with)
 
 
 def permission_code(key: str) -> str:
@@ -212,7 +220,13 @@ def deny(user, setting: Setting, request=None):
 
 @transaction.atomic
 def _save(pk, value, user, note, effective_from) -> SettingVersion:
-    setting = Setting.objects.select_for_update().get(pk=pk)
+    key = Setting.objects.values_list("key", flat=True).get(pk=pk)
+    # Sempre en ordre de clau: dos canvis del mateix grup s'esperen i no es bloquegen entre ells.
+    keys = sorted({key, *LOCK_WITH.get(key, ())})
+    locked = Setting.objects.select_for_update().filter(key__in=keys).order_by("key")
+    setting = next(s for s in locked if s.pk == pk)
+    if normalise := NORMALISERS.get(key):
+        value = normalise(value)
     note = (note or "").strip()
     validate_value(setting, value)
     effective_from = _check_dates_and_note(setting, note, effective_from)

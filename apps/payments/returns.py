@@ -31,7 +31,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge
+from apps.core.models import Charge, Setting
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members import services as members
@@ -82,31 +82,47 @@ def max_attempts() -> int:
     return business_settings.get(MAX_ATTEMPTS)
 
 
-def _split(value: str) -> list[str]:
-    return [code for code in SEPARATORS.split(value) if code]
+RETURN_CODE_LISTS = (RETRY_CODES, BLOCK_CODES)
+
+
+def _split(value) -> list[str]:
+    return [code for code in SEPARATORS.split(value.upper()) if code]
+
+
+def normalise_codes(value):
+    """Forma canònica: majúscules, ordenats i separats per «, » (P-291). Un valor que no és un
+    text el rebutja la peça d'ajustos."""
+    return ", ".join(sorted(_split(value))) if isinstance(value, str) else value
 
 
 def codes(key: str) -> set[str]:
-    """Els codis d'una de les dues llistes, amb el valor vigent avui (P-291)."""
-    return set(_split(business_settings.get(key)))
+    """Els codis d'una llista, amb el valor vigent avui (P-291). Sense l'ajust, cap codi."""
+    try:
+        return set(_split(business_settings.get(key)))
+    except Setting.DoesNotExist:
+        return set()
 
 
 def check_codes(key: str):
     """La comprovació d'una llista (P-291), que `apps.PaymentsConfig.ready` registra a la peça
-    d'ajustos: codis de quatre majúscules o xifres, sense repetir, i cap a totes dues llistes."""
-    other = BLOCK_CODES if key == RETRY_CODES else RETRY_CODES
+    d'ajustos: codis de quatre lletres o xifres, sense repetir, i cap que ja sigui a una altra
+    de les llistes de `RETURN_CODE_LISTS`."""
 
     def check(value: str) -> None:
         found = _split(value)
         if not all(CODE.fullmatch(code) for code in found):
             raise ValidationError(
-                _("Cada codi té quatre lletres majúscules o xifres, separats per comes.")
+                _(
+                    "Cada codi té quatre lletres o xifres. Separa'ls amb comes, espais o "
+                    "punts i comes."
+                )
             )
         if len(set(found)) != len(found):
             raise ValidationError(_("La llista no pot tenir codis repetits."))
-        if both := sorted(set(found) & codes(other)):
+        others = set().union(*(codes(other) for other in RETURN_CODE_LISTS if other != key))
+        if both := sorted(set(found) & others):
             raise ValidationError(
-                _("Un codi només pot tenir una acció: %(codes)s ja és a l'altra llista.")
+                _("Un codi només pot tenir una acció: %(codes)s ja és a una altra llista.")
                 % {"codes": ", ".join(both)}
             )
 
@@ -127,6 +143,7 @@ def register_return(
     """P-M05b-F, passos 1 a 3. Torna `RETRY` o `ALTERNATIVE`; el tresorer la confirma amb
     `confirm`. Sense B4, «no trobat», abans de mirar res (T-M05b-25)."""
     _ensure_b4(by)
+    retry_codes, block_codes = codes(RETRY_CODES), codes(BLOCK_CODES)  # un sol cop (P-291)
     code = (reason_code or "").strip().upper()
     if not CODE.fullmatch(code):
         raise ValidationError(_("El codi de motiu del banc té quatre lletres o xifres."))
@@ -152,7 +169,7 @@ def register_return(
     item.return_reason_code, item.returned_on = code, timezone.localdate()
     item.save(update_fields=["status", "return_reason_code", "returned_on"])
     mandate = item.mandate
-    if code in codes(BLOCK_CODES) and mandate.status == SepaMandate.Status.ACTIVE:
+    if code in block_codes and mandate.status == SepaMandate.Status.ACTIVE:
         mandate.status = SepaMandate.Status.BLOCKED
         mandate.save(update_fields=["status"])
         audit.record(
@@ -168,7 +185,7 @@ def register_return(
     fee = getattr(charge, "annual_fee", None)
     if fee is not None:
         members.on_fee_returned(fee.pk)  # RN-M05b-18: avís; l'impagat és manual (040)
-    proposal = RETRY if code in codes(RETRY_CODES) and can_retry(item) else ALTERNATIVE
+    proposal = RETRY if code in retry_codes and can_retry(item) else ALTERNATIVE
     audit.record(
         "payments.return.registered",
         actor=by,
