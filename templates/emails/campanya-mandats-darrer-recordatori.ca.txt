@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M05a-13c (RN-M05a-14): TEXT PROVISIONAL [A validar: junta]. Només a qui encara no ha triat, un sol cop. Cap dada personal ni bancària. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with date=collection_date|date:"d/m/Y" %}El club ja ha fixat la remesa de quotes domiciliades, que es cobrarà el {{ date }}. Encara no ens has dit com vols pagar la quota de soci.{% endblocktranslate %}
+
+{{ link }}
+
+{% translate "Aquesta remesa ja no et pot incloure: si tens una quota pendent, la podràs pagar amb targeta, Bizum o transferència. Si tries la domiciliació ara, la farem servir per a les quotes següents." %}
+
+{% translate "Aquest és el darrer recordatori. Si ja has triat, no cal que facis res." %}
+{% endautoescape %}

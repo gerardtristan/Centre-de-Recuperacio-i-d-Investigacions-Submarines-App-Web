@@ -35,7 +35,7 @@ from apps.treasury import reconciliation, settlements
 from apps.treasury import services as treasury
 from apps.treasury.models import StatementLineState
 
-from . import attempts, receipts
+from . import attempts, campaigns, receipts
 from .guards import requires_charges
 from .models import (
     DirectDebitItem,
@@ -189,6 +189,7 @@ def build_remittance(period: str, collection_date: date, actor) -> DirectDebitRe
         },
     )
     send_prenotifications(remittance)
+    campaigns.send_final_reminders(collection_date, by=actor)  # RN-M05a-14 (T-M05a-13c)
     remittance.refresh_from_db()
     return remittance
 

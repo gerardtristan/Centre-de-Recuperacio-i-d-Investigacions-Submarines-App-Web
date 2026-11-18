@@ -682,6 +682,8 @@ class MandateCampaignRecipient(models.Model):
     invited_at = models.DateTimeField(_("convidat el"))
     reminders_sent = models.PositiveSmallIntegerField(_("recordatoris enviats"), default=0)
     last_reminder_at = models.DateTimeField(_("últim recordatori"), null=True, blank=True)
+    # RN-M05a-14: el darrer, en fixar la remesa (T-M05a-13c); després no en surt cap més.
+    final_reminder_at = models.DateTimeField(_("darrer recordatori"), null=True, blank=True)
     answered_at = models.DateTimeField(_("ha respost el"), null=True, blank=True)
     answer = models.CharField(_("resposta"), max_length=14, choices=FeeMethod.choices, blank=True)
 
