@@ -117,3 +117,39 @@
   -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--e-6)), transparent);
   mask-image: linear-gradient(to right, black calc(100% - var(--e-6)), transparent);
 }
+
+/* fitxa-soci (T-DX-67, PR 9a): la fitxa del soci de l'administració, sobre graella-2 graella-5-7.
+   Mòbil: una columna, en l'ordre del document. Tauleta (34rem): el resum i les dades personals al
+   costat i el carnet i les taules a tota l'amplada. Escriptori (56rem): el resum, les dades i el
+   carnet a l'esquerra (5/12) i les taules a la dreta (7/12), cada columna amb la seva alçada (la
+   fila 1fr del final s'endú el que sobra i el bloc de l'esquerra no se separa). */
+@container cos (min-width: 34rem) {
+  .fitxa-soci > .fitxa-carnet, .fitxa-soci > .fitxa-taules { grid-column: 1 / -1; }
+}
+@container cos (min-width: 56rem) {
+  .fitxa-soci { grid-template-rows: auto auto auto 1fr; }
+  .fitxa-soci > *, .fitxa-soci > .fitxa-carnet { grid-column: 1; }
+  .fitxa-soci > .fitxa-taules { grid-column: 2; grid-row: 1 / -1; }
+}
+/* «Més» a la capçalera: la llista es col·loca respecte a la fila d'accions (no al botó), perquè no
+   surti de la pàgina a 320 px; amb les accions a la dreta, s'obre cap a l'esquerra */
+.capcalera-pagina > .accions { position: relative; }
+.capcalera-pagina > .accions .menu-exporta { position: static; }
+@container cos (min-width: 37.5rem) {
+  .capcalera-pagina > .accions .menu-opcions { left: auto; right: 0; }
+}
+
+/* historial-estats (T-DX-67): l'historial d'estats amb la línia de passos de Tramite (§6.13), en
+   vertical i només de lectura. Neutre: l'estat d'ara (el primer, es-actual) amb la marca en el
+   color del text; cap verd, perquè un estat antic no és cap pas «fet» (pot ser una baixa). */
+.tramite.historial-estats { grid-template-columns: minmax(0, 1fr); margin: 0; }
+.tramite.historial-estats .tramite-pas {
+  grid-template-columns: var(--e-5) minmax(0, 1fr); justify-items: start; align-items: start;
+  gap: var(--e-3); padding: 0 0 var(--e-4); text-align: left; color: var(--c-text); font-weight: inherit;
+}
+.tramite.historial-estats .tramite-pas::before { content: none; }
+.tramite.historial-estats .tramite-pas:not(:last-child)::after {
+  content: ""; position: absolute; top: var(--e-5); bottom: 0; left: calc((var(--e-5) - var(--v-plena)) / 2);
+  width: var(--v-plena); background: var(--c-linia-forta);
+}
+.historial-estats-text { display: grid; gap: var(--e-1); overflow-wrap: anywhere; min-width: 0; }

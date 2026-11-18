@@ -30,6 +30,7 @@ def test_edit_member_data_and_correct_the_join_date(page, live_server, secretary
     expect(page.get_by_text("Canvis desats")).to_be_visible()
     expect(page.get_by_role("heading", level=1, name="Pere Prova Corregit")).to_be_visible()
 
+    page.locator("summary", has_text="Més").click()  # T-DX-67: les accions rares, dins de «Més»
     page.get_by_role("link", name="Corregeix la data d'alta").click()
     expect(page.get_by_role("heading", name="Corregeix la data d'alta")).to_be_visible()
     review("data-alta")

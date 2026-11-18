@@ -3,6 +3,7 @@ l'amplada; l'entrada i les pàgines d'error es queden estretes i centrades; a 39
 Les tasques que redistribueixen cada pantalla (T-DX-58 en endavant) hi afegeixen els seus casos."""
 
 import re
+from datetime import timedelta
 
 import pytest
 from django.urls import reverse
@@ -11,9 +12,11 @@ from playwright.sync_api import expect
 from apps.core import audit, charges
 from apps.core.models import LegalText
 from apps.members.models import Member
+from apps.members.fee_rules import local_today
+from apps.members.models import LicenceRecord, Member
 from apps.members.tests.test_cards import make_member
 
-from .conftest import login_admin, make_admin
+from .conftest import CAPTURES, SETTLED_JS, login_admin, make_admin
 
 pytestmark = pytest.mark.e2e
 
@@ -234,3 +237,74 @@ def test_admin_forms_layout(page, live_server, secretary, member):
     page.goto(f"{base}{reverse('administration:member_edit', args=[member.pk])}")
     expect(page.get_by_role("heading", level=1, name="Edita les dades")).to_be_visible()
     assert_form_layout(page)
+def test_member_record_in_two_columns(page, live_server, member):
+    """T-DX-67 (PR 9a): la fitxa del soci a 1280 px en dues columnes, l'esquerra més estreta (5/12)
+    amb el resum, les dades i el carnet, i la dreta amb les taules; a 800 px, el resum i les dades
+    al costat i les taules a tota l'amplada; a 390, una columna; a 320 no desborda. Un sol botó
+    principal i «Més» s'obre amb el teclat, amb «Corregeix la data d'alta» a dins."""
+    LicenceRecord.objects.create(
+        member=member,
+        licence_type="Anual FECDAS",
+        issued_on=local_today() - timedelta(days=300),
+        expires_on=local_today() + timedelta(days=40),
+        source=LicenceRecord.Source.MANUAL,
+    )
+    admin = make_admin("fitxa.columnes", "secretary", "treasurer")
+    login_admin(page, live_server.url, admin.login)
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto(f"{live_server.url}{reverse('administration:member_detail', args=[member.pk])}")
+    box = {
+        name: page.locator(selector).bounding_box()
+        for name, selector in (
+            ("resum", ".fitxa-soci > .dades-soci"),
+            ("dades", "section:has(#dades-titol)"),
+            ("carnet", ".fitxa-carnet"),
+            ("taules", ".fitxa-taules"),
+        )
+    }
+    assert box["resum"]["x"] == box["dades"]["x"] == box["carnet"]["x"], box
+    assert box["taules"]["x"] > box["resum"]["x"] + box["resum"]["width"], box
+    assert abs(box["taules"]["y"] - box["resum"]["y"]) < 2, box  # les dues columnes, a dalt
+    assert box["resum"]["width"] < box["taules"]["width"], box  # 5/12 i 7/12
+    assert page.evaluate(OVERFLOW_JS) <= 0
+    expect(page.locator(".capcalera-pagina .boto-principal")).to_have_count(1)
+    expect(page.locator(".boto-principal")).to_have_text("Edita les dades")
+    expect(page.locator(".historial-estats .tramite-pas").first).to_have_class(
+        "tramite-pas es-actual"
+    )
+
+    more = page.locator("summary", has_text="Més")
+    more.focus()
+    page.keyboard.press("Enter")
+    expect(page.get_by_role("link", name="Corregeix la data d'alta")).to_be_visible()
+    expect(page.get_by_role("link", name="Crea una baixa")).to_be_visible()
+    assert page.evaluate(OVERFLOW_JS) <= 0  # la llista s'obre cap a l'esquerra
+    page.screenshot(path=CAPTURES / "fitxa-soci" / "fitxa-mes-1280.png")
+    page.keyboard.press("Escape")
+    expect(page.get_by_role("link", name="Corregeix la data d'alta")).to_be_hidden()
+    expect(more).to_be_focused()
+
+    page.set_viewport_size({"width": 800, "height": 900})
+    resum = page.locator(".fitxa-soci > .dades-soci").bounding_box()
+    dades = page.locator("section:has(#dades-titol)").bounding_box()
+    taules = page.locator(".fitxa-taules").bounding_box()
+    assert dades["x"] > resum["x"] and abs(dades["y"] - resum["y"]) < 2, (resum, dades)
+    assert taules["x"] == resum["x"] and taules["width"] > resum["width"] * 1.8, (resum, taules)
+
+    page.set_viewport_size({"width": 390, "height": 800})
+    xs = {
+        page.locator(s).bounding_box()["x"] for s in (".fitxa-soci > .dades-soci", ".fitxa-taules")
+    }
+    assert len(xs) == 1, xs  # l'una a sota de l'altra
+    page.set_viewport_size({"width": 320, "height": 800})
+    assert page.evaluate(OVERFLOW_JS) <= 0
+
+    for width in (1280, 1024, 800, 390):
+        page.set_viewport_size({"width": width, "height": 900})
+        for theme in ("light", "dark"):
+            page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
+            page.wait_for_function(SETTLED_JS)
+            page.screenshot(
+                path=CAPTURES / "fitxa-soci" / f"fitxa-{width}-{theme}.png", full_page=True
+            )
+    page.evaluate("document.documentElement.removeAttribute('data-theme')")
