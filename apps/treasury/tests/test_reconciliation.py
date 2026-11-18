@@ -453,11 +453,13 @@ class TestExclude:
         """P-190 (095): T8 té codi propi. Sense la cel·la, el tresorer no exclou encara que tingui
         T4; un rol amb T8 i sense T4 sí que exclou."""
         first, second = lines(treasurer, (-1230, "REBUT LLUM"), (-500, "REBUT AIGUA"))
-        RolePermission.objects.filter(permission_code="treasury.exclude").delete()
+        RolePermission.objects.filter(permission_code=reconciliation.EXCLUDE).delete()
         with pytest.raises(Http404):
             reconciliation.exclude(first, reason="Prova", by=treasurer)
         RolePermission.objects.create(
-            role=Role.objects.get(code="secretary"), permission_code="treasury.exclude", scope="all"
+            role=Role.objects.get(code="secretary"),
+            permission_code=reconciliation.EXCLUDE,
+            scope="all",
         )
         reconciliation.exclude(second, reason="Prova", by=make_admin("secretary"))
         assert state(second)[0] == State.EXCLUDED and state(first)[0] != State.EXCLUDED

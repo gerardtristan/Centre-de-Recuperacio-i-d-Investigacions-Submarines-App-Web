@@ -39,3 +39,22 @@ def test_running_it_again_changes_nothing():
     last = PermissionMatrixVersion.objects.order_by("-number").first().number
     migration.load(django_apps, None)
     assert PermissionMatrixVersion.objects.order_by("-number").first().number == last
+
+
+def test_unload_only_removes_the_cells_load_created():
+    """Desfer la migració no treu mai una cel·la donada a mà, ni abans ni després de la 0023."""
+    RolePermission.objects.filter(permission_code__in=migration.NEW).delete()
+    RolePermission.objects.filter(permission_code=migration.A4, role__code="secretary").delete()
+    PermissionMatrixVersion.objects.filter(note=migration.NOTE).delete()
+    secretary = Role.objects.get(code="secretary")
+    RolePermission.objects.create(  # a mà abans: la Secretaria ja tenia A4 sencer
+        role=secretary, permission_code=migration.A4, scope="all"
+    )
+    migration.load(django_apps, None)
+    RolePermission.objects.create(  # a mà després: la Junta exclou línies
+        role=Role.objects.get(code="board"), permission_code=migration.T8, scope="all"
+    )
+    migration.unload(django_apps, None)
+    assert cells(migration.A4)["secretary"] == "all"
+    assert cells(migration.T8) == {"board": "all"} and cells(migration.T10) == {}
+    assert not PermissionMatrixVersion.objects.filter(note=migration.NOTE).exists()

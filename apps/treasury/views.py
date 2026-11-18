@@ -205,7 +205,9 @@ def review_view(request):
             {"settlement": s, "net": euros(s.net_cents), "problems": entry_views.problems_of(s)}
             for s in to_review.order_by("settled_on", "pk")
         ],
-        "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),
+        "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),  # T8
+        "can_reconcile": has_perm(request.user, reconciliation.RECONCILE, write=True),  # T4
+        "can_view_accounts": has_perm(request.user, VIEW),  # on porta «Torna…» (T1)
         "can_view_payments": has_perm(request.user, "payments.view"),  # B6, només per a l'enllaç
     }
     return render(request, "treasury/review.html", context)
@@ -222,10 +224,14 @@ def exclude_view(request, line_id):
         messages.error(request, " ".join(error.messages))
     else:
         messages.success(request, _("Línia exclosa. No s'ha creat cap moviment."))
-    # Només aquests dos destins: cap redirecció oberta.
-    if request.POST.get("des_de") == "conciliacio":
+    # Només aquests destins, i un que el compte pugui obrir (T10, T1): cap redirecció oberta.
+    if request.POST.get("des_de") != "conciliacio" and has_perm(
+        request.user, reconciliation.REVIEW
+    ):
+        return redirect("administration:treasury_review")
+    if has_perm(request.user, VIEW):
         return redirect("administration:treasury_reconciliation")
-    return redirect("administration:treasury_review")
+    return redirect("administration:home")
 
 
 @never_cache

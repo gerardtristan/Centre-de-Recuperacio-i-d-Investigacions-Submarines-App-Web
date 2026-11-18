@@ -42,10 +42,16 @@ def load(apps, schema_editor):
 
 
 def unload(apps, schema_editor):
+    """Només treu les cel·les que `load` va crear, que són al `diff` de la seva versió de la
+    matriu: mai una que ja hi era ni una donada a mà després."""
     RolePermission = apps.get_model("core", "RolePermission")
-    RolePermission.objects.filter(permission_code__in=NEW).delete()
-    RolePermission.objects.filter(permission_code=A4, role__code="secretary").delete()
-    apps.get_model("core", "PermissionMatrixVersion").objects.filter(note=NOTE).delete()
+    versions = apps.get_model("core", "PermissionMatrixVersion").objects.filter(note=NOTE)
+    for version in versions:
+        for cell in version.diff:
+            RolePermission.objects.filter(
+                role__code=cell["role"], permission_code=cell["permission"]
+            ).delete()
+    versions.delete()
 
 
 class Migration(migrations.Migration):

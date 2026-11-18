@@ -12,7 +12,7 @@ from apps.core.tests.conftest import (
 )
 from apps.treasury import reconciliation
 from apps.treasury.models import Reconciliation, ReconciliationUndo, StatementLineState
-from apps.treasury.references import transfer_reference
+from apps.treasury.references import check_character, transfer_reference
 from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_views import MANAGEMENT_ROLES, WITH_T1, client_for
 
@@ -119,15 +119,86 @@ def test_exclude_from_this_screen_comes_back_here(treasurer):
     assert StatementLineState.objects.get(statement_line=line).status == "excluded"
 
 
-def test_without_t8_or_t10_the_screen_does_not_link_them(treasurer):
-    # P-190 (095): l'enllaç a la llista «a revisar» demana T10, i el botó «Exclou…», T8. Amagar-los
-    # no és el control: la vista i el servei tornen a comprovar el permís.
+# --- P-190 (095): T8 (excloure) i T10 (la llista «a revisar») van per separat de T4 i T1. Amagar
+# un enllaç no és el control: la vista i el servei tornen a comprovar el permís.
+T1, T4 = "treasury.view", reconciliation.RECONCILE
+T8, T10 = reconciliation.EXCLUDE, reconciliation.REVIEW
+REVIEW = reverse("administration:treasury_review")
+HOME = reverse("administration:home")
+
+
+def grant(role, *codes):
+    for code in codes:
+        RolePermission.objects.get_or_create(
+            role=Role.objects.get(code=role), permission_code=code, defaults={"scope": "all"}
+        )
+
+
+def revoke(role, *codes):
+    RolePermission.objects.filter(role__code=role, permission_code__in=codes).delete()
+
+
+def html_of(client, url):
+    response = client.get(url)
+    assert response.status_code == 200
+    return main_of(response.content.decode())
+
+
+@pytest.fixture
+def to_review(treasurer, settings):
+    """Una línia d'entrada «a revisar»: referència vàlida, però de cap càrrec."""
+    settings.TRANSFER_REFERENCE_PREFIX = "CRIS"
+    (line,) = lines(treasurer, (777, f"CRIS-AB2CD-{check_character('AB2CD')} JOAN INVENTAT"))
+    return line
+
+
+def test_without_t10_the_screen_still_offers_exclude_but_not_the_list(treasurer):
     lines(treasurer, (4200, "INGRES DESCONEGUT"))
-    client = client_for(treasurer)
-    html = main_of(client.get(PAGE).content.decode())
-    assert "Mira les línies a revisar" in html and "Exclou…" in html
-    RolePermission.objects.filter(
-        permission_code__in=(reconciliation.EXCLUDE, reconciliation.REVIEW)
-    ).delete()
-    html = main_of(client.get(PAGE).content.decode())
-    assert "Mira les línies a revisar" not in html and "Exclou…" not in html
+    revoke(R.TREASURER, T10)
+    html = html_of(client_for(treasurer), PAGE)
+    assert "Exclou…" in html and "Mira les línies a revisar" not in html
+
+
+def test_without_t8_the_screen_still_links_the_list_but_not_exclude(treasurer):
+    lines(treasurer, (4200, "INGRES DESCONEGUT"))
+    revoke(R.TREASURER, T8)
+    html = html_of(client_for(treasurer), PAGE)
+    assert "Mira les línies a revisar" in html and "Exclou…" not in html
+    assert "Casa a mà…" in html  # T4, que encara té
+
+
+def test_t8_without_t4_only_offers_exclude_on_the_reconciliation_screen(make_admin, treasurer):  # noqa: F811
+    lines(treasurer, (4200, "INGRES DESCONEGUT"))
+    grant(R.SECRETARY, T1, T8)
+    html = html_of(client_for(make_admin(R.SECRETARY)), PAGE)
+    assert "Exclou…" in html
+    assert "Casa a mà…" not in html and "Mira les línies a revisar" not in html
+
+
+def test_on_the_list_match_needs_t4_and_exclude_needs_t8(make_admin, treasurer, to_review):  # noqa: F811
+    match = reverse("administration:treasury_match_line", args=[to_review.pk])
+    revoke(R.TREASURER, T4)
+    html = html_of(client_for(treasurer), REVIEW)
+    assert "Exclou…" in html and match not in html
+    grant(R.SECRETARY, T4, T10)
+    html = html_of(client_for(make_admin(R.SECRETARY)), REVIEW)
+    assert match in html and "Exclou…" not in html
+
+
+def test_after_excluding_without_t10_it_goes_back_to_reconciliation(make_admin, treasurer):  # noqa: F811
+    first, second = lines(treasurer, (4200, "INGRES DESCONEGUT"), (-500, "REBUT AIGUA"))
+    grant(R.SECRETARY, T1, T8)
+    secretary = client_for(make_admin(R.SECRETARY))
+    url = reverse("administration:treasury_exclude_line", args=[first.pk])
+    assert secretary.post(url, {"motiu": "No és del club"})["Location"] == PAGE
+    revoke(R.SECRETARY, T1)  # ni la llista ni la conciliació: a l'inici
+    url = reverse("administration:treasury_exclude_line", args=[second.pk])
+    assert secretary.post(url, {"motiu": "No és del club"})["Location"] == HOME
+
+
+def test_the_back_link_of_the_list_only_if_its_screen_opens(make_admin, treasurer):  # noqa: F811
+    accounts = reverse("administration:treasury_accounts")
+    assert accounts in html_of(client_for(treasurer), REVIEW)
+    grant(R.SECRETARY, T10)
+    html = html_of(client_for(make_admin(R.SECRETARY)), REVIEW)
+    assert accounts not in html and f'href="{HOME}"' in html

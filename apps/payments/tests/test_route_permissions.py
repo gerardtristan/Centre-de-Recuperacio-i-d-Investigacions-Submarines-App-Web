@@ -33,7 +33,7 @@ MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor
 
 T1, T4, T5 = "treasury.view", "treasury.reconcile", "treasury.reverse"
 T6, T7, T9 = "treasury.transfer", "treasury.cash_count", "treasury.export"
-T8, T10 = "treasury.exclude", "treasury.review"  # P-190 (095)
+T8, T10 = reconciliation.EXCLUDE, reconciliation.REVIEW  # P-190 (095)
 A4, A5, A6 = "payments.mandates.view", "payments.campaign.send", "payments.mandates.revoke"
 B3, B4, B5, B6 = "payments.remittances", "payments.returns", "payments.refund", "payments.view"
 M14 = "core.charges.record_manual"  # P-12: pagament a mà
