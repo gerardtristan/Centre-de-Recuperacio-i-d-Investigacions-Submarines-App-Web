@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M01-42: pas de ple dret a simpatitzant (073; RN-M01-73 i RN-M01-93; CA-M01-68, 71 i 106). Seguretat i privacitat: el soci surt de la sessió i cap ruta porta identificador; només un soci de ple dret actiu la pot enviar i només la pot retirar mentre és pendent, i el servidor ho torna a comprovar en desar (amagar el formulari no és cap control); cap import ni cap dada d'una altra persona; enviar-la i retirar-la queden al registre d'activitat. La frase de l'avís previ («T'avisarem un mes abans…») no surt fins que l'avís existeixi (T-M01-43). #}
+{# T-M01-42: pas de ple dret a simpatitzant (073; RN-M01-73 i RN-M01-93; CA-M01-68, 71 i 106). Seguretat i privacitat: el soci surt de la sessió i cap ruta porta identificador; només un soci de ple dret actiu la pot enviar i només la pot retirar mentre és pendent, i el servidor ho torna a comprovar en desar (amagar el formulari no és cap control); cap import ni cap dada d'una altra persona; enviar-la i retirar-la queden al registre d'activitat. La frase de l'avís previ surt des que l'avís existeix (T-M01-43, per correu; text genèric perquè els mesos són un ajust, `MEMBER_RENEWAL_NOTICE_MONTHS`). #}
 {% block title %}{% translate "Canvi de tipus" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Sol·licituds" %}</p>
@@ -33,7 +33,7 @@
   {% else %}
     <section class="targeta" aria-labelledby="canvi-titol">
       <h2 id="canvi-titol">{% translate "Passar de ple dret a simpatitzant" %}</h2>
-      <p>{% translate "Actualment ets soci de ple dret. Pots passar a simpatitzant en la pròxima renovació de la quota anual." %}</p>
+      <p>{% translate "Actualment ets soci de ple dret. Pots passar a simpatitzant en la pròxima renovació de la quota anual. T'avisarem abans de la renovació perquè puguis sol·licitar el canvi abans del cobrament de la nova quota." %}</p>
       <ul>
         <li>{% translate "Fins que acabi el període que ja has pagat, continues sent soci de ple dret." %}</li>
         <li>{% translate "En la renovació següent renovaràs com a simpatitzant, amb la quota d'aquest tipus." %}</li>

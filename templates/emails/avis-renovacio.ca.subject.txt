@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M01-43 (073): TEXT PROVISIONAL [A validar: secretaria i tresorer]. #}{% translate "La teva quota del C.R.I.S. es renova d'aquí a poc" %}

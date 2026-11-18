@@ -157,6 +157,11 @@ MEMBER_FEE_REMINDER_OFFSETS = tuple(
     sorted(env.list("MEMBER_FEE_REMINDER_OFFSETS", cast=int, default=[-15, -1, 0, 15, 30]))
 )
 
+# Avís previ de la renovació (T-M01-43; 073 i 085, T-6): mesos abans de la renovació, el mateix
+# dia (o l'últim del mes). Ha d'arribar abans de generar la quota (el primer recordatori).
+# Editable des de l'app amb la pantalla d'ajustos del 01 (T-M01-32).
+MEMBER_RENEWAL_NOTICE_MONTHS = env.int("MEMBER_RENEWAL_NOTICE_MONTHS", default=1)
+
 # Formulari «Fer-se soci» (T-M01-13): llindars acceptats pel responsable com a valors inicials
 # configurables (Q-040 de la 072, 09/11/2026).
 # Per origen: com a màxim N sol·licituds en M minuts; en arribar-hi, limitat M minuts més. Per

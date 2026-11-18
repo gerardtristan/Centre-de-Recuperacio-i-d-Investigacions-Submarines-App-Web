@@ -94,6 +94,7 @@ TEMPLATE_PRIORITIES = {
     ALERT_TEMPLATE: _Priority.CONFIRMATION,
     # Recordatoris.
     "recordatori-quota": _Priority.REMINDER,
+    "avis-renovacio": _Priority.REMINDER,  # 073, CA-M01-70 (T-M01-43)
     "campanya-mandats-invitacio": _Priority.REMINDER,  # P-M05a-E, pas 3 (T-M05a-13)
     "campanya-mandats-recordatori": _Priority.REMINDER,  # RN-M05a-14 (T-M05a-13)
     "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
