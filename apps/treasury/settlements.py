@@ -188,16 +188,20 @@ def confirm(settlement: ProviderSettlement, *, by, statement_line=None) -> Provi
 
 @transaction.atomic
 def confirm_line(line, settlement_id: int, *, by) -> ProviderSettlement:
-    """T-M04-13b (P-M04-F pas 4; CA-T11.1): el tresorer confirma la liquidació que ha vist al
-    pas de revisió (`settlement_id`): la proposada o, en una línia ambigua, la que ha triat entre
-    les candidates. Si ja no ho és, es rebutja sense fer res. Després, `confirm` amb la línia."""
+    """T-M04-13b (P-M04-F pas 4; CA-T11.1): el tresorer confirma la liquidació proposada a la
+    línia, la mateixa que ha vist al pas de revisió (`settlement_id`); si la proposta ha canviat
+    o ja no hi és, es rebutja sense fer res. Després, `confirm` amb la línia."""
     if not has_perm(by, RECONCILE, write=True):
         raise Http404
     reconciliation.refresh()  # també agafa el pany
-    chosen = [s for s in reconciliation.settlement_choices(line) if s.pk == settlement_id]
-    if not chosen:
+    state = StatementLineState.objects.filter(statement_line=line).first()
+    if (
+        state is None
+        or state.status != StatementLineState.Status.PROPOSED
+        or state.proposed_settlement_id != settlement_id
+    ):
         raise SettlementRejected(_("Aquesta liquidació ja no es pot casar amb aquesta línia."))
-    return confirm(chosen[0], by=by, statement_line=line)
+    return confirm(state.proposed_settlement, by=by, statement_line=line)
 
 
 def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:

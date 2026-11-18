@@ -15,7 +15,6 @@ from playwright.sync_api import expect
 from apps.core import audit, charges
 from apps.core.models import Person
 from apps.treasury.references import transfer_reference
-from apps.treasury.settlements import SettlementLine
 from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import new_transit, paid, record
 from apps.treasury.tests.test_settlements import collected, data, record_it
@@ -225,35 +224,3 @@ def test_treasurer_reconciles_a_provider_settlement(page, live_server, transacti
     expect(page.get_by_role("status")).to_contain_text("la liquidació torna a «rebuda»")
     # La mateixa parella no es torna a proposar (revisió de la #212, punt 8).
     expect(row).to_contain_text("Pendent")
-
-
-def test_treasurer_chooses_between_two_settlements(page, live_server, transactional_db, review):
-    """Revisió de la #212, punt 3: dues liquidacions amb el mateix net deixen la línia «a revisar»
-    i el tresorer en tria una, la revisa i la confirma."""
-    new_transit()
-    person = Person.objects.create(first_name="Pere", last_name="Prova Inventat", origin="web")
-    collected(person, 9000, "REF-A")
-    collected(person, 3500, "REF-B")
-    collected(person, 12500, "REF-C")
-    record_it(replace(data(), settled_on=date(2026, 11, 1)))
-    record_it(
-        replace(
-            data(SettlementLine("REF-C", 12500), external_id="LIQ-002"),
-            settled_on=date(2026, 11, 1),
-        )
-    )
-    treasurer = make_admin("tresoreria.prova", "treasurer")
-    lines(treasurer, (12380, "ABONAMENT PROVEIDOR"))
-
-    login_admin(page, live_server.url, treasurer.login)
-    page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
-    row = page.get_by_role("row", name="02/11/2026")
-    expect(row).to_contain_text("A revisar")
-    row.get_by_role("link", name="Revisa i tria…").click()
-    page.get_by_label("LIQ-002").check()
-    review("conciliacio-liquidacio-tria")
-    page.get_by_role("button", name="Revisa aquesta liquidació").click()
-    expect(page.get_by_role("row", name="REF-C")).to_contain_text("1,20 €")
-    page.get_by_role("button", name="Sí, confirma-la").click()
-    expect(page.get_by_role("status")).to_contain_text("Liquidació conciliada")
-    expect(row).to_contain_text("LIQ-002")

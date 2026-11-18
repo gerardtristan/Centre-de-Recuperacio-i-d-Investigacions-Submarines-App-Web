@@ -46,14 +46,7 @@ from apps.core.permissions import has_perm, permission_required
 
 from . import entry_views, exports, reconciliation, services, settlements
 from .balances import balances
-from .models import (
-    CostCentre,
-    Movement,
-    ProviderSettlement,
-    Reconciliation,
-    StatementLineState,
-    TreasuryAccount,
-)
+from .models import CostCentre, Movement, Reconciliation, StatementLineState, TreasuryAccount
 
 VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
 EXPORT = "treasury.export"  # T9, «Exportar moviments en CSV» (M04-4)
@@ -283,7 +276,7 @@ def confirm_view(request, line_id):
 def undo_view(request, reconciliation_id):
     found = get_object_or_404(Reconciliation, pk=reconciliation_id)
     done = _("Conciliació desfeta: els càrrecs tornen a estar pendents i l'ingrés s'ha compensat.")
-    if found.settlement and found.settlement.source != ProviderSettlement.Source.REMITTANCE:
+    if found.settlement and found.settlement.source != found.settlement.Source.REMITTANCE:
         done = _("Conciliació desfeta: la liquidació torna a «rebuda» i el traspàs s'ha compensat.")
     return _back_to_reconciliation(
         request,
@@ -307,21 +300,11 @@ def settlement_line_view(request, line_id):
             _("Liquidació conciliada: comissions apuntades i el net, del trànsit al banc."),
         )
     reconciliation.refresh()
-    choices = reconciliation.settlement_choices(line)
-    if not choices:
+    state = StatementLineState.objects.filter(statement_line=line).first()
+    settlement = state and state.proposed_settlement
+    if settlement is None or state.status != StatementLineState.Status.PROPOSED:
         messages.error(request, _("Aquesta línia no té cap liquidació proposada."))
         return redirect("administration:treasury_reconciliation")
-    wanted = request.GET.get("liquidacio", "")
-    settlement = next((s for s in choices if str(s.pk) == wanted), None)
-    if settlement is None and len(choices) == 1:
-        settlement = choices[0]
-    if settlement is None:  # línia ambigua: primer, el tresorer en tria una (revisió de la #212)
-        context = {
-            "line": line,
-            "amount": euros(line.amount_cents),
-            "choices": [{"settlement": s, "net": euros(s.net_cents)} for s in choices],
-        }
-        return render(request, "treasury/settlement_confirm.html", context)
     split = [
         {"item": item, "amount": euros(item.amount_cents), "fee": euros(fee)}
         for item, fee in settlements.fee_split(settlement).items()

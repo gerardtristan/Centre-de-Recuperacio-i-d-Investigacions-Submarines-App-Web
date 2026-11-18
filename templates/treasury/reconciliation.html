@@ -71,7 +71,6 @@
                     </form>
                   </details>
                 {% elif row.state.status == "pending" %}
-                  {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
                   {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
                   <details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
