@@ -43,6 +43,8 @@ Al menú, **Pagaments: mètodes i mandats**. Hi surten tots els socis actius amb
 
 **Revocar a petició escrita del soci:** des de **Pagaments: mètodes i mandats**, amb **Revoca…**. Els passos són a la [guia de cobraments](guia-cobraments.md#8-mandats).
 
+**Si el mandat revocat ja tenia un rebut al banc** (en una remesa enviada, o avisada amb el fitxer ja descarregat), et ve un correu amb la referència del mandat i la remesa ([RN-M05a-09](../planning.md#M05a-7-regles)). El banc presentarà el rebut igualment: mira si encara el pots retirar o, si es cobra, torna l'import al soci. Si el banc ho permet és [A verificar: banc].
+
 ## 5. L'IBAN: què no veuràs mai
 - A totes les pantalles l'IBAN surt **emmascarat**: el país i els quatre últims caràcters, per exemple «ES … 1234» ([P-121](../decisions/pendents.md)). Ningú no el veu sencer, tampoc l'administrador.
 - No surt mai sencer als correus, al registre d'activitat, a les exportacions ni als informes d'error (decisió [044](../decisions/044-domiciliacio-sepa-iban-i-mandat-xifrats.md); [RN-M05a-06](../planning.md#M05a-7-regles)). L'única excepció és el fitxer de la remesa per al banc ([guia de cobraments](guia-cobraments.md#4-descarregar-el-fitxer-per-al-banc)).

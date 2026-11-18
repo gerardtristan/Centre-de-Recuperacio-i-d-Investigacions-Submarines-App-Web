@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M05a-10b (RN-M05a-09; L-M05a-04, L-M05b-03): TEXT PROVISIONAL [A validar: tresorer]. Només la referència del mandat i la remesa: cap nom ni cap IBAN, ni emmascarat. Si el banc permet retirar el rebut és [A verificar: banc]. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}S'ha revocat el mandat de domiciliació {{ reference }}, però té un rebut en una remesa que ja pot ser al banc:{% endblocktranslate %}
+{% for remittance in remittances %}
+{% blocktranslate with period=remittance.period date=remittance.collection_date|date:"d/m/Y" %}- Remesa {{ period }}, cobrament el {{ date }}{% endblocktranslate %}{% endfor %}
+
+{% translate "El banc presentarà el rebut igualment. Mira si encara el pots retirar al banc o si caldrà tornar l'import al soci quan es cobri." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
