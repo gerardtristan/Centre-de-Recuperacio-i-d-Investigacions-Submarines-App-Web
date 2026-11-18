@@ -92,8 +92,10 @@ def register_manual_payment(page, shoot):
 
 
 # --- El flux ------------------------------------------------------------------------------------
-def join_flow(page, base_url, builder, secretary, other, shoot):
-    """`other` és un altre soci, amb la seva quota: la persona nova no n'ha de veure res."""
+def join_flow(page, base_url, builder, secretary, other, shoot, pay=None):
+    """`other` és un altre soci, amb la seva quota: la persona nova no n'ha de veure res. `pay`
+    canvia el tram 4 (per defecte, el registre manual de la P-12; la llesca 2 hi paga amb
+    targeta)."""
     full = builder.full
     amount = charges.euros(full.annual_fee_cents)
     last_number = MembershipNumberCounter.objects.get(pk=1).last_number
@@ -194,9 +196,13 @@ def join_flow(page, base_url, builder, secretary, other, shoot):
     expect(fee_row).to_contain_text(amount)
     expect(fee_row).to_contain_text("Pendent")
     shoot("4-tresoreria-quota-pendent")
-    register_manual_payment(page, shoot)
-    payment = Payment.objects.get(charge=fee.charge)
-    assert (payment.method, payment.reason) == (Payment.Method.MANUAL, REASON)
+    if pay is None:
+        register_manual_payment(page, shoot)
+        payment = Payment.objects.get(charge=fee.charge)
+        assert (payment.method, payment.reason) == (Payment.Method.MANUAL, REASON)
+    else:
+        pay(page, builder, fee)
+        payment = Payment.objects.get(charge=fee.charge)
     assert payment.amount_cents == full.annual_fee_cents
 
     # 5. Tresoreria: el soci és actiu, la quota és pagada fins d'aquí a 12 mesos i té carnet.
