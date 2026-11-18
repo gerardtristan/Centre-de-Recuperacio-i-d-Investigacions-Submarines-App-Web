@@ -11,7 +11,6 @@ from playwright.sync_api import expect
 
 from apps.core import audit, charges
 from apps.core.models import LegalText
-from apps.members.models import Member
 from apps.members.fee_rules import local_today
 from apps.members.models import LicenceRecord, Member
 from apps.members.tests.test_cards import make_member
@@ -237,6 +236,8 @@ def test_admin_forms_layout(page, live_server, secretary, member):
     page.goto(f"{base}{reverse('administration:member_edit', args=[member.pk])}")
     expect(page.get_by_role("heading", level=1, name="Edita les dades")).to_be_visible()
     assert_form_layout(page)
+
+
 def test_member_record_in_two_columns(page, live_server, member):
     """T-DX-67 (PR 9a): la fitxa del soci a 1280 px en dues columnes, l'esquerra més estreta (5/12)
     amb el resum, les dades i el carnet, i la dreta amb les taules; a 800 px, el resum i les dades

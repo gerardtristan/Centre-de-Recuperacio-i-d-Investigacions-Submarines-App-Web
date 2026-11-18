@@ -1016,6 +1016,8 @@ opcions:
     perque: >-
       La regla general dels apartats d'ajustos ja és «no trobat» i no revela si l'àrea existeix; B i C
       demanen canviar el pla i una pantalla diferent per a un sol tipus d'apartat.
+    data: 2026-11-18
+
   P-314:
     opcions:
       A: L'ordre nou de la fitxa del soci, el mateix a totes les mides (resum, dades, carnet, quotes, llicència, historial i consentiments).
