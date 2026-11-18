@@ -257,7 +257,9 @@ def settlements_view(request):
             "net": euros(s.net_cents),
             "problems": problems_of(s),
         }
-        for s in ProviderSettlement.objects.order_by("-settled_on", "-pk")
+        for s in ProviderSettlement.objects.select_related("review_closure").order_by(
+            "-settled_on", "-pk"
+        )
     ]
     can_confirm = has_perm(request.user, settlements.RECONCILE, write=True)
     context = {"rows": rows, "can_confirm": can_confirm}

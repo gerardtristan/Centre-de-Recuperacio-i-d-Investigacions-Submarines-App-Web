@@ -421,6 +421,34 @@ class SettlementItem(AppendOnlyModel):
         ]
 
 
+class SettlementReviewClosure(AppendOnlyModel):
+    """Tancament d'una liquidació «a revisar» (T-M04-14c; P-390, resposta B): qui i quan. No
+    canvia la liquidació ni mou diners. Només INSERT, també a la base de dades (migració 0018);
+    un sol tancament per liquidació. La nota no és aquí: és al registre d'activitat, que
+    l'esborrat RGPD pot anonimitzar (`payments.privacy.audit_targets`)."""
+
+    settlement = models.OneToOneField(
+        ProviderSettlement,
+        on_delete=models.PROTECT,
+        related_name="review_closure",
+        verbose_name=_("liquidació"),
+    )
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("tancada per"),
+    )
+    closed_at = models.DateTimeField(_("tancada el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("tancament d'una liquidació a revisar")
+        verbose_name_plural = _("tancaments de liquidacions a revisar")
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.settlement_id}"
+
+
 class TransferReference(AppendOnlyModel):
     """Referència de transferència d'un càrrec (M04-6; RN-T20): una per càrrec, única i que no
     canvia mai. La crea `treasury.transfer_reference` (`references.py`)."""

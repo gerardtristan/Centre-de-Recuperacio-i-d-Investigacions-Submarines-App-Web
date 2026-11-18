@@ -7,6 +7,7 @@ de cada proveïdor (092) hi tradueix el seu. Una remesa SEPA (RN-T24, CA-T16.1) 
 liquidació del trànsit «Remeses SEPA» que el 05b registra i confirma amb la línia de l'abonament
 (`confirm(..., statement_line=...)`). La línia del banc pel net d'una liquidació del proveïdor
 la proposa `reconciliation.refresh` i el tresorer la confirma amb `confirm_line` (T-M04-13b).
+`close_review` tanca amb una nota una liquidació «a revisar» (T-M04-14c; P-390, resposta B).
 """
 
 from dataclasses import dataclass
@@ -27,6 +28,7 @@ from .models import (
     ProviderSettlement,
     Reconciliation,
     SettlementItem,
+    SettlementReviewClosure,
     StatementLineState,
     TreasuryAccount,
 )
@@ -34,6 +36,8 @@ from .models import (
 RECORDED = "treasury.settlement_recorded"
 CONFIRMED = "treasury.settlement_confirmed"
 RECONCILE = "treasury.reconcile"  # T4: conciliar inclou les liquidacions (C5 del M04-3)
+REVIEW_CLOSED = "treasury.settlement_review_closed"
+MAX_NOTE = 500
 Status = ProviderSettlement.Status
 
 
@@ -60,6 +64,10 @@ class DuplicateSettlement(ValidationError):
 
 class SettlementRejected(ValidationError):
     """Les xifres de la liquidació no quadren, o ja no es pot confirmar."""
+
+
+class NotClosable(Exception):
+    """La liquidació no és «a revisar» o ja està tancada."""
 
 
 @transaction.atomic
@@ -198,6 +206,32 @@ def confirm_line(line, settlement_id: int, *, by) -> ProviderSettlement:
     if not chosen:
         raise SettlementRejected(_("Aquesta liquidació ja no es pot casar amb aquesta línia."))
     return confirm(chosen[0], by=by, statement_line=line)
+
+
+def close_review(settlement: ProviderSettlement, *, note: str, by) -> SettlementReviewClosure:
+    """Deixa constància que el tresorer ha revisat una liquidació «a revisar» (P-390, resposta
+    B; T10 amb edició): una fila nova (qui i quan) i el registre amb la nota i l'estat anterior.
+    La liquidació no canvia i no es mou cap diner, com els tancaments del 05b (T-M05b-16b)."""
+    if not has_perm(by, reconciliation.REVIEW, write=True):  # T10 (P-190, 095)
+        raise Http404
+    note = (note or "").strip()
+    if not note:
+        raise ValueError(_("Cal una nota per tancar-la."))
+    if len(note) > MAX_NOTE:
+        raise ValueError(_("La nota no pot passar de %(max)s caràcters.") % {"max": MAX_NOTE})
+    with transaction.atomic():
+        locked = ProviderSettlement.objects.select_for_update().get(pk=settlement.pk)
+        if locked.status != Status.TO_REVIEW or hasattr(locked, "review_closure"):
+            raise NotClosable
+        closure = SettlementReviewClosure.objects.create(settlement=locked, closed_by=by)
+        audit.record(
+            REVIEW_CLOSED,
+            actor=by,
+            target=closure,
+            reason=note,
+            details={"settlement": locked.pk, "previous_status": locked.status},
+        )
+    return closure
 
 
 def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:

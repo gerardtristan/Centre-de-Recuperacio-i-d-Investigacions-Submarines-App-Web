@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-14, C6: línies de l'extracte «a revisar» amb el motiu (CA-T13.1) i «Exclou…» amb motiu obligatori (CA-T12.1). Veure-la: T10; excloure: T8; «Casa a mà» (T-M04-12e): T4 (P-190, 095). Amagar el formulari no és cap control: la vista i el servei tornen a comprovar el permís. Sense el concepte de la línia (pot portar noms de fora del club; només a la conciliació, M04-4). T-M04-14b (P-191): també les liquidacions «a revisar» (CA-T11.2) amb la referència i el problema, sense cap nom, i l'enllaç a «Liquidacions»; els intents del 05b es revisen a la seva llista (enllaç només amb B6). Des d'aquí no es tanca ni es mou res. #}
+{# T-M04-14, C6: línies de l'extracte «a revisar» amb el motiu (CA-T13.1) i «Exclou…» amb motiu obligatori (CA-T12.1). Veure-la: T10; excloure: T8; «Casa a mà» (T-M04-12e): T4 (P-190, 095). Amagar el formulari no és cap control: la vista i el servei tornen a comprovar el permís. Sense el concepte de la línia (pot portar noms de fora del club; només a la conciliació, M04-4). T-M04-14b (P-191): també les liquidacions «a revisar» (CA-T11.2) amb la referència i el problema, sense cap nom, i l'enllaç a «Liquidacions»; els intents del 05b es revisen a la seva llista (enllaç només amb B6). T-M04-14c (P-390, resposta B): «Tanca» només surt amb T10 amb edició, però el control és al servidor (la ruta i el servei demanen el permís); tancar no mou diners ni canvia la liquidació. La nota d'un tancament només arriba al context amb T10 amb edició; la resta veu «—». #}
 {% block title %}{% translate "A revisar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -67,6 +67,7 @@
           <th scope="col">{% translate "Abonament" %}</th>
           <th scope="col">{% translate "Motiu" %}</th>
           <th scope="col" class="cel-import">{% translate "Net" %}</th>
+          {% if can_close %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -75,6 +76,7 @@
             <th scope="row" class="cel-nom"><time datetime="{{ settlement.settled_on|date:'Y-m-d' }}">{{ settlement.settled_on|date:"d/m/Y" }}</time> <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></th>
             <td data-etiqueta="{% translate 'Motiu' %}">{% for reference, problem in row.problems %}<p class="text-2"><span class="estat estat-avis"><span aria-hidden="true">!</span> {{ problem }}</span> <span class="codi">{{ reference }}</span></p>{% endfor %}</td>
             <td data-etiqueta="{% translate 'Net' %}" class="cel-import"><span class="import">{{ row.net }}</span></td>
+            {% if can_close %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:treasury_settlement_review_close' settlement.pk %}">{% translate "Tanca" %}</a></td>{% endif %}
           </tr>
         {% endwith %}{% endfor %}
       </tbody>
@@ -83,6 +85,32 @@
   {% endif %}
   {% if not rows and not settlements %}
     <p>{% translate "No hi ha res a revisar." %}</p>
+  {% endif %}
+  {% if closed %}
+    <h2 id="tancades">{% translate "Tancades" %}</h2>
+    <table class="taula">
+      <caption>{% if closed_total > closed|length %}{% blocktranslate with shown=closed|length total=closed_total %}Els {{ shown }} tancaments més recents, de {{ total }}{% endblocktranslate %}{% else %}{% blocktranslate count total=closed_total %}{{ total }} liquidació a revisar tancada, de la més recent a la més antiga{% plural %}{{ total }} liquidacions a revisar tancades, de la més recent a la més antiga{% endblocktranslate %}{% endif %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Tancada el" %}</th>
+          <th scope="col">{% translate "Abonament" %}</th>
+          <th scope="col">{% translate "Nota" %}</th>
+          <th scope="col">{% translate "Tancada per" %}</th>
+          <th scope="col" class="cel-import">{% translate "Net" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in closed %}{% with closure=row.closure settlement=row.closure.settlement %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ closure.closed_at|date:'c' }}">{{ closure.closed_at|date:"d/m/Y H:i" }}</time></th>
+            <td data-etiqueta="{% translate 'Abonament' %}" class="cel-valor"><span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></td>
+            <td data-etiqueta="{% translate 'Nota' %}">{{ row.note|default:"—" }}</td>
+            <td data-etiqueta="{% translate 'Tancada per' %}" class="cel-valor">{{ closure.closed_by.person }}</td>
+            <td data-etiqueta="{% translate 'Net' %}" class="cel-import"><span class="import">{{ row.net }}</span></td>
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
   {% endif %}
   {% if can_view_payments %}
     <p class="text-2">{% translate "Els pagaments del proveïdor «a revisar» es revisen i es tanquen a la llista de pagaments." %} <a href="{% url 'administration:payments_list' %}">{% translate "Pagaments «a revisar»" %}</a></p>

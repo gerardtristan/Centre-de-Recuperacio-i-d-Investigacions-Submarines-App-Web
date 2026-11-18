@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15 (tercer tall), C5: liquidacions dels proveïdors de cobrament i de les remeses (P-M04-F; RN-T21, RN-T24; CA-T11.1 i CA-T11.2). Sense wireframe propi: segueix les pantalles de tresoreria. Veure-les és T1; «Confirma…» surt només amb T4 i porta a un segon pas, i el servidor ho torna a comprovar. De les «a revisar», el motiu i la referència del cobrament: cap nom ni dada bancària. #}
+{# T-M04-15 (tercer tall), C5: liquidacions dels proveïdors de cobrament i de les remeses (P-M04-F; RN-T21, RN-T24; CA-T11.1 i CA-T11.2). Sense wireframe propi: segueix les pantalles de tresoreria. Veure-les és T1; «Confirma…» surt només amb T4 i porta a un segon pas, i el servidor ho torna a comprovar. De les «a revisar», el motiu i la referència del cobrament: cap nom ni dada bancària. Una «a revisar» tancada (T-M04-14c) surt «Revisada i tancada», amb l'enllaç a «Tancades». #}
 {% block title %}{% translate "Liquidacions" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -30,6 +30,7 @@
           <td data-etiqueta="{% translate 'Origen' %}">{{ settlement.get_source_display }}</td>
           <td data-etiqueta="{% translate 'Estat' %}">
             {% if settlement.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ settlement.get_status_display }}</span>
+            {% elif settlement.status == "to_review" and settlement.review_closure %}<span class="estat estat-neutre"><span aria-hidden="true">✓</span> {% translate "Revisada i tancada" %}</span> <a href="{% url 'administration:treasury_review' %}#tancades">{% translate "Mira el tancament" %}</a>
             {% elif settlement.status == "to_review" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ settlement.get_status_display }}</span>
               {% for reference, problem in row.problems %}<p class="text-2"><span class="codi">{{ reference }}</span> {{ problem }}</p>{% endfor %}
             {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ settlement.get_status_display }}</span>

@@ -964,17 +964,6 @@ opcions:
       l'administrador; és editable a la matriu sense cap canvi de codi.
     data: 2026-11-18
 
-  P-390:
-    opcions:
-      A: "Es queda a la llista i a «Liquidacions» amb el motiu (com s'ha construït)."
-      B: "El tresorer la tanca amb una nota, com un pagament «a revisar» del 05b (T-M05b-16b): una fila nova i la nota al registre; la liquidació no canvia d'estat."
-      C: "Una sortida pròpia al pla: confirmar-la en part o desfer-la, amb motiu."
-    recomanada: B
-    perque: >-
-      Fa servir el mateix patró que el 05b i deixa la llista buida quan tot està revisat, sense moure
-      diners. C demana una regla econòmica nova. Mentrestant val la A.
-    data: 2026-11-18
-
   P-383:
     opcions:
       A: "Editables els correus sense enllaç d'entrada ni dades obligatòries (com s'ha construït); la resta, al codi."
