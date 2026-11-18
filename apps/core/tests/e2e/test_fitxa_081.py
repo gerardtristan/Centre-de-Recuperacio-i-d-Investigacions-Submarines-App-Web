@@ -45,7 +45,9 @@ def test_birth_date_check_and_in_person_second_factor_reset(
     expect(page.get_by_text("Data de naixement marcada com a comprovada.")).to_be_visible()
     expect(page.get_by_text("(comprovada el ")).to_be_visible()
 
-    # Restabliment presencial del doble factor.
+    # Restabliment presencial del doble factor (T-DX-67: dins de «Més», que s'obre amb el teclat).
+    page.locator("summary", has_text="Més").focus()
+    page.keyboard.press("Enter")
     page.get_by_role("link", name="Restableix el doble factor del compte…").focus()
     page.keyboard.press("Enter")
     expect(page.get_by_role("heading", name="Restableix el doble factor")).to_be_visible()

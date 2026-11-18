@@ -1,168 +1,188 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M01-15: fitxa del soci (P4). Editar (P5) i corregir la data d'alta (P6) són pantalles a part (T-M01-15b; inclusions _member_edit_links i _join_date_history). Data de naixement només amb C1; la resta veu la franja d'edat (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
+{# T-M01-15: fitxa del soci (P4). T-DX-67 (§5.3): a l'escriptori, el resum, les dades personals i el carnet a l'esquerra (5/12) i les quotes, la llicència, l'historial i els consentiments a la dreta (7/12); a la tauleta, el resum i les dades al costat i la resta a tota l'amplada; al mòbil, una columna en aquest ordre. Editar (P5) i corregir la data d'alta (P6) són pantalles a part (T-M01-15b; inclusions _member_edit_links i _join_date_history). Data de naixement només amb C1; la resta veu la franja d'edat (RN-M01-48; T-M01-33). Les dades que un compte no pot veure no arriben a la plantilla (roster.Visibility). #}
 {% block title %}{{ person }} · {% translate "Fitxa del soci" %} · C.R.I.S.{% endblock %}
 {% block solapa %}<meta name="cris-solapa" content="{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% blocktranslate with pk=member.pk %}Soci sense número · fitxa {{ pk }}{% endblocktranslate %}{% endif %}">{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
-  <h1>{{ person }}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+    <h1>{{ person }}</h1>
+    {% include "members/_member_edit_links.html" %}
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  {% include "members/_member_edit_links.html" %}
-  <dl class="dades-soci">
-    <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ member.member_number|default:_("Sense número") }}</dd></div>
-    <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
-    <div><dt>{% translate "Estat del soci" %}</dt><dd>{% include "members/_member_status.html" %}</dd></div>
-    {% if vis.fees %}<div><dt>{% translate "Quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>{% endif %}
-    {% if age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ age_band.label }}</dd></div>{% endif %}
-    {% if vis.full %}
-      <div><dt>{% translate "Data d'alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</dd></div>
-      {% if years is not None %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>{% endif %}
-    {% endif %}
-  </dl>
-
-  {# T-M01-40 (RN-M01-72 i RN-M01-94; 085): les quotes del soci, només amb P10. Amb P22, eximir-ne o anul·lar-ne una de pendent, en una pantalla a part amb motiu i reautenticació. Amb M14 (P-12), registrar-ne el pagament a mà, a la pantalla de tresoreria, amb motiu i dos passos. El servidor torna a comprovar el permís i el conflicte d'interès; amagar l'enllaç no és cap control. #}
-  {% if vis.fees %}
-    <section aria-labelledby="quotes-titol">
-      <h2 id="quotes-titol">{% translate "Quotes" %}</h2>
-      {% if fee_rows %}
-        <table class="taula">
-          <caption class="visualment-amagat">{% translate "Quotes del soci, de la més recent a la més antiga" %}</caption>
-          <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_exempt or can_record_payment %}<th scope="col">{% translate "Accions" %}</th>{% endif %}</tr></thead>
-          <tbody>
-            {% for row in fee_rows %}
-              <tr>
-                <th scope="row" class="cel-nom">{{ row.fee.charge.concept }} <span class="text-2">({{ row.fee.period }})</span></th>
-                <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
-                <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.fee.due_on|date:'Y-m-d' }}">{{ row.fee.due_on|date:"d/m/Y" }}</time></td>
-                <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>
-                {% if can_exempt or can_record_payment %}
-                  <td class="cel-accions">
-                    {% if row.open %}
-                      {% if row.can_pay %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
-                      {% if can_exempt %}
-                        {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
-                        <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>
-                      {% endif %}
-                    {% else %}
-                      <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
-                    {% endif %}
-                  </td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>{% translate "Encara no té cap quota." %}</p>
-      {% endif %}
-    </section>
+  {# 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4). Només surt si la persona en pot rebre una; el servei ho torna a comprovar. #}
+  {% if can_invite %}
+    <form class="accions" method="post" action="{% url 'administration:member_invite' member.pk %}">
+      {% csrf_token %}
+      <button class="boto boto-petit" type="submit">{% translate "Envia la invitació del compte" %}</button>
+      <span class="text-2">{% translate "Aquesta persona encara no té compte personal. L'enllaç caduca i només serveix una vegada." %}</span>
+    </form>
   {% endif %}
 
-  {# 079 (A-21, RN-M01-92): el carnet vigent i, amb P21 i P4, revocar-lo amb motiu. El servidor torna a comprovar el permís, el motiu i el conflicte d'interès; aquí no surt mai el testimoni ni el QR. #}
-  <section aria-labelledby="carnet-titol">
-    <h2 id="carnet-titol">{% translate "Carnet" %}</h2>
-    {% if card %}
-      <p>{% blocktranslate with date=card.issued_at|date:"d/m/Y" version=card.version %}Emès el {{ date }} (versió {{ version }}).{% endblocktranslate %}</p>
-      {% if can_revoke_card and member.person_id != user.person_id %}
-        <details class="altes-rebuig">
-          <summary class="boto boto-petit">{% translate "Revoca el carnet…" %}</summary>
-          <form class="formulari" method="post" action="{% url 'administration:member_card_revoke' member.pk %}">
-            {% csrf_token %}
-            <div class="camp">
-              <label for="motiu-carnet">{% translate "Motiu de la revocació" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
-              <textarea id="motiu-carnet" name="motiu" rows="3" required></textarea>
-              <p class="ajuda">{% translate "Queda al registre d'activitat. El codi QR deixa de ser vàlid de seguida; el soci en pot demanar un de nou des de la seva pàgina del carnet." %}</p>
-            </div>
-            <div class="accions"><button class="boto" type="submit">{% translate "Revoca el carnet" %}</button></div>
-          </form>
-        </details>
+  <div class="graella-2 graella-5-7 fitxa-soci">
+    <dl class="dades-soci">
+      <div><dt>{% translate "Número" %}</dt><dd class="codi">{{ member.member_number|default:_("Sense número") }}</dd></div>
+      <div><dt>{% translate "Tipus" %}</dt><dd>{{ member.type.name }}</dd></div>
+      <div><dt>{% translate "Estat del soci" %}</dt><dd>{% include "members/_member_status.html" %}</dd></div>
+      {% if vis.fees %}<div><dt>{% translate "Quota" %}</dt><dd>{% include "members/_fee_state.html" %}</dd></div>{% endif %}
+      {% if age_band %}<div><dt>{% translate "Edat" %}</dt><dd>{{ age_band.label }}</dd></div>{% endif %}
+      {% if vis.full %}
+        <div><dt>{% translate "Data d'alta" %}</dt><dd>{{ member.joined_on|date:"d/m/Y" }}{% if member.joined_on_is_approximate %} ({% translate "aproximada" %}){% endif %}</dd></div>
+        {% if years is not None %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{{ years }}</dd></div>{% endif %}
       {% endif %}
-    {% else %}
-      <p>{% translate "Ara no té cap carnet vigent." %}</p>
-    {% endif %}
-  </section>
+    </dl>
 
-  {% if vis.full %}
-    <section aria-labelledby="dades-titol">
-      <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
-      <dl class="dades-soci">
-        <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
-        {% if vis.birth_date %}<div><dt>{% translate "Data de naixement" %}</dt><dd>{% if birth_date %}{{ birth_date|date:"d/m/Y" }} <span class="text-2">{% if birth_date_checked_at %}{% blocktranslate with date=birth_date_checked_at|date:"d/m/Y" %}(comprovada el {{ date }}){% endblocktranslate %}{% else %}{% translate "(declarada, sense comprovar)" %}{% endif %}</span>{% else %}{% include "members/_sense_data.html" %}{% endif %}</dd></div>{% endif %}
-        {% if vis.identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>{% endif %}
-        <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
-        <div><dt>{% translate "Telèfon" %}</dt><dd>{{ person.phone|default:"—" }}</dd></div>
-        {% if vis.identity %}<div><dt>{% translate "Adreça" %}</dt><dd>{{ person.address|default:"—" }}</dd></div>{% endif %}
-      </dl>
-      {# Decisió 081, punt 16 (RN-M01-99): la comprovació és posterior i no condiciona l'exempció. No es desa cap còpia del document. #}
-      {% if can_check_birth_date %}
+    {% if vis.full %}
+      <section aria-labelledby="dades-titol">
+        <h2 id="dades-titol">{% translate "Dades personals" %}</h2>
+        <dl class="dades-soci">
+          <div><dt>{% translate "Nom i cognoms" %}</dt><dd>{{ person }}</dd></div>
+          {% if vis.birth_date %}<div><dt>{% translate "Data de naixement" %}</dt><dd>{% if birth_date %}{{ birth_date|date:"d/m/Y" }} <span class="text-2">{% if birth_date_checked_at %}{% blocktranslate with date=birth_date_checked_at|date:"d/m/Y" %}(comprovada el {{ date }}){% endblocktranslate %}{% else %}{% translate "(declarada, sense comprovar)" %}{% endif %}</span>{% else %}{% include "members/_sense_data.html" %}{% endif %}</dd></div>{% endif %}
+          {% if vis.identity %}<div><dt>{% translate "Document" %}</dt><dd class="codi">{{ document|default:"—" }}</dd></div>{% endif %}
+          <div><dt>{% translate "Correu" %}</dt><dd>{{ person.contact_email|default:"—" }}</dd></div>
+          <div><dt>{% translate "Telèfon" %}</dt><dd>{{ person.phone|default:"—" }}</dd></div>
+          {% if vis.identity %}<div><dt>{% translate "Adreça" %}</dt><dd>{{ person.address|default:"—" }}</dd></div>{% endif %}
+        </dl>
+        {# Decisió 081, punt 16 (RN-M01-99): la comprovació és posterior i no condiciona l'exempció. No es desa cap còpia del document. #}
+        {% if can_check_birth_date %}
+            <details class="altes-rebuig">
+              <summary class="boto boto-petit">{% translate "Marca la data com a comprovada…" %}</summary>
+              <form class="formulari" method="post" action="{% url 'administration:member_birth_date_check' member.pk %}">
+                {% csrf_token %}
+                <label class="casella"><input type="checkbox" name="confirmo" value="1" required> <span>{% translate "He comprovat la data de naixement amb el document d'identitat (el d'un menor, mostrat pel seu representant legal). No se n'ha desat cap còpia." %}</span></label>
+                <div class="accions"><button class="boto" type="submit">{% translate "Marca-la com a comprovada" %}</button></div>
+              </form>
+            </details>
+        {% endif %}
+      </section>
+    {% else %}
+      <p class="text-2">{% translate "Vista de tresoreria: dades mínimes." %}</p>
+    {% endif %}
+
+    {# 079 (A-21, RN-M01-92): el carnet vigent i, amb P21 i P4, revocar-lo amb motiu. El servidor torna a comprovar el permís, el motiu i el conflicte d'interès; aquí no surt mai el testimoni ni el QR. #}
+    <section class="fitxa-carnet" aria-labelledby="carnet-titol">
+      <h2 id="carnet-titol">{% translate "Carnet" %}</h2>
+      {% if card %}
+        <p>{% blocktranslate with date=card.issued_at|date:"d/m/Y" version=card.version %}Emès el {{ date }} (versió {{ version }}).{% endblocktranslate %}</p>
+        {% if can_revoke_card and member.person_id != user.person_id %}
           <details class="altes-rebuig">
-            <summary class="boto boto-petit">{% translate "Marca la data com a comprovada…" %}</summary>
-            <form class="formulari" method="post" action="{% url 'administration:member_birth_date_check' member.pk %}">
+            <summary class="boto boto-petit">{% translate "Revoca el carnet…" %}</summary>
+            <form class="formulari" method="post" action="{% url 'administration:member_card_revoke' member.pk %}">
               {% csrf_token %}
-              <label class="casella"><input type="checkbox" name="confirmo" value="1" required> <span>{% translate "He comprovat la data de naixement amb el document d'identitat (el d'un menor, mostrat pel seu representant legal). No se n'ha desat cap còpia." %}</span></label>
-              <div class="accions"><button class="boto" type="submit">{% translate "Marca-la com a comprovada" %}</button></div>
+              <div class="camp">
+                <label for="motiu-carnet">{% translate "Motiu de la revocació" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                <textarea id="motiu-carnet" name="motiu" rows="3" required></textarea>
+                <p class="ajuda">{% translate "Queda al registre d'activitat. El codi QR deixa de ser vàlid de seguida; el soci en pot demanar un de nou des de la seva pàgina del carnet." %}</p>
+              </div>
+              <div class="accions"><button class="boto" type="submit">{% translate "Revoca el carnet" %}</button></div>
             </form>
           </details>
-      {% endif %}
-    </section>
-  {% else %}
-    <p class="text-2">{% translate "Vista de tresoreria: dades mínimes." %}</p>
-  {% endif %}
-
-  {% if vis.identity %}
-    <section aria-labelledby="consentiments-titol">
-      <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
-      {% if consents %}
-        <table class="taula">
-          <caption class="visualment-amagat">{% translate "Últim estat de cada consentiment" %}</caption>
-          <thead><tr><th scope="col">{% translate "Text" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Versió" %}</th><th scope="col">{% translate "Canal" %}</th><th scope="col">{% translate "Data" %}</th></tr></thead>
-          <tbody>
-            {% for label, consent in consents %}
-              <tr>
-                <th scope="row" class="cel-nom">{{ label }}</th>
-                <td data-etiqueta="{% translate 'Estat' %}">{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</td>
-                <td data-etiqueta="{% translate 'Versió' %}">{{ consent.legal_text.version }}</td>
-                <td data-etiqueta="{% translate 'Canal' %}">{{ consent.get_channel_display }}</td>
-                <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ consent.created_at|date:'c' }}">{{ consent.created_at|date:"d/m/Y" }}</time></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        {% endif %}
       {% else %}
-        <p>{% translate "No hi ha cap consentiment registrat." %}</p>
+        <p>{% translate "Ara no té cap carnet vigent." %}</p>
       {% endif %}
     </section>
-  {% endif %}
 
-  <section aria-labelledby="historial-titol">
-    <h2 id="historial-titol">{% translate "Historial d'estats i tipus" %}</h2>
-    {% if history %}
-      <ol class="historial">
-        {% for change in history %}
-          <li>
-            <span class="text-2"><time datetime="{{ change.created_at|date:'c' }}">{{ change.created_at|date:"d/m/Y H:i" }}</time> · {% if change.actor_account %}{{ change.actor_account.login }}{% else %}{% translate "Sistema" %}{% endif %}</span>
-            <span>
-              {% if change.from_status and change.from_status != change.to_status %}{% blocktranslate with new=change.get_to_status_display old=change.get_from_status_display %}Estat: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_status %}{% blocktranslate with new=change.get_to_status_display %}Estat inicial: {{ new }}{% endblocktranslate %}{% endif %}
-              {% if change.from_type_id and change.from_type_id != change.to_type_id %} · {% blocktranslate with new=change.to_type.name old=change.from_type.name %}Tipus: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_type_id %} · {% blocktranslate with new=change.to_type.name %}Tipus: {{ new }}{% endblocktranslate %}{% endif %}
-              · {% if change.origin == "cluber_import" %}{% blocktranslate with date=change.created_at|date:"d/m/Y" %}importat de Cluber el {{ date }}{% endblocktranslate %}{% else %}{% blocktranslate with date=change.effective_on|date:"d/m/Y" %}efectiu el {{ date }}{% endblocktranslate %}{% endif %}
-              {% if change.reason %} · {% blocktranslate with reason=change.reason %}motiu: {{ reason }}{% endblocktranslate %}{% endif %}
-            </span>
-          </li>
-        {% endfor %}
-      </ol>
-      <p class="text-2">{% translate "Només s'hi afegeixen entrades: no es poden editar ni esborrar." %}</p>
-    {% else %}
-      <p>{% translate "Encara no hi ha cap entrada a l'historial." %}</p>
-    {% endif %}
-  </section>
-  {% include "members/_join_date_history.html" %}
-  {% load member_licences %}{% licence_records member %}
+    <div class="disposicio-pagina fitxa-taules">
+      {# T-M01-40 (RN-M01-72 i RN-M01-94; 085): les quotes del soci, només amb P10. Amb P22, eximir-ne o anul·lar-ne una de pendent, en una pantalla a part amb motiu i reautenticació. Amb M14 (P-12), registrar-ne el pagament a mà, a la pantalla de tresoreria, amb motiu i dos passos. El servidor torna a comprovar el permís i el conflicte d'interès; amagar l'enllaç no és cap control. #}
+      {% if vis.fees %}
+        <section aria-labelledby="quotes-titol">
+          <h2 id="quotes-titol">{% translate "Quotes" %}</h2>
+          {% if fee_rows %}
+            <table class="taula">
+              <caption class="visualment-amagat">{% translate "Quotes del soci, de la més recent a la més antiga" %}</caption>
+              <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_exempt or can_record_payment %}<th scope="col">{% translate "Accions" %}</th>{% endif %}</tr></thead>
+              <tbody>
+                {% for row in fee_rows %}
+                  <tr>
+                    <th scope="row" class="cel-nom">{{ row.fee.charge.concept }} <span class="text-2">({{ row.fee.period }})</span></th>
+                    <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
+                    <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.fee.due_on|date:'Y-m-d' }}">{{ row.fee.due_on|date:"d/m/Y" }}</time></td>
+                    <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>
+                    {% if can_exempt or can_record_payment %}
+                      <td class="cel-accions">
+                        {% if row.open %}
+                          {% if row.can_pay %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
+                          {% if can_exempt %}
+                            {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
+                            <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>
+                          {% endif %}
+                        {% else %}
+                          <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
+                        {% endif %}
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>{% translate "Encara no té cap quota." %}</p>
+          {% endif %}
+        </section>
+      {% endif %}
+      {% load member_licences %}{% licence_records member %}
+
+      <section aria-labelledby="historial-titol">
+        <h2 id="historial-titol">{% translate "Historial d'estats i tipus" %}</h2>
+        {% if history %}
+          {# T-DX-67: la línia de passos de Tramite (§6.13), només de lectura: l'estat d'ara a dalt i els anteriors a sota. #}
+          <ol class="tramite historial-estats">
+            {% for change in history %}
+              <li class="tramite-pas{% if forloop.first %} es-actual{% endif %}">
+                <span class="tramite-marca" aria-hidden="true"></span>
+                <span class="historial-estats-text">
+                <span class="text-2"><time datetime="{{ change.created_at|date:'c' }}">{{ change.created_at|date:"d/m/Y H:i" }}</time> · {% if change.actor_account %}{{ change.actor_account.login }}{% else %}{% translate "Sistema" %}{% endif %}</span>
+                <span>
+                  {% if change.from_status and change.from_status != change.to_status %}{% blocktranslate with new=change.get_to_status_display old=change.get_from_status_display %}Estat: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_status %}{% blocktranslate with new=change.get_to_status_display %}Estat inicial: {{ new }}{% endblocktranslate %}{% endif %}
+                  {% if change.from_type_id and change.from_type_id != change.to_type_id %} · {% blocktranslate with new=change.to_type.name old=change.from_type.name %}Tipus: {{ new }} (abans {{ old }}){% endblocktranslate %}{% elif not change.from_type_id %} · {% blocktranslate with new=change.to_type.name %}Tipus: {{ new }}{% endblocktranslate %}{% endif %}
+                  · {% if change.origin == "cluber_import" %}{% blocktranslate with date=change.created_at|date:"d/m/Y" %}importat de Cluber el {{ date }}{% endblocktranslate %}{% else %}{% blocktranslate with date=change.effective_on|date:"d/m/Y" %}efectiu el {{ date }}{% endblocktranslate %}{% endif %}
+                  {% if change.reason %} · {% blocktranslate with reason=change.reason %}motiu: {{ reason }}{% endblocktranslate %}{% endif %}
+                </span>
+                </span>
+              </li>
+            {% endfor %}
+          </ol>
+          <p class="text-2">{% translate "Només s'hi afegeixen entrades: no es poden editar ni esborrar." %}</p>
+        {% else %}
+          <p>{% translate "Encara no hi ha cap entrada a l'historial." %}</p>
+        {% endif %}
+      </section>
+      {% include "members/_join_date_history.html" %}
+
+      {% if vis.identity %}
+        <section aria-labelledby="consentiments-titol">
+          <h2 id="consentiments-titol">{% translate "Consentiments" %}</h2>
+          {% if consents %}
+            <table class="taula">
+              <caption class="visualment-amagat">{% translate "Últim estat de cada consentiment" %}</caption>
+              <thead><tr><th scope="col">{% translate "Text" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Versió" %}</th><th scope="col">{% translate "Canal" %}</th><th scope="col">{% translate "Data" %}</th></tr></thead>
+              <tbody>
+                {% for label, consent in consents %}
+                  <tr>
+                    <th scope="row" class="cel-nom">{{ label }}</th>
+                    <td data-etiqueta="{% translate 'Estat' %}">{% if consent.action == "granted" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ consent.get_action_display }}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ consent.get_action_display }}</span>{% endif %}</td>
+                    <td data-etiqueta="{% translate 'Versió' %}">{{ consent.legal_text.version }}</td>
+                    <td data-etiqueta="{% translate 'Canal' %}">{{ consent.get_channel_display }}</td>
+                    <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ consent.created_at|date:'c' }}">{{ consent.created_at|date:"d/m/Y" }}</time></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>{% translate "No hi ha cap consentiment registrat." %}</p>
+          {% endif %}
+        </section>
+      {% endif %}
+    </div>
+  </div>
 
   <p class="enllacos">
     <a href="{% url 'administration:members_list' %}">{% translate "Tornar al llistat de socis" %}</a>
     <a href="{% url 'administration:home' %}">{% translate "Tornar a l'administració" %}</a>
   </p>
 {% endblock %}
+

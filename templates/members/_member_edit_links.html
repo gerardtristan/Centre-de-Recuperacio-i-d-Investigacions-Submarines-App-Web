@@ -1,25 +1,24 @@
-{% load i18n %}
-{# T-M01-15b: enllaços de la fitxa a editar (P5) i a corregir la data d'alta (P6); T-M01-17: crear una baixa (P7). Amagar-los no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès (S-M01-22). T-M01-45 (5): «Crea una baixa» és un botó de text, amb menys pes que «Edita les dades». #}
-{% if can_edit or can_correct_join_date or can_create_leave %}
-  {% if member.person_id == user.person_id %}
-    <p class="text-2">{% translate "És el teu soci: no pots editar-ne les dades des de l'administració." %}</p>
-  {% else %}
-    <p class="accions">
-      {% if can_edit %}<a class="boto boto-petit" href="{% url 'administration:member_edit' member.pk %}">{% translate "Edita les dades" %}</a>{% endif %}
-      {% if can_correct_join_date %}<a class="boto boto-petit" href="{% url 'administration:member_join_date' member.pk %}">{% translate "Corregeix la data d'alta" %}</a>{% endif %}
-      {% if can_create_leave %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_leave_create' member.pk %}">{% translate "Crea una baixa" %}</a>{% endif %}
-    </p>
-  {% endif %}
+{% load i18n static %}
+{# T-M01-15b: enllaços de la fitxa a editar (P5) i a corregir la data d'alta (P6); T-M01-17: crear una baixa (P7); decisió 081, punt 24 (P-52): restabliment presencial del doble factor del compte personal (M2 i P4). Amagar-los no és cap control: el servidor torna a comprovar el permís i el conflicte d'interès (S-M01-22). T-DX-67 (D19, B15, B20): un sol botó principal, «Edita les dades»; les accions rares, dins de «Més» (un <details>: sense JavaScript s'obre i es tanca amb el botó; menu-exporta.js el tanca amb Esc, amb un clic fora o quan en surt el focus). Les mateixes condicions que abans. #}
+{% if member.person_id == user.person_id %}
+  {% if can_edit or can_correct_join_date or can_create_leave %}<p class="text-2">{% translate "És el teu soci: no pots editar-ne les dades des de l'administració." %}</p>{% endif %}
 {% endif %}
-{# 079 (RN-M01-87): tornar a enviar la invitació del compte personal (M2 i P4). Només surt si la persona en pot rebre una; el servei ho torna a comprovar. #}
-{% if can_invite %}
-  <form class="accions" method="post" action="{% url 'administration:member_invite' member.pk %}">
-    {% csrf_token %}
-    <button class="boto boto-petit" type="submit">{% translate "Envia la invitació del compte" %}</button>
-    <span class="text-2">{% translate "Aquesta persona encara no té compte personal. L'enllaç caduca i només serveix una vegada." %}</span>
-  </form>
-{% endif %}
-{# Decisió 081, punt 24 (P-52): restabliment presencial del doble factor del compte personal (M2 i P4). #}
-{% if can_reset_totp %}
-  <p class="accions"><a class="boto boto-petit boto-text" href="{% url 'administration:member_totp_reset' member.pk %}">{% translate "Restableix el doble factor del compte…" %}</a></p>
+{# «and» lliga més que «or»: del propi soci només hi pot sortir el restabliment del doble factor, com abans #}
+{% if can_reset_totp or member.person_id != user.person_id and can_edit or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
+  <div class="accions">
+    {% if member.person_id != user.person_id and can_edit %}<a class="boto boto-principal boto-petit" href="{% url 'administration:member_edit' member.pk %}">{% translate "Edita les dades" %}</a>{% endif %}
+    {% if can_reset_totp or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
+      <details class="menu-exporta">
+        <summary class="boto boto-petit">{% translate "Més" %} <span aria-hidden="true">▾</span></summary>
+        <div class="menu-opcions" role="group" aria-label="{% translate 'Més accions del soci' %}">
+          {% if member.person_id != user.person_id %}
+            {% if can_correct_join_date %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_join_date' member.pk %}">{% translate "Corregeix la data d'alta" %}</a>{% endif %}
+            {% if can_create_leave %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_leave_create' member.pk %}">{% translate "Crea una baixa" %}</a>{% endif %}
+          {% endif %}
+          {% if can_reset_totp %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_totp_reset' member.pk %}">{% translate "Restableix el doble factor del compte…" %}</a>{% endif %}
+        </div>
+      </details>
+      <script src="{% static 'js/menu-exporta.js' %}" defer></script>
+    {% endif %}
+  </div>
 {% endif %}

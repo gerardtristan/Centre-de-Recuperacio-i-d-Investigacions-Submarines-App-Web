@@ -1018,6 +1018,17 @@ opcions:
       demanen canviar el pla i una pantalla diferent per a un sol tipus d'apartat.
     data: 2026-11-18
 
+  P-314:
+    opcions:
+      A: L'ordre nou de la fitxa del soci, el mateix a totes les mides (resum, dades, carnet, quotes, llicència, historial i consentiments).
+      B: Les quotes segones també a l'escriptori (a dalt de la columna dreta) i el carnet i les dades després, per mantenir l'ordre antic al mòbil.
+      C: Una sola columna a totes les mides, com abans.
+      D: Decidir-ho amb la secretaria després de fer-la servir una setmana.
+    recomanada: A
+    perque: >-
+      Un sol ordre per a la vista, el teclat i el lector de pantalla (WCAG 1.3.2 i 2.4.3), i les dues columnes que demana el programa d'escriptori.
+    data: 2026-11-18
+
   P-392:
     opcions:
       A: "«A revisar» i el tresorer decideix: la confirmació tardana no paga el càrrec si un altre intent encara el pot cobrar (en curs, al banc o «a revisar»)."

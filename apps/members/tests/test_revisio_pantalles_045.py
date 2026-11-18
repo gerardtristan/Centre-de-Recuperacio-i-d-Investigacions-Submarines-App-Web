@@ -99,7 +99,7 @@ def test_point_5_create_a_leave_does_not_weigh_like_edit(make_admin):  # noqa: F
     )
     edit = re.search(r'<a class="([^"]+)" href="[^"]+/edita/">Edita les dades</a>', html)
     leave = re.search(r'<a class="([^"]+)" href="[^"]+/baixa/nova/">Crea una baixa</a>', html)
-    assert edit.group(1) == "boto boto-petit"
+    assert edit.group(1) == "boto boto-principal boto-petit"  # T-DX-67: l'únic principal (D19)
     assert "boto-text" in leave.group(1).split()
 
 
