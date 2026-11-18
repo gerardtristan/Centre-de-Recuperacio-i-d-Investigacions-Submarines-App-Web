@@ -200,6 +200,7 @@ MAP = {
     "test_ajustos.py": (
         "apps/core/views/business_settings.py",
         "apps/members/settings.py",
+        "apps/payments/returns.py",
         "templates/core/setting*.html",
     ),
     "test_dades_bloquejades.py": (

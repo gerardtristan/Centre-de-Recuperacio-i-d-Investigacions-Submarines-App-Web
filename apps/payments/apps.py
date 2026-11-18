@@ -26,6 +26,14 @@ class PaymentsConfig(AppConfig):
             ),
         )
 
+        from apps.core import business_settings
+
+        from . import returns
+
+        # P-291: les dues llistes de codis de retorn no poden compartir cap codi.
+        for key in (returns.RETRY_CODES, returns.BLOCK_CODES):
+            business_settings.register_check(key, returns.check_codes(key))
+
         from .setup import ensure_transit_account
 
         post_migrate.connect(ensure_transit_account, sender=self)

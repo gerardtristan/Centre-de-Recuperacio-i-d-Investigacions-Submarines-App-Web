@@ -1,7 +1,8 @@
 """Ajustos al navegador (T-AJ-02; 055, RN-AJ-05, CA-AJ-01 i 05; RN-RP-22): l'administrador
 canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i el tresorer, amb
 «Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
-programa un preu i canvia els recordatoris. Pantalles a 1280, 390 i 320 px."""
+programa un preu i canvia els recordatoris. Codis de retorn (P-291): el tresorer en canvia
+l'acció. Pantalles a 1280, 390 i 320 px."""
 
 from datetime import timedelta
 
@@ -103,3 +104,33 @@ def test_treasurer_schedules_a_member_price_and_edits_the_reminders(page, live_s
     page.get_by_role("link", name="Ajustos de socis").click()
     page.get_by_role("link", name="Historial: Text del darrere del carnet").click()
     expect(page.get_by_text("Pots veure aquest valor, però no canviar-lo.")).to_be_visible()
+
+
+def test_treasurer_moves_a_return_code_to_another_action(page, live_server, review):
+    # P-291 (095): els codis de retorn són ajustos de pagaments (`payments/0021`). Un codi no pot
+    # ser a totes dues llistes: primer es treu de «bloquegen el mandat» i després va a «reintent».
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    page.get_by_role("link", name="Ajustos de pagaments").click()
+    expect(page.get_by_role("cell", name="AC04, MD01").first).to_be_visible()
+    review("codis-retorn-apartat")
+
+    page.get_by_role("link", name="Canvia: Codis de retorn que proposen un reintent").click()
+    page.get_by_label("Valor nou").fill("AM04, MD01")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("MD01 ja és a l'altra llista")).to_be_visible()
+    review("codis-retorn-conflicte")
+
+    page.get_by_role("link", name="Ajustos de pagaments").click()
+    page.get_by_role("link", name="Canvia: Codis de retorn que bloquegen el mandat").click()
+    page.get_by_label("Valor nou").fill("AC04")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    page.get_by_role("link", name="Ajustos de pagaments").click()
+    page.get_by_role("link", name="Canvia: Codis de retorn que proposen un reintent").click()
+    page.get_by_label("Valor nou").fill("AM04, MD01")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("codis-retorn-desat")
+    assert business_settings.get("payments.return_codes_retry") == "AM04, MD01"
