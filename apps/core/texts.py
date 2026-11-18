@@ -24,6 +24,7 @@ from functools import partial
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import dateformat, translation
+from django.utils.functional import lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -52,6 +53,14 @@ def _date(value) -> str:
 
 _AMOUNT = Var(gettext_lazy("import de la quota"), "55,00 €", lambda c: c["amount"])
 _DUE_ON = Var(gettext_lazy("data de venciment"), "15/12/2026", lambda c: _date(c["due_on"]))
+
+# El paràgraf del pas a simpatitzant és l'única diferència entre les tres variants.
+_RENEWAL = gettext_lazy(
+    "La teva quota del C.R.I.S. es renova d'aquí a poc\n\nHola,\n\n"
+    "La teva quota de soci de ple dret es renova el {data}.\n\n"
+    "%(downgrade)s\n\n"
+    "Si tens cap dubte, respon aquest correu."
+)
 
 EMAILS = {
     f"{SECTION}.baixa-efectiva": EmailText(
@@ -94,12 +103,83 @@ EMAILS = {
         {"import": _AMOUNT, "data": _DUE_ON},
         when=lambda c: bool(c.get("overdue")),
     ),
+    # Avís de renovació (073, T-M01-43): un text per a cada estat del pas a simpatitzant.
+    **{
+        f"{SECTION}.avis-renovacio{suffix}": EmailText(
+            "avis-renovacio",
+            label,
+            lazy(lambda p: str(_RENEWAL) % {"downgrade": p}, str)(paragraph),
+            {
+                "data": Var(
+                    gettext_lazy("data de renovació"), "15/01/2027", lambda c: _date(c["renews_on"])
+                )
+            },
+            when=lambda c, state=state: (c.get("downgrade") or "") == state,
+        )
+        for suffix, state, label, paragraph in (
+            (
+                "",
+                "",
+                gettext_lazy("Avís de renovació"),
+                gettext_lazy(
+                    "Si vols passar a simpatitzant en aquesta renovació, demana-ho a «Canvi de "
+                    "tipus», al teu perfil, abans del cobrament de la nova quota. El canvi no "
+                    "comporta cap devolució de la quota del període actual."
+                ),
+            ),
+            (
+                "-pas-acceptat",
+                "accepted",
+                gettext_lazy("Avís de renovació amb el pas a simpatitzant acceptat"),
+                gettext_lazy(
+                    "Tens acceptat el pas a simpatitzant: en aquesta renovació passaràs a "
+                    "simpatitzant i la quota nova serà la d'aquest tipus."
+                ),
+            ),
+            (
+                "-pas-pendent",
+                "pending",
+                gettext_lazy("Avís de renovació amb el pas a simpatitzant pendent"),
+                gettext_lazy(
+                    "Tens una sol·licitud de pas a simpatitzant pendent: la secretaria la "
+                    "revisarà i, si l'accepta, passaràs a simpatitzant en aquesta renovació."
+                ),
+            ),
+        )
+    },
+    f"{SECTION}.rebut-sollicitud-alta": EmailText(
+        "rebut-sollicitud-alta",
+        gettext_lazy("Rebut de la sol·licitud d'alta"),
+        gettext_lazy(
+            "Hem rebut la teva sol·licitud d'alta al C.R.I.S.\n\nHola,\n\n"
+            "Hem rebut una sol·licitud d'alta com a soci del C.R.I.S. amb aquesta adreça de "
+            "correu.\n\n"
+            "Aquest correu només confirma que l'hem rebuda: encara no és una alta aprovada. "
+            "L'administració del C.R.I.S. la revisarà i t'avisarà per correu.\n\n"
+            "Si no has demanat l'alta, no cal que facis res."
+        ),
+    ),
+    f"{SECTION}.alta-rebutjada": EmailText(
+        "alta-rebutjada",
+        gettext_lazy("Sol·licitud d'alta rebutjada"),
+        gettext_lazy(
+            "La teva sol·licitud d'alta al C.R.I.S.\n\nHola,\n\n"
+            "L'administració del C.R.I.S. ha revisat la sol·licitud d'alta com a soci feta amb "
+            "aquestes dades i no l'ha pogut aprovar.\n\n"
+            "Si tens cap dubte, respon a aquest correu.\n\n"
+            "Si no has demanat l'alta, no cal que facis res."
+        ),
+    ),
 }
 TEMPLATES = frozenset(e.template for e in EMAILS.values())
 
 _VAR = re.compile(r"\{([a-z_]+)\}")
 # Només el que sembla una etiqueta (`<a ...>`, `</p>`, `<br/>`, `<!--`), no «<menys de 50 €».
 _TAG = re.compile(r"<!--|</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>")
+
+
+def looks_like_html(value: str) -> bool:
+    return bool(_TAG.search(value))
 
 
 def _names(entry: EmailText) -> str:
@@ -177,10 +257,11 @@ def status(key: str) -> str:
 
 
 def help_text(key: str) -> str:
+    names = ", ".join(f"{{{n}}} ({v.label})" for n, v in EMAILS[key].vars.items())
     return _(
         "La primera línia és l'assumpte i la resta, el cos del correu. Text pla, sense HTML. "
         "Variables: %(vars)s. Si el deixes buit, torna el text per defecte."
-    ) % {"vars": ", ".join(f"{{{n}}} ({v.label})" for n, v in EMAILS[key].vars.items())}
+    ) % {"vars": names or _("aquest correu no té variables")}
 
 
 def _fill(text: str, values: dict) -> tuple[str, str]:

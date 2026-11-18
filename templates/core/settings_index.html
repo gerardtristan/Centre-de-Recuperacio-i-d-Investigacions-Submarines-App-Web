@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-AJ-02: apartats d'ajustos (055; RN-RP-22). Seguretat i privacitat: el servidor només llista els apartats amb el permís `settings.section.<apartat>` («Cons.» o «Sí»); sense cap, «no trobat». Cada apartat torna a comprovar el permís. #}
+{# T-AJ-02: apartats d'ajustos (055; RN-RP-22). Seguretat i privacitat: el servidor només llista els apartats amb el permís `settings.section.<apartat>` («Cons.» o «Sí»); sense cap, «no trobat». Cada apartat torna a comprovar el permís. «Textos legals» només surt amb M12 (T-M00-08b), que la seva pantalla torna a exigir. #}
 {% block title %}{% translate "Ajustos" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Configuració" %}</p>
@@ -8,5 +8,6 @@
   <p class="text-2">{% translate "Valors de negoci que es canvien des d'aquí, sense tocar el codi. Cada canvi queda a l'historial amb qui l'ha fet i el valor anterior." %}</p>
   <ul>
     {% for code, label in sections %}<li><a href="{% url 'administration:settings_section' code %}">{{ label }}</a></li>{% endfor %}
+    {% if legal %}<li><a href="{% url 'administration:legal_texts' %}">{% translate "Textos legals" %}</a></li>{% endif %}
   </ul>
 {% endblock %}

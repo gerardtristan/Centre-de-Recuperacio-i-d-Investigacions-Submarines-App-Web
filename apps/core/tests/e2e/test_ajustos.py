@@ -12,7 +12,7 @@ import pytest
 from django.utils import timezone
 from playwright.sync_api import expect
 
-from apps.core import business_settings
+from apps.core import business_settings, consents
 from apps.core.models import Role, RolePermission, Setting
 
 from .conftest import login_admin, make_admin
@@ -215,3 +215,31 @@ def test_administrator_creates_a_type_with_its_price_and_deactivates_it(page, li
     expect(
         page.get_by_role("heading", name="Quota anual de cada tipus de soci: Juvenil")
     ).to_be_visible()
+
+
+def test_administrator_reviews_and_publishes_a_legal_text(page, live_server, review):
+    # T-M00-08b (M12): l'administrador publica una versió nova de les condicions de soci. Primer
+    # la revisa (el text com el veurà la persona) i després la publica amb una nota.
+    admin = make_admin("admin.prova", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    page.get_by_role("link", name="Textos legals").click()
+    expect(page.get_by_role("heading", name="Textos legals")).to_be_visible()
+    review("legals-llista")
+
+    page.get_by_role("link", name="Versions: Condicions de soci").click()
+    page.get_by_label("Text de la versió nova").fill(
+        "Condicions inventades.\n\nSegon paràgraf de prova."
+    )
+    page.get_by_label("Nota").fill("Primera versió de prova")
+    page.get_by_role("button", name="Revisa el text").click()
+    expect(page.get_by_role("heading", name="Així el veurà la persona")).to_be_visible()
+    review("legals-revisio")
+
+    page.get_by_role("button", name="Publica la versió 1").click()
+    expect(page.get_by_text("Versió 1 publicada")).to_be_visible()
+    expect(page.get_by_role("cell", name="Primera versió de prova")).to_be_visible()
+    review("legals-publicat")
+    assert consents.current_text("membership_terms").content == (
+        "Condicions inventades.\n\nSegon paràgraf de prova."
+    )

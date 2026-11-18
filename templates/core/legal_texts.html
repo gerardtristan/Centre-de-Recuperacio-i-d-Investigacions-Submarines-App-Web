@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M00-08b: textos legals (M12, `core.legal_texts.publish`; spec 00 HU-17). Seguretat i privacitat: el servidor exigeix M12 (sense permís, «no trobat»). Cap dada personal: només el tipus, la versió vigent i la data. #}
+{% block title %}{% translate "Textos legals" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:settings' %}">{% translate "Ajustos" %}</a></p>
+  <h1>{% translate "Textos legals" %}</h1>
+  <p class="text-2">{% translate "Els textos que les persones accepten. Una versió nova no canvia mai les anteriors: cada acceptació queda lligada a la versió que es va veure." %}</p>
+  <table class="taula">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Text" %}</th>
+        <th scope="col">{% translate "Versió vigent" %}</th>
+        <th scope="col">{% translate "Vigent des de" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for kind, label, current in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ label }}<br><span class="codi">{{ kind }}</span></th>
+          <td data-etiqueta="{% translate 'Versió vigent' %}">{% if current %}{{ current.version }}{% else %}{% translate "Encara no publicat" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Vigent des de' %}">{{ current.published_at|date:"d/m/Y H:i"|default:"—" }}</td>
+          <td class="cel-accions"><a href="{% url 'administration:legal_text_detail' kind %}">{% blocktranslate %}Versions: {{ label }}{% endblocktranslate %}</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

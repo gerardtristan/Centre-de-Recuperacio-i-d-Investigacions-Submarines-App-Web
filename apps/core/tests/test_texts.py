@@ -246,3 +246,50 @@ def test_a_less_than_sign_is_not_html(make_admin, value):
 def test_things_that_look_like_tags_are_rejected(make_admin, value):
     with pytest.raises(ValidationError, match="HTML"):
         business_settings.change(LEAVE, value, make_admin(R.SECRETARY))
+
+
+# --- Part b: la resta de correus (T-M00-08b) --------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("downgrade", "subject_part", "body_part"),
+    [
+        ("", "es renova", "demana-ho a «Canvi de tipus»"),
+        ("accepted", "es renova", "Tens acceptat el pas a simpatitzant"),
+        ("pending", "es renova", "Tens una sol·licitud de pas a simpatitzant pendent"),
+    ],
+)
+def test_the_renewal_notice_has_one_text_per_downgrade_state(downgrade, subject_part, body_part):
+    context = {"renews_on": datetime.date(2027, 1, 15), "downgrade": downgrade}
+    email = mail.queue_email("avis-renovacio", to="anna@example.org", context=context)
+    assert subject_part in email.subject
+    assert "es renova el 15/01/2027." in email.body_text and body_part in email.body_text
+
+
+def test_renewal_variants_are_edited_separately(make_admin):
+    business_settings.change(
+        "texts.avis-renovacio-pas-acceptat", "Renovació\n\nEl {data} passes a simpatitzant.",
+        make_admin(R.SECRETARY),
+    )  # fmt: skip
+    context = {"renews_on": datetime.date(2027, 1, 15), "downgrade": "accepted"}
+    email = mail.queue_email("avis-renovacio", to="anna@example.org", context=context)
+    assert email.body_text == "El 15/01/2027 passes a simpatitzant.\n"
+    context["downgrade"] = ""
+    other = mail.queue_email("avis-renovacio", to="anna@example.org", context=context)
+    assert other.subject == "La teva quota del C.R.I.S. es renova d'aquí a poc"
+
+
+@pytest.mark.parametrize(
+    ("template", "subject"),
+    [
+        ("rebut-sollicitud-alta", "Hem rebut la teva sol·licitud d'alta al C.R.I.S."),
+        ("alta-rebutjada", "La teva sol·licitud d'alta al C.R.I.S."),
+    ],
+)
+def test_join_emails_are_editable_and_have_no_variables(template, subject, make_admin):
+    assert mail.queue_email(template, to="anna@example.org").subject == subject
+    key = f"texts.{template}"
+    assert texts.EMAILS[key].vars == {}
+    with pytest.raises(ValidationError):
+        business_settings.change(key, "Assumpte\n\nHola {nom}", make_admin(R.SECRETARY))
+    assert "no té variables" in texts.help_text(key)

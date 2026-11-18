@@ -20,7 +20,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .. import business_settings as service
-from .. import permissions, texts
+from .. import consents, permissions, texts
 from ..models import Setting
 from ..permissions import request_permissions, require_perm
 
@@ -168,9 +168,11 @@ def settings_index_view(request):
         for code, perm in permissions.CATALOG.items()
         if code.startswith(PREFIX) and permissions.has_perm(request.user, code, permissions=perms)
     ]
-    if not sections:
+    # T-M00-08b: els textos legals (M12) s'hi enllacen, però tenen la seva pantalla.
+    legal = permissions.has_perm(request.user, consents.PUBLISH_PERMISSION, permissions=perms)
+    if not sections and not legal:
         raise Http404
-    return render(request, "core/settings_index.html", {"sections": sections})
+    return render(request, "core/settings_index.html", {"sections": sections, "legal": legal})
 
 
 @never_cache

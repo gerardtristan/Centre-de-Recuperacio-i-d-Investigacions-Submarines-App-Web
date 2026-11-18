@@ -1097,4 +1097,36 @@ opcions:
       diners. C demana una regla econòmica nova. Mentrestant val la A.
     data: 2026-11-18
 
+  P-383:
+    opcions:
+      A: "Editables els correus sense enllaç d'entrada ni dades obligatòries (com s'ha construït); la resta, al codi."
+      B: "Com A i, a més, els de pagaments, amb les variables obligatòries (l'enllaç, l'import, la referència) que el text no pot treure."
+      C: "Tots, també els de compte i seguretat."
+    recomanada: A
+    perque: >-
+      Un text editat que treu l'enllaç o una dada que el banc exigeix deixa la persona sense poder pagar o
+      el club sense complir; B és possible però demana una regla nova per variable.
+    data: 2026-11-18
+
+  P-384:
+    opcions:
+      A: "Només l'administrador (M12, com diu la 059 i s'ha construït)."
+      B: "També la Secretaria."
+      C: "També la junta (President)."
+    recomanada: A
+    perque: >-
+      És la configuració inicial de la 059 i es canvia a l'editor de permisos sense codi; un text legal
+      el redacta la junta però el publica una sola persona amb doble factor.
+    data: 2026-11-18
+
+  P-385:
+    opcions:
+      A: "Vigent des que es publica (com s'ha construït)."
+      B: "Amb una data d'entrada en vigor que es pot programar."
+    recomanada: A
+    perque: >-
+      El model ja ho fa així i cap regla no demana programar-ne; B demana canviar com es tria la versió
+      vigent a l'alta, al perfil i al mandat.
+    data: 2026-11-18
+
 noves:
