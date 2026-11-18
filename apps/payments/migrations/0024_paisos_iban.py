@@ -47,7 +47,7 @@ def unload(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0048_settings_members_types_permissions"),
-        ("payments", "0022_tancament_a_revisar"),
+        ("payments", "0023_permisos_095"),
     ]
 
     operations = [migrations.RunPython(load, unload)]
