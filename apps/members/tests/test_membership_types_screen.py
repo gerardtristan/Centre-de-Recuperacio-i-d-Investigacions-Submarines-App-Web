@@ -212,9 +212,9 @@ def test_a_concurrent_create_with_the_same_code_is_a_form_error(make_admin, monk
     assert MembershipType.objects.count() == 2
 
 
-def test_migration_0047_gives_the_price_only_to_roles_with_both_prices():
+def test_migration_0048_gives_the_price_only_to_roles_with_both_prices():
     migration = importlib.import_module(
-        "apps.core.migrations.0047_settings_members_types_permissions"
+        "apps.core.migrations.0048_settings_members_types_permissions"
     )
     full_price, supporter_price = migration.OLD
     RolePermission.objects.filter(permission_code__in=(migration.PRICE, migration.TYPES)).delete()
