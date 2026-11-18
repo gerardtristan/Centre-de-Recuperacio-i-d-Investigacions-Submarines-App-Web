@@ -181,6 +181,15 @@ def capture(page, request):
 NARROW = 320  # amplada mínima que demana la definició de fet de les pantalles
 
 
+# Cap transició ni animació amb final en marxa (les que no acaben mai no compten).
+SETTLED_JS = """
+() => document.getAnimations().every((animation) => {
+  const timing = animation.effect && animation.effect.getComputedTiming();
+  return animation.playState !== "running" || !timing || timing.endTime === Infinity;
+})
+"""
+
+
 @pytest.fixture
 def review(page, request, capture):
     """Com `capture` i, a més, la pantalla a 320 px en clar i en fosc. Falla si a 320 px la
@@ -192,8 +201,9 @@ def review(page, request, capture):
         page.set_viewport_size({"width": NARROW, "height": 800})
         for theme in ("light", "dark"):
             page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
-            # Els botons tenen transició de color: la captura espera que acabi.
-            page.wait_for_timeout(500)
+            # Els botons tenen transició de color: la captura espera que acabi (auto-espera de
+            # Playwright sobre una condició, no un temps fix; T-DX-64).
+            page.wait_for_function(SETTLED_JS)
             page.screenshot(path=folder / f"{name}-{NARROW}-{theme}.png", full_page=True)
         overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         page.evaluate("document.documentElement.removeAttribute('data-theme')")

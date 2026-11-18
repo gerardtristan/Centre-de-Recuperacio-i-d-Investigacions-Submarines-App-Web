@@ -62,7 +62,7 @@ def test_only_the_visible_logo_is_downloaded(playwright, live_server, name, sche
             "() => [...document.querySelectorAll('.marca picture img')]"
             ".some((i) => i.complete && i.naturalWidth > 0)"
         )
-        page.wait_for_timeout(300)  # marge per a una segona descàrrega, si n'hi hagués
+        page.wait_for_load_state("networkidle")  # una segona descàrrega ja hauria sortit
         assert len(seen) == 1, (name, seen)
         assert f"/img/marca/cris-{kind}-192." in seen[0], (name, seen)
         assert seen[0].endswith((".avif", ".webp")), (name, seen)  # format modern, no el PNG
