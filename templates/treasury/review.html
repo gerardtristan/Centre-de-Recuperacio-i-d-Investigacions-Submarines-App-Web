@@ -87,7 +87,7 @@
     <p>{% translate "No hi ha res a revisar." %}</p>
   {% endif %}
   {% if closed %}
-    <h2>{% translate "Tancades" %}</h2>
+    <h2 id="tancades">{% translate "Tancades" %}</h2>
     <table class="taula">
       <caption>{% if closed_total > closed|length %}{% blocktranslate with shown=closed|length total=closed_total %}Els {{ shown }} tancaments més recents, de {{ total }}{% endblocktranslate %}{% else %}{% blocktranslate count total=closed_total %}{{ total }} liquidació a revisar tancada, de la més recent a la més antiga{% plural %}{{ total }} liquidacions a revisar tancades, de la més recent a la més antiga{% endblocktranslate %}{% endif %}</caption>
       <thead>
@@ -105,7 +105,7 @@
             <th scope="row" class="cel-nom"><time datetime="{{ closure.closed_at|date:'c' }}">{{ closure.closed_at|date:"d/m/Y H:i" }}</time></th>
             <td data-etiqueta="{% translate 'Abonament' %}" class="cel-valor"><span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></td>
             <td data-etiqueta="{% translate 'Nota' %}">{{ row.note|default:"—" }}</td>
-            <td data-etiqueta="{% translate 'Tancada per' %}" class="cel-valor"><span class="codi">{{ closure.closed_by }}</span></td>
+            <td data-etiqueta="{% translate 'Tancada per' %}" class="cel-valor">{{ closure.closed_by.person }}</td>
             <td data-etiqueta="{% translate 'Net' %}" class="cel-import"><span class="import">{{ row.net }}</span></td>
           </tr>
         {% endwith %}{% endfor %}

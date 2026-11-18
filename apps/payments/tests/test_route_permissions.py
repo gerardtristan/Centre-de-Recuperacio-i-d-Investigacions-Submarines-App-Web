@@ -239,7 +239,6 @@ UNCHECKED = {
     settlements.record_settlement: "importació de liquidacions (sistema) o remesa (B3)",
     settlements.fee_split: "càlcul",
     settlements.split: "càlcul",
-    settlements.review_closures_of: "consulta de l'esborrat RGPD",
     reconciliation.refresh: "càlcul de propostes (sistema)",
     reconciliation.has_live_reconciliations: "senyal de la importació",
     reconciliation.on_statement_changed: "senyal de la importació",

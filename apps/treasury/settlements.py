@@ -15,7 +15,6 @@ from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import gettext as _
 
@@ -233,20 +232,6 @@ def close_review(settlement: ProviderSettlement, *, note: str, by) -> Settlement
             details={"settlement": locked.pk, "previous_status": locked.status},
         )
     return closure
-
-
-def review_closures_of(person) -> list[int]:
-    """Els tancaments de liquidacions «a revisar» que citen un cobrament de la persona (RGPD:
-    la nota és text lliure i l'esborrat la substitueix al registre). Una referència que no és de
-    cap cobrament no porta a ningú: per això l'ajuda demana no posar-hi dades personals."""
-    payments = Payment.objects.filter(charge__person=person).exclude(provider_reference="")
-    references = [r for r in payments.values_list("provider_reference", flat=True) if r]
-    if not references:
-        return []
-    cited = Q()
-    for reference in references:
-        cited |= Q(settlement__review_notes__contains=[{"reference": reference}])
-    return list(SettlementReviewClosure.objects.filter(cited).values_list("pk", flat=True))
 
 
 def _reconcile_line(line, settlement: ProviderSettlement, by) -> None:

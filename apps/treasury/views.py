@@ -205,7 +205,7 @@ def review_view(request):
         status=ProviderSettlement.Status.TO_REVIEW, review_closure__isnull=True
     )
     can_close = has_perm(request.user, reconciliation.REVIEW, write=True)
-    closures = SettlementReviewClosure.objects.select_related("settlement", "closed_by")
+    closures = SettlementReviewClosure.objects.select_related("settlement", "closed_by__person")
     closed = list(closures.order_by("-closed_at", "-pk")[:CLOSED_SHOWN])
     # La nota és text lliure: només la veu qui pot tancar (T10 amb edició); la resta, «—».
     notes = _closure_notes([c.pk for c in closed]) if can_close else {}

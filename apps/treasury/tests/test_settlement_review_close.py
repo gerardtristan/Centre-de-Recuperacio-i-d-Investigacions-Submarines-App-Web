@@ -8,7 +8,7 @@ from django.http import Http404
 from django.urls import reverse
 
 from apps.core import privacy as core_privacy
-from apps.core.models import AppendOnlyError, AuditEntry, Payment, Role, RolePermission
+from apps.core.models import AppendOnlyError, AuditEntry, Payment, Person, Role, RolePermission
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.treasury import reconciliation, settlements
 from apps.treasury.models import Movement, ProviderSettlement, SettlementReviewClosure
@@ -151,6 +151,24 @@ def test_t10_read_only_sees_the_list_but_not_the_note_nor_can_close(
     settlements.close_review(to_review, note=NOTE, by=treasurer)
     html = page(client, REVIEW)
     assert "LIQ-DUBTE" in html and NOTE not in html and "—" in html
+
+
+def test_closed_by_shows_the_name_not_the_login(to_review, make_admin):  # noqa: F811
+    person = Person.objects.create(first_name="Laia", last_name="Prova Inventada", origin="web")
+    account = make_admin(R.TREASURER, username="tresoreria.login", person=person)
+    settlements.close_review(to_review, note=NOTE, by=account)
+    html = page(client_for(account), REVIEW)  # només el <main>: el menú sí que porta el login
+    assert "Laia Prova Inventada" in html and "tresoreria.login" not in html
+
+
+def test_settlements_screen_shows_a_closed_one_as_reviewed(treasurer, to_review):
+    url = reverse("administration:treasury_settlements")
+    before = page(client_for(treasurer), url)
+    assert "L&#x27;import no és el del cobrament" in before and "✕" in before
+    settlements.close_review(to_review, note=NOTE, by=treasurer)
+    html = page(client_for(treasurer), url)
+    assert "Revisada i tancada" in html and f"{REVIEW}#tancades" in html
+    assert "L&#x27;import no és el del cobrament" not in html and "✕" not in html
 
 
 def test_append_only(treasurer, to_review):

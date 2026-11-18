@@ -13,8 +13,6 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 
 from apps.core import audit
-from apps.treasury import settlements
-from apps.treasury.models import SettlementReviewClosure
 
 from .models import FeePaymentPreference, ReviewClosure, SepaMandate
 
@@ -63,15 +61,10 @@ def anonymise(person, *, by, request=None) -> None:
 
 
 def audit_targets(person) -> dict:
-    """Els tancaments d'«a revisar» dels seus càrrecs (T-M05b-16b) i de les liquidacions que en
-    citen un cobrament (T-M04-14c): la nota és text lliure. Els
+    """Els tancaments d'«a revisar» dels seus càrrecs (T-M05b-16b): la nota és text lliure. Els
     mandats no: es bloquegen, no s'anonimitzen, i les seves entrades només porten la referència."""
     closures = ReviewClosure.objects.filter(attempt__charge__person=person)
-    # T-M04-14c: els tancaments de liquidacions que citen un dels seus cobraments.
-    return {
-        ReviewClosure._meta.label_lower: list(closures.values_list("pk", flat=True)),
-        SettlementReviewClosure._meta.label_lower: settlements.review_closures_of(person),
-    }
+    return {ReviewClosure._meta.label_lower: list(closures.values_list("pk", flat=True))}
 
 
 def describe(person) -> list[str]:
