@@ -21,7 +21,9 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
     settings.MANDATE_SIGNING_ENABLED = True
     settings.SEPA_CREDITOR_IDENTIFIER = "ES00ZZZ00000000"
     LegalText.objects.create(
-        kind=campaigns.INVITATION_TEXT, version=1, content="Text de prova de la invitació."
+        kind=campaigns.INVITATION_TEXT,
+        version=1,
+        content="Text de prova de la invitació.\n\nSegon paràgraf inventat.",
     )
     for first, number, document in (("Marta", 427, "00000005M"), ("Jordi", 311, "00000001R")):
         member = make_member(first, number=number, document=document)
@@ -48,6 +50,9 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
 
     page.get_by_role("button", name="Envia 2 invitacions…").click()
     expect(page.get_by_role("alert")).to_contain_text("S'enviaran 2 invitacions per correu.")
+    # T-M05a-13d (097, P-306 opció B): el text sencer de la invitació abans de confirmar.
+    expect(page.get_by_role("heading", name="Text de la invitació (versió 1)")).to_be_visible()
+    expect(page.get_by_text("Segon paràgraf inventat.")).to_be_visible()
     review("campanya-mandats-confirma")
     page.get_by_role("button", name="Sí, envia-les").click()
     expect(page.get_by_role("status")).to_contain_text("s'estan enviant")

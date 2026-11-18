@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 from procrastinate.contrib.django.models import ProcrastinateJob
 
-from apps.core.models import AuditEntry, Role
+from apps.core.models import AuditEntry, LegalText, Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.members.tests.test_cards import make_member
 from apps.payments import campaigns
@@ -120,3 +120,20 @@ def test_recompte_i_encara_no_ha_respost_ningu(client, campaign, treasurer):
     assert "Com pagaran els 2 socis actius" in html
     assert "Encara no ha respost ningú." in html
     assert "anna" not in html.lower()  # cap nom ni adreça
+
+
+def test_la_confirmacio_mostra_el_text_sencer_de_la_invitacio(client, treasurer):
+    # T-M05a-13d (097, P-306 opció B): el tresorer llegeix el text que s'enviarà abans de
+    # confirmar-ho; text pla, escapat. És la versió de la campanya, la que porta cada correu.
+    LegalText.objects.create(
+        kind=campaigns.INVITATION_TEXT,
+        version=2,
+        content="Hola & benvinguda.\n\nSegon <b>paràgraf</b>.",
+    )
+    campaigns.open_campaign("Campanya de prova", by=treasurer)
+    member_with_email("Anna", 1287, "12345678Z")
+    assert "Segon" not in page(client)  # abans de confirmar, només la versió
+
+    html = main_of(client.post(URL, {"action": "send"}).content.decode())
+    assert "Versió 2" in html
+    assert "Hola &amp; benvinguda." in html and "Segon &lt;b&gt;paràgraf&lt;/b&gt;." in html
