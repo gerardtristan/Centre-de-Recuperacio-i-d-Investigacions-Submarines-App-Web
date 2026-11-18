@@ -33,8 +33,8 @@ WITHDRAWN = "consents.withdrawn"
 
 
 PUBLISH_PERMISSION = "core.legal_texts.publish"  # M12
-# Tipus que fa servir la plataforma, amb el nom per a la pantalla de M12 (T-M00-08b). Un tipus
-# que ja té versions a la base de dades i no és aquí també surt, amb el codi com a nom.
+# Tipus que es publiquen a la plataforma, amb el nom que veu la persona (una sola llista: també
+# la fan servir l'alta i el perfil). Només aquests surten a la pantalla de M12 (T-M00-08b).
 KINDS = {
     "privacy": gettext_lazy("Política de privacitat"),
     "membership_terms": gettext_lazy("Condicions de soci"),
@@ -44,20 +44,25 @@ KINDS = {
     "sepa_mandate": gettext_lazy("Text del mandat SEPA"),
     "mandate_campaign_invitation": gettext_lazy("Invitació de la campanya de mandats"),
 }
-
-
-def kinds() -> dict:
-    stored = LegalText.objects.order_by("kind").values_list("kind", flat=True).distinct()
-    return {**KINDS, **{kind: kind for kind in stored if kind not in KINDS}}
+# Textos que només porta una importació (071, punt 15): són el que es va acceptar a Cluber i no
+# es publiquen mai des de la plataforma.
+IMPORTED_IMAGES_KIND = "cluber_images"
+IMPORTED_KINDS = frozenset({IMPORTED_IMAGES_KIND})
 
 
 def normalise(content: str) -> str:
-    return content.replace("\r\n", "\n").strip()
+    return texts.normalise_lines(content).strip()
 
 
-def digest(content: str) -> str:
-    """Empremta del text revisat: es publica només el que s'ha vist a la revisió."""
-    return hashlib.sha256(normalise(content).encode()).hexdigest()
+def digest(content: str, note: str = "") -> str:
+    """Empremta del que s'ha revisat (text i nota): es publica només això."""
+    reviewed = f"{normalise(content)}\0{note.strip()}"
+    return hashlib.sha256(reviewed.encode()).hexdigest()
+
+
+def next_version(kind: str) -> int:
+    """La versió següent del tipus, comptant totes les llengües."""
+    return (LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0) + 1
 
 
 def validate_content(content: str) -> None:
@@ -70,15 +75,20 @@ def validate_content(content: str) -> None:
 
 @transaction.atomic
 def publish_text(kind: str, content: str, *, by, note: str = "") -> LegalText:
-    if not has_perm(by, PUBLISH_PERMISSION):
+    if not has_perm(by, PUBLISH_PERMISSION, write=True):
         raise Http404
+    if kind in IMPORTED_KINDS:
+        raise ValidationError(_("Aquest text ve d'una importació i no se'n publiquen versions."))
     validate_content(content)
     # shortcut: dues publicacions simultànies del mateix tipus xoquen amb la restricció
     # d'unicitat i una falla sense desar res; amb un sol administrador que publica, n'hi ha prou.
-    last = LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0
     note = note.strip()
     text = LegalText(
-        kind=kind, version=last + 1, content=normalise(content), published_by=by, note=note
+        kind=kind,
+        version=next_version(kind),
+        content=normalise(content),
+        published_by=by,
+        note=note,
     )
     text.full_clean()
     text.save()

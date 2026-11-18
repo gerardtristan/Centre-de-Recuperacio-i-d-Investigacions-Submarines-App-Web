@@ -20,6 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 # `ReauthForm` és dels comptes (T-M00-05); també el fa servir `/gestio/rgpd/` (T-M01-22).
 from apps.accounts.forms import ReauthForm
+from apps.core import consents
 from apps.core.models import Person
 from apps.core.normalization import normalize_document, normalize_email, normalize_phone
 
@@ -67,14 +68,8 @@ def clean_phone_value(value: str) -> str:
     return phone
 
 
-# Noms dels textos legals de l'alta (els tipus són els de `join.REQUIRED_TEXTS`).
-LEGAL_LABELS = {
-    "privacy": _("Política de privacitat"),
-    "membership_terms": _("Condicions de soci"),
-    "guardian_authorization": _("Autorització del pare, la mare o el tutor legal"),
-    "newsletter": _("Butlletí del club"),
-    "images": _("Ús d'imatges (fotos i vídeos)"),
-}
+# Noms dels textos legals: una sola llista, la de `consents.KINDS` (T-M00-08b).
+LEGAL_LABELS = consents.KINDS
 # Textos que accepta tothom, cadascun amb la seva casella; l'autorització, només els menors.
 GENERAL_TEXTS = ("privacy", "membership_terms")
 GUARDIAN_TEXT = "guardian_authorization"

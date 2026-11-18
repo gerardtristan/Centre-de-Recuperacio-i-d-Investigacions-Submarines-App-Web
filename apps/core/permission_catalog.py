@@ -147,6 +147,8 @@ PERMISSIONS: tuple[Permission, ...] = (
         "core.legal_texts.publish",
         "M12",
         _("Publicar versions noves dels textos legals"),
+        # «Cons.» veu i revisa els textos; publicar demana «Sí» (T-M00-08b).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
         initial={R.ADMINISTRATOR: _ALL},
     ),
     _perm(

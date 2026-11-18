@@ -293,3 +293,21 @@ def test_join_emails_are_editable_and_have_no_variables(template, subject, make_
     with pytest.raises(ValidationError):
         business_settings.change(key, "Assumpte\n\nHola {nom}", make_admin(R.SECRETARY))
     assert "no té variables" in texts.help_text(key)
+
+
+def test_any_other_downgrade_state_gets_the_general_renewal_text():
+    context = {"renews_on": datetime.date(2027, 1, 15), "downgrade": "un-estat-nou"}
+    email = mail.queue_email("avis-renovacio", to="anna@example.org", context=context)
+    assert "demana-ho a «Canvi de tipus»" in email.body_text
+
+
+def test_text_settings_reverse_migration_keeps_versions(make_admin):
+    from importlib import import_module
+
+    from django.apps import apps as django_apps
+
+    migration = import_module("apps.core.migrations.0049_legal_text_note_and_more_texts")
+    business_settings.change("texts.alta-rebutjada", "Rebuig\n\nCos.", make_admin(R.SECRETARY))
+    migration.unload(django_apps, None)
+    assert SettingVersion.objects.filter(setting__key="texts.alta-rebutjada").exists()
+    assert not Setting.objects.filter(key="texts.rebut-sollicitud-alta").exists()

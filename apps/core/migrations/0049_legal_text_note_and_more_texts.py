@@ -27,8 +27,9 @@ def load(apps, schema_editor):
 
 
 def unload(apps, schema_editor):
-    apps.get_model("core", "SettingVersion").objects.filter(setting__key__in=KEYS).delete()
-    apps.get_model("core", "Setting").objects.filter(key__in=KEYS).delete()
+    # Només els ajustos que encara no tenen cap versió: l'historial d'un text editat no s'esborra
+    # mai, i tornar a aplicar la migració el reaprofita (`get_or_create`).
+    apps.get_model("core", "Setting").objects.filter(key__in=KEYS, versions__isnull=True).delete()
 
 
 class Migration(migrations.Migration):
