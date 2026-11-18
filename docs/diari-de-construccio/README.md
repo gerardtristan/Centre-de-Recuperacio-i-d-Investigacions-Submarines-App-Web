@@ -297,3 +297,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-57](T-DX-57.md) | Escriptori, PR 1: base de la disposició (cos per trams, amplades, peces, taules, imports tabulars) (carril de disseny) | 18/11/2026 13:40 | dd7e41ad (PR #227) | 1 e2e nova | [A comprovar] |
 | [T-M00-08b](T-M00-08b.md) | Textos legals des de l'app (M12): revisar i publicar versions amb nota (core/0049); avís de renovació, rebut de l'alta i alta rebutjada editables; dubtes P-383 a P-385; revisió de la PR #224 | 18/11/2026 | 004fc110, dcf7e5b1 (PR #224) | 24 noves; 1 e2e | [A comprovar] |
 | [P-190 i P-193](P-190-P-193.md) | T8 i T10 amb permís propi i la Secretaria amb «Cons.» a A4 (payments/0023; 095) | 18/11/2026 | PR #226 | 5 noves; 8 adaptades | [A comprovar] |
+| [P-190 i P-193](P-190-P-193.md) | T8 i T10 amb permís propi i la Secretaria amb «Cons.» a A4 (payments/0023; 095) | 18/11/2026 | PR #226 | 11 noves; 8 adaptades | [A comprovar] |
