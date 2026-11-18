@@ -410,20 +410,9 @@ def test_the_administrator_and_the_secretary_edit_the_members_area(make_admin, r
     assert business_settings.get(LEAVE) == EDITED.rstrip("\n")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="P-391: CA-M00-08.4 demana «accés denegat»; construït «no trobat» per RN-RP-22",
-)
-def test_without_the_area_every_text_screen_is_access_denied(make_admin):
-    client = admin_client(make_admin(R.TREASURER))
-    assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 403
-    assert client.get(url(LEAVE)).status_code == 403
-    assert client.post(url(LEAVE), {"value": EDITED, "note": ""}).status_code == 403
-
-
 def test_without_the_area_every_text_screen_is_not_found(make_admin):
-    # CA-M00-08.4 diu «accés denegat»; RN-RP-22, «no trobat» per a tot apartat d'ajustos.
-    # Construït «no trobat» fins que es respongui la P-391 (089, D2).
+    # CA-M00-08.4: P-391 resolta (propietari, 18/11/2026): «no trobat», com tots els
+    # apartats d'ajustos (RN-RP-22).
     client = admin_client(make_admin(R.TREASURER))
     assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 404
     assert client.get(url(LEAVE)).status_code == 404
