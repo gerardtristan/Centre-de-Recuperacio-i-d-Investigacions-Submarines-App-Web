@@ -13,7 +13,7 @@
       <li>{% blocktranslate with username=account.login %}El compte {{ username }} quedarà desactivat i no podrà entrar a l'administració. No s'esborra res: l'historial i el registre d'activitat es mantenen.{% endblocktranslate %}</li>
       <li>{% translate "Se'n tancaran totes les sessions obertes, a tots els dispositius." %}</li>
       <li>{% translate "El compte personal de la mateixa persona no canvia." %}</li>
-      <li>{% translate "S'avisarà per correu els comptes amb el rol administrador i el compte afectat." %}</li>
+      <li>{% if own %}{% translate "S'avisarà per correu els altres comptes amb el rol administrador." %}{% else %}{% translate "S'avisarà per correu els comptes amb el rol administrador i el compte afectat." %}{% endif %}</li>
     </ul>
     <h3>{% translate "1 compte afectat" %}</h3>
     <ul><li><span class="codi">{{ account.login }}</span></li></ul>

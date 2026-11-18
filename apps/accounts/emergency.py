@@ -23,7 +23,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.utils import timezone
 
-from apps.core import audit, mail
+from apps.core import audit, mail, roles
 from apps.core.models import AccountRole, Person, Role
 
 from .models import Account
@@ -78,27 +78,12 @@ def warning_for(account) -> int | None:
     return ready if ready < MINIMUM else None
 
 
-def _administrators_to_notify(exclude):
-    return (
-        Account.objects.filter(
-            kind=Account.Kind.ADMIN,
-            status=Account.Status.ACTIVE,
-            role_assignments__role__code=Role.Code.ADMINISTRATOR,
-            role_assignments__removed_at__isnull=True,
-        )
-        .exclude(pk=exclude.pk)
-        .exclude(notification_email="")
-        .distinct()
-        .order_by("pk")
-    )
-
-
 def record_use(account: Account, *, area: str, request=None) -> None:
     """CA-10.2: l'entrada d'un compte d'emergència queda al registre i s'avisa els altres comptes
     amb el rol administrador. No fa res amb cap altre compte."""
     if not account.is_emergency:
         return
-    notified = list(_administrators_to_notify(account))
+    notified = list(roles.administrators_to_notify(exclude=account))
     when = timezone.now()
     for admin in notified:
         mail.queue_email(

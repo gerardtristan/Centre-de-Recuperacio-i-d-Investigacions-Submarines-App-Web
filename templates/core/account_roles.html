@@ -31,7 +31,7 @@
     </tbody>
   </table>
 
-  {% if assignable %}
+  {% if assignable and account.status != account.Status.DISABLED %}
     <form class="formulari" method="get" action="">
       <input type="hidden" name="action" value="assign">
       <div class="camp">
@@ -73,7 +73,7 @@
       </form>
     {% endif %}
   {% endif %}
-  {% if account.status == "disabled" %}
+  {% if account.status == account.Status.DISABLED %}
     <p>{% translate "Aquest compte està desactivat: no pot entrar a l'administració." %}</p>
   {% elif not change %}
     <p class="accions"><a class="boto" href="{% url 'administration:account_deactivate' account.pk %}">{% if account.pk == user.pk %}{% translate "Desactiva el teu compte…" %}{% else %}{% translate "Desactiva el compte…" %}{% endif %}</a></p>

@@ -64,5 +64,5 @@ def test_administrator_deactivates_their_own_account(page, live_server, texts, r
     page.get_by_label("He revisat el resum i el compte afectat").check()
     page.get_by_role("button", name="Desactiva el compte").click()
     expect(page.get_by_role("heading", name="Entrada d'administració")).to_be_visible()
-    expect(page.get_by_text("Has desactivat el teu compte d'administrador")).to_be_visible()
+    expect(page.get_by_text("Has sortit de l'administració.")).to_be_visible()
     review("desactivar-compte-entrada")

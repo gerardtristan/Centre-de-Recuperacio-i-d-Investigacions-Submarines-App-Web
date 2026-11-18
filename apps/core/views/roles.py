@@ -15,6 +15,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
+from django.db import OperationalError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -71,6 +72,9 @@ class RoleChangeForm(ConfirmForm):
 CODE_USED = gettext_lazy(
     "El codi TOTP ja s'ha fet servir: si ho tornes a provar, escriu-ne un de nou."
 )
+DATABASE_CONFLICT = gettext_lazy(
+    "Un altre canvi s'estava desant alhora: torna-ho a provar d'aquí a uns segons."
+)
 
 
 def _change(data, active_codes):
@@ -104,6 +108,8 @@ def account_roles_view(request, pk):
         change = _change(initial, active_codes)
     already = bool(change and change[2])
     change = None if already else change
+    if change and change[0] and account.status == Account.Status.DISABLED:
+        change = None  # un compte desactivat no rep rols nous (també ho diu el servei)
     blocked = bool(
         change
         and not change[0]
@@ -131,6 +137,8 @@ def account_roles_view(request, pk):
                 form.add_error(None, roles.ALREADY_DONE)
             except ValidationError as exc:
                 form.add_error(None, [*exc.messages, CODE_USED])
+            except OperationalError:
+                form.add_error(None, [DATABASE_CONFLICT, CODE_USED])
             else:
                 if assign and saved is None:  # un altre administrador s'hi ha avançat
                     form.add_error(None, roles.ALREADY_DONE)
@@ -164,10 +172,9 @@ def account_roles_view(request, pk):
     )
 
 
-SELF_DEACTIVATED = gettext_lazy(
-    "Has desactivat el teu compte d'administrador i se n'han tancat totes les sessions. El teu "
-    "compte personal no canvia."
-)
+# La pàgina d'entrada és pública: el missatge no diu res del compte (revisió de #216, punt 4).
+LEFT_ADMIN = gettext_lazy("Has sortit de l'administració.")
+LOGOUT_TAG = "sortida"  # l'entrada només mostra els missatges amb aquesta etiqueta
 
 
 @never_cache
@@ -194,13 +201,17 @@ def account_deactivate_view(request, pk):
                     account, by=request.user, note=form.cleaned_data["note"]
                 )
             except roles.AlreadyDone:
-                form.add_error(None, roles.ALREADY_DONE)
+                already = True  # un altre administrador s'hi ha avançat: cap formulari
+                form.add_error(None, [roles.ALREADY_DONE, CODE_USED])
             except ValidationError as exc:
                 form.add_error(None, [*exc.messages, CODE_USED])
+            except OperationalError:  # la transacció ja s'ha desfet sencera
+                form.add_error(None, [DATABASE_CONFLICT, CODE_USED])
             else:
                 if own:  # RN-RP-20: també la petició en curs surt de l'administració
+                    list(messages.get_messages(request))  # cap missatge d'una altra pantalla
                     logout(request)
-                    messages.info(request, SELF_DEACTIVATED)
+                    messages.info(request, LEFT_ADMIN, extra_tags=LOGOUT_TAG)
                     response = redirect("administration:login")
                     delete_session_hint(response)  # cap «La sessió ha caducat» (081)
                     return response

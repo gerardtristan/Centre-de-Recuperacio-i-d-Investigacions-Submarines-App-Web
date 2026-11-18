@@ -266,12 +266,13 @@ class TestAssignAndRemove:
     def test_the_affected_account_is_notified_whatever_its_status(
         self, pair, login_as, django_capture_on_commit_callbacks, status
     ):
-        # Punt 5: RN-RP-09, «als comptes afectats».
+        # Punt 5: RN-RP-09, «als comptes afectats». Un compte desactivat no rep rols nous
+        # (revisió de #216, punt 7): se li retira el que té.
         admin, target = pair
         target.status = status
         target.save()
         with django_capture_on_commit_callbacks(execute=True):
-            post(login_as(admin, AREA_ADMIN), target, "assign", R.SECRETARY, actor=admin)
+            post(login_as(admin, AREA_ADMIN), target, "remove", R.INSTRUCTOR, actor=admin)
         assert OutgoingEmail.objects.filter(
             template="avis-canvi-rol", to_address="bernat@example.org"
         ).exists()
