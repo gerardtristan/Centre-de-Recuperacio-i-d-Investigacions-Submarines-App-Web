@@ -12,7 +12,7 @@ from apps.members.tests.test_cards import make_member
 from apps.payments import mandates
 from apps.payments.tests.test_preferences import card, prefer
 
-from .conftest import PASSWORD, login_admin, make_admin
+from .conftest import PASSWORD, login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -34,7 +34,7 @@ def test_treasurer_sees_methods_and_masked_mandates(page, live_server, transacti
 
     login_admin(page, live_server.url, treasurer.login)
     # Hi arriba pel menú (T-DX-43): l'entrada només surt amb A4.
-    entry = page.locator("#barra-lateral").get_by_role("link", name="Pagaments: mètodes i mandats")
+    entry = menu_entry(page, "Pagaments: mètodes i mandats")
     entry.click()
     expect(page.get_by_role("heading", name="Mètodes i mandats")).to_be_visible()
     expect(page).to_have_url(f"{live_server.url}{reverse('administration:payments_mandates')}")

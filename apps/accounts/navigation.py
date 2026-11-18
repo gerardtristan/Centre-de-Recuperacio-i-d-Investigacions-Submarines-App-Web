@@ -79,12 +79,12 @@ ENTRIES = (
         ("administration:member_request_detail",),
     ),
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
-    ("administration:fees", _("Quotes i impagats"), ()),
     (
         "administration:membership_types",
         _("Tipus de soci"),
         ("administration:membership_type_edit",),
     ),  # T-DX-56 (T-M01-52)
+    ("administration:fees", _("Quotes i impagats"), ()),
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
     (
         "administration:treasury_accounts",
@@ -111,11 +111,11 @@ ENTRIES = (
             "administration:treasury_exclude_line",
         ),
     ),  # T-DX-44
-    ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:payments_list", _("Pagaments: llistat"), ()),  # T-DX-47
     ("administration:payments_remittances", _("Pagaments: remeses"), ()),  # T-DX-47
     ("administration:payments_mandates", _("Pagaments: mètodes i mandats"), ()),  # T-DX-43
     ("administration:payments_campaign", _("Pagaments: campanya de mandats"), ()),  # T-DX-46
+    ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
     ("administration:guest_links", _("Enllaços de convidat"), ()),
     (
@@ -139,14 +139,72 @@ ENTRIES = (
     ),
     ("administration:audit_log", _("Registre d'activitat"), ()),
     (
+        "administration:settings",
+        _("Ajustos"),
+        ("administration:settings_section", "administration:setting_detail"),
+    ),
+    (
         "administration:previews:index",
         _("Pantalles en construcció"),
         tuple(f"administration:previews:{name}" for name, _module in discover()),
     ),  # T-DX-50
+)
+
+# T-DX-62 (sistema de disseny §6.1): el menú en 6 grups plegables (B15 i B16), en l'ordre de
+# ENTRIES; «Inici» queda solt a dalt. Un grup sense cap entrada visible no surt.
+GROUPS = (
     (
-        "administration:settings",
+        _("Socis"),
+        "users",
+        (
+            "administration:members_list",
+            "administration:join_requests",
+            "administration:join_in_person",
+            "administration:member_requests",
+            "administration:licence_bulk_confirm",
+            "administration:membership_types",
+        ),
+    ),
+    (
+        _("Quotes i tresoreria"),
+        "coins",
+        (
+            "administration:fees",
+            "administration:treasury_accounts",
+            "administration:treasury_movements",
+            "administration:treasury_reconciliation",
+        ),
+    ),
+    (
+        _("Pagaments"),
+        "credit-card",
+        (
+            "administration:payments_list",
+            "administration:payments_remittances",
+            "administration:payments_mandates",
+            "administration:payments_campaign",
+        ),
+    ),
+    (
+        _("Importacions"),
+        "upload",
+        ("administration:bank_statement", "administration:cluber_preview"),
+    ),
+    (
+        _("Seguretat i RGPD"),
+        "shield-check",
+        (
+            "administration:guest_links",
+            "administration:gdpr_requests",
+            "administration:locked_data",
+            "administration:accounts",
+            "administration:audit_log",
+        ),
+    ),
+    (
         _("Ajustos"),
-        ("administration:settings_section", "administration:setting_detail"),
+        "settings",
+        ("administration:settings", "administration:previews:index"),
     ),
 )
 
@@ -162,6 +220,18 @@ class Entry:
 
 
 @dataclass(frozen=True)
+class Group:
+    label: str
+    icon: str
+    entries: tuple[Entry, ...]
+
+    @property
+    def current(self) -> bool:
+        """El grup de la pantalla actual surt obert."""
+        return any(entry.current for entry in self.entries)
+
+
+@dataclass(frozen=True)
 class AdminNav:
     entries: tuple[Entry, ...]
     username: str
@@ -171,6 +241,20 @@ class AdminNav:
     def sections(self):
         """Les entrades sense «Inici»: la llista de la pàgina d'inici de l'administració."""
         return self.entries[1:]
+
+    @property
+    def home(self) -> Entry:
+        return self.entries[0]
+
+    @property
+    def groups(self) -> tuple[Group, ...]:
+        """Els grups amb alguna entrada visible, en l'ordre del menú (T-DX-62)."""
+        by_name = {entry.name: entry for entry in self.entries}
+        groups = (
+            Group(label, icon, tuple(by_name[n] for n in names if n in by_name))
+            for label, icon, names in GROUPS
+        )
+        return tuple(group for group in groups if group.entries)
 
 
 def route_needs(name):

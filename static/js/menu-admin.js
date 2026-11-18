@@ -23,7 +23,44 @@
     boto.addEventListener('click', function () {
       posa(boto.getAttribute('aria-expanded') !== 'true');
     });
+    // Carril de la tauleta (T-DX-62): tocar la icona d'un grup n'obre les entrades al costat, d'un en
+    // un; Esc, tocar fora o triar una altra icona el tanca. Fora del carril, els grups són <details>.
+    var carril = window.matchMedia('(min-width: 600px) and (max-width: 1023.98px)');
+    function enCarril() { return carril.matches && !barra.classList.contains('oberta'); }
+    function tancaGrups(excepte) {
+      barra.querySelectorAll('.lateral-grup.desplegat').forEach(function (grup) {
+        if (grup !== excepte) {
+          grup.classList.remove('desplegat');
+          grup.querySelector('summary').setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    barra.querySelectorAll('.lateral-grup summary').forEach(function (resum) {
+      resum.addEventListener('click', function (event) {
+        if (!enCarril()) return;
+        event.preventDefault();
+        var grup = resum.closest('.lateral-grup');
+        var obre = !grup.classList.contains('desplegat');
+        tancaGrups(grup);
+        grup.classList.toggle('desplegat', obre);
+        resum.setAttribute('aria-expanded', obre ? 'true' : 'false');
+        if (obre) {
+          grup.querySelector('details').open = true;
+          var primer = grup.querySelector('details > ul a');
+          if (primer) primer.focus();
+        }
+      });
+    });
+    document.addEventListener('pointerdown', function (event) {
+      if (!event.target.closest('.lateral-grup')) tancaGrups(null);
+    });
     document.addEventListener('keydown', function (event) {
+      var obert = barra.querySelector('.lateral-grup.desplegat');
+      if (event.key === 'Escape' && obert) {
+        tancaGrups(null);
+        obert.querySelector('summary').focus();
+        return;
+      }
       if (event.key === 'Escape' && boto.getAttribute('aria-expanded') === 'true') {
         posa(false);
         boto.focus();

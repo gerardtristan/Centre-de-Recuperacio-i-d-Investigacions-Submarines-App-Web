@@ -1,4 +1,4 @@
-{% load i18n %}{# Barra lateral de l'administració (T-M01-46; sistema de disseny §6.1 i §6.2; wireframe admin.html). #}
+{% load i18n icones %}{# Barra lateral de l'administració (T-M01-46; sistema de disseny §6.1 i §6.2; wireframe admin.html). #}
 {# Seguretat i privacitat: les entrades les calcula el servidor amb els permisos del compte (apps/accounts/navigation.py); #}
 {# una entrada sense permís no arriba a l'HTML, no s'amaga amb CSS. No és cap control: cada vista torna a comprovar el #}
 {# permís. Només es dibuixa amb una sessió vàlida de l'administració. Mostra el compte que fa les accions (el que queda #}
@@ -6,8 +6,19 @@
 {% translate "Menú de l'administració" as menu_label %}{% translate "Seccions" as sections_label %}
 <aside id="barra-lateral" class="barra-lateral" aria-label="{{ menu_label }}">
   <nav class="lateral-nav" aria-label="{{ sections_label }}">
-    <ul>
-      {% for entry in admin_nav.entries %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %}>{{ entry.label }}</a></li>
+    {# T-DX-62: «Inici» solt i 6 grups plegables (<details>, sense JavaScript); el de la pantalla actual, obert. #}
+    {# A la tauleta, amb JavaScript (menu-admin.js), un carril de 72 px amb la icona de cada grup. #}
+    <ul class="lateral-llista">
+      {% with entry=admin_nav.home %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %} class="lateral-solt">{% icona "house" %}<span class="lateral-text">{{ entry.label }}</span></a></li>{% endwith %}
+      {% for group in admin_nav.groups %}<li class="lateral-grup{% if group.current %} es-actual{% endif %}">
+        <details{% if group.current %} open{% endif %}>
+          <summary>{% icona group.icon %}<span class="lateral-text">{{ group.label }}</span>{% icona "chevron-down" "lateral-fletxa" %}</summary>
+          <ul>
+            {% for entry in group.entries %}<li><a href="{{ entry.url }}"{% if entry.current %} aria-current="page"{% endif %}>{{ entry.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </details>
+      </li>
       {% endfor %}
     </ul>
   </nav>
