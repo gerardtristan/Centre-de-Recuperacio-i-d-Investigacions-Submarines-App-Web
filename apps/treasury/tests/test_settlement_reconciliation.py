@@ -6,13 +6,14 @@ from dataclasses import replace
 from datetime import date
 
 import pytest
+from django.conf import settings
 from django.http import Http404
 from django.urls import reverse
 
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import main_of
 from apps.core.tests.conftest import make_admin as _make_admin
-from apps.treasury import reconciliation, settlements
+from apps.treasury import reconciliation, services, settlements
 from apps.treasury.models import (
     Movement,
     ProviderSettlement,
@@ -24,6 +25,7 @@ from apps.treasury.settlements import SettlementLine
 from apps.treasury.tests import test_settlements as base
 from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_reconciliation_undo import bank_balance
+from apps.treasury.tests.test_record_income import SYSTEM
 from apps.treasury.tests.test_views import client_for
 
 pytestmark = pytest.mark.django_db
@@ -114,6 +116,29 @@ class TestProposal:
         reconciliation.refresh()
         assert proposal(first)[1] == proposal(second)[1] == reconciliation.AMBIGUOUS
 
+    def test_review_1_a_closed_line_does_not_make_it_ambiguous(self, two, person, treasurer):
+        first = received()
+        other = another_with_the_same_net(person)
+        one, two_ = lines(treasurer, (NET, "ABONAMENT"), (NET, "ABONAMENT"))
+        reconciliation.refresh()
+        assert proposal(one)[1] == proposal(two_)[1] == reconciliation.AMBIGUOUS
+        settlements.confirm_line(one, first.pk, by=treasurer)  # revisió 3: la tria
+        assert proposal(two_) == (State.PROPOSED, "", other)
+
+    def test_review_4_the_named_settlement_wins_over_an_unnamed_line(self, two, treasurer):
+        settlement = received()
+        named, plain = lines(treasurer, (NET, "ABONAMENT LIQ-001"), (NET, "ABONAMENT"))
+        reconciliation.refresh()
+        assert proposal(named) == (State.PROPOSED, "", settlement)
+        assert proposal(plain) == (State.PENDING, "", None)
+
+    def test_review_5_a_short_identifier_does_not_name_it(self, two, person, treasurer):
+        received(external_id="12")
+        collected(person, 12500, "REF-C")
+        received(SettlementLine("REF-C", 12500), external_id="LIQ-002")
+        line = bank_line(treasurer, concept="ABONAMENT 12 EUR")
+        assert proposal(line) == (State.PENDING, reconciliation.AMBIGUOUS, None)
+
     def test_a_confirmed_settlement_is_no_longer_proposed(self, two, treasurer):
         settlements.confirm(received(), by=treasurer)
         assert proposal(bank_line(treasurer)) == (State.PENDING, "", None)
@@ -157,6 +182,31 @@ class TestConfirmLine:
             reconciliation.confirm(line, by=treasurer)
         assert not Reconciliation.objects.exists()
 
+    def test_review_3_an_ambiguous_line_takes_one_of_its_candidates(self, two, person, treasurer):
+        received()
+        other = another_with_the_same_net(person)
+        line = bank_line(treasurer)
+        settlements.confirm_line(line, other.pk, by=treasurer)
+        assert Reconciliation.objects.get().settlement == other
+        assert ProviderSettlement.objects.get(external_id="LIQ-001").status == Status.RECEIVED
+
+    def test_review_3_but_not_a_settlement_that_is_not_a_candidate(self, two, person, treasurer):
+        received()
+        another_with_the_same_net(person)
+        line = bank_line(treasurer)
+        late = received(external_id="LIQ-003", settled_on=date(2026, 10, 1))  # fora de la finestra
+        with pytest.raises(settlements.SettlementRejected):
+            settlements.confirm_line(line, late.pk, by=treasurer)
+        assert not Reconciliation.objects.exists()
+
+    def test_review_2_proposed_on_a_line_it_is_not_confirmed_without_it(self, two, treasurer):
+        settlement = received()
+        line = bank_line(treasurer)
+        with pytest.raises(settlements.SettlementRejected, match="Conciliació"):
+            settlements.confirm(settlement, by=treasurer)
+        assert not Movement.objects.filter(kind__in=[K.FEE, K.TRANSFER]).exists()
+        assert proposal(line) == (State.PROPOSED, "", settlement)
+
     def test_only_with_t4(self, two, treasurer, make_admin):
         settlement = received()
         line = bank_line(treasurer)
@@ -167,7 +217,7 @@ class TestConfirmLine:
 
 
 class TestUndo:
-    def test_the_transfer_is_reversed_the_fees_stay_and_it_is_proposed_again(
+    def test_the_transfer_is_reversed_the_fees_stay_and_the_pair_is_not_proposed_again(
         self,
         two,
         transit,
@@ -185,10 +235,12 @@ class TestUndo:
         assert Movement.objects.filter(kind=K.FEE).count() == 2  # P-365
         settlement.refresh_from_db()
         assert settlement.status == Status.RECEIVED
-        assert proposal(line) == (State.PROPOSED, "", settlement)
+        # Revisió 8: la mateixa parella (línia, liquidació) no es torna a proposar.
+        assert proposal(line) == (State.PENDING, "", None)
         assert AuditEntry.objects.get(action=reconciliation.UNDONE).reason == REASON
-        # Es torna a confirmar sense repetir les comissions.
-        settlements.confirm_line(line, settlement.pk, by=treasurer)
+        # Una altra línia sí, i es confirma sense repetir les comissions.
+        (other,) = lines(treasurer, (NET, "ABONAMENT BO"))
+        settlements.confirm_line(other, settlement.pk, by=treasurer)
         assert Movement.objects.filter(kind=K.FEE).count() == 2
         assert bank_balance() == NET
 
@@ -200,6 +252,35 @@ class TestUndo:
         with pytest.raises(reconciliation.ReconciliationRejected):
             reconciliation.undo(found, reason=REASON, by=treasurer)
         assert ReconciliationUndo.objects.count() == 1
+
+
+@pytest.fixture
+def remittance_done(two, treasurer):
+    """Una liquidació d'origen «remesa» conciliada amb la seva línia, com fa el 05b."""
+    payload = replace(data(), settled_on=date(2026, 11, 1))
+    settlement = settlements.record_settlement(
+        settings.PAYMENTS_PROVIDER, payload, by=SYSTEM, source="remittance"
+    )
+    line = bank_line(treasurer)
+    settlements.confirm(settlement, by=treasurer, statement_line=line)
+    return Reconciliation.objects.get()
+
+
+class TestRemittance:
+    def test_review_6_its_legs_are_not_reversed_from_the_reconciliation(
+        self, remittance_done, treasurer
+    ):
+        for leg in Movement.objects.filter(kind=K.TRANSFER):
+            with pytest.raises(services.NotReversible):
+                services.reverse(leg, reason=REASON, by=treasurer, origin=services.RECONCILIATION)
+        assert not Movement.objects.filter(kind=K.REVERSAL).exists()
+
+    def test_review_7_it_is_not_undone_and_there_is_no_button(self, remittance_done, treasurer):
+        with pytest.raises(reconciliation.ReconciliationRejected, match="remesa"):
+            reconciliation.undo(remittance_done, reason=REASON, by=treasurer)
+        page = reverse("administration:treasury_reconciliation")
+        html = main_of(client_for(treasurer).get(page).content.decode())
+        assert "Conciliada" in html and "Desfés" not in html
 
 
 class TestScreens:
@@ -224,6 +305,29 @@ class TestScreens:
         undo = reverse("administration:treasury_undo_reconciliation", args=[done.pk])
         response = client.post(undo, {"motiu": REASON}, follow=True)
         assert "la liquidació torna a «rebuda»" in response.content.decode()
+
+    def test_review_3_choose_among_the_candidates(self, two, person, treasurer):
+        received()
+        other = another_with_the_same_net(person)
+        line = bank_line(treasurer)
+        client = client_for(treasurer)
+        page = reverse("administration:treasury_reconciliation")
+        assert "Revisa i tria…" in main_of(client.get(page).content.decode())
+        html = main_of(client.get(self.url(line)).content.decode())
+        assert 'type="radio"' in html and "LIQ-001" in html and "LIQ-002" in html
+        html = main_of(client.get(self.url(line), {"liquidacio": other.pk}).content.decode())
+        assert f'name="liquidacio" value="{other.pk}"' in html and "REF-C" in html
+        response = client.post(self.url(line), {"liquidacio": other.pk}, follow=True)
+        assert "Liquidació conciliada" in response.content.decode()
+        assert Reconciliation.objects.get().settlement == other
+
+    def test_review_2_the_settlements_screen_sends_to_the_reconciliation(self, two, treasurer):
+        settlement = received()
+        line = bank_line(treasurer)
+        url = reverse("administration:treasury_settlement_confirm", args=[settlement.pk])
+        response = client_for(treasurer).post(url, follow=True)
+        assert "confirma-la des de Conciliació" in response.content.decode()
+        assert proposal(line) == (State.PROPOSED, "", settlement)
 
     def test_without_t4_it_is_not_found(self, two, treasurer, make_admin):
         settlement = received()
