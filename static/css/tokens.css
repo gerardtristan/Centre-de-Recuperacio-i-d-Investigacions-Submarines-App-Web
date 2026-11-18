@@ -79,6 +79,10 @@
   --c-info: #2C516A;         --c-info-text: #133950;           --c-info-fons: #B9CEDA;
   --c-sistema: #4C4086;      --c-sistema-text: #35276A;        --c-sistema-fons: #CCC6E3;
 
+  /* Tipus d'activitat (T-DX-63): text, icona i franja del full; sempre amb icona i nom, mai només
+     color. Text ≥ 4,7:1 sobre el fons, el contenidor i el pou; el --c-fons al damunt, 7,5:1. */
+  --c-tipus-sortida: #003F46;  --c-tipus-curs: #233459;  --c-tipus-conferencia: #512910;  --c-tipus-medi: #203E1A;
+
   /* Relleu neumòrfic: una ombra fosca i una de clara del mateix to, per a cada superfície */
   --neu-fons-fosca: #A3AAAA;  --neu-fons-clara: #F0F2F1;
   --neu-sup-fosca: #76848A;   --neu-sup-clara: #BAC5C7;
@@ -127,6 +131,7 @@
     --c-error: #FFA096; --c-error-text: #FFA096; --c-error-fons: #42282B;
     --c-info: #8FC7E3;  --c-info-text: #8FC7E3;  --c-info-fons: #163446;
     --c-sistema: #C1B3F3; --c-sistema-text: #C1B3F3; --c-sistema-fons: #2F2B4D;
+    --c-tipus-sortida: #78D5E0; --c-tipus-curs: #A8C4FF; --c-tipus-conferencia: #F4B390; --c-tipus-medi: #A5D39B;
     --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
     --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
     --c-llum-interior: rgba(255, 255, 255, .08);
@@ -170,6 +175,7 @@
   --c-error: #FFA096; --c-error-text: #FFA096; --c-error-fons: #42282B;
   --c-info: #8FC7E3;  --c-info-text: #8FC7E3;  --c-info-fons: #163446;
   --c-sistema: #C1B3F3; --c-sistema-text: #C1B3F3; --c-sistema-fons: #2F2B4D;
+  --c-tipus-sortida: #78D5E0; --c-tipus-curs: #A8C4FF; --c-tipus-conferencia: #F4B390; --c-tipus-medi: #A5D39B;
   --neu-fons-fosca: #08121A;  --neu-fons-clara: #1C3243;
   --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
   --c-llum-interior: rgba(255, 255, 255, .08);

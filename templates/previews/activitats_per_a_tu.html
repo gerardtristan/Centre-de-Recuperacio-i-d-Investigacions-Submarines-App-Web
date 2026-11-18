@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/desfile.css' %}"><link rel="stylesheet" href="{% static 'css/activitats.css' %}"><script src="{% static 'js/activitats.js' %}" defer></script>{% endblock %}
+{% block content %}
+  {# T-DX-63: el bloc «Activitats per a tu», sol, tal com l'inclourà la portada (design-system §16, T-DX-63). #}
+  <section class="en-construccio-bloc disposicio-pagina" aria-describedby="ec-activitats-per-a-tu">
+    {% include "_en_construccio.html" with id="ec-activitats-per-a-tu" %}
+    <h1>{{ screen_title }}</h1>
+    {% url request.resolver_match.namespace|add:":activitats" as totes_url %}
+    {% include "previews/_activitats_per_a_tu.html" with totes_url=totes_url %}
+  </section>
+{% endblock %}

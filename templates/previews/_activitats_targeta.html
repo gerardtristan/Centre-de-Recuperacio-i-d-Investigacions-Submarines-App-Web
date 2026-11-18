@@ -1,0 +1,28 @@
+{% load i18n icones %}{% comment %}Targeta d'una activitat (T-DX-63; design-system §16, T-DX-63): el full de calendari de Convite,
+   el tipus amb icona i nom, l'estrella de Marcador, el lloc, el nivell i les places (només el nombre, mai qui hi va).
+   Els data-* són els que filtra activitats.js. `posicio` i `limit`: a «Totes», només les 3 més properes.{% endcomment %}
+<li class="targeta activitats-targeta tipus-{{ act.type.key }}" data-targeta data-puc="{{ act.can|yesno:'1,0' }}" data-mes="{{ act.month }}" data-lloc="{{ act.place_key }}" data-places="{{ act.places|yesno:'1,0' }}"{% if limit and posicio > limit %} hidden{% endif %}>
+  <div class="activitats-full" aria-hidden="true"><span class="activitats-mes">{{ act.short_month }}</span><b class="activitats-dia">{{ act.day }}</b></div>
+  <div class="activitats-cap">
+    <p class="activitats-tipus">{% icona act.type.icon %}{{ act.type.name }}</p>
+    <h3>{{ act.title }}</h3>
+  </div>
+  {# Guardar es desarà al servidor: aquí, desactivat (§16) #}
+  <button type="button" class="activitats-estrella" aria-pressed="{{ act.saved|yesno:'true,false' }}" aria-label="{% blocktranslate with nom=act.title %}Guarda «{{ nom }}»{% endblocktranslate %}" disabled>{% icona "star" %}</button>
+  <div class="activitats-dades">
+    <p class="activitats-quan">{% icona "calendar-days" %}{{ act.when }}</p>
+    <p class="activitats-lloc">{% icona "map-pin" %}{{ act.place }}</p>
+    {% if not act.level %}
+    <p class="activitats-nivell">{% translate "Oberta a tothom" %}</p>
+    {% elif act.can %}
+    <p class="activitats-nivell es-ok">{% icona "check" %}{% blocktranslate with nivell=act.level.1 %}Nivell {{ nivell }}: el tens{% endblocktranslate %}</p>
+    {% else %}
+    <p class="activitats-nivell es-falta">{% icona "clock" %}<span>{% blocktranslate with nivell=act.level.1 %}Et falta {{ nivell }}{% endblocktranslate %} <small>· {{ act.level.2 }}</small></span></p>
+    {% endif %}
+    {% if act.places %}
+    <p class="activitats-places">{% blocktranslate count n=act.places %}Queda {{ n }} plaça{% plural %}Queden {{ n }} places{% endblocktranslate %}</p>
+    {% else %}
+    <p class="activitats-places es-espera">{% translate "Llista d'espera" %}</p>
+    {% endif %}
+  </div>
+</li>

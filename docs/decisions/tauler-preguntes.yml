@@ -1028,4 +1028,16 @@ opcions:
       dues. Resposta del propietari (18/11/2026): A.
     data: 2026-11-18
 
+  P-312:
+    opcions:
+      A: "Aquest disseny: pestanyes per tipus i Guardades, filtres (puc fer, quan, on, places lliures) i el bloc «per a tu» a la portada."
+      B: "Només una llista per data, sense pestanyes; els filtres a dalt a totes les mides."
+      C: "Sense pàgina pròpia: les activitats només al calendari (Horario) i a la portada."
+      D: "Esperar el 02 i decidir-ho amb el responsable de cursos i sortides."
+    recomanada: A
+    perque: >-
+      És el que va aprovar el propietari al programa de l'escriptori i separa el que el soci pot fer
+      del que no sense amagar res. És reversible: no hi ha cap dada real, i la pantalla de debò serà del 02.
+    data: 2026-11-18
+
 noves:

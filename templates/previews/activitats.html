@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load i18n static icones %}
+{% block title %}{{ screen_title }} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/activitats.css' %}"><script src="{% static 'js/activitats.js' %}" defer></script>{% endblock %}
+{% block content %}
+  {# T-DX-63: la pàgina «Activitats» del soci (P-312). En construcció: contingut d'exemple; les pestanyes i els filtres funcionen al navegador sobre aquest contingut i res no es desa (design-system §16, T-DX-63). #}
+  {% with ns=request.resolver_match.namespace %}
+  <section class="en-construccio-bloc activitats disposicio-pagina" aria-describedby="ec-activitats" data-activitats>
+    {% include "_en_construccio.html" with id="ec-activitats" %}
+    <header class="capcalera-pagina" data-fons>
+      <p class="etiqueta-seccio">{{ screen_title }}</p>
+      <h1>{% blocktranslate %}{{ total }} activitats properes, {{ for_you }} per a tu{% endblocktranslate %}</h1>
+      <div class="accions">
+        <nav class="segmentat activitats-vista" aria-label="{% translate 'Vista' %}">
+          <a class="opcio" href="" aria-current="page"><span class="marca-activa" aria-hidden="true">✓</span>{% icona "list" %}{% translate "Llista" %}</a>
+          <a class="opcio" href="{% url ns|add:':calendari' %}">{% icona "calendar-days" %}{% translate "Calendari" %}</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="amb-columna-lateral lateral-esquerra">
+      <section class="columna-lateral activitats-filtres" id="activitats-filtres" aria-labelledby="activitats-filtres-titol">
+        <div class="activitats-filtres-cap">
+          <h2 id="activitats-filtres-titol">{% translate "Filtres" %}</h2>
+          <button type="button" class="boto boto-petit activitats-fet" data-fet>{% translate "Fet" %}</button>
+        </div>
+        <div class="activitats-filtre">
+          <button type="button" class="interruptor" role="switch" aria-checked="false" aria-labelledby="f-puc" aria-describedby="f-puc-nota" data-filtre="puc" data-si="{% translate 'Sí' %}" data-no="{% translate 'No' %}">
+            <span id="f-puc">{% translate "Només les que puc fer" %}</span>
+            <span class="int-pista"><span class="int-boto"><span class="si">{% icona "check" %}</span><span class="no"></span></span></span><span class="int-estat" aria-hidden="true">{% translate "No" %}</span>
+          </button>
+          <p class="activitats-nota" id="f-puc-nota">{% blocktranslate %}Titulació {{ member_level }} · llicència vigent{% endblocktranslate %} <span class="a-validar">{% translate "Nivells d'exemple: S-M02-11" %}</span></p>
+        </div>
+        <fieldset class="activitats-filtre">
+          <legend id="f-quan">{% translate "Quan" %}</legend>
+          <div class="segmentat">
+            <label><input class="visualment-amagat" type="radio" name="activitats-quan" value="mes"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span data-nom>{% translate "Aquest mes" %}</span></span></label>
+            <label><input class="visualment-amagat" type="radio" name="activitats-quan" value="tres"><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span data-nom>{% translate "3 mesos" %}</span></span></label>
+            <label><input class="visualment-amagat" type="radio" name="activitats-quan" value="tot" checked><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span><span data-nom>{% translate "Tot" %}</span></span></label>
+          </div>
+        </fieldset>
+        <div class="activitats-filtre camp">
+          <label for="f-lloc">{% translate "On" %}</label>
+          {# Quan funcioni, els llocs seran una llista editable des de l'app (dades, no codi) #}
+          <select id="f-lloc" data-filtre="lloc">
+            <option value="">{% translate "Tots els llocs" %}</option>
+            {% for key, name in places %}<option value="{{ key }}">{{ name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="activitats-filtre">
+          <button type="button" class="interruptor" role="switch" aria-checked="false" aria-labelledby="f-places" data-filtre="places" data-si="{% translate 'Sí' %}" data-no="{% translate 'No' %}">
+            <span id="f-places">{% translate "Només amb places lliures" %}</span>
+            <span class="int-pista"><span class="int-boto"><span class="si">{% icona "check" %}</span><span class="no"></span></span></span><span class="int-estat" aria-hidden="true">{% translate "No" %}</span>
+          </button>
+        </div>
+      </section>
+
+      <div class="activitats-principal" data-fons>
+        <div class="activitats-barra">
+          <button type="button" class="boto activitats-obre" aria-expanded="false" aria-controls="activitats-filtres" data-obre>{% icona "sliders-horizontal" %}{% translate "Filtres" %}</button>
+          <p class="activitats-resultat" aria-live="polite">{% blocktranslate %}<b data-recompte>{{ total }}</b> de {{ total }} activitats{% endblocktranslate %}</p>
+        </div>
+        <div class="pestanyes desplacable-x activitats-pestanyes" role="tablist" aria-label="{% translate "Tipus d'activitat" %}">
+          <button type="button" class="pestanya" role="tab" id="pest-totes" aria-controls="panell-totes" aria-selected="true">{% translate "Totes" %} <span class="activitats-n" data-n>{{ total }}</span></button>
+          {% for s in sections %}
+          <button type="button" class="pestanya tipus-{{ s.key }}" role="tab" id="pest-{{ s.key }}" aria-controls="panell-{{ s.key }}" aria-selected="false" tabindex="-1">{% icona s.icon %}{{ s.tab }} <span class="activitats-n" data-n>{{ s.acts|length }}</span></button>
+          {% endfor %}
+          <button type="button" class="pestanya" role="tab" id="pest-guardades" aria-controls="panell-guardades" aria-selected="false" tabindex="-1">{% icona "star" %}{% translate "Guardades" %} <span class="activitats-n" data-n>{{ saved|length }}</span></button>
+        </div>
+
+        <div class="panells activitats-panells">
+          <div class="activitats-panell" role="tabpanel" id="panell-totes" aria-labelledby="pest-totes" tabindex="0">
+            {% for s in sections %}
+            <section class="activitats-grup tipus-{{ s.key }}" aria-labelledby="grup-{{ s.key }}" data-grup data-limit="3">
+              <header class="activitats-grup-cap">
+                <h2 id="grup-{{ s.key }}">{% icona s.icon %}{{ s.tab }} <span class="activitats-n" data-n>{{ s.acts|length }}</span></h2>
+                <button type="button" class="boto boto-petit boto-text" data-mostra="{{ s.key }}">{% translate "Veure-les totes" %}<span class="visualment-amagat">: {{ s.tab }}</span> <span aria-hidden="true">›</span></button>
+              </header>
+              <ul class="activitats-graella">
+                {% for act in s.acts %}{% include "previews/_activitats_targeta.html" with posicio=forloop.counter limit=3 %}{% endfor %}
+              </ul>
+            </section>
+            {% endfor %}
+            {% include "previews/_activitats_buit.html" %}
+          </div>
+          {% for s in sections %}
+          <div class="activitats-panell" role="tabpanel" id="panell-{{ s.key }}" aria-labelledby="pest-{{ s.key }}" tabindex="0" hidden>
+            {% for month in s.months %}
+            <section class="activitats-grup" aria-labelledby="mes-{{ s.key }}-{{ forloop.counter }}" data-grup>
+              <h2 class="activitats-grup-cap" id="mes-{{ s.key }}-{{ forloop.counter }}">{{ month.name }}</h2>
+              <ul class="activitats-graella">
+                {% for act in month.acts %}{% include "previews/_activitats_targeta.html" %}{% endfor %}
+              </ul>
+            </section>
+            {% endfor %}
+            {% include "previews/_activitats_buit.html" %}
+          </div>
+          {% endfor %}
+          <div class="activitats-panell" role="tabpanel" id="panell-guardades" aria-labelledby="pest-guardades" tabindex="0" hidden>
+            {% for month in saved_months %}
+            <section class="activitats-grup" aria-labelledby="mes-guardades-{{ forloop.counter }}" data-grup>
+              <h2 class="activitats-grup-cap" id="mes-guardades-{{ forloop.counter }}">{{ month.name }}</h2>
+              <ul class="activitats-graella">
+                {% for act in month.acts %}{% include "previews/_activitats_targeta.html" %}{% endfor %}
+              </ul>
+            </section>
+            {% endfor %}
+            {% include "previews/_activitats_buit.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endwith %}
+{% endblock %}

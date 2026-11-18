@@ -1,0 +1,12 @@
+{% load i18n icones %}{% comment %}Estat buit d'un panell d'Activitats (T-DX-63): diu quin filtre cal treure. activitats.js
+   mostra només els botons dels filtres actius i hi posa el valor triat.{% endcomment %}
+<div class="activitats-buit" data-buit hidden>
+  <p><strong>{% translate "Cap activitat amb aquests filtres." %}</strong></p>
+  <p>{% translate "Treu-ne algun per veure'n més:" %}</p>
+  <ul class="activitats-treu">
+    <li data-treu="puc" hidden><button type="button" class="boto boto-petit">{% icona "x" %}<span class="visualment-amagat">{% translate "Treu el filtre" %} </span>{% translate "Només les que puc fer" %}</button></li>
+    <li data-treu="quan" hidden><button type="button" class="boto boto-petit">{% icona "x" %}<span class="visualment-amagat">{% translate "Treu el filtre" %} </span><span data-etiqueta></span></button></li>
+    <li data-treu="lloc" hidden><button type="button" class="boto boto-petit">{% icona "x" %}<span class="visualment-amagat">{% translate "Treu el filtre" %} </span><span data-etiqueta></span></button></li>
+    <li data-treu="places" hidden><button type="button" class="boto boto-petit">{% icona "x" %}<span class="visualment-amagat">{% translate "Treu el filtre" %} </span>{% translate "Només amb places lliures" %}</button></li>
+  </ul>
+</div>

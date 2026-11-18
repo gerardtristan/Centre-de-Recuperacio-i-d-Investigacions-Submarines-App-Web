@@ -295,6 +295,12 @@ MAP = {
         "static/css/oleaje.css",
     ),
     "test_previews.py": ("apps/previews/*", "templates/previews/*"),
+    "test_activitats.py": (  # T-DX-63
+        "apps/previews/screens/activitats*",
+        "templates/previews/*activitats*",
+        "static/css/activitats.css",
+        "static/js/activitats.js",
+    ),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",
@@ -475,6 +481,7 @@ SECONDS = {
     "test_recorreguts_048.py": 20,
     "test_logotip.py": 130,  # tres motors (T-DX-54)
     "test_navegacio_soci.py": 50,  # cinc amplades en clar i en fosc (T-DX-59)
+    "test_activitats.py": 60,  # T-DX-63: cinc amplades i axe en clar i en fosc
 }
 DEFAULT_SECONDS = 25
 
