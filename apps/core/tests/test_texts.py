@@ -1,0 +1,184 @@
+"""Textos editables dels correus (T-M00-08; 085, S-1 i S-3): text per defecte, versió publicada
+amb el valor anterior, vista prèvia, permís i seguretat del text (cap plantilla des de la base
+de dades, cap HTML). Només dades inventades."""
+
+import datetime
+
+import pytest
+from django.core.exceptions import ValidationError
+from django.http import Http404
+from django.urls import reverse
+
+from apps.core import business_settings, mail, texts
+from apps.core.models import AuditEntry, OutgoingEmail, Role, Setting, SettingVersion
+from apps.core.tests.test_guest_links import admin_client
+
+pytestmark = pytest.mark.django_db
+
+R = Role.Code
+LEAVE = "texts.baixa-efectiva"
+DUE = "texts.recordatori-quota"
+OVERDUE = "texts.recordatori-quota-vencuda"
+EDITED = "Baixa feta\n\nHola,\n\nDes del {data} ja no ets soci.\n"
+
+
+def leave_email():
+    return mail.queue_email(
+        "baixa-efectiva",
+        to="anna@example.org",
+        context={"effective_on": datetime.date(2026, 12, 31)},
+    )
+
+
+def reminder(overdue):
+    context = {"due_on": datetime.date(2026, 12, 15), "amount": "55,00 €", "overdue": overdue}
+    return mail.queue_email("recordatori-quota", to="anna@example.org", context=context)
+
+
+def url(key, name="setting_detail"):
+    return reverse(f"administration:{name}", args=["texts", key])
+
+
+# --- Registre i text per defecte ------------------------------------------------------------
+
+
+def test_every_editable_email_has_its_setting_priority_and_a_valid_default():
+    for key, entry in texts.EMAILS.items():
+        setting = Setting.objects.get(key=key)  # el crea `core/0047`
+        assert (setting.module, setting.value_type, setting.initial_value) == ("texts", "text", "")
+        assert entry.template in mail.TEMPLATE_PRIORITIES
+        texts.validate(key, str(entry.default))
+
+
+def test_without_a_published_version_the_default_text_is_sent():
+    email = leave_email()
+    assert email.subject == "La teva baixa al C.R.I.S. és efectiva"
+    assert "és efectiva des del 31/12/2026." in email.body_text
+    assert email.body_html == "" and email.language == "ca"
+
+
+def test_the_reminder_picks_the_variant_by_the_due_date():
+    assert reminder(False).subject == "Recordatori: la teva quota del C.R.I.S."
+    overdue = reminder(True)
+    assert overdue.subject == "Tens una quota del C.R.I.S. pendent de pagar"
+    assert "de 55,00 € va vèncer el 15/12/2026" in overdue.body_text
+
+
+# --- Publicar una versió --------------------------------------------------------------------
+
+
+def test_published_text_is_sent_with_its_values_and_keeps_the_previous_one(make_admin):
+    secretary = make_admin(R.SECRETARY)
+    business_settings.change(LEAVE, EDITED, secretary, "Text de la secretaria (prova)")
+
+    email = leave_email()
+    assert email.subject == "Baixa feta"
+    assert email.body_text == "Hola,\n\nDes del 31/12/2026 ja no ets soci.\n"
+    version = SettingVersion.objects.get(setting__key=LEAVE)
+    assert (version.previous_value, version.note) == ("", "Text de la secretaria (prova)")
+    entry = AuditEntry.objects.get(action=business_settings.ACTION_CHANGED, field=LEAVE)
+    assert (entry.old_value, entry.new_value) == ("", EDITED)
+
+    business_settings.change(LEAVE, "", secretary)  # torna al text per defecte
+    assert leave_email().subject == "La teva baixa al C.R.I.S. és efectiva"
+    assert SettingVersion.objects.filter(setting__key=LEAVE).count() == 2
+
+
+def test_editing_one_variant_does_not_change_the_other(make_admin):
+    business_settings.change(OVERDUE, "Impagada\n\nPaga {import}.", make_admin(R.SECRETARY))
+    assert reminder(True).subject == "Impagada"
+    assert reminder(False).subject == "Recordatori: la teva quota del C.R.I.S."
+
+
+# --- Seguretat del text ---------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "Assumpte\n\nHola {nom}",  # variable que aquest correu no té
+        "Assumpte\n\n{{ data }}",  # sintaxi de plantilla de Django
+        "Assumpte\n\n{% load static %}{% debug %}",
+        "Assumpte\n\n{data.__class__}",
+        "Assumpte\n\n<a href='https://exemple.invalid'>entra</a>",  # HTML
+        "Assumpte\n\n<script>alert(1)</script>",
+        "Només assumpte",
+        "\n\nNomés cos",
+    ],
+)
+def test_unsafe_or_incomplete_text_is_rejected_and_nothing_is_saved(make_admin, value):
+    with pytest.raises(ValidationError):
+        business_settings.change(LEAVE, value, make_admin(R.SECRETARY))
+    assert not SettingVersion.objects.filter(setting__key=LEAVE).exists()
+
+
+def test_values_are_inserted_once_and_never_rendered_as_a_template(make_admin):
+    business_settings.change(DUE, "Quota\n\nImport: {import}", make_admin(R.SECRETARY))
+    context = {"due_on": datetime.date(2026, 12, 15), "amount": "{data} {{ 7|add:1 }}"}
+    email = mail.queue_email("recordatori-quota", to="anna@example.org", context=context)
+    assert email.body_text == "Import: {data} {{ 7|add:1 }}\n"
+
+
+def test_the_subject_is_a_single_line():
+    subject, body = texts.preview(LEAVE, "Assumpte   amb  espais\nCos")
+    assert (subject, body) == ("Assumpte amb espais", "Cos\n")
+
+
+# --- Permís ---------------------------------------------------------------------------------
+
+
+def test_only_the_section_editor_publishes(make_admin):
+    administrator = make_admin(R.ADMINISTRATOR)  # «Cons.»
+    with pytest.raises(Http404):
+        business_settings.change(LEAVE, EDITED, administrator)
+    assert AuditEntry.objects.filter(action=business_settings.ACTION_DENIED, field=LEAVE).exists()
+    with pytest.raises(Http404):
+        business_settings.change(LEAVE, EDITED, make_admin(R.TREASURER))
+    assert not SettingVersion.objects.exists()
+
+
+# --- Pantalla -------------------------------------------------------------------------------
+
+
+def test_screen_shows_the_default_text_to_edit_and_the_allowed_variables(make_admin):
+    client = admin_client(make_admin(R.SECRETARY))
+    listing = client.get(reverse("administration:settings_section", args=["texts"]))
+    assert "Correu de baixa efectiva" in listing.content.decode()
+    html = client.get(url(LEAVE)).content.decode()
+    assert "La teva baixa com a soci és efectiva des del {data}." in html
+    assert "{data} (data de la baixa)" in html
+
+
+def test_preview_uses_invented_data_escapes_the_text_and_saves_nothing(make_admin):
+    client = admin_client(make_admin(R.SECRETARY))
+    value = 'Baixa & co\n\nDes del {data}, "adeu".'
+    response = client.post(url(LEAVE), {"value": value, "note": "", "preview": ""})
+    html = response.content.decode()
+    assert response.status_code == 200
+    assert "Vista prèvia amb dades inventades" in html
+    assert "Baixa &amp; co" in html and "Des del 31/12/2026, &quot;adeu&quot;." in html
+    assert not SettingVersion.objects.exists()
+
+
+def test_preview_of_an_unsafe_text_shows_the_error(make_admin):
+    client = admin_client(make_admin(R.SECRETARY))
+    response = client.post(url(LEAVE), {"value": "A\n\n<b>x</b>", "note": "", "preview": ""})
+    assert "etiquetes HTML" in response.content.decode()
+    assert "Vista prèvia amb dades inventades" not in response.content.decode()
+
+
+def test_preview_without_edit_permission_is_not_found(make_admin):
+    client = admin_client(make_admin(R.ADMINISTRATOR))
+    assert client.get(url(LEAVE)).status_code == 200  # «Cons.»: veu el text i l'historial
+    response = client.post(url(LEAVE), {"value": EDITED, "note": "", "preview": ""})
+    assert response.status_code == 404
+    assert client.get(reverse("administration:settings_section", args=["texts"])).status_code == 200
+    assert admin_client(make_admin(R.TREASURER)).get(url(LEAVE)).status_code == 404
+
+
+def test_publishing_from_the_screen_sends_the_new_text(make_admin):
+    client = admin_client(make_admin(R.SECRETARY))
+    response = client.post(url(LEAVE), {"value": EDITED, "note": "Prova inventada"})
+    assert response.status_code == 302
+    assert leave_email().subject == "Baixa feta"
+    assert OutgoingEmail.objects.count() == 1

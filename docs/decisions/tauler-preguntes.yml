@@ -1000,4 +1000,33 @@ opcions:
       crea un segon tipus de ple dret o de simpatitzant, i es poden afegir llavors.
     data: 2026-11-18
 
+  P-380:
+    opcions:
+      A: "La Secretaria edita tots els textos i l'administrador els veu (com s'ha construït)."
+      B: "Com A i, a més, el Tresorer edita els recordatoris de quota i els avisos d'impagat (un permís per text)."
+      C: "Només l'administrador, a petició de la secretaria o del tresorer."
+    recomanada: A
+    perque: >-
+      La secretaria redacta els textos definitius (Q-058) i un sol permís per apartat no afegeix cap fila
+      a l'editor; si el tresorer n'ha d'editar algun, es dona des de l'editor de permisos sense codi nou.
+    data: 2026-11-18
+
+  P-381:
+    opcions:
+      A: "El text editat és en català i s'envia així a tothom fins a la P-49 (com s'ha construït)."
+      B: "Una versió del text per llengua activa; sense la traducció, el text per defecte traduït."
+    recomanada: A
+    perque: >-
+      Només hi ha el català actiu (061) i B demana decidir abans quines llengües i qui les tradueix (P-49).
+    data: 2026-11-18
+
+  P-382:
+    opcions:
+      A: "Nota opcional, com als ajustos que no són de diners (com s'ha construït)."
+      B: "Nota obligatòria en publicar qualsevol text."
+    recomanada: A
+    perque: >-
+      L'historial ja guarda qui, quan, el text anterior i el nou; B és un canvi d'una línia si la junta ho vol.
+    data: 2026-11-18
+
 noves:

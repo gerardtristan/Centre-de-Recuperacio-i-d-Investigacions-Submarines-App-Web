@@ -6,4 +6,9 @@ class CoreConfig(AppConfig):
     verbose_name = "Base comuna"
 
     def ready(self):
-        from . import checks  # noqa: F401 (registra les comprovacions d'arrencada)
+        from . import (
+            checks,  # noqa: F401 (registra les comprovacions d'arrencada)
+            texts,
+        )
+
+        texts.register()

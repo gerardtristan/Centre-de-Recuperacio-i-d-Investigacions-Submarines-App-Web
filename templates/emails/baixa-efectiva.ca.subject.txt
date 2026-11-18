@@ -1,1 +1,0 @@
-{% load i18n %}{# T-M01-17: TEXT PROVISIONAL [A validar: junta i secretaria]. #}{% translate "La teva baixa al C.R.I.S. és efectiva" %}

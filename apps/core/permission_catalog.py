@@ -538,6 +538,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.members",),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    # Textos dels correus (T-M00-08; 085, S-1 i S-3). Qui els edita no és al pla: la Secretaria,
+    # que en redacta el text definitiu (Q-058), i l'administrador els veu [P-380].
+    _perm(
+        "settings.section.texts",
+        "AJ00-T",
+        _("Textos dels correus"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: SCOPE_READ},
+    ),
     # Pagaments (05b): «Cons.» per als rols que hi poden editar algun valor. VC-17, només
     # l'administrador; VC-11 i VC-16, només el tresorer.
     _perm(

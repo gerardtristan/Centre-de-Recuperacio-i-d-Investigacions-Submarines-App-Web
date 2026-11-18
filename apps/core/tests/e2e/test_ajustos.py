@@ -2,7 +2,8 @@
 canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i el tresorer, amb
 «Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
 programa un preu i canvia els recordatoris. Codis de retorn (P-291): el tresorer en canvia
-l'acció. Pantalles a 1280, 390 i 320 px."""
+l'acció. Textos dels correus (T-M00-08): la secretaria edita el de la baixa. Pantalles a
+1280, 390 i 320 px."""
 
 from datetime import timedelta
 
@@ -11,7 +12,7 @@ from django.utils import timezone
 from playwright.sync_api import expect
 
 from apps.core import business_settings
-from apps.core.models import Setting
+from apps.core.models import Role, RolePermission, Setting
 
 from .conftest import login_admin, make_admin
 
@@ -134,3 +135,43 @@ def test_treasurer_moves_a_return_code_to_another_action(page, live_server, revi
     expect(page.get_by_text("Valor desat.")).to_be_visible()
     review("codis-retorn-desat")
     assert business_settings.get("payments.return_codes_retry") == "AM04, MD01"
+
+
+def test_secretary_previews_and_publishes_the_leave_email(page, live_server, review):
+    # T-M00-08 (085, S-1 i S-3): el text del correu de baixa (`core/0047`), amb la vista prèvia
+    # amb dades inventades, un text amb HTML que no es desa i la publicació amb l'historial.
+    key = "texts.baixa-efectiva"
+    Setting.objects.get_or_create(
+        key=key,
+        defaults={"module": "texts", "value_type": "text", "initial_value": "", "max_length": 5000},
+    )
+    RolePermission.objects.get_or_create(
+        role=Role.objects.get(code="secretary"),
+        permission_code="settings.section.texts",
+        defaults={"scope": "all"},
+    )
+    secretary = make_admin("secretaria.prova", "secretary")
+    login_admin(page, live_server.url, secretary.login)
+    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    page.get_by_role("link", name="Textos dels correus").click()
+    expect(page.get_by_role("heading", name="Textos dels correus")).to_be_visible()
+    review("textos-apartat")
+
+    page.get_by_role("link", name="Canvia: Correu de baixa efectiva").click()
+    expect(page.get_by_label("Valor nou")).to_contain_text("des del {data}.")
+    page.get_by_label("Valor nou").fill("Baixa feta\n\nHola,\n\nDes del {data} ja no ets soci.")
+    page.get_by_role("button", name="Vista prèvia").click()
+    expect(page.get_by_text("Des del 31/12/2026 ja no ets soci.")).to_be_visible()
+    review("textos-vista-previa")
+
+    page.get_by_label("Valor nou").fill("Baixa feta\n\n<b>Hola</b>")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+
+    page.get_by_label("Valor nou").fill("Baixa feta\n\nHola,\n\nDes del {data} ja no ets soci.")
+    page.get_by_label("Nota").fill("Text inventat")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    expect(page.get_by_role("cell", name="Text inventat")).to_be_visible()
+    review("textos-desat")
+    assert business_settings.get(key).startswith("Baixa feta\n\nHola,")

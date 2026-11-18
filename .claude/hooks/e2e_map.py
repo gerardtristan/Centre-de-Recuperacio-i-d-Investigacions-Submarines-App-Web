@@ -199,6 +199,7 @@ MAP = {
     ),
     "test_ajustos.py": (
         "apps/core/views/business_settings.py",
+        "apps/core/texts.py",
         "apps/members/settings.py",
         "apps/payments/returns.py",
         "templates/core/setting*.html",

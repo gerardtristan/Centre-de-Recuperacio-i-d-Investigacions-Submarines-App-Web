@@ -1,1 +1,0 @@
-{% load i18n %}{# T-M01-18: TEXT PROVISIONAL [A validar: junta i tresorer]. #}{% if overdue %}{% translate "Tens una quota del C.R.I.S. pendent de pagar" %}{% else %}{% translate "Recordatori: la teva quota del C.R.I.S." %}{% endif %}
