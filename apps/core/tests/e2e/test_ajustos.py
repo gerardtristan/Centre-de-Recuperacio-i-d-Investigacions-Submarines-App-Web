@@ -2,7 +2,7 @@
 canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i el tresorer, amb
 «Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
 programa un preu i canvia els recordatoris. Codis de retorn (P-291): el tresorer en canvia
-l'acció. Textos dels correus (T-M00-08): la secretaria edita el de la baixa. Tipus de
+l'acció. Textos dels correus (T-M00-08), àrea de socis: la secretaria edita el de la baixa. Tipus de
 soci (T-M01-52): l'administrador en crea un amb el seu preu i el desactiva. Pantalles
 a 1280, 390 i 320 px."""
 
@@ -141,21 +141,26 @@ def test_treasurer_moves_a_return_code_to_another_action(page, live_server, revi
 def test_secretary_previews_and_publishes_the_leave_email(page, live_server, review):
     # T-M00-08 (085, S-1 i S-3): el text del correu de baixa (`core/0047`), amb la vista prèvia
     # amb dades inventades, un text amb HTML que no es desa i la publicació amb l'historial.
-    key = "texts.baixa-efectiva"
+    key = "texts-members.baixa-efectiva"
     Setting.objects.get_or_create(
         key=key,
-        defaults={"module": "texts", "value_type": "text", "initial_value": "", "max_length": 5000},
+        defaults={
+            "module": "texts-members",
+            "value_type": "text",
+            "initial_value": "",
+            "max_length": 5000,
+        },
     )
     RolePermission.objects.get_or_create(
         role=Role.objects.get(code="secretary"),
-        permission_code="settings.section.texts",
+        permission_code="settings.section.texts-members",
         defaults={"scope": "all"},
     )
     secretary = make_admin("secretaria.prova", "secretary")
     login_admin(page, live_server.url, secretary.login)
     page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
-    page.get_by_role("link", name="Textos dels correus").click()
-    expect(page.get_by_role("heading", name="Textos dels correus")).to_be_visible()
+    page.get_by_role("link", name="Textos dels correus: socis").click()
+    expect(page.get_by_role("heading", name="Textos dels correus: socis")).to_be_visible()
     review("textos-apartat")
 
     page.get_by_role("link", name="Canvia: Correu de baixa efectiva").click()

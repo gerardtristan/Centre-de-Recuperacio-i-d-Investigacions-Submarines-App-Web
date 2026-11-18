@@ -1,8 +1,10 @@
 """Textos editables sense tocar el codi (T-M00-08; decisió 085, S-1 i S-3).
 
-Cada correu editable és un ajust de text de l'apartat «texts» (peça comuna d'ajustos, 055): les
-versions, l'historial amb el valor anterior, la nota, el permís i el registre d'activitat són
-els de `business_settings.change`. Aquí només hi ha el que és propi dels textos:
+Cada correu editable és un ajust de text d'una àrea de textos (peça comuna d'ajustos, 055). Cada
+àrea és un apartat d'ajustos, `settings.section.<àrea>` amb «Cons.» o «Sí» (T-M00-08d); ara
+només n'hi ha una, `texts-members`. Les versions, l'historial amb el valor anterior, la nota, el
+permís i el registre d'activitat són els de `business_settings.change`. Aquí només hi ha el que
+és propi dels textos:
 
 - El text per defecte és al codi, traduïble. Un ajust buit (el valor inicial) vol dir «text per
   defecte»; desar-lo buit hi torna.
@@ -30,7 +32,9 @@ from django.utils.translation import gettext_lazy
 
 from .models import Setting
 
-SECTION = "texts"
+# Àrea dels textos (T-M00-08d): cada àrea és un apartat d'ajustos, `settings.section.<àrea>`.
+# Ara tots els correus editables són de l'àrea de socis.
+SECTION = "texts-members"
 SUBJECT_MAX = 200
 logger = logging.getLogger(__name__)
 
@@ -243,7 +247,8 @@ def validate(key: str, value: str) -> None:
 
 
 def is_editable(setting) -> bool:
-    return setting.module == SECTION and setting.key in EMAILS
+    # Per la clau i no per l'àrea: un correu d'una àrea nova també té vista prèvia i ajuda.
+    return setting.key in EMAILS
 
 
 def normalise_lines(value):

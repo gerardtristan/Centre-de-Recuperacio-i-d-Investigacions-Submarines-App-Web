@@ -13,16 +13,34 @@ from django.urls import reverse
 from django.utils import translation
 
 from apps.core import business_settings, mail, texts
-from apps.core.models import AuditEntry, OutgoingEmail, Role, Setting, SettingVersion
+from apps.core.models import (
+    AuditEntry,
+    OutgoingEmail,
+    PermissionMatrixVersion,
+    Role,
+    RolePermission,
+    Setting,
+    SettingVersion,
+)
 from apps.core.tests.test_guest_links import admin_client
 
 pytestmark = pytest.mark.django_db
 
 R = Role.Code
-LEAVE = "texts.baixa-efectiva"
-DUE = "texts.recordatori-quota"
-OVERDUE = "texts.recordatori-quota-vencuda"
+AREA = "texts-members"
+CODE = f"settings.section.{AREA}"
+OLD_CODE = "settings.section.texts"
+LEAVE = f"{AREA}.baixa-efectiva"
+DUE = f"{AREA}.recordatori-quota"
+OVERDUE = f"{AREA}.recordatori-quota-vencuda"
 EDITED = "Baixa feta\n\nHola,\n\nDes del {data} ja no ets soci.\n"
+
+
+def read_only_treasurer(make_admin):
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.TREASURER), permission_code=CODE, scope="read"
+    )
+    return make_admin(R.TREASURER)
 
 
 def leave_email():
@@ -39,7 +57,7 @@ def reminder(overdue):
 
 
 def url(key, name="setting_detail"):
-    return reverse(f"administration:{name}", args=["texts", key])
+    return reverse(f"administration:{name}", args=[AREA, key])
 
 
 # --- Registre i text per defecte ------------------------------------------------------------
@@ -48,7 +66,7 @@ def url(key, name="setting_detail"):
 def test_every_editable_email_has_its_setting_priority_and_a_valid_default():
     for key, entry in texts.EMAILS.items():
         setting = Setting.objects.get(key=key)  # el crea `core/0047`
-        assert (setting.module, setting.value_type, setting.initial_value) == ("texts", "text", "")
+        assert (setting.module, setting.value_type, setting.initial_value) == (AREA, "text", "")
         assert entry.template in mail.TEMPLATE_PRIORITIES
         texts.validate(key, str(entry.default))
 
@@ -133,12 +151,12 @@ def test_the_subject_is_a_single_line():
 
 
 def test_only_the_section_editor_publishes(make_admin):
-    administrator = make_admin(R.ADMINISTRATOR)  # «Cons.»
+    reader = read_only_treasurer(make_admin)  # «Cons.»
     with pytest.raises(Http404):
-        business_settings.change(LEAVE, EDITED, administrator)
+        business_settings.change(LEAVE, EDITED, reader)
     assert AuditEntry.objects.filter(action=business_settings.ACTION_DENIED, field=LEAVE).exists()
     with pytest.raises(Http404):
-        business_settings.change(LEAVE, EDITED, make_admin(R.TREASURER))
+        business_settings.change(LEAVE, EDITED, make_admin(R.COURSES_MANAGER))
     assert not SettingVersion.objects.exists()
 
 
@@ -147,7 +165,7 @@ def test_only_the_section_editor_publishes(make_admin):
 
 def test_screen_shows_the_default_text_to_edit_and_the_allowed_variables(make_admin):
     client = admin_client(make_admin(R.SECRETARY))
-    listing = client.get(reverse("administration:settings_section", args=["texts"]))
+    listing = client.get(reverse("administration:settings_section", args=[AREA]))
     assert "Correu de baixa efectiva" in listing.content.decode()
     html = client.get(url(LEAVE)).content.decode()
     assert "La teva baixa com a soci és efectiva des del {data}." in html
@@ -173,12 +191,12 @@ def test_preview_of_an_unsafe_text_shows_the_error(make_admin):
 
 
 def test_preview_without_edit_permission_is_not_found(make_admin):
-    client = admin_client(make_admin(R.ADMINISTRATOR))
+    client = admin_client(read_only_treasurer(make_admin))
     assert client.get(url(LEAVE)).status_code == 200  # «Cons.»: veu el text i l'historial
     response = client.post(url(LEAVE), {"value": EDITED, "note": "", "preview": ""})
     assert response.status_code == 404
-    assert client.get(reverse("administration:settings_section", args=["texts"])).status_code == 200
-    assert admin_client(make_admin(R.TREASURER)).get(url(LEAVE)).status_code == 404
+    assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 200
+    assert admin_client(make_admin(R.COURSES_MANAGER)).get(url(LEAVE)).status_code == 404
 
 
 def test_publishing_from_the_screen_sends_the_new_text(make_admin):
@@ -233,11 +251,11 @@ def test_the_email_records_the_language_its_text_is_in():
 
 
 def test_a_text_setting_without_an_entry_does_not_break_the_screen(make_admin):
-    Setting.objects.create(key="texts.no-existeix", module="texts", value_type="text",
+    Setting.objects.create(key=f"{AREA}.no-existeix", module=AREA, value_type="text",
                            initial_value="", max_length=100)  # fmt: skip
     client = admin_client(make_admin(R.SECRETARY))
-    assert client.get(reverse("administration:settings_section", args=["texts"])).status_code == 200
-    assert client.get(url("texts.no-existeix")).status_code == 200
+    assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 200
+    assert client.get(url(f"{AREA}.no-existeix")).status_code == 200
 
 
 @pytest.mark.parametrize(
@@ -273,7 +291,7 @@ def test_the_renewal_notice_has_one_text_per_downgrade_state(downgrade, subject_
 
 def test_renewal_variants_are_edited_separately(make_admin):
     business_settings.change(
-        "texts.avis-renovacio-pas-acceptat", "Renovació\n\nEl {data} passes a simpatitzant.",
+        f"{AREA}.avis-renovacio-pas-acceptat", "Renovació\n\nEl {data} passes a simpatitzant.",
         make_admin(R.SECRETARY),
     )  # fmt: skip
     context = {"renews_on": datetime.date(2027, 1, 15), "downgrade": "accepted"}
@@ -293,7 +311,7 @@ def test_renewal_variants_are_edited_separately(make_admin):
 )
 def test_join_emails_are_editable_and_have_no_variables(template, subject, make_admin):
     assert mail.queue_email(template, to="anna@example.org").subject == subject
-    key = f"texts.{template}"
+    key = f"{AREA}.{template}"
     assert texts.EMAILS[key].vars == {}
     with pytest.raises(ValidationError):
         business_settings.change(key, "Assumpte\n\nHola {nom}", make_admin(R.SECRETARY))
@@ -306,16 +324,110 @@ def test_any_other_downgrade_state_gets_the_general_renewal_text():
     assert "demana-ho a «Canvi de tipus»" in email.body_text
 
 
-def test_text_settings_reverse_migration_keeps_versions(make_admin):
+def _area_migration():
     from importlib import import_module
 
     from django.apps import apps as django_apps
 
-    migration = import_module("apps.core.migrations.0049_legal_text_note_and_more_texts")
-    business_settings.change("texts.alta-rebutjada", "Rebuig\n\nCos.", make_admin(R.SECRETARY))
+    return import_module("apps.core.migrations.0050_text_areas"), django_apps
+
+
+def test_the_area_migration_reverse_keeps_versions_and_the_matrix_history(make_admin):
+    migration, django_apps = _area_migration()
+    business_settings.change(f"{AREA}.alta-rebutjada", "Rebuig\n\nCos.", make_admin(R.SECRETARY))
+    versions = PermissionMatrixVersion.objects.count()
     migration.unload(django_apps, None)
     assert SettingVersion.objects.filter(setting__key="texts.alta-rebutjada").exists()
-    assert not Setting.objects.filter(key="texts.rebut-sollicitud-alta").exists()
+    assert not Setting.objects.filter(module=AREA).exists()
+    admin = RolePermission.objects.get(role__code=R.ADMINISTRATOR, permission_code=OLD_CODE)
+    assert admin.scope == "read"
+    assert PermissionMatrixVersion.objects.count() == versions + 1  # la història només creix
+    migration.load(django_apps, None)
+    assert SettingVersion.objects.filter(setting__key=f"{AREA}.alta-rebutjada").exists()
+    assert PermissionMatrixVersion.objects.count() == versions + 2
+    assert not RolePermission.objects.filter(permission_code=OLD_CODE).exists()
+
+
+def test_the_area_migration_gives_the_administrator_edit_even_without_a_previous_cell():
+    migration, django_apps = _area_migration()
+    migration.unload(django_apps, None)
+    RolePermission.objects.filter(role__code=R.ADMINISTRATOR, permission_code=OLD_CODE).delete()
+    # Una cel·la nova que ja hi era no trenca la restricció d'unicitat.
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.SECRETARY), permission_code=CODE, scope="read"
+    )
+    migration.load(django_apps, None)
+    cells = dict(
+        RolePermission.objects.filter(permission_code=CODE).values_list("role__code", "scope")
+    )
+    assert cells == {R.ADMINISTRATOR: "all", R.SECRETARY: "all"}
+    # Una sola entrada per cel·la a la versió, amb l'abast inicial i el final reals.
+    diff = PermissionMatrixVersion.objects.latest("number").diff
+    pairs = [(entry["role"], entry["permission"]) for entry in diff]
+    assert len(pairs) == len(set(pairs))
+    admin = next(e for e in diff if (e["role"], e["permission"]) == (R.ADMINISTRATOR, CODE))
+    assert (admin["before"], admin["after"]) == (None, "all")
+
+
+def test_the_area_migration_only_renames_keys_with_the_section_prefix():
+    migration, django_apps = _area_migration()
+    migration.unload(django_apps, None)
+    Setting.objects.create(key="altra.clau", module="texts", value_type="text", initial_value="")
+    migration.load(django_apps, None)
+    other = Setting.objects.get(key="altra.clau")
+    assert other.module == "texts"
+    assert Setting.objects.filter(key=LEAVE, module=AREA).exists()
+
+
+# --- Àrees de textos (T-M00-08d; 097, CA-M00-08.4; P-380) -------------------------------------
+
+
+@pytest.mark.parametrize(
+    "role", [code for code in R.values if code not in ("member", "visitor", "guest")]
+)
+def test_initial_cell_of_each_role_in_the_members_area(role):
+    cell = RolePermission.objects.filter(role__code=role, permission_code=CODE).first()
+    expected = {R.ADMINISTRATOR: "all", R.SECRETARY: "all"}.get(role)
+    assert (cell.scope if cell else None) == expected
+
+
+def test_no_cell_of_the_old_section_is_left():
+    assert not RolePermission.objects.filter(permission_code=OLD_CODE).exists()
+
+
+def test_an_email_of_another_area_is_editable(monkeypatch):
+    other = texts.EmailText("prova", "Prova", "Assumpte\n\nCos")
+    monkeypatch.setitem(texts.EMAILS, "texts-payments.prova", other)
+    assert texts.is_editable(Setting(key="texts-payments.prova", module="texts-payments"))
+    assert not texts.is_editable(Setting(key="texts-payments.altre", module="texts-payments"))
+
+
+@pytest.mark.parametrize("role", [R.ADMINISTRATOR, R.SECRETARY])
+def test_the_administrator_and_the_secretary_edit_the_members_area(make_admin, role):
+    client = admin_client(make_admin(role))
+    response = client.post(url(LEAVE), {"value": EDITED, "note": ""})
+    assert response.status_code == 302
+    assert business_settings.get(LEAVE) == EDITED.rstrip("\n")
+
+
+def test_without_the_area_every_text_screen_is_not_found(make_admin):
+    # CA-M00-08.4: P-391 resolta (propietari, 18/11/2026): «no trobat», com tots els
+    # apartats d'ajustos (RN-RP-22).
+    client = admin_client(make_admin(R.TREASURER))
+    assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 404
+    assert client.get(url(LEAVE)).status_code == 404
+    assert client.post(url(LEAVE), {"value": EDITED, "note": ""}).status_code == 404
+    assert not SettingVersion.objects.exists()
+
+
+def test_the_settings_index_lists_only_the_areas_of_the_user(make_admin):
+    index = reverse("administration:settings")
+    assert (
+        "Textos dels correus: socis"
+        in admin_client(make_admin(R.SECRETARY)).get(index).content.decode()
+    )
+    html = admin_client(make_admin(R.TREASURER)).get(index).content.decode()
+    assert "Textos dels correus" not in html
 
 
 # --- Variables obligatòries (T-M00-08c; 097, CA-M00-08.2) -------------------------------------
@@ -327,7 +439,7 @@ def test_text_settings_reverse_migration_keeps_versions(make_admin):
         (DUE, "Quota\n\nLa teva quota venç el {data}.", "{import}"),
         (OVERDUE, "Quota\n\nDeus {import}.", "{data}"),
         (LEAVE, "Baixa\n\nJa no ets soci.", "{data}"),
-        ("texts.avis-renovacio", "Renovació\n\nAviat es renova.", "{data}"),
+        (f"{AREA}.avis-renovacio", "Renovació\n\nAviat es renova.", "{data}"),
     ],
 )
 def test_a_text_without_a_required_variable_is_rejected_and_says_which(
@@ -351,5 +463,5 @@ def test_the_help_text_says_which_variables_are_required():
 
 def test_an_email_without_required_variables_accepts_any_text(make_admin):
     business_settings.change(
-        "texts.alta-rebutjada", "Alta\n\nNo s'ha aprovat.", make_admin(R.SECRETARY)
+        f"{AREA}.alta-rebutjada", "Alta\n\nNo s'ha aprovat.", make_admin(R.SECRETARY)
     )
