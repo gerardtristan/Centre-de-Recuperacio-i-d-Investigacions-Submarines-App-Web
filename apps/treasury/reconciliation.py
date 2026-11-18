@@ -9,6 +9,12 @@ torna a calcular les que encara són obertes (pendents o proposades), perquè el
 - **Pendent i a revisar** (CA-T09.3, LT3, LT4, LT6), sense proposta: referència vàlida amb un
   import diferent, d'un càrrec que ja no està pendent, que no és de cap càrrec o que ja és en la
   proposta d'una línia anterior; o sense referència i un sol càrrec pendent del mateix import.
+- **Proposada amb una liquidació** (T-M04-13b; P-M04-F pas 2; CA-T11.1): línia d'entrada sense
+  referències de càrrec amb l'import del net d'una sola liquidació «rebuda» del proveïdor, del
+  dia de l'abonament als `SETTLEMENT_DAYS` dies següents (P-364). Si n'hi ha més d'una, compten
+  les que porten l'identificador al concepte; si encara n'hi ha més d'una, o la mateixa
+  liquidació encaixa amb dues línies, «a revisar» sense proposta. Es confirma amb
+  `settlements.confirm_line` i es desfà amb `undo`.
 - **Pendent**: la resta (sortides, línies sense cap coincidència). Que tota línia sense
   referència vagi a revisar (LT2) és la P-101.
 Cada canvi d'estat queda al registre d'activitat (RN-T13), sense el concepte de la línia.
@@ -31,7 +37,8 @@ pagaments «a revisar» del 05b encara no hi són (P-191). Permisos: P-190.
 """
 
 import re
-from datetime import datetime, time
+from collections import Counter
+from datetime import datetime, time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
@@ -52,6 +59,7 @@ from apps.payments.models import PaymentAttempt
 from . import services
 from .models import (
     Movement,
+    ProviderSettlement,
     Reconciliation,
     ReconciliationUndo,
     StatementLineState,
@@ -69,6 +77,8 @@ RECONCILE = "treasury.reconcile"  # T4, «Conciliar i desfer una conciliació» 
 EXCLUDE = RECONCILE
 OPEN = (StatementLineState.Status.PENDING, StatementLineState.Status.PROPOSED)
 Reason = StatementLineState.ReviewReason
+AMBIGUOUS = Reason.SETTLEMENT_AMBIGUOUS
+SETTLEMENT_DAYS = 5  # P-364: l'abonament arriba al banc com a molt 5 dies després de la liquidació
 
 
 def _evaluate(line, found, charges_by_reference, single_charge_by_amount, taken):
@@ -95,33 +105,48 @@ def _evaluate(line, found, charges_by_reference, single_charge_by_amount, taken)
     return StatementLineState.Status.PENDING, reason, []
 
 
-def _snapshot(status, reason, charge_ids):
-    return {
+def _snapshot(status, reason, charge_ids, settlement_id=None):
+    snapshot = {
         "status": status,
         "to_review": bool(reason),
         "review_reason": reason,
         "charges": charge_ids,
     }
+    if settlement_id:
+        snapshot["settlement"] = settlement_id
+    return snapshot
 
 
 PLAIN = _snapshot(StatementLineState.Status.PENDING, "", [])
 
 
 def _apply(
-    state, status, reason, charges, *, created, actor=None, action=STATE_CHANGED, why=""
+    state,
+    status,
+    reason,
+    charges,
+    *,
+    created,
+    actor=None,
+    action=STATE_CHANGED,
+    why="",
+    settlement=None,
 ) -> None:
     """Desa l'estat si ha canviat i en deixa l'entrada al registre."""
-    new = _snapshot(status, reason, sorted(charge.pk for charge in charges))
+    charge_ids = sorted(charge.pk for charge in charges)
+    new = _snapshot(status, reason, charge_ids, settlement and settlement.pk)
     old = None
     if not created:
         old = _snapshot(
             state.status,
             state.review_reason,
             sorted(charge.pk for charge in state.proposed_charges.all()),
+            state.proposed_settlement_id,
         )
         if old == new:
             return
     state.status, state.to_review, state.review_reason = status, bool(reason), reason
+    state.proposed_settlement = settlement
     state.save()
     state.proposed_charges.set(charges)
     audit.record(
@@ -174,6 +199,7 @@ def refresh() -> None:
         .annotate(n=Count("pk"), charge_id=Max("pk"))
         if row["n"] == 1
     }
+    settlement_for = _settlement_candidates([line for line in lines if not found[line.pk]])
     taken, new_plain = set(), []
     # Primer les línies amb referència: un càrrec ja proposat no compta per a les que no en
     # tenen (AMOUNT_ONLY).
@@ -181,9 +207,16 @@ def refresh() -> None:
         state = states.get(line.pk)
         if state is not None and state.status not in OPEN:
             continue
-        status, reason, charges = _evaluate(
-            line, found[line.pk], charges_by_reference, single_charge_by_amount, taken
-        )
+        settlement, candidates = None, settlement_for.get(line.pk)
+        if candidates is None:
+            status, reason, charges = _evaluate(
+                line, found[line.pk], charges_by_reference, single_charge_by_amount, taken
+            )
+        elif isinstance(candidates, ProviderSettlement):
+            status, reason, charges = StatementLineState.Status.PROPOSED, "", []
+            settlement = candidates
+        else:
+            status, reason, charges = StatementLineState.Status.PENDING, AMBIGUOUS, []
         if state is None and _snapshot(status, reason, []) == PLAIN:
             new_plain.append(StatementLineState(statement_line=line))
             continue
@@ -194,8 +227,33 @@ def refresh() -> None:
             reason,
             charges,
             created=created,
+            settlement=settlement,
         )
     StatementLineState.objects.bulk_create(new_plain)
+
+
+def _settlement_candidates(lines) -> dict:
+    """{línia: la liquidació que se li proposa, o la llista de candidates si no n'hi ha una de
+    sola}, només per a les línies d'entrada que n'encaixen alguna (P-M04-F pas 2; P-364)."""
+    amounts = {line.amount_cents for line in lines if line.amount_cents > 0}
+    received = list(
+        ProviderSettlement.objects.filter(
+            status=ProviderSettlement.Status.RECEIVED, net_cents__in=amounts
+        ).exclude(source=ProviderSettlement.Source.REMITTANCE)  # la remesa la concilia el 05b
+    )
+    found = {}
+    for line in lines:
+        candidates = [
+            s
+            for s in received
+            if s.net_cents == line.amount_cents
+            and s.settled_on <= line.value_date <= s.settled_on + timedelta(days=SETTLEMENT_DAYS)
+        ]
+        named = [s for s in candidates if s.external_id.casefold() in line.concept.casefold()]
+        if candidates:
+            found[line.pk] = named or candidates
+    sole = Counter(c[0].pk for c in found.values() if len(c) == 1)
+    return {pk: c[0] if len(c) == 1 and sole[c[0].pk] == 1 else c for pk, c in found.items()}
 
 
 class ReconciliationRejected(ValidationError):
@@ -222,7 +280,11 @@ def confirm(line, *, by) -> Reconciliation:
     )
     if state is not None and state.status == StatementLineState.Status.RECONCILED:
         raise ReconciliationRejected(_("Aquesta línia ja està conciliada."))
-    if state is None or state.status != StatementLineState.Status.PROPOSED:
+    if (
+        state is None
+        or state.status != StatementLineState.Status.PROPOSED
+        or state.proposed_settlement_id  # es confirma amb `settlements.confirm_line`
+    ):
         raise ReconciliationRejected(_("Aquesta línia no té cap proposta per confirmar."))
     return _reconcile(state, list(state.proposed_charges.order_by("pk")), by=by)
 
@@ -374,6 +436,10 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
     if ReconciliationUndo.objects.filter(reconciliation=reconciliation).exists():
         raise ReconciliationRejected(_("Aquesta conciliació ja està desfeta."))
     matched = list(reconciliation.matched_charges.order_by("pk"))
+    settlement = reconciliation.settlement
+    if settlement is not None and settlement.source != ProviderSettlement.Source.REMITTANCE:
+        _undo_settlement(settlement, reason, by)
+        matched = []  # els cobraments ja eren pagats (targeta o Bizum) i no es toquen
     for charge in matched:
         transfers = [
             payment
@@ -406,6 +472,20 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
     )
     refresh()
     return done
+
+
+def _undo_settlement(settlement, reason, by) -> None:
+    """La liquidació torna a «rebuda» i les dues potes del traspàs del net es compensen amb motiu
+    (RN-T25). Les comissions es queden: són dels cobraments, no de la línia, i en tornar-la a
+    confirmar `record_fee` no les repeteix (P-365)."""
+    settlement = ProviderSettlement.objects.select_for_update().get(pk=settlement.pk)
+    legs = list(settlement.movements.filter(kind=Movement.Kind.TRANSFER, reversal__isnull=True))
+    if settlement.status != ProviderSettlement.Status.RECONCILED or len(legs) != 2:
+        raise ReconciliationRejected(_("Aquesta liquidació ja no està conciliada."))
+    for leg in legs:
+        services.reverse(leg, reason=reason, by=by, origin=services.RECONCILIATION)
+    settlement.status = ProviderSettlement.Status.RECEIVED
+    settlement.save(update_fields=["status"])
 
 
 SEARCH_LIMIT = 20
