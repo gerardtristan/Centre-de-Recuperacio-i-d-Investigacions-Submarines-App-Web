@@ -887,5 +887,23 @@ opcions:
       El pas no queda encallat un any i fa el que el correu d'avís ha promès (passar a simpatitzant en
       aquesta renovació); el tresorer rep un correu i decideix a mà. C depèn de la 05b.
     data: 2026-11-18
+  P-367:
+    opcions:
+      A: Només s'avisa en revocar; el canvi d'IBAN no avisa.
+      B: El canvi d'IBAN també avisa el tresorer, amb el mateix correu.
+    recomanada: A
+    perque: >-
+      La regla parla de la revocació, i el rebut contra el compte antic normalment es cobra; si el
+      compte és tancat, el retorn ja arriba pel circuit dels rebuts retornats.
+    data: 2026-11-18
+  P-368:
+    opcions:
+      A: El correu al soci no canvia.
+      B: Quan hi ha un rebut al banc, el correu al soci afegeix que aquest rebut encara es pot cobrar i que, si es cobra, se li tornarà o se li explicarà què fer.
+    recomanada: B
+    perque: >-
+      Avui el correu diu que el mandat no es farà servir més, i el rebut ja enviat es pot cobrar;
+      el text el valida la junta, i per això no s'ha canviat.
+    data: 2026-11-18
 
 noves:
