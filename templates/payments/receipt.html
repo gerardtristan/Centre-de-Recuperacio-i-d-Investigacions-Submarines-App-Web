@@ -4,8 +4,13 @@
 {% block titol_zona %}{% if guest %}{% translate "Pagaments" %}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block title %}{% blocktranslate with number=receipt.number %}Rebut {{ number }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Rebut" %}</h1>
+  {# T-DX-65 (§5.3 i §6.14): capçalera comuna; el rebut és un document i es queda estret (40rem); a l'escriptori, les accions al costat. Al mòbil, com abans. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Rebut" %}</h1>
+  </header>
+  <div class="rebut-disposicio">
+  <div class="rebut-document">
   {# Tramite i Emisor (T-DX-11; design-system §6.14): el rebut surt d'una ranura una sola vegada i porta el segell de pagat. El rebut només existeix quan el servidor ha confirmat el pagament (B10). En imprimir, sense ranura ni animació i en blanc i negre. #}
   <div class="rebut-ranura no-imprimeix" aria-hidden="true"></div>
   <div class="rebut-sortida">
@@ -29,9 +34,13 @@
     <p class="text-2">{% translate "Rebut del pagament. No és una factura." %} {% blocktranslate %}C.R.I.S. · NIF {{ club_tax_id }} · cris1954.cat{% endblocktranslate %}</p>
   </section>
   </div>
-  <div class="accions no-imprimeix">
-    <button class="boto" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
   </div>
-  <p class="enllacos no-imprimeix"><a href="{{ back }}">{% translate "Tornar al pagament" %}</a></p>
+  <div class="rebut-costat no-imprimeix">
+    <div class="accions">
+      <button class="boto boto-principal" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button>
+    </div>
+    <p class="enllacos"><a href="{{ back }}">{% translate "Tornar al pagament" %}</a></p>
+  </div>
+  </div>
   <script src="{% static 'js/imprimeix.js' %}" defer></script>
 {% endblock %}

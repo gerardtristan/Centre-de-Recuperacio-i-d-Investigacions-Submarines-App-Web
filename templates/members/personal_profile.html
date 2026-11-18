@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# T-M01-16: el meu perfil (C5; HU-M01-08; wireframe socis.html#perfil). Només les dades de la persona de la sessió. Canvi del correu d'entrada (RN-M01-79) i consentiments opcionals (Q-031) de la 074; el servidor ho torna a comprovar tot. La data de naixement que falta, a dalt (T-M01-35). Fora d'aquesta tasca: el canvi de tipus i la baixa (T-M01-17). Exportar i esborrar (T-M01-22) són a «Les meves dades», al final. #}
 {% block title %}{% translate "El meu perfil" %} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/recoveco.css' %}">{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
-  {# Monograma (T-DX-18): l'avatar per defecte, a partir de la llavor del soci de la sessió; mai del nom. #}
-  <header class="monograma-titol">{% if member %}{% load monograma %}{% monograma member.avatar_seed %}{% endif %}<h1>{% translate "El meu perfil" %}</h1></header>
-  <p class="text-2">{% translate "Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu." %}</p>
+  {# T-DX-65 (§5.3): capçalera comuna; a l'escriptori, les dades i els formularis a 40rem i, al costat, l'ajuda plegada. Només disposició: els camps, la vista i els POST són els mateixos. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Perfil" %}</p>
+    {# Monograma (T-DX-18): l'avatar per defecte, a partir de la llavor del soci de la sessió; mai del nom. #}
+    <div class="monograma-titol">{% if member %}{% load monograma %}{% monograma member.avatar_seed %}{% endif %}<h1>{% translate "El meu perfil" %}</h1></div>
+    <p class="text-2">{% translate "Les teves dades, els teus consentiments i les teves sol·licituds. Només les veus tu." %}</p>
+  </header>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <div class="amb-columna-lateral lateral-formulari">
+  <div class="columna-principal">
   {# T-M01-35 (RN-M01-55, CA-M01-43): avís i camp per completar la data de naixement, només si falta. Seguretat: és la persona de la sessió; un cop desada, només la corregeix la secretaria (el servidor no accepta canviar-la des d'aquí); una data futura es rebutja al servidor; el registre no guarda la data. #}
   {% if birth_date_form %}
     <section class="targeta" aria-labelledby="naixement-titol">
@@ -30,14 +36,13 @@
       {% if member.member_number %}<div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ member.member_number }}</dd></div>{% endif %}
       <div><dt>{% translate "Correu d'entrada" %}</dt><dd>{{ user.login }}</dd></div>
     </dl>
-    <p class="text-2">{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p>
 
     <h3>{% translate "Contacte" %}</h3>
     {{ form.non_field_errors }}
     <form class="formulari" method="post" action="{% url 'members:profile' %}" novalidate>
       {% csrf_token %}
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
-      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa els canvis" %}</button></div>
+      <div class="accions"><button class="boto{% if not birth_date_form %} boto-principal{% endif %}" type="submit">{% translate "Desa els canvis" %}</button></div>{# Un sol botó principal (D19): el de la data de naixement, quan falta #}
     </form>
 
     <h3 id="correu-titol">{% translate "Canviar el correu d'entrada" %}</h3>
@@ -106,7 +111,6 @@
       {% empty %}
         <p>{% translate "No hi ha cap llicència registrada." %}</p>
       {% endfor %}
-      <p class="text-2">{% translate "El tipus i la data d'alta els porta la secretaria." %}</p>
     </section>
   {% endif %}
 
@@ -141,4 +145,11 @@
     </form>
     <p><a href="{% url 'members:erase' %}">{% translate "Esborra el meu compte" %}</a></p>
   </section>
+  </div>
+  <section class="columna-lateral" aria-labelledby="ajuda-titol">
+    <h2 class="etiqueta-seccio" id="ajuda-titol">{% translate "Ajuda" %}</h2>
+    <details class="recoveco-p" name="ajuda" open><summary><span>{% translate "Com canvio el nom o el document?" %}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p></div></details>
+    {% if member %}<details class="recoveco-p" name="ajuda"><summary><span>{% translate "Qui porta el tipus i la data d'alta de la llicència?" %}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{% translate "El tipus i la data d'alta els porta la secretaria." %}</p></div></details>{% endif %}
+  </section>
+  </div>
 {% endblock %}

@@ -39,3 +39,8 @@ a.errata-element:focus-visible { outline: var(--v-focus) solid var(--c-focus); o
   .errata { grid-template-columns: minmax(0, 1fr); gap: var(--e-2); padding: var(--e-4); }
   .errata-segell { width: var(--e-6); height: var(--e-6); }
 }
+/* A la columna lateral d'un formulari (T-DX-65; disposicio.css): fa --lateral-ample, com el mòbil */
+@container cos (min-width: 56rem) {
+  .lateral-formulari > .errata { grid-template-columns: minmax(0, 1fr); gap: var(--e-2); padding: var(--e-4); }
+  .lateral-formulari > .errata .errata-segell { width: var(--e-6); height: var(--e-6); }
+}

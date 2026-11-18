@@ -26,3 +26,24 @@
 /* Pagat, confirmat pel servidor: el segell, una sola vegada (B10) */
 .tramite-pas.es-final .tramite-marca { animation: tramite-segell var(--m-panell) var(--m-corba-molla) both; }
 @keyframes tramite-segell { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Al costat del pagament (T-DX-65, payments/charge.html): quan el cos fa 56rem o més, els passos van
+   en vertical a la dreta del pagament, que es queda a --amplada-formulari. _status.html no canvia
+   (HTMX el torna a demanar sencer). Al mòbil i a la tauleta, a dalt i en horitzontal, com abans. */
+@container cos (min-width: 56rem) {
+  .cos-compte .pagament-amb-passos > .formulari {
+    max-width: calc(var(--amplada-formulari) + var(--e-6) + var(--lateral-ample));
+    grid-template-columns: minmax(0, 1fr) var(--lateral-ample); column-gap: var(--e-6);
+  }
+  .pagament-amb-passos .formulari > * { grid-column: 1; }
+  .pagament-amb-passos .formulari > .tramite { grid-column: 2; grid-row: 1 / span 2; align-self: start; grid-template-columns: none; gap: var(--e-4); margin: 0; }
+  .pagament-amb-passos .tramite-pas {
+    grid-template-columns: var(--e-5) minmax(0, 1fr); justify-items: start; align-items: center; gap: 0 var(--e-3);
+    padding-top: 0; text-align: start;
+  }
+  /* La línia, vertical: del centre de la marca anterior al de la seva */
+  .pagament-amb-passos .tramite-pas + .tramite-pas::before {
+    top: auto; right: auto; bottom: 50%; left: calc((var(--e-5) - var(--v-plena)) / 2);
+    width: var(--v-plena); height: calc(100% + var(--e-4));
+  }
+}

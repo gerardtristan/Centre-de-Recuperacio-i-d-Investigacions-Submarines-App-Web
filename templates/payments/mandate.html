@@ -3,10 +3,16 @@
 {# T-M05a-09: signar el mandat SEPA (P-M05a-B; wireframe socis.html#pagaments-mandat). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió; la ruta no existeix fins que la junta aprovi el text (MANDATE_SIGNING_ENABLED), llevat de qui té un mandat actiu, que el pot veure i revocar (T-M05a-10, P-127). «Canvia l'IBAN» és signar-ne un de nou (P-M05a-C). L'IBAN es valida al servidor, no torna mai a la pantalla (ni quan és invàlid) i només surt emmascarat («…», P-121). La contrasenya, i el codi si el compte té TOTP, només quan la sessió no és recent (RN-M05a-12); amagar el camp no és cap control: el servidor ho torna a comprovar en desar. #}
 {% block title %}{% translate "Mandat de domiciliació" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Mandat de domiciliació" %}</h1>
+  {# T-DX-65 (§5.3): capçalera comuna; a l'escriptori, el mandat i el formulari a 40rem i, al costat, el resum d'errors (Errata, primer al DOM i amb el focus). Només disposició: els camps, la vista i el POST són els mateixos. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Mandat de domiciliació" %}</h1>
+  </header>
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
 
+  <div class="amb-columna-lateral lateral-formulari">
+  {% if form %}{% include "_errata.html" %}{% endif %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
+  <div class="columna-principal">
   {% if active %}
     <section class="targeta" aria-labelledby="mandat-actiu-titol">
       <h2 id="mandat-actiu-titol">{% translate "El teu mandat" %}</h2>
@@ -30,7 +36,6 @@
       {% csrf_token %}
       <h2>{% if active %}{% translate "Canvia l'IBAN: signa un mandat nou" %}{% else %}{% translate "Signa el mandat SEPA" %}{% endif %}</h2>
       {% if active %}<p class="text-2">{% blocktranslate with reference=active.reference %}En signar-lo, el mandat {{ reference }} es revocarà amb el motiu «substituït».{% endblocktranslate %}</p>{% endif %}
-      {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
       {% include "accounts/_camp.html" with field=form.holder_name %}
       {% include "accounts/_camp.html" with field=form.other_holder %}
       <p class="text-2"><span class="a-validar">{% translate "A validar: junta i banc (L-M05a-01)" %}</span></p>
@@ -60,5 +65,7 @@
       </dl>
     </section>
   {% endif %}
+  </div>
+  </div>
   <p><a href="{% url 'members:fees' %}">{% translate "Torna a les meves quotes" %}</a></p>
 {% endblock %}

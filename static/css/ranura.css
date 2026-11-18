@@ -34,6 +34,14 @@
   box-shadow: 0 0 0 var(--e-1) var(--paper), 0 0 0 calc(var(--e-1) + var(--v-fina)) color-mix(in oklch, var(--grana) 45%, transparent);
 }
 .rebut-nota-anullacio { margin: 0 0 var(--e-3); color: var(--grana); }
+/* Disposició (T-DX-65): el rebut és un document i no passa de --amplada-text, l'amplada de la
+   ranura; quan el cos fa 56rem o més, les accions al costat. Al mòbil, a sota, com abans (el mateix
+   espai que el cos). */
+.rebut-disposicio, .rebut-document, .rebut-costat { display: grid; gap: var(--e-4); align-content: start; }
+.rebut-document { max-width: var(--amplada-text); }
+@container cos (min-width: 56rem) {
+  .rebut-disposicio { grid-template-columns: minmax(0, var(--amplada-text)) var(--lateral-ample); column-gap: var(--e-6); }
+}
 /* Paper: sempre clar, també al tema fosc (com el justificant, --paper) */
 @media print {
   .rebut-sortida { overflow: visible; padding: 0; margin: 0; }
