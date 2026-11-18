@@ -7,12 +7,14 @@ from django.db import DatabaseError, connection, transaction
 from django.http import Http404
 from django.urls import reverse
 
+from apps.core import privacy as core_privacy
 from apps.core.models import AppendOnlyError, AuditEntry, Charge, Payment
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.payments import reviews
+from apps.payments import attempts, payment_admin_views, reviews
 from apps.payments.models import PaymentAttempt, ReviewClosure
 from apps.payments.tests.test_payments_list import (  # noqa: F401 (fixtures)
     MANAGEMENT_ROLES,
+    SYSTEM,
     WITH_B6,
     R,
     fee,
@@ -84,10 +86,10 @@ def test_closing_twice_is_refused(treasurer, to_review):  # noqa: F811
     client.post(close_url(to_review), {"note": NOTE})
     again = client.post(close_url(to_review), {"note": "Una altra nota (prova)"}, follow=True)
     assert "Aquest intent ja està tancat." in again.content.decode()
-    assert client.get(close_url(to_review)).status_code == 302
     with pytest.raises(reviews.NotClosable):
         reviews.close(to_review, note=NOTE, by=treasurer)
-    assert ReviewClosure.objects.get().note == NOTE
+    assert ReviewClosure.objects.count() == 1
+    assert AuditEntry.objects.get(action=reviews.CLOSED).reason == NOTE
 
 
 def test_only_an_attempt_to_review(treasurer, person):  # noqa: F811
@@ -99,11 +101,61 @@ def test_only_an_attempt_to_review(treasurer, person):  # noqa: F811
 
 def test_audit_with_the_note(treasurer, to_review):  # noqa: F811
     client_for(treasurer).post(close_url(to_review), {"note": f"  {NOTE} "})
+    closure = ReviewClosure.objects.get()
+    assert closure.closed_by == treasurer
     entry = AuditEntry.objects.get(action=reviews.CLOSED)
     assert entry.reason == NOTE and entry.actor_account == treasurer
-    assert entry.target_id == str(to_review.pk)
-    closure = ReviewClosure.objects.get()
-    assert closure.note == NOTE and closure.closed_by == treasurer
+    assert (entry.target_type, entry.target_id) == ("payments.reviewclosure", str(closure.pk))
+    assert entry.details == {"attempt": to_review.pk}
+
+
+def test_the_note_has_a_limit_also_in_the_service(treasurer, to_review):  # noqa: F811
+    response = client_for(treasurer).post(close_url(to_review), {"note": "x" * 501})
+    assert response.status_code == 200 and not ReviewClosure.objects.exists()
+    with pytest.raises(ValueError):
+        reviews.close(to_review, note="x" * 501, by=treasurer)
+    assert reviews.close(to_review, note="x" * 500, by=treasurer)
+
+
+def test_erasure_leaves_no_note(treasurer, to_review, make_admin):  # noqa: F811
+    # La taula de tancaments no té cap text lliure; la nota, al registre, passa a la referència.
+    reviews.close(to_review, note=NOTE, by=treasurer)
+    assert {f.name for f in ReviewClosure._meta.fields} == {
+        "id",
+        "attempt",
+        "closed_by",
+        "closed_at",
+    }
+    payer = to_review.charge.person
+    assert core_privacy.blockers(payer) == []
+    core_privacy.anonymise_person(payer, by=make_admin(R.ADMINISTRATOR))
+    payer.refresh_from_db()
+    entry = AuditEntry.objects.get(action=reviews.CLOSED)
+    assert entry.reason == payer.anonymous_ref != NOTE
+
+
+@pytest.mark.parametrize("role", sorted(WITH_B6))
+def test_the_note_is_shown_with_p4_or_to_who_closes(make_admin, treasurer, to_review, role):  # noqa: F811
+    reviews.close(to_review, note=NOTE, by=treasurer)
+    assert NOTE in html(client_for(make_admin(role)))
+
+
+def test_without_p4_or_edit_the_note_is_hidden(treasurer, to_review, monkeypatch):  # noqa: F811
+    # B6 avui només admet l'abast «tot» (amb edició): un B6 de consulta sense P4 se simula.
+    reviews.close(to_review, note=NOTE, by=treasurer)
+    monkeypatch.setattr(payment_admin_views, "has_perm", lambda *args, **kwargs: False)
+    page = html(client_for(treasurer))
+    assert "1 intent a revisar tancat" in page and NOTE not in page and "—" in page
+
+
+def test_the_caption_does_not_give_a_false_total(treasurer, person, monkeypatch):  # noqa: F811
+    monkeypatch.setattr(payment_admin_views, "CLOSED_SHOWN", 1)
+    for concept in ("Quota A (prova)", "Quota B (prova)"):
+        attempt = attempts.transition(
+            in_progress(fee(person, concept=concept)), S.TO_REVIEW, by=SYSTEM, reason="Prova"
+        )
+        reviews.close(attempt, note=NOTE, by=treasurer)
+    assert "Els 1 tancaments més recents, de 2" in html(client_for(treasurer))
 
 
 def test_append_only(treasurer, to_review):  # noqa: F811
@@ -112,6 +164,6 @@ def test_append_only(treasurer, to_review):  # noqa: F811
         closure.save()
     with pytest.raises(AppendOnlyError):
         closure.delete()
-    for sql in ("UPDATE {} SET note = 'x'", "DELETE FROM {}"):
+    for sql in ("UPDATE {} SET closed_at = now()", "DELETE FROM {}"):
         with pytest.raises(DatabaseError), transaction.atomic(), connection.cursor() as cur:
             cur.execute(sql.format(ReviewClosure._meta.db_table))

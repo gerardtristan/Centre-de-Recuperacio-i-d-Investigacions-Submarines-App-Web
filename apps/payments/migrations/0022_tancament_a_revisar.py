@@ -44,7 +44,6 @@ class Migration(migrations.Migration):
                         auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
                     ),
                 ),
-                ("note", models.TextField(verbose_name="nota")),
                 ("closed_at", models.DateTimeField(auto_now_add=True, verbose_name="tancat el")),
                 (
                     "attempt",
@@ -68,12 +67,6 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "tancament d'un intent a revisar",
                 "verbose_name_plural": "tancaments d'intents a revisar",
-                "constraints": [
-                    models.CheckConstraint(
-                        condition=models.Q(("note__regex", "\\S")),
-                        name="review_closure_note_required",
-                    )
-                ],
             },
         ),
         migrations.RunSQL(APPEND_ONLY_SQL, REVERSE_SQL),

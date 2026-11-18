@@ -9,6 +9,7 @@
     <section class="targeta" aria-labelledby="intent-titol">
       <h2 id="intent-titol">{{ attempt.charge.concept }}</h2>
       <dl class="dades-soci">
+        <div><dt>{% translate "Número de càrrec" %}</dt><dd class="codi">{{ attempt.charge_id }}</dd></div>
         {% if row.payer %}<div><dt>{% translate "Pagador" %}</dt><dd>{{ row.payer }}</dd></div>{% endif %}
         <div><dt>{% translate "Mètode" %}</dt><dd>{{ attempt.get_method_display }}</dd></div>
         <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ row.amount }}</span></dd></div>

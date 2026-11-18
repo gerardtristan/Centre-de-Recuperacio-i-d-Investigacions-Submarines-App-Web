@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M05b-16: llistat de pagaments i «a revisar» del tresorer. Permís B6 al servidor. El filtre és amb GET. «Tanca» (T-M05b-16b) només surt amb B6 amb edició, però el control és al servidor (la ruta de tancament demana el permís); tancar no mou diners. El nom del pagador només arriba al context amb P4 (P-247); amagar-lo aquí no és el control. Cap IBAN ni dada de targeta. #}
+{# T-M05b-16: llistat de pagaments i «a revisar» del tresorer. Permís B6 al servidor. El filtre és amb GET. «Tanca» (T-M05b-16b) només surt amb B6 amb edició, però el control és al servidor (la ruta de tancament demana el permís); tancar no mou diners. El nom del pagador només arriba al context amb P4 (P-247), i la nota d'un tancament, amb P4 o B6 amb edició; amagar-los aquí no és el control. Cap IBAN ni dada de targeta. #}
 {% block title %}{% translate "Pagaments" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -97,7 +97,7 @@
   {% if closed %}
     <h2>{% translate "Tancats" %}</h2>
     <table class="taula">
-      <caption>{% blocktranslate count total=closed|length %}{{ total }} intent a revisar tancat, del més recent al més antic{% plural %}{{ total }} intents a revisar tancats, del més recent al més antic{% endblocktranslate %}</caption>
+      <caption>{% if closed_total > closed_shown %}{% blocktranslate with shown=closed_shown total=closed_total %}Els {{ shown }} tancaments més recents, de {{ total }}{% endblocktranslate %}{% else %}{% blocktranslate count total=closed_total %}{{ total }} intent a revisar tancat, del més recent al més antic{% plural %}{{ total }} intents a revisar tancats, del més recent al més antic{% endblocktranslate %}{% endif %}</caption>
       <thead>
         <tr>
           <th scope="col">{% translate "Tancat el" %}</th>
@@ -116,7 +116,7 @@
             <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
             {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
             <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
-            <td data-etiqueta="{% translate 'Nota' %}">{{ closure.note }}</td>
+            <td data-etiqueta="{% translate 'Nota' %}">{{ row.note|default:"—" }}</td>
             <td data-etiqueta="{% translate 'Tancat per' %}" class="cel-valor"><span class="codi">{{ closure.closed_by }}</span></td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
           </tr>

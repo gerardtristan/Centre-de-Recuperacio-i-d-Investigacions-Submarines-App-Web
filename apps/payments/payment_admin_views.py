@@ -23,7 +23,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.charges import euros
-from apps.core.models import Charge, Payment
+from apps.core.models import AuditEntry, Charge, Payment
 from apps.core.permissions import has_perm, permission_required
 
 from . import reviews
@@ -78,11 +78,16 @@ def payments_view(request):
             "-updated_at"
         )
     ]
-    closed = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by")
+    can_close = has_perm(request.user, VIEW, write=True)
+    closures = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by")
     closed = [
         {**_row(c.attempt, names), "closure": c}
-        for c in closed.order_by("-closed_at", "-pk")[:CLOSED_SHOWN]
+        for c in closures.order_by("-closed_at", "-pk")[:CLOSED_SHOWN]
     ]
+    # La nota és text lliure: només amb P4 o a qui pot tancar (B6 amb edició); la resta, «—».
+    notes = _notes([row["closure"].pk for row in closed]) if names or can_close else {}
+    for row in closed:
+        row["note"] = notes.get(str(row["closure"].pk), "")
     # Les «error» no: la xarxa de seguretat les torna a provar (T-M05b-05).
     events = ProviderEvent.objects.filter(result=ProviderEvent.Result.TO_REVIEW).order_by(
         "-received_at"
@@ -102,7 +107,9 @@ def payments_view(request):
         "names": names,
         "review": review,
         "closed": closed,
-        "can_close": has_perm(request.user, VIEW, write=True),
+        "closed_total": closures.count(),
+        "closed_shown": CLOSED_SHOWN,
+        "can_close": can_close,
         "events": [
             {"event": e, "amount": euros(e.amount_cents) if e.amount_cents is not None else ""}
             for e in events
@@ -115,14 +122,25 @@ def payments_view(request):
     return render(request, "payments/payments.html", context)
 
 
+def _notes(closure_ids) -> dict[str, str]:
+    """{tancament: nota}, de l'entrada del registre (`reviews.close`)."""
+    entries = AuditEntry.objects.filter(
+        action=reviews.CLOSED,
+        target_type=ReviewClosure._meta.label_lower,
+        target_id__in=[str(pk) for pk in closure_ids],
+    )
+    return dict(entries.values_list("target_id", "reason"))
+
+
 class CloseForm(forms.Form):
     note = forms.CharField(
         label=_("Nota"),
-        max_length=500,
+        max_length=reviews.MAX_NOTE,
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text=_(
             "Què has comprovat i què se n'ha fet (per exemple, «devolució feta des del "
-            "proveïdor»). Queda al registre d'activitat. No hi escriguis dades de salut."
+            "proveïdor»). Queda al registre d'activitat. No hi posis dades personals: el número "
+            "de càrrec ja identifica el cas."
         ),
         error_messages={"required": _("Cal una nota per tancar-lo.")},
     )
@@ -137,9 +155,6 @@ def review_close_view(request, attempt_id):
         PaymentAttempt.objects.select_related("charge__person"), pk=attempt_id, status=S.TO_REVIEW
     )
     form = CloseForm(request.POST or None)
-    if hasattr(attempt, "review_closure"):
-        messages.error(request, gettext("Aquest intent ja està tancat."))
-        return redirect("administration:payments_list")
     if request.method == "POST" and form.is_valid():
         try:
             reviews.close(attempt, note=form.cleaned_data["note"], by=request.user)
