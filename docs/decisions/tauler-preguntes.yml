@@ -1007,4 +1007,15 @@ opcions:
       vigent a l'alta, al perfil i al mandat.
     data: 2026-11-18
 
+  P-386:
+    opcions:
+      A: "El Tresorer, com els codis de retorn del banc (com s'ha construït)."
+      B: "L'Administrador."
+      C: "El Tresorer i l'Administrador."
+    recomanada: A
+    perque: >-
+      És el tresorer qui parla amb el banc i ja edita els altres valors de les domiciliacions (VC-16 i
+      P-291); es pot canviar a l'editor de permisos sense codi nou.
+    data: 2026-11-18
+
 noves:
