@@ -249,8 +249,8 @@ Dins del cos, un paràgraf no passa de `--amplada-text` (68ch), i un `formulari`
 **Peces**
 - `capcalera-pagina`: etiqueta, títol (i, si cal, una frase) a l'esquerra i les accions (`accions`) a la dreta, alineades a baix. Al mòbil, les accions a sota del títol. Un sol `boto-principal` per pantalla (D19).
 - `disposicio-pagina`: els blocs d'una pantalla, separats amb `--e-6`. S'agrupa amb espai, no amb caixes i línies (D15).
-- `graella-2`: dues columnes iguals quan la columna fa 45rem o més; amb `graella-5-7`, `graella-7-5` o `graella-8-4`, les proporcions de 12 columnes a partir de 60rem. A sota l'una de l'altra quan no hi caben.
-- `amb-columna-lateral` (+ `columna-lateral` al fill): el contingut i una columna de `--lateral-ample` al costat (o a l'esquerra, amb `lateral-esquerra`), que es queda fixa en baixar a partir de 60rem. Per a l'ajuda, el resum d'errors d'Errata o els filtres.
+- `graella-2`: dues columnes iguals quan la columna fa 34rem o més (el cos de la tauleta en fa unes 42); amb `graella-5-7`, `graella-7-5` o `graella-8-4`, les proporcions de 12 columnes a partir de 56rem (el cos de l'escriptori al costat d'una barra lateral i amb la barra de desplaçament en fa unes 59; T-DX-57b). A sota l'una de l'altra quan no hi caben.
+- `amb-columna-lateral` (+ `columna-lateral` al fill): el contingut i una columna de `--lateral-ample` al costat (o a l'esquerra, amb `lateral-esquerra`), que es queda fixa en baixar a partir de 56rem. Per a l'ajuda, el resum d'errors d'Errata o els filtres.
 - `graella-targetes`: 1, 2 o 3 targetes per fila segons l'amplada (mínim 18rem cadascuna).
 - Taules (`taula`), a partir de 600 px: capçalera fixa en baixar, fila ressaltada en passar-hi el ratolí i, si la fila porta un enllaç `enllac-fila`, la fila sencera hi porta (B14). L'enllaç continua sent l'element enfocable i el que llegeix el lector de pantalla.
 - `desplacable-x`: pestanyes o carrils que es desplacen de costat, amb la vora de la dreta esvaïda (C2).

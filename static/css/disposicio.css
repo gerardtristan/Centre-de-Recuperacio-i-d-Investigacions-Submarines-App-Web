@@ -40,13 +40,15 @@
 /* disposicio-pagina: blocs d'una pantalla, separats amb espai i no amb caixes (D15) */
 .disposicio-pagina { display: grid; gap: var(--e-6); min-width: 0; }
 
-/* graella-2: dues columnes quan la columna on és hi té lloc; 5/7 o 7/5 */
+/* graella-2: dues columnes quan la columna on és hi té lloc (34rem: el cos de la tauleta en fa ~42);
+   5/7, 7/5 o 8/4 a partir de 56rem (el cos de l'escriptori al costat d'una barra lateral, amb la barra
+   de desplaçament, en fa ~59, T-DX-57b) */
 .graella-2 { display: grid; gap: var(--e-5); align-items: start; }
 .graella-2 > * { min-width: 0; }
-@container cos (min-width: 45rem) {
+@container cos (min-width: 34rem) {
   .graella-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@container cos (min-width: 60rem) {
+@container cos (min-width: 56rem) {
   .graella-2.graella-5-7 { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--e-6); }
   .graella-2.graella-7-5 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-6); }
   .graella-2.graella-8-4 { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--e-6); }
@@ -56,7 +58,7 @@
    (ajuda, resum d'errors, filtres). A sota quan no hi cap. */
 .amb-columna-lateral { display: grid; gap: var(--e-5); align-items: start; }
 .amb-columna-lateral > * { min-width: 0; }
-@container cos (min-width: 60rem) {
+@container cos (min-width: 56rem) {
   .amb-columna-lateral { grid-template-columns: minmax(0, 1fr) var(--lateral-ample); gap: var(--e-6); }
   .amb-columna-lateral.lateral-esquerra { grid-template-columns: var(--lateral-ample) minmax(0, 1fr); }
   .columna-lateral { position: sticky; top: var(--e-5); }

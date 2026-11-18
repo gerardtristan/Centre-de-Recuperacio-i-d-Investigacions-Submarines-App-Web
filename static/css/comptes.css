@@ -20,7 +20,8 @@
 .cos-compte h1 { font-size: var(--t-2xl); margin: 0; }
 .cos-compte p, .cos-compte h2, .cos-compte h3 { margin: 0; }
 /* Blocs d'estat: el mateix espai entre avís, formulari i enllaços que el cos (ajust aprovat) */
-.cos-compte > div:not(.avis), .cos-compte > section { display: grid; gap: var(--e-4); }
+/* :where() sense pes (T-DX-57b): les peces de disposicio.css (graella-2, disposicio-pagina…) hi han de guanyar */
+.cos-compte > :where(div:not(.avis), section) { display: grid; gap: var(--e-4); }
 .formulari { display: grid; gap: var(--e-4); }
 .formulari fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--e-2); }
 .formulari legend { font-weight: var(--p-semi); font-size: var(--t-s); margin-bottom: var(--e-1); }
