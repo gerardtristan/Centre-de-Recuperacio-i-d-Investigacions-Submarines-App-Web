@@ -180,6 +180,37 @@ class TestConfirmLine:
         assert proposal(line)[0] == State.PROPOSED
 
 
+class TestChoose:
+    """T-M04-13c: en una línia ambigua, el tresorer tria entre les candidates."""
+
+    def test_an_ambiguous_line_takes_one_of_its_candidates(self, two, person, treasurer):
+        received()
+        other = another_with_the_same_net(person)
+        line = bank_line(treasurer)
+        late = received(external_id="LIQ-003", settled_on=date(2026, 10, 1))  # fora de la finestra
+        with pytest.raises(settlements.SettlementRejected):
+            settlements.confirm_line(line, late.pk, by=treasurer)
+        settlements.confirm_line(line, other.pk, by=treasurer)
+        assert Reconciliation.objects.get().settlement == other
+        assert ProviderSettlement.objects.get(external_id="LIQ-001").status == Status.RECEIVED
+
+    def test_the_screen_lists_them_reviews_one_and_confirms_it(self, two, person, treasurer):
+        received()
+        other = another_with_the_same_net(person)
+        line = bank_line(treasurer)
+        client = client_for(treasurer)
+        page = reverse("administration:treasury_reconciliation")
+        assert "Revisa i tria…" in main_of(client.get(page).content.decode())
+        url = reverse("administration:treasury_confirm_settlement_line", args=[line.pk])
+        html = main_of(client.get(url).content.decode())
+        assert 'type="radio"' in html and "LIQ-001" in html and "LIQ-002" in html
+        html = main_of(client.get(url, {"liquidacio": other.pk}).content.decode())
+        assert f'name="liquidacio" value="{other.pk}"' in html and "REF-C" in html
+        response = client.post(url, {"liquidacio": other.pk}, follow=True)
+        assert "Liquidació conciliada" in response.content.decode()
+        assert Reconciliation.objects.get().settlement == other
+
+
 class TestUndo:
     def test_the_transfer_is_reversed_the_fees_stay_and_the_pair_is_not_proposed_again(
         self, two, transit, treasurer
