@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {# T-M01-20 i T-M01-26: verificació pública del carnet (P15; publica.html#verificar). Si és vàlid, el número de soci sencer i el nom de pila (RN-M01-26; 072, confirmat per la junta); res més. Si no és vàlid, cap dada. La pantalla no diu el límit ni el temps d'espera. #}
 {% block title %}{% translate "Verificació del carnet" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Carnet de soci" %}{% endblock %}

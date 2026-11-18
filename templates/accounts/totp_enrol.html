@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {% block title %}{% translate "Doble factor" %} · C.R.I.S.{% endblock %}
 {# La vista d'administració no passa «area»: com al text de sota, tot el que no és «personal» és administració. #}
 {% block zona %}{% if area == "personal" %}soci{% else %}admin{% endif %}{% endblock %}

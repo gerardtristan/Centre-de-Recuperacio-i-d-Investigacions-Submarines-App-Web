@@ -266,6 +266,7 @@ MAP = {
     ),
     "test_pagines_error.py": ("templates/404.html", "templates/500.html"),
     "test_logotip.py": ("static/img/marca/*",),  # T-DX-51
+    "test_disposicio.py": ("static/css/disposicio.css",),  # T-DX-57
     "test_vigencia_admin.py": ("templates/members/_licence_records.html",),
     "test_oleaje.py": (
         "apps/members/templatetags/member_notices.py",

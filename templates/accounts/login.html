@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {% block title %}{% if area == "admin" %}{% translate "Administració" %}{% else %}{% translate "Entrar" %}{% endif %} · C.R.I.S.{% endblock %}
 {% block zona %}{% if area == "admin" %}admin{% else %}soci{% endif %}{% endblock %}
 {% block titol_zona %}{% if area == "admin" %}{% translate "Administració" %}{% else %}{% translate "Àrea de socis" %}{% endif %}{% endblock %}

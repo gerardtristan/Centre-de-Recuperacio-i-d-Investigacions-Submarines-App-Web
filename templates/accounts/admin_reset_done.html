@@ -1,5 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {% block title %}{% translate "Restablir l'accés" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <h1>{% blocktranslate with username=target.login %}Accés de {{ username }} restablert{% endblocktranslate %}</h1>

@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.25 (16/11/2026). La 1.25 afegeix Monograma, l'avatar per defecte del soci (§6.19, T-DX-18).
+- **Versió:** 1.26 (18/11/2026). La 1.26 afegeix la disposició a l'escriptori (§5.3, T-DX-57): el cos creix per trams, amplades noves i les peces `capcalera-pagina`, `disposicio-pagina`, `graella-2`, `amb-columna-lateral`, `graella-targetes` i `desplacable-x`; els imports passen a xifres tabulars sense monoespai.
+- La 1.25 (16/11/2026) afegeix Monograma, l'avatar per defecte del soci (§6.19, T-DX-18).
 - La 1.24 (16/11/2026) afegeix Oleaje, la portada de l'àrea del soci (§6.18, T-DX-17).
 - La 1.22 (16/11/2026) fa l'etiqueta «En construcció», l'ajust i el permís (§6.9, T-DX-03).
 - La 1.20 (16/11/2026) afegeix Autentico, el segell de la verificació del carnet (§6.16, T-DX-15).
@@ -133,7 +134,7 @@ Alternatives del sistema (si no hi ha connexió): Arial Narrow o Arial; Segoe UI
 - **Vores:** `--v-fina` 1 px; `--v-activa` 3 px (element actiu i vora de zona); `--v-focus` 3 px; `--v-plena` 2 px (peces neumòrfiques amb més contrast).
 - **Avatar:** `--avatar` 56 px.
 - **Tàctil:** `--tactil` 44 px. És l'alçada i l'amplada mínimes de tot element que es pot prémer, a totes les mides.
-- **Estructura:** `--amplada-max` 1200 px, `--lateral-ample` 240 px (administració), `--lateral-carril` 72 px (tauleta, administració), `--capcalera-alcada` 64 px. `--lateral-soci`, `--columna-dreta` i `--barra-inferior-alcada` són de l'estructura anterior dels socis; ara no es fan servir, però es conserven fins que es validi la nova.
+- **Estructura:** `--amplada-max` 1200 px, `--amplada-ample` 1440 px, `--amplada-tauleta` 45rem, `--amplada-formulari` 40rem i `--amplada-estreta` 28rem (els trams del cos, §5.3), `--lateral-ample` 240 px (administració), `--lateral-carril` 72 px (tauleta, administració), `--capcalera-alcada` 64 px. `--lateral-soci`, `--columna-dreta` i `--barra-inferior-alcada` són de l'estructura anterior dels socis; ara no es fan servir, però es conserven fins que es validi la nova.
 - **Logotip:** `--logo-capcalera` 56 px (socis i administració), `--logo-lateral` 64 px (barra lateral), `--logo-publica-mobil` 64 px i `--logo-publica` 96 px (capçalera pública), `--logo-peu` 160 px (peu de la pública). Abans eren 40, 48, 52, 72 i 120 px; els va fer més grans el propietari el 16/11/2026 (T-DX-01). Amb el logotip de 56 px, la capçalera dels comptes fa 72 px d'alt (`--capcalera-alcada` és el mínim).
 - **Selector de tema:** `--selector-alcada` 32 px (alçada visible de cada opció), `--selector-opcio` 40 px (amplada mínima visible), `--selector-icona` 12 px (icones i ✓), text de 14 px a partir de tauleta i farciment del contenidor de 2 px. L'àrea tàctil continua sent de **44 × 44 px**: un pseudoelement invisible de l'etiqueta l'amplia 6 px amunt i avall i 2 px a cada costat, sense que es vegi més gran. La vora (`--c-linia-forta` o `--neu-vora`, ≥3:1), el focus i la llegenda «Tema» no canvien.
 - **Compte personal:** `--portada-alcada` 64svh (alçada mínima de la portada **a partir de tauleta**; al mòbil, la portada fa l'alçada del contingut), `--carnet-amplada` 22rem (×1,25 a l'escriptori), `--carnet-proporcio` 1,586 (la d'una targeta física), `--dock-alcada` 64 px, `--dock-carnet` 60 px, `--tactil-gran` 56 px (accions crítiques: pagar), `--carril-targeta` 85 % (targetes del carril al mòbil) i `--ona-alcada` 32 px.
@@ -233,6 +234,29 @@ S'obren amb l'adreça. A la pública i al compte personal, amaguen la portada; a
 
 Les pantalles del compte personal són planes, com pagar i els avisos (§6.5): sense degradat, ona ni moviment.
 
+### 5.3 Disposició a l'escriptori (T-DX-57)
+A l'ordinador, les pantalles aprofiten l'amplada amb **el mateix ordre que al mòbil**, i es van estrenyent de manera fluida en fer la finestra més petita. Per sota de 600 px no canvia res. Full d'estil: `static/css/disposicio.css`, enllaçat a la base just després de `comptes.css`.
+
+**El cos per trams (`cos-compte`)**
+| Classe | Mòbil | Tauleta (600 px) | Escriptori (1024 px) | On |
+|---|---|---|---|---|
+| `cos-compte` | 28rem | `--amplada-tauleta` (45rem) | `--amplada-max` (1200 px) | Àrea del soci, fitxes i formularis |
+| `cos-compte cos-ample` | 28rem | `--amplada-ample` (1440 px) | `--amplada-ample` | Llistats de l'administració i conciliació |
+| `cos-compte cos-estret` | `--amplada-estreta` (28rem), centrat a totes les mides | | | Entrada, codi TOTP, recuperació, invitació, sessió caducada, verificació del carnet, 403 i 404 |
+
+Dins del cos, un paràgraf no passa de `--amplada-text` (68ch), i un `formulari` o una llista `dades-soci` de `--amplada-formulari` (40rem), alineats a l'esquerra: l'etiqueta no queda lluny del seu valor. El cos és un contenidor (`container: cos`): les peces de sota s'adapten a l'amplada de la columna on són, no a la de la finestra (C8).
+
+**Peces**
+- `capcalera-pagina`: etiqueta, títol (i, si cal, una frase) a l'esquerra i les accions (`accions`) a la dreta, alineades a baix. Al mòbil, les accions a sota del títol. Un sol `boto-principal` per pantalla (D19).
+- `disposicio-pagina`: els blocs d'una pantalla, separats amb `--e-6`. S'agrupa amb espai, no amb caixes i línies (D15).
+- `graella-2`: dues columnes iguals quan la columna fa 45rem o més; amb `graella-5-7`, `graella-7-5` o `graella-8-4`, les proporcions de 12 columnes a partir de 60rem. A sota l'una de l'altra quan no hi caben.
+- `amb-columna-lateral` (+ `columna-lateral` al fill): el contingut i una columna de `--lateral-ample` al costat (o a l'esquerra, amb `lateral-esquerra`), que es queda fixa en baixar a partir de 60rem. Per a l'ajuda, el resum d'errors d'Errata o els filtres.
+- `graella-targetes`: 1, 2 o 3 targetes per fila segons l'amplada (mínim 18rem cadascuna).
+- Taules (`taula`), a partir de 600 px: capçalera fixa en baixar, fila ressaltada en passar-hi el ratolí i, si la fila porta un enllaç `enllac-fila`, la fila sencera hi porta (B14). L'enllaç continua sent l'element enfocable i el que llegeix el lector de pantalla.
+- `desplacable-x`: pestanyes o carrils que es desplacen de costat, amb la vora de la dreta esvaïda (C2).
+
+**Sense moviment nou:** cap animació d'entrada de pàgina (D20, B10). Les pantalles es redistribueixen per tasques (T-DX-58 en endavant); fins llavors, una pantalla que no ha canviat queda més ampla amb el mateix ordre.
+
 ## 6. Components
 Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (estructura). Classes en català.
 
@@ -254,7 +278,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Xip | `xip` | Tipus d'element (Sortida, Curs) |
 | Caixa d'imatge | `caixa-imatge` | Substitueix qualsevol imatge als wireframes |
 | Camp | `camp`, `casella` | Etiqueta sempre visible; mínim 44 px |
-| Codi i import | `codi`, `import` (+ `import-entrada`, `import-sortida`); cel·la `cel-import` dins de `taula` | JetBrains Mono; xifres tabulars als imports. El sentit d'un moviment porta signe («+» o «−») i color (`--c-ok-text` o `--c-error-text`), mai només color. A la `taula`, la columna d'imports (capçalera i cel·les) porta `cel-import` i va a la dreta (T-M04-15) |
+| Codi i import | `codi`, `import` (+ `import-entrada`, `import-sortida`); cel·la `cel-import` dins de `taula` | `codi` en JetBrains Mono; `import` amb la lletra del text i xifres tabulars (des de la 1.26, D7). El sentit d'un moviment porta signe («+» o «−») i color (`--c-ok-text` o `--c-error-text`), mai només color. A la `taula`, la columna d'imports (capçalera i cel·les) porta `cel-import` i va a la dreta (T-M04-15) |
 | Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 | Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |

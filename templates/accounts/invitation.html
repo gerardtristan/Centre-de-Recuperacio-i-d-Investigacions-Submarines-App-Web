@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {# 079 (RN-M01-87): crear el compte personal amb la invitació de l'alta aprovada. Seguretat: el testimoni no és a l'adreça d'aquesta pàgina (és a la sessió); el compte només es crea amb un POST; el mateix text per a un enllaç desconegut, caducat, ja fet servir o que no es pot completar; la pàgina no mostra cap dada de la persona (ni el nom ni el correu). #}
 {% block title %}{% translate "Crear el compte" %} · C.R.I.S.{% endblock %}
 {% block content %}
