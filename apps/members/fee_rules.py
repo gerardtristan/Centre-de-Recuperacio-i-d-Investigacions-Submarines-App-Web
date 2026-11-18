@@ -19,10 +19,11 @@ from django.utils import timezone
 from apps.core.persons import age_on
 
 ADULT_AGE = 18
-FULL_TYPE_MIN_AGE = 14  # des dels 14 anys complerts, simpatitzant o ple dret (RN-M01-64)
+# Els 14 anys complerts de la RN-M01-64; quins tipus es poden triar ho diu `min_age` del tipus
+# (091). Aquest llindar el fan servir els consentiments i el correu d'un menor (Q-044, RN-M01-78).
+FULL_TYPE_MIN_AGE = 14
 FEE_START_OFFSET = 15  # primer any de quota = any de naixement + 15 (RN-M01-65)
 MAX_AGE = 120  # data de naixement versemblant
-SUPPORTER = "supporter"
 
 
 def local_today(now=None) -> date:
@@ -38,9 +39,9 @@ def is_minor(age: int) -> bool:
     return age < ADULT_AGE
 
 
-def may_choose(type_code: str, age: int) -> bool:
-    """Per sota dels 14 anys, només simpatitzant (RN-M01-64)."""
-    return age >= FULL_TYPE_MIN_AGE or type_code == SUPPORTER
+def may_choose(membership_type, age: int) -> bool:
+    """L'edat mínima del tipus (RN-M01-64 i 107): el ple dret, des dels 14 anys."""
+    return age >= membership_type.min_age
 
 
 @dataclass(frozen=True)

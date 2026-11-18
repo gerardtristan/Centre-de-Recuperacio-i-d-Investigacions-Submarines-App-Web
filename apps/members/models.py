@@ -48,6 +48,12 @@ class MembershipType(models.Model):
     name = models.CharField(_("nom"), max_length=60)
     annual_fee_cents = models.PositiveIntegerField(_("quota anual (cèntims)"))
     active = models.BooleanField(_("actiu"), default=True)
+    # Les regles llegeixen aquests atributs, mai el codi (091, RN-M01-107). Ple dret: el canvi
+    # amb suplement hi porta (RN-M01-76), en surt el pas a simpatitzant a la renovació
+    # (RN-M01-73) i en reben l'avís previ (RN-M01-93). Edat mínima el dia de la sol·licitud
+    # (RN-M01-64).
+    full_rights = models.BooleanField(_("de ple dret"), default=False)
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), default=0)
 
     class Meta:
         verbose_name = _("tipus de soci")
@@ -55,6 +61,12 @@ class MembershipType(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=Q(annual_fee_cents__gt=0), name="membershiptype_fee_positive"
+            ),
+            # RN-M01-64: cap menor de 14 anys no pot ser de ple dret, sigui quin sigui el tipus.
+            models.CheckConstraint(
+                condition=Q(full_rights=False) | Q(min_age__gte=14),
+                name="membershiptype_full_rights_min_age",
+                violation_error_message=_("Un tipus de ple dret demana com a mínim 14 anys."),
             ),
         ]
 

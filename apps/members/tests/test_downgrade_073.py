@@ -35,7 +35,7 @@ CHANGE = "members:change_type"
 WITHDRAW = "members:change_type_withdraw"
 LIST = "administration:member_requests"
 DETAIL = "administration:member_request_detail"
-SEND = {"target": "supporter"}
+SEND = {"direction": "downgrade"}
 CONFIRM = {"confirm": "on"}
 K, RS = MemberRequest.Kind, MemberRequest.Status
 
@@ -92,7 +92,7 @@ def test_ca_m01_68_active_full_member_sees_the_rule_and_can_send_the_request(per
     assert "en la pròxima renovació de la quota anual" in page
     assert "renovaràs com a simpatitzant, amb la quota d'aquest tipus" in page
     assert "cap devolució de la quota del període actual" in page
-    assert 'name="target" value="supporter"' in page
+    assert 'name="direction" value="downgrade"' in page
     assert "Envia la sol·licitud" in page
     # La frase de l'avís previ surt des que l'avís existeix (T-M01-43).
     assert "T'avisarem abans de la renovació" in page
@@ -117,7 +117,7 @@ def test_ca_m01_68_sending_it_creates_no_charge_and_does_not_change_the_type(per
     assert "Sol·licitud de pas a simpatitzant enviada." in page
     assert "Tens una sol·licitud pendent" in page
     assert reverse(WITHDRAW) in page
-    assert 'name="target"' not in page  # mentre és pendent, no se n'ofereix cap altra
+    assert 'name="direction"' not in page  # mentre és pendent, no se n'ofereix cap altra
 
 
 def test_ca_m01_68_it_can_be_requested_at_any_moment_of_the_period(pere):
@@ -142,7 +142,7 @@ def test_ca_m01_71_only_an_active_full_member_can_send_it(db, type_code, status)
     account = account_for(member)
     client = personal_client(account)
     page = client.get(reverse(CHANGE)).content.decode()
-    assert 'name="target"' not in page
+    assert 'name="direction"' not in page
     response = client.post(reverse(CHANGE), SEND)  # petició manipulada: el formulari no hi és
     assert response.status_code == 200
     with pytest.raises(mr.RequestNotAllowed):
@@ -194,7 +194,7 @@ def test_ca_m01_71_the_service_rejects_someone_elses_or_an_admin_account(
 
 
 def test_ca_m01_71_a_full_member_still_cannot_ask_for_the_full_type(pere):
-    # Sense `target`, el formulari és el del canvi a ple dret: el servei el rebutja.
+    # Sense `direction`, el formulari és el del canvi a ple dret: el servei el rebutja.
     response = personal_client(pere[1]).post(reverse(CHANGE))
     assert response.status_code == 200
     assert not MemberRequest.objects.exists()
@@ -234,7 +234,7 @@ def test_ca_m01_106_pending_request_is_withdrawn_with_audit_and_another_can_be_s
     assert entry.reason == "Retirada pel soci"
     page = client.get(reverse(CHANGE)).content.decode()
     assert "Sol·licitud retirada." in page
-    assert 'name="target" value="supporter"' in page  # en pot fer una altra
+    assert 'name="direction" value="downgrade"' in page  # en pot fer una altra
     assert client.post(reverse(CHANGE), SEND).status_code == 302
     assert MemberRequest.objects.filter(status=RS.PENDING).count() == 1
     assert MemberRequest.objects.count() == 2
@@ -252,7 +252,7 @@ def test_ca_m01_106_once_accepted_it_cannot_be_withdrawn(pere, make_admin):  # n
     assert "Sol·licitud acceptada" in page
     assert "S'aplicarà en la pròxima renovació de la quota anual" in page
     assert "ja no es pot retirar" in page
-    assert reverse(WITHDRAW) not in page and 'name="target"' not in page
+    assert reverse(WITHDRAW) not in page and 'name="direction"' not in page
     response = client.post(reverse(WITHDRAW), CONFIRM)  # petició manipulada
     assert response.status_code == 200
     assert "Un cop acceptat, ja no es pot retirar." in response.content.decode()

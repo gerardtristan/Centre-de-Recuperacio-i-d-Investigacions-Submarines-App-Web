@@ -104,7 +104,7 @@ def world(make_admin):  # noqa: F811
     changer = a_member("Canvi")
     supplement = fees.issue_type_change_supplement(
         changer,
-        MembershipType.objects.get(code=member_requests.FULL),
+        MembershipType.objects.get(code="full"),
         period=2026,
         due_on=datetime.date(2026, 1, 1),
         by=issuer,
@@ -136,7 +136,7 @@ def world(make_admin):  # noqa: F811
             kind=MemberRequest.Kind.CHANGE_TYPE,
             person=changer.person,
             member=changer,
-            requested_type=MembershipType.objects.get(code=member_requests.FULL),
+            requested_type=MembershipType.objects.get(code="full"),
             channel=MemberRequest.Channel.WEB,
             status=MemberRequest.Status.APPROVED,
             supplement_fee=supplement,

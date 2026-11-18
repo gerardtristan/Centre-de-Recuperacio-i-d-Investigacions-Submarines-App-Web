@@ -166,7 +166,7 @@ def submit(data: dict, *, channel: str, by=None, request=None, send_receipt=True
         raise ValidationError("Alta d'un adult sense correu o telèfon.")
     if minor and not (all(guardian.values()) and data.get("guardian_authorization")):
         raise ValidationError("Alta d'un menor sense les dades o l'autorització del representant.")
-    if not fee_rules.may_choose(data["membership_type"].code, age):
+    if not fee_rules.may_choose(data["membership_type"], age):
         raise ValidationError("Tipus de soci no permès per l'edat.")
     web = channel == MemberRequest.Channel.WEB
     passport = Person.DocumentType.PASSPORT

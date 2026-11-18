@@ -56,7 +56,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Min, Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -65,10 +65,11 @@ from apps.accounts.models import Account
 from apps.core import audit, charges, mail
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
+from apps.core.persons import age_on
 
 from . import cards, fees, recipients
 from . import settings as values
-from .fee_rules import SUPPORTER, local_today
+from .fee_rules import local_today
 from .models import AnnualFee, FeeReminder, Member, MemberRequest, MembershipType
 from .services import (
     _change_status,
@@ -77,7 +78,6 @@ from .services import (
     ensure_not_own_member,
 )
 
-FULL = "full"
 VIEW_PERMISSION = "members.requests.view"  # P3a
 RESOLVE_PERMISSION = "members.requests.resolve_change"  # P7
 CANCEL_SUPPLEMENT_PERMISSION = "members.requests.cancel_supplement"  # P7a (075)
@@ -109,13 +109,32 @@ def _is_own_personal(member, by) -> bool:
 def type_change_problem(member) -> str:
     """Per què aquest soci no pot demanar el canvi a ple dret, o "" si pot (pas 1 de P-M01-B).
     El pas contrari, de ple dret a simpatitzant, és `downgrade_problem`."""
-    if member.status != Member.Status.ACTIVE or member.type.code != SUPPORTER:
+    if member.status != Member.Status.ACTIVE or member.type.full_rights:
         return _("Només un soci simpatitzant actiu pot demanar el canvi a ple dret.")
     if has_unpaid_fees(member):  # RN-M01-75 (L-M01-04)
         return _(
             "Tens una quota sense pagar. Quan l'hagis pagada, podràs demanar el canvi a ple dret."
         )
+    full = MembershipType.objects.filter(full_rights=True, active=True)
+    target = target_type(full_rights=True, member=member)
+    if target is None and full.exists():  # RN-M01-64: l'edat mínima del tipus, avui
+        return _("Per demanar el canvi a ple dret cal tenir %(age)s anys complerts.") % {
+            "age": full.aggregate(age=Min("min_age"))["age"]
+        }
+    if target is not None and fees.supplement_cents(member, target) <= 0:
+        return _("Ara no es pot demanar el canvi a ple dret.")
     return ""
+
+
+def target_type(*, full_rights, member=None):
+    """Tipus actiu cap al qual va un canvi (RN-M01-107): el de ple dret o, en el pas contrari,
+    el que no ho és, entre els que permet l'edat del soci avui (RN-M01-64). Amb més d'un, el
+    més antic [A validar: P-373]. Sense data de naixement, no es filtra per edat."""
+    types = MembershipType.objects.filter(full_rights=full_rights, active=True)
+    birth = member.person.birth_date if member is not None else None
+    if birth is not None:
+        types = types.filter(min_age__lte=age_on(birth, local_today()))
+    return types.order_by("pk").first()
 
 
 def open_leaves(member):
@@ -158,7 +177,7 @@ def request_type_change(member, *, by, request=None) -> MemberRequest:
     problem = type_change_problem(member)
     if problem:
         raise RequestNotAllowed(problem)
-    target = MembershipType.objects.filter(code=FULL, active=True).first()
+    target = target_type(full_rights=True, member=member)
     if target is None:
         raise RequestNotAllowed(_("Ara no es pot demanar el canvi a ple dret."))
     return _create(
@@ -176,11 +195,11 @@ def request_type_change(member, *, by, request=None) -> MemberRequest:
 
 def is_downgrade(member_request) -> bool:
     """Un canvi de tipus cap a simpatitzant (073)."""
-    return member_request.kind == K.CHANGE_TYPE and member_request.requested_type.code == SUPPORTER
+    return member_request.kind == K.CHANGE_TYPE and not member_request.requested_type.full_rights
 
 
 def downgrades(member):
-    return member.requests.filter(kind=K.CHANGE_TYPE, requested_type__code=SUPPORTER)
+    return member.requests.filter(kind=K.CHANGE_TYPE, requested_type__full_rights=False)
 
 
 def accepted_downgrade(member) -> MemberRequest | None:
@@ -203,7 +222,7 @@ def accepted_downgrade(member) -> MemberRequest | None:
 
 def downgrade_problem(member) -> str:
     """Per què aquest soci no pot demanar el pas a simpatitzant, o "" si pot (CA-M01-68 i 71)."""
-    if member.status != Member.Status.ACTIVE or member.type.code != FULL:
+    if member.status != Member.Status.ACTIVE or not member.type.full_rights:
         return _("Només un soci de ple dret actiu pot demanar el pas a simpatitzant.")
     if accepted_downgrade(member) is not None:
         return _("Ja tens el pas a simpatitzant acceptat. S'aplicarà en la pròxima renovació.")
@@ -220,7 +239,7 @@ def request_downgrade(member, *, by, request=None) -> MemberRequest:
     problem = downgrade_problem(member)
     if problem:
         raise RequestNotAllowed(problem)
-    target = MembershipType.objects.filter(code=SUPPORTER, active=True).first()
+    target = target_type(full_rights=False, member=member)
     if target is None:
         raise RequestNotAllowed(_("Ara no es pot demanar el pas a simpatitzant."))
     return _create(
@@ -369,7 +388,7 @@ def approve_type_change(member_request, *, by, reason="", request=None) -> Annua
         if member.status != Member.Status.ACTIVE:
             raise RequestNotAllowed(_("Només es pot canviar el tipus d'un soci actiu."))
         if is_downgrade(locked):
-            if member.type.code != FULL:
+            if not member.type.full_rights:
                 raise RequestNotAllowed(_("Aquest soci ja no és de ple dret."))
             _close(locked, RS.APPROVED, by=by, reason=(reason or "").strip(), request=request)
             # `_lock_pending` ja ha bloquejat el soci; es torna a dir aquí perquè la quota es
@@ -498,7 +517,7 @@ def _notify_cancelled_renewal_fees(today) -> None:
 
     stuck = MemberRequest.objects.filter(
         kind=K.CHANGE_TYPE,
-        requested_type__code=SUPPORTER,
+        requested_type__full_rights=False,
         status=RS.APPROVED,
         effective_on__isnull=True,
         renewal_fee__due_on__lte=today,
@@ -529,7 +548,7 @@ def apply_due_downgrades(today=None) -> list[MemberRequest]:
     due = (
         MemberRequest.objects.filter(
             kind=K.CHANGE_TYPE,
-            requested_type__code=SUPPORTER,
+            requested_type__full_rights=False,
             status=RS.APPROVED,
             effective_on__isnull=True,
             renewal_fee__due_on__lte=today,

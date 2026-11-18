@@ -12,8 +12,8 @@
         <label>{{ radio.tag }}<span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ radio.choice_label }}</span></label>
       {% endfor %}
     </div>
-    {% if form.state == "unknown" %}
-      <p class="ajuda text-2">{% translate "Els menors de 14 anys només poden ser simpatitzants, sense quota." %}</p>
+    {% if form.state == "unknown" and form.type_age_note %}
+      <p class="ajuda text-2">{{ form.type_age_note }}</p>
     {% elif form.fee_note %}
       <p class="ajuda text-2">{% translate "L'import es confirma en aprovar l'alta." %}</p>
     {% endif %}
