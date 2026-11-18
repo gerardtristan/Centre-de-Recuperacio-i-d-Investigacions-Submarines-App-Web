@@ -70,7 +70,7 @@
                       <div class="camp">
                         <label for="motiu-{{ row.line.pk }}">{% translate "Motiu de l'exclusió" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="motiu-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% translate "Queda a la línia i al registre d'activitat. No s'esborra res." %}</p>
+                        <p class="ajuda">{% if row.state.status == "proposed" %}{% translate "La proposta es perd sense confirmar res: el càrrec continua pendent. Queda a la línia i al registre d'activitat." %}{% else %}{% translate "Queda a la línia i al registre d'activitat. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                     </form>
@@ -83,7 +83,7 @@
                       <div class="camp">
                         <label for="desexclou-{{ row.line.pk }}">{% translate "Motiu per desfer l'exclusió" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="desexclou-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% translate "La línia torna a estar oberta i la conciliació la torna a proposar si escau. Queda al registre d'activitat." %}</p>
+                        <p class="ajuda">{% translate "La línia torna a estar oberta i la conciliació es torna a calcular: pot tornar a ser proposada i prendre la proposta a una altra línia amb la mateixa referència. Queda al registre d'activitat." %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés l'exclusió" %}</button></div>
                     </form>
