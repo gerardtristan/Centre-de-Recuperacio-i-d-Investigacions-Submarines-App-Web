@@ -13,6 +13,7 @@ sol·licituds RGPD i el resum de l'Avisador (`design-system.md`, §6.7 i T-DX-19
 
 from django import forms
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -22,6 +23,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, WRONG_CODE, confirm_code
+from apps.accounts.sessions import delete_session_hint
 
 from .. import roles
 from ..models import AccountRole, Role
@@ -31,11 +33,10 @@ MANAGE = "core.accounts.manage"
 ASSIGN, REMOVE = "assign", "remove"
 
 
-class RoleChangeForm(forms.Form):
-    action = forms.ChoiceField(
-        choices=[(ASSIGN, ASSIGN), (REMOVE, REMOVE)], widget=forms.HiddenInput
-    )
-    role = forms.ChoiceField(choices=Role.Code.choices, widget=forms.HiddenInput)
+class ConfirmForm(forms.Form):
+    """Nota, codi TOTP nou i casella de revisió: el que demana qualsevol canvi d'aquesta pantalla
+    (RN-RP-06)."""
+
     note = forms.CharField(
         label=gettext_lazy("Nota"),
         max_length=500,
@@ -58,6 +59,13 @@ class RoleChangeForm(forms.Form):
         label=gettext_lazy("He revisat el resum i el compte afectat"),
         error_messages={"required": gettext_lazy("Confirma que has revisat el resum.")},
     )
+
+
+class RoleChangeForm(ConfirmForm):
+    action = forms.ChoiceField(
+        choices=[(ASSIGN, ASSIGN), (REMOVE, REMOVE)], widget=forms.HiddenInput
+    )
+    role = forms.ChoiceField(choices=Role.Code.choices, widget=forms.HiddenInput)
 
 
 CODE_USED = gettext_lazy(
@@ -151,6 +159,65 @@ def account_roles_view(request, pk):
             "already": already,
             "blocked_message": roles.NO_OPERATIONAL_ADMIN,
             "shortage": roles.admin_shortage_warning(),
+            "form": form,
+        },
+    )
+
+
+SELF_DEACTIVATED = gettext_lazy(
+    "Has desactivat el teu compte d'administrador i se n'han tancat totes les sessions. El teu "
+    "compte personal no canvia."
+)
+
+
+@never_cache
+@permission_required(MANAGE)
+@require_http_methods(["GET", "POST"])
+def account_deactivate_view(request, pk):
+    """T-RP-02d: desactivar un compte d'administrador, també el propi (RN-RP-20; CA-RP-06 i 16).
+    El mateix patró: resum (GET), i POST amb nota, casella i codi TOTP nou, que només es demana
+    si el canvi es pot fer. El servei ho torna a comprovar tot dins la transacció."""
+    account = get_object_or_404(Account, pk=pk, kind=Account.Kind.ADMIN)
+    own = account.pk == request.user.pk
+    already = account.status == Account.Status.DISABLED
+    blocked = not already and roles.leaves_no_operational_admin(account)
+    form = ConfirmForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and already:
+        form.add_error(None, roles.ALREADY_DONE)
+    elif request.method == "POST" and not blocked and form.is_valid():
+        error = confirm_code(request, request.user, AREA_ADMIN, form.cleaned_data["code"])
+        if error is not None:
+            form.add_error("code" if error == WRONG_CODE else None, error)
+        else:
+            try:
+                roles.deactivate_admin_account(
+                    account, by=request.user, note=form.cleaned_data["note"]
+                )
+            except roles.AlreadyDone:
+                form.add_error(None, roles.ALREADY_DONE)
+            except ValidationError as exc:
+                form.add_error(None, [*exc.messages, CODE_USED])
+            else:
+                if own:  # RN-RP-20: també la petició en curs surt de l'administració
+                    logout(request)
+                    messages.info(request, SELF_DEACTIVATED)
+                    response = redirect("administration:login")
+                    delete_session_hint(response)  # cap «La sessió ha caducat» (081)
+                    return response
+                messages.success(
+                    request,
+                    _("Compte desactivat. S'ha avisat per correu els comptes que ho han de saber."),
+                )
+                return redirect("administration:account_roles", pk=account.pk)
+    return render(
+        request,
+        "core/account_deactivate.html",
+        {
+            "account": account,
+            "own": own,
+            "already": already,
+            "blocked": blocked,
+            "blocked_message": roles.NO_OPERATIONAL_ADMIN,
             "form": form,
         },
     )

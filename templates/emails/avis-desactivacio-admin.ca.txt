@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% if actor == username %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte «{{ actor }}» ha desactivat el seu propi compte d'administrador.{% endblocktranslate %}{% else %}{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte «{{ actor }}» ha desactivat el compte d'administrador «{{ username }}».{% endblocktranslate %}{% endif %}
+
+{% translate "Se n'han tancat totes les sessions. El compte personal de la mateixa persona no canvia." %}
+
+{% translate "Nota de qui ha fet el canvi:" %} {{ note }}
+
+{% translate "Reps aquest avís perquè tens el rol administrador, o perquè el canvi és del teu compte. Aquest correu no porta cap enllaç." %}
+
+{% translate "Si ningú no esperava aquest canvi, revisa el registre d'activitat i avisa la junta tan aviat com puguis." %}
+{% endautoescape %}

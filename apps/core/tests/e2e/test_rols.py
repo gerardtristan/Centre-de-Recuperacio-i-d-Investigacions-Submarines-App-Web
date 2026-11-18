@@ -1,7 +1,8 @@
-"""Assignar un rol des del navegador (T-RP-02; RN-RP-07 i 14; CA-RP-14): l'administrador obre els
-rols d'un compte des de la llista, en veu el resum amb l'avís d'un sol tresorer i el desa amb la
-nota, el codi TOTP i la casella de revisió. Pantalles a 1280, 390 i 320 px (clar i fosc). Només
-dades inventades.
+"""Assignar un rol i desactivar el propi compte des del navegador (T-RP-02 i T-RP-02d; RN-RP-07,
+14 i 20; CA-RP-14 i 16): l'administrador obre els rols d'un compte des de la llista, en veu el
+resum amb l'avís d'un sol tresorer i el desa amb la nota, el codi TOTP i la casella de revisió; i
+es desactiva a si mateix amb un altre administrador operatiu. Pantalles a 1280, 390 i 320 px (clar
+i fosc). Només dades inventades.
 """
 
 from datetime import datetime
@@ -43,3 +44,25 @@ def test_administrator_assigns_a_role(page, live_server, texts, review):
     expect(page.get_by_text("Canvi desat.")).to_be_visible()
     expect(page.get_by_role("cell", name="Tresorer")).to_be_visible()
     review("rols-desat")
+
+
+def test_administrator_deactivates_their_own_account(page, live_server, texts, review):
+    # T-RP-02d (RN-RP-20; CA-RP-16): amb un altre administrador operatiu, es pot; en confirmar,
+    # la sessió en curs surt a l'entrada amb l'avís.
+    make_admin("bernat.prova", "administrator")
+    login_admin(page, live_server.url, texts.login)
+    page.get_by_role("main").get_by_role("link", name="Comptes d'administrador").click()
+    page.get_by_role("link", name=f"Rols de {texts.login}").click()
+    page.get_by_role("link", name="Desactiva el teu compte…").click()
+    expect(page.get_by_text("Sortiràs de l'administració en confirmar-ho")).to_be_visible()
+    review("desactivar-compte-resum")
+
+    page.get_by_label("Nota").fill("Deixo el càrrec")
+    page.get_by_label("El teu codi TOTP").fill(
+        pyotp.TOTP(TOTP_KEY).at(datetime.now(), counter_offset=1)
+    )
+    page.get_by_label("He revisat el resum i el compte afectat").check()
+    page.get_by_role("button", name="Desactiva el compte").click()
+    expect(page.get_by_role("heading", name="Entrada d'administració")).to_be_visible()
+    expect(page.get_by_text("Has desactivat el teu compte d'administrador")).to_be_visible()
+    review("desactivar-compte-entrada")

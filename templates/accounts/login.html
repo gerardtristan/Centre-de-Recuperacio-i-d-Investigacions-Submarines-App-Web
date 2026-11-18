@@ -6,6 +6,7 @@
 {% block inici %}{% if area == "admin" %}{% url 'administration:home' %}{% else %}{% url 'core:home' %}{% endif %}{% endblock %}
 {% block content %}
   <h1>{% if area == "admin" %}{% translate "Entrada d'administració" %}{% else %}{% translate "Entrar a l'àrea de socis" %}{% endif %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {% if error %}<div class="avis {% if can_resend %}avis-avis{% else %}avis-error{% endif %}" role="alert">{{ error }}</div>{% endif %}
   <form class="formulari" method="post" novalidate>
     {% csrf_token %}

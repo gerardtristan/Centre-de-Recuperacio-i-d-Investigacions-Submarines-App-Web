@@ -73,5 +73,10 @@
       </form>
     {% endif %}
   {% endif %}
+  {% if account.status == "disabled" %}
+    <p>{% translate "Aquest compte està desactivat: no pot entrar a l'administració." %}</p>
+  {% elif not change %}
+    <p class="accions"><a class="boto" href="{% url 'administration:account_deactivate' account.pk %}">{% if account.pk == user.pk %}{% translate "Desactiva el teu compte…" %}{% else %}{% translate "Desactiva el compte…" %}{% endif %}</a></p>
+  {% endif %}
   <p class="enllacos"><a href="{% url 'administration:accounts' %}">{% translate "Tornar als comptes" %}</a></p>
 {% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-RP-02d: desactivar un compte d'administrador, també el propi (RN-RP-13 i 20; CA-RP-06 i 16; CA-13.2). Seguretat i privacitat: només M3, protegit i exclusiu de l'administrador, comprovat al servidor (la resta de rols, també el President, «no trobat»). El resum (GET) no desa res; desar és un POST amb CSRF, nota, casella de revisió i un codi TOTP nou de qui ho fa, que només es demana si el canvi es pot fer. Només surten noms d'usuari, cap dada personal. Si deixaria la plataforma sense cap administrador operatiu, l'avís ho diu i el formulari no surt; el servidor ho torna a comprovar en desar. Qui es desactiva a si mateix surt de l'administració en confirmar. #}
+{% block title %}{% blocktranslate with username=account.login %}Desactivar {{ username }}{% endblocktranslate %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Comptes d'administrador" %}</p>
+  <h1>{% blocktranslate with username=account.login %}Desactivar el compte {{ username }}{% endblocktranslate %}</h1>
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{% if not already %}<strong>{% translate "No s'ha desat res." %}</strong> {% endif %}{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+  <section class="targeta" aria-labelledby="resum-titol">
+    <h2 id="resum-titol">{% translate "Què canviarà" %}</h2>
+    <ul>
+      <li>{% blocktranslate with username=account.login %}El compte {{ username }} quedarà desactivat i no podrà entrar a l'administració. No s'esborra res: l'historial i el registre d'activitat es mantenen.{% endblocktranslate %}</li>
+      <li>{% translate "Se'n tancaran totes les sessions obertes, a tots els dispositius." %}</li>
+      <li>{% translate "El compte personal de la mateixa persona no canvia." %}</li>
+      <li>{% translate "S'avisarà per correu els comptes amb el rol administrador i el compte afectat." %}</li>
+    </ul>
+    <h3>{% translate "1 compte afectat" %}</h3>
+    <ul><li><span class="codi">{{ account.login }}</span></li></ul>
+    {% if own and not already %}<div class="avis avis-avis" role="status"><strong>{% translate "És el teu compte." %}</strong> {% translate "Sortiràs de l'administració en confirmar-ho i no hi podràs tornar a entrar amb aquest compte." %}</div>{% endif %}
+  </section>
+
+  {% if already %}
+    <div class="avis avis-avis" role="status">{% translate "Aquest compte ja està desactivat." %}</div>
+  {% elif blocked %}
+    <div class="avis avis-error" role="alert"><strong>{% translate "Ara no es pot desactivar." %}</strong> {{ blocked_message }}</div>
+  {% else %}
+    <form class="formulari targeta" method="post" action="" aria-labelledby="desa-titol" novalidate>
+      {% csrf_token %}
+      <h2 id="desa-titol">{% translate "Confirma la desactivació" %}</h2>
+      {% include "accounts/_camp.html" with field=form.note %}
+      {% include "accounts/_camp.html" with field=form.code %}
+      {% include "accounts/_camp.html" with field=form.reviewed %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desactiva el compte" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:account_roles' account.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:account_roles' account.pk %}">{% blocktranslate with username=account.login %}Tornar als rols de {{ username }}{% endblocktranslate %}</a></p>
+{% endblock %}

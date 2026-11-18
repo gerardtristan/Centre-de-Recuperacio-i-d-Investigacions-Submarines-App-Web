@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Avís: s'ha desactivat un compte d'administrador del C.R.I.S." %}

@@ -131,7 +131,10 @@ MAP = {
         "apps/core/admin_urls.py",
         "apps/core/views/roles.py",
         "templates/emails/avis-canvi-rol.*",
+        "templates/emails/avis-desactivacio-admin.*",
         "templates/core/account_roles.html",
+        "templates/core/account_deactivate.html",
+        "templates/accounts/login.html",
         "templates/accounts/admin_accounts.html",
     ),
     "test_pagaments_llistat.py": (
