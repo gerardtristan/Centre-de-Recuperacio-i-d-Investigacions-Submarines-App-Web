@@ -84,13 +84,13 @@ def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> An
     )
 
 
-def issue_annual_fee(member, *, period: int, due_on: datetime.date, by) -> AnnualFee:
+def issue_annual_fee(member, *, period: int, due_on: datetime.date, by, fee_type=None) -> AnnualFee:
     """Quota anual íntegra del tipus del soci (070; RN-M01-13: l'import del tipus quan es
-    crea)."""
+    crea). `fee_type`: el tipus demanat per a la renovació, si no és el del soci (073)."""
     return _issue_fee(
         member,
         kind=AnnualFee.Kind.ANNUAL,
-        amount_cents=member.type.annual_fee_cents,
+        amount_cents=(fee_type or member.type).annual_fee_cents,
         concept=str(_("Quota de soci %(period)s") % {"period": period}),
         period=period,
         due_on=due_on,
@@ -338,7 +338,11 @@ def next_fee_due(member) -> datetime.date | None:
 
 def generate_due_fees(today=None, *, by=None) -> list[AnnualFee]:
     """Genera les quotes que vencen d'aquí al primer recordatori (CA-M01-10 reformulada amb la
-    070). Idempotent: una quota viva sense pagar impedeix generar-ne una altra."""
+    070). Idempotent: una quota viva sense pagar impedeix generar-ne una altra. Amb un pas a
+    simpatitzant acceptat, la quota és la de simpatitzant i queda lligada a la sol·licitud (073,
+    CA-M01-69); el tipus canvia el dia que venç (`member_requests.apply_due_downgrades`)."""
+    from . import member_requests
+
     today = today or local_today()
     by = by or audit.system(GENERATE_ORIGIN)
     lead = datetime.timedelta(days=_lead_days())
@@ -357,10 +361,19 @@ def generate_due_fees(today=None, *, by=None) -> list[AnnualFee]:
             fresh = cards.load_member(member.pk)
             if next_fee_due(fresh) != due:
                 continue
+            change = member_requests.accepted_downgrade(fresh)  # 073: renova com a simpatitzant
             try:
-                fee = issue_annual_fee(fresh, period=due.year, due_on=due, by=by)
+                fee = issue_annual_fee(
+                    fresh,
+                    period=due.year,
+                    due_on=due,
+                    by=by,
+                    fee_type=change.requested_type if change else None,
+                )
             except ValidationError:
                 continue  # ja hi ha una quota viva d'aquell període
+            if change:
+                member_requests.link_renewal_fee(change, fee, by=by)
             audit.record(GENERATED, actor=by, target=fee, details={"due_on": due.isoformat()})
         created.append(fee)
     return created
@@ -497,6 +510,8 @@ NOTICE_TEMPLATE = "avis-quota-tresorer"
 NOTICE_PAID_WHILE_UNPAID = "paid_while_unpaid"
 NOTICE_RETURNED = "returned"
 NOTICE_TRANSFER_REVERTED = "transfer_reverted"  # 045, P-110
+NOTICE_DOWNGRADE_FULL_PRICE = "downgrade_full_price"  # 073, P-334 (T-M01-43)
+NOTICE_DOWNGRADE_FEE_CANCELLED = "downgrade_fee_cancelled"  # T-M01-43
 NOTICE_SENT = "members.fee.treasurer_notified"
 
 

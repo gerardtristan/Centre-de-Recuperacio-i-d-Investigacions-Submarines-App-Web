@@ -352,6 +352,16 @@ class MemberRequest(models.Model):
     # T-M01-17 (074, RN-M01-74): quan s'ha aplicat una baixa validada. Buida en una baixa
     # aprovada vol dir programada (data efectiva futura): l'aplica la tasca diària una sola vegada.
     applied_at = models.DateTimeField(_("baixa aplicada el"), null=True, blank=True)
+    # T-M01-43 (073): la quota de renovació a preu de simpatitzant d'un pas acceptat. El dia
+    # que venç, la tasca diària hi canvia el tipus (`member_requests.apply_due_downgrades`).
+    renewal_fee = models.OneToOneField(
+        "AnnualFee",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="downgrade_request",
+        verbose_name=_("quota de renovació"),
+    )
     guardian_first_name = models.CharField(_("nom del representant"), max_length=100, blank=True)
     guardian_last_name = models.CharField(_("cognoms del representant"), max_length=150, blank=True)
     guardian_id_document_type = models.CharField(
