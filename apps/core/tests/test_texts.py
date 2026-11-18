@@ -5,9 +5,11 @@ de dades, cap HTML). Només dades inventades."""
 import datetime
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.urls import reverse
+from django.utils import translation
 
 from apps.core import business_settings, mail, texts
 from apps.core.models import AuditEntry, OutgoingEmail, Role, Setting, SettingVersion
@@ -182,3 +184,65 @@ def test_publishing_from_the_screen_sends_the_new_text(make_admin):
     assert response.status_code == 302
     assert leave_email().subject == "Baixa feta"
     assert OutgoingEmail.objects.count() == 1
+
+
+# --- Revisió de la PR #222 ------------------------------------------------------------------
+
+
+def test_saving_the_default_text_unchanged_keeps_it_as_default(make_admin):
+    default = str(texts.EMAILS[LEAVE].default).replace("\n", "\r\n")  # com l'envia el navegador
+    version = business_settings.change(LEAVE, default + "\r\n", make_admin(R.SECRETARY))
+    assert version.value == ""
+    assert texts.status(LEAVE) == "Text per defecte"
+
+
+def test_line_endings_are_normalised_on_save(make_admin):
+    business_settings.change(LEAVE, "Baixa\r\n\r\nDes del {data}.", make_admin(R.SECRETARY))
+    assert business_settings.get(LEAVE) == "Baixa\n\nDes del {data}."
+
+
+def test_an_unknown_variable_never_stops_an_email(caplog):
+    subject, body = texts._fill("Hola {nom}\nCos {data}", {"data": "1/1/2027"})
+    assert (subject, body) == ("Hola {nom}", "Cos 1/1/2027\n")
+    assert "nom" in caplog.text
+
+
+def test_every_default_text_in_every_language_uses_only_its_variables():
+    for code, _name in settings.LANGUAGES:
+        with translation.override(code):
+            for key, entry in texts.EMAILS.items():
+                used = set(texts._VAR.findall(str(entry.default)))
+                assert used <= set(entry.vars), (code, key, used)
+                texts.validate(key, str(entry.default))
+
+
+def test_a_long_subject_is_rejected_with_a_message(make_admin):
+    with pytest.raises(ValidationError, match="200"):
+        business_settings.change(LEAVE, "A" * 201 + "\n\nCos", make_admin(R.SECRETARY))
+    business_settings.change(LEAVE, "A" * 200 + "\n\nCos", make_admin(R.SECRETARY))
+
+
+def test_the_email_records_the_language_its_text_is_in():
+    subject, _body, language = texts.render_email(
+        "baixa-efectiva", {"effective_on": datetime.date(2026, 12, 31)}, "es"
+    )
+    assert language == "ca"  # cap traducció: el text és el català
+
+
+def test_a_text_setting_without_an_entry_does_not_break_the_screen(make_admin):
+    Setting.objects.create(key="texts.no-existeix", module="texts", value_type="text",
+                           initial_value="", max_length=100)  # fmt: skip
+    client = admin_client(make_admin(R.SECRETARY))
+    assert client.get(reverse("administration:settings_section", args=["texts"])).status_code == 200
+    assert client.get(url("texts.no-existeix")).status_code == 200
+
+
+@pytest.mark.parametrize("value", ["Preu\n\nAmb <menys de 50 € n'hi ha prou.", "A\n\n1 < 2 > 0"])
+def test_a_less_than_sign_is_not_html(make_admin, value):
+    business_settings.change(LEAVE, value, make_admin(R.SECRETARY))
+
+
+@pytest.mark.parametrize("value", ["A\n\n<!-- x -->", "A\n\n</p>", "A\n\n<br/>"])
+def test_things_that_look_like_tags_are_rejected(make_admin, value):
+    with pytest.raises(ValidationError, match="HTML"):
+        business_settings.change(LEAVE, value, make_admin(R.SECRETARY))

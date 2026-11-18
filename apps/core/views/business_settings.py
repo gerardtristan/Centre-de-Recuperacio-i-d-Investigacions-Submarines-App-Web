@@ -80,7 +80,7 @@ def _row(setting, user, perms):
             "current": texts.status(setting.key),
             "initial": _("Text per defecte"),
         }
-        if setting.module == texts.SECTION
+        if texts.is_editable(setting)
         else {}
     )
 
@@ -116,7 +116,7 @@ class ValueForm(forms.Form):
         elif kind == T.INTEGER_LIST:
             field.help_text = _("Nombres enters separats per comes.")
             initial = current and ", ".join(map(str, current))
-        elif setting.module == texts.SECTION:  # T-M00-08: el text vigent, per editar-lo
+        elif texts.is_editable(setting):  # T-M00-08: el text vigent, per editar-lo
             field = forms.CharField(
                 required=False,
                 widget=forms.Textarea(attrs={"rows": 14}),
@@ -149,8 +149,6 @@ class ValueForm(forms.Form):
             return int(value * 100)
         if self.setting.value_type == T.INTEGER_LIST:
             return _to_list(value)
-        if self.setting.module == texts.SECTION:  # el navegador envia els salts com a CR LF
-            return value.replace("\r\n", "\n")
         return value
 
 
@@ -188,7 +186,7 @@ def setting_detail_view(request, section, key):
         service.deny(request.user, setting, request)
     data = request.POST if request.method == "POST" else None
     form = ValueForm(setting, data, current=service.get(setting.key))
-    is_text, preview = setting.module == texts.SECTION, None
+    is_text, preview = texts.is_editable(setting), None
     if form.is_bound and form.is_valid():
         clean = form.cleaned_data
         try:

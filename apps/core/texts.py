@@ -15,6 +15,7 @@ els de `business_settings.change`. Aquí només hi ha el que és propi dels text
   tria la variant a partir del context.
 """
 
+import logging
 import re
 from collections import namedtuple
 from dataclasses import dataclass, field
@@ -29,6 +30,8 @@ from django.utils.translation import gettext_lazy
 from .models import Setting
 
 SECTION = "texts"
+SUBJECT_MAX = 200
+logger = logging.getLogger(__name__)
 
 # `get` treu el valor del context del correu; `sample` és la dada inventada de la vista prèvia.
 Var = namedtuple("Var", "label sample get")
@@ -95,7 +98,8 @@ EMAILS = {
 TEMPLATES = frozenset(e.template for e in EMAILS.values())
 
 _VAR = re.compile(r"\{([a-z_]+)\}")
-_TAG = re.compile(r"<\s*[a-zA-Z/!?]")
+# Només el que sembla una etiqueta (`<a ...>`, `</p>`, `<br/>`, `<!--`), no «<menys de 50 €».
+_TAG = re.compile(r"<!--|</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>")
 
 
 def _names(entry: EmailText) -> str:
@@ -112,6 +116,11 @@ def validate(key: str, value: str) -> None:
         raise ValidationError(
             _("La primera línia és l'assumpte i, a sota, el cos del correu: calen tots dos.")
         )
+    if len(subject.strip()) > SUBJECT_MAX:
+        raise ValidationError(
+            _("L'assumpte (la primera línia) pot tenir com a màxim %(max)s caràcters.")
+            % {"max": SUBJECT_MAX}
+        )
     if _TAG.search(value):
         raise ValidationError(_("El text no pot portar etiquetes HTML: s'envia com a text pla."))
     unknown = sorted({name for name in _VAR.findall(value) if name not in entry.vars})
@@ -123,11 +132,30 @@ def validate(key: str, value: str) -> None:
         )
 
 
+def is_editable(setting) -> bool:
+    return setting.module == SECTION and setting.key in EMAILS
+
+
+def _lines(value):
+    # El navegador envia els salts com a CR LF.
+    return value.replace("\r\n", "\n") if isinstance(value, str) else value
+
+
+def normalise(key: str, value):
+    """Salts de línia uniformes; el text per defecte desat sense canvis es desa buit, perquè
+    continuï sent «per defecte» (i traduïble)."""
+    value = _lines(value)
+    default = str(EMAILS[key].default)
+    return "" if isinstance(value, str) and value.strip() == default.strip() else value
+
+
 def register() -> None:
     from . import business_settings
 
     for key in EMAILS:
-        business_settings.register_check(key, partial(validate, key))
+        business_settings.register_check(
+            key, partial(validate, key), normalise=partial(normalise, key)
+        )
 
 
 def _edited(key: str) -> str:
@@ -156,8 +184,15 @@ def help_text(key: str) -> str:
 
 
 def _fill(text: str, values: dict) -> tuple[str, str]:
-    # Una sola passada: el valor d'una variable no es torna a interpretar.
-    text = _VAR.sub(lambda m: values[m.group(1)], text)
+    # Una sola passada: el valor d'una variable no es torna a interpretar. Una variable sense
+    # valor es queda com és: un correu no deixa mai de sortir per un text.
+    def value(match):
+        if match.group(1) in values:
+            return values[match.group(1)]
+        logger.warning("Variable sense valor en un text de correu: %s", match.group(1))
+        return match.group(0)
+
+    text = _VAR.sub(value, _lines(text))
     subject, _sep, body = text.partition("\n")
     return " ".join(subject.split()), body.strip("\n") + "\n"
 
@@ -177,8 +212,14 @@ def render_email(template: str, context: dict, language: str) -> tuple[str, str,
         if e.template == template and (e.when is None or e.when(context))
     )
     edited = _edited(key)
-    language = settings.LANGUAGE_CODE if edited else language
+    with translation.override(language):
+        text = edited or str(entry.default)
+    with translation.override(settings.LANGUAGE_CODE):
+        original = str(entry.default)
+    # La llengua en què és el text: l'editat i el que no té traducció són en català.
+    if edited or text == original:
+        language = settings.LANGUAGE_CODE
     with translation.override(language):
         values = {name: str(var.get(context)) for name, var in entry.vars.items()}
-        subject, body = _fill(edited or str(entry.default), values)
+    subject, body = _fill(text, values)
     return subject, body, language
