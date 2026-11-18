@@ -1,20 +1,23 @@
 """Tipus de soci com a dada (T-M01-52; 091, RN-M01-107): crear, editar i desactivar tipus des
 dels ajustos del 01.
 
-- Qui: «Sí» de l'apartat d'ajustos de socis, o `settings.edit.members.membership_types` amb
-  l'apartat amb «Cons.» (RN-RP-22, com qualsevol valor dels ajustos) [A validar: P-376]. El
-  permís es comprova aquí; sense permís, «no trobat» (i, amb «Cons.», queda al registre).
+- Qui: `settings.edit.members.membership_types` amb l'apartat d'ajustos de socis (com declara
+  `apps/members/permissions.py`; el «Sí» de l'apartat sol no hi basta, perquè els tipus no són
+  cap valor dels ajustos) [A validar: P-376]. El permís es comprova aquí; sense permís, «no
+  trobat» (i, amb «Cons.», queda al registre).
 - Un tipus mai existeix sense preu editable: es crea amb el seu ajust de preu
   (`members.annual_fee_cents.<codi>`, VC-01), a la mateixa transacció. El preu es canvia
   després a l'ajust, amb data, nota i correu (RN-M01-45). El codi no canvia mai.
-- Amb socis (pendents, actius o impagats), el tipus no es desactiva [A validar: P-374] i els
-  atributs que decideixen regles (ple dret i edat mínima) no canvien [A validar: P-375]; el
-  nom, sí. Cap tipus no s'esborra (RN-M01-107; `PROTECT`).
+- En ús (socis pendents, actius o impagats, o una sol·licitud pendent cap al tipus), el tipus
+  no es desactiva [A validar: P-374] i els atributs que decideixen regles (ple dret i edat
+  mínima) no canvien [A validar: P-375]; el nom, sí. Cap tipus no s'esborra (RN-M01-107).
+- Sempre queda com a mínim un tipus actiu de ple dret i un que no ho és: sense, ningú no podria
+  fer el canvi a ple dret o el pas a simpatitzant.
 - Cada canvi va al registre d'activitat amb el valor anterior.
 """
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.http import Http404
 from django.utils.translation import gettext as _
 
@@ -23,7 +26,7 @@ from apps.core.models import Setting
 from apps.core.permissions import has_perm
 
 from . import settings as values
-from .models import Member, MembershipType
+from .models import Member, MemberRequest, MembershipType
 
 SECTION = "members"
 EDIT_PERMISSION = "settings.edit.members.membership_types"
@@ -38,10 +41,7 @@ def can_view(user) -> bool:
 
 
 def can_edit(user) -> bool:
-    """RN-RP-22: «Sí» de l'apartat, o el permís de tipus amb l'apartat amb «Cons.»."""
-    return has_perm(user, business_settings.section_code(SECTION), write=True) or (
-        can_view(user) and has_perm(user, EDIT_PERMISSION, write=True)
-    )
+    return can_view(user) and has_perm(user, EDIT_PERMISSION, write=True)
 
 
 def check_can_edit(user, request=None):
@@ -53,7 +53,13 @@ def check_can_edit(user, request=None):
 
 
 def has_members(membership_type) -> bool:
-    return membership_type.members.exclude(status=Member.Status.LEFT).exists()
+    """En ús: socis que no són de baixa o una sol·licitud pendent cap al tipus."""
+    return (
+        membership_type.members.exclude(status=Member.Status.LEFT).exists()
+        or MemberRequest.objects.filter(
+            requested_type=membership_type, status=MemberRequest.Status.PENDING
+        ).exists()
+    )
 
 
 def create(*, code, name, annual_fee_cents, full_rights, min_age, by, request=None):
@@ -67,7 +73,11 @@ def create(*, code, name, annual_fee_cents, full_rights, min_age, by, request=No
             min_age=min_age,
         )
         created.full_clean()  # codi únic, preu positiu i 14 anys per al ple dret (RN-M01-64)
-        created.save()
+        try:
+            with transaction.atomic():  # dues altes alhora amb el mateix codi
+                created.save()
+        except IntegrityError:
+            raise ValidationError({"code": _("Ja hi ha un tipus amb aquest codi.")}) from None
         Setting.objects.create(
             key=values.price_key(created),
             module=SECTION,
@@ -101,9 +111,22 @@ def update(membership_type, *, name, full_rights, min_age, active, by, request=N
                 )
             if "active" in changes and not active:
                 raise ValidationError(_("Aquest tipus té socis: no es pot desactivar."))
+        leaves_kind = ("active" in changes and not active) or "full_rights" in changes
+        if locked.active and leaves_kind and not _another_active(locked):
+            raise ValidationError(
+                _("Ha de quedar com a mínim un tipus actiu de ple dret i un que no ho sigui.")
+            )
         for field, (_old, value) in changes.items():
             setattr(locked, field, value)
         locked.full_clean()
         locked.save()
         audit.record_changes(CHANGED, actor=by, target=locked, changes=changes, request=request)
     return locked
+
+
+def _another_active(membership_type) -> bool:
+    return (
+        MembershipType.objects.filter(active=True, full_rights=membership_type.full_rights)
+        .exclude(pk=membership_type.pk)
+        .exists()
+    )

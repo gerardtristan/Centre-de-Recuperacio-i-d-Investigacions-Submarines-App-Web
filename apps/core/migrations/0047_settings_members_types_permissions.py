@@ -1,7 +1,8 @@
 """T-M01-52 (091, RN-M01-107): un sol permís per al preu de tots els tipus de soci, també els
 creats des de l'app, en lloc d'un per codi (AJ01-1 i AJ01-2 de la `core/0046`), i el permís de
-la pantalla de tipus. Cada rol que tenia el preu d'algun tipus conserva l'abast més ample que
-tenia. Patró de la 0046, amb una versió nova de la matriu (060)."""
+la pantalla de tipus. El permís nou només el rep qui tenia el preu de tots dos tipus, amb l'abast
+més estret dels dos: cap rol no guanya accés a preus que abans no podia canviar. Qui només en
+tenia un el perd, i la versió de la matriu ho diu. Patró de la 0046 (060)."""
 
 from django.db import migrations
 from django.db.models import Max
@@ -12,7 +13,10 @@ OLD = (
 )
 PRICE = "settings.edit.members.annual_fee_cents"
 TYPES = "settings.edit.members.membership_types"
-NOTE = "Socis: un sol permís per al preu de tots els tipus i la pantalla de tipus (T-M01-52)."
+NOTE = (
+    "Socis: un sol permís per al preu de tots els tipus, només per a qui tenia el preu de tots "
+    "dos tipus (qui només en tenia un el perd), i la pantalla de tipus (T-M01-52)."
+)
 
 
 def load(apps, schema_editor):
@@ -25,10 +29,14 @@ def load(apps, schema_editor):
     for cell in old:
         diff.append({"role": cell.role.code, "permission": cell.permission_code,
                      "before": cell.scope, "after": None})  # fmt: skip
-        if scopes.get(cell.role.code) != "all":
-            scopes[cell.role.code] = cell.scope
+        scopes.setdefault(cell.role.code, []).append(cell.scope)
     RolePermission.objects.filter(pk__in=[c.pk for c in old]).delete()
-    cells = [(role, PRICE, scope) for role, scope in scopes.items()]
+    # Tots dos preus, amb l'abast més estret («all» < «read» en ordre alfabètic: es tria a mà).
+    cells = [
+        (role, PRICE, "read" if "read" in found else "all")
+        for role, found in scopes.items()
+        if len(found) == len(OLD)
+    ]
     cells += [("treasurer", TYPES, "all"), ("administrator", TYPES, "all")]
     for role, code, scope in cells:
         _cell, created = RolePermission.objects.get_or_create(

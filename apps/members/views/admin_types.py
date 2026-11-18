@@ -118,6 +118,9 @@ def type_edit_view(request, pk):
     membership_type = get_object_or_404(MembershipType, pk=pk)
     initial = {f: getattr(membership_type, f) for f in ("name", "full_rights", "min_age", "active")}
     form = EditTypeForm(request.POST or None, initial=initial)
+    in_use = types.has_members(membership_type)
+    for name in ("full_rights", "min_age", "active") if in_use else ():
+        form.fields[name].disabled = True  # P-374 i P-375; el servei ho torna a comprovar
     if form.is_bound and form.is_valid():
         saved = _save(
             form,
@@ -130,6 +133,6 @@ def type_edit_view(request, pk):
         "type": membership_type,
         "form": form,
         "editable": types.can_edit(request.user),
-        "has_members": types.has_members(membership_type),
+        "has_members": in_use,
     }
     return render(request, "members/membership_type_edit.html", context)

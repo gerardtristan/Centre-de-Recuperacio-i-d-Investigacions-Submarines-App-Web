@@ -104,8 +104,7 @@ ROUTES = {
     },
     # 075 (RN-M01-83, CA-M01-84): també P4, per veure el nom del soci.
     "administration:member_leave_create": _both((P7, WRITE), (P4, READ)),
-    # T-M01-52: tipus de soci. Desar també es pot amb «Sí» de l'apartat (`types.can_edit`); la
-    # matriu inicial no el dona a cap rol.
+    # T-M01-52: tipus de soci; desar demana tots dos permisos (`types.can_edit`).
     "administration:membership_types": {
         "GET": ((AJ01, READ),),
         "POST": ((AJ01, READ), (AJ01_2, WRITE)),

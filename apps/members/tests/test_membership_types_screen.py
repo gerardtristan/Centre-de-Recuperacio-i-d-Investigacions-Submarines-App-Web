@@ -2,14 +2,25 @@
 editar i desactivar tipus, cada tipus amb el seu preu editable, permisos per rol i registre.
 Només dades inventades."""
 
+import importlib
+import re
+
 import pytest
+from django.apps import apps as django_apps
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 
 from apps.core import business_settings
-from apps.core.models import AuditEntry, Setting
+from apps.core.models import (
+    AuditEntry,
+    PermissionMatrixVersion,
+    Role,
+    RolePermission,
+    Setting,
+)
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import types
-from apps.members.models import MembershipType
+from apps.members.models import MemberRequest, MembershipType
 from apps.members.tests.test_join import submit, texts  # noqa: F401 (fixture)
 from apps.members.tests.test_join_minors import GUARDIAN, today  # noqa: F401 (fixture)
 from apps.members.tests.test_member_requests import make_member
@@ -100,16 +111,25 @@ class TestEdit:
         assert full().name == "Soci de ple dret"
         entry = AuditEntry.objects.get(action=types.CHANGED)
         assert (entry.field, entry.old_value) == ("name", "Ple dret")
-        for change in ({"min_age": "16"}, {"active": ""}, {"full_rights": ""}):
-            response = client.post(reverse(EDIT, args=[full().pk]), {**data, **change})
-            assert "No s'ha desat res." in response.content.decode()
+        treasurer = make_admin("treasurer")
+        for posted, change in (
+            ({"min_age": "16"}, {"min_age": 16}),
+            ({"active": ""}, {"active": False}),
+            ({"full_rights": ""}, {"full_rights": False}),
+        ):
+            client.post(reverse(EDIT, args=[full().pk]), {**data, **posted})  # camps desactivats
+            rules = {"full_rights": True, "min_age": 14, "active": True, **change}
+            with pytest.raises(ValidationError):  # i el servei ho rebutja
+                types.update(full(), name="Ple dret", **rules, by=treasurer)
         assert (full().min_age, full().active, full().full_rights) == (14, True, True)
 
     def test_a_type_without_members_is_deactivated(self, make_admin):  # noqa: F811
         client = admin_client(make_admin("treasurer"))
-        data = {"name": "Ple dret", "full_rights": "on", "min_age": "14"}  # sense «actiu»
-        assert client.post(reverse(EDIT, args=[full().pk]), data).status_code == 302
-        assert not full().active
+        target = juvenile()
+        data = {"name": "Juvenil", "min_age": "0"}  # sense «actiu»
+        assert client.post(reverse(EDIT, args=[target.pk]), data).status_code == 302
+        target.refresh_from_db()
+        assert not target.active
         entry = AuditEntry.objects.get(action=types.CHANGED)
         assert (entry.field, entry.old_value, entry.new_value) == ("active", True, False)
 
@@ -118,3 +138,97 @@ class TestEdit:
         assert client.get(reverse(EDIT, args=[full().pk])).status_code == 200
         response = client.post(reverse(EDIT, args=[full().pk]), {"name": "X", "min_age": "14"})
         assert response.status_code == 404 and full().name == "Ple dret"
+
+
+# --- Revisió de la #220 ---------------------------------------------------------------------
+
+RULES = {"name": "Juvenil", "full_rights": False, "min_age": 0, "active": True}
+
+
+def juvenile():
+    return MembershipType.objects.create(code="juvenil", name="Juvenil", annual_fee_cents=2000)
+
+
+class TestInUse:
+    def test_a_pending_type_change_to_the_type_counts_as_members(self, make_admin):  # noqa: F811
+        target = juvenile()
+        member = make_member()
+        MemberRequest.objects.create(
+            kind=MemberRequest.Kind.CHANGE_TYPE,
+            person=member.person,
+            member=member,
+            requested_type=target,
+            channel=MemberRequest.Channel.WEB,
+        )
+        admin = make_admin("administrator")
+        for change in ({"active": False}, {"min_age": 16}):
+            with pytest.raises(ValidationError):
+                types.update(target, **{**RULES, **change}, by=admin)
+        types.update(target, **{**RULES, "name": "Jove"}, by=admin)  # el nom, sí
+
+    def test_the_last_active_type_of_each_kind_stays(self, make_admin):  # noqa: F811
+        admin = make_admin("administrator")
+        supporter = MembershipType.objects.get(code="supporter")
+        rules = {"full_rights": True, "min_age": 14, "active": True}
+        for change in ({"active": False}, {"full_rights": False}):
+            with pytest.raises(ValidationError):
+                types.update(full(), name="Ple dret", **{**rules, **change}, by=admin)
+        with pytest.raises(ValidationError):
+            types.update(supporter, **{**RULES, "name": supporter.name, "active": False}, by=admin)
+        MembershipType.objects.create(
+            code="ple-dret-2",
+            name="Ple dret 2",
+            annual_fee_cents=9000,
+            full_rights=True,
+            min_age=14,
+        )
+        types.update(full(), name="Ple dret", **{**rules, "active": False}, by=admin)
+        assert not full().active
+
+    def test_rule_fields_are_not_editable_on_screen_with_members(self, make_admin):  # noqa: F811
+        make_member(type_code="full")
+        html = admin_client(make_admin("administrator")).get(reverse(EDIT, args=[full().pk]))
+        for name in ("full_rights", "min_age", "active"):
+            assert re.search(rf'<input[^>]*name="{name}"[^>]*disabled', html.content.decode())
+
+
+def test_section_edit_alone_does_not_edit_types(make_admin):  # noqa: F811
+    # Com declara `apps/members/permissions.py`: l'apartat i el permís de tipus, tots dos.
+    RolePermission.objects.filter(
+        role__code="secretary", permission_code="settings.section.members"
+    ).update(scope="all")
+    secretary = make_admin("secretary")
+    assert not types.can_edit(secretary)
+    assert admin_client(secretary).post(reverse(LIST), NEW).status_code == 404
+
+
+def test_a_concurrent_create_with_the_same_code_is_a_form_error(make_admin, monkeypatch):  # noqa: F811
+    # Dues altes alhora: la segona passa la validació i la base de dades la rebutja.
+    monkeypatch.setattr(MembershipType, "validate_unique", lambda self, exclude=None: None)
+    client = admin_client(make_admin("administrator"))
+    response = client.post(reverse(LIST), {**NEW, "code": "full"})
+    assert response.status_code == 200
+    assert "Ja hi ha un tipus amb aquest codi." in response.content.decode()
+    assert MembershipType.objects.count() == 2
+
+
+def test_migration_0047_gives_the_price_only_to_roles_with_both_prices():
+    migration = importlib.import_module(
+        "apps.core.migrations.0047_settings_members_types_permissions"
+    )
+    full_price, supporter_price = migration.OLD
+    RolePermission.objects.filter(permission_code__in=(migration.PRICE, migration.TYPES)).delete()
+    cells = [("treasurer", full_price), ("treasurer", supporter_price),
+             ("administrator", full_price), ("administrator", supporter_price),
+             ("secretary", full_price)]  # fmt: skip
+    for role, code in cells:
+        RolePermission.objects.create(
+            role=Role.objects.get(code=role), permission_code=code, scope="all"
+        )
+    migration.load(django_apps, None)
+    family = RolePermission.objects.filter(permission_code=migration.PRICE)
+    assert set(family.values_list("role__code", flat=True)) == {"treasurer", "administrator"}
+    assert not RolePermission.objects.filter(permission_code__in=migration.OLD).exists()
+    version = PermissionMatrixVersion.objects.order_by("-number").first()
+    lost = {"role": "secretary", "permission": full_price, "before": "all", "after": None}
+    assert lost in version.diff and "només en tenia un" in version.note

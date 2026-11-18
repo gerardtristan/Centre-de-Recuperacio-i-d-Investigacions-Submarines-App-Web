@@ -47,7 +47,7 @@ Pots consultar i resoldre les altes i els canvis de tipus, igual que la secretar
 
 **Ajustos de socis** (menú «Ajustos», T-M01-32). Hi canvies el preu de cada tipus de soci (amb la data des de quan val i una nota; les quotes ja creades no canvien i tu i la junta rebeu un correu), els dies dels recordatoris de quota (per exemple, «-15, -1, 0, 15, 30»: negatiu, abans del venciment; positiu, després si no s'ha pagat) i els dies per pagar el suplement del canvi a ple dret. Cada canvi queda a l'historial.
 
-**Tipus de soci** (T-M01-52). Hi crees un tipus amb el seu nom, un codi que no canvia, la quota anual, si és de ple dret (demana 14 anys com a mínim) i l'edat mínima; el preu queda a «Ajustos de socis» i s'hi canvia com el dels altres tipus. Un tipus sense socis es pot editar i desactivar; d'un tipus amb socis només se'n canvia el nom. Cap tipus no s'esborra i cada canvi queda al registre d'activitat.
+**Tipus de soci** (T-M01-52). Hi crees un tipus amb el seu nom, un codi que no canvia, la quota anual, si és de ple dret (demana 14 anys com a mínim) i l'edat mínima; el preu queda a «Ajustos de socis» i s'hi canvia com el dels altres tipus. Un tipus sense socis ni sol·licituds pendents es pot editar i desactivar; d'un tipus en ús només se'n canvia el nom, i sempre ha de quedar un tipus actiu de ple dret i un que no ho sigui. Cap tipus no s'esborra i cada canvi queda al registre d'activitat.
 
 ## 6. Dades bloquejades
 Quan una persona demana l'esborrat de les seves dades, les quotes i els pagaments no s'esborren. El nom i el document que hi surten queden **bloquejats i xifrats** durant 6 anys des del final de l'any de l'últim cobrament; després es destrueixen (decisió 085).
