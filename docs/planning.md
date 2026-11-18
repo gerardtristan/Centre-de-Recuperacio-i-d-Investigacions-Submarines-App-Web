@@ -1912,7 +1912,7 @@ Llegenda com a [M01-4](#M01-4-rols). Totes les accions de gestió es fan amb el 
 | T7 | Registrar un arqueig | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | T8 | Excloure una línia de l'extracte | — | — | — | — | — | — | — | Sí | — | — | — | — | — |
 | T9 | Exportar moviments en CSV | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
-| T10 | Veure la llista «a revisar» | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
+| T10 | Llista «a revisar»: veure-la («Cons.») i tancar-hi liquidacions amb nota («Sí», P-390 B) | — | — | — | — | — | — | — | Sí | — | — | — | Sí | — |
 | T11 | Veure l'estat de les quotes sense imports de tresoreria | — | — | — | — | Consulta | — | — | Sí | — | — | — | Sí | — |
 | T12 | Veure els seus càrrecs, pagaments i rebuts | — | Propi (enllaç de convidat) | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi | Propi |
 
