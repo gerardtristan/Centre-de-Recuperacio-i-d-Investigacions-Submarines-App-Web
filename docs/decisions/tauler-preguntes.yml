@@ -906,4 +906,15 @@ opcions:
       el text el valida la junta, i per això no s'ha canviat.
     data: 2026-11-18
 
+  P-369:
+    opcions:
+      A: En confirmar la remesa, una sola vegada per campanya; aquesta remesa ja no l'inclou.
+      B: Un pas nou per anunciar la data de la remesa uns dies abans, que envia el darrer recordatori i deixa temps per signar el mandat.
+      C: A cada remesa confirmada mentre la campanya és oberta.
+    recomanada: A
+    perque: >-
+      Fa servir el pas que ja existeix i no envia més d'un correu; B demana una pantalla i un pas
+      nous al 05b, i C repetiria un recordatori que es diu «darrer».
+    data: 2026-11-18
+
 noves:
