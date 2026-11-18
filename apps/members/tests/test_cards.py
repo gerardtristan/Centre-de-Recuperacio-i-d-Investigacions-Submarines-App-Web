@@ -382,7 +382,9 @@ def test_unpaid_member_sees_not_valid(personal):
 def test_approximate_date_shows_since_year(personal):
     member = paid_member(joined_on=date(1998, 3, 15), joined_on_is_approximate=True)
     cards.issue_card(member, by=SYSTEM)
-    assert "des de ~1998" in personal(member).get(reverse(CARD)).content.decode()
+    # T-DX-61: «Soci des de» al davant del carnet; «~» perquè la data és aproximada.
+    html = personal(member).get(reverse(CARD)).content.decode()
+    assert "Soci des de" in html and "~1998" in html
 
 
 # --- Validesa del 072: exempts, importats i el 29 de febrer (retoc de la T-M01-26) -----------

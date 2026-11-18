@@ -100,7 +100,14 @@ MAP = {
         "apps/members/views/public_card.py",
         "templates/members/personal_card.html",
         "templates/members/card_verify.html",
+        "templates/members/_card_renew.html",
         "static/js/imprimeix.js",
+    ),
+    "test_carnet_3d.py": (
+        "apps/members/views/personal_card.py",
+        "templates/members/personal_card.html",
+        "templates/members/_card_renew.html",
+        "static/js/carnet.js",
     ),
     "test_duermevela.py": (
         "static/js/tema.js",
@@ -111,6 +118,7 @@ MAP = {
     "test_pwa_079.py": (
         "static/js/service-worker.js",
         "static/js/carnet-copia.js",
+        "static/js/carnet.js",
         "static/js/pwa.js",
         "static/manifest.json",
         "static/img/*",
@@ -463,6 +471,7 @@ SECONDS = {
     "test_accessibilitat_tresoreria.py": 100,
     "test_accessibilitat_05b.py": 170,
     "test_pwa_079.py": 45,
+    "test_carnet_3d.py": 40,
     "test_recorreguts_048.py": 20,
     "test_logotip.py": 130,  # tres motors (T-DX-54)
     "test_navegacio_soci.py": 50,  # cinc amplades en clar i en fosc (T-DX-59)

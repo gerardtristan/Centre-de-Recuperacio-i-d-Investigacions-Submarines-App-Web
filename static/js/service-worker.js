@@ -25,13 +25,16 @@ var CAP_DESADA = 'X-Cris-Copia-Desada';    // hora del dispositiu en desar-la (m
 var CAP_VALID_FINS = 'X-Cris-Valid-Fins';  // «vàlid fins al» del carnet (AAAA-MM-DD) o buit
 var VALID_FINS = /data-valid-fins="(\d{4}-\d{2}-\d{2})"/;
 // Estils i les fonts que fa servir fonts.css (079, A-28; T-M01-45): sense connexió, el carnet es
-// veu amb la lletra correcta. Són fitxers públics, sense cap dada.
+// veu amb la lletra correcta. Són fitxers públics, sense cap dada. Des de la T-DX-61, també els estils i el
+// JavaScript del carnet en 3D (disposició, segell, avatar, pista, gir i impressió).
 var ESTILS = ['/static/css/fonts.css', '/static/css/tokens.css', '/static/css/comptes.css', '/static/js/tema.js',
   '/static/fonts/barlow-condensed/BarlowCondensed-SemiBold.woff2', '/static/fonts/barlow-condensed/BarlowCondensed-Bold.woff2',
   '/static/fonts/source-sans-3/SourceSans3-Regular.ttf.woff2', '/static/fonts/source-sans-3/SourceSans3-Semibold.ttf.woff2',
   '/static/fonts/source-sans-3/SourceSans3-Bold.ttf.woff2',
   '/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2', '/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2',
-  '/static/js/carnet-copia.js'];
+  '/static/js/carnet-copia.js',
+  '/static/css/disposicio.css', '/static/css/autentico.css', '/static/css/monograma.css', '/static/css/baliza.css',
+  '/static/css/carnet.css', '/static/js/carnet.js', '/static/js/imprimeix.js'];
 var ENTRAR_O_SORTIR = /\/(entrar|sortir)\//;  // les dues entrades, també la d'administració
 // Marca de l'avís que la pàgina del carnet porta amagat; la còpia el mostra.
 var AVIS_AMAGAT = ' data-sense-connexio hidden';

@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.37 (19/11/2026). La 1.37 porta Ramillete a totes les mides (§6.12, T-DX-59): la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i un panell lateral clar i flotant a l'escriptori, amb «Mostra el QR» i el compte; la navegació de la capçalera queda només sense JavaScript.
+- **Versió:** 1.38 (19/11/2026). La 1.38 fa el carnet de soci en 3D (§6.21, T-DX-61): s'inclina amb el ratolí i es gira per veure el QR; afegeix `--c-carnet-ok`, `--c-carnet-error` i `--ombra-carnet` (§2.6) i canvia la impressió del carnet (§6.8).
+- La 1.37 (19/11/2026) porta Ramillete a totes les mides (§6.12, T-DX-59): la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i un panell lateral clar i flotant a l'escriptori, amb «Mostra el QR» i el compte; la navegació de la capçalera queda només sense JavaScript.
 - La 1.36 (19/11/2026) afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
 - La 1.35 (18/11/2026) fa la fitxa del soci de l'administració a l'escriptori (§5.2, §5.3 i §6.13; T-DX-67, PR 9a): dues columnes 5/7 (`fitxa-soci`), el resum i les dades al costat a la tauleta, un sol botó principal amb les accions rares a «Més» i l'historial d'estats amb la línia de passos de Tramite (`historial-estats`).
 - La 1.34 (18/11/2026) redistribueix a l'escriptori el perfil, el mandat, el pagament i el rebut del soci i dos formularis de l'administració (alta presencial i edició de les dades d'un soci) (T-DX-65, §5.3, §6.10, §6.13 i §6.14): capçalera comuna, formulari a 40rem amb `lateral-formulari`, Errata i l'ajuda plegada a la columna lateral, els passos de Tramite al costat del pagament i el rebut estret amb les accions al costat.
@@ -114,6 +115,8 @@ El compte personal fa servir la metàfora d'una immersió: la portada és la sup
 | `--c-carnet-1` / `--c-carnet-2` | `#0b4f74` / `#062a47` | igual | Carnet: sempre fosc, com una targeta física |
 | `--c-carnet-text` / `--c-carnet-text-2` | `#f2f5f8` / `#b9cfe0` | igual | Text del carnet (≥8:1 i ≥5,5:1) |
 | `--c-carnet-zona` | `#e2b04f` | igual | Franja superior del carnet i anell del dock. **Decoratiu**: 4,4:1, no es fa servir per a text |
+| `--c-carnet-ok` / `--c-carnet-error` | `#59D8B0` / `#FFA096` | igual | Estat del carnet («✓ Vàlid», «✕ No vàlid») sobre el carnet fosc (≥6,3:1 sobre `--c-carnet-1` i `--c-carnet-2`). Són els de `--c-ok-text` i `--c-error-text` del tema fosc: el carnet és fosc als dos temes (T-DX-61) |
+| `--ombra-carnet` | ombra cap avall i a la dreta | la mateixa, més fosca | Ombra del carnet: la llum ve de dalt a l'esquerra, la mateixa que el reflex (B11, T-DX-61) |
 
 Al tema clar, el color de text de la zona soci (`#85590a`) baixa a 3,3:1 a la part fonda del degradat. Per això, a la portada les etiquetes fan servir `--c-ocea-text-2`.
 
@@ -466,8 +469,8 @@ El carnet es desa com a PDF amb la impressió del navegador; el servidor no gene
 - **`no-imprimeix`:** classe per a tot el que no ha de sortir al paper (avisos, botons, enllaços, formularis). La capçalera i l'enllaç «Vés al contingut» ja no s'imprimeixen mai.
 - **`[data-imprimeix]`:** botó que obre la impressió («Desa com a PDF»). Surt amagat (`hidden`) i el mostra `static/js/imprimeix.js`; sense JavaScript es pot imprimir igualment des del navegador.
 - **Tema:** mentre s'imprimeix, `imprimeix.js` força el tema clar i després torna a posar el que hi havia.
-- **`carnet-qr`:** el QR del carnet (peça `qr`, §6) centrat amb la seva explicació a sota.
-- Estils a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
+- **El carnet en paper (T-DX-61):** les dues cares, una al costat de l'altra, sense gir ni inclinació, en clar (fons `--paper`, text del tema clar i el logotip per a fons clar), perquè el text no surti clar sobre paper blanc. La resta de la pàgina («Què veu qui l'escaneja», els botons i el formulari) no s'imprimeix. Estils a `static/css/carnet.css` (§6.21).
+- Estils generals a `static/css/comptes.css` (`@media print`), no a `tokens.css`.
 
 ### 6.9 Etiqueta «En construcció»
 Marca una pantalla, o un bloc d'una pantalla, que encara no és funcional ([pla dels recursos externs §1](plans/recursos-disseny-extern.md#1-abast)). **Feta a la T-DX-03:** `templates/_en_construccio.html` (`{% include "_en_construccio.html" with id="…" %}` dins d'un contenidor `en-construccio-bloc`), `static/css/en-construccio.css` i el decorador `apps/core/under_construction.py`.
@@ -587,6 +590,21 @@ Un sol joc d'icones a tota la plataforma (C9, D4): **Lucide** (llicència ISC), 
 - **Accessibilitat:** sempre `aria-hidden="true"` i `focusable="false"`. El nom el porta el text que l'acompanya o el nom accessible del botó o de l'enllaç; una icona mai no és l'única manera de saber què fa un control ni l'estat d'una cosa (amb l'estat, també el text).
 - **Origen i llicència:** `static/img/README.md` (versió, adreça oficial, integritat de npm i SHA-256) i `static/img/LICENSE-lucide.txt`. Per afegir-ne una: el nom a `apps/core/icones.py` i es torna a generar l'sprite amb `tools/icones/genera.py`, des del mateix paquet. Un nom que no és a la llista fa fallar la plantilla.
 - **Els símbols de text** (✓ ✕ ◷) dels estats es mantenen on ja hi són: van amb el text de l'estat i no són icones decoratives.
+
+### 6.21 El carnet en 3D (T-DX-61)
+Decisió del propietari del 18/11/2026 (programa d'escriptori, PR 5): el carnet de soci és una targeta que s'inclina i es gira, com al wireframe `socis.html` (`carnet-escena`), però només amb tokens.
+- **Peça:** `static/css/carnet.css` (enllaçat al bloc `estils` de `templates/members/personal_card.html`) i `static/js/carnet.js` (fitxer propi, `defer`, sense xarxa). `carnet-escena` > `carnet-interior` > dues `carnet-cara`: `carnet-davant` i `carnet-darrere` (`id="qr"`). Les cares són `radi-concentric` (`--r-xl` i farciment `--e-4`), amb la franja superior de `--c-carnet-zona`, el degradat `linear-gradient(in oklch, --c-carnet-1, --c-carnet-2)` amb l'alternativa en sRGB a la línia anterior (C7) i un reflex suau a dalt a l'esquerra, d'on ve la llum de l'ombra (`--ombra-carnet`, B11).
+- **Davant:** el logotip per a fons fosc, «C.R.I.S.», el Monograma petit (§6.19, decoratiu, de la llavor), el nom, el número de soci (`codi`), «Vàlid fins al», «Soci des de» (any i anys de soci; «~any» si la data és aproximada), la insígnia «Soci clàssic» si toca (`carnet-insignia`) i el segell d'Autentico (§6.16) amb l'estat: «✓ Vàlid» (`--c-carnet-ok`) o «✕ No vàlid» (`--c-carnet-error`). Al carnet el segell no cau: és quiet (D20), i és text que es llegeix (no `aria-hidden`).
+- **Darrere:** el QR gran sobre `--paper`, amb la zona de silenci del mateix SVG i el radi `--r-interior` (C1); el tipus, l'alta, la quota, la llicència i el text legal amb el NIF del club. Les mateixes dades d'abans, cap de nova. Amb una cara de menys de 18rem (el mòbil de 320 px), el QR va a dalt i les dades a sota, en dues columnes.
+- **Gir:** el botó `carnet-gira` («Mostra el QR» / «Mostra el davant», `aria-pressed`) o un clic o toc al carnet. `--m-gir` amb `--m-corba-molla` (B5); un clic durant el gir el desfà des d'on és (B9: és una transició de CSS). La icona canvia amb opacitat, escala i desenfocament en `--m-rapid` (C4). La cara amagada porta `aria-hidden="true"` i `inert`. Amb `#qr` a l'adreça (la navegació del soci hi enllaça), la pàgina s'obre pel darrere.
+- **Inclinació:** només amb `(hover: hover) and (pointer: fine)` i sense `prefers-reduced-motion`; fins a 6 graus, seguint el ratolí, amb `--rx` i `--ry` que el JavaScript posa amb `style.setProperty` (cap `style=` a la plantilla). En sortir, torna al repòs. Cap giroscopi.
+- **Moviment reduït:** cap inclinació i el gir és instantani (`tokens.css` posa `--m-gir` a 0).
+- **Sense JavaScript:** les dues cares, una sota l'altra, sense gir ni botó: el QR es veu igualment.
+- **Pista:** la primera vegada, «Toca el carnet per veure el QR», amb la píndola i la baliza de Baliza (§16, T-DX-09; un sol batec en aparèixer). El navegador només en recorda un identificador (`localStorage`, clau `cris-pista-carnet`, P-98); si no s'hi pot escriure, no surt. Desapareix en girar el carnet.
+- **Pàgina:** `graella-2 graella-7-5` (§5.3): a l'escriptori, el carnet gran a l'esquerra (fins a `--carnet-amplada` × 1,5) i, a la dreta, «Què veu qui l'escaneja», «Desa com a PDF» i «Has perdut el carnet o el mòbil?» (`id="carnet-nou"`, la navegació hi enllaça); a la tauleta i al mòbil, el carnet centrat i la resta a sota.
+- **Més contrast:** sense degradat ni reflex ni ombra, i amb vora plena.
+- **Seguretat i privacitat:** el QR només porta l'adreça de verificació, calculada al servidor a cada visita (resposta `no-store`); qui l'escaneja veu «vàlid», el número i el nom de pila. La cara amagada no la llegeix el lector de pantalla. Cap dada nova. La còpia sense connexió del service worker és la mateixa pàgina, amb l'avís de l'última comprovació; ara també desa els estils i el JavaScript que fa servir el carnet (`carnet.css`, `carnet.js`, `disposicio.css`, `autentico.css`, `monograma.css`, `baliza.css` i `imprimeix.js`: fitxers públics, sense dades). El logotip i les icones no hi són (només es desen `.css`, `.js` i fonts): sense connexió, el carnet surt sense.
+- **Del wireframe no s'hi fa:** les isòbates (adorn que no informa, D6), els colors escrits a mà i el bloqueig de la inclinació amb un temps fix (aquí, el de `--m-gir`).
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
