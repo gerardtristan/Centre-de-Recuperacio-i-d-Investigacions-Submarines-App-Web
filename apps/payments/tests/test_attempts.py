@@ -68,9 +68,10 @@ class TestEntity:
         assert names == set(
             "id charge method amount_cents status provider_code provider_order_id "
             "idempotency_key expires_at guest_link started_by review_reason created_at "
-            "updated_at receipt ui_timeout_minutes direct_debit_item".split()
+            "updated_at receipt ui_timeout_minutes direct_debit_item review_closure".split()
         )  # `receipt`: la relació inversa del rebut (T-M05b-07); `ui_timeout_minutes`: RN-M05b-24;
-        # `direct_debit_item`: la del rebut domiciliat (T-M05b-09), que porta el mandat
+        # `direct_debit_item`: la del rebut domiciliat (T-M05b-09), que porta el mandat;
+        # `review_closure`: la del tancament d'un «a revisar» (T-M05b-16b)
         assert not [n for n in names if any(w in n for w in ("iban", "pan", "cvv", "card"))]
         # Tall de targeta: l'intent no referencia el mandat (docs/estat/M05a.md).
         related = {f.related_model._meta.label for f in Attempt._meta.fields if f.is_relation}
