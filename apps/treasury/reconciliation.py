@@ -229,12 +229,14 @@ def confirm(line, *, by) -> Reconciliation:
 
 def _flagged(charges):
     """Els càrrecs amb dues marques: `collecting`, un cobrament en curs que el pagaria per una
-    altra banda (targeta o Bizum en curs, o una domiciliació d'una remesa enviada al banc; la
-    transferència que s'espera no, que és la que es casa); `proposed`, a la proposta d'una línia."""
+    altra banda (targeta o Bizum en curs o «a revisar», que potser ja s'ha cobrat, o una
+    domiciliació d'una remesa enviada al banc; la transferència que s'espera no, que és la que es
+    casa); `proposed`, a la proposta d'una línia."""
     attempts = PaymentAttempt.objects.filter(charge=OuterRef("pk"))
+    S = PaymentAttempt.Status
     collecting = attempts.filter(
-        Q(status=PaymentAttempt.Status.SENT_TO_BANK)
-        | Q(status=PaymentAttempt.Status.IN_PROGRESS) & ~Q(method=PaymentAttempt.Method.TRANSFER)
+        Q(status=S.SENT_TO_BANK)
+        | Q(status__in=[S.IN_PROGRESS, S.TO_REVIEW]) & ~Q(method=PaymentAttempt.Method.TRANSFER)
     )
     proposed = StatementLineState.objects.filter(
         status=StatementLineState.Status.PROPOSED, proposed_charges=OuterRef("pk")
@@ -242,17 +244,23 @@ def _flagged(charges):
     return charges.annotate(collecting=Exists(collecting), proposed=Exists(proposed))
 
 
-def matchable_state(line):
-    """L'estat de la línia si es pot casar a mà (d'entrada, pendent, d'un extracte vigent), o
-    None. Llegeix l'estat desat: `match` el torna a calcular abans de pagar res."""
+def match_problem(line) -> str:
+    """Per què la línia no es pot casar a mà, o "" si es pot (d'entrada, pendent, d'un extracte
+    vigent). Llegeix l'estat desat: `match` el torna a calcular abans de pagar res."""
     state = (
         StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
         .select_related("statement_line")
         .first()
     )
-    if state is None or state.status != StatementLineState.Status.PENDING:
-        return None
-    return state if state.statement_line.amount_cents > 0 else None
+    if state is not None and state.status == StatementLineState.Status.PROPOSED:
+        return _("Aquesta línia ja té una proposta: revisa-la i confirma-la.")
+    if (
+        state is None
+        or state.status != StatementLineState.Status.PENDING
+        or state.statement_line.amount_cents <= 0
+    ):
+        return _("Aquesta línia no està pendent o no és d'entrada: no es pot casar.")
+    return ""
 
 
 def _matchable(line, charge_ids, *, lock):
@@ -261,12 +269,11 @@ def _matchable(line, charge_ids, *, lock):
     proposta, que sumin exactament l'import (RN-T17, RN-T17b)."""
     if lock:  # bloqueja la línia i els càrrecs fins que acabi la transacció
         StatementLineState.objects.select_for_update().filter(statement_line=line).first()
-        list(Charge.objects.select_for_update().filter(pk__in=set(charge_ids)))
-    state = matchable_state(line)
-    if state is None:
-        raise ReconciliationRejected(
-            _("Aquesta línia no està pendent o no és d'entrada: no es pot casar.")
-        )
+        # Sempre en el mateix ordre: dos casaments alhora no es bloquegen l'un a l'altre.
+        list(Charge.objects.select_for_update().filter(pk__in=set(charge_ids)).order_by("pk"))
+    if problem := match_problem(line):
+        raise ReconciliationRejected(problem)
+    state = StatementLineState.objects.select_related("statement_line").get(statement_line=line)
     matched = list(_flagged(Charge.objects.filter(pk__in=set(charge_ids))).order_by("pk"))
     if not matched or len(matched) != len(set(charge_ids)):
         raise ReconciliationRejected(_("Tria un o més càrrecs pendents."))

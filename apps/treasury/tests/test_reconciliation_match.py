@@ -129,9 +129,11 @@ class TestMatch:
         reconciliation.match(done, [quota.pk], by=treasurer)
         with pytest.raises(Rejected, match="no es pot casar"):
             reconciliation.match(out, [charge(9000).pk], by=treasurer)
-        for line in (excluded, done, proposed):
+        for line in (excluded, done):
             with pytest.raises(Rejected, match="no es pot casar"):
                 reconciliation.match(line, [charge(9000).pk], by=treasurer)
+        with pytest.raises(Rejected, match="ja té una proposta"):
+            reconciliation.match(proposed, [charge(9000).pk], by=treasurer)
         assert Reconciliation.objects.count() == 1
 
     def test_a_line_that_now_has_a_proposal_says_so(self, treasurer, charge):  # noqa: F811
@@ -233,7 +235,9 @@ class TestNoDoubleCharge:
         quota = charge(9000)
         attempt = attempts.create_attempt(quota, method)
         attempt = attempts.transition(attempt, PaymentAttempt.Status.IN_PROGRESS, by=SYSTEM)
-        attempts.transition(attempt, PaymentAttempt.Status.TO_REVIEW, by=SYSTEM)
+        attempts.transition(
+            attempt, PaymentAttempt.Status.TO_REVIEW, by=SYSTEM, reason="Resposta dubtosa (prova)"
+        )
         (line,) = lines(treasurer, (9000, "TRANSF"))
         with pytest.raises(Rejected, match="cobrament en curs"):
             reconciliation.match(line, [quota.pk], by=treasurer)
@@ -330,11 +334,11 @@ class TestMatchView:
         client = client_for(treasurer)
         for line in (out, done):
             with CaptureQueriesContext(connection) as queries:
-                response = client.get(match_url(line), {"cerca": ref(quota)})
+                response = client.get(match_url(line), {"cerca": f"4321 {ref(quota)}"})
             html = main_of(response.content.decode())
             assert "no es pot casar" in html and 'name="cerca"' not in html
             # Sense cap cerca de càrrecs: ni la consulta.
-            assert not [q for q in queries if "treasury_transferreference" in q["sql"]]
+            assert not [q for q in queries if "members_member" in q["sql"]]
 
     def test_the_review_screen_links_here(self, treasurer, charge):  # noqa: F811
         quota = charge(9000)

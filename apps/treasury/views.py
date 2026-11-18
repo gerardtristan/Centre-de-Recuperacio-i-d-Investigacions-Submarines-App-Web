@@ -295,8 +295,10 @@ def match_view(request, line_id):
     context = {"line": line, "amount": euros(line.amount_cents), "query": query}
     if request.method == "GET":
         reconciliation.refresh()  # com la conciliació: l'estat de la línia, al dia
-        context["matchable"] = reconciliation.matchable_state(line) is not None
-        found, context["more"] = reconciliation.pending_charges(query)
+        context["problem"] = reconciliation.match_problem(line)
+        found, context["more"] = ([], False)
+        if not context["problem"]:  # sense formulari, tampoc no es busca res
+            found, context["more"] = reconciliation.pending_charges(query)
         context["found"] = [
             {"charge": c, "amount": euros(c.amount_cents), "checked": c.pk in ids} for c in found
         ]

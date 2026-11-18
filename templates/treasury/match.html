@@ -14,8 +14,8 @@
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
   </dl>
 
-  {% if not matched and not matchable %}
-    <p>{% translate "Aquesta línia no està pendent o no és d'entrada: no es pot casar." %}</p>
+  {% if problem %}
+    <p>{{ problem }}</p>
   {% elif matched %}
     <table class="taula">
       <caption>{% translate "Càrrecs triats" %}</caption>
@@ -30,7 +30,7 @@
       {% csrf_token %}
       {% for item in matched %}<input type="hidden" name="carrec" value="{{ item.charge.pk }}">{% endfor %}
       <input type="hidden" name="cerca" value="{{ query }}">
-      <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el casament" %}</strong>{% blocktranslate with amount=amount %}Els càrrecs sumen {{ amount }}, com la línia. Passaran a «pagat» per transferència i l'ingrés s'apuntarà al banc. Si t'equivoques, es desfà des de la conciliació, amb el motiu.{% endblocktranslate %}</div>
+      <div class="avis avis-avis" role="status"><strong>{% translate "Confirma el casament" %}</strong>{% blocktranslate with amount=amount %}Els càrrecs sumen {{ amount }}, com la línia. Passaran a «pagat» per transferència i l'ingrés s'apuntarà al banc. Si t'equivoques, es desfà des de la conciliació, amb el motiu.{% endblocktranslate %}</div>
       <div class="accions">
         <button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Sí, casa-la" %}</button>
         <a class="boto boto-text" href="{% url 'administration:treasury_match_line' line.pk %}?cerca={{ query|urlencode }}">{% translate "Cancel·la" %}</a>
