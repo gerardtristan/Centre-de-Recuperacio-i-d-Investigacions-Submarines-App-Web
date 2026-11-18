@@ -247,6 +247,8 @@ UNCHECKED = {
     remittances.candidate_lines: "consulta (la vista demana B3)",
     returns.max_attempts: "consulta",
     returns.can_retry: "consulta",
+    returns.codes: "consulta (P-291)",
+    returns.check_codes: "validació: la crida `business_settings.change`, amb el seu permís",
     returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",
     mandates.next_reference: "càlcul",
