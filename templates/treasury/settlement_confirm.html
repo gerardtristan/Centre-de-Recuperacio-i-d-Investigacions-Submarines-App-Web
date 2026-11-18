@@ -9,6 +9,23 @@
     <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_settlements' %}">{% translate "Liquidacions" %}</a></p>
   {% endif %}
   <h1>{% translate "Confirma la liquidació" %}</h1>
+  {% if choices %}
+    <dl class="dades-soci">
+      <div><dt>{% translate "Línia del banc" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time> · {{ line.concept }} · <span class="import">{{ amount }}</span></dd></div>
+    </dl>
+    <form class="formulari" method="get" action="{% url 'administration:treasury_confirm_settlement_line' line.pk %}">
+      <h2 id="tria-liquidacio">{% translate "Més d'una liquidació té aquest import. Quina és?" %}</h2>
+      <div role="radiogroup" aria-labelledby="tria-liquidacio">
+        {% for choice in choices %}
+          <label class="casella"><input type="radio" name="liquidacio" value="{{ choice.settlement.pk }}" required> <span><strong class="codi">{{ choice.settlement.provider_code }} · {{ choice.settlement.external_id }}</strong><br><span class="text-2">{% blocktranslate with day=choice.settlement.settled_on|date:"d/m/Y" net=choice.net %}Abonament del {{ day }}, net {{ net }}{% endblocktranslate %}</span></span></label>
+        {% endfor %}
+      </div>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Revisa aquesta liquidació" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:treasury_reconciliation' %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% else %}
   <dl class="dades-soci">
     {% if line %}<div><dt>{% translate "Línia del banc" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time> · {{ line.concept }} · <span class="import">{{ amount }}</span></dd></div>{% endif %}
     <div><dt>{% translate "Abonament" %}</dt><dd>{{ settlement.settled_on|date:"d/m/Y" }} <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></dd></div>
@@ -47,4 +64,5 @@
       <a class="boto boto-text" href="{% if line %}{% url 'administration:treasury_reconciliation' %}{% else %}{% url 'administration:treasury_settlements' %}{% endif %}">{% translate "Cancel·la" %}</a>
     </div>
   </form>
+  {% endif %}
 {% endblock %}

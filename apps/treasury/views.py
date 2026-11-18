@@ -300,11 +300,21 @@ def settlement_line_view(request, line_id):
             _("Liquidació conciliada: comissions apuntades i el net, del trànsit al banc."),
         )
     reconciliation.refresh()
-    state = StatementLineState.objects.filter(statement_line=line).first()
-    settlement = state and state.proposed_settlement
-    if settlement is None or state.status != StatementLineState.Status.PROPOSED:
+    choices = reconciliation.settlement_choices(line)
+    if not choices:
         messages.error(request, _("Aquesta línia no té cap liquidació proposada."))
         return redirect("administration:treasury_reconciliation")
+    wanted = request.GET.get("liquidacio", "")
+    settlement = next((s for s in choices if str(s.pk) == wanted), None)
+    if settlement is None and len(choices) == 1:
+        settlement = choices[0]
+    if settlement is None:  # línia ambigua: primer, el tresorer en tria una (revisió de la #212)
+        context = {
+            "line": line,
+            "amount": euros(line.amount_cents),
+            "choices": [{"settlement": s, "net": euros(s.net_cents)} for s in choices],
+        }
+        return render(request, "treasury/settlement_confirm.html", context)
     split = [
         {"item": item, "amount": euros(item.amount_cents), "fee": euros(fee)}
         for item, fee in settlements.fee_split(settlement).items()

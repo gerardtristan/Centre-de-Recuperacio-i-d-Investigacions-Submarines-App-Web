@@ -14,8 +14,9 @@ torna a calcular les que encara són obertes (pendents o proposades), perquè el
   dia de l'abonament als `SETTLEMENT_DAYS` dies següents (P-364). Només compten les línies
   obertes. Una liquidació amb l'identificador (4 caràcters o més) al concepte d'una sola línia
   és d'aquella línia; per a la resta, si encara n'hi ha més d'una, o la mateixa liquidació
-  encaixa amb dues línies, «a revisar» sense proposta. Una parella (línia, liquidació) desfeta no
-  es torna a proposar. Es confirma amb `settlements.confirm_line` i es desfà amb `undo`.
+  encaixa amb dues línies, «a revisar» sense proposta, i el tresorer tria entre les candidates
+  (`settlement_choices`). Una parella (línia, liquidació) desfeta no es torna a proposar. Es
+  confirma amb `settlements.confirm_line` i es desfà amb `undo`.
 - **Pendent**: la resta (sortides, línies sense cap coincidència). Que tota línia sense
   referència vagi a revisar (LT2) és la P-101.
 Cada canvi d'estat queda al registre d'activitat (RN-T13), sense el concepte de la línia.
@@ -292,6 +293,24 @@ def _settlement_candidates(lines) -> dict:
     sole = Counter(c[0].pk for c in rest.values() if len(c) == 1)
     result.update({pk: c[0] if len(c) == 1 and sole[c[0].pk] == 1 else c for pk, c in rest.items()})
     return result
+
+
+def settlement_choices(line) -> list:
+    """Les liquidacions que el tresorer pot casar amb la línia: la proposada o, si la línia és
+    «a revisar» per ambigua, totes les seves candidates (revisió de la #212, punt 3). Llegeix
+    l'estat desat; `settlements.confirm_line` el torna a calcular abans de moure res."""
+    state = (
+        StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
+        .select_related("statement_line", "proposed_settlement")
+        .first()
+    )
+    if state is None:
+        return []
+    if state.status == StatementLineState.Status.PROPOSED and state.proposed_settlement:
+        return [state.proposed_settlement]
+    if state.status == StatementLineState.Status.PENDING and state.review_reason == AMBIGUOUS:
+        return _candidates([state.statement_line]).get(line.pk, ([], []))[0]
+    return []
 
 
 class ReconciliationRejected(ValidationError):
