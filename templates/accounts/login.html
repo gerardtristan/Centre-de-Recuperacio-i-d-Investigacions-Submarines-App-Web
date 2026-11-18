@@ -6,6 +6,10 @@
 {% block inici %}{% if area == "admin" %}{% url 'administration:home' %}{% else %}{% url 'core:home' %}{% endif %}{% endblock %}
 {% block content %}
   <h1>{% if area == "admin" %}{% translate "Entrada d'administració" %}{% else %}{% translate "Entrar a l'àrea de socis" %}{% endif %}</h1>
+  {# Pàgina pública: només el missatge de sortida (etiqueta «sortida»), que no diu res del compte; els d'altres pantalles es consumeixen sense mostrar-se. #}
+  {% for message in messages %}{% if "sortida" in message.extra_tags %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endif %}{% endfor %}
   {% if error %}<div class="avis {% if can_resend %}avis-avis{% else %}avis-error{% endif %}" role="alert">{{ error }}</div>{% endif %}
   <form class="formulari" method="post" novalidate>
     {% csrf_token %}

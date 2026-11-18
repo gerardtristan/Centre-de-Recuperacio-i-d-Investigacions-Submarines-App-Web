@@ -9,6 +9,8 @@ urlpatterns = [
     path("registre/", audit.audit_log_view, name="audit_log"),
     # T-RP-02: rols d'un compte d'administrador, amb M3 (protegit, només l'administrador).
     path("comptes/<int:pk>/rols/", roles.account_roles_view, name="account_roles"),
+    # T-RP-02d: desactivar-lo, també el propi (RN-RP-20), amb M3.
+    path("comptes/<int:pk>/desactiva/", roles.account_deactivate_view, name="account_deactivate"),
     # T-M01-22 (P-M01-F, pas 4): sol·licituds d'esborrat RGPD, amb M11.
     path("rgpd/", gdpr.gdpr_requests_view, name="gdpr_requests"),
     path("rgpd/<int:pk>/", gdpr.gdpr_request_detail_view, name="gdpr_request_detail"),

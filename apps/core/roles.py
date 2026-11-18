@@ -3,8 +3,8 @@
 Aquí hi ha les regles; les pantalles són de la T-RP-02 i l'editor, de la T-RP-03. Cada canvi
 deixa la seva entrada al registre d'activitat (RN-RP-08) dins la mateixa transacció, amb els
 rols que tenia qui actua abans de canviar res (RN-RP-15). Assignar i retirar un rol avisa per
-correu (RN-RP-09). Els avisos de RN-RP-18 i RN-RP-20 continuen pendents; el de CA-08.4 al compte
-restablert, sí que s'envia.
+correu (RN-RP-09), i desactivar un compte, també (RN-RP-20). L'avís de RN-RP-18 continua pendent;
+el de CA-08.4 al compte restablert, sí que s'envia.
 """
 
 from dataclasses import dataclass
@@ -39,6 +39,7 @@ LAST_ROLE = gettext_lazy(
 )
 ALREADY_DONE = gettext_lazy("No s'ha desat res: el canvi ja estava fet.")
 ROLE_NOTICE_TEMPLATE = "avis-canvi-rol"
+DEACTIVATION_NOTICE_TEMPLATE = "avis-desactivacio-admin"
 
 
 class AlreadyDone(ValidationError):
@@ -68,20 +69,48 @@ def admin_shortage_warning() -> bool:
     return operational_admins().count() < 2
 
 
+def _lock_admin_accounts(account) -> None:
+    """Bloqueja el compte afectat i tots els que tenen el rol administrador actiu, per ordre de
+    pk: un sol ordre per a tots els serveis, perquè dos canvis alhora no es bloquegin entre ells
+    (revisió de #216, punt 2)."""
+    holders = AccountRole.objects.filter(
+        role__code=Role.Code.ADMINISTRATOR, removed_at__isnull=True
+    ).values("admin_account_id")
+    list(
+        Account.objects.select_for_update()
+        .filter(Q(pk=account.pk) | Q(pk__in=holders))
+        .order_by("pk")
+        .values_list("pk", flat=True)
+    )
+
+
 def leaves_no_operational_admin(account, *, lock: bool = False) -> bool:
     """RN-RP-13: si treure-li l'accés deixaria la plataforma sense cap administrador operatiu.
-    Amb `lock`, les files dels operatius queden bloquejades fins al final de la transacció, de
-    manera que dos canvis simultanis no puguin deixar la plataforma sense cap (serveis); sense,
-    només és per al resum de la pantalla (CA-RP-06)."""
-    ids = operational_admins().values_list("pk", flat=True)
+    Amb `lock` (serveis), primer bloqueja els comptes i després torna a calcular qui és
+    operatiu, de manera que un canvi que s'ha confirmat mentre s'esperava ja hi compti i dos
+    canvis alhora no puguin deixar la plataforma sense cap. Sense, només és per al resum de la
+    pantalla (CA-RP-06)."""
     if lock:
-        ids = (
-            Account.objects.select_for_update()
-            .filter(pk__in=list(ids))
-            .values_list("pk", flat=True)
-        )
-    operational = set(ids)
+        _lock_admin_accounts(account)
+    operational = set(operational_admins().values_list("pk", flat=True))
     return account.pk in operational and not (operational - {account.pk})
+
+
+def administrators_to_notify(exclude=None):
+    """Comptes actius amb el rol administrador i adreça de notificació, per ordre (avisos de
+    CA-10.2 i RN-RP-20). `exclude`: el compte que no s'ha d'avisar."""
+    found = (
+        Account.objects.filter(
+            kind=Account.Kind.ADMIN,
+            status=Account.Status.ACTIVE,
+            role_assignments__role__code=Role.Code.ADMINISTRATOR,
+            role_assignments__removed_at__isnull=True,
+        )
+        .exclude(notification_email="")
+        .distinct()
+        .order_by("pk")
+    )
+    return found.exclude(pk=exclude.pk) if exclude is not None else found
 
 
 def _other_active_treasurer(account) -> bool:
@@ -109,10 +138,31 @@ def change_warnings(account, role_code: str, *, assign: bool) -> list:
     return [] if others.exclude(role__code=role_code).exists() else [LAST_ROLE]
 
 
+def _queue_notice(template: str, recipients, context: dict) -> None:
+    """Posa a la cua l'avís a cada compte, en confirmar la transacció, fora dels bloquejos."""
+    recipients = list(recipients)
+
+    def queue():
+        for recipient in recipients:
+            mail.queue_email(
+                template, to=recipient.notification_email, person=recipient.person, context=context
+            )
+
+    transaction.on_commit(queue)
+
+
 def _notify_role_change(account, role, *, by, assigned: bool, note: str) -> None:
     """RN-RP-09: correu als comptes actius amb el rol administrador o President i al compte
     afectat, sigui quin sigui el seu estat. Noms d'usuari, rol, quan i la nota: cap dada personal
-    de terceres persones. Es posa a la cua en confirmar la transacció, fora dels bloquejos."""
+    de terceres persones."""
+    context = {
+        "username": account.login,
+        "actor": by.login,
+        "role": str(role),
+        "assigned": assigned,
+        "note": note,
+        "when": timezone.now(),
+    }
     holders = Q(
         status=Account.Status.ACTIVE,
         role_assignments__role__code__in=[Role.Code.ADMINISTRATOR, Role.Code.PRESIDENT],
@@ -125,26 +175,7 @@ def _notify_role_change(account, role, *, by, assigned: bool, note: str) -> None
         .select_related("person")
         .distinct()
     )
-    context = {
-        "username": account.login,
-        "actor": by.login,
-        "role": str(role),
-        "assigned": assigned,
-        "note": note,
-        "when": timezone.now(),
-    }
-    recipients = list(recipients)
-
-    def queue():
-        for recipient in recipients:
-            mail.queue_email(
-                ROLE_NOTICE_TEMPLATE,
-                to=recipient.notification_email,
-                person=recipient.person,
-                context=context,
-            )
-
-    transaction.on_commit(queue)
+    _queue_notice(ROLE_NOTICE_TEMPLATE, recipients, context)
 
 
 def _ensure_can_manage_accounts(by) -> None:
@@ -174,6 +205,8 @@ def assign_role(
         raise ValidationError(_("Aquest rol no s'assigna a comptes d'administrador."))
     if account.kind != Account.Kind.ADMIN:
         raise ValidationError(_("Els rols només s'assignen a comptes d'administrador."))
+    if account.status == Account.Status.DISABLED:
+        raise ValidationError(_("Un compte desactivat no rep rols nous."))
     if _active_assignment(account, role_code):
         return None
 
@@ -221,13 +254,18 @@ def remove_role(account: Account, role_code: str, *, by: Account, note: str = ""
 
 
 @transaction.atomic
-def deactivate_admin_account(account: Account, *, by: Account) -> None:
-    """Desactiva un compte d'administrador, també el propi (RN-RP-20). Se'n tanquen totes
-    les sessions; el compte personal de la mateixa persona no es toca."""
+def deactivate_admin_account(account: Account, *, by: Account, note: str = "") -> None:
+    """Desactiva un compte d'administrador, també el propi (RN-RP-20; CA-13.2). Se'n tanquen
+    totes les sessions; el compte personal de la mateixa persona no es toca. Si ja estava
+    desactivat, `AlreadyDone`. La nota va al registre i al correu; la pantalla l'exigeix."""
     _ensure_can_manage_accounts(by)
     if account.kind != Account.Kind.ADMIN:
         raise ValidationError(_("Aquesta acció és per a comptes d'administrador."))
-    if leaves_no_operational_admin(account, lock=True):
+    blocked = leaves_no_operational_admin(account, lock=True)  # també bloqueja el compte
+    account.refresh_from_db()
+    if account.status == Account.Status.DISABLED:
+        raise AlreadyDone(ALREADY_DONE)
+    if blocked:
         raise ValidationError(NO_OPERATIONAL_ADMIN)
     audit.record(
         audit.Action.ADMIN_ACCOUNT_DISABLED,
@@ -236,10 +274,18 @@ def deactivate_admin_account(account: Account, *, by: Account) -> None:
         field="status",
         old=account.status,
         new=Account.Status.DISABLED,
+        reason=note,
     )
     account.status = Account.Status.DISABLED
     account.save(update_fields=["status", "updated_at"])
     account.end_all_sessions()
+    # RN-RP-20: els altres administradors i, si el desactiva un altre, el compte afectat
+    # (RN-RP-09). El President, no (P-370, opció per defecte acceptada).
+    recipients = list(administrators_to_notify(exclude=account).select_related("person"))
+    if account.pk != by.pk and account.notification_email:
+        recipients.append(account)
+    context = {"username": account.login, "actor": by.login, "note": note, "when": timezone.now()}
+    _queue_notice(DEACTIVATION_NOTICE_TEMPLATE, recipients, context)
 
 
 @dataclass(frozen=True)

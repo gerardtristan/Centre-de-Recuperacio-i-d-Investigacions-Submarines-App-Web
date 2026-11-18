@@ -45,3 +45,16 @@ def test_accounts_entry_is_current_on_the_roles_screen(login_as, make_admin):  #
     assert response.status_code == 200
     accounts = reverse("administration:accounts")
     assert f'<a href="{accounts}" aria-current="page">' in response.content.decode()
+
+
+def test_accounts_entry_is_current_on_the_deactivate_screen(login_as, make_admin):  # noqa: F811
+    """T-RP-02d: la pantalla de desactivar un compte s'obre des dels rols del compte; «Comptes
+    d'administrador» queda marcada."""
+    admin = make_admin("administrator")
+    other = make_admin("administrator")
+    response = login_as(admin, AREA_ADMIN).get(
+        reverse("administration:account_deactivate", args=[other.pk])
+    )
+    assert response.status_code == 200
+    accounts = reverse("administration:accounts")
+    assert f'<a href="{accounts}" aria-current="page">' in response.content.decode()
