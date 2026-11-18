@@ -37,6 +37,7 @@ pytestmark = pytest.mark.django_db
 R = ProviderEvent.Result
 S = Attempt.Status
 URL = reverse("payments:provider_notification", args=["fake"])
+CHANGED = "payments.attempt_status_changed"
 URLS = base.OrderUrls("https://example.org/n", "https://example.org/ok", "https://example.org/ko")
 
 
@@ -338,6 +339,84 @@ class TestToReview:
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)  # no es paga sol
         assert attempt.review_reason.startswith("El proveïdor ha confirmat el cobrament")
         assert attempt.review_code == ReviewCode.CONFIRMED and not Payment.objects.exists()
+
+    def test_a_repeated_confirmation_keeps_the_duplicate_reason(
+        self, attempt, fee, transit, monkeypatch
+    ):
+        mails = []
+        monkeypatch.setattr(processing, "_mail_review", lambda a, s, reason: mails.append(reason))
+        transfer = Payment.objects.create(
+            charge=fee.charge, method=Payment.Method.TRANSFER, amount_cents=9000
+        )
+        charges.mark_paid(fee.charge, transfer, origin="reconciliation", by=audit.system("p"))
+        notify(attempt, base.PAID, event_id="e-1")
+        notify(attempt, base.PAID, event_id="e-2")  # el proveïdor torna a provar
+        assert run_queue() == [R.TO_REVIEW, R.TO_REVIEW]
+        attempt.refresh_from_db()
+        assert attempt.review_code == ReviewCode.DUPLICATE
+        assert "Cal fer-ne la devolució" in attempt.review_reason
+        assert "import correcte" in attempt.review_reason
+        sent, last = len(mails), AuditEntry.objects.latest("pk").pk
+        notify(attempt, base.PAID, event_id="e-3")  # res de nou: ni registre ni correu
+        run_queue()
+        assert len(mails) == sent
+        assert not AuditEntry.objects.filter(
+            pk__gt=last, action__in=[processing.TO_REVIEW, "payments.attempt_review_updated"]
+        ).exists()
+        assert list(Payment.objects.all()) == [transfer]
+
+    def test_a_late_confirmation_of_a_returned_charge_is_not_a_duplicate(
+        self,
+        attempt,
+        fee,
+        transit,
+        make_admin,  # noqa: F811
+    ):
+        notify(attempt, base.DENIED, event_id="e-1")
+        run_queue()
+        debit = Payment.objects.create(
+            charge=fee.charge, method=Payment.Method.DIRECT_DEBIT, amount_cents=9000
+        )
+        charges.mark_paid(fee.charge, debit, origin="reconciliation", by=audit.system("p"))
+        charges.mark_returned(fee.charge, "AM04 (prova)", by=make_admin("treasurer"))
+        notify(attempt, base.PAID, event_id="e-2")
+        assert run_queue() == [R.PROCESSED, R.TO_REVIEW]
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.RETURNED)  # no es paga sol
+        assert attempt.review_code == ReviewCode.RETURNED_CHARGE
+        assert attempt.review_reason.startswith("El càrrec estava retornat")
+        assert "duplicat" not in attempt.review_reason
+        assert Payment.objects.count() == 1
+
+    def test_a_correct_confirmation_after_a_wrong_amount_says_so(
+        self, attempt, fee, transit, monkeypatch
+    ):
+        mails = []
+        monkeypatch.setattr(processing, "_mail_review", lambda a, s, reason: mails.append(reason))
+        notify(attempt, base.PAID, amount_cents=5000, event_id="e-1")
+        notify(attempt, base.PAID, event_id="e-2")
+        assert run_queue() == [R.TO_REVIEW, R.TO_REVIEW]
+        attempt.refresh_from_db()
+        assert attempt.review_code == ReviewCode.AMOUNT  # «Pagat» continua rebutjat
+        entry = AuditEntry.objects.filter(action="payments.attempt_review_updated").latest("pk")
+        assert "import correcte" in entry.new_value and "no coincideixen" in entry.old_value
+        assert "import correcte" in mails[-1]
+
+    def test_a_late_payment_after_a_failed_decision_says_it_overrides_it(
+        self,
+        attempt,
+        fee,
+        transit,
+        make_admin,  # noqa: F811
+    ):
+        processing.mark_for_review(attempt, None, "La xarxa de seguretat no ha pogut (prova)")
+        closure = reviews.close(attempt, outcome="failed", note="Prova", by=make_admin("treasurer"))
+        notify(attempt, base.PAID)
+        assert run_queue() == [R.PROCESSED]
+        assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
+        entry = AuditEntry.objects.get(action=CHANGED, old_value="failed", new_value="paid")
+        assert f"substitueix la decisió «Fallit» del tresorer (tancament {closure.pk})" in (
+            entry.reason
+        )
 
     def test_a_wrong_amount_after_the_safety_net_gave_up_blocks_paid(
         self,

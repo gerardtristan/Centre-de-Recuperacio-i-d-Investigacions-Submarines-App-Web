@@ -12,11 +12,12 @@ Queda una fila nova (`ReviewClosure`: qui, quan i el resultat) i l'entrada al re
 amb la nota, sobre el tancament (`privacy.audit_targets`: l'esborrat RGPD del pagador la
 substitueix per la referència). El canvi d'estat de l'intent porta un motiu fix, sense la nota."""
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, charges
 from apps.core.charges import MANUAL_PAYMENT
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
@@ -83,12 +84,10 @@ def can_record_paid(account, charge) -> bool:
 
 
 def _check_paid(attempt, charge, by) -> None:
-    """Les mateixes guardes que el pagament a mà (P-12), i l'import: mai dos pagaments ni un
-    import que no s'ha cobrat."""
+    """M14 i les guardes del pagament a mà (P-12; `charges.check_manual_payment`, la mateixa
+    llista), i l'import: mai dos pagaments ni un import que no s'ha cobrat."""
     if not can_record_paid(by, charge):
         raise Http404
-    if charge.person_id == by.person_id:
-        raise PaidRefused(_("Ningú no pot registrar el pagament d'un càrrec seu."))
     if charge.status != Charge.Status.PENDING:
         raise PaidRefused(
             _(
@@ -103,10 +102,7 @@ def _check_paid(attempt, charge, by) -> None:
                 "i registra el que s'hagi cobrat amb un pagament a mà o una devolució."
             )
         )
-    if attempts.others_may_collect(attempt):
-        raise PaidRefused(
-            _(
-                "Un altre intent d'aquest càrrec encara el pot cobrar (en curs, al banc o a "
-                "revisar). Espera que acabi o decideix-lo primer."
-            )
-        )
+    try:
+        charges.check_manual_payment(charge, by, deciding=attempt)
+    except ValidationError as error:
+        raise PaidRefused(" ".join(error.messages)) from None

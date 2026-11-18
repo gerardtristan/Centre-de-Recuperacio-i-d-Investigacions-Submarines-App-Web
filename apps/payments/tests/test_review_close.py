@@ -4,6 +4,7 @@ Proves de permisos per rol, nota i decisió obligatòries, llista oberta i «Tan
 tancament, registre i diners. Només dades inventades."""
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError, connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.http import Http404
@@ -241,7 +242,8 @@ def test_paid_is_refused_with_another_attempt_that_may_collect(treasurer, to_rev
     in_progress_again = attempts.create_attempt(to_review.charge, PaymentAttempt.Method.BIZUM)
     attempts.transition(in_progress_again, S.IN_PROGRESS, by=SYSTEM)
     response = client_for(treasurer).post(close_url(to_review), {"outcome": PAID, "note": NOTE})
-    assert "Un altre intent d&#x27;aquest càrrec encara el pot cobrar" in response.content.decode()
+    # El missatge és el de la guarda comuna del pagament a mà (una sola llista).
+    assert "té un pagament en curs o per revisar" in response.content.decode()
     with pytest.raises(reviews.PaidRefused):
         reviews.close(to_review, outcome=PAID, note=NOTE, by=treasurer)
     assert not Payment.objects.exists() and not ReviewClosure.objects.exists()
@@ -302,6 +304,25 @@ def test_a_16b_closure_is_still_open_and_can_be_decided(treasurer, to_review):  
     reviews.close(to_review, outcome=FAILED, note=NOTE, by=treasurer)
     page = html(client_for(treasurer))
     assert "No hi ha cap pagament a revisar." in page and "(decisió del tresorer)" in page
+
+
+def test_the_decision_label_only_when_the_status_matches(treasurer, to_review):  # noqa: F811
+    reviews.close(to_review, outcome=FAILED, note=NOTE, by=treasurer)
+    assert "(decisió del tresorer)" in html(client_for(treasurer))
+    # Torna «a revisar» (una confirmació tardana d'un càrrec ja pagat): ja no és la decisió.
+    attempts.transition(to_review, S.TO_REVIEW, by=SYSTEM, reason="Pagament duplicat (prova)")
+    page = html(client_for(treasurer))
+    assert "1 intent de pagament a revisar" in page and "(decisió del tresorer)" not in page
+
+
+def test_a_registered_guard_also_blocks_paid(treasurer, to_review, monkeypatch):  # noqa: F811
+    def guard(charge, **context):
+        raise ValidationError("Bloquejat per una guarda de prova.")
+
+    monkeypatch.setattr(charges, "_MANUAL_PAYMENT_GUARDS", [*charges._MANUAL_PAYMENT_GUARDS, guard])
+    with pytest.raises(reviews.PaidRefused, match="guarda de prova"):
+        reviews.close(to_review, outcome=PAID, note=NOTE, by=treasurer)
+    assert not Payment.objects.exists() and not ReviewClosure.objects.exists()
 
 
 def test_an_unrelated_save_does_not_reopen_a_decided_attempt(treasurer, to_review):  # noqa: F811

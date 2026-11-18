@@ -72,6 +72,8 @@ def update_review(attempt: PaymentAttempt, *, reason: str, code: str, by) -> Pay
     if locked.status != PaymentAttempt.Status.TO_REVIEW:
         raise ValidationError(_("Només es canvia el motiu d'un intent «a revisar»."))
     old = locked.review_reason
+    if (old, locked.review_code) == (reason.strip(), code):
+        return locked  # res de nou (una notificació repetida): ni registre ni avís
     locked.review_reason, locked.review_code = reason.strip(), code
     locked.save(update_fields=["review_reason", "review_code", "updated_at"])
     audit.record(
@@ -94,11 +96,15 @@ def others_may_collect(attempt: PaymentAttempt) -> bool:
 
 
 @transaction.atomic
-def ensure_manual_payment_allowed(charge: Charge) -> None:
+def ensure_manual_payment_allowed(charge: Charge, *, deciding=None) -> None:
     """Guarda del pagament a mà (P-12), que la 00 crida abans de crear-lo
     (`charges.register_manual_payment_guard`): cap intent que potser ja hagi cobrat el càrrec
-    ni cap intent pagat."""
-    states = PaymentAttempt.objects.filter(charge=charge).values_list("status", flat=True)
+    ni cap intent pagat. `deciding`: l'intent «a revisar» que el tresorer dona per pagat
+    (`reviews.close`), que no compta contra si mateix."""
+    states = PaymentAttempt.objects.filter(charge=charge)
+    if deciding is not None:
+        states = states.exclude(pk=deciding.pk)
+    states = states.values_list("status", flat=True)
     if any(status in MAY_BE_CHARGED for status in states):
         raise ValidationError(MANUAL_IN_FLIGHT)
     if _S.PAID in states:

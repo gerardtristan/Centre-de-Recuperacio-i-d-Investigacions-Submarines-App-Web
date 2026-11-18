@@ -166,6 +166,7 @@ class ReviewCode(models.TextChoices):
     DUPLICATE = "duplicate", _("pagament duplicat")
     CANCELLED_CHARGE = "cancelled", _("càrrec anul·lat")
     IN_FLIGHT = "in_flight", _("un altre intent en curs")
+    RETURNED_CHARGE = "returned", _("càrrec retornat")
     CONFIRMED = "confirmed", _("el proveïdor n'ha confirmat el cobrament")
 
 

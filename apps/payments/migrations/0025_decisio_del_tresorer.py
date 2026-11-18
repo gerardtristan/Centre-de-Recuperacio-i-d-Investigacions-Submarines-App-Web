@@ -67,6 +67,7 @@ class Migration(migrations.Migration):
                     ("duplicate", "pagament duplicat"),
                     ("cancelled", "càrrec anul·lat"),
                     ("in_flight", "un altre intent en curs"),
+                    ("returned", "càrrec retornat"),
                     ("confirmed", "el proveïdor n'ha confirmat el cobrament"),
                 ],
                 default="",
