@@ -7,6 +7,11 @@ from . import admin_views, payment_admin_views, remittance_views, return_views
 
 urlpatterns = [
     path("pagaments/", payment_admin_views.payments_view, name="payments_list"),  # T-M05b-16
+    path(
+        "pagaments/revisar/<int:attempt_id>/tanca/",
+        payment_admin_views.review_close_view,
+        name="payments_review_close",
+    ),  # T-M05b-16b
     path("pagaments/mandats/", admin_views.mandates_view, name="payments_mandates"),
     path(
         "pagaments/mandats/<int:mandate_id>/revoca/",

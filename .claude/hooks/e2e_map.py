@@ -139,7 +139,9 @@ MAP = {
     ),
     "test_pagaments_llistat.py": (
         "apps/payments/payment_admin_views.py",
+        "apps/payments/reviews.py",
         "templates/payments/payments.html",
+        "templates/payments/review_close.html",
     ),
     "test_mandats.py": (
         "apps/payments/admin_views.py",

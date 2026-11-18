@@ -1,11 +1,15 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M05b-16: llistat de pagaments i «a revisar» del tresorer. Permís B6 al servidor. Només lectura: l'únic formulari és el filtre, amb GET. El nom del pagador només arriba al context amb P4 (P-247); amagar-lo aquí no és el control. Cap IBAN ni dada de targeta. Tancar un «a revisar» encara no es pot (P-82). #}
+{# T-M05b-16: llistat de pagaments i «a revisar» del tresorer. Permís B6 al servidor. El filtre és amb GET. «Tanca» (T-M05b-16b) només surt amb B6 amb edició, però el control és al servidor (la ruta de tancament demana el permís); tancar no mou diners. El nom del pagador només arriba al context amb P4 (P-247), i la nota d'un tancament, amb P4 o B6 amb edició; amagar-los aquí no és el control. Cap IBAN ni dada de targeta. #}
 {% block title %}{% translate "Pagaments" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
   <h1>{% translate "Pagaments i «a revisar»" %}</h1>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
 
   <h2>{% translate "A revisar" %}</h2>
   {% if not review and not events and not receipts %}
@@ -23,6 +27,7 @@
           <th scope="col">{% translate "Mètode" %}</th>
           <th scope="col">{% translate "Motiu" %}</th>
           <th scope="col" class="cel-import">{% translate "Import" %}</th>
+          {% if can_close %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -34,6 +39,7 @@
             <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
             <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+            {% if can_close %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:payments_review_close' attempt.pk %}">{% translate "Tanca" %}</a></td>{% endif %}
           </tr>
         {% endwith %}{% endfor %}
       </tbody>
@@ -88,6 +94,37 @@
     </table>
   {% endif %}
 
+  {% if closed %}
+    <h2>{% translate "Tancats" %}</h2>
+    <table class="taula">
+      <caption>{% if closed_total > closed_shown %}{% blocktranslate with shown=closed_shown total=closed_total %}Els {{ shown }} tancaments més recents, de {{ total }}{% endblocktranslate %}{% else %}{% blocktranslate count total=closed_total %}{{ total }} intent a revisar tancat, del més recent al més antic{% plural %}{{ total }} intents a revisar tancats, del més recent al més antic{% endblocktranslate %}{% endif %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Tancat el" %}</th>
+          <th scope="col">{% translate "Càrrec" %}</th>
+          {% if names %}<th scope="col">{% translate "Pagador" %}</th>{% endif %}
+          <th scope="col">{% translate "Motiu" %}</th>
+          <th scope="col">{% translate "Nota" %}</th>
+          <th scope="col">{% translate "Tancat per" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in closed %}{% with attempt=row.attempt closure=row.closure %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ closure.closed_at|date:'c' }}">{{ closure.closed_at|date:"d/m/Y H:i" }}</time></th>
+            <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
+            {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
+            <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}</td>
+            <td data-etiqueta="{% translate 'Nota' %}">{{ row.note|default:"—" }}</td>
+            <td data-etiqueta="{% translate 'Tancat per' %}" class="cel-valor"><span class="codi">{{ closure.closed_by }}</span></td>
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
   <h2>{% translate "Tots els intents de pagament" %}</h2>
   <form class="formulari" method="get" action="{% url 'administration:payments_list' %}" novalidate>
     <fieldset class="filtres">
@@ -119,7 +156,7 @@
           <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{{ attempt.charge.concept }}</td>
           {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
           <td data-etiqueta="{% translate 'Mètode' %}" class="cel-valor">{{ attempt.get_method_display }}</td>
-          <td data-etiqueta="{% translate 'Estat' %}">{% if attempt.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "to_review" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "failed" or attempt.status == "expired" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ attempt.get_status_display }}</span>{% else %}{{ attempt.get_status_display }}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if attempt.status == "paid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ attempt.get_status_display }}</span>{% elif attempt.status == "to_review" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ attempt.get_status_display }}{% if attempt.review_closure %} {% translate "(tancat)" %}{% endif %}</span>{% elif attempt.status == "failed" or attempt.status == "expired" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ attempt.get_status_display }}</span>{% else %}{{ attempt.get_status_display }}{% endif %}</td>
           <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
         </tr>
       {% endwith %}{% empty %}
