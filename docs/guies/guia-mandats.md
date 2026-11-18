@@ -18,7 +18,7 @@ Al menú, **Pagaments: campanya de mandats**. Serveix perquè cada soci actiu tr
 1. **Obrir.** Escriu el **Nom de la campanya** (per exemple «Mandats 2027») i prem **Obre la campanya**. Només hi pot haver una campanya oberta alhora.
 2. **Revisar.** La pantalla mostra quants socis **Per convidar** hi ha (socis actius que encara no han triat cap mètode), quants són **Sense correu** i quina versió del text s'enviarà. El text sencer no surt a la pantalla ([P-306](../decisions/pendents.md)).
 3. **Enviar.** Prem **Envia N invitacions…** i després **Sí, envia-les**. Les invitacions surten per la cua de correu, amb l'assumpte «Com vols pagar la quota del C.R.I.S.?» i l'enllaç a **Com pago la quota**. Cada soci la rep una sola vegada: si tornes a prémer el botó més endavant, només es convida qui ha entrat després (per exemple, un soci nou) i encara no ha triat.
-4. **Recordatoris.** Surten sols, cada dia, a qui encara no ha triat. Els dies des de la invitació **són un ajust**: d'entrada, 7 i 14 dies. El canvies a **Ajustos**, apartat de pagaments ([RN-M05a-14](../planning.md#M05a-7-regles)). Qui ja ha triat no en rep cap.
+4. **Recordatoris.** Surten sols, cada dia, a qui encara no ha triat. Els dies des de la invitació **són un ajust**: d'entrada, 7 i 14 dies. El canvies a **Ajustos**, apartat de pagaments ([RN-M05a-14](../planning.md#M05a-7-regles)). Qui ja ha triat no en rep cap. Quan confirmes una remesa (vegeu la [guia de cobraments](guia-cobraments.md)), qui encara no ha triat rep **el darrer recordatori**, amb la data de cobrament, i després ja no en rep cap més. Surt un sol cop per campanya, encara que facis més remeses.
 5. **Seguir el recompte** fins a la data de la primera remesa. Qui no triï res pagarà la quota amb targeta, Bizum o transferència quan es generi ([RN-M05a-15](../planning.md#M05a-7-regles)).
 6. **Tancar.** Prem **Tanca la campanya…** i després **Sí, tanca-la**. Un cop tancada no surt cap invitació ni cap recordatori més. Després en pots obrir una altra, que tornarà a convidar qui encara no hagi triat.
 
@@ -26,7 +26,7 @@ Al menú, **Pagaments: campanya de mandats**. Serveix perquè cada soci actiu tr
 - **Sense correu:** la plataforma no els pot convidar. La pantalla diu que els atén la secretaria ([P-199](../decisions/pendents.md)).
 - **Sense compte personal activat:** reben la invitació, però per triar han d'entrar al seu compte. Què es fa amb ells és la [P-198](../decisions/pendents.md).
 
-**Encara no està fet:** l'avís dins l'app (només surt el correu; encara no hi ha servei d'avisos) i el darrer recordatori quan fixes la data de la remesa, que arribarà amb les remeses del 05b.
+**Encara no està fet:** l'avís dins l'app (només surt el correu; encara no hi ha servei d'avisos).
 
 ## 3. Qui té quin mètode
 Al menú, **Pagaments: mètodes i mandats**. Hi surten tots els socis actius amb el **Mètode** triat, el **Mandat o targeta** i l'**IBAN** emmascarat. Amb el filtre **Mètode** (Tots, domiciliació, targeta guardada, pagar cada vegada o Sense resposta) i **Filtra** veus només un grup; **Treu els filtres** els torna a mostrar tots. Si el teu permís és només de consulta, només veus si cada soci **Té mètode** (sí o no).

@@ -7,7 +7,7 @@
   els que falten. Sense la signatura encesa no surt res (salvaguarda dura: la invitació porta a
   una pàgina que ha de funcionar).
 - Recordatoris: a qui no ha triat, als dies des de la invitació de l'ajust VC-11
-  (`REMINDER_DAYS`). El darrer recordatori, quan el tresorer fixa la remesa, és del 05b.
+  (`REMINDER_DAYS`). El darrer, quan el tresorer fixa la remesa (`send_final_reminders`).
 - Recompte per resposta, i tancar (P-135, opció per defecte A): tancada, no surt res més.
 
 Cap correu porta dades bancàries; el registre d'activitat només porta recomptes.
@@ -31,6 +31,7 @@ from .models import FeeMethod, FeePaymentPreference, MandateCampaign, MandateCam
 INVITATION_TEXT = "mandate_campaign_invitation"
 INVITATION_TEMPLATE = "campanya-mandats-invitacio"
 REMINDER_TEMPLATE = "campanya-mandats-recordatori"
+FINAL_REMINDER_TEMPLATE = "campanya-mandats-darrer-recordatori"
 # VC-11 (RN-M05a-14): dies des de la invitació, de 1 a 60; inicialment 7 i 14 (T-M05a-22).
 REMINDER_DAYS = "payments.mandate_campaign_reminder_days"
 ACTOR = audit.system("payments.campaign_reminders")
@@ -162,6 +163,7 @@ def send_due_reminders(today=None) -> int:
     pending = MandateCampaignRecipient.objects.filter(
         campaign__closed_at__isnull=True,
         answered_at__isnull=True,
+        final_reminder_at__isnull=True,
         reminders_sent__lt=len(days),
         member__in=_without_method(_active_members()),
     ).select_related("member__person")
@@ -184,6 +186,41 @@ def send_due_reminders(today=None) -> int:
                 sent += 1
     if sent:
         audit.record("payments.campaign.reminders_sent", actor=ACTOR, details={"sent": sent})
+    return sent
+
+
+@transaction.atomic
+def send_final_reminders(collection_date, *, by) -> int:
+    """RN-M05a-14 i 18: el darrer recordatori, quan el tresorer fixa la remesa
+    (`remittances.build_remittance`), a qui de la campanya oberta encara no ha triat. Un sol cop
+    per soci i campanya, encara que es facin més remeses; després ja no en surt cap altre. Torna
+    quants n'ha enviat."""
+    if not settings.MANDATE_SIGNING_ENABLED:
+        return 0
+    pending = list(
+        MandateCampaignRecipient.objects.select_for_update(of=("self",))
+        .filter(
+            campaign__closed_at__isnull=True,
+            answered_at__isnull=True,
+            final_reminder_at__isnull=True,
+            member__in=_without_method(_active_members()),
+        )
+        .select_related("member__person")
+    )
+    sent, now = 0, timezone.now()
+    for recipient in pending:
+        recipient.final_reminder_at = now
+        recipient.save(update_fields=["final_reminder_at"])
+        address = recipients.email_for(recipient.member.person)
+        if address:
+            context = {"link": _link(), "collection_date": collection_date}
+            mail.queue_email(
+                FINAL_REMINDER_TEMPLATE, to=address, person=recipient.member.person, context=context
+            )
+            sent += 1
+    if pending:
+        details = {"sent": sent, "collection_date": collection_date.isoformat()}
+        audit.record("payments.campaign.final_reminders_sent", actor=by, details=details)
     return sent
 
 

@@ -22,7 +22,7 @@ Pantalla **Remeses** (adreça `pagaments/remeses/` de l'administració; encara n
 Hi entren les quotes pendents dels socis que han triat la domiciliació i tenen un mandat actiu ([regles](../planning.md#M05b-7-regles)). Quines quotes i quin període exactament: [P-230](../decisions/pendents.md).
 
 ## 3. Avisos previs
-En crear la remesa, cada deutor rep l'avís previ per correu, amb l'IBAN emmascarat. El termini de l'avís és un ajust (14 dies d'entrada). El text és provisional [A validar: junta].
+En crear la remesa, cada deutor rep l'avís previ per correu, amb l'IBAN emmascarat. El termini de l'avís és un ajust (14 dies d'entrada). El text és provisional [A validar: junta]. Si hi ha una campanya de mandats oberta, els socis convidats que encara no han triat com paguen reben el darrer recordatori de la campanya ([guia de mandats](guia-mandats.md#2-la-campanya-de-mandats)).
 - La remesa surt com a **Esborrany: falten avisos** fins que tots s'han enviat, i llavors com a **Avisada**.
 - Al detall de la remesa, la columna **Avís previ** diu a qui falta. Prem **Torna a enviar els avisos que falten**.
 - Un soci sense adreça de correu: [P-232](../decisions/pendents.md).
