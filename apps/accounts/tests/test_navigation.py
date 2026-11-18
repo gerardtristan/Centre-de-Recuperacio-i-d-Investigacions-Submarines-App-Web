@@ -230,13 +230,17 @@ def test_personal_menu_has_the_logout_as_a_post_with_csrf(login_as, personal_acc
     client = login_as(personal_account, AREA_PERSONAL)
     for name in ("core:home", "members:profile", "accounts:security"):
         html = client.get(reverse(name)).content.decode()
-        nav = re.search(r'<nav class="navegacio-compte".*?</nav>', html, re.S).group(0)
-        ((action, form),) = LOGOUT_FORM.findall(nav)
-        assert action == reverse("accounts:logout")
-        assert 'name="csrfmiddlewaretoken"' in form
-        assert re.search(r'<button class="boto[^"]*" type="submit">Surt</button>', form)
-        # Un sol «Surt» per pantalla i un sol text a tot arreu.
-        assert html.count(">Surt</button>") == 1 and "Sortir" not in html
+        # Capçalera (sense JavaScript i fins a 1023 px) i panell de Ramillete (des de 1024 px).
+        for nav_class in ("navegacio-compte", "ramillete"):
+            nav = re.search(rf'<nav class="{nav_class}".*?</nav>', html, re.S).group(0)
+            ((action, form),) = LOGOUT_FORM.findall(nav)
+            assert action == reverse("accounts:logout")
+            assert 'name="csrfmiddlewaretoken"' in form
+            assert re.search(
+                r'<button class="boto[^"]*" type="submit">(<svg.*?</svg>)?Surt</button>', form
+            )
+        # Un «Surt» per mida (el CSS en deixa veure un per pantalla) i un sol text a tot arreu.
+        assert html.count("Surt</button>") == 2 and "Sortir" not in html
 
 
 def test_personal_logout_closes_the_session(login_as, personal_account):

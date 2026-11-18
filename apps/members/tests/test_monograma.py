@@ -63,7 +63,8 @@ def test_home_and_profile_show_only_the_session_member_avatar(login_as, url):
     other = make_member("Berta", number=1300, document="00000000T")
     member = make_member()
     html = login_as(account_for(member), AREA_PERSONAL).get(reverse(url)).content.decode()
-    assert avatars(html) == [render(member.avatar_seed)]
+    # La portada o el perfil i el panell de navegació (T-DX-59): sempre el del soci de la sessió.
+    assert set(avatars(html)) == {render(member.avatar_seed)}
     assert render(other.avatar_seed) not in html
 
 
