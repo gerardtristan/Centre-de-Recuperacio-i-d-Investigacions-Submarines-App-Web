@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n monograma member_notices vigencia %}
+{% load i18n antiguitat monograma member_notices vigencia %}
 {% comment %}Inici de l'àrea de socis (T-DX-17 i T-DX-60; design-system §5.1 i §6.18). «Surt» és al menú de l'àrea,
    com a totes les pantalles (T-M01-46). `soci` surt de `member_home`: només el soci de la sessió i només
    amb el compte personal (el d'administrador no en veu res, decisions 015 i 018); sense soci, None i
@@ -8,55 +8,52 @@
 
 {% block content %}
   {% member_home as soci %}
-  {# Portada (Oleaje): a l'escriptori, 7/5 (salutació i quota a l'esquerra, el carnet a la dreta); a la tauleta, dues columnes iguals; al mòbil, l'una a sota de l'altra. #}
+  {# Portada (Oleaje): el degradat només és la decoració de la salutació. #}
   <section class="oleaje-portada" aria-labelledby="inici-titol">
-    <div class="oleaje-graella">
-      <div class="oleaje-columna">
-        {# Monograma (T-DX-18): l'avatar per defecte del soci de la sessió, a partir de la llavor; mai del nom. #}
-        <div class="monograma-titol">{% session_monograma %}<div>
-          <h1 id="inici-titol">{% translate "Plataforma del C.R.I.S." %}</h1>
-          <p class="oleaje-salutacio">{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
-        </div></div>
-        {% if soci %}
-          {# La quota sobre una superfície plana: el degradat és decoració, l'estat ha de tenir contrast (§6.5). El compte enrere només des del primer dia d'avís (VC-02). #}
-          <section class="targeta oleaje-quota" aria-labelledby="resum-quota">
-            <h2 id="resum-quota">{% translate "La teva quota" %}</h2>
-            {% with fee=soci.fee %}
-              {% if fee.kind == "paid_until" or fee.kind == "waived" %}
-                <p><span class="estat estat-ok estat-quota"><span aria-hidden="true">✓</span> {% translate "Al dia" %}</span></p>
-                <p>{% if fee.kind == "waived" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Eximida fins al {{ date }}.{% endblocktranslate %}{% elif soci.method == "direct_debit" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, per domiciliació.{% endblocktranslate %}{% elif soci.method == "saved_card" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, amb la targeta guardada.{% endblocktranslate %}{% elif soci.method == "pay_each_time" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}; la pagues cada vegada.{% endblocktranslate %}{% else %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}.{% endblocktranslate %}{% endif %}</p>
-                {% if soci.countdown %}{% vigencia fee.until "quota" %}{% endif %}
-              {% else %}
-                <p>{% include "members/_fee_state.html" %}</p>
-              {% endif %}
-            {% endwith %}
-            <p class="accions">
-              <a class="boto boto-principal" href="{% url 'members:card' %}">{% translate "El meu carnet" %}</a>
-              <a class="boto" href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a>
-            </p>
-          </section>
-        {% endif %}
-      </div>
-      {% if soci %}
-        {# El carnet en petit: les mateixes dades que «El meu carnet» (validesa: 070, 072 i 079), sense QR. #}
-        <section class="targeta oleaje-carnet" aria-labelledby="carnet-resum">
-          <h2 id="carnet-resum">{% translate "El teu carnet" %}</h2>
-          {% if soci.card %}
-            <dl class="dades-soci">
-              <div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ soci.member.member_number }}</dd></div>
-              <div><dt>{% translate "Tipus" %}</dt><dd>{{ soci.member.type.name }}</dd></div>
-              <div><dt>{% translate "Estat" %}</dt><dd>{% if soci.validity.valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No vàlid" %}</span>{% endif %}</dd></div>
-              {% if soci.validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ soci.validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
-            </dl>
-          {% else %}
-            <p>{% translate "Ara no tens cap carnet." %}</p>
-          {% endif %}
-          <p><a href="{% url 'members:card' %}">{% translate "Obre el carnet" %}</a></p>
-        </section>
-      {% endif %}
-    </div>
+    {# Monograma (T-DX-18): l'avatar per defecte del soci de la sessió, a partir de la llavor; mai del nom. #}
+    <div class="monograma-titol">{% session_monograma %}<div>
+      <h1 id="inici-titol">{% translate "Plataforma del C.R.I.S." %}</h1>
+      <p class="oleaje-salutacio">{% blocktranslate with name=user.person.first_name %}Hola, {{ name }}.{% endblocktranslate %}</p>
+    </div></div>
     <svg class="oleaje-vora" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 40V22C150 6 300 6 450 18S750 34 900 20 1100 4 1200 14V40Z"/></svg>
   </section>
+  {% if soci %}
+    {# La quota i el carnet, sobre el fons de la pàgina i agrupats amb espai (D15): a l'escriptori 7/5, a la tauleta dues columnes iguals, al mòbil l'una a sota de l'altra. #}
+    <div class="inici-portada">
+      {# El compte enrere només des del primer dia d'avís (VC-02). #}
+      <section class="inici-quota" aria-labelledby="resum-quota">
+        <h2 id="resum-quota">{% translate "La teva quota" %}</h2>
+        {% with fee=soci.fee %}
+          {% if fee.kind == "paid_until" or fee.kind == "waived" %}
+            <p><span class="estat estat-ok estat-quota"><span aria-hidden="true">✓</span> {% translate "Al dia" %}</span></p>
+            <p>{% if fee.kind == "waived" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Eximida fins al {{ date }}.{% endblocktranslate %}{% elif soci.method == "direct_debit" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, per domiciliació.{% endblocktranslate %}{% elif soci.method == "saved_card" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, amb la targeta guardada.{% endblocktranslate %}{% elif soci.method == "pay_each_time" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}; la pagues cada vegada.{% endblocktranslate %}{% else %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}.{% endblocktranslate %}{% endif %}</p>
+            {% if soci.countdown %}{% vigencia fee.until "quota" %}{% endif %}
+          {% else %}
+            <p>{% include "members/_fee_state.html" %}</p>
+          {% endif %}
+        {% endwith %}
+        <p class="accions">
+          <a class="boto boto-principal" href="{% url 'members:card' %}">{% translate "El meu carnet" %}</a>
+          <a class="boto" href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a>
+        </p>
+      </section>
+      {# El carnet en petit: les mateixes dades que «El meu carnet» (validesa: 070, 072 i 079), sense QR. #}
+      <section class="inici-carnet" aria-labelledby="carnet-resum">
+        <h2 id="carnet-resum">{% translate "El teu carnet" %}</h2>
+        {% if soci.card %}
+          <dl class="dades-soci">
+            <div><dt>{% translate "Número de soci" %}</dt><dd class="codi">{{ soci.member.member_number }}</dd></div>
+            <div><dt>{% translate "Tipus" %}</dt><dd>{{ soci.member.type.name }}</dd></div>
+            <div><dt>{% translate "Estat" %}</dt><dd>{% if soci.validity.valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vàlid" %}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No vàlid" %}</span>{% endif %}</dd></div>
+            {% if soci.validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ soci.validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
+          </dl>
+        {% else %}
+          <p>{% translate "Ara no tens cap carnet." %}</p>
+        {% endif %}
+        <p><a href="{% url 'members:card' %}">{% translate "Obre el carnet" %}</a></p>
+      </section>
+    </div>
+  {% endif %}
   {% birth_date_notice %}
   {% if soci.pending %}
     {# Franja d'estat (§6.5): plana, a tota l'amplada i només amb pendents; les mateixes quotes que «Les meves quotes». «Paga ara» porta a la pantalla de pagament del 05b, que torna a comprovar que el càrrec és teu. #}
@@ -98,14 +95,12 @@
       <div class="disposicio-pagina">
         <section aria-labelledby="historia-titol">
           <h2 id="historia-titol">{% translate "La teva història al C.R.I.S." %}</h2>
-          {% with member=soci.member %}
-            {% if member.joined_on or soci.classic %}
-              <dl class="dades-soci">
-                {% if member.joined_on %}<div><dt>{% translate "Anys de soci" %}</dt><dd>{% if member.joined_on_is_approximate %}{% blocktranslate with year=member.joined_on.year %}des de ~{{ year }}{% endblocktranslate %}{% elif not soci.years %}{% blocktranslate with year=member.joined_on.year %}des de {{ year }}{% endblocktranslate %}{% else %}{% blocktranslate with year=member.joined_on.year count n=soci.years %}{{ n }} any, des de {{ year }}{% plural %}{{ n }} anys, des de {{ year }}{% endblocktranslate %}{% endif %}</dd></div>{% endif %}
-                {% if soci.classic %}<div><dt>{% translate "Insígnia" %}</dt><dd>{% translate "Soci clàssic" %}</dd></div>{% endif %}
-              </dl>
-            {% endif %}
-          {% endwith %}
+          {% if soci.member.joined_on or soci.classic %}
+            <dl class="dades-soci">
+              {% if soci.member.joined_on %}<div><dt>{% translate "Antiguitat" %}</dt><dd>{{ soci.member|antiguitat }}</dd></div>{% endif %}
+              {% if soci.classic %}<div><dt>{% translate "Insígnia" %}</dt><dd>{% translate "Soci clàssic" %}</dd></div>{% endif %}
+            </dl>
+          {% endif %}
           <p class="text-2">{% translate "Més endavant, la Bitàcola hi afegirà les teves immersions, les sortides de l'any i les fites." %}</p>
         </section>
         <section aria-labelledby="llicencia-titol">

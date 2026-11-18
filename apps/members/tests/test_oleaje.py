@@ -22,8 +22,8 @@ HOME = "core:home"
 
 def summary(html):
     return (
-        html.split('class="targeta oleaje-quota"', 1)[1].split("</section>", 1)[0]
-        if "oleaje-quota" in html
+        html.split('class="inici-quota"', 1)[1].split("</section>", 1)[0]
+        if "inici-quota" in html
         else None
     )
 
@@ -69,7 +69,7 @@ def test_recent_payments_history_and_licence(login_as):
     setting(values.CLASSIC_MEMBER_YEARS, 5)  # VC-04; alta el 2019
     html = home(login_as, member)
     assert "Pagaments recents" in html and "Quota 2026" in html
-    assert "anys, des de 2019" in html and "Soci clàssic" in html
+    assert "Soci des de 2019 (7 anys)" in html and "Soci clàssic" in html
     assert "No hi ha cap llicència registrada." in html
 
 
@@ -77,7 +77,7 @@ def test_no_classic_badge_below_the_threshold_or_with_an_approximate_date(login_
     setting(values.CLASSIC_MEMBER_YEARS, 5)
     member = paid_member(joined_on=date(2019, 3, 12), joined_on_is_approximate=True)
     html = home(login_as, member)
-    assert "des de ~2019" in html and "Soci clàssic" not in html
+    assert "Soci des de ~2019" in html and "Soci clàssic" not in html
     setting(values.CLASSIC_MEMBER_YEARS, 30)
     berta = paid_member("Berta", 1300, document="00000000T")
     assert "Soci clàssic" not in home(login_as, berta, "berta.soci@example.org")

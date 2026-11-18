@@ -77,15 +77,15 @@ def test_member_home_layout(page, live_server, builder, member):
     page.get_by_role("button", name="Entrar").click()
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto(f"{base}/")
-    (left, right) = page.evaluate(COLUMNS_JS, ".oleaje-graella")
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
     assert right[0] > left[0] and abs(left[1] / right[1] - 7 / 5) < 0.1, (left, right)
     (left, right) = page.evaluate(COLUMNS_JS, ".inici-graella")
     assert right[0] > left[0] and abs(left[1] / right[1] - 8 / 4) < 0.15, (left, right)
     page.set_viewport_size({"width": 800, "height": 900})
-    (left, right) = page.evaluate(COLUMNS_JS, ".oleaje-graella")
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
     assert abs(left[1] - right[1]) < 2 and right[0] - (left[0] + left[1]) >= 24, (left, right)
     page.set_viewport_size({"width": 390, "height": 800})
-    (left, right) = page.evaluate(COLUMNS_JS, ".oleaje-graella")
+    (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
     assert left[0] == right[0], (left, right)  # l'una a sota de l'altra
     page.set_viewport_size({"width": 320, "height": 800})
     assert page.evaluate(OVERFLOW_JS) <= 0
