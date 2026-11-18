@@ -57,8 +57,8 @@ def test_treasurer_sees_what_to_review_and_filters(page, live_server, transactio
 
 
 def test_treasurer_closes_an_attempt_to_review(page, live_server, transactional_db, review):
-    """T-M05b-16b: «Tanca», la pàgina de confirmació amb la nota obligatòria, i l'intent passa a
-    «Tancats» sense moure diners."""
+    """T-M05b-16b i 16c: «Tanca», la pàgina de confirmació amb la decisió i la nota obligatòries, i
+    l'intent «fallit» passa a «Tancats» sense moure diners."""
     person = Person.objects.create(first_name="Pere", last_name="Prova Inventat", origin="web")
     attempt(person, "Quota 2027 (prova)", S.TO_REVIEW)
     treasurer = make_admin("tresoreria.prova", "treasurer")
@@ -69,15 +69,19 @@ def test_treasurer_closes_an_attempt_to_review(page, live_server, transactional_
     expect(page.get_by_role("heading", name="Tanca un pagament a revisar")).to_be_visible()
     page.get_by_role("button", name="Sí, tanca'l").click()
     expect(page.get_by_text("Cal una nota per tancar-lo.").first).to_be_visible()
+    expect(page.get_by_text("Tria si s'ha pagat o ha fallat.").first).to_be_visible()
     review("tancar-a-revisar")
 
-    page.get_by_label("Nota").fill("Devolució feta des del proveïdor (prova)")
+    page.get_by_label("Fallit: no s'ha cobrat.").check()
+    page.get_by_label("Nota").fill("Ordre denegada al proveïdor (prova)")
     page.get_by_role("button", name="Sí, tanca'l").click()
-    expect(page.get_by_text("Intent tancat. No s'ha mogut cap diner.")).to_be_visible()
+    expect(page.get_by_text("Intent tancat com a fallit. No s'ha mogut cap diner.")).to_be_visible()
     expect(page.get_by_text("No hi ha cap pagament a revisar.")).to_be_visible()
     closed = page.get_by_role(
         "table", name="1 intent a revisar tancat, del més recent al més antic"
     )
-    expect(closed).to_contain_text("Devolució feta des del proveïdor (prova)")
-    expect(closed).to_contain_text("tresoreria.prova")
+    expect(closed).to_contain_text("Ordre denegada al proveïdor (prova)")
+    expect(closed).to_contain_text("Fallit")
+    expect(closed).to_contain_text("Tresoreria Prova")  # el nom, mai el login
+    expect(closed).not_to_contain_text("tresoreria.prova")
     review("a-revisar-tancats")

@@ -217,7 +217,7 @@ SERVICE_CHECKS = {
     returns.confirm: (B4, lambda by: returns.confirm(None, returns.RETRY, by=by)),
     # A6, o el soci mateix des del compte personal (A2).
     mandates.revoke_mandate: (A6, lambda by: mandates.revoke_mandate(MEMBER, by=by)),
-    reviews.close: (B6, lambda by: reviews.close(None, note="x", by=by)),
+    reviews.close: (B6, lambda by: reviews.close(None, outcome="failed", note="x", by=by)),
 }
 
 # Serveis sense permís de rol propi, i per què.
@@ -251,6 +251,7 @@ UNCHECKED = {
     returns.max_attempts: "consulta",
     returns.can_retry: "consulta",
     returns.codes: "consulta (P-291)",
+    reviews.can_record_paid: "consulta (`close` la crida abans de «Pagat»)",
     returns.check_codes: "validació: la crida `business_settings.change`, amb el seu permís",
     returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",

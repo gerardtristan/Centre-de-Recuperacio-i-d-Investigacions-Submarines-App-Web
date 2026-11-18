@@ -16,8 +16,8 @@ from apps.payments.tests.test_remittances import (  # noqa: F401 (fixtures)
     collection_date,
     iban,
     new_member,
-    signer,
-    text,
+    signer,  # noqa: F811
+    text,  # noqa: F811
 )
 from apps.treasury import services as treasury
 from apps.treasury.models import (
@@ -171,3 +171,39 @@ def test_amb_el_nivell_1_no_es_liquida(sent, treasurer, settings):
     settings.PAYMENTS_LIVE_CHARGES_ALLOWED = False
     with pytest.raises(LiveChargesNotAllowed):
         remittances.settle_remittance(sent, line, by=treasurer)
+
+
+def test_097_late_card_confirmation_with_the_charge_at_the_bank_is_not_paid(
+    signer,  # noqa: F811
+    text,  # noqa: F811
+    treasurer,  # noqa: F811
+):
+    """La targeta caduca, la quota entra a la remesa (al banc) i després arriba el «pagat» de la
+    targeta: no es paga (es cobraria dues vegades), va «a revisar» i la remesa es liquida."""
+    from apps.core import audit
+    from apps.payments import attempts, processing
+    from apps.payments.providers import base
+
+    other = new_member(1, signer=signer, text=text, cents=3500)
+    fee = new_member(2, signer=signer, text=text)
+    card = attempts.create_attempt(fee.charge, PaymentAttempt.Method.CARD)
+    card = attempts.transition(card, PaymentAttempt.Status.IN_PROGRESS, by=audit.system("p"))
+    card.provider_code, card.provider_order_id = "fake", "ORD-TARDANA"
+    card.save(update_fields=["provider_code", "provider_order_id", "updated_at"])
+    card = attempts.transition(card, PaymentAttempt.Status.EXPIRED, by=audit.system("p"))
+    remittance = remittances.build_remittance("2026-12", collection_date(), treasurer)
+    sepa_xml.remittance_file(remittance, treasurer)
+    sent = remittances.mark_remittance_sent(remittance, file_deleted=True, by=treasurer)
+
+    late = base.OrderState("ORD-TARDANA", base.PAID, 9000, "EUR")
+    assert processing.settle(card, late) == "to_review"
+    card.refresh_from_db()
+    assert card.status == PaymentAttempt.Status.TO_REVIEW
+    assert card.review_reason.startswith("Confirmació tardana amb un altre intent")
+    assert not Payment.objects.exists()
+
+    remittances.settle_remittance(sent, bank_line(12500, treasurer), by=treasurer)
+    for charge in (fee.charge, other.charge):
+        charge.refresh_from_db()
+        assert charge.status == Charge.Status.PAID
+    assert Payment.objects.filter(charge=fee.charge).count() == 1

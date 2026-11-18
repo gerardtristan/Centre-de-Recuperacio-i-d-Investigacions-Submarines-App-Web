@@ -243,12 +243,25 @@ _MANUAL_PAYMENT_GUARDS = []
 
 
 def register_manual_payment_guard(guard):
-    """Els mòduls hi registren una comprovació del càrrec (bloquejat) abans d'un pagament a mà;
-    `guard(charge)` llança un `ValidationError` per rebutjar-lo. El 05b hi posa els intents en
-    curs o pagats (`payments.attempts.ensure_manual_payment_allowed`)."""
+    """Els mòduls hi registren una comprovació del càrrec (bloquejat) abans d'un pagament que
+    registra una persona; `guard(charge, **context)` llança un `ValidationError` per rebutjar-lo.
+    El 05b hi posa els intents en curs o pagats (`payments.attempts.ensure_manual_payment_allowed`;
+    `context`: `deciding`, l'intent «a revisar» que el tresorer dona per pagat)."""
     if guard not in _MANUAL_PAYMENT_GUARDS:
         _MANUAL_PAYMENT_GUARDS.append(guard)
     return guard
+
+
+def check_manual_payment(locked: Charge, by, **context) -> None:
+    """Les comprovacions comunes d'un pagament que registra una persona: el pagament a mà (P-12)
+    i la decisió «Pagat» d'un intent «a revisar» (05b). El càrrec, bloquejat; `context`, per a
+    les guardes registrades."""
+    if locked.person_id == by.person_id:
+        raise ValidationError(_("Ningú no pot registrar el pagament d'un càrrec seu."))
+    if locked.status != S.PENDING:
+        raise ValidationError(_("Només es registra a mà el pagament d'un càrrec pendent."))
+    for guard in _MANUAL_PAYMENT_GUARDS:
+        guard(locked, **context)
 
 
 @transaction.atomic
@@ -264,16 +277,11 @@ def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> P
     if not reason.strip():
         raise ValidationError(_("Per registrar un pagament a mà cal un motiu."))
     locked = Charge.objects.select_for_update().get(pk=charge.pk)
-    if locked.person_id == by.person_id:
-        raise ValidationError(_("Ningú no pot registrar el pagament d'un càrrec seu."))
-    if locked.status != S.PENDING:
-        raise ValidationError(_("Només es registra a mà el pagament d'un càrrec pendent."))
+    check_manual_payment(locked, by)
     today = timezone.localdate()
     paid_on = paid_on or today
     if paid_on > today:
         raise ValidationError(_("La data de cobrament no pot ser futura."))
-    for guard in _MANUAL_PAYMENT_GUARDS:
-        guard(locked)
     payment = Payment.objects.create(
         charge=locked,
         method=Payment.Method.MANUAL,

@@ -1,6 +1,6 @@
 """Rebut d'un pagament confirmat i correu al pagador (T-M05b-07; RN-M05b-19; CA-M05b-03).
 
-- El rebut s'emet a la mateixa transacció que dona l'intent per pagat (`processing._pay`): si
+- El rebut s'emet a la mateixa transacció que dona l'intent per pagat (`processing.pay`): si
   es desfà, no queda ni el rebut ni el número ni el correu. Una notificació repetida no arriba
   aquí (l'intent ja és pagat, CA-M05b-04), i l'únic de `Receipt.attempt` ho garanteix igualment.
 - Número `R-AAAA-NNNNNN` (S-M05b-11): correlatiu dins de cada any, sense forats.

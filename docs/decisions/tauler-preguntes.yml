@@ -1029,4 +1029,14 @@ opcions:
       demanen canviar el pla i una pantalla diferent per a un sol tipus d'apartat.
     data: 2026-11-18
 
+  P-392:
+    opcions:
+      A: "«A revisar» i el tresorer decideix: la confirmació tardana no paga el càrrec si un altre intent encara el pot cobrar (en curs, al banc o «a revisar»)."
+      B: "Es paga igualment (RN-M05b-03 tal com era) i, si l'altre intent també cobra, se'n fa la devolució."
+    recomanada: A
+    perque: >-
+      Amb B, una targeta caducada que es confirma tard i la quota ja enviada al banc es cobren totes
+      dues. Resposta del propietari (18/11/2026): A.
+    data: 2026-11-18
+
 noves:

@@ -25,9 +25,12 @@ CHANGED = "payments.attempt_status_changed"
 
 # RN-M05b-03, tal com és al pla: cap altra transició no és vàlida.
 ALLOWED = {
-    *product([S.CREATED], [S.IN_PROGRESS, S.SENT_TO_BANK]),
+    *product([S.CREATED], [S.IN_PROGRESS, S.SENT_TO_BANK, S.CANCELLED]),
     *product([S.IN_PROGRESS], [S.PAID, S.FAILED, S.EXPIRED, S.ABANDONED, S.TO_REVIEW]),
     *product([S.SENT_TO_BANK], [S.PAID, S.FAILED]),
+    # 097 (P-82, opció C): la confirmació tardana i la decisió del tresorer.
+    *product([S.FAILED, S.EXPIRED, S.ABANDONED], [S.PAID, S.TO_REVIEW]),
+    *product([S.TO_REVIEW], [S.PAID, S.FAILED]),
 }
 FORBIDDEN = sorted(set(product(S.values, S.values)) - ALLOWED)
 
@@ -67,11 +70,13 @@ class TestEntity:
         names = {field.name for field in Attempt._meta.get_fields()}
         assert names == set(
             "id charge method amount_cents status provider_code provider_order_id "
-            "idempotency_key expires_at guest_link started_by review_reason created_at "
-            "updated_at receipt ui_timeout_minutes direct_debit_item review_closure".split()
+            "idempotency_key expires_at guest_link started_by review_reason review_code "
+            "created_at updated_at receipt ui_timeout_minutes direct_debit_item "
+            "review_closures".split()
         )  # `receipt`: la relació inversa del rebut (T-M05b-07); `ui_timeout_minutes`: RN-M05b-24;
         # `direct_debit_item`: la del rebut domiciliat (T-M05b-09), que porta el mandat;
-        # `review_closure`: la del tancament d'un «a revisar» (T-M05b-16b)
+        # `review_closures`: les decisions del tresorer sobre un «a revisar» (T-M05b-16b i 16c);
+        # `review_code`: el codi del motiu «a revisar», per a les guardes (T-M05b-16c)
         assert not [n for n in names if any(w in n for w in ("iban", "pan", "cvv", "card"))]
         # Tall de targeta: l'intent no referencia el mandat (docs/estat/M05a.md).
         related = {f.related_model._meta.label for f in Attempt._meta.fields if f.is_relation}
@@ -231,6 +236,14 @@ class TestTransitions:
         attempt.refresh_from_db()
         assert (attempt.status, attempt.review_reason) == (S.TO_REVIEW, "Import diferent")
         assert AuditEntry.objects.get(action=CHANGED).reason == "Import diferent"
+
+    @pytest.mark.parametrize("new", [S.PAID, S.FAILED])
+    def test_097_leaving_to_review_needs_the_treasurer_reason(self, charge, new):
+        attempt = raw(charge, S.TO_REVIEW, new)
+        with pytest.raises(ValidationError):
+            attempts.transition(attempt, new, by=SYSTEM, reason=" ")
+        attempt.refresh_from_db()
+        assert attempt.status == S.TO_REVIEW
 
 
 class TestLocked:

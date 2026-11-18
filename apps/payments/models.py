@@ -138,9 +138,16 @@ class AttemptStatus(models.TextChoices):
 ATTEMPT_TRANSITIONS = frozenset(
     (old, new)
     for old, targets in {
-        "created": ("in_progress", "sent_to_bank"),
+        "created": ("in_progress", "sent_to_bank", "cancelled"),
         "in_progress": ("paid", "failed", "expired", "abandoned", "to_review"),
         "sent_to_bank": ("paid", "failed"),
+        # 097 (P-82, opció C): una confirmació vàlida que arriba tard paga l'intent si el càrrec
+        # és pendent, o el deixa «a revisar» si ja era pagat (RN-M05b-08); d'«a revisar» se'n surt
+        # amb la decisió del tresorer (`reviews.close`).
+        "failed": ("paid", "to_review"),
+        "expired": ("paid", "to_review"),
+        "abandoned": ("paid", "to_review"),
+        "to_review": ("paid", "failed"),
     }.items()
     for new in targets
 )
@@ -148,6 +155,19 @@ ATTEMPT_TRANSITIONS = frozenset(
 # «cancel·lat» (P-122) perquè el càrrec, que torna a pendent, es pugui tornar a pagar. El mateix
 # per a un rebut domiciliat que el banc retorna (T-M05b-12, P-290).
 REVERT_TRANSFER = ("paid", "cancelled")
+
+
+class ReviewCode(models.TextChoices):
+    """Per què un intent és «a revisar», com a codi (no com el text, que es tradueix; 061). Les
+    guardes de `reviews.close` el fan servir; el motiu és el text que llegeix el tresorer."""
+
+    OTHER = "", _("altre")
+    AMOUNT = "amount", _("l'import o la moneda no quadren")
+    DUPLICATE = "duplicate", _("pagament duplicat")
+    CANCELLED_CHARGE = "cancelled", _("càrrec anul·lat")
+    IN_FLIGHT = "in_flight", _("un altre intent en curs")
+    RETURNED_CHARGE = "returned", _("càrrec retornat")
+    CONFIRMED = "confirmed", _("el proveïdor n'ha confirmat el cobrament")
 
 
 class PaymentAttemptQuerySet(UndeletableQuerySet):
@@ -219,6 +239,9 @@ class PaymentAttempt(UndeletableModel):
         verbose_name=_("iniciat per"),
     )
     review_reason = models.TextField(_("motiu de la revisió"), blank=True)
+    review_code = models.CharField(
+        _("codi de la revisió"), max_length=12, choices=ReviewCode.choices, blank=True
+    )
     # Bizum: els minuts que la pantalla l'espera, desats en obrir-lo (VC-17, RN-M05b-24).
     ui_timeout_minutes = models.PositiveSmallIntegerField(
         _("minuts d'espera a la pantalla"), null=True, blank=True
@@ -377,17 +400,29 @@ class ReceiptCancellation(AppendOnlyModel):
 
 
 class ReviewClosure(AppendOnlyModel):
-    """Tancament d'un intent «a revisar» pel tresorer (T-M05b-16b; P-82, opció per defecte). No
-    canvia l'intent ni mou diners: una fila nova diu qui l'ha tancat i quan. Només INSERT, també a
-    la base de dades (migració 0022); un sol tancament per intent. La nota (text lliure) no és
-    aquí: és al registre d'activitat, que l'esborrat RGPD sí que pot anonimitzar."""
+    """Decisió del tresorer sobre un intent «a revisar» (T-M05b-16b i 16c; 097, P-82 opció C): qui,
+    quan i el resultat («pagat» o «fallit»), amb `reviews.close`. Només INSERT, també a la base de
+    dades (migració 0022). Un intent en pot tenir més d'una: si torna «a revisar» (una
+    confirmació tardana), es torna a decidir. La nota (text lliure) no és aquí: és al registre
+    d'activitat, que l'esborrat RGPD sí que pot anonimitzar. `review_reason`: el motiu que tenia
+    l'intent en tancar-lo (si torna «a revisar», el de l'intent canvia)."""
 
-    attempt = models.OneToOneField(
+    class Outcome(models.TextChoices):
+        PAID = "paid", _("Pagat")
+        FAILED = "failed", _("Fallit")
+        # Els tancaments de la T-M05b-16b, d'abans de poder triar (migració 0025).
+        UNDECIDED = "undecided", _("Sense decisió")
+
+    OUTCOMES = (Outcome.PAID, Outcome.FAILED)  # les que pot triar el tresorer
+
+    attempt = models.ForeignKey(
         PaymentAttempt,
         on_delete=models.PROTECT,
-        related_name="review_closure",
+        related_name="review_closures",
         verbose_name=_("intent"),
     )
+    outcome = models.CharField(_("decisió"), max_length=12, choices=Outcome.choices)
+    review_reason = models.TextField(_("motiu de la revisió"), blank=True)
     closed_by = models.ForeignKey(
         "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("tancat per")
     )
