@@ -70,8 +70,9 @@ class TestEntity:
         names = {field.name for field in Attempt._meta.get_fields()}
         assert names == set(
             "id charge method amount_cents status provider_code provider_order_id "
-            "idempotency_key expires_at guest_link started_by review_reason created_at "
-            "updated_at receipt ui_timeout_minutes direct_debit_item review_closures review_code".split()
+            "idempotency_key expires_at guest_link started_by review_reason review_code "
+            "created_at updated_at receipt ui_timeout_minutes direct_debit_item "
+            "review_closures".split()
         )  # `receipt`: la relació inversa del rebut (T-M05b-07); `ui_timeout_minutes`: RN-M05b-24;
         # `direct_debit_item`: la del rebut domiciliat (T-M05b-09), que porta el mandat;
         # `review_closures`: les decisions del tresorer sobre un «a revisar» (T-M05b-16b i 16c);
