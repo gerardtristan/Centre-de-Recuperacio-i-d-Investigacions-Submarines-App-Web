@@ -45,6 +45,8 @@ class EmailText:
     default: str
     vars: dict = field(default_factory=dict)
     when: object = None
+    # Variables sense les quals el correu ja no té sentit (097, CA-M00-08.2).
+    required: tuple = ()
 
 
 def _date(value) -> str:
@@ -87,6 +89,7 @@ EMAILS = {
                 gettext_lazy("data de la baixa"), "31/12/2026", lambda c: _date(c["effective_on"])
             )
         },
+        required=("data",),
     ),
     # T-M01-18 (Q-061 de la 072): text aprovat (085, S-1/S-3), també el de
     # la quota vençuda. Sense cap dada personal: només l'import i el venciment.
@@ -100,6 +103,7 @@ EMAILS = {
             "Si tens cap dubte, respon aquest correu."
         ),
         {"import": _AMOUNT, "data": _DUE_ON},
+        required=("import", "data"),
         when=lambda c: not c.get("overdue"),
     ),
     f"{SECTION}.recordatori-quota-vencuda": EmailText(
@@ -113,6 +117,7 @@ EMAILS = {
             "Si tens cap dubte, respon aquest correu."
         ),
         {"import": _AMOUNT, "data": _DUE_ON},
+        required=("import", "data"),
         when=lambda c: bool(c.get("overdue")),
     ),
     # Avís de renovació (073, T-M01-43): un text per a cada estat del pas a simpatitzant.
@@ -129,6 +134,7 @@ EMAILS = {
                 )
             },
             when=lambda c, state=state: _downgrade(c) == state,
+            required=("data",),
         )
         for suffix, state, label, paragraph in (
             (
@@ -221,6 +227,12 @@ def validate(key: str, value: str) -> None:
         )
     if _TAG.search(value):
         raise ValidationError(_("El text no pot portar etiquetes HTML: s'envia com a text pla."))
+    missing = [f"{{{name}}}" for name in entry.required if f"{{{name}}}" not in value]
+    if missing:
+        raise ValidationError(
+            _("Falta una variable obligatòria d'aquest correu: %(names)s.")
+            % {"names": ", ".join(missing)}
+        )
     unknown = sorted({name for name in _VAR.findall(value) if name not in entry.vars})
     rest = _VAR.sub("", value)
     if unknown or "{" in rest or "}" in rest:
@@ -275,11 +287,16 @@ def status(key: str) -> str:
 
 
 def help_text(key: str) -> str:
-    names = ", ".join(f"{{{n}}} ({v.label})" for n, v in EMAILS[key].vars.items())
-    return _(
+    entry = EMAILS[key]
+    names = ", ".join(f"{{{n}}} ({v.label})" for n, v in entry.vars.items())
+    text = _(
         "La primera línia és l'assumpte i la resta, el cos del correu. Text pla, sense HTML. "
         "Variables: %(vars)s. Si el deixes buit, torna el text per defecte."
     ) % {"vars": names or _("aquest correu no té variables")}
+    if entry.required:
+        required = ", ".join(f"{{{n}}}" for n in entry.required)
+        text += " " + _("Variables obligatòries: %(names)s.") % {"names": required}
+    return text
 
 
 def _fill(text: str, values: dict) -> tuple[str, str]:
