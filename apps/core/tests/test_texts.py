@@ -3,6 +3,7 @@ amb el valor anterior, vista prèvia, permís i seguretat del text (cap plantill
 de dades, cap HTML). Només dades inventades."""
 
 import datetime
+import re
 
 import pytest
 from django.conf import settings
@@ -87,7 +88,9 @@ def test_published_text_is_sent_with_its_values_and_keeps_the_previous_one(make_
 
 
 def test_editing_one_variant_does_not_change_the_other(make_admin):
-    business_settings.change(OVERDUE, "Impagada\n\nPaga {import}.", make_admin(R.SECRETARY))
+    business_settings.change(
+        OVERDUE, "Impagada\n\nPaga {import} del {data}.", make_admin(R.SECRETARY)
+    )
     assert reminder(True).subject == "Impagada"
     assert reminder(False).subject == "Recordatori: la teva quota del C.R.I.S."
 
@@ -115,10 +118,10 @@ def test_unsafe_or_incomplete_text_is_rejected_and_nothing_is_saved(make_admin, 
 
 
 def test_values_are_inserted_once_and_never_rendered_as_a_template(make_admin):
-    business_settings.change(DUE, "Quota\n\nImport: {import}", make_admin(R.SECRETARY))
+    business_settings.change(DUE, "Quota\n\nImport: {import}, {data}", make_admin(R.SECRETARY))
     context = {"due_on": datetime.date(2026, 12, 15), "amount": "{data} {{ 7|add:1 }}"}
     email = mail.queue_email("recordatori-quota", to="anna@example.org", context=context)
-    assert email.body_text == "Import: {data} {{ 7|add:1 }}\n"
+    assert email.body_text == "Import: {data} {{ 7|add:1 }}, 15/12/2026\n"
 
 
 def test_the_subject_is_a_single_line():
@@ -218,8 +221,8 @@ def test_every_default_text_in_every_language_uses_only_its_variables():
 
 def test_a_long_subject_is_rejected_with_a_message(make_admin):
     with pytest.raises(ValidationError, match="200"):
-        business_settings.change(LEAVE, "A" * 201 + "\n\nCos", make_admin(R.SECRETARY))
-    business_settings.change(LEAVE, "A" * 200 + "\n\nCos", make_admin(R.SECRETARY))
+        business_settings.change(LEAVE, "A" * 201 + "\n\nCos {data}", make_admin(R.SECRETARY))
+    business_settings.change(LEAVE, "A" * 200 + "\n\nCos {data}", make_admin(R.SECRETARY))
 
 
 def test_the_email_records_the_language_its_text_is_in():
@@ -237,7 +240,9 @@ def test_a_text_setting_without_an_entry_does_not_break_the_screen(make_admin):
     assert client.get(url("texts.no-existeix")).status_code == 200
 
 
-@pytest.mark.parametrize("value", ["Preu\n\nAmb <menys de 50 € n'hi ha prou.", "A\n\n1 < 2 > 0"])
+@pytest.mark.parametrize(
+    "value", ["Preu\n\nAmb <menys de 50 € n'hi ha prou el {data}.", "A\n\n1 < 2 > 0 {data}"]
+)
 def test_a_less_than_sign_is_not_html(make_admin, value):
     business_settings.change(LEAVE, value, make_admin(R.SECRETARY))
 
@@ -311,3 +316,40 @@ def test_text_settings_reverse_migration_keeps_versions(make_admin):
     migration.unload(django_apps, None)
     assert SettingVersion.objects.filter(setting__key="texts.alta-rebutjada").exists()
     assert not Setting.objects.filter(key="texts.rebut-sollicitud-alta").exists()
+
+
+# --- Variables obligatòries (T-M00-08c; 097, CA-M00-08.2) -------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("key", "value", "missing"),
+    [
+        (DUE, "Quota\n\nLa teva quota venç el {data}.", "{import}"),
+        (OVERDUE, "Quota\n\nDeus {import}.", "{data}"),
+        (LEAVE, "Baixa\n\nJa no ets soci.", "{data}"),
+        ("texts.avis-renovacio", "Renovació\n\nAviat es renova.", "{data}"),
+    ],
+)
+def test_a_text_without_a_required_variable_is_rejected_and_says_which(
+    make_admin, key, value, missing
+):
+    with pytest.raises(ValidationError, match=re.escape(missing)):
+        business_settings.change(key, value, make_admin(R.SECRETARY))
+    assert not SettingVersion.objects.filter(setting__key=key).exists()
+
+
+def test_every_required_variable_is_declared_and_in_the_default_text():
+    for key, entry in texts.EMAILS.items():
+        assert set(entry.required) <= set(entry.vars), key
+        assert all(f"{{{name}}}" in str(entry.default) for name in entry.required), key
+    assert texts.EMAILS[DUE].required == ("import", "data")
+
+
+def test_the_help_text_says_which_variables_are_required():
+    assert "obligatòries: {import}, {data}" in texts.help_text(DUE)
+
+
+def test_an_email_without_required_variables_accepts_any_text(make_admin):
+    business_settings.change(
+        "texts.alta-rebutjada", "Alta\n\nNo s'ha aprovat.", make_admin(R.SECRETARY)
+    )
