@@ -96,26 +96,30 @@ def mandate_view(request):
         if request.method == "POST" and form.is_valid():
             error = _reauth_error(request, form, minutes)
             if error is None:
-                with transaction.atomic():
-                    mandate = mandates.create_mandate(
-                        member,
-                        iban=form.cleaned_data["iban"],
-                        holder_name=form.cleaned_data["holder_name"],
-                        holder_is_member=not form.cleaned_data["other_holder"],
-                        legal_text=text,
-                        account=account,
-                        creditor_identifier=creditor,
-                        evidence={"channel": "web", "text_version": text.version},
+                try:
+                    with transaction.atomic():
+                        mandate = mandates.create_mandate(
+                            member,
+                            iban=form.cleaned_data["iban"],
+                            holder_name=form.cleaned_data["holder_name"],
+                            holder_is_member=not form.cleaned_data["other_holder"],
+                            legal_text=text,
+                            account=account,
+                            creditor_identifier=creditor,
+                            evidence={"channel": "web", "text_version": text.version},
+                        )
+                        # Signar és triar la domiciliació amb aquest mandat (P-125, decisió 095).
+                        preferences.set_preference(member, FeeMethod.DIRECT_DEBIT, by=account)
+                        mandates.mail_member(mandates.SIGNED_TEMPLATE, mandate)
+                except mandates.CountryNotAllowed as refused:
+                    form.add_error("iban", refused)  # «País no admès» (P-123)
+                else:
+                    messages.success(
+                        request,
+                        _("Mandat signat. La referència és %(reference)s.")
+                        % {"reference": mandate.reference},
                     )
-                    # Signar és triar la domiciliació amb aquest mandat (P-125, decisió 095).
-                    preferences.set_preference(member, FeeMethod.DIRECT_DEBIT, by=account)
-                    mandates.mail_member(mandates.SIGNED_TEMPLATE, mandate)
-                messages.success(
-                    request,
-                    _("Mandat signat. La referència és %(reference)s.")
-                    % {"reference": mandate.reference},
-                )
-                return redirect("payments:mandate")
+                    return redirect("payments:mandate")
         if form.is_bound:
             # Ni l'IBAN ni el codi no tornen mai a la pantalla (RN-M05a-06).
             form.data = form.data.copy()

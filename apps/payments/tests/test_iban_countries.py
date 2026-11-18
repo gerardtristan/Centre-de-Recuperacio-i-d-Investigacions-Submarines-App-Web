@@ -3,13 +3,15 @@ són una llista editable a «Ajustos», que de bon principi és tota la zona SEP
 país que no hi és es rebutja amb «País no admès» i no es desa res. Només dades inventades: IBAN
 de format vàlid amb un compte de zeros."""
 
+import importlib
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.urls import reverse
 
 from apps.core import business_settings
-from apps.core.models import AuditEntry, Role, SettingVersion
+from apps.core.models import AuditEntry, Role, Setting, SettingVersion
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_guest_links import admin_client
 from apps.payments import mandates
@@ -26,7 +28,7 @@ from apps.payments.tests.test_mandate_signing import (  # noqa: F401 (fixtures)
 pytestmark = pytest.mark.django_db
 
 KEY = mandates.IBAN_COUNTRIES
-TURKISH = "TR20000000000000000000000001"  # vàlid, d'un país fora de la zona SEPA
+TURKISH = "TR200000000000000000000001"  # 26 caràcters, vàlid, d'un país fora de la zona SEPA
 FRENCH = "FR4900000000000000000000001"
 REFUSED = "El banc del club no admet IBAN d&#x27;aquest país per domiciliar."
 
@@ -76,6 +78,49 @@ def test_el_servei_tambe_ho_comprova(member, account, text):  # noqa: F811
             evidence={},
         )
     assert not SepaMandate.objects.exists()
+
+
+def test_si_la_llista_canvia_entre_el_formulari_i_el_servei_no_hi_ha_cap_500(
+    browser,  # noqa: F811
+    text,  # noqa: F811
+    treasurer,
+    monkeypatch,
+):
+    """El país el mira `create_mandate`, amb una sola lectura de l'ajust, i la vista en mostra
+    l'error al camp. Aquí el Tresorer treu França just després que el formulari sigui vàlid
+    (revisió de la #230)."""
+    from apps.payments import mandate_views
+
+    real = mandate_views._reauth_error
+
+    def meanwhile(*args):
+        business_settings.change(KEY, "ES", treasurer)
+        return real(*args)
+
+    monkeypatch.setattr(mandate_views, "_reauth_error", meanwhile)
+    response = sign(browser, iban=FRENCH)
+    assert response.status_code == 200 and REFUSED in response.content.decode()
+    assert FRENCH[4:] not in response.content.decode()
+    assert not SepaMandate.objects.exists() and not MandateBankAccount.objects.exists()
+
+
+def test_sense_l_ajust_val_la_zona_sepa():
+    Setting.objects.filter(key=KEY).delete()
+    assert mandates.iban_countries() == mandates.SEPA_COUNTRIES
+    assert "FR" in mandates.iban_countries() and "TR" not in mandates.iban_countries()
+
+
+def test_la_constant_i_la_migracio_tenen_la_mateixa_llista():
+    migration = importlib.import_module("apps.payments.migrations.0024_paisos_iban")
+    assert set(migration.SEPA.split(", ")) == mandates.SEPA_COUNTRIES
+
+
+def test_un_codi_que_no_es_de_la_zona_sepa_es_rebutja_i_es_diu_quin(treasurer):
+    for value, named in (("ES, PO", "PO"), ("XX es", "XX"), ("FR, TR, US", "TR, US")):
+        with pytest.raises(ValidationError) as refused:
+            business_settings.change(KEY, value, treasurer)
+        assert named in " ".join(refused.value.messages)
+    assert not SettingVersion.objects.exists()
 
 
 @pytest.mark.parametrize("value", ["", "E", "ESP", "E1", "ES, ES", "ES FR fr"])

@@ -19,6 +19,7 @@ from django.views.decorators.debug import sensitive_variables
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings, mail
+from apps.core.models import Setting
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members.models import Member
@@ -45,7 +46,16 @@ IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 # La clau no diu «iban»: el registre d'activitat rebutja els camps amb aquest nom (RN-52).
 IBAN_COUNTRIES = "payments.mandate_countries"
 COUNTRY = re.compile(r"[A-Z]{2}")
-SEPARATORS = re.compile(r"[\s,;]+")
+# Codis de país de l'IBAN (registre ISO 13616) dels països i territoris de la zona SEPA amb IBAN
+# propi [A verificar: banc]. Els que fan servir l'IBAN d'un altre país (Åland amb FI) ja hi són.
+SEPA_COUNTRIES = frozenset(
+    "AD AL AT BE BG CH CY CZ DE DK EE ES FI FR GB GI GR HR HU IE IS IT LI LT LU LV MC MD ME MK "
+    "MT NL NO PL PT RO SE SI SK SM VA".split()
+)
+
+
+class CountryNotAllowed(ValidationError):
+    """L'IBAN és vàlid, però el país no és a la llista admesa (P-123)."""
 
 
 def validate_iban(value: str) -> str:
@@ -59,20 +69,10 @@ def validate_iban(value: str) -> str:
     raise ValidationError(gettext("L'IBAN no és vàlid. Revisa'l i torna-ho a provar."))
 
 
-def _split_countries(value: str) -> list[str]:
-    return [code for code in SEPARATORS.split(value.upper()) if code]
-
-
-def normalise_countries(value):
-    """Forma canònica: majúscules, ordenats i separats per «, ». Un valor que no és un text el
-    rebutja la peça d'ajustos."""
-    return ", ".join(sorted(_split_countries(value))) if isinstance(value, str) else value
-
-
 def check_countries(value: str) -> None:
     """La comprovació de l'ajust, que `apps.PaymentsConfig.ready` registra a la peça d'ajustos:
-    almenys un país, codis de dues lletres i sense repetir."""
-    found = _split_countries(value)
+    almenys un país, codis de dues lletres de la zona SEPA i sense repetir."""
+    found = business_settings.split_list(value)
     if not found:
         raise ValidationError(gettext("Hi ha d'haver almenys un país."))
     if not all(COUNTRY.fullmatch(code) for code in found):
@@ -82,22 +82,32 @@ def check_countries(value: str) -> None:
                 "comes, espais o punts i comes."
             )
         )
+    if unknown := sorted(set(found) - SEPA_COUNTRIES):
+        raise ValidationError(
+            gettext("Aquests codis no són de cap país de la zona SEPA: %(codes)s.")
+            % {"codes": ", ".join(unknown)}
+        )
     if len(set(found)) != len(found):
         raise ValidationError(gettext("La llista no pot tenir països repetits."))
 
 
 def iban_countries() -> set[str]:
-    """Els països admesos, amb el valor vigent avui (P-123)."""
-    return set(_split_countries(business_settings.get(IBAN_COUNTRIES)))
+    """Els països admesos, amb el valor vigent avui (P-123). Sense l'ajust, la zona SEPA."""
+    try:
+        return set(business_settings.split_list(business_settings.get(IBAN_COUNTRIES)))
+    except Setting.DoesNotExist:
+        return set(SEPA_COUNTRIES)
 
 
 def validate_mandate_iban(value: str) -> str:
     """`validate_iban` i, a més, el país admès (P-M05a-B, pas 2; estat «País no admès» del
-    wireframe). L'error tampoc no porta el valor. Les remeses no ho tornen a mirar: un mandat
-    signat continua valent encara que el país es tregui de la llista."""
+    wireframe), amb una sola lectura de l'ajust. La crida només `create_mandate`: si el país no
+    hi és, `CountryNotAllowed`, que la vista posa al camp. L'error tampoc no porta el valor. Les
+    remeses no ho tornen a mirar: un mandat signat continua valent encara que el país es tregui
+    de la llista."""
     iban = validate_iban(value)
     if iban[:2] not in iban_countries():
-        raise ValidationError(
+        raise CountryNotAllowed(
             gettext("El banc del club no admet IBAN d'aquest país per domiciliar.")
         )
     return iban

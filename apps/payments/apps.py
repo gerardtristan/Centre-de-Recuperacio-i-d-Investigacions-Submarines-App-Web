@@ -35,14 +35,14 @@ class PaymentsConfig(AppConfig):
             business_settings.register_check(
                 key,
                 returns.check_codes(key),
-                normalise=returns.normalise_codes,
+                normalise=business_settings.canonical_list,
                 lock_with=returns.RETURN_CODE_LISTS,
             )
         # P-123: els països de l'IBAN admesos al mandat.
         business_settings.register_check(
             mandates.IBAN_COUNTRIES,
             mandates.check_countries,
-            normalise=mandates.normalise_countries,
+            normalise=business_settings.canonical_list,
         )
 
         from .setup import ensure_transit_account

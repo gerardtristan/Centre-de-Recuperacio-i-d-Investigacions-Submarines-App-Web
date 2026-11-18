@@ -50,7 +50,6 @@ RETRY, ALTERNATIVE, SENT = "retry", "alternative", "alternative_sent"
 RETRY_CODES = "payments.return_codes_retry"
 BLOCK_CODES = "payments.return_codes_block_mandate"
 CODE = re.compile(r"[A-Z0-9]{4}")
-SEPARATORS = re.compile(r"[\s,;]+")
 LABELS = {
     "AM04": "fons insuficients",
     "MS02": "refús del deutor",
@@ -85,20 +84,10 @@ def max_attempts() -> int:
 RETURN_CODE_LISTS = (RETRY_CODES, BLOCK_CODES)
 
 
-def _split(value) -> list[str]:
-    return [code for code in SEPARATORS.split(value.upper()) if code]
-
-
-def normalise_codes(value):
-    """Forma canònica: majúscules, ordenats i separats per «, » (P-291). Un valor que no és un
-    text el rebutja la peça d'ajustos."""
-    return ", ".join(sorted(_split(value))) if isinstance(value, str) else value
-
-
 def codes(key: str) -> set[str]:
     """Els codis d'una llista, amb el valor vigent avui (P-291). Sense l'ajust, cap codi."""
     try:
-        return set(_split(business_settings.get(key)))
+        return set(business_settings.split_list(business_settings.get(key)))
     except Setting.DoesNotExist:
         return set()
 
@@ -109,7 +98,7 @@ def check_codes(key: str):
     de les llistes de `RETURN_CODE_LISTS`."""
 
     def check(value: str) -> None:
-        found = _split(value)
+        found = business_settings.split_list(value)
         if not all(CODE.fullmatch(code) for code in found):
             raise ValidationError(
                 _(
