@@ -309,3 +309,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-16c](T-M05b-16c.md) | Transicions de la P-82 (097, opció C): una confirmació tardana paga l'intent tancat si el càrrec és pendent; el tresorer decideix «a revisar» com a pagat o fallit (payments/0025) | 18/11/2026 | e92f5d63 | 12 noves o canviades; 1 e2e | [A comprovar] |
 | [T-M04-14c](T-M04-14c.md) | Tancar una liquidació «a revisar» amb una nota, sense moure diners (treasury/0018; P-390, resposta B) | 18/11/2026 | c7a8dadd | 10 noves (20 casos); 1 e2e | [A comprovar] |
 | [T-M04-14c](T-M04-14c.md) | Tancar una liquidació «a revisar» amb una nota, sense moure diners (treasury/0018; P-390, resposta B) | 18/11/2026 | c76cc9e6 | 10 noves (20 casos); 1 e2e | [A comprovar] |
+| [T-M04-14c](T-M04-14c.md) | Tancar una liquidació «a revisar» amb una nota, sense moure diners (treasury/0018; P-390, resposta B) | 18/11/2026 | 8354d692 | 10 noves (20 casos); 1 e2e | [A comprovar] |
