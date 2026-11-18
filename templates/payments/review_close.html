@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M05b-16b: tancar un intent «a revisar» (P-82, opció per defecte). Seguretat i privacitat, al servidor: B6 amb edició (sense, «no trobat»); només un intent «a revisar» que no estigui tancat; nota obligatòria; POST amb CSRF. Tancar no canvia l'estat de l'intent ni mou diners: queda una fila nova i l'entrada al registre d'activitat. El nom del pagador només arriba amb P4 (P-247). Cap IBAN ni dada de targeta. #}
+{# T-M05b-16b i 16c: decidir un intent «a revisar» (097, P-82 opció C). Seguretat i privacitat, al servidor: B6 amb edició (sense, «no trobat»); només un intent «a revisar»; decisió i nota obligatòries; POST amb CSRF. «Pagat» registra el pagament només si el càrrec és pendent (mai dos pagaments); «Fallit» no mou diners. El nom del pagador només arriba amb P4 (P-247). Cap IBAN ni dada de targeta. #}
 {% block title %}{% translate "Tanca un pagament a revisar" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
@@ -19,7 +19,12 @@
     <form class="targeta formulari" method="post" action="{% url 'administration:payments_review_close' attempt.pk %}" novalidate>
       {% csrf_token %}
       {% include "_errata.html" %}
-      <p>{% translate "Tancar-lo només deixa constància que l'has revisat: surt de la llista «a revisar» i passa a «Tancats». No mou cap diner ni canvia l'intent. Si cal una devolució, un pagament a mà o una conciliació, fes-ho abans a la seva pantalla." %}</p>
+      <p>{% translate "Comprova l'ordre al proveïdor i tria què ha passat. «Pagat» registra el pagament del càrrec, el rebut i l'ingrés; «Fallit» el tanca sense moure cap diner. Si el proveïdor l'ha cobrat però el càrrec ja estava pagat, tria «Fallit» i fes-ne la devolució. L'intent surt de la llista «a revisar» i passa a «Tancats»." %}</p>
+      <fieldset>
+        <legend>{{ form.outcome.label }}</legend>
+        {% for radio in form.outcome %}<label class="casella" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        {{ form.outcome.errors }}
+      </fieldset>
       {% include "accounts/_camp.html" with field=form.note %}
       <div class="accions">
         <button class="boto boto-principal" type="submit">{% translate "Sí, tanca'l" %}</button>

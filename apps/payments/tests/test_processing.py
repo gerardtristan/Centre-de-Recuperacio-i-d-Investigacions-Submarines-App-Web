@@ -24,9 +24,9 @@ from apps.core import audit, business_settings, charges
 from apps.core.models import AuditEntry, Charge, Department, Payment
 from apps.members.models import Member, MemberCard
 from apps.members.tests.test_cards import add_fee, make_member
-from apps.payments import checkout, processing, services
+from apps.payments import attempts, checkout, processing, services
 from apps.payments.models import PaymentAttempt as Attempt
-from apps.payments.models import ProviderEvent
+from apps.payments.models import ProviderEvent, Receipt
 from apps.payments.providers import base, fake
 from apps.treasury.models import CostCentre, Movement, TreasuryAccount
 from conftest import PASSWORD, CommittedDataTestCase, run_together
@@ -289,15 +289,39 @@ class TestToReview:
         assert list(Payment.objects.all()) == [transfer]  # cap pagament nou
         assert not incomes().exists()  # el de la transferència l'apunta la conciliació
 
-    def test_p_82_a_payment_of_an_attempt_already_closed_does_not_reopen_it(
+    @pytest.mark.parametrize("closed", [S.FAILED, S.EXPIRED, S.ABANDONED])
+    def test_097_a_late_confirmation_pays_a_closed_attempt_if_the_charge_is_pending(
+        self, attempt, fee, transit, closed
+    ):
+        attempts.transition(attempt, closed, by=audit.system("proves"))
+        notify(attempt, base.PAID, event_id="e-1")
+        notify(attempt, base.PAID, event_id="e-2")  # una altra del mateix pagament: res més
+        assert run_queue() == [R.PROCESSED, R.PROCESSED]
+        assert state(attempt, fee) == (S.PAID, Charge.Status.PAID)
+        payment = Payment.objects.get()
+        assert (payment.amount_cents, payment.method) == (9000, Payment.Method.CARD)
+        assert incomes().count() == 1 and Receipt.objects.filter(attempt=attempt).exists()
+
+    def test_097_a_late_confirmation_of_a_charge_already_paid_goes_to_review(
         self, attempt, fee, transit
     ):
         notify(attempt, base.DENIED, event_id="e-1")
+        run_queue()
+        transfer = Payment.objects.create(
+            charge=fee.charge, method=Payment.Method.TRANSFER, amount_cents=9000
+        )
+        charges.mark_paid(fee.charge, transfer, origin="reconciliation", by=audit.system("proves"))
         notify(attempt, base.PAID, event_id="e-2")
-        assert run_queue() == [R.PROCESSED, R.TO_REVIEW]
-        assert state(attempt, fee) == (S.FAILED, Charge.Status.PENDING)
-        entry = AuditEntry.objects.get(action=processing.TO_REVIEW)
-        assert entry.target_id == str(ProviderEvent.objects.get(external_id="e-2").pk)
+        assert run_queue() == [R.PROCESSED, R.TO_REVIEW]  # la primera ja era processada
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PAID)
+        assert attempt.review_reason.startswith("Pagament duplicat")
+        assert list(Payment.objects.all()) == [transfer]  # mai un segon pagament
+
+    def test_a_confirmation_of_an_attempt_to_review_does_not_pay_it(self, attempt, fee, transit):
+        notify(attempt, amount_cents=8000, event_id="e-1")
+        notify(attempt, base.PAID, event_id="e-2")
+        assert run_queue() == [R.TO_REVIEW, R.TO_REVIEW]
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PENDING)
         assert not Payment.objects.exists()
 
 
@@ -405,14 +429,14 @@ class TestSafetyNet:
         )
         for each in (attempt, other):
             fake.FakeProvider().notification(each.provider_order_id, base.PAID)
-        pay = processing._pay
+        pay = processing.pay
 
-        def fail_first(paid, *args):
+        def fail_first(paid, *args, **kwargs):
             if paid.pk == attempt.pk:
                 raise RuntimeError("error que es repeteix")
-            return pay(paid, *args)
+            return pay(paid, *args, **kwargs)
 
-        monkeypatch.setattr(processing, "_pay", fail_first)
+        monkeypatch.setattr(processing, "pay", fail_first)
         processing.safety_net()
         assert state(attempt, fee) == (S.IN_PROGRESS, Charge.Status.PENDING)
         assert state(other, other_fee) == (S.PAID, Charge.Status.PAID)
@@ -481,4 +505,45 @@ class TestSimultaneous(CommittedDataTestCase):
         assert results[1] == R.TO_REVIEW
         assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PAID)
         assert attempt.review_reason.startswith("Pagament duplicat")
+        fake.reset()
+
+    def test_097_the_treasurer_pays_while_the_charge_is_reconciled_only_one_payment(self):
+        """«A revisar → pagat» bloqueja càrrec → intent com `settle`: si la conciliació paga el
+        càrrec alhora, la decisió del tresorer es rebutja i no hi ha cap segon pagament."""
+        from unittest import mock
+
+        from apps.core.models import Person
+        from apps.payments import reviews
+
+        fake.reset()
+        attempt, fee = paying_attempt("anna@example.org")
+        notify(attempt, amount_cents=8000)
+        run_queue()
+        person = Person.objects.create(first_name="Tresorer", origin="in_person")
+        treasurer = Account.objects.create_admin(person, "tresoreria.simultania")
+        # Aquí es prova el bloqueig, no el permís (en una prova amb transaccions reals, la
+        # matriu de rols pot no ser-hi): el permís B6 el proven test_review_close i les rutes.
+        allowed = mock.patch.object(reviews, "has_perm", return_value=True)
+        allowed.start()
+        self.addCleanup(allowed.stop)
+
+        def reconcile():
+            with transaction.atomic():
+                charge = Charge.objects.select_for_update().get(pk=fee.charge_id)
+                transfer = Payment.objects.create(
+                    charge=charge, method=Payment.Method.TRANSFER, amount_cents=9000
+                )
+                charges.mark_paid(charge, transfer, origin="reconciliation", by=audit.system("p"))
+                time.sleep(1)
+
+        def decide():
+            time.sleep(0.3)
+            try:
+                reviews.close(attempt, outcome=S.PAID, note="Prova", by=treasurer)
+            except reviews.ChargeNotPending:
+                return "refused"
+
+        assert run_together([reconcile, decide])[1] == "refused"
+        assert state(attempt, fee) == (S.TO_REVIEW, Charge.Status.PAID)
+        assert Payment.objects.count() == 1
         fake.reset()

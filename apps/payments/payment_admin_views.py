@@ -71,13 +71,8 @@ def transfers_without_receipt():
 @require_GET
 def payments_view(request):
     names = has_perm(request.user, NAMES)
-    attempts = PaymentAttempt.objects.select_related("charge__person", "review_closure")
-    review = [
-        _row(a, names)
-        for a in attempts.filter(status=S.TO_REVIEW, review_closure__isnull=True).order_by(
-            "-updated_at"
-        )
-    ]
+    attempts = PaymentAttempt.objects.select_related("charge__person")
+    review = [_row(a, names) for a in attempts.filter(status=S.TO_REVIEW).order_by("-updated_at")]
     can_close = has_perm(request.user, VIEW, write=True)
     closures = ReviewClosure.objects.select_related("attempt__charge__person", "closed_by")
     closed = [
@@ -133,6 +128,15 @@ def _notes(closure_ids) -> dict[str, str]:
 
 
 class CloseForm(forms.Form):
+    outcome = forms.ChoiceField(
+        label=_("Què ha passat"),
+        choices=[
+            (S.PAID, _("Pagat: el proveïdor l'ha cobrat. Es registra el pagament.")),
+            (S.FAILED, _("Fallit: no s'ha cobrat. No es mou cap diner.")),
+        ],
+        widget=forms.RadioSelect,
+        error_messages={"required": _("Tria si s'ha pagat o ha fallat.")},
+    )
     note = forms.CharField(
         label=_("Nota"),
         max_length=reviews.MAX_NOTE,
@@ -150,18 +154,33 @@ class CloseForm(forms.Form):
 @permission_required(VIEW, write=True)
 @require_http_methods(["GET", "POST"])
 def review_close_view(request, attempt_id):
-    """Pàgina de confirmació i tancament d'un intent «a revisar» (T-M05b-16b)."""
+    """Pàgina de confirmació i decisió d'un intent «a revisar» (T-M05b-16b i 16c)."""
     attempt = get_object_or_404(
         PaymentAttempt.objects.select_related("charge__person"), pk=attempt_id, status=S.TO_REVIEW
     )
     form = CloseForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
+        outcome = form.cleaned_data["outcome"]
         try:
-            reviews.close(attempt, note=form.cleaned_data["note"], by=request.user)
+            reviews.close(attempt, outcome=outcome, note=form.cleaned_data["note"], by=request.user)
         except reviews.NotClosable:
             messages.error(request, gettext("Aquest intent ja està tancat."))
+        except reviews.ChargeNotPending:
+            form.add_error(
+                "outcome",
+                gettext(
+                    "El càrrec ja no és pendent: no es pot registrar un altre pagament. Si el "
+                    "proveïdor l'ha cobrat, tria «Fallit» i fes-ne la devolució."
+                ),
+            )
         else:
-            messages.success(request, gettext("Intent tancat. No s'ha mogut cap diner."))
-        return redirect("administration:payments_list")
+            done = {
+                S.PAID: gettext("Intent tancat com a pagat: s'ha registrat el pagament."),
+                S.FAILED: gettext("Intent tancat com a fallit. No s'ha mogut cap diner."),
+            }
+            messages.success(request, done[outcome])
+            return redirect("administration:payments_list")
+        if not form.errors:
+            return redirect("administration:payments_list")
     context = {"row": _row(attempt, has_perm(request.user, NAMES)), "form": form}
     return render(request, "payments/review_close.html", context)

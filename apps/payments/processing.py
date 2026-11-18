@@ -77,6 +77,8 @@ SAFETY_NET_AGE = "payments.safety_net_age_minutes"
 SAFETY_NET_GIVE_UP = "payments.safety_net_give_up_hours"
 # Estat normalitzat del proveïdor → estat de l'intent que encara és «en curs».
 _CLOSED_BY = {base.DENIED: S.FAILED, base.EXPIRED: S.EXPIRED}
+# 097 (P-82, opció C): intents tancats que una confirmació tardana encara pot pagar.
+LATE = (S.FAILED, S.EXPIRED, S.ABANDONED)
 
 
 def _system():
@@ -154,32 +156,35 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
                 if attempt.method == PaymentAttempt.Method.SAVED_CARD:
                     on_saved_card_failed(attempt, charge)  # «alternativa de pagament si falla»
             return R.PROCESSED
-        if attempt.status != S.IN_PROGRESS:
-            # P-82, opció per defecte: RN-M05b-03 no deixa tornar a obrir un intent tancat. El
-            # cobrament el revisa el tresorer; l'intent i el càrrec no canvien.
+        late = attempt.status in LATE
+        if attempt.status != S.IN_PROGRESS and not late:
+            # «A revisar» o «cancel·lat»: el cobrament el revisa el tresorer (`reviews.close`).
             reason = _("Confirmació de pagament d'un intent que ja estava tancat.")
             return _review(attempt, source, reason)
         if charge.status != Charge.Status.PENDING:
             # RN-M05b-08 i CA-M05b-07: el càrrec ja s'havia pagat (o anul·lat) per una altra via.
+            # Mai un segon pagament: l'intent, també el tancat (097), queda «a revisar».
             reason = _("Pagament duplicat: el càrrec ja no era pendent. Cal fer-ne la devolució.")
-            return _review(attempt, source, reason)
-        _pay(attempt, charge, state)
+            return _review(attempt, source, reason, reopen=late)
+        # 097: una confirmació tardana d'un intent fallit, caducat o abandonat també el paga.
+        pay(attempt, charge, by=_system(), status=state.status, reference=state.external_id)
         return R.PROCESSED
 
 
-def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> None:
+def pay(attempt, charge, *, by, status: str, reference: str, reason: str = "") -> None:
     """CA-M05b-03: intent i càrrec «pagat», pagament, ingrés amb departament i, si és una
-    quota, l'avís al 01 (`members.on_fee_paid`, que activa el soci i n'emet el carnet)."""
-    by = _system()
-    attempt = attempts.transition(attempt, S.PAID, by=by)
+    quota, l'avís al 01 (`members.on_fee_paid`, que activa el soci i n'emet el carnet). Qui crida
+    té el càrrec i l'intent bloquejats, en aquest ordre, i el càrrec és pendent: `settle` o la
+    decisió del tresorer (`reviews.close`, amb `reason`)."""
+    attempt = attempts.transition(attempt, S.PAID, by=by, reason=reason)
     payment = charges.record_payment(
         charge,
         # Per a la 00 i la tresoreria, una targeta guardada és una targeta.
         method=attempt.payment_method,
         origin="provider",
         by=by,
-        provider_status=state.status,
-        provider_reference=state.external_id,
+        provider_status=status,
+        provider_reference=reference,
     )
     treasury.record_income(payment, origin="provider", by=by)
     receipts.issue(attempt)
@@ -188,18 +193,18 @@ def _pay(attempt: PaymentAttempt, charge: Charge, state: base.OrderState) -> Non
         members.on_fee_paid(fee.pk)
 
 
-def _review_entry(attempt, source, reason: str) -> None:
-    if attempt is not None and attempt.status == S.IN_PROGRESS:
+def _review_entry(attempt, source, reason: str, reopen: bool = False) -> None:
+    if attempt is not None and (attempt.status == S.IN_PROGRESS or reopen):
         attempts.transition(attempt, S.TO_REVIEW, by=_system(), reason=reason)
     else:
         audit.record(TO_REVIEW, actor=_system(), target=source or attempt, reason=reason)
 
 
-def mark_for_review(attempt, source, reason: str) -> str:
+def mark_for_review(attempt, source, reason: str, *, reopen: bool = False) -> str:
     """«A revisar»: l'intent en curs hi passa amb el motiu; si l'intent ja estava tancat o no
     n'hi ha, el motiu queda al registre (`TO_REVIEW`, d'on surt la llista «a revisar»), sobre la
     notificació, el càrrec o l'intent. I l'avís al tresorer."""
-    _review_entry(attempt, source, reason)
+    _review_entry(attempt, source, reason, reopen)
     _mail_review(attempt, source, reason)
     return R.TO_REVIEW
 

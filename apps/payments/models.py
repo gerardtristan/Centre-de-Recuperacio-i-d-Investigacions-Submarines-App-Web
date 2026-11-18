@@ -138,9 +138,16 @@ class AttemptStatus(models.TextChoices):
 ATTEMPT_TRANSITIONS = frozenset(
     (old, new)
     for old, targets in {
-        "created": ("in_progress", "sent_to_bank"),
+        "created": ("in_progress", "sent_to_bank", "cancelled"),
         "in_progress": ("paid", "failed", "expired", "abandoned", "to_review"),
         "sent_to_bank": ("paid", "failed"),
+        # 097 (P-82, opció C): una confirmació vàlida que arriba tard paga l'intent si el càrrec
+        # és pendent, o el deixa «a revisar» si ja era pagat (RN-M05b-08); d'«a revisar» se'n surt
+        # amb la decisió del tresorer (`reviews.close`).
+        "failed": ("paid", "to_review"),
+        "expired": ("paid", "to_review"),
+        "abandoned": ("paid", "to_review"),
+        "to_review": ("paid", "failed"),
     }.items()
     for new in targets
 )
@@ -377,16 +384,25 @@ class ReceiptCancellation(AppendOnlyModel):
 
 
 class ReviewClosure(AppendOnlyModel):
-    """Tancament d'un intent «a revisar» pel tresorer (T-M05b-16b; P-82, opció per defecte). No
-    canvia l'intent ni mou diners: una fila nova diu qui l'ha tancat i quan. Només INSERT, també a
-    la base de dades (migració 0022); un sol tancament per intent. La nota (text lliure) no és
-    aquí: és al registre d'activitat, que l'esborrat RGPD sí que pot anonimitzar."""
+    """Decisió del tresorer sobre un intent «a revisar» (T-M05b-16b i 16c; 097, P-82 opció C): qui,
+    quan i el resultat («pagat» o «fallit»), amb `reviews.close`. Només INSERT, també a la base de
+    dades (migració 0022). Un intent en pot tenir més d'una: si torna «a revisar» (una
+    confirmació tardana), es torna a decidir. La nota (text lliure) no és aquí: és al registre
+    d'activitat, que l'esborrat RGPD sí que pot anonimitzar."""
 
-    attempt = models.OneToOneField(
+    OUTCOMES = (AttemptStatus.PAID, AttemptStatus.FAILED)
+
+    attempt = models.ForeignKey(
         PaymentAttempt,
         on_delete=models.PROTECT,
-        related_name="review_closure",
+        related_name="review_closures",
         verbose_name=_("intent"),
+    )
+    outcome = models.CharField(
+        _("decisió"),
+        max_length=12,
+        choices=[(o.value, o.label) for o in OUTCOMES],
+        default=AttemptStatus.FAILED,
     )
     closed_by = models.ForeignKey(
         "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("tancat per")

@@ -116,6 +116,9 @@ def transition(attempt: PaymentAttempt, new_status: str, *, by, reason: str = ""
     locked = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
     change = {"field": "status", "old": locked.status, "new": new_status, "reason": reason}
     locked.check_transition(locked.status, new_status)
+    if locked.status == PaymentAttempt.Status.TO_REVIEW and not reason.strip():
+        # 097: d'«a revisar» se'n surt amb la decisió del tresorer i el seu motiu.
+        raise ValidationError(_("Per treure un intent d'«a revisar» cal el motiu del tresorer."))
     fields = ["status", "updated_at"]
     if new_status == PaymentAttempt.Status.TO_REVIEW:
         if not reason.strip():
