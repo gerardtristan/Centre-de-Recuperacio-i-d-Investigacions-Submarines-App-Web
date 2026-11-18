@@ -123,6 +123,7 @@ class TestProposal:
         reconciliation.refresh()
         assert proposal(one)[1] == proposal(two_)[1] == reconciliation.AMBIGUOUS
         settlements.confirm_line(one, first.pk, by=treasurer)  # revisió 3: la tria
+        reconciliation.refresh()  # com la pantalla abans de mostrar-la
         assert proposal(two_) == (State.PROPOSED, "", other)
 
     def test_review_4_the_named_settlement_wins_over_an_unnamed_line(self, two, treasurer):

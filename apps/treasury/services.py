@@ -49,7 +49,7 @@ from apps.core.permissions import has_perm
 from apps.members import services as members
 
 from .balances import balance
-from .models import CashCount, CostCentre, Movement, TreasuryAccount
+from .models import CashCount, CostCentre, Movement, ProviderSettlement, TreasuryAccount
 from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04-10)
 
 INCOME_RECORDED = "treasury.income_recorded"
@@ -548,7 +548,9 @@ def reverse(
     if origin == MANUAL:
         _ensure_manually_reversible(movement)
     elif movement.kind != Movement.Kind.INCOME and not (
-        movement.kind == Movement.Kind.TRANSFER and movement.settlement_id  # T-M04-13b
+        movement.kind == Movement.Kind.TRANSFER  # T-M04-13b: el traspàs d'una liquidació
+        and movement.settlement_id
+        and movement.settlement.source != ProviderSettlement.Source.REMITTANCE
     ):
         raise NotReversible(
             _("Desfer una conciliació només anul·la ingressos i traspassos de liquidació.")

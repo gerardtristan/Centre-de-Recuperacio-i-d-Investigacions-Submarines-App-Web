@@ -56,6 +56,7 @@
                     {% csrf_token %}
                     <button class="boto boto-petit" type="submit">{% translate "Confirma" %}</button>
                   </form>
+                {% elif row.reconciliation.settlement.source == "remittance" %}—
                 {% elif row.reconciliation %}
                   <details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Desfés…" %}</summary>
@@ -64,12 +65,13 @@
                       <div class="camp">
                         <label for="desfes-{{ row.line.pk }}">{% translate "Motiu per desfer-la" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="desfes-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% if row.reconciliation.settlement_id and row.reconciliation.settlement.source != "remittance" %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
+                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
                     </form>
                   </details>
                 {% elif row.state.status == "pending" %}
+                  {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
                   {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
                   <details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
