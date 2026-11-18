@@ -877,5 +877,15 @@ opcions:
       Un error de registre no és una devolució: el soci continua devent la quota. La 045 ja resol el mateix cas
       per a les transferències i es pot reutilitzar sense cap regla nova de diners.
     data: 2026-11-17
+  P-334:
+    opcions:
+      A: La quota no es toca; queda al registre i el pas s'aplica a la renovació següent.
+      B: El tipus canvia igualment el dia de la renovació, sense retornar la diferència.
+      C: El tipus canvia el dia de la renovació i es retorna la diferència amb una devolució (05b).
+    recomanada: B
+    perque: >-
+      El pas no queda encallat un any i fa el que el correu d'avís ha promès (passar a simpatitzant en
+      aquesta renovació); el tresorer rep un correu i decideix a mà. C depèn de la 05b.
+    data: 2026-11-18
 
 noves:

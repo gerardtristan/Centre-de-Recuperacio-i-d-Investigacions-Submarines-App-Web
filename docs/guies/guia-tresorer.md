@@ -43,7 +43,7 @@ El teu llistat mostra només el que cal per cobrar: número, nom, tipus, estat i
 ## 5. Sol·licituds de socis
 Pots consultar i resoldre les altes i els canvis de tipus, igual que la secretaria (vegeu la guia de la secretaria, apartats 2 i 5). Ningú no pot resoldre una sol·licitud seva.
 
-**Pas a simpatitzant: atenció.** Mentre no estigui feta la part que aplica el canvi en renovar (T-M01-43), la renovació d'un soci amb el pas acceptat es generaria a preu de ple dret. Per això aquesta funció no entrarà en producció sense la T-M01-43.
+**Pas a simpatitzant.** La renovació d'un soci amb el pas acceptat es genera a preu de simpatitzant (T-M01-43). Si el pas s'accepta amb la quota de renovació ja generada, sense pagar ni enviar al banc, s'anul·la i se'n genera una de simpatitzant. Si ja estava pagada abans d'hora o en curs de pagament, no es toca (es cobra a preu de ple dret), el tipus canvia igualment el dia de la renovació i reps un correu; ho decideix la P-334. Una quota ja vençuda no es toca mai: el pas s'aplica a la renovació següent. Si la quota de renovació lligada al pas s'anul·la i no se'n fa cap altra, reps un correu el dia de la renovació.
 
 ## 6. Dades bloquejades
 Quan una persona demana l'esborrat de les seves dades, les quotes i els pagaments no s'esborren. El nom i el document que hi surten queden **bloquejats i xifrats** durant 6 anys des del final de l'any de l'últim cobrament; després es destrueixen (decisió 085).
