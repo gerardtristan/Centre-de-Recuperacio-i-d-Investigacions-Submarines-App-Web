@@ -41,3 +41,5 @@ Dues preguntes noves al propietari: [P-300](../decisions/pendents.md) (punts de 
 ## Altres condicions del pas al nivell 2
 
 Fora de la porta 3, [P-M05b-I](../planning.md#M05b-5-processos) demana el 05b acabat i provat amb el proveïdor en mode de proves, l'autorització de la junta, les claus de producció i `PAYMENTS_LIVE_CHARGES_ALLOWED`. L'interruptor existeix i és fals per defecte (`config/settings/base.py`; comprovacions a `apps/payments/checks.py` i proves a `apps/payments/tests/test_guards.py` i `test_configuration.py`). Tota la resta depèn del proveïdor i del banc reals (092, punt 7) i de la junta.
+
+A més, el propietari ha demanat (18/11/2026) dues tasques abans del nivell 2, per tancar els límits coneguts de la #241: [T-M05b-30](M05b.md) (origen propi del pagament que decideix el tresorer) i [T-M05b-31](M05b.md) (referència de la transacció del proveïdor als pagaments, perquè la conciliació els trobi).
