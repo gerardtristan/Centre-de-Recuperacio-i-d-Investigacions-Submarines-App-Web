@@ -6,24 +6,37 @@ de format vàlid amb un compte de zeros."""
 import importlib
 
 import pytest
+from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.urls import reverse
 
+from apps.accounts.models import FailedLogin
+from apps.accounts.sessions import AUTH_AT_SESSION_KEY
+from apps.accounts.tests.test_reauth import NOT_IT
 from apps.core import business_settings
-from apps.core.models import AuditEntry, Role, Setting, SettingVersion
+from apps.core.models import (
+    AuditEntry,
+    PermissionMatrixVersion,
+    Role,
+    RolePermission,
+    Setting,
+    SettingVersion,
+)
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_guest_links import admin_client
 from apps.payments import mandates
 from apps.payments.models import MandateBankAccount, SepaMandate
 from apps.payments.tests.test_mandate_signing import (  # noqa: F401 (fixtures)
     account,
+    age_session,
     browser,
     member,
     sign,
     signing_on,
     text,
 )
+from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
 
@@ -66,7 +79,7 @@ def test_si_el_tresorer_treu_un_pais_ja_no_s_admet(browser, text, treasurer):  #
 
 
 def test_el_servei_tambe_ho_comprova(member, account, text):  # noqa: F811
-    with pytest.raises(ValidationError):
+    with pytest.raises(mandates.CountryNotAllowed):
         mandates.create_mandate(
             member,
             iban=TURKISH,
@@ -115,12 +128,41 @@ def test_la_constant_i_la_migracio_tenen_la_mateixa_llista():
     assert set(migration.SEPA.split(", ")) == mandates.SEPA_COUNTRIES
 
 
-def test_un_codi_que_no_es_de_la_zona_sepa_es_rebutja_i_es_diu_quin(treasurer):
-    for value, named in (("ES, PO", "PO"), ("XX es", "XX"), ("FR, TR, US", "TR, US")):
+def test_un_codi_que_no_es_de_cap_pais_amb_iban_es_rebutja_i_es_diu_quin(treasurer):
+    for value, named in (("ES, PO", "PO"), ("XX es", "XX"), ("FR, US, QQ", "QQ, US")):
         with pytest.raises(ValidationError) as refused:
             business_settings.change(KEY, value, treasurer)
-        assert named in " ".join(refused.value.messages)
+        message = " ".join(refused.value.messages)
+        assert named in message and "no és cap país amb IBAN" in message
     assert not SettingVersion.objects.exists()
+    # Un país amb IBAN fora de la llista inicial (p. ex. RS, si el banc l'admet) sí que es desa.
+    business_settings.change(KEY, "ES, RS", treasurer)
+    assert mandates.iban_countries() == {"ES", "RS"}
+
+
+def test_un_pais_no_admes_no_gasta_la_reautenticacio(browser, text, account):  # noqa: F811
+    """El país es mira abans de demanar la contrasenya: el soci no l'escriu per res, i ni una
+    contrasenya equivocada no compta com a intent fallit (revisió de la #230)."""
+    age_session(browser, 16)
+    before = browser.session[AUTH_AT_SESSION_KEY]
+    page = sign(browser, iban=TURKISH, password=NOT_IT).content.decode()
+    assert REFUSED in page and not SepaMandate.objects.exists()
+    assert not FailedLogin.objects.filter(account=account).exists()
+    page = sign(browser, iban=TURKISH, password=PASSWORD).content.decode()
+    assert REFUSED in page and browser.session[AUTH_AT_SESSION_KEY] == before
+
+
+def test_desfer_la_0024_no_esborra_l_historial_de_la_matriu():
+    migration = importlib.import_module("apps.payments.migrations.0024_paisos_iban")
+    versions = PermissionMatrixVersion.objects.count()
+    migration.unload(django_apps, None)
+    assert not RolePermission.objects.filter(permission_code=migration.CODE).exists()
+    removed = PermissionMatrixVersion.objects.order_by("-number").first()
+    assert removed.diff == [
+        {"role": "treasurer", "permission": migration.CODE, "before": "all", "after": None}
+    ]
+    migration.load(django_apps, None)
+    assert PermissionMatrixVersion.objects.count() == versions + 2  # cap no s'esborra
 
 
 @pytest.mark.parametrize("value", ["", "E", "ESP", "E1", "ES, ES", "ES FR fr"])

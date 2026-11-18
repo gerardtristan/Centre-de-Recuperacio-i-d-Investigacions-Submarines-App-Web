@@ -53,6 +53,14 @@ SEPA_COUNTRIES = frozenset(
     "MT NL NO PL PT RO SE SI SK SM VA".split()
 )
 
+# Països amb IBAN del registre ISO 13616 (SWIFT) [A verificar: registre vigent]: la llista
+# admesa en pot tenir qualsevol (p. ex. RS, si el banc l'admet), però no un codi que no existeix.
+IBAN_REGISTRY = frozenset(
+    "AD AE AL AT AZ BA BE BG BH BI BR BY CH CR CY CZ DE DJ DK DO EE EG ES FI FK FO FR GB GE GI "
+    "GL GR GT HN HR HU IE IL IQ IS IT JO KW KZ LB LC LI LT LU LV LY MC MD ME MK MN MR MT MU NI "
+    "NL NO OM PK PL PS PT QA RO RS RU SA SC SD SE SI SK SM SO ST SV TL TN TR UA VA VG XK YE".split()
+)
+
 
 class CountryNotAllowed(ValidationError):
     """L'IBAN és vàlid, però el país no és a la llista admesa (P-123)."""
@@ -71,7 +79,7 @@ def validate_iban(value: str) -> str:
 
 def check_countries(value: str) -> None:
     """La comprovació de l'ajust, que `apps.PaymentsConfig.ready` registra a la peça d'ajustos:
-    almenys un país, codis de dues lletres de la zona SEPA i sense repetir."""
+    almenys un país, codis de dues lletres de països amb IBAN i sense repetir."""
     found = business_settings.split_list(value)
     if not found:
         raise ValidationError(gettext("Hi ha d'haver almenys un país."))
@@ -82,9 +90,9 @@ def check_countries(value: str) -> None:
                 "comes, espais o punts i comes."
             )
         )
-    if unknown := sorted(set(found) - SEPA_COUNTRIES):
+    if unknown := sorted(set(found) - IBAN_REGISTRY):
         raise ValidationError(
-            gettext("Aquests codis no són de cap país de la zona SEPA: %(codes)s.")
+            gettext("Aquest codi no és cap país amb IBAN: %(codes)s.")
             % {"codes": ", ".join(unknown)}
         )
     if len(set(found)) != len(found):
@@ -99,17 +107,22 @@ def iban_countries() -> set[str]:
         return set(SEPA_COUNTRIES)
 
 
-def validate_mandate_iban(value: str) -> str:
-    """`validate_iban` i, a més, el país admès (P-M05a-B, pas 2; estat «País no admès» del
-    wireframe), amb una sola lectura de l'ajust. La crida només `create_mandate`: si el país no
-    hi és, `CountryNotAllowed`, que la vista posa al camp. L'error tampoc no porta el valor. Les
-    remeses no ho tornen a mirar: un mandat signat continua valent encara que el país es tregui
-    de la llista."""
-    iban = validate_iban(value)
+def check_country(iban: str) -> None:
+    """`CountryNotAllowed` si el país de l'IBAN (ja validat) no és a la llista admesa (P-123).
+    L'error no porta el valor."""
     if iban[:2] not in iban_countries():
         raise CountryNotAllowed(
             gettext("El banc del club no admet IBAN d'aquest país per domiciliar.")
         )
+
+
+def validate_mandate_iban(value: str) -> str:
+    """`validate_iban` i, a més, el país admès (P-M05a-B, pas 2; estat «País no admès» del
+    wireframe). La crida `create_mandate`; la vista ja ho mira abans de la reautenticació, i
+    aquí es torna a mirar per si la llista ha canviat entremig. Les remeses no ho tornen a
+    mirar: un mandat signat continua valent encara que el país es tregui de la llista."""
+    iban = validate_iban(value)
+    check_country(iban)
     return iban
 
 

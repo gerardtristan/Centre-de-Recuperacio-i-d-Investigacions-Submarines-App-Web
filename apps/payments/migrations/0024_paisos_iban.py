@@ -17,6 +17,7 @@ SEPA = (
     "LT, LU, LV, MC, MD, ME, MK, MT, NL, NO, PL, PT, RO, SE, SI, SK, SM, VA"
 )
 NOTE = "Ajustos de pagaments: el Tresorer edita els països de l'IBAN admesos al mandat (P-123)."
+UNDONE = "Es desfà la payments/0024: el Tresorer deixa d'editar els països de l'IBAN (P-123)."
 
 
 def load(apps, schema_editor):
@@ -39,9 +40,20 @@ def load(apps, schema_editor):
 
 
 def unload(apps, schema_editor):
-    """La cel·la i la versió de la matriu se'n van; l'ajust es queda, com a la 0021."""
-    apps.get_model("core", "RolePermission").objects.filter(permission_code=CODE).delete()
-    apps.get_model("core", "PermissionMatrixVersion").objects.filter(note=NOTE).delete()
+    """La cel·la se'n va amb una versió nova de la matriu: l'historial només creix (060).
+    L'ajust es queda, com a la 0021."""
+    RolePermission = apps.get_model("core", "RolePermission")
+    PermissionMatrixVersion = apps.get_model("core", "PermissionMatrixVersion")
+    cells = list(RolePermission.objects.filter(permission_code=CODE).select_related("role"))
+    if not cells:
+        return
+    diff = [
+        {"role": cell.role.code, "permission": CODE, "before": cell.scope, "after": None}
+        for cell in cells
+    ]
+    RolePermission.objects.filter(pk__in=[cell.pk for cell in cells]).delete()
+    last = PermissionMatrixVersion.objects.aggregate(n=Max("number"))["n"] or 0
+    PermissionMatrixVersion.objects.create(number=last + 1, note=UNDONE, diff=diff)
 
 
 class Migration(migrations.Migration):

@@ -255,6 +255,7 @@ UNCHECKED = {
     returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",
     mandates.validate_mandate_iban: "validació (la crida `create_mandate`)",
+    mandates.check_country: "validació (la vista del soci i `create_mandate`)",
     mandates.check_countries: "validació: la crida `business_settings.change`, amb el seu permís",
     mandates.iban_countries: "consulta (P-123)",
     mandates.next_reference: "càlcul",

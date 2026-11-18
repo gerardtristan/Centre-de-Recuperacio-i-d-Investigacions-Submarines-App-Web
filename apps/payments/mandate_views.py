@@ -94,7 +94,13 @@ def mandate_view(request):
             initial={"holder_name": f"{person.first_name} {person.last_name}".strip()},
         )
         if request.method == "POST" and form.is_valid():
-            error = _reauth_error(request, form, minutes)
+            try:  # el país, abans de demanar la contrasenya (P-123): no la gasta per res
+                mandates.check_country(form.cleaned_data["iban"])
+            except mandates.CountryNotAllowed as refused:
+                form.add_error("iban", refused)
+                error = refused
+            else:
+                error = _reauth_error(request, form, minutes)
             if error is None:
                 try:
                     with transaction.atomic():
