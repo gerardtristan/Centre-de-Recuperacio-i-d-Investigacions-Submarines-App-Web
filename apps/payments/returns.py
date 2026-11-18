@@ -4,8 +4,11 @@ RN-M05b-14, 15 i 18; CA-M05b-18 a 20).
 - `register_return`: el tresorer (B4) registra el retorn d'un rebut cobrat amb el codi del banc.
   Tot o res: càrrec «retornat» i pagament anul·lat (00), la sortida i la comissió de retorn
   (04), l'intent «cancel·lat» i el rebut anul·lat amb una nota (P-290), l'avís a qui edita les
-  quotes (01) i, si el compte és tancat o no hi ha mandat, el mandat «bloquejat». Torna la
-  proposta segons el codi (RN-M05b-15; codis desconeguts, P-291). Si no queda cap reintent
+  quotes (01) i, si el codi és a `payments.return_codes_block_mandate`, el mandat «bloquejat».
+  Torna la proposta segons el codi (RN-M05b-15): reintent amb els de
+  `payments.return_codes_retry` i alternativa amb la resta, també els desconeguts. Les dues
+  llistes són ajustos que edita el tresorer (P-291, 095; provisional fins que ho confirmi el
+  banc) i es llegeixen en registrar el retorn. Si no queda cap reintent
   possible (intents esgotats o sense mandat actiu), l'alternativa ja s'aplica i s'envia en
   registrar-lo, amb el tresorer com a autor, i torna `SENT` (CA-M05b-19, 20 i 32; P-292).
 - `confirm`: el tresorer confirma o canvia la proposta (P-M05b-F, passos 4 i 5; P-292). El
@@ -28,7 +31,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge
+from apps.core.models import Charge, Setting
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members import services as members
@@ -42,10 +45,12 @@ MAX_ATTEMPTS = "payments.max_direct_debit_attempts"  # VC-16, RN-M05b-15
 ALTERNATIVE_TEMPLATE = "alternativa-pagament"
 
 RETRY, ALTERNATIVE, SENT = "retry", "alternative", "alternative_sent"
-# RN-M05b-15: els codis d'exemple de la regla. Quins arriben de veritat, [A verificar: banc].
-INSUFFICIENT_FUNDS = frozenset({"AM04"})
-NO_MANDATE = frozenset({"AC04", "MD01"})
+# P-291 (095): quins codis proposen un reintent i quins bloquegen el mandat són ajustos; d'entrada,
+# els exemples de RN-M05b-15. Un codi que no és a cap llista va a l'alternativa.
+RETRY_CODES = "payments.return_codes_retry"
+BLOCK_CODES = "payments.return_codes_block_mandate"
 CODE = re.compile(r"[A-Z0-9]{4}")
+SEPARATORS = re.compile(r"[\s,;]+")
 LABELS = {
     "AM04": "fons insuficients",
     "MS02": "refús del deutor",
@@ -77,6 +82,53 @@ def max_attempts() -> int:
     return business_settings.get(MAX_ATTEMPTS)
 
 
+RETURN_CODE_LISTS = (RETRY_CODES, BLOCK_CODES)
+
+
+def _split(value) -> list[str]:
+    return [code for code in SEPARATORS.split(value.upper()) if code]
+
+
+def normalise_codes(value):
+    """Forma canònica: majúscules, ordenats i separats per «, » (P-291). Un valor que no és un
+    text el rebutja la peça d'ajustos."""
+    return ", ".join(sorted(_split(value))) if isinstance(value, str) else value
+
+
+def codes(key: str) -> set[str]:
+    """Els codis d'una llista, amb el valor vigent avui (P-291). Sense l'ajust, cap codi."""
+    try:
+        return set(_split(business_settings.get(key)))
+    except Setting.DoesNotExist:
+        return set()
+
+
+def check_codes(key: str):
+    """La comprovació d'una llista (P-291), que `apps.PaymentsConfig.ready` registra a la peça
+    d'ajustos: codis de quatre lletres o xifres, sense repetir, i cap que ja sigui a una altra
+    de les llistes de `RETURN_CODE_LISTS`."""
+
+    def check(value: str) -> None:
+        found = _split(value)
+        if not all(CODE.fullmatch(code) for code in found):
+            raise ValidationError(
+                _(
+                    "Cada codi té quatre lletres o xifres. Separa'ls amb comes, espais o "
+                    "punts i comes."
+                )
+            )
+        if len(set(found)) != len(found):
+            raise ValidationError(_("La llista no pot tenir codis repetits."))
+        others = set().union(*(codes(other) for other in RETURN_CODE_LISTS if other != key))
+        if both := sorted(set(found) & others):
+            raise ValidationError(
+                _("Un codi només pot tenir una acció: %(codes)s ja és a una altra llista.")
+                % {"codes": ", ".join(both)}
+            )
+
+    return check
+
+
 def can_retry(item: DirectDebitItem) -> bool:
     active = SepaMandate.objects.filter(
         member_id=item.mandate.member_id, status=SepaMandate.Status.ACTIVE
@@ -91,6 +143,7 @@ def register_return(
     """P-M05b-F, passos 1 a 3. Torna `RETRY` o `ALTERNATIVE`; el tresorer la confirma amb
     `confirm`. Sense B4, «no trobat», abans de mirar res (T-M05b-25)."""
     _ensure_b4(by)
+    retry_codes, block_codes = codes(RETRY_CODES), codes(BLOCK_CODES)  # un sol cop (P-291)
     code = (reason_code or "").strip().upper()
     if not CODE.fullmatch(code):
         raise ValidationError(_("El codi de motiu del banc té quatre lletres o xifres."))
@@ -116,7 +169,7 @@ def register_return(
     item.return_reason_code, item.returned_on = code, timezone.localdate()
     item.save(update_fields=["status", "return_reason_code", "returned_on"])
     mandate = item.mandate
-    if code in NO_MANDATE and mandate.status == SepaMandate.Status.ACTIVE:
+    if code in block_codes and mandate.status == SepaMandate.Status.ACTIVE:
         mandate.status = SepaMandate.Status.BLOCKED
         mandate.save(update_fields=["status"])
         audit.record(
@@ -132,7 +185,7 @@ def register_return(
     fee = getattr(charge, "annual_fee", None)
     if fee is not None:
         members.on_fee_returned(fee.pk)  # RN-M05b-18: avís; l'impagat és manual (040)
-    proposal = RETRY if code in INSUFFICIENT_FUNDS and can_retry(item) else ALTERNATIVE
+    proposal = RETRY if code in retry_codes and can_retry(item) else ALTERNATIVE
     audit.record(
         "payments.return.registered",
         actor=by,

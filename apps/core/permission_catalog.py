@@ -599,6 +599,21 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
+    # P-291 (095): codis de retorn del banc i l'acció de cada un. Les cel·les, a `payments/0021`.
+    _perm(
+        "settings.edit.payments.return_codes_retry",
+        "AJ5b-8",
+        _("Codis de retorn que proposen un reintent"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
+    _perm(
+        "settings.edit.payments.return_codes_block_mandate",
+        "AJ5b-9",
+        _("Codis de retorn que bloquegen el mandat"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

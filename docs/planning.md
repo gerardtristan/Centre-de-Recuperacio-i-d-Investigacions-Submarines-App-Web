@@ -3332,6 +3332,14 @@ Aprovada el 28/10/2026. **No canvia cap valor inicial ni cap regla** del M05b: d
 |---|---|
 | RN-M05b-31 | La xarxa de seguretat torna a provar cada dia una ordre en curs que no pot consultar o tancar; quan l'intent fa més hores que el valor vigent de `payments.safety_net_give_up_hours`, va «a revisar» amb el motiu. Abans, es queda en curs |
 
+**Ampliació de la [095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md) (P-291, 18/11/2026; provisional fins que el banc confirmi quins codis arriben).** Els codis de RN-M05b-15 passen a dues llistes editables a «Ajustos de pagaments», amb els exemples de la regla com a valor inicial. Cap comportament no canvia. Per als codis de retorn, aquest bloc val per sobre de RN-M05b-15 i de l'[apèndix](#valors-configurables).
+
+| VC | Clau | Valor inicial | Rang | Qui el canvia | Data d'entrada en vigor |
+|---|---|---|---|---|---|
+| VC-16 (codis de retorn) | `payments.return_codes_retry`: codis que proposen un reintent; `payments.return_codes_block_mandate`: codis que bloquegen el mandat | AM04; AC04, MD01 | Codis de quatre majúscules o xifres, sense repetir; cap codi a totes dues llistes | Tresorer | — (no afecta diners per si sol; val per als retorns registrats a partir del canvi) |
+
+Un codi que no és a cap llista (refús del deutor i desconeguts) proposa l'alternativa de pagament, sense reintent.
+
 - **CA-M05b-33** Donat un intent en curs de fa 30 hores que la xarxa de seguretat no pot consultar al proveïdor, quan l'ajust val 48, llavors l'intent es queda en curs; quan val 24, va «a revisar». L'administrador posa l'ajust a 48 i queda al registre amb el valor anterior; 23 i 169 es rebutgen; qui no té l'edició rep «no trobat».
 
 | ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
