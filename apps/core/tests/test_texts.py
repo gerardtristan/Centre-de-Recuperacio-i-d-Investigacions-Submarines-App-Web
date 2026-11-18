@@ -361,6 +361,22 @@ def test_the_area_migration_gives_the_administrator_edit_even_without_a_previous
         RolePermission.objects.filter(permission_code=CODE).values_list("role__code", "scope")
     )
     assert cells == {R.ADMINISTRATOR: "all", R.SECRETARY: "all"}
+    # Una sola entrada per cel·la a la versió, amb l'abast inicial i el final reals.
+    diff = PermissionMatrixVersion.objects.latest("number").diff
+    pairs = [(entry["role"], entry["permission"]) for entry in diff]
+    assert len(pairs) == len(set(pairs))
+    admin = next(e for e in diff if (e["role"], e["permission"]) == (R.ADMINISTRATOR, CODE))
+    assert (admin["before"], admin["after"]) == (None, "all")
+
+
+def test_the_area_migration_only_renames_keys_with_the_section_prefix():
+    migration, django_apps = _area_migration()
+    migration.unload(django_apps, None)
+    Setting.objects.create(key="altra.clau", module="texts", value_type="text", initial_value="")
+    migration.load(django_apps, None)
+    other = Setting.objects.get(key="altra.clau")
+    assert other.module == "texts"
+    assert Setting.objects.filter(key=LEAVE, module=AREA).exists()
 
 
 # --- Àrees de textos (T-M00-08d; 097, CA-M00-08.4; P-380) -------------------------------------
@@ -392,6 +408,17 @@ def test_the_administrator_and_the_secretary_edit_the_members_area(make_admin, r
     response = client.post(url(LEAVE), {"value": EDITED, "note": ""})
     assert response.status_code == 302
     assert business_settings.get(LEAVE) == EDITED.rstrip("\n")
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="P-391: CA-M00-08.4 demana «accés denegat»; construït «no trobat» per RN-RP-22",
+)
+def test_without_the_area_every_text_screen_is_access_denied(make_admin):
+    client = admin_client(make_admin(R.TREASURER))
+    assert client.get(reverse("administration:settings_section", args=[AREA])).status_code == 403
+    assert client.get(url(LEAVE)).status_code == 403
+    assert client.post(url(LEAVE), {"value": EDITED, "note": ""}).status_code == 403
 
 
 def test_without_the_area_every_text_screen_is_not_found(make_admin):

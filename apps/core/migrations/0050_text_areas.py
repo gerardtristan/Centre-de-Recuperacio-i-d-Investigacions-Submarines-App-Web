@@ -23,15 +23,21 @@ def _move(apps, old, new, old_code, new_code, admin_scope, note):
     Setting = apps.get_model("core", "Setting")
     Role = apps.get_model("core", "Role")
     RolePermission = apps.get_model("core", "RolePermission")
-    Setting.objects.filter(module=old).update(
+    # Només les claus amb el prefix de l'apartat; qualsevol altra es deixa com és.
+    Setting.objects.filter(module=old, key__startswith=f"{old}.").update(
         key=Concat(Value(new), Substr("key", len(old) + 1)), module=new
     )
-    diff = []
+    changes = {}  # (rol, permís) -> [abast inicial, abast final]: una sola entrada per cel·la
+
+    def record(role, permission, before, after):
+        changes.setdefault((role, permission), [before, after])[1] = after
+
     for cell in RolePermission.objects.filter(permission_code=old_code).select_related("role"):
         # Es reanomena la cel·la; si la nova ja hi era, hi passa l'abast de la vigent i l'antiga
         # s'esborra (la restricció `rolepermission_unique` no es trenca mai).
         target = RolePermission.objects.filter(role=cell.role, permission_code=new_code).first()
-        before = target.scope if target else None
+        record(cell.role.code, old_code, cell.scope, None)
+        record(cell.role.code, new_code, target.scope if target else None, cell.scope)
         if target is None:
             cell.permission_code = new_code
             cell.save(update_fields=["permission_code"])
@@ -39,23 +45,18 @@ def _move(apps, old, new, old_code, new_code, admin_scope, note):
             target.scope = cell.scope
             target.save(update_fields=["scope"])
             cell.delete()
-        role = cell.role.code
-        diff.append({"role": role, "permission": old_code, "before": cell.scope, "after": None})
-        diff.append({"role": role, "permission": new_code, "before": before, "after": cell.scope})
     admin = Role.objects.get(code="administrator")
     current = RolePermission.objects.filter(role=admin, permission_code=new_code).first()
     if current is None or current.scope != admin_scope:
         RolePermission.objects.update_or_create(
             role=admin, permission_code=new_code, defaults={"scope": admin_scope}
         )
-        diff.append(
-            {
-                "role": "administrator",
-                "permission": new_code,
-                "before": current.scope if current else None,
-                "after": admin_scope,
-            }
-        )
+        record("administrator", new_code, current.scope if current else None, admin_scope)
+    diff = [
+        {"role": role, "permission": permission, "before": before, "after": after}
+        for (role, permission), (before, after) in changes.items()
+        if before != after
+    ]
     if diff:
         Version = apps.get_model("core", "PermissionMatrixVersion")
         last = Version.objects.aggregate(n=Max("number"))["n"] or 0
