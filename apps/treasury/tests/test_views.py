@@ -11,11 +11,12 @@ from django.urls import reverse
 
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
-from apps.core.models import Department, Role
+from apps.core.models import Department, Role, RolePermission
 from apps.core.tests.conftest import (
     main_of,
     make_admin,  # noqa: F401 (fixture)
 )
+from apps.treasury import reconciliation
 from apps.treasury.balances import balances
 from apps.treasury.models import CostCentre, Movement, StatementLineState, TreasuryAccount
 from apps.treasury.references import check_character
@@ -28,7 +29,7 @@ pytestmark = pytest.mark.django_db
 ACCOUNTS = reverse("administration:treasury_accounts")
 MOVEMENTS = reverse("administration:treasury_movements")
 REVIEW = reverse("administration:treasury_review")
-ROUTES = (ACCOUNTS, MOVEMENTS, REVIEW)  # REVIEW: T10, les mateixes cel·les que T1 (P-190)
+ROUTES = (ACCOUNTS, MOVEMENTS, REVIEW)  # REVIEW: T10, les mateixes cel·les inicials que T1
 R = Role.Code
 MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor", "guest")]
 WITH_T1 = {R.TREASURER, R.ADMINISTRATOR}  # matriu inicial de la 059
@@ -95,6 +96,21 @@ def page(client, url, **params):
 def test_t1_cell_of_each_role(make_admin, role, url):  # noqa: F811
     response = client_for(make_admin(role)).get(url)
     assert response.status_code == (200 if role in WITH_T1 else 404)
+
+
+def test_t10_is_its_own_cell_not_t1(make_admin):  # noqa: F811
+    # P-190 (095): sense la cel·la T10, la llista «a revisar» no es troba encara que hi hagi T1; amb
+    # T10 i sense T1, s'obre.
+    RolePermission.objects.filter(
+        role__code=R.ADMINISTRATOR, permission_code=reconciliation.REVIEW
+    ).delete()
+    admin = client_for(make_admin(R.ADMINISTRATOR))
+    assert admin.get(REVIEW).status_code == 404 and admin.get(ACCOUNTS).status_code == 200
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.SECRETARY), permission_code=reconciliation.REVIEW, scope="all"
+    )
+    secretary = client_for(make_admin(R.SECRETARY))
+    assert secretary.get(REVIEW).status_code == 200 and secretary.get(ACCOUNTS).status_code == 404
 
 
 @pytest.mark.parametrize("url", ROUTES)

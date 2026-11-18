@@ -10,7 +10,7 @@
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
   <p class="text-2">{% translate "Les línies dels extractes importats. La plataforma proposa; només el tresorer confirma. Confirmar posa els càrrecs en «pagat» i apunta l'ingrés al banc; desfer-ho torna els càrrecs a «pendent» i compensa l'ingrés, amb el motiu." %}</p>
-  <p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>
+  {% if can_review %}<p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>{% endif %}
 
   {% if rows %}
     <table class="taula">
@@ -22,7 +22,7 @@
           <th scope="col" class="cel-import">{% translate "Import" %}</th>
           <th scope="col">{% translate "Estat" %}</th>
           <th scope="col">{% translate "Càrrecs" %}</th>
-          {% if can_reconcile %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+          {% if can_reconcile or can_exclude %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -47,9 +47,27 @@
                 </ul>
               {% else %}—{% endif %}
             </td>
-            {% if can_reconcile %}
+            {% if can_reconcile or can_exclude %}
               <td data-etiqueta="{% translate 'Acció' %}">
-                {% if row.state.status == "proposed" and row.state.proposed_settlement %}
+                {# T4: confirmar, desfer, triar i casar a mà; T8: excloure (P-190, 095). #}
+                {% if row.state.status == "pending" %}
+                  {% if can_reconcile and row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
+                  {% if can_reconcile and row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
+                  {% if can_exclude %}<details class="altes-rebuig">
+                    <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
+                    <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="des_de" value="conciliacio">
+                      <div class="camp">
+                        <label for="motiu-{{ row.line.pk }}">{% translate "Motiu de l'exclusió" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
+                        <textarea id="motiu-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
+                        <p class="ajuda">{% translate "Queda a la línia i al registre d'activitat. No s'esborra res." %}</p>
+                      </div>
+                      <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
+                    </form>
+                  </details>{% endif %}
+                {% elif not can_reconcile %}—
+                {% elif row.state.status == "proposed" and row.state.proposed_settlement %}
                   <a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i confirma…" %}</a>
                 {% elif row.state.status == "proposed" %}
                   <form method="post" action="{% url 'administration:treasury_confirm_line' row.line.pk %}">
@@ -68,22 +86,6 @@
                         <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
-                    </form>
-                  </details>
-                {% elif row.state.status == "pending" %}
-                  {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
-                  {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
-                  <details class="altes-rebuig">
-                    <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
-                    <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="des_de" value="conciliacio">
-                      <div class="camp">
-                        <label for="motiu-{{ row.line.pk }}">{% translate "Motiu de l'exclusió" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
-                        <textarea id="motiu-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% translate "Queda a la línia i al registre d'activitat. No s'esborra res." %}</p>
-                      </div>
-                      <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                     </form>
                   </details>
                 {% else %}—{% endif %}

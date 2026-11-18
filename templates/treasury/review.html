@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-14, C6: línies de l'extracte «a revisar» amb el motiu (CA-T13.1) i «Exclou…» amb motiu obligatori (CA-T12.1). Veure-la: T10; excloure i «Casa a mà» (T-M04-12e): T8 = T4 (P-190). Amagar el formulari no és cap control: la vista i el servei tornen a comprovar el permís. Sense el concepte de la línia (pot portar noms de fora del club; només a la conciliació, M04-4). T-M04-14b (P-191, opció per defecte): també les liquidacions «a revisar» (CA-T11.2) amb la referència i el problema, sense cap nom, i l'enllaç a «Liquidacions»; els intents del 05b es revisen a la seva llista (enllaç només amb B6). Des d'aquí no es tanca ni es mou res. #}
+{# T-M04-14, C6: línies de l'extracte «a revisar» amb el motiu (CA-T13.1) i «Exclou…» amb motiu obligatori (CA-T12.1). Veure-la: T10; excloure: T8; «Casa a mà» (T-M04-12e): T4 (P-190, 095). Amagar el formulari no és cap control: la vista i el servei tornen a comprovar el permís. Sense el concepte de la línia (pot portar noms de fora del club; només a la conciliació, M04-4). T-M04-14b (P-191): també les liquidacions «a revisar» (CA-T11.2) amb la referència i el problema, sense cap nom, i l'enllaç a «Liquidacions»; els intents del 05b es revisen a la seva llista (enllaç només amb B6). Des d'aquí no es tanca ni es mou res. #}
 {% block title %}{% translate "A revisar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -26,7 +26,7 @@
           <th scope="col">{% translate "Data de valor" %}</th>
           <th scope="col">{% translate "Motiu" %}</th>
           <th scope="col" class="cel-import">{% translate "Import" %}</th>
-          {% if can_exclude %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+          {% if can_exclude or can_reconcile %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -35,10 +35,10 @@
             <th scope="row" class="cel-nom"><time datetime="{{ row.line.value_date|date:'Y-m-d' }}">{{ row.line.value_date|date:"d/m/Y" }}</time></th>
             <td data-etiqueta="{% translate 'Motiu' %}"><span class="estat estat-avis"><span aria-hidden="true">!</span> {{ row.state.get_review_reason_display }}</span></td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
-            {% if can_exclude %}
+            {% if can_exclude or can_reconcile %}
               <td data-etiqueta="{% translate 'Acció' %}">
-                {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
-                <details class="altes-rebuig">
+                {% if can_reconcile and row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
+                {% if can_exclude %}<details class="altes-rebuig">
                   <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
                   <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">
                     {% csrf_token %}
@@ -49,7 +49,7 @@
                     </div>
                     <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                   </form>
-                </details>
+                </details>{% endif %}
               </td>
             {% endif %}
           </tr>
@@ -87,5 +87,5 @@
   {% if can_view_payments %}
     <p class="text-2">{% translate "Els pagaments del proveïdor «a revisar» es revisen i es tanquen a la llista de pagaments." %} <a href="{% url 'administration:payments_list' %}">{% translate "Pagaments «a revisar»" %}</a></p>
   {% endif %}
-  <p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>
+  {% if can_view_accounts %}<p class="enllacos"><a href="{% url 'administration:treasury_accounts' %}">{% translate "Torna als comptes i saldos" %}</a></p>{% else %}<p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Torna a l'inici" %}</a></p>{% endif %}
 {% endblock %}

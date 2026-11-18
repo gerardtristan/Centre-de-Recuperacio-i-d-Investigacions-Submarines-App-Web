@@ -5,10 +5,10 @@ import pytest
 from django.urls import reverse
 from procrastinate.contrib.django.models import ProcrastinateJob
 
-from apps.core.models import AuditEntry, Role, RolePermission
+from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.members.tests.test_cards import make_member
-from apps.payments import admin_views, campaigns
+from apps.payments import campaigns
 from apps.payments.models import MandateCampaign
 from apps.payments.tests.test_campaigns import member_with_email, ready  # noqa: F401
 from apps.treasury.tests.test_views import client_for
@@ -18,6 +18,7 @@ URL = reverse("administration:payments_campaign")
 R = Role.Code
 MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor", "guest")]
 WITH_ACCESS = {R.TREASURER, R.ADMINISTRATOR}
+WITH_A4_ONLY = {R.SECRETARY}  # «Cons.» (P-193, 095): veu el recompte, no obre res
 
 
 @pytest.fixture
@@ -48,7 +49,7 @@ def jobs():
 @pytest.mark.parametrize("role", MANAGEMENT_ROLES)
 def test_a4_i_a5_cella_de_cada_rol(make_admin, role):  # noqa: F811
     client = client_for(make_admin(role))
-    expected = 200 if role in WITH_ACCESS else 404
+    expected = 200 if role in WITH_ACCESS | WITH_A4_ONLY else 404
     assert client.get(URL).status_code == expected
     response = client.post(URL, {"action": "open", "name": "Prova"})
     assert response.status_code == (302 if role in WITH_ACCESS else 404)
@@ -56,9 +57,7 @@ def test_a4_i_a5_cella_de_cada_rol(make_admin, role):  # noqa: F811
 
 
 def test_amb_a4_de_consulta_i_sense_a5_nomes_es_veu_el_recompte(make_admin, campaign):  # noqa: F811
-    RolePermission.objects.create(
-        role=Role.objects.get(code=R.SECRETARY), permission_code=admin_views.VIEW, scope="read"
-    )
+    # La Secretaria té «Cons.» a A4 de bon principi (P-193, 095) i no té A5.
     client = client_for(make_admin(R.SECRETARY))
 
     html = page(client)
