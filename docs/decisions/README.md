@@ -101,5 +101,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [094](094-fusio-de-les-risc-alt-i-tres-carrils.md) | Les PR `risc:alt` les fusiona Claude amb el CI verd, la revisió automàtica neta i les normes complertes; només es pregunta per diners reals o producció, esborrar dades o canviar una norma; fins a tres carrils pel camí crític (canvia la D4 de la 089) | Acceptada (16/11/2026) |
 | [095](095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md) | Respostes del propietari a les preguntes irreversibles de la fase 1: blocs A i B definitius (35 preguntes resoltes; set tasques de codi, tres de permisos, una de desplegament), bloc C provisional (falta el banc, PaynoPain, Cluber o la gestoria; el nivell 2 continua bloquejat) i integració amb Verifactu per un servei homologat darrere d'un adaptador al 09 (quin servei, P-293) | 17/11/2026 |
 | [096](096-totp-a-les-devolucions.md) | Una devolució torna a demanar el codi TOTP (P-311) | Acceptada |
+| [097](097-respostes-del-propietari-a-les-preguntes-obertes-del-18-11-2026.md) | Respostes del propietari a les preguntes obertes del 18/11/2026 (P-61, P-82, P-132, P-284, P-301, P-380, P-191, P-192, P-196, P-369, P-306, P-62; T-M00-08) | Acceptada |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).

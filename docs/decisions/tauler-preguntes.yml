@@ -148,31 +148,6 @@ opcions:
       Decidir amb la mesura real evita fer una cua que potser no cal.
     data: 2026-11-12
 
-  P-61:
-    punt: "(2) si el «suspens» d'un termini impagat és la marca manual d'impagat (040) o un bloqueig automàtic"
-    opcions:
-      A: La marca manual d'impagat (040); la plataforma proposa el candidat i el tresorer el confirma amb motiu, com amb la quota (085, J-4).
-      B: Bloqueig automàtic l'endemà del venciment del termini.
-      C: Bloqueig automàtic amb un avís previ al soci uns dies abans.
-      D: Ajornar-ho fins que comenci la T-M01-49.
-    recomanada: A
-    perque: >-
-      Fa servir el mateix mecanisme que ja està aprovat per a la quota anual (040 i 085), així el soci i el
-      tresorer veuen una sola regla i no cal cap estat nou.
-    data: 2026-11-12
-
-  P-82:
-    opcions:
-      A: Deixar la llista com és; el que no hi encaixa ho resol el tresorer a mà, fora de l'intent.
-      B: Afegir només la confirmació tardana (fallit, caducat o abandonat passen a pagat, o a revisar si el càrrec ja era pagat).
-      C: La B i, a més, sortir d'«a revisar» (a pagat o a fallit, amb motiu del tresorer) i «creat → cancel·lat».
-      D: Esperar la resposta del proveïdor (P-45) abans de tocar la llista.
-    recomanada: C
-    perque: >-
-      Sense la B no es pot complir RN-M05b-08: un pagament vàlid que arriba tard no es podria apuntar.
-      Sense sortida d'«a revisar», el tresorer no pot tancar cap cas. Mentrestant val la A.
-    data: 2026-11-13
-
   P-83:
     opcions:
       A: Esperar; el càrrec no es pot tornar a provar fins que l'intent acabi sol (notificació del proveïdor o xarxa de seguretat).
@@ -294,15 +269,6 @@ opcions:
     perque: >-
       Fa la feina amb components que ja existeixen i és accessible. Si la sessió de disseny vol una peça pròpia (B), les plantilles només canvien de classe.
     data: 2026-11-16
-  P-132:
-    opcions:
-      A: Com revocar el mandat; confirmació, contrasenya si la sessió té més de 15 minuts i «pagar cada vegada».
-      B: Confirmació sense contrasenya; «pagar cada vegada».
-      C: Confirmació i contrasenya sempre (com esborrar el compte).
-    recomanada: A
-    perque: >-
-      Fa servir la mateixa regla que les altres accions sobre el mètode de pagament (RN-M05a-12) i el soci no queda mai sense mètode definit.
-    data: 2026-11-16
   P-133:
     opcions:
       A: Motiu obligatori i registre, sense tornar a demanar el codi TOTP.
@@ -415,27 +381,6 @@ opcions:
       base segura fins que hi hagi tasca.
     data: 2026-11-16
 
-  P-191:
-    opcions:
-      A: Només les línies de l'extracte; cada mena de pagament es revisa a la seva pantalla.
-      B: Les línies ara; els intents del 05b s'hi afegeixen quan la T-M05b-16 doni un servei de lectura.
-      C: Una llista única amb línies, intents del 05b, quotes d'A-17 i cobraments de liquidacions.
-    recomanada: B
-    perque: >-
-      Respecta l'ordre dels mòduls (la 04 no depèn del 05b) i compleix CA-T13.1 quan el 05b existeixi. La C
-      duplicaria la pantalla de quotes, que ja té A-17.
-    data: 2026-11-16
-  P-192:
-    opcions:
-      A: Només una línia pendent; una exclusió no es desfà (com s'ha fet).
-      B: També una línia proposada; una exclusió no es desfà.
-      C: Com la B, i el tresorer pot desfer una exclusió amb motiu (torna a pendent, amb registre).
-    recomanada: C
-    perque: >-
-      Una proposta només és un suggeriment i el pas 3 de P-M04-E ja preveu excloure-la. Desfer amb motiu evita
-      que un error del tresorer quedi per sempre; no mou diners. La A és la lectura literal de RN-T15.
-    data: 2026-11-16
-
   P-113:
     opcions:
       A: Com s'ha construït; torna a pendent, es torna a calcular i, amb la mateixa referència, es torna a proposar.
@@ -522,17 +467,6 @@ opcions:
     perque: >-
       No canvia cap dada que el soci hagi triat i el resultat per cobrar és el mateix que la B: sense mandat actiu
       no hi ha domiciliació. En signar-ne un de nou, la preferència es torna a lligar al mandat nou (T-M05a-09 i 11).
-    data: 2026-11-16
-
-  P-196:
-    opcions:
-      A: Només la capacitat del proveïdor (`capabilities().tokenization`) ara; amb `ProviderConfig`, totes dues (com s'ha fet).
-      B: Un paràmetre de l'entorn per activar-la, a més de la capacitat del proveïdor.
-      C: No oferir-la fins que existeixi `ProviderConfig` amb `tokenization_enabled`.
-    recomanada: A
-    perque: >-
-      No cal cap paràmetre nou i el proveïdor fals ja diu que no. Avui la C dona el mateix resultat; la diferència
-      només apareix amb un proveïdor real que tokenitzi abans de fer `ProviderConfig`.
     data: 2026-11-16
 
   P-197:
@@ -631,18 +565,6 @@ opcions:
       És el canvi més petit i no toca la mida ni la composició de la barra; la D deixaria el nivell 1 sense B8.
     data: 2026-11-17
 
-  P-284:
-    opcions:
-      A: El propietari prova el flux amb el seu mòbil i un altre de l'altre sistema (iOS i Android), seguint la llista de la T-M05a-18.
-      B: Ho proven dos o tres socis voluntaris de la junta, amb dades inventades a l'entorn de proves.
-      C: Un servei de dispositius al núvol, només amb dades inventades.
-      D: Només l'emulació de Chromium fins al nivell 2.
-    recomanada: A
-    perque: >-
-      Són cinc pantalles i mitja hora de feina; un telèfon real troba el que l'emulació no veu (teclat de l'IBAN,
-      Safari, lector de pantalla). La D no compleix B5 «N1».
-    data: 2026-11-17
-
   P-245:
     opcions:
       A: 8 intents en unes hores, i després la feina queda fallida i al registre (com s'ha fet).
@@ -738,16 +660,6 @@ opcions:
       El tresorer ha de saber a qui cal demanar un mandat nou abans de la remesa; B ho mostra sense canviar la tria del soci, i C la canviaria sense que ell ho sàpiga.
     data: 2026-11-17
 
-  P-306:
-    opcions:
-      A: Com s'ha construït; el tresorer llegeix el text aprovat per la junta fora de la plataforma i la pantalla en mostra la versió.
-      B: La pantalla de la campanya mostra el text sencer a la confirmació de l'enviament.
-      C: Esperar la pantalla de textos editables de la 00 (T-M00-08).
-    recomanada: B
-    perque: >-
-      És el que demana el pas 2 de P-M05a-E i és un canvi petit a la pantalla que ja existeix.
-    data: 2026-11-17
-
   P-310:
     opcions:
       A: A la fitxa del soci, «Quotes», un botó per reenviar l'alternativa d'una quota pendent o retornada; registre.
@@ -767,18 +679,6 @@ opcions:
     perque: >-
       Deixar Cluber no ha d'esperar mòduls de la fase 2, però les pàgines públiques que ja existeixen sí que han de
       complir els punts; la C també serveix, però demana canviar la checklist.
-    data: 2026-11-17
-
-  P-301:
-    opcions:
-      A: El propietari fa la revisió amb un mòbil, una tauleta i un lector de pantalla, seguint una llista com la de la T-M05a-18, després que el pilot afegeixi axe a les pantalles de la 04 i del 05b.
-      B: Ho proven dos o tres socis voluntaris de la junta, amb dades inventades a l'entorn de proves.
-      C: Un servei de dispositius al núvol, només amb dades inventades.
-      D: Només l'emulació de Chromium i axe fins després del nivell 2.
-    recomanada: A
-    perque: >-
-      L'auditoria automàtica la pot fer el pilot sense ningú; el que només veu una persona (Safari, tauleta, lector de
-      pantalla) és poca feina amb una llista. La D no compleix B5 ni B8 «N2».
     data: 2026-11-17
 
   P-330:
@@ -906,17 +806,6 @@ opcions:
       el text el valida la junta, i per això no s'ha canviat.
     data: 2026-11-18
 
-  P-369:
-    opcions:
-      A: En confirmar la remesa, una sola vegada per campanya; aquesta remesa ja no l'inclou.
-      B: Un pas nou per anunciar la data de la remesa uns dies abans, que envia el darrer recordatori i deixa temps per signar el mandat.
-      C: A cada remesa confirmada mentre la campanya és oberta.
-    recomanada: A
-    perque: >-
-      Fa servir el pas que ja existeix i no envia més d'un correu; B demana una pantalla i un pas
-      nous al 05b, i C repetiria un recordatori que es diu «darrer».
-    data: 2026-11-18
-
   P-364:
     opcions:
       A: Import exacte del net, del dia de l'abonament als 5 dies següents; si n'hi ha més d'una, decideix l'identificador al concepte; si no, «a revisar».
@@ -1000,17 +889,6 @@ opcions:
     perque: >-
       Manté exactament el comportament d'avui sense cap camp ni pas nou; B i C només calen si el club
       crea un segon tipus de ple dret o de simpatitzant, i es poden afegir llavors.
-    data: 2026-11-18
-
-  P-380:
-    opcions:
-      A: "La Secretaria edita tots els textos i l'administrador els veu (com s'ha construït)."
-      B: "Com A i, a més, el Tresorer edita els recordatoris de quota i els avisos d'impagat (un permís per text)."
-      C: "Només l'administrador, a petició de la secretaria o del tresorer."
-    recomanada: A
-    perque: >-
-      La secretaria redacta els textos definitius (Q-058) i un sol permís per apartat no afegeix cap fila
-      a l'editor; si el tresorer n'ha d'editar algun, es dona des de l'editor de permisos sense codi nou.
     data: 2026-11-18
 
   P-381:
