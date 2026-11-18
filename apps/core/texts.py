@@ -30,7 +30,9 @@ from django.utils.translation import gettext_lazy
 
 from .models import Setting
 
-SECTION = "texts"
+# Àrea dels textos (T-M00-08d): cada àrea és un apartat d'ajustos, `settings.section.<àrea>`.
+# Ara tots els correus editables són de l'àrea de socis.
+SECTION = "texts-members"
 SUBJECT_MAX = 200
 logger = logging.getLogger(__name__)
 
