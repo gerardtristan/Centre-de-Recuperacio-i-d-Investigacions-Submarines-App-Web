@@ -1,0 +1,85 @@
+/* ==========================================================================
+   Disposició (T-DX-57; sistema de disseny §5.3). A l'ordinador les pantalles aprofiten l'amplada
+   amb el mateix ordre que al mòbil, i es van estrenyent de manera fluida. Mòbil primer: per sota
+   de 600 px no canvia res. Les peces noves s'adapten a l'amplada de la columna on són (container
+   queries, C8), no a la de la finestra. Només tokens.
+   ========================================================================== */
+
+/* El cos per trams: mòbil com ara (comptes.css, 28rem); tauleta fins a 45rem; escriptori fins a
+   --amplada-max. Els llistats (.cos-ample) fins a --amplada-ample. L'entrada, els codis i les
+   pàgines d'error (.cos-estret) es queden estrets i centrats a totes les mides. */
+/* Contenidor de mida (C8). Amb la contenció, l'amplada ja no surt del contingut: sense «width»,
+   dins de la graella de la barra lateral el cos quedava a 64 px (només el farciment). */
+.cos-compte { container: cos / inline-size; width: 100%; box-sizing: border-box; }
+@media (min-width: 600px) {
+  .cos-compte { max-width: var(--amplada-tauleta); padding: var(--e-5); }
+  .cos-ample { max-width: var(--amplada-ample); }
+}
+@media (min-width: 1024px) {
+  .cos-compte { max-width: var(--amplada-max); padding: var(--e-6); }
+  .cos-ample { max-width: var(--amplada-ample); }
+}
+.cos-compte.cos-estret { max-width: var(--amplada-estreta); }
+
+/* Lectura: un paràgraf no passa de --amplada-text, i un formulari o una llista de dades de
+   --amplada-formulari, encara que el cos sigui ample. Alineats a l'esquerra. */
+.cos-compte p { max-width: var(--amplada-text); }
+.cos-compte .formulari { max-width: var(--amplada-formulari); }
+/* Parelles etiqueta-valor: l'etiqueta no queda lluny del seu valor (Gestalt de proximitat) */
+.cos-compte .dades-soci { max-width: var(--amplada-formulari); }
+
+/* capcalera-pagina: etiqueta, títol i accions alineades. Al mòbil, les accions a sota. */
+.capcalera-pagina { display: grid; gap: var(--e-3); }
+.capcalera-pagina > .accions { justify-content: flex-start; }
+@container cos (min-width: 37.5rem) {
+  .capcalera-pagina { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .capcalera-pagina > :not(.accions) { grid-column: 1; }
+  .capcalera-pagina > .accions { grid-column: 2; grid-row: 1 / span 3; align-self: end; justify-content: flex-end; }
+}
+
+/* disposicio-pagina: blocs d'una pantalla, separats amb espai i no amb caixes (D15) */
+.disposicio-pagina { display: grid; gap: var(--e-6); min-width: 0; }
+
+/* graella-2: dues columnes quan la columna on és hi té lloc; 5/7 o 7/5 */
+.graella-2 { display: grid; gap: var(--e-5); align-items: start; }
+.graella-2 > * { min-width: 0; }
+@container cos (min-width: 45rem) {
+  .graella-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container cos (min-width: 60rem) {
+  .graella-2.graella-5-7 { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--e-6); }
+  .graella-2.graella-7-5 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-6); }
+  .graella-2.graella-8-4 { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--e-6); }
+}
+
+/* amb-columna-lateral: el contingut i, al costat, una columna que es queda fixa en baixar
+   (ajuda, resum d'errors, filtres). A sota quan no hi cap. */
+.amb-columna-lateral { display: grid; gap: var(--e-5); align-items: start; }
+.amb-columna-lateral > * { min-width: 0; }
+@container cos (min-width: 60rem) {
+  .amb-columna-lateral { grid-template-columns: minmax(0, 1fr) var(--lateral-ample); gap: var(--e-6); }
+  .amb-columna-lateral.lateral-esquerra { grid-template-columns: var(--lateral-ample) minmax(0, 1fr); }
+  .columna-lateral { position: sticky; top: var(--e-5); }
+}
+
+/* graella-targetes: tantes columnes com hi caben (1, 2 o 3) */
+.graella-targetes { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+.graella-targetes > * { min-width: 0; }
+
+/* Taules: capçalera fixa en baixar i fila ressaltada a partir de 600 px; la fila sencera porta a
+   la fitxa quan té un enllaç .enllac-fila (B14). L'enllaç continua sent l'element enfocable. */
+@media (min-width: 600px) {
+  .taula thead th { position: sticky; top: 0; z-index: 1; background: var(--c-fons); }
+  .targeta .taula thead th { background: var(--c-superficie); }
+  .taula tbody tr:hover > * { background: color-mix(in oklab, var(--c-fons), var(--c-text) 5%); }
+  .taula tr:has(.enllac-fila) { position: relative; cursor: pointer; }
+  .taula .enllac-fila::after { content: ""; position: absolute; inset: 0; }
+}
+
+/* desplacable-x: un carril o unes pestanyes que es desplacen de costat; la vora de la dreta
+   s'esvaeix (C2). La màscara només fa servir la transparència: no és cap color. */
+.desplacable-x {
+  overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--e-6)), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - var(--e-6)), transparent);
+}

@@ -275,6 +275,10 @@
   --tactil: 44px;
   --tactil-gran: 56px;
   --amplada-max: 1200px;
+  --amplada-ample: 1440px;      /* T-DX-57: llistats de l'administració i conciliació */
+  --amplada-tauleta: 45rem;     /* T-DX-57: el cos a la tauleta */
+  --amplada-formulari: 40rem;   /* T-DX-57: amplada de lectura d'un formulari */
+  --amplada-estreta: 28rem;     /* T-DX-57: entrada, codis i pàgines d'error, centrades */
   --amplada-text: 68ch;
   --capcalera-alcada: 64px;
   --lateral-ample: 248px;
@@ -403,7 +407,8 @@ img { max-width: 100%; display: block; }
 .salt:focus { transform: none; }
 
 .codi { font-family: var(--f-codi); font-weight: var(--p-normal); font-size: 0.95em; overflow-wrap: anywhere; } /* T-DX-48: una clau o referència llarga no desborda a 320 px */
-.import { font-family: var(--f-codi); font-weight: var(--p-mitja); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* T-DX-57 (§15.4, D7): xifres tabulars amb la lletra del text; el monoespai és per a codis (número de soci, referència, rebut) */
+.import { font-weight: var(--p-mitja); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* Sentit d'un moviment (T-M04-15, B8): el color acompanya el signe «+» o «−», mai sol */
 .import-entrada { color: var(--c-ok-text); }
 .import-sortida { color: var(--c-error-text); }

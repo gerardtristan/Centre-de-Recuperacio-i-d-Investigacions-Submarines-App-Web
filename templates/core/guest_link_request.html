@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {# T-M00-02: demanar un enllaç de convidat nou amb el correu (spec 00, CA-02.6, V-02). Seguretat i privacitat: ruta pública declarada; la resposta és la mateixa per a qualsevol adreça (amb pagaments pendents, sense, inexistent o limitada) i no mostra cap dada; l'enllaç només s'envia al correu de contacte que ja té la persona, mai a una adreça escrita aquí; límits per origen i per destinatari al servidor, sense dir-los a la pantalla. #}
 {% block title %}{% translate "Demana un enllaç nou" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Pagaments" %}{% endblock %}

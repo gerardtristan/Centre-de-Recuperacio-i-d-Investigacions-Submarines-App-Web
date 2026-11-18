@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {# T-M01-38: text aprovat al wireframe (estats comuns). No diu quin permís falta ni si l'objecte existeix. #}
 {# Sense permís a l'administració, la resposta continua sent «no trobat» (apps/core/permissions.py). #}
 {% block title %}{% translate "Accés denegat" %} · C.R.I.S.{% endblock %}

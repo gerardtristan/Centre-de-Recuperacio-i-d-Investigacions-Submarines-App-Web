@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block cos_classe %}cos-estret{% endblock %}
 {# T-M01-38: text aprovat al wireframe (estats comuns). El middleware la mostra només si hi havia una sessió. #}
 {% block title %}{% translate "La sessió ha caducat" %} · C.R.I.S.{% endblock %}
 {% block zona %}{% if area == "admin" %}admin{% else %}soci{% endif %}{% endblock %}
