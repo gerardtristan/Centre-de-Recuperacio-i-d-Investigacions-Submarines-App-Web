@@ -14,10 +14,14 @@ Conciliació (T-M04-15, segon tall; C5 i C6; P-M04-E, passos 3 i 5): les línies
 vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs proposats o casats.
 «Confirma» (`reconciliation.confirm`) i «Desfés» amb motiu (`reconciliation.undo`) són POST amb
 T4 al servidor; veure-la és T1. Del càrrec, el nom de la persona, el concepte i l'import (M04-4).
+«Casa a mà» (T-M04-12e, `reconciliation.match`): T4 per veure-la i fer-la; cerca de càrrecs
+pendents per referència o número de soci, revisió amb la suma i confirmació, tot per POST.
 
 Exportació CSV (T-M04-16, C8; CA-T15.1): els moviments amb els mateixos filtres que la llista,
 per POST i amb T9 al servidor; cada exportació queda al registre amb els filtres i les files.
 """
+
+from urllib.parse import urlencode
 
 from django import forms
 from django.contrib import messages
@@ -25,10 +29,11 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core import audit
 from apps.core.charges import euros
@@ -272,3 +277,44 @@ def undo_view(request, reconciliation_id):
         lambda: reconciliation.undo(found, reason=request.POST.get("motiu", ""), by=request.user),
         _("Conciliació desfeta: els càrrecs tornen a estar pendents i l'ingrés s'ha compensat."),
     )
+
+
+@never_cache
+@permission_required(reconciliation.RECONCILE, write=True)
+@require_http_methods(["GET", "POST"])
+def match_view(request, line_id):
+    line = get_object_or_404(statement_lines(), pk=line_id)
+    data = request.POST if request.method == "POST" else request.GET
+    query = data.get("cerca", "").strip()[:200]
+    selected = data.getlist("carrec")
+    # Un valor que no és un identificador buida la tria: el servei la rebutja sencera.
+    ids = [
+        int(value) for value in selected if value.isascii() and value.isdigit() and len(value) <= 18
+    ]
+    ids = ids if len(ids) == len(selected) else []
+    context = {"line": line, "amount": euros(line.amount_cents), "query": query}
+    if request.method == "GET":
+        reconciliation.refresh()  # com la conciliació: l'estat de la línia, al dia
+        context["problem"] = reconciliation.match_problem(line)
+        found, context["more"] = ([], False)
+        if not context["problem"]:  # sense formulari, tampoc no es busca res
+            found, context["more"] = reconciliation.pending_charges(query)
+        context["found"] = [
+            {"charge": c, "amount": euros(c.amount_cents), "checked": c.pk in ids} for c in found
+        ]
+        return render(request, "treasury/match.html", context)
+    try:
+        if request.POST.get("confirma"):
+            reconciliation.match(line, ids, by=request.user)
+            messages.success(
+                request, _("Línia casada: els càrrecs consten com a pagats i l'ingrés és al banc.")
+            )
+            return redirect("administration:treasury_reconciliation")
+        matched = reconciliation.check_match(line, ids, by=request.user)
+    except ValidationError as error:
+        # Torna a la cerca amb la tria, perquè el tresorer la corregeixi.
+        messages.error(request, " ".join(error.messages))
+        url = reverse("administration:treasury_match_line", args=[line.pk])
+        return redirect(f"{url}?{urlencode({'cerca': query, 'carrec': ids}, doseq=True)}")
+    context["matched"] = [{"charge": c, "amount": euros(c.amount_cents)} for c in matched]
+    return render(request, "treasury/match.html", context)

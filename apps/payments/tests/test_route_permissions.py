@@ -52,6 +52,7 @@ ADMIN_ROUTES = {
     "administration:treasury_export": {"POST": {r(T9)}},
     "administration:treasury_reconciliation": {"GET": {r(T1)}},
     "administration:treasury_confirm_line": {"POST": {w(T4)}},
+    "administration:treasury_match_line": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:treasury_undo_reconciliation": {"POST": {w(T4)}},
     "administration:treasury_review": {"GET": {r(T1)}},  # T10, amb T1 (P-190)
     "administration:treasury_exclude_line": {"POST": {w(T4)}},  # T8, amb T4 (P-190)
@@ -187,6 +188,8 @@ SERVICE_CHECKS = {
     reconciliation.confirm: (T4, lambda by: reconciliation.confirm(None, by=by)),
     reconciliation.undo: (T4, lambda by: reconciliation.undo(None, reason="x", by=by)),
     reconciliation.exclude: (T4, lambda by: reconciliation.exclude(None, reason="x", by=by)),
+    reconciliation.match: (T4, lambda by: reconciliation.match(None, [], by=by)),
+    reconciliation.check_match: (T4, lambda by: reconciliation.check_match(None, [], by=by)),
     remittances.build_remittance: (B3, lambda by: remittances.build_remittance("x", None, by)),
     remittances.mark_remittance_sent: (
         B3,
@@ -224,6 +227,8 @@ UNCHECKED = {
     reconciliation.has_live_reconciliations: "senyal de la importació",
     reconciliation.on_statement_changed: "senyal de la importació",
     reconciliation.to_review: "consulta (la vista demana T1)",
+    reconciliation.pending_charges: "consulta (la vista demana T4)",
+    reconciliation.match_problem: "consulta (la vista demana T4)",
     remittances.earliest_collection_date: "consulta",
     remittances.preview: "consulta (la vista demana B3)",
     remittances.send_prenotifications: "`build_remittance` i la vista, amb B3",

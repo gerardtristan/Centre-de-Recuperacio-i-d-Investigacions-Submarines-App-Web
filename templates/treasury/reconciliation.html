@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés» i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). #}
+{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). #}
 {% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -66,6 +66,7 @@
                     </form>
                   </details>
                 {% elif row.state.status == "pending" %}
+                  {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
                   <details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Exclou…" %}</summary>
                     <form class="formulari" method="post" action="{% url 'administration:treasury_exclude_line' row.line.pk %}">

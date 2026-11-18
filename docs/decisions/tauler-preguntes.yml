@@ -792,6 +792,27 @@ opcions:
       afectat torna a entrar, i assignar rols passa poques vegades.
     data: 2026-11-17
 
+  P-337:
+    opcions:
+      A: No; el registre ja guarda qui l'ha casada, els càrrecs i que ha estat a mà.
+      B: Sí, un motiu obligatori, com per excloure o desfer una línia.
+    recomanada: B
+    perque: >-
+      Casar a mà salta la comprovació de la referència (RN-T18); un motiu escrit ajuda a revisar-ho
+      després i costa una línia de text. A és el que hi ha fet.
+    data: 2026-11-17
+
+  P-338:
+    opcions:
+      A: Només la suma exacta; una transferència de més s'exclou amb motiu i el banc la retorna sencera.
+      B: Es pot casar amb càrrecs que sumen menys que la línia; l'excés queda apuntat com a devolució pendent.
+      C: Com B, i també casar dues línies de menys amb un mateix càrrec.
+    recomanada: A
+    perque: >-
+      És el que demanen RN-T17 i RN-T17b i no crea saldos a favor ni pagaments parcials; LT3 i LT4 són
+      casos rars que el tresorer resol amb el banc. B i C demanen canvis al model.
+    data: 2026-11-17
+
   P-302:
     opcions:
       A: Una tasca diària cobra les quotes pendents vençudes fa com a molt 7 dies (ajust), una sola vegada per quota, sense avís previ; les més antigues es paguen des de la pantalla.
