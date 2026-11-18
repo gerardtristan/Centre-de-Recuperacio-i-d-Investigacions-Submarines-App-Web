@@ -24,7 +24,7 @@ from apps.core.models import Role
 from apps.core.permission_catalog import CATALOG
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_access import PUBLIC_ROUTES, _routes
-from apps.payments import mandates, refunds, remittances, returns, sepa_xml
+from apps.payments import mandates, refunds, remittances, returns, reviews, sepa_xml
 from apps.treasury import reconciliation, services, settlements
 from apps.treasury.tests.test_views import client_for
 
@@ -66,6 +66,7 @@ ADMIN_ROUTES = {
     "administration:treasury_settlement_confirm": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:treasury_confirm_settlement_line": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:payments_list": {"GET": {r(B6)}},
+    "administration:payments_review_close": {"GET": {w(B6)}, "POST": {w(B6)}},  # T-M05b-16b
     "administration:payments_mandates": {"GET": {r(A4)}},
     "administration:payments_mandate_revoke": {"GET": {w(A6)}, "POST": {w(A6)}},
     "administration:payments_campaign": {"GET": {r(A4)}, "POST": {r(A4), w(A5)}},
@@ -215,6 +216,7 @@ SERVICE_CHECKS = {
     returns.confirm: (B4, lambda by: returns.confirm(None, returns.RETRY, by=by)),
     # A6, o el soci mateix des del compte personal (A2).
     mandates.revoke_mandate: (A6, lambda by: mandates.revoke_mandate(MEMBER, by=by)),
+    reviews.close: (B6, lambda by: reviews.close(None, note="x", by=by)),
 }
 
 # Serveis sense permís de rol propi, i per què.
@@ -260,7 +262,16 @@ UNCHECKED = {
     sepa_xml.check: "intern de `remittance_file`",
 }
 
-MONEY_MODULES = [services, settlements, reconciliation, remittances, refunds, returns, mandates]
+MONEY_MODULES = [
+    services,
+    settlements,
+    reconciliation,
+    remittances,
+    refunds,
+    returns,
+    mandates,
+    reviews,
+]
 
 
 @pytest.mark.parametrize("module", [*MONEY_MODULES, sepa_xml], ids=lambda m: m.__name__)

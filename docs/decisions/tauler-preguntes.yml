@@ -915,6 +915,8 @@ opcions:
     perque: >-
       Fa servir el pas que ja existeix i no envia més d'un correu; B demana una pantalla i un pas
       nous al 05b, i C repetiria un recordatori que es diu «darrer».
+    data: 2026-11-18
+
   P-364:
     opcions:
       A: Import exacte del net, del dia de l'abonament als 5 dies següents; si n'hi ha més d'una, decideix l'identificador al concepte; si no, «a revisar».
@@ -1027,6 +1029,29 @@ opcions:
     recomanada: A
     perque: >-
       L'historial ja guarda qui, quan, el text anterior i el nou; B és un canvi d'una línia si la junta ho vol.
+    data: 2026-11-18
+
+  P-377:
+    opcions:
+      A: "B6 amb edició (Tresorer i Administrador), com s'ha construït; sense, «no trobat»."
+      B: Només el Tresorer, amb un permís propi de tancar «a revisar» al catàleg.
+      C: B6 amb edició, però l'Administrador comença sense la cel·la d'edició.
+    recomanada: A
+    perque: >-
+      Tancar no mou diners: només deixa la nota de la revisió, i qui veu la llista és qui la treballa.
+      B afegeix un permís i una migració per a una acció sense efecte econòmic; es pot fer després
+      si la junta vol separar-ho.
+    data: 2026-11-18
+
+  P-378:
+    opcions:
+      A: Les notificacions sense intent no es tanquen i es queden a la llista (com s'ha construït).
+      B: Tancar-les amb una nota com els intents, amb una taula de tancaments pròpia.
+      C: Que surtin soles de la llista passats uns dies, i es vegin només al registre.
+    recomanada: B
+    perque: >-
+      Fa servir el mateix patró que els intents (nota, registre, «Tancats») i deixa la llista oberta
+      buida quan tot està revisat. C amaga casos sense que ningú els hagi mirat. Mentrestant val la A.
     data: 2026-11-18
 
 noves:

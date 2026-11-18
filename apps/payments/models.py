@@ -376,6 +376,36 @@ class ReceiptCancellation(AppendOnlyModel):
         return f"{self._meta.verbose_name} {self.receipt_id}"
 
 
+class ReviewClosure(AppendOnlyModel):
+    """Tancament d'un intent «a revisar» pel tresorer (T-M05b-16b; P-82, opció per defecte). No
+    canvia l'intent ni mou diners: una fila nova diu que ja està revisat i per què. Només INSERT,
+    també a la base de dades (migració 0022); un sol tancament per intent."""
+
+    attempt = models.OneToOneField(
+        PaymentAttempt,
+        on_delete=models.PROTECT,
+        related_name="review_closure",
+        verbose_name=_("intent"),
+    )
+    note = models.TextField(_("nota"))
+    closed_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("tancat per")
+    )
+    closed_at = models.DateTimeField(_("tancat el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("tancament d'un intent a revisar")
+        verbose_name_plural = _("tancaments d'intents a revisar")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(note__regex=r"\S"), name="review_closure_note_required"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self._meta.verbose_name} {self.attempt_id}"
+
+
 # 05a: mètode de pagament de la quota i mandats SEPA (T-M05a-08; M05a-6; decisió 044).
 
 MANDATE_REFERENCE = r"^CRIS[0-9]{6}M[0-9]{2}$"  # RN-M05a-03
