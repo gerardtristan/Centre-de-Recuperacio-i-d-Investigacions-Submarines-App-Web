@@ -29,7 +29,7 @@ A la línia conciliada, obre **Desfés…**, escriu el **motiu per desfer-la** i
 ## 4. Excloure una línia
 Per a una línia que no és de cap càrrec (per exemple, un moviment del banc que no té res a veure amb els socis): obre **Exclou…**, escriu el **motiu de l'exclusió** i prem **Exclou la línia**. No es crea cap moviment ni es paga cap càrrec. La línia queda «exclosa», amb el motiu, a la línia i al registre d'activitat ([regles](../planning.md#M04-7-regles)).
 
-La llista **A revisar** (enllaç **Mira les línies a revisar** de la conciliació) recull només les línies pendents de decidir, amb el motiu i el mateix botó **Exclou…**.
+La llista **A revisar** (enllaç **Mira les línies a revisar** de la conciliació) recull les línies pendents de decidir, amb el motiu i el mateix botó **Exclou…**, i les liquidacions del proveïdor «a revisar» (un cobrament que la plataforma no reconeix), amb la referència i el problema; **Revisa-les a «Liquidacions»** porta a la seva pantalla. Des d'aquesta llista no es mou cap diner. Els pagaments «a revisar» del proveïdor es tanquen a la llista de pagaments (enllaç **Pagaments «a revisar»**) ([P-191](../decisions/pendents.md), [P-390](../decisions/pendents.md)).
 
 ## 5. Comptes, saldos i moviments
 - **Tresoreria: comptes i saldos:** el saldo de cada compte el calcula la plataforma, mai s'escriu a mà. Tria una **Data del saldo** i prem **Mostra** per veure el saldo d'un altre dia.

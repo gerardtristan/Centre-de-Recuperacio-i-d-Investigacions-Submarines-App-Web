@@ -192,6 +192,25 @@ def test_treasurer_matches_a_line_by_hand(page, live_server, transactional_db, r
     review("casa-a-ma-conciliada")
 
 
+def test_treasurer_sees_a_settlement_to_review(page, live_server, transactional_db, review):
+    """T-M04-14b (CA-T13.1; P-191, opció per defecte): una liquidació amb un cobrament desconegut
+    surt a «A revisar» amb la referència i el problema, sense cap nom, i l'enllaç porta a
+    «Liquidacions»; els intents del 05b, a la llista de pagaments."""
+    record_it(data(SettlementLine("REF-DESCONEGUDA", 2500), external_id="LIQ-DUBTE"))
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_review')}")
+    row = page.get_by_role("row", name="LIQ-DUBTE")
+    expect(row).to_contain_text("Cap cobrament amb aquesta referència")
+    expect(row).to_contain_text("REF-DESCONEGUDA")
+    expect(row).to_contain_text("23,80 €")
+    expect(page.get_by_role("link", name="Pagaments «a revisar»")).to_be_visible()
+    review("a-revisar-liquidacio")
+    page.get_by_role("link", name="Revisa-les a «Liquidacions»").click()
+    expect(page.get_by_role("heading", name="Liquidacions")).to_be_visible()
+
+
 def test_treasurer_reconciles_a_provider_settlement(page, live_server, transactional_db, review):
     """T-M04-13b (P-M04-F, passos 2 a 4): la línia del banc pel net d'una liquidació rebuda surt
     proposada amb la liquidació; el tresorer en revisa les comissions, la confirma i la desfà amb

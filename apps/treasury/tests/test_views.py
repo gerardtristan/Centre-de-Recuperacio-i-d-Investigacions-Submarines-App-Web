@@ -19,8 +19,10 @@ from apps.core.tests.conftest import (
 from apps.treasury.balances import balances
 from apps.treasury.models import CostCentre, Movement, StatementLineState, TreasuryAccount
 from apps.treasury.references import check_character
+from apps.treasury.settlements import SettlementLine
 from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import PAID_AT, new_transit, paid, record
+from apps.treasury.tests.test_settlements import collected, data, record_it
 
 pytestmark = pytest.mark.django_db
 ACCOUNTS = reverse("administration:treasury_accounts")
@@ -236,6 +238,27 @@ def test_ca_t13_1_a_line_to_review_shows_its_reason_without_the_concept(make_adm
     admin = client_for(make_admin(R.ADMINISTRATOR))
     assert exclude_url(line) not in page(admin, REVIEW)
     assert admin.post(exclude_url(line), {"motiu": "Prova"}).status_code == 404
+
+
+def test_ca_t13_1_a_settlement_to_review_shows_its_problem_and_where_to_resolve_it(
+    make_admin,  # noqa: F811
+    make_person,
+):
+    """T-M04-14b (P-191, opció per defecte): la llista també mostra les liquidacions «a revisar»
+    (CA-T11.2) amb la referència i el problema, sense cap nom, i l'enllaç on es revisen. Una
+    liquidació rebuda no hi surt. Res no es tanca ni es mou des d'aquí."""
+    new_transit()
+    collected(make_person("Núria", "Coll"), 9000, "REF-A")
+    record_it(data(SettlementLine("REF-A", 9000), external_id="LIQ-BONA"))
+    record_it(data(SettlementLine("REF-X", 2500), external_id="LIQ-DUBTE"))
+    for role in (R.TREASURER, R.ADMINISTRATOR):  # T10
+        html = page(client_for(make_admin(role)), REVIEW)
+        assert "LIQ-DUBTE" in html and "REF-X" in html and "23,80" in html
+        assert "Cap cobrament amb aquesta referència" in html
+        assert reverse("administration:treasury_settlements") in html
+        assert reverse("administration:payments_list") in html  # B6: els intents, al 05b
+        assert "LIQ-BONA" not in html and "Coll" not in html
+        assert "No hi ha res a revisar." not in html
 
 
 def test_ca_t12_1_excluding_from_the_screen(make_admin):  # noqa: F811

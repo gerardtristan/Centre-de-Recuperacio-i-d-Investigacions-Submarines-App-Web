@@ -65,6 +65,14 @@ PROBLEMS = {
 }
 
 
+def problems_of(settlement):
+    """(referència, problema) de cada línia d'una liquidació «a revisar» (CA-T11.2)."""
+    return [
+        (note.get("reference", ""), PROBLEMS.get(note.get("problem"), note.get("problem")))
+        for note in settlement.review_notes
+    ]
+
+
 def _euros(label, minimum):
     return forms.DecimalField(
         label=label, min_value=Decimal(minimum), max_digits=11, decimal_places=2, localize=True
@@ -247,10 +255,7 @@ def settlements_view(request):
             "gross": euros(s.gross_cents),
             "fees": euros(s.fees_cents),
             "net": euros(s.net_cents),
-            "problems": [
-                (note.get("reference", ""), PROBLEMS.get(note.get("problem"), note.get("problem")))
-                for note in s.review_notes
-            ],
+            "problems": problems_of(s),
         }
         for s in ProviderSettlement.objects.order_by("-settled_on", "-pk")
     ]

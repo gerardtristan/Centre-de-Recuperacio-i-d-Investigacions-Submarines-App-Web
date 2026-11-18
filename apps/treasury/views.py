@@ -8,7 +8,10 @@ i llista de moviments amb filtres. Només lectura: només GET, i l'únic formula
 
 «A revisar» (T-M04-14, C6; CA-T12.1, CA-T13.1): les línies de l'extracte amb el motiu, i el
 formulari per excloure'n una (POST, T8 al servidor). Sense el concepte de la línia, que pot
-portar noms de fora del club i només es veu a la conciliació (M04-4, per objecte).
+portar noms de fora del club i només es veu a la conciliació (M04-4, per objecte). T-M04-14b
+(P-191, opció per defecte): també les liquidacions «a revisar» (CA-T11.2), amb la referència i el
+problema, i l'enllaç a «Liquidacions»; els intents del 05b, un enllaç a la seva llista (amb B6).
+Des d'aquí no es tanca ni es mou res.
 
 Conciliació (T-M04-15, segon tall; C5 i C6; P-M04-E, passos 3 i 5): les línies dels extractes
 vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs proposats o casats.
@@ -46,7 +49,14 @@ from apps.core.permissions import has_perm, permission_required
 
 from . import entry_views, exports, reconciliation, services, settlements
 from .balances import balances
-from .models import CostCentre, Movement, Reconciliation, StatementLineState, TreasuryAccount
+from .models import (
+    CostCentre,
+    Movement,
+    ProviderSettlement,
+    Reconciliation,
+    StatementLineState,
+    TreasuryAccount,
+)
 
 VIEW = "treasury.view"  # T1; també T10, «Veure la llista "a revisar"» (P-190)
 EXPORT = "treasury.export"  # T9, «Exportar moviments en CSV» (M04-4)
@@ -188,8 +198,17 @@ def review_view(request):
         }
         for state in reconciliation.to_review()
     ]
-    can_exclude = has_perm(request.user, reconciliation.EXCLUDE, write=True)
-    return render(request, "treasury/review.html", {"rows": rows, "can_exclude": can_exclude})
+    to_review = ProviderSettlement.objects.filter(status=ProviderSettlement.Status.TO_REVIEW)
+    context = {
+        "rows": rows,
+        "settlements": [
+            {"settlement": s, "net": euros(s.net_cents), "problems": entry_views.problems_of(s)}
+            for s in to_review.order_by("settled_on", "pk")
+        ],
+        "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),
+        "can_view_payments": has_perm(request.user, "payments.view"),  # B6, només per a l'enllaç
+    }
+    return render(request, "treasury/review.html", context)
 
 
 @never_cache
