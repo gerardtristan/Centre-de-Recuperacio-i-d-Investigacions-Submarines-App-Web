@@ -2,8 +2,8 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 15:04 | 0e60ae1b (PR #239) | 4 unitàries noves i 2 e2e noves; 16 e2e (amb axe) i 4.684 unitàries del 00 i el 01 | [A comprovar] |
-| 18/11/2026 16:40 | 15f6313d (PR #239), correccions del propietari | 6 unitàries noves; 16 e2e (amb axe i contrast mesurat) i 4.690 unitàries del 00 i el 01 | [A comprovar] |
+| 18/11/2026 15:04 | 8346eaaf (PR #239) | 4 unitàries noves i 2 e2e noves; 16 e2e (amb axe) i 4.684 unitàries del 00 i el 01 | [A comprovar] |
+| 18/11/2026 16:40 | d2b1332f (PR #239), correccions del propietari | 6 unitàries noves; 16 e2e (amb axe i contrast mesurat) i 4.690 unitàries del 00 i el 01 | [A comprovar] |
 
 **En tres línies:** és la quarta de les nou PR del programa de l'escriptori que el propietari va aprovar el 18/11/2026 (secció 3.6). L'inici del soci aprofita l'amplada: la portada amb la salutació i, a sota, la quota i el carnet en petit en dues columnes, la franja de pendents només si n'hi ha, i a sota els pagaments recents, la història al C.R.I.S. i la llicència. Al mòbil, el mateix ordre, l'un a sota de l'altre.
 
@@ -53,17 +53,17 @@
 
   ![Inici del soci a l'escriptori: salutació i quota a l'esquerra, el carnet en petit a la dreta, i a sota els pagaments recents, la història i la llicència](captures/2026-11-18_1504_T-DX-60_inici-al-dia-1280.png)
 
-  *18/11/2026 15:04 (Europa/Madrid) · local, prova e2e, dades inventades · commit 0e60ae1b*
+  *18/11/2026 15:04 (Europa/Madrid) · local, prova e2e, dades inventades · commit 8346eaaf*
 - Soci amb la quota pendent a 800 px, en fosc: dues columnes iguals i la franja amb «Paga ara»: `captures/2026-11-18_1504_T-DX-60_inici-pendent-800-fosc.png`
 - El mateix a 390 px, l'un a sota de l'altre: `captures/2026-11-18_1504_T-DX-60_inici-pendent-390.png`
 
-  *18/11/2026 15:04 (Europa/Madrid) · local, prova e2e, dades inventades · commit 0e60ae1b*
+  *18/11/2026 15:04 (Europa/Madrid) · local, prova e2e, dades inventades · commit 8346eaaf*
 - Després de les correccions del propietari, soci al dia a 1280 px: la salutació a la portada i, a sota, la quota i el carnet en 7/5, sense caixes: `captures/2026-11-18_1640_T-DX-60_inici-al-dia-1280.png`
 
   ![Inici del soci a l'escriptori: la portada només amb la salutació; a sota, la quota a l'esquerra i el carnet en petit a la dreta, i més avall els pagaments recents, la història i la llicència](captures/2026-11-18_1640_T-DX-60_inici-al-dia-1280.png)
 
-  *18/11/2026 16:40 (Europa/Madrid) · local, prova e2e, dades inventades · commit 15f6313d*
+  *18/11/2026 16:40 (Europa/Madrid) · local, prova e2e, dades inventades · commit d2b1332f*
 - Quota pendent a 1024 px, en fosc: `captures/2026-11-18_1640_T-DX-60_inici-pendent-1024-fosc.png`
 - Soci al dia a 390 px, en fosc: `captures/2026-11-18_1640_T-DX-60_inici-al-dia-390-fosc.png`
 
-  *18/11/2026 16:40 (Europa/Madrid) · local, prova e2e, dades inventades · commit 15f6313d*
+  *18/11/2026 16:40 (Europa/Madrid) · local, prova e2e, dades inventades · commit d2b1332f*

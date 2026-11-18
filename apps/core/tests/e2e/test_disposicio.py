@@ -61,6 +61,8 @@ def test_two_columns_on_tablet_and_proportions_beside_the_sidebar(page, live_ser
     page.set_viewport_size({"width": 390, "height": 900})
     page.goto(f"{live_server.url}{reverse('administration:members_list')}")
     assert page.evaluate(GRID_JS, "graella-2")[0] == 1
+
+
 # Amplades de la columna esquerra i la dreta d'una graella (els dos primers fills).
 COLUMNS_JS = """s => [...document.querySelector(s).children].slice(0, 2)
     .map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.left), r.width]; })"""
