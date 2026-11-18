@@ -74,7 +74,7 @@
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                     </form>
-                  </details>{% endif %}
+                  </details>{% elif row.state.status == "pending" and row.line.amount_cents <= 0 and row.state.review_reason != "settlement_ambiguous" %}—{% endif %}
                 {% elif row.state.status == "excluded" %}
                   {% if can_exclude %}<details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Desfés l'exclusió…" %}</summary>

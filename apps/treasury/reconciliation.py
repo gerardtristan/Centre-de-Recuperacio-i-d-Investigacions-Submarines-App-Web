@@ -624,8 +624,8 @@ def exclude(line, *, reason: str, by) -> StatementLineState:
 @transaction.atomic
 def undo_exclusion(line, *, reason: str, by) -> StatementLineState:
     """RN-T15 (097, P-192): una línia exclosa d'un extracte vigent torna a pendent amb el motiu,
-    que queda al registre amb l'estat anterior i el motiu de l'exclusió. Després, `refresh()` la
-    torna a proposar si escau. Amb T8, com excloure-la."""
+    que queda al registre amb l'estat anterior (el motiu de l'exclusió és a l'entrada «exclosa»).
+    Després, `refresh()` la torna a proposar si escau, i es torna l'estat desat. Amb T8."""
     if not has_perm(by, EXCLUDE, write=True):
         raise Http404
     reason = (reason or "").strip()
@@ -639,20 +639,21 @@ def undo_exclusion(line, *, reason: str, by) -> StatementLineState:
     )
     if state is None or state.status != StatementLineState.Status.EXCLUDED:
         raise ReconciliationRejected(_("Aquesta línia no està exclosa."))
-    excluded_for, state.exclusion_reason = state.exclusion_reason, ""
-    old = _snapshot(state.status, "", [])
-    state.status = StatementLineState.Status.PENDING
-    state.save()
-    audit.record(
-        EXCLUSION_UNDONE,
+    # El motiu de l'exclusió ja és a l'entrada «exclosa» (`reason`, que l'RGPD anonimitza):
+    # no es copia a `details`, que no s'anonimitza.
+    state.exclusion_reason = ""
+    _apply(
+        state,
+        StatementLineState.Status.PENDING,
+        "",
+        [],
+        created=False,
         actor=by,
-        target=state,
-        old=old,
-        new=_snapshot(state.status, "", []),
-        reason=reason,
-        details={"line": state.statement_line_id, "exclusion_reason": excluded_for},
+        action=EXCLUSION_UNDONE,
+        why=reason,
     )
     refresh()  # la torna a proposar, o a marcar «a revisar», si escau
+    state.refresh_from_db()
     return state
 
 

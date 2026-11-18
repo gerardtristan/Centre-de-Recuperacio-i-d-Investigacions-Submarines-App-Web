@@ -491,7 +491,6 @@ class TestExclude:
             with pytest.raises(reconciliation.ReconciliationRejected, match="motiu"):
                 reconciliation.undo_exclusion(line, reason=blank, by=treasurer)
         undone = reconciliation.undo_exclusion(line, reason=" Exclosa per error ", by=treasurer)
-        undone.refresh_from_db()
         assert (undone.status, undone.exclusion_reason, undone.to_review) == (
             State.PENDING,
             "",
@@ -500,7 +499,11 @@ class TestExclude:
         entry = AuditEntry.objects.get(action=reconciliation.EXCLUSION_UNDONE)
         assert entry.reason == "Exclosa per error" and entry.actor_account_id == treasurer.pk
         assert entry.old_value["status"] == "excluded" and entry.new_value["status"] == "pending"
-        assert entry.details["exclusion_reason"] == "Despesa amb factura"
+        # El motiu de l'exclusió és a l'entrada «exclosa» (`reason`, que l'RGPD anonimitza), no a
+        # `details`, que no s'anonimitza.
+        assert entry.details == {"line": line.pk}
+        excluded = AuditEntry.objects.get(action=reconciliation.EXCLUDED)
+        assert excluded.reason == "Despesa amb factura"
         assert "LLUM" not in str((entry.details, entry.old_value, entry.new_value))
         # Es pot tornar a excloure.
         reconciliation.exclude(line, reason="Ara sí", by=treasurer)
@@ -511,8 +514,9 @@ class TestExclude:
         (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)} INVENTAT"))
         reconciliation.refresh()
         reconciliation.exclude(line, reason="Prova", by=treasurer)
-        reconciliation.undo_exclusion(line, reason="Era bona", by=treasurer)
+        undone = reconciliation.undo_exclusion(line, reason="Era bona", by=treasurer)
         assert state(line) == (State.PROPOSED, "", [quota])
+        assert undone.status == State.PROPOSED  # el que torna és l'estat desat, no el d'abans
 
     def test_only_an_excluded_line_of_a_current_statement_is_undone(self, treasurer):
         pending, other = lines(treasurer, (-1230, "REBUT LLUM"), (-500, "REBUT AIGUA"))

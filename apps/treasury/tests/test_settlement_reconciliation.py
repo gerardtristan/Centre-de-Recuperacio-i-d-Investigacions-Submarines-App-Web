@@ -94,6 +94,17 @@ class TestProposal:
         assert proposal(line) == (State.PENDING, reconciliation.AMBIGUOUS, None)
         assert line.pk in [s.statement_line_id for s in reconciliation.to_review()]
 
+    def test_t_m04_14d_excluding_drops_the_settlement_and_undoing_proposes_it_again(
+        self, two, treasurer
+    ):
+        settlement = received()
+        line = bank_line(treasurer)
+        reconciliation.exclude(line, reason="Prova", by=treasurer)
+        assert proposal(line) == (State.EXCLUDED, "", None)
+        assert ProviderSettlement.objects.get().status == Status.RECEIVED  # res confirmat
+        undone = reconciliation.undo_exclusion(line, reason="Era bona", by=treasurer)
+        assert (undone.status, undone.proposed_settlement) == (State.PROPOSED, settlement)
+
     def test_the_identifier_in_the_concept_picks_one(self, two, person, treasurer):
         received()
         other = another_with_the_same_net(person)
