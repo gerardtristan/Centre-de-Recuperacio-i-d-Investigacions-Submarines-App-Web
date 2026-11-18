@@ -1,0 +1,47 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-52: tipus de soci (091, RN-M01-107). Seguretat i privacitat: el servidor exigeix `settings.section.members` (sense permís, «no trobat»); el formulari de crear només surt a qui pot editar els tipus («Sí» de l'apartat o `settings.edit.members.membership_types`), però amagar-lo no és el control: el servei rebutja un POST sense permís amb «no trobat» i el deixa al registre. Un tipus nou es crea amb el seu preu a «Ajustos de socis», on es canvia amb data i nota. Només el nombre de socis, cap dada personal. #}
+{% block title %}{% translate "Tipus de soci" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:settings_section' 'members' %}">{% translate "Ajustos de socis" %}</a></p>
+  <h1>{% translate "Tipus de soci" %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  <table class="taula">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Quota anual vigent" %}</th>
+        <th scope="col">{% translate "De ple dret" %}</th>
+        <th scope="col">{% translate "Edat mínima" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col">{% translate "Socis" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for type, price, price_key in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ type.name }}<br><span class="codi">{{ type.code }}</span></th>
+          <td data-etiqueta="{% translate 'Quota anual vigent' %}"><a href="{% url 'administration:setting_detail' 'members' price_key %}">{{ price }}</a></td>
+          <td data-etiqueta="{% translate 'De ple dret' %}">{% if type.full_rights %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Edat mínima' %}">{% blocktranslate count age=type.min_age %}{{ age }} any{% plural %}{{ age }} anys{% endblocktranslate %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if type.active %}{% translate "Actiu" %}{% else %}{% translate "Inactiu" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Socis' %}">{{ type.n_members }}</td>
+          <td class="cel-accions"><a href="{% url 'administration:membership_type_edit' type.pk %}">{% if editable %}{% blocktranslate with name=type.name %}Edita: {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=type.name %}Detall: {{ name }}{% endblocktranslate %}{% endif %}</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if editable %}
+    <form class="formulari targeta" method="post" aria-labelledby="nou-titol" novalidate>
+      {% csrf_token %}
+      <h2 id="nou-titol">{% translate "Nou tipus" %}</h2>
+      {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Crea el tipus" %}</button></div>
+    </form>
+  {% else %}
+    <p class="text-2">{% translate "Pots veure els tipus, però no crear-ne ni canviar-los." %}</p>
+  {% endif %}
+{% endblock %}

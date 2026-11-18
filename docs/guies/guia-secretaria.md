@@ -50,7 +50,7 @@ A **Llicències pendents de confirmar** surten les caducitats d'any natural que 
 ## 7. Quotes
 A **Quotes i impagats** pots veure l'estat de la quota de tots els socis, però marcar un impagat o revisar un pagament és feina del tresorer.
 
-**Text del darrere del carnet** (menú «Ajustos», «Ajustos de socis», T-M01-32): el pots canviar (fins a 300 caràcters) i queda a l'historial. La resta de valors d'aquell apartat els veus però no els canvies.
+**Text del darrere del carnet** (menú «Ajustos», «Ajustos de socis», T-M01-32): el pots canviar (fins a 300 caràcters) i queda a l'historial. La resta de valors d'aquell apartat els veus però no els canvies. També hi veus els **tipus de soci** (T-M01-52): preu vigent, si són de ple dret, l'edat mínima, si són actius i quants socis tenen; no els pots crear ni canviar.
 
 **Textos dels correus** (menú «Ajustos», «Textos dels correus», T-M00-08): pots canviar el text del correu de baixa i dels recordatoris de quota (abans del venciment i vençuda). La primera línia és l'assumpte i la resta, el cos; només text pla i les variables que diu la pantalla, com `{data}`. **Vista prèvia** el mostra amb dades inventades sense desar res; **Desa el valor** el publica i l'historial guarda el text anterior. Si el deixes buit, torna el text per defecte.
 

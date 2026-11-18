@@ -2,8 +2,9 @@
 canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i el tresorer, amb
 «Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
 programa un preu i canvia els recordatoris. Codis de retorn (P-291): el tresorer en canvia
-l'acció. Textos dels correus (T-M00-08): la secretaria edita el de la baixa. Pantalles a
-1280, 390 i 320 px."""
+l'acció. Textos dels correus (T-M00-08): la secretaria edita el de la baixa. Tipus de
+soci (T-M01-52): l'administrador en crea un amb el seu preu i el desactiva. Pantalles
+a 1280, 390 i 320 px."""
 
 from datetime import timedelta
 
@@ -79,7 +80,7 @@ def test_treasurer_schedules_a_member_price_and_edits_the_reminders(page, live_s
     expect(page.get_by_role("heading", name="Ajustos de socis")).to_be_visible()
     review("socis-apartat")
 
-    page.get_by_role("link", name="Canvia: Quota anual de soci simpatitzant").click()
+    page.get_by_role("link", name="Canvia: Quota anual de cada tipus de soci: Simpatitzant").click()
     page.get_by_label("Valor nou").fill("40,00")
     page.get_by_label("En vigor des de").fill(
         (timezone.localdate() + timedelta(days=30)).isoformat()
@@ -175,3 +176,38 @@ def test_secretary_previews_and_publishes_the_leave_email(page, live_server, rev
     expect(page.get_by_role("cell", name="Text inventat")).to_be_visible()
     review("textos-desat")
     assert business_settings.get(key).startswith("Baixa feta\n\nHola,")
+
+
+def test_administrator_creates_a_type_with_its_price_and_deactivates_it(page, live_server, review):
+    # T-M01-52 (091, RN-M01-107): l'entrada del menú la posa la sessió de disseny.
+    admin = make_admin("admin.prova", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    page.goto(f"{live_server.url}/gestio/socis/tipus/")
+    expect(page.get_by_role("heading", name="Tipus de soci", exact=True)).to_be_visible()
+    review("tipus-llista")
+
+    page.get_by_label("Nom").fill("Juvenil")
+    page.get_by_label("Codi").fill("juvenil")
+    page.get_by_label("Quota anual").fill("20,00")
+    page.get_by_label("De ple dret").check()
+    page.get_by_label("Edat mínima").fill("10")
+    page.get_by_role("button", name="Crea el tipus").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    review("tipus-ple-dret-menor")
+
+    page.get_by_label("De ple dret").uncheck()
+    page.get_by_role("button", name="Crea el tipus").click()
+    expect(page.get_by_text("Tipus creat amb el seu preu.")).to_be_visible()
+    expect(page.get_by_role("link", name="20,00 €")).to_be_visible()
+
+    page.get_by_role("link", name="Edita: Juvenil").click()
+    page.get_by_label("Actiu").uncheck()
+    review("tipus-edita")
+    page.get_by_role("button", name="Desa el tipus").click()
+    expect(page.get_by_text("Tipus desat.")).to_be_visible()
+    expect(page.get_by_role("cell", name="Inactiu")).to_be_visible()
+    review("tipus-desactivat")
+    page.get_by_role("link", name="20,00 €").click()
+    expect(
+        page.get_by_role("heading", name="Quota anual de cada tipus de soci: Juvenil")
+    ).to_be_visible()

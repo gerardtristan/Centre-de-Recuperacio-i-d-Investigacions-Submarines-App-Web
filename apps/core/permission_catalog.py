@@ -493,18 +493,21 @@ PERMISSIONS: tuple[Permission, ...] = (
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
         initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ, R.SECRETARY: SCOPE_READ},
     ),
+    # VC-01: un sol permís per al preu de tots els tipus, també els creats des de l'app
+    # (T-M01-52; `members.annual_fee_cents.<codi>`, família registrada pel 01).
     _perm(
-        "settings.edit.members.annual_fee_cents.full",
+        "settings.edit.members.annual_fee_cents",
         "AJ01-1",
-        _("Quota anual de soci de ple dret"),
+        _("Quota anual de cada tipus de soci"),
         requires=("settings.section.members",),
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    # T-M01-52 (091, RN-M01-107): crear, editar i desactivar tipus [A validar: P-376].
     _perm(
-        "settings.edit.members.annual_fee_cents.supporter",
+        "settings.edit.members.membership_types",
         "AJ01-2",
-        _("Quota anual de soci simpatitzant"),
+        _("Tipus de soci: crear-los, editar-los i desactivar-los"),
         requires=("settings.section.members",),
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,

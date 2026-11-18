@@ -35,6 +35,8 @@ P18 = "members.cluber_import.run"
 P19 = "members.licence_record.manage"
 P21 = "members.card.revoke"
 P22 = "members.fees.exempt"
+AJ01 = "settings.section.members"  # ajustos de socis: «Cons.» veu, «Sí» edita (RN-RP-22)
+AJ01_2 = "settings.edit.members.membership_types"  # T-M01-52 (P-376)
 
 
 def _both(*needs):
@@ -102,6 +104,15 @@ ROUTES = {
     },
     # 075 (RN-M01-83, CA-M01-84): també P4, per veure el nom del soci.
     "administration:member_leave_create": _both((P7, WRITE), (P4, READ)),
+    # T-M01-52: tipus de soci; desar demana tots dos permisos (`types.can_edit`).
+    "administration:membership_types": {
+        "GET": ((AJ01, READ),),
+        "POST": ((AJ01, READ), (AJ01_2, WRITE)),
+    },
+    "administration:membership_type_edit": {
+        "GET": ((AJ01, READ),),
+        "POST": ((AJ01, READ), (AJ01_2, WRITE)),
+    },
 }
 
 # Accions d'un POST que no demanen el permís de la ruta sinó **un** dels de la llista (qualsevol).
