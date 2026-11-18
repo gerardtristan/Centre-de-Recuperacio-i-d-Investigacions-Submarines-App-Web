@@ -4,6 +4,7 @@ Tots els mòduls envien correus amb `queue_email`; cap no parla amb el proveïdo
 és el `EMAIL_BACKEND` de Django configurat per entorn (SMTP a producció): canviar de Brevo a
 Scaleway Transactional Email, o a qualsevol altre, és canviar la configuració.
 
+- Els correus que el club pot editar (T-M00-08) no tenen plantilla: els genera `texts`.
 - Plantilles pròpies a `templates/emails/`, una per llengua: `<nom>.<llengua>.subject.txt`,
   `<nom>.<llengua>.txt` i, opcional, `<nom>.<llengua>.html`. Es tria la llengua de
   `persons.language_for(persona)` i, si no hi ha la plantilla, la catalana (061, punt 7).
@@ -46,7 +47,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template, render_to_string
 from django.utils import timezone, translation
 
-from . import audit
+from . import audit, texts
 from .models import EmailDailyUsage, OutgoingEmail, Person
 from .persons import anonymous_email, language_for
 
@@ -159,8 +160,12 @@ def queue_email(
     _check_context(context)
 
     wanted = language_for(person) if person is not None else settings.LANGUAGE_CODE
-    language = _template_language(template, wanted)
-    subject, body_text, body_html = _render(template, language, context)
+    if template in texts.TEMPLATES:  # correu editable (T-M00-08): text pla, sense plantilla
+        subject, body_text, language = texts.render_email(template, context, wanted)
+        body_html = ""
+    else:
+        language = _template_language(template, wanted)
+        subject, body_text, body_html = _render(template, language, context)
 
     # La tasca s'importa aquí: `tasks` importa aquest mòdul.
     from .tasks import send_email

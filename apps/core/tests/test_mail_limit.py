@@ -11,7 +11,7 @@ from django.test import override_settings
 from django.utils import timezone
 from procrastinate.contrib.django.models import ProcrastinateJob
 
-from apps.core import audit, mail, tasks
+from apps.core import audit, mail, tasks, texts
 from apps.core.models import AuditEntry, EmailDailyUsage, OutgoingEmail
 from conftest import PASSWORD, CommittedDataTestCase, run_together, run_with_production_settings
 
@@ -81,7 +81,9 @@ def test_rn_a8_every_template_of_the_project_declares_its_priority():
     names = {path.name.split(".")[0] for path in folder.glob("*.subject.txt")}
 
     assert names
-    assert names == set(mail.TEMPLATE_PRIORITIES)
+    # Els correus editables (T-M00-08) no tenen plantilla: els genera `texts`.
+    assert not names & texts.TEMPLATES
+    assert names | texts.TEMPLATES == set(mail.TEMPLATE_PRIORITIES)
     assert set(mail.TEMPLATE_PRIORITIES.values()) <= set(Priority)
 
 

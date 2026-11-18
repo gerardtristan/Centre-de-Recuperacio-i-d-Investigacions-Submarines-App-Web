@@ -20,7 +20,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .. import business_settings as service
-from .. import permissions
+from .. import permissions, texts
 from ..models import Setting
 from ..permissions import request_permissions, require_perm
 
@@ -73,7 +73,16 @@ def _row(setting, user, perms):
         "scheduled_from": scheduled and scheduled.effective_from,
         "range": _range(setting),
         "editable": service.can_edit(user, setting, perms=perms),
-    }
+    } | (
+        # Textos dels correus (T-M00-08): el text sencer només surt al detall.
+        {
+            "label": texts.EMAILS[setting.key].label,
+            "current": texts.status(setting.key),
+            "initial": _("Text per defecte"),
+        }
+        if texts.is_editable(setting)
+        else {}
+    )
 
 
 def _to_list(text):
@@ -107,6 +116,13 @@ class ValueForm(forms.Form):
         elif kind == T.INTEGER_LIST:
             field.help_text = _("Nombres enters separats per comes.")
             initial = current and ", ".join(map(str, current))
+        elif texts.is_editable(setting):  # T-M00-08: el text vigent, per editar-lo
+            field = forms.CharField(
+                required=False,
+                widget=forms.Textarea(attrs={"rows": 14}),
+                help_text=texts.help_text(setting.key),
+            )
+            initial = texts.current(setting.key)
         else:  # text i URL
             field = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
         field.label, field.initial = _("Valor nou"), initial
@@ -170,20 +186,27 @@ def setting_detail_view(request, section, key):
         service.deny(request.user, setting, request)
     data = request.POST if request.method == "POST" else None
     form = ValueForm(setting, data, current=service.get(setting.key))
+    is_text, preview = texts.is_editable(setting), None
     if form.is_bound and form.is_valid():
         clean = form.cleaned_data
         try:
-            service.change(
-                key, clean["value"], request.user, clean["note"], clean.get("effective_from")
-            )
+            if is_text and "preview" in request.POST:  # T-M00-08: no desa res
+                service.validate_value(setting, clean["value"])
+                preview = texts.preview(key, clean["value"])
+            else:
+                service.change(
+                    key, clean["value"], request.user, clean["note"], clean.get("effective_from")
+                )
         except ValidationError as exc:
             form.add_error(None, exc)
         else:
-            messages.success(request, _("Valor desat. El canvi queda a l'historial."))
-            return redirect("administration:setting_detail", section=section, key=key)
+            if preview is None:
+                messages.success(request, _("Valor desat. El canvi queda a l'historial."))
+                return redirect("administration:setting_detail", section=section, key=key)
     history = [
         (v, _show(setting, v.previous_value), _show(setting, v.value))
         for v in setting.versions.select_related("changed_by").order_by("-changed_at", "-id")
     ]
     context = {"section": section, "title": title, "row": row, "form": form, "history": history}
+    context |= {"is_text": is_text, "preview": preview}
     return render(request, "core/setting_detail.html", context)

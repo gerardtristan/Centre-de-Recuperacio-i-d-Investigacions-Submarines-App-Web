@@ -52,6 +52,8 @@ A **Quotes i impagats** pots veure l'estat de la quota de tots els socis, però 
 
 **Text del darrere del carnet** (menú «Ajustos», «Ajustos de socis», T-M01-32): el pots canviar (fins a 300 caràcters) i queda a l'historial. La resta de valors d'aquell apartat els veus però no els canvies.
 
+**Textos dels correus** (menú «Ajustos», «Textos dels correus», T-M00-08): pots canviar el text del correu de baixa i dels recordatoris de quota (abans del venciment i vençuda). La primera línia és l'assumpte i la resta, el cos; només text pla i les variables que diu la pantalla, com `{data}`. **Vista prèvia** el mostra amb dades inventades sense desar res; **Desa el valor** el publica i l'historial guarda el text anterior. Si el deixes buit, torna el text per defecte.
+
 ## 8. Què no fa la secretaria (i qui ho fa)
 - **Comptes d'administrador i permisos:** l'administrador.
 - **Sol·licituds d'esborrat de dades (RGPD):** qui té aquest permís, ara l'administrador.

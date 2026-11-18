@@ -1,8 +1,0 @@
-{% load i18n %}{# T-M01-18 (Q-061 de la 072): TEXT PROVISIONAL [A validar: junta i tresorer]. Sense cap dada personal: només l'import i el venciment. Com pagar-la és del 05b. #}{% autoescape off %}{% translate "Hola," %}
-
-{% if overdue %}{% blocktranslate with date=due_on|date:"d/m/Y" %}La teva quota de soci de {{ amount }} va vèncer el {{ date }} i encara no consta com a pagada.{% endblocktranslate %}{% else %}{% blocktranslate with date=due_on|date:"d/m/Y" %}La teva quota de soci de {{ amount }} venç el {{ date }}.{% endblocktranslate %}{% endif %}
-
-{% translate "Si ja l'has pagada, no cal que facis res." %}
-
-{% translate "Si tens cap dubte, respon aquest correu." %}
-{% endautoescape %}

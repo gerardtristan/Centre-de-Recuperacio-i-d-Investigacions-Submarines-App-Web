@@ -1,8 +1,0 @@
-{% load i18n %}{# T-M01-17: TEXT PROVISIONAL [A validar: junta i secretaria]. No diu res de les quotes pendents (RN-M01-20, P-50) ni del compte personal (Q-31), que no estan decidits. #}{% autoescape off %}{% translate "Hola," %}
-
-{% blocktranslate with date=effective_on|date:"d/m/Y" %}La teva baixa com a soci és efectiva des del {{ date }}.{% endblocktranslate %}
-
-{% translate "El teu número de soci queda reservat: si algun dia tornes, el recuperaràs." %}
-
-{% translate "Si tens cap dubte, respon aquest correu." %}
-{% endautoescape %}
