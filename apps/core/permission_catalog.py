@@ -424,6 +424,8 @@ PERMISSIONS: tuple[Permission, ...] = (
         "treasury.review",
         "T10",
         _("Veure la llista «a revisar»"),
+        # «Cons.» la veu; tancar una liquidació «a revisar» demana «Sí» (T-M04-14c, P-390).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),

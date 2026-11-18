@@ -1,0 +1,26 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-14c: tancar una liquidació «a revisar» (P-390, resposta B). Seguretat i privacitat, al servidor: T10 amb edició (sense, «no trobat»); només una liquidació «a revisar» que no estigui tancada; nota obligatòria; POST amb CSRF. Tancar no canvia la liquidació ni mou diners: queda una fila nova i l'entrada al registre d'activitat. Cap nom ni dada bancària: el proveïdor, l'identificador, les referències i el net. #}
+{% block title %}{% translate "Tanca una liquidació a revisar" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+  <h1>{% translate "Tanca una liquidació a revisar" %}</h1>
+  <section class="targeta" aria-labelledby="liquidacio-titol">
+    <h2 id="liquidacio-titol" class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Data de l'abonament" %}</dt><dd>{{ settlement.settled_on|date:"d/m/Y" }}</dd></div>
+      <div><dt>{% translate "Net" %}</dt><dd><span class="import">{{ net }}</span></dd></div>
+      <div><dt>{% translate "Motiu" %}</dt><dd>{% for reference, problem in problems %}<p><span class="codi">{{ reference }}</span> {{ problem }}</p>{% endfor %}</dd></div>
+    </dl>
+  </section>
+  <form class="targeta formulari" method="post" action="{% url 'administration:treasury_settlement_review_close' settlement.pk %}" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    <p>{% translate "Tancar-la només deixa constància que l'has revisat: surt de la llista «a revisar» i passa a «Tancades». No mou cap diner ni canvia la liquidació. Si cal casar la línia del banc o excloure-la, fes-ho a la conciliació." %}</p>
+    {% include "accounts/_camp.html" with field=form.note %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Sí, tanca-la" %}</button>
+      <a class="boto" href="{% url 'administration:treasury_review' %}">{% translate "Torna" %}</a>
+    </div>
+  </form>
+{% endblock %}

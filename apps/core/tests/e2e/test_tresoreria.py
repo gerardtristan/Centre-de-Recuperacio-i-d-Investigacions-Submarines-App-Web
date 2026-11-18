@@ -211,6 +211,28 @@ def test_treasurer_sees_a_settlement_to_review(page, live_server, transactional_
     expect(page.get_by_role("heading", name="Liquidacions")).to_be_visible()
 
 
+def test_treasurer_closes_a_settlement_to_review(page, live_server, transactional_db, review):
+    """T-M04-14c (P-390, resposta B): «Tanca» porta a la confirmació; sense nota, l'error; amb la
+    nota, la liquidació surt de la llista i passa a «Tancades». No es mou cap diner."""
+    record_it(data(SettlementLine("REF-DESCONEGUDA", 2500), external_id="LIQ-DUBTE"))
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_review')}")
+    page.get_by_role("row", name="LIQ-DUBTE").get_by_role("link", name="Tanca").click()
+    expect(page.get_by_role("heading", name="Tanca una liquidació a revisar")).to_be_visible()
+    page.get_by_role("button", name="Sí, tanca-la").click()
+    expect(page.get_by_text("Cal una nota per tancar-la.").first).to_be_visible()
+    review("tanca-liquidacio-sense-nota")
+    page.get_by_label("Nota").fill("Cobrament duplicat al proveïdor, comprovat per telèfon (prova)")
+    page.get_by_role("button", name="Sí, tanca-la").click()
+    expect(page.get_by_role("status")).to_contain_text("Liquidació tancada")
+    expect(page.get_by_text("No hi ha res a revisar.")).to_be_visible()
+    expect(page.get_by_role("heading", name="Tancades")).to_be_visible()
+    expect(page.get_by_role("row", name="LIQ-DUBTE")).to_contain_text("comprovat per telèfon")
+    review("liquidacions-tancades")
+
+
 def test_treasurer_reconciles_a_provider_settlement(page, live_server, transactional_db, review):
     """T-M04-13b (P-M04-F, passos 2 a 4): la línia del banc pel net d'una liquidació rebuda surt
     proposada amb la liquidació; el tresorer en revisa les comissions, la confirma i la desfà amb

@@ -11,7 +11,8 @@ formulari per excloure'n una (POST, T8 al servidor). Sense el concepte de la lí
 portar noms de fora del club i només es veu a la conciliació (M04-4, per objecte). T-M04-14b
 (P-191, opció per defecte): també les liquidacions «a revisar» (CA-T11.2), amb la referència i el
 problema, i l'enllaç a «Liquidacions»; els intents del 05b, un enllaç a la seva llista (amb B6).
-Des d'aquí no es tanca ni es mou res.
+T-M04-14c (P-390, resposta B): «Tanca…» porta a la confirmació amb nota obligatòria (T10 amb
+edició, `settlements.close_review`); la tancada passa a «Tancades». Cap diner no es mou.
 
 Conciliació (T-M04-15, segon tall; C5 i C6; P-M04-E, passos 3 i 5): les línies dels extractes
 vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs proposats o casats.
@@ -44,7 +45,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.core import audit
 from apps.core.charges import euros
 from apps.core.imports import statement_lines
-from apps.core.models import Department
+from apps.core.models import AuditEntry, Department
 from apps.core.permissions import has_perm, permission_required
 
 from . import entry_views, exports, reconciliation, services, settlements
@@ -54,6 +55,7 @@ from .models import (
     Movement,
     ProviderSettlement,
     Reconciliation,
+    SettlementReviewClosure,
     StatementLineState,
     TreasuryAccount,
 )
@@ -62,6 +64,7 @@ VIEW = "treasury.view"  # T1
 EXPORT = "treasury.export"  # T9, «Exportar moviments en CSV» (M04-4)
 EXPORTED = "treasury.movements_exported"
 PER_PAGE = 50
+CLOSED_SHOWN = 50  # shortcut: només els tancaments més recents; si en calen més, paginar-los
 
 
 def _date_field(label):
@@ -198,19 +201,84 @@ def review_view(request):
         }
         for state in reconciliation.to_review()
     ]
-    to_review = ProviderSettlement.objects.filter(status=ProviderSettlement.Status.TO_REVIEW)
+    to_review = ProviderSettlement.objects.filter(
+        status=ProviderSettlement.Status.TO_REVIEW, review_closure__isnull=True
+    )
+    can_close = has_perm(request.user, reconciliation.REVIEW, write=True)
+    closures = SettlementReviewClosure.objects.select_related("settlement", "closed_by")
+    closed = list(closures.order_by("-closed_at", "-pk")[:CLOSED_SHOWN])
+    # La nota és text lliure: només la veu qui pot tancar (T10 amb edició); la resta, «—».
+    notes = _closure_notes([c.pk for c in closed]) if can_close else {}
     context = {
         "rows": rows,
         "settlements": [
             {"settlement": s, "net": euros(s.net_cents), "problems": entry_views.problems_of(s)}
             for s in to_review.order_by("settled_on", "pk")
         ],
+        "closed": [
+            {"closure": c, "net": euros(c.settlement.net_cents), "note": notes.get(str(c.pk), "")}
+            for c in closed
+        ],
+        "closed_total": closures.count(),
+        "can_close": can_close,
         "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),  # T8
         "can_reconcile": has_perm(request.user, reconciliation.RECONCILE, write=True),  # T4
         "can_view_accounts": has_perm(request.user, VIEW),  # on porta «Torna…» (T1)
         "can_view_payments": has_perm(request.user, "payments.view"),  # B6, només per a l'enllaç
     }
     return render(request, "treasury/review.html", context)
+
+
+def _closure_notes(closure_ids) -> dict[str, str]:
+    """{tancament: nota}, de l'entrada del registre (`settlements.close_review`)."""
+    entries = AuditEntry.objects.filter(
+        action=settlements.REVIEW_CLOSED,
+        target_type=SettlementReviewClosure._meta.label_lower,
+        target_id__in=[str(pk) for pk in closure_ids],
+    )
+    return dict(entries.values_list("target_id", "reason"))
+
+
+class CloseReviewForm(forms.Form):
+    note = forms.CharField(
+        label=_("Nota"),
+        max_length=settlements.MAX_NOTE,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_(
+            "Què has comprovat i què se n'ha fet. Queda al registre d'activitat. No hi posis "
+            "dades personals: la liquidació i la referència ja identifiquen el cas."
+        ),
+        error_messages={"required": _("Cal una nota per tancar-la.")},
+    )
+
+
+@never_cache
+@permission_required(reconciliation.REVIEW, write=True)
+@require_http_methods(["GET", "POST"])
+def settlement_review_close_view(request, settlement_id):
+    """Confirmació i tancament d'una liquidació «a revisar» (T-M04-14c; P-390, resposta B)."""
+    settlement = get_object_or_404(
+        ProviderSettlement,
+        pk=settlement_id,
+        status=ProviderSettlement.Status.TO_REVIEW,
+        review_closure__isnull=True,
+    )
+    form = CloseReviewForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            settlements.close_review(settlement, note=form.cleaned_data["note"], by=request.user)
+        except settlements.NotClosable:
+            messages.error(request, _("Aquesta liquidació ja està tancada."))
+        else:
+            messages.success(request, _("Liquidació tancada. No s'ha mogut cap diner."))
+        return redirect("administration:treasury_review")
+    context = {
+        "settlement": settlement,
+        "net": euros(settlement.net_cents),
+        "problems": entry_views.problems_of(settlement),
+        "form": form,
+    }
+    return render(request, "treasury/settlement_review_close.html", context)
 
 
 @never_cache
