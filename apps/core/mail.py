@@ -81,6 +81,7 @@ TEMPLATE_PRIORITIES = {
     "mandat-signat": _Priority.CONFIRMATION,  # G3, CA-M05a-04 (T-M05a-09)
     "mandat-caducat": _Priority.CONFIRMATION,  # RN-M05a-08 (T-M05a-09)
     "mandat-revocat": _Priority.CONFIRMATION,  # P-M05a-C (T-M05a-10)
+    "avis-mandat-revocat-remesa": _Priority.CONFIRMATION,  # RN-M05a-09, al tresorer (T-M05a-10b)
     "avis-previ-remesa": _Priority.CONFIRMATION,  # RN-M05b-11, CA-M05b-14 (T-M05b-09)
     "alternativa-pagament": _Priority.CONFIRMATION,  # P-M05b-F, CA-M05b-19 i 20 (T-M05b-12)
     "avis-pagament-revisar": _Priority.CONFIRMATION,  # CA-M05b-05 (T-M05b-07; P-84)

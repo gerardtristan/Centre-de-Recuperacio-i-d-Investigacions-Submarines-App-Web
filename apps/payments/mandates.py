@@ -10,6 +10,7 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
@@ -22,12 +23,20 @@ from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members.models import Member
 
-from . import crypto, preferences
-from .models import FeeMethod, MandateBankAccount, SepaMandate
+from . import crypto, preferences, processing
+from .models import (
+    DirectDebitItem,
+    DirectDebitRemittance,
+    FeeMethod,
+    MandateBankAccount,
+    SepaMandate,
+)
 
 SIGNED_TEMPLATE = "mandat-signat"  # G3
 EXPIRED_TEMPLATE = "mandat-caducat"
 REVOKED_TEMPLATE = "mandat-revocat"
+REVOKED_IN_REMITTANCE_TEMPLATE = "avis-mandat-revocat-remesa"  # RN-M05a-09 (T-M05a-10b)
+REVOKED_IN_REMITTANCE = "payments.mandate.revoked_in_remittance"
 REVOKE = "payments.mandates.revoke"  # A6 (M05a-4)
 MEMBER_REQUEST = "a petició del soci"  # motiu de la revocació des del compte personal
 IBAN_FORMAT = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
@@ -92,9 +101,46 @@ def revoke_mandate(member: Member, *, by, reason: str = MEMBER_REQUEST) -> SepaM
     preference = preferences.current(member)
     if preference is None or preference.method == FeeMethod.DIRECT_DEBIT:
         preferences.set_preference(member, FeeMethod.PAY_EACH_TIME, by=by)
-    # shortcut: encara no hi ha remeses (05b), de manera que no hi ha cap remesa enviada per
-    # avisar el tresorer (RN-M05a-09); l'avís s'hi afegeix amb les remeses.
+    _warn_if_at_the_bank(mandate, by)
     return mandate
+
+
+def _warn_if_at_the_bank(mandate: SepaMandate, by) -> None:
+    """RN-M05a-09 (L-M05a-04, L-M05b-03): si un rebut del mandat és en una remesa que ja pot ser
+    al banc (enviada, o avisada amb el fitxer descarregat), el banc el presentarà igualment: avís
+    a qui té la tresoreria i registre. Avisada sense fitxer, no cal: el fitxer ja no es pot
+    generar (`sepa_xml.MandateNoLongerActive`). Un mandat només es revoca una vegada: un sol
+    avís. Només referències internes, cap IBAN ni cap nom."""
+    S = DirectDebitRemittance.Status
+    at_the_bank = Q(remittance__status=S.SENT_TO_BANK) | (
+        Q(remittance__status=S.NOTIFIED) & ~Q(remittance__file_hash="")
+    )
+    remittances = sorted(
+        {
+            item.remittance
+            for item in DirectDebitItem.objects.filter(
+                at_the_bank, mandate=mandate, status=DirectDebitItem.Status.INCLUDED
+            ).select_related("remittance")
+        },
+        key=lambda remittance: remittance.pk,
+    )
+    if not remittances:
+        return
+    processing.notify_treasurers(
+        REVOKED_IN_REMITTANCE_TEMPLATE,
+        {
+            "reference": mandate.reference,
+            "remittances": [
+                {"period": r.period, "collection_date": r.collection_date} for r in remittances
+            ],
+        },
+    )
+    audit.record(
+        REVOKED_IN_REMITTANCE,
+        actor=by,
+        target=mandate,
+        details={"reference": mandate.reference, "remittances": [r.pk for r in remittances]},
+    )
 
 
 # Un error dins (la clau, la base de dades) no posa l'IBAN a l'informe d'error: s'amaguen totes

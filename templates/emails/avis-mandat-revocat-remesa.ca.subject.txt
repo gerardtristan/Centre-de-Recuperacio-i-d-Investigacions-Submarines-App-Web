@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05a-10b (RN-M05a-09): TEXT PROVISIONAL [A validar: tresorer]. #}{% blocktranslate %}Mandat {{ reference }} revocat amb un rebut ja al banc{% endblocktranslate %}
