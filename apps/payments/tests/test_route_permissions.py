@@ -93,6 +93,7 @@ OWN_ROUTES = {
     "payments:mandate_revoke": "A2",
     "payments:fee_method": "A1",
     "payments:saved_card": "A3",
+    "payments:saved_card_remove": "A3",  # T-M05a-12c (P-132)
     "payments:charge": "B1",
     "payments:pay_card": "B1",
     "payments:pay_bizum": "B1",

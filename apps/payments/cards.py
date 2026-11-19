@@ -15,6 +15,7 @@ la P-45, punt 6: es construeix contra el proveïdor fals, que declara que la sap
 
 from django.conf import settings
 from django.db import transaction
+from django.http import Http404
 from django.urls import reverse
 
 from apps.core import audit
@@ -28,6 +29,7 @@ from .providers import base, get_provider
 STARTED = "payments.card_setup.started"
 SAVED = "payments.saved_card.saved"
 REPLACED = "payments.saved_card.replaced"
+REMOVED = "payments.saved_card.removed"
 FAILED = "payments.card_setup.failed"
 ACTOR = audit.system("payments.cards")
 CURRENCY = "EUR"  # la de l'autorització de 0 €: la dels càrrecs del club (`Charge.currency`)
@@ -151,3 +153,33 @@ def give_up(setup: CardSetup, before) -> None:
 def waiting(person) -> bool:
     """Hi ha una autenticació començada que el proveïdor encara no ha confirmat."""
     return CardSetup.objects.filter(person=person, status=IN_PROGRESS).exists()
+
+
+@transaction.atomic
+def remove_card(member, *, by) -> SavedCard | None:
+    """El soci esborra la seva targeta guardada (P-132, opció A: com revocar el mandat). Només
+    des del seu compte personal; la vista ja ha demanat la confirmació i la sessió recent
+    (RN-M05a-12). Passa a «esborrada», no es cobra mai més, i la preferència, si era la targeta
+    (o no n'hi havia), passa a «pagar cada vegada». Funciona encara que el proveïdor ja no guardi
+    targetes. Torna la targeta, o None si no n'hi havia cap d'activa.
+
+    shortcut: no es demana al proveïdor que l'esborri (l'adaptador no ho sap fer); a la
+    plataforma ja no es pot fer servir. Amb el proveïdor real (P-45, punt 6), P-402."""
+    from .mandates import _is_own  # mandates → processing → cards: import circular a dalt
+
+    if not _is_own(by, member):
+        raise Http404
+    card = (
+        SavedCard.objects.select_for_update()
+        .filter(person=member.person, status=SavedCard.Status.ACTIVE)
+        .first()
+    )
+    if card is None:
+        return None
+    card.status = SavedCard.Status.REMOVED
+    card.save(update_fields=["status"])
+    audit.record(REMOVED, actor=by, target=card)
+    preference = preferences.current(member)
+    if preference is None or preference.method == FeeMethod.SAVED_CARD:
+        preferences.set_preference(member, FeeMethod.PAY_EACH_TIME, by=by)
+    return card

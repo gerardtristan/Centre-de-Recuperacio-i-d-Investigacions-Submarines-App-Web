@@ -41,6 +41,12 @@ urlpatterns = [
     path("socis/pagaments/<int:attempt_id>/rebut/", views.receipt_view, name="receipt"),
     path("socis/pagaments/metode/", preference_views.fee_method_view, name="fee_method"),
     path("socis/pagaments/targeta/", card_views.saved_card_view, name="saved_card"),
+    # T-M05a-12c (P-132): esborrar-la, com revocar el mandat.
+    path(
+        "socis/pagaments/targeta/esborra/",
+        card_views.saved_card_remove_view,
+        name="saved_card_remove",
+    ),
     # Convidat (T-M05b-08): públiques declarades; la credencial és l'enllaç de la sessió. Sota
     # `pagaments/` perquè `convidat/<testimoni>/` (core) no prengui cap camí com a testimoni.
     path("pagaments/convidat/", views.guest_charge_view, name="guest_charge"),

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M05a-12: guardar una targeta per a les quotes (P-M05a-D; wireframe socis.html#pagaments-targeta). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió, i «no trobat» si el proveïdor no guarda targetes; la targeta s'escriu a la pàgina del proveïdor i aquí només surten els quatre darrers dígits i la caducitat (CA-M05a-15), mai la referència del proveïdor; la contrasenya, i el codi si el compte té TOTP, quan la sessió no és recent (RN-M05a-12), i el servidor ho torna a comprovar; la tornada del navegador no guarda res, només la notificació verificada. Esborrar la targeta (P-132) encara no hi és. #}
+{# T-M05a-12: guardar una targeta per a les quotes (P-M05a-D; wireframe socis.html#pagaments-targeta). Seguretat i privacitat, al servidor: només el compte personal del soci de la sessió, i «no trobat» si el proveïdor no guarda targetes; la targeta s'escriu a la pàgina del proveïdor i aquí només surten els quatre darrers dígits i la caducitat (CA-M05a-15), mai la referència del proveïdor; la contrasenya, i el codi si el compte té TOTP, quan la sessió no és recent (RN-M05a-12), i el servidor ho torna a comprovar; la tornada del navegador no guarda res, només la notificació verificada. Esborrar-la (T-M05a-12c, P-132) és una pàgina de confirmació a part, amb la mateixa sessió recent. #}
 {% block title %}{% translate "Targeta per a la quota" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
@@ -17,6 +17,7 @@
         <div><dt>{% translate "Targeta" %}</dt><dd class="codi">… {{ card.last4 }}</dd></div>
         {% if card.expiry_month %}<div><dt>{% translate "Caduca" %}</dt><dd>{{ card.expiry_month|stringformat:"02d" }}/{{ card.expiry_year }}</dd></div>{% endif %}
       </dl>
+      <p class="accions"><a class="boto" href="{% url 'payments:saved_card_remove' %}">{% translate "Esborra la targeta…" %}</a></p>
     </section>
   {% endif %}
 
