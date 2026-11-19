@@ -98,10 +98,11 @@ def test_at_1280_the_filters_are_a_sticky_column_on_the_left(activitats):
     expect(page.get_by_role("button", name="Filtres")).to_be_hidden()
     assert filters.bounding_box()["x"] + filters.bounding_box()["width"] <= main.bounding_box()["x"]
     assert filters.evaluate("el => getComputedStyle(el).position") == "sticky"
-    # 3 targetes per fila a la secció de les sortides
+    # Amb el panell lateral de Ramillete (T-DX-59), 2 targetes per fila: la tercera, a sota
     cards = page.locator("#panell-totes .tipus-sortida [data-targeta]:visible")
     expect(cards).to_have_count(3)
-    assert len({round(cards.nth(i).bounding_box()["y"]) for i in range(3)}) == 1
+    rows = [round(cards.nth(i).bounding_box()["y"]) for i in range(3)]
+    assert rows[0] == rows[1] < rows[2]
 
 
 def test_at_390_the_filters_open_full_screen_and_done_closes_them(activitats, request):

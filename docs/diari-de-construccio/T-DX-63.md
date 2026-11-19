@@ -18,7 +18,7 @@
 - **Els filtres al navegador:** el contingut és fix i petit; així es veu com funcionarà sense cap model. Quan sigui real, «per a tu» el calcularà el servidor.
 - **L'estrella, desactivada:** guardar es desarà al servidor (§16: el que faria alguna cosa no es pot fer).
 - **Pestanyes amb activació en enfocar** i sense el subratllat elàstic: no cal `interaccions.js`; la triada porta negreta i una ratlla.
-- **Graella per contenidor (34rem i 50rem):** a 1280 px hi caben 3 targetes al costat de la columna de filtres; amb `graella-targetes` (18rem) n'hi cabrien 2.
+- **Graella per contenidor (34rem i 50rem):** sense barra lateral, a 1280 px hi caben 3 targetes al costat de la columna de filtres (amb `graella-targetes`, 18rem, n'hi cabrien 2). Des del panell lateral de Ramillete (T-DX-59, rebase del 19/11/2026), a 1280 px n'hi caben 2.
 - **El bloc «per a tu» en una pantalla pròpia:** la portada no s'edita en aquesta PR, i així les proves comunes el troben.
 - **Els colors dels tipus fan 4,5:1 com a text** (no només 3:1): serveixen per al nom, la icona i la franja del mes.
 
@@ -32,7 +32,7 @@
   - les fletxes, Inici i Fi mouen `aria-selected` i el focus, i «Veure-les totes» obre la pestanya;
   - «Només les que puc fer» passa el recompte de 12 a 8, i filtrar no fa cap petició;
   - Cadaqués i «Aquest mes» donen l'estat buit, que diu quins filtres cal treure;
-  - a 1280 px, la columna de filtres és a l'esquerra i `sticky`, amb 3 targetes per fila;
+  - a 1280 px, la columna de filtres és a l'esquerra i `sticky`, amb 2 targetes per fila al costat del panell de Ramillete;
   - a 390 px, «Filtres» obre el panell a pantalla sencera i «Fet» el tanca i torna el focus;
   - cap desplaçament lateral a 1280, 1024, 800, 390 i 320 px, i axe sense violacions en clar i en fosc;
   - el carril «per a tu» compta «1 / 3» i «3 / 3» al mòbil.
