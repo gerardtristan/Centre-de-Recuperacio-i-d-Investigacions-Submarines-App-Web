@@ -1041,4 +1041,25 @@ opcions:
       permisos sense codi nou.
     data: 2026-11-19
 
+  P-394:
+    opcions:
+      A: "Moviments del banc no anul·lats, de cap liquidació i no casats, del mateix sentit i suma exacta; desfer-ho torna la línia a «pendent» i no toca els moviments."
+      B: "Només la pota d'entrada al banc d'un traspàs (CA-T07.2), i res més."
+      C: "Com A, però desfer-ho també anul·la els moviments casats amb el mateix motiu."
+    recomanada: A
+    perque: >-
+      Els moviments existeixen per si sols (una despesa, un traspàs): casar-los només diu que el banc
+      els ha fet. Desfer el casament no els fa falsos; si un ho és, s'anul·la a part amb el seu motiu.
+    data: 2026-11-19
+
+  P-395:
+    opcions:
+      A: "A mà, qualsevol liquidació rebuda amb el net exacte, fora de la finestra o ja desfeta amb la línia, si no és a la proposta d'una altra."
+      B: "A mà, només les liquidacions dins la finestra de P-364."
+    recomanada: A
+    perque: >-
+      La finestra serveix per proposar sense equivocar-se; a mà el tresorer ja veu la liquidació i
+      el pas de revisió amb el brut, les comissions i el net abans de confirmar.
+    data: 2026-11-19
+
 noves:

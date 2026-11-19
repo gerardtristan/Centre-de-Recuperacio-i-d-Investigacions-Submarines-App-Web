@@ -49,7 +49,14 @@ from apps.core.permissions import has_perm
 from apps.members import services as members
 
 from .balances import balance
-from .models import CashCount, CostCentre, Movement, ProviderSettlement, TreasuryAccount
+from .models import (
+    CashCount,
+    CostCentre,
+    Movement,
+    ProviderSettlement,
+    Reconciliation,
+    TreasuryAccount,
+)
 from .references import transfer_reference  # noqa: F401 (servei de M04-8, T-M04-10)
 
 INCOME_RECORDED = "treasury.income_recorded"
@@ -611,6 +618,13 @@ def _ensure_manually_reversible(movement: Movement) -> None:
     if movement.kind == kind.TRANSFER:
         # P-114 (opció conservadora): una pota sola desquadraria els dos comptes.
         raise NotReversible(_("Una pota d'un traspàs no s'anul·la sola."))
+    if Reconciliation.matched_movements.through.objects.filter(
+        movement=movement, reconciliation__undo__isnull=True
+    ).exists():
+        # T-M04-12f (P-394): la línia quedaria conciliada amb un moviment anul·lat.
+        raise NotReversible(
+            _("Moviment casat amb una línia de l'extracte: primer cal desfer-ne la conciliació.")
+        )
 
 
 @transaction.atomic

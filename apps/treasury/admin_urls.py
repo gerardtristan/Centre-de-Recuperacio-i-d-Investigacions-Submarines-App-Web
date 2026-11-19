@@ -21,6 +21,11 @@ urlpatterns = [
         name="treasury_match_line",
     ),
     path(
+        "tresoreria/conciliacio/<int:line_id>/moviments/",
+        views.match_movements_view,
+        name="treasury_match_movements",
+    ),
+    path(
         "tresoreria/conciliacio/<int:line_id>/liquidacio/",
         views.settlement_line_view,
         name="treasury_confirm_settlement_line",

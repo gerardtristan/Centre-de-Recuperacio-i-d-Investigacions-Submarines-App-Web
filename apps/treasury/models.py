@@ -544,7 +544,8 @@ class Reconciliation(AppendOnlyModel):
     """Conciliació confirmada pel tresorer (M04-6; RN-T16, RN-T17): una línia de l'extracte
     casada amb un o més càrrecs. Només INSERT, també a la base de dades (migració 0010). La crea
     `reconciliation.confirm` (T-M04-12); desfer-la és una fila nova (`ReconciliationUndo`, 045).
-    `settlement`: la liquidació casada pel net (T-M04-13b; `settlements.confirm`)."""
+    `settlement`: la liquidació casada pel net (T-M04-13b; `settlements.confirm`).
+    `matched_movements`: moviments que ja hi eren, sense càrrecs (T-M04-12f)."""
 
     # Una conciliació vigent (sense desfeta) bloqueja desfer l'extracte (V-06): la 04 ho respon
     # al senyal `bank_statement.reconciled_lines` (`reconciliation.has_live_reconciliations`).
@@ -556,6 +557,10 @@ class Reconciliation(AppendOnlyModel):
     )
     matched_charges = models.ManyToManyField(
         Charge, related_name="+", verbose_name=_("càrrecs casats")
+    )
+    # T-M04-12f (CA-T07.2): moviments que ja hi eren (`reconciliation.match_movements`).
+    matched_movements = models.ManyToManyField(
+        "Movement", related_name="+", verbose_name=_("moviments casats")
     )
     settlement = models.ForeignKey(
         "ProviderSettlement",

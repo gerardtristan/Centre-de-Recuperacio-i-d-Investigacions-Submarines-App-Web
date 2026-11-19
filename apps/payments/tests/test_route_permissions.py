@@ -55,6 +55,7 @@ ADMIN_ROUTES = {
     "administration:treasury_reconciliation": {"GET": {r(T1)}},
     "administration:treasury_confirm_line": {"POST": {w(T4)}},
     "administration:treasury_match_line": {"GET": {w(T4)}, "POST": {w(T4)}},
+    "administration:treasury_match_movements": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:treasury_undo_reconciliation": {"POST": {w(T4)}},
     "administration:treasury_review": {"GET": {r(T10)}},
     "administration:treasury_exclude_line": {"POST": {w(T8)}},
@@ -208,6 +209,14 @@ SERVICE_CHECKS = {
     ),
     reconciliation.match: (T4, lambda by: reconciliation.match(None, [], by=by)),
     reconciliation.check_match: (T4, lambda by: reconciliation.check_match(None, [], by=by)),
+    reconciliation.match_movements: (
+        T4,
+        lambda by: reconciliation.match_movements(None, [], by=by),
+    ),
+    reconciliation.check_match_movements: (
+        T4,
+        lambda by: reconciliation.check_match_movements(None, [], by=by),
+    ),
     remittances.build_remittance: (B3, lambda by: remittances.build_remittance("x", None, by)),
     remittances.mark_remittance_sent: (
         B3,
@@ -250,6 +259,7 @@ UNCHECKED = {
     reconciliation.to_review: "consulta (la vista demana T1)",
     reconciliation.pending_charges: "consulta (la vista demana T4)",
     reconciliation.match_problem: "consulta (la vista demana T4)",
+    reconciliation.matchable_movements: "consulta (la vista demana T4)",
     reconciliation.settlement_choices: "consulta (la vista i `confirm_line` demanen T4)",
     remittances.earliest_collection_date: "consulta",
     remittances.preview: "consulta (la vista demana B3)",
