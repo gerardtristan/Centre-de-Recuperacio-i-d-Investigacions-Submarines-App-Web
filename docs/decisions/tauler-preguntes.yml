@@ -1062,4 +1062,17 @@ opcions:
       el pas de revisió amb el brut, les comissions i el net abans de confirmar.
     data: 2026-11-19
 
+  P-394:
+    opcions:
+      A: "Com s'ha construït: total + recàrrec repartit en tres (els cèntims de més, al primer), venciments mensuals (J-9), ajustos del tresorer i l'administrador, i el soci els tria a la seva àrea."
+      B: "Igual, però el recàrrec ja és dins de l'import total i només es mostra (no s'hi suma)."
+      C: "Igual, però amb els venciments repartits dins dels 12 mesos (0, 4 i 8 mesos; 072, Q-020)."
+      D: "Igual, però a més la secretaria pot triar els terminis per al soci en una alta presencial."
+    recomanada: A
+    perque: >-
+      La J-9 (085) és posterior a la Q-020 (072) i diu «tres terminis mensuals». Amb el recàrrec a part,
+      la junta pot deixar l'import igual a la quota (90 €) i posar-hi un recàrrec explícit. Tot és reversible
+      mentre la funció és apagada.
+    data: 2026-11-19
+
 noves:

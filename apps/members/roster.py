@@ -148,6 +148,13 @@ def with_fee_data(members):
             .prefetch_related("charge__payments__cancellation"),
             to_attr="annual_fees",
         ),
+        Prefetch(  # T-M01-49: els terminis, per a `validity.instalments_until`
+            "fees",
+            queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.INSTALMENT)
+            .select_related("charge")
+            .prefetch_related("charge__payments__cancellation"),
+            to_attr="instalment_fees",
+        ),
         Prefetch(
             "person__member_requests",
             queryset=MemberRequest.objects.filter(
@@ -184,7 +191,7 @@ def fee_state(member, today: date | None = None) -> FeeState | None:
         if validity.waived_now(member, today):
             return FeeState(WAIVED, until)
         return FeeState(PAID_UNTIL, until)
-    for fee in member.annual_fees:
+    for fee in [*member.annual_fees, *member.instalment_fees]:
         status = fee.charge.status
         if status == Charge.Status.RETURNED:
             return FeeState(PENDING)

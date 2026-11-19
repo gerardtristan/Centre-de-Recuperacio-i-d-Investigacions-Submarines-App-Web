@@ -17,6 +17,12 @@ FEE_REMINDER_OFFSETS = "members.fee_reminder_offsets"  # VC-02 (091)
 CARD_BACK_TEXT = "members.card_back_text"  # VC-03
 CLASSIC_MEMBER_YEARS = "members.classic_member_years"  # VC-04 (0 = sense insígnia)
 SUPPLEMENT_DUE_DAYS = "members.type_change_supplement_due_days"  # VC-53 (091)
+# T-M01-49 (097, P-61): pagament a terminis, una família amb un sol permís (`members/0024`).
+INSTALMENTS = "members.instalments"
+INSTALMENTS_ENABLED = f"{INSTALMENTS}.enabled"
+INSTALMENTS_TOTAL = f"{INSTALMENTS}.total_cents"  # provisional: falta la junta (097)
+INSTALMENTS_SURCHARGE = f"{INSTALMENTS}.surcharge_cents"  # provisional: falta la junta (097)
+INSTALMENTS_UNPAID_DAYS = f"{INSTALMENTS}.unpaid_candidate_days"
 
 
 def price_key(membership_type) -> str:
@@ -69,3 +75,16 @@ def card_back_text() -> str:
 
 def classic_member_years() -> int:
     return business_settings.get(CLASSIC_MEMBER_YEARS)
+
+
+def instalments_enabled() -> bool:
+    return business_settings.get(INSTALMENTS_ENABLED)
+
+
+def instalments_total_cents() -> int:
+    """Import dels tres terminis amb el recàrrec sumat (P-394)."""
+    return business_settings.get(INSTALMENTS_TOTAL) + business_settings.get(INSTALMENTS_SURCHARGE)
+
+
+def instalments_unpaid_days() -> int:
+    return business_settings.get(INSTALMENTS_UNPAID_DAYS)

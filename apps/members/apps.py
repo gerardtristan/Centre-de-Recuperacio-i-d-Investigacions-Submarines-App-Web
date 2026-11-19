@@ -19,6 +19,8 @@ class MembersConfig(AppConfig):
 
         # T-M01-52: un sol permís per al preu de tots els tipus; la fila diu el nom del tipus.
         business_settings.register_family("members.annual_fee_cents", _type_name)
+        # T-M01-49: un sol permís per als quatre ajustos dels terminis.
+        business_settings.register_family(member_settings.INSTALMENTS, _instalment_label)
         # P-360: els recordatoris (VC-02) no poden començar abans de l'avís de renovació.
         business_settings.register_check(
             member_settings.FEE_REMINDER_OFFSETS, member_settings.check_reminders
@@ -39,3 +41,15 @@ def _type_name(code):
     from .models import MembershipType
 
     return MembershipType.objects.filter(code=code).values_list("name", flat=True).first() or code
+
+
+def _instalment_label(suffix):
+    from django.utils.translation import gettext as _
+
+    labels = {
+        "enabled": _("activat"),
+        "total_cents": _("import total dels tres terminis"),
+        "surcharge_cents": _("recàrrec"),
+        "unpaid_candidate_days": _("dies després del venciment per proposar l'impagat"),
+    }
+    return labels.get(suffix, suffix)

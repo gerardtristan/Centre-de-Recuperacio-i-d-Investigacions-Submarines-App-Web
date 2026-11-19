@@ -559,6 +559,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.members",),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    # T-M01-49 (097, P-61): els quatre ajustos del pagament a terminis (`members.instalments.*`,
+    # família registrada pel 01). Matriu inicial com el preu de la quota (P-394).
+    _perm(
+        "settings.edit.members.instalments",
+        "AJ01-7",
+        _("Pagament a terminis de la quota de ple dret"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
     # Textos dels correus i de l'ajuda de les pantalles (T-M00-08 i 08e; 097,
     # planning.md#M00-textos-editables): una àrea per apartat, cadascuna amb «Cons.» (veure) i
     # «Sí» (veure i editar). Matriu inicial: l'administrador edita totes les àrees i la
