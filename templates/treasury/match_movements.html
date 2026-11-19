@@ -1,10 +1,11 @@
-{% extends "base_admin.html" %}
+{% extends base|default:"base_admin.html" %}
 {% load i18n %}
 {# T-M04-12f (CA-T07.2; RN-T17; P-394, P-395): casar una línia pendent amb moviments del banc que ja hi són (els 20 més recents del mateix sentit i d'import no més gran, no anul·lats ni casats) o triar una liquidació rebuda amb el net exacte. Revisió amb la suma i confirmació; cap diner no es mou. T4 al servidor en tots els passos; POST amb CSRF. Del moviment, només la data, el compte, el tipus, el concepte (sense noms, RNF-T4) i l'import. #}
 {% block title %}{% translate "Casa la línia amb moviments" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
-  <h1>{% translate "Casa la línia amb moviments" %}</h1>
+  <h1>{% block titol_pagina %}{% translate "Casa la línia amb moviments" %}{% endblock %}</h1>
+  {% block cos %}
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
@@ -32,18 +33,18 @@
       <div class="avis avis-avis" role="status"><strong>{% translate "Confirma el casament" %}</strong>{% translate "Els moviments sumen l'import de la línia. La línia quedarà conciliada; no es crea ni es canvia cap moviment. Si t'equivoques, es desfà des de la conciliació, amb el motiu." %}</div>
       <div class="accions">
         <button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Sí, casa-la" %}</button>
-        <a class="boto boto-text" href="{% url 'administration:treasury_match_movements' line.pk %}">{% translate "Cancel·la" %}</a>
+        <a class="boto boto-text" href="{% url 'administration:treasury_match_movements' line.pk %}"{% if panell %} hx-get="{% url 'administration:treasury_match_movements' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>{% translate "Cancel·la" %}</a>
       </div>
     </form>
   {% else %}
     {% if settlements %}
       <h2>{% translate "Liquidacions rebudes amb aquest net" %}</h2>
       <ul>
-        {% for item in settlements %}<li><a href="{% url 'administration:treasury_confirm_settlement_line' line.pk %}?liquidacio={{ item.settlement.pk }}">{% translate "Liquidació" %} <span class="codi">{{ item.settlement.provider_code }} · {{ item.settlement.external_id }}</span></a> · <time datetime="{{ item.settlement.settled_on|date:'Y-m-d' }}">{{ item.settlement.settled_on|date:"d/m/Y" }}</time> · <span class="import">{{ item.net }}</span></li>{% endfor %}
+        {% for item in settlements %}<li><a href="{% url 'administration:treasury_confirm_settlement_line' line.pk %}?liquidacio={{ item.settlement.pk }}"{% if panell %} hx-get="{% url 'administration:treasury_confirm_settlement_line' line.pk %}?liquidacio={{ item.settlement.pk }}" hx-target="#panell-linia-cos"{% endif %}>{% translate "Liquidació" %} <span class="codi">{{ item.settlement.provider_code }} · {{ item.settlement.external_id }}</span></a> · <time datetime="{{ item.settlement.settled_on|date:'Y-m-d' }}">{{ item.settlement.settled_on|date:"d/m/Y" }}</time> · <span class="import">{{ item.net }}</span></li>{% endfor %}
       </ul>
     {% endif %}
     {% if found %}
-      <form class="formulari" method="post" action="{% url 'administration:treasury_match_movements' line.pk %}">
+      <form class="formulari" method="post" action="{% url 'administration:treasury_match_movements' line.pk %}"{% if panell %} hx-post="{% url 'administration:treasury_match_movements' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
         {% csrf_token %}
         <fieldset>
           <legend>{% blocktranslate with amount=amount %}Tria els moviments del banc que sumen {{ amount }}{% endblocktranslate %}</legend>
@@ -58,5 +59,6 @@
       <p>{% translate "Cap moviment del banc ni cap liquidació encaixa amb aquesta línia." %}</p>
     {% endif %}
   {% endif %}
+  {% endblock cos %}
   <p class="enllacos"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Torna a la conciliació" %}</a></p>
 {% endblock %}

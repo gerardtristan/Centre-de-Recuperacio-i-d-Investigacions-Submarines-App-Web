@@ -223,3 +223,9 @@ ul.enllacos { list-style: none; }
   .barra-lateral, .menu-plegable .barra-lateral { display: flex; }
   .capcalera-compte .boto-menu { display: none; }
 }
+/* Estats de càrrega (design-system §15.4; B17, D18, D20; T-DX-72): blocs estàtics de la forma del
+   contingut, sense brillantor que es mogui */
+.esquelet { display: block; block-size: var(--e-4); border-radius: var(--r-s); background: var(--c-superficie-2); }
+.esquelet-titol { block-size: var(--e-5); inline-size: 70%; }
+.esquelet-curt { inline-size: 40%; }
+.esquelet-bloc { display: grid; gap: var(--e-3); }

@@ -1,4 +1,4 @@
-{% extends "base_admin.html" %}
+{% extends base|default:"base_admin.html" %}
 {% load i18n %}
 {# T-M04-15 (tercer tall), C5: segon pas per confirmar una liquidació rebuda (P-M04-F, pas 4; CA-T11.1). Amb `line` (T-M04-13b, des de la conciliació): la línia del banc proposada pel net i el repartiment de les comissions per cobrament (P-M04-F, pas 3; VT-05), i en confirmar la línia queda conciliada. T4 amb edició al servidor; POST amb CSRF. Tot o res: si una comissió ja hi és amb un altre import, es rebutja (P-116) i no canvia res. Dels cobraments, la referència del proveïdor i els imports: cap nom. #}
 {% block title %}{% translate "Confirma la liquidació" %} · C.R.I.S.{% endblock %}
@@ -9,13 +9,14 @@
     {% else %}
       <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_settlements' %}">{% translate "Liquidacions" %}</a></p>
     {% endif %}
-    <h1>{% translate "Confirma la liquidació" %}</h1>
+    <h1>{% block titol_pagina %}{% translate "Confirma la liquidació" %}{% endblock %}</h1>
   </header>
+  {% block cos %}
   {% if choices %}
     <dl class="dades-soci">
       <div><dt>{% translate "Línia del banc" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time> · {{ line.concept }} · <span class="import">{{ amount }}</span></dd></div>
     </dl>
-    <form class="formulari" method="get" action="{% url 'administration:treasury_confirm_settlement_line' line.pk %}">
+    <form class="formulari" method="get" action="{% url 'administration:treasury_confirm_settlement_line' line.pk %}"{% if panell %} hx-get="{% url 'administration:treasury_confirm_settlement_line' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
       <h2 id="tria-liquidacio">{% translate "Més d'una liquidació té aquest import. Quina és?" %}</h2>
       <div role="radiogroup" aria-labelledby="tria-liquidacio">
         {% for choice in choices %}
@@ -24,7 +25,7 @@
       </div>
       <div class="accions">
         <button class="boto boto-principal" type="submit">{% translate "Revisa aquesta liquidació" %}</button>
-        <a class="boto boto-text" href="{% url 'administration:treasury_reconciliation' %}">{% translate "Cancel·la" %}</a>
+        <a class="boto boto-text" href="{% url 'administration:treasury_reconciliation' %}"{% if panell %} data-panell-tanca{% endif %}>{% translate "Cancel·la" %}</a>
       </div>
     </form>
   {% else %}
@@ -63,8 +64,9 @@
     <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma la liquidació" %}</strong>{% blocktranslate with net=net fees=fees %}S'apuntaran {{ fees }} de comissions al departament de cada cobrament i {{ net }} passaran del compte de trànsit al banc.{% endblocktranslate %}{% if line %} {% translate "La línia del banc quedarà conciliada; si t'equivoques, es desfà des de la conciliació, amb el motiu." %}{% endif %}</div>
     <div class="accions">
       <button class="boto boto-principal" type="submit">{% translate "Sí, confirma-la" %}</button>
-      <a class="boto boto-text" href="{% if line %}{% url 'administration:treasury_reconciliation' %}{% else %}{% url 'administration:treasury_settlements' %}{% endif %}">{% translate "Cancel·la" %}</a>
+      <a class="boto boto-text" href="{% if line %}{% url 'administration:treasury_reconciliation' %}{% else %}{% url 'administration:treasury_settlements' %}{% endif %}"{% if panell %} data-panell-tanca{% endif %}>{% translate "Cancel·la" %}</a>
     </div>
   </form>
   {% endif %}
+  {% endblock cos %}
 {% endblock %}

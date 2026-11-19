@@ -1,18 +1,31 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
+{% load i18n static %}
+{# T-DX-72 (PR 9b): el títol diu el que queda (D13) i, a sobre, els comptadors de Deposito. A l'escriptori, la taula (8/12) i el panell de la línia triada (4/12): els enllaços amb data-panell-enllac hi carreguen amb HTMX la mateixa vista (mateix permís, CSRF i comprovacions), J i K passen de línia i Esc o «Tanca» el tanquen (conciliacio.js). Al mòbil, a la tauleta i sense JavaScript, l'enllaç porta a la pàgina com abans. #}
 {# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e), «Casa amb moviments» (T-M04-12f) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). Una línia amb una liquidació del proveïdor (T-M04-13b) en mostra el proveïdor, l'identificador i el net, i «Revisa i confirma…» porta al pas de revisió. #}
 {% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/teletipo.css' %}"><script src="{% static 'js/conciliacio.js' %}" defer></script>{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "Conciliació" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria · Conciliació" %}</p>
+    <h1>{% if open %}{% blocktranslate count n=open %}Queda {{ n }} línia per conciliar{% plural %}Queden {{ n }} línies per conciliar{% endblocktranslate %}{% else %}{% translate "No queda cap línia per conciliar" %}{% endif %}</h1>
+    <p class="text-2">{% translate "Les línies dels extractes importats. La plataforma proposa; només el tresorer confirma. Confirmar posa els càrrecs en «pagat» i apunta l'ingrés al banc; desfer-ho torna els càrrecs a «pendent» i compensa l'ingrés, amb el motiu." %}</p>
+    {% if can_review %}<div class="accions"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></div>{% endif %}
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "Les línies dels extractes importats. La plataforma proposa; només el tresorer confirma. Confirmar posa els càrrecs en «pagat» i apunta l'ingrés al banc; desfer-ho torna els càrrecs a «pendent» i compensa l'ingrés, amb el motiu." %}</p>
-  {% if can_review %}<p class="enllacos"><a href="{% url 'administration:treasury_review' %}">{% translate "Mira les línies a revisar" %}</a></p>{% endif %}
+  {# Deposito (§6.17): els comptadors, de la mateixa consulta que la llista. #}
+  <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la conciliació' %}">
+    <li{% if counts.pending %} class="es-pendent"{% endif %}><b>{{ counts.pending }}</b><span>{% blocktranslate count n=counts.pending %}pendent{% plural %}pendents{% endblocktranslate %}</span></li>
+    <li><b>{{ counts.proposed }}</b><span>{% blocktranslate count n=counts.proposed %}proposada{% plural %}proposades{% endblocktranslate %}</span></li>
+    <li><b>{{ counts.reconciled }}</b><span>{% blocktranslate count n=counts.reconciled %}conciliada{% plural %}conciliades{% endblocktranslate %}</span></li>
+    <li><b>{{ counts.excluded }}</b><span>{% blocktranslate count n=counts.excluded %}exclosa{% plural %}excloses{% endblocktranslate %}</span></li>
+  </ul>
 
   {% if rows %}
+  <div class="conciliacio" data-conciliacio>
+   <div class="conciliacio-taula">
     <table class="taula">
       <caption>{% translate "Línies de l'extracte, de la més recent a la més antiga per data de valor" %}</caption>
       <thead>
@@ -35,7 +48,7 @@
               {% if row.state.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.state.get_status_display }}</span>
               {% elif row.state.status == "proposed" %}<span class="estat estat-info"><span aria-hidden="true">→</span> {{ row.state.get_status_display }}</span>
               {% elif row.state.status == "excluded" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ row.state.get_status_display }}</span>
-              {% elif row.state.to_review %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}: {{ row.state.get_review_reason_display }}</span>
+              {% elif row.state.to_review %}<span><span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}</span> {{ row.state.get_review_reason_display }}</span>
               {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.state.get_status_display }}</span>{% endif %}
             </td>
             <td data-etiqueta="{% translate 'Càrrecs' %}">
@@ -56,15 +69,15 @@
                 {# T4: confirmar, desfer, triar i casar a mà; T8: excloure una línia oberta i desfer-ne l'exclusió (P-190; T-M04-14d, 097). #}
                 {% if row.state.status == "pending" or row.state.status == "proposed" %}
                   {% if can_reconcile %}
-                    {% if row.state.status == "proposed" and row.state.proposed_settlement %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i confirma…" %}</a>
+                    {% if row.state.status == "proposed" and row.state.proposed_settlement %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}" data-panell-enllac>{% translate "Revisa i confirma…" %}</a>
                     {% elif row.state.status == "proposed" %}<form method="post" action="{% url 'administration:treasury_confirm_line' row.line.pk %}">
                       {% csrf_token %}
                       <button class="boto boto-petit" type="submit">{% translate "Confirma" %}</button>
                     </form>
                     {% else %}
-                      {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
-                      {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
-                      {% if row.line.amount_cents %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_movements' row.line.pk %}">{% translate "Casa amb moviments…" %}</a>{% endif %}
+                      {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}" data-panell-enllac>{% translate "Revisa i tria…" %}</a>{% endif %}
+                      {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}" data-panell-enllac>{% translate "Casa a mà…" %}</a>{% endif %}
+                      {% if row.line.amount_cents %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_movements' row.line.pk %}" data-panell-enllac>{% translate "Casa amb moviments…" %}</a>{% endif %}
                     {% endif %}
                   {% endif %}
                   {% if can_exclude %}<details class="altes-rebuig">
@@ -122,6 +135,28 @@
         {% if page.has_next %}<a class="boto boto-petit" href="{% querystring pagina=page.next_page_number %}">{% translate "Més antigues" %}</a>{% endif %}
       </nav>
     {% endif %}
+   </div>
+   {% if can_reconcile %}
+    {# El panell només existeix amb JavaScript (conciliacio.js li treu «hidden») i quan el cos fa 56rem o més (CSS). No és cap control. #}
+    <aside class="panell-linia" aria-labelledby="panell-linia-titol" data-panell hidden>
+      <div class="accions"><button class="boto boto-text boto-petit" type="button" data-panell-tanca aria-keyshortcuts="Escape" hidden>{% translate "Tanca" %}</button></div>
+      <div id="panell-linia-cos" class="panell-linia-cos" data-panell-cos>
+        <h2 id="panell-linia-titol" tabindex="-1">{% translate "Cap línia triada" %}</h2>
+        <p class="text-2">{% translate "«Casa a mà…», «Casa amb moviments…» i «Revisa i confirma…» s'obren aquí, al costat de la taula." %}</p>
+        <p class="teletipo-drecera text-2">{% blocktranslate %}<kbd>J</kbd> i <kbd>K</kbd> per passar de línia; <kbd>Esc</kbd> per tancar.{% endblocktranslate %}</p>
+      </div>
+    </aside>
+    <template data-panell-esquelet>
+      <div class="esquelet-bloc" aria-hidden="true"><span class="esquelet esquelet-titol"></span><span class="esquelet"></span><span class="esquelet"></span><span class="esquelet esquelet-curt"></span></div>
+      <p class="visualment-amagat" role="status">{% translate "Carregant la línia…" %}</p>
+    </template>
+    <template data-panell-error>
+      <h2 id="panell-linia-titol" tabindex="-1">{% translate "No s'ha pogut obrir la línia" %}</h2>
+      <div class="avis avis-error" role="alert">{% translate "Pot ser que la línia hagi canviat o que ja no hi tinguis accés. Torna-ho a provar a la seva pàgina." %}</div>
+      <p><a href="{% url 'administration:treasury_reconciliation' %}" data-panell-pagina>{% translate "Obre-la a la seva pàgina" %}</a></p>
+    </template>
+   {% endif %}
+  </div>
   {% else %}
     <p>{% translate "No hi ha cap línia d'extracte per conciliar. Primer cal importar l'extracte del banc." %}</p>
   {% endif %}
