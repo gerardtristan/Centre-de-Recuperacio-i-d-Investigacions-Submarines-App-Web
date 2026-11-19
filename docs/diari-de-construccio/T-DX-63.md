@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 16:54 | 7c5e9fd9 | 2 noves (contrast) i 7 e2e noves; les comunes troben les dues pantalles | [A comprovar] (PR pendent) |
+| 18/11/2026 16:54 | d3f95eb3 | 2 noves (contrast) i 7 e2e noves; les comunes troben les dues pantalles | [A comprovar] (PR pendent) |
 
 **En tres línies:** hi ha la pàgina «Activitats» de l'àrea del soci, en construcció: el recompte al títol, pestanyes per tipus amb Guardades, filtres («Només les que puc fer», «Quan», «On», «Només amb places lliures») i les targetes de Convite amb l'estrella de Marcador. A l'escriptori els filtres són una columna fixa a l'esquerra; al mòbil, una pantalla sencera amb «Fet». També hi ha el bloc «Activitats per a tu» per a la portada, que encara no s'hi inclou.
 
@@ -11,7 +11,7 @@
 - Peces: `_activitats_targeta.html`, `_activitats_buit.html`, `_activitats_per_a_tu.html`, `static/css/activitats.css` i `static/js/activitats.js` (propi, `defer`, sense xarxa).
 - `apps/previews/screens/activitats_per_a_tu.py` i la seva plantilla: el bloc sol, per veure'l i provar-lo.
 - `tokens.css`: `--c-tipus-sortida`, `--c-tipus-curs`, `--c-tipus-conferencia` i `--c-tipus-medi`, en clar i en fosc.
-- Sistema de disseny 1.31, §16 «T-DX-63 Activitats». Pregunta [P-312](../decisions/pendents.md) i al tauler. Fila a [`estat/DX.md`](../estat/DX.md).
+- Sistema de disseny 1.40, §16 «T-DX-63 Activitats». Pregunta [P-312](../decisions/pendents.md) i al tauler. Fila a [`estat/DX.md`](../estat/DX.md).
 
 ## Decisions i perquè
 - **Pantalla proposada (D1):** el pla no la té; P-312 és reversible i l'opció per defecte és aquest disseny.
@@ -50,11 +50,11 @@
 
   ![Pàgina Activitats a l'escriptori: la columna de filtres a l'esquerra, les pestanyes per tipus i, a «Totes», les tres sortides, cursos, conferències i activitats de medi ambient més properes](captures/2026-11-18_1654_T-DX-63_activitats-1280.png)
 
-  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit 7c5e9fd9*
+  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit d3f95eb3*
 - A 800 px, en fosc (filtres en una fila a dalt): `captures/2026-11-18_1654_T-DX-63_activitats-800-fosc.png`
 - A 390 px, els filtres oberts a pantalla sencera: `captures/2026-11-18_1654_T-DX-63_filtres-390.png`
 
-  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e · commit 7c5e9fd9*
+  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e · commit d3f95eb3*
 - Sortida de proves · executada el 18/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/previews apps/core/tests/test_under_construction.py apps/core/tests/test_tokens_color.py apps/core/tests/test_verificacio_t_m00_07.py -q
