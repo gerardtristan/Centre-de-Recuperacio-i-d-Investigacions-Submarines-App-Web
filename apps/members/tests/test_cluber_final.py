@@ -33,6 +33,7 @@ from apps.core.models import (
     Person,
 )
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members import cards
 from apps.members.imports import cluber, final
 from apps.members.models import (
     AnnualFee,
@@ -337,10 +338,23 @@ class TestWrites:
         # CA-M01-22: el número següent serà el més alt importat + 1.
         assert MembershipNumberCounter.objects.get().last_number == 902
 
-    def test_no_fee_charge_or_card(self, batch):
-        # RN-M01-33 i 071 (punts 3 i 6): cap quota ni càrrec; el carnet és de la T-M01-19.
+    def test_no_fee_or_charge(self, batch):
+        # RN-M01-33 i 071 (punts 3 i 6): cap quota ni càrrec.
         assert Charge.objects.count() == 0
         assert AnnualFee.objects.count() == 0
+
+    def test_each_imported_member_gets_a_valid_card_t_m01_19b(self, batch, admin):
+        # RN-M01-34 (097, punt 1): carnet amb el servei de carnets, vàlid fins a un any després
+        # de «Data alta/renovació» (01/10/2026).
+        for member in Member.objects.filter(import_batch=batch):
+            loaded = cards.load_member(member.pk)
+            card = cards.active_card(member)
+            assert card.version == 1
+            assert cards.validity(loaded, card, datetime.date(2027, 10, 1)).valid
+            assert not cards.validity(loaded, card, datetime.date(2027, 10, 2)).valid
+        issued = AuditEntry.objects.filter(action=cards.CARD_ISSUED)
+        assert issued.count() == 2
+        assert {e.actor_account for e in issued} == {admin}
 
     def test_audit(self, batch, admin):
         entry = AuditEntry.objects.get(action="members.cluber_import.confirmed")
@@ -354,6 +368,14 @@ class TestWrites:
             "document_type_deduced": 0,
             "document_type_chosen": 0,
         }
+
+
+@allowed
+def test_no_card_without_the_cluber_renewal_date_rn_m01_34(admin, future_document_rule):
+    final.confirm(build([importable_record(1, {"idInterno": ""})]), by=admin)
+    member = Member.objects.get()
+    assert member.cluber_renewed_on is None
+    assert cards.active_card(member) is None
 
 
 @allowed

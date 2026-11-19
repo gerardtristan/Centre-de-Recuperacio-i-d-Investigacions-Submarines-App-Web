@@ -25,8 +25,9 @@ Què fa, en una sola transacció (si falla qualsevol pas, no queda res escrit):
   soci actiu amb el número de Cluber, `cluber_id`, la data d'alta si n'hi ha (Q-075), l'última
   renovació de Cluber (`cluber_renewed_on`, d'on compten el venciment i el carnet, 097),
   la llavor de l'avatar (`new_avatar_seed`, per defecte del model) i l'entrada inicial de
-  l'historial amb la procedència «importat de Cluber» (Q-072), i el consentiment d'imatges amb el
-  canal «importat de Cluber» si la cel·la diu «sí»;
+  l'historial amb la procedència «importat de Cluber» (Q-072), el consentiment d'imatges amb el
+  canal «importat de Cluber» si la cel·la diu «sí», i el carnet amb el servei de carnets si hi ha
+  «Data alta/renovació» (RN-M01-34; 097, punt 1; T-M01-19b): sense aquesta data, cap carnet;
 - una línia per fila, amb codis de la llista tancada i sense cap valor del fitxer;
 - el comptador de números continua després del més alt importat (RN-M01-32, CA-M01-22).
 
@@ -41,8 +42,7 @@ Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la re
   queden excloses soles, amb el codi «left_in_cluber» a la seva línia, que és la llista per a la
   secretaria. La resta entren actives.
 - Les files coincidents no s'importen ni modifiquen la persona: s'han d'excloure (P-65, punt 3).
-- Cap quota, càrrec ni moviment (RN-M01-33; 071, punts 3 i 6). Cap carnet: el provisional de la
-  RN-M01-34 és [A validar: tresorer] i de la T-M01-19.
+- Cap quota, càrrec ni moviment (RN-M01-33; 071, punts 3 i 6).
 """
 
 from collections import Counter
@@ -58,6 +58,7 @@ from apps.core.models import ImportBatch, ImportLine, Person
 from apps.core.permissions import has_perm
 from apps.core.persons import create_or_get
 
+from ..cards import issue_card, revoke_card
 from ..models import Member, MembershipNumberCounter, MembershipType, MemberStatusChange
 from . import cluber
 
@@ -239,6 +240,8 @@ def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
                 IMAGE_CONSENT_KIND, cluber.IMAGE_CONSENT, language=IMAGE_CONSENT_LANGUAGE, by=by
             )
             consents.grant_imported(person, image_text, by=by)
+        if member.cluber_renewed_on:  # RN-M01-34: sense la data, cap carnet
+            issue_card(member, by=by)
         people[row.row] = person
 
     highest = max(r.data["member_number"] for r in to_import)
@@ -282,7 +285,6 @@ def undo(batch: ImportBatch, *, by, reason: str, request=None) -> int:
     persona, consentiment ni línia s'esborra. Torna quants socis s'han donat de baixa. Tot o
     res, en una sola transacció. Amb el lot desfet, `preview` torna a admetre una importació,
     però els números dels socis donats de baixa continuen ocupats."""
-    from ..cards import revoke_card
     from ..services import S, _change_status
 
     if not is_allowed():
