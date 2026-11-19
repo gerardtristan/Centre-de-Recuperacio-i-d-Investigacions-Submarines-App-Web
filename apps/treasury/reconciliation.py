@@ -301,10 +301,11 @@ def _settlement_candidates(lines) -> dict:
     return result
 
 
-def settlement_choices(line) -> list:
+def settlement_choices(line, *, limit=None) -> list:
     """Les liquidacions que el tresorer pot casar amb la línia: la proposada o, si la línia és
     «a revisar» per ambigua, totes les seves candidates (revisió de la #212, punt 3). Llegeix
-    l'estat desat; `settlements.confirm_line` el torna a calcular abans de moure res."""
+    l'estat desat; `settlements.confirm_line` el torna a calcular abans de moure res. `limit`
+    retalla només la llista que es mostra: `confirm_line` no en passa cap."""
     state = (
         StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
         .select_related("statement_line", "proposed_settlement")
@@ -329,7 +330,7 @@ def settlement_choices(line) -> list:
             )
             .exclude(source=ProviderSettlement.Source.REMITTANCE)
             .exclude(pk__in=proposed)
-            .order_by("-settled_on", "-pk")[:SEARCH_LIMIT]
+            .order_by("-settled_on", "-pk")[:limit]  # `limit`, només per mostrar-les
         )
     return []
 
@@ -395,13 +396,16 @@ def match_problem(line, *, incoming=True) -> str:
     )
     if state is not None and state.status == StatementLineState.Status.PROPOSED:
         return _("Aquesta línia ja té una proposta: revisa-la i confirma-la.")
+    if not incoming:  # amb moviments també es casa una línia de sortida
+        if state is None or state.status != StatementLineState.Status.PENDING:
+            return _("Aquesta línia no està pendent: no es pot casar.")
+        if state.statement_line.amount_cents == 0:
+            return _("Aquesta línia no té cap import: no es pot casar.")
+        return ""
     if (
         state is None
         or state.status != StatementLineState.Status.PENDING
-        or (
-            state.statement_line.amount_cents <= 0
-            and (incoming or not state.statement_line.amount_cents)
-        )
+        or state.statement_line.amount_cents <= 0
     ):
         return _("Aquesta línia no està pendent o no és d'entrada: no es pot casar.")
     return ""
@@ -477,7 +481,11 @@ def matchable_movements(line):
         )
         .exclude(kind=Movement.Kind.REVERSAL)
         .exclude(pk__in=through.filter(reconciliation__in=live).values("movement"))
-        .exclude(payment__charge__in=charges.filter(reconciliation__in=live).values("charge"))
+        # Només l'ingrés d'un càrrec conciliat: la seva devolució o el seu retorn sí que es casen.
+        .exclude(
+            kind=Movement.Kind.INCOME,
+            payment__charge__in=charges.filter(reconciliation__in=live).values("charge"),
+        )
     )
 
 

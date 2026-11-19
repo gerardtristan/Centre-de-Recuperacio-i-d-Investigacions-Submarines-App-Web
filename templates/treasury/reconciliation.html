@@ -103,7 +103,7 @@
                       <div class="camp">
                         <label for="desfes-{{ row.line.pk }}">{% translate "Motiu per desfer-la" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="desfes-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% elif row.reconciliation.matched_movements.all %}{% translate "La línia torna a «pendent». Els moviments casats no es toquen: si n'hi ha un d'equivocat, s'anul·la a part. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
+                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% elif row.reconciliation.matched_movements.all %}{% translate "La línia torna a «pendent» i els moviments casats no es toquen. Si un és equivocat: un traspàs es corregeix amb un altre en sentit contrari, un ingrés de cobrament amb una devolució i la resta es pot anul·lar amb el motiu. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
                     </form>

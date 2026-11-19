@@ -549,7 +549,9 @@ def reverse(
         raise ValidationError(_("Per anul·lar un moviment cal escriure'n el motiu."))
     if origin == MANUAL and not has_perm(by, REVERSE, write=True):
         raise Http404
-    movement = Movement.objects.get(pk=movement.pk)
+    # El pany de la fila, com `reconciliation.match_movements`: un casament alhora no pot entrar
+    # entre la comprovació de `_ensure_manually_reversible` i el contramoviment.
+    movement = Movement.objects.select_for_update().get(pk=movement.pk)
     if movement.is_reversed:
         raise AlreadyReversed(_("Aquest moviment ja està anul·lat."))
     if origin == MANUAL:

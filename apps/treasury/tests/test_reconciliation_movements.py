@@ -6,6 +6,7 @@ from datetime import date
 import pytest
 from django.db import DatabaseError, connection, transaction
 from django.http import Http404
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from apps.core.models import AuditEntry, Department, Role
@@ -42,10 +43,10 @@ def opened(*rows, by):
     return found
 
 
-def other_income(bank, by, amount=3000):  # noqa: F811
+def other_income(bank, by, amount=3000, value_date=date(2026, 11, 3)):  # noqa: F811
     general = Department.objects.get(name="General")
     return services.record_other_income(
-        bank, amount, value_date=date(2026, 11, 3), department=general, concept="Donatiu", by=by
+        bank, amount, value_date=value_date, department=general, concept="Donatiu", by=by
     )
 
 
@@ -110,6 +111,33 @@ class TestMatchMovements:
         with pytest.raises(Rejected):  # una línia conciliada no torna a casar-se
             reconciliation.match_movements(other, [entry.pk], by=treasurer)
 
+    def test_review_1_the_refund_of_a_reconciled_charge_is_matchable(self, treasurer, charge):  # noqa: F811
+        quota = charge(9000)
+        paid, outgoing, other = opened(
+            (9000, f"TRANSF {ref(quota)}"), (-4000, "DEVOLUCIO"), (9000, "ALTRA"), by=treasurer
+        )
+        reconciliation.confirm(paid, by=treasurer)
+        payment = quota.payments.get()
+        refund = services.record_refund(payment, 4000, reason=REASON, by=treasurer)
+        assert refund.account.kind == "bank" and refund in reconciliation.matchable_movements(
+            outgoing
+        )
+        income = Movement.objects.get(kind=Movement.Kind.INCOME)
+        assert income not in reconciliation.matchable_movements(other)  # l'ingrés, no
+        reconciliation.match_movements(outgoing, [refund.pk], by=treasurer)
+        assert status(outgoing) == State.RECONCILED
+
+    def test_review_6_messages_for_a_line_that_cannot_be_matched(self, treasurer, cash, bank):  # noqa: F811
+        entry = deposit(cash, bank, treasurer)[1]
+        done, zero = opened((12_000, "INGRES"), (0, "ZERO"), by=treasurer)
+        reconciliation.match_movements(done, [entry.pk], by=treasurer)
+        assert reconciliation.match_problem(done, incoming=False) == (
+            "Aquesta línia no està pendent: no es pot casar."
+        )
+        assert reconciliation.match_problem(zero, incoming=False) == (
+            "Aquesta línia no té cap import: no es pot casar."
+        )
+
     def test_a_proposed_line_and_an_account_without_t4_are_rejected(
         self,
         treasurer,
@@ -169,6 +197,19 @@ class TestUndo:
         reconciliation.match_movements(line, [donation.pk], by=treasurer)
         assert status(line) == State.RECONCILED
 
+    def test_review_2_reverse_locks_the_movement_before_the_check(self, treasurer, bank):  # noqa: F811
+        donation = other_income(bank, treasurer)
+        with CaptureQueriesContext(connection) as queries:
+            services.reverse(donation, reason=REASON, by=treasurer)
+        sql = [q["sql"] for q in queries]
+        locked = next(
+            n for n, q in enumerate(sql) if "FOR UPDATE" in q and '"treasury_movement"' in q
+        )
+        guard = next(
+            n for n, q in enumerate(sql) if "treasury_reconciliation_matched_movements" in q
+        )
+        assert locked < guard
+
     def test_after_undo_the_movement_can_be_reversed(self, treasurer, bank):  # noqa: F811
         donation = other_income(bank, treasurer)
         (line,) = opened((3000, "DONATIU"), by=treasurer)
@@ -188,6 +229,24 @@ class TestManualSettlement:
         settlements.confirm_line(line, late.pk, by=treasurer)
         assert ProviderSettlement.objects.get().status == ProviderSettlement.Status.RECONCILED
         assert status(line) == State.RECONCILED
+
+    def test_review_5_a_settlement_beyond_the_shown_list_can_be_confirmed(
+        self,
+        two,
+        treasurer,
+        person,  # noqa: F811
+        monkeypatch,
+    ):
+        monkeypatch.setattr(reconciliation, "SEARCH_LIMIT", 1)
+        older = received(settled_on=date(2026, 10, 1))
+        collected(person, 12500, "REF-C")
+        newer = received(
+            SettlementLine("REF-C", 12500), external_id="LIQ-002", settled_on=date(2026, 10, 2)
+        )
+        line = bank_line(treasurer)
+        assert reconciliation.settlement_choices(line, limit=reconciliation.SEARCH_LIMIT) == [newer]
+        settlements.confirm_line(line, older.pk, by=treasurer)
+        assert ProviderSettlement.objects.get(pk=older.pk).status == "reconciled"
 
     def test_a_settlement_proposed_to_another_line_is_not_offered(self, two, treasurer):
         received()
@@ -233,7 +292,7 @@ class TestViews:
         assert response.status_code == 302 and status(line) == State.RECONCILED
         listing = client.get(reverse("administration:treasury_reconciliation")).content.decode()
         assert "Traspàs · Ingrés de l&#x27;efectiu de la caixa" in listing
-        assert "Els moviments casats no es toquen" in listing
+        assert "els moviments casats no es toquen" in listing
 
     def test_a_wrong_sum_goes_back_with_an_error(self, treasurer, cash, bank):  # noqa: F811
         entry = deposit(cash, bank, treasurer, amount=1000)[1]
@@ -261,3 +320,28 @@ class TestViews:
         url = reverse("administration:treasury_match_movements", args=[line.pk])
         page = client_for(treasurer).get(url).content.decode()
         assert "ja té una proposta" in page and 'name="moviment"' not in page
+
+    def test_review_4_the_closest_movements_to_the_line_date_come_first(
+        self,
+        treasurer,
+        bank,  # noqa: F811
+        monkeypatch,
+    ):
+        monkeypatch.setattr(reconciliation, "SEARCH_LIMIT", 1)
+        near = other_income(bank, treasurer, value_date=date(2026, 11, 3))
+        other_income(bank, treasurer, value_date=date(2026, 1, 5))  # més recent per pk, però lluny
+        (line,) = opened((3000, "DONATIU"), by=treasurer)  # data de valor: 02/11/2026
+        url = reverse("administration:treasury_match_movements", args=[line.pk])
+        response = client_for(treasurer).get(url)
+        assert [item["movement"] for item in response.context["found"]] == [near]
+        assert response.context["more"]
+
+    def test_review_8_a_bad_id_empties_the_choice(self, treasurer, bank):  # noqa: F811
+        donation = other_income(bank, treasurer)
+        (line,) = opened((3000, "DONATIU"), by=treasurer)
+        url = reverse("administration:treasury_match_movements", args=[line.pk])
+        response = client_for(treasurer).post(
+            url, {"moviment": [donation.pk, "x"], "confirma": "1"}, follow=True
+        )
+        assert "Tria un o més moviments" in response.content.decode()
+        assert not Reconciliation.objects.exists()
