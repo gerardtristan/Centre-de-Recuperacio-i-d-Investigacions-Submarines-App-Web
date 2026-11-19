@@ -32,7 +32,7 @@ from .models import (
     SavedCardAttempt,
     SavedCardNotice,
 )
-from .providers import enabled_capabilities, get_provider
+from .providers import enabled_capabilities, get_provider, switch_key
 from .providers.base import OrderUrls, ProviderError
 
 # Què ha de fer la pantalla amb `PaymentStart.url`: enviar-hi el navegador o incrustar-la.
@@ -291,6 +291,7 @@ CARD_CLOSED, NOT_MEMBER, PREFERENCE, PROVIDER, NOT_FEE, TRANSFER_WAITING, OTHER_
     "other_person",
 )  # fmt: skip
 ARREARS, OPEN_FAILED, PENDING_MEMBER = "arrears", "open_failed", "pending_member"
+SAVED_CARD_OFF = "saved_card_off"  # P-403 (opció B): el club ha aturat la targeta guardada
 # P-302: dies des del venciment que una quota es cobra fora de sessió (7 [A validar: tresorer]).
 WINDOW = "payments.saved_card_charge_window_days"
 
@@ -304,7 +305,8 @@ def _expired(card: SavedCard, today) -> bool:
 def _unusable(card: SavedCard | None, charge: Charge, provider, today) -> str | None:
     """Per què la targeta no pot cobrar la quota (un cas d'`OUTCOMES`), o None si pot: la targeta
     activa i no caducada, del proveïdor, de la preferència «targeta guardada» d'un soci actiu o
-    impagat (un de pendent, no: P-309, opció per defecte), per a una quota anual seva."""
+    impagat (un de pendent, no: P-309, opció per defecte), per a una quota anual seva, amb la
+    targeta guardada activa al club (P-403)."""
     fee = getattr(charge, "annual_fee", None)
     if fee is None:
         return NOT_FEE
@@ -318,6 +320,8 @@ def _unusable(card: SavedCard | None, charge: Charge, provider, today) -> str | 
         member_id=fee.member_id, method=SAVED_CARD, saved_card=card
     ).exists():
         return PREFERENCE
+    if not business_settings.get(switch_key("tokenization")):
+        return SAVED_CARD_OFF
     if card.provider_code != provider.code:
         return PROVIDER
     if card.person_id != charge.person_id:
@@ -429,6 +433,7 @@ def _still_applies(notice, provider, today) -> bool:
         PROVIDER,
         NOT_FEE,
         OTHER_PERSON,
+        SAVED_CARD_OFF,
     ):
         return _unusable(notice.card, notice.charge, provider(), today) == notice.case
     if notice.case == TRANSFER_WAITING:

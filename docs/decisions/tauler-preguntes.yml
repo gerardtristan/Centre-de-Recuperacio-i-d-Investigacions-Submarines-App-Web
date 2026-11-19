@@ -1134,6 +1134,16 @@ opcions:
       sense pagar la quota sense saber-ho. Si el proveïdor deixa de cobrar, el cobrament falla i el soci
       rep l'alternativa de pagament (T-M05b-15b), com ara.
     data: 2026-11-19
+  P-406:
+    opcions:
+      A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."
+      B: "Com els arreus: ni correu ni «a revisar»; només el registre d'activitat."
+      C: "Com els altres motius: correu i, a més, la quota «a revisar»."
+    recomanada: A
+    perque: >-
+      El soci ja rep l'enllaç per pagar i no hi ha res a resoldre, però el correu diu al tresorer qui no
+      té adreça i s'ha d'avisar d'una altra manera; sense ell, aquesta quota quedaria oblidada.
+    data: 2026-11-19
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."

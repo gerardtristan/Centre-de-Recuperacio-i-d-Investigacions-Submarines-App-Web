@@ -71,10 +71,21 @@ OUTCOMES = {
     "transfer_waiting": gettext_lazy("Té una transferència en espera: no es cobra la targeta."),
     "arrears": gettext_lazy("La quota va vèncer fa massa dies: es paga des de la pantalla."),
     "open_failed": gettext_lazy("No s'ha pogut obrir l'intent al proveïdor."),
+    "saved_card_off": gettext_lazy("El club ha aturat el cobrament amb la targeta guardada."),
 }
-TELL_MEMBER = {"denied", "order_expired", "authentication", "card_closed", "arrears"}
+TELL_MEMBER = {
+    "denied",
+    "order_expired",
+    "authentication",
+    "card_closed",
+    "arrears",
+    "saved_card_off",
+}
+UNUSABLE = {"card_closed", "saved_card_off"}  # cap cobrament intentat: «ja no es pot fer servir»
 NO_TREASURER_EMAIL = {"arrears"}  # «a revisar», sense correu: no inunda el tresorer en migrar
-NOT_REVIEWED = {"denied", "order_expired", "authentication"}  # la resta, «a revisar»
+# La resta, «a revisar». P-406 (opció per defecte): la targeta aturada (P-403) no hi va; el
+# tresorer en rep el correu de cada quota.
+NOT_REVIEWED = {"denied", "order_expired", "authentication", "saved_card_off"}
 # L'ordre potser s'ha cobrat: el tresorer ho comprova al proveïdor abans de demanar res al soci.
 MAYBE_CHARGED = {"provider_error", "unexpected_order", "give_up"}
 NOTICE_TRIES = 3  # dies que es tornen a provar els correus d'un avís; després, «a revisar»
@@ -342,7 +353,7 @@ def _send(notice: SavedCardNotice) -> None:
         with transaction.atomic():
             member = case in TELL_MEMBER
             sent = member and returns.send_alternative(
-                charge, new_mandate=False, saved_card=True, unusable=case == "card_closed"
+                charge, new_mandate=False, saved_card=True, unusable=case in UNUSABLE
             )
             erased = charge.person.status == Person.Status.ANONYMISED
             fee = getattr(charge, "annual_fee", None)
