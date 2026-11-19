@@ -375,18 +375,10 @@ class TestWrites:
 
 @allowed
 class TestCardOfTheImportedT_M01_19b:
-    @pytest.mark.parametrize(
-        "values",
-        [
-            {"idInterno": ""},  # sense `idInterno` la data no es desa
-            # Amb `idInterno` i sense la data, la fila queda pendent (T-M01-25b) i, amb la data
-            # posada per la secretaria, té carnet: `test_cluber_final_25b.py`.
-        ],
-    )
-    def test_no_card_without_the_cluber_renewal_date_rn_m01_34(
-        self, admin, future_document_rule, values
-    ):
-        final.confirm(build([importable_record(1, values)]), by=admin)
+    def test_no_card_without_idinterno_rn_m01_34(self, admin, future_document_rule):
+        # Sense `idInterno` la data no es desa (P-397). Amb `idInterno` i sense la data, la fila
+        # queda pendent: `test_cluber_final_25b.py`.
+        final.confirm(build([importable_record(1, {"idInterno": ""})]), by=admin)
         member = Member.objects.get()
         assert member.cluber_renewed_on is None
         assert cards.active_card(member) is None

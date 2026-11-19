@@ -86,7 +86,9 @@ MESSAGES = {
     "document_type_row_unknown": _("S'ha triat el tipus de document d'una fila que no el demana."),
     "document_type_invalid": _("El tipus de document triat no és vàlid."),
     "renewal_date_row_unknown": _("S'ha posat la data de renovació d'una fila que no la demana."),
-    "renewal_date_invalid": _("La data de renovació ha de ser una data d'avui o anterior."),
+    "renewal_date_invalid": _(
+        "La data de renovació ha de ser una data d'avui o anterior, i no anterior a la d'alta."
+    ),
     "not_undoable": _("Aquest lot no es pot desfer."),
     "card_keys_missing": _("Falten les claus del carnet a la configuració: no s'ha importat res."),
     "card_not_allowed": _("No s'ha pogut emetre el carnet d'una fila: no s'ha importat res."),
@@ -175,7 +177,12 @@ def confirm(
         card_keys.active_key_id()
     except ImproperlyConfigured as error:
         raise FinalImportRefused("card_keys_missing") from error
-    result = cluber.preview(data, keep_values=True)
+    # 097, punt 1: abans de llegir el fitxer, perquè el tipus pel preu es calcula amb aquesta data.
+    renewal_dates = dict(renewal_dates or {})
+    today = timezone.localdate()
+    if wrong := [n for n, d in renewal_dates.items() if type(d) is not datetime.date or d > today]:
+        raise FinalImportRefused("renewal_date_invalid", tuple(sorted(wrong)))
+    result = cluber.preview(data, keep_values=True, renewal_dates=renewal_dates)
     if result.rejected:
         raise FinalImportRefused(result.rejected)
 
@@ -187,18 +194,25 @@ def confirm(
     needs_type = {r.row for r in result.rows if "id_document_type" in r.pending}
     if wrong := set(document_types) - needs_type:
         raise FinalImportRefused("document_type_row_unknown", tuple(sorted(wrong)))
-    renewal_dates = dict(renewal_dates or {})
-    today = timezone.localdate()
-    if any(type(d) is not datetime.date or d > today for d in renewal_dates.values()):
-        raise FinalImportRefused("renewal_date_invalid")
-    needs_date = {r.row for r in result.rows if "last_renewal" in r.pending}
-    if wrong := set(renewal_dates) - needs_date:
-        raise FinalImportRefused("renewal_date_row_unknown", tuple(sorted(wrong)))
 
     excluded = set(excluded_rows)
     rows = {r.row for r in result.rows}
     if unknown := excluded - rows:
         raise FinalImportRefused("excluded_row_unknown", tuple(sorted(unknown)))
+    # Només files que es poden importar: no excloses, noves, sense errors ni de baixa a Cluber.
+    # Si amb la data el tipus de soci no es pot deduir, la fila queda sense resoldre (VC-01).
+    needs_date = {
+        r.row
+        for r in result.rows
+        if "last_renewal" in r.pending
+        and r.row not in excluded
+        and not (r.left_in_cluber or r.errors or r.identity != "new")
+    }
+    if wrong := set(renewal_dates) - needs_date:
+        raise FinalImportRefused("renewal_date_row_unknown", tuple(sorted(wrong)))
+    joined = {r.row: r.data["values"].get("Member.joined_on") for r in result.rows}
+    if wrong := [n for n, d in renewal_dates.items() if joined[n] and d < joined[n]]:
+        raise FinalImportRefused("renewal_date_invalid", tuple(sorted(wrong)))
     ok = {r.row for r in result.rows if importable(r, document_types, renewal_dates)}
     to_import = [r for r in result.rows if r.row in ok and r.row not in excluded]
     # Les de baixa a Cluber queden excloses soles (072, Q-071).
@@ -212,15 +226,33 @@ def confirm(
     if not to_import:
         raise FinalImportRefused("nothing_to_import")
 
+    # Excloses només per la data: amb una data, serien importables.
+    without_date = {
+        r.row
+        for r in result.rows
+        if r.row in excluded
+        and "last_renewal" in r.pending
+        and importable(r, document_types, {r.row: today})
+    }
     try:
         with transaction.atomic():
-            return _write(result, to_import, by, result.fingerprint, document_types, renewal_dates)
+            return _write(
+                result,
+                to_import,
+                by,
+                result.fingerprint,
+                document_types,
+                renewal_dates,
+                without_date,
+            )
     except IntegrityError as error:
         # Un altre lot confirmat, o un número o un `cluber_id` ocupat mentrestant: res escrit.
         raise FinalImportRefused("conflict") from error
 
 
-def _write(result, to_import, by, file_sha256, document_types, renewal_dates) -> ImportBatch:
+def _write(
+    result, to_import, by, file_sha256, document_types, renewal_dates, without_date
+) -> ImportBatch:
     new = {r.row for r in to_import}
     results = {r.row: ImportLine.Result.NEW if r.row in new else _result(r) for r in result.rows}
     counts = Counter(results.values())
@@ -314,9 +346,7 @@ def _write(result, to_import, by, file_sha256, document_types, renewal_dates) ->
             "document_type_chosen": sum(1 for r in to_import if r.row in document_types),
             # 097, punt 1: dates posades per la secretaria i files excloses sense la data.
             "renewal_date_chosen": sum(1 for r in to_import if r.row in renewal_dates),
-            "excluded_without_renewal_date": sum(
-                1 for r in result.rows if r.row not in new and "last_renewal" in r.pending
-            ),
+            "excluded_without_renewal_date": len(without_date),
         },
     )
     return batch
