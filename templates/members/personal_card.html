@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static icones monograma %}
+{% load i18n antiguitat static icones monograma %}
 {# T-M01-19: el meu carnet (P13; P-M01-E pas 2). Només el carnet del soci de la sessió: la ruta no porta cap identificador. Validesa: RN-M01-18, 070 i 072 («vàlid fins al»: càlcul únic de la 079, RN-M01-86). Darrere del carnet: el del wireframe aprovat (Q-065). Seguretat i privacitat (079, RN-M01-85 i 92): el QR es torna a calcular al servidor a cada visita i no es desa enlloc; la resposta és «no-store»; el QR només porta l'adreça de verificació, que mostra «vàlid», el número i el nom de pila; demanar un carnet nou és un POST amb CSRF i invalida el QR anterior; imprimir (o desar com a PDF) només treu el carnet, sense navegació ni botons. El text del darrere i el llindar de soci clàssic són ajustos (VC-03 i VC-04, T-M01-32); el NIF del club surt al darrere del carnet (decisió 085, J-6). #}
 {% block estils %}<link rel="stylesheet" href="{% static 'css/baliza.css' %}"><link rel="stylesheet" href="{% static 'css/carnet.css' %}">{% endblock %}
 {% block title %}{% translate "El meu carnet" %} · C.R.I.S.{% endblock %}
@@ -40,7 +40,7 @@
               <div class="carnet-peu">
                 <dl class="carnet-dades">
                   {% if validity.until %}<div><dt>{% translate "Vàlid fins al" %}</dt><dd>{{ validity.until|date:"d/m/Y" }}</dd></div>{% endif %}
-                  {% if member.joined_on %}<div><dt>{% translate "Soci des de" %}</dt><dd>{% if member.joined_on_is_approximate %}~{{ member.joined_on.year }}{% else %}{% blocktranslate with year=member.joined_on.year count years=years %}{{ year }} ({{ years }} any){% plural %}{{ year }} ({{ years }} anys){% endblocktranslate %}{% endif %}</dd></div>{% endif %}
+                  {% if member.joined_on %}<div><dt>{% translate "Antiguitat" %}</dt><dd>{{ member|antiguitat }}</dd></div>{% endif %}
                   {% if classic %}<div><dt class="visualment-amagat">{% translate "Insígnia" %}</dt><dd><span class="carnet-insignia">{% translate "Soci clàssic" %}</span></dd></div>{% endif %}
                 </dl>
                 {# El segell d'Autentico (§6.16), quiet, amb l'estat del carnet. #}

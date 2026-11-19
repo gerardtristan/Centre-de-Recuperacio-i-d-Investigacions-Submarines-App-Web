@@ -387,6 +387,18 @@ def test_approximate_date_shows_since_year(personal):
     assert "Soci des de" in html and "~1998" in html
 
 
+@pytest.mark.django_db
+def test_new_member_card_never_says_zero_years(personal):
+    # Antiguitat (T-DX-60): amb menys d'un any, «Soci des de AAAA», mai «0 anys»; el mateix filtre
+    # que l'inici.
+    joined = timezone.localdate()
+    member = paid_member(joined_on=joined)
+    cards.issue_card(member, by=SYSTEM)
+    html = personal(member).get(reverse(CARD)).content.decode()
+    assert f"Soci des de {joined.year}" in html
+    assert "0 anys" not in html
+
+
 # --- Validesa del 072: exempts, importats i el 29 de febrer (retoc de la T-M01-26) -----------
 
 
