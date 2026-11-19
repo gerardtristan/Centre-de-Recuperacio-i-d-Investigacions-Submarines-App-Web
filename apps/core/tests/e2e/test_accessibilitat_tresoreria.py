@@ -5,9 +5,9 @@ Les mateixes comprovacions que la T-M01-28 (`test_accessibilitat_028.audit`: axe
 i AA en clar i en fosc, estructura, noms accessibles i recorregut amb el tabulador), a 1280 i
 390 px, amb dades inventades perquè cap taula quedi buida: comptes i saldos, moviments (ingressos
 i una despesa), anul·lar un moviment, traspàs i arqueig (formulari i confirmació), liquidacions
-del proveïdor i la seva confirmació, conciliació amb una línia proposada, «a revisar» (també amb
-el formulari d'exclusió obert) i l'extracte bancari (importat i previsualització). L'exportació
-de moviments és una descàrrega CSV, no una pantalla.
+del proveïdor i la seva confirmació, conciliació amb una línia proposada, casar amb moviments
+(T-M04-12f), «a revisar» (també amb el formulari d'exclusió obert) i l'extracte bancari
+(importat i previsualització). L'exportació de moviments és una descàrrega CSV, no una pantalla.
 
 Els informes es desen a `.e2e-captures/accessibilitat/`. La revisió amb lector de pantalla i en
 dispositius reals continua pendent de persona (P-301)."""
@@ -59,6 +59,11 @@ def test_treasury_screens(page, live_server, transactional_db, settings):
         TreasuryAccount.objects.get(name="Banc principal"), 4200,
         value_date=timezone.localdate(), department=Department.objects.get(name="General"),
         concept="Factura de la llum (prova)", by=treasurer,
+    )  # fmt: skip
+    services.record_other_income(
+        TreasuryAccount.objects.get(name="Banc principal"), 2000,
+        value_date=timezone.localdate(), department=Department.objects.get(name="General"),
+        concept="Donatiu (prova)", by=treasurer,
     )  # fmt: skip
     system = core_audit.system("proves-e2e")
     quotes = [
@@ -126,6 +131,13 @@ def test_treasury_screens(page, live_server, transactional_db, settings):
     )
     page.get_by_role("button", name="Cerca").click()
     screen(page, "tresoreria-casa-a-ma", results)
+
+    page.goto(admin_url(base, "treasury_reconciliation"))  # T-M04-12f
+    page.get_by_role("row", name="03/11/2026").get_by_role(
+        "link", name="Casa amb moviments…"
+    ).click()
+    expect(page.get_by_label("Donatiu (prova)")).to_be_visible()
+    screen(page, "tresoreria-casa-moviments", results)
 
     page.goto(admin_url(base, "treasury_review"))
     expect(page.get_by_role("row", name="03/11/2026")).to_contain_text("95,00 €")

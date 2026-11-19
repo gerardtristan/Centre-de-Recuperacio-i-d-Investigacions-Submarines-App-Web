@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). Una línia amb una liquidació del proveïdor (T-M04-13b) en mostra el proveïdor, l'identificador i el net, i «Revisa i confirma…» porta al pas de revisió. #}
+{# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e), «Casa amb moviments» (T-M04-12f) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). Una línia amb una liquidació del proveïdor (T-M04-13b) en mostra el proveïdor, l'identificador i el net, i «Revisa i confirma…» porta al pas de revisió. #}
 {% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -41,6 +41,10 @@
             <td data-etiqueta="{% translate 'Càrrecs' %}">
               {% if row.state.proposed_settlement %}
                 {% with settlement=row.state.proposed_settlement %}<span>{% translate "Liquidació" %} <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></span>{% endwith %}
+              {% elif row.reconciliation.matched_movements.all %}
+                <ul>
+                  {% for movement in row.reconciliation.matched_movements.all %}<li>{{ movement.get_kind_display }} · {{ movement.concept }}</li>{% endfor %}
+                </ul>
               {% elif row.charges %}
                 <ul>
                   {% for item in row.charges %}<li>{{ item.charge.person.first_name }} {{ item.charge.person.last_name }} · {{ item.charge.concept }} · <span class="import">{{ item.amount }}</span></li>{% endfor %}
@@ -60,6 +64,7 @@
                     {% else %}
                       {% if row.state.review_reason == "settlement_ambiguous" %}<a class="boto boto-petit" href="{% url 'administration:treasury_confirm_settlement_line' row.line.pk %}">{% translate "Revisa i tria…" %}</a>{% endif %}
                       {% if row.line.amount_cents > 0 %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_line' row.line.pk %}">{% translate "Casa a mà…" %}</a>{% endif %}
+                      {% if row.line.amount_cents %}<a class="boto boto-petit" href="{% url 'administration:treasury_match_movements' row.line.pk %}">{% translate "Casa amb moviments…" %}</a>{% endif %}
                     {% endif %}
                   {% endif %}
                   {% if can_exclude %}<details class="altes-rebuig">
@@ -74,7 +79,7 @@
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Exclou la línia" %}</button></div>
                     </form>
-                  </details>{% elif row.state.status == "pending" and row.line.amount_cents <= 0 and row.state.review_reason != "settlement_ambiguous" %}—{% endif %}
+                  </details>{% elif row.state.status == "pending" and not row.line.amount_cents %}—{% endif %}
                 {% elif row.state.status == "excluded" %}
                   {% if can_exclude %}<details class="altes-rebuig">
                     <summary class="boto boto-text">{% translate "Desfés l'exclusió…" %}</summary>
@@ -98,7 +103,7 @@
                       <div class="camp">
                         <label for="desfes-{{ row.line.pk }}">{% translate "Motiu per desfer-la" %} <span class="etiqueta-obligatori">{% translate "obligatori" %}</span></label>
                         <textarea id="desfes-{{ row.line.pk }}" name="motiu" rows="3" required></textarea>
-                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
+                        <p class="ajuda">{% if row.reconciliation.settlement_id %}{% translate "La liquidació torna a «rebuda» i el traspàs del net es compensa; les comissions es queden. No s'esborra res." %}{% elif row.reconciliation.matched_movements.all %}{% translate "La línia torna a «pendent» i els moviments casats no es toquen. Si un és equivocat: un traspàs es corregeix amb un altre en sentit contrari, un ingrés de cobrament amb una devolució i la resta es pot anul·lar amb el motiu. No s'esborra res." %}{% else %}{% translate "Els càrrecs tornen a «pendent», el pagament queda anul·lat i l'ingrés es compensa. No s'esborra res." %}{% endif %}</p>
                       </div>
                       <div class="accions"><button class="boto" type="submit">{% translate "Desfés la conciliació" %}</button></div>
                     </form>

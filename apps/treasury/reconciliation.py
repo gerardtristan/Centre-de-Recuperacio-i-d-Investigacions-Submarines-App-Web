@@ -31,6 +31,9 @@ ingrés al banc; si és una quota, s'avisa el 01. `undo()` la desfà (CA-T10.4 a
 `match()` (T-M04-12e; P-M04-E pas 3; LT2; RN-T17): el tresorer casa a mà una línia d'entrada
 pendent amb un o més càrrecs pendents que en sumen l'import exacte, i passa el mateix que en
 confirmar una proposta. `pending_charges()` els busca per referència o número de soci.
+`match_movements()` (T-M04-12f; CA-T07.2): una línia pendent, d'entrada o de sortida, amb un o
+més moviments del banc que ja hi són (`matchable_movements`), sense moure cap diner; i, a mà, una
+liquidació rebuda amb el net exacte (`settlement_choices`, P-395). Es desfan amb `undo` (P-394).
 
 `exclude()` (T-M04-14; RN-T15, CA-T12.1, LT11): el tresorer exclou una línia pendent o proposada
 (T-M04-14d, 097) amb motiu obligatori. No crea cap moviment ni toca cap càrrec; la proposta es
@@ -68,6 +71,7 @@ from .models import (
     ReconciliationUndo,
     StatementLineState,
     TransferReference,
+    TreasuryAccount,
 )
 from .references import references_in, transfer_reference
 
@@ -297,10 +301,11 @@ def _settlement_candidates(lines) -> dict:
     return result
 
 
-def settlement_choices(line) -> list:
+def settlement_choices(line, *, limit=None) -> list:
     """Les liquidacions que el tresorer pot casar amb la línia: la proposada o, si la línia és
     «a revisar» per ambigua, totes les seves candidates (revisió de la #212, punt 3). Llegeix
-    l'estat desat; `settlements.confirm_line` el torna a calcular abans de moure res."""
+    l'estat desat; `settlements.confirm_line` el torna a calcular abans de moure res. `limit`
+    retalla només la llista que es mostra: `confirm_line` no en passa cap."""
     state = (
         StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
         .select_related("statement_line", "proposed_settlement")
@@ -312,6 +317,21 @@ def settlement_choices(line) -> list:
         return [state.proposed_settlement]
     if state.status == StatementLineState.Status.PENDING and state.review_reason == AMBIGUOUS:
         return _candidates([state.statement_line]).get(line.pk, ([], []))[0]
+    if state.status == StatementLineState.Status.PENDING and state.statement_line.amount_cents > 0:
+        # T-M04-12f (P-395): a mà, qualsevol liquidació rebuda amb el net exacte, fora de la
+        # finestra (P-364) o ja desfeta amb aquesta línia, que no sigui a la proposta d'una altra.
+        proposed = StatementLineState.objects.filter(
+            status=StatementLineState.Status.PROPOSED, proposed_settlement__isnull=False
+        ).values("proposed_settlement")
+        return list(
+            ProviderSettlement.objects.filter(
+                status=ProviderSettlement.Status.RECEIVED,
+                net_cents=state.statement_line.amount_cents,
+            )
+            .exclude(source=ProviderSettlement.Source.REMITTANCE)
+            .exclude(pk__in=proposed)
+            .order_by("-settled_on", "-pk")[:limit]  # `limit`, només per mostrar-les
+        )
     return []
 
 
@@ -365,9 +385,10 @@ def _flagged(charges):
     return charges.annotate(collecting=Exists(collecting), proposed=Exists(proposed))
 
 
-def match_problem(line) -> str:
+def match_problem(line, *, incoming=True) -> str:
     """Per què la línia no es pot casar a mà, o "" si es pot (d'entrada, pendent, d'un extracte
-    vigent). Llegeix l'estat desat: `match` el torna a calcular abans de pagar res."""
+    vigent; amb moviments, `incoming=False`, també de sortida). Llegeix l'estat desat: `match` el
+    torna a calcular abans de pagar res."""
     state = (
         StatementLineState.objects.filter(statement_line=line, statement_line__in=statement_lines())
         .select_related("statement_line")
@@ -375,6 +396,12 @@ def match_problem(line) -> str:
     )
     if state is not None and state.status == StatementLineState.Status.PROPOSED:
         return _("Aquesta línia ja té una proposta: revisa-la i confirma-la.")
+    if not incoming:  # amb moviments també es casa una línia de sortida
+        if state is None or state.status != StatementLineState.Status.PENDING:
+            return _("Aquesta línia no està pendent: no es pot casar.")
+        if state.statement_line.amount_cents == 0:
+            return _("Aquesta línia no té cap import: no es pot casar.")
+        return ""
     if (
         state is None
         or state.status != StatementLineState.Status.PENDING
@@ -433,6 +460,89 @@ def match(line, charge_ids, *, by) -> Reconciliation:
     refresh()  # també agafa el pany
     state, matched = _matchable(line, charge_ids, lock=True)
     return _reconcile(state, matched, by=by, manual=True)
+
+
+def matchable_movements(line):
+    """T-M04-12f (CA-T07.2; P-394): els moviments que la línia pot casar, del mateix sentit i
+    d'import no més gran: d'un compte bancari, no anul·lats ni contramoviments, de cap liquidació
+    i no casats amb una conciliació vigent (directament o pels seus càrrecs)."""
+    live = Reconciliation.objects.filter(undo__isnull=True)
+    through = Reconciliation.matched_movements.through.objects
+    charges = Reconciliation.matched_charges.through.objects
+    return (
+        Movement.objects.filter(
+            account__kind=TreasuryAccount.Kind.BANK,
+            direction=Movement.Direction.IN if line.amount_cents > 0 else Movement.Direction.OUT,
+            amount_cents__lte=abs(line.amount_cents),
+            reversal__isnull=True,
+            # Les potes d'una liquidació es casen amb la liquidació; la d'una confirmada sense
+            # línia, no (P-366, opció A per defecte: aquella línia s'exclou).
+            settlement__isnull=True,
+        )
+        .exclude(kind=Movement.Kind.REVERSAL)
+        .exclude(pk__in=through.filter(reconciliation__in=live).values("movement"))
+        # Només l'ingrés d'un càrrec conciliat: la seva devolució o el seu retorn sí que es casen.
+        .exclude(
+            kind=Movement.Kind.INCOME,
+            payment__charge__in=charges.filter(reconciliation__in=live).values("charge"),
+        )
+    )
+
+
+def _movements_matchable(line, movement_ids, *, lock):
+    """(estat, moviments) d'un casament amb moviments, o `ReconciliationRejected`: una línia
+    pendent d'un extracte vigent i moviments casables que en sumin exactament l'import (RN-T17)."""
+    ids = set(movement_ids)
+    if lock:
+        StatementLineState.objects.select_for_update().filter(statement_line=line).first()
+        list(Movement.objects.select_for_update().filter(pk__in=ids).order_by("pk"))
+    if problem := match_problem(line, incoming=False):
+        raise ReconciliationRejected(problem)
+    state = StatementLineState.objects.select_related("statement_line").get(statement_line=line)
+    matched = list(matchable_movements(state.statement_line).filter(pk__in=ids).order_by("pk"))
+    if not matched or len(matched) != len(ids):
+        raise ReconciliationRejected(_("Tria un o més moviments que encara no estiguin casats."))
+    total = sum(movement.amount_cents for movement in matched)
+    if total != abs(state.statement_line.amount_cents):
+        raise ReconciliationRejected(
+            _("Els moviments sumen %(total)s i la línia és de %(amount)s: han de coincidir.")
+            % {"total": euros(total), "amount": euros(abs(state.statement_line.amount_cents))}
+        )
+    return state, matched
+
+
+def check_match_movements(line, movement_ids, *, by) -> list[Movement]:
+    """Pas de revisió del casament amb moviments, sense desar res."""
+    _ensure_can_reconcile(by)
+    return _movements_matchable(line, movement_ids, lock=False)[1]
+
+
+@transaction.atomic
+def match_movements(line, movement_ids, *, by) -> Reconciliation:
+    """T-M04-12f (CA-T07.2; RN-T16, RN-T17): el tresorer casa una línia pendent amb un o més
+    moviments que ja hi són (la pota d'entrada d'un traspàs, una despesa, un ingrés a mà...). Cap
+    diner no es mou: només la conciliació i la línia «conciliada». Es desfà amb `undo`, que
+    tampoc no toca els moviments (P-394)."""
+    _ensure_can_reconcile(by)
+    refresh()  # també agafa el pany
+    state, matched = _movements_matchable(line, movement_ids, lock=True)
+    reconciliation = Reconciliation.objects.create(
+        statement_line=state.statement_line, confirmed_by=by
+    )
+    reconciliation.matched_movements.set(matched)
+    _apply(state, StatementLineState.Status.RECONCILED, "", [], created=False, actor=by)
+    audit.record(
+        CONFIRMED,
+        actor=by,
+        target=reconciliation,
+        details={
+            "line": state.statement_line_id,
+            "movements": [movement.pk for movement in matched],
+            "amount_cents": state.statement_line.amount_cents,
+            "manual": True,
+        },
+    )
+    return reconciliation
 
 
 def _reconcile(state, matched, *, by, manual=False) -> Reconciliation:
@@ -531,7 +641,12 @@ def undo(reconciliation: Reconciliation, *, reason: str, by) -> ReconciliationUn
         actor=by,
         target=reconciliation,
         reason=reason,
-        details={"line": reconciliation.statement_line_id, "charges": [c.pk for c in matched]},
+        details={
+            "line": reconciliation.statement_line_id,
+            "charges": [c.pk for c in matched],
+            # T-M04-12f (P-394): els moviments casats no es toquen; es corregeixen a part.
+            "movements": list(reconciliation.matched_movements.values_list("pk", flat=True)),
+        },
     )
     refresh()
     return done

@@ -207,6 +207,13 @@ MAP = {
         "apps/treasury/reconciliation.py",
         "templates/treasury/reconciliation.html",
     ),
+    "test_tresoreria_moviments_casats.py": (  # T-M04-12f
+        "apps/treasury/views.py",
+        "apps/treasury/admin_urls.py",
+        "apps/treasury/reconciliation.py",
+        "templates/treasury/reconciliation.html",
+        "templates/treasury/match_movements.html",
+    ),
     "test_tresoreria_entrades.py": (
         "apps/treasury/entry_views.py",
         "apps/treasury/admin_urls.py",

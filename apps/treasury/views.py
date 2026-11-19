@@ -20,6 +20,8 @@ vigents amb l'estat, el concepte (tapat per la importació) i els càrrecs propo
 T4 al servidor; veure-la és T1. Del càrrec, el nom de la persona, el concepte i l'import (M04-4).
 «Casa a mà» (T-M04-12e, `reconciliation.match`): T4 per veure-la i fer-la; cerca de càrrecs
 pendents per referència o número de soci, revisió amb la suma i confirmació, tot per POST.
+«Casa amb moviments» (T-M04-12f, `reconciliation.match_movements`): igual, amb els moviments del
+banc que ja hi són, i les liquidacions rebudes amb el net exacte (P-395); cap diner no es mou.
 Una línia proposada amb una liquidació del proveïdor (T-M04-13b; P-M04-F, passos 3 i 4) es
 confirma en dos passos: el GET mostra el brut, les comissions (amb el repartiment de cada
 cobrament, VT-05) i el net, i el POST crida `settlements.confirm_line`; tot amb T4.
@@ -34,6 +36,8 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db.models import DurationField, ExpressionWrapper, Value
+from django.db.models.functions import Greatest, Least
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -335,7 +339,9 @@ def reconciliation_view(request):
         found.statement_line_id: found
         for found in Reconciliation.objects.filter(
             statement_line__in=[state.statement_line_id for state in page], undo__isnull=True
-        ).select_related("settlement")
+        )
+        .select_related("settlement")
+        .prefetch_related("matched_movements")
     }
     rows = [
         {
@@ -390,6 +396,8 @@ def undo_view(request, reconciliation_id):
     done = _("Conciliació desfeta: els càrrecs tornen a estar pendents i l'ingrés s'ha compensat.")
     if found.settlement and found.settlement.source != found.settlement.Source.REMITTANCE:
         done = _("Conciliació desfeta: la liquidació torna a «rebuda» i el traspàs s'ha compensat.")
+    elif found.matched_movements.exists():  # T-M04-12f (P-394)
+        done = _("Conciliació desfeta: la línia torna a «pendent». Els moviments no es toquen.")
     return _back_to_reconciliation(
         request,
         lambda: reconciliation.undo(found, reason=request.POST.get("motiu", ""), by=request.user),
@@ -444,6 +452,12 @@ def settlement_line_view(request, line_id):
     return render(request, "treasury/settlement_confirm.html", context)
 
 
+def _ids(selected) -> list[int]:
+    """Els identificadors triats. Un valor que no ho és buida la tria: el servei la rebutja."""
+    ids = [int(v) for v in selected if v.isascii() and v.isdigit() and len(v) <= 18]
+    return ids if len(ids) == len(selected) else []
+
+
 @never_cache
 @permission_required(reconciliation.RECONCILE, write=True)
 @require_http_methods(["GET", "POST"])
@@ -451,12 +465,7 @@ def match_view(request, line_id):
     line = get_object_or_404(statement_lines(), pk=line_id)
     data = request.POST if request.method == "POST" else request.GET
     query = data.get("cerca", "").strip()[:200]
-    selected = data.getlist("carrec")
-    # Un valor que no és un identificador buida la tria: el servei la rebutja sencera.
-    ids = [
-        int(value) for value in selected if value.isascii() and value.isdigit() and len(value) <= 18
-    ]
-    ids = ids if len(ids) == len(selected) else []
+    ids = _ids(data.getlist("carrec"))
     context = {"line": line, "amount": euros(line.amount_cents), "query": query}
     if request.method == "GET":
         reconciliation.refresh()  # com la conciliació: l'estat de la línia, al dia
@@ -483,3 +492,52 @@ def match_view(request, line_id):
         return redirect(f"{url}?{urlencode({'cerca': query, 'carrec': ids}, doseq=True)}")
     context["matched"] = [{"charge": c, "amount": euros(c.amount_cents)} for c in matched]
     return render(request, "treasury/match.html", context)
+
+
+# T-M04-12f (CA-T07.2; P-394, P-395): casar una línia pendent amb moviments que ja hi són, o
+# triar a mà una liquidació rebuda amb el net exacte (que es confirma a `settlement_line_view`).
+@never_cache
+@permission_required(reconciliation.RECONCILE, write=True)
+@require_http_methods(["GET", "POST"])
+def match_movements_view(request, line_id):
+    line = get_object_or_404(statement_lines(), pk=line_id)
+    data = request.POST if request.method == "POST" else request.GET
+    ids = _ids(data.getlist("moviment"))
+    context = {"line": line, "amount": euros(line.amount_cents)}
+    if request.method == "GET":
+        reconciliation.refresh()
+        context["problem"] = reconciliation.match_problem(line, incoming=False)
+        found = []
+        if not context["problem"]:
+            day = Value(line.value_date)
+            distance = Greatest("value_date", day) - Least("value_date", day)
+            found = list(
+                reconciliation.matchable_movements(line)
+                .select_related("account")
+                .annotate(distance=ExpressionWrapper(distance, output_field=DurationField()))
+                .order_by("distance", "-pk")[: reconciliation.SEARCH_LIMIT + 1]
+            )
+            context["settlements"] = [
+                {"settlement": s, "net": euros(s.net_cents)}
+                for s in reconciliation.settlement_choices(line, limit=reconciliation.SEARCH_LIMIT)
+            ]
+        # shortcut: els 20 més propers a la data de la línia, sense cerca; si no n'hi ha prou,
+        # afegir-hi una cerca.
+        context["more"] = len(found) > reconciliation.SEARCH_LIMIT
+        context["found"] = [
+            {"movement": m, "amount": euros(m.amount_cents), "checked": m.pk in ids}
+            for m in found[: reconciliation.SEARCH_LIMIT]
+        ]
+        return render(request, "treasury/match_movements.html", context)
+    try:
+        if request.POST.get("confirma"):
+            reconciliation.match_movements(line, ids, by=request.user)
+            messages.success(request, _("Línia casada amb els moviments. No s'ha mogut cap diner."))
+            return redirect("administration:treasury_reconciliation")
+        matched = reconciliation.check_match_movements(line, ids, by=request.user)
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+        url = reverse("administration:treasury_match_movements", args=[line.pk])
+        return redirect(f"{url}?{urlencode({'moviment': ids}, doseq=True)}")
+    context["matched"] = [{"movement": m, "amount": euros(m.amount_cents)} for m in matched]
+    return render(request, "treasury/match_movements.html", context)

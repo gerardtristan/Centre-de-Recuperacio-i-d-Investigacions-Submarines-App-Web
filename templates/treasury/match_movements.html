@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M04-12f (CA-T07.2; RN-T17; P-394, P-395): casar una línia pendent amb moviments del banc que ja hi són (els 20 més recents del mateix sentit i d'import no més gran, no anul·lats ni casats) o triar una liquidació rebuda amb el net exacte. Revisió amb la suma i confirmació; cap diner no es mou. T4 al servidor en tots els passos; POST amb CSRF. Del moviment, només la data, el compte, el tipus, el concepte (sense noms, RNF-T4) i l'import. #}
+{% block title %}{% translate "Casa la línia amb moviments" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
+  <h1>{% translate "Casa la línia amb moviments" %}</h1>
+  {% for message in messages %}
+    <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+  {% endfor %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Data de valor" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time></dd></div>
+    <div><dt>{% translate "Concepte" %}</dt><dd>{{ line.concept }}</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
+  </dl>
+
+  {% if problem %}
+    <p>{{ problem }}</p>
+  {% elif matched %}
+    <table class="taula">
+      <caption>{% translate "Moviments triats" %}</caption>
+      <thead><tr><th scope="col">{% translate "Data de valor" %}</th><th scope="col">{% translate "Concepte" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th></tr></thead>
+      <tbody>
+        {% for item in matched %}
+          <tr><th scope="row" class="cel-nom"><time datetime="{{ item.movement.value_date|date:'Y-m-d' }}">{{ item.movement.value_date|date:"d/m/Y" }}</time></th><td data-etiqueta="{% translate 'Concepte' %}">{{ item.movement.get_kind_display }} · {{ item.movement.concept }}</td><td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ item.amount }}</span></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form class="formulari" method="post" action="{% url 'administration:treasury_match_movements' line.pk %}">
+      {% csrf_token %}
+      {% for item in matched %}<input type="hidden" name="moviment" value="{{ item.movement.pk }}">{% endfor %}
+      <div class="avis avis-avis" role="status"><strong>{% translate "Confirma el casament" %}</strong>{% translate "Els moviments sumen l'import de la línia. La línia quedarà conciliada; no es crea ni es canvia cap moviment. Si t'equivoques, es desfà des de la conciliació, amb el motiu." %}</div>
+      <div class="accions">
+        <button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Sí, casa-la" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:treasury_match_movements' line.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% else %}
+    {% if settlements %}
+      <h2>{% translate "Liquidacions rebudes amb aquest net" %}</h2>
+      <ul>
+        {% for item in settlements %}<li><a href="{% url 'administration:treasury_confirm_settlement_line' line.pk %}?liquidacio={{ item.settlement.pk }}">{% translate "Liquidació" %} <span class="codi">{{ item.settlement.provider_code }} · {{ item.settlement.external_id }}</span></a> · <time datetime="{{ item.settlement.settled_on|date:'Y-m-d' }}">{{ item.settlement.settled_on|date:"d/m/Y" }}</time> · <span class="import">{{ item.net }}</span></li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if found %}
+      <form class="formulari" method="post" action="{% url 'administration:treasury_match_movements' line.pk %}">
+        {% csrf_token %}
+        <fieldset>
+          <legend>{% blocktranslate with amount=amount %}Tria els moviments del banc que sumen {{ amount }}{% endblocktranslate %}</legend>
+          {% for item in found %}
+            <label class="casella"><input type="checkbox" name="moviment" value="{{ item.movement.pk }}"{% if item.checked %} checked{% endif %}> <span><time datetime="{{ item.movement.value_date|date:'Y-m-d' }}">{{ item.movement.value_date|date:"d/m/Y" }}</time> · {{ item.movement.account.name }} · {{ item.movement.get_kind_display }} · {{ item.movement.concept }} · <span class="import">{{ item.amount }}</span></span></label>
+          {% endfor %}
+          {% if more %}<p class="ajuda">{% blocktranslate with limit=found|length %}N'hi ha més: només surten els {{ limit }} més recents.{% endblocktranslate %}</p>{% endif %}
+        </fieldset>
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el casament" %}</button></div>
+      </form>
+    {% elif not settlements %}
+      <p>{% translate "Cap moviment del banc ni cap liquidació encaixa amb aquesta línia." %}</p>
+    {% endif %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Torna a la conciliació" %}</a></p>
+{% endblock %}
