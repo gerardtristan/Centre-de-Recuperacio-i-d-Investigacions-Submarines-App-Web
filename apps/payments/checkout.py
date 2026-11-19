@@ -32,7 +32,7 @@ from .models import (
     SavedCardAttempt,
     SavedCardNotice,
 )
-from .providers import get_provider
+from .providers import enabled_capabilities, get_provider
 from .providers.base import OrderUrls, ProviderError
 
 # Què ha de fer la pantalla amb `PaymentStart.url`: enviar-hi el navegador o incrustar-la.
@@ -238,7 +238,7 @@ def start_payment(charge: Charge, method: str, actor) -> PaymentStart:
         if method == TRANSFER:
             return _start_transfer(stored, by, payer)
         provider = get_provider()
-        capabilities = provider.capabilities()
+        capabilities = enabled_capabilities()  # P-131: també el que el club té actiu
         if not getattr(capabilities, method, False):
             raise attempts.MethodNotAllowed(method)
         _abandon_waiting_transfer(stored, by)

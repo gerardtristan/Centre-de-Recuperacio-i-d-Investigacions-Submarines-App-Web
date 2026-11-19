@@ -28,6 +28,6 @@
     <div class="avis avis-sistema"><strong>{% translate "No es pot pagar" %}</strong>{% translate "Aquest càrrec no està pendent de pagament." %}</div>
   {% endif %}
   {% if state == "pending" or state == "failed" or state == "timed_out" or transfer %}
-    <form method="post" action="{{ urls.pay_card }}" class="accions">{% csrf_token %}<button class="boto{% if not transfer %} boto-principal{% endif %}" type="submit">{% translate "Paga amb targeta" %}</button>{% if bizum %}<button class="boto" type="submit" formaction="{{ urls.pay_bizum }}">{% translate "Paga amb Bizum" %}</button>{% endif %}{% if transfer_offered and not transfer %}<button class="boto" type="submit" formaction="{{ urls.pay_transfer }}">{% translate "Paga per transferència" %}</button>{% endif %}</form>
+    <form method="post" action="{{ urls.pay_card }}" class="accions">{% csrf_token %}{% if card %}<button class="boto{% if not transfer %} boto-principal{% endif %}" type="submit">{% translate "Paga amb targeta" %}</button>{% endif %}{% if bizum %}<button class="boto" type="submit" formaction="{{ urls.pay_bizum }}">{% translate "Paga amb Bizum" %}</button>{% endif %}{% if transfer_offered and not transfer %}<button class="boto" type="submit" formaction="{{ urls.pay_transfer }}">{% translate "Paga per transferència" %}</button>{% endif %}</form>
   {% endif %}
 </div>{% endwith %}

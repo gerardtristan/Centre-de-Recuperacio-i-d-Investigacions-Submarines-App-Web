@@ -1124,5 +1124,15 @@ opcions:
       Amb A la plataforma ja no la pot cobrar mai, però la referència continua viva al proveïdor. B ho
       tanca del tot i és el que espera el soci; es pot afegir quan el proveïdor real digui com es fa.
     data: 2026-11-19
+  P-403:
+    opcions:
+      A: "Com s'ha construït: desactivar-la només deixa d'oferir-la; les quotes amb una targeta ja guardada es continuen cobrant."
+      B: "Desactivar-la també atura el cobrament automàtic: les quotes d'aquests socis passen a «pagar cada vegada» amb l'enllaç de pagament."
+    recomanada: A
+    perque: >-
+      L'interruptor serveix per deixar d'oferir un mètode; el soci que ja l'ha triat no ha de quedar
+      sense pagar la quota sense saber-ho. Si el proveïdor deixa de cobrar, el cobrament falla i el soci
+      rep l'alternativa de pagament (T-M05b-15b), com ara.
+    data: 2026-11-19
 
 noves:

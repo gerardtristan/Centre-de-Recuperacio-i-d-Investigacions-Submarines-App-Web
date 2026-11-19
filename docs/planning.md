@@ -2574,7 +2574,7 @@ Només INSERT, excepte `processed_at` i `result` (s'actualitzen una vegada, amb 
 - `MandateCampaignRecipient`: `campaign`, `member`, `invited_at`, `reminders_sent` (`PositiveSmallIntegerField`), `last_reminder_at`, `answered_at` null, `answer` (`direct_debit`, `saved_card`, `pay_each_time`) null. Únic `(campaign, member)`.
 
 ### ProviderConfig (configuració sense secrets)
-`provider_code`, `environment` (`sandbox`, `live`), `card_enabled`, `bizum_enabled`, `tokenization_enabled`, `transit_account` (FK TreasuryAccount). Les claus i els secrets són variables d'entorn ([M05a-12](#M05a-12-seguretat)).
+No és un model (P-131, [095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md)). El proveïdor i l'entorn surten de les variables d'entorn (`PAYMENTS_PROVIDER`), igual que les claus i els secrets ([M05a-12](#M05a-12-seguretat)), i el compte de trànsit es crea en acabar `migrate` (T-M05a-16). Els mètodes actius (VC-14) són tres ajustos booleans de l'apartat de pagaments, `payments.provider.card_enabled`, `bizum_enabled` i `saved_card_enabled` (el nom no porta «token»: el registre d'activitat no accepta camps que semblin secrets), amb el permís propi `settings.edit.payments.provider` (AJ5b-11, només l'Administrador, A7). Desar-ne un demana un codi TOTP nou i nota, i avisa el tresorer i la junta. Cada pantalla ofereix un mètode només si el proveïdor el declara (`capabilities()`) i el club el té actiu (P-196).
 
 **Migracions:** reversibles; activació de l'extensió o biblioteca de xifratge escollida [A validar: informàtica]; permisos de PostgreSQL perquè la taula `MandateBankAccount` només la llegeixi el procés de remeses si es fan servir rols separats (proposta).
 
@@ -2808,12 +2808,12 @@ Aprovada el 29/10/2026. **No canvia cap regla** del M05a: canvia només quin mè
 
 | ID | Regla |
 |---|---|
-| RN-M05a-19 | **Mètode recomanat als socis nous:** la targeta guardada, si el proveïdor permet guardar-la (`tokenization_enabled`, VC-14) [A verificar: PaynoPain, P-45 punt 6]. Si no ho permet, es continua recomanant la domiciliació. La domiciliació continua disponible i la transferència es permet sense obligar-hi. Els socis que ja tenen un mètode no reben cap canvi |
+| RN-M05a-19 | **Mètode recomanat als socis nous:** la targeta guardada, si el proveïdor permet guardar-la (`saved_card_enabled`, VC-14) [A verificar: PaynoPain, P-45 punt 6]. Si no ho permet, es continua recomanant la domiciliació. La domiciliació continua disponible i la transferència es permet sense obligar-hi. Els socis que ja tenen un mètode no reben cap canvi |
 | RN-M05a-20 | **Caducitat de la targeta guardada:** el soci rep un avís abans que caduqui la targeta, per correu i a l'app (sense push), amb l'enllaç per guardar-ne una de nova. Quants dies abans: ajust `payments.card_expiry_notice_days`, valor inicial [A validar: tresorer] |
 | RN-M05a-21 | **Renovació de la quota:** la quota es renova cada any. La baixa s'ha de demanar abans d'una data límit i el soci rep un avís previ del cobrament, sigui quin sigui el mètode. La data límit i el termini de l'avís: [A validar: junta i gestoria]. Mentre no es fixin, no s'activa cap renovació automàtica en producció |
 | RN-M05a-22 | **Invitació a pagar de manera automàtica:** el tresorer pot enviar als socis que paguen per transferència una invitació opcional a passar a targeta guardada o domiciliació, amb la campanya (RN-M05a-14). No és obligatori respondre-hi i no canvia el mètode de ningú |
 
-- **CA-M05a-19** Donat `tokenization_enabled` actiu, quan un soci nou tria mètode, llavors la targeta guardada surt com a recomanada i la domiciliació i la transferència es poden triar; amb `tokenization_enabled` desactivat, surt recomanada la domiciliació.
+- **CA-M05a-19** Donat `saved_card_enabled` actiu, quan un soci nou tria mètode, llavors la targeta guardada surt com a recomanada i la domiciliació i la transferència es poden triar; amb `saved_card_enabled` desactivat, surt recomanada la domiciliació.
 - **CA-M05a-20** Donat una targeta guardada que caduca d'aquí a menys dies que `payments.card_expiry_notice_days`, quan corre la tasca diària, llavors el soci rep un sol avís.
 - **CA-M05a-21** Donat un soci que paga per transferència, quan el tresorer envia la invitació, llavors la rep una sola vegada i el seu mètode no canvia fins que ell en triï un altre.
 
@@ -6560,7 +6560,7 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **058** vol dir 
 | VC-11 | 05a | Dies dels recordatoris de la campanya de mandats (RN-M05a-14) | No definit (al text) | Ajustos | 7 i 14 dies | 1 a 60 | Tresorer | Sí | — | 055 |
 | VC-12 | 05a | Minuts per tornar a demanar la contrasenya (RN-M05a-12) | Text | Codi | 15 | — | Informàtica | — | — | Es queda (seguretat) |
 | VC-13 | 05a | Caducitat d'un mandat sense cobraments (RN-M05a-08) | Text | Codi | 36 mesos | — | — | — | — | Es queda (regla SEPA) [A verificar: banc] |
-| VC-14 | 05a | Mètodes actius del proveïdor (`card_enabled`, `bizum_enabled`, `tokenization_enabled`) | Dada (administrador, A7) | Dada | Segons el proveïdor | — | Administrador | Sí | — | — |
+| VC-14 | 05a | Mètodes actius del proveïdor (`payments.provider.card_enabled`, `bizum_enabled`, `saved_card_enabled`; P-131) | Ajust (administrador, A7, amb codi TOTP i nota) | Dada | Segons el proveïdor | — | Administrador | Sí | — | — |
 | VC-15 | 05a | `PAYMENTS_LIVE_CHARGES_ALLOWED`, `SEPA_CREDITOR_ID`, `MANDATE_ENCRYPTION_KEYS`, claus del proveïdor | Entorn | Entorn | Fals; [A verificar: banc]; secret | — | Informàtica (nivells de producció, 025) | Desplegament | — | Es queda (seguretat i secrets) |
 | VC-54 | 05a | `payments.mandate_countries`: països de l'IBAN admesos al mandat (P-M05a-B, pas 2) | — (només es validaven el format i els dígits de control) | Ajustos (text) | Tota la zona SEPA: 41 codis de país de l'IBAN [A verificar: banc] | Codis de dues lletres de la zona SEPA, sense repetir, almenys un | Tresorer ([P-386](decisions/pendents.md)) | Sí | — | [095](decisions/095-respostes-del-propietari-a-les-preguntes-irreversibles-de-la-fase-1.md) (P-123, provisional fins que el banc ho confirmi) |
 | VC-16 | 05b | `PaymentSettings`: dies del recordatori de transferència i de l'avís previ, màxim d'intents de domiciliació | Base de dades amb registre | Ajustos (pantalla) | 30; 14; 2 | 7 a 60; 14 a 30 (avís previ, segons el text del mandat [A verificar: banc]); 1 a 3 | Tresorer | Sí | — | 055 (només la pantalla) |

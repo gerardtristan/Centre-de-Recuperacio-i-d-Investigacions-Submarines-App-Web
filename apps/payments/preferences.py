@@ -17,7 +17,7 @@ from apps.core import audit
 
 from . import campaigns
 from .models import FeeMethod, FeePaymentPreference, SavedCard, SepaMandate
-from .providers import get_provider
+from .providers import enabled_capabilities
 from .providers.base import ProviderError
 
 
@@ -40,7 +40,7 @@ class NeedsSavedCard(PreferenceError):
 def offered_methods() -> list[str]:
     """Les opcions que veu el soci, en ordre (P-M05a-A, pas 2)."""
     try:
-        tokenization = get_provider().capabilities().tokenization
+        tokenization = enabled_capabilities().tokenization
     except ProviderError:
         tokenization = False
     saved_card = [FeeMethod.SAVED_CARD] if tokenization else []

@@ -33,7 +33,7 @@ from apps.treasury import services as treasury
 
 from . import attempts, checkout, webhooks
 from .models import PaymentAttempt, Receipt
-from .providers import base, fake, get_provider
+from .providers import base, enabled_capabilities, fake, get_provider
 from .providers.base import ProviderError, ProviderNotConfigured
 
 
@@ -66,10 +66,10 @@ def _own_charge(request, charge_id) -> Charge:
     return charge or _not_found(request, Charge, charge_id)
 
 
-def _offers_bizum() -> bool:
-    """Les pantalles només ofereixen el que el proveïdor declara (`capabilities`)."""
+def _offers(method) -> bool:
+    """Les pantalles només ofereixen el que el proveïdor declara i el club té actiu (P-131)."""
     try:
-        return get_provider().capabilities().bizum
+        return getattr(enabled_capabilities(), method)
     except ProviderError:
         return False
 
@@ -112,7 +112,8 @@ def _status_context(charge, guest=False):
         "charge": charge,
         "status": status,
         "urls": _urls(charge, status.attempt, guest),
-        "bizum": _offers_bizum(),
+        "card": _offers("card"),
+        "bizum": _offers("bizum"),
         "transfer_offered": bool(checkout.transfer_iban()),
         "transfer": _transfer(status),
     }

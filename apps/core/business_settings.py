@@ -74,10 +74,18 @@ def canonical_list(value):
 # Famílies de claus amb un sol permís (`<prefix>.<sufix>` → `settings.edit.<prefix>`), per als
 # valors que es creen des de l'app (T-M01-52). `label(sufix)` dona el nom de la fila.
 FAMILIES: dict = {}
+# P-131: famílies que, a més, demanen un codi TOTP nou (la pantalla), nota i avís al tresorer.
+TOTP_FAMILIES: set = set()
 
 
-def register_family(prefix: str, label) -> None:
+def register_family(prefix: str, label, *, totp: bool = False) -> None:
     FAMILIES[prefix] = label
+    if totp:
+        TOTP_FAMILIES.add(prefix)
+
+
+def needs_totp(setting: Setting) -> bool:
+    return family_of(setting.key) in TOTP_FAMILIES
 
 
 def family_of(key: str) -> str | None:
@@ -263,6 +271,8 @@ def _save(pk, value, user, note, effective_from) -> SettingVersion:
     note = (note or "").strip()
     validate_value(setting, value)
     effective_from = _check_dates_and_note(setting, note, effective_from)
+    if needs_totp(setting) and not note:
+        raise ValidationError(_("Cal una nota que expliqui el canvi."))
 
     previous = _value_at(setting, effective_from or timezone.localdate())
     version = SettingVersion.objects.create(
@@ -283,7 +293,7 @@ def _save(pk, value, user, note, effective_from) -> SettingVersion:
         reason=note,
         details={"effective_from": effective_from, "version_id": version.pk},
     )
-    if setting.affects_money:
+    if setting.affects_money or needs_totp(setting):
         notify_money_change(
             what=setting.key,
             previous=display_value(setting, previous),
