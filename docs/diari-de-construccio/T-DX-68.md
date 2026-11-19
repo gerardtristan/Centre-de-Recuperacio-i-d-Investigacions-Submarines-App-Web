@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 19/11/2026 02:14 | fe7018ff | 1 e2e nova; fumada i logotip: 9 passen, 4 se salten | [A comprovar] (PR #PR) |
+| 19/11/2026 02:14 | fe7018ff | 1 e2e nova; fumada i logotip: 9 passen, 4 se salten | [A comprovar] (PR #255) |
 
 **En tres línies:** la primera prova e2e d'una tanda fallava de vegades per temps en obrir `/entrar/`. El propietari va dir que és un error (19/11/2026). Ara el `conftest` fa una visita d'escalfament abans de la primera prova amb el servidor en viu, una sola vegada per tanda.
 
