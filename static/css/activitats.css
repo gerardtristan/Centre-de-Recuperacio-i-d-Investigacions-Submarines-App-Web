@@ -1,0 +1,133 @@
+/* Activitats (T-DX-63; design-system §16, T-DX-63): la pàgina del soci, en construcció, i el bloc
+   «Activitats per a tu». Pestanyes per tipus, filtres (columna fixa a l'escriptori, fila a la
+   tauleta, pantalla sencera al mòbil) i la targeta de Convite amb l'estrella de Marcador.
+   Només tokens. Cap animació d'entrada: només responen a les accions (D20). */
+
+/* El tipus: color, icona i nom alhora (mai només color) */
+.tipus-sortida { --c-tipus: var(--c-tipus-sortida); }
+.tipus-curs { --c-tipus: var(--c-tipus-curs); }
+.tipus-conferencia { --c-tipus: var(--c-tipus-conferencia); }
+.tipus-medi { --c-tipus: var(--c-tipus-medi); }
+
+/* Capçalera: «Llista» o «Calendari» (enllaços amb l'aspecte del control segmentat) */
+.activitats .capcalera-pagina h1 { margin: 0; font-size: var(--t-2xl); text-wrap: balance; }
+.activitats .capcalera-pagina .etiqueta-seccio { margin: 0; }
+.activitats-vista { text-decoration: none; }
+.activitats-vista .opcio { gap: var(--e-2); color: var(--c-text-2); text-decoration: none; }
+.activitats-vista .opcio[aria-current="page"] {
+  color: var(--c-text); font-weight: var(--p-negreta);
+  background: var(--neu-base); box-shadow: var(--neu-relleu-petit);
+  border-color: color-mix(in oklab, var(--neu-base), var(--c-text) 18%);
+}
+.activitats-vista .opcio[aria-current="page"] .marca-activa { display: inline; color: var(--c-zona-text); }
+.activitats-vista .opcio:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--v-fina); }
+
+/* Filtres */
+.activitats-filtres { display: grid; gap: var(--e-4); align-content: start; }
+.activitats-filtres-cap { display: flex; align-items: center; justify-content: space-between; gap: var(--e-3); }
+.activitats-filtres-cap h2 { margin: 0; font-size: var(--t-l); }
+.activitats-filtre { display: grid; gap: var(--e-2); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.activitats-filtre legend, .activitats-filtre > .etiqueta { padding: 0; font-weight: var(--p-semi); font-size: var(--t-s); }
+.activitats-filtre .interruptor { inline-size: 100%; text-align: start; }
+.activitats-filtre .interruptor > :first-child { flex: 1; }
+.activitats-nota { margin: 0; font-size: var(--t-s); color: var(--c-text-2); }
+.activitats-filtre .segmentat { display: flex; }
+.activitats-filtre .segmentat label { flex: 1 1 auto; }
+.activitats-filtre .segmentat .opcio { flex: 1; padding: 0 var(--e-2); white-space: nowrap; }
+.activitats-fet, .activitats-obre { display: none; }
+
+/* Tauleta (o columna estreta): els filtres en una fila a dalt */
+@media (min-width: 600px) {
+  @container cos (max-width: 59.99rem) {
+    .activitats-filtres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); align-items: end; }
+    .activitats-filtres-cap { grid-column: 1 / -1; }
+  }
+}
+
+/* Mòbil: darrere del botó «Filtres», a pantalla sencera, amb «Fet» */
+@media (max-width: 599.98px) {
+  .activitats-obre, .activitats-fet { display: inline-flex; }
+  .activitats-filtres:not(.es-obert) { display: none; }
+  .activitats-filtres.es-obert {
+    position: fixed; inset: 0; z-index: 30; block-size: 100dvh; overflow-y: auto; overscroll-behavior: contain;
+    padding: var(--e-5) var(--e-4); background: var(--c-fons);
+  }
+}
+
+/* Barra de sobre les pestanyes: el botó «Filtres» (mòbil) i quantes se'n mostren */
+.activitats-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-3); margin-bottom: var(--e-3); }
+.activitats-resultat { margin: 0; color: var(--c-text-2); font-variant-numeric: tabular-nums; }
+
+/* Pestanyes: el comptador i la ratlla de la triada (sense el subratllat elàstic) */
+.activitats-pestanyes .pestanya { display: inline-flex; align-items: center; gap: var(--e-2); padding-inline: var(--e-3); }
+.activitats-pestanyes .pestanya[aria-selected="true"] { box-shadow: inset 0 calc(-1 * var(--v-activa)) var(--c-zona); }
+.activitats-pestanyes .icona { color: var(--c-tipus, currentColor); }
+.activitats-n {
+  min-inline-size: var(--e-5); padding: 0 var(--e-1); border-radius: var(--r-pastilla);
+  background: var(--c-superficie-2); color: var(--c-text); font-size: var(--t-xs); font-variant-numeric: tabular-nums; text-align: center;
+}
+.activitats-panells { padding-top: var(--e-5); }
+.activitats-panell { display: grid; gap: var(--e-6); container: activitats / inline-size; }
+
+/* Seccions de «Totes» i grups per mes */
+.activitats-grup { display: grid; gap: var(--e-3); }
+.activitats-grup-cap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); }
+.activitats-grup-cap h2, .activitats-grup-cap h3 { display: inline-flex; align-items: center; gap: var(--e-2); margin: 0; font-size: var(--t-l); }
+.activitats-grup-cap h2 .icona { color: var(--c-tipus); }
+
+/* Graella: 1, 2 o 3 columnes segons l'amplada de la columna (C8) */
+.activitats-graella { display: grid; gap: var(--e-4); margin: 0; padding: 0; list-style: none; }
+@container activitats (min-width: 34rem) { .activitats-graella { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container activitats (min-width: 50rem) { .activitats-graella { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* La targeta: el full de calendari de Convite, el tipus, l'estrella de Marcador i les dades */
+.activitats-targeta {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "full cap estrella" "dades dades dades";
+  gap: var(--e-3); align-items: start; padding: var(--e-4);
+}
+.activitats-full {
+  grid-area: full; display: grid; justify-items: center; inline-size: var(--e-7); overflow: hidden;
+  border-radius: var(--r-m); border: var(--v-fina) solid var(--c-linia); background: var(--c-fons); font-variant-numeric: tabular-nums;
+}
+.activitats-mes {
+  inline-size: 100%; padding: var(--e-1) 0; text-align: center; text-transform: uppercase;
+  background: var(--c-tipus); color: var(--c-fons); font-size: var(--t-xs); font-weight: var(--p-semi); letter-spacing: var(--ll-etiqueta);
+}
+.activitats-dia { padding: var(--e-1) 0; font-family: var(--f-titol); font-size: var(--t-xl); line-height: var(--a-titol); }
+.activitats-cap { grid-area: cap; display: grid; gap: var(--e-1); }
+.activitats-tipus { display: inline-flex; align-items: center; gap: var(--e-1); margin: 0; color: var(--c-tipus); font-size: var(--t-s); font-weight: var(--p-semi); }
+.activitats-cap h3 { margin: 0; font-size: var(--t-l); text-wrap: balance; }
+.activitats-dades { grid-area: dades; display: grid; gap: var(--e-1); margin: 0; font-size: var(--t-s); font-variant-numeric: tabular-nums; }
+.activitats-dades p { display: flex; align-items: baseline; gap: var(--e-1); margin: 0; }
+.activitats-dades .icona { align-self: center; }
+.activitats-quan, .activitats-lloc { color: var(--c-text-2); }
+.activitats-nivell { font-weight: var(--p-semi); }
+.activitats-nivell.es-ok { color: var(--c-ok-text); }
+.activitats-nivell.es-falta { color: var(--c-avis-text); }
+.activitats-nivell small { font-size: var(--t-s); font-weight: var(--p-normal); color: var(--c-text-2); }
+.activitats-places.es-espera { color: var(--c-avis-text); font-weight: var(--p-semi); }
+.activitats-estrella {
+  grid-area: estrella; display: grid; place-items: center; inline-size: var(--tactil); block-size: var(--tactil);
+  margin: calc(-1 * var(--e-2)) calc(-1 * var(--e-2)) 0 0; padding: 0; border: 0; border-radius: var(--r-pastilla);
+  background: transparent; color: var(--c-text-2); cursor: pointer;
+}
+.activitats-estrella[aria-pressed="true"] { color: var(--c-text); }
+.activitats-estrella[aria-pressed="true"] .icona { fill: currentColor; }
+.activitats-estrella:disabled { cursor: not-allowed; }
+.activitats-estrella:focus-visible { outline: var(--v-focus) solid var(--c-focus); }
+
+/* Sense resultats: quin filtre cal treure */
+.activitats-buit { display: grid; gap: var(--e-2); padding: var(--e-5); border: var(--v-fina) dashed var(--c-linia-forta); border-radius: var(--r-l); }
+.activitats-buit p { margin: 0; }
+.activitats-treu { display: flex; flex-wrap: wrap; gap: var(--e-2); margin: 0; padding: 0; list-style: none; }
+
+/* «Activitats per a tu»: el carril de Desfile, amb el comptador només al mòbil */
+.activitats-per-a-tu { display: grid; gap: var(--e-3); container: activitats / inline-size; }
+.activitats-per-a-tu h2 { margin: 0; font-size: var(--t-xl); }
+.activitats-per-a-tu .desfile-cap { margin-bottom: 0; }
+.activitats-carril > li { scroll-snap-align: start; }
+/* A l'escriptori hi caben les tres: sense la vora esvaïda */
+@media (min-width: 1024px) { .activitats-carril { mask-image: none; } }
+.activitats-per-a-tu .desfile-comptador { display: none; }
+@media (max-width: 599.98px) { .activitats-per-a-tu .desfile-comptador { display: block; } }
+.activitats-totes { justify-self: start; }

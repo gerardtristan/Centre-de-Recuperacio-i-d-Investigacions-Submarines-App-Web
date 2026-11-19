@@ -51,7 +51,9 @@ def test_has_pending_fee_reads_only_the_session_member_in_one_query(
 
 
 def test_the_bar_puts_more_in_the_centre_without_activities(login_as, settings):
-    settings.SHOW_UNDER_CONSTRUCTION = True  # encara no hi ha cap ruta previews:activitats
+    settings.SHOW_UNDER_CONSTRUCTION = (
+        False  # el soci no veu «Activitats» (en construcció, T-DX-63)
+    )
     member = make_member()
     client = login_as(account_for(member), AREA_PERSONAL)
     html = client.get(reverse("core:home")).content.decode()
@@ -69,6 +71,23 @@ def test_the_bar_puts_more_in_the_centre_without_activities(login_as, settings):
     pay(fee)
     html = client.get(reverse("core:home")).content.decode()
     assert "Paga ara" not in html and "Demana un carnet nou" in html
+
+
+def test_the_bar_shows_activities_when_the_preview_is_visible(login_as, settings):
+    settings.SHOW_UNDER_CONSTRUCTION = (
+        True  # «Activitats» en construcció (T-DX-63) ocupa el lloc de «Perfil»
+    )
+    client = login_as(account_for(make_member()), AREA_PERSONAL)
+    html = client.get(reverse("core:home")).content.decode()
+    bar = html[html.index('<ul class="ramillete-barra">') : html.index('class="ramillete-lateral"')]
+    tabs = re.findall(r'ramillete-pestanya"[^>]*>.*?</svg>([^<]+)</a>|(ramillete-boto)"', bar, re.S)
+    assert [label or "Més" for label, _ in tabs] == [
+        "Inici",
+        "Activitats",
+        "Més",
+        "Carnet",
+        "Quotes",
+    ]
 
 
 def test_a_personal_account_without_member_sees_only_its_own_entries(login_as, personal_account):

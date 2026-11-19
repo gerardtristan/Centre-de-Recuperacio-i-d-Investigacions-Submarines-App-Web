@@ -100,3 +100,14 @@ def test_hex_fallback_is_the_same_colour(theme):
         if name in hexes:
             pairs = zip(_hex(hexes[name]), _oklch(value), strict=True)
             assert all(abs(a - b) < 1.5 / 255 for a, b in pairs), name
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_activity_type_colours_reach_text_contrast(theme):
+    """T-DX-63: el nom i la icona de cada tipus d'activitat fan 4,5:1 sobre el fons, el contenidor
+    i el pou (i, per tant, 3:1 com a franja)."""
+    start = ":root {\n  color-scheme: light;" if theme == "light" else ':root[data-theme="dark"] {'
+    found = dict(re.findall(r"--c-tipus-([a-z]+):\s*(#[0-9A-Fa-f]{6})", _block(start)))
+    assert set(found) == {"sortida", "curs", "conferencia", "medi"}
+    for name, value in found.items():
+        assert min(_contrast(_hex(value), _hex(b)) for b in BACKGROUNDS[theme]) >= 4.5, name
