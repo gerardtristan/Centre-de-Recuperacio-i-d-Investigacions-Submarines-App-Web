@@ -324,4 +324,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | c96e5544 (PR #231) | 4 noves | [A comprovar] |
 | [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | 7a9921d1 (PR #231) | 4 noves | [A comprovar] |
 | [T-DX-68](T-DX-68.md) | Escalfament de les e2e: una visita a `/entrar/` abans de la primera prova amb el servidor en viu; tanca la P-313 i la P-314 (carril de disseny) | 19/11/2026 02:14 | fe7018ff | 1 e2e nova | [A comprovar] |
-| [T-M01-18c](T-M01-18c.md) | Venciment de les quotes dels importats de Cluber: 12 mesos des de «Data alta/renovació», sense marques (097, punt 1) i prova de cap a cap | 19/11/2026 03:00 | b650a4f2 | 1 nova | [A comprovar] |
+| [T-M01-18c](T-M01-18c.md) | Venciment de les quotes dels importats de Cluber: 12 mesos des de «Data alta/renovació», sense marques (097, punt 1) i prova de cap a cap | 19/11/2026 03:00 | b650a4f2 (PR #257) | 1 nova | [A comprovar] |
