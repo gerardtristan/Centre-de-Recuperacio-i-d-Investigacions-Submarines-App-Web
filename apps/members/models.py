@@ -164,6 +164,15 @@ class Member(models.Model):
     def __str__(self):
         return f"{self.member_number or '—'} {self.person}"
 
+    # `roster.with_fee_data` precarrega les quotes anuals i els terminis en una sola consulta.
+    @property
+    def annual_fees(self):
+        return [fee for fee in self.fee_rows if fee.kind == "annual"]
+
+    @property
+    def instalment_fees(self):  # T-M01-49
+        return [fee for fee in self.fee_rows if fee.kind == "instalment"]
+
 
 class MemberStatusChange(AppendOnlyModel):
     """Historial d'estats i tipus (RN-M01-08). Només s'hi afegeixen files: també ho
@@ -573,6 +582,8 @@ class AnnualFee(UndeletableModel):
     class Kind(models.TextChoices):
         ANNUAL = "annual", _("Quota anual")
         TYPE_CHANGE_SUPPLEMENT = "type_change_supplement", _("Suplement de canvi de tipus")
+        # T-M01-49 (097, P-61): un dels tres terminis de la quota de ple dret.
+        INSTALMENT = "instalment", _("Termini de la quota")
 
     objects = AnnualFeeQuerySet.as_manager()
 
@@ -584,6 +595,8 @@ class AnnualFee(UndeletableModel):
     # P-54, sortida E (072): si la quota d'un període es va anul·lar, se'n crea una de nova del
     # mateix període amb el número d'ordre següent; l'anul·lada es queda a l'historial.
     sequence = models.PositiveSmallIntegerField(_("número d'ordre"), default=1)
+    # T-M01-49: 1, 2 o 3 en un termini; 0 en la resta.
+    instalment = models.PositiveSmallIntegerField(_("termini"), default=0)
     charge = models.OneToOneField(
         Charge, on_delete=models.PROTECT, related_name="annual_fee", verbose_name=_("càrrec")
     )
@@ -594,15 +607,20 @@ class AnnualFee(UndeletableModel):
         verbose_name_plural = _("quotes")
         constraints = [
             models.UniqueConstraint(
-                fields=["member", "period", "kind", "sequence"],
-                name="annualfee_unique_period_kind_sequence",
+                fields=["member", "period", "kind", "instalment", "sequence"],
+                name="annualfee_unique_period_kind_instalment_sequence",
             ),
             models.CheckConstraint(
                 condition=Q(sequence__gte=1), name="annualfee_sequence_positive"
             ),
             models.CheckConstraint(
-                condition=Q(kind__in=["annual", "type_change_supplement"]),
+                condition=Q(kind__in=["annual", "type_change_supplement", "instalment"]),
                 name="annualfee_kind_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(kind="instalment", instalment__gte=1, instalment__lte=3)
+                | (~Q(kind="instalment") & Q(instalment=0)),
+                name="annualfee_instalment_valid",
             ),
         ]
 

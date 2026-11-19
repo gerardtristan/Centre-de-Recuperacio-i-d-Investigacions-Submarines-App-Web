@@ -49,6 +49,11 @@ EDITORS = {
     values.SUPPLEMENT_DUE_DAYS: {"treasurer"},
     values.CARD_BACK_TEXT: {"secretary", "administrator"},
     values.CLASSIC_MEMBER_YEARS: {"administrator"},
+    # T-M01-49 (097, P-61; P-396): com el preu de la quota.
+    values.INSTALMENTS_ENABLED: {"treasurer", "administrator"},
+    values.INSTALMENTS_TOTAL: {"treasurer", "administrator"},
+    values.INSTALMENTS_SURCHARGE: {"treasurer", "administrator"},
+    values.INSTALMENTS_UNPAID_DAYS: {"treasurer", "administrator"},
 }
 ROLES = ["treasurer", "administrator", "secretary", "president", "board", "instructor"]
 
@@ -62,6 +67,10 @@ def test_the_01_values_are_settings_with_their_initial_values():
         values.SUPPLEMENT_DUE_DAYS: 7,
         values.CARD_BACK_TEXT: Setting.objects.get(key=values.CARD_BACK_TEXT).initial_value,
         values.CLASSIC_MEMBER_YEARS: 0,
+        values.INSTALMENTS_ENABLED: False,  # T-M01-49: apagat
+        values.INSTALMENTS_TOTAL: 9600,  # 3 × 32 €, provisional (097)
+        values.INSTALMENTS_SURCHARGE: 0,  # provisional (097)
+        values.INSTALMENTS_UNPAID_DAYS: 30,
     }
     prices = Setting.objects.filter(key__in=[FULL_PRICE, SUPPORTER_PRICE])
     assert all(s.affects_money and s.effective_dated for s in prices)

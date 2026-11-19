@@ -22,7 +22,7 @@ Decisió 079 (11/11/2026):
   un rebut, només amb el número de soci i la quota (A-07, RN-M01-89).
 - La marca d'impagat admet una data passada i mai una de futura (A-18): ho fa el servei
   d'estats (`services._check_effective_on`).
-- **Fora d'aquesta tasca:** el pagament a terminis és de la T-M01-49 (A-04, RN-M01-91; P-61).
+- El pagament a terminis és de la T-M01-49 (`instalments.py`; A-04, RN-M01-91; P-61).
 
 T-M01-40 (12/11/2026; RN-M01-72 i RN-M01-94; decisió 085, J-2 i G-2):
 - `exempt_fee`: exempció puntual d'una quota anual pendent, amb el permís P22
@@ -63,12 +63,14 @@ UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
 logger = logging.getLogger(__name__)
 
 
-def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> AnnualFee:
+def _issue_fee(
+    member, *, kind, amount_cents, concept, period, due_on, by, instalment=0
+) -> AnnualFee:
     """Quota sobre un càrrec «quota» a «General / Quotes de socis» (la 00 ho imposa; S-M04-06).
     P-54, sortida E (072): si les quotes d'aquest tipus i període estan anul·lades, se'n crea una
     de nova amb el número d'ordre següent; si n'hi ha cap de viva (pendent, pagada o retornada),
     es rebutja. Qui crida ja ha comprovat el permís i és dins la transacció que bloqueja el soci."""
-    same = AnnualFee.objects.filter(member=member, period=period, kind=kind)
+    same = AnnualFee.objects.filter(member=member, period=period, kind=kind, instalment=instalment)
     if same.exclude(charge__status=Charge.Status.CANCELLED).exists():
         raise ValidationError(_("Aquest soci ja té una quota d'aquest tipus i període."))
     sequence = (same.aggregate(n=Max("sequence"))["n"] or 0) + 1
@@ -81,7 +83,13 @@ def _issue_fee(member, *, kind, amount_cents, concept, period, due_on, by) -> An
         by=by,
     )
     return AnnualFee.objects.create(
-        member=member, period=period, kind=kind, sequence=sequence, charge=charge, due_on=due_on
+        member=member,
+        period=period,
+        kind=kind,
+        instalment=instalment,
+        sequence=sequence,
+        charge=charge,
+        due_on=due_on,
     )
 
 
@@ -323,12 +331,15 @@ def next_fee_due(member) -> datetime.date | None:
     `member` ve de `cards.load_member` (quotes, càrrecs i pagaments precarregats)."""
     if cards._has_partial_payments(member):
         return None  # P-61: cap regla per als pagaments parcials
-    if any(fee.charge.status in UNPAID_CHARGE for fee in member.annual_fees):
-        return None  # ja n'hi ha una de viva sense pagar
+    if any(
+        fee.charge.status in UNPAID_CHARGE for fee in [*member.annual_fees, *member.instalment_fees]
+    ):
+        return None  # ja n'hi ha una de viva sense pagar (o un termini, T-M01-49)
     candidates = (
         cards._paid_until(member),
         cards._cluber_until(member),
         validity.exempted_until(member),  # RN-M01-72: la renovació arriba en acabar l'exempció
+        validity.instalments_until(member),  # T-M01-49: tots pagats, 12 mesos després del 1r
     )
     dates = [d for d in candidates if d]
     if dates:
@@ -395,7 +406,7 @@ def send_due_reminders(today=None) -> int:
     today = today or local_today()
     offsets = values.fee_reminder_offsets()
     pending = AnnualFee.objects.filter(
-        kind=AnnualFee.Kind.ANNUAL,
+        kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT),  # T-M01-49 (P-396)
         charge__status=Charge.Status.PENDING,
         member__status__in=REVIEWED,
     ).select_related("member__person", "charge")

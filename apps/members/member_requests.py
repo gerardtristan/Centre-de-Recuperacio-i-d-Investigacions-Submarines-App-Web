@@ -226,6 +226,13 @@ def downgrade_problem(member) -> str:
         return _("Només un soci de ple dret actiu pot demanar el pas a simpatitzant.")
     if accepted_downgrade(member) is not None:
         return _("Ja tens el pas a simpatitzant acceptat. S'aplicarà en la pròxima renovació.")
+    from .instalments import has_unpaid_instalments
+
+    if has_unpaid_instalments(member):  # T-M01-49 (P-396): la renovació no es pot canviar
+        return _(
+            "Pagues la quota a terminis. Quan els hagis pagat tots, podràs demanar el pas a "
+            "simpatitzant."
+        )
     return ""
 
 

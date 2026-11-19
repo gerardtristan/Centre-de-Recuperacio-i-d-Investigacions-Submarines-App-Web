@@ -1,0 +1,159 @@
+"""Pagament a terminis de la quota de ple dret (T-M01-49; 097, P-61 punts 1 a 4; 085, J-9; 072,
+quarta instrucció, punt 2). Construït **apagat**: sense l'ajust `members.instalments.enabled`
+ningú no els pot triar i no es crea cap termini. Opcions per defecte: P-396.
+
+- `can_choose(fee)`: una quota anual pendent, sense cap pagament ni cap intent que la pugui
+  cobrar, d'un soci de ple dret pendent o actiu, sense cap pas a simpatitzant pendent ni
+  acceptat, i amb el mateix import que l'ajust de l'import total (si el preu del tipus és un
+  altre, triar canviaria el que deu el soci). Una quota anual només es genera a l'alta, a la
+  renovació i al primer pagament d'un menor a qui s'acaba l'exempció (Q-003): punts 3 i 4.
+- `choose(fee, by)`: el soci, des de la seva àrea, anul·la la quota anual amb motiu i se'n creen
+  els tres terminis sobre càrrecs nous. El primer venç el dia de la quota o avui, si ja ha
+  passat; els altres, un i dos mesos després (J-9: «tres terminis mensuals»).
+- `plan(total)`: l'import de cada termini (total + recàrrec); els cèntims que sobren, al primer.
+- `unpaid_candidates(today)`: socis actius amb un termini vençut fa els dies de l'ajust (o més),
+  sense pagar o retornat i sense cap intent que encara el pugui cobrar. Només es proposen: el
+  tresorer marca l'impagat a mà, amb motiu (040).
+
+Que el soci passi a actiu amb el primer termini pagat i el «vàlid fins al» són de
+`services.on_fee_paid` i `validity.instalments_until`.
+"""
+
+import datetime
+
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.http import Http404
+from django.utils.translation import gettext as _
+
+from apps.core import audit, business_settings, charges
+from apps.core.models import Charge
+
+from . import fees
+from . import settings as values
+from .fee_rules import local_today
+from .models import AnnualFee, Member, MemberRequest
+
+COUNT = 3
+CHOSEN = "members.fee.instalments_chosen"
+K = AnnualFee.Kind
+S = Member.Status
+
+
+def plan(total_cents: int) -> list[int]:
+    part, rest = divmod(total_cents, COUNT)
+    return [part + rest] + [part] * (COUNT - 1)
+
+
+def schedule(fee, today=None) -> list[tuple[int, datetime.date]]:
+    """(cèntims, venciment) de cada termini, amb l'import vigent dels ajustos."""
+    from apps.payments.expiry import months_after
+
+    first = max(fee.due_on, today or local_today())
+    amounts = plan(values.instalments_total_cents())
+    return [(cents, months_after(first, n)) for n, cents in enumerate(amounts)]
+
+
+def _may_be_charged():
+    from apps.payments.attempts import MAY_BE_CHARGED
+
+    return MAY_BE_CHARGED
+
+
+def can_choose(fee) -> bool:
+    from .member_requests import downgrades
+
+    member = fee.member
+    return (
+        values.instalments_enabled()
+        and fee.kind == K.ANNUAL
+        and fee.charge.status == Charge.Status.PENDING
+        and fee.charge.amount_cents == business_settings.get(values.INSTALMENTS_TOTAL)
+        and not charges.active_payments(fee.charge)
+        and member.type.full_rights
+        and member.status in (S.PENDING, S.ACTIVE)
+        and not fee.charge.attempts.filter(status__in=_may_be_charged()).exists()
+        and not downgrades(member)
+        .filter(
+            status__in=(MemberRequest.Status.PENDING, MemberRequest.Status.APPROVED),
+            effective_on__isnull=True,
+        )
+        .exists()
+    )
+
+
+def choose(fee, *, by, request=None) -> list[AnnualFee]:
+    """Només el soci mateix amb el compte personal actiu (un altre compte, «no trobat»). Tot o
+    res. Un pagament en curs o per revisar de la quota ho impedeix: es podria cobrar dues
+    vegades (guarda del 05b)."""
+    from apps.payments.attempts import ensure_manual_payment_allowed
+
+    from .member_requests import _is_own_personal
+    from .services import _check_account_active
+
+    if not _is_own_personal(fee.member, by):
+        raise Http404
+    _check_account_active(by)
+    with transaction.atomic():
+        member = (
+            Member.objects.select_for_update(of=("self",))
+            .select_related("type")
+            .get(pk=fee.member_id)
+        )
+        locked = AnnualFee.objects.get(pk=fee.pk)
+        locked.member = member
+        locked.charge = Charge.objects.select_for_update().get(pk=locked.charge_id)
+        try:
+            ensure_manual_payment_allowed(locked.charge)
+        except ValidationError:
+            # El text del 05b parla del pagament a mà: és per al tresorer, no per al soci.
+            raise ValidationError(
+                _("Aquesta quota té un pagament en curs. Quan s'hagi resolt, torna-ho a provar.")
+            ) from None
+        if not can_choose(locked):
+            raise ValidationError(_("Aquesta quota ja no es pot pagar a terminis."))
+        charges.cancel(locked.charge, _("Pagament a terminis triat pel soci."), by=by)
+        created = [
+            fees._issue_fee(
+                member,
+                kind=K.INSTALMENT,
+                amount_cents=cents,
+                concept=_("Quota de soci %(period)s, termini %(n)s de %(count)s")
+                % {"period": locked.period, "n": n, "count": COUNT},
+                period=locked.period,
+                due_on=due_on,
+                by=by,
+                instalment=n,
+            )
+            for n, (cents, due_on) in enumerate(schedule(locked), start=1)
+        ]
+        audit.record(
+            CHOSEN,
+            actor=by,
+            target=locked,
+            request=request,
+            details={"instalments": [f.pk for f in created]},
+        )
+    return created
+
+
+def has_unpaid_instalments(member) -> bool:
+    """Per al pas a simpatitzant (P-396): mentre hi ha terminis per pagar, no es pot demanar."""
+    return AnnualFee.objects.filter(
+        member=member, kind=K.INSTALMENT, charge__status__in=fees.UNPAID_CHARGE
+    ).exists()
+
+
+def unpaid_candidates(today: datetime.date) -> set[int]:
+    """Ids dels socis actius candidats a «impagat» per un termini (097, P-61 punt 2)."""
+    limit = today - datetime.timedelta(days=values.instalments_unpaid_days())
+    return set(
+        AnnualFee.objects.filter(
+            kind=K.INSTALMENT,
+            charge__status__in=fees.UNPAID_CHARGE,
+            due_on__lte=limit,
+            member__status=S.ACTIVE,
+        )
+        .exclude(charge__attempts__status__in=_may_be_charged())
+        .values_list("member_id", flat=True)
+    )

@@ -12,7 +12,9 @@ mòduls (`services`). Abans hi havia tres respostes que podien no coincidir (P-7
 - els importats de Cluber: un any des de «Data alta/renovació» (Q-076; 097, punt 1);
 - una quota eximida (RN-M01-72 i RN-M01-94; T-M01-40): un any des del venciment de la quota,
   mentre no s'hagi emès una quota posterior del mateix període (que és com es desfà).
-Amb pagaments parcials no n'hi ha cap: els terminis no tenen cap regla aprovada (P-61, T-M01-49).
+- els terminis de la quota de ple dret (T-M01-49; 097, P-61 punt 1): un any des del primer
+  termini pagat, però mai més enllà del venciment d'un termini sense pagar.
+Amb pagaments parcials d'una quota no n'hi ha cap.
 
 Funcions pures sobre un soci carregat amb `roster.with_fee_data` (quotes anuals, càrrecs,
 pagaments i altes aprovades): no escriuen res. L'impagat continua sent una marca manual del
@@ -101,6 +103,33 @@ def exempted_until(member) -> date | None:
     return max(dates) if dates else None
 
 
+def _paid_on(fee) -> date | None:
+    """Dia del pagament confirmat d'un càrrec pagat amb un sol pagament, o `None`."""
+    payments = active_payments(fee.charge)
+    if fee.charge.status != Charge.Status.PAID or len(payments) != 1 or not payments[0].paid_at:
+        return None
+    return timezone.localdate(payments[0].paid_at)
+
+
+def instalments_until(member) -> date | None:
+    """097 (P-61, punt 1): el carnet val mentre els terminis estan al dia. Per a cada període amb
+    algun termini pagat, la renovació (12 mesos després del primer pagament confirmat, sigui quin
+    sigui el termini; 070) o, si és abans, el venciment d'un termini pendent o retornat. Els
+    anul·lats no compten."""
+    plans = {}
+    for fee in member.instalment_fees:
+        if fee.charge.status != Charge.Status.CANCELLED:
+            plans.setdefault(fee.period, []).append(fee)
+    ends = []
+    for plan in plans.values():
+        paid = [day for day in map(_paid_on, plan) if day]
+        if not paid:
+            continue
+        unpaid = [f.due_on for f in plan if f.charge.status != Charge.Status.PAID]
+        ends.append(min([twelve_months_after(min(paid)), *unpaid]))
+    return max(ends) if ends else None
+
+
 def valid_until(member) -> date | None:
     """«Vàlid fins al» del soci, o `None` si no en té cap o si hi ha pagaments parcials."""
     if has_partial_payments(member):
@@ -110,6 +139,7 @@ def valid_until(member) -> date | None:
         exempt_until(member),
         cluber_until(member),
         exempted_until(member),
+        instalments_until(member),
     )
     dates = [d for d in candidates if d]
     return max(dates) if dates else None
@@ -122,7 +152,7 @@ def waived_now(member, today: date) -> bool:
         until is not None
         and today <= until
         and valid_until(member) == until
-        and until not in (paid_until(member), cluber_until(member))
+        and until not in (paid_until(member), cluber_until(member), instalments_until(member))
     )
 
 

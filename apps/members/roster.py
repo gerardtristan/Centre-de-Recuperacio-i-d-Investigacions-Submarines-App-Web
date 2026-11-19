@@ -141,12 +141,14 @@ def with_fee_data(members):
     """Precàrrega per a `fee_state`: les quotes anuals amb el càrrec i els pagaments, i les
     sol·licituds d'alta aprovades (data declarada, només per saber si és exempt; no es mostra)."""
     return members.prefetch_related(
-        Prefetch(
+        Prefetch(  # quotes anuals i terminis (T-M01-49): `Member.annual_fees` i `instalment_fees`
             "fees",
-            queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.ANNUAL)
+            queryset=AnnualFee.objects.filter(
+                kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT)
+            )
             .select_related("charge", "exemption")
             .prefetch_related("charge__payments__cancellation"),
-            to_attr="annual_fees",
+            to_attr="fee_rows",
         ),
         Prefetch(
             "person__member_requests",
@@ -184,7 +186,7 @@ def fee_state(member, today: date | None = None) -> FeeState | None:
         if validity.waived_now(member, today):
             return FeeState(WAIVED, until)
         return FeeState(PAID_UNTIL, until)
-    for fee in member.annual_fees:
+    for fee in [*member.annual_fees, *member.instalment_fees]:
         status = fee.charge.status
         if status == Charge.Status.RETURNED:
             return FeeState(PENDING)
