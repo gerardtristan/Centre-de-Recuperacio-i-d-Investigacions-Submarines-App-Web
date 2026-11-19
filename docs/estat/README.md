@@ -3,6 +3,7 @@
 Mentre l'interruptor D1 de [`CLAUDE.md`](../../CLAUDE.md) sigui actiu (decisió [089](../decisions/089-prova-d-acceleracio-interruptors-d1-a-d6.md)), l'estat de les tasques s'apunta aquí i no a la fila de [`planning.md`](../planning.md). El pla diu què s'ha de fer; aquesta carpeta diu com està. La línia cronològica i la skill `propera-tasca` llegeixen l'estat d'aquí: si una tasca hi és, mana aquesta fila; si no hi és, val el que diu el pla.
 
 - Un fitxer per mòdul: `M00.md` (amb les tasques T-RP i T-AJ), `M01.md`, `M04.md`, `M05a.md`… A més, `DX.md` és el carril de disseny (recursos externs, tasques T-DX).
+- Les tasques de la fase 1 que esperen algú de fora del projecte, amb les preguntes llestes per enviar agrupades per qui respon: [`fase1-pendents-externs.md`](fase1-pendents-externs.md).
 - Una fila per tasca, amb cinc columnes: **tasca** (l'identificador primer), **estat**, **data** (`dd/mm/aaaa` o `—`), **PR** (`#12` o `—`) i **bloqueig o nota** (`—` si no n'hi ha).
 - Quatre estats i cap més: **per fer**, **en curs**, **feta** i **bloquejada**. Una tasca bloquejada diu per què (una fila de [`pendents.md`](../decisions/pendents.md) o una altra tasca).
 - La PR d'una tasca posa la seva fila a «feta»: quan la PR és a `master`, és veritat. Com que `master` està protegida, una PR fusionada sempre ha passat el CI i no cal anotar-ho.
