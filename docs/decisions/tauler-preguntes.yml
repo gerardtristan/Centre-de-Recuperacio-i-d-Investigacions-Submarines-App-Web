@@ -1115,5 +1115,14 @@ opcions:
       RN-RP-11 tanca les sessions perquè els afectats tornin a entrar amb TOTP. Qui desa ja ha escrit un
       codi nou a la mateixa petició (RN-RP-06): tancar-li la sessió no afegeix cap comprovació.
     data: 2026-11-19
+  P-402:
+    opcions:
+      A: "Com s'ha construït: la targeta queda «esborrada» a la plataforma i no es fa servir mai més; al proveïdor no es demana res."
+      B: "A més, demanar al proveïdor que n'esborri la referència (operació nova a l'adaptador, quan hi hagi el proveïdor real)."
+    recomanada: B
+    perque: >-
+      Amb A la plataforma ja no la pot cobrar mai, però la referència continua viva al proveïdor. B ho
+      tanca del tot i és el que espera el soci; es pot afegir quan el proveïdor real digui com es fa.
+    data: 2026-11-19
 
 noves:

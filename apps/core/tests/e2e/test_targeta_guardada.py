@@ -3,7 +3,8 @@ Proveïdor fals, que guarda targetes (092); només dades inventades.
 
 El soci tria «Targeta guardada» a «Com pago la quota», va a la pàgina del proveïdor fals i en
 torna: la pantalla espera la confirmació. Només quan la cua processa la notificació hi ha
-targeta, amb els quatre darrers dígits i la caducitat. Captures a 1280, 390 i 320 px."""
+targeta, amb els quatre darrers dígits i la caducitat. Després l'esborra (T-M05a-12c, P-132).
+Captures a 1280, 390 i 320 px."""
 
 import re
 
@@ -47,4 +48,14 @@ def test_member_saves_a_card_for_the_fee(page, live_server, settings, builder, m
 
     page.goto(f"{live_server.url}/socis/pagaments/metode/")
     expect(page.get_by_text("targeta guardada acabada en 4242")).to_be_visible()
+
+    # T-M05a-12c (P-132): esborrar-la, com revocar el mandat; la sessió és recent.
+    page.goto(f"{live_server.url}/socis/pagaments/targeta/")
+    page.get_by_role("link", name="Esborra la targeta…").click()
+    expect(page.get_by_role("heading", name="Esborres la targeta?")).to_be_visible()
+    review("targeta-esborrar")
+    page.get_by_role("button", name="Sí, esborra-la").click()
+    expect(page.get_by_text("Targeta acabada en 4242 esborrada.")).to_be_visible()
+    assert SavedCard.objects.get().status == SavedCard.Status.REMOVED
+    review("targeta-esborrada")
     fake.reset()

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M05a-12c: esborrar la targeta guardada (P-132, opció A: com revocar el mandat). Pàgina de confirmació, sense JavaScript. Seguretat i privacitat, al servidor: només la targeta activa del soci de la sessió (compte personal); la contrasenya, i el codi si el compte té TOTP, quan la sessió no és recent (RN-M05a-12), i el servidor ho torna a comprovar; de la targeta, només els quatre darrers dígits, mai la referència del proveïdor. Funciona encara que el proveïdor ja no guardi targetes. #}
+{% block title %}{% translate "Esborra la targeta" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+  <h1>{% translate "Esborres la targeta?" %}</h1>
+  <form class="targeta formulari" method="post" action="{% url 'payments:saved_card_remove' %}" novalidate>
+    {% csrf_token %}
+    <p>{% blocktranslate with last4=card.last4 %}No es cobrarà cap quota més amb la targeta acabada en {{ last4 }}. Pagaràs cada quota amb targeta, Bizum o transferència quan es generi.{% endblocktranslate %}</p>
+    {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
+    {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
+    {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Sí, esborra-la" %}</button>
+      <a class="boto" href="{% url 'payments:saved_card' %}">{% translate "Torna" %}</a>
+    </div>
+  </form>
+{% endblock %}

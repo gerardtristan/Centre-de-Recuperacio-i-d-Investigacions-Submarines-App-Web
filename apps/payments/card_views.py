@@ -9,6 +9,7 @@ RN-M05a-10 i 12; CA-M05a-15; wireframe `socis.html#pagaments-targeta`).
 """
 
 from django.conf import settings
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
@@ -56,3 +57,38 @@ def saved_card_view(request):
         "error": error,
     }
     return render(request, "payments/saved_card.html", context)
+
+
+@sensitive_post_parameters("password", "code")
+@never_cache
+@require_http_methods(["GET", "POST"])
+def saved_card_remove_view(request):
+    """«Esborra la targeta» (T-M05a-12c; P-132, opció A): com «Revoca el mandat», confirmació i,
+    si la sessió no és recent, la contrasenya (i el codi si el compte té TOTP). Funciona encara que
+    el proveïdor ja no guardi targetes. Sense targeta activa no hi ha res a esborrar."""
+    member, account = _own_member(request), request.user
+    card = preferences.active_card(member)
+    if card is None:
+        return redirect("payments:fee_method")
+    minutes = settings.MANDATE_REAUTH_MINUTES
+    form = RecentAuthForm(
+        # Amb la sessió recent, el POST no porta cap camp: el formulari ha d'estar lligat igualment.
+        request.POST if request.method == "POST" else None,
+        has_totp=account.has_totp,
+        ask_password=not reauth.is_recent(request, minutes),
+    )
+    if request.method == "POST" and form.is_valid():
+        if _reauth_error(request, form, minutes) is None:
+            cards.remove_card(member, by=account)
+            messages.success(
+                request,
+                _(
+                    "Targeta acabada en %(last4)s esborrada. A partir d'ara pagaràs cada quota "
+                    "amb targeta, Bizum o transferència quan es generi."
+                )
+                % {"last4": card.last4},
+            )
+            return redirect("payments:fee_method")
+        form.data = form.data.copy()
+        form.data.pop("code", None)
+    return render(request, "payments/saved_card_remove.html", {"card": card, "form": form})

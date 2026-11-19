@@ -197,6 +197,7 @@ MAP = {
         "apps/payments/cards.py",
         "apps/payments/providers/fake.py",
         "templates/payments/saved_card.html",
+        "templates/payments/saved_card_remove.html",
         "templates/payments/fake_pay.html",
     ),
     "test_tresoreria.py": (
