@@ -12,11 +12,15 @@ from .views import (
     legal_texts,
     locked_data,
     permission_matrix,
+    private_file,
     roles,
 )
 
 urlpatterns = [
     path("registre/", audit.audit_log_view, name="audit_log"),
+    # P-12b: un fitxer privat des de l'administració (el comprovant d'un pagament a mà, M14).
+    # La mateixa vista: el compte i l'objecte els comprova `files.can_access`.
+    path("fitxers/<uuid:file_id>/", private_file, name="private_file"),
     # T-RP-02: rols d'un compte d'administrador, amb M3 (protegit, només l'administrador).
     path("comptes/<int:pk>/rols/", roles.account_roles_view, name="account_roles"),
     # T-RP-03: editor de permisos dels rols, amb M3b (protegit, només l'administrador).

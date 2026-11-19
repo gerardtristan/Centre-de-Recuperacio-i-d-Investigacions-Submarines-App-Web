@@ -57,7 +57,10 @@ _EXTENSIONS = {
 _HEIC_BRANDS = {b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1"}
 
 # Permís que deixa obrir un fitxer d'una altra persona, segons el tipus (RN-B4).
-_KIND_PERMISSION = {PrivateFile.Kind.GDPR_EXPORT: "core.gdpr.handle"}
+_KIND_PERMISSION = {
+    PrivateFile.Kind.GDPR_EXPORT: "core.gdpr.handle",
+    PrivateFile.Kind.PAYMENT_PROOF: "core.charges.record_manual",  # M14 (P-12b; P-405)
+}
 
 _LOCAL_SALT = "apps.core.files.local"
 

@@ -28,6 +28,7 @@ from .models import (
     Department,
     Payment,
     PaymentCancellation,
+    PrivateFile,
     validate_cents,
 )
 from .permissions import has_perm
@@ -265,13 +266,14 @@ def check_manual_payment(locked: Charge, by, **context) -> None:
 
 
 @transaction.atomic
-def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> Payment:
+def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None, proof=None) -> Payment:
     """P-12 (RN-72; 072, Q-037 i Q-038): pendent → pagat per un pagament en efectiu o presencial
     que es registra a mà. Import sencer del càrrec, mètode «manual», motiu obligatori i qui ho fa,
     al pagament i al registre; tot o res. Només amb M14; sense, «no trobat». Ningú no registra el
     pagament d'un càrrec seu, ni amb una guarda registrada en contra (un altre intent en curs).
-    `paid_on`: la data de cobrament, avui per defecte i mai futura. L'ingrés a la tresoreria i el
-    soci són de qui crida (`treasury.services.record_manual_payment`)."""
+    `paid_on`: la data de cobrament, avui per defecte i mai futura. `proof`: el comprovant
+    opcional, un fitxer pujat (P-12b, Q-038), que es comprova pel contingut i queda privat. L'ingrés
+    a la tresoreria i el soci són de qui crida (`treasury.services.record_manual_payment`)."""
     if charge is None or not has_perm(by, MANUAL_PAYMENT, charge, write=True):
         raise Http404
     if not reason.strip():
@@ -282,6 +284,7 @@ def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> P
     paid_on = paid_on or today
     if paid_on > today:
         raise ValidationError(_("La data de cobrament no pot ser futura."))
+    proof_file = proof and _store_proof(proof, locked.person)
     payment = Payment.objects.create(
         charge=locked,
         method=Payment.Method.MANUAL,
@@ -293,6 +296,7 @@ def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None) -> P
         ),
         recorded_by=by,
         reason=reason.strip(),
+        proof=proof_file,
     )
     _paid(locked, payment, origin="manual", by=by, reason=payment.reason)
     return payment
@@ -412,4 +416,27 @@ def reopen_returned(charge: Charge, reason: str, *, by) -> Charge:
         reason=reason,
         details={"origin": "048"},
         allowed={REOPEN_RETURNED},
+    )
+
+
+def _store_proof(uploaded, person):
+    """P-12b: el comprovant, privat i a nom de la persona del càrrec.
+    shortcut: si després es desfà la transacció (p. ex. un compte d'ingrés no vàlid), el fitxer
+    queda a l'emmagatzematge sense cap fila que hi porti; netejar-los amb la tasca diària quan hi
+    hagi més fitxers pujats."""
+    from . import files
+
+    content_type = files.validate_upload(uploaded)
+    extension = {
+        "application/pdf": "pdf",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/heic": "heic",
+    }
+    return files.store(
+        uploaded.read(),
+        owner=person,
+        kind=PrivateFile.Kind.PAYMENT_PROOF,
+        content_type=content_type,
+        download_name=f"comprovant-pagament.{extension.get(content_type, 'jpg')}",
     )

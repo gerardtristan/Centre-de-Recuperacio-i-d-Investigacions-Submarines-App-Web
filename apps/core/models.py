@@ -759,6 +759,16 @@ class Payment(UndeletableModel):
         verbose_name=_("registrat per"),
     )
     reason = models.TextField(_("motiu"), blank=True)
+    # P-12b (072, Q-038): el comprovant opcional d'un pagament a mà. Document econòmic: no
+    # s'esborra en un esborrat RGPD (no és a `files.ERASABLE_KINDS`).
+    proof = models.ForeignKey(
+        "PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("comprovant"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1047,6 +1057,7 @@ class PrivateFile(models.Model):
 
     class Kind(models.TextChoices):
         GDPR_EXPORT = "gdpr_export", _("Exportació de dades (RGPD)")
+        PAYMENT_PROOF = "payment_proof", _("Comprovant d'un pagament a mà")  # P-12b
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     storage_key = models.CharField(_("clau a l'emmagatzematge"), max_length=100, unique=True)
@@ -1068,7 +1079,8 @@ class PrivateFile(models.Model):
         verbose_name_plural = _("fitxers privats")
         constraints = [
             models.CheckConstraint(
-                condition=Q(kind__in=["gdpr_export"]), name="private_file_kind_valid"
+                condition=Q(kind__in=["gdpr_export", "payment_proof"]),
+                name="private_file_kind_valid",
             ),
         ]
         indexes = [models.Index(fields=["expires_at"], name="private_file_expires_idx")]

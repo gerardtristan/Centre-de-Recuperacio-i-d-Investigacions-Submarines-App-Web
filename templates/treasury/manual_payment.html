@@ -21,7 +21,7 @@
     <div class="avis avis-avis" role="status">{% translate "No hi ha cap caixa ni compte bancari actiu on entri el pagament. Cal que n'hi hagi un a «Tresoreria: comptes i saldos»." %}</div>
   {% else %}
     <p class="text-2">{% translate "Per a un pagament en efectiu o presencial que ja s'ha cobrat. Es registra l'import sencer: el càrrec queda pagat, l'ingrés entra al compte que triïs i el pagador rep el rebut." %}</p>
-    <form class="formulari" method="post" action="{% url 'administration:treasury_manual_payment' charge.pk %}" novalidate>
+    <form class="formulari" method="post" enctype="multipart/form-data" action="{% url 'administration:treasury_manual_payment' charge.pk %}" novalidate>
       {% csrf_token %}
       {% for error in errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}
       {% if confirmed %}
@@ -31,6 +31,11 @@
           <div><dt>{% translate "Data de cobrament" %}</dt><dd>{{ confirmed.paid_on|date:"d/m/Y" }}</dd></div>
           <div><dt>{% translate "Motiu" %}</dt><dd>{{ confirmed.reason }}</dd></div>
         </dl>
+        <div class="camp">
+          <label for="id_comprovant">{% translate "Comprovant (opcional)" %}</label>
+          <input type="file" id="id_comprovant" name="proof" accept=".pdf,application/pdf,image/jpeg,image/png,image/webp,image/heic" aria-describedby="ajuda-comprovant">
+          <p class="ajuda" id="ajuda-comprovant">{% blocktranslate with mb=max_mb %}Una foto o un PDF del rebut o del justificant, de {{ mb }} MB com a màxim. Queda privat: només l'obre qui pot registrar pagaments a mà.{% endblocktranslate %}</p>
+        </div>
         <div class="avis avis-avis" role="alert"><strong>{% translate "Confirma el pagament" %}</strong>{% blocktranslate with person=charge.person account=confirmed.account.name %}Es registraran {{ amount }} pagats per {{ person }}, que entraran a «{{ account }}». Queda al registre d'activitat amb el motiu.{% endblocktranslate %}</div>
         <div class="accions">
           <button class="boto boto-principal" type="submit">{% translate "Sí, registra el pagament" %}</button>
