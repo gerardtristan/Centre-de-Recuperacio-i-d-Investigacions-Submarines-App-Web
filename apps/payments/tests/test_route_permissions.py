@@ -59,6 +59,7 @@ ADMIN_ROUTES = {
     "administration:treasury_review": {"GET": {r(T10)}},
     "administration:treasury_exclude_line": {"POST": {w(T8)}},
     "administration:treasury_settlement_review_close": {"GET": {w(T10)}, "POST": {w(T10)}},
+    "administration:treasury_undo_exclusion": {"POST": {w(T8)}},  # T-M04-14d
     "administration:treasury_transfer": {"GET": {w(T6)}, "POST": {w(T6)}},
     "administration:treasury_cash_count": {"GET": {w(T7)}, "POST": {w(T7)}},
     "administration:treasury_reverse": {"GET": {w(T5)}, "POST": {w(T5)}},
@@ -201,6 +202,10 @@ SERVICE_CHECKS = {
     reconciliation.confirm: (T4, lambda by: reconciliation.confirm(None, by=by)),
     reconciliation.undo: (T4, lambda by: reconciliation.undo(None, reason="x", by=by)),
     reconciliation.exclude: (T8, lambda by: reconciliation.exclude(None, reason="x", by=by)),
+    reconciliation.undo_exclusion: (
+        T8,
+        lambda by: reconciliation.undo_exclusion(None, reason="x", by=by),
+    ),
     reconciliation.match: (T4, lambda by: reconciliation.match(None, [], by=by)),
     reconciliation.check_match: (T4, lambda by: reconciliation.check_match(None, [], by=by)),
     remittances.build_remittance: (B3, lambda by: remittances.build_remittance("x", None, by)),

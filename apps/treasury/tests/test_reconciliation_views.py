@@ -202,3 +202,44 @@ def test_the_back_link_of_the_list_only_if_its_screen_opens(make_admin, treasure
     grant(R.SECRETARY, T10)
     html = html_of(client_for(make_admin(R.SECRETARY)), REVIEW)
     assert accounts not in html and f'href="{HOME}"' in html
+
+
+# --- T-M04-14d (097, P-192 opció C; RN-T15): excloure una línia proposada i desfer una exclusió,
+# totes dues amb T8 i motiu, des de la conciliació.
+
+
+def undo_exclusion_url(line):
+    return reverse("administration:treasury_undo_exclusion", args=[line.pk])
+
+
+def test_a_proposed_line_offers_confirm_and_exclude(treasurer, quota):
+    line = proposed(treasurer, quota)
+    html = html_of(client_for(treasurer), PAGE)
+    exclude = reverse("administration:treasury_exclude_line", args=[line.pk])
+    assert ">Confirma</button>" in html and exclude in html
+
+
+def test_an_excluded_line_offers_undo_only_with_t8(make_admin, treasurer):  # noqa: F811
+    (line,) = lines(treasurer, (4200, "INGRES DESCONEGUT"))
+    reconciliation.exclude(line, reason="No és del club", by=treasurer)
+    html = html_of(client_for(treasurer), PAGE)
+    assert "Desfés l'exclusió…" in html and undo_exclusion_url(line) in html
+    admin = client_for(make_admin(R.ADMINISTRATOR))  # T1 sí, T8 no
+    assert undo_exclusion_url(line) not in html_of(admin, PAGE)
+    assert admin.post(undo_exclusion_url(line), {"motiu": "Prova"}).status_code == 404
+    assert StatementLineState.objects.get(statement_line=line).status == "excluded"
+
+
+def test_undoing_an_exclusion_from_the_screen(treasurer, quota):
+    line = proposed(treasurer, quota)
+    reconciliation.exclude(line, reason="Repetit", by=treasurer)
+    client = client_for(treasurer)
+    assert client.get(undo_exclusion_url(line)).status_code == 405
+    response = client.post(undo_exclusion_url(line), {"motiu": ""}, follow=True)
+    assert "Per desfer l&#x27;exclusió cal escriure&#x27;n el motiu." in response.content.decode()
+    response = client.post(undo_exclusion_url(line), {"motiu": "Era bona"})
+    assert response["Location"] == PAGE
+    html = html_of(client, PAGE)
+    assert "Exclusió desfeta." in html and ">Confirma</button>" in html  # torna a ser proposada
+    missing = reverse("administration:treasury_undo_exclusion", args=[999999])
+    assert client.post(missing, {"motiu": "x"}).status_code == 404

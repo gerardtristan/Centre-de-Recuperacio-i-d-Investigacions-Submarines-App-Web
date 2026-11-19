@@ -429,12 +429,14 @@ class TestExclude:
         reconciliation.exclude(line, reason="Despesa amb factura, fins al 09", by=treasurer)
         assert state(line)[0] == State.EXCLUDED
 
-    def test_rn_t15_only_a_pending_line_of_a_current_statement(self, treasurer, charge):
+    def test_rn_t15_only_an_open_line_of_a_current_statement(self, treasurer, charge):
         quota = charge()
-        proposed, undone = lines(treasurer, (9000, ref(quota)), (500, "INGRES"))
+        (done,) = lines(treasurer, (9000, ref(quota)))
+        (undone,) = lines(treasurer, (500, "INGRES"))  # un altre extracte, que es desfà
         reconciliation.refresh()
-        with pytest.raises(reconciliation.ReconciliationRejected):  # P-192
-            reconciliation.exclude(proposed, reason="Prova", by=treasurer)
+        reconciliation.confirm(done, by=treasurer)
+        with pytest.raises(reconciliation.ReconciliationRejected, match="pendent"):
+            reconciliation.exclude(done, reason="Prova", by=treasurer)  # conciliada
         bs.undo(undone.batch, by=treasurer, reason="Extracte equivocat (prova)")
         with pytest.raises(reconciliation.ReconciliationRejected):
             reconciliation.exclude(undone, reason="Prova", by=treasurer)
@@ -463,6 +465,82 @@ class TestExclude:
         )
         reconciliation.exclude(second, reason="Prova", by=make_admin("secretary"))
         assert state(second)[0] == State.EXCLUDED and state(first)[0] != State.EXCLUDED
+
+    # --- T-M04-14d (097, P-192 opció C; RN-T15): excloure una proposada i desfer l'exclusió.
+
+    def test_a_proposed_line_is_excluded_and_its_proposal_dropped(self, treasurer, charge):
+        quota = charge()
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)} INVENTAT"))
+        reconciliation.refresh()
+        assert state(line)[0] == State.PROPOSED
+        reconciliation.exclude(line, reason="Ingrés repetit del banc", by=treasurer)
+        assert state(line) == (State.EXCLUDED, "", [])
+        quota.refresh_from_db()
+        assert quota.status == Charge.Status.PENDING  # res confirmat, res pagat
+        assert not Movement.objects.exists() and not Payment.objects.exists()
+        entry = AuditEntry.objects.get(action=reconciliation.EXCLUDED)
+        assert entry.old_value["status"] == "proposed" and entry.old_value["charges"] == [quota.pk]
+        assert entry.new_value["charges"] == []
+        reconciliation.refresh()  # una exclusió no torna enrere sola
+        assert state(line)[0] == State.EXCLUDED
+
+    def test_undoing_an_exclusion_needs_a_reason_and_is_logged(self, treasurer):
+        (line,) = lines(treasurer, (-1230, "REBUT LLUM"))
+        reconciliation.exclude(line, reason="Despesa amb factura", by=treasurer)
+        for blank in ("", "   "):
+            with pytest.raises(reconciliation.ReconciliationRejected, match="motiu"):
+                reconciliation.undo_exclusion(line, reason=blank, by=treasurer)
+        undone = reconciliation.undo_exclusion(line, reason=" Exclosa per error ", by=treasurer)
+        assert (undone.status, undone.exclusion_reason, undone.to_review) == (
+            State.PENDING,
+            "",
+            False,
+        )
+        entry = AuditEntry.objects.get(action=reconciliation.EXCLUSION_UNDONE)
+        assert entry.reason == "Exclosa per error" and entry.actor_account_id == treasurer.pk
+        assert entry.old_value["status"] == "excluded" and entry.new_value["status"] == "pending"
+        # El motiu de l'exclusió és a l'entrada «exclosa» (`reason`, que l'RGPD anonimitza), no a
+        # `details`, que no s'anonimitza.
+        assert entry.details == {"line": line.pk}
+        excluded = AuditEntry.objects.get(action=reconciliation.EXCLUDED)
+        assert excluded.reason == "Despesa amb factura"
+        assert "LLUM" not in str((entry.details, entry.old_value, entry.new_value))
+        # Es pot tornar a excloure.
+        reconciliation.exclude(line, reason="Ara sí", by=treasurer)
+        assert state(line)[0] == State.EXCLUDED
+
+    def test_after_undoing_the_line_is_proposed_again_if_it_applies(self, treasurer, charge):
+        quota = charge()
+        (line,) = lines(treasurer, (9000, f"TRANSF {ref(quota)} INVENTAT"))
+        reconciliation.refresh()
+        reconciliation.exclude(line, reason="Prova", by=treasurer)
+        undone = reconciliation.undo_exclusion(line, reason="Era bona", by=treasurer)
+        assert state(line) == (State.PROPOSED, "", [quota])
+        assert undone.status == State.PROPOSED  # el que torna és l'estat desat, no el d'abans
+
+    def test_only_an_excluded_line_of_a_current_statement_is_undone(self, treasurer):
+        pending, other = lines(treasurer, (-1230, "REBUT LLUM"), (-500, "REBUT AIGUA"))
+        with pytest.raises(reconciliation.ReconciliationRejected, match="exclosa"):
+            reconciliation.undo_exclusion(pending, reason="Prova", by=treasurer)
+        reconciliation.exclude(other, reason="Prova", by=treasurer)
+        bs.undo(other.batch, by=treasurer, reason="Extracte equivocat (prova)")
+        with pytest.raises(reconciliation.ReconciliationRejected, match="exclosa"):
+            reconciliation.undo_exclusion(other, reason="Prova", by=treasurer)
+        assert not AuditEntry.objects.filter(action=reconciliation.EXCLUSION_UNDONE).exists()
+
+    def test_undoing_needs_t8_with_edit(self, treasurer, make_admin, make_person):  # noqa: F811
+        (line,) = lines(treasurer, (-1230, "REBUT LLUM"))
+        reconciliation.exclude(line, reason="Prova", by=treasurer)
+        member = Account.objects.create_personal(make_person(), "soci@example.org", PASSWORD)
+        for who in (make_admin("administrator"), make_admin("secretary"), member, SYSTEM):
+            with pytest.raises(Http404):
+                reconciliation.undo_exclusion(line, reason="Prova", by=who)
+        assert state(line)[0] == State.EXCLUDED
+        RolePermission.objects.filter(  # T4 sol no hi val
+            role__code="treasurer", permission_code=reconciliation.EXCLUDE
+        ).delete()
+        with pytest.raises(Http404):
+            reconciliation.undo_exclusion(line, reason="Prova", by=treasurer)
 
     def test_excluded_needs_a_reason_also_in_the_database(self, treasurer):
         (line,) = lines(treasurer, (-1230, "REBUT LLUM"))

@@ -469,8 +469,9 @@ class TransferReference(AppendOnlyModel):
 
 class StatementLineState(UndeletableModel):
     """Estat d'una línia de l'extracte a la conciliació (M04-6; RN-T14, RN-T15): pendent →
-    proposada → conciliada; pendent → exclosa. «A revisar» és una marca amb el seu motiu. La
-    línia de la 00 no es toca mai. El manté `reconciliation.refresh` (T-M04-11)."""
+    proposada → conciliada; pendent o proposada → exclosa → pendent (097, P-192). «A revisar» és
+    una marca amb el seu motiu. La línia de la 00 no es toca mai. El manté
+    `reconciliation.refresh` (T-M04-11)."""
 
     class Status(models.TextChoices):
         PENDING = "pending", _("Pendent")
