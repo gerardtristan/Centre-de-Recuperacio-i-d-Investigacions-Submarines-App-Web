@@ -1,6 +1,6 @@
-/* Conciliació a l'escriptori (T-DX-72; design-system §6.22). Amb el panell de la línia triada a la vista
-   (el CSS el mostra quan el cos fa 56rem o més), «Casa a mà…», «Casa amb moviments…» i «Revisa i
-   confirma…» es carreguen amb HTMX al panell des de la mateixa vista, amb l'esquelet mentre carrega.
+/* Conciliació a l'escriptori (T-DX-72 i T-DX-73; design-system §6.22). Amb lloc per al panell de la
+   línia triada (el cos fa 56rem o més; s'obre al costat de la taula amb .amb-linia), «Casa a mà…»,
+   «Casa amb moviments…» i «Revisa i confirma…» es carreguen amb HTMX al panell des de la mateixa vista, amb l'esquelet mentre carrega.
    Esc o «Tanca» el tanquen i el focus torna a l'enllaç. J i K (de Teletipo) passen de línia, sense
    modificadors i mai dins d'un camp. Amb el panell amagat (mòbil i tauleta) o sense JavaScript,
    l'enllaç porta a la pàgina com abans. El panell no és cap control: la vista torna a comprovar el
@@ -17,11 +17,14 @@
   const inicial = cos.innerHTML;
   let origen = null;  // l'enllaç que ha obert el panell: hi torna el focus
 
+  const pista = graella.querySelector('[data-panell-pista]');
   panell.hidden = false;
+  if (pista) pista.hidden = false;
   taula.setAttribute('aria-keyshortcuts', 'J K');
   files.forEach(function (fila) { fila.tabIndex = -1; });
 
-  function visible() { return getComputedStyle(panell).display !== 'none'; }
+  // Amb lloc per al panell (el CSS hi posa --conciliacio-panell quan el cos fa 56rem o més)
+  function visible() { return getComputedStyle(graella).getPropertyValue('--conciliacio-panell').trim() === '1'; }
   function obert() { return !tanca.hidden; }
   function titol() { const t = cos.querySelector('#panell-linia-titol'); if (t) t.focus(); }
   function mostra(selector) {
@@ -39,6 +42,7 @@
     origen = enllac;
     tria(enllac.closest('tr'));
     tanca.hidden = false;
+    graella.classList.add('amb-linia');
     mostra('[data-panell-esquelet]');
     cos.setAttribute('aria-busy', 'true');
     htmx.ajax('GET', enllac.href, { source: enllac, target: cos, swap: 'innerHTML' }).then(function () {
@@ -50,6 +54,7 @@
 
   function tancaPanell() {
     tanca.hidden = true;
+    graella.classList.remove('amb-linia');
     cos.innerHTML = inicial;
     cos.removeAttribute('aria-busy');
     if (origen && document.contains(origen)) origen.focus();
@@ -88,6 +93,16 @@
       e.detail.isError = false;  // el panell ja ho explica: HTMX no ho torna a escriure a la consola
       error();
     }
+  });
+  // Un pas dins del panell (cercar, revisar, cancel·lar): el botó que l'ha enviat ja no hi és i el
+  // focus aniria al cos de la pàgina. Va al que marca la plantilla (els resultats de la cerca o el
+  // missatge que diu que no n'hi ha) o, si no, al títol del panell (T-DX-73).
+  document.body.addEventListener('htmx:afterSettle', function (e) {
+    if (e.detail.target !== cos || !obert()) return;
+    const elt = e.detail.requestConfig && e.detail.requestConfig.elt;
+    if (elt && elt.matches && elt.matches('a[data-panell-enllac]')) return;  // obrir: ho fa obre()
+    const lloc = cos.querySelector('[data-panell-focus]');
+    if (lloc) lloc.focus(); else titol();
   });
   document.body.addEventListener('htmx:sendError', function (e) {
     if (e.detail.target === cos && obert()) error();

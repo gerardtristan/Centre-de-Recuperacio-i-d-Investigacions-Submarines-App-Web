@@ -46,7 +46,7 @@
     {% if found %}
       <form class="formulari" method="post" action="{% url 'administration:treasury_match_movements' line.pk %}"{% if panell %} hx-post="{% url 'administration:treasury_match_movements' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
         {% csrf_token %}
-        <fieldset>
+        <fieldset data-panell-focus tabindex="-1">
           <legend>{% blocktranslate with amount=amount %}Tria els moviments del banc que sumen {{ amount }}{% endblocktranslate %}</legend>
           {% for item in found %}
             <label class="casella"><input type="checkbox" name="moviment" value="{{ item.movement.pk }}"{% if item.checked %} checked{% endif %}> <span><time datetime="{{ item.movement.value_date|date:'Y-m-d' }}">{{ item.movement.value_date|date:"d/m/Y" }}</time> · {{ item.movement.account.name }} · {{ item.movement.get_kind_display }} · {{ item.movement.concept }} · <span class="import">{{ item.amount }}</span></span></label>
