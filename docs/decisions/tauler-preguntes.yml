@@ -1062,7 +1062,6 @@ opcions:
       el pas de revisió amb el brut, les comissions i el net abans de confirmar.
     data: 2026-11-19
 
-  P-394:
   P-396:
     opcions:
       A: "Com s'ha construït: total + recàrrec en tres (cèntims de més al primer); només si la quota té el mateix import que l'ajust; mensuals des de la quota o des del dia que es trien; actiu amb el primer pagat; sense pas a simpatitzant mentre n'hi ha per pagar."
