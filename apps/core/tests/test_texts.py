@@ -497,10 +497,30 @@ def test_help_text_preview_shows_the_question_and_saves_nothing(make_admin):
     assert "Ajuda d&#x27;«El meu perfil»: Com canvio el nom" in page
     response = client.post(url(HELP), {"value": "Truca a la secretaria & junta", "preview": ""})
     html = response.content.decode()
-    assert "Vista prèvia amb dades inventades" in html  # CA-M00-08.3: sense cap dada real
-    assert "Com canvio el nom o el document?" in html
-    assert "Truca a la secretaria &amp; junta" in html
+    # CA-M00-08.3: sense cap variable, no hi ha cap dada (ni inventada); es veu com el plafó.
+    assert '<h2 id="previa-titol">Vista prèvia</h2>' in html and "dades inventades" not in html
+    assert "<summary><span>Com canvio el nom o el document?</span>" in html
+    assert '<div class="recoveco-resp"><p>Truca a la secretaria &amp; junta</p>' in html
     assert not SettingVersion.objects.exists()
+
+
+def test_a_long_help_text_with_crlf_previews_and_saves_alike(make_admin):
+    # El navegador envia CR LF: la vista prèvia normalitza com en desar (1000 caràcters amb LF).
+    value = "\r\n".join(["Línia inventada."] * 58)
+    assert len(value) > 1000 >= len(value.replace("\r\n", "\n"))
+    client = admin_client(make_admin(R.SECRETARY))
+    html = client.post(url(HELP), {"value": value, "preview": ""}).content.decode()
+    assert "No s'ha desat res." not in html and "Encara no s'ha desat res." in html
+    assert client.post(url(HELP), {"value": value, "note": ""}).status_code == 302
+    assert business_settings.get(HELP) == value.replace("\r\n", "\n")
+
+
+def test_every_help_default_in_every_language_is_valid():
+    for code, _name in settings.LANGUAGES:
+        with translation.override(code):
+            for key, entry in texts.HELP.items():
+                texts.validate(key, str(entry.default))
+                assert str(entry.label) and str(entry.question), (code, key)
 
 
 def test_help_text_read_only_and_without_permission(make_admin):

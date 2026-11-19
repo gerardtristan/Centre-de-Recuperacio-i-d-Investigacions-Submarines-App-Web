@@ -51,6 +51,12 @@ def register_check(key: str, check, *, normalise=None, lock_with=()) -> None:
         LOCK_WITH[key] = tuple(lock_with)
 
 
+def normalise(key: str, value):
+    """La forma que es desa; la fa servir també la vista prèvia dels textos (T-M00-08e)."""
+    function = NORMALISERS.get(key)
+    return function(value) if function else value
+
+
 # Llistes de codis en un ajust de text (P-291, P-123): separats per comes, espais o punts i
 # comes, i desats en majúscules, ordenats i separats per «, ».
 LIST_SEPARATORS = re.compile(r"[\s,;]+")
@@ -253,8 +259,7 @@ def _save(pk, value, user, note, effective_from) -> SettingVersion:
     keys = sorted({key, *LOCK_WITH.get(key, ())})
     locked = Setting.objects.select_for_update().filter(key__in=keys).order_by("key")
     setting = next(s for s in locked if s.pk == pk)
-    if normalise := NORMALISERS.get(key):
-        value = normalise(value)
+    value = normalise(key, value)
     note = (note or "").strip()
     validate_value(setting, value)
     effective_from = _check_dates_and_note(setting, note, effective_from)

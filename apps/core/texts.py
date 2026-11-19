@@ -213,7 +213,7 @@ class HelpText:
 
     @property
     def label(self) -> str:
-        return f"{self.screen}: {self.question}"
+        return _("%(screen)s: %(question)s") % {"screen": self.screen, "question": self.question}
 
 
 # Plafons «Ajuda» de les pantalles fora de pagaments i tresoreria (P-393: només els plafons, no
@@ -241,7 +241,7 @@ HELP = {
 }
 
 
-def entry(key: str):
+def text_entry(key: str):
     return EMAILS.get(key) or HELP[key]
 
 
@@ -318,7 +318,7 @@ def normalise(key: str, value):
         return value
     # Una ajuda en blanc deixaria el plafó buit: torna al text per defecte.
     blank = key in HELP and not value.strip()
-    return "" if blank or value.strip() == str(entry(key).default).strip() else value
+    return "" if blank or value.strip() == str(text_entry(key).default).strip() else value
 
 
 def register() -> None:
@@ -341,7 +341,7 @@ def _edited(key: str) -> str:
 
 def current(key: str) -> str:
     """El text que s'envia ara: l'editat o, si no n'hi ha, el per defecte."""
-    return _edited(key) or str(entry(key).default)
+    return _edited(key) or str(text_entry(key).default)
 
 
 def status(key: str) -> str:
