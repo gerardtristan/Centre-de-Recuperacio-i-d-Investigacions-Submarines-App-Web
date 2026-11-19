@@ -792,9 +792,8 @@ class TestAlreadyImported:
         }
         # Els codis de la T-M01-24b («date_invalid», «total_price_differs») hi són des de la
         # migració core/0012 de la T-M01-25 (071).
-        # «last_renewal» (T-M01-25b) no es desa a la línia fins que una migració de core l'afegeixi
-        # (`final._codes`).
-        assert set(cluber.MESSAGES) - file_level - {"last_renewal"} <= set(IMPORT_LINE_CODES)
+        # «last_renewal» (T-M01-25b), des de la migració core/0054 (T-M01-25c).
+        assert set(cluber.MESSAGES) - file_level <= set(IMPORT_LINE_CODES)
         assert {"date_invalid", "total_price_differs"} <= set(IMPORT_LINE_CODES)
 
 

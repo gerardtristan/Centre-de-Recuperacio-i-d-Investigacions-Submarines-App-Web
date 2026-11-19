@@ -84,7 +84,7 @@ def test_the_audit_counts_are_exact(admin):  # noqa: F811
     assert (details["renewal_date_chosen"], details["excluded_without_renewal_date"]) == (1, 1)
     line = batch.lines.get(row=4)
     assert line.result == ImportLine.Result.EXCLUDED
-    assert "last_renewal" not in line.codes  # encara no és a la llista tancada de core
+    assert "last_renewal" in line.codes  # T-M01-25c: a la llista tancada de core (core/0054)
 
 
 @pytest.mark.parametrize(

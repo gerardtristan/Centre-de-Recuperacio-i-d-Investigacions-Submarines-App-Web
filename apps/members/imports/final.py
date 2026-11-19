@@ -140,11 +140,7 @@ def _document_type(row: cluber.Row, document_types) -> str:
 
 def _codes(row: cluber.Row) -> list:
     left = ["left_in_cluber"] if row.left_in_cluber else []
-    # shortcut: «last_renewal» encara no és a la llista tancada de `core` (cal una migració de
-    # core) i no es desa a la línia; el registre d'activitat en compta les files. Afegir-lo quan
-    # el nucli estigui lliure.
-    pending = [code for code in row.pending if code != "last_renewal"]
-    return list(dict.fromkeys([*left, *row.errors, *pending, *row.warnings]))
+    return list(dict.fromkeys([*left, *row.errors, *row.pending, *row.warnings]))
 
 
 def _result(row: cluber.Row) -> str:

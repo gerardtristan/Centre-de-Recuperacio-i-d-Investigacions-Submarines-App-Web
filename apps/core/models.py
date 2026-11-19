@@ -1121,6 +1121,7 @@ IMPORT_LINE_CODES = (
     "id_document",
     "email",
     "phone",
+    "last_renewal",  # T-M01-25c: falta la «Data alta/renovació» de Cluber
 )
 
 
