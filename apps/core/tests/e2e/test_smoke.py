@@ -10,6 +10,7 @@ from playwright.sync_api import expect
 from apps.members.models import MemberRequest
 from conftest import PASSWORD
 
+from . import conftest as e2e_conftest
 from .conftest import login_admin
 
 pytestmark = pytest.mark.e2e
@@ -73,3 +74,13 @@ def test_members_list_and_detail(page, live_server, secretary, member, capture):
     # El nom del text, no el codi intern (error trobat per aquesta suite, test_roster.py).
     expect(page.get_by_role("rowheader", name="Política de privacitat")).to_be_visible()
     capture("fitxa")
+
+
+def test_first_load_is_warm(page, live_server, transactional_db):
+    """P-313: la primera càrrega d'una tanda arrenca en fred el servidor i el navegador (9 s amb
+    la memòria cau del disc buida, 0,3 s les següents) i, amb la màquina carregada, passava dels
+    30 s de Playwright. Quan arriba la primera prova, `conftest` ja ha visitat `/entrar/` una
+    vegada en aquest mateix servidor. El temps no es comprova: depèn de la càrrega."""
+    assert e2e_conftest._warmed == [live_server.url]
+    page.goto(f"{live_server.url}/entrar/")
+    expect(page.get_by_label("Correu electrònic")).to_be_visible()

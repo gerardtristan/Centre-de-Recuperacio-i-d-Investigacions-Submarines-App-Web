@@ -146,6 +146,26 @@ class PageChecks:
             self.problems.append(f"{response.status} {response.request.method} {response.url}")
 
 
+_warmed = []
+
+
+@pytest.fixture(autouse=True)
+def _warm_first_load(request):
+    """P-313: la primera càrrega d'una tanda arrenca en fred el servidor i el navegador (9 s amb
+    la memòria cau del disc buida, 0,3 s les següents) i, amb la màquina carregada, passava dels
+    30 s de Playwright. Abans de la primera prova amb `live_server`, una visita d'escalfament a
+    `/entrar/` en un context a part, una sola vegada per tanda. És l'únic temps llarg: els de les
+    proves no canvien."""
+    if _warmed or "live_server" not in request.fixturenames:
+        return
+    request.getfixturevalue("transactional_db")  # el servidor en viu consulta la base de dades
+    url = request.getfixturevalue("live_server").url
+    context = request.getfixturevalue("browser").new_context()
+    context.new_page().goto(f"{url}/entrar/", timeout=120_000)
+    context.close()
+    _warmed.append(url)
+
+
 @pytest.fixture(autouse=True)
 def page_checks(page):
     checks = PageChecks(page)
