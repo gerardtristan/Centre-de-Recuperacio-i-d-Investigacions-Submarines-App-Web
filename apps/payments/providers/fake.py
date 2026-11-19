@@ -142,6 +142,7 @@ class FakeProvider(base.PaymentProvider):
                 amount_cents=data["amount_cents"],
                 currency=str(data["currency"]),
                 card_ref=data.get("card_ref"),
+                transaction_id=str(data.get("transaction_id") or ""),
             )
         except (ValueError, KeyError, TypeError, AttributeError) as error:
             raise base.MalformedNotification(type(error).__name__) from None
@@ -191,8 +192,12 @@ class FakeProvider(base.PaymentProvider):
             _cards.setdefault(
                 external_id, card or base.ProviderCard(f"fake-card-{uuid4().hex}", "4242", 12, year)
             )
+        # Una ordre cobrada té una transacció al proveïdor, amb referència pròpia (T-M05b-31).
+        transaction_id = order.transaction_id or (
+            f"fake-tx-{uuid4().hex}" if status == base.PAID else ""
+        )
         _orders[external_id] = base.OrderState(
-            external_id, status, order.amount_cents, order.currency
+            external_id, status, order.amount_cents, order.currency, transaction_id
         )
         body = json.dumps(
             {
@@ -201,6 +206,7 @@ class FakeProvider(base.PaymentProvider):
                 "status": status,
                 "amount_cents": order.amount_cents,
                 "currency": order.currency,
+                "transaction_id": transaction_id,
             },
             sort_keys=True,
         ).encode()
@@ -211,12 +217,26 @@ class FakeProvider(base.PaymentProvider):
         _authentication.add(card_ref)
 
     def settle(
-        self, operations, *, fees_cents: int, settled_on=None, external_id: str | None = None
+        self,
+        operations,
+        *,
+        fees_cents: int,
+        settled_on=None,
+        external_id: str | None = None,
+        order_ids: bool = True,
     ) -> base.ProviderSettlementReport:
-        """L'abonament agrupat que faria el proveïdor al banc: les operacions (ordre, import),
-        el brut, les comissions sense detall i el net. Format triat per l'equip, [A verificar:
-        P-45 punt 9]."""
-        operations = tuple(base.SettledOperation(order, amount) for order, amount in operations)
+        """L'abonament agrupat que faria el proveïdor al banc: les operacions (ordre, import, i
+        la transacció de les ordres cobrades), el brut, les comissions sense detall i el net.
+        Amb `order_ids=False`, només la transacció, sense la nostra ordre (T-M05b-31). Format
+        triat per l'equip, [A verificar: P-45 punt 9]."""
+        operations = tuple(
+            base.SettledOperation(
+                order if order_ids else "",
+                amount,
+                transaction_id=getattr(_orders.get(order), "transaction_id", ""),
+            )
+            for order, amount in operations
+        )
         gross = sum(operation.amount_cents for operation in operations)
         report = base.ProviderSettlementReport(
             external_id=external_id or f"fake-settlement-{uuid4().hex}",

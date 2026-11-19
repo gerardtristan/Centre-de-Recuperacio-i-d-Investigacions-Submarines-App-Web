@@ -3067,6 +3067,7 @@ App `payments` (la mateixa del 05a).
 | `amount_cents` | `PositiveIntegerField` | = import del càrrec en crear-lo |
 | `status` | `created`, `in_progress`, `sent_to_bank`, `paid`, `failed`, `expired`, `abandoned`, `to_review`, `cancelled` | Transicions de RN-M05b-03 |
 | `provider_code`, `provider_order_id` | null | Únic `(provider_code, provider_order_id)` |
+| `provider_transaction_id` | buit | La referència de la transacció del proveïdor, desada una sola vegada quan confirma el cobrament. La conciliació de la liquidació (RN-T21) hi tradueix una operació que només porta aquesta referència a la nostra ordre, que és la que guarda el pagament (`Payment.provider_reference`) (T-M05b-31) |
 | `idempotency_key` | `UUIDField` | Únic |
 | `expires_at` | null | Bizum i transferència |
 | `guest_link` | FK enllaç de convidat (00) null | Si l'ha iniciat un convidat |

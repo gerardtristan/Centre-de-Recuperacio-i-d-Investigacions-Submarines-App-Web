@@ -72,11 +72,12 @@ class TestEntity:
             "id charge method amount_cents status provider_code provider_order_id "
             "idempotency_key expires_at guest_link started_by review_reason review_code "
             "created_at updated_at receipt ui_timeout_minutes direct_debit_item "
-            "review_closures".split()
+            "review_closures provider_transaction_id".split()
         )  # `receipt`: la relació inversa del rebut (T-M05b-07); `ui_timeout_minutes`: RN-M05b-24;
         # `direct_debit_item`: la del rebut domiciliat (T-M05b-09), que porta el mandat;
         # `review_closures`: les decisions del tresorer sobre un «a revisar» (T-M05b-16b i 16c);
-        # `review_code`: el codi del motiu «a revisar», per a les guardes (T-M05b-16c)
+        # `review_code`: el codi del motiu «a revisar», per a les guardes (T-M05b-16c);
+        # `provider_transaction_id`: la transacció del proveïdor, per a la liquidació (T-M05b-31)
         assert not [n for n in names if any(w in n for w in ("iban", "pan", "cvv", "card"))]
         # Tall de targeta: l'intent no referencia el mandat (docs/estat/M05a.md).
         related = {f.related_model._meta.label for f in Attempt._meta.fields if f.is_relation}

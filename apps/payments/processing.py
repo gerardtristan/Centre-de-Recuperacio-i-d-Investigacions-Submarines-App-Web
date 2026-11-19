@@ -145,7 +145,9 @@ def _process(event: ProviderEvent) -> str:
         )
         reason = cards.settle_setup(setup, state)
         return _review(None, event, reason) if reason else R.PROCESSED
-    state = base.OrderState(event.order_id, event.event_type, event.amount_cents, event.currency)
+    state = base.OrderState(
+        event.order_id, event.event_type, event.amount_cents, event.currency, event.transaction_id
+    )
     return settle(attempt, state, source=event)
 
 
@@ -158,6 +160,15 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
         # conciliació o una altra notificació del mateix càrrec van una darrere l'altra.
         charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
+        if (
+            state.status == base.PAID
+            and state.transaction_id
+            and not attempt.provider_transaction_id
+        ):
+            # T-M05b-31: abans de decidir res, perquè també el trobi la liquidació d'un intent que
+            # va «a revisar» i el tresorer dona per pagat. Es desa una sola vegada.
+            attempt.provider_transaction_id = state.transaction_id
+            attempt.save(update_fields=["provider_transaction_id", "updated_at"])
         if state.status == base.PENDING or attempt.status == S.PAID:
             return R.PROCESSED  # encara no s'ha decidit, o ja és pagat (CA-M05b-04)
         if (state.amount_cents, state.currency) != (attempt.amount_cents, charge.currency):

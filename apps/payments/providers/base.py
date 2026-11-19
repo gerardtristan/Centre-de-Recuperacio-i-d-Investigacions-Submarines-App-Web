@@ -74,6 +74,9 @@ class OrderState:
     status: str
     amount_cents: int
     currency: str
+    # La referència de la transacció al proveïdor, si en dona: la liquidació pot venir amb
+    # aquesta i no amb la nostra ordre (T-M05b-31).
+    transaction_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -85,6 +88,7 @@ class ProviderNotification:
     currency: str
     # Referència opaca d'una targeta guardada al proveïdor; mai el número.
     card_ref: str | None = None
+    transaction_id: str = ""  # com a `OrderState`
 
 
 @dataclass(frozen=True)
@@ -96,12 +100,14 @@ class ProviderRefund:
 
 @dataclass(frozen=True)
 class SettledOperation:
-    """Un cobrament dins d'un abonament: l'ordre (la referència del pagament), l'import i, si
-    el proveïdor la detalla, la comissió."""
+    """Un cobrament dins d'un abonament: l'ordre (la referència del pagament), l'import, la
+    comissió si el proveïdor la detalla i la referència de la seva transacció si en dona. Una de
+    les dues referències pot ser buida (T-M05b-31)."""
 
     order_id: str
     amount_cents: int
     fee_cents: int | None = None
+    transaction_id: str = ""
 
 
 @dataclass(frozen=True)
