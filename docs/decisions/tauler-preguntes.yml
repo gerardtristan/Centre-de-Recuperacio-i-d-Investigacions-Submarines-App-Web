@@ -1039,4 +1039,15 @@ opcions:
       dues. Resposta del propietari (18/11/2026): A.
     data: 2026-11-18
 
+  P-393:
+    opcions:
+      A: "Només les respostes dels plafons «Ajuda» de les pantalles, en text pla i sense variables (com s'ha construït)."
+      B: "També les ajudes de camp sota els formularis (p. ex. «Queda al registre d'activitat»)."
+      C: "També la pregunta de cada plafó, a més de la resposta."
+    recomanada: A
+    perque: >-
+      Les ajudes de camp descriuen el que fa el servidor i han de canviar amb el codi; un text editat
+      que digués una altra cosa enganyaria. Afegir-ne més és una migració petita, sense tocar res desat.
+    data: 2026-11-19
+
 noves:
