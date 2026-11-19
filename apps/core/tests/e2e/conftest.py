@@ -292,3 +292,14 @@ def login_admin(page, base_url, username, capture=None):
         capture("codi")
     page.get_by_label("Codi").fill(pyotp.TOTP(TOTP_KEY).now())
     page.get_by_role("button", name="Verificar").click()
+
+
+def menu_entry(page, name):
+    """Una entrada del menú de l'administració, a punt per clicar (T-DX-62): si és dins d'un grup
+    plegat, primer s'obre el grup, com faria qui fa servir el menú."""
+    sidebar = page.locator("#barra-lateral")
+    link = sidebar.get_by_role("link", name=name, exact=True)
+    if not link.is_visible():
+        # Un enllaç d'un <details> tancat no és a l'arbre d'accessibilitat: el grup, pel text.
+        sidebar.locator("details", has_text=name).locator("summary").click()
+    return link

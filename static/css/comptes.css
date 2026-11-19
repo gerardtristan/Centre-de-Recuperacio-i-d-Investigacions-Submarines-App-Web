@@ -168,10 +168,53 @@ figure { margin: 0; }
 .lateral-estat { color: var(--c-lateral-text-2); }
 .lateral-compte .boto { --neu-base: var(--c-lateral-fons); margin-top: var(--e-2); color: var(--c-lateral-text); border-color: var(--c-lateral-text-2); box-shadow: none; }
 .lateral-compte .boto:hover { background: var(--c-lateral-fons-2); box-shadow: none; }
+/* Menú agrupat (T-DX-62; §6.1): «Inici» solt i 6 grups plegables (<details>), cada un amb la seva icona */
+.lateral-nav .lateral-solt, .lateral-grup summary { display: flex; align-items: center; gap: var(--e-3); }
+.lateral-grup summary {
+  min-height: var(--tactil); padding: var(--e-1) var(--e-3); border-radius: var(--r-m); list-style: none; cursor: pointer;
+  color: var(--c-lateral-text-2); font-weight: var(--p-semi);
+}
+.lateral-grup summary::-webkit-details-marker { display: none; }
+.lateral-grup summary:hover { background: var(--c-lateral-fons-2); color: var(--c-lateral-text); }
+.lateral-grup.es-actual > details > summary { color: var(--c-lateral-text); }
+.lateral-fletxa { margin-left: auto; transition: transform var(--m-rapid) var(--m-corba); }
+.lateral-grup details[open] > summary .lateral-fletxa { transform: rotate(180deg); }
+.lateral-grup details > ul { padding: 0 0 var(--e-2) calc(var(--icona) + var(--e-3)); }
+/* Carril de la tauleta (§5.1): amb JavaScript (menu-admin.js), de 600 a 1023 px la barra és un carril de
+   --lateral-carril amb la icona de cada grup; tocar-ne un n'obre les entrades al costat. «Menú» obre la
+   barra sencera amb els noms. Sense JavaScript, la barra sencera, com fins ara. */
+@media (min-width: 600px) and (max-width: 1023.98px) {
+  .menu-plegable .amb-barra-lateral { display: grid; grid-template-columns: var(--lateral-carril) minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .menu-plegable .amb-barra-lateral > .capcalera-compte { grid-column: 1 / -1; }
+  .menu-plegable .amb-barra-lateral > main { align-self: start; }
+  .menu-plegable .barra-lateral { display: flex; padding: var(--e-3) var(--e-2); }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-compte { display: none; }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-text {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-fletxa { display: none; }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-solt,
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-grup summary { justify-content: center; padding: var(--e-2) 0; }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-grup { position: relative; }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-grup details > ul { display: none; }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-grup.es-actual > details > summary {
+    background: var(--c-lateral-fons-2); box-shadow: inset var(--v-activa) 0 0 var(--c-accent);
+  }
+  .menu-plegable .barra-lateral:not(.oberta) .lateral-grup.desplegat details > ul {
+    display: grid; position: absolute; top: 0; left: calc(100% + var(--e-2)); z-index: 30; min-width: 16rem;
+    padding: var(--e-2); border-radius: var(--r-l); background: var(--c-lateral-fons); box-shadow: var(--ombra-flotant);
+  }
+  /* «Menú»: la barra sencera, a tota l'amplada sota la capçalera, i el contingut a sota */
+  .menu-plegable .barra-lateral.oberta { grid-column: 1 / -1; }
+  .menu-plegable .amb-barra-lateral:has(.barra-lateral.oberta) > main { grid-column: 1 / -1; grid-row: 3; }
+}
 /* Capçalera amb el botó «Menú»: el logotip a l'esquerra i la resta a la dreta, en l'ordre del teclat */
 .capcalera-compte .boto-menu { margin-left: auto; }
 /* Inici de l'administració: les mateixes entrades del menú, com a llista d'enllaços */
 ul.enllacos { list-style: none; }
+/* Inici de l'administració (T-DX-62): una targeta per grup del menú, amb la seva icona */
+.inici-admin-grup { display: grid; gap: var(--e-2); align-content: start; }
+.inici-admin-grup h2 { display: flex; align-items: center; gap: var(--e-2); margin: 0; font-size: var(--t-l); }
 @media (min-width: 1024px) {
   .amb-barra-lateral { display: grid; grid-template-columns: var(--lateral-ample) minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
   .amb-barra-lateral > .capcalera-compte { grid-column: 1 / -1; }

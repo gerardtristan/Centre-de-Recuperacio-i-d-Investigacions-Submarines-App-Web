@@ -9,7 +9,7 @@ from apps.core.under_construction import PERMISSION
 from apps.previews.screens import discover
 from conftest import PASSWORD
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -40,7 +40,7 @@ def test_admin_with_dx1_reaches_the_screens_from_the_menu(page, live_server, set
     treasurer = make_admin("tresoreria.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
     sidebar = page.locator("#barra-lateral")
-    sidebar.get_by_role("link", name="Pantalles en construcció").click()
+    menu_entry(page, "Pantalles en construcció").click()
     expect(page.get_by_role("heading", level=1)).to_have_text("Pantalles en construcció")
     page.get_by_role("main").get_by_role("link").first.click()
     expect(page.locator(".en-construccio").first).to_be_visible()

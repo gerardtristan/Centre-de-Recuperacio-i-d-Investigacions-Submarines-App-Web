@@ -20,7 +20,7 @@ from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import new_transit, paid, record
 from apps.treasury.tests.test_settlements import collected, data, record_it
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -96,7 +96,7 @@ def test_treasurer_confirms_and_undoes_a_reconciliation(
 
     login_admin(page, live_server.url, treasurer.login)
     # Hi arriba pel menú (T-DX-44): l'entrada només surt amb T1.
-    entry = page.locator("#barra-lateral").get_by_role("link", name="Tresoreria: conciliació")
+    entry = menu_entry(page, "Tresoreria: conciliació")
     entry.click()
     expect(page.get_by_role("heading", name="Conciliació")).to_be_visible()
     expect(page).to_have_url(

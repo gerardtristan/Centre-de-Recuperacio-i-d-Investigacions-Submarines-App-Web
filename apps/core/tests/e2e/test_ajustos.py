@@ -15,7 +15,7 @@ from playwright.sync_api import expect
 from apps.core import business_settings, consents
 from apps.core.models import Role, RolePermission, Setting
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 from .test_carnet_079 import login_personal
 
 pytestmark = pytest.mark.e2e
@@ -38,7 +38,7 @@ def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_ser
         )  # fmt: skip
     admin = make_admin("admin.prova", "administrator")
     login_admin(page, live_server.url, admin.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Ajustos de pagaments").click()
     expect(page.get_by_role("heading", name="Ajustos de pagaments")).to_be_visible()
     # El valor de la 093 (T-M05b-28).
@@ -62,7 +62,7 @@ def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_ser
     page.context.clear_cookies()
     treasurer = make_admin("tresoreria.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Ajustos de pagaments").click()
     page.get_by_role("link", name=f"Historial: {LABEL}").click()
     expect(page.get_by_text("Pots veure aquest valor, però no canviar-lo.")).to_be_visible()
@@ -76,7 +76,7 @@ def test_treasurer_schedules_a_member_price_and_edits_the_reminders(page, live_s
     # darrere del carnet (VC-03) només el pot veure.
     treasurer = make_admin("tresoreria.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Ajustos de socis").click()
     expect(page.get_by_role("heading", name="Ajustos de socis")).to_be_visible()
     review("socis-apartat")
@@ -114,7 +114,7 @@ def test_treasurer_moves_a_return_code_to_another_action(page, live_server, revi
     # ser a totes dues llistes: primer es treu de «bloquegen el mandat» i després va a «reintent».
     treasurer = make_admin("tresoreria.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Ajustos de pagaments").click()
     expect(page.get_by_role("cell", name="AC04, MD01").first).to_be_visible()
     review("codis-retorn-apartat")
@@ -159,7 +159,7 @@ def test_secretary_previews_and_publishes_the_leave_email(page, live_server, rev
     )
     secretary = make_admin("secretaria.prova", "secretary")
     login_admin(page, live_server.url, secretary.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     area = "Textos dels correus i de l'ajuda: socis"
     page.get_by_role("link", name=area).click()
     expect(page.get_by_role("heading", name=area)).to_be_visible()
@@ -191,7 +191,7 @@ def test_secretary_edits_a_profile_help_text_and_the_member_sees_it(
     # T-M00-08e: la resposta d'un plafó «Ajuda» del perfil (`core/0051`), amb la vista prèvia,
     # una variable que no es desa i la publicació; el soci la veu al seu perfil.
     login_admin(page, live_server.url, secretary.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Textos dels correus i de l'ajuda: socis").click()
     page.get_by_role("link", name="Canvia: Ajuda d'«El meu perfil»: Com canvio el nom").click()
     expect(page.get_by_label("Valor nou")).to_have_value(
@@ -220,7 +220,7 @@ def test_administrator_creates_a_type_with_its_price_and_deactivates_it(page, li
     admin = make_admin("admin.prova", "administrator")
     login_admin(page, live_server.url, admin.login)
     sidebar = page.locator("#barra-lateral")
-    sidebar.get_by_role("link", name="Tipus de soci").click()
+    menu_entry(page, "Tipus de soci").click()
     expect(page.get_by_role("heading", name="Tipus de soci", exact=True)).to_be_visible()
     expect(sidebar.get_by_role("link", name="Tipus de soci")).to_have_attribute(
         "aria-current", "page"
@@ -259,7 +259,7 @@ def test_administrator_reviews_and_publishes_a_legal_text(page, live_server, rev
     # la revisa (el text com el veurà la persona) i després la publica amb una nota.
     admin = make_admin("admin.prova", "administrator")
     login_admin(page, live_server.url, admin.login)
-    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    menu_entry(page, "Ajustos").click()
     page.get_by_role("link", name="Textos legals").click()
     expect(page.get_by_role("heading", name="Textos legals")).to_be_visible()
     review("legals-llista")

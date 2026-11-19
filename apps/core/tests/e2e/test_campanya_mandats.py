@@ -10,7 +10,7 @@ from apps.core.models import LegalText, Person
 from apps.members.tests.test_cards import make_member
 from apps.payments import campaigns
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -33,9 +33,7 @@ def test_treasurer_opens_sends_and_closes_the_campaign(
 
     login_admin(page, live_server.url, treasurer.login)
     # Hi arriba pel menú (T-DX-46): l'entrada només surt amb A4.
-    entry = page.locator("#barra-lateral").get_by_role(
-        "link", name="Pagaments: campanya de mandats"
-    )
+    entry = menu_entry(page, "Pagaments: campanya de mandats")  # T-DX-62: dins del seu grup
     entry.click()
     expect(page.get_by_role("heading", name="Campanya de mandats")).to_be_visible()
     expect(page).to_have_url(f"{live_server.url}/gestio/pagaments/campanya/")

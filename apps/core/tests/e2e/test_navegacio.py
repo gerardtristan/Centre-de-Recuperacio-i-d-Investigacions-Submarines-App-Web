@@ -10,7 +10,7 @@ from playwright.sync_api import expect
 
 from conftest import PASSWORD
 
-from .conftest import login_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -66,7 +66,7 @@ def test_admin_menu_follows_the_permissions_and_logs_out_with_the_keyboard(
     expect(page.get_by_role("link", name="Pagaments: llistat")).to_have_count(0)  # B6
     expect(page.get_by_role("link", name="Pagaments: remeses")).to_have_count(0)  # B3
     expect(page.get_by_role("link", name="Pantalles en construcció")).to_have_count(0)  # DX1
-    sidebar.get_by_role("link", name="Llistat de socis").click()
+    menu_entry(page, "Llistat de socis").click()
     expect(page.get_by_role("heading", name="Llistat de socis")).to_be_visible()
     expect(sidebar.get_by_role("link", name="Llistat de socis")).to_have_attribute(
         "aria-current", "page"
@@ -99,7 +99,8 @@ def test_admin_menu_follows_the_permissions_and_logs_out_with_the_keyboard(
     menu.focus()
     stops = tab_until(page, logout)
     assert stops[-1] == "Surt"
-    assert stops.index("Inici") < stops.index("Llistat de socis") < len(stops) - 1
+    # T-DX-62: amb els grups plegats, del solt «Inici» als noms dels grups i, al final, «Surt»
+    assert stops.index("Inici") < stops.index("Socis") < len(stops) - 1
     page.keyboard.press("Enter")
     expect(page.get_by_role("heading", name="Entrada d'administració")).to_be_visible()
     # La sessió és tancada: l'inici torna a demanar l'entrada.
@@ -136,3 +137,36 @@ def test_personal_menu_logs_out_with_the_keyboard(page, live_server, builder, me
     expect(page.get_by_role("heading", name="Entrar a l'àrea de socis")).to_be_visible()
     page.goto(f"{live_server.url}/socis/perfil/")
     expect(page.get_by_role("heading", name="Entrar a l'àrea de socis")).to_be_visible()
+
+
+def test_admin_menu_groups_and_tablet_rail(page, live_server, review):
+    """T-DX-62: a l'escriptori, 6 grups plegables amb el de la pantalla actual obert; a la tauleta,
+    un carril amb la icona de cada grup que n'obre les entrades al costat (Esc el tanca)."""
+    admin = make_admin("admin.grups", "administrator", "treasurer")
+    login_admin(page, live_server.url, admin.login)
+    sidebar = page.locator("#barra-lateral")
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto(f"{live_server.url}/{ADMIN}/tresoreria/")
+    groups = sidebar.locator(".lateral-grup")
+    expect(groups.locator("summary")).to_have_text(
+        ["Socis", "Quotes i tresoreria", "Pagaments", "Importacions", "Seguretat i RGPD", "Ajustos"]
+    )
+    expect(sidebar.locator(".lateral-grup details[open]")).to_have_count(1)
+    expect(sidebar.locator(".lateral-grup.es-actual summary")).to_have_text("Quotes i tresoreria")
+    review("menu-agrupat")
+
+    page.set_viewport_size({"width": 800, "height": 900})
+    page.goto(f"{live_server.url}/{ADMIN}/")
+    width = sidebar.evaluate("(b) => b.getBoundingClientRect().width")
+    assert 60 <= width <= 90, width  # carril de --lateral-carril
+    socis = sidebar.locator(".lateral-grup", has_text="Socis").locator("summary")
+    expect(socis).to_have_accessible_name("Socis")
+    socis.click()
+    expect(sidebar.get_by_role("link", name="Llistat de socis")).to_be_visible()
+    expect(sidebar.get_by_role("link", name="Llistat de socis")).to_be_focused()
+    page.keyboard.press("Escape")
+    expect(sidebar.get_by_role("link", name="Llistat de socis")).to_be_hidden()
+    expect(socis).to_be_focused()
+    assert page.evaluate("document.documentElement.scrollWidth - window.innerWidth") <= 0
+    socis.click()  # review() canvia la mida de la finestra: la captura, al final
+    review("carril-desplegat")

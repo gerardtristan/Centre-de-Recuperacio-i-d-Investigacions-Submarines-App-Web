@@ -14,7 +14,7 @@ from apps.payments.tests.test_remittance_settlement import bank_line
 from apps.payments.tests.test_remittances import iban, new_member
 from conftest import PASSWORD
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -34,7 +34,7 @@ def test_treasurer_previews_confirms_and_downloads_a_remittance(
 
     login_admin(page, live_server.url, treasurer.login)
     # Hi arriba pel menú (T-DX-47): l'entrada només surt amb B3.
-    entry = page.locator("#barra-lateral").get_by_role("link", name="Pagaments: remeses")
+    entry = menu_entry(page, "Pagaments: remeses")
     entry.click()
     expect(page.get_by_role("heading", name="Remeses", exact=True)).to_be_visible()
     expect(page).to_have_url(f"{live_server.url}/{settings.ADMIN_URL_PATH}/pagaments/remeses/")

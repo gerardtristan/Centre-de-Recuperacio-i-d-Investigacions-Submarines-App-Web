@@ -10,7 +10,7 @@ from apps.core.models import Person
 from apps.treasury.references import transfer_reference
 from apps.treasury.tests.test_reconciliation import lines
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -27,7 +27,7 @@ def test_treasurer_excludes_a_proposed_line_and_undoes_it(
     lines(treasurer, (9000, f"TRANSF {transfer_reference(quota)} L INVENTADA"))
 
     login_admin(page, live_server.url, treasurer.login)
-    page.locator("#barra-lateral").get_by_role("link", name="Tresoreria: conciliació").click()
+    menu_entry(page, "Tresoreria: conciliació").click()  # T-DX-62: dins del seu grup
     row = page.get_by_role("row", name="02/11/2026")
     expect(row).to_contain_text("Proposada")
 
