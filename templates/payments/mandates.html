@@ -42,7 +42,7 @@
     <tbody>
       {% for row in rows %}{% with member=row.member %}
         <tr>
-          <th scope="row" class="cel-nom">{{ member.person }} <span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
+          <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
           {% if full %}
             <td data-etiqueta="{% translate 'Mètode' %}">{% if row.preference %}{{ row.preference.get_method_display|capfirst }}{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense resposta" %}</span>{% endif %}</td>
             <td data-etiqueta="{% translate 'Mandat o targeta' %}">{% if row.mandate %}<span class="codi">{{ row.mandate.reference }}</span> <span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.mandate.get_status_display|capfirst }}</span>{% if can_revoke and member.person_id != user.person_id %} {% blocktranslate with reference=row.mandate.reference asvar revoke_label %}Revoca el mandat {{ reference }}…{% endblocktranslate %}<a class="boto boto-text boto-petit" href="{% url 'administration:payments_mandate_revoke' row.mandate.pk %}" aria-label="{{ revoke_label }}">{% translate "Revoca…" %}</a>{% endif %}{% elif row.card %}<span class="codi">{{ row.card }}{% if row.card.expiry_month %} · {{ row.card.expiry_month|stringformat:"02d" }}/{{ row.card.expiry_year }}{% endif %}</span>{% else %}—{% endif %}</td>

@@ -1,6 +1,8 @@
 """Pantalles de traspàs, arqueig, anul·lació i liquidacions (T-M04-15, tercer tall; T4 a T7).
 Proves per permís, dels dos passos i dels errors del servei. Només dades inventades."""
 
+import re
+
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -142,6 +144,17 @@ def test_liquidacions_amb_motius_i_confirmacio(client, two, treasurer):  # noqa:
     assert "Sí, confirma-la" in main_of(client.get(url).content.decode())
     client.post(url)
     assert ProviderSettlement.objects.get(pk=received.pk).status == "reconciled"
+
+
+def test_confirma_te_la_seva_columna_i_no_va_dins_de_l_estat(client, two, treasurer):  # noqa: F811
+    """T-DX-70: «Confirma…» anava dins de la cel·la «Estat», al costat de l'etiqueta; ara té la
+    columna «Acció», com a «A revisar»."""
+    record_it()
+    html = main_of(client.get(SETTLEMENTS).content.decode())
+    estat = re.search(r'<td data-etiqueta="Estat">(.*?)</td>', html, re.S).group(1)
+    accio = re.search(r'<td data-etiqueta="Acció">(.*?)</td>', html, re.S).group(1)
+    assert "Confirma…" not in estat and "Confirma…" in accio
+    assert '<th scope="col">Acció</th>' in html
 
 
 def test_confirmar_una_liquidacio_demana_t4(make_admin, two):  # noqa: F811

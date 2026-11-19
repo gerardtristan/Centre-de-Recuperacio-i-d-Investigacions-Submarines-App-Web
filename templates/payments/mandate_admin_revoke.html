@@ -14,7 +14,7 @@
   <section class="targeta" aria-labelledby="mandat-titol">
     <h2 id="mandat-titol" class="codi">{{ mandate.reference }}</h2>
     <dl class="dades-soci">
-      <div><dt>{% translate "Soci" %}</dt><dd>{{ mandate.member.person }} <span class="codi">{% blocktranslate with number=mandate.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></dd></div>
+      <div><dt>{% translate "Soci" %}</dt><dd>{{ mandate.member.person }} · <span class="codi">{% blocktranslate with number=mandate.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></dd></div>
       <div><dt>{% translate "IBAN" %}</dt><dd class="codi">{{ mandate.bank_account }}</dd></div>
       <div><dt>{% translate "Signat el" %}</dt><dd>{{ mandate.signed_at|date:"d/m/Y" }}</dd></div>
     </dl>

@@ -23,6 +23,7 @@
         <th scope="col" class="cel-import">{% translate "Brut" %}</th>
         <th scope="col" class="cel-import">{% translate "Comissions" %}</th>
         <th scope="col" class="cel-import">{% translate "Net" %}</th>
+        {% if can_confirm %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -36,15 +37,15 @@
             {% elif settlement.status == "to_review" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ settlement.get_status_display }}</span>
               {% for reference, problem in row.problems %}<p class="text-2"><span class="codi">{{ reference }}</span> {{ problem }}</p>{% endfor %}
             {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ settlement.get_status_display }}</span>
-              {% if can_confirm %} <a class="boto boto-petit" href="{% url 'administration:treasury_settlement_confirm' settlement.pk %}">{% translate "Confirma…" %}</a>{% endif %}
             {% endif %}
           </td>
           <td data-etiqueta="{% translate 'Brut' %}" class="cel-import"><span class="import">{{ row.gross }}</span></td>
           <td data-etiqueta="{% translate 'Comissions' %}" class="cel-import"><span class="import">{{ row.fees }}</span></td>
           <td data-etiqueta="{% translate 'Net' %}" class="cel-import"><span class="import">{{ row.net }}</span></td>
+          {% if can_confirm %}{% if settlement.status == "received" %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:treasury_settlement_confirm' settlement.pk %}">{% translate "Confirma…" %}</a></td>{% else %}<td></td>{% endif %}{% endif %}
         </tr>
       {% endwith %}{% empty %}
-        <tr><td colspan="6">{% translate "Encara no hi ha cap liquidació." %}</td></tr>
+        <tr><td colspan="{% if can_confirm %}7{% else %}6{% endif %}">{% translate "Encara no hi ha cap liquidació." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
