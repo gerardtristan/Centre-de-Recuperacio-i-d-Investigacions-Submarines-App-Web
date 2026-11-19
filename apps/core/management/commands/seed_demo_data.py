@@ -14,8 +14,14 @@ Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisi
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
 socis. Només es creen quan l'ordre pot córrer (`check_can_run`): fora de desenvolupament amb
 `DEBUG`, o amb una base que no sigui local i buida, es nega i no crea res.
+
+Entorn de proves (decisió 090; `config/settings/staging.py`): hi corre sense `DEBUG`, contra la
+base del servidor («db»), i els comptes d'administració fan servir el secret TOTP del servidor
+(`STAGING_TOTP_SECRET`), mai el de prova, que continua refusat sense `DEBUG` (RN-M01-84).
 """
 
+import base64
+import binascii
 import random
 import tempfile
 import unicodedata
@@ -52,6 +58,7 @@ ROLE_ACCOUNTS = [
 ]
 CLUBER_FILE = Path(tempfile.gettempdir()) / "cris-cluber-inventat.csv"
 ALLOWED_SETTINGS = {"config.settings.dev", "config.settings.test"}
+STAGING_SETTINGS = "config.settings.staging"
 LOCAL_HOSTS = {"", "localhost", "127.0.0.1", "::1"}  # "" és el sòcol local de PostgreSQL
 DEFAULT_SEED = 1954
 PEOPLE = 12
@@ -82,12 +89,40 @@ def demo_people(seed: int) -> list[dict]:
     return people
 
 
+def is_staging() -> bool:
+    """L'entorn de proves (090): la seva configuració i l'interruptor que només ella encén."""
+    return settings.SETTINGS_MODULE == STAGING_SETTINGS and settings.DEMO_DATA_ALLOWED
+
+
+def _valid_staging_secret(secret: str) -> bool:
+    """Base32 d'almenys 160 bits (RFC 4226) i diferent del secret de prova, que és públic."""
+    if not secret or secret == DEMO_TOTP_SECRET or len(secret) < 32:
+        return False
+    try:
+        base64.b32decode(secret, casefold=True)
+    except (binascii.Error, ValueError):
+        return False
+    return True
+
+
+def totp_secret() -> str:
+    """El secret dels comptes de prova: el del servidor a l'entorn de proves; si no, el de prova."""
+    return settings.STAGING_TOTP_SECRET if is_staging() else DEMO_TOTP_SECRET
+
+
 def check_can_run() -> None:
-    if settings.SETTINGS_MODULE not in ALLOWED_SETTINGS or not settings.DEBUG:
+    staging = is_staging()
+    if not staging and (settings.SETTINGS_MODULE not in ALLOWED_SETTINGS or not settings.DEBUG):
         raise CommandError(
             "Només s'executa en desenvolupament o proves, amb DEBUG actiu. Mai en producció."
         )
-    if connection.settings_dict["HOST"] not in LOCAL_HOSTS:
+    if staging and not _valid_staging_secret(settings.STAGING_TOTP_SECRET):
+        raise CommandError(
+            "A l'entorn de proves cal STAGING_TOTP_SECRET: base32 propi del servidor, de 32 "
+            "caràcters o més, mai el secret de prova."
+        )
+    hosts = LOCAL_HOSTS | set(settings.DEMO_DATA_DB_HOSTS) if staging else LOCAL_HOSTS
+    if connection.settings_dict["HOST"] not in hosts:
         raise CommandError("Només s'executa amb una base de dades local.")
     if Person.objects.exists() or Account.objects.exists() or LegalText.objects.exists():
         raise CommandError(
@@ -102,7 +137,7 @@ def _admin_account(login: str, first_name: str) -> Account:
     )
     account = Account.objects.create_admin(person, login, password=PASSWORD)
     TotpDevice.objects.create(
-        account=account, secret_encrypted=encrypt(DEMO_TOTP_SECRET), confirmed_at=timezone.now()
+        account=account, secret_encrypted=encrypt(totp_secret()), confirmed_at=timezone.now()
     )
     return account
 
@@ -147,9 +182,13 @@ class Command(BaseCommand):
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
         for login, _name, role in ROLE_ACCOUNTS:
             out(f"  {login:<16} {Role.Code(role).label}")
-        out(f"Codi TOTP de prova: secret {DEMO_TOTP_SECRET} (el mateix per a tots).")
-        out("  Afegeix-lo a una app d'autenticació o calcula el codi amb:")
-        out(f"  python -c \"import pyotp; print(pyotp.TOTP('{DEMO_TOTP_SECRET}').now())\"")
+        if is_staging():
+            # El secret del servidor no surt als registres: el rep la bústia de proves.
+            out("Codi TOTP: el secret STAGING_TOTP_SECRET del servidor (el mateix per a tots).")
+        else:
+            out(f"Codi TOTP de prova: secret {DEMO_TOTP_SECRET} (el mateix per a tots).")
+            out("  Afegeix-lo a una app d'autenticació o calcula el codi amb:")
+            out(f"  python -c \"import pyotp; print(pyotp.TOTP('{DEMO_TOTP_SECRET}').now())\"")
         out("")
         out(f"Àrea personal: {reverse('accounts:login')}  (contrasenya: {PASSWORD})")
         for case in review.cases:

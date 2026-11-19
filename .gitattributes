@@ -1,0 +1,7 @@
+# Els scripts que corren dins dels contenidors (Linux) han de tenir finals de línia LF, també
+# quan el repositori es baixa a Windows (servidor de proves al portàtil, decisió 099).
+*.sh text eol=lf
+Caddyfile text eol=lf
+# Scripts de Windows: CRLF en baixar-los (el BOM UTF-8 dels .ps1 es conserva).
+*.ps1 text eol=crlf
+*.cmd text eol=crlf

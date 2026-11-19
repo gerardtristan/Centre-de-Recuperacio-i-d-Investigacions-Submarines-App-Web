@@ -1,0 +1,14 @@
+.git
+.venv
+.env
+.env.*
+**/__pycache__
+.e2e-captures
+.pytest_cache
+.ruff_cache
+staticfiles
+var
+node_modules
+*.mp4
+docs/diari-de-construccio/captures
+deploy/proves/local

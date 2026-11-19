@@ -1,0 +1,112 @@
+# Servidor de proves al portàtil (decisió 099; guia: docs/guies/servidor-de-proves-al-portatil.md).
+# Mai amb dades reals: només les dades inventades de `seed_demo_data`. Pagaments, banc i correu
+# fictícies: cap cobrament, cap correu cap a fora.
+#   db         PostgreSQL (només dins de Docker; cap port obert al portàtil)
+#   web        l'aplicació (gunicorn) amb la configuració de proves
+#   worker     la cua de tasques (correus a la bústia de proves i tasques periòdiques)
+#   mailpit    la bústia de proves: rep tots els correus i no n'envia cap
+#   caddy      contrasenya al davant de tot, estàtics i bústia; a http://localhost:8080
+#   tunel      Cloudflare Tunnel: una adreça https pública que apunta al Caddy
+# Els secrets els genera arrenca.ps1 a local/ (fora del repositori). Cap secret en aquest fitxer.
+name: cris-proves
+
+x-app: &app
+  build:
+    context: ../..
+  image: cris-proves:actual
+  restart: unless-stopped
+  env_file:
+    - local/secrets.env
+    - local/adreca.env
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.staging
+  depends_on:
+    db:
+      condition: service_healthy
+  volumes:
+    - fitxers:/app/var
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: local/secrets.env
+    environment:
+      POSTGRES_USER: cris
+      POSTGRES_DB: cris
+    volumes:
+      - dades-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cris -d cris"]
+      interval: 5s
+      retries: 30
+
+  web:
+    <<: *app
+    volumes:
+      - fitxers:/app/var
+      - estatics:/app/staticfiles-compartits
+    # Copia els estàtics de la imatge al volum que serveix el Caddy i arrenca.
+    entrypoint: ["/bin/sh", "-c", "cp -a /app/staticfiles/. /app/staticfiles-compartits/ && exec sh /app/deploy/proves/entrypoint.sh web"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/salut/')"]
+      interval: 10s
+      start_period: 120s
+      retries: 30
+
+  worker:
+    <<: *app
+    command: ["worker"]
+    depends_on:
+      web:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    restart: unless-stopped
+    environment:
+      MP_WEBROOT: /bustia/
+      MP_MAX_MESSAGES: 2000
+
+  caddy:
+    image: caddy:2.10.2
+    restart: unless-stopped
+    # Només el mateix portàtil hi entra directament; des de fora, pel túnel.
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./local/acces.caddy:/etc/caddy/acces.caddy:ro
+      - estatics:/srv/static:ro
+      - caddy-dades:/data
+    depends_on:
+      - web
+      - mailpit
+
+  # Túnel ràpid (sense compte): una adreça https://….trycloudflare.com nova a cada arrencada.
+  tunel:
+    image: cloudflare/cloudflared:2025.10.1
+    restart: unless-stopped
+    profiles: ["tunel-rapid"]
+    command: ["tunnel", "--no-autoupdate", "--url", "http://caddy:80"]
+    depends_on:
+      - caddy
+
+  # Túnel fix (amb compte de Cloudflare i un domini): sempre la mateixa adreça. El testimoni
+  # (TUNNEL_TOKEN) és a local/tunel-fix.env, que es crea a mà (guia, apartat «Adreça fixa»).
+  tunel-fix:
+    image: cloudflare/cloudflared:2025.10.1
+    restart: unless-stopped
+    profiles: ["tunel-fix"]
+    command: ["tunnel", "--no-autoupdate", "run"]
+    env_file:
+      - path: local/tunel-fix.env
+        required: false
+    depends_on:
+      - caddy
+
+volumes:
+  dades-postgres:
+  fitxers:
+  estatics:
+  caddy-dades:

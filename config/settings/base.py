@@ -146,6 +146,14 @@ SEPA_CREDITOR_IDENTIFIER = env("SEPA_CREDITOR_IDENTIFIER", default="")
 # Minuts després dels quals signar torna a demanar la contrasenya (RN-M05a-12, VC-12, S-M05a-12).
 MANDATE_REAUTH_MINUTES = env.int("MANDATE_REAUTH_MINUTES", default=15)
 
+# Servidor de proves (decisions 090 i 099; docs/guies/servidor-de-proves-al-portatil.md).
+# Només el posa a cert config/settings/staging.py: deixa córrer `seed_demo_data` amb DEBUG
+# apagat, contra la base del servidor de proves, i amb un secret TOTP propi del servidor en lloc
+# del de prova (RN-M01-84).
+DEMO_DATA_ALLOWED = False
+DEMO_DATA_DB_HOSTS: list[str] = []
+STAGING_TOTP_SECRET = ""
+
 # Proxies de confiança davant de Django: decideix d'on es llegeix l'IP d'origen
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
