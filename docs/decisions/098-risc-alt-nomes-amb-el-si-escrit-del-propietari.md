@@ -1,7 +1,7 @@
 # 098. Una PR `risc:alt` només es fusiona amb un sí escrit del propietari que n'esmenti el número
 
 - **Data:** 18/11/2026
-- **Estat:** Acceptada (propietari, 18/11/2026; instrucció escrita). El text del propietari: «Una PR risc:alt només es fusiona amb un sí escrit meu que esmenti el número de la PR. Una resposta a una pregunta o una especificació que jo dicto no compta com a sí per fusionar: obre la PR i espera. La #229 l'accepto tal com està.» I, el mateix dia: «Accepto la #226 tal com està. Sí: apunta la regla com a decisió 098 i afegeix-la a la D4 del CLAUDE.md».
+- **Estat:** Modificada temporalment per la [100](100-risc-alt-es-fusionen-soles-fins-al-final-de-la-prova.md) fins al 27/11/2026: les `risc:alt` es fusionen soles amb condicions, i el sí escrit amb el número només el necessiten les excepcions de la 100 (punt 2). Acceptada (propietari, 18/11/2026; instrucció escrita). El text del propietari: «Una PR risc:alt només es fusiona amb un sí escrit meu que esmenti el número de la PR. Una resposta a una pregunta o una especificació que jo dicto no compta com a sí per fusionar: obre la PR i espera. La #229 l'accepto tal com està.» I, el mateix dia: «Accepto la #226 tal com està. Sí: apunta la regla com a decisió 098 i afegeix-la a la D4 del CLAUDE.md».
 - **Canvia:** el punt 1 de la [094](094-fusio-de-les-risc-alt-i-tres-carrils.md) (Claude fusiona les `risc:alt` sense esperar el propietari) i l'extensió d'aquell punt a la sessió de DISSENY. La resta de la 094 continua vigent: les fusions `risc:baix` i `risc:mitja`, les tres preguntes prèvies (punt 2), els tres carrils (punt 3) i el resum diari (punt 4).
 
 ## Context
