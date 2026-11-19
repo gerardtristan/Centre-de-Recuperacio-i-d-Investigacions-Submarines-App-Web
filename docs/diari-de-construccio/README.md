@@ -109,6 +109,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | Eina | Títol | Data i hora | Commit | Proves | CI |
 |---|---|---|---|---|---|
 | [seed_demo_data](eina-seed_demo_data.md) | Dades inventades per a captures | 02/11/2026 14:07 | e69793d, 942b752 | 722 | verd (#9) |
+| [servidor de proves](eina-servidor-de-proves-portatil.md) | Servidor de proves al portàtil amb Docker i Cloudflare Tunnel (099) | 19/11/2026 01:35 | 2b17994 | 3 noves | [A comprovar] |
 | [CI i gitleaks](eina-ci-i-gitleaks.md) | Cerca de secrets: excepció i permisos | 02/11/2026 23:43 | 383c0df, 2a381b5, d1dab31 | 722 | verd (#14 a la PR #4; el push de d7cd1c3 també en verd) |
 | [CI i gitleaks](eina-ci-i-gitleaks.md) | Decisió 083: dues empremtes d'un fals positiu d'una prova; gitleaks en local abans del push | 11/11/2026 | c441e9d | 69 commits, cap troballa | verd a c441e9d (43084998593 i 43085015294) |
 | [T-M01-42](T-M01-42.md) | Pas de ple dret a simpatitzant: sol·licitud, retirada mentre és pendent i resolució a «Sol·licituds», sense càrrec (**implementada, pendent de validació**, 11/11/2026; risc: sense la T-M01-43 la renovació surt a preu de ple dret) | 11/11/2026 (nit) | 30e1bf1 | — | verd a 9b44e2d (PR #7; 43003784504 i 43003792799) |
