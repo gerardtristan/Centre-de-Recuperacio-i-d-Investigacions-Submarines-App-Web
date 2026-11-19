@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 16:54 | d3f95eb3 | 2 noves (contrast) i 7 e2e noves; les comunes troben les dues pantalles | [A comprovar] (PR pendent) |
+| 18/11/2026 16:54 | f58790e1 | 2 noves (contrast) i 7 e2e noves; les comunes troben les dues pantalles | [A comprovar] (PR pendent) |
 
 **En tres línies:** hi ha la pàgina «Activitats» de l'àrea del soci, en construcció: el recompte al títol, pestanyes per tipus amb Guardades, filtres («Només les que puc fer», «Quan», «On», «Només amb places lliures») i les targetes de Convite amb l'estrella de Marcador. A l'escriptori els filtres són una columna fixa a l'esquerra; al mòbil, una pantalla sencera amb «Fet». També hi ha el bloc «Activitats per a tu» per a la portada, que encara no s'hi inclou.
 
@@ -50,11 +50,11 @@
 
   ![Pàgina Activitats a l'escriptori: la columna de filtres a l'esquerra, les pestanyes per tipus i, a «Totes», les tres sortides, cursos, conferències i activitats de medi ambient més properes](captures/2026-11-18_1654_T-DX-63_activitats-1280.png)
 
-  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit d3f95eb3*
+  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e, contingut d'exemple · commit f58790e1*
 - A 800 px, en fosc (filtres en una fila a dalt): `captures/2026-11-18_1654_T-DX-63_activitats-800-fosc.png`
 - A 390 px, els filtres oberts a pantalla sencera: `captures/2026-11-18_1654_T-DX-63_filtres-390.png`
 
-  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e · commit d3f95eb3*
+  *18/11/2026 16:54 (Europa/Madrid) · local, prova e2e · commit f58790e1*
 - Sortida de proves · executada el 18/11/2026 en local (PostgreSQL 16):
   ```
   $ pytest apps/previews apps/core/tests/test_under_construction.py apps/core/tests/test_tokens_color.py apps/core/tests/test_verificacio_t_m00_07.py -q
