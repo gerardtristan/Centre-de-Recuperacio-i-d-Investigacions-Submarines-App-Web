@@ -125,6 +125,115 @@ class TestNotice:
             assert fees.send_renewal_notices(date(2026, 1, 10)) == 1
 
 
+# --- T-M01-43d: llista «a revisar» dels socis sense adreça ----------------------------------
+
+
+@pytest.mark.django_db
+class TestWithoutAddress:
+    def test_listed_while_due_without_address(self):
+        member = full_member()
+        full_member("Anna")  # amb adreça: rep l'avís i no surt a la llista
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        assert fees.renewal_notices_without_address(date(2026, 2, 9)) == []  # encara no toca
+        assert fees.renewal_notices_without_address(date(2026, 2, 10)) == [(member, RENEWAL)]
+        assert fees.send_renewal_notices(date(2026, 2, 10)) == 1  # només l'Anna
+        assert fees.renewal_notices_without_address(date(2026, 2, 11)) == [(member, RENEWAL)]
+        # Amb una adreça a temps, rep l'avís i surt de la llista.
+        Person.objects.filter(pk=member.person_id).update(contact_email="pere@example.org")
+        assert fees.renewal_notices_without_address(date(2026, 2, 12)) == []
+        assert fees.send_renewal_notices(date(2026, 2, 12)) == 1
+
+    def test_leaves_the_list_once_the_fee_is_generated(self):
+        member = full_member()
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        fees.generate_due_fees(date(2026, 2, 23))
+        assert fees.renewal_notices_without_address(date(2026, 2, 24)) == []
+
+    def test_shown_on_fees_page_to_the_secretariat(self, make_admin):  # noqa: F811
+        from django.urls import reverse
+
+        from .test_roster import admin_client
+
+        member = full_member()
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        today = date(2026, 2, 10)
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr("apps.members.views.admin.local_today", lambda: today)
+            page = admin_client(make_admin("secretary")).get(reverse("administration:fees"))
+        html = page.content.decode()
+        assert "Avís de renovació sense adreça" in html
+        assert reverse("administration:member_detail", args=[member.pk]) in html
+        assert "10/03/2026" in html
+
+    def test_not_listed_once_the_notice_was_sent(self):
+        member = full_member()
+        assert fees.send_renewal_notices(date(2026, 2, 10)) == 1
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        assert fees.renewal_notices_without_address(date(2026, 2, 11)) == []
+
+    def test_building_the_list_logs_no_failed_send(self, caplog):
+        member = full_member()
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        with caplog.at_level("INFO", logger="apps.members.recipients"):
+            assert fees.renewal_notices_without_address(date(2026, 2, 10))
+        assert "Comunicació no enviada" not in caplog.text
+
+
+def _failing_for(monkeypatch, bad):
+    """`open_leaves` falla només per al soci `bad` (dades estranyes)."""
+    from apps.members import member_requests
+
+    real = member_requests.open_leaves
+
+    def open_leaves(member):
+        if member.pk == bad.pk:
+            raise RuntimeError("dades estranyes (prova)")
+        return real(member)
+
+    monkeypatch.setattr(member_requests, "open_leaves", open_leaves)
+
+
+@pytest.mark.django_db
+class TestOneMemberDoesNotStopTheOthers:
+    def test_daily_notice_run_continues(self, monkeypatch):
+        bad, good = full_member(), full_member("Anna")
+        _failing_for(monkeypatch, bad)
+        assert fees.send_renewal_notices(date(2026, 2, 10)) == 1
+        assert notices().get().to_address == good.person.contact_email
+
+    def test_fees_page_still_shows_the_list(self, monkeypatch, make_admin):  # noqa: F811
+        from django.urls import reverse
+
+        from .test_roster import admin_client
+
+        bad, good = full_member(), full_member("Anna")
+        Person.objects.filter(pk__in=[bad.person_id, good.person_id]).update(contact_email="")
+        _failing_for(monkeypatch, bad)
+        monkeypatch.setattr("apps.members.views.admin.local_today", lambda: date(2026, 2, 10))
+        page = admin_client(make_admin("secretary")).get(reverse("administration:fees"))
+        assert page.status_code == 200
+        assert [m for m, _due in page.context["without_address"]] == [good]
+
+    def test_only_on_the_first_page_and_capped(self, monkeypatch, make_admin):  # noqa: F811
+        from django.urls import reverse
+
+        from apps.members.views import admin as views
+
+        from .test_roster import admin_client
+
+        for name in ("Pere", "Anna", "Joan"):
+            Person.objects.filter(pk=full_member(name).person_id).update(contact_email="")
+        monkeypatch.setattr(views, "local_today", lambda: date(2026, 2, 10))
+        monkeypatch.setattr(views, "WITHOUT_ADDRESS_SHOWN", 2)
+        monkeypatch.setattr(views, "PER_PAGE", 2)
+        client = admin_client(make_admin("secretary"))
+        first = client.get(reverse("administration:fees"))
+        assert len(first.context["without_address"]) == 2
+        assert "I 1 soci més." in first.content.decode()
+        second = client.get(reverse("administration:fees"), {"pagina": 2})
+        assert "Avís de renovació sense adreça" not in second.content.decode()
+
+
 # --- CA-M01-69: en renovar, quota i tipus de simpatitzant -----------------------------------
 
 

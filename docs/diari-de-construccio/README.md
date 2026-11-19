@@ -317,3 +317,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | e604468b (PR #231) | 4 noves | [A comprovar] |
 | [T-DX-68](T-DX-68.md) | Escalfament de les e2e: una visita a `/entrar/` abans de la primera prova amb el servidor en viu; tanca la P-313 i la P-314 (carril de disseny) | 19/11/2026 02:14 | fe7018ff | 1 e2e nova | [A comprovar] |
 | [T-DX-63](T-DX-63.md) | Escriptori, PR 8: pàgina «Activitats» del soci i bloc «Activitats per a tu», en construcció (carril de disseny; P-312) | 18/11/2026 16:54 | f58790e1 | 2 noves i 7 e2e | [A comprovar] |
+| [T-M01-43d](T-M01-43d.md) | Avís de renovació: llista «a revisar» dels socis sense adreça a «Quotes i impagats»; el nombre de mesos editable passa a la T-M01-43e (dubte P-399) | 19/11/2026 04:15 | 2f7929cd (PR #261) | 8 noves; 1 e2e nova | [A comprovar] |

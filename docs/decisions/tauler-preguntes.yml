@@ -1028,4 +1028,17 @@ opcions:
       dues. Resposta del propietari (18/11/2026): A.
     data: 2026-11-18
 
+  P-399:
+    punt: "Qui edita el nombre de mesos de l'avís de renovació i el rang (mínim 1 mes, CA-M01-70)."
+    opcions:
+      A: "El Tresorer, d'1 a 6 mesos (els recordatoris amb què es comprova ja són seus)."
+      B: "La Secretaria, d'1 a 6 mesos (l'avís és una comunicació als socis)."
+      C: "El Tresorer i la Secretaria, d'1 a 12 mesos."
+    recomanada: A
+    perque: >-
+      En desar-lo es comprova contra els dies dels recordatoris (P-360), que edita el tresorer; un avís
+      amb més de 6 mesos d'antelació ja no fa de recordatori. Qui l'edita es pot canviar a l'editor de
+      permisos sense codi nou.
+    data: 2026-11-19
+
 noves:

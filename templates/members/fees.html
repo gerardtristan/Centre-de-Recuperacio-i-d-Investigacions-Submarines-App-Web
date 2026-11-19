@@ -130,5 +130,30 @@
       </table>
     </section>
   {% endif %}
+  {# T-M01-43d: socis que haurien de rebre l'avís de renovació (073; 085, T-6) i no tenen cap adreça (RN-M01-78). La veu qui veu aquesta pantalla (P10); l'enllaç a la fitxa, només amb P4 (el servidor ho torna a comprovar). Només nom, número i data de renovació. #}
+  {% if without_address %}
+    <section aria-labelledby="sense-adreca-titol">
+      <h2 id="sense-adreca-titol">{% translate "Avís de renovació sense adreça" %}</h2>
+      <p class="text-2">{% translate "Socis de ple dret a qui toca l'avís de renovació però no tenen cap adreça de correu. Afegeix-n'hi una a la fitxa o avisa'ls d'una altra manera: la plataforma ho torna a provar cada dia fins que es genera la quota." %}</p>
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Socis sense adreça per a l'avís de renovació" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Soci" %}</th>
+            <th scope="col">{% translate "Renovació" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member, due in without_address %}
+            <tr>
+              <th scope="row" class="cel-nom">{% if can_list %}<a href="{% url 'administration:member_detail' member.pk %}">{{ member.person }}</a>{% else %}{{ member.person }}{% endif %}<br><span class="codi">{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
+              <td data-etiqueta="{% translate 'Renovació' %}"><time datetime="{{ due|date:'Y-m-d' }}">{{ due|date:"d/m/Y" }}</time></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if without_address_more > 0 %}<p class="text-2">{% blocktranslate count total=without_address_more %}I {{ total }} soci més.{% plural %}I {{ total }} socis més.{% endblocktranslate %}</p>{% endif %}
+    </section>
+  {% endif %}
   <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
 {% endblock %}

@@ -68,3 +68,25 @@ def test_payment_of_a_left_member_is_reviewed(page, live_server, builder, member
     expect(page.get_by_role("heading", name="Pagaments per revisar")).to_be_hidden()
     review("pagament-revisat")
     assert fees.payments_to_review() == []
+
+
+def test_renewal_notice_without_address_is_listed(page, live_server, builder, review):
+    """T-M01-43d: la secretaria veu a «Quotes i impagats» els socis de ple dret a qui toca l'avís
+    de renovació i no tenen cap adreça, amb l'enllaç a la fitxa per afegir-n'hi una."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.members.tests.test_cards import make_member
+    from apps.members.tests.test_downgrade_073 import pay_annual_fee
+
+    absent = make_member("Jordi", number=2401, document="00000023T")  # sense cap adreça
+    pay_annual_fee(absent, timezone.now() - timedelta(days=355))  # renova d'aquí a 10 dies
+    secretary = make_admin("secretaria.avis", "secretary")
+    login_admin(page, live_server.url, secretary.login)
+    page.goto(f"{live_server.url}/{ADMIN}/quotes/")
+    heading = page.get_by_role("heading", name="Avís de renovació sense adreça")
+    expect(heading).to_be_visible()
+    review("avis-renovacio-sense-adreca")
+    page.get_by_role("link", name="Jordi Prova").click()
+    expect(page.get_by_role("heading", name="Jordi Prova")).to_be_visible()

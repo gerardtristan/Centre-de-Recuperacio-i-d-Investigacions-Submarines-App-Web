@@ -28,13 +28,14 @@ def address_for(age: int | None, own_email: str, guardian_email: str) -> str:
     return own_email
 
 
-def email_for(person, *, join_request=None, today=None) -> str:
+def email_for(person, *, join_request=None, today=None, log=True) -> str:
     """Adreça on s'envia una comunicació de `person`, o "" si no n'hi ha cap.
 
     El representant i la data de naixement (si la persona no en té) surten de les altes
     **aprovades** de la persona, la més recent primer: una sol·licitud que ningú no ha revisat no
     pot desviar els correus d'una persona existent. Per a una comunicació sobre una sol·licitud
-    concreta (el rebuig), `join_request` és aquella sol·licitud."""
+    concreta (el rebuig), `join_request` és aquella sol·licitud. `log=False`: només es consulta
+    (una llista de pantalla), no s'intenta cap enviament."""
     if join_request is not None:
         joins = [join_request]
     else:
@@ -47,6 +48,6 @@ def email_for(person, *, join_request=None, today=None) -> str:
     today = today or fee_rules.local_today()
     age = age_on(birth, today) if birth and birth <= today else None
     address = address_for(age, person.contact_email, guardian)
-    if not address:
+    if not address and log:
         logger.info("Comunicació no enviada: la persona %s no té cap adreça.", person.pk)
     return address

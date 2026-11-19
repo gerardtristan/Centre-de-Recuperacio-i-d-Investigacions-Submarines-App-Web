@@ -597,6 +597,9 @@ def join_reject_view(request, pk):
 # El servei torna a comprovar P9 i el conflicte d'interès, i en registra l'intent.
 
 
+WITHOUT_ADDRESS_SHOWN = 20
+
+
 @never_cache
 @permission_required(fees.VIEW)
 @require_GET
@@ -626,7 +629,12 @@ def fees_view(request):
         "today": today,
         "to_review": to_review,
         "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
+        "can_list": has_perm(request.user, roster.LIST),
     }
+    if page.number == 1:  # T-M01-43d: només a la primera pàgina del llistat
+        without_address = fees.renewal_notices_without_address(today)
+        context["without_address"] = without_address[:WITHOUT_ADDRESS_SHOWN]
+        context["without_address_more"] = len(without_address) - WITHOUT_ADDRESS_SHOWN
     return render(request, "members/fees.html", context)
 
 
