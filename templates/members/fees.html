@@ -12,7 +12,7 @@
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
   <p class="text-2">{% translate "Socis actius i impagats. Un soci no passa mai a impagat sol: el marca i el desmarca el tresorer, amb motiu. «Pendent» vol dir que la quota ha vençut sense pagar o que el rebut s'ha retornat. La quota de renovació de cada soci es genera sola el dia del primer recordatori." %}</p>
-  {% if candidates %}<p class="text-2">{% translate "«Candidat a impagat»: té un termini de la quota vençut des de fa tants dies com diuen els ajustos, o més, i sense cap pagament en curs. La plataforma només el proposa; el marques tu si escau." %}</p>{% endif %}
+  {% if candidates %}<p class="text-2">{% translate "«Candidat a impagat»: té la quota o un termini vençut des de fa tants dies com diuen els ajustos, o més, o un rebut retornat, i cap pagament ni reintent en curs. La plataforma només el proposa i el carnet continua vàlid; el marques tu, amb motiu, si escau." %}</p>{% endif %}
 
   <form class="formulari barra-filtres" method="get" action="{% url 'administration:fees' %}" novalidate>
     <fieldset class="filtres">
@@ -41,7 +41,7 @@
         <tr>
           <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
           <td data-etiqueta="{% translate 'Tipus' %}">{{ member.type.name }}</td>
-          <td data-etiqueta="{% translate 'Quota' %}">{% include "members/_fee_state.html" %}{% if member.pk in candidates %}<br><span class="estat estat-error"><span aria-hidden="true">!</span> {% translate "Candidat a impagat: termini vençut" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Quota' %}">{% include "members/_fee_state.html" %}{% if member.pk in candidates %}<br><span class="estat estat-error"><span aria-hidden="true">!</span> {% translate "Candidat a impagat" %}</span>{% endif %}</td>
           <td data-etiqueta="{% translate 'Estat del soci' %}">{% include "members/_member_status.html" %}</td>
           {% if can_mark %}
             <td class="cel-accions">

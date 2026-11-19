@@ -60,6 +60,7 @@ GENERATED = "members.fee.generated"
 GENERATE_ORIGIN = "members.generate_due_fees"
 REMINDER_TEMPLATE = "recordatori-quota"
 UNPAID_CHARGE = (Charge.Status.PENDING, Charge.Status.RETURNED)
+CANDIDATE = "candidat"  # filtre de «Quotes i impagats» (T-M01-18d)
 logger = logging.getLogger(__name__)
 
 
@@ -291,17 +292,67 @@ class FeeFilterForm(forms.Form):
     quota = forms.ChoiceField(
         label=_("Estat de la quota"),
         required=False,
-        choices=[("", _("Totes")), (roster.PENDING, _("Pendent"))],
+        choices=[
+            ("", _("Totes")),
+            (roster.PENDING, _("Pendent")),
+            (CANDIDATE, _("Candidat a impagat")),
+        ],
     )
 
 
-def rows_for_review(data, today=None):
+def unpaid_candidates(today: datetime.date) -> set[int]:
+    """Ids dels socis actius candidats a «impagat» (085, J-4; P-71; terminis: 097, P-61 punt 2).
+    Només els que `roster.fee_state` dona com a «Pendent» (la mateixa definició de quota sense
+    pagar), i només per les quotes o els terminis del període actual (venciment a partir del
+    darrer «vàlid fins al»): un vençut fa els dies de l'ajust o més, o amb el darrer rebut
+    retornat (P-400). Mai amb un intent que encara el pot cobrar ni amb un reintent confirmat a
+    la remesa següent. Només es proposen: el tresorer marca l'impagat a mà, amb motiu (040), i
+    fins llavors el carnet és vàlid (J-5)."""
+    from apps.payments import returns  # el 05b importa el 01
+    from apps.payments.attempts import MAY_BE_CHARGED
+    from apps.payments.models import PaymentAttempt
+
+    # P-400: un sol ajust de dies per a la quota i els terminis (097: «30, com la quota»).
+    limit = today - datetime.timedelta(days=values.instalments_unpaid_days())
+    current = {}
+    for member in roster.with_fee_data(Member.objects.filter(status=S.ACTIVE)):
+        state = roster.fee_state(member, today)
+        if state is None or state.kind != roster.PENDING:
+            continue
+        until = validity.valid_until(member)
+        current[member.pk] = [
+            fee
+            for fee in [*member.annual_fees, *member.instalment_fees]
+            if fee.charge.status in UNPAID_CHARGE and (until is None or fee.due_on >= until)
+        ]
+    charge_ids = {fee.charge_id for fees_ in current.values() for fee in fees_}
+    busy = set(
+        PaymentAttempt.objects.filter(
+            charge_id__in=charge_ids, status__in=MAY_BE_CHARGED
+        ).values_list("charge_id", flat=True)
+    )
+    returned, retrying = returns.unresolved_returns(charge_ids)
+    return {
+        pk
+        for pk, fees_ in current.items()
+        if any(
+            fee.charge_id not in busy | retrying
+            and (fee.charge_id in returned or fee.due_on <= limit)
+            for fee in fees_
+        )
+    }
+
+
+def rows_for_review(data, today=None, candidates=frozenset()):
     """(soci, estat de la quota) dels socis actius i impagats, amb els filtres vàlids. L'estat de
-    la quota es calcula en Python (`roster.fee_state`): per això el filtre «pendent» també."""
+    la quota es calcula en Python (`roster.fee_state`): per això el filtre «pendent» també.
+    `candidates`: els de `unpaid_candidates`, per al filtre «Candidat a impagat»."""
     today = today or local_today()
     members = Member.objects.filter(status__in=REVIEWED).select_related("person", "type")
     if data.get("estat") in REVIEWED:
         members = members.filter(status=data["estat"])
+    if data.get("quota") == CANDIDATE:
+        members = members.filter(pk__in=candidates)
     members = roster.with_fee_data(members).order_by("member_number", "pk")
     rows = [(member, roster.fee_state(member, today)) for member in members]
     if data.get("quota") == roster.PENDING:

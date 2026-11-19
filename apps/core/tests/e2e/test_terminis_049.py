@@ -76,5 +76,5 @@ def test_the_treasurer_sees_the_candidate_to_unpaid(page, live_server, pending, 
     second.save()
     login_admin(page, live_server.url, make_admin("tresoreria.prova", "treasurer").login)
     page.goto(f"{live_server.url}/{settings.ADMIN_URL_PATH}/quotes/")
-    expect(page.get_by_text("Candidat a impagat: termini vençut")).to_be_visible()
+    expect(page.locator(".estat-error", has_text="Candidat a impagat")).to_be_visible()
     review("quotes-candidat-impagat")

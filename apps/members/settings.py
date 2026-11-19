@@ -22,7 +22,7 @@ INSTALMENTS = "members.instalments"
 INSTALMENTS_ENABLED = f"{INSTALMENTS}.enabled"
 INSTALMENTS_TOTAL = f"{INSTALMENTS}.total_cents"  # provisional: falta la junta (097)
 INSTALMENTS_SURCHARGE = f"{INSTALMENTS}.surcharge_cents"  # provisional: falta la junta (097)
-INSTALMENTS_UNPAID_DAYS = f"{INSTALMENTS}.unpaid_candidate_days"
+INSTALMENTS_UNPAID_DAYS = f"{INSTALMENTS}.unpaid_candidate_days"  # també la quota anual (P-400)
 
 
 def price_key(membership_type) -> str:

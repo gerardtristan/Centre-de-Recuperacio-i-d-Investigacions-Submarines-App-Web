@@ -20,6 +20,7 @@ from apps.members.tests.test_instalments_049 import (  # noqa: F401 (fixture «o
     plan_of,
 )
 from apps.members.tests.test_roster import admin_client
+from apps.members.tests.test_unpaid_candidates_18d import BADGE
 
 pytestmark = pytest.mark.django_db
 
@@ -43,7 +44,7 @@ def test_the_fees_screen_shows_the_candidate(on, make_admin):  # noqa: F811
     second.due_on = local_today() - timedelta(days=31)  # vençut fa més dels 30 dies
     second.save()
     response = admin_client(make_admin("treasurer")).get(reverse("administration:fees"))
-    assert "Candidat a impagat" in response.text
+    assert BADGE in response.text
 
 
 def test_on_the_member_sees_the_plan_and_chooses_it(on, personal):  # noqa: F811
@@ -79,7 +80,7 @@ def test_the_candidate_explanation_shows_only_with_a_candidate_on_the_page(on, m
     url = reverse("administration:fees")
     assert "«Candidat a impagat»" in client.get(url).text
     filtered = client.get(url, {"estat": S.UNPAID}).text  # el soci actiu no hi surt
-    assert "«Candidat a impagat»" not in filtered and "Candidat a impagat:" not in filtered
+    assert "«Candidat a impagat»" not in filtered and BADGE not in filtered
 
 
 def test_the_plan_is_not_offered_with_a_payment_in_progress(on, personal):  # noqa: F811

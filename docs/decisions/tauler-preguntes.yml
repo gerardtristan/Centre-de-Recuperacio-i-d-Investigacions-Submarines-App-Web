@@ -1114,4 +1114,16 @@ opcions:
       sap què passarà en clicar.
     data: 2026-11-19
 
+  P-400:
+    opcions:
+      A: "Com s'ha construït: el rebut retornat el proposa el mateix dia; el pendent, als dies de l'ajust; un sol ajust de dies per a la quota i els terminis."
+      B: "Igual, però el rebut retornat també espera els dies de l'ajust."
+      C: "Igual, però amb un ajust de dies propi per a la quota anual (clau i permís nous)."
+    recomanada: A
+    perque: >-
+      La J-4 posa el rebut retornat com a alternativa als 30 dies, i la 097 (P-61, punt 2) diu que els
+      dies dels terminis són «com la quota». Només és una proposta: el tresorer marca l'impagat a mà, amb
+      motiu, i el carnet continua vàlid fins llavors.
+    data: 2026-11-19
+
 noves:
