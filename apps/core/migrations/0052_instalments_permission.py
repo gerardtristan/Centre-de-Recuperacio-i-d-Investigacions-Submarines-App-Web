@@ -1,5 +1,5 @@
 """T-M01-49 (097, P-61): permís d'editar els ajustos del pagament a terminis, per al tresorer i
-l'administrador (com el preu de la quota; P-394), amb una versió nova de la matriu (060). Veure'ls
+l'administrador (com el preu de la quota; P-396), amb una versió nova de la matriu (060). Veure'ls
 és l'apartat de socis (`core/0046`). Els ajustos els crea `members/0024`. Patró de la 0046."""
 
 from django.db import migrations

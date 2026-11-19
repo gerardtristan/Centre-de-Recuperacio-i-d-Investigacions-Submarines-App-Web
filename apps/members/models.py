@@ -164,6 +164,15 @@ class Member(models.Model):
     def __str__(self):
         return f"{self.member_number or '—'} {self.person}"
 
+    # `roster.with_fee_data` precarrega les quotes anuals i els terminis en una sola consulta.
+    @property
+    def annual_fees(self):
+        return [fee for fee in self.fee_rows if fee.kind == "annual"]
+
+    @property
+    def instalment_fees(self):  # T-M01-49
+        return [fee for fee in self.fee_rows if fee.kind == "instalment"]
+
 
 class MemberStatusChange(AppendOnlyModel):
     """Historial d'estats i tipus (RN-M01-08). Només s'hi afegeixen files: també ho

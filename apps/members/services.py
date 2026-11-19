@@ -598,7 +598,7 @@ def on_fee_paid(annual_fee_id) -> Member:
     - Baixa → **cap error**: no canvia res, queda al registre i el pagament surt a la llista
       «Pagaments per revisar» del tresorer (A-17, CA-M01-98; `fees.payments_to_review`).
     - Suplement de canvi de tipus → el canvi de tipus, si escau (T-M01-17).
-    - Termini (T-M01-49) → com la quota anual; un soci pendent passa a actiu només amb el primer.
+    - Termini (T-M01-49) → com la quota anual: el primer que es paga activa el soci pendent.
     - Pagaments parcials (terminis, P-61; T-M01-49) → `InvalidTransition`: no hi ha cap regla
       aprovada. És l'únic `InvalidTransition`, a part del càrrec que no consta com a pagat: mai
       per l'estat del soci.
@@ -631,7 +631,7 @@ def on_fee_paid(annual_fee_id) -> Member:
                 fees.notify_fee_editors(fee, fees.NOTICE_PAID_WHILE_UNPAID)
             return member
         if fee.kind == AnnualFee.Kind.INSTALMENT:
-            # T-M01-49 (097, P-61 punt 1): actiu quan es paga el primer termini, no un altre.
+            # T-M01-49 (097, P-61 punt 1): actiu amb el primer termini pagat (P-396).
             if validity.instalments_until(cards.load_member(member.pk)) is None:
                 return member
         elif cards._paid_until(cards.load_member(member.pk)) is None:

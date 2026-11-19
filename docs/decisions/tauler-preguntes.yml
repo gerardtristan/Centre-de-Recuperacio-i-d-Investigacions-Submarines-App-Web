@@ -1063,16 +1063,17 @@ opcions:
     data: 2026-11-19
 
   P-394:
+  P-396:
     opcions:
-      A: "Com s'ha construït: total + recàrrec repartit en tres (els cèntims de més, al primer), venciments mensuals (J-9), ajustos del tresorer i l'administrador, i el soci els tria a la seva àrea."
-      B: "Igual, però el recàrrec ja és dins de l'import total i només es mostra (no s'hi suma)."
+      A: "Com s'ha construït: total + recàrrec en tres (cèntims de més al primer); només si la quota té el mateix import que l'ajust; mensuals des de la quota o des del dia que es trien; actiu amb el primer pagat; sense pas a simpatitzant mentre n'hi ha per pagar."
+      B: "Igual, però els terminis sumen sempre l'ajust, encara que la quota anual sigui d'un altre import."
       C: "Igual, però amb els venciments repartits dins dels 12 mesos (0, 4 i 8 mesos; 072, Q-020)."
       D: "Igual, però a més la secretaria pot triar els terminis per al soci en una alta presencial."
     recomanada: A
     perque: >-
-      La J-9 (085) és posterior a la Q-020 (072) i diu «tres terminis mensuals». Amb el recàrrec a part,
-      la junta pot deixar l'import igual a la quota (90 €) i posar-hi un recàrrec explícit. Tot és reversible
-      mentre la funció és apagada.
+      La J-9 (085) és posterior a la Q-020 (072) i diu «tres terminis mensuals». Lligar-ho a l'import de
+      la quota evita que triar terminis canviï el que deu el soci sense que ho decideixi la junta; amb el
+      recàrrec a part, la junta pot posar 90 € + 6 €. Tot és reversible mentre la funció és apagada.
     data: 2026-11-19
 
 noves:

@@ -560,7 +560,7 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.ADMINISTRATOR: _ALL},
     ),
     # T-M01-49 (097, P-61): els quatre ajustos del pagament a terminis (`members.instalments.*`,
-    # família registrada pel 01). Matriu inicial com el preu de la quota (P-394).
+    # família registrada pel 01). Matriu inicial com el preu de la quota (P-396).
     _perm(
         "settings.edit.members.instalments",
         "AJ01-7",

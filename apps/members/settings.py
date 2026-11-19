@@ -82,7 +82,7 @@ def instalments_enabled() -> bool:
 
 
 def instalments_total_cents() -> int:
-    """Import dels tres terminis amb el recàrrec sumat (P-394)."""
+    """Import dels tres terminis amb el recàrrec sumat (P-396)."""
     return business_settings.get(INSTALMENTS_TOTAL) + business_settings.get(INSTALMENTS_SURCHARGE)
 
 

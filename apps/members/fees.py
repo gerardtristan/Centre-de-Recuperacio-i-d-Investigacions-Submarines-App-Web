@@ -406,7 +406,7 @@ def send_due_reminders(today=None) -> int:
     today = today or local_today()
     offsets = values.fee_reminder_offsets()
     pending = AnnualFee.objects.filter(
-        kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT),  # T-M01-49 (P-394)
+        kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT),  # T-M01-49 (P-396)
         charge__status=Charge.Status.PENDING,
         member__status__in=REVIEWED,
     ).select_related("member__person", "charge")

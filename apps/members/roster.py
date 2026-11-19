@@ -141,19 +141,14 @@ def with_fee_data(members):
     """Precàrrega per a `fee_state`: les quotes anuals amb el càrrec i els pagaments, i les
     sol·licituds d'alta aprovades (data declarada, només per saber si és exempt; no es mostra)."""
     return members.prefetch_related(
-        Prefetch(
+        Prefetch(  # quotes anuals i terminis (T-M01-49): `Member.annual_fees` i `instalment_fees`
             "fees",
-            queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.ANNUAL)
+            queryset=AnnualFee.objects.filter(
+                kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT)
+            )
             .select_related("charge", "exemption")
             .prefetch_related("charge__payments__cancellation"),
-            to_attr="annual_fees",
-        ),
-        Prefetch(  # T-M01-49: els terminis, per a `validity.instalments_until`
-            "fees",
-            queryset=AnnualFee.objects.filter(kind=AnnualFee.Kind.INSTALMENT)
-            .select_related("charge")
-            .prefetch_related("charge__payments__cancellation"),
-            to_attr="instalment_fees",
+            to_attr="fee_rows",
         ),
         Prefetch(
             "person__member_requests",

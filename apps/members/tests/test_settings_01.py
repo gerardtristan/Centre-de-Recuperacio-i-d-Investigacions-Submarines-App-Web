@@ -49,7 +49,7 @@ EDITORS = {
     values.SUPPLEMENT_DUE_DAYS: {"treasurer"},
     values.CARD_BACK_TEXT: {"secretary", "administrator"},
     values.CLASSIC_MEMBER_YEARS: {"administrator"},
-    # T-M01-49 (097, P-61; P-394): com el preu de la quota.
+    # T-M01-49 (097, P-61; P-396): com el preu de la quota.
     values.INSTALMENTS_ENABLED: {"treasurer", "administrator"},
     values.INSTALMENTS_TOTAL: {"treasurer", "administrator"},
     values.INSTALMENTS_SURCHARGE: {"treasurer", "administrator"},
