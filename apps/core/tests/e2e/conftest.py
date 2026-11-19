@@ -79,6 +79,7 @@ class PageChecks:
         # Consultes automàtiques (HTMX cada pocs segons) que han trobat la sessió ja tancada.
         self.automatic_denied = set()
         self._console_resource = []  # (camí, text): es resolen en acabar
+        self.ignored = ()  # textos d'errors que la prova espera (`ignore`)
         page.on("console", self._console)
         page.on("pageerror", lambda error: self.problems.append(f"JavaScript: {error}"))
         page.on("requestfailed", self._failed)
@@ -92,7 +93,12 @@ class PageChecks:
             for path, text in self._console_resource
             if path not in self.automatic_denied
         ]
-        return self.problems + console
+        return [p for p in self.problems + console if not any(text in p for text in self.ignored)]
+
+    def ignore(self, *texts):
+        """Errors que la prova espera (per exemple, sense connexió): no compten ni a `problems`
+        ni a la consola, encara que arribin després de cridar-ho (P-315)."""
+        self.ignored += texts
 
     def expect(self, status, path):
         self.expected.add((status, path))
