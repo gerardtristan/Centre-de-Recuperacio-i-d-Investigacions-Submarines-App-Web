@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 15:55 | ae61aef8 | 1 e2e nova; 9 fitxers e2e adaptats | [A comprovar] (PR #238) |
+| 18/11/2026 15:55 | b26808da | 1 e2e nova; 9 fitxers e2e adaptats | [A comprovar] (PR #238) |
 
 **En tres línies:** el menú de l'administració tenia 22 entrades seguides. Ara té «Inici» solt i 6 grups plegables amb icona: Socis, Quotes i tresoreria, Pagaments, Importacions, Seguretat i RGPD, i Ajustos. El grup de la pantalla actual surt obert. A la tauleta, un carril de 72 px amb la icona de cada grup obre les entrades al costat, i l'inici de l'administració mostra les mateixes entrades, agrupades en targetes.
 
@@ -40,6 +40,6 @@
 
   ![Barra lateral de l'administració amb Inici i sis grups plegables amb icona](captures/2026-11-18_1555_T-DX-62_menu-agrupat-1280.png)
 
-  *18/11/2026 15:55 (Europa/Madrid) · local, prova e2e, dades inventades · commit ae61aef8*
+  *18/11/2026 15:55 (Europa/Madrid) · local, prova e2e, dades inventades · commit b26808da*
 - Carril de la tauleta amb «Pagaments» obert, a 800 px: `captures/2026-11-18_1555_T-DX-62_carril-800.png`
 - Inici de l'administració en targetes, a 1280 px, en fosc: `captures/2026-11-18_1555_T-DX-62_inici-1280-fosc.png`

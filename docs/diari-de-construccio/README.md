@@ -315,4 +315,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-61](T-DX-61.md) | Escriptori, PR 5: el carnet de soci en 3D, que s'inclina i es gira per veure el QR (carril de disseny) | 18/11/2026 15:11 | 85b147e5 (PR #240) | 1 e2e nova (3 casos) | [A comprovar] |
 | [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | e604468b (PR #231) | 4 noves | [A comprovar] |
 | [T-DX-68](T-DX-68.md) | Escalfament de les e2e: una visita a `/entrar/` abans de la primera prova amb el servidor en viu; tanca la P-313 i la P-314 (carril de disseny) | 19/11/2026 02:14 | fe7018ff | 1 e2e nova | [A comprovar] |
-| [T-DX-62](T-DX-62.md) | Escriptori, PR 6: menú de l'administració en 6 grups, carril a la tauleta i inici en targetes (carril de disseny) | 18/11/2026 15:55 | ae61aef8 (PR #238) | 1 e2e nova | [A comprovar] |
+| [T-DX-62](T-DX-62.md) | Escriptori, PR 6: menú de l'administració en 6 grups, carril a la tauleta i inici en targetes (carril de disseny) | 18/11/2026 15:55 | b26808da (PR #238) | 1 e2e nova | [A comprovar] |
