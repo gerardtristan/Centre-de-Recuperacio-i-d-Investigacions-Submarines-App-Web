@@ -35,6 +35,8 @@ def test_card_with_qr_print_and_new_card(page, live_server, builder, member, rev
     login_personal(page, live_server.url, account)
     page.goto(f"{live_server.url}/socis/carnet/")
     expect(page.get_by_role("heading", name="El meu carnet")).to_be_visible()
+    # T-DX-61: el QR és al darrere del carnet; «Mostra el QR» el gira.
+    page.get_by_role("button", name="Mostra el QR").click()
     qr = page.get_by_role("img", name="Codi QR per verificar el carnet")
     expect(qr).to_be_visible()
     expect(page.get_by_role("button", name="Desa com a PDF")).to_be_visible()
@@ -98,4 +100,5 @@ def test_secretary_revokes_a_card_with_reason(
     expect(page.get_by_text("Ara no tens cap carnet.")).to_be_visible()
     review("carnet-revocat-soci")
     page.get_by_role("button", name="Demana un carnet nou").click()
+    page.get_by_role("button", name="Mostra el QR").click()
     expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()

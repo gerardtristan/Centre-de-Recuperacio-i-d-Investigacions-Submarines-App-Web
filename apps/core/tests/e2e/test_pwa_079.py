@@ -92,6 +92,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     page.goto(f"{base}/socis/carnet/")
     page.evaluate("navigator.serviceWorker.ready.then(() => true)")
     page.reload()  # ara la pàgina ja la serveix el service worker, que en desa la còpia
+    page.get_by_role("button", name="Mostra el QR").click()  # T-DX-61: el QR és al darrere
     expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()
     page.wait_for_function(
         "async () => (await (await caches.open('cris-carnet-v1')).keys()).length === 1"
@@ -101,7 +102,8 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
 
     # Sense connexió (CA-M01-17): surt la còpia, amb l'avís i el QR.
     go_offline(page, context, base)
-    page.goto(f"{base}/socis/carnet/")
+    # Amb #qr la còpia s'obre pel darrere: el gir (carnet.js, desat) també funciona sense connexió.
+    page.goto(f"{base}/socis/carnet/#qr")
     expect(page.get_by_text("Sense connexió: aquesta còpia del carnet")).to_be_visible()
     expect(page.get_by_text("Comprovat per última vegada:")).to_be_visible()
     expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()
@@ -174,7 +176,7 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     login_personal(page, base, builder.personal(member.person))
 
     def save_copy():
-        page.goto(f"{base}/socis/carnet/")
+        page.goto(f"{base}/socis/carnet/#qr")  # T-DX-61: amb #qr, el carnet mostra el QR
         page.evaluate("navigator.serviceWorker.ready.then(() => true)")
         since = page.evaluate("Date.now()")
         page.reload()  # ara segur que la serveix el service worker
@@ -192,7 +194,8 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     notice = page.get_by_text("No és una comprovació en temps real de l'estat del soci.")
     save_copy()
     go_offline(page, context, base)
-    page.goto(f"{base}/socis/carnet/")
+    # Amb #qr la còpia s'obre pel darrere: el gir (carnet.js, desat) també funciona sense connexió.
+    page.goto(f"{base}/socis/carnet/#qr")
     expect(notice).to_be_visible()
     expect(page.get_by_text("es mostra com a màxim 30 dies")).to_be_visible()
     back_online()
@@ -200,7 +203,8 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     # 29 dies: encara es mostra; 31 dies: s'esborra i no es mostra.
     _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 29 * 86400000)")
     go_offline(page, context, base)
-    page.goto(f"{base}/socis/carnet/")
+    # Amb #qr la còpia s'obre pel darrere: el gir (carnet.js, desat) també funciona sense connexió.
+    page.goto(f"{base}/socis/carnet/#qr")
     expect(notice).to_be_visible()
     back_online()
     _age_the_copy(page, "X-Cris-Copia-Desada", "String(Date.now() - 31 * 86400000)")

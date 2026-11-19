@@ -261,7 +261,7 @@ class TestCaM01104Print:
         assert "data-imprimeix" in page and "Desa com a PDF" in page
         assert "js/imprimeix.js" in page
         for markup in (
-            '<section class="no-imprimeix" aria-labelledby="carnet-nou-titol">',
+            '<section class="no-imprimeix" id="carnet-nou" aria-labelledby="carnet-nou-titol">',
             '<p class="enllacos no-imprimeix">',
             '<div class="accions no-imprimeix">',
         ):

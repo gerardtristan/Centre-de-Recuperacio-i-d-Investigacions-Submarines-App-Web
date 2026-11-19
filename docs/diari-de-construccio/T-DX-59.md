@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 14:21 | c9d6e39f | 4 noves, 1 e2e nova (2 casos) i 5 adaptades | [A comprovar] (PR #232) |
+| 18/11/2026 14:21 | fefa697e | 4 noves, 1 e2e nova (2 casos) i 5 adaptades | [A comprovar] (PR #232) |
 
 **En tres línies:** l'àrea del soci tenia una barra a baix només per sota de 600 px i, a partir d'aquí, una fila d'enllaços subratllats a la capçalera. Ara Ramillete és a totes les mides: la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i, a l'escriptori, un panell lateral clar i flotant amb «Mostra el QR», les entrades i el compte. La fila d'enllaços només queda sense JavaScript.
 
@@ -45,6 +45,6 @@
 
   ![Portada de l'àrea de socis a 1280 px amb el panell lateral clar a l'esquerra: logotip, «Mostra el QR», les entrades amb icona, «Inici» marcat i el compte a baix](captures/2026-11-18_1421_T-DX-59_panell-inici-1280.png)
 
-  *18/11/2026 14:21 (Europa/Madrid) · local, dades inventades · commit c9d6e39f*
+  *18/11/2026 14:21 (Europa/Madrid) · local, dades inventades · commit fefa697e*
 - El menú de la fletxa del QR: `captures/2026-11-18_1421_T-DX-59_menu-qr-1280.png`
 - La barra flotant a la tauleta, en fosc: `captures/2026-11-18_1421_T-DX-59_barra-quotes-800-fosc.png`

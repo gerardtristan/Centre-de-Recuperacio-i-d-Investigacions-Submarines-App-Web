@@ -1,0 +1,120 @@
+/* El carnet en 3D (T-DX-61; design-system §6.21; wireframe socis.html, «carnet-escena»). Una
+   targeta que s'inclina amb el ratolí i es gira per veure el QR. Mòbil primer i només tokens.
+   - Sense JavaScript: les dues cares, una sota l'altra (el QR es veu igualment).
+   - Amb JavaScript (carnet.js posa «es-3d»): les dues cares a la mateixa cel·la, girades.
+   - Impressió: les dues cares una al costat de l'altra, en clar (§6.8). */
+
+/* ---------- La pàgina: carnet a l'esquerra i la resta a la dreta (graella-7-5, §5.3) ---------- */
+.carnet-bloc { display: grid; gap: var(--e-4); justify-items: center; }
+.carnet-bloc > .carnet-escena { width: 100%; max-width: calc(var(--carnet-amplada) * 1.25); }
+@container cos (min-width: 60rem) {
+  .carnet-bloc { justify-items: start; }
+  .carnet-bloc > .carnet-escena { max-width: calc(var(--carnet-amplada) * 1.5); }
+}
+.carnet-lateral h2 { font-size: var(--t-l); }
+
+/* ---------- Escena i cares ---------- */
+.carnet-interior { display: grid; gap: var(--e-4); }
+.carnet-cara {
+  --r-exterior: var(--r-xl); --farciment: var(--e-4);
+  position: relative; container: cara / inline-size;
+  display: grid; align-content: space-between; gap: var(--e-3);
+  min-width: 0; aspect-ratio: var(--carnet-proporcio);
+  padding: var(--farciment); border-radius: var(--r-exterior);
+  border-top: var(--v-activa) solid var(--c-carnet-zona);
+  /* Llum de dalt a l'esquerra (B11): reflex suau en aquell racó i ombra cap avall i a la dreta. */
+  background:
+    radial-gradient(70% 60% at 0% 0%, color-mix(in oklab, var(--c-carnet-text) 7%, transparent), transparent),
+    linear-gradient(145deg, var(--c-carnet-1), var(--c-carnet-2));
+  background:
+    radial-gradient(70% 60% at 0% 0%, color-mix(in oklab, var(--c-carnet-text) 7%, transparent), transparent),
+    linear-gradient(145deg in oklch, var(--c-carnet-1), var(--c-carnet-2));
+  color: var(--c-carnet-text);
+  box-shadow: var(--ombra-carnet);
+}
+.carnet-cara p, .carnet-cara dl, .carnet-cara dd { margin: 0; }
+
+/* Amb JavaScript: les dues cares a la mateixa cel·la i el gir */
+.carnet-escena.es-3d { perspective: calc(var(--carnet-amplada) * 3); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.es-3d .carnet-interior {
+  --gir: 0deg; --rx: 0deg; --ry: 0deg;
+  gap: 0; transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(calc(var(--gir) + var(--ry)));
+  transition: transform var(--m-gir) var(--m-corba-molla);
+}
+/* «stretch»: amb aspect-ratio, una cara no s'estira sola fins a l'alçada de l'altra. */
+.es-3d .carnet-cara { grid-area: 1 / 1; place-self: stretch; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.es-3d .carnet-darrere { transform: rotateY(180deg); }
+.es-3d.es-girat .carnet-interior { --gir: 180deg; }
+/* Mentre s'inclina segueix el ratolí de prop; en sortir, torna al repòs amb el gir. */
+.es-3d.es-inclinant .carnet-interior { transition-duration: var(--m-rapid); transition-timing-function: var(--m-corba); }
+
+/* ---------- Davant ---------- */
+.carnet-cap { display: flex; align-items: center; gap: var(--e-2); }
+.carnet-cap img { width: var(--e-7); height: auto; }
+.carnet-cap strong { font-family: var(--f-titol); font-size: var(--t-l); letter-spacing: var(--ll-etiqueta); }
+.carnet-cap .monograma { width: var(--e-7); height: var(--e-7); margin-left: auto; box-shadow: 0 0 0 var(--v-fina) var(--c-carnet-text-2); }
+.carnet-logo-paper { display: none; }
+.carnet-nom { font-family: var(--f-titol); font-weight: var(--p-negreta); font-size: var(--t-xl); line-height: var(--a-titol); overflow-wrap: anywhere; }
+.carnet-numero { font-size: var(--t-2xl); line-height: var(--a-titol); letter-spacing: var(--ll-etiqueta); font-variant-numeric: tabular-nums; }
+.carnet-peu { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: var(--e-2) var(--e-4); }
+.carnet-dades { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-4); font-size: var(--t-s); }
+.carnet-dades dt { color: var(--c-carnet-text-2); }
+.carnet-dades dd { font-weight: var(--p-semi); font-variant-numeric: tabular-nums; }
+.carnet-insignia {
+  display: inline-block; padding: 0 var(--e-2); border: var(--v-fina) solid var(--c-carnet-zona); border-radius: var(--r-pastilla);
+  font-size: var(--t-xs); font-weight: var(--p-semi); text-transform: uppercase; letter-spacing: var(--ll-etiqueta);
+}
+/* El segell d'Autentico (§6.16), quiet: al carnet no cau en carregar la pàgina (D20). */
+.carnet-cara .autentico-segell { margin: 0 0 0 auto; animation: none; opacity: 1; }
+.carnet-cara .autentico-segell b { font-size: var(--t-l); }
+.carnet-segell-valid { color: var(--c-carnet-ok); }
+.carnet-segell-no-valid { color: var(--c-carnet-error); }
+
+/* ---------- Darrere ---------- */
+.carnet-darrere-graella { display: grid; gap: var(--e-3); align-items: center; }
+/* Cara estreta (mòbil de 320 px): el QR a dalt i les dades en dues columnes, perquè el carnet no
+   s'allargui. Més ampla: el QR a l'esquerra i les dades en una columna al costat. */
+.carnet-darrere .carnet-dades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2) var(--e-3); }
+/* El QR gran sobre el paper; la zona de silenci ja és a l'SVG. Radi interior concèntric (C1). */
+.carnet-cara .qr { width: 100%; max-width: 10rem; height: auto; aspect-ratio: 1; margin: 0 auto; border: 0; border-radius: var(--r-interior); background: var(--paper); }
+.carnet-cara .qr svg { border-radius: var(--r-interior); }
+@container cara (min-width: 18rem) {
+  .carnet-darrere-graella { grid-template-columns: minmax(0, 9fr) minmax(0, 11fr); }
+  .carnet-darrere .carnet-dades { grid-template-columns: minmax(0, 1fr); }
+  .carnet-cara .qr { max-width: 15rem; }
+}
+.carnet-legal { font-size: var(--t-xs); line-height: var(--a-text); color: var(--c-carnet-text-2); }
+
+/* ---------- Botó de gir: el canvi d'icona amb desenfocament (C4) ---------- */
+.carnet-gira-icona { display: inline-grid; }
+.carnet-gira-icona > svg {
+  grid-area: 1 / 1;
+  transition: opacity var(--m-rapid) var(--m-corba), transform var(--m-rapid) var(--m-corba), filter var(--m-rapid) var(--m-corba);
+}
+.carnet-gira[aria-pressed="false"] .carnet-gira-davant,
+.carnet-gira[aria-pressed="true"] .carnet-gira-qr { opacity: 0; transform: scale(.6); filter: blur(var(--e-1)); }
+.carnet-gira[aria-pressed="false"] .carnet-text-davant,
+.carnet-gira[aria-pressed="true"] .carnet-text-qr { display: none; }
+.carnet-pista { margin: 0; }
+
+/* ---------- Més contrast: sense degradat, reflex ni ombra; vora plena ---------- */
+@media (prefers-contrast: more) {
+  .carnet-cara { background: var(--c-carnet-2); box-shadow: none; border: var(--v-plena) solid var(--c-carnet-text); border-top-width: var(--v-activa); }
+}
+
+/* ---------- Impressió («Desa com a PDF», §6.8): les dues cares al costat, en clar ---------- */
+@media print {
+  .carnet-pagina { display: block; }
+  .carnet-escena, .carnet-bloc > .carnet-escena { max-width: none; perspective: none; }
+  .carnet-interior, .es-3d .carnet-interior { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-4); transform: none; transition: none; }
+  .carnet-cara, .es-3d .carnet-cara {
+    --c-carnet-text: var(--c-text); --c-carnet-text-2: var(--c-text-2);
+    --c-carnet-ok: var(--c-ok-text); --c-carnet-error: var(--c-error-text);
+    grid-area: auto; transform: none; backface-visibility: visible; -webkit-backface-visibility: visible;
+    background: var(--paper); box-shadow: none; border: var(--v-fina) solid var(--c-linia-forta); border-top: var(--v-activa) solid var(--c-carnet-zona);
+    break-inside: avoid;
+  }
+  .carnet-logo-pantalla { display: none; }
+  .carnet-logo-paper { display: block; }
+}

@@ -84,6 +84,7 @@
   --neu-sup-fosca: #76848A;   --neu-sup-clara: #BAC5C7;
   --c-llum-interior: rgba(255, 255, 255, .45);   /* fil de llum a la vora superior dels botons */
   --ombra-flotant: 0 18px 40px -18px rgba(17, 33, 45, .55), 0 4px 12px -6px rgba(17, 33, 45, .25);
+  --ombra-carnet: 8px 18px 40px -18px rgba(17, 33, 45, .6), 2px 4px 12px -6px rgba(17, 33, 45, .3); /* T-DX-61: llum de dalt a l'esquerra (B11) */
 
   /* Profunditat (compte personal): de la superfície a l'abisme */
   --c-ocea-1: #DCE0DF;
@@ -130,6 +131,7 @@
     --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
     --c-llum-interior: rgba(255, 255, 255, .08);
     --ombra-flotant: 0 18px 40px -18px rgba(0, 0, 0, .7), 0 4px 12px -6px rgba(0, 0, 0, .5);
+    --ombra-carnet: 8px 18px 40px -18px rgba(0, 0, 0, .75), 2px 4px 12px -6px rgba(0, 0, 0, .5);
     --c-ocea-1: #1F3646;
     --c-ocea-2: #192D3B;
     --c-ocea-3: #142733;
@@ -172,6 +174,7 @@
   --neu-sup-fosca: #182632;   --neu-sup-clara: #344B5C;
   --c-llum-interior: rgba(255, 255, 255, .08);
   --ombra-flotant: 0 18px 40px -18px rgba(0, 0, 0, .7), 0 4px 12px -6px rgba(0, 0, 0, .5);
+  --ombra-carnet: 8px 18px 40px -18px rgba(0, 0, 0, .75), 2px 4px 12px -6px rgba(0, 0, 0, .5);
   --c-ocea-1: #1F3646;
   --c-ocea-2: #192D3B;
   --c-ocea-3: #142733;
@@ -306,6 +309,8 @@
   --c-carnet-text-2: var(--pissarra);
   --c-carnet-zona: var(--llauto);
   --c-carnet-mari: var(--posidonia);
+  --c-carnet-ok: #59D8B0;       /* T-DX-61: «✓ Vàlid» sobre el carnet fosc (≥6,9:1) */
+  --c-carnet-error: #FFA096;    /* T-DX-61: «✕ No vàlid» sobre el carnet fosc (≥6,3:1) */
 
   /* Moviment (design-system §4.1 i §15.4; regles B i C): corbes i durades amb nom.
      Res no bloqueja més de --m-llindar (B9, B17). */

@@ -1,0 +1,9 @@
+{% load i18n %}{# Carnet nou a petició del soci (RN-M01-25). «carnet-nou» és l'àncora a què enllaça la navegació del soci. #}
+<section class="no-imprimeix" id="carnet-nou" aria-labelledby="carnet-nou-titol">
+  <h2 id="carnet-nou-titol">{% if card %}{% translate "Has perdut el carnet o el mòbil?" %}{% else %}{% translate "Demana el teu carnet" %}{% endif %}</h2>
+  <p class="text-2">{% if card %}{% translate "Demana'n un de nou: el codi QR de l'anterior deixarà de ser vàlid, també el que tinguis imprès o desat." %}{% else %}{% translate "Pots tenir carnet: demana'l ara." %}{% endif %}</p>
+  <form method="post" action="{% url 'members:card_renew' %}">
+    {% csrf_token %}
+    <button class="boto" type="submit">{% translate "Demana un carnet nou" %}</button>
+  </form>
+</section>
