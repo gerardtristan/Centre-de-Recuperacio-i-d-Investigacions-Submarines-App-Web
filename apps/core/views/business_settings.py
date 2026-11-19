@@ -81,9 +81,9 @@ def _row(setting, user, perms):
         "range": _range(setting),
         "editable": service.can_edit(user, setting, perms=perms),
     } | (
-        # Textos dels correus (T-M00-08): el text sencer només surt al detall.
+        # Textos editables (T-M00-08): el text sencer només surt al detall.
         {
-            "label": texts.EMAILS[setting.key].label,
+            "label": texts.entry(setting.key).label,
             "current": texts.status(setting.key),
             "initial": _("Text per defecte"),
         }

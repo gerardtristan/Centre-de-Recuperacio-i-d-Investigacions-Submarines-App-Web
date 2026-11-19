@@ -148,8 +148,10 @@
   </div>
   <section class="columna-lateral" aria-labelledby="ajuda-titol">
     <h2 class="etiqueta-seccio" id="ajuda-titol">{% translate "Ajuda" %}</h2>
-    <details class="recoveco-p" name="ajuda" open><summary><span>{% translate "Com canvio el nom o el document?" %}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{% translate "Per canviar el nom o el document, adreça't a la secretaria." %}</p></div></details>
-    {% if member %}<details class="recoveco-p" name="ajuda"><summary><span>{% translate "Qui porta el tipus i la data d'alta de la llicència?" %}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{% translate "El tipus i la data d'alta els porta la secretaria." %}</p></div></details>{% endif %}
+    {# T-M00-08e: les respostes són textos editables (àrea de socis); text pla, escapat. #}
+    {% load textos %}{% text_ajuda "texts-members.ajuda-perfil-nom" as ajuda %}
+    <details class="recoveco-p" name="ajuda" open><summary><span>{{ ajuda.question }}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{{ ajuda.text|linebreaksbr }}</p></div></details>
+    {% if member %}{% text_ajuda "texts-members.ajuda-perfil-llicencia" as ajuda %}<details class="recoveco-p" name="ajuda"><summary><span>{{ ajuda.question }}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{{ ajuda.text|linebreaksbr }}</p></div></details>{% endif %}
   </section>
   </div>
 {% endblock %}

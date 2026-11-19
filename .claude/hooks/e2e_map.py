@@ -208,6 +208,7 @@ MAP = {
     "test_ajustos.py": (
         "apps/core/views/business_settings.py",
         "apps/core/texts.py",
+        "apps/core/templatetags/textos.py",
         "apps/core/views/legal_texts.py",
         "templates/core/legal_text*.html",
         "apps/members/settings.py",

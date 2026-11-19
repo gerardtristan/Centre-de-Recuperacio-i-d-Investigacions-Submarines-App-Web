@@ -423,7 +423,7 @@ def test_without_the_area_every_text_screen_is_not_found(make_admin):
 def test_the_settings_index_lists_only_the_areas_of_the_user(make_admin):
     index = reverse("administration:settings")
     assert (
-        "Textos dels correus: socis"
+        "Textos dels correus i de l&#x27;ajuda: socis"
         in admin_client(make_admin(R.SECRETARY)).get(index).content.decode()
     )
     html = admin_client(make_admin(R.TREASURER)).get(index).content.decode()
@@ -465,3 +465,60 @@ def test_an_email_without_required_variables_accepts_any_text(make_admin):
     business_settings.change(
         f"{AREA}.alta-rebutjada", "Alta\n\nNo s'ha aprovat.", make_admin(R.SECRETARY)
     )
+
+
+# --- Textos d'ajuda de les pantalles (T-M00-08e) ---------------------------------------------
+
+HELP = f"{AREA}.ajuda-perfil-nom"
+
+
+def test_every_help_text_has_its_setting_and_a_valid_default_without_variables():
+    # CA-M00-08.5: una ajuda no té cap variable, ni de l'IBAN ni de cap altra dada.
+    for key, entry in texts.HELP.items():
+        setting = Setting.objects.get(key=key)  # el crea `core/0051`
+        assert (setting.module, setting.value_type, setting.initial_value) == (AREA, "text", "")
+        texts.validate(key, str(entry.default))
+        assert "{" not in str(entry.default) and texts.current(key) == str(entry.default)
+
+
+@pytest.mark.parametrize(
+    "value", ["Adreça't a {nom}", "Pregunta-ho {{ a }}", "Vés a <a href='x'>la secretaria</a>"]
+)
+def test_a_help_text_with_a_variable_or_html_is_rejected_and_nothing_is_saved(make_admin, value):
+    # CA-M00-08.1: les ajudes no tenen variables; CA-M00-08.2 no s'hi aplica (cap obligatòria).
+    with pytest.raises(ValidationError):
+        business_settings.change(HELP, value, make_admin(R.SECRETARY))
+    assert not SettingVersion.objects.filter(setting__key=HELP).exists()
+
+
+def test_help_text_preview_shows_the_question_and_saves_nothing(make_admin):
+    client = admin_client(make_admin(R.SECRETARY))
+    page = client.get(url(HELP)).content.decode()
+    assert "Ajuda d&#x27;«El meu perfil»: Com canvio el nom" in page
+    response = client.post(url(HELP), {"value": "Truca a la secretaria & junta", "preview": ""})
+    html = response.content.decode()
+    assert "Vista prèvia amb dades inventades" in html  # CA-M00-08.3: sense cap dada real
+    assert "Com canvio el nom o el document?" in html
+    assert "Truca a la secretaria &amp; junta" in html
+    assert not SettingVersion.objects.exists()
+
+
+def test_help_text_read_only_and_without_permission(make_admin):
+    # CA-M00-08.4, amb «no trobat» (P-391).
+    reader = admin_client(read_only_treasurer(make_admin))
+    assert reader.get(url(HELP)).status_code == 200
+    assert reader.post(url(HELP), {"value": "Text inventat", "note": ""}).status_code == 404
+    other = admin_client(make_admin(R.COURSES_MANAGER))
+    assert other.get(url(HELP)).status_code == 404
+    assert not SettingVersion.objects.exists()
+
+
+@pytest.mark.parametrize("back", ["", "  \r\n "])
+def test_going_back_to_the_default_help_text_leaves_a_version(make_admin, back):
+    # CA-M00-08.6: una ajuda en blanc també torna al text per defecte.
+    secretary = make_admin(R.SECRETARY)
+    business_settings.change(HELP, "Truca a la secretaria.", secretary)
+    version = business_settings.change(HELP, back, secretary)
+    assert (version.previous_value, version.value) == ("Truca a la secretaria.", "")
+    assert texts.current(HELP) == str(texts.HELP[HELP].default)
+    assert SettingVersion.objects.filter(setting__key=HELP).count() == 2
