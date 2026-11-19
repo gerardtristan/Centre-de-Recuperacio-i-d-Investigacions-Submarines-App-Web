@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "S'ha canviat un dels mètodes de pagament actius a la plataforma del club." %}
+
+{% translate "Mètode:" %} {{ what }}
+{% translate "Valor anterior:" %} {{ previous }}
+{% translate "Valor nou:" %} {{ new }}
+{% translate "Qui l'ha canviat:" %} {{ changed_by }}
+{% translate "Nota:" %} {{ note|default:"—" }}
+
+{% translate "Aquest correu només és un avís: el canvi ja s'ha aplicat. Si cal desfer-lo, l'Administrador ho fa amb un altre canvi des de la pantalla d'ajustos." %}
+{% endautoescape %}

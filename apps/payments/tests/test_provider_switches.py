@@ -95,8 +95,12 @@ class TestScreen:
             False,
             NOTE,
         )
-        sent = OutgoingEmail.objects.get(template=business_settings.EMAIL_TEMPLATE)
+        # P-131b: l'avís propi, amb l'assumpte que va triar el propietari i el nom del mètode.
+        sent = OutgoingEmail.objects.get(template="avis-canvi-metodes-pagament")
         assert sent.to_address == "tresorer@example.org"
+        assert sent.subject == "Canvi en els mètodes de pagament"
+        assert "Mètode: Mètodes actius del proveïdor: Bizum" in sent.body_text
+        assert not OutgoingEmail.objects.filter(template=business_settings.EMAIL_TEMPLATE).exists()
 
     @pytest.mark.parametrize("extra", [{"code": "000000"}, {"code": ""}, {"note": ""}])
     def test_without_a_good_code_or_a_note_nothing_is_saved(self, admin, login_as, extra):

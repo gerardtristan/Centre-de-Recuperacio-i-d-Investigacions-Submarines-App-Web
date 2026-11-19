@@ -77,6 +77,7 @@ TEMPLATE_PRIORITIES = {
     "avis-canvi-correu": _Priority.CONFIRMATION,
     "restabliment-acces": _Priority.CONFIRMATION,
     "avis-canvi-diners": _Priority.CONFIRMATION,
+    "avis-canvi-metodes-pagament": _Priority.CONFIRMATION,
     "avis-quota-tresorer": _Priority.CONFIRMATION,
     "pagament-confirmat": _Priority.CONFIRMATION,  # CA-M05b-03 (T-M05b-07; P-84)
     "mandat-signat": _Priority.CONFIRMATION,  # G3, CA-M05a-04 (T-M05a-09)
