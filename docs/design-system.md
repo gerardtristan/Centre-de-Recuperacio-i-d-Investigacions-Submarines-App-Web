@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.35 (18/11/2026). La 1.35 fa la fitxa del soci de l'administració a l'escriptori (§5.2, §5.3 i §6.13; T-DX-67, PR 9a): dues columnes 5/7 (`fitxa-soci`), el resum i les dades al costat a la tauleta, un sol botó principal amb les accions rares a «Més» i l'historial d'estats amb la línia de passos de Tramite (`historial-estats`).
+- **Versió:** 1.36 (19/11/2026). La 1.36 afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
+- La 1.35 (18/11/2026) fa la fitxa del soci de l'administració a l'escriptori (§5.2, §5.3 i §6.13; T-DX-67, PR 9a): dues columnes 5/7 (`fitxa-soci`), el resum i les dades al costat a la tauleta, un sol botó principal amb les accions rares a «Més» i l'historial d'estats amb la línia de passos de Tramite (`historial-estats`).
 - La 1.34 (18/11/2026) redistribueix a l'escriptori el perfil, el mandat, el pagament i el rebut del soci i dos formularis de l'administració (alta presencial i edició de les dades d'un soci) (T-DX-65, §5.3, §6.10, §6.13 i §6.14): capçalera comuna, formulari a 40rem amb `lateral-formulari`, Errata i l'ajuda plegada a la columna lateral, els passos de Tramite al costat del pagament i el rebut estret amb les accions al costat.
 - La 1.33 (18/11/2026) fa els llistats de l'administració a l'escriptori (§5.3, T-DX-66, PR 7b): capçalera comuna, la peça `barra-filtres`, la fila sencera clicable també quan l'enllaç és un botó i les seccions dins de `graella-2` amb el seu espai.
 - La 1.29 (18/11/2026) redistribueix l'inici del soci a l'escriptori (T-DX-60, §5.1, §6.5 i §6.18): la portada només amb la salutació; a sota, la quota i el carnet en petit en dues columnes sobre el fons de la pàgina, la franja de pendents, i a sota els pagaments recents, la història i la llicència en 8/4; la quota ja no puja en desplaçar (D20, B10).
@@ -323,7 +324,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 - **Compte.** Sota les entrades: el nom d'usuari del compte actiu (`codi`), «Compte d'administrador · TOTP actiu» i «Surt» (formulari POST amb CSRF). Cap altra dada.
 - **Escriptori (1024 px o més).** Columna fixa de `--lateral-ample`, sota la capçalera. El botó «Menú» no hi és.
 - **Mòbil i tauleta (fins a 1023 px).** La barra va sota la capçalera, a tota l'amplada, plegada darrere del botó «☰ Menú». El botó l'obre i la tanca (Intro o Espai); Esc la tanca i torna el focus al botó. No tapa la pàgina ni reté el focus: l'ordre del tabulador és el de la pantalla (logotip, «Menú», tema, entrades, «Surt», contingut). Sense JavaScript, la barra es veu sempre oberta.
-- **Diferències amb el wireframe, pendents:** el carril de 72 px amb icones de la tauleta (la plataforma encara no té el joc d'icones; de 600 a 1023 px es comporta com el mòbil) i el selector de tema dins del panell (a la plataforma n'hi ha un de sol, a la capçalera).
+- **Diferències amb el wireframe, pendents:** el carril de 72 px amb icones de la tauleta (el joc d'icones ja hi és des de la 1.36, §6.20; el carril arriba amb la navegació agrupada de l'administració; fins llavors, de 600 a 1023 px es comporta com el mòbil) i el selector de tema dins del panell (a la plataforma n'hi ha un de sol, a la capçalera).
 - **Entrada actual:** `aria-current="page"`, barra daurada (`--v-activa`, `--c-accent`), negreta i fons `--c-lateral-fons-2`; també quan s'és en una pantalla que en penja (la fitxa d'un soci marca «Llistat de socis»).
 - **Contrast** (calculat amb els valors de `tokens.css`, clar i fosc): text de les entrades sobre la barra, 6,7:1 i 7,4:1; entrada actual sobre el seu fons, 7,9:1 i 9,2:1; focus daurat sobre la barra, 10:1 o més.
 - **Compte personal.** Navegació en text a la capçalera (el dock és de la portada, pendent). «Surt» és l'última peça de la llista, com a botó petit, a totes les pantalles de l'àrea.
@@ -573,6 +574,14 @@ Del recurs Monograma ([pla dels recursos externs](plans/recursos-disseny-extern.
 - **On:** la portada de l'àrea del soci (dins d'`oleaje-portada`, §6.18) i «El meu perfil», al costat del títol. Cap pantalla de l'administració.
 - **Seguretat i privacitat:** només l'avatar del soci de la sessió, i a la portada només al compte personal (com el bloc de la quota, decisions 015 i 018). El dibuix surt només de la llavor, aleatòria i fixada en l'alta, així que no revela res de la persona i corregir el nom no el canvia; la llavor no surt a la pàgina. Decoratiu (`aria-hidden`, sense `title` ni text): el nom o el títol del costat són el text. Sense llavor o sense soci, res.
 - **Del recurs no s'hi fa:** les inicials (sortirien del nom), «Otra variante» (l'avatar no es tria), el selector de paleta i d'estil, l'animació en canviar, ni copiar o descarregar l'SVG. Els avatars de fauna marina són el mòdul 12.
+
+### 6.20 Icones (T-DX-58)
+Un sol joc d'icones a tota la plataforma (C9, D4): **Lucide** (llicència ISC), allotjat al servidor.
+- **Peça:** l'sprite `static/img/icones.svg` (un `<symbol>` per icona, només les de `apps/core/icones.py`), la classe `icona` de `tokens.css` i l'etiqueta de plantilla `{% load icones %}{% icona "nom" %}` (amb una classe més, opcional: `{% icona "nom" "classe" %}`).
+- **Mida i traç:** caixa de `--icona` (20 px; 24 px a la navegació del mòbil, `--icona-nav`), traç de `--icona-gruix` (1,75), que segueix el pes del text (C9). El color és el del text (`currentColor`). Cap icona no fa servir colors propis.
+- **Accessibilitat:** sempre `aria-hidden="true"` i `focusable="false"`. El nom el porta el text que l'acompanya o el nom accessible del botó o de l'enllaç; una icona mai no és l'única manera de saber què fa un control ni l'estat d'una cosa (amb l'estat, també el text).
+- **Origen i llicència:** `static/img/README.md` (versió, adreça oficial, integritat de npm i SHA-256) i `static/img/LICENSE-lucide.txt`. Per afegir-ne una: el nom a `apps/core/icones.py` i es torna a generar l'sprite amb `tools/icones/genera.py`, des del mateix paquet. Un nom que no és a la llista fa fallar la plantilla.
+- **Els símbols de text** (✓ ✕ ◷) dels estats es mantenen on ja hi són: van amb el text de l'estat i no són icones decoratives.
 
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
