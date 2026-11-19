@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 19/11/2026 03:10 | d2c4d516 | 2 e2e noves; 35 e2e de disposició, tresoreria, pagaments i axe; 2190 unitàries | [A comprovar] (PR #259) |
+| 19/11/2026 03:10 | 85644341 | 2 e2e noves; 35 e2e de disposició, tresoreria, pagaments i axe; 2190 unitàries | [A comprovar] (PR #259) |
 
 **En tres línies:** és la PR 7c del programa de l'escriptori que el propietari va aprovar el 18/11/2026. Les pantalles de pagaments i de tresoreria tenen la capçalera comuna; tancar un intent o una liquidació «a revisar» i revocar un mandat porten la fitxa i el formulari a 40rem amb el resum d'errors al costat, com el mandat del soci, i la campanya de mandats va en dues columnes. Només plantilles: cap vista, cap dada, cap enllaç ni cap CSS nou. El mòbil queda com abans.
 
@@ -54,8 +54,8 @@
 
   ![Campanya de mandats amb la capçalera, el recompte a l'esquerra i la invitació a la dreta](captures/2026-11-19_0257_T-DX-69_campanya-1280.png)
 
-  *19/11/2026 02:57 (Europa/Madrid) · local, prova e2e, dades inventades · commit d2c4d516*
+  *19/11/2026 02:57 (Europa/Madrid) · local, prova e2e, dades inventades · commit 85644341*
 - Tancar un pagament a revisar a 1280 px en fosc, amb Errata al costat: `captures/2026-11-19_0256_T-DX-69_tancar-a-revisar-1280-fosc.png`
 - El pagament a mà a 320 px en fosc, en una columna com abans: `captures/2026-11-19_0255_T-DX-69_pagament-a-ma-320-fosc.png`
 
-  *19/11/2026 02:55-02:56 (Europa/Madrid) · local, prova e2e, dades inventades · commit d2c4d516*
+  *19/11/2026 02:55-02:56 (Europa/Madrid) · local, prova e2e, dades inventades · commit 85644341*
