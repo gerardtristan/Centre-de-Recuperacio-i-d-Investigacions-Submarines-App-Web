@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 20:10 | 8b2f1193 | 1 e2e nova; 28 e2e de la fitxa, disposició i axe; 2566 unitàries de socis | [A comprovar] |
+| 18/11/2026 20:10 | 4cead49e | 1 e2e nova; 28 e2e de la fitxa, disposició i axe; 2566 unitàries de socis | [A comprovar] (PR #247) |
 
 **En tres línies:** és la PR 9a del programa de l'escriptori que el propietari va aprovar el 18/11/2026 (secció 3.8, «Fitxa del soci»). A l'ordinador, la fitxa del soci de l'administració té dues columnes: el resum, les dades personals i el carnet a l'esquerra, i les quotes, la llicència, l'historial i els consentiments a la dreta. Un sol botó principal, «Edita les dades»; les accions rares, dins de «Més». Només plantilles i CSS.
 
