@@ -3,9 +3,11 @@
 {# T-M04-15 (tercer tall), C4: arqueig d'una caixa amb l'ajust opcional (P-M04-D; CA-T08.1; VT-06). Sense wireframe propi: segueix les pantalles de tresoreria. Seguretat: T7 amb edició al servidor, POST amb CSRF i dos passos: el primer mostra el saldo calculat i la diferència, el segon registra l'arqueig (i l'ajust, només amb motiu). L'arqueig no es modifica: l'ajust es demana ara o mai (P-225). #}
 {% block title %}{% translate "Arqueig de caixa" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "Arqueig de caixa" %}</h1>
-  <p class="text-2">{% translate "Compta el que hi ha a la caixa. La plataforma el compara amb el saldo calculat a la mateixa data." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Arqueig de caixa" %}</h1>
+    <p class="text-2">{% translate "Compta el que hi ha a la caixa. La plataforma el compara amb el saldo calculat a la mateixa data." %}</p>
+  </header>
   <form class="formulari" method="post" action="{% url 'administration:treasury_cash_count' %}" novalidate>
     {% csrf_token %}
     {% for error in form.non_field_errors %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endfor %}

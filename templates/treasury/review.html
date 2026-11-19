@@ -4,12 +4,14 @@
 {% block title %}{% translate "A revisar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "A revisar" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "A revisar" %}</h1>
+    <p class="text-2">{% translate "Línies de l'extracte i liquidacions que necessiten una persona. Des d'aquí no es mou cap diner: cada cosa es resol a la seva pantalla." %}</p>
+  </header>
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
-  <p class="text-2">{% translate "Línies de l'extracte i liquidacions que necessiten una persona. Des d'aquí no es mou cap diner: cada cosa es resol a la seva pantalla." %}</p>
 
   <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">
     <li{% if rows %} class="es-pendent"{% endif %}><b>{{ rows|length }}</b><span>{% blocktranslate count n=rows|length %}línia per revisar{% plural %}línies per revisar{% endblocktranslate %}</span></li>
