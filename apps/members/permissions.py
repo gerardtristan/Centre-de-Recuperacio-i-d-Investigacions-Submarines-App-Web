@@ -59,6 +59,7 @@ ROUTES = {
     "members:export_data": OWN,
     "members:fees": OWN,
     "members:fee_detail": OWN,
+    "members:fee_instalments": OWN,  # T-M01-49: triar els terminis d'una quota pròpia
     "members:card": OWN,
     "members:card_renew": OWN,
     "members:change_type": OWN,

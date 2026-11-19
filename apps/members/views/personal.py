@@ -30,7 +30,7 @@ from apps.core import audit, consents, erasure, persons, privacy
 from apps.core.charges import active_payments
 from apps.core.models import Charge, Consent
 
-from .. import birth_date, join, licences, roster
+from .. import birth_date, instalments, join, licences, roster
 from ..forms import LEGAL_LABELS, ChangeEmailForm, EraseAccountForm, ProfileForm
 from ..models import AnnualFee, LicenceRecord, Member
 
@@ -346,12 +346,10 @@ def fees_view(request):
     return render(request, "members/personal_fees.html", context)
 
 
-@never_cache
-@require_GET
-def fee_detail_view(request, fee_id):
+def _own_fee_or_404(request, fee_id):
     """Una quota pròpia. Una d'un altre o una que no existeix: «no trobat» i registre."""
     fee = (
-        AnnualFee.objects.select_related("charge")
+        AnnualFee.objects.select_related("charge", "member__type")
         .prefetch_related("charge__payments__cancellation")
         .filter(pk=fee_id, member__person=request.user.person)
         .first()
@@ -365,6 +363,38 @@ def fee_detail_view(request, fee_id):
             request=request,
         )
         raise Http404
+    return fee
+
+
+@never_cache
+@require_GET
+def fee_detail_view(request, fee_id):
+    fee = _own_fee_or_404(request, fee_id)
     row = _fee_row(fee)
     payment = active_payments(fee.charge)[0] if row["paid_on"] else None
-    return render(request, "members/personal_fee_detail.html", {**row, "payment": payment})
+    # T-M01-49: l'opció de pagar a terminis, només amb l'ajust encès i una quota que ho admet.
+    schedule = (
+        [{"amount": euros(cents), "due_on": due_on} for cents, due_on in instalments.schedule(fee)]
+        if instalments.can_choose(fee)
+        else []
+    )
+    return render(
+        request,
+        "members/personal_fee_detail.html",
+        {**row, "payment": payment, "schedule": schedule},
+    )
+
+
+@never_cache
+@require_POST
+def fee_instalments_view(request, fee_id):
+    """T-M01-49 (097, P-61): el soci tria pagar la quota en tres terminis. El servei ho torna a
+    comprovar tot, també l'ajust."""
+    fee = _own_fee_or_404(request, fee_id)
+    try:
+        first, *_rest = instalments.choose(fee, by=request.user, request=request)
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+        return redirect("members:fee_detail", fee.pk)
+    messages.success(request, _("Has triat pagar la quota en tres terminis."))
+    return redirect("members:fee_detail", first.pk)
