@@ -251,6 +251,7 @@ MESSAGES = {
     "member_type": _("No s'ha pogut deduir el tipus de soci: l'ha de triar la secretaria."),
     "id_document_type": _("Falta el tipus de document."),
     "member_number": _("Falta el número de soci."),
+    "last_renewal": _("Falta la «Data alta/renovació»: l'ha de posar la secretaria."),
     "first_name": _("Falta el nom."),
     "last_name": _("Falten els cognoms."),
     "id_document": _("Falta el document."),
@@ -495,12 +496,15 @@ def _decode(data: bytes) -> tuple[str, str] | None:
     return None
 
 
-def preview(data: bytes, *, keep_values: bool = False) -> Preview:
+def preview(data: bytes, *, keep_values: bool = False, renewal_dates=None) -> Preview:
     """Valida l'exportació de Cluber sense escriure res i en torna el resultat.
 
     `keep_values` només el fa servir la importació final (`imports/final.py`, T-M01-25): cada
     fila conserva en memòria els valors normalitzats d'`EQUIVALENCES` (`Row.data["values"]`,
     fora de `repr` i de `summary()`) per crear la persona i el soci. La prova no els conserva.
+    `renewal_dates` (número de registre → data, de `final.confirm`) són les «Data alta/renovació»
+    que posa la secretaria on falten: el tipus pel preu i l'avís del preu total es calculen amb la
+    quota vigent aquell dia (VC-01), com si la data vingués al fitxer.
 
     Un .xlsx (es reconeix pel contingut, no pel nom) es converteix primer en el CSV equivalent
     (`imports/xlsx.py`); a partir d'aquí, tot és igual.
@@ -508,7 +512,7 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
     if len(data) > MAX_BYTES:
         return _reject("too_large")
     if not xlsx.is_xlsx(data):
-        return _preview_csv(data, keep_values=keep_values)
+        return _preview_csv(data, keep_values=keep_values, renewal_dates=renewal_dates)
     try:
         converted = xlsx.to_csv(
             data, required=REQUIRED_HEADERS, iban_headers=IBAN_HEADERS, header_key=_header_key
@@ -516,13 +520,13 @@ def preview(data: bytes, *, keep_values: bool = False) -> Preview:
     except xlsx.XlsxRejected as error:
         result = _reject(error.code, column=error.column, row=error.row)
     else:
-        result = _preview_csv(converted, keep_values=keep_values)
+        result = _preview_csv(converted, keep_values=keep_values, renewal_dates=renewal_dates)
         result.encoding = None
     result.source_format = "xlsx"
     return result
 
 
-def _preview_csv(data: bytes, *, keep_values: bool = False) -> Preview:
+def _preview_csv(data: bytes, *, keep_values: bool = False, renewal_dates=None) -> Preview:
     # La mida es comprova abans de descodificar: el text i el lector queden acotats per 1 MiB.
     if len(data) > MAX_BYTES:
         return _reject("too_large")
@@ -613,7 +617,7 @@ def _preview_csv(data: bytes, *, keep_values: bool = False) -> Preview:
                 return values[index[header]].strip() if header in index else ""
 
             _read_row(row, value, keep_values)
-            paid_on = parse_date(value(LAST_RENEWAL))
+            paid_on = parse_date(value(LAST_RENEWAL)) or (renewal_dates or {}).get(row.row)
             to_resolve.append((row, value(QUOTA), value(TOTAL_PRICE), paid_on))
             for column, counter in catalogue.items():
                 if v := value(column):
@@ -677,6 +681,15 @@ def _read_row(row: Row, value, keep_values: bool = False) -> None:
     # Sense data d'alta, s'importaria igualment (071, punt 8): és un advertiment, no un pendent.
     if "Member.joined_on" not in fields and ("date_invalid", JOINED_ON) not in errors:
         row.warnings.append("joined_on")
+    # 097, punt 1: sense «Data alta/renovació», pendent fins que la secretaria la posa en
+    # confirmar (`final.confirm`, `renewal_dates`). Només amb `idInterno`: sense, la data no es
+    # desa (`member_cluber_renewed_only_cluber`, P-397).
+    if (
+        "Member.cluber_id" in fields
+        and "last_renewal" not in fields
+        and ("date_invalid", LAST_RENEWAL) not in errors
+    ):
+        row.pending.append("last_renewal")
 
     row.pending.extend(code for header, code in PRESENCE.items() if not value(header))
     # 079 (A-25, RN-M01-95): el tipus es dedueix quan el DNI o el NIE té la lletra correcta; per

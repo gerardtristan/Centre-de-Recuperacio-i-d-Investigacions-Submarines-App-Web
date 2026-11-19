@@ -302,9 +302,14 @@ class TestInventedSample:
         assert result.counts["rows"] == 40 and result.counts["new"] == 40
         assert result.counts["with_errors"] == 0
         # 079 (A-25): el tipus es dedueix dels DNI amb la lletra correcta; només queden
-        # pendents les files amb el tipus de soci pendent.
-        assert result.counts["ready"] == 24
-        assert {tuple(r.pending) for r in result.rows if not r.ready} == {("member_type",)}
+        # pendents les files amb el tipus de soci pendent i, sense «Data alta/renovació», la data
+        # (097, punt 1; 7, 14, …, 35).
+        assert result.counts["ready"] == 21
+        assert {tuple(r.pending) for r in result.rows if not r.ready} == {
+            ("member_type",),
+            ("last_renewal",),
+            ("last_renewal", "member_type"),
+        }
         assert {r.data["id_document_type"] for r in result.rows} == {"dni"}
 
         types = {(r.member_type, r.member_type_by) for r in result.rows}
