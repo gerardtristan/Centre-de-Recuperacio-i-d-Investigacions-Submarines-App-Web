@@ -57,8 +57,10 @@ REASON = "Paga en efectiu a la secretaria (prova inventada)"
 
 
 def detail(page, term):
-    """El valor d'una dada de la pantalla (`dd`), pel nom que la presenta (`dt`)."""
-    row = page.locator("dl.dades-soci > div").filter(has=page.get_by_text(term, exact=True))
+    """El valor d'una dada de la pantalla (`dd`), pel nom que la presenta (`dt`). Al carnet en 3D
+    (T-DX-61), les dades del davant són a `dl.carnet-dades`."""
+    rows = page.locator("dl.dades-soci > div, dl.carnet-dades > div")
+    row = rows.filter(has=page.get_by_text(term, exact=True))
     return row.locator("dd").first
 
 
@@ -232,9 +234,12 @@ def join_flow(page, base_url, builder, secretary, other, shoot, pay=None):
     account_nav.get_by_role("link", name="El meu carnet").click()
     expect(page.get_by_role("heading", name="El meu carnet")).to_be_visible()
     expect(detail(page, "Número de soci")).to_have_text(str(member.member_number))
-    expect(detail(page, "Estat del carnet")).to_contain_text("Vàlid")
-    expect(detail(page, "Estat del carnet")).not_to_contain_text("No vàlid")
+    # T-DX-61: l'estat és el segell del davant del carnet, i el QR és al darrere.
+    seal = page.locator(".carnet-davant .autentico-segell")
+    expect(seal).to_contain_text("Vàlid")
+    expect(seal).not_to_contain_text("No vàlid")
     expect(detail(page, "Vàlid fins al")).to_have_text(f"{until:%d/%m/%Y}")
+    page.locator("main").get_by_role("button", name="Mostra el QR").click()
     expect(page.get_by_role("img", name="Codi QR per verificar el carnet")).to_be_visible()
     shoot("6-carnet")
     page.context.clear_cookies()  # qui escaneja el QR no té cap sessió
