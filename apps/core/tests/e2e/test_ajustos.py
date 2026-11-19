@@ -16,6 +16,7 @@ from apps.core import business_settings, consents
 from apps.core.models import Role, RolePermission, Setting
 
 from .conftest import login_admin, make_admin
+from .test_carnet_079 import login_personal
 
 pytestmark = pytest.mark.e2e
 
@@ -159,8 +160,9 @@ def test_secretary_previews_and_publishes_the_leave_email(page, live_server, rev
     secretary = make_admin("secretaria.prova", "secretary")
     login_admin(page, live_server.url, secretary.login)
     page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
-    page.get_by_role("link", name="Textos dels correus: socis").click()
-    expect(page.get_by_role("heading", name="Textos dels correus: socis")).to_be_visible()
+    area = "Textos dels correus i de l'ajuda: socis"
+    page.get_by_role("link", name=area).click()
+    expect(page.get_by_role("heading", name=area)).to_be_visible()
     review("textos-apartat")
 
     page.get_by_role("link", name="Canvia: Correu de baixa efectiva").click()
@@ -181,6 +183,36 @@ def test_secretary_previews_and_publishes_the_leave_email(page, live_server, rev
     expect(page.get_by_role("cell", name="Text inventat")).to_be_visible()
     review("textos-desat")
     assert business_settings.get(key).startswith("Baixa feta\n\nHola,")
+
+
+def test_secretary_edits_a_profile_help_text_and_the_member_sees_it(
+    page, live_server, review, builder, member, secretary
+):
+    # T-M00-08e: la resposta d'un plafó «Ajuda» del perfil (`core/0051`), amb la vista prèvia,
+    # una variable que no es desa i la publicació; el soci la veu al seu perfil.
+    login_admin(page, live_server.url, secretary.login)
+    page.get_by_role("navigation", name="Seccions").get_by_role("link", name="Ajustos").click()
+    page.get_by_role("link", name="Textos dels correus i de l'ajuda: socis").click()
+    page.get_by_role("link", name="Canvia: Ajuda d'«El meu perfil»: Com canvio el nom").click()
+    expect(page.get_by_label("Valor nou")).to_have_value(
+        "Per canviar el nom o el document, adreça't a la secretaria."
+    )
+    page.get_by_label("Valor nou").fill("Escriu a {nom}.")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    new = "Escriu a la secretaria des del formulari de contacte. Text inventat."
+    page.get_by_label("Valor nou").fill(new)
+    page.get_by_role("button", name="Vista prèvia").click()
+    expect(page.get_by_text("Encara no s'ha desat res.")).to_be_visible()
+    review("ajuda-vista-previa")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+
+    page.context.clear_cookies()
+    login_personal(page, live_server.url, builder.personal(member.person))
+    page.goto(f"{live_server.url}/socis/perfil/")
+    expect(page.get_by_text(new)).to_be_visible()
+    review("ajuda-perfil")
 
 
 def test_administrator_creates_a_type_with_its_price_and_deactivates_it(page, live_server, review):

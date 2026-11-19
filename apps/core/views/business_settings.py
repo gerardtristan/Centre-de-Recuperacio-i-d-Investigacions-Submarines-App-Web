@@ -81,9 +81,9 @@ def _row(setting, user, perms):
         "range": _range(setting),
         "editable": service.can_edit(user, setting, perms=perms),
     } | (
-        # Textos dels correus (T-M00-08): el text sencer només surt al detall.
+        # Textos editables (T-M00-08): el text sencer només surt al detall.
         {
-            "label": texts.EMAILS[setting.key].label,
+            "label": texts.text_entry(setting.key).label,
             "current": texts.status(setting.key),
             "initial": _("Text per defecte"),
         }
@@ -200,8 +200,9 @@ def setting_detail_view(request, section, key):
         clean = form.cleaned_data
         try:
             if is_text and "preview" in request.POST:  # T-M00-08: no desa res
-                service.validate_value(setting, clean["value"])
-                preview = texts.preview(key, clean["value"])
+                value = service.normalise(key, clean["value"])  # com en desar-lo
+                service.validate_value(setting, value)
+                preview = texts.preview(key, value)
             else:
                 service.change(
                     key, clean["value"], request.user, clean["note"], clean.get("effective_from")
@@ -217,5 +218,5 @@ def setting_detail_view(request, section, key):
         for v in setting.versions.select_related("changed_by").order_by("-changed_at", "-id")
     ]
     context = {"section": section, "title": title, "row": row, "form": form, "history": history}
-    context |= {"is_text": is_text, "preview": preview}
+    context |= {"is_text": is_text, "preview": preview, "is_help": key in texts.HELP}
     return render(request, "core/setting_detail.html", context)

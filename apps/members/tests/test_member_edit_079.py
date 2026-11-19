@@ -49,7 +49,8 @@ class TestCaM0199MemberNumber:
         member = a_member()
         page = admin_client(secretary).get(reverse(EDIT, args=[member.pk])).content.decode()
         assert 'name="member_number"' not in page
-        assert "El número de soci no es pot corregir des de l'aplicació." in page
+        # Text d'ajuda editable (T-M00-08e): aquí, el per defecte, escapat.
+        assert "El número de soci no es pot corregir des de l&#x27;aplicació." in page
 
     def test_ca_m01_99_a_number_added_to_the_request_is_ignored(self, secretary):
         member = a_member()

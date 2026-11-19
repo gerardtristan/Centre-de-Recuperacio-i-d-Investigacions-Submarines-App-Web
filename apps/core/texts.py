@@ -15,6 +15,9 @@ permís i el registre d'activitat són els de `business_settings.change`. Aquí 
   es rebutja en desar-lo.
 - Un correu amb variants (p. ex. abans i després del venciment) té un text per variant; `when`
   tria la variant a partir del context.
+- Textos d'ajuda de les pantalles (T-M00-08e): la resposta d'un plafó «Ajuda». Text pla d'un sol
+  bloc, sense assumpte ni variables; la pregunta és al codi. Les plantilles el llegeixen amb
+  `{% text_ajuda %}` (`templatetags/textos.py`).
 """
 
 import logging
@@ -201,6 +204,47 @@ EMAILS = {
 }
 TEMPLATES = frozenset(e.template for e in EMAILS.values())
 
+
+@dataclass(frozen=True)
+class HelpText:
+    screen: str
+    question: str
+    default: str
+
+    @property
+    def label(self) -> str:
+        return _("%(screen)s: %(question)s") % {"screen": self.screen, "question": self.question}
+
+
+# Plafons «Ajuda» de les pantalles fora de pagaments i tresoreria (P-393: només els plafons, no
+# les ajudes de camp). Els textos per defecte són els que ja hi havia (T-DX-65).
+_PROFILE = gettext_lazy("Ajuda d'«El meu perfil»")
+HELP = {
+    f"{SECTION}.ajuda-perfil-nom": HelpText(
+        _PROFILE,
+        gettext_lazy("Com canvio el nom o el document?"),
+        gettext_lazy("Per canviar el nom o el document, adreça't a la secretaria."),
+    ),
+    f"{SECTION}.ajuda-perfil-llicencia": HelpText(
+        _PROFILE,
+        gettext_lazy("Qui porta el tipus i la data d'alta de la llicència?"),
+        gettext_lazy("El tipus i la data d'alta els porta la secretaria."),
+    ),
+    f"{SECTION}.ajuda-edicio-soci": HelpText(
+        gettext_lazy("Ajuda d'«Edita les dades» del soci"),
+        gettext_lazy("Què queda registrat?"),
+        gettext_lazy(
+            "Cada canvi queda al registre d'activitat amb el valor anterior. El número de soci no "
+            "es pot corregir des de l'aplicació."
+        ),
+    ),
+}
+
+
+def text_entry(key: str):
+    return EMAILS.get(key) or HELP[key]
+
+
 _VAR = re.compile(r"\{([a-z_]+)\}")
 # Només el que sembla una etiqueta (`<a ...>`, `</p>`, `<br/>`, `<!--`), no «<menys de 50 €».
 _TAG = re.compile(r"<!--|</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>")
@@ -217,6 +261,9 @@ def _names(entry: EmailText) -> str:
 def validate(key: str, value: str) -> None:
     """Regla del text editat (es registra a `business_settings`). Buit: el text per defecte."""
     if value == "":
+        return
+    if key in HELP:
+        _validate_help(value)
         return
     entry = EMAILS[key]
     subject, _sep, body = value.partition("\n")
@@ -246,9 +293,16 @@ def validate(key: str, value: str) -> None:
         )
 
 
+def _validate_help(value: str) -> None:
+    if _TAG.search(value):
+        raise ValidationError(_("El text no pot portar etiquetes HTML: es mostra com a text pla."))
+    if "{" in value or "}" in value:
+        raise ValidationError(_("Aquest text no té variables: no pot portar claus { }."))
+
+
 def is_editable(setting) -> bool:
-    # Per la clau i no per l'àrea: un correu d'una àrea nova també té vista prèvia i ajuda.
-    return setting.key in EMAILS
+    # Per la clau i no per l'àrea: un text d'una àrea nova també té vista prèvia i ajuda.
+    return setting.key in EMAILS or setting.key in HELP
 
 
 def normalise_lines(value):
@@ -260,14 +314,17 @@ def normalise(key: str, value):
     """Salts de línia uniformes; el text per defecte desat sense canvis es desa buit, perquè
     continuï sent «per defecte» (i traduïble)."""
     value = normalise_lines(value)
-    default = str(EMAILS[key].default)
-    return "" if isinstance(value, str) and value.strip() == default.strip() else value
+    if not isinstance(value, str):
+        return value
+    # Una ajuda en blanc deixaria el plafó buit: torna al text per defecte.
+    blank = key in HELP and not value.strip()
+    return "" if blank or value.strip() == str(text_entry(key).default).strip() else value
 
 
 def register() -> None:
     from . import business_settings
 
-    for key in EMAILS:
+    for key in EMAILS | HELP:
         business_settings.register_check(
             key, partial(validate, key), normalise=partial(normalise, key)
         )
@@ -284,7 +341,7 @@ def _edited(key: str) -> str:
 
 def current(key: str) -> str:
     """El text que s'envia ara: l'editat o, si no n'hi ha, el per defecte."""
-    return _edited(key) or str(EMAILS[key].default)
+    return _edited(key) or str(text_entry(key).default)
 
 
 def status(key: str) -> str:
@@ -292,6 +349,11 @@ def status(key: str) -> str:
 
 
 def help_text(key: str) -> str:
+    if key in HELP:
+        return _(
+            "La resposta del plafó «Ajuda» de la pantalla. Text pla, sense HTML ni variables. Si "
+            "el deixes buit, torna el text per defecte."
+        )
     entry = EMAILS[key]
     names = ", ".join(f"{{{n}}} ({v.label})" for n, v in entry.vars.items())
     text = _(
@@ -319,7 +381,10 @@ def _fill(text: str, values: dict) -> tuple[str, str]:
 
 
 def preview(key: str, value: str) -> tuple[str, str]:
-    """Assumpte i cos amb les dades inventades de cada variable. No desa res."""
+    """Assumpte i cos amb les dades inventades de cada variable; d'una ajuda, la pregunta i la
+    resposta. No desa res."""
+    if key in HELP:
+        return str(HELP[key].question), normalise_lines(value or str(HELP[key].default)).strip()
     entry = EMAILS[key]
     return _fill(value or str(entry.default), {n: str(v.sample) for n, v in entry.vars.items()})
 

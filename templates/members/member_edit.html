@@ -27,7 +27,9 @@
     </form>
     <section class="columna-lateral" aria-labelledby="ajuda-titol">
       <h2 class="etiqueta-seccio" id="ajuda-titol">{% translate "Ajuda" %}</h2>
-      <details class="recoveco-p" name="ajuda" open><summary><span>{% translate "Què queda registrat?" %}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{% translate "Cada canvi queda al registre d'activitat amb el valor anterior. El número de soci no es pot corregir des de l'aplicació." %}</p></div></details>
+      {# T-M00-08e: la resposta és un text editable (àrea de socis); text pla, escapat. #}
+      {% load textos %}{% text_ajuda "texts-members.ajuda-edicio-soci" as ajuda %}
+      <details class="recoveco-p" name="ajuda" open><summary><span>{{ ajuda.question }}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{{ ajuda.text|linebreaksbr }}</p></div></details>
     </section>
     </div>
   {% endif %}

@@ -1,8 +1,9 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# T-AJ-02: un valor d'ajustos, el formulari segons el tipus i l'historial (055, RN-AJ-02 a 05, CA-AJ-05; RN-RP-22). Seguretat i privacitat: el servidor exigeix `settings.section.<apartat>` (sense permís, o amb una clau que no és de l'apartat, «no trobat»); el formulari només surt a qui pot editar el valor, però el control és el servei: un POST sense permís d'edició es rebutja amb «no trobat» i queda al registre. El tipus, el rang, la data d'entrada en vigor i la nota es comproven al servidor; si no passen, no es desa res. L'historial mostra el nom d'usuari del compte d'administrador que ha fet el canvi, com el registre d'activitat. Textos dels correus (T-M00-08): la vista prèvia demana el mateix permís que desar, fa servir dades inventades i no desa res; el text es mostra escapat (text pla, mai com a plantilla). #}
 {% block title %}{{ row.label }} · {{ title }} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}{% if is_help %}<link rel="stylesheet" href="{% static 'css/recoveco.css' %}">{% endif %}{% endblock %}
 {% block content %}
   {% translate "Text per defecte" as per_defecte %}
   <p class="etiqueta-seccio"><a href="{% url 'administration:settings_section' section %}">{{ title }}</a></p>
@@ -25,9 +26,14 @@
     </form>
     {% if preview %}
       <section class="targeta" aria-labelledby="previa-titol">
-        <h2 id="previa-titol">{% translate "Vista prèvia amb dades inventades" %}</h2>
-        <p><strong>{{ preview.0 }}</strong></p>
-        <p>{{ preview.1|linebreaksbr }}</p>
+        {% if is_help %}{# T-M00-08e: com el plafó «Ajuda» de la pantalla #}
+          <h2 id="previa-titol">{% translate "Vista prèvia" %}</h2>
+          <details class="recoveco-p" open><summary><span>{{ preview.0 }}</span><span class="recoveco-mes" aria-hidden="true"></span></summary><div class="recoveco-resp"><p>{{ preview.1|linebreaksbr }}</p></div></details>
+        {% else %}
+          <h2 id="previa-titol">{% translate "Vista prèvia amb dades inventades" %}</h2>
+          <p><strong>{{ preview.0 }}</strong></p>
+          <p>{{ preview.1|linebreaksbr }}</p>
+        {% endif %}
         <p class="text-2">{% translate "Encara no s'ha desat res." %}</p>
       </section>
     {% endif %}
