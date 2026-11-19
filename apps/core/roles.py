@@ -138,7 +138,7 @@ def change_warnings(account, role_code: str, *, assign: bool) -> list:
     return [] if others.exclude(role__code=role_code).exists() else [LAST_ROLE]
 
 
-def _queue_notice(template: str, recipients, context: dict) -> None:
+def queue_notice(template: str, recipients, context: dict) -> None:
     """Posa a la cua l'avís a cada compte, en confirmar la transacció, fora dels bloquejos."""
     recipients = list(recipients)
 
@@ -175,7 +175,7 @@ def _notify_role_change(account, role, *, by, assigned: bool, note: str) -> None
         .select_related("person")
         .distinct()
     )
-    _queue_notice(ROLE_NOTICE_TEMPLATE, recipients, context)
+    queue_notice(ROLE_NOTICE_TEMPLATE, recipients, context)
 
 
 def _ensure_can_manage_accounts(by) -> None:
@@ -285,7 +285,7 @@ def deactivate_admin_account(account: Account, *, by: Account, note: str = "") -
     if account.pk != by.pk and account.notification_email:
         recipients.append(account)
     context = {"username": account.login, "actor": by.login, "note": note, "when": timezone.now()}
-    _queue_notice(DEACTIVATION_NOTICE_TEMPLATE, recipients, context)
+    queue_notice(DEACTIVATION_NOTICE_TEMPLATE, recipients, context)
 
 
 @dataclass(frozen=True)

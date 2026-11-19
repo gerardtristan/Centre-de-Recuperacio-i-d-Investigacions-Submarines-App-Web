@@ -1,0 +1,1 @@
+{% load i18n %}{% translate "Avís: s'han canviat els permisos dels rols al C.R.I.S." %}
