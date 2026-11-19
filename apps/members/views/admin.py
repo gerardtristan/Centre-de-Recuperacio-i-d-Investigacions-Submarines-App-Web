@@ -42,6 +42,7 @@ from apps.members import (
     admissions,
     cards,
     fees,
+    instalments,
     join,
     member_edit,
     member_requests,
@@ -630,6 +631,7 @@ def fees_view(request):
         "to_review": to_review,
         "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
         "can_list": has_perm(request.user, roster.LIST),
+        "candidates": instalments.unpaid_candidates(today),  # T-M01-49 (097, P-61 punt 2)
     }
     if page.number == 1:  # T-M01-43d: només a la primera pàgina del llistat
         without_address = fees.renewal_notices_without_address(today)

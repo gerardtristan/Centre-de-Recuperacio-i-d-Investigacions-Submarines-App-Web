@@ -363,6 +363,12 @@ MAP = {
         "templates/members/personal_fees.html",
         "templates/members/personal_fee_detail.html",
     ),
+    "test_terminis_049.py": (
+        "apps/members/instalments.py",
+        "apps/members/views/personal.py",
+        "templates/members/personal_fee_detail.html",
+        "templates/members/fees.html",
+    ),
     "test_recorreguts_048.py": ("design/*",),
     "test_revisio_pantalles_045.py": (
         "templates/members/join_requests.html",

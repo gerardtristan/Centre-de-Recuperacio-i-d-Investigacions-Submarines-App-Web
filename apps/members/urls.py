@@ -36,6 +36,12 @@ urlpatterns = [
     path("socis/perfil/dades/", personal.export_data_view, name="export_data"),
     path("socis/quotes/", personal.fees_view, name="fees"),
     path("socis/quotes/<int:fee_id>/", personal.fee_detail_view, name="fee_detail"),
+    # T-M01-49 (097, P-61): triar els tres terminis. Només POST; apagat per defecte.
+    path(
+        "socis/quotes/<int:fee_id>/terminis/",
+        personal.fee_instalments_view,
+        name="fee_instalments",
+    ),
     path("socis/carnet/", personal_card.card_view, name="card"),  # T-M01-19
     # 079 (RN-M01-92; RN-M01-25): carnet nou a petició del soci.
     path("socis/carnet/nou/", personal_card.card_renew_view, name="card_renew"),

@@ -5,6 +5,7 @@
 {% block content %}
   <p class="etiqueta-seccio">{% translate "Quotes" %}</p>
   <h1>{{ fee.charge.concept }}</h1>
+  {% for message in messages %}<div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>{% endfor %}
   <dl class="dades-soci">
     <div><dt>{% translate "Tipus" %}</dt><dd>{{ fee.get_kind_display }}</dd></div>
     <div><dt>{% translate "Període" %}</dt><dd>{{ fee.period }}</dd></div>
@@ -14,5 +15,25 @@
   </dl>
   {# T-M05b-04: el pagament és a la pantalla del 05b, que torna a comprovar que el càrrec és seu. #}
   {% if fee.charge.status == "pending" %}<div class="accions"><a class="boto boto-principal" href="{% url 'payments:charge' fee.charge_id %}">{% translate "Paga ara" %}</a></div>{% elif fee.charge.status == "paid" %}<p class="enllacos"><a href="{% url 'payments:charge' fee.charge_id %}">{% translate "Veure el pagament" %}</a></p>{% endif %}
+  {# T-M01-49 (097, P-61): pagar a terminis. Surt només si l'ajust és encès i la quota ho admet (alta o renovació, sense cap pagament); el servei ho torna a comprovar en desar i anul·la la quota anual. #}
+  {% if schedule %}
+    <section aria-labelledby="terminis-titol">
+      <h2 id="terminis-titol">{% translate "Pagar en tres terminis" %}</h2>
+      <p class="text-2">{% translate "En lloc de la quota sencera, pots pagar tres terminis mensuals. Passes a actiu quan es confirma el primer, i el carnet val mentre els terminis estan al dia. No es pot desfer." %}</p>
+      <table class="taula">
+        <caption class="visualment-amagat">{% translate "Import i venciment de cada termini" %}</caption>
+        <thead><tr><th scope="col">{% translate "Termini" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th></tr></thead>
+        <tbody>
+          {% for row in schedule %}
+            <tr><th scope="row">{{ forloop.counter }}</th><td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td><td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.due_on|date:'Y-m-d' }}">{{ row.due_on|date:"d/m/Y" }}</time></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form method="post" action="{% url 'members:fee_instalments' fee.pk %}" class="accions">
+        {% csrf_token %}
+        <button class="boto" type="submit">{% translate "Paga en tres terminis" %}</button>
+      </form>
+    </section>
+  {% endif %}
   <p class="enllacos"><a href="{% url 'members:fees' %}">{% translate "Tornar a les meves quotes" %}</a></p>
 {% endblock %}
