@@ -24,7 +24,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts import invitations, totp
-from apps.accounts.models import Account, AccountInvitation, FailedLogin, RecoveryCode
+from apps.accounts.models import Account, AccountInvitation, FailedLogin, RecoveryCode, TotpDevice
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.tests.test_personal_totp import with_totp
 from apps.core import audit, consents, erasure, files, mail, persons, privacy
@@ -256,13 +256,25 @@ _SCANNED = (
 )
 
 
+def _random(field) -> bool:
+    """Xifrats, empremtes de contrasenya i sessions: lletres i xifres a l'atzar, on un nom curt
+    surt de tant en tant per casualitat (P-315b). En clar no hi pot haver res."""
+    return field.name.endswith("_encrypted") or field.name in {
+        "password",
+        "session_key",
+        "session_data",
+    }
+
+
 def leaks(forbidden) -> list[str]:
     """Recorre tots els camps de text, de dates, JSON i d'adreces de totes les taules i torna on
     surt algun dels valors prohibits."""
     found = []
     needles = {label: str(value).lower() for label, value in forbidden.items() if value}
     for model in apps.get_models(include_auto_created=True):
-        fields = [f for f in model._meta.concrete_fields if isinstance(f, _SCANNED)]
+        fields = [
+            f for f in model._meta.concrete_fields if isinstance(f, _SCANNED) and not _random(f)
+        ]
         if not fields:
             continue
         names = [f.attname for f in fields]
@@ -276,6 +288,17 @@ def leaks(forbidden) -> list[str]:
                     if needle in text or needle in compact:
                         found.append(f"{model._meta.label}.{field.name} #{row[0]}: {label}")
     return found
+
+
+@pytest.mark.django_db
+def test_leaks_does_not_count_a_name_that_comes_out_by_chance_in_a_random_value(make_admin):  # noqa: F811
+    """P-315b: el 16/11 al CI, «Anna» va sortir per atzar dins del secret xifrat d'un doble
+    factor (base64) i la prova de les dades bloquejades va fallar. Aquí la casualitat es força."""
+    account = make_admin("administrator")
+    TotpDevice.objects.filter(account=account).update(secret_encrypted="gAAAAABpXAnnaQ" + "x" * 80)
+    Account.objects.filter(pk=account.pk).update(password="md5$KsAnnaPq7Zt$" + "0" * 32)
+    assert leaks({"nom": "Anna"}) == []
+    assert leaks({"nom": "Admin1"})  # el que es veu en clar sí que es troba
 
 
 # --- Exportació -----------------------------------------------------------------------------
