@@ -50,7 +50,7 @@
       <form class="formulari" method="post" action="{% url 'administration:treasury_match_line' line.pk %}"{% if panell %} hx-post="{% url 'administration:treasury_match_line' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
         {% csrf_token %}
         <input type="hidden" name="cerca" value="{{ query }}">
-        <fieldset>
+        <fieldset data-panell-focus tabindex="-1">
           <legend>{% blocktranslate with amount=amount %}Tria els càrrecs que sumen {{ amount }}{% endblocktranslate %}</legend>
           {% for item in found %}
             {% if item.charge.collecting or item.charge.proposed %}
@@ -64,7 +64,7 @@
         <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Revisa el casament" %}</button></div>
       </form>
     {% elif query %}
-      <p>{% translate "Cap càrrec pendent amb aquesta referència o aquest número de soci." %}</p>
+      <p data-panell-focus tabindex="-1">{% translate "Cap càrrec pendent amb aquesta referència o aquest número de soci." %}</p>
     {% endif %}
   {% endif %}
   {% endblock cos %}

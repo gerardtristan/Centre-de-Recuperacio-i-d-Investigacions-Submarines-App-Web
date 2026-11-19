@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n static %}
-{# T-DX-72 (PR 9b): el títol diu el que queda (D13) i, a sobre, els comptadors de Deposito. A l'escriptori, la taula (8/12) i el panell de la línia triada (4/12): els enllaços amb data-panell-enllac hi carreguen amb HTMX la mateixa vista (mateix permís, CSRF i comprovacions), J i K passen de línia i Esc o «Tanca» el tanquen (conciliacio.js). Al mòbil, a la tauleta i sense JavaScript, l'enllaç porta a la pàgina com abans. #}
+{# T-DX-72 (PR 9b): el títol diu el que queda (D13) i, a sobre, els comptadors de Deposito. A l'escriptori, la taula a tota l'amplada i, amb una línia oberta, la taula (8/12, sense «Càrrecs» i amb el concepte retallat; T-DX-73) i el panell de la línia triada (4/12): els enllaços amb data-panell-enllac hi carreguen amb HTMX la mateixa vista (mateix permís, CSRF i comprovacions), J i K passen de línia i Esc o «Tanca» el tanquen (conciliacio.js). Al mòbil, a la tauleta i sense JavaScript, l'enllaç porta a la pàgina com abans. #}
 {# T-M04-15, segon tall (C5, C6; P-M04-E, passos 3 i 5): línies dels extractes vigents amb l'estat, el concepte (tapat per la importació: cap número de compte ni de targeta) i els càrrecs proposats o casats. Sense wireframe propi (M04-5, «Falten»): mateix patró que «A revisar». Veure-la: T1; «Confirma», «Desfés», «Casa a mà» (T-M04-12e), «Casa amb moviments» (T-M04-12f) i «Exclou»: T4 (P-190). Amagar els formularis no és cap control: les vistes i els serveis tornen a comprovar el permís i l'estat. Del càrrec, només el nom, el concepte i l'import (M04-4). Una línia amb una liquidació del proveïdor (T-M04-13b) en mostra el proveïdor, l'identificador i el net, i «Revisa i confirma…» porta al pas de revisió. #}
 {% block title %}{% translate "Conciliació" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
@@ -26,15 +26,16 @@
   {% if rows %}
   <div class="conciliacio" data-conciliacio>
    <div class="conciliacio-taula">
+    {% if can_reconcile %}<p class="teletipo-drecera text-2 conciliacio-pista" data-panell-pista hidden>{% blocktranslate %}<kbd>J</kbd> i <kbd>K</kbd> per passar de línia; <kbd>Esc</kbd> per tancar el panell.{% endblocktranslate %}</p>{% endif %}
     <table class="taula">
       <caption>{% translate "Línies de l'extracte, de la més recent a la més antiga per data de valor" %}</caption>
       <thead>
         <tr>
           <th scope="col">{% translate "Data de valor" %}</th>
-          <th scope="col">{% translate "Concepte" %}</th>
+          <th scope="col" class="col-concepte">{% translate "Concepte" %}</th>
           <th scope="col" class="cel-import">{% translate "Import" %}</th>
           <th scope="col">{% translate "Estat" %}</th>
-          <th scope="col">{% translate "Càrrecs" %}</th>
+          <th scope="col" class="col-carrecs">{% translate "Càrrecs" %}</th>
           {% if can_reconcile or can_exclude %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
         </tr>
       </thead>
@@ -42,7 +43,7 @@
         {% for row in rows %}
           <tr>
             <th scope="row" class="cel-nom"><time datetime="{{ row.line.value_date|date:'Y-m-d' }}">{{ row.line.value_date|date:"d/m/Y" }}</time></th>
-            <td data-etiqueta="{% translate 'Concepte' %}">{{ row.line.concept }}</td>
+            <td data-etiqueta="{% translate 'Concepte' %}" class="col-concepte">{{ row.line.concept }}</td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
             <td data-etiqueta="{% translate 'Estat' %}">
               {% if row.state.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.state.get_status_display }}</span>
@@ -51,7 +52,7 @@
               {% elif row.state.to_review %}<span><span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}</span> {{ row.state.get_review_reason_display }}</span>
               {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.state.get_status_display }}</span>{% endif %}
             </td>
-            <td data-etiqueta="{% translate 'Càrrecs' %}">
+            <td data-etiqueta="{% translate 'Càrrecs' %}" class="col-carrecs">
               {% if row.state.proposed_settlement %}
                 {% with settlement=row.state.proposed_settlement %}<span>{% translate "Liquidació" %} <span class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</span></span>{% endwith %}
               {% elif row.reconciliation.matched_movements.all %}
@@ -137,13 +138,11 @@
     {% endif %}
    </div>
    {% if can_reconcile %}
-    {# El panell només existeix amb JavaScript (conciliacio.js li treu «hidden») i quan el cos fa 56rem o més (CSS). No és cap control. #}
+    {# El panell només existeix amb JavaScript (conciliacio.js li treu «hidden»), quan el cos fa 56rem o més (CSS) i amb una línia oberta (T-DX-73: sense, la taula fa tota l'amplada). No és cap control. #}
     <aside class="panell-linia" aria-labelledby="panell-linia-titol" data-panell hidden>
       <div class="accions"><button class="boto boto-text boto-petit" type="button" data-panell-tanca aria-keyshortcuts="Escape" hidden>{% translate "Tanca" %}</button></div>
       <div id="panell-linia-cos" class="panell-linia-cos" data-panell-cos>
         <h2 id="panell-linia-titol" tabindex="-1">{% translate "Cap línia triada" %}</h2>
-        <p class="text-2">{% translate "«Casa a mà…», «Casa amb moviments…» i «Revisa i confirma…» s'obren aquí, al costat de la taula." %}</p>
-        <p class="teletipo-drecera text-2">{% blocktranslate %}<kbd>J</kbd> i <kbd>K</kbd> per passar de línia; <kbd>Esc</kbd> per tancar.{% endblocktranslate %}</p>
       </div>
     </aside>
     <template data-panell-esquelet>

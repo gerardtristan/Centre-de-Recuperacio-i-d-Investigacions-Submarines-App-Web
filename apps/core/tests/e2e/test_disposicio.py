@@ -503,6 +503,17 @@ def test_treasury_screens_on_the_desktop(page, live_server, transactional_db, se
 
 
 # T-DX-72 (PR 9b): la conciliació, amb la taula (8/12) i el panell de la línia triada (4/12).
+# T-DX-73: el concepte (2a columna) i cada càrrec (5a) que ocupen més d'una línia de text.
+ONE_LINE_JS = """() => Array.from(document.querySelectorAll(
+  '.conciliacio tbody td:nth-child(2), .conciliacio tbody td:nth-child(5) li'
+)).filter((el) => el.offsetParent !== null).filter((el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const tops = new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top)));
+  return tops.size > 1;
+}).map((el) => el.textContent.trim())"""
+TABLE_WIDTH_JS = """() => document.querySelector('.conciliacio-taula').getBoundingClientRect().width
+  / document.querySelector('.conciliacio').getBoundingClientRect().width"""
 PANEL_COLUMNS_JS = """() => ['.conciliacio-taula', '[data-panell]'].map((s) => {
   const r = document.querySelector(s).getBoundingClientRect();
   return [r.x, r.width];
@@ -543,8 +554,12 @@ def test_reconciliation_with_the_panel_of_the_chosen_line(
     expect(summary).to_contain_text("2pendents")
     expect(summary).to_contain_text("1proposada")
     panel = page.locator("[data-panell]")
-    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(panel).to_be_hidden()  # sense cap línia oberta, la taula fa tota l'amplada (T-DX-73)
+    expect(page.get_by_text("per passar de línia")).to_be_visible()
     expect(page.get_by_role("table")).to_have_attribute("aria-keyshortcuts", "J K")
+    assert page.evaluate(TABLE_WIDTH_JS) > 0.95, "la taula, a tota l'amplada"
+    assert page.evaluate(ONE_LINE_JS) == [], "concepte i càrrecs en una línia"
+    assert page.evaluate(OVERFLOW_JS) <= 0, "sense desplaçament de costat a 1280 px"
     assert_header(page, principal=0)
     shoot_screen(page, folder, "conciliacio")
 
@@ -558,16 +573,20 @@ def test_reconciliation_with_the_panel_of_the_chosen_line(
     (table, side) = page.evaluate(PANEL_COLUMNS_JS)
     assert side[0] >= table[0] + table[1], (table, side)  # al costat
     assert 1.9 < table[1] / side[1] < 2.1, (table, side)  # 8/12 i 4/12
+    assert page.evaluate(ONE_LINE_JS) == [], "concepte en una línia, amb el panell obert"
+    assert page.evaluate(OVERFLOW_JS) <= 0, "sense desplaçament de costat, amb el panell obert"
+    expect(page.get_by_role("columnheader", name="Càrrecs")).to_be_hidden()
+    expect(panel).to_contain_text("TRANSF SENSE REFERENCIA INVENTADA")  # el concepte sencer
     assert_header(page, principal=0)  # la cerca no és el botó principal (D19)
     shoot_screen(page, folder, "conciliacio-panell")
 
     page.keyboard.press("Escape")
-    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(panel).to_be_hidden()
     expect(link).to_be_focused()
     link.click()
     expect(panel.get_by_role("heading", name="Casa la línia a mà")).to_be_focused()
     panel.get_by_role("button", name="Tanca").click()
-    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(panel).to_be_hidden()
     expect(link).to_be_focused()
 
     page.keyboard.press("j")  # la línia següent (més antiga), la proposada: sense panell
@@ -584,13 +603,21 @@ def test_reconciliation_with_the_panel_of_the_chosen_line(
     expect(panel).to_contain_text("TRANSF SENSE REFERENCIA INVENTADA")
     expect(rows[3]).to_have_attribute("aria-current", "true")
 
-    panel.get_by_label("Referències de transferència o números de soci").fill(
-        transfer_reference(donation)
-    )
+    search = panel.get_by_label("Referències de transferència o números de soci")
+    search.fill("CRIS-0000-0 INEXISTENT")
     panel.get_by_role("button", name="Cerca").click()
+    expect(panel.get_by_text("Cap càrrec pendent amb aquesta referència")).to_be_focused()
+    search.fill(transfer_reference(donation))
+    search.press("Enter")  # amb la tecla, igual: el focus no es queda al camp
+    expect(panel.get_by_role("group", name="Tria els càrrecs que sumen 40,00 €")).to_be_focused()
+    search.fill(transfer_reference(donation))
+    panel.get_by_role("button", name="Cerca").click()
+    expect(panel.get_by_role("group", name="Tria els càrrecs que sumen 40,00 €")).to_be_focused()
+    page.screenshot(path=CAPTURES / folder / "conciliacio-panell-cerca-1280-focus.png")
     panel.get_by_label("Sortida (prova)", exact=False).check()
     panel.get_by_role("button", name="Revisa el casament").click()
     expect(panel.get_by_text("Confirma el casament")).to_be_visible()
+    expect(panel.get_by_role("heading", name="Casa la línia a mà")).to_be_focused()
     shoot_screen(page, folder, "conciliacio-panell-confirma")
     panel.get_by_role("button", name="Sí, casa-la").click()
     expect(page.get_by_role("status")).to_contain_text("Línia casada")

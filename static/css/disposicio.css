@@ -154,20 +154,30 @@
 }
 .historial-estats-text { display: grid; gap: var(--e-1); overflow-wrap: anywhere; min-width: 0; }
 
-/* conciliacio (T-DX-72, PR 9b): la taula de la conciliació i el panell de la línia triada. El panell
-   només existeix amb JavaScript (conciliacio.js li treu «hidden») i quan el cos fa 56rem o més:
-   aleshores, la taula a 8/12 i el panell a 4/12, fix en baixar. Per sota (mòbil i tauleta), amagat:
-   l'enllaç porta a la pàgina, com abans. El panell no és cap control. */
+/* conciliacio (T-DX-72, PR 9b; T-DX-73): la taula de la conciliació i el panell de la línia triada. El
+   panell només existeix amb JavaScript (conciliacio.js li treu «hidden»), quan el cos fa 56rem o més
+   (--conciliacio-panell, que llegeix el JavaScript) i amb una línia oberta (.amb-linia). Sense cap
+   línia oberta, la taula fa tota l'amplada; el concepte i cada càrrec, en una línia. Amb una línia
+   oberta, la taula a 8/12 i el panell a 4/12, fix en baixar: la columna «Càrrecs» s'amaga (els de la
+   línia oberta són al panell). Per sota
+   (mòbil i tauleta), cap panell: l'enllaç porta a la pàgina, com abans. El panell no és cap control. */
 .conciliacio { display: grid; gap: var(--e-6); align-items: start; }
 .conciliacio > * { min-width: 0; }
-.panell-linia { display: none; }
+.panell-linia, .conciliacio-pista { display: none; }
 @container cos (min-width: 56rem) {
-  .conciliacio:has(> .panell-linia:not([hidden])) { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
-  .conciliacio > .panell-linia:not([hidden]) {
+  .conciliacio { --conciliacio-panell: 1; }
+  .conciliacio-pista:not([hidden]) { display: block; margin: 0 0 var(--e-3); }
+  /* El concepte s'endú l'amplada que sobra i el que no hi cap acaba amb «…» (sencer al panell i al
+     mòbil); cada càrrec, sencer en una línia: és el que es confirma */
+  .conciliacio .col-carrecs li { white-space: nowrap; }
+  .conciliacio td.col-concepte { max-width: 0; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conciliacio.amb-linia { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+  .conciliacio.amb-linia > .panell-linia:not([hidden]) {
     display: grid; gap: var(--e-3); align-content: start; position: sticky; top: var(--e-5);
     max-block-size: calc(100dvh - 2 * var(--e-5)); overflow-y: auto; overscroll-behavior: contain;
     padding-inline-start: var(--e-5); border-inline-start: var(--v-fina) solid var(--c-linia);
   }
+  .conciliacio.amb-linia .col-carrecs { display: none; }
 }
 /* «Tanca» a la dreta del títol: primer al DOM (es llegeix abans del contingut que canvia) */
 .panell-linia > .accions { position: absolute; top: 0; inset-inline-end: 0; }
