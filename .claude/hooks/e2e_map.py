@@ -366,6 +366,9 @@ MAP = {
     "test_terminis_049.py": (
         "apps/members/instalments.py",
         "apps/members/views/personal.py",
+        "apps/members/views/admin.py",
+        "apps/members/urls.py",
+        "apps/members/permissions.py",
         "templates/members/personal_fee_detail.html",
         "templates/members/fees.html",
     ),

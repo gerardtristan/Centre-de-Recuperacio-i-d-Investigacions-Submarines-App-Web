@@ -12,11 +12,11 @@ from django.conf import settings
 from django.utils import timezone
 from playwright.sync_api import expect
 
-from apps.core.models import Setting
 from apps.members import instalments, services
 from apps.members import settings as values
 from apps.members.models import AnnualFee
 from apps.members.tests.test_cards import pay
+from apps.members.tests.test_instalments_049 import set_value
 from conftest import PASSWORD
 
 from .conftest import login_admin, make_admin
@@ -28,7 +28,9 @@ EMAIL = "marina.prova@example.org"
 
 @pytest.fixture
 def pending(builder):
-    Setting.objects.filter(key=values.INSTALMENTS_ENABLED).update(initial_value=True)
+    # Com a les proves unitàries: encès i amb l'import total igual a la quota (P-396, b).
+    set_value(values.INSTALMENTS_ENABLED, True)
+    set_value(values.INSTALMENTS_TOTAL, 9000)
     member = builder.approve(
         builder.submit(
             "Marina",

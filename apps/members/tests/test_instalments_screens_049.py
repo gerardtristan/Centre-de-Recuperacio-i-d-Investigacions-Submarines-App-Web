@@ -2,13 +2,14 @@
 amb l'ajust encès i sobre una quota pròpia, i el candidat a «impagat» a «Quotes i impagats».
 Només dades inventades."""
 
-from datetime import date
+from datetime import timedelta
 
 import pytest
 from django.urls import reverse
 
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import services
+from apps.members.fee_rules import local_today
 from apps.members.models import Member
 from apps.members.tests.test_cards import make_member, pay, personal  # noqa: F401, F811
 from apps.members.tests.test_instalments_049 import (  # noqa: F401 (fixture «on»)
@@ -36,9 +37,11 @@ def test_off_the_fee_page_shows_nothing_and_the_post_changes_nothing(personal): 
 
 def test_the_fees_screen_shows_the_candidate(on, make_admin):  # noqa: F811
     member = make_member(status=S.PENDING)
-    _fee, (first, _second, _third) = choose(member, date(2026, 1, 31))
-    pay(first, at_noon(date(2026, 1, 25)))
+    _fee, (first, second, _third) = choose(member)
+    pay(first)
     services.on_fee_paid(first.pk)
+    second.due_on = local_today() - timedelta(days=31)  # vençut fa més dels 30 dies
+    second.save()
     response = admin_client(make_admin("treasurer")).get(reverse("administration:fees"))
     assert "Candidat a impagat" in response.text
 
@@ -63,3 +66,30 @@ def test_on_another_members_fee_is_not_found_on_screen(on, personal):  # noqa: F
     client = personal(member)
     assert client.post(reverse("members:fee_instalments", args=[fee.pk])).status_code == 404
     assert not plan_of(other)
+
+
+def test_the_candidate_explanation_shows_only_with_a_candidate_on_the_page(on, make_admin):  # noqa: F811
+    member = make_member(status=S.PENDING)
+    _fee, (first, second, _third) = choose(member)
+    pay(first)
+    services.on_fee_paid(first.pk)
+    second.due_on = local_today() - timedelta(days=31)  # vençut fa més dels 30 dies
+    second.save()
+    client = admin_client(make_admin("treasurer"))
+    url = reverse("administration:fees")
+    assert "«Candidat a impagat»" in client.get(url).text
+    filtered = client.get(url, {"estat": S.UNPAID}).text  # el soci actiu no hi surt
+    assert "«Candidat a impagat»" not in filtered and "Candidat a impagat:" not in filtered
+
+
+def test_the_plan_is_not_offered_with_a_payment_in_progress(on, personal):  # noqa: F811
+    from apps.core import audit
+    from apps.payments import attempts
+    from apps.payments.models import PaymentAttempt
+
+    member = make_member(status=S.PENDING)
+    fee = annual(member)
+    attempt = attempts.create_attempt(fee.charge, PaymentAttempt.Method.CARD)
+    attempts.transition(attempt, PaymentAttempt.Status.IN_PROGRESS, by=audit.system("proves"))
+    page = personal(member).get(reverse("members:fee_detail", args=[fee.pk])).text
+    assert "Paga en tres terminis" not in page

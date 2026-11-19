@@ -631,7 +631,8 @@ def fees_view(request):
         "to_review": to_review,
         "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
         "can_list": has_perm(request.user, roster.LIST),
-        "candidates": instalments.unpaid_candidates(today),  # T-M01-49 (097, P-61 punt 2)
+        # T-M01-49 (097, P-61 punt 2): només els candidats que surten en aquesta pàgina.
+        "candidates": instalments.unpaid_candidates(today) & {m.pk for m, _fee in page},
     }
     if page.number == 1:  # T-M01-43d: només a la primera pàgina del llistat
         without_address = fees.renewal_notices_without_address(today)
