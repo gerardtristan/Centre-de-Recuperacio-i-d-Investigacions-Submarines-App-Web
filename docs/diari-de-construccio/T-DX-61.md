@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 15:11 | 0211e315 | 1 e2e nova (3 casos); 3 e2e i 2 unitàries adaptades | [A comprovar] (PR pendent) |
+| 18/11/2026 15:11 | 85b147e5 | 1 e2e nova (3 casos); 3 e2e i 2 unitàries adaptades | [A comprovar] (PR pendent) |
 
 **En tres línies:** «El meu carnet» era una llista de dades amb el QR a sota. Ara és una targeta fosca, com la física, que s'inclina una mica amb el ratolí i es gira per veure el QR, amb el botó «Mostra el QR» o tocant-la. A l'escriptori el carnet va gran a l'esquerra i, a la dreta, què veu qui l'escaneja, «Desa com a PDF» i «Has perdut el carnet o el mòbil?». Les dades són les mateixes d'abans.
 
@@ -12,7 +12,7 @@
 - `templates/members/personal_card.html`: davant i darrere; «Demana un carnet nou» passa a `members/_card_renew.html`, amb `id="carnet-nou"`.
 - `tokens.css`: `--c-carnet-ok`, `--c-carnet-error` i `--ombra-carnet` (clar i fosc).
 - `static/js/service-worker.js`: la còpia sense connexió també té els estils i el JavaScript del carnet.
-- Sistema de disseny 1.30: §2.6, §6.8 i §6.21 nova. Fila a [`estat/DX.md`](../estat/DX.md).
+- Sistema de disseny 1.38: §2.6, §6.8 i §6.21 nova. Fila a [`estat/DX.md`](../estat/DX.md).
 
 ## Decisions i perquè
 - **Sense JavaScript, les dues cares a la vista:** el QR no depèn del gir. El JavaScript posa `es-3d` i llavors les cares comparteixen cel·la.
@@ -48,14 +48,14 @@
 
   ![El carnet fosc a l'esquerra amb el nom, el número, «Vàlid fins al», «Soci des de» i el segell «Vàlid»; a la dreta, «Què veu qui l'escaneja», «Desa com a PDF» i «Has perdut el carnet o el mòbil?»](captures/2026-11-18_1511_T-DX-61_davant-1280.png)
 
-  *18/11/2026 15:11 (Europa/Madrid) · local, dades inventades · commit 0211e315*
+  *18/11/2026 15:11 (Europa/Madrid) · local, dades inventades · commit 85b147e5*
 - Darrere a 390 px, en fosc: `captures/2026-11-18_1511_T-DX-61_darrere-390-fosc.png`
 
   ![El darrere del carnet amb el QR sobre blanc, el tipus, l'alta, la quota, la llicència i el text legal amb el NIF; a sota, «Mostra el davant»](captures/2026-11-18_1511_T-DX-61_darrere-390-fosc.png)
 
-  *18/11/2026 15:11 (Europa/Madrid) · local, dades inventades · commit 0211e315*
+  *18/11/2026 15:11 (Europa/Madrid) · local, dades inventades · commit 85b147e5*
 - Impressió («Desa com a PDF»): `captures/2026-11-18_1511_T-DX-61_impressio-1280.png`
 
   ![Les dues cares del carnet, una al costat de l'altra, en clar i sense botons](captures/2026-11-18_1511_T-DX-61_impressio-1280.png)
 
-  *18/11/2026 15:11 (Europa/Madrid) · local, mitjà d'impressió emulat · commit 0211e315*
+  *18/11/2026 15:11 (Europa/Madrid) · local, mitjà d'impressió emulat · commit 85b147e5*
