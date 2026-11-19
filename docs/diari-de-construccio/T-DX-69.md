@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 19/11/2026 03:10 | d2c4d516 | 2 e2e noves; 35 e2e de disposició, tresoreria, pagaments i axe; 2190 unitàries | [A comprovar] |
+| 19/11/2026 03:10 | d2c4d516 | 2 e2e noves; 35 e2e de disposició, tresoreria, pagaments i axe; 2190 unitàries | [A comprovar] (PR #259) |
 
 **En tres línies:** és la PR 7c del programa de l'escriptori que el propietari va aprovar el 18/11/2026. Les pantalles de pagaments i de tresoreria tenen la capçalera comuna; tancar un intent o una liquidació «a revisar» i revocar un mandat porten la fitxa i el formulari a 40rem amb el resum d'errors al costat, com el mandat del soci, i la campanya de mandats va en dues columnes. Només plantilles: cap vista, cap dada, cap enllaç ni cap CSS nou. El mòbil queda com abans.
 
