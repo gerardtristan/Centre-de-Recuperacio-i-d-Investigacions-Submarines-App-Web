@@ -1,8 +1,8 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.38 (19/11/2026). La 1.38 fa el carnet de soci en 3D (§6.21, T-DX-61): s'inclina amb el ratolí i es gira per veure el QR; afegeix `--c-carnet-ok`, `--c-carnet-error` i `--ombra-carnet` (§2.6) i canvia la impressió del carnet (§6.8).
-- La 1.37 (19/11/2026) porta Ramillete a totes les mides (§6.12, T-DX-59): la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i un panell lateral clar i flotant a l'escriptori, amb «Mostra el QR» i el compte; la navegació de la capçalera queda només sense JavaScript.
 - **Versió:** 1.39 (19/11/2026). La 1.39 agrupa el menú de l'administració en 6 grups plegables, amb icones i el carril de 72 px a la tauleta, i l'inici de l'administració en targetes per grup (§6.1, T-DX-62).
+- La 1.38 (19/11/2026) fa el carnet de soci en 3D (§6.21, T-DX-61): s'inclina amb el ratolí i es gira per veure el QR; afegeix `--c-carnet-ok`, `--c-carnet-error` i `--ombra-carnet` (§2.6) i canvia la impressió del carnet (§6.8).
+- La 1.37 (19/11/2026) porta Ramillete a totes les mides (§6.12, T-DX-59): la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i un panell lateral clar i flotant a l'escriptori, amb «Mostra el QR» i el compte; la navegació de la capçalera queda només sense JavaScript.
 - La 1.36 (19/11/2026) afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
 - La 1.35 (18/11/2026) fa la fitxa del soci de l'administració a l'escriptori (§5.2, §5.3 i §6.13; T-DX-67, PR 9a): dues columnes 5/7 (`fitxa-soci`), el resum i les dades al costat a la tauleta, un sol botó principal amb les accions rares a «Més» i l'historial d'estats amb la línia de passos de Tramite (`historial-estats`).
 - La 1.34 (18/11/2026) redistribueix a l'escriptori el perfil, el mandat, el pagament i el rebut del soci i dos formularis de l'administració (alta presencial i edició de les dades d'un soci) (T-DX-65, §5.3, §6.10, §6.13 i §6.14): capçalera comuna, formulari a 40rem amb `lateral-formulari`, Errata i l'ajuda plegada a la columna lateral, els passos de Tramite al costat del pagament i el rebut estret amb les accions al costat.
