@@ -10,6 +10,7 @@ NAMES = (
     "house",
     "calendar-days",
     "ellipsis",
+    "plus",
     "id-card",
     "receipt",
     "credit-card",

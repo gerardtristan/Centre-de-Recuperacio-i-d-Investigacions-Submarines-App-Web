@@ -32,7 +32,10 @@ def test_full_member_requests_withdraws_and_the_secretary_accepts_another(
 ):
     account = builder.personal(member.person)
     login_personal(page, live_server.url, account)
-    page.get_by_role("link", name="Canvi de tipus").click()
+    # T-DX-59: a l'escriptori, «Canvi de tipus» és dins de «Més» del panell de Ramillete.
+    panel = page.get_by_role("navigation", name="Àrea de socis")
+    panel.get_by_role("button", name="Més", exact=True).click()
+    panel.get_by_role("link", name="Canvi de tipus").click()
     expect(
         page.get_by_role("heading", level=1, name="Canvi de tipus")
     ).to_be_visible()  # T-M01-45, punt 5

@@ -70,11 +70,13 @@ def test_point_6_tab_goes_from_the_logo_to_the_personal_menu(
     page, live_server, builder, member, review
 ):
     """Des de la T-DX-05b el tema és a la configuració: després del logotip, el Tab va al menú.
-    A l'escriptori: al mòbil, el menú és la barra de baix (Ramillete, T-DX-08)."""
+    A l'escriptori el logotip i el menú són al panell de Ramillete (T-DX-59); al mòbil, el menú és
+    la barra de baix (T-DX-08)."""
     login_personal(page, live_server, builder, member)
-    page.locator(".capcalera-compte .marca").focus()
+    panel = page.get_by_role("navigation", name="Àrea de socis")
+    panel.get_by_role("link", name="Àrea de socis").focus()
     page.keyboard.press("Tab")
-    expect(page.get_by_role("link", name="Inici")).to_be_focused()
+    expect(panel.locator(":focus")).to_have_count(1)
     review("inici-ordre-del-tabulador")
 
 

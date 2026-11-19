@@ -1,19 +1,28 @@
-/* Ramillete (T-DX-08; recurs a design/extern/; design-system §6.12): la barra de l'àrea del soci al
-   mòbil, amb el botó central rodó que s'obre en ventall cap amunt. Del recurs: la barra a baix, la
-   marca de la pestanya activa, el botó que gira (+ → ×) i les accions que surten del botó una
-   darrere l'altra. Només tokens. A partir de 600 px no es veu (hi ha la navegació de la capçalera). */
-.ramillete { display: none; }
-@media (max-width: 599px) {
-  /* Només quan funciona el guió (ramillete.js posa .ramillete-actiu a <html>): sense JavaScript, la capçalera de sempre */
-  .ramillete-actiu .ramillete {
-    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-    padding: 0 var(--e-2) env(safe-area-inset-bottom); background: var(--c-superficie-flotant);
-    border-top: var(--v-fina) solid var(--c-linia);
-  }
-  /* Amb la barra, la capçalera només deixa «Surt» (un sol «Surt» per pantalla) i el contingut no queda a sota */
-  .ramillete-actiu .navegacio-compte li:not(.sortida) { display: none; }
-  .ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + env(safe-area-inset-bottom)); }
+/* Ramillete (T-DX-08 i T-DX-59; recurs a design/extern/; design-system §6.12): la navegació de l'àrea
+   del soci. Fins a 1023 px, la barra a baix amb el botó central rodó que s'obre en ventall cap amunt
+   (a la tauleta, flotant i centrada); a partir de 1024 px, un panell lateral clar i flotant (el de
+   l'administració és fosc i fix: es veu de seguida en quina zona ets). Només tokens. Només quan
+   funciona el guió (ramillete.js posa .ramillete-actiu a <html>): sense JavaScript, la navegació de
+   la capçalera de sempre. */
+.ramillete, .ramillete-lateral { display: none; }
+/* Amb la barra, la capçalera només deixa «Surt» (un sol «Surt» per pantalla) i el contingut no queda a sota */
+.ramillete-actiu .navegacio-compte li:not(.sortida) { display: none; }
+.ramillete-actiu .navegacio-compte { flex-basis: auto; margin-left: auto; } /* «Surt» a la fila del logotip */
+.ramillete-actiu .ramillete {
+  display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 0 var(--e-2) env(safe-area-inset-bottom); background: var(--c-superficie-flotant);
+  border-top: var(--v-fina) solid var(--c-linia);
 }
+.ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + env(safe-area-inset-bottom)); }
+/* Tauleta: la mateixa barra, flotant i centrada */
+@media (min-width: 600px) {
+  .ramillete-actiu .ramillete {
+    left: var(--e-4); right: var(--e-4); bottom: var(--e-3); max-width: var(--ramillete-amplada); margin: 0 auto;
+    padding: 0 var(--e-2); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-xl); box-shadow: var(--ombra-flotant);
+  }
+  .ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + var(--e-6)); }
+}
+
 .ramillete-barra { display: flex; align-items: stretch; justify-content: space-around; margin: 0; padding: 0; list-style: none; }
 .ramillete-barra > li { flex: 1; display: flex; justify-content: center; }
 .ramillete-pestanya {
@@ -23,7 +32,6 @@
   /* T-DX-52: en srgb, no en oklch: dos grisos en oklch donen un to «none» i axe no en calcula el contrast */
   color: color-mix(in srgb, var(--c-text-2) 55%, var(--c-text));
 }
-.ramillete-pestanya svg, .ramillete-boto svg { width: var(--e-5); height: var(--e-5); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .ramillete-pestanya[aria-current="page"] { color: var(--c-text); }
 .ramillete-pestanya[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 50%; width: var(--e-5); height: var(--e-1); margin-left: calc(var(--e-5) / -2); border-radius: 0 0 var(--r-s) var(--r-s); background: var(--c-accent); }
 .ramillete-pestanya:focus-visible, .ramillete-item:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: calc(-1 * var(--v-focus)); border-radius: var(--r-m); }
@@ -35,11 +43,11 @@
   box-shadow: 0 0 0 var(--e-1) var(--c-superficie-flotant), var(--ombra-flotant);
   transition: transform var(--m-panell) var(--m-corba-molla), background-color var(--m-rapid) var(--m-corba);
 }
-.ramillete-boto svg { stroke-width: 2.4; transition: transform var(--m-panell) var(--m-corba-molla); }
+.ramillete-boto .icona { transition: transform var(--m-panell) var(--m-corba-molla); }
 .ramillete-boto:active { transform: scale(var(--escala-premut)); }
 .ramillete-boto:focus-visible { outline: var(--v-focus) solid var(--c-focus); outline-offset: var(--e-1); }
 .ramillete-boto[aria-expanded="true"] { background: var(--c-text); color: var(--c-fons); }
-.ramillete-boto[aria-expanded="true"] svg { transform: rotate(135deg); }
+.ramillete-boto[aria-expanded="true"] .icona { transform: rotate(135deg); }
 /* El ventall: les opcions rares surten del botó, cap amunt, una darrere l'altra */
 .ramillete-menu {
   position: absolute; left: 50%; bottom: calc(100% + var(--e-4)); width: 15rem; margin: 0 0 0 -7.5rem; padding: 0; list-style: none;
@@ -50,9 +58,10 @@
 .ramillete-menu > li:nth-child(2) { --n: 1; }
 .ramillete-menu > li:nth-child(3) { --n: 2; }
 .ramillete-menu > li:nth-child(4) { --n: 3; }
-.ramillete-menu form { margin: 0; }
+.ramillete-menu > li:nth-child(5) { --n: 4; }
+.ramillete-menu > li:nth-child(6) { --n: 5; }
 .ramillete-item {
-  display: flex; align-items: center; width: 100%; min-height: var(--tactil); padding: 0 var(--e-4); border: var(--v-fina) solid var(--c-linia);
+  display: flex; align-items: center; gap: var(--e-2); width: 100%; min-height: var(--tactil); padding: 0 var(--e-4); border: var(--v-fina) solid var(--c-linia);
   border-radius: var(--r-l); background: var(--c-superficie-flotant); color: var(--c-text); font: inherit; font-weight: var(--p-semi);
   text-align: left; text-decoration: none; cursor: pointer; box-shadow: var(--ombra-flotant);
   opacity: 0; transform: translateY(calc((var(--n) + 1) * var(--tactil))) scale(.5);
@@ -71,3 +80,52 @@
   opacity: 0; visibility: hidden; transition: opacity var(--m-panell), visibility 0s var(--m-panell);
 }
 .ramillete.es-obert::before { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+/* Escriptori: el panell lateral clar i flotant, i la capçalera no hi és (el logotip i «Surt» són al panell) */
+@media (min-width: 1024px) {
+  .ramillete-actiu .capcalera-compte { display: none; }
+  .ramillete-actiu .ramillete {
+    top: var(--e-4); right: auto; bottom: var(--e-4); left: var(--e-4); width: var(--lateral-ample); max-width: none; margin: 0;
+    padding: var(--e-4) var(--e-3); overflow-y: auto; overscroll-behavior: contain;
+  }
+  .ramillete-actiu body { padding-bottom: 0; padding-left: calc(var(--lateral-ample) + var(--e-4)); }
+  .ramillete-barra { display: none; }
+  .ramillete-actiu .ramillete-lateral { display: flex; flex-direction: column; gap: var(--e-4); min-height: 100%; }
+}
+.ramillete-marca { display: flex; align-items: center; gap: var(--e-2); min-height: var(--tactil); padding: 0 var(--e-1); color: var(--c-text); text-decoration: none; }
+.ramillete-marca img { width: var(--logo-lateral); height: auto; }
+.ramillete-marca .titol-zona { font-family: var(--f-titol); font-feature-settings: "locl" 0; font-weight: var(--p-negreta); font-size: var(--t-l); }
+/* L'acció partida: «Mostra el QR» i la fletxa que obre les altres accions del carnet */
+.ramillete-qr { position: relative; display: flex; }
+.ramillete-qr-mostra { flex: 1; }
+.ramillete-qr-mostra:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.ramillete-qr-mes { flex: none; padding: 0; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.ramillete-qr-mes .icona, .ramillete-fletxa { transition: transform var(--m-rapid) var(--m-corba); }
+.ramillete-qr-mes[aria-expanded="true"] .icona, [aria-expanded="true"] > .ramillete-fletxa { transform: rotate(180deg); }
+.ramillete-qr-menu {
+  position: absolute; top: calc(100% + var(--e-1)); left: 0; right: 0; z-index: 1; display: grid; gap: var(--e-1); margin: 0; padding: var(--e-1);
+  list-style: none; background: var(--c-superficie-flotant); border: var(--v-fina) solid var(--c-linia); border-radius: var(--r-l); box-shadow: var(--ombra-flotant);
+}
+.ramillete-lateral [hidden] { display: none; }
+/* Les entrades: icona i text; l'actual porta el fons de la zona, la barra daurada i la negreta (mai només el color) */
+.ramillete-entrades, .ramillete-entrades ul { display: grid; gap: var(--e-1); margin: 0; padding: 0; list-style: none; }
+.ramillete-entrades ul { margin-top: var(--e-1); padding-left: var(--e-4); }
+.ramillete-entrades a, .ramillete-lateral-mes, .ramillete-qr-menu a {
+  display: flex; align-items: center; gap: var(--e-3); width: 100%; min-height: var(--tactil); padding: var(--e-1) var(--e-3);
+  border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text); font: inherit; font-weight: var(--p-semi);
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.ramillete-lateral-mes .ramillete-fletxa { margin-left: auto; }
+@media (hover: hover) { .ramillete-entrades a:hover, .ramillete-lateral-mes:hover, .ramillete-qr-menu a:hover { background: var(--c-superficie-2); } }
+/* Entrada actual: un to suau de la zona i la barra daurada, no el fons ple (amb el fons ple semblava
+   un segon botó principal al costat del de la pàgina, D19) */
+.ramillete-entrades a[aria-current="page"] { background: color-mix(in srgb, var(--c-zona) 24%, var(--c-superficie-flotant)); color: var(--c-text); font-weight: var(--p-negreta); box-shadow: inset var(--v-activa) 0 0 var(--c-zona); }
+/* El compte, a baix: l'avatar, el nom de pila, el número i «Surt» */
+.ramillete-compte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); margin-top: auto; padding-top: var(--e-4); border-top: var(--v-fina) solid var(--c-linia); }
+.ramillete-compte .monograma { width: var(--e-7); height: var(--e-7); }
+.ramillete-compte p { flex: 1; display: grid; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.ramillete-nom { font-weight: var(--p-semi); }
+/* Com les pestanyes (P-283): --c-text-2 sobre la superfície flotant fa 4,18:1 al fosc */
+.ramillete-compte .codi { color: color-mix(in srgb, var(--c-text-2) 55%, var(--c-text)); font-size: var(--t-s); }
+.ramillete-compte form { flex-basis: 100%; margin: 0; }
+.ramillete-compte .boto { width: 100%; }

@@ -295,6 +295,7 @@
   --carnet-proporcio: 1.586;   /* 85,6 × 54 mm */
   --dock-alcada: 64px;
   --dock-carnet: 60px;
+  --ramillete-amplada: 30rem;   /* T-DX-59: barra flotant de l'àrea del soci a la tauleta */
   --carril-targeta: 85%;
   --ona-alcada: 32px;
 
@@ -418,6 +419,7 @@ img { max-width: 100%; display: block; }
 .text-2 { color: var(--c-text-2); }
 /* Joc d'icones (T-DX-58, §6.20): Lucide, a l'sprite static/img/icones.svg; {% icona "nom" %} */
 .icona { width: var(--icona); height: var(--icona); flex: none; vertical-align: -0.25em; fill: none; stroke: currentColor; stroke-width: var(--icona-gruix); stroke-linecap: round; stroke-linejoin: round; }
+.icona-nav { width: var(--icona-nav); height: var(--icona-nav); } /* T-DX-59: la barra de navegació del mòbil */
 .icona-svg { width: 1em; height: 1em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ==========================================================================

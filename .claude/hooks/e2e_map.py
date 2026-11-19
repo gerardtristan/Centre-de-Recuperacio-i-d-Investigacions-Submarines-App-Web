@@ -297,6 +297,12 @@ MAP = {
         "static/css/ramillete.css",
         "templates/members/_ramillete.html",
     ),
+    "test_navegacio_soci.py": (  # T-DX-59
+        "static/js/ramillete.js",
+        "static/css/ramillete.css",
+        "templates/members/_ramillete.html",
+        "apps/members/templatetags/member_nav.py",
+    ),
     "test_solapas.py": (
         "static/js/solapas.js",
         "static/css/solapas.css",
@@ -459,6 +465,7 @@ SECONDS = {
     "test_pwa_079.py": 45,
     "test_recorreguts_048.py": 20,
     "test_logotip.py": 130,  # tres motors (T-DX-54)
+    "test_navegacio_soci.py": 50,  # cinc amplades en clar i en fosc (T-DX-59)
 }
 DEFAULT_SECONDS = 25
 

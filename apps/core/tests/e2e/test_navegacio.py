@@ -121,6 +121,11 @@ def test_personal_menu_logs_out_with_the_keyboard(page, live_server, builder, me
 
     page.goto(f"{live_server.url}/socis/perfil/")
     expect(logout).to_be_visible()
+    # A l'escriptori, «Surt» és al panell lateral de l'àrea de socis (T-DX-59).
+    panel = page.get_by_role("navigation", name="Àrea de socis")
+    expect(panel.get_by_role("button", name="Surt")).to_be_visible()
+    profile = panel.get_by_role("link", name="El meu perfil")
+    expect(profile).to_have_attribute("aria-current", "page")
     review("perfil-amb-surt")
     page.set_viewport_size(MOBILE)
     # Al mòbil, la capçalera només deixa «Surt»; la resta és a la barra de baix (T-DX-08).

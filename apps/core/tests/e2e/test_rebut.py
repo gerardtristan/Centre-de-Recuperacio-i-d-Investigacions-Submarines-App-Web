@@ -38,7 +38,7 @@ def test_rn_m05b_19_the_member_pays_and_opens_the_receipt(
     page.get_by_label("Correu electrònic").fill(EMAIL)
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
-    page.get_by_role("navigation", name="Compte personal").get_by_role(
+    page.get_by_role("navigation", name="Àrea de socis").get_by_role(
         "link", name="Les meves quotes"
     ).click()
     page.get_by_role("link", name=re.compile("^Detall")).click()

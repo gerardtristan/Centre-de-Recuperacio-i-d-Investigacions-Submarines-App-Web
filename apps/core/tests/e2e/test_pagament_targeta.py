@@ -57,7 +57,7 @@ def test_ca_m05b_01_02_08_card_payment_screen_and_its_states(
     page.get_by_label("Correu electrònic").fill(EMAIL)
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
-    page.get_by_role("navigation", name="Compte personal").get_by_role(
+    page.get_by_role("navigation", name="Àrea de socis").get_by_role(
         "link", name="Les meves quotes"
     ).click()
     page.get_by_role("link", name=re.compile("^Detall")).click()

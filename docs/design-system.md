@@ -1,6 +1,7 @@
 # Sistema de disseny — Plataforma C.R.I.S.
 
-- **Versió:** 1.36 (19/11/2026). La 1.36 afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
+- **Versió:** 1.37 (19/11/2026). La 1.37 porta Ramillete a totes les mides (§6.12, T-DX-59): la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i un panell lateral clar i flotant a l'escriptori, amb «Mostra el QR» i el compte; la navegació de la capçalera queda només sense JavaScript.
+- La 1.36 (19/11/2026) afegeix el joc d'icones (§6.20, T-DX-58): Lucide, allotjat al servidor, amb `{% icona %}`.
 - La 1.35 (18/11/2026) fa la fitxa del soci de l'administració a l'escriptori (§5.2, §5.3 i §6.13; T-DX-67, PR 9a): dues columnes 5/7 (`fitxa-soci`), el resum i les dades al costat a la tauleta, un sol botó principal amb les accions rares a «Més» i l'historial d'estats amb la línia de passos de Tramite (`historial-estats`).
 - La 1.34 (18/11/2026) redistribueix a l'escriptori el perfil, el mandat, el pagament i el rebut del soci i dos formularis de l'administració (alta presencial i edició de les dades d'un soci) (T-DX-65, §5.3, §6.10, §6.13 i §6.14): capçalera comuna, formulari a 40rem amb `lateral-formulari`, Errata i l'ajuda plegada a la columna lateral, els passos de Tramite al costat del pagament i el rebut estret amb les accions al costat.
 - La 1.33 (18/11/2026) fa els llistats de l'administració a l'escriptori (§5.3, T-DX-66, PR 7b): capçalera comuna, la peça `barra-filtres`, la fila sencera clicable també quan l'enllaç és un botó i les seccions dins de `graella-2` amb el seu espai.
@@ -36,7 +37,7 @@
 
 ## 1. Principis
 1. Tres zones amb la mateixa identitat i estructura diferent: **pública** (escriptori primer), **compte personal** (mòbil primer) i **administració** (escriptori primer, densa).
-2. Es veu de seguida en quina zona ets: el color de la zona marca la capçalera, l'etiqueta de secció i els detalls.
+2. Es veu de seguida en quina zona ets: el color de la zona marca la capçalera, l'etiqueta de secció i els detalls. A l'escriptori, el soci té un panell lateral clar i flotant, i l'administració una barra lateral fosca i fixa (§6.1).
 3. Cap valor de disseny directe als components: tot surt de variables CSS (tokens) i té valor als dos temes.
 4. Els estats es llegeixen sense color: sempre hi ha **símbol + text + color**.
 5. Mòbil, tauleta i escriptori són tres disposicions pensades per separat, no una sola que s'estira.
@@ -202,7 +203,7 @@ Les seccions alternen el fons en aquest ordre: portada, properes activitats (alt
 **Compte personal (`socis.html`, estructura d'immersió, §6.5)**
 | Bloc | Mòbil | Tauleta | Escriptori |
 |---|---|---|---|
-| `capcalera-soci` + `navegacio-soci` | Logotip i selector de tema a dalt; navegació en un **dock flotant** a baix (Inici, Sortides, **Carnet** al centre i més gran, Pagaments, Perfil) | Sense barra lateral: logotip i selector a la primera fila, i a sota la navegació en text | Una sola fila: logotip, navegació i selector |
+| `capcalera-compte` + Ramillete (`ramillete`, 1.37, §6.12) | Logotip i «Surt» a dalt; la barra de Ramillete a baix, de vora a vora: Inici, Activitats, **Més** al centre, Carnet i Quotes (sense «Activitats», Inici, Perfil, Més, Carnet i Quotes) | Igual, amb la barra flotant i centrada (`--ramillete-amplada`, 30rem com a màxim, radi i ombra) | Sense capçalera: panell lateral clar i flotant a l'esquerra (`--lateral-ample`), amb el logotip, «Mostra el QR», les entrades, «Més» i el compte a baix (avatar, nom de pila, número i «Surt») |
 | `portada` (amb `salutacio` i `carnet`) | Gairebé tota la pantalla: avatar, salutació i carnet gran, un a sota de l'altre; ona a baix | Igual, centrat | 2 columnes: salutació a l'esquerra, carnet a la dreta (×1,25) |
 | Plataforma, inici (`templates/core/home.html`, T-DX-60) | Portada amb l'avatar i la salutació; a sota, «La teva quota» i el carnet en petit; la franja de pendents; els pagaments recents, la història i la llicència, un a sota de l'altre | Quota i carnet en 2 columnes iguals separades amb `--e-5`; la resta, una columna | Quota i carnet 7/5, sota la portada; franja a tota l'amplada; a sota, 8/4: pagaments recents; història i llicència |
 | `franja-estat` | Franja plana a tota l'amplada, amb el botó a sota | Botó a la dreta | Igual que la tauleta |
@@ -314,7 +315,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 
 ### 6.1 Navegació
 - Pública: barra superior en forma de pastilla. Al mòbil, una hamburguesa que s'obre i es tanca amb un clic o amb Esc. **Regla (034):** la pastilla no s'allarga. A l'escriptori mostra 6 enllaços i «Més», i les seccions noves van dins de «Més». Els enllaços que surten de «Més» només a l'escriptori porten la classe `nav-escriptori`, i les seves còpies dins de «Més», `nav-no-escriptori`. Així cada enllaç només es veu i es llegeix una vegada a cada mida.
-- Compte personal: dock flotant al mòbil (Inici, Sortides, Carnet, Pagaments, Perfil, amb el carnet al centre) i navegació a la capçalera a partir de la tauleta. No té barra lateral, i així es distingeix de l'administració.
+- Compte personal (1.37): Ramillete (§6.12). Fins a 1023 px, la barra a baix; a partir de 1024 px, un panell lateral **clar i flotant** (`--c-superficie-flotant`, radi i ombra, separat de les vores). El de l'administració és **fosc i fix**: les dues zones tenen panell a l'escriptori, però es veu de seguida en quina ets. Sense JavaScript, la navegació en text a la capçalera.
 - Administració: barra lateral fosca amb els mòduls Socis, Activitats, Material, Tresoreria, Pagaments, Llicències, Web i Dashboard, **filtrada per rol** (§6.2).
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
 
@@ -327,7 +328,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 - **Diferències amb el wireframe, pendents:** el carril de 72 px amb icones de la tauleta (el joc d'icones ja hi és des de la 1.36, §6.20; el carril arriba amb la navegació agrupada de l'administració; fins llavors, de 600 a 1023 px es comporta com el mòbil) i el selector de tema dins del panell (a la plataforma n'hi ha un de sol, a la capçalera).
 - **Entrada actual:** `aria-current="page"`, barra daurada (`--v-activa`, `--c-accent`), negreta i fons `--c-lateral-fons-2`; també quan s'és en una pantalla que en penja (la fitxa d'un soci marca «Llistat de socis»).
 - **Contrast** (calculat amb els valors de `tokens.css`, clar i fosc): text de les entrades sobre la barra, 6,7:1 i 7,4:1; entrada actual sobre el seu fons, 7,9:1 i 9,2:1; focus daurat sobre la barra, 10:1 o més.
-- **Compte personal.** Navegació en text a la capçalera (el dock és de la portada, pendent). «Surt» és l'última peça de la llista, com a botó petit, a totes les pantalles de l'àrea.
+- **Compte personal.** Ramillete (§6.12): «Surt» és a la capçalera fins a 1023 px i al panell a partir de 1024 px (un sol «Surt» visible per pantalla). Sense JavaScript, navegació en text a la capçalera, amb «Surt» com a última peça.
 
 ### 6.2 Menús i blocs per rol
 **Socis (1.5):** segueix la configuració inicial de la [059](decisions/059-rols-i-permisos-editables.md) ([matriu](planning.md#rols-i-permisos-059-matriu)). El selector «Veure com» porta els onze rols de gestió de la 059.
@@ -498,14 +499,18 @@ Del recurs Solapas ([pla dels recursos externs](plans/recursos-disseny-extern.md
 - **Mides:** cada pestanya fa `--tactil` d'alt; la × i el «+N» es veuen de `--selector-alcada` amb una àrea de 44 px.
 - **Del recurs no s'hi fa:** el panell lateral de registres (la navegació és la barra lateral de sempre) i els esborranys en tancar una pestanya (P-96).
 
-### 6.12 Ramillete: navegació de l'àrea del soci al mòbil (T-DX-08)
-Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la barra a baix amb la marca de la pàgina activa i el botó central rodó que gira (+ → ×) i obre en ventall cap amunt les opcions rares, una darrere l'altra, amb un vel darrere (B3, B15).
-- **Peça:** `templates/members/_ramillete.html` (inclosa a `base.html` després del contingut, per als comptes personals), `static/css/ramillete.css` i `static/js/ramillete.js`.
-- **Contingut:** a la barra, «Inici», «Quotes», «Carnet» i «Perfil»; al ventall, «Canvi de tipus», «Baixa» i «Seguretat i aparença». «Surt» es queda a la capçalera, també al mòbil (un sol «Surt» per pantalla, T-M01-46). Les mateixes condicions que la navegació de la capçalera; amagar un enllaç no és cap control.
-- **Quan:** per sota de 600 px i només amb JavaScript (`ramillete.js` posa `.ramillete-actiu` a `<html>`). Llavors la capçalera només deixa «Surt» i el cos deixa espai a baix (`--dock-alcada`). Sense JavaScript, o a partir de 600 px, la navegació de la capçalera de sempre.
-- **Teclat:** el focus va a la primera opció en obrir; Tab i les fletxes hi queden atrapats; Esc el tanca i torna al botó; tocar fora també el tanca.
-- **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`).
-- **Del recurs no s'hi fa:** la barra lateral a partir de 760 px (a l'escriptori, la capçalera ja fa aquesta feina) ni les fulles de cada acció.
+### 6.12 Ramillete: navegació de l'àrea del soci (T-DX-08 i T-DX-59)
+Del recurs Ramillete ([pla dels recursos externs](plans/recursos-disseny-extern.md)): la barra a baix amb la marca de la pàgina activa i el botó central rodó que gira (+ → ×) i obre en ventall cap amunt les opcions rares, una darrere l'altra, amb un vel darrere (B3, B15). Des de la 1.37 (decisió del propietari del 18/11/2026), a totes les mides.
+- **Peça:** `templates/members/_ramillete.html` (inclosa a `base.html` **abans** de `<main>`, per als comptes personals: l'ordre del teclat és salt, navegació i contingut a totes les mides), `static/css/ramillete.css`, `static/js/ramillete.js` i les etiquetes `preview_url`, `has_pending_fee` i `may_request_new_card` (`apps/members/templatetags/member_nav.py`). Icones del joc comú (§6.20): 24 px a la barra (`icona-nav`), 20 px al panell.
+- **Fins a 1023 px (mòbil i tauleta):** la barra porta Inici, Activitats, **Més** (al centre), Carnet i Quotes. Al ventall: El meu perfil, Com pago la quota, Mandat de domiciliació (amb `MANDATE_SIGNING_ENABLED` o un mandat actiu, com abans), Canvi de tipus, Baixa i Seguretat i aparença. Al mòbil va de vora a vora; a la tauleta (600–1023 px) és flotant i centrada, de `--ramillete-amplada` (30rem) com a màxim, amb `--r-xl` i `--ombra-flotant`. La capçalera només deixa el logotip i «Surt», a la mateixa fila.
+- **«Activitats»:** és una pantalla «En construcció» (`previews:activitats`). Només surt si la ruta existeix i `under_construction.can_see()` ho permet (`{% preview_url %}`). **Per defecte (producció, avui), no hi és:** la barra porta Inici, Perfil, Més, Carnet i Quotes, perquè «Més» quedi al centre, i «El meu perfil» no és al ventall.
+- **A partir de 1024 px:** un panell lateral clar i flotant a l'esquerra (`--c-superficie-flotant`, `--r-xl`, `--ombra-flotant`, de `--lateral-ample`, separat `--e-4` de les vores) i sense capçalera. De dalt a baix: el logotip i «Àrea de socis»; l'acció partida «Mostra el QR» (va a `members:card#qr`) amb una fletxa que obre un menú petit amb «Paga ara» (només si el soci té una quota pendent; va a «Les meves quotes») i «Demana un carnet nou» (`members:card#carnet-nou`; amb la regla de la pàgina del carnet, `cards.may_request_new_card`: soci actiu i amb «vàlid fins al»), només per als socis (sense cap de les dues accions, no hi ha fletxa); les entrades Inici, Activitats (la mateixa condició), Les meves quotes, Com pago la quota, Mandat de domiciliació (la mateixa condició), El meu carnet i El meu perfil; «Més», que desplega Canvi de tipus, Baixa i Seguretat i aparença (ja obert si la pàgina actual hi és); i, a baix, el compte: Monograma (§6.19), el nom de pila, «Soci núm. N» (`codi`) i «Surt», l'únic de la pantalla. L'acció partida fa servir el botó normal, no el principal: el botó principal és el de cada pantalla (D19).
+- **Entrada actual:** `aria-current="page"`, fons de la zona (`--c-zona-fons`), barra daurada (`--v-activa`, `--c-zona`) i negreta; mai només el color. A la barra, la marca daurada a dalt de la pestanya.
+- **Quan:** només amb JavaScript (`ramillete.js` posa `.ramillete-actiu` a `<html>`). Sense JavaScript, la navegació en text de la capçalera (`_personal_nav.html`), que té els mateixos enllaços i condicions.
+- **Teclat:** al ventall, el focus va a la primera opció en obrir; Tab i les fletxes hi queden atrapats; Esc el tanca i torna al botó; tocar fora també el tanca. Al panell, la fletxa del QR obre el menú amb Intro o Espai i hi porta el focus; les fletxes el recorren; Esc, tocar fora o sortir-ne amb Tab el tanquen (Esc torna el focus a la fletxa). «Més» és un desplegable: Intro l'obre i el tanca, i Esc el plega i torna el focus al botó.
+- **Moviment:** el ventall surt amb `--m-panell`, `--m-corba-molla` i `--m-escalonat` entre opcions; el botó s'encongeix en prémer (`--escala-premut`). Al panell, només gira la fletxa en obrir (`--m-rapid`). Cap altre moviment; amb `prefers-reduced-motion`, res.
+- **Seguretat i privacitat:** el menú es construeix al servidor amb el compte de la sessió; amagar un enllaç no és cap control (cada vista ho torna a comprovar). Només el nom de pila, el número i l'avatar del soci de la sessió. «Surt» és un POST amb CSRF. «Paga ara» surt d'una sola consulta a les quotes pendents del soci de la sessió; mai de les d'un altre. Un compte personal sense soci veu només Inici, El meu perfil i Seguretat i aparença.
+- **Del recurs no s'hi fa:** les fulles de cada acció.
 
 - **Contrast (T-DX-48, P-283):** les pestanyes inactives fan servir `color-mix(in srgb, var(--c-text-2) 55%, var(--c-text))`: `--c-text-2` sobre la barra flotant feia 4,18:1 al fosc. Continuen diferents de l'activa (`--c-text` i la marca).
 - **Barreja en sRGB (T-DX-52):** barrejant dos grisos en oklch, el resultat té el to «none», i axe no en sap calcular el contrast (el deixa per a revisió manual). En sRGB, axe el calcula: més de 4,5:1 als dos temes, i la prova de `test_accessibilitat_mandat.py` ho comprova. Errata fa servir la mateixa barreja. Regla: un color de text fet amb `color-mix()` es barreja `in srgb`. Les ombres i els vels poden continuar en oklch.
@@ -578,7 +583,7 @@ Del recurs Monograma ([pla dels recursos externs](plans/recursos-disseny-extern.
 ### 6.20 Icones (T-DX-58)
 Un sol joc d'icones a tota la plataforma (C9, D4): **Lucide** (llicència ISC), allotjat al servidor.
 - **Peça:** l'sprite `static/img/icones.svg` (un `<symbol>` per icona, només les de `apps/core/icones.py`), la classe `icona` de `tokens.css` i l'etiqueta de plantilla `{% load icones %}{% icona "nom" %}` (amb una classe més, opcional: `{% icona "nom" "classe" %}`).
-- **Mida i traç:** caixa de `--icona` (20 px; 24 px a la navegació del mòbil, `--icona-nav`), traç de `--icona-gruix` (1,75), que segueix el pes del text (C9). El color és el del text (`currentColor`). Cap icona no fa servir colors propis.
+- **Mida i traç:** caixa de `--icona` (20 px; 24 px a la barra de navegació del mòbil, `--icona-nav`, amb la classe `icona-nav` des de la 1.37), traç de `--icona-gruix` (1,75), que segueix el pes del text (C9). El color és el del text (`currentColor`). Cap icona no fa servir colors propis.
 - **Accessibilitat:** sempre `aria-hidden="true"` i `focusable="false"`. El nom el porta el text que l'acompanya o el nom accessible del botó o de l'enllaç; una icona mai no és l'única manera de saber què fa un control ni l'estat d'una cosa (amb l'estat, també el text).
 - **Origen i llicència:** `static/img/README.md` (versió, adreça oficial, integritat de npm i SHA-256) i `static/img/LICENSE-lucide.txt`. Per afegir-ne una: el nom a `apps/core/icones.py` i es torna a generar l'sprite amb `tools/icones/genera.py`, des del mateix paquet. Un nom que no és a la llista fa fallar la plantilla.
 - **Els símbols de text** (✓ ✕ ◷) dels estats es mantenen on ja hi són: van amb el text de l'estat i no són icones decoratives.

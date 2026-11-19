@@ -1,6 +1,7 @@
-"""Ramillete, la navegació de l'àrea del soci al mòbil (T-DX-08): a baix, les pàgines que més
-es fan servir i el botó «Més», que s'obre en ventall amb les rares; Esc i tocar fora el tanquen,
-i «Surt» es queda a la capçalera. A partir de 600 px no es veu i queda la navegació de la capçalera.
+"""Ramillete, la navegació de l'àrea del soci (T-DX-08 i T-DX-59): fins a 1023 px, a baix, les
+pàgines que més es fan servir i el botó «Més», que s'obre en ventall amb les rares; Esc i tocar fora
+el tanquen, i «Surt» es queda a la capçalera. A partir de 1024 px és el panell lateral
+(test_navegacio_soci.py). Sense JavaScript, la navegació de la capçalera.
 """
 
 import pytest
@@ -22,7 +23,7 @@ def login_personal(page, live_server, builder, member):
 
 
 def bar(page):
-    return page.get_by_role("navigation", name="Compte personal (mòbil)")
+    return page.get_by_role("navigation", name="Àrea de socis").locator(".ramillete-barra")
 
 
 def test_mobile_bar_and_the_more_fan(page, live_server, builder, member, review, page_checks):
@@ -59,7 +60,21 @@ def test_mobile_bar_and_the_more_fan(page, live_server, builder, member, review,
     assert bar(page).get_by_role("button", name="Surt").count() == 0
 
 
-def test_wide_screens_keep_the_header_navigation(page, live_server, builder, member, page_checks):
+def test_tablet_keeps_the_bar_and_without_javascript_the_header(
+    page, live_server, builder, member, browser, page_checks
+):
+    page.set_viewport_size({"width": 800, "height": 900})
     login_personal(page, live_server, builder, member)
-    expect(bar(page)).to_be_hidden()
-    expect(page.get_by_role("navigation", name="Compte personal", exact=True)).to_be_visible()
+    expect(bar(page)).to_be_visible()
+    header = page.get_by_role("navigation", name="Compte personal", exact=True)
+    expect(header.get_by_role("link", name="Inici")).to_be_hidden()
+    # Sense JavaScript, la navegació de la capçalera de sempre, i cap Ramillete.
+    context = browser.new_context(
+        java_script_enabled=False, storage_state=page.context.storage_state()
+    )
+    plain = context.new_page()
+    plain.set_viewport_size({"width": 1280, "height": 900})
+    plain.goto(live_server.url)
+    expect(plain.get_by_role("navigation", name="Compte personal", exact=True)).to_be_visible()
+    expect(plain.get_by_role("navigation", name="Àrea de socis")).to_be_hidden()
+    context.close()
