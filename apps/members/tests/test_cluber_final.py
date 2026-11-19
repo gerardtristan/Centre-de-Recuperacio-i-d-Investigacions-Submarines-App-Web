@@ -33,6 +33,7 @@ from apps.core.models import (
     Person,
 )
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.members import cards
 from apps.members.imports import cluber, final
 from apps.members.models import (
     AnnualFee,
@@ -337,10 +338,23 @@ class TestWrites:
         # CA-M01-22: el número següent serà el més alt importat + 1.
         assert MembershipNumberCounter.objects.get().last_number == 902
 
-    def test_no_fee_charge_or_card(self, batch):
-        # RN-M01-33 i 071 (punts 3 i 6): cap quota ni càrrec; el carnet és de la T-M01-19.
+    def test_no_fee_or_charge(self, batch):
+        # RN-M01-33 i 071 (punts 3 i 6): cap quota ni càrrec.
         assert Charge.objects.count() == 0
         assert AnnualFee.objects.count() == 0
+
+    def test_each_imported_member_gets_a_valid_card_t_m01_19b(self, batch, admin):
+        # RN-M01-34 (097, punt 1): carnet amb el servei de carnets, vàlid fins a un any després
+        # de «Data alta/renovació» (01/10/2026).
+        for member in Member.objects.filter(import_batch=batch):
+            loaded = cards.load_member(member.pk)
+            card = cards.active_card(member)
+            assert card.version == 1
+            assert cards.validity(loaded, card, datetime.date(2027, 10, 1)).valid
+            assert not cards.validity(loaded, card, datetime.date(2027, 10, 2)).valid
+        issued = AuditEntry.objects.filter(action=cards.CARD_ISSUED)
+        assert issued.count() == 2
+        assert {e.actor_account for e in issued} == {admin}
 
     def test_audit(self, batch, admin):
         entry = AuditEntry.objects.get(action="members.cluber_import.confirmed")
@@ -354,6 +368,56 @@ class TestWrites:
             "document_type_deduced": 0,
             "document_type_chosen": 0,
         }
+
+
+@allowed
+class TestCardOfTheImportedT_M01_19b:
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"idInterno": ""},  # sense `idInterno` la data no es desa
+            {"Data alta/renovació": ""},  # amb `idInterno` i sense la data
+        ],
+    )
+    def test_no_card_without_the_cluber_renewal_date_rn_m01_34(
+        self, admin, future_document_rule, values
+    ):
+        final.confirm(build([importable_record(1, values)]), by=admin)
+        member = Member.objects.get()
+        assert member.cluber_renewed_on is None
+        assert cards.active_card(member) is None
+
+    def test_no_expired_card_for_a_renewal_older_than_a_year_p398(
+        self, admin, future_document_rule
+    ):
+        row = importable_record(1, {"Data alta/renovació": "01/10/2024"})
+        final.confirm(build([row]), by=admin)
+        member = Member.objects.get()
+        assert member.cluber_renewed_on == datetime.date(2024, 10, 1)
+        assert cards.active_card(member) is None
+        assert not AuditEntry.objects.filter(action=cards.CARD_ISSUED).exists()
+
+    def test_missing_card_keys_refuse_before_writing(self, admin, future_document_rule, settings):
+        settings.CARD_QR_KEYS = []
+        settings.CARD_QR_KEYS_REQUIRED = True
+        before = snapshot()
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(build([importable_record(1)]), by=admin)
+        assert refused.value.code == "card_keys_missing"
+        assert snapshot() == before
+
+    def test_a_card_refusal_is_a_refusal_code_and_writes_nothing(
+        self, admin, future_document_rule, monkeypatch
+    ):
+        def refuse(member, **kwargs):
+            raise cards.CardNotAllowed("inventat")
+
+        monkeypatch.setattr(final, "issue_card", refuse)
+        before = snapshot()
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(build([importable_record(1)]), by=admin)
+        assert (refused.value.code, refused.value.rows) == ("card_not_allowed", (2,))
+        assert snapshot() == before
 
 
 @allowed

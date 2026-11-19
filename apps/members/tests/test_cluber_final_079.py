@@ -143,13 +143,12 @@ class TestCaM01108FingerprintAndUndo:
             {"members_left": 2},
         )
 
-    def test_undo_revokes_a_card_issued_after_the_import(self, admin):
+    def test_undo_revokes_the_card_issued_by_the_import(self, admin):
         batch = final.confirm(
             build([with_document(1, PASSPORT)]), by=admin, document_types={2: "passport"}
         )
         member = Member.objects.get(import_batch=batch)
-        Member.objects.filter(pk=member.pk).update(cluber_renewed_on=datetime.date.today())
-        cards.issue_card(member, by=admin)
+        assert cards.active_card(member)  # T-M01-19b
         final.undo(batch, by=admin, reason=REASON)
         assert not cards.active_card(member)
 
