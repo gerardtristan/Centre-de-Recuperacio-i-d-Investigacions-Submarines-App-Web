@@ -4,9 +4,11 @@
 {% block title %}{% translate "Liquidacions" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "Liquidacions" %}</h1>
-  <p class="text-2">{% translate "Els abonaments agrupats del proveïdor i de les remeses. Confirmar-ne una apunta les comissions i passa el net del compte de trànsit al banc." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Liquidacions" %}</h1>
+    <p class="text-2">{% translate "Els abonaments agrupats del proveïdor i de les remeses. Confirmar-ne una apunta les comissions i passa el net del compte de trànsit al banc." %}</p>
+  </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}

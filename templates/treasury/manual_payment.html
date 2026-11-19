@@ -3,12 +3,14 @@
 {# P-12 (RN-72 de la 00; 072, Q-037 i Q-038): registrar a mà el pagament d'un càrrec pendent, en efectiu o presencial. Sense wireframe propi: segueix les pantalles de tresoreria de dos passos. Seguretat: M14 amb edició i P10 al servidor (sense, «no trobat»), POST amb CSRF, motiu obligatori i dos passos: el primer mostra l'import, qui paga, el compte, la data de cobrament (mai futura) i el motiu, i el segon registra exactament això (testimoni signat; el compte i el motiu ja no s'hi poden canviar). El servei ho torna a comprovar tot (permís amb el càrrec, compte, motiu, estat, pagament en curs i conflicte d'interès): amagar el formulari no és cap control. Només el nom i el número del soci; cap altra dada personal. #}
 {% block title %}{% translate "Registra un pagament a mà" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "Registra un pagament a mà" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Registra un pagament a mà" %}</h1>
+  </header>
   <dl class="dades-soci">
     <div><dt>{% translate "Qui paga" %}</dt><dd>{{ charge.person }}{% if number %} · <span class="codi">{% blocktranslate %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</dd></div>
     <div><dt>{% translate "Concepte" %}</dt><dd>{{ charge.concept }}</dd></div>
-    <div><dt>{% translate "Import" %}</dt><dd>{{ amount }}</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
     <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" %}</dd></div>
   </dl>
   {% if own %}

@@ -3,12 +3,14 @@
 {# T-M04-15 (tercer tall), C5: segon pas per confirmar una liquidació rebuda (P-M04-F, pas 4; CA-T11.1). Amb `line` (T-M04-13b, des de la conciliació): la línia del banc proposada pel net i el repartiment de les comissions per cobrament (P-M04-F, pas 3; VT-05), i en confirmar la línia queda conciliada. T4 amb edició al servidor; POST amb CSRF. Tot o res: si una comissió ja hi és amb un altre import, es rebutja (P-116) i no canvia res. Dels cobraments, la referència del proveïdor i els imports: cap nom. #}
 {% block title %}{% translate "Confirma la liquidació" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  {% if line %}
-    <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
-  {% else %}
-    <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_settlements' %}">{% translate "Liquidacions" %}</a></p>
-  {% endif %}
-  <h1>{% translate "Confirma la liquidació" %}</h1>
+  <header class="capcalera-pagina">
+    {% if line %}
+      <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
+    {% else %}
+      <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_settlements' %}">{% translate "Liquidacions" %}</a></p>
+    {% endif %}
+    <h1>{% translate "Confirma la liquidació" %}</h1>
+  </header>
   {% if choices %}
     <dl class="dades-soci">
       <div><dt>{% translate "Línia del banc" %}</dt><dd><time datetime="{{ line.value_date|date:'Y-m-d' }}">{{ line.value_date|date:"d/m/Y" }}</time> · {{ line.concept }} · <span class="import">{{ amount }}</span></dd></div>

@@ -3,8 +3,14 @@
 {# T-M05a-10, A6: revocar un mandat a petició escrita del soci (P-M05a-C). Seguretat i privacitat, al servidor: permís A6 (sense, «no trobat»); només un mandat actiu; motiu obligatori; cap compte d'administrador no revoca el seu propi mandat des d'aquí (M05a-4); sense tornar a demanar el codi TOTP (P-133). IBAN emmascarat i mai desxifrat (A9, P-121). El soci rep el correu de revocació. #}
 {% block title %}{% translate "Revoca el mandat" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Revoca el mandat" %}</h1>
+  {# T-DX-69 (§5.3): com el mandat (T-DX-65): a l'escriptori, les dades i el formulari a 40rem i, al costat, el resum d'errors (Errata, primer al DOM i amb el focus). Només disposició. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Revoca el mandat" %}</h1>
+  </header>
+  <div class="amb-columna-lateral lateral-formulari">
+  {% if not own %}{% include "_errata.html" %}{% endif %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
+  <div class="columna-principal">
   <section class="targeta" aria-labelledby="mandat-titol">
     <h2 id="mandat-titol" class="codi">{{ mandate.reference }}</h2>
     <dl class="dades-soci">
@@ -18,7 +24,6 @@
   {% else %}
     <form class="targeta formulari" method="post" action="{% url 'administration:payments_mandate_revoke' mandate.pk %}" novalidate>
       {% csrf_token %}
-      {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
       <p>{% translate "No es cobrarà cap quota més amb aquest mandat. El soci pagarà cada quota amb targeta, Bizum o transferència, i rebrà un correu." %}</p>
       {% include "accounts/_camp.html" with field=form.reason %}
       <div class="accions">
@@ -27,4 +32,6 @@
       </div>
     </form>
   {% endif %}
+  </div>
+  </div>
 {% endblock %}

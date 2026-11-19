@@ -3,8 +3,14 @@
 {# T-M04-14c: tancar una liquidació «a revisar» (P-390, resposta B). Seguretat i privacitat, al servidor: T10 amb edició (sense, «no trobat»); només una liquidació «a revisar» que no estigui tancada; nota obligatòria; POST amb CSRF. Tancar no canvia la liquidació ni mou diners: queda una fila nova i l'entrada al registre d'activitat. Cap nom ni dada bancària: el proveïdor, l'identificador, les referències i el net. #}
 {% block title %}{% translate "Tanca una liquidació a revisar" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
-  <h1>{% translate "Tanca una liquidació a revisar" %}</h1>
+  {# T-DX-69 (§5.3): com el mandat (T-DX-65): a l'escriptori, les dades i el formulari a 40rem i, al costat, el resum d'errors (Errata, primer al DOM i amb el focus). Només disposició. #}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Tresoreria" %}</p>
+    <h1>{% translate "Tanca una liquidació a revisar" %}</h1>
+  </header>
+  <div class="amb-columna-lateral lateral-formulari">
+  {% include "_errata.html" %}
+  <div class="columna-principal">
   <section class="targeta" aria-labelledby="liquidacio-titol">
     <h2 id="liquidacio-titol" class="codi">{{ settlement.provider_code }} · {{ settlement.external_id }}</h2>
     <dl class="dades-soci">
@@ -15,7 +21,6 @@
   </section>
   <form class="targeta formulari" method="post" action="{% url 'administration:treasury_settlement_review_close' settlement.pk %}" novalidate>
     {% csrf_token %}
-    {% include "_errata.html" %}
     <p>{% translate "Tancar-la només deixa constància que l'has revisat: surt de la llista «a revisar» i passa a «Tancades». No mou cap diner ni canvia la liquidació. Si cal casar la línia del banc o excloure-la, fes-ho a la conciliació." %}</p>
     {% include "accounts/_camp.html" with field=form.note %}
     <div class="accions">
@@ -23,4 +28,6 @@
       <a class="boto" href="{% url 'administration:treasury_review' %}">{% translate "Torna" %}</a>
     </div>
   </form>
+  </div>
+  </div>
 {% endblock %}

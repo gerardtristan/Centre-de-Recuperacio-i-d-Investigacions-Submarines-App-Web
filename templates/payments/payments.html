@@ -4,8 +4,10 @@
 {% block title %}{% translate "Pagaments" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Pagaments i «a revisar»" %}</h1>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Pagaments i «a revisar»" %}</h1>
+  </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
@@ -128,7 +130,7 @@
   {% endif %}
 
   <h2>{% translate "Tots els intents de pagament" %}</h2>
-  <form class="formulari" method="get" action="{% url 'administration:payments_list' %}" novalidate>
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:payments_list' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Filtres" %}</legend>
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}

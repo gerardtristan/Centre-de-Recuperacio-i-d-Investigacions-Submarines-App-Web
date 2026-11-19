@@ -3,15 +3,19 @@
 {# T-M05a-13, C5: campanya de mandats (P-M05a-E; wireframe admin.html#vista-pagaments-campanya). Seguretat i privacitat, al servidor: veure els recomptes demana A4; obrir, enviar i tancar, A5 (sense, els formularis no arriben a l'HTML i el servidor respon «no trobat» al POST); enviar i tancar es confirmen en un segon pas, i la confirmació de l'enviament mostra el text sencer de la invitació de la campanya, el que porta cada correu, escapat (T-M05a-13d; 097, P-306 opció B); amb la signatura del mandat apagada no s'envia res. Només recomptes: cap nom ni dada bancària. #}
 {% block title %}{% translate "Campanya de mandats" %} · C.R.I.S.{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
-  <h1>{% translate "Campanya de mandats" %}</h1>
-  <p class="text-2">{% translate "Cada soci actiu tria com pagarà la quota abans de la primera remesa." %}</p>
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Campanya de mandats" %}</h1>
+    <p class="text-2">{% translate "Cada soci actiu tria com pagarà la quota abans de la primera remesa." %}</p>
+  </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
   {% if blocked %}<div class="avis avis-avis"><strong>{% translate "No es pot enviar cap campanya" %}</strong>{{ blocked }}</div>{% endif %}
 
+  {# T-DX-69 (§5.3): a l'escriptori, el recompte (5/12) i la invitació (7/12) l'un al costat de l'altre; al mòbil, en aquest ordre #}
+  <div class="graella-2 graella-5-7">
   <section class="targeta" aria-labelledby="recompte-titol">
     <h2 id="recompte-titol">{% blocktranslate count total=status.active %}Com pagarà el soci actiu{% plural %}Com pagaran els {{ total }} socis actius{% endblocktranslate %}</h2>
     <dl class="dades-soci">
@@ -81,4 +85,5 @@
       {% endif %}
     {% endif %}
   </section>
+  </div>
 {% endblock %}
