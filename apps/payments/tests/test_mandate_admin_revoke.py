@@ -86,3 +86,9 @@ def test_only_post_with_a_session_and_never_the_iban(make_admin, mandate):  # no
     page = client_for(make_admin(R.TREASURER)).get(url(mandate)).content.decode()
     assert mandate.reference in page and "ES … 0001" in page
     assert test_mandates.IBAN[4:] not in page
+
+
+def test_the_name_and_the_member_number_are_apart(make_admin, mandate):  # noqa: F811
+    """T-DX-70: a la fitxa del mandat el nom i «Soci NNNN» sortien enganxats; ara, amb « · »."""
+    html = client_for(make_admin(R.TREASURER)).get(url(mandate)).content.decode()
+    assert f'{mandate.member.person} · <span class="codi">Soci ' in html

@@ -34,7 +34,7 @@
               <tbody>
                 {% for fee, reason in preview.excluded %}
                   <tr>
-                    <th scope="row" class="cel-nom">{{ fee.member.person }} <span class="codi">{% blocktranslate with number=fee.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
+                    <th scope="row" class="cel-nom">{{ fee.member.person }}<br><span class="codi">{% blocktranslate with number=fee.member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
                     <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ fee.charge.amount_cents|euros }}</span></td>
                     <td data-etiqueta="{% translate 'Motiu' %}"><span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ reason }}</span>{% if reason == exhausted %} <span class="text-2">{% translate "Proposta: alternativa de pagament (targeta, Bizum o transferència)." %}</span>{% endif %}</td>
                   </tr>

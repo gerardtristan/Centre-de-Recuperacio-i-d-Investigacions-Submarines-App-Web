@@ -47,7 +47,7 @@
     - cap animació d'entrada (D20).
   - **Tokens:** cap CSS nou, cap color ni espai fora de `tokens.css`; cap `style=`.
   - **Ordre:** el DOM és l'ordre de lectura (WCAG 1.3.2 i 2.4.3). Errata va primer, la fitxa després i el formulari al final; a la campanya, el recompte i després la invitació.
-  - **Captures:** a 1280, 1024, 390 i 320 px, en clar i en fosc, de les 12 pantalles; mirades.
+  - **Captures:** a 1280, 1024, 390 i 320 px, en clar i en fosc, de les 12 pantalles. En aquesta PR se'n van mirar 4 (llistat de pagaments, tancar un intent, campanya i pagament a mà); les altres 8, a la [T-DX-70](T-DX-70.md).
 
 ## Evidències
 - La campanya de mandats a 1280 px, amb el recompte i la invitació l'un al costat de l'altre: `captures/2026-11-19_0257_T-DX-69_campanya-1280.png`

@@ -99,7 +99,7 @@
     <tbody>
       {% for item in items %}{% with member=item.mandate.member %}
         <tr>
-          <th scope="row" class="cel-nom">{{ member.person }} <span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
+          <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% blocktranslate with number=member.member_number|stringformat:"04d" %}Soci {{ number }}{% endblocktranslate %}</span></th>
           <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ item.amount_cents|euros }}</span></td>
           <td data-etiqueta="{% translate 'Mandat' %}"><span class="codi">{{ item.mandate.reference }}</span></td>
           <td data-etiqueta="{% translate 'IBAN' %}"><span class="codi">{{ item.mandate.bank_account.iban_country }} … {{ item.mandate.bank_account.iban_last4 }}</span></td>
