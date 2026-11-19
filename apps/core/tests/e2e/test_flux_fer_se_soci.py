@@ -172,7 +172,7 @@ def join_flow(page, base_url, builder, secretary, other, shoot, pay=None):
     expect(page.get_by_text("Compte creat")).to_be_visible()
     assert Account.objects.get(person=join.person).status == Account.Status.ACTIVE
     login_personal(page, base_url)
-    account_nav = page.get_by_role("navigation", name="Compte personal")
+    account_nav = page.get_by_role("navigation", name="Àrea de socis")
     account_nav.get_by_role("link", name="Les meves quotes").click()
     expect(page.get_by_role("heading", name="Les meves quotes")).to_be_visible()
     expect(fee_row).to_contain_text(amount)

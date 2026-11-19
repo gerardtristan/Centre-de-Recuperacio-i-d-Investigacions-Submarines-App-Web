@@ -66,7 +66,7 @@ def test_llesca_2_from_the_pending_fee_to_the_valid_card_paying_by_card(
 
         # 4. El soci paga amb targeta a la pàgina del proveïdor (CA-M05b-01).
         login_personal(page, base_url)
-        page.get_by_role("navigation", name="Compte personal").get_by_role(
+        page.get_by_role("navigation", name="Àrea de socis").get_by_role(
             "link", name="Les meves quotes"
         ).click()
         page.get_by_role("link", name=re.compile("^Detall")).click()
