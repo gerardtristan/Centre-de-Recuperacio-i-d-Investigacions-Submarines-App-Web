@@ -22,6 +22,7 @@ from datetime import date
 from decimal import Decimal
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -333,6 +334,7 @@ def manual_payment_view(request, charge_id):
                 reason=data["reason"],
                 paid_on=date.fromisoformat(data["paid_on"]),
                 by=request.user,
+                proof=request.FILES.get("proof"),  # P-12b: opcional
             )
         except (signing.BadSignature, TreasuryAccount.DoesNotExist):
             errors = [_("Torna a revisar el pagament: la confirmació no és vàlida.")]
@@ -363,5 +365,6 @@ def manual_payment_view(request, charge_id):
         "open": charge.status == Charge.Status.PENDING,
         "own": charge.person_id == request.user.person_id,
         "back": back,
+        "max_mb": settings.UPLOAD_MAX_BYTES // (1024 * 1024),
     }
     return render(request, "treasury/manual_payment.html", context)

@@ -81,6 +81,9 @@ class CommittedDataTestCase(TransactionTestCase):
         delete_committed_rows(self._tables, self._start)
 
 
+PRIVATE_FILES = "core_privatefile"
+
+
 def committed_snapshot():
     """Taules amb clau entera i el seu valor màxim abans de la prova (`CommittedDataTestCase` i
     proves e2e, on el servidor en viu té la seva connexió i les dades s'han de confirmar)."""
@@ -93,6 +96,10 @@ def committed_snapshot():
         for table, column in tables:
             cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
             start[table] = cursor.fetchone()[0]
+        # Els fitxers privats tenen la clau en UUID: es guarden els que ja hi eren (P-12b, un
+        # pagament hi apunta i s'esborren tots dos a la mateixa transacció).
+        cursor.execute("SELECT id FROM core_privatefile")
+        start[PRIVATE_FILES] = [row[0] for row in cursor.fetchall()]
     return tables, start
 
 
@@ -112,6 +119,9 @@ def delete_committed_rows(tables, start):
                 f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
                 [start[table]],
             )
+        cursor.execute(
+            "DELETE FROM core_privatefile WHERE NOT (id = ANY(%s))", [start[PRIVATE_FILES]]
+        )
         cursor.execute("DELETE FROM django_session")
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
         for table, _ in tables:

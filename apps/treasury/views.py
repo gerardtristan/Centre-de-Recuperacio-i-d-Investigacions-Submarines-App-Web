@@ -51,7 +51,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit
+from apps.core import audit, charges
 from apps.core.charges import euros
 from apps.core.imports import statement_lines
 from apps.core.models import AuditEntry, Department
@@ -163,16 +163,21 @@ def _filtered(form):
 def movements_view(request):
     form = MovementFilterForm(request.GET or None)
     movements, _data = _filtered(form)
-    movements = movements.with_reversal().select_related("account", "department", "cost_centre")
+    movements = movements.with_reversal().select_related(
+        "account", "department", "cost_centre", "payment"
+    )
     page = Paginator(movements.order_by("-value_date", "-recorded_at", "-id"), PER_PAGE).get_page(
         request.GET.get("pagina")
     )
     can_reverse = has_perm(request.user, services.REVERSE, write=True)
+    # P-12b: l'enllaç només a qui el pot obrir (M14); el control és a `files.can_access`.
+    can_proof = has_perm(request.user, charges.MANUAL_PAYMENT)
     rows = [
         {
             "movement": m,
             "amount": _signed(m),
             "reversible": can_reverse and m.kind in entry_views.REVERSIBLE,
+            "proof": can_proof and m.payment and m.payment.proof_id,
         }
         for m in page
     ]

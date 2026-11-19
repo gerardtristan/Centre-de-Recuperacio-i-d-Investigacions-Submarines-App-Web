@@ -475,7 +475,7 @@ def manual_payment_accounts():
 
 @transaction.atomic
 def record_manual_payment(
-    charge: Charge, *, account: TreasuryAccount, reason: str, by, paid_on=None
+    charge: Charge, *, account: TreasuryAccount, reason: str, by, paid_on=None, proof=None
 ) -> Movement:
     """P-12: tot o res, el càrrec pagat amb el pagament «manual» i el motiu
     (`charges.record_manual_payment`, que també comprova M14, el motiu, l'estat i el conflicte
@@ -486,7 +486,9 @@ def record_manual_payment(
     error és la P-333: de moment, cap camí."""
     # El permís (M14, amb el càrrec) el comprova `charges.record_manual_payment`, primer de tot;
     # el compte, després: un error de compte desfà el pagament.
-    payment = charges.record_manual_payment(charge, reason=reason, by=by, paid_on=paid_on)
+    payment = charges.record_manual_payment(
+        charge, reason=reason, by=by, paid_on=paid_on, proof=proof
+    )
     if account is None or not manual_payment_accounts().filter(pk=account.pk).exists():
         raise IncomeAccountUnavailable(
             _("Un pagament a mà entra a la caixa o a un compte bancari actiu.")

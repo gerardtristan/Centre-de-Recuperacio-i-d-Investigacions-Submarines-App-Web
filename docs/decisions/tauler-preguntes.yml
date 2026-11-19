@@ -1134,5 +1134,15 @@ opcions:
       sense pagar la quota sense saber-ho. Si el proveïdor deixa de cobrar, el cobrament falla i el soci
       rep l'alternativa de pagament (T-M05b-15b), com ara.
     data: 2026-11-19
+  P-405:
+    opcions:
+      A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."
+      B: "També la junta, com els documents de justificació dels ajuts (051)."
+      C: "A més, el soci el veu a «Pagaments», al costat del rebut."
+    recomanada: A
+    perque: >-
+      El comprovant pot dur dades de qui paga i és un document de tresoreria: com menys gent l'obri,
+      millor. Si la junta l'ha de veure per a una revisió, es pot donar el permís des de l'editor.
+    data: 2026-11-19
 
 noves:

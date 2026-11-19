@@ -77,6 +77,9 @@ def login_personal(page, base_url):
     expect(page.get_by_role("button", name="Surt")).to_be_visible()
 
 
+PROOF = b"%PDF-1.7\n%rebut inventat\n"
+
+
 # --- Tram 4: el pagament de la quota, registrat a mà ---------------------------------------------
 def register_manual_payment(page, shoot):
     """El tresorer registra el pagament a mà, amb motiu, des de la fitxa del soci (P-12)."""
@@ -88,9 +91,14 @@ def register_manual_payment(page, shoot):
     page.get_by_label("Motiu").fill(REASON)
     page.get_by_role("button", name="Revisa el pagament").click()
     expect(page.get_by_text("Confirma el pagament")).to_be_visible()
+    # P-12b: el comprovant opcional, inventat.
+    page.get_by_label("Comprovant (opcional)").set_input_files(
+        files=[{"name": "rebut.pdf", "mimeType": "application/pdf", "buffer": PROOF}]
+    )
     shoot("4-pagament-a-ma-confirma")
     page.get_by_role("button", name="Sí, registra el pagament").click()
     expect(page.get_by_text("Pagament registrat")).to_be_visible()
+    assert Payment.objects.filter(proof__kind="payment_proof").exists()
 
 
 # --- El flux ------------------------------------------------------------------------------------
