@@ -313,3 +313,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M04-14d](T-M04-14d.md) | Excloure també una línia proposada i desfer una exclusió amb motiu, amb T8 (097, P-192 opció C; RN-T15) | 18/11/2026 | 0db948a1 (PR #244) | 9 noves; 2 adaptades; 1 e2e nova | [A comprovar] |
 | [T-M00-08e](T-M00-08e.md) | Textos d'ajuda de les pantalles editables: els plafons «Ajuda» del perfil i de l'edició del soci (core/0051; 097, dubte P-393) | 19/11/2026 01:08 | 57bf02ea (PR #250) | 11 noves (14 casos); 1 e2e | [A comprovar] |
 | [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | c96e5544 (PR #231) | 4 noves | [A comprovar] |
+| [T-DX-58](T-DX-58.md) | Escriptori, PR 2: joc d'icones Lucide allotjat al servidor (carril de disseny) | 18/11/2026 13:46 | 7a9921d1 (PR #231) | 4 noves | [A comprovar] |

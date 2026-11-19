@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 13:46 | c96e5544 | 4 noves | [A comprovar] (PR #231) |
+| 18/11/2026 13:46 | 7a9921d1 | 4 noves | [A comprovar] (PR #231) |
 
 **En tres línies:** la plataforma no tenia cap joc d'icones: feia servir símbols de text i icones dibuixades a mà als wireframes. Ara té un sol joc, Lucide (llicència ISC), allotjat al servidor. L'sprite només porta les 36 icones que farà servir el programa (la navegació, els grups de l'administració, les activitats i el carnet), i es pinten amb `{% icona "nom" %}`.
 
@@ -12,7 +12,7 @@
 - `static/img/README.md` i `LICENSE-lucide.txt`: origen (registre npm, `lucide-static` 1.67.0, publicada el 03/11/2026), integritat de npm comprovada i SHA-256 del paquet.
 - `apps/core/templatetags/icones.py`: `{% icona "nom" ["classe"] %}`, amb `aria-hidden` i `focusable="false`. Un nom desconegut fa fallar la plantilla.
 - `tokens.css`: `.icona` (20 px), `--icona-nav` (24 px) i `--icona-gruix` (1,75, C9).
-- Sistema de disseny 1.27, §6.20. Fila a [`estat/DX.md`](../estat/DX.md).
+- Sistema de disseny 1.36, §6.20. Fila a [`estat/DX.md`](../estat/DX.md).
 
 ## Decisions i perquè
 - **Lucide:** és la decisió del propietari (18/11/2026). Traç fi que lliga amb Source Sans; llicència ISC.
@@ -40,5 +40,5 @@
 
   ![Graella amb les 36 icones de Lucide i el seu nom, en tema fosc](captures/2026-11-18_1346_T-DX-58_icones-fosc.png)
 
-  *18/11/2026 13:46 (Europa/Madrid) · local, pàgina de prova amb tokens.css · commit c96e5544*
+  *18/11/2026 13:46 (Europa/Madrid) · local, pàgina de prova amb tokens.css · commit 7a9921d1*
 - En clar: `captures/2026-11-18_1346_T-DX-58_icones-clar.png`
