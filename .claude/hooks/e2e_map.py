@@ -193,6 +193,12 @@ MAP = {
         "apps/treasury/exports.py",
         "templates/treasury/*.html",
     ),
+    "test_tresoreria_exclusions.py": (  # T-M04-14d
+        "apps/treasury/views.py",
+        "apps/treasury/admin_urls.py",
+        "apps/treasury/reconciliation.py",
+        "templates/treasury/reconciliation.html",
+    ),
     "test_tresoreria_entrades.py": (
         "apps/treasury/entry_views.py",
         "apps/treasury/admin_urls.py",
