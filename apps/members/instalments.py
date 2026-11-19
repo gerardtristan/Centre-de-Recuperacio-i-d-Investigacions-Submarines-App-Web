@@ -53,13 +53,9 @@ def schedule(fee, today=None) -> list[tuple[int, datetime.date]]:
     return [(cents, months_after(first, n)) for n, cents in enumerate(amounts)]
 
 
-def _may_be_charged():
-    from apps.payments.attempts import MAY_BE_CHARGED
-
-    return MAY_BE_CHARGED
-
-
 def can_choose(fee) -> bool:
+    from apps.payments.attempts import MAY_BE_CHARGED  # el 05b importa el 01
+
     from .member_requests import downgrades
 
     member = fee.member
@@ -71,7 +67,7 @@ def can_choose(fee) -> bool:
         and not charges.active_payments(fee.charge)
         and member.type.full_rights
         and member.status in (S.PENDING, S.ACTIVE)
-        and not fee.charge.attempts.filter(status__in=_may_be_charged()).exists()
+        and not fee.charge.attempts.filter(status__in=MAY_BE_CHARGED).exists()
         and not downgrades(member)
         .filter(
             status__in=(MemberRequest.Status.PENDING, MemberRequest.Status.APPROVED),

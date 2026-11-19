@@ -354,6 +354,7 @@ MAP = {
     ),
     "test_quotes_079.py": (
         "apps/members/fees.py",
+        "apps/payments/returns.py",
         "apps/members/fee_rules.py",
         "apps/members/validity.py",
         "apps/members/roster.py",

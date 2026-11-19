@@ -31,7 +31,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge, Setting
+from apps.core.models import AuditEntry, Charge, Setting
 from apps.core.permissions import has_perm
 from apps.members import recipients
 from apps.members import services as members
@@ -45,6 +45,7 @@ MAX_ATTEMPTS = "payments.max_direct_debit_attempts"  # VC-16, RN-M05b-15
 ALTERNATIVE_TEMPLATE = "alternativa-pagament"
 
 RETRY, ALTERNATIVE, SENT = "retry", "alternative", "alternative_sent"
+CONFIRMED = "payments.return.confirmed"
 # P-291 (095): quins codis proposen un reintent i quins bloquegen el mandat són ajustos; d'entrada,
 # els exemples de RN-M05b-15. Un codi que no és a cap llista va a l'alternativa.
 RETRY_CODES = "payments.return_codes_retry"
@@ -220,13 +221,43 @@ def confirm(item: DirectDebitItem, decision: str, *, by, note: str = "") -> bool
             charge, new_mandate=item.mandate.status == SepaMandate.Status.BLOCKED
         )
     audit.record(
-        "payments.return.confirmed",
+        CONFIRMED,
         actor=by,
         target=item,
         reason=note.strip() or default,
         details={"decision": decision, "email_queued": sent},
     )
     return sent
+
+
+def unresolved_returns(charge_ids) -> tuple[set[int], set[int]]:
+    """Per als candidats a «impagat» del 01 (T-M01-18d; 085, J-4): els càrrecs el darrer rebut
+    dels quals és retornat i, d'aquests, els que tenen confirmat un reintent a la remesa
+    següent (el darrer `confirm`; la decisió només queda al registre d'activitat). Un rebut nou
+    del reintent ja no és retornat: el resol."""
+    latest = {}
+    for pk, status, charge_id in (
+        DirectDebitItem.objects.filter(attempt__charge_id__in=charge_ids)
+        .order_by("pk")
+        .values_list("pk", "status", "attempt__charge_id")
+    ):
+        latest[charge_id] = (pk, status)
+    items = {
+        pk: c for c, (pk, status) in latest.items() if status == DirectDebitItem.Status.RETURNED
+    }
+    decisions = {}
+    for target_id, details in (
+        AuditEntry.objects.filter(
+            action=CONFIRMED,
+            target_type=DirectDebitItem._meta.label_lower,
+            target_id__in=[str(pk) for pk in items],
+        )
+        .order_by("pk")
+        .values_list("target_id", "details")
+    ):
+        decisions[int(target_id)] = details.get("decision")
+    retrying = {items[pk] for pk, decision in decisions.items() if decision == RETRY}
+    return set(items.values()), retrying
 
 
 def _settled_into(payment):

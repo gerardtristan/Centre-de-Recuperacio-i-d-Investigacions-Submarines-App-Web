@@ -41,7 +41,7 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Max, Q
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, charges, mail
@@ -301,24 +301,46 @@ class FeeFilterForm(forms.Form):
 
 
 def unpaid_candidates(today: datetime.date) -> set[int]:
-    """Ids dels socis actius candidats a «impagat» (085, J-4; P-71; terminis: 097, P-61 punt 2):
-    la quota anual o un termini vençut fa els dies de l'ajust (o més) sense pagar, o amb el rebut
-    retornat (P-400), i sense cap intent que encara el pugui cobrar. Només es proposen: el
-    tresorer marca l'impagat a mà, amb motiu (040), i fins llavors el carnet és vàlid (J-5)."""
+    """Ids dels socis actius candidats a «impagat» (085, J-4; P-71; terminis: 097, P-61 punt 2).
+    Només els que `roster.fee_state` dona com a «Pendent» (la mateixa definició de quota sense
+    pagar), i només per les quotes o els terminis del període actual (venciment a partir del
+    darrer «vàlid fins al»): un vençut fa els dies de l'ajust o més, o amb el darrer rebut
+    retornat (P-400). Mai amb un intent que encara el pot cobrar ni amb un reintent confirmat a
+    la remesa següent. Només es proposen: el tresorer marca l'impagat a mà, amb motiu (040), i
+    fins llavors el carnet és vàlid (J-5)."""
+    from apps.payments import returns  # el 05b importa el 01
     from apps.payments.attempts import MAY_BE_CHARGED
+    from apps.payments.models import PaymentAttempt
 
     # P-400: un sol ajust de dies per a la quota i els terminis (097: «30, com la quota»).
     limit = today - datetime.timedelta(days=values.instalments_unpaid_days())
-    return set(
-        AnnualFee.objects.filter(
-            Q(charge__status=Charge.Status.PENDING, due_on__lte=limit)
-            | Q(charge__status=Charge.Status.RETURNED),
-            kind__in=(AnnualFee.Kind.ANNUAL, AnnualFee.Kind.INSTALMENT),
-            member__status=S.ACTIVE,
-        )
-        .exclude(charge__attempts__status__in=MAY_BE_CHARGED)
-        .values_list("member_id", flat=True)
+    current = {}
+    for member in roster.with_fee_data(Member.objects.filter(status=S.ACTIVE)):
+        state = roster.fee_state(member, today)
+        if state is None or state.kind != roster.PENDING:
+            continue
+        until = validity.valid_until(member)
+        current[member.pk] = [
+            fee
+            for fee in [*member.annual_fees, *member.instalment_fees]
+            if fee.charge.status in UNPAID_CHARGE and (until is None or fee.due_on >= until)
+        ]
+    charge_ids = {fee.charge_id for fees_ in current.values() for fee in fees_}
+    busy = set(
+        PaymentAttempt.objects.filter(
+            charge_id__in=charge_ids, status__in=MAY_BE_CHARGED
+        ).values_list("charge_id", flat=True)
     )
+    returned, retrying = returns.unresolved_returns(charge_ids)
+    return {
+        pk
+        for pk, fees_ in current.items()
+        if any(
+            fee.charge_id not in busy | retrying
+            and (fee.charge_id in returned or fee.due_on <= limit)
+            for fee in fees_
+        )
+    }
 
 
 def rows_for_review(data, today=None, candidates=frozenset()):
@@ -329,12 +351,12 @@ def rows_for_review(data, today=None, candidates=frozenset()):
     members = Member.objects.filter(status__in=REVIEWED).select_related("person", "type")
     if data.get("estat") in REVIEWED:
         members = members.filter(status=data["estat"])
+    if data.get("quota") == CANDIDATE:
+        members = members.filter(pk__in=candidates)
     members = roster.with_fee_data(members).order_by("member_number", "pk")
     rows = [(member, roster.fee_state(member, today)) for member in members]
     if data.get("quota") == roster.PENDING:
         rows = [(m, fee) for m, fee in rows if fee and fee.kind == roster.PENDING]
-    elif data.get("quota") == CANDIDATE:
-        rows = [(m, fee) for m, fee in rows if m.pk in candidates]
     return rows
 
 

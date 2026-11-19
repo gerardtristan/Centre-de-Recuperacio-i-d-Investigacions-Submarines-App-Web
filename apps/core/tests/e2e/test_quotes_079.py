@@ -92,15 +92,20 @@ def test_renewal_notice_without_address_is_listed(page, live_server, builder, re
     expect(page.get_by_role("heading", name="Jordi Prova")).to_be_visible()
 
 
-def test_the_treasurer_filters_the_candidates_and_marks_one(page, live_server, member, review):
-    """T-M01-18d (085, J-4; P-400): un rebut retornat el proposa com a candidat; el tresorer filtra
-    els candidats i el marca amb motiu. La plataforma no el marca mai sola (040)."""
-    from apps.core.models import Charge
-    from apps.members.models import AnnualFee
+def test_the_treasurer_filters_the_candidates_and_marks_one(page, live_server, settings, review):
+    """T-M01-18d (085, J-4; P-400): un rebut retornat (serveis reals del 05b: remesa liquidada,
+    retorn AC04 i alternativa) el proposa com a candidat el mateix dia; el tresorer filtra els
+    candidats i el marca amb motiu. La plataforma no el marca mai sola (040)."""
+    from apps.members.tests.test_unpaid_candidates_18d import collected_receipt
+    from apps.payments import returns
+    from apps.payments.tests.test_remittances import iban
 
-    fee = AnnualFee.objects.filter(member=member).first()
-    Charge.objects.filter(pk=fee.charge_id).update(status=Charge.Status.RETURNED)
-    login_admin(page, live_server.url, make_admin("tresoreria.prova", "treasurer").login)
+    settings.SEPA_CREDITOR_IDENTIFIER = "ES00ZZZ00000000"
+    settings.CLUB_IBAN_TRANSFERENCIES = iban(999)
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    item, member = collected_receipt(treasurer)
+    assert returns.register_return(item, "AC04", by=treasurer) == returns.SENT
+    login_admin(page, live_server.url, treasurer.login)
     page.goto(f"{live_server.url}/{ADMIN}/quotes/")
     page.get_by_label("Estat de la quota").select_option(label="Candidat a impagat")
     page.get_by_role("button", name="Filtra").click()

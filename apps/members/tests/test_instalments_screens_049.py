@@ -20,11 +20,11 @@ from apps.members.tests.test_instalments_049 import (  # noqa: F401 (fixture «o
     plan_of,
 )
 from apps.members.tests.test_roster import admin_client
+from apps.members.tests.test_unpaid_candidates_18d import BADGE
 
 pytestmark = pytest.mark.django_db
 
 S = Member.Status
-BADGE = "!</span> Candidat a impagat</span>"  # la marca de la fila (el filtre també en té el nom)
 
 
 def test_off_the_fee_page_shows_nothing_and_the_post_changes_nothing(personal):  # noqa: F811
