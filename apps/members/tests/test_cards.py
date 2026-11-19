@@ -450,7 +450,7 @@ class TestValidUntil072:
             cards.issue_card(member, by=SYSTEM)
 
     def test_imported_member_is_valid_one_year_from_cluber_renewal(self):
-        # Q-076 (072): des de «Data alta/renovació» [A validar: tresorer].
+        # Q-076 (072; 097, punt 1): des de «Data alta/renovació».
         member = make_member(cluber_id="CLB-1", cluber_renewed_on=date(2024, 2, 29))
         assert cards.valid_until(cards.load_member(member.pk)) == date(2025, 2, 28)
         member = make_member(

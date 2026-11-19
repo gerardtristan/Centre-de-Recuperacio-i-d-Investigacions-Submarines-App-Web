@@ -9,7 +9,7 @@ mòduls (`services`). Abans hi havia tres respostes que podien no coincidir (P-7
 - els que paguen: un any des del pagament confirmat, fins al mateix dia de l'any següent
   (`twelve_months_after`; el 29/02 passa al 28/02);
 - els exempts per edat sense cap quota: el 31/12 de l'últim any exempt (Q-002);
-- els importats de Cluber: un any des de «Data alta/renovació» (Q-076) [A validar: tresorer];
+- els importats de Cluber: un any des de «Data alta/renovació» (Q-076; 097, punt 1);
 - una quota eximida (RN-M01-72 i RN-M01-94; T-M01-40): un any des del venciment de la quota,
   mentre no s'hagi emès una quota posterior del mateix període (que és com es desfà).
 Amb pagaments parcials no n'hi ha cap: els terminis no tenen cap regla aprovada (P-61, T-M01-49).
@@ -81,7 +81,7 @@ def exempt_until(member) -> date | None:
 
 
 def cluber_until(member) -> date | None:
-    """Q-076 (072): un any des de «Data alta/renovació» de Cluber [A validar: tresorer]."""
+    """Q-076 (072; 097, punt 1): un any des de «Data alta/renovació» de Cluber."""
     renewed = member.cluber_renewed_on
     return twelve_months_after(renewed) if renewed and member.cluber_id else None
 
