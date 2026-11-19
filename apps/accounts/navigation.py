@@ -33,6 +33,7 @@ from .sessions import session_area_is_valid
 BASE_ROUTES = {
     "administration:home": ((),),
     "administration:accounts": ((("core.accounts.reset_credentials", READ),),),
+    "administration:permission_matrix": ((("core.permissions.edit", READ),),),  # M3b (T-RP-03)
     "administration:audit_log": (
         (("core.audit.view", READ),),
         (("members.audit.view", READ),),
@@ -137,6 +138,7 @@ ENTRIES = (
             "administration:account_deactivate",  # T-RP-02d
         ),
     ),
+    ("administration:permission_matrix", _("Rols i permisos"), ()),  # T-RP-03
     ("administration:audit_log", _("Registre d'activitat"), ()),
     (
         "administration:settings",
@@ -198,6 +200,7 @@ GROUPS = (
             "administration:gdpr_requests",
             "administration:locked_data",
             "administration:accounts",
+            "administration:permission_matrix",
             "administration:audit_log",
         ),
     ),
