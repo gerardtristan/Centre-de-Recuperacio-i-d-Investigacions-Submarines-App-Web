@@ -18,6 +18,7 @@ from apps.core.models import AuditEntry
 from apps.core.permissions import accounts_with_perm
 from apps.treasury import settlements as treasury
 
+from .models import PaymentAttempt
 from .providers import base, get_provider
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,8 @@ def import_settlements(*, today=None) -> list:
     recorded = []
     for report in reports:
         try:
-            recorded.append(treasury.record_settlement(provider.code, to_data(report), by=by))
+            data = to_data(report, provider.code)
+            recorded.append(treasury.record_settlement(provider.code, data, by=by))
         except treasury.DuplicateSettlement:
             continue
         except treasury.SettlementRejected as error:
@@ -84,7 +86,7 @@ def _mail_rejected(provider_code: str, external_id: str, errors: list) -> None:
             sent.add(address)
 
 
-def to_data(report: base.ProviderSettlementReport) -> treasury.SettlementData:
+def to_data(report: base.ProviderSettlementReport, provider_code: str) -> treasury.SettlementData:
     """La forma de la 04: cada operació és una línia amb la referència del pagament
     (`Payment.provider_reference`, l'identificador de l'ordre)."""
     return treasury.SettlementData(
@@ -94,7 +96,20 @@ def to_data(report: base.ProviderSettlementReport) -> treasury.SettlementData:
         fees_cents=report.fees_cents,
         net_cents=report.net_cents,
         lines=tuple(
-            treasury.SettlementLine(op.order_id, op.amount_cents, op.fee_cents)
+            treasury.SettlementLine(_reference(op, provider_code), op.amount_cents, op.fee_cents)
             for op in report.operations
         ),
     )
+
+
+def _reference(op: base.SettledOperation, provider_code: str) -> str:
+    """T-M05b-31: si l'operació porta la transacció del proveïdor, l'ordre de l'únic intent que
+    la va desar; si no, la referència que porti. Una que no és de cap pagament la 04 la deixa «a
+    revisar» (CA-T11.2)."""
+    if op.transaction_id:
+        orders = PaymentAttempt.objects.filter(
+            provider_code=provider_code, provider_transaction_id=op.transaction_id
+        ).values_list("provider_order_id", flat=True)[:2]
+        if len(orders) == 1:
+            return orders[0]
+    return op.order_id or op.transaction_id

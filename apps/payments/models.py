@@ -34,7 +34,8 @@ class ProviderEvent(UndeletableModel):
     files; d'una fila només canvien, una sola vegada, el resultat i la data de processament.
 
     No es desa el cos de la notificació, només la seva empremta i els camps normalitzats que
-    calen per processar-la (ordre, estat, import i moneda): cap dada personal ni de targeta."""
+    calen per processar-la (ordre, estat, import, moneda i transacció): cap dada personal ni de
+    targeta."""
 
     class Result(models.TextChoices):
         RECEIVED = "received", _("Rebuda, per processar")
@@ -54,6 +55,7 @@ class ProviderEvent(UndeletableModel):
     event_type = models.CharField(_("tipus"), max_length=60, blank=True)
     payload_hash = models.CharField(_("empremta del cos"), max_length=64)
     order_id = models.CharField(_("ordre del proveïdor"), max_length=100, blank=True)
+    transaction_id = models.CharField(_("transacció del proveïdor"), max_length=100, blank=True)
     amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"), null=True, blank=True)
     currency = models.CharField(_("moneda"), max_length=3, blank=True)
     received_at = models.DateTimeField(_("rebuda"), auto_now_add=True)
@@ -217,6 +219,11 @@ class PaymentAttempt(UndeletableModel):
     # Buits fins que el proveïdor crea l'ordre.
     provider_code = models.CharField(_("proveïdor"), max_length=30, blank=True)
     provider_order_id = models.CharField(_("ordre del proveïdor"), max_length=100, blank=True)
+    # La transacció del proveïdor que l'ha cobrat, quan la confirma (T-M05b-31): la liquidació
+    # pot venir amb aquesta referència. El pagament (00) guarda l'ordre.
+    provider_transaction_id = models.CharField(
+        _("transacció del proveïdor"), max_length=100, blank=True
+    )
     idempotency_key = models.UUIDField(
         _("clau d'idempotència"), default=uuid.uuid4, unique=True, editable=False
     )

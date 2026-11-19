@@ -65,6 +65,7 @@ def receive(provider: PaymentProvider, request) -> Received:
         "event_type": notification.status,
         "payload_hash": body_hash,
         "order_id": notification.order_id,
+        "transaction_id": notification.transaction_id,
         "amount_cents": notification.amount_cents,
         "currency": notification.currency,
     }

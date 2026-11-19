@@ -6,10 +6,11 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.core.models import AuditEntry, OutgoingEmail, Role
+from apps.core.models import AuditEntry, OutgoingEmail, Payment, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.payments import settlements, tasks
+from apps.payments import processing, settlements, tasks
 from apps.payments.providers import base, fake
+from apps.payments.tests.test_processing import notify, paying_attempt, run_queue
 from apps.treasury import settlements as treasury
 from apps.treasury.balances import balances
 from apps.treasury.models import ProviderSettlement, TreasuryAccount
@@ -128,7 +129,7 @@ class TestImport:
         report = base.ProviderSettlementReport(
             "LIQ-2", TODAY, 9000, 80, 8920, (base.SettledOperation("fake-ord-a", 9000, 80),)
         )
-        data = settlements.to_data(report)
+        data = settlements.to_data(report, "fake")
         assert data.lines == (treasury.SettlementLine("fake-ord-a", 9000, 80),)
         assert (data.external_id, data.settled_on, data.net_cents) == ("LIQ-2", TODAY, 8920)
 
@@ -150,6 +151,60 @@ class TestNothingToImport:
     def test_the_base_adapter_does_not_support_settlements(self, provider):
         with pytest.raises(base.NotSupported):
             base.PaymentProvider.list_settlements(provider, TODAY)
+
+
+class TestProviderTransaction:
+    """T-M05b-31: el proveïdor pot detallar l'abonament amb la referència de la seva transacció i
+    no amb la nostra ordre. El pagament guarda l'ordre (`Payment.provider_reference`) i l'intent,
+    la transacció: la conciliació troba el pagament igualment (proveïdor fals, decisió 092)."""
+
+    def test_a_settlement_by_the_provider_transaction_finds_the_payment(self, provider):
+        attempt, fee = paying_attempt("transaccio.prova@example.org")
+        assert notify(attempt).status_code == 200
+        run_queue()
+        attempt.refresh_from_db()
+        payment = Payment.objects.get(charge=fee.charge)
+        assert payment.provider_reference == attempt.provider_order_id  # la nostra ordre es queda
+        transaction_id = attempt.provider_transaction_id
+        assert transaction_id and transaction_id != attempt.provider_order_id
+        report = provider.settle(
+            [(attempt.provider_order_id, 9000)], fees_cents=50, order_ids=False
+        )
+        assert report.operations == (base.SettledOperation("", 9000, None, transaction_id),)
+        [settlement] = settlements.import_settlements()
+        assert settlement.status == Status.RECEIVED
+        assert [item.payment for item in settlement.items.all()] == [payment]
+
+    def test_the_safety_net_also_keeps_the_transaction(self, provider, monkeypatch):
+        attempt, fee = paying_attempt("xarxa.prova@example.org")
+        paid = base.OrderState(attempt.provider_order_id, base.PAID, 9000, "EUR", "tx-xarxa-1")
+        processing.settle(attempt, paid)
+        attempt.refresh_from_db()
+        assert (attempt.status, attempt.provider_transaction_id) == ("paid", "tx-xarxa-1")
+
+    def test_an_attempt_to_review_keeps_the_transaction_for_the_treasurer(self, provider):
+        # Si el tresorer el dona per pagat (`reviews.close`), la liquidació el troba igualment.
+        attempt, fee = paying_attempt("revisar.prova@example.org")
+        wrong = base.OrderState(attempt.provider_order_id, base.PAID, 100, "EUR", "tx-revisar-1")
+        processing.settle(attempt, wrong)
+        attempt.refresh_from_db()
+        assert (attempt.status, attempt.provider_transaction_id) == ("to_review", "tx-revisar-1")
+        report = base.ProviderSettlementReport(
+            "LIQ-T", TODAY, 9000, 0, 9000, (base.SettledOperation("", 9000, None, "tx-revisar-1"),)
+        )
+        lines = settlements.to_data(report, "fake").lines
+        assert lines == (treasury.SettlementLine(attempt.provider_order_id, 9000, None),)
+
+    def test_an_unknown_transaction_goes_to_review(self, provider, two):
+        settle(provider, ("fake-ord-a", 9000))
+        fake._settlements.append(
+            base.ProviderSettlementReport(
+                "LIQ-X", TODAY, 3500, 0, 3500, (base.SettledOperation("", 3500, None, "tx-x"),)
+            )
+        )
+        by_id = {s.external_id: s for s in settlements.import_settlements()}
+        assert by_id["LIQ-X"].status == Status.TO_REVIEW
+        assert by_id["LIQ-X"].review_notes == [{"reference": "tx-x", "problem": "unknown_payment"}]
 
 
 def test_the_daily_task_calls_the_service(monkeypatch):
