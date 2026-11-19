@@ -45,6 +45,11 @@ class PaymentsConfig(AppConfig):
             normalise=business_settings.canonical_list,
         )
 
+        # P-131: la configuració del proveïdor demana un codi TOTP nou per desar-la.
+        from . import providers
+
+        business_settings.register_family(providers.SWITCHES, providers.switch_label, totp=True)
+
         from .setup import ensure_transit_account
 
         post_migrate.connect(ensure_transit_account, sender=self)

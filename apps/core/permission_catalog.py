@@ -664,6 +664,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
+    # P-131 (095; VC-14, A7): els mètodes actius del proveïdor. Només l'Administrador, amb un
+    # codi TOTP nou i nota; avisa el tresorer. Les claus i els secrets, a les variables d'entorn.
+    _perm(
+        "settings.edit.payments.provider",
+        "AJ5b-11",
+        _("Mètodes actius del proveïdor"),
+        requires=("settings.section.payments",),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

@@ -7,6 +7,7 @@ control: el servei rebutja l'edició sense permís amb «no trobat» i la deixa 
 comprova el tipus, el rang, la data i la nota.
 """
 
+from copy import deepcopy
 from decimal import Decimal
 
 from django import forms
@@ -19,10 +20,13 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.accounts.security import AREA_ADMIN, confirm_code
+
 from .. import business_settings as service
 from .. import consents, permissions, texts
 from ..models import Setting
 from ..permissions import request_permissions, require_perm
+from .roles import CODE_USED, ConfirmForm
 
 T = Setting.ValueType
 PREFIX = service.section_code("")
@@ -146,9 +150,12 @@ class ValueForm(forms.Form):
             max_length=2000,
             widget=forms.Textarea(attrs={"rows": 2}),
             help_text=_("Obligatòria: explica el canvi. Queda a l'historial.")
-            if setting.affects_money
+            if setting.affects_money or service.needs_totp(setting)
             else _("Opcional. Queda a l'historial."),
         )
+
+        if service.needs_totp(setting):  # P-131: la configuració del proveïdor
+            self.fields["code"] = deepcopy(ConfirmForm.base_fields["code"])
 
     def clean_value(self):
         value = self.cleaned_data["value"]
@@ -203,14 +210,18 @@ def setting_detail_view(request, section, key):
                 value = service.normalise(key, clean["value"])  # com en desar-lo
                 service.validate_value(setting, value)
                 preview = texts.preview(key, value)
+            elif error := "code" in clean and confirm_code(
+                request, request.user, AREA_ADMIN, clean["code"]
+            ):
+                form.add_error(None, error)
             else:
                 service.change(
                     key, clean["value"], request.user, clean["note"], clean.get("effective_from")
                 )
         except ValidationError as exc:
-            form.add_error(None, exc)
+            form.add_error(None, [*exc.messages, CODE_USED] if "code" in clean else exc)
         else:
-            if preview is None:
+            if preview is None and not form.errors:
                 messages.success(request, _("Valor desat. El canvi queda a l'historial."))
                 return redirect("administration:setting_detail", section=section, key=key)
     history = [

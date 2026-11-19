@@ -24,7 +24,7 @@ from apps.payments import (
     returns,
 )
 from apps.payments.models import PaymentAttempt as Attempt
-from apps.payments.providers import base, fake
+from apps.payments.providers import base, fake, switch_key
 from apps.payments.tests.test_bizum import minutes_pass
 from apps.payments.tests.test_checkout import new_charge
 from apps.payments.tests.test_processing import (  # noqa: F401
@@ -64,6 +64,7 @@ def test_vc_17_values_come_from_the_migration_with_their_ranges():
         (mandates.IBAN_COUNTRIES, SEPA, None, None),  # P-123
         (returns.MAX_ATTEMPTS, 2, 1, 3),  # VC-16 (T-M05b-12)
         (remittances.PRENOTIFICATION_DAYS, 14, 14, 30),  # VC-16 (T-M05b-09)
+        *[(switch_key(c), True, None, None) for c in ("bizum", "card", "tokenization")],  # P-131
         (returns.BLOCK_CODES, "AC04, MD01", None, None),  # P-291
         (returns.RETRY_CODES, "AM04", None, None),  # P-291
         (AGE, 60, 30, 240),
@@ -170,7 +171,8 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         finally:
             MigrationExecutor(connection).migrate(leaves)
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
-        assert after == before and len(after) == 10  # +1 T-M05b-15a, +2 P-291, +1 P-123
+        # +1 T-M05b-15a, +2 P-291, +1 P-123, +3 P-131
+        assert after == before and len(after) == 13
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
 

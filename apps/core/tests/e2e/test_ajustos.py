@@ -3,11 +3,13 @@ canvia un valor de pagaments des del menú (un valor fora de rang no es desa) i 
 «Cons.», veu el valor i l'historial sense formulari. Ajustos de socis (T-M01-32): el tresorer
 programa un preu i canvia els recordatoris. Codis de retorn (P-291): el tresorer en canvia
 l'acció. Textos dels correus (T-M00-08), àrea de socis: la secretaria edita el de la baixa. Tipus de
-soci (T-M01-52): l'administrador en crea un amb el seu preu i el desactiva. Pantalles
-a 1280, 390 i 320 px."""
+soci (T-M01-52): l'administrador en crea un amb el seu preu i el desactiva. Mètodes del proveïdor
+(P-131): l'administrador atura el Bizum amb nota i un codi TOTP nou. Pantalles a 1280, 390 i
+320 px."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
+import pyotp
 import pytest
 from django.utils import timezone
 from playwright.sync_api import expect
@@ -15,7 +17,7 @@ from playwright.sync_api import expect
 from apps.core import business_settings, consents
 from apps.core.models import Role, RolePermission, Setting
 
-from .conftest import login_admin, make_admin, menu_entry
+from .conftest import TOTP_KEY, login_admin, make_admin, menu_entry
 from .test_carnet_079 import login_personal
 
 pytestmark = pytest.mark.e2e
@@ -280,3 +282,29 @@ def test_administrator_reviews_and_publishes_a_legal_text(page, live_server, rev
     assert consents.current_text("membership_terms").content == (
         "Condicions inventades.\n\nSegon paràgraf de prova."
     )
+
+
+def test_administrator_stops_bizum_with_a_totp_code(page, live_server, review):
+    # P-131 (095): la configuració del proveïdor, amb codi TOTP nou i nota (`payments/0026`).
+    admin = make_admin("admin.prova", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos de pagaments").click()
+    label = "Mètodes actius del proveïdor: Bizum"
+    page.get_by_role("link", name=f"Canvia: {label}").click()
+    page.get_by_label("Valor nou").select_option("0")
+    page.get_by_label("Nota").fill("Prova inventada")
+    page.get_by_label("El teu codi TOTP").fill("000000")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    review("proveidor-codi-erroni")
+
+    page.get_by_label("Valor nou").select_option("0")
+    page.get_by_label("Nota").fill("Prova inventada")
+    page.get_by_label("El teu codi TOTP").fill(
+        pyotp.TOTP(TOTP_KEY).at(datetime.now(), counter_offset=1)
+    )
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("proveidor-desat")
+    assert business_settings.get("payments.provider.bizum_enabled") is False
