@@ -50,6 +50,8 @@ def _instalment_label(suffix):
         "enabled": _("activat"),
         "total_cents": _("import total dels tres terminis"),
         "surcharge_cents": _("recàrrec"),
-        "unpaid_candidate_days": _("dies després del venciment per proposar l'impagat"),
+        "unpaid_candidate_days": _(
+            "dies després del venciment per proposar l'impagat (quota anual i terminis)"
+        ),
     }
     return labels.get(suffix, suffix)

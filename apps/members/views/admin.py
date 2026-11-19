@@ -42,7 +42,6 @@ from apps.members import (
     admissions,
     cards,
     fees,
-    instalments,
     join,
     member_edit,
     member_requests,
@@ -608,7 +607,8 @@ def fees_view(request):
     form = fees.FeeFilterForm(request.GET or None)
     data = form.cleaned_data if form.is_valid() else {}
     today = local_today()
-    page = Paginator(fees.rows_for_review(data, today), PER_PAGE).get_page(
+    candidates = fees.unpaid_candidates(today)  # T-M01-18d (085, J-4): només es proposen
+    page = Paginator(fees.rows_for_review(data, today, candidates), PER_PAGE).get_page(
         request.GET.get("pagina")
     )
     to_review = []
@@ -631,8 +631,8 @@ def fees_view(request):
         "to_review": to_review,
         "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
         "can_list": has_perm(request.user, roster.LIST),
-        # T-M01-49 (097, P-61 punt 2): només els candidats que surten en aquesta pàgina.
-        "candidates": instalments.unpaid_candidates(today) & {m.pk for m, _fee in page},
+        # Només els candidats que surten en aquesta pàgina.
+        "candidates": candidates & {m.pk for m, _fee in page},
     }
     if page.number == 1:  # T-M01-43d: només a la primera pàgina del llistat
         without_address = fees.renewal_notices_without_address(today)

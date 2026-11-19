@@ -312,10 +312,10 @@ def test_an_unpaid_instalment_is_proposed_after_the_days_and_never_marked_alone(
     _fee, (first, _second, _third) = choose(member)
     pay(first, at_noon(date(2027, 1, 25)))
     services.on_fee_paid(first.pk)
-    assert member.pk not in instalments.unpaid_candidates(date(2027, 3, 29))  # 29 dies
-    assert member.pk in instalments.unpaid_candidates(date(2027, 3, 30))  # 30 dies
+    assert member.pk not in fees.unpaid_candidates(date(2027, 3, 29))  # 29 dies
+    assert member.pk in fees.unpaid_candidates(date(2027, 3, 30))  # 30 dies
     set_value(values.INSTALMENTS_UNPAID_DAYS, 10)
-    assert member.pk in instalments.unpaid_candidates(date(2027, 3, 10))
+    assert member.pk in fees.unpaid_candidates(date(2027, 3, 10))
     member.refresh_from_db()
     assert member.status == S.ACTIVE  # 040: la marca és del tresorer
 
@@ -330,4 +330,4 @@ def test_an_instalment_that_may_still_be_collected_is_not_proposed(on):
     services.on_fee_paid(first.pk)
     attempt = attempts.create_attempt(second.charge, PaymentAttempt.Method.CARD)
     attempts.transition(attempt, PaymentAttempt.Status.IN_PROGRESS, by=SYSTEM)
-    assert member.pk not in instalments.unpaid_candidates(date(2027, 4, 15))  # el 2n, en curs
+    assert member.pk not in fees.unpaid_candidates(date(2027, 4, 15))  # el 2n, en curs

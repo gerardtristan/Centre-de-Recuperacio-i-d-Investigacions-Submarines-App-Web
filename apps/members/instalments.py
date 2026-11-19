@@ -11,9 +11,8 @@ ningú no els pot triar i no es crea cap termini. Opcions per defecte: P-396.
   els tres terminis sobre càrrecs nous. El primer venç el dia de la quota o avui, si ja ha
   passat; els altres, un i dos mesos després (J-9: «tres terminis mensuals»).
 - `plan(total)`: l'import de cada termini (total + recàrrec); els cèntims que sobren, al primer.
-- `unpaid_candidates(today)`: socis actius amb un termini vençut fa els dies de l'ajust (o més),
-  sense pagar o retornat i sense cap intent que encara el pugui cobrar. Només es proposen: el
-  tresorer marca l'impagat a mà, amb motiu (040).
+- El candidat a «impagat» per un termini el calcula `fees.unpaid_candidates`, el mateix que per
+  a la quota anual (T-M01-18d).
 
 Que el soci passi a actiu amb el primer termini pagat i el «vàlid fins al» són de
 `services.on_fee_paid` i `validity.instalments_until`.
@@ -142,18 +141,3 @@ def has_unpaid_instalments(member) -> bool:
     return AnnualFee.objects.filter(
         member=member, kind=K.INSTALMENT, charge__status__in=fees.UNPAID_CHARGE
     ).exists()
-
-
-def unpaid_candidates(today: datetime.date) -> set[int]:
-    """Ids dels socis actius candidats a «impagat» per un termini (097, P-61 punt 2)."""
-    limit = today - datetime.timedelta(days=values.instalments_unpaid_days())
-    return set(
-        AnnualFee.objects.filter(
-            kind=K.INSTALMENT,
-            charge__status__in=fees.UNPAID_CHARGE,
-            due_on__lte=limit,
-            member__status=S.ACTIVE,
-        )
-        .exclude(charge__attempts__status__in=_may_be_charged())
-        .values_list("member_id", flat=True)
-    )

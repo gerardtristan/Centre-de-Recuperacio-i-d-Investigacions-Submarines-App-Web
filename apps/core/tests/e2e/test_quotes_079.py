@@ -90,3 +90,25 @@ def test_renewal_notice_without_address_is_listed(page, live_server, builder, re
     review("avis-renovacio-sense-adreca")
     page.get_by_role("link", name="Jordi Prova").click()
     expect(page.get_by_role("heading", name="Jordi Prova")).to_be_visible()
+
+
+def test_the_treasurer_filters_the_candidates_and_marks_one(page, live_server, member, review):
+    """T-M01-18d (085, J-4; P-400): un rebut retornat el proposa com a candidat; el tresorer filtra
+    els candidats i el marca amb motiu. La plataforma no el marca mai sola (040)."""
+    from apps.core.models import Charge
+    from apps.members.models import AnnualFee
+
+    fee = AnnualFee.objects.filter(member=member).first()
+    Charge.objects.filter(pk=fee.charge_id).update(status=Charge.Status.RETURNED)
+    login_admin(page, live_server.url, make_admin("tresoreria.prova", "treasurer").login)
+    page.goto(f"{live_server.url}/{ADMIN}/quotes/")
+    page.get_by_label("Estat de la quota").select_option(label="Candidat a impagat")
+    page.get_by_role("button", name="Filtra").click()
+    expect(page.locator(".estat-error", has_text="Candidat a impagat")).to_be_visible()
+    review("quotes-candidats")
+    assert Member.objects.get(pk=member.pk).status == Member.Status.ACTIVE
+    page.get_by_text("Marca impagat…").click()
+    page.get_by_label("Motiu").fill("Rebut retornat (prova inventada)")
+    page.get_by_role("button", name="Marca com a impagat").click()
+    expect(page.get_by_text("queda marcat com a impagat")).to_be_visible()
+    assert Member.objects.get(pk=member.pk).status == Member.Status.UNPAID
