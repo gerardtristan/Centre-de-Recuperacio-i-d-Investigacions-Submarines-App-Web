@@ -104,7 +104,7 @@ class Member(models.Model):
         _("identificador de Cluber"), max_length=40, null=True, blank=True
     )
     # «Data alta/renovació» de l'exportació de Cluber (072, Q-076): el carnet d'un soci importat
-    # val un any des d'aquesta data, fins al mateix dia de l'any següent [A validar: tresorer].
+    # val un any des d'aquesta data, fins al mateix dia de l'any següent (097, punt 1).
     # Només per a socis de Cluber (restricció). La desa la importació final (T-M01-25).
     cluber_renewed_on = models.DateField(_("última renovació a Cluber"), null=True, blank=True)
     # Fixada en l'alta per a l'avatar futur; un disparador impedeix canviar-la (members/0004).

@@ -23,7 +23,7 @@ Què fa, en una sola transacció (si falla qualsevol pas, no queda res escrit):
   almenys una d'importable (una importació buida gastaria l'única importació final, RN-93);
 - crea el lot confirmat i, per cada fila importable, la persona (`persons.create_or_get`), el
   soci actiu amb el número de Cluber, `cluber_id`, la data d'alta si n'hi ha (Q-075), l'última
-  renovació de Cluber (`cluber_renewed_on`, d'on compta el carnet, Q-076 [A validar: tresorer]),
+  renovació de Cluber (`cluber_renewed_on`, d'on compten el venciment i el carnet, 097),
   la llavor de l'avatar (`new_avatar_seed`, per defecte del model) i l'entrada inicial de
   l'historial amb la procedència «importat de Cluber» (Q-072), i el consentiment d'imatges amb el
   canal «importat de Cluber» si la cel·la diu «sí»;
@@ -222,7 +222,7 @@ def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
             status=Member.Status.ACTIVE,  # 071, punt 7
             joined_on=values.get("Member.joined_on"),  # Q-075: cap data inventada
             cluber_id=cluber_id,
-            # Q-076: el carnet compta des d'aquí [A validar: tresorer]; només amb `cluber_id`.
+            # Q-076 (097, punt 1): el venciment compta des d'aquí; només amb `cluber_id`.
             cluber_renewed_on=values.get("last_renewal") if cluber_id else None,
             import_batch=batch,
         )

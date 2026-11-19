@@ -296,7 +296,7 @@ class TestWrites:
         assert [m.type.code for m in members] == ["supporter", "full"]
         assert {m.status for m in members} == {Member.Status.ACTIVE}
         assert {m.joined_on for m in members} == {datetime.date(2010, 3, 15)}
-        # Q-076: «Data alta/renovació», d'on compta el carnet [A validar: tresorer].
+        # Q-076 (097, punt 1): «Data alta/renovació», d'on compten el venciment i el carnet.
         assert {m.cluber_renewed_on for m in members} == {datetime.date(2026, 10, 1)}
         seeds = {m.avatar_seed for m in members}
         assert len(seeds) == 2 and all(len(s) == 64 for s in seeds)

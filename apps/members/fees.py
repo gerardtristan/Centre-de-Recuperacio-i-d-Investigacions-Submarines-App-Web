@@ -10,7 +10,7 @@ Retoc del 09/11/2026 (072):
 - `issue_annual_fee`: quota anual íntegra amb número d'ordre (P-54, sortida E).
 - `generate_due_fees`: cada dia genera la quota de renovació el dia del primer recordatori. El
   venciment és el «vàlid fins al» del soci (070: mateix dia de l'any següent al pagament; Cluber:
-  un any des de «Data alta/renovació», [A validar: tresorer]) o, per a un exempt, l'1 de gener
+  un any des de «Data alta/renovació», 097, punt 1) o, per a un exempt, l'1 de gener
   del primer any de quota (Q-003). Res amb pagaments parcials ni amb una quota viva sense pagar.
 - `send_due_reminders`: recordatoris als dies de VC-02 (Q-061; ajust, T-M01-32), un sol
   cop per quota i dia (`FeeReminder`); els posteriors al venciment, només si no s'ha pagat.
