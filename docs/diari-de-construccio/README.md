@@ -330,3 +330,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-72](T-DX-72.md) | Escriptori, PR 9b: conciliació amb el títol del que queda, els comptadors de Deposito i el panell de la línia triada (8/4, HTMX, J/K, Esc i «Tanca») (carril de disseny) | 19/11/2026 12:58 | d339f424 | 10 unitàries i 1 e2e noves | [A comprovar] |
 | [T-M01-18d](T-M01-18d.md) | Llista de candidats a «impagat» per a la quota anual i els terminis (dubte P-400) | 19/11/2026 05:00 | [A comprovar] | 1 fitxer nou; 1 e2e | [A comprovar] |
 | [T-M01-18d](T-M01-18d.md) | Llista de candidats a «impagat» per a la quota anual i els terminis (dubte P-400) | 19/11/2026 05:00 | 7bbe0256 (PR #262) | 1 fitxer nou; 1 e2e | [A comprovar] |
+| [T-M01-18d](T-M01-18d.md) | Llista de candidats a «impagat» per a la quota anual i els terminis (dubte P-400) | 19/11/2026 05:00 | b9323476 (PR #262) | 1 fitxer nou; 1 e2e | [A comprovar] |
