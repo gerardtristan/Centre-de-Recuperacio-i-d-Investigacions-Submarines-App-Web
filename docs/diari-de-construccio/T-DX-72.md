@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 19/11/2026 12:58 | fadc7191 | 10 unitàries noves; 1 e2e nova; 23 e2e de disposició, tresoreria i axe; 4707 unitàries (tresoreria, core, pagaments i pàgines de comptes) | [A comprovar] (PR #PR) |
+| 19/11/2026 12:58 | d339f424 | 10 unitàries noves; 1 e2e nova; 23 e2e de disposició, tresoreria i axe; 4707 unitàries (tresoreria, core, pagaments i pàgines de comptes) | [A comprovar] (PR #PR) |
 
 **En tres línies:** és la PR 9b del programa de l'escriptori que el propietari va aprovar el 18/11/2026. La conciliació diu a dalt quantes línies queden i, a l'escriptori, «Casa a mà», «Casa amb moviments» i «Revisa i confirma» s'obren en un panell al costat de la taula, sense sortir de la pàgina; J i K passen de línia i Esc el tanca. Al mòbil, a la tauleta i sense JavaScript, tot va com abans.
 
@@ -64,8 +64,8 @@
 
   ![Conciliació amb el títol «Queden 3 línies per conciliar», els comptadors i, a la dreta, el panell «Casa la línia a mà»](captures/2026-11-19_1249_T-DX-72_panell-1280.png)
 
-  *19/11/2026 12:49 (Europa/Madrid) · local, prova e2e, dades inventades · commit fadc7191*
+  *19/11/2026 12:49 (Europa/Madrid) · local, prova e2e, dades inventades · commit d339f424*
 - La confirmació al panell a 1280 px en fosc: `captures/2026-11-19_1249_T-DX-72_panell-confirma-1280-fosc.png`
 - La conciliació a 390 px en fosc, sense panell, com abans: `captures/2026-11-19_1249_T-DX-72_conciliacio-390-fosc.png`
 
-  *19/11/2026 12:49 (Europa/Madrid) · local, prova e2e, dades inventades · commit fadc7191*
+  *19/11/2026 12:49 (Europa/Madrid) · local, prova e2e, dades inventades · commit d339f424*
