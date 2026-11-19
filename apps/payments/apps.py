@@ -48,7 +48,12 @@ class PaymentsConfig(AppConfig):
         # P-131: la configuració del proveïdor demana un codi TOTP nou per desar-la.
         from . import providers
 
-        business_settings.register_family(providers.SWITCHES, providers.switch_label, totp=True)
+        business_settings.register_family(
+            providers.SWITCHES,
+            providers.switch_label,
+            totp=True,
+            notice="avis-canvi-metodes-pagament",  # P-131b: l'assumpte que va triar el propietari
+        )
 
         from .setup import ensure_transit_account
 

@@ -76,12 +76,15 @@ def canonical_list(value):
 FAMILIES: dict = {}
 # P-131: famílies que, a més, demanen un codi TOTP nou (la pantalla), nota i avís al tresorer.
 TOTP_FAMILIES: set = set()
+NOTICES: dict = {}  # família → plantilla pròpia de l'avís (P-131b)
 
 
-def register_family(prefix: str, label, *, totp: bool = False) -> None:
+def register_family(prefix: str, label, *, totp: bool = False, notice: str = "") -> None:
     FAMILIES[prefix] = label
     if totp:
         TOTP_FAMILIES.add(prefix)
+    if notice:
+        NOTICES[prefix] = notice
 
 
 def needs_totp(setting: Setting) -> bool:
@@ -293,9 +296,11 @@ def _save(pk, value, user, note, effective_from) -> SettingVersion:
         reason=note,
         details={"effective_from": effective_from, "version_id": version.pk},
     )
+    family = family_of(setting.key)
     if setting.affects_money or needs_totp(setting):
         notify_money_change(
-            what=setting.key,
+            what=_notice_label(setting.key, family) if family in NOTICES else setting.key,
+            template=NOTICES.get(family, EMAIL_TEMPLATE),
             previous=display_value(setting, previous),
             new=display_value(setting, value),
             changed_by=user,
@@ -344,8 +349,21 @@ def money_change_recipients():
     return list(by_address.values())
 
 
+def _notice_label(key: str, family: str) -> str:
+    """El nom llegible de la fila, com a la pantalla: «<permís>: <sufix>»."""
+    perm = permissions.CATALOG[permission_code(key)]
+    return f"{perm.description}: {FAMILIES[family](key.removeprefix(family + '.'))}"
+
+
 def notify_money_change(
-    *, what: str, previous: str, new: str, changed_by, note: str, effective_from
+    *,
+    what: str,
+    previous: str,
+    new: str,
+    changed_by,
+    note: str,
+    effective_from,
+    template: str = EMAIL_TEMPLATE,
 ) -> list:
     """RN-AJ-04: un correu al tresorer i a la junta amb el valor, l'anterior, el nou, qui l'ha
     canviat, la nota i la data d'entrada en vigor. Els catàlegs i les tarifes el criden en desar
@@ -362,7 +380,7 @@ def notify_money_change(
     emails = []
     for account in money_change_recipients():
         email = mail.queue_email(
-            EMAIL_TEMPLATE, to=account.notification_email, person=account.person, context=context
+            template, to=account.notification_email, person=account.person, context=context
         )
         if email is not None:
             emails.append(email)
