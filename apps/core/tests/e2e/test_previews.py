@@ -42,6 +42,9 @@ def test_admin_with_dx1_reaches_the_screens_from_the_menu(page, live_server, set
     sidebar = page.locator("#barra-lateral")
     menu_entry(page, "Pantalles en construcció").click()
     expect(page.get_by_role("heading", level=1)).to_have_text("Pantalles en construcció")
+    # Rols i permisos ja funciona a /gestio/permisos/ (T-RP-03): no surt a l'índex (T-DX-74).
+    expect(page.get_by_role("main").get_by_role("link", name="Rols i permisos")).to_have_count(0)
+    review("en-construccio-index")
     page.get_by_role("main").get_by_role("link").first.click()
     expect(page.locator(".en-construccio").first).to_be_visible()
     expect(sidebar.get_by_role("link", name="Pantalles en construcció")).to_have_attribute(
