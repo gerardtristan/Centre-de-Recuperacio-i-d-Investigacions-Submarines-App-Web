@@ -371,11 +371,53 @@ class TestWrites:
 
 
 @allowed
-def test_no_card_without_the_cluber_renewal_date_rn_m01_34(admin, future_document_rule):
-    final.confirm(build([importable_record(1, {"idInterno": ""})]), by=admin)
-    member = Member.objects.get()
-    assert member.cluber_renewed_on is None
-    assert cards.active_card(member) is None
+class TestCardOfTheImportedT_M01_19b:
+    @pytest.mark.parametrize(
+        "values",
+        [
+            {"idInterno": ""},  # sense `idInterno` la data no es desa
+            {"Data alta/renovació": ""},  # amb `idInterno` i sense la data
+        ],
+    )
+    def test_no_card_without_the_cluber_renewal_date_rn_m01_34(
+        self, admin, future_document_rule, values
+    ):
+        final.confirm(build([importable_record(1, values)]), by=admin)
+        member = Member.objects.get()
+        assert member.cluber_renewed_on is None
+        assert cards.active_card(member) is None
+
+    def test_no_expired_card_for_a_renewal_older_than_a_year_p398(
+        self, admin, future_document_rule
+    ):
+        row = importable_record(1, {"Data alta/renovació": "01/10/2024"})
+        final.confirm(build([row]), by=admin)
+        member = Member.objects.get()
+        assert member.cluber_renewed_on == datetime.date(2024, 10, 1)
+        assert cards.active_card(member) is None
+        assert not AuditEntry.objects.filter(action=cards.CARD_ISSUED).exists()
+
+    def test_missing_card_keys_refuse_before_writing(self, admin, future_document_rule, settings):
+        settings.CARD_QR_KEYS = []
+        settings.CARD_QR_KEYS_REQUIRED = True
+        before = snapshot()
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(build([importable_record(1)]), by=admin)
+        assert refused.value.code == "card_keys_missing"
+        assert snapshot() == before
+
+    def test_a_card_refusal_is_a_refusal_code_and_writes_nothing(
+        self, admin, future_document_rule, monkeypatch
+    ):
+        def refuse(member, **kwargs):
+            raise cards.CardNotAllowed("inventat")
+
+        monkeypatch.setattr(final, "issue_card", refuse)
+        before = snapshot()
+        with pytest.raises(final.FinalImportRefused) as refused:
+            final.confirm(build([importable_record(1)]), by=admin)
+        assert (refused.value.code, refused.value.rows) == ("card_not_allowed", (2,))
+        assert snapshot() == before
 
 
 @allowed

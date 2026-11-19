@@ -26,8 +26,10 @@ Què fa, en una sola transacció (si falla qualsevol pas, no queda res escrit):
   renovació de Cluber (`cluber_renewed_on`, d'on compten el venciment i el carnet, 097),
   la llavor de l'avatar (`new_avatar_seed`, per defecte del model) i l'entrada inicial de
   l'historial amb la procedència «importat de Cluber» (Q-072), el consentiment d'imatges amb el
-  canal «importat de Cluber» si la cel·la diu «sí», i el carnet amb el servei de carnets si hi ha
-  «Data alta/renovació» (RN-M01-34; 097, punt 1; T-M01-19b): sense aquesta data, cap carnet;
+  canal «importat de Cluber» si la cel·la diu «sí», i el carnet amb el servei de carnets si el
+  «vàlid fins al» del soci (`cards.valid_until`) és d'avui o posterior (RN-M01-34; 097, punt 1;
+  T-M01-19b): sense «Data alta/renovació», cap carnet; amb una de fa més d'un any, tampoc (P-398):
+  el tindrà quan pagui. Sense les claus del carnet configurades, es rebutja abans d'escriure res;
 - una línia per fila, amb codis de la llista tancada i sense cap valor del fitxer;
 - el comptador de números continua després del més alt importat (RN-M01-32, CA-M01-22).
 
@@ -48,7 +50,7 @@ Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la re
 from collections import Counter
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -58,7 +60,8 @@ from apps.core.models import ImportBatch, ImportLine, Person
 from apps.core.permissions import has_perm
 from apps.core.persons import create_or_get
 
-from ..cards import issue_card, revoke_card
+from .. import card_keys
+from ..cards import CardNotAllowed, issue_card, load_member, revoke_card, valid_until
 from ..models import Member, MembershipNumberCounter, MembershipType, MemberStatusChange
 from . import cluber
 
@@ -80,6 +83,8 @@ MESSAGES = {
     "document_type_row_unknown": _("S'ha triat el tipus de document d'una fila que no el demana."),
     "document_type_invalid": _("El tipus de document triat no és vàlid."),
     "not_undoable": _("Aquest lot no es pot desfer."),
+    "card_keys_missing": _("Falten les claus del carnet a la configuració: no s'ha importat res."),
+    "card_not_allowed": _("No s'ha pogut emetre el carnet d'una fila: no s'ha importat res."),
     "reason_required": _("Cal el motiu per desfer la importació."),
     **cluber.MESSAGES,
 }
@@ -148,6 +153,10 @@ def confirm(
         raise FinalImportBlocked(MESSAGES["blocked"])
     if not has_perm(by, PERMISSION):
         raise PermissionDenied
+    try:  # T-M01-19b: el carnet necessita la clau activa; millor rebutjar que escriure a mitges
+        card_keys.active_key_id()
+    except ImproperlyConfigured as error:
+        raise FinalImportRefused("card_keys_missing") from error
     result = cluber.preview(data, keep_values=True)
     if result.rejected:
         raise FinalImportRefused(result.rejected)
@@ -240,8 +249,13 @@ def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
                 IMAGE_CONSENT_KIND, cluber.IMAGE_CONSENT, language=IMAGE_CONSENT_LANGUAGE, by=by
             )
             consents.grant_imported(person, image_text, by=by)
-        if member.cluber_renewed_on:  # RN-M01-34: sense la data, cap carnet
-            issue_card(member, by=by)
+        # RN-M01-34 i P-398: mai un carnet ja caducat; el soci el tindrà quan pagui.
+        until = valid_until(load_member(member.pk))
+        if until is not None and until >= timezone.localdate():
+            try:
+                issue_card(member, by=by)
+            except CardNotAllowed as error:
+                raise FinalImportRefused("card_not_allowed", (row.row,)) from error
         people[row.row] = person
 
     highest = max(r.data["member_number"] for r in to_import)
