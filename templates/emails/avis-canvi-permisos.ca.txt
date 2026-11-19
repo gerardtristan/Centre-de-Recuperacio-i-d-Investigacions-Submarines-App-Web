@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with when=when|date:"d/m/Y H:i" %}El {{ when }} el compte «{{ actor }}» ha desat la versió {{ number }} de la matriu de permisos. Canvis:{% endblocktranslate %}
+{% for cell in cells %}
+- {{ cell.role }} · {{ cell.ref }} {{ cell.permission }}: {{ cell.before }} → {{ cell.after }}{% endfor %}
+
+{% translate "Nota de qui ha fet el canvi:" %} {{ note }}
+
+{% translate "Reps aquest avís perquè tens el rol administrador o President, o perquè el canvi afecta un rol del teu compte. Té efecte a la petició següent. Aquest correu no porta cap enllaç." %}
+
+{% translate "Si ningú no esperava aquest canvi, revisa el registre d'activitat i avisa la junta tan aviat com puguis." %}
+{% endautoescape %}

@@ -48,6 +48,7 @@ class Action:
     PASSWORD_CHANGED = "auth.password_changed"  # noqa: S105 (nom d'una acció)
     ROLE_ASSIGNED = "roles.assigned"
     ROLE_REMOVED = "roles.removed"
+    PERMISSION_CHANGED = "roles.permission_changed"  # RN-RP-08: una entrada per cel·la (T-RP-03)
     ADMIN_ACCOUNT_DISABLED = "accounts.admin_disabled"
     FILE_URL_ISSUED = "files.url_issued"
     FILE_DELETED = "files.deleted"

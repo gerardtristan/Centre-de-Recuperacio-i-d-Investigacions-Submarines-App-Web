@@ -1106,5 +1106,14 @@ opcions:
       dies dels terminis són «com la quota». Només és una proposta: el tresorer marca l'impagat a mà, amb
       motiu, i el carnet continua vàlid fins llavors.
     data: 2026-11-19
+  P-401:
+    opcions:
+      A: "Com s'ha construït: es tanquen les sessions dels altres comptes amb el rol que guanya accés; la de qui desa, no."
+      B: "També la de qui desa: en desar, torna a l'entrada i ha d'entrar de nou amb el doble factor."
+    recomanada: A
+    perque: >-
+      RN-RP-11 tanca les sessions perquè els afectats tornin a entrar amb TOTP. Qui desa ja ha escrit un
+      codi nou a la mateixa petició (RN-RP-06): tancar-li la sessió no afegeix cap comprovació.
+    data: 2026-11-19
 
 noves:
