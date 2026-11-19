@@ -456,14 +456,12 @@ def _renewal_noticed(member, renews_on) -> bool:
     ).exists()
 
 
-def _due_for_notice(today):
-    """(soci, data de renovació) dels que toca avisar avui: socis de ple dret actius, sense cap
-    baixa pendent ni programada (RN-M01-93, punt 6), dins dels `MEMBER_RENEWAL_NOTICE_MONTHS`
-    abans de la renovació (085, T-6). Un dia perdut es recupera mentre la quota no s'ha generat;
-    un cop generada, `next_fee_due` ja no torna data."""
+def _notice_candidates(today) -> list:
+    """(soci, data de renovació) dins la finestra de l'avís: socis de ple dret actius,
+    `MEMBER_RENEWAL_NOTICE_MONTHS` abans de la renovació (085, T-6). Un dia perdut es recupera
+    mentre la quota no s'ha generat; un cop generada, `next_fee_due` ja no torna data. Les
+    baixes obertes (RN-M01-93, punt 6) les mira cada cridador dins el seu `try` per soci."""
     from apps.payments.expiry import months_after
-
-    from .member_requests import open_leaves
 
     months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
     members = roster.with_fee_data(
@@ -471,34 +469,49 @@ def _due_for_notice(today):
             status=S.ACTIVE, type__full_rights=True, person__status=Person.Status.ACTIVE
         )
     )
+    found = []
     for member in members:
-        due = next_fee_due(member)
-        if due is None or not months_after(due, -months) <= today < due:
+        try:
+            due = next_fee_due(member)
+        except Exception:
+            logger.exception("Avís de renovació: data de renovació del soci %s", member.pk)
             continue
-        if not open_leaves(member).exists():
-            yield member, due
+        if due is not None and months_after(due, -months) <= today < due:
+            found.append((member, due))
+    return found
 
 
 def renewal_notices_without_address(today=None) -> list:
-    """T-M01-43d: (soci, data de renovació) dels que no reben l'avís perquè no tenen cap adreça
-    (RN-M01-78). La tasca diària ho torna a provar: en surten quan n'hi posen una o quan la
-    quota ja s'ha generat."""
+    """T-M01-43d: (soci, data de renovació) dels que haurien de rebre l'avís i no el reben
+    perquè no tenen cap adreça (RN-M01-78). Un soci amb dades estranyes es registra i se salta:
+    la pantalla no falla mai per un soci."""
+    from .member_requests import open_leaves
+
     today = today or local_today()
-    return [
-        (member, due)
-        for member, due in _due_for_notice(today)
-        if not recipients.email_for(member.person, today=today)
-    ]
+    found = []
+    for member, due in _notice_candidates(today):
+        try:
+            if open_leaves(member).exists() or _renewal_noticed(member, due):
+                continue
+            if not recipients.email_for(member.person, today=today, log=False):
+                found.append((member, due))
+        except Exception:
+            logger.exception("Llista de l'avís de renovació: soci %s", member.pk)
+    return found
 
 
 def send_renewal_notices(today=None) -> int:
-    """Avís de renovació (`_due_for_notice`), una sola vegada per renovació: l'entrada del
-    registre d'activitat (soci i data) és la marca. La safata d'avisos de l'app no existeix
-    encara: només correu."""
+    """Avís de renovació als `_notice_candidates` sense cap baixa pendent ni programada
+    (RN-M01-93, punt 6), una sola vegada per renovació: l'entrada del registre d'activitat
+    (soci i data) és la marca. La safata d'avisos de l'app no existeix encara: només correu."""
+    from .member_requests import open_leaves
+
     today = today or local_today()
     sent = 0
-    for member, due in _due_for_notice(today):
+    for member, due in _notice_candidates(today):
         try:
+            if open_leaves(member).exists():
+                continue
             to = recipients.email_for(member.person, today=today)  # RN-M01-78
             if not to:
                 # Sense adreça no es marca (surt si n'hi posen una a temps): la secretaria ho

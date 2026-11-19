@@ -152,6 +152,7 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if without_address_more > 0 %}<p class="text-2">{% blocktranslate count total=without_address_more %}I {{ total }} soci més.{% plural %}I {{ total }} socis més.{% endblocktranslate %}</p>{% endif %}
     </section>
   {% endif %}
   <p class="enllacos"><a href="{% url 'administration:home' %}">{% translate "Tornar a l'inici de l'administració" %}</a></p>
