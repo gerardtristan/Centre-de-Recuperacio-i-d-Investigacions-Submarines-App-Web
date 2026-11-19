@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 13:46 | 7a9921d1 | 4 noves | [A comprovar] (PR #231) |
+| 18/11/2026 13:46 | e604468b | 4 noves | [A comprovar] (PR #231) |
 
 **En tres línies:** la plataforma no tenia cap joc d'icones: feia servir símbols de text i icones dibuixades a mà als wireframes. Ara té un sol joc, Lucide (llicència ISC), allotjat al servidor. L'sprite només porta les 36 icones que farà servir el programa (la navegació, els grups de l'administració, les activitats i el carnet), i es pinten amb `{% icona "nom" %}`.
 

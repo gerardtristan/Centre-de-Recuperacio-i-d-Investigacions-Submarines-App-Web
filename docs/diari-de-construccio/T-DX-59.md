@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 18/11/2026 14:21 | 002b735f | 4 noves, 1 e2e nova (2 casos) i 5 adaptades | [A comprovar] (PR #PR) |
+| 18/11/2026 14:21 | 3afd6331 | 4 noves, 1 e2e nova (2 casos) i 5 adaptades | [A comprovar] (PR #232) |
 
 **En tres línies:** l'àrea del soci tenia una barra a baix només per sota de 600 px i, a partir d'aquí, una fila d'enllaços subratllats a la capçalera. Ara Ramillete és a totes les mides: la barra a baix fins a 1023 px (flotant i centrada a la tauleta) i, a l'escriptori, un panell lateral clar i flotant amb «Mostra el QR», les entrades i el compte. La fila d'enllaços només queda sense JavaScript.
 
@@ -13,7 +13,7 @@
 - `static/js/ramillete.js`: els desplegables del panell (`data-desplega`): la fletxa del QR i «Més».
 - `apps/members/templatetags/member_nav.py`: `preview_url`, `has_pending_fee` i `may_request_new_card`.
 - `tokens.css`: `--ramillete-amplada` i la classe `icona-nav`.
-- Sistema de disseny 1.28 (§1, §5.1, §6.1, §6.12 i §6.20). Fila a [`estat/DX.md`](../estat/DX.md).
+- Sistema de disseny 1.37 (§1, §5.1, §6.1, §6.12 i §6.20). Fila a [`estat/DX.md`](../estat/DX.md).
 
 ## Decisions i perquè
 - **«Activitats» per defecte no hi és:** la pantalla «En construcció» encara no existeix i, a producció, un soci no les veu. Llavors la barra porta Inici, Perfil, Més, Carnet i Quotes, perquè «Més» quedi al centre.
@@ -45,6 +45,6 @@
 
   ![Portada de l'àrea de socis a 1280 px amb el panell lateral clar a l'esquerra: logotip, «Mostra el QR», les entrades amb icona, «Inici» marcat i el compte a baix](captures/2026-11-18_1421_T-DX-59_panell-inici-1280.png)
 
-  *18/11/2026 14:21 (Europa/Madrid) · local, dades inventades · commit 002b735f*
+  *18/11/2026 14:21 (Europa/Madrid) · local, dades inventades · commit 3afd6331*
 - El menú de la fletxa del QR: `captures/2026-11-18_1421_T-DX-59_menu-qr-1280.png`
 - La barra flotant a la tauleta, en fosc: `captures/2026-11-18_1421_T-DX-59_barra-quotes-800-fosc.png`
