@@ -26,6 +26,11 @@ Una línia proposada amb una liquidació del proveïdor (T-M04-13b; P-M04-F, pas
 confirma en dos passos: el GET mostra el brut, les comissions (amb el repartiment de cada
 cobrament, VT-05) i el net, i el POST crida `settlements.confirm_line`; tot amb T4.
 
+Panell de la conciliació (T-DX-72): a l'escriptori, «Casa a mà», «Casa amb moviments» i «Revisa i
+confirma» es carreguen amb HTMX (capçalera `HX-Request`) des de les mateixes vistes, amb el mateix
+permís, el mateix POST amb CSRF i les mateixes comprovacions; en reben només el cos (`_page`).
+Sense JavaScript, la pàgina sencera, com abans. El panell no és cap control.
+
 Exportació CSV (T-M04-16, C8; CA-T15.1): els moviments amb els mateixos filtres que la llista,
 per POST i amb T9 al servidor; cada exportació queda al registre amb els filtres i les files.
 """
@@ -36,7 +41,7 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import DurationField, ExpressionWrapper, Value
+from django.db.models import Count, DurationField, ExpressionWrapper, Value
 from django.db.models.functions import Greatest, Least
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -323,10 +328,24 @@ def undo_exclusion_view(request, line_id):
     return redirect("administration:home")
 
 
+def _page(request, template, context):
+    """T-DX-72: el panell de la conciliació demana la mateixa pàgina amb HTMX i en rep només el cos
+    (`treasury/_panell.html`); sense JavaScript, la pàgina sencera."""
+    panell = bool(request.headers.get("HX-Request"))
+    base = "treasury/_panell.html" if panell else "base_admin.html"
+    return render(request, template, {**context, "panell": panell, "base": base})
+
+
 @never_cache
 @permission_required(VIEW)
 @require_GET
 def reconciliation_view(request):
+    if request.headers.get("HX-Request"):
+        # Un pas del panell que acaba aquí (una redirecció) porta tota la pàgina: la conciliació no
+        # s'encasta dins del panell, i els missatges es mostren en carregar-la.
+        response = HttpResponse(status=204)
+        response["HX-Redirect"] = request.get_full_path()
+        return response
     reconciliation.refresh()  # els càrrecs canvien: les propostes es calculen abans de mostrar-les
     states = (
         StatementLineState.objects.filter(statement_line__in=statement_lines())
@@ -335,6 +354,7 @@ def reconciliation_view(request):
         .order_by("-statement_line__value_date", "-statement_line__pk")
     )
     page = Paginator(states, PER_PAGE).get_page(request.GET.get("pagina"))
+    counts = dict(states.order_by().values_list("status").annotate(Count("pk")))
     live = {
         found.statement_line_id: found
         for found in Reconciliation.objects.filter(
@@ -356,9 +376,12 @@ def reconciliation_view(request):
         }
         for state in page
     ]
+    S = StatementLineState.Status
     context = {
         "page": page,
         "rows": rows,
+        "counts": {status: counts.get(status, 0) for status in S.values},
+        "open": counts.get(S.PENDING, 0) + counts.get(S.PROPOSED, 0),
         "can_reconcile": has_perm(request.user, reconciliation.RECONCILE, write=True),
         "can_exclude": has_perm(request.user, reconciliation.EXCLUDE, write=True),
         "can_review": has_perm(request.user, reconciliation.REVIEW),
@@ -434,7 +457,7 @@ def settlement_line_view(request, line_id):
             "amount": euros(line.amount_cents),
             "choices": [{"settlement": s, "net": euros(s.net_cents)} for s in choices],
         }
-        return render(request, "treasury/settlement_confirm.html", context)
+        return _page(request, "treasury/settlement_confirm.html", context)
     split = [
         {"item": item, "amount": euros(item.amount_cents), "fee": euros(fee)}
         for item, fee in settlements.fee_split(settlement).items()
@@ -449,7 +472,7 @@ def settlement_line_view(request, line_id):
         "items": len(split),
         "split": split,
     }
-    return render(request, "treasury/settlement_confirm.html", context)
+    return _page(request, "treasury/settlement_confirm.html", context)
 
 
 def _ids(selected) -> list[int]:
@@ -476,7 +499,7 @@ def match_view(request, line_id):
         context["found"] = [
             {"charge": c, "amount": euros(c.amount_cents), "checked": c.pk in ids} for c in found
         ]
-        return render(request, "treasury/match.html", context)
+        return _page(request, "treasury/match.html", context)
     try:
         if request.POST.get("confirma"):
             reconciliation.match(line, ids, by=request.user)
@@ -491,7 +514,7 @@ def match_view(request, line_id):
         url = reverse("administration:treasury_match_line", args=[line.pk])
         return redirect(f"{url}?{urlencode({'cerca': query, 'carrec': ids}, doseq=True)}")
     context["matched"] = [{"charge": c, "amount": euros(c.amount_cents)} for c in matched]
-    return render(request, "treasury/match.html", context)
+    return _page(request, "treasury/match.html", context)
 
 
 # T-M04-12f (CA-T07.2; P-394, P-395): casar una línia pendent amb moviments que ja hi són, o
@@ -528,7 +551,7 @@ def match_movements_view(request, line_id):
             {"movement": m, "amount": euros(m.amount_cents), "checked": m.pk in ids}
             for m in found[: reconciliation.SEARCH_LIMIT]
         ]
-        return render(request, "treasury/match_movements.html", context)
+        return _page(request, "treasury/match_movements.html", context)
     try:
         if request.POST.get("confirma"):
             reconciliation.match_movements(line, ids, by=request.user)
@@ -540,4 +563,4 @@ def match_movements_view(request, line_id):
         url = reverse("administration:treasury_match_movements", args=[line.pk])
         return redirect(f"{url}?{urlencode({'moviment': ids}, doseq=True)}")
     context["matched"] = [{"movement": m, "amount": euros(m.amount_cents)} for m in matched]
-    return render(request, "treasury/match_movements.html", context)
+    return _page(request, "treasury/match_movements.html", context)

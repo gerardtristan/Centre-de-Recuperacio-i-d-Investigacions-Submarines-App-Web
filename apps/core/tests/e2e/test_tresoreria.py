@@ -98,7 +98,8 @@ def test_treasurer_confirms_and_undoes_a_reconciliation(
     # Hi arriba pel menú (T-DX-44): l'entrada només surt amb T1.
     entry = menu_entry(page, "Tresoreria: conciliació")
     entry.click()
-    expect(page.get_by_role("heading", name="Conciliació")).to_be_visible()
+    # T-DX-72: el títol diu el que queda per conciliar (D13)
+    expect(page.get_by_role("heading", level=1, name="Queda 1 línia per conciliar")).to_be_visible()
     expect(page).to_have_url(
         f"{live_server.url}{reverse('administration:treasury_reconciliation')}"
     )

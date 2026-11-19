@@ -153,3 +153,30 @@
   width: var(--v-plena); background: var(--c-linia-forta);
 }
 .historial-estats-text { display: grid; gap: var(--e-1); overflow-wrap: anywhere; min-width: 0; }
+
+/* conciliacio (T-DX-72, PR 9b): la taula de la conciliació i el panell de la línia triada. El panell
+   només existeix amb JavaScript (conciliacio.js li treu «hidden») i quan el cos fa 56rem o més:
+   aleshores, la taula a 8/12 i el panell a 4/12, fix en baixar. Per sota (mòbil i tauleta), amagat:
+   l'enllaç porta a la pàgina, com abans. El panell no és cap control. */
+.conciliacio { display: grid; gap: var(--e-6); align-items: start; }
+.conciliacio > * { min-width: 0; }
+.panell-linia { display: none; }
+@container cos (min-width: 56rem) {
+  .conciliacio:has(> .panell-linia:not([hidden])) { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+  .conciliacio > .panell-linia:not([hidden]) {
+    display: grid; gap: var(--e-3); align-content: start; position: sticky; top: var(--e-5);
+    max-block-size: calc(100dvh - 2 * var(--e-5)); overflow-y: auto; overscroll-behavior: contain;
+    padding-inline-start: var(--e-5); border-inline-start: var(--v-fina) solid var(--c-linia);
+  }
+}
+/* «Tanca» a la dreta del títol: primer al DOM (es llegeix abans del contingut que canvia) */
+.panell-linia > .accions { position: absolute; top: 0; inset-inline-end: 0; }
+.panell-linia-cos { display: grid; gap: var(--e-4); align-content: start; }
+.panell-linia-cos > h2 { margin: 0; padding-inline-end: var(--e-8); font-size: var(--t-l); }
+.panell-linia-cos .formulari, .panell-linia-cos .dades-soci { max-width: none; }
+/* La línia triada (amb J i K o en obrir-ne el panell), només amb el panell al costat: fons tenyit i
+   la vora marina a l'inici */
+@container cos (min-width: 56rem) {
+  .conciliacio tr.es-triada > * { background: color-mix(in oklab, var(--c-fons), var(--c-mari) 10%); }
+  .conciliacio tr.es-triada > :first-child { box-shadow: inset var(--v-activa) 0 0 var(--c-mari); }
+}

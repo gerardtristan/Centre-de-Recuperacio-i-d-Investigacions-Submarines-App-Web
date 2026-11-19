@@ -1,10 +1,11 @@
-{% extends "base_admin.html" %}
+{% extends base|default:"base_admin.html" %}
 {% load i18n %}
 {# T-M04-12e (P-M04-E, pas 3; LT2; RN-T17): casar a mà una línia pendent amb un o més càrrecs pendents. Cerca per referència o número de soci (els 20 més recents, cap IBAN; els que tenen un cobrament en curs o són a una altra proposta, sense casella), revisió amb la suma i confirmació. T4 al servidor en tots els passos; POST amb CSRF. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, l'estat, la suma i que cap càrrec sigui d'una altra proposta. #}
 {% block title %}{% translate "Casa la línia a mà" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <p class="etiqueta-seccio"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Conciliació" %}</a></p>
-  <h1>{% translate "Casa la línia a mà" %}</h1>
+  <h1>{% block titol_pagina %}{% translate "Casa la línia a mà" %}{% endblock %}</h1>
+  {% block cos %}
   {% for message in messages %}
     <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
   {% endfor %}
@@ -33,11 +34,11 @@
       <div class="avis avis-avis" role="status"><strong>{% translate "Confirma el casament" %}</strong>{% blocktranslate with amount=amount %}Els càrrecs sumen {{ amount }}, com la línia. Passaran a «pagat» per transferència i l'ingrés s'apuntarà al banc. Si t'equivoques, es desfà des de la conciliació, amb el motiu.{% endblocktranslate %}</div>
       <div class="accions">
         <button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Sí, casa-la" %}</button>
-        <a class="boto boto-text" href="{% url 'administration:treasury_match_line' line.pk %}?cerca={{ query|urlencode }}">{% translate "Cancel·la" %}</a>
+        <a class="boto boto-text" href="{% url 'administration:treasury_match_line' line.pk %}?cerca={{ query|urlencode }}"{% if panell %} hx-get="{% url 'administration:treasury_match_line' line.pk %}?cerca={{ query|urlencode }}" hx-target="#panell-linia-cos"{% endif %}>{% translate "Cancel·la" %}</a>
       </div>
     </form>
   {% else %}
-    <form class="formulari" method="get" action="{% url 'administration:treasury_match_line' line.pk %}">
+    <form class="formulari" method="get" action="{% url 'administration:treasury_match_line' line.pk %}"{% if panell %} hx-get="{% url 'administration:treasury_match_line' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
       <div class="camp">
         <label for="cerca">{% translate "Referències de transferència o números de soci" %}</label>
         <input id="cerca" name="cerca" type="search" value="{{ query }}" maxlength="200" autocomplete="off" aria-describedby="cerca-ajuda">
@@ -46,7 +47,7 @@
       <div class="accions"><button class="boto" type="submit">{% translate "Cerca" %}</button></div>
     </form>
     {% if found %}
-      <form class="formulari" method="post" action="{% url 'administration:treasury_match_line' line.pk %}">
+      <form class="formulari" method="post" action="{% url 'administration:treasury_match_line' line.pk %}"{% if panell %} hx-post="{% url 'administration:treasury_match_line' line.pk %}" hx-target="#panell-linia-cos"{% endif %}>
         {% csrf_token %}
         <input type="hidden" name="cerca" value="{{ query }}">
         <fieldset>
@@ -66,5 +67,6 @@
       <p>{% translate "Cap càrrec pendent amb aquesta referència o aquest número de soci." %}</p>
     {% endif %}
   {% endif %}
+  {% endblock cos %}
   <p class="enllacos"><a href="{% url 'administration:treasury_reconciliation' %}">{% translate "Torna a la conciliació" %}</a></p>
 {% endblock %}

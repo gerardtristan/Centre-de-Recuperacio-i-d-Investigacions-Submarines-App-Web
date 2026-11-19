@@ -1094,5 +1094,24 @@ opcions:
       Un carnet emès ja caducat no serveix de res i deixa una entrada «carnet emès» enganyosa; amb A,
       el carnet surt quan el soci torna a estar al corrent, com qualsevol altre soci.
     data: 2026-11-19
+  P-316:
+    opcions:
+      A: "Com ara: el panell surt quan la columna fa 56rem o més (~1180 px); a 1024 px, la pàgina a part, com a la tauleta."
+      B: "Panell també a 1024 px, amb la taula més estreta."
+      C: "Panell a 1024 px amagant columnes de la taula."
+    recomanada: A
+    perque: >-
+      A 1024 px la columna fa uns 45rem i ja a 1280 la taula a 8/12 va justa; amagar columnes va
+      contra el programa (a la tauleta no se n'amaga cap).
+    data: 2026-11-19
+  P-317:
+    opcions:
+      A: "«Casa amb moviments» també s'obre al panell, com ara."
+      B: "Només «Casa a mà» i «Revisa i confirma» al panell; «Casa amb moviments», a la pàgina a part."
+    recomanada: A
+    perque: >-
+      És una acció de la mateixa fila; si unes s'obren al costat i d'altres a part, el tresorer no
+      sap què passarà en clicar.
+    data: 2026-11-19
 
 noves:

@@ -5,9 +5,10 @@ Les mateixes comprovacions que la T-M01-28 (`test_accessibilitat_028.audit`: axe
 i AA en clar i en fosc, estructura, noms accessibles i recorregut amb el tabulador), a 1280 i
 390 px, amb dades inventades perquè cap taula quedi buida: comptes i saldos, moviments (ingressos
 i una despesa), anul·lar un moviment, traspàs i arqueig (formulari i confirmació), liquidacions
-del proveïdor i la seva confirmació, conciliació amb una línia proposada, casar amb moviments
-(T-M04-12f), «a revisar» (també amb el formulari d'exclusió obert) i l'extracte bancari
-(importat i previsualització). L'exportació de moviments és una descàrrega CSV, no una pantalla.
+del proveïdor i la seva confirmació, conciliació amb una línia proposada (i, a 1280, amb el
+panell de la línia triada obert, T-DX-72), casar amb moviments (T-M04-12f), «a revisar» (també amb
+el formulari d'exclusió obert) i l'extracte bancari (importat i previsualització). L'exportació
+de moviments és una descàrrega CSV, no una pantalla.
 
 Els informes es desen a `.e2e-captures/accessibilitat/`. La revisió amb lector de pantalla i en
 dispositius reals continua pendent de persona (P-301)."""
@@ -125,17 +126,29 @@ def test_treasury_screens(page, live_server, transactional_db, settings):
     page.goto(admin_url(base, "treasury_reconciliation"))
     expect(page.get_by_role("row", name="02/11/2026")).to_contain_text("Proposada")
     screen(page, "tresoreria-conciliacio", results)
-    page.get_by_role("row", name="03/11/2026").get_by_role("link", name="Casa a mà…").click()
+    row = page.get_by_role("row", name="03/11/2026")
+    match, movements = (
+        row.get_by_role("link", name=name).get_attribute("href")
+        for name in ("Casa a mà…", "Casa amb moviments…")
+    )
+    # T-DX-72: a 1280 px, «Casa a mà…» s'obre al panell, al costat de la taula
+    row.get_by_role("link", name="Casa a mà…").click()
+    panel = page.locator("[data-panell]")
+    panel.get_by_label("Referències de transferència o números de soci").fill(
+        transfer_reference(quotes[1])
+    )
+    panel.get_by_role("button", name="Cerca").click()
+    expect(panel.get_by_text("Tria els càrrecs que sumen")).to_be_visible()
+    audit(page, "tresoreria-conciliacio-panell-1280", results)
+
+    page.goto(f"{base}{match}")  # la pàgina a part, com al mòbil i sense JavaScript
     page.get_by_label("Referències de transferència o números de soci").fill(
         transfer_reference(quotes[1])
     )
     page.get_by_role("button", name="Cerca").click()
     screen(page, "tresoreria-casa-a-ma", results)
 
-    page.goto(admin_url(base, "treasury_reconciliation"))  # T-M04-12f
-    page.get_by_role("row", name="03/11/2026").get_by_role(
-        "link", name="Casa amb moviments…"
-    ).click()
+    page.goto(f"{base}{movements}")  # T-M04-12f
     expect(page.get_by_label("Donatiu (prova)")).to_be_visible()
     screen(page, "tresoreria-casa-moviments", results)
 

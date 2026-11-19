@@ -12,19 +12,21 @@ from playwright.sync_api import expect
 
 from apps.accounts.models import Account
 from apps.core import audit, charges
-from apps.core.models import Department, LegalText, Person
+from apps.core.models import AccountRole, Department, LegalText, Person, Role
 from apps.members.fee_rules import local_today
 from apps.members.models import LicenceRecord, Member
 from apps.members.tests.test_cards import make_member
 from apps.payments import campaigns, mandates
 from apps.treasury import services
 from apps.treasury.models import TreasuryAccount
+from apps.treasury.references import transfer_reference
 from apps.treasury.settlements import SettlementLine
+from apps.treasury.tests.test_reconciliation import lines
 from apps.treasury.tests.test_record_income import new_transit
 from apps.treasury.tests.test_settlements import collected, data, record_it
 from conftest import PASSWORD
 
-from .conftest import CAPTURES, SETTLED_JS, login_admin, make_admin
+from .conftest import CAPTURES, SETTLED_JS, login_admin, make_admin, menu_entry
 from .test_pagaments_llistat import S, attempt
 
 pytestmark = pytest.mark.e2e
@@ -498,3 +500,124 @@ def test_treasury_screens_on_the_desktop(page, live_server, transactional_db, se
         assert_header(page)
         assert page.evaluate(FORM_WIDTH_JS) <= FORM_MAX, shot
         shoot_screen(page, folder, shot)
+
+
+# T-DX-72 (PR 9b): la conciliació, amb la taula (8/12) i el panell de la línia triada (4/12).
+PANEL_COLUMNS_JS = """() => ['.conciliacio-taula', '[data-panell]'].map((s) => {
+  const r = document.querySelector(s).getBoundingClientRect();
+  return [r.x, r.width];
+})"""
+
+
+def test_reconciliation_with_the_panel_of_the_chosen_line(
+    page, live_server, transactional_db, page_checks
+):
+    """A 1280 px, «Casa a mà…» s'obre al panell al costat de la taula (8/4) amb el focus al
+    títol; la cerca, la revisió i la confirmació hi funcionen; J i K passen de línia; Esc i «Tanca»
+    el tanquen i el focus torna a l'enllaç. Si ja no hi té accés, el panell ho diu. A 390 px,
+    l'enllaç porta a la pàgina, com abans. Captures a 1280, 1024, 390 i 320 px, clar i fosc."""
+    treasurer = make_admin("tresoreria.escriptori", "treasurer")
+    payer = Person.objects.create(first_name="Pere", last_name="Prova Inventat", origin="web")
+
+    def charge(amount, concept):
+        return charges.create_charge(
+            payer, kind="fee", amount_cents=amount, concept=concept, origin="proves",
+            by=audit.system("proves-e2e"),
+        )  # fmt: skip
+
+    quota, donation = charge(9000, "Quota 2026 (prova)"), charge(4000, "Sortida (prova)")
+    lines(
+        treasurer,
+        (9000, f"TRANSF {transfer_reference(quota)} P INVENTAT"),  # 02/11, proposada
+        (4000, "TRANSF SENSE REFERENCIA INVENTADA"),  # 03/11, pendent
+        (2500, "TRANSF ALTRA ENTITAT INVENTADA"),  # 04/11, pendent
+    )
+    base, folder = live_server.url, "escriptori-conciliacio"
+    login_admin(page, base, treasurer.login)
+    page.set_viewport_size({"width": 1280, "height": 900})
+    menu_entry(page, "Tresoreria: conciliació").click()
+
+    title = page.get_by_role("heading", level=1)
+    expect(title).to_have_text("Queden 3 línies per conciliar")
+    summary = page.get_by_role("list", name="Resum de la conciliació")
+    expect(summary).to_contain_text("2pendents")
+    expect(summary).to_contain_text("1proposada")
+    panel = page.locator("[data-panell]")
+    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(page.get_by_role("table")).to_have_attribute("aria-keyshortcuts", "J K")
+    assert_header(page, principal=0)
+    shoot_screen(page, folder, "conciliacio")
+
+    rows = {day: page.get_by_role("row", name=f"0{day}/11/2026") for day in (2, 3, 4)}
+    link = rows[3].get_by_role("link", name="Casa a mà…")
+    link.click()
+    expect(panel.get_by_role("heading", name="Casa la línia a mà")).to_be_focused()
+    expect(panel).to_contain_text("TRANSF SENSE REFERENCIA INVENTADA")
+    expect(page).to_have_url(f"{base}{reverse('administration:treasury_reconciliation')}")
+    expect(rows[3]).to_have_attribute("aria-current", "true")
+    (table, side) = page.evaluate(PANEL_COLUMNS_JS)
+    assert side[0] >= table[0] + table[1], (table, side)  # al costat
+    assert 1.9 < table[1] / side[1] < 2.1, (table, side)  # 8/12 i 4/12
+    assert_header(page, principal=0)  # la cerca no és el botó principal (D19)
+    shoot_screen(page, folder, "conciliacio-panell")
+
+    page.keyboard.press("Escape")
+    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(link).to_be_focused()
+    link.click()
+    expect(panel.get_by_role("heading", name="Casa la línia a mà")).to_be_focused()
+    panel.get_by_role("button", name="Tanca").click()
+    expect(panel.get_by_role("heading", name="Cap línia triada")).to_be_visible()
+    expect(link).to_be_focused()
+
+    page.keyboard.press("j")  # la línia següent (més antiga), la proposada: sense panell
+    expect(rows[2]).to_have_attribute("aria-current", "true")
+    expect(rows[2]).to_be_focused()
+    page.keyboard.press("k")
+    page.keyboard.press("k")
+    expect(rows[4]).to_have_attribute("aria-current", "true")
+    expect(rows[3]).not_to_have_attribute("aria-current", "true")
+    expect(rows[4].get_by_role("link", name="Casa a mà…")).to_be_focused()
+    rows[4].get_by_role("link", name="Casa a mà…").click()
+    expect(panel).to_contain_text("TRANSF ALTRA ENTITAT INVENTADA")
+    page.keyboard.press("j")  # amb el panell obert, J hi porta la línia següent
+    expect(panel).to_contain_text("TRANSF SENSE REFERENCIA INVENTADA")
+    expect(rows[3]).to_have_attribute("aria-current", "true")
+
+    panel.get_by_label("Referències de transferència o números de soci").fill(
+        transfer_reference(donation)
+    )
+    panel.get_by_role("button", name="Cerca").click()
+    panel.get_by_label("Sortida (prova)", exact=False).check()
+    panel.get_by_role("button", name="Revisa el casament").click()
+    expect(panel.get_by_text("Confirma el casament")).to_be_visible()
+    shoot_screen(page, folder, "conciliacio-panell-confirma")
+    panel.get_by_role("button", name="Sí, casa-la").click()
+    expect(page.get_by_role("status")).to_contain_text("Línia casada")
+    expect(title).to_have_text("Queden 2 línies per conciliar")
+    expect(rows[3]).to_contain_text("Conciliada")
+
+    # Accés denegat: el panell ho diu i ofereix la pàgina; no hi encasta cap error.
+    href = rows[4].get_by_role("link", name="Casa a mà…").get_attribute("href")
+    page_checks.expect(404, href)  # sense T4, «no trobat» (059)
+    page_checks.expect(401, href)  # amb la sessió caducada, a sota
+    AccountRole.objects.filter(admin_account=treasurer).delete()
+    rows[4].get_by_role("link", name="Casa a mà…").click()
+    expect(panel.get_by_role("heading", name="No s'ha pogut obrir la línia")).to_be_focused()
+    expect(panel.get_by_role("alert")).to_be_visible()
+    shoot_screen(page, folder, "conciliacio-panell-error")
+    AccountRole.objects.create(admin_account=treasurer, role=Role.objects.get(code="treasurer"))
+
+    page.reload()
+    page.set_viewport_size({"width": 390, "height": 800})
+    rows[4].get_by_role("link", name="Casa a mà…").click()  # al mòbil, la pàgina a part
+    expect(page.get_by_role("heading", level=1, name="Casa la línia a mà")).to_be_visible()
+    expect(page).to_have_url(re.compile(r"/conciliacio/\d+/casa/$"))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    shoot_screen(page, folder, "casa-a-ma")
+
+    # Sessió caducada: HTMX porta tota la pàgina a l'entrada; res s'encasta al panell.
+    page.goto(f"{base}{reverse('administration:treasury_reconciliation')}")
+    page.context.clear_cookies()
+    rows[4].get_by_role("link", name="Casa a mà…").click()
+    expect(page).to_have_url(re.compile(r"/entrar/"))
