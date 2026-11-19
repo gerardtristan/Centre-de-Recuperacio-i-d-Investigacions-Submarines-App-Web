@@ -18,6 +18,12 @@ def test_there_is_at_least_one_screen():
     assert "novetats" in SCREENS
 
 
+def test_a_screen_that_already_works_is_no_longer_under_construction():
+    """§6.9: cap pantalla en construcció al costat de la real. Rols i permisos és a
+    `/gestio/permisos/` (T-RP-03), i la de prova es retira (T-DX-74)."""
+    assert "rols_permisos" not in SCREENS
+
+
 @pytest.mark.parametrize("name", SCREENS)
 def test_each_screen_declares_a_title_and_has_its_template(name):
     module = dict(discover())[name]
