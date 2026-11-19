@@ -1,8 +1,8 @@
-# P-315b-carnet · La prova del carnet que confonia el número d'un altre soci amb una hora
+# P-315b-carnet · Proves que confonien un número amb els microsegons d'una hora
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 20/11/2026 00:03 | 56a54306 | 1 ajustada | [A comprovar] |
+| 20/11/2026 00:03 | 56a54306, 02a1b2cd | 4 ajustades | [A comprovar] |
 
 **En tres línies:** el propietari va demanar tractar les proves que fallen de tant en tant com la P-315 ([T-DX-71](T-DX-71.md)): primer reproduir-les, després arreglar-les, mai saltar-les (19/11/2026). Aquesta és la primera que s'ha trobat al CI: `test_cards.py::test_own_valid_card_and_nothing_of_others` va fallar a master el 17/11 sense cap canvi que l'expliqués. Era un error de la prova, no del carnet.
 
@@ -22,6 +22,8 @@
 ## Com se sap que funciona
 - Amb el rellotge fixat i la comprovació antiga, la prova falla amb el mateix missatge que al CI (`'1999' is contained here: 14:29:59.119995+01:00`).
 - Amb l'arreglo: 20 passen, 20 vegades seguides; `test_cards.py`: 48 passen.
+- Les tres proves de la segona tanda també fallen amb els microsegons forçats i la comprovació antiga, i passen 20 vegades seguides amb l'arreglo; `test_admissions_079.py` i `test_birth_date_035.py`: 42 passen.
+- Cap altra prova de la suite compara un número amb el text sencer d'una pàgina que porti hores amb microsegons (revisades les comprovacions «"xifres" not in»).
 - Ruff net.
 
 ## Evidències
