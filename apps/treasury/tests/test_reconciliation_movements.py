@@ -255,3 +255,9 @@ class TestViews:
         )
         assert "Els moviments no es toquen" in response.content.decode()
         assert status(line) == State.PENDING
+
+    def test_a_proposed_line_shows_why_and_no_form(self, treasurer, charge):  # noqa: F811
+        (line,) = opened((9000, ref(charge(9000))), by=treasurer)
+        url = reverse("administration:treasury_match_movements", args=[line.pk])
+        page = client_for(treasurer).get(url).content.decode()
+        assert "ja té una proposta" in page and 'name="moviment"' not in page
