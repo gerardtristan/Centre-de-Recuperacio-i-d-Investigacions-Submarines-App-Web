@@ -62,7 +62,13 @@ from conftest import PASSWORD
 
 pytestmark = pytest.mark.django_db
 S = PaymentAttempt.Status
-TODAY = timezone.localdate()
+
+
+def today():
+    """Avui en executar la prova, no en carregar el fitxer (P-315b: mitjanit)."""
+    return timezone.localdate()
+
+
 SYSTEM = audit.system("proves")
 CREDITOR = "ES00ZZZ00000000"
 
@@ -90,7 +96,7 @@ def account(kind, provider_code=""):
 
 def at(acc, day=None):
     """Saldo d'un compte, sempre dels moviments (RN-T02)."""
-    return balance(acc, day or TODAY + timedelta(days=60))
+    return balance(acc, day or today() + timedelta(days=60))
 
 
 def pending_member(n, *, email=True):
@@ -173,7 +179,7 @@ def test_fee_by_provider_reaches_treasury_receipt_and_card(method):
     assert Payment.objects.get(charge=fee.charge).method == method
     assert at(transit) == 9000
     receipt = Receipt.objects.get(attempt=attempt)
-    assert receipt.number.startswith(f"R-{TODAY.year}-")
+    assert receipt.number.startswith(f"R-{today().year}-")
     assert OutgoingEmail.objects.filter(template="pagament-confirmat", person=member.person)
     assert member.status == Member.Status.ACTIVE and card_valid(member)
     assert {
@@ -190,8 +196,8 @@ def test_fee_by_provider_reaches_treasury_receipt_and_card(method):
 def transfer_statement(fmt, charge):
     text = f"TRANSF {references.transfer_reference(charge)} QUOTA"
     if fmt == "csv":
-        return _csv(TODAY, [(0, text, charge.amount_cents)])
-    return _norma43(TODAY, [(0, text, charge.amount_cents)])
+        return _csv(today(), [(0, text, charge.amount_cents)])
+    return _norma43(today(), [(0, text, charge.amount_cents)])
 
 
 @pytest.mark.parametrize("fmt", ["csv", "norma43"])
@@ -374,7 +380,7 @@ def test_provider_settlement_import_and_confirm(treasurer):
     fake.FakeProvider().settle(
         [(attempt.provider_order_id, attempt.amount_cents) for attempt in paid],
         fees_cents=120,
-        settled_on=TODAY,
+        settled_on=today(),
         external_id="LIQ-PROVA",
     )
     (settlement,) = settlements.import_settlements()

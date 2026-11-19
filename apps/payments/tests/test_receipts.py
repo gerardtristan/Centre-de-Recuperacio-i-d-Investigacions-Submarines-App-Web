@@ -32,7 +32,13 @@ from apps.payments.tests.test_processing import (  # noqa: F401 (fixtures)
 )
 
 pytestmark = pytest.mark.django_db
-YEAR = timezone.localdate().year
+
+
+def year():
+    """L'any d'avui en executar la prova, no en carregar el fitxer (P-315b: cap d'any)."""
+    return timezone.localdate().year
+
+
 EMAIL = "anna.contacte@example.org"
 
 
@@ -69,7 +75,7 @@ class TestIssue:
         run_queue()
         receipt = Receipt.objects.get()
         assert receipt.attempt == attempt
-        assert receipt.number == f"R-{YEAR}-000001"
+        assert receipt.number == f"R-{year()}-000001"
         (email,) = emails(receipts.PAID_TEMPLATE)
         assert email.to_address == EMAIL and email.person == fee.charge.person
         assert receipt.number in email.subject and receipt.number in email.body_text
@@ -78,7 +84,7 @@ class TestIssue:
         assert "Prova" not in email.body_text  # cap cognom ni cap altra dada personal
 
     def test_numbers_are_correlative_and_restart_each_year(self, attempt, transit):
-        ReceiptCounter.objects.create(year=YEAR - 1, last_number=41)
+        ReceiptCounter.objects.create(year=year() - 1, last_number=41)
         notify(attempt)
         second, _ = paying_attempt(
             "bruna.prova@example.org", first="Bruna", number=1300, document="87654321X"
@@ -86,10 +92,10 @@ class TestIssue:
         notify(second, event_id="e-2")
         run_queue()
         assert list(Receipt.objects.order_by("pk").values_list("number", flat=True)) == [
-            f"R-{YEAR}-000001",
-            f"R-{YEAR}-000002",
+            f"R-{year()}-000001",
+            f"R-{year()}-000002",
         ]
-        assert ReceiptCounter.objects.get(year=YEAR - 1).last_number == 41
+        assert ReceiptCounter.objects.get(year=year() - 1).last_number == 41
 
     def test_ca_m05b_04_a_repeated_notification_gives_no_second_receipt_nor_email(
         self, attempt, transit
@@ -100,7 +106,7 @@ class TestIssue:
         run_queue()
         assert Receipt.objects.count() == 1
         assert emails(receipts.PAID_TEMPLATE).count() == 1
-        assert ReceiptCounter.objects.get(year=YEAR).last_number == 1
+        assert ReceiptCounter.objects.get(year=year()).last_number == 1
 
     def test_no_gaps_when_the_payment_is_undone(self, attempt, transit, monkeypatch):
         """Si alguna cosa falla després d'emetre el rebut, es desfà tot: ni rebut, ni número
@@ -149,7 +155,7 @@ class TestReceiptPage:
         assert "no-store" in response["Cache-Control"]
         html = response.content.decode()
         for text in (
-            f"R-{YEAR}-000001",
+            f"R-{year()}-000001",
             timezone.localdate().strftime("%d/%m/%Y"),
             "Quota 2026",
             "90,00",
