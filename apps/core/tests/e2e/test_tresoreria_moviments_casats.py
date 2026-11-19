@@ -11,7 +11,7 @@ from apps.treasury import services
 from apps.treasury.models import Movement, TreasuryAccount
 from apps.treasury.tests.test_reconciliation import lines
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
@@ -31,7 +31,7 @@ def test_treasurer_matches_the_cash_deposit_line_with_the_bank_leg(
     lines(treasurer, (15_000, "INGRES EFECTIU OFICINA INVENTADA"))
 
     login_admin(page, live_server.url, treasurer.login)
-    page.locator("#barra-lateral").get_by_role("link", name="Tresoreria: conciliació").click()
+    menu_entry(page, "Tresoreria: conciliació").click()  # T-DX-62: dins del seu grup
     row = page.get_by_role("row", name="02/11/2026")
     row.get_by_role("link", name="Casa amb moviments…").click()
     page.get_by_label("Ingrés de l'efectiu de la caixa").check()
