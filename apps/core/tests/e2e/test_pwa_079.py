@@ -7,15 +7,52 @@ No substitueix la prova en un mòbil real feta per una persona (instal·lació, 
 """
 
 import time
+from types import SimpleNamespace
 
 import pytest
 from playwright.sync_api import expect
 
 from conftest import PASSWORD
 
+from .conftest import PageChecks
+
 pytestmark = pytest.mark.e2e
 
 OFFLINE_ERRORS = ("ERR_INTERNET_DISCONNECTED", "ERR_FAILED", "Failed to load resource")
+
+
+class _Page:
+    """Només recull els gestors d'esdeveniments que `PageChecks` registra."""
+
+    def __init__(self):
+        self.handlers = {}
+
+    def on(self, event, handler):
+        self.handlers[event] = handler
+
+
+def test_offline_errors_are_ignored_also_when_chromium_logs_them_to_the_console():
+    """P-315: Chromium, sense connexió, escriu de vegades a la consola «Failed to load resource:
+    net::ERR_INTERNET_DISCONNECTED». Aquest missatge no va a `problems` sinó a la llista de la
+    consola, que es resol en acabar la prova: treure'ls de `problems` no n'hi havia prou, i la
+    prova de la 081 fallava segons com queia el temps. Sense navegador: és determinista."""
+    page = _Page()
+    checks = PageChecks(page)
+    page.handlers["console"](
+        SimpleNamespace(
+            type="error",
+            text="Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+            location={"url": "http://localhost/socis/carnet/"},
+        )
+    )
+    checks.ignore(*OFFLINE_ERRORS)
+    assert checks.final_problems() == []
+    # Un missatge que arriba després (en acabar la prova) també s'ignora.
+    page.handlers["pageerror"]("TypeError: ERR_FAILED (prova)")
+    assert checks.final_problems() == []
+    # La resta d'errors continuen comptant.
+    page.handlers["pageerror"]("TypeError: un altre error")
+    assert checks.final_problems() == ["JavaScript: TypeError: un altre error"]
 
 
 def login_personal(page, base_url, account):
@@ -135,9 +172,7 @@ def test_offline_card_copy_and_logout_keeps_the_theme(
     context.set_offline(False)
 
     # Les peticions fallides mentre no hi havia connexió són les que s'esperaven.
-    page_checks.problems[:] = [
-        p for p in page_checks.problems if not any(text in p for text in OFFLINE_ERRORS)
-    ]
+    page_checks.ignore(*OFFLINE_ERRORS)
 
 
 def _age_the_copy(page, header, value_js):
@@ -221,6 +256,4 @@ def test_081_copy_expires_after_30_days_or_the_valid_until_and_refreshes_online(
     )
     _offline_card_is_not_shown(page, context, base)
 
-    page_checks.problems[:] = [
-        p for p in page_checks.problems if not any(text in p for text in OFFLINE_ERRORS)
-    ]
+    page_checks.ignore(*OFFLINE_ERRORS)
