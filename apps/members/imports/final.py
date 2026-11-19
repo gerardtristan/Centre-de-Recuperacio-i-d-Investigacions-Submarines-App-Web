@@ -9,6 +9,8 @@ Decisió 079 (A-25, A-26 i A-27; RN-M01-95; CA-M01-107 i 108):
 - **Tipus de document:** el lector el dedueix quan el DNI o el NIE té la lletra correcta. Per a
   la resta, la secretaria el tria fila per fila (`document_types`, número de registre → tipus);
   una fila amb document i sense tipus no s'importa mai.
+- **«Data alta/renovació» que falta** (097, punt 1; T-M01-25b): la fila queda pendent fins que
+  la secretaria la posa fila per fila (`renewal_dates`, número de registre → data), o s'exclou.
 - **Empremta:** la canònica de les columnes llegides, sense la d'IBAN (`Preview.fingerprint`).
   Si qui crida passa la de la prova (`file_sha256`), ha de coincidir: si no, el fitxer ha
   canviat i es rebutja. El lot desa sempre la canònica.
@@ -47,6 +49,7 @@ Què **no** fa, perquè depèn de decisions obertes (cap codi no en simula la re
 - Cap quota, càrrec ni moviment (RN-M01-33; 071, punts 3 i 6).
 """
 
+import datetime
 from collections import Counter
 
 from django.conf import settings
@@ -82,6 +85,8 @@ MESSAGES = {
     "file_changed": _("El fitxer no és el de la prova: torna a fer la prova."),
     "document_type_row_unknown": _("S'ha triat el tipus de document d'una fila que no el demana."),
     "document_type_invalid": _("El tipus de document triat no és vàlid."),
+    "renewal_date_row_unknown": _("S'ha posat la data de renovació d'una fila que no la demana."),
+    "renewal_date_invalid": _("La data de renovació ha de ser una data d'avui o anterior."),
     "not_undoable": _("Aquest lot no es pot desfer."),
     "card_keys_missing": _("Falten les claus del carnet a la configuració: no s'ha importat res."),
     "card_not_allowed": _("No s'ha pogut emetre el carnet d'una fila: no s'ha importat res."),
@@ -109,14 +114,16 @@ def is_allowed() -> bool:
 DOCUMENT_TYPES = set(Person.DocumentType.values)
 
 
-def importable(row: cluber.Row, document_types=None) -> bool:
-    """Nova, sense errors, no de baixa a Cluber, sense cap pendent llevat del tipus de document
-    triat per la secretaria, i mai un document sense el seu tipus."""
+def importable(row: cluber.Row, document_types=None, renewal_dates=None) -> bool:
+    """Nova, sense errors, no de baixa a Cluber, sense cap pendent llevat del tipus de document i
+    de la «Data alta/renovació» posats per la secretaria, i mai un document sense el seu tipus."""
     document_types = document_types or {}
     if row.left_in_cluber or row.errors or row.identity != "new":
         return False
     pending = set(row.pending)
-    if pending - {"id_document_type"}:
+    if pending - {"id_document_type", "last_renewal"}:
+        return False
+    if "last_renewal" in pending and row.row not in (renewal_dates or {}):
         return False
     if not row.data["id_document"]:
         return True
@@ -131,7 +138,11 @@ def _document_type(row: cluber.Row, document_types) -> str:
 
 def _codes(row: cluber.Row) -> list:
     left = ["left_in_cluber"] if row.left_in_cluber else []
-    return list(dict.fromkeys([*left, *row.errors, *row.pending, *row.warnings]))
+    # shortcut: «last_renewal» encara no és a la llista tancada de `core` (cal una migració de
+    # core) i no es desa a la línia; el registre d'activitat en compta les files. Afegir-lo quan
+    # el nucli estigui lliure.
+    pending = [code for code in row.pending if code != "last_renewal"]
+    return list(dict.fromkeys([*left, *row.errors, *pending, *row.warnings]))
 
 
 def _result(row: cluber.Row) -> str:
@@ -143,12 +154,19 @@ def _result(row: cluber.Row) -> str:
 
 
 def confirm(
-    data: bytes, *, by, file_sha256: str | None = None, excluded_rows=(), document_types=None
+    data: bytes,
+    *,
+    by,
+    file_sha256: str | None = None,
+    excluded_rows=(),
+    document_types=None,
+    renewal_dates=None,
 ) -> ImportBatch:
     """Importa les files importables de l'exportació. `excluded_rows`: números de registre que
     l'administrador exclou. `file_sha256`: l'empremta canònica que va mostrar la prova; si no
     coincideix, es rebutja (079, P-65 punt 1). `document_types`: número de registre → tipus de
-    document, per a les files on no s'ha pogut deduir (079, A-25)."""
+    document, per a les files on no s'ha pogut deduir (079, A-25). `renewal_dates`: número de
+    registre → «Data alta/renovació» que posa la secretaria on falta (097, punt 1)."""
     if not is_allowed():  # abans de llegir res ni consultar la base de dades
         raise FinalImportBlocked(MESSAGES["blocked"])
     if not has_perm(by, PERMISSION):
@@ -169,17 +187,25 @@ def confirm(
     needs_type = {r.row for r in result.rows if "id_document_type" in r.pending}
     if wrong := set(document_types) - needs_type:
         raise FinalImportRefused("document_type_row_unknown", tuple(sorted(wrong)))
+    renewal_dates = dict(renewal_dates or {})
+    today = timezone.localdate()
+    if any(type(d) is not datetime.date or d > today for d in renewal_dates.values()):
+        raise FinalImportRefused("renewal_date_invalid")
+    needs_date = {r.row for r in result.rows if "last_renewal" in r.pending}
+    if wrong := set(renewal_dates) - needs_date:
+        raise FinalImportRefused("renewal_date_row_unknown", tuple(sorted(wrong)))
 
     excluded = set(excluded_rows)
     rows = {r.row for r in result.rows}
     if unknown := excluded - rows:
         raise FinalImportRefused("excluded_row_unknown", tuple(sorted(unknown)))
-    to_import = [r for r in result.rows if importable(r, document_types) and r.row not in excluded]
+    ok = {r.row for r in result.rows if importable(r, document_types, renewal_dates)}
+    to_import = [r for r in result.rows if r.row in ok and r.row not in excluded]
     # Les de baixa a Cluber queden excloses soles (072, Q-071).
     unresolved = [
         r.row
         for r in result.rows
-        if not importable(r, document_types) and r.row not in excluded and not r.left_in_cluber
+        if r.row not in ok and r.row not in excluded and not r.left_in_cluber
     ]
     if unresolved:
         raise FinalImportRefused("rows_unresolved", tuple(unresolved))
@@ -188,13 +214,13 @@ def confirm(
 
     try:
         with transaction.atomic():
-            return _write(result, to_import, by, result.fingerprint, document_types)
+            return _write(result, to_import, by, result.fingerprint, document_types, renewal_dates)
     except IntegrityError as error:
         # Un altre lot confirmat, o un número o un `cluber_id` ocupat mentrestant: res escrit.
         raise FinalImportRefused("conflict") from error
 
 
-def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
+def _write(result, to_import, by, file_sha256, document_types, renewal_dates) -> ImportBatch:
     new = {r.row for r in to_import}
     results = {r.row: ImportLine.Result.NEW if r.row in new else _result(r) for r in result.rows}
     counts = Counter(results.values())
@@ -233,7 +259,9 @@ def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
             joined_on=values.get("Member.joined_on"),  # Q-075: cap data inventada
             cluber_id=cluber_id,
             # Q-076 (097, punt 1): el venciment compta des d'aquí; només amb `cluber_id`.
-            cluber_renewed_on=values.get("last_renewal") if cluber_id else None,
+            cluber_renewed_on=(values.get("last_renewal") or renewal_dates.get(row.row))
+            if cluber_id
+            else None,
             import_batch=batch,
         )
         MemberStatusChange.objects.create(
@@ -284,6 +312,11 @@ def _write(result, to_import, by, file_sha256, document_types) -> ImportBatch:
             # Quantes files porten el tipus deduït i quantes el triat per la secretaria.
             "document_type_deduced": sum(1 for r in to_import if r.data.get("id_document_type")),
             "document_type_chosen": sum(1 for r in to_import if r.row in document_types),
+            # 097, punt 1: dates posades per la secretaria i files excloses sense la data.
+            "renewal_date_chosen": sum(1 for r in to_import if r.row in renewal_dates),
+            "excluded_without_renewal_date": sum(
+                1 for r in result.rows if r.row not in new and "last_renewal" in r.pending
+            ),
         },
     )
     return batch

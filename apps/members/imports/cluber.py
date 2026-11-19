@@ -251,6 +251,7 @@ MESSAGES = {
     "member_type": _("No s'ha pogut deduir el tipus de soci: l'ha de triar la secretaria."),
     "id_document_type": _("Falta el tipus de document."),
     "member_number": _("Falta el número de soci."),
+    "last_renewal": _("Falta la «Data alta/renovació»: l'ha de posar la secretaria."),
     "first_name": _("Falta el nom."),
     "last_name": _("Falten els cognoms."),
     "id_document": _("Falta el document."),
@@ -677,6 +678,10 @@ def _read_row(row: Row, value, keep_values: bool = False) -> None:
     # Sense data d'alta, s'importaria igualment (071, punt 8): és un advertiment, no un pendent.
     if "Member.joined_on" not in fields and ("date_invalid", JOINED_ON) not in errors:
         row.warnings.append("joined_on")
+    # 097, punt 1: sense «Data alta/renovació», pendent fins que la secretaria la posa en
+    # confirmar (`final.confirm`, `renewal_dates`).
+    if "last_renewal" not in fields and ("date_invalid", LAST_RENEWAL) not in errors:
+        row.pending.append("last_renewal")
 
     row.pending.extend(code for header, code in PRESENCE.items() if not value(header))
     # 079 (A-25, RN-M01-95): el tipus es dedueix quan el DNI o el NIE té la lletra correcta; per

@@ -143,17 +143,18 @@ class TestConfirmationPath:
 
     def test_ca_m01_107_real_format_imports_the_rows_with_a_deduced_type(self, admin):
         """079 (A-25): amb el format real (071), les files amb un DNI vàlid s'importen amb el
-        tipus deduït; les que tenen pendent el tipus de soci s'han d'excloure."""
+        tipus deduït; les que tenen pendent el tipus de soci o, sense «Data alta/renovació», la
+        data (097, punt 1) s'han d'excloure."""
         before = snapshot()
         pending = tuple(r.row for r in cluber.preview(sample_file()).rows if r.pending)
-        assert len(pending) == 8
+        assert len(pending) == 12  # 8 sense tipus de soci i 4 més sense data
         with pytest.raises(final.FinalImportRefused) as refused:
             final.confirm(sample_file(), by=admin)
         assert (refused.value.code, refused.value.rows) == ("rows_unresolved", pending)
         assert snapshot() == before
         batch = final.confirm(sample_file(), by=admin, excluded_rows=pending)
         imported = Person.objects.filter(import_batch=batch)
-        assert imported.count() == 32
+        assert imported.count() == 28
         assert set(imported.values_list("id_document_type", flat=True)) == {"dni"}
         assert all(imported.values_list("id_document_number", flat=True))
 
@@ -367,6 +368,8 @@ class TestWrites:
             "duplicate_count": 0,
             "document_type_deduced": 0,
             "document_type_chosen": 0,
+            "renewal_date_chosen": 0,
+            "excluded_without_renewal_date": 0,
         }
 
 
