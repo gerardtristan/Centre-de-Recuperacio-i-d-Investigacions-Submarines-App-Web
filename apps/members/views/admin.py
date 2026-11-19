@@ -626,6 +626,8 @@ def fees_view(request):
         "today": today,
         "to_review": to_review,
         "can_review": has_perm(request.user, fees.EDIT_PERMISSION, write=True),
+        "without_address": fees.renewal_notices_without_address(today),  # T-M01-43d
+        "can_list": has_perm(request.user, roster.LIST),
     }
     return render(request, "members/fees.html", context)
 

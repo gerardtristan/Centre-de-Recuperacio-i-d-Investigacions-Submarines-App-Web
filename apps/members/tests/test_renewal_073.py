@@ -125,6 +125,47 @@ class TestNotice:
             assert fees.send_renewal_notices(date(2026, 1, 10)) == 1
 
 
+# --- T-M01-43d: llista «a revisar» dels socis sense adreça ----------------------------------
+
+
+@pytest.mark.django_db
+class TestWithoutAddress:
+    def test_listed_while_due_and_without_address_and_never_noticed(self):
+        member = full_member()
+        full_member("Anna")  # amb adreça: rep l'avís i no surt a la llista
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        assert fees.renewal_notices_without_address(date(2026, 2, 9)) == []  # encara no toca
+        assert fees.renewal_notices_without_address(date(2026, 2, 10)) == [(member, RENEWAL)]
+        assert fees.send_renewal_notices(date(2026, 2, 10)) == 1  # només l'Anna
+        assert fees.renewal_notices_without_address(date(2026, 2, 11)) == [(member, RENEWAL)]
+        # Amb una adreça a temps, rep l'avís i surt de la llista.
+        Person.objects.filter(pk=member.person_id).update(contact_email="pere@example.org")
+        assert fees.renewal_notices_without_address(date(2026, 2, 12)) == []
+        assert fees.send_renewal_notices(date(2026, 2, 12)) == 1
+
+    def test_leaves_the_list_once_the_fee_is_generated(self):
+        member = full_member()
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        fees.generate_due_fees(date(2026, 2, 23))
+        assert fees.renewal_notices_without_address(date(2026, 2, 24)) == []
+
+    def test_shown_on_fees_page_to_the_secretariat(self, make_admin):  # noqa: F811
+        from django.urls import reverse
+
+        from .test_roster import admin_client
+
+        member = full_member()
+        Person.objects.filter(pk=member.person_id).update(contact_email="")
+        today = date(2026, 2, 10)
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr("apps.members.views.admin.local_today", lambda: today)
+            page = admin_client(make_admin("secretary")).get(reverse("administration:fees"))
+        html = page.content.decode()
+        assert "Avís de renovació sense adreça" in html
+        assert reverse("administration:member_detail", args=[member.pk]) in html
+        assert "10/03/2026" in html
+
+
 # --- CA-M01-69: en renovar, quota i tipus de simpatitzant -----------------------------------
 
 
