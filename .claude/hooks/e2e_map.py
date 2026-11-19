@@ -134,6 +134,13 @@ MAP = {
         "templates/accounts/admin_accounts.html",
         "templates/accounts/admin_home.html",
     ),
+    "test_permisos.py": (
+        "apps/core/permission_matrix.py",
+        "apps/core/views/permission_matrix.py",
+        "templates/core/permission_matrix.html",
+        "templates/emails/avis-canvi-permisos.*",
+        "static/css/avisador.css",
+    ),
     "test_rols.py": (
         "apps/core/roles.py",
         "apps/core/admin_urls.py",

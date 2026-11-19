@@ -1,0 +1,102 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{% block title %}{% translate "Rols i permisos" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/avisador.css' %}">{% endblock %}
+{% block content %}
+  {# T-RP-03: editor de permisos dels rols (059 i 060; RN-RP-03 a 11), amb el disseny de l'Avisador (T-DX-19). Seguretat i privacitat: només M3b, protegit i exclusiu de l'administrador, comprovat al servidor (la resta de rols, també el President, «no trobat»). «Mostra el resum» i «Torna a la configuració inicial» no desen res; desar és un POST amb CSRF, nota, casella de revisió i un codi TOTP nou. Les files protegides no tenen cap control i una petició directa que les toqui es rebutja. Només surten noms d'usuari, rols i permisos, cap dada personal. #}
+  <section class="avisador">
+    <h1>{% translate "Rols i permisos" %}</h1>
+    <p class="avisador-intro">{% translate "Què pot fer cada rol. Un canvi val per a tots els comptes que tenen el rol, a partir de la petició següent." %}</p>
+    {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+    {% if form.non_field_errors %}<div class="avis avis-error" role="alert"><strong>{% translate "No s'ha desat res." %}</strong> {{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="avis avis-sistema">
+      <strong>{% translate "Només l'Administrador edita els permisos" %}</strong>
+      {% translate "Les files protegides no es poden canviar des d'aquí (decisió 059), i cap canvi no pot deixar la plataforma sense cap administrador operatiu." %}
+    </div>
+    <form class="formulari" method="get" action="">
+      <div class="camp">
+        <label for="filtre-modul">{% translate "Mòdul" %}</label>
+        <select id="filtre-modul" name="modul">
+          {% for code, label in modules %}<option value="{{ code }}"{% if code == module %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="camp">
+        <label for="filtre-rol">{% translate "Rol" %}</label>
+        <select id="filtre-rol" name="rol">
+          <option value="">{% translate "Tots els rols" %}</option>
+          {% for role in all_roles %}<option value="{{ role.code }}"{% if role.code == role_code %} selected{% endif %}>{{ role }}</option>{% endfor %}
+        </select>
+        <p class="ajuda">{% translate "Al mòbil, tria un sol rol. Canviar el filtre descarta els canvis que no has desat." %}</p>
+      </div>
+      <div class="accions"><button class="boto" type="submit">{% translate "Mostra" %}</button></div>
+    </form>
+    <form class="formulari" method="post" action="" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="version" value="{{ version }}">
+      <div class="avisador-cols">
+        <div class="avisador-matriu" role="region" tabindex="0" aria-label="{% translate 'Matriu de permisos' %}">
+          <table class="taula">
+            <caption>{% blocktranslate with number=version %}Matriu de permisos, versió {{ number }}{% endblocktranslate %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Permís" %}</th>
+                {% for role in roles %}<th scope="col">{{ role }}</th>{% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+              <tr{% if row.perm.protected %} class="es-protegida"{% endif %}>
+                <th scope="row" class="cel-nom"><span class="codi">{{ row.perm.ref }}</span> {{ row.perm.description }}</th>
+                {% if row.perm.protected %}
+                <td colspan="{{ roles|length }}" data-etiqueta=""><span class="estat estat-neutre"><span aria-hidden="true">■</span> {% blocktranslate with rule=row.perm.protected_by %}Protegit: només l'Administrador ({{ rule }}){% endblocktranslate %}</span></td>
+                {% else %}
+                {% for cell in row.cells %}
+                <td data-etiqueta="{{ cell.role }}"{% if cell.before %} class="es-canviada"{% endif %}>
+                  <select name="{{ cell.name }}" aria-label="{{ row.perm.ref }} · {{ cell.role }}">
+                    {% for value, label in cell.options %}<option value="{{ value }}"{% if value == cell.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                  </select>
+                  {% if cell.before %}<span class="avisador-abans">{% blocktranslate with before=cell.before %}abans: {{ before }}{% endblocktranslate %}</span>{% endif %}
+                </td>
+                {% endfor %}
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="avisador-lateral">
+          <section class="targeta" aria-labelledby="avisador-paraules">
+            <h2 id="avisador-paraules">{% translate "En paraules" %}</h2>
+            {% if changes %}
+            <ul class="avisador-resum">
+              {% for cell in changes %}<li>{% blocktranslate with role=cell.role ref=cell.ref permission=cell.permission before=cell.before after=cell.after %}{{ role }} · {{ ref }} {{ permission }}: {{ before }} → {{ after }}{% endblocktranslate %}{% if cell.sensitive %} <strong>{% translate "(diners, dades personals o camp sensible)" %}</strong>{% endif %}</li>{% endfor %}
+            </ul>
+            <h3>{% blocktranslate count n=affected|length %}{{ n }} compte afectat{% plural %}{{ n }} comptes afectats{% endblocktranslate %}</h3>
+            <ul class="avisador-resum">
+              {% for username in affected %}<li><span class="codi">{{ username }}</span></li>{% endfor %}
+            </ul>
+            <p>{% translate "Si un canvi dona més accés a diners o a dades personals, els comptes afectats hauran de tornar a entrar amb el doble factor. S'avisarà per correu els administradors, els comptes afectats i el President." %}</p>
+            {% else %}
+            <p>{% translate "Canvia les cel·les i prem «Mostra el resum» per veure què canviarà i a qui afecta. Res no es desa fins que confirmes." %}</p>
+            {% endif %}
+          </section>
+          <section class="targeta" aria-labelledby="avisador-desa">
+            <h2 id="avisador-desa">{% translate "Desa els canvis" %}</h2>
+            {% if changes %}
+            {% include "accounts/_camp.html" with field=form.note %}
+            {% include "accounts/_camp.html" with field=form.code %}
+            {% include "accounts/_camp.html" with field=form.reviewed %}
+            {% endif %}
+            <div class="accions">
+              {% if changes %}<button type="submit" name="step" value="save" class="boto boto-principal">{% translate "Desa els canvis" %}</button>{% endif %}
+              <button type="submit" name="step" value="preview" class="boto">{% translate "Mostra el resum" %}</button>
+              <button type="submit" name="step" value="initial" class="boto">{% translate "Torna a la configuració inicial (el que veus)…" %}</button>
+              {% if step %}<a class="boto boto-text" href="?modul={{ module }}&amp;rol={{ role_code }}">{% translate "Cancel·la" %}</a>{% endif %}
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+  </section>
+{% endblock %}

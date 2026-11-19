@@ -11,6 +11,7 @@ from .views import (
     guest,
     legal_texts,
     locked_data,
+    permission_matrix,
     roles,
 )
 
@@ -18,6 +19,8 @@ urlpatterns = [
     path("registre/", audit.audit_log_view, name="audit_log"),
     # T-RP-02: rols d'un compte d'administrador, amb M3 (protegit, només l'administrador).
     path("comptes/<int:pk>/rols/", roles.account_roles_view, name="account_roles"),
+    # T-RP-03: editor de permisos dels rols, amb M3b (protegit, només l'administrador).
+    path("permisos/", permission_matrix.permission_matrix_view, name="permission_matrix"),
     # T-RP-02d: desactivar-lo, també el propi (RN-RP-20), amb M3.
     path("comptes/<int:pk>/desactiva/", roles.account_deactivate_view, name="account_deactivate"),
     # T-M01-22 (P-M01-F, pas 4): sol·licituds d'esborrat RGPD, amb M11.
