@@ -379,7 +379,8 @@ class TestCardOfTheImportedT_M01_19b:
         "values",
         [
             {"idInterno": ""},  # sense `idInterno` la data no es desa
-            {"Data alta/renovació": ""},  # amb `idInterno` i sense la data
+            # Amb `idInterno` i sense la data, la fila queda pendent (T-M01-25b) i, amb la data
+            # posada per la secretaria, té carnet: `test_cluber_final_25b.py`.
         ],
     )
     def test_no_card_without_the_cluber_renewal_date_rn_m01_34(
