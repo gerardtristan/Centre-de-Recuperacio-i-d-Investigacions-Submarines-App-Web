@@ -1,0 +1,33 @@
+# Servidor de proves al portàtil (decisió 099). HTTP dins de Docker: l'HTTPS el fa el túnel
+# (Cloudflare o Tailscale). Contrasenya al davant de tot i sense indexar.
+{
+	auto_https off
+	servers {
+		# El túnel és a la xarxa interna de Docker: se'n respecten X-Forwarded-For i -Proto.
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	# La contrasenya del davant (usuari «proves»): la genera arrenca.ps1 a local/acces.caddy.
+	import /etc/caddy/acces.caddy
+	header {
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+	handle /robots.txt {
+		respond "User-agent: *
+Disallow: /
+"
+	}
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+	handle /bustia* {
+		reverse_proxy mailpit:8025
+	}
+	handle {
+		reverse_proxy web:8000
+	}
+}

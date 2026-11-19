@@ -103,5 +103,6 @@ Una decisió no s'edita per canviar-la: se'n crea una de nova que la substitueix
 | [096](096-totp-a-les-devolucions.md) | Una devolució torna a demanar el codi TOTP (P-311) | Acceptada |
 | [097](097-respostes-del-propietari-a-les-preguntes-obertes-del-18-11-2026.md) | Respostes del propietari a les preguntes obertes del 18/11/2026 (P-61, P-82, P-132, P-284, P-301, P-380, P-191, P-192, P-196, P-369, P-306, P-62; T-M00-08) | Acceptada |
 | [098](098-risc-alt-nomes-amb-el-si-escrit-del-propietari.md) | Una PR `risc:alt` només es fusiona amb un sí escrit del propietari que n'esmenti el número; una resposta o una especificació no compten (substitueix el punt 1 de la 094; #229 i #226 acceptades tal com estan) | Acceptada (18/11/2026) |
+| [099](099-servidor-de-proves-al-portatil.md) | Servidor de proves al portàtil del propietari amb Docker, dades inventades, integracions fictícies i Cloudflare Tunnel (excepció de proves) o Tailscale; `actualitza.cmd` per posar-lo al dia (completa la 090) | Acceptada (19/11/2026) |
 
 Contradiccions i decisions que ha de validar la junta: [pendents.md](pendents.md).
