@@ -20,8 +20,8 @@ de CA-M02-43).
 
 Concrecions (diari de la T-M02-03c): una fitxa desactivada no es tria per a un curs nou; la data
 límit d'inscripció no passa del dia d'inici; el motiu es demana quan un canvi deixa un preu diferent
-de la còpia estàndard; el termini de pagament i el mode de requisits per defecte són de la peça
-d'ajustos quan la T-M02-28 en declari les claus.
+de la còpia estàndard; el termini de pagament i el mode de requisits per defecte són ajustos (VC-21
+i VC-24), creats a `activities/0004`; la pantalla per editar-los és de la T-M02-28.
 
 **Fora d'aquesta peça:** l'avís al tresorer del preu diferent (plantilla del correu, T-M02-06), els
 avisos als inscrits quan canvia el lloc o el programa (T-M02-21), el cost de material previst (AC23
@@ -38,7 +38,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import audit, business_settings
-from apps.core.models import Department, Person, Setting
+from apps.core.models import Department, Person
 
 from . import catalogue, permissions, states
 from .models import (
@@ -53,14 +53,9 @@ from .models import (
 ACTIVITY_CREATED = "activities.activity.created"
 ACTIVITY_UPDATED = "activities.activity.updated"
 
-# shortcut: valors inicials del pla (M02-6, VC-21 i VC-24) mentre la clau no sigui a la peça
-# d'ajustos; quan la T-M02-28 les declari (amb el permís de l'apartat al nucli), es treuen d'aquí.
+# Ajustos del 02 (M02-6, «Valors configurables»; claus creades a `activities/0004`).
 PAYMENT_WINDOW_KEY = "activities.default_payment_window_hours"  # VC-21
 REQUIREMENTS_MODE_KEY = "activities.default_requirements_mode"  # VC-24
-_INITIAL_SETTINGS = {
-    PAYMENT_WINDOW_KEY: 72,
-    REQUIREMENTS_MODE_KEY: RequirementsMode.WARN.value,
-}
 
 PRICE_FIELDS = ("price_member_cents", "price_non_member_cents")
 _TEXT_FIELDS = ("title", "description", "meeting_point", "required_level")
@@ -99,13 +94,6 @@ _FOREIGN_KEYS = {
 }
 _MAX_LENGTH = {name: Activity._meta.get_field(name).max_length for name in _TEXT_FIELDS}
 _https = URLValidator(schemes=["https"])
-
-
-def _setting(key):
-    try:
-        return business_settings.get(key)
-    except Setting.DoesNotExist:
-        return _INITIAL_SETTINGS[key]
 
 
 def _positive(value, message) -> int:
@@ -241,8 +229,8 @@ def _create(*, by, request, details: bool, **fields) -> Activity:
 
 
 def _defaults(data: dict) -> dict:
-    data.setdefault("payment_window_hours", _setting(PAYMENT_WINDOW_KEY))
-    data.setdefault("requirements_mode", _setting(REQUIREMENTS_MODE_KEY))
+    data.setdefault("payment_window_hours", business_settings.get(PAYMENT_WINDOW_KEY))
+    data.setdefault("requirements_mode", business_settings.get(REQUIREMENTS_MODE_KEY))
     return data
 
 

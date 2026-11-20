@@ -22,7 +22,7 @@ from apps.activities.models import (
     OutingType,
     TrainingCatalogueEntry,
 )
-from apps.core.models import AuditEntry, Department, Person, Role
+from apps.core.models import AuditEntry, Department, Person, Role, Setting, SettingVersion
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.treasury.models import CostCentre
 
@@ -176,6 +176,19 @@ def test_defaults_are_the_initial_values_of_the_plan(manager):
     assert (course.payment_window_hours, course.requirements_mode) == (72, "warn")
     other = an_outing(manager, payment_window_hours=48, requirements_mode="block")
     assert (other.payment_window_hours, other.requirements_mode) == (48, "block")
+
+
+def test_the_defaults_are_read_from_the_settings_not_from_the_code(manager):
+    # VC-21 i VC-24 són ajustos (activities/0004): un valor desat mana sobre l'inicial.
+    for key, value in (
+        (services.PAYMENT_WINDOW_KEY, 96),
+        (services.REQUIREMENTS_MODE_KEY, "block"),
+    ):
+        SettingVersion.objects.create(
+            setting=Setting.objects.get(key=key), value=value, changed_by=manager, note="Prova."
+        )
+    course = a_course(manager)
+    assert (course.payment_window_hours, course.requirements_mode) == (96, "block")
 
 
 def test_creating_is_recorded_without_personal_data(manager):
