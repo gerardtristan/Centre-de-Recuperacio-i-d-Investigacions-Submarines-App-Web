@@ -17,7 +17,7 @@
         <div><dt>{% translate "Número de càrrec" %}</dt><dd class="codi">{{ charge.pk }}</dd></div>
         {% if row.payer %}<div><dt>{% translate "Pagador" %}</dt><dd>{{ row.payer }}</dd></div>{% endif %}
         <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ row.amount }}</span></dd></div>
-        <div><dt>{% translate "Estat" %}</dt><dd>{{ charge.get_status_display }}</dd></div>
+        <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" %}</dd></div>
         <div><dt>{% translate "Motiu" %}</dt><dd>{{ entry.reason }}</dd></div>
       </dl>
     </section>
