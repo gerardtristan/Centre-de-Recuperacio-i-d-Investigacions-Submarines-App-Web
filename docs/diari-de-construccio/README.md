@@ -350,11 +350,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-39b](T-M01-39b.md) | «He oblidat la contrasenya» amb una cua: la petició fa la mateixa feina per a qualsevol adreça; mesura d'abans (sense càrrega) i de després (dins del soroll) (accounts/0011; dubtes P-419 i P-423; pilot) | 20/11/2026 04:33 | 4e87d8ba | 21 noves; 2 fitxers ajustats; 1 e2e nova | [A comprovar] |
 | [P-406](P-406.md) | La quota que la targeta guardada aturada no cobra va també «a revisar»: el tresorer la veu a la llista de Pagaments i la tanca amb «Revisada» i una nota (P-406 i P-408, respostes del propietari; pilot) | 20/11/2026 03:15 | (vegeu la PR) | 7 noves (17 casos); 2 ampliades; 1 e2e nova | [A comprovar] |
 | [T-M01-43e](T-M01-43e.md) | Avís de renovació: els mesos passen de l'entorn a l'ajust de socis que edita el Tresorer, d'1 a 6, amb la comprovació de P-360 en desar (core/0057, members/0025; pilot) | 20/11/2026 05:15 | 02382e2e | 3 noves; 3 ajustades; 1 e2e nova | [A comprovar] |
-=======
 | [T-M05b-30](T-M05b-30.md) | Origen propi del pagament: la decisió del tresorer des d'«a revisar» queda al pagament amb qui i el motiu (core/0058 i payments/0028; pilot) | 20/11/2026 06:17 | b4c15314 | 4 noves; 1 ajustada | [A comprovar] |
-=======
 | [C6](C6.md) | Auditoria de dependències al CI (`pip-audit`); pytest a la 9.0.3 o més per la PYSEC-2026-1845; fila de la T-M05a-19 (pilot, carril d'auditoria) | 20/11/2026 07:30 | (vegeu la PR) | 0 noves | [A comprovar] |
-=======
-=======
 | [T-M05b-22c](T-M05b-22c.md) | Recordatori de transferència: passats els dies de VC-16, l'intent es tanca i el pagador rep un sol recordatori (core/0059, payments/0029; dubte P-407; pilot) | 20/11/2026 07:26 | 68dba709 | 16 noves; 1 e2e nova | [A comprovar] |
 | [T-F1-01b](T-F1-01b.md) | Revisió final, nucli: el codi TOTP no es torna a mostrar després d'un error (V23) i casella curta a l'exportació RGPD amb notes (V24) (pilot) | 20/11/2026 09:05 | 22eea8a6 | 9 noves; 1 e2e ajustada | [A comprovar] |
