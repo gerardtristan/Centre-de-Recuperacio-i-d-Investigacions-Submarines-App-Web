@@ -380,6 +380,8 @@ MAP = {
         "apps/members/permissions.py",
         "templates/members/personal_fee_detail.html",
         "templates/members/fees.html",
+        "apps/members/views/admin_member_edit.py",
+        "templates/members/member_fee_instalments.html",
     ),
     "test_recorreguts_048.py": ("design/*",),
     "test_revisio_pantalles_045.py": (

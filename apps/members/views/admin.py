@@ -42,6 +42,7 @@ from apps.members import (
     admissions,
     cards,
     fees,
+    instalments,
     join,
     member_edit,
     member_requests,
@@ -301,6 +302,7 @@ def _fee_rows(member):
                 "amount": charges.euros(fee.charge.amount_cents),
                 "open": fee.charge.status == Charge.Status.PENDING,
                 "annual": fee.kind == AnnualFee.Kind.ANNUAL,
+                "instalment": fee.kind == AnnualFee.Kind.INSTALMENT,
                 "exemption": getattr(fee, "exemption", None),
             }
         )
@@ -370,6 +372,10 @@ def member_detail_view(request, pk):
         "can_exempt": vis.fees
         and member.person_id != request.user.person_id
         and fees.can_exempt(request.user, perms),
+        # T-M01-49c: editar els terminis (P23); el servei ho torna a comprovar.
+        "can_edit_instalments": vis.fees
+        and member.person_id != request.user.person_id
+        and instalments.can_edit(request.user, perms),
         # P-12: el pagament a mà d'una quota pendent (M14), a la pantalla de tresoreria.
         "can_record_payment": vis.fees
         and member.person_id != request.user.person_id

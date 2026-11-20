@@ -1134,6 +1134,27 @@ opcions:
       sense pagar la quota sense saber-ho. Si el proveïdor deixa de cobrar, el cobrament falla i el soci
       rep l'alternativa de pagament (T-M05b-15b), com ara.
     data: 2026-11-19
+  P-413:
+    opcions:
+      A: "Com s'ha construït: permís propi (P23), d'inici només la Secretaria, amb motiu, contrasenya i codi."
+      B: "P23 per a la Secretaria i el Tresorer."
+      C: "P23 per a la Secretaria, el Tresorer i l'administrador."
+      D: "Sense permís propi: el mateix P22 del Tresorer (eximir o anul·lar)."
+    recomanada: A
+    perque: >-
+      És el que diu la 072 («la secretaria, amb permís propi») i és el més restrictiu; l'administrador
+      el pot donar a un altre rol des de l'editor de permisos sense tocar el codi.
+    data: 2026-11-20
+  P-414:
+    opcions:
+      A: "Com s'ha construït: la suma no canvia, cap termini amb pagament o cobrament en curs, cap de 0 €, sense límit de dates."
+      B: "A, i a més els venciments en ordre (1 ≤ 2 ≤ 3) i cap venciment passat."
+      C: "A, i a més tots els venciments dins dels 12 mesos des del primer."
+    recomanada: A
+    perque: >-
+      La 072 només demana que la suma no canviï i que no hi hagi pagament; un límit de dates que no
+      demana cap norma podria impedir un acord amb el soci. B o C es poden afegir sense migració.
+    data: 2026-11-20
   P-406:
     opcions:
       A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."

@@ -94,7 +94,7 @@
           {% if fee_rows %}
             <table class="taula">
               <caption class="visualment-amagat">{% translate "Quotes del soci, de la més recent a la més antiga" %}</caption>
-              <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_exempt or can_record_payment %}<th scope="col">{% translate "Accions" %}</th>{% endif %}</tr></thead>
+              <thead><tr><th scope="col">{% translate "Quota" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th>{% if can_exempt or can_record_payment or can_edit_instalments %}<th scope="col">{% translate "Accions" %}</th>{% endif %}</tr></thead>
               <tbody>
                 {% for row in fee_rows %}
                   <tr>
@@ -102,7 +102,7 @@
                     <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
                     <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.fee.due_on|date:'Y-m-d' }}">{{ row.fee.due_on|date:"d/m/Y" }}</time></td>
                     <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>
-                    {% if can_exempt or can_record_payment %}
+                    {% if can_exempt or can_record_payment or can_edit_instalments %}
                       <td class="cel-accions">
                         {% if row.open %}
                           {% if row.can_pay %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
@@ -110,6 +110,8 @@
                             {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
                             <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>
                           {% endif %}
+                          {# T-M01-49c: P23 (P-413); la pantalla diu quins terminis es poden editar. #}
+                          {% if can_edit_instalments and row.instalment %}{% if can_exempt or row.can_pay %} <span aria-hidden="true">·</span>{% endif %}<a href="{% url 'administration:member_fee_instalments' member.pk row.fee.pk %}">{% translate "Edita els terminis…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% endif %}
                         {% else %}
                           <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
                         {% endif %}

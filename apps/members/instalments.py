@@ -137,3 +137,112 @@ def has_unpaid_instalments(member) -> bool:
     return AnnualFee.objects.filter(
         member=member, kind=K.INSTALMENT, charge__status__in=fees.UNPAID_CHARGE
     ).exists()
+
+
+# --- Editar els terminis (T-M01-49c; 072, tercera instrucció, punt 2) -------------------------
+
+EDIT_PERMISSION = "members.fees.edit_instalments"  # P23 (P-413)
+EDITED = "members.fee.instalment_edited"
+
+
+def siblings(fee):
+    """Els terminis vigents (no anul·lats) del mateix soci i període, en ordre."""
+    return list(
+        AnnualFee.objects.filter(member_id=fee.member_id, period=fee.period, kind=K.INSTALMENT)
+        .exclude(charge__status=Charge.Status.CANCELLED)
+        .select_related("charge")
+        .order_by("instalment", "pk")
+    )
+
+
+def is_editable(fee) -> bool:
+    """Pendent i sense cap pagament (tampoc un d'anul·lat) ni cap intent que el pugui haver
+    cobrat o que l'estigui cobrant (també una remesa enviada). Amb un pagament, només anul·lar i
+    crear-ne un de nou."""
+    from apps.payments.attempts import ensure_manual_payment_allowed
+
+    if (
+        fee.kind != K.INSTALMENT
+        or fee.charge.status != Charge.Status.PENDING
+        or fee.charge.payments.exists()
+    ):
+        return False
+    try:
+        ensure_manual_payment_allowed(fee.charge)
+    except ValidationError:
+        return False
+    return True
+
+
+def can_edit(by, permissions=None) -> bool:
+    from apps.core.permissions import has_perm
+
+    return has_perm(by, EDIT_PERMISSION, write=True, permissions=permissions)
+
+
+def edit(fee, changes: dict, *, by, reason, request=None) -> list[AnnualFee]:
+    """`changes`: {pk del termini: (cèntims, venciment)}. Només terminis editables del mateix
+    soci i període; la suma dels terminis vigents no canvia (moure imports entre terminis és
+    editar; canviar el total és anul·lar i tornar a generar). Tot o res; cada canvi queda al
+    registre amb el valor anterior i el motiu."""
+    from .services import _check_account_active, ensure_not_own_member
+
+    if not can_edit(by):
+        raise Http404
+    _check_account_active(by)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Cal el motiu per editar els terminis."))
+    ensure_not_own_member(fee.member, by, request=request)
+    with transaction.atomic():
+        Member.objects.select_for_update(of=("self",)).get(pk=fee.member_id)
+        plan_fees = siblings(fee)
+        by_pk = {f.pk: f for f in plan_fees}
+        if fee.pk not in by_pk or not set(changes) <= set(by_pk):
+            raise ValidationError(_("Aquests terminis ja no es poden editar."))
+        for f in plan_fees:
+            f.charge = Charge.objects.select_for_update().get(pk=f.charge_id)
+        before = sum(f.charge.amount_cents for f in plan_fees)
+        after = before
+        for pk, (cents, due_on) in changes.items():
+            f = by_pk[pk]
+            if (cents, due_on) == (f.charge.amount_cents, f.due_on):
+                continue
+            if not is_editable(f):
+                raise ValidationError(
+                    _(
+                        "El termini %(n)s té un pagament o un cobrament en curs: no es pot "
+                        "editar, només anul·lar."
+                    )
+                    % {"n": f.instalment}
+                )
+            if cents < 1:
+                raise ValidationError(_("L'import de cada termini ha de ser més gran que zero."))
+            after += cents - f.charge.amount_cents
+        if after != before:
+            raise ValidationError(
+                _(
+                    "Els terminis han de continuar sumant %(total)s (ara sumen %(sum)s). Per "
+                    "canviar el total, cal anul·lar-los i tornar-los a generar."
+                )
+                % {"total": charges.euros(before), "sum": charges.euros(after)}
+            )
+        edited = []
+        for pk, (cents, due_on) in changes.items():
+            f = by_pk[pk]
+            old = (f.charge.amount_cents, f.due_on)
+            if (cents, due_on) == old:
+                continue
+            charges.change_amount(f.charge, cents, by=by, reason=reason)
+            f.due_on = due_on
+            f.save(update_fields=["due_on"])
+            audit.record_changes(
+                EDITED,
+                actor=by,
+                target=f,
+                changes={"amount_cents": (old[0], cents), "due_on": (str(old[1]), str(due_on))},
+                reason=reason,
+                request=request,
+            )
+            edited.append(f)
+    return edited

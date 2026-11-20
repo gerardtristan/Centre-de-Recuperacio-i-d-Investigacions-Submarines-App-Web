@@ -19,8 +19,8 @@ from apps.accounts.security import AREA_ADMIN, WRONG_CODE, WRONG_PASSWORD, confi
 from apps.core import charges
 from apps.core.models import Charge, Person
 from apps.core.permissions import permission_required, request_permissions, require_perm
-from apps.members import admissions, birth_date, cards, fees, member_edit, roster
-from apps.members.forms import FeeResolveForm
+from apps.members import admissions, birth_date, cards, fees, instalments, member_edit, roster
+from apps.members.forms import FeeResolveForm, InstalmentsEditForm
 from apps.members.models import AnnualFee, Member
 from apps.members.services import OwnMemberChange, ensure_not_own_member
 
@@ -311,3 +311,77 @@ def member_fee_exempt_view(request, pk, fee_pk):
 def member_fee_cancel_view(request, pk, fee_pk):
     """072 (quarta instrucció, punt 4) i 085 (G-2): anul·lar una quota amb motiu."""
     return _fee_resolve(request, pk, fee_pk, CANCEL)
+
+
+# --- Editar els terminis d'una quota (T-M01-49c) ----------------------------------------------
+
+
+@never_cache
+@permission_required(instalments.EDIT_PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def member_fee_instalments_view(request, pk, fee_pk):
+    """072, tercera instrucció, punt 2: P23 amb edició (P-413), P4 i P10. Motiu i
+    reautenticació a la mateixa petició; el servei torna a comprovar el permís, el motiu, que
+    cada termini no tingui cap pagament, la suma i el conflicte d'interès."""
+    member = _member(request, pk)
+    require_perm(request, roster.FEES)
+    fee = get_object_or_404(
+        AnnualFee.objects.select_related("charge"), pk=fee_pk, member_id=member.pk
+    )
+    plan = instalments.siblings(fee) if fee.kind == AnnualFee.Kind.INSTALMENT else []
+    rows = [(f, charges.euros(f.charge.amount_cents), instalments.is_editable(f)) for f in plan]
+    editable = [f for f, _amount, ok in rows if ok]
+    own = member.person_id == request.user.person_id
+    total_cents = sum(f.charge.amount_cents for f in plan)
+    form = InstalmentsEditForm(
+        request.POST or None,
+        has_totp=request.user.has_totp,
+        editable=editable,
+        total_cents=total_cents,
+    )
+    if request.method == "POST" and editable:
+        try:
+            if own:
+                ensure_not_own_member(member, request.user, request=request)
+            if form.is_valid():
+                error = reauth.require_recent_auth(
+                    request,
+                    0,
+                    password=form.cleaned_data["password"],
+                    code=form.cleaned_data.get("code", ""),
+                )
+                if error is not None:
+                    field = {WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error)
+                    form.add_error(field, error)
+                    form.data = form.data.copy()
+                    form.data.pop("code", None)
+                else:
+                    edited = instalments.edit(
+                        fee,
+                        form.changes(),
+                        by=request.user,
+                        reason=form.cleaned_data["reason"],
+                        request=request,
+                    )
+                    if edited:
+                        messages.success(
+                            request, _("Terminis desats. Queden al registre d'activitat.")
+                        )
+                    else:
+                        messages.info(request, _("No hi havia cap canvi per desar."))
+                    return _to_detail(member)
+        except OwnMemberChange as error:
+            messages.error(request, error.args[0])
+            return _to_detail(member)
+        except ValidationError as error:
+            form.add_error(None, error)
+    context = {
+        "member": member,
+        "person": member.person,
+        "rows": rows,
+        "total": charges.euros(total_cents),
+        "editable": editable,
+        "own": own,
+        "form": form,
+    }
+    return render(request, "members/member_fee_instalments.html", context)
