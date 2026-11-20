@@ -3614,7 +3614,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 |---|---|---|---|
 | `draft` | esborrany | esborrany | Responsable |
 | `open` | obert | oberta | Responsable (publicar) |
-| `registration_closed` | tancat a inscripcions | tancada a inscripcions | Sistema (places plenes o data límit) o responsable |
+| `registration_closed` | tancat a inscripcions | tancada a inscripcions | Sistema (data límit) o responsable (a mà). Omplir les places no tanca les inscripcions: l'activitat continua `open` amb llista d'espera ([103](decisions/103-les-inscripcions-continuen-obertes-amb-les-places-plenes.md)) |
 | `in_progress` | en curs | — (no s'usa) | Sistema (primera sessió) |
 | `done` | finalitzat | realitzada | Responsable |
 | `closed` | tancat econòmicament | tancada econòmicament | **Només el 09** (`margins.close_activity`). Fins que existeixi el 09, cap activitat hi arriba |
@@ -3662,7 +3662,7 @@ Llegenda com a [M01-4](#M01-4-rols). A les taules, «[A validar]» sense propiet
 2. **Oferta de plaça.** Quan s'allibera una plaça, el primer de la llista passa a `offered` i rep un correu i un avís amb un termini per acceptar-la (RN-M02-09). Si l'accepta, es crea el càrrec com al pas 5 de P-M02-C. Si no, `expired` i es passa al següent.
 3. **Cancel·lació del participant.** Abans de la data límit (RN-M02-12). La inscripció passa a `cancelled` amb motiu. Si estava pagada, el sistema crea una **proposta de devolució** amb l'import que diu la política [A validar: junta] i l'envia a la llista del tresorer, que la fa amb el 05b.
 4. **Cancel·lació de l'activitat** (per exemple, per meteorologia). El responsable tria «Cancel·lar» i el motiu. L'activitat passa a `cancelled`, totes les inscripcions a `cancelled`, els càrrecs pendents s'anul·len, es creen propostes de devolució per als pagats (RN-M02-13) i s'avisa tots els inscrits i la llista d'espera.
-5. **Tancar inscripcions.** Automàtic quan s'arriba a la data límit; amb les places plenes, l'activitat continua `open` amb llista d'espera fins a la data límit.
+5. **Tancar inscripcions.** Automàtic quan s'arriba a la data límit, o a mà pel responsable (RN-M02-02); amb les places plenes, l'activitat continua `open` amb llista d'espera fins a la data límit ([103](decisions/103-les-inscripcions-continuen-obertes-amb-les-places-plenes.md)). Després del tancament ningú no s'hi pot inscriure ni entrar a la llista d'espera.
 
 ### P-M02-E El dia de l'activitat: llista i incidències (F 9.1 pas 8)
 | Pas | Qui | Què passa |
@@ -3931,7 +3931,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 | L-M02-02 | El soci es dona de baixa amb una inscripció de soci | Manté el preu de soci (RN-M02-04) |
 | L-M02-03 | Es redueixen les places per sota de les ocupades | Es rebutja; primer s'han de cancel·lar inscripcions |
 | L-M02-04 | Es canvia la data d'una activitat amb inscripcions pagades | S'avisa (RN-M02-18); qui no pugui venir pot cancel·lar amb la regla de RN-M02-13 [A validar: junta] |
-| L-M02-05 | Un instructor deixa de tenir el rol | Les seves sessions futures queden sense instructor i surten marcades al responsable |
+| L-M02-05 | Un instructor deixa de tenir el rol | Les seves sessions futures queden sense instructor i surten marcades al responsable (es fa a la T-M02-04, [101](decisions/101-el-cas-l-m02-05-es-fa-a-la-t-m02-04.md)) |
 | L-M02-06 | Activitat gratuïta | Sense càrrec; `confirmed` directament; la llista d'espera funciona igual |
 | L-M02-07 | Esborrat RGPD d'un participant | Inscripcions i assistència anonimitzades; càrrecs i pagaments bloquejats fins al termini legal (028); els recomptes de places i de residus no canvien |
 | L-M02-08 | Un menor vol inscriure's | No hi ha data de naixement (P-33): el responsable ho resol fora de la plataforma fins que es decideixi |
@@ -3946,7 +3946,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 | T-M02-01 | Wireframes que falten (vegeu [M02-5](#M02-5-processos)) | M | `design/wireframes/` | — | Revisats; contrast, estats amb símbol i botons grans al mòbil |
 | T-M02-02 | Models de catàleg, tipus, subtipus i projectes; dades inicials | M | `apps/activities/models.py`, migracions | T-M01-09 (càrrec i departament de la 00) | RN-M02-01; CA-M02-03 |
 | T-M02-03 | Model `Activity`, `Session`, `ProgrammeBlock` i transicions | L | `models.py`, `apps/activities/states.py` | T-M02-02 | RN-M02-02, 20 |
-| T-M02-04 | Permisos del 02 per rol i per objecte (instructor → les seves sessions) | M | `apps/activities/permissions.py` | T-M02-03; permisos de la 00 | CA-M02-16, 24 |
+| T-M02-04 | Permisos del 02 per rol i per objecte (instructor → les seves sessions) | M | `apps/activities/permissions.py` | T-M02-03; permisos de la 00 | CA-M02-16, 24; L-M02-05 ([101](decisions/101-el-cas-l-m02-05-es-fa-a-la-t-m02-04.md)) |
 | T-M02-05 | Catàlegs a l'administració i avís de canvi de preu | M | vistes, plantilles | T-M02-02 | CA-M02-01, 02 |
 | T-M02-06 | Crear, editar, publicar i cancel·lar activitats; sessions i programa | M | vistes | T-M02-03, T-M02-04 | CA-M02-03, 05 |
 | T-M02-07 | Duplicar (026) | M | `apps/activities/duplicate.py` | T-M02-06 | CA-M02-04; L-M02-10 |
@@ -3954,7 +3954,7 @@ Cap altra app escriu als models del 02. Errors com a excepcions de domini amb mi
 | T-M02-09 | Punts d'extensió i senyals (formulari, tancament, blocs de pantalla) | S | `apps/activities/extensions.py` | T-M02-03 | Prova amb un mòdul fals |
 | T-M02-10 | Subscriptor de `charge.paid` (`on_charge_paid`), idempotent | S | `apps/activities/charges.py` | T-M05b-21 | CA-M02-07; prova d'esdeveniment repetit |
 | T-M02-11 | Inscripció del soci amb preu, requisits i càrrec | L | `apps/activities/enrolment.py` | T-M02-09, T-M02-10, T-M02-23 | CA-M02-06, 12, 13, 28, 29 |
-| T-M02-12 | Control de places amb bloqueig i llista d'espera | L | `enrolment.py` | T-M02-11 | CA-M02-08 |
+| T-M02-12 | Control de places amb bloqueig i llista d'espera | L | `enrolment.py` | T-M02-11 | CA-M02-08, CA-M02-40 ([103](decisions/103-les-inscripcions-continuen-obertes-amb-les-places-plenes.md)) |
 | T-M02-13 | Terminis de pagament, ofertes i caducitat (tasques a la cua) | M | `apps/activities/tasks.py` | T-M02-12 | CA-M02-09; L-M02-01 |
 | T-M02-14 | Inscripció de convidat i inscripció presencial | M | vistes | T-M02-11; enllaços de convidat de la 00 | CA-M02-10, 11 |
 | T-M02-15 | Cancel·lacions i propostes de devolució | M | `apps/activities/cancellation.py` | T-M02-12; T-M05b-13 | CA-M02-14, 15 |
@@ -4152,6 +4152,7 @@ Aprovada el 31/10/2026. **No canvia cap regla aprovada** del M02: hi afegeix el 
 - **CA-M02-37** Donat un convidat a una activitat sense edat mínima, quan envia la inscripció sense marcar «Soc major d'edat», llavors es rebutja; quan la marca, s'accepta i queda la declaració amb la versió del text i sense cap data de naixement.
 - **CA-M02-38** Donat `activity.cancelled` lliurat dues vegades, quan el rep cada subscriptor, llavors cada efecte s'aplica una sola vegada.
 - **CA-M02-39** Donat una sortida amb un inscrit que té un Bizum esperant confirmació, quan el responsable la cancel·la, llavors la inscripció és `cancelled` amb `void_pending_since`. Si el Bizum es confirma després, hi ha una proposta de devolució del 100 % i la inscripció no es confirma; si caduca, el càrrec s'anul·la.
+- **CA-M02-40** Donat una activitat `open` amb totes les places ocupades i la data límit per venir, quan una altra persona s'hi inscriu, llavors l'activitat continua `open` i la inscripció queda `waitlisted`; quan arriba la data límit o el responsable tanca les inscripcions, una inscripció nova es rebutja (`ActivityNotOpen`) ([103](decisions/103-les-inscripcions-continuen-obertes-amb-les-places-plenes.md)).
 
 | ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
 |---|---|---|---|---|---|
