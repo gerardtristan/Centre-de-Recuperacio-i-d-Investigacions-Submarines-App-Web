@@ -41,6 +41,7 @@ def deploy_env() -> dict:
             "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
             "CARD_QR_KEYS": f"ci:{secrets.token_urlsafe(32)}",
             "CARD_QR_ACTIVE_KEY": "ci",
+            "MANDATE_ENCRYPTION_KEYS": f"1:{Fernet.generate_key().decode()}",
             "DJANGO_ALLOWED_HOSTS": "cris1954.cat",
             "EMAIL_HOST": "smtp.example.invalid",
             "EMAIL_HOST_USER": "proves",
