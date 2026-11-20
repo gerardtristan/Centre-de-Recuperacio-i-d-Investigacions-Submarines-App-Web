@@ -15,16 +15,16 @@ from apps.core import roles
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
-from .test_activities import (
+from .helpers import (
     TODAY,
     a_course,
     a_place,
     a_project,
     an_outing,
-    at,
     cleaning,
     outing_type,
 )
+from .helpers import moment as at
 
 pytestmark = pytest.mark.django_db
 
