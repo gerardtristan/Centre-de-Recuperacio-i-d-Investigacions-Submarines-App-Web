@@ -387,3 +387,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-04](T-M06-04.md) | Llicències: demanar-ne una amb el seu càrrec, i la de l'any vinent (carril A) | 20/11/2026 22:33 | f72aa299 | 8456 | [A comprovar] |
 | [T-M06-05](T-M06-05.md) | Llicències: pagada quan arriba `charge.paid`, una sola vegada (carril A; l'avís a la secretaria, pendent del nucli) | 20/11/2026 23:04 | e3aa00d8 | 8494 | [A comprovar] |
 | [T-M06-08](T-M06-08.md) | Llicències: «Ja en tinc una», llicència externa sense càrrec (carril A) | 20/11/2026 23:14 | 8ec7bde1 | 8510 | [A comprovar] |
+| [T-M09-30](T-M09-30.md) | Permisos del 09 i de l'apartat d'ajuts al catàleg i a la matriu inicial (core/0062); plantilla de l'avís d'una despesa sense factura (carril C) | 20/11/2026 22:58 | 4efe8138, 4ea94fef | 1 fitxer nou | [A comprovar] |
