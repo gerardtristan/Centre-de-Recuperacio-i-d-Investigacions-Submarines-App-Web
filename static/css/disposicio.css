@@ -178,17 +178,24 @@
     padding-inline-start: var(--e-5); border-inline-start: var(--v-fina) solid var(--c-linia);
   }
   .conciliacio.amb-linia .col-carrecs { display: none; }
-  /* T-DX-79 (V15): amb el panell obert, l'etiqueta d'estat i cada acció en una línia, i el motiu
+  /* T-DX-79 (V15): amb el panell obert, l'etiqueta d'estat en una línia (les accions, T-DX-85), i el motiu
      «A revisar» a sota, en una línia amb «…» que no eixampla la columna (sencer sense panell, al
      mòbil i a «A revisar») */
-  .conciliacio.amb-linia td .estat,
-  .conciliacio.amb-linia td > .boto,
-  .conciliacio.amb-linia td > form > .boto,
-  .conciliacio.amb-linia td > details > summary { white-space: nowrap; }
+  .conciliacio.amb-linia td .estat { white-space: nowrap; }
   .conciliacio.amb-linia .conciliacio-motiu {
     display: block; inline-size: 0; min-inline-size: 100%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+}
+/* T-DX-85: a l'escriptori, amb el panell obert o sense, cada acció de la conciliació en una línia
+   (a 1024 px «Casa amb moviments…» es partia), i un formulari obert a la cel·la («Desfés…»,
+   «Exclou…») amb prou amplada per al motiu; a la tauleta i al mòbil, com fins ara */
+@media (min-width: 1024px) {
+  .conciliacio td > .boto,
+  .conciliacio td > form > .boto,
+  .conciliacio td > details > summary,
+  .conciliacio td > details .boto { white-space: nowrap; }
+  .conciliacio td > details[open] { min-inline-size: calc(var(--amplada-estreta) / 2); }
 }
 /* «Tanca» a la dreta del títol: primer al DOM (es llegeix abans del contingut que canvia) */
 .panell-linia > .accions { position: absolute; top: 0; inset-inline-end: 0; }

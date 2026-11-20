@@ -32,10 +32,12 @@ TEXT_INDENT_JS = """(cell) => {
 }"""
 
 # Etiquetes d'estat, motius i accions de la conciliació que ocupen més d'una línia (T-DX-79, V15)
-WRAPPED_JS = """() => Array.from(document.querySelectorAll(
-  '.conciliacio tbody td .estat, .conciliacio-motiu, .conciliacio tbody td > .boto,'
-  + ' .conciliacio tbody td > form > .boto, .conciliacio tbody td > details > summary'
-)).filter((el) => el.offsetParent !== null).filter((el) => {
+ACTIONS = (
+    ".conciliacio tbody td > .boto, .conciliacio tbody td > form > .boto,"
+    " .conciliacio tbody td > details > summary"
+)
+WRAPPED_JS = """(selector) => Array.from(document.querySelectorAll(selector))
+  .filter((el) => el.offsetParent !== null).filter((el) => {
   const range = document.createRange();
   range.selectNodeContents(el);
   const tops = Array.from(range.getClientRects()).map((r) => r.top).sort((a, b) => a - b);
@@ -139,6 +141,8 @@ def test_treasurer_confirms_and_undoes_a_reconciliation(
 
     row.get_by_text("Desfés…").click()
     row.get_by_label("Motiu per desfer-la").fill("Casada amb el càrrec equivocat (prova)")
+    # T-DX-85: a 1280 px, el formulari obert no queda espremut i el botó va en una línia
+    assert page.evaluate(WRAPPED_JS, ".conciliacio tbody td > details .boto") == []
     review("conciliacio-desfer-motiu")
     row.get_by_role("button", name="Desfés la conciliació").click()
     expect(page.get_by_role("status")).to_contain_text("Conciliació desfeta")
@@ -313,10 +317,15 @@ def test_treasurer_chooses_between_two_settlements(page, live_server, transactio
     page.goto(f"{live_server.url}{reverse('administration:treasury_reconciliation')}")
     row = page.get_by_role("row", name="02/11/2026")
     expect(row).to_contain_text("A revisar")
+    # T-DX-85: a 1024 px, sense panell, cada acció en una línia («Casa amb moviments…» es partia)
+    page.set_viewport_size({"width": 1024, "height": 900})
+    assert page.evaluate(WRAPPED_JS, ACTIONS) == []
+    page.set_viewport_size({"width": 1280, "height": 900})
     row.get_by_role("link", name="Revisa i tria…").click()
     page.get_by_label("LIQ-002").check()
     # T-DX-79 (V15): amb el panell obert, l'estat, el motiu i cada acció en una línia
-    assert page.evaluate(WRAPPED_JS) == []
+    open_panel = f".conciliacio tbody td .estat, .conciliacio-motiu, {ACTIONS}"
+    assert page.evaluate(WRAPPED_JS, open_panel) == []
     review("conciliacio-liquidacio-tria")
     page.get_by_role("button", name="Revisa aquesta liquidació").click()
     expect(page.get_by_role("row", name="REF-C")).to_contain_text("1,20 €")
