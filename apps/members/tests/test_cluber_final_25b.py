@@ -24,7 +24,6 @@ from apps.members.tests.test_cluber_preview import build, record
 pytestmark = pytest.mark.usefixtures("allow")
 
 SET_ON = datetime.date(2026, 4, 20)  # la data que posa la secretaria (inventada)
-TOMORROW = timezone.localdate() + datetime.timedelta(days=1)
 SUPPORTER_PRICE = "members.annual_fee_cents.supporter"
 
 
@@ -92,16 +91,25 @@ def test_the_audit_counts_are_exact(admin):  # noqa: F811
     ("dates", "code", "rows"),
     [
         ({3: SET_ON}, "renewal_date_row_unknown", (3,)),  # la fila 3 ja porta la data
-        ({2: TOMORROW}, "renewal_date_invalid", (2,)),
         ({2: "20/04/2026"}, "renewal_date_invalid", (2,)),
         ({2: datetime.datetime(2026, 4, 20, 10)}, "renewal_date_invalid", (2,)),
         ({2: datetime.date(2009, 1, 1)}, "renewal_date_invalid", (2,)),  # abans de l'alta
     ],
 )
 def test_wrong_dates_are_refused_and_nothing_is_written(admin, dates, code, rows):  # noqa: F811
+    assert_refused(admin, dates, code, rows)
+
+
+def test_a_renewal_date_after_today_is_refused(admin):  # noqa: F811
+    # Demà en executar la prova, no en carregar el fitxer (P-315b: mitjanit).
+    tomorrow = timezone.localdate() + datetime.timedelta(days=1)
+    assert_refused(admin, {2: tomorrow}, "renewal_date_invalid", (2,))
+
+
+def assert_refused(by, dates, code, rows):
     before = snapshot()
     with pytest.raises(final.FinalImportRefused) as refused:
-        final.confirm(build([without_date(), with_date(2)]), by=admin, renewal_dates=dates)
+        final.confirm(build([without_date(), with_date(2)]), by=by, renewal_dates=dates)
     assert (refused.value.code, refused.value.rows) == (code, rows)
     assert snapshot() == before
 
