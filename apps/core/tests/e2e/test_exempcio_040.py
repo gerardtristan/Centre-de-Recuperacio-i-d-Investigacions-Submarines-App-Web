@@ -77,6 +77,9 @@ def test_treasurer_exempts_the_fee_of_a_pending_member(
     page.keyboard.press("Enter")
     expect(page.get_by_role("heading", name="Eximeix la quota")).to_be_visible()
     review("eximeix-quota")
+    expect(page.locator('#barra-lateral [aria-current="page"]')).to_have_text(
+        "Llistat de socis"
+    )  # T-DX-76
     audit(page, "eximeix-quota", accessibility)
     assert not problems(accessibility), "; ".join(problems(accessibility))
 

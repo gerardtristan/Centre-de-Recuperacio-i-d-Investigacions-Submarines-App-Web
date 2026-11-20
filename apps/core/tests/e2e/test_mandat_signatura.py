@@ -103,6 +103,9 @@ def test_member_revokes_the_mandate(page, live_server, transactional_db, setting
     expect(page.get_by_role("heading", name="Revoques el mandat?")).to_be_visible()
     expect(page.get_by_text("ES … 0001")).to_be_visible()
     review("mandat-revoca")
+    expect(page.locator('.ramillete-lateral [aria-current="page"]')).to_have_text(
+        "Mandat de domiciliació"
+    )  # T-DX-76
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Sí, revoca'l").click()
     expect(page.get_by_role("status")).to_contain_text("CRIS000427M01 revocat")

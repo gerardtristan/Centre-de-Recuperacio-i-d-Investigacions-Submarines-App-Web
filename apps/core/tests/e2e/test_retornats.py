@@ -53,6 +53,9 @@ def test_treasurer_registers_a_return_and_confirms_the_retry(
     expect(page.get_by_role("status")).to_contain_text("Proposta: reintent")
     expect(page.get_by_role("button", name="Reintent (intent 2)")).to_be_visible()
     review("retornats-per-decidir")
+    expect(page.locator('#barra-lateral [aria-current="page"]')).to_have_text(
+        "Pagaments: remeses"
+    )  # T-DX-76
     page.get_by_role("button", name="Reintent (intent 2)").click()
 
     expect(page.get_by_role("status")).to_contain_text("remesa següent")

@@ -33,6 +33,9 @@ def test_imported_member_accepts_the_policies_at_first_login(page, live_server, 
     page.get_by_role("button", name="Entrar").click()
     expect(page.get_by_role("heading", name="Accepta les polítiques")).to_be_visible()
     review("politiques")
+    # T-DX-76 (V4): sense menú; les entrades hi tornarien a portar.
+    expect(page.get_by_role("navigation", name="Àrea de socis")).to_have_count(0)
+    expect(page.get_by_role("navigation", name="Compte personal")).to_have_count(0)
 
     page.goto(f"{live_server.url}/socis/perfil/")  # cap altra pàgina sense acceptar
     expect(page.get_by_role("heading", name="Accepta les polítiques")).to_be_visible()
@@ -56,6 +59,11 @@ def test_imported_member_accepts_the_policies_at_first_login(page, live_server, 
     expect(page.get_by_text("Ja pots fer servir l'àrea de socis.")).to_be_visible()
     expect(page.get_by_role("heading", name="El meu perfil")).to_be_visible()
     assert Consent.objects.filter(person=person, action=Consent.Action.GRANTED).count() == 2
+    # T-DX-76 (V4): sense soci, la barra té Inici, «Més» i Perfil, amb «Més» al centre.
+    review("perfil-sense-soci")
+    page.set_viewport_size({"width": 390, "height": 844})
+    more = page.locator(".ramillete-boto").bounding_box()
+    assert abs(more["x"] + more["width"] / 2 - 390 / 2) <= 2
 
 
 def test_cluber_trial_with_an_excel_file(page, live_server, texts, review):
