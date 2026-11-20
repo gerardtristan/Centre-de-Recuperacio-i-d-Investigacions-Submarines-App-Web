@@ -226,3 +226,37 @@ class OtherIncome(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()} ({self.amount_cents} c)"
+
+
+class VolunteerHours(models.Model):
+    """Hores de voluntariat (M09-6, T-M09-17; RN-M09-21): per funció i **mai per persona**. No es
+    valoren en euros dins el marge. L'activitat i el projecte (02) s'afegeixen amb el 02."""
+
+    date = models.DateField(_("data"))
+    hours = models.DecimalField(_("hores"), max_digits=5, decimal_places=2)
+    # La funció o el rol («instructor», «patró»), mai el nom de qui hi ha anat.
+    role_label = models.CharField(_("funció"), max_length=80)
+    department = models.ForeignKey(
+        "core.Department", on_delete=models.PROTECT, related_name="+", verbose_name=_("departament")
+    )
+    description = models.CharField(_("descripció"), max_length=200, blank=True)
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrades per"),
+    )
+    recorded_at = models.DateTimeField(_("registrades"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("hores de voluntariat")
+        verbose_name_plural = _("hores de voluntariat")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(hours__gt=0), name="volunteer_hours_positive"
+            ),
+            models.CheckConstraint(condition=~models.Q(role_label=""), name="volunteer_role_label"),
+        ]
+
+    def __str__(self):
+        return f"{self.role_label}: {self.hours} h"
