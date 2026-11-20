@@ -124,6 +124,11 @@ def test_minor_without_document_shows_the_possible_duplicate(
     expect(page.get_by_text("Possible duplicat d'un menor sense document")).to_be_visible()
     expect(page.get_by_text("soci número 77")).to_be_visible()
     review("menor-possible-duplicat")
+    # V3 (B13): amb dues caselles, «Rebutja…» continua al costat d'«Aprova l'alta».
+    approve = page.get_by_role("button", name="Aprova l'alta").bounding_box()
+    reject = page.locator("summary", has_text="Rebutja…").bounding_box()
+    assert 0 < reject["x"] - (approve["x"] + approve["width"]) < 64
+    assert abs(reject["y"] + reject["height"] / 2 - approve["y"] - approve["height"] / 2) < 4
     page.get_by_label("He comprovat el document del pare").check()
     page.get_by_label("He revisat les persones amb el mateix nom").check()
     page.get_by_role("button", name="Aprova l'alta").click()

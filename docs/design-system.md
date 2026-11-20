@@ -566,7 +566,7 @@ Del recurs Autentico ([pla dels recursos externs](plans/recursos-disseny-extern.
 
 ### 6.17 Deposito: el panell de revisió (T-DX-16)
 Del panell del negoci del recurs Deposito ([pla dels recursos externs](plans/recursos-disseny-extern.md)): els comptadors de dalt i les accions de cada element en una sola fila.
-- **Peça:** `static/css/deposito.css`. Comptadors `deposito-comptadors` (llista: número en xifres tabulars i text, «es-pendent» amb la vora i el número en ambre; el fons no, perquè semblaria el botó principal, D19) i fila d'accions `deposito-accions` (aprovar i rebutjar al costat, B13; el motiu del rebuig s'obre a sota a tota l'amplada).
+- **Peça:** `static/css/deposito.css`. Comptadors `deposito-comptadors` (llista: número en xifres tabulars i text, «es-pendent» amb la vora i el número en ambre; el fons no, perquè semblaria el botó principal, D19) i fila d'accions `deposito-accions` (aprovar i rebutjar al costat, B13; el motiu del rebuig s'obre a sota a tota l'amplada). Si el formulari d'aprovar porta caselles, es desfà dins la fila (`display: contents`): les caselles a tota l'amplada i el botó al costat de «Rebutja…» (V3, T-DX-81).
 - **On:** «Altes pendents» («N altes per revisar»; «Aprova l'alta» i «Rebutja…» a la mateixa fila) i «Sol·licituds» (canvis de tipus i baixes per revisar).
 - **Seguretat:** cap canvi en el que es pot fer. El servidor torna a comprovar el permís en aprovar o rebutjar; el motiu continua sent obligatori.
 - **Del recurs no s'hi fa:** els motius de rebuig predefinits (seria una llista de negoci, i el pla no en defineix cap) ni els comptadors de confirmades i rebutjades (caldria una consulta nova). La part de les transferències és la T-DX-12, quan existeixi la pantalla (T-M05b-06).
