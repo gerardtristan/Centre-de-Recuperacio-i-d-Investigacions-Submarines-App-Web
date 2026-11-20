@@ -48,7 +48,8 @@ REVERT_TRANSFER = (S.PAID, S.PENDING)
 # 048 (RN-M05b-14): «retornat → pendent», fora de TRANSITIONS perquè només la fa `reopen_returned`.
 REOPEN_RETURNED = (S.RETURNED, S.PENDING)
 
-PAID_ORIGINS = {"provider", "reconciliation"}
+# T-M05b-30: també la decisió del tresorer en tancar un intent «a revisar» amb «Pagat».
+PAID_ORIGINS = {"provider", "reconciliation", "treasurer_decision"}
 
 RECONCILE = "treasury.reconcile"  # T4 (M04-4): conciliar i desfer una conciliació
 RETURNS = "payments.returns"  # B4 (M05b-4): registrar retornats i decidir el reintent
@@ -180,6 +181,11 @@ def _transition(
 def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
     """Pendent → pagat. `origin`: «provider» (notificació verificada) o «reconciliation»
     (conciliació confirmada). `by` és qui ho confirma: el sistema o el tresorer."""
+    _check_paid_origin(origin)
+    return _paid(charge, payment, origin=origin, by=by)
+
+
+def _check_paid_origin(origin: str) -> None:
     if origin == "manual":
         raise ValidationError(
             _("Un pagament a mà només es registra amb motiu des de la seva acció (P-12).")
@@ -188,7 +194,6 @@ def mark_paid(charge: Charge, payment, *, origin: str, by) -> Charge:
         raise ValidationError(
             _("Un càrrec només passa a pagat des del proveïdor o la conciliació.")
         )
-    return _paid(charge, payment, origin=origin, by=by)
 
 
 def _paid(charge: Charge, payment: Payment, *, origin: str, by, reason: str = "") -> Charge:
@@ -221,20 +226,30 @@ def record_payment(
     provider_reference: str = "",
     transfer_reference: str = "",
     paid_at=None,
+    reason: str = "",
 ) -> Payment:
     """Pagament confirmat (P-84): crea el pagament amb l'import del càrrec (RN-M05b-02) i passa
     el càrrec a pagat, tot o res. Les altres apps creen el pagament només per aquí. `origin`:
-    «provider» o «reconciliation», com a `mark_paid`. `paid_at`: per defecte, ara; la conciliació
-    hi passa el dia de valor de la línia de l'extracte (P-111, decisió 095)."""
+    «provider», «reconciliation» o «treasurer_decision» (T-M05b-30: el tresorer tanca un intent
+    «a revisar» amb «Pagat»; llavors `by` és el tresorer i `reason`, el motiu), com a
+    `mark_paid`; queda al pagament. `paid_at`: per defecte, ara; la conciliació hi passa el dia de
+    valor de la línia de l'extracte (P-111, decisió 095)."""
+    _check_paid_origin(origin)  # abans de crear res: la base de dades també el rebutjaria
+    decided = origin == Payment.Origin.TREASURER_DECISION
+    if decided and not reason.strip():
+        raise ValidationError(_("La decisió del tresorer diu qui la pren i per què."))
     locked = Charge.objects.select_for_update().get(pk=charge.pk)
     payment = Payment.objects.create(
         charge=locked,
         method=method,
+        origin=origin,
         amount_cents=locked.amount_cents,
         provider_status=provider_status,
         provider_reference=provider_reference,
         transfer_reference=transfer_reference,
         paid_at=paid_at or timezone.now(),
+        recorded_by=by if decided else None,
+        reason=reason.strip() if decided else "",
     )
     mark_paid(locked, payment, origin=origin, by=by)
     return payment
@@ -288,6 +303,7 @@ def record_manual_payment(charge: Charge, *, reason: str, by, paid_on=None, proo
     payment = Payment.objects.create(
         charge=locked,
         method=Payment.Method.MANUAL,
+        origin=Payment.Origin.MANUAL,
         amount_cents=locked.amount_cents,
         paid_at=(
             timezone.now()

@@ -10,6 +10,7 @@ from django.db import IntegrityError
 from django.urls import URLResolver, get_resolver
 from django.utils import timezone
 
+from apps.accounts.models import Account
 from apps.core import audit, charges
 from apps.core.models import AuditEntry, Charge, Department, Payment, Person
 from apps.members.models import Member, MembershipType
@@ -51,8 +52,15 @@ def paid(
         department=department,
         cost_centre=cost_centre,
     )
+    # T-M05b-30: un pagament manual porta l'origen «manual», qui i el motiu (restricció).
+    manual = {}
+    if method == M.MANUAL:
+        recorder = Account.objects.create_admin(
+            Person.objects.create(first_name="Registra", origin="in_person"), "registra.prova"
+        )
+        manual = {"origin": "manual", "recorded_by": recorder, "reason": "Prova"}
     payment = Payment.objects.create(
-        charge=charge, method=method, amount_cents=received or amount, paid_at=PAID_AT
+        charge=charge, method=method, amount_cents=received or amount, paid_at=PAID_AT, **manual
     )
     origin = "reconciliation" if method == M.TRANSFER else "provider"
     charges.mark_paid(charge, payment, origin=origin, by=SYSTEM)
