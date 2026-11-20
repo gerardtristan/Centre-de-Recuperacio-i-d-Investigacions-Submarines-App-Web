@@ -1187,3 +1187,32 @@ opcions:
     data: 2026-11-19
 
 noves:
+  P-410:
+    opcions:
+      A: "Una tasca nova de la fase 1 al 04: pantalla per crear, reanomenar i desactivar departaments, centres de cost i comptes (T3, M7), sobre els serveis de la 00."
+      B: "Al mòdul 09 (fase 2), amb les despeses per departament; fins aleshores, els de les migracions."
+      C: "Cap pantalla: es canvien amb una migració quan calgui."
+    recomanada: A
+    perque: >-
+      El propietari vol que cap llista quedi al codi, i el club ja té departaments que no són a les migracions; sense
+      pantalla, cada canvi demana un desplegament.
+    data: 2026-11-20
+  P-411:
+    opcions:
+      A: "«General», «Quotes de socis» i «Ajustos de caixa» són entrades del sistema: no es reanomenen ni es desactiven."
+      B: "Es poden reanomenar: el codi les troba per un codi fix nou (migració), no pel nom."
+      C: "Es poden reanomenar i el codi continua buscant-les pel nom (ara trencaria les quotes i l'arqueig)."
+    recomanada: A
+    perque: >-
+      No cal cap migració ni cap codi nou, i protegeix la regla de les quotes (CA-15.8); si un dia es vol canviar el nom,
+      B es pot fer després sense perdre res.
+    data: 2026-11-20
+  P-412:
+    opcions:
+      A: "Com és: un termini legal al codi (6 anys, variable d'entorn), que només canvia amb una decisió; es corregeix el docstring."
+      B: "Un ajust editable des de l'app (amb nota i avís), dins d'un rang que digui la gestoria."
+    recomanada: A
+    perque: >-
+      És un termini legal (085, G-1), com la caducitat dels mandats (VC-13), i un canvi des de l'app podria anonimitzar
+      registres econòmics abans d'hora, que és irreversible.
+    data: 2026-11-20
