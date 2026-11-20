@@ -371,3 +371,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |
 | [T-M09-05](T-M09-05.md) | Pagar i anul·lar una despesa amb moviments de la 04 (expenses/0003), MG1 i MG2 de veritat als serveis i avís d'una despesa sense factura de la T-M09-04b (dubte P-473; carril C) | 20/11/2026 23:00 | a9dbcecf, c364f67d, 271f926e | 20 noves | [A comprovar] |
 | [T-M09-08](T-M09-08.md) | Altres ingressos (ajut, patrocini, donatiu) amb el moviment de la 04 (expenses/0004; CA-M09-09 espera el 02; carril C) | 20/11/2026 23:13 | 9863ca39 | 14 noves | [A comprovar] |
+| [T-M09-17](T-M09-17.md) | Hores de voluntariat per funció, mai per persona (expenses/0005; carril C) | 20/11/2026 23:19 | 9ea00216 | 18 noves | [A comprovar] |
