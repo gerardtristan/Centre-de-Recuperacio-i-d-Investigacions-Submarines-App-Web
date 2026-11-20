@@ -24,7 +24,7 @@ from apps.accounts.models import Account, TotpDevice
 from apps.accounts.sessions import AUTOMATIC_HEADER
 from apps.core import consents
 from apps.core.crypto import encrypt
-from apps.core.models import AccountRole, Person, Role
+from apps.core.models import AccountRole, Person, Role, Setting
 from apps.members.demo_data import _Builder
 from apps.members.models import MembershipNumberCounter
 from conftest import PASSWORD, committed_snapshot, delete_committed_rows
@@ -62,10 +62,17 @@ def transactional_db(_async_unsafe_only_in_e2e, django_db_setup, django_db_block
         # avança: es torna al valor d'abans, perquè una altra execució amb `--reuse-db` no
         # comenci amb un comptador desfasat.
         counter = MembershipNumberCounter.objects.values_list("last_number", flat=True).first()
+        # El mateix amb els ajustos de les migracions: algunes e2e en canvien el valor inicial (per
+        # exemple, encenen els terminis) i, sense això, una prova unitària posterior amb
+        # `--reuse-db` els trobaria canviats (T-F1-01).
+        initial = dict(Setting.objects.values_list("pk", "initial_value"))
         yield
         delete_committed_rows(tables, start)
         if counter is not None:
             MembershipNumberCounter.objects.filter(pk=1).update(last_number=counter)
+        for pk, value in Setting.objects.filter(pk__in=initial).values_list("pk", "initial_value"):
+            if value != initial[pk]:
+                Setting.objects.filter(pk=pk).update(initial_value=initial[pk])
 
 
 STATIC_RESOURCE_TYPES = frozenset({"script", "stylesheet", "image", "font"})
