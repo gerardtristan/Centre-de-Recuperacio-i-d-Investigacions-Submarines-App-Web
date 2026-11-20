@@ -7,9 +7,9 @@
   <h1>{% translate "Accepta les polítiques" %}</h1>
   {% if rows %}
     <p>{% translate "Les teves dades venen del programa que feia servir abans el club. Per fer servir l'àrea de socis, llegeix i accepta els textos vigents." %}</p>
-    {% if form.errors %}<div class="avis avis-error" role="alert">{% translate "Revisa els camps marcats." %}</div>{% endif %}
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
+      {% include "_errata.html" %}{# V10: el resum d'errors, amb un enllaç a cada casella. #}
       <input type="hidden" name="next" value="{{ next }}">
       <fieldset>
         <legend>{% translate "Textos que cal acceptar" %}</legend>

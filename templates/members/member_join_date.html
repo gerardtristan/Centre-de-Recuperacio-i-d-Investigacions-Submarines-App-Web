@@ -12,7 +12,7 @@
   {% else %}
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
-      {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% include "_errata.html" %}{# V10: el resum d'errors, com al formulari d'alta (també els generals). #}
       {% with field=form.joined_on %}{% include "accounts/_camp.html" %}{% endwith %}
       {# Patró «casella» fora de `.camp` (T-M01-45, punt 3): dins de `.camp` la casella s'estirava. #}
       <label class="casella" for="{{ form.approximate.id_for_label }}">{{ form.approximate }} <span>{{ form.approximate.label }}</span></label>

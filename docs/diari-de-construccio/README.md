@@ -362,3 +362,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-80](T-DX-80.md) | V18: ajustos a 1280 px, la clau d'un valor es parteix només després de «_» o «.» (sessió de DISSENY) | 20/11/2026 19:23 | 24001e03 | 1 e2e ajustada | [A comprovar] |
 | [T-DX-77](T-DX-77.md) | V8 i V20: inici del soci amb la història i la llicència alineades amb el carnet, i la quota pendent amb «Paga ara» com a botó principal (sessió de DISSENY) | 20/11/2026 19:24 | 9089f6f0 | 1 nova; 2 e2e ampliades | [A comprovar] |
 | [T-DX-81](T-DX-81.md) | V3: a «Altes pendents», «Rebutja…» al costat d'«Aprova l'alta» encara que hi hagi diverses caselles (sessió de DISSENY) | 20/11/2026 19:29 | a0271f3a | 1 e2e ampliada | [A comprovar] |
+| [T-DX-82](T-DX-82.md) | V10: resum d'errors (Errata) a «Corregeix la data d'alta» i a «Accepta les polítiques» (sessió de DISSENY) | 20/11/2026 19:35 | 35ca96b8 | 2 e2e ampliades | [A comprovar] |
