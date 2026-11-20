@@ -1,20 +1,21 @@
 """Models del mòdul 02, Activitats (cursos i sortides). Primera peça: catàlegs, tipus, subtipus,
 projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20), i llocs amb el
-seu preu estàndard (T-M02-37; addenda de llocs; RN-M02-38 i 39; VC-52).
+seu preu estàndard (T-M02-37; addenda de llocs; RN-M02-38 i 39; VC-52). Activitats, sessions i
+blocs del programa (T-M02-03a; M02-6), sense estats ni serveis encara.
 
 - Imports en cèntims (enters, ≥ 0: una activitat pot ser gratuïta, L-M02-06). Cap dada de salut,
   de targeta ni d'IBAN (CA-M02-25).
-- Fitxes, tipus i projectes no s'esborren si tenen activitats (PROTECT des d'`Activity`, T-M02-03,
-  que encara no existeix): es desactiven. Els preus només canvien amb `apps.activities.catalogue`.
+- Fitxes, tipus, projectes i llocs no s'esborren si tenen activitats (PROTECT): es desactiven. Els
+  preus només canvien amb `apps.activities.catalogue`.
 """
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import AppendOnlyModel, Department
+from apps.core.models import AppendOnlyModel, Department, Person
 
 
 class TrainingCatalogueEntry(models.Model):
@@ -184,7 +185,7 @@ class EnvironmentalProject(models.Model):
 class Place(models.Model):
     """Lloc d'una activitat: un lloc de sortida, una piscina o l'aula del club (addenda de llocs,
     RN-M02-38). És una dada: es crea, s'edita i es desactiva des de l'app; no s'esborra si té
-    activitats, sessions o blocs (PROTECT des d'aquests models, T-M02-03)."""
+    activitats, sessions o blocs (PROTECT)."""
 
     name = models.CharField(_("nom"), max_length=120)
     active = models.BooleanField(_("actiu"), default=True)
@@ -242,3 +243,305 @@ class PlacePrice(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.place} ({self.valid_from:%d/%m/%Y})"
+
+
+class RequirementsMode(models.TextChoices):
+    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+
+    WARN = "warn", _("Avís")
+    BLOCK = "block", _("Bloqueig")
+
+
+class Activity(models.Model):
+    """Una activitat: un curs (d'una fitxa del catàleg) o una sortida (d'un tipus). L'estat només
+    canviarà amb els serveis d'estats (RN-M02-02, T-M02-03b)."""
+
+    class Kind(models.TextChoices):
+        COURSE = "course", _("Curs")
+        OUTING = "outing", _("Sortida")
+        # `conference` s'hi afegirà amb el mòdul 11.
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Esborrany")
+        OPEN = "open", _("Oberta")
+        REGISTRATION_CLOSED = "registration_closed", _("Tancada a inscripcions")
+        IN_PROGRESS = "in_progress", _("En curs")
+        DONE = "done", _("Finalitzada")
+        CLOSED = "closed", _("Tancada econòmicament")
+        CANCELLED = "cancelled", _("Cancel·lada")
+
+    kind = models.CharField(_("classe"), max_length=10, choices=Kind.choices)
+    title = models.CharField(_("títol"), max_length=140)
+    # Objectiu (sortides) o descripció (cursos).
+    description = models.TextField(_("descripció"), blank=True)
+    catalogue_entry = models.ForeignKey(
+        TrainingCatalogueEntry,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("fitxa del catàleg"),
+    )
+    outing_type = models.ForeignKey(
+        OutingType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("tipus de sortida"),
+    )
+    # Només si el tipus és de medi ambient (`catalogue.check_outing_classification`, CA-M02-03).
+    subtype = models.ForeignKey(
+        EnvironmentalSubtype,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("subtipus"),
+    )
+    project = models.ForeignKey(
+        EnvironmentalProject,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("projecte"),
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("departament"),
+    )
+    # Del mateix departament (validació de servei, T-M02-06), com `core.Charge.cost_centre`.
+    cost_centre = models.ForeignKey(
+        "treasury.CostCentre",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("centre de cost"),
+    )
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    starts_on = models.DateField(_("data d'inici"))
+    ends_on = models.DateField(_("data de final"))
+    # Obligatori a les sortides fora de l'esborrany (addenda de llocs; RN-M02-44: una còpia amb un
+    # lloc desactivat el deixa buit); opcional als cursos, que el tenen a cada sessió.
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("lloc"),
+    )
+    # El punt concret de trobada (un moll, una hora): text lliure.
+    meeting_point = models.CharField(_("punt de trobada"), max_length=140, blank=True)
+    max_places = models.PositiveSmallIntegerField(_("places"))
+    registration_closes_at = models.DateTimeField(_("data límit d'inscripció"))
+    payment_window_hours = models.PositiveSmallIntegerField(_("termini de pagament (hores)"))
+    # Còpia del preu vigent del catàleg el dia que es crea (RN-M02-05); a les sortides, el que
+    # escriu el responsable. Canviar el catàleg no els toca mai.
+    price_member_cents = models.PositiveIntegerField(_("preu de soci (cèntims)"))
+    price_non_member_cents = models.PositiveIntegerField(_("preu de no soci (cèntims)"))
+    # Còpia del preu estàndard en crear-la: del lloc (sortides) o del catàleg (cursos); buida si no
+    # n'hi havia (RN-M02-40). La nota és obligatòria si un preu en difereix (RN-M02-41, servei).
+    standard_price_member_cents = models.PositiveIntegerField(
+        _("preu estàndard de soci (cèntims)"), null=True, blank=True
+    )
+    standard_price_non_member_cents = models.PositiveIntegerField(
+        _("preu estàndard de no soci (cèntims)"), null=True, blank=True
+    )
+    price_override_note = models.TextField(_("motiu del preu diferent de l'estàndard"), blank=True)
+    # Cost de material previst per participant i la seva còpia estàndard del 03 (RN-M02-43). És
+    # una previsió: no crea cap càrrec. Només el veu qui té C7 (T-M02-38).
+    material_cost_cents = models.PositiveIntegerField(
+        _("cost de material previst (cèntims)"), null=True, blank=True
+    )
+    standard_material_cost_cents = models.PositiveIntegerField(
+        _("cost de material estàndard (cèntims)"), null=True, blank=True
+    )
+    material_cost_note = models.TextField(_("motiu del cost de material diferent"), blank=True)
+    open_to_non_members = models.BooleanField(_("oberta a no socis"), default=False)
+    required_level = models.CharField(_("titulació mínima"), max_length=60, blank=True)
+    licence_required = models.BooleanField(_("cal llicència vigent"), default=False)
+    requirements_mode = models.CharField(
+        _("si no es compleixen els requisits"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        default=RequirementsMode.WARN,
+    )
+    responsible = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("persona responsable"),
+    )
+    # Només un enllaç a la previsió marítima, mai un giny ni un script (RN-M02-24).
+    forecast_url = models.URLField(_("enllaç a la previsió marítima"), blank=True)
+    duplicated_from = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="copies",
+        verbose_name=_("duplicada de"),
+    )
+    cancellation_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+    published_at = models.DateTimeField(_("publicada el"), null=True, blank=True)
+    done_at = models.DateTimeField(_("finalitzada el"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("activitat")
+        verbose_name_plural = _("activitats")
+        ordering = ["starts_on", "pk"]
+        indexes = [
+            models.Index(fields=["status", "starts_on"], name="activity_status_start_idx"),
+            models.Index(fields=["kind", "starts_on"], name="activity_kind_start_idx"),
+            models.Index(fields=["project"], name="activity_project_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["course", "outing"]), name="activity_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=[
+                        "draft",
+                        "open",
+                        "registration_closed",
+                        "in_progress",
+                        "done",
+                        "closed",
+                        "cancelled",
+                    ]
+                ),
+                name="activity_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(requirements_mode__in=["warn", "block"]),
+                name="activity_requirements_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=~Q(kind="course") | Q(catalogue_entry__isnull=False),
+                name="activity_course_has_catalogue_entry",
+            ),
+            models.CheckConstraint(
+                condition=~Q(kind="outing") | Q(outing_type__isnull=False),
+                name="activity_outing_has_type",
+            ),
+            models.CheckConstraint(
+                condition=Q(ends_on__gte=F("starts_on")), name="activity_ends_after_it_starts"
+            ),
+            models.CheckConstraint(condition=Q(max_places__gt=0), name="activity_places_positive"),
+            models.CheckConstraint(
+                condition=~Q(status="cancelled") | ~Q(cancellation_reason=""),
+                name="activity_cancelled_has_reason",
+            ),
+            models.CheckConstraint(
+                condition=~Q(kind="outing") | Q(place__isnull=False) | Q(status="draft"),
+                name="activity_outing_has_place",
+            ),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
+class Session(models.Model):
+    """Sessió d'un curs: teoria, piscina o mar, amb els instructors que hi fan classe. «Les seves
+    sessions» d'un instructor (RN-43 de la 00) són aquelles on surt a `instructors`."""
+
+    class Kind(models.TextChoices):
+        THEORY = "theory", _("Teoria")
+        POOL = "pool", _("Piscina")
+        SEA = "sea", _("Mar")
+
+    activity = models.ForeignKey(
+        Activity, on_delete=models.PROTECT, related_name="sessions", verbose_name=_("activitat")
+    )
+    kind = models.CharField(_("classe"), max_length=10, choices=Kind.choices)
+    starts_at = models.DateTimeField(_("comença"))
+    ends_at = models.DateTimeField(_("acaba"))
+    place = models.ForeignKey(
+        Place, on_delete=models.PROTECT, related_name="sessions", verbose_name=_("lloc")
+    )
+    instructors = models.ManyToManyField(
+        Person, blank=True, related_name="taught_sessions", verbose_name=_("instructors")
+    )
+    is_practice = models.BooleanField(_("és una pràctica"), default=False)
+    cancelled = models.BooleanField(_("cancel·lada"), default=False)
+    cancellation_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+
+    class Meta:
+        verbose_name = _("sessió")
+        verbose_name_plural = _("sessions")
+        ordering = ["starts_at", "pk"]
+        indexes = [
+            models.Index(fields=["activity", "starts_at"], name="session_activity_start_idx")
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["theory", "pool", "sea"]), name="session_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(ends_at__gt=F("starts_at")), name="session_ends_after_it_starts"
+            ),
+            models.CheckConstraint(
+                condition=Q(cancelled=False) | ~Q(cancellation_reason=""),
+                name="session_cancelled_has_reason",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.activity} ({self.starts_at:%d/%m/%Y %H:%M})"
+
+
+class ProgrammeBlock(models.Model):
+    """Bloc del programa del dia d'una sortida (trobada, briefing, immersió, dinar, tornada)."""
+
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.PROTECT,
+        related_name="programme_blocks",
+        verbose_name=_("activitat"),
+    )
+    order = models.PositiveSmallIntegerField(_("ordre"))
+    starts_at = models.TimeField(_("hora d'inici"))
+    ends_at = models.TimeField(_("hora de final"), null=True, blank=True)
+    label = models.CharField(_("què s'hi fa"), max_length=80)
+    # Buit: el de l'activitat (`shown_place`).
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="programme_blocks",
+        verbose_name=_("lloc"),
+    )
+    # Rol o funció («cap d'immersió»), mai un nom ni dades de contacte.
+    responsible_label = models.CharField(
+        _("qui se n'encarrega (funció)"), max_length=80, blank=True
+    )
+
+    class Meta:
+        verbose_name = _("bloc del programa")
+        verbose_name_plural = _("blocs del programa")
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["activity", "order"], name="programmeblock_order_unique_per_activity"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.starts_at:%H:%M} {self.label}"
+
+    @property
+    def shown_place(self):
+        """El lloc que es mostra: el del bloc o, si no en té, el de l'activitat (CA-M02-47)."""
+        return self.place or self.activity.place
