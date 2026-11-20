@@ -1313,3 +1313,13 @@ noves:
       És el que diu la regla («60 dies o menys») i el que entén tothom en llegir l'ajust; B obligaria a explicar una
       manera de comptar diferent de la resta de terminis de la plataforma.
     data: 2026-11-20
+  P-442:
+    opcions:
+      A: "La vigent del mateix tipus que caduca més tard; si canvia de tipus, no en renova cap i l'anterior continua rebent avisos."
+      B: "La vigent de qualsevol tipus que caduca més tard: canviar d'aficionat a tècnic també atura els avisos de l'anterior."
+      C: "La tria la persona en demanar-la (o la secretaria), entre les seves vigents."
+    recomanada: B
+    perque: >-
+      Qui passa a tècnic ja no necessita renovar l'aficionat, i rebre'n avisos seria soroll; A és el que fa ara el codi
+      perquè és el cas segur, i canviar-lo és una línia.
+    data: 2026-11-20
