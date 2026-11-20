@@ -210,7 +210,7 @@ window.RECORREGUTS = {
             "P3a",
             "P7"
           ],
-          "que": "Aprova la sol·licitud (es crea el suplement, que venç una setmana després) o la rebutja amb motiu.",
+          "que": "Aprova la sol·licitud (es crea el suplement, que venç passats els dies que fixa l'ajust VC-53, configurable a «Ajustos») o la rebutja amb motiu.",
           "pantalla": "/gestio/socis/sollicituds",
           "wireframes": [
             {
