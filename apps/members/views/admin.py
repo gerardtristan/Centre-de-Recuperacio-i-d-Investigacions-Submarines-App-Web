@@ -404,6 +404,13 @@ def member_detail_view(request, pk):
                 permissions=perms,
             )
         )
+        # T-M01-49c, part 2: la quota d'una alta presencial, a terminis (P23; P-415).
+        row["can_split"] = (
+            context["can_edit_instalments"]
+            and row["annual"]
+            and row["open"]
+            and instalments.can_choose_in_person(row["fee"], request.user, perms)
+        )
     return render(request, "members/member_detail.html", context)
 
 

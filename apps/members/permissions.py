@@ -91,6 +91,7 @@ ROUTES = {
     "administration:member_fee_exempt": _both((P22, WRITE), (P4, READ), (P10, READ)),
     "administration:member_fee_cancel": _both((P22, WRITE), (P4, READ), (P10, READ)),
     "administration:member_fee_instalments": _both((P23, WRITE), (P4, READ), (P10, READ)),
+    "administration:member_fee_choose_instalments": _both((P23, WRITE), (P4, READ), (P10, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

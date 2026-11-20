@@ -81,14 +81,20 @@ def choose(fee, *, by, request=None) -> list[AnnualFee]:
     """Només el soci mateix amb el compte personal actiu (un altre compte, «no trobat»). Tot o
     res. Un pagament en curs o per revisar de la quota ho impedeix: es podria cobrar dues
     vegades (guarda del 05b)."""
-    from apps.payments.attempts import ensure_manual_payment_allowed
-
     from .member_requests import _is_own_personal
     from .services import _check_account_active
 
     if not _is_own_personal(fee.member, by):
         raise Http404
     _check_account_active(by)
+    return _choose(fee, by=by, request=request, reason=_("Pagament a terminis triat pel soci."))
+
+
+def _choose(fee, *, by, request, reason, check=None) -> list[AnnualFee]:
+    """Tot o res: anul·la la quota anual amb `reason` i crea els tres terminis. `check(locked)`:
+    una comprovació més, dins la transacció."""
+    from apps.payments.attempts import ensure_manual_payment_allowed
+
     with transaction.atomic():
         member = (
             Member.objects.select_for_update(of=("self",))
@@ -107,7 +113,9 @@ def choose(fee, *, by, request=None) -> list[AnnualFee]:
             ) from None
         if not can_choose(locked):
             raise ValidationError(_("Aquesta quota ja no es pot pagar a terminis."))
-        charges.cancel(locked.charge, _("Pagament a terminis triat pel soci."), by=by)
+        if check is not None:
+            check(locked)
+        charges.cancel(locked.charge, reason, by=by)
         created = [
             fees._issue_fee(
                 member,
@@ -246,3 +254,57 @@ def edit(fee, changes: dict, *, by, reason, request=None) -> list[AnnualFee]:
             )
             edited.append(f)
     return edited
+
+
+# --- Triar-los a l'alta presencial (T-M01-49c, part 2) ----------------------------------------
+
+
+def is_in_person_join_fee(fee) -> bool:
+    """La quota de l'alta d'un soci que es va fer soci presencialment: la sol·licitud d'alta
+    aprovada més recent del soci és presencial i la quota venç el dia que es va aprovar."""
+    from django.utils import timezone
+
+    join = (
+        MemberRequest.objects.filter(
+            member_id=fee.member_id,
+            kind=MemberRequest.Kind.JOIN,
+            status=MemberRequest.Status.APPROVED,
+        )
+        .order_by("-resolved_at", "-pk")
+        .first()
+    )
+    return (
+        fee.kind == K.ANNUAL
+        and join is not None
+        and join.channel == MemberRequest.Channel.IN_PERSON
+        and join.resolved_at is not None
+        and timezone.localdate(join.resolved_at) == fee.due_on
+    )
+
+
+def can_choose_in_person(fee, by, permissions=None) -> bool:
+    return can_edit(by, permissions) and is_in_person_join_fee(fee) and can_choose(fee)
+
+
+def choose_in_person(fee, *, by, request=None) -> list[AnnualFee]:
+    """L'administració els tria per al soci, a la quota d'una alta presencial (072, tercera
+    instrucció, punt 2; P-415): P23 i mai per a un mateix. Les mateixes condicions que quan els
+    tria el soci (`can_choose`)."""
+    from .services import _check_account_active, ensure_not_own_member
+
+    if not can_edit(by):
+        raise Http404
+    _check_account_active(by)
+    ensure_not_own_member(fee.member, by, request=request)
+
+    def check(locked):
+        if not is_in_person_join_fee(locked):
+            raise ValidationError(_("Només a la quota d'una alta presencial."))
+
+    return _choose(
+        fee,
+        by=by,
+        request=request,
+        reason=_("Pagament a terminis triat a l'alta presencial."),
+        check=check,
+    )
