@@ -163,10 +163,11 @@ def test_una_correccio_que_no_val_no_desa_res(treasurer, boat):
     assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
 
 
-@pytest.mark.parametrize("status", [Expense.Status.PAID, Expense.Status.ANNULLED])
+# La pagada: test_payments.py (CA-M09-03), perquè «pagada» porta el moviment de la 04.
+@pytest.mark.parametrize("status", [Expense.Status.ANNULLED])
 def test_ca_m09_03_una_despesa_pagada_o_anullada_no_canvia(treasurer, boat, status):
     expense = services.record_expense(by=treasurer, **data(boat))
-    Expense.objects.filter(pk=expense.pk).update(status=status)  # pagar i anul·lar: T-M09-05
+    Expense.objects.filter(pk=expense.pk).update(status=status)
     with pytest.raises(services.ExpenseLocked):
         services.update_expense(expense, by=treasurer, amount_cents=1)
     assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
