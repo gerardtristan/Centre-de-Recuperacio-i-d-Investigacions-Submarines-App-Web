@@ -5,10 +5,13 @@ import datetime
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import business_settings
 from apps.core.models import AppendOnlyModel, Charge, ImportBatch, Person, UndeletableModel
 
 
@@ -54,6 +57,15 @@ class LicenceType(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        """CA-M06-21: cap tipus d'un dia actiu mentre `licences.day_enabled` és desactivada."""
+        if (
+            self.validity_rule == ValidityRule.SINGLE_DAY
+            and self.active
+            and not business_settings.get("licences.day_enabled")
+        ):
+            raise ValidationError(gettext("La llicència d'un dia no està activada."))
 
 
 class LicencePrice(AppendOnlyModel):
