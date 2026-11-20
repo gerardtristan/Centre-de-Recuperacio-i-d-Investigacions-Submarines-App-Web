@@ -14,4 +14,8 @@
 .deposito-comptadors .es-pendent b { color: var(--c-avis-text); }
 .deposito-accions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--e-3); }
 .deposito-accions > form { margin: 0; }
+/* V3: amb caselles, el formulari d'aprovar es desfà dins la fila (contents): les caselles a tota
+   l'amplada i el seu botó al costat de «Rebutja…». L'enviament no canvia: els camps continuen dins del form. */
+.deposito-accions > form:has(> .casella) { display: contents; }
+.deposito-accions > form > .casella { flex-basis: 100%; }
 .deposito-accions > details[open] { flex-basis: 100%; }
