@@ -397,4 +397,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-07](T-M02-07.md) | Duplicar una activitat amb els llocs; publicar demana llocs actius; error de la descripció llarga (carril B) | 20/11/2026 23:56 | (vegeu la PR) | 14 noves (24 casos); 1 d'error | [A comprovar] |
 | [T-M02-08](T-M02-08.md) | Dades públiques de les activitats i calendari descarregable, només amb el nom del lloc (serveis; carril B) | 21/11/2026 00:00 | (vegeu la PR) | 10 noves (16 casos) | [A comprovar] |
 | [T-M02-23](T-M02-23.md) | Nivells i titulacions de la persona i el RGPD del 02 (activities/0005; carril B) | 21/11/2026 00:12 | (vegeu la PR) | 8 noves (10 casos) | [A comprovar] |
-| [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (23 casos); 1 ajustada | [A comprovar] |
+| [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (22 casos); 1 ajustada | [A comprovar] |
