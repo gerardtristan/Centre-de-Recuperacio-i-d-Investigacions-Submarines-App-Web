@@ -15,6 +15,7 @@ sol·licituds de socis (`design-system.md`, §6.7).
 
 from django import forms
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -27,7 +28,7 @@ from apps.accounts.forms import ReauthForm
 from apps.accounts.security import WRONG_CODE, WRONG_PASSWORD
 
 from .. import erasure, privacy
-from ..models import ErasureRequest
+from ..models import ErasureRequest, Person
 from ..permissions import has_perm, permission_required, request_permissions, require_perm
 
 APPROVE, REJECT = "approve", "reject"
@@ -158,3 +159,101 @@ def gdpr_request_detail_view(request, pk):
         "consequences": privacy.describe(item.person) if pending else [],
     }
     return render(request, "core/gdpr_request_detail.html", context, status=status)
+
+
+# --- Exportació amb les notes de l'administració (T-M01-22c; 085, A-1; P-416) ---------------
+
+
+class NotesExportForm(ReauthForm):
+    """Qui atén la sol·licitud revisa cada nota: les marcades queden fora, amb un motiu. Lliurar-les
+    no es pot desfer: contrasenya i codi a la mateixa petició."""
+
+    reason = forms.CharField(
+        label=gettext_lazy("Motiu per deixar fora les notes marcades"),
+        required=False,
+        max_length=2000,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=gettext_lazy(
+            "Obligatori si en deixes fora alguna (per exemple, perquè parla d'una altra persona). "
+            "Queda al registre d'activitat; no hi escriguis dades d'altres persones."
+        ),
+    )
+
+    def __init__(self, *args, notes, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.notes = notes
+        for n, item in enumerate(notes):
+            self.fields[f"exclou_{n}"] = forms.BooleanField(
+                label=_("Deixa fora: %(context)s") % {"context": item["context"]}, required=False
+            )
+            item["field"] = f"exclou_{n}"
+        self.order_fields([*(f"exclou_{n}" for n in range(len(notes))), "reason"])
+
+    def note_rows(self):
+        return [(item, self[item["field"]]) for item in self.notes]
+
+    def excluded(self) -> set:
+        return {item["key"] for item in self.notes if self.cleaned_data.get(item["field"])}
+
+
+@never_cache
+@permission_required(erasure.HANDLE_PERMISSION)
+@require_http_methods(["GET", "POST"])
+def gdpr_notes_export_view(request, pk):
+    """M11 per veure-ho, M11 amb edició per preparar-la; sense l'interruptor, «no trobat»."""
+    if not privacy.notes_export_enabled():
+        raise Http404
+    person = get_object_or_404(Person, pk=pk, status=Person.Status.ACTIVE)
+    own = person.pk == request.user.person_id
+    can_prepare = not own and has_perm(
+        request.user,
+        erasure.HANDLE_PERMISSION,
+        write=True,
+        permissions=request_permissions(request),
+    )
+    notes = privacy.admin_notes(person)
+    form = NotesExportForm(request.POST or None, has_totp=request.user.has_totp, notes=notes)
+    status = 200
+    if request.method == "POST":
+        require_perm(request, erasure.HANDLE_PERMISSION, write=True)
+        if own:
+            form.add_error(None, _("No pots preparar la teva pròpia exportació amb notes."))
+            status = 403
+        elif form.is_valid():
+            if form.excluded() and not form.cleaned_data["reason"].strip():
+                form.add_error("reason", _("Cal el motiu per deixar fora alguna nota."))
+            else:
+                error = reauth.require_recent_auth(
+                    request,
+                    0,
+                    password=form.cleaned_data["password"],
+                    code=form.cleaned_data.get("code", ""),
+                )
+                if error is not None:
+                    form.add_error(
+                        {WRONG_PASSWORD: "password", WRONG_CODE: "code"}.get(error), error
+                    )
+                    form.data = form.data.copy()
+                    form.data.pop("code", None)
+                else:
+                    try:
+                        privacy.export_with_notes(
+                            person,
+                            by=request.user,
+                            excluded=form.excluded(),
+                            reason=form.cleaned_data["reason"],
+                            request=request,
+                        )
+                    except ValidationError as exc:
+                        form.add_error(None, exc.messages)
+                    else:
+                        messages.success(
+                            request,
+                            _(
+                                "Exportació preparada amb les notes revisades. La persona la pot "
+                                "descarregar des de «Les meves dades» durant 7 dies."
+                            ),
+                        )
+                        return redirect("administration:gdpr_notes_export", pk=person.pk)
+    context = {"person": person, "form": form, "can_prepare": can_prepare, "own": own}
+    return render(request, "core/gdpr_notes_export.html", context, status=status)

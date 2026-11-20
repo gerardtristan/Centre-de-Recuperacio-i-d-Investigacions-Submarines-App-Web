@@ -30,7 +30,8 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.accounts import personal_reset
-from apps.core import audit, charges, persons
+from apps.core import audit, charges, erasure, persons
+from apps.core import privacy as core_privacy
 from apps.core.models import Charge
 from apps.core.permissions import (
     has_perm,
@@ -380,6 +381,10 @@ def member_detail_view(request, pk):
         "can_record_payment": vis.fees
         and member.person_id != request.user.person_id
         and has_perm(request.user, charges.MANUAL_PAYMENT, write=True, permissions=perms),
+        # T-M01-22c (085, A-1): l'exportació amb notes revisades (M11; interruptor apagat).
+        "can_export_notes": core_privacy.notes_export_enabled()
+        and member.person_id != request.user.person_id
+        and has_perm(request.user, erasure.HANDLE_PERMISSION, permissions=perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(

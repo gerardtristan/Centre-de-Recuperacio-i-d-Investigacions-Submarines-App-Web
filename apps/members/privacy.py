@@ -188,6 +188,65 @@ def export_personal_data(person) -> dict:
     return data
 
 
+# --- Notes de l'administració (T-M01-22c; 085, A-1) -----------------------------------------
+
+
+def admin_notes(person) -> list[dict]:
+    """Els textos lliures que ha escrit l'administració: motius de resolucions i de les
+    sol·licituds que no ha escrit la persona, de canvis d'estat i de revocacions de carnets. No
+    van a l'exportació fins que els revisa qui atén la sol·licitud (`core.privacy`)."""
+    from apps.core.privacy import note
+
+    found = []
+    for item in person.member_requests.order_by("created_at", "id"):
+        kind = item.get_kind_display()
+        if item.request_reason and item.channel != MemberRequest.Channel.WEB:
+            found.append(
+                note(
+                    f"members.request.{item.pk}.request_reason",
+                    _("Motiu de la sol·licitud (%(kind)s), registrat per l'administració")
+                    % {"kind": kind},
+                    item.created_at,
+                    item.request_reason,
+                )
+            )
+        if item.resolution_reason:
+            found.append(
+                note(
+                    f"members.request.{item.pk}.resolution_reason",
+                    _("Motiu de la resolució de la sol·licitud (%(kind)s)") % {"kind": kind},
+                    item.resolved_at or item.created_at,
+                    item.resolution_reason,
+                )
+            )
+    member = _member(person)
+    if member is None:
+        return found
+    for change in member.status_changes.exclude(reason="").order_by("created_at", "id"):
+        found.append(
+            note(
+                f"members.status_change.{change.pk}",
+                _("Canvi d'estat: %(old)s → %(new)s")
+                % {
+                    "old": change.get_from_status_display() or "—",
+                    "new": change.get_to_status_display(),
+                },
+                change.created_at,
+                change.reason,
+            )
+        )
+    for card in member.cards.exclude(revoked_reason="").order_by("issued_at", "id"):
+        found.append(
+            note(
+                f"members.card.{card.pk}",
+                _("Revocació del carnet"),
+                card.revoked_at,
+                card.revoked_reason,
+            )
+        )
+    return found
+
+
 # --- Resum per a qui aprova l'esborrat ------------------------------------------------------
 
 

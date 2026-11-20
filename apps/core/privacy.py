@@ -25,16 +25,19 @@ quotes no s'esborren ni es modifiquen: queden lligats a la persona anonimitzada.
 hi surt es bloqueja abans d'anonimitzar (`locked_data.lock`, xifrada) i només es consulta amb M13
 i un motiu (T-M00-04).
 
-**Termini de conservació: PUNT D'EXTENSIÓ, sense codi (Q-14 [A verificar: gestoria]).** Quant de
-temps es conserven les dades bloquejades no està decidit, i aquí no hi ha cap nombre d'anys ni
-cap regla que el simuli. Quan es decideixi:
-- la data d'inici és `ErasureRequest.executed_at` (ja es desa);
-- el termini ha de ser un valor de configuració (`core.business_settings`), no una constant;
-- la destrucció (CA-19.5, RN-90) és una tasca periòdica nova a `apps/core/tasks.py`
-  (`core.destroy_expired_blocked_data`), que cridaria una funció d'aquest mòdul i deixaria una
-  entrada al registre amb la referència.
-Tampoc no està decidit què es fa quan qui demana l'esborrat té càrrecs pendents (CA-19.7, Q-14):
-`erasure.approve` no executa aquest cas.
+**Termini de conservació (CA-19.5, RN-90; decisió 085, G-1; P-412).** Les dades bloquejades es
+destrueixen quan han passat `LOCKED_DATA_RETENTION_YEARS` anys (6, configurable) des del 31/12 de
+l'any de l'últim registre econòmic de la persona (càrrec creat o pagament fet), no des de
+l'esborrat. Ho fa cada dia la tasca `core.destroy_expired_locked_data`
+(`locked_data.destroy_expired`), amb una entrada al registre amb la referència. Mentre la P-412
+sigui oberta, el termini es queda a la configuració del codi i no a «Ajustos».
+
+**Amb deutes (CA-19.7; 085, G-2).** Si la persona té càrrecs pendents o retornats, `erasure.approve`
+no executa l'esborrat (`erasure.blockers`); el deute es pot anul·lar abans amb motiu.
+
+**Exportació amb les notes de l'administració (T-M01-22c; 085, A-1).** L'exportació pròpia no
+porta les notes; `export_with_notes` les hi afegeix quan les ha revisat qui atén la sol·licitud,
+darrere de l'interruptor `GDPR_ADMIN_NOTES_EXPORT_ENABLED` (apagat; P-416).
 """
 
 import json
@@ -45,11 +48,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
+from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from . import audit, files, locked_data, mail
-from .models import OutgoingEmail, Person, PrivateFile
+from .models import Charge, OutgoingEmail, Payment, PaymentCancellation, Person, PrivateFile
 from .persons import ANONYMISED_NOT_EDITABLE, anonymous_ref_for
 
 EXPORT_DOWNLOAD_NAME = "les-meves-dades-cris.json"
@@ -65,13 +69,16 @@ class Module:
     request=)` fa la part del mòdul amb la persona ja anonimitzada; `audit_targets(persona)`
     torna {tipus: identificadors} dels seus objectes **no econòmics** (els valors de les seves
     entrades del registre se substitueixen); `describe(persona)` torna frases sense dades
-    personals per al resum de qui aprova; `blockers(persona)`, per què no es pot executar."""
+    personals per al resum de qui aprova; `blockers(persona)`, per què no es pot executar;
+    `notes(persona)`, els textos lliures que l'administració ha escrit sobre la persona (amb
+    `note`), per a l'exportació amb les notes revisades (085, A-1)."""
 
     export: Callable
     anonymise: Callable
     audit_targets: Callable
     describe: Callable = _nothing
     blockers: Callable = _nothing
+    notes: Callable = _nothing
 
 
 _MODULES: dict[str, Module] = {}
@@ -86,7 +93,14 @@ def register(name: str, module: Module) -> None:
 # --- Exportació -----------------------------------------------------------------------------
 
 
-def export_note() -> str:
+def export_note(with_notes=False) -> str:
+    if with_notes:
+        return _(
+            "Aquest fitxer conté les dades que la plataforma del C.R.I.S. guarda de tu, amb les "
+            "notes de l'administració tal com les ha revisat qui ha atès la teva sol·licitud. No "
+            "hi ha les dades d'altres persones (per exemple, les del pare, la mare o el tutor "
+            "legal d'una alta). Si tens cap dubte, escriu a %(address)s."
+        ) % {"address": settings.EMAIL_REPLY_TO}
     return _(
         "Aquest fitxer conté les dades que la plataforma del C.R.I.S. guarda de tu. No hi ha "
         "les dades d'altres persones (per exemple, les del pare, la mare o el tutor legal d'una "
@@ -143,14 +157,15 @@ def _sent_emails(person) -> list[dict]:
     ]
 
 
-def export_person(person) -> dict:
+def export_person(person, notes=None) -> dict:
     """Totes les dades de la persona, i només les seves (CA-18.1). Cap testimoni, empremta ni
-    secret: cada secció tria els camps un per un."""
+    secret: cada secció tria els camps un per un. `notes`: les notes de l'administració que ha
+    revisat qui atén la sol·licitud (`export_with_notes`); sense, no hi surten."""
     from apps.accounts import privacy as accounts_privacy
 
     data = {
         "generat_el": timezone.now(),
-        "nota": export_note(),
+        "nota": export_note(with_notes=notes is not None),
         "persona": _person_data(person),
         "comptes": accounts_privacy.export(person),
         "consentiments": _consents(person),
@@ -162,6 +177,10 @@ def export_person(person) -> dict:
     }
     for name, module in _MODULES.items():
         data[name] = module.export(person)
+    if notes is not None:
+        data["notes_de_l_administracio"] = [
+            {"context": n["context"], "data": n["date"], "text": n["text"]} for n in notes
+        ]
     return data
 
 
@@ -179,7 +198,7 @@ def live_export(person) -> PrivateFile | None:
     )
 
 
-def request_export(person, *, by, request=None) -> PrivateFile:
+def request_export(person, *, by, request=None, notes=None, details=None) -> PrivateFile:
     """Prepara l'exportació de la persona i la desa com a fitxer privat (P-M01-F, passos 1 i 2).
     La sol·licitud queda al registre; la descàrrega, en demanar la URL signada
     (`files.signed_url`). El fitxer es desa l'últim: si alguna cosa falla abans, no en queda cap
@@ -187,7 +206,7 @@ def request_export(person, *, by, request=None) -> PrivateFile:
     if person.status != Person.Status.ACTIVE:
         raise ValidationError(ANONYMISED_NOT_EDITABLE)
     content = json.dumps(
-        export_person(person), cls=DjangoJSONEncoder, ensure_ascii=False, indent=2
+        export_person(person, notes), cls=DjangoJSONEncoder, ensure_ascii=False, indent=2
     ).encode("utf-8")
     with transaction.atomic():
         files.expire_owner_files(person, kinds={PrivateFile.Kind.GDPR_EXPORT})
@@ -195,7 +214,7 @@ def request_export(person, *, by, request=None) -> PrivateFile:
             audit.Action.EXPORT_REQUESTED,
             actor=by,
             target=person,
-            details={"kind": PrivateFile.Kind.GDPR_EXPORT},
+            details={"kind": PrivateFile.Kind.GDPR_EXPORT, **(details or {})},
             request=request,
         )
         return files.store(
@@ -205,6 +224,122 @@ def request_export(person, *, by, request=None) -> PrivateFile:
             content_type="application/json",
             download_name=EXPORT_DOWNLOAD_NAME,
         )
+
+
+# --- Exportació amb les notes de l'administració (T-M01-22c; 085, A-1, opció C) -------------
+# Les notes (motius de resolucions, de canvis d'estat, d'anul·lacions...) poden parlar d'altres
+# persones: entren a l'exportació només després que les revisi qui atén la sol·licitud (M11 amb
+# edició), que en pot deixar fora alguna amb motiu (P-416). Lliurar-les no es pot desfer: tot
+# plegat és darrere de `GDPR_ADMIN_NOTES_EXPORT_ENABLED`, apagat (D2).
+
+NOTES_REVIEWED = "gdpr.export_notes_reviewed"
+
+
+def note(key: str, context: str, date, text: str) -> dict:
+    return {"key": key, "context": context, "date": date, "text": text}
+
+
+def _core_notes(person) -> list[dict]:
+    from .charges import euros
+
+    found = [
+        note(
+            f"core.charge.{c.pk}",
+            _("Anul·lació del càrrec «%(concept)s» (%(amount)s)")
+            % {"concept": c.concept, "amount": euros(c.amount_cents)},
+            c.updated_at,
+            c.cancel_reason,
+        )
+        for c in Charge.objects.filter(person=person).exclude(cancel_reason="")
+    ]
+    found += [
+        note(
+            f"core.payment.{p.pk}",
+            _("Pagament registrat a mà de «%(concept)s»") % {"concept": p.charge.concept},
+            p.created_at,
+            p.reason,
+        )
+        for p in Payment.objects.filter(charge__person=person)
+        .exclude(reason="")
+        .select_related("charge")
+    ]
+    found += [
+        note(
+            f"core.payment_cancellation.{pc.pk}",
+            _("Anul·lació d'un pagament de «%(concept)s»") % {"concept": pc.payment.charge.concept},
+            pc.cancelled_at,
+            pc.reason,
+        )
+        for pc in PaymentCancellation.objects.filter(payment__charge__person=person).select_related(
+            "payment__charge"
+        )
+    ]
+    found += [
+        note(
+            f"core.erasure.{e.pk}",
+            _("Rebuig d'una sol·licitud d'esborrat"),
+            e.resolved_at,
+            e.rejection_reason,
+        )
+        for e in person.erasure_requests.exclude(rejection_reason="")
+    ]
+    return found
+
+
+def admin_notes(person) -> list[dict]:
+    """Els textos lliures de l'administració sobre la persona, de tots els mòduls, per data."""
+    found = _core_notes(person)
+    for module in _MODULES.values():
+        found += module.notes(person)
+    return sorted(
+        (n for n in found if n["text"].strip()),
+        key=lambda n: (n["date"] or timezone.now(), n["key"]),
+    )
+
+
+def notes_export_enabled() -> bool:
+    return settings.GDPR_ADMIN_NOTES_EXPORT_ENABLED
+
+
+def export_with_notes(person, *, by, excluded=(), reason="", request=None) -> PrivateFile:
+    """Prepara l'exportació de la persona amb les notes que ha revisat `by` (M11 amb edició, mai
+    la seva). Les de `excluded` (claus) queden fora, amb un motiu obligatori. Al registre, quines
+    notes hi entren i quines no, per la clau i sense el text."""
+    from .erasure import HANDLE_PERMISSION
+    from .permissions import has_perm
+
+    if not notes_export_enabled() or not has_perm(by, HANDLE_PERMISSION, write=True):
+        raise Http404
+    if person.pk == by.person_id:
+        raise ValidationError(_("No pots preparar la teva pròpia exportació amb notes."))
+    notes = admin_notes(person)
+    excluded = set(excluded)
+    if not excluded <= {n["key"] for n in notes}:
+        raise ValidationError(_("Les notes han canviat. Torna-les a revisar."))
+    reason = (reason or "").strip()
+    if excluded and not reason:
+        raise ValidationError(_("Cal el motiu per deixar fora alguna nota."))
+    included = [n for n in notes if n["key"] not in excluded]
+    with transaction.atomic():
+        exported = request_export(
+            person,
+            by=by,
+            request=request,
+            notes=included,
+            details={"notes_included": len(included), "notes_excluded": len(excluded)},
+        )
+        audit.record(
+            NOTES_REVIEWED,
+            actor=by,
+            target=person,
+            reason=reason,
+            details={
+                "included": sorted(n["key"] for n in included),
+                "excluded": sorted(excluded),
+            },
+            request=request,
+        )
+    return exported
 
 
 # --- Anonimització --------------------------------------------------------------------------

@@ -30,6 +30,12 @@ urlpatterns = [
     # T-M01-22 (P-M01-F, pas 4): sol·licituds d'esborrat RGPD, amb M11.
     path("rgpd/", gdpr.gdpr_requests_view, name="gdpr_requests"),
     path("rgpd/<int:pk>/", gdpr.gdpr_request_detail_view, name="gdpr_request_detail"),
+    # T-M01-22c (085, A-1): exportació amb les notes revisades (M11; interruptor apagat).
+    path(
+        "rgpd/persones/<int:pk>/exportacio-amb-notes/",
+        gdpr.gdpr_notes_export_view,
+        name="gdpr_notes_export",
+    ),
     # T-M00-04: consulta de dades bloquejades, amb M13 (protegit) i motiu.
     path("dades-bloquejades/", locked_data.locked_data_list_view, name="locked_data"),
     path(
