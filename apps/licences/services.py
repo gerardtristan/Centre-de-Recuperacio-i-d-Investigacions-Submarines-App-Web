@@ -252,3 +252,32 @@ def request(person, licence_type: LicenceType, starts_on=None, *, actor, today=N
             raise AlreadyInProgress from error
         raise
     return licence
+
+
+# --- Pagament (T-M06-05) -------------------------------------------------------------------------
+
+ACTION_PAID = "licences.paid"
+SYSTEM = audit.system("licences.on_charge_paid")
+
+
+def on_charge_paid(event) -> None:
+    """Subscriptor de `charge.paid` (049, RN-M06-09): una llicència `requested` del càrrec passa
+    a `paid`. Si ja ho és (o ja no és sol·licitada), no fa res: la cua ja no repeteix un lliurament
+    fet (`EventDelivery`), i aquesta comprovació ho cobreix també si l'esdeveniment es repeteix."""
+    payload = event.payload
+    if payload.get("origin") != "licences":
+        return
+    licence = Licence.objects.select_for_update().filter(charge_id=payload.get("charge")).first()
+    if licence is None or licence.status != Licence.Status.REQUESTED:
+        return
+    licence.status = Licence.Status.PAID
+    licence.save(update_fields=["status", "updated_at"])
+    audit.record(
+        ACTION_PAID,
+        actor=SYSTEM,
+        target=licence,
+        field="status",
+        old=Licence.Status.REQUESTED,
+        new=Licence.Status.PAID,
+        details={"event": event.pk},
+    )
