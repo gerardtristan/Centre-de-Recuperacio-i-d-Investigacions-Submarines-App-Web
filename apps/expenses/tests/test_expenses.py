@@ -5,6 +5,7 @@ from datetime import date
 
 import pytest
 from django.db import IntegrityError, transaction
+from django.http import Http404
 
 from apps.core.models import AuditEntry, Department, PrivateFile
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -181,7 +182,17 @@ def test_text_de_la_despesa(treasurer, boat):
     )
 
 
-@pytest.mark.xfail(reason="Permís MG1 al catàleg: T-M09-30 (nucli) i T-M09-22", strict=True)
-def test_un_compte_sense_permis_no_registra_despeses(make_admin, boat):  # noqa: F811
-    with pytest.raises(Exception):  # noqa: B017, PT011
-        services.record_expense(by=make_admin("secretary"), **data(boat))
+@pytest.mark.parametrize("role", ["secretary", "courses_manager", "board", None])
+def test_sense_mg1_amb_abast_tot_no_registra_ni_corregeix(make_admin, treasurer, boat, role):  # noqa: F811
+    # El responsable de cursos i sortides té «les seves activitats»: no val fins al repartiment.
+    other = make_admin(*([role] if role else []))
+    with pytest.raises(Http404):
+        services.record_expense(by=other, **data(boat))
+    expense = services.record_expense(by=treasurer, **data(boat))
+    with pytest.raises(Http404):
+        services.update_expense(expense, by=other, amount_cents=1)
+
+
+@pytest.mark.parametrize("role", ["administrator", "president"])
+def test_mg1_de_l_administrador_i_el_president(make_admin, boat, role):  # noqa: F811
+    assert services.record_expense(by=make_admin(role), **data(boat)).status == "to_pay"
