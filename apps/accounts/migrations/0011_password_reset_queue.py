@@ -19,8 +19,10 @@ def fill(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    # Després de la core/0056 (ordre de les migracions de nucli del 20/11/2026).
     dependencies = [
         ("accounts", "0010_guest_link_purposes"),
+        ("core", "0056_erasure_in_person"),
     ]
 
     operations = [
