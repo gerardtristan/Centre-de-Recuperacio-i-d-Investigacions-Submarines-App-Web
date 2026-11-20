@@ -358,6 +358,7 @@ MAP = {
         "apps/members/policies.py",
         "apps/members/views/personal_policies.py",
         "templates/members/accept_policies.html",
+        "templates/members/cluber_preview.html",
         "static/js/textos-legals.js",
     ),
     "test_quotes_079.py": (
