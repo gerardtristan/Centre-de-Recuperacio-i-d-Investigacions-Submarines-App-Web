@@ -1194,6 +1194,24 @@ opcions:
       Deixar fora una nota amb motiu protegeix les dades d'altres persones, que és el que justifica la
       revisió; i com que lliurar-les no es pot desfer, que ho decideixi el propietari abans d'encendre-ho.
     data: 2026-11-20
+  P-419:
+    opcions:
+      A: "Com s'ha construït: només la frase dels 5 minuts, sense comptador."
+      B: "La frase i un comptador visible de 5 minuts (component nou del sistema de disseny)."
+    recomanada: A
+    perque: >-
+      La frase ja diu què cal fer i quan; un comptador és una peça nova del sistema de disseny que pot
+      fer la sessió de disseny més endavant sense tocar la regla.
+    data: 2026-11-20
+  P-423:
+    opcions:
+      A: "Com s'ha construït: les entrades del registre que escriu la tasca no porten IP."
+      B: "La tasca copia la IP de la petició a l'entrada del registre d'activitat."
+    recomanada: A
+    perque: >-
+      La IP només cal per al límit d'origen (30 minuts); copiar-la al registre l'allargaria tant com
+      la retenció del registre, sense cap ús que ho justifiqui.
+    data: 2026-11-20
   P-406:
     opcions:
       A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."

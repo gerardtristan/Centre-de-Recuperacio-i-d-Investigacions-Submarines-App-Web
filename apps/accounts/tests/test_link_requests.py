@@ -29,8 +29,18 @@ WINDOW = limits.ORIGIN_WINDOW
 PER_HOUR, PER_DAY = limits.RECIPIENT_WINDOWS
 
 
-def ask_reset(email, ip="10.2.0.1"):
-    return Client(REMOTE_ADDR=ip).post(reverse(REQUEST), {"email": email})
+def ask_reset(email, ip="10.2.0.1", *, run_queue=True):
+    """La petició i, com el worker (T-M01-39b), la tasca de les peticions pendents."""
+    response = Client(REMOTE_ADDR=ip).post(reverse(REQUEST), {"email": email})
+    if run_queue:
+        run_pending_resets()
+    return response
+
+
+def run_pending_resets():
+    pending = EmailLinkRequest.objects.filter(purpose="reset", status="pending")
+    for request_id in pending.order_by("pk").values_list("pk", flat=True):
+        email_links.process_password_reset(request_id)
 
 
 def sent(template, to=None):

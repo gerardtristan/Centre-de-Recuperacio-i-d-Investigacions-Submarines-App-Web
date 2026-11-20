@@ -39,7 +39,7 @@ from apps.core.normalization import normalize_email
 
 from . import limits, tokens
 from .forms import NewPasswordForm
-from .models import Account, EmailLinkRequest, normalize_login
+from .models import Account, EmailLinkRequest
 from .security import client_ip
 
 logger = logging.getLogger("cris.security")
@@ -99,8 +99,9 @@ def _send_reset(account: Account) -> None:
     )
 
 
-def _limited(request, purpose: str, scope: str, account: Account | None = None) -> None:
-    logger.info("email_link_limited purpose=%s scope=%s ip=%s", purpose, scope, client_ip(request))
+def _limited(request, purpose: str, scope: str, account: Account | None = None, ip=None) -> None:
+    ip = client_ip(request) if request is not None else ip
+    logger.info("email_link_limited purpose=%s scope=%s ip=%s", purpose, scope, ip)
     audit.record(
         audit.Action.EMAIL_LINK_LIMITED,
         actor=audit.ANONYMOUS,
@@ -155,14 +156,82 @@ def _send_link(request, purpose: str, find_account, wanted_status: str, send) ->
 
 def request_password_reset(request, email: str) -> None:
     """CA-04.3 i CA-M01-48: només un compte personal actiu rep l'enllaç; la resposta és la
-    mateixa per a qualsevol adreça. Un compte pendent no en rep cap (RN-M01-59)."""
+    mateixa per a qualsevol adreça. Un compte pendent no en rep cap (RN-M01-59).
 
-    def find_account():
-        return Account.objects.filter(
-            login=normalize_login(email), kind=Account.Kind.PERSONAL
-        ).first()
+    T-M01-39b (072, Q-084): la petició fa la mateixa feina per a qualsevol adreça i no busca el
+    compte. Amb el límit d'origen (si està limitada: la mateixa resposta, cap fila ni tasca), desa
+    una fila «pendent» amb l'empremta de l'adreça escrita i posa a la cua una tasca amb només
+    l'identificador de la fila (`process_password_reset`). Cap adreça desada."""
+    from .tasks import send_password_reset
 
-    _send_link(request, RESET, find_account, Account.Status.ACTIVE, _send_reset)
+    ip = client_ip(request)
+    with transaction.atomic():
+        limits.lock_origin(ip)
+        if limits.origin_limited(ip):
+            _limited(request, RESET, "origin")
+            return
+        accepted = EmailLinkRequest.objects.create(
+            ip_address=ip,
+            purpose=RESET,
+            status=EmailLinkRequest.Status.PENDING,
+            recipient_hash=limits.recipient_key(email),
+        )
+        send_password_reset.defer(request_id=accepted.pk)
+
+
+def _close(row, status) -> None:
+    """Una petició de recuperació que no envia res: sense l'empremta (no compta per al
+    destinatari), però la fila es queda i compta per a l'origen (RN-M01-58, 066)."""
+    row.status, row.recipient_hash = status, ""
+    row.save(update_fields=["status", "recipient_hash"])
+
+
+def process_password_reset(request_id: int) -> str:
+    """La tasca de «He oblidat la contrasenya» (T-M01-39b). Torna l'estat final de la fila.
+
+    - Bloqueja la fila sense esperar (`skip_locked`): si la té un altre procés o ja no és
+      «pendent», no fa res. Mai dos correus per una fila.
+    - Passat el retard màxim (Q-085), «caducada» i res més.
+    - Si no, busca el compte personal per l'empremta, bloqueja el destinatari i el compte, torna
+      a comprovar que és actiu i aplica el límit per destinatari. Si s'envia, el correu va a la
+      cua, la fila es queda l'empremta i passa a «enviada», tot en una sola transacció; un error
+      ho desfà tot i la cua ho reintenta."""
+    with transaction.atomic():
+        row = (
+            EmailLinkRequest.objects.select_for_update(skip_locked=True)
+            .filter(pk=request_id, purpose=RESET)
+            .first()
+        )
+        if row is None or row.status != EmailLinkRequest.Status.PENDING:
+            return "skipped"
+        if timezone.now() - row.created_at > limits.RESET_MAX_DELAY:
+            _close(row, EmailLinkRequest.Status.EXPIRED)
+            logger.info("password_reset_expired")
+            return row.status
+        key = row.recipient_hash
+        limits.lock_recipient(key)
+        account = (
+            Account.objects.select_for_update()
+            .filter(login_hash=key, kind=Account.Kind.PERSONAL, status=Account.Status.ACTIVE)
+            .first()
+        )
+        if account is None:
+            _close(row, EmailLinkRequest.Status.NOT_SENT)
+            return row.status
+        if limits.recipient_limited(key, RESET):
+            _limited(None, RESET, "recipient", account, ip=row.ip_address)
+            _close(row, EmailLinkRequest.Status.LIMITED)
+            return row.status
+        _send_reset(account)
+        row.status = EmailLinkRequest.Status.SENT
+        row.save(update_fields=["status"])
+        audit.record(
+            audit.Action.EMAIL_LINK_SENT,
+            actor=audit.ANONYMOUS,
+            target=account,
+            details={"purpose": RESET},
+        )
+        return row.status
 
 
 def remember_pending(request, account: Account) -> None:

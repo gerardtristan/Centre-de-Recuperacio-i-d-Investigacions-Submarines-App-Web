@@ -20,11 +20,8 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import connection
 from django.utils import timezone
-from django.utils.crypto import salted_hmac
 
-from apps.core.normalization import normalize_email
-
-from .models import EmailLinkRequest
+from .models import EmailLinkRequest, login_fingerprint
 from .security import IP_MAX_FAILURES, IP_WINDOW
 
 
@@ -41,13 +38,16 @@ ORIGIN_COOLDOWN = timedelta(minutes=15)
 RESEND_STATE = timedelta(minutes=10)
 # El més llarg dels terminis: les peticions més velles ja no serveixen per a res i s'esborren.
 RETENTION = max(window.period for window in (*RECIPIENT_WINDOWS, ORIGIN_WINDOW))
+# T-M01-39b (072, Q-085): una petició de recuperació que la cua no ha pogut processar en 5 minuts
+# caduca i no envia res; la IP només cal per al límit d'origen (15 minuts més 15 de bloqueig).
+RESET_MAX_DELAY = timedelta(minutes=5)
+RESET_IP_RETENTION = ORIGIN_WINDOW.period + ORIGIN_COOLDOWN
 
 
 def recipient_key(email: str) -> str:
-    """Empremta de l'adreça normalitzada: el registre de límits no guarda cap correu."""
-    return salted_hmac(
-        "apps.accounts.limits.recipient", normalize_email(email), algorithm="sha256"
-    ).hexdigest()
+    """Empremta de l'adreça normalitzada: el registre de límits no guarda cap correu. És la
+    mateixa que la del compte personal (`Account.login_hash`)."""
+    return login_fingerprint(email)
 
 
 def _advisory_lock(key: str) -> None:
@@ -95,7 +95,10 @@ def origin_limited(
 
 def recipient_limited(key: str, purpose: str, now=None, *, windows=RECIPIENT_WINDOWS) -> bool:
     now = now or timezone.now()
-    sent = EmailLinkRequest.objects.filter(recipient_hash=key, purpose=purpose)
+    # Una de pendent (T-M01-39b) encara no s'ha enviat: no compta.
+    sent = EmailLinkRequest.objects.filter(recipient_hash=key, purpose=purpose).exclude(
+        status=EmailLinkRequest.Status.PENDING
+    )
     return any(
         sent.filter(created_at__gt=now - window.period).count() >= window.max_count
         for window in windows
@@ -198,6 +201,16 @@ def guest_link_request_allowed(accepted: EmailLinkRequest, email: str) -> bool:
 
 
 def purge_old(now=None) -> int:
+    """Cada 5 minuts (T-M01-39b): esborra les peticions de més de 24 hores, caduca les de
+    recuperació que encara són pendents passat el retard màxim (sense l'empremta) i buida la IP
+    de les de recuperació de més de 30 minuts."""
     now = now or timezone.now()
+    reset = EmailLinkRequest.objects.filter(purpose=EmailLinkRequest.Purpose.RESET_PASSWORD)
+    reset.filter(
+        status=EmailLinkRequest.Status.PENDING, created_at__lt=now - RESET_MAX_DELAY
+    ).update(status=EmailLinkRequest.Status.EXPIRED, recipient_hash="")
+    reset.filter(created_at__lte=now - RESET_IP_RETENTION, ip_address__isnull=False).update(
+        ip_address=None
+    )
     deleted, _ = EmailLinkRequest.objects.filter(created_at__lte=now - RETENTION).delete()
     return deleted
