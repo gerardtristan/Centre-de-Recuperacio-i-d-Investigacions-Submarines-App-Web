@@ -364,3 +364,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-81](T-DX-81.md) | V3: a «Altes pendents», «Rebutja…» al costat d'«Aprova l'alta» encara que hi hagi diverses caselles (sessió de DISSENY) | 20/11/2026 19:29 | a0271f3a | 1 e2e ampliada | [A comprovar] |
 | [T-DX-82](T-DX-82.md) | V10: resum d'errors (Errata) a «Corregeix la data d'alta» i a «Accepta les polítiques» (sessió de DISSENY) | 20/11/2026 19:35 | 35ca96b8 | 2 e2e ampliades | [A comprovar] |
 | [T-DX-84](T-DX-84.md) | «Revisa una quota no cobrada»: l'estat «Pendent» amb l'etiqueta d'estat, com a la resta de pantalles (sessió de DISSENY) | 20/11/2026 19:41 | 579acecb | 1 e2e ampliada | [A comprovar] |
+| [T-M09-02](T-M09-02.md) | Període tancat del 09 registrat a la tresoreria (margins/0001) i categories de despesa i proveïdors de la T-M09-03 (expenses/0001; dubte P-471; carril C) | 20/11/2026 21:38 | a7206b06, aba7ad0c | 13 noves | [A comprovar] |
