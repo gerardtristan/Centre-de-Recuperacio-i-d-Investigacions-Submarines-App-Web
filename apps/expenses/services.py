@@ -8,15 +8,17 @@ from django.db import IntegrityError, models, transaction
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit
+from apps.core import audit, mail
 from apps.core.permission_catalog import SCOPE_ALL
-from apps.core.permissions import scope_for
+from apps.core.permissions import accounts_with_perm, scope_for
 from apps.treasury.models import CostCentre
 from apps.treasury.services import InvalidDepartment
 
 from .models import Expense
 
 RECORD = "expenses.record"  # MG1
+PAY = "expenses.pay"  # MG2
+NO_INVOICE_TEMPLATE = "avis-despesa-sense-factura"
 EXPENSE_RECORDED = "expenses.expense_recorded"
 EXPENSE_CHANGED = "expenses.expense_changed"
 
@@ -111,7 +113,23 @@ def record_expense(*, by, **fields) -> Expense:
         target=expense,
         details={name: _audit_value(getattr(expense, name)) for name in EDITABLE},
     )
+    # Una despesa neix sense factura: el fitxer s'adjunta després (T-M09-25).
+    _notify_without_invoice(expense)
     return expense
+
+
+def _notify_without_invoice(expense: Expense) -> None:
+    """CA-M09-01: un correu a cada adreça de qui pot pagar despeses (MG2, d'inici el tresorer i
+    l'administrador; P-473), a la mateixa transacció. Només la referència interna."""
+    sent = set()
+    for account in accounts_with_perm(PAY, write=True):
+        address = account.notification_email
+        if address and address not in sent:
+            context = {"expense_id": expense.pk}
+            mail.queue_email(
+                NO_INVOICE_TEMPLATE, to=address, person=account.person, context=context
+            )
+            sent.add(address)
 
 
 @transaction.atomic

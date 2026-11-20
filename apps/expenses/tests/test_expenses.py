@@ -7,7 +7,7 @@ import pytest
 from django.db import IntegrityError, transaction
 from django.http import Http404
 
-from apps.core.models import AuditEntry, Department, PrivateFile
+from apps.core.models import AuditEntry, Department, OutgoingEmail, PrivateFile
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.expenses import services
 from apps.expenses.models import Expense, ExpenseCategory, Supplier
@@ -19,7 +19,10 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def treasurer(make_admin):  # noqa: F811
-    return make_admin("treasurer")
+    account = make_admin("treasurer")
+    account.notification_email = "tresoreria@example.org"
+    account.save()
+    return account
 
 
 @pytest.fixture
@@ -196,3 +199,21 @@ def test_sense_mg1_amb_abast_tot_no_registra_ni_corregeix(make_admin, treasurer,
 @pytest.mark.parametrize("role", ["administrator", "president"])
 def test_mg1_de_l_administrador_i_el_president(make_admin, boat, role):  # noqa: F811
     assert services.record_expense(by=make_admin(role), **data(boat)).status == "to_pay"
+
+
+def test_ca_m09_01_el_tresorer_rep_un_sol_avis_sense_dades_del_proveidor(
+    make_admin,  # noqa: F811
+    treasurer,
+    boat,
+):
+    make_admin("administrator")  # té MG2, però cap adreça d'avisos
+    secretary = make_admin("secretary")
+    secretary.notification_email = "secretaria@example.org"
+    secretary.save()
+    expense = services.record_expense(by=treasurer, **data(boat))
+    sent = OutgoingEmail.objects.filter(template=services.NO_INVOICE_TEMPLATE)
+    assert [e.to_address for e in sent] == ["tresoreria@example.org"]  # el secretari no té MG2
+    assert str(expense.pk) in sent.get().body_text
+    assert boat.name not in sent.get().body_text
+    services.update_expense(expense, by=treasurer, amount_cents=26000)
+    assert sent.count() == 1  # corregir-la no torna a avisar
