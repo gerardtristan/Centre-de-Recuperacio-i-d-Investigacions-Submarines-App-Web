@@ -154,5 +154,25 @@ Nota per a qui faci proves al portàtil: amb `--reuse-db` en una base on abans s
 
 - **V6, V7 i V9:** arreglats a la PR dels continguts (`templates/members/` i el missatge de `apps/members/views/admin_requests.py`), amb captures abans i després.
 - **Prova inestable dels terminis amb `--reuse-db`:** arreglada a la #298. La causa era que la neteja de les e2e no tornava els ajustos de les migracions al seu valor (apartat 7.5).
-- **No s'ha fet:** associar `templates/members/cluber_preview.html` a l'e2e de Cluber (`test_politiques_079.py`) a `.claude/hooks/e2e_map.py`. És configuració del hook de Claude Code: la canvia o l'autoritza el propietari.
+- **Fet (#299):** `templates/members/cluber_preview.html` associat a l'e2e de Cluber (`test_politiques_079.py`) a `.claude/hooks/e2e_map.py`; la línia la va afegir el coordinador.
+
+## 8. Volta final (20/11/2026)
+
+`master` a `2f48be1c`: totes les tasques de la fase 1 ja hi són (l'última, la #305).
+
+1. **Venv compartit** (`D:\CRIS\venv-plataforma`): `pip install -e ".[dev]"` sense errors; pytest 9.2.0 i pip-audit 2.10.1. La instal·lació editable apunta al worktree de la volta final; cada worktree s'importa igualment des de la seva carpeta. `pip` actualitzat de la 25.0.1 a la 26.3, perquè `pip-audit` hi trobava vulnerabilitats.
+2. **Verificació:** `tools/verifica.py` **VERD** (`c83b03279940`): 8148 proves, ruff, migracions, `check`, `check --deploy` i 186 e2e amb `--create-db`. `pip-audit --skip-editable`: «No known vulnerabilities found».
+3. **Valors al codi** des de la segona volta (#287, #297, #300, #303 i #305): cap valor de negoci ni element de llista nou escrit al codi. Els dies del recordatori de transferència (VC-16) i els mesos de l'avís de renovació ja són ajustos; els 5 minuts de la cua de recuperació són seguretat (Q-085); els orígens del pagament són una llista tancada.
+4. **Pendents visuals de les pantalles noves**, mirades a 1280 i 390 px: «a revisar» amb «Revisada», edició i tria de terminis, exportació RGPD amb notes, esborrat presencial d'un menor, recuperació de contrasenya amb cua i els ajustos nous de socis i de pagaments.
+
+| # | Pantalla | Què passa | De qui és |
+|---|---|---|---|
+| V22 | Esborrat presencial d'un menor, després de registrar-lo | El missatge verd i l'avís groc repetien qui l'atendrà | **Arreglat a la #306** |
+| V23 | Formularis amb contrasenya i codi TOTP (edició de terminis i altres) | Després d'un error de validació, el codi TOTP es torna a omplir al camp; la contrasenya no | Nucli (`apps/accounts/forms.py`, `ReauthForm.code`, `TextInput` sense buidar el valor). **Arreglada a la #308** (20/11/2026) |
+| V24 | Exportació RGPD amb notes | L'etiqueta de cada casella repeteix tot el títol de la nota («Deixa fora: Anul·lació del càrrec…») | Nucli (`apps/core/views/gdpr.py`) o DISSENY (etiqueta visible curta i la resta amagada). **Arreglada a la #308** (20/11/2026) |
+| V25 | Fitxa del soci amb terminis | Els terminis surten en ordre invers (3, 2, 1) i «Edita els terminis…» es repeteix a cada fila | 01, criteri del propietari |
+
+També hi tornen a sortir la V5 (el menú no marca cap entrada a les subpàgines de la fitxa i de l'RGPD), la V10 (sense resum d'errors) i la V13 (fila buida alineada a la dreta, a «Pagaments i a revisar»), que ja són a la llista per a DISSENY (7.3). A «Revisa una quota no cobrada», l'estat «Pendent» surt com a text pla, sense l'etiqueta d'estat de la resta de pantalles: s'afegeix a la mateixa llista.
+
+5. **Estat:** la fila de la T-F1-01 passa a «feta» a [F1](F1.md), perquè la part del pilot és completa. Queden per al propietari la revisió visual a 320 px i en fosc, l'accessibilitat manual (T-M01-28b) i els dispositius reals (T-F1-02).
 
