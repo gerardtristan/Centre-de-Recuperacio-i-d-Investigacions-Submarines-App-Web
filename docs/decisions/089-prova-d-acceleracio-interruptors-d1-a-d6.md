@@ -58,6 +58,7 @@ Només s'hi afegeixen files.
 |---|---|---|---|
 | 13/11/2026 | D1 a D6 | Aprovades com a prova de dues setmanes; cada una s'activa amb el seu commit | Instrucció escrita del propietari |
 | 16/11/2026 | D4 | Les `risc:alt` també les fusiona Claude, amb condicions; fins a tres carrils sense confirmació per tasca ([094](094-fusio-de-les-risc-alt-i-tres-carrils.md)) | Instrucció escrita del propietari |
+| 19/11/2026 | D4 | Fins al 27/11/2026, les `risc:alt` es fusionen soles amb condicions; esperen el sí del propietari les de producció o dades i diners reals, `CLAUDE.md`, D1 a D6, rebaixar el CI i secrets o xifratge ([100](100-risc-alt-es-fusionen-soles-fins-al-final-de-la-prova.md); modifica la [098](098-risc-alt-nomes-amb-el-si-escrit-del-propietari.md)) | Instrucció escrita del propietari |
 
 ## Conseqüències
 
