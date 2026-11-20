@@ -57,9 +57,10 @@ def content(file: PrivateFile) -> dict:
         return json.loads(handle.read())
 
 
-def form_data(account, **extra):
+def form_data(account, person, **extra):
     code = pyotp.TOTP(totp.secret_of(account.totp_device)).now()
-    return {"password": PASSWORD, "code": code, **extra}
+    reviewed = ",".join(n["key"] for n in privacy.admin_notes(person))
+    return {"password": PASSWORD, "code": code, "reviewed": reviewed, **extra}
 
 
 def test_the_notes_are_collected_by_date(person):
@@ -127,8 +128,9 @@ class TestScreen:
         client = login_as(handler, AREA_ADMIN)
         url = reverse(PAGE, args=[person.pk])
         page = client.get(url).content.decode()
-        assert "Anul·lada per un error de l" in page and 'name="exclou_0"' in page
-        response = client.post(url, form_data(handler))
+        key = privacy.admin_notes(person)[0]["key"]
+        assert "Anul·lada per un error de l" in page and f'name="exclou:{key}"' in page
+        response = client.post(url, form_data(handler, person))
         assert response.status_code == 302
         export = privacy.live_export(person)
         assert [n["text"] for n in content(export)["notes_de_l_administracio"]] == [NOTE]
@@ -137,7 +139,8 @@ class TestScreen:
     def test_excluding_without_a_reason_shows_the_error(self, on, person, handler, login_as):
         client = login_as(handler, AREA_ADMIN)
         url = reverse(PAGE, args=[person.pk])
-        response = client.post(url, form_data(handler, exclou_0="on"))
+        key = privacy.admin_notes(person)[0]["key"]
+        response = client.post(url, form_data(handler, person, **{f"exclou:{key}": "on"}))
         assert response.status_code == 200
         assert "Cal el motiu" in response.content.decode()
         assert privacy.live_export(person) is None
@@ -165,3 +168,22 @@ def test_the_members_module_adds_its_notes_but_not_what_the_person_wrote(persona
         )
     texts = {n["text"] for n in privacy.admin_notes(person)}
     assert texts == {"Ho anota la secretaria.", "Resolució (web).", "Resolució (in_person)."}
+
+
+def test_a_note_that_appears_after_the_review_is_not_sent(on, person, handler, login_as):
+    client = login_as(handler, AREA_ADMIN)
+    url = reverse(PAGE, args=[person.pk])
+    data = form_data(handler, person)
+    charge = charges.create_charge(
+        person,
+        kind=Charge.Kind.FEE,
+        amount_cents=100,
+        concept="Una altra quota inventada",
+        department=Department.objects.get(name="General"),
+        origin="members",
+        by=handler,
+    )
+    charges.cancel(charge, "Nota nova (inventada).", by=handler)
+    response = client.post(url, data)
+    assert response.status_code == 200 and "han canviat" in response.content.decode()
+    assert privacy.live_export(person) is None

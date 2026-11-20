@@ -19,6 +19,7 @@
   {% if can_prepare %}
     <form class="formulari" method="post" novalidate>
       {% csrf_token %}
+      {{ form.reviewed }}
       {% if form.notes %}
         <table class="taula">
           <caption class="visualment-amagat">{% translate "Notes de l'administració, de la més antiga a la més recent" %}</caption>

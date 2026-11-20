@@ -182,12 +182,25 @@ class NotesExportForm(ReauthForm):
     def __init__(self, *args, notes, **kwargs):
         super().__init__(*args, **kwargs)
         self.notes = notes
-        for n, item in enumerate(notes):
-            self.fields[f"exclou_{n}"] = forms.BooleanField(
+        # Pel nom de la clau, no per la posició: si entre la pantalla i l'enviament apareix una
+        # nota nova, la marca no passa a una altra.
+        for item in notes:
+            item["field"] = f"exclou:{item['key']}"
+            self.fields[item["field"]] = forms.BooleanField(
                 label=_("Deixa fora: %(context)s") % {"context": item["context"]}, required=False
             )
-            item["field"] = f"exclou_{n}"
-        self.order_fields([*(f"exclou_{n}" for n in range(len(notes))), "reason"])
+        # Les notes que s'han mostrat: si n'apareix una de nova abans d'enviar-ho, cal tornar-les a
+        # revisar (cap nota no surt sense que algú l'hagi vista).
+        self.fields["reviewed"] = forms.CharField(
+            widget=forms.HiddenInput, required=False, initial=",".join(i["key"] for i in notes)
+        )
+        self.order_fields([*(item["field"] for item in notes), "reason"])
+
+    def clean(self):
+        data = super().clean()
+        if data.get("reviewed", "") != ",".join(item["key"] for item in self.notes):
+            raise forms.ValidationError(_("Les notes han canviat. Torna-les a revisar."))
+        return data
 
     def note_rows(self):
         return [(item, self[item["field"]]) for item in self.notes]
