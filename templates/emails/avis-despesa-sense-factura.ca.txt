@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09-04b (CA-M09-01, RN-M09-09): avís al tresorer d'una despesa desada sense factura. TEXT PROVISIONAL [A validar: tresorer]. Només referències internes: cap nom de proveïdor ni cap altra dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}S'ha registrat la despesa {{ expense_id }} sense la factura adjunta. Mentre no la tingui, surt a «Despeses sense factura» i el període no es pot tancar.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

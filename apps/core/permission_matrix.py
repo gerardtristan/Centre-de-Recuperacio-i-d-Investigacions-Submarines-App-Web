@@ -199,6 +199,7 @@ SCOPE_LABELS = {
     "read_minimal": gettext_lazy("Cons. (dades mínimes)"),
     "own_activities": gettext_lazy("Les seves activitats"),
     "own_sessions": gettext_lazy("Les seves sessions"),
+    "own_applications": gettext_lazy("Les que en sigui responsable"),
 }
 
 
