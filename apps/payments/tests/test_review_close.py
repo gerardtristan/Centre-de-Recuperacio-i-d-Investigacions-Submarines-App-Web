@@ -105,10 +105,16 @@ def test_097_paid_records_the_payment_once(treasurer, to_review, transit):  # no
     assert (payment.amount_cents, payment.method) == (9000, Payment.Method.CARD)
     assert Movement.objects.filter(kind=Movement.Kind.INCOME).count() == 1
     assert Receipt.objects.filter(attempt=to_review).exists()
-    # Origen «provider» (el diner ha passat pel proveïdor); el distingeix el tancament «Pagat».
     closure = ReviewClosure.objects.get(attempt=to_review)
     assert closure.outcome == ReviewClosure.Outcome.PAID and closure.closed_by == treasurer
     assert payment.charge_id == closure.attempt.charge_id
+    # T-M05b-30: l'origen propi, al pagament mateix, amb qui i el motiu (quan: `created_at`).
+    assert payment.origin == Payment.Origin.TREASURER_DECISION
+    assert payment.recorded_by == treasurer
+    assert payment.reason == f"Decisió del tresorer (tancament {closure.pk})"
+    assert payment.created_at is not None
+    paid = AuditEntry.objects.get(action="charges.status_changed", new_value="paid")
+    assert paid.details["origin"] == "treasurer_decision"
     entry = AuditEntry.objects.get(action=CHANGED, new_value=PAID)
     assert entry.actor_account == treasurer and NOTE not in entry.reason  # la nota, al tancament
 
@@ -361,3 +367,116 @@ class TestMigration0025(CommittedDataTestCase):
         attempt.refresh_from_db()
         assert attempt.status == S.TO_REVIEW
         assert attempt.review_code == ""  # «altre»: cap guarda no el confon amb un import
+
+
+def test_t_m05b_30_a_payment_from_the_provider_keeps_its_origin(person):  # noqa: F811
+    """La notificació del proveïdor continua creant pagaments amb l'origen «provider», sense qui
+    ni motiu."""
+    attempt = in_progress(fee(person))
+    with transaction.atomic():
+        locked_charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
+        locked = PaymentAttempt.objects.select_for_update().get(pk=attempt.pk)
+        processing.pay(locked, locked_charge, by=SYSTEM, status="paid", reference="ORDRE-1")
+    payment = Payment.objects.get()
+    assert (payment.origin, payment.recorded_by, payment.reason) == (
+        Payment.Origin.PROVIDER,
+        None,
+        "",
+    )
+
+
+def test_t_m05b_30_the_database_keeps_the_origin_consistent(treasurer, to_review):  # noqa: F811
+    charge = to_review.charge
+    cases = [
+        {"method": Payment.Method.CARD, "origin": "inventat"},
+        {"method": Payment.Method.MANUAL, "origin": Payment.Origin.PROVIDER},
+        {"method": Payment.Method.CARD, "origin": Payment.Origin.MANUAL},
+        {"method": Payment.Method.CARD, "origin": Payment.Origin.TREASURER_DECISION},
+        {
+            "method": Payment.Method.CARD,
+            "origin": Payment.Origin.TREASURER_DECISION,
+            "recorded_by": treasurer,
+        },
+    ]
+    for fields in cases:
+        with pytest.raises(DatabaseError), transaction.atomic():
+            Payment.objects.create(charge=charge, amount_cents=9000, **fields)
+
+
+def test_t_m05b_30_a_decision_needs_a_reason_in_the_service(treasurer, to_review):  # noqa: F811
+    with pytest.raises(ValidationError), transaction.atomic():
+        charges.record_payment(
+            to_review.charge,
+            method=Payment.Method.CARD,
+            origin=Payment.Origin.TREASURER_DECISION,
+            by=treasurer,
+        )
+    assert not Payment.objects.exists()
+
+
+class TestMigrationOrigin(CommittedDataTestCase):
+    """T-M05b-30 (`core/0058` i `payments/0028`): els pagaments d'abans reben l'origen: «manual»
+    els del mètode manual, «reconciliation» els que el registre diu que van entrar per una
+    conciliació, «treasurer_decision» el d'un tancament «Pagat» (amb qui i el motiu) i
+    «provider» la resta."""
+
+    def test_existing_payments_get_their_origin(self):
+        from apps.core import audit
+
+        payer = Person.objects.create(first_name="Núria", last_name="Coll", origin="web")
+        admin = Account.objects.create_admin(
+            Person.objects.create(first_name="Tresorer", origin="in_person"), "tresoreria.origen"
+        )
+        decided = attempts.transition(
+            in_progress(fee(payer)), S.TO_REVIEW, by=SYSTEM, reason="Sense resposta (prova)"
+        )
+        charges_ids = [fee(payer).pk for _ in range(3)]
+        leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
+        try:
+            MigrationExecutor(connection).migrate(
+                [
+                    ("payments", "0027_transaccio_del_proveidor"),
+                    ("core", "0057_renewal_notice_months_permission"),
+                ]
+            )
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO payments_reviewclosure (attempt_id, outcome, review_reason, "
+                    "closed_by_id, closed_at) VALUES (%s, 'paid', '', %s, now() - interval '1 "
+                    "minute') RETURNING id",
+                    [decided.pk, admin.pk],
+                )
+                closure_id = cursor.fetchone()[0]
+                ids = {}
+                rows = [
+                    ("decidit", decided.charge_id, "card", None, ""),
+                    ("manual", charges_ids[0], "manual", admin.pk, "Efectiu (prova)"),
+                    ("conciliat", charges_ids[1], "transfer", None, ""),
+                    ("proveidor", charges_ids[2], "bizum", None, ""),
+                ]
+                for name, charge_id, method, who, why in rows:
+                    cursor.execute(
+                        "INSERT INTO core_payment (charge_id, method, amount_cents, "
+                        "provider_status, needs_review, provider_reference, transfer_reference, "
+                        "paid_at, recorded_by_id, reason, created_at) VALUES (%s, %s, 9000, '', "
+                        "false, '', '', now(), %s, %s, now()) RETURNING id",
+                        [charge_id, method, who, why],
+                    )
+                    ids[name] = cursor.fetchone()[0]
+            audit.record(
+                "charges.status_changed",
+                actor=SYSTEM,
+                details={"origin": "reconciliation", "payment": ids["conciliat"]},
+            )
+        finally:
+            MigrationExecutor(connection).migrate(leaves)
+        origins = dict(Payment.objects.values_list("pk", "origin"))
+        assert {name: origins[pk] for name, pk in ids.items()} == {
+            "decidit": "treasurer_decision",
+            "manual": "manual",
+            "conciliat": "reconciliation",
+            "proveidor": "provider",
+        }
+        decision = Payment.objects.get(pk=ids["decidit"])
+        assert decision.recorded_by == admin
+        assert decision.reason == f"Decisió del tresorer (tancament {closure_id})"

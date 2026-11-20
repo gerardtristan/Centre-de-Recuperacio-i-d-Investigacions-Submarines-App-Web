@@ -740,10 +740,24 @@ class Payment(UndeletableModel):
         TRANSFER = "transfer", _("Transferència")
         MANUAL = "manual", _("Manual")
 
+    class Origin(models.TextChoices):
+        # T-M05b-30: d'on surt el pagament, al pagament mateix (abans només al registre
+        # d'activitat del càrrec). Es fixa en crear-lo i no canvia.
+        PROVIDER = "provider", _("Proveïdor")
+        RECONCILIATION = "reconciliation", _("Conciliació")
+        MANUAL = "manual", _("Registrat a mà")
+        # Un intent «a revisar» que el tresorer tanca amb «Pagat» (`payments.reviews.close`):
+        # qui (`recorded_by`), quan (`created_at`) i per què (`reason`, amb el tancament).
+        TREASURER_DECISION = "treasurer_decision", _("Decisió del tresorer")
+
     charge = models.ForeignKey(
         Charge, on_delete=models.PROTECT, related_name="payments", verbose_name=_("càrrec")
     )
     method = models.CharField(_("mètode"), max_length=12, choices=Method.choices)
+    # Per defecte, el proveïdor: els camins de les persones el posen sempre (`charges`).
+    origin = models.CharField(
+        _("origen"), max_length=20, choices=Origin.choices, default=Origin.PROVIDER
+    )
     amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
     provider_status = models.CharField(_("estat al proveïdor"), max_length=40, blank=True)
     needs_review = models.BooleanField(_("a revisar"), default=False)
@@ -782,6 +796,24 @@ class Payment(UndeletableModel):
             models.CheckConstraint(
                 condition=Q(method__in=["direct_debit", "card", "bizum", "transfer", "manual"]),
                 name="payment_method_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    origin__in=["provider", "reconciliation", "manual", "treasurer_decision"]
+                ),
+                name="payment_origin_valid",
+            ),
+            # Un pagament «manual» és sempre registrat a mà, i al revés.
+            models.CheckConstraint(
+                condition=(Q(method="manual") & Q(origin="manual"))
+                | (~Q(method="manual") & ~Q(origin="manual")),
+                name="payment_manual_method_and_origin",
+            ),
+            # El que registra una persona diu qui i per què (P-12; T-M05b-30).
+            models.CheckConstraint(
+                condition=~Q(origin__in=["manual", "treasurer_decision"])
+                | (Q(recorded_by__isnull=False) & ~Q(reason="")),
+                name="payment_person_origin_has_who_and_why",
             ),
         ]
 

@@ -22,7 +22,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.core import audit, business_settings, charges, mail
-from apps.core.models import Charge, Person
+from apps.core.models import Charge, Payment, Person
 from apps.core.permissions import accounts_with_perm
 from apps.members import services as members
 from apps.treasury import services as treasury
@@ -245,22 +245,33 @@ def settle(attempt: PaymentAttempt, state: base.OrderState, *, source=None) -> s
         return R.PROCESSED
 
 
-def pay(attempt, charge, *, by, status: str, reference: str, reason: str = "") -> None:
+def pay(
+    attempt,
+    charge,
+    *,
+    by,
+    status: str,
+    reference: str,
+    reason: str = "",
+    origin: str = Payment.Origin.PROVIDER,
+) -> None:
     """CA-M05b-03: intent i càrrec «pagat», pagament, ingrés amb departament i, si és una
     quota, l'avís al 01 (`members.on_fee_paid`, que activa el soci i n'emet el carnet). Qui crida
     té el càrrec i l'intent bloquejats, en aquest ordre, i el càrrec és pendent: `settle` o la
-    decisió del tresorer (`reviews.close`, amb `reason`)."""
+    decisió del tresorer (`reviews.close`, amb `reason` i l'origen «treasurer_decision»)."""
     attempt = attempts.transition(attempt, S.PAID, by=by, reason=reason)
+    # T-M05b-30: la decisió del tresorer (`origin`) queda al pagament, amb qui i el motiu.
     payment = charges.record_payment(
         charge,
         # Per a la 00 i la tresoreria, una targeta guardada és una targeta.
         method=attempt.payment_method,
-        origin="provider",
+        origin=origin,
         by=by,
         provider_status=status,
         provider_reference=reference,
+        reason=reason,
     )
-    treasury.record_income(payment, origin="provider", by=by)
+    treasury.record_income(payment, origin=origin, by=by)
     receipts.issue(attempt)
     fee = getattr(charge, "annual_fee", None)
     if fee is not None:

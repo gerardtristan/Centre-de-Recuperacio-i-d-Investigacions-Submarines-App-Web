@@ -23,7 +23,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit, charges
 from apps.core.charges import MANUAL_PAYMENT
-from apps.core.models import AuditEntry, Charge
+from apps.core.models import AuditEntry, Charge, Payment
 from apps.core.permissions import has_perm
 
 from . import attempts, processing
@@ -72,6 +72,7 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
                 status=S.PAID,
                 reference=locked.provider_order_id,
                 reason=reason,
+                origin=Payment.Origin.TREASURER_DECISION,  # T-M05b-30
             )
         else:
             attempts.transition(locked, S.FAILED, by=by, reason=reason)
