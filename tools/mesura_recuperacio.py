@@ -18,7 +18,9 @@ Què fa (protocol de «T-M01-39 en detall», part a, al pla):
 - Blocs d'escalfament descartats i blocs mesurats; per cas: n, mitjana, mediana, p10, p90,
   p95 i p99, i la diferència de medianes respecte a la primera adreça inexistent amb un
   interval de confiança del 95 % (bootstrap aparellat per blocs).
-- Sense worker: les tasques d'enviament es queden a la cua, i el programa ho comprova.
+- Sense worker: les tasques es queden a la cua, i el programa ho comprova. Des de la T-M01-39b,
+  la petició no envia cap correu: deixa una fila «pendent» i una tasca per petició (abans, un
+  correu pel compte actiu; la mesura d'abans és a `docs/mesures/T-M01-39-abans.md`).
 
 Variables d'entorn: `MESURA_BLOCS` (500), `MESURA_ESCALFAMENT` (50) i `MESURA_LLAVOR` (1954).
 """
@@ -225,7 +227,7 @@ class TestMesuraRecuperacio(CommittedDataTestCase):
             "Sistema": f"{platform.system()} {platform.release()} ({platform.machine()})",
             "Configuració": os.environ.get("DJANGO_SETTINGS_MODULE", ""),
             "Base de dades": connection.settings_dict["NAME"],
-            "Worker": "aturat (cap tasca d'enviament s'ha executat durant la mesura)",
+            "Worker": "aturat (cap tasca de la cua s'ha executat durant la mesura)",
             "Blocs": f"{WARM_UP} d'escalfament descartats i {BLOCKS} de mesurats",
             "Llavor": SEED,
         }
@@ -233,21 +235,21 @@ class TestMesuraRecuperacio(CommittedDataTestCase):
         print("\n" + _report(times, differences, environment, before, after))
 
     def _check_the_cases_did_what_they_say(self, bodies) -> None:
-        """Si un cas no ha fet el que diu el seu nom, la mesura no val."""
-        blocks = WARM_UP + BLOCKS
-        sent = OutgoingEmail.objects.filter(template="recuperacio-contrasenya")
-        limited = AuditEntry.objects.filter(
-            action=audit.Action.EMAIL_LINK_LIMITED, details__scope="recipient"
+        """Si un cas no ha fet el que diu el seu nom, la mesura no val. Des de la T-M01-39b, la
+        petició no envia res: cada petició acceptada deixa una fila «pendent» i una tasca."""
+        requests = (WARM_UP + BLOCKS) * len(CASES)
+        pending = EmailLinkRequest.objects.filter(status=EmailLinkRequest.Status.PENDING)
+        todo = ProcrastinateJob.objects.filter(
+            task_name="accounts.send_password_reset", status="todo"
         )
         origin_limited = AuditEntry.objects.filter(
             action=audit.Action.EMAIL_LINK_LIMITED, details__scope="origin"
         )
-        todo = ProcrastinateJob.objects.filter(task_name="core.send_email", status="todo")
         checks = {
             "la resposta és idèntica en tots els casos": len(bodies) == 1,
-            "un correu per bloc, el del compte actiu": sent.count() == blocks,
-            "cap correu ha sortit de la cua (worker aturat)": todo.count() == blocks,
-            "una petició limitada per destinatari per bloc": limited.count() == blocks,
+            "cap correu a la petició": not OutgoingEmail.objects.exists(),
+            "una fila pendent per petició": pending.count() == requests,
+            "una tasca a la cua per petició (worker aturat)": todo.count() == requests,
             "cap petició limitada per origen": not origin_limited.exists(),
         }
         failed = [name for name, passed in checks.items() if not passed]

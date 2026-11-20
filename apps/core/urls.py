@@ -9,6 +9,8 @@ app_name = "core"
 urlpatterns = [
     path("", views.home, name="home"),
     path("salut/", views.health, name="health"),
+    # T-M01-39b: la cua de «He oblidat la contrasenya» i dels correus, per al monitor.
+    path("salut/cua/", views.queue_health, name="queue_health"),
     path("fitxers/<uuid:file_id>/", views.private_file, name="private_file"),
     path("service-worker.js", pwa.service_worker, name="service_worker"),  # T-M01-21
     # Enllaços de convidat (T-M00-02): públiques declarades; l'enllaç és la credencial.

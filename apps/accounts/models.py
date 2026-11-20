@@ -101,6 +101,14 @@ class AccountManager(BaseUserManager):
         return account
 
 
+def login_fingerprint(email: str) -> str:
+    """Empremta d'una adreça normalitzada (`limits.recipient_key`): ni la petició d'un enllaç ni el
+    registre de límits guarden cap correu."""
+    return salted_hmac(
+        "apps.accounts.limits.recipient", normalize_email(email), algorithm="sha256"
+    ).hexdigest()
+
+
 class Account(AbstractBaseUser, PermissionsMixin):
     class Kind(models.TextChoices):
         PERSONAL = "personal", _("Personal")
@@ -134,6 +142,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     password_temporary_until = models.DateTimeField(
         _("contrasenya temporal fins a"), null=True, blank=True
     )
+    # Empremta de `login` (només comptes personals): `login_fingerprint`, la mateixa que
+    # `limits.recipient_key`. Depèn de SECRET_KEY: si canvia, cal l'ordre
+    # `recalcula_empremtes_login` (T-M01-39b).
+    login_hash = models.CharField(max_length=64, blank=True, db_index=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -227,6 +239,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         self.login = normalize_login(self.login)
         self.notification_email = normalize_email(self.notification_email)
+        # T-M01-39b: l'empremta del correu d'entrada, per trobar el compte personal a la tasca de
+        # «He oblidat la contrasenya» sense desar cap adreça a la petició. Es recalcula sempre.
+        self.login_hash = login_fingerprint(self.login) if self.kind == self.Kind.PERSONAL else ""
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "login" in update_fields:
+            kwargs["update_fields"] = {*update_fields, "login_hash"}
         super().save(*args, **kwargs)
 
 
@@ -288,10 +306,22 @@ class EmailLinkRequest(models.Model):
         GUEST_LINK_FAILED = "guestfail", _("Enllaç de convidat que no ha funcionat")
         GUEST_LINK_REQUEST = "guestnew", _("Petició d'un enllaç de convidat nou")
 
+    class Status(models.TextChoices):
+        # T-M01-39b: només la recuperació de la contrasenya passa per la cua. La resta de
+        # finalitats no fan servir l'estat (buit).
+        NONE = "", _("Sense estat")
+        PENDING = "pending", _("Pendent")
+        SENT = "sent", _("Enviada")
+        NOT_SENT = "not_sent", _("No enviada")
+        LIMITED = "limited", _("Limitada per destinatari")
+        EXPIRED = "expired", _("Caducada")
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    ip_address = models.GenericIPAddressField()
+    # Buida passats 30 minuts a les de recuperació (T-M01-39b): només cal per al límit d'origen.
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     purpose = models.CharField(max_length=10, choices=Purpose.choices)
     recipient_hash = models.CharField(max_length=64, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, blank=True, default="")
 
     class Meta:
         verbose_name = _("petició d'enllaç pel correu")

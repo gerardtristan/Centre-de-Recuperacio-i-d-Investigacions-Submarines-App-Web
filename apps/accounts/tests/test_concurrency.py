@@ -193,6 +193,14 @@ class TestLinkLimitsConcurrent(CommittedDataTestCase):
             )
 
         run_together([ask(f"10.6.0.{i}") for i in range(12)])
+        # T-M01-39b: el límit per destinatari l'aplica la tasca; diversos workers alhora.
+        pending = EmailLinkRequest.objects.filter(purpose="reset", status="pending")
+        run_together(
+            [
+                lambda pk=pk: email_links.process_password_reset(pk)
+                for pk in pending.values_list("pk", flat=True)
+            ]
+        )
 
         hour = limits.RECIPIENT_WINDOWS[0]
         assert OutgoingEmail.objects.filter(template="recuperacio-contrasenya").count() == (

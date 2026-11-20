@@ -386,6 +386,11 @@ MAP = {
         "templates/core/gdpr_request_detail.html",
         "templates/members/_member_edit_links.html",
     ),
+    "test_recuperacio_39b.py": (
+        "apps/accounts/email_links.py",
+        "apps/accounts/views.py",
+        "templates/accounts/password_reset_request.html",
+    ),
     "test_terminis_049.py": (
         "apps/members/instalments.py",
         "apps/members/views/personal.py",

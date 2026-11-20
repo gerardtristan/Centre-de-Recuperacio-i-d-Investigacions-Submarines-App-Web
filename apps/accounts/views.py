@@ -26,7 +26,7 @@ from apps.core import audit, roles
 from apps.core.models import AccountRole
 from apps.core.permissions import has_perm, permission_required
 
-from . import email_links, emergency, invitations, tokens, totp
+from . import email_links, emergency, invitations, limits, tokens, totp
 from .forms import (
     CodeForm,
     DisableTotpForm,
@@ -361,15 +361,19 @@ def change_email_view(request):
 
 def _reset_sent_message():
     hours = email_links.hours(tokens.RESET_PASSWORD)
+    # T-M01-39b (Q-085): l'enllaç surt de la cua; la frase del retard màxim, validada.
+    minutes = int(limits.RESET_MAX_DELAY.total_seconds() // 60)
     return ngettext(
-        "Si hi ha un compte actiu amb aquesta adreça, t'hi hem enviat un enllaç per triar una "
+        "Si hi ha un compte actiu amb aquesta adreça, t'hi enviem un enllaç per triar una "
         "contrasenya nova. L'enllaç caduca d'aquí a %(hours)d hora i només serveix una vegada. "
-        "Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.",
-        "Si hi ha un compte actiu amb aquesta adreça, t'hi hem enviat un enllaç per triar una "
+        "Si d'aquí a %(minutes)d minuts no t'ha arribat, mira el correu brossa i torna-ho a "
+        "demanar.",
+        "Si hi ha un compte actiu amb aquesta adreça, t'hi enviem un enllaç per triar una "
         "contrasenya nova. L'enllaç caduca d'aquí a %(hours)d hores i només serveix una vegada. "
-        "Si no el reps, mira la carpeta de correu brossa o torna-ho a provar més tard.",
+        "Si d'aquí a %(minutes)d minuts no t'ha arribat, mira el correu brossa i torna-ho a "
+        "demanar.",
         hours,
-    ) % {"hours": hours}
+    ) % {"hours": hours, "minutes": minutes}
 
 
 def _verification_resent_message():
