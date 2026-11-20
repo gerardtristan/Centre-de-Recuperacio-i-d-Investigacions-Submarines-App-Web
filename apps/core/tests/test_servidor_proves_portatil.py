@@ -28,6 +28,15 @@ def test_staging_never_charges_nor_sends_mail_outside(staging):
     assert staging.SESSION_COOKIE_SECURE and staging.CSRF_COOKIE_SECURE
 
 
+def test_staging_ignores_an_outside_mail_host_in_the_environment(monkeypatch):
+    """T-F1-01: amb un EMAIL_HOST de fora a l'entorn (com el .env d'un portàtil), el correu
+    continua anant a la bústia de proves."""
+    monkeypatch.setenv("EMAIL_HOST", "smtp.example.invalid")
+    monkeypatch.setenv("EMAIL_PORT", "587")
+    staging = importlib.reload(importlib.import_module("config.settings.staging"))
+    assert (staging.EMAIL_HOST, staging.EMAIL_PORT) == ("mailpit", 1025)
+
+
 def test_staging_accepts_only_the_tunnels_and_the_laptop(staging):
     assert staging.ALLOWED_HOSTS == ["localhost", "127.0.0.1", ".trycloudflare.com", ".ts.net"]
     assert staging.CSRF_TRUSTED_ORIGINS == ["https://*.trycloudflare.com", "https://*.ts.net"]
