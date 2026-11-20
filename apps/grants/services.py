@@ -22,8 +22,10 @@ from .models import (
     DenialNote,
     GrantApplication,
     GrantCall,
+    GrantCallDocument,
 )
 
+CALLS = "grants.calls.manage"  # AJ1
 ELIGIBILITY = "grants.eligibility"  # AJ2
 PREPARE = "grants.applications.prepare"  # AJ4
 RESOLVE = "grants.applications.resolve"  # AJ5
@@ -34,6 +36,8 @@ APPLICATION_CREATED = "grants.application_created"
 ELIGIBILITY_REVIEWED = "grants.eligibility_reviewed"
 APPLICATION_TRANSITIONED = "grants.application_transitioned"
 DOCUMENT_CHANGED = "grants.document_changed"
+APPLICATION_COPIED = "grants.application_copied"
+CALL_COPIED = "grants.call_copied"
 
 # Qui pot ser responsable d'una sol·licitud (M09-ajuts-4; S-M09A-01): llista de rols, codi.
 RESPONSIBLE_ROLES = frozenset({Role.Code.TREASURER, Role.Code.BOARD, Role.Code.ADMINISTRATOR})
@@ -324,3 +328,74 @@ def add_document(application, *, name: str, by) -> ApplicationDocument:
         raise GrantError(_("La sol·licitud ja té un document amb aquest nom.")) from error
     audit.record(DOCUMENT_CHANGED, actor=by, target=document, field="name", new=name)
     return document
+
+
+@transaction.atomic
+def copy_application(application, call, *, by) -> GrantApplication:
+    """P-M09A-G (RN-M09A-14, CA-M09A-11): una sol·licitud nova «detectada» a `call`, amb el
+    mateix responsable, departament, centre de cost, import i documents (sense els fitxers ni la
+    marca «a punt»). Les observacions de la denegació es veuen per `copied_from`."""
+    source = GrantApplication.objects.get(pk=application.pk)
+    copy = GrantApplication(
+        call=call,
+        responsible=source.responsible,
+        department=source.department,
+        cost_centre=source.cost_centre,
+        amount_requested_cents=source.amount_requested_cents,
+        copied_from=source,
+        created_by=by,
+    )
+    require(by, PREPARE, copy)
+    _check_responsible(copy.responsible)
+    copy.save()
+    ApplicationDocument.objects.bulk_create(
+        ApplicationDocument(application=copy, name=document.name)
+        for document in source.documents.all()
+    )
+    audit.record(APPLICATION_COPIED, actor=by, target=copy, details={"copied_from": source.pk})
+    return copy
+
+
+def denial_notes_for(application):
+    """Les observacions de les denegacions de què ve una còpia, de la més recent a la primera."""
+    notes, source = [], application.copied_from
+    while source is not None:
+        notes.extend(source.denial_notes.order_by("-pk"))
+        source = source.copied_from
+    return notes
+
+
+# Les dates no es copien a l'edició següent (RN-M09A-14), ni la revisió de l'elegibilitat.
+_NOT_COPIED = {
+    "id",
+    "opens_on",
+    "closes_on",
+    "eligible_expenses_from",
+    "eligible_expenses_to",
+    "justification_due_on",
+    "eligibility_status",
+    "eligibility_reviewed_by",
+    "eligibility_reviewed_at",
+    "eligibility_notes",
+    "previous_edition",
+    "created_by",
+    "created_at",
+}
+
+
+@transaction.atomic
+def copy_call(call, *, by) -> GrantCall:
+    """RN-M09A-14: la convocatòria de l'edició següent, amb tot excepte les dates; l'elegibilitat
+    torna a «pendent de revisar», perquè les bases poden haver canviat."""
+    require(by, CALLS)
+    fields = {
+        f.attname: getattr(call, f.attname)
+        for f in GrantCall._meta.concrete_fields
+        if f.name not in _NOT_COPIED
+    }
+    copy = GrantCall.objects.create(**fields, previous_edition=call, created_by=by)
+    GrantCallDocument.objects.bulk_create(
+        GrantCallDocument(call=copy, name=d.name, order=d.order) for d in call.documents.all()
+    )
+    audit.record(CALL_COPIED, actor=by, target=copy, details={"previous_edition": call.pk})
+    return copy
