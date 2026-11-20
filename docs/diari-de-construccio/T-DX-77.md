@@ -2,7 +2,7 @@
 
 | Data i hora (Europa/Madrid) | Commit | Proves | CI |
 |---|---|---|---|
-| 20/11/2026 19:24 | 4ae670e8 | 1 unitària nova; 2 e2e ampliades | [A comprovar] |
+| 20/11/2026 19:24 | 9089f6f0 | 1 unitària nova; 2 e2e ampliades | [A comprovar] |
 
 **En tres línies:** la revisió final de la fase 1 (T-F1-01, V8 i V20) va trobar dues coses a l'inici del soci. «La teva història» i «Llicència» no començaven on comença «El teu carnet» (8/4 a sota, 7/5 a dalt). I un soci nou, amb la quota pendent i sense carnet, veia «—» a «La teva quota», «El meu carnet» com a botó principal i un «Paga ara» d'un altre color.
 
@@ -34,10 +34,10 @@
 
   ![Inici del soci a 1280 px: a «La teva quota», l'etiqueta Pendent, l'import i el venciment, i els botons «Paga ara» (principal) i «Les meves quotes»; a sota, la franja d'un pagament pendent i, a la dreta, la història i la llicència alineades amb el carnet](captures/2026-11-20_1924_T-DX-77_inici-pendent-1280.png)
 
-  *20/11/2026 19:24 (Europa/Madrid) · local, prova e2e, dades inventades · commit 4ae670e8*
+  *20/11/2026 19:24 (Europa/Madrid) · local, prova e2e, dades inventades · commit 9089f6f0*
 
 - El mateix a 320 px en fosc. `captures/2026-11-20_1924_T-DX-77_inici-pendent-320-fosc.png`
 
   ![Inici del soci a 320 px en fosc: «La teva quota» amb Pendent, l'import, «Paga ara» i «Les meves quotes», i el carnet a sota](captures/2026-11-20_1924_T-DX-77_inici-pendent-320-fosc.png)
 
-  *20/11/2026 19:24 (Europa/Madrid) · local, prova e2e, dades inventades · commit 4ae670e8*
+  *20/11/2026 19:24 (Europa/Madrid) · local, prova e2e, dades inventades · commit 9089f6f0*
