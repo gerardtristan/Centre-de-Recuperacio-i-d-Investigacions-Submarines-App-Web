@@ -57,7 +57,9 @@
         {% else %}
           <p>{% translate "Ara no tens cap carnet." %}</p>
         {% endif %}
-        <p><a href="{% url 'members:card' %}">{% translate "Obre el carnet" %}</a></p>
+        {# T-DX-86: sense carnet i amb una quota pendent, la pàgina del carnet només diria que no n'hi ha; es diu quan arribarà (el carnet surt amb el pagament confirmat). Sense pendents (un carnet revocat), l'enllaç porta a demanar-ne un de nou. #}
+        {% if soci.card or not soci.pending %}<p><a href="{% url 'members:card' %}">{% translate "Obre el carnet" %}</a></p>
+        {% else %}<p class="text-2">{% translate "El tindràs quan es confirmi el pagament de la quota." %}</p>{% endif %}
       </section>
     </div>
   {% endif %}

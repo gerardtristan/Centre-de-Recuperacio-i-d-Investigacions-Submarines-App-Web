@@ -80,6 +80,16 @@ def test_a_pending_fee_not_yet_due_without_card_makes_pay_now_the_main_action(lo
     assert "boto-principal" not in strip
 
 
+def test_without_card_and_with_a_pending_fee_the_card_block_says_when_it_arrives(login_as):
+    """T-DX-86: sense carnet i amb la quota pendent, «El teu carnet» diu quan arribarà i no porta
+    a una pàgina que només repetiria que no n'hi ha."""
+    member = make_member()
+    add_fee(member, period=local_today().year + 1)
+    card = home(login_as, member).split('id="carnet-resum"', 1)[1].split("</section>", 1)[0]
+    assert "quan es confirmi el pagament de la quota" in card
+    assert reverse("members:card") not in card
+
+
 def test_recent_payments_history_and_licence(login_as):
     member = paid_member()
     setting(values.CLASSIC_MEMBER_YEARS, 5)  # VC-04; alta el 2019
