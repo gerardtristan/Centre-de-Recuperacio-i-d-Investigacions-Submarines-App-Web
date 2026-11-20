@@ -331,3 +331,26 @@ def test_treasurer_changes_the_renewal_notice_months(page, live_server, review):
     expect(page.get_by_text("Valor desat.")).to_be_visible()
     review("socis-avis-renovacio")
     assert business_settings.get("members.renewal_notice_months") == 2
+
+
+def test_treasurer_changes_the_transfer_reminder_days(page, live_server, review):
+    """T-M05b-22c (VC-16; RN-M05b-09): els dies que s'espera una transferència abans del
+    recordatori, de 7 a 60, els edita el tresorer; un 6 no es desa."""
+    treasurer = make_admin("tresoreria.transfer", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos de pagaments").click()
+    label = "Dies que s'espera una transferència abans del recordatori"
+    expect(page.get_by_role("cell", name=label)).to_be_visible()
+    review("pagaments-recordatori-transferencia-apartat")
+    page.get_by_role("link", name=f"Canvia: {label}").click()
+    page.get_by_label("Valor nou").fill("6")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    review("pagaments-recordatori-transferencia-error")
+    page.get_by_label("Valor nou").fill("20")
+    page.get_by_label("Nota").fill("Prova inventada")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("pagaments-recordatori-transferencia")
+    assert business_settings.get("payments.transfer_reminder_days") == 20

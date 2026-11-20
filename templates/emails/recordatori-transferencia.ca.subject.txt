@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M05b-22c, RN-M05b-09: TEXT PROVISIONAL [A validar: tresorer]. #}{% blocktranslate %}No ens ha arribat la transferència: {{ concept }}{% endblocktranslate %}

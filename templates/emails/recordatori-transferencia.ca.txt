@@ -1,0 +1,9 @@
+{% load i18n %}{# T-M05b-22c, RN-M05b-09 (P-M05b-C, pas 4): TEXT PROVISIONAL [A validar: tresorer]. La referència de la transferència i l'enllaç per pagar; cap IBAN. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}No ens ha arribat la transferència de «{{ concept }}» ({{ amount }}) amb la referència {{ reference }}. Encara està pendent de pagament.{% endblocktranslate %}
+
+{% translate "Si ja l'has feta, no cal que facis res: quan arribi, la veurem. Si no, pots pagar-lo amb targeta, Bizum o transferència des d'aquest enllaç:" %}
+{{ link }}
+
+{% translate "Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}

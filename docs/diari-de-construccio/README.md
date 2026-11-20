@@ -354,3 +354,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-30](T-M05b-30.md) | Origen propi del pagament: la decisió del tresorer des d'«a revisar» queda al pagament amb qui i el motiu (core/0058 i payments/0028; pilot) | 20/11/2026 06:17 | b4c15314 | 4 noves; 1 ajustada | [A comprovar] |
 =======
 | [C6](C6.md) | Auditoria de dependències al CI (`pip-audit`); pytest a la 9.0.3 o més per la PYSEC-2026-1845; fila de la T-M05a-19 (pilot, carril d'auditoria) | 20/11/2026 07:30 | (vegeu la PR) | 0 noves | [A comprovar] |
+=======
+| [T-M05b-22c](T-M05b-22c.md) | Recordatori de transferència: passats els dies de VC-16, l'intent es tanca i el pagador rep un sol recordatori (core/0059, payments/0029; dubte P-407; pilot) | 20/11/2026 07:26 | (vegeu la PR) | 16 noves; 1 e2e nova | [A comprovar] |
+=======
+| [T-M05b-22c](T-M05b-22c.md) | Recordatori de transferència: passats els dies de VC-16, l'intent es tanca i el pagador rep un sol recordatori (core/0059, payments/0029; dubte P-407; pilot) | 20/11/2026 07:26 | 68dba709 | 16 noves; 1 e2e nova | [A comprovar] |

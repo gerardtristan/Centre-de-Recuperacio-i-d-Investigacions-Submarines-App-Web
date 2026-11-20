@@ -5,7 +5,7 @@ from procrastinate.contrib.django import app
 
 from apps.accounts.models import Account
 
-from . import campaigns, checkout, expiry, processing, settlements
+from . import campaigns, checkout, expiry, processing, settlements, transfer_reminders
 from .models import MandateCampaign
 
 
@@ -42,6 +42,13 @@ def import_settlements(timestamp: int) -> None:
 @app.task(name="payments.charge_saved_cards", queue="maintenance")
 def charge_saved_cards(timestamp: int) -> None:
     checkout.charge_due_saved_cards()
+
+
+# Cada dia al matí: les transferències que no han arribat (T-M05b-22c; RN-M05b-09).
+@app.periodic(cron="15 9 * * *")
+@app.task(name="payments.transfer_reminders", queue="maintenance")
+def transfer_reminders_task(timestamp: int) -> None:
+    transfer_reminders.send_due()
 
 
 # P-M05a-E, pas 3: el tresorer confirma l'enviament i les invitacions surten per la cua.
