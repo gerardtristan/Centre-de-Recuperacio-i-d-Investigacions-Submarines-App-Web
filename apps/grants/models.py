@@ -316,3 +316,35 @@ class ApplicationTransition(AppendOnlyModel):
         verbose_name = _("transició d'una sol·licitud")
         verbose_name_plural = _("transicions de les sol·licituds")
         ordering = ["pk"]
+
+
+class DenialNote(AppendOnlyModel):
+    """Observació d'una denegació (RN-M09A-13; només INSERT): motiu, data i què millorar. Es
+    mostra en copiar la sol·licitud a una convocatòria nova (RN-M09A-14)."""
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.PROTECT,
+        related_name="denial_notes",
+        verbose_name=_("sol·licitud"),
+    )
+    reason = models.TextField(_("motiu"))
+    resolved_on = models.DateField(_("data de la resolució"))
+    improvements = models.TextField(_("què caldria millorar"))
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrada per"),
+    )
+    recorded_at = models.DateTimeField(_("registrada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("observació de la denegació")
+        verbose_name_plural = _("observacions de la denegació")
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~Q(reason="") & ~Q(improvements=""), name="grant_denial_note_complete"
+            )
+        ]

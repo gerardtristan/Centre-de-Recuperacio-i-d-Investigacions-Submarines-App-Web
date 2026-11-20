@@ -16,10 +16,17 @@ from apps.core.models import Role
 from apps.core.permissions import active_role_codes, has_perm
 from apps.treasury.models import CostCentre
 
-from .models import ApplicationDocument, ApplicationTransition, GrantApplication, GrantCall
+from .models import (
+    ApplicationDocument,
+    ApplicationTransition,
+    DenialNote,
+    GrantApplication,
+    GrantCall,
+)
 
 ELIGIBILITY = "grants.eligibility"  # AJ2
 PREPARE = "grants.applications.prepare"  # AJ4
+RESOLVE = "grants.applications.resolve"  # AJ5
 CLOSE = "grants.applications.close"  # AJ8
 UNDO = "grants.applications.undo"  # AJ9
 
@@ -159,13 +166,16 @@ def review_eligibility(call: GrantCall, *, status: str, notes: str, by) -> Grant
     return call
 
 
-# RN-M09A-01. Concedida i denegada (resolució, T-M09A-07) i justificada (paquet, T-M09A-10)
-# s'afegeixen amb les seves tasques, que porten les dades que demanen.
+# RN-M09A-01. Justificada (paquet, T-M09A-10) s'afegeix amb la seva tasca.
 TRANSITIONS = {
     S.DETECTED: {S.PREPARING, S.CLOSED},
     S.PREPARING: {S.SUBMITTED, S.CLOSED},
+    S.SUBMITTED: {S.GRANTED, S.DENIED},
+    S.DENIED: {S.CLOSED},
     S.JUSTIFIED: {S.CLOSED},
 }
+# El permís de cada canvi, segons d'on surt (M09-ajuts-4).
+PERMISSION_FROM = {S.SUBMITTED: RESOLVE, S.DENIED: CLOSE, S.JUSTIFIED: CLOSE}
 EDITABLE_DOCUMENTS = (S.DETECTED, S.PREPARING)
 
 
@@ -178,12 +188,14 @@ def _date(value, label):
 @transaction.atomic
 def transition(application, to_status, *, by, reason="", **data) -> GrantApplication:
     """`grants.transition` (M09-8). Presentar demana `submitted_on`, `submission_ref`,
-    `amount_requested_cents` i tots els documents a punt; tancar sense presentar-la, el motiu."""
+    `amount_requested_cents` i tots els documents a punt; concedir, `amount_granted_cents`,
+    `resolved_on` i `resolution_file`; denegar, la resolució i l'observació (`improvements` i
+    el motiu); tancar sense presentar-la, el motiu."""
     application = (
         GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
     )
     old, reason = application.status, (reason or "").strip()
-    require(by, CLOSE if old == S.JUSTIFIED else PREPARE, application)
+    require(by, PERMISSION_FROM.get(old, PREPARE), application)
     if to_status not in TRANSITIONS.get(old, ()):
         raise InvalidTransition(_("Aquest canvi d'estat no és permès."))
     call = application.call
@@ -194,6 +206,8 @@ def transition(application, to_status, *, by, reason="", **data) -> GrantApplica
             raise InvalidTransition(_("La convocatòria no és elegible."))
     elif to_status == S.SUBMITTED:
         _submit(application, call, data)
+    elif to_status in (S.GRANTED, S.DENIED):
+        _resolve(application, to_status, reason, data, by)
     elif old in EDITABLE_DOCUMENTS:  # tancar sense presentar-la
         if not reason:
             raise GrantError(_("Escriu per què no es presenta."))
@@ -224,6 +238,33 @@ def _submit(application, call, data) -> None:
         application.expected_response_on = _date(
             data["expected_response_on"], _("la data prevista de resposta")
         )
+
+
+def _resolve(application, to_status, reason, data, by) -> None:
+    """P-M09A-E (RN-M09A-08 i 13; CA-M09A-07): la data i la resolució sempre; concedida, amb
+    l'import; denegada, amb una observació (motiu i què millorar)."""
+    resolved_on = _date(data.get("resolved_on"), _("la data de la resolució"))
+    if data.get("resolution_file") is None:
+        raise GrantError(_("Cal la resolució de l'organisme."))
+    application.resolved_on, application.resolution_file = resolved_on, data["resolution_file"]
+    if to_status == S.GRANTED:
+        amount = data.get("amount_granted_cents")
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount < 0:
+            raise GrantError(_("Cal l'import concedit, en cèntims."))
+        application.amount_granted_cents = amount
+        # RN-M09A-08: més del demanat és un avís, no un bloqueig.
+        application.granted_over_requested = amount > application.amount_requested_cents
+        return
+    improvements = (data.get("improvements") or "").strip()
+    if not reason or not improvements:
+        raise GrantError(_("Una denegació porta el motiu i què caldria millorar."))
+    DenialNote.objects.create(
+        application=application,
+        reason=reason,
+        resolved_on=resolved_on,
+        improvements=improvements,
+        recorded_by=by,
+    )
 
 
 @transaction.atomic
