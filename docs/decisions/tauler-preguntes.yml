@@ -1243,6 +1243,16 @@ opcions:
       El comprovant pot dur dades de qui paga i és un document de tresoreria: com menys gent l'obri,
       millor. Si la junta l'ha de veure per a una revisió, es pot donar el permís des de l'editor.
     data: 2026-11-19
+  P-455:
+    opcions:
+      A: "La sessió copiada conserva el lloc desactivat; l'activitat no es pot publicar fins que totes les sessions tenen un lloc actiu."
+      B: "El lloc de la sessió pot quedar buit en una còpia en esborrany (camp opcional a la base de dades), i no es pot publicar fins que s'omple."
+      C: "Les sessions amb lloc desactivat no es copien; el responsable les torna a crear."
+    recomanada: A
+    perque: >-
+      Manté `Session.place` obligatori com diu l'addenda i el responsable veu quin lloc hi havia; el control de publicar
+      és el mateix que per a l'activitat (RN-M02-44).
+    data: 2026-11-20
 
 noves:
   P-410:
