@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M06-12 (CA-M06-13, P-M06-G): avís al tresorer d'una proposta de devolució d'una llicència cancel·lada després de pagar-la. TEXT PROVISIONAL [A validar: tresorer]. Només referències internes: cap nom ni dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}S'ha cancel·lat la llicència {{ licence_id }}, que ja estava pagada. Hi ha una proposta de devolució de {{ amount }} per revisar: la devolució no es fa sola.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

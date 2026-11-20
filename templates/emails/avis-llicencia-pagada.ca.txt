@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M06-05 (CA-M06-07, RN-M06-09): avís a la secretaria d'una llicència que ja s'ha pagat i falta tramitar. TEXT PROVISIONAL [A validar: secretaria]. Només referències internes: cap nom ni dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}S'ha pagat la llicència {{ licence_id }} ({{ licence_type }}). Ja surt al llistat de llicències per tramitar a la federació.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

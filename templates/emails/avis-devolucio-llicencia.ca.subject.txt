@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M06-12 (CA-M06-13): TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Una proposta de devolució d'una llicència" %}

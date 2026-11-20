@@ -9,8 +9,8 @@
   del subscriptor: si arriba dues vegades, el segon no fa res.
 - Cada emissió i cada lliurament (fet, fallit o repetit) queden al registre d'activitat.
 
-Només els esdeveniments aprovats: `charge.paid` (049). Un altre s'ha d'aprovar abans (049,
-conseqüències).
+Només els esdeveniments aprovats: `charge.paid` (049) i els de la llicència del 06 (052, 054;
+RN-M06-17). Un altre s'ha d'aprovar abans (049, conseqüències).
 """
 
 from collections.abc import Callable
@@ -21,7 +21,14 @@ from . import audit
 from .models import Event, EventDelivery
 
 CHARGE_PAID = "charge.paid"
-APPROVED = frozenset({CHARGE_PAID})
+# RN-M06-17: els emet el 06 (T-M06-15) i els llegeix la còpia del 01 (T-M01-31).
+LICENCE_ISSUED = "licence.issued"
+LICENCE_RENEWED = "licence.renewed"
+LICENCE_EXPIRED = "licence.expired"
+LICENCE_CANCELLED = "licence.cancelled"
+APPROVED = frozenset(
+    {CHARGE_PAID, LICENCE_ISSUED, LICENCE_RENEWED, LICENCE_EXPIRED, LICENCE_CANCELLED}
+)
 
 EMITTED = "events.emitted"
 DELIVERED = "events.delivered"

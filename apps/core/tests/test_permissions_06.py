@@ -23,6 +23,33 @@ MATRIX = {
     "licences.participant_status": (OWN_S, Y, OWN_A, None, None, None, Y, Y, None),  # LC10
     "licences.import_m01": (None, None, None, None, None, None, Y, None, None),  # LC11
     "licences.field.details": (None, Y, Y, None, Y, None, Y, Y, None),  # C6
+    # Ajustos de llicències (M06-6; T-M06-20): «Cons.» de l'apartat per a qui hi edita algun valor.
+    "settings.section.licences": (None, CONS, None, None, None, None, CONS, None, None),
+    "settings.edit.licences.non_members_enabled": (
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Y,
+        None,
+        None,
+    ),
+    "settings.edit.licences.day_enabled": (None, None, None, None, None, None, Y, None, None),
+    "settings.edit.licences.reminder_days": (None, Y, None, None, None, None, None, None, None),
+    "settings.edit.licences.to_renew_days": (None, Y, None, None, None, None, None, None, None),
+    "settings.edit.licences.next_year_opens_on": (
+        None,
+        Y,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
 }
 CELLS = [(code, role, row[i]) for code, row in MATRIX.items() for i, role in enumerate(ROLES)]
 

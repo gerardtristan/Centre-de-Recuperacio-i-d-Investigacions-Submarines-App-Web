@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M06-05 (CA-M06-07): TEXT PROVISIONAL [A validar: secretaria]. #}{% translate "Una llicència pagada per tramitar" %}
