@@ -35,6 +35,7 @@ P18 = "members.cluber_import.run"
 P19 = "members.licence_record.manage"
 P21 = "members.card.revoke"
 P22 = "members.fees.exempt"
+P23 = "members.fees.edit_instalments"  # T-M01-49c (P-413)
 AJ01 = "settings.section.members"  # ajustos de socis: «Cons.» veu, «Sí» edita (RN-RP-22)
 AJ01_2 = "settings.edit.members.membership_types"  # T-M01-52 (P-376)
 
@@ -89,6 +90,7 @@ ROUTES = {
     # T-M01-40 (RN-M01-72 i RN-M01-94; 085): eximir o anul·lar una quota des de la fitxa.
     "administration:member_fee_exempt": _both((P22, WRITE), (P4, READ), (P10, READ)),
     "administration:member_fee_cancel": _both((P22, WRITE), (P4, READ), (P10, READ)),
+    "administration:member_fee_instalments": _both((P23, WRITE), (P4, READ), (P10, READ)),
     "administration:fees": _both((P10, READ)),
     "administration:fee_mark_unpaid": _both((P9, WRITE)),
     "administration:fee_unmark_unpaid": _both((P9, WRITE)),

@@ -268,6 +268,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
+    # T-M01-49c (072, tercera instrucció, punt 2): «la secretaria, amb permís propi». Matriu
+    # inicial: només la Secretaria (P-413).
+    _perm(
+        "members.fees.edit_instalments",
+        "P23",
+        _("Editar l'import i el venciment dels terminis d'una quota, amb motiu"),
+        requires=("members.fees.view",),
+        initial={R.SECRETARY: _ALL},
+        touches_money=True,
+    ),
     _perm(
         "members.unpaid.mark",
         "P9",

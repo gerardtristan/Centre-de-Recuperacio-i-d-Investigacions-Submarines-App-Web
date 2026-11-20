@@ -66,6 +66,12 @@ urlpatterns = [
         admin_member_edit.member_fee_cancel_view,
         name="member_fee_cancel",
     ),
+    # T-M01-49c (072, tercera instrucció, punt 2): editar els terminis d'una quota (P23).
+    path(
+        "socis/<int:pk>/quotes/<int:fee_pk>/terminis/",
+        admin_member_edit.member_fee_instalments_view,
+        name="member_fee_instalments",
+    ),
     path(
         "socis/<int:pk>/llicencies/nova/",
         admin_licences.licence_add_view,

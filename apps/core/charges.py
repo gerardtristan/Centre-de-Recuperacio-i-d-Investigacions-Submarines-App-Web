@@ -313,6 +313,35 @@ def cancel(charge: Charge, reason: str, *, by, category: str = "") -> Charge:
     return _transition(charge, S.CANCELLED, by=by, reason=reason, details=details)
 
 
+AMOUNT_CHANGED = "charges.amount_changed"
+
+
+@transaction.atomic
+def change_amount(charge: Charge, amount_cents: int, *, by, reason: str) -> Charge:
+    """Import d'un càrrec pendent i sense cap pagament (072, tercera instrucció, punt 2: els
+    terminis). Qui el crida comprova el permís i que no hi hagi cap intent de cobrament en curs.
+    Queda al registre amb el valor anterior i el motiu."""
+    if not reason.strip():
+        raise ValidationError(_("Per canviar l'import d'un càrrec cal un motiu."))
+    validate_cents(amount_cents)
+    locked = Charge.objects.select_for_update().get(pk=charge.pk)
+    if locked.status != S.PENDING or locked.payments.exists():
+        raise ValidationError(
+            _("Només es pot canviar l'import d'un càrrec pendent i sense cap pagament.")
+        )
+    if locked.amount_cents != amount_cents:
+        audit.record_changes(
+            AMOUNT_CHANGED,
+            actor=by,
+            target=locked,
+            changes={"amount_cents": (locked.amount_cents, amount_cents)},
+            reason=reason,
+        )
+        locked.amount_cents = amount_cents
+        locked.save(update_fields=["amount_cents", "updated_at"])
+    return locked
+
+
 def active_payments(charge: Charge) -> list[Payment]:
     """Els pagaments del càrrec que compten: els que no tenen anul·lació (045). Amb la
     precàrrega `payments__cancellation` no fa cap consulta."""

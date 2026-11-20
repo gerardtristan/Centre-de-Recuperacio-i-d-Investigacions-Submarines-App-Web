@@ -11,6 +11,7 @@ si hi ha text vigent; el passaport, només a l'alta presencial (Q-017).
 """
 
 import re
+from decimal import Decimal
 
 from django import forms
 from django.conf import settings
@@ -20,7 +21,7 @@ from django.utils.translation import gettext_lazy as _
 
 # `ReauthForm` és dels comptes (T-M00-05); també el fa servir `/gestio/rgpd/` (T-M01-22).
 from apps.accounts.forms import ReauthForm
-from apps.core import consents
+from apps.core import charges, consents
 from apps.core.models import Person
 from apps.core.normalization import normalize_document, normalize_email, normalize_phone
 
@@ -582,3 +583,61 @@ class FeeResolveForm(ReauthForm):
         error_messages={"required": _("Cal el motiu.")},
     )
     field_order = ["reason", "password", "code"]
+
+
+class InstalmentsEditForm(FeeResolveForm):
+    """Editar els terminis (T-M01-49c; 072, tercera instrucció, punt 2): l'import i el venciment
+    de cada termini editable, el motiu i la reautenticació. Els no editables només es mostren.
+    La suma es comprova abans de la reautenticació (no gasta el codi) i el servei la torna a
+    comprovar."""
+
+    def __init__(self, *args, editable, total_cents, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.editable = editable
+        self.total_cents = total_cents
+        self.fields["reason"].help_text = _(
+            "Queda al registre d'activitat amb els valors anteriors. No hi escriguis dades de "
+            "salut."
+        )
+        for fee in editable:
+            self.fields[f"amount_{fee.pk}"] = forms.DecimalField(
+                label=_("Import del termini %(n)s") % {"n": fee.instalment},
+                min_value=Decimal("0.01"),
+                decimal_places=2,
+                localize=True,
+                initial=Decimal(fee.charge.amount_cents).scaleb(-2),
+                help_text=_("En euros."),
+            )
+            self.fields[f"due_{fee.pk}"] = forms.DateField(
+                label=_("Venciment del termini %(n)s") % {"n": fee.instalment},
+                initial=fee.due_on,
+                widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            )
+        self.order_fields(
+            [name for fee in editable for name in (f"amount_{fee.pk}", f"due_{fee.pk}")]
+            + ["reason", "password", "code"]
+        )
+
+    def clean(self):
+        data = super().clean()
+        if any(f"amount_{fee.pk}" in self.errors for fee in self.editable):
+            return data
+        changes = self.changes()
+        fixed = self.total_cents - sum(fee.charge.amount_cents for fee in self.editable)
+        new_total = fixed + sum(cents for cents, _due in changes.values())
+        if new_total != self.total_cents:
+            raise ValidationError(
+                _(
+                    "Els terminis han de continuar sumant %(total)s (ara sumen %(sum)s). Per "
+                    "canviar el total, cal anul·lar-los i tornar-los a generar."
+                )
+                % {"total": charges.euros(self.total_cents), "sum": charges.euros(new_total)}
+            )
+        return data
+
+    def changes(self) -> dict:
+        data = self.cleaned_data
+        return {
+            fee.pk: (int(data[f"amount_{fee.pk}"] * 100), data.get(f"due_{fee.pk}"))
+            for fee in self.editable
+        }

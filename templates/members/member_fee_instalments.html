@@ -1,0 +1,42 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-49c (072, tercera instrucció, punt 2): editar l'import i el venciment dels terminis d'una quota. P23 amb edició (P-413), P4 i P10. Motiu obligatori i reautenticació a la mateixa petició. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, el motiu, que el termini no tingui cap pagament ni cobrament en curs, que la suma no canviï i el conflicte d'interès. Cap dada personal més que el nom i el número. #}
+{% block title %}{% translate "Edita els terminis" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{% translate "Edita els terminis" %}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  {% if rows %}
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Terminis de la quota" %}</caption>
+      <thead><tr><th scope="col">{% translate "Termini" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+      <tbody>
+        {% for fee, amount, ok in rows %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ fee.charge.concept }}</th>
+            <td data-etiqueta="{% translate 'Import' %}">{{ amount }}</td>
+            <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ fee.due_on|date:'Y-m-d' }}">{{ fee.due_on|date:"d/m/Y" }}</time></td>
+            <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=fee.charge %}{% if not ok %} <span class="text-2">{% translate "(no es pot editar)" %}</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p>{% blocktranslate %}Els terminis sumen {{ total }} i han de continuar sumant el mateix. Per canviar el total, cal anul·lar-los i tornar-los a generar.{% endblocktranslate %}</p>
+  {% endif %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "Ningú no pot editar els terminis d'una quota seva. Ho ha de fer una altra persona amb permís." %}</div>
+  {% elif not editable %}
+    <div class="avis avis-avis" role="status">{% translate "No hi ha cap termini per editar: només es pot editar un termini pendent, sense cap pagament ni cap cobrament en curs. Amb un pagament, només es pot anul·lar i crear-ne un de nou." %}</div>
+  {% else %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa els terminis" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}
