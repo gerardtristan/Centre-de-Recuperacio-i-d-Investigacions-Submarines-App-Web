@@ -1243,6 +1243,16 @@ opcions:
       No toca cap regla congelada i mai deixa entrar un moviment del 09 en un període tancat; reobrir
       és excepcional (només per errors del propi període) i reobrir també els posteriors queda al registre.
     data: 2026-11-20
+  P-472:
+    opcions:
+      A: "Com s'ha construït: la despesa guarda la data real de la factura i s'accepta; el que es bloqueja és el moviment (pagar o anul·lar), que va al període obert."
+      B: "Es rebutja si la data de la factura és d'un període tancat, i el tresorer la registra amb una data del període obert."
+      C: "Un camp nou «data d'imputació» (per defecte, la del dia) que és la que es compara amb el període tancat."
+    recomanada: A
+    perque: >-
+      Compleix L-M09-02 sense falsejar la data de la factura (que cal per justificar ajuts), i el
+      període tancat queda protegit igual perquè cap moviment no hi entra (RN-T30).
+    data: 2026-11-20
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."
