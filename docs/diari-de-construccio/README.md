@@ -352,3 +352,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M01-43e](T-M01-43e.md) | Avís de renovació: els mesos passen de l'entorn a l'ajust de socis que edita el Tresorer, d'1 a 6, amb la comprovació de P-360 en desar (core/0057, members/0025; pilot) | 20/11/2026 05:15 | 02382e2e | 3 noves; 3 ajustades; 1 e2e nova | [A comprovar] |
 =======
 | [T-M05b-30](T-M05b-30.md) | Origen propi del pagament: la decisió del tresorer des d'«a revisar» queda al pagament amb qui i el motiu (core/0058 i payments/0028; pilot) | 20/11/2026 06:17 | b4c15314 | 4 noves; 1 ajustada | [A comprovar] |
+=======
+| [C6](C6.md) | Auditoria de dependències al CI (`pip-audit`); pytest a la 9.0.3 o més per la PYSEC-2026-1845; fila de la T-M05a-19 (pilot, carril d'auditoria) | 20/11/2026 07:30 | (vegeu la PR) | 0 noves | [A comprovar] |
