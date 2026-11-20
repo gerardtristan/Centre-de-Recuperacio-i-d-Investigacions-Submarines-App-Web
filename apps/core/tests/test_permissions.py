@@ -39,7 +39,16 @@ MANAGEMENT_ROLES = [code for code in R.values if code not in ("member", "visitor
 def test_codes_are_unique_and_prefixed_by_module():
     codes = [p.code for p in PERMISSIONS]
     assert len(codes) == len(set(codes))
-    modules = {"core", "members", "treasury", "payments", "settings"}
+    modules = {
+        "core",
+        "members",
+        "treasury",
+        "payments",
+        "licences",
+        "expenses",
+        "grants",
+        "settings",
+    }
     assert {p.module for p in PERMISSIONS} <= modules
     refs = [p.ref for p in PERMISSIONS]
     assert len(refs) == len(set(refs))
@@ -104,8 +113,24 @@ def test_initial_matrix_cell(make_admin, perm, role):
 
 @pytest.mark.django_db
 def test_communications_shop_and_board_start_without_permissions(make_admin):
-    for role in (R.COMMUNICATIONS_MANAGER, R.SHOP_MANAGER, R.BOARD):
+    for role in (R.COMMUNICATIONS_MANAGER, R.SHOP_MANAGER):
         assert effective_permissions(make_admin(role)) == {}
+    # La Junta: «Cons.» de tipus i preus de les llicències (LC8) i, al 09, consulta del marge i
+    # dels informes, els documents de justificació (protegits, 051) i els ajuts (T-M09-30).
+    assert effective_permissions(make_admin(R.BOARD)) == {
+        "licences.prices": "read",
+        "expenses.margin.view": "read",
+        "expenses.reports": "read",
+        "expenses.documents.open": "all",
+        "grants.view": "all",
+        "grants.calls.manage": "all",
+        "grants.eligibility": "all",
+        "grants.applications.prepare": "own_applications",
+        "grants.applications.resolve": "own_applications",
+        "grants.applications.amendments": "own_applications",
+        "grants.justification": "read",
+        "grants.documents.open": "all",
+    }
 
 
 # --- Motor -------------------------------------------------------------------------------

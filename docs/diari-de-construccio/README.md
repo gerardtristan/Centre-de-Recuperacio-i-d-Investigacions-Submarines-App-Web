@@ -366,3 +366,6 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-84](T-DX-84.md) | «Revisa una quota no cobrada»: l'estat «Pendent» amb l'etiqueta d'estat, com a la resta de pantalles (sessió de DISSENY) | 20/11/2026 19:41 | 579acecb | 1 e2e ampliada | [A comprovar] |
 | [T-M09-02](T-M09-02.md) | Període tancat del 09 registrat a la tresoreria (margins/0001) i categories de despesa i proveïdors de la T-M09-03 (expenses/0001; dubte P-471; carril C) | 20/11/2026 21:38 | a7206b06, aba7ad0c | 13 noves | [A comprovar] |
 | [T-M09-04](T-M09-04.md) | Despesa per pagar: model, estats, número únic per proveïdor, departament validat amb la 04 i registre de canvis (expenses/0002; dubte P-472; avís i fitxer de la factura bloquejats pel nucli; carril C) | 20/11/2026 22:10 | 8e066482 | 20 noves; 1 xfail | [A comprovar] |
+| [T-M06-03](T-M06-03.md) | Llicències: tipus, preus, llicència amb estats derivats i càlcul de dates (amb els models de la T-M06-02; carril A) | 20/11/2026 21:28 | ab994c99 | 8208 | [A comprovar] |
+| [T-M06-02b](T-M06-02b.md) | Llicències: servei de preus amb trams, versions, nota i avís (carril A) | 20/11/2026 21:58 | 1d2c4c89 | 8229 | [A comprovar] |
+| [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |

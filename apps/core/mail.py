@@ -88,6 +88,7 @@ TEMPLATE_PRIORITIES = {
     "alternativa-pagament": _Priority.CONFIRMATION,  # P-M05b-F, CA-M05b-19 i 20 (T-M05b-12)
     "avis-pagament-revisar": _Priority.CONFIRMATION,  # CA-M05b-05 (T-M05b-07; P-84)
     "quota-targeta-revisar": _Priority.CONFIRMATION,  # T-M05b-15b, al tresorer
+    "avis-despesa-sense-factura": _Priority.CONFIRMATION,  # CA-M09-01, al tresorer (T-M09-04b)
     "avis-liquidacio-rebutjada": _Priority.CONFIRMATION,  # P-227 (095; T-M05b-14)
     "avis-compte-emergencia": _Priority.CONFIRMATION,  # CA-10.2 (T-M00-03)
     "avis-canvi-rol": _Priority.CONFIRMATION,  # RN-RP-09 (T-RP-02)

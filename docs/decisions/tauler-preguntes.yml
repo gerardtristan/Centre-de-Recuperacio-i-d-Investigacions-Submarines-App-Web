@@ -1314,3 +1314,13 @@ noves:
       És una sola comprovació en publicar, al mateix lloc que la de l'HTML, i impedeix que un soci real vegi una marca
       interna per un descuit; C amagaria text legal sense que ningú ho vegi.
     data: 2026-11-20
+  P-440:
+    opcions:
+      A: "Un estat més, «Vigent més endavant», que no compta com a vigent fins al dia d'inici."
+      B: "«Vigent», encara que no hagi començat."
+      C: "«Tramitada» fins al dia d'inici."
+    recomanada: A
+    perque: >-
+      Diu exactament el que passa i no fa creure a ningú que avui està cobert; B enganyaria la secretaria i C amagaria que
+      la federació ja l'ha confirmada.
+    data: 2026-11-20
