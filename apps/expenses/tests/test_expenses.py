@@ -1,0 +1,187 @@
+"""T-M09-04: despesa per pagar, factura adjunta, estats i registre de canvis (CA-M09-01 i la
+primera meitat de CA-M09-03). Només dades inventades."""
+
+from datetime import date
+
+import pytest
+from django.db import IntegrityError, transaction
+
+from apps.core.models import AuditEntry, Department, PrivateFile
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.expenses import services
+from apps.expenses.models import Expense, ExpenseCategory, Supplier
+from apps.treasury.models import CostCentre
+from apps.treasury.services import InvalidDepartment
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def treasurer(make_admin):  # noqa: F811
+    return make_admin("treasurer")
+
+
+@pytest.fixture
+def boat():
+    return Supplier.objects.create(name="Nàutica Inventada SL", tax_id="B00000000")
+
+
+def data(supplier, **extra):
+    return {
+        "supplier": supplier,
+        "invoice_number": "F-2026-101",
+        "invoice_date": date(2026, 10, 15),
+        "category": ExpenseCategory.objects.get(name="Embarcació"),
+        "description": "Sortida a les Medes",
+        "amount_cents": 25000,
+        "department": Department.objects.get(name="General"),
+        **extra,
+    }
+
+
+def invoice(person):
+    return PrivateFile.objects.create(
+        storage_key="prova-factura",
+        kind=PrivateFile.Kind.PAYMENT_PROOF,
+        owner=person,
+        content_type="application/pdf",
+        size_bytes=10,
+        download_name="factura.pdf",
+    )
+
+
+def test_ca_m09_01_una_despesa_sense_factura_queda_per_pagar_i_surt_a_sense_factura(
+    treasurer, boat
+):
+    expense = services.record_expense(by=treasurer, **data(boat))
+    assert (expense.status, expense.recorded_by, expense.invoice_file) == (
+        "to_pay",
+        treasurer,
+        None,
+    )
+    assert list(services.without_invoice()) == [expense]
+    entry = AuditEntry.objects.get(action=services.EXPENSE_RECORDED)
+    assert entry.details["amount_cents"] == 25000
+    assert entry.details["supplier"] == boat.pk  # el proveïdor pot ser un autònom: només la clau
+
+
+def test_amb_factura_no_es_sense_factura_i_una_anullada_tampoc(treasurer, boat):
+    with_invoice = services.record_expense(by=treasurer, **data(boat))
+    # Adjuntar el fitxer necessita un tipus de fitxer privat del nucli i el xifratge (T-M09-25).
+    Expense.objects.filter(pk=with_invoice.pk).update(invoice_file=invoice(treasurer.person))
+    annulled = services.record_expense(by=treasurer, **data(boat, invoice_number="F-2026-102"))
+    Expense.objects.filter(pk=annulled.pk).update(status=Expense.Status.ANNULLED)
+    assert with_invoice not in services.without_invoice()
+    assert not services.without_invoice().exists()
+
+
+def test_centre_de_cost_del_mateix_departament(treasurer, boat):
+    general = Department.objects.get(name="General")
+    centre = CostCentre.selectable().filter(department=general).first()
+    expense = services.record_expense(by=treasurer, **data(boat, cost_centre=centre))
+    assert expense.cost_centre == centre
+
+    other = Department.objects.create(name="Medi ambient")
+    with pytest.raises(InvalidDepartment):
+        services.record_expense(
+            by=treasurer, **data(boat, invoice_number="F-2", department=other, cost_centre=centre)
+        )
+    other.active = False
+    other.save()
+    with pytest.raises(InvalidDepartment):
+        services.record_expense(by=treasurer, **data(boat, invoice_number="F-3", department=other))
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"amount_cents": 0},
+        {"amount_cents": 250.0},
+        {"amount_cents": True},
+        {"tax_cents": -1},
+        {"description": "   "},
+        {"description": "x" * 201},
+        {"invoice_number": "x" * 41},
+    ],
+)
+def test_dades_que_no_valen(treasurer, boat, extra):
+    with pytest.raises(services.ExpenseRejected):
+        services.record_expense(by=treasurer, **data(boat, **extra))
+    assert not Expense.objects.exists()
+
+
+def test_proveidor_o_categoria_inactius(treasurer, boat):
+    boat.active = False
+    boat.save()
+    with pytest.raises(services.ExpenseRejected):
+        services.record_expense(by=treasurer, **data(boat))
+
+
+def test_numero_de_factura_unic_per_proveidor_si_n_hi_ha(treasurer, boat):
+    services.record_expense(by=treasurer, **data(boat))
+    with pytest.raises(services.ExpenseRejected):
+        services.record_expense(by=treasurer, **data(boat))
+    other = Supplier.objects.create(name="Aire Inventat SCP")
+    services.record_expense(by=treasurer, **data(other))
+    services.record_expense(by=treasurer, **data(boat, invoice_number=""))
+    services.record_expense(by=treasurer, **data(boat, invoice_number=" "))  # també buit
+    assert Expense.objects.count() == 4
+
+
+def test_camps_desconeguts(treasurer, boat):
+    with pytest.raises(TypeError):
+        services.record_expense(by=treasurer, status="paid", **data(boat))
+    expense = services.record_expense(by=treasurer, **data(boat))
+    with pytest.raises(TypeError):
+        services.update_expense(expense, by=treasurer, status="paid")
+
+
+def test_una_despesa_per_pagar_es_corregeix_i_cada_canvi_va_al_registre(treasurer, boat):
+    expense = services.record_expense(by=treasurer, **data(boat))
+    air = ExpenseCategory.objects.get(name="Aire")
+
+    services.update_expense(
+        expense, by=treasurer, amount_cents=26000, category=air, description="Sortida a les Medes"
+    )
+
+    entries = AuditEntry.objects.filter(action=services.EXPENSE_CHANGED)
+    assert {(e.field, e.old_value, e.new_value) for e in entries} == {
+        ("amount_cents", 25000, 26000),
+        ("category", expense.category_id, air.pk),
+    }
+    assert Expense.objects.get(pk=expense.pk).amount_cents == 26000
+
+
+def test_una_correccio_que_no_val_no_desa_res(treasurer, boat):
+    expense = services.record_expense(by=treasurer, **data(boat))
+    with pytest.raises(services.ExpenseRejected):
+        services.update_expense(expense, by=treasurer, amount_cents=0)
+    assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
+
+
+@pytest.mark.parametrize("status", [Expense.Status.PAID, Expense.Status.ANNULLED])
+def test_ca_m09_03_una_despesa_pagada_o_anullada_no_canvia(treasurer, boat, status):
+    expense = services.record_expense(by=treasurer, **data(boat))
+    Expense.objects.filter(pk=expense.pk).update(status=status)  # pagar i anul·lar: T-M09-05
+    with pytest.raises(services.ExpenseLocked):
+        services.update_expense(expense, by=treasurer, amount_cents=1)
+    assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
+    assert not AuditEntry.objects.filter(action=services.EXPENSE_CHANGED).exists()
+
+
+@pytest.mark.parametrize("fields", [{"amount_cents": 0}, {"status": "lost"}])
+def test_la_base_de_dades_rebutja_import_zero_i_estat_desconegut(treasurer, boat, fields):
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Expense.objects.create(**{**data(boat), "recorded_by": treasurer, **fields})
+
+
+def test_text_de_la_despesa(treasurer, boat):
+    assert (
+        str(services.record_expense(by=treasurer, **data(boat))) == "Sortida a les Medes (25000 c)"
+    )
+
+
+@pytest.mark.xfail(reason="Permís MG1 al catàleg: T-M09-30 (nucli) i T-M09-22", strict=True)
+def test_un_compte_sense_permis_no_registra_despeses(make_admin, boat):  # noqa: F811
+    with pytest.raises(Exception):  # noqa: B017, PT011
+        services.record_expense(by=make_admin("secretary"), **data(boat))

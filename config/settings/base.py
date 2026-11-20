@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.licences",
     "apps.margins",
     "apps.previews",
+    "apps.expenses",
 ]
 
 MIDDLEWARE = [
