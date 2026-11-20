@@ -348,3 +348,57 @@ class DenialNote(AppendOnlyModel):
                 condition=~Q(reason="") & ~Q(improvements=""), name="grant_denial_note_complete"
             )
         ]
+
+
+class GrantExpenseLink(models.Model):
+    """Despesa lligada a un ajut amb l'import imputat (M09-ajuts-6, T-M09A-09). No s'esborra mai:
+    es dona de baixa (`removed_at`). El requeriment amb què s'afegeix o es dona de baixa en una
+    sol·licitud justificada arriba amb la T-M09A-15."""
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.PROTECT,
+        related_name="expense_links",
+        verbose_name=_("sol·licitud"),
+    )
+    expense = models.ForeignKey(
+        "expenses.Expense", on_delete=models.PROTECT, related_name="+", verbose_name=_("despesa")
+    )
+    amount_cents = models.PositiveBigIntegerField(_("import imputat"))
+    created_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("lligada per"),
+    )
+    created_at = models.DateTimeField(_("lligada"), auto_now_add=True)
+    removed_at = models.DateTimeField(_("donada de baixa"), null=True, blank=True)
+    removed_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("donada de baixa per"),
+    )
+
+    class Meta:
+        verbose_name = _("despesa lligada a un ajut")
+        verbose_name_plural = _("despeses lligades als ajuts")
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(condition=Q(amount_cents__gt=0), name="grant_link_amount"),
+            models.CheckConstraint(
+                condition=Q(removed_at__isnull=True, removed_by__isnull=True)
+                | Q(removed_at__isnull=False, removed_by__isnull=False),
+                name="grant_link_removed_by_whom",
+            ),
+            models.UniqueConstraint(
+                fields=["application", "expense"],
+                condition=Q(removed_at__isnull=True),
+                name="grant_link_active_unique",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.expense_id}: {self.amount_cents} c"
