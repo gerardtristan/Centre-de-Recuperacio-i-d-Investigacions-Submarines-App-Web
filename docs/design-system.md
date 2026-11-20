@@ -303,7 +303,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Caixa d'imatge | `caixa-imatge` | Substitueix qualsevol imatge als wireframes |
 | Camp | `camp`, `casella` | Etiqueta sempre visible; mínim 44 px |
 | Codi i import | `codi`, `import` (+ `import-entrada`, `import-sortida`); cel·la `cel-import` dins de `taula` | `codi` en JetBrains Mono; `import` amb la lletra del text i xifres tabulars (des de la 1.26, D7). El sentit d'un moviment porta signe («+» o «−») i color (`--c-ok-text` o `--c-error-text`), mai només color. A la `taula`, la columna d'imports (capçalera i cel·les) porta `cel-import` i va a la dreta (T-M04-15) |
-| Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles |
+| Marca pendent | `a-validar` | Senyala les dades o decisions [A validar] dins de les pantalles de l'administració i de les «En construcció». Mai a les pantalles que veu el soci (V17): allà, un text neutre o res, i la marca, a la documentació |
 | Demostració | `demo` | Només als wireframes: simula una persona o un rol |
 | Nota de servidor (1.5) | `demo nota-servidor` | Només als wireframes. Diu quins controls s'apliquen al servidor; no forma part de la pantalla i separa la simulació (amagar per rol) del control real |
 | Barra lateral de l'administració (1.6) | `barra-lateral`, `lateral-nav`, `lateral-compte`, `lateral-estat`; el `<body>` porta `amb-barra-lateral` | A `comptes.css`. Fosca als dos temes (`--c-lateral-*`). Les entrades les posa el servidor segons els permisos; vegeu §6.1 |

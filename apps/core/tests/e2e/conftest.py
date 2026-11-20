@@ -212,6 +212,7 @@ def capture(page, request):
 
 
 NARROW = 320  # amplada mínima que demana la definició de fet de les pantalles
+ALL_WIDTHS = (1280, 1024, 390, NARROW)  # amb E2E_CAPTURES_ALL=1, en clar i en fosc
 
 
 # Cap transició ni animació amb final en marxa (les que no acaben mai no compten).
@@ -231,6 +232,8 @@ def review(page, request, capture):
 
     def shoot(name):
         capture(name)
+        if os.environ.get("E2E_CAPTURES_ALL"):
+            all_widths(name)
         page.set_viewport_size({"width": NARROW, "height": 800})
         for theme in ("light", "dark"):
             page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
@@ -242,6 +245,17 @@ def review(page, request, capture):
         page.evaluate("document.documentElement.removeAttribute('data-theme')")
         page.set_viewport_size({"width": WIDTHS[0], "height": 900})
         assert overflow <= 0, f"«{name}» es desplaça de costat a {NARROW} px ({overflow} px)"
+
+    def all_widths(name):
+        # Revisió visual en local (sessió de DISSENY): totes les amplades en clar i en fosc.
+        # El CI no posa la variable i fa només les quatre captures de sempre.
+        for width in ALL_WIDTHS:
+            page.set_viewport_size({"width": width, "height": 900})
+            for theme in ("light", "dark"):
+                page.evaluate("t => document.documentElement.setAttribute('data-theme', t)", theme)
+                page.wait_for_function(SETTLED_JS)
+                page.screenshot(path=folder / f"{name}-{width}-{theme}.png", full_page=True)
+        page.evaluate("document.documentElement.removeAttribute('data-theme')")
 
     return shoot
 

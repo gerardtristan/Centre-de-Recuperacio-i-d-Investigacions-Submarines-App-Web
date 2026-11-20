@@ -25,7 +25,7 @@
     {% csrf_token %}
     <h2>{% if card %}{% translate "Guarda una targeta nova" %}{% else %}{% translate "Guarda una targeta" %}{% endif %}</h2>
     {% if card %}<p class="text-2">{% blocktranslate with last4=card.last4 %}La nova substituirà la targeta acabada en {{ last4 }}.{% endblocktranslate %}</p>{% endif %}
-    <div class="avis avis-sistema">{% translate "Escriuràs la targeta a la pàgina segura del proveïdor i t'autenticaràs amb el teu banc. El club no veu ni guarda mai el número ni el codi de seguretat." %} <span class="a-validar">{% translate "A verificar: P-45 punt 6" %}</span></div>
+    <div class="avis avis-sistema">{% translate "Escriuràs la targeta a la pàgina segura del proveïdor i t'autenticaràs amb el teu banc. El club no veu ni guarda mai el número ni el codi de seguretat." %}</div>
     {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus #}
     {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
     {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
