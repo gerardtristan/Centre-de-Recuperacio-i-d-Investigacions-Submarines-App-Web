@@ -46,6 +46,11 @@ def test_treasurer_imports_and_undoes_a_statement(page, live_server, transaction
     page.get_by_role("button", name="Confirma la importació").click()
     expect(page.get_by_text("Extracte importat")).to_be_visible()
     assert imports.statement_lines().count() == 2
+    # T-DX-78 (V14): a 390 px, el formulari del motiu fa tota l'amplada de la cel·la apilada
+    page.set_viewport_size({"width": 390, "height": 900})
+    cell = page.get_by_role("cell").filter(has=page.get_by_label("Motiu per desfer-lo"))
+    form_width = cell.locator("form").evaluate("f => f.getBoundingClientRect().width")
+    assert form_width >= cell.evaluate("c => c.clientWidth") - 1
     review("importat")
 
     page.get_by_label("Motiu per desfer-lo").fill("Extracte equivocat (prova inventada)")
