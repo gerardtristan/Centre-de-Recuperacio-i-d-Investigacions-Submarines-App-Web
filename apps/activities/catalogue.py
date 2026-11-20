@@ -1,19 +1,20 @@
-"""Serveis del catàleg del mòdul 02 (T-M02-02; P-M02-A; RN-M02-01 i RN-M02-05; VC-20).
+"""Serveis del catàleg del mòdul 02 (T-M02-02 i T-M02-05a; P-M02-A; RN-M02-01 i 05; VC-20).
 
-Una activitat nova copiarà el preu vigent el dia que es creï (`price_on`); canviar un preu no toca
-cap activitat ja creada. Res no s'esborra: es desactiva. Fora d'aquesta peça: els permisos (AC6,
-T-M02-33; cap vista no crida encara aquests serveis), les pantalles, els serveis d'edició i l'avís
-del canvi de preu (T-M02-05).
+Una activitat nova copia el preu vigent el dia que es crea (`price_on`); canviar un preu no toca
+cap activitat ja creada. Res no s'esborra: es desactiva. Cada servei que canvia el catàleg demana
+AC6 amb edició (els llocs, AC22); sense, «no trobat», també fora d'una vista. Llegir el catàleg no
+demana cap permís aquí: ho decideix qui ho mostra. Un canvi de preu avisa el tresorer i la junta
+amb la peça comuna (`notify_money_change`, RN-AJ-04; segona part de CA-M02-26). Les pantalles són
+de la T-M02-05.
 
 Llocs (T-M02-37; addenda de llocs, RN-M02-38 i 39): crear, editar, desactivar i el preu estàndard
-amb versions, que avisa el tresorer i la junta (RN-AJ-04). Els permisos (AC21 i AC22) són de la
-T-M02-38 i la pantalla, de la T-M02-39: cap vista no crida encara aquests serveis.
+amb versions, que avisa el tresorer i la junta (RN-AJ-04). La pantalla és de la T-M02-39.
 """
 
 import datetime
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -21,7 +22,9 @@ from apps.core import audit
 from apps.core.business_settings import notify_money_change
 from apps.core.charges import euros
 
+from . import permissions
 from .models import (
+    EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
     Place,
@@ -31,7 +34,9 @@ from .models import (
 )
 
 ENTRY_CREATED = "activities.catalogue.entry_created"
+ENTRY_UPDATED = "activities.catalogue.entry_updated"
 PRICE_CHANGED = "activities.catalogue.price_changed"
+TYPE_CREATED = "activities.catalogue.type_created"
 ACTIVE_CHANGED = "activities.catalogue.active_changed"
 PLACE_CREATED = "activities.place.created"
 PLACE_UPDATED = "activities.place.updated"
@@ -39,6 +44,16 @@ PLACE_PRICE_CHANGED = "activities.place.price_changed"
 PLACE_NOTES_MAX = 1000
 
 PRICE_FIELDS = ("price_member_cents", "price_non_member_cents", "reinforcement_price_cents")
+# Camps de la fitxa que `update_entry` deixa canviar. Els preus, mai: tenen el seu servei.
+EDITABLE_FIELDS = (
+    "name",
+    "level",
+    "description",
+    "requirements",
+    "default_places",
+    "open_to_non_members",
+    "department",
+)
 INITIAL_PRICE_NOTE = "Preu inicial de la fitxa."
 
 
@@ -95,6 +110,7 @@ def create_entry(
     request=None,
 ) -> TrainingCatalogueEntry:
     """Crea una fitxa i la primera versió dels seus preus, vigent des d'avui."""
+    permissions.require(by, permissions.CATALOGUE)
     if kind not in TrainingCatalogueEntry.Kind.values:
         raise ValidationError(_("El catàleg ha de ser el de cursos o el d'especialitats."))
     name = _name(name)
@@ -136,8 +152,50 @@ def create_entry(
     return entry
 
 
+@transaction.atomic
+def update_entry(entry, *, by, request=None, **fields) -> list[str]:
+    """Canvia dades de la fitxa que no són preus. Torna els camps que han canviat; el registre
+    en guarda el valor anterior (P-M02-A, pas 2)."""
+    permissions.require(by, permissions.CATALOGUE)
+    unknown = set(fields) - set(EDITABLE_FIELDS)
+    if unknown:
+        raise ValidationError(
+            _("Aquests camps no es canvien aquí: %(fields)s.")
+            % {"fields": ", ".join(sorted(unknown))}
+        )
+    locked = TrainingCatalogueEntry.objects.select_for_update().get(pk=entry.pk)
+    if "name" in fields:
+        fields["name"] = _name(fields["name"])
+        clash = TrainingCatalogueEntry.objects.filter(kind=locked.kind, name=fields["name"])
+        if clash.exclude(pk=locked.pk).exists():
+            raise ValidationError(_("Ja hi ha una fitxa amb aquest nom en aquest catàleg."))
+    if "default_places" in fields:
+        fields["default_places"] = _places(fields["default_places"])
+    if "department" in fields and not getattr(fields["department"], "active", False):
+        raise ValidationError(_("Cal triar un departament actiu."))
+    changes = {}
+    for name, value in fields.items():
+        old = getattr(locked, name)
+        if old != value:
+            changes[name] = (
+                old.pk if name == "department" else old,
+                value.pk if name == "department" else value,
+            )
+            setattr(locked, name, value)
+    if changes:
+        locked.save(update_fields=[*changes, "updated_at"])
+        audit.record_changes(
+            ENTRY_UPDATED, actor=by, target=locked, changes=changes, request=request
+        )
+    return sorted(changes)
+
+
 def set_active(obj, active: bool, *, by, request=None) -> bool:
     """Activa o desactiva una fitxa, un tipus, un subtipus o un lloc. Torna si ha canviat."""
+    if isinstance(obj, Place):
+        permissions.require(by, permissions.PLACES_MANAGE)
+    else:
+        permissions.require(by, permissions.CATALOGUE)
     if not isinstance(obj, TrainingCatalogueEntry | OutingType | EnvironmentalSubtype | Place):
         raise ValidationError(_("Això no es pot activar ni desactivar."))
     with transaction.atomic():
@@ -184,6 +242,7 @@ def change_prices(
 ) -> TrainingCataloguePrice:
     """Afegeix una versió dels preus, vigent des de `valid_from` (avui o més endavant). El motiu
     és obligatori. No toca cap activitat ja creada (RN-M02-05)."""
+    permissions.require(by, permissions.CATALOGUE)
     note = _note_and_date(note, valid_from, today)
     new = {
         "price_member_cents": _cents(price_member_cents),
@@ -206,7 +265,71 @@ def change_prices(
         reason=note,
         request=request,
     )
+    notify_money_change(
+        what=_("Preu del catàleg: %(name)s") % {"name": entry.name},
+        previous=describe_prices(old),
+        new=describe_prices(new),
+        changed_by=by,
+        note=note,
+        effective_from=valid_from,
+    )
     return version
+
+
+def describe_prices(prices: dict) -> str:
+    """Els preus en una línia, per al correu de l'avís i per a les pantalles."""
+    text = _("soci %(member)s; no soci %(non_member)s") % {
+        "member": euros(prices["price_member_cents"]),
+        "non_member": euros(prices["price_non_member_cents"]),
+    }
+    if prices.get("reinforcement_price_cents") is not None:
+        text += _("; reforç %(amount)s") % {"amount": euros(prices["reinforcement_price_cents"])}
+    return text
+
+
+def _create_named(model, *, by, name, request, **fields):
+    permissions.require(by, permissions.CATALOGUE)
+    name = _name(name)
+    if model.objects.filter(name=name).exists():
+        raise ValidationError(_("Ja n'hi ha un amb aquest nom."))
+    try:
+        with transaction.atomic():
+            obj = model.objects.create(name=name, **fields)
+    except IntegrityError as error:  # dues peticions alhora amb el mateix nom
+        raise ValidationError(_("Ja n'hi ha un amb aquest nom.")) from error
+    audit.record(TYPE_CREATED, actor=by, target=obj, request=request)
+    return obj
+
+
+def create_outing_type(
+    *, by, name, default_department, is_environmental=False, request=None
+) -> OutingType:
+    return _create_named(
+        OutingType,
+        by=by,
+        name=name,
+        request=request,
+        default_department=default_department,
+        is_environmental=bool(is_environmental),
+    )
+
+
+def create_subtype(*, by, name, request=None) -> EnvironmentalSubtype:
+    return _create_named(EnvironmentalSubtype, by=by, name=name, request=request)
+
+
+def create_project(*, by, name, objective, department, request=None) -> EnvironmentalProject:
+    objective = (objective or "").strip()
+    if not objective:
+        raise ValidationError(_("Cal escriure l'objectiu del projecte."))
+    return _create_named(
+        EnvironmentalProject,
+        by=by,
+        name=name,
+        request=request,
+        objective=objective,
+        department=department,
+    )
 
 
 def check_outing_classification(outing_type, subtype=None, project=None) -> None:
@@ -239,6 +362,7 @@ def _place_fields(name, notes, *, exclude=None) -> dict:
 
 def create_place(*, by, name, notes="", request=None) -> Place:
     """RN-M02-38: un lloc nou, actiu, sense preu estàndard fins que se n'hi posa un."""
+    permissions.require(by, permissions.PLACES_MANAGE)
     with transaction.atomic():
         place = Place.objects.create(created_by=by, **_place_fields(name, notes))
         audit.record(PLACE_CREATED, actor=by, target=place, request=request)
@@ -248,6 +372,7 @@ def create_place(*, by, name, notes="", request=None) -> Place:
 @transaction.atomic
 def update_place(place, *, by, name, notes="", request=None) -> list[str]:
     """Canvia el nom o les notes; el registre guarda el valor anterior (RN-M02-38)."""
+    permissions.require(by, permissions.PLACES_MANAGE)
     locked = Place.objects.select_for_update().get(pk=place.pk)
     new = _place_fields(name, notes, exclude=locked.pk)
     changes = {k: (getattr(locked, k), v) for k, v in new.items() if getattr(locked, k) != v}
@@ -288,6 +413,7 @@ def change_place_price(
 ) -> PlacePrice:
     """RN-M02-39: una fila nova de preu estàndard, vigent des de `valid_from` (avui o més
     endavant), amb nota. No toca cap activitat ja creada (RN-M02-42). Un sol avís (RN-AJ-04)."""
+    permissions.require(by, permissions.PLACES_MANAGE)
     note = _note_and_date(note, valid_from, today)
     new = {
         "price_member_cents": _cents(price_member_cents),
