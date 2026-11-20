@@ -379,9 +379,6 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-37](T-M02-37.md) | Llocs i preu estàndard de la sortida amb versions, primera part: models i serveis, sense el lloc a les activitats (activities/0002; carril B) | 20/11/2026 21:33 | (vegeu la PR) | 10 noves (17 casos) | [A comprovar] |
 | [T-M02-03a](T-M02-03a.md) | Activitat, sessió i bloc del programa amb el lloc, les còpies estàndard i el cost de material previst; sense estats ni serveis (activities/0003; dubte P-455; carril B) | 20/11/2026 22:02 | (vegeu la PR) | 9 noves (17 casos) | [A comprovar] |
 | [T-M02-09](T-M02-09.md) | Punts d'extensió i senyals del 02, provats amb un mòdul fals (carril B) | 20/11/2026 22:12 | (vegeu la PR) | 12 noves (15 casos) | [A comprovar] |
-| [T-M06-03](T-M06-03.md) | Llicències: tipus, preus, llicència amb estats derivats i càlcul de dates (amb els models de la T-M06-02; carril A) | 20/11/2026 21:28 | ab994c99 | 8208 | [A comprovar] |
-| [T-M06-02b](T-M06-02b.md) | Llicències: servei de preus amb trams, versions, nota i avís (carril A) | 20/11/2026 21:58 | 1d2c4c89 | 8229 | [A comprovar] |
-| [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |
 | [T-M02-33](T-M02-33.md) | Permisos del 02 Activitats al catàleg i a la matriu inicial, amb AC21 a AC23 i C7 de la T-M02-38 (core/0061; carril B) | 20/11/2026 22:31 | (vegeu la PR) | 5 noves (203 casos); 1 ajustada | [A comprovar] |
 | [T-M06-13](T-M06-13.md) | Llicències: servei `licences.current` i el que en veuen l'instructor i el responsable (carril A) | 20/11/2026 22:25 | afdfb0a0 | 8440 | [A comprovar] |
 | [T-M06-04](T-M06-04.md) | Llicències: demanar-ne una amb el seu càrrec, i la de l'any vinent (carril A) | 20/11/2026 22:33 | f72aa299 | 8456 | [A comprovar] |
