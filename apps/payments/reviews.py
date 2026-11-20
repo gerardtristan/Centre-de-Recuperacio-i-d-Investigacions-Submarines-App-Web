@@ -10,7 +10,11 @@ El tresorer en tria el resultat amb una nota obligatòria:
 
 Queda una fila nova (`ReviewClosure`: qui, quan i el resultat) i l'entrada al registre d'activitat
 amb la nota, sobre el tancament (`privacy.audit_targets`: l'esborrat RGPD del pagador la
-substitueix per la referència). El canvi d'estat de l'intent porta un motiu fix, sense la nota."""
+substitueix per la referència). El canvi d'estat de l'intent porta un motiu fix, sense la nota.
+
+Un càrrec «a revisar» sense intent (P-406: la targeta guardada que no arriba a cobrar una quota) és
+una entrada del registre sobre el càrrec (`processing.TO_REVIEW`). Es tanca amb una nota afegint-ne
+una altra sobre la primera (`CHARGE_CLOSED`): no s'esborra ni es canvia res."""
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -19,7 +23,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit, charges
 from apps.core.charges import MANUAL_PAYMENT
-from apps.core.models import Charge
+from apps.core.models import AuditEntry, Charge
 from apps.core.permissions import has_perm
 
 from . import attempts, processing
@@ -27,13 +31,15 @@ from .models import PaymentAttempt, ReviewClosure, ReviewCode
 
 VIEW = "payments.view"  # B6
 CLOSED = "payments.review_closed"
+CHARGE_CLOSED = "payments.charge_review_closed"  # P-406
+CHARGE, ENTRY = Charge._meta.label_lower, AuditEntry._meta.label_lower
 MAX_NOTE = 500
 S = PaymentAttempt.Status
 OUTCOME = ReviewClosure.Outcome
 
 
 class NotClosable(Exception):
-    """L'intent ja no és «a revisar» (ja s'ha decidit)."""
+    """L'intent o el càrrec ja no és «a revisar» (ja s'ha decidit o tancat)."""
 
 
 class PaidRefused(Exception):
@@ -45,11 +51,7 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
         raise Http404
     if outcome not in ReviewClosure.OUTCOMES:  # «sense decisió» no es tria
         raise ValueError(_("Tria si s'ha pagat o ha fallat."))
-    note = (note or "").strip()
-    if not note:
-        raise ValueError(_("Cal una nota per tancar-lo."))
-    if len(note) > MAX_NOTE:
-        raise ValueError(_("La nota no pot passar de %(max)s caràcters.") % {"max": MAX_NOTE})
+    note = _note(note)
     with transaction.atomic():
         # El càrrec i després l'intent, en el mateix ordre que `processing.settle`.
         charge = Charge.objects.select_for_update().get(pk=attempt.charge_id)
@@ -76,6 +78,42 @@ def close(attempt: PaymentAttempt, *, outcome: str, note: str, by) -> ReviewClos
         details = {"attempt": locked.pk, "outcome": outcome}
         audit.record(CLOSED, actor=by, target=closure, reason=note, details=details)
     return closure
+
+
+def _note(note) -> str:
+    note = (note or "").strip()
+    if not note:
+        raise ValueError(_("Cal una nota per tancar-lo."))
+    if len(note) > MAX_NOTE:
+        raise ValueError(_("La nota no pot passar de %(max)s caràcters.") % {"max": MAX_NOTE})
+    return note
+
+
+def open_charge_reviews():
+    """Les entrades «a revisar» sobre un càrrec (sense intent) que ningú no ha tancat, de la més
+    recent a la més antiga. Una per càrrec, targeta i motiu (`processing.saved_card_outcome`)."""
+    # shortcut: la llista dels tancats es llegeix sencera; si en són milers, una subconsulta.
+    closed = AuditEntry.objects.filter(action=CHARGE_CLOSED, target_type=ENTRY)
+    return (
+        AuditEntry.objects.filter(action=processing.TO_REVIEW, target_type=CHARGE)
+        .exclude(pk__in=[int(pk) for pk in closed.values_list("target_id", flat=True)])
+        .order_by("-created_at", "-pk")
+    )
+
+
+def close_charge_review(entry: AuditEntry, *, note: str, by) -> None:
+    """P-406: el tresorer dona per revisat un càrrec «a revisar» sense intent, amb una nota. No
+    mou cap diner ni canvia el càrrec. L'entrada nova és sobre la que tanca: l'esborrat RGPD del
+    pagador en substitueix la nota (`privacy.audit_targets`)."""
+    if not has_perm(by, VIEW, write=True):
+        raise Http404
+    note = _note(note)
+    with transaction.atomic():
+        charge = Charge.objects.select_for_update().get(pk=entry.target_id)  # un sol tancament
+        if not open_charge_reviews().filter(pk=entry.pk).exists():
+            raise NotClosable
+        details = {"charge": charge.pk}
+        audit.record(CHARGE_CLOSED, actor=by, target=entry, reason=note, details=details)
 
 
 def can_record_paid(account, charge) -> bool:

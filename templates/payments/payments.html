@@ -14,7 +14,7 @@
   {% endfor %}
 
   <h2>{% translate "A revisar" %}</h2>
-  {% if not review and not events and not receipts %}
+  {% if not review and not charge_reviews and not events and not receipts %}
     <p>{% translate "No hi ha cap pagament a revisar." %}</p>
   {% endif %}
 
@@ -42,6 +42,35 @@
             <td data-etiqueta="{% translate 'Motiu' %}">{{ attempt.review_reason }}{% if attempt.closure_outcome == "undecided" %} <span class="text-2">{% translate "(tancat sense decisió, T-M05b-16b)" %}</span>{% endif %}</td>
             <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
             {% if can_close %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:payments_review_close' attempt.pk %}">{% translate "Tanca" %}</a></td>{% endif %}
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if charge_reviews %}
+    {# P-406: càrrecs «a revisar» sense intent (la targeta guardada no ha arribat a cobrar la quota). Només el número i el concepte del càrrec, l'import, el motiu i la data; el pagador, amb P4. #}
+    <table class="taula">
+      <caption>{% blocktranslate count total=charge_reviews|length %}{{ total }} quota que la targeta guardada no ha cobrat{% plural %}{{ total }} quotes que la targeta guardada no ha cobrat{% endblocktranslate %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Data" %}</th>
+          <th scope="col">{% translate "Càrrec" %}</th>
+          {% if names %}<th scope="col">{% translate "Pagador" %}</th>{% endif %}
+          <th scope="col">{% translate "Motiu" %}</th>
+          <th scope="col" class="cel-import">{% translate "Import" %}</th>
+          {% if can_close %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in charge_reviews %}{% with entry=row.entry charge=row.charge %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d/m/Y H:i" }}</time></th>
+            <td data-etiqueta="{% translate 'Càrrec' %}" class="cel-valor">{% blocktranslate with concept=charge.concept number=charge.pk %}{{ concept }} (càrrec {{ number }}){% endblocktranslate %}</td>
+            {% if names %}<td data-etiqueta="{% translate 'Pagador' %}" class="cel-valor">{{ row.payer }}</td>{% endif %}
+            <td data-etiqueta="{% translate 'Motiu' %}">{{ entry.reason }}</td>
+            <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+            {% if can_close %}<td data-etiqueta="{% translate 'Acció' %}"><a class="boto boto-petit" href="{% url 'administration:payments_charge_review_close' entry.pk %}">{% translate "Revisada" %}</a></td>{% endif %}
           </tr>
         {% endwith %}{% endfor %}
       </tbody>

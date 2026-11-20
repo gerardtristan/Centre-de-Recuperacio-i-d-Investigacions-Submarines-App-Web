@@ -5,9 +5,10 @@
 - «A revisar» té el que avui queda marcat: els intents «a revisar» (import o càrrec que no
   quadren, duplicats i la xarxa de seguretat; CA-M05b-05, 07 i 33), les notificacions del
   proveïdor que no s'han pogut casar amb cap intent i les transferències conciliades sense rebut
-  (P-137). Un intent «a revisar» es tanca amb una nota (T-M05b-16b; P-82, opció per defecte):
+  (P-137), i els càrrecs «a revisar» sense intent (P-406: la targeta guardada que no ha cobrat una
+  quota). Un intent «a revisar» es tanca amb una nota (T-M05b-16b; P-82, opció per defecte):
   surt de la llista oberta i passa a «Tancats», però l'intent no canvia d'estat ni es mou cap
-  diner (`reviews.close`).
+  diner (`reviews.close`). Un càrrec, amb «Revisada» i una nota (`reviews.close_charge_review`).
 - El nom del pagador només surt a qui pot consultar el llistat de socis (P4, «dades mínimes» n'hi
   ha prou; P-247). El servidor no el passa a la plantilla si no. Cap IBAN ni dada de targeta: el
   05b no en té cap.
@@ -49,6 +50,18 @@ def _row(attempt, names):
         "amount": euros(attempt.amount_cents),
         "payer": attempt.charge.person if names else None,
     }
+
+
+def _charge_rows(entries, names):
+    """P-406: les files dels càrrecs «a revisar» sense intent (entrada del registre i càrrec)."""
+    entries = list(entries)
+    found = Charge.objects.select_related("person").in_bulk([int(e.target_id) for e in entries])
+    rows = []
+    for entry in entries:
+        charge = found[int(entry.target_id)]
+        amount, payer = euros(charge.amount_cents), charge.person if names else None
+        rows.append({"entry": entry, "charge": charge, "amount": amount, "payer": payer})
+    return rows
 
 
 def transfers_without_receipt():
@@ -97,6 +110,7 @@ def payments_view(request):
         {"charge": c, "amount": euros(c.amount_cents), "payer": c.person if names else None}
         for c in transfers_without_receipt()
     ]
+    charge_reviews = _charge_rows(reviews.open_charge_reviews(), names)
 
     form = AttemptFilterForm(request.GET or None)
     status = form.cleaned_data["estat"] if form.is_valid() else ""
@@ -107,6 +121,7 @@ def payments_view(request):
     context = {
         "names": names,
         "review": review,
+        "charge_reviews": charge_reviews,
         "closed": closed,
         "closed_total": closures.count(),
         "closed_shown": CLOSED_SHOWN,
@@ -200,3 +215,35 @@ def review_close_view(request, attempt_id):
     context = {"row": _row(attempt, has_perm(request.user, NAMES)), "form": form}
     context["can_pay"] = can_pay
     return render(request, "payments/review_close.html", context)
+
+
+class ChargeReviewForm(forms.Form):
+    note = forms.CharField(
+        label=_("Nota"),
+        max_length=reviews.MAX_NOTE,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text=_(
+            "Què has comprovat i què se n'ha fet. Queda al registre d'activitat. No hi posis "
+            "dades personals: el número de càrrec ja identifica el cas."
+        ),
+        error_messages={"required": _("Cal una nota per tancar-lo.")},
+    )
+
+
+@never_cache
+@permission_required(VIEW, write=True)
+@require_http_methods(["GET", "POST"])
+def charge_review_close_view(request, entry_id):
+    """P-406: confirmació i «Revisada» d'un càrrec «a revisar» sense intent. No mou diners."""
+    entry = get_object_or_404(reviews.open_charge_reviews(), pk=entry_id)
+    form = ChargeReviewForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            reviews.close_charge_review(entry, note=form.cleaned_data["note"], by=request.user)
+        except reviews.NotClosable:
+            messages.error(request, gettext("Aquest càrrec ja està revisat."))
+        else:
+            messages.success(request, gettext("Càrrec revisat. No s'ha mogut cap diner."))
+        return redirect("administration:payments_list")
+    [row] = _charge_rows([entry], has_perm(request.user, NAMES))
+    return render(request, "payments/charge_review_close.html", {"row": row, "form": form})

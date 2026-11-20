@@ -9,7 +9,7 @@ from playwright.sync_api import expect
 
 from apps.core import audit, charges
 from apps.core.models import Person
-from apps.payments import attempts
+from apps.payments import attempts, processing
 from apps.payments.models import PaymentAttempt
 
 from .conftest import login_admin, make_admin, menu_entry
@@ -85,3 +85,36 @@ def test_treasurer_closes_an_attempt_to_review(page, live_server, transactional_
     expect(closed).to_contain_text("Tresoreria Prova")  # el nom, mai el login
     expect(closed).not_to_contain_text("tresoreria.prova")
     review("a-revisar-tancats")
+
+
+def test_treasurer_marks_an_unpaid_saved_card_fee_as_reviewed(
+    page, live_server, transactional_db, review
+):
+    """P-406: la quota que la targeta guardada no ha cobrat (sense intent) surt a «a revisar»;
+    «Revisada» demana una nota i la treu de la llista sense moure diners."""
+    person = Person.objects.create(first_name="Pere", last_name="Prova Inventat", origin="web")
+    charge = charges.create_charge(
+        person, kind="fee", amount_cents=9000, concept="Quota 2027 (prova)", origin="members",
+        by=SYSTEM,
+    )  # fmt: skip
+    reason = "El club ha aturat el cobrament amb la targeta guardada."
+    audit.record(processing.TO_REVIEW, actor=SYSTEM, target=charge, reason=reason)
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+
+    login_admin(page, live_server.url, treasurer.login)
+    page.goto(f"{live_server.url}{reverse('administration:payments_list')}")
+    listed = page.get_by_role("table", name="1 quota que la targeta guardada no ha cobrat")
+    expect(listed).to_contain_text(reason)
+    expect(listed).to_contain_text("Pere Prova Inventat")
+    review("quota-no-cobrada-a-revisar")
+
+    page.get_by_role("link", name="Revisada").click()
+    expect(page.get_by_role("heading", name="Revisa una quota no cobrada")).to_be_visible()
+    page.get_by_role("button", name="Sí, revisada").click()
+    expect(page.get_by_text("Cal una nota per tancar-lo.").first).to_be_visible()
+    review("quota-no-cobrada-revisar")
+
+    page.get_by_label("Nota").fill("El soci pagarà amb l'enllaç (prova)")
+    page.get_by_role("button", name="Sí, revisada").click()
+    expect(page.get_by_text("Càrrec revisat. No s'ha mogut cap diner.")).to_be_visible()
+    expect(page.get_by_text("No hi ha cap pagament a revisar.")).to_be_visible()

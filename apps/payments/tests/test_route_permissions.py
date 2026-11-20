@@ -71,6 +71,7 @@ ADMIN_ROUTES = {
     "administration:treasury_confirm_settlement_line": {"GET": {w(T4)}, "POST": {w(T4)}},
     "administration:payments_list": {"GET": {r(B6)}},
     "administration:payments_review_close": {"GET": {w(B6)}, "POST": {w(B6)}},  # T-M05b-16b
+    "administration:payments_charge_review_close": {"GET": {w(B6)}, "POST": {w(B6)}},  # P-406
     "administration:payments_mandates": {"GET": {r(A4)}},
     "administration:payments_mandate_revoke": {"GET": {w(A6)}, "POST": {w(A6)}},
     "administration:payments_campaign": {"GET": {r(A4)}, "POST": {r(A4), w(A5)}},
@@ -235,6 +236,10 @@ SERVICE_CHECKS = {
     # A6, o el soci mateix des del compte personal (A2).
     mandates.revoke_mandate: (A6, lambda by: mandates.revoke_mandate(MEMBER, by=by)),
     reviews.close: (B6, lambda by: reviews.close(None, outcome="failed", note="x", by=by)),
+    reviews.close_charge_review: (
+        B6,
+        lambda by: reviews.close_charge_review(None, note="x", by=by),
+    ),
 }
 
 # Serveis sense permís de rol propi, i per què.
@@ -271,6 +276,7 @@ UNCHECKED = {
     returns.codes: "consulta (P-291)",
     returns.unresolved_returns: "consulta (els candidats a «impagat» de «Quotes i impagats», P10)",
     reviews.can_record_paid: "consulta (`close` la crida abans de «Pagat»)",
+    reviews.open_charge_reviews: "consulta (la vista demana B6)",
     returns.check_codes: "validació: la crida `business_settings.change`, amb el seu permís",
     returns.send_alternative: "correu: `register_return` (B4) o la targeta guardada (sistema)",
     mandates.validate_iban: "validació",
