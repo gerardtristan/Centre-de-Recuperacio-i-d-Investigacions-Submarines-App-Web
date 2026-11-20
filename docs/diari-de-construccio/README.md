@@ -390,3 +390,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-03b](T-M02-03b.md) | Estats i transicions d'una activitat amb el permís AC7, el rellotge a la cua i el senyal activity_done (carril B) | 20/11/2026 23:00 | (vegeu la PR) | 27 noves (91 casos) | [A comprovar] |
 | [T-M02-03c](T-M02-03c.md) | Crear i editar activitats amb el lloc, la còpia del preu estàndard i el centre de cost; VC-21 i VC-24 com a ajustos (activities/0004; carril B) | 20/11/2026 23:20 | (vegeu la PR) | 31 noves (112 casos) | [A comprovar] |
 | [T-M02-03d](T-M02-03d.md) | Sessions d'un curs i programa del dia amb el lloc; T-M02-03 feta (carril B) | 20/11/2026 23:35 | (vegeu la PR) | 18 noves (43 casos) | [A comprovar] |
+| [T-M02-05a](T-M02-05a.md) | Serveis d'edició del catàleg, avís del canvi de preu i permisos AC6 i AC22 als serveis (carril B) | 20/11/2026 23:44 | (vegeu la PR) | 5 noves (8 casos) | [A comprovar] |
+| [T-M02-07](T-M02-07.md) | Duplicar una activitat amb els llocs; publicar demana llocs actius; error de la descripció llarga (carril B) | 20/11/2026 23:56 | (vegeu la PR) | 14 noves (24 casos); 1 d'error | [A comprovar] |
+| [T-M02-08](T-M02-08.md) | Dades públiques de les activitats i calendari descarregable, només amb el nom del lloc (serveis; carril B) | 21/11/2026 00:00 | (vegeu la PR) | 10 noves (16 casos) | [A comprovar] |
+| [T-M02-23](T-M02-23.md) | Nivells i titulacions de la persona i el RGPD del 02 (activities/0005; carril B) | 21/11/2026 00:12 | (vegeu la PR) | 8 noves (10 casos) | [A comprovar] |
