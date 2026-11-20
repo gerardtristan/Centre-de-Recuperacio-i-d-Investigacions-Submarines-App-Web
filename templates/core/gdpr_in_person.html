@@ -8,7 +8,7 @@
   {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
   {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
   {% if pending %}
-    <div class="avis avis-avis" role="status">{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}Ja té una sol·licitud d'esborrat pendent, del {{ date }}. L'atendrà qui té el permís de les sol·licituds RGPD.{% endblocktranslate %}</div>
+    <div class="avis avis-avis" role="status">{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}Ja té una sol·licitud d'esborrat pendent, del {{ date }}.{% endblocktranslate %}{% if not messages %} {% translate "L'atendrà qui té el permís de les sol·licituds RGPD." %}{% endif %}</div>
   {% elif not possible %}
     <div class="avis avis-avis" role="status">{% translate "Aquí només es registra la sol·licitud d'esborrat d'un menor de 14 anys, que no té compte personal i la demana en persona el pare, la mare o el tutor legal. Una persona de 14 anys o més la demana des del seu perfil." %}</div>
   {% else %}
