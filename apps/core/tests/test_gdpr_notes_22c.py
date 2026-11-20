@@ -9,6 +9,7 @@ import pytest
 from django.core.files.storage import storages
 from django.http import Http404
 from django.urls import reverse
+from django.utils.html import escape
 
 from apps.accounts import totp
 from apps.accounts.security import AREA_ADMIN
@@ -187,3 +188,14 @@ def test_a_note_that_appears_after_the_review_is_not_sent(on, person, handler, l
     response = client.post(url, data)
     assert response.status_code == 200 and "han canviat" in response.content.decode()
     assert privacy.live_export(person) is None
+
+
+def test_v24_the_checkbox_label_is_short_and_names_the_note(on, person, handler, login_as):
+    """V24 (revisió final, T-F1-01): l'etiqueta visible és «Deixa-la fora»; el títol de la nota
+    hi va com a text amagat, perquè el nom accessible digui de quina nota es tracta."""
+    page = login_as(handler, AREA_ADMIN).get(reverse(PAGE, args=[person.pk])).content.decode()
+    note = privacy.admin_notes(person)[0]
+    assert "Deixa fora:" not in page
+    assert (
+        f'Deixa-la fora<span class="visualment-amagat">: {escape(note["context"])}</span>' in page
+    )

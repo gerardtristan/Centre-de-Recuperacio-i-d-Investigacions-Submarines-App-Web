@@ -22,6 +22,7 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
+from apps.accounts.forms import OneTimeCodeInput
 from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, WRONG_CODE, confirm_code
 from apps.accounts.sessions import delete_session_hint
@@ -54,7 +55,7 @@ class ConfirmForm(forms.Form):
         help_text=gettext_lazy(
             "Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu."
         ),
-        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+        widget=OneTimeCodeInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
     )
     reviewed = forms.BooleanField(
         label=gettext_lazy("He revisat el resum i el compte afectat"),
