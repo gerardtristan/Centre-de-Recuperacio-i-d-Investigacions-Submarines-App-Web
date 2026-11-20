@@ -1343,3 +1343,32 @@ noves:
       Diu exactament el que passa i no fa creure a ningú que avui està cobert; B enganyaria la secretaria i C amagaria que
       la federació ja l'ha confirmada.
     data: 2026-11-20
+  P-441:
+    opcions:
+      A: "Com fa el codi: 60 dies de calendari (V−60 és l'1/11); l'exemple del pla és una errada."
+      B: "L'avís i «per renovar» comencen el 2/11: es compten 59 dies, o 60 sense comptar el dia del venciment."
+    recomanada: A
+    perque: >-
+      És el que diu la regla («60 dies o menys») i el que entén tothom en llegir l'ajust; B obligaria a explicar una
+      manera de comptar diferent de la resta de terminis de la plataforma.
+    data: 2026-11-20
+  P-442:
+    opcions:
+      A: "La vigent del mateix tipus que caduca més tard; si canvia de tipus, no en renova cap i l'anterior continua rebent avisos."
+      B: "La vigent de qualsevol tipus que caduca més tard: canviar d'aficionat a tècnic també atura els avisos de l'anterior."
+      C: "La tria la persona en demanar-la (o la secretaria), entre les seves vigents."
+    recomanada: B
+    perque: >-
+      Qui passa a tècnic ja no necessita renovar l'aficionat, i rebre'n avisos seria soroll; A és el que fa ara el codi
+      perquè és el cas segur, i canviar-lo és una línia.
+    data: 2026-11-20
+  P-443:
+    opcions:
+      A: "La data d'inici que s'escrigui (opcional) i, si no, el dia que es declara."
+      B: "Sempre obligatòria: la persona o la secretaria la copien del carnet de la federació."
+      C: "Es calcula del venciment i del tipus (per exemple, l'1/1 per a una d'any natural)."
+    recomanada: A
+    perque: >-
+      No demana cap dada que la persona potser no té a mà, i el que importa al club (és vigent el dia de l'activitat?)
+      ja ho resol el venciment; C endevinaria dates que la federació no ha dit.
+    data: 2026-11-20
