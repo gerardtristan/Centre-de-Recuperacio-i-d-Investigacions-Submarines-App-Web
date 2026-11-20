@@ -6,6 +6,9 @@ pot inscriure segons el mode de l'activitat:
 
 - **Nivell mínim** (RN-M02-27): una titulació amb el mateix `rank` o més alt.
 - **Especialitats** (RN-M02-28): totes (`all`) o alguna (`any`) de les exigides.
+- **Llicència vigent** (RN-M02-10): `licences.current` el dia que comença l'activitat. Una en
+  tràmit (RN-M06-13) no compleix: en `warn` es pot inscriure i el responsable la veu «en tràmit»;
+  en `block`, no.
 
 **Mode** (RN-M02-10 i 30). En `block`, qui no compleix un requisit no es pot inscriure, i només
 compten les titulacions verificades o d'un curs del club. En `warn` es pot inscriure, compten totes
@@ -14,14 +17,15 @@ i el responsable veu el requisit marcat i de quin origen és la titulació.
 **Privacitat.** El resultat només diu «compleix», «no compleix» o «no se sap» i un text curt; qui
 el mostri ha de comprovar abans el seu permís. `required_level` (text) és informatiu: no es calcula.
 
-**Fora d'aquesta peça:** la llicència vigent (amb `licences.current`, quan el 06 la publiqui a
-`master`), l'edat mínima (T-M02-32), fer-lo servir en inscriure's (T-M02-11) i els requisits dels
-instructors (T-M02-30).
+**Fora d'aquesta peça:** l'edat mínima (T-M02-32), fer-lo servir en inscriure's (T-M02-11) i els
+requisits dels instructors (T-M02-30).
 """
 
 from dataclasses import dataclass
 
 from django.utils.translation import gettext as _
+
+from apps.licences import services as licences
 
 from . import certifications
 from .models import RequirementsMode, SpecialitiesRule
@@ -32,6 +36,7 @@ UNKNOWN = "unknown"
 
 LEVEL = "level"
 SPECIALITIES = "specialities"
+LICENCE = "licence"
 
 
 @dataclass(frozen=True)
@@ -120,6 +125,19 @@ def _specialities(activity, mode, held_rows, required) -> Check:
     return Check(SPECIALITIES, NOT_MET, label, _("Li falten especialitats."))
 
 
+def _licence(activity, person) -> Check:
+    """Mai la categoria, el número ni la data de caducitat: només si és vigent."""
+    label = _("Llicència vigent")
+    info = licences.current(person, activity.starts_on)
+    if info is None:
+        return Check(
+            LICENCE, NOT_MET, label, _("No consta cap llicència vigent el dia de l'activitat.")
+        )
+    if info.status == licences.CurrentStatus.IN_PROGRESS:
+        return Check(LICENCE, NOT_MET, label, _("En tràmit."))
+    return Check(LICENCE, MET, label)
+
+
 def check(activity, person, *, mode=None) -> Result:
     """Els requisits de `activity` per a `person`. `mode` és el de l'activitat, tret que se'n doni
     un altre (per ensenyar al responsable què passaria amb l'altre mode)."""
@@ -131,4 +149,6 @@ def check(activity, person, *, mode=None) -> Result:
         checks.append(_level(activity, mode, held_rows))
     if required:
         checks.append(_specialities(activity, mode, held_rows, required))
+    if activity.licence_required:
+        checks.append(_licence(activity, person))
     return Result(mode, tuple(checks))
