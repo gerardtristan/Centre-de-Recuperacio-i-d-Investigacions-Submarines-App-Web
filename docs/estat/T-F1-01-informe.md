@@ -168,8 +168,8 @@ Nota per a qui faci proves al portàtil: amb `--reuse-db` en una base on abans s
 | # | Pantalla | Què passa | De qui és |
 |---|---|---|---|
 | V22 | Esborrat presencial d'un menor, després de registrar-lo | El missatge verd i l'avís groc repetien qui l'atendrà | **Arreglat a la #306** |
-| V23 | Formularis amb contrasenya i codi TOTP (edició de terminis i altres) | Després d'un error de validació, el codi TOTP es torna a omplir al camp; la contrasenya no | Nucli (`apps/accounts/forms.py`, `ReauthForm.code`, `TextInput` sense buidar el valor) |
-| V24 | Exportació RGPD amb notes | L'etiqueta de cada casella repeteix tot el títol de la nota («Deixa fora: Anul·lació del càrrec…») | Nucli (`apps/core/views/gdpr.py`) o DISSENY (etiqueta visible curta i la resta amagada) |
+| V23 | Formularis amb contrasenya i codi TOTP (edició de terminis i altres) | Després d'un error de validació, el codi TOTP es torna a omplir al camp; la contrasenya no | Nucli (`apps/accounts/forms.py`, `ReauthForm.code`, `TextInput` sense buidar el valor). **Arreglada a la #308** (20/11/2026) |
+| V24 | Exportació RGPD amb notes | L'etiqueta de cada casella repeteix tot el títol de la nota («Deixa fora: Anul·lació del càrrec…») | Nucli (`apps/core/views/gdpr.py`) o DISSENY (etiqueta visible curta i la resta amagada). **Arreglada a la #308** (20/11/2026) |
 | V25 | Fitxa del soci amb terminis | Els terminis surten en ordre invers (3, 2, 1) i «Edita els terminis…» es repeteix a cada fila | 01, criteri del propietari |
 
 També hi tornen a sortir la V5 (el menú no marca cap entrada a les subpàgines de la fitxa i de l'RGPD), la V10 (sense resum d'errors) i la V13 (fila buida alineada a la dreta, a «Pagaments i a revisar»), que ja són a la llista per a DISSENY (7.3). A «Revisa una quota no cobrada», l'estat «Pendent» surt com a text pla, sense l'etiqueta d'estat de la resta de pantalles: s'afegeix a la mateixa llista.
