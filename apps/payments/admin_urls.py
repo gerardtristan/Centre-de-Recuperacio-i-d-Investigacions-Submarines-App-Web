@@ -12,6 +12,11 @@ urlpatterns = [
         payment_admin_views.review_close_view,
         name="payments_review_close",
     ),  # T-M05b-16b
+    path(
+        "pagaments/revisar/carrec/<int:entry_id>/tanca/",
+        payment_admin_views.charge_review_close_view,
+        name="payments_charge_review_close",
+    ),  # P-406
     path("pagaments/mandats/", admin_views.mandates_view, name="payments_mandates"),
     path(
         "pagaments/mandats/<int:mandate_id>/revoca/",

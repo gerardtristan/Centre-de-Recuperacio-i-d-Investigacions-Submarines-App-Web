@@ -13,7 +13,9 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 
 from apps.core import audit
+from apps.core.models import AuditEntry, Charge
 
+from . import processing
 from .models import FeePaymentPreference, ReviewClosure, SepaMandate
 
 REASON = "esborrat de dades personals (L-M05a-06)"
@@ -61,10 +63,20 @@ def anonymise(person, *, by, request=None) -> None:
 
 
 def audit_targets(person) -> dict:
-    """Els tancaments d'«a revisar» dels seus càrrecs (T-M05b-16b): la nota és text lliure. Els
-    mandats no: es bloquegen, no s'anonimitzen, i les seves entrades només porten la referència."""
+    """Els tancaments d'«a revisar» dels seus càrrecs (T-M05b-16b i P-406): la nota és text
+    lliure. Els mandats no: es bloquegen, no s'anonimitzen, i les seves entrades només porten la
+    referència."""
     closures = ReviewClosure.objects.filter(attempt__charge__person=person)
-    return {ReviewClosure._meta.label_lower: list(closures.values_list("pk", flat=True))}
+    # P-406: els tancaments dels càrrecs «a revisar» sense intent són sobre l'entrada que tanquen.
+    reviews = AuditEntry.objects.filter(
+        action=processing.TO_REVIEW,
+        target_type=Charge._meta.label_lower,
+        target_id__in=[str(pk) for pk in person.charges.values_list("pk", flat=True)],
+    )
+    return {
+        ReviewClosure._meta.label_lower: list(closures.values_list("pk", flat=True)),
+        AuditEntry._meta.label_lower: list(reviews.values_list("pk", flat=True)),
+    }
 
 
 def describe(person) -> list[str]:

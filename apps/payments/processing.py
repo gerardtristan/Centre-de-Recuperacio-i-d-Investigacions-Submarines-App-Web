@@ -83,9 +83,7 @@ TELL_MEMBER = {
 }
 UNUSABLE = {"card_closed", "saved_card_off"}  # cap cobrament intentat: «ja no es pot fer servir»
 NO_TREASURER_EMAIL = {"arrears"}  # «a revisar», sense correu: no inunda el tresorer en migrar
-# La resta, «a revisar». P-406 (opció per defecte): la targeta aturada (P-403) no hi va; el
-# tresorer en rep el correu de cada quota.
-NOT_REVIEWED = {"denied", "order_expired", "authentication", "saved_card_off"}
+NOT_REVIEWED = {"denied", "order_expired", "authentication"}  # la resta, «a revisar» (P-406)
 # L'ordre potser s'ha cobrat: el tresorer ho comprova al proveïdor abans de demanar res al soci.
 MAYBE_CHARGED = {"provider_error", "unexpected_order", "give_up"}
 NOTICE_TRIES = 3  # dies que es tornen a provar els correus d'un avís; després, «a revisar»
