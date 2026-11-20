@@ -388,3 +388,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-05](T-M06-05.md) | Llicències: pagada quan arriba `charge.paid`, una sola vegada (carril A; l'avís a la secretaria, pendent del nucli) | 20/11/2026 23:04 | e3aa00d8 | 8494 | [A comprovar] |
 | [T-M06-08](T-M06-08.md) | Llicències: «Ja en tinc una», llicència externa sense càrrec (carril A) | 20/11/2026 23:14 | 8ec7bde1 | 8510 | [A comprovar] |
 | [T-M02-03b](T-M02-03b.md) | Estats i transicions d'una activitat amb el permís AC7, el rellotge a la cua i el senyal activity_done (carril B) | 20/11/2026 23:00 | (vegeu la PR) | 27 noves (91 casos) | [A comprovar] |
+| [T-M02-03c](T-M02-03c.md) | Crear i editar activitats amb el lloc, la còpia del preu estàndard i el centre de cost (carril B) | 20/11/2026 23:20 | (vegeu la PR) | 30 noves (111 casos) | [A comprovar] |
