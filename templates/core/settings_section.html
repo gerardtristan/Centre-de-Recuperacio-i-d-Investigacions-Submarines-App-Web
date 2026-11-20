@@ -1,5 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
+{# T-DX-80 (V18): la clau es parteix només després de «_» o «.» (<wbr>), i no lletra a lletra quan una llista llarga s'endú l'amplada. #}
 {# T-AJ-02: valors d'un apartat d'ajustos (055, RN-AJ-05; RN-RP-22). Seguretat i privacitat: el servidor exigeix `settings.section.<apartat>` (sense permís, «no trobat»); «Canvia» només surt a qui pot editar el valor («Sí» de l'apartat o `settings.edit.<clau>`), però amagar-lo no és el control: el servei rebutja l'edició sense permís amb «no trobat» i la deixa al registre. Cap dada personal. #}
 {% block title %}{{ title }} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
@@ -21,7 +22,7 @@
       <tbody>
         {% for row in rows %}
           <tr>
-            <th scope="row" class="cel-nom">{{ row.label }}<br><span class="codi">{{ row.setting.key }}</span></th>
+            <th scope="row" class="cel-nom">{{ row.label }}<br><span class="codi clau-partible">{% for char in row.setting.key %}{{ char }}{% if char == "_" or char == "." %}<wbr>{% endif %}{% endfor %}</span></th>
             <td data-etiqueta="{% translate 'Vigent' %}"><strong>{{ row.current }}</strong></td>
             <td data-etiqueta="{% translate 'Programat' %}">{% if row.scheduled %}{% blocktranslate with value=row.scheduled date=row.scheduled_from|date:"d/m/Y" %}{{ value }} des del {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</td>
             <td data-etiqueta="{% translate 'Inicial' %}">{{ row.initial }}</td>
