@@ -31,7 +31,7 @@
 
 /* Inici del soci a l'escriptori (T-DX-60; §5.1 i §6.18). Sota la portada, la quota i el carnet sobre
    el fons de la pàgina, agrupats amb espai (D15): 7/5 a l'escriptori, dues columnes iguals a la
-   tauleta (sense tocar-se, --e-5) i l'una a sota de l'altra al mòbil. A sota, 8/4. Els llindars
+   tauleta (sense tocar-se, --e-5) i l'una a sota de l'altra al mòbil. A sota, també 7/5 (V8). Els llindars
    són del cos (C8) i no de la finestra: a 1024 px amb barra de desplaçament el cos fa una mica
    menys de 60rem, i a la tauleta mai arriba a 45rem. «div.»: la regla de comptes.css per als fills
    del cos (gap --e-4) és més específica que una sola classe. */
@@ -44,7 +44,7 @@
 }
 @container cos (min-width: 56rem) {
   .cos-compte > div.inici-portada { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--e-6); }
-  .cos-compte > div.inici-graella { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+  .cos-compte > div.inici-graella { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 }
 
 /* Franja d'estat (§6.5): plana, a tota l'amplada; «Paga ara» de --tactil-gran, a sota al mòbil i

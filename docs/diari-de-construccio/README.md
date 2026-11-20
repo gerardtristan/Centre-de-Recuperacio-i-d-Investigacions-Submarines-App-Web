@@ -360,3 +360,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-83](T-DX-83.md) | V11: l'índex de recorreguts diu que el venciment del suplement és l'ajust VC-53 (sessió de DISSENY) | 20/11/2026 19:09 | f547dc0f | 1 nova | [A comprovar] |
 | [T-DX-79](T-DX-79.md) | V15: conciliació a 1280 px amb el panell obert, l'etiqueta d'estat i les accions en una línia i el motiu «A revisar» retallat (sessió de DISSENY) | 20/11/2026 19:18 | 3624c263 | 1 e2e ajustada | [A comprovar] |
 | [T-DX-80](T-DX-80.md) | V18: ajustos a 1280 px, la clau d'un valor es parteix només després de «_» o «.» (sessió de DISSENY) | 20/11/2026 19:23 | 24001e03 | 1 e2e ajustada | [A comprovar] |
+| [T-DX-77](T-DX-77.md) | V8 i V20: inici del soci amb la història i la llicència alineades amb el carnet, i la quota pendent amb «Paga ara» com a botó principal (sessió de DISSENY) | 20/11/2026 19:24 | 9089f6f0 | 1 nova; 2 e2e ampliades | [A comprovar] |
