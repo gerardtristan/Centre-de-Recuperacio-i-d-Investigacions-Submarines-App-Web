@@ -12,6 +12,7 @@ from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.core.models import Person, Setting
 from apps.members import settings as values
+from apps.members.fee_rules import local_today
 from apps.members.models import Member, MembershipType
 from apps.members.tests.test_cards import account_for, add_fee, make_member, paid_member
 from conftest import PASSWORD
@@ -62,6 +63,21 @@ def test_a_pending_fee_shows_pending_the_strip_and_no_countdown(login_as):
     assert "1 pagament pendent" in strip and "Quota 2026" in strip and "90,00" in strip
     assert reverse("payments:charge", args=[fee.charge_id]) in strip
     assert "Encara no has fet cap pagament." in html
+
+
+def test_a_pending_fee_not_yet_due_without_card_makes_pay_now_the_main_action(login_as):
+    """V20: la quota pendent que encara no ha vençut surt com a pendent, amb l'import i el
+    venciment (no «—»); sense carnet, el botó principal
+    és «Paga ara», al costat de l'import (D19)."""
+    member = make_member()
+    fee = add_fee(member, period=local_today().year + 1)
+    html = home(login_as, member)
+    block = summary(html)
+    assert "Pendent" in block and "90,00" in block and "venç el 01/01/" in block
+    assert block.count("boto-principal") == 1 and reverse("members:card") not in block
+    assert reverse("payments:charge", args=[fee.charge_id]) in block
+    strip = html.split('class="avis avis-avis franja-estat"', 1)[1].split("</div>", 1)[0]
+    assert "boto-principal" not in strip
 
 
 def test_recent_payments_history_and_licence(login_as):

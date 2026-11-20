@@ -2,6 +2,8 @@
 sota, sobre el fons de la pàgina, la quota i el carnet en petit; la franja de pendents només si n'hi
 ha. El contrast del text de l'inici és de 4,5:1 o més als dos temes."""
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 
@@ -90,6 +92,10 @@ def test_member_home_has_the_wave_header_and_the_fee_block(
     # Sense animació d'entrada (D20, B10): la quota ja és al seu lloc.
     assert quota.evaluate("e => e.getAnimations().length") == 0
     review("portada-oleaje")
+    # V8: la història i la llicència comencen on comença el carnet (la mateixa columna).
+    assert page.locator("#historia-titol").bounding_box()["x"] == pytest.approx(
+        page.locator("#carnet-resum").bounding_box()["x"], abs=1
+    )
     all_widths(page, request, "inici-al-dia")
 
 
@@ -119,5 +125,13 @@ def test_a_pending_fee_shows_the_flat_strip_with_pay_now(
     pay = strip.get_by_role("link", name="Paga ara")
     assert pay.bounding_box()["height"] >= 56  # §6.5: «Paga ara» de 56 px
     assert page.locator(".boto-principal").count() == 1  # D19
+    # V20: la quota diu que és pendent i, sense carnet, el botó principal és «Paga ara», al costat
+    # de l'import (B13); el de la franja és el normal.
+    quota = page.locator(".inici-quota")
+    expect(quota).to_contain_text("Pendent")
+    expect(quota).to_contain_text("90,00")
+    expect(quota.get_by_role("link", name="Paga ara")).to_have_class(re.compile(r"boto-principal"))
+    expect(quota.get_by_role("link", name="El meu carnet")).to_have_count(0)
+    expect(pay).not_to_have_class(re.compile(r"boto-principal"))
     review("portada-pendent")
     all_widths(page, request, "inici-pendent")

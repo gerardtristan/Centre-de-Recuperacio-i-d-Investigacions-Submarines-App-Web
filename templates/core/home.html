@@ -29,11 +29,18 @@
             <p>{% if fee.kind == "waived" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Eximida fins al {{ date }}.{% endblocktranslate %}{% elif soci.method == "direct_debit" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, per domiciliació.{% endblocktranslate %}{% elif soci.method == "saved_card" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}, amb la targeta guardada.{% endblocktranslate %}{% elif soci.method == "pay_each_time" %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}; la pagues cada vegada.{% endblocktranslate %}{% else %}{% blocktranslate with date=fee.until|date:"d/m/Y" %}Es renova el {{ date }}.{% endblocktranslate %}{% endif %}</p>
             {% if soci.countdown %}{% vigencia fee.until "quota" %}{% endif %}
           {% else %}
-            <p>{% include "members/_fee_state.html" %}</p>
+            {# V20: una quota pendent que encara no ha vençut no té estat a fee_state (res); el càrrec sí que és pendent, com diu la franja. #}
+            {% with row=soci.pending.0 %}
+              <p>{% if fee or not row %}{% include "members/_fee_state.html" %}{% else %}{% include "members/_charge_status.html" with charge=row.fee.charge %}{% endif %}</p>
+              {% now "Y-m-d" as hui %}
+              {% if row %}<p><span class="import">{{ row.amount }}</span> · {% if row.fee.due_on|date:"Y-m-d" < hui %}{% blocktranslate with date=row.fee.due_on|date:"d/m/Y" %}vençuda el {{ date }}{% endblocktranslate %}{% else %}{% blocktranslate with date=row.fee.due_on|date:"d/m/Y" %}venç el {{ date }}{% endblocktranslate %}{% endif %}</p>{% endif %}
+            {% endwith %}
           {% endif %}
         {% endwith %}
         <p class="accions">
-          <a class="boto boto-principal" href="{% url 'members:card' %}">{% translate "El meu carnet" %}</a>
+          {# D19 i V20: amb un pendent, el botó principal és «Paga ara» al costat de l'import (B13), el primer de la franja; «El meu carnet» passa a secundari i, sense carnet, no hi és (el bloc del carnet ja hi porta). #}
+          {% with row=soci.pending.0 %}{% if row %}<a class="boto boto-principal" href="{% url 'payments:charge' row.fee.charge_id %}">{% translate "Paga ara" %}<span class="visualment-amagat"> · {{ row.fee.charge.concept }}</span></a>{% endif %}{% endwith %}
+          {% if soci.card or not soci.pending %}<a class="boto{% if not soci.pending %} boto-principal{% endif %}" href="{% url 'members:card' %}">{% translate "El meu carnet" %}</a>{% endif %}
           <a class="boto" href="{% url 'members:fees' %}">{% translate "Les meves quotes" %}</a>
         </p>
       </section>
@@ -56,12 +63,12 @@
   {% endif %}
   {% birth_date_notice %}
   {% if soci.pending %}
-    {# Franja d'estat (§6.5): plana, a tota l'amplada i només amb pendents; les mateixes quotes que «Les meves quotes». «Paga ara» porta a la pantalla de pagament del 05b, que torna a comprovar que el càrrec és teu. #}
+    {# Franja d'estat (§6.5): plana, a tota l'amplada i només amb pendents; les mateixes quotes que «Les meves quotes». El botó principal és el «Paga ara» de «La teva quota» (V20, D19): aquí, el botó normal. «Paga ara» porta a la pantalla de pagament del 05b, que torna a comprovar que el càrrec és teu. #}
     <div class="avis avis-avis franja-estat" role="status">
       <strong><span aria-hidden="true">◷</span> {% blocktranslate count n=soci.pending|length %}{{ n }} pagament pendent{% plural %}{{ n }} pagaments pendents{% endblocktranslate %}</strong>
       <ul class="franja-estat-llista">
         {% for row in soci.pending %}
-          <li><span>{{ row.fee.charge.concept }} · <span class="import">{{ row.amount }}</span></span> <a class="boto boto-gran boto-mari" href="{% url 'payments:charge' row.fee.charge_id %}">{% translate "Paga ara" %}<span class="visualment-amagat"> · {{ row.fee.charge.concept }}</span></a></li>
+          <li><span>{{ row.fee.charge.concept }} · <span class="import">{{ row.amount }}</span></span> <a class="boto boto-gran" href="{% url 'payments:charge' row.fee.charge_id %}">{% translate "Paga ara" %}<span class="visualment-amagat"> · {{ row.fee.charge.concept }}</span></a></li>
         {% endfor %}
       </ul>
     </div>
