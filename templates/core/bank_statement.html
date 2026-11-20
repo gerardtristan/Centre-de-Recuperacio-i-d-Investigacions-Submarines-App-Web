@@ -35,7 +35,7 @@
             <td data-etiqueta="{% translate 'Resultat' %}">
               {% if line.result == "new" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Nova" %}</span>
               {% elif line.result == "duplicate" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Duplicada: no s'importa" %}</span>
-              {% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Amb error" %}</span>{% for text in line.shown.errors %} {{ text }}{% endfor %}{% endif %}
+              {% else %}<span><span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Amb error" %}</span>{% for text in line.shown.errors %} {{ text }}{% endfor %}</span>{% endif %}
             </td>
             {% if line.codes %}
               <td data-etiqueta="{% translate 'Data' %}">—</td><td data-etiqueta="{% translate 'Concepte' %}">—</td><td data-etiqueta="{% translate 'Import' %}" class="cel-import">—</td><td data-etiqueta="{% translate 'Saldo' %}" class="cel-import">—</td>

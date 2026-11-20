@@ -39,7 +39,7 @@
               <td data-etiqueta="{% translate 'Data' %}">{{ record.charge.created_at|date:"d/m/Y" }}</td>
               <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ record.amount }}</span></td>
               <td data-etiqueta="{% translate 'Estat' %}">{{ record.charge.get_status_display }}</td>
-              <td data-etiqueta="{% translate 'Pagaments' %}">{% for payment, amount in record.payments %}{{ payment.get_method_display }} · <span class="import">{{ amount }}</span>{% if payment.paid_at %} · {{ payment.paid_at|date:"d/m/Y" }}{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+              <td data-etiqueta="{% translate 'Pagaments' %}"><span>{% for payment, amount in record.payments %}{{ payment.get_method_display }} · <span class="import">{{ amount }}</span>{% if payment.paid_at %} · {{ payment.paid_at|date:"d/m/Y" }}{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</span></td>
             </tr>
           {% endfor %}
         </tbody>

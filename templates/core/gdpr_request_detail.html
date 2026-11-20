@@ -33,7 +33,7 @@
     {% elif can_resolve %}
       <section aria-labelledby="consequencies-titol">
         <h2 id="consequencies-titol">{% translate "Què passarà en aprovar-la" %}</h2>
-        <ul>
+        <ul class="passos">
           {% for line in consequences %}<li>{{ line }}</li>{% endfor %}
           <li>{% translate "Es desactivaran tots els seus comptes i se'n tancaran les sessions." %}</li>
           <li>{% translate "S'anonimitzaran les seves dades personals: nom, document, correu, telèfon, adreça i data de naixement. Al registre d'activitat, el que la identifica se substituirà per una referència." %}</li>

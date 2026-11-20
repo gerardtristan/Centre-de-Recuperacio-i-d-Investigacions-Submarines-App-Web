@@ -2,48 +2,46 @@
 {% load i18n %}
 
 {% block title %}{% translate "Importació de Cluber: prova" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
 
 {% block content %}
   <h1>{% translate "Importació de Cluber: prova" %}</h1>
 
   {% if reception or summary %}
     {% if reception %}
-      <div role="alert">
+      <div class="avis avis-error" role="alert">
         <h2>{% translate "No s'ha pogut fer la prova" %}</h2>
         <p>{{ reception }}</p>
       </div>
     {% elif rejection %}
-      <div role="alert">
+      <div class="avis avis-error" role="alert">
         <h2>{% translate "Fitxer rebutjat" %}</h2>
         <p>{{ rejection }}</p>
         {% if summary.rejected_column %}<p>{% translate "Columna:" %} {{ summary.rejected_column }}</p>{% endif %}
         {% if summary.rejected_row %}<p>{% translate "Registre:" %} {{ summary.rejected_row }}</p>{% endif %}
       </div>
     {% else %}
-      <p role="status">{% translate "Prova feta: no s'han modificat dades de socis ni s'ha importat cap soci. El fitxer no s'ha desat." %}</p>
+      <p class="avis avis-ok" role="status">{% translate "Prova feta: no s'han modificat dades de socis ni s'ha importat cap soci. El fitxer no s'ha desat." %}</p>
 
-      <table>
-        <caption>{% translate "Recomptes" %}</caption>
-        <thead><tr><th scope="col">{% translate "Què" %}</th><th scope="col">{% translate "Registres" %}</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">{% translate "Registres llegits" %}</th><td>{{ summary.counts.rows }}</td></tr>
-          <tr><th scope="row">{% translate "Nous" %}</th><td>{{ summary.counts.new }}</td></tr>
-          <tr><th scope="row">{% translate "Coincidents" %}</th><td>{{ summary.counts.matching }}</td></tr>
-          <tr><th scope="row">{% translate "Ambigus" %}</th><td>{{ summary.counts.ambiguous }}</td></tr>
-          <tr><th scope="row">{% translate "En conflicte" %}</th><td>{{ summary.counts.conflict }}</td></tr>
-          <tr><th scope="row">{% translate "Amb error" %}</th><td>{{ summary.counts.with_errors }}</td></tr>
-          <tr><th scope="row">{% translate "Preparats per importar" %}</th><td>{{ summary.counts.ready }}</td></tr>
-          <tr><th scope="row">{% translate "De baixa a Cluber (no s'importen)" %}</th><td>{{ summary.counts.left_in_cluber }}</td></tr>
-        </tbody>
-      </table>
+      <h2>{% translate "Recomptes" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Registres llegits" %}</dt><dd>{{ summary.counts.rows }}</dd></div>
+        <div><dt>{% translate "Nous" %}</dt><dd>{{ summary.counts.new }}</dd></div>
+        <div><dt>{% translate "Coincidents" %}</dt><dd>{{ summary.counts.matching }}</dd></div>
+        <div><dt>{% translate "Ambigus" %}</dt><dd>{{ summary.counts.ambiguous }}</dd></div>
+        <div><dt>{% translate "En conflicte" %}</dt><dd>{{ summary.counts.conflict }}</dd></div>
+        <div><dt>{% translate "Amb error" %}</dt><dd>{{ summary.counts.with_errors }}</dd></div>
+        <div><dt>{% translate "Preparats per importar" %}</dt><dd>{{ summary.counts.ready }}</dd></div>
+        <div><dt>{% translate "De baixa a Cluber (no s'importen)" %}</dt><dd>{{ summary.counts.left_in_cluber }}</dd></div>
+      </dl>
       {% if format == "xlsx" %}<p>{% translate "Format: Excel (.xlsx)." %}</p>{% elif encoding %}<p>{% translate "Codificació detectada:" %} {{ encoding }}</p>{% endif %}
       <p>{% translate "Cap registre no queda preparat per importar mentre falti el tipus de document, que l'exportació de Cluber no porta." %}</p>
 
-      <table>
+      <table class="taula">
         <caption>{% translate "Què s'importaria" %}</caption>
         <thead><tr><th scope="col">{% translate "Dada" %}</th><th scope="col">{% translate "Registres amb aquesta dada" %}</th></tr></thead>
         <tbody>
-          {% for label, count in would_import %}<tr><th scope="row">{{ label }}</th><td>{{ count }}</td></tr>{% endfor %}
+          {% for label, count in would_import %}<tr><th scope="row" class="cel-nom">{{ label }}</th><td data-etiqueta="{% translate "Registres amb aquesta dada" %}">{{ count }}</td></tr>{% endfor %}
         </tbody>
       </table>
       <p>{% translate "Els socis de baixa a Cluber no s'importen; la resta entrarien actius. La columna «Preu total» només és informativa: no crea cap càrrec ni cap quota." %}</p>
@@ -51,24 +49,24 @@
       {% if left_rows %}
         <h2>{% translate "Socis de baixa a Cluber" %}</h2>
         <p>{% translate "No s'importen. La secretaria els revisa a mà a Cluber amb aquests números de registre (la capçalera és el registre 1)." %}</p>
-        <ul>
+        <ul class="passos">
           {% for row in left_rows %}<li>{% blocktranslate %}Registre {{ row }}{% endblocktranslate %}</li>{% endfor %}
         </ul>
       {% endif %}
 
       {% if types %}
-        <table>
+        <table class="taula">
           <caption>{% translate "Tipus de soci deduït" %}</caption>
           <thead><tr><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Com s'ha deduït" %}</th><th scope="col">{% translate "Registres" %}</th></tr></thead>
           <tbody>
-            {% for name, by, count in types %}<tr><td>{{ name }}</td><td>{{ by }}</td><td>{{ count }}</td></tr>{% endfor %}
+            {% for name, by, count in types %}<tr><th scope="row" class="cel-nom">{{ name }}</th><td data-etiqueta="{% translate "Com s'ha deduït" %}">{{ by }}</td><td data-etiqueta="{% translate "Registres" %}">{{ count }}</td></tr>{% endfor %}
           </tbody>
         </table>
       {% endif %}
 
       {% if file_warnings or summary.unknown_columns or omitted %}
         <h2>{% translate "Avisos del fitxer" %}</h2>
-        <ul>
+        <ul class="passos">
           {% for warning in file_warnings %}<li>{{ warning }}</li>{% endfor %}
           {% if summary.unknown_columns %}<li>{% blocktranslate count counter=summary.unknown_columns %}{{ counter }} columna no es reconeix i no es fa servir.{% plural %}{{ counter }} columnes no es reconeixen i no es fan servir.{% endblocktranslate %}</li>{% endif %}
           {% for column, count in omitted %}<li>{% blocktranslate %}La columna «{{ column }}» té {{ count }} valors diferents: no se'n mostra el detall.{% endblocktranslate %}</li>{% endfor %}
@@ -78,7 +76,7 @@
       <h2>{% translate "Errors i advertiments" %}</h2>
       <p>{% translate "La capçalera és el registre 1. Les línies buides s'ignoren i els camps amb salts de línia formen part d'un únic registre." %}</p>
       {% if problems %}
-        <table>
+        <table class="taula">
           <caption>{% translate "Errors i advertiments per registre" %}</caption>
           <thead>
             <tr>
@@ -90,7 +88,7 @@
           </thead>
           <tbody>
             {% for row, column, kind, message in problems %}
-              <tr><td>{{ row }}</td><td>{{ column }}</td><td>{{ kind }}</td><td>{{ message }}</td></tr>
+              <tr><th scope="row" class="cel-nom">{{ row }}</th><td data-etiqueta="{% translate "Columna" %}">{{ column }}</td><td data-etiqueta="{% translate "Tipus" %}">{{ kind }}</td><td data-etiqueta="{% translate "Què passa" %}" class="cel-valor">{{ message }}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -99,11 +97,11 @@
       {% endif %}
 
       {% if pending %}
-        <table>
+        <table class="taula">
           <caption>{% translate "Dades pendents" %}</caption>
           <thead><tr><th scope="col">{% translate "Què falta" %}</th><th scope="col">{% translate "Registres afectats" %}</th></tr></thead>
           <tbody>
-            {% for message, count in pending %}<tr><td>{{ message }}</td><td>{{ count }}</td></tr>{% endfor %}
+            {% for message, count in pending %}<tr><th scope="row" class="cel-nom">{{ message }}</th><td data-etiqueta="{% translate "Registres afectats" %}">{{ count }}</td></tr>{% endfor %}
           </tbody>
         </table>
       {% endif %}
@@ -115,14 +113,14 @@
   {% else %}
     <p>{% translate "La prova valida l'exportació de Cluber sense importar cap soci. El fitxer no es desa." %}</p>
     <p>{% translate "Fora de producció, només s'hi poden fer servir fitxers inventats o anonimitzats." %}</p>
-    <form method="post" enctype="multipart/form-data">
+    <form class="formulari targeta" method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      <p>
+      <div class="camp">
         <label for="id_fitxer">{% translate "Fitxer CSV de Cluber" %}</label>
         <input type="file" id="id_fitxer" name="fitxer" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="ajuda-fitxer">
-      </p>
-      <p id="ajuda-fitxer">{% translate "CSV separat per «;», en UTF-8 o Windows-1252, o Excel (.xlsx) sense macros ni fórmules, d'1 MiB com a màxim. D'un Excel es llegeix només el full que té les columnes de Cluber a la primera fila. Si porta una columna d'IBAN, es descarta sense desar-ne ni mostrar-ne cap valor." %}</p>
-      <button type="submit">{% translate "Valida el fitxer (prova)" %}</button>
+        <p class="ajuda" id="ajuda-fitxer">{% translate "CSV separat per «;», en UTF-8 o Windows-1252, o Excel (.xlsx) sense macros ni fórmules, d'1 MiB com a màxim. D'un Excel es llegeix només el full que té les columnes de Cluber a la primera fila. Si porta una columna d'IBAN, es descarta sense desar-ne ni mostrar-ne cap valor." %}</p>
+      </div>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Valida el fitxer (prova)" %}</button></div>
     </form>
   {% endif %}
 {% endblock %}
