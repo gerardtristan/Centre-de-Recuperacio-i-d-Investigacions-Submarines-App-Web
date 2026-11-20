@@ -1222,6 +1222,16 @@ opcions:
       El soci ja rep l'enllaç per pagar i no hi ha res a resoldre, però el correu diu al tresorer qui no
       té adreça i s'ha d'avisar d'una altra manera; sense ell, aquesta quota quedaria oblidada.
     data: 2026-11-19
+  P-408:
+    opcions:
+      A: "Com s'ha construït: el motiu queda al registre d'activitat sobre el càrrec i el tresorer rep el correu; cap pantalla no el llista."
+      B: "Afegir-les a la llista «a revisar» de Pagaments, amb el motiu i un botó per tancar-les amb una nota."
+      C: "Mostrar-les només al detall del càrrec, sense llista."
+    recomanada: B
+    perque: >-
+      El tresorer ja té una llista «a revisar»; si aquestes quotes només viuen al correu i al registre,
+      quan el correu es perd ningú no les veu. B les posa on ja mira.
+    data: 2026-11-20
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."

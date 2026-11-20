@@ -48,8 +48,10 @@ def test_switched_off_nothing_reaches_the_provider_and_the_member_is_told_once(
     assert "ja no es pot fer servir" in alternatives().get().subject  # cap cobrament intentat
     entry = AuditEntry.objects.get(action=processing.OUTCOME)
     assert entry.details["case"] == checkout.SAVED_CARD_OFF
-    assert review_emails().count() == 1  # el tresorer (P-406, opció per defecte A)
-    assert not AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()  # cap «a revisar»
+    assert review_emails().count() == 1  # el tresorer
+    # P-406 (propietari, 20/11/2026): també «a revisar», una sola vegada per quota i targeta.
+    review = AuditEntry.objects.get(action=processing.TO_REVIEW)
+    assert review.target_id == str(fee.charge.pk)
 
 
 def test_switched_off_a_direct_charge_is_refused(saved, fee, switched_off):
@@ -68,3 +70,4 @@ def test_switched_on_again_the_fee_is_charged(saved, fee, switched_off):
 def test_switched_on_the_saved_card_is_charged(saved, fee):
     assert checkout.charge_due_saved_cards() == 1
     assert not alternatives().exists()
+    assert not AuditEntry.objects.filter(action=processing.TO_REVIEW).exists()
