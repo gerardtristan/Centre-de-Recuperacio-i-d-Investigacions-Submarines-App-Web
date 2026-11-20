@@ -31,6 +31,17 @@ TEXT_INDENT_JS = """(cell) => {
   return range.getBoundingClientRect().left - cell.getBoundingClientRect().left;
 }"""
 
+# Etiquetes d'estat, motius i accions de la conciliació que ocupen més d'una línia (T-DX-79, V15)
+WRAPPED_JS = """() => Array.from(document.querySelectorAll(
+  '.conciliacio tbody td .estat, .conciliacio-motiu, .conciliacio tbody td > .boto,'
+  + ' .conciliacio tbody td > form > .boto, .conciliacio tbody td > details > summary'
+)).filter((el) => el.offsetParent !== null).filter((el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const tops = Array.from(range.getClientRects()).map((r) => r.top).sort((a, b) => a - b);
+  return tops.some((top, i) => i && top - tops[i - 1] > 4);
+}).map((el) => el.textContent.trim())"""
+
 
 def test_treasurer_sees_the_movement_and_the_balance(page, live_server, transactional_db, review):
     transit = new_transit()
@@ -304,6 +315,8 @@ def test_treasurer_chooses_between_two_settlements(page, live_server, transactio
     expect(row).to_contain_text("A revisar")
     row.get_by_role("link", name="Revisa i tria…").click()
     page.get_by_label("LIQ-002").check()
+    # T-DX-79 (V15): amb el panell obert, l'estat, el motiu i cada acció en una línia
+    assert page.evaluate(WRAPPED_JS) == []
     review("conciliacio-liquidacio-tria")
     page.get_by_role("button", name="Revisa aquesta liquidació").click()
     expect(page.get_by_role("row", name="REF-C")).to_contain_text("1,20 €")

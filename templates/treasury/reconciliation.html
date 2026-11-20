@@ -49,7 +49,7 @@
               {% if row.state.status == "reconciled" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.state.get_status_display }}</span>
               {% elif row.state.status == "proposed" %}<span class="estat estat-info"><span aria-hidden="true">→</span> {{ row.state.get_status_display }}</span>
               {% elif row.state.status == "excluded" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {{ row.state.get_status_display }}</span>
-              {% elif row.state.to_review %}<span><span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}</span> {{ row.state.get_review_reason_display }}</span>
+              {% elif row.state.to_review %}<span><span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "A revisar" %}</span> <span class="conciliacio-motiu">{{ row.state.get_review_reason_display }}</span></span>
               {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.state.get_status_display }}</span>{% endif %}
             </td>
             <td data-etiqueta="{% translate 'Càrrecs' %}" class="col-carrecs">
