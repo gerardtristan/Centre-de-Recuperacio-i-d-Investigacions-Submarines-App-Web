@@ -18,6 +18,13 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.models import AppendOnlyModel, Department, Person
 
 
+class RequirementsMode(models.TextChoices):
+    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+
+    WARN = "warn", _("Avís")
+    BLOCK = "block", _("Bloqueig")
+
+
 class TrainingCatalogueEntry(models.Model):
     """Fitxa del catàleg de cursos o del d'especialitats: dos catàlegs separats (RN-M02-01)."""
 
@@ -48,6 +55,14 @@ class TrainingCatalogueEntry(models.Model):
         verbose_name=_("departament"),
     )
     active = models.BooleanField(_("activa"), default=True)
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -65,6 +80,10 @@ class TrainingCatalogueEntry(models.Model):
             ),
             models.CheckConstraint(
                 condition=Q(default_places__gt=0), name="trainingcatalogueentry_places_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="trainingcatalogueentry_default_mode_valid",
             ),
         ]
 
@@ -122,11 +141,25 @@ class OutingType(models.Model):
         verbose_name=_("departament per defecte"),
     )
     active = models.BooleanField(_("actiu"), default=True)
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("tipus de sortida")
         verbose_name_plural = _("tipus de sortida")
         ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="outingtype_default_mode_valid",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -245,11 +278,11 @@ class PlacePrice(AppendOnlyModel):
         return f"{self.place} ({self.valid_from:%d/%m/%Y})"
 
 
-class RequirementsMode(models.TextChoices):
-    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+class SpecialitiesRule(models.TextChoices):
+    """Si calen totes les especialitats exigides o n'hi ha prou amb una (RN-M02-28)."""
 
-    WARN = "warn", _("Avís")
-    BLOCK = "block", _("Bloqueig")
+    ALL = "all", _("Totes")
+    ANY = "any", _("Alguna")
 
 
 class Activity(models.Model):
@@ -366,6 +399,26 @@ class Activity(models.Model):
     material_cost_note = models.TextField(_("motiu del cost de material diferent"), blank=True)
     open_to_non_members = models.BooleanField(_("oberta a no socis"), default=False)
     required_level = models.CharField(_("titulació mínima"), max_length=60, blank=True)
+    # Requisits de l'addenda de la 058 (RN-M02-27 i 28): `required_level` queda com a text
+    # informatiu; el que es comprova és `min_level` i les especialitats.
+    min_level = models.ForeignKey(
+        "CertificationLevel",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("nivell mínim"),
+    )
+    required_specialities = models.ManyToManyField(
+        TrainingCatalogueEntry,
+        blank=True,
+        limit_choices_to={"kind": "speciality"},
+        related_name="required_by",
+        verbose_name=_("especialitats exigides"),
+    )
+    specialities_rule = models.CharField(
+        _("especialitats"), max_length=3, choices=SpecialitiesRule.choices, default="all"
+    )
     licence_required = models.BooleanField(_("cal llicència vigent"), default=False)
     requirements_mode = models.CharField(
         _("si no es compleixen els requisits"),
@@ -425,6 +478,10 @@ class Activity(models.Model):
             models.CheckConstraint(
                 condition=Q(requirements_mode__in=["warn", "block"]),
                 name="activity_requirements_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(specialities_rule__in=["all", "any"]),
+                name="activity_specialities_rule_valid",
             ),
             models.CheckConstraint(
                 condition=~Q(kind="course") | Q(catalogue_entry__isnull=False),
