@@ -36,6 +36,7 @@ MODULES = {
     "members": gettext_lazy("01 Socis i carnet"),
     "treasury": gettext_lazy("04 Tresoreria"),
     "payments": gettext_lazy("05 Pagaments"),
+    "licences": gettext_lazy("06 Llicències"),
     "settings": gettext_lazy("Ajustos"),
 }
 NOT_EDITABLE = gettext_lazy(

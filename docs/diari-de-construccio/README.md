@@ -367,3 +367,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-76](T-DX-76.md) | V5, V19 i V4: el menú marca l'entrada de cada subpàgina (administració i àrea del soci); cap menú a les polítiques; «Més» al centre sense soci (sessió de DISSENY) | 20/11/2026 19:44 | 2756b8c8 | 2 fitxers nous; 5 e2e ampliades | [A comprovar] |
 | [Fase 2](fase2-pla-llesques.md) | Pla de llesques F2-1 a F2-5, condició de la D6 complerta i decisions 086 a 088 de la branca del 02 renumerades (101 a 103) (pilot) | 20/11/2026 18:45 | (vegeu la PR) | 0 noves | [A comprovar] |
 | [T-M06-03](T-M06-03.md) | Llicències: tipus, preus, llicència amb estats derivats i càlcul de dates (amb els models de la T-M06-02; carril A) | 20/11/2026 21:28 | ab994c99 | 8208 | [A comprovar] |
+| [T-M06-02b](T-M06-02b.md) | Llicències: servei de preus amb trams, versions, nota i avís (carril A) | 20/11/2026 21:58 | 1d2c4c89 | 8229 | [A comprovar] |
+| [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |
