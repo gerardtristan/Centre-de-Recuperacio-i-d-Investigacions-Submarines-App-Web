@@ -473,6 +473,11 @@ def test_the_responsible_must_be_an_active_person_and_the_department_active(mana
         a_course(manager, department=closed)
 
 
+def test_a_long_description_is_accepted(manager):
+    # Error trobat a la T-M02-07: la descripció no té longitud màxima i petava en comparar-la.
+    assert a_course(manager, description="x" * 5000).description == "x" * 5000
+
+
 def test_the_forecast_is_only_a_link(manager):
     url = "https://example.org/previsio-maritima"  # RN-M02-24
     assert an_outing(manager, forecast_url=f"  {url} ").forecast_url == url

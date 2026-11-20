@@ -108,7 +108,7 @@ def _clean(data: dict) -> dict:
     for name in _TEXT_FIELDS:
         if name in out:
             out[name] = (out[name] or "").strip()
-            if len(out[name]) > _MAX_LENGTH[name]:
+            if _MAX_LENGTH[name] is not None and len(out[name]) > _MAX_LENGTH[name]:
                 raise ValidationError(
                     _("El text és massa llarg (màxim, %(max)s caràcters).")
                     % {"max": _MAX_LENGTH[name]}
