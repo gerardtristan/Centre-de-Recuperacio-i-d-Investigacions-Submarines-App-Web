@@ -518,6 +518,109 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
+    # --- 06 Llicències (M06-4 i la matriu inicial de la 059; T-M06-16, T-M06-25) ----------------
+    # LC1, LC2 i el «Propi» de LC3 són accions pròpies o públiques, fora de la matriu. LC9
+    # (activar l'opció de no socis) és l'ajust `licences.non_members_enabled`: el seu permís
+    # arriba amb la pantalla d'ajustos del mòdul (T-M06-20).
+    _perm(
+        "licences.declare_existing",
+        "LC3",
+        _("«Ja en tinc una»: registrar la llicència d'una altra persona"),
+        initial={
+            R.SECRETARY: _ALL,
+            R.COURSES_MANAGER: _ALL,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_personal_data=True,
+    ),
+    _perm(
+        "licences.list",
+        "LC4",
+        _("Llistat de llicències, filtres i venciments"),
+        initial={
+            R.SECRETARY: _ALL,
+            R.COURSES_MANAGER: _ALL,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_personal_data=True,
+    ),
+    _perm(
+        "licences.file",
+        "LC5",
+        _("Exportar per a la federació; marcar tramitada i vigent"),
+        requires=("licences.list",),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "licences.cancel",
+        "LC6",
+        _("Cancel·lar una llicència"),
+        requires=("licences.list",),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "licences.refund",
+        "LC7",
+        _("Fer la devolució d'una llicència cancel·lada"),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "licences.prices",
+        "LC8",
+        _("Tipus, preus i recàrrec de les llicències"),
+        # «Cons.» els veu; canviar-los demana «Sí» (la Junta, Cons.).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+            R.BOARD: SCOPE_READ,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "licences.participant_status",
+        "LC10",
+        _("Veure si la llicència d'un participant és vigent"),
+        # L'instructor només en veu «vigent sí o no» per a la data de la sessió (RN-M06-22).
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_ACTIVITIES, SCOPE_OWN_SESSIONS),
+        initial={
+            R.INSTRUCTOR: SCOPE_OWN_SESSIONS,
+            R.SECRETARY: _ALL,
+            R.COURSES_MANAGER: SCOPE_OWN_ACTIVITIES,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+    ),
+    _perm(
+        "licences.import_m01",
+        "LC11",
+        _("Passar els registres de llicència del 01 al 06"),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "licences.field.details",
+        "C6",
+        _("Camps: número federatiu, categoria i venciment"),
+        kind="field",
+        requires=("licences.list",),
+        initial={
+            R.SECRETARY: _ALL,
+            R.COURSES_MANAGER: _ALL,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_personal_data=True,
+    ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
     # Cada apartat té `settings.section.<apartat>`: «Cons.» veu i «Sí» veu i edita tots els
     # valors. `settings.edit.<clau>` dona l'edició d'un sol valor i demana l'apartat (RN-RP-03).
