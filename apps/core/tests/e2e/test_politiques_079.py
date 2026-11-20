@@ -39,6 +39,11 @@ def test_imported_member_accepts_the_policies_at_first_login(page, live_server, 
 
     page.get_by_role("button", name="Accepta i continua").click()  # sense marcar res
     expect(page.get_by_text("Cal que l'acceptis per continuar.").first).to_be_visible()
+    # V10: el resum d'errors (Errata), amb un enllaç a cada casella.
+    errata = page.locator(".errata")
+    expect(errata).to_be_focused()
+    expect(errata.get_by_role("heading")).to_have_text("Hi ha 2 errors")
+    expect(errata.locator("a.errata-element")).to_have_count(2)
     review("politiques-error")
 
     boxes = page.locator('input[type="checkbox"]')

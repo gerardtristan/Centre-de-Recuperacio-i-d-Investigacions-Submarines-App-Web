@@ -38,7 +38,11 @@ def test_edit_member_data_and_correct_the_join_date(page, live_server, secretary
     page.get_by_label("La data és aproximada").check()
     # Sense motiu: el servidor ho rebutja i ho diu al camp.
     page.get_by_role("button", name="Desa la data").click()
-    expect(page.get_by_text("Aquest camp és obligatori")).to_be_visible()
+    expect(page.locator("#id_reason_error")).to_contain_text("Aquest camp és obligatori")
+    # V10: el resum d'errors (Errata) a dalt, amb l'enllaç al camp, com al formulari d'alta.
+    errata = page.locator(".errata")
+    expect(errata).to_be_focused()
+    expect(errata.locator('a[href="#id_reason"]')).to_contain_text("Motiu de la correcció")
     review("data-alta-sense-motiu")
     # Amb el teclat: motiu i desar.
     page.get_by_label("Motiu de la correcció").focus()
