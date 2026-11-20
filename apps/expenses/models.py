@@ -159,3 +159,70 @@ class ExpenseAnnulment(AppendOnlyModel):
         constraints = [
             models.CheckConstraint(condition=~models.Q(reason=""), name="expense_annulment_reason")
         ]
+
+
+class OtherIncome(models.Model):
+    """Ingrés que no és un càrrec: ajut, patrocini, donatiu o un altre (M09-6, T-M09-08). Compta
+    al departament i, si cal, al projecte; un ajut mai a una activitat (RN-M09-08). L'activitat i
+    el projecte (02) i la sol·licitud d'ajut (apartat d'ajuts) s'afegeixen amb els seus mòduls."""
+
+    class Kind(models.TextChoices):
+        GRANT = "grant", _("Ajut")
+        SPONSORSHIP = "sponsorship", _("Patrocini")
+        DONATION = "donation", _("Donatiu")
+        OTHER = "other", _("Un altre")
+
+    kind = models.CharField(_("tipus"), max_length=11, choices=Kind.choices)
+    # Organisme o empresa. Donatius de persones: només anònims fins a la gestoria (S-M09-03).
+    payer = models.CharField(_("pagador"), max_length=140)
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    department = models.ForeignKey(
+        "core.Department", on_delete=models.PROTECT, related_name="+", verbose_name=_("departament")
+    )
+    cost_centre = models.ForeignKey(
+        "treasury.CostCentre",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("centre de cost"),
+    )
+    # Resolució o contracte; obligatori en un ajut.
+    document_file = models.ForeignKey(
+        "core.PrivateFile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("resolució o contracte"),
+    )
+    movement = models.OneToOneField(
+        "treasury.Movement", on_delete=models.PROTECT, related_name="+", verbose_name=_("moviment")
+    )
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    recorded_at = models.DateTimeField(_("registrat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("altre ingrés")
+        verbose_name_plural = _("altres ingressos")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount_cents__gt=0), name="other_income_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind__in=["grant", "sponsorship", "donation", "other"]),
+                name="other_income_kind_valid",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(kind="grant", document_file__isnull=True),
+                name="other_income_grant_has_document",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} ({self.amount_cents} c)"
