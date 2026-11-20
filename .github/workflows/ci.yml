@@ -31,6 +31,11 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e ".[dev]"
+      - name: Auditoria de dependències
+        # Checklist C6 (porta 2): falla si algun paquet instal·lat té una vulnerabilitat coneguda
+        # (base de dades de PyPI). Una excepció, només amb `--ignore-vuln <id>`, el motiu i la data
+        # de revisió en aquesta línia.
+        run: pip-audit --skip-editable --progress-spinner off
       - name: Lint
         run: |
           ruff check .

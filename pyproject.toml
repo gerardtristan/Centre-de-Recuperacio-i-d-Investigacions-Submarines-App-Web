@@ -49,6 +49,8 @@ dev = [
     # limita per sota de la 7.17.3, que tenia un dia quan es va afegir.
     "pytest-cov>=7.1,<8",
     "coverage>=7.10.6,<7.17.3",
+    # Auditoria de dependències al CI (checklist C6, porta 2). La 2.10.1 és del 10/06/2026.
+    "pip-audit>=2.10.1,<2.11",
 ]
 
 [build-system]
