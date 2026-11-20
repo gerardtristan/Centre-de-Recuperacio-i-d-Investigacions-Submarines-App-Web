@@ -96,3 +96,10 @@ def test_an_unknown_badge_or_a_process_without_journey_fails():
     found = problems(changed)
     assert "P-M01-E: el procés del pla no té recorregut" in found
     assert "P-M01-F, pas 4: el distintiu «inventat» no està declarat" in found
+
+
+def test_the_supplement_due_date_is_the_vc53_setting():
+    """T-DX-83 (V11): el venciment del suplement no és «una setmana»: és l'ajust VC-53."""
+    text = step(data(), "P-M01-B", "3")["que"]
+    assert "setmana" not in text
+    assert "VC-53" in text
