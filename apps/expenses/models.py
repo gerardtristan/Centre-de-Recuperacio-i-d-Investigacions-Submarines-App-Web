@@ -199,6 +199,15 @@ class OtherIncome(models.Model):
     movement = models.OneToOneField(
         "treasury.Movement", on_delete=models.PROTECT, related_name="+", verbose_name=_("moviment")
     )
+    # RN-M09A-09: l'ingrés d'un ajut es lliga a la seva sol·licitud (bestreta i saldo).
+    grant_application = models.ForeignKey(
+        "grants.GrantApplication",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="incomes",
+        verbose_name=_("sol·licitud d'ajut"),
+    )
     recorded_by = models.ForeignKey(
         "accounts.Account",
         on_delete=models.PROTECT,
@@ -221,6 +230,10 @@ class OtherIncome(models.Model):
             models.CheckConstraint(
                 condition=~models.Q(kind="grant", document_file__isnull=True),
                 name="other_income_grant_has_document",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind="grant") | models.Q(grant_application__isnull=True),
+                name="other_income_application_only_for_grants",
             ),
         ]
 
