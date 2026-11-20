@@ -80,8 +80,9 @@ _COMMON_FIELDS = (
     "department",
     "cost_centre",
     "place",
-    "min_level",  # requisits de l'addenda de la 058 (T-M02-29)
+    "min_level",  # requisits de l'addenda de la 058 (T-M02-29 i T-M02-32)
     "specialities_rule",
+    "min_age",
 )
 # Camps que `update_activity` deixa canviar. La classe, la fitxa del catàleg i l'estat, mai.
 EDITABLE_FIELDS = {
@@ -151,6 +152,8 @@ def _clean(data: dict) -> dict:
         raise ValidationError(_("Tria el nivell mínim de la llista de nivells."))
     if "specialities_rule" in out and out["specialities_rule"] not in SpecialitiesRule.values:
         raise ValidationError(_("Cal dir si calen totes les especialitats o alguna."))
+    if "min_age" in out:
+        out["min_age"] = catalogue.check_min_age(out["min_age"])
     if "responsible" in out:
         person = out["responsible"]
         if not isinstance(person, Person) or person.status != Person.Status.ACTIVE:
@@ -304,6 +307,7 @@ def create_course(
     data.setdefault("price_non_member_cents", standard["standard_price_non_member_cents"])
     data.setdefault("open_to_non_members", catalogue_entry.open_to_non_members)
     data.setdefault("department", catalogue_entry.department)
+    data.setdefault("min_age", catalogue_entry.min_age)
     _require_fields(data, _REQUIRED)
     data = _clean(_defaults(data, catalogue_entry.default_requirements_mode)) | standard
     _check_dates(data["starts_on"], data["ends_on"], data["registration_closes_at"])

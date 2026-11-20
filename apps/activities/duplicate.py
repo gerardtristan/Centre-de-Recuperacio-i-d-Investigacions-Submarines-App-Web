@@ -68,6 +68,7 @@ COPIED_FIELDS = (
     "required_level",
     "min_level",
     "specialities_rule",
+    "min_age",
     "licence_required",
     "requirements_mode",
     "responsible",

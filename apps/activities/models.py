@@ -55,6 +55,8 @@ class TrainingCatalogueEntry(models.Model):
         verbose_name=_("departament"),
     )
     active = models.BooleanField(_("activa"), default=True)
+    # Edat mínima que copien les activitats noves (RN-M02-33). Buit: sense edat mínima.
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
     # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
     default_requirements_mode = models.CharField(
         _("mode de requisits per defecte"),
@@ -84,6 +86,10 @@ class TrainingCatalogueEntry(models.Model):
             models.CheckConstraint(
                 condition=Q(default_requirements_mode__in=["", "warn", "block"]),
                 name="trainingcatalogueentry_default_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="trainingcatalogueentry_min_age_valid",
             ),
         ]
 
@@ -419,6 +425,8 @@ class Activity(models.Model):
     specialities_rule = models.CharField(
         _("especialitats"), max_length=3, choices=SpecialitiesRule.choices, default="all"
     )
+    # RN-M02-33: anys complerts el dia d'inici. Buit: sense edat mínima.
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
     licence_required = models.BooleanField(_("cal llicència vigent"), default=False)
     requirements_mode = models.CharField(
         _("si no es compleixen els requisits"),
@@ -482,6 +490,10 @@ class Activity(models.Model):
             models.CheckConstraint(
                 condition=Q(specialities_rule__in=["all", "any"]),
                 name="activity_specialities_rule_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="activity_min_age_valid",
             ),
             models.CheckConstraint(
                 condition=~Q(kind="course") | Q(catalogue_entry__isnull=False),
