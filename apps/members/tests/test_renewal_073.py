@@ -5,14 +5,15 @@ Només dades inventades."""
 from datetime import date, datetime
 
 import pytest
-from django.test import override_settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from apps.core import audit
-from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person
+from apps.core import audit, business_settings
+from apps.core.models import AuditEntry, Charge, OutgoingEmail, Person, Setting
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.members import cards, fees
 from apps.members import member_requests as mr
+from apps.members import settings as values
 from apps.members.models import AnnualFee, MemberCard, MemberRequest, MembershipType
 from apps.members.services import TYPE_CHANGED
 
@@ -121,8 +122,9 @@ class TestNotice:
 
     def test_end_of_month_and_configurable_months(self):
         full_member()
-        with override_settings(MEMBER_RENEWAL_NOTICE_MONTHS=2):
-            assert fees.send_renewal_notices(date(2026, 1, 10)) == 1
+        # T-M01-43e: els mesos són un ajust (abans, l'entorn).
+        Setting.objects.filter(key=values.RENEWAL_NOTICE_MONTHS).update(initial_value=2)
+        assert fees.send_renewal_notices(date(2026, 1, 10)) == 1
 
 
 # --- T-M01-43d: llista «a revisar» dels socis sense adreça ----------------------------------
@@ -603,11 +605,28 @@ def test_months_before_with_months_after_of_payments():
     assert months_after(date(2026, 3, 10), -14) == date(2025, 1, 10)
 
 
-@pytest.mark.parametrize(("months", "errors"), [(1, 0), (2, 0), (0, 1)])
-def test_notice_window_is_at_least_one_month(months, errors):
-    from apps.members.checks import renewal_notice_before_fee
+@pytest.mark.parametrize(("months", "ok"), [(1, True), (6, True), (0, False), (7, False)])
+def test_notice_months_go_from_one_to_six(make_admin, months, ok):  # noqa: F811
+    # T-M01-43e (P-399): el mínim d'1 mes substitueix la comprovació d'arrencada members.E002.
+    treasurer = make_admin("treasurer")
+    if ok:
+        business_settings.change(values.RENEWAL_NOTICE_MONTHS, months, treasurer)
+        assert values.renewal_notice_months() == months
+    else:
+        with pytest.raises(ValidationError):
+            business_settings.change(values.RENEWAL_NOTICE_MONTHS, months, treasurer)
+        assert values.renewal_notice_months() == 1
 
-    with override_settings(MEMBER_RENEWAL_NOTICE_MONTHS=months):
-        found = renewal_notice_before_fee(None)
-    assert len(found) == errors
-    assert all(error.id == "members.E002" for error in found)
+
+def test_fewer_months_cannot_leave_the_notice_after_the_first_reminder(make_admin):  # noqa: F811
+    # P-360, al revés (T-M01-43e): amb el primer recordatori 45 dies abans, 1 mes (28 dies) no.
+    treasurer = make_admin("treasurer")
+    business_settings.change(values.RENEWAL_NOTICE_MONTHS, 2, treasurer)
+    business_settings.change(values.FEE_REMINDER_OFFSETS, [-45, 0], treasurer)
+    with pytest.raises(ValidationError, match="avís de renovació"):
+        business_settings.change(values.RENEWAL_NOTICE_MONTHS, 1, treasurer)
+    assert values.renewal_notice_months() == 2
+
+
+def test_the_old_environment_variable_is_gone(settings):
+    assert not hasattr(settings, "MEMBER_RENEWAL_NOTICE_MONTHS")

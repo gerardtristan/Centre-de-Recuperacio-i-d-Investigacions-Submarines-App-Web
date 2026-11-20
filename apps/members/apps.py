@@ -23,7 +23,15 @@ class MembersConfig(AppConfig):
         business_settings.register_family(member_settings.INSTALMENTS, _instalment_label)
         # P-360: els recordatoris (VC-02) no poden començar abans de l'avís de renovació.
         business_settings.register_check(
-            member_settings.FEE_REMINDER_OFFSETS, member_settings.check_reminders
+            member_settings.FEE_REMINDER_OFFSETS,
+            member_settings.check_reminders,
+            lock_with=(member_settings.RENEWAL_NOTICE_MONTHS,),
+        )
+        # T-M01-43e: i, al revés, els mesos de l'avís no poden deixar-lo després de la quota.
+        business_settings.register_check(
+            member_settings.RENEWAL_NOTICE_MONTHS,
+            member_settings.check_notice_months,
+            lock_with=(member_settings.FEE_REMINDER_OFFSETS,),
         )
 
         core_privacy.register(

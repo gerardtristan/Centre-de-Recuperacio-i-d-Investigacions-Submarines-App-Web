@@ -308,3 +308,26 @@ def test_administrator_stops_bizum_with_a_totp_code(page, live_server, review):
     expect(page.get_by_text("Valor desat.")).to_be_visible()
     review("proveidor-desat")
     assert business_settings.get("payments.provider.bizum_enabled") is False
+
+
+def test_treasurer_changes_the_renewal_notice_months(page, live_server, review):
+    """T-M01-43e (P-399): els mesos de l'avís de renovació, abans a l'entorn, són un ajust de
+    socis que edita el tresorer, d'1 a 6; un 0 no es desa."""
+    treasurer = make_admin("tresoreria.avis", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos de socis").click()
+    expect(
+        page.get_by_role("cell", name="Mesos d'antelació de l'avís de renovació")
+    ).to_be_visible()
+    page.get_by_role("link", name="Canvia: Mesos d'antelació de l'avís de renovació").click()
+    page.get_by_label("Valor nou").fill("0")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    review("socis-avis-renovacio-error")
+    page.get_by_label("Valor nou").fill("2")
+    page.get_by_label("Nota").fill("Prova inventada")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("socis-avis-renovacio")
+    assert business_settings.get("members.renewal_notice_months") == 2
