@@ -6,6 +6,7 @@ ho fa amb aquests serveis.
 - `request(person, licence_type, starts_on, actor)`: demanar una llicència i el seu càrrec
   (P-M06-B, RN-M06-04, 10 i 21). El pagament és el del 05b sobre el càrrec; el pas a «pagada»,
   la T-M06-05.
+- `declare_existing(person, licence_type, ...)`: «Ja en tinc una» (RN-M06-14).
 - `participant_status(account, person, on, context)`: el que pot veure de la llicència d'un
   participant l'instructor («vigent sí o no») o el responsable de l'activitat («vigent», «en
   tràmit» o «no») per a la data de la sessió o de l'activitat (RN-M06-22, LC10). Mai la data de
@@ -157,6 +158,10 @@ class NotAvailable(LicenceRequestError):
     message = _("Aquest tipus de llicència no es pot demanar ara mateix.")
 
 
+class InvalidFederationNumber(LicenceRequestError):
+    message = _("Escriu el número de la llicència (30 caràcters com a màxim).")
+
+
 def _start(licence_type: LicenceType, starts_on, today) -> datetime.date:
     """RN-M06-02 i RN-M06-21. Una anual comença avui (la data definitiva és la de la
     tramitació, T-M06-10) o, la d'any natural, l'1/1 de l'any vinent; la d'un dia, el dia triat."""
@@ -281,3 +286,53 @@ def on_charge_paid(event) -> None:
         new=Licence.Status.PAID,
         details={"event": event.pk},
     )
+
+
+# --- «Ja en tinc una» (T-M06-08) -----------------------------------------------------------------
+
+DECLARE_PERMISSION = "licences.declare_existing"  # LC3 (per a una altra persona)
+ACTION_DECLARED = "licences.declared_existing"
+
+
+def declare_existing(
+    person, licence_type: LicenceType, *, federation_number: str, expires_on, actor,
+    starts_on=None, today=None,
+) -> Licence:  # fmt: skip
+    """RN-M06-14 (CA-M06-12): desa una llicència que la persona ja té, `active` i d'origen
+    `external`, sense càrrec ni tramitació. La pot declarar la mateixa persona (el «Propi» de
+    LC3) o un compte amb LC3; si no, «no trobat». Sense data d'inici, avui (P-443)."""
+    own = actor is not None and getattr(actor, "person_id", None) == person.pk
+    if not own and not has_perm(actor, DECLARE_PERMISSION, write=True):
+        raise Http404
+    today = today or timezone.localdate()
+    if not licence_type.active:
+        raise NotAvailable
+    if licence_type.validity_rule == ValidityRule.SINGLE_DAY and not business_settings.get(
+        DAY_ENABLED
+    ):
+        raise DayLicencesDisabled
+    number = (federation_number or "").strip()
+    if not number or len(number) > 30:
+        raise InvalidFederationNumber
+    if expires_on < today:
+        raise DateInPast
+    start = min(starts_on or today, expires_on)
+    with transaction.atomic():
+        licence = Licence.objects.create(
+            person=person,
+            licence_type=licence_type,
+            validity_rule=licence_type.validity_rule,
+            status=Licence.Status.ACTIVE,
+            origin=Licence.Origin.EXTERNAL,
+            starts_on=start,
+            expires_on=expires_on,
+            federation_number=number,
+        )
+        audit.record(
+            ACTION_DECLARED,
+            actor=actor,
+            target=licence,
+            new={"licence_type": licence_type.pk, "starts_on": start.isoformat(),
+                 "expires_on": expires_on.isoformat()},
+        )  # fmt: skip
+    return licence

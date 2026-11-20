@@ -1323,3 +1323,13 @@ noves:
       Qui passa a tècnic ja no necessita renovar l'aficionat, i rebre'n avisos seria soroll; A és el que fa ara el codi
       perquè és el cas segur, i canviar-lo és una línia.
     data: 2026-11-20
+  P-443:
+    opcions:
+      A: "La data d'inici que s'escrigui (opcional) i, si no, el dia que es declara."
+      B: "Sempre obligatòria: la persona o la secretaria la copien del carnet de la federació."
+      C: "Es calcula del venciment i del tipus (per exemple, l'1/1 per a una d'any natural)."
+    recomanada: A
+    perque: >-
+      No demana cap dada que la persona potser no té a mà, i el que importa al club (és vigent el dia de l'activitat?)
+      ja ho resol el venciment; C endevinaria dates que la federació no ha dit.
+    data: 2026-11-20
