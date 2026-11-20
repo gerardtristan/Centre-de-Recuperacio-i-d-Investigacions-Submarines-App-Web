@@ -646,6 +646,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.TREASURER: _ALL},
     ),
+    # VC-16 (T-M05b-22c; RN-M05b-09): dies del recordatori d'una transferència que no arriba.
+    _perm(
+        "settings.edit.payments.transfer_reminder_days",
+        "AJ5b-12",
+        _("Dies que s'espera una transferència abans del recordatori"),
+        requires=("settings.section.payments",),
+        initial={R.TREASURER: _ALL},
+    ),
     _perm(
         "settings.edit.payments.max_direct_debit_attempts",
         "AJ5b-5",

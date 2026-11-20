@@ -1212,6 +1212,17 @@ opcions:
       La IP només cal per al límit d'origen (30 minuts); copiar-la al registre l'allargaria tant com
       la retenció del registre, sense cap ús que ho justifiqui.
     data: 2026-11-20
+  P-407:
+    opcions:
+      A: "Com s'ha construït: passats els dies de VC-16, l'intent es tanca com a «caducat», el càrrec continua pendent i surt un sol recordatori al pagador (referència i enllaç, cap IBAN)."
+      B: "A més, la comissió del retorn (VC-18, CA-M05b-27) en la mateixa tasca: queda congelada amb la T-M05b-23."
+      C: "Només el recordatori, sense tancar l'intent (la transferència continua «en curs»)."
+    recomanada: A
+    perque: >-
+      És el que diuen la RN-M05b-09 i el pas 4 de P-M05b-C («l'estat torna a pendent i s'envia un
+      recordatori»); tancar l'intent deixa pagar d'una altra manera sense perdre una transferència que
+      arribi tard, que la conciliació encara paga.
+    data: 2026-11-20
   P-406:
     opcions:
       A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."

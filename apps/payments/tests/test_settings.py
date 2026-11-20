@@ -22,6 +22,7 @@ from apps.payments import (
     processing,
     remittances,
     returns,
+    transfer_reminders,
 )
 from apps.payments.models import PaymentAttempt as Attempt
 from apps.payments.providers import base, fake, switch_key
@@ -70,6 +71,7 @@ def test_vc_17_values_come_from_the_migration_with_their_ranges():
         (AGE, 60, 30, 240),
         (GIVE_UP, 24, 24, 168),
         (checkout.WINDOW, 7, 0, 60),  # P-302 (T-M05b-15a)
+        (transfer_reminders.DAYS, 30, 7, 60),  # VC-16 (T-M05b-22c)
     ]
     assert not any(s.affects_money or s.effective_dated for s in rows)
 
@@ -171,8 +173,8 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         finally:
             MigrationExecutor(connection).migrate(leaves)
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
-        # +1 T-M05b-15a, +2 P-291, +1 P-123, +3 P-131
-        assert after == before and len(after) == 13
+        # +1 T-M05b-15a, +2 P-291, +1 P-123, +3 P-131, +1 T-M05b-22c
+        assert after == before and len(after) == 14
         # RN-M05b-24: un Bizum que ja era en curs en desplegar conserva els 15 minuts.
         assert Attempt.objects.get(pk=bizum.pk).ui_timeout_minutes == 15
 

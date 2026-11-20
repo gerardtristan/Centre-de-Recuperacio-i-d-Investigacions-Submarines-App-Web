@@ -240,6 +240,7 @@ MAP = {
         "apps/members/views/admin_types.py",
         "templates/core/setting*.html",
         "templates/members/membership_type*.html",
+        "apps/payments/transfer_reminders.py",
     ),
     "test_dades_bloquejades.py": (
         "apps/core/locked_data.py",
