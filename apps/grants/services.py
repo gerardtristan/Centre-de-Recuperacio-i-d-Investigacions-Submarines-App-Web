@@ -16,10 +16,19 @@ from apps.core.models import Role
 from apps.core.permissions import active_role_codes, has_perm
 from apps.treasury.models import CostCentre
 
-from .models import ApplicationDocument, ApplicationTransition, GrantApplication, GrantCall
+from .models import (
+    ApplicationDocument,
+    ApplicationTransition,
+    DenialNote,
+    GrantApplication,
+    GrantCall,
+    GrantCallDocument,
+)
 
+CALLS = "grants.calls.manage"  # AJ1
 ELIGIBILITY = "grants.eligibility"  # AJ2
 PREPARE = "grants.applications.prepare"  # AJ4
+RESOLVE = "grants.applications.resolve"  # AJ5
 CLOSE = "grants.applications.close"  # AJ8
 UNDO = "grants.applications.undo"  # AJ9
 
@@ -27,6 +36,8 @@ APPLICATION_CREATED = "grants.application_created"
 ELIGIBILITY_REVIEWED = "grants.eligibility_reviewed"
 APPLICATION_TRANSITIONED = "grants.application_transitioned"
 DOCUMENT_CHANGED = "grants.document_changed"
+APPLICATION_COPIED = "grants.application_copied"
+CALL_COPIED = "grants.call_copied"
 
 # Qui pot ser responsable d'una sol·licitud (M09-ajuts-4; S-M09A-01): llista de rols, codi.
 RESPONSIBLE_ROLES = frozenset({Role.Code.TREASURER, Role.Code.BOARD, Role.Code.ADMINISTRATOR})
@@ -159,13 +170,16 @@ def review_eligibility(call: GrantCall, *, status: str, notes: str, by) -> Grant
     return call
 
 
-# RN-M09A-01. Concedida i denegada (resolució, T-M09A-07) i justificada (paquet, T-M09A-10)
-# s'afegeixen amb les seves tasques, que porten les dades que demanen.
+# RN-M09A-01. Justificada (paquet, T-M09A-10) s'afegeix amb la seva tasca.
 TRANSITIONS = {
     S.DETECTED: {S.PREPARING, S.CLOSED},
     S.PREPARING: {S.SUBMITTED, S.CLOSED},
+    S.SUBMITTED: {S.GRANTED, S.DENIED},
+    S.DENIED: {S.CLOSED},
     S.JUSTIFIED: {S.CLOSED},
 }
+# El permís de cada canvi, segons d'on surt (M09-ajuts-4).
+PERMISSION_FROM = {S.SUBMITTED: RESOLVE, S.DENIED: CLOSE, S.JUSTIFIED: CLOSE}
 EDITABLE_DOCUMENTS = (S.DETECTED, S.PREPARING)
 
 
@@ -178,12 +192,14 @@ def _date(value, label):
 @transaction.atomic
 def transition(application, to_status, *, by, reason="", **data) -> GrantApplication:
     """`grants.transition` (M09-8). Presentar demana `submitted_on`, `submission_ref`,
-    `amount_requested_cents` i tots els documents a punt; tancar sense presentar-la, el motiu."""
+    `amount_requested_cents` i tots els documents a punt; concedir, `amount_granted_cents`,
+    `resolved_on` i `resolution_file`; denegar, la resolució i l'observació (`improvements` i
+    el motiu); tancar sense presentar-la, el motiu."""
     application = (
         GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
     )
     old, reason = application.status, (reason or "").strip()
-    require(by, CLOSE if old == S.JUSTIFIED else PREPARE, application)
+    require(by, PERMISSION_FROM.get(old, PREPARE), application)
     if to_status not in TRANSITIONS.get(old, ()):
         raise InvalidTransition(_("Aquest canvi d'estat no és permès."))
     call = application.call
@@ -194,6 +210,8 @@ def transition(application, to_status, *, by, reason="", **data) -> GrantApplica
             raise InvalidTransition(_("La convocatòria no és elegible."))
     elif to_status == S.SUBMITTED:
         _submit(application, call, data)
+    elif to_status in (S.GRANTED, S.DENIED):
+        _resolve(application, to_status, reason, data, by)
     elif old in EDITABLE_DOCUMENTS:  # tancar sense presentar-la
         if not reason:
             raise GrantError(_("Escriu per què no es presenta."))
@@ -224,6 +242,33 @@ def _submit(application, call, data) -> None:
         application.expected_response_on = _date(
             data["expected_response_on"], _("la data prevista de resposta")
         )
+
+
+def _resolve(application, to_status, reason, data, by) -> None:
+    """P-M09A-E (RN-M09A-08 i 13; CA-M09A-07): la data i la resolució sempre; concedida, amb
+    l'import; denegada, amb una observació (motiu i què millorar)."""
+    resolved_on = _date(data.get("resolved_on"), _("la data de la resolució"))
+    if data.get("resolution_file") is None:
+        raise GrantError(_("Cal la resolució de l'organisme."))
+    application.resolved_on, application.resolution_file = resolved_on, data["resolution_file"]
+    if to_status == S.GRANTED:
+        amount = data.get("amount_granted_cents")
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount < 0:
+            raise GrantError(_("Cal l'import concedit, en cèntims."))
+        application.amount_granted_cents = amount
+        # RN-M09A-08: més del demanat és un avís, no un bloqueig.
+        application.granted_over_requested = amount > application.amount_requested_cents
+        return
+    improvements = (data.get("improvements") or "").strip()
+    if not reason or not improvements:
+        raise GrantError(_("Una denegació porta el motiu i què caldria millorar."))
+    DenialNote.objects.create(
+        application=application,
+        reason=reason,
+        resolved_on=resolved_on,
+        improvements=improvements,
+        recorded_by=by,
+    )
 
 
 @transaction.atomic
@@ -283,3 +328,74 @@ def add_document(application, *, name: str, by) -> ApplicationDocument:
         raise GrantError(_("La sol·licitud ja té un document amb aquest nom.")) from error
     audit.record(DOCUMENT_CHANGED, actor=by, target=document, field="name", new=name)
     return document
+
+
+@transaction.atomic
+def copy_application(application, call, *, by) -> GrantApplication:
+    """P-M09A-G (RN-M09A-14, CA-M09A-11): una sol·licitud nova «detectada» a `call`, amb el
+    mateix responsable, departament, centre de cost, import i documents (sense els fitxers ni la
+    marca «a punt»). Les observacions de la denegació es veuen per `copied_from`."""
+    source = GrantApplication.objects.get(pk=application.pk)
+    copy = GrantApplication(
+        call=call,
+        responsible=source.responsible,
+        department=source.department,
+        cost_centre=source.cost_centre,
+        amount_requested_cents=source.amount_requested_cents,
+        copied_from=source,
+        created_by=by,
+    )
+    require(by, PREPARE, copy)
+    _check_responsible(copy.responsible)
+    copy.save()
+    ApplicationDocument.objects.bulk_create(
+        ApplicationDocument(application=copy, name=document.name)
+        for document in source.documents.all()
+    )
+    audit.record(APPLICATION_COPIED, actor=by, target=copy, details={"copied_from": source.pk})
+    return copy
+
+
+def denial_notes_for(application):
+    """Les observacions de les denegacions de què ve una còpia, de la més recent a la primera."""
+    notes, source = [], application.copied_from
+    while source is not None:
+        notes.extend(source.denial_notes.order_by("-pk"))
+        source = source.copied_from
+    return notes
+
+
+# Les dates no es copien a l'edició següent (RN-M09A-14), ni la revisió de l'elegibilitat.
+_NOT_COPIED = {
+    "id",
+    "opens_on",
+    "closes_on",
+    "eligible_expenses_from",
+    "eligible_expenses_to",
+    "justification_due_on",
+    "eligibility_status",
+    "eligibility_reviewed_by",
+    "eligibility_reviewed_at",
+    "eligibility_notes",
+    "previous_edition",
+    "created_by",
+    "created_at",
+}
+
+
+@transaction.atomic
+def copy_call(call, *, by) -> GrantCall:
+    """RN-M09A-14: la convocatòria de l'edició següent, amb tot excepte les dates; l'elegibilitat
+    torna a «pendent de revisar», perquè les bases poden haver canviat."""
+    require(by, CALLS)
+    fields = {
+        f.attname: getattr(call, f.attname)
+        for f in GrantCall._meta.concrete_fields
+        if f.name not in _NOT_COPIED
+    }
+    copy = GrantCall.objects.create(**fields, previous_edition=call, created_by=by)
+    GrantCallDocument.objects.bulk_create(
+        GrantCallDocument(call=copy, name=d.name, order=d.order) for d in call.documents.all()
+    )
+    audit.record(CALL_COPIED, actor=by, target=copy, details={"previous_edition": call.pk})
+    return copy
