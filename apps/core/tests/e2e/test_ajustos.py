@@ -28,6 +28,25 @@ LABEL = "Minuts que la pantalla espera la confirmació d'un Bizum"
 GIVE_UP_LABEL = (
     "Hores que la xarxa de seguretat torna a provar una ordre abans de deixar-la a revisar"
 )
+# Parelles de lletres d'una clau partides entre dues línies sense «_» ni «.» (T-DX-80, V18)
+BAD_BREAKS_JS = """(keys) => keys.flatMap((key) => {
+  const bad = [];
+  const walker = document.createTreeWalker(key, NodeFilter.SHOW_TEXT);
+  let previous = null;
+  for (let node; (node = walker.nextNode());) {
+    for (let i = 0; i < node.length; i++) {
+      const range = document.createRange();
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const top = range.getBoundingClientRect().top;
+      if (previous && top - previous.top > 4 && !"_.".includes(previous.char)) {
+        bad.push(previous.char + node.data[i]);
+      }
+      previous = { top, char: node.data[i] };
+    }
+  }
+  return bad;
+})"""
 
 
 def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_server, review):
@@ -45,6 +64,8 @@ def test_administrator_changes_a_value_and_treasurer_only_sees_it(page, live_ser
     expect(page.get_by_role("heading", name="Ajustos de pagaments")).to_be_visible()
     # El valor de la 093 (T-M05b-28).
     expect(page.get_by_role("link", name=f"Canvia: {GIVE_UP_LABEL}")).to_be_visible()
+    # T-DX-80 (V18): a 1280 px, la clau només es parteix després d'un «_» o d'un «.»
+    assert page.locator("tbody th .codi").evaluate_all(BAD_BREAKS_JS) == []
     review("apartat")
 
     page.get_by_role("link", name=f"Canvia: {LABEL}").click()
