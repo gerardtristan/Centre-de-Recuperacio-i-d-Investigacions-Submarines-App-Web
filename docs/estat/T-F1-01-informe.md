@@ -149,3 +149,10 @@ Captures de la verificació completa (`.e2e-captures/`, carpeta de la prova entr
 | e2e senceres | 179 passades, cap saltada (amb els navegadors de Playwright de `D:/CRIS/pw-browsers`, que també tenen Firefox i WebKit) |
 
 Nota per a qui faci proves al portàtil: amb `--reuse-db` en una base on abans s'han passat e2e (que buiden les taules), `test_instalments_screens_049.py::test_off_the_fee_page_shows_nothing_and_the_post_changes_nothing` falla: la pàgina mostra els terminis com si l'interruptor estigués encès. Amb `--create-db` passa. No és cap error del codi.
+
+### 7.6 Tercera volta (20/11/2026)
+
+- **V6, V7 i V9:** arreglats a la PR dels continguts (`templates/members/` i el missatge de `apps/members/views/admin_requests.py`), amb captures abans i després.
+- **Prova inestable dels terminis amb `--reuse-db`:** arreglada a la #298. La causa era que la neteja de les e2e no tornava els ajustos de les migracions al seu valor (apartat 7.5).
+- **No s'ha fet:** associar `templates/members/cluber_preview.html` a l'e2e de Cluber (`test_politiques_079.py`) a `.claude/hooks/e2e_map.py`. És configuració del hook de Claude Code: la canvia o l'autoritza el propietari.
+
