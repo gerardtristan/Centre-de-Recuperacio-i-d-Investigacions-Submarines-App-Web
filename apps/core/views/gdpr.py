@@ -186,8 +186,10 @@ class NotesExportForm(ReauthForm):
         # nota nova, la marca no passa a una altra.
         for item in notes:
             item["field"] = f"exclou:{item['key']}"
+            # V24: l'etiqueta visible és curta; la plantilla hi afegeix el títol de la nota com a
+            # text amagat, perquè el nom accessible digui de quina es tracta.
             self.fields[item["field"]] = forms.BooleanField(
-                label=_("Deixa fora: %(context)s") % {"context": item["context"]}, required=False
+                label=_("Deixa-la fora"), required=False
             )
         # Les notes que s'han mostrat: si n'apareix una de nova abans d'enviar-ho, cal tornar-les a
         # revisar (cap nota no surt sense que algú l'hagi vista).

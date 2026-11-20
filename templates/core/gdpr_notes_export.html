@@ -30,7 +30,8 @@
                 <th scope="row" class="cel-nom">{{ item.context }}</th>
                 <td data-etiqueta="{% translate 'Data' %}">{{ item.date|date:"d/m/Y" }}</td>
                 <td data-etiqueta="{% translate 'Text' %}">{{ item.text|linebreaksbr }}</td>
-                <td data-etiqueta="{% translate 'Revisió' %}">{% include "accounts/_camp.html" %}</td>
+                {# V24: etiqueta visible curta; el títol de la nota, amagat, completa el nom accessible (patró `casella` de _camp.html). #}
+                <td data-etiqueta="{% translate 'Revisió' %}"><div><label class="casella" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}<span class="visualment-amagat">: {{ item.context }}</span></span></label>{{ field.errors }}</div></td>
               </tr>
             {% endfor %}
           </tbody>

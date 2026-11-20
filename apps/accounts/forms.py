@@ -45,11 +45,19 @@ class NewPasswordForm(SetPasswordForm):
         self.fields["new_password2"].help_text = ""
 
 
+class OneTimeCodeInput(forms.TextInput):
+    """Un codi TOTP o de recuperació: com la contrasenya, mai no es torna a mostrar després d'un
+    error del formulari (V23, revisió final T-F1-01)."""
+
+    def format_value(self, value):
+        return None
+
+
 class CodeForm(forms.Form):
     code = forms.CharField(
         label=_("Codi"),
         max_length=24,
-        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+        widget=OneTimeCodeInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
     )
 
 
@@ -70,7 +78,7 @@ class ReauthForm(forms.Form):
         required=False,
         max_length=24,
         help_text=_("Les 6 xifres que mostra ara l'aplicació."),
-        widget=forms.TextInput(
+        widget=OneTimeCodeInput(
             attrs={"autocomplete": "one-time-code", "inputmode": "numeric", "maxlength": "6"}
         ),
     )
@@ -103,7 +111,7 @@ class ResetCredentialsForm(forms.Form):
         label=_("El teu codi TOTP"),
         max_length=24,
         help_text=_("Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu."),
-        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+        widget=OneTimeCodeInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
     )
 
 
@@ -130,7 +138,7 @@ class PersonalTotpResetForm(forms.Form):
         label=_("El teu codi TOTP"),
         max_length=24,
         help_text=_("Un codi nou de la teva aplicació d'autenticació, per confirmar que ets tu."),
-        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
+        widget=OneTimeCodeInput(attrs={"autocomplete": "one-time-code", "autocapitalize": "none"}),
     )
 
 

@@ -53,7 +53,9 @@ def test_the_administrator_reviews_the_notes_and_prepares_the_export(
     ).to_be_visible()
     review("exportacio-amb-notes")
 
-    page.get_by_label("Deixa fora: Anul·lació del càrrec «Quota inventada 2024» (90,00 €)").check()
+    page.get_by_label(
+        "Deixa-la fora: Anul·lació del càrrec «Quota inventada 2024» (90,00 €)"
+    ).check()
     page.get_by_role("button", name="Prepara l'exportació").click()
     expect(page.get_by_text("Cal el motiu per deixar fora alguna nota.")).to_be_visible()
     review("exportacio-amb-notes-sense-motiu")
