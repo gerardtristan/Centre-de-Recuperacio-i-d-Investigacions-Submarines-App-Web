@@ -405,3 +405,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-10](T-M06-10.md) | Llicències: tramitar a la federació (marcar tramitada o vigent) i fitxer provisional (carril A) | 21/11/2026 00:23 | aed8a609 | 8563 | [A comprovar] |
 | [T-M03-18](T-M03-18.md) | Permisos del 03 Material al catàleg i a la matriu inicial (core/0064) (carril C, torn del nucli) | 21/11/2026 02:01 | d99a2d61 | 1 fitxer nou | [A comprovar] |
 | [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (23 casos); 1 ajustada | [A comprovar] |
+| [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (22 casos); 1 ajustada | [A comprovar] |
