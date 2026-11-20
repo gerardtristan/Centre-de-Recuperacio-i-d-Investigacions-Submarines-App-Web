@@ -5,8 +5,9 @@ from datetime import date
 
 import pytest
 from django.db import IntegrityError, transaction
+from django.http import Http404
 
-from apps.core.models import AuditEntry, Department, PrivateFile
+from apps.core.models import AuditEntry, Department, OutgoingEmail, PrivateFile
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.expenses import services
 from apps.expenses.models import Expense, ExpenseCategory, Supplier
@@ -18,7 +19,10 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def treasurer(make_admin):  # noqa: F811
-    return make_admin("treasurer")
+    account = make_admin("treasurer")
+    account.notification_email = "tresoreria@example.org"
+    account.save()
+    return account
 
 
 @pytest.fixture
@@ -159,10 +163,11 @@ def test_una_correccio_que_no_val_no_desa_res(treasurer, boat):
     assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
 
 
-@pytest.mark.parametrize("status", [Expense.Status.PAID, Expense.Status.ANNULLED])
+# La pagada: test_payments.py (CA-M09-03), perquè «pagada» porta el moviment de la 04.
+@pytest.mark.parametrize("status", [Expense.Status.ANNULLED])
 def test_ca_m09_03_una_despesa_pagada_o_anullada_no_canvia(treasurer, boat, status):
     expense = services.record_expense(by=treasurer, **data(boat))
-    Expense.objects.filter(pk=expense.pk).update(status=status)  # pagar i anul·lar: T-M09-05
+    Expense.objects.filter(pk=expense.pk).update(status=status)
     with pytest.raises(services.ExpenseLocked):
         services.update_expense(expense, by=treasurer, amount_cents=1)
     assert Expense.objects.get(pk=expense.pk).amount_cents == 25000
@@ -181,7 +186,35 @@ def test_text_de_la_despesa(treasurer, boat):
     )
 
 
-@pytest.mark.xfail(reason="Permís MG1 al catàleg: T-M09-30 (nucli) i T-M09-22", strict=True)
-def test_un_compte_sense_permis_no_registra_despeses(make_admin, boat):  # noqa: F811
-    with pytest.raises(Exception):  # noqa: B017, PT011
-        services.record_expense(by=make_admin("secretary"), **data(boat))
+@pytest.mark.parametrize("role", ["secretary", "courses_manager", "board", None])
+def test_sense_mg1_amb_abast_tot_no_registra_ni_corregeix(make_admin, treasurer, boat, role):  # noqa: F811
+    # El responsable de cursos i sortides té «les seves activitats»: no val fins al repartiment.
+    other = make_admin(*([role] if role else []))
+    with pytest.raises(Http404):
+        services.record_expense(by=other, **data(boat))
+    expense = services.record_expense(by=treasurer, **data(boat))
+    with pytest.raises(Http404):
+        services.update_expense(expense, by=other, amount_cents=1)
+
+
+@pytest.mark.parametrize("role", ["administrator", "president"])
+def test_mg1_de_l_administrador_i_el_president(make_admin, boat, role):  # noqa: F811
+    assert services.record_expense(by=make_admin(role), **data(boat)).status == "to_pay"
+
+
+def test_ca_m09_01_el_tresorer_rep_un_sol_avis_sense_dades_del_proveidor(
+    make_admin,  # noqa: F811
+    treasurer,
+    boat,
+):
+    make_admin("administrator")  # té MG2, però cap adreça d'avisos
+    secretary = make_admin("secretary")
+    secretary.notification_email = "secretaria@example.org"
+    secretary.save()
+    expense = services.record_expense(by=treasurer, **data(boat))
+    sent = OutgoingEmail.objects.filter(template=services.NO_INVOICE_TEMPLATE)
+    assert [e.to_address for e in sent] == ["tresoreria@example.org"]  # el secretari no té MG2
+    assert str(expense.pk) in sent.get().body_text
+    assert boat.name not in sent.get().body_text
+    services.update_expense(expense, by=treasurer, amount_cents=26000)
+    assert sent.count() == 1  # corregir-la no torna a avisar
