@@ -340,3 +340,43 @@ class LicenceRefundProposal(models.Model):
 
     def __str__(self):
         return f"{self.licence} · {self.get_status_display()}"
+
+
+class LicenceReminder(AppendOnlyModel):
+    """Avís de venciment enviat al titular (M06-6; RN-M06-12): un sol cop per llicència i tram."""
+
+    licence = models.ForeignKey(Licence, on_delete=models.PROTECT, related_name="reminders")
+    days_before = models.PositiveSmallIntegerField(_("dies abans"))
+    sent_at = models.DateTimeField(_("enviat el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís de venciment")
+        verbose_name_plural = _("avisos de venciment")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["licence", "days_before"], name="licences_reminder_once"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.licence} · {self.days_before}"
+
+
+class LicenceReminderDigest(AppendOnlyModel):
+    """Resum diari per a la secretaria (M06-6; RN-M06-12): un per dia i tram."""
+
+    day = models.DateField(_("dia"))
+    days_before = models.PositiveSmallIntegerField(_("dies abans"))
+    count = models.PositiveIntegerField(_("llicències"))
+    sent_to = models.PositiveIntegerField(_("destinataris"))
+    sent_at = models.DateTimeField(_("enviat el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("resum d'avisos")
+        verbose_name_plural = _("resums d'avisos")
+        constraints = [
+            models.UniqueConstraint(fields=["day", "days_before"], name="licences_digest_once")
+        ]
+
+    def __str__(self):
+        return f"{self.day:%d/%m/%Y} · {self.days_before}"
