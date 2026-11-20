@@ -76,9 +76,9 @@ def test_full_member_requests_withdraws_and_the_secretary_accepts_another(
     expect(page.get_by_text("no es crea cap càrrec ni cap suplement")).to_be_visible()
     review("detall")
     page.get_by_role("button", name="Accepta el pas a simpatitzant").click()
-    expect(
-        page.get_by_text("Pas a simpatitzant acceptat. S'aplicarà quan el soci renovi.")
-    ).to_be_visible()
+    expect(page.get_by_text("Sol·licitud resolta.")).to_be_visible()
+    # T-F1-01 (V6): una sola explicació, l'avís fix del detall, i no repetida al missatge.
+    expect(page.get_by_text("Pas a simpatitzant acceptat.")).to_have_count(1)
     review("acceptat")
     current = Member.objects.select_related("type").get(pk=member.pk)
     assert current.type.code == "full"  # el tipus no canvia fins a la renovació (T-M01-43)

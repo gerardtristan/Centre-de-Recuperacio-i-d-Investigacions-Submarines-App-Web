@@ -7,7 +7,7 @@
   <h1>{% if mode == "exempt" %}{% translate "Eximeix la quota" %}{% else %}{% translate "Anul·la la quota" %}{% endif %}</h1>
   <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
   <dl class="dades-soci">
-    <div><dt>{% translate "Quota" %}</dt><dd>{{ fee.charge.concept }} ({{ fee.period }})</dd></div>
+    <div><dt>{% translate "Quota" %}</dt><dd>{{ fee.charge.concept }}{% if fee.period|stringformat:"s" not in fee.charge.concept %} ({{ fee.period }}){% endif %}</dd></div>
     <div><dt>{% translate "Import" %}</dt><dd>{{ amount }}</dd></div>
     <div><dt>{% translate "Venciment" %}</dt><dd>{{ fee.due_on|date:"d/m/Y" }}</dd></div>
     <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" with charge=fee.charge %}</dd></div>

@@ -98,7 +98,7 @@
               <tbody>
                 {% for row in fee_rows %}
                   <tr>
-                    <th scope="row" class="cel-nom">{{ row.fee.charge.concept }} <span class="text-2">({{ row.fee.period }})</span></th>
+                    <th scope="row" class="cel-nom">{{ row.fee.charge.concept }}{% if row.fee.period|stringformat:"s" not in row.fee.charge.concept %} <span class="text-2">({{ row.fee.period }})</span>{% endif %}</th>
                     <td data-etiqueta="{% translate 'Import' %}">{{ row.amount }}</td>
                     <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.fee.due_on|date:'Y-m-d' }}">{{ row.fee.due_on|date:"d/m/Y" }}</time></td>
                     <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>

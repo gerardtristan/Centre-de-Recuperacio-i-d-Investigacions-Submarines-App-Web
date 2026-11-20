@@ -136,8 +136,8 @@ def _resolve(member_request, data, request) -> str:
         fee = member_requests.approve_type_change(
             member_request, by=request.user, reason=data["reason"], request=request
         )
-        if fee is None:  # pas a simpatitzant (073): cap càrrec i cap canvi fins a la renovació
-            return _("Pas a simpatitzant acceptat. S'aplicarà quan el soci renovi.")
+        if fee is None:  # pas a simpatitzant (073): el detall ja ho explica en un avís fix (V6)
+            return _("Sol·licitud resolta.")
         return _("Canvi aprovat. S'ha creat el suplement.")
     member_requests.approve_leave(
         member_request,
