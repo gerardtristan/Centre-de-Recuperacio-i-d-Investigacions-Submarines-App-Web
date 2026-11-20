@@ -578,6 +578,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.members",),
         initial={R.ADMINISTRATOR: _ALL},
     ),
+    # T-M01-43e (P-399): mesos de l'avís de renovació, com els dies dels recordatoris amb què
+    # es comprova (P-360): el Tresorer.
+    _perm(
+        "settings.edit.members.renewal_notice_months",
+        "AJ01-8",
+        _("Mesos d'antelació de l'avís de renovació"),
+        requires=("settings.section.members",),
+        initial={R.TREASURER: _ALL},
+    ),
     # T-M01-49 (097, P-61): els quatre ajustos del pagament a terminis (`members.instalments.*`,
     # família registrada pel 01). Matriu inicial com el preu de la quota (P-396).
     _perm(

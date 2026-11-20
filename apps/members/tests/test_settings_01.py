@@ -54,6 +54,8 @@ EDITORS = {
     values.INSTALMENTS_TOTAL: {"treasurer", "administrator"},
     values.INSTALMENTS_SURCHARGE: {"treasurer", "administrator"},
     values.INSTALMENTS_UNPAID_DAYS: {"treasurer", "administrator"},
+    # T-M01-43e (P-399): com els dies dels recordatoris.
+    values.RENEWAL_NOTICE_MONTHS: {"treasurer"},
 }
 ROLES = ["treasurer", "administrator", "secretary", "president", "board", "instructor"]
 
@@ -71,6 +73,7 @@ def test_the_01_values_are_settings_with_their_initial_values():
         values.INSTALMENTS_TOTAL: 9600,  # 3 × 32 €, provisional (097)
         values.INSTALMENTS_SURCHARGE: 0,  # provisional (097)
         values.INSTALMENTS_UNPAID_DAYS: 30,
+        values.RENEWAL_NOTICE_MONTHS: 1,  # T-M01-43e (abans, l'entorn)
     }
     prices = Setting.objects.filter(key__in=[FULL_PRICE, SUPPORTER_PRICE])
     assert all(s.affects_money and s.effective_dated for s in prices)
@@ -219,8 +222,8 @@ def test_p_360_reminders_cannot_start_before_the_renewal_notice(
 ):
     # P-360, opció B: la quota es genera el dia del primer recordatori i l'avís de renovació
     # (T-M01-43) ha de sortir abans; un mes en té com a mínim 28 dies.
-    settings.MEMBER_RENEWAL_NOTICE_MONTHS = months
     treasurer = make_admin("treasurer")
+    Setting.objects.filter(key=values.RENEWAL_NOTICE_MONTHS).update(initial_value=months)
     if ok:
         business_settings.change(values.FEE_REMINDER_OFFSETS, value, treasurer)
         assert values.fee_reminder_offsets() == value

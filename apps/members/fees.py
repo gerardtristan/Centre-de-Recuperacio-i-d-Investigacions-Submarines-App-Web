@@ -38,7 +38,6 @@ import datetime
 import logging
 
 from django import forms
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max
@@ -519,13 +518,13 @@ def _renewal_noticed(member, renews_on) -> bool:
 
 
 def _notice_candidates(today) -> list:
-    """(soci, data de renovació) dins la finestra de l'avís: socis de ple dret actius,
-    `MEMBER_RENEWAL_NOTICE_MONTHS` abans de la renovació (085, T-6). Un dia perdut es recupera
-    mentre la quota no s'ha generat; un cop generada, `next_fee_due` ja no torna data. Les
+    """(soci, data de renovació) dins la finestra de l'avís: socis de ple dret actius, els mesos
+    de l'ajust `members.renewal_notice_months` abans de la renovació (085, T-6). Un dia perdut es
+    recupera mentre la quota no s'ha generat; un cop generada, `next_fee_due` ja no torna data. Les
     baixes obertes (RN-M01-93, punt 6) les mira cada cridador dins el seu `try` per soci."""
     from apps.payments.expiry import months_after
 
-    months = settings.MEMBER_RENEWAL_NOTICE_MONTHS
+    months = values.renewal_notice_months()
     members = roster.with_fee_data(
         Member.objects.select_related("person", "type").filter(
             status=S.ACTIVE, type__full_rights=True, person__status=Person.Status.ACTIVE

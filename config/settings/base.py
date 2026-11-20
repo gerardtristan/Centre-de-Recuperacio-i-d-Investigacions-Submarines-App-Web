@@ -161,12 +161,6 @@ STAGING_TOTP_SECRET = ""
 # per al límit d'intents (V-01). 0 = connexió directa.
 NUM_PROXIES = env.int("DJANGO_NUM_PROXIES", default=0)
 
-# Avís previ de la renovació (T-M01-43; 073 i 085, T-6): mesos abans de la renovació, el mateix
-# dia (o l'últim del mes). Ha d'arribar abans de generar la quota (el primer recordatori).
-# No és cap VC de la T-M01-32 (VC-01 a VC-04 i VC-53): continua a l'entorn fins que el pla el
-# posi als ajustos (T-M01-43c).
-MEMBER_RENEWAL_NOTICE_MONTHS = env.int("MEMBER_RENEWAL_NOTICE_MONTHS", default=1)
-
 # Formulari «Fer-se soci» (T-M01-13): llindars acceptats pel responsable com a valors inicials
 # configurables (Q-040 de la 072, 09/11/2026).
 # Per origen: com a màxim N sol·licituds en M minuts; en arribar-hi, limitat M minuts més. Per

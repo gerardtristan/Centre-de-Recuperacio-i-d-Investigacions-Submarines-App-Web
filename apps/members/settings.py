@@ -6,7 +6,6 @@ La pantalla és la comuna (apartat «members»). Les claus les crea `members/002
 el catàleg i `core/0046`.
 """
 
-from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ngettext
 
@@ -17,6 +16,8 @@ FEE_REMINDER_OFFSETS = "members.fee_reminder_offsets"  # VC-02 (091)
 CARD_BACK_TEXT = "members.card_back_text"  # VC-03
 CLASSIC_MEMBER_YEARS = "members.classic_member_years"  # VC-04 (0 = sense insígnia)
 SUPPLEMENT_DUE_DAYS = "members.type_change_supplement_due_days"  # VC-53 (091)
+# T-M01-43e (P-399): mesos de l'avís de renovació abans de la renovació (abans, l'entorn).
+RENEWAL_NOTICE_MONTHS = "members.renewal_notice_months"
 # T-M01-49 (097, P-61): pagament a terminis, una família amb un sol permís (`members/0024`).
 INSTALMENTS = "members.instalments"
 INSTALMENTS_ENABLED = f"{INSTALMENTS}.enabled"
@@ -46,11 +47,17 @@ def fee_reminder_offsets() -> list[int]:
     return sorted(business_settings.get(FEE_REMINDER_OFFSETS))
 
 
-def check_reminders(offsets) -> None:
+def renewal_notice_months() -> int:
+    """T-M01-43 (CA-M01-70): l'avís de renovació surt aquests mesos abans (d'1 a 6, P-399)."""
+    return business_settings.get(RENEWAL_NOTICE_MONTHS)
+
+
+def check_reminders(offsets, months=None) -> None:
     """P-360, opció B: la quota es genera el dia del primer recordatori, i l'avís de renovació
-    (T-M01-43, `MEMBER_RENEWAL_NOTICE_MONTHS` abans) ha de sortir abans. Un mes en té com a
-    mínim 28 dies. La registra `apps.MembersConfig.ready` per a VC-02."""
-    months = django_settings.MEMBER_RENEWAL_NOTICE_MONTHS
+    (T-M01-43, `renewal_notice_months` abans) ha de sortir abans. Un mes en té com a mínim 28
+    dies. La registra `apps.MembersConfig.ready` per a VC-02 i, amb `check_notice_months`, per
+    als mesos de l'avís (T-M01-43e): tant si es canvien els dies com els mesos."""
+    months = renewal_notice_months() if months is None else months
     limit = months * 28
     if -min(offsets) > limit:
         message = ngettext(
@@ -63,6 +70,12 @@ def check_reminders(offsets) -> None:
             months,
         )
         raise ValidationError(message % {"days": limit, "months": months})
+
+
+def check_notice_months(months) -> None:
+    """T-M01-43e: amb menys mesos, l'avís no pot quedar després del primer recordatori vigent
+    (P-360). El mínim d'1 mes és el de l'ajust (substitueix la comprovació d'arrencada E002)."""
+    check_reminders(fee_reminder_offsets(), months)
 
 
 def supplement_due_days() -> int:
