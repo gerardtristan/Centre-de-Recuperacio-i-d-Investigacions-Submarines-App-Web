@@ -1233,6 +1233,26 @@ opcions:
       El soci ja rep l'enllaç per pagar i no hi ha res a resoldre, però el correu diu al tresorer qui no
       té adreça i s'ha d'avisar d'una altra manera; sense ell, aquesta quota quedaria oblidada.
     data: 2026-11-19
+  P-471:
+    opcions:
+      A: "Com s'ha construït: la 04 bloqueja fins a l'últim dia del darrer període tancat; per reobrir un període anterior, primer es reobren els posteriors (T-M09-16)."
+      B: "Només es pot reobrir el darrer període tancat."
+      C: "Ampliar la guarda de la 04 perquè pregunti per cada data (canvi de la RN-T33, regla congelada: decisió nova i PR risc:alt)."
+    recomanada: A
+    perque: >-
+      No toca cap regla congelada i mai deixa entrar un moviment del 09 en un període tancat; reobrir
+      és excepcional (només per errors del propi període) i reobrir també els posteriors queda al registre.
+    data: 2026-11-20
+  P-472:
+    opcions:
+      A: "Com s'ha construït: la despesa guarda la data real de la factura i s'accepta; el que es bloqueja és el moviment (pagar o anul·lar), que va al període obert."
+      B: "Es rebutja si la data de la factura és d'un període tancat, i el tresorer la registra amb una data del període obert."
+      C: "Un camp nou «data d'imputació» (per defecte, la del dia) que és la que es compara amb el període tancat."
+    recomanada: A
+    perque: >-
+      Compleix L-M09-02 sense falsejar la data de la factura (que cal per justificar ajuts), i el
+      període tancat queda protegit igual perquè cap moviment no hi entra (RN-T30).
+    data: 2026-11-20
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."
@@ -1243,6 +1263,16 @@ opcions:
       El comprovant pot dur dades de qui paga i és un document de tresoreria: com menys gent l'obri,
       millor. Si la junta l'ha de veure per a una revisió, es pot donar el permís des de l'editor.
     data: 2026-11-19
+  P-470:
+    opcions:
+      A: "Com s'ha construït: la meitat lluny del zero, simètric amb el positiu (−21,75 % → −21,8 %; −7,5 cèntims → −8)."
+      B: "La meitat cap a +∞, al peu de la lletra (−21,75 % → −21,7 %; −7,5 cèntims → −7)."
+      C: "Arrodoniment bancari (la meitat cap al parell), per als positius i els negatius."
+    recomanada: A
+    perque: >-
+      Una pèrdua es llegeix igual que un guany del mateix import, i és l'arrodoniment comercial habitual
+      (ROUND_HALF_UP); només canvia una dècima a la vista i encara no hi ha cap marge congelat.
+    data: 2026-11-20
 
 noves:
   P-410:
