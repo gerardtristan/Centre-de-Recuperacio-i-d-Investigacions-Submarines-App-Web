@@ -358,3 +358,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M05b-22c](T-M05b-22c.md) | Recordatori de transferència: passats els dies de VC-16, l'intent es tanca i el pagador rep un sol recordatori (core/0059, payments/0029; dubte P-407; pilot) | 20/11/2026 07:26 | (vegeu la PR) | 16 noves; 1 e2e nova | [A comprovar] |
 =======
 | [T-M05b-22c](T-M05b-22c.md) | Recordatori de transferència: passats els dies de VC-16, l'intent es tanca i el pagador rep un sol recordatori (core/0059, payments/0029; dubte P-407; pilot) | 20/11/2026 07:26 | 68dba709 | 16 noves; 1 e2e nova | [A comprovar] |
+| [T-F1-01b](T-F1-01b.md) | Revisió final, nucli: el codi TOTP no es torna a mostrar després d'un error (V23) i casella curta a l'exportació RGPD amb notes (V24) (pilot) | 20/11/2026 09:05 | 22eea8a6 | 9 noves; 1 e2e ajustada | [A comprovar] |
