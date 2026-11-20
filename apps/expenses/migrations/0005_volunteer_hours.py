@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0061_margins_and_grants_permissions"),
+        ("core", "0062_margins_and_grants_permissions"),
         ("expenses", "0004_other_income"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
