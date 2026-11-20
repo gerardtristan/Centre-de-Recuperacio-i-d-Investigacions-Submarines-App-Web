@@ -150,8 +150,9 @@ def test_member_forms_and_payment_layout(page, live_server, settings, builder, m
     page.goto(f"{base}/")
     (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
     assert right[0] > left[0] and abs(left[1] / right[1] - 7 / 5) < 0.1, (left, right)
+    # V8 (T-DX-77): a sota, també 7/5, perquè la història comenci on comença el carnet
     (left, right) = page.evaluate(COLUMNS_JS, ".inici-graella")
-    assert right[0] > left[0] and abs(left[1] / right[1] - 8 / 4) < 0.15, (left, right)
+    assert right[0] > left[0] and abs(left[1] / right[1] - 7 / 5) < 0.1, (left, right)
     page.set_viewport_size({"width": 800, "height": 900})
     (left, right) = page.evaluate(COLUMNS_JS, ".inici-portada")
     assert abs(left[1] - right[1]) < 2 and right[0] - (left[0] + left[1]) >= 24, (left, right)
