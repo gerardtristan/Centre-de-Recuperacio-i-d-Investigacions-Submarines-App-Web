@@ -10,6 +10,7 @@ import datetime
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.http import Http404
 
 from apps.activities import catalogue
 from apps.activities.models import (
@@ -19,7 +20,8 @@ from apps.activities.models import (
     TrainingCatalogueEntry,
     TrainingCataloguePrice,
 )
-from apps.core.models import AppendOnlyError, AuditEntry, Department
+from apps.core.business_settings import EMAIL_TEMPLATE
+from apps.core.models import AppendOnlyError, AuditEntry, Department, OutgoingEmail, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.django_db
@@ -314,3 +316,91 @@ def test_ca_m02_25_no_field_stores_health_card_or_iban_data():
         for field in model._meta.get_fields():
             name = field.name.lower()
             assert not any(part in name for part in forbidden), (model.__name__, field.name)
+
+
+# --- T-M02-05a: serveis d'edició, avís del canvi de preu i permís (AC6) --------------------------
+
+
+def test_updating_the_entry_never_changes_a_price(manager, general):
+    entry = new_entry(manager, general)
+    catalogue.update_entry(entry, by=manager, description="Descripció nova inventada.")
+    entry.refresh_from_db()
+    assert entry.description == "Descripció nova inventada."
+    with pytest.raises(ValidationError):
+        catalogue.update_entry(entry, by=manager, price_member_cents=1)
+    assert catalogue.price_on(entry, TODAY).price_member_cents == 4500
+    record = AuditEntry.objects.get(action=catalogue.ENTRY_UPDATED)
+    assert (record.field, record.old_value, record.new_value) == (
+        "description",
+        "",
+        "Descripció nova inventada.",
+    )
+    closed = Department.objects.create(name="Departament tancat inventat", active=False)
+    with pytest.raises(ValidationError):
+        catalogue.update_entry(entry, by=manager, department=closed)
+
+
+def test_types_subtypes_and_projects_have_unique_names(manager, general):
+    subtype = catalogue.create_subtype(by=manager, name="Cens inventat")
+    assert subtype.active
+    with pytest.raises(ValidationError):
+        catalogue.create_subtype(by=manager, name="Neteja")
+    with pytest.raises(ValidationError):
+        catalogue.create_outing_type(by=manager, name="Immersió", default_department=general)
+    kind = catalogue.create_outing_type(
+        by=manager, name="Fotosub inventada", default_department=general, is_environmental=True
+    )
+    assert kind.is_environmental
+    project = catalogue.create_project(
+        by=manager, name="Projecte inventat", objective="Objectiu inventat.", department=general
+    )
+    assert project.status == EnvironmentalProject.Status.ACTIVE
+    with pytest.raises(ValidationError):
+        catalogue.create_project(by=manager, name="Un altre", objective=" ", department=general)
+    assert AuditEntry.objects.filter(action=catalogue.TYPE_CREATED).count() == 3
+
+
+def test_ca_m02_26_a_price_change_notifies_the_treasurer(manager, general, make_admin):  # noqa: F811
+    treasurer = make_admin(Role.Code.TREASURER)
+    treasurer.notification_email = "tresorer@example.org"
+    treasurer.save()
+    entry = new_entry(manager, general)
+    catalogue.change_prices(
+        entry,
+        by=manager,
+        price_member_cents=5000,
+        price_non_member_cents=6000,
+        valid_from=NEXT_MONTH,
+        note="Puja el preu (nota inventada).",
+        today=TODAY,
+    )
+    (email,) = OutgoingEmail.objects.filter(template=EMAIL_TEMPLATE)
+    assert email.to_address == "tresorer@example.org"
+    assert "Curs inventat de proves" in email.body_text
+    assert "45,00 €" in email.body_text and "50,00 €" in email.body_text
+    assert "Puja el preu (nota inventada)." in email.body_text
+
+
+@pytest.mark.parametrize("role", [Role.Code.INSTRUCTOR, Role.Code.SECRETARY, Role.Code.BOARD])
+def test_without_ac6_the_catalogue_is_not_changed(make_admin, manager, general, role):  # noqa: F811
+    other = make_admin(role)
+    entry = new_entry(manager, general)
+    for call in (
+        lambda: new_entry(other, general, name="Un altre curs inventat"),
+        lambda: catalogue.update_entry(entry, by=other, description="x"),
+        lambda: catalogue.set_active(entry, False, by=other),
+        lambda: catalogue.change_prices(
+            entry,
+            by=other,
+            price_member_cents=1,
+            price_non_member_cents=1,
+            valid_from=TODAY,
+            note="x",
+            today=TODAY,
+        ),
+        lambda: catalogue.create_subtype(by=other, name="Un altre subtipus"),
+    ):
+        with pytest.raises(Http404):
+            call()
+    assert TrainingCatalogueEntry.objects.count() == 1
+    assert TrainingCataloguePrice.objects.count() == 1
