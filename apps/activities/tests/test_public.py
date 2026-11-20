@@ -13,7 +13,8 @@ from apps.activities.models import Activity
 from apps.core.models import Person, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
-from .test_activities import a_course, a_place, an_outing, at
+from .helpers import a_course, a_place, an_outing
+from .helpers import moment as at
 
 pytestmark = pytest.mark.django_db
 
