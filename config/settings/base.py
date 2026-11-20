@@ -136,6 +136,9 @@ MANDATE_ENCRYPTION_KEYS = env.list("MANDATE_ENCRYPTION_KEYS", default=[])
 # Signatura del mandat al compte personal (T-M05a-09). Apagada per defecte: no s'encén a
 # producció fins que la junta aprovi el text del mandat i el correu G3 (T-M05a-01; D2).
 MANDATE_SIGNING_ENABLED = env.bool("MANDATE_SIGNING_ENABLED", default=False)
+# T-M01-22c (085, A-1; P-416): exportació RGPD amb les notes de l'administració revisades.
+# Lliurar-les no es pot desfer: apagat fins que el propietari ho digui (D2).
+GDPR_ADMIN_NOTES_EXPORT_ENABLED = env.bool("GDPR_ADMIN_NOTES_EXPORT_ENABLED", default=False)
 # Cobrament automàtic de les quotes amb la targeta guardada (T-M05b-15). Apagat per defecte: es
 # pot guardar la targeta i triar-la, però la tasca diària no cobra res fins que s'encén, amb el
 # proveïdor real verificat (P-44, P-45).

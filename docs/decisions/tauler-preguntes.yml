@@ -1164,6 +1164,15 @@ opcions:
     perque: >-
       És el que diu la tasca («en una alta presencial»); la resta de quotes ja les pot partir el
       soci mateix, i qui fa les altes presencials és la Secretaria, que ja té P23.
+  P-416:
+    opcions:
+      A: "Com s'ha construït: les notes de la llista, M11 les revisa i en pot deixar fora amb motiu, contrasenya i codi; apagat fins que es digui."
+      B: "A, però sense poder-ne deixar fora cap: la revisió només és mirar-les abans de lliurar-les."
+      C: "A, i que la persona ho pugui demanar des de «Les meves dades» (una sol·licitud que l'administració veu a «Sol·licituds RGPD»)."
+    recomanada: A
+    perque: >-
+      Deixar fora una nota amb motiu protegeix les dades d'altres persones, que és el que justifica la
+      revisió; i com que lliurar-les no es pot desfer, que ho decideixi el propietari abans d'encendre-ho.
     data: 2026-11-20
   P-406:
     opcions:

@@ -33,6 +33,7 @@ class MembersConfig(AppConfig):
                 anonymise=privacy.anonymise,
                 audit_targets=privacy.audit_targets,
                 describe=privacy.describe,
+                notes=privacy.admin_notes,
             ),
         )
 

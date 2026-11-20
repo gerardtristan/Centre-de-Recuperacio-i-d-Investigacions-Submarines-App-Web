@@ -1,0 +1,50 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-22c (085, A-1, opció C; P-416): exportació RGPD amb les notes de l'administració revisades. Seguretat i privacitat: la ruta no existeix sense l'interruptor GDPR_ADMIN_NOTES_EXPORT_ENABLED; M11 per veure-la i M11 amb edició per preparar-la, comprovats al servidor (sense permís, «no trobat»); ningú no prepara la seva (403); deixar fora una nota demana un motiu, i preparar-la, la contrasenya i el codi a la mateixa petició, perquè lliurar-la no es pot desfer. De la persona només es mostra el nom; les notes són les que l'administració ja veu a les altres pantalles. Al registre només queden les claus de les notes, sense el text. Amagar el formulari no és cap control. #}
+{% block title %}{% translate "Exportació amb notes" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Sol·licituds RGPD" %}</p>
+  <h1>{% blocktranslate with name=person %}Exportació amb notes: {{ name }}{% endblocktranslate %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  <p>{% translate "L'exportació inclourà les dades de la persona i les notes que ha escrit l'administració sobre ella. Revisa-les: marca les que s'han de deixar fora (per exemple, perquè parlen d'una altra persona) i explica per què. La persona la descarregarà des de «Les meves dades»." %}</p>
+  {% if own %}
+    <div class="avis avis-avis" role="status"><strong>{% translate "És la teva" %}</strong> {% translate "No la pots preparar tu. Ho ha de fer una altra persona amb permís." %}</div>
+  {% elif not can_prepare %}
+    <div class="avis avis-avis" role="status">{% translate "Pots veure les notes, però no preparar l'exportació: cal el permís d'atendre sol·licituds RGPD amb edició." %}</div>
+  {% endif %}
+  {% if not form.notes %}
+    <p>{% translate "L'administració no ha escrit cap nota sobre aquesta persona." %}</p>
+  {% endif %}
+  {% if can_prepare %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {{ form.reviewed }}
+      {% if form.notes %}
+        <table class="taula">
+          <caption class="visualment-amagat">{% translate "Notes de l'administració, de la més antiga a la més recent" %}</caption>
+          <thead><tr><th scope="col">{% translate "Nota" %}</th><th scope="col">{% translate "Data" %}</th><th scope="col">{% translate "Text" %}</th><th scope="col">{% translate "Revisió" %}</th></tr></thead>
+          <tbody>
+            {% for item, field in form.note_rows %}
+              <tr>
+                <th scope="row" class="cel-nom">{{ item.context }}</th>
+                <td data-etiqueta="{% translate 'Data' %}">{{ item.date|date:"d/m/Y" }}</td>
+                <td data-etiqueta="{% translate 'Text' %}">{{ item.text|linebreaksbr }}</td>
+                <td data-etiqueta="{% translate 'Revisió' %}">{% include "accounts/_camp.html" %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+      {% include "accounts/_camp.html" with field=form.reason %}
+      {% include "accounts/_camp.html" with field=form.password %}
+      {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Prepara l'exportació" %}</button></div>
+    </form>
+  {% else %}
+    {% if form.notes %}
+      <ul>{% for item in form.notes %}<li><strong>{{ item.context }}</strong> ({{ item.date|date:"d/m/Y" }}): {{ item.text }}</li>{% endfor %}</ul>
+    {% endif %}
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:gdpr_requests' %}">{% translate "Torna a les sol·licituds RGPD" %}</a></p>
+{% endblock %}

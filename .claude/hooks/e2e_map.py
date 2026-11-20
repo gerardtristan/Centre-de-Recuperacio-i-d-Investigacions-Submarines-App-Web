@@ -372,6 +372,13 @@ MAP = {
         "templates/members/personal_fees.html",
         "templates/members/personal_fee_detail.html",
     ),
+    "test_rgpd_notes_22c.py": (
+        "apps/core/privacy.py",
+        "apps/core/views/gdpr.py",
+        "apps/members/privacy.py",
+        "templates/core/gdpr_notes_export.html",
+        "templates/members/_member_edit_links.html",
+    ),
     "test_terminis_049.py": (
         "apps/members/instalments.py",
         "apps/members/views/personal.py",
