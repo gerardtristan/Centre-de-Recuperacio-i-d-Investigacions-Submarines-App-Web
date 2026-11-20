@@ -143,6 +143,15 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.ADMINISTRATOR: _ALL},
         touches_personal_data=True,
     ),
+    # 085, A-2 (T-M01-22c): els drets d'un menor de 14 anys es demanen en persona i la
+    # secretaria ho registra. Només registrar-la: atendre-la continua sent M11 (P-417).
+    _perm(
+        "core.gdpr.register_in_person",
+        "M11b",
+        _("Registrar la sol·licitud d'esborrat feta en persona per un menor de 14 anys"),
+        initial={R.SECRETARY: _ALL},
+        touches_personal_data=True,
+    ),
     _perm(
         "core.legal_texts.publish",
         "M12",

@@ -11,7 +11,7 @@
 
   <dl class="dades-soci">
     <div><dt>{% translate "Persona" %}</dt><dd>{{ item.person }}</dd></div>
-    {% if pending %}<div><dt>{% translate "Compte que ho demana" %}</dt><dd>{{ item.requested_by.login }}</dd></div>{% endif %}
+    {% if pending %}<div><dt>{% if item.channel == "in_person" %}{% translate "Registrada pel compte" %}{% else %}{% translate "Compte que ho demana" %}{% endif %}</dt><dd>{{ item.requested_by.login }}</dd></div>{% endif %}
     <div><dt>{% translate "Canal" %}</dt><dd>{{ item.get_channel_display }}</dd></div>
     <div><dt>{% translate "Enviada el" %}</dt><dd>{{ item.created_at|date:"d/m/Y H:i" }}</dd></div>
     <div><dt>{% translate "Estat" %}</dt><dd>{{ item.get_status_display }}</dd></div>

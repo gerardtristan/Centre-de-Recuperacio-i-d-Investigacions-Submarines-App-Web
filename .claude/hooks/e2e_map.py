@@ -379,6 +379,13 @@ MAP = {
         "templates/core/gdpr_notes_export.html",
         "templates/members/_member_edit_links.html",
     ),
+    "test_rgpd_menor_22c.py": (
+        "apps/core/erasure.py",
+        "apps/core/views/gdpr.py",
+        "templates/core/gdpr_in_person.html",
+        "templates/core/gdpr_request_detail.html",
+        "templates/members/_member_edit_links.html",
+    ),
     "test_terminis_049.py": (
         "apps/members/instalments.py",
         "apps/members/views/personal.py",

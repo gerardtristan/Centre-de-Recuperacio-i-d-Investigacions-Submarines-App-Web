@@ -1,0 +1,22 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-22c (085, A-2; P-417): la secretaria registra la sol·licitud d'esborrat que el pare, la mare o el tutor legal d'un menor de 14 anys fa en persona. M11b amb edició, comprovat al servidor (sense, «no trobat»); només un menor de 14 anys actiu, mai un mateix, una sola pendent; la comprovació de la identitat de qui ho demana és obligatòria. No esborra res: la sol·licitud queda pendent i l'atén qui té M11, amb la contrasenya i el codi. De la persona només es mostra el nom. #}
+{% block title %}{% translate "Esborrat demanat en persona" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Sol·licituds RGPD" %}</p>
+  <h1>{% blocktranslate with name=person %}Esborrat demanat en persona: {{ name }}{% endblocktranslate %}</h1>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if form.non_field_errors %}<div class="avis avis-error" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% if pending %}
+    <div class="avis avis-avis" role="status">{% blocktranslate with date=pending.created_at|date:"d/m/Y" %}Ja té una sol·licitud d'esborrat pendent, del {{ date }}. L'atendrà qui té el permís de les sol·licituds RGPD.{% endblocktranslate %}</div>
+  {% elif not possible %}
+    <div class="avis avis-avis" role="status">{% translate "Aquí només es registra la sol·licitud d'esborrat d'un menor de 14 anys, que no té compte personal i la demana en persona el pare, la mare o el tutor legal. Una persona de 14 anys o més la demana des del seu perfil." %}</div>
+  {% else %}
+    <p>{% translate "Els drets d'un menor de 14 anys els demana en persona el pare, la mare o el tutor legal. Registrar la sol·licitud no esborra res: queda pendent i l'atén qui té el permís de les sol·licituds RGPD, que veurà que s'ha fet en persona i qui l'ha registrada." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "accounts/_camp.html" with field=form.guardian_checked %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Registra la sol·licitud" %}</button></div>
+    </form>
+  {% endif %}
+{% endblock %}

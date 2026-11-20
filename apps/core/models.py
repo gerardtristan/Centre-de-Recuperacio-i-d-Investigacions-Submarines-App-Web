@@ -489,6 +489,9 @@ class ErasureRequest(models.Model):
 
     class Channel(models.TextChoices):
         WEB = "web", _("Web")
+        # 085, A-2 (T-M01-22c): la d'un menor de 14 anys es demana en persona i la registra la
+        # secretaria (`erasure.register_in_person`); `requested_by` és el compte que la registra.
+        IN_PERSON = "in_person", _("Presencial")
 
     person = models.ForeignKey(
         Person,

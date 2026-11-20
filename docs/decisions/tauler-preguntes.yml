@@ -1155,6 +1155,26 @@ opcions:
       La 072 només demana que la suma no canviï i que no hi hagi pagament; un límit de dates que no
       demana cap norma podria impedir un acord amb el soci. B o C es poden afegir sense migració.
     data: 2026-11-20
+  P-417:
+    opcions:
+      A: "Com s'ha construït: permís propi (M11b), d'inici la Secretaria; només l'esborrat d'un menor de 14 anys, amb la identitat del representant comprovada; l'atén M11."
+      B: "A, i també per a qualsevol persona que ho demani en persona (no només menors)."
+      C: "Sense permís propi: el de crear i editar perfils (M2, Secretaria i administrador)."
+    recomanada: A
+    perque: >-
+      És el que diu la 085 i el més restrictiu: registrar-la no esborra res i la decisió irreversible
+      continua sent de qui té M11, amb la contrasenya i el codi.
+    data: 2026-11-20
+  P-418:
+    opcions:
+      A: "Qui té M11 prepara l'exportació i la descarrega per lliurar-la en persona al representant (amb el registre de qui i quan)."
+      B: "La plataforma l'envia per correu a l'adreça del representant que consta a l'alta."
+      C: "Es lliura fora de la plataforma (com ara): la plataforma només registra la petició."
+    recomanada: C
+    perque: >-
+      Lliurar dades d'un menor no es pot desfer; fins que l'assessor ho confirmi, el camí més segur és no
+      treure-les de la plataforma per cap canal nou. A o B es poden construir després sense migració.
+    data: 2026-11-20
   P-415:
     opcions:
       A: "Com s'ha construït: P23 (la Secretaria), només a la quota d'una alta presencial, amb les condicions de la P-396 i sense reautenticació."

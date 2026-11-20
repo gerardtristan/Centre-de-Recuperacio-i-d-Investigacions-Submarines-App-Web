@@ -270,3 +270,48 @@ def gdpr_notes_export_view(request, pk):
                         return redirect("administration:gdpr_notes_export", pk=person.pk)
     context = {"person": person, "form": form, "can_prepare": can_prepare, "own": own}
     return render(request, "core/gdpr_notes_export.html", context, status=status)
+
+
+# --- Sol·licitud d'esborrat feta en persona per un menor de 14 anys (T-M01-22c; 085, A-2) -----
+
+
+class InPersonForm(forms.Form):
+    guardian_checked = forms.BooleanField(
+        label=gettext_lazy(
+            "He comprovat en persona la identitat del pare, la mare o el tutor legal que ho demana."
+        ),
+        error_messages={"required": gettext_lazy("Cal comprovar-ho abans de registrar-la.")},
+    )
+
+
+@never_cache
+@permission_required(erasure.REGISTER_PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def gdpr_in_person_view(request, pk):
+    """M11b amb edició; la persona ha de ser un menor de 14 anys (el servei ho torna a
+    comprovar). Un cop registrada, l'atén qui té M11 a «Sol·licituds RGPD»."""
+    person = get_object_or_404(Person, pk=pk, status=Person.Status.ACTIVE)
+    form = InPersonForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            erasure.register_in_person(
+                person, by=request.user, guardian_checked=True, request=request
+            )
+        except erasure.ErasureNotAllowed as exc:
+            form.add_error(None, exc.messages)
+        else:
+            messages.success(
+                request,
+                _(
+                    "Sol·licitud d'esborrat registrada. L'atendrà qui té el permís de les "
+                    "sol·licituds RGPD."
+                ),
+            )
+            return redirect("administration:gdpr_in_person", pk=person.pk)
+    context = {
+        "person": person,
+        "form": form,
+        "possible": erasure.can_register_in_person(person, request.user),
+        "pending": erasure.pending_request(person),
+    }
+    return render(request, "core/gdpr_in_person.html", context)
