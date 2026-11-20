@@ -26,6 +26,7 @@ def record_other_income(
     by,
     cost_centre=None,
     document_file=None,
+    grant_application=None,
 ) -> OtherIncome:
     """`expenses.record_other_income` (M09-8). Un ajut porta la resolució (`document_file`). Dins
     un període tancat, la 04 respon `PeriodClosed` i no es desa res (RN-T30)."""
@@ -37,6 +38,8 @@ def record_other_income(
         raise ExpenseRejected(_("Cal el pagador, de 140 caràcters com a màxim."))
     if kind == OtherIncome.Kind.GRANT and document_file is None:
         raise ExpenseRejected(_("Un ajut porta la resolució o el contracte."))
+    if grant_application is not None and kind != OtherIncome.Kind.GRANT:
+        raise ExpenseRejected(_("Només un ajut es lliga a una sol·licitud d'ajut."))
     label = OtherIncome.Kind(kind).label
     movement = treasury.record_other_income(
         account,
@@ -55,6 +58,7 @@ def record_other_income(
         department=department,
         cost_centre=cost_centre,
         document_file=document_file,
+        grant_application=grant_application,
         movement=movement,
         recorded_by=by,
     )
