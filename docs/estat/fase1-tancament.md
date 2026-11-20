@@ -49,7 +49,7 @@ Estats: **fet** (hi ha evidència al codi o a les proves), **parcial**, **no fet
 | E3 Monitoratge de la web i del flux | parcial | `/salut/` públic i sense estat intern (`apps/core/views/__init__.py::health`). El monitor extern no està configurat | Propietari (servidor) |
 | E4 Alertes (caiguda, errors, certificat, còpia fallida) | extern | Seguiment d'errors al codi; la resta, al servidor (T-M05a-19, E4b) | Propietari |
 | B5 Flux de mandat en mòbil | parcial | [Mesura del 17/11](../mesures/T-M05a-18-accessibilitat-mandat.md): Chromium a 1280, 390 i 320 px, en clar i en fosc. Falten un iPhone i un Android reals ([T-M05a-18b](M05a.md)) | Propietari ([O2](fase1-pendents-externs.md#propietari)) |
-| B8 Accessibilitat bàsica del flux | fet, amb una incidència | Mateixa mesura: axe sense violacions greus i teclat correcte. Incidència: contrast de la barra inferior en fosc ([P-283](../decisions/pendents.md), `xfail`). Falta el lector de pantalla real | Propietari (lector) i DISSENY (P-283) |
+| B8 Accessibilitat bàsica del flux | fet | Mateixa mesura: axe sense violacions greus i teclat correcte. El contrast de la barra inferior en fosc ([P-283](../decisions/pendents.md)) es va corregir a la T-DX-48 (#154) i la prova d'axe passa. Falta el lector de pantalla real | Propietari (lector) |
 | G3 Correu de confirmació del mandat | fet (amb proveïdor fals) | Plantilla `mandat-signat` (`test_mandate_signing.py`). El text és provisional [A validar: junta] | Junta (text) |
 
 ## 2. Nivell 2: producció completa

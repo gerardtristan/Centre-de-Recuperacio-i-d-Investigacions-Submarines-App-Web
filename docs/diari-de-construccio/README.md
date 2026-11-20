@@ -371,3 +371,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |
 | [T-DX-85](T-DX-85.md) | Conciliació a l'escriptori: cada acció en una línia a partir de 1024 px i el formulari obert amb prou amplada (seguiment de la V15; sessió de DISSENY) | 20/11/2026 21:26 | f931f12a | 2 comprovacions noves | [A comprovar] |
 | [T-DX-86](T-DX-86.md) | Inici del soci sense carnet i amb la quota pendent: «El teu carnet» diu quan arribarà (seguiment de la V20; sessió de DISSENY) | 20/11/2026 21:44 | 10d99897 | 1 nova | [A comprovar] |
+| [T-DX-87](T-DX-87.md) | P-283 tancada a `pendents.md` i fila B8 del tancament de la fase 1 al dia (sessió de DISSENY) | 20/11/2026 21:55 | bcd846b2 | — | [A comprovar] |
