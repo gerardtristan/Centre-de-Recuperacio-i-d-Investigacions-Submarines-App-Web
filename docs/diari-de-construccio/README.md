@@ -369,3 +369,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-03](T-M06-03.md) | Llicències: tipus, preus, llicència amb estats derivats i càlcul de dates (amb els models de la T-M06-02; carril A) | 20/11/2026 21:28 | ab994c99 | 8208 | [A comprovar] |
 | [T-M06-02b](T-M06-02b.md) | Llicències: servei de preus amb trams, versions, nota i avís (carril A) | 20/11/2026 21:58 | 1d2c4c89 | 8229 | [A comprovar] |
 | [T-M06-16](T-M06-16.md) | Llicències: permisos del 06 al catàleg i a la matriu inicial (carril A, torn del nucli) | 20/11/2026 21:59 | 2c28c0bd | 8422 | [A comprovar] |
+| [T-M09-30](T-M09-30.md) | Permisos del 09 i de l'apartat d'ajuts al catàleg i a la matriu inicial (core/0061, es renumerarà); plantilla de l'avís d'una despesa sense factura (carril C) | 20/11/2026 22:58 | 007fe874, 530668cf | 1 fitxer nou | [A comprovar] |
