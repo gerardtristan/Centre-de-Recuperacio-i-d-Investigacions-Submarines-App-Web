@@ -26,10 +26,18 @@ SCOPE_READ = "read"  # «Cons.»: només consultar
 SCOPE_READ_MINIMAL = "read_minimal"  # «Cons. (dades mínimes)»
 SCOPE_OWN_ACTIVITIES = "own_activities"  # activitats de què és responsable (02)
 SCOPE_OWN_SESSIONS = "own_sessions"  # sessions on fa classe (02)
+SCOPE_OWN_APPLICATIONS = "own_applications"  # sol·licituds d'ajut de què és responsable (09)
 
 READ_ONLY_SCOPES = frozenset({SCOPE_READ, SCOPE_READ_MINIMAL})
 KNOWN_SCOPES = frozenset(
-    {SCOPE_ALL, SCOPE_READ, SCOPE_READ_MINIMAL, SCOPE_OWN_ACTIVITIES, SCOPE_OWN_SESSIONS}
+    {
+        SCOPE_ALL,
+        SCOPE_READ,
+        SCOPE_READ_MINIMAL,
+        SCOPE_OWN_ACTIVITIES,
+        SCOPE_OWN_SESSIONS,
+        SCOPE_OWN_APPLICATIONS,
+    }
 )
 
 
@@ -619,6 +627,237 @@ PERMISSIONS: tuple[Permission, ...] = (
             R.ADMINISTRATOR: _ALL,
             R.PRESIDENT: _ALL,
         },
+        touches_personal_data=True,
+    ),
+    # --- 09 Marge, despeses i facturació (M09-4 i la matriu inicial de la 059; T-M09-30) -------
+    # MG10 (les seves factures) és una acció pròpia, fora de la matriu.
+    _perm(
+        "expenses.record",
+        "MG1",
+        _("Registrar una despesa amb factura"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_ACTIVITIES),
+        initial={
+            R.COURSES_MANAGER: SCOPE_OWN_ACTIVITIES,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.pay",
+        "MG2",
+        _("Pagar una despesa, adjuntar-ne el comprovant i anul·lar-la"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.allocate",
+        "MG3",
+        _("Repartir una despesa entre activitats"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.other_income",
+        "MG4",
+        _("Registrar ajuts, patrocinis i donatius"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.planned_costs",
+        "MG5",
+        _("Costos previstos d'una activitat"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_ACTIVITIES),
+        initial={
+            R.COURSES_MANAGER: SCOPE_OWN_ACTIVITIES,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.margin.view",
+        "MG6",
+        _("Veure el marge d'una activitat"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_ACTIVITIES, SCOPE_READ),
+        initial={
+            R.COURSES_MANAGER: SCOPE_OWN_ACTIVITIES,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+            R.BOARD: SCOPE_READ,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.margin.close_activity",
+        "MG7",
+        _("Tancar econòmicament una activitat"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.reports",
+        "MG8",
+        _("Informes per departament, subtipus i projecte"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL, R.BOARD: SCOPE_READ},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.invoices.issue",
+        "MG9",
+        _("Emetre factures i rectificatives"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+        touches_personal_data=True,
+    ),
+    _perm(
+        "expenses.periods.close",
+        "MG11",
+        _("Tancar un període"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.periods.reopen",
+        "MG12",
+        _("Reobrir un període"),
+        protected=True,
+        protected_by="059 (matriu del 09); RN-M09-16",
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "expenses.volunteering",
+        "MG13",
+        _("Hores de voluntariat"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "expenses.catalogues",
+        "MG14",
+        _("Categories, proveïdors i llindar de marge baix"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    # Documents de justificació (factures de despesa i comprovants): només el tresorer i la
+    # junta, mai l'administrador (051, RN-M09-23).
+    _perm(
+        "expenses.documents.open",
+        "C5",
+        _("Obrir els documents de justificació (factures de despesa i comprovants)"),
+        protected=True,
+        protected_by="051",
+        initial={R.TREASURER: _ALL, R.BOARD: _ALL},
+        touches_money=True,
+        touches_personal_data=True,
+    ),
+    # --- 09 Ajuts (M09-ajuts-4 i la matriu inicial de la 059; T-M09-30) ------------------------
+    # Només el tresorer, la junta i l'administrador. La junta, «les que en sigui responsable» a
+    # AJ4, AJ5 i AJ13 (S-M09A-01): la comprovació per objecte la registra l'apartat d'ajuts.
+    _perm(
+        "grants.view",
+        "AJ3",
+        _("Veure el calendari, les convocatòries i les sol·licituds d'ajut"),
+        initial={R.TREASURER: _ALL, R.BOARD: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.calls.manage",
+        "AJ1",
+        _("Crear, editar i copiar convocatòries d'ajut"),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.eligibility",
+        "AJ2",
+        _("Revisar l'elegibilitat d'una convocatòria"),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.applications.prepare",
+        "AJ4",
+        _("Crear una sol·licitud d'ajut i moure-la fins a «presentada»"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_APPLICATIONS),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: SCOPE_OWN_APPLICATIONS, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.applications.resolve",
+        "AJ5",
+        _("Marcar una sol·licitud concedida o denegada i escriure les observacions"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_APPLICATIONS),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: SCOPE_OWN_APPLICATIONS, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.applications.amendments",
+        "AJ13",
+        _("Requeriments d'esmena i pròrroga de la justificació"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_APPLICATIONS),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: SCOPE_OWN_APPLICATIONS, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.income",
+        "AJ6",
+        _("Registrar l'ingrés d'un ajut"),
+        requires=("grants.view", "expenses.other_income"),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "grants.justification",
+        "AJ7",
+        _("Lligar despeses a un ajut i generar el paquet de justificació"),
+        # L'administrador lliga despeses però no obre els documents (AJ12, 051).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.BOARD: SCOPE_READ, R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "grants.applications.close",
+        "AJ8",
+        _("Marcar una sol·licitud justificada o tancada"),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.applications.undo",
+        "AJ9",
+        _("Desfer l'últim canvi d'estat d'una sol·licitud, amb motiu"),
+        requires=("grants.view",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.alert_days",
+        "AJ10",
+        _("Configurar els dies dels avisos dels ajuts"),
+        requires=("grants.view",),
+        initial={R.TREASURER: _ALL, R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "grants.audit.view",
+        "AJ11",
+        _("Consultar el registre d'activitat dels ajuts"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        requires=("grants.view",),
+        initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "grants.documents.open",
+        "AJ12",
+        _("Obrir i descarregar els documents de justificació i el paquet d'un ajut"),
+        protected=True,
+        protected_by="051",
+        initial={R.TREASURER: _ALL, R.BOARD: _ALL},
+        touches_money=True,
         touches_personal_data=True,
     ),
     # --- Ajustos (055; RN-RP-17, 19 i 22) -----------------------------------------------------
