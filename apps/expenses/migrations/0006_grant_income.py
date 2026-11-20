@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0061_margins_and_grants_permissions"),
+        ("core", "0062_margins_and_grants_permissions"),
         ("expenses", "0005_volunteer_hours"),
         ("grants", "0003_denial_notes"),
         ("treasury", "0019_moviments_casats"),
