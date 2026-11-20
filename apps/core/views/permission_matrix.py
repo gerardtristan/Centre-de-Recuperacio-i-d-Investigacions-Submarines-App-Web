@@ -34,6 +34,7 @@ INITIAL, SAVE = "initial", "save"
 MODULES = {
     "core": gettext_lazy("00 Base comuna"),
     "members": gettext_lazy("01 Socis i carnet"),
+    "activities": gettext_lazy("02 Activitats"),
     "treasury": gettext_lazy("04 Tresoreria"),
     "payments": gettext_lazy("05 Pagaments"),
     "licences": gettext_lazy("06 Llicències"),
