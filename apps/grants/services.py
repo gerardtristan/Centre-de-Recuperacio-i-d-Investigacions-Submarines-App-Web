@@ -2,8 +2,10 @@
 altra app escriu als models de `grants`. Cada servei comprova el permís (AJ1 a AJ13, T-M09-30) i
 el de la Junta, només sobre les sol·licituds de què és responsable."""
 
+from datetime import date, timedelta
+
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -18,10 +20,13 @@ from .models import ApplicationDocument, ApplicationTransition, GrantApplication
 
 ELIGIBILITY = "grants.eligibility"  # AJ2
 PREPARE = "grants.applications.prepare"  # AJ4
+CLOSE = "grants.applications.close"  # AJ8
+UNDO = "grants.applications.undo"  # AJ9
 
 APPLICATION_CREATED = "grants.application_created"
 ELIGIBILITY_REVIEWED = "grants.eligibility_reviewed"
 APPLICATION_TRANSITIONED = "grants.application_transitioned"
+DOCUMENT_CHANGED = "grants.document_changed"
 
 # Qui pot ser responsable d'una sol·licitud (M09-ajuts-4; S-M09A-01): llista de rols, codi.
 RESPONSIBLE_ROLES = frozenset({Role.Code.TREASURER, Role.Code.BOARD, Role.Code.ADMINISTRATOR})
@@ -34,6 +39,14 @@ class GrantError(ValidationError):
 
 class EligibilityNotReviewed(GrantError):
     """RN-M09A-03: sense la revisió d'una persona, la sol·licitud no passa a «en preparació»."""
+
+
+class InvalidTransition(GrantError):
+    """RN-M09A-01: aquest canvi d'estat no és permès."""
+
+
+class MissingDocuments(GrantError):
+    """RN-M09A-02 (CA-M09A-05): falten documents requerits per marcar a punt."""
 
 
 def require(by, code, obj=None) -> None:
@@ -144,3 +157,129 @@ def review_eligibility(call: GrantCall, *, status: str, notes: str, by) -> Grant
             application.closed_reason = reason
             _move(application, S.CLOSED, reason=reason, by=by)
     return call
+
+
+# RN-M09A-01. Concedida i denegada (resolució, T-M09A-07) i justificada (paquet, T-M09A-10)
+# s'afegeixen amb les seves tasques, que porten les dades que demanen.
+TRANSITIONS = {
+    S.DETECTED: {S.PREPARING, S.CLOSED},
+    S.PREPARING: {S.SUBMITTED, S.CLOSED},
+    S.JUSTIFIED: {S.CLOSED},
+}
+EDITABLE_DOCUMENTS = (S.DETECTED, S.PREPARING)
+
+
+def _date(value, label):
+    if not isinstance(value, date):
+        raise GrantError(_("Cal %(field)s.") % {"field": label})
+    return value
+
+
+@transaction.atomic
+def transition(application, to_status, *, by, reason="", **data) -> GrantApplication:
+    """`grants.transition` (M09-8). Presentar demana `submitted_on`, `submission_ref`,
+    `amount_requested_cents` i tots els documents a punt; tancar sense presentar-la, el motiu."""
+    application = (
+        GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
+    )
+    old, reason = application.status, (reason or "").strip()
+    require(by, CLOSE if old == S.JUSTIFIED else PREPARE, application)
+    if to_status not in TRANSITIONS.get(old, ()):
+        raise InvalidTransition(_("Aquest canvi d'estat no és permès."))
+    call = application.call
+    if to_status == S.PREPARING:
+        if call.eligibility_status == GrantCall.Eligibility.PENDING:
+            raise EligibilityNotReviewed(_("Primer cal revisar l'elegibilitat de la convocatòria."))
+        if call.eligibility_status == GrantCall.Eligibility.NOT_ELIGIBLE:
+            raise InvalidTransition(_("La convocatòria no és elegible."))
+    elif to_status == S.SUBMITTED:
+        _submit(application, call, data)
+    elif old in EDITABLE_DOCUMENTS:  # tancar sense presentar-la
+        if not reason:
+            raise GrantError(_("Escriu per què no es presenta."))
+        application.closed_reason = reason
+    _move(application, to_status, reason=reason, by=by)
+    return application
+
+
+def _submit(application, call, data) -> None:
+    submitted_on = _date(data.get("submitted_on"), _("la data de presentació"))
+    ref = (data.get("submission_ref") or "").strip()
+    amount = data.get("amount_requested_cents")
+    if not ref or len(ref) > 60:
+        raise GrantError(_("Cal el número de registre d'entrada (60 caràcters com a màxim)."))
+    if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+        raise GrantError(_("Cal l'import demanat, en cèntims."))
+    missing = [d.name for d in application.documents.all() if not d.ready]
+    if missing:
+        raise MissingDocuments(
+            _("Falten documents per marcar a punt: %(names)s.") % {"names": ", ".join(missing)}
+        )
+    application.submitted_on, application.submission_ref = submitted_on, ref
+    application.amount_requested_cents = amount
+    # RN-M09A-05: amb el termini publicat, es calcula; si no, la que escrigui el responsable.
+    if call.max_resolution_days:
+        application.expected_response_on = submitted_on + timedelta(days=call.max_resolution_days)
+    elif data.get("expected_response_on") is not None:
+        application.expected_response_on = _date(
+            data["expected_response_on"], _("la data prevista de resposta")
+        )
+
+
+@transaction.atomic
+def undo_last_transition(application, *, reason, by) -> GrantApplication:
+    """AJ9 (RN-M09A-01): l'administrador desfà l'última transició amb motiu; queda com una
+    transició nova. Les dades que s'hi havien posat no s'esborren."""
+    require(by, UNDO)
+    reason = (reason or "").strip()
+    if not reason:
+        raise GrantError(_("Per desfer un canvi d'estat cal escriure'n el motiu."))
+    application = GrantApplication.objects.select_for_update().get(pk=application.pk)
+    last = application.transitions.order_by("pk").last()
+    if last is None:
+        raise InvalidTransition(_("Aquesta sol·licitud no té cap canvi d'estat per desfer."))
+    _move(application, last.from_status, reason=reason, by=by)
+    return application
+
+
+def _editable_document(document, by) -> ApplicationDocument:
+    document = (
+        ApplicationDocument.objects.select_for_update()
+        .select_related("application")
+        .get(pk=document.pk)
+    )
+    require(by, PREPARE, document.application)
+    if document.application.status not in EDITABLE_DOCUMENTS:
+        raise GrantError(_("Els documents es preparen abans de presentar la sol·licitud."))
+    return document
+
+
+@transaction.atomic
+def set_document_ready(document, *, ready: bool, by) -> ApplicationDocument:
+    """P-M09A-C, pas 1: marcar un document a punt (o treure-li la marca), al registre."""
+    document = _editable_document(document, by)
+    old, document.ready, document.uploaded_by = document.ready, bool(ready), by
+    document.save()
+    audit.record(
+        DOCUMENT_CHANGED, actor=by, target=document, field="ready", old=old, new=document.ready
+    )
+    return document
+
+
+@transaction.atomic
+def add_document(application, *, name: str, by) -> ApplicationDocument:
+    """Un document que no era a la convocatòria."""
+    application = GrantApplication.objects.select_for_update().get(pk=application.pk)
+    require(by, PREPARE, application)
+    if application.status not in EDITABLE_DOCUMENTS:
+        raise GrantError(_("Els documents es preparen abans de presentar la sol·licitud."))
+    name = (name or "").strip()
+    if not name or len(name) > 200:
+        raise GrantError(_("Cal el nom del document (200 caràcters com a màxim)."))
+    try:
+        with transaction.atomic():
+            document = ApplicationDocument.objects.create(application=application, name=name)
+    except IntegrityError as error:
+        raise GrantError(_("La sol·licitud ja té un document amb aquest nom.")) from error
+    audit.record(DOCUMENT_CHANGED, actor=by, target=document, field="name", new=name)
+    return document
