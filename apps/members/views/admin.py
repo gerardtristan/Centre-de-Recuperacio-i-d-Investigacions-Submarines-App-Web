@@ -290,12 +290,19 @@ def members_list_view(request):
 
 
 def _fee_rows(member):
-    """Les quotes del soci per a la fitxa (T-M01-40), de la més recent a la més antiga."""
+    """Les quotes del soci per a la fitxa (T-M01-40), de la més recent a la més antiga; dins d'un
+    període, els terminis en ordre (1, 2, 3) i després la resta (T-F1-01, V25)."""
+    fees = AnnualFee.objects.filter(member=member).select_related("charge", "exemption")
     rows = []
-    for fee in (
-        AnnualFee.objects.filter(member=member)
-        .select_related("charge", "exemption")
-        .order_by("-period", "-sequence", "-pk")
+    for fee in sorted(
+        fees,
+        key=lambda f: (
+            -f.period,
+            -f.sequence,
+            f.kind != AnnualFee.Kind.INSTALMENT,
+            f.instalment,
+            -f.pk,
+        ),
     ):
         rows.append(
             {
@@ -418,6 +425,13 @@ def member_detail_view(request, pk):
             and row["open"]
             and instalments.can_choose_in_person(row["fee"], request.user, perms)
         )
+    # T-F1-01 (V25): un sol «Edita els terminis…» per pla, fora de les files (el primer termini
+    # obert; la pantalla d'edició mostra tot el pla).
+    plans = {}
+    for row in context["fee_rows"]:
+        if row["instalment"] and row["open"]:
+            plans.setdefault((row["fee"].period, row["fee"].sequence), row["fee"])
+    context["instalment_plans"] = list(plans.values())
     return render(request, "members/member_detail.html", context)
 
 

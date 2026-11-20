@@ -89,7 +89,8 @@ def test_the_secretary_moves_amounts_between_instalments(page, live_server, pend
     first, second, third = instalments.choose(member.fees.get(), by=account)
     login_admin(page, live_server.url, make_admin("secretaria.terminis", "secretary").login)
     page.goto(f"{live_server.url}/{settings.ADMIN_URL_PATH}/socis/{member.pk}/")
-    page.get_by_role("link", name=re.compile("Edita els terminis… .*termini 1 de 3")).click()
+    review("fitxa-amb-terminis")  # T-F1-01 (V25): en ordre i un sol enllaç
+    page.get_by_role("link", name=re.compile("Edita els terminis… de la quota")).click()
     expect(page.get_by_role("heading", name="Edita els terminis")).to_be_visible()
     review("edita-terminis")
 
