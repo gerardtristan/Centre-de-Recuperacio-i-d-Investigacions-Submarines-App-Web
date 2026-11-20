@@ -1372,3 +1372,13 @@ noves:
       No demana cap dada que la persona potser no té a mà, i el que importa al club (és vigent el dia de l'activitat?)
       ja ho resol el venciment; C endevinaria dates que la federació no ha dit.
     data: 2026-11-20
+  P-444:
+    opcions:
+      A: "CSV provisional: cognoms, nom, data de naixement, tipus, categoria i inici; sense document ni contacte."
+      B: "El mateix amb el document d'identitat (tipus i número), si la FECDAS el demana."
+      C: "El model exacte de la FECDAS (Excel o el seu formulari), quan la secretaria el porti."
+    recomanada: C
+    perque: >-
+      Només la FECDAS sap què vol rebre; A és el mínim prudent mentrestant i no envia cap dada que potser no calgui
+      (RN-M06-11). Canviar el format és tocar una funció, sense dades desades.
+    data: 2026-11-21
