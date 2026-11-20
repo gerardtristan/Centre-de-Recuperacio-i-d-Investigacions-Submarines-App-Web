@@ -154,7 +154,7 @@ Nota per a qui faci proves al portàtil: amb `--reuse-db` en una base on abans s
 
 - **V6, V7 i V9:** arreglats a la PR dels continguts (`templates/members/` i el missatge de `apps/members/views/admin_requests.py`), amb captures abans i després.
 - **Prova inestable dels terminis amb `--reuse-db`:** arreglada a la #298. La causa era que la neteja de les e2e no tornava els ajustos de les migracions al seu valor (apartat 7.5).
-- **No s'ha fet:** associar `templates/members/cluber_preview.html` a l'e2e de Cluber (`test_politiques_079.py`) a `.claude/hooks/e2e_map.py`. És configuració del hook de Claude Code: la canvia o l'autoritza el propietari.
+- **Fet (#299):** `templates/members/cluber_preview.html` associat a l'e2e de Cluber (`test_politiques_079.py`) a `.claude/hooks/e2e_map.py`; la línia la va afegir el coordinador.
 
 ## 8. Volta final (20/11/2026)
 
