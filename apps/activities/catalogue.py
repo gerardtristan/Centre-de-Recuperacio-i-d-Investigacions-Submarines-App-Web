@@ -24,11 +24,13 @@ from apps.core.charges import euros
 
 from . import permissions
 from .models import (
+    CertificationLevel,
     EnvironmentalProject,
     EnvironmentalSubtype,
     OutingType,
     Place,
     PlacePrice,
+    RequirementsMode,
     TrainingCatalogueEntry,
     TrainingCataloguePrice,
 )
@@ -37,6 +39,8 @@ ENTRY_CREATED = "activities.catalogue.entry_created"
 ENTRY_UPDATED = "activities.catalogue.entry_updated"
 PRICE_CHANGED = "activities.catalogue.price_changed"
 TYPE_CREATED = "activities.catalogue.type_created"
+MODE_CHANGED = "activities.catalogue.default_mode_changed"
+LEVEL_CREATED = "activities.catalogue.level_created"
 ACTIVE_CHANGED = "activities.catalogue.active_changed"
 PLACE_CREATED = "activities.place.created"
 PLACE_UPDATED = "activities.place.updated"
@@ -53,6 +57,7 @@ EDITABLE_FIELDS = (
     "default_places",
     "open_to_non_members",
     "department",
+    "default_requirements_mode",
 )
 INITIAL_PRICE_NOTE = "Preu inicial de la fitxa."
 
@@ -85,6 +90,15 @@ def _note_and_date(note, valid_from, today) -> str:
     return note
 
 
+def _mode(value) -> str:
+    """Mode de requisits per defecte d'una fitxa o d'un tipus: avís, bloqueig o buit (val l'ajust
+    general, RN-M02-29)."""
+    value = value or ""
+    if value not in ("", *RequirementsMode.values):
+        raise ValidationError(_("El mode de requisits ha de ser «avís», «bloqueig» o cap."))
+    return value
+
+
 def _places(value) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValidationError(_("Les places han de ser un enter més gran que zero."))
@@ -106,6 +120,7 @@ def create_entry(
     description="",
     requirements="",
     open_to_non_members=False,
+    default_requirements_mode="",
     today=None,
     request=None,
 ) -> TrainingCatalogueEntry:
@@ -127,6 +142,7 @@ def create_entry(
         price_non_member_cents=_cents(price_non_member_cents),
         reinforcement_price_cents=_cents(reinforcement_price_cents, optional=True),
         open_to_non_members=bool(open_to_non_members),
+        default_requirements_mode=_mode(default_requirements_mode),
         department=department,
     )
     TrainingCataloguePrice.objects.create(
@@ -171,6 +187,8 @@ def update_entry(entry, *, by, request=None, **fields) -> list[str]:
             raise ValidationError(_("Ja hi ha una fitxa amb aquest nom en aquest catàleg."))
     if "default_places" in fields:
         fields["default_places"] = _places(fields["default_places"])
+    if "default_requirements_mode" in fields:
+        fields["default_requirements_mode"] = _mode(fields["default_requirements_mode"])
     if "department" in fields and not getattr(fields["department"], "active", False):
         raise ValidationError(_("Cal triar un departament actiu."))
     changes = {}
@@ -196,7 +214,8 @@ def set_active(obj, active: bool, *, by, request=None) -> bool:
         permissions.require(by, permissions.PLACES_MANAGE)
     else:
         permissions.require(by, permissions.CATALOGUE)
-    if not isinstance(obj, TrainingCatalogueEntry | OutingType | EnvironmentalSubtype | Place):
+    kinds = TrainingCatalogueEntry | OutingType | EnvironmentalSubtype | CertificationLevel | Place
+    if not isinstance(obj, kinds):
         raise ValidationError(_("Això no es pot activar ni desactivar."))
     with transaction.atomic():
         locked = type(obj).objects.select_for_update().get(pk=obj.pk)
@@ -302,8 +321,9 @@ def _create_named(model, *, by, name, request, **fields):
 
 
 def create_outing_type(
-    *, by, name, default_department, is_environmental=False, request=None
-) -> OutingType:
+    *, by, name, default_department, is_environmental=False, default_requirements_mode="",
+    request=None,
+) -> OutingType:  # fmt: skip
     return _create_named(
         OutingType,
         by=by,
@@ -311,7 +331,50 @@ def create_outing_type(
         request=request,
         default_department=default_department,
         is_environmental=bool(is_environmental),
+        default_requirements_mode=_mode(default_requirements_mode),
     )
+
+
+@transaction.atomic
+def set_outing_type_mode(outing_type, mode, *, by, request=None) -> bool:
+    """El mode que copien les sortides noves d'aquest tipus (RN-M02-29; CA-M02-34). Les ja creades
+    no canvien. Torna si ha canviat."""
+    permissions.require(by, permissions.CATALOGUE)
+    mode = _mode(mode)
+    locked = OutingType.objects.select_for_update().get(pk=outing_type.pk)
+    if locked.default_requirements_mode == mode:
+        return False
+    old, locked.default_requirements_mode = locked.default_requirements_mode, mode
+    locked.save(update_fields=["default_requirements_mode"])
+    outing_type.default_requirements_mode = mode
+    audit.record(
+        MODE_CHANGED,
+        actor=by,
+        target=locked,
+        field="default_requirements_mode",
+        old=old,
+        new=mode,
+        request=request,
+    )
+    return True
+
+
+@transaction.atomic
+def create_level(*, by, name, rank, agency="", request=None) -> CertificationLevel:
+    """Afegeix un nivell a la llista (RN-M02-27). L'ordre (`rank`) diu quin és més alt."""
+    permissions.require(by, permissions.CATALOGUE)
+    name = _name(name)
+    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= 999:
+        raise ValidationError(_("L'ordre del nivell ha de ser un nombre entre 1 i 999."))
+    if CertificationLevel.objects.filter(name=name).exists():
+        raise ValidationError(_("Ja n'hi ha un amb aquest nom."))
+    if CertificationLevel.objects.filter(rank=rank).exists():
+        raise ValidationError(_("Ja hi ha un nivell amb aquest ordre."))
+    level = CertificationLevel.objects.create(
+        name=name, rank=rank, agency=(agency or "").strip()[:60]
+    )
+    audit.record(LEVEL_CREATED, actor=by, target=level, details={"rank": rank}, request=request)
+    return level
 
 
 def create_subtype(*, by, name, request=None) -> EnvironmentalSubtype:
