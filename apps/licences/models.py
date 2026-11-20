@@ -2,6 +2,7 @@
 del 06 (M06-8). Imports en cèntims; cap dada de salut ni de pagament (RN-M06-15)."""
 
 import datetime
+import uuid
 
 from django.conf import settings
 from django.db import models
@@ -279,3 +280,51 @@ class Licence(UndeletableModel):
         ):
             return self.Display.TO_RENEW
         return self.Display.VALID
+
+
+class LicenceRefundProposal(models.Model):
+    """Proposta de devolució d'una llicència cancel·lada després de pagar-la (M06-6; RN-M06-09,
+    CA-M06-13). Cap devolució automàtica: el tresorer la fa (o la rebutja) i la devolució és la
+    del 05b, amb `refund_key` com a clau perquè un reintent no torni dues vegades."""
+
+    class Status(models.TextChoices):
+        PROPOSED = "proposed", _("Proposada")
+        DONE = "done", _("Feta")
+        REJECTED = "rejected", _("Rebutjada")
+
+    licence = models.OneToOneField(
+        Licence, on_delete=models.PROTECT, related_name="refund_proposal",
+        verbose_name=_("llicència"),
+    )  # fmt: skip
+    amount_cents = models.PositiveIntegerField(_("import (cèntims)"))
+    reason = models.TextField(_("motiu"))
+    status = models.CharField(
+        _("estat"), max_length=8, choices=Status.choices, default=Status.PROPOSED
+    )
+    refund_key = models.UUIDField(_("clau de la devolució"), default=uuid.uuid4, unique=True)
+    decision_note = models.TextField(_("nota de la decisió"), blank=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    decided_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("proposta de devolució de llicència")
+        verbose_name_plural = _("propostes de devolució de llicència")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_cents__gt=0), name="licences_refund_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["proposed", "done", "rejected"]),
+                name="licences_refund_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="proposed") | Q(decided_by__isnull=False),
+                name="licences_refund_decided_has_author",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.licence} · {self.get_status_display()}"
