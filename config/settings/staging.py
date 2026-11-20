@@ -40,10 +40,11 @@ PAYMENTS_PROVIDER = "fake"
 PAYMENTS_ENVIRONMENT = "sandbox"
 PAYMENTS_LIVE_CHARGES_ALLOWED = False
 
-# Correu: la bústia de proves (servei «mailpit» del docker-compose). Cap correu surt.
+# Correu: la bústia de proves (servei «mailpit» del docker-compose). Cap correu surt: el servidor
+# és fix i no es llegeix de l'entorn, on hi podria haver el d'un altre (T-F1-01).
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = env("EMAIL_HOST", default="mailpit")
-EMAIL_PORT = env.int("EMAIL_PORT", default=1025)
+EMAIL_HOST = "mailpit"
+EMAIL_PORT = 1025
 EMAIL_HOST_USER = ""
 EMAIL_HOST_PASSWORD = ""
 EMAIL_USE_TLS = False
