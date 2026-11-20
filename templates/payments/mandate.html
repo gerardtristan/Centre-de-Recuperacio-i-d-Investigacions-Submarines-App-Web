@@ -38,7 +38,6 @@
       {% if active %}<p class="text-2">{% blocktranslate with reference=active.reference %}En signar-lo, el mandat {{ reference }} es revocarà amb el motiu «substituït».{% endblocktranslate %}</p>{% endif %}
       {% include "accounts/_camp.html" with field=form.holder_name %}
       {% include "accounts/_camp.html" with field=form.other_holder %}
-      <p class="text-2"><span class="a-validar">{% translate "A validar: junta i banc (L-M05a-01)" %}</span></p>
       {% include "accounts/_camp.html" with field=form.iban %}
       <section aria-labelledby="text-mandat-titol">
         <h3 id="text-mandat-titol">{% translate "Què acceptes" %}</h3>
@@ -61,7 +60,7 @@
       <h2 id="no-disponible-titol">{% translate "Encara no es pot signar el mandat" %}</h2>
       <p>{% translate "Falta el text del mandat aprovat o l'identificador de creditor del club. Mentrestant, pots pagar la quota amb targeta, Bizum o transferència." %}</p>
       <dl class="dades-soci">
-        <div><dt>{% translate "Identificador de creditor" %}</dt><dd>{% if creditor %}<span class="codi">{{ creditor }}</span>{% else %}<span class="a-validar">{% translate "A verificar: banc (P-45 punt 5)" %}</span>{% endif %}</dd></div>
+        <div><dt>{% translate "Identificador de creditor" %}</dt><dd>{% if creditor %}<span class="codi">{{ creditor }}</span>{% else %}{% translate "Encara no disponible" %}{% endif %}</dd></div>
       </dl>
     </section>
   {% endif %}

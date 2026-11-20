@@ -8,7 +8,7 @@
   <form class="targeta formulari" method="post" action="{% url 'payments:mandate_revoke' %}" novalidate>
     {% csrf_token %}
     <p>{% blocktranslate with reference=active.reference iban=active.bank_account %}No es cobrarà cap quota més amb el mandat {{ reference }} (compte {{ iban }}). Pagaràs cada quota amb targeta, Bizum o transferència quan es generi.{% endblocktranslate %}</p>
-    <p class="text-2">{% translate "Les quotes que ja s'hagin enviat al banc abans d'ara es poden cobrar igualment." %} <span class="a-validar">{% translate "A verificar: banc (RN-M05a-09)" %}</span></p>
+    <p class="text-2">{% translate "Les quotes que ja s'hagin enviat al banc abans d'ara es poden cobrar igualment." %}</p>
     {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
     {% if form.password %}{% include "accounts/_camp.html" with field=form.password %}{% endif %}
     {% if form.code %}{% include "accounts/_camp.html" with field=form.code %}{% endif %}

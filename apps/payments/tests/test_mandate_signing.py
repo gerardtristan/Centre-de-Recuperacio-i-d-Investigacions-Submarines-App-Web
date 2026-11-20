@@ -83,7 +83,9 @@ class TestAvailability:
     ):
         settings.SEPA_CREDITOR_IDENTIFIER = ""
         response = browser.get(URL)
-        assert "A verificar: banc (P-45 punt 5)" in response.content.decode()
+        html = response.content.decode()
+        assert "Encara no disponible" in html
+        assert "P-45" not in html and "a-validar" not in html  # V17: cap marca interna al soci
         sign(browser)
         assert not SepaMandate.objects.exists()
 

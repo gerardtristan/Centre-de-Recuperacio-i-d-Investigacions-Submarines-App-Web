@@ -40,7 +40,7 @@ def test_member_signs_the_mandate(page, live_server, transactional_db, settings,
     page.get_by_label("Contrasenya").fill(PASSWORD)
     page.get_by_role("button", name="Entrar").click()
     page.goto(f"{live_server.url}{reverse('payments:mandate')}")
-    expect(page.get_by_text("A verificar: banc (P-45 punt 5)")).to_be_visible()
+    expect(page.get_by_text("Encara no disponible")).to_be_visible()
     review("mandat-no-disponible")
 
     settings.SEPA_CREDITOR_IDENTIFIER = "ES00ZZZ00000000"
