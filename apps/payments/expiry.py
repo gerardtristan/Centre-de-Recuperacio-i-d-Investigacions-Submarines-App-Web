@@ -60,5 +60,5 @@ def expire_mandates(today: date | None = None) -> int:
             reason=REASON,
             details={"reference": mandate.reference, "expires_on": str(expires_on(mandate))},
         )
-        mandates.mail_member(mandates.EXPIRED_TEMPLATE, mandate)
+        mandates.mail_member(mandates.EXPIRED_TEMPLATE, mandate, months=EXPIRY_MONTHS)
     return len(expired)

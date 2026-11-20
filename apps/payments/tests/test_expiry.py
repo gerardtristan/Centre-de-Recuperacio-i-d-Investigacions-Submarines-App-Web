@@ -114,6 +114,22 @@ def test_rn_m05a_08_el_soci_rep_un_avis_una_sola_vegada_sense_l_iban(sign, membe
     assert "00000000000001" not in email.subject + email.body_text
 
 
+def test_l_avis_diu_el_termini_de_la_regla_i_no_un_numero_propi(
+    sign,  # noqa: F811
+    member,  # noqa: F811
+    monkeypatch,
+):
+    """T-F1-01: el text no repeteix els 36 mesos (VC-13, [A verificar: banc]); llegeix la regla."""
+    monkeypatch.setattr(expiry, "EXPIRY_MONTHS", 24)
+    member.person.contact_email = "anna.prova@example.org"
+    member.person.save()
+    dated(sign(), signed=date(2024, 1, 10))
+
+    assert expiry.expire_mandates(today=date(2026, 1, 10)) == 1
+    body = OutgoingEmail.objects.get().body_text
+    assert "fa 24 mesos" in body and "36 mesos" not in body
+
+
 def test_sense_adreca_caduca_igualment_i_no_envia_res(sign):  # noqa: F811
     mandate = dated(sign(), signed=date(2023, 1, 10))
     assert expiry.expire_mandates(today=date(2026, 1, 10)) == 1

@@ -1,6 +1,6 @@
-{% load i18n %}{# T-M05a-09, avís de caducitat (RN-M05a-08; T-M05a-15): TEXT PROVISIONAL [A validar: junta]. El termini de 36 mesos és [A verificar: banc]. IBAN només emmascarat («…», P-121). #}{% autoescape off %}{% translate "Hola," %}
+{% load i18n %}{# T-M05a-09, avís de caducitat (RN-M05a-08; T-M05a-15): TEXT PROVISIONAL [A validar: junta]. El termini (`expiry.EXPIRY_MONTHS`, VC-13) és [A verificar: banc]. IBAN només emmascarat («…», P-121). #}{% autoescape off %}{% translate "Hola," %}
 
-{% blocktranslate %}El mandat de domiciliació {{ reference }} (compte {{ masked_iban }}) ha caducat perquè fa 36 mesos que no s'hi ha cobrat cap quota. Ja no el farem servir.{% endblocktranslate %}
+{% blocktranslate %}El mandat de domiciliació {{ reference }} (compte {{ masked_iban }}) ha caducat perquè fa {{ months }} mesos que no s'hi ha cobrat cap quota. Ja no el farem servir.{% endblocktranslate %}
 
 {% translate "Si vols continuar pagant la quota per domiciliació, signa'n un de nou a la plataforma:" %}
 
