@@ -41,7 +41,7 @@
         <tr>
           <th scope="row" class="cel-nom">{{ member.person }}<br><span class="codi">{% if member.member_number %}{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}{% else %}{% translate "Sense número" %}{% endif %}</span></th>
           <td data-etiqueta="{% translate 'Tipus' %}">{{ member.type.name }}</td>
-          <td data-etiqueta="{% translate 'Quota' %}">{% include "members/_fee_state.html" %}{% if member.pk in candidates %}<br><span class="estat estat-error"><span aria-hidden="true">!</span> {% translate "Candidat a impagat" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Quota' %}"><span>{% include "members/_fee_state.html" %}{% if member.pk in candidates %}<br><span class="estat estat-error"><span aria-hidden="true">!</span> {% translate "Candidat a impagat" %}</span>{% endif %}</span></td>
           <td data-etiqueta="{% translate 'Estat del soci' %}">{% include "members/_member_status.html" %}</td>
           {% if can_mark %}
             <td class="cel-accions">

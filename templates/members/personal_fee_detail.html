@@ -25,7 +25,7 @@
         <thead><tr><th scope="col">{% translate "Termini" %}</th><th scope="col" class="cel-import">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th></tr></thead>
         <tbody>
           {% for row in schedule %}
-            <tr><th scope="row">{{ forloop.counter }}</th><td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td><td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.due_on|date:'Y-m-d' }}">{{ row.due_on|date:"d/m/Y" }}</time></td></tr>
+            <tr><th scope="row" class="cel-nom">{{ forloop.counter }}</th><td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td><td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ row.due_on|date:'Y-m-d' }}">{{ row.due_on|date:"d/m/Y" }}</time></td></tr>
           {% endfor %}
         </tbody>
       </table>
