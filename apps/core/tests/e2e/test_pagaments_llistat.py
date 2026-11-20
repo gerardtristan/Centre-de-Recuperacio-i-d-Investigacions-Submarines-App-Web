@@ -110,6 +110,8 @@ def test_treasurer_marks_an_unpaid_saved_card_fee_as_reviewed(
 
     page.get_by_role("link", name="Revisada").click()
     expect(page.get_by_role("heading", name="Revisa una quota no cobrada")).to_be_visible()
+    # L'estat amb l'etiqueta d'estat (`estat estat-avis`), com a la resta de pantalles.
+    expect(page.locator(".dades-soci .estat.estat-avis")).to_have_text("◷ Pendent")
     page.get_by_role("button", name="Sí, revisada").click()
     expect(page.get_by_text("Cal una nota per tancar-lo.").first).to_be_visible()
     review("quota-no-cobrada-revisar")
