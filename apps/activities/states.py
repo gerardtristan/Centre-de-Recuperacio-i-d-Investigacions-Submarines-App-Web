@@ -178,6 +178,18 @@ def _catch_up(locked, now) -> list[str]:
     return done
 
 
+def _check_places(activity) -> None:
+    """RN-M02-44 i CA-M02-47: no es publica sense lloc (sortides) ni amb un lloc desactivat a
+    l'activitat, a les sessions vives o als blocs (el cas d'una còpia)."""
+    if activity.kind == K.OUTING and activity.place is None:
+        raise ValidationError(_("Tria el lloc de la sortida abans de publicar-la."))
+    places = [activity.place]
+    places += [s.place for s in activity.sessions.filter(cancelled=False).select_related("place")]
+    places += [b.place for b in activity.programme_blocks.select_related("place")]
+    if any(place is not None and not place.active for place in places):
+        raise ValidationError(_("Hi ha un lloc desactivat: tria'n un d'actiu abans de publicar."))
+
+
 # --- Passos del responsable (AC7) -----------------------------------------------------------------
 
 
@@ -195,6 +207,7 @@ def publish(activity, *, by, now=None, request=None) -> Activity:
         raise ValidationError(
             _("La data límit d'inscripció ja ha passat: canvia-la abans de publicar.")
         )
+    _check_places(locked)
     _apply(locked, S.OPEN, actor=by, now=now, request=request)
     return _refresh(activity, locked)
 
