@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit, business_settings
 from apps.core.models import Charge
 from apps.core.permissions import has_perm
+from apps.treasury.models import Movement
 
 from .models import Invoice, InvoiceLine
 from .providers import InvoiceData, InvoiceLineData, ProviderError, get_provider
@@ -27,11 +28,16 @@ INVOICE_ISSUED = "invoicing.invoice_issued"
 INVOICE_FAILED = "invoicing.invoice_failed"
 SERIES_GAP = "invoicing.series_gap"
 MANUAL_REQUESTED = "invoicing.manual_requested"
+RECTIFICATION_REQUESTED = "invoicing.rectification_requested"
 _TRAILING_NUMBER = re.compile(r"(\d+)$")
 
 
 class InvoicingDisabled(ValidationError):
     """RN-M09-19: la facturació no està activada."""
+
+
+class AlreadyRectified(ValidationError):
+    """La devolució ja té la seva rectificativa, o la factura ja està rectificada del tot."""
 
 
 def check_enabled_kinds(value) -> None:
@@ -210,3 +216,62 @@ def issue_manual(*, customer_name, customer_tax_id, lines, by) -> Invoice:
     )
     audit.record(MANUAL_REQUESTED, actor=by, target=invoice, details={"total_cents": total})
     return _send(invoice)
+
+
+@transaction.atomic
+def issue_rectification(invoice, refund_movement, *, reason, by) -> Invoice:
+    """`invoicing.issue_rectification` (T-M09-20; RN-M09-18; CA-M09-18): la rectificativa (sèrie
+    R) d'una devolució, total o parcial, lligada a la factura original i per l'import de la
+    devolució. Una devolució sense factura (L-M09-08) no en té: es rebutja amb el motiu."""
+    require(by)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(_("Una rectificativa porta el motiu."))
+    invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+    refund = Movement.objects.select_related("payment").get(pk=refund_movement.pk)
+    if invoice.series != Invoice.Series.ORDINARY or invoice.status != Invoice.Status.ISSUED:
+        raise ValidationError(_("Només es rectifica una factura ordinària emesa."))
+    if (
+        refund.kind != Movement.Kind.REFUND
+        or invoice.charge_id is None
+        or refund.payment is None
+        or refund.payment.charge_id != invoice.charge_id
+    ):
+        raise ValidationError(_("Aquesta devolució no és del cobrament d'aquesta factura."))
+    if Invoice.objects.filter(refund_movement=refund).exists():
+        raise AlreadyRectified(_("Aquesta devolució ja té la seva rectificativa."))
+    rectified = sum(
+        invoice.rectifications.exclude(status=Invoice.Status.FAILED).values_list(
+            "total_cents", flat=True
+        )
+    )
+    if rectified + refund.amount_cents > invoice.total_cents:
+        raise AlreadyRectified(_("La rectificativa passaria de l'import de la factura."))
+    rectification = Invoice.objects.create(
+        series=Invoice.Series.RECTIFYING,
+        rectifies=invoice,
+        refund_movement=refund,
+        customer_person=invoice.customer_person,
+        customer_name=invoice.customer_name,
+        customer_tax_id=invoice.customer_tax_id,
+        base_cents=refund.amount_cents,
+        tax_cents=0,
+        total_cents=refund.amount_cents,
+    )
+    InvoiceLine.objects.create(
+        invoice=rectification,
+        description=(gettext("Rectificació de la factura %(number)s") % {"number": invoice.number})[
+            :200
+        ],
+        quantity=1,
+        unit_cents=refund.amount_cents,
+        total_cents=refund.amount_cents,
+    )
+    audit.record(
+        RECTIFICATION_REQUESTED,
+        actor=by,
+        target=rectification,
+        reason=reason,
+        details={"rectifies": invoice.number, "refund": refund.pk},
+    )
+    return _send(rectification)
