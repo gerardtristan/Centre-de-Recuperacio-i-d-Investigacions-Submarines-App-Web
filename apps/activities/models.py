@@ -1,7 +1,7 @@
 """Models del mòdul 02, Activitats (cursos i sortides). Primera peça: catàlegs, tipus, subtipus,
 projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20), i llocs amb el
 seu preu estàndard (T-M02-37; addenda de llocs; RN-M02-38 i 39; VC-52). Activitats, sessions i
-blocs del programa (T-M02-03a; M02-6), sense estats ni serveis encara.
+blocs del programa (T-M02-03a; M02-6). Nivells i titulacions (T-M02-23; addenda de la 058).
 
 - Imports en cèntims (enters, ≥ 0: una activitat pot ser gratuïta, L-M02-06). Cap dada de salut,
   de targeta ni d'IBAN (CA-M02-25).
@@ -545,3 +545,113 @@ class ProgrammeBlock(models.Model):
     def shown_place(self):
         """El lloc que es mostra: el del bloc o, si no en té, el de l'activitat (CA-M02-47)."""
         return self.place or self.activity.place
+
+
+class CertificationLevel(models.Model):
+    """Nivell de titulació de busseig, amb un ordre: un `rank` més alt és un nivell més alt
+    (addenda de la 058; RN-M02-27). La llista la manté el responsable de cursos i sortides; no
+    porta dades inicials [A verificar: FECDAS, S-M02-11]."""
+
+    name = models.CharField(_("nom"), max_length=60, unique=True)
+    rank = models.PositiveSmallIntegerField(_("ordre"), unique=True)
+    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    active = models.BooleanField(_("actiu"), default=True)
+
+    class Meta:
+        verbose_name = _("nivell de titulació")
+        verbose_name_plural = _("nivells de titulació")
+        ordering = ["rank"]
+
+    def __str__(self):
+        return self.name
+
+
+class DiverCertification(models.Model):
+    """Titulació de busseig d'una persona: un nivell o una especialitat (T-M02-23; M02-6 i
+    addenda de la 058; RN-M02-10, RN-M02-30 i RN-M02-32). És una dada personal: només la veu qui
+    té permís i surt a l'exportació RGPD de la persona. Cap foto ni escaneig del carnet.
+
+    - `source`: `club_course` (un curs del club), `declared` (ho diu la persona) o `imported`.
+    - Verificada: `verified_by` i `verified_at` informats. En mode de bloqueig només compten les
+      verificades i les del club (RN-M02-30)."""
+
+    class Source(models.TextChoices):
+        CLUB_COURSE = "club_course", _("Curs del club")
+        DECLARED = "declared", _("Declarada")
+        IMPORTED = "imported", _("Importada")
+
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="diver_certifications",
+        verbose_name=_("persona"),
+    )
+    level = models.ForeignKey(
+        CertificationLevel,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="certifications",
+        verbose_name=_("nivell"),
+    )
+    speciality = models.ForeignKey(
+        TrainingCatalogueEntry,
+        on_delete=models.PROTECT,
+        limit_choices_to={"kind": "speciality"},
+        null=True,
+        blank=True,
+        related_name="certifications",
+        verbose_name=_("especialitat"),
+    )
+    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    issuer = models.CharField(_("qui l'ha emesa"), max_length=120, blank=True)
+    number = models.CharField(_("número de la titulació"), max_length=40, blank=True)
+    certificate_number = models.CharField(_("número del certificat"), max_length=40, blank=True)
+    issued_on = models.DateField(_("data"), null=True, blank=True)
+    source = models.CharField(_("origen"), max_length=12, choices=Source.choices)
+    instructor = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("instructor"),
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("verificada per"),
+    )
+    verified_at = models.DateTimeField(_("verificada el"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("titulació")
+        verbose_name_plural = _("titulacions")
+        ordering = ["person_id", "pk"]
+        indexes = [models.Index(fields=["person"], name="divercert_person_idx")]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(level__isnull=False) | Q(speciality__isnull=False),
+                name="divercert_level_or_speciality",
+            ),
+            models.CheckConstraint(
+                condition=Q(source__in=["club_course", "declared", "imported"]),
+                name="divercert_source_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(verified_by__isnull=True, verified_at__isnull=True)
+                | Q(verified_by__isnull=False, verified_at__isnull=False),
+                name="divercert_verified_by_and_at_together",
+            ),
+        ]
+
+    def __str__(self):
+        return str(self.level or self.speciality)
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verified_by_id is not None
