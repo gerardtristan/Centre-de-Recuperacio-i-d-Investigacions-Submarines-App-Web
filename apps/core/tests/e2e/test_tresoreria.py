@@ -24,6 +24,13 @@ from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 
+# Distància del començament del text a la vora esquerra de la cel·la (T-DX-78, V13)
+TEXT_INDENT_JS = """(cell) => {
+  const range = document.createRange();
+  range.selectNodeContents(cell);
+  return range.getBoundingClientRect().left - cell.getBoundingClientRect().left;
+}"""
+
 
 def test_treasurer_sees_the_movement_and_the_balance(page, live_server, transactional_db, review):
     transit = new_transit()
@@ -49,6 +56,10 @@ def test_treasurer_sees_the_movement_and_the_balance(page, live_server, transact
     page.get_by_label("Compte").select_option(label="Caixa")
     page.get_by_role("button", name="Filtra").click()
     expect(page.get_by_text("Cap moviment amb aquests filtres.")).to_be_visible()
+    # T-DX-78 (V13): a 390 px, la fila buida va a l'esquerra (abans, a la dreta)
+    page.set_viewport_size({"width": 390, "height": 900})
+    empty = page.get_by_role("cell", name="Cap moviment amb aquests filtres.")
+    assert empty.evaluate(TEXT_INDENT_JS) < 1
     review("moviments-filtrats")
 
 

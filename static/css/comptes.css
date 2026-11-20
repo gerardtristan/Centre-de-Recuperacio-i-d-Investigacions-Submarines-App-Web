@@ -59,6 +59,10 @@ figure { margin: 0; }
 .taula .cel-nom { text-align: left; font-weight: var(--p-semi); font-size: var(--t-m); }
 .taula td.cel-accions { justify-content: flex-end; }
 .taula td.cel-accions::before { content: none; }
+/* T-DX-78: la fila buida (una cel·la amb colspan i sense etiqueta) va a l'esquerra (V13), i un
+   formulari dins d'una cel·la passa sota l'etiqueta, a tota l'amplada (V14) */
+.taula td[colspan]:not([data-etiqueta])::before { content: none; }
+.taula td > form { flex-basis: 100%; }
 .taula caption { text-align: left; font-size: var(--t-s); color: var(--c-text-2); margin-bottom: var(--e-2); }
 @media (min-width: 600px) {
   .taula { display: table; }
