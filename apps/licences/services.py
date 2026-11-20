@@ -7,6 +7,8 @@ ho fa amb aquests serveis.
   (P-M06-B, RN-M06-04, 10 i 21). El pagament és el del 05b sobre el càrrec; el pas a «pagada»,
   la T-M06-05.
 - `declare_existing(person, licence_type, ...)`: «Ja en tinc una» (RN-M06-14).
+- `cancel(licence, reason, actor)` i `decide_refund(proposal, ...)`: cancel·lar i, si estava
+  pagada, la proposta de devolució que fa el tresorer amb el 05b (P-M06-G, CA-M06-13).
 - `participant_status(account, person, on, context)`: el que pot veure de la llicència d'un
   participant l'instructor («vigent sí o no») o el responsable de l'activitat («vigent», «en
   tràmit» o «no») per a la data de la sessió o de l'activitat (RN-M06-22, LC10). Mai la data de
@@ -28,10 +30,18 @@ from apps.core.models import Charge, Department
 from apps.core.permission_catalog import SCOPE_ALL, SCOPE_OWN_SESSIONS
 from apps.core.permissions import has_perm, scope_for
 from apps.members.services import is_member
+from apps.payments import refunds
 
 from . import prices
 from .dates import expires_on
-from .models import IN_PROGRESS, Licence, LicencePrice, LicenceType, ValidityRule
+from .models import (
+    IN_PROGRESS,
+    Licence,
+    LicencePrice,
+    LicenceRefundProposal,
+    LicenceType,
+    ValidityRule,
+)
 
 PARTICIPANT_PERMISSION = "licences.participant_status"  # LC10
 
@@ -336,3 +346,88 @@ def declare_existing(
                  "expires_on": expires_on.isoformat()},
         )  # fmt: skip
     return licence
+
+
+# --- Cancel·lar i proposta de devolució (T-M06-12) ----------------------------------------------
+
+CANCEL_PERMISSION = "licences.cancel"  # LC6
+REFUND_PERMISSION = "licences.refund"  # LC7
+ACTION_CANCELLED = "licences.cancelled"
+ACTION_REFUND_DECIDED = "licences.refund_decided"
+CANCELLABLE = (Licence.Status.REQUESTED, Licence.Status.PAID, Licence.Status.FILED)
+
+
+class CannotCancel(LicenceRequestError):
+    message = _("Aquesta llicència no es pot cancel·lar: una de vigent es deixa caducar.")
+
+
+class MissingReason(LicenceRequestError):
+    message = _("Cal un motiu.")
+
+
+class AlreadyDecided(LicenceRequestError):
+    message = _("Aquesta proposta de devolució ja està decidida.")
+
+
+@transaction.atomic
+def cancel(licence: Licence, reason: str, *, actor) -> Licence:
+    """RN-M06-09 (P-M06-G): sol·licitada, pagada o tramitada → cancel·lada amb motiu. Si el
+    càrrec és pendent, s'anul·la; si ja s'havia pagat, es crea la proposta de devolució per al
+    tresorer, sense cap devolució automàtica (CA-M06-13)."""
+    if not has_perm(actor, CANCEL_PERMISSION, write=True):
+        raise Http404
+    reason = (reason or "").strip()
+    if not reason:
+        raise MissingReason
+    licence = Licence.objects.select_for_update().get(pk=licence.pk)
+    if licence.status not in CANCELLABLE:
+        raise CannotCancel
+    previous = licence.status
+    licence.status = Licence.Status.CANCELLED
+    licence.cancellation_reason, licence.cancelled_by = reason, actor
+    licence.save(update_fields=["status", "cancellation_reason", "cancelled_by", "updated_at"])
+    charge = licence.charge
+    if charge is not None and charge.status == Charge.Status.PENDING:
+        charges.cancel(charge, reason, by=actor)
+    elif charge is not None and charge.status == Charge.Status.PAID:
+        LicenceRefundProposal.objects.create(
+            licence=licence, amount_cents=charge.amount_cents, reason=reason
+        )
+    audit.record(
+        ACTION_CANCELLED, actor=actor, target=licence, field="status", old=previous,
+        new=Licence.Status.CANCELLED, reason=reason,
+    )  # fmt: skip
+    return licence
+
+
+def decide_refund(proposal: LicenceRefundProposal, *, approve: bool, note: str, actor):
+    """LC7: el tresorer fa la devolució amb el 05b (`payments.refund`, que també demana B5 i
+    és idempotent per `refund_key`) o la rebutja amb una nota. Si el 05b falla, la proposta
+    continua «proposada» i es pot tornar a provar."""
+    if not has_perm(actor, REFUND_PERMISSION, write=True):
+        raise Http404
+    note = (note or "").strip()
+    if not note:
+        raise MissingReason
+    if proposal.status != LicenceRefundProposal.Status.PROPOSED:
+        raise AlreadyDecided
+    if approve:
+        (payment,) = charges.active_payments(proposal.licence.charge)
+        refunds.refund(
+            payment, proposal.amount_cents, reason=note, key=proposal.refund_key, by=actor
+        )
+    with transaction.atomic():
+        locked = LicenceRefundProposal.objects.select_for_update().get(pk=proposal.pk)
+        if locked.status != LicenceRefundProposal.Status.PROPOSED:
+            return locked
+        locked.status = (
+            LicenceRefundProposal.Status.DONE if approve else LicenceRefundProposal.Status.REJECTED
+        )
+        locked.decision_note, locked.decided_by = note, actor
+        locked.decided_at = timezone.now()
+        locked.save(update_fields=["status", "decision_note", "decided_by", "decided_at"])
+        audit.record(
+            ACTION_REFUND_DECIDED, actor=actor, target=locked.licence, field="refund",
+            old=LicenceRefundProposal.Status.PROPOSED, new=locked.status, reason=note,
+        )  # fmt: skip
+    return locked
