@@ -270,7 +270,7 @@ def create_mandate(
     return mandate
 
 
-def mail_member(template: str, mandate: SepaMandate) -> None:
+def mail_member(template: str, mandate: SepaMandate, **extra) -> None:
     """Correu al soci del mandat (al representant, si és menor: RN-M01-78), per la cua: el G3 en
     signar-lo (CA-M05a-04), la revocació (P-M05a-C) i l'avís de caducitat (RN-M05a-08). Porta la
     referència, l'identificador de creditor, la data i l'IBAN emmascarat (P-121); mai l'IBAN
@@ -285,5 +285,6 @@ def mail_member(template: str, mandate: SepaMandate) -> None:
         "signed_on": timezone.localdate(mandate.signed_at),
         "masked_iban": str(mandate.bank_account),
         "link": settings.PUBLIC_SITE_URL + reverse("payments:mandate"),
+        **extra,
     }
     mail.queue_email(template, to=to, person=person, context=context)
