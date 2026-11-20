@@ -2,6 +2,7 @@
 pel servei, CA-M01-15; decisions 069 i 070; P13). Només dades inventades."""
 
 import hashlib
+import re
 from datetime import date, datetime, timedelta
 
 import pytest
@@ -350,8 +351,17 @@ def test_member_without_card(personal):
     assert "Ara no tens cap carnet." in response.content.decode()
 
 
+class _NowWith1999(datetime):
+    """El rellotge de `{% now %}` amb «1999» als microsegons, com al CI del 17/11 (P-315b)."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return datetime(2026, 11, 17, 14, 29, 59, 119995, tzinfo=tz)
+
+
 @pytest.mark.django_db
-def test_own_valid_card_and_nothing_of_others(personal):
+def test_own_valid_card_and_nothing_of_others(personal, monkeypatch):
+    monkeypatch.setattr("django.template.defaulttags.datetime", _NowWith1999)
     other = paid_member("Sentinella", 1999, document="87654321X")
     cards.issue_card(other, by=SYSTEM)
     member = make_member(joined_on=date(1998, 3, 15))
@@ -364,7 +374,8 @@ def test_own_valid_card_and_nothing_of_others(personal):
     assert "Vàlid" in html and "No vàlid" not in html
     assert until.strftime("%d/%m/%Y") in html
     assert "1287" in html and member.type.name in html
-    assert "Sentinella" not in html and "1999" not in html
+    # El número de l'altre soci com a número sencer: «1999» també pot sortir dins d'una hora.
+    assert "Sentinella" not in html and not re.search(r"\b1999\b", html)
     assert token not in html and cards.active_card(member).token_hash not in html
     assert f'href="{reverse(CARD)}" aria-current="page"' in html
 

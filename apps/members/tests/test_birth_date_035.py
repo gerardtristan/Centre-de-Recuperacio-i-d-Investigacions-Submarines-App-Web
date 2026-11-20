@@ -27,6 +27,23 @@ from conftest import PASSWORD
 pytestmark = pytest.mark.django_db
 BIRTH = datetime.date(1985, 4, 12)
 PROFILE = "members:profile"
+
+
+def stored(entry):
+    """L'entrada desada, sense l'hora: els seus microsegons poden portar qualsevol xifra."""
+    values = AuditEntry.objects.values().get(pk=entry.pk)
+    del values["created_at"]
+    return str(values)
+
+
+def audit_time_with(monkeypatch, microsecond):
+    """L'hora del registre amb un any als microsegons (P-315b): l'atzar del CI, forçat."""
+    field = AuditEntry._meta.get_field("created_at")
+    monkeypatch.setattr(
+        field, "_get_default", lambda: timezone.now().replace(microsecond=microsecond)
+    )
+
+
 SAVE = "members:birth_date"
 
 
@@ -70,7 +87,8 @@ class TestCaM0143:
         assert "Falta la teva data de naixement" in profile
         assert 'name="birth_date"' in profile
 
-    def test_ca_m01_43_completing_it_saves_it_without_the_date_in_the_audit_log(self):
+    def test_ca_m01_43_completing_it_saves_it_without_the_date_in_the_audit_log(self, monkeypatch):
+        audit_time_with(monkeypatch, 198519)
         member = imported_member()
         client, account = personal_client(member.person)
         response = client.post(reverse(SAVE), {"birth_date": BIRTH.isoformat()})
@@ -85,7 +103,7 @@ class TestCaM0143:
             "source": "profile",
             "check_reset": False,
         }
-        assert "1985" not in str(AuditEntry.objects.values().get(pk=entry.pk))
+        assert "1985" not in stored(entry)
         profile = client.get(reverse(PROFILE)).content.decode()
         assert 'name="birth_date"' not in profile  # un cop desada, ja no s'ofereix
         assert "Falta la teva data" not in client.get(reverse("core:home")).content.decode()
@@ -132,7 +150,8 @@ class TestCaM0143:
 
 
 class TestSecretaryCompletesIt:
-    def test_rn_m01_55_secretary_with_c1_completes_and_corrects_it(self, make_admin):  # noqa: F811
+    def test_rn_m01_55_secretary_with_c1_completes_and_corrects_it(self, make_admin, monkeypatch):  # noqa: F811
+        audit_time_with(monkeypatch, 219801)
         secretary = make_admin("secretary")
         member = a_member(document=("dni", "12345678Z"))
         client = admin_client(secretary)
@@ -143,7 +162,7 @@ class TestSecretaryCompletesIt:
         assert Person.objects.get(pk=member.person_id).birth_date == datetime.date(1980, 2, 3)
         entry = AuditEntry.objects.get(action=persons.BIRTH_DATE_SET)
         assert (entry.actor_account, entry.details["source"]) == (secretary, "member_edit")
-        assert "1980" not in str(AuditEntry.objects.values().get(pk=entry.pk))
+        assert "1980" not in stored(entry)
 
     def test_the_date_cannot_be_removed_or_be_in_the_future(self, make_admin):  # noqa: F811
         secretary = make_admin("secretary")

@@ -5,6 +5,7 @@ inventades.
 """
 
 import datetime
+import re
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -374,10 +375,14 @@ class TestJoinDateAndBirthDate:
     def test_screen_warns_about_a_different_birth_date_without_showing_it(self, make_admin):  # noqa: F811
         existing = a_person()
         Person.objects.filter(pk=existing.pk).update(birth_date=datetime.date(1985, 1, 1))
-        a_request(Person.objects.get(pk=existing.pk), birth=ADULT)
+        join_request = a_request(Person.objects.get(pk=existing.pk), birth=ADULT)
+        # L'hora de la sol·licitud surt amb microsegons; el 20/11 al CI, «.511985» (P-315b).
+        moment = timezone.now().replace(microsecond=511985)
+        MemberRequest.objects.filter(pk=join_request.pk).update(created_at=moment)
         page = admin_client(make_admin(Role.Code.TREASURER)).get(reverse(LIST)).content.decode()
         assert "Data de naixement diferent" in page
-        assert "1985" not in page and "01/01/1985" not in page  # el tresorer no té C1
+        # L'any com a número sencer, no dins dels microsegons (el tresorer no té C1).
+        assert not re.search(r"\b1985\b", page) and "01/01/1985" not in page
 
     def test_ca_m01_102_future_birth_date_is_rejected_by_the_service(self, secretary):
         person = a_person()
