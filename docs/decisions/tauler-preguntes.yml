@@ -1343,3 +1343,12 @@ noves:
       Diu exactament el que passa i no fa creure a ningú que avui està cobert; B enganyaria la secretaria i C amagaria que
       la federació ja l'ha confirmada.
     data: 2026-11-20
+  P-441:
+    opcions:
+      A: "Com fa el codi: 60 dies de calendari (V−60 és l'1/11); l'exemple del pla és una errada."
+      B: "L'avís i «per renovar» comencen el 2/11: es compten 59 dies, o 60 sense comptar el dia del venciment."
+    recomanada: A
+    perque: >-
+      És el que diu la regla («60 dies o menys») i el que entén tothom en llegir l'ajust; B obligaria a explicar una
+      manera de comptar diferent de la resta de terminis de la plataforma.
+    data: 2026-11-20
