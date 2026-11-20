@@ -1,4 +1,4 @@
-"""T-M09A-02a: restriccions de la convocatòria (M09-ajuts-6). Només dades inventades."""
+"""T-M09A-02: restriccions dels models d'ajuts (M09-ajuts-6). Només dades inventades."""
 
 from datetime import date
 
@@ -6,8 +6,15 @@ import pytest
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from apps.core.models import AppendOnlyError, Department
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.grants.models import GrantCall, GrantCallDocument
+from apps.grants.models import (
+    ApplicationDocument,
+    ApplicationTransition,
+    GrantApplication,
+    GrantCall,
+    GrantCallDocument,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -21,6 +28,16 @@ def new_call(by, **extra):
     return GrantCall.objects.create(
         **{"body": "Diputació Inventada", "name": "Medi marí", "created_by": by, **extra}
     )
+
+
+def new_application(call, by, **extra):
+    fields = {
+        "call": call,
+        "responsible": by.person,
+        "department": Department.objects.get(name="General"),
+        "created_by": by,
+    }
+    return GrantApplication.objects.create(**{**fields, **extra})
 
 
 def rejects(create):
@@ -67,3 +84,58 @@ def test_documents_requerits_unics_i_amb_nom(treasurer):
     assert str(document) == "Memòria del projecte"
     rejects(lambda: GrantCallDocument.objects.create(call=call, name="Memòria del projecte"))
     rejects(lambda: GrantCallDocument.objects.create(call=call, name=""))
+
+
+def test_una_sollicitud_neix_detectada(treasurer):
+    application = new_application(new_call(treasurer), treasurer)
+    assert application.status == "detected"
+    assert str(application) == "Diputació Inventada: Medi marí (Detectada)"
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"status": "won"},
+        {"status": "submitted"},  # sense data, registre ni import (RN-M09A-02)
+        {"status": "granted", "submitted_on": date(2027, 2, 1), "amount_requested_cents": 1},
+        {
+            "status": "justified",  # sense data d'enviament (RN-M09A-12)
+            "submitted_on": date(2027, 2, 1),
+            "submission_ref": "RE-1",
+            "amount_requested_cents": 300000,
+        },
+    ],
+)
+def test_restriccions_de_la_sollicitud(treasurer, extra):
+    call = new_call(treasurer)
+    rejects(lambda: new_application(call, treasurer, **extra))
+
+
+def test_presentada_amb_les_dades_s_accepta(treasurer):
+    application = new_application(
+        new_call(treasurer),
+        treasurer,
+        status="submitted",
+        submitted_on=date(2027, 2, 1),
+        submission_ref="RE-2027-001",
+        amount_requested_cents=300000,
+    )
+    assert application.status == "submitted"
+
+
+def test_documents_de_la_sollicitud_unics(treasurer):
+    application = new_application(new_call(treasurer), treasurer)
+    document = ApplicationDocument.objects.create(application=application, name="Pressupost")
+    assert (document.ready, str(document)) == (False, "Pressupost")
+    rejects(lambda: ApplicationDocument.objects.create(application=application, name="Pressupost"))
+
+
+def test_les_transicions_nomes_s_afegeixen(treasurer):
+    application = new_application(new_call(treasurer), treasurer)
+    transition = ApplicationTransition.objects.create(
+        application=application, from_status="detected", to_status="preparing", actor=treasurer
+    )
+    with pytest.raises(AppendOnlyError):
+        transition.save()
+    with pytest.raises(AppendOnlyError):
+        ApplicationTransition.objects.filter(pk=transition.pk).update(reason="canviat")

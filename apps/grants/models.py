@@ -9,6 +9,8 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.models import AppendOnlyModel
+
 
 def _file(label):
     return models.ForeignKey(
@@ -147,3 +149,170 @@ class GrantCallDocument(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# Estats que ja s'han presentat a l'organisme (RN-M09A-02); «tancada» pot venir d'abans.
+SUBMITTED_STATES = ("submitted", "granted", "denied", "justified")
+
+
+class GrantApplication(models.Model):
+    class Status(models.TextChoices):
+        DETECTED = "detected", _("Detectada")
+        PREPARING = "preparing", _("En preparació")
+        SUBMITTED = "submitted", _("Presentada")
+        GRANTED = "granted", _("Concedida")
+        DENIED = "denied", _("Denegada")
+        JUSTIFIED = "justified", _("Justificada")
+        CLOSED = "closed", _("Tancada")
+
+    call = models.ForeignKey(
+        GrantCall,
+        on_delete=models.PROTECT,
+        related_name="applications",
+        verbose_name=_("convocatòria"),
+    )
+    status = models.CharField(
+        _("estat"), max_length=9, choices=Status.choices, default=Status.DETECTED
+    )
+    # Amb rol tresorer, junta o administrador (ho comprova el servei).
+    responsible = models.ForeignKey(
+        "core.Person", on_delete=models.PROTECT, related_name="+", verbose_name=_("responsable")
+    )
+    department = models.ForeignKey(
+        "core.Department", on_delete=models.PROTECT, related_name="+", verbose_name=_("departament")
+    )
+    cost_centre = models.ForeignKey(
+        "treasury.CostCentre",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("centre de cost"),
+    )
+    # L'import previst en crear-la; el demanat, en presentar-la.
+    amount_requested_cents = models.PositiveBigIntegerField(
+        _("import demanat"), null=True, blank=True
+    )
+    submitted_on = models.DateField(_("data de presentació"), null=True, blank=True)
+    submission_ref = models.CharField(_("número de registre d'entrada"), max_length=60, blank=True)
+    submission_file = _file(_("còpia del que s'ha presentat"))
+    expected_response_on = models.DateField(_("resposta prevista"), null=True, blank=True)
+    amount_granted_cents = models.PositiveBigIntegerField(
+        _("import concedit"), null=True, blank=True
+    )
+    resolved_on = models.DateField(_("data de la resolució"), null=True, blank=True)
+    resolution_file = _file(_("resolució"))
+    justified_on = models.DateField(_("data d'enviament de la justificació"), null=True, blank=True)
+    justification_extended_to = models.DateField(
+        _("pròrroga de la justificació"), null=True, blank=True
+    )
+    closed_reason = models.TextField(_("motiu del tancament"), blank=True)
+    copied_from = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("copiada de"),
+    )
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("creada per")
+    )
+    created_at = models.DateTimeField(_("creada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("sol·licitud d'ajut")
+        verbose_name_plural = _("sol·licituds d'ajut")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=[
+                        "detected",
+                        "preparing",
+                        "submitted",
+                        "granted",
+                        "denied",
+                        "justified",
+                        "closed",
+                    ]
+                ),
+                name="grant_application_status_valid",
+            ),
+            # RN-M09A-02: presentada (i després) sempre amb data, registre i import demanat.
+            models.CheckConstraint(
+                condition=~Q(status__in=SUBMITTED_STATES)
+                | (
+                    Q(submitted_on__isnull=False)
+                    & ~Q(submission_ref="")
+                    & Q(amount_requested_cents__isnull=False)
+                ),
+                name="grant_application_submitted_data",
+            ),
+            # RN-M09A-12: justificada sempre amb la data d'enviament.
+            models.CheckConstraint(
+                condition=~Q(status="justified") | Q(justified_on__isnull=False),
+                name="grant_application_justified_on",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.call} ({self.get_status_display()})"
+
+
+class ApplicationDocument(models.Model):
+    """Document d'una sol·licitud: copiat de la convocatòria o afegit, per marcar-lo a punt."""
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        verbose_name=_("sol·licitud"),
+    )
+    name = models.CharField(_("document"), max_length=200)
+    file = _file(_("fitxer"))
+    ready = models.BooleanField(_("a punt"), default=False)
+    uploaded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("pujat per"),
+    )
+
+    class Meta:
+        verbose_name = _("document de la sol·licitud")
+        verbose_name_plural = _("documents de la sol·licitud")
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "name"], name="grant_application_document_unique"
+            ),
+            models.CheckConstraint(condition=~Q(name=""), name="grant_application_document_name"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class ApplicationTransition(AppendOnlyModel):
+    """Cada canvi d'estat (només INSERT). Un desfer de l'administrador és una transició nova."""
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.PROTECT,
+        related_name="transitions",
+        verbose_name=_("sol·licitud"),
+    )
+    from_status = models.CharField(_("des de"), max_length=9)
+    to_status = models.CharField(_("a"), max_length=9)
+    reason = models.TextField(_("motiu"), blank=True)
+    actor = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("qui")
+    )
+    at = models.DateTimeField(_("quan"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("transició d'una sol·licitud")
+        verbose_name_plural = _("transicions de les sol·licituds")
+        ordering = ["pk"]
