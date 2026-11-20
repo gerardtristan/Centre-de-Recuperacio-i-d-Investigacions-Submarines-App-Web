@@ -44,3 +44,40 @@ class Period(models.Model):
 
     def __str__(self):
         return f"{self.starts_on} – {self.ends_on}"
+
+
+class PlannedCost(models.Model):
+    """Cost previst d'una activitat per categoria de despesa (M09-6, T-M09-09). Compta al marge
+    previst només mentre la categoria no té costos reals (RN-M09-06). Es pot canviar mentre
+    l'activitat no és tancada; cada canvi va al registre."""
+
+    activity = models.ForeignKey(
+        "activities.Activity",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("activitat"),
+    )
+    category = models.ForeignKey(
+        "expenses.ExpenseCategory",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("categoria"),
+    )
+    amount_cents = models.PositiveBigIntegerField(_("import previst (cèntims)"))
+    note = models.CharField(_("nota"), max_length=200, blank=True)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("creat per")
+    )
+    created_at = models.DateTimeField(_("creat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("cost previst")
+        verbose_name_plural = _("costos previstos")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["activity", "category"], name="margins_planned_cost_unique"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.category}: {self.amount_cents} c"
