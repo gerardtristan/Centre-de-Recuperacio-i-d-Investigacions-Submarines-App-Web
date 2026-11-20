@@ -85,7 +85,8 @@ class TestImport:
     def test_p_226_only_the_last_days_are_asked_for(self, provider, two):
         settle(provider, ("fake-ord-a", 9000), fees=50, days_ago=8, external_id="OLD")
         settle(provider, ("fake-ord-b", 3500), fees=20, days_ago=7, external_id="EDGE")
-        assert [s.external_id for s in settlements.import_settlements()] == ["EDGE"]
+        # El mateix dia que `TODAY`: si les proves passen la mitjanit, la vora es mouria.
+        assert [s.external_id for s in settlements.import_settlements(today=TODAY)] == ["EDGE"]
 
     def test_p_227_one_that_does_not_add_up_is_logged_and_the_rest_go_on(self, provider, two):
         wrong = base.ProviderSettlementReport(
