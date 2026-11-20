@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "apps.members",
     "apps.payments",
     "apps.treasury",
+    # Mòdul 02, Activitats (cursos i sortides): de moment, el catàleg (T-M02-02).
+    "apps.activities",
     "apps.previews",
 ]
 
