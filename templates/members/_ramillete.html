@@ -4,26 +4,28 @@
    logotip, «Mostra el QR», totes les entrades i el compte. Cada mida té la seva llista (l'altra no es
    veu ni es llegeix). Es construeix al servidor amb el compte de la sessió, amb els mateixos enllaços i
    condicions que _personal_nav.html (la navegació sense JavaScript); amagar un enllaç no és cap control.
-   Un sol «Surt» per pantalla: a la capçalera fins a 1023 px i al panell a partir de 1024 px (T-M01-46).{% endcomment %}{% mandate_signing_enabled as mandate_on %}{% preview_url "previews:activitats" as activitats_url %}{% with current=request.resolver_match.view_name member=user.person.member %}
+   Un sol «Surt» per pantalla: a la capçalera fins a 1023 px i al panell a partir de 1024 px (T-M01-46).{% endcomment %}{% mandate_signing_enabled as mandate_on %}{% preview_url "previews:activitats" as activitats_url %}{% with current=request.resolver_match.view_name member=user.person.member %}{% if current != "members:accept_policies" %}
 <nav class="ramillete" aria-label="{% translate 'Àrea de socis' %}" data-ramillete>
-  {# Mòbil i tauleta: la barra. Sense «Activitats», «Perfil» ocupa el seu lloc i «Més» queda al centre. #}
+  {# Mòbil i tauleta: la barra. Sense «Activitats», «Perfil» ocupa el seu lloc i «Més» queda al centre. Sense soci (cap carnet ni quotes), la segona pestanya va després de «Més», que queda al centre igualment (V4). #}
   <ul class="ramillete-barra">
     <li><a class="ramillete-pestanya" href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}>{% icona "house" "icona-nav" %}{% translate "Inici" %}</a></li>
-    {% if activitats_url %}<li><a class="ramillete-pestanya" href="{{ activitats_url }}"{% if current == "previews:activitats" %} aria-current="page"{% endif %}>{% icona "calendar-days" "icona-nav" %}{% translate "Activitats" %}</a></li>
-    {% else %}<li><a class="ramillete-pestanya" href="{% url 'members:profile' %}"{% if current == "members:profile" %} aria-current="page"{% endif %}>{% icona "user" "icona-nav" %}{% translate "Perfil" %}</a></li>{% endif %}
+    {% if member %}{% if activitats_url %}<li><a class="ramillete-pestanya" href="{{ activitats_url }}"{% if current == "previews:activitats" %} aria-current="page"{% endif %}>{% icona "calendar-days" "icona-nav" %}{% translate "Activitats" %}</a></li>
+    {% else %}<li><a class="ramillete-pestanya" href="{% url 'members:profile' %}"{% if current == "members:profile" or current == "members:declare_expiry" or current == "members:consent" or current == "members:change_email" or current == "members:birth_date" or current == "members:erase" or current == "members:export_data" %} aria-current="page"{% endif %}>{% icona "user" "icona-nav" %}{% translate "Perfil" %}</a></li>{% endif %}{% endif %}
     <li class="ramillete-accio">
       <button class="ramillete-boto" type="button" aria-expanded="false" aria-controls="ramillete-menu" aria-label="{% translate 'Més opcions' %}">{% icona "plus" "icona-nav" %}</button>
       <ul class="ramillete-menu" id="ramillete-menu">
-        {% if activitats_url %}<li><a class="ramillete-item" href="{% url 'members:profile' %}"{% if current == "members:profile" %} aria-current="page"{% endif %}>{% icona "user" %}{% translate "El meu perfil" %}</a></li>{% endif %}
-        {% if member %}<li><a class="ramillete-item" href="{% url 'payments:fee_method' %}"{% if current == "payments:fee_method" %} aria-current="page"{% endif %}>{% icona "credit-card" %}{% translate "Com pago la quota" %}</a></li>
-        {% if mandate_on %}<li><a class="ramillete-item" href="{% url 'payments:mandate' %}"{% if current == "payments:mandate" %} aria-current="page"{% endif %}>{% icona "file-signature" %}{% translate "Mandat de domiciliació" %}</a></li>{% endif %}
+        {% if activitats_url %}<li><a class="ramillete-item" href="{% url 'members:profile' %}"{% if current == "members:profile" or current == "members:declare_expiry" or current == "members:consent" or current == "members:change_email" or current == "members:birth_date" or current == "members:erase" or current == "members:export_data" %} aria-current="page"{% endif %}>{% icona "user" %}{% translate "El meu perfil" %}</a></li>{% endif %}
+        {% if member %}<li><a class="ramillete-item" href="{% url 'payments:fee_method' %}"{% if current == "payments:fee_method" or current == "payments:saved_card" or current == "payments:saved_card_remove" %} aria-current="page"{% endif %}>{% icona "credit-card" %}{% translate "Com pago la quota" %}</a></li>
+        {% if mandate_on %}<li><a class="ramillete-item" href="{% url 'payments:mandate' %}"{% if current == "payments:mandate" or current == "payments:mandate_revoke" %} aria-current="page"{% endif %}>{% icona "file-signature" %}{% translate "Mandat de domiciliació" %}</a></li>{% endif %}
         <li><a class="ramillete-item" href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% icona "repeat" %}{% translate "Canvi de tipus" %}</a></li>
         <li><a class="ramillete-item" href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% icona "door-open" %}{% translate "Baixa" %}</a></li>{% endif %}
-        <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
+        <li><a class="ramillete-item" href="{% url 'accounts:security' %}"{% if current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
       </ul>
     </li>
-    {% if member %}<li><a class="ramillete-pestanya" href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}>{% icona "id-card" "icona-nav" %}{% translate "Carnet" %}</a></li>
-    <li><a class="ramillete-pestanya" href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" %} aria-current="page"{% endif %}>{% icona "receipt" "icona-nav" %}{% translate "Quotes" %}</a></li>{% endif %}
+    {% if member %}<li><a class="ramillete-pestanya" href="{% url 'members:card' %}"{% if current == "members:card" or current == "members:card_renew" %} aria-current="page"{% endif %}>{% icona "id-card" "icona-nav" %}{% translate "Carnet" %}</a></li>
+    <li><a class="ramillete-pestanya" href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" or current == "members:fee_instalments" or current == "payments:charge" or current == "payments:pay_card" or current == "payments:pay_bizum" or current == "payments:pay_transfer" or current == "payments:attempt_status" or current == "payments:receipt" %} aria-current="page"{% endif %}>{% icona "receipt" "icona-nav" %}{% translate "Quotes" %}</a></li>
+    {% else %}{% if activitats_url %}<li><a class="ramillete-pestanya" href="{{ activitats_url }}"{% if current == "previews:activitats" %} aria-current="page"{% endif %}>{% icona "calendar-days" "icona-nav" %}{% translate "Activitats" %}</a></li>
+    {% else %}<li><a class="ramillete-pestanya" href="{% url 'members:profile' %}"{% if current == "members:profile" or current == "members:declare_expiry" or current == "members:consent" or current == "members:change_email" or current == "members:birth_date" or current == "members:erase" or current == "members:export_data" %} aria-current="page"{% endif %}>{% icona "user" "icona-nav" %}{% translate "Perfil" %}</a></li>{% endif %}{% endif %}
   </ul>
 
   {# Escriptori: el panell lateral. La capçalera no es veu (ramillete.css). #}
@@ -45,20 +47,20 @@
     <ul class="ramillete-entrades">
       <li><a href="{% url 'core:home' %}"{% if current == "core:home" %} aria-current="page"{% endif %}>{% icona "house" %}{% translate "Inici" %}</a></li>
       {% if activitats_url %}<li><a href="{{ activitats_url }}"{% if current == "previews:activitats" %} aria-current="page"{% endif %}>{% icona "calendar-days" %}{% translate "Activitats" %}</a></li>{% endif %}
-      {% if member %}<li><a href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" %} aria-current="page"{% endif %}>{% icona "receipt" %}{% translate "Les meves quotes" %}</a></li>
-      <li><a href="{% url 'payments:fee_method' %}"{% if current == "payments:fee_method" %} aria-current="page"{% endif %}>{% icona "credit-card" %}{% translate "Com pago la quota" %}</a></li>
-      {% if mandate_on %}<li><a href="{% url 'payments:mandate' %}"{% if current == "payments:mandate" %} aria-current="page"{% endif %}>{% icona "file-signature" %}{% translate "Mandat de domiciliació" %}</a></li>{% endif %}
-      <li><a href="{% url 'members:card' %}"{% if current == "members:card" %} aria-current="page"{% endif %}>{% icona "id-card" %}{% translate "El meu carnet" %}</a></li>{% endif %}
-      <li><a href="{% url 'members:profile' %}"{% if current == "members:profile" %} aria-current="page"{% endif %}>{% icona "user" %}{% translate "El meu perfil" %}</a></li>
+      {% if member %}<li><a href="{% url 'members:fees' %}"{% if current == "members:fees" or current == "members:fee_detail" or current == "members:fee_instalments" or current == "payments:charge" or current == "payments:pay_card" or current == "payments:pay_bizum" or current == "payments:pay_transfer" or current == "payments:attempt_status" or current == "payments:receipt" %} aria-current="page"{% endif %}>{% icona "receipt" %}{% translate "Les meves quotes" %}</a></li>
+      <li><a href="{% url 'payments:fee_method' %}"{% if current == "payments:fee_method" or current == "payments:saved_card" or current == "payments:saved_card_remove" %} aria-current="page"{% endif %}>{% icona "credit-card" %}{% translate "Com pago la quota" %}</a></li>
+      {% if mandate_on %}<li><a href="{% url 'payments:mandate' %}"{% if current == "payments:mandate" or current == "payments:mandate_revoke" %} aria-current="page"{% endif %}>{% icona "file-signature" %}{% translate "Mandat de domiciliació" %}</a></li>{% endif %}
+      <li><a href="{% url 'members:card' %}"{% if current == "members:card" or current == "members:card_renew" %} aria-current="page"{% endif %}>{% icona "id-card" %}{% translate "El meu carnet" %}</a></li>{% endif %}
+      <li><a href="{% url 'members:profile' %}"{% if current == "members:profile" or current == "members:declare_expiry" or current == "members:consent" or current == "members:change_email" or current == "members:birth_date" or current == "members:erase" or current == "members:export_data" %} aria-current="page"{% endif %}>{% icona "user" %}{% translate "El meu perfil" %}</a></li>
       {# «Més» ja surt obert si la pàgina actual hi és, perquè es vegi on ets. #}
-      <li>{% if current == "members:change_type" or current == "members:change_type_withdraw" or current == "members:leave" or current == "accounts:security" %}
+      <li>{% if current == "members:change_type" or current == "members:change_type_withdraw" or current == "members:leave" or current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %}
         <button class="ramillete-lateral-mes" type="button" aria-expanded="true" aria-controls="ramillete-lateral-mes" data-desplega>{% icona "ellipsis" %}{% translate "Més" %}{% icona "chevron-down" "ramillete-fletxa" %}</button>
         <ul id="ramillete-lateral-mes">{% else %}
         <button class="ramillete-lateral-mes" type="button" aria-expanded="false" aria-controls="ramillete-lateral-mes" data-desplega>{% icona "ellipsis" %}{% translate "Més" %}{% icona "chevron-down" "ramillete-fletxa" %}</button>
         <ul id="ramillete-lateral-mes" hidden>{% endif %}
           {% if member %}<li><a href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% icona "repeat" %}{% translate "Canvi de tipus" %}</a></li>
           <li><a href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% icona "door-open" %}{% translate "Baixa" %}</a></li>{% endif %}
-          <li><a href="{% url 'accounts:security' %}"{% if current == "accounts:security" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
+          <li><a href="{% url 'accounts:security' %}"{% if current == "accounts:security" or current == "accounts:totp_enrol" or current == "accounts:totp_disable" %} aria-current="page"{% endif %}>{% icona "shield-check" %}{% translate "Seguretat i aparença" %}</a></li>
         </ul>
       </li>
     </ul>
@@ -69,4 +71,4 @@
       <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="boto boto-petit" type="submit">{% icona "log-out" %}{% translate "Surt" %}</button></form>
     </div>
   </div>
-</nav>{% endwith %}
+</nav>{% endif %}{% endwith %}

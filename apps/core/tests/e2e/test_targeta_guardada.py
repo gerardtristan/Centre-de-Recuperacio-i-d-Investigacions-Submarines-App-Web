@@ -45,6 +45,9 @@ def test_member_saves_a_card_for_the_fee(page, live_server, settings, builder, m
     expect(page.get_by_text("… 4242")).to_be_visible()
     expect(page.get_by_role("heading", name="Guarda una targeta nova")).to_be_visible()
     review("targeta-guardada")
+    expect(page.locator('.ramillete-lateral [aria-current="page"]')).to_have_text(
+        "Com pago la quota"
+    )  # T-DX-76
 
     page.goto(f"{live_server.url}/socis/pagaments/metode/")
     expect(page.get_by_text("targeta guardada acabada en 4242")).to_be_visible()

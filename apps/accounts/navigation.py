@@ -70,9 +70,24 @@ ENTRIES = (
             "administration:licence_add",
             "administration:licence_edit",
             "administration:member_leave_create",
+            # T-DX-76 (V5): les subpàgines de la fitxa del soci.
+            "administration:member_birth_date_check",
+            "administration:member_card_revoke",
+            "administration:member_fee_cancel",
+            "administration:member_fee_choose_instalments",
+            "administration:member_fee_exempt",
+            "administration:member_fee_instalments",
+            "administration:member_invite",
+            "administration:member_totp_reset",
+            "administration:members_export",
+            "administration:treasury_manual_payment",  # s'obre des de la fitxa
         ),
     ),
-    ("administration:join_requests", _("Altes pendents"), ()),
+    (
+        "administration:join_requests",
+        _("Altes pendents"),
+        ("administration:join_approve", "administration:join_reject"),
+    ),
     ("administration:join_in_person", _("Alta presencial"), ()),
     (
         "administration:member_requests",
@@ -85,7 +100,15 @@ ENTRIES = (
         _("Tipus de soci"),
         ("administration:membership_type_edit",),
     ),  # T-DX-56 (T-M01-52)
-    ("administration:fees", _("Quotes i impagats"), ()),
+    (
+        "administration:fees",
+        _("Quotes i impagats"),
+        (
+            "administration:fee_mark_unpaid",
+            "administration:fee_unmark_unpaid",
+            "administration:fee_payment_reviewed",
+        ),
+    ),
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
     (
         "administration:treasury_accounts",
@@ -110,19 +133,59 @@ ENTRIES = (
             "administration:treasury_undo_reconciliation",
             "administration:treasury_review",
             "administration:treasury_exclude_line",
+            "administration:treasury_match_line",
+            "administration:treasury_match_movements",
+            "administration:treasury_confirm_settlement_line",
+            "administration:treasury_undo_exclusion",
+            "administration:treasury_settlement_review_close",
         ),
     ),  # T-DX-44
-    ("administration:payments_list", _("Pagaments: llistat"), ()),  # T-DX-47
-    ("administration:payments_remittances", _("Pagaments: remeses"), ()),  # T-DX-47
-    ("administration:payments_mandates", _("Pagaments: mètodes i mandats"), ()),  # T-DX-43
+    (
+        "administration:payments_list",
+        _("Pagaments: llistat"),
+        ("administration:payments_review_close", "administration:payments_charge_review_close"),
+    ),  # T-DX-47
+    (
+        "administration:payments_remittances",
+        _("Pagaments: remeses"),
+        (
+            "administration:payments_remittance",
+            "administration:payments_remittance_file",
+            "administration:payments_remittance_notices",
+            "administration:payments_remittance_sent",
+            "administration:payments_remittance_settle",
+            # Els retornats s'obren des de les remeses (V19).
+            "administration:payments_returns",
+            "administration:payments_returns_file",
+            "administration:payments_returns_file_confirm",
+            "administration:payments_return_decision",
+        ),
+    ),  # T-DX-47
+    (
+        "administration:payments_mandates",
+        _("Pagaments: mètodes i mandats"),
+        ("administration:payments_mandate_revoke",),
+    ),  # T-DX-43
     ("administration:payments_campaign", _("Pagaments: campanya de mandats"), ()),  # T-DX-46
-    ("administration:bank_statement", _("Tresoreria: extracte bancari"), ()),
+    (
+        "administration:bank_statement",
+        _("Tresoreria: extracte bancari"),
+        ("administration:bank_statement_confirm", "administration:bank_statement_undo"),
+    ),
     ("administration:cluber_preview", _("Importació de Cluber: prova"), ()),
-    ("administration:guest_links", _("Enllaços de convidat"), ()),
+    (
+        "administration:guest_links",
+        _("Enllaços de convidat"),
+        ("administration:guest_link_send", "administration:guest_link_revoke"),
+    ),
     (
         "administration:gdpr_requests",
         _("Sol·licituds RGPD"),
-        ("administration:gdpr_request_detail",),
+        (
+            "administration:gdpr_request_detail",
+            "administration:gdpr_in_person",
+            "administration:gdpr_notes_export",
+        ),
     ),
     (
         "administration:locked_data",
@@ -143,7 +206,12 @@ ENTRIES = (
     (
         "administration:settings",
         _("Ajustos"),
-        ("administration:settings_section", "administration:setting_detail"),
+        (
+            "administration:settings_section",
+            "administration:setting_detail",
+            "administration:legal_texts",  # s'obren des dels ajustos
+            "administration:legal_text_detail",
+        ),
     ),
     (
         "administration:previews:index",

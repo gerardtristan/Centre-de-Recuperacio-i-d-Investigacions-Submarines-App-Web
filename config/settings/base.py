@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.members",
+    "apps.grants",
     "apps.payments",
     "apps.treasury",
     "apps.margins",
