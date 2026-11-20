@@ -10,6 +10,7 @@ import datetime
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.http import Http404
 
 from apps.activities import catalogue
 from apps.activities.models import Place, PlacePrice
@@ -166,3 +167,20 @@ def test_place_prices_are_append_only(manager, place):
         price.delete()
     with pytest.raises(AppendOnlyError):
         PlacePrice.objects.all().update(price_member_cents=1)
+
+
+@pytest.mark.parametrize("role", [Role.Code.EQUIPMENT_MANAGER, Role.Code.SECRETARY])
+def test_without_ac22_places_are_not_changed(make_admin, manager, place, role):  # noqa: F811
+    # RN-M02-46: el responsable de material veu els llocs (AC21) però no els edita.
+    other = make_admin(role)
+    for call in (
+        lambda: catalogue.create_place(by=other, name="Un altre lloc"),
+        lambda: catalogue.update_place(place, by=other, name="Un altre nom"),
+        lambda: catalogue.set_active(place, False, by=other),
+        lambda: set_price(place, other, 4500, 6000),
+    ):
+        with pytest.raises(Http404):
+            call()
+    place.refresh_from_db()
+    assert (place.name, place.active, Place.objects.count()) == ("Lloc de prova", True, 1)
+    assert not PlacePrice.objects.exists()
