@@ -76,7 +76,7 @@ Es queden al codi, com diu la 059: les regles d'edat (14 i 18 anys), la renovaci
 3. **Pantalla de VC-08** (P-410): faria servir els serveis de departaments de `apps/core/charges.py` (falta un servei per reanomenar) i el catàleg de permisos (T3, M7).
 4. **Navegació** (`apps/accounts/navigation.py`, V4 i V5): les subpàgines de la fitxa del soci («Eximeix la quota», «Restableix el doble factor») no marquen cap entrada del menú, i la pàgina d'acceptació de les polítiques mostra entrades que no s'hi poden fer servir.
 5. **V1**, `templates/core/` de les dades bloquejades: la cel·la «Pagaments» a 390 px (si no és de la taula responsiva del sistema de disseny).
-6. **T-M00-04**: si les referències dels pagaments també s'han de bloquejar, sense fila a `pendents.md`. No he obert cap número: els tres del carril (P-410 a P-412) ja són fets servir.
+6. **T-M00-04**: si les referències dels pagaments també s'han de bloquejar. Ara és la [P-420](../decisions/pendents.md) (segona volta); si la resposta és B o C, el canvi és a `apps/core/locked_data.py`.
 
 ## 5. Dubtes nous
 
@@ -86,4 +86,66 @@ Es queden al codi, com diu la 059: les regles d'edat (14 i 18 anys), la renovaci
 
 - La revisió visual del propietari de les llistes 1 i 2 de la secció, amb les incidències V1 a V11 com a punt de partida.
 - Les comprovacions manuals d'accessibilitat (T-M01-28b) i els dispositius reals (T-F1-02), que esperen l'entorn de proves temporal.
-- Tornar a passar `tools/verifica.py` quan les #285, #286 i #289 siguin a `master` i els altres carrils hagin acabat.
+- Fet a la segona volta: `tools/verifica.py` amb les #285, #286 i #289 a `master` (apartat 7.5).
+- La sessió de disseny: la llista de l'apartat 7.3.
+
+## 7. Segona volta (20/11/2026)
+
+### 7.1 Pendents visuals del 04, el 05a, el 05b i la prova de Cluber
+
+He mirat a 1280 i 390 px les captures de les e2e d'aquestes pantalles, una per pantalla diferent: comptes i saldos, moviments i exportació, extracte bancari (CSV i Norma 43), conciliació (proposada, tria de liquidació, casar a mà, casar amb moviments), «A revisar», liquidacions, traspàs, arqueig, anul·lació en un període tancat; mètode de la quota, mandat (signar, error d'IBAN, actiu, revocar), targeta guardada, «Mètodes i mandats», revocar un mandat des de l'administració, campanya, ajustos de pagaments i del proveïdor; pagament amb targeta, Bizum i transferència, rebut, «Pagaments i a revisar», remeses (previsualització, detall, abonament), retornats (a mà i fitxer), codis de retorn, candidats a impagat i terminis. La prova de Cluber no tenia captures: ara té una e2e (#293).
+
+Les e2e ja comproven que no hi ha errors de consola ni desplaçament de costat a 320 px.
+
+| # | Pantalla | Què passa | De qui és |
+|---|---|---|---|
+| V12 | Prova de Cluber (T-M01-50) | La pàgina no feia servir el sistema de disseny: el camp del fitxer i el botó eren els del navegador, les taules no tenien estil i les vinyetes quedaven fora del marge | **Arreglat a la #293** |
+| V13 | Totes les taules amb una fila buida (`{% empty %}` amb `colspan`), a 390 px | El text «Cap moviment amb aquests filtres» i similars surten alineats a la dreta: la cel·la és flex i l'etiqueta buida ocupa l'esquerra | DISSENY (taula apilada, `comptes.css`) |
+| V14 | Extracte bancari, columna «Desfer», a 390 px | El formulari del motiu queda espremut a la meitat dreta de la cel·la | DISSENY (formulari dins de la taula apilada) |
+| V15 | Conciliació a 1280 px amb el plafó obert | La columna «Estat» queda molt estreta i el motiu «A revisar» es parteix en moltes línies; les accions s'amunteguen | DISSENY (escriptori de la conciliació) |
+| V16 | Cel·les amb més d'un element a 390 px (dades bloquejades, «Amb error» de l'extracte, «Mètodes i mandats», «Quotes i impagats») | Cada element queda en una columna separada, com a la V1 | **Arreglat a la #293** (un `<span>` per cel·la) |
+| V17 | Mandat, revocació i targeta guardada (àrea del soci); campanya (administració) | Les etiquetes «A validar: junta i banc (L-M05a-01)», «A verificar: P-45 punt 6» i similars es veuen a la pantalla. Un soci real les veuria | Propietari: és el patró dels textos provisionals, però s'han de treure abans del nivell 1 |
+| V18 | Ajustos de pagaments, a 1280 px | La columna del nom es parteix lletra a lletra (`payments.bizum_ui_…`) perquè la llista de països ocupa l'amplada | DISSENY |
+| V19 | Àrea del soci, mandat, targeta i pagament; administració, remesa, retornats | El menú no marca cap entrada (com la V5) | Nucli i DISSENY (`apps/accounts/navigation.py`) |
+| V20 | Inici del soci amb una quota pendent i sense carnet | «La teva quota» mostra «—» i el botó principal és «El meu carnet», quan encara no en té; «Paga ara» té un altre color que la resta de botons principals | DISSENY i 01 |
+| V21 | Terminis de la quota, a 390 px | El número del termini sortia centrat | **Arreglat a la #293** |
+
+### 7.2 Arreglat a la #293
+
+V1, V2, V12, V16 i V21, només amb classes que ja existeixen (`formulari`, `camp`, `ajuda`, `boto`, `avis`, `taula`, `dades-soci`, `passos`, `cel-nom`, `cos-ample`). Captures abans i després a `docs/diari-de-construccio/captures/` (`2026-11-20_0338_T-F1-01_*`).
+
+### 7.3 Llista per a la sessió de DISSENY
+
+Captures de la verificació completa (`.e2e-captures/`, carpeta de la prova entre claudàtors).
+
+| # | Fitxer | Captura | Què cal |
+|---|---|---|---|
+| V3 | `templates/members/join_requests.html`, `deposito-accions` | `test_minor_without_document_shows_the_possible_duplicate/menor-possible-duplicat-1280.png` | «Rebutja…» al costat d'«Aprova l'alta» encara que el formulari tingui diverses caselles |
+| V4 | Plantilla base de l'àrea personal i `apps/accounts/navigation.py` | `test_imported_member_accepts_the_policies_at_first_login/politiques-390.png` | La barra inferior amb dues entrades centra el «+»; a la pàgina de les polítiques, menú sense entrades que no es poden fer servir |
+| V5 i V19 | `apps/accounts/navigation.py` | `test_treasurer_exempts_the_fee_of_a_pending_member/eximeix-quota-1280.png`, `test_member_revokes_the_mandate/mandat-revoca-1280.png`, `test_treasurer_registers_a_return_and_confirms_the_retry/retornats-per-decidir-1280.png` | Marcar l'entrada de la secció a les subpàgines (fitxa del soci, mandat, targeta, pagament, remesa, retornats) |
+| V8 | Inici del soci (`templates/members/`) i el seu CSS | `test_member_home_has_the_wave_header_and_the_fee_block/inici-al-dia-1280.png` | Alinear «La teva història» i «Llicència» amb «El teu carnet» |
+| V10 | «Corregeix la data d'alta», polítiques | `test_edit_member_data_and_correct_the_join_date/data-alta-sense-motiu-1280.png` | Resum d'errors (Errata) com al formulari d'alta |
+| V13 | `static/css/comptes.css` (`.taula td`) | `test_treasurer_sees_the_movement_and_the_balance/moviments-filtrats-390.png` | Una fila buida amb `colspan` alineada a l'esquerra |
+| V14 | `templates/core/bank_statement.html` i la taula apilada | `test_treasurer_imports_and_undoes_a_statement/importat-390.png` | Un formulari dins d'una cel·la a 390 px |
+| V15 | `templates/treasury/reconciliation.html` i l'escriptori de la conciliació | `test_treasurer_chooses_between_two_settlements/conciliacio-liquidacio-tria-1280.png` | Amplada de les columnes amb el plafó obert |
+| V18 | `templates/core/settings_section.html` | `test_administrator_changes_a_value_and_treasurer_only_sees_it/apartat-1280.png` | Columna del nom i valors llargs (llista de països) |
+| V20 | Inici del soci | `test_a_pending_fee_shows_the_flat_strip_with_pay_now/portada-pendent-390.png` | L'estat de la quota pendent i quin és el botó principal sense carnet |
+| V11 | `design/` (índex de recorreguts) | `test_journeys_index_opens_from_disk_and_links_the_original_wireframes/capcalera-1280.png` | «Venç una setmana després» ara és l'ajust VC-53 |
+| V6, V7, V9 | `templates/members/` (canvi de tipus, «Quotes i impagats», fitxa) | vegeu l'apartat 2 | Criteri de contingut: missatge repetit, avantítol «Socis» a «Quotes i impagats», «(2026)» repetit |
+
+### 7.4 Dubte nou
+
+[P-420](../decisions/pendents.md): s'han de bloquejar també les referències dels pagaments d'una persona esborrada? Ve de la nota de la T-M00-04.
+
+### 7.5 `tools/verifica.py` amb els arreglos a `master`
+
+`master` a `db36220` (amb les #285, #286 i #289), sense cap altre carril passant proves: **VERD** (empremta `c6ad7f5e9f5d`).
+
+| Pas | Resultat |
+|---|---|
+| pytest | 7.991 passades |
+| ruff, ruff format, `makemigrations --check`, `check` | Verd |
+| `check --deploy` | Verd |
+| e2e senceres | 179 passades, cap saltada (amb els navegadors de Playwright de `D:/CRIS/pw-browsers`, que també tenen Firefox i WebKit) |
+
+Nota per a qui faci proves al portàtil: amb `--reuse-db` en una base on abans s'han passat e2e (que buiden les taules), `test_instalments_screens_049.py::test_off_the_fee_page_shows_nothing_and_the_post_changes_nothing` falla: la pàgina mostra els terminis com si l'interruptor estigués encès. Amb `--create-db` passa. No és cap error del codi.

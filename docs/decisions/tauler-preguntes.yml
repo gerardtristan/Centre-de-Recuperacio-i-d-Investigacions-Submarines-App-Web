@@ -1245,3 +1245,13 @@ noves:
       És un termini legal (085, G-1), com la caducitat dels mandats (VC-13), i un canvi des de l'app podria anonimitzar
       registres econòmics abans d'hora, que és irreversible.
     data: 2026-11-20
+  P-420:
+    opcions:
+      A: "Com és ara: les referències del proveïdor i de la transferència es queden en clar; només el nom i el document es bloquegen."
+      B: "Es bloquegen (xifrades) amb el nom i el document, i només es consulten amb M13 i un motiu; la conciliació d'aquests pagaments passa a ser manual."
+      C: "Es queden en clar fins al final del termini legal i aleshores s'esborren amb la resta de dades bloquejades."
+    recomanada: A
+    perque: >-
+      Soles no identifiquen ningú i la conciliació, els retorns i les consultes al proveïdor les necessiten; bloquejar-les
+      trencaria aquests processos sense protegir gaire més, perquè el proveïdor i el banc ja guarden el lligam.
+    data: 2026-11-20
