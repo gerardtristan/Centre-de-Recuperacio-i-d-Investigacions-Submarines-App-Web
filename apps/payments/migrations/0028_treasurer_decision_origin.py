@@ -29,7 +29,7 @@ def fill(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0057_payment_origin"),
+        ("core", "0058_payment_origin"),
         ("payments", "0027_transaccio_del_proveidor"),
     ]
 

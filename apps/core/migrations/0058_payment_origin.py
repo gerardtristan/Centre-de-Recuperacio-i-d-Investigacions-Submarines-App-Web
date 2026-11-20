@@ -19,7 +19,7 @@ def fill(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0056_erasure_in_person"),
+        ("core", "0057_renewal_notice_months_permission"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

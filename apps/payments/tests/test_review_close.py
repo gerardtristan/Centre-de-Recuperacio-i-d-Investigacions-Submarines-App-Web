@@ -415,7 +415,7 @@ def test_t_m05b_30_a_decision_needs_a_reason_in_the_service(treasurer, to_review
 
 
 class TestMigrationOrigin(CommittedDataTestCase):
-    """T-M05b-30 (`core/0057` i `payments/0028`): els pagaments d'abans reben l'origen: «manual»
+    """T-M05b-30 (`core/0058` i `payments/0028`): els pagaments d'abans reben l'origen: «manual»
     els del mètode manual, «reconciliation» els que el registre diu que van entrar per una
     conciliació, «treasurer_decision» el d'un tancament «Pagat» (amb qui i el motiu) i
     «provider» la resta."""
@@ -434,7 +434,10 @@ class TestMigrationOrigin(CommittedDataTestCase):
         leaves = MigrationExecutor(connection).loader.graph.leaf_nodes()
         try:
             MigrationExecutor(connection).migrate(
-                [("payments", "0027_transaccio_del_proveidor"), ("core", "0056_erasure_in_person")]
+                [
+                    ("payments", "0027_transaccio_del_proveidor"),
+                    ("core", "0057_renewal_notice_months_permission"),
+                ]
             )
             with connection.cursor() as cursor:
                 cursor.execute(
