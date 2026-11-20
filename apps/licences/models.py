@@ -1,0 +1,281 @@
+"""Llicències federatives (M06-6). Cap altra app escriu en aquests models: ho fa amb els serveis
+del 06 (M06-8). Imports en cèntims; cap dada de salut ni de pagament (RN-M06-15)."""
+
+import datetime
+
+from django.conf import settings
+from django.db import models
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
+
+from apps.core.models import AppendOnlyModel, Charge, ImportBatch, Person, UndeletableModel
+
+
+class ValidityRule(models.TextChoices):
+    """RN-M06-01. La d'un dia només es fa servir si `licences.day_enabled` és activada
+    (T-M06-19)."""
+
+    CALENDAR_YEAR = "calendar_year", _("Any natural")
+    DAYS_365 = "days_365", _("365 dies")
+    SINGLE_DAY = "single_day", _("Un dia")
+
+
+class LicenceType(models.Model):
+    """Tipus de llicència de la federació (M06-6; RN-M06-01). La llista és una dada que
+    mantenen el tresorer, el President i l'administrador (VC-38); no n'hi ha cap al codi."""
+
+    class Category(models.TextChoices):
+        AMATEUR = "amateur", _("Aficionat")
+        TECHNICAL = "technical", _("Tècnic")
+        OTHER = "other", _("Altres")
+
+    name = models.CharField(_("nom"), max_length=80, unique=True)
+    description = models.TextField(_("descripció"), blank=True)
+    category = models.CharField(_("categoria"), max_length=9, choices=Category.choices)
+    validity_rule = models.CharField(
+        _("regla de validesa"), max_length=13, choices=ValidityRule.choices
+    )
+    active = models.BooleanField(_("actiu"), default=True)
+
+    class Meta:
+        verbose_name = _("tipus de llicència")
+        verbose_name_plural = _("tipus de llicència")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(category__in=["amateur", "technical", "other"]),
+                name="licences_type_category_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(validity_rule__in=["calendar_year", "days_365", "single_day"]),
+                name="licences_type_validity_rule_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class LicencePrice(AppendOnlyModel):
+    """Versió del preu d'un tipus (M06-6; RN-M06-05, 06, 08 i 18). Només s'hi afegeixen files:
+    l'ORM ho impedeix i, a la base de dades, els activadors de la migració 0001. `valid_from` i
+    `valid_to` són les dates d'inici de llicència a què s'aplica (els trams de l'any). El preu de
+    soci és el de la federació (no hi ha cap camp per a un altre, RN-M06-05)."""
+
+    class Kind(models.TextChoices):
+        MEMBER = "member", _("Soci")
+        NON_MEMBER = "non_member", _("No soci")
+
+    licence_type = models.ForeignKey(
+        LicenceType, on_delete=models.PROTECT, related_name="prices", verbose_name=_("tipus")
+    )
+    federation_cost_cents = models.PositiveIntegerField(_("preu de la federació (cèntims)"))
+    non_member_surcharge_cents = models.PositiveIntegerField(_("recàrrec de no soci (cèntims)"))
+    valid_from = models.DateField(_("vàlid des de"))
+    valid_to = models.DateField(_("vàlid fins a"), null=True, blank=True)
+    note = models.TextField(_("nota"))
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("creat per"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("preu de llicència")
+        verbose_name_plural = _("preus de llicència")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(federation_cost_cents__gt=0), name="licences_price_cost_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(valid_to__isnull=True) | Q(valid_to__gte=models.F("valid_from")),
+                name="licences_price_dates_ordered",
+            ),
+            models.CheckConstraint(
+                condition=~Q(note__regex=r"^\s*$"), name="licences_price_note_required"
+            ),
+        ]
+
+    def amount_cents(self, kind: str) -> int:
+        """RN-M06-05 i RN-M06-06: soci = federació; no soci = federació + recàrrec."""
+        if kind == self.Kind.MEMBER:
+            return self.federation_cost_cents
+        if kind == self.Kind.NON_MEMBER:
+            return self.federation_cost_cents + self.non_member_surcharge_cents
+        raise ValueError(f"Tipus de preu desconegut: «{kind}».")
+
+
+IN_PROGRESS = ("requested", "paid", "filed")
+
+
+class Licence(UndeletableModel):
+    """Llicència d'una persona (M06-6). L'estat desat és el de RN-M06-09; el que es veu es
+    deriva de les dates amb `display_status` (M06-5). En un esborrat RGPD s'anonimitza, no
+    s'esborra (L-M06-06)."""
+
+    class Status(models.TextChoices):
+        REQUESTED = "requested", _("Sol·licitada")
+        PAID = "paid", _("Pagada")
+        FILED = "filed", _("Tramitada")
+        ACTIVE = "active", _("Vigent")
+        CANCELLED = "cancelled", _("Cancel·lada")
+        LAPSED = "lapsed", _("No tramitada a temps")
+
+    class Origin(models.TextChoices):
+        CLUB = "club", _("Del club")
+        EXTERNAL = "external", _("Ja en tenia una")
+        IMPORTED_M01 = "imported_m01", _("Registre del 01")
+
+    class Display(models.TextChoices):
+        """Estat que es veu (M06-5)."""
+
+        REQUESTED = "requested", _("Sol·licitada")
+        PAID = "paid", _("Pagada")
+        FILED = "filed", _("Tramitada")
+        VALID = "valid", _("Vigent")
+        TO_RENEW = "to_renew", _("Per renovar")
+        EXPIRED = "expired", _("Caducada")
+        NOT_STARTED = "not_started", _("Vigent més endavant")  # P-440
+        CANCELLED = "cancelled", _("Cancel·lada")
+        LAPSED = "lapsed", _("No tramitada a temps")
+
+    person = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="licences", verbose_name=_("persona")
+    )
+    licence_type = models.ForeignKey(
+        LicenceType, on_delete=models.PROTECT, related_name="licences", verbose_name=_("tipus")
+    )
+    # Còpia de la regla del tipus en demanar-la: canviar el tipus no canvia les ja demanades.
+    validity_rule = models.CharField(
+        _("regla de validesa"), max_length=13, choices=ValidityRule.choices
+    )
+    status = models.CharField(_("estat"), max_length=9, choices=Status.choices)
+    origin = models.CharField(_("origen"), max_length=12, choices=Origin.choices)
+    starts_on = models.DateField(_("inici"))
+    expires_on = models.DateField(_("caducitat"))
+    federation_number = models.CharField(_("número federatiu"), max_length=30, blank=True)
+    price_kind = models.CharField(  # noqa: DJ001 (NULL = sense preu: origen extern o del 01)
+        _("tipus de preu"), max_length=10, choices=LicencePrice.Kind.choices, null=True
+    )
+    price_cents = models.PositiveIntegerField(_("preu (cèntims)"), null=True)
+    charge = models.OneToOneField(
+        Charge,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="licence",
+        verbose_name=_("càrrec"),
+    )
+    renewal_of = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="renewals",
+        verbose_name=_("renovació de"),
+    )
+    # Identificador del registre mínim del 01 (052, punt 8). No és cap clau forana: el 06 no
+    # depèn dels models del 01.
+    m01_record_ref = models.PositiveBigIntegerField(_("registre del 01"), null=True)
+    import_batch = models.ForeignKey(
+        ImportBatch,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="+",
+        verbose_name=_("lot d'importació"),
+    )
+    filed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    filed_at = models.DateTimeField(null=True)
+    activated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    activated_at = models.DateTimeField(null=True)
+    cancellation_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("llicència")
+        verbose_name_plural = _("llicències")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(status__in=[*IN_PROGRESS, "active", "cancelled", "lapsed"]),
+                name="licences_licence_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(origin__in=["club", "external", "imported_m01"]),
+                name="licences_licence_origin_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(validity_rule__in=["calendar_year", "days_365", "single_day"]),
+                name="licences_licence_validity_rule_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(expires_on__gte=models.F("starts_on")),
+                name="licences_licence_dates_ordered",
+            ),
+            # RN-M06-09 i RN-M06-20: només una llicència d'un dia pot quedar «no tramitada a temps».
+            models.CheckConstraint(
+                condition=~Q(status="lapsed") | Q(validity_rule="single_day"),
+                name="licences_licence_lapsed_only_single_day",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="cancelled") | ~Q(cancellation_reason__regex=r"^\s*$"),
+                name="licences_licence_cancel_has_reason",
+            ),
+            # Només les del club tenen preu i càrrec; les altres, mai (M06-6).
+            models.CheckConstraint(
+                condition=(
+                    Q(origin="club", price_kind__isnull=False, price_cents__isnull=False)
+                    | (
+                        ~Q(origin="club")
+                        & Q(price_kind__isnull=True, price_cents__isnull=True, charge__isnull=True)
+                    )
+                ),
+                name="licences_licence_price_only_club",
+            ),
+            models.CheckConstraint(
+                condition=Q(origin="imported_m01")
+                | Q(m01_record_ref__isnull=True, import_batch__isnull=True),
+                name="licences_licence_import_only_m01",
+            ),
+            # Una sola llicència anual en curs per persona i tipus; les d'un dia, per data
+            # (RN-M06-19).
+            models.UniqueConstraint(
+                fields=["person", "licence_type"],
+                condition=Q(status__in=IN_PROGRESS) & ~Q(validity_rule="single_day"),
+                name="licences_licence_one_in_progress",
+            ),
+            models.UniqueConstraint(
+                fields=["person", "licence_type", "starts_on"],
+                condition=Q(status__in=IN_PROGRESS, validity_rule="single_day"),
+                name="licences_licence_one_day_in_progress",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["status", "expires_on"], name="licences_status_expires"),
+            models.Index(fields=["person", "expires_on"], name="licences_person_expires"),
+        ]
+
+    def __str__(self):
+        return f"{self.licence_type} ({self.starts_on:%d/%m/%Y}–{self.expires_on:%d/%m/%Y})"
+
+    def display_status(self, today: datetime.date, to_renew_days: int) -> str:
+        """M06-5. `to_renew_days` és l'ajust `licences.to_renew_days`: el llegeix qui crida
+        (l'ajust el crea la T-M06-20)."""
+        if self.status != self.Status.ACTIVE:
+            return self.status
+        if self.expires_on < today:
+            return self.Display.EXPIRED
+        if self.starts_on > today:
+            return self.Display.NOT_STARTED
+        if (
+            self.validity_rule != ValidityRule.SINGLE_DAY
+            and (self.expires_on - today).days <= to_renew_days
+        ):
+            return self.Display.TO_RENEW
+        return self.Display.VALID
