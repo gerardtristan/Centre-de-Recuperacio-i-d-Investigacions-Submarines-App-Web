@@ -389,3 +389,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-08](T-M06-08.md) | Llicències: «Ja en tinc una», llicència externa sense càrrec (carril A) | 20/11/2026 23:14 | 8ec7bde1 | 8510 | [A comprovar] |
 | [T-M02-03b](T-M02-03b.md) | Estats i transicions d'una activitat amb el permís AC7, el rellotge a la cua i el senyal activity_done (carril B) | 20/11/2026 23:00 | (vegeu la PR) | 27 noves (91 casos) | [A comprovar] |
 | [T-M02-03c](T-M02-03c.md) | Crear i editar activitats amb el lloc, la còpia del preu estàndard i el centre de cost; VC-21 i VC-24 com a ajustos (activities/0004; carril B) | 20/11/2026 23:20 | (vegeu la PR) | 31 noves (112 casos) | [A comprovar] |
+| [T-M02-03d](T-M02-03d.md) | Sessions d'un curs i programa del dia amb el lloc; T-M02-03 feta (carril B) | 20/11/2026 23:35 | (vegeu la PR) | 18 noves (43 casos) | [A comprovar] |
