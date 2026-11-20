@@ -104,14 +104,12 @@
                     <td data-etiqueta="{% translate 'Estat' %}">{% include "members/_charge_status.html" with charge=row.fee.charge exemption=row.exemption %}</td>
                     {% if can_exempt or can_record_payment or can_edit_instalments %}
                       <td class="cel-accions">
-                        {% if row.open %}
+                        {% if row.open and can_exempt or row.open and row.can_pay or row.open and row.can_split %}
                           {% if row.can_pay %}<a href="{% url 'administration:treasury_manual_payment' row.fee.charge_id %}">{% translate "Registra un pagament a mà…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% if can_exempt %} <span aria-hidden="true">·</span>{% endif %}{% endif %}
                           {% if can_exempt %}
                             {% if row.annual %}<a href="{% url 'administration:member_fee_exempt' member.pk row.fee.pk %}">{% translate "Eximeix…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a> <span aria-hidden="true">·</span>{% endif %}
                             <a href="{% url 'administration:member_fee_cancel' member.pk row.fee.pk %}">{% translate "Anul·la…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>
                           {% endif %}
-                          {# T-M01-49c: P23 (P-413); la pantalla diu quins terminis es poden editar. #}
-                          {% if can_edit_instalments and row.instalment %}{% if can_exempt or row.can_pay %} <span aria-hidden="true">·</span>{% endif %}<a href="{% url 'administration:member_fee_instalments' member.pk row.fee.pk %}">{% translate "Edita els terminis…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% endif %}
                           {% if row.can_split %}{% if can_exempt or row.can_pay %} <span aria-hidden="true">·</span>{% endif %}<a href="{% url 'administration:member_fee_choose_instalments' member.pk row.fee.pk %}">{% translate "Paga en tres terminis…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% endif %}
                         {% else %}
                           <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
@@ -122,6 +120,8 @@
                 {% endfor %}
               </tbody>
             </table>
+            {# T-M01-49c: P23 (P-413); la pantalla diu quins terminis es poden editar. Un sol enllaç per pla, fora de les files (T-F1-01, V25). #}
+            {% if can_edit_instalments %}{% for fee in instalment_plans %}<p><a href="{% url 'administration:member_fee_instalments' member.pk fee.pk %}">{% translate "Edita els terminis…" %}<span class="visualment-amagat"> {% blocktranslate with period=fee.period %}de la quota {{ period }}{% endblocktranslate %}</span></a></p>{% endfor %}{% endif %}
           {% else %}
             <p>{% translate "Encara no té cap quota." %}</p>
           {% endif %}

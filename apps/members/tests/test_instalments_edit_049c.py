@@ -178,6 +178,20 @@ def test_the_core_does_not_change_the_amount_of_a_charge_that_is_not_pending(cle
 
 
 class TestScreen:
+    def test_v25_the_member_page_lists_the_instalments_in_order_with_one_edit_link(
+        self, plan, clerk
+    ):
+        """T-F1-01 (V25): a la fitxa, els terminis en ordre (1, 2, 3) i un sol «Edita els
+        terminis…», fora de les files."""
+        member, _plan = plan
+        page = admin_client(clerk).get(reverse(DETAIL, args=[member.pk])).content.decode()
+        assert (
+            page.index("termini 1 de 3")
+            < page.index("termini 2 de 3")
+            < page.index("termini 3 de 3")
+        )
+        assert page.count("Edita els terminis…") == 1
+
     def test_the_secretary_edits_from_the_member_page(self, plan, clerk):
         member, (first, second, third) = plan
         client = admin_client(clerk)
