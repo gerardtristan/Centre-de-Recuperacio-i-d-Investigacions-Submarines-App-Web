@@ -1,5 +1,6 @@
 """Models del mòdul 02, Activitats (cursos i sortides). Primera peça: catàlegs, tipus, subtipus,
-projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20).
+projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20), i llocs amb el
+seu preu estàndard (T-M02-37; addenda de llocs; RN-M02-38 i 39; VC-52).
 
 - Imports en cèntims (enters, ≥ 0: una activitat pot ser gratuïta, L-M02-06). Cap dada de salut,
   de targeta ni d'IBAN (CA-M02-25).
@@ -10,6 +11,7 @@ projectes i preus amb versions (T-M02-02; M02-6; RN-M02-01 i RN-M02-05; VC-20).
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import AppendOnlyModel, Department
@@ -177,3 +179,66 @@ class EnvironmentalProject(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Place(models.Model):
+    """Lloc d'una activitat: un lloc de sortida, una piscina o l'aula del club (addenda de llocs,
+    RN-M02-38). És una dada: es crea, s'edita i es desactiva des de l'app; no s'esborra si té
+    activitats, sessions o blocs (PROTECT des d'aquests models, T-M02-03)."""
+
+    name = models.CharField(_("nom"), max_length=120)
+    active = models.BooleanField(_("actiu"), default=True)
+    notes = models.TextField(
+        _("notes internes"),
+        max_length=1000,
+        blank=True,
+        help_text=_("Sense dades personals ni de salut."),
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("creat per"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("lloc")
+        verbose_name_plural = _("llocs")
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(Lower("name"), name="place_name_unique_ci"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class PlacePrice(AppendOnlyModel):
+    """Preu estàndard de la sortida en un lloc, amb data d'entrada en vigor (RN-M02-39). Només
+    s'hi afegeixen files, com `TrainingCataloguePrice`. Un lloc sense cap fila no té preu."""
+
+    place = models.ForeignKey(
+        Place, on_delete=models.PROTECT, related_name="prices", verbose_name=_("lloc")
+    )
+    price_member_cents = models.PositiveIntegerField(_("preu de soci (cèntims)"))
+    price_non_member_cents = models.PositiveIntegerField(_("preu de no soci (cèntims)"))
+    valid_from = models.DateField(_("vigent des del"))
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("canviat per"),
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(_("motiu"))
+
+    class Meta:
+        verbose_name = _("preu estàndard del lloc")
+        verbose_name_plural = _("preus estàndard dels llocs")
+        indexes = [models.Index(fields=["place", "valid_from"], name="placeprice_from_idx")]
+
+    def __str__(self):
+        return f"{self.place} ({self.valid_from:%d/%m/%Y})"
