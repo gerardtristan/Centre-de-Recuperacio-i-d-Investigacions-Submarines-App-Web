@@ -72,6 +72,12 @@ urlpatterns = [
         admin_member_edit.member_fee_instalments_view,
         name="member_fee_instalments",
     ),
+    # T-M01-49c, part 2: triar-los a la quota d'una alta presencial (P23; P-415).
+    path(
+        "socis/<int:pk>/quotes/<int:fee_pk>/terminis/tria/",
+        admin_member_edit.member_fee_choose_instalments_view,
+        name="member_fee_choose_instalments",
+    ),
     path(
         "socis/<int:pk>/llicencies/nova/",
         admin_licences.licence_add_view,

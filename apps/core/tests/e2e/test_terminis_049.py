@@ -117,3 +117,22 @@ def test_the_secretary_moves_amounts_between_instalments(page, live_server, pend
         .order_by("instalment")
     ]
     assert amounts == [2000, 3500, 3500]
+
+
+def test_the_secretary_chooses_instalments_for_an_in_person_join(
+    page, live_server, pending, review
+):
+    """T-M01-49c, part 2 (P-415): a la quota d'una alta presencial, la secretaria (P23) tria els
+    terminis per al soci des de la fitxa."""
+    member, _account = pending
+    login_admin(page, live_server.url, make_admin("secretaria.terminis", "secretary").login)
+    page.goto(f"{live_server.url}/{settings.ADMIN_URL_PATH}/socis/{member.pk}/")
+    page.get_by_role("link", name=re.compile("Paga en tres terminis…")).click()
+    expect(page.get_by_role("heading", name="Paga en tres terminis")).to_be_visible()
+    expect(page.get_by_role("rowheader", name="Termini 3 de 3")).to_be_visible()
+    review("tria-terminis-alta-presencial")
+    page.get_by_role("button", name="Crea els tres terminis").focus()
+    page.keyboard.press("Enter")
+    expect(page.get_by_text("Terminis creats. Queden al registre d'activitat.")).to_be_visible()
+    review("fitxa-terminis-creats")
+    assert member.fees.filter(kind=AnnualFee.Kind.INSTALMENT).count() == 3

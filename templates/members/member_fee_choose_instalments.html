@@ -1,0 +1,43 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M01-49c, part 2 (072, tercera instrucció, punt 2; P-415): triar els tres terminis per al soci, a la quota d'una alta presencial. P23 amb edició, P4 i P10. Amagar l'enllaç no és cap control: el servei torna a comprovar el permís, que sigui la quota d'una alta presencial, que es pugui pagar a terminis i el conflicte d'interès. Cap dada personal més que el nom i el número. #}
+{% block title %}{% translate "Paga en tres terminis" %} · {{ person }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Fitxa del soci" %}</p>
+  <h1>{% translate "Paga en tres terminis" %}</h1>
+  <p>{{ person }}{% if member.member_number %} · <span class="codi">{% blocktranslate with number=member.member_number %}Soci {{ number }}{% endblocktranslate %}</span>{% endif %}</p>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Quota" %}</dt><dd>{{ fee.charge.concept }} ({{ fee.period }})</dd></div>
+    <div><dt>{% translate "Import" %}</dt><dd>{{ amount }}</dd></div>
+    <div><dt>{% translate "Estat" %}</dt><dd>{% include "members/_charge_status.html" with charge=fee.charge %}</dd></div>
+  </dl>
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+  {% if own %}
+    <div class="avis avis-error" role="alert">{% translate "Ningú no pot triar els terminis d'una quota seva. Ho ha de fer una altra persona amb permís." %}</div>
+  {% elif not possible %}
+    <div class="avis avis-avis" role="status">{% translate "Aquesta quota no es pot pagar a terminis des d'aquí: només la quota pendent d'una alta presencial de ple dret, sense cap pagament, amb el pagament a terminis activat i el mateix import que l'ajust." %}</div>
+  {% else %}
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Els tres terminis que es crearan" %}</caption>
+      <thead><tr><th scope="col">{% translate "Termini" %}</th><th scope="col">{% translate "Import" %}</th><th scope="col">{% translate "Venciment" %}</th></tr></thead>
+      <tbody>
+        {% for cents, due_on in schedule %}
+          <tr>
+            <th scope="row" class="cel-nom">{% blocktranslate with n=forloop.counter %}Termini {{ n }} de 3{% endblocktranslate %}</th>
+            <td data-etiqueta="{% translate 'Import' %}">{{ cents }}</td>
+            <td data-etiqueta="{% translate 'Venciment' %}"><time datetime="{{ due_on|date:'Y-m-d' }}">{{ due_on|date:"d/m/Y" }}</time></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-2">{% translate "La quota anual s'anul·la i se'n creen els tres terminis. El soci passa a actiu quan paga el primer." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Crea els tres terminis" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:member_detail' member.pk %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:member_detail' member.pk %}">{% translate "Tornar a la fitxa" %}</a></p>
+{% endblock %}

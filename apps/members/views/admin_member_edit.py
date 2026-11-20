@@ -385,3 +385,43 @@ def member_fee_instalments_view(request, pk, fee_pk):
         "form": form,
     }
     return render(request, "members/member_fee_instalments.html", context)
+
+
+@never_cache
+@permission_required(instalments.EDIT_PERMISSION, write=True)
+@require_http_methods(["GET", "POST"])
+def member_fee_choose_instalments_view(request, pk, fee_pk):
+    """T-M01-49c, part 2 (P-415): triar els terminis per al soci a la quota d'una alta
+    presencial. P23 amb edició, P4 i P10. El servei torna a comprovar el permís, que la quota
+    sigui la d'una alta presencial i que es pugui pagar a terminis, i el conflicte d'interès."""
+    member = _member(request, pk)
+    require_perm(request, roster.FEES)
+    fee = get_object_or_404(
+        AnnualFee.objects.select_related("charge"), pk=fee_pk, member_id=member.pk
+    )
+    own = member.person_id == request.user.person_id
+    error = None
+    if request.method == "POST":
+        try:
+            instalments.choose_in_person(fee, by=request.user, request=request)
+            messages.success(request, _("Terminis creats. Queden al registre d'activitat."))
+            return _to_detail(member)
+        except OwnMemberChange as exc:
+            messages.error(request, exc.args[0])
+            return _to_detail(member)
+        except ValidationError as exc:
+            error = exc.messages[0]
+    possible = instalments.can_choose_in_person(fee, request.user)
+    context = {
+        "member": member,
+        "person": member.person,
+        "fee": fee,
+        "amount": charges.euros(fee.charge.amount_cents),
+        "schedule": [(charges.euros(c), d) for c, d in instalments.schedule(fee)]
+        if possible
+        else [],
+        "possible": possible and not own,
+        "own": own,
+        "error": error,
+    }
+    return render(request, "members/member_fee_choose_instalments.html", context)

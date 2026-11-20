@@ -1155,6 +1155,16 @@ opcions:
       La 072 només demana que la suma no canviï i que no hi hagi pagament; un límit de dates que no
       demana cap norma podria impedir un acord amb el soci. B o C es poden afegir sense migració.
     data: 2026-11-20
+  P-415:
+    opcions:
+      A: "Com s'ha construït: P23 (la Secretaria), només a la quota d'una alta presencial, amb les condicions de la P-396 i sense reautenticació."
+      B: "A, però a qualsevol quota anual pendent (també la de la renovació o d'una alta per la web)."
+      C: "A, però amb el permís de l'alta presencial (P2) en lloc de P23."
+    recomanada: A
+    perque: >-
+      És el que diu la tasca («en una alta presencial»); la resta de quotes ja les pot partir el
+      soci mateix, i qui fa les altes presencials és la Secretaria, que ja té P23.
+    data: 2026-11-20
   P-406:
     opcions:
       A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."

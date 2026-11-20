@@ -112,6 +112,7 @@
                           {% endif %}
                           {# T-M01-49c: P23 (P-413); la pantalla diu quins terminis es poden editar. #}
                           {% if can_edit_instalments and row.instalment %}{% if can_exempt or row.can_pay %} <span aria-hidden="true">·</span>{% endif %}<a href="{% url 'administration:member_fee_instalments' member.pk row.fee.pk %}">{% translate "Edita els terminis…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% endif %}
+                          {% if row.can_split %}{% if can_exempt or row.can_pay %} <span aria-hidden="true">·</span>{% endif %}<a href="{% url 'administration:member_fee_choose_instalments' member.pk row.fee.pk %}">{% translate "Paga en tres terminis…" %}<span class="visualment-amagat"> {{ row.fee.charge.concept }} ({{ row.fee.period }})</span></a>{% endif %}
                         {% else %}
                           <span aria-hidden="true">—</span><span class="visualment-amagat">{% translate "Cap acció" %}</span>
                         {% endif %}
