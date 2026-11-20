@@ -26,6 +26,7 @@ from apps.activities.models import (
 )
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.licences.models import Licence, LicenceType, ValidityRule
 
 from .helpers import a_course, a_person, an_entry, an_outing
 from .helpers import moment as at
@@ -270,3 +271,44 @@ def test_requirements_travel_with_the_copy_and_show_on_the_public_page(
     data = public.get_activity(outing.pk, today=datetime.date(2027, 6, 1))
     assert (data.min_level, data.any_speciality) == ("Nivell inventat B2", True)
     assert set(data.specialities) == {"Especialitat inventada A", "Especialitat inventada B"}
+
+
+# --- RN-M02-10: llicència vigent (amb licences.current) -------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("status", "starts_on", "expected", "detail"),
+    [
+        (Licence.Status.ACTIVE, datetime.date(2027, 1, 1), requirements.MET, ""),
+        (Licence.Status.REQUESTED, datetime.date(2027, 1, 1), requirements.NOT_MET, "En tràmit."),
+        (Licence.Status.ACTIVE, datetime.date(2027, 6, 15), requirements.NOT_MET, "No consta"),
+    ],
+    ids=["vigent", "en tràmit", "comença després de l'activitat"],
+)
+def test_rn_m02_10_the_licence_must_be_valid_the_day_the_activity_starts(
+    manager, status, starts_on, expected, detail
+):
+    person = a_person("Bussejadora")
+    kind = LicenceType.objects.create(
+        name="Aficionat (inventat)",
+        category=LicenceType.Category.AMATEUR,
+        validity_rule=ValidityRule.CALENDAR_YEAR,
+    )
+    Licence.objects.create(
+        person=person, licence_type=kind, validity_rule=kind.validity_rule, status=status,
+        origin=Licence.Origin.CLUB, starts_on=starts_on, expires_on=datetime.date(2027, 12, 31),
+        price_kind="member", price_cents=9000,
+    )  # fmt: skip
+    activity = an_outing(manager, licence_required=True, requirements_mode=BLOCK)
+    (check,) = requirements.check(activity, person).checks
+    assert (check.key, check.state) == (requirements.LICENCE, expected)
+    assert detail in check.detail
+    warned = requirements.check(activity, person, mode=WARN)
+    assert warned.allowed and bool(warned.warnings) is (expected != requirements.MET)
+    for private in ("2027-12-31", "Aficionat", "amateur"):
+        assert private not in repr(warned)
+
+
+def test_without_a_licence_the_requirement_is_not_met(manager):
+    activity = an_outing(manager, licence_required=True, requirements_mode=BLOCK)
+    assert not requirements.check(activity, a_person("Sense llicència")).allowed
