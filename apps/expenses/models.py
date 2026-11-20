@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.models import AppendOnlyModel
+
 
 class ExpenseCategory(models.Model):
     """Categoria de despesa (M09-6, T-M09-03): una dada que s'amplia des de l'app (VC-33). Les
@@ -80,6 +82,15 @@ class Expense(models.Model):
     status = models.CharField(
         _("estat"), max_length=8, choices=Status.choices, default=Status.TO_PAY
     )
+    # El moviment `expense` de la 04; el posa `services.pay` (T-M09-05).
+    paid_movement = models.OneToOneField(
+        "treasury.Movement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("moviment del pagament"),
+    )
     recorded_by = models.ForeignKey(
         "accounts.Account",
         on_delete=models.PROTECT,
@@ -101,6 +112,12 @@ class Expense(models.Model):
                 condition=models.Q(status__in=["to_pay", "paid", "annulled"]),
                 name="expense_status_valid",
             ),
+            # Pagada sempre amb el seu moviment; per pagar, mai.
+            models.CheckConstraint(
+                condition=~models.Q(status="paid", paid_movement__isnull=True)
+                & ~models.Q(status="to_pay", paid_movement__isnull=False),
+                name="expense_paid_has_movement",
+            ),
             models.UniqueConstraint(
                 fields=["supplier", "invoice_number"],
                 condition=~models.Q(invoice_number=""),
@@ -110,3 +127,35 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.description} ({self.amount_cents} c)"
+
+
+class ExpenseAnnulment(AppendOnlyModel):
+    """Anul·lació d'una despesa (M09-6, RN-M09-11): només INSERT. Si estava pagada, porta el
+    contramoviment de la 04."""
+
+    expense = models.OneToOneField(
+        Expense, on_delete=models.PROTECT, related_name="annulment", verbose_name=_("despesa")
+    )
+    reason = models.TextField(_("motiu"))
+    reversal_movement = models.OneToOneField(
+        "treasury.Movement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("contramoviment"),
+    )
+    annulled_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("anul·lada per"),
+    )
+    annulled_at = models.DateTimeField(_("anul·lada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("anul·lació d'una despesa")
+        verbose_name_plural = _("anul·lacions de despeses")
+        constraints = [
+            models.CheckConstraint(condition=~models.Q(reason=""), name="expense_annulment_reason")
+        ]

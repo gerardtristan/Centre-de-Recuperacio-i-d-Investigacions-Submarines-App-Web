@@ -11,16 +11,19 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit, mail
 from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import accounts_with_perm, scope_for
+from apps.treasury import services as treasury
 from apps.treasury.models import CostCentre
 from apps.treasury.services import InvalidDepartment
 
-from .models import Expense
+from .models import Expense, ExpenseAnnulment
 
 RECORD = "expenses.record"  # MG1
 PAY = "expenses.pay"  # MG2
 NO_INVOICE_TEMPLATE = "avis-despesa-sense-factura"
 EXPENSE_RECORDED = "expenses.expense_recorded"
 EXPENSE_CHANGED = "expenses.expense_changed"
+EXPENSE_PAID = "expenses.expense_paid"
+EXPENSE_ANNULLED = "expenses.expense_annulled"
 
 # Els camps que es poden corregir mentre la despesa és per pagar (RN-M09-11).
 EDITABLE = (
@@ -42,6 +45,10 @@ class ExpenseRejected(ValidationError):
 
 class ExpenseLocked(ValidationError):
     """Una despesa pagada o anul·lada no es modifica (RN-M09-11, CA-M09-03)."""
+
+
+class AlreadyPaid(ExpenseLocked):
+    """La despesa ja està pagada o anul·lada: no es torna a pagar (CA-M09-02)."""
 
 
 def _require(by, code) -> None:
@@ -155,6 +162,69 @@ def update_expense(expense: Expense, *, by, **changes) -> Expense:
         changes={name: (before[name], _audit_value(getattr(expense, name))) for name in changes},
     )
     return expense
+
+
+@transaction.atomic
+def pay(expense: Expense, *, account, value_date, by) -> Expense:
+    """`expenses.pay` (M09-8, CA-M09-02): un sol moviment `expense` de la 04 amb el mateix import,
+    departament i centre de cost, i la despesa passa a «pagada». Amb la data de valor dins un
+    període tancat, la 04 respon `PeriodClosed` i no es desa res (RN-T30). El comprovant del
+    banc s'adjunta amb la T-M09-25."""
+    _require(by, PAY)
+    expense = Expense.objects.select_for_update().select_related("supplier").get(pk=expense.pk)
+    if expense.status != Expense.Status.TO_PAY:
+        raise AlreadyPaid(_("Aquesta despesa ja està pagada o anul·lada."))
+    movement = treasury.record_expense(
+        account,
+        expense.amount_cents,
+        value_date=value_date,
+        department=expense.department,
+        cost_centre=expense.cost_centre,
+        # El concepte, sense el nom del proveïdor, que pot ser una persona (M09-12).
+        concept=f"{_('Despesa')} {expense.pk}: {expense.description}"[:140],
+        by=by,
+    )
+    expense.status, expense.paid_movement = Expense.Status.PAID, movement
+    expense.save(update_fields=["status", "paid_movement", "updated_at"])
+    audit.record(
+        EXPENSE_PAID,
+        actor=by,
+        target=expense,
+        details={"movement": movement.pk, "value_date": value_date.isoformat()},
+    )
+    return expense
+
+
+@transaction.atomic
+def annul(expense: Expense, *, reason: str, by, value_date=None) -> ExpenseAnnulment:
+    """`expenses.annul` (M09-8; RN-M09-11; CA-M09-03 i 22): anul·lació amb motiu i, si estava
+    pagada, el contramoviment de la 04 (anul·lació manual: `value_date`, per defecte avui, no pot
+    ser d'un període tancat). El moviment original no canvia. La correcció és una despesa nova."""
+    _require(by, PAY)
+    reason = (reason or "").strip()
+    if not reason:
+        raise ExpenseRejected(_("Per anul·lar una despesa cal escriure'n el motiu."))
+    expense = Expense.objects.select_for_update().get(pk=expense.pk)
+    if expense.status == Expense.Status.ANNULLED:
+        raise ExpenseLocked(_("Aquesta despesa ja està anul·lada."))
+    reversal = None
+    if expense.status == Expense.Status.PAID:
+        reversal = treasury.reverse(
+            expense.paid_movement, reason=reason, by=by, value_date=value_date
+        )
+    annulment = ExpenseAnnulment.objects.create(
+        expense=expense, reason=reason, reversal_movement=reversal, annulled_by=by
+    )
+    expense.status = Expense.Status.ANNULLED
+    expense.save(update_fields=["status", "updated_at"])
+    audit.record(
+        EXPENSE_ANNULLED,
+        actor=by,
+        target=expense,
+        reason=reason,
+        details={"reversal": reversal.pk if reversal else None},
+    )
+    return annulment
 
 
 def without_invoice():
