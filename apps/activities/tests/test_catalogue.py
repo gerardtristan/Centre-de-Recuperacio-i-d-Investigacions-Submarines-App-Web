@@ -73,8 +73,8 @@ def test_rn_m02_01_courses_and_specialities_are_separate_catalogues(manager, gen
     course = new_entry(manager, general, name="Nitrox inventat")
     speciality = new_entry(manager, general, kind=K.SPECIALITY, name="Nitrox inventat")
     assert course.pk != speciality.pk
-    assert list(catalogue.entries(K.COURSE)) == [course]
-    assert list(catalogue.entries(K.SPECIALITY)) == [speciality]
+    assert list(TrainingCatalogueEntry.objects.filter(kind=K.COURSE)) == [course]
+    assert list(TrainingCatalogueEntry.objects.filter(kind=K.SPECIALITY)) == [speciality]
     with pytest.raises(ValidationError):
         new_entry(manager, general, name="Nitrox inventat")  # repetit dins del mateix catàleg
 
@@ -115,7 +115,7 @@ def test_create_entry_rejects_wrong_values(manager, general, wrong):
 def test_a_free_course_is_allowed(manager, general):
     # M02-6: preus ≥ 0 (L-M02-06, activitat gratuïta).
     entry = new_entry(manager, general, price_member_cents=0, price_non_member_cents=0)
-    assert catalogue.price_on(entry, TODAY).member_cents == 0
+    assert catalogue.price_on(entry, TODAY).price_member_cents == 0
 
 
 def test_creating_an_entry_is_recorded_without_personal_data(manager, general):
@@ -137,7 +137,11 @@ def test_the_first_version_is_the_price_of_the_entry(manager, general):
     version = TrainingCataloguePrice.objects.get()
     assert (version.entry, version.valid_from, version.changed_by) == (entry, TODAY, manager)
     price = catalogue.price_on(entry, TODAY)
-    assert (price.member_cents, price.non_member_cents, price.reinforcement_cents) == (
+    assert (
+        price.price_member_cents,
+        price.price_non_member_cents,
+        price.reinforcement_price_cents,
+    ) == (
         4500,
         6000,
         3000,
@@ -157,11 +161,17 @@ def test_ca_m02_26_a_new_price_applies_from_its_date_and_not_before(manager, gen
         note="Puja el preu de soci (nota inventada).",
         today=TODAY,
     )
-    assert catalogue.price_on(entry, TODAY).member_cents == 4500
-    assert catalogue.price_on(entry, NEXT_MONTH - datetime.timedelta(days=1)).member_cents == 4500
-    assert catalogue.price_on(entry, NEXT_MONTH).member_cents == 5000
-    assert catalogue.price_on(entry, NEXT_MONTH + datetime.timedelta(days=90)).member_cents == 5000
-    assert catalogue.price_on(entry, TODAY).non_member_cents == 6000
+    assert catalogue.price_on(entry, TODAY).price_member_cents == 4500
+    assert (
+        catalogue.price_on(entry, NEXT_MONTH - datetime.timedelta(days=1)).price_member_cents
+        == 4500
+    )
+    assert catalogue.price_on(entry, NEXT_MONTH).price_member_cents == 5000
+    assert (
+        catalogue.price_on(entry, NEXT_MONTH + datetime.timedelta(days=90)).price_member_cents
+        == 5000
+    )
+    assert catalogue.price_on(entry, TODAY).price_non_member_cents == 6000
 
 
 def test_ca_m02_01_a_price_change_is_recorded_with_the_previous_value(manager, general):
@@ -182,7 +192,7 @@ def test_ca_m02_01_a_price_change_is_recorded_with_the_previous_value(manager, g
     assert changes["price_member_cents"] == (4500, 5000, "Preu nou (nota inventada).")
     assert changes["price_non_member_cents"] == (6000, 6500, "Preu nou (nota inventada).")
     assert "reinforcement_price_cents" not in changes  # no ha canviat
-    assert catalogue.price_on(entry, TODAY).member_cents == 5000
+    assert catalogue.price_on(entry, TODAY).price_member_cents == 5000
 
 
 @pytest.mark.parametrize(
@@ -221,7 +231,7 @@ def test_a_later_correction_for_the_same_date_wins(manager, general):
             note="Nota inventada.",
             today=TODAY,
         )
-    assert catalogue.price_on(entry, NEXT_MONTH).member_cents == 5200
+    assert catalogue.price_on(entry, NEXT_MONTH).price_member_cents == 5200
     assert TrainingCataloguePrice.objects.count() == 3  # les versions no s'esborren
 
 

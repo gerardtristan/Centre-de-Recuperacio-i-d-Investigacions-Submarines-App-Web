@@ -1,18 +1,12 @@
 """Serveis del catàleg del mòdul 02 (T-M02-02; P-M02-A; RN-M02-01 i RN-M02-05; VC-20).
 
-- **Preu vigent:** `price_on(entry, on)`. Una activitat nova copiarà el preu vigent el dia que es
-  creï (RN-M02-05); canviar un preu no toca mai cap activitat ja creada.
-- **Canviar un preu** (`change_prices`): amb motiu i amb una data d'entrada en vigor no passada
-  (RN-AJ-03). El registre guarda el valor anterior de cada preu que canvia (CA-M02-01).
-- **Res no s'esborra:** fitxes, tipus i subtipus es desactiven (`set_active`).
-
-Fora d'aquesta peça: els permisos (AC6, T-M02-33; cap vista no crida encara aquests serveis), les
-pantalles, els serveis d'edició de fitxes, tipus, subtipus i projectes i l'avís del canvi de preu
-(T-M02-05). Els camps de preu de la fitxa guarden el preu inicial; el vigent surt de les versions.
+Una activitat nova copiarà el preu vigent el dia que es creï (`price_on`); canviar un preu no toca
+cap activitat ja creada. Res no s'esborra: es desactiva. Fora d'aquesta peça: els permisos (AC6,
+T-M02-33; cap vista no crida encara aquests serveis), les pantalles, els serveis d'edició i l'avís
+del canvi de preu (T-M02-05).
 """
 
 import datetime
-from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -36,14 +30,6 @@ PRICE_FIELDS = ("price_member_cents", "price_non_member_cents", "reinforcement_p
 INITIAL_PRICE_NOTE = "Preu inicial de la fitxa."
 
 
-@dataclass(frozen=True)
-class Price:
-    member_cents: int
-    non_member_cents: int
-    reinforcement_cents: int | None
-    valid_from: datetime.date
-
-
 def _cents(value, *, optional=False) -> int | None:
     """Enter de cèntims ≥ 0. `bool` és un `int` a Python: es rebutja a part."""
     if value is None and optional:
@@ -64,14 +50,6 @@ def _places(value) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValidationError(_("Les places han de ser un enter més gran que zero."))
     return value
-
-
-def entries(kind: str):
-    """Les fitxes d'un dels dos catàlegs (RN-M02-01), per nom."""
-    return TrainingCatalogueEntry.objects.filter(kind=kind).order_by("name")
-
-
-# --- Fitxes ---------------------------------------------------------------------------------------
 
 
 @transaction.atomic
@@ -157,24 +135,14 @@ def set_active(obj, active: bool, *, by, request=None) -> bool:
     return True
 
 
-# --- Preus amb versions ---------------------------------------------------------------------------
-
-
-def price_on(entry, on: datetime.date) -> Price:
-    """Preu vigent de la fitxa en una data (RN-M02-05). Si la data és anterior a la primera
-    versió, val el preu inicial de la fitxa."""
-    version = (
+def price_on(entry, on: datetime.date):
+    """Preus vigents de la fitxa en una data (RN-M02-05): la versió més recent que ja ha entrat en
+    vigor o, abans de la primera, la fitxa. Tots dos tenen els tres camps de `PRICE_FIELDS`."""
+    return (
         TrainingCataloguePrice.objects.filter(entry=entry, valid_from__lte=on)
         .order_by("-valid_from", "-pk")
         .first()
-    )
-    source = version or entry
-    return Price(
-        member_cents=source.price_member_cents,
-        non_member_cents=source.price_non_member_cents,
-        reinforcement_cents=source.reinforcement_price_cents,
-        valid_from=version.valid_from if version else on,
-    )
+    ) or entry
 
 
 @transaction.atomic
@@ -207,11 +175,7 @@ def change_prices(
     }
     TrainingCatalogueEntry.objects.select_for_update().get(pk=entry.pk)
     current = price_on(entry, valid_from)
-    old = {
-        "price_member_cents": current.member_cents,
-        "price_non_member_cents": current.non_member_cents,
-        "reinforcement_price_cents": current.reinforcement_cents,
-    }
+    old = {name: getattr(current, name) for name in PRICE_FIELDS}
     if new == old:
         raise ValidationError(_("El preu és el mateix que ja hi haurà en aquella data."))
     version = TrainingCataloguePrice.objects.create(
@@ -228,15 +192,10 @@ def change_prices(
     return version
 
 
-# --- Tipus i subtipus de sortida ------------------------------------------------------------------
-
-
 def check_outing_classification(outing_type, subtype=None, project=None) -> None:
-    """Regla de CA-M02-03 (M02-6, `Activity.subtype` i `Activity.project`): una sortida de medi
-    ambient ha de tenir subtipus; una que no ho és no pot tenir ni subtipus ni projecte. El
-    projecte és opcional. Un tipus o un subtipus desactivat no es pot triar (és el que vol dir
-    desactivar-lo, P-M02-A pas 3); si un projecte acabat es pot fer servir no ho diu cap regla i
-    aquí no es comprova. La cridarà el servei que desa una activitat (T-M02-06)."""
+    """CA-M02-03: una sortida de medi ambient ha de tenir subtipus; una altra, ni subtipus ni
+    projecte. Un tipus o subtipus desactivat no es pot triar (P-M02-A pas 3); un projecte acabat no
+    es comprova (cap regla no ho diu). La cridarà el desat d'una activitat (T-M02-06)."""
     if outing_type is None:
         raise ValidationError(_("Cal triar el tipus de sortida."))
     if not outing_type.active:
