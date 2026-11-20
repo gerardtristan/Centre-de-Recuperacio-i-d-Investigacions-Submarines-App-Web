@@ -386,3 +386,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-30](T-M09-30.md) | Permisos del 09 i de l'apartat d'ajuts al catàleg i a la matriu inicial (core/0062); plantilla de l'avís d'una despesa sense factura (carril C) | 20/11/2026 22:58 | 4efe8138, 4ea94fef | 1 fitxer nou | [A comprovar] |
 | [T-M09-05](T-M09-05.md) | Pagar i anul·lar una despesa amb moviments de la 04 (expenses/0003), MG1 i MG2 de veritat als serveis i avís d'una despesa sense factura de la T-M09-04b (dubte P-473; carril C) | 20/11/2026 23:00 | 46f6a7c0, 0818ea12, de863a40 | 20 noves | [A comprovar] |
 | [T-M09-08](T-M09-08.md) | Altres ingressos (ajut, patrocini, donatiu) amb el moviment de la 04 (expenses/0004; CA-M09-09 espera el 02; carril C) | 20/11/2026 23:13 | bf004f0b | 14 noves | [A comprovar] |
+| [T-M09-17](T-M09-17.md) | Hores de voluntariat per funció, mai per persona (expenses/0005; carril C) | 20/11/2026 23:19 | de294f18 | 18 noves | [A comprovar] |
