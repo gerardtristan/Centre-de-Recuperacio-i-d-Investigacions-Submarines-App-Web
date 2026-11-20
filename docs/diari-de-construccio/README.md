@@ -365,3 +365,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-82](T-DX-82.md) | V10: resum d'errors (Errata) a «Corregeix la data d'alta» i a «Accepta les polítiques» (sessió de DISSENY) | 20/11/2026 19:35 | 35ca96b8 | 2 e2e ampliades | [A comprovar] |
 | [T-DX-84](T-DX-84.md) | «Revisa una quota no cobrada»: l'estat «Pendent» amb l'etiqueta d'estat, com a la resta de pantalles (sessió de DISSENY) | 20/11/2026 19:41 | 579acecb | 1 e2e ampliada | [A comprovar] |
 | [T-M06-03](T-M06-03.md) | Llicències: tipus, preus, llicència amb estats derivats i càlcul de dates (amb els models de la T-M06-02; carril A) | 20/11/2026 21:28 | ab994c99 | 8208 | [A comprovar] |
+| [T-M06-02b](T-M06-02b.md) | Llicències: servei de preus amb trams, versions, nota i avís (carril A) | 20/11/2026 21:58 | 1d2c4c89 | 8229 | [A comprovar] |
