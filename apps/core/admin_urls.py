@@ -36,6 +36,12 @@ urlpatterns = [
         gdpr.gdpr_notes_export_view,
         name="gdpr_notes_export",
     ),
+    # T-M01-22c (085, A-2): la secretaria registra l'esborrat demanat en persona (M11b).
+    path(
+        "rgpd/persones/<int:pk>/esborrat-presencial/",
+        gdpr.gdpr_in_person_view,
+        name="gdpr_in_person",
+    ),
     # T-M00-04: consulta de dades bloquejades, amb M13 (protegit) i motiu.
     path("dades-bloquejades/", locked_data.locked_data_list_view, name="locked_data"),
     path(

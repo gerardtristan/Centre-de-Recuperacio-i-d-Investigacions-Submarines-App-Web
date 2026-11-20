@@ -385,6 +385,8 @@ def member_detail_view(request, pk):
         "can_export_notes": core_privacy.notes_export_enabled()
         and member.person_id != request.user.person_id
         and has_perm(request.user, erasure.HANDLE_PERMISSION, permissions=perms),
+        # T-M01-22c (085, A-2): l'esborrat d'un menor de 14 anys, demanat en persona (M11b).
+        "can_register_erasure": erasure.can_register_in_person(member.person, request.user, perms),
         # T-M01-17: «Crea una baixa» (P7 amb escriptura); el servei ho torna a comprovar.
         "can_create_leave": member.status != Member.Status.LEFT
         and has_perm(

@@ -66,6 +66,64 @@ def request_erasure(person, *, by, request=None) -> tuple[ErasureRequest, bool]:
     return created, True
 
 
+# --- Registrar-la en persona (T-M01-22c; 085, A-2) -------------------------------------------
+
+REGISTER_PERMISSION = "core.gdpr.register_in_person"  # M11b (P-417)
+
+
+def is_under_14(person, today=None) -> bool:
+    """Un menor de 14 anys no té compte personal (Q-012): els seus drets es demanen en persona."""
+    from apps.accounts.invitations import MIN_AGE
+
+    from .persons import age_on
+
+    if person.birth_date is None:
+        return False
+    return age_on(person.birth_date, today or timezone.localdate()) < MIN_AGE
+
+
+def can_register_in_person(person, by, permissions=None) -> bool:
+    return (
+        has_perm(by, REGISTER_PERMISSION, write=True, permissions=permissions)
+        and person.status == Person.Status.ACTIVE
+        and person.pk != by.person_id
+        and is_under_14(person)
+    )
+
+
+def register_in_person(person, *, by, guardian_checked, request=None) -> ErasureRequest:
+    """La secretaria registra la sol·licitud d'esborrat que el pare, la mare o el tutor legal d'un
+    menor de 14 anys ha fet en persona (085, A-2). Queda pendent i l'atén qui té M11, com la de la
+    web. Sense M11b, «no trobat»; ningú no la registra per a si mateix."""
+    if not has_perm(by, REGISTER_PERMISSION, write=True):
+        raise Http404
+    if person.pk == by.person_id:
+        raise ErasureNotAllowed(_("No pots registrar una sol·licitud per a tu mateix."))
+    if person.status != Person.Status.ACTIVE or not is_under_14(person):
+        raise ErasureNotAllowed(
+            _("Només es registra en persona la sol·licitud d'un menor de 14 anys.")
+        )
+    if not guardian_checked:
+        raise ErasureNotAllowed(
+            _("Cal comprovar la identitat del pare, la mare o el tutor legal que ho demana.")
+        )
+    with transaction.atomic():
+        Person.objects.select_for_update().filter(pk=person.pk).first()
+        if pending_request(person) is not None:
+            raise ErasureNotAllowed(_("Aquesta persona ja té una sol·licitud d'esborrat pendent."))
+        created = ErasureRequest.objects.create(
+            person=person, requested_by=by, channel=ErasureRequest.Channel.IN_PERSON
+        )
+        audit.record(
+            audit.Action.ERASURE_REQUESTED,
+            actor=by,
+            target=created,
+            details={"channel": created.channel, "guardian_checked": True},
+            request=request,
+        )
+    return created
+
+
 # --- Atendre-la (P-M01-F, pas 4) ------------------------------------------------------------
 
 
