@@ -23,7 +23,7 @@ Estats: **fet** (hi ha evidència al codi o a les proves), **parcial**, **no fet
 | C1 Autenticació a cada endpoint | fet | `apps/core/tests/test_access.py` (`PUBLIC_ROUTES` declarades) | — |
 | C2, C4, C5 Comptes, doble factor, restabliment, verificació | fet | T-M01-05, T-M00-03 i T-M01-51 | — |
 | C3 Limitació de peticions | fet | `apps/accounts/limits.py` i els límits del formulari «Fer-se soci» | — |
-| C6 Auditoria de dependències | **no fet** | Cap `pip-audit` ni Dependabot al CI | Equip (tasca nova, `risc:alt` perquè toca el CI) |
+| C6 Auditoria de dependències | fet (PR de la C6) | Pas «Auditoria de dependències» (`pip-audit`) al job `proves` del CI. La primera auditoria va trobar la PYSEC-2026-1845 a pytest 8.4.2, que es resol amb pytest ≥ 9.0.3. Queda la revisió mensual | Equip |
 | C7 Configuració de producció | fet | `check --deploy --fail-level WARNING` al CI i a `tools/verifica.py` (#286) | — |
 | C8 Registre d'activitat | fet | `core.AuditEntry`, només s'hi afegeixen files (disparadors) | — |
 | C9 Pagaments | fet (amb proveïdor fals) | Firma i idempotència del webhook; `PAYMENTS_LIVE_CHARGES_ALLOWED` apagat al nivell 1. Falta el proveïdor real | PaynoPain ([PP](fase1-pendents-externs.md#paynopain)) |
@@ -114,4 +114,4 @@ Les altres irreversibles obertes (P-116, P-286, P-298, P-377, P-386, P-401 i P-4
 | El sí a la llista visual per a DISSENY | V3, V4, V5/V19, V8, V10, V13, V14, V15, V18, V20 i V11, ja passades a la sessió de disseny; cal el sí per fer-les abans del nivell 1 o deixar-les per després | [Informe T-F1-01](T-F1-01-informe.md#73-llista-per-a-la-sessió-de-disseny), 7.3 |
 | L'entorn de proves per a mòbils reals | B5 i B8 «N1» (T-M05a-18b), T-M01-21b, T-M01-28b i T-F1-02 esperen un entorn al qual accedeixi un mòbil. El servidor del portàtil (#251, [099](../decisions/099-servidor-de-proves-al-portatil.md)) s'ha d'alleugerir perquè funcioni amb 4 GB de RAM | [O2](fase1-pendents-externs.md#propietari) |
 | El servidor de producció | A7, C11, D1 a D3, E2 a E4, A6: tot el que és «extern (servidor)» a l'apartat 1 | [O3](fase1-pendents-externs.md#propietari) |
-| Una tasca per a l'auditoria de dependències (C6) | És de la porta 2 i no hi és; toca el CI (`risc:alt`) | Aquest document |
+| Fusionar la PR de la C6 (auditoria de dependències) | És de la porta 2; toca el CI i afegeix una dependència (`risc:alt`) | [F1](F1.md) |

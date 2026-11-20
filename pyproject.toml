@@ -33,7 +33,8 @@ dependencies = [
 # del 2024; no és a la instal·lació de desenvolupament.
 deploy = ["gunicorn>=23.0,<23.1"]
 dev = [
-    "pytest>=8,<9",
+    # 9.0.3 o més: PYSEC-2026-1845 (CVE-2025-71176, directoris temporals de pytest) (C6, 20/11/2026).
+    "pytest>=9.0.3,<10",
     "pytest-django>=4.9,<5",
     # Proves e2e al navegador (T-M00-07, aprovades pel responsable del projecte el 10/11/2026).
     # Playwright fixat a la 1.64: la 1.65 tenia un dia quan es va afegir.
@@ -48,6 +49,8 @@ dev = [
     # limita per sota de la 7.17.3, que tenia un dia quan es va afegir.
     "pytest-cov>=7.1,<8",
     "coverage>=7.10.6,<7.17.3",
+    # Auditoria de dependències al CI (checklist C6, porta 2). La 2.10.1 és del 10/06/2026.
+    "pip-audit>=2.10.1,<2.11",
 ]
 
 [build-system]
