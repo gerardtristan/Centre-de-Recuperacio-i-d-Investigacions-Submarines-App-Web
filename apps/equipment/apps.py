@@ -11,7 +11,7 @@ class EquipmentConfig(AppConfig):
 
         from apps.activities import extensions
 
-        from . import costs, needs, places, typical
+        from . import closing, costs, needs, places, typical
 
         # RN-M02-43 i RN-M03-25: el 02 copia aquest cost a l'activitat que es crea.
         extensions.register_material_cost_calculator(costs.standard_material_cost)
@@ -42,4 +42,18 @@ class EquipmentConfig(AppConfig):
         )
         extensions.activity_duplicated.connect(
             typical.on_activity_duplicated, dispatch_uid="equipment.typical.duplicated"
+        )
+        # RN-M03-13: «material pendent» impedeix tancar l'activitat.
+        extensions.register_closing_check(closing.pending_reasons)
+        # RN-M03-20 i L-M03-05: una inscripció que ja no és viva o una activitat cancel·lada
+        # alliberen les peces previstes.
+        post_save.connect(
+            closing.on_enrolment_saved,
+            sender="activities.Enrolment",
+            dispatch_uid="equipment.closing.enrolment",
+        )
+        post_save.connect(
+            closing.on_activity_saved,
+            sender="activities.Activity",
+            dispatch_uid="equipment.closing.activity",
         )
