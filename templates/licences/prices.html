@@ -23,7 +23,7 @@
         <th scope="col" class="cel-import">{% translate "Soci" %}</th>
         <th scope="col" class="cel-import">{% translate "No soci" %}</th>
         <th scope="col">{% translate "Estat" %}</th>
-        {% if can_edit %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+        {% if can_edit %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -36,7 +36,7 @@
           <td data-etiqueta="{% translate 'No soci' %}" class="cel-import">{% if row.non_member %}<span class="import">{{ row.non_member }}</span>{% else %}—{% endif %}</td>
           <td data-etiqueta="{% translate 'Estat' %}">{% if licence_type.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% translate "Inactiu" %}</span>{% endif %}</td>
           {% if can_edit %}
-            <td data-etiqueta="{% translate 'Acció' %}">
+            <td class="cel-accions">
               <form method="post" class="accions">
                 {% csrf_token %}
                 <input type="hidden" name="tipus" value="{{ licence_type.pk }}">
@@ -64,7 +64,7 @@
       {% csrf_token %}
       {% with form=type_form %}{% include "_errata.html" %}{% endwith %}
       {% for field in type_form %}{% include "accounts/_camp.html" %}{% endfor %}
-      <div class="accions"><button class="boto boto-principal" type="submit" name="nou_tipus" value="1">{% translate "Crea el tipus" %}</button></div>
+      <div class="accions"><button class="boto" type="submit" name="nou_tipus" value="1">{# D19: el principal és «Desa el preu», la feina més freqüent #}{% translate "Crea el tipus" %}</button></div>
     </form>
   {% endif %}
   <h2>{% translate "Historial de preus" %}</h2>
