@@ -154,6 +154,7 @@ MAP = {
     ),
     "test_llicencies.py": (
         "apps/licences/views.py",
+        "apps/licences/personal_views.py",
         "apps/licences/listing.py",
         "apps/licences/filing.py",
         "templates/licences/*",
