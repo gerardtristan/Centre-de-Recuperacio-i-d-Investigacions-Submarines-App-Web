@@ -4,7 +4,7 @@ CA-M09A-17, 22 i 25). Un requeriment és un esdeveniment: la sol·licitud manté
 Els avisos (el primer, immediat, i els de 7 i 2 dies) són de la T-M09A-06, que necessita les
 plantilles de correu del nucli; aquí no se n'envia cap."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
@@ -56,15 +56,17 @@ def record_requirement(
     *,
     origin,
     received_on,
-    due_on,
     description,
     responsible,
     by,
+    due_on=None,
     origin_reason="",
 ) -> GrantRequirement:
     """`grants.record_requirement` (CA-M09A-17 i 25): l'organisme el demana o el club l'obre
     (amb motiu obligatori). La sol·licitud continua en el seu estat."""
-    application = GrantApplication.objects.select_for_update().get(pk=application.pk)
+    application = (
+        GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
+    )
     require(by, AMENDMENTS, application)
     if application.status not in WITH_REQUIREMENTS:
         raise GrantError(_("Un requeriment arriba quan la sol·licitud ja s'ha presentat."))
@@ -76,6 +78,9 @@ def record_requirement(
     if not description:
         raise GrantError(_("Descriu què demana el requeriment."))
     received_on = _date(received_on, _("la data de rebuda"))
+    term = application.call.amendment_term_days
+    if due_on is None and term:  # RN-M09A-23: la proposta, que la persona pot canviar
+        due_on = received_on + timedelta(days=term)
     if _date(due_on, _("la data límit")) < received_on:
         raise InvalidDates(_("La data límit no pot ser d'abans de la rebuda."))
     _check_responsible(responsible)
