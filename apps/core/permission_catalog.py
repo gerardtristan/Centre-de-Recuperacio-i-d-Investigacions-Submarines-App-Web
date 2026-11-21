@@ -1460,6 +1460,23 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.equipment",),
         initial={R.EQUIPMENT_MANAGER: _ALL},
     ),
+    # Facturació (09; T-M09-26): VC-34 l'activa l'administrador per decisió de la junta, quan es
+    # responguin la P-02 i la P-47 (RN-M09-19).
+    _perm(
+        "settings.section.billing",
+        "AJ09",
+        _("Ajustos de facturació"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.billing.enabled_charge_kinds",
+        "AJ09-1",
+        _("Tipus de càrrec que es facturen (facturació activada)"),
+        requires=("settings.section.billing",),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})
