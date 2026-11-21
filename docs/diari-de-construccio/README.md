@@ -461,3 +461,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-24](T-M09-24.md) | Guies del tresorer (09) i d'ajuts, esborrany (T-M09-24 i T-M09A-14) (carril C2) | 21/11/2026 08:13 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0011; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0012; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
