@@ -21,8 +21,11 @@ queda a la llista, i si el responsable les reobre les ofertes tornen a sortir. R
 la mateixa persona (compte personal) o qui inscriu presencialment (AC5). Les posicions de la
 llista són sempre 1, 2, 3…, sense forats.
 
-**Fora d'aquesta peça:** ordenar la llista i oferir una plaça a mà (AC16), el convidat (T-M02-14)
-i els correus de l'oferta i del termini (T-M02-21).
+Un convidat no té compte: l'oferta l'accepta per ell qui té AC5 i, en acceptar-la, rep l'enllaç
+de convidat per pagar (P-457).
+
+**Fora d'aquesta peça:** ordenar la llista i oferir una plaça a mà (AC16) i els correus de l'oferta
+i del termini (T-M02-21).
 """
 
 import datetime
@@ -34,7 +37,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
-from apps.core import audit, business_settings, charges
+from apps.core import audit, business_settings, charges, guest_links
 from apps.core.models import Charge
 from apps.payments import checkout
 
@@ -54,7 +57,7 @@ def offer_deadline(activity, now) -> datetime.datetime:
     return min(now + datetime.timedelta(hours=hours), activity.registration_closes_at)
 
 
-def _renumber(activity) -> None:
+def renumber(activity) -> None:
     for position, row in enumerate(enrolments.waitlist(activity), start=1):
         if row.waitlist_position != position:
             Enrolment.objects.filter(pk=row.pk).update(waitlist_position=position)
@@ -75,7 +78,7 @@ def offer_free_places(activity, *, now) -> list[Enrolment]:
         row.offer_expires_at = offer_deadline(activity, now)
         row.save(update_fields=["status", "waitlist_position", "offer_expires_at", "updated_at"])
     if offered:
-        _renumber(activity)
+        renumber(activity)
     return offered
 
 
@@ -110,6 +113,9 @@ def accept_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
         row, target, actor=actor, details={"charge": row.charge_id}, request=request
     )
     row.save()
+    if row.channel == Enrolment.Channel.GUEST and row.charge_id:
+        # Un convidat no té compte: paga amb l'enllaç de convidat, com en inscriure's (P-457).
+        guest_links.create(row.person, row.charge, by=SYSTEM, request=request)
     if row.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=row)
     return row
@@ -132,7 +138,7 @@ def decline_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
 # --- La cua --------------------------------------------------------------------------------------
 
 
-def _paying(charge) -> bool:
+def paying(charge) -> bool:
     """RN-M02-08: un intent del 05b en curs allarga el termini; una transferència anunciada no."""
     status = checkout.payment_status(charge)
     if status.state not in (checkout.IN_PROGRESS, checkout.TIMED_OUT):
@@ -147,7 +153,7 @@ def _run_activity(activity_id, now) -> dict:
     rows = Enrolment.objects.select_for_update(of=("self",)).filter(activity=activity)
     unpaid = rows.filter(status=S.PENDING_PAYMENT, payment_due_at__lte=now)
     for row in unpaid.select_related("charge"):
-        if row.charge.status == Charge.Status.PAID or _paying(row.charge):
+        if row.charge.status == Charge.Status.PAID or paying(row.charge):
             continue
         enrolments.change_status(row, S.EXPIRED, actor=SYSTEM, reason=UNPAID_REASON)
         row.payment_due_at = None

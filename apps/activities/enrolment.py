@@ -25,13 +25,14 @@ El pagament és el camí del 05b sobre el càrrec (`payments:charge`); quan el c
 confirma `charges.on_charge_paid` (T-M02-10).
 
 **Concrecions:** una persona anonimitzada no es pot inscriure; el canal `account` exigeix el
-compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició.
+compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició; el canal
+`guest`, només el formulari públic (`guests.enrol_guest`).
 
 Caducitat i ofertes de plaça: `deadlines.py` (T-M02-13), amb `change_status` i les transicions
 de RN-M02-03 d'aquí.
 
 **Fora d'aquesta peça:** ordenar la llista a mà (AC16),
-convidats i la pantalla presencial (T-M02-14), cancel·lacions (T-M02-15) i avisos (T-M02-21).
+les pantalles (convidat i presencial), cancel·lacions (T-M02-15) i avisos (T-M02-21).
 """
 
 import datetime
@@ -124,7 +125,11 @@ def _check_actor(channel, actor, person) -> None:
             raise Http404
     elif channel == Enrolment.Channel.DESK:
         permissions.require(actor, permissions.ENROL_IN_PERSON)
-    else:  # el convidat arriba amb la T-M02-14
+    elif channel == Enrolment.Channel.GUEST:
+        # Només des de `guests.enrol_guest`, que acaba de crear la persona del formulari públic.
+        if actor != audit.ANONYMOUS:
+            raise Http404
+    else:
         raise ValidationError(_("Canal d'inscripció desconegut."))
 
 
