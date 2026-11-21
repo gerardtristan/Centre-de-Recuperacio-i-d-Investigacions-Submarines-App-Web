@@ -109,13 +109,26 @@ def allocate(expense, activities, method, *, by, amounts=None) -> list[ExpenseAl
     return rows
 
 
+def _live_allocations(activity):
+    return ExpenseAllocation.objects.filter(activity=activity).exclude(
+        expense__status=Expense.Status.ANNULLED
+    )
+
+
 def allocated_costs(activity) -> dict[str, int]:
-    """Categoria → cèntims repartits a l'activitat (costos reals per al marge, RN-M09-04). Les
-    despeses anul·lades no compten."""
+    """Categoria → cèntims repartits a l'activitat (costos reals per al marge, RN-M09-04), sense
+    les factures dels centres de lloguer (`rental_invoiced`). Les anul·lades no compten."""
     rows = (
-        ExpenseAllocation.objects.filter(activity=activity)
-        .exclude(expense__status=Expense.Status.ANNULLED)
+        _live_allocations(activity)
+        .filter(expense__category__is_material_rental=False)
         .values_list("expense__category__name")
         .annotate(total=Sum("amount_cents"))
     )
     return dict(rows)
+
+
+def rental_invoiced(activity) -> int | None:
+    """Cèntims de les factures dels centres de lloguer repartits a l'activitat, o `None` si encara
+    no n'hi ha cap (RN-M03-10: mentrestant, el 09 fa servir l'estimació del 03)."""
+    rows = _live_allocations(activity).filter(expense__category__is_material_rental=True)
+    return rows.aggregate(total=Sum("amount_cents"))["total"]

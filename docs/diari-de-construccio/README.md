@@ -437,3 +437,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-08](T-M03-08.md) | Assignació de material amb la restricció d'exclusió (equipment/0009, btree_gist) (carril C2) | 21/11/2026 06:27 | (vegeu la PR) | 7 noves | [A comprovar] |
 | [T-M03-09](T-M03-09.md) | Lliurar, retornar, pas a revisió, quantitats reals i used_by (T-M03-09 i T-M03-12) (carril C2) | 21/11/2026 06:30 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M03-13](T-M03-13.md) | Cost de material per participant i per activitat per al 09 (carril C2) | 21/11/2026 06:31 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M09-11b](T-M09-11b.md) | Marge real amb el material del 03 i la factura de lloguer sense duplicar (expenses/0008) (carril C2) | 21/11/2026 06:36 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M03-10](T-M03-10.md) | Llista de lloguer per centre sense desar el contingut (equipment/0010) (carril C2) | 21/11/2026 06:42 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-15](T-M03-15.md) | Material pendent al tancament i peces alliberades en cancel·lar (T-M03-15 i T-M03-16) (carril C2) | 21/11/2026 06:47 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [F2-4](F2-4-flux-material.md) | Prova de flux sencer de la llesca F2-4, de les necessitats al marge congelat (carril C2) | 21/11/2026 06:50 | (vegeu la PR) | 1 nova | [A comprovar] |
