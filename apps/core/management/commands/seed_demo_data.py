@@ -5,9 +5,10 @@ Crea persones fictícies, textos legals de prova (inclosos els provisionals del 
 imatges, [A validar]), consentiments, un departament i càrrecs en diversos estats, i els socis de
 la revisió (T-M01-27, `apps/members/demo_data.py`): quotes, carnets, sol·licituds, llicències i
 un fitxer de Cluber inventat. També la tresoreria (T-M04-18, `apps/treasury/demo_data.py`):
-moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. I els pagaments
+moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. Els pagaments
 (T-M05b-17, `apps/payments/demo_data.py`): intents en cada estat, notificacions, una remesa
-liquidada, retornats, una devolució, convidats i mandats. Tot passa pels serveis, perquè el
+liquidada, retornats, una devolució, convidats i mandats. I les activitats (T-M02-25,
+`apps/activities/demo_data.py`): catàleg, llocs, activitats en cada estat, inscrits i avaluacions. Tot passa pels serveis, perquè el
 registre d'activitat quedi com quedaria de debò.
 
 Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisió, amb la
@@ -35,6 +36,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
 from apps.accounts.totp import DEMO_TOTP_SECRET
+from apps.activities import demo_data as activities_demo
 from apps.activities import guests
 from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
@@ -56,6 +58,7 @@ ROLE_ACCOUNTS = [
     ("tresorer-demo", "Tresorer", Role.Code.TREASURER),
     ("president-demo", "President", Role.Code.PRESIDENT),
     ("instructor-demo", "Instructor", Role.Code.INSTRUCTOR),
+    ("cursos-demo", "Cursos", Role.Code.COURSES_MANAGER),
 ]
 CLUBER_FILE = Path(tempfile.gettempdir()) / "cris-cluber-inventat.csv"
 ALLOWED_SETTINGS = {"config.settings.dev", "config.settings.test"}
@@ -178,6 +181,11 @@ class Command(BaseCommand):
             f"Pagaments: {payments['attempts']} intents, {payments['notifications']} "
             "notificacions, una remesa liquidada amb dos rebuts retornats, una devolució, "
             "pagaments de convidats i mandats actius, revocat, caducat i bloquejat."
+        )
+        activities = counts["activities"]
+        out(
+            f"Mòdul 02: {activities.entries} fitxes del catàleg, {activities.activities} "
+            f"activitats i {activities.enrolments} inscripcions."
         )
         out("")
         out(f"Administració: {reverse('administration:login')}  (contrasenya: {PASSWORD})")
@@ -308,5 +316,13 @@ class Command(BaseCommand):
         payments = payments_demo.create(
             treasurer=accounts[Role.Code.TREASURER], admin=admin, review=review
         )
+        # Activitats (T-M02-25): catàleg, llocs, activitats en cada estat, inscrits i avaluacions.
+        activities_result = activities_demo.create(
+            manager=accounts[Role.Code.COURSES_MANAGER],
+            instructor=accounts[Role.Code.INSTRUCTOR],
+            department=activities,
+            participants=people[:4],
+        )
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
-        return {**counts, "treasury": treasury, "payments": payments}, review
+        counts |= {"treasury": treasury, "payments": payments, "activities": activities_result}
+        return counts, review
