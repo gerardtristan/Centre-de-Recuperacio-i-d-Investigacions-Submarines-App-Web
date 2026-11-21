@@ -66,6 +66,10 @@ class GrantCall(models.Model):
     eligible_expenses_to = models.DateField(_("despeses fins a"), null=True, blank=True)
     justification_due_on = models.DateField(_("data de justificació"), null=True, blank=True)
     justification_format = models.TextField(_("format de la justificació"), blank=True)
+    # RN-M09A-23 (058): si hi és, proposa la data límit d'un requeriment (es pot canviar).
+    amendment_term_days = models.PositiveSmallIntegerField(
+        _("termini d'esmena (dies)"), null=True, blank=True
+    )
     # 051: si l'organisme accepta comprovants amb l'IBAN emmascarat [A verificar: tresorer].
     accepts_masked_proofs = models.CharField(
         _("accepta còpies emmascarades"),
@@ -119,6 +123,10 @@ class GrantCall(models.Model):
             models.CheckConstraint(
                 condition=Q(accepts_masked_proofs__in=["yes", "no", "unknown"]),
                 name="grant_call_masked_proofs_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(amendment_term_days__isnull=True) | Q(amendment_term_days__gt=0),
+                name="grant_call_amendment_term_positive",
             ),
         ]
 
