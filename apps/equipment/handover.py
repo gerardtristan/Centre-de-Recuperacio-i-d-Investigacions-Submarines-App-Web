@@ -10,12 +10,14 @@ RN-M03-12; HU-M03-11; MT6 i MT10).
   litres i origen. Només de la mateixa persona; qui el mostri respon de fer-ho només a ella.
 """
 
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit
+from apps.core import audit, business_settings
 
 from . import inventory
 from .access import require
@@ -95,3 +97,19 @@ def used_by(person) -> list[dict]:
             "origin": row.origin,
         })  # fmt: skip
     return list(found.values())
+
+
+UNRETURNED_DAYS = "equipment.unreturned_after_days"  # VC-29
+
+
+def unreturned(today):
+    """RN-M03-14: assignacions lliurades i no retornades quan ja han passat els dies de l'ajust
+    `equipment.unreturned_after_days` des de l'últim dia (de l'activitat o de la sessió). Les farà
+    servir l'avís diari del responsable (plantilla i tasca de la cua, torn del nucli)."""
+    days = business_settings.get(UNRETURNED_DAYS, today)
+    limit = today - datetime.timedelta(days=days)
+    return (
+        EquipmentAssignment.objects.filter(status=S.DELIVERED, period__endswith__lte=limit)
+        .select_related("activity", "item", "equipment_type")
+        .order_by("activity__ends_on", "pk")
+    )
