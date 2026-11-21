@@ -425,3 +425,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-14](T-M02-14.md) | Inscripció de convidat amb l'enllaç de la 00 i presencial amb AC5 (carril B2) | 21/11/2026 02:49 | (vegeu la PR) | 12 noves (17 casos) | [A comprovar] |
 | [T-M02-34](T-M02-34.md) | Casella «Soc major d'edat» per a convidats i presencials, com a consentiment de la 00 (carril B2) | 21/11/2026 03:23 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M02-15](T-M02-15.md) | Cancel·lacions i propostes de devolució amb el 05b (activities/0010; carril B2) | 21/11/2026 04:00 | (vegeu la PR) | 9 noves | [A comprovar] |
+| [T-DX-88](T-DX-88.md) | Llicències (fase 2): cel·la d'accions sense etiqueta buida, accions a la dreta i un sol botó principal | 21/11/2026 04:34 | 353ed89f | 1 nova | [A comprovar] |

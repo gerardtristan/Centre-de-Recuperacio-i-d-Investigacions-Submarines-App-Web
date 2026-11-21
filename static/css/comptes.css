@@ -74,7 +74,11 @@ figure { margin: 0; }
   .taula td::before { content: none; }
   .taula .cel-nom { font-size: var(--t-s); }
   .taula td.cel-accions { text-align: right; }
+  /* T-DX-88: les accions d'un formulari (`.accions`, flex) també van a la dreta de la columna */
+  .taula td.cel-accions > .accions { justify-content: flex-end; }
 }
+/* T-DX-88: a partir de 1024 px, el text d'un botó d'una fila no es parteix («Marca tramitada») */
+@media (min-width: 1024px) { .taula td.cel-accions .boto { white-space: nowrap; } }
 
 /* Registre d'activitat (T-M01-07b): filtres en graella i valors llargs que es parteixen a 320 px */
 .filtres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--e-3); }
