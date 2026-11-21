@@ -1302,6 +1302,16 @@ opcions:
       L'addenda de la 058 és posterior i diu explícitament que substitueix la marca; el responsable continua veient
       l'origen i no s'omple la llista de revisió amb titulacions que el club mateix ha donat.
     data: 2026-11-21
+  P-457:
+    opcions:
+      A: "L'accepta per ell qui té AC5 (presencial o per telèfon); en acceptar-la, el convidat rep l'enllaç de convidat per pagar."
+      B: "En oferir-li la plaça, se li envia un enllaç de convidat que serveix per acceptar-la i pagar-la."
+      C: "Els convidats no entren a la llista d'espera: sense places, el formulari els diu que tornin a provar-ho."
+    recomanada: A
+    perque: >-
+      No cal cap peça nova de la 00 (l'enllaç de convidat és per pagar un càrrec, no per acceptar una oferta) i el club
+      ja atén els convidats per telèfon; B demanaria ampliar els enllaços de convidat.
+    data: 2026-11-21
 
 noves:
   P-410:

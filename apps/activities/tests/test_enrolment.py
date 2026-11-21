@@ -256,7 +256,7 @@ def test_a_personal_account_cannot_use_the_desk_or_an_unknown_channel(manager):
     with pytest.raises(Http404):
         enrolment.enrol(outing, account.person, channel=DESK, actor=account, now=NOW)
     with pytest.raises(enrolment.ValidationError):
-        enrolment.enrol(outing, account.person, channel="guest", actor=account, now=NOW)
+        enrolment.enrol(outing, account.person, channel="altre", actor=account, now=NOW)
 
 
 # --- Requisits: CA-M02-12, 28 i 29 ---------------------------------------------------------------

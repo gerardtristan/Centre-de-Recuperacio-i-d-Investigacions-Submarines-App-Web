@@ -21,8 +21,11 @@ queda a la llista, i si el responsable les reobre les ofertes tornen a sortir. R
 la mateixa persona (compte personal) o qui inscriu presencialment (AC5). Les posicions de la
 llista són sempre 1, 2, 3…, sense forats.
 
-**Fora d'aquesta peça:** ordenar la llista i oferir una plaça a mà (AC16), el convidat (T-M02-14)
-i els correus de l'oferta i del termini (T-M02-21).
+Un convidat no té compte: l'oferta l'accepta per ell qui té AC5 i, en acceptar-la, rep l'enllaç
+de convidat per pagar (P-457).
+
+**Fora d'aquesta peça:** ordenar la llista i oferir una plaça a mà (AC16) i els correus de l'oferta
+i del termini (T-M02-21).
 """
 
 import datetime
@@ -34,7 +37,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
-from apps.core import audit, business_settings, charges
+from apps.core import audit, business_settings, charges, guest_links
 from apps.core.models import Charge
 from apps.payments import checkout
 
@@ -110,6 +113,9 @@ def accept_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
         row, target, actor=actor, details={"charge": row.charge_id}, request=request
     )
     row.save()
+    if row.channel == Enrolment.Channel.GUEST and row.charge_id:
+        # Un convidat no té compte: paga amb l'enllaç de convidat, com en inscriure's (P-457).
+        guest_links.create(row.person, row.charge, by=SYSTEM, request=request)
     if row.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=row)
     return row
