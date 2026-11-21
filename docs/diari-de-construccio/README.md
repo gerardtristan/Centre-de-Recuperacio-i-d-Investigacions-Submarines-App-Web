@@ -434,3 +434,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-88](T-DX-88.md) | Llicències (fase 2): cel·la d'accions sense etiqueta buida, accions a la dreta i un sol botó principal | 21/11/2026 04:34 | 353ed89f | 1 nova | [A comprovar] |
 | [T-M09-26a](T-M09-26a.md) | Nucli del 09: apartat «Facturació» dels ajustos (core/0066) i plantilla de l'avís de salt de sèrie (carril C) | 21/11/2026 03:32 | 20652144 | 2 noves | [A comprovar] |
 | [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0012; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0011; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-12b](T-M02-12b.md) | La llista d'espera a mà (AC16): ordre amb motiu i oferir una plaça (carril B2) | 21/11/2026 04:38 | (vegeu la PR) | 6 noves (11 casos) | [A comprovar] |
