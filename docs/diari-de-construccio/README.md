@@ -448,3 +448,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-23](T-M09-23.md) | Prova de principi a fi del 09 (carril C2) | 21/11/2026 08:10 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09A-13](T-M09A-13.md) | Prova de principi a fi dels ajuts (carril C2) | 21/11/2026 08:12 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09-24](T-M09-24.md) | Guies del tresorer (09) i d'ajuts, esborrany (T-M09-24 i T-M09A-14) (carril C2) | 21/11/2026 08:13 | (vegeu la PR) | cap (document) | [A comprovar] |
+| [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
