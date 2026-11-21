@@ -442,3 +442,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0067; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
 | [T-M02-35](T-M02-35.md) | Cancel·lacions com a esdeveniments enrolment.cancelled i activity.cancelled (carril B2) | 21/11/2026 06:02 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0011; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0012; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
