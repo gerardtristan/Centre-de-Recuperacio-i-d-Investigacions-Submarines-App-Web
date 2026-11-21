@@ -8,8 +8,9 @@ un fitxer de Cluber inventat. També la tresoreria (T-M04-18, `apps/treasury/dem
 moviments, liquidacions, extractes en CSV i Norma 43, conciliació i remeses. Els pagaments
 (T-M05b-17, `apps/payments/demo_data.py`): intents en cada estat, notificacions, una remesa
 liquidada, retornats, una devolució, convidats i mandats. I les activitats (T-M02-25,
-`apps/activities/demo_data.py`): catàleg, llocs, activitats en cada estat, inscrits i avaluacions. Tot passa pels serveis, perquè el
-registre d'activitat quedi com quedaria de debò.
+`apps/activities/demo_data.py`): catàleg, llocs, activitats en cada estat, inscrits i avaluacions,
+amb l'instructor de prova soci i amb llicència tècnica (T-M02-30). Tot passa pels serveis, perquè
+el registre d'activitat quedi com quedaria de debò.
 
 Comptes de prova (074, punt 21): un d'administració per a cada rol de la revisió, amb la
 contrasenya de proves i el mateix secret TOTP públic de prova, i comptes personals per a alguns
@@ -23,6 +24,7 @@ base del servidor («db»), i els comptes d'administració fan servir el secret 
 
 import base64
 import binascii
+import datetime
 import random
 import tempfile
 import unicodedata
@@ -42,6 +44,9 @@ from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
+from apps.licences import services as licences
+from apps.licences import types as licence_types
+from apps.licences.models import LicenceType, ValidityRule
 from apps.members import demo_data
 from apps.members.join import OPTIONAL_TEXT_CONTENT
 from apps.payments import demo_data as payments_demo
@@ -134,9 +139,9 @@ def check_can_run() -> None:
         )
 
 
-def _admin_account(login: str, first_name: str) -> Account:
+def _admin_account(login: str, first_name: str, person=None) -> Account:
     """Compte d'administració de prova, operatiu: contrasenya de proves i TOTP de prova."""
-    person = Person.objects.create(
+    person = person or Person.objects.create(
         first_name=first_name, last_name="Demo", origin=Person.Origin.IN_PERSON
     )
     account = Account.objects.create_admin(person, login, password=PASSWORD)
@@ -215,11 +220,37 @@ class Command(BaseCommand):
                 "el rebutjarà. Per provar-la, carrega una base nova amb --without-cluber-batch."
             )
 
+    def _instructor(self, accounts, admin) -> Account:
+        """T-M02-30 (RN-M02-26): l'instructor de prova és soci actiu amb una llicència tècnica
+        vigent, perquè les sessions de prova tinguin instructor també en mode «bloqueig»."""
+        secretary = accounts[Role.Code.SECRETARY]
+        member = demo_data.instructor_member(
+            secretary=secretary, treasurer=accounts[Role.Code.TREASURER], admin=admin,
+            password=PASSWORD,
+        )  # fmt: skip
+        login, name, role = next(row for row in ROLE_ACCOUNTS if row[2] == Role.Code.INSTRUCTOR)
+        account = _admin_account(login, name, person=member.person)
+        assign_role(account, role, by=admin)
+        technical = licence_types.create_type(
+            name="Tècnic (prova)", category=LicenceType.Category.TECHNICAL,
+            validity_rule=ValidityRule.DAYS_365, actor=accounts[Role.Code.TREASURER],
+        )  # fmt: skip
+        licences.declare_existing(
+            member.person, technical, federation_number="PROVA-T-0001",
+            expires_on=timezone.localdate() + datetime.timedelta(days=365), actor=secretary,
+        )  # fmt: skip
+        return account
+
     def _create(self, seed: int, *, with_cluber_batch: bool):
         rng = random.Random(seed)  # noqa: S311 (reproduïble a propòsit; no protegeix res)
         system = audit.system(ORIGIN)
 
-        accounts = {role: _admin_account(login, name) for login, name, role in ROLE_ACCOUNTS}
+        # L'instructor es crea després, sobre un soci de prova (T-M02-30).
+        accounts = {
+            role: _admin_account(login, name)
+            for login, name, role in ROLE_ACCOUNTS
+            if role != Role.Code.INSTRUCTOR
+        }
         admin = accounts[Role.Code.ADMINISTRATOR]
         grant_initial_administrator(admin, origin=ORIGIN)
         for role, account in accounts.items():
@@ -316,6 +347,7 @@ class Command(BaseCommand):
         payments = payments_demo.create(
             treasurer=accounts[Role.Code.TREASURER], admin=admin, review=review
         )
+        accounts[Role.Code.INSTRUCTOR] = self._instructor(accounts, admin)
         # Activitats (T-M02-25): catàleg, llocs, activitats en cada estat, inscrits i avaluacions.
         activities_result = activities_demo.create(
             manager=accounts[Role.Code.COURSES_MANAGER],
