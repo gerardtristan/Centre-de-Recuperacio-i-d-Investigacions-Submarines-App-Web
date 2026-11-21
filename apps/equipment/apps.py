@@ -11,7 +11,7 @@ class EquipmentConfig(AppConfig):
 
         from apps.activities import extensions
 
-        from . import costs, places, typical
+        from . import costs, needs, places, typical
 
         # RN-M02-43 i RN-M03-25: el 02 copia aquest cost a l'activitat que es crea.
         extensions.register_material_cost_calculator(costs.standard_material_cost)
@@ -23,6 +23,15 @@ class EquipmentConfig(AppConfig):
                 label=_("Centre habitual"),
                 fields=places.section_fields,
                 save=places.section_save,
+            )
+        )
+        # P-M03-C: què porta i què necessita, al formulari d'inscripció.
+        extensions.register_enrolment_section(
+            extensions.EnrolmentSection(
+                key=needs.SECTION_KEY,
+                label=_("Material"),
+                fields=needs.section_fields,
+                save=needs.section_save,
             )
         )
         # RN-M03-17: el material típic es copia en crear l'activitat i en duplicar-la.
