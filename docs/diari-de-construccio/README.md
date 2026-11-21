@@ -462,3 +462,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M09-06](T-M09-06.md) | Pantalles de despesa nova i despeses sense factura (sense obrir) (carril C2) | 21/11/2026 08:59 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
 | [T-M09-marge-pantalla](T-M09-marge-pantalla.md) | Pantalla del marge d'una activitat (sense obrir) (carril C2) | 21/11/2026 09:03 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
+| [T-M09-21](T-M09-21.md) | «Les meves factures» a l'àrea personal (sense obrir) (carril C2) | 21/11/2026 09:05 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |

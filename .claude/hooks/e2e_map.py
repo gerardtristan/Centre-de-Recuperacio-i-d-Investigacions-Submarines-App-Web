@@ -162,6 +162,11 @@ MAP = {
         "apps/margins/admin_urls.py",
         "templates/margins/*",
     ),
+    "test_meves_factures.py": (
+        "apps/invoicing/views.py",
+        "apps/invoicing/urls.py",
+        "templates/invoicing/*",
+    ),
     "test_llicencies.py": (
         "apps/licences/views.py",
         "apps/licences/personal_views.py",

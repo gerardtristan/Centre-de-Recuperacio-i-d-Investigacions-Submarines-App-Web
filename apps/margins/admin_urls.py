@@ -1,5 +1,5 @@
-"""Rutes del 09 (marge d'una activitat) a l'àrea d'administració (M09-8): s'inclouran a
-`apps.accounts.admin_urls`, dins de l'espai de noms `administration` (torn del nucli)."""
+"""Rutes del 09 (marge d'una activitat) a l'àrea d'administració (M09-8): s'inclouen a
+`apps.accounts.admin_urls`, dins de l'espai de noms `administration`."""
 
 from django.urls import path
 
