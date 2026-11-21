@@ -401,3 +401,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-18](T-M09-18.md) | Facturació amb un servei fictici: adaptador (T-M09-18), factura d'un cobrament i manual amb control de salts (T-M09-19, invoicing/0001, apagada per defecte) i rectificatives (T-M09-20) (carril C) | 21/11/2026 00:57 | 0efe28e5, 4ed18a77, a32ddd86 | 28 noves | [A comprovar] |
 | [T-M06-20a](T-M06-20a.md) | Llicències: nucli del 06 (lot «licences», esdeveniments, plantilles i permisos dels ajustos; carril A) | 21/11/2026 00:48 | bb1a7345 | 9825 | [A comprovar] |
 | [T-M06-12](T-M06-12.md) | Llicències: cancel·lar-ne una i proposta de devolució que fa el tresorer amb el 05b (carril A) | 20/11/2026 23:45 | 24f8177c | 8527 | [A comprovar] |
+| [T-M06-09](T-M06-09.md) | Llicències: servei del llistat de la secretaria amb filtres i venciments (carril A) | 21/11/2026 00:06 | 030e2908 | 8543 | [A comprovar] |
+| [T-M06-10](T-M06-10.md) | Llicències: tramitar a la federació (marcar tramitada o vigent) i fitxer provisional (carril A) | 21/11/2026 00:23 | aed8a609 | 8563 | [A comprovar] |
