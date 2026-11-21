@@ -9,6 +9,8 @@ blocs del programa (T-M02-03a; M02-6). Nivells i titulacions (T-M02-23; addenda 
   preus només canvien amb `apps.activities.catalogue`.
 """
 
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
@@ -845,3 +847,64 @@ class Enrolment(models.Model):
     @property
     def occupies_place(self) -> bool:
         return self.status in self.OCCUPYING
+
+
+class RefundProposal(models.Model):
+    """Proposta de devolució d'una inscripció cancel·lada després de pagar-la (M02-6; RN-M02-12 i
+    RN-M02-13; CA-M02-14 i CA-M02-15; S-M02-23). Cap devolució automàtica: el tresorer (AC18) la
+    fa amb el 05b (`payments.refund`, idempotent per `refund_key`) o la rebutja amb motiu."""
+
+    class Status(models.TextChoices):
+        PROPOSED = "proposed", _("Proposada")
+        DONE = "done", _("Feta")
+        REJECTED = "rejected", _("Rebutjada")
+
+    enrolment = models.OneToOneField(
+        Enrolment, on_delete=models.PROTECT, related_name="refund_proposal",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    charge = models.ForeignKey(
+        "core.Charge", on_delete=models.PROTECT, related_name="+", verbose_name=_("càrrec")
+    )
+    amount_cents = models.PositiveIntegerField(_("import (cèntims)"))
+    reason = models.TextField(_("motiu"))
+    # Buit = el sistema (cancel·lació del participant o de l'activitat).
+    proposed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("proposada per"),
+    )  # fmt: skip
+    status = models.CharField(
+        _("estat"), max_length=8, choices=Status.choices, default=Status.PROPOSED
+    )
+    refund = models.ForeignKey(
+        "payments.RefundRequest", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("devolució"),
+    )  # fmt: skip
+    refund_key = models.UUIDField(_("clau de la devolució"), default=uuid.uuid4, unique=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("decidida per"),
+    )  # fmt: skip
+    decision_reason = models.TextField(_("motiu de la decisió"), blank=True)
+    decided_at = models.DateTimeField(_("decidida el"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("proposta de devolució d'una inscripció")
+        verbose_name_plural = _("propostes de devolució d'inscripcions")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_cents__gt=0), name="activities_refund_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["proposed", "done", "rejected"]),
+                name="activities_refund_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="proposed") | Q(decided_by__isnull=False),
+                name="activities_refund_decided_has_author",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment} · {self.get_status_display()}"
