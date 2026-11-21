@@ -1,4 +1,4 @@
-"""Cancel·lacions i propostes de devolució (T-M02-15; RN-M02-12 i RN-M02-13; CA-M02-14 i 15).
+"""Cancel·lacions i propostes de devolució (T-M02-15 i 36; RN-M02-12, 13 i 37; CA-M02-14, 15 i 39).
 Només dades inventades; el pagament i la devolució passen pel 05b amb el proveïdor fictici.
 """
 
@@ -164,18 +164,60 @@ def test_leaving_the_waiting_list_renumbers_it(manager):
     assert second.waitlist_position == 1
 
 
-def test_a_payment_in_progress_stops_the_cancellation(manager):
-    """Conservador fins a la T-M02-36 (RN-M02-37): es torna a provar quan acaba el pagament."""
-    outing = an_open_outing(manager)
+def bizum_waiting(outing):
     row, account = enrol(outing)
-    checkout.start_payment(row.charge, PaymentAttempt.Method.CARD, account)
-    with pytest.raises(cancellation.PaymentInProgress):
-        cancellation.cancel_enrolment(row, by=account, reason=REASON, now=NOW)
-    with pytest.raises(cancellation.PaymentInProgress):
-        cancellation.cancel_activity(outing, by=manager, reason=REASON, now=NOW)
+    checkout.start_payment(row.charge, PaymentAttempt.Method.BIZUM, account)
+    return row, PaymentAttempt.objects.get(charge=row.charge)
+
+
+def test_ca_m02_39_cancelled_with_a_bizum_waiting_then_paid_proposes_100_percent(manager):
+    outing = an_open_outing(manager)
+    row, attempt = bizum_waiting(outing)
+
+    assert cancellation.cancel_activity(outing, by=manager, reason="Mala mar.", now=NOW) == []
     (row,) = fresh(row)
-    outing.refresh_from_db()
-    assert (row.status, outing.status) == (S.PENDING_PAYMENT, Activity.Status.OPEN)
+    assert (row.status, row.void_pending_since) == (S.CANCELLED, NOW)
+    assert row.charge.status == Charge.Status.PENDING  # no s'anul·la mentre s'espera (RN-M05b-22)
+    assert cancellation.retry_pending_voids() == 0  # encara en curs
+
+    notify(attempt, event_id=f"ev-{attempt.pk}")
+    run_queue()
+    for event in Event.objects.filter(name=events.CHARGE_PAID, payload__charge=row.charge_id):
+        events.deliver(event.pk)
+
+    (row,) = fresh(row)
+    assert (row.status, row.void_pending_since) == (S.CANCELLED, None)  # no es confirma
+    proposal = RefundProposal.objects.get(enrolment=row)
+    assert (proposal.amount_cents, proposal.status, proposal.reason) == (
+        4500,
+        "proposed",
+        "Mala mar.",
+    )
+
+
+def test_ca_m02_39_if_the_bizum_expires_the_charge_is_cancelled(manager):
+    outing = an_open_outing(manager)
+    row, attempt = bizum_waiting(outing)
+    cancellation.cancel_enrolment(row, by=manager, reason=REASON, now=NOW)
+
+    notify(attempt, status="expired", event_id=f"ev-{attempt.pk}")
+    run_queue()
+    assert cancellation.retry_pending_voids() == 1
+    assert cancellation.retry_pending_voids() == 0  # idempotent
+
+    (row,) = fresh(row)
+    assert row.void_pending_since is None and row.charge.status == Charge.Status.CANCELLED
+    assert row.charge.cancel_reason == REASON
+    assert not RefundProposal.objects.exists()
+
+
+def test_the_queue_task_retries_the_pending_voids(monkeypatch):
+    from apps.activities import tasks
+
+    seen = []
+    monkeypatch.setattr(cancellation, "retry_pending_voids", lambda: seen.append(True) or 0)
+    tasks.retry_pending_voids(timestamp=0)
+    assert seen == [True]
 
 
 # --- CA-M02-15: el club cancel·la l'activitat ----------------------------------------------------

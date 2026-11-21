@@ -14,9 +14,11 @@ CA-M02-14 i CA-M02-15; S-M02-23).
   que també demana B5 i és idempotent per la clau de la proposta) o la rebutja amb motiu. Cap
   devolució no es fa sense el tresorer (CA-M02-14).
 
-**Concreció conservadora:** si el càrrec té un pagament en curs al 05b, la inscripció no es
-cancel·la (es demana tornar-ho a provar quan acabi): `void_pending_since` i el reintent són de la
-T-M02-36 (RN-M02-37).
+**Amb un pagament en curs** (T-M02-36; RN-M02-37; CA-M02-39): el càrrec no es pot anul·lar
+mentre l'intent del 05b no acaba (RN-M05b-22). La inscripció es cancel·la igualment i s'omple
+`void_pending_since`. `retry_pending_voids` (tasca de la cua) anul·la el càrrec quan l'intent
+acaba sense pagar; si acaba pagat, `charges.on_charge_paid` no confirma res i crea la proposta de
+devolució de l'import pagat.
 
 **Fora d'aquesta peça:** els avisos als inscrits i a la llista d'espera (T-M02-21), els
 esdeveniments `enrolment.cancelled` i `activity.cancelled` (T-M02-35) i les pantalles.
@@ -41,10 +43,6 @@ S = Enrolment.Status
 REFUND_DECIDED = "activities.refund_decided"
 
 
-class PaymentInProgress(ValidationError):
-    pass
-
-
 def _reason(reason) -> str:
     reason = (reason or "").strip()
     if not reason:
@@ -52,14 +50,11 @@ def _reason(reason) -> str:
     return reason
 
 
-def _cancel_row(row, *, by, reason, request=None) -> RefundProposal | None:
-    """Cancel·la una inscripció viva ja bloquejada: anul·la el càrrec pendent o proposa la
-    devolució del pagat. Torna la proposta, si n'hi ha."""
+def _cancel_row(row, *, by, reason, now, request=None) -> RefundProposal | None:
+    """Cancel·la una inscripció viva ja bloquejada: anul·la el càrrec pendent (o el deixa per
+    anul·lar quan acabi el pagament en curs) o proposa la devolució del pagat. Torna la proposta,
+    si n'hi ha."""
     charge = row.charge
-    if charge is not None and charge.status == Charge.Status.PENDING and deadlines.paying(charge):
-        raise PaymentInProgress(
-            _("Hi ha un pagament en curs d'aquesta inscripció: torna-ho a provar quan acabi.")
-        )
     if row.status == S.OFFERED:  # RN-M02-03: una plaça oferta no acceptada caduca
         enrolments.change_status(row, S.EXPIRED, actor=by, reason=reason, request=request)
     else:
@@ -70,14 +65,58 @@ def _cancel_row(row, *, by, reason, request=None) -> RefundProposal | None:
     row.save()
     if charge is None:
         return None
+    if charge.status == Charge.Status.PENDING and deadlines.paying(charge):
+        row.void_pending_since = now
+        row.save(update_fields=["void_pending_since", "updated_at"])
+        return None
     if charge.status == Charge.Status.PENDING:
         charges.cancel(charge, reason, by=by)
         return None
     if charge.status == Charge.Status.PAID:
-        return RefundProposal.objects.create(
-            enrolment=row, charge=charge, amount_cents=charge.amount_cents, reason=reason
-        )
+        return propose_refund(row)
     return None
+
+
+def propose_refund(row) -> RefundProposal:
+    """La proposta de l'import pagat (RN-M02-12 i RN-M02-13: ara totes dues són el pagat, S-M02-05).
+    Una sola per inscripció."""
+    proposal, _created = RefundProposal.objects.get_or_create(
+        enrolment=row,
+        defaults={
+            "charge": row.charge,
+            "amount_cents": row.charge.amount_cents,
+            "reason": row.cancelled_reason,
+        },
+    )
+    return proposal
+
+
+SYSTEM = audit.system("activities.pending_voids")
+
+
+def retry_pending_voids() -> int:
+    """RN-M02-37: anul·la el càrrec de les inscripcions cancel·lades amb un pagament en curs quan
+    l'intent ja ha acabat sense pagar. Si s'ha pagat, en deixa la proposta. Torna quantes resol."""
+    done = 0
+    for pk in Enrolment.objects.filter(void_pending_since__isnull=False).values_list(
+        "pk", flat=True
+    ):
+        with transaction.atomic():
+            row = Enrolment.objects.select_for_update(of=("self",)).select_related("charge")
+            row = row.get(pk=pk)
+            charge = row.charge
+            if row.void_pending_since is None or (
+                charge.status == Charge.Status.PENDING and deadlines.paying(charge)
+            ):
+                continue
+            if charge.status == Charge.Status.PENDING:
+                charges.cancel(charge, row.cancelled_reason, by=SYSTEM)
+            elif charge.status == Charge.Status.PAID:
+                propose_refund(row)
+            row.void_pending_since = None
+            row.save(update_fields=["void_pending_since", "updated_at"])
+            done += 1
+    return done
 
 
 def _check_canceller(enrolment, by) -> None:
@@ -102,7 +141,7 @@ def cancel_enrolment(enrolment, *, by, reason, now=None, request=None) -> Refund
             raise ValidationError(
                 _("La data límit d'inscripció ja ha passat: parla amb el responsable.")
             )
-        proposal = _cancel_row(row, by=by, reason=reason, request=request)
+        proposal = _cancel_row(row, by=by, reason=reason, now=now, request=request)
         deadlines.renumber(activity)
         deadlines.offer_free_places(activity, now=now)
     return proposal
@@ -115,14 +154,10 @@ def cancel_activity(activity, *, by, reason, now=None, request=None) -> list[Ref
     with transaction.atomic():
         live = Enrolment.objects.select_for_update(of=("self",)).select_related("charge")
         rows = list(live.filter(activity=activity, status__in=Enrolment.LIVE))
-        for row in rows:  # abans de canviar res: cap cancel·lació a mitges
-            if row.charge and row.charge.status == Charge.Status.PENDING:
-                if deadlines.paying(row.charge):
-                    raise PaymentInProgress(
-                        _("Hi ha pagaments en curs: torna-ho a provar quan acabin.")
-                    )
         states.cancel(activity, by=by, reason=reason, now=now, request=request)
-        proposals = [_cancel_row(row, by=by, reason=reason, request=request) for row in rows]
+        proposals = [
+            _cancel_row(row, by=by, reason=reason, now=now, request=request) for row in rows
+        ]
     return [proposal for proposal in proposals if proposal is not None]
 
 

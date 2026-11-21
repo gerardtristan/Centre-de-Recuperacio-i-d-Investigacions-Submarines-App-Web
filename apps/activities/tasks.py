@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import deadlines, states
+from . import cancellation, deadlines, states
 
 
 # Cada 10 minuts: tanca les inscripcions que han arribat a la data límit i posa «en curs» els
@@ -19,3 +19,11 @@ def advance_by_clock(timestamp: int) -> None:
 @app.task(name="activities.run_deadlines", queue="maintenance")
 def run_deadlines(timestamp: int) -> None:
     deadlines.run_deadlines()
+
+
+# Cada 10 minuts: anul·la el càrrec de les inscripcions cancel·lades amb un pagament en curs quan
+# l'intent acaba (RN-M02-37). Idempotent.
+@app.periodic(cron="*/10 * * * *")
+@app.task(name="activities.retry_pending_voids", queue="maintenance")
+def retry_pending_voids(timestamp: int) -> None:
+    cancellation.retry_pending_voids()
