@@ -24,6 +24,13 @@ class ActivitiesConfig(AppConfig):
         register_scope_check(SCOPE_OWN_SESSIONS, permissions.teaches)
         register_scope_check(SCOPE_OWN_ACTIVITIES, permissions.responsible_for)
 
+        # VC-55 (addenda de la 104): la destinació de les homologacions, una agència activa.
+        from apps.core import business_settings
+
+        from . import catalogue
+
+        business_settings.register_check(catalogue.TARGET_AGENCY_KEY, catalogue.check_target_agency)
+
         core_privacy.register(
             "activitats",
             core_privacy.Module(

@@ -18,12 +18,13 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.business_settings import notify_money_change
 from apps.core.charges import euros
 
 from . import permissions
 from .models import (
+    CertificationAgency,
     CertificationLevel,
     EnvironmentalProject,
     EnvironmentalSubtype,
@@ -228,7 +229,10 @@ def set_active(obj, active: bool, *, by, request=None) -> bool:
         permissions.require(by, permissions.PLACES_MANAGE)
     else:
         permissions.require(by, permissions.CATALOGUE)
-    kinds = TrainingCatalogueEntry | OutingType | EnvironmentalSubtype | CertificationLevel | Place
+    kinds = (
+        TrainingCatalogueEntry | OutingType | EnvironmentalSubtype | CertificationLevel | Place
+        | CertificationAgency
+    )  # fmt: skip
     if not isinstance(obj, kinds):
         raise ValidationError(_("Això no es pot activar ni desactivar."))
     with transaction.atomic():
@@ -374,7 +378,12 @@ def set_outing_type_mode(outing_type, mode, *, by, request=None) -> bool:
 
 
 @transaction.atomic
-def create_level(*, by, name, rank, agency="", request=None) -> CertificationLevel:
+def create_agency(*, by, name, request=None) -> CertificationAgency:
+    """Afegeix una agència (VC-55, AC6). Es desactiva amb `set_active`."""
+    return _create_named(CertificationAgency, by=by, name=name, request=request)
+
+
+def create_level(*, by, name, rank, agency=None, request=None) -> CertificationLevel:
     """Afegeix un nivell a la llista (RN-M02-27). L'ordre (`rank`) diu quin és més alt."""
     permissions.require(by, permissions.CATALOGUE)
     name = _name(name)
@@ -384,9 +393,7 @@ def create_level(*, by, name, rank, agency="", request=None) -> CertificationLev
         raise ValidationError(_("Ja n'hi ha un amb aquest nom."))
     if CertificationLevel.objects.filter(rank=rank).exists():
         raise ValidationError(_("Ja hi ha un nivell amb aquest ordre."))
-    level = CertificationLevel.objects.create(
-        name=name, rank=rank, agency=(agency or "").strip()[:60]
-    )
+    level = CertificationLevel.objects.create(name=name, rank=rank, agency=agency)
     audit.record(LEVEL_CREATED, actor=by, target=level, details={"rank": rank}, request=request)
     return level
 
@@ -521,3 +528,20 @@ def change_place_price(
         effective_from=valid_from,
     )
     return version
+
+
+# --- Agència de destinació de les homologacions (VC-55; addenda de la 104) ----------------------
+
+TARGET_AGENCY_KEY = "activities.homologation_target_agency"
+
+
+def check_target_agency(value) -> None:
+    """La comprovació de l'ajust (la registra `ActivitiesConfig.ready`): una agència activa."""
+    if not CertificationAgency.objects.filter(name=value, active=True).exists():
+        raise ValidationError(_("Ha de ser el nom d'una agència activa."))
+
+
+def target_agency() -> CertificationAgency | None:
+    """L'agència de destinació vigent, o `None` si l'ajust no en nomena cap d'activa."""
+    name = business_settings.get(TARGET_AGENCY_KEY)
+    return CertificationAgency.objects.filter(name=name, active=True).first()
