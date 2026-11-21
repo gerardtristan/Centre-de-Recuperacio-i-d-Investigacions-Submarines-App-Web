@@ -411,3 +411,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-40a](T-M02-40a.md) | Punts d'extensió del formulari del lloc i del calculador del cost de material estàndard (part de la T-M02-40; carril C) | 21/11/2026 02:13 | 805f696c | 9 noves | [A comprovar] |
 | [T-M02-11a](T-M02-11a.md) | Inscriure's: preu, requisits i càrrec pendent amb el departament de l'activitat; pagament pel 05b fins a la inscripció confirmada (carril B2) | 21/11/2026 01:35 | (vegeu la PR) | 23 noves (34 casos) | [A comprovar] |
 | [T-M02-12](T-M02-12.md) | Places amb la fila bloquejada i llista d'espera; plena, l'activitat continua oberta (carril B2) | 21/11/2026 02:08 | (vegeu la PR) | 7 noves (2 de concurrència) | [A comprovar] |
+| [T-M02-13](T-M02-13.md) | Terminis de pagament, ofertes de plaça i caducitat a la cua (activities/0009; carril B2) | 21/11/2026 02:13 | (vegeu la PR) | 10 noves | [A comprovar] |
