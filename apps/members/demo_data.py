@@ -189,6 +189,14 @@ class _Builder:
         return member, account, change
 
 
+def instructor_member(*, secretary, treasurer, admin, password) -> Member:
+    """Un soci actiu de ple dret, amb la quota pagada, per fer d'instructor de prova (T-M02-30;
+    RN-M02-26). Qui crida ja és dins d'una transacció i ha creat els casos de `create`."""
+    b = _Builder(secretary=secretary, treasurer=treasurer, admin=admin, password=password)
+    b.n = 90  # documents de prova diferents dels de `create`
+    return b.paid_member("Biel", "Sard Instructor", "instructor.soci@example.org", b.full)
+
+
 def create(*, secretary, treasurer, admin, password, with_cluber_batch=True) -> Result:
     """Crea tots els casos. Qui crida ja és dins d'una transacció."""
     b = _Builder(secretary=secretary, treasurer=treasurer, admin=admin, password=password)

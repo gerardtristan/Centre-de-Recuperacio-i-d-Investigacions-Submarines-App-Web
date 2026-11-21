@@ -1539,6 +1539,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.activities",),
         initial={R.COURSES_MANAGER: _ALL},
     ),
+    # VC-46 (RN-M02-26; T-M02-30): el responsable, per decisió de la junta.
+    _perm(
+        "settings.edit.activities.instructor_requirements_mode",
+        "AJ02-10",
+        _("Requisits per fer classe (avís o bloqueig)"),
+        requires=("settings.section.activities",),
+        initial={R.COURSES_MANAGER: _ALL},
+    ),
     # Addenda de la 104 (VC-55 a VC-59): la destinació, qui té AC6; les fotos, l'administrador per
     # decisió de la junta; la conservació, la secretaria; els preus i cobrar-los, el tresorer.
     _perm(
