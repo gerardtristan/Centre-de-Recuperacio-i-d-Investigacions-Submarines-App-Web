@@ -138,3 +138,69 @@ class PlaceUsualCentre(models.Model):
 
     def __str__(self):
         return f"{self.place_id}: {self.centre}"
+
+
+class TypicalEquipmentTemplate(models.Model):
+    """Material típic d'una fitxa del catàleg o d'un tipus de sortida del 02 (M03-6; RN-M03-17):
+    el que fa servir cada participant. La còpia a l'activitat és de la T-M03-06."""
+
+    catalogue_entry = models.ForeignKey(
+        "activities.TrainingCatalogueEntry",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("fitxa del catàleg"),
+    )
+    outing_type = models.ForeignKey(
+        "activities.OutingType",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("tipus de sortida"),
+    )
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    quantity_per_participant = models.PositiveSmallIntegerField(_("quantitat per participant"))
+
+    class Meta:
+        verbose_name = _("material típic")
+        verbose_name_plural = _("material típic")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(catalogue_entry__isnull=False, outing_type__isnull=True)
+                | Q(catalogue_entry__isnull=True, outing_type__isnull=False),
+                name="typical_equipment_one_owner",
+            ),
+            models.CheckConstraint(
+                condition=Q(quantity_per_participant__gt=0), name="typical_equipment_quantity"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type} × {self.quantity_per_participant}"
+
+
+class UsageRate(models.Model):
+    """Cost d'ús d'un tipus de material del club per dia (RN-M03-08; VC-28): sense cap fila, 0.
+    El canvia el tresorer a la pantalla d'ajustos (T-M03-22), amb data d'entrada en vigor."""
+
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    cost_per_day_cents = models.PositiveIntegerField(_("cost per dia (cèntims)"))
+    valid_from = models.DateField(_("vigent des de"))
+
+    class Meta:
+        verbose_name = _("cost d'ús")
+        verbose_name_plural = _("costos d'ús")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["equipment_type", "valid_from"], name="usage_rate_unique_start"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type}: {self.cost_per_day_cents} c/dia"
