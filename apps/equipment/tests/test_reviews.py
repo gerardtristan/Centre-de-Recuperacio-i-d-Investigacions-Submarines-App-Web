@@ -9,7 +9,7 @@ from django.db import IntegrityError, transaction
 from django.http import Http404
 
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.equipment import access, inventory, reviews
+from apps.equipment import inventory, reviews
 from apps.equipment.models import EquipmentItem, EquipmentReview, EquipmentType
 
 pytestmark = pytest.mark.django_db
@@ -17,8 +17,8 @@ TODAY = datetime.date(2027, 6, 1)
 
 
 @pytest.fixture
-def manager(make_admin, monkeypatch):  # noqa: F811
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: True)  # MT3, MT11
+def manager(make_admin):  # noqa: F811
+    # MT3, MT11 de la matriu inicial (T-M03-18).
     return make_admin("equipment_manager")
 
 
@@ -130,9 +130,8 @@ def test_enviar_una_peca_que_ja_era_en_revisio(manager):
     assert EquipmentItem.objects.get(pk=item.pk).status == "in_review"
 
 
-def test_sense_mt11_no_es_toca(make_admin, monkeypatch, manager):  # noqa: F811
+def test_sense_mt11_no_es_toca(make_admin, manager):  # noqa: F811
     item = tank(manager)
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: False)
     with pytest.raises(Http404):
         schedule(item, make_admin("secretary"))
 
