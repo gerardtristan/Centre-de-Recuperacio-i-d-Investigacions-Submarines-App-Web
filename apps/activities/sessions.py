@@ -302,3 +302,54 @@ def set_programme(activity, blocks, *, by, request=None) -> list[ProgrammeBlock]
         request=request,
     )
     return created
+
+
+# --- Instructors que deixen de ser-ho (T-M02-04b; L-M02-05; decisió 101; RN-RP-12) ---------------
+
+INSTRUCTOR_RELEASED = "activities.session.instructor_released"
+RELEASE_ORIGIN = "activities.former_instructors"
+
+
+def _future_sessions(now):
+    """Sessions que encara s'han de fer: futures, no cancel·lades i d'una activitat viva."""
+    return Session.objects.filter(
+        starts_at__gt=now, cancelled=False, activity__status__in=states.EDITABLE_STATUSES
+    )
+
+
+@transaction.atomic
+def release_former_instructors(*, now=None, actor=None) -> list[int]:
+    """Treu de les sessions futures les persones que ja no poden fer classe (rol retirat, compte
+    desactivat o persona anonimitzada), amb una entrada al registre per sessió. Les passades
+    conserven qui hi va fer classe. Ningú no s'hi torna a posar sol. Idempotent. Torna les
+    sessions canviades."""
+    now = now or timezone.now()
+    actor = actor or audit.system(RELEASE_ORIGIN)
+    gone = (
+        Session.instructors.through.objects.filter(session__in=_future_sessions(now))
+        .exclude(person_id__in=instructor_people().values("pk"))
+        .values_list("session_id", "person_id")
+    )
+    by_session: dict[int, set[int]] = {}
+    for session_id, person_id in gone:
+        by_session.setdefault(session_id, set()).add(person_id)
+    for session_id in sorted(by_session):
+        session = Session.objects.select_for_update().get(pk=session_id)
+        before = set(session.instructors.values_list("pk", flat=True))
+        leaving = by_session[session_id] & before
+        session.instructors.remove(*leaving)
+        audit.record(
+            INSTRUCTOR_RELEASED,
+            actor=actor,
+            target=session,
+            field="instructors",
+            old=sorted(before),
+            new=sorted(before - leaving),
+            reason=_("Ha deixat de tenir el rol d'instructor."),
+        )
+    return sorted(by_session)
+
+
+def sessions_without_instructor(now=None):
+    """Sessions futures sense cap instructor, perquè el responsable n'hi posi un (T-M02-06)."""
+    return _future_sessions(now or timezone.now()).filter(instructors__isnull=True)
