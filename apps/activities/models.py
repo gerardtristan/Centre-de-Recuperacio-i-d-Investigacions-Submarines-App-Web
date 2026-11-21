@@ -59,6 +59,12 @@ class TrainingCatalogueEntry(models.Model):
     active = models.BooleanField(_("activa"), default=True)
     # Edat mínima que copien les activitats noves (RN-M02-33). Buit: sense edat mínima.
     min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
+    # Addenda de la 104 (RN-M02-52): el nivell oficial que es tramita a la federació quan
+    # l'alumne queda apte (la primera estrella) [A verificar: responsable de cursos i sortides].
+    official_level = models.ForeignKey(
+        "CertificationLevel", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("nivell oficial que es tramita"),
+    )  # fmt: skip
     # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
     default_requirements_mode = models.CharField(
         _("mode de requisits per defecte"),
@@ -618,6 +624,22 @@ class ProgrammeBlock(models.Model):
         return self.place or self.activity.place
 
 
+class CertificationAgency(models.Model):
+    """Agència o federació que emet titulacions (addenda de la 104; VC-55). És una dada: la
+    mantenen els rols amb AC6. Amb titulacions no s'esborra (PROTECT): es desactiva."""
+
+    name = models.CharField(_("nom"), max_length=60, unique=True)
+    active = models.BooleanField(_("activa"), default=True)
+
+    class Meta:
+        verbose_name = _("agència de titulació")
+        verbose_name_plural = _("agències de titulació")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class CertificationLevel(models.Model):
     """Nivell de titulació de busseig, amb un ordre: un `rank` més alt és un nivell més alt
     (addenda de la 058; RN-M02-27). La llista la manté el responsable de cursos i sortides; no
@@ -625,7 +647,10 @@ class CertificationLevel(models.Model):
 
     name = models.CharField(_("nom"), max_length=60, unique=True)
     rank = models.PositiveSmallIntegerField(_("ordre"), unique=True)
-    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    agency = models.ForeignKey(
+        CertificationAgency, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="levels", verbose_name=_("agència o federació"),
+    )  # fmt: skip
     active = models.BooleanField(_("actiu"), default=True)
 
     class Meta:
@@ -650,6 +675,8 @@ class DiverCertification(models.Model):
         CLUB_COURSE = "club_course", _("Curs del club")
         DECLARED = "declared", _("Declarada")
         IMPORTED = "imported", _("Importada")
+        # Addenda de la 104: creada en tancar una tramitació a la federació.
+        FEDERATION = "federation", _("Tramitada a la federació")
 
     person = models.ForeignKey(
         Person,
@@ -674,7 +701,10 @@ class DiverCertification(models.Model):
         related_name="certifications",
         verbose_name=_("especialitat"),
     )
-    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    agency = models.ForeignKey(
+        CertificationAgency, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="certifications", verbose_name=_("agència o federació"),
+    )  # fmt: skip
     issuer = models.CharField(_("qui l'ha emesa"), max_length=120, blank=True)
     number = models.CharField(_("número de la titulació"), max_length=40, blank=True)
     certificate_number = models.CharField(_("número del certificat"), max_length=40, blank=True)
@@ -710,7 +740,7 @@ class DiverCertification(models.Model):
                 name="divercert_level_or_speciality",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=["club_course", "declared", "imported"]),
+                condition=Q(source__in=["club_course", "declared", "imported", "federation"]),
                 name="divercert_source_valid",
             ),
             models.CheckConstraint(

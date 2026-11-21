@@ -35,7 +35,7 @@ def export(person) -> dict:
             {
                 "nivell": c.level.name if c.level_id else None,
                 "especialitat": c.speciality.name if c.speciality_id else None,
-                "agencia": c.agency,
+                "agencia": c.agency.name if c.agency_id else None,
                 "emesa_per": c.issuer,
                 "numero": c.number,
                 "numero_del_certificat": c.certificate_number,
