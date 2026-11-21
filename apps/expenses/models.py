@@ -10,6 +10,8 @@ class ExpenseCategory(models.Model):
 
     name = models.CharField(_("nom"), max_length=80, unique=True)
     active = models.BooleanField(_("activa"), default=True)
+    # RN-M09-04 i RN-M03-10: la factura d'un centre de lloguer substitueix l'estimació del 03.
+    is_material_rental = models.BooleanField(_("és lloguer de material"), default=False)
 
     class Meta:
         verbose_name = _("categoria de despesa")

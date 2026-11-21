@@ -5,16 +5,19 @@
 - **Real** (RN-M09-02 i 04): ingressos de la 04 dels càrrecs de les inscripcions menys les seves
   devolucions i retorns (un moviment anul·lat no compta, RN-T25), comissions d'aquests cobraments,
   repartiments i participants del 02 (assistents o confirmades).
+- **Material** (RN-M09-04 i 05; RN-M03-10; T-M09-11b): el lloguer és la factura del centre
+  repartida a l'activitat (categories `is_material_rental`) i, mentre no n'hi ha, l'estimació del
+  03; mai totes dues. El cost de material és el cost d'ús del material del club del 03.
 
-shortcut: el lloguer (facturat o estimat), el cost d'ús del material del club i els altres
-ingressos directes (altres càrrecs i patrocinis amb activitat) compten zero fins a la T-M03-13 i
+shortcut: els altres ingressos directes (altres càrrecs i patrocinis amb activitat) compten zero
 fins que el càrrec o l'ingrés portin l'activitat. Lectura: qui el mostra comprova MG6."""
 
 from django.db.models import Count, Q, Sum
 
 from apps.activities import attendance
 from apps.activities.models import Activity, Enrolment
-from apps.expenses.allocation import allocated_costs
+from apps.equipment.costs import activity_material_cost
+from apps.expenses.allocation import allocated_costs, rental_invoiced
 from apps.treasury.models import Movement
 
 from . import calc
@@ -38,13 +41,16 @@ def activity_margin(activity: Activity, kind: str = calc.FORECAST) -> calc.Margi
         return calc.compute(real_inputs(activity), calc.REAL)
     income, participants = _live_enrolments(activity)
     per_participant = activity.material_cost_cents
+    material = activity_material_cost(activity)
     return calc.compute(
         calc.MarginInputs(
             enrolments_cents=income,
-            # shortcut: tots els repartiments compten com a costos per categoria, també la factura
-            # del centre de lloguer; separar-la (RN-M09-04, sense duplicar) és de la T-M03-13.
             real_costs_cents=allocated_costs(activity),
             planned_costs_cents=planned_costs(activity),
+            rental_invoiced_cents=rental_invoiced(activity),
+            rental_estimated_cents=material.rental_cost_estimated_cents,
+            # RN-M02-43: el previst del 02 només mentre no hi ha cost real del material del club.
+            material_real_cents=material.club_use_cents or None,
             material_planned_cents=(
                 None if per_participant is None else per_participant * participants
             ),
@@ -75,9 +81,13 @@ def signed_income(movements) -> tuple[int, int]:
 
 def real_inputs(activity) -> calc.MarginInputs:
     enrolments, commissions = signed_income(activity_movements(activity))
+    material = activity_material_cost(activity)
     return calc.MarginInputs(
         enrolments_cents=max(enrolments, 0),
         real_costs_cents=allocated_costs(activity),
         commissions_cents=commissions,
+        rental_invoiced_cents=rental_invoiced(activity),
+        rental_estimated_cents=material.rental_cost_estimated_cents,
+        material_real_cents=material.club_use_cents,
         participants=attendance.participants(activity),
     )
