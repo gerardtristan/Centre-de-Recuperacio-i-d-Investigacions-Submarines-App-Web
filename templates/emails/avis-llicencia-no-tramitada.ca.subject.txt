@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M06-19 (CA-M06-23): TEXT PROVISIONAL [A validar: secretaria]. #}{% translate "Una llicència d'un dia no tramitada a temps" %}

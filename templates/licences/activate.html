@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M06-10 (vistes v1): deixar vigent una llicència pagada o tramitada amb el número que dona la federació (P-M06-E, pas 4; LC5). El número és obligatori a les del club [A validar: secretaria]. Només el nom del titular i el tipus: cap altra dada personal. #}
+{% block title %}{% translate "Llicència vigent" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Llicències" %}</p>
+    <h1>{% translate "Deixa vigent una llicència" %}</h1>
+    <p class="text-2">{% blocktranslate with name=licence.person type=licence.licence_type %}{{ type }} de {{ name }}. Escriu el número que ha donat la federació quan l'ha confirmada.{% endblocktranslate %}</p>
+  </header>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}{# Errata (T-DX-48): resum dels errors amb el focus; inclou també els generals #}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Sí, deixa-la vigent" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:licences' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}

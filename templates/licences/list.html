@@ -1,0 +1,83 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M06-09 i T-M06-10 (vistes v1): llistat de llicències amb filtres i venciments (LC4), tramitar, deixar vigent i exportar per a la federació (LC5; RN-M06-11, CA-M06-10). Sense wireframe propi (T-M06-01): segueix les pantalles de la tresoreria. El número, la categoria i el venciment només amb el camp C6 (CA-M06-33); mai la data de naixement ni el document. Els botons només surten amb LC5, però no són el control: el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Llicències" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Llicències" %}</p>
+    <h1>{% translate "Llicències federatives" %}</h1>
+    <p class="text-2">{% translate "Totes les llicències, amb l'estat que tenen avui. Les pagades són les que falten per tramitar a la federació." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if can_file %}
+    <form method="post" action="{% url 'administration:licences_export' %}" class="accions">
+      {% csrf_token %}
+      <button class="boto boto-principal" type="submit"{% if not paid_count %} disabled{% endif %}>{% blocktranslate count total=paid_count %}Descarrega el fitxer per a la federació ({{ total }} pagada){% plural %}Descarrega el fitxer per a la federació ({{ total }} pagades){% endblocktranslate %}</button>
+    </form>
+  {% endif %}
+  <form class="formulari barra-filtres" method="get" action="{% url 'administration:licences' %}" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    </fieldset>
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:licences' %}">{% translate "Treu els filtres" %}</a>
+    </div>
+  </form>
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} llicència, per cognoms{% plural %}{{ total }} llicències, per cognoms{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Titular" %}</th>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        {% if details %}
+          <th scope="col">{% translate "Categoria" %}</th>
+          <th scope="col">{% translate "Caduca" %}</th>
+          <th scope="col">{% translate "Número federatiu" %}</th>
+        {% endif %}
+        {% if can_file %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ row.person_name }}</th>
+          <td data-etiqueta="{% translate 'Tipus' %}">{{ row.licence_type }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">
+            {% if row.status == "valid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vigent" %}</span>
+            {% elif row.status == "to_renew" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Per renovar" %}</span>
+            {% elif row.status == "expired" or row.status == "cancelled" or row.status == "lapsed" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% if row.status == "expired" %}{% translate "Caducada" %}{% elif row.status == "cancelled" %}{% translate "Cancel·lada" %}{% else %}{% translate "No tramitada a temps" %}{% endif %}</span>
+            {% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% if row.status == "requested" %}{% translate "Sol·licitada" %}{% elif row.status == "paid" %}{% translate "Pagada" %}{% elif row.status == "filed" %}{% translate "Tramitada" %}{% else %}{% translate "Vigent més endavant" %}{% endif %}</span>
+            {% endif %}
+          </td>
+          {% if details %}
+            <td data-etiqueta="{% translate 'Categoria' %}">{% if row.category == "amateur" %}{% translate "Aficionat" %}{% elif row.category == "technical" %}{% translate "Tècnic" %}{% else %}{% translate "Altres" %}{% endif %}</td>
+            <td data-etiqueta="{% translate 'Caduca' %}"><time datetime="{{ row.expires_on|date:'Y-m-d' }}">{{ row.expires_on|date:"d/m/Y" }}</time></td>
+            <td data-etiqueta="{% translate 'Número federatiu' %}">{% if row.federation_number %}<span class="codi">{{ row.federation_number }}</span>{% else %}—{% endif %}</td>
+          {% endif %}
+          {% if can_file %}
+            <td data-etiqueta="{% translate 'Acció' %}">
+              {% if row.status == "paid" %}
+                <form method="post" action="{% url 'administration:licences_file' row.licence_id %}" class="accions">
+                  {% csrf_token %}
+                  <button class="boto boto-petit" type="submit">{% translate "Marca tramitada" %}</button>
+                  <a class="boto boto-petit boto-text" href="{% url 'administration:licences_activate' row.licence_id %}">{% translate "Vigent…" %}</a>
+                </form>
+              {% elif row.status == "filed" %}
+                <a class="boto boto-petit" href="{% url 'administration:licences_activate' row.licence_id %}">{% translate "Vigent…" %}</a>
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">{% translate "Cap llicència amb aquests filtres." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

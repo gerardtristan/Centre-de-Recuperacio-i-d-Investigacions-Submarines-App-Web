@@ -91,6 +91,7 @@ TEMPLATE_PRIORITIES = {
     "avis-despesa-sense-factura": _Priority.CONFIRMATION,  # CA-M09-01, al tresorer (T-M09-04b)
     "avis-llicencia-pagada": _Priority.CONFIRMATION,  # CA-M06-07, a la secretaria (T-M06-05)
     "avis-devolucio-llicencia": _Priority.CONFIRMATION,  # CA-M06-13, al tresorer (T-M06-12)
+    "avis-llicencia-no-tramitada": _Priority.CONFIRMATION,  # CA-M06-23, a qui tramita (T-M06-19)
     "avis-liquidacio-rebutjada": _Priority.CONFIRMATION,  # P-227 (095; T-M05b-14)
     "avis-compte-emergencia": _Priority.CONFIRMATION,  # CA-10.2 (T-M00-03)
     "avis-canvi-rol": _Priority.CONFIRMATION,  # RN-RP-09 (T-RP-02)

@@ -152,6 +152,12 @@ MAP = {
         "templates/accounts/login.html",
         "templates/accounts/admin_accounts.html",
     ),
+    "test_llicencies.py": (
+        "apps/licences/views.py",
+        "apps/licences/listing.py",
+        "apps/licences/filing.py",
+        "templates/licences/*",
+    ),
     "test_pagaments_llistat.py": (
         "apps/payments/payment_admin_views.py",
         "apps/payments/reviews.py",

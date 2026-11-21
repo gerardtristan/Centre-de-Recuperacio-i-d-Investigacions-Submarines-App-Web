@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M06-19 (CA-M06-23, RN-M06-20): avís a qui tramita d'una llicència d'un dia pagada que no va arribar a vigent el seu dia. TEXT PROVISIONAL [A validar: secretaria]. Només referències internes: cap nom ni dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with day=day|date:"d/m/Y" %}La llicència d'un dia {{ licence_id }} del {{ day }} no va arribar a vigent a temps. Ha quedat «no tramitada a temps» i, si es va pagar, el tresorer té una proposta de devolució.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
