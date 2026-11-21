@@ -178,6 +178,10 @@ def test_ca_m02_39_cancelled_with_a_bizum_waiting_then_paid_proposes_100_percent
     (row,) = fresh(row)
     assert (row.status, row.void_pending_since) == (S.CANCELLED, NOW)
     assert row.charge.status == Charge.Status.PENDING  # no s'anul·la mentre s'espera (RN-M05b-22)
+    sent = Event.objects.get(
+        name=events.ENROLMENT_CANCELLED
+    )  # T-M02-35: també amb el càrrec pendent
+    assert (sent.payload["enrolment"], sent.payload["by"]) == (row.pk, "club")
     assert cancellation.retry_pending_voids() == 0  # encara en curs
 
     notify(attempt, event_id=f"ev-{attempt.pk}")
