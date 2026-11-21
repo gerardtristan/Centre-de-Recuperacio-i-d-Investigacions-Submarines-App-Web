@@ -130,7 +130,9 @@ def duplicate(activity, new_start, *, by, request=None) -> Activity:
     )
     still_teaching = set(sessions.instructor_people().values_list("pk", flat=True))
     copied_sessions = 0
-    for session in original.sessions.filter(cancelled=False).prefetch_related("instructors"):
+    # Les classes de reforç d'un alumne no es copien (RN-M02-21).
+    group = original.sessions.filter(cancelled=False, reinforcement_for__isnull=True)
+    for session in group.prefetch_related("instructors"):
         new = Session.objects.create(
             activity=copy,
             kind=session.kind,
