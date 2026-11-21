@@ -727,6 +727,11 @@ class DiverCertification(models.Model):
         verbose_name=_("verificada per"),
     )
     verified_at = models.DateTimeField(_("verificada el"), null=True, blank=True)
+    # RN-M02-31: la titulació del club queda lligada al resultat del curs que la dona.
+    course_outcome = models.ForeignKey(
+        "CourseOutcome", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("resultat del curs"),
+    )  # fmt: skip
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1037,3 +1042,97 @@ class Incident(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.activity}"
+
+
+class PracticeAssessment(models.Model):
+    """Avaluació d'un alumne en una sessió pràctica (T-M02-17; M02-6; P-M02-F pas 1). Es pot
+    corregir; cada canvi queda al registre. Sense dades de salut (RN-M02-17)."""
+
+    class Result(models.TextChoices):
+        ACHIEVED = "achieved", _("Assolit")
+        NOT_ACHIEVED = "not_achieved", _("No assolit")
+        NEEDS_REINFORCEMENT = "needs_reinforcement", _("Necessita reforç")
+
+    session = models.ForeignKey(
+        Session, on_delete=models.PROTECT, related_name="assessments", verbose_name=_("sessió")
+    )
+    enrolment = models.ForeignKey(
+        Enrolment, on_delete=models.PROTECT, related_name="assessments",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    result = models.CharField(_("resultat"), max_length=20, choices=Result.choices)
+    # Observació curta. Sense dades de salut (RN-M02-17).
+    notes = models.TextField(_("observació"), max_length=500, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("registrada per"),
+    )  # fmt: skip
+    recorded_at = models.DateTimeField(_("registrada el"))
+
+    class Meta:
+        verbose_name = _("avaluació d'una pràctica")
+        verbose_name_plural = _("avaluacions de pràctiques")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "enrolment"], name="assessment_one_per_session_and_student"
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["achieved", "not_achieved", "needs_reinforcement"]),
+                name="assessment_result_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_result_display()}"
+
+
+class CourseOutcome(models.Model):
+    """Resultat final d'un alumne en un curs i, si és apte, el certificat del club (T-M02-19;
+    M02-6; RN-M02-16). El certificat no es desa com a fitxer: es genera a demanda."""
+
+    class Result(models.TextChoices):
+        PASS = "pass", _("Apte")
+        FAIL = "fail", _("No apte")
+
+    enrolment = models.OneToOneField(
+        Enrolment, on_delete=models.PROTECT, related_name="outcome", verbose_name=_("inscripció")
+    )
+    result = models.CharField(_("resultat"), max_length=10, choices=Result.choices)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("instructor que el posa"),
+    )  # fmt: skip
+    decided_at = models.DateTimeField(_("posat el"))
+    # Obligatori si és «no apte». Sense dades de salut (RN-M02-17).
+    reason = models.TextField(_("motiu"), max_length=500, blank=True)
+    # `C-AAAA-NNNN` (VC-26, format al codi). Buit fins que s'emet.
+    certificate_number = models.CharField(_("número del certificat"), max_length=20, blank=True)
+    certificate_issued_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("certificat emès per"),
+    )  # fmt: skip
+    certificate_issued_at = models.DateTimeField(_("certificat emès el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("resultat del curs")
+        verbose_name_plural = _("resultats dels cursos")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["certificate_number"],
+                condition=~Q(certificate_number=""),
+                name="outcome_certificate_number_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["pass", "fail"]), name="outcome_result_valid"
+            ),
+            models.CheckConstraint(
+                condition=~Q(result="fail") | ~Q(reason=""), name="outcome_fail_needs_reason"
+            ),
+            models.CheckConstraint(
+                condition=Q(certificate_number="") | Q(result="pass"),
+                name="outcome_certificate_only_if_pass",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_result_display()}"
