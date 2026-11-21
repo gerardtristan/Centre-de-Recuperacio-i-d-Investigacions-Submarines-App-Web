@@ -20,6 +20,7 @@ from .models import LicenceRecord, Member
 
 SYSTEM = audit.system("members.licence_copy")
 ACTION = "members.licence_copy_applied"
+ACTION_DETACHED = "members.licence_copy_detached"
 NAMES = (events.LICENCE_ISSUED, events.LICENCE_RENEWED, events.LICENCE_CANCELLED)
 
 
@@ -55,3 +56,17 @@ def on_licence_event(event) -> None:
         details={"event": event.name, "licence": payload["licence"], "version": version,
                  "created": created},
     )  # fmt: skip
+
+
+def detach_licence_copies(licence_refs) -> int:
+    """El pas únic del 06 s'ha desfet (T-M06-14): les files del 01 deixen d'apuntar a aquelles
+    llicències i tornen a ser registres propis del 01. No s'esborra res (RN-M01-36). Torna
+    quantes files ha deslligat."""
+    rows = LicenceRecord.objects.select_for_update().filter(licence_ref__in=list(licence_refs))
+    done = 0
+    for record in rows:
+        record.licence_ref = record.source_version = record.cancelled_on = None
+        record.save(update_fields=["licence_ref", "source_version", "cancelled_on"])
+        audit.record(ACTION_DETACHED, actor=SYSTEM, target=record)
+        done += 1
+    return done
