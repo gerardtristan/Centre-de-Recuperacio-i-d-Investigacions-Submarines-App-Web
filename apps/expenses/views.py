@@ -12,6 +12,7 @@ from decimal import Decimal
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -20,6 +21,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.core.charges import euros
 from apps.core.models import Department
+from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import require_perm
 
 from . import services
@@ -64,7 +66,9 @@ def _cents(value):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def new_view(request):
-    require_perm(request, services.RECORD, write=True)
+    # MG1 amb l'abast «tot»: amb «les seves activitats» cal el repartiment (com el menú).
+    if require_perm(request, services.RECORD, write=True) != SCOPE_ALL:
+        raise Http404
     form = ExpenseForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         data = dict(form.cleaned_data)

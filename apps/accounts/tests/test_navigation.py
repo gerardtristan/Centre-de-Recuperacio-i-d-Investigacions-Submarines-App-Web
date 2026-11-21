@@ -19,7 +19,13 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import Client, RequestFactory
 from django.urls import reverse
 
-from apps.accounts.navigation import ENTRIES, admin_nav_for, admin_navigation, route_needs
+from apps.accounts.navigation import (
+    ENTRIES,
+    admin_nav_for,
+    admin_navigation,
+    need_met,
+    route_needs,
+)
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.accounts.sessions import ADMIN_MAX_AGE_SECONDS, AREA_SESSION_KEY, AUTH_AT_SESSION_KEY
 from apps.core import consents
@@ -83,8 +89,7 @@ def test_no_menu_entry_without_the_permission_of_its_route(login_as, make_admin,
             declared = all(has_perm(account, code, write=w) for code, w in ROUTES[name]["GET"])
         else:  # rutes de la 00: n'hi ha prou amb un dels grups
             declared = any(
-                all(has_perm(account, code, write=w) for code, w in group)
-                for group in route_needs(name)
+                all(need_met(account, need) for need in group) for group in route_needs(name)
             )
         assert (url in shown) == declared, name
         assert client.get(url).status_code == (200 if declared else 404), name
