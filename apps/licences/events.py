@@ -74,3 +74,21 @@ def notify(permission: str, template: str, context: dict) -> int:
             )
             sent += 1
     return sent
+
+
+def read_source() -> list[dict]:
+    """La font de lectura que el 06 registra al 01 (`members.register_licence_source`, RN-M06-17;
+    054): les llicències vigents i les cancel·lades, amb la versió. El 01 en tria les dels socis."""
+    rows = []
+    licences = Licence.objects.filter(
+        status__in=[Licence.Status.ACTIVE, Licence.Status.CANCELLED]
+    ).select_related("licence_type")
+    for licence in licences:
+        cancelled = licence.status == Licence.Status.CANCELLED
+        rows.append({
+            "licence": licence.pk, "person": licence.person_id,
+            "licence_type": licence.licence_type.name, "starts_on": licence.starts_on,
+            "expires_on": licence.expires_on, "version": licence.version,
+            "cancelled_on": timezone.localdate(licence.updated_at) if cancelled else None,
+        })  # fmt: skip
+    return rows
