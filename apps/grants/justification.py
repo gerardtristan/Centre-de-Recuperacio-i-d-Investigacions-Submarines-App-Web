@@ -1,6 +1,6 @@
-"""Justificació d'un ajut: despeses lligades (T-M09A-09; P-M09A-F, passos 1 i 2; RN-M09A-10). El
-paquet (T-M09A-10) i els canvis amb un requeriment obert (T-M09A-15) arriben amb les seves
-tasques. `grants` llegeix les despeses però no hi escriu mai."""
+"""Justificació d'un ajut: despeses lligades (T-M09A-09; P-M09A-F, passos 1 i 2; RN-M09A-10) i,
+en una sol·licitud justificada, només amb un requeriment obert (T-M09A-15; RN-M09A-21). El paquet
+és de la T-M09A-10. `grants` llegeix les despeses però no hi escriu mai."""
 
 from django.db import IntegrityError, transaction
 from django.db.models import Sum
@@ -10,7 +10,8 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit
 from apps.expenses.models import Expense
 
-from .models import GrantApplication, GrantExpenseLink
+from .models import GrantApplication, GrantExpenseLink, GrantRequirement
+from .requirements import RequirementNotOpen, is_open
 from .services import GrantError, require
 
 JUSTIFY = "grants.justification"  # AJ7
@@ -31,21 +32,27 @@ class AlreadyJustified(GrantError):
     """Sol·licitud justificada: les despeses lligades no canvien sense un requeriment obert."""
 
 
-def _check_status(application) -> None:
-    if application.status == S.JUSTIFIED:
+def _check_status(application, requirement):
+    """Torna el requeriment llegit de nou (i bloquejat), si n'hi ha."""
+    if requirement is not None:
+        requirement = GrantRequirement.objects.select_for_update().get(pk=requirement.pk)
+    if requirement is not None and not is_open(requirement, application):
+        raise RequirementNotOpen(_("El requeriment no és obert o no és d'aquesta sol·licitud."))
+    if application.status == S.JUSTIFIED and requirement is None:
         raise AlreadyJustified(_("La justificació ja s'ha enviat: cal un requeriment obert."))
-    if application.status != S.GRANTED:
+    if application.status not in (S.GRANTED, S.JUSTIFIED):
         raise GrantError(_("Només es lliguen despeses a un ajut concedit."))
+    return requirement
 
 
 @transaction.atomic
-def link_expense(application, expense, amount_cents, *, by) -> GrantExpenseLink:
-    """`grants.link_expense` (CA-M09A-09 i 10)."""
+def link_expense(application, expense, amount_cents, *, by, requirement=None) -> GrantExpenseLink:
+    """`grants.link_expense` (CA-M09A-09, 10 i 21)."""
     require(by, JUSTIFY)
     application = (
         GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
     )
-    _check_status(application)
+    requirement = _check_status(application, requirement)
     # El pany de la despesa: dos ajuts alhora no poden passar-se del seu import.
     expense = Expense.objects.select_for_update().get(pk=expense.pk)
     call = application.call
@@ -74,7 +81,11 @@ def link_expense(application, expense, amount_cents, *, by) -> GrantExpenseLink:
     try:
         with transaction.atomic():
             link = GrantExpenseLink.objects.create(
-                application=application, expense=expense, amount_cents=amount_cents, created_by=by
+                application=application,
+                expense=expense,
+                amount_cents=amount_cents,
+                created_by=by,
+                requirement=requirement,
             )
     except IntegrityError as error:
         raise GrantError(_("Aquesta despesa ja és lligada a aquest ajut.")) from error
@@ -92,7 +103,7 @@ def link_expense(application, expense, amount_cents, *, by) -> GrantExpenseLink:
 
 
 @transaction.atomic
-def unlink_expense(link, *, by) -> GrantExpenseLink:
+def unlink_expense(link, *, by, requirement=None) -> GrantExpenseLink:
     """`grants.unlink_expense`: la baixa d'un enllaç, que es conserva (CA-M09A-21)."""
     require(by, JUSTIFY)
     link = (
@@ -100,8 +111,9 @@ def unlink_expense(link, *, by) -> GrantExpenseLink:
     )
     if link.removed_at is not None:
         raise GrantError(_("Aquesta despesa ja s'ha donat de baixa de l'ajut."))
-    _check_status(link.application)
+    requirement = _check_status(link.application, requirement)
     link.removed_at, link.removed_by = timezone.now(), by
+    link.removed_requirement = requirement
     link.save()
     audit.record(EXPENSE_UNLINKED, actor=by, target=link, details={"expense": link.expense_id})
     return link
