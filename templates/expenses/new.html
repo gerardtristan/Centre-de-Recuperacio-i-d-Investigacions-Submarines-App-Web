@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M09-06 (part sense fitxer) i P-M09-A: registrar una despesa des del mòbil o l'ordinador (MG1). Una columna, camps grans. La factura s'adjuntarà amb la T-M09-25 (fitxer privat xifrat, 051): fins llavors la despesa neix «sense factura» i en surt l'avís (CA-M09-01). El servidor torna a comprovar el permís i les dades. #}
+{% block title %}{% translate "Despesa nova" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Despeses" %}</p>
+    <h1>{% translate "Registra una despesa" %}</h1>
+    <p class="text-2">{% translate "Les dades de la factura del proveïdor. Tota despesa porta un departament." %}</p>
+  </header>
+  <div class="avis avis-avis" role="note">{% translate "Encara no es pot adjuntar la factura: la despesa quedarà «sense factura» fins que es pugui pujar." %}</div>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Registra la despesa" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:home' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}
