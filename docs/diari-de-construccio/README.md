@@ -442,3 +442,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-15](T-M03-15.md) | Material pendent al tancament i peces alliberades en cancel·lar (T-M03-15 i T-M03-16) (carril C2) | 21/11/2026 06:47 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [F2-4](F2-4-flux-material.md) | Prova de flux sencer de la llesca F2-4, de les necessitats al marge congelat (carril C2) | 21/11/2026 06:50 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M03-04](T-M03-04.md) | Stock de material en una data (carril C2) | 21/11/2026 07:26 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-19](T-M03-19.md) | Informes del 03, part de servei (carril C2) | 21/11/2026 07:27 | (vegeu la PR) | 3 noves | [A comprovar] |
