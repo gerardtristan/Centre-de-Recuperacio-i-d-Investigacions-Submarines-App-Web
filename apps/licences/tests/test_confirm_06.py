@@ -10,7 +10,7 @@ from django.http import Http404
 from django.urls import reverse
 
 from apps.accounts.models import Account
-from apps.accounts.security import AREA_PERSONAL
+from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.core import events
 from apps.core.models import AuditEntry, Event, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -151,6 +151,35 @@ def test_only_the_holder_declares_and_not_before_the_start(make_person, pending)
 
 
 # --- Pantalles ----------------------------------------------------------------------------------
+
+
+def test_secretary_screens(login_as, secretary, pending):
+    plain, declared = pending()[0], pending(expires_on=D(2026, 9, 30))[0]
+    client = login_as(secretary, AREA_ADMIN)
+    url = reverse("administration:licences_unconfirmed")
+    html = client.get(url).content.decode()
+    assert "2 llicències pendents" in html and "30/09/2026" in html
+    assert f'value="{plain.pk}"' in html and f'value="{declared.pk}"' not in html
+    year = imports.allowed_years()[0]
+    response = client.post(url, {"llicencies": [plain.pk], "any": year}, follow=True)
+    assert "Confirmada 1 llicència" in response.content.decode()
+    plain.refresh_from_db()
+    assert plain.expires_on == D(year, 12, 31)
+    confirm = reverse("administration:licences_confirm", args=[declared.pk])
+    assert 'value="2026-09-30"' in client.get(confirm).content.decode()
+    client.post(confirm, {"caducitat": "2026-09-30"})
+    declared.refresh_from_db()
+    assert declared.expiry_confirmed
+    assert client.get(confirm).status_code == 404  # ja no és pendent
+    assert "per confirmar" not in client.get(reverse("administration:licences")).content.decode()
+
+
+def test_screens_without_lc5_are_not_found(login_as, make_admin, pending):  # noqa: F811
+    client = login_as(make_admin(R.TREASURER), AREA_ADMIN)
+    (licence,) = pending()
+    assert client.get(reverse("administration:licences_unconfirmed")).status_code == 404
+    url = reverse("administration:licences_confirm", args=[licence.pk])
+    assert client.get(url).status_code == 404
 
 
 def test_my_licence_lets_the_holder_declare_only_their_own(login_as, make_person, pending):

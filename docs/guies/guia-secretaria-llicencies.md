@@ -54,7 +54,9 @@ Quan el mòdul entri en producció, l'administrador passarà al 06 els registres
 - a la fitxa del soci, la caducitat continua «desconeguda»;
 - el responsable d'una activitat la veu «pendent de confirmar» i l'instructor, «no»; per inscriure's a una activitat que demana llicència, **no compta com a vigent** [A validar: P-446].
 
-Posar-hi la data la converteix en una llicència normal: comença a rebre avisos i la fitxa del soci en té la data l'endemà com a molt tard. Ho pot fer qui té el permís de tramitar [A validar: P-447]. La pantalla per fer-ho (en bloc per a les d'any natural, al 31/12 de l'any que triïs, o una a una amb la data que el titular hagi escrit a «La meva llicència») arriba amb la T-M06-24b.
+Posar-hi la data la converteix en una llicència normal: comença a rebre avisos i la fitxa del soci en té la data l'endemà com a molt tard. Ho pot fer qui té el permís de tramitar [A validar: P-447], des de **Llicències**, l'enllaç **N per confirmar**:
+- **En bloc:** marca les d'any natural sense data, tria l'any (l'actual o el següent) i prem **Confirma les seleccionades**. Caducaran el 31/12 d'aquell any. Si alguna no es pot confirmar (per exemple, comença després del 31/12), no se'n confirma cap.
+- **Una a una:** **Confirma…** al costat de cada una. Si el titular ja ha escrit la data a «La meva llicència», la columna «Declarada pel titular» la mostra i el camp ja la porta: comprova-la amb la federació i confirma-la.
 
 Mentre el titular l'ha declarada però tu no l'has confirmada, continua pendent: cap avís ni cap altre mòdul no la veu. Les pendents de confirmar que ja són al mòdul de llicències no surten a la pantalla antiga de la fitxa del soci («Llicències pendents de confirmar» del menú de socis). **Abans d'obrir les inscripcions del mòdul d'activitats, confirma-les totes** (RN-M02-34).
 
