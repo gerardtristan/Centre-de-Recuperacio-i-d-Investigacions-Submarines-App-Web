@@ -354,3 +354,36 @@ class EquipmentReview(models.Model):
 
     def __str__(self):
         return f"{self.item} {self.get_kind_display()} ({self.due_on})"
+
+
+class EquipmentNeed(models.Model):
+    """Què porta i què necessita un participant (M03-6; P-M03-C; T-M03-07). Es desa amb la
+    inscripció, també a la llista d'espera. El 03 no escriu mai a la inscripció."""
+
+    enrolment = models.ForeignKey(
+        "activities.Enrolment",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("inscripció"),
+    )
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    brings_own = models.BooleanField(_("porta el seu"))
+    size = models.CharField(_("talla"), max_length=10, blank=True)
+    litres = models.DecimalField(_("litres"), max_digits=4, decimal_places=1, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("necessitat de material")
+        verbose_name_plural = _("necessitats de material")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["enrolment", "equipment_type"], name="equipment_need_unique"
+            ),
+            models.CheckConstraint(
+                condition=Q(litres__isnull=True) | Q(litres__gt=0), name="equipment_need_litres"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type} · {'propi' if self.brings_own else 'necessita'}"
