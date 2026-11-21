@@ -480,3 +480,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-25](T-M02-25.md) | Dades inventades del 02 i l'ordre seed_activities_demo_data (sense migració; carril B3) | 21/11/2026 09:39 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-26](T-M02-26.md) | Proves de flux sencer de la llesca F2-2 amb el proveïdor fictici: sortida, curs i llista d'espera (carril B3) | 21/11/2026 10:04 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M02-30](T-M02-30.md) | Requisits per fer classe en assignar instructors (activities/0016; carril B3) | 21/11/2026 10:22 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M02-20](T-M02-20.md) | Resultats ambientals i fitxa de projecte, servei (activities/0017; carril B3) | 21/11/2026 10:36 | (vegeu la PR) | 11 noves (29 casos) | [A comprovar] |
