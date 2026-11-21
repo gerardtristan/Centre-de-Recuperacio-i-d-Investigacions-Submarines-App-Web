@@ -7,7 +7,9 @@ from django.urls import include, path
 from apps.accounts import admin_urls
 from config import urls as base
 
-EXTRA_ADMIN = []
+EXTRA_ADMIN = [
+    path("", include("apps.margins.admin_urls")),
+]
 admin = (admin_urls.urlpatterns + EXTRA_ADMIN, "administration")
 
 urlpatterns = [

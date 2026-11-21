@@ -1,0 +1,12 @@
+{% load i18n %}
+{# Els imports de RN-M09-01 d'un marge (previst o real), ja en euros. #}
+<dl class="dades-soci">
+  <div><dt>{% translate "Inscripcions" %}</dt><dd><span class="import">{{ lines.income }}</span></dd></div>
+  <div><dt>{% translate "Altres ingressos directes" %}</dt><dd><span class="import">{{ lines.other_income }}</span></dd></div>
+  <div><dt>{% translate "Costos directes" %}</dt><dd><span class="import">{{ lines.costs }}</span></dd></div>
+  {% for name, amount in lines.categories %}<div><dt>{% blocktranslate %}· {{ name }}{% endblocktranslate %}</dt><dd><span class="import">{{ amount }}</span></dd></div>{% endfor %}
+  <div><dt>{% translate "Cost de material" %}</dt><dd><span class="import">{{ lines.material }}</span></dd></div>
+  <div><dt>{% translate "Marge" %}</dt><dd><span class="import">{{ lines.margin }}</span>{% if lines.negative %} <span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Pèrdua" %}</span>{% endif %}</dd></div>
+  <div><dt>{% translate "Percentatge" %}</dt><dd>{% if lines.pct %}{{ lines.pct }} %{% else %}—{% endif %}</dd></div>
+  <div><dt>{% translate "Participants" %}</dt><dd>{{ lines.participants }}</dd></div>
+</dl>
