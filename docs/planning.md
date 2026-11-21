@@ -20,8 +20,8 @@
 | **05a** | [Alta del mètode de pagament i mandats](#M05a) | 1 | 01, 04 | Aquest pla | **aprovat** |
 | **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** (ampliat per la 049) |
 | **06** | [Llicències](#M06) | 2 | 01, 05b | Aquest pla | **aprovat** (28/10/2026) |
-| **07** | Web pública | 2 | 01, 02 | — | pendent |
-| **08** | Dashboard | 2 | 01, 02, 04, 09 | — | pendent |
+| **07** | [Web pública i ajuda](#M07) | 2 | 01, 02 | Aquest pla (spec d'una pàgina) | **escrit** (21/11/2026, per aprovar) |
+| **08** | [Dashboard](#M08) | 2 | 01, 02, 04, 09 | Aquest pla (spec d'una pàgina) | **escrit** (21/11/2026, per aprovar) |
 | **09** | [Marge, despeses, ajuts i facturació](#M09) (abans «resta de la 04»; amb l'[apartat d'ajuts](#M09-ajuts)) | 2 | 02, 03, 04, 05b | Aquest pla | **aprovat** (28/10/2026) |
 | **10** | Missatges i xat per activitat | després de la 2 | 01, 02 | — | pendent |
 | **11** | Departament d'Història i conferències | després de la 2 | 01, 02, 07 | — | pendent |
@@ -139,12 +139,18 @@
    - [Addenda de la 058: tipus, durades, llicència d'un dia, recàrrec, renovació, format del carnet i caducitat desconeguda](#M06-addenda-058)
    - [Addenda de la 059: permisos editables i configuració inicial](#M06-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M06-addenda-060)
-14. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
-15. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
-16. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta): [decisions de debò](#ordre-del-dia-decisions) · [valors inicials](#ordre-del-dia-valors)
-17. [Apèndix — Valors configurables](#valors-configurables) · [peça comuna d'ajustos (055)](#valors-configurables-055)
-18. [Apèndix — Rols i permisos editables (059)](#rols-i-permisos-059) · [configuració inicial de la matriu](#rols-i-permisos-059-matriu)
-19. [Apèndix — Ajustos de l'auditoria (060)](#ajustos-060) · [peces de la 00](#ajustos-060-peces-00) · [rols i permisos](#ajustos-060-rols) · [lectura de les tasques substituïdes](#ajustos-060-lectura)
+14. [Mòdul 07 — Web pública i ajuda](#M07) · [resum](#M07-resum) · **escrit** (21/11/2026; spec d'una pàgina, per aprovar)
+   1. [Intenció](#M07-1-intencio) · 2. [Dependències](#M07-2-dependencies) · 3. [Capacitats](#M07-3-capacitats) · 4. [Rols](#M07-4-rols) · 5. [Processos](#M07-5-processos) · 6. [Entitats](#M07-6-entitats) · 7. [Regles](#M07-7-regles)
+   8. [Serveis](#M07-8-serveis) · 9. [Criteris](#M07-9-criteris) · 10. [Tasques](#M07-10-tasques) · 11. [Proves](#M07-11-proves) · 12. [Seguretat](#M07-12-seguretat) · 13. [Riscos](#M07-13-riscos) · 14. [Aprovar](#M07-14-aprovar)
+15. [Mòdul 08 — Dashboard](#M08) · [resum](#M08-resum) · **escrit** (21/11/2026; spec d'una pàgina, per aprovar)
+   1. [Intenció](#M08-1-intencio) · 2. [Dependències](#M08-2-dependencies) · 3. [Capacitats](#M08-3-capacitats) · 4. [Rols](#M08-4-rols) · 5. [Processos](#M08-5-processos) · 6. [Entitats](#M08-6-entitats) · 7. [Regles](#M08-7-regles)
+   8. [Serveis](#M08-8-serveis) · 9. [Criteris](#M08-9-criteris) · 10. [Tasques](#M08-10-tasques) · 11. [Proves](#M08-11-proves) · 12. [Seguretat](#M08-12-seguretat) · 13. [Riscos](#M08-13-riscos) · 14. [Aprovar](#M08-14-aprovar)
+16. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
+17. [Apèndix — Preguntes per propietari](#preguntes): [banc](#preguntes-banc) · [PaynoPain](#preguntes-paynopain) · [tresorer](#preguntes-tresorer) · [junta](#preguntes-junta) · [gestoria](#preguntes-gestoria) · [FECDAS](#preguntes-fecdas) · [secretaria](#preguntes-secretaria) · [informàtica](#preguntes-informatica) · [responsable del projecte](#preguntes-responsable) · [responsable de cursos i sortides](#preguntes-cursos-sortides)
+18. [Apèndix — Ordre del dia per a la junta](#ordre-del-dia-junta): [decisions de debò](#ordre-del-dia-decisions) · [valors inicials](#ordre-del-dia-valors)
+19. [Apèndix — Valors configurables](#valors-configurables) · [peça comuna d'ajustos (055)](#valors-configurables-055)
+20. [Apèndix — Rols i permisos editables (059)](#rols-i-permisos-059) · [configuració inicial de la matriu](#rols-i-permisos-059-matriu)
+21. [Apèndix — Ajustos de l'auditoria (060)](#ajustos-060) · [peces de la 00](#ajustos-060-peces-00) · [rols i permisos](#ajustos-060-rols) · [lectura de les tasques substituïdes](#ajustos-060-lectura)
 
 <a id="regles"></a>
 ## 3. Regles generals (valen per a tots els mòduls)
@@ -6415,6 +6421,459 @@ No canvia cap regla del 06. Hi afegeix d'on surt la sol·licitud de la primera l
 
 ---
 
+<a id="M07"></a>
+# Mòdul 07 — Web pública i ajuda
+
+**Estat: escrit** (21/11/2026), per aprovar ([M07-14](#M07-14-aprovar)). És una **especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): contingut web), amb les 14 seccions de la [plantilla](#plantilla) en format curt. El responsable del projecte la va demanar alhora que la del [08](#M08) (21/11/2026). Cap regla d'un altre mòdul no canvia.
+
+**Fonts:** document de funcionalitats (F §8.2 Web pública, anuncis i butlletí; F §8.6 Preguntes freqüents, Contacte i Tutorials; processos 9.14 i 9.19), mapa de la plataforma v8 (M07a Web i M07b Ajuda, [correspondència](#numeracio)), wireframe `design/wireframes/publica.html`, pantalles «En construcció» d'`apps/previews` (`portada_publica`, T-DX-26; `editor_web`, T-DX-36; `ajuda`, T-DX-28), decisions [032](decisions/032-immersio-socis-i-centre.md) i [034](decisions/034-patrons-magic-portfolio.md) (seccions i estil), [035](decisions/035-dades-nomes-dins-ue.md) i [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) (tipografies i vídeos des del servidor propi), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) (web pública servida des del mateix VPS, sense CDN), [061](decisions/061-plataforma-preparada-per-traduir.md) (idiomes), [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md) (Brevo); pendents P-25, P-40, P-41, P-42, P-43 i P-49.
+
+<a id="M07-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Una web pública a cris1954.cat que explica el club, capta socis i alumnes i mostra les activitats publicades al 02 sense tornar-les a escriure; l'ajuda (preguntes freqüents, tutorials i contacte) perquè socis i gent de fora resolguin els dubtes sols; i el butlletí, amb doble confirmació i baixa a cada enviament |
+| **Processos que cobreix** | P-M07-A Editar i publicar una pàgina · P-M07-B Notícies · P-M07-C Fotos i fitxers · P-M07-D Contacte · P-M07-E Subscripció i baixa del butlletí · P-M07-F Enviar un butlletí (F 9.14) · P-M07-G Resoldre un dubte (F 9.19) |
+| **Tasques** | 18 (T-M07-01 a T-M07-18) |
+| **Què el bloqueja** | Per construir: el catàleg de permisos (T-RP-01) i la peça d'ajustos (T-AJ-02), ja fets; el llistat públic del 02 (T-M02-08). La portada `/` és avui de la 00: passar-la al 07 demana el torn del nucli. Per obrir-la al públic: textos i fotos reals (P-40, P-41), qui manté el contingut (P-43), el butlletí (P-42, [P-485](decisions/pendents.md), [P-492](decisions/pendents.md)) i el contacte ([P-486](decisions/pendents.md)) |
+| **Què cal aprovar** | Aquesta secció, les files WP1 a WP8 de la matriu i els supòsits de [M07-13](#M07-13-riscos) ([M07-14](#M07-14-aprovar)) |
+
+<a id="M07-1-intencio"></a>
+## M07-1 Intenció, abast i fora d'abast
+
+**Per què.** La web actual (cris.barcelona) no està connectada amb la gestió: cada activitat s'ha d'escriure dues vegades i els dubtes arriben per WhatsApp o per correu. La plataforma ja té el formulari «Fer-se soci» i la verificació del carnet (01) i el llistat públic d'activitats (02); falta la web que els posa junts.
+
+**Com sabrem que funciona.** Una activitat publicada al 02 surt a la web sense cap pas més; cap contingut no publicat és visible; cap pàgina pública no carrega res d'un tercer; cap foto no es publica sense autor i permís; cap butlletí no arriba a qui no l'ha confirmat o s'ha donat de baixa.
+
+**Dins de l'abast.**
+- **M07a Web:** pàgines amb blocs editables i versions (llista inicial de F §8.2: Inici, Qui som, El Centre, Història, Formació i cursos, Sortides, Medi ambient, Projectes, Notícies i conferències, Galeria, Fer-se soci, Contacte, Preguntes freqüents, Tutorials i Butlletí); notícies; fotos amb autor, permís i consentiment; activitats llegides del 02; butlletí.
+- **M07b Ajuda:** preguntes freqüents per temes amb cercador; tutorials en vídeo amb els passos escrits; contacte amb motiu i safata.
+
+**Fora d'abast.** Inscripció i pagament (02 i 05b: la web hi enllaça); «Fer-se soci» i verificar el carnet (01); conferències, museu virtual i línia del temps de la Història (11: fins aleshores, la pàgina d'Història és de blocs de text); missatges i xats (10); novetats de l'app i centre d'avisos (00, T-DX-09); botiga (13); analítica de visites ([P-491](decisions/pendents.md)); segones llengües (P-49); redirecció de cris.barcelona (P-25).
+
+<a id="M07-2-dependencies"></a>
+## M07-2 Dependències
+
+**De què depèn** (només lectura i serveis; cap escriptura als models d'una altra app).
+| Mòdul | Què en fa servir el 07 |
+|---|---|
+| 00 | Permisos i matriu (059); ajustos (055); textos legals i consentiments (`consents.grant`, `consents.withdraw`); correu i cua amb prioritat i comptador diari (T-M00-06); fitxers privats; registre d'activitat; RGPD (`export_personal_data`, `anonymise`) |
+| 01 | Ruta i botó «Fer-se soci» i verificació del carnet (ja són públiques; el 07 només hi enllaça) |
+| 02 | `activities.public_list(filters)` i `activities.get_activity(id)` (dades públiques, sense noms, [M02-8](#M02-8-serveis)). Projectes i resultats ambientals publicats: el contracte del 02 encara no té el servei (requisit RP-M07-01 de [M07-13](#M07-13-riscos)) |
+
+**Què depèn del 07.** El 08 (recompte de subscriptors confirmats i de missatges de contacte pendents, `website.counts()`); l'11 (pàgina d'Història i conferències quan existeixi); qualsevol pantalla de l'app que enllaci un tutorial (RN-M07-11).
+
+<a id="M07-3-capacitats"></a>
+## M07-3 Capacitats i històries d'usuari
+
+| # | Capacitat | Qui | On |
+|---|---|---|---|
+| C1 | Veure les pàgines, les notícies i les activitats publicades | Visitant | Web |
+| C2 | Editar pàgines i blocs, i publicar-los | WP1 | Editor de la web |
+| C3 | Notícies | WP2 | Editor de la web |
+| C4 | Fotos i fitxers de la web | WP3 | Editor de la web |
+| C5 | Preguntes freqüents i tutorials | WP4 | Ajuda |
+| C6 | Contacte: enviar (visitant) i atendre la safata | Visitant; WP5 | Contacte |
+| C7 | Butlletí: subscriure's, confirmar i donar-se de baixa (visitant); redactar i enviar (WP6) | Visitant; WP6 | Butlletí |
+
+- **HU-M07-01.** Com a visitant, vull veure les properes activitats a la portada i obrir-ne el detall sense crear cap compte.
+- **HU-M07-02.** Com a qui edita la web, vull canviar el text d'una pàgina, veure com quedarà i publicar-la, i tornar a la versió anterior si m'equivoco.
+- **HU-M07-03.** Com a soci o visitant amb un dubte, vull trobar la resposta a l'ajuda i, si no hi és, escriure al club triant el motiu.
+- **HU-M07-04.** Com a subscriptor, vull confirmar la subscripció i donar-me de baixa amb un sol clic des de qualsevol butlletí.
+
+<a id="M07-4-rols"></a>
+## M07-4 Rols i permisos
+
+Files proposades per a la [matriu](#rols-i-permisos-059-matriu) (configuració inicial, editable per l'administrador, 059), amb la llegenda d'aquell apèndix. **Resp. com.** = Responsable de comunicació, que avui comença sense cap permís: la columna diu el que es proposa quan la junta respongui la P-43; fins aleshores, «—».
+
+| # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Resp. com. (P-43) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WP1 | Editar pàgines i blocs de la web, publicar-los i tornar a una versió anterior | — | — | — | — | — | — | Sí | Sí | — | Sí |
+| WP2 | Crear, publicar i retirar notícies | — | — | — | — | — | — | Sí | Sí | — | Sí |
+| WP3 | Pujar i retirar fotos i fitxers de la web, amb autor, permís i consentiment | — | — | — | — | — | — | Sí | Sí | — | Sí |
+| WP4 | Preguntes freqüents i tutorials | — | — | — | — | — | — | Sí | Sí | Sí (F §8.6) | Sí |
+| WP5 | Veure i respondre els missatges de contacte (abast: per motiu) | — | Sí (tots els motius) | — | — | — | — | Sí | — | — | — |
+| WP6 | Redactar i enviar el butlletí (veu el recompte de subscriptors, mai el llistat) | — | — | — | — | — | — | Sí | Sí | — | Sí |
+| WP7 | Veure i exportar el llistat de subscriptors | — | — | — | — | — | — | Sí | — | — | — |
+| WP8 | Motius de contacte i a qui arriba cada un (llista) | — | — | — | — | — | — | Sí | — | — | — |
+
+**Fixos (fora de la matriu, com el visitant, RN-40):** veure el contingut publicat, enviar el formulari de contacte, subscriure's, confirmar i donar-se de baixa. **Per objecte:** WP5 només per als motius que té assignats (RN-M07-07). Els ajustos del 07 tenen el seu permís `settings.edit.<clau>` (RN-RP-17).
+
+<a id="M07-5-processos"></a>
+## M07-5 Processos pas per pas
+
+**Wireframes existents:** `publica.html` (portada, seccions, contacte, butlletí, «Fer-se soci») i les pantalles en construcció `portada_publica`, `editor_web` i `ajuda`. **Falten** (T-M07-01): editor de pàgines i notícies, fotos, safata de contacte, redactar el butlletí, administració de l'ajuda.
+
+- **P-M07-A Editar i publicar una pàgina.** WP1 obre la pàgina, tria la plantilla (llista tancada) i el color d'accent (només un dels tokens permesos), afegeix, ordena o treu blocs, veu la vista prèvia i la de compartir, i publica: es crea una versió nova i el públic veu aquesta. «Tornar a aquesta versió» publica una còpia d'una versió anterior.
+- **P-M07-B Notícies.** WP2 escriu la notícia (títol, data, cos, foto opcional), la publica o la deixa en esborrany i la pot retirar amb motiu. La portada en mostra les més recents.
+- **P-M07-C Fotos i fitxers.** WP3 puja la foto amb l'autor, el permís d'ús i si s'hi veuen persones; si s'hi veuen, cal marcar que hi ha el seu consentiment (P-41). Sense això no es pot posar en cap bloc publicat. Retirar-la la treu de totes les pàgines.
+- **P-M07-D Contacte.** El visitant tria el motiu, escriu el nom, el correu i el missatge i accepta el text de privacitat. Rep la mateixa resposta genèrica sempre. Els comptes amb WP5 per a aquell motiu reben un avís; un d'ells respon des de la safata (el correu surt de cris@cris.es, 085) o el tanca sense resposta amb motiu.
+- **P-M07-E Subscripció i baixa.** El visitant escriu el correu i accepta el text del butlletí; rep un correu de confirmació; en confirmar, queda subscrit amb la versió del text acceptada. Cada butlletí porta l'enllaç de baixa, que funciona sense sessió i és immediat.
+- **P-M07-F Enviar un butlletí (F 9.14).** WP6 redacta amb plantilla, hi pot enllaçar properes activitats del 02, veu la vista prèvia i el nombre de destinataris, i l'envia. La cua l'envia en lots amb prioritat baixa; queden els recomptes d'enviats, fallits i baixes posteriors.
+- **P-M07-G Resoldre un dubte (F 9.19).** Ajuda → cercador → tutorial de la pantalla → contacte. Si un dubte es repeteix, WP4 l'afegeix a les preguntes freqüents.
+
+<a id="M07-6-entitats"></a>
+## M07-6 Entitats i camps
+
+App `website`. Cap camp no guarda HTML lliure (RN-M07-10).
+- `Page`: `slug` (únic; no pot coincidir amb cap ruta existent), `title`, `template` (llista tancada), `accent` (token permès), `menu_order`, `in_menu`, `share_title`, `share_description`, `status` (`draft`, `published`, `retired`). Llista inicial de F §8.2, sense contingut i sense publicar (P-40).
+- `PageVersion`: `page`, `number`, `blocks` (llista ordenada de blocs: `kind` d'una llista tancada —text, imatge, galeria, llista d'activitats del 02 amb filtre, notícies recents, preguntes d'un tema, botó «Fer-se soci», formulari de contacte, subscripció— i el seu contingut), `published_by`, `published_at`, `note`. Només s'hi afegeixen files.
+- `NewsItem`: `title`, `slug`, `date`, `body`, `image` (FK null), `status`, `retired_reason`.
+- `MediaAsset`: fitxer (fitxers de la 00), `alt_text` (obligatori), `author`, `licence_note` (permís d'ús), `shows_people` (sí o no), `people_consent` (obligatori si `shows_people`), `credit`, `status` (`active`, `retired`).
+- `FaqTopic` i `FaqEntry` (`question`, `answer`, `order`, `published`). `Tutorial`: `title`, vídeo (servidor propi), `steps`, `screen_code` (ruta de l'app on s'enllaça), `published`.
+- `ContactReason` (dada: `name`, `active`, permís de destinació per a l'abast de WP5). Inicials, de F §8.6: Cursos, Sortides, Quotes, Llicències i Altres. `ContactMessage`: `reason`, `name`, `email`, `body`, `status` (`new`, `answered`, `closed`), `answered_by`, `answer`, `closed_reason`, `created_at`. Sense IP.
+- `NewsletterSubscription`: `email`, `status` (`pending`, `confirmed`, `unsubscribed`), `legal_text_version`, `token`, dates; esdeveniments de confirmació i baixa només afegits ([P-492](decisions/pendents.md)). `Newsletter`: `subject`, `body`, `status` (`draft`, `sent`), `sent_at`, `sent_count`, `failed_count`.
+
+**Valors configurables** (pantalla d'ajustos, T-M07-03; entren a l'[apèndix](#valors-configurables) amb número VC en aprovar-se)
+| Clau | Inicial | Rang | Qui el canvia |
+|---|---|---|---|
+| `website.home_activities_count` | 6 | 1 a 12 | WP1 |
+| `website.news_on_home` | 3 | 0 a 10 | WP1 |
+| `website.newsletter_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-42, P-485 i P-492 |
+| `website.newsletter_confirm_hours` | 48 | 1 a 168 | Administrador |
+| `website.contact_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-486 |
+| `website.contact_retention_months` | 6 [A verificar: gestoria, P-486] | 1 a 24 | Administrador |
+| `website.club_contact` (adreça, telèfon, correu i horari que surten a Contacte) | Buit [A validar: secretaria] | Text | WP1 |
+
+Es queden al codi: la llista de plantilles i de tipus de bloc, els tokens d'accent, els màxims recomanats del títol (60) i la descripció (150) per compartir, i la limitació de peticions (seguretat).
+
+<a id="M07-7-regles"></a>
+## M07-7 Regles de negoci
+
+| ID | Regla |
+|---|---|
+| RN-M07-01 | **Rutes públiques declarades.** Només són públiques (declarades amb `login_not_required`): les pàgines i les notícies publicades, l'ajuda publicada, el contacte, i subscriure's, confirmar i donar-se de baixa. Tota la resta demana sessió i permís |
+| RN-M07-02 | **Només el publicat.** Un esborrany, un contingut retirat o un que no existeix donen el mateix «no trobat» |
+| RN-M07-03 | **Versions.** Publicar crea una `PageVersion` nova; cap versió no s'edita ni s'esborra. Tornar enrere és publicar-ne una còpia |
+| RN-M07-04 | **Activitats sense còpia.** La web llegeix el 02 a cada petició (`public_list`, `get_activity`); no en desa res i no hi surt cap nom de persona |
+| RN-M07-05 | **Fotos.** Cap imatge en un bloc publicat sense autor, permís d'ús, text alternatiu i, si s'hi veuen persones, el consentiment marcat (P-41). Retirar-la la treu de tot arreu a la petició següent |
+| RN-M07-06 | **Butlletí.** Doble confirmació; s'envia només als `confirmed`; cada enviament porta l'enllaç de baixa; la baixa és immediata i no es torna a enviar res; un butlletí enviat no es torna a enviar. Sense píxels de seguiment ni enllaços rastrejats. Prioritat baixa a la cua (T-M00-06), per sota dels correus transaccionals. Darrere de `website.newsletter_enabled` |
+| RN-M07-07 | **Contacte.** El motiu és d'una llista (dada); l'avís arriba només als comptes amb WP5 per a aquell motiu; la resposta al visitant és sempre la mateixa; protecció contra robots sense cap servei de tercers (camp parany, temps mínim i límit per origen); els missatges tancats s'esborren passats `website.contact_retention_months`. Darrere de `website.contact_enabled` |
+| RN-M07-08 | **Missatges que no revelen res.** Subscriure's dona la mateixa resposta si el correu ja hi era, si no hi era o si s'havia donat de baixa |
+| RN-M07-09 | **Res de tercers.** Tipografies, imatges, vídeos i scripts des del servidor propi (042, 046); el mapa del local és una imatge estàtica o un enllaç, sense incrustar. Cap galeta, excepte la de sessió, la del CSRF dels formularis i la del tema |
+| RN-M07-10 | **Text sense HTML.** El que escriuen els usuaris es desa com a text amb un format limitat (paràgrafs, títols, llistes, enllaços) i s'escapa en mostrar-lo |
+| RN-M07-11 | **Tutorials.** Vídeo al servidor propi i passos escrits al costat; si un tutorial publicat té `screen_code`, aquella pantalla mostra «Mira com es fa» |
+| RN-M07-12 | **Cercador de l'ajuda.** Cerca a la pregunta i a la resposta de les entrades publicades; sense resultats, enllaça el contacte |
+| RN-M07-13 | **Compartir.** Un títol de més de 60 caràcters o una descripció de més de 150 donen un avís, no un error |
+| RN-M07-14 | **Registre.** Publicar, retirar, tornar a una versió, retirar una foto, enviar un butlletí, respondre, tancar i esborrar un missatge queden al registre d'activitat, amb el valor anterior |
+
+<a id="M07-8-serveis"></a>
+## M07-8 Serveis i interfícies
+
+Cap altra app escriu als models del 07.
+| Servei | Sortida | Qui el fa servir |
+|---|---|---|
+| `website.publish_page(page, blocks, actor, note)` | `PageVersion` nova | Vistes |
+| `website.counts()` | subscriptors confirmats; missatges pendents (només recomptes) | 08 |
+| `website.tutorial_for(screen_code)` | tutorial publicat o res | Plantilles de qualsevol mòdul |
+| `website.export_personal_data(email_or_person)`, `website.anonymise(...)` | — | 00 (RGPD) |
+
+**Consumeix:** `activities.public_list`, `activities.get_activity` (02); `consents`, `mail.send` (amb prioritat), `files`, `audit.record`, `permissions.require`, `settings.get` (00).
+
+**Rutes.** Públiques: `/` (portada; avui és de la 00), `/<slug>/` (pàgines), `/noticies/`, `/noticies/<slug>/`, `/ajuda/`, `/ajuda/tutorials/<slug>/`, `/contacte/`, `/butlleti/`, `/butlleti/confirmar/<token>/`, `/butlleti/baixa/<token>/`. Administració: `/gestio/web/` (pàgines, notícies, fotos, ajuda, contacte, butlletí).
+
+<a id="M07-9-criteris"></a>
+## M07-9 Criteris d'acceptació
+
+- **CA-M07-01** Donat una pàgina en esborrany i una de publicada, quan un visitant sense sessió les obre, llavors la primera dona el mateix «no trobat» que una ruta que no existeix i la segona es veu.
+- **CA-M07-02** Donat cada ruta del 07 que no és a RN-M07-01, quan s'hi entra sense sessió o sense el permís, llavors es rebutja.
+- **CA-M07-03** Donat una pàgina amb la versió 2 publicada, quan es publica un canvi i després «Tornar a la versió 2», llavors hi ha les versions 3 i 4, la 4 és igual que la 2 i cap versió anterior ha canviat.
+- **CA-M07-04** Donat tres activitats publicades al 02 i una en esborrany, quan un visitant obre la portada, llavors veu les tres per data (com a màxim `website.home_activities_count`), sense cap nom de persona; sense cap activitat, veu «Ara no hi ha cap activitat oberta» i l'enllaç al butlletí (L-M02-09).
+- **CA-M07-05** Donat una foto sense autor o sense permís, o amb persones i sense consentiment, quan es vol posar en un bloc publicat, llavors es rebutja; quan es retira una foto publicada, a la petició següent ja no surt a cap pàgina.
+- **CA-M07-06** Donat un correu nou, un de confirmat i un de donat de baixa, quan es subscriuen, llavors la pantalla diu el mateix en els tres casos, el correu nou i el de baixa reben la confirmació i el confirmat no rep res; una confirmació passades `website.newsletter_confirm_hours` no subscriu.
+- **CA-M07-07** Donat un enllaç de confirmació, quan s'obre dues vegades, llavors hi ha una sola subscripció confirmada amb la versió del text acceptada.
+- **CA-M07-08** Donat tres subscripcions (confirmada, pendent i de baixa), quan s'envia un butlletí, llavors només el rep la confirmada, porta l'enllaç de baixa, va a la cua amb prioritat baixa, queden els recomptes i el mateix butlletí no es pot tornar a enviar.
+- **CA-M07-09** Donat un enllaç de baixa, quan s'obre sense sessió, llavors la baixa és immediata, queda l'esdeveniment i el butlletí següent no li arriba; tornar-lo a obrir mostra la mateixa pàgina.
+- **CA-M07-10** Donat `website.newsletter_enabled` apagat, quan un visitant obre una ruta del butlletí o WP6 vol enviar-ne un, llavors «no trobat» o rebuig, i la portada no mostra el formulari.
+- **CA-M07-11** Donat un missatge de contacte amb el motiu «Quotes», quan s'envia, llavors queda desat sense IP, només en reben l'avís els comptes amb WP5 per a «Quotes» i el visitant veu la resposta genèrica; amb el camp parany omplert o massa peticions des del mateix origen, la resposta és la mateixa i no es desa res.
+- **CA-M07-12** Donat un missatge tancat fa més de `website.contact_retention_months`, quan corre la tasca diària, llavors s'esborra una sola vegada i en queda la traça al registre sense el contingut.
+- **CA-M07-13** Donat un bloc de text amb `<script>`, quan es mostra, llavors surt escapat.
+- **CA-M07-14** Donat cada pàgina pública renderitzada, quan es revisen els seus `script`, `link`, `img`, `video`, `iframe` i tipografies, llavors tots són del mateix origen.
+- **CA-M07-15** Donat un visitant sense sessió que recorre les pàgines públiques, quan es miren les respostes, llavors no rep cap galeta fora de les de RN-M07-09.
+- **CA-M07-16** Donat dues preguntes publicades i una sense publicar que contenen «quota», quan es cerca «quota», llavors en surten les dues publicades; sense resultats, surt l'enllaç al contacte.
+- **CA-M07-17** Donat un tutorial publicat lligat a la pantalla de pagar una quota, quan s'obre la pantalla, llavors hi ha «Mira com es fa»; si es despublica, desapareix.
+- **CA-M07-18** Donat cada cel·la de [M07-4](#M07-4-rols), quan el rol prova l'acció, llavors el resultat coincideix; WP6 no veu cap correu de subscriptor.
+- **CA-M07-19** Donat una plantilla fora de la llista, un accent que no és un token permès o un `slug` que coincideix amb una ruta existent, quan es desa, llavors es rebutja.
+- **CA-M07-20** Donat les accions de RN-M07-14, quan es fan, llavors cadascuna deixa una entrada al registre amb qui, quan i el valor anterior.
+- **CA-M07-21** Donat una persona amb una subscripció i un missatge de contacte, quan demana l'exportació o l'esborrat (RGPD), llavors l'exportació els inclou i l'esborrat en treu el correu i el nom.
+- **CA-M07-22** Donat un títol per compartir de 70 caràcters, quan es desa, llavors es desa amb un avís.
+
+<a id="M07-10-tasques"></a>
+## M07-10 Tasques (per dependències, sense dates)
+
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M07-01 | Wireframes que falten ([M07-5](#M07-5-processos)), amb els requisits de seguretat i privacitat de cada flux, a partir de les pantalles en construcció | M | `design/wireframes/` | — | Revisats; estats d'error, accés denegat i sessió caducada |
+| T-M07-02 | Permisos WP1 a WP8 al catàleg i a la matriu inicial (torn del nucli) | S | `apps/core/permission_catalog.py`, migració de la 00 | T-RP-01 | CA-M07-18 |
+| T-M07-03 | App `website` i ajustos del 07 ([M07-6](#M07-6-entitats)) | S | `apps/website/`, migració | T-AJ-02 | Per valor: rang, registre, «no trobat» sense permís |
+| T-M07-04 | Pàgines, versions i blocs; publicar i tornar a una versió | M | `apps/website/models.py`, `pages.py` | T-M07-03 | CA-M07-03, 19, 22 |
+| T-M07-05 | Pàgines públiques i portada amb les activitats del 02 (la portada `/`, torn del nucli) | M | `apps/website/views/public.py`, plantilles | T-M07-04, T-M02-08 | CA-M07-01, 02, 04, 13, 14, 15 |
+| T-M07-06 | Editor de pàgines (administració) amb vista prèvia i de compartir | M | `apps/website/views/admin.py`, plantilles | T-M07-04, T-M07-02 | HU-M07-02; CA-M07-20 |
+| T-M07-07 | Fotos i fitxers de la web, i servei públic de les imatges publicades | M | `apps/website/media.py` | T-M07-04 | CA-M07-05 ([P-489](decisions/pendents.md)) |
+| T-M07-08 | Notícies | S | `apps/website/news.py`, vistes | T-M07-07 | RN-M07-02; CA-M07-01 per a notícies |
+| T-M07-09 | Preguntes freqüents amb cercador | S | `apps/website/help.py`, vistes | T-M07-03, T-M07-02 | CA-M07-16 |
+| T-M07-10 | Tutorials i «Mira com es fa» | M | `apps/website/help.py`, plantilles | T-M07-07 | CA-M07-17 |
+| T-M07-11 | Contacte: motius, formulari, protecció contra robots i safata per motiu | M | `apps/website/contact.py`, vistes | T-M07-03, T-M07-02 | CA-M07-11 |
+| T-M07-12 | Conservació dels missatges de contacte (tasca diària) | S | `apps/website/tasks.py` | T-M07-11 | CA-M07-12 |
+| T-M07-13 | Butlletí: subscripció amb doble confirmació, consentiment i baixa | M | `apps/website/newsletter.py` | T-M07-03, T-M01-08 | CA-M07-06, 07, 09, 10 |
+| T-M07-14 | Butlletí: redactar, enviar per la cua i recomptes | M | `apps/website/newsletter.py`, vistes | T-M07-13, T-M00-06 | CA-M07-08 |
+| T-M07-15 | RGPD del 07 (exportació i esborrat) | S | `apps/website/privacy.py` | T-M07-11, T-M07-13 | CA-M07-21 |
+| T-M07-16 | Treure de previews `portada_publica`, `editor_web` i `ajuda` en passar a funcionals (design-system §6.9) | XS | `apps/previews/` | T-M07-05, T-M07-06, T-M07-09 | Proves de previews canviades per les funcionals |
+| T-M07-17 | Dades inventades i proves de principi a fi (publicar → veure; subscriure → confirmar → enviar → baixa; contacte → resposta) | M | `fixtures/`, `tests/` | T-M07-05 a T-M07-15 | Totes en verd; e2e a 1280 i 390 px |
+| T-M07-18 | Guia de qui edita la web | S | `docs/guies/` | T-M07-17 | Revisada |
+
+<a id="M07-11-proves"></a>
+## M07-11 Pla de proves
+
+Unitàries (versions, format de text, recomptes, conservació); permisos (una prova per cel·la de M07-4 i una per cada ruta: pública declarada o protegida); contracte amb el 02 (`public_list` sense noms); integració del butlletí amb la bústia de proves (doble confirmació, baixa, prioritat); seguretat (CA-M07-13 a 15); accessibilitat B8 (text alternatiu, contrast, vídeos amb els passos escrits); e2e de la portada, l'editor, l'ajuda i el contacte a 1280 i 390 px. Només dades inventades.
+
+<a id="M07-12-seguretat"></a>
+## M07-12 Seguretat i RGPD
+
+- **Mínim de dades:** contacte (nom, correu, missatge, sense IP); butlletí (només el correu i la versió del text). Cap dada de salut.
+- **Consentiment:** butlletí amb doble confirmació i baixa a cada enviament; contacte amb text de privacitat (base legal [A validar: junta]).
+- **Conservació:** missatges tancats, `website.contact_retention_months` (P-486); subscripcions de baixa, només la traça de la baixa.
+- **Públic declarat**, amb limitació de peticions als formularis; res de tercers (RN-M07-09); text escapat (RN-M07-10); fotos amb consentiment (RN-M07-05).
+- **Permisos al servidor**; WP6 mai veu el llistat (WP7). Amagar un element no és un control.
+
+<a id="M07-13-riscos"></a>
+## M07-13 Riscos, supòsits i dubtes
+
+| Risc | Mitigació | Propietari |
+|---|---|---|
+| Ningú no manté el contingut i la web queda antiga | P-43; la portada s'alimenta sola del 02 | Junta |
+| Correu brossa pel formulari de contacte | Parany, temps mínim, límit per origen; interruptor | Informàtica |
+| El butlletí gasta el límit diari de correu | Prioritat baixa i reserva per als transaccionals (T-M00-06) | Informàtica |
+| Una foto publicada sense consentiment | RN-M07-05; retirar-la és immediat | Resp. comunicació |
+
+**Supòsits i requisits pendents**
+| ID | Què | Supòsit mentrestant | Propietari |
+|---|---|---|---|
+| S-M07-01 | Qui edita i publica cada tipus de contingut (P-43) | Administrador i President (matriu inicial) | Junta |
+| S-M07-02 | Textos, fotos i projectes reals (P-40, P-41) | Llista de pàgines de F §8.2, sense contingut i sense publicar | Junta |
+| S-M07-03 | Dades de contacte del club (adreça, telèfon, horari) | Buides fins que la secretaria les doni | Secretaria |
+| S-M07-04 | Base legal i text de privacitat del contacte i del butlletí | Consentiment, amb el text de la 00 [A validar: junta] | Junta |
+| S-M07-05 | A qui arriba cada motiu de contacte (F §8.6, [A validar]) | Tots a la Secretaria (WP5); l'administrador els reparteix amb WP8 (P-486) | Junta |
+| RP-M07-01 | Servei de lectura dels projectes i resultats ambientals publicats (és del 02, [M02-2](#M02-2-dependencies)) | La pàgina de Projectes és de blocs de text fins que el 02 l'ofereixi | Responsable del projecte |
+
+**Dubtes nous** (a [`pendents.md`](decisions/pendents.md) i al [tauler](decisions/tauler-preguntes.yml)): **P-485** com s'envia el butlletí; **P-486** conservació i destinataris del contacte; **P-489** com se serveixen les imatges públiques; **P-491** analítica de visites; **P-492** el subscriptor, persona o fila pròpia.
+
+<a id="M07-14-aprovar"></a>
+## M07-14 Què cal aprovar abans de començar
+
+1. Aquesta secció (abast M07a i M07b, entitats, regles RN-M07-01 a 14 i criteris CA-M07-01 a 22).
+2. Les files WP1 a WP8 de la [matriu](#rols-i-permisos-059-matriu) amb la configuració inicial de M07-4.
+3. Els supòsits S-M07-01 a 05 per començar; no bloquegen el codi.
+4. **Per obrir-la al públic** (no per començar): P-40, P-41, P-43; i, per encendre el butlletí i el contacte, P-42, P-485, P-486 i P-492.
+
+---
+
+<a id="M08"></a>
+# Mòdul 08 — Dashboard
+
+**Estat: escrit** (21/11/2026), per aprovar ([M08-14](#M08-14-aprovar)). **Especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): dashboard), amb les 14 seccions en format curt, demanada alhora que la del [07](#M07). No canvia cap regla d'un altre mòdul: només llegeix els seus serveis.
+
+**Fonts:** document de funcionalitats (F §8.4 Dashboard de gestió i taula de rols: «poden veure tot el dashboard però no modificar res»), mapa de la plataforma v8 (M09 Dashboard: general, econòmic, d'activitat i de socis), pantalla «En construcció» `dashboard` d'`apps/previews` (T-DX-35, només xifres agregades), [RN-RP-16](#rols-i-permisos-059) i les files DB1 i DB2 de la [matriu](#rols-i-permisos-059-matriu); la columna «Què depèn de» de cada mòdul aprovat (01, 04, 05a, 02, 03, 09, apartat d'ajuts i 06).
+
+<a id="M08-resum"></a>
+**Resum d'una pàgina**
+| | |
+|---|---|
+| **Intenció** | Donar a la junta i als responsables l'estat del club d'un cop d'ull, amb cinc panells (general, econòmic, activitat, socis i comunicació), cada indicador amb la seva definició escrita, **només amb agregats i sense cap dada personal** |
+| **Processos que cobreix** | P-M08-A Consultar el dashboard · P-M08-B Anar al detall (amb el permís del mòdul) · P-M08-C Ajustar els llindars · P-M08-D Ordenar els blocs propis |
+| **Tasques** | 14 (T-M08-01 a T-M08-14) |
+| **Què el bloqueja** | Per construir: els serveis de lectura dels mòduls ([M08-2](#M08-2-dependencies)), la majoria ja fets; el del 02 per a l'ocupació i l'assistència no és al contracte (RP-M08-01). Per mostrar xifres reals: les dels mòduls a producció |
+| **Què cal aprovar** | Aquesta secció, l'abast de DB1 i DB2 i els supòsits de [M08-13](#M08-13-riscos) ([M08-14](#M08-14-aprovar)) |
+
+<a id="M08-1-intencio"></a>
+## M08-1 Intenció, abast i fora d'abast
+
+**Per què.** Avui la junta no té cap visió conjunta: cada xifra s'ha de demanar a qui porta cada àrea. Els mòduls ja calculen les dades; falta posar-les juntes amb una definició clara.
+
+**Com sabrem que funciona.** Cada xifra coincideix amb la del mòdul que la calcula per al mateix període; cap pàgina del dashboard no conté cap nom, correu, document ni IBAN; cap indicador no surt sense definició.
+
+**Dins de l'abast.** Cinc panells de F §8.4; selector de període; definició de cada indicador a la vista; avisos per llindar; enllaços al detall de cada mòdul, només amb el permís d'aquell mòdul; ordre i blocs amagats per compte (T-DX-35).
+
+**Fora d'abast.** Cap acció des del dashboard (DB2 queda reservat, RN-M08-06); exportacions (cada mòdul té les seves); llistes de persones; indicadors de l'11 fins que existeixi (el bloc d'assistents a conferències no surt); previsions o objectius.
+
+<a id="M08-2-dependencies"></a>
+## M08-2 Dependències
+
+Només serveis de lectura que ja ofereixen els mòduls (cap escriptura, cap consulta directa als models d'una altra app).
+| Mòdul | Servei | Per a què |
+|---|---|---|
+| 01 | `members.stats(on)` | Socis actius per tipus i estat, altes i baixes, impagats |
+| 04 | `treasury.balance(account, on)` | Saldos dels comptes |
+| 05a | `payments.campaign_status(campaign)` | Mandats signats durant la campanya |
+| 02 | Servei de recomptes d'ocupació, inscripcions i assistència per període ([M02-2](#M02-2-dependencies) el promet al 08; el contracte encara no el té: RP-M08-01) | Panell d'activitat |
+| 03 | `equipment.stock(on, …)` | Material en ús i revisions properes |
+| 09 | `margins.activity_margin`, `margins.department_report`, `expenses.expenses_for` | Marges, ingressos i despeses per departament, despeses sense factura |
+| 09 (ajuts) | `grants.calendar`, `grants.granted_by_department` | Properes dates i concedit per departament |
+| 06 | `licences.expiring(days)` | Llicències per renovar |
+| 07 | `website.counts()` | Subscriptors i missatges de contacte pendents |
+| 00 | Permisos (DB1, DB2 i els de cada mòdul), ajustos | Accés, enllaços, llindars |
+
+**Què depèn del 08.** Res.
+
+<a id="M08-3-capacitats"></a>
+## M08-3 Capacitats i històries d'usuari
+
+| # | Capacitat | Qui | On |
+|---|---|---|---|
+| C1 | Veure els cinc panells amb les xifres econòmiques | DB1 | Dashboard |
+| C2 | Veure la definició de cada indicador | DB1 | Dashboard |
+| C3 | Obrir el detall d'una xifra al seu mòdul | DB1 i el permís d'aquell mòdul | Mòdul |
+| C4 | Canviar els llindars dels avisos | `settings.edit.<clau>` | Ajustos |
+| C5 | Ordenar i amagar els blocs propis | DB1 (preferència del compte) | Dashboard |
+
+- **HU-M08-01.** Com a membre de la junta, vull veure en una pantalla quants socis actius hi ha, com van els marges i quines activitats tenen poca ocupació, sense veure el nom de ningú.
+- **HU-M08-02.** Com a tresorer, vull que l'import d'un departament al dashboard sigui el mateix que el de l'informe del 09 per al mateix període.
+
+<a id="M08-4-rols"></a>
+## M08-4 Rols i permisos
+
+Cap codi nou: valen les files **DB1** i **DB2** que ja són a la [matriu](#rols-i-permisos-059-matriu) (Secr., RCS, RM, Tres., DH, Admin. i Pres.; l'instructor i la junta, no), amb aquesta precisió d'abast:
+- **DB1** dona les xifres agregades de tots els panells, també les econòmiques (RN-RP-16), i res més. **No dona accés a cap dada personal ni a cap pantalla de detall.**
+- **DB2** no té cap acció a la primera versió (RN-M08-06); es manté a la matriu per si se n'afegeix alguna amb una decisió nova.
+- **Enllaços:** cada bloc enllaça al detall només si el compte té el permís del mòdul (per exemple, LC4 per a les llicències per renovar); el mòdul el torna a comprovar al servidor.
+- **Ajustos del 08:** `settings.edit.<clau>` (RN-RP-17), d'inici l'administrador i, per als llindars d'activitat, el RCS.
+
+<a id="M08-5-processos"></a>
+## M08-5 Processos pas per pas
+
+**Wireframes existents:** pantalla en construcció `dashboard` (T-DX-35). **Falten** (T-M08-01): els cinc panells, la definició d'un indicador, el bloc amb grup petit, l'estat buit i l'accés denegat.
+- **P-M08-A Consultar.** El compte amb DB1 obre `/gestio/dashboard/`; tria el panell i el període (mes, trimestre, any natural o darrers 12 mesos; per defecte, l'any en curs); cada bloc mostra la xifra, la definició («Què vol dir?») i l'hora de les dades.
+- **P-M08-B Anar al detall.** Si té el permís del mòdul, el bloc porta a la pantalla del mòdul amb el mateix període; si no, el bloc no enllaça.
+- **P-M08-C Ajustar llindars.** Qui té el permís de l'ajust canvia, per exemple, l'ocupació baixa; queda al registre.
+- **P-M08-D Ordenar.** El compte arrossega o amaga blocs; només entre els que pot veure.
+
+<a id="M08-6-entitats"></a>
+## M08-6 Entitats i camps
+
+App `dashboard`.
+- **Catàleg d'indicadors (codi, no base de dades):** `code`, `panel`, `definition` (descriu exactament el càlcul; per això viu amb el càlcul, [P-488](decisions/pendents.md)), `source` (servei del mòdul), `unit` (recompte, percentatge, cèntims), `kind` (persones o diners: només els de persones passen per RN-M08-02), permís del detall i ruta.
+- `DashboardLayout`: `account` (compte d'administrador), `order` (llista de codis), `hidden` (llista de codis), `updated_at`. És una preferència, no una dada de negoci.
+
+**Indicadors inicials** (F §8.4)
+| Panell | Indicadors |
+|---|---|
+| General | Socis actius; altes del període; socis impagats; places lliures a les properes activitats; avisos (llicències per renovar, material per revisar, ajuts que tanquen aviat) |
+| Econòmic | Marge de les activitats realitzades; ingressos i despeses per departament; ajuts concedits per departament; despeses sense factura (recompte i import); saldos de tresoreria |
+| Activitat | Ocupació de cursos i sortides; assistència; inscripcions per setmana |
+| Socis | Altes i baixes per mes; actius per tipus; retenció; impagats; llicències per renovar; mandats signats (mentre hi ha campanya) |
+| Comunicació | Subscriptors confirmats; missatges de contacte pendents; assistents a conferències (quan existeixi l'11) |
+
+**Valors configurables** (pantalla d'ajustos, T-M08-10; entren a l'[apèndix](#valors-configurables) amb número VC en aprovar-se)
+| Clau | Inicial | Rang | Qui el canvia |
+|---|---|---|---|
+| `dashboard.min_group_size` | 3 ([P-487](decisions/pendents.md)) | 2 a 10 | Administrador |
+| `dashboard.low_occupancy_pct` | 50 [A validar: responsable de cursos i sortides] | 0 a 100 | RCS, administrador |
+| `dashboard.default_period` | Any natural | Mes, trimestre, any natural, darrers 12 mesos | Administrador |
+
+Es reaprofiten, sense duplicar-los: el llindar de marge baix (VC-31), els dies de «per renovar» de les llicències (VC-41) i els avisos dels ajuts (VC-36). El temps de memòria cau és tècnic (entorn).
+
+<a id="M08-7-regles"></a>
+## M08-7 Regles de negoci i càlculs
+
+| ID | Regla |
+|---|---|
+| RN-M08-01 | **Només agregats.** El dashboard només crida serveis que tornen recomptes, percentatges o imports; mai una llista de persones. Cap nom, correu, telèfon, document, número de soci ni IBAN a la pàgina ni a les respostes HTMX |
+| RN-M08-02 | **Grups petits.** En un desglossament de persones (per tipus, per estat, per activitat…), una cel·la amb menys de `dashboard.min_group_size` es mostra «menys de N»; si només n'hi ha una d'amagada, també s'amaga la següent més petita, perquè no es pugui deduir pel total. No s'aplica als imports |
+| RN-M08-03 | **Definició.** Cada indicador té una definició escrita visible al bloc; un indicador sense definició no es pot registrar al catàleg |
+| RN-M08-04 | **Coherència.** Cada xifra és la que torna el servei del mòdul per al mateix període; el dashboard no recalcula res pel seu compte. Els imports, en cèntims fins a la pantalla, que els mostra en euros amb dos decimals; la suma dels departaments és el total |
+| RN-M08-05 | **Enllaços amb permís** (RN-RP-16): un bloc només enllaça si el compte té el permís del detall; el mòdul el torna a comprovar |
+| RN-M08-06 | **Sense accions.** El dashboard no escriu res, excepte `DashboardLayout` del mateix compte |
+| RN-M08-07 | **Avisos per llindar.** Ocupació per sota de `dashboard.low_occupancy_pct` en una activitat oberta; marge per sota de VC-31; llicències dins dels dies de VC-41; ajuts amb data dins dels dies de VC-36 |
+| RN-M08-08 | **Període.** Mes, trimestre, any natural o darrers 12 mesos; un període no vàlid a l'adreça torna al per defecte, sense error |
+| RN-M08-09 | **Hora de les dades.** Les xifres es calculen en obrir el panell, amb una memòria cau curta compartida per a tots els comptes (les xifres no depenen del rol); els enllaços es calculen per a cada compte. El bloc diu de quina hora són |
+| RN-M08-10 | **Definicions inicials** ([P-488](decisions/pendents.md)): **ocupació** = places ocupades (inscripcions confirmades) / places totals de les activitats del període; **assistència** = assistències registrades / inscrits confirmats de les sessions fetes; **retenció** = 1 − baixes del període / socis actius el primer dia del període; **impagats** = socis amb estat «impagat» (RN-M01-07, sense entrar en P-71) |
+| RN-M08-11 | **Mòdul absent.** Si un servei no hi és (per exemple, l'11), el bloc no surt; si falla, el bloc diu «No s'ha pogut calcular» i la resta del panell es veu |
+
+<a id="M08-8-serveis"></a>
+## M08-8 Serveis i interfícies
+
+No ofereix cap servei a altres mòduls. **Consumeix** els de [M08-2](#M08-2-dependencies), `permissions.require`, `permissions.has` i `settings.get` (00). **Rutes** (administració): `/gestio/dashboard/` i `/gestio/dashboard/<panell>/`, amb `?periode=`; preferència d'ordre per HTMX.
+
+<a id="M08-9-criteris"></a>
+## M08-9 Criteris d'acceptació
+
+- **CA-M08-01** Donat un compte sense DB1 (per exemple, un instructor) i un amb DB1, quan obren el dashboard, llavors el primer rep «no trobat» i el segon el veu.
+- **CA-M08-02** Donat les dades inventades de la llavor, quan cada rol amb DB1 obre els cinc panells (també les respostes HTMX), llavors l'HTML no conté cap nom, cognom, correu, document, número de soci ni IBAN de cap persona de la llavor.
+- **CA-M08-03** Donat socis per tipus 120, 40, 2 i 1 i `dashboard.min_group_size` 3, quan es mostra el desglossament, llavors surten 120, 40, «menys de 3» i «menys de 3», i el total 163; amb 120, 40, 7 i 2, surten 120, 40, «menys de 3» i també s'amaga el 7.
+- **CA-M08-04** Donat un període i cada indicador, quan es compara amb el servei del mòdul per al mateix període, llavors la xifra és la mateixa (una prova per indicador).
+- **CA-M08-05** Donat el catàleg d'indicadors, quan es carrega, llavors cada indicador té panell, definició, font, unitat i tipus; un sense definició fa fallar la prova.
+- **CA-M08-06** Donat un compte amb DB1 i sense LC4, quan veu el bloc de llicències per renovar, llavors veu la xifra sense enllaç; i si força l'adreça del llistat, rep «no trobat».
+- **CA-M08-07** Donat una activitat oberta amb el 55 % d'ocupació, quan `dashboard.low_occupancy_pct` passa de 50 a 60, llavors surt a l'avís; un valor de 101 es rebutja i el canvi vàlid queda al registre.
+- **CA-M08-08** Donat el trimestre 1 d'un any, quan es demana, llavors les xifres són de l'1/1 al 31/3; un `periode` no vàlid mostra el per defecte sense error.
+- **CA-M08-09** Donat que l'11 no existeix, quan s'obre el panell de comunicació, llavors no hi ha el bloc de conferències; si un servei falla, el bloc diu «No s'ha pogut calcular» i la resta es veu.
+- **CA-M08-10** Donat ingressos de 12.345 cèntims en un departament i 655 en un altre, quan es mostren, llavors surten 123,45 € i 6,55 €, i el total, 130,00 €.
+- **CA-M08-11** Donat cada gràfic, quan es revisa l'accessibilitat, llavors té una taula alternativa amb les mateixes xifres i no depèn només del color (B8).
+- **CA-M08-12** Donat cada cel·la de DB1 i DB2 de la matriu, quan el rol prova l'acció, llavors el resultat coincideix.
+- **CA-M08-13** Donat dos comptes, quan un reordena i amaga blocs, llavors l'altre no canvia; un bloc que el rol no pot veure enviat per una petició forçada es rebutja.
+- **CA-M08-14** Donat una consulta completa dels cinc panells, quan es compten les escriptures a la base de dades, llavors no n'hi ha cap (fora de la preferència d'ordre).
+
+<a id="M08-10-tasques"></a>
+## M08-10 Tasques (per dependències, sense dates)
+
+| # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
+|---|---|---|---|---|---|
+| T-M08-01 | Wireframes dels cinc panells, definició, grup petit, estat buit i accés denegat, a partir de la pantalla en construcció | M | `design/wireframes/admin.html` | — | Revisats; requisits de privacitat per flux |
+| T-M08-02 | App `dashboard` i catàleg d'indicadors (codi) amb la prova del catàleg | S | `apps/dashboard/indicators.py` | — | CA-M08-05 |
+| T-M08-03 | Supressió de grups petits (funció pura) | S | `apps/dashboard/privacy.py` | T-M08-02 | CA-M08-03, amb cobertura completa |
+| T-M08-04 | Servei de recomptes d'activitat del 02, sense persones (RP-M08-01, quan el 02 l'aprovi al seu contracte) | S | `apps/activities/stats.py` | T-M02-12 | Prova de contracte; cap nom a la sortida |
+| T-M08-05 | Panells general i de socis | M | `apps/dashboard/panels.py`, plantilles | T-M08-02, T-M08-03 | CA-M08-04 (01, 06, 05a) |
+| T-M08-06 | Panell econòmic | M | `apps/dashboard/panels.py`, plantilles | T-M08-02, T-M09-14 | CA-M08-04 (04, 09, ajuts), 10 |
+| T-M08-07 | Panell d'activitat | S | `apps/dashboard/panels.py`, plantilles | T-M08-04 | CA-M08-04 (02, 03) |
+| T-M08-08 | Panell de comunicació | S | `apps/dashboard/panels.py` | T-M07-11, T-M07-13 | CA-M08-09 |
+| T-M08-09 | Vista, DB1, enllaços amb el permís del mòdul, selector de període i memòria cau | M | `apps/dashboard/views.py` | T-M08-05 | CA-M08-01, 06, 08, 12, 14 |
+| T-M08-10 | Ajustos del 08 | S | `apps/dashboard/`, migració | T-AJ-02 | CA-M08-07 |
+| T-M08-11 | Gràfics accessibles amb taula alternativa (component nou: primer al sistema de disseny, sessió de DISSENY) | S | plantilles | T-M08-09 | CA-M08-11 |
+| T-M08-12 | Ordre i blocs amagats per compte | S | `apps/dashboard/models.py`, vistes | T-M08-09 | CA-M08-13 ([P-490](decisions/pendents.md)) |
+| T-M08-13 | Treure `dashboard` de previews en passar a funcional (design-system §6.9) | XS | `apps/previews/` | T-M08-09 | Prova de previews canviada per la funcional |
+| T-M08-14 | Prova de principi a fi amb la llavor: cap dada personal a l'HTML i coherència amb els mòduls | M | `tests/` | T-M08-05 a T-M08-09 | CA-M08-02, 04; e2e a 1280 i 390 px |
+
+<a id="M08-11-proves"></a>
+## M08-11 Pla de proves
+
+Unitàries (supressió, períodes, euros); contracte amb cada servei de lectura (una prova per indicador, CA-M08-04); privacitat (CA-M08-02 amb tots els noms de la llavor, també a les respostes HTMX); permisos (DB1, DB2 i enllaços); cap escriptura (CA-M08-14); accessibilitat B8; e2e a 1280 i 390 px. Només dades inventades.
+
+<a id="M08-12-seguretat"></a>
+## M08-12 Seguretat i RGPD
+
+- **Veure el dashboard no dona accés a cap dada personal** ([CLAUDE.md](../CLAUDE.md), RN-RP-16): només agregats (RN-M08-01), grups petits amagats (RN-M08-02) i enllaços amb el permís del mòdul (RN-M08-05).
+- La memòria cau només guarda xifres, mai dades personals.
+- Cap dada de salut; cap dada d'un mòdul que no passi pel seu servei.
+- Els canvis d'ajustos queden al registre d'activitat (RN-AJ-02).
+
+<a id="M08-13-riscos"></a>
+## M08-13 Riscos, supòsits i dubtes
+
+| Risc | Mitigació | Propietari |
+|---|---|---|
+| Una xifra del dashboard no quadra amb la del mòdul i la junta en desconfia | RN-M08-04 i una prova per indicador | Informàtica |
+| Un desglossament permet identificar algú | RN-M08-02 (P-487) | Responsable del projecte |
+| Panells lents amb moltes dades | Memòria cau curta; serveis amb recomptes a la base de dades | Informàtica |
+
+**Supòsits i requisits pendents**
+| ID | Què | Supòsit mentrestant | Propietari |
+|---|---|---|---|
+| S-M08-01 | Definicions d'ocupació, assistència i retenció (RN-M08-10) | Les de RN-M08-10 | Junta |
+| S-M08-02 | Llindar d'ocupació baixa | 50 % | Responsable de cursos i sortides |
+| S-M08-03 | La junta (rol) no té DB1 a la matriu inicial | Es manté; l'administrador la hi pot donar | Junta |
+| RP-M08-01 | Servei de recomptes d'ocupació, inscripcions i assistència del 02 (promès a [M02-2](#M02-2-dependencies), no al contracte de [M02-8](#M02-8-serveis)) | El panell d'activitat no surt fins que hi sigui | Responsable del projecte |
+
+**Dubtes nous** (a [`pendents.md`](decisions/pendents.md) i al [tauler](decisions/tauler-preguntes.yml)): **P-487** mida mínima d'un grup; **P-488** definicions dels indicadors, al codi o com a dada; **P-490** dashboard fix o ordenable per compte.
+
+<a id="M08-14-aprovar"></a>
+## M08-14 Què cal aprovar abans de començar
+
+1. Aquesta secció (panells, catàleg d'indicadors, regles RN-M08-01 a 11 i criteris CA-M08-01 a 14).
+2. L'abast de DB1 i DB2 de [M08-4](#M08-4-rols) (sense codis nous).
+3. Els supòsits S-M08-01 a 03 i el valor inicial de P-487 (3); no bloquegen el codi.
+4. El requisit RP-M08-01 al contracte del 02 (una línia a [M02-8](#M02-8-serveis) quan s'aprovi).
+
+---
+
 <a id="M12-idees"></a>
 # Mòdul 12 — Idees noves (idees registrades)
 
@@ -7010,7 +7469,12 @@ En un lloguer puntual, qui el registra escriu el **cost del centre**. El preu pe
 | LC11 | Passar els registres del 01 al 06 | — | — | — | — | — | — | Sí | — | — | — |
 | C6 | Camps: número federatiu, categoria i venciment | — | Sí | Sí | — | Sí | — | Sí | Sí | — | Els veu qui té LC4; l'instructor continua amb «sí o no» (RN-M06-22) |
 
+### 07 Web pública (proposta)
+Files WP1 a WP8 proposades a [M07-4](#M07-4-rols) (secció escrita el 21/11/2026, per aprovar). Entren en aquesta matriu quan s'aprovi la secció.
+
 ### 08 Dashboard (mòdul pendent)
+Abast precisat a [M08-4](#M08-4-rols) (secció escrita el 21/11/2026, per aprovar), sense codis nous.
+
 | # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DB1 | Veure el dashboard sencer, amb les xifres econòmiques | — | Sí | Sí | Sí | Sí | Sí | Sí | Sí | — | Abans: parcial per a Secr., RCS, RM i DH |
