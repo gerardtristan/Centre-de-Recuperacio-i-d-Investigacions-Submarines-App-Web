@@ -15,6 +15,7 @@ from django.utils import timezone
 from apps.accounts import totp
 from apps.accounts.models import Account, TotpDevice
 from apps.accounts.totp import DEMO_TOTP_SECRET
+from apps.activities import guests
 from apps.core import audit
 from apps.core.management.commands.seed_demo_data import (
     ADMIN_LOGIN,
@@ -219,6 +220,9 @@ def test_t_m01_27_fees_cards_licences_texts_and_consents(cluber_path):
     # Decisió 085 (G-4): textos definitius, sense marques pendents.
     assert "A validar" not in LegalText.objects.get(kind="images").content
     assert "xarxes socials" in LegalText.objects.get(kind="images").content
+    # T-M02-34 (P-458): a local, la proposta de «Soc major d'edat» publicada perquè el formulari
+    # de convidats del 02 funcioni; a producció no hi ha cap versió fins que la junta la validi.
+    assert LegalText.objects.get(kind=guests.ADULT).content == guests.ADULT_PROPOSAL
     given = Consent.objects.filter(legal_text__kind__in=["newsletter", "images"])
     assert given.filter(person__member__isnull=False).exists()
     assert given.filter(given_by=Consent.GivenBy.GUARDIAN).exists()  # imatges d'un menor de 14

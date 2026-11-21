@@ -18,8 +18,13 @@ CA-M02-14 i CA-M02-15; S-M02-23).
 cancel·la (es demana tornar-ho a provar quan acabi): `void_pending_since` i el reintent són de la
 T-M02-36 (RN-M02-37).
 
-**Fora d'aquesta peça:** els avisos als inscrits i a la llista d'espera (T-M02-21), els
-esdeveniments `enrolment.cancelled` i `activity.cancelled` (T-M02-35) i les pantalles.
+**Esdeveniments** (T-M02-35; RN-M02-36; CA-M02-38): cada inscripció cancel·lada emet
+`enrolment.cancelled` i l'activitat cancel·lada, `activity.cancelled`, dins la mateixa transacció
+(`apps.core.events`: lliurats a la cua i un sol cop per subscriptor). Només identificadors, cap
+dada personal. Hi escolten el 03 (material) i el 09.
+
+**Fora d'aquesta peça:** els avisos als inscrits i a la llista d'espera (T-M02-21) i les
+pantalles.
 """
 
 from django.core.exceptions import ValidationError
@@ -29,7 +34,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
-from apps.core import audit, charges
+from apps.core import audit, charges, events
 from apps.core.models import Charge
 from apps.payments import refunds
 
@@ -80,6 +85,14 @@ def _cancel_row(row, *, by, reason, request=None) -> RefundProposal | None:
     return None
 
 
+def _emit_enrolment(row, *, by: str) -> None:
+    """RN-M02-36: `by` és qui cancel·la, «participant» o «club» (per a la regla de devolució)."""
+    events.emit(
+        events.ENROLMENT_CANCELLED,
+        {"enrolment": row.pk, "activity": row.activity_id, "previous_status": row.status, "by": by},
+    )
+
+
 def _check_canceller(enrolment, by) -> None:
     if isinstance(by, Account) and by.kind == Account.Kind.PERSONAL:
         if by.person_id != enrolment.person_id:
@@ -102,6 +115,7 @@ def cancel_enrolment(enrolment, *, by, reason, now=None, request=None) -> Refund
             raise ValidationError(
                 _("La data límit d'inscripció ja ha passat: parla amb el responsable.")
             )
+        _emit_enrolment(row, by="participant")
         proposal = _cancel_row(row, by=by, reason=reason, request=request)
         deadlines.renumber(activity)
         deadlines.offer_free_places(activity, now=now)
@@ -122,6 +136,9 @@ def cancel_activity(activity, *, by, reason, now=None, request=None) -> list[Ref
                         _("Hi ha pagaments en curs: torna-ho a provar quan acabin.")
                     )
         states.cancel(activity, by=by, reason=reason, now=now, request=request)
+        events.emit(events.ACTIVITY_CANCELLED, {"activity": activity.pk})
+        for row in rows:
+            _emit_enrolment(row, by="club")
         proposals = [_cancel_row(row, by=by, reason=reason, request=request) for row in rows]
     return [proposal for proposal in proposals if proposal is not None]
 

@@ -1477,6 +1477,41 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    # Activitats (02; M02-6, «Valors configurables»; T-M02-28): «Cons.» per als rols que hi editen
+    # algun valor. VC-21 el tresorer; VC-22 i VC-24 el responsable de cursos i sortides (VC-24,
+    # per decisió de la junta). VC-23 i VC-25 arriben amb els seus ajustos (T-M02-21 i T-M02-28).
+    _perm(
+        "settings.section.activities",
+        "AJ02",
+        _("Ajustos d'activitats"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.COURSES_MANAGER: SCOPE_READ,
+            R.TREASURER: SCOPE_READ,
+            R.ADMINISTRATOR: SCOPE_READ,
+        },
+    ),
+    _perm(
+        "settings.edit.activities.default_payment_window_hours",
+        "AJ02-1",
+        _("Hores per pagar una inscripció (per defecte)"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+    ),
+    _perm(
+        "settings.edit.activities.offer_accept_hours",
+        "AJ02-2",
+        _("Hores per acceptar una plaça oferta de la llista d'espera"),
+        requires=("settings.section.activities",),
+        initial={R.COURSES_MANAGER: _ALL},
+    ),
+    _perm(
+        "settings.edit.activities.default_requirements_mode",
+        "AJ02-3",
+        _("Mode dels requisits per defecte (avís o bloqueig)"),
+        requires=("settings.section.activities",),
+        initial={R.COURSES_MANAGER: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

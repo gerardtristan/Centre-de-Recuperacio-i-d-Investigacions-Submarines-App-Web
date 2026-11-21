@@ -47,7 +47,7 @@ def texts():
     """Els textos vigents que demana el formulari (els publica l'administrador amb M12)."""
     for kind, content in (
         ("privacy", "Política inventada."),
-        ("adult_declaration", "Soc major d'edat."),
+        (guests.ADULT, guests.ADULT_PROPOSAL),
     ):
         if not LegalText.objects.filter(kind=kind).exists():
             LegalText.objects.create(kind=kind, version=1, content=content)
@@ -241,7 +241,7 @@ def test_ca_m02_37_with_the_box_the_declaration_keeps_the_text_version_and_no_bi
 
     consent = adult_consent(row.person).get()
     assert consent.legal_text == LegalText.objects.get(kind=guests.ADULT, version=1)
-    assert consent.legal_text.content == "Soc major d'edat."
+    assert consent.legal_text.content == guests.ADULT_PROPOSAL
     assert (consent.channel, consent.action) == (Consent.Channel.WEB, Consent.Action.GRANTED)
     assert row.person.birth_date is None
 
