@@ -549,3 +549,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c1](T-M02-06c1.md) | Estat d'una activitat des de la fitxa: publicar, tancar, reobrir, marcar feta i cancel·lar (carril B4) | 23/11/2026 23:15 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
 | [T-M02-21a](T-M02-21a.md) | Avisos per correu a l'alumne: recordatori, resultat, certificat i reforç (activities/0022, core/0075; carril C7) | 23/11/2026 23:41 | (vegeu la PR) | 7 noves (+1 al nucli) | [A comprovar] |
 | [T-M02-21a](T-M02-21a.md) | Avisos per correu a l'alumne: recordatori, resultat, certificat i reforç (activities/0023, core/0076; carril C7) | 23/11/2026 23:41 | (vegeu la PR) | 8 noves (+1 al nucli) | [A comprovar] |
+| [T-M06-24b](T-M06-24b.md) | Llicències: pantalla de la secretaria per a les pendents de confirmar (carril A; demana el torn del nucli) | 21/11/2026 09:15 | 8e8acb00 | 858 | [A comprovar] |
