@@ -72,3 +72,30 @@ def test_secretary_files_and_activates_a_licence(page, live_server, transactiona
     page.get_by_role("button", name="Sí, deixa-la vigent").click()
     expect(page.get_by_text("Llicència vigent.")).to_be_visible()
     assert Licence.objects.get(person__first_name="Anna").federation_number == "F-0002"
+
+
+def test_visitor_sees_the_public_price_comparison(
+    page, live_server, transactional_db, review, page_checks
+):
+    """T-M06-07 (CA-M06-06): amb l'opció de no socis activada, un visitant veu la comparació."""
+    from apps.core.models import Setting
+    from apps.licences.models import LicencePrice
+
+    url = f"{live_server.url}{reverse('licences:public')}"
+    page_checks.expect(404, reverse("licences:public"))
+    assert page.goto(url).status == 404  # desactivada d'entrada (RN-M06-03)
+    Setting.objects.filter(key="licences.non_members_enabled").update(initial_value=True)
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    LicencePrice.objects.create(
+        licence_type=annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
+        valid_from=D(2020, 1, 1), note="Preu inventat", created_by=make_admin("tresorer.prova"),
+    )  # fmt: skip
+    page.goto(url)
+    expect(page.get_by_role("heading", name="Llicència federativa")).to_be_visible()
+    row = page.get_by_role("row", name="Aficionat anual (inventat)")
+    expect(row).to_contain_text("110,00 €")
+    expect(row).to_contain_text("90,00 €")
+    expect(page.get_by_role("link", name="Fer-se soci")).to_be_visible()
+    review("llicencies-publica")

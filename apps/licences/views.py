@@ -4,18 +4,23 @@ decorador. Sense wireframe propi: segueix les pantalles de la tresoreria."""
 
 from django import forms
 from django.contrib import messages
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_not_required
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.core import business_settings
+from apps.core.charges import euros
 from apps.core.permissions import has_perm, request_permissions, require_perm
+from apps.members.services import membership_fees
 
-from . import filing, listing
+from . import filing, listing, prices
 from .models import Licence, LicenceType
-from .services import LicenceRequestError
+from .services import NON_MEMBERS_ENABLED, LicenceRequestError
 
 LIST_URL = "administration:licences"
 
@@ -115,3 +120,25 @@ def export_view(request):
     response = HttpResponse(content, content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{name}"'
     return response
+
+
+# --- Pàgina pública per a no socis (T-M06-07) ----------------------------------------------------
+
+
+@login_not_required  # ruta pública declarada (RN-40): cap dada personal, només tipus i preus
+@never_cache
+@require_http_methods(["GET"])
+def public_view(request):
+    """CA-M06-06 (RN-M06-03 i 07): «no trobat» si la junta no ha activat l'opció de no socis;
+    si l'ha activada, la comparació de preus de cada tipus i la quota anual de soci."""
+    if not business_settings.get(NON_MEMBERS_ENABLED):
+        raise Http404
+    today = timezone.localdate()
+    rows = [
+        {"name": row.name, "description": row.description, "validity": row.validity,
+         "member": euros(row.member_cents), "non_member": euros(row.non_member_cents),
+         "saving": euros(row.saving_cents)}
+        for row in prices.comparison(today)
+    ]  # fmt: skip
+    fees = [{"name": name, "amount": euros(cents)} for name, cents in membership_fees(today)]
+    return render(request, "licences/public.html", {"rows": rows, "fees": fees})
