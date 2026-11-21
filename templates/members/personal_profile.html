@@ -111,6 +111,8 @@
       {% empty %}
         <p>{% translate "No hi ha cap llicència registrada." %}</p>
       {% endfor %}
+      {# T-M06 vistes v3: la llicència del 06 (demanar-la, renovar-la, «Ja en tinc una»). #}
+      <p class="enllacos"><a href="{% url 'licences:mine' %}">{% translate "La meva llicència" %}</a></p>
     </section>
   {% endif %}
 

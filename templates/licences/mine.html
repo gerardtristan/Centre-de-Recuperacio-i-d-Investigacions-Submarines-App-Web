@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n vigencia %}
+{# T-M06-06 i T-M06-08 (vistes v3): «La meva llicència» (LC1; HU-M06-01 i 03). Només les llicències de la persona de la sessió. Demanar-la crea el càrrec i porta a la pantalla de pagament del 05b; «Ja en tinc una» la registra sense càrrec ni tramitació (RN-M06-14). Sense wireframe propi (T-M06-01): segueix «Les meves quotes». Ni el document ni cap dada de salut (RN-M06-15). #}
+{% block title %}{% translate "La meva llicència" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Llicència" %}</p>
+  <h1>{% translate "La meva llicència" %}</h1>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if licences %}
+    {% with current=licences.0 %}{% if current.status == "valid" or current.status == "to_renew" %}{% vigencia current.licence.expires_on "llicencia" %}{% endif %}{% endwith %}
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Les teves llicències, de la que caduca més tard a la que caduca abans" %}</caption>
+      <thead><tr><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Estat" %}</th><th scope="col">{% translate "Caduca" %}</th><th scope="col">{% translate "Número" %}</th></tr></thead>
+      <tbody>
+        {% for row in licences %}{% with licence=row.licence %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ licence.licence_type.name }}</th>
+            <td data-etiqueta="{% translate 'Estat' %}">
+              {% if row.status == "valid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vigent" %}</span>
+              {% elif row.status == "to_renew" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Per renovar" %}</span>
+              {% elif row.status == "unconfirmed" %}<span class="estat estat-avis"><span aria-hidden="true">?</span> {% translate "Pendent de confirmar" %}</span>
+              {% elif row.status == "expired" or row.status == "cancelled" or row.status == "lapsed" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% if row.status == "expired" %}{% translate "Caducada" %}{% elif row.status == "cancelled" %}{% translate "Cancel·lada" %}{% else %}{% translate "No tramitada a temps" %}{% endif %}</span>
+              {% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% if row.status == "requested" %}{% translate "Sol·licitada: falta pagar-la" %}{% elif row.status == "paid" %}{% translate "Pagada: la secretaria la tramitarà" %}{% elif row.status == "filed" %}{% translate "Tramitada: falta la confirmació de la federació" %}{% else %}{% translate "Vigent més endavant" %}{% endif %}</span>
+                {% if row.status == "requested" and licence.charge_id %} <a href="{% url 'payments:charge' licence.charge_id %}">{% translate "Paga-la" %}</a>{% endif %}
+              {% endif %}
+            </td>
+            <td data-etiqueta="{% translate 'Caduca' %}">{% if licence.expiry_confirmed %}<time datetime="{{ licence.expires_on|date:'Y-m-d' }}">{{ licence.expires_on|date:"d/m/Y" }}</time>{% else %}{% translate "Per confirmar" %}{% endif %}</td>
+            <td data-etiqueta="{% translate 'Número' %}">{% if licence.federation_number %}<span class="codi">{{ licence.federation_number }}</span>{% else %}—{% endif %}</td>
+          </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Encara no tens cap llicència a la plataforma." %}</p>
+  {% endif %}
+
+  <section class="targeta" aria-labelledby="demana-titol">
+    <h2 id="demana-titol">{% translate "Demana o renova la llicència" %}</h2>
+    {% if offer %}
+      <ul class="historial">
+        {% for row in offer %}<li><strong>{{ row.type.name }}</strong> <span class="import">{{ row.amount }}</span></li>{% endfor %}
+      </ul>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% with form=request_form %}{% include "_errata.html" %}{% endwith %}
+        {% for field in request_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit" name="demana" value="1">{% translate "Demana-la i paga" %}</button></div>
+      </form>
+    {% else %}
+      <p>{% translate "Ara mateix no hi ha cap llicència que puguis demanar des d'aquí." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="targeta" aria-labelledby="ja-titol">
+    <h2 id="ja-titol">{% translate "Ja en tinc una" %}</h2>
+    <p class="text-2">{% translate "Si ja tens la llicència de la federació, registra-la aquí i no te'n tramitarem cap altra." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% with form=declare_form %}{% include "_errata.html" %}{% endwith %}
+      {% for field in declare_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto" type="submit" name="declara" value="1">{% translate "Registra-la" %}</button></div>
+    </form>
+  </section>
+{% endblock %}

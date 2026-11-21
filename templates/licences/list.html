@@ -25,7 +25,7 @@
       {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
     </fieldset>
     <div class="accions">
-      <button class="boto boto-principal" type="submit">{% translate "Filtra" %}</button>
+      <button class="boto" type="submit">{% translate "Filtra" %}</button>{# D19: el botó principal és el del fitxer per a la federació #}
       <a class="boto boto-text" href="{% url 'administration:licences' %}">{% translate "Treu els filtres" %}</a>
     </div>
   </form>
@@ -41,7 +41,7 @@
           <th scope="col">{% translate "Caduca" %}</th>
           <th scope="col">{% translate "Número federatiu" %}</th>
         {% endif %}
-        {% if can_file %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+        {% if can_file %}<th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -63,7 +63,7 @@
             <td data-etiqueta="{% translate 'Número federatiu' %}">{% if row.federation_number %}<span class="codi">{{ row.federation_number }}</span>{% else %}—{% endif %}</td>
           {% endif %}
           {% if can_file %}
-            <td data-etiqueta="{% translate 'Acció' %}">
+            <td class="cel-accions">
               {% if row.status == "paid" %}
                 <form method="post" action="{% url 'administration:licences_file' row.licence_id %}" class="accions">
                   {% csrf_token %}

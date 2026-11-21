@@ -273,3 +273,49 @@ class VolunteerHours(models.Model):
 
     def __str__(self):
         return f"{self.role_label}: {self.hours} h"
+
+
+class ExpenseAllocation(models.Model):
+    """Part d'una despesa imputada a una activitat (M09-6; RN-M09-10; T-M09-07). Únic per despesa i
+    activitat; la suma no passa de l'import (ho comprova `apps.expenses.allocation`). El que no es
+    reparteix queda al departament de la despesa, sense activitat."""
+
+    class Method(models.TextChoices):
+        PARTICIPANTS = "participants", _("Per participants")
+        EQUAL = "equal", _("A parts iguals")
+        MANUAL = "manual", _("A mà")
+
+    expense = models.ForeignKey(
+        Expense, on_delete=models.PROTECT, related_name="allocations", verbose_name=_("despesa")
+    )
+    activity = models.ForeignKey(
+        "activities.Activity",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("activitat"),
+    )
+    amount_cents = models.PositiveBigIntegerField(_("import (cèntims)"))
+    method = models.CharField(_("criteri"), max_length=12, choices=Method.choices)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("fet per")
+    )
+    created_at = models.DateTimeField(_("fet el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("repartiment")
+        verbose_name_plural = _("repartiments")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["expense", "activity"], name="expense_allocation_one_per_activity"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(amount_cents__gt=0), name="expense_allocation_positive"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(method__in=["participants", "equal", "manual"]),
+                name="expense_allocation_method_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.expense_id} → {self.activity_id} ({self.amount_cents} c)"

@@ -1,0 +1,98 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M06-02 (vistes v2): tipus de llicència i preus (P-M06-A; RN-M06-05, 06, 08 i 18; LC8). «Cons.» (la Junta) només ho veu; els formularis surten amb «Sí», però el servidor ho torna a comprovar. El preu de soci és sempre el de la federació: no hi ha cap camp per a un altre (CA-M06-04). Cada preu és una versió nova amb nota obligatòria, i avisa el tresorer, la junta i la secretaria. Sense wireframe (T-M06-01): segueix les pantalles de la tresoreria. #}
+{% block title %}{% translate "Tipus i preus de llicència" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Llicències" %}</p>
+    <h1>{% translate "Tipus i preus de llicència" %}</h1>
+    <p class="text-2">{% translate "El soci paga el preu de la federació; qui no és soci hi afegeix el recàrrec. Un canvi de preu no toca les llicències ja demanades." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} tipus de llicència, amb el preu d'avui{% plural %}{{ total }} tipus de llicència, amb el preu d'avui{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Categoria" %}</th>
+        <th scope="col">{% translate "Durada" %}</th>
+        <th scope="col" class="cel-import">{% translate "Soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "No soci" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        {% if can_edit %}<th scope="col">{% translate "Acció" %}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with licence_type=row.type %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ licence_type.name }}</th>
+          <td data-etiqueta="{% translate 'Categoria' %}">{{ licence_type.get_category_display }}</td>
+          <td data-etiqueta="{% translate 'Durada' %}">{{ licence_type.get_validity_rule_display }}</td>
+          <td data-etiqueta="{% translate 'Soci' %}" class="cel-import">{% if row.member %}<span class="import">{{ row.member }}</span>{% else %}{% translate "Sense preu" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'No soci' %}" class="cel-import">{% if row.non_member %}<span class="import">{{ row.non_member }}</span>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if licence_type.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Actiu" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% translate "Inactiu" %}</span>{% endif %}</td>
+          {% if can_edit %}
+            <td data-etiqueta="{% translate 'Acció' %}">
+              <form method="post" class="accions">
+                {% csrf_token %}
+                <input type="hidden" name="tipus" value="{{ licence_type.pk }}">
+                {% if licence_type.active %}<button class="boto boto-petit" type="submit" name="actiu" value="0">{% translate "Desactiva" %}</button>
+                {% else %}<button class="boto boto-petit" type="submit" name="actiu" value="1">{% translate "Activa" %}</button>{% endif %}
+              </form>
+            </td>
+          {% endif %}
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="7">{% translate "Encara no hi ha cap tipus de llicència." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if can_edit %}
+    <h2>{% translate "Un preu nou" %}</h2>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% with form=price_form %}{% include "_errata.html" %}{% endwith %}
+      {% for field in price_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit" name="nou_preu" value="1">{% translate "Desa el preu" %}</button></div>
+    </form>
+    <h2>{% translate "Un tipus nou" %}</h2>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% with form=type_form %}{% include "_errata.html" %}{% endwith %}
+      {% for field in type_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit" name="nou_tipus" value="1">{% translate "Crea el tipus" %}</button></div>
+    </form>
+  {% endif %}
+  <h2>{% translate "Historial de preus" %}</h2>
+  <table class="taula">
+    <caption>{% translate "Les versions de preu, de la més recent a la més antiga" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Des del" %}</th>
+        <th scope="col">{% translate "Fins al" %}</th>
+        <th scope="col" class="cel-import">{% translate "Federació" %}</th>
+        <th scope="col" class="cel-import">{% translate "Recàrrec" %}</th>
+        <th scope="col">{% translate "Nota" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}{% with price=row.price %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ price.licence_type.name }}</th>
+          <td data-etiqueta="{% translate 'Des del' %}"><time datetime="{{ price.valid_from|date:'Y-m-d' }}">{{ price.valid_from|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate 'Fins al' %}">{% if price.valid_to %}<time datetime="{{ price.valid_to|date:'Y-m-d' }}">{{ price.valid_to|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Federació' %}" class="cel-import"><span class="import">{{ row.cost }}</span></td>
+          <td data-etiqueta="{% translate 'Recàrrec' %}" class="cel-import"><span class="import">{{ row.surcharge }}</span></td>
+          <td data-etiqueta="{% translate 'Nota' %}">{{ price.note }}</td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="6">{% translate "Encara no hi ha cap preu." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
