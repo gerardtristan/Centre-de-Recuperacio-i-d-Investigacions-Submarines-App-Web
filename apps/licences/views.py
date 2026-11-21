@@ -83,6 +83,9 @@ def list_view(request):
         "details": details,
         "can_file": has_perm(request.user, filing.FILE_PERMISSION, write=True, permissions=perms),
         "paid_count": Licence.objects.filter(status=Licence.Status.PAID).count(),
+        "unconfirmed_count": Licence.objects.filter(
+            status=Licence.Status.ACTIVE, expiry_confirmed=False
+        ).count(),
     }
     return render(request, "licences/list.html", context)
 

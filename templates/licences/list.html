@@ -17,6 +17,7 @@
     <form method="post" action="{% url 'administration:licences_export' %}" class="accions">
       {% csrf_token %}
       <button class="boto boto-principal" type="submit"{% if not paid_count %} disabled{% endif %}>{% blocktranslate count total=paid_count %}Descarrega el fitxer per a la federació ({{ total }} pagada){% plural %}Descarrega el fitxer per a la federació ({{ total }} pagades){% endblocktranslate %}</button>
+      {% if unconfirmed_count %}<a class="boto boto-text" href="{% url 'administration:licences_unconfirmed' %}">{% blocktranslate count total=unconfirmed_count %}{{ total }} per confirmar{% plural %}{{ total }} per confirmar{% endblocktranslate %}</a>{% endif %}
     </form>
   {% endif %}
   <form class="formulari barra-filtres" method="get" action="{% url 'administration:licences' %}" novalidate>
