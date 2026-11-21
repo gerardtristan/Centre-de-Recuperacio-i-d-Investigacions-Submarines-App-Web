@@ -7,8 +7,9 @@ import datetime
 import pytest
 
 from apps.activities import attendance, closing, extensions, states
-from apps.activities.models import Activity, Enrolment
-from apps.core.models import AuditEntry, Role
+from apps.activities.models import Activity, Enrolment, RefundProposal
+from apps.core import charges
+from apps.core.models import AuditEntry, Charge, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 from .helpers import a_course, a_person, an_outing
@@ -96,3 +97,20 @@ def test_a_course_counts_each_attendee_once(manager, make_admin):  # noqa: F811
         attendance.mark(student, session, present=True, by=manager, today=later)
     assert attendance.participants(course) == 1
     assert attendance.attendance_for(student.person)[0]["dates"] == [DAY, later]
+
+
+def test_rn_m02_22_an_open_refund_proposal_blocks_closing(done, manager):
+    row = enrolled(done, "Cancel·lada")
+    Enrolment.objects.filter(pk=row.pk).update(status=S.CANCELLED, cancelled_reason="No pot venir.")
+    charge = charges.create_charge(
+        row.person, kind=Charge.Kind.ENROLMENT, amount_cents=4500, concept="Sortida inventada",
+        origin="activities", by=manager, department=done.department,
+    )  # fmt: skip
+    proposal = RefundProposal.objects.create(
+        enrolment=row, charge=charge, amount_cents=4500, reason="Motiu inventat."
+    )
+    assert closing.closing_blockers(done) == ["Hi ha 1 proposta de devolució sense fer."]
+    RefundProposal.objects.filter(pk=proposal.pk).update(
+        status=RefundProposal.Status.REJECTED, decided_by=manager
+    )
+    assert closing.closing_blockers(done) == []
