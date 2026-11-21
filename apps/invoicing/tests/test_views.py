@@ -1,6 +1,5 @@
 """«Les meves factures» (T-M09-21; MG10, propi): només les factures emeses a nom de la persona del
-compte personal. Ruta encara no inclosa (torn del nucli): `apps.expenses.tests.urls`. Només dades
-inventades."""
+compte personal. Només dades inventades."""
 
 import datetime
 
@@ -12,7 +11,7 @@ from apps.activities.tests.helpers import a_person, a_personal_account
 from apps.core.tests.conftest import main_of
 from apps.invoicing.models import Invoice
 
-pytestmark = [pytest.mark.django_db, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.django_db
 
 
 def invoice(person, number, status=Invoice.Status.ISSUED, **extra):

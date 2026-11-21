@@ -1,6 +1,5 @@
-"""Pantalles de les despeses (T-M09-06, part sense fitxer, i T-M09-15; CA-M09-01; MG1 i MG2). Les
-rutes encara no són a `apps.accounts.admin_urls` (torn del nucli): les proves fan servir
-`apps.expenses.tests.urls`. Només dades inventades."""
+"""Pantalles de les despeses (T-M09-06, part sense fitxer, i T-M09-15; CA-M09-01; MG1 i MG2).
+Només dades inventades."""
 
 import pytest
 from django.urls import reverse
@@ -10,7 +9,7 @@ from apps.core.models import Department, OutgoingEmail, Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.expenses.models import Expense, ExpenseCategory, Supplier
 
-pytestmark = [pytest.mark.django_db, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.django_db
 R = Role.Code
 
 

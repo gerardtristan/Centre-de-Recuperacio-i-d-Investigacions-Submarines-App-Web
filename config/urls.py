@@ -7,6 +7,7 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.members.urls")),
     path("", include("apps.payments.urls")),
+    path("", include("apps.invoicing.urls")),  # 09: «Les meves factures» (T-M09-21)
     path("", include("apps.licences.urls")),
     path("en-construccio/", include("apps.previews.urls")),
 ]

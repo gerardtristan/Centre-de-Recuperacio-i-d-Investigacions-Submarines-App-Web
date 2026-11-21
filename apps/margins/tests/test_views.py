@@ -1,5 +1,4 @@
-"""Pantalla del marge d'una activitat (P-M09-D; MG5, MG6 i MG7). Rutes encara no incloses (torn del
-nucli): `apps.expenses.tests.urls`. Només dades inventades."""
+"""Pantalla del marge d'una activitat (P-M09-D; MG5, MG6 i MG7). Només dades inventades."""
 
 import pytest
 from django.urls import reverse
@@ -13,7 +12,7 @@ from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.expenses.models import ExpenseCategory
 from apps.margins.models import MarginSnapshot, PlannedCost
 
-pytestmark = [pytest.mark.django_db, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.django_db
 R = Role.Code
 
 

@@ -1,4 +1,4 @@
-"""Rutes de l'àrea personal del 09 (facturació): s'inclouran a `config/urls.py` al torn del nucli.
+"""Rutes de l'àrea personal del 09 (facturació): s'inclouen a `config/urls.py`.
 L'accés el controla el middleware de l'àrea personal (compte personal amb sessió vàlida)."""
 
 from django.urls import path

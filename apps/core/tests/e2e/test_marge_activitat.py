@@ -1,7 +1,6 @@
 """Marge d'una activitat al navegador (P-M09-D; MG5, MG6 i MG7): el tresorer hi posa un cost
-previst, veu el marge previst i tanca una activitat feta, amb el marge congelat. Rutes encara no
-al menú (torn del nucli): `apps.expenses.tests.urls`. Pantalles a 1280, 390 i 320 px. Dades
-inventades."""
+previst, veu el marge previst i tanca una activitat feta, amb el marge congelat. Pantalles a 1280,
+390 i 320 px. Dades inventades."""
 
 import pytest
 from django.urls import reverse
@@ -12,7 +11,7 @@ from apps.activities.tests.helpers import an_outing
 
 from .conftest import login_admin, make_admin
 
-pytestmark = [pytest.mark.e2e, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.e2e
 
 
 def test_the_treasurer_plans_and_closes(page, live_server, transactional_db, review):

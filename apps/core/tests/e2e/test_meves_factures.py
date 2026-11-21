@@ -1,6 +1,5 @@
 """«Les meves factures» al navegador (T-M09-21; MG10, propi): un soci veu només les seves factures.
-Ruta encara no inclosa (torn del nucli): `apps.expenses.tests.urls`. Pantalles a 1280, 390 i 320
-px. Només dades inventades."""
+Pantalles a 1280, 390 i 320 px. Només dades inventades."""
 
 import datetime
 
@@ -12,7 +11,7 @@ from apps.invoicing.models import Invoice
 
 from .test_carnet_079 import login_personal
 
-pytestmark = [pytest.mark.e2e, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.e2e
 
 
 def invoice(person, number):
