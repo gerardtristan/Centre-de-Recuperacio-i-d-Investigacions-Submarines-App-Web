@@ -488,3 +488,42 @@ class EquipmentAssignment(models.Model):
 
     def __str__(self):
         return f"{self.equipment_type} · {self.get_origin_display()} · {self.get_status_display()}"
+
+
+class RentalList(models.Model):
+    """Una llista de lloguer generada per a un centre (M03-6; RN-M03-18; T-M03-10). El contingut
+    es genera a demanda i no es desa: només l'empremta, qui i quan, i si s'ha enviat."""
+
+    activity = models.ForeignKey(
+        "activities.Activity", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("activitat"),
+    )  # fmt: skip
+    centre = models.ForeignKey(
+        DiveCentre, on_delete=models.PROTECT, related_name="+", verbose_name=_("centre")
+    )
+    generated_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("generada per"),
+    )  # fmt: skip
+    generated_at = models.DateTimeField(_("generada el"))
+    fingerprint = models.CharField(_("empremta"), max_length=64)
+    sent_at = models.DateTimeField(_("enviada el"), null=True, blank=True)
+    sent_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("enviada per"),
+    )  # fmt: skip
+
+    class Meta:
+        verbose_name = _("llista de lloguer")
+        verbose_name_plural = _("llistes de lloguer")
+        ordering = ["-generated_at", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(sent_at__isnull=True, sent_by__isnull=True)
+                | Q(sent_at__isnull=False, sent_by__isnull=False),
+                name="rental_list_sent_by_and_at",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.centre} · {self.activity_id}"
