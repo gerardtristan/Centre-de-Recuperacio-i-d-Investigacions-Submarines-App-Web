@@ -20,7 +20,7 @@ from django.utils.translation import ngettext
 from apps.core import audit
 
 from . import states
-from .models import Activity, DiverCertification, PracticeAssessment, Session
+from .models import Activity, DiverCertification, PracticeAssessment, ReinforcementRequest, Session
 
 CERTIFICATION_ANONYMISED = "activities.certification.anonymised"
 
@@ -60,6 +60,19 @@ def export(person) -> dict:
             for a in PracticeAssessment.objects.filter(enrolment__person=person)
             .select_related("session__activity")
             .order_by("session__starts_at", "pk")
+        ],  # fmt: skip
+        # T-M02-18: les propostes de reforç, amb el motiu pedagògic.
+        "propostes_de_reforc": [
+            {
+                "activitat": r.enrolment.activity.title,
+                "classes": r.classes,
+                "motiu": r.reason,
+                "estat": r.get_status_display(),
+                "preu_centims": r.price_cents,
+            }
+            for r in ReinforcementRequest.objects.filter(enrolment__person=person)
+            .select_related("enrolment__activity")
+            .order_by("created_at", "pk")
         ],  # fmt: skip
         "activitats_de_que_es_responsable": [
             {"activitat": a.title, "data_d_inici": a.starts_on, "estat": a.get_status_display()}
@@ -102,6 +115,10 @@ def describe(person) -> list[str]:
 def anonymise(person, *, by, request=None) -> None:
     # T-M02-17: l'observació pot dir alguna cosa de la persona; el resultat es queda.
     PracticeAssessment.objects.filter(enrolment__person=person).exclude(notes="").update(notes="")
+    # T-M02-18: el motiu del reforç també pot dir alguna cosa de la persona.
+    ReinforcementRequest.objects.filter(enrolment__person=person).exclude(reason="").update(
+        reason=""
+    )
     for certification in _certifications(person).exclude(number=""):
         certification.number = ""
         certification.save(update_fields=["number"])
