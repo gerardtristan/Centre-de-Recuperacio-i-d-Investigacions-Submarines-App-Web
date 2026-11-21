@@ -25,13 +25,14 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit, business_settings, charges
+from apps.core import audit, business_settings, charges, events
 from apps.core.models import Charge, Department
 from apps.core.permission_catalog import SCOPE_ALL, SCOPE_OWN_SESSIONS
 from apps.core.permissions import has_perm, scope_for
 from apps.members.services import is_member
 from apps.payments import refunds
 
+from . import events as licence_events
 from . import prices
 from .dates import expires_on
 from .models import (
@@ -287,6 +288,11 @@ def on_charge_paid(event) -> None:
         return
     licence.status = Licence.Status.PAID
     licence.save(update_fields=["status", "updated_at"])
+    # CA-M06-07: a qui tramita (LC5), una sola vegada perquè el pas a pagada només passa una.
+    licence_events.notify(
+        "licences.file", "avis-llicencia-pagada",
+        {"licence_id": licence.pk, "licence_type": licence.licence_type.name},
+    )  # fmt: skip
     audit.record(
         ACTION_PAID,
         actor=SYSTEM,
@@ -338,6 +344,7 @@ def declare_existing(
             expires_on=expires_on,
             federation_number=number,
         )
+        licence_events.activated(licence)
         audit.record(
             ACTION_DECLARED,
             actor=actor,
@@ -355,6 +362,14 @@ REFUND_PERMISSION = "licences.refund"  # LC7
 ACTION_CANCELLED = "licences.cancelled"
 ACTION_REFUND_DECIDED = "licences.refund_decided"
 CANCELLABLE = (Licence.Status.REQUESTED, Licence.Status.PAID, Licence.Status.FILED)
+
+
+def notify_refund(licence: Licence, amount_cents: int) -> None:
+    """CA-M06-13 i CA-M06-23: l'avís de la proposta de devolució a qui la fa (LC7)."""
+    licence_events.notify(
+        REFUND_PERMISSION, "avis-devolucio-llicencia",
+        {"licence_id": licence.pk, "amount": charges.euros(amount_cents)},
+    )  # fmt: skip
 
 
 class CannotCancel(LicenceRequestError):
@@ -393,6 +408,8 @@ def cancel(licence: Licence, reason: str, *, actor) -> Licence:
         LicenceRefundProposal.objects.create(
             licence=licence, amount_cents=charge.amount_cents, reason=reason
         )
+        notify_refund(licence, charge.amount_cents)
+    licence_events.emit(licence, events.LICENCE_CANCELLED)
     audit.record(
         ACTION_CANCELLED, actor=actor, target=licence, field="status", old=previous,
         new=Licence.Status.CANCELLED, reason=reason,

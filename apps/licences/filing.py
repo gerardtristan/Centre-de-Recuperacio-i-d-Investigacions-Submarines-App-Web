@@ -23,6 +23,7 @@ from apps.core import audit
 from apps.core.permissions import effective_permissions, has_perm
 from apps.members.roster import to_csv
 
+from . import events as licence_events
 from .dates import expires_on
 from .models import Licence, ValidityRule
 from .services import LicenceRequestError
@@ -74,6 +75,8 @@ def _transition(licence, allowed, target, *, actor, action, today, number=None) 
             licence.activated_by, licence.activated_at = actor, now
             licence.federation_number = number
         licence.save()
+        if target == Licence.Status.ACTIVE:
+            licence_events.activated(licence)
         audit.record(
             action, actor=actor, target=licence, field="status", old=previous, new=target,
             details={"starts_on": licence.starts_on.isoformat(),
