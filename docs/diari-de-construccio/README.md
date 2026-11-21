@@ -434,3 +434,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-88](T-DX-88.md) | Llicències (fase 2): cel·la d'accions sense etiqueta buida, accions a la dreta i un sol botó principal | 21/11/2026 04:34 | 353ed89f | 1 nova | [A comprovar] |
 | [T-M09-26a](T-M09-26a.md) | Nucli del 09: apartat «Facturació» dels ajustos (core/0066) i plantilla de l'avís de salt de sèrie (carril C) | 21/11/2026 03:32 | 20652144 | 2 noves | [A comprovar] |
 | [T-M03-07](T-M03-07.md) | Necessitats de material a la inscripció (equipment/0008) (carril C2) | 21/11/2026 06:21 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M03-08](T-M03-08.md) | Assignació de material amb la restricció d'exclusió (equipment/0009, btree_gist) (carril C2) | 21/11/2026 06:27 | (vegeu la PR) | 7 noves | [A comprovar] |
