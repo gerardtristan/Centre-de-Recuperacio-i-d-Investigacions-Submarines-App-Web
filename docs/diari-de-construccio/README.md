@@ -444,3 +444,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-18](T-M06-18.md) | Llicències: guia de la secretaria, tramitació i venciments (esborrany; carril A) | 21/11/2026 08:02 | 3e0ece87 | — | [A comprovar] |
 | [T-M06-24](T-M06-24.md) | Llicències: confirmació en bloc de les pendents i declaració del titular, serveis (carril A) | 21/11/2026 09:05 | 9f2ddce7 | 11188 | [A comprovar] |
 | [T-M06-07b](T-M06-07b.md) | Llicències: demanar-la com a convidat des de la pàgina pública, apagat per defecte (carril A) | 21/11/2026 09:53 | 4497f9aa | 11197 | [A comprovar] |
+| [Guarda 01 / 06](T-M01-guarda-06.md) | Socis: la fitxa no corregeix les llicències que ja són al 06 (carril A) | 21/11/2026 10:23 | f8411d52 | 11199 | [A comprovar] |
