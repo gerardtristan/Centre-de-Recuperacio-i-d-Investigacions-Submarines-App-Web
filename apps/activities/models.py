@@ -59,6 +59,12 @@ class TrainingCatalogueEntry(models.Model):
     active = models.BooleanField(_("activa"), default=True)
     # Edat mínima que copien les activitats noves (RN-M02-33). Buit: sense edat mínima.
     min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
+    # Addenda de la 104 (RN-M02-52): el nivell oficial que es tramita a la federació quan
+    # l'alumne queda apte (la primera estrella) [A verificar: responsable de cursos i sortides].
+    official_level = models.ForeignKey(
+        "CertificationLevel", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("nivell oficial que es tramita"),
+    )  # fmt: skip
     # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
     default_requirements_mode = models.CharField(
         _("mode de requisits per defecte"),
@@ -618,6 +624,22 @@ class ProgrammeBlock(models.Model):
         return self.place or self.activity.place
 
 
+class CertificationAgency(models.Model):
+    """Agència o federació que emet titulacions (addenda de la 104; VC-55). És una dada: la
+    mantenen els rols amb AC6. Amb titulacions no s'esborra (PROTECT): es desactiva."""
+
+    name = models.CharField(_("nom"), max_length=60, unique=True)
+    active = models.BooleanField(_("activa"), default=True)
+
+    class Meta:
+        verbose_name = _("agència de titulació")
+        verbose_name_plural = _("agències de titulació")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class CertificationLevel(models.Model):
     """Nivell de titulació de busseig, amb un ordre: un `rank` més alt és un nivell més alt
     (addenda de la 058; RN-M02-27). La llista la manté el responsable de cursos i sortides; no
@@ -625,7 +647,10 @@ class CertificationLevel(models.Model):
 
     name = models.CharField(_("nom"), max_length=60, unique=True)
     rank = models.PositiveSmallIntegerField(_("ordre"), unique=True)
-    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    agency = models.ForeignKey(
+        CertificationAgency, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="levels", verbose_name=_("agència o federació"),
+    )  # fmt: skip
     active = models.BooleanField(_("actiu"), default=True)
 
     class Meta:
@@ -650,6 +675,8 @@ class DiverCertification(models.Model):
         CLUB_COURSE = "club_course", _("Curs del club")
         DECLARED = "declared", _("Declarada")
         IMPORTED = "imported", _("Importada")
+        # Addenda de la 104: creada en tancar una tramitació a la federació.
+        FEDERATION = "federation", _("Tramitada a la federació")
 
     person = models.ForeignKey(
         Person,
@@ -674,7 +701,10 @@ class DiverCertification(models.Model):
         related_name="certifications",
         verbose_name=_("especialitat"),
     )
-    agency = models.CharField(_("agència o federació"), max_length=60, blank=True)
+    agency = models.ForeignKey(
+        CertificationAgency, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="certifications", verbose_name=_("agència o federació"),
+    )  # fmt: skip
     issuer = models.CharField(_("qui l'ha emesa"), max_length=120, blank=True)
     number = models.CharField(_("número de la titulació"), max_length=40, blank=True)
     certificate_number = models.CharField(_("número del certificat"), max_length=40, blank=True)
@@ -697,6 +727,11 @@ class DiverCertification(models.Model):
         verbose_name=_("verificada per"),
     )
     verified_at = models.DateTimeField(_("verificada el"), null=True, blank=True)
+    # RN-M02-31: la titulació del club queda lligada al resultat del curs que la dona.
+    course_outcome = models.ForeignKey(
+        "CourseOutcome", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("resultat del curs"),
+    )  # fmt: skip
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -710,7 +745,7 @@ class DiverCertification(models.Model):
                 name="divercert_level_or_speciality",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=["club_course", "declared", "imported"]),
+                condition=Q(source__in=["club_course", "declared", "imported", "federation"]),
                 name="divercert_source_valid",
             ),
             models.CheckConstraint(
@@ -787,6 +822,10 @@ class Enrolment(models.Model):
     # Què no complia en inscriure's. Sense dades de salut ni de la llicència (RN-M01-48).
     requirements_warning = models.TextField(_("requisits per revisar"), blank=True)
     cancelled_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+    # RN-M02-37: cancel·lada amb un pagament en curs; el càrrec s'anul·la quan l'intent acaba.
+    void_pending_since = models.DateTimeField(
+        _("càrrec per anul·lar des de"), null=True, blank=True
+    )
     cancelled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -1003,3 +1042,97 @@ class Incident(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.activity}"
+
+
+class PracticeAssessment(models.Model):
+    """Avaluació d'un alumne en una sessió pràctica (T-M02-17; M02-6; P-M02-F pas 1). Es pot
+    corregir; cada canvi queda al registre. Sense dades de salut (RN-M02-17)."""
+
+    class Result(models.TextChoices):
+        ACHIEVED = "achieved", _("Assolit")
+        NOT_ACHIEVED = "not_achieved", _("No assolit")
+        NEEDS_REINFORCEMENT = "needs_reinforcement", _("Necessita reforç")
+
+    session = models.ForeignKey(
+        Session, on_delete=models.PROTECT, related_name="assessments", verbose_name=_("sessió")
+    )
+    enrolment = models.ForeignKey(
+        Enrolment, on_delete=models.PROTECT, related_name="assessments",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    result = models.CharField(_("resultat"), max_length=20, choices=Result.choices)
+    # Observació curta. Sense dades de salut (RN-M02-17).
+    notes = models.TextField(_("observació"), max_length=500, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("registrada per"),
+    )  # fmt: skip
+    recorded_at = models.DateTimeField(_("registrada el"))
+
+    class Meta:
+        verbose_name = _("avaluació d'una pràctica")
+        verbose_name_plural = _("avaluacions de pràctiques")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "enrolment"], name="assessment_one_per_session_and_student"
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["achieved", "not_achieved", "needs_reinforcement"]),
+                name="assessment_result_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_result_display()}"
+
+
+class CourseOutcome(models.Model):
+    """Resultat final d'un alumne en un curs i, si és apte, el certificat del club (T-M02-19;
+    M02-6; RN-M02-16). El certificat no es desa com a fitxer: es genera a demanda."""
+
+    class Result(models.TextChoices):
+        PASS = "pass", _("Apte")
+        FAIL = "fail", _("No apte")
+
+    enrolment = models.OneToOneField(
+        Enrolment, on_delete=models.PROTECT, related_name="outcome", verbose_name=_("inscripció")
+    )
+    result = models.CharField(_("resultat"), max_length=10, choices=Result.choices)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("instructor que el posa"),
+    )  # fmt: skip
+    decided_at = models.DateTimeField(_("posat el"))
+    # Obligatori si és «no apte». Sense dades de salut (RN-M02-17).
+    reason = models.TextField(_("motiu"), max_length=500, blank=True)
+    # `C-AAAA-NNNN` (VC-26, format al codi). Buit fins que s'emet.
+    certificate_number = models.CharField(_("número del certificat"), max_length=20, blank=True)
+    certificate_issued_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("certificat emès per"),
+    )  # fmt: skip
+    certificate_issued_at = models.DateTimeField(_("certificat emès el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("resultat del curs")
+        verbose_name_plural = _("resultats dels cursos")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["certificate_number"],
+                condition=~Q(certificate_number=""),
+                name="outcome_certificate_number_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["pass", "fail"]), name="outcome_result_valid"
+            ),
+            models.CheckConstraint(
+                condition=~Q(result="fail") | ~Q(reason=""), name="outcome_fail_needs_reason"
+            ),
+            models.CheckConstraint(
+                condition=Q(certificate_number="") | Q(result="pass"),
+                name="outcome_certificate_only_if_pass",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_result_display()}"

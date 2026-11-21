@@ -460,3 +460,10 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09A-13](T-M09A-13.md) | Prova de principi a fi dels ajuts (carril C2) | 21/11/2026 08:12 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09-24](T-M09-24.md) | Guies del tresorer (09) i d'ajuts, esborrany (T-M09-24 i T-M09A-14) (carril C2) | 21/11/2026 08:13 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0012; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-12b](T-M02-12b.md) | La llista d'espera a mà (AC16): ordre amb motiu i oferir una plaça (carril B2) | 21/11/2026 04:38 | (vegeu la PR) | 6 noves (11 casos) | [A comprovar] |
+| [T-M02-41](T-M02-41.md) | Agències com a dada, source federation, official_level i ajustos VC-55 a VC-59 (activities/0013; carril B2) | 21/11/2026 06:40 | (vegeu la PR) | 7 noves (11 casos) | [A comprovar] |
+| [T-M02-17](T-M02-17.md) | Avaluació per pràctica i «El meu progrés» (activities/0014; carril B2) | 21/11/2026 07:59 | (vegeu la PR) | 8 noves | [A comprovar] |
+| [T-M02-19](T-M02-19.md) | Resultat, certificat C-AAAA-NNNN i titulació del club (activities/0015; carril B2) | 21/11/2026 09:09 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [T-M02-04b](T-M02-04b.md) | Qui perd el rol d'instructor surt de les sessions futures (decisió 101; carril B2) | 21/11/2026 06:15 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [proves-migracions-reversibles](proves-migracions-reversibles.md) | Les dades de les migracions sobreviuen a la neteja de les proves de concurrència (carril B2) | 21/11/2026 09:00 | (vegeu la PR) | 1 nova | [A comprovar] |
