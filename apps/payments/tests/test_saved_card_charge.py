@@ -684,5 +684,5 @@ class TestExistingNoticesWereSent(CommittedDataTestCase):
         try:
             MigrationExecutor(connection).migrate([("payments", "0017_cobrament_targeta_guardada")])
         finally:
-            MigrationExecutor(connection).migrate(leaves)
+            self.migrate_back(leaves)  # sense perdre les dades de les migracions
         assert SavedCardNotice.objects.get(pk=notice.pk).notified

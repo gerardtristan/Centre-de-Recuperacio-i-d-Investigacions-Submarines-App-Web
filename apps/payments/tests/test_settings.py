@@ -171,7 +171,7 @@ class TestSettingsMigrationIsReversible(CommittedDataTestCase):
         try:
             MigrationExecutor(connection).migrate([("payments", "0003_receipt")])
         finally:
-            MigrationExecutor(connection).migrate(leaves)
+            self.migrate_back(leaves)  # sense perdre les dades de les migracions
         after = dict(Setting.objects.filter(module="payments").values_list("key", "pk"))
         # +1 T-M05b-15a, +2 P-291, +1 P-123, +3 P-131, +1 T-M05b-22c
         assert after == before and len(after) == 14

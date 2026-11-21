@@ -361,7 +361,7 @@ class TestMigration0025(CommittedDataTestCase):
                     [attempt.pk, admin.pk],
                 )
         finally:
-            MigrationExecutor(connection).migrate(leaves)
+            self.migrate_back(leaves)  # sense perdre les dades de les migracions
         closure = ReviewClosure.objects.get()
         assert (closure.outcome, closure.review_reason) == ("undecided", "Motiu antic (prova)")
         attempt.refresh_from_db()
@@ -469,7 +469,7 @@ class TestMigrationOrigin(CommittedDataTestCase):
                 details={"origin": "reconciliation", "payment": ids["conciliat"]},
             )
         finally:
-            MigrationExecutor(connection).migrate(leaves)
+            self.migrate_back(leaves)  # sense perdre les dades de les migracions
         origins = dict(Payment.objects.values_list("pk", "origin"))
         assert {name: origins[pk] for name, pk in ids.items()} == {
             "decidit": "treasurer_decision",
