@@ -443,3 +443,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [F2-4](F2-4-flux-material.md) | Prova de flux sencer de la llesca F2-4, de les necessitats al marge congelat (carril C2) | 21/11/2026 06:50 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M03-04](T-M03-04.md) | Stock de material en una data (carril C2) | 21/11/2026 07:26 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M03-19](T-M03-19.md) | Informes del 03, part de servei (carril C2) | 21/11/2026 07:27 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-20b](T-M03-20b.md) | Dades inventades del 03 per a seed_demo_data (carril C2) | 21/11/2026 07:33 | (vegeu la PR) | 1 nova | [A comprovar] |
