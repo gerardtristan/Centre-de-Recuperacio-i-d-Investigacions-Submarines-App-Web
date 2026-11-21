@@ -205,4 +205,5 @@ def test_my_licence_shows_it_pending_without_a_date(make_licence, make_person, l
     account.status = Account.Status.ACTIVE
     account.save()
     html = login_as(account, AREA_PERSONAL).get(reverse("licences:mine")).content.decode()
-    assert "Pendent de confirmar" in html and "Per confirmar" in html and "01/03/2027" not in html
+    assert "Pendent de confirmar" in html and "Per confirmar" in html
+    assert "Has dit que caduca el 01/03/2027" in html  # declarada, però no com a caducitat

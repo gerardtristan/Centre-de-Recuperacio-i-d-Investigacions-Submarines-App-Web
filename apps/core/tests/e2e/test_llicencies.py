@@ -176,3 +176,28 @@ def test_visitor_sees_the_public_price_comparison(
     expect(row).to_contain_text("90,00 €")
     expect(page.get_by_role("link", name="Fer-se soci")).to_be_visible()
     review("llicencies-publica")
+
+
+def test_member_declares_the_expiry_of_a_pending_licence(
+    page, live_server, builder, member, review
+):
+    """T-M06-24 (RN-M06-26): el titular escriu la data a «La meva llicència»; queda pendent."""
+    from .test_carnet_079 import login_personal
+
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    pending = Licence.objects.create(
+        person=member.person, licence_type=annual, validity_rule="calendar_year",
+        status="active", origin="imported_m01", starts_on=D(2026, 1, 10), expiry_confirmed=False,
+    )  # fmt: skip
+    login_personal(page, live_server.url, builder.personal(member.person))
+    page.goto(f"{live_server.url}{reverse('licences:mine')}")
+    expect(page.get_by_text("Pendent de confirmar")).to_be_visible()
+    review("la-meva-llicencia-per-confirmar")
+    form = page.locator("form", has=page.get_by_role("button", name="Desa la data"))
+    form.get_by_label("Caduca el").fill("2026-12-31")
+    form.get_by_role("button", name="Desa la data").click()
+    expect(page.get_by_text("Data desada. La secretaria la confirmarà.")).to_be_visible()
+    pending.refresh_from_db()
+    assert (pending.expires_on, pending.expiry_confirmed) == (D(2026, 12, 31), False)

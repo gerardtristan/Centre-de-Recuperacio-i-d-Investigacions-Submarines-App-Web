@@ -54,7 +54,9 @@ Quan el mòdul entri en producció, l'administrador passarà al 06 els registres
 - a la fitxa del soci, la caducitat continua «desconeguda»;
 - el responsable d'una activitat la veu «pendent de confirmar» i l'instructor, «no»; per inscriure's a una activitat que demana llicència, **no compta com a vigent** [A validar: P-446].
 
-Posar-hi la data la converteix en una llicència normal: comença a rebre avisos i la fitxa del soci en té la data l'endemà com a molt tard. Ho pot fer qui té el permís de tramitar [A validar: P-447]. La pantalla per posar-hi la data (una a una o en bloc, per a les d'any natural) arriba amb la T-M06-24. **Abans d'obrir les inscripcions del mòdul d'activitats, confirma-les totes** (RN-M02-34).
+Posar-hi la data la converteix en una llicència normal: comença a rebre avisos i la fitxa del soci en té la data l'endemà com a molt tard. Ho pot fer qui té el permís de tramitar [A validar: P-447]. La pantalla per fer-ho (en bloc per a les d'any natural, al 31/12 de l'any que triïs, o una a una amb la data que el titular hagi escrit a «La meva llicència») arriba amb la T-M06-24b.
+
+Mentre el titular l'ha declarada però tu no l'has confirmada, continua pendent: cap avís ni cap altre mòdul no la veu. Les pendents de confirmar que ja són al mòdul de llicències no surten a la pantalla antiga de la fitxa del soci («Llicències pendents de confirmar» del menú de socis). **Abans d'obrir les inscripcions del mòdul d'activitats, confirma-les totes** (RN-M02-34).
 
 ## 7. «Ja en tinc una»
 Si una persona ja té la llicència d'una altra banda, es desa amb el número, el tipus i la data de caducitat, sense càrrec ni tramitació. Si no se sap la data d'inici, es pren el dia que es declara [A validar: P-443].

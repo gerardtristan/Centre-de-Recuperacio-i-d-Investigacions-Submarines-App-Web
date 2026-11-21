@@ -9,11 +9,14 @@
   `expiry_confirmed = false` (RN-M06-24): cap avís ni `licence.expired`.
 - `confirm_expiry(licence, expires_on, actor)`: la secretaria hi posa la data (CA-M06-29); puja
   la `version` i la comprovació diària (054) la porta al 01.
+- `unconfirmed(actor)` i `confirm_in_bulk(ids, year, actor)`: la llista de pendents i la
+  confirmació en bloc de les d'any natural (RN-M06-26, CA-M06-32).
 - `undo(batch, actor)`: desfà el lot si cap llicència no ha canviat des de llavors: les esborra
   (no tenen cap càrrec ni moviment) i el 01 en deslliga les files. Res del 01 s'esborra.
 Només l'administrador (LC11). Mai amb dades reals fora de producció.
 """
 
+import datetime
 import hashlib
 import json
 from collections import Counter
@@ -33,8 +36,8 @@ from apps.members.licence_copy import detach_licence_copies
 from apps.members.services import licence_records
 
 from . import events as licence_events
-from .models import Licence, LicenceType
-from .services import LicenceRequestError
+from .models import Licence, LicenceType, ValidityRule
+from .services import ExpiryBeforeStart, LicenceRequestError
 
 PERMISSION = "licences.import_m01"  # LC11
 CONFIRM_EXPIRY_PERMISSION = "licences.file"  # LC5 (P-447)
@@ -56,10 +59,6 @@ class CannotUndo(LicenceRequestError):
 
 class AlreadyConfirmed(LicenceRequestError):
     message = _("Aquesta llicència ja té la caducitat confirmada.")
-
-
-class ExpiryBeforeStart(LicenceRequestError):
-    message = _("La caducitat no pot ser anterior a l'inici de la llicència.")
 
 
 @dataclass(frozen=True)
@@ -187,3 +186,71 @@ def confirm_expiry(licence: Licence, expires_on, *, actor) -> Licence:
         old=previous.isoformat() if previous else None, new=expires_on.isoformat(),
     )  # fmt: skip
     return licence
+
+
+class NothingSelected(LicenceRequestError):
+    message = _("Tria almenys una llicència.")
+
+
+class YearNotAllowed(LicenceRequestError):
+    message = _("L'any de caducitat ha de ser l'actual o el següent.")
+
+
+class NotPending(LicenceRequestError):
+    message = _("Alguna llicència ja no està pendent de confirmar. Torna a carregar la llista.")
+
+
+class StartsAfterYear(LicenceRequestError):
+    message = _(
+        "Alguna llicència comença després del 31/12 de l'any triat: treu-la o tria un altre any."
+    )
+
+
+def unconfirmed(actor):
+    """RN-M06-26: les pendents de confirmar, amb la data declarada si n'hi ha. LC5."""
+    if not has_perm(actor, CONFIRM_EXPIRY_PERMISSION, write=True):
+        raise Http404
+    return (
+        Licence.objects.filter(status=Licence.Status.ACTIVE, expiry_confirmed=False)
+        .select_related("person", "licence_type")
+        .order_by("person__last_name", "person__first_name", "pk")
+    )
+
+
+def allowed_years(today=None) -> tuple[int, int]:
+    """Com al 01 (085, S-4): l'any actual o el següent."""
+    year = (today or timezone.localdate()).year
+    return year, year + 1
+
+
+@transaction.atomic
+def confirm_in_bulk(licence_ids, year: int, *, actor, today=None) -> int:
+    """RN-M06-26 (CA-M06-32): les d'any natural triades caduquen el 31/12 de `year`, tot o res.
+    Només les pendents sense data declarada (una de declarada es confirma una a una). Cada una
+    puja la `version` i queda al registre amb el valor anterior. Sense LC5, «no trobat»."""
+    if not has_perm(actor, CONFIRM_EXPIRY_PERMISSION, write=True):
+        raise Http404
+    ids = {int(pk) for pk in licence_ids}
+    if not ids:
+        raise NothingSelected
+    if isinstance(year, bool) or year not in allowed_years(today):
+        raise YearNotAllowed
+    end = datetime.date(year, 12, 31)
+    licences = list(
+        Licence.objects.select_for_update()
+        .filter(pk__in=ids, status=Licence.Status.ACTIVE, expiry_confirmed=False,
+                expires_on__isnull=True, validity_rule=ValidityRule.CALENDAR_YEAR)
+        .order_by("pk")
+    )  # fmt: skip
+    if len(licences) != len(ids):
+        raise NotPending
+    if any(licence.starts_on > end for licence in licences):
+        raise StartsAfterYear
+    for licence in licences:
+        licence.expires_on, licence.expiry_confirmed = end, True
+        licence.save(update_fields=["expires_on", "expiry_confirmed", "updated_at"])
+        audit.record(
+            ACTION_EXPIRY_CONFIRMED, actor=actor, target=licence, field="expires_on",
+            old=None, new=end.isoformat(), details={"bulk": True},
+        )  # fmt: skip
+    return len(licences)

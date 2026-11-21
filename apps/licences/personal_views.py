@@ -6,7 +6,7 @@ import datetime
 
 from django import forms
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -55,6 +55,32 @@ class DeclareForm(forms.Form):
         self.fields["tipus"].queryset = types
 
 
+class ExpiryForm(forms.Form):
+    """T-M06-24 (RN-M06-26): la caducitat d'una llicència pròpia «pendent de confirmar»."""
+
+    llicencia = forms.IntegerField(widget=forms.HiddenInput)
+    caducitat = forms.DateField(
+        label=gettext_lazy("Caduca el"),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+
+
+def _declare_expiry(request, person):
+    """El titular declara la caducitat; queda pendent que la secretaria la confirmi. La
+    llicència es busca entre les de la persona de la sessió: una d'un altre, «no trobat»."""
+    form = ExpiryForm(request.POST, prefix="c")
+    if not form.is_valid():
+        messages.error(request, _("Escriu una data de caducitat vàlida."))
+        return
+    licence = get_object_or_404(Licence, pk=form.cleaned_data["llicencia"], person=person)
+    try:
+        services.declare_expiry(licence, form.cleaned_data["caducitat"], actor=request.user)
+    except services.LicenceRequestError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, _("Data desada. La secretaria la confirmarà."))
+
+
 def _offer(types, person, today):
     """El preu que pagaria, per tipus: el de soci o, si l'opció és activada, el de no soci."""
     if is_member(person, on=today):
@@ -80,6 +106,9 @@ def mine_view(request):
                                prefix="d")  # fmt: skip
     declare_form = DeclareForm(request.POST if "declara" in request.POST else None, types=types,
                                prefix="j")  # fmt: skip
+    if "declara_caducitat" in request.POST:
+        _declare_expiry(request, person)
+        return redirect("licences:mine")
     try:
         if "demana" in request.POST and request_form.is_valid():
             data = request_form.cleaned_data
@@ -106,5 +135,6 @@ def mine_view(request):
         "offer": _offer(types, person, today),
         "request_form": request_form,
         "declare_form": declare_form,
+        "expiry_form": ExpiryForm(prefix="c"),
     }
     return render(request, "licences/mine.html", context)

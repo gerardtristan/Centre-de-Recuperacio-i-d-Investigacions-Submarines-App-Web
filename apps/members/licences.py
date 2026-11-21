@@ -173,7 +173,9 @@ def pending_records(by):
     (S-M01-22). Només llegeix: el permís el comprova la vista i el torna a comprovar el servei."""
     return (
         LicenceRecord.objects.filter(
-            expires_on__isnull=True, member__person__status=Person.Status.ACTIVE
+            expires_on__isnull=True,
+            member__person__status=Person.Status.ACTIVE,
+            licence_ref__isnull=True,  # passat al 06: es confirma allà (T-M06-24)
         )
         .exclude(member__person_id=by.person_id)
         .select_related("member__person")
@@ -204,7 +206,10 @@ def confirm_in_bulk(record_ids, *, year, by, request=None) -> int:
         records = list(
             LicenceRecord.objects.select_for_update(of=("self",))
             .filter(
-                pk__in=ids, expires_on__isnull=True, member__person__status=Person.Status.ACTIVE
+                pk__in=ids,
+                expires_on__isnull=True,
+                member__person__status=Person.Status.ACTIVE,
+                licence_ref__isnull=True,
             )
             .order_by("pk")
         )
@@ -236,6 +241,7 @@ def confirm_in_bulk(record_ids, *, year, by, request=None) -> int:
 
 DECLARED = "members.licence_record.expiry_declared"
 ALREADY_KNOWN = _("Aquesta llicència ja té data de caducitat: no la pots declarar.")
+IN_LICENCES = _("Aquesta llicència ja és al mòdul de llicències: declara-la a «La meva llicència».")
 
 
 def declare_expiry(record, *, by, expires_on, request=None) -> None:
@@ -254,6 +260,8 @@ def declare_expiry(record, *, by, expires_on, request=None) -> None:
         locked = LicenceRecord.objects.select_for_update().get(pk=record.pk)
         if locked.expires_on is not None:
             raise ValidationError(ALREADY_KNOWN)
+        if locked.licence_ref is not None:  # passada al 06: es declara a «La meva llicència»
+            raise ValidationError(IN_LICENCES)
         _clean(locked.licence_type, locked.issued_on, expires_on)
         audit.record_changes(
             DECLARED,

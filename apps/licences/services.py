@@ -179,6 +179,10 @@ class NotAvailable(LicenceRequestError):
     message = _("Aquest tipus de llicència no es pot demanar ara mateix.")
 
 
+class ExpiryBeforeStart(LicenceRequestError):
+    message = _("La caducitat no pot ser anterior a l'inici de la llicència.")
+
+
 class InvalidFederationNumber(LicenceRequestError):
     message = _("Escriu el número de la llicència (30 caràcters com a màxim).")
 
@@ -362,6 +366,36 @@ def declare_existing(
             new={"licence_type": licence_type.pk, "starts_on": start.isoformat(),
                  "expires_on": expires_on.isoformat()},
         )  # fmt: skip
+    return licence
+
+
+# --- El titular declara la caducitat d'una pendent de confirmar (T-M06-24) -------------------
+
+ACTION_EXPIRY_DECLARED = "licences.expiry_declared"
+
+
+class AlreadyDated(LicenceRequestError):
+    message = _("Aquesta llicència ja té data de caducitat: no la pots declarar.")
+
+
+@transaction.atomic
+def declare_expiry(licence: Licence, expires_on, *, actor) -> Licence:
+    """RN-M06-26: el titular declara la caducitat d'una llicència seva «pendent de confirmar».
+    Es desa sense confirmar: cap avís ni cap altre mòdul no la veu fins que la secretaria la
+    confirma (`imports.confirm_expiry`). La d'una altra persona, «no trobat»."""
+    if actor is None or getattr(actor, "person_id", None) != licence.person_id:
+        raise Http404
+    licence = Licence.objects.select_for_update().get(pk=licence.pk)
+    if licence.expiry_confirmed or licence.expires_on is not None:
+        raise AlreadyDated
+    if expires_on < licence.starts_on:
+        raise ExpiryBeforeStart
+    licence.expires_on = expires_on
+    licence.save(update_fields=["expires_on", "updated_at"])
+    audit.record(
+        ACTION_EXPIRY_DECLARED, actor=actor, target=licence, field="expires_on", old=None,
+        new=expires_on.isoformat(),
+    )  # fmt: skip
     return licence
 
 
