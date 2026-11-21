@@ -20,7 +20,7 @@ from django.utils.translation import ngettext
 from apps.core import audit
 
 from . import states
-from .models import Activity, DiverCertification, Session
+from .models import Activity, DiverCertification, PracticeAssessment, Session
 
 CERTIFICATION_ANONYMISED = "activities.certification.anonymised"
 
@@ -35,7 +35,7 @@ def export(person) -> dict:
             {
                 "nivell": c.level.name if c.level_id else None,
                 "especialitat": c.speciality.name if c.speciality_id else None,
-                "agencia": c.agency,
+                "agencia": c.agency.name if c.agency_id else None,
                 "emesa_per": c.issuer,
                 "numero": c.number,
                 "numero_del_certificat": c.certificate_number,
@@ -49,6 +49,18 @@ def export(person) -> dict:
             {"activitat": s.activity.title, "comenca": s.starts_at, "classe": s.get_kind_display()}
             for s in Session.objects.filter(instructors=person).select_related("activity")
         ],
+        # T-M02-17: les avaluacions de les seves pràctiques, amb l'observació.
+        "avaluacions": [
+            {
+                "activitat": a.session.activity.title,
+                "sessio": a.session.starts_at,
+                "resultat": a.get_result_display(),
+                "observacio": a.notes,
+            }
+            for a in PracticeAssessment.objects.filter(enrolment__person=person)
+            .select_related("session__activity")
+            .order_by("session__starts_at", "pk")
+        ],  # fmt: skip
         "activitats_de_que_es_responsable": [
             {"activitat": a.title, "data_d_inici": a.starts_on, "estat": a.get_status_display()}
             for a in Activity.objects.filter(responsible=person)
@@ -88,6 +100,8 @@ def describe(person) -> list[str]:
 
 
 def anonymise(person, *, by, request=None) -> None:
+    # T-M02-17: l'observació pot dir alguna cosa de la persona; el resultat es queda.
+    PracticeAssessment.objects.filter(enrolment__person=person).exclude(notes="").update(notes="")
     for certification in _certifications(person).exclude(number=""):
         certification.number = ""
         certification.save(update_fields=["number"])

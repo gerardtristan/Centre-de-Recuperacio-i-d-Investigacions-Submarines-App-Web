@@ -16,9 +16,15 @@ from django.db.models import ProtectedError
 from django.db.models.deletion import Collector
 from django.utils import timezone
 
-from apps.core.models import IMPORT_LINE_CODES, ImportBatch, ImportLine, UndeletableError
+from apps.core.models import (
+    IMPORT_LINE_CODES,
+    ImportBatch,
+    ImportLine,
+    RolePermission,
+    UndeletableError,
+)
 from apps.members.models import LicenceRecord, Member, MembershipType
-from conftest import CommittedDataTestCase
+from conftest import CommittedDataTestCase, committed_snapshot, delete_committed_rows
 
 SHA = hashlib.sha256(b"fitxer-inventat").hexdigest()
 HOUR = datetime.timedelta(hours=1)
@@ -412,6 +418,24 @@ class TestMigrationsAreReversible(CommittedDataTestCase):
     falli una comprovació.
     """
 
+    def _restore(self, targets):
+        """Torna a l'estat d'abans i fa una foto nova de les claus: desfer i refer les migracions
+        torna a crear les seves dades (rols, matriu, ajustos) amb claus noves, i la neteja de
+        `CommittedDataTestCase` les esborraria i deixaria la base sense permisos per a les proves
+        que vénen després (TestConcurrentEnrolments, «no trobat»)."""
+        MigrationExecutor(connection).migrate(targets)
+        self._tables, self._start = committed_snapshot()
+
+    def test_migration_data_survives_the_cleanup(self):
+        cells = RolePermission.objects.count()
+        applied, targets = _applied_targets()
+        try:
+            MigrationExecutor(connection).migrate([("core", "0009_private_files")])
+        finally:
+            self._restore(targets)
+        delete_committed_rows(self._tables, self._start)  # la neteja del final de la prova
+        assert RolePermission.objects.count() == cells
+
     def test_backwards_and_forwards(self):
         applied, targets = _applied_targets()
         try:
@@ -428,5 +452,5 @@ class TestMigrationsAreReversible(CommittedDataTestCase):
                     columns = connection.introspection.get_table_description(cursor, table)
                     assert "import_batch_id" in [c.name for c in columns]
         finally:
-            MigrationExecutor(connection).migrate(targets)
+            self._restore(targets)
         assert _applied_targets()[0] == applied

@@ -413,6 +413,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-12](T-M09-12.md) | Tancament econòmic i marge congelat (margins/0003) amb el marge real de la 04 (part de la T-M09-11; carril C2) | 21/11/2026 03:57 | (vegeu la PR) | 5 noves; 1 ajustada | [A comprovar] |
 | [T-M09-14b](T-M09-14b.md) | Marges congelats a l'informe per departament, per activitat, subtipus o projecte (carril C2) | 21/11/2026 04:46 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [F2-3](F2-3-flux-marge.md) | Cost de material previst copiat del 03 (T-M02-40b) i prova de flux sencer de la llesca F2-3, del preu del lloc al marge congelat (carril C2) | 21/11/2026 05:04 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M09-16](T-M09-16.md) | Períodes: llista de control, tancament amb excepcions documentades, reobertura i marge recalculat (margins/0004; carril C2) | 21/11/2026 05:50 | (vegeu la PR) | 7 noves | [A comprovar] |
 | [T-M02-04a](T-M02-04a.md) | Permisos per objecte del 02: «les seves sessions» i «les seves activitats» al motor comú (carril B) | 21/11/2026 01:10 | (vegeu la PR) | 6 noves; 1 que s'activa amb els permisos del 09 | [A comprovar] |
 | [T-M02-40a](T-M02-40a.md) | Punts d'extensió del formulari del lloc i del calculador del cost de material estàndard (part de la T-M02-40; carril C) | 21/11/2026 02:13 | 805f696c | 9 noves | [A comprovar] |
 | [T-M09-14](T-M09-14.md) | Informe per departament i CSV (T-M09-14), requeriments d'esmena i pròrroga (T-M09A-15, grants/0005) i termini d'esmena (T-M09A-16, grants/0006) (carril C) | 21/11/2026 01:26 | c99a5342, f35ae441, bca20bc0 | 21 noves | [A comprovar] |
@@ -444,3 +445,33 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-18](T-M06-18.md) | Llicències: guia de la secretaria, tramitació i venciments (esborrany; carril A) | 21/11/2026 08:02 | 3e0ece87 | — | [A comprovar] |
 | [T-M06-24](T-M06-24.md) | Llicències: confirmació en bloc de les pendents i declaració del titular, serveis (carril A) | 21/11/2026 09:05 | 9f2ddce7 | 11188 | [A comprovar] |
 | [T-M06-07b](T-M06-07b.md) | Llicències: demanar-la com a convidat des de la pàgina pública, apagat per defecte (carril A) | 21/11/2026 09:53 | 4497f9aa | 11197 | [A comprovar] |
+| [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0067; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
+| [T-M02-35](T-M02-35.md) | Cancel·lacions com a esdeveniments enrolment.cancelled i activity.cancelled (carril B2) | 21/11/2026 06:02 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-DX-89](T-DX-89.md) | Llicències v2 i v3 (fase 2): «El meu perfil» marcat a «La meva llicència», preus com a dades i un sol botó principal a «Tipus i preus» | 21/11/2026 08:02 | daa1461b | 4 noves | [A comprovar] |
+| [T-M02-48](T-M02-48.md) | AC24, AC25 i AC26 i els permisos dels ajustos VC-55 a VC-59 (core/0068; carril B2) | 21/11/2026 07:16 | (vegeu la PR) | 13 noves | [A comprovar] |
+| [T-M03-07](T-M03-07.md) | Necessitats de material a la inscripció (equipment/0008) (carril C2) | 21/11/2026 06:21 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M03-08](T-M03-08.md) | Assignació de material amb la restricció d'exclusió (equipment/0009, btree_gist) (carril C2) | 21/11/2026 06:27 | (vegeu la PR) | 7 noves | [A comprovar] |
+| [T-M03-09](T-M03-09.md) | Lliurar, retornar, pas a revisió, quantitats reals i used_by (T-M03-09 i T-M03-12) (carril C2) | 21/11/2026 06:30 | (vegeu la PR) | 5 noves | [A comprovar] |
+| [T-M03-13](T-M03-13.md) | Cost de material per participant i per activitat per al 09 (carril C2) | 21/11/2026 06:31 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M09-11b](T-M09-11b.md) | Marge real amb el material del 03 i la factura de lloguer sense duplicar (expenses/0008) (carril C2) | 21/11/2026 06:36 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M03-10](T-M03-10.md) | Llista de lloguer per centre sense desar el contingut (equipment/0010) (carril C2) | 21/11/2026 06:42 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-15](T-M03-15.md) | Material pendent al tancament i peces alliberades en cancel·lar (T-M03-15 i T-M03-16) (carril C2) | 21/11/2026 06:47 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [F2-4](F2-4-flux-material.md) | Prova de flux sencer de la llesca F2-4, de les necessitats al marge congelat (carril C2) | 21/11/2026 06:50 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M03-04](T-M03-04.md) | Stock de material en una data (carril C2) | 21/11/2026 07:26 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-19](T-M03-19.md) | Informes del 03, part de servei (carril C2) | 21/11/2026 07:27 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-20b](T-M03-20b.md) | Dades inventades del 03 per a seed_demo_data (carril C2) | 21/11/2026 07:33 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M03-21](T-M03-21.md) | Guia del responsable de material (esborrany) (carril C2) | 21/11/2026 07:33 | (vegeu la PR) | cap (document) | [A comprovar] |
+| [T-M09-23](T-M09-23.md) | Prova de principi a fi del 09 (carril C2) | 21/11/2026 08:10 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09A-13](T-M09A-13.md) | Prova de principi a fi dels ajuts (carril C2) | 21/11/2026 08:12 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09-24](T-M09-24.md) | Guies del tresorer (09) i d'ajuts, esborrany (T-M09-24 i T-M09A-14) (carril C2) | 21/11/2026 08:13 | (vegeu la PR) | cap (document) | [A comprovar] |
+| [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
+| [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0012; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M02-12b](T-M02-12b.md) | La llista d'espera a mà (AC16): ordre amb motiu i oferir una plaça (carril B2) | 21/11/2026 04:38 | (vegeu la PR) | 6 noves (11 casos) | [A comprovar] |
+| [T-M02-41](T-M02-41.md) | Agències com a dada, source federation, official_level i ajustos VC-55 a VC-59 (activities/0013; carril B2) | 21/11/2026 06:40 | (vegeu la PR) | 7 noves (11 casos) | [A comprovar] |
+| [T-M02-17](T-M02-17.md) | Avaluació per pràctica i «El meu progrés» (activities/0014; carril B2) | 21/11/2026 07:59 | (vegeu la PR) | 8 noves | [A comprovar] |
+| [T-M02-19](T-M02-19.md) | Resultat, certificat C-AAAA-NNNN i titulació del club (activities/0015; carril B2) | 21/11/2026 09:09 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [T-M02-04b](T-M02-04b.md) | Qui perd el rol d'instructor surt de les sessions futures (decisió 101; carril B2) | 21/11/2026 06:15 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [proves-migracions-reversibles](proves-migracions-reversibles.md) | Les dades de les migracions sobreviuen a la neteja de les proves de concurrència (carril B2) | 21/11/2026 09:00 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09-06](T-M09-06.md) | Pantalles de despesa nova i despeses sense factura (sense obrir) (carril C2) | 21/11/2026 08:59 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
+| [T-M09-marge-pantalla](T-M09-marge-pantalla.md) | Pantalla del marge d'una activitat (sense obrir) (carril C2) | 21/11/2026 09:03 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
+| [T-M09-21](T-M09-21.md) | «Les meves factures» a l'àrea personal (sense obrir) (carril C2) | 21/11/2026 09:05 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |

@@ -40,6 +40,13 @@ from .models import Enrolment
 PRIVACY = "privacy"
 # RN-M02-35 i T-M02-34, mentre P-33 sigui oberta. El text el publica l'administrador (M12).
 ADULT = "adult_declaration"
+# Proposta per defecte [A validar: junta, P-458]. Es publica només a local i proves
+# (`seed_demo_data`, proves); a producció no hi ha cap versió fins que la junta la validi i
+# l'administrador la publiqui a M12, i fins llavors el formulari de convidats no inscriu ningú.
+ADULT_PROPOSAL = (
+    "Declaro que soc major d'edat (tinc 18 anys o més). De moment el club no admet inscripcions "
+    "de menors d'edat a les activitats."
+)
 LINK_ACTOR = audit.system("activities.guest_enrolment")
 FIELDS = ("first_name", "last_name", "contact_email", "phone", "birth_date")
 

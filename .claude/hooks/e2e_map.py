@@ -152,6 +152,21 @@ MAP = {
         "templates/accounts/login.html",
         "templates/accounts/admin_accounts.html",
     ),
+    "test_despeses.py": (
+        "apps/expenses/views.py",
+        "apps/expenses/admin_urls.py",
+        "templates/expenses/*",
+    ),
+    "test_marge_activitat.py": (
+        "apps/margins/views.py",
+        "apps/margins/admin_urls.py",
+        "templates/margins/*",
+    ),
+    "test_meves_factures.py": (
+        "apps/invoicing/views.py",
+        "apps/invoicing/urls.py",
+        "templates/invoicing/*",
+    ),
     "test_llicencies.py": (
         "apps/licences/views.py",
         "apps/licences/personal_views.py",

@@ -43,6 +43,8 @@ KINDS = {
     "images": gettext_lazy("Ús d'imatges (fotos i vídeos)"),
     "sepa_mandate": gettext_lazy("Text del mandat SEPA"),
     "mandate_campaign_invitation": gettext_lazy("Invitació de la campanya de mandats"),
+    # T-M02-34 (RN-M02-35; P-33): la casella dels convidats a les activitats sense edat mínima.
+    "adult_declaration": gettext_lazy("Declaració «Soc major d'edat» (activitats)"),
 }
 # Textos que només porta una importació (071, punt 15): són el que es va acceptar a Cluber i no
 # es publiquen mai des de la plataforma.

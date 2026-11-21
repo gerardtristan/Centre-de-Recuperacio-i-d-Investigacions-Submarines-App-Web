@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M09-21 (MG10, propi): les factures emeses a nom de la persona del compte personal. Només les seves: el servidor filtra per la persona del compte, no la plantilla. La facturació encara és desactivada (RN-M09-19) i el PDF es podrà descarregar quan es desi com a fitxer privat (T-M09-25). Sense dades d'altres persones ni de pagament. #}
+{% block title %}{% translate "Les meves factures" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
+    <h1>{% translate "Les meves factures" %}</h1>
+    <p class="text-2">{% translate "Les factures que el club ha emès a nom teu." %}</p>
+  </header>
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} factura, la més recent primer{% plural %}{{ total }} factures, la més recent primer{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Número" %}</th>
+        <th scope="col">{% translate "Data" %}</th>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Total" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom"><span class="codi">{{ row.invoice.number }}</span></th>
+          <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.invoice.issued_on|date:'Y-m-d' }}">{{ row.invoice.issued_on|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate 'Tipus' %}">{{ row.invoice.get_series_display }}</td>
+          <td data-etiqueta="{% translate 'Total' %}"><span class="import">{{ row.total }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% translate "Encara no tens cap factura." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="text-2">{% translate "Aviat les podràs descarregar en PDF." %}</p>
+{% endblock %}

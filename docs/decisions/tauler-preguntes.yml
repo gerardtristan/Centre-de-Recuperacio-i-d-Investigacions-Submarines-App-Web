@@ -1263,6 +1263,17 @@ opcions:
       Qui ha de reclamar la factura és qui paga la despesa; si el club vol que l'Administrador no el
       rebi, es treu MG2 de l'Administrador a l'editor sense tocar codi.
     data: 2026-11-20
+  P-474:
+    opcions:
+      A: "Abans de migrar, qui administra la base de dades executa `CREATE EXTENSION btree_gist;` a la base de producció; la migració ja no ha de fer res."
+      B: "Donar a l'usuari de l'aplicació el permís de crear extensions i deixar que ho faci la migració."
+      C: "Treure la restricció de la base de dades i comprovar el solapament només al servei, amb la fila de la peça bloquejada."
+    recomanada: A
+    perque: >-
+      L'usuari de l'aplicació no necessita permisos d'administrador de la base de dades per a res més;
+      activar-la una sola vegada a mà és segur i manté la garantia a la base de dades (RN-M03-02),
+      que C perdria si mai hi ha un altre camí d'escriptura.
+    data: 2026-11-21
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."
@@ -1311,6 +1322,17 @@ opcions:
     perque: >-
       No cal cap peça nova de la 00 (l'enllaç de convidat és per pagar un càrrec, no per acceptar una oferta) i el club
       ja atén els convidats per telèfon; B demanaria ampliar els enllaços de convidat.
+    data: 2026-11-21
+  P-458:
+    opcions:
+      A: "La proposta: «Declaro que soc major d'edat (tinc 18 anys o més). De moment el club no admet inscripcions de menors d'edat a les activitats.»"
+      B: "Una versió més curta: «Soc major d'edat.»"
+      C: "La proposta, i a més que el convidat escrigui l'any de naixement (sense la data sencera)."
+      D: "Cap casella: es demana sempre la data de naixement als convidats."
+    recomanada: A
+    perque: >-
+      Explica per què es demana i què passa si no es marca, sense demanar cap data de naixement
+      (minimització); C i D recullen més dades personals del que cal mentre el club no admeti menors.
     data: 2026-11-21
 
 noves:
