@@ -1037,3 +1037,45 @@ class Incident(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.activity}"
+
+
+class PracticeAssessment(models.Model):
+    """Avaluació d'un alumne en una sessió pràctica (T-M02-17; M02-6; P-M02-F pas 1). Es pot
+    corregir; cada canvi queda al registre. Sense dades de salut (RN-M02-17)."""
+
+    class Result(models.TextChoices):
+        ACHIEVED = "achieved", _("Assolit")
+        NOT_ACHIEVED = "not_achieved", _("No assolit")
+        NEEDS_REINFORCEMENT = "needs_reinforcement", _("Necessita reforç")
+
+    session = models.ForeignKey(
+        Session, on_delete=models.PROTECT, related_name="assessments", verbose_name=_("sessió")
+    )
+    enrolment = models.ForeignKey(
+        Enrolment, on_delete=models.PROTECT, related_name="assessments",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    result = models.CharField(_("resultat"), max_length=20, choices=Result.choices)
+    # Observació curta. Sense dades de salut (RN-M02-17).
+    notes = models.TextField(_("observació"), max_length=500, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("registrada per"),
+    )  # fmt: skip
+    recorded_at = models.DateTimeField(_("registrada el"))
+
+    class Meta:
+        verbose_name = _("avaluació d'una pràctica")
+        verbose_name_plural = _("avaluacions de pràctiques")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "enrolment"], name="assessment_one_per_session_and_student"
+            ),
+            models.CheckConstraint(
+                condition=Q(result__in=["achieved", "not_achieved", "needs_reinforcement"]),
+                name="assessment_result_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_result_display()}"
