@@ -420,3 +420,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-v1](T-M06-v1.md) | Llicències: pantalla de la secretaria (llistat, tramitar, vigent i fitxer per a la federació; carril A) | 21/11/2026 03:14 | 39633f0c | 10441 | [A comprovar] |
 | [T-M03-22a](T-M03-22a.md) | Nucli del 03: apartat «Material» dels ajustos (core/0065) i plantilla de l'avís de revisions (carril C) | 21/11/2026 03:23 | c70df8f7 | 2 noves | [A comprovar] |
 | [T-M01-31a](T-M01-31a.md) | Socis: còpia de lectura de la llicència del 06 (camps i subscriptor; carril A) | 21/11/2026 06:02 | d379ec94 | 10936 | [A comprovar] |
+| [T-M06-14](T-M06-14.md) | Llicències: pas únic dels registres del 01 al 06 amb prova, confirmació i desfer (carril A) | 21/11/2026 06:02 | 993ec0f0 | 10946 | [A comprovar] |
