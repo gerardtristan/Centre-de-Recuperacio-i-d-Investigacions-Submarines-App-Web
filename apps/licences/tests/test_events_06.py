@@ -151,3 +151,15 @@ def test_the_daily_task_calls_the_service(monkeypatch):
     monkeypatch.setattr(licence_events, "expire_due", lambda: calls.append(1))
     tasks.expire_due.func(timestamp=0)
     assert calls == [1]
+
+
+def test_the_06_registers_its_source_and_it_reads_licences(make_licence):
+    from apps.licences.events import read_source
+    from apps.members import licence_copy
+
+    assert licence_copy._source is read_source
+    active = make_licence(status="active", federation_number="F-1", origin="external",
+                          price_kind=None, price_cents=None)  # fmt: skip
+    cancelled = make_licence(status="cancelled", cancellation_reason="Prova")
+    rows = {r["licence"]: r for r in read_source()}
+    assert rows[active.pk]["cancelled_on"] is None and rows[cancelled.pk]["cancelled_on"]

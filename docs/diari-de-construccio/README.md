@@ -435,3 +435,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-26a](T-M09-26a.md) | Nucli del 09: apartat «Facturació» dels ajustos (core/0066) i plantilla de l'avís de salt de sèrie (carril C) | 21/11/2026 03:32 | 20652144 | 2 noves | [A comprovar] |
 | [T-M06-v2](T-M06-v2.md) | Llicències: tipus i preus des de l'app (LC8; carril A) | 21/11/2026 04:01 | dae89350 | 10804 | [A comprovar] |
 | [T-M06-v3](T-M06-v3.md) | Llicències: «La meva llicència» a l'àrea de socis (demanar, pagar i «Ja en tinc una»; carril A) | 21/11/2026 04:45 | 1402f154 | 10906 | [A comprovar] |
+| [T-M01-31a](T-M01-31a.md) | Socis: còpia de lectura de la llicència del 06 (camps i subscriptor; carril A) | 21/11/2026 06:02 | d379ec94 | 10936 | [A comprovar] |
+| [T-M06-14](T-M06-14.md) | Llicències: pas únic dels registres del 01 al 06 amb prova, confirmació i desfer (carril A) | 21/11/2026 06:02 | 993ec0f0 | 10946 | [A comprovar] |
+| [T-M06-17](T-M06-17.md) | Llicències: prova de flux sencer de la F2-1 (de demanar-la a renovar-la; carril A) | 21/11/2026 06:03 | 9087f621 | 10947 | [A comprovar] |
+| [T-M01-31b](T-M01-31b.md) | Socis: comprovació diària de la còpia de la llicència contra el 06 (carril A) | 21/11/2026 06:30 | dea46c13 | 10955 | [A comprovar] |

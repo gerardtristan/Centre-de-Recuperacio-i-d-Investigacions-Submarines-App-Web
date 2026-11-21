@@ -1442,4 +1442,12 @@ noves:
     perque: >-
       El propietari no ha dit cap preu i la FECDAS cobra la titulació a part; si el club en vol cobrar, és un ajust
       amb data d'entrada en vigor i no cal tocar codi.
+  P-445:
+    opcions:
+      A: "Com ara: el 01 i el 06 escriuen el lot directament (amb un shortcut:) fins que el nucli tingui imports.mark_undone."
+      B: "Afegir ara imports.mark_undone(batch, by) al nucli i fer-lo servir des del 01 i el 06 (torn del nucli)."
+    recomanada: B
+    perque: >-
+      Compleix la norma «una app no escriu als models d'una altra» i deixa un sol lloc on es desfà un lot; és un canvi
+      petit, però demana el torn del nucli, i per això, mentrestant, A.
     data: 2026-11-21

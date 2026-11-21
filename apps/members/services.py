@@ -400,7 +400,7 @@ _LICENCE_ORDER = (F("known_expires_on").desc(nulls_last=True), "-issued_on", "-p
 def licence_record(person) -> LicenceInfo | None:
     """El registre mínim de la persona, o None si no és sòcia o no en té cap (049)."""
     row = (
-        LicenceRecord.objects.filter(member__person=person)
+        LicenceRecord.objects.filter(member__person=person, cancelled_on__isnull=True)
         .annotate(**_KNOWN)
         .order_by(*_LICENCE_ORDER)
         .values_list(*_LICENCE_FIELDS)
@@ -414,7 +414,8 @@ def licence_records() -> list[LicenceInfo]:
     (P-M06-H: cada llicència recorda de quin registre surt). Ordenats per persona i amb el mateix
     ordre que `licence_record`: el primer de cada persona és el que torna `licence_record`."""
     rows = (
-        LicenceRecord.objects.annotate(**_KNOWN)
+        LicenceRecord.objects.filter(cancelled_on__isnull=True)
+        .annotate(**_KNOWN)
         .order_by("member__person_id", *_LICENCE_ORDER)
         .values_list(*_LICENCE_FIELDS)
     )
