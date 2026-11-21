@@ -6,6 +6,7 @@ import datetime
 import pytest
 from django.db import IntegrityError, transaction
 
+from apps.activities import extensions
 from apps.activities.models import Activity, OutingType, Place
 from apps.activities.tests.helpers import outing_data
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -71,6 +72,7 @@ def test_ca_m03_24_sense_tarifa_el_cost_d_us_per_dies(activity):
 
 def test_ca_m03_24_sense_material_tipic_zero(activity):
     assert costs.standard_material_cost(activity) == 0
+    assert extensions.standard_material_cost(activity) == 0  # el calculador registrat al 02
 
 
 def test_sense_cost_d_us_vigent_zero_i_es_suma_per_linia(activity):

@@ -9,7 +9,10 @@ class EquipmentConfig(AppConfig):
     def ready(self):
         from apps.activities import extensions
 
-        from . import places
+        from . import costs, places
+
+        # RN-M02-43 i RN-M03-25: el 02 copia aquest cost a l'activitat que es crea.
+        extensions.register_material_cost_calculator(costs.standard_material_cost)
 
         # RN-M03-23: el centre habitual, al formulari del lloc del 02.
         extensions.register_place_section(

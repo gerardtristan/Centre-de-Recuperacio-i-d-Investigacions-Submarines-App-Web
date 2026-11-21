@@ -2,7 +2,7 @@
 El 02 el copia a l'activitat com a cost de material previst (RN-M02-43); no crea cap assignació
 ni cap càrrec. La fórmula és una proposta [A validar: tresorer].
 
-El registre al 02 com a calculador espera el punt d'extensió del 02 (T-M02-40, carril B)."""
+Es registra al 02 com a calculador (`extensions.register_material_cost_calculator`)."""
 
 from .centres import rate_on
 from .models import TypicalEquipmentTemplate, UsageRate
