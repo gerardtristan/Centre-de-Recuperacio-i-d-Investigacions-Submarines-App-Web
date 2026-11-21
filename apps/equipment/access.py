@@ -1,5 +1,5 @@
-"""Permisos del 03 als serveis. Els codis són els de la T-M03-18 (catàleg del nucli): mentre un
-codi no hi sigui, el servei no deixa fer res a ningú («no trobat»)."""
+"""Permisos del 03 als serveis (T-M03-18, catàleg del nucli). Sense el permís per editar, «no
+trobat»; un codi que no fos al catàleg tampoc no deixaria fer res a ningú."""
 
 from django.http import Http404
 

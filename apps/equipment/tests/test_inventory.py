@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.http import Http404
 
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.equipment import access, inventory
+from apps.equipment import inventory
 from apps.equipment.models import EquipmentItem, EquipmentType
 
 pytestmark = pytest.mark.django_db
@@ -18,8 +18,8 @@ REVIEW = datetime.date(2027, 9, 1)
 
 
 @pytest.fixture
-def manager(make_admin, monkeypatch):  # noqa: F811
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: True)  # MT3 (T-M03-18)
+def manager(make_admin):  # noqa: F811
+    # MT3 de la matriu inicial (T-M03-18).
     return make_admin("equipment_manager")
 
 
@@ -104,8 +104,7 @@ def test_estats_i_baixa_amb_motiu(manager):
     ]
 
 
-def test_sense_mt3_no_es_toca(make_admin, monkeypatch):  # noqa: F811
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: False)
+def test_sense_mt3_no_es_toca(make_admin):  # noqa: F811
     secretary = make_admin("secretary")
     with pytest.raises(Http404):
         inventory.create_item(equipment_type=kind("Màscara"), by=secretary)
