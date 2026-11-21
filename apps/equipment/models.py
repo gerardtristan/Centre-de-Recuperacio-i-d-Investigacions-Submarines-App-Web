@@ -1,6 +1,8 @@
 """Material (mòdul 03; M03-6). Imports en cèntims. Les FK cap al 02 són només de lectura: el 03 no
 hi escriu mai. Cap dada personal."""
 
+from django.contrib.postgres.constraints import ExclusionConstraint
+from django.contrib.postgres.fields import DateRangeField, RangeOperators
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -354,3 +356,174 @@ class EquipmentReview(models.Model):
 
     def __str__(self):
         return f"{self.item} {self.get_kind_display()} ({self.due_on})"
+
+
+class EquipmentNeed(models.Model):
+    """Què porta i què necessita un participant (M03-6; P-M03-C; T-M03-07). Es desa amb la
+    inscripció, també a la llista d'espera. El 03 no escriu mai a la inscripció."""
+
+    enrolment = models.ForeignKey(
+        "activities.Enrolment",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("inscripció"),
+    )
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    brings_own = models.BooleanField(_("porta el seu"))
+    size = models.CharField(_("talla"), max_length=10, blank=True)
+    litres = models.DecimalField(_("litres"), max_digits=4, decimal_places=1, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("necessitat de material")
+        verbose_name_plural = _("necessitats de material")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["enrolment", "equipment_type"], name="equipment_need_unique"
+            ),
+            models.CheckConstraint(
+                condition=Q(litres__isnull=True) | Q(litres__gt=0), name="equipment_need_litres"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type} · {'propi' if self.brings_own else 'necessita'}"
+
+
+class EquipmentAssignment(models.Model):
+    """Material d'un participant en una activitat (M03-6; P-M03-D; T-M03-08): propi, del club
+    (una peça) o llogat a un centre (amb la tarifa copiada, RN-M03-06). La restricció d'exclusió
+    garanteix que una peça del club no és en dues assignacions vives amb dies que es toquin, també
+    si dues persones assignen alhora (RN-M03-02)."""
+
+    class Origin(models.TextChoices):
+        OWN = "own", _("Propi")
+        CLUB = "club", _("Del club")
+        RENTED = "rented", _("Llogat")
+
+    class Status(models.TextChoices):
+        PLANNED = "planned", _("Prevista")
+        DELIVERED = "delivered", _("Lliurada")
+        RETURNED = "returned", _("Retornada")
+        NOT_USED = "not_used", _("No s'ha fet servir")
+        CANCELLED = "cancelled", _("Cancel·lada")
+
+    LIVE = (Status.PLANNED, Status.DELIVERED)
+
+    activity = models.ForeignKey(
+        "activities.Activity", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("activitat"),
+    )  # fmt: skip
+    enrolment = models.ForeignKey(
+        "activities.Enrolment", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    # Només per a una classe de reforç (RN-M03-19).
+    session = models.ForeignKey(
+        "activities.Session", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("sessió"),
+    )  # fmt: skip
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    origin = models.CharField(_("origen"), max_length=6, choices=Origin.choices)
+    item = models.ForeignKey(
+        EquipmentItem, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="assignments", verbose_name=_("peça"),
+    )  # fmt: skip
+    centre = models.ForeignKey(
+        DiveCentre, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("centre"),
+    )  # fmt: skip
+    rate = models.ForeignKey(
+        CentreRate, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("tarifa"),
+    )  # fmt: skip
+    period = DateRangeField(_("dies"))
+    cost_cents = models.PositiveIntegerField(_("cost per al club (cèntims)"))
+    participant_price_cents = models.PositiveIntegerField(_("preu per al participant (cèntims)"))
+    status = models.CharField(
+        _("estat"), max_length=9, choices=Status.choices, default=Status.PLANNED
+    )
+    delivered_at = models.DateTimeField(_("lliurada el"), null=True, blank=True)
+    returned_at = models.DateTimeField(_("retornada el"), null=True, blank=True)
+    note = models.TextField(_("nota"), blank=True)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("feta per")
+    )
+    created_at = models.DateTimeField(_("feta el"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("assignació de material")
+        verbose_name_plural = _("assignacions de material")
+        ordering = ["activity", "enrolment", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(origin__in=["own", "club", "rented"]), name="assignment_origin"
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=["planned", "delivered", "returned", "not_used", "cancelled"]
+                ),
+                name="assignment_status",
+            ),
+            models.CheckConstraint(
+                condition=Q(origin="club", item__isnull=False)
+                | (~Q(origin="club") & Q(item__isnull=True)),
+                name="assignment_item_iff_club",
+            ),
+            models.CheckConstraint(
+                condition=Q(origin="rented", centre__isnull=False, rate__isnull=False)
+                | (~Q(origin="rented") & Q(centre__isnull=True, rate__isnull=True)),
+                name="assignment_rate_iff_rented",
+            ),
+            # RN-M03-02: la garantia és a la base de dades (extensió `btree_gist`).
+            ExclusionConstraint(
+                name="assignment_item_no_overlap",
+                expressions=[("item", RangeOperators.EQUAL), ("period", RangeOperators.OVERLAPS)],
+                condition=Q(item__isnull=False, status__in=["planned", "delivered"]),
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type} · {self.get_origin_display()} · {self.get_status_display()}"
+
+
+class RentalList(models.Model):
+    """Una llista de lloguer generada per a un centre (M03-6; RN-M03-18; T-M03-10). El contingut
+    es genera a demanda i no es desa: només l'empremta, qui i quan, i si s'ha enviat."""
+
+    activity = models.ForeignKey(
+        "activities.Activity", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("activitat"),
+    )  # fmt: skip
+    centre = models.ForeignKey(
+        DiveCentre, on_delete=models.PROTECT, related_name="+", verbose_name=_("centre")
+    )
+    generated_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("generada per"),
+    )  # fmt: skip
+    generated_at = models.DateTimeField(_("generada el"))
+    fingerprint = models.CharField(_("empremta"), max_length=64)
+    sent_at = models.DateTimeField(_("enviada el"), null=True, blank=True)
+    sent_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("enviada per"),
+    )  # fmt: skip
+
+    class Meta:
+        verbose_name = _("llista de lloguer")
+        verbose_name_plural = _("llistes de lloguer")
+        ordering = ["-generated_at", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(sent_at__isnull=True, sent_by__isnull=True)
+                | Q(sent_at__isnull=False, sent_by__isnull=False),
+                name="rental_list_sent_by_and_at",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.centre} · {self.activity_id}"
