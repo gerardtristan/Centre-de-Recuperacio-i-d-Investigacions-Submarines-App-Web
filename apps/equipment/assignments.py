@@ -33,7 +33,7 @@ from .models import EquipmentAssignment, EquipmentItem
 
 ASSIGN = "equipment.assignments.manage"  # MT6
 ASSIGNED = "equipment.assignment_created"
-O = EquipmentAssignment.Origin
+ORIGIN = EquipmentAssignment.Origin
 
 
 def days_of(activity, session=None) -> tuple:
@@ -112,7 +112,7 @@ def assign_club(enrolment, item, *, by, session=None, note="") -> EquipmentAssig
         raise ValidationError(_("Aquesta peça té la revisió vençuda abans de l'últim dia."))
     cost = ((last - first).days + 1) * usage_cost_on(item.type, first)
     return _create(
-        enrolment, by=by, session=session, equipment_type=item.type, origin=O.CLUB, item=item,
+        enrolment, by=by, session=session, equipment_type=item.type, origin=ORIGIN.CLUB, item=item,
         cost_cents=cost, participant_price_cents=0, note=note,
     )  # fmt: skip
 
@@ -129,7 +129,7 @@ def assign_rented(
     if enrolment.price_kind == Enrolment.PriceKind.NON_MEMBER and rate.non_member_price_cents:
         price = rate.non_member_price_cents
     return _create(
-        enrolment, by=by, session=session, equipment_type=equipment_type, origin=O.RENTED,
+        enrolment, by=by, session=session, equipment_type=equipment_type, origin=ORIGIN.RENTED,
         centre=centre, rate=rate, cost_cents=rate.cost_cents, participant_price_cents=price,
         note=note,
     )  # fmt: skip
@@ -139,6 +139,6 @@ def assign_rented(
 def assign_own(enrolment, equipment_type, *, by, session=None) -> EquipmentAssignment:
     enrolment = _confirmed(enrolment, by, session)
     return _create(
-        enrolment, by=by, session=session, equipment_type=equipment_type, origin=O.OWN,
+        enrolment, by=by, session=session, equipment_type=equipment_type, origin=ORIGIN.OWN,
         cost_cents=0, participant_price_cents=0,
     )  # fmt: skip
