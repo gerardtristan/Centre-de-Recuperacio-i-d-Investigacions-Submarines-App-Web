@@ -551,3 +551,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-21a](T-M02-21a.md) | Avisos per correu a l'alumne: recordatori, resultat, certificat i reforç (activities/0023, core/0076; carril C7) | 23/11/2026 23:41 | (vegeu la PR) | 8 noves (+1 al nucli) | [A comprovar] |
 | [T-DX-97](T-DX-97.md) | Avaluació amb el botó principal i homologacions amb l'avantítol en text | 24/11/2026 01:34 | f423a5dd | 2 noves | [A comprovar] |
 | [T-M02-16d](T-M02-16d.md) | El comptador de «Passar llista» segueix les marques (carril C7) | 24/11/2026 01:27 | (vegeu la PR) | 1 e2e nova | [A comprovar] |
+| [T-M06-24b](T-M06-24b.md) | Llicències: pantalla de la secretaria per a les pendents de confirmar (carril A; demana el torn del nucli) | 21/11/2026 09:15 | 8e8acb00 | 858 | [A comprovar] |
