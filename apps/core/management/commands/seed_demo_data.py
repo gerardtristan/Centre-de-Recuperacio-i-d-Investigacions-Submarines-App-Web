@@ -35,6 +35,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Account, TotpDevice
 from apps.accounts.totp import DEMO_TOTP_SECRET
+from apps.activities import guests
 from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
@@ -224,7 +225,8 @@ class Command(BaseCommand):
             *OPTIONAL_TEXT_CONTENT.items(),
             # Formulari d'alta (T-M01-13). Textos de prova: no serveixen per a producció (H1).
             ("membership_terms", "Text de prova de les condicions de soci, versió 1."),
-            ("adult_declaration", "Text de prova: declaro que soc major d'edat."),
+            # «Soc major d'edat» dels convidats del 02 (T-M02-34): la proposta [A validar: P-458].
+            (guests.ADULT, guests.ADULT_PROPOSAL),
             # Alta d'un menor (068): l'autorització del pare, la mare o el tutor legal.
             (
                 "guardian_authorization",

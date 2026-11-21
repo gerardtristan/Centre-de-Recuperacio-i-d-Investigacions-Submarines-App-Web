@@ -1312,6 +1312,17 @@ opcions:
       No cal cap peça nova de la 00 (l'enllaç de convidat és per pagar un càrrec, no per acceptar una oferta) i el club
       ja atén els convidats per telèfon; B demanaria ampliar els enllaços de convidat.
     data: 2026-11-21
+  P-458:
+    opcions:
+      A: "La proposta: «Declaro que soc major d'edat (tinc 18 anys o més). De moment el club no admet inscripcions de menors d'edat a les activitats.»"
+      B: "Una versió més curta: «Soc major d'edat.»"
+      C: "La proposta, i a més que el convidat escrigui l'any de naixement (sense la data sencera)."
+      D: "Cap casella: es demana sempre la data de naixement als convidats."
+    recomanada: A
+    perque: >-
+      Explica per què es demana i què passa si no es marca, sense demanar cap data de naixement
+      (minimització); C i D recullen més dades personals del que cal mentre el club no admeti menors.
+    data: 2026-11-21
 
 noves:
   P-410:
