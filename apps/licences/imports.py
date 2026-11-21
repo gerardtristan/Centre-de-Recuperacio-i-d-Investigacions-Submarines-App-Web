@@ -140,7 +140,9 @@ def undo(batch: ImportBatch, actor) -> ImportBatch:
         Licence._base_manager.filter(pk__in=ids).delete()
     except ProtectedError as error:  # una renovació o un avís hi apunten
         raise CannotUndo from error
-    # Mateix patró que el desfer de Cluber (apps/members/imports/final.py).
+    # shortcut: escriu el lot del nucli directament, com el desfer de Cluber
+    # (apps/members/imports/final.py), perquè `apps.core.imports` no té cap servei per desfer un
+    # lot; quan el nucli el tingui, fer-lo servir aquí (P-445).
     batch.status, batch.undone_by, batch.undone_at = (
         ImportBatch.Status.UNDONE,
         actor,
