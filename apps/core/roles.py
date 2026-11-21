@@ -250,7 +250,9 @@ def remove_role(account: Account, role_code: str, *, by: Account, note: str = ""
     if not AccountRole.objects.filter(admin_account=account, removed_at__isnull=True).exists():
         account.end_all_sessions()
     _notify_role_change(account, assignment.role, by=by, assigned=False, note=note)
-    # RN-RP-12 (responsables orfes) s'aplicarà quan hi hagi activitats i sessions (02).
+    # RN-RP-12 (responsables orfes): les sessions futures d'un instructor que perd el rol les
+    # allibera el 02, que escolta el desat d'`AccountRole` (`apps/activities/apps.py`; L-M02-05,
+    # decisió 101, T-M02-04b).
 
 
 @transaction.atomic

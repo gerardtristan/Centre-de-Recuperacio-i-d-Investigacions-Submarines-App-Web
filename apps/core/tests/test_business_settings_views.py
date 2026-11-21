@@ -157,9 +157,10 @@ def test_menu_shows_settings_only_with_a_section_permission(make_admin):
     home = reverse("administration:home")
     # Configuració inicial real: «Cons.» de pagaments per al tresorer i l'administrador.
     assert b"/ajustos/" in admin_client(make_admin(R.ADMINISTRATOR)).get(home).content
-    assert b"/ajustos/" not in admin_client(make_admin(R.COURSES_MANAGER)).get(home).content
+    # L'instructor no té cap apartat d'ajustos (el responsable de cursos té el del 02, T-M02-28).
+    assert b"/ajustos/" not in admin_client(make_admin(R.INSTRUCTOR)).get(home).content
     index = reverse("administration:settings")
-    assert admin_client(make_admin(R.COURSES_MANAGER)).get(index).status_code == 404
+    assert admin_client(make_admin(R.INSTRUCTOR)).get(index).status_code == 404
     assert b"Ajustos de prova" in admin_client(make_admin(R.PRESIDENT)).get(index).content
 
 

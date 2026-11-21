@@ -9,8 +9,9 @@
   del subscriptor: si arriba dues vegades, el segon no fa res.
 - Cada emissió i cada lliurament (fet, fallit o repetit) queden al registre d'activitat.
 
-Només els esdeveniments aprovats: `charge.paid` (049) i els de la llicència del 06 (052, 054;
-RN-M06-17). Un altre s'ha d'aprovar abans (049, conseqüències).
+Només els esdeveniments aprovats: `charge.paid` (049), els de la llicència del 06 (052, 054;
+RN-M06-17) i les cancel·lacions del 02 (060, RN-M02-36). Un altre s'ha d'aprovar abans (049,
+conseqüències).
 """
 
 from collections.abc import Callable
@@ -26,8 +27,19 @@ LICENCE_ISSUED = "licence.issued"
 LICENCE_RENEWED = "licence.renewed"
 LICENCE_EXPIRED = "licence.expired"
 LICENCE_CANCELLED = "licence.cancelled"
+# RN-M02-36 (addenda de la 060): els emet el 02 (T-M02-35) en lloc dels senyals de M02-8.
+ENROLMENT_CANCELLED = "enrolment.cancelled"
+ACTIVITY_CANCELLED = "activity.cancelled"
 APPROVED = frozenset(
-    {CHARGE_PAID, LICENCE_ISSUED, LICENCE_RENEWED, LICENCE_EXPIRED, LICENCE_CANCELLED}
+    {
+        CHARGE_PAID,
+        LICENCE_ISSUED,
+        LICENCE_RENEWED,
+        LICENCE_EXPIRED,
+        LICENCE_CANCELLED,
+        ENROLMENT_CANCELLED,
+        ACTIVITY_CANCELLED,
+    }
 )
 
 EMITTED = "events.emitted"
