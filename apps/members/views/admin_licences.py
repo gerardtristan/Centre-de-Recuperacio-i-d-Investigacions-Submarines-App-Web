@@ -88,7 +88,8 @@ def licence_add_view(request, pk):
 @require_http_methods(["GET", "POST"])
 def licence_edit_view(request, pk, record_pk):
     member = _member(request, pk)
-    record = get_object_or_404(LicenceRecord, pk=record_pk, member=member)  # per objecte
+    # Per objecte; les que ja són al 06 no es corregeixen aquí (el 06 n'és la font).
+    record = get_object_or_404(LicenceRecord, pk=record_pk, member=member, licence_ref__isnull=True)
     form = licences.LicenceRecordForm(
         request.POST if request.method == "POST" else None, record=record
     )
