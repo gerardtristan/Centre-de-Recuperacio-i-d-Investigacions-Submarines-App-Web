@@ -407,6 +407,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (22 casos); 1 ajustada | [A comprovar] |
 | [T-M02-32](T-M02-32.md) | Edat mínima per fitxa i activitat, sense revelar la data (activities/0007; carril B) | 21/11/2026 00:40 | (vegeu la PR) | 4 noves (10 casos) | [A comprovar] |
 | [T-M02-10](T-M02-10.md) | Model d'inscripció i confirmació quan es paga el càrrec, idempotent (activities/0008; carril B) | 21/11/2026 00:44 | (vegeu la PR) | 5 noves (6 casos) | [A comprovar] |
+| [T-M02-16a](T-M02-16a.md) | Passar llista i incidències, part de servei (activities/0011; carril C2) | 21/11/2026 03:43 | (vegeu la PR) | 10 noves | [A comprovar] |
 | [T-M02-04a](T-M02-04a.md) | Permisos per objecte del 02: «les seves sessions» i «les seves activitats» al motor comú (carril B) | 21/11/2026 01:10 | (vegeu la PR) | 6 noves; 1 que s'activa amb els permisos del 09 | [A comprovar] |
 | [T-M02-40a](T-M02-40a.md) | Punts d'extensió del formulari del lloc i del calculador del cost de material estàndard (part de la T-M02-40; carril C) | 21/11/2026 02:13 | 805f696c | 9 noves | [A comprovar] |
 | [T-M09-14](T-M09-14.md) | Informe per departament i CSV (T-M09-14), requeriments d'esmena i pròrroga (T-M09A-15, grants/0005) i termini d'esmena (T-M09A-16, grants/0006) (carril C) | 21/11/2026 01:26 | c99a5342, f35ae441, bca20bc0 | 21 noves | [A comprovar] |
