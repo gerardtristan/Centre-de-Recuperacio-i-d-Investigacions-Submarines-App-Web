@@ -412,3 +412,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-11a](T-M02-11a.md) | Inscriure's: preu, requisits i càrrec pendent amb el departament de l'activitat; pagament pel 05b fins a la inscripció confirmada (carril B2) | 21/11/2026 01:35 | (vegeu la PR) | 23 noves (34 casos) | [A comprovar] |
 | [T-M02-12](T-M02-12.md) | Places amb la fila bloquejada i llista d'espera; plena, l'activitat continua oberta (carril B2) | 21/11/2026 02:08 | (vegeu la PR) | 7 noves (2 de concurrència) | [A comprovar] |
 | [T-M02-13](T-M02-13.md) | Terminis de pagament, ofertes de plaça i caducitat a la cua (activities/0009; carril B2) | 21/11/2026 02:13 | (vegeu la PR) | 11 noves | [A comprovar] |
+| [T-M02-14](T-M02-14.md) | Inscripció de convidat amb l'enllaç de la 00 i presencial amb AC5 (carril B2) | 21/11/2026 02:49 | (vegeu la PR) | 12 noves (17 casos) | [A comprovar] |
