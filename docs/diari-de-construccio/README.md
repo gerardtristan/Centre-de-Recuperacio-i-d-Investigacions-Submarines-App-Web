@@ -566,3 +566,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c4](T-M02-06c4.md) | Canviar l'horari, el lloc i els instructors d'una sessió existent des de la fitxa (carril B4) | 24/11/2026 03:53 | (vegeu la PR) | 2 noves i 1 e2e ampliada | [A comprovar] |
 | [T-DX-101](T-DX-101.md) | Sessions de la fitxa: «Cancel·la…» plegat, amb l'etiqueta del motiu visible | 24/11/2026 07:09 | b0ae37b0 | 1 nova | [A comprovar] |
 | [T-DX-102](T-DX-102.md) | Revisió del 02 (informes, resultats, reforç, certificat) i del 03 i el calendari d'ajuts | 24/11/2026 10:27 | 74b45d07 | 3 noves | [A comprovar] |
+| [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
