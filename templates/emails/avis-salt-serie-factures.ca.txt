@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09-19 (RN-M09-17, CA-M09-17): avís al tresorer quan el servei de facturació torna un número que salta. TEXT PROVISIONAL [A validar: tresorer]. Només la sèrie i els números: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}A la sèrie {{ series }} s'esperava el número {{ expected }} i el servei de facturació ha donat el {{ got }}. Cal comprovar-ho amb el servei abans de continuar.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
