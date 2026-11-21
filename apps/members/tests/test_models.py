@@ -354,7 +354,7 @@ class TestLicenceRecord:
         assert self.record(member, expires_on=None).expires_on is None
 
     def test_source_must_be_known(self, member):
-        rejected(lambda: self.record(member, source="licences"))
+        rejected(lambda: self.record(member, source="desconegut"))
 
     def test_licence_type_is_free_text_up_to_100(self, member):
         assert self.record(member, licence_type="x" * 100).pk

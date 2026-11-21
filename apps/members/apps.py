@@ -34,6 +34,14 @@ class MembersConfig(AppConfig):
             lock_with=(member_settings.FEE_REMINDER_OFFSETS,),
         )
 
+        # T-M01-31 (052): la còpia de lectura de la llicència escolta els esdeveniments del 06.
+        from apps.core import events
+
+        from . import licence_copy
+
+        for name in licence_copy.NAMES:
+            events.subscribe(name, licence_copy.on_licence_event)
+
         core_privacy.register(
             "socis",
             core_privacy.Module(

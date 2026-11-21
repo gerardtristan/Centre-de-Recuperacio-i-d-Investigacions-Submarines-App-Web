@@ -757,6 +757,7 @@ class LicenceRecord(models.Model):
     class Source(models.TextChoices):
         MANUAL = "manual", _("Manual")
         CLUBER = "cluber", _("Cluber")
+        LICENCES = "licences", _("Llicències (06)")  # còpia de lectura (T-M01-31)
 
     member = models.ForeignKey(
         Member, on_delete=models.PROTECT, related_name="licence_records", verbose_name=_("soci")
@@ -775,6 +776,13 @@ class LicenceRecord(models.Model):
         related_name="+",
         verbose_name=_("lot d'importació"),
     )
+    # Còpia de lectura del 06 (052, 054; T-M01-31): la llicència d'origen, quan es va cancel·lar
+    # i la darrera `version` aplicada (RN-M01-40). Buits a les files de Cluber i manuals.
+    licence_ref = models.PositiveBigIntegerField(
+        _("llicència del 06"), null=True, blank=True, unique=True
+    )
+    cancelled_on = models.DateField(_("cancel·lada el"), null=True, blank=True)
+    source_version = models.PositiveIntegerField(_("versió del 06"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("registre de llicència")
@@ -785,7 +793,8 @@ class LicenceRecord(models.Model):
                 name="licencerecord_expires_after_issue",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=["manual", "cluber"]), name="licencerecord_source_valid"
+                condition=Q(source__in=["manual", "cluber", "licences"]),
+                name="licencerecord_source_valid",
             ),
             models.CheckConstraint(
                 condition=Q(expiry_declared=False) | Q(expires_on__isnull=False),
