@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 from django.apps import apps
 from django.db import connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 from django.test import TransactionTestCase
 
 from apps.accounts.models import Account
@@ -76,12 +77,38 @@ class CommittedDataTestCase(TransactionTestCase):
     def _fixture_setup(cls):
         # Es crida abans de cada prova (Django 5.2 el declara mètode de classe).
         cls._tables, cls._start = committed_snapshot()
+        cls._keep = {}
 
     def _fixture_teardown(self):
-        delete_committed_rows(self._tables, self._start)
+        delete_committed_rows(self._tables, self._start, self._keep)
+
+    def migrate_back(self, targets):
+        """Torna a aplicar les migracions `targets` després de desfer-les. Les files que tornen a
+        crear (rols, matriu de permisos, ajustos) tenen claus noves: la neteja no les esborra, i
+        sí les que la prova ha creat abans o després."""
+        before = _max_ids(self._tables)
+        MigrationExecutor(connection).migrate(targets)
+        after = _max_ids(self._tables)
+        self._keep = {
+            table: (before.get(table, 0), top)
+            for table, top in after.items()
+            if top > before.get(table, 0)
+        }
 
 
 PRIVATE_FILES = "core_privatefile"
+
+
+def _max_ids(tables):
+    """La clau més alta de cada taula que existeix (amb les migracions desfetes, n'hi falten)."""
+    existing = set(connection.introspection.table_names())
+    out = {}
+    with connection.cursor() as cursor:
+        for table, column in tables:
+            if table in existing:
+                cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
+                out[table] = cursor.fetchone()[0]
+    return out
 
 
 def committed_snapshot():
@@ -91,11 +118,8 @@ def committed_snapshot():
     if not connection.settings_dict["NAME"].startswith("test_"):
         raise RuntimeError("Aquestes proves només s'executen a la base de proves.")
     tables = _integer_pk_tables()
-    start = {}
+    start = _max_ids(tables)
     with connection.cursor() as cursor:
-        for table, column in tables:
-            cursor.execute(f'SELECT COALESCE(MAX("{column}"), 0) FROM "{table}"')  # noqa: S608
-            start[table] = cursor.fetchone()[0]
         # Els fitxers privats tenen la clau en UUID: es guarden els que ja hi eren (P-12b, un
         # pagament hi apunta i s'esborren tots dos a la mateixa transacció).
         cursor.execute("SELECT id FROM core_privatefile")
@@ -103,9 +127,10 @@ def committed_snapshot():
     return tables, start
 
 
-def delete_committed_rows(tables, start):
+def delete_committed_rows(tables, start, keep=None):
     """Esborra les files noves de cada taula dins d'una sola transacció (vegeu
-    `CommittedDataTestCase`)."""
+    `CommittedDataTestCase`), llevat de les de `keep`, {taula: (des de, fins a)}, que són les
+    que han tornat a crear les migracions (`migrate_back`)."""
     with transaction.atomic(), connection.cursor() as cursor:
         # Primer es desactiven tots: un ALTER TABLE no es pot fer amb comprovacions de
         # claus foranes pendents a la mateixa taula.
@@ -115,9 +140,11 @@ def delete_committed_rows(tables, start):
         # al final: l'ordre dels DELETE no segueix el de les claus foranes.
         cursor.execute("SET CONSTRAINTS ALL DEFERRED")
         for table, column in tables:
+            low, high = (keep or {}).get(table, (0, 0))
             cursor.execute(
-                f'DELETE FROM "{table}" WHERE "{column}" > %s',  # noqa: S608
-                [start[table]],
+                f'DELETE FROM "{table}" WHERE "{column}" > %s '  # noqa: S608
+                f'AND NOT ("{column}" > %s AND "{column}" <= %s)',
+                [start[table], low, high],
             )
         cursor.execute(
             "DELETE FROM core_privatefile WHERE NOT (id = ANY(%s))", [start[PRIVATE_FILES]]
