@@ -8,6 +8,7 @@ inscripcions i el dia de la sortida es passa llista. Només dades inventades."""
 import datetime
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.activities import attendance, catalogue, enrolment, guests, services, states
@@ -21,7 +22,7 @@ from apps.licences.models import LicenceType, ValidityRule
 from apps.payments.providers import fake
 from apps.payments.tests.test_principi_a_fi import pay_by_provider
 
-from .helpers import a_member
+from .helpers import a_member, general
 
 R = Role.Code
 S = Enrolment.Status
@@ -131,3 +132,119 @@ def test_f2_2_outing_enrol_member_and_guest_pay_confirm_and_roll(make_admin, day
     assert dict(marks.values_list("enrolment", "present")) == {
         own.pk: True, guest.pk: False,
     }  # fmt: skip
+
+
+def a_course(manager, instructor, today, day, places):
+    from apps.activities import sessions
+    from apps.activities.models import Session
+
+    entry = catalogue.create_entry(
+        by=manager, kind="course", name="Curs inventat", level="Nivell inventat",
+        default_places=places, price_member_cents=12000, price_non_member_cents=15000,
+        department=general(), today=today,
+    )  # fmt: skip
+    pool = catalogue.create_place(by=manager, name="Piscina inventada")
+    course = services.create_course(
+        by=manager, catalogue_entry=entry, today=today, title="Curs inventat",
+        starts_on=day, ends_on=day, registration_closes_at=at(day - datetime.timedelta(days=3), 20),
+        place=pool, responsible=manager.person,
+    )  # fmt: skip
+    practice = sessions.add_session(
+        course, by=manager, kind=Session.Kind.POOL, starts_at=at(day, 9), ends_at=at(day, 11),
+        place=pool, is_practice=True, instructors=[instructor.person],
+    )  # fmt: skip
+    states.publish(course, by=manager)
+    course.refresh_from_db()
+    return course, practice
+
+
+def enrol_and_pay(activity, account):
+    row = enrolment.enrol(activity, account.person, channel="account", actor=account)
+    if row.status == S.PENDING_PAYMENT:
+        assert pay_by_provider(row.charge, "card", account).status == "paid"
+        deliver_all()
+        row.refresh_from_db()
+    return row
+
+
+@pytest.mark.django_db
+def test_f2_2_course_sessions_assessment_outcome_certificate_and_club_title(make_admin):  # noqa: F811
+    from apps.activities import assessment, certificates, certifications
+    from apps.activities.models import CertificationLevel, DiverCertification
+
+    today = timezone.localdate()
+    day = today + datetime.timedelta(days=30)
+    manager, instructor = make_admin(R.COURSES_MANAGER), make_admin(R.INSTRUCTOR)
+    CertificationLevel.objects.create(name="Nivell inventat", rank=10)
+    course, practice = a_course(manager, instructor, today, day, places=4)
+
+    # 1. Dos alumnes s'inscriuen i paguen pel proveïdor fictici: confirmats per `charge.paid`.
+    good, other = enrol_and_pay(course, a_member("Pau")), enrol_and_pay(course, a_member("Laia"))
+    assert (good.status, other.status) == (S.CONFIRMED, S.CONFIRMED)
+
+    # 2. El dia del curs: llista i avaluació per pràctica (només qui hi fa classe).
+    states.advance_by_clock(now=at(day, 8))
+    practice.refresh_from_db()  # l'activitat de la sessió, amb l'estat d'ara
+    for row in (good, other):
+        attendance.mark(row, practice, present=True, by=instructor, today=day)
+    assessment.assess(
+        practice, good, result="achieved", notes="Inventat.", by=instructor, today=day
+    )
+    assessment.assess(
+        practice, other, result="needs_reinforcement", notes="Inventat.", by=instructor, today=day
+    )
+
+    # 3. Resultat: apte i no apte (amb motiu). Només l'apte té certificat.
+    certificates.record_outcome(good, result="pass", by=instructor)
+    certificates.record_outcome(other, result="fail", by=instructor, reason="Motiu inventat.")
+    with pytest.raises(ValidationError):
+        certificates.issue(other, by=manager, today=day)
+    outcome = certificates.issue(good, by=manager, today=day)
+    assert outcome.certificate_number.startswith(f"C-{day.year}-")
+
+    # 4. La titulació del club queda lligada al resultat i surt a les titulacions de l'alumne.
+    title = DiverCertification.objects.get(course_outcome=outcome)
+    assert (title.person_id, title.source, title.level.name) == (
+        good.person_id, DiverCertification.Source.CLUB_COURSE, "Nivell inventat",
+    )  # fmt: skip
+    assert title in list(certifications.of(good.person))
+    assert not DiverCertification.objects.filter(person=other.person).exists()
+
+
+@pytest.mark.django_db
+def test_f2_2_full_waitlist_cancel_refund_offer_accept_and_pay(make_admin):  # noqa: F811
+    from apps.activities import cancellation, deadlines
+    from apps.activities.models import RefundProposal
+
+    today = timezone.localdate()
+    day = today + datetime.timedelta(days=30)
+    manager, treasurer = make_admin(R.COURSES_MANAGER), make_admin(R.TREASURER)
+    course, _practice = a_course(manager, make_admin(R.INSTRUCTOR), today, day, places=1)
+
+    # 1. Plaça plena: el primer paga i queda confirmat; el segon va a la llista d'espera.
+    first, second = a_member("Primer"), a_member("Segon")
+    paid = enrol_and_pay(course, first)
+    waiting = enrolment.enrol(course, second.person, channel="account", actor=second)
+    assert (paid.status, waiting.status, waiting.waitlist_position) == (
+        S.CONFIRMED, S.WAITLISTED, 1,
+    )  # fmt: skip
+
+    # 2. El confirmat cancel·la: proposta de devolució de l'import pagat, i la plaça s'ofereix.
+    proposal = cancellation.cancel_enrolment(paid, by=first, reason="No hi puc anar (inventat).")
+    assert (proposal.amount_cents, proposal.status) == (12000, RefundProposal.Status.PROPOSED)
+    waiting.refresh_from_db()
+    assert (waiting.status, waiting.waitlist_position) == (S.OFFERED, None)
+
+    # 3. El tresorer fa la devolució pel 05b amb el proveïdor fictici.
+    done = cancellation.decide_refund(proposal, approve=True, note="Devolució inventada.",
+                                      by=treasurer)  # fmt: skip
+    assert done.status == RefundProposal.Status.DONE and done.refund is not None
+
+    # 4. El següent accepta la plaça, la paga pel proveïdor fictici i queda confirmat.
+    accepted = deadlines.accept_offer(waiting, actor=second)
+    assert accepted.status == S.PENDING_PAYMENT
+    assert pay_by_provider(accepted.charge, "card", second).status == "paid"
+    deliver_all()
+    accepted.refresh_from_db()
+    assert (accepted.status, accepted.charge.status) == (S.CONFIRMED, Charge.Status.PAID)
+    assert enrolment.occupied(course) == 1
