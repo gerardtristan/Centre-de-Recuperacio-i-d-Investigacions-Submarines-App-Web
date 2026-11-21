@@ -1422,6 +1422,8 @@ noves:
     perque: >-
       Dona marge per si la FECDAS demana la foto un altre cop i no guarda una dada amb la cara més del que cal; és un
       ajust, i si la gestoria diu un altre termini només canvia el valor.
+      Resposta provisional del propietari (21/11/2026): A, amb la petició del soci com a base i un
+      avís en pujar la foto; continua oberta per a la gestoria.
     data: 2026-11-21
   P-426:
     opcions:
@@ -1432,6 +1434,8 @@ noves:
     perque: >-
       És el flux que ja existeix i no inventa cap càrrec ni cap despesa; si el curs ja la inclou, cal saber-ho abans
       de cobrar el primer alumne real.
+      Resposta provisional del propietari (21/11/2026): B, configurable a cada fitxa del catàleg
+      («Inclou la primera llicència», sí per defecte als cursos de primera estrella); falta el tresorer.
     data: 2026-11-21
   P-427:
     opcions:
@@ -1442,4 +1446,6 @@ noves:
     perque: >-
       El propietari no ha dit cap preu i la FECDAS cobra la titulació a part; si el club en vol cobrar, és un ajust
       amb data d'entrada en vigor i no cal tocar codi.
+      Resposta provisional del propietari (21/11/2026): A, i el departament dels cursos per defecte;
+      falta el tresorer.
     data: 2026-11-21
