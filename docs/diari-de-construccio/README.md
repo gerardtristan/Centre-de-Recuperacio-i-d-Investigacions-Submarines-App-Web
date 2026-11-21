@@ -399,3 +399,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-23](T-M02-23.md) | Nivells i titulacions de la persona i el RGPD del 02 (activities/0005; carril B) | 21/11/2026 00:12 | (vegeu la PR) | 8 noves (10 casos) | [A comprovar] |
 | [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (22 casos); 1 ajustada | [A comprovar] |
 | [T-M02-32](T-M02-32.md) | Edat mínima per fitxa i activitat, sense revelar la data (activities/0007; carril B) | 21/11/2026 00:40 | (vegeu la PR) | 4 noves (10 casos) | [A comprovar] |
+| [T-M02-10](T-M02-10.md) | Model d'inscripció i confirmació quan es paga el càrrec, idempotent (activities/0008; carril B) | 21/11/2026 00:44 | (vegeu la PR) | 5 noves (6 casos) | [A comprovar] |
+| [T-M02-04a](T-M02-04a.md) | Permisos per objecte del 02: «les seves sessions» i «les seves activitats» al motor comú (carril B) | 21/11/2026 01:10 | (vegeu la PR) | 6 noves; 1 que s'activa amb els permisos del 09 | [A comprovar] |
