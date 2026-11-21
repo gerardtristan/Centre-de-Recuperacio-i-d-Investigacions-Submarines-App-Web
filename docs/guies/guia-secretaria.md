@@ -47,6 +47,8 @@ A **Sol·licituds de socis** arriben les que fan els socis des de la seva àrea,
 ## 6. Llicències pendents de confirmar
 A **Llicències pendents de confirmar** surten les caducitats d'any natural que cal confirmar. Marca les correctes i prem **Confirma les seleccionades**.
 
+La tramitació a la federació, els venciments i la resta del mòdul de llicències són a la [guia de llicències](guia-secretaria-llicencies.md).
+
 ## 7. Quotes
 A **Quotes i impagats** pots veure l'estat de la quota de tots els socis, però marcar un impagat o revisar un pagament és feina del tresorer.
 
