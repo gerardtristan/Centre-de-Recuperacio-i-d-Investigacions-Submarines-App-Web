@@ -1309,6 +1309,31 @@ PERMISSIONS: tuple[Permission, ...] = (
         },
         touches_money=True,
     ),
+    # Addenda de la 104 (T-M02-48): fotos de titulacions i tramitacions a la federació.
+    # L'instructor no en té cap. AC26 com LC5.
+    _perm(
+        "activities.card_photos.view",
+        "AC24",
+        _("Fotos de titulacions: veure"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.SECRETARY: _ALL, R.BOARD: SCOPE_READ},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.card_photos.manage",
+        "AC25",
+        _("Fotos de titulacions i homologacions: veure i editar"),
+        requires=("activities.card_photos.view",),  # RN-RP-03
+        initial={R.SECRETARY: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "activities.filings.manage",
+        "AC26",
+        _("Tramitacions a la federació: llistes, exportar, marcar tramitada, feta o rebutjada"),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_personal_data=True,
+    ),
     _perm(
         "activities.field.material_cost",
         "C7",
@@ -1487,8 +1512,10 @@ PERMISSIONS: tuple[Permission, ...] = (
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
         initial={
             R.COURSES_MANAGER: SCOPE_READ,
+            R.SECRETARY: SCOPE_READ,  # VC-57 (T-M02-48)
             R.TREASURER: SCOPE_READ,
             R.ADMINISTRATOR: SCOPE_READ,
+            R.PRESIDENT: SCOPE_READ,  # VC-55, com AC6 (T-M02-48)
         },
     ),
     _perm(
@@ -1511,6 +1538,54 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Mode dels requisits per defecte (avís o bloqueig)"),
         requires=("settings.section.activities",),
         initial={R.COURSES_MANAGER: _ALL},
+    ),
+    # Addenda de la 104 (VC-55 a VC-59): la destinació, qui té AC6; les fotos, l'administrador per
+    # decisió de la junta; la conservació, la secretaria; els preus i cobrar-los, el tresorer.
+    _perm(
+        "settings.edit.activities.homologation_target_agency",
+        "AJ02-4",
+        _("Agència de destinació de les homologacions"),
+        requires=("settings.section.activities",),
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+    ),
+    _perm(
+        "settings.edit.activities.card_photos_enabled",
+        "AJ02-5",
+        _("Fotos de carnets de titulació (opció de la junta)"),
+        requires=("settings.section.activities",),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "settings.edit.activities.card_photo_retention_months",
+        "AJ02-6",
+        _("Mesos que es conserva la foto d'una titulació"),
+        requires=("settings.section.activities",),
+        initial={R.SECRETARY: _ALL},
+    ),
+    _perm(
+        "settings.edit.activities.homologation_fee_cents",
+        "AJ02-7",
+        _("Preu de l'homologació a la federació"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.activities.course_filing_fee_cents",
+        "AJ02-8",
+        _("Preu de la tramitació de la titulació d'un curs"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.activities.filing_fees_enabled",
+        "AJ02-9",
+        _("Cobrar les tramitacions a la federació"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
     ),
 )
 

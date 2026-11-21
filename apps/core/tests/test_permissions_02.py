@@ -1,6 +1,7 @@
 """Permisos del 02 Activitats per cel·la (T-M02-33 i T-M02-38; CA-RP-13). La taula és la matriu
-inicial de la 059 per al 02 (planning.md#rols-i-permisos-059-matriu) i la de l'addenda de llocs
-(planning.md#M02-addenda-llocs), copiades a mà: si el catàleg se n'aparta, la prova falla."""
+inicial de la 059 per al 02 (planning.md#rols-i-permisos-059-matriu) i les de les addendes de
+llocs (planning.md#M02-addenda-llocs) i de la 104 (planning.md#M02-addenda-104), copiades a mà:
+si el catàleg se n'aparta, la prova falla."""
 
 import pytest
 
@@ -37,6 +38,10 @@ MATRIX = {
     "activities.places.manage": (None, None, Y, None, Y, None, Y, Y, None),  # AC22
     "activities.material_cost.edit": (None, None, OWN_A, None, Y, None, Y, None, None),  # AC23
     "activities.field.material_cost": (None, None, OWN_A, Y, Y, None, Y, Y, CONS),  # C7
+    # Addenda de la 104 (T-M02-48).
+    "activities.card_photos.view": (None, Y, None, None, None, None, None, None, CONS),  # AC24
+    "activities.card_photos.manage": (None, Y, None, None, None, None, None, None, None),  # AC25
+    "activities.filings.manage": (None, Y, None, None, None, None, Y, Y, None),  # AC26
 }
 CELLS = [(code, role, row[i]) for code, row in MATRIX.items() for i, role in enumerate(ROLES)]
 
