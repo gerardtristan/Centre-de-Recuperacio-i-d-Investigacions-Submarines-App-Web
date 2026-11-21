@@ -15,6 +15,15 @@ class ActivitiesConfig(AppConfig):
         # 049 (T-M02-10): una inscripció es confirma quan el seu càrrec es paga.
         events.subscribe(events.CHARGE_PAID, charges.on_charge_paid)
 
+        # Abast per objecte (T-M02-04a): «les seves sessions» i «les seves activitats».
+        from apps.core.permission_catalog import SCOPE_OWN_ACTIVITIES, SCOPE_OWN_SESSIONS
+        from apps.core.permissions import register_scope_check
+
+        from . import permissions
+
+        register_scope_check(SCOPE_OWN_SESSIONS, permissions.teaches)
+        register_scope_check(SCOPE_OWN_ACTIVITIES, permissions.responsible_for)
+
         core_privacy.register(
             "activitats",
             core_privacy.Module(
