@@ -21,7 +21,13 @@ from apps.core.permissions import accounts_with_perm
 from .models import Licence
 
 
+def known_expiry(licence: Licence) -> datetime.date | None:
+    """La caducitat que veuen els altres mòduls: cap mentre no està confirmada (RN-M06-24)."""
+    return licence.expires_on if licence.expiry_confirmed else None
+
+
 def payload(licence: Licence) -> dict:
+    expires = known_expiry(licence)
     return {
         "licence": licence.pk,
         "person": licence.person_id,
@@ -29,7 +35,7 @@ def payload(licence: Licence) -> dict:
         "category": licence.licence_type.category,
         "validity_rule": licence.validity_rule,
         "starts_on": licence.starts_on.isoformat(),
-        "expires_on": licence.expires_on.isoformat(),
+        "expires_on": expires.isoformat() if expires else None,
         "origin": licence.origin,
         "m01_record_ref": licence.m01_record_ref,
         "version": licence.version,
@@ -50,7 +56,10 @@ def expire_due(today: datetime.date | None = None) -> int:
     """`licence.expired` de les vigents que han caducat (`expires_on` anterior a avui)."""
     today = today or timezone.localdate()
     due = Licence.objects.filter(
-        status=Licence.Status.ACTIVE, expires_on__lt=today, expired_at__isnull=True
+        status=Licence.Status.ACTIVE,
+        expiry_confirmed=True,
+        expires_on__lt=today,
+        expired_at__isnull=True,
     ).values_list("pk", flat=True)
     done = 0
     for pk in list(due):
@@ -88,7 +97,7 @@ def read_source() -> list[dict]:
         rows.append({
             "licence": licence.pk, "person": licence.person_id,
             "licence_type": licence.licence_type.name, "starts_on": licence.starts_on,
-            "expires_on": licence.expires_on, "version": licence.version,
+            "expires_on": known_expiry(licence), "version": licence.version,
             "cancelled_on": timezone.localdate(licence.updated_at) if cancelled else None,
         })  # fmt: skip
     return rows

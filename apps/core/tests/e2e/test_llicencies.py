@@ -39,6 +39,9 @@ def test_secretary_files_and_activates_a_licence(page, live_server, transactiona
     licence("Pere", "Roca Prova", "requested", annual)
     licence("Joan", "Bosch Prova", "active", annual, origin="external", price_kind=None,
             price_cents=None, federation_number="F-0001")  # fmt: skip
+    # Del pas únic sense caducitat (T-M06-23): «Pendent de confirmar» i «Per confirmar».
+    licence("Eva", "Mas Prova", "active", annual, origin="imported_m01", price_kind=None,
+            price_cents=None, expires_on=None, expiry_confirmed=False)  # fmt: skip
     secretary = make_admin("secretaria.prova", "secretary")
 
     login_admin(page, live_server.url, secretary.login)
@@ -48,7 +51,8 @@ def test_secretary_files_and_activates_a_licence(page, live_server, transactiona
     expect(page).to_have_url(f"{live_server.url}{reverse('administration:licences')}")
     expect(entry).to_have_attribute("aria-current", "page")
     expect(page.get_by_role("heading", name="Llicències federatives")).to_be_visible()
-    expect(page.get_by_role("table", name="3 llicències, per cognoms")).to_be_visible()
+    expect(page.get_by_role("table", name="4 llicències, per cognoms")).to_be_visible()
+    expect(page.get_by_role("row", name="Mas Prova")).to_contain_text("Pendent de confirmar")
     download = "Descarrega el fitxer per a la federació (1 pagada)"
     expect(page.get_by_role("button", name=download)).to_be_visible()
     review("llicencies-llistat")

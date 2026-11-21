@@ -52,13 +52,14 @@
           <td data-etiqueta="{% translate 'Estat' %}">
             {% if row.status == "valid" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vigent" %}</span>
             {% elif row.status == "to_renew" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Per renovar" %}</span>
+            {% elif row.status == "unconfirmed" %}<span class="estat estat-avis"><span aria-hidden="true">?</span> {% translate "Pendent de confirmar" %}</span>
             {% elif row.status == "expired" or row.status == "cancelled" or row.status == "lapsed" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% if row.status == "expired" %}{% translate "Caducada" %}{% elif row.status == "cancelled" %}{% translate "Cancel·lada" %}{% else %}{% translate "No tramitada a temps" %}{% endif %}</span>
             {% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% if row.status == "requested" %}{% translate "Sol·licitada" %}{% elif row.status == "paid" %}{% translate "Pagada" %}{% elif row.status == "filed" %}{% translate "Tramitada" %}{% else %}{% translate "Vigent més endavant" %}{% endif %}</span>
             {% endif %}
           </td>
           {% if details %}
             <td data-etiqueta="{% translate 'Categoria' %}">{% if row.category == "amateur" %}{% translate "Aficionat" %}{% elif row.category == "technical" %}{% translate "Tècnic" %}{% else %}{% translate "Altres" %}{% endif %}</td>
-            <td data-etiqueta="{% translate 'Caduca' %}"><time datetime="{{ row.expires_on|date:'Y-m-d' }}">{{ row.expires_on|date:"d/m/Y" }}</time></td>
+            <td data-etiqueta="{% translate 'Caduca' %}">{% if row.expires_on %}<time datetime="{{ row.expires_on|date:'Y-m-d' }}">{{ row.expires_on|date:"d/m/Y" }}</time>{% else %}{% translate "Per confirmar" %}{% endif %}</td>
             <td data-etiqueta="{% translate 'Número federatiu' %}">{% if row.federation_number %}<span class="codi">{{ row.federation_number }}</span>{% else %}—{% endif %}</td>
           {% endif %}
           {% if can_file %}

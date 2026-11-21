@@ -139,6 +139,8 @@ def _licence(activity, person) -> Check:
         )
     if info.status == licences.CurrentStatus.IN_PROGRESS:
         return Check(LICENCE, NOT_MET, label, _("En tràmit."))
+    if info.status == licences.CurrentStatus.UNCONFIRMED:  # RN-M06-24; P-446
+        return Check(LICENCE, NOT_MET, label, _("Pendent de confirmar."))
     return Check(LICENCE, MET, label)
 
 
