@@ -5,8 +5,9 @@ ni cap càrrec. La fórmula és una proposta [A validar: tresorer].
 Es registra al 02 com a calculador (`extensions.register_material_cost_calculator`)."""
 
 from .centres import rate_on
-from .models import TypicalEquipmentTemplate, UsageRate
+from .models import UsageRate
 from .places import proposed_centre
+from .typical import lines_for
 
 
 def usage_cost_on(equipment_type, on) -> int:
@@ -23,20 +24,13 @@ def standard_material_cost(activity) -> int:
     """Per a cada línia del material típic: quantitat × preu de cost de la tarifa vigent el
     primer dia al centre habitual del lloc; si no n'hi ha, quantitat × cost d'ús del club × dies.
     Sense material típic, 0."""
-    owner = (
-        {"catalogue_entry_id": activity.catalogue_entry_id}
-        if activity.catalogue_entry_id
-        else {"outing_type_id": activity.outing_type_id}
-    )
-    lines = TypicalEquipmentTemplate.objects.filter(**owner).select_related("equipment_type")
     centre = proposed_centre(activity.place)
     days = (activity.ends_on - activity.starts_on).days + 1
     total = 0
-    for line in lines:
-        rate = rate_on(centre, line.equipment_type, activity.starts_on) if centre else None
+    for equipment_type, quantity in lines_for(activity):
+        rate = rate_on(centre, equipment_type, activity.starts_on) if centre else None
         if rate is not None:
-            total += line.quantity_per_participant * rate.cost_cents
+            total += quantity * rate.cost_cents
         else:
-            usage = usage_cost_on(line.equipment_type, activity.starts_on)
-            total += line.quantity_per_participant * usage * days
+            total += quantity * usage_cost_on(equipment_type, activity.starts_on) * days
     return total
