@@ -204,3 +204,34 @@ class UsageRate(models.Model):
 
     def __str__(self):
         return f"{self.equipment_type}: {self.cost_per_day_cents} c/dia"
+
+
+class ActivityTypicalEquipment(models.Model):
+    """Material típic d'una activitat (M03-6; RN-M03-17): es copia de la plantilla en crear-la i
+    de l'original en duplicar-la. El 03 no escriu mai a l'activitat."""
+
+    activity = models.ForeignKey(
+        "activities.Activity",
+        on_delete=models.CASCADE,
+        related_name="+",
+        verbose_name=_("activitat"),
+    )
+    equipment_type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="+", verbose_name=_("tipus")
+    )
+    quantity_per_participant = models.PositiveSmallIntegerField(_("quantitat per participant"))
+
+    class Meta:
+        verbose_name = _("material típic d'una activitat")
+        verbose_name_plural = _("material típic de les activitats")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["activity", "equipment_type"], name="activity_typical_unique"
+            ),
+            models.CheckConstraint(
+                condition=Q(quantity_per_participant__gt=0), name="activity_typical_quantity"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.equipment_type} × {self.quantity_per_participant}"
