@@ -41,6 +41,6 @@ def test_sense_inscripcions_ni_cost_de_material_el_previst_son_els_costos(activi
     )
 
 
-def test_el_marge_real_encara_no_hi_es(activity):  # noqa: F811
-    with pytest.raises(NotImplementedError):
-        services.activity_margin(activity, calc.REAL)
+def test_el_marge_real_sense_moviments_ni_despeses_es_zero(activity):  # noqa: F811
+    margin = services.activity_margin(activity, calc.REAL)
+    assert (margin.kind, margin.margin_cents, margin.margin_pct_tenths) == (calc.REAL, 0, None)

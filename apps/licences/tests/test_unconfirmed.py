@@ -192,3 +192,17 @@ def test_confirm_expiry_without_lc5_is_not_found(make_admin, make_licence, role)
                                actor=make_admin(*([role] if role else [])))  # fmt: skip
     licence.refresh_from_db()
     assert not licence.expiry_confirmed
+
+
+def test_my_licence_shows_it_pending_without_a_date(make_licence, make_person, login_as):
+    from apps.accounts.models import Account
+    from apps.accounts.security import AREA_PERSONAL
+
+    person = make_person("Marta", "Soler")
+    unconfirmed(make_licence, person=person, expires_on=D(2027, 3, 1))  # declarada, no confirmada
+    account = Account.objects.create_personal(person, "marta@example.org",
+                                              "contrasenya-de-proves-1954")  # fmt: skip
+    account.status = Account.Status.ACTIVE
+    account.save()
+    html = login_as(account, AREA_PERSONAL).get(reverse("licences:mine")).content.decode()
+    assert "Pendent de confirmar" in html and "Per confirmar" in html and "01/03/2027" not in html

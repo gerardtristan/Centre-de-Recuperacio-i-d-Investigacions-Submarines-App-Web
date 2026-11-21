@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09-19 (CA-M09-17): TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Un salt a la numeració de les factures" %}

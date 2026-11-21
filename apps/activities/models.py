@@ -9,6 +9,8 @@ blocs del programa (T-M02-03a; M02-6). Nivells i titulacions (T-M02-23; addenda 
   preus només canvien amb `apps.activities.catalogue`.
 """
 
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
@@ -845,3 +847,159 @@ class Enrolment(models.Model):
     @property
     def occupies_place(self) -> bool:
         return self.status in self.OCCUPYING
+
+
+class RefundProposal(models.Model):
+    """Proposta de devolució d'una inscripció cancel·lada després de pagar-la (M02-6; RN-M02-12 i
+    RN-M02-13; CA-M02-14 i CA-M02-15; S-M02-23). Cap devolució automàtica: el tresorer (AC18) la
+    fa amb el 05b (`payments.refund`, idempotent per `refund_key`) o la rebutja amb motiu."""
+
+    class Status(models.TextChoices):
+        PROPOSED = "proposed", _("Proposada")
+        DONE = "done", _("Feta")
+        REJECTED = "rejected", _("Rebutjada")
+
+    enrolment = models.OneToOneField(
+        Enrolment, on_delete=models.PROTECT, related_name="refund_proposal",
+        verbose_name=_("inscripció"),
+    )  # fmt: skip
+    charge = models.ForeignKey(
+        "core.Charge", on_delete=models.PROTECT, related_name="+", verbose_name=_("càrrec")
+    )
+    amount_cents = models.PositiveIntegerField(_("import (cèntims)"))
+    reason = models.TextField(_("motiu"))
+    # Buit = el sistema (cancel·lació del participant o de l'activitat).
+    proposed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("proposada per"),
+    )  # fmt: skip
+    status = models.CharField(
+        _("estat"), max_length=8, choices=Status.choices, default=Status.PROPOSED
+    )
+    refund = models.ForeignKey(
+        "payments.RefundRequest", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("devolució"),
+    )  # fmt: skip
+    refund_key = models.UUIDField(_("clau de la devolució"), default=uuid.uuid4, unique=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("decidida per"),
+    )  # fmt: skip
+    decision_reason = models.TextField(_("motiu de la decisió"), blank=True)
+    decided_at = models.DateTimeField(_("decidida el"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("proposta de devolució d'una inscripció")
+        verbose_name_plural = _("propostes de devolució d'inscripcions")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount_cents__gt=0), name="activities_refund_amount_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["proposed", "done", "rejected"]),
+                name="activities_refund_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="proposed") | Q(decided_by__isnull=False),
+                name="activities_refund_decided_has_author",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment} · {self.get_status_display()}"
+
+
+class Attendance(models.Model):
+    """Assistència d'un inscrit a una sessió d'un curs o, sense sessió, al dia d'una sortida
+    (T-M02-16; M02-6; P-M02-E). Es pot corregir: cada canvi queda al registre d'activitat amb el
+    valor anterior. Només canvia amb `apps.activities.attendance`."""
+
+    enrolment = models.ForeignKey(
+        Enrolment, on_delete=models.PROTECT, related_name="attendance", verbose_name=_("inscripció")
+    )
+    # Buit = el dia de la sortida.
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="attendance",
+        verbose_name=_("sessió"),
+    )
+    present = models.BooleanField(_("hi és"))
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    recorded_at = models.DateTimeField(_("registrat el"))
+
+    class Meta:
+        verbose_name = _("assistència")
+        verbose_name_plural = _("assistències")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["enrolment", "session"],
+                condition=Q(session__isnull=False),
+                name="attendance_one_per_session",
+            ),
+            models.UniqueConstraint(
+                fields=["enrolment"],
+                condition=Q(session__isnull=True),
+                name="attendance_one_per_outing",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.present}"
+
+
+class Incident(AppendOnlyModel):
+    """Incidència operativa d'una activitat (T-M02-16; M02-6; P-M02-E pas 3): retard, embarcació,
+    material, meteorologia o una altra. Només s'hi afegeixen. **Mai dades de salut** (RN-M02-17):
+    un accident segueix el protocol del club fora de la plataforma."""
+
+    class Kind(models.TextChoices):
+        DELAY = "delay", _("Retard")
+        BOAT = "boat", _("Embarcació")
+        EQUIPMENT = "equipment", _("Material")
+        WEATHER = "weather", _("Meteorologia")
+        OTHER = "other", _("Una altra")
+
+    activity = models.ForeignKey(
+        Activity, on_delete=models.PROTECT, related_name="incidents", verbose_name=_("activitat")
+    )
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="incidents",
+        verbose_name=_("sessió"),
+    )
+    kind = models.CharField(_("classe"), max_length=10, choices=Kind.choices)
+    # Sense dades de salut (RN-M02-17).
+    description = models.TextField(_("descripció"), max_length=1000)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrada per"),
+    )
+    recorded_at = models.DateTimeField(_("registrada el"))
+
+    class Meta:
+        verbose_name = _("incidència")
+        verbose_name_plural = _("incidències")
+        ordering = ["-recorded_at", "-id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["delay", "boat", "equipment", "weather", "other"]),
+                name="incident_kind_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} · {self.activity}"

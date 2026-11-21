@@ -8,6 +8,7 @@ from . import views
 urlpatterns = [
     path("llicencies/", views.list_view, name="licences"),
     path("llicencies/exporta/", views.export_view, name="licences_export"),
+    path("llicencies/preus/", views.prices_view, name="licences_prices"),
     path("llicencies/<int:licence_id>/tramita/", views.file_view, name="licences_file"),
     path("llicencies/<int:licence_id>/vigent/", views.activate_view, name="licences_activate"),
 ]

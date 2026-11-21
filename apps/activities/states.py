@@ -9,8 +9,9 @@ al registre d'activitat amb l'estat anterior, el nou, qui l'ha fet i el motiu.
 - Sortides: `open → done` i `registration_closed → done`; no fan servir `in_progress`.
 - Qualsevol estat abans de `done` → `cancelled`, amb motiu.
 - Cap pas enrere, tret de `registration_closed → open` (reobrir inscripcions abans de l'inici).
-- `done → closed` és a la taula, però aquí no hi ha cap funció que el faci: només el fa el 09
-  (`margins.close_activity`) amb les comprovacions de tancament de la T-M02-22.
+- `done → closed` és a la taula, però aquí no hi ha cap funció que el faci: és
+  `closing.mark_closed`, que només crida el 09 (`margins.close_activity`), amb les comprovacions
+  de tancament de la T-M02-22.
 
 **Qui fa cada pas**
 
