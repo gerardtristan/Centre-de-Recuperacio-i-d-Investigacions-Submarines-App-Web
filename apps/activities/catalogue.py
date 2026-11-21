@@ -58,6 +58,7 @@ EDITABLE_FIELDS = (
     "open_to_non_members",
     "department",
     "default_requirements_mode",
+    "min_age",
 )
 INITIAL_PRICE_NOTE = "Preu inicial de la fitxa."
 
@@ -99,6 +100,15 @@ def _mode(value) -> str:
     return value
 
 
+def check_min_age(value) -> int | None:
+    """Edat mínima en anys, d'1 a 99, o cap (RN-M02-33)."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 99:
+        raise ValidationError(_("L'edat mínima ha de ser un nombre d'anys entre 1 i 99."))
+    return value
+
+
 def _places(value) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValidationError(_("Les places han de ser un enter més gran que zero."))
@@ -121,6 +131,7 @@ def create_entry(
     requirements="",
     open_to_non_members=False,
     default_requirements_mode="",
+    min_age=None,
     today=None,
     request=None,
 ) -> TrainingCatalogueEntry:
@@ -143,6 +154,7 @@ def create_entry(
         reinforcement_price_cents=_cents(reinforcement_price_cents, optional=True),
         open_to_non_members=bool(open_to_non_members),
         default_requirements_mode=_mode(default_requirements_mode),
+        min_age=check_min_age(min_age),
         department=department,
     )
     TrainingCataloguePrice.objects.create(
@@ -189,6 +201,8 @@ def update_entry(entry, *, by, request=None, **fields) -> list[str]:
         fields["default_places"] = _places(fields["default_places"])
     if "default_requirements_mode" in fields:
         fields["default_requirements_mode"] = _mode(fields["default_requirements_mode"])
+    if "min_age" in fields:
+        fields["min_age"] = check_min_age(fields["min_age"])
     if "department" in fields and not getattr(fields["department"], "active", False):
         raise ValidationError(_("Cal triar un departament actiu."))
     changes = {}
