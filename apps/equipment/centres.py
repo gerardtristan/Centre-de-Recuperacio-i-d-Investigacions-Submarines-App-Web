@@ -1,9 +1,8 @@
 """Centres de busseig i tarifes en qualsevol moment (T-M03-05 i T-M03-25; RN-M03-06 i 26;
 CA-M03-05 i 25). Cap altra app escriu aquests models.
 
-El permís és MT8 («Centres i tarifes», `equipment.centres.manage`), que entra al catàleg del
-nucli amb la T-M03-18. Fins llavors no és al catàleg i aquests serveis no deixen fer res a ningú
-(«no trobat»): la postura conservadora, sense cap vista que els cridi."""
+El permís és MT8 («Centres i tarifes», `equipment.centres.manage`, T-M03-18): sense «Sí»,
+«no trobat»; «Cons.» (el responsable de cursos i sortides) només els veu."""
 
 import datetime
 

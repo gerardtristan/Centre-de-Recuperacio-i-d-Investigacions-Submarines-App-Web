@@ -19,10 +19,8 @@ TODAY = datetime.date(2027, 3, 1)
 
 
 @pytest.fixture
-def manager(make_admin, monkeypatch):  # noqa: F811
-    # MT8 entra al catàleg amb la T-M03-18 (nucli): aquí es dona per fet.
-    monkeypatch.setattr(centres, "allowed", lambda by: True)
-    treasurer = make_admin("treasurer")
+def manager(make_admin):  # noqa: F811
+    treasurer = make_admin("treasurer")  # MT8 (T-M03-18)
     treasurer.notification_email = "tresoreria@example.org"
     treasurer.save()
     return treasurer
@@ -51,10 +49,16 @@ def add(centre, by, **extra):
     return centres.add_rate(centre, **{**fields, **extra})
 
 
-def test_sense_mt8_al_cataleg_ningu_no_hi_pot_fer_res(make_admin):  # noqa: F811
-    assert centres.allowed(make_admin("treasurer")) is False
+@pytest.mark.parametrize("role", ["courses_manager", "secretary", "board", "instructor", None])
+def test_sense_mt8_per_editar_no_es_toca_res(make_admin, role):  # noqa: F811
+    # El responsable de cursos i sortides té MT8 «Cons.»: veu centres i tarifes, no els canvia.
     with pytest.raises(Http404):
-        centres.create_centre(by=make_admin("administrator"), name="Centre B")
+        centres.create_centre(by=make_admin(*([role] if role else [])), name="Centre B")
+
+
+@pytest.mark.parametrize("role", ["equipment_manager", "administrator", "president"])
+def test_mt8_del_responsable_de_material_l_administrador_i_el_president(make_admin, role):  # noqa: F811
+    assert centres.create_centre(by=make_admin(role), name=f"Centre {role}").active
 
 
 def test_un_centre_es_crea_s_edita_i_es_desactiva_pero_no_s_esborra(centre, manager):
