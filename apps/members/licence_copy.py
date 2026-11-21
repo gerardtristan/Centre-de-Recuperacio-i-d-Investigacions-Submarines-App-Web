@@ -14,6 +14,8 @@ El 01 no importa cap model del 06: només llegeix el contingut de l'esdeveniment
 
 import datetime
 
+from django.db import transaction
+
 from apps.core import audit, events
 
 from .models import LicenceRecord, Member
@@ -70,3 +72,84 @@ def detach_licence_copies(licence_refs) -> int:
         audit.record(ACTION_DETACHED, actor=SYSTEM, target=record)
         done += 1
     return done
+
+
+# --- Comprovació diària (T-M01-31b; RN-M01-41 a 44; 054) ------------------------------------
+
+CHECK_ACTOR = audit.system("comprovació diària")
+ACTION_CORRECTED = "members.licence_check_corrected"
+ACTION_DONE = "members.licence_check_done"
+ACTION_SKIPPED = "members.licence_check_skipped"
+FIELDS = ("licence_type", "issued_on", "expires_on", "cancelled_on", "source_version")
+_source = None
+
+
+def register_licence_source(source) -> None:
+    """El 06 hi registra, en arrencar, la funció que torna l'estat actual de les seves llicències
+    (RN-M06-17): una llista de diccionaris amb `licence`, `person`, `licence_type`, `starts_on`,
+    `expires_on`, `cancelled_on` i `version` (dates com a `date`)."""
+    global _source
+    _source = source
+
+
+def _wanted(row) -> dict:
+    return {"licence_type": row["licence_type"][:100], "issued_on": row["starts_on"],
+            "expires_on": row["expires_on"], "cancelled_on": row["cancelled_on"],
+            "source_version": row["version"]}  # fmt: skip
+
+
+@transaction.atomic
+def daily_check() -> dict:
+    """RN-M01-41 a 44: compara la còpia amb el 06 i la corregeix (el 06 té raó). Sense font, no
+    fa res. Si la font falla o torna buida mentre hi ha còpies, se salta sencera. Una fila que el
+    06 no té no es toca: surt «per revisar». Res s'esborra."""
+    if _source is None:
+        return {"skipped": "no_source"}
+    copies = LicenceRecord.objects.filter(licence_ref__isnull=False)
+    try:
+        rows = list(_source())
+    except Exception as error:  # noqa: BLE001 (qualsevol error de la font salta la comprovació)
+        return _skip(type(error).__name__)
+    if not rows and copies.exists():
+        return _skip("empty")
+    by_ref = {row["licence"]: row for row in rows}
+    counts = {"checked": 0, "corrected": 0, "created": 0, "to_review": []}
+    for record in copies.select_for_update():
+        counts["checked"] += 1
+        row = by_ref.pop(record.licence_ref, None)
+        if row is None:
+            counts["to_review"].append(record.pk)  # RN-M01-42
+            continue
+        wanted = _wanted(row)
+        changes = {f: (getattr(record, f), v) for f, v in wanted.items() if getattr(record, f) != v}
+        if changes:
+            for field, (_old, new) in changes.items():
+                setattr(record, field, new)
+            record.save(update_fields=list(changes))
+            logged = {f: (str(old), str(new)) for f, (old, new) in changes.items()}
+            audit.record_changes(ACTION_CORRECTED, actor=CHECK_ACTOR, target=record, changes=logged)
+            counts["corrected"] += 1
+    members = dict(
+        Member.objects.filter(person_id__in={r["person"] for r in by_ref.values()}).values_list(
+            "person_id", "pk"
+        )
+    )
+    for row in by_ref.values():  # una còpia que no hi és (un esdeveniment perdut)
+        if row["person"] in members and row["cancelled_on"] is None:
+            record = LicenceRecord.objects.create(
+                member_id=members[row["person"]], source=LicenceRecord.Source.LICENCES,
+                licence_ref=row["licence"], **_wanted(row),
+            )  # fmt: skip
+            audit.record(ACTION_CORRECTED, actor=CHECK_ACTOR, target=record,
+                         details={"created": True})  # fmt: skip
+            counts["created"] += 1
+    audit.record(ACTION_DONE, actor=CHECK_ACTOR, details={**counts,
+                 "to_review": len(counts["to_review"])})  # fmt: skip
+    return counts
+
+
+def _skip(reason: str) -> dict:
+    # RN-M01-44: cap canvi; queda al registre. L'avís (RN-M01-43, qui el rep) és una pregunta
+    # oberta del pla [A validar: informàtica]: fins llavors, només el registre d'activitat.
+    audit.record(ACTION_SKIPPED, actor=CHECK_ACTOR, details={"reason": reason})
+    return {"skipped": reason}

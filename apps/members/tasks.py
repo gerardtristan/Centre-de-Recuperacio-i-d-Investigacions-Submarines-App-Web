@@ -4,7 +4,7 @@ import logging
 
 from procrastinate.contrib.django import app
 
-from . import fees, member_requests
+from . import fees, licence_copy, member_requests
 
 logger = logging.getLogger(__name__)
 
@@ -38,3 +38,11 @@ def daily_fees(timestamp: int) -> None:
 @app.task(name="members.daily_leaves", queue="maintenance")
 def daily_leaves(timestamp: int) -> None:
     member_requests.apply_due_leaves()
+
+
+# Cada dia, després de les tasques del 06 (03:20 i 03:25): la còpia de la llicència contra el 06
+# (T-M01-31b; RN-M01-41). A quina hora: 054 [A validar: informàtica].
+@app.periodic(cron="45 3 * * *")
+@app.task(name="members.licence_check", queue="maintenance")
+def licence_check(timestamp: int) -> None:
+    licence_copy.daily_check()
