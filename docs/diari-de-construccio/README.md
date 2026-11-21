@@ -410,3 +410,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-04a](T-M02-04a.md) | Permisos per objecte del 02: «les seves sessions» i «les seves activitats» al motor comú (carril B) | 21/11/2026 01:10 | (vegeu la PR) | 6 noves; 1 que s'activa amb els permisos del 09 | [A comprovar] |
 | [T-M02-40a](T-M02-40a.md) | Punts d'extensió del formulari del lloc i del calculador del cost de material estàndard (part de la T-M02-40; carril C) | 21/11/2026 02:13 | 805f696c | 9 noves | [A comprovar] |
 | [T-M09-14](T-M09-14.md) | Informe per departament i CSV (T-M09-14), requeriments d'esmena i pròrroga (T-M09A-15, grants/0005) i termini d'esmena (T-M09A-16, grants/0006) (carril C) | 21/11/2026 01:26 | c99a5342, f35ae441, bca20bc0 | 21 noves | [A comprovar] |
+| [T-M03-02](T-M03-02.md) | Tipus de material i dades inicials (apps/equipment, equipment/0001) i la mida segons el tipus (carril C) | 21/11/2026 01:36 | 65556cde | 15 noves | [A comprovar] |
