@@ -350,10 +350,63 @@ class DenialNote(AppendOnlyModel):
         ]
 
 
+class GrantRequirement(models.Model):
+    """Requeriment d'esmena (M09-ajuts-6, T-M09A-15; RN-M09A-19): un esdeveniment de la
+    sol·licitud, no un estat. Cada canvi va al registre; canviar `due_on` demana motiu."""
+
+    class Origin(models.TextChoices):
+        BODY = "body", _("Organisme")
+        CLUB = "club", _("Iniciativa del club")
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.PROTECT,
+        related_name="requirements",
+        verbose_name=_("sol·licitud"),
+    )
+    origin = models.CharField(_("origen"), max_length=4, choices=Origin.choices)
+    origin_reason = models.TextField(_("motiu del club"), blank=True)
+    received_on = models.DateField(_("rebut o obert el"))
+    due_on = models.DateField(_("data límit"))
+    description = models.TextField(_("descripció"))
+    responsible = models.ForeignKey(
+        "core.Person", on_delete=models.PROTECT, related_name="+", verbose_name=_("responsable")
+    )
+    answered_on = models.DateField(_("respost el"), null=True, blank=True)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("creat per")
+    )
+    created_at = models.DateTimeField(_("creat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("requeriment d'esmena")
+        verbose_name_plural = _("requeriments d'esmena")
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(origin__in=["body", "club"]), name="grant_requirement_origin"
+            ),
+            models.CheckConstraint(
+                condition=~Q(origin="club", origin_reason=""), name="grant_requirement_club_reason"
+            ),
+            models.CheckConstraint(
+                condition=Q(due_on__gte=F("received_on")), name="grant_requirement_dates"
+            ),
+            models.CheckConstraint(
+                condition=Q(answered_on__isnull=True) | Q(answered_on__gte=F("received_on")),
+                name="grant_requirement_answered_after",
+            ),
+            models.CheckConstraint(condition=~Q(description=""), name="grant_requirement_text"),
+        ]
+
+    def __str__(self):
+        return f"{self.application_id}: {self.due_on}"
+
+
 class GrantExpenseLink(models.Model):
     """Despesa lligada a un ajut amb l'import imputat (M09-ajuts-6, T-M09A-09). No s'esborra mai:
-    es dona de baixa (`removed_at`). El requeriment amb què s'afegeix o es dona de baixa en una
-    sol·licitud justificada arriba amb la T-M09A-15."""
+    es dona de baixa (`removed_at`). En una sol·licitud justificada, només amb un requeriment obert
+    (RN-M09A-21)."""
 
     application = models.ForeignKey(
         GrantApplication,
@@ -380,6 +433,23 @@ class GrantExpenseLink(models.Model):
         blank=True,
         related_name="+",
         verbose_name=_("donada de baixa per"),
+    )
+    # RN-M09A-21: el requeriment amb què s'afegeix o es dona de baixa en una justificada.
+    requirement = models.ForeignKey(
+        GrantRequirement,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("requeriment"),
+    )
+    removed_requirement = models.ForeignKey(
+        GrantRequirement,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("requeriment de la baixa"),
     )
 
     class Meta:
