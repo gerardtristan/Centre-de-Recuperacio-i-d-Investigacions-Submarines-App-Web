@@ -444,3 +444,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-35](T-M02-35.md) | Cancel·lacions com a esdeveniments enrolment.cancelled i activity.cancelled (carril B2) | 21/11/2026 06:02 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-DX-89](T-DX-89.md) | Llicències v2 i v3 (fase 2): «El meu perfil» marcat a «La meva llicència», preus com a dades i un sol botó principal a «Tipus i preus» | 21/11/2026 08:02 | daa1461b | 4 noves | [A comprovar] |
 | [T-M02-48](T-M02-48.md) | AC24, AC25 i AC26 i els permisos dels ajustos VC-55 a VC-59 (core/0068; carril B2) | 21/11/2026 07:16 | (vegeu la PR) | 13 noves | [A comprovar] |
+| [T-M03-07](T-M03-07.md) | Necessitats de material a la inscripció (equipment/0008) (carril C2) | 21/11/2026 06:21 | (vegeu la PR) | 4 noves | [A comprovar] |
