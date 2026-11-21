@@ -229,3 +229,31 @@ def add_incident(activity, *, by, kind, description, session=None, request=None)
             request=request,
         )
     return incident
+
+
+def participants(activity) -> int:
+    """Participants d'una activitat per al 09 (RN-M09-10 i 13): qui té alguna marca de present;
+    si encara no s'ha passat llista, les inscripcions confirmades. Només un nombre."""
+    marked = Attendance.objects.filter(enrolment__activity=activity)
+    if marked.exists():
+        return marked.filter(present=True).values("enrolment").distinct().count()
+    return Enrolment.objects.filter(activity=activity, status=S.CONFIRMED).count()
+
+
+def attendance_for(person) -> list[dict]:
+    """`activities.attendance_for` (M02-8): les activitats a què la persona ha assistit, amb els
+    dies, per a «Les meves activitats» i la bitàcola del 12. Només dades de la mateixa persona:
+    qui la crida respon de mostrar-les només a ella."""
+    marks = (
+        Attendance.objects.filter(enrolment__person=person, present=True)
+        .select_related("enrolment__activity", "session")
+        .order_by("enrolment__activity__starts_on", "session__starts_at", "id")
+    )
+    found: dict[int, dict] = {}
+    for item in marks:
+        activity = item.enrolment.activity
+        entry = found.setdefault(activity.pk, {"activity": activity, "dates": []})
+        day = day_of(activity, item.session)
+        if day not in entry["dates"]:
+            entry["dates"].append(day)
+    return list(found.values())
