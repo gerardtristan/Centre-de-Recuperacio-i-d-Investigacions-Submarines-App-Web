@@ -446,3 +446,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-36](T-M02-36.md) | Cancel·lar amb un pagament en curs: anul·lació pendent i proposta si s'acaba pagant (activities/0011; carril B2) | 21/11/2026 04:34 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M02-12b](T-M02-12b.md) | La llista d'espera a mà (AC16): ordre amb motiu i oferir una plaça (carril B2) | 21/11/2026 04:38 | (vegeu la PR) | 6 noves (11 casos) | [A comprovar] |
 | [T-M02-41](T-M02-41.md) | Agències com a dada, source federation, official_level i ajustos VC-55 a VC-59 (activities/0013; carril B2) | 21/11/2026 06:40 | (vegeu la PR) | 7 noves (11 casos) | [A comprovar] |
+| [T-M02-17](T-M02-17.md) | Avaluació per pràctica i «El meu progrés» (activities/0014; carril B2) | 21/11/2026 07:59 | (vegeu la PR) | 8 noves | [A comprovar] |
