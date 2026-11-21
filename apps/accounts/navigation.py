@@ -129,7 +129,13 @@ ENTRIES = (
     (
         "administration:expenses_without_invoice",
         _("Despeses sense factura"),
-        (),
+        # El marge d'una activitat no té entrada pròpia (porta l'activitat a l'adreça): penja
+        # d'aquí fins que l'enllaci la fitxa de l'activitat (vistes del 02). Lloc: DISSENY.
+        (
+            "administration:activity_margin",
+            "administration:activity_margin_planned",
+            "administration:activity_margin_close",
+        ),
     ),  # T-M09-15; text i lloc per revisar amb DISSENY
     (
         "administration:treasury_accounts",
