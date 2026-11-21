@@ -235,3 +235,59 @@ class ActivityTypicalEquipment(models.Model):
 
     def __str__(self):
         return f"{self.equipment_type} × {self.quantity_per_participant}"
+
+
+class EquipmentItem(models.Model):
+    """Peça de l'inventari del club (M03-6, T-M03-03). Una peça amb assignacions no s'esborra: es
+    dona de baixa (`retired`, amb motiu). «Assignada», «en ús» i «retornada» surten de les
+    assignacions (RN-M03-04)."""
+
+    class Status(models.TextChoices):
+        AVAILABLE = "available", _("Disponible")
+        IN_REVIEW = "in_review", _("En revisió")
+        RETIRED = "retired", _("Donada de baixa")
+
+    code = models.CharField(_("codi"), max_length=20, unique=True)
+    type = models.ForeignKey(
+        EquipmentType, on_delete=models.PROTECT, related_name="items", verbose_name=_("tipus")
+    )
+    size = models.CharField(_("talla"), max_length=10, blank=True)
+    litres = models.DecimalField(_("litres"), max_digits=4, decimal_places=1, null=True, blank=True)
+    status = models.CharField(
+        _("estat"), max_length=9, choices=Status.choices, default=Status.AVAILABLE
+    )
+    purchased_on = models.DateField(_("data de compra"), null=True, blank=True)
+    purchase_cost_cents = models.PositiveIntegerField(
+        _("cost de compra (cèntims)"), null=True, blank=True
+    )
+    next_review_on = models.DateField(_("propera revisió"), null=True, blank=True)
+    retired_reason = models.TextField(_("motiu de la baixa"), blank=True)
+    notes = models.TextField(_("notes"), blank=True)
+    created_at = models.DateTimeField(_("creada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("peça de material")
+        verbose_name_plural = _("peces de material")
+        ordering = ["code"]
+        indexes = [
+            models.Index(
+                fields=["type", "size", "litres", "status"], name="equipment_item_stock_idx"
+            )
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(status__in=["available", "in_review", "retired"]),
+                name="equipment_item_status",
+            ),
+            models.CheckConstraint(
+                condition=Q(litres__isnull=True) | Q(litres__gt=0), name="equipment_item_litres"
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="retired") | ~Q(retired_reason=""),
+                name="equipment_item_retired_reason",
+            ),
+            models.CheckConstraint(condition=~Q(code=""), name="equipment_item_code"),
+        ]
+
+    def __str__(self):
+        return self.code
