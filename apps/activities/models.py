@@ -763,6 +763,39 @@ class DiverCertification(models.Model):
         return self.verified_by_id is not None
 
 
+class EnvironmentalResult(models.Model):
+    """Resultats d'una sortida de medi ambient (T-M02-20; M02-6; P-M02-G; S-M02-14): residus,
+    espècies observades i observacions. Un per sortida. No es publica enlloc des del 02
+    (RN-M02-23). Les fotos encara no existeixen (vegeu `environment.py`)."""
+
+    activity = models.OneToOneField(
+        Activity,
+        on_delete=models.PROTECT,
+        related_name="environmental_result",
+        verbose_name=_("sortida"),
+    )
+    # Els quilos s'escriuen amb decimals i es desen en grams (enter).
+    waste_grams = models.PositiveIntegerField(_("residus recollits (grams)"), null=True, blank=True)
+    # Una espècie per línia.
+    species = models.TextField(_("espècies observades"), blank=True)
+    # Sense dades de salut (RN-M02-17).
+    observations = models.TextField(_("observacions"), blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    recorded_at = models.DateTimeField(_("registrat el"))
+
+    class Meta:
+        verbose_name = _("resultats ambientals")
+        verbose_name_plural = _("resultats ambientals")
+
+    def __str__(self):
+        return str(self.activity)
+
+
 class Enrolment(models.Model):
     """Inscripció d'una persona a una activitat (M02-6; RN-M02-03, RN-M02-04 i RN-M02-07). El model
     arriba amb la T-M02-10 (confirmar-la quan es paga el càrrec); inscriure's és de la T-M02-11.
