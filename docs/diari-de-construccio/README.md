@@ -435,3 +435,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-26a](T-M09-26a.md) | Nucli del 09: apartat «Facturació» dels ajustos (core/0066) i plantilla de l'avís de salt de sèrie (carril C) | 21/11/2026 03:32 | 20652144 | 2 noves | [A comprovar] |
 | [T-M06-v2](T-M06-v2.md) | Llicències: tipus i preus des de l'app (LC8; carril A) | 21/11/2026 04:01 | dae89350 | 10804 | [A comprovar] |
 | [T-M06-v3](T-M06-v3.md) | Llicències: «La meva llicència» a l'àrea de socis (demanar, pagar i «Ja en tinc una»; carril A) | 21/11/2026 04:45 | 1402f154 | 10906 | [A comprovar] |
+| [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0066; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
