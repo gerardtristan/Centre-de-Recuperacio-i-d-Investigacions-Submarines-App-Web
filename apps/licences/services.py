@@ -227,6 +227,12 @@ def request(person, licence_type: LicenceType, starts_on=None, *, actor, today=N
     mateixa persona (LC1, «Propi»); un altre compte rep «no trobat»."""
     if actor is None or getattr(actor, "person_id", None) != person.pk:
         raise Http404
+    return place_request(person, licence_type, starts_on, actor=actor, today=today)
+
+
+def place_request(person, licence_type, starts_on=None, *, actor, today=None) -> Licence:
+    """El cos de `request` sense comprovar qui la demana: només per a `request` i per al
+    convidat del formulari públic (`guests.request_as_guest`, que acaba de crear la persona)."""
     today = today or timezone.localdate()
     if not licence_type.active:
         raise NotAvailable
