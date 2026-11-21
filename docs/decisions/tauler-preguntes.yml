@@ -1412,3 +1412,34 @@ noves:
       Només la FECDAS sap què vol rebre; A és el mínim prudent mentrestant i no envia cap dada que potser no calgui
       (RN-M06-11). Canviar el format és tocar una funció, sense dades desades.
     data: 2026-11-21
+  P-425:
+    opcions:
+      A: "3 mesos després de verificar la titulació o tancar l'homologació (ajust VC-57); la titulació en queda verificada sense foto."
+      B: "S'esborra el mateix dia que es verifica la titulació o es tanca l'homologació (VC-57 = 0)."
+      C: "Mentre la persona sigui sòcia, i s'esborra en donar-se de baixa."
+      D: "El termini que la gestoria digui per a documents d'identitat, amb la base legal per enviar-la a la FECDAS."
+    recomanada: A
+    perque: >-
+      Dona marge per si la FECDAS demana la foto un altre cop i no guarda una dada amb la cara més del que cal; és un
+      ajust, i si la gestoria diu un altre termini només canvia el valor.
+    data: 2026-11-21
+  P-426:
+    opcions:
+      A: "La paga l'alumne amb el flux normal del 06: la secretaria la demana i l'alumne rep el càrrec."
+      B: "El preu del curs ja la inclou: la llicència es crea sense càrrec, i el preu del curs ho ha de dir."
+      C: "La paga el club i va com a despesa del departament de cursos."
+    recomanada: A
+    perque: >-
+      És el flux que ja existeix i no inventa cap càrrec ni cap despesa; si el curs ja la inclou, cal saber-ho abans
+      de cobrar el primer alumne real.
+    data: 2026-11-21
+  P-427:
+    opcions:
+      A: "Gratuïtes de moment: preu 0 i VC-59 apagat."
+      B: "Un preu per a l'homologació, ingrés al departament «General»."
+      C: "Un preu per a cada tramitació, ingrés al departament de cursos."
+    recomanada: A
+    perque: >-
+      El propietari no ha dit cap preu i la FECDAS cobra la titulació a part; si el club en vol cobrar, és un ajust
+      amb data d'entrada en vigor i no cal tocar codi.
+    data: 2026-11-21
