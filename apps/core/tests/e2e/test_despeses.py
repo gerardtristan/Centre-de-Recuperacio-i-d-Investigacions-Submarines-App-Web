@@ -1,7 +1,6 @@
 """Despeses al navegador (T-M09-06, part sense fitxer, i T-M09-15; MG1 i MG2): el tresorer registra
-una despesa des del mòbil i la veu a «Despeses sense factura». Les rutes encara no són al menú
-(torn del nucli): s'hi entra per l'adreça amb `apps.expenses.tests.urls`. Pantalles a 1280, 390 i
-320 px. Només dades inventades."""
+una despesa des del mòbil i la veu a «Despeses sense factura». Pantalles a 1280, 390 i 320 px.
+Només dades inventades."""
 
 import pytest
 from django.urls import reverse
@@ -11,7 +10,7 @@ from apps.expenses.models import Expense, Supplier
 
 from .conftest import login_admin, make_admin
 
-pytestmark = [pytest.mark.e2e, pytest.mark.urls("apps.expenses.tests.urls")]
+pytestmark = pytest.mark.e2e
 
 
 def test_the_treasurer_records_an_expense(page, live_server, transactional_db, review):

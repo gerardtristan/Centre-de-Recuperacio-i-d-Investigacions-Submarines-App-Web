@@ -1,5 +1,5 @@
-"""Rutes del 09 (despeses) a l'àrea d'administració (M09-8): s'inclouran a
-`apps.accounts.admin_urls`, dins de l'espai de noms `administration` (torn del nucli). Cap ruta
+"""Rutes del 09 (despeses) a l'àrea d'administració (M09-8): s'inclouen a
+`apps.accounts.admin_urls`, dins de l'espai de noms `administration`. Cap ruta
 pública."""
 
 from django.urls import path
