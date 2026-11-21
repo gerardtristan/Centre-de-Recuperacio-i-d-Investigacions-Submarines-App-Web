@@ -413,3 +413,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-19](T-M06-19.md) | Llicències: la llicència d'un dia darrere de l'opció apagada, «no tramitada a temps» i proposta de devolució (carril A) | 21/11/2026 00:51 | bcfd22d1 | 9179 | [A comprovar] |
 | [T-M06-11](T-M06-11.md) | Llicències: a qui toca avisar del venciment i el resum de la secretaria, sense enviar res encara (carril A) | 21/11/2026 01:14 | 0b92a03e | 9189 | [A comprovar] |
 | [T-M06-15](T-M06-15.md) | Llicències: esdeveniments amb versió i avisos de pagada i de devolució (carril A) | 21/11/2026 02:10 | 68aefbaf | 10376 | [A comprovar] |
+| [T-M03-02](T-M03-02.md) | Tipus de material i dades inicials (apps/equipment, equipment/0001) i la mida segons el tipus (carril C) | 21/11/2026 01:36 | 65556cde | 15 noves | [A comprovar] |
