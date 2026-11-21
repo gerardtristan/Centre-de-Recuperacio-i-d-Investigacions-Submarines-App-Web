@@ -1292,6 +1292,16 @@ opcions:
       Manté `Session.place` obligatori com diu l'addenda i el responsable veu quin lloc hi havia; el control de publicar
       és el mateix que per a l'activitat (RN-M02-44).
     data: 2026-11-20
+  P-456:
+    opcions:
+      A: "Com RN-M02-30: la titulació d'un curs del club compleix sense marca; el responsable en veu l'origen («d'un curs del club») al detall del requisit."
+      B: "Com CA-M02-29: compleix, però surt marcada «titulació del club, sense verificar» i va als requisits per revisar de la inscripció."
+      C: "En mode avís, marcada; en mode bloqueig, sense marca."
+    recomanada: A
+    perque: >-
+      L'addenda de la 058 és posterior i diu explícitament que substitueix la marca; el responsable continua veient
+      l'origen i no s'omple la llista de revisió amb titulacions que el club mateix ha donat.
+    data: 2026-11-21
 
 noves:
   P-410:
