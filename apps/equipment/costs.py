@@ -1,0 +1,36 @@
+"""Cost de material estàndard d'una activitat, per participant (T-M03-27; RN-M03-25; CA-M03-24).
+El 02 el copia a l'activitat com a cost de material previst (RN-M02-43); no crea cap assignació
+ni cap càrrec. La fórmula és una proposta [A validar: tresorer].
+
+Es registra al 02 com a calculador (`extensions.register_material_cost_calculator`)."""
+
+from .centres import rate_on
+from .models import UsageRate
+from .places import proposed_centre
+from .typical import lines_for
+
+
+def usage_cost_on(equipment_type, on) -> int:
+    """RN-M03-08: el cost d'ús per dia vigent en una data; sense cap fila, 0."""
+    rate = (
+        UsageRate.objects.filter(equipment_type=equipment_type, valid_from__lte=on)
+        .order_by("-valid_from")
+        .first()
+    )
+    return rate.cost_per_day_cents if rate else 0
+
+
+def standard_material_cost(activity) -> int:
+    """Per a cada línia del material típic: quantitat × preu de cost de la tarifa vigent el
+    primer dia al centre habitual del lloc; si no n'hi ha, quantitat × cost d'ús del club × dies.
+    Sense material típic, 0."""
+    centre = proposed_centre(activity.place)
+    days = (activity.ends_on - activity.starts_on).days + 1
+    total = 0
+    for equipment_type, quantity in lines_for(activity):
+        rate = rate_on(centre, equipment_type, activity.starts_on) if centre else None
+        if rate is not None:
+            total += quantity * rate.cost_cents
+        else:
+            total += quantity * usage_cost_on(equipment_type, activity.starts_on) * days
+    return total
