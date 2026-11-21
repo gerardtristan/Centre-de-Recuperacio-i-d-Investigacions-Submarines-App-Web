@@ -33,3 +33,79 @@ class EquipmentType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DiveCentre(models.Model):
+    """Centre de busseig (T-M03-05; VC-27). Amb tarifes, assignacions o com a centre habitual
+    d'un lloc no s'esborra: es desactiva (RN-M03-26 a). Només dades del centre, no de persones."""
+
+    name = models.CharField(_("nom"), max_length=120, unique=True)
+    address = models.CharField(_("adreça"), max_length=200, blank=True)
+    contact_email = models.EmailField(_("correu del centre"), blank=True)
+    contact_phone = models.CharField(_("telèfon del centre"), max_length=30, blank=True)
+    active = models.BooleanField(_("actiu"), default=True)
+    created_at = models.DateTimeField(_("creat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("centre de busseig")
+        verbose_name_plural = _("centres de busseig")
+        ordering = ["name"]
+        constraints = [models.CheckConstraint(condition=~Q(name=""), name="dive_centre_name")]
+
+    def __str__(self):
+        return self.name
+
+
+class CentreRate(models.Model):
+    """Tarifa d'un centre amb versions (RN-M03-06): un canvi crea una versió nova amb data
+    d'inici, i la que ja s'ha fet servir no es modifica. `retired_on` retira la línia sense
+    cap versió nova (RN-M03-26 b)."""
+
+    centre = models.ForeignKey(
+        DiveCentre, on_delete=models.PROTECT, related_name="rates", verbose_name=_("centre")
+    )
+    label = models.CharField(_("equip o servei"), max_length=80)
+    equipment_type = models.ForeignKey(
+        EquipmentType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("tipus de material"),
+    )
+    cost_cents = models.PositiveIntegerField(_("preu de cost (cèntims)"))
+    member_price_cents = models.PositiveIntegerField(_("preu per al soci (cèntims)"))
+    # [A validar: junta, S-M03-01]
+    non_member_price_cents = models.PositiveIntegerField(
+        _("preu per al no soci (cèntims)"), null=True, blank=True
+    )
+    valid_from = models.DateField(_("vigent des de"))
+    superseded_by = models.OneToOneField(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="supersedes",
+        verbose_name=_("substituïda per"),
+    )
+    retired_on = models.DateField(_("retirada el"), null=True, blank=True)
+    note = models.TextField(_("nota"), blank=True)
+    created_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("creada per")
+    )
+    created_at = models.DateTimeField(_("creada"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("tarifa d'un centre")
+        verbose_name_plural = _("tarifes dels centres")
+        ordering = ["centre", "label", "valid_from", "pk"]
+        constraints = [
+            models.CheckConstraint(condition=~Q(label=""), name="centre_rate_label"),
+            models.CheckConstraint(
+                condition=Q(retired_on__isnull=True) | Q(retired_on__gte=models.F("valid_from")),
+                name="centre_rate_retired_after_start",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.centre}: {self.label} ({self.valid_from})"
