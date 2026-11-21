@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M03-14 (CA-M03-11): TEXT PROVISIONAL [A validar: responsable de material]. #}{% translate "Revisions de material que vencen" %}

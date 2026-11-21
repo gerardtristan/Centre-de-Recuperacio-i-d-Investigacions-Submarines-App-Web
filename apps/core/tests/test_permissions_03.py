@@ -59,3 +59,19 @@ def test_the_instructor_sees_the_participant_price_but_not_the_margin(make_admin
     instructor = make_admin(R.INSTRUCTOR)
     assert scope_for(instructor, "equipment.field.participant_price") == OWN_S
     assert not has_perm(instructor, "equipment.costs.view")
+
+
+SETTINGS = {
+    "settings.section.equipment": (_, _, _, CONS, _, _, CONS, _, _),  # AJ03
+    "settings.edit.equipment.review_notice_days": (_, _, _, Y, _, _, _, _, _),  # AJ03-1, VC-29
+}
+SETTINGS_CELLS = [
+    (code, role, row[i]) for code, row in SETTINGS.items() for i, role in enumerate(ROLES)
+]
+
+
+@pytest.mark.parametrize(
+    ("code", "role", "expected"), SETTINGS_CELLS, ids=[f"{c}-{r}" for c, r, _ in SETTINGS_CELLS]
+)
+def test_settings_cell(make_admin, code, role, expected):  # noqa: F811
+    assert scope_for(make_admin(role), code) == expected

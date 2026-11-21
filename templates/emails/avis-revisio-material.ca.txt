@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M03-14 (RN-M03-15, CA-M03-11): avís diari al responsable de material de les peces amb la revisió a prop o vençuda. TEXT PROVISIONAL [A validar: responsable de material]. Només codis de peça i dates: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% translate "Aquestes peces tenen la revisió a prop o ja vençuda:" %}
+{% for item in items %}- {{ item.code }} ({{ item.type }}): {{ item.next_review_on }}{% if item.overdue %} · {% translate "vençuda" %}{% endif %}
+{% endfor %}
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
