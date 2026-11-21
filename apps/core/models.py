@@ -1174,6 +1174,7 @@ class ImportBatch(UndeletableModel):
         CLUBER = "cluber", _("Cluber")
         BANK_STATEMENT = "bank_statement", _("Extracte bancari")
         LICENCES = "licences", _("Llicències del 01")  # pas únic del 06 (P-M06-H, T-M06-14)
+        EQUIPMENT = "equipment", _("Inventari de material")  # càrrega inicial del 03 (T-M03-17)
 
     class Status(models.TextChoices):
         PREVIEW = "preview", _("Previsualització")
@@ -1217,7 +1218,7 @@ class ImportBatch(UndeletableModel):
         verbose_name_plural = _("lots d'importació")
         constraints = [
             models.CheckConstraint(
-                condition=Q(kind__in=["cluber", "bank_statement", "licences"]),
+                condition=Q(kind__in=["cluber", "bank_statement", "licences", "equipment"]),
                 name="importbatch_kind_valid",
             ),
             models.CheckConstraint(
