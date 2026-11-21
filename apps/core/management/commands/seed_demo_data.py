@@ -40,6 +40,7 @@ from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
+from apps.equipment import demo_data as equipment_demo
 from apps.members import demo_data
 from apps.members.join import OPTIONAL_TEXT_CONTENT
 from apps.payments import demo_data as payments_demo
@@ -308,5 +309,12 @@ class Command(BaseCommand):
         payments = payments_demo.create(
             treasurer=accounts[Role.Code.TREASURER], admin=admin, review=review
         )
+        # Material (T-M03-20): centres, material típic, inventari i una revisió prevista.
+        equipment = equipment_demo.create(admin=admin)
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
-        return {**counts, "treasury": treasury, "payments": payments}, review
+        return {
+            **counts,
+            "treasury": treasury,
+            "payments": payments,
+            "equipment": equipment,
+        }, review
