@@ -531,8 +531,7 @@ PERMISSIONS: tuple[Permission, ...] = (
     ),
     # --- 06 Llicències (M06-4 i la matriu inicial de la 059; T-M06-16, T-M06-25) ----------------
     # LC1, LC2 i el «Propi» de LC3 són accions pròpies o públiques, fora de la matriu. LC9
-    # (activar l'opció de no socis) és l'ajust `licences.non_members_enabled`: el seu permís
-    # arriba amb la pantalla d'ajustos del mòdul (T-M06-20).
+    # (activar l'opció de no socis) és l'ajust `licences.non_members_enabled`: és a «Ajustos».
     _perm(
         "licences.declare_existing",
         "LC3",
@@ -1054,6 +1053,53 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.payments",),
         initial={R.ADMINISTRATOR: _ALL},
         touches_money=True,
+    ),
+    # Llicències (06; M06-6, «Valors configurables»; T-M06-20). «Cons.» per als rols que hi editen
+    # algun valor. LC9 és activar l'opció de no socis: només l'Administrador, per decisió de la
+    # junta (RN-M06-03).
+    _perm(
+        "settings.section.licences",
+        "AJ06",
+        _("Ajustos de llicències"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.SECRETARY: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.licences.non_members_enabled",
+        "LC9",
+        _("Llicència per a persones que no són sòcies (opció de la junta)"),
+        requires=("settings.section.licences",),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.licences.day_enabled",
+        "AJ06-1",
+        _("Llicència d'un dia"),
+        requires=("settings.section.licences",),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.licences.reminder_days",
+        "AJ06-2",
+        _("Dies dels avisos de venciment de la llicència"),
+        requires=("settings.section.licences",),
+        initial={R.SECRETARY: _ALL},
+    ),
+    _perm(
+        "settings.edit.licences.to_renew_days",
+        "AJ06-3",
+        _("Dies abans del venciment en què una llicència surt «per renovar»"),
+        requires=("settings.section.licences",),
+        initial={R.SECRETARY: _ALL},
+    ),
+    _perm(
+        "settings.edit.licences.next_year_opens_on",
+        "AJ06-4",
+        _("Dia en què s'obre la llicència de l'any vinent"),
+        requires=("settings.section.licences",),
+        initial={R.SECRETARY: _ALL},
     ),
     # --- 02 Activitats (cursos i sortides) --------------------------------------------------
     # T-M02-33 i T-M02-38: la matriu inicial de la 059 («02 Activitats»), cel·la per cel·la.

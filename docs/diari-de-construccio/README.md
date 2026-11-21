@@ -399,3 +399,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-23](T-M02-23.md) | Nivells i titulacions de la persona i el RGPD del 02 (activities/0005; carril B) | 21/11/2026 00:12 | (vegeu la PR) | 8 noves (10 casos) | [A comprovar] |
 | [T-M09-09](T-M09-09.md) | Costos previstos per activitat (margins/0002) i marge previst d'una activitat, part prevista de la T-M09-11 (carril C) | 21/11/2026 00:39 | 3ff2dffc, e50e13e8 | 16 noves | [A comprovar] |
 | [T-M09-18](T-M09-18.md) | Facturació amb un servei fictici: adaptador (T-M09-18), factura d'un cobrament i manual amb control de salts (T-M09-19, invoicing/0001, apagada per defecte) i rectificatives (T-M09-20) (carril C) | 21/11/2026 00:57 | 0efe28e5, 4ed18a77, a32ddd86 | 28 noves | [A comprovar] |
+| [T-M06-20a](T-M06-20a.md) | Llicències: nucli del 06 (lot «licences», esdeveniments, plantilles i permisos dels ajustos; carril A) | 21/11/2026 00:48 | bb1a7345 | 9825 | [A comprovar] |
