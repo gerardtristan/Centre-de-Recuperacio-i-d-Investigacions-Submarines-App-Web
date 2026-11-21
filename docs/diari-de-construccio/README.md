@@ -440,3 +440,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-17](T-M06-17.md) | Llicències: prova de flux sencer de la F2-1 (de demanar-la a renovar-la; carril A) | 21/11/2026 06:03 | 9087f621 | 10947 | [A comprovar] |
 | [T-M01-31b](T-M01-31b.md) | Socis: comprovació diària de la còpia de la llicència contra el 06 (carril A) | 21/11/2026 06:30 | dea46c13 | 10955 | [A comprovar] |
 | [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0066; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
+| [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0067; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |

@@ -10,7 +10,7 @@
 - `consents.KINDS` + `adult_declaration`. La proposta és a `apps/activities/guests.py` (`ADULT_PROPOSAL`) i la publica `seed_demo_data` (local); les proves del 02 la creen a la fixture.
 - `events.APPROVED` + `enrolment.cancelled` i `activity.cancelled` (RN-M02-36).
 - `roles.py`: el comentari de RN-RP-12 apunta al 02 (decisió 101, T-M02-04b).
-- `settings.section.activities` i tres `settings.edit.activities.*` amb les cel·les inicials (`core/0066`).
+- `settings.section.activities` i tres `settings.edit.activities.*` amb les cel·les inicials (`core/0067`).
 
 ## Decisions i perquè
 - Instrucció escrita del propietari (21/11/2026): text editable amb proposta, pendent de la junta (P-458). A producció no es publica: el formulari de convidats rebutja fins llavors (D2, irreversible).
