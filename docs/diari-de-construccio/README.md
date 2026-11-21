@@ -436,3 +436,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-07](T-M03-07.md) | Necessitats de material a la inscripció (equipment/0008) (carril C2) | 21/11/2026 06:21 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M03-08](T-M03-08.md) | Assignació de material amb la restricció d'exclusió (equipment/0009, btree_gist) (carril C2) | 21/11/2026 06:27 | (vegeu la PR) | 7 noves | [A comprovar] |
 | [T-M03-09](T-M03-09.md) | Lliurar, retornar, pas a revisió, quantitats reals i used_by (T-M03-09 i T-M03-12) (carril C2) | 21/11/2026 06:30 | (vegeu la PR) | 5 noves | [A comprovar] |
+| [T-M03-13](T-M03-13.md) | Cost de material per participant i per activitat per al 09 (carril C2) | 21/11/2026 06:31 | (vegeu la PR) | 2 noves | [A comprovar] |
