@@ -10,6 +10,7 @@ MG3). Cap altra app escriu aquests models.
 - La suma no passa mai de l'import (`AllocationExceedsAmount`); el que no es reparteix queda al
   departament de la despesa, sense activitat.
 - Tornar a repartir substitueix el repartiment anterior; el registre guarda l'anterior i el nou.
+  Si alguna part ja és d'una activitat tancada (marge congelat), no es torna a repartir.
 """
 
 from django.db import transaction
@@ -83,6 +84,11 @@ def allocate(expense, activities, method, *, by, amounts=None) -> list[ExpenseAl
     if sum(parts.values()) > expense.amount_cents:
         raise AllocationExceedsAmount(_("La suma dels repartiments passa de l'import."))
     current = ExpenseAllocation.objects.filter(expense=expense)
+    # RN-M09-07: el que ja és dins un marge congelat no es toca; només s'hi pot afegir.
+    if current.filter(activity__status="closed").exists():
+        raise ExpenseRejected(
+            _("Aquesta despesa ja és al marge d'una activitat tancada: no es torna a repartir.")
+        )
     old = {str(a.activity_id): a.amount_cents for a in current}
     current.delete()
     rows = ExpenseAllocation.objects.bulk_create(
