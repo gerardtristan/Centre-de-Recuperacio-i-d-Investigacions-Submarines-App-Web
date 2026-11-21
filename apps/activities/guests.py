@@ -16,7 +16,13 @@ i s'inscriu amb `enrolment.enrol` (preu de no soci, requisits i places). Si qued
 pagament, rep al correu l'enllaç de convidat de la 00 per pagar el càrrec, que només obre aquell
 càrrec (CA-M02-11, CA-02.2). La resposta no diu mai si el correu ja era d'algú.
 
-**Fora d'aquesta peça:** la casella «Soc major d'edat» (T-M02-34), les pantalles i el límit de
+**«Soc major d'edat»** (T-M02-34; RN-M02-35; P-33): si l'activitat no té edat mínima (i, per tant,
+no es demana la data de naixement), cal la casella marcada (al presencial, la marca qui atén
+després de preguntar-ho); sense, es rebutja amb l'explicació que de moment no s'admeten menors.
+La declaració és un consentiment de la 00 amb la versió del text (addenda de la 060), mai una
+data de naixement.
+
+**Fora d'aquesta peça:** les pantalles i el límit de
 peticions del formulari públic (vistes).
 """
 
@@ -32,6 +38,8 @@ from . import permissions
 from .models import Enrolment
 
 PRIVACY = "privacy"
+# RN-M02-35 i T-M02-34, mentre P-33 sigui oberta. El text el publica l'administrador (M12).
+ADULT = "adult_declaration"
 LINK_ACTOR = audit.system("activities.guest_enrolment")
 FIELDS = ("first_name", "last_name", "contact_email", "phone", "birth_date")
 
@@ -44,6 +52,13 @@ def _clean(activity, data) -> dict:
     if activity.min_age and fields.get("birth_date") is None:
         raise ValidationError(_("Aquesta activitat té edat mínima: cal la data de naixement."))
     persons.check_birth_date(fields.get("birth_date"))
+    if not activity.min_age and data.get("adult_declared") is not True:
+        raise ValidationError(
+            _(
+                "Cal confirmar que ets major d'edat. De moment el club no admet inscripcions de "
+                "menors d'edat a les activitats."
+            )
+        )
     if data.get("accept_privacy") is not True:
         raise ValidationError(_("Cal acceptar la política de privacitat."))
     return fields
@@ -54,8 +69,8 @@ def enrol_guest(activity, data, *, by=None, now=None, request=None) -> Enrolment
     desk = by is not None
     if desk:
         permissions.require(by, permissions.ENROL_IN_PERSON)
-    text = consents.current_text(PRIVACY)
-    if text is None:
+    text, adult_text = consents.current_text(PRIVACY), consents.current_text(ADULT)
+    if text is None or adult_text is None:
         raise ValidationError(_("Ara no es poden fer inscripcions. Torna-ho a provar més tard."))
     with transaction.atomic():
         locked = enrolments.lock(activity)
@@ -71,14 +86,17 @@ def enrol_guest(activity, data, *, by=None, now=None, request=None) -> Enrolment
         fields = _clean(locked, data)
         person, _created, _check = persons.create_or_get(origin=Person.Origin.GUEST, **fields)
         actor = by if desk else audit.ANONYMOUS
-        consents.grant_accepted(
-            person,
-            text,
-            channel=Consent.Channel.IN_PERSON if desk else Consent.Channel.WEB,
-            recorded_by=by,
-            by=actor,
-            request=request,
-        )
+        # Sense edat mínima no es demana la data de naixement: la casella la substitueix.
+        accepted = [text] if locked.min_age else [text, adult_text]
+        for legal_text in accepted:
+            consents.grant_accepted(
+                person,
+                legal_text,
+                channel=Consent.Channel.IN_PERSON if desk else Consent.Channel.WEB,
+                recorded_by=by,
+                by=actor,
+                request=request,
+            )
         channel = Enrolment.Channel.DESK if desk else Enrolment.Channel.GUEST
         row = enrolments.enrol(
             locked, person, channel=channel, actor=actor, now=now, request=request

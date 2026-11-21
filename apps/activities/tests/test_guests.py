@@ -1,5 +1,5 @@
-"""Inscripció de convidats i presencial de qui no és soci (T-M02-14; RN-M02-11; CA-M02-10 i 11;
-decisió 021). Només dades inventades.
+"""Inscripció de convidats i presencial de qui no és soci, i «Soc major d'edat» (T-M02-14 i
+T-M02-34; RN-M02-11 i 35; CA-M02-10, 11 i 37; decisió 021). Només dades inventades.
 """
 
 import datetime
@@ -43,9 +43,14 @@ def manager(make_admin):  # noqa: F811
 
 
 @pytest.fixture(autouse=True)
-def privacy():
-    if not LegalText.objects.filter(kind="privacy").exists():
-        LegalText.objects.create(kind="privacy", version=1, content="Política inventada.")
+def texts():
+    """Els textos vigents que demana el formulari (els publica l'administrador amb M12)."""
+    for kind, content in (
+        ("privacy", "Política inventada."),
+        ("adult_declaration", "Soc major d'edat."),
+    ):
+        if not LegalText.objects.filter(kind=kind).exists():
+            LegalText.objects.create(kind=kind, version=1, content=content)
 
 
 def data(**fields):
@@ -54,6 +59,7 @@ def data(**fields):
         "last_name": "Convidada",
         "contact_email": EMAIL,
         "accept_privacy": True,
+        "adult_declared": True,
         **fields,
     }
 
@@ -116,7 +122,7 @@ def test_ca_m02_10_an_activity_only_for_members_rejects_a_guest_and_says_how(man
 )
 def test_minimum_data_and_privacy_are_required(manager, fields, message):
     outing = an_open_outing(manager, open_to_non_members=True)
-    with pytest.raises(ValidationError, match=message):
+    with pytest.raises(ValidationError, match=message or None):
         guests.enrol_guest(outing, data(**fields), now=NOW)
     assert not Enrolment.objects.exists() and not Person.objects.filter(origin="guest").exists()
 
@@ -180,6 +186,13 @@ def test_in_person_without_ac5_is_not_found(make_admin, manager, role):  # noqa:
     assert not Person.objects.filter(contact_email=EMAIL).exists()
 
 
+def test_without_the_published_texts_no_guest_can_enrol(manager, monkeypatch):
+    outing = an_open_outing(manager, open_to_non_members=True)
+    monkeypatch.setattr(guests, "ADULT", "sense_cap_text_publicat")  # els textos no s'esborren
+    with pytest.raises(ValidationError, match="Torna-ho a provar"):
+        guests.enrol_guest(outing, data(), now=NOW)
+
+
 def test_the_guest_channel_is_only_for_the_public_form(manager):
     outing = an_open_outing(manager, open_to_non_members=True)
     account = a_member()
@@ -205,3 +218,47 @@ def test_p_457_an_ac5_accepts_a_guest_offer_and_the_guest_gets_the_link(manager)
 
     assert accepted.status == S.PENDING_PAYMENT
     assert GuestLink.objects.get(charge=accepted.charge).person == waiting.person
+
+
+# --- T-M02-34: «Soc major d'edat» (RN-M02-35; CA-M02-37; P-33) -----------------------------------
+
+
+def adult_consent(person):
+    return Consent.objects.filter(person=person, legal_text__kind=guests.ADULT)
+
+
+def test_ca_m02_37_without_the_adult_box_a_guest_is_rejected(manager):
+    outing = an_open_outing(manager, open_to_non_members=True)
+    with pytest.raises(ValidationError, match="menors"):
+        guests.enrol_guest(outing, data(adult_declared=False), now=NOW)
+    assert not Enrolment.objects.exists() and not Person.objects.filter(origin="guest").exists()
+
+
+def test_ca_m02_37_with_the_box_the_declaration_keeps_the_text_version_and_no_birth_date(manager):
+    outing = an_open_outing(manager, open_to_non_members=True)
+
+    row = guests.enrol_guest(outing, data(), now=NOW)
+
+    consent = adult_consent(row.person).get()
+    assert consent.legal_text == LegalText.objects.get(kind=guests.ADULT, version=1)
+    assert consent.legal_text.content == "Soc major d'edat."
+    assert (consent.channel, consent.action) == (Consent.Channel.WEB, Consent.Action.GRANTED)
+    assert row.person.birth_date is None
+
+
+def test_in_person_the_desk_marks_the_box_after_asking(make_admin, manager):  # noqa: F811
+    outing = an_open_outing(manager, open_to_non_members=True)
+    desk = make_admin("treasurer")
+    with pytest.raises(ValidationError, match="menors"):
+        guests.enrol_guest(outing, data(adult_declared=False), by=desk, now=NOW)
+    row = guests.enrol_guest(outing, data(), by=desk, now=NOW)
+    consent = adult_consent(row.person).get()
+    assert (consent.channel, consent.recorded_by) == (Consent.Channel.IN_PERSON, desk)
+
+
+def test_with_a_minimum_age_the_birth_date_replaces_the_box(manager):
+    """RN-M01-53: amb edat mínima es demana la data de naixement i no cal la casella."""
+    outing = an_open_outing(manager, open_to_non_members=True, min_age=18)
+    born = datetime.date(1990, 5, 1)
+    row = guests.enrol_guest(outing, data(adult_declared=False, birth_date=born), now=NOW)
+    assert not adult_consent(row.person).exists()

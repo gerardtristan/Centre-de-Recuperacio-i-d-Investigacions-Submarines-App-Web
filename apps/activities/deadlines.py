@@ -57,7 +57,7 @@ def offer_deadline(activity, now) -> datetime.datetime:
     return min(now + datetime.timedelta(hours=hours), activity.registration_closes_at)
 
 
-def _renumber(activity) -> None:
+def renumber(activity) -> None:
     for position, row in enumerate(enrolments.waitlist(activity), start=1):
         if row.waitlist_position != position:
             Enrolment.objects.filter(pk=row.pk).update(waitlist_position=position)
@@ -78,7 +78,7 @@ def offer_free_places(activity, *, now) -> list[Enrolment]:
         row.offer_expires_at = offer_deadline(activity, now)
         row.save(update_fields=["status", "waitlist_position", "offer_expires_at", "updated_at"])
     if offered:
-        _renumber(activity)
+        renumber(activity)
     return offered
 
 
@@ -138,7 +138,7 @@ def decline_offer(enrolment, *, actor, now=None, request=None) -> Enrolment:
 # --- La cua --------------------------------------------------------------------------------------
 
 
-def _paying(charge) -> bool:
+def paying(charge) -> bool:
     """RN-M02-08: un intent del 05b en curs allarga el termini; una transferència anunciada no."""
     status = checkout.payment_status(charge)
     if status.state not in (checkout.IN_PROGRESS, checkout.TIMED_OUT):
@@ -153,7 +153,7 @@ def _run_activity(activity_id, now) -> dict:
     rows = Enrolment.objects.select_for_update(of=("self",)).filter(activity=activity)
     unpaid = rows.filter(status=S.PENDING_PAYMENT, payment_due_at__lte=now)
     for row in unpaid.select_related("charge"):
-        if row.charge.status == Charge.Status.PAID or _paying(row.charge):
+        if row.charge.status == Charge.Status.PAID or paying(row.charge):
             continue
         enrolments.change_status(row, S.EXPIRED, actor=SYSTEM, reason=UNPAID_REASON)
         row.payment_due_at = None
