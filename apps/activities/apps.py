@@ -31,6 +31,14 @@ class ActivitiesConfig(AppConfig):
 
         business_settings.register_check(catalogue.TARGET_AGENCY_KEY, catalogue.check_target_agency)
 
+        # T-M02-04b (L-M02-05; decisió 101): qui perd el rol d'instructor surt de les sessions
+        # futures, dins la mateixa transacció i a nom de qui ha retirat el rol.
+        from django.db.models.signals import post_save
+
+        from apps.core.models import AccountRole
+
+        post_save.connect(_on_role_saved, sender=AccountRole, dispatch_uid="activities.role_saved")
+
         core_privacy.register(
             "activitats",
             core_privacy.Module(
@@ -40,3 +48,13 @@ class ActivitiesConfig(AppConfig):
                 describe=privacy.describe,
             ),
         )
+
+
+def _on_role_saved(sender, instance, **kwargs):
+    from apps.core.models import Role
+
+    from . import sessions
+
+    if instance.removed_at is None or instance.role.code != Role.Code.INSTRUCTOR:
+        return
+    sessions.release_former_instructors(actor=instance.removed_by)
