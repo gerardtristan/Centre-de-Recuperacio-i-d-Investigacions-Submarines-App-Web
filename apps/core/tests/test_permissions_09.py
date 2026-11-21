@@ -84,3 +84,19 @@ def test_the_board_only_reads_margins_and_reports(make_admin):  # noqa: F811
 def test_an_own_applications_cell_lets_no_object_through_without_its_check(make_admin):  # noqa: F811
     # La comprovació per objecte la registra l'apartat d'ajuts (T-M09A); fins llavors, cap.
     assert not has_perm(make_admin(R.BOARD), "grants.applications.prepare", object())
+
+
+SETTINGS = {
+    "settings.section.billing": (_, _, _, _, _, _, CONS, _, _),  # AJ09
+    "settings.edit.billing.enabled_charge_kinds": (_, _, _, _, _, _, Y, _, _),  # AJ09-1, VC-34
+}
+SETTINGS_CELLS = [
+    (code, role, row[i]) for code, row in SETTINGS.items() for i, role in enumerate(ROLES)
+]
+
+
+@pytest.mark.parametrize(
+    ("code", "role", "expected"), SETTINGS_CELLS, ids=[f"{c}-{r}" for c, r, _ in SETTINGS_CELLS]
+)
+def test_settings_cell(make_admin, code, role, expected):  # noqa: F811
+    assert scope_for(make_admin(role), code) == expected

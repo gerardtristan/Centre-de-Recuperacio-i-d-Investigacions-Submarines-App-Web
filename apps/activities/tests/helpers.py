@@ -154,3 +154,54 @@ def a_project():
     return EnvironmentalProject.objects.create(
         name=f"Projecte inventat {next(_numbers)}", objective="Objectiu.", department=general()
     )
+
+
+# --- Inscripcions (T-M02-11) ---------------------------------------------------------------------
+
+PUBLISHED = moment(2027, 5, 20, 9)
+BEFORE_DEADLINE = moment(2027, 6, 1, 9)  # inscripcions obertes
+AFTER_DEADLINE = moment(2027, 6, 11, 9)  # CLOSES ja ha passat
+
+
+def a_member(first="Sòcia", *, status="active", account=True):
+    """Una persona sòcia inventada. Torna el compte personal actiu (o la persona, amb
+    `account=False`)."""
+    from apps.members.models import Member, MembershipType
+
+    person = Person.objects.create(first_name=first, last_name="Prova", origin="web")
+    Member.objects.create(
+        person=person,
+        member_number=9000 + next(_numbers),
+        type=MembershipType.objects.get(code="full"),
+        status=status,
+        joined_on=datetime.date(2019, 3, 12),
+    )
+    return a_personal_account(person) if account else person
+
+
+def a_personal_account(person=None):
+    """Compte personal actiu (d'una persona no sòcia, si no se'n dona cap)."""
+    from apps.accounts.models import Account
+
+    person = person or a_person("Convidada")
+    account = Account.objects.create_personal(person, f"persona{next(_numbers)}@example.org")
+    account.status = Account.Status.ACTIVE
+    account.save()
+    return account
+
+
+def opened(manager, activity):
+    from apps.activities import states
+
+    states.publish(activity, by=manager, now=PUBLISHED)
+    activity.refresh_from_db()
+    return activity
+
+
+def an_open_outing(manager, **fields):
+    """Sortida publicada, amb les inscripcions obertes fins a `CLOSES`."""
+    return opened(manager, an_outing(manager, **fields))
+
+
+def an_open_course(manager, entry=None, **fields):
+    return opened(manager, a_course(manager, entry, **fields))

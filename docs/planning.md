@@ -3776,7 +3776,7 @@ App Django `activities` (nova). Noms de codi en anglès. Imports en cèntims (`P
 - `CourseOutcome`: `enrolment` (OneToOne), `result` (`pass`, `fail`), `decided_by` (instructor), `decided_at`, `reason` (obligatori si `fail`), `certificate_number` (únic, null), `certificate_issued_by`, `certificate_issued_at`. El PDF es genera a demanda (annex B de la 00).
 
 ### DiverCertification (titulació)
-`person` (FK), `agency` (`CharField(60)`) [A verificar: FECDAS, llista d'agències], `level` (`CharField(60)`), `number` (`CharField(40)`, opcional), `issued_on` (null), `source` (`club_course`, `declared`, `imported`), `verified_by` (FK compte null), `verified_at`. Cap foto ni escaneig del carnet de titulació.
+`person` (FK), `agency` (`CharField(60)`) [A verificar: FECDAS, llista d'agències], `level` (`CharField(60)`), `number` (`CharField(40)`, opcional), `issued_on` (null), `source` (`club_course`, `declared`, `imported`), `verified_by` (FK compte null), `verified_at`. ~~Cap foto ni escaneig del carnet de titulació.~~ **Canviat per la [104](decisions/104-fotos-de-titulacions-homologacio-a-fecdas-i-primera-estrella.md) (21/11/2026):** es permet la foto del carnet d'una titulació d'una altra agència, xifrada i només per comprovar-la i homologar-la; vegeu l'[addenda de la 104](#M02-addenda-104).
 
 ### EnvironmentalResult i EnvironmentalPhoto
 - `EnvironmentalResult`: `activity` (OneToOne, només sortides de medi ambient), `waste_grams` (`PositiveIntegerField` null), `species` (`TextField`: una espècie per línia) [A validar: junta, quines dades], `observations` (`TextField`), `recorded_by`, `recorded_at`.
@@ -4219,6 +4219,80 @@ AC21 i AC22 són els dos nivells de RN-RP-22 per a l'apartat «Llocs» (resposta
 La T-M02-28 (pantalla d'ajustos) inclou l'apartat de la T-M02-39 quan totes dues existeixin.
 
 **Branca aparcada del 02 (D6).** Aquesta addenda no la toca. Quan torni, l'afecta així: els camps `location` dels models (`Activity`, `Session`, `ProgrammeBlock`) i la migració `0003`, i els que els llegeixen o escriuen (`forms.py`, `sessions.py`, `services.py`, `duplicate.py`, `public.py`, `ics.py`, `demo_data.py`, tres plantilles i set fitxers de proves) passen a fer servir `place`. Com que no hi ha dades reals, n'hi ha prou amb una migració que creï els llocs a partir dels textos diferents que hi hagi en una base de dades local. Els identificadors nous comencen després dels de la branca (CA-M02-40 hi és ocupat per la decisió 088 pròpia de la branca): no n'hi ha cap de repetit.
+
+
+<a id="M02-addenda-104"></a>
+## M02 — Addenda de la [104](decisions/104-fotos-de-titulacions-homologacio-a-fecdas-i-primera-estrella.md): fotos de titulacions d'altres agències, homologació i primera estrella
+
+**Data:** 21/11/2026. La necessitat és del propietari, i la regla és vigent quan es fusiona la PR de la 104, que és `risc:alt`.
+
+**Què canvia:** la frase «Cap foto ni escaneig del carnet de titulació» de `DiverCertification` ([M02-6](#M02-6-entitats)). Ara es permet la foto del carnet d'una titulació d'una altra agència, només per comprovar-la i homologar-la.
+
+**Què hi afegeix:**
+- Les llistes «Homologacions pendents» i «Titulacions i llicències per tramitar».
+- El seguiment a la plataforma de la tramitació de la titulació oficial de l'alumne apte (RN-M02-16), que es continua fent fora (036).
+
+La resta de regles del 02 no canvia. Quan aquesta addenda i el text anterior diuen coses diferents, val l'addenda.
+
+**Entitats**
+- **`CertificationAgency`** (nova; és una dada): `name` (únic) i `active`. Es manté a l'apartat «Agències» dels ajustos del 02 (VC-55, amb AC6). Una agència amb titulacions no s'esborra: es desactiva. Dades inicials en una migració de dades: FECDAS, PADI, SSI, CMAS i NAUI [A verificar: secretaria].
+- **`DiverCertification`:**
+  - `agency` passa a ser una FK a `CertificationAgency` (null). Una migració de dades converteix el text actual en una agència, i la crea si no existeix. `CertificationLevel.agency` canvia igual.
+  - `source` té un valor nou, `federation`: una titulació creada en tancar una tramitació a la federació.
+- **`CertificationCardPhoto`** (nova): `certification` (FK), `side` (`front` o `back`; una per titulació i cara), `file`, `content_type`, `uploaded_by` (compte), `uploaded_at` i `delete_after` (data, null). `file` és un fitxer privat, xifrat com els documents de la [051](decisions/051-abast-de-la-044-i-documents-de-justificacio.md), i mai no té cap adreça pública.
+- **`CertificationFiling`** (nova): una tramitació a la federació.
+  - `kind`: `homologation` o `course`.
+  - `person`.
+  - `source_certification` (FK null; obligatòria a `homologation`) i `course_outcome` (FK null; obligatòria a `course`).
+  - `target_level`: FK `CertificationLevel` de l'agència de destinació. Fins que l'homologació es tanca, pot ser buit.
+  - `status`: `requested`, `filed`, `done` o `rejected`.
+  - Traçabilitat: `requested_by` i `requested_at`, `filed_by` i `filed_at`, `closed_by` i `closed_at`.
+  - `result_certification` (FK null), `reason` (obligatori en rebutjar) i `charge` (FK null).
+  - Només n'hi pot haver una d'oberta per titulació d'origen i una per resultat de curs.
+- **`TrainingCatalogueEntry`:** camp nou `official_level` (FK `CertificationLevel` null). És el nivell oficial que cal tramitar a la federació quan l'alumne queda apte: la primera estrella i els altres que digui el responsable de cursos i sortides [A verificar: responsable de cursos i sortides].
+
+**Regles noves**
+| ID | Regla |
+|---|---|
+| RN-M02-47 | **Pujar la foto.** El titular la puja des del seu perfil, i només per a titulacions seves d'una agència que no és la de destinació (VC-55). La secretaria la puja amb AC25 des de la fitxa, també a l'alta presencial. S'admet una imatge (JPEG o PNG) o un PDF per cara, que es comprova amb `core.validate_upload`. La imatge es desa sense metadades (EXIF) i reduïda; la mida màxima és tècnica i es queda al codi. El fitxer es xifra a l'aplicació abans de pujar-lo (051). La pantalla avisa que no s'hi pugi cap document de salut. Amb VC-56 apagat no hi ha pantalla de pujada, i el servei rebutja qualsevol foto |
+| RN-M02-48 | **Veure la foto.** Només el titular i qui té AC24, a través d'una vista que desxifra el fitxer al moment. Cada visualització o descàrrega va al registre d'activitat. La foto no té cap adreça pública, no surt a cap llistat ni a cap exportació general i no la rep cap eina d'IA. Sí que surt a l'exportació RGPD de la persona. L'instructor i el responsable de cursos i sortides continuen veient només el nivell (C3). Sense permís, «no trobat» |
+| RN-M02-49 | **Esborrar la foto.** El titular, o qui té AC25, la pot esborrar en qualsevol moment, i queda al registre. Esborrar-la treu el fitxer de l'emmagatzematge i la fila. Si hi ha una homologació oberta, la llista la mostra «sense foto» |
+| RN-M02-50 | **Demanar l'homologació.** La demana el titular (és una acció pròpia) o qui té AC25 en nom seu. Només per a una titulació d'una agència diferent de la de destinació i sense cap homologació oberta. Amb VC-56 encès, cal la foto de l'anvers; amb VC-56 apagat, la secretaria comprova el carnet en persona. Es crea la tramitació `requested`, que surt a la llista. No s'envia cap correu nou |
+| RN-M02-51 | **Tramitar l'homologació** (AC26). Els estats són `requested` → `filed` → `done`. Des de `requested` o `filed` també es pot passar a `rejected`, amb un motiu obligatori. En marcar-la `done` calen el nivell de destinació, el número i la data, i en una sola transacció: (1) es crea la titulació de l'agència de destinació amb `source = federation`, verificada per qui la marca; (2) la titulació d'origen queda verificada (`verified_by`, `verified_at`). Marcar-la dues vegades no crea cap segona titulació. Rebutjar-la no verifica l'origen |
+| RN-M02-52 | **Primera estrella.** Quan es crea la titulació del club d'un alumne apte (RN-M02-31) i la fitxa del curs té `official_level`, es crea una tramitació `course` `requested` amb aquest nivell. N'hi ha una per resultat de curs: tornar a emetre el certificat no en crea cap altra. La llista «Titulacions i llicències per tramitar» diu també si la persona té una llicència vigent (`licences.current`); si no en té, hi surt «Cal llicència» ([RN-M06-28](#M06-addenda-104)). En marcar-la `done` amb el número i la data, es crea la titulació de l'agència de destinació (`source = federation`) |
+| RN-M02-53 | **Llistat per a la federació** (AC26). S'exporten en un CSV provisional les tramitacions `requested` d'un tipus, amb aquestes dades: cognoms, nom, data de naixement, agència, nivell i número d'origen (o el curs del club) i nivell de destinació. No hi va cap foto ni cap document d'identitat. El fitxer no es desa, i l'exportació queda al registre amb l'empremta, com a RN-M06-11. El format definitiu és el que digui la FECDAS (P-444). Si la FECDAS demana la foto, la secretaria la descarrega d'una en una (RN-M02-48) i l'envia fora de la plataforma. És una comunicació de dades a la federació (036), amb la base legal [A verificar: gestoria, P-425] |
+| RN-M02-54 | **Conservació de la foto** (VC-57). `delete_after` és la data en què la titulació queda verificada, o en què l'homologació queda `done` o `rejected`, més VC-57 mesos. Una foto sense cap d'aquestes coses i sense cap homologació oberta caduca VC-57 mesos després de pujar-la. Cada dia, la cua esborra les fotos vençudes i ho deixa al registre amb l'actor «sistema». La titulació conserva la verificació. En esborrar les dades d'una persona (RGPD), les seves fotos s'esborren al moment, perquè no són registres econòmics (058, punt 7) |
+| RN-M02-55 | **Preus de les tramitacions** (VC-58 i VC-59). Hi ha un preu per a cada tipus de tramitació, amb data d'entrada en vigor, i el valor inicial és 0. Amb VC-59 apagat, o amb un preu de 0, no es crea cap càrrec. Amb VC-59 encès i un preu més gran que 0, en demanar la tramitació es crea un càrrec a la persona, i la tramitació no pot passar a `filed` fins que el càrrec és pagat. El departament de l'ingrés és el que es respongui a P-427 [A validar: tresorer]. VC-59 no s'encén sense aquesta resposta |
+| RN-M02-56 | **Interruptor de les fotos** (VC-56, apagat). Mentre sigui apagat, cap pantalla ni cap servei no accepta ni mostra fotos; les llistes de tramitació funcionen igual. No s'encén a producció sense resposta a P-425 i sense el sí escrit del propietari (D2: RGPD i xifratge) |
+
+**Permisos** (matriu de l'[apèndix](#rols-i-permisos-059-matriu)). L'instructor no en té cap.
+- **AC24**, «Fotos de titulacions: veure»: Secretaria i Junta.
+- **AC25**, «Fotos de titulacions i homologacions: veure i editar»: Secretaria. Demana AC24 (RN-RP-03).
+- **AC26**, «Tramitacions a la federació: llistes, exportar, marcar tramitada, feta o rebutjada»: Secretaria, Administrador i President, com LC5.
+
+**Criteris d'acceptació**
+- **CA-M02-49** Donat VC-56 encès i un soci amb una titulació PADI (inventada), quan puja un JPEG amb coordenades GPS a l'EXIF, llavors el fitxer desat no té EXIF, té el costat llarg reduït, els bytes de l'emmagatzematge no són una imatge llegible sense la clau i el registre guarda qui l'ha pujat.
+- **CA-M02-50** Donat un fitxer que no és imatge ni PDF (un executable reanomenat), quan es puja, llavors `validate_upload` el rebutja i no es desa res.
+- **CA-M02-51** Donat una foto, quan l'obre un compte amb AC24, llavors la veu i queda al registre. Quan l'obre l'instructor d'una sessió del titular o un altre soci, llavors rep «no trobat» i no es desxifra res. El fitxer no té cap adreça pública.
+- **CA-M02-52** Donat VC-56 apagat, quan es crida el servei de pujada, llavors es rebutja, i ni la fitxa ni el perfil mostren cap pujada.
+- **CA-M02-53** Donat una homologació `filed`, quan algú amb AC26 la marca `done` amb el nivell, el número i la data, llavors es crea una titulació verificada de l'agència de destinació amb `source = federation`, i l'origen queda verificat. Marcar-la una altra vegada no crea res més.
+- **CA-M02-54** Donat una homologació oberta, quan es rebutja sense motiu, llavors no canvia res. Amb motiu, passa a `rejected` i l'origen no queda verificat.
+- **CA-M02-55** Donat un alumne apte d'una fitxa amb `official_level`, quan s'emet el certificat, llavors hi ha una tramitació `course` `requested`. Sense `official_level`, no se'n crea cap. Si s'emet dues vegades, només n'hi ha una.
+- **CA-M02-56** Donat VC-57 = 3 i una homologació `done` l'1/01, quan la cua passa el 31/03, llavors la foto encara hi és. Quan passa l'1/04, llavors la foto ja no és a l'emmagatzematge, la titulació continua verificada i el registre diu «sistema».
+- **CA-M02-57** Donat una persona amb fotos, quan s'exporten les seves dades (RGPD), llavors les fotos hi són. Quan s'esborren les seves dades, llavors les fotos s'esborren al moment. Ni el llistat per a la federació ni cap altra exportació no en porten cap.
+
+**Tasques** (l'estat de cada tasca és a `docs/estat/M02.md`)
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M02-41 | Agències com a dada (`CertificationAgency`, dades inicials, `agency` en FK amb migració de dades), `source = federation`, `official_level` a la fitxa i ajustos VC-55 a VC-59 | S | `apps/activities/models.py`, migració, ajustos del 02 | T-M02-23, T-M02-28 | Migració reversible; proves de la conversió del text i dels ajustos |
+| T-M02-42 | Fotos: `CertificationCardPhoto`, pujada (perfil i fitxa), `validate_upload`, sense EXIF, reduïda i **xifrada** (051). `risc:alt`: espera el sí escrit del propietari | M | `apps/activities/card_photos.py` | T-M02-41 | CA-M02-49, 50 i 52 |
+| T-M02-43 | Veure i esborrar les fotos: vista que desxifra amb permís i registre, accions del titular, exportació RGPD i esborrat en anonimitzar | S | `apps/activities/views_card_photos.py`, exportació RGPD | T-M02-42, T-M02-48 | CA-M02-51 i 57 |
+| T-M02-44 | Homologació: `CertificationFiling` (`homologation`), demanar (titular o AC25), llista «Homologacions pendents», tramitada, feta (titulació nova i origen verificat) o rebutjada | M | `apps/activities/filings.py`, vistes, plantilles | T-M02-41, T-M02-48 | CA-M02-53 i 54 |
+| T-M02-45 | Primera estrella: tramitació `course` en emetre el certificat d'una fitxa amb `official_level`; llista «Titulacions i llicències per tramitar» amb «Cal llicència» | S | `apps/activities/filings.py` | T-M02-44, T-M02-24 | CA-M02-55 |
+| T-M02-46 | Llistat CSV per a la federació (RN-M02-53), sense fotos, amb empremta al registre | S | `apps/activities/filings.py` | T-M02-44 | Proves del contingut, i que no porta cap foto ni cap document |
+| T-M02-47 | Esborrat automàtic de les fotos per la cua (VC-57) | S | `apps/activities/tasks.py` | T-M02-42 | CA-M02-56 |
+| T-M02-48 | AC24, AC25 i AC26 al catàleg de permisos (nucli, carril serial) i comprovació a vistes i serveis | XS | `apps/core/permission_catalog.py`, migració de `core`, `apps/activities/permissions.py` | T-M02-33 | Proves per cel·la (CA-RP-13) |
+| T-M02-49 | E2e amb captures: el soci puja la foto i demana l'homologació, la secretaria la tramita, i la primera estrella fins a «Cal llicència». Revisió de la sessió de DISSENY | S | `apps/core/tests/e2e/` | T-M02-43 a T-M02-46, T-M06-26 | Captures a 1280, 1024, 390 i 320 px, en clar i en fosc, mirades |
 
 ---
 
@@ -6304,6 +6378,25 @@ Aprovada el 31/10/2026. **No canvia cap regla** del 06 ni les seves dependèncie
 |---|---|
 | RN-M06-27 | **Entrada en producció.** El 06 no entra en producció fins que existeix el nucli de despeses del 09 (T-M09-02 a T-M09-05), perquè el pagament a la federació és una despesa del 09 (RN-M09-20). Es comprova a la checklist |
 
+
+<a id="M06-addenda-104"></a>
+## M06 — Addenda de la [104](decisions/104-fotos-de-titulacions-homologacio-a-fecdas-i-primera-estrella.md): primera llicència dels alumnes nous
+
+**Data:** 21/11/2026. La necessitat és del propietari, i la regla és vigent quan es fusiona la PR de la 104.
+
+No canvia cap regla del 06. Hi afegeix d'on surt la sol·licitud de la primera llicència d'un bussejador nou de primera estrella. La part del 02 és a l'[addenda del 02](#M02-addenda-104).
+
+| ID | Regla |
+|---|---|
+| RN-M06-28 | **Primera llicència.** A la llista «Titulacions i llicències per tramitar» (RN-M02-52), la persona que no té cap llicència vigent surt marcada amb «Cal llicència». La secretaria, amb LC5, li demana la primera llicència: és una sol·licitud nova (P-M06-B si és sòcia, P-M06-C si no ho és), sense número anterior ni `renewal_of`. La llicència queda lligada a l'entrada de la llista i es tramita amb el llistat de P-M06-E. Quan es marca vigent amb el número, la llista deixa de dir «Cal llicència». Mentre la junta no respongui qui la paga (P-426), no es crea cap càrrec diferent del flux normal: la llicència es crea `requested` amb el càrrec habitual del 06, que paga la persona |
+
+- **CA-M06-34** Donat un alumne apte sense cap llicència vigent, quan la secretaria fa «Demana la primera llicència», llavors es crea una llicència `requested` sense `renewal_of` ni número, lligada a l'entrada de la llista. Quan aquesta llicència es marca vigent amb el número, l'entrada deixa de dir «Cal llicència». Un alumne que ja té una llicència vigent no té el botó.
+
+| ID | Tasca | Mida | Fitxers | Depèn de | Fet quan |
+|---|---|---|---|---|---|
+| T-M06-26 | «Demana la primera llicència» des de la llista de tramitació (RN-M06-28), sense cap càrrec diferent del flux normal fins a P-426 | S | `apps/licences/services.py`, vistes | T-M02-45, T-M06-04 | CA-M06-34 (primera part) |
+| T-M06-27 | Lligam entre la llicència i l'entrada de la llista: en marcar-la vigent, «Cal llicència» desapareix | XS | `apps/licences/services.py` | T-M06-26, T-M06-10 | CA-M06-34 (segona part) |
+
 ---
 
 <a id="M12-idees"></a>
@@ -6602,6 +6695,11 @@ Llegenda de la columna **Canvi**: **—** ja és com ha de ser; **058** vol dir 
 | VC-50 | 09 | `billing.vat_exemption_text` (RN-M09-29) | Ajustos | Ajustos (text) | [A verificar: gestoria] | Text | Tresorer | Sí | Sí | 058 |
 | VC-51 | 09 (ajuts) | `amendment_term_days` per convocatòria (RN-M09A-23) | Dada | Dada (camp opcional de la convocatòria) | Buit | Buit o ≥ 1 | Tresorer | Sí | — | 058 (sense prioritat) |
 | VC-52 | 02 | Llocs (`Place`) i preu estàndard de la sortida per lloc (`PlacePrice`); centre habitual del lloc (03) | Text lliure (`location`) | Dada, amb data d'entrada en vigor per als preus ([addenda](#M02-addenda-llocs)) | Cap lloc | Noms únics; preus ≥ 0 | Qui té AC22 (configuració inicial: RCS, tresorer, administrador i President) | Sí, amb nota i avís (RN-AJ-04) | Sí (preus) | Addenda del 13/11/2026 (proposta) |
+| VC-55 | 02 | Agències de titulació (`CertificationAgency`) i agència de destinació de les homologacions (`activities.homologation_target_agency`) | Text lliure (`agency`) | Dada (agències) i Ajustos (destinació) ([addenda](#M02-addenda-104)) | FECDAS, PADI, SSI, CMAS, NAUI [A verificar: secretaria]; destinació FECDAS | Noms únics; la destinació, una agència activa | Qui té AC6 | Sí | — | 104 |
+| VC-56 | 02 | `activities.card_photos_enabled`: fotos de carnets de titulació (RN-M02-56) | — | Ajustos (sí o no) | No | — | Administrador, per decisió de la junta; no s'encén a producció sense P-425 i el sí del propietari | Sí | — | 104 |
+| VC-57 | 02 | `activities.card_photo_retention_months`: mesos que es conserva la foto després de verificar o tancar l'homologació (RN-M02-54) | — | Ajustos | 3 [A verificar: gestoria, P-425] | 0 a 24 | Secretaria | Sí | — | 104 |
+| VC-58 | 02 | `activities.homologation_fee_cents` i `activities.course_filing_fee_cents`: preu de cada tramitació a la federació (RN-M02-55) | — | Ajustos, amb data d'entrada en vigor | 0 | ≥ 0 | Tresorer | Sí, amb nota i avís (RN-AJ-04) | Sí | 104 |
+| VC-59 | 02 | `activities.filing_fees_enabled`: cobrar les tramitacions (RN-M02-55) | — | Ajustos (sí o no) | No | — | Tresorer; no s'encén sense P-427 | Sí | — | 104 |
 
 **Fora d'aquesta llista.** Els valors de la spec 00 són a la [spec 00](../specs/00-base-comuna/spec.md) fins que la 00 tingui secció. Els rols i els permisos són dades editables per l'administrador ([059](decisions/059-rols-i-permisos-editables.md)): la configuració inicial és a l'[apèndix de rols i permisos](#rols-i-permisos-059-matriu), i qui canvia cada valor d'aquesta llista és un permís `settings.edit.<clau>` (RN-RP-17). La peça comuna d'ajustos (model, pantalla base, registre i data d'entrada en vigor) és de la 00 i és a la [055](#valors-configurables-055).
 
@@ -6824,6 +6922,9 @@ Font: taula «Què pot fer cada rol» del responsable del projecte (30/10/2026),
 | AC19 | Veure els imports cobrats d'una activitat | — | — | Cons. (totes, S-M02-18) | — | Sí | — | Sí | — | — | Junta [A validar] passa a — |
 | AC20 | Informes operatius | Les seves | — | Sí | Cons. | Sí | — | Sí | Sí | Cons. | Tres. Cons. → Sí; + Pres. |
 | C3 | Camps de l'alumne per a l'instructor: nom, titulació, llicència sí o no, assistència i avaluacions; sense document, adreça, correu, telèfon ni pagaments | Les seves | | | | | | | | | S-M02-17; abast base (**Protegit**) |
+| AC24 | Fotos de titulacions: veure ([104](decisions/104-fotos-de-titulacions-homologacio-a-fecdas-i-primera-estrella.md)) | — | Sí | — | — | — | — | — | — | Sí | Nou (104); el titular veu les seves (acció pròpia) |
+| AC25 | Fotos de titulacions i homologacions: veure i editar (pujar, esborrar, demanar en nom d'un altre) | — | Sí | — | — | — | — | — | — | — | Nou (104); demana AC24 (RN-RP-03) |
+| AC26 | Tramitacions a la federació (homologacions i primera estrella): llistes, exportar, marcar tramitada, feta o rebutjada | — | Sí | — | — | — | — | Sí | Sí | — | Nou (104); com LC5 |
 
 ### 11 Conferències i contingut històric (mòdul pendent)
 | # | Permís | Instr. | Secr. | RCS | RM | Tres. | DH | Admin. | Pres. | Junta | Canvi |
