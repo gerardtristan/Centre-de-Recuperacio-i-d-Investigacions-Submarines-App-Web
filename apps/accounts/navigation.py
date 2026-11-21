@@ -47,6 +47,7 @@ BASE_ROUTES = {
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
     "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
+    "administration:licences_prices": ((("licences.prices", READ),),),  # LC8 (T-M06-02)
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
@@ -105,6 +106,7 @@ ENTRIES = (
             "administration:licences_export",
         ),
     ),  # T-M06-09 (vistes v1); text i lloc per revisar amb DISSENY
+    ("administration:licences_prices", _("Llicències: tipus i preus"), ()),  # T-M06-02 (v2)
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -243,6 +245,7 @@ GROUPS = (
             "administration:member_requests",
             "administration:licence_bulk_confirm",
             "administration:licences",
+            "administration:licences_prices",
             "administration:membership_types",
         ),
     ),
