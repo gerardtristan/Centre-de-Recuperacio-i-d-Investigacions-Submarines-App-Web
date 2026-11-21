@@ -1444,6 +1444,22 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Càrrega inicial de l'inventari"),
         initial={R.EQUIPMENT_MANAGER: _ALL, R.ADMINISTRATOR: _ALL},
     ),
+    # Material (03; T-M03-22): «Cons.» per als rols que hi poden editar algun valor. VC-29, el
+    # responsable de material (apèndix de valors configurables).
+    _perm(
+        "settings.section.equipment",
+        "AJ03",
+        _("Ajustos de material"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.EQUIPMENT_MANAGER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.equipment.review_notice_days",
+        "AJ03-1",
+        _("Dies d'antelació de l'avís de revisió del material"),
+        requires=("settings.section.equipment",),
+        initial={R.EQUIPMENT_MANAGER: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})

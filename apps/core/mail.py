@@ -108,6 +108,7 @@ TEMPLATE_PRIORITIES = {
     "campanya-mandats-recordatori": _Priority.REMINDER,  # RN-M05a-14 (T-M05a-13)
     "campanya-mandats-darrer-recordatori": _Priority.REMINDER,  # RN-M05a-14 (T-M05a-13c)
     "recordatori-transferencia": _Priority.REMINDER,  # RN-M05b-09 (T-M05b-22c)
+    "avis-revisio-material": _Priority.REMINDER,  # RN-M03-15, CA-M03-11 (T-M03-14)
     "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
 }
 
