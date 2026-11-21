@@ -1,10 +1,7 @@
 """T-M09-23: prova de principi a fi del 09 a nivell de servei: inscripcions pagades (proveïdor
 fictici, 092) → despeses amb factura, pagades i repartides → activitat feta → tancament amb el marge
-congelat → informe del departament → període tancat que rebutja un registre nou. Només dades
-inventades.
-
-El tancament del període amb la llista de control és de la T-M09-16 (#407); aquí el període es posa
-tancat directament i es comprova la guarda de la 04 (T-M09-02), que ja és a master."""
+congelat → informe del departament → tancament del període amb la llista de control (T-M09-16), que
+rebutja un registre nou amb data d'aquell mes. Només dades inventades."""
 
 import datetime
 
@@ -19,7 +16,7 @@ from apps.expenses import allocation
 from apps.expenses import services as expenses
 from apps.expenses.models import Expense, ExpenseCategory, Supplier
 from apps.expenses.tests.test_expenses import invoice
-from apps.margins import calc, closing, reports
+from apps.margins import calc, closing, period_closing, reports
 from apps.margins import services as margins
 from apps.margins.models import Period
 from apps.treasury import services as treasury
@@ -84,7 +81,14 @@ def test_t_m09_23_from_the_enrolment_to_the_closed_period(make_admin):  # noqa: 
     assert "8410" in reports.to_csv(report)
 
     june = Period.objects.create(starts_on=JUNE[0], ends_on=JUNE[1])
-    Period.objects.filter(pk=june.pk).update(status=Period.Status.CLOSED)  # T-M09-16: #407
+    # Les dues despeses pagades encara no s'han conciliat amb l'extracte: es porten al mes
+    # següent amb motiu (excepcions documentades, RN-M09-26).
+    pending = period_closing.checklist(june)
+    assert {item["key"].split(":")[0] for item in pending} == {"expense_unreconciled"}
+    with pytest.raises(period_closing.PeriodNotReady):
+        period_closing.close(june, by=treasurer)
+    reasons = {item["key"]: "Falta l'extracte de juny (inventat)." for item in pending}
+    period_closing.close(june, by=treasurer, exceptions=reasons)
     late = expenses.record_expense(
         by=treasurer, supplier=Supplier.objects.get(name="Proveïdor inventat SL"),
         invoice_number="F-3", invoice_date=day, category=ExpenseCategory.objects.get(name="Aire"),
