@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 from django.utils import timezone
 
-from apps.core import audit, charges, events
+from apps.core import audit, business_settings, charges, events
 from apps.core.models import Event, Payment
 
 from . import assessment, attendance, catalogue, certificates, services, sessions, states
@@ -74,6 +74,17 @@ def _paid(row):
     return row
 
 
+def _teachers(instructor, day) -> list:
+    """RN-M02-26: amb el mode «bloqueig» (VC-46), l'instructor de prova només fa classe si és soci
+    actiu amb llicència tècnica; si no, les sessions es creen sense instructor."""
+    blocked = business_settings.get(sessions.INSTRUCTOR_MODE_KEY) == "block"
+    return (
+        []
+        if blocked and sessions.instructor_problems(instructor.person, day)
+        else [instructor.person]
+    )
+
+
 def _desk(activity, person, *, manager, now):
     return enrolments.enrol(activity, person, channel="desk", actor=manager, now=now)
 
@@ -105,7 +116,7 @@ def _with_people(*, manager, instructor, beginners, pool, open_outing, participa
         ends_at=_at(days(-2), 20),
         place=pool,
         is_practice=True,
-        instructors=[instructor.person],
+        instructors=_teachers(instructor, days(-2)),
     )
     states.publish(running, by=manager, now=_at(days(-30), 10))
     students = [
@@ -116,13 +127,14 @@ def _with_people(*, manager, instructor, beginners, pool, open_outing, participa
     practice.refresh_from_db()
     for row in students:
         attendance.mark(row, practice, present=True, by=manager, today=today)
-    for row, result, notes in (
-        (students[0], "achieved", "Observació de prova."),
-        (students[1], "needs_reinforcement", "Observació de prova: li cal més pràctica."),
-    ):
-        assessment.assess(practice, row, result=result, notes=notes, by=instructor, today=today)
-    certificates.record_outcome(students[0], result="pass", by=instructor)
-    certificates.issue(students[0], by=manager, today=today)
+    if practice.instructors.exists():  # avalua i posa el resultat qui hi fa classe
+        for row, result, notes in (
+            (students[0], "achieved", "Observació de prova."),
+            (students[1], "needs_reinforcement", "Observació de prova: li cal més pràctica."),
+        ):
+            assessment.assess(practice, row, result=result, notes=notes, by=instructor, today=today)
+        certificates.record_outcome(students[0], result="pass", by=instructor)
+        certificates.issue(students[0], by=manager, today=today)
     running.refresh_from_db()
     return running
 
@@ -226,7 +238,7 @@ def create(*, manager, instructor, department, today=None, participants=()) -> R
             ends_at=_at(days(offset), 20),
             place=pool,
             is_practice=practice,
-            instructors=[instructor.person],
+            instructors=_teachers(instructor, days(offset)),
         )
 
     open_outing = services.create_outing(
