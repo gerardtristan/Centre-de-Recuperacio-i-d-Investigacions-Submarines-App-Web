@@ -11,7 +11,7 @@ CA-M02-23; M02-8: `closing_blockers` i `mark_closed`).
 
 Els motius són frases sense dades personals: diuen quantes coses falten, no de qui són.
 
-**Fora d'aquesta peça:** els càrrecs de reforç sense pagar s'hi afegeixen amb la T-M02-18.
+Els càrrecs de reforç sense pagar també hi són (T-M02-18).
 """
 
 from django.core.exceptions import ValidationError
@@ -20,8 +20,10 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
+from apps.core.models import Charge
+
 from . import extensions, states
-from .models import Activity, Enrolment, RefundProposal
+from .models import Activity, Enrolment, RefundProposal, ReinforcementRequest
 
 S = Enrolment.Status
 
@@ -69,6 +71,20 @@ def closing_blockers(activity) -> list[str]:
                 refunds,
             )
             % {"count": refunds}
+        )
+    reinforcement = ReinforcementRequest.objects.filter(
+        enrolment__activity=activity,
+        status=ReinforcementRequest.Status.CONFIRMED,
+        charge__status=Charge.Status.PENDING,
+    ).count()
+    if reinforcement:
+        reasons.append(
+            ngettext(
+                "Hi ha %(count)s càrrec de reforç sense pagar.",
+                "Hi ha %(count)s càrrecs de reforç sense pagar.",
+                reinforcement,
+            )
+            % {"count": reinforcement}
         )
     return reasons + extensions.closing_reasons(activity)
 
