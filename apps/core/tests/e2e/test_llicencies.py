@@ -178,6 +178,43 @@ def test_visitor_sees_the_public_price_comparison(
     review("llicencies-publica")
 
 
+def unconfirmed_licence(first, last, licence_type, **fields):
+    """Una llicència del pas únic sense caducitat (T-M06-23)."""
+    values = {
+        "origin": "imported_m01", "price_kind": None, "price_cents": None,
+        "starts_on": D(2026, 1, 10), "expires_on": None, "expiry_confirmed": False,
+    }  # fmt: skip
+    values.update(fields)
+    return licence(first, last, "active", licence_type, **values)
+
+
+def test_secretary_confirms_pending_licences(page, live_server, transactional_db, review):
+    """T-M06-24 (CA-M06-32): des del llistat, «per confirmar»; en bloc les d'any natural i, una
+    a una, la que el titular ha declarat."""
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    unconfirmed_licence("Eva", "Mas Prova", annual)
+    unconfirmed_licence("Pau", "Pons Prova", annual)
+    declared = unconfirmed_licence("Rita", "Riu Prova", annual, expires_on=D(2026, 9, 30))
+    secretary = make_admin("secretaria.prova", "secretary")
+    login_admin(page, live_server.url, secretary.login)
+    page.goto(f"{live_server.url}{reverse('administration:licences')}")
+    page.get_by_role("link", name="3 per confirmar").click()
+    expect(page.get_by_role("heading", name="Llicències per confirmar")).to_be_visible()
+    review("llicencies-per-confirmar")
+    page.get_by_role("checkbox", name="Aficionat anual (inventat) de Eva Mas Prova").check()
+    page.get_by_role("button", name="Confirma les seleccionades").click()
+    expect(page.get_by_text("Confirmada 1 llicència")).to_be_visible()
+    page.get_by_role("row", name="Riu Prova").get_by_role("link", name="Confirma…").click()
+    expect(page.get_by_label("Caduca el")).to_have_value("2026-09-30")
+    review("llicencia-confirma-caducitat")
+    page.get_by_role("button", name="Confirma la caducitat").click()
+    expect(page.get_by_text("Caducitat confirmada.")).to_be_visible()
+    declared.refresh_from_db()
+    assert declared.expiry_confirmed
+
+
 def test_member_declares_the_expiry_of_a_pending_licence(
     page, live_server, builder, member, review
 ):
