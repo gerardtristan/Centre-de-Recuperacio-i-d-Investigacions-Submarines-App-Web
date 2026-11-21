@@ -404,3 +404,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-09](T-M06-09.md) | Llicències: servei del llistat de la secretaria amb filtres i venciments (carril A) | 21/11/2026 00:06 | 030e2908 | 8543 | [A comprovar] |
 | [T-M06-10](T-M06-10.md) | Llicències: tramitar a la federació (marcar tramitada o vigent) i fitxer provisional (carril A) | 21/11/2026 00:23 | aed8a609 | 8563 | [A comprovar] |
 | [T-M06-19](T-M06-19.md) | Llicències: la llicència d'un dia darrere de l'opció apagada, «no tramitada a temps» i proposta de devolució (carril A) | 21/11/2026 00:51 | bcfd22d1 | 9179 | [A comprovar] |
+| [T-M06-11](T-M06-11.md) | Llicències: a qui toca avisar del venciment i el resum de la secretaria, sense enviar res encara (carril A) | 21/11/2026 01:14 | 0b92a03e | 9189 | [A comprovar] |
