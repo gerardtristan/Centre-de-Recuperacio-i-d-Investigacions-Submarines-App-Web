@@ -40,7 +40,7 @@ from django.utils.translation import gettext as _
 from apps.core import audit, business_settings
 from apps.core.models import Department, Person
 
-from . import catalogue, permissions, states
+from . import catalogue, material_cost, permissions, states
 from .models import (
     Activity,
     CertificationLevel,
@@ -224,7 +224,7 @@ def _require_note(data: dict) -> None:
 
 
 def _create(*, by, request, details: bool, **fields) -> Activity:
-    activity = Activity.objects.create(**fields)
+    activity = material_cost.copy_standard(Activity.objects.create(**fields))  # RN-M02-43
     audit.record(
         ACTIVITY_CREATED,
         actor=by,

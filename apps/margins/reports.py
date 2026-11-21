@@ -11,9 +11,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.expenses.models import Expense, OtherIncome
+from apps.expenses.models import Expense, ExpenseAllocation, OtherIncome
+
+from .models import MarginSnapshot
+
+GROUPS = ("activity", "subtype", "project")
 
 
 @dataclass(frozen=True)
@@ -38,20 +43,46 @@ class DepartmentReport:
         )
 
 
-def _frozen_margins(department, starts_on, ends_on) -> dict[str, int]:
-    """Marges congelats de les activitats tancades del departament dins el període.
-    shortcut: el marge congelat (`MarginSnapshot`) arriba amb la T-M09-12; fins llavors, cap."""
-    return {}
+def _label(activity, group_by) -> str:
+    if group_by == "subtype":
+        return activity.subtype.name if activity.subtype_id else _("Sense subtipus")
+    if group_by == "project":
+        return activity.project.name if activity.project_id else _("Sense projecte")
+    # El número la fa única: dues sortides poden tenir el mateix títol i el mateix dia.
+    return f"{activity.title} ({activity.starts_on:%d/%m/%Y}, núm. {activity.pk})"
 
 
-def department_report(department, starts_on, ends_on) -> DepartmentReport:
-    """`margins.department_report` (M09-8) per a un període (dates incloses).
-    shortcut: sense repartiments (T-M09-07), totes les despeses del departament compten com a
-    despeses sense activitat; les pagades, per la data de valor del pagament."""
+def _frozen_margins(department, starts_on, ends_on, group_by="activity") -> dict[str, int]:
+    """Marges congelats vigents (T-M09-12) de les activitats del departament tancades dins el
+    període, per activitat, subtipus o projecte (P-M09-E)."""
+    if group_by not in GROUPS:
+        raise ValueError(f"agrupació desconeguda: {group_by}")
+    snapshots = (
+        MarginSnapshot.objects.filter(activity__department=department, superseded_by__isnull=True)
+        .select_related("activity__subtype", "activity__project")
+        .order_by("activity__starts_on", "pk")
+    )
+    margins: dict[str, int] = {}
+    for snapshot in snapshots:
+        if starts_on <= timezone.localdate(snapshot.closed_at) <= ends_on:
+            key = _label(snapshot.activity, group_by)
+            margins[key] = margins.get(key, 0) + snapshot.margin_cents
+    return margins
+
+
+def department_report(department, starts_on, ends_on, group_by="activity") -> DepartmentReport:
+    """`margins.department_report` (M09-8) per a un període (dates incloses). Les despeses
+    pagades compten per la data de valor del pagament; la part repartida a activitats (T-M09-07)
+    ja és dins el marge de cada activitat i no torna a sortir com a despesa sense activitat."""
     expenses = Expense.objects.filter(
         department=department,
         status=Expense.Status.PAID,
         paid_movement__value_date__range=(starts_on, ends_on),
+    )
+    spent = expenses.aggregate(t=Sum("amount_cents"))["t"] or 0
+    allocated = (
+        ExpenseAllocation.objects.filter(expense__in=expenses).aggregate(t=Sum("amount_cents"))["t"]
+        or 0
     )
     incomes = OtherIncome.objects.filter(
         department=department, movement__value_date__range=(starts_on, ends_on)
@@ -59,8 +90,8 @@ def department_report(department, starts_on, ends_on) -> DepartmentReport:
     grants = incomes.filter(kind=OtherIncome.Kind.GRANT)
     return DepartmentReport(
         department=department.name,
-        activity_margins_cents=_frozen_margins(department, starts_on, ends_on),
-        expenses_without_activity_cents=expenses.aggregate(t=Sum("amount_cents"))["t"] or 0,
+        activity_margins_cents=_frozen_margins(department, starts_on, ends_on, group_by),
+        expenses_without_activity_cents=spent - allocated,
         grants_cents=grants.aggregate(t=Sum("amount_cents"))["t"] or 0,
         other_income_cents=incomes.exclude(kind=OtherIncome.Kind.GRANT).aggregate(
             t=Sum("amount_cents")
