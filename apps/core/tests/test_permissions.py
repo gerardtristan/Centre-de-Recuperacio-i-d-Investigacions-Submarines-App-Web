@@ -43,6 +43,7 @@ def test_codes_are_unique_and_prefixed_by_module():
         "core",
         "members",
         "activities",
+        "equipment",
         "treasury",
         "payments",
         "licences",
@@ -116,7 +117,8 @@ def test_initial_matrix_cell(make_admin, perm, role):
 def test_communications_shop_and_board_start_without_permissions(make_admin):
     for role in (R.COMMUNICATIONS_MANAGER, R.SHOP_MANAGER):
         assert effective_permissions(make_admin(role)) == {}
-    # La Junta, només consulta: preus de les llicències (LC8), resultats ambientals (AC14),
+    # La Junta, només consulta: preus de les llicències (LC8), stock i costos del material (MT4,
+    # MT12), resultats ambientals (AC14),
     # informes operatius (AC20) i el cost de material previst (C7); al 09, consulta del marge i
     # dels informes, els documents de justificació (protegits, 051) i els ajuts (T-M09-30).
     assert effective_permissions(make_admin(R.BOARD)) == {
@@ -135,6 +137,8 @@ def test_communications_shop_and_board_start_without_permissions(make_admin):
         "grants.applications.amendments": "own_applications",
         "grants.justification": "read",
         "grants.documents.open": "all",
+        "equipment.stock.view": "read",
+        "equipment.costs.view": "read",
     }
 
 

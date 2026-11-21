@@ -71,6 +71,14 @@ _ALL = SCOPE_ALL
 # 059, addenda del M02: el tresorer i el President gestionen activitats completes, com el
 # responsable de cursos i sortides i l'administrador.
 _ACTIVITY_MANAGERS = (R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT)
+# La fila «Gestionar inventari i assignar material» de la matriu del 03 (059).
+_EQUIPMENT_STAFF = (
+    R.COURSES_MANAGER,
+    R.EQUIPMENT_MANAGER,
+    R.TREASURER,
+    R.ADMINISTRATOR,
+    R.PRESIDENT,
+)
 
 PERMISSIONS: tuple[Permission, ...] = (
     # --- 00 Base comuna ---------------------------------------------------------------------
@@ -1316,6 +1324,125 @@ PERMISSIONS: tuple[Permission, ...] = (
             R.BOARD: SCOPE_READ,
         },
         touches_money=True,
+    ),
+    # --- 03 Material (M03-4 i la matriu inicial de la 059; T-M03-18) ---------------------------
+    # MT1 i MT2 (el material propi del soci) són accions pròpies, fora de la matriu. «Les seves»
+    # de l'instructor són les sessions on fa classe; les del responsable de cursos i sortides,
+    # les activitats de què és responsable.
+    _perm(
+        "equipment.inventory.manage",
+        "MT3",
+        _("Mantenir tipus i inventari de material; donar de baixa una peça"),
+        initial=dict.fromkeys(_EQUIPMENT_STAFF, _ALL),
+    ),
+    _perm(
+        "equipment.stock.view",
+        "MT4",
+        _("Veure l'stock de material"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.INSTRUCTOR: SCOPE_READ,
+            **dict.fromkeys(_EQUIPMENT_STAFF, _ALL),
+            R.BOARD: SCOPE_READ,
+        },
+    ),
+    _perm(
+        "equipment.typical.manage",
+        "MT5",
+        _("Material típic dels cursos, les especialitats i els tipus de sortida"),
+        initial=dict.fromkeys(_EQUIPMENT_STAFF, _ALL),
+    ),
+    _perm(
+        "equipment.assignments.manage",
+        "MT6",
+        _("Assignar material, marcar-lo llogat, lliurar-lo i retornar-lo"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "equipment.rentals.adhoc",
+        "MT6b",
+        _("Lloguer puntual a un centre: qui ha agafat què i cost del centre"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+        touches_money=True,
+        touches_personal_data=True,
+    ),
+    _perm(
+        "equipment.participants.view",
+        "MT7",
+        _("Veure el material dels participants"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "equipment.centres.manage",
+        "MT8",
+        _("Centres de busseig i tarifes (preu per a l'alumne)"),
+        # «Cons.» els veu; canviar-los demana «Sí» (el responsable de cursos i sortides, Cons.).
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.COURSES_MANAGER: SCOPE_READ,
+            R.EQUIPMENT_MANAGER: _ALL,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "equipment.rental_lists.manage",
+        "MT9",
+        _("Llista de lloguer: generar-la, exportar-la i marcar-la enviada"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "equipment.actual_quantities",
+        "MT10",
+        _("Quantitats reals de material després de l'activitat"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+    ),
+    _perm(
+        "equipment.reviews.manage",
+        "MT11",
+        _("Revisions del material"),
+        initial=dict.fromkeys(_EQUIPMENT_STAFF, _ALL),
+    ),
+    _perm(
+        "equipment.costs.view",
+        "MT12",
+        _("Cost de material per participant i per activitat; marge dels lloguers"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_ACTIVITIES, SCOPE_READ),
+        initial={
+            R.COURSES_MANAGER: SCOPE_OWN_ACTIVITIES,
+            R.EQUIPMENT_MANAGER: _ALL,
+            R.TREASURER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.PRESIDENT: _ALL,
+            R.BOARD: SCOPE_READ,
+        },
+        touches_money=True,
+    ),
+    _perm(
+        "equipment.field.participant_price",
+        "C4",
+        _("Camp: preu per a l'alumne del material llogat"),
+        kind="field",
+        # L'instructor el veu a les seves sessions, però no el marge (MT12).
+        allowed_scopes=(SCOPE_ALL, SCOPE_OWN_SESSIONS),
+        initial={R.INSTRUCTOR: SCOPE_OWN_SESSIONS, **dict.fromkeys(_EQUIPMENT_STAFF, _ALL)},
+        touches_money=True,
+    ),
+    _perm(
+        "equipment.import.run",
+        "MT13",
+        _("Càrrega inicial de l'inventari"),
+        initial={R.EQUIPMENT_MANAGER: _ALL, R.ADMINISTRATOR: _ALL},
     ),
 )
 
