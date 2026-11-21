@@ -108,7 +108,9 @@ class LaterAdjustments:
 
 
 def later_adjustments(snapshot) -> LaterAdjustments:
-    """«Ajust posterior» (RN-M09-07): el que ha entrat després de congelar el marge."""
+    """«Ajust posterior» (RN-M09-07): el que ha entrat després de congelar el marge.
+    shortcut: l'anul·lació manual (contramoviment) d'un moviment anterior al tancament no hi surt;
+    quan la 04 en faci, s'hi ha de restar el moviment anul·lat (T-M09-16, llista de control)."""
     activity = snapshot.activity
     moved = services.activity_movements(activity).filter(recorded_at__gt=snapshot.closed_at)
     enrolments, commissions = services.signed_income(moved)
