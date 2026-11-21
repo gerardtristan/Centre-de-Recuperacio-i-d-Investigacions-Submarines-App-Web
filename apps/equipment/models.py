@@ -109,3 +109,32 @@ class CentreRate(models.Model):
 
     def __str__(self):
         return f"{self.centre}: {self.label} ({self.valid_from})"
+
+
+class PlaceUsualCentre(models.Model):
+    """Centre habitual d'un lloc del 02 (T-M03-26; RN-M03-23): una fila per lloc com a màxim.
+    El 03 no escriu mai al lloc; cada canvi va al registre amb el valor anterior."""
+
+    place = models.OneToOneField(
+        "activities.Place",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("lloc"),
+    )
+    centre = models.ForeignKey(
+        DiveCentre, on_delete=models.PROTECT, related_name="+", verbose_name=_("centre habitual")
+    )
+    changed_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("canviat per"),
+    )
+    changed_at = models.DateTimeField(_("canviat"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("centre habitual d'un lloc")
+        verbose_name_plural = _("centres habituals dels llocs")
+
+    def __str__(self):
+        return f"{self.place_id}: {self.centre}"
