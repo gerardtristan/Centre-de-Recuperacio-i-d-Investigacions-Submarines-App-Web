@@ -18,10 +18,10 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.business_settings import section_code
-from apps.core.permission_catalog import CATALOG
-from apps.core.permissions import has_perm, request_permissions
+from apps.core.permission_catalog import CATALOG, SCOPE_ALL
+from apps.core.permissions import has_perm, request_permissions, scope_for
 from apps.core.under_construction import PERMISSION as UNDER_CONSTRUCTION
-from apps.members.permissions import READ, ROUTES
+from apps.members.permissions import READ, ROUTES, WRITE
 from apps.previews.screens import discover
 
 from .security import AREA_ADMIN
@@ -47,6 +47,9 @@ BASE_ROUTES = {
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
     "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
+    # MG1 amb l'abast «tot»: amb «les seves activitats» no es pot registrar sense repartiment.
+    "administration:expense_new": ((("expenses.record", WRITE, SCOPE_ALL),),),  # T-M09-06
+    "administration:expenses_without_invoice": ((("expenses.pay", READ),),),  # MG2 (T-M09-15)
     "administration:licences_prices": ((("licences.prices", READ),),),  # LC8 (T-M06-02)
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
@@ -122,6 +125,18 @@ ENTRIES = (
         ),
     ),
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
+    ("administration:expense_new", _("Despesa nova"), ()),  # T-M09-06; text i lloc: DISSENY
+    (
+        "administration:expenses_without_invoice",
+        _("Despeses sense factura"),
+        # El marge d'una activitat no té entrada pròpia (porta l'activitat a l'adreça): penja
+        # d'aquí fins que l'enllaci la fitxa de l'activitat (vistes del 02). Lloc: DISSENY.
+        (
+            "administration:activity_margin",
+            "administration:activity_margin_planned",
+            "administration:activity_margin_close",
+        ),
+    ),  # T-M09-15; text i lloc per revisar amb DISSENY
     (
         "administration:treasury_accounts",
         _("Tresoreria: comptes i saldos"),
@@ -257,6 +272,8 @@ GROUPS = (
             "administration:treasury_accounts",
             "administration:treasury_movements",
             "administration:treasury_reconciliation",
+            "administration:expense_new",
+            "administration:expenses_without_invoice",
         ),
     ),
     (
@@ -347,10 +364,18 @@ def route_needs(name):
     return BASE_ROUTES[name] if name in BASE_ROUTES else (ROUTES[name]["GET"],)
 
 
+def need_met(account, need, permissions=None) -> bool:
+    """Un permís d'un grup: `(codi, escriure)` o `(codi, escriure, abast)` si cal un abast
+    concret (per exemple, «tot»)."""
+    code, write, *scope = need
+    if not has_perm(account, code, write=write, permissions=permissions):
+        return False
+    return not scope or scope_for(account, code, permissions=permissions) == scope[0]
+
+
 def _allowed(account, name, permissions) -> bool:
     return any(
-        all(has_perm(account, code, write=write, permissions=permissions) for code, write in group)
-        for group in route_needs(name)
+        all(need_met(account, need, permissions) for need in group) for group in route_needs(name)
     )
 
 

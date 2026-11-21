@@ -1,0 +1,77 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M09-D (MG5, MG6 i MG7): el marge d'una activitat. Previst mentre no és tancada (i el real, si ja és feta); congelat quan es tanca, amb els ajustos posteriors al costat (RN-M09-07). Cap dada personal: només imports i categories. Els formularis només surten amb el permís, però el servidor el torna a comprovar. #}
+{% block title %}{% translate "Marge de l'activitat" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Marges" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2">{% blocktranslate with start=activity.starts_on|date:"d/m/Y" status=activity.get_status_display %}Comença el {{ start }} · {{ status }}{% endblocktranslate %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  {% if frozen %}
+    <section class="targeta" aria-labelledby="titol-congelat">
+      <h2 id="titol-congelat">{% translate "Marge congelat" %}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Marge" %}</dt><dd><span class="import">{{ frozen.margin }}</span>{% if frozen.negative %} <span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Pèrdua" %}</span>{% endif %}</dd></div>
+        <div><dt>{% translate "Tancada el" %}</dt><dd><time datetime="{{ frozen.closed_at|date:'Y-m-d' }}">{{ frozen.closed_at|date:"d/m/Y" }}</time></dd></div>
+        <div><dt>{% translate "Ajustos posteriors" %}</dt><dd>{% if frozen.later %}<span class="import">{{ frozen.later }}</span>{% else %}{% translate "Cap" %}{% endif %}</dd></div>
+      </dl>
+      <p class="text-2">{% translate "Un moviment que arriba després del tancament no canvia aquest marge: surt com a ajust posterior i compta al període on entra." %}</p>
+    </section>
+  {% else %}
+    <section class="targeta" aria-labelledby="titol-previst">
+      <h2 id="titol-previst">{% translate "Marge previst" %}</h2>
+      {% include "margins/_lines.html" with lines=forecast %}
+    </section>
+    {% if real %}
+      <section class="targeta" aria-labelledby="titol-real">
+        <h2 id="titol-real">{% translate "Marge real (en tancar-la)" %}</h2>
+        {% include "margins/_lines.html" with lines=real %}
+      </section>
+    {% endif %}
+  {% endif %}
+
+  <section class="targeta" aria-labelledby="titol-previstos">
+    <h2 id="titol-previstos">{% translate "Costos previstos" %}</h2>
+    <table class="taula">
+      <caption>{% translate "Per categoria. Compten mentre la categoria no té costos reals." %}</caption>
+      <thead><tr><th scope="col">{% translate "Categoria" %}</th><th scope="col">{% translate "Import previst" %}</th></tr></thead>
+      <tbody>
+        {% for name, amount in planned %}
+          <tr><th scope="row" class="cel-nom">{{ name }}</th><td data-etiqueta="{% translate 'Import previst' %}"><span class="import">{{ amount }}</span></td></tr>
+        {% empty %}
+          <tr><td colspan="2">{% translate "Encara no hi ha cap cost previst." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if can_plan %}
+      <form class="formulari" method="post" action="{% url 'administration:activity_margin_planned' activity.pk %}" novalidate>
+        {% csrf_token %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Desa el cost previst" %}</button></div>
+      </form>
+    {% endif %}
+  </section>
+
+  {% if can_close %}
+    <section class="targeta" aria-labelledby="titol-tancar">
+      <h2 id="titol-tancar">{% translate "Tancament econòmic" %}</h2>
+      {% if blockers %}
+        <div class="avis avis-avis" role="note"><strong>{% translate "Encara no es pot tancar" %}</strong>
+          <ul>{% for reason in blockers %}<li>{{ reason }}</li>{% endfor %}</ul>
+        </div>
+      {% else %}
+        <p class="text-2">{% translate "En tancar-la, el marge real queda congelat i l'activitat ja no es pot tornar a obrir des d'aquí." %}</p>
+        <form method="post" action="{% url 'administration:activity_margin_close' activity.pk %}" class="accions">
+          {% csrf_token %}
+          <button class="boto boto-principal" type="submit">{% translate "Tanca l'activitat" %}</button>
+        </form>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

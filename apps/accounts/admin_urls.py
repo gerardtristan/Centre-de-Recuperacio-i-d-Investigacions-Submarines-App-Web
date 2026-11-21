@@ -30,6 +30,8 @@ urlpatterns = [
     path("", include("apps.treasury.admin_urls")),
     path("", include("apps.payments.admin_urls")),
     path("", include("apps.licences.admin_urls")),
+    path("", include("apps.expenses.admin_urls")),  # 09: despeses (T-M09-06 i T-M09-15)
+    path("", include("apps.margins.admin_urls")),  # 09: marge d'una activitat
     # Les pantalles «En construcció» també aquí (T-DX-50): a producció només les veu un compte
     # d'administrador amb el permís DX1 (P-90), i a /en-construccio/ seria a la zona de socis (401).
     path("en-construccio/", include("apps.previews.urls")),
