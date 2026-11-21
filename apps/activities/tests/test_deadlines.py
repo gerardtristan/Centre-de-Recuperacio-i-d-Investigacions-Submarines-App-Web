@@ -113,6 +113,23 @@ def test_rn_m02_08_a_card_payment_in_progress_extends_the_deadline_but_a_transfe
     assert by_transfer.status == S.EXPIRED
 
 
+def test_rn_m02_08_a_bizum_the_screen_no_longer_waits_for_still_extends_the_deadline(manager):
+    """Un Bizum «no confirmat a temps» (RN-M05b-07) continua en curs al proveïdor."""
+    from apps.payments.tests.test_bizum import minutes_pass
+
+    outing = an_open_outing(manager)
+    payer = a_member("Bizum")
+    row = enrol(outing, payer)
+    checkout.start_payment(row.charge, PaymentAttempt.Method.BIZUM, payer)
+    minutes_pass(PaymentAttempt.objects.get(charge=row.charge), provider_closes=False)
+    assert checkout.payment_status(row.charge).state == checkout.TIMED_OUT
+
+    deadlines.run_deadlines(now=LATER)
+
+    (row,) = fresh(row)
+    assert row.status == S.PENDING_PAYMENT
+
+
 # --- Ofertes (RN-M02-09; CA-M02-27) ------------------------------------------------------------
 
 
