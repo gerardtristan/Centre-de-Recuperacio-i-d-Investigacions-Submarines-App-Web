@@ -1263,6 +1263,17 @@ opcions:
       Qui ha de reclamar la factura és qui paga la despesa; si el club vol que l'Administrador no el
       rebi, es treu MG2 de l'Administrador a l'editor sense tocar codi.
     data: 2026-11-20
+  P-474:
+    opcions:
+      A: "Abans de migrar, qui administra la base de dades executa `CREATE EXTENSION btree_gist;` a la base de producció; la migració ja no ha de fer res."
+      B: "Donar a l'usuari de l'aplicació el permís de crear extensions i deixar que ho faci la migració."
+      C: "Treure la restricció de la base de dades i comprovar el solapament només al servei, amb la fila de la peça bloquejada."
+    recomanada: A
+    perque: >-
+      L'usuari de l'aplicació no necessita permisos d'administrador de la base de dades per a res més;
+      activar-la una sola vegada a mà és segur i manté la garantia a la base de dades (RN-M03-02),
+      que C perdria si mai hi ha un altre camí d'escriptura.
+    data: 2026-11-21
   P-405:
     opcions:
       A: "Com s'ha construït: només qui pot registrar pagaments a mà (M14; d'inici, el Tresorer)."
