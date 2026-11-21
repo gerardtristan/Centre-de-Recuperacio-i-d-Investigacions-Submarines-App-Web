@@ -149,7 +149,15 @@ def test_admin_menu_groups_and_tablet_rail(page, live_server, review):
     page.goto(f"{live_server.url}/{ADMIN}/tresoreria/")
     groups = sidebar.locator(".lateral-grup")
     expect(groups.locator("summary")).to_have_text(
-        ["Socis", "Quotes i tresoreria", "Pagaments", "Importacions", "Seguretat i RGPD", "Ajustos"]
+        [
+            "Socis",
+            "Activitats",
+            "Quotes i tresoreria",
+            "Pagaments",
+            "Importacions",
+            "Seguretat i RGPD",
+            "Ajustos",
+        ]
     )
     expect(sidebar.locator(".lateral-grup details[open]")).to_have_count(1)
     expect(sidebar.locator(".lateral-grup.es-actual summary")).to_have_text("Quotes i tresoreria")
