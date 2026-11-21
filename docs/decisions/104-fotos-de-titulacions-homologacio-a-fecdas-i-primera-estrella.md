@@ -3,7 +3,7 @@
 - **Data:** 21/11/2026
 - **Estat:** Proposada (responsable del projecte, 21/11/2026). S'accepta en fusionar-se la PR `risc:alt` amb el «fusiona la #N» escrit del propietari: toca el xifratge de dades personals (CLAUDE.md, D4; decisió 100).
 - **Canvia:** la frase «Cap foto ni escaneig del carnet de titulació» de `DiverCertification` ([M02-6](../planning.md#M02-6-entitats)).
-- **Completa:** el mòdul 02 ([addenda de la 104](../planning.md#M02-addenda-104)) i el 06 ([addenda de la 104](../planning.md#M06-addenda-104)), la [matriu de permisos](../planning.md#rols-i-permisos-059-matriu) (AC24 a AC26) i l'[apèndix de valors configurables](../planning.md#valors-configurables) (VC-55 a VC-59).
+- **Completa:** el mòdul 02 ([addenda de la 104](../planning.md#M02-addenda-104)) i el 06 ([addenda de la 104](../planning.md#M06-addenda-104)), la [matriu de permisos](../planning.md#rols-i-permisos-059-matriu) (AC24 a AC28) i l'[apèndix de valors configurables](../planning.md#valors-configurables) (VC-55 a VC-61).
 
 ## Context
 
@@ -40,14 +40,17 @@ Fins ara:
    - També la pot **rebutjar**, amb un motiu.
 6. **Primera estrella.** Quan un alumne queda apte i es crea la seva titulació del club (RN-M02-16 i RN-M02-31), si la fitxa del curs té un **nivell oficial per tramitar**, l'alumne entra sol a la llista **«Titulacions i llicències per tramitar»**.
    - Si no té cap llicència vigent, la llista ho marca, i la secretaria li demana la **primera llicència**: és una sol·licitud nova del 06, sense número anterior.
-   - La plataforma no crea la llicència sola: la demana la secretaria, amb el flux normal del 06, i la paga la persona, mentre la junta no digui si el preu del curs ja la inclou (P-426).
+   - **Resposta provisional del propietari a P-426 (21/11/2026; falta el tresorer):** per defecte, el preu del curs de primera estrella ja inclou la primera llicència. Cada versió de preu del catàleg té «Inclou la primera llicència» (sí o no), que es veu amb AC27 i s'edita amb AC28, amb data d'entrada en vigor i registre; l'activitat en guarda una còpia en crear-se.
+   - **Inclosa:** quan l'alumne queda apte, la llicència es crea sense cap càrrec i el preu de la federació va al cost previst del curs, a la categoria de despesa de VC-60. Compta al marge de l'activitat, i el tresorer hi registra la despesa real quan paga la federació.
+   - **No inclosa:** la secretaria la demana i l'alumne la paga com qualsevol llicència.
+   - **Mai dos cobraments:** cada tramitació té com a molt una primera llicència, i hi ha una prova per a cada cas (CA-M02-58 i CA-M06-35).
    - La titulació i la llicència es tramiten amb els llistats exportables i es marquen tramitades i fetes (o vigents, en el cas de la llicència) quan arriba el número.
-7. **Preus.** Els preus de l'homologació i de la tramitació de la titulació són ajustos amb data d'entrada en vigor (VC-58). El valor inicial és 0 i la plataforma no els cobra fins que s'encén l'interruptor VC-59.
+7. **Preus.** Els preus de l'homologació i de la tramitació de la titulació són ajustos amb data d'entrada en vigor (VC-58). El valor inicial és 0 i la plataforma no els cobra fins que s'encén l'interruptor VC-59. Resposta provisional del propietari a P-427 (21/11/2026; falta el tresorer): de moment són gratuïtes. El departament de l'ingrés és una dada de la llista de departaments: en una tramitació d'un curs, el de l'activitat; en una homologació, VC-61, que per defecte és el mateix que el dels cursos.
 8. **Conservació.**
    - La foto s'esborra **3 mesos** (ajust VC-57) després que la titulació quedi verificada o que l'homologació quedi feta o rebutjada. Una foto sense cap d'aquestes coses i sense cap homologació oberta s'esborra el mateix nombre de mesos després de pujar-la.
    - La titulació conserva la verificació sense la foto.
    - En esborrar les dades d'una persona (RGPD), les fotos s'esborren al moment: no són registres econòmics.
-   - El termini que valgui de debò és una pregunta per a la gestoria (P-425).
+   - Resposta provisional del propietari a P-425 (21/11/2026): 3 mesos, que són un ajust editable. La base per enviar la foto a la FECDAS és la petició del mateix soci, que és qui demana l'homologació, amb un avís clar en pujar-la. La pregunta continua oberta per a la gestoria, i l'interruptor de les fotos continua apagat a producció fins que respongui.
 9. **Registre i salut.**
    - Pujar, veure, verificar i esborrar una foto (a mà o per la cua) deixa una fila al registre d'activitat, amb el compte que ho fa o «sistema».
    - La foto entra a l'exportació RGPD de la persona i a cap altra exportació.
@@ -57,14 +60,14 @@ Fins ara:
 ## Conseqüències
 
 - **Pla:**
-  - M02-6 marca la frase antiga com a canviada i enllaça l'[addenda del 02](../planning.md#M02-addenda-104): entitats, RN-M02-47 a RN-M02-56, CA-M02-49 a CA-M02-57 i tasques T-M02-41 a T-M02-49.
-  - Addenda del 06 ([M06](../planning.md#M06-addenda-104)): RN-M06-28, CA-M06-34 i les tasques T-M06-26 i T-M06-27.
-  - Files noves AC24 a AC26 a la matriu i VC-55 a VC-59 a l'apèndix.
+  - M02-6 marca la frase antiga com a canviada i enllaça l'[addenda del 02](../planning.md#M02-addenda-104): entitats, RN-M02-47 a RN-M02-59, CA-M02-49 a CA-M02-60 i tasques T-M02-41 a T-M02-51.
+  - Addenda del 06 ([M06](../planning.md#M06-addenda-104)): RN-M06-28, CA-M06-34 i CA-M06-35 i les tasques T-M06-26 i T-M06-27.
+  - Files noves AC24 a AC28 a la matriu i VC-55 a VC-61 a l'apèndix.
 - **Estat:** les tasques s'apunten a `docs/estat/M02.md` i `docs/estat/M06.md` (pendents) i entren als carrils de la fase 2. La T-M02-42 (xifratge) és `risc:alt` i espera el sí escrit del propietari, com totes les de la 044 i la 051.
 - **Preguntes:** al [tauler](tauler-preguntes.yml) i a [pendents](pendents.md):
-  - P-425: el termini de conservació, per a la gestoria.
-  - P-426: qui paga la primera llicència de l'alumne.
-  - P-427: el departament i l'import de les tramitacions.
+  - P-425: el termini de conservació i la base per enviar la foto. Resposta provisional del propietari: 3 mesos i la petició del soci; continua oberta per a la gestoria.
+  - P-426: qui paga la primera llicència de l'alumne. Resposta provisional del propietari: el curs ja la inclou (configurable per fitxa); falta el tresorer.
+  - P-427: el departament i l'import de les tramitacions. Resposta provisional del propietari: gratuïtes, i el departament dels cursos; falta el tresorer.
 - **Document de funcionalitats** (`docs/funcionalitats-processos/`): no es regenera. Mana el pla (047).
 - **CLAUDE.md:** no canvia. La regla «Cap dada de salut» continua valent, i la foto d'un carnet de titulació no és una dada de salut.
 
