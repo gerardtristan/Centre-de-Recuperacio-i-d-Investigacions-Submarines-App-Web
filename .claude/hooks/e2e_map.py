@@ -152,6 +152,12 @@ MAP = {
         "templates/accounts/login.html",
         "templates/accounts/admin_accounts.html",
     ),
+    "test_activitats_admin.py": (
+        "apps/activities/views/*",
+        "apps/activities/forms.py",
+        "apps/activities/admin_urls.py",
+        "templates/activities/*",
+    ),
     "test_despeses.py": (
         "apps/expenses/views.py",
         "apps/expenses/admin_urls.py",
