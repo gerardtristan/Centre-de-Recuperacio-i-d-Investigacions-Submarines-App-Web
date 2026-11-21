@@ -1,5 +1,6 @@
-"""Inscriure's: preu, requisits i càrrec (T-M02-11; RN-M02-04, 07, 10, 11 i 30; CA-M02-06, 12, 13,
-28 i 29; L-M02-02 i L-M02-06; decisió 103). Portat de la branca aparcada. Només dades inventades.
+"""Inscriure's: preu, requisits, càrrec, places i llista d'espera (T-M02-11 i T-M02-12; RN-M02-04,
+07, 10, 11 i 30; CA-M02-06, 08, 12, 13, 28, 29 i 40; L-M02-02 i L-M02-06; decisió 103). Portat de
+la branca aparcada. Només dades inventades.
 """
 
 import datetime
@@ -18,6 +19,7 @@ from apps.payments import checkout
 from apps.payments.models import PaymentAttempt
 from apps.payments.providers import fake
 from apps.payments.tests.test_processing import notify, run_queue
+from conftest import CommittedDataTestCase, run_together
 
 from .helpers import (
     AFTER_DEADLINE,
@@ -170,14 +172,6 @@ def test_after_closing_by_hand_nobody_enrols(manager):
         enrol_member(outing)
 
 
-def test_without_free_places_the_enrolment_is_rejected_until_the_waiting_list(manager):
-    outing = an_open_outing(manager, max_places=1)
-    enrol_member(outing)
-    with pytest.raises(enrolment.ActivityFull):
-        enrol_member(outing)
-    assert enrolment.occupied(outing) == 1
-
-
 # --- CA-M02-13 i qui s'hi pot inscriure ----------------------------------------------------------
 
 
@@ -262,7 +256,7 @@ def test_a_personal_account_cannot_use_the_desk_or_an_unknown_channel(manager):
     with pytest.raises(Http404):
         enrolment.enrol(outing, account.person, channel=DESK, actor=account, now=NOW)
     with pytest.raises(enrolment.ValidationError):
-        enrolment.enrol(outing, account.person, channel="guest", actor=account, now=NOW)
+        enrolment.enrol(outing, account.person, channel="altre", actor=account, now=NOW)
 
 
 # --- Requisits: CA-M02-12, 28 i 29 ---------------------------------------------------------------
@@ -349,3 +343,127 @@ def test_an_unverified_declared_level_is_flagged_in_warn(manager):
     DiverCertification.objects.create(person=account.person, level=level, source="declared")
 
     assert "sense verificar" in enrol_member(outing, account).requirements_warning
+
+
+# --- Places i llista d'espera (T-M02-12; RN-M02-07; CA-M02-08 i 40; decisió 103) -----------------
+
+
+def fill(activity, n, *, now=NOW):
+    return [enrol_member(activity, now=now) for _ in range(n)]
+
+
+def test_ca_m02_40_a_full_activity_stays_open_and_the_next_one_waits(manager):
+    outing = an_open_outing(manager, max_places=2)
+    fill(outing, 2)
+
+    third, fourth = fill(outing, 2)
+
+    outing.refresh_from_db()
+    assert outing.status == Activity.Status.OPEN  # omplir les places no tanca res (103)
+    assert enrolment.is_open(outing, NOW) and enrolment.free_places(outing) == 0
+    assert (third.status, third.waitlist_position) == (S.WAITLISTED, 1)
+    assert (fourth.status, fourth.waitlist_position) == (S.WAITLISTED, 2)
+    assert (third.charge, third.payment_due_at) == (None, None)
+    assert list(enrolment.waitlist(outing)) == [third, fourth]
+    entry = AuditEntry.objects.filter(action=enrolment.CREATED).latest("id")
+    assert entry.details["status"] == S.WAITLISTED and entry.details["waitlist_position"] == 2
+
+
+def test_ca_m02_40_after_the_deadline_or_closing_nobody_enrols_not_even_to_wait(manager):
+    outing = an_open_outing(manager, max_places=1)
+    fill(outing, 1)
+
+    with pytest.raises(enrolment.ActivityNotOpen):
+        enrol_member(outing, now=AFTER_DEADLINE)
+    states.close_registration(outing, by=manager, now=NOW)
+    with pytest.raises(enrolment.ActivityNotOpen):
+        enrol_member(outing)
+    assert Enrolment.objects.filter(activity=outing).count() == 1
+
+
+def test_rn_m02_07_occupied_places_are_pending_confirmed_and_offered(manager):
+    outing = an_open_outing(manager, max_places=10)
+    rows = fill(outing, 6)
+    others = [S.CONFIRMED, S.OFFERED, S.WAITLISTED, S.CANCELLED, S.EXPIRED]
+    for row, status in zip(rows[1:], others, strict=True):
+        extra = {"cancelled_reason": "Inventat"} if status == S.CANCELLED else {}
+        position = {"waitlist_position": 1} if status == S.WAITLISTED else {}
+        Enrolment.objects.filter(pk=row.pk).update(status=status, **extra, **position)
+
+    assert (enrolment.occupied(outing), enrolment.free_places(outing)) == (3, 7)
+
+
+def test_whoever_arrives_queues_behind_the_waiting_list_even_with_a_free_place(manager):
+    """La plaça que s'allibera és per al primer de la llista (RN-M02-09), no per a qui arriba."""
+    outing = an_open_outing(manager, max_places=1)
+    first, waiting = fill(outing, 2)
+    Enrolment.objects.filter(pk=first.pk).update(status=S.EXPIRED)
+    assert enrolment.free_places(outing) == 1
+
+    late = enrol_member(outing)
+
+    assert (late.status, late.waitlist_position, late.charge) == (S.WAITLISTED, 2, None)
+    waiting.refresh_from_db()
+    assert waiting.waitlist_position == 1
+
+
+def test_l_m02_06_a_free_activity_has_a_waiting_list_too(manager):
+    outing = an_open_outing(
+        manager, max_places=1, price_member_cents=0, price_non_member_cents=0,
+        price_override_note="Gratuïta.",
+    )  # fmt: skip
+    confirmed, second = fill(outing, 2)
+    assert confirmed.status == S.CONFIRMED
+    assert (second.status, second.waitlist_position) == (S.WAITLISTED, 1)
+
+
+# --- CA-M02-08: concurrència, amb PostgreSQL de debò ---------------------------------------------
+
+
+def _committed_manager():
+    from django.utils import timezone
+
+    from apps.accounts.models import Account, TotpDevice
+    from apps.core.crypto import encrypt
+    from apps.core.models import AccountRole
+
+    person = Person.objects.create(first_name="Responsable", origin="in_person")
+    account = Account.objects.create_admin(person, f"resp-concurrencia-{person.pk}")
+    TotpDevice.objects.create(
+        account=account,
+        secret_encrypted=encrypt("JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"),
+        confirmed_at=timezone.now(),
+    )
+    AccountRole.objects.create(
+        admin_account=account, role=Role.objects.get(code=Role.Code.COURSES_MANAGER)
+    )
+    return account
+
+
+def _enrolling(account, outing):
+    return lambda: (
+        enrolment.enrol(outing, account.person, channel=ACCOUNT, actor=account, now=NOW).status
+    )
+
+
+class TestConcurrentEnrolments(CommittedDataTestCase):
+    def test_ca_m02_08_two_people_and_one_place_left(self):
+        outing = an_open_outing(_committed_manager(), max_places=1)
+        first, second = a_member("Primera"), a_member("Segona")
+
+        statuses = run_together([_enrolling(first, outing), _enrolling(second, outing)])
+
+        assert sorted(statuses) == [S.PENDING_PAYMENT, S.WAITLISTED]
+        assert enrolment.occupied(outing) == 1
+        assert Charge.objects.filter(origin="activities").count() == 1
+        assert enrolment.waitlist(outing).get().waitlist_position == 1
+
+    def test_ten_people_and_three_places(self):
+        outing = an_open_outing(_committed_manager(), max_places=3)
+        people = [a_member(f"Persona{n}") for n in range(10)]
+
+        statuses = run_together([_enrolling(account, outing) for account in people])
+
+        assert statuses.count(S.PENDING_PAYMENT) == 3 and statuses.count(S.WAITLISTED) == 7
+        positions = enrolment.waitlist(outing).values_list("waitlist_position", flat=True)
+        assert list(positions) == [1, 2, 3, 4, 5, 6, 7]

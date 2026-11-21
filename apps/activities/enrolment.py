@@ -1,10 +1,12 @@
-"""Inscriure's a una activitat (T-M02-11; P-M02-C passos 3 a 5; RN-M02-04, RN-M02-07, RN-M02-10 i
-RN-M02-11; CA-M02-06, 12, 13, 28 i 29). Portat de la branca aparcada.
+"""Inscriure's a una activitat, places i llista d'espera (T-M02-11 i T-M02-12; P-M02-C passos 3 a
+5; RN-M02-04, RN-M02-07, RN-M02-10 i RN-M02-11; CA-M02-06, 08, 12, 13, 28, 29 i 40). Portat de la
+branca aparcada.
 
 `enrol(activitat, persona, channel=…, actor=…)` és l'única manera de crear una inscripció:
 
 1. **Oberta** (decisió 103): l'activitat és `open` i la data límit no ha passat (es mira l'hora,
-   no si la cua ja l'ha tancada).
+   no si la cua ja l'ha tancada). Omplir les places **no** la tanca: qui arriba després va a la
+   llista d'espera. Després del tancament no hi entra ningú, ni a la llista d'espera.
 2. **Una de viva per persona** (CA-M02-13).
 3. **Preu** (RN-M02-04): el de soci de l'activitat si `members.is_member` el dia d'inscriure's; si
    no, el de no soci, i només si l'activitat és oberta a no socis (RN-M02-11, CA-M02-10). Es copia
@@ -15,23 +17,29 @@ RN-M02-11; CA-M02-06, 12, 13, 28 i 29). Portat de la branca aparcada.
 5. **Places** (RN-M02-07): amb la fila de l'activitat bloquejada (`SELECT … FOR UPDATE`) es compten
    les inscripcions que ocupen plaça. Si n'hi ha: `pending_payment` amb el càrrec «inscripció» de
    la 00 (import, departament i centre de cost de l'activitat) i el termini de pagament de
-   l'activitat; si és gratuïta, `confirmed` sense càrrec (L-M02-06).
+   l'activitat; si és gratuïta, `confirmed` sense càrrec (L-M02-06). Si no n'hi ha, o si ja hi ha
+   gent esperant: `waitlisted`, al final de la llista (la plaça que s'allibera és per al primer de
+   la llista, RN-M02-09, no per a qui arriba després).
 
 El pagament és el camí del 05b sobre el càrrec (`payments:charge`); quan el càrrec és pagat, la
 confirma `charges.on_charge_paid` (T-M02-10).
 
 **Concrecions:** una persona anonimitzada no es pot inscriure; el canal `account` exigeix el
-compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició.
+compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició; el canal
+`guest`, només el formulari públic (`guests.enrol_guest`).
 
-**Fora d'aquesta peça:** la llista d'espera (T-M02-12; fins llavors, sense places es rebutja),
-caducitat i ofertes (T-M02-13), convidats i la pantalla presencial (T-M02-14), cancel·lacions
-(T-M02-15) i avisos (T-M02-21).
+Caducitat i ofertes de plaça: `deadlines.py` (T-M02-13), amb `change_status` i les transicions
+de RN-M02-03 d'aquí.
+
+**Fora d'aquesta peça:** ordenar la llista a mà (AC16),
+les pantalles (convidat i presencial), cancel·lacions (T-M02-15) i avisos (T-M02-21).
 """
 
 import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Max
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -57,10 +65,6 @@ class ActivityNotOpen(EnrolmentError):
     pass
 
 
-class ActivityFull(EnrolmentError):
-    pass
-
-
 class AlreadyEnrolled(EnrolmentError):
     pass
 
@@ -78,6 +82,17 @@ class RequirementsNotMet(EnrolmentError):
 def occupied(activity) -> int:
     """Places ocupades (RN-M02-07): pendents de pagament, confirmades i ofertes."""
     return Enrolment.objects.filter(activity=activity, status__in=Enrolment.OCCUPYING).count()
+
+
+def free_places(activity) -> int:
+    return max(0, activity.max_places - occupied(activity))
+
+
+def waitlist(activity):
+    """La llista d'espera, per ordre."""
+    return Enrolment.objects.filter(activity=activity, status=S.WAITLISTED).order_by(
+        "waitlist_position", "id"
+    )
 
 
 def is_open(activity, now=None) -> bool:
@@ -110,7 +125,11 @@ def _check_actor(channel, actor, person) -> None:
             raise Http404
     elif channel == Enrolment.Channel.DESK:
         permissions.require(actor, permissions.ENROL_IN_PERSON)
-    else:  # el convidat arriba amb la T-M02-14
+    elif channel == Enrolment.Channel.GUEST:
+        # Només des de `guests.enrol_guest`, que acaba de crear la persona del formulari públic.
+        if actor != audit.ANONYMOUS:
+            raise Http404
+    else:
         raise ValidationError(_("Canal d'inscripció desconegut."))
 
 
@@ -154,9 +173,9 @@ def lock(activity) -> Activity:
 
 @transaction.atomic
 def enrol(activity, person, *, channel, actor, answers=None, now=None, request=None) -> Enrolment:
-    """Inscriu `person` a `activity` (M02-8). Torna la inscripció, amb el càrrec pendent o
-    confirmada si és gratuïta. `answers`: respostes ja validades de les preguntes d'altres
-    mòduls, per clau de secció (`extensions.register_enrolment_section`)."""
+    """Inscriu `person` a `activity` (M02-8). Torna la inscripció: amb el càrrec pendent,
+    confirmada si és gratuïta o a la llista d'espera. `answers`: respostes ja validades de les
+    preguntes d'altres mòduls, per clau de secció (`extensions.register_enrolment_section`)."""
     _check_actor(channel, actor, person)
     now = now or timezone.now()
     locked = lock(activity)
@@ -175,9 +194,6 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
             % {"what": "; ".join(check.label for check in result.blocking)},
             result.blocking,
         )
-    # shortcut: sense places es rebutja; la llista d'espera (decisió 103) és de la T-M02-12.
-    if occupied(locked) >= locked.max_places:
-        raise ActivityFull(_("No queden places en aquesta activitat."))
     enrolment = Enrolment(
         activity=locked,
         person=person,
@@ -188,7 +204,12 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
         created_by=actor if channel == Enrolment.Channel.DESK else None,
         created_at=now,
     )
-    enrolment.status = take_place(enrolment, locked, actor=actor, now=now)
+    waiting = waitlist(locked)
+    if occupied(locked) < locked.max_places and not waiting.exists():
+        enrolment.status = take_place(enrolment, locked, actor=actor, now=now)
+    else:
+        enrolment.status = S.WAITLISTED
+        enrolment.waitlist_position = (waiting.aggregate(n=Max("waitlist_position"))["n"] or 0) + 1
     enrolment.full_clean(exclude=["created_by", "charge"])
     enrolment.save()
     for section in extensions.enrolment_sections():
@@ -206,6 +227,7 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
             "price_kind": price_kind,
             "price_cents": price_cents,
             "charge": enrolment.charge_id,
+            "waitlist_position": enrolment.waitlist_position,
             "requirements_warning": bool(enrolment.requirements_warning),
         },
         request=request,
@@ -213,3 +235,43 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
     if enrolment.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=enrolment)
     return enrolment
+
+
+STATUS_CHANGED = "activities.enrolment.status_changed"
+
+# RN-M02-03. Una inscripció confirmada no torna a pendent de pagament. Acceptar una oferta d'una
+# activitat gratuïta confirma directament, sense càrrec (L-M02-06).
+TRANSITIONS = {
+    (S.PENDING_PAYMENT, S.CONFIRMED),
+    (S.PENDING_PAYMENT, S.EXPIRED),
+    (S.PENDING_PAYMENT, S.CANCELLED),
+    (S.WAITLISTED, S.OFFERED),
+    (S.WAITLISTED, S.CANCELLED),
+    (S.WAITLISTED, S.EXPIRED),
+    (S.OFFERED, S.PENDING_PAYMENT),
+    (S.OFFERED, S.CONFIRMED),
+    (S.OFFERED, S.EXPIRED),
+    (S.CONFIRMED, S.CANCELLED),
+}
+
+
+def change_status(enrolment, new_status, *, actor, reason="", details=None, request=None) -> None:
+    """Canvia l'estat d'una inscripció ja bloquejada (sense desar-la) i en deixa el valor anterior
+    al registre. Només per als serveis del 02."""
+    if (enrolment.status, new_status) not in TRANSITIONS:
+        raise ValidationError(
+            _("Una inscripció «%(current)s» no pot passar a «%(new)s».")
+            % {"current": enrolment.get_status_display(), "new": S(new_status).label}
+        )
+    audit.record(
+        STATUS_CHANGED,
+        actor=actor,
+        target=enrolment,
+        field="status",
+        old=enrolment.status,
+        new=new_status,
+        reason=reason,
+        details=details,
+        request=request,
+    )
+    enrolment.status = new_status
