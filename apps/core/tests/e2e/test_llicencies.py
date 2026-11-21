@@ -3,6 +3,7 @@ filtra les pagades, en marca una com a tramitada i la deixa vigent amb el númer
 Pantalles a 1280, 390 i 320 px (clar i fosc). Només dades inventades."""
 
 import datetime
+import re
 
 import pytest
 from django.urls import reverse
@@ -102,3 +103,45 @@ def test_treasurer_adds_a_type_and_its_price(page, live_server, transactional_db
     expect(table).to_contain_text("90,00 €")
     expect(table).to_contain_text("110,00 €")
     review("llicencies-preus")
+
+
+def test_member_requests_a_licence_and_registers_one(page, live_server, builder, member, review):
+    """Vistes v3 (T-M06-06 i 08): el soci arriba des del perfil a «La meva llicència», la demana
+    (va a pagar) i registra la que ja té d'un altre tipus."""
+    from apps.licences import prices
+
+    from .test_carnet_079 import login_personal
+
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    technical = LicenceType.objects.create(
+        name="Tècnic 365 dies (inventat)", category="technical", validity_rule="days_365"
+    )
+    prices.add_price(
+        annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
+        valid_from=D(2020, 1, 1), note="Tarifa inventada", actor=builder.secretary,
+    )  # fmt: skip
+    login_personal(page, live_server.url, builder.personal(member.person))
+    page.goto(f"{live_server.url}{reverse('members:profile')}")
+    page.get_by_role("link", name="La meva llicència").click()
+    expect(page.get_by_role("heading", name="La meva llicència", exact=True)).to_be_visible()
+    expect(page.get_by_text("90,00 €")).to_be_visible()
+    review("la-meva-llicencia")
+
+    form = page.locator("form", has=page.get_by_role("button", name="Registra-la"))
+    form.get_by_label("Tipus").select_option(label="Tècnic 365 dies (inventat)")
+    form.get_by_label("Número de la llicència").fill("F-TEC-9")
+    form.get_by_label("Caduca el").fill("2027-03-14")
+    form.get_by_role("button", name="Registra-la").click()
+    expect(page.get_by_text("Llicència registrada. No cal tramitar-ne cap.")).to_be_visible()
+    expect(page.get_by_text("F-TEC-9")).to_be_visible()
+
+    request_form = page.locator("form", has=page.get_by_role("button", name="Demana-la i paga"))
+    request_form.get_by_label("Tipus").select_option(label="Aficionat anual (inventat)")
+    request_form.get_by_role("button", name="Demana-la i paga").click()
+    expect(page).to_have_url(re.compile(r"/socis/pagaments/\d+/$"))
+    assert Licence.objects.filter(person=member.person, licence_type=technical).exists()
+    page.goto(f"{live_server.url}{reverse('licences:mine')}")
+    expect(page.get_by_text("Sol·licitada: falta pagar-la")).to_be_visible()
+    review("la-meva-llicencia-demanada")
