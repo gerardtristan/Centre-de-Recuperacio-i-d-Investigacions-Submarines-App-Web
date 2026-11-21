@@ -268,3 +268,17 @@ def test_covers_the_charge_and_consent_states_shown_in_captures(cluber_path):
     assert {Consent.Channel.WEB, Consent.Channel.IN_PERSON} <= set(
         Consent.objects.values_list("channel", flat=True)
     )
+
+
+@DEV
+def test_t_m02_25_the_seed_loads_the_activities_with_the_courses_manager(cluber_path):
+    """«Es carreguen amb una ordre»: la mateixa de la resta de dades inventades, amb un compte de
+    prova del responsable de cursos i sortides."""
+    from apps.activities.models import Activity, Enrolment
+
+    output = run(cluber_path=cluber_path)
+    manager = Account.objects.get(login="cursos-demo")
+    assert manager.role_assignments.filter(role__code="courses_manager").exists()
+    assert Activity.objects.filter(responsible=manager.person).count() == 5
+    assert Enrolment.objects.count() == 4
+    assert "Mòdul 02: 3 fitxes del catàleg, 5 activitats i 4 inscripcions." in output
