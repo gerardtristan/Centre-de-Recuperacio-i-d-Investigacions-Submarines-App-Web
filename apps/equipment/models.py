@@ -291,3 +291,66 @@ class EquipmentItem(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class EquipmentReview(models.Model):
+    """Revisió d'una peça (M03-6, T-M03-14). Un cop tancada (`done_on`), no es modifica. La data
+    la posa el responsable segons la normativa o el fabricant (RN-M03-15)."""
+
+    class Kind(models.TextChoices):
+        HYDROSTATIC_TEST = "hydrostatic_test", _("Prova hidràulica")
+        VISUAL_INSPECTION = "visual_inspection", _("Inspecció visual")
+        REGULATOR_SERVICE = "regulator_service", _("Revisió del regulador")
+        OTHER = "other", _("Una altra")
+
+    class Result(models.TextChoices):
+        OK = "ok", _("Correcta")
+        FAILED = "failed", _("Fallida")
+
+    item = models.ForeignKey(
+        EquipmentItem, on_delete=models.PROTECT, related_name="reviews", verbose_name=_("peça")
+    )
+    kind = models.CharField(_("tipus"), max_length=20, choices=Kind.choices)
+    due_on = models.DateField(_("prevista el"))
+    sent_on = models.DateField(_("enviada el"), null=True, blank=True)
+    done_on = models.DateField(_("feta el"), null=True, blank=True)
+    provider = models.CharField(_("qui la fa"), max_length=120, blank=True)
+    # NULL (i no text buit) mentre no està feta: la restricció distingeix «sense resultat».
+    result = models.CharField(  # noqa: DJ001
+        _("resultat"), max_length=6, choices=Result.choices, null=True, blank=True
+    )
+    cost_cents = models.PositiveIntegerField(_("cost (cèntims)"), null=True, blank=True)
+    next_review_on = models.DateField(_("propera revisió"), null=True, blank=True)
+    notes = models.TextField(_("notes"), blank=True)
+    recorded_by = models.ForeignKey(
+        "accounts.Account",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrada per"),
+    )
+
+    class Meta:
+        verbose_name = _("revisió de material")
+        verbose_name_plural = _("revisions de material")
+        ordering = ["due_on", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    kind__in=["hydrostatic_test", "visual_inspection", "regulator_service", "other"]
+                ),
+                name="equipment_review_kind",
+            ),
+            # Feta, sempre amb resultat; amb resultat, sempre feta. `isnull=False` explícit: amb
+            # NULL, `IN` donaria «desconegut» i PostgreSQL deixaria passar la restricció.
+            models.CheckConstraint(
+                condition=Q(done_on__isnull=True, result__isnull=True)
+                | Q(done_on__isnull=False, result__isnull=False, result__in=["ok", "failed"]),
+                name="equipment_review_done_has_result",
+            ),
+            models.UniqueConstraint(
+                fields=["item"], condition=Q(done_on__isnull=True), name="equipment_review_one_open"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.item} {self.get_kind_display()} ({self.due_on})"
