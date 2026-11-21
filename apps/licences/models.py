@@ -150,6 +150,7 @@ class Licence(UndeletableModel):
         TO_RENEW = "to_renew", _("Per renovar")
         EXPIRED = "expired", _("Caducada")
         NOT_STARTED = "not_started", _("Vigent més endavant")  # P-440
+        UNCONFIRMED = "unconfirmed", _("Pendent de confirmar")  # RN-M06-24
         CANCELLED = "cancelled", _("Cancel·lada")
         LAPSED = "lapsed", _("No tramitada a temps")
 
@@ -166,7 +167,11 @@ class Licence(UndeletableModel):
     status = models.CharField(_("estat"), max_length=9, choices=Status.choices)
     origin = models.CharField(_("origen"), max_length=12, choices=Origin.choices)
     starts_on = models.DateField(_("inici"))
-    expires_on = models.DateField(_("caducitat"))
+    # Buida si no se sap (RN-M06-24): només als registres del 01 «pendents de confirmar».
+    expires_on = models.DateField(_("caducitat"), null=True, blank=True)
+    # RN-M06-24: fals mentre la secretaria no hi posa (o confirma) la data. Cap avís ni
+    # `licence.expired`, i `licences.current` la torna `unconfirmed`.
+    expiry_confirmed = models.BooleanField(_("caducitat confirmada"), default=True)
     federation_number = models.CharField(_("número federatiu"), max_length=30, blank=True)
     price_kind = models.CharField(  # noqa: DJ001 (NULL = sense preu: origen extern o del 01)
         _("tipus de preu"), max_length=10, choices=LicencePrice.Kind.choices, null=True
@@ -260,6 +265,15 @@ class Licence(UndeletableModel):
                 | Q(m01_record_ref__isnull=True, import_batch__isnull=True),
                 name="licences_licence_import_only_m01",
             ),
+            # RN-M06-24: sense caducitat només una del pas únic «pendent de confirmar».
+            models.CheckConstraint(
+                condition=Q(expires_on__isnull=False) | Q(expiry_confirmed=False),
+                name="licences_licence_no_expiry_unconfirmed",
+            ),
+            models.CheckConstraint(
+                condition=Q(expiry_confirmed=True) | Q(origin="imported_m01", status="active"),
+                name="licences_licence_unconfirmed_only_imported",
+            ),
             # Una sola llicència anual en curs per persona i tipus; les d'un dia, per data
             # (RN-M06-19).
             models.UniqueConstraint(
@@ -279,7 +293,8 @@ class Licence(UndeletableModel):
         ]
 
     def __str__(self):
-        return f"{self.licence_type} ({self.starts_on:%d/%m/%Y}–{self.expires_on:%d/%m/%Y})"
+        end = f"{self.expires_on:%d/%m/%Y}" if self.expires_on else "?"
+        return f"{self.licence_type} ({self.starts_on:%d/%m/%Y}–{end})"
 
     def save(self, *args, **kwargs):
         """RN-M06-17: cada canvi d'una llicència ja desada puja la versió. Els serveis la
@@ -295,6 +310,8 @@ class Licence(UndeletableModel):
         (l'ajust el crea la T-M06-20)."""
         if self.status != self.Status.ACTIVE:
             return self.status
+        if not self.expiry_confirmed:
+            return self.Display.UNCONFIRMED
         if self.expires_on < today:
             return self.Display.EXPIRED
         if self.starts_on > today:

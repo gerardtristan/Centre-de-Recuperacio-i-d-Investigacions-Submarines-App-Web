@@ -47,7 +47,9 @@ def on_licence_event(event) -> None:
         record = record or LicenceRecord(member=member, source=LicenceRecord.Source.LICENCES)
         record.licence_type = payload["licence_type"][:100]
         record.issued_on = datetime.date.fromisoformat(payload["starts_on"])
-        record.expires_on = datetime.date.fromisoformat(payload["expires_on"])
+        # Buida si el 06 encara no l'ha confirmada (RN-M06-24): al 01, caducitat desconeguda.
+        expires = payload["expires_on"]
+        record.expires_on = datetime.date.fromisoformat(expires) if expires else None
         record.expiry_declared = False
     created = record.pk is None
     record.licence_ref = payload["licence"]

@@ -42,6 +42,9 @@ PUBLIC_ROUTES = {
     "members:join",
     # Verificació del carnet (P15, M01-8): qualsevol persona; el testimoni no dona cap dada.
     "members:card_verify",
+    # Llicències per a no socis (T-M06-07, RN-M06-03): «no trobat» si l'opció és desactivada.
+    "licences:public",
+    "licences:guest_request",  # T-M06-07b: el mateix interruptor; l'enllaç de pagament, per correu
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",

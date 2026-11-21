@@ -50,10 +50,12 @@ def test_ca_m06_14_preview_writes_nothing(admin, records):
 def test_ca_m06_14_confirm_creates_imported_licences_and_the_01_keeps_one_row(admin, records):
     batch = imports.confirm(admin)
     assert (batch.kind, batch.status, batch.new_count, batch.error_count, batch.excluded_count) == (
-        "licences", "confirmed", 2, 1, 1,
+        "licences", "confirmed", 3, 1, 0,
     )  # fmt: skip
     licences = Licence.objects.filter(import_batch=batch)
-    assert {lic.m01_record_ref for lic in licences} == {records["new"].pk, records["lower"].pk}
+    assert {lic.m01_record_ref for lic in licences} == {
+        records["new"].pk, records["lower"].pk, records["no_expiry"].pk,
+    }  # fmt: skip
     assert all(lic.origin == "imported_m01" and lic.status == "active" and lic.charge is None
                for lic in licences)  # fmt: skip
     for event in Event.objects.filter(name=events.LICENCE_ISSUED):
@@ -61,7 +63,7 @@ def test_ca_m06_14_confirm_creates_imported_licences_and_the_01_keeps_one_row(ad
     records["new"].refresh_from_db()
     assert records["new"].licence_ref == licences.get(m01_record_ref=records["new"].pk).pk
     assert LicenceRecord.objects.count() == 4  # cap fila nova al 01 (RN-M01-35)
-    assert imports.summary(imports.preview(admin))["existing"] == 2
+    assert imports.summary(imports.preview(admin))["existing"] == 3
     with pytest.raises(imports.NothingToImport):
         imports.confirm(admin)
 
@@ -84,7 +86,7 @@ def test_a_changed_batch_cannot_be_undone(admin, records):
     licence.save(update_fields=["federation_number"])
     with pytest.raises(imports.CannotUndo):
         imports.undo(batch, admin)
-    assert Licence.objects.filter(import_batch=batch).count() == 2
+    assert Licence.objects.filter(import_batch=batch).count() == 3
 
 
 def test_a_referenced_licence_cannot_be_undone(admin, records, make_licence):

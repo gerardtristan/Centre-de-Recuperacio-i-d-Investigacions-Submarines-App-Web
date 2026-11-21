@@ -36,6 +36,7 @@ def due(today: datetime.date | None = None) -> dict[int, list[Licence]]:
         result[days] = list(
             Licence.objects.filter(
                 status=Licence.Status.ACTIVE,
+                expiry_confirmed=True,  # RN-M06-24: cap avís mentre és pendent de confirmar
                 expires_on=today + datetime.timedelta(days=days),
             )
             .exclude(validity_rule=ValidityRule.SINGLE_DAY)

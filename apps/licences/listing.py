@@ -43,6 +43,7 @@ def expiring(days: int, today: datetime.date | None = None):
     return (
         Licence.objects.filter(
             status=Licence.Status.ACTIVE,
+            expiry_confirmed=True,
             expires_on__gte=today,
             expires_on__lte=today + datetime.timedelta(days=days),
         )
@@ -89,7 +90,7 @@ def licence_list(
                 status=shown,
                 origin=licence.origin,
                 category=licence.licence_type.category if details else None,
-                expires_on=licence.expires_on if details else None,
+                expires_on=licence.expires_on if details and licence.expiry_confirmed else None,
                 federation_number=(licence.federation_number or None) if details else None,
             )
         )

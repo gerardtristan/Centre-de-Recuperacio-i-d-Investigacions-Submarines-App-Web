@@ -19,7 +19,7 @@ import datetime
 from dataclasses import dataclass
 
 from django.db import IntegrityError, transaction
-from django.db.models import TextChoices
+from django.db.models import F, Q, TextChoices
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext
@@ -50,50 +50,56 @@ PARTICIPANT_PERMISSION = "licences.participant_status"  # LC10
 class CurrentStatus(TextChoices):
     ACTIVE = "active", _("Vigent")
     IN_PROGRESS = "in_progress", _("En tràmit")
+    UNCONFIRMED = "unconfirmed", _("Pendent de confirmar")  # RN-M06-24
 
 
 @dataclass(frozen=True)
 class CurrentLicence:
-    """Resposta de `current` (M06-8). Mai el model ni el número federatiu."""
+    """Resposta de `current` (M06-8). Mai el model ni el número federatiu. `expires_on` és
+    buit si la caducitat no està confirmada (RN-M06-24)."""
 
     status: str
     licence_type: str
     category: str
     validity_rule: str
-    expires_on: datetime.date
+    expires_on: datetime.date | None
     origin: str
 
 
 def current(person, on: datetime.date) -> CurrentLicence | None:
     """RN-M06-13: la llicència `active` que cobreix `on` (la que caduca més tard); si no n'hi ha
-    cap, una `requested`, `paid` o `filed` que la cobriria, com a «en tràmit»; si no, `None`.
+    cap, una «pendent de confirmar» que ha començat (RN-M06-24, `unconfirmed`); si tampoc, una
+    `requested`, `paid` o `filed` que la cobriria, com a «en tràmit»; si no, `None`.
     Les cancel·lades i les no tramitades a temps no compten."""
     candidates = (
         Licence.objects.filter(
+            Q(expiry_confirmed=False) | Q(expires_on__gte=on),
             person=person,
             starts_on__lte=on,
-            expires_on__gte=on,
             status__in=[Licence.Status.ACTIVE, *IN_PROGRESS],
         )
         .select_related("licence_type")
-        .order_by("-expires_on", "-pk")
+        .order_by(F("expires_on").desc(nulls_last=True), "-pk")
     )
-    chosen = None
+    rank = {CurrentStatus.ACTIVE: 0, CurrentStatus.UNCONFIRMED: 1, CurrentStatus.IN_PROGRESS: 2}
+    chosen, chosen_status = None, None
     for licence in candidates:
-        if licence.status == Licence.Status.ACTIVE:
-            chosen = licence
-            break
-        chosen = chosen or licence
+        if licence.status != Licence.Status.ACTIVE:
+            status = CurrentStatus.IN_PROGRESS
+        elif licence.expiry_confirmed:
+            status = CurrentStatus.ACTIVE
+        else:
+            status = CurrentStatus.UNCONFIRMED
+        if chosen is None or rank[status] < rank[chosen_status]:
+            chosen, chosen_status = licence, status
     if chosen is None:
         return None
     return CurrentLicence(
-        status=CurrentStatus.ACTIVE
-        if chosen.status == Licence.Status.ACTIVE
-        else CurrentStatus.IN_PROGRESS,
+        status=chosen_status,
         licence_type=chosen.licence_type.name,
         category=chosen.licence_type.category,
         validity_rule=chosen.validity_rule,
-        expires_on=chosen.expires_on,
+        expires_on=chosen.expires_on if chosen.expiry_confirmed else None,
         origin=chosen.origin,
     )
 
@@ -101,6 +107,7 @@ def current(person, on: datetime.date) -> CurrentLicence | None:
 class ParticipantStatus(TextChoices):
     VALID = "valid", _("Vigent")
     IN_PROGRESS = "in_progress", _("En tràmit")
+    UNCONFIRMED = "unconfirmed", _("Pendent de confirmar")
     NO = "no", _("No")
 
 
@@ -121,9 +128,12 @@ def participant_status(account, person, on: datetime.date, context=None) -> str:
         return ParticipantStatus.NO
     if info.status == CurrentStatus.ACTIVE:
         return ParticipantStatus.VALID
-    # Per a l'instructor, una llicència en tràmit és «no» (RN-M06-22, CA-M06-27).
+    # Per a l'instructor, una llicència en tràmit o pendent de confirmar és «no» (RN-M06-22,
+    # CA-M06-27 i RN-M06-24).
     if scope == SCOPE_OWN_SESSIONS:
         return ParticipantStatus.NO
+    if info.status == CurrentStatus.UNCONFIRMED:
+        return ParticipantStatus.UNCONFIRMED
     return ParticipantStatus.IN_PROGRESS
 
 
@@ -167,6 +177,10 @@ class DateInPast(LicenceRequestError):
 
 class NotAvailable(LicenceRequestError):
     message = _("Aquest tipus de llicència no es pot demanar ara mateix.")
+
+
+class ExpiryBeforeStart(LicenceRequestError):
+    message = _("La caducitat no pot ser anterior a l'inici de la llicència.")
 
 
 class InvalidFederationNumber(LicenceRequestError):
@@ -213,6 +227,12 @@ def request(person, licence_type: LicenceType, starts_on=None, *, actor, today=N
     mateixa persona (LC1, «Propi»); un altre compte rep «no trobat»."""
     if actor is None or getattr(actor, "person_id", None) != person.pk:
         raise Http404
+    return place_request(person, licence_type, starts_on, actor=actor, today=today)
+
+
+def place_request(person, licence_type, starts_on=None, *, actor, today=None) -> Licence:
+    """El cos de `request` sense comprovar qui la demana: només per a `request` i per al
+    convidat del formulari públic (`guests.request_as_guest`, que acaba de crear la persona)."""
     today = today or timezone.localdate()
     if not licence_type.active:
         raise NotAvailable
@@ -352,6 +372,36 @@ def declare_existing(
             new={"licence_type": licence_type.pk, "starts_on": start.isoformat(),
                  "expires_on": expires_on.isoformat()},
         )  # fmt: skip
+    return licence
+
+
+# --- El titular declara la caducitat d'una pendent de confirmar (T-M06-24) -------------------
+
+ACTION_EXPIRY_DECLARED = "licences.expiry_declared"
+
+
+class AlreadyDated(LicenceRequestError):
+    message = _("Aquesta llicència ja té data de caducitat: no la pots declarar.")
+
+
+@transaction.atomic
+def declare_expiry(licence: Licence, expires_on, *, actor) -> Licence:
+    """RN-M06-26: el titular declara la caducitat d'una llicència seva «pendent de confirmar».
+    Es desa sense confirmar: cap avís ni cap altre mòdul no la veu fins que la secretaria la
+    confirma (`imports.confirm_expiry`). La d'una altra persona, «no trobat»."""
+    if actor is None or getattr(actor, "person_id", None) != licence.person_id:
+        raise Http404
+    licence = Licence.objects.select_for_update().get(pk=licence.pk)
+    if licence.expiry_confirmed or licence.expires_on is not None:
+        raise AlreadyDated
+    if expires_on < licence.starts_on:
+        raise ExpiryBeforeStart
+    licence.expires_on = expires_on
+    licence.save(update_fields=["expires_on", "updated_at"])
+    audit.record(
+        ACTION_EXPIRY_DECLARED, actor=actor, target=licence, field="expires_on", old=None,
+        new=expires_on.isoformat(),
+    )  # fmt: skip
     return licence
 
 

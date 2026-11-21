@@ -1473,3 +1473,54 @@ noves:
       Compleix la norma «una app no escriu als models d'una altra» i deixa un sol lloc on es desfà un lot; és un canvi
       petit, però demana el torn del nucli, i per això, mentrestant, A.
     data: 2026-11-21
+  P-446:
+    opcions:
+      A: "No compleix el requisit, amb el text «Pendent de confirmar»: en mode d'avís s'inscriu marcada; en mode de bloqueig, no."
+      B: "Compleix el requisit, però el responsable la veu marcada «pendent de confirmar»."
+      C: "Com A en mode de bloqueig i com B en mode d'avís."
+    recomanada: A
+    perque: >-
+      No se sap si la llicència cobreix el dia de l'activitat, i el club no pot deixar bussejar ningú sense assegurança;
+      la secretaria ha de confirmar les pendents abans d'obrir el 02 (RN-M02-34), de manera que a la pràctica gairebé no
+      passarà. B i C són una línia si la secretaria ho prefereix.
+    data: 2026-11-21
+  P-447:
+    opcions:
+      A: "Qui tramita (LC5: secretaria, administrador i President), el mateix permís que deixa vigent una llicència."
+      B: "Un permís nou al catàleg, inicialment només la secretaria i l'administrador."
+      C: "Només l'administrador, com el pas únic (LC11)."
+    recomanada: A
+    perque: >-
+      Posar la caducitat és el mateix tipus de feina que deixar vigent una llicència amb el número federatiu, i ho fa qui
+      té el carnet de la federació a la mà; B afegeix una cel·la a la matriu sense cap diferència pràctica.
+    data: 2026-11-21
+  P-448:
+    opcions:
+      A: "Tots els tipus de soci actius, amb la seva quota, de més barat a més car."
+      B: "Només els tipus de ple dret."
+      C: "Només la quota del tipus que li tocaria segons l'edat (cal demanar-la a la pàgina)."
+    recomanada: A
+    perque: >-
+      És la informació sencera i no promet a ningú un preu que potser no li toca (RN-M06-07); C seria més exacta però
+      demanaria la data de naixement en una pàgina pública només per mostrar un preu.
+    data: 2026-11-21
+  P-449:
+    opcions:
+      A: "Només majors d'edat; un menor escriu a la secretaria."
+      B: "També menors, amb les dades i l'autorització del representant, com a «Fer-se soci»."
+      C: "També menors a partir de 14 anys, sense representant."
+    recomanada: A
+    perque: >-
+      Les dades d'un menor demanen el representant (RGPD) i el formulari de «Fer-se soci» ja en té el circuit; per a
+      una llicència d'un no soci, és més segur que ho porti la secretaria fins que la junta decideixi.
+    data: 2026-11-21
+  P-450:
+    opcions:
+      A: "Compartir el límit de «Fer-se soci» fins que el nucli tingui una finalitat pròpia."
+      B: "Afegir ara una finalitat «llicència de convidat» al limitador (torn del nucli)."
+      C: "Cap límit (el formulari és apagat)."
+    recomanada: B
+    perque: >-
+      Cada formulari ha de tenir el seu comptador; A és prudent mentrestant perquè limita igualment l'abús, i C no es
+      pot activar mai a producció.
+    data: 2026-11-21

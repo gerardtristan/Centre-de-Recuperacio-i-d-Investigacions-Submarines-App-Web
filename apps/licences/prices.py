@@ -2,6 +2,8 @@
 
 - `applicable(licence_type, starts_on)`: la versió que s'aplica a una llicència que comença
   aquell dia (RN-M06-18).
+- `comparison(today)`: els preus de soci i de no soci de cada tipus que es pot demanar avui, per
+  a la pàgina pública (RN-M06-07).
 - `add_price(...)`: una versió nova, amb nota obligatòria, registre d'activitat i avís al
   tresorer, a la junta i a la secretaria (RN-M06-08, RN-AJ-04). Les llicències ja demanades
   porten la seva còpia del preu i no canvien.
@@ -10,6 +12,7 @@ El permís (LC8) el comprova la vista que crida `add_price` (T-M06-02, part de v
 """
 
 import datetime
+from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -20,7 +23,7 @@ from apps.core import audit, business_settings, mail
 from apps.core.charges import euros
 from apps.core.models import Role
 
-from .models import LicencePrice, LicenceType
+from .models import LicencePrice, LicenceType, ValidityRule
 
 ACTION_PRICE_ADDED = "licences.price_added"
 
@@ -34,6 +37,36 @@ def applicable(licence_type: LicenceType, starts_on: datetime.date) -> LicencePr
         .order_by("-pk")
         .first()
     )
+
+
+@dataclass(frozen=True)
+class PriceRow:
+    name: str
+    description: str
+    validity: str
+    member_cents: int
+    non_member_cents: int
+    saving_cents: int  # = el recàrrec (RN-M06-07)
+
+
+def comparison(today: datetime.date) -> list[PriceRow]:
+    """RN-M06-07 i P-M06-C, pas 2: els tipus actius amb un preu per a una llicència que comença
+    avui. Els d'un dia, només amb `licences.day_enabled` (RN-M06-01)."""
+    types = LicenceType.objects.filter(active=True).order_by("category", "name")
+    if not business_settings.get("licences.day_enabled"):
+        types = types.exclude(validity_rule=ValidityRule.SINGLE_DAY)
+    rows = []
+    for licence_type in types:
+        price = applicable(licence_type, today)
+        if price is not None:
+            rows.append(PriceRow(
+                licence_type.name, licence_type.description,
+                licence_type.get_validity_rule_display(),
+                price.amount_cents(LicencePrice.Kind.MEMBER),
+                price.amount_cents(LicencePrice.Kind.NON_MEMBER),
+                price.non_member_surcharge_cents,
+            ))  # fmt: skip
+    return rows
 
 
 def _describe(price: LicencePrice | None) -> str:

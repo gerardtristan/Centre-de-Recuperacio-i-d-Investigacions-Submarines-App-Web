@@ -440,6 +440,11 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-14](T-M06-14.md) | Llicències: pas únic dels registres del 01 al 06 amb prova, confirmació i desfer (carril A) | 21/11/2026 06:02 | 993ec0f0 | 10946 | [A comprovar] |
 | [T-M06-17](T-M06-17.md) | Llicències: prova de flux sencer de la F2-1 (de demanar-la a renovar-la; carril A) | 21/11/2026 06:03 | 9087f621 | 10947 | [A comprovar] |
 | [T-M01-31b](T-M01-31b.md) | Socis: comprovació diària de la còpia de la llicència contra el 06 (carril A) | 21/11/2026 06:30 | dea46c13 | 10955 | [A comprovar] |
+| [T-M06-23](T-M06-23.md) | Llicències: les «pendents de confirmar» del pas únic, a `licences.current` i al llistat (carril A) | 21/11/2026 07:15 | 66be7961 | 10960 | [A comprovar] |
+| [T-M06-07](T-M06-07.md) | Llicències: pàgina pública per a no socis amb comparació de preus, desactivada per defecte (carril A) | 21/11/2026 08:01 | c6953154 | 10967 | [A comprovar] |
+| [T-M06-18](T-M06-18.md) | Llicències: guia de la secretaria, tramitació i venciments (esborrany; carril A) | 21/11/2026 08:02 | 3e0ece87 | — | [A comprovar] |
+| [T-M06-24](T-M06-24.md) | Llicències: confirmació en bloc de les pendents i declaració del titular, serveis (carril A) | 21/11/2026 09:05 | 9f2ddce7 | 11188 | [A comprovar] |
+| [T-M06-07b](T-M06-07b.md) | Llicències: demanar-la com a convidat des de la pàgina pública, apagat per defecte (carril A) | 21/11/2026 09:53 | 4497f9aa | 11197 | [A comprovar] |
 | [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0067; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
 | [T-M02-35](T-M02-35.md) | Cancel·lacions com a esdeveniments enrolment.cancelled i activity.cancelled (carril B2) | 21/11/2026 06:02 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-DX-89](T-DX-89.md) | Llicències v2 i v3 (fase 2): «El meu perfil» marcat a «La meva llicència», preus com a dades i un sol botó principal a «Tipus i preus» | 21/11/2026 08:02 | daa1461b | 4 noves | [A comprovar] |
