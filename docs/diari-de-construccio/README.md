@@ -467,3 +467,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-19](T-M02-19.md) | Resultat, certificat C-AAAA-NNNN i titulació del club (activities/0015; carril B2) | 21/11/2026 09:09 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-04b](T-M02-04b.md) | Qui perd el rol d'instructor surt de les sessions futures (decisió 101; carril B2) | 21/11/2026 06:15 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [proves-migracions-reversibles](proves-migracions-reversibles.md) | Les dades de les migracions sobreviuen a la neteja de les proves de concurrència (carril B2) | 21/11/2026 09:00 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M03-17a](T-M03-17a.md) | Material (nucli): tipus de lot «equipment» i dades inventades del 03 a seed_demo_data (core/0069) | 21/11/2026 10:36 | e6ffc474 | 31 | [A comprovar] |
