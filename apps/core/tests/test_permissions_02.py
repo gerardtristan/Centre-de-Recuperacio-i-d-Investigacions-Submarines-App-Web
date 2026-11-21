@@ -1,6 +1,7 @@
 """Permisos del 02 Activitats per cel·la (T-M02-33 i T-M02-38; CA-RP-13). La taula és la matriu
-inicial de la 059 per al 02 (planning.md#rols-i-permisos-059-matriu) i la de l'addenda de llocs
-(planning.md#M02-addenda-llocs) i de la 104 (planning.md#M02-addenda-104), copiades a mà: si el catàleg se n'aparta, la prova falla."""
+inicial de la 059 per al 02 (planning.md#rols-i-permisos-059-matriu) i les de les addendes de
+llocs (planning.md#M02-addenda-llocs) i de la 104 (planning.md#M02-addenda-104), copiades a mà:
+si el catàleg se n'aparta, la prova falla."""
 
 import pytest
 
