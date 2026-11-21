@@ -46,6 +46,7 @@ BASE_ROUTES = {
     "administration:treasury_reconciliation": ((("treasury.view", READ),),),  # T1 (T-M04-15)
     "administration:bank_statement": ((("core.bank_statement.import", READ),),),  # M9 (T-M00-01)
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
+    "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
@@ -95,6 +96,15 @@ ENTRIES = (
         ("administration:member_request_detail",),
     ),
     ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
+    (
+        "administration:licences",
+        _("Llicències"),
+        (
+            "administration:licences_activate",
+            "administration:licences_file",
+            "administration:licences_export",
+        ),
+    ),  # T-M06-09 (vistes v1); text i lloc per revisar amb DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -232,6 +242,7 @@ GROUPS = (
             "administration:join_in_person",
             "administration:member_requests",
             "administration:licence_bulk_confirm",
+            "administration:licences",
             "administration:membership_types",
         ),
     ),

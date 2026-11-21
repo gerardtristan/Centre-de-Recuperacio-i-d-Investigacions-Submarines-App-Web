@@ -11,7 +11,7 @@ from playwright.sync_api import expect
 from apps.core.models import Person
 from apps.licences.models import Licence, LicenceType
 
-from .conftest import login_admin, make_admin
+from .conftest import login_admin, make_admin, menu_entry
 
 pytestmark = pytest.mark.e2e
 D = datetime.date
@@ -42,7 +42,11 @@ def test_secretary_files_and_activates_a_licence(page, live_server, transactiona
     secretary = make_admin("secretaria.prova", "secretary")
 
     login_admin(page, live_server.url, secretary.login)
-    page.goto(f"{live_server.url}{reverse('administration:licences')}")
+    # Hi arriba pel menú: l'entrada només surt amb LC4.
+    entry = menu_entry(page, "Llicències")
+    entry.click()
+    expect(page).to_have_url(f"{live_server.url}{reverse('administration:licences')}")
+    expect(entry).to_have_attribute("aria-current", "page")
     expect(page.get_by_role("heading", name="Llicències federatives")).to_be_visible()
     expect(page.get_by_role("table", name="3 llicències, per cognoms")).to_be_visible()
     download = "Descarrega el fitxer per a la federació (1 pagada)"
