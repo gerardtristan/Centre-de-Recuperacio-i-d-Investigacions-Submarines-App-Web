@@ -68,3 +68,37 @@ def test_secretary_files_and_activates_a_licence(page, live_server, transactiona
     page.get_by_role("button", name="Sí, deixa-la vigent").click()
     expect(page.get_by_text("Llicència vigent.")).to_be_visible()
     assert Licence.objects.get(person__first_name="Anna").federation_number == "F-0002"
+
+
+def test_treasurer_adds_a_type_and_its_price(page, live_server, transactional_db, review):
+    """Vistes v2 (T-M06-02; LC8): un tipus nou i el seu preu amb nota; el preu de soci és el de
+    la federació i el de no soci hi afegeix el recàrrec."""
+    treasurer = make_admin("tresoreria.prova", "treasurer")
+    login_admin(page, live_server.url, treasurer.login)
+    entry = menu_entry(page, "Llicències: tipus i preus")
+    entry.click()
+    expect(page.get_by_role("heading", name="Tipus i preus de llicència")).to_be_visible()
+    page.get_by_label("Nom").fill("Aficionat anual (inventat)")
+    page.get_by_label("Categoria").select_option(label="Aficionat")
+    page.get_by_label("Durada").select_option(label="Any natural")
+    page.get_by_role("button", name="Crea el tipus").click()
+    expect(page.get_by_text("Tipus de llicència creat.")).to_be_visible()
+
+    page.get_by_label("Tipus", exact=True).select_option(label="Aficionat anual (inventat)")
+    page.get_by_label("Preu de la federació (preu de soci), en euros").fill("90,00")
+    page.get_by_label("Recàrrec de no soci, en euros").fill("20,00")
+    page.get_by_label("Per a llicències que comencin des del").fill("2026-01-01")
+    page.get_by_role("button", name="Desa el preu").click()
+    expect(
+        page.get_by_text("Cal emplenar aquest camp.").first.or_(
+            page.get_by_text("Aquest camp és obligatori.").first
+        )
+    ).to_be_visible()
+    review("llicencies-preu-sense-nota")
+    page.get_by_label("Nota").fill("Tarifa de la federació (inventada)")
+    page.get_by_role("button", name="Desa el preu").click()
+    expect(page.get_by_text("Preu desat.", exact=False)).to_be_visible()
+    table = page.get_by_role("table", name="1 tipus de llicència, amb el preu d'avui")
+    expect(table).to_contain_text("90,00 €")
+    expect(table).to_contain_text("110,00 €")
+    review("llicencies-preus")
