@@ -442,3 +442,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-23](T-M06-23.md) | Llicències: les «pendents de confirmar» del pas únic, a `licences.current` i al llistat (carril A) | 21/11/2026 07:15 | 66be7961 | 10960 | [A comprovar] |
 | [T-M06-07](T-M06-07.md) | Llicències: pàgina pública per a no socis amb comparació de preus, desactivada per defecte (carril A) | 21/11/2026 08:01 | c6953154 | 10967 | [A comprovar] |
 | [T-M06-18](T-M06-18.md) | Llicències: guia de la secretaria, tramitació i venciments (esborrany; carril A) | 21/11/2026 08:02 | 3e0ece87 | — | [A comprovar] |
+| [T-M06-24](T-M06-24.md) | Llicències: confirmació en bloc de les pendents i declaració del titular, serveis (carril A) | 21/11/2026 09:05 | 9f2ddce7 | 11188 | [A comprovar] |
