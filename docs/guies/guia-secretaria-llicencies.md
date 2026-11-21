@@ -62,7 +62,7 @@ Mentre el titular l'ha declarada però tu no l'has confirmada, continua pendent:
 Si una persona ja té la llicència d'una altra banda, es desa amb el número, el tipus i la data de caducitat, sense càrrec ni tramitació. Si no se sap la data d'inici, es pren el dia que es declara [A validar: P-443].
 
 ## 8. La pàgina pública per a no socis
-Mentre la junta no activi l'opció de llicències per a no socis, la pàgina pública `/llicencies/` no existeix. Quan l'activi, hi surten els preus de no soci i de soci de cada tipus, la diferència i la quota anual de soci. Encara no s'hi pot demanar la llicència.
+Mentre la junta no activi l'opció de llicències per a no socis, la pàgina pública `/llicencies/` no existeix. Quan l'activi, hi surten els preus de no soci i de soci de cada tipus, la diferència i la quota anual de soci, i el botó **Demana-la**. Una persona de fora hi escriu el nom, els cognoms, el correu i la data de naixement, accepta la política de privacitat i rep al correu l'enllaç per pagar-la al preu de no soci. Quan l'ha pagada, et surt com a **Pagada** al llistat, com les dels socis. De moment, només majors d'edat [A validar: P-449].
 
 ## 9. Què no fa la plataforma
 - No envia res a la federació: el fitxer el puges tu.

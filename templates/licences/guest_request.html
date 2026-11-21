@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M06-07b (P-M06-C, passos 3 i 4; decisió 021): demanar una llicència sense ser soci. Només amb l'opció de no socis activada; si no, «no trobat». Dades mínimes i la política de privacitat; la resposta no diu si el correu ja era d'algú. L'enllaç per pagar arriba al correu (enllaç de convidat de la 00). Sense wireframe propi: segueix «Fer-se soci». #}
+{% block title %}{% translate "Demana la llicència" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Llicències" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Demana la llicència federativa" %}</h1>
+  {% if sent_to %}
+    <div class="avis avis-ok" role="status">
+      <strong>{% translate "Sol·licitud enviada" %}</strong>
+      {% blocktranslate %}Si les dades són correctes, rebràs un correu a {{ sent_to }} amb l'enllaç per pagar-la. Quan l'hagis pagada, la secretaria del club la tramitarà a la federació.{% endblocktranslate %}
+    </div>
+  {% elif not text %}
+    <div class="avis avis-avis" role="status">{% translate "Ara mateix no es pot demanar cap llicència des d'aquí. Torna-ho a provar més tard o escriu a la secretaria." %}</div>
+  {% else %}
+    <p>{% translate "Omple les teves dades i tria el tipus. Pagaràs el preu de no soci amb l'enllaç que t'arribarà al correu." %} <a href="{% url 'licences:public' %}">{% translate "Mira els preus" %}</a></p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% if field.name != "accept_privacy" %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+      <fieldset>
+        <legend>{% translate "Textos legals" %}</legend>
+        {% translate "Accepto la" as intro %}{% translate "Política de privacitat" as label %}
+        {% include "members/_acceptacio.html" with field=form.accept_privacy kind="privacy" label=label text=text intro=intro %}
+      </fieldset>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la sol·licitud" %}</button></div>
+    </form>
+    <section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+      <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+      <article id="text-privacy" aria-labelledby="text-privacy-titol">
+        <h3 id="text-privacy-titol">{% translate "Política de privacitat" %} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+        <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+      </article>
+    </section>
+    <script src="{% static 'js/textos-legals.js' %}" defer></script>
+  {% endif %}
+{% endblock %}

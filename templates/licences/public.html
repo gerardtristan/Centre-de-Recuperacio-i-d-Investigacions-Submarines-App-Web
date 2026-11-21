@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{# T-M06-07 (P-M06-C, passos 1 i 2; RN-M06-03 i 07; CA-M06-06): pàgina pública de llicències per a no socis, només si la junta ha activat l'opció `licences.non_members_enabled`; si no, «no trobat». Ruta pública declarada. Cap dada personal: només tipus i preus vigents avui. Sense wireframe propi (T-M06-01): components existents. Demanar-la com a convidat (passos 3 i 4) és una altra tasca. #}
+{# T-M06-07 (P-M06-C, passos 1 i 2; RN-M06-03 i 07; CA-M06-06): pàgina pública de llicències per a no socis, només si la junta ha activat l'opció `licences.non_members_enabled`; si no, «no trobat». Ruta pública declarada. Cap dada personal: només tipus i preus vigents avui. Sense wireframe propi (T-M06-01): components existents. Demanar-la com a convidat (passos 3 i 4): `licences:guest_request` (T-M06-07b). #}
 {% block title %}{% translate "Llicències federatives" %} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Llicències" %}{% endblock %}
 {% block content %}
@@ -31,12 +31,13 @@
       {% endfor %}
     </tbody>
   </table>
+  <p><a class="boto boto-principal" href="{% url 'licences:guest_request' %}">{% translate "Demana-la" %}</a></p>
   {% if fees %}
     <section aria-labelledby="soci-titol">
       <h2 id="soci-titol">{% translate "Si et fas soci" %}</h2>
       <p>{% translate "Els socis paguen la llicència al preu de la federació. La quota anual de soci és a part:" %}</p>
       <p>{% for fee in fees %}{{ fee.name }}: <span class="import">{{ fee.amount }}</span>{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>
-      <p><a class="boto boto-principal" href="{% url 'members:join' %}">{% translate "Fer-se soci" %}</a></p>
+      <p><a class="boto" href="{% url 'members:join' %}">{% translate "Fer-se soci" %}</a></p>
     </section>
   {% endif %}
 {% endblock %}
