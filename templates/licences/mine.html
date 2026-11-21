@@ -39,9 +39,9 @@
   <section class="targeta" aria-labelledby="demana-titol">
     <h2 id="demana-titol">{% translate "Demana o renova la llicència" %}</h2>
     {% if offer %}
-      <ul class="historial">
-        {% for row in offer %}<li><strong>{{ row.type.name }}</strong> <span class="import">{{ row.amount }}</span></li>{% endfor %}
-      </ul>
+      <dl class="dades-soci">{# T-DX-89: preu per tipus, alineat amb el formulari #}
+        {% for row in offer %}<div><dt>{{ row.type.name }}</dt><dd><span class="import">{{ row.amount }}</span></dd></div>{% endfor %}
+      </dl>
       <form class="formulari" method="post" novalidate>
         {% csrf_token %}
         {% with form=request_form %}{% include "_errata.html" %}{% endwith %}
