@@ -73,8 +73,10 @@ def signed_income(movements) -> tuple[int, int]:
     return (totals["income"] or 0) - (totals["back"] or 0), totals["fees"] or 0
 
 
-def real_inputs(activity) -> calc.MarginInputs:
-    enrolments, commissions = signed_income(activity_movements(activity))
+def real_inputs(activity, *, movements=None) -> calc.MarginInputs:
+    """`movements`: els de la 04 que compten (per defecte, tots els vigents de l'activitat)."""
+    moved = activity_movements(activity) if movements is None else movements
+    enrolments, commissions = signed_income(moved)
     return calc.MarginInputs(
         enrolments_cents=max(enrolments, 0),
         real_costs_cents=allocated_costs(activity),

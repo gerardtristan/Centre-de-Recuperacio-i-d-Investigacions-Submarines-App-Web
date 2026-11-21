@@ -52,6 +52,14 @@ def _label(activity, group_by) -> str:
     return f"{activity.title} ({activity.starts_on:%d/%m/%Y}, núm. {activity.pk})"
 
 
+def first_closed_at(snapshot):
+    """Un marge recalculat en reobrir el període (T-M09-16) és del període del tancament
+    original."""
+    while snapshot.supersedes_id:
+        snapshot = snapshot.supersedes
+    return snapshot.closed_at
+
+
 def _frozen_margins(department, starts_on, ends_on, group_by="activity") -> dict[str, int]:
     """Marges congelats vigents (T-M09-12) de les activitats del departament tancades dins el
     període, per activitat, subtipus o projecte (P-M09-E)."""
@@ -64,7 +72,7 @@ def _frozen_margins(department, starts_on, ends_on, group_by="activity") -> dict
     )
     margins: dict[str, int] = {}
     for snapshot in snapshots:
-        if starts_on <= timezone.localdate(snapshot.closed_at) <= ends_on:
+        if starts_on <= timezone.localdate(first_closed_at(snapshot)) <= ends_on:
             key = _label(snapshot.activity, group_by)
             margins[key] = margins.get(key, 0) + snapshot.margin_cents
     return margins
