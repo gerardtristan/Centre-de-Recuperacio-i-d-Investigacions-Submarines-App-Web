@@ -176,3 +176,58 @@ def test_visitor_sees_the_public_price_comparison(
     expect(row).to_contain_text("90,00 €")
     expect(page.get_by_role("link", name="Fer-se soci")).to_be_visible()
     review("llicencies-publica")
+
+
+def test_member_declares_the_expiry_of_a_pending_licence(
+    page, live_server, builder, member, review
+):
+    """T-M06-24 (RN-M06-26): el titular escriu la data a «La meva llicència»; queda pendent."""
+    from .test_carnet_079 import login_personal
+
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    pending = Licence.objects.create(
+        person=member.person, licence_type=annual, validity_rule="calendar_year",
+        status="active", origin="imported_m01", starts_on=D(2026, 1, 10), expiry_confirmed=False,
+    )  # fmt: skip
+    login_personal(page, live_server.url, builder.personal(member.person))
+    page.goto(f"{live_server.url}{reverse('licences:mine')}")
+    expect(page.get_by_text("Pendent de confirmar")).to_be_visible()
+    review("la-meva-llicencia-per-confirmar")
+    form = page.locator("form", has=page.get_by_role("button", name="Desa la data"))
+    form.get_by_label("Caduca el").fill("2026-12-31")
+    form.get_by_role("button", name="Desa la data").click()
+    expect(page.get_by_text("Data desada. La secretaria la confirmarà.")).to_be_visible()
+    pending.refresh_from_db()
+    assert (pending.expires_on, pending.expiry_confirmed) == (D(2026, 12, 31), False)
+
+
+def test_visitor_requests_a_licence_as_a_guest(page, live_server, texts, review):
+    """T-M06-07b (P-M06-C, passos 3 i 4): des de la pàgina pública, el formulari de convidat."""
+    from apps.core.models import GuestLink, Setting
+    from apps.licences.models import LicencePrice
+
+    Setting.objects.filter(key="licences.non_members_enabled").update(initial_value=True)
+    annual = LicenceType.objects.create(
+        name="Aficionat anual (inventat)", category="amateur", validity_rule="calendar_year"
+    )
+    LicencePrice.objects.create(
+        licence_type=annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
+        valid_from=D(2020, 1, 1), note="Preu inventat", created_by=make_admin("tresorer.prova"),
+    )  # fmt: skip
+    page.goto(f"{live_server.url}{reverse('licences:public')}")
+    page.get_by_role("link", name="Demana-la").click()
+    expect(page.get_by_role("heading", name="Demana la llicència federativa")).to_be_visible()
+    review("llicencia-demana-convidat")
+    page.get_by_label("Tipus de llicència").select_option(label="Aficionat anual (inventat)")
+    page.get_by_label("Nom", exact=True).fill("Mar")
+    page.get_by_label("Cognoms").fill("Convidada Prova")
+    page.get_by_label("Correu electrònic").fill("mar.convidada@example.org")
+    page.get_by_label("Data de naixement").fill("1990-05-01")
+    page.locator("input[name='accept_privacy']").check()
+    page.get_by_role("button", name="Envia la sol·licitud").click()
+    expect(page.get_by_text("Sol·licitud enviada")).to_be_visible()
+    licence = Licence.objects.get(person__first_name="Mar")
+    assert (licence.status, licence.price_cents) == ("requested", 11000)
+    assert GuestLink.objects.filter(charge=licence.charge).exists()
