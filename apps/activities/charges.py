@@ -47,6 +47,14 @@ def on_charge_paid(event) -> Enrolment | None:
         return None
     if enrolment.status == S.CONFIRMED:
         return None
+    if enrolment.status == S.CANCELLED and enrolment.void_pending_since is not None:
+        # RN-M02-37: cancel·lada mentre es pagava; no es confirma, es proposa la devolució.
+        from .cancellation import propose_refund
+
+        propose_refund(enrolment)
+        enrolment.void_pending_since = None
+        enrolment.save(update_fields=["void_pending_since", "updated_at"])
+        return None
     if enrolment.status != S.PENDING_PAYMENT:
         seen = AuditEntry.objects.filter(
             action=PAID_NOT_CONFIRMED, target_id=str(enrolment.pk)

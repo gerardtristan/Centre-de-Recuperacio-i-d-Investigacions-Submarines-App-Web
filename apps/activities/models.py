@@ -787,6 +787,10 @@ class Enrolment(models.Model):
     # Què no complia en inscriure's. Sense dades de salut ni de la llicència (RN-M01-48).
     requirements_warning = models.TextField(_("requisits per revisar"), blank=True)
     cancelled_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+    # RN-M02-37: cancel·lada amb un pagament en curs; el càrrec s'anul·la quan l'intent acaba.
+    void_pending_since = models.DateTimeField(
+        _("càrrec per anul·lar des de"), null=True, blank=True
+    )
     cancelled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
