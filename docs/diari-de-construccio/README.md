@@ -478,4 +478,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-44](T-M02-44.md) | Homologacions a la federació i llistat CSV (T-M02-44 i 46; activities/0016; carril B2) | 21/11/2026 07:23 | (vegeu la PR) | 13 noves (16 casos) | [A comprovar] |
 | [T-M02-24](T-M02-24.md) | Informes operatius del 02, servei (sense migració; carril B3) | 21/11/2026 09:18 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-25](T-M02-25.md) | Dades inventades del 02 i l'ordre seed_activities_demo_data (sense migració; carril B3) | 21/11/2026 09:39 | (vegeu la PR) | 6 noves | [A comprovar] |
-| [T-M02-26](T-M02-26.md) | Prova de flux sencer de la llesca F2-2 amb el proveïdor fictici (carril B3) | 21/11/2026 10:04 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M02-26](T-M02-26.md) | Proves de flux sencer de la llesca F2-2 amb el proveïdor fictici: sortida, curs i llista d'espera (carril B3) | 21/11/2026 10:04 | (vegeu la PR) | 1 nova | [A comprovar] |
