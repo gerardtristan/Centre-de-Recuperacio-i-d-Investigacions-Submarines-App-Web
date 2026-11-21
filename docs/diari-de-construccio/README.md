@@ -427,3 +427,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-15](T-M02-15.md) | Cancel·lacions i propostes de devolució amb el 05b (activities/0010; carril B2) | 21/11/2026 04:00 | (vegeu la PR) | 9 noves | [A comprovar] |
 | [T-DX-88](T-DX-88.md) | Llicències (fase 2): cel·la d'accions sense etiqueta buida, accions a la dreta i un sol botó principal | 21/11/2026 04:34 | 353ed89f | 1 nova | [A comprovar] |
 | [T-M09-26a](T-M09-26a.md) | Nucli del 09: apartat «Facturació» dels ajustos (core/0066) i plantilla de l'avís de salt de sèrie (carril C) | 21/11/2026 03:32 | 20652144 | 2 noves | [A comprovar] |
+| [T-M06-v2](T-M06-v2.md) | Llicències: tipus i preus des de l'app (LC8; carril A) | 21/11/2026 04:01 | dae89350 | 10804 | [A comprovar] |
