@@ -157,6 +157,11 @@ MAP = {
         "apps/expenses/admin_urls.py",
         "templates/expenses/*",
     ),
+    "test_marge_activitat.py": (
+        "apps/margins/views.py",
+        "apps/margins/admin_urls.py",
+        "templates/margins/*",
+    ),
     "test_llicencies.py": (
         "apps/licences/views.py",
         "apps/licences/personal_views.py",
