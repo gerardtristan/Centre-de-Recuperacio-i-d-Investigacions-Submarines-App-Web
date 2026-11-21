@@ -18,6 +18,7 @@ from apps.core import audit
 from apps.core.models import Charge
 
 from .models import Licence, LicenceRefundProposal, ValidityRule
+from .services import notify_refund
 
 ACTION_LAPSED = "licences.lapsed"
 SYSTEM = audit.system("licences.lapse_overdue")
@@ -45,6 +46,7 @@ def lapse_overdue(today: datetime.date | None = None) -> int:
                 LicenceRefundProposal.objects.create(
                     licence=licence, amount_cents=charge.amount_cents, reason=REASON
                 )
+                notify_refund(licence, charge.amount_cents)
             audit.record(
                 ACTION_LAPSED, actor=SYSTEM, target=licence, field="status", old=previous,
                 new=Licence.Status.LAPSED,
