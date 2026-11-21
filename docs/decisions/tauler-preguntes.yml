@@ -1472,3 +1472,13 @@ noves:
       Posar la caducitat és el mateix tipus de feina que deixar vigent una llicència amb el número federatiu, i ho fa qui
       té el carnet de la federació a la mà; B afegeix una cel·la a la matriu sense cap diferència pràctica.
     data: 2026-11-21
+  P-448:
+    opcions:
+      A: "Tots els tipus de soci actius, amb la seva quota, de més barat a més car."
+      B: "Només els tipus de ple dret."
+      C: "Només la quota del tipus que li tocaria segons l'edat (cal demanar-la a la pàgina)."
+    recomanada: A
+    perque: >-
+      És la informació sencera i no promet a ningú un preu que potser no li toca (RN-M06-07); C seria més exacta però
+      demanaria la data de naixement en una pàgina pública només per mostrar un preu.
+    data: 2026-11-21

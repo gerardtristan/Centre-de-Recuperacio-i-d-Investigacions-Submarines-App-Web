@@ -440,3 +440,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-17](T-M06-17.md) | Llicències: prova de flux sencer de la F2-1 (de demanar-la a renovar-la; carril A) | 21/11/2026 06:03 | 9087f621 | 10947 | [A comprovar] |
 | [T-M01-31b](T-M01-31b.md) | Socis: comprovació diària de la còpia de la llicència contra el 06 (carril A) | 21/11/2026 06:30 | dea46c13 | 10955 | [A comprovar] |
 | [T-M06-23](T-M06-23.md) | Llicències: les «pendents de confirmar» del pas únic, a `licences.current` i al llistat (carril A) | 21/11/2026 07:15 | 66be7961 | 10960 | [A comprovar] |
+| [T-M06-07](T-M06-07.md) | Llicències: pàgina pública per a no socis amb comparació de preus, desactivada per defecte (carril A) | 21/11/2026 08:01 | c6953154 | 10967 | [A comprovar] |
+| [T-M06-18](T-M06-18.md) | Llicències: guia de la secretaria, tramitació i venciments (esborrany; carril A) | 21/11/2026 08:02 | 3e0ece87 | — | [A comprovar] |

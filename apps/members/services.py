@@ -41,6 +41,7 @@ from apps.core.models import AuditEntry, Charge, Person
 from apps.core.permissions import has_perm
 
 from . import cards, roster, validity
+from . import settings as member_settings
 from .fee_rules import local_today
 from .models import (
     AnnualFee,
@@ -517,6 +518,16 @@ def is_member(person, on=None) -> bool:
         return False
     state = _state_on(member, on or local_today(), list(_ordered_changes().filter(member=member)))
     return state is not None and state[0] in MEMBER_STATUSES
+
+
+def membership_fees(on=None) -> list[tuple[str, int]]:
+    """(nom, quota anual en cèntims) dels tipus de soci actius, de més barat a més car, amb el
+    preu vigent a `on` (VC-01). Per a pàgines públiques d'altres mòduls (RN-M06-07): cap dada
+    personal."""
+    on = on or local_today()
+    types = MembershipType.objects.filter(active=True)
+    fees = [(t.name, member_settings.annual_fee_cents(t, on)) for t in types]
+    return sorted(fees, key=lambda fee: (fee[1], fee[0]))
 
 
 def get_member_summary(person) -> MemberSummary:
