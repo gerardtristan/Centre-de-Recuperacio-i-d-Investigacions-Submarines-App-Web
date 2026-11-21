@@ -126,6 +126,7 @@ def test_communications_shop_and_board_start_without_permissions(make_admin):
         "activities.environment.manage": "read",
         "activities.reports.view": "read",
         "activities.field.material_cost": "read",
+        "activities.card_photos.view": "read",  # AC24 (addenda de la 104)
         "expenses.margin.view": "read",
         "expenses.reports": "read",
         "expenses.documents.open": "all",

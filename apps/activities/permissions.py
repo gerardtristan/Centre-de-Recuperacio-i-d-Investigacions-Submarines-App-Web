@@ -52,6 +52,9 @@ AC20 = REPORTS = "activities.reports.view"
 AC21 = PLACES_VIEW = "activities.places.view"
 AC22 = PLACES_MANAGE = "activities.places.manage"
 AC23 = MATERIAL_COST = "activities.material_cost.edit"
+AC24 = CARD_PHOTOS_VIEW = "activities.card_photos.view"  # addenda de la 104
+AC25 = CARD_PHOTOS_MANAGE = "activities.card_photos.manage"
+AC26 = FILINGS = "activities.filings.manage"
 C3 = STUDENT_FIELDS = "activities.field.student_for_instructor"
 C7 = MATERIAL_COST_FIELD = "activities.field.material_cost"
 
