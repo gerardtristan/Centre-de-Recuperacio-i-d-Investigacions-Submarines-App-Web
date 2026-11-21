@@ -1,8 +1,9 @@
 """Centre habitual d'un lloc i proposta de centre (T-M03-26; RN-M03-23 i 24; CA-M03-23).
 
-El bloc del formulari del lloc (`activities.register_place_section`) espera que el 02 tingui
-aquest punt d'extensió i les plantilles: aquí hi ha el servei que el bloc cridarà."""
+El bloc del formulari del lloc es registra al 02 (`extensions.register_place_section`) des del
+`ready()` del 03; el formulari que el mostra és de la T-M02-39."""
 
+from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
@@ -11,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import audit
 from apps.core.permissions import has_perm
 
-from .models import PlaceUsualCentre
+from .models import DiveCentre, PlaceUsualCentre
 
 PLACES = "activities.places.manage"  # AC22
 USUAL_CENTRE_CHANGED = "equipment.usual_centre_changed"
@@ -60,3 +61,23 @@ def proposed_centre(place):
     """RN-M03-24 (CA-M03-23): el centre que es proposa en llogar material, si és actiu."""
     centre = usual_centre(place) if place is not None else None
     return centre if centre is not None and centre.active else None
+
+
+def section_fields(place, viewer) -> dict:
+    """Camps del bloc al formulari del lloc: només per a qui té AC22 per editar."""
+    if not has_perm(viewer, PLACES, write=True):
+        return {}
+    return {
+        "usual_centre": forms.ModelChoiceField(
+            queryset=DiveCentre.objects.filter(active=True),
+            required=False,
+            initial=usual_centre(place) if place is not None else None,
+            label=_("Centre habitual"),
+        )
+    }
+
+
+def section_save(place, data, by) -> None:
+    centre = data.get("usual_centre")
+    if centre != usual_centre(place):
+        set_usual_centre(place, centre, by=by)

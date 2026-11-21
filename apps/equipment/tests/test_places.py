@@ -5,6 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.http import Http404
 
+from apps.activities import extensions
 from apps.activities.models import Place
 from apps.core.models import AuditEntry
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -72,3 +73,15 @@ def test_nomes_un_centre_actiu_i_sense_lloc_no_es_proposa_res(place, manager):
 def test_sense_ac22_no_es_tria(place, centre_a, make_admin, role):  # noqa: F811
     with pytest.raises(Http404):
         places.set_usual_centre(place, centre_a, by=make_admin(*([role] if role else [])))
+
+
+def test_el_bloc_del_centre_habitual_es_al_formulari_del_lloc(place, centre_a, manager, make_admin):  # noqa: F811
+    section = next(s for s in extensions.place_sections() if s.key == "equipment.usual_centre")
+    assert set(section.fields(place, manager)) == {"usual_centre"}
+    assert section.fields(None, manager)["usual_centre"].initial is None
+    assert section.fields(place, make_admin("secretary")) == {}  # sense AC22, res
+    section.save(place, {"usual_centre": centre_a}, manager)
+    section.save(place, {"usual_centre": centre_a}, manager)  # sense canvis, cap entrada nova
+    assert places.usual_centre(place) == centre_a
+    assert section.fields(place, manager)["usual_centre"].initial == centre_a
+    assert AuditEntry.objects.filter(action=places.USUAL_CENTRE_CHANGED).count() == 1
