@@ -412,3 +412,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-14](T-M09-14.md) | Informe per departament i CSV (T-M09-14), requeriments d'esmena i pròrroga (T-M09A-15, grants/0005) i termini d'esmena (T-M09A-16, grants/0006) (carril C) | 21/11/2026 01:26 | c99a5342, f35ae441, bca20bc0 | 21 noves | [A comprovar] |
 | [T-M03-02](T-M03-02.md) | Tipus de material i dades inicials (apps/equipment, equipment/0001) i la mida segons el tipus (carril C) | 21/11/2026 01:36 | 65556cde | 15 noves | [A comprovar] |
 | [T-M03-05](T-M03-05.md) | Centres de busseig i tarifes amb versions, en qualsevol moment (T-M03-05 i T-M03-25, equipment/0002) (carril C) | 21/11/2026 01:45 | 99262a65 | 15 noves | [A comprovar] |
+| [T-M03-26](T-M03-26.md) | Centre habitual del lloc (T-M03-26, equipment/0003) i cost de material estàndard (T-M03-27, equipment/0004) (carril C) | 21/11/2026 01:58 | af9d51cb, f67298c8 | 13 noves | [A comprovar] |
