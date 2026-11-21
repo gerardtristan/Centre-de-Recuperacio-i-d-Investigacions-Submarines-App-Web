@@ -18,6 +18,13 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.models import AppendOnlyModel, Department, Person
 
 
+class RequirementsMode(models.TextChoices):
+    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+
+    WARN = "warn", _("Avís")
+    BLOCK = "block", _("Bloqueig")
+
+
 class TrainingCatalogueEntry(models.Model):
     """Fitxa del catàleg de cursos o del d'especialitats: dos catàlegs separats (RN-M02-01)."""
 
@@ -48,6 +55,16 @@ class TrainingCatalogueEntry(models.Model):
         verbose_name=_("departament"),
     )
     active = models.BooleanField(_("activa"), default=True)
+    # Edat mínima que copien les activitats noves (RN-M02-33). Buit: sense edat mínima.
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -65,6 +82,14 @@ class TrainingCatalogueEntry(models.Model):
             ),
             models.CheckConstraint(
                 condition=Q(default_places__gt=0), name="trainingcatalogueentry_places_positive"
+            ),
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="trainingcatalogueentry_default_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="trainingcatalogueentry_min_age_valid",
             ),
         ]
 
@@ -122,11 +147,25 @@ class OutingType(models.Model):
         verbose_name=_("departament per defecte"),
     )
     active = models.BooleanField(_("actiu"), default=True)
+    # Mode de requisits que copien les activitats noves (RN-M02-29). Buit: val l'ajust general.
+    default_requirements_mode = models.CharField(
+        _("mode de requisits per defecte"),
+        max_length=5,
+        choices=RequirementsMode.choices,
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("tipus de sortida")
         verbose_name_plural = _("tipus de sortida")
         ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(default_requirements_mode__in=["", "warn", "block"]),
+                name="outingtype_default_mode_valid",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -245,11 +284,11 @@ class PlacePrice(AppendOnlyModel):
         return f"{self.place} ({self.valid_from:%d/%m/%Y})"
 
 
-class RequirementsMode(models.TextChoices):
-    """Què passa quan algú no compleix els requisits d'una activitat (RN-M02-10)."""
+class SpecialitiesRule(models.TextChoices):
+    """Si calen totes les especialitats exigides o n'hi ha prou amb una (RN-M02-28)."""
 
-    WARN = "warn", _("Avís")
-    BLOCK = "block", _("Bloqueig")
+    ALL = "all", _("Totes")
+    ANY = "any", _("Alguna")
 
 
 class Activity(models.Model):
@@ -366,6 +405,28 @@ class Activity(models.Model):
     material_cost_note = models.TextField(_("motiu del cost de material diferent"), blank=True)
     open_to_non_members = models.BooleanField(_("oberta a no socis"), default=False)
     required_level = models.CharField(_("titulació mínima"), max_length=60, blank=True)
+    # Requisits de l'addenda de la 058 (RN-M02-27 i 28): `required_level` queda com a text
+    # informatiu; el que es comprova és `min_level` i les especialitats.
+    min_level = models.ForeignKey(
+        "CertificationLevel",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="activities",
+        verbose_name=_("nivell mínim"),
+    )
+    required_specialities = models.ManyToManyField(
+        TrainingCatalogueEntry,
+        blank=True,
+        limit_choices_to={"kind": "speciality"},
+        related_name="required_by",
+        verbose_name=_("especialitats exigides"),
+    )
+    specialities_rule = models.CharField(
+        _("especialitats"), max_length=3, choices=SpecialitiesRule.choices, default="all"
+    )
+    # RN-M02-33: anys complerts el dia d'inici. Buit: sense edat mínima.
+    min_age = models.PositiveSmallIntegerField(_("edat mínima"), null=True, blank=True)
     licence_required = models.BooleanField(_("cal llicència vigent"), default=False)
     requirements_mode = models.CharField(
         _("si no es compleixen els requisits"),
@@ -425,6 +486,14 @@ class Activity(models.Model):
             models.CheckConstraint(
                 condition=Q(requirements_mode__in=["warn", "block"]),
                 name="activity_requirements_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(specialities_rule__in=["all", "any"]),
+                name="activity_specialities_rule_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(min_age__isnull=True) | Q(min_age__gte=1, min_age__lte=99),
+                name="activity_min_age_valid",
             ),
             models.CheckConstraint(
                 condition=~Q(kind="course") | Q(catalogue_entry__isnull=False),
@@ -655,3 +724,124 @@ class DiverCertification(models.Model):
     @property
     def is_verified(self) -> bool:
         return self.verified_by_id is not None
+
+
+class Enrolment(models.Model):
+    """Inscripció d'una persona a una activitat (M02-6; RN-M02-03, RN-M02-04 i RN-M02-07). El model
+    arriba amb la T-M02-10 (confirmar-la quan es paga el càrrec); inscriure's és de la T-M02-11.
+
+    Ocupen plaça les inscripcions pendents de pagament, confirmades i amb una plaça oferta
+    (`OCCUPYING`). Una persona només pot tenir una inscripció viva per activitat."""
+
+    class Status(models.TextChoices):
+        PENDING_PAYMENT = "pending_payment", _("Pendent de pagament")
+        CONFIRMED = "confirmed", _("Confirmada")
+        WAITLISTED = "waitlisted", _("En llista d'espera")
+        OFFERED = "offered", _("Plaça oferta")
+        CANCELLED = "cancelled", _("Cancel·lada")
+        EXPIRED = "expired", _("Caducada")
+
+    class Channel(models.TextChoices):
+        ACCOUNT = "account", _("Compte personal")
+        GUEST = "guest", _("Convidat")
+        DESK = "desk", _("Presencial")
+
+    class PriceKind(models.TextChoices):
+        MEMBER = "member", _("Soci")
+        NON_MEMBER = "non_member", _("No soci")
+
+    OCCUPYING = (Status.PENDING_PAYMENT, Status.CONFIRMED, Status.OFFERED)
+    LIVE = (*OCCUPYING, Status.WAITLISTED)
+    ENDED = (Status.CANCELLED, Status.EXPIRED)
+
+    activity = models.ForeignKey(
+        Activity, on_delete=models.PROTECT, related_name="enrolments", verbose_name=_("activitat")
+    )
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.PROTECT,
+        related_name="activity_enrolments",
+        verbose_name=_("persona"),
+    )
+    status = models.CharField(_("estat"), max_length=20, choices=Status.choices)
+    channel = models.CharField(_("canal"), max_length=10, choices=Channel.choices)
+    # Fixats en inscriure's: no canvien encara que canviï el catàleg o l'estat de soci (RN-M02-04).
+    price_kind = models.CharField(_("preu aplicat"), max_length=10, choices=PriceKind.choices)
+    price_cents = models.PositiveIntegerField(_("preu (cèntims)"))
+    # Buit si és gratuïta o si encara és a la llista d'espera.
+    charge = models.ForeignKey(
+        "core.Charge",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("càrrec"),
+    )
+    waitlist_position = models.PositiveIntegerField(
+        _("posició a la llista d'espera"), null=True, blank=True
+    )
+    payment_due_at = models.DateTimeField(_("termini de pagament"), null=True, blank=True)
+    offer_expires_at = models.DateTimeField(_("termini de l'oferta"), null=True, blank=True)
+    # Què no complia en inscriure's. Sense dades de salut ni de la llicència (RN-M01-48).
+    requirements_warning = models.TextField(_("requisits per revisar"), blank=True)
+    cancelled_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("cancel·lada per"),
+    )
+    # Buit = el mateix participant o el seu enllaç.
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("feta per"),
+    )
+    created_at = models.DateTimeField(_("feta el"))
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("inscripció")
+        verbose_name_plural = _("inscripcions")
+        ordering = ["created_at", "id"]
+        indexes = [models.Index(fields=["activity", "status"], name="enrolment_activity_status")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["activity", "person"],
+                condition=~Q(status__in=["cancelled", "expired"]),
+                name="enrolment_one_live_per_person",
+            ),
+            models.CheckConstraint(
+                condition=Q(status="waitlisted") | Q(waitlist_position__isnull=True),
+                name="enrolment_position_only_waitlisted",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="cancelled") | ~Q(cancelled_reason=""),
+                name="enrolment_cancelled_needs_reason",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=[
+                        "pending_payment",
+                        "confirmed",
+                        "waitlisted",
+                        "offered",
+                        "cancelled",
+                        "expired",
+                    ]
+                ),
+                name="enrolment_status_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.activity} · {self.get_status_display()}"
+
+    @property
+    def occupies_place(self) -> bool:
+        return self.status in self.OCCUPYING

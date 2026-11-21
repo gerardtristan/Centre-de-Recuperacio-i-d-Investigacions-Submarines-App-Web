@@ -222,7 +222,7 @@ def test_the_other_signals_are_declared_for_the_tasks_that_will_send_them():
 def test_the_module_only_imports_the_common_base_accounts_and_members():
     """«Sense que el 02 els importi» (M02-8): cap fitxer del 02, fora de les proves, importa
     cap altra app que les que consumeix per contracte."""
-    allowed = {"core", "accounts", "members", "activities"}
+    allowed = {"core", "accounts", "members", "licences", "activities"}  # 06: serveis
     root = Path(extensions.__file__).parent
     for path in root.rglob("*.py"):
         if "tests" in path.parts:

@@ -66,6 +66,9 @@ COPIED_FIELDS = (
     "price_override_note",
     "open_to_non_members",
     "required_level",
+    "min_level",
+    "specialities_rule",
+    "min_age",
     "licence_required",
     "requirements_mode",
     "responsible",
@@ -112,6 +115,7 @@ def duplicate(activity, new_start, *, by, request=None) -> Activity:
         place=_active(original.place),
         duplicated_from=original,
     )
+    copy.required_specialities.set(original.required_specialities.all())
     blocks = ProgrammeBlock.objects.bulk_create(
         ProgrammeBlock(
             activity=copy,

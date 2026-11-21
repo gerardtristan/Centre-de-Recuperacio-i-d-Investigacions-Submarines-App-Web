@@ -11,6 +11,11 @@ des del seu `AppConfig.ready()`; el 02 només llegeix el que hi ha registrat.
   «material pendent»). Els motius propis del 02 i `closing_blockers` són de la T-M02-22.
 - `register_detail_section(section)`: un bloc a «Les meves activitats» i a la fitxa d'administració
   (el 03 hi posarà el material assignat). Les pantalles són de la T-M02-06 i la T-M02-22.
+- `register_place_section(section)`: camps d'un altre mòdul al formulari del lloc (el 03 hi posarà
+  el centre habitual, RN-M03-23). El formulari és de la T-M02-39.
+- `register_material_cost_calculator(calculator)`: qui calcula el cost de material estàndard per
+  participant d'una activitat (el 03, RN-M03-25). El 02 el copia a l'activitat (RN-M02-43); sense
+  calculador, el cost queda buit. Només n'hi pot haver un (part de la T-M02-40).
 
 **Senyals** (de Django, enviats dins la mateixa transacció que el canvi)
 
@@ -75,9 +80,26 @@ class DetailSection:
     context: Callable[..., Mapping | None]
 
 
+@dataclass(frozen=True)
+class PlaceSection:
+    """Camps d'un altre mòdul al formulari del lloc.
+
+    - `fields(place, viewer)`: camps de formulari de Django, per nom (`place` és `None` en un lloc
+      nou). Buit = no hi afegeix res; el mòdul hi comprova els seus permisos.
+    - `save(place, data, by)`: desa les respostes validades, dins la transacció del lloc.
+    """
+
+    key: str
+    label: str
+    fields: Callable[..., Mapping]
+    save: Callable[..., None]
+
+
 _enrolment_sections: dict[str, EnrolmentSection] = {}
 _detail_sections: dict[str, DetailSection] = {}
+_place_sections: dict[str, PlaceSection] = {}
 _closing_checks: list[Callable[..., list[str]]] = []
+_material_cost: list[Callable[..., int]] = []
 
 
 def _is_a(section, kind) -> None:
@@ -137,3 +159,28 @@ def closing_reasons(activity) -> list[str]:
     for check in _closing_checks:
         reasons.extend(str(reason) for reason in check(activity))
     return reasons
+
+
+def register_place_section(section: PlaceSection) -> None:
+    _is_a(section, PlaceSection)
+    if not callable(section.fields) or not callable(section.save):
+        raise ImproperlyConfigured("Una secció del lloc necessita `fields` i `save`.")
+    _add(_place_sections, section)
+
+
+def place_sections() -> list[PlaceSection]:
+    return list(_place_sections.values())
+
+
+def register_material_cost_calculator(calculator: Callable[..., int]) -> None:
+    """`calculator(activity)` torna el cost de material estàndard per participant, en cèntims."""
+    if not callable(calculator):
+        raise ImproperlyConfigured("El calculador del cost de material ha de ser una funció.")
+    if _material_cost and _material_cost[0] is not calculator:
+        raise ImproperlyConfigured("Ja hi ha un calculador del cost de material.")
+    _material_cost[:] = [calculator]
+
+
+def standard_material_cost(activity) -> int | None:
+    """RN-M02-43: el cost de material estàndard per participant, o `None` sense calculador."""
+    return _material_cost[0](activity) if _material_cost else None

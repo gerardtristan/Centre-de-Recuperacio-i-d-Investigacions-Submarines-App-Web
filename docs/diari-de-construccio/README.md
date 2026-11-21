@@ -404,3 +404,8 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-09](T-M06-09.md) | Llicències: servei del llistat de la secretaria amb filtres i venciments (carril A) | 21/11/2026 00:06 | 030e2908 | 8543 | [A comprovar] |
 | [T-M06-10](T-M06-10.md) | Llicències: tramitar a la federació (marcar tramitada o vigent) i fitxer provisional (carril A) | 21/11/2026 00:23 | aed8a609 | 8563 | [A comprovar] |
 | [T-M03-18](T-M03-18.md) | Permisos del 03 Material al catàleg i a la matriu inicial (core/0064) (carril C, torn del nucli) | 21/11/2026 02:01 | d99a2d61 | 1 fitxer nou | [A comprovar] |
+| [T-M02-29](T-M02-29.md) | Nivell mínim, especialitats i llicència vigent: càlcul dels requisits i mode per defecte (activities/0006; carril B) | 21/11/2026 00:36 | (vegeu la PR) | 16 noves (22 casos); 1 ajustada | [A comprovar] |
+| [T-M02-32](T-M02-32.md) | Edat mínima per fitxa i activitat, sense revelar la data (activities/0007; carril B) | 21/11/2026 00:40 | (vegeu la PR) | 4 noves (10 casos) | [A comprovar] |
+| [T-M02-10](T-M02-10.md) | Model d'inscripció i confirmació quan es paga el càrrec, idempotent (activities/0008; carril B) | 21/11/2026 00:44 | (vegeu la PR) | 5 noves (6 casos) | [A comprovar] |
+| [T-M02-04a](T-M02-04a.md) | Permisos per objecte del 02: «les seves sessions» i «les seves activitats» al motor comú (carril B) | 21/11/2026 01:10 | (vegeu la PR) | 6 noves; 1 que s'activa amb els permisos del 09 | [A comprovar] |
+| [T-M02-40a](T-M02-40a.md) | Punts d'extensió del formulari del lloc i del calculador del cost de material estàndard (part de la T-M02-40; carril C) | 21/11/2026 02:13 | 805f696c | 9 noves | [A comprovar] |
