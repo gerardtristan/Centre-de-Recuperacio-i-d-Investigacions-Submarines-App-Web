@@ -25,10 +25,14 @@ El pagament és el camí del 05b sobre el càrrec (`payments:charge`); quan el c
 confirma `charges.on_charge_paid` (T-M02-10).
 
 **Concrecions:** una persona anonimitzada no es pot inscriure; el canal `account` exigeix el
-compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició.
+compte personal de la mateixa persona; el canal `desk`, el permís AC5 amb edició; el canal
+`guest`, només el formulari públic (`guests.enrol_guest`).
 
-**Fora d'aquesta peça:** caducitat i ofertes de plaça (T-M02-13), ordenar la llista a mà (AC16),
-convidats i la pantalla presencial (T-M02-14), cancel·lacions (T-M02-15) i avisos (T-M02-21).
+Caducitat i ofertes de plaça: `deadlines.py` (T-M02-13), amb `change_status` i les transicions
+de RN-M02-03 d'aquí.
+
+**Fora d'aquesta peça:** ordenar la llista a mà (AC16),
+les pantalles (convidat i presencial), cancel·lacions (T-M02-15) i avisos (T-M02-21).
 """
 
 import datetime
@@ -121,7 +125,11 @@ def _check_actor(channel, actor, person) -> None:
             raise Http404
     elif channel == Enrolment.Channel.DESK:
         permissions.require(actor, permissions.ENROL_IN_PERSON)
-    else:  # el convidat arriba amb la T-M02-14
+    elif channel == Enrolment.Channel.GUEST:
+        # Només des de `guests.enrol_guest`, que acaba de crear la persona del formulari públic.
+        if actor != audit.ANONYMOUS:
+            raise Http404
+    else:
         raise ValidationError(_("Canal d'inscripció desconegut."))
 
 
@@ -227,3 +235,43 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
     if enrolment.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=enrolment)
     return enrolment
+
+
+STATUS_CHANGED = "activities.enrolment.status_changed"
+
+# RN-M02-03. Una inscripció confirmada no torna a pendent de pagament. Acceptar una oferta d'una
+# activitat gratuïta confirma directament, sense càrrec (L-M02-06).
+TRANSITIONS = {
+    (S.PENDING_PAYMENT, S.CONFIRMED),
+    (S.PENDING_PAYMENT, S.EXPIRED),
+    (S.PENDING_PAYMENT, S.CANCELLED),
+    (S.WAITLISTED, S.OFFERED),
+    (S.WAITLISTED, S.CANCELLED),
+    (S.WAITLISTED, S.EXPIRED),
+    (S.OFFERED, S.PENDING_PAYMENT),
+    (S.OFFERED, S.CONFIRMED),
+    (S.OFFERED, S.EXPIRED),
+    (S.CONFIRMED, S.CANCELLED),
+}
+
+
+def change_status(enrolment, new_status, *, actor, reason="", details=None, request=None) -> None:
+    """Canvia l'estat d'una inscripció ja bloquejada (sense desar-la) i en deixa el valor anterior
+    al registre. Només per als serveis del 02."""
+    if (enrolment.status, new_status) not in TRANSITIONS:
+        raise ValidationError(
+            _("Una inscripció «%(current)s» no pot passar a «%(new)s».")
+            % {"current": enrolment.get_status_display(), "new": S(new_status).label}
+        )
+    audit.record(
+        STATUS_CHANGED,
+        actor=actor,
+        target=enrolment,
+        field="status",
+        old=enrolment.status,
+        new=new_status,
+        reason=reason,
+        details=details,
+        request=request,
+    )
+    enrolment.status = new_status
