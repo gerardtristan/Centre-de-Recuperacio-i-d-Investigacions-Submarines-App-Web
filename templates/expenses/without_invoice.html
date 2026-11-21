@@ -1,0 +1,43 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M09-15 (RN-M09-09; CA-M09-01): les despeses vives sense factura (MG2, també de consulta). Bloquegen el tancament del període. Només dades de la despesa: el proveïdor pot ser un autònom, però és la factura del club. #}
+{% block title %}{% translate "Despeses sense factura" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Despeses" %}</p>
+    <h1>{% translate "Despeses sense factura" %}</h1>
+    <p class="text-2">{% translate "Mentre no tinguin la factura adjunta, no es pot tancar el període." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} despesa sense factura, la més antiga primer{% plural %}{{ total }} despeses sense factura, la més antiga primer{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Descripció" %}</th>
+        <th scope="col">{% translate "Proveïdor" %}</th>
+        <th scope="col">{% translate "Data" %}</th>
+        <th scope="col">{% translate "Departament" %}</th>
+        <th scope="col">{% translate "Import" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ row.expense.description }}</th>
+          <td data-etiqueta="{% translate 'Proveïdor' %}">{{ row.expense.supplier }}</td>
+          <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.expense.invoice_date|date:'Y-m-d' }}">{{ row.expense.invoice_date|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate 'Departament' %}">{{ row.expense.department }}</td>
+          <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ row.amount }}</span></td>
+          <td data-etiqueta="{% translate 'Estat' %}"><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense factura" %}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">{% translate "Cap despesa sense factura." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
