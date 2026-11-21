@@ -131,3 +131,42 @@ class MarginSnapshot(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.activity_id}: {self.margin_cents} c"
+
+
+class PeriodEvent(AppendOnlyModel):
+    """Tancament o reobertura d'un període (M09-6; RN-M09-16 i 26; T-M09-16). Només INSERT: guarda
+    la llista de control d'aquell moment i, en tancar amb excepcions, els elements portats al
+    període següent amb el seu motiu."""
+
+    class Action(models.TextChoices):
+        CLOSE = "close", _("Tancament")
+        REOPEN = "reopen", _("Reobertura")
+
+    period = models.ForeignKey(
+        Period, on_delete=models.PROTECT, related_name="events", verbose_name=_("període")
+    )
+    action = models.CharField(_("acció"), max_length=6, choices=Action.choices)
+    reason = models.TextField(_("motiu"), blank=True)
+    actor = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("qui")
+    )
+    at = models.DateTimeField(_("quan"))
+    checklist = models.JSONField(_("llista de control"), default=list)
+    exceptions = models.JSONField(_("excepcions"), default=list)
+
+    class Meta:
+        verbose_name = _("esdeveniment del període")
+        verbose_name_plural = _("esdeveniments dels períodes")
+        ordering = ["at", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(action__in=["close", "reopen"]), name="margins_period_event_action"
+            ),
+            models.CheckConstraint(
+                condition=~Q(action="reopen") | ~Q(reason=""),
+                name="margins_period_event_reopen_reason",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.period} · {self.get_action_display()}"
