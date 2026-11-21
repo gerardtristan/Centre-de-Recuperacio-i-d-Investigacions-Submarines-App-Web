@@ -443,3 +443,9 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [F2-4](F2-4-flux-material.md) | Prova de flux sencer de la llesca F2-4, de les necessitats al marge congelat (carril C2) | 21/11/2026 06:50 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M03-04](T-M03-04.md) | Stock de material en una data (carril C2) | 21/11/2026 07:26 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M03-19](T-M03-19.md) | Informes del 03, part de servei (carril C2) | 21/11/2026 07:27 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M03-20b](T-M03-20b.md) | Dades inventades del 03 per a seed_demo_data (carril C2) | 21/11/2026 07:33 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M03-21](T-M03-21.md) | Guia del responsable de material (esborrany) (carril C2) | 21/11/2026 07:33 | (vegeu la PR) | cap (document) | [A comprovar] |
+| [T-M09-23](T-M09-23.md) | Prova de principi a fi del 09 (carril C2) | 21/11/2026 08:10 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09A-13](T-M09A-13.md) | Prova de principi a fi dels ajuts (carril C2) | 21/11/2026 08:12 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09-24](T-M09-24.md) | Guies del tresorer (09) i d'ajuts, esborrany (T-M09-24 i T-M09A-14) (carril C2) | 21/11/2026 08:13 | (vegeu la PR) | cap (document) | [A comprovar] |
+| [T-M03-22a](T-M03-22a.md) | Ajust dels dies de peça no retornada i lectura des del 03 (carril C2) | 21/11/2026 08:19 | (vegeu la PR) | 2 noves | [A comprovar] |
