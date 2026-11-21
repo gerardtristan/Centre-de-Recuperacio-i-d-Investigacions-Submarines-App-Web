@@ -21,8 +21,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def manager(make_admin, monkeypatch):  # noqa: F811
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: True)  # MT5 (T-M03-18)
+def manager(make_admin):  # noqa: F811
+    # MT5 de la matriu inicial (T-M03-18).
     return make_admin("equipment_manager")
 
 
@@ -100,8 +100,7 @@ def test_la_plantilla_es_d_una_fitxa_o_d_un_tipus(manager):
         typical.set_template_line(kind("Aletes"), 1, by=manager)
 
 
-def test_sense_mt5_no_es_toca(make_admin, monkeypatch, place):  # noqa: F811
-    monkeypatch.setattr(access, "allowed", lambda by, code, obj=None: False)
+def test_sense_mt5_no_es_toca(make_admin, place):  # noqa: F811
     secretary = make_admin("secretary")
     with pytest.raises(Http404):
         typical.set_template_line(kind("Aletes"), 1, by=secretary, outing_type=dive())
