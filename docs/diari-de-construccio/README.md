@@ -437,3 +437,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-v3](T-M06-v3.md) | Llicències: «La meva llicència» a l'àrea de socis (demanar, pagar i «Ja en tinc una»; carril A) | 21/11/2026 04:45 | 1402f154 | 10906 | [A comprovar] |
 | [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0066; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
 | [T-M02-nucli](T-M02-nucli.md) | Nucli del 02: «Soc major d'edat» editable amb proposta (P-458), esdeveniments de cancel·lació, RN-RP-12 i permisos d'ajustos (core/0067; carril B2) | 21/11/2026 05:23 | (vegeu la PR) | 11 noves | [A comprovar] |
+| [T-M02-35](T-M02-35.md) | Cancel·lacions com a esdeveniments enrolment.cancelled i activity.cancelled (carril B2) | 21/11/2026 06:02 | (vegeu la PR) | 3 noves | [A comprovar] |
