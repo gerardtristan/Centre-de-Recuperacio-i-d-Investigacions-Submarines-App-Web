@@ -477,3 +477,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-21](T-M09-21.md) | «Les meves factures» a l'àrea personal (sense obrir) (carril C2) | 21/11/2026 09:05 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |
 | [T-M02-44](T-M02-44.md) | Homologacions a la federació i llistat CSV (T-M02-44 i 46; activities/0016; carril B2) | 21/11/2026 07:23 | (vegeu la PR) | 13 noves (16 casos) | [A comprovar] |
 | [T-M02-24](T-M02-24.md) | Informes operatius del 02, servei (sense migració; carril B3) | 21/11/2026 09:18 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [T-M02-25](T-M02-25.md) | Dades inventades del 02 i l'ordre seed_activities_demo_data (sense migració; carril B3) | 21/11/2026 09:39 | (vegeu la PR) | 6 noves | [A comprovar] |
