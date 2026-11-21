@@ -208,6 +208,10 @@ class Licence(UndeletableModel):
     cancelled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="+"
     )
+    # RN-M06-17 (054): puja en 1 a cada canvi, dins la mateixa transacció (`save`).
+    version = models.PositiveIntegerField(_("versió"), default=1)
+    # Quan es va emetre `licence.expired` (una sola vegada, T-M06-15).
+    expired_at = models.DateTimeField(_("caducitat notificada el"), null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -276,6 +280,15 @@ class Licence(UndeletableModel):
 
     def __str__(self):
         return f"{self.licence_type} ({self.starts_on:%d/%m/%Y}–{self.expires_on:%d/%m/%Y})"
+
+    def save(self, *args, **kwargs):
+        """RN-M06-17: cada canvi d'una llicència ja desada puja la versió. Els serveis la
+        bloquegen abans de canviar-la (`select_for_update`), i per això no es perd cap pujada."""
+        if not self._state.adding:
+            self.version += 1
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = {*kwargs["update_fields"], "version"}
+        super().save(*args, **kwargs)
 
     def display_status(self, today: datetime.date, to_renew_days: int) -> str:
         """M06-5. `to_renew_days` és l'ajust `licences.to_renew_days`: el llegeix qui crida
