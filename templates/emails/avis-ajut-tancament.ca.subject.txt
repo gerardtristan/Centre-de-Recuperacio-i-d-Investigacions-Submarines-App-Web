@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09A-06 (RN-M09A-04, CA-M09A-01): TEXT PROVISIONAL [A validar: tresorer i junta]. #}{% blocktranslate %}Ajut: «{{ call }}» tanca d'aquí a {{ days }} dies{% endblocktranslate %}

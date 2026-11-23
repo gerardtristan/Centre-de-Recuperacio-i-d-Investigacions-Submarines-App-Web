@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09A-06 (RN-M09A-04 i 20; S-M09A-04): TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate %}Ajut: la justificació de «{{ call }}» venç d'aquí a {{ days }} dies{% endblocktranslate %}

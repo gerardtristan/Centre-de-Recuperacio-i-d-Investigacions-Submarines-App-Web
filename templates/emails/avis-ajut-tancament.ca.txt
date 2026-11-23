@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09A-06 (RN-M09A-04, CA-M09A-01): avís al responsable de la sol·licitud i al tresorer, 30, 14 i 7 dies abans del tancament de la convocatòria (ajust `grants.deadline_reminder_days`). TEXT PROVISIONAL [A validar: tresorer i junta]. Només l'organisme, la convocatòria, les dates i la referència: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}La convocatòria «{{ call }}» ({{ body }}) tanca el {{ closes_on }}, d'aquí a {{ days }} dies, i la sol·licitud {{ application_id }} encara no s'ha presentat.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
