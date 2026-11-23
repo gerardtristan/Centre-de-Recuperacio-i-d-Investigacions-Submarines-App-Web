@@ -12,6 +12,7 @@
   {% include "activities/_missatges.html" %}
   {% if activity.status == "cancelled" %}<div class="avis avis-error"><strong>{% translate "Motiu de la cancel·lació:" %}</strong> {{ activity.cancellation_reason }}</div>{% endif %}
   <div class="accions">
+    {% if editable %}<a class="boto boto-principal" href="{% url 'administration:activity_edit' activity.pk %}">{% translate "Edita" %}</a>{% endif %}
     {% if margin_link %}<a class="boto" href="{% url 'administration:activity_margin' activity.pk %}">{% translate "Marge de l'activitat" %}</a>{% endif %}
   </div>
 

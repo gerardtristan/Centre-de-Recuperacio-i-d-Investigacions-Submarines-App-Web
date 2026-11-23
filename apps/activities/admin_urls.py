@@ -7,5 +7,10 @@ from .views import admin_activities as activities
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
+    path("activitats/curs/nou/", activities.activity_course_add_view, name="activity_course_add"),
+    path(
+        "activitats/sortida/nova/", activities.activity_outing_add_view, name="activity_outing_add"
+    ),
     path("activitats/<int:pk>/", activities.activity_detail_view, name="activity_detail"),
+    path("activitats/<int:pk>/edita/", activities.activity_edit_view, name="activity_edit"),
 ]
