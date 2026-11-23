@@ -1,0 +1,77 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M09-G (MG11 i MG12; T-M09-16): els períodes del 09. La llista de control del primer període obert, amb un motiu per element per portar-lo al següent (RN-M09-26); crear el període següent (RN-M09-28) i reobrir el darrer tancat amb motiu (només l'administració). Els textos de la llista no porten dades personals. Els formularis només surten amb el permís, però el servidor el torna a comprovar. #}
+{% block title %}{% translate "Períodes" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Marges" %}</p>
+    <h1>{% translate "Períodes" %}</h1>
+    <p class="text-2">{% translate "Un període tancat no admet cap despesa, ingrés ni anul·lació amb data d'aquells dies." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  {% if to_close %}
+    <section class="targeta" aria-labelledby="titol-tancar">
+      <h2 id="titol-tancar">{% blocktranslate with start=to_close.starts_on|date:"d/m/Y" end=to_close.ends_on|date:"d/m/Y" %}Tancar el període del {{ start }} al {{ end }}{% endblocktranslate %}</h2>
+      {% if items %}
+        <div class="avis avis-avis" role="note">{% blocktranslate count total=items|length %}A la llista de control hi ha {{ total }} element per resoldre o portar al període següent amb un motiu.{% plural %}A la llista de control hi ha {{ total }} elements per resoldre o portar al període següent amb un motiu.{% endblocktranslate %}</div>
+      {% else %}
+        <p class="text-2">{% translate "La llista de control és buida: ja es pot tancar." %}</p>
+      {% endif %}
+      {% if close_form %}
+        <form class="formulari" method="post" action="{% url 'administration:margin_period_close' to_close.pk %}" novalidate>
+          {% csrf_token %}
+          {% for field in close_form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Tanca el període" %}</button></div>
+        </form>
+      {% else %}
+        <ul>{% for item in items %}<li>{{ item.label }}</li>{% endfor %}</ul>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <section class="targeta" aria-labelledby="titol-periodes">
+    <h2 id="titol-periodes">{% translate "Tots els períodes" %}</h2>
+    <table class="taula">
+      <caption>{% translate "Del més recent al més antic." %}</caption>
+      <thead><tr><th scope="col">{% translate "Període" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+      <tbody>
+        {% for period in periods %}
+          <tr>
+            <th scope="row" class="cel-nom"><time datetime="{{ period.starts_on|date:'Y-m-d' }}">{{ period.starts_on|date:"d/m/Y" }}</time> – <time datetime="{{ period.ends_on|date:'Y-m-d' }}">{{ period.ends_on|date:"d/m/Y" }}</time></th>
+            <td data-etiqueta="{% translate 'Estat' %}">{% if period.status == "closed" %}<span class="estat estat-neutre"><span aria-hidden="true">■</span> {% translate "Tancat" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Obert" %}</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">{% translate "Encara no hi ha cap període." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if can_create %}
+      <form class="formulari" method="post" action="{% url 'administration:margin_period_create' %}" novalidate>
+        {% csrf_token %}
+        {% if first_form %}
+          {% for field in first_form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <p class="text-2">{% translate "Dura el que diuen els ajustos (d'inici, un mes). Els següents comencen l'endemà de l'anterior." %}</p>
+        {% elif next %}
+          <p class="text-2">{% blocktranslate with start=next.0|date:"d/m/Y" end=next.1|date:"d/m/Y" %}El període següent anirà del {{ start }} al {{ end }}.{% endblocktranslate %}</p>
+        {% endif %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Crea el període següent" %}</button></div>
+      </form>
+    {% endif %}
+  </section>
+
+  {% if reopen_form %}
+    <section class="targeta" aria-labelledby="titol-reobrir">
+      <h2 id="titol-reobrir">{% blocktranslate with start=last_closed.starts_on|date:"d/m/Y" end=last_closed.ends_on|date:"d/m/Y" %}Reobrir el període del {{ start }} al {{ end }}{% endblocktranslate %}</h2>
+      <p class="text-2">{% translate "Només per corregir un error de la feina del període (un repartiment o un tancament mal fet), no pel que arriba tard. Queda al registre amb el motiu." %}</p>
+      <form class="formulari" method="post" action="{% url 'administration:margin_period_reopen' last_closed.pk %}" novalidate>
+        {% csrf_token %}
+        {% for field in reopen_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Reobre el període" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

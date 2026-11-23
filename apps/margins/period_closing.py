@@ -10,6 +10,9 @@
   element sense motiu bloqueja (CA-M09-29). Els períodes es tanquen per ordre.
 - `reopen(period, by=…, reason=…)`: MG12 (només l'administrador, CA-M09-15), amb motiu i registre.
   Només es reobre el darrer període tancat: la guarda de la 04 és una sola data (P-471).
+- `create_next(by=…, starts_on=None)`: MG11. El període nou comença l'endemà del darrer i dura el
+  que diu `margin.period_length` (VC-32, mensual o trimestral) en aquell moment: els existents no
+  canvien (RN-M09-28, CA-M09-35). El primer període comença el dia que tria el tresorer.
 - `recompute_margin(activity, by=…)`: amb el període del marge congelat reobert, MG7 fa un marge
   nou que substitueix l'anterior (`supersedes`, amb el motiu de la reobertura) i que no inclou els
   moviments tardans (RN-M09-24).
@@ -18,6 +21,9 @@
 plantilla del nucli; ara només queda al registre. La pantalla, amb les vistes del 09.
 """
 
+import calendar
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
@@ -25,7 +31,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.activities.models import Activity
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import scope_for
 from apps.expenses.models import Expense
@@ -41,6 +47,9 @@ REOPEN = "expenses.periods.reopen"  # MG12
 PERIOD_CLOSED = "margins.period_closed"
 PERIOD_REOPENED = "margins.period_reopened"
 MARGIN_RECOMPUTED = "margins.margin_recomputed"
+PERIOD_CREATED = "margins.period_created"
+LENGTH = "margin.period_length"  # VC-32
+MONTHS = {"monthly": 1, "quarterly": 3}  # les opcions de VC-32
 S = Period.Status
 
 
@@ -187,6 +196,46 @@ def reopen(period, *, by, reason, now=None) -> PeriodEvent:
             reason=reason,
         )  # fmt: skip
     return event
+
+
+def _add_months(day, months):
+    month = day.month - 1 + months
+    year, month = day.year + month // 12, month % 12 + 1
+    return day.replace(
+        year=year, month=month, day=min(day.day, calendar.monthrange(year, month)[1])
+    )
+
+
+def next_dates(starts_on=None) -> tuple[datetime.date, datetime.date] | None:
+    """Les dates del període que es crearia ara; sense cap període, cal `starts_on`."""
+    last = Period.objects.order_by("-ends_on").first()
+    if last is not None:
+        starts_on = last.ends_on + datetime.timedelta(days=1)
+    if starts_on is None:
+        return None
+    months = MONTHS[business_settings.get(LENGTH)]
+    return starts_on, _add_months(starts_on, months) - datetime.timedelta(days=1)
+
+
+def create_next(*, by, starts_on=None, today=None) -> Period:
+    """RN-M09-28: el període següent, sense forats ni solapaments. No se'n crea cap mentre el
+    darrer encara no ha començat (no s'apilen períodes futurs)."""
+    _require(by, CLOSE)
+    today = today or timezone.localdate()
+    with transaction.atomic():
+        last = Period.objects.select_for_update().order_by("-ends_on").first()
+        if last is not None and last.starts_on > today:
+            raise ValidationError(_("El darrer període encara no ha començat."))
+        if last is None and not isinstance(starts_on, datetime.date):
+            raise ValidationError(_("Cal el dia que comença el primer període."))
+        starts_on, ends_on = next_dates(None if last else starts_on)
+        period = Period.objects.create(starts_on=starts_on, ends_on=ends_on)
+        audit.record(
+            PERIOD_CREATED, actor=by, target=period,
+            details={"starts_on": starts_on.isoformat(), "ends_on": ends_on.isoformat(),
+                     "length": business_settings.get(LENGTH)},
+        )  # fmt: skip
+    return period
 
 
 def _period_of(day):
