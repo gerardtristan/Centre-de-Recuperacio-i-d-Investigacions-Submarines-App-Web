@@ -1,0 +1,85 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M02-16b (P-M02-E; C3; CA-M02-16 i 17): la llista d'una sessió o d'una sortida, pensada per a 390 px. Dels confirmats: nom, titulacions i llicència vigent sí o no; cap contacte, document ni pagament. Els pendents de pagament només els veu qui té AC9 sobre totes les activitats (`roll.unpaid`, buit per a l'instructor). Cada marca s'envia sola amb static/js/passar-llista.js i, sense cobertura, queda «Pendent d'enviar» fins que torna la connexió; sense JavaScript, el formulari funciona igual. Les incidències són només operatives: mai dades de salut (RN-M02-17). #}
+{% block title %}{% translate "Passar llista" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Passar llista" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2"><time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:"d/m/Y" }}</time>{% if session %} · {{ session.starts_at|time:"H:i" }} · {{ session.get_kind_display }}{% endif %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <p class="anunci" role="status" aria-live="polite" data-llista-anunci></p>
+  <p class="text-2">{% blocktranslate with present=roll.present total=roll.rows|length unmarked=roll.unmarked %}{{ present }} presents de {{ total }} · {{ unmarked }} sense marcar{% endblocktranslate %}</p>
+  {% if not roll.can_record %}
+    <div class="avis avis-sistema" role="status">{% translate "Encara no es pot passar llista: només el dia de la sessió o després, i d'una activitat publicada." %}</div>
+  {% endif %}
+
+  <table class="taula" data-passar-llista>
+    <caption class="visualment-amagat">{% translate "Inscrits confirmats, per cognom" %}</caption>
+    <thead><tr><th scope="col">{% translate "Persona" %}</th><th scope="col">{% translate "Llicència" %}</th><th scope="col">{% translate "Assistència" %}</th></tr></thead>
+    <tbody>
+      {% for row in roll.rows %}
+        <tr data-fila="{{ row.enrolment_id }}">
+          <th scope="row" class="cel-nom">{{ row.name }}{% if row.certifications %}<br><span class="text-2">{{ row.certifications|join:", " }}</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Llicència' %}">{% if row.licence_valid %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Vigent" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "No vigent" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Assistència' %}">
+            <span data-estat>{% if row.present is True %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Hi és" %}</span>{% elif row.present is False %}<span class="estat estat-neutre"><span aria-hidden="true">–</span> {% translate "No hi és" %}</span>{% else %}<span class="estat estat-info"><span aria-hidden="true">●</span> {% translate "Sense marcar" %}</span>{% endif %}</span>
+            {% if roll.can_record %}
+              <form method="post" class="accions">
+                {% csrf_token %}
+                <input type="hidden" name="inscripcio" value="{{ row.enrolment_id }}">
+                <button class="boto boto-petit" type="submit" name="present" value="1">{% translate "Hi és" %}</button>
+                <button class="boto boto-petit" type="submit" name="present" value="0">{% translate "No hi és" %}</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Cap inscripció confirmada." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <template data-textos>
+    <span data-text="1"><span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Hi és" %}</span></span>
+    <span data-text="0"><span class="estat estat-neutre"><span aria-hidden="true">–</span> {% translate "No hi és" %}</span></span>
+    <span data-text="pendent"><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Pendent d'enviar" %}</span></span>
+    <span data-text="error"><span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No s'ha desat" %}</span></span>
+  </template>
+
+  {% if roll.unpaid %}
+    <section class="targeta" aria-labelledby="titol-pendents">
+      <h2 id="titol-pendents">{% translate "Pendents de pagament" %}</h2>
+      <p class="text-2">{% translate "No surten a la llista fins que estiguin confirmats. Resol-ho abans de començar." %}</p>
+      <ul>{% for row in roll.unpaid %}<li>{{ row.name }}</li>{% endfor %}</ul>
+    </section>
+  {% endif %}
+
+  <section aria-labelledby="titol-incidencies">
+    <h2 id="titol-incidencies">{% translate "Incidències" %}</h2>
+    {% if roll.can_record %}
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        <div class="camp">
+          <label for="incidencia-classe">{% translate "Classe" %}</label>
+          <select id="incidencia-classe" name="classe">{% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        </div>
+        <div class="camp">
+          <label for="incidencia-descripcio">{% translate "Què ha passat" %}</label>
+          <textarea id="incidencia-descripcio" name="descripcio" rows="3" aria-describedby="incidencia-ajuda" required></textarea>
+          <p class="ajuda" id="incidencia-ajuda">{{ incident_help }}</p>
+        </div>
+        <div class="accions"><button class="boto" type="submit">{% translate "Registra la incidència" %}</button></div>
+      </form>
+    {% endif %}
+    {% if incidents %}
+      <ul>
+        {% for incident in incidents %}<li><strong>{{ incident.get_kind_display }}</strong> · <time datetime="{{ incident.recorded_at|date:'c' }}">{{ incident.recorded_at|date:"d/m/Y H:i" }}</time><br>{{ incident.description }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-2">{% translate "Cap incidència registrada." %}</p>
+    {% endif %}
+  </section>
+  <p class="enllacos"><a href="{% url 'administration:attendance_sessions' %}">{% translate "Torna a «Passar llista»" %}</a></p>
+  <script src="{% static 'js/passar-llista.js' %}" defer></script>
+{% endblock %}

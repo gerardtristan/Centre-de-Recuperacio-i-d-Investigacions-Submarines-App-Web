@@ -4,6 +4,7 @@ de noms `administration` (sessió d'administració i TOTP). Cada vista comprova 
 from django.urls import path
 
 from .views import admin_activities as activities
+from .views import attendance
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -13,4 +14,12 @@ urlpatterns = [
     ),
     path("activitats/<int:pk>/", activities.activity_detail_view, name="activity_detail"),
     path("activitats/<int:pk>/edita/", activities.activity_edit_view, name="activity_edit"),
+    # T-M02-16b: passar llista des del mòbil i incidències (AC9 per objecte)
+    path("activitats/llista/", attendance.sessions_view, name="attendance_sessions"),
+    path("activitats/<int:pk>/llista/", attendance.roll_view, name="attendance_roll"),
+    path(
+        "activitats/<int:pk>/llista/<int:session_pk>/",
+        attendance.roll_view,
+        name="attendance_roll_session",
+    ),
 ]

@@ -176,6 +176,12 @@ MAP = {
         "apps/activities/admin_urls.py",
         "templates/activities/*",
     ),
+    "test_passar_llista.py": (
+        "apps/activities/views/attendance.py",
+        "apps/activities/admin_urls.py",
+        "templates/activities/attendance_*",
+        "static/js/passar-llista.js",
+    ),
     "test_despeses.py": (
         "apps/expenses/views.py",
         "apps/expenses/admin_urls.py",
