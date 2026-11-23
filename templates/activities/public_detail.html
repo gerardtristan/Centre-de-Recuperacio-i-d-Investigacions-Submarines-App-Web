@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-08b (RN-M02-24, 25 i 45; CA-M02-05 i 48): detall públic d'una activitat. Només dades de `public.py`: el nom del lloc, mai les notes, el centre habitual, la còpia estàndard ni el cost de material; cap nom de participant. Els enllaços «Inscriu-te» porten a la inscripció del soci (àrea personal) o del convidat, que ho tornen a comprovar tot. #}
+{% block title %}{{ activity.title }} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Activitats" %}{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{{ activity.kind_label }} · {{ activity.type_label }}</p>
+  <h1>{{ activity.title }}</h1>
+  {% if activity.description %}<p>{{ activity.description|linebreaksbr }}</p>{% endif %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
+    {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place }}</dd></div>{% endif %}
+    {% if activity.meeting_point %}<div><dt>{% translate "Punt de trobada" %}</dt><dd>{{ activity.meeting_point }}</dd></div>{% endif %}
+    <div><dt>{% translate "Places" %}</dt><dd>{{ activity.max_places }}</dd></div>
+    <div><dt>{% translate "Preu de soci" %}</dt><dd><span class="import">{{ activity.price_member }}</span></dd></div>
+    {% if activity.open_to_non_members %}<div><dt>{% translate "Preu de no soci" %}</dt><dd><span class="import">{{ activity.price_non_member }}</span></dd></div>{% endif %}
+    <div><dt>{% translate "Inscripcions fins al" %}</dt><dd><time datetime="{{ activity.registration_closes_at|date:'c' }}">{{ activity.registration_closes_at|date:"d/m/Y H:i" }}</time></dd></div>
+    {% if activity.min_level or activity.required_level %}<div><dt>{% translate "Nivell mínim" %}</dt><dd>{{ activity.min_level|default:activity.required_level }}</dd></div>{% endif %}
+    {% if activity.specialities %}<div><dt>{% if activity.any_speciality %}{% translate "Cal alguna d'aquestes especialitats" %}{% else %}{% translate "Especialitats exigides" %}{% endif %}</dt><dd>{{ activity.specialities|join:", " }}</dd></div>{% endif %}
+    {% if activity.min_age %}<div><dt>{% translate "Edat mínima" %}</dt><dd>{% blocktranslate count years=activity.min_age %}{{ years }} any{% plural %}{{ years }} anys{% endblocktranslate %}</dd></div>{% endif %}
+    {% if activity.licence_required %}<div><dt>{% translate "Llicència" %}</dt><dd>{% translate "Cal una llicència federativa vigent" %}</dd></div>{% endif %}
+    {% if activity.forecast_url %}<div><dt>{% translate "Previsió marítima" %}</dt><dd><a href="{{ activity.forecast_url }}" rel="noopener noreferrer">{% translate "Obre la previsió" %}</a></dd></div>{% endif %}
+  </dl>
+  {% if activity.registration_open %}
+    <div class="accions">
+      <a class="boto boto-principal" href="{% url 'activities:member_enrol' activity.pk %}">{% translate "Inscriu-te com a soci" %}</a>
+      {% if activity.open_to_non_members %}<a class="boto" href="{% url 'activities:guest_enrol' activity.pk %}">{% translate "Inscriu-te sense ser soci" %}</a>{% endif %}
+    </div>
+  {% else %}
+    <div class="avis avis-avis" role="status">{% translate "Les inscripcions d'aquesta activitat no són obertes." %}</div>
+  {% endif %}
+  {% if activity.sessions %}
+    <h2>{% translate "Sessions" %}</h2>
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Sessions de l'activitat, per ordre" %}</caption>
+      <thead><tr><th scope="col">{% translate "Sessió" %}</th><th scope="col">{% translate "Horari" %}</th><th scope="col">{% translate "Lloc" %}</th></tr></thead>
+      <tbody>
+        {% for session in activity.sessions %}
+          <tr>
+            <th scope="row">{{ session.kind }}</th>
+            <td data-etiqueta="{% translate 'Horari' %}"><time datetime="{{ session.starts_at|date:'c' }}">{{ session.starts_at|date:"d/m/Y H:i" }}</time>–<time datetime="{{ session.ends_at|date:'c' }}">{{ session.ends_at|date:"H:i" }}</time></td>
+            <td data-etiqueta="{% translate 'Lloc' %}">{{ session.place|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  {% if activity.blocks %}
+    <h2>{% translate "Programa del dia" %}</h2>
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Programa del dia" %}</caption>
+      <thead><tr><th scope="col">{% translate "Hora" %}</th><th scope="col">{% translate "Què" %}</th><th scope="col">{% translate "Lloc" %}</th></tr></thead>
+      <tbody>
+        {% for block in activity.blocks %}
+          <tr>
+            <th scope="row">{{ block.starts_at|time:"H:i" }}{% if block.ends_at %}–{{ block.ends_at|time:"H:i" }}{% endif %}</th>
+            <td data-etiqueta="{% translate 'Què' %}">{{ block.label }}{% if block.responsible_label %} <span class="text-2">({{ block.responsible_label }})</span>{% endif %}</td>
+            <td data-etiqueta="{% translate 'Lloc' %}">{{ block.place|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <p class="enllacos"><a href="{% url 'activities:public_list' %}">{% translate "Totes les activitats" %}</a></p>
+{% endblock %}
