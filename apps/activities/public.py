@@ -21,9 +21,9 @@ models del 02.
 - Les sessions cancel·lades no surten.
 
 **Fora d'aquesta peça:** les places lliures (cal comptar inscripcions: T-M02-12), el preu «que
-et correspon» segons si ets soci i el botó d'inscriure's (T-M02-11 i T-M02-14), l'enllaç per
-defecte a la previsió (ajust `activities.marine_forecast_url`, T-M02-28) i l'enllaç al butlletí
-quan no hi ha cap activitat (mòdul 07).
+et correspon» segons si ets soci i el botó d'inscriure's (T-M02-11 i T-M02-14) i l'enllaç al
+butlletí quan no hi ha cap activitat (mòdul 07). Una sortida sense enllaç propi a la previsió fa
+servir el de l'ajust `activities.marine_forecast_url` (VC-25, RN-M02-24; T-M02-28b).
 """
 
 import datetime
@@ -31,12 +31,14 @@ from dataclasses import dataclass, field
 
 from django.utils import timezone
 
+from apps.core import business_settings
 from apps.core.charges import euros
 
 from .models import Activity
 
 S = Activity.Status
 PUBLIC_STATUSES = (S.OPEN, S.REGISTRATION_CLOSED, S.IN_PROGRESS)
+FORECAST_KEY = "activities.marine_forecast_url"  # VC-25
 
 
 class NotFound(Exception):
@@ -139,10 +141,17 @@ def _data(activity, *, detail: bool) -> PublicActivity:
         licence_required=activity.licence_required,
         registration_open=activity.status == S.OPEN,
         registration_closes_at=activity.registration_closes_at,
-        forecast_url=activity.forecast_url if activity.kind == Activity.Kind.OUTING else "",
+        forecast_url=_forecast_url(activity),
         sessions=sessions,
         blocks=blocks,
     )
+
+
+def _forecast_url(activity) -> str:
+    """RN-M02-24: només per a les sortides; la de la sortida o, si no en té, la de l'ajust."""
+    if activity.kind != Activity.Kind.OUTING:
+        return ""
+    return activity.forecast_url or business_settings.get(FORECAST_KEY)
 
 
 def public_list(*, kind: str = "", today=None) -> list[PublicActivity]:
