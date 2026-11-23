@@ -30,8 +30,11 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.models import AccountRole, Person, Role
+from apps.licences import services as licences
+from apps.licences.models import LicenceType
+from apps.members import services as members
 
 from . import permissions, states
 from .models import Activity, Place, ProgrammeBlock, Session
@@ -99,6 +102,49 @@ def instructor_people():
     )
 
 
+INSTRUCTOR_MODE_KEY = "activities.instructor_requirements_mode"  # VC-46
+
+
+def instructor_problems(person, day) -> list[str]:
+    """RN-M02-26: què li falta a `person` per fer classe el dia `day` (buit si no li falta res):
+    ser soci actiu i tenir la llicència tècnica vigent. Mai la categoria ni el número."""
+    problems = []
+    if not members.is_member(person, on=day):
+        problems.append(_("no és soci actiu"))
+    info = licences.current(person, day)
+    technical = info is not None and info.category == LicenceType.Category.TECHNICAL
+    if not technical or info.status != licences.CurrentStatus.ACTIVE:
+        problems.append(_("no té llicència tècnica vigent"))
+    return problems
+
+
+def _check_requirements(people, starts_at) -> None:
+    """Amb el mode «bloqueig» (VC-46) no s'assigna qui no compleix RN-M02-26; amb «avís»,
+    s'assigna i `instructor_warnings` ho marca al responsable."""
+    if business_settings.get(INSTRUCTOR_MODE_KEY) != "block":
+        return
+    day = timezone.localdate(starts_at)
+    failing = [p for p in people if instructor_problems(p, day)]
+    if failing:
+        names = ", ".join(f"{p.first_name} {p.last_name}".strip() for p in failing)
+        raise ValidationError(
+            _("No compleixen els requisits per fer classe (soci actiu i llicència tècnica "
+              "vigent): %(names)s.") % {"names": names}
+        )  # fmt: skip
+
+
+def instructor_warnings(session) -> dict[int, list[str]]:
+    """Els instructors de la sessió que no compleixen RN-M02-26 el dia de la sessió, també si
+    han deixat de complir-ho després d'assignar-los (la sessió surt marcada al responsable)."""
+    day = timezone.localdate(session.starts_at)
+    out = {}
+    for person in session.instructors.all():
+        problems = instructor_problems(person, day)
+        if problems:
+            out[person.pk] = problems
+    return out
+
+
 def _instructors(people) -> list[Person]:
     people = list(people or ())
     if any(not isinstance(person, Person) for person in people):
@@ -139,6 +185,7 @@ def add_session(
     if data["ends_at"] <= data["starts_at"]:
         raise ValidationError(_("La sessió ha d'acabar després de començar."))
     people = _instructors(instructors)
+    _check_requirements(people, data["starts_at"])
     session = Session.objects.create(activity=locked, place=place, **data)
     session.instructors.set(people)
     audit.record(
@@ -205,6 +252,7 @@ def set_instructors(session, people, *, by, request=None) -> bool:
     permissions.require(by, permissions.MANAGE)
     locked = _live(session)
     people = _instructors(people)
+    _check_requirements(people, locked.starts_at)
     before = set(locked.instructors.values_list("pk", flat=True))
     after = {person.pk for person in people}
     if before == after:

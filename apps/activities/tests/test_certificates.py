@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.http import Http404
 
-from apps.activities import catalogue, certificates, enrolment, sessions, states
+from apps.activities import catalogue, certificates, certifications, enrolment, sessions, states
 from apps.activities.models import CourseOutcome, DiverCertification, Enrolment, Session
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
@@ -86,6 +86,8 @@ def test_rn_m02_31_issuing_creates_the_club_certification_linked_to_the_outcome(
     assert (cert.certificate_number, cert.issued_on, cert.instructor) == (
         "C-2027-0001", DAY, course.teacher.person,
     )  # fmt: skip
+    # CA-M02-33: compta també en mode «bloqueig» (RN-M02-30), sense verificar.
+    assert cert.verified_by_id is None and certifications.counts(cert, "block")
 
 
 def test_numbers_follow_per_year(course):

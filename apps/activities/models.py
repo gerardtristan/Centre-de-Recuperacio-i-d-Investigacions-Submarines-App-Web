@@ -551,6 +551,16 @@ class Session(models.Model):
         Person, blank=True, related_name="taught_sessions", verbose_name=_("instructors")
     )
     is_practice = models.BooleanField(_("és una pràctica"), default=False)
+    # Si no és buit, és una classe de reforç només d'aquell alumne (T-M02-18; RN-M02-14): no
+    # forma part de l'horari del grup ni es copia en duplicar.
+    reinforcement_for = models.ForeignKey(
+        "activities.Enrolment",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="reinforcement_sessions",
+        verbose_name=_("reforç de"),
+    )
     cancelled = models.BooleanField(_("cancel·lada"), default=False)
     cancellation_reason = models.TextField(_("motiu de la cancel·lació"), blank=True)
 
@@ -761,6 +771,39 @@ class DiverCertification(models.Model):
     @property
     def is_verified(self) -> bool:
         return self.verified_by_id is not None
+
+
+class EnvironmentalResult(models.Model):
+    """Resultats d'una sortida de medi ambient (T-M02-20; M02-6; P-M02-G; S-M02-14): residus,
+    espècies observades i observacions. Un per sortida. No es publica enlloc des del 02
+    (RN-M02-23). Les fotos encara no existeixen (vegeu `environment.py`)."""
+
+    activity = models.OneToOneField(
+        Activity,
+        on_delete=models.PROTECT,
+        related_name="environmental_result",
+        verbose_name=_("sortida"),
+    )
+    # Els quilos s'escriuen amb decimals i es desen en grams (enter).
+    waste_grams = models.PositiveIntegerField(_("residus recollits (grams)"), null=True, blank=True)
+    # Una espècie per línia.
+    species = models.TextField(_("espècies observades"), blank=True)
+    # Sense dades de salut (RN-M02-17).
+    observations = models.TextField(_("observacions"), blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("registrat per"),
+    )
+    recorded_at = models.DateTimeField(_("registrat el"))
+
+    class Meta:
+        verbose_name = _("resultats ambientals")
+        verbose_name_plural = _("resultats ambientals")
+
+    def __str__(self):
+        return str(self.activity)
 
 
 class Enrolment(models.Model):
@@ -1042,6 +1085,78 @@ class Incident(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.activity}"
+
+
+class ReinforcementRequest(models.Model):
+    """Proposta de classes de reforç per a un alumne (T-M02-18; M02-6; P-M02-F passos 2 a 4;
+    RN-M02-15). L'instructor la proposa i el responsable la confirma o la rebutja. El motiu és
+    pedagògic: sense dades de salut (RN-M02-17)."""
+
+    class Status(models.TextChoices):
+        PROPOSED = "proposed", _("Proposada")
+        CONFIRMED = "confirmed", _("Confirmada")
+        REJECTED = "rejected", _("Rebutjada")
+
+    enrolment = models.ForeignKey(
+        Enrolment,
+        on_delete=models.PROTECT,
+        related_name="reinforcement_requests",
+        verbose_name=_("inscripció"),
+    )
+    proposed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("proposada per"),
+    )
+    classes = models.PositiveSmallIntegerField(_("classes proposades"))
+    reason = models.TextField(_("motiu"), max_length=500)
+    status = models.CharField(
+        _("estat"), max_length=10, choices=Status.choices, default=Status.PROPOSED
+    )
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("resolta per"),
+    )
+    decided_at = models.DateTimeField(_("resolta el"), null=True, blank=True)
+    decision_reason = models.TextField(_("motiu de la resolució"), blank=True)
+    # El preu de la proposta en confirmar-la (RN-M02-15) i el seu càrrec, si no és 0.
+    price_cents = models.PositiveIntegerField(_("preu (cèntims)"), null=True, blank=True)
+    charge = models.ForeignKey(
+        "core.Charge",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("càrrec"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("proposta de reforç")
+        verbose_name_plural = _("propostes de reforç")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(classes__gte=1) & Q(classes__lte=10),
+                name="reinforcement_classes_1_to_10",
+            ),
+            models.UniqueConstraint(
+                fields=["enrolment"],
+                condition=Q(status="proposed"),
+                name="reinforcement_one_open_per_enrolment",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="rejected") | ~Q(decision_reason=""),
+                name="reinforcement_rejected_needs_reason",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.enrolment_id} · {self.get_status_display()}"
 
 
 class PracticeAssessment(models.Model):
