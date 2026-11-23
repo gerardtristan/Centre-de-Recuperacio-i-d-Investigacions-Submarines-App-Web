@@ -14,6 +14,7 @@
     <div><dt>{% translate "Preu de soci d'avui" %}</dt><dd><span class="import">{{ current.member }}</span></dd></div>
     <div><dt>{% translate "Preu de no soci d'avui" %}</dt><dd><span class="import">{{ current.non_member }}</span></dd></div>
     <div><dt>{% translate "Preu d'una classe de reforç" %}</dt><dd>{% if current.reinforcement %}<span class="import">{{ current.reinforcement }}</span>{% else %}—{% endif %}</dd></div>
+    {% if first_licence %}<div><dt>{% translate "Inclou la primera llicència" %}</dt><dd>{% if current.includes_first_licence %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</dd></div>{% endif %}
   </dl>
   <form method="post" class="accions">
     {% csrf_token %}
@@ -44,6 +45,7 @@
         <th scope="col" class="cel-import">{% translate "Soci" %}</th>
         <th scope="col" class="cel-import">{% translate "No soci" %}</th>
         <th scope="col" class="cel-import">{% translate "Reforç" %}</th>
+        {% if first_licence %}<th scope="col">{% translate "Primera llicència" %}</th>{% endif %}
         <th scope="col">{% translate "Motiu" %}</th>
       </tr>
     </thead>
@@ -54,6 +56,7 @@
           <td data-etiqueta="{% translate 'Soci' %}" class="cel-import"><span class="import">{{ version.member }}</span></td>
           <td data-etiqueta="{% translate 'No soci' %}" class="cel-import"><span class="import">{{ version.non_member }}</span></td>
           <td data-etiqueta="{% translate 'Reforç' %}" class="cel-import">{% if version.reinforcement %}<span class="import">{{ version.reinforcement }}</span>{% else %}—{% endif %}</td>
+          {% if first_licence %}<td data-etiqueta="{% translate 'Primera llicència' %}">{% if version.includes_first_licence %}{% translate "Inclosa" %}{% else %}{% translate "No inclosa" %}{% endif %}</td>{% endif %}
           <td data-etiqueta="{% translate 'Motiu' %}">{{ version.row.note }}</td>
         </tr>
       {% endfor %}
