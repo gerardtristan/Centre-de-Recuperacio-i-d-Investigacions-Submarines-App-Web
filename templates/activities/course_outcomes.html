@@ -1,0 +1,60 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-19b (P-M02-F passos 5 i 6; AC12 i AC13; CA-M02-19): resultats del curs. Qui hi fa classe posa apte o no apte (amb motiu); qui té AC13 emet el certificat d'un apte. Els formularis surten segons el permís, però el servidor ho torna a comprovar i ningú no es posa apte a si mateix. Dels alumnes, només el nom; el motiu del «no apte» és pedagògic, mai de salut. #}
+{% block title %}{% translate "Resultats del curs" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Resultats del curs" %}</p>
+    <h1>{{ activity.title }}</h1>
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% for row, outcome in rows %}
+    <section class="targeta" aria-labelledby="alumne-{{ row.pk }}">
+      <h2 id="alumne-{{ row.pk }}">{{ row.person.first_name }} {{ row.person.last_name }}</h2>
+      <p>
+        {% if outcome.result == "pass" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Apte" %}</span>
+        {% elif outcome.result == "fail" %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No apte" %}</span>
+        {% else %}<span class="estat estat-info"><span aria-hidden="true">●</span> {% translate "Sense resultat" %}</span>{% endif %}
+        {% if outcome.certificate_number %} <span class="codi">{{ outcome.certificate_number }}</span>{% endif %}
+      </p>
+      {% if outcome.reason %}<p class="text-2">{{ outcome.reason }}</p>{% endif %}
+      {% if can_decide and not outcome.certificate_number %}
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="inscripcio" value="{{ row.pk }}">
+          <fieldset>
+            <legend>{% translate "Resultat" %}</legend>
+            <div class="segmentat">
+              {% for value, label in results %}<label><input class="visualment-amagat" type="radio" name="resultat" value="{{ value }}"{% if outcome.result == value %} checked{% endif %}><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ label }}</span></label>{% endfor %}
+            </div>
+          </fieldset>
+          <div class="camp">
+            <label for="motiu-{{ row.pk }}">{% translate "Motiu (obligatori si no és apte)" %}</label>
+            <textarea id="motiu-{{ row.pk }}" name="motiu" rows="2" aria-describedby="motiu-ajuda-{{ row.pk }}">{{ outcome.reason|default:"" }}</textarea>
+            <p class="ajuda" id="motiu-ajuda-{{ row.pk }}">{% translate "Pedagògic. Sense dades de salut." %}</p>
+          </div>
+          <div class="accions"><button class="boto" type="submit">{% translate "Desa el resultat" %}</button></div>
+        </form>
+      {% endif %}
+      {% if can_issue and outcome.result == "pass" %}
+        {% if outcome.certificate_number %}
+          <p class="enllacos"><a href="{% url 'administration:course_certificate' activity.pk row.pk %}">{% translate "Mostra el certificat" %}</a></p>
+        {% else %}
+          <form class="formulari" method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="inscripcio" value="{{ row.pk }}">
+            {% if needs_level %}
+              <div class="camp">
+                <label for="nivell-{{ row.pk }}">{% translate "Nivell que dona el curs" %}</label>
+                <select id="nivell-{{ row.pk }}" name="nivell"><option value="">{% translate "Tria…" %}</option>{% for level in levels %}<option value="{{ level.pk }}">{{ level.name }}</option>{% endfor %}</select>
+              </div>
+            {% endif %}
+            <div class="accions"><button class="boto boto-principal" type="submit" name="emet" value="1">{% translate "Emet el certificat" %}</button></div>
+          </form>
+        {% endif %}
+      {% endif %}
+    </section>
+  {% empty %}
+    <p>{% translate "Cap alumne confirmat." %}</p>
+  {% endfor %}
+{% endblock %}

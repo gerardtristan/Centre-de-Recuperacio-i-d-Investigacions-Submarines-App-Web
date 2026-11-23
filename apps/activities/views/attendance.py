@@ -22,7 +22,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .. import attendance
 from ..models import Activity, Enrolment, Incident, Session
-from ..permissions import ASSESSMENT, ATTENDANCE, can, sessions_for
+from ..permissions import ASSESSMENT, ATTENDANCE, CERTIFICATE, OUTCOME, can, sessions_for
 from . import see_other
 
 LIST_LIMIT = 20  # shortcut: les 20 primeres d'avui endavant; si en calen més, paginar
@@ -127,5 +127,8 @@ def roll_view(request, pk, session_pk=None):
         "incident_help": attendance.INCIDENT_HELP,
         # T-M02-17b: l'enllaç al full d'avaluació, només per a qui hi fa classe (AC10a).
         "can_assess": session is not None and can(request.user, ASSESSMENT, session, write=False),
+        # T-M02-19b: els resultats del curs, per a qui hi fa classe (AC12) o té AC13.
+        "can_outcomes": activity.kind == Activity.Kind.COURSE
+        and (can(request.user, OUTCOME, activity) or can(request.user, CERTIFICATE)),
     }
     return render(request, "activities/attendance_roll.html", context)
