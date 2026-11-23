@@ -11,7 +11,11 @@ fa classe** i les **activitats de què és responsable**.
   conserven. Les activitats de què era responsable no es reassignen soles: el resum de qui aprova
   l'esborrat ho diu. Treure-la de les sessions futures on feia classe és de la T-M02-04 (decisió
   101).
-- Quan hi hagi inscripcions i assistència (T-M02-11 i següents), s'hi afegiran (L-M02-07).
+- **Inscripcions i assistència** (T-M02-16c; L-M02-07): a l'exportació, les seves inscripcions
+  (activitat, estat, canal, preu, data i motiu de la cancel·lació) i la seva assistència (activitat,
+  dia i si hi era). En anonimitzar, el motiu de la cancel·lació (text lliure, que pot dir alguna
+  cosa de la persona) se substitueix per un text neutre; l'estat, el preu i l'assistència es
+  queden.
 """
 
 from django.utils.translation import gettext as _
@@ -20,7 +24,16 @@ from django.utils.translation import ngettext
 from apps.core import audit
 
 from . import states
-from .models import Activity, DiverCertification, PracticeAssessment, ReinforcementRequest, Session
+from .attendance import day_of
+from .models import (
+    Activity,
+    Attendance,
+    DiverCertification,
+    Enrolment,
+    PracticeAssessment,
+    ReinforcementRequest,
+    Session,
+)
 
 CERTIFICATION_ANONYMISED = "activities.certification.anonymised"
 
@@ -74,6 +87,30 @@ def export(person) -> dict:
             .select_related("enrolment__activity")
             .order_by("created_at", "pk")
         ],  # fmt: skip
+        # T-M02-16c: les seves inscripcions i la seva assistència, sense cap altra persona.
+        "inscripcions": [
+            {
+                "activitat": e.activity.title,
+                "estat": e.get_status_display(),
+                "canal": e.get_channel_display(),
+                "preu_centims": e.price_cents,
+                "inscrita_el": e.created_at,
+                "motiu_de_la_cancellacio": e.cancelled_reason,
+            }
+            for e in Enrolment.objects.filter(person=person)
+            .select_related("activity")
+            .order_by("created_at", "pk")
+        ],  # fmt: skip
+        "assistencia": [
+            {
+                "activitat": a.enrolment.activity.title,
+                "dia": day_of(a.enrolment.activity, a.session),
+                "hi_era": a.present,
+            }
+            for a in Attendance.objects.filter(enrolment__person=person)
+            .select_related("enrolment__activity", "session")
+            .order_by("enrolment__activity__starts_on", "session__starts_at", "pk")
+        ],  # fmt: skip
         "activitats_de_que_es_responsable": [
             {"activitat": a.title, "data_d_inici": a.starts_on, "estat": a.get_status_display()}
             for a in Activity.objects.filter(responsible=person)
@@ -113,6 +150,11 @@ def describe(person) -> list[str]:
 
 
 def anonymise(person, *, by, request=None) -> None:
+    # T-M02-16c: el motiu de la cancel·lació és text lliure; l'estat i el preu es queden. Una
+    # inscripció cancel·lada ha de tenir motiu (restricció de la base de dades): un text neutre.
+    Enrolment.objects.filter(person=person).exclude(cancelled_reason="").update(
+        cancelled_reason=_("Esborrat RGPD de la persona.")
+    )
     # T-M02-17: l'observació pot dir alguna cosa de la persona; el resultat es queda.
     PracticeAssessment.objects.filter(enrolment__person=person).exclude(notes="").update(notes="")
     # T-M02-18: el motiu del reforç també pot dir alguna cosa de la persona.

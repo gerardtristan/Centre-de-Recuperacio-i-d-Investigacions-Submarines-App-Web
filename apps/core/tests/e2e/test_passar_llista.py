@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect
 
-from apps.activities.models import Attendance
+from apps.activities import certificates
+from apps.activities.models import Attendance, CertificationLevel, PracticeAssessment, Session
 from apps.activities.tests.helpers import a_course
 from apps.activities.tests.test_attendance import a_session, enrolled, opened
 
@@ -42,3 +43,47 @@ def test_the_instructor_marks_offline_and_it_is_sent_later(
     expect(page.locator("[data-estat]").get_by_text("Hi és")).to_be_visible()
     review("passar-llista")
     assert Attendance.objects.get(session=session).present is True
+
+
+def test_the_instructor_assesses_a_practice(page, live_server, transactional_db, review):
+    manager = make_admin("cursos.prova", "courses_manager")
+    teacher = make_admin("instructor.prova", "instructor")
+    activity = opened(a_course(manager))
+    session = a_session(manager, activity, timezone.localdate(), teacher.person)
+    Session.objects.filter(pk=session.pk).update(is_practice=True)
+    enrolled(activity, "Alumna")
+    login_admin(page, live_server.url, teacher.login)
+
+    roll = reverse("administration:attendance_roll_session", args=[activity.pk, session.pk])
+    page.goto(f"{live_server.url}{roll}")
+    page.get_by_role("link", name="Avalua la pràctica").click()
+    expect(page.get_by_role("heading", name="Alumna Prova")).to_be_visible()
+    page.get_by_text("Necessita reforç").click()
+    page.get_by_label("Observació").fill("Cal practicar la flotabilitat.")
+    review("avaluacio-formulari")
+    page.get_by_role("button", name="Desa l'avaluació").click()
+    expect(page.get_by_text("Avaluació desada.")).to_be_visible()
+    review("avaluacio")
+    assert PracticeAssessment.objects.get().result == "needs_reinforcement"
+
+
+def test_the_manager_issues_a_certificate(page, live_server, transactional_db, review):
+    manager = make_admin("cursos.prova", "courses_manager")
+    teacher = make_admin("instructor.prova", "instructor")
+    activity = opened(a_course(manager))
+    a_session(manager, activity, timezone.localdate(), teacher.person)
+    student = enrolled(activity, "Alumna")
+    certificates.record_outcome(student, result="pass", by=teacher)
+    CertificationLevel.objects.create(name="Nivell inventat", rank=99)
+    login_admin(page, live_server.url, manager.login)
+
+    page.goto(f"{live_server.url}{reverse('administration:course_outcomes', args=[activity.pk])}")
+    level = page.get_by_label("Nivell que dona el curs")
+    if level.count():
+        level.select_option(label="Nivell inventat")
+    review("resultats-curs")
+    page.get_by_role("button", name="Emet el certificat").click()
+    expect(page.get_by_text("Certificat emès.")).to_be_visible()
+    page.get_by_role("link", name="Mostra el certificat").click()
+    expect(page.get_by_role("heading", name="Certificat de curs")).to_be_visible()
+    review("certificat")
