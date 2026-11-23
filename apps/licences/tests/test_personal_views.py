@@ -36,10 +36,10 @@ def client_of(login_as, make_person):
 
 
 @pytest.fixture
-def priced(annual, admin_account):
+def priced(annual, price_setter):
     prices.add_price(annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
                      valid_from=datetime.date(2020, 1, 1), note="Tarifa inventada",
-                     actor=admin_account)  # fmt: skip
+                     actor=price_setter)  # fmt: skip
     return annual
 
 

@@ -8,7 +8,8 @@
   tresorer, a la junta i a la secretaria (RN-M06-08, RN-AJ-04). Les llicències ja demanades
   porten la seva còpia del preu i no canvien.
 
-El permís (LC8) el comprova la vista que crida `add_price` (T-M06-02, part de vistes).
+`add_price` demana LC8 amb «Sí» (com `types`); sense, «no trobat» (T-M06-25). La vista també ho
+comprova abans.
 """
 
 import datetime
@@ -23,6 +24,7 @@ from apps.core import audit, business_settings, mail
 from apps.core.charges import euros
 from apps.core.models import Role
 
+from . import types
 from .models import LicencePrice, LicenceType, ValidityRule
 
 ACTION_PRICE_ADDED = "licences.price_added"
@@ -114,6 +116,7 @@ def add_price(
 ) -> LicencePrice:
     """Crea una versió de preu. No hi ha cap preu de soci a part: és el de la federació
     (RN-M06-05, CA-M06-04)."""
+    types.require(actor)
     note = (note or "").strip()
     if not note:
         raise ValidationError(_("Cal una nota per canviar un preu."))

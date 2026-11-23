@@ -38,6 +38,7 @@ def deliver_all():
 @pytest.mark.django_db
 def test_f2_1_request_pay_file_activate_remind_and_renew(
     make_admin,  # noqa: F811
+    price_setter,
     annual,
     login_as,
 ):
@@ -54,7 +55,7 @@ def test_f2_1_request_pay_file_activate_remind_and_renew(
     login.save()
     prices.add_price(
         annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
-        valid_from=D(2020, 1, 1), note="Tarifa inventada", actor=secretary,
+        valid_from=D(2020, 1, 1), note="Tarifa inventada", actor=price_setter,
     )  # fmt: skip
 
     # 1. Demanar-la (soci) i pagar-la amb targeta pel proveïdor fictici.

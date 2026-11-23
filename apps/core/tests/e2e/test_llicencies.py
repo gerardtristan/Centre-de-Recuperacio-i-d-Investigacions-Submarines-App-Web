@@ -125,7 +125,8 @@ def test_member_requests_a_licence_and_registers_one(page, live_server, builder,
     )
     prices.add_price(
         annual, federation_cost_cents=9000, non_member_surcharge_cents=2000,
-        valid_from=D(2020, 1, 1), note="Tarifa inventada", actor=builder.secretary,
+        valid_from=D(2020, 1, 1), note="Tarifa inventada",
+        actor=make_admin("tresoreria.preus", "treasurer"),
     )  # fmt: skip
     login_personal(page, live_server.url, builder.personal(member.person))
     page.goto(f"{live_server.url}{reverse('members:profile')}")

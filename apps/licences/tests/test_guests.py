@@ -35,14 +35,14 @@ def privacy(db):
 
 
 @pytest.fixture
-def priced(annual, admin_account):
+def priced(annual, price_setter):
     prices.add_price(
         annual,
         federation_cost_cents=9000,
         non_member_surcharge_cents=2000,
         valid_from=D(2020, 1, 1),
         note="Tarifa inventada",
-        actor=admin_account,
+        actor=price_setter,
     )
     return annual
 
