@@ -1,6 +1,6 @@
 # Guia del responsable de material
 
-**Per a qui és:** el responsable de material (i qui l'ajuda: responsable de cursos i sortides, instructors). **Estat:** esborrany de la T-M03-21 [A validar: responsable de material]. Està escrita a partir dels serveis que ja funcionen; **les pantalles del material encara no estan fetes** i aquesta guia es completarà amb els noms dels botons quan hi siguin. Les regles són al [pla, secció M03](../planning.md#M03-5-processos) i les [regles de negoci](../planning.md#M03-7-regles).
+**Per a qui és:** el responsable de material (i qui l'ajuda: responsable de cursos i sortides, instructors). **Estat:** esborrany de la T-M03-21 [A validar: responsable de material]. Està escrita a partir dels serveis que ja funcionen. De les pantalles del material, ja hi ha els informes i el cost d'ús (secció 8 i 10); la resta (inventari, assignació, lliurament i retorn) encara no hi és, i la guia es completarà quan hi siguin. Els noms del menú són provisionals. Les regles són al [pla, secció M03](../planning.md#M03-5-processos) i les [regles de negoci](../planning.md#M03-7-regles).
 
 ## 1. Què fa la plataforma amb el material
 - Porta l'**inventari** de les peces del club (codi `MAT-NNNN`, tipus, talla o litres, propera revisió) i el seu historial.
@@ -48,12 +48,18 @@ Cada fitxa de curs o tipus de sortida té el seu **material típic** (per exempl
 ## 7. Revisions
 Les ampolles i els reguladors porten la data de la propera revisió (la posa el responsable segons la normativa o el fabricant). La plataforma llista les peces amb la revisió dins dels dies de l'ajust (d'entrada, 30 [A validar: junta, S-M03-06]) o ja vençuda. En enviar una peça a revisió passa a «en revisió»; en tornar, es registra el resultat: correcta (torna disponible amb la data nova) o fallida (de baixa amb el motiu).
 
-**Encara no està fet:** l'avís diari per correu i a l'app (necessita una plantilla i una tasca de la cua del nucli).
+**Avís diari:** cada matí, si hi ha peces amb la revisió a prop o vençuda, rebràs un correu amb el codi, el tipus i la data de cada una (cal que el teu compte tingui un correu de notificació). **Encara no està fet:** l'avís a l'app.
 
 ## 8. Informes
-- Cost de material d'una activitat (per participant, sense noms).
-- Material més fet servir en un període, per tipus i origen.
-- Revisions properes.
+Al menú de l'administració, **Activitats › Material: informes**. Cada bloc surt només si el teu rol el pot veure:
+- **Material més usat:** tria les dates a «Des del» i «Fins al» i prem **Mostra**. Hi surt, per tipus i origen (del club, llogat o propi), quantes vegades s'ha fet servir. **Descarrega el CSV** baixa la mateixa taula.
+- **Revisions properes:** les peces amb la revisió dins dels dies de l'ajust o vençuda (marcades «Vençuda»).
+- **Cost de material per activitat:** les activitats amb material que pots veure; en triar-ne una, el cost d'ús del material del club, el cost i el preu dels lloguers, el marge dels lloguers i el cost per número d'inscripció (sense noms), amb el seu CSV.
+
+**Imprimeix** obre la impressió del navegador (també es pot desar com a PDF); els formularis i els botons no surten al paper.
 
 ## 9. Càrrega inicial de l'inventari
 **Encara no està fet** (T-M03-17): es farà amb la importació de la plataforma (pujar un CSV, validar sense escriure res, confirmar i, si cal, desfer). Fins aleshores, les peces es donen d'alta una a una. En proves, només amb dades inventades.
+
+## 10. Cost d'ús del material del club
+Al menú, **Ajustos › Material: cost d'ús**. Per a cada tipus, quant costa al club cada dia que es fa servir una peça seva (d'entrada, 0) i el proper canvi, si n'hi ha. El veu qui veu l'apartat «Material» dels ajustos; el canvia el tresorer: tria el tipus, escriu el cost per dia en euros, la data **Vigent des del** (no anterior a avui) i una **Nota**, i prem **Desa el cost**. El canvi queda al registre, avisa el tresorer i la junta i no toca les assignacions ja fetes.
