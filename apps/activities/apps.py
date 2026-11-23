@@ -36,6 +36,11 @@ class ActivitiesConfig(AppConfig):
         business_settings.register_check(
             catalogue.HOMOLOGATION_DEPARTMENT_KEY, catalogue.check_homologation_department
         )
+        from . import filings  # P-530: el tipus de la primera llicència inclosa
+
+        business_settings.register_check(
+            filings.FIRST_LICENCE_TYPE_KEY, filings.check_first_licence_type
+        )
 
         # T-M02-04b (L-M02-05; decisió 101): qui perd el rol d'instructor surt de les sessions
         # futures, dins la mateixa transacció i a nom de qui ha retirat el rol.

@@ -381,6 +381,16 @@ class CataloguePriceForm(PlacePriceForm):
     reinforcement_price_cents = EuroField(label=_("Preu d'una classe de reforç"), required=False)
     field_order = catalogue.PRICE_FIELDS
 
+    def __init__(self, data=None, *, entry=None, user=None):
+        super().__init__(data)
+        # RN-M02-57 (T-M02-50b): el camp només surt amb AC28; sense, la versió conserva l'anterior.
+        if entry is not None and permissions.can(user, permissions.FIRST_LICENCE_MANAGE):
+            self.fields["includes_first_licence"] = forms.BooleanField(
+                label=_("El preu inclou la primera llicència de l'alumne"), required=False,
+                initial=entry.official_level_id is not None,
+                help_text=_("Proposat «sí» si la fitxa té nivell oficial (primera estrella)."),
+            )  # fmt: skip
+
 
 class EntryForm(forms.ModelForm):
     """Fitxa del catàleg: nova (amb el catàleg i els preus inicials) o les dades que no són preus.

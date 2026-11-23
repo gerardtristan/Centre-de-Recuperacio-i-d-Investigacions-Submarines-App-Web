@@ -18,6 +18,12 @@ RN-M02-50, 51, 53 i 55; CA-M02-53 i 54).
   gratuïtes encara que algú encengui VC-59 (conservador, D2). «Titulacions i llicències per
   tramitar» (`course_pending`) diu si la persona té llicència (`licences.current`) o «Cal
   llicència» (RN-M06-28).
+- **Primera llicència** (RN-M02-58, RN-M06-28; T-M02-51a): si el curs la inclou
+  (`includes_first_licence`), en obrir la tramitació es crea la llicència `paid` a preu 0
+  (`licences.first.grant_included`) del tipus de l'ajust `licences.first_licence_type` (P-530).
+  Mentre l'ajust és buit no es crea res i la llista ho diu, sense cap camí amb càrrec. Si no la
+  inclou, `request_first_licence` la demana amb el càrrec habitual; per a un curs que la inclou,
+  es rebutja (mai dos cobraments).
 - **Llistat per a la federació** (`federation_csv`, AC26): CSV provisional de les tramitacions
   `requested` d'un tipus, sense cap foto ni document d'identitat. No es desa; l'exportació queda
   al registre amb l'empremta (com RN-M06-11). Format definitiu: P-444.
@@ -37,9 +43,12 @@ from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings
-from apps.licences import services as licences
+from apps.core.models import AuditEntry
+from apps.licences import first
+from apps.licences.models import LicenceType
+from apps.licences.services import LicenceRequestError
 
-from . import catalogue, permissions
+from . import catalogue, extensions, permissions
 from .models import CertificationFiling, CertificationLevel, DiverCertification
 
 F = CertificationFiling
@@ -49,6 +58,8 @@ FEE_KEYS = {
     F.Kind.HOMOLOGATION: "activities.homologation_fee_cents",  # VC-58
     F.Kind.COURSE: "activities.course_filing_fee_cents",
 }
+FIRST_LICENCE_TYPE_KEY = "licences.first_licence_type"  # P-530: buit fins que es triï
+COST_NOT_PLANNED = "activities.filing.licence_cost_not_planned"  # RN-M02-59: avís al tresorer
 REQUESTED = "activities.filing.requested"
 STATUS_CHANGED = "activities.filing.status_changed"
 EXPORTED = "activities.filing.exported"
@@ -121,17 +132,69 @@ def open_course_filing(outcome, certification, *, by, request=None) -> Certifica
         REQUESTED, actor=by, target=filing,
         details={"kind": filing.kind, "course_outcome": outcome.pk}, request=request,
     )  # fmt: skip
+    activity, licence_type = outcome.enrolment.activity, included_licence_type()
+    if activity.includes_first_licence and licence_type is not None:
+        try:
+            first.grant_included(filing, licence_type, actor=by)
+        except LicenceRequestError:
+            return filing  # ja en té una de vigent o en tràmit: no cal cap primera llicència
+        # RN-M02-59: el 09 hi suma el cost previst (o deixa COST_NOT_PLANNED al registre)
+        extensions.first_licence_included.send(
+            sender=CertificationFiling, activity=activity, filing=filing,
+            licence_type=licence_type, by=by,
+        )  # fmt: skip
     return filing
 
 
+def included_licence_type() -> LicenceType | None:
+    """El tipus de la primera llicència inclosa (P-530), o `None` mentre l'ajust és buit."""
+    name = business_settings.get(FIRST_LICENCE_TYPE_KEY)
+    return LicenceType.objects.filter(name=name, active=True).first() if name else None
+
+
+def check_first_licence_type(value) -> None:
+    """La comprovació de l'ajust (la registra `ActivitiesConfig.ready`): buit o un tipus actiu."""
+    if value and not LicenceType.objects.filter(name=value, active=True).exists():
+        raise ValidationError(_("Ha de ser el nom d'un tipus de llicència actiu."))
+
+
+def _includes(filing) -> bool:
+    outcome = filing.course_outcome
+    return outcome is not None and outcome.enrolment.activity.includes_first_licence
+
+
 def course_pending(*, by, today=None) -> list[dict]:
-    """«Titulacions i llicències per tramitar» (AC26): les tramitacions `course` obertes, amb la
-    llicència de la persona (`licence`, o `None`: «Cal llicència», RN-M06-28)."""
+    """«Titulacions i llicències per tramitar» (AC26): les tramitacions `course` obertes i, per a
+    cada una, l'estat de la primera llicència (`first.entry_status`: «Cal llicència» i si es pot
+    demanar). En un curs que la inclou, mai el camí amb càrrec; sense el tipus triat (P-530),
+    `type_missing` perquè la llista ho digui."""
     today = today or timezone.localdate()
-    return [
-        {"filing": filing, "licence": licences.current(filing.person, today)}
-        for filing in pending(F.Kind.COURSE, by=by).select_related("target_level")
-    ]
+    has_type = included_licence_type() is not None
+    unplanned = set(
+        AuditEntry.objects.filter(action=COST_NOT_PLANNED).values_list("target_id", flat=True)
+    )
+    rows = []
+    filings = pending(F.Kind.COURSE, by=by).select_related(
+        "target_level", "course_outcome__enrolment__activity"
+    )
+    for filing in filings:
+        status, included = first.entry_status(filing, today), _includes(filing)
+        missing = included and status.needs_licence and not has_type
+        rows.append({
+            "filing": filing, "needs_licence": status.needs_licence, "licence": status.licence,
+            "included": included, "type_missing": missing,
+            "can_request": status.can_request and not included,
+            "cost_not_planned": str(filing.pk) in unplanned,  # el tresorer registra la despesa
+        })  # fmt: skip
+    return rows
+
+
+def request_first_licence(filing, licence_type, *, by) -> object:
+    """«Demana la primera llicència» amb el càrrec habitual (RN-M06-28, no inclosa). Per a un curs
+    que la inclou es rebutja: mai dos cobraments (RN-M02-58). El permís (LC5) el comprova el 06."""
+    if _includes(filing):
+        raise ValidationError(_("La primera llicència és inclosa al curs: no es cobra a part."))
+    return first.request_first(filing, licence_type, actor=by)
 
 
 def _locked(filing, by):

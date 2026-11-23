@@ -28,13 +28,14 @@ from ..models import (
     RequirementsMode,
     TrainingCatalogueEntry,
 )
-from ..permissions import CATALOGUE
+from ..permissions import CATALOGUE, FIRST_LICENCE_VIEW, can
 from . import see_other
 
 
 def _prices(row) -> dict:
     reinforcement = row.reinforcement_price_cents
     return {
+        "includes_first_licence": getattr(row, "includes_first_licence", False),
         "member": euros(row.price_member_cents),
         "non_member": euros(row.price_non_member_cents),
         "reinforcement": None if reinforcement is None else euros(reinforcement),
@@ -135,7 +136,9 @@ def entry_detail_view(request, pk):
     entry = get_object_or_404(TrainingCatalogueEntry, pk=pk)
     post = request.POST if request.method == "POST" else None
     entry_form = EntryForm(post if post and "desa_fitxa" in post else None, entry=entry)
-    price_form = CataloguePriceForm(post if post and "nou_preu" in post else None)
+    price_form = CataloguePriceForm(
+        post if post and "nou_preu" in post else None, entry=entry, user=request.user
+    )
     if post is not None:
         if "activa" in post:
             active = post["activa"] == "1"
@@ -165,6 +168,7 @@ def entry_detail_view(request, pk):
             {"row": row, **_prices(row)} for row in entry.prices.order_by("-valid_from", "-pk")
         ],
         "entry_form": entry_form,
+        "first_licence": can(request.user, FIRST_LICENCE_VIEW),  # AC27 (RN-M02-57)
         "price_form": price_form,
         "today": today,
     }
