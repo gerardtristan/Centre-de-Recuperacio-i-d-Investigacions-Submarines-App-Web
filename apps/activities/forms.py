@@ -373,3 +373,37 @@ class PlacePriceForm(forms.Form):
     price_non_member_cents = EuroField(label=_("Preu de no soci"))
     valid_from = date_field(_("Vigent des del"), help_text=_("Avui o més endavant."))
     note = forms.CharField(label=_("Motiu del canvi"), widget=_text(2))
+
+
+class CataloguePriceForm(PlacePriceForm):
+    """Una versió nova dels preus d'una fitxa del catàleg, amb data i motiu (RN-M02-05)."""
+
+    reinforcement_price_cents = EuroField(label=_("Preu d'una classe de reforç"), required=False)
+    field_order = catalogue.PRICE_FIELDS
+
+
+class EntryForm(forms.ModelForm):
+    """Fitxa del catàleg: nova (amb el catàleg i els preus inicials) o les dades que no són preus.
+    Els serveis (`catalogue.create_entry` i `update_entry`) ho tornen a comprovar."""
+
+    price_member_cents = EuroField(label=_("Preu de soci"))
+    price_non_member_cents = EuroField(label=_("Preu de no soci"))
+    reinforcement_price_cents = EuroField(label=_("Preu d'una classe de reforç"), required=False)
+    NEW_ONLY = ("kind", *catalogue.PRICE_FIELDS)
+
+    class Meta:
+        model = TrainingCatalogueEntry
+        fields = ("kind", "name", *catalogue.PRICE_FIELDS, *catalogue.EDITABLE_FIELDS[1:])
+        widgets = {"description": _text(), "requirements": _text(3)}
+
+    def __init__(self, data=None, *, entry=None):
+        super().__init__(data, instance=entry)
+        if entry is not None:
+            for name in self.NEW_ONLY:
+                del self.fields[name]
+        self.fields["department"].queryset = _keep(
+            Department.objects.filter(active=True), Department, entry and entry.department_id
+        )
+
+    def _post_clean(self):
+        pass  # sense validar ni tocar el model: les regles són als serveis

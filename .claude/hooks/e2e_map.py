@@ -179,6 +179,11 @@ MAP = {
         "apps/activities/views/my_activities.py",
         "templates/activities/my_activities.html",
     ),
+    "test_activitats_cataleg.py": (
+        "apps/activities/views/admin_catalogue.py",
+        "apps/activities/forms.py",
+        "templates/activities/catalogue*.html",
+    ),
     "test_activitats_llocs.py": (
         "apps/activities/views/admin_places.py",
         "apps/activities/forms.py",

@@ -25,6 +25,7 @@ from .. import closing, enrolment, guests, material_cost, services, sessions, st
 from ..forms import ActivityForm, GuestEnrolmentForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
 from ..permissions import (
+    CATALOGUE,
     ENROL_IN_PERSON,
     MANAGE,
     MATERIAL_COST,
@@ -89,6 +90,7 @@ def activities_view(request):
         "kinds": (("", _("Cursos i sortides")), *K.choices),
         "filtered": bool(kind) or state != LIVE,
         "places_link": has_perm(request.user, PLACES_VIEW),
+        "catalogue_link": has_perm(request.user, CATALOGUE, write=True),
     }
     return render(request, "activities/activity_list.html", context)
 
