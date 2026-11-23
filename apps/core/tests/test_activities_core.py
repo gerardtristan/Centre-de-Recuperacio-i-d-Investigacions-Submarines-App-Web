@@ -6,6 +6,7 @@ import pytest
 
 from apps.core import consents, events
 from apps.core.models import Role
+from apps.core.permission_catalog import CATALOG
 from apps.core.permissions import has_perm, scope_for
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
@@ -111,3 +112,17 @@ def test_t_m02_30_only_the_courses_manager_edits_vc_46(make_admin, role):  # noq
     code = EDIT + "instructor_requirements_mode"
     assert has_perm(account, code, write=True) is (role == R.COURSES_MANAGER)
     assert business_settings.can_edit(account, setting) is (role == R.COURSES_MANAGER)
+
+
+@pytest.mark.parametrize("key", ["included_licence_expense_category", "homologation_department"])
+def test_t_m02_50_only_the_treasurer_edits_vc_60_and_61(make_admin, key):  # noqa: F811
+    for role in (R.COURSES_MANAGER, R.SECRETARY, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT):
+        account = make_admin(role)
+        assert has_perm(account, EDIT + key, write=True) is (role == R.TREASURER), (role, key)
+
+
+def test_t_m02_50_ac28_needs_ac27(make_admin):  # noqa: F811
+    secretary = make_admin(R.SECRETARY)
+    assert has_perm(secretary, "activities.first_licence.view")
+    assert not has_perm(secretary, "activities.first_licence.manage", write=True)
+    assert CATALOG["activities.first_licence.manage"].requires == ("activities.first_licence.view",)

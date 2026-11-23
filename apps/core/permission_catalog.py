@@ -1334,6 +1334,25 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
         touches_personal_data=True,
     ),
+    # Addenda de la 104 (T-M02-50; RN-M02-57): «Inclou la primera llicència» a les versions de
+    # preu del catàleg. Resposta provisional del propietari a P-426; falta el tresorer.
+    _perm(
+        "activities.first_licence.view",
+        "AC27",
+        _("Inclou la primera llicència: veure"),
+        initial=dict.fromkeys(
+            (R.SECRETARY, R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT), _ALL
+        ),
+        touches_money=True,
+    ),
+    _perm(
+        "activities.first_licence.manage",
+        "AC28",
+        _("Inclou la primera llicència: veure i editar"),
+        requires=("activities.first_licence.view",),  # RN-RP-03
+        initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
+        touches_money=True,
+    ),
     _perm(
         "activities.field.material_cost",
         "C7",
@@ -1612,6 +1631,22 @@ PERMISSIONS: tuple[Permission, ...] = (
         "settings.edit.activities.filing_fees_enabled",
         "AJ02-9",
         _("Cobrar les tramitacions a la federació"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.activities.included_licence_expense_category",
+        "AJ02-11",
+        _("Categoria de despesa de la primera llicència inclosa al curs (VC-60)"),
+        requires=("settings.section.activities",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
+    ),
+    _perm(
+        "settings.edit.activities.homologation_department",
+        "AJ02-12",
+        _("Departament de l'ingrés d'una homologació (VC-61)"),
         requires=("settings.section.activities",),
         initial={R.TREASURER: _ALL},
         touches_money=True,
