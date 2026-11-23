@@ -1523,6 +1523,52 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.ADMINISTRATOR: _ALL},
         touches_money=True,
     ),
+    # Marges i períodes (09; T-M09-26): VC-31 i VC-32, el tresorer («Qui el canvia» del bloc
+    # «Valors configurables» de M09-6); l'administrador, «Cons.», com als altres apartats.
+    _perm(
+        "settings.section.margin",
+        "AJ09-M",
+        _("Ajustos de marges i períodes"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.margin.low_margin_threshold_cents",
+        "AJ09-M1",
+        _("Llindar de l'avís de marge baix"),
+        requires=("settings.section.margin",),
+        initial={R.TREASURER: _ALL},
+    ),
+    # RN-M09-28: el canvi només s'aplica als períodes que es creen després.
+    _perm(
+        "settings.edit.margin.period_length",
+        "AJ09-M2",
+        _("Durada dels períodes nous (mensual o trimestral)"),
+        requires=("settings.section.margin",),
+        initial={R.TREASURER: _ALL},
+    ),
+    # Ajuts (09; T-M09-26; RN-M09A-06 i 19): VC-36 i VC-37, el tresorer.
+    _perm(
+        "settings.section.grants",
+        "AJ09-A",
+        _("Ajustos dels ajuts"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.grants.deadline_reminder_days",
+        "AJ09-A1",
+        _("Dies dels avisos de tancament i de justificació dels ajuts"),
+        requires=("settings.section.grants",),
+        initial={R.TREASURER: _ALL},
+    ),
+    _perm(
+        "settings.edit.grants.requirement_reminder_days",
+        "AJ09-A2",
+        _("Dies dels avisos dels requeriments d'esmena"),
+        requires=("settings.section.grants",),
+        initial={R.TREASURER: _ALL},
+    ),
     # Activitats (02; M02-6, «Valors configurables»; T-M02-28): «Cons.» per als rols que hi editen
     # algun valor. VC-21 el tresorer; VC-22 i VC-24 el responsable de cursos i sortides (VC-24,
     # per decisió de la junta). VC-23 i VC-25 arriben amb els seus ajustos (T-M02-21 i T-M02-28).
