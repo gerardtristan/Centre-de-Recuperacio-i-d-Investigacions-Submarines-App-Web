@@ -48,6 +48,9 @@ PUBLIC_ROUTES = {
     # Inscripció d'un convidat (T-M02-14; decisió 021): només activitats públiques obertes a no
     # socis; l'enllaç per pagar, per correu.
     "activities:guest_enrol",
+    # Llistat i detall públics de les activitats (T-M02-08b): cap dada personal.
+    "activities:public_list",
+    "activities:public_detail",
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",
