@@ -67,6 +67,8 @@ BASE_ROUTES = {
         (("equipment.costs.view", READ),),
     ),
     "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
+    # T-M02-16b: AC9; l'instructor només hi veu les seves sessions (ho filtra la vista).
+    "administration:attendance_sessions": ((("activities.attendance.record", READ),),),
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -155,6 +157,11 @@ ENTRIES = (
             "administration:filings_csv",
         ),
     ),  # T-M02-44b; text i lloc per revisar amb DISSENY
+    (
+        "administration:attendance_sessions",
+        _("Passar llista"),
+        ("administration:attendance_roll", "administration:attendance_roll_session"),
+    ),  # T-M02-16b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -334,6 +341,7 @@ GROUPS = (
             "administration:catalogue",
             "administration:equipment_reports",  # 03: DISSENY
             "administration:filings",
+            "administration:attendance_sessions",
         ),
     ),
     (
