@@ -21,10 +21,10 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
 
-from .. import services, sessions, states
-from ..forms import ActivityForm
+from .. import material_cost, services, sessions, states
+from ..forms import ActivityForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
-from ..permissions import MANAGE
+from ..permissions import MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, require
 from . import see_other
 
 MARGIN_VIEW = "expenses.margin.view"  # MG6: el marge és del 09; aquí només l'enllaç
@@ -128,11 +128,24 @@ def _standard(activity):
     return {"member": euros(member), "non_member": euros(non_member)}
 
 
-@never_cache
-@permission_required(MANAGE)
-@require_GET
-def activity_detail_view(request, pk):
-    activity = _activity(pk)
+def _material_cost(request, activity, form=None):
+    """C7 per veure el cost previst; AC23 (per objecte) per canviar-lo (RN-M02-43, CA-M02-45)."""
+    if not has_perm(request.user, MATERIAL_COST_FIELD, activity):
+        return None
+    if form is None and states.is_editable(activity):
+        if has_perm(request.user, MATERIAL_COST, activity, write=True):
+            cost = activity.material_cost_cents
+            form = MaterialCostForm(initial={"cost": cost, "note": activity.material_cost_note})
+    cost, standard = activity.material_cost_cents, activity.standard_material_cost_cents
+    return {
+        "cost": None if cost is None else euros(cost),
+        "standard": None if standard is None else euros(standard),
+        "differs": standard is not None and cost != standard,
+        "form": form,
+    }
+
+
+def _detail(request, activity, material_form=None):
     without_instructor = set(
         sessions.sessions_without_instructor(timezone.now())
         .filter(activity=activity)
@@ -158,8 +171,34 @@ def activity_detail_view(request, pk):
         "any_speciality": activity.specialities_rule == SpecialitiesRule.ANY,
         "editable": states.is_editable(activity),
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
+        "material": _material_cost(request, activity, material_form),
     }
     return render(request, "activities/activity_detail.html", context)
+
+
+@never_cache
+@permission_required(MANAGE)
+@require_http_methods(["GET", "POST"])
+def activity_detail_view(request, pk):
+    """GET: la fitxa. POST: el cost de material previst (AC23 per objecte; T-M02-40c)."""
+    activity = _activity(pk)
+    if request.method == "GET":
+        return _detail(request, activity)
+    # Fora del seu abast, «no trobat» i registre (el servei ho torna a mirar)
+    require(request.user, MATERIAL_COST, activity, request=request)
+    form = MaterialCostForm(request.POST)
+    if form.is_valid():
+        try:
+            material_cost.set_material_cost(
+                activity, form.cleaned_data["cost"], by=request.user, request=request,
+                note=form.cleaned_data["note"],
+            )  # fmt: skip
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, _("Cost de material previst desat. No canvia cap càrrec."))
+            return _to_detail(activity)
+    return _detail(request, activity, form)
 
 
 @never_cache

@@ -297,3 +297,13 @@ class ActivityForm(forms.Form):
             del data["specialities_rule"]
         data["required_specialities"] = list(data.get("required_specialities") or ())
         return data
+
+
+class MaterialCostForm(forms.Form):
+    """Cost de material previst per participant (RN-M02-43; AC23): una previsió, sense càrrec."""
+
+    cost = EuroField(label=_("Cost de material previst per participant"), help_text="")
+    note = forms.CharField(
+        label=_("Motiu si no és l'estàndard"), required=False, widget=_text(2),
+        help_text=_("Obligatori si el cost no és el que calcula el 03."),
+    )  # fmt: skip

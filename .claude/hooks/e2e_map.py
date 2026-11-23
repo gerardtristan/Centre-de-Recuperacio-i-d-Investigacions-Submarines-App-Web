@@ -157,6 +157,10 @@ MAP = {
         "apps/activities/forms.py",
         "templates/activities/activity_form.html",
     ),
+    "test_activitats_cost_material.py": (
+        "apps/activities/views/admin_activities.py",
+        "templates/activities/activity_detail.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/forms.py",
