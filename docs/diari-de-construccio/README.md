@@ -490,3 +490,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-90](T-DX-90.md) | Despeses, marge i factures (09): «Tria…» als desplegables, imports a la dreta, vora d'error als desplegables i «Les meves factures» al menú del soci | 23/11/2026 11:05 | 82f0e774 | 6 noves | [A comprovar] |
 | [T-M02-06a](T-M02-06a.md) | Pantalles d'administració del 02: llistat i fitxa d'una activitat (carril C3) | 21/11/2026 10:45 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [T-M09-24b](T-M09-24b.md) | Guia del tresorer amb les pantalles del 09 i els avisos (carril A6) | 23/11/2026 14:49 | (vegeu la PR) | Cap (document) | [A comprovar] |
