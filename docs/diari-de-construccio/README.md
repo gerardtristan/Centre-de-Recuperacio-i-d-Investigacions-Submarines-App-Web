@@ -524,3 +524,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-94](T-DX-94.md) | Pantalla de pagament: el missatge d'èxit de la inscripció ja no surt com a error | 23/11/2026 19:00 | 5c8e8acb | 1 nova | [A comprovar] |
 | [T-M02-08b](T-M02-08b.md) | Llistat i detall públics de les activitats (apilada sobre la T-M02-11; carril B4) | 23/11/2026 17:19 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-M02-22b](T-M02-22b.md) | «Les meves activitats», calendari d'una inscripció i «Què falta per tancar» (apilada sobre la T-M02-08b; carril B4) | 23/11/2026 17:24 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
+| [T-M02-16c](T-M02-16c.md) | Inscripcions i assistència a l'RGPD del 02 (carril C7) | 23/11/2026 20:02 | (vegeu la PR) | 2 noves | [A comprovar] |
