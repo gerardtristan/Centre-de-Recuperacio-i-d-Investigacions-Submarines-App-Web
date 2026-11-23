@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-08b (RN-M02-24; CA-M02-05): les activitats publicades, de la més propera a la més llunyana. Pública: només dades de `public.py`, cap dada personal. #}
+{% block title %}{% translate "Cursos i sortides" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Activitats" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Cursos i sortides" %}</h1>
+  <form class="formulari barra-filtres" method="get" novalidate>
+    <fieldset class="filtres">
+      <legend>{% translate "Filtres" %}</legend>
+      <div class="camp">
+        <label for="filtre-classe">{% translate "Classe" %}</label>
+        <select id="filtre-classe" name="classe">{% for value, label in kinds %}<option value="{{ value }}"{% if value == kind %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      </div>
+    </fieldset>
+    <div class="accions"><button class="boto" type="submit">{% translate "Filtra" %}</button></div>
+  </form>
+  <table class="taula">
+    <caption>{% blocktranslate count total=activities|length %}{{ total }} activitat{% plural %}{{ total }} activitats{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Activitat" %}</th>
+        <th scope="col">{% translate "Dates" %}</th>
+        <th scope="col">{% translate "Lloc" %}</th>
+        <th scope="col">{% translate "Inscripcions" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for activity in activities %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ activity.title }} <span class="xip">{{ activity.type_label }}</span></th>
+          <td data-etiqueta="{% translate 'Dates' %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Lloc' %}">{{ activity.place|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Inscripcions' %}">{% if activity.registration_open %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Obertes" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% translate "Tancades" %}</span>{% endif %}</td>
+          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'activities:public_detail' activity.pk %}">{% translate "Més informació" %}<span class="visualment-amagat">: {{ activity.title }}</span></a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">{% translate "Ara mateix no hi ha cap activitat publicada." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
