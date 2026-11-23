@@ -213,6 +213,8 @@ MAP = {
         "apps/activities/views/outcomes.py",
         "templates/activities/course_outcomes.html",
         "templates/activities/certificate.html",
+        "apps/activities/views/reinforcement.py",
+        "templates/activities/reinforcement_*",
     ),
     "test_despeses.py": (
         "apps/expenses/views.py",

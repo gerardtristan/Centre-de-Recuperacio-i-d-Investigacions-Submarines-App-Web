@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 
 from .. import assessment
 from ..models import Enrolment, PracticeAssessment, Session
+from ..permissions import REINFORCEMENT_PROPOSE, can
 from . import see_other
 
 NOTES_HELP = gettext_lazy("Curta i pedagògica. Sense dades de salut.")
@@ -50,5 +51,7 @@ def sheet_view(request, pk, session_pk):
         "can_assess": assessment.can_assess_now(session),
         "notes_help": NOTES_HELP,
         "max_notes": assessment.MAX_NOTES,
+        # T-M02-18b: proposar reforç (AC10b), per a qui fa classe al curs.
+        "can_propose": can(request.user, REINFORCEMENT_PROPOSE, session.activity),
     }
     return render(request, "activities/assessment_sheet.html", context)

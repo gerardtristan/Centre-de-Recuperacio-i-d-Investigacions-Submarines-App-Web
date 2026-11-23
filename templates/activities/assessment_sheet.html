@@ -38,9 +38,11 @@
       {% elif row.notes %}
         <p>{{ row.notes }}</p>
       {% endif %}
+      {% if can_propose %}<p class="enllacos"><a href="{% url 'administration:reinforcement_propose' activity.pk row.enrolment_id %}">{% translate "Proposa reforç" %}</a></p>{% endif %}
     </section>
   {% empty %}
     <p>{% translate "Cap alumne confirmat." %}</p>
   {% endfor %}
+  {% if can_propose %}<p class="enllacos"><a href="{% url 'administration:reinforcement_list' activity.pk %}">{% translate "Classes de reforç del curs" %}</a></p>{% endif %}
   <p class="enllacos"><a href="{% url 'administration:attendance_roll_session' activity.pk session.pk %}">{% translate "Torna a la llista de la sessió" %}</a></p>
 {% endblock %}

@@ -8,7 +8,13 @@ from django.utils import timezone
 from playwright.sync_api import expect
 
 from apps.activities import certificates
-from apps.activities.models import Attendance, CertificationLevel, PracticeAssessment, Session
+from apps.activities.models import (
+    Attendance,
+    CertificationLevel,
+    PracticeAssessment,
+    ReinforcementRequest,
+    Session,
+)
 from apps.activities.tests.helpers import a_course
 from apps.activities.tests.test_attendance import a_session, enrolled, opened
 
@@ -87,3 +93,24 @@ def test_the_manager_issues_a_certificate(page, live_server, transactional_db, r
     page.get_by_role("link", name="Mostra el certificat").click()
     expect(page.get_by_role("heading", name="Certificat de curs")).to_be_visible()
     review("certificat")
+
+
+def test_the_instructor_proposes_reinforcement(page, live_server, transactional_db, review):
+    manager = make_admin("cursos.prova", "courses_manager")
+    teacher = make_admin("instructor.prova", "instructor")
+    activity = opened(a_course(manager))
+    session = a_session(manager, activity, timezone.localdate(), teacher.person)
+    Session.objects.filter(pk=session.pk).update(is_practice=True)
+    enrolled(activity, "Alumna")
+    login_admin(page, live_server.url, teacher.login)
+
+    sheet = reverse("administration:assessment_sheet", args=[activity.pk, session.pk])
+    page.goto(f"{live_server.url}{sheet}")
+    page.get_by_role("link", name="Proposa reforç").click()
+    page.get_by_label("Nombre de classes").fill("2")
+    page.get_by_label("Motiu").fill("Ha de repetir la flotabilitat.")
+    review("reforc-proposta")
+    page.get_by_role("button", name="Envia la proposta").click()
+    expect(page.get_by_text("Proposta de reforç enviada al responsable.")).to_be_visible()
+    review("reforc-llista")
+    assert ReinforcementRequest.objects.get().classes == 2

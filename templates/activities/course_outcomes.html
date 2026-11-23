@@ -8,6 +8,7 @@
     <h1>{{ activity.title }}</h1>
   </header>
   {% include "activities/_missatges.html" %}
+  <p class="enllacos"><a href="{% url 'administration:reinforcement_list' activity.pk %}">{% translate "Classes de reforç del curs" %}</a></p>
   {% for row, outcome in rows %}
     <section class="targeta" aria-labelledby="alumne-{{ row.pk }}">
       <h2 id="alumne-{{ row.pk }}">{{ row.person.first_name }} {{ row.person.last_name }}</h2>
