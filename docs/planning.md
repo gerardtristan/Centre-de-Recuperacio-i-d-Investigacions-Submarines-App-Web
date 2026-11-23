@@ -6522,14 +6522,14 @@ App `website`. Cap camp no guarda HTML lliure (RN-M07-10).
 - `MediaAsset`: fitxer (fitxers de la 00), `alt_text` (obligatori), `author`, `licence_note` (permís d'ús), `shows_people` (sí o no), `people_consent` (obligatori si `shows_people`), `credit`, `status` (`active`, `retired`).
 - `FaqTopic` i `FaqEntry` (`question`, `answer`, `order`, `published`). `Tutorial`: `title`, vídeo (servidor propi), `steps`, `screen_code` (ruta de l'app on s'enllaça), `published`.
 - `ContactReason` (dada: `name`, `active`, permís de destinació per a l'abast de WP5). Inicials, de F §8.6: Cursos, Sortides, Quotes, Llicències i Altres. `ContactMessage`: `reason`, `name`, `email`, `body`, `status` (`new`, `answered`, `closed`), `answered_by`, `answer`, `closed_reason`, `created_at`. Sense IP.
-- `NewsletterSubscription`: `email`, `status` (`pending`, `confirmed`, `unsubscribed`), `legal_text_version`, `token`, dates; esdeveniments de confirmació i baixa només afegits ([P-492](decisions/pendents.md)). `Newsletter`: `subject`, `body`, `status` (`draft`, `sent`), `sent_at`, `sent_count`, `failed_count`.
+- `NewsletterSubscription`: `email`, `status` (`pending`, `confirmed`, `unsubscribed`), `legal_text_version`, `token`, dates; esdeveniments de confirmació i baixa només afegits; és una fila pròpia del 07, no una persona de la 00, i si se subscriu un soci des de la seva àrea també es desa el consentiment de la 00 ([P-492](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)). `Newsletter`: `subject`, `body`, `status` (`draft`, `sent`), `sent_at`, `sent_count`, `failed_count`.
 
 **Valors configurables** (pantalla d'ajustos, T-M07-03; entren a l'[apèndix](#valors-configurables) amb número VC en aprovar-se)
 | Clau | Inicial | Rang | Qui el canvia |
 |---|---|---|---|
 | `website.home_activities_count` | 6 | 1 a 12 | WP1 |
 | `website.news_on_home` | 3 | 0 a 10 | WP1 |
-| `website.newsletter_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-42, P-485 i P-492 |
+| `website.newsletter_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-42 |
 | `website.newsletter_confirm_hours` | 48 | 1 a 168 | Administrador |
 | `website.contact_enabled` | No | Sí o no | Administrador; no s'encén a producció sense P-486 |
 | `website.contact_retention_months` | 6 [A verificar: gestoria, P-486] | 1 a 24 | Administrador |
@@ -6547,10 +6547,10 @@ Es queden al codi: la llista de plantilles i de tipus de bloc, els tokens d'acce
 | RN-M07-03 | **Versions.** Publicar crea una `PageVersion` nova; cap versió no s'edita ni s'esborra. Tornar enrere és publicar-ne una còpia |
 | RN-M07-04 | **Activitats sense còpia.** La web llegeix el 02 a cada petició (`public_list`, `get_activity`); no en desa res i no hi surt cap nom de persona |
 | RN-M07-05 | **Fotos.** Cap imatge en un bloc publicat sense autor, permís d'ús, text alternatiu i, si s'hi veuen persones, el consentiment marcat (P-41). Retirar-la la treu de tot arreu a la petició següent |
-| RN-M07-06 | **Butlletí.** Doble confirmació; s'envia només als `confirmed`; cada enviament porta l'enllaç de baixa; la baixa és immediata i no es torna a enviar res; un butlletí enviat no es torna a enviar. Sense píxels de seguiment ni enllaços rastrejats. Prioritat baixa a la cua (T-M00-06), per sota dels correus transaccionals. Darrere de `website.newsletter_enabled` |
-| RN-M07-07 | **Contacte.** El motiu és d'una llista (dada); l'avís arriba només als comptes amb WP5 per a aquell motiu; la resposta al visitant és sempre la mateixa; protecció contra robots sense cap servei de tercers (camp parany, temps mínim i límit per origen); els missatges tancats s'esborren passats `website.contact_retention_months`. Darrere de `website.contact_enabled` |
+| RN-M07-06 | **Butlletí.** Doble confirmació; s'envia només als `confirmed`; cada enviament porta l'enllaç de baixa; la baixa és immediata i no es torna a enviar res; un butlletí enviat no es torna a enviar. Sense píxels de seguiment ni enllaços rastrejats. Surt per la cua de correu de la plataforma, amb prioritat baixa (T-M00-06), per sota dels correus transaccionals i dins del comptador diari; la llista de subscriptors només és a la plataforma, mai al proveïdor de correu ([P-485](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)). Darrere de `website.newsletter_enabled` |
+| RN-M07-07 | **Contacte.** El motiu és d'una llista (dada); l'avís arriba només als comptes amb WP5 per a aquell motiu; la resposta al visitant és sempre la mateixa; protecció contra robots sense cap servei de tercers (camp parany, temps mínim i límit per origen); els missatges tancats s'esborren passats `website.contact_retention_months`. D'inici, tots els motius arriben a la Secretaria; la llista de motius amb el seu destinatari (WP8) i el termini són ajustos ([P-486](decisions/pendents.md), provisional fins a la confirmació per escrit de la junta i, per al termini, de la gestoria; [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)). Darrere de `website.contact_enabled` |
 | RN-M07-08 | **Missatges que no revelen res.** Subscriure's dona la mateixa resposta si el correu ja hi era, si no hi era o si s'havia donat de baixa |
-| RN-M07-09 | **Res de tercers.** Tipografies, imatges, vídeos i scripts des del servidor propi (042, 046); el mapa del local és una imatge estàtica o un enllaç, sense incrustar. Cap galeta, excepte la de sessió, la del CSRF dels formularis i la del tema |
+| RN-M07-09 | **Res de tercers.** Tipografies, imatges, vídeos i scripts des del servidor propi (042, 046); el mapa del local és una imatge estàtica o un enllaç, sense incrustar. Cap galeta, excepte la de sessió, la del CSRF dels formularis i la del tema. Cap analítica de visites ([P-491](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)) |
 | RN-M07-10 | **Text sense HTML.** El que escriuen els usuaris es desa com a text amb un format limitat (paràgrafs, títols, llistes, enllaços) i s'escapa en mostrar-lo |
 | RN-M07-11 | **Tutorials.** Vídeo al servidor propi i passos escrits al costat; si un tutorial publicat té `screen_code`, aquella pantalla mostra «Mira com es fa» |
 | RN-M07-12 | **Cercador de l'ajuda.** Cerca a la pregunta i a la resposta de les entrades publicades; sense resultats, enllaça el contacte |
@@ -6579,7 +6579,7 @@ Cap altra app escriu als models del 07.
 - **CA-M07-02** Donat cada ruta del 07 que no és a RN-M07-01, quan s'hi entra sense sessió o sense el permís, llavors es rebutja.
 - **CA-M07-03** Donat una pàgina amb la versió 2 publicada, quan es publica un canvi i després «Tornar a la versió 2», llavors hi ha les versions 3 i 4, la 4 és igual que la 2 i cap versió anterior ha canviat.
 - **CA-M07-04** Donat tres activitats publicades al 02 i una en esborrany, quan un visitant obre la portada, llavors veu les tres per data (com a màxim `website.home_activities_count`), sense cap nom de persona; sense cap activitat, veu «Ara no hi ha cap activitat oberta» i l'enllaç al butlletí (L-M02-09).
-- **CA-M07-05** Donat una foto sense autor o sense permís, o amb persones i sense consentiment, quan es vol posar en un bloc publicat, llavors es rebutja; quan es retira una foto publicada, a la petició següent ja no surt a cap pàgina.
+- **CA-M07-05** Donat una foto sense autor o sense permís, o amb persones i sense consentiment, quan es vol posar en un bloc publicat, llavors es rebutja; quan es retira una foto publicada, a la petició següent ja no surt a cap pàgina. Les imatges actives de la web se serveixen per una vista pública declarada que ho comprova a cada petició; cap carpeta pública a l'emmagatzematge ([P-489](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)).
 - **CA-M07-06** Donat un correu nou, un de confirmat i un de donat de baixa, quan es subscriuen, llavors la pantalla diu el mateix en els tres casos, el correu nou i el de baixa reben la confirmació i el confirmat no rep res; una confirmació passades `website.newsletter_confirm_hours` no subscriu.
 - **CA-M07-07** Donat un enllaç de confirmació, quan s'obre dues vegades, llavors hi ha una sola subscripció confirmada amb la versió del text acceptada.
 - **CA-M07-08** Donat tres subscripcions (confirmada, pendent i de baixa), quan s'envia un butlletí, llavors només el rep la confirmada, porta l'enllaç de baixa, va a la cua amb prioritat baixa, queden els recomptes i el mateix butlletí no es pot tornar a enviar.
@@ -6656,7 +6656,7 @@ Unitàries (versions, format de text, recomptes, conservació); permisos (una pr
 | S-M07-05 | A qui arriba cada motiu de contacte (F §8.6, [A validar]) | Tots a la Secretaria (WP5); l'administrador els reparteix amb WP8 (P-486) | Junta |
 | RP-M07-01 | Servei de lectura dels projectes i resultats ambientals publicats (és del 02, [M02-2](#M02-2-dependencies)) | La pàgina de Projectes és de blocs de text fins que el 02 l'ofereixi | Responsable del projecte |
 
-**Dubtes nous** (a [`pendents.md`](decisions/pendents.md) i al [tauler](decisions/tauler-preguntes.yml)): **P-485** com s'envia el butlletí; **P-486** conservació i destinataris del contacte; **P-489** com se serveixen les imatges públiques; **P-491** analítica de visites; **P-492** el subscriptor, persona o fila pròpia.
+**Dubtes del 21/11/2026**, resolts pel propietari el 23/11/2026 ([105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)): **P-485** el butlletí surt per la cua de la plataforma; **P-489** vista pública declarada per a les imatges; **P-491** cap analítica; **P-492** fila pròpia del 07. Continua oberta, amb resposta provisional, **P-486** (conservació i destinataris del contacte: junta i gestoria).
 
 <a id="M07-14-aprovar"></a>
 ## M07-14 Què cal aprovar abans de començar
@@ -6664,7 +6664,7 @@ Unitàries (versions, format de text, recomptes, conservació); permisos (una pr
 1. Aquesta secció (abast M07a i M07b, entitats, regles RN-M07-01 a 14 i criteris CA-M07-01 a 22).
 2. Les files WP1 a WP8 de la [matriu](#rols-i-permisos-059-matriu) amb la configuració inicial de M07-4.
 3. Els supòsits S-M07-01 a 05 per començar; no bloquegen el codi.
-4. **Per obrir-la al públic** (no per començar): P-40, P-41, P-43; i, per encendre el butlletí i el contacte, P-42, P-485, P-486 i P-492.
+4. **Per obrir-la al públic** (no per començar): P-40, P-41, P-43; i, per encendre el butlletí i el contacte, P-42 i la confirmació de la P-486.
 
 ---
 
@@ -6769,6 +6769,7 @@ App `dashboard`.
 | `dashboard.min_group_size` | 3 ([P-487](decisions/pendents.md)) | 2 a 10 | Administrador |
 | `dashboard.low_occupancy_pct` | 50 [A validar: responsable de cursos i sortides] | 0 a 100 | RCS, administrador |
 | `dashboard.default_period` | Any natural | Mes, trimestre, any natural, darrers 12 mesos | Administrador |
+| `dashboard.help_texts` | Buit per a cada indicador | Un text curt per indicador del catàleg | Apartat «Dashboard» dels ajustos, amb els permisos «veure» i «veure i editar» (d'inici, l'administrador; P-488) |
 
 Es reaprofiten, sense duplicar-los: el llindar de marge baix (VC-31), els dies de «per renovar» de les llicències (VC-41) i els avisos dels ajuts (VC-36). El temps de memòria cau és tècnic (entorn).
 
@@ -6778,8 +6779,8 @@ Es reaprofiten, sense duplicar-los: el llindar de marge baix (VC-31), els dies d
 | ID | Regla |
 |---|---|
 | RN-M08-01 | **Només agregats.** El dashboard només crida serveis que tornen recomptes, percentatges o imports; mai una llista de persones. Cap nom, correu, telèfon, document, número de soci ni IBAN a la pàgina ni a les respostes HTMX |
-| RN-M08-02 | **Grups petits.** En un desglossament de persones (per tipus, per estat, per activitat…), una cel·la amb menys de `dashboard.min_group_size` es mostra «menys de N»; si només n'hi ha una d'amagada, també s'amaga la següent més petita, perquè no es pugui deduir pel total. No s'aplica als imports |
-| RN-M08-03 | **Definició.** Cada indicador té una definició escrita visible al bloc; un indicador sense definició no es pot registrar al catàleg |
+| RN-M08-02 | **Grups petits.** En un desglossament de persones (per tipus, per estat, per activitat…), una cel·la amb menys de `dashboard.min_group_size` es mostra «menys de N»; si només n'hi ha una d'amagada, també s'amaga la següent més petita, perquè no es pugui deduir pel total. No s'aplica als imports ([P-487](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)) |
+| RN-M08-03 | **Definició i ajuda.** Cada indicador té una definició exacta, escrita al codi amb el càlcul, que sempre es mostra al bloc; un indicador sense definició no es pot registrar al catàleg. A més, cada indicador té un text d'ajuda editable (ajust `dashboard.help_texts`) per a explicacions del club, que es mostra sota la definició i mai la substitueix ([P-488](decisions/pendents.md), opció B, [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)) |
 | RN-M08-04 | **Coherència.** Cada xifra és la que torna el servei del mòdul per al mateix període; el dashboard no recalcula res pel seu compte. Els imports, en cèntims fins a la pantalla, que els mostra en euros amb dos decimals; la suma dels departaments és el total |
 | RN-M08-05 | **Enllaços amb permís** (RN-RP-16): un bloc només enllaça si el compte té el permís del detall; el mòdul el torna a comprovar |
 | RN-M08-06 | **Sense accions.** El dashboard no escriu res, excepte `DashboardLayout` del mateix compte |
@@ -6818,7 +6819,7 @@ No ofereix cap servei a altres mòduls. **Consumeix** els de [M08-2](#M08-2-depe
 | # | Tasca | Esforç | Fitxers | Depèn de | Feta quan |
 |---|---|---|---|---|---|
 | T-M08-01 | Wireframes dels cinc panells, definició, grup petit, estat buit i accés denegat, a partir de la pantalla en construcció | M | `design/wireframes/admin.html` | — | Revisats; requisits de privacitat per flux |
-| T-M08-02 | App `dashboard` i catàleg d'indicadors (codi) amb la prova del catàleg | S | `apps/dashboard/indicators.py` | — | CA-M08-05 |
+| T-M08-02 | App `dashboard` i catàleg d'indicadors (codi) amb la prova del catàleg, i l'ajust `dashboard.help_texts` amb els permisos de l'apartat (P-488) | S | `apps/dashboard/indicators.py` | — | CA-M08-05 |
 | T-M08-03 | Supressió de grups petits (funció pura) | S | `apps/dashboard/privacy.py` | T-M08-02 | CA-M08-03, amb cobertura completa |
 | T-M08-04 | Servei de recomptes d'activitat del 02, sense persones (RP-M08-01, quan el 02 l'aprovi al seu contracte) | S | `apps/activities/stats.py` | T-M02-12 | Prova de contracte; cap nom a la sortida |
 | T-M08-05 | Panells general i de socis | M | `apps/dashboard/panels.py`, plantilles | T-M08-02, T-M08-03 | CA-M08-04 (01, 06, 05a) |
@@ -6862,7 +6863,7 @@ Unitàries (supressió, períodes, euros); contracte amb cada servei de lectura 
 | S-M08-03 | La junta (rol) no té DB1 a la matriu inicial | Es manté; l'administrador la hi pot donar | Junta |
 | RP-M08-01 | Servei de recomptes d'ocupació, inscripcions i assistència del 02 (promès a [M02-2](#M02-2-dependencies), no al contracte de [M02-8](#M02-8-serveis)) | El panell d'activitat no surt fins que hi sigui | Responsable del projecte |
 
-**Dubtes nous** (a [`pendents.md`](decisions/pendents.md) i al [tauler](decisions/tauler-preguntes.yml)): **P-487** mida mínima d'un grup; **P-488** definicions dels indicadors, al codi o com a dada; **P-490** dashboard fix o ordenable per compte.
+**Dubtes del 21/11/2026**, resolts pel propietari el 23/11/2026 ([105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)): **P-487** «menys de 3», amb el 3 com a ajust; **P-488** definició al codi i, a més, un text d'ajuda editable per indicador (opció B); **P-490** panells fixos primer, i l'ordre per compte com a última tasca.
 
 <a id="M08-14-aprovar"></a>
 ## M08-14 Què cal aprovar abans de començar

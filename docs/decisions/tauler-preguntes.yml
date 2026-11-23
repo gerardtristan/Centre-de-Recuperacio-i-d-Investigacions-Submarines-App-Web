@@ -1222,16 +1222,6 @@ opcions:
       Una sola persona responsable evita que la web quedi antiga perquè ningú se'n sent responsable; és una cel·la de la
       matriu, i si més endavant es vol repartir (C) només cal canviar permisos des de l'app.
     data: 2026-11-21
-  P-485:
-    opcions:
-      A: "Per la cua de correu de la plataforma, amb prioritat baixa i el comptador diari; la llista només a la plataforma."
-      B: "Per les campanyes de Brevo: la plataforma hi sincronitza la llista de subscriptors confirmats."
-      C: "Per un altre servei de butlletins dins la UE, apuntat abans al registre de proveïdors."
-    recomanada: A
-    perque: >-
-      No afegeix cap integració nova ni copia la llista de correus a un altre lloc; la baixa i la doble confirmació
-      queden a la plataforma, i la prioritat baixa protegeix els correus de pagaments i de comptes.
-    data: 2026-11-21
   P-486:
     opcions:
       A: "Tots els motius a la Secretaria; els missatges tancats s'esborren 6 mesos després."
@@ -1243,67 +1233,6 @@ opcions:
       És el termini més curt que encara deixa respondre i fer seguiment; tots dos valors són ajustos i una llista que
       l'administrador pot canviar sense tocar codi quan la junta reparteixi els motius.
     data: 2026-11-21
-  P-487:
-    opcions:
-      A: "Per sota de 3 es mostra «menys de 3», i també s'amaga la cel·la següent si només n'hi ha una d'amagada."
-      B: "Per sota de 5."
-      C: "Sense amagar res: els rols amb DB1 ja són de la junta i dels responsables."
-    recomanada: A
-    perque: >-
-      Compleix «veure el dashboard no dona accés a cap dada personal» sense perdre gairebé informació en un club
-      d'uns 300 socis; és un ajust i es pot pujar a 5 si la junta ho vol.
-    data: 2026-11-21
-  P-488:
-    opcions:
-      A: "Al codi, al costat del càlcul, amb les definicions de RN-M08-10."
-      B: "Al codi, i a més un text d'ajuda editable per indicador."
-      C: "Les definicions de RN-M08-10, però la junta n'aprova el text abans de construir el 08."
-    recomanada: A
-    perque: >-
-      La definició ha de dir exactament el que calcula el codi; un text editable podria dir una cosa i el càlcul
-      una altra. Canviar una definició és un canvi de codi petit i sense dades.
-    data: 2026-11-21
-  P-489:
-    opcions:
-      A: "Una vista pública declarada que només serveix les imatges actives de la web, comprovant-ho a cada petició."
-      B: "Una carpeta pública a l'emmagatzematge (Scaleway) només per a les imatges de la web."
-      C: "Les imatges de la web es desen com a fitxers estàtics del servidor."
-    recomanada: A
-    perque: >-
-      Retirar una foto té efecte a la petició següent i cap fitxer privat no pot acabar en una carpeta pública per
-      error; si la càrrega ho demana, es pot afegir memòria cau sense canviar res més.
-    data: 2026-11-21
-  P-490:
-    opcions:
-      A: "Panells fixos primer; ordenar i amagar blocs per compte com a última tasca del 08."
-      B: "Ordenable per compte des del principi, com la pantalla en construcció."
-      C: "Panells fixos i prou."
-    recomanada: A
-    perque: >-
-      Les xifres i la privacitat són el que costa; l'ordre per compte és una preferència petita que es pot afegir al
-      final sense tocar res del que ja hi haurà.
-    data: 2026-11-21
-  P-491:
-    opcions:
-      A: "Cap analítica de visites."
-      B: "Un comptador propi, sense galetes, de visites per pàgina (només recomptes)."
-      C: "Una eina d'analítica de codi obert al mateix servidor, sense galetes."
-    recomanada: A
-    perque: >-
-      Ningú no l'ha demanada i qualsevol eina demana revisar galetes i dades; si el club la vol, B no posa cap dada
-      personal i es pot afegir després.
-    data: 2026-11-21
-  P-492:
-    opcions:
-      A: "Fila pròpia del 07 (correu, versió del text legal, esdeveniments només afegits); si se subscriu un soci des de la seva àrea, també el consentiment de la 00."
-      B: "Una persona de la 00 per a cada subscriptor, amb el consentiment de la 00."
-      C: "Només socis poden rebre el butlletí, amb el consentiment del seu perfil."
-    recomanada: A
-    perque: >-
-      No crea persones amb només un correu i guarda la mateixa prova del consentiment (versió del text, data, baixa);
-      B demanaria canviar les dades mínimes d'una persona a la 00.
-    data: 2026-11-21
-
 noves:
   P-412:
     opcions:
