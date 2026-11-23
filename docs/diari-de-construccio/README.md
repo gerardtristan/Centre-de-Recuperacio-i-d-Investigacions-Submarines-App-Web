@@ -529,3 +529,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-05c](T-M02-05c.md) | Tipus de sortida, subtipus i projectes a la pàgina del catàleg (apilada sobre la T-M02-05b; carril B4) | 23/11/2026 14:59 | (vegeu la PR) | 2 noves i 1 e2e ampliada | [A comprovar] |
 | [T-M03-19b](T-M03-19b.md) | Pantalles del material: informes i cost d'ús, amb la guia (T-M03-19, 21 i 22; carril C7) | 23/11/2026 15:08 | (vegeu la PR) | 5 noves; 2 e2e | [A comprovar] |
 | [T-DX-95](T-DX-95.md) | «Les meves activitats» al menú del soci i retirada de les pantalles en construcció del 02 | 23/11/2026 20:00 | c7b10aea | 4 noves | [A comprovar] |
+| [T-M02-44b](T-M02-44b.md) | Pantalles de les homologacions: pendents, fitxa, CSV i demanar-la en nom d'una persona, amb el menú (nucli) (carril A6) | 23/11/2026 19:18 | (vegeu la PR) | 9 noves; 1 e2e | [A comprovar] |
