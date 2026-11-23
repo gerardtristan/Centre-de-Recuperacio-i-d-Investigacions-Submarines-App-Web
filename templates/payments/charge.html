@@ -10,7 +10,7 @@
     <p class="etiqueta-seccio">{% translate "Pagaments" %}</p>
     <h1>{{ charge.concept }}</h1>
   </header>
-  {% for message in messages %}<div class="avis avis-error" role="alert">{{ message }}</div>{% endfor %}
+  {% for message in messages %}{% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>{% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}{% endfor %}
   <dl class="dades-soci">
     <div><dt>{% translate "Import" %}</dt><dd><span class="import">{{ amount }}</span></dd></div>
   </dl>
