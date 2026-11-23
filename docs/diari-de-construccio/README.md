@@ -506,3 +506,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-11-nucli](T-M06-11-nucli.md) | Llicències (nucli): plantilles dels avisos de venciment i del resum, VC-43 a l'entorn (carril A5) | 23/11/2026 13:09 | 43e3360b | 1 nova | [A comprovar] |
 | [T-M09-26b](T-M09-26b.md) | Ajustos (nucli): apartats «Marges i períodes» i «Ajuts» (core/0072, número per fixar; carril A6) | 23/11/2026 15:14 | (vegeu la PR) | 12 casos nous per cel·la | [A comprovar] |
 | [T-M02-45](T-M02-45.md) | Primera estrella: tramitació course en emetre el certificat i «Cal llicència» (activities/0020; carril B4) | 23/11/2026 15:04 | (vegeu la PR) | 3 noves | [A comprovar] |
+| [T-M06-26](T-M06-26.md) | Primera llicència d'un alumne nou, lligada a l'entrada de la llista (T-M06-26 i T-M06-27; licences/0008; carril C7) | 23/11/2026 15:41 | (vegeu la PR) | 4 noves | [A comprovar] |
