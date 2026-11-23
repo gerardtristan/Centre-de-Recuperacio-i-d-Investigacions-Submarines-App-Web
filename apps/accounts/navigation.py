@@ -114,8 +114,13 @@ ENTRIES = (
     (
         "administration:activities",
         _("Cursos i sortides"),
-        ("administration:activity_detail",),
-    ),  # T-M02-06; revisat amb DISSENY (23/11): la fitxa és filla del llistat
+        (
+            "administration:activity_course_add",
+            "administration:activity_outing_add",
+            "administration:activity_detail",
+            "administration:activity_edit",
+        ),
+    ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
     (
         "administration:membership_types",
         _("Tipus de soci"),

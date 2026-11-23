@@ -1,32 +1,40 @@
-"""Activitats a l'administració (T-M02-06a; vistes portades de la branca aparcada sobre els serveis
-de `master`): llistat i fitxa. Crear i editar (amb el lloc, el preu estàndard i el motiu,
-RN-M02-40 i 41) és la T-M02-06b.
+"""Activitats a l'administració (T-M02-06a i 06b; vistes portades de la branca aparcada sobre els
+serveis de `master`): llistat i fitxa (06a), i crear i editar un curs o una sortida amb el lloc, el
+preu estàndard i el motiu del preu diferent (06b; vistes de la T-M02-40, RN-M02-40 i 41).
 
 - **Permís:** AC7 (`activities.manage`). El decorador el comprova abans que res i el servei, de
   nou. Sense permís, sempre «no trobat», també per a una activitat que no existeix.
 - **Dades personals:** la fitxa només mostra el nom de la persona responsable i el dels
-  instructors; cap inscrit.
+  instructors; cap inscrit. La llista de responsables només ofereix qui pot gestionar activitats.
 - Publicar, tancar, cancel·lar, sessions, programa i duplicar són de la T-M02-06c.
 """
 
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
 
-from .. import sessions, states
+from .. import services, sessions, states
+from ..forms import ActivityForm
 from ..models import Activity, SpecialitiesRule
 from ..permissions import MANAGE
+from . import see_other
 
 MARGIN_VIEW = "expenses.margin.view"  # MG6: el marge és del 09; aquí només l'enllaç
 S = Activity.Status
 K = Activity.Kind
 PAGE_SIZE = 25
+ADD_TITLES = {K.COURSE: _("Curs nou"), K.OUTING: _("Sortida nova")}
+ADDED = _("Activitat creada en esborrany. Afegeix-hi les sessions o el programa i publica-la.")
+SAVED = _("Canvis desats. Queden al registre d'activitat amb el valor anterior.")
+UNCHANGED = _("No hi havia cap canvi per desar.")
 LIVE = "vives"
 FILTERS = (
     ("", _("Totes")),
@@ -40,6 +48,10 @@ def _activity(pk):
     return get_object_or_404(
         Activity.objects.select_related(*related, "responsible", "min_level", "place"), pk=pk
     )
+
+
+def _to_detail(activity):
+    return see_other("administration:activity_detail", activity.pk)
 
 
 @never_cache
@@ -70,6 +82,36 @@ def activities_view(request):
         "filtered": bool(kind) or state != LIVE,
     }
     return render(request, "activities/activity_list.html", context)
+
+
+def _create(request, kind):
+    post = request.POST if request.method == "POST" else None
+    form = ActivityForm(post, kind=kind, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        create = services.create_course if kind == K.COURSE else services.create_outing
+        try:
+            activity = create(by=request.user, request=request, **form.service_data())
+        except ValidationError as error:  # una regla del servei: al formulari, sense desar res
+            form.add_error(None, error)
+        else:
+            messages.success(request, ADDED)
+            return _to_detail(activity)
+    context = {"form": form, "title": ADD_TITLES[kind], "activity": None}
+    return render(request, "activities/activity_form.html", context)
+
+
+@never_cache
+@permission_required(MANAGE, write=True)
+@require_http_methods(["GET", "POST"])
+def activity_course_add_view(request):
+    return _create(request, K.COURSE)
+
+
+@never_cache
+@permission_required(MANAGE, write=True)
+@require_http_methods(["GET", "POST"])
+def activity_outing_add_view(request):
+    return _create(request, K.OUTING)
 
 
 def _standard(activity):
@@ -114,6 +156,28 @@ def activity_detail_view(request, pk):
         "blocks": activity.programme_blocks.select_related("place"),
         "specialities": [entry.name for entry in activity.required_specialities.all()],
         "any_speciality": activity.specialities_rule == SpecialitiesRule.ANY,
+        "editable": states.is_editable(activity),
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
     }
     return render(request, "activities/activity_detail.html", context)
+
+
+@never_cache
+@permission_required(MANAGE, write=True)
+@require_http_methods(["GET", "POST"])
+def activity_edit_view(request, pk):
+    activity = _activity(pk)
+    post = request.POST if request.method == "POST" else None
+    form = ActivityForm(post, kind=activity.kind, activity=activity, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        try:
+            changed = services.update_activity(
+                activity, by=request.user, request=request, **form.service_data()
+            )
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, SAVED if changed else UNCHANGED)
+            return _to_detail(activity)
+    context = {"form": form, "title": _("Edita l'activitat"), "activity": activity}
+    return render(request, "activities/activity_form.html", context)

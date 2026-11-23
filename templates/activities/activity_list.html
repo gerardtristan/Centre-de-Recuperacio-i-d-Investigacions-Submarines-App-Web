@@ -7,9 +7,13 @@
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
     <h1>{% translate "Cursos i sortides" %}</h1>
-    <p class="text-2">{% translate "Per defecte, les que encara no s'han fet ni cancel·lat." %}</p>
+    <p class="text-2">{% translate "Per defecte, les que encara no s'han fet ni cancel·lat. Una activitat nova es crea en esborrany." %}</p>
   </header>
   {% include "activities/_missatges.html" %}
+  <div class="accions">
+    <a class="boto boto-principal" href="{% url 'administration:activity_course_add' %}">{% translate "Curs nou" %}</a>
+    <a class="boto" href="{% url 'administration:activity_outing_add' %}">{% translate "Sortida nova" %}</a>
+  </div>
   <form class="formulari barra-filtres" method="get" action="{% url 'administration:activities' %}" novalidate>
     <fieldset class="filtres">
       <legend>{% translate "Filtres" %}</legend>
