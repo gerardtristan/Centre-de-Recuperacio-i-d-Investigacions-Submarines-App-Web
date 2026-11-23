@@ -17,7 +17,7 @@
 
   <section aria-labelledby="dades-titol">
     <h2 id="dades-titol">{% translate "Dades" %}</h2>
-    <dl class="dades-fitxa">
+    <dl class="dades-soci">
       {% if activity.catalogue_entry %}<div><dt>{% translate "Fitxa del catàleg" %}</dt><dd>{{ activity.catalogue_entry.name }}</dd></div>{% endif %}
       {% if activity.outing_type %}<div><dt>{% translate "Tipus de sortida" %}</dt><dd>{{ activity.outing_type.name }}{% if activity.subtype %} · {{ activity.subtype.name }}{% endif %}</dd></div>{% endif %}
       {% if activity.project %}<div><dt>{% translate "Projecte" %}</dt><dd>{{ activity.project.name }}</dd></div>{% endif %}
