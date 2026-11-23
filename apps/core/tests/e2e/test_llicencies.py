@@ -9,6 +9,7 @@ import pytest
 from django.urls import reverse
 from playwright.sync_api import expect
 
+from apps.core import business_settings
 from apps.core.models import Person
 from apps.licences.models import Licence, LicenceType
 
@@ -231,3 +232,32 @@ def test_visitor_requests_a_licence_as_a_guest(page, live_server, texts, review)
     licence = Licence.objects.get(person__first_name="Mar")
     assert (licence.status, licence.price_cents) == ("requested", 11000)
     assert GuestLink.objects.filter(charge=licence.charge).exists()
+
+
+def test_secretary_changes_the_reminder_days(page, live_server, transactional_db, review):
+    """T-M06-20 (VC-41, CA-M06-26): a «Ajustos de llicències» la secretaria canvia els dies dels
+    avisos (un 121 no es desa) i el filtre del llistat en segueix els trams; les opcions de no
+    socis i d'un dia les veu, però no les pot canviar (LC9, l'administrador)."""
+    secretary = make_admin("secretaria.ajustos", "secretary")
+    login_admin(page, live_server.url, secretary.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos de llicències").click()
+    expect(page.get_by_role("heading", name="Ajustos de llicències")).to_be_visible()
+    label = "Dies dels avisos de venciment de la llicència"
+    expect(page.get_by_role("cell", name=label)).to_be_visible()
+    review("llicencies-ajustos")
+    expect(page.get_by_role("link", name="Historial: Llicència d'un dia")).to_be_visible()
+    expect(page.get_by_role("link", name="Canvia: Llicència d'un dia")).to_have_count(0)
+    page.get_by_role("link", name=f"Canvia: {label}").click()
+    page.get_by_label("Valor nou").fill("45, 15, 121")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("No s'ha desat res.")).to_be_visible()
+    page.get_by_label("Valor nou").fill("45, 15, 3")
+    page.get_by_label("Nota").fill("Prova inventada")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("llicencies-ajustos-avisos")
+    assert business_settings.get("licences.reminder_days") == [45, 15, 3]
+
+    page.goto(f"{live_server.url}{reverse('administration:licences')}")
+    expect(page.get_by_label("Caduca d'aquí a")).to_contain_text("45 dies o menys")
