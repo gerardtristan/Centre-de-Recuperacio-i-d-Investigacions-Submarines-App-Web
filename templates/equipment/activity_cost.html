@@ -1,0 +1,31 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M03-19 (MT12, per objecte): cost de material d'una activitat. Per número d'inscripció, sense noms (RN-M03-09). Imports en euros; el marge dels lloguers pot ser negatiu (RN-M03-07). #}
+{% block title %}{% translate "Cost de material" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Material" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2">{% blocktranslate with start=activity.starts_on|date:"d/m/Y" %}Cost de material · comença el {{ start }}{% endblocktranslate %}</p>
+  </header>
+  <div class="accions no-imprimeix"><button class="boto" type="button" data-imprimeix hidden>{% translate "Imprimeix" %}</button></div>
+  <dl class="dades-soci">
+    <div><dt>{% translate "Ús del material del club" %}</dt><dd><span class="import">{{ club }}</span></dd></div>
+    <div><dt>{% translate "Lloguers: preu de cost previst" %}</dt><dd><span class="import">{{ rental_cost }}</span></dd></div>
+    <div><dt>{% translate "Lloguers: preu per als participants" %}</dt><dd><span class="import">{{ rental_price }}</span></dd></div>
+    <div><dt>{% translate "Marge dels lloguers" %}</dt><dd><span class="import">{{ rental_margin }}</span>{% if negative_margin %} <span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Pèrdua" %}</span>{% endif %}</dd></div>
+  </dl>
+  <table class="taula">
+    <caption>{% translate "Cost del material fet servir per cada inscripció" %}</caption>
+    <thead><tr><th scope="col">{% translate "Inscripció" %}</th><th scope="col" class="cel-import">{% translate "Cost de material" %}</th></tr></thead>
+    <tbody>
+      {% for number, amount in rows %}
+        <tr><th scope="row" class="cel-nom"><span class="codi">{{ number }}</span></th><td data-etiqueta="{% translate 'Cost de material' %}" class="cel-import"><span class="import">{{ amount }}</span></td></tr>
+      {% empty %}
+        <tr><td colspan="2">{% translate "Encara no s'ha fet servir cap material." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos no-imprimeix"><a href="?format=csv">{% translate "Descarrega el CSV" %}</a> · <a href="{% url 'administration:equipment_reports' %}">{% translate "Torna als informes" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}

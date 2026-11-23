@@ -1,0 +1,70 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M03-19: informes del material. Cada bloc surt només amb el seu permís (MT4, MT11, MT12), i el servidor el torna a comprovar. Cap dada personal: tipus, codis de peça i activitats. La impressió és la del navegador (design-system §6.8). #}
+{% block title %}{% translate "Informes de material" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Material" %}</p>
+    <h1>{% translate "Informes de material" %}</h1>
+  </header>
+  <div class="accions no-imprimeix"><button class="boto" type="button" data-imprimeix hidden>{% translate "Imprimeix" %}</button></div>
+
+  {% if can.used %}
+    <section aria-labelledby="titol-usat">
+      <h2 id="titol-usat">{% translate "Material més usat" %}</h2>
+      <form class="formulari no-imprimeix" method="get" novalidate>
+        {% include "_errata.html" %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Mostra" %}</button></div>
+      </form>
+      <table class="taula">
+        <caption>{% blocktranslate with start=start|date:"d/m/Y" end=end|date:"d/m/Y" %}Peces fetes servir del {{ start }} al {{ end }}, de la més usada a la menys{% endblocktranslate %}</caption>
+        <thead><tr><th scope="col">{% translate "Material" %}</th><th scope="col">{% translate "D'on surt" %}</th><th scope="col" class="cel-import">{% translate "Vegades" %}</th></tr></thead>
+        <tbody>
+          {% for row in used %}
+            <tr><th scope="row" class="cel-nom">{{ row.type }}</th><td data-etiqueta="{% translate "D'on surt" %}">{{ row.origin }}</td><td data-etiqueta="{% translate 'Vegades' %}" class="cel-import">{{ row.uses }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3">{% translate "Cap peça feta servir en aquest període." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="enllacos no-imprimeix"><a href="?des_de={{ start|date:'Y-m-d' }}&amp;fins_a={{ end|date:'Y-m-d' }}&amp;format=csv">{% translate "Descarrega el CSV" %}</a></p>
+    </section>
+  {% endif %}
+
+  {% if can.reviews %}
+    <section aria-labelledby="titol-revisions">
+      <h2 id="titol-revisions">{% translate "Revisions properes" %}</h2>
+      <table class="taula">
+        <caption>{% translate "Peces amb la revisió a prop o vençuda, per data" %}</caption>
+        <thead><tr><th scope="col">{% translate "Peça" %}</th><th scope="col">{% translate "Material" %}</th><th scope="col">{% translate "Revisió" %}</th></tr></thead>
+        <tbody>
+          {% for item in reviews %}
+            <tr>
+              <th scope="row" class="cel-nom"><span class="codi">{{ item.code }}</span></th>
+              <td data-etiqueta="{% translate 'Material' %}">{{ item.type.name }}</td>
+              <td data-etiqueta="{% translate 'Revisió' %}"><time datetime="{{ item.next_review_on|date:'Y-m-d' }}">{{ item.next_review_on|date:"d/m/Y" }}</time>{% if item.next_review_on < today %} <span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Vençuda" %}</span>{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3">{% translate "Cap peça amb la revisió a prop." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+  {% if can.costs %}
+    <section aria-labelledby="titol-costos">
+      <h2 id="titol-costos">{% translate "Cost de material per activitat" %}</h2>
+      {% if activities %}
+        <ul>
+          {% for activity in activities %}<li><a href="{% url 'administration:equipment_activity_cost' activity.pk %}">{{ activity.title }}</a> <span class="text-2">{{ activity.starts_on|date:"d/m/Y" }}</span></li>{% endfor %}
+        </ul>
+      {% else %}
+        <p>{% translate "Encara no hi ha cap activitat amb material assignat que puguis veure." %}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}
