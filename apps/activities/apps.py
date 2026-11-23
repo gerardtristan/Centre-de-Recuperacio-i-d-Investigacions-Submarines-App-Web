@@ -30,6 +30,12 @@ class ActivitiesConfig(AppConfig):
         from . import catalogue
 
         business_settings.register_check(catalogue.TARGET_AGENCY_KEY, catalogue.check_target_agency)
+        business_settings.register_check(
+            catalogue.LICENCE_CATEGORY_KEY, catalogue.check_licence_category
+        )
+        business_settings.register_check(
+            catalogue.HOMOLOGATION_DEPARTMENT_KEY, catalogue.check_homologation_department
+        )
 
         # T-M02-04b (L-M02-05; decisió 101): qui perd el rol d'instructor surt de les sessions
         # futures, dins la mateixa transacció i a nom de qui ha retirat el rol.

@@ -55,6 +55,8 @@ AC23 = MATERIAL_COST = "activities.material_cost.edit"
 AC24 = CARD_PHOTOS_VIEW = "activities.card_photos.view"  # addenda de la 104
 AC25 = CARD_PHOTOS_MANAGE = "activities.card_photos.manage"
 AC26 = FILINGS = "activities.filings.manage"
+AC27 = FIRST_LICENCE_VIEW = "activities.first_licence.view"  # addenda de la 104
+AC28 = FIRST_LICENCE_MANAGE = "activities.first_licence.manage"
 C3 = STUDENT_FIELDS = "activities.field.student_for_instructor"
 C7 = MATERIAL_COST_FIELD = "activities.field.material_cost"
 
