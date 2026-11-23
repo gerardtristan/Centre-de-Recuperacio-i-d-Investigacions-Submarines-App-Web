@@ -3,19 +3,20 @@ l'ordre, que ja es nega a córrer fora de desenvolupament o amb una base que no 
 
 Tot passa pels serveis del 03 (amb el registre d'activitat): dos centres inventats amb tarifes,
 el material típic de les sortides d'immersió, peces de l'inventari (ampolles, reguladors, jaquets
-i neoprens de diverses talles) i una revisió prevista. Cap dada personal.
+i neoprens de diverses talles), una revisió prevista i, si el 02 ja ha creat les seves activitats
+inventades (l'ordre el crida abans), assignacions a les inscripcions confirmades: una de llogada a
+la sortida oberta i, al curs en marxa, una peça lliurada i una de retornada. Cap dada personal.
 
-Fora d'aquí: les assignacions, que necessiten activitats i inscripcions inventades del 02, i el
-cost d'ús per tipus, que es canvia a la pantalla d'ajustos (T-M03-22).
+Fora d'aquí: el cost d'ús per tipus, que es canvia a la pantalla d'ajustos (T-M03-22).
 """
 
 import datetime
 
 from django.utils import timezone
 
-from apps.activities.models import OutingType
+from apps.activities.models import Activity, Enrolment, OutingType
 
-from . import centres, inventory, reviews, typical
+from . import assignments, centres, handover, inventory, reviews, typical
 from .models import EquipmentReview, EquipmentType
 
 CENTRES = (
@@ -30,8 +31,10 @@ def create(*, admin, today=None) -> dict:
     """Crea les dades del 03 amb el compte `admin` (té MT3, MT5, MT8 i MT11). Torna un resum."""
     today = today or timezone.localdate()
     kind = {t.name: t for t in EquipmentType.objects.all()}
+    first_centre = None
     for name, cost, member, non_member in CENTRES:
         centre = centres.create_centre(by=admin, name=name)
+        first_centre = first_centre or centre
         centres.add_rate(
             centre, label="Equip complet", equipment_type=kind["Jaquet"], cost_cents=cost,
             member_price_cents=member, non_member_price_cents=non_member, valid_from=today,
@@ -67,4 +70,32 @@ def create(*, admin, today=None) -> dict:
         regulator, kind=EquipmentReview.Kind.REGULATOR_SERVICE, due_on=regulator.next_review_on,
         by=admin, provider="Taller inventat",
     )  # fmt: skip
-    return {"centres": len(CENTRES), "items": len(items), "typical": len(TYPICAL), "reviews": 1}
+    return {
+        "centres": len(CENTRES), "items": len(items), "typical": len(TYPICAL), "reviews": 1,
+        "assignments": _assignments(admin, kind, items, first_centre),
+    }  # fmt: skip
+
+
+def _assignments(admin, kind, items, centre) -> int:
+    """La primera inscripció confirmada de la sortida oberta, amb material llogat; les dues primeres
+    del curs en marxa, amb una peça del club lliurada i una de retornada. Sense el 02, cap."""
+
+    def confirmed(status):
+        return list(
+            Enrolment.objects.filter(
+                status=Enrolment.Status.CONFIRMED, activity__status=status
+            ).order_by("activity_id", "pk")
+        )  # fmt: skip
+
+    made = 0
+    for row in confirmed(Activity.Status.OPEN)[:1]:
+        assignments.assign_rented(row, kind["Jaquet"], centre, by=admin, note="Dada de prova.")
+        made += 1
+    running = confirmed(Activity.Status.IN_PROGRESS)[:2]
+    pieces = [next(i for i in items if i.type.name == name) for name in ("Neoprè", "Jaquet")]
+    for n, (row, item) in enumerate(zip(running, pieces, strict=False)):
+        given = handover.deliver(assignments.assign_club(row, item, by=admin), by=admin)
+        if n:
+            handover.give_back(given, by=admin)
+        made += 1
+    return made
