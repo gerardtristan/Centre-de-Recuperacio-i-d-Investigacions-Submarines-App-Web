@@ -502,3 +502,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-26b](T-M03-26b.md) | El centre habitual del lloc es fa servir en llogar material (carril C7) | 23/11/2026 12:11 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M03-14b](T-M03-14b.md) | Avís diari de les revisions de material que vencen (carril C7) | 23/11/2026 12:19 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M09-19b](T-M09-19b.md) | Avís per correu al tresorer d'un salt a la sèrie de factures (CA-M09-17; carril A6) | 23/11/2026 13:02 | (vegeu la PR) | 1 ampliada, 1 nova | [A comprovar] |
+| [T-M09-13](T-M09-13.md) | Avís de marge baix en desar la previsió (CA-M09-12; margins/0005; carril A6) | 23/11/2026 13:25 | (vegeu la PR) | 6 noves | [A comprovar] |
