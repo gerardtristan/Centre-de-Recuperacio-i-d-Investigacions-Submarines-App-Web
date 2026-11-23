@@ -7,6 +7,7 @@ from .views import admin_activities as activities
 from .views import admin_catalogue as entries
 from .views import admin_filings as filings
 from .views import admin_places as places
+from .views import attendance
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -30,4 +31,12 @@ urlpatterns = [
     path("homologacions/<int:pk>/tramitada/", filings.filing_filed_view, name="filing_filed"),
     path("homologacions/<int:pk>/feta/", filings.filing_done_view, name="filing_done"),
     path("homologacions/<int:pk>/rebutja/", filings.filing_reject_view, name="filing_reject"),
+    # T-M02-16b: passar llista des del mòbil i incidències (AC9 per objecte)
+    path("activitats/llista/", attendance.sessions_view, name="attendance_sessions"),
+    path("activitats/<int:pk>/llista/", attendance.roll_view, name="attendance_roll"),
+    path(
+        "activitats/<int:pk>/llista/<int:session_pk>/",
+        attendance.roll_view,
+        name="attendance_roll_session",
+    ),
 ]

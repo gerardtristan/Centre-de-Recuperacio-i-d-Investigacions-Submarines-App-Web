@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-16b (P-M02-E; AC9 per objecte): les sessions i les sortides on el compte pot passar llista, d'ahir endavant. L'instructor només veu les seves sessions. Pensada per a 390 px. #}
+{% block title %}{% translate "Passar llista" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% translate "Passar llista" %}</h1>
+  </header>
+  {% if items %}
+    <table class="taula">
+      <caption class="visualment-amagat">{% translate "Sessions i sortides on pots passar llista, per data" %}</caption>
+      <thead><tr><th scope="col">{% translate "Activitat" %}</th><th scope="col">{% translate "Dia" %}</th><th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th></tr></thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <th scope="row" class="cel-nom">{{ item.activity.title }}{% if item.session %}<br><span class="text-2">{{ item.session.get_kind_display }} · {{ item.session.place.name }}</span>{% endif %}</th>
+            <td data-etiqueta="{% translate 'Dia' %}"><time datetime="{{ item.day|date:'Y-m-d' }}">{{ item.day|date:"d/m/Y" }}</time>{% if item.session %} {{ item.session.starts_at|time:"H:i" }}{% endif %}</td>
+            <td class="cel-accions">
+              {% if item.session %}<a class="boto boto-petit" href="{% url 'administration:attendance_roll_session' item.activity.pk item.session.pk %}">{% translate "Obre la llista" %}</a>
+              {% else %}<a class="boto boto-petit" href="{% url 'administration:attendance_roll' item.activity.pk %}">{% translate "Obre la llista" %}</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "No tens cap sessió ni sortida per passar llista." %}</p>
+  {% endif %}
+{% endblock %}
