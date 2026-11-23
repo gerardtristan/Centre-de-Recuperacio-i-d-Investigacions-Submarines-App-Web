@@ -1,0 +1,3 @@
+{% for message in messages %}
+  <div class="avis {% if message.level_tag == 'error' %}avis-error{% else %}avis-ok{% endif %}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</div>
+{% endfor %}
