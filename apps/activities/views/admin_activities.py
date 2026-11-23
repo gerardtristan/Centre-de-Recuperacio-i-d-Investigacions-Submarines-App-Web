@@ -21,10 +21,10 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
 
-from .. import material_cost, services, sessions, states
-from ..forms import ActivityForm, MaterialCostForm
+from .. import enrolment, guests, material_cost, services, sessions, states
+from ..forms import ActivityForm, GuestEnrolmentForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
-from ..permissions import MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, require
+from ..permissions import ENROL_IN_PERSON, MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, require
 from . import see_other
 
 MARGIN_VIEW = "expenses.margin.view"  # MG6: el marge és del 09; aquí només l'enllaç
@@ -35,6 +35,7 @@ ADD_TITLES = {K.COURSE: _("Curs nou"), K.OUTING: _("Sortida nova")}
 ADDED = _("Activitat creada en esborrany. Afegeix-hi les sessions o el programa i publica-la.")
 SAVED = _("Canvis desats. Queden al registre d'activitat amb el valor anterior.")
 UNCHANGED = _("No hi havia cap canvi per desar.")
+DESK_DONE = _("Inscripció feta. Si es paga, la persona rebrà al correu l'enllaç per pagar.")
 LIVE = "vives"
 FILTERS = (
     ("", _("Totes")),
@@ -145,7 +146,29 @@ def _material_cost(request, activity, form=None):
     }
 
 
-def _detail(request, activity, material_form=None):
+DESK_LABELS = {
+    "adult_declared": _("La persona diu que és major d'edat (pregunta-li-ho)"),
+    "accept_privacy": _("Ha llegit i accepta la política de privacitat"),
+}
+
+
+def _desk_form(request, activity, data=None):
+    """Inscripció presencial d'un convidat (T-M02-14; AC5): només si l'activitat és oberta a no
+    socis i té les inscripcions obertes. Qui atén marca les caselles després de preguntar."""
+    if data is None and not (
+        has_perm(request.user, ENROL_IN_PERSON, write=True)
+        and activity.open_to_non_members
+        and enrolment.is_open(activity)
+    ):
+        return None
+    form = GuestEnrolmentForm(data, min_age=activity.min_age, prefix="presencial")
+    for name, label in DESK_LABELS.items():
+        if name in form.fields:
+            form.fields[name].label = label
+    return form
+
+
+def _detail(request, activity, material_form=None, desk_form=None):
     without_instructor = set(
         sessions.sessions_without_instructor(timezone.now())
         .filter(activity=activity)
@@ -172,6 +195,7 @@ def _detail(request, activity, material_form=None):
         "editable": states.is_editable(activity),
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
         "material": _material_cost(request, activity, material_form),
+        "desk_form": desk_form or _desk_form(request, activity),
     }
     return render(request, "activities/activity_detail.html", context)
 
@@ -180,10 +204,13 @@ def _detail(request, activity, material_form=None):
 @permission_required(MANAGE)
 @require_http_methods(["GET", "POST"])
 def activity_detail_view(request, pk):
-    """GET: la fitxa. POST: el cost de material previst (AC23 per objecte; T-M02-40c)."""
+    """GET: la fitxa. POST: el cost de material previst (AC23 per objecte; T-M02-40c) o la
+    inscripció presencial d'un convidat (AC5; T-M02-14)."""
     activity = _activity(pk)
     if request.method == "GET":
         return _detail(request, activity)
+    if "inscripcio_presencial" in request.POST:
+        return _enrol_at_desk(request, activity)
     # Fora del seu abast, «no trobat» i registre (el servei ho torna a mirar)
     require(request.user, MATERIAL_COST, activity, request=request)
     form = MaterialCostForm(request.POST)
@@ -199,6 +226,20 @@ def activity_detail_view(request, pk):
             messages.success(request, _("Cost de material previst desat. No canvia cap càrrec."))
             return _to_detail(activity)
     return _detail(request, activity, form)
+
+
+def _enrol_at_desk(request, activity):
+    require(request.user, ENROL_IN_PERSON, request=request)
+    form = _desk_form(request, activity, request.POST)
+    if form.is_valid():
+        try:
+            guests.enrol_guest(activity, form.cleaned_data, by=request.user, request=request)
+        except ValidationError as error:
+            form.add_error(None, error.messages[0])
+        else:
+            messages.success(request, DESK_DONE)
+            return _to_detail(activity)
+    return _detail(request, activity, desk_form=form)
 
 
 @never_cache
