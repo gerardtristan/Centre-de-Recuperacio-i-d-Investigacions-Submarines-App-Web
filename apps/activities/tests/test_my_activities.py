@@ -1,5 +1,5 @@
-"""«Les meves activitats», el calendari d'una inscripció i «Què falta per tancar» (T-M02-22b; C16;
-RN-M02-25 i 45; CA-M02-23). Només dades inventades."""
+"""«Les meves activitats», el calendari d'una inscripció, el certificat i «Què falta per tancar»
+(T-M02-22b i 22c; C16; RN-M02-25 i 45; CA-M02-19 i 23). Només dades inventades."""
 
 import html
 
@@ -7,13 +7,15 @@ import pytest
 from django.db import transaction
 from django.urls import reverse
 
+from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
-from apps.activities import enrolment
-from apps.activities.models import Activity, Enrolment
+from apps.activities import certificates, enrolment
+from apps.activities.models import Activity, CourseOutcome, Enrolment
 from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 from .helpers import a_member, an_open_outing
+from .test_certificates import course  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.django_db
 MINE = reverse("activities:mine")
@@ -69,3 +71,18 @@ def test_ca_m02_23_what_is_left_to_close_without_personal_data(login_as, manager
     page = html.unescape(client.get(detail).content.decode())
     assert "Què falta per tancar" in page and "pendent de pagament" in page
     assert Enrolment.objects.filter(status="pending_payment").exists()
+
+
+def test_ca_m02_19_the_student_opens_her_certificate_and_nobody_else_does(login_as, course):  # noqa: F811
+    certificates.record_outcome(course.student, result=CourseOutcome.Result.PASS, by=course.teacher)
+    url = reverse("activities:enrolment_certificate", args=[course.student.pk])
+    mate = login_as(Account.objects.get(person=course.mate.person), AREA_PERSONAL)
+    assert mate.get(url).status_code == 404  # no és seva
+    student = login_as(Account.objects.get(person=course.student.person), AREA_PERSONAL)
+    assert student.get(url).status_code == 404  # apte, però encara sense certificat
+    certificates.issue(course.student, by=course.manager)
+    assert url in student.get(MINE).content.decode()
+    page = html.unescape(student.get(url).content.decode())
+    assert "C-" in page and "Nivell inventat B1" in page and "Torna a les meves activitats" in page
+    own = reverse("activities:enrolment_certificate", args=[course.mate.pk])
+    assert student.get(own).status_code == 404
