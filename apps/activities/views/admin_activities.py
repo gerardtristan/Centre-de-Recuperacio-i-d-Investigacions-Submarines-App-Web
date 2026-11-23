@@ -24,7 +24,7 @@ from apps.core.permissions import has_perm, permission_required
 from .. import material_cost, services, sessions, states
 from ..forms import ActivityForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
-from ..permissions import MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, require
+from ..permissions import MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, PLACES_VIEW, require
 from . import see_other
 
 MARGIN_VIEW = "expenses.margin.view"  # MG6: el marge és del 09; aquí només l'enllaç
@@ -80,6 +80,7 @@ def activities_view(request):
         "filters": FILTERS,
         "kinds": (("", _("Cursos i sortides")), *K.choices),
         "filtered": bool(kind) or state != LIVE,
+        "places_link": has_perm(request.user, PLACES_VIEW),
     }
     return render(request, "activities/activity_list.html", context)
 

@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-39: fitxa d'un lloc (AC21; amb AC22, els formularis). Dades, preu estàndard d'avui i historial de versions. Un preu nou és una versió amb data no anterior a avui i motiu, i avisa el tresorer (RN-M02-39, RN-AJ-04); no toca cap activitat ja creada (RN-M02-42). Sense AC22 no surt cap control, i el servidor rebutja i registra un intent directe (CA-M02-46). No hi ha cap opció d'esborrar (CA-M02-41). #}
+{% block title %}{{ place.name }} · {% translate "Llocs" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Lloc" %}</p>
+    <h1>{{ place.name }}</h1>
+    <p>{% include "activities/_place_status.html" %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Preu estàndard d'avui" %}</dt><dd>{% if price %}<span class="import">{{ price.member }}</span> {% translate "(soci)" %} · <span class="import">{{ price.non_member }}</span> {% translate "(no soci)" %}{% else %}{% translate "Sense preu" %}{% endif %}</dd></div>
+    <div><dt>{% translate "Notes internes" %}</dt><dd>{{ place.notes|default:"—"|linebreaksbr }}</dd></div>
+  </dl>
+  {% if can_edit %}
+    <form method="post" class="accions">
+      {% csrf_token %}
+      {% if place.active %}<button class="boto" type="submit" name="actiu" value="0">{% translate "Desactiva el lloc" %}</button>
+      {% else %}<button class="boto" type="submit" name="actiu" value="1">{% translate "Activa el lloc" %}</button>{% endif %}
+    </form>
+    <h2>{% translate "Un preu estàndard nou" %}</h2>
+    <p class="text-2">{% translate "Les activitats ja creades conserven el seu preu. S'avisa el tresorer." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% with form=price_form %}{% include "_errata.html" %}{% endwith %}
+      {% for field in price_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit" name="nou_preu" value="1">{% translate "Desa el preu" %}</button></div>
+    </form>
+    <h2>{% translate "Dades del lloc" %}</h2>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% with form=place_form %}{% include "_errata.html" %}{% endwith %}
+      {% for field in place_form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto" type="submit" name="desa_lloc" value="1">{% translate "Desa les dades" %}</button></div>
+    </form>
+  {% endif %}
+  <h2>{% translate "Historial de preus" %}</h2>
+  <table class="taula">
+    <caption>{% translate "Les versions del preu estàndard, de la més recent a la més antiga" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Des del" %}</th>
+        <th scope="col" class="cel-import">{% translate "Soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "No soci" %}</th>
+        <th scope="col">{% translate "Motiu" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for version in history %}
+        <tr>
+          <th scope="row"><time datetime="{{ version.valid_from|date:'Y-m-d' }}">{{ version.valid_from|date:"d/m/Y" }}</time>{% if version.valid_from > today %} <span class="xip">{% translate "Futur" %}</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Soci' %}" class="cel-import"><span class="import">{{ version.member }}</span></td>
+          <td data-etiqueta="{% translate 'No soci' %}" class="cel-import"><span class="import">{{ version.non_member }}</span></td>
+          <td data-etiqueta="{% translate 'Motiu' %}">{{ version.row.note }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% translate "Encara no té cap preu estàndard." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'administration:places' %}">{% translate "Tornar als llocs" %}</a></p>
+{% endblock %}

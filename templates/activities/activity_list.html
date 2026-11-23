@@ -13,6 +13,7 @@
   <div class="accions">
     <a class="boto boto-principal" href="{% url 'administration:activity_course_add' %}">{% translate "Curs nou" %}</a>
     <a class="boto" href="{% url 'administration:activity_outing_add' %}">{% translate "Sortida nova" %}</a>
+    {% if places_link %}<a class="boto boto-text" href="{% url 'administration:places' %}">{% translate "Llocs" %}</a>{% endif %}
   </div>
   <form class="formulari barra-filtres" method="get" action="{% url 'administration:activities' %}" novalidate>
     <fieldset class="filtres">
