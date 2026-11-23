@@ -301,7 +301,8 @@ def create_course(
     if not catalogue_entry.active:
         raise ValidationError(_("Aquesta fitxa del catàleg està desactivada."))
     today = today or timezone.localdate()
-    standard = _standard(catalogue.price_on(catalogue_entry, today))
+    version = catalogue.price_on(catalogue_entry, today)
+    standard = _standard(version)
     data.setdefault("max_places", catalogue_entry.default_places)
     data.setdefault("price_member_cents", standard["standard_price_member_cents"])
     data.setdefault("price_non_member_cents", standard["standard_price_non_member_cents"])
@@ -310,6 +311,8 @@ def create_course(
     data.setdefault("min_age", catalogue_entry.min_age)
     _require_fields(data, _REQUIRED)
     data = _clean(_defaults(data, catalogue_entry.default_requirements_mode)) | standard
+    # RN-M02-57: la còpia de «Inclou la primera llicència» de la versió vigent (la fitxa sola, no)
+    data["includes_first_licence"] = getattr(version, "includes_first_licence", False)
     _check_dates(data["starts_on"], data["ends_on"], data["registration_closes_at"])
     _check_place(data.get("place"), required=False)
     _check_cost_centre(data.get("cost_centre"), data["department"])
