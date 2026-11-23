@@ -4,6 +4,10 @@ fora de l'abast («les seves activitats»), «no trobat»: ho comproven el decor
 - Marge **previst** (activitat no tancada) i, si ja és feta, el **real** que es congelaria.
 - Marge **congelat** (activitat tancada) amb els **ajustos posteriors** al costat (RN-M09-07).
 - Costos previstos per categoria (MG5) i tancament econòmic amb els motius que l'impedeixen (MG7).
+
+I la pantalla dels períodes (P-M09-G; T-M09-16): la llista, la llista de control del primer
+període obert amb un motiu per element (RN-M09-26), tancar-lo (MG11), crear el següent (RN-M09-28)
+i reobrir el darrer tancat amb motiu (MG12).
 """
 
 from decimal import Decimal
@@ -12,20 +16,23 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.activities.models import Activity
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, request_permissions, require_perm
 from apps.expenses.models import ExpenseCategory
 
-from . import calc, closing, planned, services
+from . import calc, closing, period_closing, planned, services
+from .models import Period
 
 VIEW = "expenses.margin.view"  # MG6
 PAGE = "administration:activity_margin"
+PERIODS = "administration:margin_periods"
 
 
 class PlannedCostForm(forms.Form):
@@ -128,3 +135,130 @@ def close_view(request, activity_id):
     else:
         messages.success(request, _("Activitat tancada: el marge real queda congelat."))
     return redirect(PAGE, activity_id=activity.pk)
+
+
+# --- Períodes (P-M09-G; T-M09-16) --------------------------------------------------------------
+
+
+class FirstPeriodForm(forms.Form):
+    starts_on = forms.DateField(
+        label=gettext_lazy("Comença el"),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+
+
+class ClosePeriodForm(forms.Form):
+    """Un motiu per element de la llista de control (RN-M09-26): el camp porta la clau estable de
+    l'element, no la posició, perquè un element nou no hereti el motiu d'un altre."""
+
+    def __init__(self, items, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.items = items
+        for item in items:
+            self.fields[f"motiu-{item['key']}"] = forms.CharField(
+                label=item["label"], required=False, max_length=500,
+                help_text=gettext_lazy("Motiu per portar-lo al període següent."),
+            )  # fmt: skip
+
+    def exceptions(self) -> dict:
+        data = self.cleaned_data
+        return {
+            i["key"]: data[f"motiu-{i['key']}"] for i in self.items if data[f"motiu-{i['key']}"]
+        }
+
+
+class ReopenPeriodForm(forms.Form):
+    reason = forms.CharField(
+        label=gettext_lazy("Motiu de la reobertura"), max_length=500,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )  # fmt: skip
+
+
+@never_cache
+@require_GET
+def periods_view(request):
+    require_perm(request, period_closing.CLOSE)
+    perms = request_permissions(request)
+    periods = list(Period.objects.order_by("-starts_on"))
+    to_close = next((p for p in reversed(periods) if p.status == Period.Status.OPEN), None)
+    last_closed = next((p for p in periods if p.status == Period.Status.CLOSED), None)
+    can_close = has_perm(request.user, period_closing.CLOSE, write=True, permissions=perms)
+    can_reopen = has_perm(request.user, period_closing.REOPEN, write=True, permissions=perms)
+    can_create = can_close and (not periods or periods[0].starts_on <= timezone.localdate())
+    items = period_closing.checklist(to_close) if to_close else []
+    context = {
+        "periods": periods,
+        "to_close": to_close,
+        "items": items,
+        "close_form": ClosePeriodForm(items) if can_close and to_close else None,
+        "next": period_closing.next_dates() if can_create else None,
+        "first_form": FirstPeriodForm() if can_create and not periods else None,
+        "can_create": can_create,
+        "last_closed": last_closed if can_reopen else None,
+        "reopen_form": ReopenPeriodForm() if can_reopen and last_closed else None,
+    }
+    return render(request, "margins/periods.html", context)
+
+
+def _error(request, error: ValidationError) -> None:
+    messages.error(request, " ".join(error.messages))
+
+
+@never_cache
+@require_POST
+def period_create_view(request):
+    require_perm(request, period_closing.CLOSE, write=True)
+    form = FirstPeriodForm(request.POST)
+    starts_on = form.cleaned_data["starts_on"] if form.is_valid() else None
+    try:
+        period = period_closing.create_next(by=request.user, starts_on=starts_on)
+    except ValidationError as error:
+        _error(request, error)
+    else:
+        messages.success(
+            request,
+            _("Període creat: del %(start)s al %(end)s.")
+            % {"start": f"{period.starts_on:%d/%m/%Y}", "end": f"{period.ends_on:%d/%m/%Y}"},
+        )
+    return redirect(PERIODS)
+
+
+@never_cache
+@require_POST
+def period_close_view(request, period_id):
+    period = get_object_or_404(Period, pk=period_id)
+    require_perm(request, period_closing.CLOSE, write=True)
+    form = ClosePeriodForm(period_closing.checklist(period), request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Revisa els motius: com a màxim 500 caràcters."))
+        return redirect(PERIODS)
+    try:
+        period_closing.close(period, by=request.user, exceptions=form.exceptions())
+    except period_closing.PeriodNotReady as error:
+        messages.error(
+            request,
+            _("Encara no es pot tancar: cada element ha de quedar resolt o amb un motiu."),
+        )
+        _error(request, error)
+    except ValidationError as error:
+        _error(request, error)
+    else:
+        messages.success(request, _("Període tancat."))
+    return redirect(PERIODS)
+
+
+@never_cache
+@require_POST
+def period_reopen_view(request, period_id):
+    period = get_object_or_404(Period, pk=period_id)
+    require_perm(request, period_closing.REOPEN, write=True)
+    form = ReopenPeriodForm(request.POST)
+    try:
+        if not form.is_valid():
+            raise ValidationError(_("Cal el motiu de la reobertura."))
+        period_closing.reopen(period, by=request.user, reason=form.cleaned_data["reason"])
+    except ValidationError as error:
+        _error(request, error)
+    else:
+        messages.success(request, _("Període reobert."))
+    return redirect(PERIODS)
