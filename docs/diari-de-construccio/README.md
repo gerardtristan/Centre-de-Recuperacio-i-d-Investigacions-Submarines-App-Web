@@ -515,3 +515,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-16c](T-M09-16c.md) | Pantalla dels períodes i creació del període següent (margins/0006; apilada sobre la T-M09-13; carril A6) | 23/11/2026 14:45 | (vegeu la PR) | 11 noves; 1 e2e | [A comprovar] |
 | [T-M09A-06-nucli](T-M09A-06-nucli.md) | Ajuts (nucli): plantilles dels avisos de tancament, resposta, justificació i requeriment (carril A6) | 23/11/2026 13:56 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M02-50-nucli](T-M02-50-nucli.md) | Activitats (nucli): AC27, AC28 i permisos dels ajustos VC-60 i VC-61 (core/0073; carril B4) | 23/11/2026 16:40 | ff3c2273 | — | [A comprovar] |
+| [T-M09A-06](T-M09A-06.md) | Avisos dels ajuts per la cua: tancament, resposta i justificació (grants/0007; sobre la branca del nucli; carril A6) | 23/11/2026 14:17 | (vegeu la PR) | 11 noves | [A comprovar] |
