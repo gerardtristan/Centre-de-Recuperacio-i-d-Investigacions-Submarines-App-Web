@@ -127,3 +127,10 @@ def test_t_m02_50_ac28_needs_ac27(make_admin):  # noqa: F811
     assert has_perm(secretary, "activities.first_licence.view")
     assert not has_perm(secretary, "activities.first_licence.manage", write=True)
     assert CATALOG["activities.first_licence.manage"].requires == ("activities.first_licence.view",)
+
+
+def test_t_m02_21_only_the_secretary_edits_vc_23(make_admin):  # noqa: F811
+    for role in (R.COURSES_MANAGER, R.SECRETARY, R.TREASURER, R.ADMINISTRATOR, R.INSTRUCTOR):
+        account = make_admin(role)
+        code = EDIT + "reminder_days_before"
+        assert has_perm(account, code, write=True) is (role == R.SECRETARY), role

@@ -1,0 +1,7 @@
+{% load i18n %}{# T-M02-21 (P-M02-F pas 6; RN-M02-16): avís a l'alumne quan s'emet el certificat. TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. Sense adjunts (RN-A12): el certificat es descarrega a «Les meves activitats». #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}El club ha emès el teu certificat del curs «{{ title }}», amb el número {{ number }}.{% endblocktranslate %}
+{% translate "El trobaràs a «Les meves activitats», a la plataforma del club." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
