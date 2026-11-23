@@ -27,7 +27,7 @@ VALUES = {
 }
 
 
-def test_the_section_has_the_five_values_with_their_initial_value():
+def test_the_section_has_its_values_with_their_initial_value():
     settings = Setting.objects.filter(module="licences")
     assert {s.key: s.initial_value for s in settings} == {
         "licences.non_members_enabled": False,
@@ -35,6 +35,7 @@ def test_the_section_has_the_five_values_with_their_initial_value():
         "licences.reminder_days": [60, 30, 7],
         "licences.to_renew_days": 60,
         "licences.next_year_opens_on": "12-01",
+        "licences.first_licence_type": "",  # P-530 (T-M02-51a): buit fins que es triï
     }
     assert not any(s.affects_money for s in settings)  # cap data d'entrada en vigor
 
@@ -97,11 +98,12 @@ def test_each_role_can_edit_only_its_values_on_the_screen(make_admin):  # noqa: 
     url = reverse("administration:settings_section", args=["licences"])
     for role, mine in (
         (R.SECRETARY, {"licences.reminder_days", "licences.to_renew_days",
-                       "licences.next_year_opens_on"}),
+                       "licences.next_year_opens_on", "licences.first_licence_type"}),
         (R.ADMINISTRATOR, {"licences.non_members_enabled", "licences.day_enabled"}),
+        (R.TREASURER, {"licences.first_licence_type"}),  # P-530
     ):  # fmt: skip
         rows = admin_client(make_admin(role)).get(url).context["rows"]
-        assert len(rows) == 5
+        assert len(rows) == 6
         assert {row["setting"].key for row in rows if row["editable"]} == mine
 
 
