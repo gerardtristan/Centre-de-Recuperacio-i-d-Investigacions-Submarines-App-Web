@@ -16,6 +16,36 @@
     {% if margin_link %}<a class="boto" href="{% url 'administration:activity_margin' activity.pk %}">{% translate "Marge de l'activitat" %}</a>{% endif %}
   </div>
 
+  {% if state_actions or can_cancel %}
+    <section aria-labelledby="estat-titol">
+      <h2 id="estat-titol">{% translate "Estat de l'activitat" %}</h2>
+      {% for action, label in state_actions %}
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          {% if action == "reobre" %}
+            <div class="camp">
+              <label for="closes-at">{% translate "Data límit nova (opcional)" %}</label>
+              <input id="closes-at" type="datetime-local" name="closes_at">
+              <p class="ajuda">{% translate "Si la data límit ja ha passat, en cal una de nova, com a molt tard el dia d'inici." %}</p>
+            </div>
+          {% endif %}
+          <div class="accions"><button class="boto" type="submit" name="accio" value="{{ action }}">{{ label }}</button></div>
+        </form>
+      {% endfor %}
+      {% if can_cancel %}
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          <div class="camp">
+            <label for="motiu-cancel">{% translate "Motiu de la cancel·lació" %}</label>
+            <textarea id="motiu-cancel" name="motiu" rows="2"></textarea>
+            <p class="ajuda">{% translate "Les inscripcions es cancel·len, els càrrecs pendents s'anul·len i els pagats tenen una proposta de devolució per al tresorer." %}</p>
+          </div>
+          <div class="accions"><button class="boto" type="submit" name="accio" value="cancella">{% translate "Cancel·la l'activitat" %}</button></div>
+        </form>
+      {% endif %}
+    </section>
+  {% endif %}
+
   <section aria-labelledby="dades-titol">
     <h2 id="dades-titol">{% translate "Dades" %}</h2>
     <dl class="dades-soci">

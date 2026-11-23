@@ -193,6 +193,10 @@ MAP = {
         "apps/activities/views/member_certifications.py",
         "templates/activities/my_certifications.html",
     ),
+    "test_activitats_estats.py": (
+        "apps/activities/views/admin_activities.py",
+        "templates/activities/activity_detail.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/admin_urls.py",
