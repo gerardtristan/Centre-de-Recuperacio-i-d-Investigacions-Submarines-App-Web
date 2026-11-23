@@ -480,3 +480,55 @@ class GrantExpenseLink(models.Model):
 
     def __str__(self):
         return f"{self.expense_id}: {self.amount_cents} c"
+
+
+class GrantReminder(AppendOnlyModel):
+    """Avís enviat d'una sol·licitud (M09-ajuts-6; T-M09A-06 i T-M09A-15; RN-M09A-06 i 22). Només
+    INSERT. Un avís de requeriment és únic per sol·licitud, requeriment i tipus, sigui quina sigui
+    la data límit (un canvi de data no el torna a enviar, CA-M09A-23); la resta, per sol·licitud,
+    tipus i data (si la data canvia, l'avís es calcula sobre la nova)."""
+
+    application = models.ForeignKey(
+        GrantApplication,
+        on_delete=models.PROTECT,
+        related_name="reminders",
+        verbose_name=_("sol·licitud"),
+    )
+    requirement = models.ForeignKey(
+        GrantRequirement,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="reminders",
+        verbose_name=_("requeriment"),
+    )
+    # close_<dies>, justify_<dies>, response, requirement_now o requirement_<dies>.
+    kind = models.CharField(_("tipus"), max_length=20)
+    due_on = models.DateField(_("data de referència"))
+    sent_at = models.DateTimeField(_("enviat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís d'un ajut")
+        verbose_name_plural = _("avisos dels ajuts")
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "requirement", "kind"],
+                condition=Q(requirement__isnull=False),
+                name="grant_reminder_requirement_once",
+            ),
+            models.UniqueConstraint(
+                fields=["application", "kind", "due_on"],
+                condition=Q(requirement__isnull=True),
+                name="grant_reminder_once_per_date",
+            ),
+            # Un avís de requeriment porta el requeriment; cap altre no en porta.
+            models.CheckConstraint(
+                condition=Q(kind__startswith="requirement_", requirement__isnull=False)
+                | (~Q(kind__startswith="requirement_") & Q(requirement__isnull=True)),
+                name="grant_reminder_requirement_kind",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.application_id}: {self.kind} {self.due_on}"
