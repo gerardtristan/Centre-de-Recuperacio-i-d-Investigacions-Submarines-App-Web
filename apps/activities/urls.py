@@ -32,6 +32,12 @@ urlpatterns = [
         my_activities.enrolment_calendar_view,
         name="enrolment_calendar",
     ),
+    # T-M02-22c: el certificat emès d'una inscripció seva, per imprimir o desar com a PDF.
+    path(
+        "socis/activitats/inscripcions/<int:pk>/certificat/",
+        my_activities.enrolment_certificate_view,
+        name="enrolment_certificate",
+    ),
     # T-M02-44c: les titulacions de la persona i demanar l'homologació (RN-M02-50).
     path(
         "socis/titulacions/",

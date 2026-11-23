@@ -2,6 +2,8 @@
 
 Àrea personal (sessió obligatòria): només les inscripcions de la persona del compte. El calendari
 `.ics` és d'una inscripció seva (si no, «no trobat») i no porta mai cap persona (`ics.build`).
+El certificat (T-M02-22c) és la mateixa pàgina per imprimir que la de l'administració (T-M02-19b),
+només d'una inscripció seva amb el certificat emès (si no, «no trobat»).
 Els blocs d'altres mòduls (el material del 03) surten amb `extensions.detail_sections`.
 """
 
@@ -63,3 +65,16 @@ def enrolment_calendar_view(request, pk):
     response = HttpResponse(body, content_type="text/calendar; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="activitat-{activity.pk}.ics"'
     return response
+
+
+@never_cache
+@require_GET
+def enrolment_certificate_view(request, pk):
+    row = get_object_or_404(
+        Enrolment.objects.select_related("person", "activity"), pk=pk, person=_person(request)
+    )
+    data = certificates.certificate(row)
+    if data is None:
+        raise Http404
+    context = {"certificate": data, "activity": row.activity, "personal": True}
+    return render(request, "activities/certificate.html", context)

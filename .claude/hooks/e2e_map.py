@@ -178,6 +178,7 @@ MAP = {
     "test_activitats_meves.py": (
         "apps/activities/views/my_activities.py",
         "templates/activities/my_activities.html",
+        "templates/activities/certificate.html",
     ),
     "test_activitats_cataleg.py": (
         "apps/activities/views/admin_catalogue.py",
