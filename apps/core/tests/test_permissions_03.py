@@ -62,8 +62,10 @@ def test_the_instructor_sees_the_participant_price_but_not_the_margin(make_admin
 
 
 SETTINGS = {
-    "settings.section.equipment": (_, _, _, CONS, _, _, CONS, _, _),  # AJ03
+    "settings.section.equipment": (_, _, _, CONS, CONS, _, CONS, _, _),  # AJ03
     "settings.edit.equipment.review_notice_days": (_, _, _, Y, _, _, _, _, _),  # AJ03-1, VC-29
+    "settings.edit.equipment.unreturned_after_days": (_, _, _, Y, _, _, _, _, _),  # AJ03-2, VC-29
+    "settings.edit.equipment.usage_rates": (_, _, _, _, Y, _, _, _, _),  # AJ03-3, VC-28
 }
 SETTINGS_CELLS = [
     (code, role, row[i]) for code, row in SETTINGS.items() for i, role in enumerate(ROLES)

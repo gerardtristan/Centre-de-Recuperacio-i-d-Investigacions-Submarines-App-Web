@@ -1,0 +1,1 @@
+{% load i18n %}{# S-M09-13: TEXT PROVISIONAL [A validar: junta]. #}{% blocktranslate %}S'ha reobert el període {{ period }}{% endblocktranslate %}
