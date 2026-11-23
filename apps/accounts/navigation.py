@@ -57,6 +57,8 @@ BASE_ROUTES = {
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
+    # T-M02-16b: AC9; l'instructor només hi veu les seves sessions (ho filtra la vista).
+    "administration:attendance_sessions": ((("activities.attendance.record", READ),),),
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -123,6 +125,11 @@ ENTRIES = (
             "administration:activity_edit",
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
+    (
+        "administration:attendance_sessions",
+        _("Passar llista"),
+        ("administration:attendance_roll", "administration:attendance_roll_session"),
+    ),  # T-M02-16b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -290,7 +297,7 @@ GROUPS = (
     (
         _("Activitats"),
         "calendar-days",
-        ("administration:activities",),
+        ("administration:activities", "administration:attendance_sessions"),
     ),
     (
         _("Quotes i tresoreria"),
