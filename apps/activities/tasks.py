@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import cancellation, deadlines, sessions, states
+from . import cancellation, deadlines, notifications, sessions, states
 
 
 # Cada 10 minuts: tanca les inscripcions que han arribat a la data límit i posa «en curs» els
@@ -35,3 +35,10 @@ def retry_pending_voids(timestamp: int) -> None:
 @app.task(name="activities.release_former_instructors", queue="maintenance")
 def release_former_instructors(timestamp: int) -> None:
     sessions.release_former_instructors()
+
+
+# Cada dia, al matí: el recordatori als inscrits confirmats (RN-M02-19, VC-23; T-M02-21).
+@app.periodic(cron="0 8 * * *")
+@app.task(name="activities.send_reminders", queue="maintenance")
+def send_reminders(timestamp: int) -> None:
+    notifications.send_reminders()
