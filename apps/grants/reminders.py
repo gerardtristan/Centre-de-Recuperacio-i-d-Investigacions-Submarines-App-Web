@@ -10,8 +10,16 @@ La tasca diària (`tasks.send_reminders`) envia, al responsable de la sol·licit
   n'hi ha) de les concedides [A validar: junta, S-M09A-04].
 
 Cada avís és una fila de `GrantReminder` (només INSERT) amb una restricció única: si la tasca
-s'executa dues vegades el mateix dia, el segon intent no envia res. Els avisos dels requeriments
-són de la T-M09A-15. L'avís a l'app arribarà amb les notificacions de l'app; ara, només el correu.
+s'executa dues vegades el mateix dia, el segon intent no envia res.
+
+**Requeriments d'esmena** (T-M09A-15; RN-M09A-19 i 22; CA-M09A-17, 18, 22 i 23): el primer avís,
+immediat, en registrar-lo (`requirement_registered`); després, per a cada tram de
+`grants.requirement_reminder_days` (VC-37: 7 i 2), els requeriments sense resposta que vencen just
+aquell dia de distància. Un avís de requeriment és únic per requeriment i tipus, sigui quina sigui
+la data límit: si la data canvia, els que falten es calculen sobre la nova i els ja enviats (també
+l'immediat) no es repeteixen.
+
+L'avís a l'app arribarà amb les notificacions de l'app; ara, només el correu.
 """
 
 import datetime
@@ -26,11 +34,13 @@ from apps.accounts.models import Account
 from apps.core import audit, business_settings, mail
 from apps.core.permissions import accounts_with_perm
 
-from .models import GrantApplication, GrantReminder
+from .models import GrantApplication, GrantReminder, GrantRequirement
 
 logger = logging.getLogger(__name__)
 
 DEADLINE_DAYS = "grants.deadline_reminder_days"  # VC-36
+REQUIREMENT_DAYS = "grants.requirement_reminder_days"  # VC-37
+REQUIREMENT_TEMPLATE = "avis-ajut-requeriment"
 CLOSE_TEMPLATE = "avis-ajut-tancament"
 RESPONSE_TEMPLATE = "avis-ajut-resposta"
 JUSTIFY_TEMPLATE = "avis-ajut-justificacio"
@@ -104,6 +114,18 @@ def send_due(today: datetime.date | None = None) -> int:
         ):
             context = _context(application, due_on=_date(target), days=days)
             sent += _safe(application, f"justify_{days}", target, JUSTIFY_TEMPLATE, context)
+    for days in sorted(set(business_settings.get(REQUIREMENT_DAYS, today)), reverse=True):
+        target = today + datetime.timedelta(days=days)
+        open_requirements = GrantRequirement.objects.filter(answered_on__isnull=True, due_on=target)
+        for requirement in open_requirements.select_related("application__call", "responsible"):
+            sent += _safe(
+                requirement.application,
+                f"requirement_{days}",
+                target,
+                REQUIREMENT_TEMPLATE,
+                _context(requirement.application, due_on=_date(target), days=days),
+                requirement=requirement,
+            )
     for application in applications.filter(status=S.SUBMITTED, expected_response_on=today):
         context = _context(
             application,
@@ -114,7 +136,20 @@ def send_due(today: datetime.date | None = None) -> int:
     return sent
 
 
-def _safe(application, kind, due_on, template, context) -> int:
+def requirement_registered(requirement) -> bool:
+    """CA-M09A-17: el primer avís, immediat, a la transacció de qui registra el requeriment."""
+    return remind(
+        requirement.application,
+        kind="requirement_now",
+        due_on=requirement.due_on,
+        template=REQUIREMENT_TEMPLATE,
+        context=_context(requirement.application, due_on=_date(requirement.due_on), days=0),
+        responsible=requirement.responsible,
+        requirement=requirement,
+    )
+
+
+def _safe(application, kind, due_on, template, context, requirement=None) -> int:
     try:
         return int(
             remind(
@@ -123,7 +158,8 @@ def _safe(application, kind, due_on, template, context) -> int:
                 due_on=due_on,
                 template=template,
                 context=context,
-                responsible=application.responsible,
+                responsible=requirement.responsible if requirement else application.responsible,
+                requirement=requirement,
             )
         )
     except Exception:  # un avís que falla no atura els altres
