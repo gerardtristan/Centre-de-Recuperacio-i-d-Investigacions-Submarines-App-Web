@@ -120,6 +120,8 @@ class TrainingCataloguePrice(AppendOnlyModel):
     reinforcement_price_cents = models.PositiveIntegerField(
         _("preu del reforç (cèntims)"), null=True, blank=True
     )
+    # RN-M02-57 (104; resposta provisional a P-426): el preu ja inclou la primera llicència.
+    includes_first_licence = models.BooleanField(_("inclou la primera llicència"), default=False)
     valid_from = models.DateField(_("vigent des del"))
     changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -402,6 +404,8 @@ class Activity(models.Model):
         _("preu estàndard de no soci (cèntims)"), null=True, blank=True
     )
     price_override_note = models.TextField(_("motiu del preu diferent de l'estàndard"), blank=True)
+    # Còpia de la versió del catàleg en crear-la (RN-M02-57); un canvi posterior no la toca.
+    includes_first_licence = models.BooleanField(_("inclou la primera llicència"), default=False)
     # Cost de material previst per participant i la seva còpia estàndard del 03 (RN-M02-43). És
     # una previsió: no crea cap càrrec. Només el veu qui té C7 (T-M02-38).
     material_cost_cents = models.PositiveIntegerField(

@@ -21,6 +21,7 @@ from django.utils.translation import gettext as _
 from apps.core import audit, business_settings
 from apps.core.business_settings import notify_money_change
 from apps.core.charges import euros
+from apps.core.models import Department
 
 from . import permissions
 from .models import (
@@ -49,6 +50,7 @@ PLACE_PRICE_CHANGED = "activities.place.price_changed"
 PLACE_NOTES_MAX = 1000
 
 PRICE_FIELDS = ("price_member_cents", "price_non_member_cents", "reinforcement_price_cents")
+VERSION_FIELDS = (*PRICE_FIELDS, "includes_first_licence")  # RN-M02-57
 # Camps de la fitxa que `update_entry` deixa canviar. Els preus, mai: tenen el seu servei.
 EDITABLE_FIELDS = (
     "name",
@@ -274,21 +276,28 @@ def change_prices(
     valid_from,
     note,
     reinforcement_price_cents=None,
+    includes_first_licence=None,
     today=None,
     request=None,
 ) -> TrainingCataloguePrice:
     """Afegeix una versió dels preus, vigent des de `valid_from` (avui o més endavant). El motiu
-    és obligatori. No toca cap activitat ja creada (RN-M02-05)."""
+    és obligatori. No toca cap activitat ja creada (RN-M02-05). `includes_first_licence`
+    (RN-M02-57): `None` conserva el de la versió anterior; canviar-lo demana AC28."""
     permissions.require(by, permissions.CATALOGUE)
     note = _note_and_date(note, valid_from, today)
+    TrainingCatalogueEntry.objects.select_for_update().get(pk=entry.pk)
+    current = price_on(entry, valid_from)
+    old = {name: getattr(current, name, False) for name in VERSION_FIELDS}
     new = {
         "price_member_cents": _cents(price_member_cents),
         "price_non_member_cents": _cents(price_non_member_cents),
         "reinforcement_price_cents": _cents(reinforcement_price_cents, optional=True),
+        "includes_first_licence": old["includes_first_licence"]
+        if includes_first_licence is None
+        else bool(includes_first_licence),
     }
-    TrainingCatalogueEntry.objects.select_for_update().get(pk=entry.pk)
-    current = price_on(entry, valid_from)
-    old = {name: getattr(current, name) for name in PRICE_FIELDS}
+    if new["includes_first_licence"] != old["includes_first_licence"]:
+        permissions.require(by, permissions.FIRST_LICENCE_MANAGE, request=request)
     if new == old:
         raise ValidationError(_("El preu és el mateix que ja hi haurà en aquella data."))
     version = TrainingCataloguePrice.objects.create(
@@ -298,7 +307,7 @@ def change_prices(
         PRICE_CHANGED,
         actor=by,
         target=entry,
-        changes={name: (old[name], new[name]) for name in PRICE_FIELDS},
+        changes={name: (old[name], new[name]) for name in VERSION_FIELDS},
         reason=note,
         request=request,
     )
@@ -321,6 +330,8 @@ def describe_prices(prices: dict) -> str:
     }
     if prices.get("reinforcement_price_cents") is not None:
         text += _("; reforç %(amount)s") % {"amount": euros(prices["reinforcement_price_cents"])}
+    if prices.get("includes_first_licence"):
+        text += _("; inclou la primera llicència")
     return text
 
 
@@ -539,6 +550,25 @@ def check_target_agency(value) -> None:
     """La comprovació de l'ajust (la registra `ActivitiesConfig.ready`): una agència activa."""
     if not CertificationAgency.objects.filter(name=value, active=True).exists():
         raise ValidationError(_("Ha de ser el nom d'una agència activa."))
+
+
+LICENCE_CATEGORY_KEY = "activities.included_licence_expense_category"  # VC-60
+HOMOLOGATION_DEPARTMENT_KEY = "activities.homologation_department"  # VC-61
+
+
+def check_licence_category(value) -> None:
+    """VC-60 (RN-M02-59): buit fins que el tresorer en triï una, o una categoria activa del 09."""
+    from django.apps import apps
+
+    category = apps.get_model("expenses", "ExpenseCategory")
+    if value and not category.objects.filter(name=value, active=True).exists():
+        raise ValidationError(_("Ha de ser el nom d'una categoria de despesa activa."))
+
+
+def check_homologation_department(value) -> None:
+    """VC-61 (RN-M02-55): buit (el dels cursos, P-427 provisional) o un departament actiu."""
+    if value and not Department.objects.filter(name=value, active=True).exists():
+        raise ValidationError(_("Ha de ser el nom d'un departament actiu."))
 
 
 def target_agency() -> CertificationAgency | None:
