@@ -307,3 +307,33 @@ class MaterialCostForm(forms.Form):
         label=_("Motiu si no és l'estàndard"), required=False, widget=_text(2),
         help_text=_("Obligatori si el cost no és el que calcula el 03."),
     )  # fmt: skip
+
+
+class GuestEnrolmentForm(forms.Form):
+    """Inscripció d'un convidat (T-M02-14; RN-M02-35; CA-M02-10, 11 i 37): dades mínimes, i la
+    data de naixement només si l'activitat té edat mínima; si no, la casella «Soc major d'edat»
+    (T-M02-34). Les regles i els textos legals vigents els comprova `guests.enrol_guest`."""
+
+    first_name = forms.CharField(label=_("Nom"), max_length=100)
+    last_name = forms.CharField(label=_("Cognoms"), max_length=150)
+    contact_email = forms.EmailField(label=_("Correu electrònic"), max_length=254)
+    phone = forms.CharField(label=_("Telèfon (opcional)"), max_length=30, required=False)
+    birth_date = date_field(_("Data de naixement"))
+    adult_declared = forms.BooleanField(
+        label=_("Declaració «Soc major d'edat»"), required=False,
+        error_messages={"required": _("Cal confirmar que ets major d'edat.")},
+    )  # fmt: skip
+    accept_privacy = forms.BooleanField(
+        label=_("Política de privacitat"), required=False,
+        error_messages={"required": _("Cal acceptar la política de privacitat.")},
+    )  # fmt: skip
+
+    def __init__(self, data=None, *, min_age, prefix=None):
+        super().__init__(data, prefix=prefix)
+        if min_age:
+            del self.fields["adult_declared"]
+        else:
+            del self.fields["birth_date"]
+        for name in ("adult_declared", "accept_privacy"):
+            if name in self.fields:
+                self.fields[name].required = True

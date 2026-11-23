@@ -64,6 +64,18 @@
     {% endif %}
   </section>
 
+  {% if desk_form %}
+    <section aria-labelledby="presencial-titol">
+      <h2 id="presencial-titol">{% translate "Inscripció presencial d'un convidat" %}</h2>
+      <p class="text-2">{% translate "Per a qui no és soci i s'inscriu en persona. Si l'activitat es paga, l'enllaç per pagar li arriba al correu. Un soci s'inscriu des del seu compte." %}</p>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% with form=desk_form %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+        <div class="accions"><button class="boto" type="submit" name="inscripcio_presencial" value="1">{% translate "Inscriu el convidat" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+
   <section aria-labelledby="sessions-titol">
     <h2 id="sessions-titol">{% translate "Sessions" %}</h2>
     {% if needs_instructor %}<div class="avis avis-avis" role="status"><strong>{% translate "Hi ha sessions sense instructor." %}</strong> {% translate "Posa-n'hi un abans que es facin." %}</div>{% endif %}
