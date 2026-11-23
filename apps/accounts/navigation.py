@@ -166,6 +166,8 @@ ENTRIES = (
             "administration:assessment_sheet",  # T-M02-17b: s'obre des de la llista
             "administration:course_outcomes",  # T-M02-19b: també
             "administration:course_certificate",
+            "administration:reinforcement_list",  # T-M02-18b: també
+            "administration:reinforcement_propose",
         ),
     ),  # T-M02-16b; text i lloc provisionals per a DISSENY
     (
