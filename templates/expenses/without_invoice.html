@@ -21,7 +21,7 @@
         <th scope="col">{% translate "Proveïdor" %}</th>
         <th scope="col">{% translate "Data" %}</th>
         <th scope="col">{% translate "Departament" %}</th>
-        <th scope="col">{% translate "Import" %}</th>
+        <th scope="col" class="cel-import">{% translate "Import" %}</th>
         <th scope="col">{% translate "Estat" %}</th>
       </tr>
     </thead>
@@ -32,7 +32,7 @@
           <td data-etiqueta="{% translate 'Proveïdor' %}">{{ row.expense.supplier }}</td>
           <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.expense.invoice_date|date:'Y-m-d' }}">{{ row.expense.invoice_date|date:"d/m/Y" }}</time></td>
           <td data-etiqueta="{% translate 'Departament' %}">{{ row.expense.department }}</td>
-          <td data-etiqueta="{% translate 'Import' %}"><span class="import">{{ row.amount }}</span></td>
+          <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
           <td data-etiqueta="{% translate 'Estat' %}"><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense factura" %}</span></td>
         </tr>
       {% empty %}

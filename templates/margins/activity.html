@@ -40,10 +40,10 @@
     <h2 id="titol-previstos">{% translate "Costos previstos" %}</h2>
     <table class="taula">
       <caption>{% translate "Per categoria. Compten mentre la categoria no té costos reals." %}</caption>
-      <thead><tr><th scope="col">{% translate "Categoria" %}</th><th scope="col">{% translate "Import previst" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% translate "Categoria" %}</th><th scope="col" class="cel-import">{% translate "Import previst" %}</th></tr></thead>
       <tbody>
         {% for name, amount in planned %}
-          <tr><th scope="row" class="cel-nom">{{ name }}</th><td data-etiqueta="{% translate 'Import previst' %}"><span class="import">{{ amount }}</span></td></tr>
+          <tr><th scope="row" class="cel-nom">{{ name }}</th><td data-etiqueta="{% translate 'Import previst' %}" class="cel-import"><span class="import">{{ amount }}</span></td></tr>
         {% empty %}
           <tr><td colspan="2">{% translate "Encara no hi ha cap cost previst." %}</td></tr>
         {% endfor %}

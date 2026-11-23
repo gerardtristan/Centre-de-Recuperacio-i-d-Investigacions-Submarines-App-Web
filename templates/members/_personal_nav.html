@@ -9,6 +9,7 @@
     {% if user.person.member %}<li><a href="{% url 'members:card' %}"{% if current == "members:card" or current == "members:card_renew" %} aria-current="page"{% endif %}>{% translate "El meu carnet" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:change_type' %}"{% if current == "members:change_type" or current == "members:change_type_withdraw" %} aria-current="page"{% endif %}>{% translate "Canvi de tipus" %}</a></li>{% endif %}
     {% if user.person.member %}<li><a href="{% url 'members:leave' %}"{% if current == "members:leave" %} aria-current="page"{% endif %}>{% translate "Baixa" %}</a></li>{% endif %}
+    <li><a href="{% url 'invoicing:my_invoices' %}"{% if current == "invoicing:my_invoices" %} aria-current="page"{% endif %}>{% translate "Les meves factures" %}</a></li>
     <li class="sortida"><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="boto boto-petit" type="submit">{% translate "Surt" %}</button></form></li>
   </ul>
 </nav>{% endif %}{% endwith %}

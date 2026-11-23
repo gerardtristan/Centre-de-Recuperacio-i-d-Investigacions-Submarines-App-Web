@@ -39,7 +39,9 @@ def _euros(label, *, required=True):
 
 class ExpenseForm(forms.Form):
     supplier = forms.ModelChoiceField(
-        label=gettext_lazy("Proveïdor"), queryset=Supplier.objects.filter(active=True)
+        label=gettext_lazy("Proveïdor"),
+        queryset=Supplier.objects.filter(active=True),
+        empty_label=gettext_lazy("Tria un proveïdor"),
     )
     invoice_number = forms.CharField(
         label=gettext_lazy("Número de factura"), max_length=40, required=False
@@ -49,13 +51,17 @@ class ExpenseForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     category = forms.ModelChoiceField(
-        label=gettext_lazy("Categoria"), queryset=ExpenseCategory.objects.filter(active=True)
+        label=gettext_lazy("Categoria"),
+        queryset=ExpenseCategory.objects.filter(active=True),
+        empty_label=gettext_lazy("Tria una categoria"),
     )
     description = forms.CharField(label=gettext_lazy("Descripció"), max_length=200)
     amount = _euros(gettext_lazy("Import (€)"))
     tax = _euros(gettext_lazy("IVA (€), si en porta"), required=False)
     department = forms.ModelChoiceField(
-        label=gettext_lazy("Departament"), queryset=Department.objects.order_by("name")
+        label=gettext_lazy("Departament"),
+        queryset=Department.objects.order_by("name"),
+        empty_label=gettext_lazy("Tria un departament"),
     )
 
 
