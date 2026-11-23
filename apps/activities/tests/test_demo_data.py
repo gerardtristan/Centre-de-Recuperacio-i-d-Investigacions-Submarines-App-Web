@@ -100,9 +100,7 @@ def test_the_command_refuses_outside_development(module, debug):
 def test_t_m02_25_the_command_loads_the_module_data_once(cluber_path):  # noqa: F811
     with pytest.raises(CommandError, match="seed_demo_data"):
         call()
-    run(cluber_path=cluber_path)
-    output = call()
-    assert "Mòdul 02: 3 fitxes del catàleg, 5 activitats i 4 inscripcions." in output
+    run(cluber_path=cluber_path)  # ara ja carrega les del 02 (T-M02-25, nucli)
     with pytest.raises(CommandError, match="només es carreguen un cop"):
         call()
     assert Activity.objects.count() == 5

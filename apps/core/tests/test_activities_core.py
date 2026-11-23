@@ -98,3 +98,16 @@ def test_t_m02_48_who_edits_vc_55_to_59(make_admin, key, editors):  # noqa: F811
                  R.INSTRUCTOR, R.BOARD):  # fmt: skip
         account = make_admin(role)
         assert has_perm(account, EDIT + key, write=True) is (role in editors), (role, key)
+
+
+@pytest.mark.parametrize("role", [R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.SECRETARY,
+                                  R.INSTRUCTOR, R.PRESIDENT, R.BOARD])  # fmt: skip
+def test_t_m02_30_only_the_courses_manager_edits_vc_46(make_admin, role):  # noqa: F811
+    from apps.core import business_settings
+    from apps.core.models import Setting
+
+    account = make_admin(role)
+    setting = Setting.objects.get(key="activities.instructor_requirements_mode")
+    code = EDIT + "instructor_requirements_mode"
+    assert has_perm(account, code, write=True) is (role == R.COURSES_MANAGER)
+    assert business_settings.can_edit(account, setting) is (role == R.COURSES_MANAGER)
