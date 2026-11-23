@@ -1,0 +1,27 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# HU-M09A-03 (AJ3; T-M09A-05): el calendari dels ajuts, per mesos i amb totes les dates a partir d'avui. Només lectura. Navegació entre mesos amb enllaços (usable amb teclat, B8). #}
+{% block title %}{% translate "Calendari d'ajuts" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Ajuts" %}</p>
+    <h1>{% translate "Calendari d'ajuts" %}</h1>
+    <p class="text-2">{% translate "Tancaments de les convocatòries, respostes previstes, justificacions i requeriments d'esmena sense resposta." %}</p>
+  </header>
+
+  <section class="targeta" aria-labelledby="titol-mes">
+    <h2 id="titol-mes">{{ month|date:"F Y"|capfirst }}</h2>
+    <nav class="accions" aria-label="{% translate 'Canvia de mes' %}">
+      <a class="boto" href="?mes={{ previous|date:'Y-m' }}">{% translate "Mes anterior" %}</a>
+      <a class="boto" href="?mes={{ next|date:'Y-m' }}">{% translate "Mes següent" %}</a>
+    </nav>
+    {% translate "Les dates d'aquest mes." as caption %}{% translate "Cap data aquest mes." as empty %}
+    {% include "grants/_events.html" with events=events caption=caption empty=empty %}
+  </section>
+
+  <section class="targeta" aria-labelledby="titol-properes">
+    <h2 id="titol-properes">{% translate "Properes dates" %}</h2>
+    {% translate "A partir d'avui, de la més propera a la més llunyana." as caption %}{% translate "Cap data a partir d'avui." as empty %}
+    {% include "grants/_events.html" with events=upcoming caption=caption empty=empty %}
+  </section>
+{% endblock %}
