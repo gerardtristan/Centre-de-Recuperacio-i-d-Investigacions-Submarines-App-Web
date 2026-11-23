@@ -29,7 +29,11 @@ def test_the_treasurer_closes_and_the_administrator_reopens(
     an_expense(treasurer, datetime.date(2026, 11, 10))
     page.reload()
     page.get_by_role("button", name="Tanca el període").click()
-    expect(page.get_by_text("Encara no es pot tancar")).to_be_visible()
+    expect(page.get_by_role("heading", name="Hi ha 1 error")).to_be_visible()  # Errata
+    expect(
+        page.get_by_text("Resol-lo o escriu el motiu per portar-lo al període següent.").last
+    ).to_be_visible()
+    review("periodes-errata")
     page.get_by_label("Despesa sense factura: Sortida a les Medes.").fill(
         "La factura arriba el mes vinent"
     )
