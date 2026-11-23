@@ -223,6 +223,9 @@ EMAIL_TRANSACTIONAL_RESERVE = env.int("EMAIL_TRANSACTIONAL_RESERVE", default=100
 # club (prod.py, decisió 084).
 EMAIL_ALERT_THRESHOLD_PCT = env.int("EMAIL_ALERT_THRESHOLD_PCT", default=80)
 EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])
+# Avisos de venciment de llicències que la cua posa al correu en cada tasca (RN-M06-12, VC-43):
+# així cap tasca no en genera centenars de cop. És tècnic, no de negoci [A validar: informàtica].
+LICENCE_REMINDER_BATCH_SIZE = env.int("LICENCE_REMINDER_BATCH_SIZE", default=50)
 
 # Fitxers privats (annex B de la spec 00; decisió 005; V-08). Fora de producció, un
 # emmagatzematge local que imita Scaleway; producció hi posa Scaleway (prod.py).
