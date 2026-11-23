@@ -12,7 +12,7 @@ from apps.core.charges import euros
 from apps.core.models import Department, Person
 from apps.core.permissions import accounts_with_perm
 
-from . import catalogue, permissions
+from . import catalogue, extensions, permissions
 from .models import (
     Activity,
     CertificationLevel,
@@ -337,3 +337,105 @@ class GuestEnrolmentForm(forms.Form):
         for name in ("adult_declared", "accept_privacy"):
             if name in self.fields:
                 self.fields[name].required = True
+
+
+class PlaceForm(forms.Form):
+    """Nom i notes d'un lloc (RN-M02-38), amb els camps que hi afegeixen altres mòduls
+    (`extensions.register_place_section`; el 03, el centre habitual)."""
+
+    name = forms.CharField(label=_("Nom"), max_length=120)
+    notes = forms.CharField(
+        label=_("Notes internes"), max_length=1000, required=False, widget=_text(3),
+        help_text=_("Sense dades personals ni de salut. No surten mai al públic."),
+    )  # fmt: skip
+
+    def __init__(self, data=None, *, viewer, place=None):
+        initial = {"name": place.name, "notes": place.notes} if place else None
+        super().__init__(data, initial=initial)
+        self.sections = []
+        for section in extensions.place_sections():
+            names = {}
+            for name, field in section.fields(place, viewer).items():
+                key = f"{section.key.replace('.', '_')}__{name}"
+                self.fields[key], names[key] = field, name
+            if names:
+                self.sections.append((section, names))
+
+    def save_sections(self, place, by) -> None:
+        for section, names in self.sections:
+            section.save(place, {name: self.cleaned_data[key] for key, name in names.items()}, by)
+
+
+class PlacePriceForm(forms.Form):
+    """Un preu estàndard nou del lloc, vigent des d'avui o més endavant, amb motiu (RN-M02-39)."""
+
+    price_member_cents = EuroField(label=_("Preu de soci"))
+    price_non_member_cents = EuroField(label=_("Preu de no soci"))
+    valid_from = date_field(_("Vigent des del"), help_text=_("Avui o més endavant."))
+    note = forms.CharField(label=_("Motiu del canvi"), widget=_text(2))
+
+
+class CataloguePriceForm(PlacePriceForm):
+    """Una versió nova dels preus d'una fitxa del catàleg, amb data i motiu (RN-M02-05)."""
+
+    reinforcement_price_cents = EuroField(label=_("Preu d'una classe de reforç"), required=False)
+    field_order = catalogue.PRICE_FIELDS
+
+
+class EntryForm(forms.ModelForm):
+    """Fitxa del catàleg: nova (amb el catàleg i els preus inicials) o les dades que no són preus.
+    Els serveis (`catalogue.create_entry` i `update_entry`) ho tornen a comprovar."""
+
+    price_member_cents = EuroField(label=_("Preu de soci"))
+    price_non_member_cents = EuroField(label=_("Preu de no soci"))
+    reinforcement_price_cents = EuroField(label=_("Preu d'una classe de reforç"), required=False)
+    NEW_ONLY = ("kind", *catalogue.PRICE_FIELDS)
+
+    class Meta:
+        model = TrainingCatalogueEntry
+        fields = ("kind", "name", *catalogue.PRICE_FIELDS, *catalogue.EDITABLE_FIELDS[1:])
+        widgets = {"description": _text(), "requirements": _text(3)}
+
+    def __init__(self, data=None, *, entry=None):
+        super().__init__(data, instance=entry)
+        if entry is not None:
+            for name in self.NEW_ONLY:
+                del self.fields[name]
+        self.fields["department"].queryset = _keep(
+            Department.objects.filter(active=True), Department, entry and entry.department_id
+        )
+
+    def _post_clean(self):
+        pass  # sense validar ni tocar el model: les regles són als serveis
+
+
+class OutingTypeForm(forms.ModelForm):
+    """Tipus de sortida nou (AC6). El servei `catalogue.create_outing_type` ho torna a comprovar."""
+
+    class Meta:
+        model = OutingType
+        fields = ("name", "default_department", "is_environmental", "default_requirements_mode")
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="tipus")
+        self.fields["default_department"].queryset = Department.objects.filter(active=True)
+
+
+class SubtypeForm(forms.ModelForm):
+    class Meta:
+        model = EnvironmentalSubtype
+        fields = ("name",)
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="subtipus")
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = EnvironmentalProject
+        fields = ("name", "objective", "department")
+        widgets = {"objective": _text(2)}
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="projecte")
+        self.fields["department"].queryset = Department.objects.filter(active=True)

@@ -524,3 +524,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-94](T-DX-94.md) | Pantalla de pagament: el missatge d'èxit de la inscripció ja no surt com a error | 23/11/2026 19:00 | 5c8e8acb | 1 nova | [A comprovar] |
 | [T-M02-08b](T-M02-08b.md) | Llistat i detall públics de les activitats (apilada sobre la T-M02-11; carril B4) | 23/11/2026 17:19 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-M02-22b](T-M02-22b.md) | «Les meves activitats», calendari d'una inscripció i «Què falta per tancar» (apilada sobre la T-M02-08b; carril B4) | 23/11/2026 17:24 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
+| [T-M02-39](T-M02-39.md) | Apartat «Llocs» dels ajustos del 02: llista, lloc nou, fitxa amb preu estàndard, historial i activar o desactivar (apilada sobre la T-M02-06b; carril B4) | 23/11/2026 12:06 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
+| [T-M02-05b](T-M02-05b.md) | Catàleg de cursos i d'especialitats a l'administració: llista, fitxa nova, preus nous amb data, dades i historial (apilada sobre la T-M02-39; carril B4) | 23/11/2026 13:15 | (vegeu la PR) | 7 noves i 1 e2e | [A comprovar] |
+| [T-M02-05c](T-M02-05c.md) | Tipus de sortida, subtipus i projectes a la pàgina del catàleg (apilada sobre la T-M02-05b; carril B4) | 23/11/2026 14:59 | (vegeu la PR) | 2 noves i 1 e2e ampliada | [A comprovar] |
+| [T-M03-19b](T-M03-19b.md) | Pantalles del material: informes i cost d'ús, amb la guia (T-M03-19, 21 i 22; carril C7) | 23/11/2026 15:08 | (vegeu la PR) | 5 noves; 2 e2e | [A comprovar] |

@@ -179,10 +179,25 @@ MAP = {
         "apps/activities/views/my_activities.py",
         "templates/activities/my_activities.html",
     ),
+    "test_activitats_cataleg.py": (
+        "apps/activities/views/admin_catalogue.py",
+        "apps/activities/forms.py",
+        "templates/activities/catalogue*.html",
+    ),
+    "test_activitats_llocs.py": (
+        "apps/activities/views/admin_places.py",
+        "apps/activities/forms.py",
+        "templates/activities/place*.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/admin_urls.py",
         "templates/activities/*",
+    ),
+    "test_material.py": (
+        "apps/equipment/views.py",
+        "apps/equipment/admin_urls.py",
+        "templates/equipment/*",
     ),
     "test_despeses.py": (
         "apps/expenses/views.py",

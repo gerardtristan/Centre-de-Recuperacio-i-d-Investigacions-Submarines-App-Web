@@ -48,6 +48,8 @@ BASE_ROUTES = {
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
     "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
     "administration:activities": ((("activities.manage", READ),),),  # AC7 (T-M02-06)
+    "administration:places": ((("activities.places.view", READ),),),  # AC21 (T-M02-39)
+    "administration:catalogue": ((("activities.catalogue.manage", WRITE),),),  # AC6 (T-M02-05b)
     # MG1 amb l'abast «tot»: amb «les seves activitats» no es pot registrar sense repartiment.
     "administration:expense_new": ((("expenses.record", WRITE, SCOPE_ALL),),),  # T-M09-06
     "administration:expenses_without_invoice": ((("expenses.pay", READ),),),  # MG2 (T-M09-15)
@@ -57,6 +59,13 @@ BASE_ROUTES = {
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
+    # T-M03-19: n'hi ha prou amb un dels tres informes (MT4, MT11 o MT12).
+    "administration:equipment_reports": (
+        (("equipment.stock.view", READ),),
+        (("equipment.reviews.manage", READ),),
+        (("equipment.costs.view", READ),),
+    ),
+    "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -124,6 +133,16 @@ ENTRIES = (
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
     (
+        "administration:places",
+        _("Llocs"),
+        ("administration:place_add", "administration:place_detail"),
+    ),  # T-M02-39; text i lloc per revisar amb DISSENY
+    (
+        "administration:catalogue",
+        _("Catàleg de cursos"),
+        ("administration:catalogue_entry_add", "administration:catalogue_entry"),
+    ),  # T-M02-05b; text i lloc per revisar amb DISSENY
+    (
         "administration:membership_types",
         _("Tipus de soci"),
         ("administration:membership_type_edit",),
@@ -138,6 +157,12 @@ ENTRIES = (
         ),
     ),
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
+    (
+        "administration:equipment_reports",
+        _("Material: informes"),
+        ("administration:equipment_activity_cost",),
+    ),  # T-M03-19; text i lloc provisionals per a DISSENY
+    ("administration:equipment_usage_rates", _("Cost d'ús del material"), ()),  # T-M03-22; DISSENY
     ("administration:expense_new", _("Despesa nova"), ()),  # T-M09-06; text i lloc: DISSENY
     (
         "administration:expenses_without_invoice",
@@ -290,7 +315,12 @@ GROUPS = (
     (
         _("Activitats"),
         "calendar-days",
-        ("administration:activities",),
+        (
+            "administration:activities",
+            "administration:places",
+            "administration:catalogue",
+            "administration:equipment_reports",  # 03: DISSENY
+        ),
     ),
     (
         _("Quotes i tresoreria"),
@@ -336,7 +366,11 @@ GROUPS = (
     (
         _("Ajustos"),
         "settings",
-        ("administration:settings", "administration:previews:index"),
+        (
+            "administration:settings",
+            "administration:equipment_usage_rates",  # T-M03-22; lloc per revisar amb DISSENY
+            "administration:previews:index",
+        ),
     ),
 )
 

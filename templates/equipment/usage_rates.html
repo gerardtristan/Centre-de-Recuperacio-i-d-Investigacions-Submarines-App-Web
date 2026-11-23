@@ -1,0 +1,37 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M03-22 (VC-28): cost d'ús del material del club per tipus. El veu qui veu l'apartat «Material» dels ajustos; el formulari surt només amb el permís d'editar, però el servidor el torna a comprovar. Cada canvi és una versió nova amb data i nota, i avisa el tresorer i la junta (RN-AJ-04). #}
+{% block title %}{% translate "Cost d'ús del material" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Ajustos · Material" %}</p>
+    <h1>{% translate "Cost d'ús del material" %}</h1>
+    <p class="text-2">{% translate "Quant costa al club cada dia que es fa servir una peça seva. Un canvi no toca les assignacions ja fetes." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  <table class="taula">
+    <caption>{% translate "Cost d'ús per dia de cada tipus de material, avui i el proper canvi" %}</caption>
+    <thead><tr><th scope="col">{% translate "Tipus" %}</th><th scope="col" class="cel-import">{% translate "Avui" %}</th><th scope="col">{% translate "Proper canvi" %}</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ row.type.name }}</th>
+          <td data-etiqueta="{% translate 'Avui' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
+          <td data-etiqueta="{% translate 'Proper canvi' %}">{% if row.upcoming %}{% blocktranslate with amount=row.next date=row.upcoming.valid_from|date:"d/m/Y" %}{{ amount }} des del {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if can_edit %}
+    <h2>{% translate "Un cost nou" %}</h2>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el cost" %}</button></div>
+    </form>
+  {% endif %}
+{% endblock %}
