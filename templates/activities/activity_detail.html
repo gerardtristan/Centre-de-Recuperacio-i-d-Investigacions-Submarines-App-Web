@@ -64,6 +64,13 @@
     {% endif %}
   </section>
 
+  {% if blockers is not None %}
+    <section aria-labelledby="tancar-titol">
+      <h2 id="tancar-titol">{% translate "Què falta per tancar" %}</h2>
+      {% if blockers %}<ul>{% for reason in blockers %}<li>{{ reason }}</li>{% endfor %}</ul>
+      {% else %}<p>{% translate "No hi falta res: el tresorer ja la pot tancar quan en tingui el marge." %}</p>{% endif %}
+    </section>
+  {% endif %}
   {% if desk_form %}
     <section aria-labelledby="presencial-titol">
       <h2 id="presencial-titol">{% translate "Inscripció presencial d'un convidat" %}</h2>

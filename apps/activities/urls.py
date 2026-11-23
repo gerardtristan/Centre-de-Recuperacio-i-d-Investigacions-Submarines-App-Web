@@ -4,7 +4,7 @@ són a `admin_urls.py`."""
 
 from django.urls import path
 
-from .views import guest_enrolment, member_enrolment, public_pages
+from .views import guest_enrolment, member_enrolment, my_activities, public_pages
 
 app_name = "activities"
 
@@ -18,5 +18,12 @@ urlpatterns = [
         "socis/activitats/<int:pk>/inscripcio/",
         member_enrolment.member_enrol_view,
         name="member_enrol",
+    ),
+    # «Les meves activitats» i el calendari d'una inscripció seva (T-M02-22b).
+    path("socis/activitats/", my_activities.my_activities_view, name="mine"),
+    path(
+        "socis/activitats/inscripcions/<int:pk>/calendari.ics",
+        my_activities.enrolment_calendar_view,
+        name="enrolment_calendar",
     ),
 ]
