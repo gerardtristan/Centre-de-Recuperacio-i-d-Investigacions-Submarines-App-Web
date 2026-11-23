@@ -496,3 +496,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-15](T-M06-15.md) | Llicències: esdeveniments, tancament i prova de CA-M06-19 (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | 1 nova | [A comprovar] |
 | [T-M06-20](T-M06-20.md) | Llicències: pantalla d'ajustos, proves per valor i filtre de venciment (feta; carril A5) | 23/11/2026 12:07 | 0f18080f | 11560 | [A comprovar] |
 | [T-M06-25](T-M06-25.md) | Llicències: revisió final dels permisos i LC8 al servei de preus (feta; carril A5) | 23/11/2026 12:46 | 20db8f88 | 3298 (06 i 01) | [A comprovar] |
+| [T-M02-06b](T-M02-06b.md) | Crear i editar un curs o una sortida amb el lloc i el preu estàndard (apilada sobre la T-M02-06a; carril B4) | 23/11/2026 11:32 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
