@@ -80,6 +80,7 @@
       <p class="text-2">{% translate "Cap incidència registrada." %}</p>
     {% endif %}
   </section>
+  {% if session.is_practice and can_assess %}<p class="enllacos"><a class="boto" href="{% url 'administration:assessment_sheet' activity.pk session.pk %}">{% translate "Avalua la pràctica" %}</a></p>{% endif %}
   <p class="enllacos"><a href="{% url 'administration:attendance_sessions' %}">{% translate "Torna a «Passar llista»" %}</a></p>
   <script src="{% static 'js/passar-llista.js' %}" defer></script>
 {% endblock %}

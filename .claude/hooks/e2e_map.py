@@ -208,6 +208,8 @@ MAP = {
         "apps/activities/admin_urls.py",
         "templates/activities/attendance_*",
         "static/js/passar-llista.js",
+        "apps/activities/views/assessment.py",
+        "templates/activities/assessment_sheet.html",
     ),
     "test_despeses.py": (
         "apps/expenses/views.py",
