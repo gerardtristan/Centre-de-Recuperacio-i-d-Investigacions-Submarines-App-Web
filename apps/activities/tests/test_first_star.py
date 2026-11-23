@@ -75,7 +75,7 @@ def test_the_list_says_who_needs_a_licence(course, make_admin):  # noqa: F811
     )  # fmt: skip
     secretary = make_admin(Role.Code.SECRETARY)
     rows = filings.course_pending(by=secretary, today=DAY)
-    needs = {row["filing"].person_id: row["licence"] is None for row in rows}
+    needs = {row["filing"].person_id: row["needs_licence"] for row in rows}
     assert needs == {course.student.person_id: True, course.mate.person_id: False}
     with pytest.raises(Http404):
         filings.course_pending(by=make_admin(Role.Code.INSTRUCTOR), today=DAY)
