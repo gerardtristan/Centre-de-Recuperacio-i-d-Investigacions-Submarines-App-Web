@@ -202,6 +202,10 @@ MAP = {
         "apps/activities/forms.py",
         "templates/activities/activity_detail.html",
     ),
+    "test_activitats_duplicar.py": (
+        "apps/activities/views/admin_activities.py",
+        "templates/activities/activity_detail.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/admin_urls.py",

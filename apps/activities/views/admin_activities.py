@@ -27,6 +27,7 @@ from apps.core.permissions import has_perm, permission_required
 from .. import (
     cancellation,
     closing,
+    duplicate,
     enrolment,
     guests,
     material_cost,
@@ -55,6 +56,7 @@ ADD_TITLES = {K.COURSE: _("Curs nou"), K.OUTING: _("Sortida nova")}
 ADDED = _("Activitat creada en esborrany. Afegeix-hi les sessions o el programa i publica-la.")
 SAVED = _("Canvis desats. Queden al registre d'activitat amb el valor anterior.")
 UNCHANGED = _("No hi havia cap canvi per desar.")
+DUPLICATED = _("Còpia creada en esborrany. Revisa-la i publica-la quan sigui a punt.")
 SCHEDULE_DONE = _("Desat. El canvi queda al registre d'activitat.")
 STATE_DONE = _("Estat desat. Queda al registre d'activitat.")
 DESK_DONE = _("Inscripció feta. Si es paga, la persona rebrà al correu l'enllaç per pagar.")
@@ -192,6 +194,22 @@ def _desk_form(request, activity, data=None):
     return form
 
 
+def _duplicate(request, activity):
+    """T-M02-06c3 (026; RN-M02-21 i 44): una còpia en esborrany que comença el dia que es tria;
+    porta a editar-la. El servei comprova AC7, la data i els llocs."""
+    try:
+        new_start = datetime.date.fromisoformat(request.POST.get("nou_inici", ""))
+        copy = duplicate.duplicate(activity, new_start, by=request.user, request=request)
+    except ValueError:
+        messages.error(request, _("Escriu la data d'inici de la còpia."))
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, DUPLICATED)
+        return see_other("administration:activity_edit", copy.pk)
+    return _to_detail(activity)
+
+
 def _state_actions(request, activity) -> list[tuple[str, str]]:
     """Els passos d'estat que el responsable pot fer ara (RN-M02-02). El servei torna a
     comprovar el permís i les condicions; aquí només es decideix quins botons surten."""
@@ -323,6 +341,7 @@ def _detail(
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),
+        "can_duplicate": has_perm(request.user, MANAGE, write=True),
         "schedule_editable": states.is_editable(activity)
         and has_perm(request.user, MANAGE, write=True),
         "session_form": session_form or SessionForm(),
@@ -348,6 +367,8 @@ def activity_detail_view(request, pk):
         return _enrol_at_desk(request, activity)
     if "accio" in request.POST:
         return _change_state(request, activity)
+    if "duplica" in request.POST:
+        return _duplicate(request, activity)
     if any(key in request.POST for key in SCHEDULE_KEYS):
         require(request.user, MANAGE, request=request)
         return _edit_schedule(request, activity)

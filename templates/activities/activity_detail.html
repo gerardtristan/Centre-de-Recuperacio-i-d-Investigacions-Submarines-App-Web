@@ -46,6 +46,21 @@
     </section>
   {% endif %}
 
+  {% if can_duplicate %}
+    <details>
+      <summary>{% translate "Duplica l'activitat" %}</summary>
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        <div class="camp">
+          <label for="nou-inici">{% translate "Data d'inici de la còpia" %}</label>
+          <input id="nou-inici" type="date" name="nou_inici" required>
+          <p class="ajuda">{% translate "La còpia es crea en esborrany, amb les sessions i el programa moguts a la nova data i els mateixos preus. Un lloc desactivat queda buit." %}</p>
+        </div>
+        <div class="accions"><button class="boto" type="submit" name="duplica" value="1">{% translate "Crea la còpia" %}</button></div>
+      </form>
+    </details>
+  {% endif %}
+
   <section aria-labelledby="dades-titol">
     <h2 id="dades-titol">{% translate "Dades" %}</h2>
     <dl class="dades-soci">
