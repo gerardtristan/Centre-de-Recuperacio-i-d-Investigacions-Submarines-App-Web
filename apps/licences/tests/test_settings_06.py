@@ -71,7 +71,8 @@ def test_the_other_role_that_sees_the_section_gets_not_found(make_admin, key):  
     assert AuditEntry.objects.filter(action=business_settings.ACTION_DENIED, field=key).exists()
 
 
-@pytest.mark.parametrize("role", [R.TREASURER, R.COURSES_MANAGER, R.PRESIDENT, R.BOARD])
+# El tresorer hi té «Cons.» (P-530, core/0074).
+@pytest.mark.parametrize("role", [R.COURSES_MANAGER, R.PRESIDENT, R.BOARD])
 def test_a_role_without_the_section_gets_not_found_on_the_screen(make_admin, role):  # noqa: F811
     client = admin_client(make_admin(role))
     url = reverse("administration:settings_section", args=["licences"])

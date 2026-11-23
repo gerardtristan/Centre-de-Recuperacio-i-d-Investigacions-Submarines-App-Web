@@ -531,3 +531,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-95](T-DX-95.md) | «Les meves activitats» al menú del soci i retirada de les pantalles en construcció del 02 | 23/11/2026 20:00 | c7b10aea | 4 noves | [A comprovar] |
 | [T-M02-44b](T-M02-44b.md) | Pantalles de les homologacions: pendents, fitxa, CSV i demanar-la en nom d'una persona, amb el menú (nucli) (carril A6) | 23/11/2026 19:18 | (vegeu la PR) | 9 noves; 1 e2e | [A comprovar] |
 | [T-M02-16b](T-M02-16b.md) | Passar llista des del mòbil i incidències (pantalles; carril C7) | 23/11/2026 19:18 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
+| [T-M02-51a-nucli](T-M02-51a-nucli.md) | Activitats i llicències (nucli): permís de l'ajust del tipus de la primera llicència (P-530; core/0074; carril B4) | 23/11/2026 20:04 | b38c3b46 | — | [A comprovar] |
+| [T-M02-50a](T-M02-50a.md) | «Inclou la primera llicència» al catàleg i a l'activitat, i ajustos VC-60 i VC-61 (activities/0021; amb el nucli a part; carril B4) | 23/11/2026 15:28 | (vegeu la PR) | 4 noves | [A comprovar] |
