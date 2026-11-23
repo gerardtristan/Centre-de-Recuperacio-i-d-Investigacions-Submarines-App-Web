@@ -1,0 +1,26 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-18b (P-M02-F pas 2; AC10b; RN-M02-17): l'instructor que fa classe al curs proposa classes de reforç per a un alumne. Només el nom de l'alumne; el motiu és pedagògic, mai de salut. El servidor comprova el permís i que ningú no es proposi reforç a si mateix. #}
+{% block title %}{% translate "Proposa reforç" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Classes de reforç" %}</p>
+    <h1>{{ enrolment.person.first_name }} {{ enrolment.person.last_name }}</h1>
+    <p class="text-2">{{ activity.title }}</p>
+  </header>
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    <div class="camp">
+      <label for="reforc-classes">{% translate "Nombre de classes" %}</label>
+      <input id="reforc-classes" type="number" name="classes" min="1" max="{{ max_classes }}" value="{{ data.classes|default:'1' }}" inputmode="numeric">
+    </div>
+    <div class="camp">
+      <label for="reforc-motiu">{% translate "Motiu" %}</label>
+      <textarea id="reforc-motiu" name="motiu" rows="3" aria-describedby="reforc-ajuda">{{ data.motiu|default:"" }}</textarea>
+      <p class="ajuda" id="reforc-ajuda">{{ reason_help }}</p>
+    </div>
+    <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la proposta" %}</button></div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:reinforcement_list' activity.pk %}">{% translate "Classes de reforç del curs" %}</a></p>
+{% endblock %}
