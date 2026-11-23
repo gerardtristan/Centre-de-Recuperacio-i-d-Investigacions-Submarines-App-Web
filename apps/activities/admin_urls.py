@@ -4,7 +4,7 @@ de noms `administration` (sessió d'administració i TOTP). Cada vista comprova 
 from django.urls import path
 
 from .views import admin_activities as activities
-from .views import attendance
+from .views import assessment, attendance
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -21,5 +21,11 @@ urlpatterns = [
         "activitats/<int:pk>/llista/<int:session_pk>/",
         attendance.roll_view,
         name="attendance_roll_session",
+    ),
+    # T-M02-17b: full d'avaluació d'una pràctica (AC10a, només qui hi fa classe)
+    path(
+        "activitats/<int:pk>/avaluacio/<int:session_pk>/",
+        assessment.sheet_view,
+        name="assessment_sheet",
     ),
 ]

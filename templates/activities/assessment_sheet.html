@@ -1,0 +1,46 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-17b (P-M02-F pas 1; AC10a; RN-M02-17): full d'avaluació d'una sessió pràctica, pensat per a 390 px. Només qui hi fa classe; el servidor ho torna a comprovar i ningú no s'avalua a si mateix. Dels alumnes confirmats, només el nom. Observació curta i sense dades de salut. #}
+{% block title %}{% translate "Avaluació de la pràctica" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Avaluació de la pràctica" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2"><time datetime="{{ session.starts_at|date:'c' }}">{{ session.starts_at|date:"d/m/Y H:i" }}</time> · {{ session.get_kind_display }}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% if not can_assess %}
+    <div class="avis avis-sistema" role="status">{% translate "Encara no es pot avaluar: només una sessió pràctica, el seu dia o després, d'una activitat publicada." %}</div>
+  {% endif %}
+  {% for row in rows %}
+    <section class="targeta" aria-labelledby="alumne-{{ row.enrolment_id }}">
+      <h2 id="alumne-{{ row.enrolment_id }}">{{ row.name }}</h2>
+      <p>{% if row.result %}<span class="estat {% if row.result == 'achieved' %}estat-ok{% elif row.result == 'not_achieved' %}estat-error{% else %}estat-avis{% endif %}"><span aria-hidden="true">{% if row.result == 'achieved' %}✓{% elif row.result == 'not_achieved' %}✕{% else %}◷{% endif %}</span> {{ row.result_label }}</span>{% else %}<span class="estat estat-info"><span aria-hidden="true">●</span> {% translate "Sense avaluar" %}</span>{% endif %}</p>
+      {% if can_assess %}
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="inscripcio" value="{{ row.enrolment_id }}">
+          <fieldset>
+            <legend>{% translate "Resultat" %}</legend>
+            <div class="segmentat">
+              {% for value, label in results %}
+                <label><input class="visualment-amagat" type="radio" name="resultat" value="{{ value }}"{% if row.result == value %} checked{% endif %}><span class="opcio"><span class="marca-activa" aria-hidden="true">✓</span>{{ label }}</span></label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <div class="camp">
+            <label for="observacio-{{ row.enrolment_id }}">{% translate "Observació" %}</label>
+            <textarea id="observacio-{{ row.enrolment_id }}" name="observacio" rows="2" maxlength="{{ max_notes }}" aria-describedby="ajuda-{{ row.enrolment_id }}">{{ row.notes }}</textarea>
+            <p class="ajuda" id="ajuda-{{ row.enrolment_id }}">{{ notes_help }}</p>
+          </div>
+          <div class="accions"><button class="boto" type="submit">{% translate "Desa l'avaluació" %}</button></div>
+        </form>
+      {% elif row.notes %}
+        <p>{{ row.notes }}</p>
+      {% endif %}
+    </section>
+  {% empty %}
+    <p>{% translate "Cap alumne confirmat." %}</p>
+  {% endfor %}
+  <p class="enllacos"><a href="{% url 'administration:attendance_roll_session' activity.pk session.pk %}">{% translate "Torna a la llista de la sessió" %}</a></p>
+{% endblock %}
