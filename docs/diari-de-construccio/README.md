@@ -536,3 +536,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09A-06](T-M09A-06.md) | Avisos dels ajuts per la cua: tancament, resposta i justificació (grants/0007; sobre la branca del nucli; carril A6) | 23/11/2026 14:17 | (vegeu la PR) | 11 noves | [A comprovar] |
 | [T-M09A-15b](T-M09A-15b.md) | Avisos dels requeriments d'esmena dels ajuts: immediat, 7 i 2 dies (sobre la T-M09A-06; carril A6) | 23/11/2026 14:23 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M09-16d](T-M09-16d.md) | Errors del tancament d'un període amb Errata (correcció de DISSENY; carril A6) | 23/11/2026 19:05 | (vegeu la PR) | 1 ampliada; 1 e2e | [A comprovar] |
+| [T-M02-44c](T-M02-44c.md) | «Les meves titulacions» a l'àrea personal i demanar l'homologació (carril A6) | 23/11/2026 19:37 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
