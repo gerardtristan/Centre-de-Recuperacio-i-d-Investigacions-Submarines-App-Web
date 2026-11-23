@@ -518,3 +518,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
 | [T-M02-11](T-M02-11.md) | Inscripció del soci des de l'àrea personal (apilada sobre la T-M02-14; carril B4) | 23/11/2026 16:27 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-DX-93](T-DX-93.md) | «Tancament de períodes»: el títol de la pàgina diu el mateix que el menú | 23/11/2026 17:56 | 39a94839 | 1 nova | [A comprovar] |
+| [T-M02-44b](T-M02-44b.md) | Pantalles de les homologacions: pendents, fitxa, CSV i demanar-la en nom d'una persona, amb el menú (nucli) (carril A6) | 23/11/2026 19:18 | (vegeu la PR) | 9 noves; 1 e2e | [A comprovar] |
