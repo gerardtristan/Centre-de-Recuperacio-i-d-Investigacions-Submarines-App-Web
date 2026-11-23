@@ -1,6 +1,6 @@
 """T-M02-30 (part del nucli; VC-46; RN-M02-26): el responsable de cursos i sortides edita
 `activities.instructor_requirements_mode`, amb una versió nova de la matriu (060). Patró de la
-0067. El número es fixa al torn del nucli."""
+0067."""
 
 from django.db import migrations
 from django.db.models import Max

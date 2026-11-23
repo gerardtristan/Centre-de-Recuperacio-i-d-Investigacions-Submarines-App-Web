@@ -7,7 +7,7 @@
 **En tres línies:** el responsable de cursos i sortides ja pot canviar des dels ajustos si els requisits per fer classe bloquegen o només avisen. Les dades inventades fan que l'instructor de prova sigui soci actiu amb una llicència tècnica vigent, perquè les sessions de prova tinguin instructor també amb el mode «bloqueig». I el `seed_demo_data` carrega les dades del 02.
 
 ## Què s'ha fet
-- `apps/core/permission_catalog.py` i `core/0069_instructor_requirements_permission` (el número es fixa al torn): `settings.edit.activities.instructor_requirements_mode` (AJ02-10) per al responsable de cursos, amb una versió nova de la matriu.
+- `apps/core/permission_catalog.py` i `core/0069_instructor_requirements_permission`: `settings.edit.activities.instructor_requirements_mode` (AJ02-10) per al responsable de cursos, amb una versió nova de la matriu.
 - `apps/members/demo_data.py`: `instructor_member`, un soci de ple dret amb la quota pagada.
 - `seed_demo_data`: el compte `instructor-demo` es crea sobre aquest soci, amb una llicència tècnica declarada (`licences.declare_existing`, 365 dies) i, amb la branca d'abans, el compte `cursos-demo` i les dades del 02.
 
