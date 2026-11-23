@@ -512,3 +512,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09A-14b](T-M09A-14b.md) | Guia d'ajuts amb el calendari i els avisos per correu (carril A6) | 23/11/2026 15:07 | (vegeu la PR) | Cap (document) | [A comprovar] |
 | [T-M09A-05](T-M09A-05.md) | Calendari d'ajuts per mesos i amb les properes dates, amb la ruta i el menú en un commit «(nucli)» (carril A6) | 23/11/2026 14:57 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
 | [T-DX-92](T-DX-92.md) | «Cursos i sortides»: tota la fila porta a la fitxa de l'activitat (B14) | 23/11/2026 15:34 | c3e7d430 | 1 nova | [A comprovar] |
+| [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
