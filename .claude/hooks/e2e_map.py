@@ -199,6 +199,12 @@ MAP = {
         "apps/equipment/admin_urls.py",
         "templates/equipment/*",
     ),
+    "test_passar_llista.py": (
+        "apps/activities/views/attendance.py",
+        "apps/activities/admin_urls.py",
+        "templates/activities/attendance_*",
+        "static/js/passar-llista.js",
+    ),
     "test_despeses.py": (
         "apps/expenses/views.py",
         "apps/expenses/admin_urls.py",
@@ -220,6 +226,12 @@ MAP = {
         "apps/margins/admin_urls.py",
         "apps/margins/period_closing.py",
         "templates/margins/periods.html",
+    ),
+    "test_homologacions.py": (
+        "apps/activities/views/admin_filings.py",
+        "apps/activities/filings.py",
+        "templates/activities/filing*.html",
+        "templates/activities/_filing_status.html",
     ),
     "test_meves_factures.py": (
         "apps/invoicing/views.py",

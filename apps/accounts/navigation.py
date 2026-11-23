@@ -50,6 +50,7 @@ BASE_ROUTES = {
     "administration:activities": ((("activities.manage", READ),),),  # AC7 (T-M02-06)
     "administration:places": ((("activities.places.view", READ),),),  # AC21 (T-M02-39)
     "administration:catalogue": ((("activities.catalogue.manage", WRITE),),),  # AC6 (T-M02-05b)
+    "administration:filings": ((("activities.filings.manage", READ),),),  # AC26 (T-M02-44b)
     # MG1 amb l'abast «tot»: amb «les seves activitats» no es pot registrar sense repartiment.
     "administration:expense_new": ((("expenses.record", WRITE, SCOPE_ALL),),),  # T-M09-06
     "administration:expenses_without_invoice": ((("expenses.pay", READ),),),  # MG2 (T-M09-15)
@@ -66,6 +67,8 @@ BASE_ROUTES = {
         (("equipment.costs.view", READ),),
     ),
     "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
+    # T-M02-16b: AC9; l'instructor només hi veu les seves sessions (ho filtra la vista).
+    "administration:attendance_sessions": ((("activities.attendance.record", READ),),),
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -142,6 +145,23 @@ ENTRIES = (
         _("Catàleg de cursos"),
         ("administration:catalogue_entry_add", "administration:catalogue_entry"),
     ),  # T-M02-05b; text i lloc per revisar amb DISSENY
+    (
+        "administration:filings",
+        _("Homologacions"),
+        (
+            "administration:filing_detail",
+            "administration:filing_filed",
+            "administration:filing_done",
+            "administration:filing_reject",
+            "administration:filing_request",
+            "administration:filings_csv",
+        ),
+    ),  # T-M02-44b; text i lloc per revisar amb DISSENY
+    (
+        "administration:attendance_sessions",
+        _("Passar llista"),
+        ("administration:attendance_roll", "administration:attendance_roll_session"),
+    ),  # T-M02-16b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -317,6 +337,8 @@ GROUPS = (
         "calendar-days",
         (
             "administration:activities",
+            "administration:attendance_sessions",
+            "administration:filings",
             "administration:places",
             "administration:catalogue",
             "administration:equipment_reports",  # 03: DISSENY

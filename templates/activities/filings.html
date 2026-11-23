@@ -1,0 +1,53 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-44b (AC26; RN-M02-51 i 53): homologacions obertes i el CSV per a la federació. Dades personals (nom i titulació) només per a qui té AC26; el CSV porta la data de naixement, no es desa i la descàrrega queda al registre. Cap foto ni document d'identitat. El servidor torna a comprovar el permís. #}
+{% block title %}{% translate "Homologacions pendents" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% translate "Homologacions pendents" %}</h1>
+    <p class="text-2">{% translate "Les titulacions d'una altra agència que s'han de tramitar a la federació, per ordre de petició." %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% if can_request or can_export %}
+    <div class="accions">
+      {% if can_request %}<a class="boto boto-principal" href="{% url 'administration:filing_request' %}">{% translate "Demana una homologació" %}</a>{% endif %}
+      {% if can_export %}
+        <form method="post" action="{% url 'administration:filings_csv' %}">
+          {% csrf_token %}
+          <button class="boto" type="submit">{% translate "Descarrega el CSV per a la federació" %}</button>
+        </form>
+      {% endif %}
+    </div>
+    {% if can_export %}<p class="text-2">{% translate "El CSV porta les demanades (no les ja tramitades), sense fotos ni documents d'identitat. La descàrrega queda al registre d'activitat." %}</p>{% endif %}
+  {% endif %}
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} homologació oberta{% plural %}{{ total }} homologacions obertes{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Persona" %}</th>
+        <th scope="col">{% translate "Titulació d'origen" %}</th>
+        <th scope="col">{% translate "Demanada el" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for filing in rows %}
+        {% with source=filing.source_certification %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ filing.person.last_name }}, {{ filing.person.first_name }}</th>
+          <td data-etiqueta="{% translate "Titulació d'origen" %}">{% if source %}{{ source.agency }} {{ source.level|default:source.speciality }}{% if source.number %} ({{ source.number }}){% endif %}{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Demanada el' %}"><time datetime="{{ filing.requested_at|date:'Y-m-d' }}">{{ filing.requested_at|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_filing_status.html" %}</td>
+          <td class="cel-accions"><a class="boto boto-petit enllac-fila" href="{% url 'administration:filing_detail' filing.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></a></td>
+        </tr>
+        {% endwith %}
+      {% empty %}
+        <tr><td colspan="5">{% translate "Cap homologació oberta." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

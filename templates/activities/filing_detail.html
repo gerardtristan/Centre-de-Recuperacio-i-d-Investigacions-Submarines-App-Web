@@ -1,0 +1,55 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-44b (AC26; RN-M02-51; CA-M02-53 i 54): la fitxa d'una homologació. «Marca tramitada», «Marca feta» (nivell, número i data: crea la titulació de destinació i verifica l'origen) i «Rebutja» amb motiu. Errata als formularis (§6.10). Els formularis només surten amb el permís, però el servidor el torna a comprovar. #}
+{% block title %}{% translate "Homologació" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:filings' %}">{% translate "Homologacions pendents" %}</a></p>
+    <h1>{{ filing.person.last_name }}, {{ filing.person.first_name }}</h1>
+    <p class="text-2">{% include "activities/_filing_status.html" %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+
+  <section class="targeta" aria-labelledby="titol-origen">
+    <h2 id="titol-origen">{% translate "Titulació d'origen" %}</h2>
+    {% with source=filing.source_certification %}
+    <dl class="dades-soci">
+      <div><dt>{% translate "Agència" %}</dt><dd>{{ source.agency|default:"—" }}</dd></div>
+      <div><dt>{% translate "Nivell o especialitat" %}</dt><dd>{{ source.level|default:source.speciality|default:"—" }}</dd></div>
+      <div><dt>{% translate "Número" %}</dt><dd>{{ source.number|default:"—" }}</dd></div>
+      <div><dt>{% translate "Demanada el" %}</dt><dd><time datetime="{{ filing.requested_at|date:'Y-m-d' }}">{{ filing.requested_at|date:"d/m/Y" }}</time></dd></div>
+      {% if filing.filed_at %}<div><dt>{% translate "Tramitada el" %}</dt><dd><time datetime="{{ filing.filed_at|date:'Y-m-d' }}">{{ filing.filed_at|date:"d/m/Y" }}</time></dd></div>{% endif %}
+      {% if filing.reason %}<div><dt>{% translate "Motiu del rebuig" %}</dt><dd>{{ filing.reason }}</dd></div>{% endif %}
+    </dl>
+    {% endwith %}
+    {% if can_file %}
+      <form method="post" action="{% url 'administration:filing_filed' filing.pk %}" class="accions">
+        {% csrf_token %}
+        <button class="boto" type="submit">{% translate "Marca tramitada" %}</button>
+      </form>
+    {% endif %}
+  </section>
+
+  {% if done_form %}
+    <section class="targeta" aria-labelledby="titol-feta">
+      <h2 id="titol-feta">{% translate "Marca-la feta" %}</h2>
+      <p class="text-2">{% translate "Amb el nivell, el número i la data que ha donat la federació. Es crea la titulació nova, verificada, i l'origen queda verificat." %}</p>
+      <form class="formulari" method="post" action="{% url 'administration:filing_done' filing.pk %}" novalidate>
+        {% csrf_token %}
+        {% with form=done_form %}{% include "_errata.html" %}{% endwith %}
+        {% for field in done_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Marca feta" %}</button></div>
+      </form>
+    </section>
+    <section class="targeta" aria-labelledby="titol-rebutja">
+      <h2 id="titol-rebutja">{% translate "Rebutja-la" %}</h2>
+      <p class="text-2">{% translate "Amb el motiu. L'origen no queda verificat." %}</p>
+      <form class="formulari" method="post" action="{% url 'administration:filing_reject' filing.pk %}" novalidate>
+        {% csrf_token %}
+        {% with form=reject_form %}{% include "_errata.html" %}{% endwith %}
+        {% for field in reject_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Rebutja" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}
