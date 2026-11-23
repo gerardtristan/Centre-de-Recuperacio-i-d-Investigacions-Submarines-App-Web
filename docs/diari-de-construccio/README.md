@@ -520,3 +520,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-93](T-DX-93.md) | «Tancament de períodes»: el títol de la pàgina diu el mateix que el menú | 23/11/2026 17:56 | 39a94839 | 1 nova | [A comprovar] |
 | [T-M02-45](T-M02-45.md) | Primera estrella: tramitació course en emetre el certificat i «Cal llicència» (activities/0020; carril B4) | 23/11/2026 15:04 | (vegeu la PR) | 3 noves | [A comprovar] |
 | [T-M06-26](T-M06-26.md) | Primera llicència d'un alumne nou, lligada a l'entrada de la llista (T-M06-26 i T-M06-27; licences/0008; carril C7) | 23/11/2026 15:41 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M03-11](T-M03-11.md) | Càrrec del lloguer al participant, apagat (T-M03-11 i T-M03-16; equipment/0012; carril C7) | 23/11/2026 16:26 | (vegeu la PR) | 5 noves | [A comprovar] |
