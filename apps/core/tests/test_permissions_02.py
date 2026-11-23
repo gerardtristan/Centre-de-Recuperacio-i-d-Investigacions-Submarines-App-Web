@@ -42,6 +42,8 @@ MATRIX = {
     "activities.card_photos.view": (None, Y, None, None, None, None, None, None, CONS),  # AC24
     "activities.card_photos.manage": (None, Y, None, None, None, None, None, None, None),  # AC25
     "activities.filings.manage": (None, Y, None, None, None, None, Y, Y, None),  # AC26
+    "activities.first_licence.view": (None, Y, Y, None, Y, None, Y, Y, None),  # AC27
+    "activities.first_licence.manage": (None, None, Y, None, Y, None, Y, Y, None),  # AC28
 }
 CELLS = [(code, role, row[i]) for code, row in MATRIX.items() for i, role in enumerate(ROLES)]
 
