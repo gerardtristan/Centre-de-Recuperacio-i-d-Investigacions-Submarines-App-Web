@@ -12,7 +12,7 @@ from apps.core.charges import euros
 from apps.core.models import Department, Person
 from apps.core.permissions import accounts_with_perm
 
-from . import catalogue, permissions
+from . import catalogue, extensions, permissions
 from .models import (
     Activity,
     CertificationLevel,
@@ -297,3 +297,39 @@ class ActivityForm(forms.Form):
             del data["specialities_rule"]
         data["required_specialities"] = list(data.get("required_specialities") or ())
         return data
+
+
+class PlaceForm(forms.Form):
+    """Nom i notes d'un lloc (RN-M02-38), amb els camps que hi afegeixen altres mòduls
+    (`extensions.register_place_section`; el 03, el centre habitual)."""
+
+    name = forms.CharField(label=_("Nom"), max_length=120)
+    notes = forms.CharField(
+        label=_("Notes internes"), max_length=1000, required=False, widget=_text(3),
+        help_text=_("Sense dades personals ni de salut. No surten mai al públic."),
+    )  # fmt: skip
+
+    def __init__(self, data=None, *, viewer, place=None):
+        initial = {"name": place.name, "notes": place.notes} if place else None
+        super().__init__(data, initial=initial)
+        self.sections = []
+        for section in extensions.place_sections():
+            names = {}
+            for name, field in section.fields(place, viewer).items():
+                key = f"{section.key.replace('.', '_')}__{name}"
+                self.fields[key], names[key] = field, name
+            if names:
+                self.sections.append((section, names))
+
+    def save_sections(self, place, by) -> None:
+        for section, names in self.sections:
+            section.save(place, {name: self.cleaned_data[key] for key, name in names.items()}, by)
+
+
+class PlacePriceForm(forms.Form):
+    """Un preu estàndard nou del lloc, vigent des d'avui o més endavant, amb motiu (RN-M02-39)."""
+
+    price_member_cents = EuroField(label=_("Preu de soci"))
+    price_non_member_cents = EuroField(label=_("Preu de no soci"))
+    valid_from = date_field(_("Vigent des del"), help_text=_("Avui o més endavant."))
+    note = forms.CharField(label=_("Motiu del canvi"), widget=_text(2))

@@ -1,0 +1,39 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-39: apartat «Llocs» dels ajustos del 02 (AC21 per veure, AC22 per editar; RN-M02-38, 39 i 46). Amb AC21 i sense AC22 no surt cap control d'edició; el servidor ho torna a comprovar i un intent directe queda al registre (CA-M02-46). Un lloc no s'esborra: es desactiva. Les notes són internes i no surten mai al públic. #}
+{% block title %}{% translate "Llocs" %} · {% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Ajustos de les activitats" %}</p>
+    <h1>{% translate "Llocs" %}</h1>
+    <p class="text-2">{% translate "Els llocs de les sortides, les piscines i l'aula. Un lloc desactivat no surt al selector de les activitats noves; les que ja el tenen el conserven." %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% if can_edit %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:place_add' %}">{% translate "Lloc nou" %}</a></div>{% endif %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} lloc, amb el preu estàndard d'avui{% plural %}{{ total }} llocs, amb el preu estàndard d'avui{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Lloc" %}</th>
+        <th scope="col" class="cel-import">{% translate "Soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "No soci" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ row.place.name }}</th>
+          <td data-etiqueta="{% translate 'Soci' %}" class="cel-import">{% if row.price %}<span class="import">{{ row.price.member }}</span>{% else %}{% translate "Sense preu" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'No soci' %}" class="cel-import">{% if row.price %}<span class="import">{{ row.price.non_member }}</span>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_place_status.html" with place=row.place %}</td>
+          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:place_detail' row.place.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ row.place.name }}</span></a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">{% translate "Encara no hi ha cap lloc." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
