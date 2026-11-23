@@ -485,3 +485,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-31a](T-M02-31a.md) | Titulacions: CA-M02-33 en mode bloqueig i P-459, el permís per carregar-les i verificar-les (carril B3) | 21/11/2026 10:49 | (vegeu la PR) | 1 ampliada | [A comprovar] |
 | [T-M02-27](T-M02-27.md) | Guia del responsable i de l'instructor i ajuda per inscriure's, esborrany (carril B3) | 21/11/2026 10:49 | (vegeu la PR) | Cap (document) | [A comprovar] |
 | [T-M02-30-nucli](T-M02-30-nucli.md) | Nucli del 02: permís de VC-46 i instructor de prova amb requisits al seed (core/0069; carril B3) | 21/11/2026 11:01 | (vegeu la PR) | 8 noves (7 casos + 1) | [A comprovar] |
+| [T-M06-25](T-M06-25.md) | Llicències: revisió final dels permisos i LC8 al servei de preus (feta; carril A5) | 23/11/2026 12:46 | 20db8f88 | 3298 (06 i 01) | [A comprovar] |
