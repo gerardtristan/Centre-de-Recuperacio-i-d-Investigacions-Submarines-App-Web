@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect
 
-from apps.activities.models import Attendance, PracticeAssessment, Session
+from apps.activities import certificates
+from apps.activities.models import Attendance, CertificationLevel, PracticeAssessment, Session
 from apps.activities.tests.helpers import a_course
 from apps.activities.tests.test_attendance import a_session, enrolled, opened
 
@@ -64,3 +65,25 @@ def test_the_instructor_assesses_a_practice(page, live_server, transactional_db,
     expect(page.get_by_text("Avaluació desada.")).to_be_visible()
     review("avaluacio")
     assert PracticeAssessment.objects.get().result == "needs_reinforcement"
+
+
+def test_the_manager_issues_a_certificate(page, live_server, transactional_db, review):
+    manager = make_admin("cursos.prova", "courses_manager")
+    teacher = make_admin("instructor.prova", "instructor")
+    activity = opened(a_course(manager))
+    a_session(manager, activity, timezone.localdate(), teacher.person)
+    student = enrolled(activity, "Alumna")
+    certificates.record_outcome(student, result="pass", by=teacher)
+    CertificationLevel.objects.create(name="Nivell inventat", rank=99)
+    login_admin(page, live_server.url, manager.login)
+
+    page.goto(f"{live_server.url}{reverse('administration:course_outcomes', args=[activity.pk])}")
+    level = page.get_by_label("Nivell que dona el curs")
+    if level.count():
+        level.select_option(label="Nivell inventat")
+    review("resultats-curs")
+    page.get_by_role("button", name="Emet el certificat").click()
+    expect(page.get_by_text("Certificat emès.")).to_be_visible()
+    page.get_by_role("link", name="Mostra el certificat").click()
+    expect(page.get_by_role("heading", name="Certificat de curs")).to_be_visible()
+    review("certificat")

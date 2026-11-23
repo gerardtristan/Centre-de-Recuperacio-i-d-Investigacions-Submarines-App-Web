@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M02-19b (RN-M02-16 i 31; AC13): el certificat del club, per imprimir o desar com a PDF des del navegador (decisió 079; design-system §6.8). Cap fitxer desat. Només el nom de l'alumne, el curs, el que dona, la data, el número i qui l'emet. #}
+{% block title %}{% translate "Certificat" %} {{ certificate.number }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <div class="accions no-imprimeix"><button class="boto boto-principal" type="button" data-imprimeix hidden>{% translate "Desa com a PDF" %}</button></div>
+  <section class="targeta" aria-labelledby="titol-certificat">
+    <p class="etiqueta-seccio">{{ certificate.issuer }}</p>
+    <h1 id="titol-certificat">{% translate "Certificat de curs" %}</h1>
+    <p>{% blocktranslate with name=certificate.name course=certificate.course %}{{ name }} ha superat el curs «{{ course }}».{% endblocktranslate %}</p>
+    <dl class="dades-soci">
+      {% if certificate.grants %}<div><dt>{% translate "Titulació" %}</dt><dd>{{ certificate.grants }}</dd></div>{% endif %}
+      <div><dt>{% translate "Data" %}</dt><dd><time datetime="{{ certificate.issued_on|date:'Y-m-d' }}">{{ certificate.issued_on|date:"d/m/Y" }}</time></dd></div>
+      <div><dt>{% translate "Número" %}</dt><dd><span class="codi">{{ certificate.number }}</span></dd></div>
+      <div><dt>{% translate "Instructor" %}</dt><dd>{{ certificate.instructor }}</dd></div>
+      <div><dt>{% translate "Emès per" %}</dt><dd>{{ certificate.issued_by }}</dd></div>
+    </dl>
+  </section>
+  <p class="enllacos no-imprimeix"><a href="{% url 'administration:course_outcomes' activity.pk %}">{% translate "Torna als resultats del curs" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}
