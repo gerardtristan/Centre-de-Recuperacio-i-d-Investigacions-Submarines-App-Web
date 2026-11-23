@@ -541,3 +541,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-17b](T-M02-17b.md) | Full d'avaluació d'una pràctica (pantalla; carril C7) | 23/11/2026 20:36 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
 | [T-M02-19b](T-M02-19b.md) | Resultats del curs i certificat (pantalles; carril C7) | 23/11/2026 21:37 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
 | [T-DX-96](T-DX-96.md) | «Les meves titulacions» al menú del soci | 23/11/2026 22:50 | 3c058bd5 | 3 noves | [A comprovar] |
+| [T-M02-06c1](T-M02-06c1.md) | Estat d'una activitat des de la fitxa: publicar, tancar, reobrir, marcar feta i cancel·lar (carril B4) | 23/11/2026 23:15 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
