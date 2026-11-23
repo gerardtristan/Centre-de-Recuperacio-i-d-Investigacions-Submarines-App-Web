@@ -1257,8 +1257,8 @@ class CertificationFiling(models.Model):
     """Tramitació d'una titulació a la federació (addenda de la 104; RN-M02-50 a 53). La
     tramitació mateixa es fa fora de la plataforma (036): aquí se'n fa el seguiment.
 
-    `course_outcome` (la tramitació `course` de la primera estrella, RN-M02-52) arriba amb la
-    T-M02-45, quan existeixi el resultat del curs (T-M02-19)."""
+    Una tramitació `course` (la primera estrella, RN-M02-52) va lligada al resultat del curs que
+    l'ha originada (`course_outcome`): n'hi ha com a molt una per resultat (T-M02-45)."""
 
     class Kind(models.TextChoices):
         HOMOLOGATION = "homologation", _("Homologació")
@@ -1311,6 +1311,10 @@ class CertificationFiling(models.Model):
         "core.Charge", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
         verbose_name=_("càrrec"),
     )  # fmt: skip
+    course_outcome = models.ForeignKey(
+        CourseOutcome, on_delete=models.PROTECT, null=True, blank=True, related_name="filings",
+        verbose_name=_("resultat del curs"),
+    )  # fmt: skip
 
     class Meta:
         verbose_name = _("tramitació a la federació")
@@ -1335,6 +1339,11 @@ class CertificationFiling(models.Model):
                 fields=["source_certification"],
                 condition=Q(status__in=["requested", "filed"]),
                 name="filing_one_open_per_source",
+            ),
+            models.UniqueConstraint(
+                fields=["course_outcome"],
+                condition=Q(course_outcome__isnull=False),
+                name="filing_one_per_course_outcome",
             ),
         ]
 
