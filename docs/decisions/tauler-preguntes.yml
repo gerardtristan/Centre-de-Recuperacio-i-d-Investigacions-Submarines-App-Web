@@ -1563,4 +1563,14 @@ noves:
     perque: >-
       És el que diu «Qui el canvia» de cada valor i el que fan els altres apartats d'ajustos; és la més
       conservadora i, si la junta tria B, és canviar una cel·la des de l'app, sense codi.
+  P-503:
+    opcions:
+      A: "El responsable i qui té AJ10 (configurar els dies dels avisos): d'inici el Tresorer i l'Administrador."
+      B: "El responsable i qui té AJ8 (marcar justificada o tancada): el mateix grup d'inici."
+      C: "El responsable i qui té el rol Tresorer, escrit al codi."
+      D: "Només el responsable."
+    recomanada: A
+    perque: >-
+      Els destinataris surten de la matriu (079) i qui decideix quan surten els avisos és qui els ha de rebre; C
+      trencaria la regla de no escriure rols al codi i D deixaria el tresorer sense saber que s'acosta un termini.
     data: 2026-11-23
