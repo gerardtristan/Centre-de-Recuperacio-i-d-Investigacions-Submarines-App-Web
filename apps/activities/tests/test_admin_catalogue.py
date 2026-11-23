@@ -17,7 +17,7 @@ from apps.activities.models import (
     TrainingCatalogueEntry,
     TrainingCataloguePrice,
 )
-from apps.core.models import AuditEntry, Role
+from apps.core.models import AuditEntry, Role, RolePermission
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 
 from .helpers import a_course, an_entry, general
@@ -143,3 +143,51 @@ def test_t_m02_05c_without_ac6_nothing_changes(client_of, make_admin):  # noqa: 
     assert response.status_code == 404
     outing_type.refresh_from_db()
     assert outing_type.active
+
+
+FIELD = "El preu inclou la primera llicència de l'alumne"
+
+
+def test_t_m02_50b_ac28_sees_the_field_with_the_proposal_and_saves_it(client_of, manager):
+    entry = an_entry(manager)
+    client = client_of(manager)
+    form = client.get(detail(entry)).context["price_form"]
+    assert form.fields["includes_first_licence"].initial is False
+    star = catalogue.create_level(by=manager, name="Una estrella (inventat)", rank=20)
+    TrainingCatalogueEntry.objects.filter(pk=entry.pk).update(official_level=star)
+    form = client.get(detail(entry)).context["price_form"]
+    assert form.fields["includes_first_licence"].initial is True
+    tomorrow = (timezone.localdate() + datetime.timedelta(days=1)).isoformat()
+    data = {
+        "nou_preu": "1", "price_member_cents": "45", "price_non_member_cents": "60",
+        "valid_from": tomorrow, "note": "Inclou la llicència (inventat).",
+        "includes_first_licence": "on",
+    }  # fmt: skip
+    assert client.post(detail(entry), data).status_code == 303
+    assert TrainingCataloguePrice.objects.get(valid_from=tomorrow).includes_first_licence
+
+
+def test_t_m02_50b_without_ac28_no_field_and_the_value_is_kept(client_of, make_admin, manager):  # noqa: F811
+    entry = an_entry(manager)
+    catalogue.change_prices(
+        entry, by=manager, price_member_cents=4500, price_non_member_cents=6000,
+        valid_from=timezone.localdate(), note="Inclosa (inventat).", includes_first_licence=True,
+    )  # fmt: skip
+    RolePermission.objects.filter(
+        role__code=R.COURSES_MANAGER, permission_code="activities.first_licence.manage"
+    ).delete()
+    client = client_of(make_admin(R.COURSES_MANAGER))
+    page = main_of(client.get(detail(entry)).content.decode())
+    assert FIELD not in page and "Inclou la primera llicència" in page  # AC27: el veu
+    tomorrow = (timezone.localdate() + datetime.timedelta(days=1)).isoformat()
+    data = {
+        "nou_preu": "1", "price_member_cents": "50", "price_non_member_cents": "60",
+        "valid_from": tomorrow, "note": "Pujada (inventat).", "includes_first_licence": "",
+    }  # fmt: skip
+    assert client.post(detail(entry), data).status_code == 303
+    assert TrainingCataloguePrice.objects.get(valid_from=tomorrow).includes_first_licence
+    RolePermission.objects.filter(
+        role__code=R.COURSES_MANAGER, permission_code="activities.first_licence.view"
+    ).delete()
+    page = main_of(client_of(make_admin(R.COURSES_MANAGER)).get(detail(entry)).content.decode())
+    assert "primera llicència" not in page

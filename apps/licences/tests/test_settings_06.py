@@ -82,6 +82,17 @@ def test_a_role_without_the_section_gets_not_found_on_the_screen(make_admin, rol
     assert business_settings.get(reminders.REMINDER_DAYS) == [60, 30, 7]
 
 
+def test_p_530_the_treasurer_sees_the_section_but_not_the_reminder_days(make_admin):  # noqa: F811
+    """P-530: el tresorer veu l'apartat («Cons.») per triar el tipus de la primera llicència, i
+    res més; els dies dels avisos continuen sent de la secretaria."""
+    client = admin_client(make_admin(R.TREASURER))
+    section = reverse("administration:settings_section", args=["licences"])
+    assert client.get(section).status_code == 200
+    detail = reverse("administration:setting_detail", args=["licences", reminders.REMINDER_DAYS])
+    assert client.post(detail, {"value": "45, 15, 3", "note": "Prova"}).status_code == 404
+    assert business_settings.get(reminders.REMINDER_DAYS) == [60, 30, 7]
+
+
 def test_each_role_can_edit_only_its_values_on_the_screen(make_admin):  # noqa: F811
     url = reverse("administration:settings_section", args=["licences"])
     for role, mine in (
