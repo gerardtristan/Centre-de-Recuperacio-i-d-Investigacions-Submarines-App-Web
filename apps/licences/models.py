@@ -77,6 +77,7 @@ class LicencePrice(AppendOnlyModel):
     class Kind(models.TextChoices):
         MEMBER = "member", _("Soci")
         NON_MEMBER = "non_member", _("No soci")
+        INCLUDED = "included", _("Inclosa al curs")  # RN-M06-28: preu 0, sense càrrec
 
     licence_type = models.ForeignKey(
         LicenceType, on_delete=models.PROTECT, related_name="prices", verbose_name=_("tipus")
@@ -190,6 +191,16 @@ class Licence(UndeletableModel):
         null=True,
         related_name="renewals",
         verbose_name=_("renovació de"),
+    )
+    # RN-M06-28 (T-M06-26): la primera llicència queda lligada a l'entrada de la llista
+    # «Titulacions i llicències per tramitar» del 02; una per entrada.
+    list_entry = models.OneToOneField(
+        "activities.CertificationFiling",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="first_licence",
+        verbose_name=_("entrada de la llista de tramitació"),
     )
     # Identificador del registre mínim del 01 (052, punt 8). No és cap clau forana: el 06 no
     # depèn dels models del 01.

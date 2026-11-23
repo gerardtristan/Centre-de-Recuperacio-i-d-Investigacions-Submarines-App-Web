@@ -1554,3 +1554,14 @@ noves:
       Cada formulari ha de tenir el seu comptador; A és prudent mentrestant perquè limita igualment l'abús, i C no es
       pot activar mai a producció.
     data: 2026-11-21
+  P-530:
+    opcions:
+      A: "Un ajust del 06 amb el tipus de la primera llicència (per defecte, l'anual d'aficionat); la secretaria el pot canviar en demanar-la."
+      B: "Un camp a la fitxa del curs del catàleg (cada curs diu quin tipus inclou)."
+      C: "Sempre el mateix tipus, escrit a la regla."
+      D: "La secretaria el tria cada vegada, també per a la inclosa."
+    recomanada: A
+    perque: >-
+      És una dada que pot canviar sense tocar codi (055) i deixa que el 02 creï la inclosa sola en quedar apte; B
+      només cal si cursos diferents inclouen tipus diferents, i C posaria un valor de negoci al codi.
+    data: 2026-11-23
