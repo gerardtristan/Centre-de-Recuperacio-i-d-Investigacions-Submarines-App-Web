@@ -21,6 +21,6 @@ def unload(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [("activities", "0020_filing_course_outcome")]
+    dependencies = [("activities", "0021_first_licence")]
 
     operations = [migrations.RunPython(load, unload)]
