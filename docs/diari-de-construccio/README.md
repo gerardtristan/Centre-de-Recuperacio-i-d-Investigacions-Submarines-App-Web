@@ -552,3 +552,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-97](T-DX-97.md) | Avaluació amb el botó principal i homologacions amb l'avantítol en text | 24/11/2026 01:34 | f423a5dd | 2 noves | [A comprovar] |
 | [T-M02-16d](T-M02-16d.md) | El comptador de «Passar llista» segueix les marques (carril C7) | 24/11/2026 01:27 | (vegeu la PR) | 1 e2e nova | [A comprovar] |
 | [T-M06-24b](T-M06-24b.md) | Llicències: pantalla de la secretaria per a les pendents de confirmar (carril A; demana el torn del nucli) | 21/11/2026 09:15 | 8e8acb00 | 858 | [A comprovar] |
+| [T-M06-11](T-M06-11.md) | Llicències: enviament dels avisos de venciment en lots i resum diari (T-M06-11b, feta; depèn de la branca del nucli; carril A5) | 23/11/2026 11:27 | 23e65d7c, 100c525b | 8 noves | [A comprovar] |
