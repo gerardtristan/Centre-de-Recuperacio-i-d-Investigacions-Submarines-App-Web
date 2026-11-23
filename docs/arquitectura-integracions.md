@@ -334,6 +334,7 @@ Cada entorn (local, proves, producció) té els seus valors, guardats a Coolify 
 | `EMAIL_TRANSACTIONAL_RESERVE` | Enviaments reservats cada dia per als transaccionals (per defecte 100): el butlletí només pot gastar el límit menys la reserva |
 | `EMAIL_ALERT_THRESHOLD_PCT` | Percentatge del límit que dispara l'únic avís del dia (per defecte 80) |
 | `EMAIL_ALERT_TO` | Adreça de l'administrador, l'únic que rep l'avís (decisió 081, punt 21; Q-26 resolta). **A producció, per defecte `cris@cris.es`** (decisió 084; `config/settings/prod.py`); la variable d'entorn la pot canviar. En local i a les proves no té valor per defecte i l'avís només queda al registre d'activitat. Si quedés buida a producció, `check --deploy` ho marca (`core.W001`); una adreça mal escrita és un error (`core.E001`) |
+| `LICENCE_REMINDER_BATCH_SIZE` | Avisos de venciment de llicències que posa al correu cada tasca de la cua (per defecte 50; RN-M06-12, VC-43): la tasca diària en fa lots perquè no se n'enviïn centenars de cop [A validar: informàtica] |
 | `BREVO_WEBHOOK_SECRET` | Verificació dels avisos de rebots i baixes |
 
 ### Pagaments (Stripe i transferència)
