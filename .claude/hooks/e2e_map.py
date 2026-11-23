@@ -161,6 +161,16 @@ MAP = {
         "apps/activities/views/admin_activities.py",
         "templates/activities/activity_detail.html",
     ),
+    "test_activitats_inscripcio.py": (
+        "apps/activities/views/guest_enrolment.py",
+        "apps/activities/views/admin_activities.py",
+        "templates/activities/guest_enrol.html",
+        "templates/activities/activity_detail.html",
+    ),
+    "test_activitats_inscripcio_soci.py": (
+        "apps/activities/views/member_enrolment.py",
+        "templates/activities/member_enrol.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/admin_urls.py",

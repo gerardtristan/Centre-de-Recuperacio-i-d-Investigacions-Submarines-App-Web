@@ -45,6 +45,9 @@ PUBLIC_ROUTES = {
     # Llicències per a no socis (T-M06-07, RN-M06-03): «no trobat» si l'opció és desactivada.
     "licences:public",
     "licences:guest_request",  # T-M06-07b: el mateix interruptor; l'enllaç de pagament, per correu
+    # Inscripció d'un convidat (T-M02-14; decisió 021): només activitats públiques obertes a no
+    # socis; l'enllaç per pagar, per correu.
+    "activities:guest_enrol",
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",

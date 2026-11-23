@@ -9,5 +9,6 @@ urlpatterns = [
     path("", include("apps.payments.urls")),
     path("", include("apps.invoicing.urls")),  # 09: «Les meves factures» (T-M09-21)
     path("", include("apps.licences.urls")),
+    path("", include("apps.activities.urls")),  # 02: inscripció de convidat (T-M02-14)
     path("en-construccio/", include("apps.previews.urls")),
 ]

@@ -515,3 +515,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-16c](T-M09-16c.md) | Pantalla dels períodes i creació del període següent (margins/0006; apilada sobre la T-M09-13; carril A6) | 23/11/2026 14:45 | (vegeu la PR) | 11 noves; 1 e2e | [A comprovar] |
 | [T-M09A-06-nucli](T-M09A-06-nucli.md) | Ajuts (nucli): plantilles dels avisos de tancament, resposta, justificació i requeriment (carril A6) | 23/11/2026 13:56 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M02-50-nucli](T-M02-50-nucli.md) | Activitats (nucli): AC27, AC28 i permisos dels ajustos VC-60 i VC-61 (core/0073; carril B4) | 23/11/2026 16:40 | ff3c2273 | — | [A comprovar] |
+| [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-11](T-M02-11.md) | Inscripció del soci des de l'àrea personal (apilada sobre la T-M02-14; carril B4) | 23/11/2026 16:27 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
