@@ -24,7 +24,8 @@ MATRIX = {
     "licences.import_m01": (None, None, None, None, None, None, Y, None, None),  # LC11
     "licences.field.details": (None, Y, Y, None, Y, None, Y, Y, None),  # C6
     # Ajustos de llicències (M06-6; T-M06-20): «Cons.» de l'apartat per a qui hi edita algun valor.
-    "settings.section.licences": (None, CONS, None, None, None, None, CONS, None, None),
+    "settings.section.licences": (None, CONS, None, None, CONS, None, CONS, None, None),
+    "settings.edit.licences.first_licence_type": (None, Y, None, None, Y, None, None, None, None),
     "settings.edit.licences.non_members_enabled": (
         None,
         None,

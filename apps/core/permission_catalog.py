@@ -1070,7 +1070,7 @@ PERMISSIONS: tuple[Permission, ...] = (
         "AJ06",
         _("Ajustos de llicències"),
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
-        initial={R.SECRETARY: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
+        initial={R.SECRETARY: SCOPE_READ, R.TREASURER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
     ),
     _perm(
         "settings.edit.licences.non_members_enabled",
@@ -1108,6 +1108,16 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Dia en què s'obre la llicència de l'any vinent"),
         requires=("settings.section.licences",),
         initial={R.SECRETARY: _ALL},
+    ),
+    # P-530 (T-M02-51a): el tipus de la primera llicència d'un alumne nou. Buit per defecte; el
+    # trien la secretaria i el tresorer (és diners: el cost de la federació va al previst).
+    _perm(
+        "settings.edit.licences.first_licence_type",
+        "AJ06-5",
+        _("Tipus de la primera llicència d'un alumne nou (P-530)"),
+        requires=("settings.section.licences",),
+        initial={R.SECRETARY: _ALL, R.TREASURER: _ALL},
+        touches_money=True,
     ),
     # --- 02 Activitats (cursos i sortides) --------------------------------------------------
     # T-M02-33 i T-M02-38: la matriu inicial de la 059 («02 Activitats»), cel·la per cel·la.
