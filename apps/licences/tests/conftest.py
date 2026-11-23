@@ -2,6 +2,8 @@ import datetime
 
 import pytest
 
+from apps.core.models import Role
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.licences.models import Licence, LicenceType, ValidityRule
 
 
@@ -34,3 +36,9 @@ def make_licence(make_person, annual):
         return Licence.objects.create(**values)
 
     return make
+
+
+@pytest.fixture
+def price_setter(make_admin):  # noqa: F811
+    """Un compte amb LC8 («Sí»): `prices.add_price` el demana (T-M06-25)."""
+    return make_admin(Role.Code.TREASURER)

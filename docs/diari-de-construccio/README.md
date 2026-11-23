@@ -490,3 +490,9 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-90](T-DX-90.md) | Despeses, marge i factures (09): «Tria…» als desplegables, imports a la dreta, vora d'error als desplegables i «Les meves factures» al menú del soci | 23/11/2026 11:05 | 82f0e774 | 6 noves | [A comprovar] |
 | [T-M02-06a](T-M02-06a.md) | Pantalles d'administració del 02: llistat i fitxa d'una activitat (carril C3) | 21/11/2026 10:45 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
+| [proves-migracions-pagaments](proves-migracions-pagaments.md) | Desfer migracions dels pagaments sense perdre la matriu ni els ajustos a la neteja de les proves (carril B3) | 21/11/2026 09:57 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [Guarda 01 / 06](T-M01-guarda-06.md) | Socis: la fitxa no corregeix les llicències que ja són al 06 (carril A) | 21/11/2026 10:23 | f8411d52 | 11199 | [A comprovar] |
+| [T-M06-05](T-M06-05.md) | Llicències: subscriptor de `charge.paid`, tancament (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | — | [A comprovar] |
+| [T-M06-15](T-M06-15.md) | Llicències: esdeveniments, tancament i prova de CA-M06-19 (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | 1 nova | [A comprovar] |
+| [T-M06-20](T-M06-20.md) | Llicències: pantalla d'ajustos, proves per valor i filtre de venciment (feta; carril A5) | 23/11/2026 12:07 | 0f18080f | 11560 | [A comprovar] |
+| [T-M06-25](T-M06-25.md) | Llicències: revisió final dels permisos i LC8 al servei de preus (feta; carril A5) | 23/11/2026 12:46 | 20db8f88 | 3298 (06 i 01) | [A comprovar] |

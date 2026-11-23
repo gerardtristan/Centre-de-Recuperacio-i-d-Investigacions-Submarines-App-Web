@@ -12,7 +12,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, ngettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -21,7 +21,7 @@ from apps.core.charges import euros
 from apps.core.permissions import has_perm, request_permissions, require_perm
 from apps.members.services import membership_fees
 
-from . import filing, listing, prices, types
+from . import filing, listing, prices, reminders, types
 from .models import Licence, LicencePrice, LicenceType, ValidityRule
 from .services import NON_MEMBERS_ENABLED, LicenceRequestError
 
@@ -43,14 +43,19 @@ class ListFilterForm(forms.Form):
     )  # fmt: skip
     venciment = forms.TypedChoiceField(
         label=gettext_lazy("Caduca d'aquí a"), required=False, coerce=int, empty_value=None,
-        choices=[("", gettext_lazy("Qualsevol data")), ("60", gettext_lazy("60 dies o menys")),
-                 ("30", gettext_lazy("30 dies o menys")), ("7", gettext_lazy("7 dies o menys"))],
     )  # fmt: skip
 
     def __init__(self, *args, details: bool, **kwargs):
         super().__init__(*args, **kwargs)
         if not details:  # sense C6 no es filtra per categoria ni per venciment (CA-M06-33)
             del self.fields["categoria"], self.fields["venciment"]
+            return
+        # Els trams dels avisos (`licences.reminder_days`, CA-M06-26), no una llista al codi.
+        days = sorted(set(business_settings.get(reminders.REMINDER_DAYS)), reverse=True)
+        self.fields["venciment"].choices = [("", _("Qualsevol data"))] + [
+            (str(n), ngettext("%(n)s dia o menys", "%(n)s dies o menys", n) % {"n": n})
+            for n in days
+        ]
 
 
 class ActivateForm(forms.Form):

@@ -1334,6 +1334,16 @@ opcions:
       Explica per què es demana i què passa si no es marca, sense demanar cap data de naixement
       (minimització); C i D recullen més dades personals del que cal mentre el club no admeti menors.
     data: 2026-11-21
+  P-500:
+    opcions:
+      A: "El criteri vol dir «la llicència canvia dues vegades després de la versió 1» (per exemple, pagada i cancel·lada): l'esdeveniment i la font del 01 porten la mateixa versió."
+      B: "Renovar també puja la versió de la llicència anterior (es desa l'enllaç amb la nova), i el criteri es prova tal com està escrit."
+      C: "Es corregeix el text del criteri amb una decisió numerada, sense canviar el codi."
+    recomanada: A
+    perque: >-
+      És el que assegura la 054 (el 01 compara versions de la mateixa llicència) i el que ja fa el codi; B
+      faria pujar la versió d'una llicència que no ha canviat, i C es pot fer quan es desfaci la congelació.
+    data: 2026-11-23
 
   P-459:
     opcions:

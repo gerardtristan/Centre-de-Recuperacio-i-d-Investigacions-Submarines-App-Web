@@ -53,12 +53,12 @@ def soci(make_person):
 
 
 @pytest.fixture
-def priced(annual, admin_account):
+def priced(annual, price_setter):
     def add(licence_type=annual, cost=9000, start=None, end=None):
         return prices.add_price(
             licence_type, federation_cost_cents=cost, non_member_surcharge_cents=2000,
             valid_from=start or D(2027, 1, 1), valid_to=end, note="Tarifa inventada",
-            actor=admin_account,
+            actor=price_setter,
         )  # fmt: skip
 
     add()

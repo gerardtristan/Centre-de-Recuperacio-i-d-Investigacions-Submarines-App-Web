@@ -324,7 +324,7 @@ class TestMigrationIsReversible(CommittedDataTestCase):
             MigrationExecutor(connection).migrate([("payments", "0001_provider_event")])
             assert table not in connection.introspection.table_names()
         finally:
-            MigrationExecutor(connection).migrate(leaves)
+            self.migrate_back(leaves)  # sense perdre les dades de les migracions
         with connection.cursor() as cursor:
             names = set(connection.introspection.get_constraints(cursor, table))
         assert {"payment_attempt_one_in_progress", "payment_attempt_one_paid"} <= names

@@ -133,6 +133,8 @@ def correct_record(record, *, by, licence_type, issued_on, expires_on, request=N
         _check_account_active(by, lock=True)
         _check_person_active(member)
         locked = LicenceRecord.objects.select_for_update().get(pk=record.pk)
+        if locked.licence_ref is not None:  # el 06 n'és la font (P-M06-H, pas 3)
+            raise ValidationError(IN_LICENCES_ADMIN)
         licence_type = _clean(
             licence_type, issued_on, expires_on, expires_optional=locked.expires_on is None
         )
@@ -164,6 +166,7 @@ def correct_record(record, *, by, licence_type, issued_on, expires_on, request=N
 # tant, no surt aquí: la secretaria la confirma a la fitxa (`correct_record`; RN-M01-77).
 
 CONFIRMED_IN_BULK = "members.licence_record.expiry_confirmed_in_bulk"
+IN_LICENCES_ADMIN = _("Aquesta llicència ja és al mòdul de llicències: corregeix-la allà.")
 NOT_PENDING = _("Algun registre ja no està pendent de confirmar. Torna a carregar la llista.")
 NOTHING_SELECTED = _("Selecciona almenys un registre.")
 
