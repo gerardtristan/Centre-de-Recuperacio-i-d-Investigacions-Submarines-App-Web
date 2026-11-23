@@ -8,14 +8,14 @@
 - `close(period, by=…, exceptions={clau: motiu})`: MG11. Es tanca amb la llista buida o portant
   cada element al període següent amb motiu (RN-M09-26 [A validar: tresorer, S-M09-15]). Un
   element sense motiu bloqueja (CA-M09-29). Els períodes es tanquen per ordre.
-- `reopen(period, by=…, reason=…)`: MG12 (només l'administrador, CA-M09-15), amb motiu i registre.
-  Només es reobre el darrer període tancat: la guarda de la 04 és una sola data (P-471).
+- `reopen(period, by=…, reason=…)`: MG12 (només l'administrador, CA-M09-15), amb motiu i registre,
+  i correu al tresorer i a la junta (S-M09-13). Només es reobre el darrer període tancat: la guarda
+  de la 04 és una sola data (P-471).
 - `recompute_margin(activity, by=…)`: amb el període del marge congelat reobert, MG7 fa un marge
   nou que substitueix l'anterior (`supersedes`, amb el motiu de la reobertura) i que no inclou els
   moviments tardans (RN-M09-24).
 
-**Fora d'aquesta peça:** el correu al tresorer i a la junta en reobrir (S-M09-13) necessita una
-plantilla del nucli; ara només queda al registre. La pantalla, amb les vistes del 09.
+**Fora d'aquesta peça:** la pantalla, amb les vistes del 09.
 """
 
 from django.core.exceptions import ValidationError
@@ -25,7 +25,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.activities.models import Activity
-from apps.core import audit
+from apps.core import audit, business_settings, mail
 from apps.core.permission_catalog import SCOPE_ALL
 from apps.core.permissions import scope_for
 from apps.expenses.models import Expense
@@ -40,6 +40,7 @@ CLOSE = "expenses.periods.close"  # MG11
 REOPEN = "expenses.periods.reopen"  # MG12
 PERIOD_CLOSED = "margins.period_closed"
 PERIOD_REOPENED = "margins.period_reopened"
+REOPENED_TEMPLATE = "avis-reobertura-periode"  # S-M09-13
 MARGIN_RECOMPUTED = "margins.margin_recomputed"
 S = Period.Status
 
@@ -186,7 +187,21 @@ def reopen(period, *, by, reason, now=None) -> PeriodEvent:
             PERIOD_REOPENED, actor=by, target=period, field="status", old=S.CLOSED, new=S.OPEN,
             reason=reason,
         )  # fmt: skip
+        _notify_reopened(period, reason)
     return event
+
+
+def _notify_reopened(period, reason) -> None:
+    """S-M09-13: correu al tresorer i a la junta (una adreça, un correu), a la transacció de la
+    reobertura. Només el període i el motiu."""
+    context = {
+        "period": f"{period.starts_on:%d/%m/%Y} – {period.ends_on:%d/%m/%Y}",
+        "reason": reason,
+    }
+    for account in business_settings.money_change_recipients():
+        mail.queue_email(
+            REOPENED_TEMPLATE, to=account.notification_email, person=account.person, context=context
+        )
 
 
 def _period_of(day):
