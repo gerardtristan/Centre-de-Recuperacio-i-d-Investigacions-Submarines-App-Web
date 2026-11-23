@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M06-11 (RN-M06-12, CA-M06-24): TEXT PROVISIONAL [A validar: secretaria]. #}{% blocktranslate count total=total %}Una llicència caduca d'aquí a {{ days_before }} dies{% plural %}{{ total }} llicències caduquen d'aquí a {{ days_before }} dies{% endblocktranslate %}

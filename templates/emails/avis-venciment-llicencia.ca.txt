@@ -1,0 +1,9 @@
+{% load i18n %}{# T-M06-11 (RN-M06-12, CA-M06-08 i 09): avís al titular d'una llicència que caduca d'aquí a 60, 30 o 7 dies (ajust licences.reminder_days). TEXT PROVISIONAL [A validar: secretaria]. Només el tipus i la data: cap número federatiu. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}La teva llicència federativa ({{ licence_type }}) caduca el {{ expires_on }}, d'aquí a {{ days_before }} dies.{% endblocktranslate %}
+
+{% translate "Per continuar bussejant amb llicència, la pots renovar des d'aquí:" %}
+{{ link }}
+
+{% translate "Si ja l'has renovada, no cal que facis res. Si tens cap dubte, respon aquest correu." %}
+{% endautoescape %}
