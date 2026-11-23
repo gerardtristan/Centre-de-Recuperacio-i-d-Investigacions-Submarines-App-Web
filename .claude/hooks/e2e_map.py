@@ -166,6 +166,11 @@ MAP = {
         "apps/activities/admin_urls.py",
         "templates/activities/*",
     ),
+    "test_material.py": (
+        "apps/equipment/views.py",
+        "apps/equipment/admin_urls.py",
+        "templates/equipment/*",
+    ),
     "test_despeses.py": (
         "apps/expenses/views.py",
         "apps/expenses/admin_urls.py",
