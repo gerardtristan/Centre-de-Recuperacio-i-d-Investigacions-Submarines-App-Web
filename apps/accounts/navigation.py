@@ -57,6 +57,13 @@ BASE_ROUTES = {
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
     "administration:payments_campaign": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-13b)
+    # T-M03-19: n'hi ha prou amb un dels tres informes (MT4, MT11 o MT12).
+    "administration:equipment_reports": (
+        (("equipment.stock.view", READ),),
+        (("equipment.reviews.manage", READ),),
+        (("equipment.costs.view", READ),),
+    ),
+    "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -138,6 +145,12 @@ ENTRIES = (
         ),
     ),
     # T-DX-49: les pantalles que s'obren des d'una entrada la deixen marcada com a actual.
+    (
+        "administration:equipment_reports",
+        _("Material: informes"),
+        ("administration:equipment_activity_cost",),
+    ),  # T-M03-19; text i lloc provisionals per a DISSENY
+    ("administration:equipment_usage_rates", _("Material: cost d'ús"), ()),  # T-M03-22; DISSENY
     ("administration:expense_new", _("Despesa nova"), ()),  # T-M09-06; text i lloc: DISSENY
     (
         "administration:expenses_without_invoice",
@@ -290,7 +303,7 @@ GROUPS = (
     (
         _("Activitats"),
         "calendar-days",
-        ("administration:activities",),
+        ("administration:activities", "administration:equipment_reports"),  # 03: DISSENY
     ),
     (
         _("Quotes i tresoreria"),
@@ -336,7 +349,11 @@ GROUPS = (
     (
         _("Ajustos"),
         "settings",
-        ("administration:settings", "administration:previews:index"),
+        (
+            "administration:settings",
+            "administration:equipment_usage_rates",  # T-M03-22; lloc per revisar amb DISSENY
+            "administration:previews:index",
+        ),
     ),
 )
 
