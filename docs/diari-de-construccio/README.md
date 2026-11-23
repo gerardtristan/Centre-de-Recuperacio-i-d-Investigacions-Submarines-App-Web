@@ -505,3 +505,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-24b](T-M09-24b.md) | Guia del tresorer amb les pantalles del 09 i els avisos (carril A6) | 23/11/2026 14:49 | (vegeu la PR) | Cap (document) | [A comprovar] |
 | [T-M06-11-nucli](T-M06-11-nucli.md) | Llicències (nucli): plantilles dels avisos de venciment i del resum, VC-43 a l'entorn (carril A5) | 23/11/2026 13:09 | 43e3360b | 1 nova | [A comprovar] |
 | [T-M09-26b](T-M09-26b.md) | Ajustos (nucli): apartats «Marges i períodes» i «Ajuts» (core/0072, número per fixar; carril A6) | 23/11/2026 15:14 | (vegeu la PR) | 12 casos nous per cel·la | [A comprovar] |
+| [T-M03-11](T-M03-11.md) | Càrrec del lloguer al participant, apagat (T-M03-11 i T-M03-16; equipment/0012; carril C7) | 23/11/2026 16:26 | (vegeu la PR) | 5 noves | [A comprovar] |
