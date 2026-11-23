@@ -10,7 +10,13 @@ from django.utils import timezone
 
 from apps.accounts.security import AREA_ADMIN
 from apps.activities import catalogue
-from apps.activities.models import TrainingCatalogueEntry, TrainingCataloguePrice
+from apps.activities.models import (
+    EnvironmentalProject,
+    EnvironmentalSubtype,
+    OutingType,
+    TrainingCatalogueEntry,
+    TrainingCataloguePrice,
+)
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 
@@ -93,3 +99,47 @@ def test_editing_keeps_the_previous_value_and_deactivating_hides_it(client_of, m
     assert not entry.active
     add_course = client.get(reverse("administration:activity_course_add")).content.decode()
     assert "Després" not in add_course
+
+
+def test_t_m02_05c_types_subtypes_and_projects_on_the_catalogue_page(client_of, manager):
+    client = client_of(manager)
+    data = {
+        "nou_tipus": "1",
+        "tipus-name": "Tipus inventat",
+        "tipus-default_department": general().pk,
+    }
+    assert client.post(LIST, data).status_code == 303
+    new = OutingType.objects.get(name="Tipus inventat")
+    assert client.post(LIST, {"id": new.pk, "mode": "block"}).status_code == 303
+    assert client.post(LIST, {"classe": "tipus", "id": new.pk, "actiu": "0"}).status_code == 303
+    new.refresh_from_db()
+    assert (new.default_requirements_mode, new.active) == ("block", False)
+    assert (
+        "Tipus inventat"
+        not in client.get(reverse("administration:activity_outing_add")).content.decode()
+    )
+    assert (
+        client.post(LIST, {"nou_subtipus": "1", "subtipus-name": "Subtipus inventat"}).status_code
+        == 303
+    )
+    assert EnvironmentalSubtype.objects.filter(name="Subtipus inventat").exists()
+    project = {
+        "nou_projecte": "1",
+        "projecte-name": "Projecte inventat",
+        "projecte-department": general().pk,
+    }
+    response = client.post(LIST, project)  # sense objectiu
+    assert response.status_code == 200 and not EnvironmentalProject.objects.exists()
+    assert (
+        client.post(LIST, {**project, "projecte-objective": "Comptar nacres."}).status_code == 303
+    )
+    assert EnvironmentalProject.objects.get().objective == "Comptar nacres."
+
+
+def test_t_m02_05c_without_ac6_nothing_changes(client_of, make_admin):  # noqa: F811
+    outing_type = OutingType.objects.first()
+    client = client_of(make_admin(R.EQUIPMENT_MANAGER))
+    response = client.post(LIST, {"classe": "tipus", "id": outing_type.pk, "actiu": "0"})
+    assert response.status_code == 404
+    outing_type.refresh_from_db()
+    assert outing_type.active
