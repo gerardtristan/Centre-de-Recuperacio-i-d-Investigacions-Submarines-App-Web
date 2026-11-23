@@ -1,0 +1,17 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05b: fitxa nova del catàleg (AC6). Els preus d'aquí són la primera versió, vigent des d'avui; els canvis posteriors es fan a la fitxa, amb data i motiu. #}
+{% block title %}{% translate "Fitxa nova" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Catàleg de cursos" %}</p>
+  <h1>{% translate "Fitxa nova" %}</h1>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Crea la fitxa" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:catalogue' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}

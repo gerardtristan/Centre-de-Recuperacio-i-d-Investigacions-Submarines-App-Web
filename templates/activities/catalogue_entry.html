@@ -1,0 +1,63 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05b: fitxa del catàleg (AC6; P-M02-A). Preus d'avui, preus nous amb data d'entrada en vigor i motiu (avisen el tresorer i la junta; no toquen cap activitat ja creada, CA-M02-01 i 26), dades de la fitxa amb el valor anterior al registre, activar o desactivar i historial de preus. #}
+{% block title %}{{ entry.name }} · {% translate "Catàleg de cursos" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{{ entry.get_kind_display }}</p>
+    <h1>{{ entry.name }}</h1>
+    <p>{% if entry.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Activa" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% translate "Inactiva" %}</span>{% endif %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Preu de soci d'avui" %}</dt><dd><span class="import">{{ current.member }}</span></dd></div>
+    <div><dt>{% translate "Preu de no soci d'avui" %}</dt><dd><span class="import">{{ current.non_member }}</span></dd></div>
+    <div><dt>{% translate "Preu d'una classe de reforç" %}</dt><dd>{% if current.reinforcement %}<span class="import">{{ current.reinforcement }}</span>{% else %}—{% endif %}</dd></div>
+  </dl>
+  <form method="post" class="accions">
+    {% csrf_token %}
+    {% if entry.active %}<button class="boto" type="submit" name="activa" value="0">{% translate "Desactiva la fitxa" %}</button>
+    {% else %}<button class="boto" type="submit" name="activa" value="1">{% translate "Activa la fitxa" %}</button>{% endif %}
+  </form>
+  <h2>{% translate "Preus nous" %}</h2>
+  <p class="text-2">{% translate "Les activitats ja creades conserven el seu preu. S'avisa el tresorer i la junta." %}</p>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% with form=price_form %}{% include "_errata.html" %}{% endwith %}
+    {% for field in price_form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions"><button class="boto boto-principal" type="submit" name="nou_preu" value="1">{% translate "Desa els preus" %}</button></div>
+  </form>
+  <h2>{% translate "Dades de la fitxa" %}</h2>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% with form=entry_form %}{% include "_errata.html" %}{% endwith %}
+    {% for field in entry_form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions"><button class="boto" type="submit" name="desa_fitxa" value="1">{% translate "Desa les dades" %}</button></div>
+  </form>
+  <h2>{% translate "Historial de preus" %}</h2>
+  <table class="taula">
+    <caption>{% translate "Les versions dels preus, de la més recent a la més antiga" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Des del" %}</th>
+        <th scope="col" class="cel-import">{% translate "Soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "No soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "Reforç" %}</th>
+        <th scope="col">{% translate "Motiu" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for version in history %}
+        <tr>
+          <th scope="row"><time datetime="{{ version.row.valid_from|date:'Y-m-d' }}">{{ version.row.valid_from|date:"d/m/Y" }}</time>{% if version.row.valid_from > today %} <span class="xip">{% translate "Futur" %}</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Soci' %}" class="cel-import"><span class="import">{{ version.member }}</span></td>
+          <td data-etiqueta="{% translate 'No soci' %}" class="cel-import"><span class="import">{{ version.non_member }}</span></td>
+          <td data-etiqueta="{% translate 'Reforç' %}" class="cel-import">{% if version.reinforcement %}<span class="import">{{ version.reinforcement }}</span>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Motiu' %}">{{ version.row.note }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'administration:catalogue' %}">{% translate "Tornar al catàleg" %}</a></p>
+{% endblock %}
