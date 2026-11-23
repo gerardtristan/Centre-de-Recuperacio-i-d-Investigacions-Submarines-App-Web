@@ -1,0 +1,17 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-39: lloc nou (AC22; CA-M02-42). El preu estàndard es posa després, a la fitxa del lloc, amb data i motiu. Els camps d'altres mòduls (el centre habitual del 03) surten si el mòdul els hi registra. #}
+{% block title %}{% translate "Lloc nou" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Llocs" %}</p>
+  <h1>{% translate "Lloc nou" %}</h1>
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    {% include "_errata.html" %}
+    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    <div class="accions">
+      <button class="boto boto-principal" type="submit">{% translate "Crea el lloc" %}</button>
+      <a class="boto boto-text" href="{% url 'administration:places' %}">{% translate "Cancel·la" %}</a>
+    </div>
+  </form>
+{% endblock %}
