@@ -484,3 +484,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-18](T-M02-18.md) | Classes de reforç, servei (activities/0019; carril B3) | 21/11/2026 10:44 | (vegeu la PR) | 9 noves | [A comprovar] |
 | [T-M02-31a](T-M02-31a.md) | Titulacions: CA-M02-33 en mode bloqueig i P-459, el permís per carregar-les i verificar-les (carril B3) | 21/11/2026 10:49 | (vegeu la PR) | 1 ampliada | [A comprovar] |
 | [T-M02-27](T-M02-27.md) | Guia del responsable i de l'instructor i ajuda per inscriure's, esborrany (carril B3) | 21/11/2026 10:49 | (vegeu la PR) | Cap (document) | [A comprovar] |
+| [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
