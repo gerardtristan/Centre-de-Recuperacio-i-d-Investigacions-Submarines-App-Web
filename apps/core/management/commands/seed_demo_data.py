@@ -44,6 +44,7 @@ from apps.core import audit, charges, consents
 from apps.core.crypto import encrypt
 from apps.core.models import Charge, Consent, LegalText, Payment, Person, Role
 from apps.core.roles import assign_role, grant_initial_administrator
+from apps.equipment import demo_data as equipment_demo
 from apps.licences import services as licences
 from apps.licences import types as licence_types
 from apps.licences.models import LicenceType, ValidityRule
@@ -355,6 +356,9 @@ class Command(BaseCommand):
             department=activities,
             participants=people[:4],
         )
+        # Material (T-M03-20): centres, material típic, inventari i una revisió prevista.
+        equipment = equipment_demo.create(admin=admin)
         counts = {"people": len(people), "charges": n_charges, "consents": n_consents}
         counts |= {"treasury": treasury, "payments": payments, "activities": activities_result}
+        counts["equipment"] = equipment
         return counts, review
