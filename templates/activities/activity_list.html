@@ -54,7 +54,7 @@
           <td data-etiqueta="{% translate 'Lloc' %}">{{ activity.place.name|default:"—" }}</td>
           <td data-etiqueta="{% translate 'Places' %}">{{ activity.max_places }}</td>
           <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_activity_status.html" %}</td>
-          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ activity.title }}</span></a></td>
+          <td class="cel-accions"><a class="boto boto-petit enllac-fila" href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ activity.title }}</span></a></td>
         </tr>
       {% empty %}
         <tr><td colspan="7">{% translate "Cap activitat coincideix amb els filtres." %}</td></tr>
