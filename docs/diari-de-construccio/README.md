@@ -476,3 +476,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-marge-pantalla](T-M09-marge-pantalla.md) | Pantalla del marge d'una activitat (sense obrir) (carril C2) | 21/11/2026 09:03 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
 | [T-M09-21](T-M09-21.md) | «Les meves factures» a l'àrea personal (sense obrir) (carril C2) | 21/11/2026 09:05 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |
 | [T-M02-44](T-M02-44.md) | Homologacions a la federació i llistat CSV (T-M02-44 i 46; activities/0016; carril B2) | 21/11/2026 07:23 | (vegeu la PR) | 13 noves (16 casos) | [A comprovar] |
+| [T-M06-05](T-M06-05.md) | Llicències: subscriptor de `charge.paid`, tancament (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | — | [A comprovar] |
+| [T-M06-15](T-M06-15.md) | Llicències: esdeveniments, tancament i prova de CA-M06-19 (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | 1 nova | [A comprovar] |
