@@ -21,7 +21,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
 
-from .. import enrolment, guests, material_cost, services, sessions, states
+from .. import closing, enrolment, guests, material_cost, services, sessions, states
 from ..forms import ActivityForm, GuestEnrolmentForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
 from ..permissions import ENROL_IN_PERSON, MANAGE, MATERIAL_COST, MATERIAL_COST_FIELD, require
@@ -196,6 +196,8 @@ def _detail(request, activity, material_form=None, desk_form=None):
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
+        # T-M02-22b: «Què falta per tancar» (sense dades personals; el tancament és del 09)
+        "blockers": closing.closing_blockers(activity) if activity.status == S.DONE else None,
     }
     return render(request, "activities/activity_detail.html", context)
 
