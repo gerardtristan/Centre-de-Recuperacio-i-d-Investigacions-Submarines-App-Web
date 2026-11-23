@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-22b (C16; RN-M02-25 i 45): «Les meves activitats». Només les inscripcions de la persona del compte: estat, pagament pendent, calendari (.ics sense cap persona), certificat emès, blocs d'altres mòduls (el material del 03) i l'historial d'assistència. Cap dada d'altres participants. #}
+{% block title %}{% translate "Les meves activitats" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+  <h1>{% translate "Les meves activitats" %}</h1>
+  {% include "activities/_missatges.html" %}
+  {% for row in rows %}{% with enrolment=row.enrolment activity=row.enrolment.activity %}
+    <section class="targeta" aria-labelledby="inscripcio-{{ enrolment.pk }}">
+      <h2 id="inscripcio-{{ enrolment.pk }}">{{ activity.title }}</h2>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
+        {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place.name }}</dd></div>{% endif %}
+        <div><dt>{% translate "Inscripció" %}</dt><dd>{{ enrolment.get_status_display }}</dd></div>
+        {% if row.certificate %}<div><dt>{% translate "Certificat" %}</dt><dd>{{ row.certificate.number }} · {{ row.certificate.grants }} · {{ row.certificate.issued_on|date:"d/m/Y" }}</dd></div>{% endif %}
+      </dl>
+      <div class="accions">
+        {% if enrolment.status == "pending_payment" and enrolment.charge_id %}<a class="boto boto-principal" href="{% url 'payments:charge' enrolment.charge_id %}">{% translate "Paga-la" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
+        {% if row.live %}<a class="boto" href="{% url 'activities:enrolment_calendar' enrolment.pk %}">{% translate "Afegeix-la al calendari" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
+      </div>
+      {% for html in row.sections %}{{ html }}{% endfor %}
+    </section>
+  {% endwith %}{% empty %}
+    <p>{% translate "Encara no t'has inscrit a cap activitat." %} <a href="{% url 'activities:public_list' %}">{% translate "Mira els cursos i les sortides" %}</a></p>
+  {% endfor %}
+  {% if attended %}
+    <h2>{% translate "Historial" %}</h2>
+    <ul>
+      {% for item in attended %}<li>{{ item.activity.title }}: {% for day in item.dates %}<time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:"d/m/Y" }}</time>{% if not forloop.last %}, {% endif %}{% endfor %}</li>{% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

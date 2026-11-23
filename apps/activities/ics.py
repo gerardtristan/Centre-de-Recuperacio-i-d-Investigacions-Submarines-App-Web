@@ -4,9 +4,9 @@
 no n'hi ha, amb els dies de l'activitat. **No hi posa mai cap persona:** ni organitzador, ni
 assistents, ni instructors; només el títol, l'horari i el nom del lloc (mai les notes del lloc).
 
-Qui el podrà descarregar és el participant, per a les seves sessions, des de «Les meves
-activitats» (`/socis/activitats/{inscripció}/calendari.ics`): aquesta ruta és de la T-M02-22, quan
-hi hagi inscripcions. Aquí només hi ha el generador.
+El descarrega el participant, per a les seves sessions, des de «Les meves activitats»
+(`/socis/activitats/inscripcions/{inscripció}/calendari.ics`, T-M02-22b). Aquí només hi ha el
+generador.
 """
 
 import datetime
