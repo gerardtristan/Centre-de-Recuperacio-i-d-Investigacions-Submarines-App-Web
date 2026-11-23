@@ -492,3 +492,5 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [proves-migracions-pagaments](proves-migracions-pagaments.md) | Desfer migracions dels pagaments sense perdre la matriu ni els ajustos a la neteja de les proves (carril B3) | 21/11/2026 09:57 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [Guarda 01 / 06](T-M01-guarda-06.md) | Socis: la fitxa no corregeix les llicències que ja són al 06 (carril A) | 21/11/2026 10:23 | f8411d52 | 11199 | [A comprovar] |
+| [T-M06-05](T-M06-05.md) | Llicències: subscriptor de `charge.paid`, tancament (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | — | [A comprovar] |
+| [T-M06-15](T-M06-15.md) | Llicències: esdeveniments, tancament i prova de CA-M06-19 (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | 1 nova | [A comprovar] |
