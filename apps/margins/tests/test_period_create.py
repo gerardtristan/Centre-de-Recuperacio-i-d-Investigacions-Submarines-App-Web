@@ -20,6 +20,7 @@ R = Role.Code
 D = datetime.date
 TODAY = D(2027, 4, 15)
 PAGE = reverse("administration:margin_periods")
+MISSING = "Resol-lo o escriu el motiu per portar-lo al període següent."
 
 
 @pytest.fixture
@@ -81,8 +82,14 @@ def test_la_pantalla_tanca_amb_un_motiu_per_element(login_as, treasurer):
     assert "Tancar el període del 01/11/2026 al 30/11/2026" in html
     assert "Despesa sense factura: Sortida a les Medes." in html and "Reobre" not in html
     close = reverse("administration:margin_period_close", args=[november.pk])
-    html = client.post(close, follow=True).content.decode()
-    assert "Encara no es pot tancar" in html
+    response = client.post(close)
+    assert response.status_code == 200  # el formulari torna amb els errors (Errata)
+    html = main_of(response.content.decode())
+    assert "Hi ha 1 error" in html and 'href="#id_motiu-expense_without_invoice' in html
+    assert html.count(MISSING) == 2  # a Errata i a sota del camp
+    assert "avis-error" not in html  # cap missatge a dalt que repeteixi l'element
+    november.refresh_from_db()
+    assert november.status == Period.Status.OPEN
     field = f"motiu-expense_without_invoice:{spent.pk}"
     html = client.post(close, {field: "La factura arriba el mes vinent"}, follow=True)
     assert "Període tancat." in html.content.decode()
