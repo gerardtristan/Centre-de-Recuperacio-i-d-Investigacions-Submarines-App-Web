@@ -81,8 +81,10 @@ def test_side_panel_on_desktop_and_bar_below(
     expect(panel.get_by_text(f"Soci núm. {member.member_number}")).to_be_visible()
     expect(page.get_by_role("button", name="Surt")).to_have_count(1)
     expect(panel.get_by_role("button", name="Surt")).to_be_visible()
-    # Sense ruta d'«Activitats» i sense pantalles «En construcció», l'entrada no hi és.
-    expect(page.get_by_role("link", name="Activitats")).to_have_count(0)
+    # «Activitats» porta a «Les meves activitats» (T-DX-95), també a producció.
+    expect(panel.get_by_role("link", name="Activitats", exact=True)).to_have_attribute(
+        "href", reverse("activities:mine")
+    )
 
     # Tauleta: la barra flotant, centrada i de 30rem com a màxim; «Surt» a la capçalera.
     page.set_viewport_size({"width": 800, "height": 900})
@@ -98,7 +100,7 @@ def test_side_panel_on_desktop_and_bar_below(
     page.set_viewport_size({"width": 390, "height": 844})
     expect(bar).to_be_visible()
     assert nav(page).bounding_box()["width"] == 390
-    expect(page.get_by_role("link", name="Activitats")).to_have_count(0)
+    expect(bar.get_by_role("link", name="Activitats", exact=True)).to_be_visible()
     page.set_viewport_size({"width": 320, "height": 800})
     assert no_horizontal_scroll(page)
 

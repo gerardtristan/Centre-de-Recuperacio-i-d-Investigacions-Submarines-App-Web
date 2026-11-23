@@ -392,12 +392,6 @@ MAP = {
         "static/css/oleaje.css",
     ),
     "test_previews.py": ("apps/previews/*", "templates/previews/*"),
-    "test_activitats.py": (  # T-DX-63
-        "apps/previews/screens/activitats*",
-        "templates/previews/*activitats*",
-        "static/css/activitats.css",
-        "static/js/activitats.js",
-    ),
     "test_vigencia.py": (
         "apps/members/templatetags/vigencia.py",
         "templates/members/_vigencia.html",
