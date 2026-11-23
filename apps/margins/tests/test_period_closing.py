@@ -11,7 +11,7 @@ from django.utils import timezone
 from apps.activities.models import Activity
 from apps.activities.tests.helpers import an_outing
 from apps.activities.tests.test_attendance import opened
-from apps.core.models import AuditEntry, Role
+from apps.core.models import AuditEntry, OutgoingEmail, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.expenses import allocation
 from apps.expenses import services as expenses
@@ -131,6 +131,29 @@ def test_ca_m09_15_only_the_administrator_reopens_the_last_closed_period(treasur
     with pytest.raises(ValidationError):  # la guarda de la 04 és una sola data (P-471)
         period_closing.reopen(november, by=admin, reason="Error de novembre.")
     period_closing.reopen(december, by=admin, reason="Error de desembre (inventat).")
+
+
+def test_s_m09_13_reopening_emails_the_treasurer_and_the_board(make_admin, treasurer, admin):  # noqa: F811
+    treasurer.notification_email = "tresoreria@example.org"
+    treasurer.save()
+    board = make_admin(R.BOARD)
+    board.notification_email = "junta@example.org"
+    board.save()
+    secretary = make_admin(R.SECRETARY)  # ni tresorer ni junta: no el rep
+    secretary.notification_email = "secretaria@example.org"
+    secretary.save()
+    november = period(NOV)
+    period_closing.close(november, by=treasurer)
+    assert not OutgoingEmail.objects.filter(template=period_closing.REOPENED_TEMPLATE).exists()
+    period_closing.reopen(november, by=admin, reason="Repartiment mal fet (inventat).")
+    sent = OutgoingEmail.objects.filter(template=period_closing.REOPENED_TEMPLATE)
+    assert sorted(sent.values_list("to_address", flat=True)) == [
+        "junta@example.org",
+        "tresoreria@example.org",
+    ]
+    email = sent.first()
+    assert "01/11/2026 – 30/11/2026" in email.subject
+    assert "Repartiment mal fet (inventat)." in email.body_text
 
 
 def test_a_done_activity_of_the_period_is_on_the_checklist(make_admin, treasurer):  # noqa: F811
