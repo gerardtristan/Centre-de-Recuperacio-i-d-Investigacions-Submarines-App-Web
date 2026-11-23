@@ -170,3 +170,32 @@ class PeriodEvent(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.period} · {self.get_action_display()}"
+
+
+class LowMarginAlert(AppendOnlyModel):
+    """Avís de marge baix enviat (T-M09-13; RN-M09-14, CA-M09-12). Només INSERT: és la marca que
+    evita repetir l'avís mentre la previsió no canvia."""
+
+    activity = models.ForeignKey(
+        "activities.Activity",
+        on_delete=models.PROTECT,
+        related_name="+",
+        verbose_name=_("activitat"),
+    )
+    margin_cents = models.BigIntegerField(_("marge previst (cèntims)"))  # amb signe
+    threshold_cents = models.BigIntegerField(_("llindar (cèntims)"))
+    sent_at = models.DateTimeField(_("enviat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís de marge baix")
+        verbose_name_plural = _("avisos de marge baix")
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(margin_cents__lt=F("threshold_cents")),
+                name="margins_low_margin_alert_below_threshold",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.activity_id}: {self.margin_cents} c"
