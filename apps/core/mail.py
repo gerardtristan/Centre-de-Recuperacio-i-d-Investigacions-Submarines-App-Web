@@ -90,6 +90,8 @@ TEMPLATE_PRIORITIES = {
     "quota-targeta-revisar": _Priority.CONFIRMATION,  # T-M05b-15b, al tresorer
     "avis-despesa-sense-factura": _Priority.CONFIRMATION,  # CA-M09-01, al tresorer (T-M09-04b)
     "avis-salt-serie-factures": _Priority.CONFIRMATION,  # CA-M09-17, al tresorer (T-M09-19)
+    "avis-marge-baix": _Priority.CONFIRMATION,  # CA-M09-12, al responsable i al tresorer (T-M09-13)
+    "avis-reobertura-periode": _Priority.CONFIRMATION,  # S-M09-13, al tresorer i a la junta
     "avis-llicencia-pagada": _Priority.CONFIRMATION,  # CA-M06-07, a la secretaria (T-M06-05)
     "avis-devolucio-llicencia": _Priority.CONFIRMATION,  # CA-M06-13, al tresorer (T-M06-12)
     "avis-llicencia-no-tramitada": _Priority.CONFIRMATION,  # CA-M06-23, a qui tramita (T-M06-19)

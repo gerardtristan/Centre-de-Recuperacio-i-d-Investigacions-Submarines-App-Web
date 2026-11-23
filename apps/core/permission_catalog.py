@@ -1470,20 +1470,41 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.EQUIPMENT_MANAGER: _ALL, R.ADMINISTRATOR: _ALL},
     ),
     # Material (03; T-M03-22): «Cons.» per als rols que hi poden editar algun valor. VC-29, el
-    # responsable de material (apèndix de valors configurables).
+    # responsable de material; VC-28, el tresorer (apèndix de valors configurables).
     _perm(
         "settings.section.equipment",
         "AJ03",
         _("Ajustos de material"),
         allowed_scopes=(SCOPE_ALL, SCOPE_READ),
-        initial={R.EQUIPMENT_MANAGER: SCOPE_READ, R.ADMINISTRATOR: SCOPE_READ},
-    ),
+        initial={
+            R.EQUIPMENT_MANAGER: SCOPE_READ,
+            R.TREASURER: SCOPE_READ,
+            R.ADMINISTRATOR: SCOPE_READ,
+        },
+    ),  # fmt: skip
     _perm(
         "settings.edit.equipment.review_notice_days",
         "AJ03-1",
         _("Dies d'antelació de l'avís de revisió del material"),
         requires=("settings.section.equipment",),
         initial={R.EQUIPMENT_MANAGER: _ALL},
+    ),
+    _perm(
+        "settings.edit.equipment.unreturned_after_days",
+        "AJ03-2",
+        _("Dies després de l'activitat per a l'avís de material no retornat"),
+        requires=("settings.section.equipment",),
+        initial={R.EQUIPMENT_MANAGER: _ALL},
+    ),
+    # VC-28: el cost d'ús per tipus (`UsageRate`, amb `valid_from`). Diners: el canvi porta data
+    # d'entrada en vigor i avisa el tresorer i la junta (RN-AJ-04).
+    _perm(
+        "settings.edit.equipment.usage_rates",
+        "AJ03-3",
+        _("Cost d'ús per tipus de material"),
+        requires=("settings.section.equipment",),
+        initial={R.TREASURER: _ALL},
+        touches_money=True,
     ),
     # Facturació (09; T-M09-26): VC-34 l'activa l'administrador per decisió de la junta, quan es
     # responguin la P-02 i la P-47 (RN-M09-19).

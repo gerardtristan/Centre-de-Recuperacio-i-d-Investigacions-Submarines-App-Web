@@ -1,0 +1,8 @@
+{% load i18n %}{# S-M09-13 (RN-M09-16; T-M09-16): avís al tresorer i a la junta quan l'administrador reobre un període tancat. TEXT PROVISIONAL [A validar: junta]. Només el període i el motiu: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}L'administració ha reobert el període {{ period }}. Motiu: {{ reason }}{% endblocktranslate %}
+
+{% translate "Mentre és obert, els moviments i els marges d'aquest període es poden tornar a canviar. Queda al registre d'activitat." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

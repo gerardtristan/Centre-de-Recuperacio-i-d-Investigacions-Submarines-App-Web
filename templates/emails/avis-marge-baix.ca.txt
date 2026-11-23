@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09-13 (CA-M09-12): avís al responsable de l'activitat i al tresorer quan el marge previst queda per sota del llindar; un sol avís mentre la previsió no canvia. TEXT PROVISIONAL [A validar: tresorer]. Només el nom de l'activitat i els imports: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}El marge previst de l'activitat «{{ activity }}» és de {{ margin }}, per sota del llindar de {{ threshold }}. Revisa'n els ingressos, les despeses o el preu abans que comenci.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

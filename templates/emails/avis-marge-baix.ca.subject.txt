@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09-13 (CA-M09-12): TEXT PROVISIONAL [A validar: tresorer]. #}{% blocktranslate %}Marge previst per sota del llindar: {{ activity }}{% endblocktranslate %}
