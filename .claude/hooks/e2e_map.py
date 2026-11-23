@@ -198,6 +198,12 @@ MAP = {
         "apps/margins/period_closing.py",
         "templates/margins/periods.html",
     ),
+    "test_homologacions.py": (
+        "apps/activities/views/admin_filings.py",
+        "apps/activities/filings.py",
+        "templates/activities/filing*.html",
+        "templates/activities/_filing_status.html",
+    ),
     "test_meves_factures.py": (
         "apps/invoicing/views.py",
         "apps/invoicing/urls.py",
