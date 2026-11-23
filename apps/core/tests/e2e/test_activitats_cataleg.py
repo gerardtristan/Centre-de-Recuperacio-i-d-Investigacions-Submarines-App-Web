@@ -17,8 +17,9 @@ pytestmark = pytest.mark.e2e
 def test_manager_creates_an_entry_and_its_prices(page, live_server, transactional_db, review):
     manager = make_admin("cursos.prova", "courses_manager")
     login_admin(page, live_server.url, manager.login)
-    menu_entry(page, "Cursos i sortides").click()
-    page.get_by_role("link", name="Catàleg de cursos").click()
+    entry = menu_entry(page, "Catàleg de cursos")
+    entry.click()
+    expect(entry).to_have_attribute("aria-current", "page")
     page.get_by_role("link", name="Fitxa nova").click()
     page.get_by_label("Catàleg").select_option(label="Curs")
     page.get_by_label("Nom").fill("Curs inventat de pantalla")
