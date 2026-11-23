@@ -523,3 +523,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-11](T-M03-11.md) | Càrrec del lloguer al participant, apagat (T-M03-11 i T-M03-16; equipment/0012; carril C7) | 23/11/2026 16:26 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-DX-94](T-DX-94.md) | Pantalla de pagament: el missatge d'èxit de la inscripció ja no surt com a error | 23/11/2026 19:00 | 5c8e8acb | 1 nova | [A comprovar] |
 | [T-M02-16b](T-M02-16b.md) | Passar llista des del mòbil i incidències (pantalles; carril C7) | 23/11/2026 19:18 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
+| [T-M02-17b](T-M02-17b.md) | Full d'avaluació d'una pràctica (pantalla; carril C7) | 23/11/2026 20:36 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
