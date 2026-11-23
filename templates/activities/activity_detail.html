@@ -45,6 +45,23 @@
     {% if standard %}
       <div class="avis avis-avis"><strong>{% translate "Preu diferent de l'estàndard." %}</strong> {% blocktranslate with member=standard.member non_member=standard.non_member %}Estàndard en crear-la: {{ member }} (soci) i {{ non_member }} (no soci).{% endblocktranslate %}{% if activity.price_override_note %} {% translate "Motiu:" %} {{ activity.price_override_note }}{% endif %}</div>
     {% endif %}
+    {% if material %}
+      <h3>{% translate "Cost de material previst" %}</h3>
+      <p class="text-2">{% translate "Per participant. És una previsió per al marge: no crea cap càrrec ni canvia el que paga ningú." %}</p>
+      <dl class="dades-soci">
+        <div><dt>{% translate "Previst" %}</dt><dd>{% if material.cost %}<span class="import">{{ material.cost }}</span>{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Estàndard (del material típic)" %}</dt><dd>{% if material.standard %}<span class="import">{{ material.standard }}</span>{% else %}—{% endif %}</dd></div>
+        {% if material.differs and activity.material_cost_note %}<div><dt>{% translate "Motiu" %}</dt><dd>{{ activity.material_cost_note }}</dd></div>{% endif %}
+      </dl>
+      {% if material.form %}
+        <form class="formulari" method="post" action="{% url 'administration:activity_detail' activity.pk %}" novalidate>
+          {% csrf_token %}
+          {% with form=material.form %}{% include "_errata.html" %}{% endwith %}
+          {% for field in material.form %}{% include "accounts/_camp.html" %}{% endfor %}
+          <div class="accions"><button class="boto" type="submit">{% translate "Desa el cost previst" %}</button></div>
+        </form>
+      {% endif %}
+    {% endif %}
   </section>
 
   <section aria-labelledby="sessions-titol">
