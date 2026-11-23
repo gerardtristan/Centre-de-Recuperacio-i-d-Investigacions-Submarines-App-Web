@@ -162,7 +162,7 @@ ENTRIES = (
         _("Material: informes"),
         ("administration:equipment_activity_cost",),
     ),  # T-M03-19; text i lloc provisionals per a DISSENY
-    ("administration:equipment_usage_rates", _("Material: cost d'ús"), ()),  # T-M03-22; DISSENY
+    ("administration:equipment_usage_rates", _("Cost d'ús del material"), ()),  # T-M03-22; DISSENY
     ("administration:expense_new", _("Despesa nova"), ()),  # T-M09-06; text i lloc: DISSENY
     (
         "administration:expenses_without_invoice",
