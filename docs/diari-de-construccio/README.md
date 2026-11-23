@@ -499,3 +499,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06b](T-M02-06b.md) | Crear i editar un curs o una sortida amb el lloc i el preu estàndard (apilada sobre la T-M02-06a; carril B4) | 23/11/2026 11:32 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
 | [T-M02-40c](T-M02-40c.md) | Cost de material previst a la fitxa de l'activitat (C7 i AC23; apilada sobre la T-M02-06b; carril B4) | 23/11/2026 12:58 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
 | [T-DX-91](T-DX-91.md) | Les proves no depenen del SHOW_UNDER_CONSTRUCTION del .env local | 23/11/2026 13:10 | 02a9082f | 1 nova | [A comprovar] |
+| [T-M09A-05](T-M09A-05.md) | Calendari d'ajuts per mesos i amb les properes dates, amb la ruta i el menú en un commit «(nucli)» (carril A6) | 23/11/2026 14:57 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
