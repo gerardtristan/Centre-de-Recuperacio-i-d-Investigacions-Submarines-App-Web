@@ -513,3 +513,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09A-05](T-M09A-05.md) | Calendari d'ajuts per mesos i amb les properes dates, amb la ruta i el menú en un commit «(nucli)» (carril A6) | 23/11/2026 14:57 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
 | [T-DX-92](T-DX-92.md) | «Cursos i sortides»: tota la fila porta a la fitxa de l'activitat (B14) | 23/11/2026 15:34 | c3e7d430 | 1 nova | [A comprovar] |
 | [T-M09-16c](T-M09-16c.md) | Pantalla dels períodes i creació del període següent (margins/0006; apilada sobre la T-M09-13; carril A6) | 23/11/2026 14:45 | (vegeu la PR) | 11 noves; 1 e2e | [A comprovar] |
+| [T-M09A-06-nucli](T-M09A-06-nucli.md) | Ajuts (nucli): plantilles dels avisos de tancament, resposta, justificació i requeriment (carril A6) | 23/11/2026 13:56 | (vegeu la PR) | 5 noves | [A comprovar] |
