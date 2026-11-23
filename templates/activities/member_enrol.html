@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-11 (M02-8; CA-M02-06, 12, 13, 28 i 29): inscripció des de l'àrea personal. La persona és sempre la del compte. Abans d'enviar veu el preu que li toca i els requisits: un que bloqueja no deixa inscriure's; un avís queda a la inscripció perquè el revisi el responsable. Amb càrrec, porta a pagar (05b). Cap dada d'altres persones. #}
+{% block title %}{% translate "Inscripció" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <p class="etiqueta-seccio">{{ activity.kind_label }}</p>
+  <h1>{{ activity.title }}</h1>
+  {% include "activities/_missatges.html" %}
+  <dl class="dades-soci">
+    <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
+    {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place }}</dd></div>{% endif %}
+    <div><dt>{% if member %}{% translate "Preu de soci" %}{% else %}{% translate "Preu de no soci" %}{% endif %}</dt><dd><span class="import">{{ price }}</span></dd></div>
+  </dl>
+  {% if current %}
+    <div class="avis avis-ok" role="status">
+      <strong>{% blocktranslate with status=current.get_status_display %}La teva inscripció: {{ status }}.{% endblocktranslate %}</strong>
+      {% if current.status == "pending_payment" and current.charge_id %}<a href="{% url 'payments:charge' current.charge_id %}">{% translate "Paga-la" %}</a>{% endif %}
+      {% if current.status == "waitlisted" %}{% translate "Si s'allibera una plaça, t'avisarem." %}{% endif %}
+    </div>
+  {% elif not can_enrol %}
+    <div class="avis avis-avis" role="status">{% translate "Aquesta activitat és només per a socis." %}</div>
+  {% elif not activity.registration_open %}
+    <div class="avis avis-avis" role="status">{% translate "Aquesta activitat no té les inscripcions obertes." %}</div>
+  {% else %}
+    {% if check.checks %}
+      <section aria-labelledby="requisits-titol">
+        <h2 id="requisits-titol">{% translate "Requisits" %}</h2>
+        <ul>
+          {% for item in check.checks %}<li>{% if item.state == "met" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Compleixes" %}</span>{% elif item in check.blocking %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "No compleixes" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Es revisarà" %}</span>{% endif %} {{ item.label }}{% if item.detail %}. {{ item.detail }}{% endif %}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+    {% if check.allowed %}
+      <form class="formulari" method="post" novalidate>
+        {% csrf_token %}
+        {% include "_errata.html" %}
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Inscriu-me" %}</button></div>
+      </form>
+    {% else %}
+      <div class="avis avis-error" role="alert">{% translate "No compleixes algun requisit d'aquesta activitat i no t'hi pots inscriure. Si creus que és un error, escriu al responsable." %}</div>
+    {% endif %}
+  {% endif %}
+{% endblock %}
