@@ -163,3 +163,18 @@ def test_the_06_registers_its_source_and_it_reads_licences(make_licence):
     cancelled = make_licence(status="cancelled", cancellation_reason="Prova")
     rows = {r["licence"]: r for r in read_source()}
     assert rows[active.pk]["cancelled_on"] is None and rows[cancelled.pk]["cancelled_on"]
+
+
+def test_ca_m06_19_the_event_and_the_registered_source_carry_the_same_version(make_licence, staff):
+    """Una renovació és una llicència nova (`renewal_of`): la llicència que canvia dues vegades
+    després de la versió 1 és la mateixa, aquí pagada i cancel·lada (P-500)."""
+    from apps.members import licence_copy
+
+    licence = make_licence()
+    assert licence.version == 1
+    licence.status = Licence.Status.PAID
+    licence.save(update_fields=["status"])
+    cancel(licence, "Es dona de baixa", actor=staff[R.SECRETARY])
+    (cancelled,) = emitted(events.LICENCE_CANCELLED)
+    rows = {row["licence"]: row for row in licence_copy._source()}
+    assert cancelled["version"] == rows[licence.pk]["version"] == 3
