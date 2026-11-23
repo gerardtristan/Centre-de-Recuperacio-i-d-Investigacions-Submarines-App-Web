@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M02-21 (P-M02-F pas 5): avís a l'alumne quan l'instructor registra el resultat. TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. Sense el motiu del «no apte»: l'alumne en parla amb el seu instructor. #}{% autoescape off %}{% translate "Hola," %}
+
+{% if passed %}{% blocktranslate %}Has superat el curs «{{ title }}». Quan el club emeti el certificat, t'avisarem.{% endblocktranslate %}{% else %}{% blocktranslate %}El resultat del curs «{{ title }}» és «no apte». El teu instructor en parlarà amb tu.{% endblocktranslate %}{% endif %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

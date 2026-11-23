@@ -1715,6 +1715,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial={R.TREASURER: _ALL},
         touches_money=True,
     ),
+    # VC-23 (RN-M02-19; T-M02-21): la secretaria.
+    _perm(
+        "settings.edit.activities.reminder_days_before",
+        "AJ02-23",
+        _("Dies abans d'una sessió o sortida que surt el recordatori (VC-23)"),
+        requires=("settings.section.activities",),
+        initial={R.SECRETARY: _ALL},
+    ),
 )
 
 CATALOG: Mapping[str, Permission] = MappingProxyType({p.code: p for p in PERMISSIONS})
