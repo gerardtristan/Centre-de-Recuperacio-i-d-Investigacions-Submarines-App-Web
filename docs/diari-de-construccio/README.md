@@ -539,3 +539,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-44c](T-M02-44c.md) | «Les meves titulacions» a l'àrea personal i demanar l'homologació (carril A6) | 23/11/2026 19:37 | (vegeu la PR) | 5 noves; 1 e2e | [A comprovar] |
 | [T-M02-16c](T-M02-16c.md) | Inscripcions i assistència a l'RGPD del 02 (carril C7) | 23/11/2026 20:02 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M02-17b](T-M02-17b.md) | Full d'avaluació d'una pràctica (pantalla; carril C7) | 23/11/2026 20:36 | (vegeu la PR) | 3 noves; 1 e2e | [A comprovar] |
+| [T-M02-19b](T-M02-19b.md) | Resultats del curs i certificat (pantalles; carril C7) | 23/11/2026 21:37 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
