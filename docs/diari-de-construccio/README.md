@@ -510,3 +510,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-19b](T-M09-19b.md) | Avís per correu al tresorer d'un salt a la sèrie de factures (CA-M09-17; carril A6) | 23/11/2026 13:02 | (vegeu la PR) | 1 ampliada, 1 nova | [A comprovar] |
 | [T-M09-13](T-M09-13.md) | Avís de marge baix en desar la previsió (CA-M09-12; margins/0005; carril A6) | 23/11/2026 13:25 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M09A-14b](T-M09A-14b.md) | Guia d'ajuts amb el calendari i els avisos per correu (carril A6) | 23/11/2026 15:07 | (vegeu la PR) | Cap (document) | [A comprovar] |
+| [T-M09A-05](T-M09A-05.md) | Calendari d'ajuts per mesos i amb les properes dates, amb la ruta i el menú en un commit «(nucli)» (carril A6) | 23/11/2026 14:57 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
