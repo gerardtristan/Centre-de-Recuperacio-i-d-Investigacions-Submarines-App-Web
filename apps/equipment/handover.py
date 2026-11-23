@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit, business_settings
 
-from . import inventory
+from . import inventory, rental_charges
 from .access import require
 from .models import EquipmentAssignment, EquipmentItem
 
@@ -77,7 +77,9 @@ def cancel(assignment, *, by, reason) -> EquipmentAssignment:
     reason = (reason or "").strip()
     if not reason:
         raise ValidationError(_("Cal el motiu de la cancel·lació."))
-    return _move(assignment, S.CANCELLED, by=by, code=ASSIGN, reason=reason)
+    assignment = _move(assignment, S.CANCELLED, by=by, code=ASSIGN, reason=reason)
+    rental_charges.void_for(assignment, reason, by=by)  # T-M03-16
+    return assignment
 
 
 def used_by(person) -> list[dict]:

@@ -446,6 +446,11 @@ class EquipmentAssignment(models.Model):
     status = models.CharField(
         _("estat"), max_length=9, choices=Status.choices, default=Status.PLANNED
     )
+    # RN-M03-11 (T-M03-11): el càrrec del lloguer al participant, només amb l'interruptor encès.
+    charge = models.ForeignKey(
+        "core.Charge", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("càrrec del lloguer"),
+    )  # fmt: skip
     delivered_at = models.DateTimeField(_("lliurada el"), null=True, blank=True)
     returned_at = models.DateTimeField(_("retornada el"), null=True, blank=True)
     note = models.TextField(_("nota"), blank=True)

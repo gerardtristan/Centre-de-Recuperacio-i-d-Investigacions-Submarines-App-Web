@@ -1574,3 +1574,14 @@ noves:
       És una dada que pot canviar sense tocar codi (055) i deixa que el 02 creï la inclosa sola en quedar apte; B
       només cal si cursos diferents inclouen tipus diferents, i C posaria un valor de negoci al codi.
     data: 2026-11-23
+  P-531:
+    opcions:
+      A: "Cap acció automàtica: el càrrec pagat queda pagat i el tresorer decideix la devolució amb el 05b."
+      B: "Proposta de devolució automàtica al tresorer, com una inscripció cancel·lada."
+      C: "No es torna mai si l'assignació ja era confirmada (el centre ja ho ha cobrat al club)."
+      D: "Es torna només si es cancel·la abans de la llista de lloguer enviada."
+    recomanada: B
+    perque: >-
+      És el mateix camí que la inscripció (el tresorer aprova cada devolució) i el participant no paga un lloguer que
+      no ha fet servir; mentre no hi hagi resposta, A és el més conservador i l'interruptor continua apagat.
+    data: 2026-11-23
