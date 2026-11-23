@@ -488,3 +488,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-17a](T-M03-17a.md) | Material (nucli): tipus de lot «equipment» i dades inventades del 03 a seed_demo_data (core/0070) | 21/11/2026 10:36 | e6ffc474 | 31 | [A comprovar] |
 | [T-M03-22-nucli](T-M03-22-nucli.md) | Material i marge (nucli): permisos dels ajustos del 03 (VC-28, VC-29) i plantilles d'avís del 09 (core/0071) | 23/11/2026 11:38 | a38cce77 | 3 noves | [A comprovar] |
 | [T-DX-90](T-DX-90.md) | Despeses, marge i factures (09): «Tria…» als desplegables, imports a la dreta, vora d'error als desplegables i «Les meves factures» al menú del soci | 23/11/2026 11:05 | 82f0e774 | 6 noves | [A comprovar] |
+| [T-M09-19b](T-M09-19b.md) | Avís per correu al tresorer d'un salt a la sèrie de factures (CA-M09-17; carril A6) | 23/11/2026 13:02 | (vegeu la PR) | 1 ampliada, 1 nova | [A comprovar] |
