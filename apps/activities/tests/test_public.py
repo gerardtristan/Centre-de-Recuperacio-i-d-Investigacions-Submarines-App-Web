@@ -146,6 +146,13 @@ def test_rn_m02_24_the_forecast_is_only_a_link_and_only_for_outings(manager):
     assert public.get_activity(course.pk, today=TODAY).forecast_url == ""
 
 
+def test_rn_m02_24_an_outing_without_its_own_link_uses_the_setting(manager):
+    outing = publish(an_outing(manager, forecast_url=""))
+    assert public.get_activity(outing.pk, today=TODAY).forecast_url == "https://www.meteo.cat/"
+    course = publish(a_course(manager, forecast_url=""))
+    assert public.get_activity(course.pk, today=TODAY).forecast_url == ""  # un curs, mai
+
+
 # --- Calendari (RN-M02-25) ------------------------------------------------------------------------
 
 

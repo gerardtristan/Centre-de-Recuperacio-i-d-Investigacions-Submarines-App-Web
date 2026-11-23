@@ -1652,6 +1652,14 @@ PERMISSIONS: tuple[Permission, ...] = (
         requires=("settings.section.activities",),
         initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
     ),
+    # VC-25 (RN-M02-24; T-M02-28b): l'enllaç per defecte a la previsió marítima, l'administrador.
+    _perm(
+        "settings.edit.activities.marine_forecast_url",
+        "AJ02-25",
+        _("Enllaç per defecte a la previsió marítima"),
+        requires=("settings.section.activities",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
     _perm(
         "settings.edit.activities.card_photos_enabled",
         "AJ02-5",

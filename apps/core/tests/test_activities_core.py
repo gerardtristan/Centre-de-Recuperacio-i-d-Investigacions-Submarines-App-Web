@@ -33,21 +33,22 @@ def test_the_cancellation_events_of_the_02_are_approved(name, monkeypatch):
 
 SECTION = "settings.section.activities"
 EDIT = "settings.edit.activities."
-# Rol: (apartat, VC-21, VC-22, VC-24). «None» = sense permís.
+# Rol: (apartat, VC-21, VC-22, VC-24, VC-25). «None» = sense permís.
 CELLS = {
-    R.COURSES_MANAGER: ("read", None, "all", "all"),
-    R.TREASURER: ("read", "all", None, None),
-    R.ADMINISTRATOR: ("read", None, None, None),
-    R.SECRETARY: ("read", None, None, None),  # VC-57 (T-M02-48)
-    R.INSTRUCTOR: (None, None, None, None),
-    R.PRESIDENT: ("read", None, None, None),  # VC-55 (T-M02-48)
-    R.BOARD: (None, None, None, None),
+    R.COURSES_MANAGER: ("read", None, "all", "all", None),
+    R.TREASURER: ("read", "all", None, None, None),
+    R.ADMINISTRATOR: ("read", None, None, None, "all"),  # VC-25 (T-M02-28b)
+    R.SECRETARY: ("read", None, None, None, None),  # VC-57 (T-M02-48)
+    R.INSTRUCTOR: (None, None, None, None, None),
+    R.PRESIDENT: ("read", None, None, None, None),  # VC-55 (T-M02-48)
+    R.BOARD: (None, None, None, None, None),
 }
 CODES = (
     SECTION,
     EDIT + "default_payment_window_hours",
     EDIT + "offer_accept_hours",
     EDIT + "default_requirements_mode",
+    EDIT + "marine_forecast_url",
 )
 
 

@@ -1596,4 +1596,13 @@ noves:
     perque: >-
       Els destinataris surten de la matriu (079) i qui decideix quan surten els avisos és qui els ha de rebre; C
       trencaria la regla de no escriure rols al codi i D deixaria el tresorer sense saber que s'acosta un termini.
+  P-505:
+    opcions:
+      A: "El web públic del Meteocat (https://www.meteo.cat/) i l'administrador hi posa la pàgina exacta des dels ajustos."
+      B: "Cap enllaç per defecte fins que l'administrador n'escrigui un."
+      C: "Un altre servei públic de previsió marítima que triï la junta."
+    recomanada: A
+    perque: >-
+      Compleix «inicial, Meteocat» sense inventar una adreça que podria no existir, i és un valor dels
+      ajustos: canviar-lo no demana tocar codi ni desplegar.
     data: 2026-11-23
