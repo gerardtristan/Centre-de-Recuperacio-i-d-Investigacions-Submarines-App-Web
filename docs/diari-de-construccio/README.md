@@ -503,3 +503,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M03-22b](T-M03-22b.md) | Cost d'ús del material del club per tipus (carril C7) | 23/11/2026 13:36 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M09-16b](T-M09-16b.md) | Correu al tresorer i a la junta en reobrir un període (S-M09-13; carril A6) | 23/11/2026 13:49 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09-24b](T-M09-24b.md) | Guia del tresorer amb les pantalles del 09 i els avisos (carril A6) | 23/11/2026 14:49 | (vegeu la PR) | Cap (document) | [A comprovar] |
+| [T-M06-11-nucli](T-M06-11-nucli.md) | Llicències (nucli): plantilles dels avisos de venciment i del resum, VC-43 a l'entorn (carril A5) | 23/11/2026 13:09 | 43e3360b | 1 nova | [A comprovar] |
