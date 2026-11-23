@@ -50,17 +50,16 @@ def test_has_pending_fee_reads_only_the_session_member_in_one_query(
     assert pending(admin_account) == "False"  # el compte d'administrador no és la porta del soci
 
 
-def test_the_bar_puts_more_in_the_centre_without_activities(login_as, settings):
-    settings.SHOW_UNDER_CONSTRUCTION = (
-        False  # el soci no veu «Activitats» (en construcció, T-DX-63)
-    )
+def test_the_bar_shows_activities_also_in_production(login_as, settings):
+    settings.SHOW_UNDER_CONSTRUCTION = False  # producció: «Activitats» és «Les meves activitats»
     member = make_member()
     client = login_as(account_for(member), AREA_PERSONAL)
     html = client.get(reverse("core:home")).content.decode()
     bar = html[html.index('<ul class="ramillete-barra">') : html.index('class="ramillete-lateral"')]
     tabs = re.findall(r'ramillete-pestanya"[^>]*>.*?</svg>([^<]+)</a>|(ramillete-boto)"', bar, re.S)
-    assert [label or "Més" for label, _ in tabs] == ["Inici", "Perfil", "Més", "Carnet", "Quotes"]
-    assert "Activitats" not in html
+    labels = [label or "Més" for label, _ in tabs]
+    assert labels == ["Inici", "Activitats", "Més", "Carnet", "Quotes"]
+    assert f'href="{reverse("activities:mine")}"' in bar
     # Sense quota, ni «Paga ara» ni «Demana un carnet nou» (la regla de la pàgina del carnet), i
     # sense cap de les dues, la fletxa del QR no hi és.
     assert "Paga ara" not in html and "Demana un carnet nou" not in html
@@ -71,23 +70,6 @@ def test_the_bar_puts_more_in_the_centre_without_activities(login_as, settings):
     pay(fee)
     html = client.get(reverse("core:home")).content.decode()
     assert "Paga ara" not in html and "Demana un carnet nou" in html
-
-
-def test_the_bar_shows_activities_when_the_preview_is_visible(login_as, settings):
-    settings.SHOW_UNDER_CONSTRUCTION = (
-        True  # «Activitats» en construcció (T-DX-63) ocupa el lloc de «Perfil»
-    )
-    client = login_as(account_for(make_member()), AREA_PERSONAL)
-    html = client.get(reverse("core:home")).content.decode()
-    bar = html[html.index('<ul class="ramillete-barra">') : html.index('class="ramillete-lateral"')]
-    tabs = re.findall(r'ramillete-pestanya"[^>]*>.*?</svg>([^<]+)</a>|(ramillete-boto)"', bar, re.S)
-    assert [label or "Més" for label, _ in tabs] == [
-        "Inici",
-        "Activitats",
-        "Més",
-        "Carnet",
-        "Quotes",
-    ]
 
 
 def test_a_personal_account_without_member_sees_only_its_own_entries(login_as, personal_account):
