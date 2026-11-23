@@ -160,7 +160,11 @@ ENTRIES = (
     (
         "administration:attendance_sessions",
         _("Passar llista"),
-        ("administration:attendance_roll", "administration:attendance_roll_session"),
+        (
+            "administration:attendance_roll",
+            "administration:attendance_roll_session",
+            "administration:assessment_sheet",  # T-M02-17b: s'obre des de la llista
+        ),
     ),  # T-M02-16b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
