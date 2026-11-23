@@ -38,7 +38,7 @@ Un moviment que arriba després (una devolució tardana, una factura que arriba 
 L'informe d'un departament en un període mostra els marges de les activitats tancades (per activitat, subtipus o projecte), les despeses sense activitat, els ajuts en una línia pròpia i els altres ingressos, i el total. Es pot treure en CSV (en cèntims).
 
 ## 8. Períodes
-Cada mes (ajust; d'inici, mensual [A validar: tresorer, S-M09-05]) es tanca el període. Tot es fa a la pantalla **«Períodes»** (`/gestio/marges/periodes/`).
+Cada mes (ajust; d'inici, mensual [A validar: tresorer, S-M09-05]) es tanca el període. Tot es fa a la pantalla **«Tancament de períodes»** (`/gestio/marges/periodes/`), al grup «Quotes i tresoreria» del menú.
 
 **Crear el període:** el primer, amb **«Comença el»** i **«Crea el període següent»**; els següents, amb el mateix botó, comencen l'endemà de l'anterior i duren el que diu l'ajust en aquell moment (si es canvia a trimestral, els que ja hi ha no canvien). No es pot crear un període nou mentre el darrer encara no ha començat.
 

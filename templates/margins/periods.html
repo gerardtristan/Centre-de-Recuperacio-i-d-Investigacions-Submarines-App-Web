@@ -1,11 +1,11 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
 {# P-M09-G (MG11 i MG12; T-M09-16): els períodes del 09. La llista de control del primer període obert, amb un motiu per element per portar-lo al següent (RN-M09-26); crear el període següent (RN-M09-28) i reobrir el darrer tancat amb motiu (només l'administració). Els textos de la llista no porten dades personals. Els formularis només surten amb el permís, però el servidor el torna a comprovar. #}
-{% block title %}{% translate "Períodes" %} · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Tancament de períodes" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Marges" %}</p>
-    <h1>{% translate "Períodes" %}</h1>
+    <h1>{% translate "Tancament de períodes" %}</h1>
     <p class="text-2">{% translate "Un període tancat no admet cap despesa, ingrés ni anul·lació amb data d'aquells dies." %}</p>
   </header>
   {% for message in messages %}
