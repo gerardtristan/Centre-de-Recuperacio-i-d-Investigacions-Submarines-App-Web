@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09A-15 (RN-M09A-19, CA-M09A-17 i 18): TEXT PROVISIONAL [A validar: tresorer i junta]. #}{% if days %}{% blocktranslate %}Ajut: un requeriment d'esmena venç d'aquí a {{ days }} dies{% endblocktranslate %}{% else %}{% translate "Ajut: requeriment d'esmena nou" %}{% endif %}

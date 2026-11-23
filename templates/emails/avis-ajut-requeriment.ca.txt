@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09A-15 (RN-M09A-19, CA-M09A-17 i 18): avís al responsable del requeriment i al tresorer, el primer en registrar-lo i després 7 i 2 dies abans de la data límit (ajust `grants.requirement_reminder_days`) mentre no està respost. TEXT PROVISIONAL [A validar: tresorer i junta]. Només l'organisme, la convocatòria, les dates i la referència; mai la descripció del requeriment. #}{% autoescape off %}{% translate "Hola," %}
+
+{% if days %}{% blocktranslate %}El requeriment d'esmena de la sol·licitud {{ application_id }} a la convocatòria «{{ call }}» ({{ body }}) venç el {{ due_on }}, d'aquí a {{ days }} dies, i encara no s'ha respost.{% endblocktranslate %}{% else %}{% blocktranslate %}S'ha registrat un requeriment d'esmena a la sol·licitud {{ application_id }} de la convocatòria «{{ call }}» ({{ body }}). La data límit és el {{ due_on }}.{% endblocktranslate %}{% endif %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

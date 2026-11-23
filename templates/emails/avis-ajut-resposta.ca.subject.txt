@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09A-06 (RN-M09A-05, CA-M09A-03): TEXT PROVISIONAL [A validar: tresorer i junta]. #}{% blocktranslate %}Ajut: avui és la data prevista de resposta de «{{ call }}»{% endblocktranslate %}

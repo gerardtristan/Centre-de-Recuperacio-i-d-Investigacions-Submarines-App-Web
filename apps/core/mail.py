@@ -114,6 +114,10 @@ TEMPLATE_PRIORITIES = {
     "avis-revisio-material": _Priority.REMINDER,  # RN-M03-15, CA-M03-11 (T-M03-14)
     "avis-venciment-llicencia": _Priority.REMINDER,  # RN-M06-12, al titular (T-M06-11)
     "resum-venciments-llicencies": _Priority.REMINDER,  # RN-M06-12, a qui tramita (T-M06-11)
+    "avis-ajut-tancament": _Priority.REMINDER,  # RN-M09A-04, CA-M09A-01 (T-M09A-06)
+    "avis-ajut-resposta": _Priority.REMINDER,  # RN-M09A-05, CA-M09A-03 (T-M09A-06)
+    "avis-ajut-justificacio": _Priority.REMINDER,  # RN-M09A-04 i 20, S-M09A-04 (T-M09A-06)
+    "avis-ajut-requeriment": _Priority.REMINDER,  # RN-M09A-19, CA-M09A-17 i 18 (T-M09A-15)
     "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
 }
 

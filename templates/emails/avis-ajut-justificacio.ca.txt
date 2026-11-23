@@ -1,0 +1,6 @@
+{% load i18n %}{# T-M09A-06 (RN-M09A-04 i 20; S-M09A-04 [A validar: junta]): avís al responsable i al tresorer 30, 14 i 7 dies abans de la data de justificació (o de la pròrroga) d'una sol·licitud concedida. TEXT PROVISIONAL [A validar: junta]. Només l'organisme, la convocatòria, les dates i la referència: cap dada personal. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}La justificació de la sol·licitud {{ application_id }} a la convocatòria «{{ call }}» ({{ body }}) venç el {{ due_on }}, d'aquí a {{ days }} dies. Revisa que totes les despeses lligades tinguin la factura i el comprovant.{% endblocktranslate %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
