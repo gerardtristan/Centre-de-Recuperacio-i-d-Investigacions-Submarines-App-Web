@@ -31,3 +31,6 @@ STORAGES = {
 PAYMENTS_PROVIDER = "fake"
 PAYMENTS_ENVIRONMENT = "sandbox"
 PAYMENTS_LIVE_CHARGES_ALLOWED = False
+
+# Com al CI: el .env local no encén «En construcció»; la prova que ho vol ho diu (T-DX-91).
+SHOW_UNDER_CONSTRUCTION = False
