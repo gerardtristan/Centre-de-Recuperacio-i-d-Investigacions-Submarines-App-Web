@@ -487,3 +487,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-30-nucli](T-M02-30-nucli.md) | Nucli del 02: permís de VC-46 i instructor de prova amb requisits al seed (core/0069; carril B3) | 21/11/2026 11:01 | (vegeu la PR) | 8 noves (7 casos + 1) | [A comprovar] |
 | [T-M03-17a](T-M03-17a.md) | Material (nucli): tipus de lot «equipment» i dades inventades del 03 a seed_demo_data (core/0070) | 21/11/2026 10:36 | e6ffc474 | 31 | [A comprovar] |
 | [T-M02-06a](T-M02-06a.md) | Pantalles d'administració del 02: llistat i fitxa d'una activitat (carril C3) | 21/11/2026 10:45 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
+| [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
