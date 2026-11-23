@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("activities", "0017_environmental_result"),
+        ("activities", "0018_environmental_result"),
         ("core", "0068_activities_filings_permissions"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

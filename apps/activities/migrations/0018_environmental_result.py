@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("activities", "0016_instructor_requirements_mode"),
+        ("activities", "0017_instructor_requirements_mode"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
