@@ -1,6 +1,7 @@
 """Plantilles del nucli per als avisos dels ajuts (T-M09A-06 i T-M09A-15): tancament de la
-convocatòria, resposta prevista, justificació i requeriment d'esmena. Només l'organisme, la convocatòria, les
-dates i la referència de la sol·licitud: cap dada personal. Només dades inventades."""
+convocatòria, resposta prevista, justificació i requeriment d'esmena. Només l'organisme, la
+convocatòria, les dates i la referència de la sol·licitud: cap dada personal. Només dades
+inventades."""
 
 import pytest
 
