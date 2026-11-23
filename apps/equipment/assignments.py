@@ -14,7 +14,8 @@ CA-M03-02, 03, 04 i 06; MT6).
   activitats on fa classe. Cada assignació queda al registre.
 
 `available_items` dona les peces que es poden oferir (CA-M03-06). El càrrec del lloguer al
-participant (RN-M03-11) és de la T-M03-11, que espera la resposta de la junta.
+participant (RN-M03-11, T-M03-11) el crea `rental_charges.charge_for`, només amb l'interruptor
+encès.
 """
 
 from django.core.exceptions import ValidationError
@@ -26,6 +27,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.activities.models import Enrolment
 from apps.core import audit
 
+from . import rental_charges
 from .access import require
 from .centres import rate_on
 from .costs import usage_cost_on
@@ -128,11 +130,13 @@ def assign_rented(
     price = rate.member_price_cents
     if enrolment.price_kind == Enrolment.PriceKind.NON_MEMBER and rate.non_member_price_cents:
         price = rate.non_member_price_cents
-    return _create(
+    assignment = _create(
         enrolment, by=by, session=session, equipment_type=equipment_type, origin=ORIGIN.RENTED,
         centre=centre, rate=rate, cost_cents=rate.cost_cents, participant_price_cents=price,
         note=note,
     )  # fmt: skip
+    rental_charges.charge_for(assignment, by=by)  # RN-M03-11, amb l'interruptor
+    return assignment
 
 
 @transaction.atomic
