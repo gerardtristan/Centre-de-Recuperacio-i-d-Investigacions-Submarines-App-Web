@@ -90,7 +90,7 @@ def test_f2_2_outing_enrol_member_and_guest_pay_confirm_and_roll(make_admin, day
     )  # fmt: skip
     prices.add_price(
         day_type, federation_cost_cents=1500, non_member_surcharge_cents=500,
-        valid_from=today, note="Tarifa inventada", actor=secretary,
+        valid_from=today, note="Tarifa inventada", actor=make_admin(R.TREASURER),  # LC8 (T-M06-25)
     )  # fmt: skip
     licence = licences.request(member.person, day_type, day, actor=member)
     assert pay_by_provider(licence.charge, "card", member).status == "paid"
