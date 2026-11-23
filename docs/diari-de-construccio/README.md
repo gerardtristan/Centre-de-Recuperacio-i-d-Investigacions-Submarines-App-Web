@@ -545,3 +545,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-51a](T-M02-51a.md) | Primera llicència inclosa en quedar apte i mai dos cobraments (P-530; licences/0009; amb el nucli a part; carril B4) | 23/11/2026 20:03 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M02-51b](T-M02-51b.md) | Cost previst de la primera llicència inclosa al marge del curs (servei nou del 09; carril B4) | 23/11/2026 20:06 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M02-28b](T-M02-28b.md) | Enllaç per defecte a la previsió marítima (VC-25) i l'apartat «Activitats» a la pantalla d'ajustos (carril A6) | 23/11/2026 21:20 | (vegeu la PR) | 5 noves, 1 ampliada | [A comprovar] |
+| [T-M02-18b](T-M02-18b.md) | Pantalles de les classes de reforç (carril C7) | 23/11/2026 22:24 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
