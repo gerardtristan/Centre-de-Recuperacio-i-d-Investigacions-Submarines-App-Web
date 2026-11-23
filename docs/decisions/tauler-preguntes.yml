@@ -1554,3 +1554,13 @@ noves:
       Cada formulari ha de tenir el seu comptador; A és prudent mentrestant perquè limita igualment l'abús, i C no es
       pot activar mai a producció.
     data: 2026-11-21
+  P-504:
+    opcions:
+      A: "Només el tresorer edita el llindar de marge baix i els dies dels avisos dels ajuts; l'administrador consulta."
+      B: "El tresorer i l'administrador els editen, com diuen MG14 i AJ10 a la matriu."
+      C: "Només l'administrador els edita, a petició del tresorer."
+    recomanada: A
+    perque: >-
+      És el que diu «Qui el canvia» de cada valor i el que fan els altres apartats d'ajustos; és la més
+      conservadora i, si la junta tria B, és canviar una cel·la des de l'app, sense codi.
+    data: 2026-11-23

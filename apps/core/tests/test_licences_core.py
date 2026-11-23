@@ -40,3 +40,23 @@ def test_the_two_licence_notices_render_without_personal_data(template, context,
     email = mail.queue_email(template, to="secretaria@example.org", context=context)
     assert isinstance(email, OutgoingEmail) and expected in email.body_text
     assert email.subject and "{" not in email.subject
+
+
+def test_the_expiry_reminder_and_the_digest_render():
+    # T-M06-11 (RN-M06-12): el titular rep el tipus, la data i l'enllaç; el resum, només recomptes.
+    reminder = mail.queue_email(
+        "avis-venciment-llicencia", to="titular@example.org",
+        context={"licence_type": "Aficionat", "expires_on": "31/12/2027", "days_before": 60,
+                 "link": "https://cris1954.cat/socis/llicencia/"},
+    )  # fmt: skip
+    assert reminder.subject == "La teva llicència federativa caduca el 31/12/2027"
+    assert "d'aquí a 60 dies" in reminder.body_text and "/socis/llicencia/" in reminder.body_text
+    digest = mail.queue_email(
+        "resum-venciments-llicencies", to="secretaria@example.org",
+        context={"days_before": 7, "total": 3, "groups": [
+            {"expires_on": "31/12/2027", "category": "Aficionat", "count": 2},
+            {"expires_on": "31/12/2027", "category": "Tècnic", "count": 1},
+        ]},
+    )  # fmt: skip
+    assert digest.subject == "3 llicències caduquen d'aquí a 7 dies"
+    assert "- 31/12/2027 · Tècnic: 1" in digest.body_text and "http" not in digest.body_text

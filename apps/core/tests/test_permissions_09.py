@@ -89,6 +89,12 @@ def test_an_own_applications_cell_lets_no_object_through_without_its_check(make_
 SETTINGS = {
     "settings.section.billing": (_, _, _, _, _, _, CONS, _, _),  # AJ09
     "settings.edit.billing.enabled_charge_kinds": (_, _, _, _, _, _, Y, _, _),  # AJ09-1, VC-34
+    "settings.section.margin": (_, _, _, _, CONS, _, CONS, _, _),  # AJ09-M (T-M09-26)
+    "settings.edit.margin.low_margin_threshold_cents": (_, _, _, _, Y, _, _, _, _),  # VC-31
+    "settings.edit.margin.period_length": (_, _, _, _, Y, _, _, _, _),  # VC-32
+    "settings.section.grants": (_, _, _, _, CONS, _, CONS, _, _),  # AJ09-A (T-M09-26)
+    "settings.edit.grants.deadline_reminder_days": (_, _, _, _, Y, _, _, _, _),  # VC-36
+    "settings.edit.grants.requirement_reminder_days": (_, _, _, _, Y, _, _, _, _),  # VC-37
 }
 SETTINGS_CELLS = [
     (code, role, row[i]) for code, row in SETTINGS.items() for i, role in enumerate(ROLES)

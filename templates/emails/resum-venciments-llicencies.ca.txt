@@ -1,0 +1,9 @@
+{% load i18n %}{# T-M06-11 (RN-M06-12, CA-M06-24): un sol resum per dia i tram a qui tramita les llicències, agrupat per data de venciment i categoria. TEXT PROVISIONAL [A validar: secretaria]. Només recomptes i cap enllaç a l'administració: els noms es veuen al llistat, amb la sessió d'administració (P-501). #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Avui s'ha avisat els titulars de les llicències que caduquen d'aquí a {{ days_before }} dies:{% endblocktranslate %}
+{% for group in groups %}- {{ group.expires_on }} · {{ group.category }}: {{ group.count }}
+{% endfor %}
+{% translate "Les pots veure a l'administració, a «Llicències», amb el filtre «Caduca d'aquí a»." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
