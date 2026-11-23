@@ -543,3 +543,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-96](T-DX-96.md) | «Les meves titulacions» al menú del soci | 23/11/2026 22:50 | 3c058bd5 | 3 noves | [A comprovar] |
 | [T-M02-50b](T-M02-50b.md) | «Inclou la primera llicència» al formulari de preus del catàleg (sobre la T-M02-05b i la 50a; carril B4) | 23/11/2026 15:46 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M02-51a](T-M02-51a.md) | Primera llicència inclosa en quedar apte i mai dos cobraments (P-530; licences/0009; amb el nucli a part; carril B4) | 23/11/2026 20:03 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M02-51b](T-M02-51b.md) | Cost previst de la primera llicència inclosa al marge del curs (servei nou del 09; carril B4) | 23/11/2026 20:06 | (vegeu la PR) | 2 noves | [A comprovar] |
