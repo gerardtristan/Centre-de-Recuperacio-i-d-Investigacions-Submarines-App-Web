@@ -506,3 +506,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-11-nucli](T-M06-11-nucli.md) | Llicències (nucli): plantilles dels avisos de venciment i del resum, VC-43 a l'entorn (carril A5) | 23/11/2026 13:09 | 43e3360b | 1 nova | [A comprovar] |
 | [T-M09-26b](T-M09-26b.md) | Ajustos (nucli): apartats «Marges i períodes» i «Ajuts» (core/0072, número per fixar; carril A6) | 23/11/2026 15:14 | (vegeu la PR) | 12 casos nous per cel·la | [A comprovar] |
 | [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-11](T-M02-11.md) | Inscripció del soci des de l'àrea personal (apilada sobre la T-M02-14; carril B4) | 23/11/2026 16:27 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
