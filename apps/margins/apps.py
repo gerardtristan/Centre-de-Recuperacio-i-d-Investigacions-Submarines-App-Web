@@ -12,3 +12,12 @@ class MarginsConfig(AppConfig):
         from . import periods
 
         services.register_movement_guard(periods.closed_until)
+
+        # T-M02-51b (RN-M02-59): el cost previst de la primera llicència inclosa al curs.
+        from apps.activities import extensions
+
+        from . import included_licence
+
+        extensions.first_licence_included.connect(
+            included_licence.on_first_licence_included, dispatch_uid="margins.included_licence"
+        )

@@ -43,11 +43,12 @@ from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings
+from apps.core.models import AuditEntry
 from apps.licences import first
 from apps.licences.models import LicenceType
 from apps.licences.services import LicenceRequestError
 
-from . import catalogue, permissions
+from . import catalogue, extensions, permissions
 from .models import CertificationFiling, CertificationLevel, DiverCertification
 
 F = CertificationFiling
@@ -58,6 +59,7 @@ FEE_KEYS = {
     F.Kind.COURSE: "activities.course_filing_fee_cents",
 }
 FIRST_LICENCE_TYPE_KEY = "licences.first_licence_type"  # P-530: buit fins que es triï
+COST_NOT_PLANNED = "activities.filing.licence_cost_not_planned"  # RN-M02-59: avís al tresorer
 REQUESTED = "activities.filing.requested"
 STATUS_CHANGED = "activities.filing.status_changed"
 EXPORTED = "activities.filing.exported"
@@ -130,12 +132,17 @@ def open_course_filing(outcome, certification, *, by, request=None) -> Certifica
         REQUESTED, actor=by, target=filing,
         details={"kind": filing.kind, "course_outcome": outcome.pk}, request=request,
     )  # fmt: skip
-    licence_type = included_licence_type()
-    if outcome.enrolment.activity.includes_first_licence and licence_type is not None:
+    activity, licence_type = outcome.enrolment.activity, included_licence_type()
+    if activity.includes_first_licence and licence_type is not None:
         try:
             first.grant_included(filing, licence_type, actor=by)
         except LicenceRequestError:
-            pass  # ja en té una de vigent o en tràmit: no cal cap primera llicència
+            return filing  # ja en té una de vigent o en tràmit: no cal cap primera llicència
+        # RN-M02-59: el 09 hi suma el cost previst (o deixa COST_NOT_PLANNED al registre)
+        extensions.first_licence_included.send(
+            sender=CertificationFiling, activity=activity, filing=filing,
+            licence_type=licence_type, by=by,
+        )  # fmt: skip
     return filing
 
 
@@ -163,6 +170,9 @@ def course_pending(*, by, today=None) -> list[dict]:
     `type_missing` perquè la llista ho digui."""
     today = today or timezone.localdate()
     has_type = included_licence_type() is not None
+    unplanned = set(
+        AuditEntry.objects.filter(action=COST_NOT_PLANNED).values_list("target_id", flat=True)
+    )
     rows = []
     filings = pending(F.Kind.COURSE, by=by).select_related(
         "target_level", "course_outcome__enrolment__activity"
@@ -174,6 +184,7 @@ def course_pending(*, by, today=None) -> list[dict]:
             "filing": filing, "needs_licence": status.needs_licence, "licence": status.licence,
             "included": included, "type_missing": missing,
             "can_request": status.can_request and not included,
+            "cost_not_planned": str(filing.pk) in unplanned,  # el tresorer registra la despesa
         })  # fmt: skip
     return rows
 

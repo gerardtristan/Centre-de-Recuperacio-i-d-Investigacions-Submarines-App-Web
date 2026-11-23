@@ -22,6 +22,8 @@ des del seu `AppConfig.ready()`; el 02 només llegeix el que hi ha registrat.
 - `activity_done(activity, by)`: l'enviarà `states.mark_done` (T-M02-03b).
 - `activity_duplicated(original, copy, by)`: l'enviarà la T-M02-07.
 - `enrolment_confirmed(enrolment)`: l'enviarà la T-M02-10.
+- `first_licence_included(activity, filing, licence_type, by)`: l'envia `filings` quan es crea la
+  primera llicència inclosa (T-M02-51b); el 09 hi suma el cost previst (RN-M02-59).
 
 Les cancel·lacions (`enrolment.cancelled` i `activity.cancelled`) no són senyals: són esdeveniments
 de la 049 amb registre de lliuraments (RN-M02-36; T-M02-35).
@@ -50,6 +52,7 @@ PLACES = (PLACE_PERSONAL, PLACE_ADMIN)
 activity_done = Signal()  # activity, by
 activity_duplicated = Signal()  # original, copy, by
 enrolment_confirmed = Signal()  # enrolment
+first_licence_included = Signal()  # activity, filing, licence_type, by (T-M02-51b, RN-M02-59)
 
 
 @dataclass(frozen=True)
