@@ -17,8 +17,9 @@ pytestmark = pytest.mark.e2e
 def test_manager_creates_a_place_and_sets_its_price(page, live_server, transactional_db, review):
     manager = make_admin("cursos.prova", "courses_manager")
     login_admin(page, live_server.url, manager.login)
-    menu_entry(page, "Cursos i sortides").click()
-    page.get_by_role("link", name="Llocs", exact=True).click()
+    entry = menu_entry(page, "Llocs")
+    entry.click()
+    expect(entry).to_have_attribute("aria-current", "page")
     expect(page.get_by_role("heading", name="Llocs", exact=True)).to_be_visible()
 
     page.get_by_role("link", name="Lloc nou").click()
