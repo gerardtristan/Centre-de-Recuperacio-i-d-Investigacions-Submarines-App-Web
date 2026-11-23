@@ -29,7 +29,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 
-from . import assessment, permissions
+from . import assessment, filings, permissions
 from .models import (
     Activity,
     CertificationLevel,
@@ -156,6 +156,7 @@ def issue(enrolment, *, by, level=None, today=None, request=None) -> CourseOutco
         source=DiverCertification.Source.CLUB_COURSE, instructor=outcome.decided_by.person,
         course_outcome=outcome,
     )  # fmt: skip
+    filings.open_course_filing(outcome, certification, by=by, request=request)  # RN-M02-52
     audit.record(
         CERTIFICATE_ISSUED, actor=by, target=outcome,
         details={"enrolment": row.pk, "certificate_number": outcome.certificate_number,
