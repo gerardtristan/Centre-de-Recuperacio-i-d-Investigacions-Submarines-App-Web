@@ -12,10 +12,10 @@ from django.utils import timezone
 
 from apps.activities.models import Enrolment, Session
 from apps.activities.tests.helpers import a_place, an_outing
-from apps.activities.tests.test_attendance import enrolled
+from apps.activities.tests.test_attendance import a_session, enrolled
 from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
-from apps.equipment import assignments, inventory
+from apps.equipment import assignments, inventory, places
 from apps.equipment.models import (
     CentreRate,
     DiveCentre,
@@ -122,6 +122,46 @@ def test_rn_m03_06_a_rental_copies_the_rate_of_the_first_day(manager, keeper):
     assert other.participant_price_cents == 3500
     with pytest.raises(ValidationError):  # sense tarifa d'aquest tipus
         assignments.assign_rented(enrolled(activity, "X"), kind("Aletes"), centre, by=keeper)
+
+
+def rented_jacket(centre, keeper):
+    CentreRate.objects.create(
+        centre=centre, label="Jaquet", equipment_type=kind("Jaquet"), cost_cents=1000,
+        member_price_cents=1200, valid_from=JUNE, created_by=keeper,
+    )  # fmt: skip
+
+
+def test_ca_m03_23_a_rental_without_centre_uses_the_usual_centre_of_the_place(manager, keeper):
+    centre = DiveCentre.objects.create(name="Centre A")
+    rented_jacket(centre, keeper)
+    activity = outing(manager)
+    with pytest.raises(ValidationError):  # ni centre triat ni centre habitual
+        assignments.assign_rented(enrolled(activity), kind("Jaquet"), by=keeper)
+    places.set_usual_centre(activity.place, centre, by=manager)
+    row = assignments.assign_rented(enrolled(activity, "B"), kind("Jaquet"), by=keeper)
+    assert (row.centre, row.cost_cents) == (centre, 1000)
+    # Es pot triar un altre centre actiu.
+    other = DiveCentre.objects.create(name="Centre B")
+    rented_jacket(other, keeper)
+    row = assignments.assign_rented(enrolled(activity, "C"), kind("Jaquet"), other, by=keeper)
+    assert row.centre == other
+    # Desactivat, ja no es proposa.
+    DiveCentre.objects.filter(pk=centre.pk).update(active=False)
+    assert places.proposed_centre_for(activity) is None
+    with pytest.raises(ValidationError):
+        assignments.assign_rented(enrolled(activity, "D"), kind("Jaquet"), by=keeper)
+
+
+def test_rn_m03_24_the_place_of_the_session_comes_first(manager):
+    activity = outing(manager)
+    centre_a, centre_b = (DiveCentre.objects.create(name=f"Centre {x}") for x in "AB")
+    places.set_usual_centre(activity.place, centre_a, by=manager)
+    session = a_session(manager, activity, JUNE)
+    assert places.proposed_centre_for(activity, session) == centre_a  # la sessió no en té
+    places.set_usual_centre(session.place, centre_b, by=manager)
+    assert places.proposed_centre_for(activity, session) == centre_b
+    DiveCentre.objects.filter(pk=centre_b.pk).update(active=False)
+    assert places.proposed_centre_for(activity, session) is None
 
 
 def test_own_material_costs_nothing_and_only_confirmed_enrolments(manager, keeper):

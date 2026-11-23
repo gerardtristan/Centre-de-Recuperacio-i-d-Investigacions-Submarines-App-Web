@@ -63,6 +63,16 @@ def proposed_centre(place):
     return centre if centre is not None and centre.active else None
 
 
+def proposed_centre_for(activity, session=None):
+    """RN-M03-24: el centre habitual del lloc de la sessió (si en té) o del de l'activitat, si és
+    actiu. Un centre habitual desactivat no deixa proposar el de l'activitat (CA-M03-23)."""
+    for place in (getattr(session, "place", None), activity.place):
+        centre = usual_centre(place) if place is not None else None
+        if centre is not None:
+            return centre if centre.active else None
+    return None
+
+
 def section_fields(place, viewer) -> dict:
     """Camps del bloc al formulari del lloc: només per a qui té AC22 per editar."""
     if not has_perm(viewer, PLACES, write=True):
