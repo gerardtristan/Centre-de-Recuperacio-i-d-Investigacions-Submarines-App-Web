@@ -522,3 +522,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-26](T-M06-26.md) | Primera llicència d'un alumne nou, lligada a l'entrada de la llista (T-M06-26 i T-M06-27; licences/0008; carril C7) | 23/11/2026 15:41 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M03-11](T-M03-11.md) | Càrrec del lloguer al participant, apagat (T-M03-11 i T-M03-16; equipment/0012; carril C7) | 23/11/2026 16:26 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-DX-94](T-DX-94.md) | Pantalla de pagament: el missatge d'èxit de la inscripció ja no surt com a error | 23/11/2026 19:00 | 5c8e8acb | 1 nova | [A comprovar] |
+| [T-M02-08b](T-M02-08b.md) | Llistat i detall públics de les activitats (apilada sobre la T-M02-11; carril B4) | 23/11/2026 17:19 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
