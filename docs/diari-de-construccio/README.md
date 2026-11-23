@@ -489,3 +489,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06a](T-M02-06a.md) | Pantalles d'administració del 02: llistat i fitxa d'una activitat (carril C3) | 21/11/2026 10:45 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M03-15b](T-M03-15b.md) | Bloc de material a «Les meves activitats» i a la fitxa de l'activitat (carril C7) | 23/11/2026 11:20 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-06b](T-M02-06b.md) | Crear i editar un curs o una sortida amb el lloc i el preu estàndard (apilada sobre la T-M02-06a; carril B4) | 23/11/2026 11:32 | (vegeu la PR) | 11 noves i 1 e2e | [A comprovar] |
+| [T-M02-40c](T-M02-40c.md) | Cost de material previst a la fitxa de l'activitat (C7 i AC23; apilada sobre la T-M02-06b; carril B4) | 23/11/2026 12:58 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
