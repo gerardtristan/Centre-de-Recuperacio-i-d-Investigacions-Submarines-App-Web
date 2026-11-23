@@ -48,6 +48,7 @@ BASE_ROUTES = {
     "administration:payments_list": ((("payments.view", READ),),),  # B6 (T-M05b-16)
     "administration:licences": ((("licences.list", READ),),),  # LC4 (T-M06-09)
     "administration:activities": ((("activities.manage", READ),),),  # AC7 (T-M02-06)
+    "administration:places": ((("activities.places.view", READ),),),  # AC21 (T-M02-39)
     # MG1 amb l'abast «tot»: amb «les seves activitats» no es pot registrar sense repartiment.
     "administration:expense_new": ((("expenses.record", WRITE, SCOPE_ALL),),),  # T-M09-06
     "administration:expenses_without_invoice": ((("expenses.pay", READ),),),  # MG2 (T-M09-15)
@@ -121,6 +122,11 @@ ENTRIES = (
             "administration:activity_edit",
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
+    (
+        "administration:places",
+        _("Llocs"),
+        ("administration:place_add", "administration:place_detail"),
+    ),  # T-M02-39; text i lloc per revisar amb DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -278,7 +284,7 @@ GROUPS = (
     (
         _("Activitats"),
         "calendar-days",
-        ("administration:activities",),
+        ("administration:activities", "administration:places"),
     ),
     (
         _("Quotes i tresoreria"),
