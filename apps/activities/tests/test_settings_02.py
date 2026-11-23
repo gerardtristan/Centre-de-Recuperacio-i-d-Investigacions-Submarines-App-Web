@@ -29,9 +29,7 @@ def test_each_role_edits_only_its_values(make_admin):  # noqa: F811
     manager = editable(R.COURSES_MANAGER, make_admin)
     assert {OFFER, "activities.default_requirements_mode"} <= manager
     assert "activities.default_payment_window_hours" not in manager
-    # VC-25: el veu l'administrador; l'edició arriba amb el permís del nucli (T-M02-28b).
-    rows = admin_client(make_admin(R.ADMINISTRATOR)).get(SECTION).context["rows"]
-    assert "activities.marine_forecast_url" in {row["setting"].key for row in rows}
+    assert "activities.marine_forecast_url" in editable(R.ADMINISTRATOR, make_admin)  # VC-25
 
 
 @pytest.mark.parametrize("role", [R.INSTRUCTOR, R.EQUIPMENT_MANAGER, R.BOARD])
