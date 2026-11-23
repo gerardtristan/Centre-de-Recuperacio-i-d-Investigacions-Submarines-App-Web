@@ -4,8 +4,8 @@ L-M03-05; CA-M03-09 i 14).
 - `pending_reasons(activity)`: es registra al 02 amb `extensions.register_closing_check` (el 02 el
   crida a `closing_blockers`, i el 09 abans de tancar). Motius sense dades personals: peces
   previstes o lliurades sense tancar (CA-M03-09), necessitats «necessito» sense cap assignació i
-  llistes de lloguer no enviades. Els càrrecs de lloguer sense pagar (CA-M03-19) arribaran amb la
-  T-M03-11, si la junta aprova RN-M03-11.
+  llistes de lloguer no enviades, i els càrrecs de lloguer sense pagar (CA-M03-19; només amb
+  l'interruptor de RN-M03-11 encès n'hi pot haver).
 - Quan una inscripció deixa d'estar viva (cancel·lada o caducada) o l'activitat es cancel·la, les
   assignacions previstes passen a «cancel·lades» i les peces queden lliures (CA-M03-14). Les ja
   lliurades no es toquen: s'han de retornar. El 03 escolta el `post_save` dels models del 02
@@ -20,6 +20,7 @@ from django.utils.translation import ngettext
 from apps.activities.models import Activity, Enrolment
 from apps.core import audit
 
+from . import rental_charges
 from .models import EquipmentAssignment, EquipmentNeed
 from .rentals import unsent
 
@@ -59,6 +60,15 @@ def pending_reasons(activity) -> list[str]:
             )
             % {"count": count}
         )
+    if count := rental_charges.unpaid(activity).count():  # CA-M03-19 (RN-M03-11)
+        reasons.append(
+            ngettext(
+                "Hi ha %(count)s càrrec de lloguer sense pagar.",
+                "Hi ha %(count)s càrrecs de lloguer sense pagar.",
+                count,
+            )
+            % {"count": count}
+        )
     if count := len(unsent(activity)):
         reasons.append(
             ngettext(
@@ -79,6 +89,7 @@ def _release(rows, reason) -> int:
         row.save(update_fields=["status", "note"])
         audit.record(RELEASED, actor=ACTOR, target=row, field="status", old=A.PLANNED,
                      new=A.CANCELLED, reason=reason)  # fmt: skip
+        rental_charges.void_for(row, reason, by=ACTOR)  # T-M03-16
         released += 1
     return released
 

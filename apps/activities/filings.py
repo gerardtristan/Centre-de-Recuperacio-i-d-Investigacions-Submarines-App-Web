@@ -12,6 +12,12 @@ RN-M02-50, 51, 53 i 55; CA-M02-53 i 54).
 - **Preus** (VC-58 i VC-59): amb el cobrament apagat o un preu de 0 no hi ha cap càrrec. Mentre
   P-427 (el departament de l'ingrés) no tingui resposta, si algú encén VC-59 amb un preu més gran
   que 0 la petició es rebutja (conservador, D2).
+- **Primera estrella** (`open_course_filing`, RN-M02-52, T-M02-45): en emetre el certificat d'un
+  alumne apte d'una fitxa amb `official_level`, es crea la tramitació `course` `requested`, una per
+  resultat. No porta cap càrrec: mentre P-427 no tingui resposta, les tramitacions de curs són
+  gratuïtes encara que algú encengui VC-59 (conservador, D2). «Titulacions i llicències per
+  tramitar» (`course_pending`) diu si la persona té llicència (`licences.current`) o «Cal
+  llicència» (RN-M06-28).
 - **Llistat per a la federació** (`federation_csv`, AC26): CSV provisional de les tramitacions
   `requested` d'un tipus, sense cap foto ni document d'identitat. No es desa; l'exportació queda
   al registre amb l'empremta (com RN-M06-11). Format definitiu: P-444.
@@ -31,6 +37,7 @@ from django.utils.translation import gettext as _
 
 from apps.accounts.models import Account
 from apps.core import audit, business_settings
+from apps.licences import services as licences
 
 from . import catalogue, permissions
 from .models import CertificationFiling, CertificationLevel, DiverCertification
@@ -96,6 +103,35 @@ def pending(kind=F.Kind.HOMOLOGATION, *, by):
         .select_related("person", "source_certification__level", "source_certification__agency")
         .order_by("requested_at", "pk")
     )
+
+
+def open_course_filing(outcome, certification, *, by, request=None) -> CertificationFiling | None:
+    """RN-M02-52: la tramitació `course` de la primera estrella, si la fitxa del curs té
+    `official_level`. La crida `certificates.issue`, dins la seva transacció; com que el certificat
+    només s'emet una vegada, tampoc se'n crea cap segona (i la base de dades ho impedeix)."""
+    level = outcome.enrolment.activity.catalogue_entry.official_level
+    if level is None:
+        return None
+    filing = F.objects.create(
+        kind=F.Kind.COURSE, person_id=certification.person_id,
+        source_certification=certification, target_level=level, status=F.Status.REQUESTED,
+        requested_by=by, requested_at=timezone.now(), course_outcome=outcome,
+    )  # fmt: skip
+    audit.record(
+        REQUESTED, actor=by, target=filing,
+        details={"kind": filing.kind, "course_outcome": outcome.pk}, request=request,
+    )  # fmt: skip
+    return filing
+
+
+def course_pending(*, by, today=None) -> list[dict]:
+    """«Titulacions i llicències per tramitar» (AC26): les tramitacions `course` obertes, amb la
+    llicència de la persona (`licence`, o `None`: «Cal llicència», RN-M06-28)."""
+    today = today or timezone.localdate()
+    return [
+        {"filing": filing, "licence": licences.current(filing.person, today)}
+        for filing in pending(F.Kind.COURSE, by=by).select_related("target_level")
+    ]
 
 
 def _locked(filing, by):
