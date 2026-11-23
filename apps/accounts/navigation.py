@@ -150,16 +150,16 @@ ENTRIES = (
             "administration:activity_margin_close",
         ),
     ),  # T-M09-15; text i lloc per revisar amb DISSENY
-    ("administration:grants_calendar", _("Calendari d'ajuts"), ()),  # T-M09A-05; lloc: DISSENY
     (
         "administration:margin_periods",
-        _("Períodes"),
+        _("Tancament de períodes"),
         (
             "administration:margin_period_create",
             "administration:margin_period_close",
             "administration:margin_period_reopen",
         ),
-    ),  # T-M09-16; text i lloc per revisar amb DISSENY
+    ),  # T-M09-16; text i lloc revisats per DISSENY (#494)
+    ("administration:grants_calendar", _("Calendari d'ajuts"), ()),  # T-M09A-05; lloc: DISSENY
     (
         "administration:treasury_accounts",
         _("Tresoreria: comptes i saldos"),
@@ -302,8 +302,8 @@ GROUPS = (
             "administration:treasury_reconciliation",
             "administration:expense_new",
             "administration:expenses_without_invoice",
-            "administration:grants_calendar",
             "administration:margin_periods",
+            "administration:grants_calendar",
         ),
     ),
     (
