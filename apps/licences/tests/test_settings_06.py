@@ -71,11 +71,23 @@ def test_the_other_role_that_sees_the_section_gets_not_found(make_admin, key):  
     assert AuditEntry.objects.filter(action=business_settings.ACTION_DENIED, field=key).exists()
 
 
-@pytest.mark.parametrize("role", [R.TREASURER, R.COURSES_MANAGER, R.PRESIDENT, R.BOARD])
+@pytest.mark.parametrize("role", [R.COURSES_MANAGER, R.PRESIDENT, R.BOARD])
 def test_a_role_without_the_section_gets_not_found_on_the_screen(make_admin, role):  # noqa: F811
     client = admin_client(make_admin(role))
     url = reverse("administration:settings_section", args=["licences"])
     assert client.get(url).status_code == 404
+    detail = reverse("administration:setting_detail", args=["licences", reminders.REMINDER_DAYS])
+    assert client.post(detail, {"value": "45, 15, 3", "note": "Prova"}).status_code == 404
+    assert business_settings.get(reminders.REMINDER_DAYS) == [60, 30, 7]
+
+
+def test_p_530_the_treasurer_sees_the_section_but_not_the_reminder_days(make_admin):  # noqa: F811
+    """P-530 (T-M02-51a): el tresorer veu l'apartat («Cons.») per triar el tipus de la primera
+    llicència, i res més; els dies dels avisos continuen sent de la secretaria."""
+    client = admin_client(make_admin(R.TREASURER))
+    assert (
+        client.get(reverse("administration:settings_section", args=["licences"])).status_code == 200
+    )
     detail = reverse("administration:setting_detail", args=["licences", reminders.REMINDER_DAYS])
     assert client.post(detail, {"value": "45, 15, 3", "note": "Prova"}).status_code == 404
     assert business_settings.get(reminders.REMINDER_DAYS) == [60, 30, 7]
