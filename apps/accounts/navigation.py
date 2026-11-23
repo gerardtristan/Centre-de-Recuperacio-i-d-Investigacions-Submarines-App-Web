@@ -337,11 +337,11 @@ GROUPS = (
         "calendar-days",
         (
             "administration:activities",
+            "administration:attendance_sessions",
+            "administration:filings",
             "administration:places",
             "administration:catalogue",
             "administration:equipment_reports",  # 03: DISSENY
-            "administration:filings",
-            "administration:attendance_sessions",
         ),
     ),
     (
