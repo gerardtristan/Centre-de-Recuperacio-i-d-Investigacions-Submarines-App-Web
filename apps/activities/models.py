@@ -1136,3 +1136,92 @@ class CourseOutcome(models.Model):
 
     def __str__(self):
         return f"{self.enrolment_id} · {self.get_result_display()}"
+
+
+class CertificationFiling(models.Model):
+    """Tramitació d'una titulació a la federació (addenda de la 104; RN-M02-50 a 53). La
+    tramitació mateixa es fa fora de la plataforma (036): aquí se'n fa el seguiment.
+
+    `course_outcome` (la tramitació `course` de la primera estrella, RN-M02-52) arriba amb la
+    T-M02-45, quan existeixi el resultat del curs (T-M02-19)."""
+
+    class Kind(models.TextChoices):
+        HOMOLOGATION = "homologation", _("Homologació")
+        COURSE = "course", _("Titulació d'un curs del club")
+
+    class Status(models.TextChoices):
+        REQUESTED = "requested", _("Demanada")
+        FILED = "filed", _("Tramitada")
+        DONE = "done", _("Feta")
+        REJECTED = "rejected", _("Rebutjada")
+
+    OPEN = (Status.REQUESTED, Status.FILED)
+
+    kind = models.CharField(_("tipus"), max_length=12, choices=Kind.choices)
+    person = models.ForeignKey(
+        Person, on_delete=models.PROTECT, related_name="certification_filings",
+        verbose_name=_("persona"),
+    )  # fmt: skip
+    source_certification = models.ForeignKey(
+        DiverCertification, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="filings", verbose_name=_("titulació d'origen"),
+    )  # fmt: skip
+    # Nivell de l'agència de destinació; pot ser buit fins que l'homologació es tanca.
+    target_level = models.ForeignKey(
+        CertificationLevel, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("nivell de destinació"),
+    )  # fmt: skip
+    status = models.CharField(_("estat"), max_length=10, choices=Status.choices)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("demanada per"),
+    )  # fmt: skip
+    requested_at = models.DateTimeField(_("demanada el"))
+    filed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("tramitada per"),
+    )  # fmt: skip
+    filed_at = models.DateTimeField(_("tramitada el"), null=True, blank=True)
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("tancada per"),
+    )  # fmt: skip
+    closed_at = models.DateTimeField(_("tancada el"), null=True, blank=True)
+    result_certification = models.ForeignKey(
+        DiverCertification, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("titulació resultant"),
+    )  # fmt: skip
+    reason = models.TextField(_("motiu del rebuig"), blank=True)
+    charge = models.ForeignKey(
+        "core.Charge", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("càrrec"),
+    )  # fmt: skip
+
+    class Meta:
+        verbose_name = _("tramitació a la federació")
+        verbose_name_plural = _("tramitacions a la federació")
+        ordering = ["requested_at", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(kind__in=["homologation", "course"]), name="filing_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["requested", "filed", "done", "rejected"]),
+                name="filing_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=~Q(kind="homologation") | Q(source_certification__isnull=False),
+                name="filing_homologation_has_source",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="rejected") | ~Q(reason=""), name="filing_rejected_has_reason"
+            ),
+            models.UniqueConstraint(
+                fields=["source_certification"],
+                condition=Q(status__in=["requested", "filed"]),
+                name="filing_one_open_per_source",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} · {self.get_status_display()}"
