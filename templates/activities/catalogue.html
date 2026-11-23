@@ -1,0 +1,41 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-05b: catàlegs de cursos i d'especialitats (AC6; RN-M02-01). Preus d'avui de cada fitxa; el detall, els preus nous amb data i l'historial són a la fitxa. Una fitxa no s'esborra: es desactiva. #}
+{% block title %}{% translate "Catàleg de cursos" %} · {% translate "Activitats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Ajustos de les activitats" %}</p>
+    <h1>{% translate "Catàleg de cursos" %}</h1>
+    <p class="text-2">{% translate "Els cursos i les especialitats que es poden programar. Un canvi de preu no toca les activitats ja creades." %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <div class="accions"><a class="boto boto-principal" href="{% url 'administration:catalogue_entry_add' %}">{% translate "Fitxa nova" %}</a></div>
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} fitxa, amb els preus d'avui{% plural %}{{ total }} fitxes, amb els preus d'avui{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Fitxa" %}</th>
+        <th scope="col">{% translate "Catàleg" %}</th>
+        <th scope="col" class="cel-import">{% translate "Soci" %}</th>
+        <th scope="col" class="cel-import">{% translate "No soci" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ row.entry.name }}</th>
+          <td data-etiqueta="{% translate 'Catàleg' %}"><span class="xip">{{ row.entry.get_kind_display }}</span></td>
+          <td data-etiqueta="{% translate 'Soci' %}" class="cel-import"><span class="import">{{ row.member }}</span></td>
+          <td data-etiqueta="{% translate 'No soci' %}" class="cel-import"><span class="import">{{ row.non_member }}</span></td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if row.entry.active %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Activa" %}</span>{% else %}<span class="estat estat-neutre"><span aria-hidden="true">●</span> {% translate "Inactiva" %}</span>{% endif %}</td>
+          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:catalogue_entry' row.entry.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ row.entry.name }}</span></a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">{% translate "Encara no hi ha cap fitxa." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

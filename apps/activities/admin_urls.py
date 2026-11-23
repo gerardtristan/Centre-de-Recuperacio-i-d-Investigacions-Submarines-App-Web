@@ -4,6 +4,7 @@ de noms `administration` (sessió d'administració i TOTP). Cada vista comprova 
 from django.urls import path
 
 from .views import admin_activities as activities
+from .views import admin_catalogue as entries
 from .views import admin_places as places
 
 urlpatterns = [
@@ -17,4 +18,7 @@ urlpatterns = [
     path("activitats/llocs/", places.places_view, name="places"),
     path("activitats/llocs/nou/", places.place_add_view, name="place_add"),
     path("activitats/llocs/<int:pk>/", places.place_detail_view, name="place_detail"),
+    path("activitats/cataleg/", entries.catalogue_view, name="catalogue"),
+    path("activitats/cataleg/nova/", entries.entry_add_view, name="catalogue_entry_add"),
+    path("activitats/cataleg/<int:pk>/", entries.entry_detail_view, name="catalogue_entry"),
 ]
