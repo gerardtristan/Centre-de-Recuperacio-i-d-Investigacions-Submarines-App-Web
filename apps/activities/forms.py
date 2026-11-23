@@ -367,3 +367,35 @@ class EntryForm(forms.ModelForm):
 
     def _post_clean(self):
         pass  # sense validar ni tocar el model: les regles són als serveis
+
+
+class OutingTypeForm(forms.ModelForm):
+    """Tipus de sortida nou (AC6). El servei `catalogue.create_outing_type` ho torna a comprovar."""
+
+    class Meta:
+        model = OutingType
+        fields = ("name", "default_department", "is_environmental", "default_requirements_mode")
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="tipus")
+        self.fields["default_department"].queryset = Department.objects.filter(active=True)
+
+
+class SubtypeForm(forms.ModelForm):
+    class Meta:
+        model = EnvironmentalSubtype
+        fields = ("name",)
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="subtipus")
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = EnvironmentalProject
+        fields = ("name", "objective", "department")
+        widgets = {"objective": _text(2)}
+
+    def __init__(self, data=None):
+        super().__init__(data, prefix="projecte")
+        self.fields["department"].queryset = Department.objects.filter(active=True)

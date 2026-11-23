@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M02-05b: catàlegs de cursos i d'especialitats (AC6; RN-M02-01). Preus d'avui de cada fitxa; el detall, els preus nous amb data i l'historial són a la fitxa. Una fitxa no s'esborra: es desactiva. #}
+{# T-M02-05b i 05c: catàlegs de cursos i d'especialitats, tipus de sortida, subtipus i projectes (AC6; RN-M02-01 i 29; CA-M02-03). El servidor comprova AC6 a cada acció. Preus d'avui de cada fitxa; el detall, els preus nous amb data i l'historial són a la fitxa. Una fitxa no s'esborra: es desactiva. #}
 {% block title %}{% translate "Catàleg de cursos" %} · {% translate "Activitats" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -38,4 +38,100 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <h2 id="tipus">{% translate "Tipus de sortida" %}</h2>
+  <p class="text-2">{% translate "El mode de requisits d'un tipus el copien les sortides noves; les ja creades no canvien." %}</p>
+  <table class="taula">
+    <caption class="visualment-amagat">{% translate "Tipus de sortida" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Tipus" %}</th>
+        <th scope="col">{% translate "Departament" %}</th>
+        <th scope="col">{% translate "Medi ambient" %}</th>
+        <th scope="col">{% translate "Si algú no compleix els requisits" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for type in types %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ type.name }}</th>
+          <td data-etiqueta="{% translate 'Departament' %}">{{ type.default_department.name }}</td>
+          <td data-etiqueta="{% translate 'Medi ambient' %}">{% if type.is_environmental %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Si algú no compleix els requisits' %}">
+            <form method="post" class="accions">
+              {% csrf_token %}<input type="hidden" name="id" value="{{ type.pk }}">
+              <div class="camp"><label class="visualment-amagat" for="mode-{{ type.pk }}">{% blocktranslate with name=type.name %}Mode de requisits de «{{ name }}»{% endblocktranslate %}</label>
+              <select id="mode-{{ type.pk }}" name="mode"><option value="">{% translate "El de l'ajust general" %}</option>{% for value, label in modes %}<option value="{{ value }}"{% if value == type.default_requirements_mode %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+              <button class="boto boto-petit" type="submit">{% translate "Desa" %}<span class="visualment-amagat">: {{ type.name }}</span></button>
+            </form>
+          </td>
+          <td data-etiqueta="{% translate 'Estat' %}">
+            <form method="post" class="accions">
+              {% csrf_token %}<input type="hidden" name="classe" value="tipus"><input type="hidden" name="id" value="{{ type.pk }}">
+              {% include "activities/_place_status.html" with place=type %}
+              {% if type.active %}<button class="boto boto-petit" type="submit" name="actiu" value="0">{% translate "Desactiva" %}<span class="visualment-amagat">: {{ type.name }}</span></button>
+              {% else %}<button class="boto boto-petit" type="submit" name="actiu" value="1">{% translate "Activa" %}<span class="visualment-amagat">: {{ type.name }}</span></button>{% endif %}
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form class="formulari" method="post" action="#tipus" novalidate>
+    {% csrf_token %}
+    {% with form=forms.tipus %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+    <div class="accions"><button class="boto" type="submit" name="nou_tipus" value="1">{% translate "Crea el tipus" %}</button></div>
+  </form>
+
+  <h2 id="subtipus">{% translate "Subtipus de medi ambient" %}</h2>
+  <table class="taula">
+    <caption class="visualment-amagat">{% translate "Subtipus de medi ambient" %}</caption>
+    <thead><tr><th scope="col">{% translate "Subtipus" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for subtype in subtypes %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ subtype.name }}</th>
+          <td data-etiqueta="{% translate 'Estat' %}">
+            <form method="post" class="accions">
+              {% csrf_token %}<input type="hidden" name="classe" value="subtipus"><input type="hidden" name="id" value="{{ subtype.pk }}">
+              {% include "activities/_place_status.html" with place=subtype %}
+              {% if subtype.active %}<button class="boto boto-petit" type="submit" name="actiu" value="0">{% translate "Desactiva" %}<span class="visualment-amagat">: {{ subtype.name }}</span></button>
+              {% else %}<button class="boto boto-petit" type="submit" name="actiu" value="1">{% translate "Activa" %}<span class="visualment-amagat">: {{ subtype.name }}</span></button>{% endif %}
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2">{% translate "Encara no hi ha cap subtipus." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form class="formulari" method="post" action="#subtipus" novalidate>
+    {% csrf_token %}
+    {% with form=forms.subtipus %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+    <div class="accions"><button class="boto" type="submit" name="nou_subtipus" value="1">{% translate "Crea el subtipus" %}</button></div>
+  </form>
+
+  <h2 id="projectes">{% translate "Projectes de medi ambient" %}</h2>
+  <table class="taula">
+    <caption class="visualment-amagat">{% translate "Projectes de medi ambient" %}</caption>
+    <thead><tr><th scope="col">{% translate "Projecte" %}</th><th scope="col">{% translate "Objectiu" %}</th><th scope="col">{% translate "Departament" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for project in projects %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ project.name }}</th>
+          <td data-etiqueta="{% translate 'Objectiu' %}">{{ project.objective }}</td>
+          <td data-etiqueta="{% translate 'Departament' %}">{{ project.department.name }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{{ project.get_status_display }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% translate "Encara no hi ha cap projecte." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form class="formulari" method="post" action="#projectes" novalidate>
+    {% csrf_token %}
+    {% with form=forms.projecte %}{% include "_errata.html" %}{% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}{% endwith %}
+    <div class="accions"><button class="boto" type="submit" name="nou_projecte" value="1">{% translate "Crea el projecte" %}</button></div>
+  </form>
 {% endblock %}
