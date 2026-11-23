@@ -522,3 +522,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-26](T-M06-26.md) | Primera llicència d'un alumne nou, lligada a l'entrada de la llista (T-M06-26 i T-M06-27; licences/0008; carril C7) | 23/11/2026 15:41 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M03-11](T-M03-11.md) | Càrrec del lloguer al participant, apagat (T-M03-11 i T-M03-16; equipment/0012; carril C7) | 23/11/2026 16:26 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M02-50a](T-M02-50a.md) | «Inclou la primera llicència» al catàleg i a l'activitat, i ajustos VC-60 i VC-61 (activities/0021; amb el nucli a part; carril B4) | 23/11/2026 15:28 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M02-51a](T-M02-51a.md) | Primera llicència inclosa en quedar apte i mai dos cobraments (P-530; licences/0009; amb el nucli a part; carril B4) | 23/11/2026 20:03 | (vegeu la PR) | 4 noves | [A comprovar] |
