@@ -13,9 +13,9 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit, business_settings
+from apps.core import audit, business_settings, mail
 from apps.core.models import Charge
-from apps.core.permissions import has_perm
+from apps.core.permissions import accounts_with_perm, has_perm
 from apps.treasury.models import Movement
 
 from .models import Invoice, InvoiceLine
@@ -27,6 +27,8 @@ ACTOR = audit.system("invoicing")
 INVOICE_ISSUED = "invoicing.invoice_issued"
 INVOICE_FAILED = "invoicing.invoice_failed"
 SERIES_GAP = "invoicing.series_gap"
+SERIES_GAP_TEMPLATE = "avis-salt-serie-factures"
+PAY_EXPENSES = "expenses.pay"  # MG2: qui rep els avisos del tresorer (P-473)
 MANUAL_REQUESTED = "invoicing.manual_requested"
 RECTIFICATION_REQUESTED = "invoicing.rectification_requested"
 _TRAILING_NUMBER = re.compile(r"(\d+)$")
@@ -72,9 +74,8 @@ def _number_value(number: str) -> int | None:
 
 
 def _check_series(invoice) -> None:
-    """RN-M09-17 (CA-M09-17): la sèrie no pot tenir salts. Un salt queda al registre.
-    shortcut: l'avís per correu al tresorer necessita una plantilla del nucli (PR del nucli del
-    09); fins llavors, només el registre."""
+    """RN-M09-17 (CA-M09-17): la sèrie no pot tenir salts. Un salt queda al registre i avisa el
+    tresorer per correu."""
     numbers = [
         _number_value(n)
         for n in Invoice.objects.filter(series=invoice.series, status=Invoice.Status.ISSUED)
@@ -90,6 +91,21 @@ def _check_series(invoice) -> None:
             target=invoice,
             details={"series": invoice.series, "expected": previous + 1, "got": current},
         )
+        _notify_gap(invoice.series, previous + 1, current)
+
+
+def _notify_gap(series: str, expected: int, got: int | None) -> None:
+    """Un correu a cada adreça de qui té MG2 (d'inici el tresorer i l'administrador, com a la
+    P-473). Només la sèrie i els números: cap dada del client."""
+    sent = set()
+    for account in accounts_with_perm(PAY_EXPENSES, write=True):
+        address = account.notification_email
+        if address and address not in sent:
+            context = {"series": series, "expected": expected, "got": got}
+            mail.queue_email(
+                SERIES_GAP_TEMPLATE, to=address, person=account.person, context=context
+            )
+            sent.add(address)
 
 
 def _send(invoice: Invoice) -> Invoice:
