@@ -154,7 +154,6 @@ MAP = {
     ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
-        "apps/activities/forms.py",
         "apps/activities/admin_urls.py",
         "templates/activities/*",
     ),
