@@ -1042,6 +1042,42 @@ class Attendance(models.Model):
         return f"{self.enrolment_id} · {self.present}"
 
 
+class ReminderSent(AppendOnlyModel):
+    """Avís enviat a un inscrit (T-M02-21; RN-M02-19). Només INSERT: la fila i el correu van junts,
+    i la restricció única fa que la tasca diària no torni a enviar el mateix avís (una sessió d'un
+    curs; una sortida, sense sessió)."""
+
+    class Kind(models.TextChoices):
+        REMINDER = "reminder", _("Recordatori")
+
+    enrolment = models.ForeignKey(
+        Enrolment, on_delete=models.PROTECT, related_name="+", verbose_name=_("inscripció")
+    )
+    session = models.ForeignKey(
+        "Session", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("sessió"),
+    )  # fmt: skip
+    kind = models.CharField(_("tipus"), max_length=10, choices=Kind.choices)
+    sent_at = models.DateTimeField(_("enviat"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("avís enviat")
+        verbose_name_plural = _("avisos enviats")
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["enrolment", "session", "kind"],
+                condition=Q(session__isnull=False),
+                name="remindersent_once_per_session",
+            ),
+            models.UniqueConstraint(
+                fields=["enrolment", "kind"],
+                condition=Q(session__isnull=True),
+                name="remindersent_once_per_outing",
+            ),
+        ]
+
+
 class Incident(AppendOnlyModel):
     """Incidència operativa d'una activitat (T-M02-16; M02-6; P-M02-E pas 3): retard, embarcació,
     material, meteorologia o una altra. Només s'hi afegeixen. **Mai dades de salut** (RN-M02-17):

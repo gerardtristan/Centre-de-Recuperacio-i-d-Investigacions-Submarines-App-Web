@@ -11,6 +11,7 @@ from apps.activities.models import (
     Activity,
     CertificationLevel,
     ReinforcementRequest,
+    ReminderSent,
     TrainingCatalogueEntry,
 )
 from apps.core import business_settings
@@ -48,6 +49,14 @@ def test_rn_m02_19_reminder_to_confirmed_students_two_days_before(course, manage
     # L'endemà, la segona sessió del curs; el mateix dia de la sessió, res.
     assert notifications.send_reminders(TWO_DAYS_BEFORE + datetime.timedelta(days=1)) == 1
     assert notifications.send_reminders(DAY) == 0
+
+
+def test_two_runs_the_same_day_send_one_reminder(course):  # noqa: F811
+    with_email(course.student, "alumna@example.org")
+    assert notifications.send_reminders(TWO_DAYS_BEFORE) == 1
+    assert notifications.send_reminders(TWO_DAYS_BEFORE) == 0
+    assert sent(notifications.REMINDER) == ["alumna@example.org"]
+    assert ReminderSent.objects.count() == 1
 
 
 def test_vc_23_the_days_come_from_the_setting(course, monkeypatch):  # noqa: F811

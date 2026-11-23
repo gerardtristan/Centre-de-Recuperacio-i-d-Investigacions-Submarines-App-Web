@@ -14,12 +14,13 @@ s'envia res. Cap dada d'altres persones; mai dades de salut ni adjunts. La safat
 
 import datetime
 
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.core import business_settings, charges, mail
 from apps.members import recipients
 
-from .models import Activity, Enrolment, Session
+from .models import Activity, Enrolment, ReminderSent, Session
 
 REMINDER_DAYS = "activities.reminder_days_before"  # VC-23
 REMINDER = "recordatori-activitat"
@@ -40,10 +41,26 @@ def _confirmed(activity):
     return Enrolment.objects.filter(activity=activity, status=Enrolment.Status.CONFIRMED)
 
 
+def _remind(enrolment, session, context) -> bool:
+    """Un recordatori un sol cop: la fila de `ReminderSent` i el correu van junts; si la fila ja hi
+    és (restricció única), no s'envia res. Sense adreça, ni fila ni correu."""
+    to = recipients.email_for(enrolment.person)
+    if not to:
+        return False
+    try:
+        with transaction.atomic():
+            ReminderSent.objects.create(
+                enrolment=enrolment, session=session, kind=ReminderSent.Kind.REMINDER
+            )
+            mail.queue_email(REMINDER, to=to, person=enrolment.person, context=context)
+    except IntegrityError:
+        return False
+    return True
+
+
 def send_reminders(today=None) -> int:
-    """Els recordatoris d'avui. Torna quants correus s'han posat a la cua.
-    shortcut: si la tasca es tornés a executar el mateix dia, es repetirien; cal un registre
-    d'enviats si la cua deixa de garantir una execució per dia."""
+    """Els recordatoris d'avui. Torna quants correus s'han posat a la cua. Idempotent: tornar-la
+    a executar no envia cap recordatori que ja s'hagi enviat."""
     today = today or timezone.localdate()
     day = today + datetime.timedelta(days=business_settings.get(REMINDER_DAYS, today))
     start = timezone.make_aware(datetime.datetime.combine(day, datetime.time.min))
@@ -62,7 +79,7 @@ def send_reminders(today=None) -> int:
             rows = [session.reinforcement_for]
         else:
             rows = _confirmed(session.activity).select_related("person")
-        sent += sum(_send(REMINDER, row.person, context) for row in rows)
+        sent += sum(_remind(row, session, context) for row in rows)
     outings = Activity.objects.filter(
         kind=Activity.Kind.OUTING, status__in=LIVE, starts_on=day
     ).select_related("place")
@@ -70,8 +87,7 @@ def send_reminders(today=None) -> int:
         context = {"title": outing.title, "day": day, "time": "",
                    "place": outing.place.name if outing.place_id else ""}  # fmt: skip
         sent += sum(
-            _send(REMINDER, row.person, context)
-            for row in _confirmed(outing).select_related("person")
+            _remind(row, None, context) for row in _confirmed(outing).select_related("person")
         )
     return sent
 
