@@ -514,3 +514,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-92](T-DX-92.md) | «Cursos i sortides»: tota la fila porta a la fitxa de l'activitat (B14) | 23/11/2026 15:34 | c3e7d430 | 1 nova | [A comprovar] |
 | [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
 | [T-M02-11](T-M02-11.md) | Inscripció del soci des de l'àrea personal (apilada sobre la T-M02-14; carril B4) | 23/11/2026 16:27 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
+| [T-M02-08b](T-M02-08b.md) | Llistat i detall públics de les activitats (apilada sobre la T-M02-11; carril B4) | 23/11/2026 17:19 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
