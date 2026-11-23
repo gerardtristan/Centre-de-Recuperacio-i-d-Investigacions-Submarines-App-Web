@@ -21,7 +21,7 @@ def test_the_treasurer_closes_and_the_administrator_reopens(
     treasurer = make_admin("tresorer.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
     page.goto(f"{live_server.url}{reverse('administration:margin_periods')}")
-    expect(page.get_by_role("heading", name="Períodes", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="Tancament de períodes", exact=True)).to_be_visible()
     page.get_by_label("Comença el").fill("2026-11-01")
     page.get_by_role("button", name="Crea el període següent").click()
     expect(page.get_by_text("Període creat: del 01/11/2026 al 30/11/2026.")).to_be_visible()
