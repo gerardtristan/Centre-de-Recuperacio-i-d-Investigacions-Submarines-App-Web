@@ -4,7 +4,13 @@ són a `admin_urls.py`."""
 
 from django.urls import path
 
-from .views import guest_enrolment, member_enrolment, my_activities, public_pages
+from .views import (
+    guest_enrolment,
+    member_certifications,
+    member_enrolment,
+    my_activities,
+    public_pages,
+)
 
 app_name = "activities"
 
@@ -25,5 +31,11 @@ urlpatterns = [
         "socis/activitats/inscripcions/<int:pk>/calendari.ics",
         my_activities.enrolment_calendar_view,
         name="enrolment_calendar",
+    ),
+    # T-M02-44c: les titulacions de la persona i demanar l'homologació (RN-M02-50).
+    path(
+        "socis/titulacions/",
+        member_certifications.my_certifications_view,
+        name="my_certifications",
     ),
 ]

@@ -24,6 +24,7 @@
       {% if close_form %}
         <form class="formulari" method="post" action="{% url 'administration:margin_period_close' to_close.pk %}" novalidate>
           {% csrf_token %}
+          {% with form=close_form %}{% include "_errata.html" %}{% endwith %}{# Errata (§6.10): l'error de cada element va a sota del seu camp; cap missatge a dalt que el repeteixi #}
           {% for field in close_form %}{% include "accounts/_camp.html" %}{% endfor %}
           <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Tanca el període" %}</button></div>
         </form>

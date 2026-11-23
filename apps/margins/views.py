@@ -33,6 +33,7 @@ from .models import Period
 VIEW = "expenses.margin.view"  # MG6
 PAGE = "administration:activity_margin"
 PERIODS = "administration:margin_periods"
+MISSING_REASON = gettext_lazy("Resol-lo o escriu el motiu per portar-lo al període següent.")
 
 
 class PlannedCostForm(forms.Form):
@@ -178,6 +179,12 @@ class ReopenPeriodForm(forms.Form):
 @require_GET
 def periods_view(request):
     require_perm(request, period_closing.CLOSE)
+    return _periods_page(request)
+
+
+def _periods_page(request, closing=None):
+    """`closing`: (període, formulari amb errors) quan un tancament no ha anat bé: el formulari
+    torna amb l'error a sota de cada camp i el resum d'Errata (design-system §6.10)."""
     perms = request_permissions(request)
     periods = list(Period.objects.order_by("-starts_on"))
     to_close = next((p for p in reversed(periods) if p.status == Period.Status.OPEN), None)
@@ -197,6 +204,12 @@ def periods_view(request):
         "last_closed": last_closed if can_reopen else None,
         "reopen_form": ReopenPeriodForm() if can_reopen and last_closed else None,
     }
+    if closing is not None:
+        period, form = closing
+        if to_close is not None and period.pk == to_close.pk:
+            context["close_form"] = form
+        else:  # un altre període (p. ex. ja tancat per una altra persona): el missatge a dalt
+            messages.error(request, " ".join(e for errors in form.errors.values() for e in errors))
     return render(request, "margins/periods.html", context)
 
 
@@ -229,22 +242,18 @@ def period_close_view(request, period_id):
     period = get_object_or_404(Period, pk=period_id)
     require_perm(request, period_closing.CLOSE, write=True)
     form = ClosePeriodForm(period_closing.checklist(period), request.POST)
-    if not form.is_valid():
-        messages.error(request, _("Revisa els motius: com a màxim 500 caràcters."))
-        return redirect(PERIODS)
-    try:
-        period_closing.close(period, by=request.user, exceptions=form.exceptions())
-    except period_closing.PeriodNotReady as error:
-        messages.error(
-            request,
-            _("Encara no es pot tancar: cada element ha de quedar resolt o amb un motiu."),
-        )
-        _error(request, error)
-    except ValidationError as error:
-        _error(request, error)
-    else:
-        messages.success(request, _("Període tancat."))
-    return redirect(PERIODS)
+    if form.is_valid():
+        try:
+            period_closing.close(period, by=request.user, exceptions=form.exceptions())
+        except period_closing.PeriodNotReady as error:
+            for item in error.items:  # l'error, a sota del camp de l'element (sense repetir-lo)
+                form.add_error(f"motiu-{item['key']}", MISSING_REASON)
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, _("Període tancat."))
+            return redirect(PERIODS)
+    return _periods_page(request, closing=(period, form))
 
 
 @never_cache

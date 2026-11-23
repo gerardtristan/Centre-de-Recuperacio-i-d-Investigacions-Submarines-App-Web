@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-44c (RN-M02-50): «Les meves titulacions» a l'àrea personal. Només les de la persona del compte (el servidor filtra; cap identificador de persona a la URL). «Demana l'homologació» només per a una titulació d'una agència que no és la de destinació i sense cap homologació oberta; el servidor ho torna a comprovar. Cap foto ni dada d'altres persones. #}
+{% block title %}{% translate "Les meves titulacions" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% translate "Les meves titulacions" %}</h1>
+    <p class="text-2">{% if target %}{% blocktranslate with agency=target.name %}Si en tens una d'una altra agència, pots demanar que el club la tramiti a {{ agency }}. Porta el carnet a la secretaria perquè el comprovin.{% endblocktranslate %}{% else %}{% translate "Les titulacions que el club té apuntades a nom teu." %}{% endif %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} titulació{% plural %}{{ total }} titulacions{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Titulació" %}</th>
+        <th scope="col">{% translate "Agència" %}</th>
+        <th scope="col">{% translate "Origen" %}</th>
+        <th scope="col">{% translate "Homologació" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        {% with cert=row.certification filing=row.filing %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ cert.level|default:cert.speciality }}{% if cert.number %} <span class="text-2">({{ cert.number }})</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Agència' %}">{{ cert.agency|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Origen' %}">{{ row.origin }}</td>
+          <td data-etiqueta="{% translate 'Homologació' %}">
+            {% if filing %}{% if filing.status == "requested" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ filing.get_status_display }}</span>{% elif filing.status == "filed" %}<span class="estat estat-info"><span aria-hidden="true">→</span> {{ filing.get_status_display }}</span>{% elif filing.status == "done" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ filing.get_status_display }}</span>{% else %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ filing.get_status_display }}</span>{% endif %}{% if filing.status == "rejected" and filing.reason %} <span class="text-2">{{ filing.reason }}</span>{% endif %}{% endif %}
+            {% if row.can_request %}
+              <form method="post" class="accions">
+                {% csrf_token %}
+                <input type="hidden" name="titulacio" value="{{ cert.pk }}">
+                <button class="boto boto-petit" type="submit">{% translate "Demana l'homologació" %}<span class="visualment-amagat">: {{ cert.level|default:cert.speciality }}</span></button>
+              </form>
+            {% elif not filing %}—{% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+      {% empty %}
+        <tr><td colspan="4">{% translate "Encara no tens cap titulació apuntada al club." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

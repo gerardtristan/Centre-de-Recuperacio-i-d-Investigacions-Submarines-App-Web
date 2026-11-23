@@ -1585,3 +1585,14 @@ noves:
       És el mateix camí que la inscripció (el tresorer aprova cada devolució) i el participant no paga un lloguer que
       no ha fet servir; mentre no hi hagi resposta, A és el més conservador i l'interruptor continua apagat.
     data: 2026-11-23
+  P-503:
+    opcions:
+      A: "El responsable i qui té AJ10 (configurar els dies dels avisos): d'inici el Tresorer i l'Administrador."
+      B: "El responsable i qui té AJ8 (marcar justificada o tancada): el mateix grup d'inici."
+      C: "El responsable i qui té el rol Tresorer, escrit al codi."
+      D: "Només el responsable."
+    recomanada: A
+    perque: >-
+      Els destinataris surten de la matriu (079) i qui decideix quan surten els avisos és qui els ha de rebre; C
+      trencaria la regla de no escriure rols al codi i D deixaria el tresorer sense saber que s'acosta un termini.
+    data: 2026-11-23

@@ -1,8 +1,8 @@
 """Requeriments d'esmena i pròrroga de la justificació (T-M09A-15; RN-M09A-19, 20 i 22;
 CA-M09A-17, 22 i 25). Un requeriment és un esdeveniment: la sol·licitud manté el seu estat.
 
-Els avisos (el primer, immediat, i els de 7 i 2 dies) són de la T-M09A-06, que necessita les
-plantilles de correu del nucli; aquí no se n'envia cap."""
+Els avisos: el primer, immediat, en registrar-lo; els de 7 i 2 dies, la tasca diària
+(`reminders`)."""
 
 from datetime import date, timedelta
 
@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import audit
 
+from . import reminders
 from .models import GrantApplication, GrantRequirement
 from .services import GrantError, _check_responsible, require
 
@@ -101,6 +102,7 @@ def record_requirement(
         reason=origin_reason,
         details={"application": application.pk, "origin": origin, "due_on": due_on.isoformat()},
     )
+    reminders.requirement_registered(requirement)
     return requirement
 
 
@@ -137,7 +139,8 @@ def answer_requirement(requirement, *, answered_on, by) -> GrantRequirement:
 @transaction.atomic
 def change_requirement_due_on(requirement, *, due_on, reason, by) -> GrantRequirement:
     """`grants.change_requirement_due_on` (RN-M09A-22, CA-M09A-22): amb motiu, al registre amb
-    el valor anterior. Els avisos que falten es recalcularan sobre la data nova (T-M09A-06)."""
+    el valor anterior. Els avisos que falten es calculen sobre la data nova; els ja enviats no es
+    repeteixen (`GrantReminder`)."""
     requirement = _open_requirement(requirement, by)
     reason = (reason or "").strip()
     if not reason:
