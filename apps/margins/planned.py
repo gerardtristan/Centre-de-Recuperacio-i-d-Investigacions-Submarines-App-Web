@@ -1,5 +1,6 @@
 """Costos previstos d'una activitat (T-M09-09; M09-6; RN-M09-06). Un per categoria; es canvien
-mentre l'activitat no és tancada i cada canvi va al registre amb el valor anterior."""
+mentre l'activitat no és tancada i cada canvi va al registre amb el valor anterior. Desar-los
+comprova el marge baix (T-M09-13)."""
 
 from django.db import transaction
 from django.http import Http404
@@ -52,6 +53,7 @@ def set_planned_cost(activity, category, amount_cents, *, by, note="") -> Planne
         new=amount_cents,
         details={"activity": activity.pk, "category": category.name, "note": note},
     )
+    _check_low_margin(activity)
     return planned
 
 
@@ -68,6 +70,13 @@ def remove_planned_cost(planned, *, by) -> None:
         details={"activity": activity.pk, "category": planned.category.name},
     )
     planned.delete()
+    _check_low_margin(activity)
+
+
+def _check_low_margin(activity) -> None:
+    from .alerts import check_forecast  # `alerts` fa servir `services`, que importa aquest mòdul
+
+    check_forecast(activity)
 
 
 def planned_costs(activity) -> dict[str, int]:

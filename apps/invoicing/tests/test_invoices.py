@@ -7,7 +7,7 @@ from django.db import IntegrityError, transaction
 from django.http import Http404
 
 from apps.core import events
-from apps.core.models import AuditEntry, Department, Event, Person
+from apps.core.models import AuditEntry, Department, Event, OutgoingEmail, Person
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.invoicing import services
 from apps.invoicing.models import Invoice, InvoiceLine
@@ -68,7 +68,16 @@ def test_un_tipus_no_activat_no_es_factura(enabled):
     assert not Invoice.objects.exists()
 
 
-def test_ca_m09_17_un_salt_a_la_serie_queda_al_registre(enabled):
+def test_ca_m09_17_un_salt_a_la_serie_queda_al_registre_i_avisa_el_tresorer(
+    enabled,
+    make_admin,  # noqa: F811
+):
+    treasurer = make_admin("treasurer")
+    treasurer.notification_email = "tresoreria@example.org"
+    treasurer.save()
+    secretary = make_admin("secretary")  # sense MG2: no rep l'avís
+    secretary.notification_email = "secretaria@example.org"
+    secretary.save()
     pay()
     deliver_last()
     FakeInvoicingProvider.next_skip = 1
@@ -77,6 +86,20 @@ def test_ca_m09_17_un_salt_a_la_serie_queda_al_registre(enabled):
     assert list(Invoice.objects.values_list("number", flat=True)) == ["F-000001", "F-000003"]
     gap = AuditEntry.objects.get(action=services.SERIES_GAP)
     assert (gap.details["expected"], gap.details["got"]) == (2, 3)
+    sent = OutgoingEmail.objects.get(template=services.SERIES_GAP_TEMPLATE)
+    assert sent.to_address == "tresoreria@example.org"
+    assert "sèrie F s'esperava el número 2" in sent.body_text and "donat el 3." in sent.body_text
+    assert "Inventada" not in sent.body_text  # cap dada del client
+
+
+def test_una_serie_sense_salts_no_avisa(enabled, make_admin):  # noqa: F811
+    treasurer = make_admin("treasurer")
+    treasurer.notification_email = "tresoreria@example.org"
+    treasurer.save()
+    for _ in range(2):
+        pay()
+        deliver_last()
+    assert not OutgoingEmail.objects.filter(template=services.SERIES_GAP_TEMPLATE).exists()
 
 
 def test_un_numero_repetit_o_un_servei_que_no_respon_deixen_la_factura_fallida(enabled):

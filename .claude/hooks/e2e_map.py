@@ -176,6 +176,12 @@ MAP = {
         "apps/margins/admin_urls.py",
         "templates/margins/*",
     ),
+    "test_calendari_ajuts.py": (
+        "apps/grants/views.py",
+        "apps/grants/admin_urls.py",
+        "apps/grants/calendar.py",
+        "templates/grants/*",
+    ),
     "test_meves_factures.py": (
         "apps/invoicing/views.py",
         "apps/invoicing/urls.py",

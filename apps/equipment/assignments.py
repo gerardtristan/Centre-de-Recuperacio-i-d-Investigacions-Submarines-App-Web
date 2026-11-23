@@ -9,6 +9,7 @@ CA-M03-02, 03, 04 i 06; MT6).
 - **Llogat** (`assign_rented`): la tarifa vigent el primer dia al centre (actiu) per a aquell tipus;
   es copien el preu de cost i el preu per al participant (de soci o de no soci, segons el preu de la
   inscripció; sense preu de no soci, el de soci [A validar: junta, S-M03-01]; RN-M03-06).
+  Sense centre, el que proposa el lloc (`places.proposed_centre_for`, RN-M03-24; CA-M03-23).
 - **Propi** (`assign_own`): cost 0.
 - Només per a inscripcions confirmades. Amb l'abast «les seves sessions» (instructor), només a les
   activitats on fa classe. Cada assignació queda al registre.
@@ -30,6 +31,7 @@ from .access import require
 from .centres import rate_on
 from .costs import usage_cost_on
 from .models import EquipmentAssignment, EquipmentItem
+from .places import proposed_centre_for
 
 ASSIGN = "equipment.assignments.manage"  # MT6
 ASSIGNED = "equipment.assignment_created"
@@ -119,9 +121,13 @@ def assign_club(enrolment, item, *, by, session=None, note="") -> EquipmentAssig
 
 @transaction.atomic
 def assign_rented(
-    enrolment, equipment_type, centre, *, by, session=None, note=""
+    enrolment, equipment_type, centre=None, *, by, session=None, note=""
 ) -> EquipmentAssignment:
+    """Sense centre, el proposat pel lloc (RN-M03-24, T-M03-26); es pot triar qualsevol altre."""
     enrolment = _confirmed(enrolment, by, session)
+    centre = centre or proposed_centre_for(enrolment.activity, session)
+    if centre is None:
+        raise ValidationError(_("Tria el centre on es lloga el material."))
     rate = rate_on(centre, equipment_type, days_of(enrolment.activity, session)[0])
     if rate is None:
         raise ValidationError(_("Aquest centre no té cap tarifa vigent per a aquest material."))

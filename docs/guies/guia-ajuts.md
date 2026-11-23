@@ -1,6 +1,6 @@
 # Guia d'ajuts per al tresorer i la junta
 
-**Per a qui és:** el tresorer i la junta (i qui sigui responsable d'una sol·licitud). **Estat:** esborrany de la T-M09A-14 [A validar: tresorer i junta]. Està escrita a partir dels serveis que ja funcionen i de la prova de principi a fi dels ajuts; **les pantalles encara no estan fetes**. Les regles són al [pla, apartat d'ajuts](../planning.md#M09-ajuts-5-processos). Per a despeses i marges, vegeu la [guia de despeses i marges](guia-despeses-i-marges.md).
+**Per a qui és:** el tresorer i la junta (i qui sigui responsable d'una sol·licitud). **Estat:** esborrany de la T-M09A-14 [A validar: tresorer i junta]. Està escrita a partir dels serveis que ja funcionen, de la prova de principi a fi dels ajuts i de la primera pantalla, el **«Calendari d'ajuts»** (T-M09A-05); la resta de pantalles (convocatòries, sol·licituds i justificació) encara no estan fetes. Les regles són al [pla, apartat d'ajuts](../planning.md#M09-ajuts-5-processos). Per a despeses i marges, vegeu la [guia de despeses i marges](guia-despeses-i-marges.md).
 
 ## 1. Els estats d'una sol·licitud
 | Estat | Què vol dir |
@@ -22,7 +22,14 @@ Cada canvi d'estat queda al registre. L'administrador pot desfer l'últim canvi,
 ## 3. Preparar i presentar
 Amb l'elegibilitat revisada, la sol·licitud passa a **en preparació** i surt la llista de documents requerits per marcar-los a punt. Quan es presenta, s'hi posa la data, el número de registre d'entrada i l'import demanat, i passa a **presentada**. Si l'organisme publica el termini de resolució, es calcula la data prevista de resposta.
 
-*Els avisos del calendari (tancament de la convocatòria, resposta, justificació, requeriments) encara no surten: necessiten plantilles i tasques del nucli.*
+## 3b. Calendari i avisos
+- **«Calendari d'ajuts»** (menú de l'administració, `/gestio/ajuts/calendari/`; el veuen el tresorer, la junta i l'administració): les dates d'un mes, amb **«Mes anterior»** i **«Mes següent»**, i a sota totes les **«Properes dates»** a partir d'avui. Hi surten els tancaments de les convocatòries, les respostes previstes de les presentades, les dates de justificació de les concedides (la pròrroga, si n'hi ha) i les dates límit dels requeriments sense resposta. No hi surt cap nom de persona ni la descripció dels requeriments.
+- **Avisos per correu** (cada dia, una tasca de la plataforma; cada avís surt una sola vegada encara que la tasca es repeteixi). Els reben el responsable de la sol·licitud (o del requeriment) i qui configura els dies dels avisos (AJ10; d'inici el tresorer i l'administrador) [A validar: tresorer i junta, P-503]:
+  - **tancament:** 30, 14 i 7 dies abans del tancament de la convocatòria, si la sol·licitud encara és detectada o en preparació; si la data de tancament canvia, es calculen sobre la nova;
+  - **resposta:** el dia de la resposta prevista, si encara és presentada;
+  - **justificació:** 30, 14 i 7 dies abans de la data de justificació (o de la pròrroga) de les concedides [A validar: junta, S-M09A-04];
+  - **requeriment d'esmena:** un en registrar-lo i, mentre no es respon, 7 i 2 dies abans de la data límit [A validar: junta, S-M09A-09]. Si la data límit canvia, els que falten es calculen sobre la nova i els ja enviats no es repeteixen.
+- Els dies són ajustos (d'inici, 30, 14 i 7 per als tancaments i la justificació, i 7 i 2 per als requeriments). Els correus només porten l'organisme, la convocatòria, les dates i la referència de la sol·licitud. L'avís dins l'app arribarà més endavant.
 
 ## 4. Resolució
 - **Concedida:** import concedit, data i resolució adjunta. Si és més del que s'havia demanat, surt un avís.
@@ -42,4 +49,4 @@ Quan arriba l'ingrés (una o més vegades: bestreta i saldo), el tresorer el reg
 Els permisos AJ1 a AJ13 són dades que l'administrador assigna: d'inici, el tresorer i l'administrador gestionen els ajuts, i la junta hi té consulta i les accions de les sol·licituds de què és responsable. Cap eina d'IA rep els documents de justificació.
 
 ## 8. Què encara no fa la plataforma
-Les pantalles, els avisos del calendari, el paquet de justificació i adjuntar documents xifrats.
+Les pantalles de convocatòries, sol·licituds i justificació; el paquet de justificació i adjuntar documents xifrats (T-M09-25); els avisos dins l'app (ara només per correu).

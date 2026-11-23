@@ -1,15 +1,17 @@
 """Revisions del material: registre, enviament, tancament i peces que vencen (T-M03-14;
-RN-M03-15; CA-M03-12). Tot amb MT11. Els avisos diaris per correu i a l'app són de la PR del nucli
-del 03 (plantilles i tasca de la cua); aquí hi ha la llista que faran servir."""
+RN-M03-15; CA-M03-11 i 12). Tot amb MT11. L'avís diari per correu (`send_due_notices`) el crida la
+tasca de la cua `equipment.review_notices`; l'avís a l'app espera un lloc on posar-lo."""
 
 import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit, business_settings
+from apps.core import audit, business_settings, mail
+from apps.core.permissions import accounts_with_perm
 
 from .access import REVIEWS, require
 from .inventory import S, _set_status
@@ -19,6 +21,7 @@ NOTICE_DAYS = "equipment.review_notice_days"  # VC-29
 REVIEW_SCHEDULED = "equipment.review_scheduled"
 REVIEW_SENT = "equipment.review_sent"
 REVIEW_CLOSED = "equipment.review_closed"
+NOTICE_TEMPLATE = "avis-revisio-material"
 
 
 def _date(value, label):
@@ -128,6 +131,28 @@ def due_items(today):
         .filter(next_review_on__lte=today + datetime.timedelta(days=days))
         .order_by("next_review_on", "code")
     )
+
+
+def send_due_notices(today=None) -> int:
+    """CA-M03-11: un correu a cada compte amb MT11 (i correu de notificació) amb les peces que
+    vencen o han vençut. Sense peces, cap correu. Només codis i tipus: cap dada personal."""
+    today = today or timezone.localdate()
+    items = [
+        {"code": i.code, "type": i.type.name, "next_review_on": i.next_review_on,
+         "overdue": i.next_review_on < today}
+        for i in due_items(today).select_related("type")
+    ]  # fmt: skip
+    if not items:
+        return 0
+    sent = 0
+    for account in accounts_with_perm(REVIEWS, write=True):
+        if account.notification_email:
+            mail.queue_email(
+                NOTICE_TEMPLATE, to=account.notification_email, person=account.person,
+                context={"items": items},
+            )  # fmt: skip
+            sent += 1
+    return sent
 
 
 def overdue_items(today):
