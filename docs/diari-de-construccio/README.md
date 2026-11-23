@@ -494,3 +494,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [Guarda 01 / 06](T-M01-guarda-06.md) | Socis: la fitxa no corregeix les llicències que ja són al 06 (carril A) | 21/11/2026 10:23 | f8411d52 | 11199 | [A comprovar] |
 | [T-M06-05](T-M06-05.md) | Llicències: subscriptor de `charge.paid`, tancament (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | — | [A comprovar] |
 | [T-M06-15](T-M06-15.md) | Llicències: esdeveniments, tancament i prova de CA-M06-19 (feta; carril A5) | 23/11/2026 11:20 | 36097f74 | 1 nova | [A comprovar] |
+| [T-M06-20](T-M06-20.md) | Llicències: pantalla d'ajustos, proves per valor i filtre de venciment (feta; carril A5) | 23/11/2026 12:07 | 0f18080f | 11560 | [A comprovar] |
