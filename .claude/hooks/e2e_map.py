@@ -605,7 +605,6 @@ SECONDS = {
     "test_recorreguts_048.py": 20,
     "test_logotip.py": 130,  # tres motors (T-DX-54)
     "test_navegacio_soci.py": 50,  # cinc amplades en clar i en fosc (T-DX-59)
-    "test_activitats.py": 60,  # T-DX-63: cinc amplades i axe en clar i en fosc
 }
 DEFAULT_SECONDS = 25
 
