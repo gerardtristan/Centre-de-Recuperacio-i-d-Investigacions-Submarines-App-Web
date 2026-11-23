@@ -514,3 +514,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-92](T-DX-92.md) | «Cursos i sortides»: tota la fila porta a la fitxa de l'activitat (B14) | 23/11/2026 15:34 | c3e7d430 | 1 nova | [A comprovar] |
 | [T-M09-16c](T-M09-16c.md) | Pantalla dels períodes i creació del període següent (margins/0006; apilada sobre la T-M09-13; carril A6) | 23/11/2026 14:45 | (vegeu la PR) | 11 noves; 1 e2e | [A comprovar] |
 | [T-M02-39](T-M02-39.md) | Apartat «Llocs» dels ajustos del 02: llista, lloc nou, fitxa amb preu estàndard, historial i activar o desactivar (apilada sobre la T-M02-06b; carril B4) | 23/11/2026 12:06 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
+| [T-M02-05b](T-M02-05b.md) | Catàleg de cursos i d'especialitats a l'administració: llista, fitxa nova, preus nous amb data, dades i historial (apilada sobre la T-M02-39; carril B4) | 23/11/2026 13:15 | (vegeu la PR) | 7 noves i 1 e2e | [A comprovar] |
