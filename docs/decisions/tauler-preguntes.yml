@@ -1106,24 +1106,6 @@ opcions:
       dies dels terminis són «com la quota». Només és una proposta: el tresorer marca l'impagat a mà, amb
       motiu, i el carnet continua vàlid fins llavors.
     data: 2026-11-19
-  P-401:
-    opcions:
-      A: "Com s'ha construït: es tanquen les sessions dels altres comptes amb el rol que guanya accés; la de qui desa, no."
-      B: "També la de qui desa: en desar, torna a l'entrada i ha d'entrar de nou amb el doble factor."
-    recomanada: A
-    perque: >-
-      RN-RP-11 tanca les sessions perquè els afectats tornin a entrar amb TOTP. Qui desa ja ha escrit un
-      codi nou a la mateixa petició (RN-RP-06): tancar-li la sessió no afegeix cap comprovació.
-    data: 2026-11-19
-  P-402:
-    opcions:
-      A: "Com s'ha construït: la targeta queda «esborrada» a la plataforma i no es fa servir mai més; al proveïdor no es demana res."
-      B: "A més, demanar al proveïdor que n'esborri la referència (operació nova a l'adaptador, quan hi hagi el proveïdor real)."
-    recomanada: B
-    perque: >-
-      Amb A la plataforma ja no la pot cobrar mai, però la referència continua viva al proveïdor. B ho
-      tanca del tot i és el que espera el soci; es pot afegir quan el proveïdor real digui com es fa.
-    data: 2026-11-19
   P-403:
     opcions:
       A: "Com s'ha construït: desactivar-la només deixa d'oferir-la; les quotes amb una targeta ja guardada es continuen cobrant."
@@ -1134,37 +1116,6 @@ opcions:
       sense pagar la quota sense saber-ho. Si el proveïdor deixa de cobrar, el cobrament falla i el soci
       rep l'alternativa de pagament (T-M05b-15b), com ara.
     data: 2026-11-19
-  P-413:
-    opcions:
-      A: "Com s'ha construït: permís propi (P23), d'inici només la Secretaria, amb motiu, contrasenya i codi."
-      B: "P23 per a la Secretaria i el Tresorer."
-      C: "P23 per a la Secretaria, el Tresorer i l'administrador."
-      D: "Sense permís propi: el mateix P22 del Tresorer (eximir o anul·lar)."
-    recomanada: A
-    perque: >-
-      És el que diu la 072 («la secretaria, amb permís propi») i és el més restrictiu; l'administrador
-      el pot donar a un altre rol des de l'editor de permisos sense tocar el codi.
-    data: 2026-11-20
-  P-414:
-    opcions:
-      A: "Com s'ha construït: la suma no canvia, cap termini amb pagament o cobrament en curs, cap de 0 €, sense límit de dates."
-      B: "A, i a més els venciments en ordre (1 ≤ 2 ≤ 3) i cap venciment passat."
-      C: "A, i a més tots els venciments dins dels 12 mesos des del primer."
-    recomanada: A
-    perque: >-
-      La 072 només demana que la suma no canviï i que no hi hagi pagament; un límit de dates que no
-      demana cap norma podria impedir un acord amb el soci. B o C es poden afegir sense migració.
-    data: 2026-11-20
-  P-417:
-    opcions:
-      A: "Com s'ha construït: permís propi (M11b), d'inici la Secretaria; només l'esborrat d'un menor de 14 anys, amb la identitat del representant comprovada; l'atén M11."
-      B: "A, i també per a qualsevol persona que ho demani en persona (no només menors)."
-      C: "Sense permís propi: el de crear i editar perfils (M2, Secretaria i administrador)."
-    recomanada: A
-    perque: >-
-      És el que diu la 085 i el més restrictiu: registrar-la no esborra res i la decisió irreversible
-      continua sent de qui té M11, amb la contrasenya i el codi.
-    data: 2026-11-20
   P-418:
     opcions:
       A: "Qui té M11 prepara l'exportació i la descarrega per lliurar-la en persona al representant (amb el registre de qui i quan)."
@@ -1175,15 +1126,6 @@ opcions:
       Lliurar dades d'un menor no es pot desfer; fins que l'assessor ho confirmi, el camí més segur és no
       treure-les de la plataforma per cap canal nou. A o B es poden construir després sense migració.
     data: 2026-11-20
-  P-415:
-    opcions:
-      A: "Com s'ha construït: P23 (la Secretaria), només a la quota d'una alta presencial, amb les condicions de la P-396 i sense reautenticació."
-      B: "A, però a qualsevol quota anual pendent (també la de la renovació o d'una alta per la web)."
-      C: "A, però amb el permís de l'alta presencial (P2) en lloc de P23."
-    recomanada: A
-    perque: >-
-      És el que diu la tasca («en una alta presencial»); la resta de quotes ja les pot partir el
-      soci mateix, i qui fa les altes presencials és la Secretaria, que ja té P23.
   P-416:
     opcions:
       A: "Com s'ha construït: les notes de la llista, M11 les revisa i en pot deixar fora amb motiu, contrasenya i codi; apagat fins que es digui."
@@ -1193,35 +1135,6 @@ opcions:
     perque: >-
       Deixar fora una nota amb motiu protegeix les dades d'altres persones, que és el que justifica la
       revisió; i com que lliurar-les no es pot desfer, que ho decideixi el propietari abans d'encendre-ho.
-    data: 2026-11-20
-  P-419:
-    opcions:
-      A: "Com s'ha construït: només la frase dels 5 minuts, sense comptador."
-      B: "La frase i un comptador visible de 5 minuts (component nou del sistema de disseny)."
-    recomanada: A
-    perque: >-
-      La frase ja diu què cal fer i quan; un comptador és una peça nova del sistema de disseny que pot
-      fer la sessió de disseny més endavant sense tocar la regla.
-    data: 2026-11-20
-  P-423:
-    opcions:
-      A: "Com s'ha construït: les entrades del registre que escriu la tasca no porten IP."
-      B: "La tasca copia la IP de la petició a l'entrada del registre d'activitat."
-    recomanada: A
-    perque: >-
-      La IP només cal per al límit d'origen (30 minuts); copiar-la al registre l'allargaria tant com
-      la retenció del registre, sense cap ús que ho justifiqui.
-    data: 2026-11-20
-  P-407:
-    opcions:
-      A: "Com s'ha construït: passats els dies de VC-16, l'intent es tanca com a «caducat», el càrrec continua pendent i surt un sol recordatori al pagador (referència i enllaç, cap IBAN)."
-      B: "A més, la comissió del retorn (VC-18, CA-M05b-27) en la mateixa tasca: queda congelada amb la T-M05b-23."
-      C: "Només el recordatori, sense tancar l'intent (la transferència continua «en curs»)."
-    recomanada: A
-    perque: >-
-      És el que diuen la RN-M05b-09 i el pas 4 de P-M05b-C («l'estat torna a pendent i s'envia un
-      recordatori»); tancar l'intent deixa pagar d'una altra manera sense perdre una transferència que
-      arribi tard, que la conciliació encara paga.
     data: 2026-11-20
   P-406:
     opcions:
@@ -1233,36 +1146,6 @@ opcions:
       El soci ja rep l'enllaç per pagar i no hi ha res a resoldre, però el correu diu al tresorer qui no
       té adreça i s'ha d'avisar d'una altra manera; sense ell, aquesta quota quedaria oblidada.
     data: 2026-11-19
-  P-471:
-    opcions:
-      A: "Com s'ha construït: la 04 bloqueja fins a l'últim dia del darrer període tancat; per reobrir un període anterior, primer es reobren els posteriors (T-M09-16)."
-      B: "Només es pot reobrir el darrer període tancat."
-      C: "Ampliar la guarda de la 04 perquè pregunti per cada data (canvi de la RN-T33, regla congelada: decisió nova i PR risc:alt)."
-    recomanada: A
-    perque: >-
-      No toca cap regla congelada i mai deixa entrar un moviment del 09 en un període tancat; reobrir
-      és excepcional (només per errors del propi període) i reobrir també els posteriors queda al registre.
-    data: 2026-11-20
-  P-472:
-    opcions:
-      A: "Com s'ha construït: la despesa guarda la data real de la factura i s'accepta; el que es bloqueja és el moviment (pagar o anul·lar), que va al període obert."
-      B: "Es rebutja si la data de la factura és d'un període tancat, i el tresorer la registra amb una data del període obert."
-      C: "Un camp nou «data d'imputació» (per defecte, la del dia) que és la que es compara amb el període tancat."
-    recomanada: A
-    perque: >-
-      Compleix L-M09-02 sense falsejar la data de la factura (que cal per justificar ajuts), i el
-      període tancat queda protegit igual perquè cap moviment no hi entra (RN-T30).
-    data: 2026-11-20
-  P-473:
-    opcions:
-      A: "Com s'ha construït: qui té MG2 (pagar despeses), d'inici el Tresorer i l'Administrador."
-      B: "Qui té MG14 (categories i proveïdors), d'inici el Tresorer i l'Administrador."
-      C: "Només el Tresorer: un permís propi d'avís, que l'administrador pot donar a altres rols."
-    recomanada: A
-    perque: >-
-      Qui ha de reclamar la factura és qui paga la despesa; si el club vol que l'Administrador no el
-      rebi, es treu MG2 de l'Administrador a l'editor sense tocar codi.
-    data: 2026-11-20
   P-474:
     opcions:
       A: "Abans de migrar, qui administra la base de dades executa `CREATE EXTENSION btree_gist;` a la base de producció; la migració ja no ha de fer res."
@@ -1284,45 +1167,6 @@ opcions:
       El comprovant pot dur dades de qui paga i és un document de tresoreria: com menys gent l'obri,
       millor. Si la junta l'ha de veure per a una revisió, es pot donar el permís des de l'editor.
     data: 2026-11-19
-  P-470:
-    opcions:
-      A: "Com s'ha construït: la meitat lluny del zero, simètric amb el positiu (−21,75 % → −21,8 %; −7,5 cèntims → −8)."
-      B: "La meitat cap a +∞, al peu de la lletra (−21,75 % → −21,7 %; −7,5 cèntims → −7)."
-      C: "Arrodoniment bancari (la meitat cap al parell), per als positius i els negatius."
-    recomanada: A
-    perque: >-
-      Una pèrdua es llegeix igual que un guany del mateix import, i és l'arrodoniment comercial habitual
-      (ROUND_HALF_UP); només canvia una dècima a la vista i encara no hi ha cap marge congelat.
-  P-455:
-    opcions:
-      A: "La sessió copiada conserva el lloc desactivat; l'activitat no es pot publicar fins que totes les sessions tenen un lloc actiu."
-      B: "El lloc de la sessió pot quedar buit en una còpia en esborrany (camp opcional a la base de dades), i no es pot publicar fins que s'omple."
-      C: "Les sessions amb lloc desactivat no es copien; el responsable les torna a crear."
-    recomanada: A
-    perque: >-
-      Manté `Session.place` obligatori com diu l'addenda i el responsable veu quin lloc hi havia; el control de publicar
-      és el mateix que per a l'activitat (RN-M02-44).
-    data: 2026-11-20
-  P-456:
-    opcions:
-      A: "Com RN-M02-30: la titulació d'un curs del club compleix sense marca; el responsable en veu l'origen («d'un curs del club») al detall del requisit."
-      B: "Com CA-M02-29: compleix, però surt marcada «titulació del club, sense verificar» i va als requisits per revisar de la inscripció."
-      C: "En mode avís, marcada; en mode bloqueig, sense marca."
-    recomanada: A
-    perque: >-
-      L'addenda de la 058 és posterior i diu explícitament que substitueix la marca; el responsable continua veient
-      l'origen i no s'omple la llista de revisió amb titulacions que el club mateix ha donat.
-    data: 2026-11-21
-  P-457:
-    opcions:
-      A: "L'accepta per ell qui té AC5 (presencial o per telèfon); en acceptar-la, el convidat rep l'enllaç de convidat per pagar."
-      B: "En oferir-li la plaça, se li envia un enllaç de convidat que serveix per acceptar-la i pagar-la."
-      C: "Els convidats no entren a la llista d'espera: sense places, el formulari els diu que tornin a provar-ho."
-    recomanada: A
-    perque: >-
-      No cal cap peça nova de la 00 (l'enllaç de convidat és per pagar un càrrec, no per acceptar una oferta) i el club
-      ja atén els convidats per telèfon; B demanaria ampliar els enllaços de convidat.
-    data: 2026-11-21
   P-458:
     opcions:
       A: "La proposta: «Declaro que soc major d'edat (tinc 18 anys o més). De moment el club no admet inscripcions de menors d'edat a les activitats.»"
@@ -1380,26 +1224,6 @@ opcions:
     data: 2026-11-23
 
 noves:
-  P-410:
-    opcions:
-      A: "Una tasca nova de la fase 1 al 04: pantalla per crear, reanomenar i desactivar departaments, centres de cost i comptes (T3, M7), sobre els serveis de la 00."
-      B: "Al mòdul 09 (fase 2), amb les despeses per departament; fins aleshores, els de les migracions."
-      C: "Cap pantalla: es canvien amb una migració quan calgui."
-    recomanada: A
-    perque: >-
-      El propietari vol que cap llista quedi al codi, i el club ja té departaments que no són a les migracions; sense
-      pantalla, cada canvi demana un desplegament.
-    data: 2026-11-20
-  P-411:
-    opcions:
-      A: "«General», «Quotes de socis» i «Ajustos de caixa» són entrades del sistema: no es reanomenen ni es desactiven."
-      B: "Es poden reanomenar: el codi les troba per un codi fix nou (migració), no pel nom."
-      C: "Es poden reanomenar i el codi continua buscant-les pel nom (ara trencaria les quotes i l'arqueig)."
-    recomanada: A
-    perque: >-
-      No cal cap migració ni cap codi nou, i protegeix la regla de les quotes (CA-15.8); si un dia es vol canviar el nom,
-      B es pot fer després sense perdre res.
-    data: 2026-11-20
   P-412:
     opcions:
       A: "Com és: un termini legal al codi (6 anys, variable d'entorn), que només canvia amb una decisió; es corregeix el docstring."
@@ -1418,55 +1242,6 @@ noves:
     perque: >-
       Soles no identifiquen ningú i la conciliació, els retorns i les consultes al proveïdor les necessiten; bloquejar-les
       trencaria aquests processos sense protegir gaire més, perquè el proveïdor i el banc ja guarden el lligam.
-    data: 2026-11-20
-  P-424:
-    opcions:
-      A: "«Textos legals» no deixa publicar un text que porti «[A validar» o «[A verificar»: cal treure la marca abans."
-      B: "Com és ara: es pot publicar; la junta aprova els textos abans del nivell 1 (H1, G3) i qui publica treu les marques."
-      C: "Es pot publicar, però la pantalla del soci amaga el que hi hagi entre «[A validar» i «]»."
-    recomanada: A
-    perque: >-
-      És una sola comprovació en publicar, al mateix lloc que la de l'HTML, i impedeix que un soci real vegi una marca
-      interna per un descuit; C amagaria text legal sense que ningú ho vegi.
-    data: 2026-11-20
-  P-440:
-    opcions:
-      A: "Un estat més, «Vigent més endavant», que no compta com a vigent fins al dia d'inici."
-      B: "«Vigent», encara que no hagi començat."
-      C: "«Tramitada» fins al dia d'inici."
-    recomanada: A
-    perque: >-
-      Diu exactament el que passa i no fa creure a ningú que avui està cobert; B enganyaria la secretaria i C amagaria que
-      la federació ja l'ha confirmada.
-    data: 2026-11-20
-  P-441:
-    opcions:
-      A: "Com fa el codi: 60 dies de calendari (V−60 és l'1/11); l'exemple del pla és una errada."
-      B: "L'avís i «per renovar» comencen el 2/11: es compten 59 dies, o 60 sense comptar el dia del venciment."
-    recomanada: A
-    perque: >-
-      És el que diu la regla («60 dies o menys») i el que entén tothom en llegir l'ajust; B obligaria a explicar una
-      manera de comptar diferent de la resta de terminis de la plataforma.
-    data: 2026-11-20
-  P-442:
-    opcions:
-      A: "La vigent del mateix tipus que caduca més tard; si canvia de tipus, no en renova cap i l'anterior continua rebent avisos."
-      B: "La vigent de qualsevol tipus que caduca més tard: canviar d'aficionat a tècnic també atura els avisos de l'anterior."
-      C: "La tria la persona en demanar-la (o la secretaria), entre les seves vigents."
-    recomanada: B
-    perque: >-
-      Qui passa a tècnic ja no necessita renovar l'aficionat, i rebre'n avisos seria soroll; A és el que fa ara el codi
-      perquè és el cas segur, i canviar-lo és una línia.
-    data: 2026-11-20
-  P-443:
-    opcions:
-      A: "La data d'inici que s'escrigui (opcional) i, si no, el dia que es declara."
-      B: "Sempre obligatòria: la persona o la secretaria la copien del carnet de la federació."
-      C: "Es calcula del venciment i del tipus (per exemple, l'1/1 per a una d'any natural)."
-    recomanada: A
-    perque: >-
-      No demana cap dada que la persona potser no té a mà, i el que importa al club (és vigent el dia de l'activitat?)
-      ja ho resol el venciment; C endevinaria dates que la federació no ha dit.
     data: 2026-11-20
   P-444:
     opcions:
@@ -1515,15 +1290,6 @@ noves:
       Resposta provisional del propietari (21/11/2026): A, i el departament dels cursos per defecte;
       falta el tresorer.
     data: 2026-11-21
-  P-445:
-    opcions:
-      A: "Com ara: el 01 i el 06 escriuen el lot directament (amb un shortcut:) fins que el nucli tingui imports.mark_undone."
-      B: "Afegir ara imports.mark_undone(batch, by) al nucli i fer-lo servir des del 01 i el 06 (torn del nucli)."
-    recomanada: B
-    perque: >-
-      Compleix la norma «una app no escriu als models d'una altra» i deixa un sol lloc on es desfà un lot; és un canvi
-      petit, però demana el torn del nucli, i per això, mentrestant, A.
-    data: 2026-11-21
   P-446:
     opcions:
       A: "No compleix el requisit, amb el text «Pendent de confirmar»: en mode d'avís s'inscriu marcada; en mode de bloqueig, no."
@@ -1534,16 +1300,6 @@ noves:
       No se sap si la llicència cobreix el dia de l'activitat, i el club no pot deixar bussejar ningú sense assegurança;
       la secretaria ha de confirmar les pendents abans d'obrir el 02 (RN-M02-34), de manera que a la pràctica gairebé no
       passarà. B i C són una línia si la secretaria ho prefereix.
-    data: 2026-11-21
-  P-447:
-    opcions:
-      A: "Qui tramita (LC5: secretaria, administrador i President), el mateix permís que deixa vigent una llicència."
-      B: "Un permís nou al catàleg, inicialment només la secretaria i l'administrador."
-      C: "Només l'administrador, com el pas únic (LC11)."
-    recomanada: A
-    perque: >-
-      Posar la caducitat és el mateix tipus de feina que deixar vigent una llicència amb el número federatiu, i ho fa qui
-      té el carnet de la federació a la mà; B afegeix una cel·la a la matriu sense cap diferència pràctica.
     data: 2026-11-21
   P-448:
     opcions:
@@ -1637,3 +1393,4 @@ noves:
       Si la junta ha de consultar els resultats (AC14), necessita un camí que no passi per la gestió de
       les activitats; és una pantalla de només lectura i no dona accés a dades personals.
     data: 2026-11-24
+    data: 2026-11-21

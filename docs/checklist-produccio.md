@@ -45,6 +45,7 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | A5 | README | Com instal·lar, executar, provar, desplegar, fer una còpia i restaurar; qui és responsable | Una persona nova ho posa en marxa seguint-lo | 0 |
 | A6 | Pla de marxa enrere | Cada desplegament es pot revertir; migracions de base de dades compatibles amb la versió anterior | Reversió provada a staging | 3 · N1 |
 | A7 | Domini propi i SSL | Domini existent del club, certificat renovat automàticament, redirecció a HTTPS | Alerta de caducitat; prova externa de SSL | 1 |
+| A8 | Extensions de PostgreSQL abans de migrar | Abans de migrar `equipment/0009` a producció, qui administra la base de dades executa `CREATE EXTENSION btree_gist;`. L'usuari de l'aplicació no té permisos d'administrador ([P-474](decisions/pendents.md), provisional fins que ho confirmi informàtica; [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)) | Pas a la llista del desplegament; la migració passa sense error | 1 |
 
 ### B. Proves
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
@@ -112,11 +113,12 @@ Requisits PWA: HTTPS, manifest, service worker, carnet i llista d'assistència d
 | G1 | SPF, DKIM i DMARC | Perquè els correus de la plataforma (rebuts, carnets, avisos, butlletins) no acabin a brossa. Es configuren a **cris.es**, que és el domini remitent des de la decisió 085 (els correus surten de cris@cris.es, que també rep les respostes); cal l'accés al DNS de cris.es i no trencar el correu actual del club | Comprovador de correu | 2 |
 | G2 | Plantilles i enllaç de baixa | Butlletins només amb consentiment i amb enllaç de baixa | Prova | 2 |
 | G3 | Correu de confirmació del mandat | En signar un mandat, el soci rep un correu des de cris1954.cat (resposta a cris@cris.es) amb la referència del mandat, l'ID de creditor, la data de signatura i com revocar-lo. Si l'envia Stripe o la plataforma és [A validar] | Prova de principi a fi en mode de proves; revisió del text amb la junta | 3 · N1 |
+| G4 | Esborrar la targeta guardada també al proveïdor | Quan el soci esborra la targeta guardada, la plataforma demana al proveïdor que n'esborri la referència (operació de l'adaptador, T-M05a-27; [P-402](decisions/pendents.md), [105](decisions/105-respostes-del-propietari-a-les-preguntes-per-al-pilot-del-23-11-2026.md)) | Prova amb el proveïdor real en mode de proves | 3 · N1 |
 
 ### H. Legal i privacitat
 | ID | Requisit | Com s'aplica al C.R.I.S. | Com es comprova | Porta |
 |---|---|---|---|---|
-| H1 | Política de privacitat i condicions | Redactades amb la junta; qui és el responsable, per a què es fan servir les dades i quant de temps es guarden | Publicades i enllaçades als formularis | 2 |
+| H1 | Política de privacitat i condicions | Redactades amb la junta; qui és el responsable, per a què es fan servir les dades i quant de temps es guarden | Publicades i enllaçades als formularis. Abans del nivell 2, revisar amb l'assessor de protecció de dades que les referències del proveïdor i de la transferència es quedin en clar en esborrar una persona ([P-420](decisions/pendents.md), provisional) | 2 |
 | H2 | Consentiment de cookies | Si hi ha cookies no tècniques: consentiment previ i opció de rebutjar tan visible com la d'acceptar | Revisió amb la pàgina oberta per primera vegada | 3 |
 | H3 | Esborrat de compte i de dades | Un soci pot demanar l'esborrat i l'exportació de les seves dades; es conserven només les dades que obliga la llei (per exemple, factures) | Prova de principi a fi | 2 |
 | H4 | Dades de salut | No es guarden a la plataforma | Revisió del model de dades | 1 |
