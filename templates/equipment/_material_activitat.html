@@ -1,0 +1,25 @@
+{% load i18n %}
+{# T-M03-15: bloc de material del 03 a «Les meves activitats» i a la fitxa de l'activitat (C10, MT2 i MT7). El context el fa `equipment.detail.section_context`, que ja ha filtrat per persona o per permís. Cap cost ni preu (RN-M02-45, MT12). #}
+<section class="targeta" aria-labelledby="material-titol-{{ activity.pk }}">
+  <h2 id="material-titol-{{ activity.pk }}">{% if with_people %}{% translate "Material dels participants" %}{% else %}{% translate "El teu material" %}{% endif %}</h2>
+  <table class="taula">
+    <caption class="visualment-amagat">{% if with_people %}{% translate "Material assignat a cada participant d'aquesta activitat" %}{% else %}{% translate "Material que tens assignat en aquesta activitat" %}{% endif %}</caption>
+    <thead><tr>{% if with_people %}<th scope="col">{% translate "Participant" %}</th>{% endif %}<th scope="col">{% translate "Material" %}</th><th scope="col">{% translate "Talla o litres" %}</th><th scope="col">{% translate "D'on surt" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% if with_people %}<td data-etiqueta="{% translate 'Participant' %}">{{ row.enrolment.person }}</td>{% endif %}
+          <th scope="row" class="cel-nom">{{ row.equipment_type.name }}{% if row.item %} <span class="codi">{{ row.item.code }}</span>{% endif %}</th>
+          <td data-etiqueta="{% translate 'Talla o litres' %}">{% if row.item.size %}{{ row.item.size }}{% elif row.item.litres %}{% blocktranslate with litres=row.item.litres %}{{ litres }} l{% endblocktranslate %}{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate "D'on surt" %}">{% if row.origin == "rented" and row.centre %}{% blocktranslate with centre=row.centre.name %}Llogat a {{ centre }}{% endblocktranslate %}{% else %}{{ row.get_origin_display }}{% endif %}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">
+            {% if row.status == "returned" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.get_status_display }}</span>
+            {% elif row.status == "delivered" %}<span class="estat estat-info"><span aria-hidden="true">●</span> {{ row.get_status_display }}</span>
+            {% elif row.status == "planned" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.get_status_display }}</span>
+            {% else %}<span class="estat estat-neutre"><span aria-hidden="true">–</span> {{ row.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
