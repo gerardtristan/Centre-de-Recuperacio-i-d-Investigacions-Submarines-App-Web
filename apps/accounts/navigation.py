@@ -52,6 +52,7 @@ BASE_ROUTES = {
     "administration:expense_new": ((("expenses.record", WRITE, SCOPE_ALL),),),  # T-M09-06
     "administration:expenses_without_invoice": ((("expenses.pay", READ),),),  # MG2 (T-M09-15)
     "administration:grants_calendar": ((("grants.view", READ),),),  # AJ3 (T-M09A-05)
+    "administration:margin_periods": ((("expenses.periods.close", READ),),),  # MG11 (T-M09-16)
     "administration:licences_prices": ((("licences.prices", READ),),),  # LC8 (T-M06-02)
     "administration:payments_remittances": ((("payments.remittances", READ),),),  # B3
     "administration:payments_mandates": ((("payments.mandates.view", READ),),),  # A4 (T-M05a-14)
@@ -150,6 +151,15 @@ ENTRIES = (
         ),
     ),  # T-M09-15; text i lloc per revisar amb DISSENY
     ("administration:grants_calendar", _("Calendari d'ajuts"), ()),  # T-M09A-05; lloc: DISSENY
+    (
+        "administration:margin_periods",
+        _("Períodes"),
+        (
+            "administration:margin_period_create",
+            "administration:margin_period_close",
+            "administration:margin_period_reopen",
+        ),
+    ),  # T-M09-16; text i lloc per revisar amb DISSENY
     (
         "administration:treasury_accounts",
         _("Tresoreria: comptes i saldos"),
@@ -293,6 +303,7 @@ GROUPS = (
             "administration:expense_new",
             "administration:expenses_without_invoice",
             "administration:grants_calendar",
+            "administration:margin_periods",
         ),
     ),
     (
