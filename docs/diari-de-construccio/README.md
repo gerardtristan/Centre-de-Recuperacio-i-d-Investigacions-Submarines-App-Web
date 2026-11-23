@@ -487,3 +487,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-30-nucli](T-M02-30-nucli.md) | Nucli del 02: permís de VC-46 i instructor de prova amb requisits al seed (core/0069; carril B3) | 21/11/2026 11:01 | (vegeu la PR) | 8 noves (7 casos + 1) | [A comprovar] |
 | [T-M03-17a](T-M03-17a.md) | Material (nucli): tipus de lot «equipment» i dades inventades del 03 a seed_demo_data (core/0070) | 21/11/2026 10:36 | e6ffc474 | 31 | [A comprovar] |
 | [T-M03-22-nucli](T-M03-22-nucli.md) | Material i marge (nucli): permisos dels ajustos del 03 (VC-28, VC-29) i plantilles d'avís del 09 (core/0071) | 23/11/2026 11:38 | a38cce77 | 3 noves | [A comprovar] |
+| [T-M03-26b](T-M03-26b.md) | El centre habitual del lloc es fa servir en llogar material (carril C7) | 23/11/2026 12:11 | (vegeu la PR) | 2 noves | [A comprovar] |
