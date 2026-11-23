@@ -30,7 +30,9 @@ PAGE = "administration:activity_margin"
 
 class PlannedCostForm(forms.Form):
     category = forms.ModelChoiceField(
-        label=gettext_lazy("Categoria"), queryset=ExpenseCategory.objects.filter(active=True)
+        label=gettext_lazy("Categoria"),
+        queryset=ExpenseCategory.objects.filter(active=True),
+        empty_label=gettext_lazy("Tria una categoria"),
     )
     amount = forms.DecimalField(
         label=gettext_lazy("Import previst (€)"), min_value=Decimal("0"), max_digits=11,

@@ -15,7 +15,7 @@
         <th scope="col">{% translate "Número" %}</th>
         <th scope="col">{% translate "Data" %}</th>
         <th scope="col">{% translate "Tipus" %}</th>
-        <th scope="col">{% translate "Total" %}</th>
+        <th scope="col" class="cel-import">{% translate "Total" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -24,7 +24,7 @@
           <th scope="row" class="cel-nom"><span class="codi">{{ row.invoice.number }}</span></th>
           <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.invoice.issued_on|date:'Y-m-d' }}">{{ row.invoice.issued_on|date:"d/m/Y" }}</time></td>
           <td data-etiqueta="{% translate 'Tipus' %}">{{ row.invoice.get_series_display }}</td>
-          <td data-etiqueta="{% translate 'Total' %}"><span class="import">{{ row.total }}</span></td>
+          <td data-etiqueta="{% translate 'Total' %}" class="cel-import"><span class="import">{{ row.total }}</span></td>
         </tr>
       {% empty %}
         <tr><td colspan="4">{% translate "Encara no tens cap factura." %}</td></tr>

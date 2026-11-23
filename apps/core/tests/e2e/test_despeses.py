@@ -24,6 +24,8 @@ def test_the_treasurer_records_an_expense(page, live_server, transactional_db, r
     expect(page.get_by_text("Aquest camp és obligatori.").first).to_be_visible()
     review("despesa-nova-errors")
 
+    # Formulari net: la captura «despesa-nova» no ha de dur els errors del primer intent.
+    page.goto(f"{live_server.url}{reverse('administration:expense_new')}")
     page.get_by_label("Proveïdor").select_option(label="Nàutica Inventada SL")
     page.get_by_label("Número de factura").fill("F-2027-1")
     page.get_by_label("Data de la factura").fill("2027-06-10")

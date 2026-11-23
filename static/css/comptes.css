@@ -32,7 +32,7 @@
 .camp input:focus-visible, .camp select:focus-visible, .camp textarea:focus-visible { outline-width: var(--v-focus); }
 /* Errors de Django (de camp, d'una opció i generals del formulari): el mateix estil a tot arreu */
 .cos-compte .errorlist { list-style: none; margin: 0; padding: 0; font-size: var(--t-s); color: var(--c-error-text); font-weight: var(--p-semi); }
-.camp input[aria-invalid="true"] { border-color: var(--c-error); }
+.camp :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--c-error); }
 .accions { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
 .enllacos { display: grid; gap: var(--e-1); }
 .enllacos a { display: inline-flex; align-items: center; min-height: var(--tactil); }
