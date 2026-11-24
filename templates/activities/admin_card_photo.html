@@ -1,6 +1,8 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
 {# T-M02-42b (AC25; RN-M02-47): la secretaria puja la foto del carnet en nom de la persona. Només amb VC-56 encès. #}
+{% load static %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/expositor.css' %}">{% endblock %}
 {% block title %}{% translate "Foto del carnet" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">

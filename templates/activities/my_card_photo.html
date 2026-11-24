@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 {# T-M02-42b (RN-M02-47): el titular puja la foto del carnet d'una titulació seva d'una altra agència. Només amb VC-56 encès. #}
+{% load static %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/expositor.css' %}">{% endblock %}
 {% block title %}{% translate "Foto del carnet" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
