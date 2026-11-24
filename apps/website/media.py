@@ -1,7 +1,7 @@
 """Fotos i fitxers de la web (T-M07-07; P-M07-C, RN-M07-05 i 14; CA-M07-05; P-489).
 
-- `upload`, `update_details` i `retire`: WP3 (`website.media`, «Sí») al servidor. El permís és
-  del catàleg del nucli (T-M07-02): fins llavors, el servei s'atura (cap accés).
+- `upload`, `update_details` i `retire`: WP3 (`website.media`, «Sí») al servidor (catàleg i
+  matriu inicial, T-M07-02).
 - `check_publishable(keys)`: la crida `pages.publish_page`; cap foto en un bloc publicat sense
   autor, permís d'ús, text alternatiu i, si s'hi veuen persones, el consentiment.
 - `public_asset(key)` i `open_content(asset)`: per a la vista pública declarada (P-489). Una foto

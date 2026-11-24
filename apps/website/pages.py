@@ -5,8 +5,7 @@
 - `publish_page(page, blocks, actor, note)`: versió nova; el públic veu aquesta (RN-M07-03).
 - `revert_to(version, actor)`: publica una còpia d'una versió anterior.
 
-Tots demanen WP1 (`website.pages`, «Sí») al servidor; el permís és del catàleg del nucli
-(T-M07-02): fins llavors, `has_perm` s'atura amb un error de configuració (cap accés).
+Tots demanen WP1 (`website.pages`, «Sí») al servidor (catàleg i matriu inicial, T-M07-02).
 """
 
 from django.core.exceptions import ValidationError
