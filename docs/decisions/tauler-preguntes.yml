@@ -1384,3 +1384,23 @@ noves:
       les activitats; és una pantalla de només lectura i no dona accés a dades personals.
     data: 2026-11-24
     data: 2026-11-21
+  P-570:
+    opcions:
+      A: "Cada indicador té una llista de panells i surt a tots, amb la mateixa xifra."
+      B: "Un sol panell per indicador: el panell general en fa una còpia amb un codi propi."
+      C: "Un sol panell per indicador: els impagats i les llicències només surten al de socis."
+    recomanada: A
+    perque: >-
+      La xifra és la mateixa i ve del mateix servei (RN-M08-04): una sola entrada al catàleg, amb una
+      sola definició i un sol text d'ajuda, evita que dues còpies es contradiguin.
+    data: 2026-11-24
+  P-571:
+    opcions:
+      A: "Un tercer tipus «altres» (places, material, dates) que no passa per la supressió de grups petits."
+      B: "Tot el que no és diners compta com a «persones» i passa per la supressió."
+      C: "Cap tipus: cada panell decideix què amaga."
+    recomanada: A
+    perque: >-
+      Amagar «2 equips per revisar» com a «menys de 3» no protegeix ningú i fa inútil l'avís; el que compta
+      persones (inscripcions, ocupació, assistència) continua amb la supressió, que és el cas conservador.
+    data: 2026-11-24
