@@ -24,7 +24,7 @@
         <legend>{% translate "Llicències que es confirmen" %}</legend>
         <table class="taula">
           <caption>{% blocktranslate count total=licences|length %}{{ total }} llicència pendent, per cognoms{% plural %}{{ total }} llicències pendents, per cognoms{% endblocktranslate %}</caption>
-          <thead><tr><th scope="col"><span class="visualment-amagat">{% translate "Selecciona" %}</span></th><th scope="col">{% translate "Titular" %}</th><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Inici" %}</th><th scope="col">{% translate "Declarada pel titular" %}</th><th scope="col">{% translate "Acció" %}</th></tr></thead>
+          <thead><tr><th scope="col"><span class="visualment-amagat">{% translate "Selecciona" %}</span></th><th scope="col">{% translate "Titular" %}</th><th scope="col">{% translate "Tipus" %}</th><th scope="col">{% translate "Inici" %}</th><th scope="col">{% translate "Declarada pel titular" %}</th><th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th></tr></thead>
           <tbody>
             {% for licence in licences %}
               <tr>
@@ -33,7 +33,7 @@
                 <td data-etiqueta="{% translate 'Tipus' %}">{{ licence.licence_type }}</td>
                 <td data-etiqueta="{% translate 'Inici' %}"><time datetime="{{ licence.starts_on|date:'Y-m-d' }}">{{ licence.starts_on|date:"d/m/Y" }}</time></td>
                 <td data-etiqueta="{% translate 'Declarada pel titular' %}">{% if licence.expires_on %}<time datetime="{{ licence.expires_on|date:'Y-m-d' }}">{{ licence.expires_on|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
-                <td data-etiqueta="{% translate 'Acció' %}"><a href="{% url 'administration:licences_confirm' licence.pk %}">{% translate "Confirma…" %}</a></td>
+                <td class="cel-accions"><a href="{% url 'administration:licences_confirm' licence.pk %}">{% translate "Confirma…" %}</a></td>
               </tr>
             {% endfor %}
           </tbody>
