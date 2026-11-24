@@ -1662,3 +1662,24 @@ noves:
       Si totes les cel·les són petites, el total les suma i diu exactament quantes persones hi ha; A
       no canvia cap total que arribi al mínim (els exemples de CA-M08-03 continuen iguals).
     data: 2026-11-24
+  P-649:
+    opcions:
+      A: "El zero surt «menys de N» sense amagar res més; si les petites sumen entre 1 i N−1, s'amaga també la visible més petita."
+      B: "Com A, però el zero es mostra com a 0."
+      C: "La regla anterior: només s'amaga la següent si hi ha una sola cel·la petita."
+    recomanada: A
+    perque: >-
+      És la que impedeix deduir la suma de les cel·les petites restant del total, sense amagar més del
+      que cal: una cel·la a zero no és cap persona i no obliga a amagar-ne cap altra.
+    data: 2026-11-24
+  P-650:
+    opcions:
+      A: "No es fa res més ara; es torna a mirar si el dashboard s'obre a la junta o si se n'exporten xifres."
+      B: "Arrodonir els recomptes de persones a múltiples de N."
+      C: "Aplicar la supressió de manera coherent entre períodes (guardar què s'ha amagat abans)."
+      D: "Treure els desglossaments de persones per mes."
+    recomanada: A
+    perque: >-
+      Qui té DB1 ja té accés als mòduls d'on surten les xifres; B i C compliquen molt la lectura i el
+      càlcul per a un risc petit, i D trauria informació útil a la junta.
+    data: 2026-11-24

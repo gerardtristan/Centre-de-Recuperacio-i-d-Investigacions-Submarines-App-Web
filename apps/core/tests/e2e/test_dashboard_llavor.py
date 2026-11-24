@@ -2,6 +2,7 @@
 general, de socis i d'activitat amb les dades inventades de `seed_demo_data` i cap nom ni correu
 de la llavor no surt a la pantalla. Captures a 1280, 390 i 320 px. Dades inventades."""
 
+import re
 from io import StringIO
 
 import pytest
@@ -31,9 +32,12 @@ def test_the_dashboard_with_the_seed_shows_no_person(
     names = {
         value
         for person in Person.objects.exclude(pk__in=roles.values_list("person", flat=True))
-        for value in (person.first_name, person.last_name, person.contact_email)
+        for value in (
+            person.first_name, person.last_name, person.contact_email,
+            person.birth_date and person.birth_date.strftime("%d/%m/%Y"),  # format de la pantalla
+        )
         if value and len(value) >= 3
-    }
+    }  # fmt: skip
     treasurer = make_admin("tresorer.prova", "treasurer")
     login_admin(page, live_server.url, treasurer.login)
     for panel, heading, shot in (
@@ -44,5 +48,7 @@ def test_the_dashboard_with_the_seed_shows_no_person(
         page.goto(f"{live_server.url}{reverse('administration:dashboard_panel', args=[panel])}")
         expect(page.get_by_role("heading", name=heading)).to_be_visible()
         text = page.locator("main").inner_text()
-        assert not [name for name in names if name in text.split()], panel
+        # Subcadena entre separadors: un correu enganxat a la puntuació també es troba.
+        found = [n for n in names if re.search(rf"(?<!\w){re.escape(n)}(?!\w)", text)]
+        assert not found, (panel, found)
         review(shot)
