@@ -71,6 +71,7 @@ _ALL = SCOPE_ALL
 # 059, addenda del M02: el tresorer i el President gestionen activitats completes, com el
 # responsable de cursos i sortides i l'administrador.
 _ACTIVITY_MANAGERS = (R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT)
+_WP1 = (R.ADMINISTRATOR, R.PRESIDENT)  # M07-4: qui té WP1 d'inici
 # La fila «Gestionar inventari i assignar material» de la matriu del 03 (059).
 _EQUIPMENT_STAFF = (
     R.COURSES_MANAGER,
@@ -1722,6 +1723,167 @@ PERMISSIONS: tuple[Permission, ...] = (
         _("Dies abans d'una sessió o sortida que surt el recordatori (VC-23)"),
         requires=("settings.section.activities",),
         initial={R.SECRETARY: _ALL},
+    ),
+    # --- 07 Web pública (M07-4; T-M07-02) -----------------------------------------------------
+    # La matriu inicial de M07-4. El Responsable de comunicació comença sense res fins a la P-43.
+    _perm(
+        "website.pages",
+        "WP1",
+        _("Editar pàgines i blocs de la web, publicar-los i tornar a una versió anterior"),
+        initial={R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+    ),
+    _perm(
+        "website.news",
+        "WP2",
+        _("Crear, publicar i retirar notícies"),
+        initial={R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+    ),
+    _perm(
+        "website.media",
+        "WP3",
+        _("Pujar i retirar fotos i fitxers de la web, amb autor, permís i consentiment"),
+        initial={R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+        touches_personal_data=True,  # fotos on es veuen persones (P-41)
+    ),
+    _perm(
+        "website.help",
+        "WP4",
+        _("Preguntes freqüents i tutorials"),
+        initial={R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL, R.BOARD: _ALL},
+    ),
+    # L'abast per motiu (RN-M07-07) arriba amb la safata (T-M07-11); d'inici, tots els motius.
+    _perm(
+        "website.contact",
+        "WP5",
+        _("Veure i respondre els missatges de contacte"),
+        initial={R.SECRETARY: _ALL, R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "website.newsletter",
+        "WP6",
+        _("Redactar i enviar el butlletí (amb el recompte de subscriptors, mai el llistat)"),
+        initial={R.ADMINISTRATOR: _ALL, R.PRESIDENT: _ALL},
+    ),
+    _perm(
+        "website.subscribers",
+        "WP7",
+        _("Veure i exportar el llistat de subscriptors"),
+        initial={R.ADMINISTRATOR: _ALL},
+        touches_personal_data=True,
+    ),
+    _perm(
+        "website.contact_reasons",
+        "WP8",
+        _("Motius de contacte i a qui arriba cada un"),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    # Ajustos de la web (M07-6; T-M07-03): «Cons.» per a qui hi edita algun valor. WP1 (Admin. i
+    # Pres.) edita la portada i les dades de contacte; els interruptors i els terminis, l'Admin.
+    _perm(
+        "settings.section.website",
+        "AJ07",
+        _("Ajustos de la web pública"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.ADMINISTRATOR: SCOPE_READ, R.PRESIDENT: SCOPE_READ},
+    ),
+    _perm(
+        "settings.edit.website.home_activities_count",
+        "AJ07-1",
+        _("Activitats a la portada"),
+        requires=("settings.section.website",),
+        initial=dict.fromkeys(_WP1, _ALL),
+    ),
+    _perm(
+        "settings.edit.website.news_on_home",
+        "AJ07-2",
+        _("Notícies a la portada"),
+        requires=("settings.section.website",),
+        initial=dict.fromkeys(_WP1, _ALL),
+    ),
+    _perm(
+        "settings.edit.website.club_contact",
+        "AJ07-3",
+        _("Dades de contacte del club"),
+        requires=("settings.section.website",),
+        initial=dict.fromkeys(_WP1, _ALL),
+    ),
+    _perm(
+        "settings.edit.website.newsletter_enabled",
+        "AJ07-4",
+        _("Butlletí actiu"),
+        requires=("settings.section.website",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.website.newsletter_confirm_hours",
+        "AJ07-5",
+        _("Hores per confirmar la subscripció al butlletí"),
+        requires=("settings.section.website",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.website.contact_enabled",
+        "AJ07-6",
+        _("Formulari de contacte actiu"),
+        requires=("settings.section.website",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.website.contact_retention_months",
+        "AJ07-7",
+        _("Mesos que es guarden els missatges de contacte tancats"),
+        requires=("settings.section.website",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    # --- 08 Dashboard (M08-4; RN-RP-16) -------------------------------------------------------
+    # DB1 dona només xifres agregades, mai cap dada personal ni cap pantalla de detall.
+    _perm(
+        "dashboard.view",
+        "DB1",
+        _("Veure el dashboard sencer, amb les xifres econòmiques"),
+        initial=dict.fromkeys(
+            (
+                R.SECRETARY,
+                R.COURSES_MANAGER,
+                R.EQUIPMENT_MANAGER,
+                R.TREASURER,
+                R.HISTORY_DEPARTMENT,
+                R.ADMINISTRATOR,
+                R.PRESIDENT,
+            ),
+            _ALL,
+        ),
+        touches_money=True,
+    ),
+    # Sense cap acció a la primera versió (RN-M08-06): es declara per si se n'afegeix alguna.
+    _perm(
+        "dashboard.actions",
+        "DB2",
+        _("Fer accions des del dashboard (si n'hi ha)"),
+        initial=dict.fromkeys((R.COURSES_MANAGER, R.TREASURER, R.ADMINISTRATOR, R.PRESIDENT), _ALL),
+    ),
+    # Ajustos del dashboard (M08-6; P-488 i P-487): «veure» i «veure i editar», l'Administrador.
+    _perm(
+        "settings.section.dashboard",
+        "AJ08",
+        _("Ajustos del dashboard"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.dashboard.help_text",
+        "AJ08-1",
+        _("Text d'ajuda d'un indicador"),
+        requires=("settings.section.dashboard",),
+        initial={R.ADMINISTRATOR: _ALL},
+    ),
+    _perm(
+        "settings.edit.dashboard.min_group_size",
+        "AJ08-2",
+        _("Mida mínima d'un grup al dashboard (P-487)"),
+        requires=("settings.section.dashboard",),
+        initial={R.ADMINISTRATOR: _ALL},
     ),
 )
 

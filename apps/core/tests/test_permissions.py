@@ -49,6 +49,8 @@ def test_codes_are_unique_and_prefixed_by_module():
         "licences",
         "expenses",
         "grants",
+        "website",
+        "dashboard",
         "settings",
     }
     assert {p.module for p in PERMISSIONS} <= modules
@@ -138,6 +140,7 @@ def test_communications_shop_and_board_start_without_permissions(make_admin):
         "grants.applications.amendments": "own_applications",
         "grants.justification": "read",
         "grants.documents.open": "all",
+        "website.help": "all",  # WP4 (M07-4, F §8.6)
         "equipment.stock.view": "read",
         "equipment.costs.view": "read",
     }
