@@ -84,3 +84,12 @@ def test_p487_the_minimum_is_a_setting_of_3_from_2_to_10():
         "dashboard", "integer", 2, 10,
     )  # fmt: skip
     assert privacy.min_group_size() == 3 == business_settings.get(privacy.MIN_GROUP_SIZE)
+
+
+def test_a_total_below_the_minimum_is_hidden_too():
+    """Trobat a la T-M08-14 amb la llavor: 1 baixa a l'any, tots els mesos «menys de 3» i el
+    total «1» deixava saber que només n'hi havia una (P-648)."""
+    cells, total = suppress({"gener": 0, "febrer": 1, "març": 0}, 3)
+    assert labels(cells) == ["menys de 3", "menys de 3", "menys de 3"]
+    assert total.label(3) == "menys de 3"
+    assert suppress({"A": 0, "B": 3}, 3)[1].label(3) == "3"  # arriba al mínim: es veu

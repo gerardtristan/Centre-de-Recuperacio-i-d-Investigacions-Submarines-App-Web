@@ -1,5 +1,5 @@
 """Dashboard al navegador (T-M08-09): el tresorer obre el panell general, canvia al panell econòmic
-amb el trimestre i veu el panell de comunicació buit. Pantalles a 1280, 390 i 320 px. Dades
+amb el trimestre i veu el panell de comunicació. Pantalles a 1280, 390 i 320 px. Dades
 inventades."""
 
 import pytest
@@ -26,4 +26,5 @@ def test_the_treasurer_opens_the_dashboard(page, live_server, transactional_db, 
     expect(page.get_by_role("heading", name="Panell Econòmic")).to_be_visible()
     review("dashboard-economic")
     page.locator("main").get_by_role("link", name="Comunicació", exact=True).click()
-    expect(page.get_by_text("Aquest panell encara no té cap bloc.")).to_be_visible()
+    # T-M08-08: el panell de comunicació ja té els blocs del 07 (cap subscriptor: «menys de 3»).
+    expect(page.get_by_text("Subscriptors confirmats").first).to_be_visible()
