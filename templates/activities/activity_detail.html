@@ -23,20 +23,25 @@
   {% if state_actions or can_cancel %}
     <section aria-labelledby="estat-titol">
       <h2 id="estat-titol">{% translate "Estat de l'activitat" %}</h2>
-      {% for action, label in state_actions %}
+      {# T-DX-99: els canvis d'estat d'un sol clic, en una fila; reobrir porta un camp i va a part. #}
+      <div class="accions">{% for action, label in state_actions %}{% if action != "reobre" %}
+        <form method="post" novalidate>{% csrf_token %}<button class="boto" type="submit" name="accio" value="{{ action }}">{{ label }}</button></form>{% endif %}{% endfor %}
+      </div>
+      {% for action, label in state_actions %}{% if action == "reobre" %}
         <form class="formulari" method="post" novalidate>
           {% csrf_token %}
-          {% if action == "reobre" %}
-            <div class="camp">
-              <label for="closes-at">{% translate "Data límit nova (opcional)" %}</label>
-              <input id="closes-at" type="datetime-local" name="closes_at">
-              <p class="ajuda">{% translate "Si la data límit ja ha passat, en cal una de nova, com a molt tard el dia d'inici." %}</p>
-            </div>
-          {% endif %}
+          <div class="camp">
+            <label for="closes-at">{% translate "Data límit nova (opcional)" %}</label>
+            <input id="closes-at" type="datetime-local" name="closes_at">
+            <p class="ajuda">{% translate "Si la data límit ja ha passat, en cal una de nova, com a molt tard el dia d'inici." %}</p>
+          </div>
           <div class="accions"><button class="boto" type="submit" name="accio" value="{{ action }}">{{ label }}</button></div>
         </form>
-      {% endfor %}
+      {% endif %}{% endfor %}
       {% if can_cancel %}
+        {# T-DX-99: rar i no es desfà: plegat, com «Duplica l'activitat». #}
+        <details>
+        <summary>{% translate "Cancel·la l'activitat…" %}</summary>
         <form class="formulari" method="post" novalidate>
           {% csrf_token %}
           <div class="camp">
@@ -46,6 +51,7 @@
           </div>
           <div class="accions"><button class="boto" type="submit" name="accio" value="cancella">{% translate "Cancel·la l'activitat" %}</button></div>
         </form>
+        </details>
       {% endif %}
     </section>
   {% endif %}

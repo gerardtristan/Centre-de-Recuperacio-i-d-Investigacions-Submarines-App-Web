@@ -22,6 +22,7 @@ def test_manager_publishes_and_cancels_an_outing(page, live_server, transactiona
     page.get_by_role("button", name="Publica").click()
     expect(page.get_by_text("Estat desat.")).to_be_visible()
     expect(page.get_by_role("button", name="Tanca les inscripcions")).to_be_visible()
+    page.get_by_text("Cancel·la l'activitat…").click()  # plegat (T-DX-99)
     page.get_by_label("Motiu de la cancel·lació").fill("Mal temps inventat.")
     page.get_by_role("button", name="Cancel·la l'activitat").click()
     expect(page.get_by_text("Mal temps inventat.").first).to_be_visible()
