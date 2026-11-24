@@ -69,6 +69,8 @@ BASE_ROUTES = {
     "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
     # T-M02-16b: AC9; l'instructor només hi veu les seves sessions (ho filtra la vista).
     "administration:attendance_sessions": ((("activities.attendance.record", READ),),),
+    # T-M02-24b: AC20; l'instructor només hi veu les activitats on fa classe (ho filtra el servei).
+    "administration:activity_reports": ((("activities.reports.view", READ),),),
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -172,6 +174,11 @@ ENTRIES = (
             "administration:reinforcement_propose",
         ),
     ),  # T-M02-16b; text i lloc provisionals per a DISSENY
+    (
+        "administration:activity_reports",
+        _("Informes d'activitats"),
+        ("administration:activity_participants", "administration:activity_schedule"),
+    ),  # T-M02-24b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -348,6 +355,7 @@ GROUPS = (
         (
             "administration:activities",
             "administration:attendance_sessions",
+            "administration:activity_reports",  # T-M02-24b: DISSENY
             "administration:filings",
             "administration:places",
             "administration:catalogue",
