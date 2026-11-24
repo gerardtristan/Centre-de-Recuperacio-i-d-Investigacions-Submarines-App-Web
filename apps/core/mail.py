@@ -92,6 +92,7 @@ TEMPLATE_PRIORITIES = {
     "avis-salt-serie-factures": _Priority.CONFIRMATION,  # CA-M09-17, al tresorer (T-M09-19)
     "avis-marge-baix": _Priority.CONFIRMATION,  # CA-M09-12, al responsable i al tresorer (T-M09-13)
     "avis-reobertura-periode": _Priority.CONFIRMATION,  # S-M09-13, al tresorer i a la junta
+    "avis-ajut-paquet": _Priority.CONFIRMATION,  # RN-M09A-11 i 18, al responsable i al tresorer
     "avis-document-illegible": _Priority.CONFIRMATION,  # CA-M09-28, a qui el va pujar (T-M09-25b)
     "confirmacio-inscripcio": _Priority.CONFIRMATION,  # RN-M02-19 (T-M02-21b)
     "termini-pagament": _Priority.CONFIRMATION,  # RN-M02-08 i 19 (T-M02-21b)
