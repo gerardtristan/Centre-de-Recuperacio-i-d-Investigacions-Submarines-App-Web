@@ -582,3 +582,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-47](T-M02-47.md) | Esborrat automàtic de les fotos dels carnets per la cua (VC-57; carril X) | 24/11/2026 14:20 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M07-02](T-M07-02.md) | Permisos WP1 a WP8, DB1 i DB2 i els dels ajustos del 07 i del 08 (torn del nucli; core/0078; carril Y) | 24/11/2026 13:07 | 2e74c587, c2ca8445 | 200 noves i 1 e2e | [A comprovar] |
 | [T-M09-04b](T-M09-04b.md) | Documents d'una despesa: factura, comprovant i il·legible (amb la T-M09-05 i la T-M09-15) | 24/11/2026 14:25 | 2a145c44 | 9 noves i 1 e2e | [A comprovar] |
+| [T-M02-52](T-M02-52.md) | Titulacions: permís AC29 i serveis per carregar-les i verificar-les (torn del nucli; core/0079; carril Y) | 24/11/2026 14:09 | 80d9633c | 9 cel·les i 14 noves | [A comprovar] |
