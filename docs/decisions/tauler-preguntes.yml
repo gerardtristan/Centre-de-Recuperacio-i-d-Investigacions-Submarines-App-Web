@@ -1189,19 +1189,6 @@ opcions:
       faria pujar la versió d'una llicència que no ha canviat, i C es pot fer quan es desfaci la congelació.
     data: 2026-11-23
 
-  P-459:
-    opcions:
-      A: "Un permís nou, AC27 «Titulacions: carregar i verificar», per a la secretaria, el responsable de cursos i sortides i l'administrador; la junta, consulta."
-      B: "Fer servir AC6 (catàleg): només el responsable de cursos i sortides i l'administrador."
-      C: "Només la secretaria, amb un permís nou."
-      D: "Cap càrrega a mà: només la importació del fitxer de Cluber (quan hi hagi la mostra, Q-23)."
-    recomanada: A
-    perque: >-
-      És el que diu RN-M02-32 (la secretaria o el responsable) i separa aquest permís dels que ja
-      existeixen; B deixa fora la secretaria, C el responsable i D depèn d'una mostra que encara no
-      hi és.
-    data: 2026-11-21
-
   P-501:
     opcions:
       A: "Només el nombre de llicències per data i categoria, i on és el llistat; cap nom ni enllaç a l'administració."
@@ -1310,26 +1297,6 @@ noves:
     perque: >-
       És la informació sencera i no promet a ningú un preu que potser no li toca (RN-M06-07); C seria més exacta però
       demanaria la data de naixement en una pàgina pública només per mostrar un preu.
-    data: 2026-11-21
-  P-449:
-    opcions:
-      A: "Només majors d'edat; un menor escriu a la secretaria."
-      B: "També menors, amb les dades i l'autorització del representant, com a «Fer-se soci»."
-      C: "També menors a partir de 14 anys, sense representant."
-    recomanada: A
-    perque: >-
-      Les dades d'un menor demanen el representant (RGPD) i el formulari de «Fer-se soci» ja en té el circuit; per a
-      una llicència d'un no soci, és més segur que ho porti la secretaria fins que la junta decideixi.
-    data: 2026-11-21
-  P-450:
-    opcions:
-      A: "Compartir el límit de «Fer-se soci» fins que el nucli tingui una finalitat pròpia."
-      B: "Afegir ara una finalitat «llicència de convidat» al limitador (torn del nucli)."
-      C: "Cap límit (el formulari és apagat)."
-    recomanada: B
-    perque: >-
-      Cada formulari ha de tenir el seu comptador; A és prudent mentrestant perquè limita igualment l'abús, i C no es
-      pot activar mai a producció.
     data: 2026-11-21
   P-504:
     opcions:
