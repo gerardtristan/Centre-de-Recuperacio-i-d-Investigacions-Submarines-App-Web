@@ -38,6 +38,7 @@ def services(monkeypatch):
         datetime.date(2027, 1, 1): MemberStats({("full", ACTIVE): 100}, 1, 0),
         datetime.date(2027, 1, 31): MemberStats({("full", ACTIVE): 101}, 4, 1),
         datetime.date(2027, 2, 28): MemberStats({("full", ACTIVE): 103}, 3, 2),
+        datetime.date(2027, 3, 1): MemberStats({("full", ACTIVE): 103}, 0, 0),
         datetime.date(2027, 3, 15): MemberStats(
             {("full", ACTIVE): 120, ("supporter", ACTIVE): 40, ("youth", ACTIVE): 2,
              ("family", ACTIVE): 1, ("full", UNPAID): 5, ("youth", UNPAID): 1,
@@ -68,8 +69,12 @@ def services(monkeypatch):
     return SimpleNamespace(calls=calls)
 
 
+def num(block):
+    return block.value.value if isinstance(block.value, privacy.Cell) else block.value
+
+
 def values(blocks):
-    return {code: block.value for code, block in blocks.items() if not block.breakdowns}
+    return {code: num(block) for code, block in blocks.items() if not block.breakdowns}
 
 
 def shown(breakdown, min_size=3):
@@ -96,8 +101,8 @@ def test_ca_m08_04_members_panel_reads_each_service(services):
     assert list(blocks) == [
         "unpaid_members", "licences_to_renew", "joins_and_leaves", "active_by_type", "retention",
     ]  # fmt: skip
-    assert blocks["unpaid_members"].value == 6
-    assert blocks["retention"].value == round(100 - 100 * (1 + 2 + 1) / 100)  # 96
+    assert num(blocks["unpaid_members"]) == 6
+    assert num(blocks["retention"]) == round(100 - 100 * (1 + 2 + 1) / 100)  # 96
     joined, left = blocks["joins_and_leaves"].breakdowns
     assert (joined.label, left.label) == ("joined", "left")
     assert {k: c.value for k, c in joined.cells.items()} == {
@@ -129,17 +134,14 @@ def test_each_member_date_is_read_once(services):
 
 def test_future_months_are_not_read_and_the_last_day_is_today(services):
     blocks = panels.panel("general", *YEAR, now=NOW)
-    assert blocks["active_members"].value == 163 and blocks["new_members"].value == 9
+    assert num(blocks["active_members"]) == 163 and num(blocks["new_members"]) == 9
 
 
 def test_signed_mandates_only_with_an_open_campaign(services, monkeypatch):
     campaign = object()
     monkeypatch.setattr(panels.campaigns, "open_campaign_now", lambda: campaign)
-    monkeypatch.setattr(
-        panels.campaigns, "campaign_status",
-        lambda c: {"direct_debit": 12, "saved_card": 3} if c is campaign else {},
-    )  # fmt: skip
-    assert panels.panel("members", *Q1, now=NOW)["signed_mandates"].value == 12
+    monkeypatch.setattr(panels.campaigns, "mandates_signed", lambda c: 12 if c is campaign else 0)
+    assert num(panels.panel("members", *Q1, now=NOW)["signed_mandates"]) == 12
 
 
 def test_ca_m08_04_activity_panel_reads_each_service(services):
@@ -158,7 +160,7 @@ def test_ca_m08_09_a_failing_service_only_breaks_its_block(services, monkeypatch
     monkeypatch.setattr(panels.equipment_reviews, "due_items", broken)
     blocks = panels.panel("general", *Q1, now=NOW)
     assert blocks["equipment_to_review"].error and blocks["equipment_to_review"].value is None
-    assert blocks["active_members"].value == 163
+    assert num(blocks["active_members"]) == 163
 
 
 def test_ca_m08_09_no_history_module_no_conference_block(services):
@@ -192,6 +194,42 @@ def test_rn_m08_01_real_services_on_an_empty_database_only_return_numbers():
     for name in ("general", "members", "activity"):
         for block in panels.panel(name, *Q1, now=NOW).values():
             assert not block.error, block.code
-            assert block.value is None or isinstance(block.value, int)
+            assert block.value is None or isinstance(block.value.value, int)
             for breakdown in block.breakdowns:
                 assert all(isinstance(c.value, int) for c in breakdown.cells.values())
+
+
+MARCH = (datetime.date(2027, 3, 1), datetime.date(2027, 3, 31))
+
+
+def test_rn_m08_02_a_single_count_of_people_below_the_minimum_is_hidden(services):
+    """Període d'un mes amb 2 altes: el desglossament les amaga i la xifra sola també."""
+    general = panels.panel("general", *MARCH, now=NOW)
+    assert general["new_members"].value.label(3) == "menys de 3"
+    assert general["active_members"].value.label(3) == "163"
+    assert general["free_places"].value.label(3) == "7"  # places, no persones
+    joined, _ = panels.panel("members", *MARCH, now=NOW)["joins_and_leaves"].breakdowns
+    assert joined.total.label(3) == "menys de 3"
+
+
+def test_rn_m08_02_a_retention_from_fewer_than_n_leaves_is_hidden(services):
+    """1 baixa al març sobre 103 actius: el 99 % deixaria deduir la baixa (P-644)."""
+    block = panels.panel("members", *MARCH, now=NOW)["retention"]
+    assert num(block) == 99 and block.value.label(3) == "amagat"
+    q1 = panels.panel("members", *Q1, now=NOW)["retention"]  # 4 baixes: es veu
+    assert q1.value.label(3) == "96"
+
+
+def test_rn_m08_02_rates_counted_on_fewer_than_n_people_are_hidden(services, monkeypatch):
+    few = ActivityStats(places=40, confirmed=2, attended=1, expected=2, weekly={}, free_places=0)
+    monkeypatch.setattr(panels.activity_stats, "stats", lambda s, e, now: few)
+    blocks = panels.panel("activity", *Q1, now=NOW)
+    assert blocks["occupancy"].value.label(3) == "amagat"
+    assert blocks["attendance"].value.label(3) == "amagat"
+
+
+def test_equipment_in_use_only_for_the_current_period(services):
+    """L'estoc del 03 compta l'estat d'avui de les peces: un període passat no surt (P-644)."""
+    past = (datetime.date(2026, 10, 1), datetime.date(2026, 12, 31))
+    assert "equipment_in_use" not in panels.panel("activity", *past, now=NOW)
+    assert num(panels.panel("activity", *Q1, now=NOW)["equipment_in_use"]) == 11
