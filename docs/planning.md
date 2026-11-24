@@ -8,7 +8,7 @@
 <a id="estat"></a>
 ## 1. Estat i numeració dels mòduls
 
-«Estat» és l'estat de la secció d'aquest pla, no del codi: **pendent** (no escrita), **escrit** (per aprovar), **aprovat**. Aprovats: 01, 04, 05a i 05b (27/10/2026); 02, 03, 06 i 09 amb l'apartat d'ajuts (28/10/2026). Ordre de construcció segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md) i la [060](decisions/060-ajustos-de-l-auditoria-del-pla.md): fase 1, 00 → 01 → 04 → 05a → 05b; fase 2, 06 → 02 → 03 → 09 → 07 → 08 (el 06 entra en producció quan existeix el nucli de despeses del 09, T-M09-02 a T-M09-05); després, 10, 11 i 12. **El número identifica el mòdul, no l'ordre de construcció.**
+«Estat» és l'estat de la secció d'aquest pla, no del codi: **pendent** (no escrita), **escrit** (per aprovar), **aprovat**. Aprovats: 01, 04, 05a i 05b (27/10/2026); 02, 03, 06 i 09 amb l'apartat d'ajuts (28/10/2026); 07 i 08, especificacions d'una pàgina (24/11/2026). Ordre de construcció segons la [024](decisions/024-abast-minim-i-ordre-per-deixar-cluber.md) i la [060](decisions/060-ajustos-de-l-auditoria-del-pla.md): fase 1, 00 → 01 → 04 → 05a → 05b; fase 2, 06 → 02 → 03 → 09 → 07 → 08 (el 06 entra en producció quan existeix el nucli de despeses del 09, T-M09-02 a T-M09-05); després, 10, 11 i 12. **El número identifica el mòdul, no l'ordre de construcció.**
 
 | Núm. | Mòdul | Fase | Depèn de | Font de l'especificació | Estat al pla |
 |---|---|---|---|---|---|
@@ -20,8 +20,8 @@
 | **05a** | [Alta del mètode de pagament i mandats](#M05a) | 1 | 01, 04 | Aquest pla | **aprovat** |
 | **05b** | [Cobraments](#M05b) | 1 | 05a | Aquest pla | **aprovat** (ampliat per la 049) |
 | **06** | [Llicències](#M06) | 2 | 01, 05b | Aquest pla | **aprovat** (28/10/2026) |
-| **07** | [Web pública i ajuda](#M07) | 2 | 01, 02 | Aquest pla (spec d'una pàgina) | **escrit** (21/11/2026, per aprovar) |
-| **08** | [Dashboard](#M08) | 2 | 01, 02, 04, 09 | Aquest pla (spec d'una pàgina) | **escrit** (21/11/2026, per aprovar) |
+| **07** | [Web pública i ajuda](#M07) | 2 | 01, 02 | Aquest pla (spec d'una pàgina) | **aprovat** (24/11/2026) |
+| **08** | [Dashboard](#M08) | 2 | 01, 02, 04, 09 | Aquest pla (spec d'una pàgina) | **aprovat** (24/11/2026) |
 | **09** | [Marge, despeses, ajuts i facturació](#M09) (abans «resta de la 04»; amb l'[apartat d'ajuts](#M09-ajuts)) | 2 | 02, 03, 04, 05b | Aquest pla | **aprovat** (28/10/2026) |
 | **10** | Missatges i xat per activitat | després de la 2 | 01, 02 | — | pendent |
 | **11** | Departament d'Història i conferències | després de la 2 | 01, 02, 07 | — | pendent |
@@ -139,10 +139,10 @@
    - [Addenda de la 058: tipus, durades, llicència d'un dia, recàrrec, renovació, format del carnet i caducitat desconeguda](#M06-addenda-058)
    - [Addenda de la 059: permisos editables i configuració inicial](#M06-addenda-059)
    - [Addenda de la 060: ajustos de l'auditoria](#M06-addenda-060)
-14. [Mòdul 07 — Web pública i ajuda](#M07) · [resum](#M07-resum) · **escrit** (21/11/2026; spec d'una pàgina, per aprovar)
+14. [Mòdul 07 — Web pública i ajuda](#M07) · [resum](#M07-resum) · **aprovat** (24/11/2026; spec d'una pàgina)
    1. [Intenció](#M07-1-intencio) · 2. [Dependències](#M07-2-dependencies) · 3. [Capacitats](#M07-3-capacitats) · 4. [Rols](#M07-4-rols) · 5. [Processos](#M07-5-processos) · 6. [Entitats](#M07-6-entitats) · 7. [Regles](#M07-7-regles)
    8. [Serveis](#M07-8-serveis) · 9. [Criteris](#M07-9-criteris) · 10. [Tasques](#M07-10-tasques) · 11. [Proves](#M07-11-proves) · 12. [Seguretat](#M07-12-seguretat) · 13. [Riscos](#M07-13-riscos) · 14. [Aprovar](#M07-14-aprovar)
-15. [Mòdul 08 — Dashboard](#M08) · [resum](#M08-resum) · **escrit** (21/11/2026; spec d'una pàgina, per aprovar)
+15. [Mòdul 08 — Dashboard](#M08) · [resum](#M08-resum) · **aprovat** (24/11/2026; spec d'una pàgina)
    1. [Intenció](#M08-1-intencio) · 2. [Dependències](#M08-2-dependencies) · 3. [Capacitats](#M08-3-capacitats) · 4. [Rols](#M08-4-rols) · 5. [Processos](#M08-5-processos) · 6. [Entitats](#M08-6-entitats) · 7. [Regles](#M08-7-regles)
    8. [Serveis](#M08-8-serveis) · 9. [Criteris](#M08-9-criteris) · 10. [Tasques](#M08-10-tasques) · 11. [Proves](#M08-11-proves) · 12. [Seguretat](#M08-12-seguretat) · 13. [Riscos](#M08-13-riscos) · 14. [Aprovar](#M08-14-aprovar)
 16. [Mòdul 12 — Idees noves (idees registrades)](#M12-idees), amb l'assistent d'ajuts
@@ -6424,7 +6424,7 @@ No canvia cap regla del 06. Hi afegeix d'on surt la sol·licitud de la primera l
 <a id="M07"></a>
 # Mòdul 07 — Web pública i ajuda
 
-**Estat: escrit** (21/11/2026), per aprovar ([M07-14](#M07-14-aprovar)). És una **especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): contingut web), amb les 14 seccions de la [plantilla](#plantilla) en format curt. El responsable del projecte la va demanar alhora que la del [08](#M08) (21/11/2026). Cap regla d'un altre mòdul no canvia.
+**Estat: aprovat** pel propietari el 24/11/2026 (escrit el 21/11/2026; [M07-14](#M07-14-aprovar)). És una **especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): contingut web), amb les 14 seccions de la [plantilla](#plantilla) en format curt. El responsable del projecte la va demanar alhora que la del [08](#M08) (21/11/2026). Cap regla d'un altre mòdul no canvia.
 
 **Fonts:** document de funcionalitats (F §8.2 Web pública, anuncis i butlletí; F §8.6 Preguntes freqüents, Contacte i Tutorials; processos 9.14 i 9.19), mapa de la plataforma v8 (M07a Web i M07b Ajuda, [correspondència](#numeracio)), wireframe `design/wireframes/publica.html`, pantalles «En construcció» d'`apps/previews` (`portada_publica`, T-DX-26; `editor_web`, T-DX-36; `ajuda`, T-DX-28), decisions [032](decisions/032-immersio-socis-i-centre.md) i [034](decisions/034-patrons-magic-portfolio.md) (seccions i estil), [035](decisions/035-dades-nomes-dins-ue.md) i [042](decisions/042-proveidors-substituits-pel-requisit-ue.md) (tipografies i vídeos des del servidor propi), [041](decisions/041-web-installable-i-avisos-sense-push.md) i [046](decisions/046-interficie-django-htmx-servida-des-del-vps.md) (web pública servida des del mateix VPS, sense CDN), [061](decisions/061-plataforma-preparada-per-traduir.md) (idiomes), [062](decisions/062-brevo-es-mante-com-a-proveidor-de-correu.md) (Brevo); pendents P-25, P-40, P-41, P-42, P-43 i P-49.
 
@@ -6671,7 +6671,7 @@ Unitàries (versions, format de text, recomptes, conservació); permisos (una pr
 <a id="M08"></a>
 # Mòdul 08 — Dashboard
 
-**Estat: escrit** (21/11/2026), per aprovar ([M08-14](#M08-14-aprovar)). **Especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): dashboard), amb les 14 seccions en format curt, demanada alhora que la del [07](#M07). No canvia cap regla d'un altre mòdul: només llegeix els seus serveis.
+**Estat: aprovat** pel propietari el 24/11/2026 (escrit el 21/11/2026; [M08-14](#M08-14-aprovar)). **Especificació d'una pàgina** (punt 5 de «Com es treballa» del [`CLAUDE.md`](../CLAUDE.md): dashboard), amb les 14 seccions en format curt, demanada alhora que la del [07](#M07). No canvia cap regla d'un altre mòdul: només llegeix els seus serveis.
 
 **Fonts:** document de funcionalitats (F §8.4 Dashboard de gestió i taula de rols: «poden veure tot el dashboard però no modificar res»), mapa de la plataforma v8 (M09 Dashboard: general, econòmic, d'activitat i de socis), pantalla «En construcció» `dashboard` d'`apps/previews` (T-DX-35, només xifres agregades), [RN-RP-16](#rols-i-permisos-059) i les files DB1 i DB2 de la [matriu](#rols-i-permisos-059-matriu); la columna «Què depèn de» de cada mòdul aprovat (01, 04, 05a, 02, 03, 09, apartat d'ajuts i 06).
 
