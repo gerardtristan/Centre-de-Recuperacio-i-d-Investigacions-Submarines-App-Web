@@ -1118,6 +1118,18 @@ opcions:
       dies dels terminis són «com la quota». Només és una proposta: el tresorer marca l'impagat a mà, amb
       motiu, i el carnet continua vàlid fins llavors.
     data: 2026-11-19
+  P-551:
+    opcions:
+      A: "Com s'ha construït: sense reduir; es treuen les metadades dels JPEG i dels PNG, i el límit és el de validate_upload (10 MB)."
+      B: "Afegir Pillow (dependència nova, risc:alt): reduir el costat llarg i tornar a desar la imatge sense cap metadada."
+      C: "A, i a més un límit de mida més petit només per a les fotos (un ajust)."
+      D: "Acceptar només PDF i JPEG fets des de la pantalla, que redueix la imatge al navegador abans d'enviar-la."
+    recomanada: A
+    perque: >-
+      Mentre VC-56 és apagat no es desa cap foto; A compleix el que importa per a la privacitat
+      (sense GPS ni metadades) sense cap dependència, i B es pot afegir després sense tocar les dades.
+    data: 2026-11-24
+
   P-403:
     opcions:
       A: "Com s'ha construït: desactivar-la només deixa d'oferir-la; les quotes amb una targeta ja guardada es continuen cobrant."
