@@ -1,12 +1,12 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
 {# T-M01-36: confirmació en bloc de les caducitats d'any natural pendents (RN-M01-56, P19 sencer i P4). La llista no mostra els registres del teu soci, però el servidor torna a comprovar el permís, el conflicte d'interès, que siguin pendents i les dates; tot o res, i cada registre queda al registre d'activitat amb el valor anterior. La declaració del soci no és aquí. #}
-{% block title %}{% translate "Llicències pendents de confirmar" %} · C.R.I.S.{% endblock %}
+{% block title %}{% translate "Llicències de la fitxa per confirmar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Socis" %}</p>
-    <h1>{% translate "Llicències pendents de confirmar" %}</h1>
+    <h1>{% translate "Llicències de la fitxa per confirmar" %}</h1>
   </header>
   {# Deposito (T-DX-16): el comptador del panell de revisió, amb la llista que la vista ja dona. #}
   <ul class="deposito-comptadors" aria-label="{% translate 'Resum de la revisió' %}">

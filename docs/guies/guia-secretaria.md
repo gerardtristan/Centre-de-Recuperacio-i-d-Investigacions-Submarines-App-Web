@@ -44,8 +44,8 @@ A **Sol·licituds de socis** arriben les que fan els socis des de la seva àrea,
 - **Baixa:** abans de validar-la, llegeix **«Què passarà en validar-la»**. Després, **Valida la baixa** o **Rebutja**, sempre amb motiu. Si el soci tenia un canvi de tipus pendent, es cancel·la amb el motiu «baixa».
 - Ningú no pot resoldre una sol·licitud seva.
 
-## 6. Llicències pendents de confirmar
-A **Llicències pendents de confirmar** surten les caducitats d'any natural que cal confirmar. Marca les correctes i prem **Confirma les seleccionades**.
+## 6. Llicències de la fitxa per confirmar
+A **Llicències de la fitxa per confirmar** (menú «Socis») surten les caducitats d'any natural que cal confirmar. Marca les correctes i prem **Confirma les seleccionades**.
 
 La tramitació a la federació, els venciments i la resta del mòdul de llicències són a la [guia de llicències](guia-secretaria-llicencies.md).
 

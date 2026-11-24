@@ -58,7 +58,7 @@ Posar-hi la data la converteix en una llicència normal: comença a rebre avisos
 - **En bloc:** marca les d'any natural sense data, tria l'any (l'actual o el següent) i prem **Confirma les seleccionades**. Caducaran el 31/12 d'aquell any. Si alguna no es pot confirmar (per exemple, comença després del 31/12), no se'n confirma cap.
 - **Una a una:** **Confirma…** al costat de cada una. Si el titular ja ha escrit la data a «La meva llicència», la columna «Declarada pel titular» la mostra i el camp ja la porta: comprova-la amb la federació i confirma-la.
 
-Mentre el titular l'ha declarada però tu no l'has confirmada, continua pendent: cap avís ni cap altre mòdul no la veu. Les pendents de confirmar que ja són al mòdul de llicències no surten a la pantalla antiga de la fitxa del soci («Llicències pendents de confirmar» del menú de socis). **Abans d'obrir les inscripcions del mòdul d'activitats, confirma-les totes** (RN-M02-34).
+Mentre el titular l'ha declarada però tu no l'has confirmada, continua pendent: cap avís ni cap altre mòdul no la veu. Les pendents de confirmar que ja són al mòdul de llicències no surten a la pantalla antiga de la fitxa del soci («Llicències de la fitxa per confirmar» del menú de socis). **Abans d'obrir les inscripcions del mòdul d'activitats, confirma-les totes** (RN-M02-34).
 
 ## 7. «Ja en tinc una»
 Si una persona ja té la llicència d'una altra banda, es desa amb el número, el tipus i la data de caducitat, sense càrrec ni tramitació. Si no se sap la data d'inici, es pren el dia que es declara [A validar: P-443].
