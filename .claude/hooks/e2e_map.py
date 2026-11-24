@@ -295,6 +295,13 @@ MAP = {
         "apps/dashboard/panels.py",
         "templates/dashboard/*",
     ),
+    "test_dashboard_llavor.py": (
+        "apps/dashboard/views.py",
+        "apps/dashboard/panels.py",
+        "apps/dashboard/privacy.py",
+        "apps/core/management/commands/seed_demo_data.py",
+        "templates/dashboard/*",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
