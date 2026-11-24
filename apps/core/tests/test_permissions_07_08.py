@@ -1,6 +1,6 @@
 """Permisos del 07 i del 08 per cel·la i les pantalles dels seus ajustos (T-M07-02; CA-M07-18;
-CA-M08-12; T-M08-02 i 03). La taula és la matriu inicial de M07-4 i M08-4 (planning.md), copiada a
-mà: si el catàleg se n'aparta, la prova falla. Només dades inventades."""
+CA-M08-12; T-M08-02 i 03; P-645). La taula és la matriu inicial de M07-4 i M08-4 (planning.md),
+copiada a mà: si el catàleg se n'aparta, la prova falla. Només dades inventades."""
 
 import pytest
 from django.urls import reverse
@@ -38,9 +38,11 @@ MATRIX = {
     "settings.edit.website.contact_retention_months": ADMIN,
     "dashboard.view": (N, Y, Y, Y, Y, Y, Y, Y, N),  # DB1
     "dashboard.actions": (N, N, Y, N, Y, N, Y, Y, N),  # DB2
-    "settings.section.dashboard": ADMIN,
+    "settings.section.dashboard": (N, N, CONS, N, N, N, Y, N, N),  # P-645
     "settings.edit.dashboard.help_text": ADMIN,
     "settings.edit.dashboard.min_group_size": ADMIN,
+    "settings.edit.dashboard.low_occupancy_pct": (N, N, Y, N, N, N, Y, N, N),  # P-645
+    "settings.edit.dashboard.default_period": ADMIN,  # P-645
 }
 CELLS = [(code, role, row[i]) for code, row in MATRIX.items() for i, role in enumerate(ROLES)]
 
@@ -123,3 +125,13 @@ def test_without_the_dashboard_section_the_screen_is_not_found(make_admin, role)
         == 404
     )
     assert business_settings.get(key) == ""
+
+
+def test_p645_the_courses_manager_sees_the_dashboard_section_but_not_the_help_texts(make_admin):  # noqa: F811
+    # El llindar d'ocupació (`dashboard.low_occupancy_pct`) arriba amb la T-M08-10: aquí només la
+    # part del nucli, l'apartat amb «Cons.» i cap altre valor editable.
+    client = admin_client(make_admin(R.COURSES_MANAGER))
+    assert client.get(section_url("dashboard")).status_code == 200
+    key = "dashboard.help_text.retention"
+    response = client.post(detail_url("dashboard", key), {"value": "x", "note": "Prova"})
+    assert response.status_code == 404 and business_settings.get(key) == ""
