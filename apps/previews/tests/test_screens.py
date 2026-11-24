@@ -22,13 +22,15 @@ def test_a_screen_that_already_works_is_no_longer_under_construction():
     """§6.9: cap pantalla en construcció al costat de la real. Rols i permisos és a
     `/gestio/permisos/` (T-RP-03), i la de prova es retira (T-DX-74). Les del 02 (T-DX-95): la
     fitxa i la inscripció són a `/activitats/` (#497, #498) i «Activitats» del soci és «Les meves
-    activitats» (`activities:mine`, #499)."""
+    activitats» (`activities:mine`, #499). Transferències i pagaments a revisar (T-DX-121): la
+    conciliació (T-M04-14) i els pagaments (T-M05b-16) ja tenen la seva llista «a revisar»."""
     for name in (
         "rols_permisos",
         "activitats",
         "activitats_per_a_tu",
         "fitxa_activitat",
         "inscripcio",
+        "revisar_pagaments",
     ):
         assert name not in SCREENS
 
