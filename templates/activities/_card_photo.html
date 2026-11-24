@@ -1,5 +1,5 @@
 {% load i18n %}
-{# T-M02-42b (RN-M02-47): cos comú de la pujada de la foto del carnet (àrea personal i administració), amb el recurs Expositor (regles a la vista, una cel·la per cara pujada i el recompte; pla dels recursos externs). Les regles diuen per a què serveix, quant temps es conserva (VC-57) i que no s'hi pugi cap document de salut. Les cares que ja tenen foto es diuen, però la foto no es mostra. Sense JavaScript ni vista prèvia. El servidor ho torna a comprovar tot (titular o AC25, agència, una per cara, VC-56). #}
+{# T-M02-42b (RN-M02-47): cos comú de la pujada de la foto del carnet (àrea personal i administració), amb el recurs Expositor (regles a la vista, una cel·la per cara pujada i el recompte; pla dels recursos externs). Les regles diuen per a què serveix, quant temps es conserva (VC-57) i que no s'hi pugi cap document de salut. Cada cara pujada enllaça a la vista que la desxifra amb permís i registre (T-M02-43); la pàgina no la mostra. Sense JavaScript ni vista prèvia. El servidor ho torna a comprovar tot (titular o AC25, agència, una per cara, VC-56). #}
 <dl class="dades-soci">
   <div><dt>{% translate "Titulació" %}</dt><dd>{{ cert.level|default:cert.speciality }}{% if cert.number %} ({{ cert.number }}){% endif %}</dd></div>
   <div><dt>{% translate "Agència" %}</dt><dd>{{ cert.agency|default:"—" }}</dd></div>
@@ -23,6 +23,7 @@
           <span class="expositor-nom">{{ photo.get_side_display }}</span>
           <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</span>
         </p>
+        <a href="{% url file_route photo.file_id %}">{% translate "Veure-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></a>
       </li>
       {% endfor %}
     </ul>

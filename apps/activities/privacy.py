@@ -11,6 +11,9 @@ fa classe** i les **activitats de què és responsable**.
   conserven. Les activitats de què era responsable no es reassignen soles: el resum de qui aprova
   l'esborrat ho diu. Treure-la de les sessions futures on feia classe és de la T-M02-04 (decisió
   101).
+- **Fotos dels carnets** (T-M02-43; RN-M02-48 i 54; P-552): a l'exportació, només les dades
+  de cada foto (titulació, cara i data); la foto es descarrega a part per la vista amb registre.
+  En anonimitzar, se n'esborren les files; el fitxer el fa caducar la 00 (`ERASABLE_KINDS`).
 - **Inscripcions i assistència** (T-M02-16c; L-M02-07): a l'exportació, les seves inscripcions
   (activitat, estat, canal, preu, data i motiu de la cancel·lació) i la seva assistència (activitat,
   dia i si hi era). En anonimitzar, el motiu de la cancel·lació (text lliure, que pot dir alguna
@@ -28,6 +31,7 @@ from .attendance import day_of
 from .models import (
     Activity,
     Attendance,
+    CertificationCardPhoto,
     DiverCertification,
     Enrolment,
     PracticeAssessment,
@@ -58,6 +62,17 @@ def export(person) -> dict:
             }
             for c in _certifications(person)
         ],
+        # T-M02-43 (P-552): les dades de la foto; la foto, des de «Les meves titulacions».
+        "fotos_dels_carnets": [
+            {
+                "titulacio": str(p.certification.level or p.certification.speciality or ""),
+                "cara": p.get_side_display(),
+                "pujada_el": p.uploaded_at,
+            }
+            for p in CertificationCardPhoto.objects.filter(certification__person=person)
+            .select_related("certification__level", "certification__speciality")
+            .order_by("uploaded_at", "pk")
+        ],  # fmt: skip
         "sessions_on_fa_classe": [
             {"activitat": s.activity.title, "comenca": s.starts_at, "classe": s.get_kind_display()}
             for s in Session.objects.filter(instructors=person).select_related("activity")
@@ -150,6 +165,9 @@ def describe(person) -> list[str]:
 
 
 def anonymise(person, *, by, request=None) -> None:
+    # T-M02-43 (RN-M02-54): les fotos dels carnets s'esborren al moment. La 00 fa caducar els
+    # fitxers (`ERASABLE_KINDS`) a la mateixa transacció i els esborra en confirmar-la.
+    CertificationCardPhoto.objects.filter(certification__person=person).delete()
     # T-M02-16c: el motiu de la cancel·lació és text lliure; l'estat i el preu es queden. Una
     # inscripció cancel·lada ha de tenir motiu (restricció de la base de dades): un text neutre.
     Enrolment.objects.filter(person=person).exclude(cancelled_reason="").update(

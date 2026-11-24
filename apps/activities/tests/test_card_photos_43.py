@@ -1,0 +1,70 @@
+# ruff: noqa: F811 (fixtures importades com a paràmetres)
+"""Veure les fotos dels carnets, exportació RGPD i esborrat en anonimitzar (T-M02-43; RN-M02-48 i
+54; CA-M02-51 i 57; P-552). Només dades inventades."""
+
+import pytest
+from django.urls import reverse
+
+from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
+from apps.activities import privacy
+from apps.activities.models import CertificationCardPhoto
+from apps.core import files
+from apps.core.audit import Action
+from apps.core.models import AuditEntry, PrivateFile, Role
+from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+
+from .helpers import a_member
+from .test_card_photos import JPEG, cert, holder, photos_on, upload  # noqa: F401 (fixtures)
+from .test_filings import levels, padi_cert, secretary  # noqa: F401 (fixtures)
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def photo(photos_on, cert, holder):
+    return upload(cert, holder)
+
+
+def opened():
+    return AuditEntry.objects.filter(action=Action.FILE_OPENED).count()
+
+
+def test_ca_m02_51_the_holder_and_ac24_see_it_and_each_opening_is_audited(
+    login_as, photo, holder, secretary
+):
+    response = login_as(holder, AREA_PERSONAL).get(
+        reverse("core:private_file", args=[photo.file_id])
+    )
+    assert response.status_code == 200 and response["Content-Disposition"].startswith("inline")
+    staff = login_as(secretary, AREA_ADMIN)
+    assert (
+        staff.get(reverse("administration:private_file", args=[photo.file_id])).status_code == 200
+    )
+    assert opened() == 2
+    # La pantalla de la foto hi enllaça.
+    page = staff.get(reverse("administration:certification_photo", args=[photo.certification_id]))
+    assert reverse("administration:private_file", args=[photo.file_id]) in page.content.decode()
+
+
+def test_ca_m02_51_an_instructor_or_another_member_gets_not_found(login_as, photo, make_admin):
+    other = login_as(a_member("Pau"), AREA_PERSONAL)
+    assert other.get(reverse("core:private_file", args=[photo.file_id])).status_code == 404
+    instructor = login_as(make_admin(Role.Code.INSTRUCTOR), AREA_ADMIN)
+    url = reverse("administration:private_file", args=[photo.file_id])
+    assert instructor.get(url).status_code == 404
+    assert opened() == 0  # no es desxifra res
+
+
+def test_ca_m02_57_the_export_has_the_photo_data_but_never_the_photo(photo, holder):
+    data = privacy.export(holder.person)
+    assert data["fotos_dels_carnets"] == [
+        {"titulacio": "Open Water (inventat)", "cara": "Anvers", "pujada_el": photo.uploaded_at}
+    ]
+    assert str(photo.file_id) not in str(data) and "storage" not in str(data)
+
+
+def test_ca_m02_57_anonymising_erases_the_photos_at_once(photo, holder, secretary):
+    privacy.anonymise(holder.person, by=secretary)
+    files.expire_owner_files(holder.person)  # el pas de la 00, a la mateixa transacció
+    assert not CertificationCardPhoto.objects.exists()
+    assert not files.can_access(holder, PrivateFile.objects.get(pk=photo.file_id))

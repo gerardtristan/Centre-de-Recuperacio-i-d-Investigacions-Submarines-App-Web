@@ -1160,6 +1160,18 @@ opcions:
       Deixar fora una nota amb motiu protegeix les dades d'altres persones, que és el que justifica la
       revisió; i com que lliurar-les no es pot desfer, que ho decideixi el propietari abans d'encendre-ho.
     data: 2026-11-20
+  P-552:
+    opcions:
+      A: "Com s'ha construït: a l'exportació, les dades de cada foto (titulació, cara i data); la foto, a part per la vista amb registre."
+      B: "Posar la foto dins de l'exportació (en base64), i xifrar també l'exportació amb la clau dels fitxers."
+      C: "Un ZIP de l'exportació amb les fotos, xifrat a l'emmagatzematge i desxifrat per la vista amb registre."
+      D: "Les fotos no hi surten de cap manera: el titular les veu a «Les meves titulacions»."
+    recomanada: A
+    perque: >-
+      La persona continua tenint accés a les seves fotos (dret d'accés) sense que surtin mai del
+      magatzem xifrat ni de la vista amb registre; B i C demanen tocar el nucli de l'exportació RGPD.
+    data: 2026-11-24
+
   P-406:
     opcions:
       A: "Com s'ha construït: el tresorer rep un correu per quota (motiu i si s'ha avisat el soci), però la quota no va «a revisar»."

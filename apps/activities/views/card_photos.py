@@ -46,7 +46,7 @@ def enabled() -> bool:
     return bool(business_settings.get(PHOTOS_KEY))
 
 
-def _page(request, cert, *, template, done):
+def _page(request, cert, *, template, done, file_route):
     if not enabled():
         raise Http404
     form = PhotoForm(request.POST or None, request.FILES or None)
@@ -66,6 +66,7 @@ def _page(request, cert, *, template, done):
         "form": form,
         "sides": cert.card_photos.order_by("-side"),  # l'anvers primer
         "months": business_settings.get(RETENTION_KEY),
+        "file_route": file_route,  # la vista que desxifra amb permís i registre (T-M02-43)
     }
     return render(request, template, context)
 
@@ -76,7 +77,7 @@ def my_photo_view(request, pk):
     cert = get_object_or_404(DiverCertification, pk=pk, person=_person(request))
     return _page(
         request, cert, template="activities/my_card_photo.html",
-        done=("activities:my_certifications",),
+        done=("activities:my_certifications",), file_route="core:private_file",
     )  # fmt: skip
 
 
@@ -88,4 +89,5 @@ def admin_photo_view(request, pk):
     return _page(
         request, cert, template="activities/admin_card_photo.html",
         done=("administration:certification_photo", cert.pk),
+        file_route="administration:private_file",
     )  # fmt: skip
