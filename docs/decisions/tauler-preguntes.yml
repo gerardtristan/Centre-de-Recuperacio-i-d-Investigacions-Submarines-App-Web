@@ -1609,6 +1609,8 @@ noves:
     perque: >-
       És el que diu M08-6, i mentre falta el permís propi ningú que no sigui administrador pot canviar res;
       afegir un permís és torn del nucli i no es pot fer des del carril del 08.
+      Construïda per defecte a core/0080 (low_occupancy_pct: RCS i administrador; default_period:
+      administrador; RCS «Cons.» a l'apartat).
     data: 2026-11-24
   P-646:
     opcions:
