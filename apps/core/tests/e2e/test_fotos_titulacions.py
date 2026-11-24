@@ -50,10 +50,11 @@ def test_member_and_secretary_upload_the_card_photos(
     # T-DX-117: la zona per arrossegar-hi la foto (zona-magnetica.js) diu el fitxer triat i rebutja
     # el que no és una foto ni un PDF abans d'enviar-lo (el servidor ho torna a comprovar).
     zone = page.locator("[data-zona-magnetica]")
-    # T-DX-120: el botó «Tria un fitxer» del sistema; el camp natiu, transparent, té el focus i el nom
+    # T-DX-120: el botó «Tria un fitxer» del sistema; el camp natiu, transparent, té el focus
     expect(zone.locator(".zm-tria-fitxer .boto")).to_have_text("Tria un fitxer")
     page.get_by_label("Foto o PDF").focus()
-    expect(zone.locator(".zm-tria-fitxer")).to_have_css("outline-style", "none")  # el contorn és al botó
+    # el contorn és al botó, no al contenidor
+    expect(zone.locator(".zm-tria-fitxer")).to_have_css("outline-style", "none")
     expect(zone.locator(".zm-tria-fitxer .boto")).not_to_have_css("outline-style", "none")
     note = tmp_path / "nota.txt"
     note.write_text("no és una foto")
