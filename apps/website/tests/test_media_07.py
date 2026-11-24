@@ -1,14 +1,13 @@
-"""Fotos i fitxers de la web (T-M07-07; P-M07-C, RN-M07-05 i 14; CA-M07-05; P-489). WP1 i WP3
-són del catàleg del nucli (T-M07-02): aquí es declaren només per a la prova. Fitxers inventats."""
+"""Fotos i fitxers de la web (T-M07-07; P-M07-C, RN-M07-05 i 14; CA-M07-05; P-489). WP1 i WP3,
+amb la matriu inicial de la T-M07-02 (`core/0078`). Fitxers inventats."""
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
+from django.core.files.storage import storages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import Http404
 
-from apps.core import permissions
-from apps.core.models import AuditEntry, Role, RolePermission
-from apps.core.permission_catalog import CATALOG, Permission
+from apps.core.models import AuditEntry, Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.website import media, pages
 from apps.website.models import MediaAsset, Page
@@ -20,16 +19,7 @@ COMPLETE = {"author": "Autora Inventada", "licence_note": "Cedida al club"}
 
 
 @pytest.fixture
-def editor(monkeypatch, make_admin):  # noqa: F811
-    extra = {
-        code: Permission(code=code, ref=ref, description=code)
-        for code, ref in ((pages.PERMISSION, "WP1"), (media.PERMISSION, "WP3"))
-    }
-    monkeypatch.setattr(permissions, "CATALOG", {**CATALOG, **extra})
-    for code in extra:
-        RolePermission.objects.create(
-            role=Role.objects.get(code=R.ADMINISTRATOR), permission_code=code, scope="all"
-        )
+def editor(make_admin):  # noqa: F811
     return make_admin(R.ADMINISTRATOR)
 
 
@@ -158,7 +148,52 @@ def test_a_role_without_wp3_gets_not_found(editor, make_admin):  # noqa: F811
     assert MediaAsset.objects.get().status == MediaAsset.Status.ACTIVE
 
 
-def test_until_t_m07_02_nobody_can_upload(make_admin):  # noqa: F811
-    with pytest.raises(ImproperlyConfigured):
-        media.upload(SimpleUploadedFile("foto.png", PNG), actor=make_admin(R.ADMINISTRATOR),
-                     alt_text="x", shows_people=False)  # fmt: skip
+def test_the_president_has_wp3_too(make_admin):  # noqa: F811
+    asset = _photo(make_admin(R.PRESIDENT), **COMPLETE)  # M07-4
+    assert asset.publishable
+
+
+def test_unknown_fields_are_a_programming_error(editor):
+    with pytest.raises(ValueError):
+        _photo(editor, status="retired")
+    asset = _photo(editor, **COMPLETE)
+    with pytest.raises(ValueError):
+        media.update_details(asset, actor=editor, storage_key="un-altre")
+    assert MediaAsset.objects.count() == 1
+
+
+def test_a_failed_save_removes_the_stored_file(editor, monkeypatch):
+    storage, stored = storages["private"], []
+    real_save = storage.save
+
+    def save(*args, **kwargs):
+        stored.append(real_save(*args, **kwargs))
+        return stored[-1]
+
+    monkeypatch.setattr(storage, "save", save)
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("base de dades no disponible")
+
+    monkeypatch.setattr(MediaAsset, "save", broken)
+    with pytest.raises(RuntimeError):
+        _photo(editor, **COMPLETE)
+    assert stored and not storage.exists(stored[0])
+
+
+@pytest.mark.parametrize(
+    "block", [{"kind": "image", "media": ["una", "llista"]}, {"kind": "gallery", "media": "una"}]
+)
+def test_an_image_block_carries_one_photo_and_a_gallery_a_list(editor, block):
+    with pytest.raises(ValidationError):
+        pages.publish_page(_page(editor), [block], editor)
+    assert media.block_media_keys(["no és un bloc", {"kind": "text"}]) == []
+
+
+def test_names_and_unknown_page_fields(editor):
+    asset = _photo(editor, **COMPLETE)
+    page = _page(editor)
+    version = pages.publish_page(page, _image(asset), editor)
+    assert (str(asset), str(page), str(version)) == ("Una barca", "Proves", "Proves v1")
+    with pytest.raises(ValueError):
+        pages.save_page(page, actor=editor, status="published")
