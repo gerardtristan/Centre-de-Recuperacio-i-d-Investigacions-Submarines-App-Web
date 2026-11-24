@@ -193,6 +193,10 @@ MAP = {
         "apps/activities/views/member_certifications.py",
         "templates/activities/my_certifications.html",
     ),
+    "test_activitats_estats.py": (
+        "apps/activities/views/admin_activities.py",
+        "templates/activities/activity_detail.html",
+    ),
     "test_activitats_admin.py": (
         "apps/activities/views/*",
         "apps/activities/admin_urls.py",
@@ -213,6 +217,8 @@ MAP = {
         "apps/activities/views/outcomes.py",
         "templates/activities/course_outcomes.html",
         "templates/activities/certificate.html",
+        "apps/activities/views/reinforcement.py",
+        "templates/activities/reinforcement_*",
     ),
     "test_despeses.py": (
         "apps/expenses/views.py",

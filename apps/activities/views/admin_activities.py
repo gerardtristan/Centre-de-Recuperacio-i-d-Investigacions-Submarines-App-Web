@@ -9,9 +9,12 @@ preu estàndard i el motiu del preu diferent (06b; vistes de la T-M02-40, RN-M02
 - Publicar, tancar, cancel·lar, sessions, programa i duplicar són de la T-M02-06c.
 """
 
+import datetime
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -21,7 +24,16 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.core.charges import euros
 from apps.core.permissions import has_perm, permission_required
 
-from .. import closing, enrolment, guests, material_cost, services, sessions, states
+from .. import (
+    cancellation,
+    closing,
+    enrolment,
+    guests,
+    material_cost,
+    services,
+    sessions,
+    states,
+)
 from ..forms import ActivityForm, GuestEnrolmentForm, MaterialCostForm
 from ..models import Activity, SpecialitiesRule
 from ..permissions import (
@@ -43,6 +55,7 @@ ADD_TITLES = {K.COURSE: _("Curs nou"), K.OUTING: _("Sortida nova")}
 ADDED = _("Activitat creada en esborrany. Afegeix-hi les sessions o el programa i publica-la.")
 SAVED = _("Canvis desats. Queden al registre d'activitat amb el valor anterior.")
 UNCHANGED = _("No hi havia cap canvi per desar.")
+STATE_DONE = _("Estat desat. Queda al registre d'activitat.")
 DESK_DONE = _("Inscripció feta. Si es paga, la persona rebrà al correu l'enllaç per pagar.")
 LIVE = "vives"
 FILTERS = (
@@ -178,6 +191,59 @@ def _desk_form(request, activity, data=None):
     return form
 
 
+def _state_actions(request, activity) -> list[tuple[str, str]]:
+    """Els passos d'estat que el responsable pot fer ara (RN-M02-02). El servei torna a
+    comprovar el permís i les condicions; aquí només es decideix quins botons surten."""
+    if not has_perm(request.user, MANAGE, write=True):
+        return []
+    targets, actions = states.allowed_targets(activity), []
+    if activity.status == S.DRAFT:
+        actions.append(("publica", _("Publica")))
+    if activity.status == S.OPEN:
+        actions.append(("tanca", _("Tanca les inscripcions")))
+    if activity.status == S.REGISTRATION_CLOSED:
+        actions.append(("reobre", _("Reobre les inscripcions")))
+    if S.DONE in targets:
+        actions.append(("feta", _("Marca-la com a feta")))
+    return actions
+
+
+def _change_state(request, activity):
+    """T-M02-06c1: publicar, tancar, reobrir, marcar feta o cancel·lar (amb motiu; les
+    inscripcions i els càrrecs, amb `cancellation.cancel_activity`, RN-M02-13)."""
+    action, who = request.POST.get("accio"), {"by": request.user, "request": request}
+    steps = {
+        "publica": lambda: states.publish(activity, **who),
+        "tanca": lambda: states.close_registration(activity, **who),
+        "reobre": lambda: states.reopen_registration(
+            activity, closes_at=_moment(request.POST.get("closes_at")), **who
+        ),
+        "feta": lambda: states.mark_done(activity, **who),
+        "cancella": lambda: cancellation.cancel_activity(
+            activity, reason=request.POST.get("motiu", ""), **who
+        ),
+    }
+    if action not in steps:
+        raise Http404
+    try:
+        steps[action]()
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, STATE_DONE)
+    return _to_detail(activity)
+
+
+def _moment(value):
+    """La data límit nova en reobrir (opcional): `AAAA-MM-DDTHH:MM`, en l'hora local."""
+    if not value:
+        return None
+    try:
+        return timezone.make_aware(datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M"))
+    except ValueError as error:
+        raise ValidationError(_("Escriu el dia i l'hora de la data límit.")) from error
+
+
 def _detail(request, activity, material_form=None, desk_form=None):
     without_instructor = set(
         sessions.sessions_without_instructor(timezone.now())
@@ -206,6 +272,9 @@ def _detail(request, activity, material_form=None, desk_form=None):
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
+        "state_actions": _state_actions(request, activity),
+        "can_cancel": S.CANCELLED in states.allowed_targets(activity)
+        and has_perm(request.user, MANAGE, write=True),
         # T-M02-22b: «Què falta per tancar» (sense dades personals; el tancament és del 09)
         "blockers": closing.closing_blockers(activity) if activity.status == S.DONE else None,
     }
@@ -223,6 +292,8 @@ def activity_detail_view(request, pk):
         return _detail(request, activity)
     if "inscripcio_presencial" in request.POST:
         return _enrol_at_desk(request, activity)
+    if "accio" in request.POST:
+        return _change_state(request, activity)
     # Fora del seu abast, «no trobat» i registre (el servei ho torna a mirar)
     require(request.user, MATERIAL_COST, activity, request=request)
     form = MaterialCostForm(request.POST)

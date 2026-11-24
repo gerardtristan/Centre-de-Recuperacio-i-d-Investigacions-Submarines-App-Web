@@ -1,0 +1,54 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-18b (P-M02-F passos 3 i 4; AC10b i AC11; CA-M02-18): les propostes de reforç d'un curs. Qui té AC11 confirma (una sessió per classe, només d'aquell alumne, i el càrrec del preu de reforç de la fitxa) o rebutja amb motiu; els formularis surten segons el permís, però el servidor ho torna a comprovar. Dels alumnes, només el nom; el motiu és pedagògic. #}
+{% block title %}{% translate "Classes de reforç" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Classes de reforç" %}</p>
+    <h1>{{ activity.title }}</h1>
+    {% if can_decide %}<p class="text-2">{% if price is None %}{% translate "La fitxa d'aquest curs encara no té preu de reforç: cal posar-n'hi un al catàleg (pot ser 0) abans de confirmar." %}{% else %}{% blocktranslate with amount=price_label %}Preu de reforç de la fitxa: {{ amount }} per proposta confirmada.{% endblocktranslate %}{% endif %}</p>{% endif %}
+  </header>
+  {% include "activities/_missatges.html" %}
+  {% for proposal in proposals %}
+    <section class="targeta" aria-labelledby="proposta-{{ proposal.pk }}">
+      <h2 id="proposta-{{ proposal.pk }}">{{ proposal.enrolment.person.first_name }} {{ proposal.enrolment.person.last_name }}</h2>
+      <p>
+        {% if proposal.status == "proposed" %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ proposal.get_status_display }}</span>
+        {% elif proposal.status == "confirmed" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ proposal.get_status_display }}</span>
+        {% else %}<span class="estat estat-neutre"><span aria-hidden="true">–</span> {{ proposal.get_status_display }}</span>{% endif %}
+        · {% blocktranslate count classes=proposal.classes %}{{ classes }} classe{% plural %}{{ classes }} classes{% endblocktranslate %}
+      </p>
+      <p class="text-2">{{ proposal.reason }}{% if proposal.decision_reason %}<br>{{ proposal.decision_reason }}{% endif %}</p>
+      {% if can_decide and proposal.status == "proposed" %}
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="proposta" value="{{ proposal.pk }}">
+            {% for n in proposal.numbers %}
+                <fieldset>
+                  <legend>{% blocktranslate %}Classe {{ n }}{% endblocktranslate %}</legend>
+                  <div class="camp"><label for="dia-{{ proposal.pk }}-{{ n }}">{% translate "Dia" %}</label><input id="dia-{{ proposal.pk }}-{{ n }}" type="date" name="dia-{{ n }}"></div>
+                  <div class="camp"><label for="inici-{{ proposal.pk }}-{{ n }}">{% translate "Comença" %}</label><input id="inici-{{ proposal.pk }}-{{ n }}" type="time" name="inici-{{ n }}"></div>
+                  <div class="camp"><label for="final-{{ proposal.pk }}-{{ n }}">{% translate "Acaba" %}</label><input id="final-{{ proposal.pk }}-{{ n }}" type="time" name="final-{{ n }}"></div>
+                  <div class="camp"><label for="classe-{{ proposal.pk }}-{{ n }}">{% translate "Classe" %}</label><select id="classe-{{ proposal.pk }}-{{ n }}" name="classe-{{ n }}">{% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                  <div class="camp"><label for="lloc-{{ proposal.pk }}-{{ n }}">{% translate "Lloc" %}</label><select id="lloc-{{ proposal.pk }}-{{ n }}" name="lloc-{{ n }}"><option value="">{% translate "Tria…" %}</option>{% for place in places %}<option value="{{ place.pk }}">{{ place.name }}</option>{% endfor %}</select></div>
+                  <div class="camp"><label for="instructor-{{ proposal.pk }}-{{ n }}">{% translate "Instructor" %}</label><select id="instructor-{{ proposal.pk }}-{{ n }}" name="instructor-{{ n }}"><option value="">{% translate "Tria…" %}</option>{% for teacher in teachers %}<option value="{{ teacher.pk }}">{{ teacher }}</option>{% endfor %}</select></div>
+                </fieldset>
+            {% endfor %}
+          <div class="accions"><button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Confirma el reforç" %}</button></div>
+        </form>
+        <form class="formulari" method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="proposta" value="{{ proposal.pk }}">
+          <div class="camp">
+            <label for="rebuig-{{ proposal.pk }}">{% translate "Motiu del rebuig" %}</label>
+            <textarea id="rebuig-{{ proposal.pk }}" name="motiu" rows="2" aria-describedby="rebuig-ajuda-{{ proposal.pk }}"></textarea>
+            <p class="ajuda" id="rebuig-ajuda-{{ proposal.pk }}">{{ reason_help }}</p>
+          </div>
+          <div class="accions"><button class="boto" type="submit" name="rebutja" value="1">{% translate "Rebutja la proposta" %}</button></div>
+        </form>
+      {% endif %}
+    </section>
+  {% empty %}
+    <p>{% translate "Cap proposta de reforç en aquest curs." %}</p>
+  {% endfor %}
+{% endblock %}

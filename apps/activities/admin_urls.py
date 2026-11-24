@@ -7,7 +7,7 @@ from .views import admin_activities as activities
 from .views import admin_catalogue as entries
 from .views import admin_filings as filings
 from .views import admin_places as places
-from .views import assessment, attendance, outcomes
+from .views import assessment, attendance, outcomes, reinforcement
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -51,5 +51,12 @@ urlpatterns = [
         "activitats/<int:pk>/certificat/<int:enrolment_pk>/",
         outcomes.certificate_view,
         name="course_certificate",
+    ),
+    # T-M02-18b: classes de reforç (proposta AC10b, decisió AC11)
+    path("activitats/<int:pk>/reforc/", reinforcement.list_view, name="reinforcement_list"),
+    path(
+        "activitats/<int:pk>/reforc/proposa/<int:enrolment_pk>/",
+        reinforcement.propose_view,
+        name="reinforcement_propose",
     ),
 ]
