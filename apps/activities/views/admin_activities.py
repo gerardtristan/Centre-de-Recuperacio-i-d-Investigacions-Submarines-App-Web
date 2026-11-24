@@ -44,6 +44,7 @@ from ..permissions import (
     MATERIAL_COST,
     MATERIAL_COST_FIELD,
     PLACES_VIEW,
+    REPORTS,
     require,
 )
 from . import see_other
@@ -337,6 +338,7 @@ def _detail(
         "any_speciality": activity.specialities_rule == SpecialitiesRule.ANY,
         "editable": states.is_editable(activity),
         "margin_link": has_perm(request.user, MARGIN_VIEW, activity),
+        "reports_link": has_perm(request.user, REPORTS, activity),  # T-M02-24b
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),
