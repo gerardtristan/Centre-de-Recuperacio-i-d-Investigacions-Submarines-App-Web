@@ -10,11 +10,14 @@
 .gastos-cols { display: grid; gap: var(--e-5); }
 .gastos-anell { margin: 0; display: grid; justify-items: center; gap: var(--e-3); position: relative; }
 .gastos-anell svg { inline-size: 100%; max-inline-size: var(--carnet-amplada); display: block; }
+/* Dins d'una targeta (el marge d'una activitat, T-DX-106), l'anell acompanya les xifres: més petit (D13). */
+.targeta .gastos-anell svg { max-inline-size: calc(var(--e-8) * 3); }
 .gastos-pista { stroke: var(--c-linia); }
 .gastos-seg-1 { stroke: var(--c-mari); background: var(--c-mari); }
 .gastos-seg-2 { stroke: var(--c-accent); background: var(--c-accent); }
 .gastos-seg-3 { stroke: var(--c-info); background: var(--c-info); }
 .gastos-seg-4 { stroke: var(--c-sistema); background: var(--c-sistema); }
+.gastos-seg-5 { stroke: var(--c-text-2); background: var(--c-text-2); } /* «Altres» (T-DX-106) */
 /* El total, al mig de l'anell: la mateixa cel·la de la graella que l'SVG */
 .gastos-anell svg, .gastos-centre { grid-area: 1 / 1; }
 .gastos-centre { align-self: center; display: grid; justify-items: center; gap: var(--e-1); }

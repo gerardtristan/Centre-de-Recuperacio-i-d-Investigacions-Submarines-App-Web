@@ -64,6 +64,11 @@ def _lines(margin) -> dict:
             (name, euros(c)) for name, c in margin.breakdown["costs_by_category"].items()
         ],
         "rental": margin.breakdown["rental"]["cents"],
+        # Gastos (T-DX-106): on van els costos, en cèntims; l'anell el calcula `anell_gastos`
+        "segments": [
+            *margin.breakdown["costs_by_category"].items(),
+            (_("Cost de material"), margin.material_cost_cents),
+        ],
     }
 
 
