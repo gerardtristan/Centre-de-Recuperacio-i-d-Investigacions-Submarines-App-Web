@@ -1298,6 +1298,15 @@ opcions:
     perque: >-
       Una factura a una empresa no és de cap persona i C ho diu tal com és; mentre no hi hagi el torn del nucli,
       A no dona accés a ningú que no el tingués (qui la demana ja té MG9) i és el valor per defecte.
+  P-593:
+    opcions:
+      A: "Excloure-la amb el motiu «sense còpia emmascarada» fins que el tresorer pugi la còpia."
+      B: "Posar-hi l'original i avisar el tresorer."
+      C: "No deixar generar el paquet fins que totes les despeses tinguin la còpia."
+    recomanada: A
+    perque: >-
+      Cap IBAN no surt sense que la convocatòria ho demani (051); a diferència de C, el tresorer veu el paquet i què li falta,
+      i en pot generar un de nou en pujar les còpies.
     data: 2026-11-24
 
 noves:
