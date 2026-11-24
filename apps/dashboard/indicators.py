@@ -170,8 +170,8 @@ CATALOG = _catalog(
        _("Inscripcions confirmades de cada setmana del període."),
        "activities.stats", "count", "people", ACTIVITY_REPORTS),
     _i("equipment_in_use", ("activity",), _("Material en ús"),
-       _("Equips en ús (lliurats i no retornats) o assignats el darrer dia del període, "
-         "segons l'estoc del material (CA-M03-15)."),
+       _("Equips en ús (lliurats i no retornats) o assignats avui, segons l'estoc del material "
+         "(CA-M03-15); només surt per al període en curs."),
        "equipment.stock", "count", "other", EQUIPMENT_STOCK),
     # Socis
     _i("joins_and_leaves", ("members",), _("Altes i baixes per mes"),
@@ -184,8 +184,9 @@ CATALOG = _catalog(
        _("1 − baixes del període / socis actius el primer dia del període."),
        "members.stats", "percent", "people", MEMBERS),
     _i("signed_mandates", ("members",), _("Mandats signats"),
-       _("Mandats signats durant la campanya de mandats; només mentre hi ha campanya."),
-       "payments.campaign_status", "count", "people", MANDATES),
+       _("Socis que han signat un mandat des que es va obrir la campanya de mandats; només "
+         "mentre hi ha campanya."),
+       "payments.mandates_signed", "count", "people", MANDATES),
     # Comunicació
     _i("confirmed_subscribers", ("communication",), _("Subscriptors confirmats"),
        _("Subscriptors del butlletí que han confirmat el correu."),

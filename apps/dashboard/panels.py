@@ -5,7 +5,9 @@ Cada panell és un diccionari {codi de l'indicador: `Block`}, en l'ordre del cat
 els mesos i es passa pels grups petits. Res de cap persona (RN-M08-01): només recomptes,
 percentatges i imports.
 - **Grups petits** (RN-M08-02): un desglossament d'un indicador de persones passa per
-  `privacy.suppress`; una xifra sola no és un desglossament i no s'amaga.
+  `privacy.suppress`; una xifra sola de persones per sota de la mida mínima també surt «menys
+  de N», i un percentatge de persones calculat sobre menys de N persones (el numerador) surt
+  «amagat» (P-644). Cada xifra sola és una `privacy.Cell`.
 - **Mòdul absent o que falla** (RN-M08-11): sense servei, el bloc no surt (les conferències,
   fins que existeixi l'11; els mandats, sense campanya oberta); si el servei falla, el bloc porta
   `error` i la resta del panell es calcula igual.
@@ -51,7 +53,7 @@ class Breakdown:
 @dataclass(frozen=True)
 class Block:
     code: str
-    value: int | None = None  # xifra sola (recompte, percentatge o cèntims); None = sense dades
+    value: privacy.Cell | None = None  # xifra sola (recompte, % o cèntims); None = sense dades
     breakdowns: tuple = ()  # desglossaments (Breakdown)
     error: bool = False  # RN-M08-11: «No s'ha pogut calcular»
 
@@ -62,8 +64,9 @@ class Block:
 
 def _months(starts_on, ends_on):
     """El darrer dia de cada mes del període (o `ends_on`, si és abans)."""
-    # shortcut: el període comença el dia 1 perquè `members.stats` compta per mesos naturals;
-    # si «darrers 12 mesos» (T-M08-09) no fos de mesos sencers, caldria un servei per dates.
+    # shortcut: el període ha de començar el dia 1 (P-641) perquè `members.stats` compta per mesos
+    # naturals; si no, ValueError. La vista (T-M08-09) ha de validar el període abans de cridar
+    # `panel` i fer «darrers 12 mesos» de mesos sencers; si no pot, caldrà un servei per dates.
     if starts_on.day != 1:
         raise ValueError("El període ha de començar el dia 1 d'un mes.")
     month = starts_on
@@ -128,6 +131,13 @@ def _with_status(stats, status) -> dict:
 # --- Lectures de cada indicador ---------------------------------------------------------------
 
 
+def _rate(r, percent, part):
+    """Un percentatge de persones calculat sobre menys de N persones s'amaga (RN-M08-02, P-644)."""
+    if percent is None:
+        return None
+    return privacy.Cell(percent, privacy.HIDDEN if part < r.min_size else privacy.SHOWN)
+
+
 def active_members(r):
     return sum(_with_status(r.members_on(r.last_day), M.ACTIVE).values())
 
@@ -175,22 +185,24 @@ def retention(r):
     if not active or r.starts_on > r.today:
         return None
     left = sum(stats.left for stats in r.monthly().values())
-    return round(100 - 100 * left / active)
+    return _rate(r, round(100 - 100 * left / active), left)
 
 
 def signed_mandates(r):
     campaign = campaigns.open_campaign_now()
     if campaign is None:
         return NOT_AVAILABLE
-    return campaigns.campaign_status(campaign)["direct_debit"]
+    return campaigns.mandates_signed(campaign)
 
 
 def occupancy(r):
-    return r.activities().occupancy_percent
+    stats = r.activities()
+    return _rate(r, stats.occupancy_percent, stats.confirmed)
 
 
 def attendance(r):
-    return r.activities().attendance_percent
+    stats = r.activities()
+    return _rate(r, stats.attendance_percent, stats.attended)
 
 
 def weekly_enrolments(r):
@@ -198,7 +210,10 @@ def weekly_enrolments(r):
 
 
 def equipment_in_use(r):
-    return equipment_stock.in_use_count(r.last_day)
+    # L'estoc del 03 llegeix l'estat d'avui de les peces: només per al període en curs (P-644).
+    if not r.starts_on <= r.today <= r.ends_on:
+        return NOT_AVAILABLE
+    return equipment_stock.in_use_count(r.today)
 
 
 READS = {
@@ -233,7 +248,11 @@ def _block(code, reads) -> Block | None:
         return None
     if isinstance(result, tuple):
         return Block(code, breakdowns=result)
-    return Block(code, value=result)
+    if result is None or isinstance(result, privacy.Cell):
+        return Block(code, value=result)
+    indicator = CATALOG[code]
+    small = indicator.kind == "people" and indicator.unit == "count" and result < reads.min_size
+    return Block(code, value=privacy.Cell(result, privacy.BELOW if small else privacy.SHOWN))
 
 
 def panel(name, starts_on, ends_on, now=None) -> dict[str, Block]:
