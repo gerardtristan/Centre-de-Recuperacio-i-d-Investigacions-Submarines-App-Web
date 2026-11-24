@@ -578,3 +578,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-42b](T-M02-42b.md) | Pantalles per pujar la foto del carnet (àrea personal i fitxa de l'homologació), només amb VC-56 encès (carril X) | 24/11/2026 13:04 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-43](T-M02-43.md) | Veure i esborrar les fotos dels carnets; amb VC-56 apagat no s'obren ni per l'adreça directa (2 funcions al nucli; carril X) | 24/11/2026 14:07 | (vegeu la PR) | 7 noves, 2 del nucli i 1 e2e ampliada | [A comprovar] |
 | [T-M02-47](T-M02-47.md) | Esborrat automàtic de les fotos dels carnets per la cua (VC-57; carril X) | 24/11/2026 14:20 | (vegeu la PR) | 4 noves | [A comprovar] |
+| [T-M02-49](T-M02-49.md) | El flux de la foto i l'homologació al navegador, a quatre amplades i en clar i en fosc (part; carril X) | 24/11/2026 14:37 | (vegeu la PR) | 1 e2e | [A comprovar] |
