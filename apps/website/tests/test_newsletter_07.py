@@ -166,3 +166,12 @@ def test_only_confirmed_subscriptions_are_recipients(text):
     gone, _ = newsletter.subscribe("b@example.com", legal_text=text, now=now)
     newsletter.unsubscribe(gone.token)
     assert list(newsletter.recipients()) == [confirmed]
+
+
+@pytest.mark.parametrize("method", ["head", "put"])
+@pytest.mark.parametrize(
+    "url", [URL, "/butlleti/confirmar/x/", "/butlleti/baixa/x/"], ids=["form", "confirm", "baixa"]
+)
+def test_ca_m07_10_switched_off_any_method_is_not_found(client, method, url):
+    """Revisió de la #582: l'interruptor es mira abans del mètode."""
+    assert getattr(client, method)(url).status_code == 404
