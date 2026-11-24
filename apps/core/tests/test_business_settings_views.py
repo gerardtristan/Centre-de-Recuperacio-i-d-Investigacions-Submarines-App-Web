@@ -98,7 +98,10 @@ def test_rn_rp_22_read_only_sees_values_but_no_form_and_a_post_is_recorded(make_
 
 def test_rn_rp_03_edit_permission_covers_only_its_value(make_admin):
     client = admin_client(make_admin(R.TREASURER))
-    assert b"Canvia: Dies de prova" in client.get(section_url()).content
+    assert (
+        '<span class="visualment-amagat">Canvia: Dies de prova</span>'
+        '<span aria-hidden="true">Canvia' in client.get(section_url()).content.decode()
+    )  # T-DX-103: el nom, només per al lector de pantalla
     assert client.post(detail_url(DAYS), {"value": "10", "note": ""}).status_code == 302
     assert service.get(DAYS) == 10
     assert client.post(detail_url(LIST), {"value": "10"}).status_code == 404
