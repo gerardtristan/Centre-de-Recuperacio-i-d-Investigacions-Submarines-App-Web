@@ -305,6 +305,7 @@ class EmailLinkRequest(models.Model):
         CHANGE_EMAIL = "email", _("Canvi del correu d'entrada")
         GUEST_LINK_FAILED = "guestfail", _("Enllaç de convidat que no ha funcionat")
         GUEST_LINK_REQUEST = "guestnew", _("Petició d'un enllaç de convidat nou")
+        GUEST_LICENCE = "licguest", _("Sol·licitud de llicència d'un convidat")  # P-450
 
     class Status(models.TextChoices):
         # T-M01-39b: només la recuperació de la contrasenya passa per la cua. La resta de

@@ -2,7 +2,7 @@
 
 from procrastinate.contrib.django import app
 
-from . import cancellation, deadlines, notifications, sessions, states
+from . import cancellation, card_photos, deadlines, notifications, sessions, states
 
 
 # Cada 10 minuts: tanca les inscripcions que han arribat a la data límit i posa «en curs» els
@@ -42,3 +42,10 @@ def release_former_instructors(timestamp: int) -> None:
 @app.task(name="activities.send_reminders", queue="maintenance")
 def send_reminders(timestamp: int) -> None:
     notifications.send_reminders()
+
+
+# Cada dia, de matinada: esborra les fotos dels carnets vençudes (VC-57, RN-M02-54; T-M02-47).
+@app.periodic(cron="30 3 * * *")
+@app.task(name="activities.purge_card_photos", queue="maintenance")
+def purge_card_photos(timestamp: int) -> None:
+    card_photos.purge_expired()

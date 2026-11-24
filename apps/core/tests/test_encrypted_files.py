@@ -28,6 +28,12 @@ def _store(owner, kind=Kind.EXPENSE_INVOICE, content=PDF, content_type="applicat
 
 
 @pytest.fixture
+def no_module_guards(monkeypatch):
+    """Sense les condicions que hi afegeixen els mòduls (p. ex. VC-56 del 02): només el nucli."""
+    monkeypatch.setattr(files, "_ACCESS_GUARDS", {})
+
+
+@pytest.fixture
 def fresh_file_keys():
     crypto._file_fernet.cache_clear()
     yield
@@ -111,7 +117,9 @@ def test_justification_documents_only_for_treasurer_and_board(personal_account, 
     assert not files.can_access(personal_account, file)
 
 
-def test_issued_invoice_and_card_photo_open_for_the_owner(personal_account, make_admin):
+def test_issued_invoice_and_card_photo_open_for_the_owner(
+    personal_account, make_admin, no_module_guards
+):
     invoice = _store(personal_account.person, kind=Kind.ISSUED_INVOICE)
     photo = _store(personal_account.person, kind=Kind.CERTIFICATION_PHOTO)
     assert files.can_access(personal_account, invoice)
@@ -175,7 +183,7 @@ def test_view_serves_the_document_decrypted_to_the_treasurer(personal_account, m
     assert AuditEntry.objects.filter(action=Action.FILE_OPENED).count() == 1
 
 
-def test_view_shows_images_inline(personal_account, login_as):
+def test_view_shows_images_inline(personal_account, login_as, no_module_guards):
     photo = _store(
         personal_account.person,
         kind=Kind.CERTIFICATION_PHOTO,
@@ -201,3 +209,28 @@ def test_view_is_not_found_for_the_uploader_and_other_roles(personal_account, ma
     for code in (Role.Code.ADMINISTRATOR, Role.Code.SECRETARY):
         assert admin_client(make_admin(code)).get(url).status_code == 404
     assert not AuditEntry.objects.filter(action=Action.FILE_OPENED).exists()
+
+
+# --- Esborrar-ne un i condicions dels mòduls (T-M02-43) -----------------------------------------
+
+
+def test_delete_now_hides_the_file_removes_the_content_and_audits(
+    personal_account, django_capture_on_commit_callbacks, no_module_guards
+):
+    file = _store(personal_account.person, kind=Kind.CERTIFICATION_PHOTO)
+    with django_capture_on_commit_callbacks(execute=True):
+        files.delete_now(file, actor=personal_account)
+    file.refresh_from_db()
+    assert file.deleted_at is not None and not files.can_access(personal_account, file)
+    assert not storages["private"].exists(file.storage_key)
+    entry = AuditEntry.objects.get(action=Action.FILE_DELETED)
+    assert (entry.actor_account, entry.target_id) == (personal_account, str(file.pk))
+
+
+def test_a_registered_guard_closes_the_kind_for_everyone(personal_account, make_admin, monkeypatch):
+    monkeypatch.setitem(files._ACCESS_GUARDS, Kind.ISSUED_INVOICE, lambda file: False)
+    file = _store(personal_account.person, kind=Kind.ISSUED_INVOICE)
+    assert not files.can_access(personal_account, file)
+    assert not files.can_access(make_admin(Role.Code.TREASURER), file)
+    with pytest.raises(Http404):
+        files.open_decrypted(personal_account, file)

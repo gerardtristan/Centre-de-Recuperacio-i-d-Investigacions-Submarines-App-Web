@@ -34,7 +34,7 @@ from apps.licences.services import LicenceRequestError
 from .. import catalogue, filings
 from ..models import CertificationFiling, CertificationLevel, DiverCertification
 from ..permissions import CARD_PHOTOS_MANAGE, FILINGS
-from . import see_other
+from . import card_photos, see_other
 
 F = CertificationFiling
 LIST = "administration:filings"
@@ -184,6 +184,9 @@ def _detail(request, filing, *, done_form=None, reject_form=None):
         "can_file": can_change and filing.status == F.Status.REQUESTED,
         "done_form": (done_form or DoneForm()) if can_change else None,
         "reject_form": (reject_form or RejectForm()) if can_change else None,
+        # T-M02-42b: pujar la foto del carnet de la titulació d'origen.
+        "can_photo": card_photos.enabled()
+        and has_perm(request.user, CARD_PHOTOS_MANAGE, write=True),
     }
     return render(request, "activities/filing_detail.html", context)
 

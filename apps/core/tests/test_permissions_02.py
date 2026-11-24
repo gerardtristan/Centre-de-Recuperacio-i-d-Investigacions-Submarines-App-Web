@@ -44,6 +44,7 @@ MATRIX = {
     "activities.filings.manage": (None, Y, None, None, None, None, Y, Y, None),  # AC26
     "activities.first_licence.view": (None, Y, Y, None, Y, None, Y, Y, None),  # AC27
     "activities.first_licence.manage": (None, None, Y, None, Y, None, Y, Y, None),  # AC28
+    "activities.certifications.manage": (None, Y, Y, None, None, None, Y, None, CONS),  # AC29
 }
 CELLS = [(code, role, row[i]) for code, row in MATRIX.items() for i, role in enumerate(ROLES)]
 

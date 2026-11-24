@@ -408,3 +408,22 @@ def test_president_edits_the_home_news_and_admin_a_dashboard_help_text(page, liv
     expect(page.get_by_text("Valor desat.")).to_be_visible()
     review("dashboard-ajustos-text-ajuda")
     assert business_settings.get("dashboard.help_text.active_members").startswith("Inclou")
+
+
+def test_dashboard_help_texts_are_short_cards_on_a_phone(page, live_server, review):
+    # T-DX-103: els 25 textos d'ajuda del dashboard (buits d'inici). A 390 px cada targeta deixa
+    # fora les cel·les sense valor (`cel-buida`) i l'enllaç diu «Canvia»; a 1280 px hi tornen.
+    admin = make_admin("admin.prova", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos del dashboard").click()
+    expect(page.get_by_role("heading", name="Ajustos del dashboard")).to_be_visible()
+    empty = page.locator("tbody td.cel-buida")
+    assert empty.count() >= 25
+    expect(empty.first).to_be_visible()  # a la taula, «—»
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert all(not cell.is_visible() for cell in empty.all())
+    first = page.locator("tbody .cel-accions a").first
+    expect(first.locator('[aria-hidden="true"]')).to_have_text("Canvia")  # el nom, al lector
+    page.set_viewport_size({"width": 1280, "height": 900})
+    review("dashboard-apartat")

@@ -5,7 +5,7 @@ titulacions i, d'una titulació d'una agència que no és la de destinació, dem
   identificador de persona a la URL. La titulació es busca entre les seves: una d'una altra
   persona dona «no trobat». El servei (`filings.request_homologation`) ho torna a comprovar.
 - Es mostra l'estat de l'última homologació de cada titulació; mai el número d'una altra persona
-  ni cap foto (les fotos són de la T-M02-42).
+  ni cap foto. Amb VC-56 encès, enllaça a la pujada de la foto del carnet (T-M02-42b).
 """
 
 from django.contrib import messages
@@ -17,6 +17,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.models import Account
+from apps.core import business_settings
 
 from .. import catalogue, certifications, filings
 from ..models import CertificationFiling, DiverCertification
@@ -33,7 +34,7 @@ def _person(request):
 
 
 def _rows(person):
-    target = catalogue.target_agency()
+    target, photos = catalogue.target_agency(), business_settings.get(filings.PHOTOS_KEY)
     latest = {}
     for filing in F.objects.filter(person=person, kind=F.Kind.HOMOLOGATION).order_by(
         "requested_at", "pk"
@@ -52,6 +53,7 @@ def _rows(person):
             "origin": certifications.ORIGIN_LABELS[certifications.origin(cert)],
             "filing": filing,
             "can_request": can_request,
+            "can_photo": photos and target is not None and cert.agency_id not in (None, target.pk),
         })  # fmt: skip
     return rows, target
 

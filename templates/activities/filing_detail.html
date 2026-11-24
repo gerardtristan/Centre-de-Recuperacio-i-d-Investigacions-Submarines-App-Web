@@ -21,6 +21,7 @@
       {% if filing.filed_at %}<div><dt>{% translate "Tramitada el" %}</dt><dd><time datetime="{{ filing.filed_at|date:'Y-m-d' }}">{{ filing.filed_at|date:"d/m/Y" }}</time></dd></div>{% endif %}
       {% if filing.reason %}<div><dt>{% translate "Motiu del rebuig" %}</dt><dd>{{ filing.reason }}</dd></div>{% endif %}
     </dl>
+    {% if can_photo %}<p class="enllacos"><a href="{% url 'administration:certification_photo' source.pk %}">{% translate "Puja la foto del carnet" %}</a></p>{% endif %}
     {% endwith %}
     {% if can_file %}
       <form method="post" action="{% url 'administration:filing_filed' filing.pk %}" class="accions">

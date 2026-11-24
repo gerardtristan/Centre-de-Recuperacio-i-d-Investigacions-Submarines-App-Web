@@ -1,5 +1,5 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
+{% load i18n vigencia %}
 {# T-M06-09 i T-M06-10 (vistes v1): llistat de llicències amb filtres i venciments (LC4), tramitar, deixar vigent i exportar per a la federació (LC5; RN-M06-11, CA-M06-10). Sense wireframe propi (T-M06-01): segueix les pantalles de la tresoreria. El número, la categoria i el venciment només amb el camp C6 (CA-M06-33); mai la data de naixement ni el document. Els botons només surten amb LC5, però no són el control: el servidor ho torna a comprovar. #}
 {% block title %}{% translate "Llicències" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
@@ -60,7 +60,7 @@
           </td>
           {% if details %}
             <td data-etiqueta="{% translate 'Categoria' %}">{% if row.category == "amateur" %}{% translate "Aficionat" %}{% elif row.category == "technical" %}{% translate "Tècnic" %}{% else %}{% translate "Altres" %}{% endif %}</td>
-            <td data-etiqueta="{% translate 'Caduca' %}">{% if row.expires_on %}<time datetime="{{ row.expires_on|date:'Y-m-d' }}">{{ row.expires_on|date:"d/m/Y" }}</time>{% else %}{% translate "Per confirmar" %}{% endif %}</td>
+            <td data-etiqueta="{% translate 'Caduca' %}"><div>{% if row.expires_on %}<time datetime="{{ row.expires_on|date:'Y-m-d' }}">{{ row.expires_on|date:"d/m/Y" }}</time>{% else %}{% translate "Per confirmar" %}{% endif %}{% if row.status == "to_renew" %}{% vigencia row.expires_on "llicencia" %}{% endif %}</div></td>
             <td data-etiqueta="{% translate 'Número federatiu' %}">{% if row.federation_number %}<span class="codi">{{ row.federation_number }}</span>{% else %}—{% endif %}</td>
           {% endif %}
           {% if can_file %}

@@ -30,6 +30,16 @@ class ActivitiesConfig(AppConfig):
         from . import catalogue
 
         business_settings.register_check(catalogue.TARGET_AGENCY_KEY, catalogue.check_target_agency)
+
+        # RN-M02-56 (T-M02-43): amb VC-56 apagat, cap foto de carnet no s'obre.
+        from apps.core import files
+        from apps.core.models import PrivateFile
+
+        from . import card_photos
+
+        files.register_access_guard(
+            PrivateFile.Kind.CERTIFICATION_PHOTO, card_photos.photos_enabled
+        )
         business_settings.register_check(
             catalogue.LICENCE_CATEGORY_KEY, catalogue.check_licence_category
         )
