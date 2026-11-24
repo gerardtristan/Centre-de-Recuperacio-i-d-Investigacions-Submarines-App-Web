@@ -5,6 +5,10 @@ CA-M09-01). Sense permís, «no trobat»: ho comproven el decorador i els servei
   la T-M09-25 (tipus de fitxer privat i xifratge, 051): fins llavors, la despesa neix «sense
   factura» i en surt l'avís (CA-M09-01).
 - **Sense factura** (MG2, consulta): les despeses vives sense factura, la més antiga primer.
+- **Documents d'una despesa** (T-M09-04b, 05 i 15; RN-M09-25): adjuntar la factura (MG1) o el
+  comprovant del banc (MG2), i, per al tresorer (MG2 i C5), marcar-los il·legibles i pujar-ne la
+  còpia emmascarada. Obrir-los és la vista `private_file` (C5, amb registre). Els serveis
+  (`documents.py`) tornen a comprovar-ho tot.
 """
 
 from decimal import Decimal
@@ -13,7 +17,7 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
@@ -22,10 +26,10 @@ from django.views.decorators.http import require_http_methods
 from apps.core.charges import euros
 from apps.core.models import Department
 from apps.core.permission_catalog import SCOPE_ALL
-from apps.core.permissions import require_perm
+from apps.core.permissions import has_perm, request_permissions, require_perm, scope_for
 
-from . import services
-from .models import ExpenseCategory, Supplier
+from . import documents, services
+from .models import DocumentIllegibleMark, Expense, ExpenseCategory, Supplier
 
 WITHOUT_INVOICE_URL = "administration:expenses_without_invoice"
 
@@ -102,7 +106,81 @@ def without_invoice_view(request):
     require_perm(request, services.PAY)
     rows = services.without_invoice().select_related("supplier", "department")
     rows = [
-        {"expense": row, "amount": euros(row.amount_cents)}
+        {
+            "expense": row,
+            "amount": euros(row.amount_cents),
+            "illegible": row.invoice_file_id is not None,  # sense factura amb fitxer: il·legible
+        }
         for row in rows.order_by("invoice_date", "pk")
     ]
     return render(request, "expenses/without_invoice.html", {"rows": rows})
+
+
+Document = DocumentIllegibleMark.Document
+# Document → permís per pujar-lo (com `documents._FIELDS`).
+UPLOAD_PERMISSION = {Document.INVOICE: services.RECORD, Document.PAYMENT_PROOF: services.PAY}
+DONE = {
+    "attach": gettext_lazy("Document desat. Només l'obren el tresorer i la junta."),
+    "masked": gettext_lazy("Còpia emmascarada desada."),
+    "illegible": gettext_lazy("Document marcat com a il·legible. Qui l'havia pujat en rep l'avís."),
+}
+
+
+def _post_documents(request, expense):
+    document, action = request.POST.get("document"), request.POST.get("action")
+    if document not in UPLOAD_PERMISSION or action not in DONE:
+        raise Http404
+    uploaded = request.FILES.get("fitxer")
+    try:
+        if action == "illegible":
+            reason = request.POST.get("motiu", "")
+            documents.mark_illegible(expense, document, reason=reason, by=request.user,
+                                     request=request)  # fmt: skip
+        elif uploaded is None:
+            raise ValidationError(_("Tria un fitxer."))
+        elif action == "attach":
+            documents.attach(expense, document, uploaded, by=request.user, request=request)
+        else:
+            documents.attach_masked_copy(expense, document, uploaded, by=request.user,
+                                         request=request)  # fmt: skip
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+    else:
+        messages.success(request, DONE[action])
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def documents_view(request, pk):
+    perms = request_permissions(request)
+    can = {code: scope_for(request.user, code, permissions=perms) == SCOPE_ALL
+           for code in (services.RECORD, services.PAY)}  # fmt: skip
+    if not any(can.values()):
+        raise Http404
+    expense = get_object_or_404(Expense.objects.select_related("supplier", "department"), pk=pk)
+    if request.method == "POST":
+        _post_documents(request, expense)
+        return redirect("administration:expense_documents", expense.pk)
+    can_open = has_perm(request.user, documents.OPEN_DOCUMENTS, permissions=perms)
+    live = expense.status != Expense.Status.ANNULLED
+    rows = []
+    for document, permission in UPLOAD_PERMISSION.items():
+        file = getattr(expense, f"{document}_file")
+        illegible = file is not None and documents.illegible(expense, document)
+        rows.append({
+            "code": document,
+            "label": Document(document).label,
+            "file": file,
+            "illegible": illegible,
+            "masked": file is not None and documents.masking_status(expense, document) == "masked",
+            "can_upload": live and can[permission] and (file is None or illegible),
+        })  # fmt: skip
+    context = {
+        "expense": expense,
+        "amount": euros(expense.amount_cents),
+        "rows": rows,
+        "can_open": can_open,
+        "treasurer": live and can[services.PAY] and can_open,
+        "accept": ",".join(sorted(documents.DOCUMENT_TYPES)),
+    }
+    return render(request, "expenses/documents.html", context)
