@@ -116,18 +116,21 @@ CATALOG = _catalog(
        _("Socis amb l'estat «impagat» el darrer dia del període (RN-M01-07)."),
        "members.stats", "count", "people", FEES),
     _i("free_places", ("general",), _("Places lliures a les properes activitats"),
-       _("Places totals menys inscripcions confirmades de les activitats obertes que "
-         "comencen després d'avui."),
+       _("Places totals menys places ocupades (inscripcions pendents de pagament, confirmades "
+         "i amb la plaça oferta, RN-M02-07) de les activitats obertes que comencen després "
+         "d'avui."),
        "activities.stats", "count", "other", ACTIVITY_REPORTS),
     _i("licences_to_renew", ("general", "members"), _("Llicències per renovar"),
        _("Llicències vigents que caduquen dins dels dies de «per renovar» de les "
          "llicències (VC-41)."),
        "licences.expiring", "count", "people", LICENCES),
     _i("equipment_to_review", ("general",), _("Material per revisar"),
-       _("Equips amb una revisió prevista abans del final del període."),
+       _("Equips que no són de baixa amb la revisió vençuda o dins dels dies d'avís de les "
+         "revisions del material (RN-M03-15)."),
        "equipment.stock", "count", "other", EQUIPMENT_REVIEWS),
     _i("grants_closing", ("general",), _("Ajuts que tanquen aviat"),
-       _("Dates de les convocatòries d'ajuts dins dels dies d'avís dels ajuts (VC-36)."),
+       _("Dates del calendari dels ajuts (tancaments, respostes previstes, justificacions i "
+         "requeriments) d'avui fins al tram d'avís més llarg dels ajuts (VC-36)."),
        "grants.calendar", "count", "other", GRANTS),
     # Econòmic
     _i("activity_margin", ("economic",), _("Marge de les activitats realitzades"),
@@ -167,7 +170,8 @@ CATALOG = _catalog(
        _("Inscripcions confirmades de cada setmana del període."),
        "activities.stats", "count", "people", ACTIVITY_REPORTS),
     _i("equipment_in_use", ("activity",), _("Material en ús"),
-       _("Equips prestats o assignats a una activitat el darrer dia del període."),
+       _("Equips en ús (lliurats i no retornats) o assignats el darrer dia del període, "
+         "segons l'estoc del material (CA-M03-15)."),
        "equipment.stock", "count", "other", EQUIPMENT_STOCK),
     # Socis
     _i("joins_and_leaves", ("members",), _("Altes i baixes per mes"),

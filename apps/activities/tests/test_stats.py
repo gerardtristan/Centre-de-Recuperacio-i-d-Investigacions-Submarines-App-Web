@@ -12,7 +12,7 @@ from apps.activities.models import Activity, Attendance, Enrolment, Session
 from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
-from .helpers import a_person, a_place, outing_data
+from .helpers import a_course, a_person, a_place, outing_data
 
 pytestmark = pytest.mark.django_db
 A, E = Activity.Status, Enrolment.Status
@@ -34,17 +34,19 @@ def place(manager):
     return a_place(manager, prices=None)
 
 
-def activity(place, day, places=10, status=A.OPEN, kind=Activity.Kind.OUTING):
-    data = outing_data(place, starts_on=day, ends_on=day, max_places=places, status=status)
-    if kind == Activity.Kind.COURSE:
-        data.update(kind=kind, outing_type=None)
-    return Activity.objects.create(**data)
+def activity(place, day, places=10, status=A.OPEN):
+    reason = "Motiu inventat" if status == A.CANCELLED else ""
+    return Activity.objects.create(**outing_data(
+        place, starts_on=day, ends_on=day, max_places=places, status=status,
+        cancellation_reason=reason,
+    ))  # fmt: skip
 
 
 def enrol(target, status=E.CONFIRMED, made=None, first="Inscrita"):
     return Enrolment.objects.create(
         activity=target, person=a_person(first), status=status, channel="account",
         price_kind="member", price_cents=4500, created_at=made or moment(JUNE),
+        cancelled_reason="Motiu inventat" if status == E.CANCELLED else "",
     )  # fmt: skip
 
 
@@ -80,7 +82,8 @@ def test_free_places_are_of_open_upcoming_activities_minus_occupying(place):
 
 
 def test_attendance_of_done_course_sessions_and_finished_outings(manager, place):
-    course = activity(place, datetime.date(2027, 6, 14), kind=Activity.Kind.COURSE)
+    course = a_course(manager)  # 14 i 15 de juny
+    Activity.objects.filter(pk=course.pk).update(status=A.IN_PROGRESS)
     done = Session.objects.create(
         activity=course, kind="pool", starts_at=moment(datetime.date(2027, 6, 14)),
         ends_at=moment(datetime.date(2027, 6, 14), 12), place=place,
