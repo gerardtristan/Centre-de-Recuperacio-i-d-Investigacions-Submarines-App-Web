@@ -1,7 +1,9 @@
 """Lots i línies d'importació (spec 00; contracte compartit de la T-M01-24).
 
 Els altres mòduls hi escriuen només a través d'aquest servei. En el recorregut de Cluber, el lot
-només es crea en confirmar i neix confirmat (T-M01-25); les transicions (desfer) no hi són.
+només es crea en confirmar i neix confirmat (T-M01-25). Desfer un lot (`mark_undone`) també
+passa per aquí (P-445): el mòdul comprova les seves regles i desfà el que ha creat, i el nucli
+marca el lot.
 """
 
 from django.utils import timezone
@@ -23,6 +25,16 @@ def open_confirmed(kind: str, *, file_sha256: str, by, counts: dict) -> ImportBa
         confirmed_at=now,
         **counts,
     )
+
+
+def mark_undone(batch: ImportBatch, *, by) -> ImportBatch:
+    """Lot confirmat → desfet per `by`, ara (P-445). El cridant l'ha bloquejat dins la seva
+    transacció i ja ha comprovat les seves regles; un lot que no és confirmat no es toca."""
+    if batch.status != ImportBatch.Status.CONFIRMED:
+        raise ValueError(f"Només es desfà un lot confirmat (el {batch.pk} és «{batch.status}»).")
+    batch.status, batch.undone_by, batch.undone_at = ImportBatch.Status.UNDONE, by, timezone.now()
+    batch.save(update_fields=["status", "undone_by", "undone_at"])
+    return batch
 
 
 def add_lines(batch: ImportBatch, lines: list[dict]) -> None:
