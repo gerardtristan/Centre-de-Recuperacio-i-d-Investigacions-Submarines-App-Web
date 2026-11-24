@@ -577,3 +577,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
 | [T-M08-03](T-M08-03.md) | Dashboard: supressió de grups petits i ajust de la mida mínima (carril Y) | 24/11/2026 12:04 | cbc9f950 | 12 noves | [A comprovar] |
 | [T-M07-02](T-M07-02.md) | Permisos WP1 a WP8, DB1 i DB2 i els dels ajustos del 07 i del 08 (torn del nucli; core/0078; carril Y) | 24/11/2026 13:07 | 2e74c587, c2ca8445 | 200 noves i 1 e2e | [A comprovar] |
+| [T-M02-08c](T-M02-08c.md) | Places lliures a les dades públiques d'una activitat, sense cap nom (carril X) | 24/11/2026 17:19 | (vegeu la PR) | 1 nova | [A comprovar] |
