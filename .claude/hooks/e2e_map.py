@@ -204,6 +204,11 @@ MAP = {
         "apps/activities/views/member_certifications.py",
         "templates/activities/my_certifications.html",
     ),
+    "test_fotos_titulacions.py": (
+        "apps/activities/views/card_photos.py",
+        "apps/activities/card_photos.py",
+        "templates/activities/*card_photo*.html",
+    ),
     "test_activitats_estats.py": (
         "apps/activities/views/admin_activities.py",
         "templates/activities/activity_detail.html",

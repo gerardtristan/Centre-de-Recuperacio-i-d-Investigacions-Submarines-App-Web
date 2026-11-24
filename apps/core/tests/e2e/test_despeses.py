@@ -43,3 +43,34 @@ def test_the_treasurer_records_an_expense(page, live_server, transactional_db, r
     ).to_contain_text("Sortida a les Medes")
     review("despeses-sense-factura")
     assert Expense.objects.get().amount_cents == 25050
+
+
+def test_the_treasurer_attaches_and_marks_the_invoice(
+    page, live_server, transactional_db, review, tmp_path
+):
+    """T-M09-04b i T-M09-15: adjuntar la factura i marcar-la il·legible (fitxer inventat)."""
+    from apps.expenses import services
+    from apps.expenses.tests.test_expenses import data
+
+    treasurer = make_admin("tresorer.prova", "treasurer")
+    expense = services.record_expense(
+        by=treasurer, **data(Supplier.objects.create(name="Nàutica Inventada SL"))
+    )
+    invoice = tmp_path / "factura.pdf"
+    invoice.write_bytes(b"%PDF-1.7\n%factura inventada\n")
+    login_admin(page, live_server.url, treasurer.login)
+
+    page.goto(f"{live_server.url}{reverse('administration:expense_documents', args=[expense.pk])}")
+    expect(page.get_by_role("heading", name="Documents de la despesa")).to_be_visible()
+    review("despesa-documents")
+    page.get_by_label("Fitxer (PDF, JPG o PNG)").first.set_input_files(invoice)
+    page.get_by_role("button", name="Desa el document").first.click()
+    expect(page.get_by_text("Document desat")).to_be_visible()
+    review("despesa-documents-factura")
+
+    page.get_by_label("Motiu, si no es llegeix").first.fill("No es llegeix l'import")
+    page.get_by_role("button", name="Marca'l com a il·legible").first.click()
+    expect(page.get_by_text("Il·legible: cal pujar-lo de nou")).to_be_visible()
+    page.goto(f"{live_server.url}{reverse('administration:expenses_without_invoice')}")
+    expect(page.get_by_text("Factura il·legible")).to_be_visible()
+    review("despeses-sense-factura-illegible")

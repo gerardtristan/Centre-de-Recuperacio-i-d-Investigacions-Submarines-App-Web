@@ -67,12 +67,22 @@ def next_version(kind: str) -> int:
     return (LegalText.objects.filter(kind=kind).aggregate(Max("version"))["version__max"] or 0) + 1
 
 
+PENDING_MARKS = ("[A validar", "[A verificar")  # P-424
+
+
 def validate_content(content: str) -> None:
     if not normalise(content):
         raise ValidationError(_("El text no pot ser buit."))
     # Text pla: es mostra escapat, mai com a plantilla; l'HTML no hi té lloc (T-M00-08b).
     if texts.looks_like_html(content):
         raise ValidationError(_("El text no pot portar etiquetes HTML: és text pla."))
+    # P-424: un text amb una marca de pendent no es publica; el missatge diu quina cal treure.
+    for mark in PENDING_MARKS:
+        if mark.casefold() in content.casefold():
+            raise ValidationError(
+                _("El text encara porta la marca «%(mark)s»: treu-la abans de publicar.")
+                % {"mark": mark}
+            )
 
 
 @transaction.atomic

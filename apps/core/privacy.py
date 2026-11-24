@@ -25,12 +25,14 @@ quotes no s'esborren ni es modifiquen: queden lligats a la persona anonimitzada.
 hi surt es bloqueja abans d'anonimitzar (`locked_data.lock`, xifrada) i només es consulta amb M13
 i un motiu (T-M00-04).
 
-**Termini de conservació (CA-19.5, RN-90; decisió 085, G-1; P-412).** Les dades bloquejades es
-destrueixen quan han passat `LOCKED_DATA_RETENTION_YEARS` anys (6, configurable) des del 31/12 de
-l'any de l'últim registre econòmic de la persona (càrrec creat o pagament fet), no des de
+**Termini de conservació (CA-19.5, RN-90; decisions 085, G-1, i 105; P-412).** Les dades
+bloquejades es destrueixen quan han passat `LOCKED_DATA_RETENTION_YEARS` anys (6) des del 31/12
+de l'any de l'últim registre econòmic de la persona (càrrec creat o pagament fet), no des de
 l'esborrat. Ho fa cada dia la tasca `core.destroy_expired_locked_data`
-(`locked_data.destroy_expired`), amb una entrada al registre amb la referència. Mentre la P-412
-sigui oberta, el termini es queda a la configuració del codi i no a «Ajustos».
+(`locked_data.destroy_expired`), amb una entrada al registre amb la referència. És un termini
+legal i, per això, és a la configuració del codi (variable d'entorn) i no a «Ajustos»: només
+canvia amb una decisió (P-412, decisió 105; provisional fins a la confirmació de la gestoria,
+Q-14). Un canvi des de l'app podria destruir dades abans d'hora, i això no es pot desfer.
 
 **Amb deutes (CA-19.7; 085, G-2).** Si la persona té càrrecs pendents o retornats, `erasure.approve`
 no executa l'esborrat (`erasure.blockers`); el deute es pot anul·lar abans amb motiu.

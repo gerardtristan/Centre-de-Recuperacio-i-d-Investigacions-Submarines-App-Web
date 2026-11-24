@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M09-15 (RN-M09-09; CA-M09-01): les despeses vives sense factura (MG2, també de consulta). Bloquegen el tancament del període. Només dades de la despesa: el proveïdor pot ser un autònom, però és la factura del club. #}
+{# T-M09-15 (RN-M09-09 i 25; CA-M09-01): la descripció obre els documents de la despesa (T-M09-04b) i una factura marcada il·legible ho diu. les despeses vives sense factura (MG2, també de consulta). Bloquegen el tancament del període. Només dades de la despesa: el proveïdor pot ser un autònom, però és la factura del club. #}
 {% block title %}{% translate "Despeses sense factura" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -28,12 +28,12 @@
     <tbody>
       {% for row in rows %}
         <tr>
-          <th scope="row" class="cel-nom">{{ row.expense.description }}</th>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:expense_documents' row.expense.pk %}">{{ row.expense.description }}</a></th>
           <td data-etiqueta="{% translate 'Proveïdor' %}">{{ row.expense.supplier }}</td>
           <td data-etiqueta="{% translate 'Data' %}"><time datetime="{{ row.expense.invoice_date|date:'Y-m-d' }}">{{ row.expense.invoice_date|date:"d/m/Y" }}</time></td>
           <td data-etiqueta="{% translate 'Departament' %}">{{ row.expense.department }}</td>
           <td data-etiqueta="{% translate 'Import' %}" class="cel-import"><span class="import">{{ row.amount }}</span></td>
-          <td data-etiqueta="{% translate 'Estat' %}"><span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense factura" %}</span></td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if row.illegible %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {% translate "Factura il·legible" %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {% translate "Sense factura" %}</span>{% endif %}</td>
         </tr>
       {% empty %}
         <tr><td colspan="6">{% translate "Cap despesa sense factura." %}</td></tr>

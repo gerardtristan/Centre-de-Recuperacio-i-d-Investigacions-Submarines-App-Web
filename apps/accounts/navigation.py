@@ -169,6 +169,7 @@ ENTRIES = (
             "administration:filing_done",
             "administration:filing_reject",
             "administration:filing_request",
+            "administration:certification_photo",  # T-M02-42b (AC25)
             "administration:filings_csv",
         ),
     ),  # T-M02-44b; text i lloc per revisar amb DISSENY
@@ -221,6 +222,7 @@ ENTRIES = (
             "administration:activity_margin",
             "administration:activity_margin_planned",
             "administration:activity_margin_close",
+            "administration:expense_documents",  # T-M09-04b: documents d'una despesa
         ),
     ),  # T-M09-15; text i lloc per revisar amb DISSENY
     (

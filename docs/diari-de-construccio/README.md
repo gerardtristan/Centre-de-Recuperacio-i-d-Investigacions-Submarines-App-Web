@@ -573,6 +573,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-109](T-DX-109.md) | Convite a la fitxa pública i a les inscripcions d'una activitat (02) | 24/11/2026 16:33 | 754fda85 | 1 nova | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
+| [T-M07-07](T-M07-07.md) | Fotos de la web: models i servei, sense rutes | 24/11/2026 12:39 | 66704ddb | 15 noves | [A comprovar] |
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M09-25a](T-M09-25a.md) | Fitxers privats xifrats a l'aplicació: clau pròpia, sis tipus nous (core/0077) i vista que desxifra amb permís i registre (carril X, nucli) | 24/11/2026 10:27 | (vegeu la PR) | 21 noves | [A comprovar] |
 | [T-M02-42a](T-M02-42a.md) | Fotos dels carnets de titulació: pujada xifrada i sense metadades, sense reduir (activities/0025; carril X) | 24/11/2026 12:07 | (vegeu la PR) | 9 noves | [A comprovar] |
@@ -580,4 +581,10 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M08-02](T-M08-02.md) | Dashboard: l'app i el catàleg d'indicadors, amb un text d'ajuda editable per indicador (carril Y) | 24/11/2026 11:15 | d0e01d60 | 21 noves | [A comprovar] |
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
 | [T-M08-03](T-M08-03.md) | Dashboard: supressió de grups petits i ajust de la mida mínima (carril Y) | 24/11/2026 12:04 | cbc9f950 | 12 noves | [A comprovar] |
+| [T-M02-42b](T-M02-42b.md) | Pantalles per pujar la foto del carnet (àrea personal i fitxa de l'homologació), només amb VC-56 encès (carril X) | 24/11/2026 13:04 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
+| [T-M02-43](T-M02-43.md) | Veure i esborrar les fotos dels carnets; amb VC-56 apagat no s'obren ni per l'adreça directa (2 funcions al nucli; carril X) | 24/11/2026 14:07 | (vegeu la PR) | 7 noves, 2 del nucli i 1 e2e ampliada | [A comprovar] |
+| [T-M02-47](T-M02-47.md) | Esborrat automàtic de les fotos dels carnets per la cua (VC-57; carril X) | 24/11/2026 14:20 | (vegeu la PR) | 4 noves | [A comprovar] |
 | [T-M07-02](T-M07-02.md) | Permisos WP1 a WP8, DB1 i DB2 i els dels ajustos del 07 i del 08 (torn del nucli; core/0078; carril Y) | 24/11/2026 13:07 | 2e74c587, c2ca8445 | 200 noves i 1 e2e | [A comprovar] |
+| [T-M09-04b](T-M09-04b.md) | Documents d'una despesa: factura, comprovant i il·legible (amb la T-M09-05 i la T-M09-15) | 24/11/2026 14:25 | 2a145c44 | 9 noves i 1 e2e | [A comprovar] |
+| [T-M02-52](T-M02-52.md) | Titulacions: permís AC29 i serveis per carregar-les i verificar-les (torn del nucli; core/0079; carril Y) | 24/11/2026 14:09 | 80d9633c | 9 cel·les i 14 noves | [A comprovar] |
+| [T-M00-10-13](T-M00-10-13.md) | Quatre arranjaments del nucli de la 105: marques de pendent als textos legals, `mark_undone`, límit propi de la llicència de convidat i docstring del termini (torn del nucli; accounts/0012; carril Y) | 24/11/2026 15:17 | de50b634, 8cebe6ed, a6a80da3, 346d0d6c | 10 noves | [A comprovar] |
