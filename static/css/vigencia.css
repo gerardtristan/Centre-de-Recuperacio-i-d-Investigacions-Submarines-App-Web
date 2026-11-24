@@ -13,3 +13,6 @@
 .vigencia-error .vigencia-dies { color: var(--c-error-text); }
 .vigencia-marca { stroke: var(--c-text-2); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
 .vigencia-marca.es-passada { stroke: var(--c-avis-text); }
+/* Dins d'una taula (T-DX-105): sota la data, sense el marge de bloc, perquè la fila no s'allargui. */
+.taula .vigencia { margin: var(--e-1) 0 0; }
+.taula .vigencia-dies { white-space: nowrap; }
