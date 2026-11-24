@@ -82,6 +82,16 @@ def test_ca_m06_24_batches_one_digest_and_nothing_more_on_a_repeat(
     assert (row.day, row.days_before, row.count, row.sent_to) == (at(60), 60, 7, 1)
 
 
+def test_two_plans_before_the_batches_run_send_each_reminder_once(holders, secretary):
+    holders(2)
+    batches = reminders.plan(at(60)) + reminders.plan(at(60))  # la tasca diària, dues vegades
+    assert len(batches) == 2  # els mateixos lots, encara sense enviar
+    for days, ids in batches:
+        reminders.send_batch(days, ids)
+    assert len(sent()) == 2 and LicenceReminder.objects.count() == 2
+    assert len(sent(reminders.DIGEST_TEMPLATE)) == 1
+
+
 def test_a_digest_sent_meanwhile_is_not_repeated(holders, secretary):
     holders(1)
     groups = reminders.digest(at(30))[30]
