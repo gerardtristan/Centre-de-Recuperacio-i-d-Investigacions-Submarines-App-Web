@@ -61,7 +61,8 @@ def services(monkeypatch):
     )
     monkeypatch.setattr(panels.campaigns, "open_campaign_now", lambda: None)
     real_get = panels.business_settings.get
-    values = {panels.TO_RENEW_DAYS: 30, panels.DEADLINE_DAYS: [30, 14, 7]}
+    monkeypatch.setattr(panels.activity_stats, "low_occupancy_count", lambda pct, today: pct // 10)
+    values = {panels.TO_RENEW_DAYS: 30, panels.DEADLINE_DAYS: [30, 14, 7], panels.LOW_OCCUPANCY: 50}
     monkeypatch.setattr(
         panels.business_settings, "get", lambda key, at=None: values.get(key) or real_get(key, at)
     )
@@ -88,6 +89,7 @@ def test_ca_m08_04_general_panel_reads_each_service(services):
         "new_members": 4 + 3 + 2,  # altes de gener, febrer i març fins avui
         "unpaid_members": 6,
         "free_places": 7,  # activities.stats
+        "low_occupancy": 5,  # activities.low_occupancy_count amb el llindar de l'ajust
         "licences_to_renew": 30,  # licences.expiring amb els dies de VC-41
         "equipment_to_review": 4,  # equipment.reviews.due_items
         "grants_closing": 30,  # grants.calendar d'avui al tram més llarg de VC-36
@@ -233,3 +235,15 @@ def test_equipment_in_use_only_for_the_current_period(services):
     past = (datetime.date(2026, 10, 1), datetime.date(2026, 12, 31))
     assert "equipment_in_use" not in panels.panel("activity", *past, now=NOW)
     assert num(panels.panel("activity", *Q1, now=NOW)["equipment_in_use"]) == 11
+
+
+def test_ca_m08_04_communication_panel_reads_the_website_service(services, monkeypatch):
+    """T-M08-08: subscriptors confirmats (persones: grups petits) i missatges pendents."""
+    monkeypatch.setattr(
+        panels.website, "counts",
+        lambda: {"confirmed_subscribers": 2, "pending_contact_messages": 1},
+    )  # fmt: skip
+    blocks = panels.panel("communication", *Q1, now=NOW)
+    assert list(blocks) == ["confirmed_subscribers", "pending_contact_messages"]
+    assert blocks["confirmed_subscribers"].value.label(3) == "menys de 3"
+    assert blocks["pending_contact_messages"].value.label(3) == "1"  # no són persones
