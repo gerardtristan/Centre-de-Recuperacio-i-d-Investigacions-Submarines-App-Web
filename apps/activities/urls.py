@@ -5,6 +5,7 @@ són a `admin_urls.py`."""
 from django.urls import path
 
 from .views import (
+    card_photos,
     guest_enrolment,
     member_certifications,
     member_enrolment,
@@ -43,5 +44,11 @@ urlpatterns = [
         "socis/titulacions/",
         member_certifications.my_certifications_view,
         name="my_certifications",
+    ),
+    # T-M02-42b: el titular puja la foto del carnet (RN-M02-47; només amb VC-56 encès).
+    path(
+        "socis/titulacions/<int:pk>/foto/",
+        card_photos.my_photo_view,
+        name="my_certification_photo",
     ),
 ]

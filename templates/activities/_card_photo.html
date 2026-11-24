@@ -1,0 +1,17 @@
+{% load i18n %}
+{# T-M02-42b (RN-M02-47): cos comú de la pujada de la foto del carnet (àrea personal i administració). L'avís diu per a què serveix, quant temps es conserva (VC-57) i que no s'hi pugi cap document de salut. Les cares que ja tenen foto es diuen, però la foto no es mostra. El servidor ho torna a comprovar tot (titular o AC25, agència, una per cara, VC-56). #}
+<div class="avis avis-avis" role="note">
+  <strong>{% translate "Abans de pujar-la" %}</strong>
+  {% blocktranslate count months=months %}La foto serveix per comprovar la titulació i, si demanes l'homologació, per enviar-la a la federació a petició teva. Es conserva {{ months }} mes després de comprovar-la o de tancar l'homologació, i després s'esborra. No hi pugis cap document de salut.{% plural %}La foto serveix per comprovar la titulació i, si demanes l'homologació, per enviar-la a la federació a petició teva. Es conserva {{ months }} mesos després de comprovar-la o de tancar l'homologació, i després s'esborra. No hi pugis cap document de salut.{% endblocktranslate %}
+</div>
+<dl class="dades-soci">
+  <div><dt>{% translate "Titulació" %}</dt><dd>{{ cert.level|default:cert.speciality }}{% if cert.number %} ({{ cert.number }}){% endif %}</dd></div>
+  <div><dt>{% translate "Agència" %}</dt><dd>{{ cert.agency|default:"—" }}</dd></div>
+  {% for photo in sides %}<div><dt>{{ photo.get_side_display }}</dt><dd>{% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</dd></div>{% endfor %}
+</dl>
+<form class="formulari" method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% include "_errata.html" %}
+  {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+  <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa la foto" %}</button></div>
+</form>

@@ -7,7 +7,16 @@ from .views import admin_activities as activities
 from .views import admin_catalogue as entries
 from .views import admin_filings as filings
 from .views import admin_places as places
-from .views import assessment, attendance, environment, message, outcomes, reinforcement, reports
+from .views import (
+    assessment,
+    attendance,
+    card_photos,
+    environment,
+    message,
+    outcomes,
+    reinforcement,
+    reports,
+)
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -31,6 +40,12 @@ urlpatterns = [
     path("homologacions/<int:pk>/tramitada/", filings.filing_filed_view, name="filing_filed"),
     path("homologacions/<int:pk>/feta/", filings.filing_done_view, name="filing_done"),
     path("homologacions/<int:pk>/rebutja/", filings.filing_reject_view, name="filing_reject"),
+    # T-M02-42b: la foto del carnet en nom de la persona (AC25; només amb VC-56 encès).
+    path(
+        "homologacions/titulacions/<int:pk>/foto/",
+        card_photos.admin_photo_view,
+        name="certification_photo",
+    ),
     # T-M02-16b: passar llista des del mòbil i incidències (AC9 per objecte)
     path("activitats/llista/", attendance.sessions_view, name="attendance_sessions"),
     path("activitats/<int:pk>/llista/", attendance.roll_view, name="attendance_roll"),

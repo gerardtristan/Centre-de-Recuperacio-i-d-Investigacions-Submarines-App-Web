@@ -35,6 +35,7 @@
                 <button class="boto boto-petit" type="submit">{% translate "Demana l'homologació" %}<span class="visualment-amagat">: {{ cert.level|default:cert.speciality }}</span></button>
               </form>
             {% elif not filing %}—{% endif %}
+            {% if row.can_photo %}<p><a href="{% url 'activities:my_certification_photo' cert.pk %}">{% translate "Foto del carnet" %}<span class="visualment-amagat">: {{ cert.level|default:cert.speciality }}</span></a></p>{% endif %}
           </td>
         </tr>
         {% endwith %}
