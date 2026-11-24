@@ -171,6 +171,16 @@
           {% endfor %}
         </tbody>
       </table>
+      {% for row in session_rows %}{% if row.form %}
+        <details{% if row.form.errors %} open{% endif %}>
+          <summary>{% blocktranslate with kind=row.session.get_kind_display when=row.session.starts_at|date:"d/m/Y H:i" %}Canvia la sessió: {{ kind }}, {{ when }}{% endblocktranslate %}</summary>
+          <form class="formulari" method="post" novalidate>
+            {% csrf_token %}
+            {% include "activities/_session_fields.html" with form=row.form %}
+            <div class="accions"><button class="boto" type="submit" name="edita_sessio" value="{{ row.session.pk }}">{% translate "Desa els canvis" %}</button></div>
+          </form>
+        </details>
+      {% endif %}{% endfor %}
     {% else %}
       <p>{% translate "Encara no té cap sessió." %}</p>
     {% endif %}
@@ -179,10 +189,7 @@
         <summary>{% translate "Afegeix una sessió" %}</summary>
         <form class="formulari" method="post" novalidate>
           {% csrf_token %}
-          {% with form=session_form %}{% include "_errata.html" %}{% endwith %}
-          {% for field in session_form %}{% if field.name == "instructors" %}
-            <fieldset><legend>{{ field.label }}</legend>{% for box in field %}<label class="casella" for="{{ box.id_for_label }}">{{ box.tag }} <span>{{ box.choice_label }}</span></label>{% empty %}<p class="text-2">{% translate "Encara no hi ha cap instructor." %}</p>{% endfor %}{{ field.errors }}</fieldset>
-          {% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
+          {% include "activities/_session_fields.html" with form=session_form %}
           <div class="accions"><button class="boto" type="submit" name="sessio_nova" value="1">{% translate "Afegeix la sessió" %}</button></div>
         </form>
       </details>

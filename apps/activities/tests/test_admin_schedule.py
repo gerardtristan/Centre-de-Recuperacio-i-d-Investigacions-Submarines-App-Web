@@ -3,6 +3,7 @@ tenen les seves proves a `test_sessions.py`. Només dades inventades."""
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.security import AREA_ADMIN
 from apps.activities.models import ProgrammeBlock, Session
@@ -10,6 +11,7 @@ from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
 from .helpers import a_place, an_open_course, an_outing
+from .test_instructor_requirements import mode
 
 pytestmark = pytest.mark.django_db
 
@@ -84,3 +86,60 @@ def test_the_instructors_are_offered_by_name(login_as, make_admin, manager):  # 
     teacher = make_admin(Role.Code.INSTRUCTOR)
     page = login_as(manager, AREA_ADMIN).get(detail(an_open_course(manager))).content.decode()
     assert f">{teacher.person.first_name}" in page
+
+
+def edit_post(session, place, **fields):
+    prefix = f"sessio-{session.pk}"
+    data = {f"{prefix}-kind": "pool", f"{prefix}-starts_at": "2027-06-14T09:00",
+            f"{prefix}-ends_at": "2027-06-14T12:00", f"{prefix}-place": place.pk,
+            "edita_sessio": session.pk}  # fmt: skip
+    return {**data, **{f"{prefix}-{k}": v for k, v in fields.items()}}
+
+
+def a_session(client, course, place):
+    assert client.post(detail(course), session_post(place)).status_code == 303
+    return Session.objects.get()
+
+
+def test_an_existing_session_changes_time_place_and_instructors(login_as, make_admin, manager):  # noqa: F811
+    course = an_open_course(manager)
+    client = login_as(manager, AREA_ADMIN)
+    session = a_session(client, course, a_place(manager))
+    other, teacher = a_place(manager), make_admin(Role.Code.INSTRUCTOR)
+    data = edit_post(session, other, instructors=teacher.person.pk)
+    assert client.post(detail(course), data).status_code == 303
+    session.refresh_from_db()
+    assert (session.place, timezone.localtime(session.ends_at).hour) == (other, 12)
+    assert list(session.instructors.all()) == [teacher.person]
+    assert client.get(detail(course)).status_code == 200  # el formulari amb instructors es pinta
+
+
+def test_a_wrong_change_or_instructor_changes_nothing(login_as, make_admin, manager, monkeypatch):  # noqa: F811
+    mode(monkeypatch, "block")  # VC-46: qui no compleix RN-M02-26 no s'assigna
+    course = an_open_course(manager)
+    client = login_as(manager, AREA_ADMIN)
+    place = a_place(manager)
+    session = a_session(client, course, place)
+    late = edit_post(session, place, ends_at="2027-06-14T08:00")
+    assert client.post(detail(course), late).status_code == 200
+    teacher = make_admin(Role.Code.INSTRUCTOR)  # sense els requisits per fer classe
+    response = client.post(detail(course), edit_post(session, place, instructors=teacher.person.pk))
+    assert response.status_code == 200  # el canvi d'horari tampoc no es desa
+    session.refresh_from_db()
+    assert timezone.localtime(session.ends_at).hour == 11 and not session.instructors.exists()
+    assert client.post(detail(course), {**late, "edita_sessio": 999999}).status_code == 404
+
+
+def test_an_incomplete_change_shows_the_form_and_a_cancelled_session_cannot_be_changed(
+    login_as, manager
+):
+    course = an_open_course(manager)
+    client = login_as(manager, AREA_ADMIN)
+    place = a_place(manager)
+    session = a_session(client, course, place)
+    response = client.post(detail(course), edit_post(session, place, starts_at=""))
+    assert response.status_code == 200 and response.context["session_rows"][0]["form"].errors
+    session.refresh_from_db()
+    assert timezone.localtime(session.starts_at).hour == 9
+    client.post(detail(course), {"cancel_sessio": session.pk, "motiu": "Piscina tancada."})
+    assert "form" not in client.get(detail(course)).context["session_rows"][0]
