@@ -573,3 +573,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M06-28](T-M06-28.md) | Llicències: una sol·licitud nova renova la vigent de qualsevol tipus (P-442, decisió 105; carril Y) | 24/11/2026 10:28 | ec75cd03 | 2 noves | [A comprovar] |
 | [T-M08-02](T-M08-02.md) | Dashboard: l'app i el catàleg d'indicadors, amb un text d'ajuda editable per indicador (carril Y) | 24/11/2026 11:15 | d0e01d60 | 21 noves | [A comprovar] |
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
+| [T-M08-03](T-M08-03.md) | Dashboard: supressió de grups petits i ajust de la mida mínima (carril Y) | 24/11/2026 12:04 | cbc9f950 | 12 noves | [A comprovar] |
