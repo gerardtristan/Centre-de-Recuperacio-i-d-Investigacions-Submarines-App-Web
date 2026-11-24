@@ -283,6 +283,12 @@ MAP = {
         "apps/website/contact.py",
         "templates/website/admin/*",
     ),
+    "test_dashboard.py": (
+        "apps/dashboard/views.py",
+        "apps/dashboard/admin_urls.py",
+        "apps/dashboard/panels.py",
+        "templates/dashboard/*",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
