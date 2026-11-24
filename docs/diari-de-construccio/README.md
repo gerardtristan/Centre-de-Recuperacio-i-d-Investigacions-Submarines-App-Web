@@ -556,3 +556,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-06c2](T-M02-06c2.md) | Sessions i programa del dia des de la fitxa (apilada sobre la T-M02-06c1; carril B4) | 23/11/2026 23:32 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-M02-06c3](T-M02-06c3.md) | Duplicar una activitat des de la fitxa (apilada sobre la T-M02-06c2; carril B4) | 24/11/2026 00:07 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
 | [T-M02-24b](T-M02-24b.md) | Informes d'activitats: ocupació, participants i horari per imprimir, i descàrregues en CSV (amb l'entrada de menú, nucli; carril B4) | 24/11/2026 02:03 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-20b](T-M02-20b.md) | Resultats ambientals d'una sortida i fitxa de projecte, sense fotos (amb les filles de menú, nucli; apilada sobre la T-M02-24b; carril B4) | 24/11/2026 02:34 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
