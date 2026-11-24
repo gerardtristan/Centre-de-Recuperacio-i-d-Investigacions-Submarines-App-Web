@@ -2,10 +2,15 @@
 28, 30 i 32; L-M02-07). Només dades inventades.
 """
 
+import datetime
+
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.http import Http404
 from django.utils import timezone
 
+from apps.activities import certification_records as records
 from apps.activities import certifications, privacy
 from apps.activities.models import (
     CertificationLevel,
@@ -141,3 +146,87 @@ def test_erasure_clears_the_certificate_number_and_keeps_the_rest(person, levels
     cert.refresh_from_db()
     assert (cert.number, cert.level) == ("", levels["B2"])
     assert AuditEntry.objects.get(action=privacy.CERTIFICATION_ANONYMISED).actor_account == admin
+
+
+# --- Titulacions inicials carregades a mà i verificades amb AC29 (T-M02-52; RN-M02-32) -------
+
+R = Role.Code
+
+
+@pytest.mark.parametrize("role", [R.SECRETARY, R.COURSES_MANAGER, R.ADMINISTRATOR])
+def test_rn_m02_32_ac29_loads_an_unverified_certification_and_verifies_it(
+    person,
+    levels,
+    make_admin,  # noqa: F811
+    role,
+):
+    account = make_admin(role)
+    loaded = records.load(
+        person, by=account, source=SOURCE.IMPORTED, level=levels["B2"], number=" 123 ",
+        issued_on=datetime.date(2020, 5, 4),
+    )  # fmt: skip
+    assert (loaded.source, loaded.number, loaded.is_verified) == (SOURCE.IMPORTED, "123", False)
+    assert loaded.agency_id == levels["B2"].agency_id
+    assert not certifications.counts(loaded, "block")  # RN-M02-30: sense verificar
+    when = datetime.datetime(2026, 11, 24, 10, tzinfo=datetime.UTC)
+    verified = records.verify(loaded, by=account, now=when)
+    assert (verified.verified_by, verified.verified_at) == (account, when)
+    assert certifications.counts(verified, "block")
+    actions = set(AuditEntry.objects.values_list("action", flat=True))
+    assert {records.LOADED, records.VERIFIED} <= actions
+
+
+def test_a_speciality_is_loaded_as_declared(person, nitrox, make_admin):  # noqa: F811
+    account = make_admin(R.SECRETARY)
+    loaded = records.load(person, by=account, source=SOURCE.DECLARED, speciality=nitrox)
+    assert (loaded.speciality, loaded.level, loaded.source) == (nitrox, None, SOURCE.DECLARED)
+
+
+@pytest.mark.parametrize("role", [R.BOARD, R.TREASURER, R.PRESIDENT, R.INSTRUCTOR])
+def test_without_ac29_or_read_only_nothing_is_loaded_or_verified(person, levels, make_admin, role):  # noqa: F811
+    account = make_admin(role)
+    with pytest.raises(Http404):
+        records.load(person, by=account, source=SOURCE.DECLARED, level=levels["B1"])
+    pending = held(person, level=levels["B1"])
+    with pytest.raises(Http404):
+        records.verify(pending, by=account)
+    pending.refresh_from_db()
+    assert not pending.is_verified and DiverCertification.objects.count() == 1
+
+
+@pytest.mark.parametrize(
+    "case",
+    ["club_course", "federation", "both", "none", "long_number", "not_a_level", "not_a_speciality"],
+)
+def test_an_invalid_load_is_rejected_and_nothing_is_saved(person, levels, nitrox, make_admin, case):  # noqa: F811
+    fields = {"source": SOURCE.DECLARED, "level": levels["B1"]}
+    if case in ("club_course", "federation"):
+        fields["source"] = case
+    elif case == "both":
+        fields["speciality"] = nitrox
+    elif case == "none":
+        del fields["level"]
+    elif case == "long_number":
+        fields["number"] = "x" * 41
+    elif case == "not_a_level":
+        fields["level"] = nitrox
+    else:
+        fields = {"source": SOURCE.DECLARED, "speciality": levels["B1"]}
+    with pytest.raises(ValidationError):
+        records.load(person, by=make_admin(R.SECRETARY), **fields)
+    assert not DiverCertification.objects.exists()
+
+
+def test_verifying_twice_keeps_the_first_and_club_ones_are_not_verified_by_hand(
+    person,
+    levels,
+    make_admin,  # noqa: F811
+):
+    first, second = make_admin(R.SECRETARY), make_admin(R.ADMINISTRATOR)
+    loaded = records.load(person, by=first, source=SOURCE.DECLARED, level=levels["B1"])
+    records.verify(loaded, by=first)
+    assert records.verify(loaded, by=second).verified_by == first
+    assert AuditEntry.objects.filter(action=records.VERIFIED).count() == 1
+    club = held(person, level=levels["B2"], source=SOURCE.CLUB_COURSE)
+    with pytest.raises(ValidationError):
+        records.verify(club, by=first)
