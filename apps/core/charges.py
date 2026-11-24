@@ -81,6 +81,25 @@ def create_department(name: str, *, by) -> Department:
 
 
 @transaction.atomic
+def rename_department(department: Department, name: str, *, by) -> Department:
+    """P-410 (T-M04-22): amb registre (valor anterior). «General» és una entrada del sistema que
+    el codi busca pel nom: no es reanomena (P-411)."""
+    _ensure_can_manage_departments(by)
+    if department.name == Department.GENERAL:
+        raise ValidationError(_("El departament «General» és del sistema: no es reanomena."))
+    old, department.name = department.name, name.strip()
+    if department.name == old:
+        return department
+    department.full_clean()
+    department.save(update_fields=["name"])
+    audit.record(
+        "departments.renamed", actor=by, target=department, field="name", old=old,
+        new=department.name,
+    )  # fmt: skip
+    return department
+
+
+@transaction.atomic
 def deactivate_department(department: Department, *, by) -> None:
     """RN-75: un departament no s'esborra, es desactiva (CA-16.2)."""
     _ensure_can_manage_departments(by)

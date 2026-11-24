@@ -1289,6 +1289,24 @@ opcions:
     perque: >-
       Una foto de la web no és de cap persona i el seu accés el decideix el 07 (publicada o no), no el propietari;
       el contingut ja és al mateix emmagatzematge privat i amb la mateixa validació, sense tocar el nucli.
+  P-592:
+    opcions:
+      A: "De qui l'ha demanada amb MG9 (el registre de la factura manual); només ho canvia una decisió nova."
+      B: "Una persona fixa del club (per exemple, la del tresorer vigent), que es tria als ajustos."
+      C: "Permetre fitxers sense propietari a la 00 (torn del nucli) i obrir-los només amb MG9."
+    recomanada: C
+    perque: >-
+      Una factura a una empresa no és de cap persona i C ho diu tal com és; mentre no hi hagi el torn del nucli,
+      A no dona accés a ningú que no el tingués (qui la demana ja té MG9) i és el valor per defecte.
+  P-593:
+    opcions:
+      A: "Excloure-la amb el motiu «sense còpia emmascarada» fins que el tresorer pugi la còpia."
+      B: "Posar-hi l'original i avisar el tresorer."
+      C: "No deixar generar el paquet fins que totes les despeses tinguin la còpia."
+    recomanada: A
+    perque: >-
+      Cap IBAN no surt sense que la convocatòria ho demani (051); a diferència de C, el tresorer veu el paquet i què li falta,
+      i en pot generar un de nou en pujar les còpies.
     data: 2026-11-24
 
 noves:
@@ -1461,4 +1479,14 @@ noves:
     perque: >-
       Amagar «2 equips per revisar» com a «menys de 3» no protegeix ningú i fa inútil l'avís; el que compta
       persones (inscripcions, ocupació, assistència) continua amb la supressió, que és el cas conservador.
+    data: 2026-11-24
+  P-572:
+    opcions:
+      A: "Només des de la fitxa del soci, fins que hi hagi una fitxa de persona a l'administració."
+      B: "Des de la llista d'alumnes d'una activitat (participants), per als no socis."
+      C: "Un cercador de persones a la pantalla de titulacions."
+    recomanada: A
+    perque: >-
+      Les titulacions inicials que es carreguen a mà són sobretot les dels socis que venen de Cluber; un
+      cercador de persones exposaria noms a qui no els necessita, i B depèn de quina fitxa tindran els alumnes.
     data: 2026-11-24

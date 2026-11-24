@@ -87,6 +87,7 @@ ENTRIES = (
         _("Llistat de socis"),
         (
             "administration:member_detail",
+            "administration:person_certifications",  # T-M02-52b: des de la fitxa del soci
             "administration:member_edit",
             "administration:member_join_date",
             "administration:licence_add",
@@ -170,6 +171,7 @@ ENTRIES = (
             "administration:filing_reject",
             "administration:filing_request",
             "administration:certification_photo",  # T-M02-42b (AC25)
+            "administration:course_filings",  # T-M02-45b: provisional, DISSENY hi posarà l'entrada
             "administration:filings_csv",
         ),
     ),  # T-M02-44b; text i lloc per revisar amb DISSENY
@@ -234,7 +236,11 @@ ENTRIES = (
             "administration:margin_period_reopen",
         ),
     ),  # T-M09-16; text i lloc revisats per DISSENY (#494)
-    ("administration:grants_calendar", _("Calendari d'ajuts"), ()),  # T-M09A-05; lloc: DISSENY
+    (
+        "administration:grants_calendar",
+        _("Calendari d'ajuts"),
+        ("administration:grant_justification",),
+    ),  # T-M09A-05 i 10c; lloc: DISSENY
     (
         "administration:treasury_accounts",
         _("Tresoreria: comptes i saldos"),

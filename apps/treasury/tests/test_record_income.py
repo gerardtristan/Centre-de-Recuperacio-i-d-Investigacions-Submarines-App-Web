@@ -321,7 +321,12 @@ class TestRejected:
         # diners, `entry_views`, que només apunten l'ingrés d'un pagament a mà amb M14, P-12), que
         # el bucle de sota també revisa.
         treasury = {module for module in modules if module.startswith("apps.treasury")}
-        assert modules and treasury <= {"apps.treasury.views", "apps.treasury.entry_views"}
+        # `structure_views` (T-M04-22) només manté departaments, centres de cost i comptes.
+        assert modules and treasury <= {
+            "apps.treasury.views",
+            "apps.treasury.entry_views",
+            "apps.treasury.structure_views",
+        }
         apps_dir = Path(services.__file__).parents[1]
         # Cap vista de cap altra app no crida el servei: ho fan el processament de les
         # notificacions (05b) i la conciliació (04), mai una petició.

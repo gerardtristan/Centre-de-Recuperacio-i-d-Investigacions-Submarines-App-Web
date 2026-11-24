@@ -4,10 +4,10 @@
   {% if can_edit or can_correct_join_date or can_create_leave %}<p class="text-2">{% translate "És el teu soci: no pots editar-ne les dades des de l'administració." %}</p>{% endif %}
 {% endif %}
 {# «and» lliga més que «or»: del propi soci només hi pot sortir el restabliment del doble factor, com abans #}
-{% if can_reset_totp or can_export_notes or can_register_erasure or member.person_id != user.person_id and can_edit or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
+{% if can_certifications or can_reset_totp or can_export_notes or can_register_erasure or member.person_id != user.person_id and can_edit or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
   <div class="accions">
     {% if member.person_id != user.person_id and can_edit %}<a class="boto boto-principal boto-petit" href="{% url 'administration:member_edit' member.pk %}">{% translate "Edita les dades" %}</a>{% endif %}
-    {% if can_reset_totp or can_export_notes or can_register_erasure or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
+    {% if can_certifications or can_reset_totp or can_export_notes or can_register_erasure or member.person_id != user.person_id and can_correct_join_date or member.person_id != user.person_id and can_create_leave %}
       <details class="menu-exporta">
         <summary class="boto boto-petit">{% translate "Més" %} <span aria-hidden="true">▾</span></summary>
         <div class="menu-opcions" role="group" aria-label="{% translate 'Més accions del soci' %}">
@@ -15,6 +15,8 @@
             {% if can_correct_join_date %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_join_date' member.pk %}">{% translate "Corregeix la data d'alta" %}</a>{% endif %}
             {% if can_create_leave %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_leave_create' member.pk %}">{% translate "Crea una baixa" %}</a>{% endif %}
           {% endif %}
+          {# T-M02-52b (AC29; P-572): mai el propi; el 02 ho torna a comprovar. #}
+          {% if can_certifications %}<a class="boto boto-petit boto-text" href="{% url 'administration:person_certifications' member.person_id %}">{% translate "Titulacions…" %}</a>{% endif %}
           {% if can_reset_totp %}<a class="boto boto-petit boto-text" href="{% url 'administration:member_totp_reset' member.pk %}">{% translate "Restableix el doble factor del compte…" %}</a>{% endif %}
           {# T-M01-22c (085, A-1): M11, mai el propi, amb l'interruptor encès. #}
           {% if can_export_notes %}<a class="boto boto-petit boto-text" href="{% url 'administration:gdpr_notes_export' member.person_id %}">{% translate "Exportació RGPD amb notes…" %}</a>{% endif %}

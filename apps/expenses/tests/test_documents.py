@@ -142,13 +142,16 @@ def test_ca_m09_28_marcar_avisa_sense_enllac_i_la_despesa_surt_sense_factura(
 ):
     assert with_invoice not in services.without_invoice()
     received = []
-    documents.document_marked_illegible.connect(
-        lambda **kw: received.append((kw["expense"].pk, kw["document"])), weak=False
-    )
+
+    def listener(**kw):
+        received.append((kw["expense"].pk, kw["document"]))
+
+    documents.document_marked_illegible.connect(listener)
     try:
         mark = documents.mark_illegible(with_invoice, INVOICE, reason="Borrosa", by=treasurer)
     finally:
-        documents.document_marked_illegible.receivers.clear()
+        # Només el d'aquesta prova: el de la 09A (grants.apps) s'ha de quedar connectat.
+        documents.document_marked_illegible.disconnect(listener)
 
     assert received == [(with_invoice.pk, INVOICE)]
     assert (mark.notified_person, mark.file) == (uploader.person, with_invoice.invoice_file)

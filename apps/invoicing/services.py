@@ -13,8 +13,8 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import audit, business_settings, mail
-from apps.core.models import Charge
+from apps.core import audit, business_settings, files, mail
+from apps.core.models import AuditEntry, Charge, PrivateFile
 from apps.core.permissions import accounts_with_perm, has_perm
 from apps.treasury.models import Movement
 
@@ -26,6 +26,7 @@ ISSUE = "expenses.invoices.issue"  # MG9
 ACTOR = audit.system("invoicing")
 INVOICE_ISSUED = "invoicing.invoice_issued"
 INVOICE_FAILED = "invoicing.invoice_failed"
+PDF_NOT_STORED = "invoicing.pdf_not_stored"
 SERIES_GAP = "invoicing.series_gap"
 SERIES_GAP_TEMPLATE = "avis-salt-serie-factures"
 PAY_EXPENSES = "expenses.pay"  # MG2: qui rep els avisos del tresorer (P-473)
@@ -144,8 +145,46 @@ def _send(invoice: Invoice) -> Invoice:
     invoice.issued_on, invoice.status = timezone.localdate(), Invoice.Status.ISSUED
     invoice.save()
     audit.record(INVOICE_ISSUED, actor=ACTOR, target=invoice, details={"number": invoice.number})
+    _store_pdf(invoice, issued.pdf)
     _check_series(invoice)
     return invoice
+
+
+def _pdf_owner(invoice: Invoice):
+    """De qui és el fitxer (`PrivateFile.owner`): el client, si és una persona; la d'una empresa,
+    de qui l'ha demanada amb MG9 (P-592)."""
+    if invoice.customer_person_id:
+        return invoice.customer_person
+    entry = (
+        AuditEntry.objects.filter(
+            action=MANUAL_REQUESTED, target_type="invoicing.invoice", target_id=str(invoice.pk)
+        )
+        .select_related("actor_account__person")
+        .first()
+    )
+    return entry.actor_account.person if entry and entry.actor_account else None
+
+
+def _store_pdf(invoice: Invoice, pdf: bytes) -> None:
+    """T-M09-19: el PDF del servei, desat xifrat (ISSUED_INVOICE, 051). El número ja és emès: si
+    no es pot desar, la factura no torna a «fallida» (en demanaria una altra i faria un salt);
+    queda sense PDF i al registre."""
+    owner = _pdf_owner(invoice)
+    try:
+        if owner is None or not pdf:
+            raise ValueError("sense propietari o sense PDF")
+        with transaction.atomic():  # punt de desat: un error no trenca la transacció de fora
+            invoice.pdf_file = files.store(
+                pdf,
+                owner=owner,
+                kind=PrivateFile.Kind.ISSUED_INVOICE,
+                content_type="application/pdf",
+                download_name=f"factura-{invoice.number}.pdf",
+            )
+    except Exception as error:  # noqa: BLE001 - el número ja és emès i no es pot perdre
+        audit.record(PDF_NOT_STORED, actor=ACTOR, target=invoice, details={"error": str(error)})
+        return
+    invoice.save(update_fields=["pdf_file"])
 
 
 def on_charge_paid(event) -> None:

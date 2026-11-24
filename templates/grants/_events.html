@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Taula d'esdeveniments del calendari d'ajuts (T-M09A-05). Cap dada personal: la convocatòria, l'organisme, la referència de la sol·licitud i el seu estat. #}
+{# Taula d'esdeveniments del calendari d'ajuts (T-M09A-05). Amb AJ7, una sol·licitud concedida o justificada enllaça a la seva justificació (T-M09A-10c). Cap dada personal: la convocatòria, l'organisme, la referència de la sol·licitud i el seu estat. #}
 <table class="taula">
   <caption>{{ caption }}</caption>
   <thead><tr><th scope="col">{% translate "Data" %}</th><th scope="col">{% translate "Què" %}</th><th scope="col">{% translate "Convocatòria" %}</th><th scope="col">{% translate "Sol·licitud" %}</th></tr></thead>
@@ -9,7 +9,7 @@
         <th scope="row" class="cel-nom"><time datetime="{{ event.day|date:'Y-m-d' }}">{{ event.day|date:"d/m/Y" }}</time></th>
         <td data-etiqueta="{% translate 'Què' %}">{{ event.label }}</td>
         <td data-etiqueta="{% translate 'Convocatòria' %}">{{ event.call }} ({{ event.body }})</td>
-        <td data-etiqueta="{% translate 'Sol·licitud' %}">{% if event.application %}{% blocktranslate with ref=event.application.pk status=event.application.get_status_display %}Núm. {{ ref }} · {{ status }}{% endblocktranslate %}{% else %}—{% endif %}</td>
+        <td data-etiqueta="{% translate 'Sol·licitud' %}">{% if event.application %}{% blocktranslate with ref=event.application.pk status=event.application.get_status_display asvar label %}Núm. {{ ref }} · {{ status }}{% endblocktranslate %}{% if can_justify and event.application.status == "granted" or can_justify and event.application.status == "justified" %}<a href="{% url 'administration:grant_justification' event.application.pk %}">{{ label }}</a>{% else %}{{ label }}{% endif %}{% else %}—{% endif %}</td>
       </tr>
     {% empty %}
       <tr><td colspan="4">{{ empty }}</td></tr>
