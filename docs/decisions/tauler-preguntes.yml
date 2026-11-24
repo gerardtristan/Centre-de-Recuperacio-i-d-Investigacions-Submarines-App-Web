@@ -1462,3 +1462,35 @@ noves:
       Amagar «2 equips per revisar» com a «menys de 3» no protegeix ningú i fa inútil l'avís; el que compta
       persones (inscripcions, ocupació, assistència) continua amb la supressió, que és el cas conservador.
     data: 2026-11-24
+  P-640:
+    opcions:
+      A: "La definició diu el que compta el servei del mòdul (places ocupades de RN-M02-07, revisions dins dels dies d'avís, totes les dates del calendari dels ajuts)."
+      B: "Es manté la definició del catàleg i es demana a cada mòdul un servei nou que compti exactament això."
+      C: "Places lliures amb només les confirmades; la resta com A."
+      D: "Treure aquests tres indicadors fins que la junta en fixi la definició."
+    recomanada: A
+    perque: >-
+      RN-M08-04 vol la mateixa xifra que el mòdul: si el dashboard comptés les places d'una altra manera que
+      la pantalla d'inscripcions, mostraria places lliures que ja estan reservades per a qui ha de pagar.
+    data: 2026-11-24
+  P-641:
+    opcions:
+      A: "Els 12 mesos sencers acabats amb el mes en curs."
+      B: "D'avui fa un any fins avui, amb un servei de socis per dates."
+      C: "Els 12 mesos sencers anteriors al mes en curs."
+    recomanada: A
+    perque: >-
+      Les altes i les baixes del 01 es compten per mes natural; amb mesos sencers les xifres quadren amb
+      les del mòdul sense cap servei nou, i el mes en curs hi és.
+    data: 2026-11-24
+  P-642:
+    opcions:
+      A: "activities.stats com està fet: activitats que comencen dins del període, assistència sense reforços, inscripcions per setmana pel dia que es van fer."
+      B: "Com A, però les sessions de reforç també compten a l'assistència."
+      C: "Com A, però les inscripcions per setmana pel dia que es van confirmar (cal un camp nou al model)."
+      D: "Activitats del període = les que hi acaben."
+    recomanada: A
+    perque: >-
+      És de només lectura i no demana cap camp nou; un reforç només és d'alguns inscrits i barrejar-lo
+      faria baixar l'assistència sense motiu. Es pot canviar més endavant sense tocar dades.
+    data: 2026-11-24
