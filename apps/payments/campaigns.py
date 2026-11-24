@@ -26,7 +26,13 @@ from apps.members import recipients
 from apps.members.models import Member
 from apps.members.services import active_members_for_mandates
 
-from .models import FeeMethod, FeePaymentPreference, MandateCampaign, MandateCampaignRecipient
+from .models import (
+    FeeMethod,
+    FeePaymentPreference,
+    MandateCampaign,
+    MandateCampaignRecipient,
+    SepaMandate,
+)
 
 INVITATION_TEXT = "mandate_campaign_invitation"
 INVITATION_TEMPLATE = "campanya-mandats-invitacio"
@@ -247,6 +253,16 @@ def campaign_status(campaign: MandateCampaign | None) -> dict:
         "active": total,
         "invited": campaign.recipients.count() if campaign else 0,
     }
+
+
+def mandates_signed(campaign: MandateCampaign) -> int:
+    """Per al dashboard (08, «Mandats signats»): socis que han signat un mandat mentre la campanya
+    era oberta, vigent avui o no. Consulta agregada sense permís: el permís DB1 el comprova la
+    vista del dashboard (T-M08-09)."""
+    signed = SepaMandate.objects.filter(signed_at__gte=campaign.opened_at)
+    if campaign.closed_at:
+        signed = signed.filter(signed_at__lt=campaign.closed_at)
+    return signed.values("member").distinct().count()
 
 
 def close_campaign(campaign: MandateCampaign, *, by) -> None:

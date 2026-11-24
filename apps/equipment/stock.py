@@ -46,8 +46,10 @@ def stock(on, *, viewer, equipment_type=None) -> list[StockLine]:
 
 
 def in_use_count(on) -> int:
-    """Per al dashboard (08): peces en ús o assignades en una data. Només un recompte, sense
-    permís: el permís és el del dashboard (DB1)."""
+    """Per al dashboard (08): peces en ús o assignades en una data. Consulta agregada sense
+    permís: el permís DB1 el comprova la vista del dashboard (T-M08-09). Com `stock`, llegeix
+    l'estat d'avui de les peces (en revisió, de baixa) i de les assignacions: només és fiable per
+    a avui o una data futura; el dashboard només el fa servir per al període en curs (P-644)."""
     return sum(line.in_use + line.assigned for line in _lines(on))
 
 

@@ -1504,4 +1504,14 @@ noves:
     perque: >-
       HU-M08-02 vol que el tresorer vegi el mateix import que a l'informe del 09; amb els moviments bruts,
       una anul·lació (contramoviment) sortiria com a despesa i la xifra no quadraria amb cap pantalla.
+  P-644:
+    opcions:
+      A: "Xifra sola de persones per sota de N: «menys de N»; percentatge amb el numerador per sota de N (també 0): «amagat»; material en ús només per al període en curs."
+      B: "Com A, però un percentatge amb numerador 0 es veu (no identifica ningú)."
+      C: "Només s'amaguen els desglossaments (lletra de RN-M08-02); les xifres soles i els percentatges es veuen."
+      D: "Com A, i el material en ús d'un període passat amb un historial nou al 03 (lliurada i retornada, revisions)."
+    recomanada: A
+    perque: >-
+      És l'opció conservadora: amb el període d'un mes, la xifra sola i el percentatge repeteixen el grup
+      petit que el desglossament amaga. B es pot activar després sense tocar dades si la junta ho vol.
     data: 2026-11-24
