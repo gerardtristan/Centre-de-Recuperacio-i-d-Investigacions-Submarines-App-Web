@@ -33,13 +33,12 @@ from django.core import signing
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.dispatch import Signal
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .. import audit
 from ..models import ImportBatch, ImportLine
 from ..permissions import has_perm
-from . import add_lines, open_confirmed, statement_lines
+from . import add_lines, mark_undone, open_confirmed, statement_lines
 
 PERMISSION = "core.bank_statement.import"  # M9
 MAX_BYTES = 1024 * 1024
@@ -400,9 +399,7 @@ def undo(batch: ImportBatch, *, by, reason: str, request=None) -> ImportBatch:
         raise Rejected("not_confirmed")
     if _reconciled(batch):
         raise Rejected("reconciled")
-    batch.status = ImportBatch.Status.UNDONE
-    batch.undone_by, batch.undone_at = by, timezone.now()
-    batch.save(update_fields=["status", "undone_by", "undone_at"])
+    mark_undone(batch, by=by)
     audit.record(
         audit.Action.BANK_STATEMENT_UNDONE,
         actor=by,

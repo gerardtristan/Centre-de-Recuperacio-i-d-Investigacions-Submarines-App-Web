@@ -380,10 +380,7 @@ def undo(batch: ImportBatch, *, by, reason: str, request=None) -> int:
                 member, S.LEFT, by=by, effective_on=today, reason=reason, request=request
             )
             count += 1
-        locked.status = ImportBatch.Status.UNDONE
-        locked.undone_by = by
-        locked.undone_at = timezone.now()
-        locked.save(update_fields=["status", "undone_by", "undone_at"])
+        imports.mark_undone(locked, by=by)  # P-445
         audit.record(
             UNDONE,
             actor=by,

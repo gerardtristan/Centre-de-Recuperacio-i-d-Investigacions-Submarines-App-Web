@@ -16,6 +16,7 @@ from django.db.models import ProtectedError
 from django.db.models.deletion import Collector
 from django.utils import timezone
 
+from apps.core import imports
 from apps.core.models import (
     IMPORT_LINE_CODES,
     ImportBatch,
@@ -145,6 +146,22 @@ class TestImportBatch:
             lambda: make_batch(ImportBatch.Status.PREVIEW, undone_by=admin_account),
             "importbatch_undone_pair",
         )
+
+    def test_p445_mark_undone_sets_who_and_when(self, make_batch, admin_account):
+        past = timezone.now() - 2 * HOUR  # la fixture confirma una hora després de crear
+        batch = make_batch(created_at=past, confirmed_at=past + HOUR)
+        batch = imports.mark_undone(batch, by=admin_account)
+        batch.refresh_from_db()
+        assert (batch.status, batch.undone_by) == (ImportBatch.Status.UNDONE, admin_account)
+        assert batch.undone_at >= batch.confirmed_at
+
+    @pytest.mark.parametrize("status", ["preview", "undone", "rejected"])
+    def test_p445_only_a_confirmed_batch_is_undone(self, make_batch, admin_account, status):
+        batch = make_batch(status)
+        with pytest.raises(ValueError):
+            imports.mark_undone(batch, by=admin_account)
+        batch.refresh_from_db()
+        assert batch.status == status
 
     @pytest.mark.parametrize("status", ["preview", "rejected"])
     def test_preview_and_rejected_carry_no_confirmation_or_undo(
