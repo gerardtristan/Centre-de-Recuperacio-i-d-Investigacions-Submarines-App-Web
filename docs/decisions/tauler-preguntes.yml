@@ -1268,6 +1268,16 @@ opcions:
       Una pàgina de text no és una portada, i duplicar com a pàgina de blocs les que ja tenen pantalla pròpia
       faria dues adreces per a la mateixa cosa; tot és reversible (pàgines sense contingut ni publicar).
     data: 2026-11-24
+  P-592:
+    opcions:
+      A: "De qui l'ha demanada amb MG9 (el registre de la factura manual); només ho canvia una decisió nova."
+      B: "Una persona fixa del club (per exemple, la del tresorer vigent), que es tria als ajustos."
+      C: "Permetre fitxers sense propietari a la 00 (torn del nucli) i obrir-los només amb MG9."
+    recomanada: C
+    perque: >-
+      Una factura a una empresa no és de cap persona i C ho diu tal com és; mentre no hi hagi el torn del nucli,
+      A no dona accés a ningú que no el tingués (qui la demana ja té MG9) i és el valor per defecte.
+    data: 2026-11-24
 
 noves:
   P-412:
