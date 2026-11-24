@@ -598,3 +598,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-08c](T-M02-08c.md) | Places lliures a les dades públiques d'una activitat, sense cap nom (carril X) | 24/11/2026 17:19 | (vegeu la PR) | 1 nova | [A comprovar] |
 | [T-M09A-10a](T-M09A-10a.md) | Paquet de justificació d'un ajut: ZIP xifrat, excloses amb el motiu i còpies emmascarades | 24/11/2026 17:20 | 850c30f1 | 10 noves | [A comprovar] |
 | [T-M09A-10b](T-M09A-10b.md) | Enviar el paquet de justificació, versions amb requeriment i avisos | 24/11/2026 17:32 | aa38f4dd | 11 noves | [A comprovar] |
+| [T-M04-22](T-M04-22.md) | Departaments, centres de cost i comptes de tresoreria, amb les entrades del sistema protegides (torn del nucli; carril Y) | 24/11/2026 17:26 | 4df839ec | 30 noves i 1 e2e | [A comprovar] |
