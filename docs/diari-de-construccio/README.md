@@ -570,3 +570,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M09-25a](T-M09-25a.md) | Fitxers privats xifrats a l'aplicació: clau pròpia, sis tipus nous (core/0077) i vista que desxifra amb permís i registre (carril X, nucli) | 24/11/2026 10:27 | (vegeu la PR) | 21 noves | [A comprovar] |
 | [T-M06-28](T-M06-28.md) | Llicències: una sol·licitud nova renova la vigent de qualsevol tipus (P-442, decisió 105; carril Y) | 24/11/2026 10:28 | ec75cd03 | 2 noves | [A comprovar] |
+| [T-M08-02](T-M08-02.md) | Dashboard: l'app i el catàleg d'indicadors, amb un text d'ajuda editable per indicador (carril Y) | 24/11/2026 11:15 | d0e01d60 | 21 noves | [A comprovar] |
