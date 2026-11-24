@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.equipment",
     "apps.previews",
     "apps.expenses",
+    "apps.website",
 ]
 
 MIDDLEWARE = [
