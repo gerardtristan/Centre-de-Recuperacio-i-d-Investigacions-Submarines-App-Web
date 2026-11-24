@@ -3,7 +3,8 @@
 En un desglossament de persones (per tipus, per estat, per activitat...), una cel·la amb menys
 de `dashboard.min_group_size` persones es mostra «menys de N». Si només n'hi ha una d'amagada,
 també s'amaga la següent més petita, perquè no es pugui deduir restant del total. El total es
-mostra sempre, tret que el desglossament tingui una sola cel·la (llavors el total és la cel·la).
+mostra sempre, tret que ell mateix sigui per sota del mínim (P-648; també quan el desglossament
+té una sola cel·la petita, perquè llavors el total és la cel·la).
 No s'aplica als imports: només als indicadors de tipus «persones» (`indicators.KINDS`).
 """
 
@@ -45,8 +46,9 @@ def suppress(counts: dict, min_size: int) -> tuple[dict, Cell]:
         for key, value in counts.items()
     }
     total = sum(counts.values())
-    single = len(cells) == 1 and bool(below)
-    return cells, Cell(total, BELOW if single else SHOWN)
+    # Un total per sota del mínim també és un grup petit (P-648); buit, no hi ha cap grup.
+    small = bool(counts) and total < min_size
+    return cells, Cell(total, BELOW if small else SHOWN)
 
 
 def min_group_size(at=None) -> int:

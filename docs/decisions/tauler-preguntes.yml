@@ -1652,3 +1652,13 @@ noves:
       Les pantalles de detall ja tenen els seus filtres; B obliga a tocar sis mòduls per un detall
       de comoditat i es pot fer després, mòdul per mòdul.
     data: 2026-11-24
+  P-648:
+    opcions:
+      A: "Un total per sota de la mida mínima també surt «menys de N»."
+      B: "El total es veu sempre (lletra de CA-M08-03)."
+      C: "Els totals no es mostren mai als desglossaments de persones."
+    recomanada: A
+    perque: >-
+      Si totes les cel·les són petites, el total les suma i diu exactament quantes persones hi ha; A
+      no canvia cap total que arribi al mínim (els exemples de CA-M08-03 continuen iguals).
+    data: 2026-11-24
