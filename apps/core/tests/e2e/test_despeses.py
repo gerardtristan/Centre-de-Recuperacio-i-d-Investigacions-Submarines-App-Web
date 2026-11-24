@@ -2,6 +2,10 @@
 una despesa des del mòbil i la veu a «Despeses sense factura». Pantalles a 1280, 390 i 320 px.
 Només dades inventades."""
 
+import re
+import struct
+import zlib
+
 import pytest
 from django.urls import reverse
 from playwright.sync_api import expect
@@ -11,6 +15,21 @@ from apps.expenses.models import Expense, Supplier
 from .conftest import login_admin, make_admin
 
 pytestmark = pytest.mark.e2e
+
+
+def _png(width, height):
+    """Un PNG inventat (blanc amb una franja verda), sense Pillow, que no és dependència."""
+
+    def chunk(kind, data):
+        body = kind + data
+        return struct.pack(">I", len(data)) + body + struct.pack(">I", zlib.crc32(body))
+
+    green, white = bytes((11, 93, 75)), bytes((255, 255, 255))
+    rows = b"".join(bytes(1) + (green if 24 <= y < 80 else white) * width for y in range(height))
+    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    signature = bytes((137, 80, 78, 71, 13, 10, 26, 10))
+    idat = chunk(b"IDAT", zlib.compress(rows))
+    return signature + chunk(b"IHDR", header) + idat + chunk(b"IEND", b"")
 
 
 def test_the_treasurer_records_an_expense(page, live_server, transactional_db, review):
@@ -63,7 +82,18 @@ def test_the_treasurer_attaches_and_marks_the_invoice(
     page.goto(f"{live_server.url}{reverse('administration:expense_documents', args=[expense.pk])}")
     expect(page.get_by_role("heading", name="Documents de la despesa")).to_be_visible()
     review("despesa-documents")
-    page.get_by_label("Fitxer (PDF, JPG o PNG)").first.set_input_files(invoice)
+    # T-DX-116 (RN-M09-25): la vista prèvia és només al navegador, amb un URL blob: en memòria.
+    photo = tmp_path / "factura.png"
+    photo.write_bytes(_png(480, 300))
+    field = page.get_by_label("Fitxer (PDF, JPG o PNG)").first
+    field.set_input_files(photo)
+    preview = page.get_by_role("img", name="Vista prèvia del fitxer triat")
+    expect(preview).to_be_visible()
+    assert preview.get_attribute("src").startswith("blob:")
+    review("despesa-documents-vista-previa")
+    field.set_input_files(invoice)
+    expect(preview).to_have_count(0)
+    expect(page.locator("iframe.zm-vista").first).to_have_attribute("src", re.compile("^blob:"))
     page.get_by_role("button", name="Desa el document").first.click()
     expect(page.get_by_text("Document desat")).to_be_visible()
     review("despesa-documents-factura")

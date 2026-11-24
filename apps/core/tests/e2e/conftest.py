@@ -144,6 +144,11 @@ class PageChecks:
             and path.startswith("/static/")
         ):
             return
+        # La vista prèvia d'un fitxer triat (T-DX-116, RN-M09-25) és un URL blob: en memòria, que
+        # no surt mai a la xarxa: l'avorten el canvi de pàgina en desar o el Chromium sense
+        # finestra, que no té visor de PDF.
+        if request.failure == "net::ERR_ABORTED" and request.url.startswith("blob:"):
+            return
         self.problems.append(f"petició fallida: {request.method} {request.url} ({request.failure})")
 
     def _response(self, response):

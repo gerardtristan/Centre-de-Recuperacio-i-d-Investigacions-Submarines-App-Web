@@ -1,7 +1,8 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
-{# T-M09-04b, T-M09-05 i T-M09-15 (RN-M09-23, 25 i 27; 051; CA-M09-24): els documents d'una despesa. Sense wireframe propi; només components existents. Seguretat: MG1 o MG2 amb l'abast «tot» al servidor (sense, «no trobat»); pujar la factura demana MG1 i el comprovant MG2; marcar-los il·legibles i la còpia emmascarada, MG2 i C5. Obrir un document és la vista `private_file`: C5 (tresorer i junta), desxifrat i amb registre; mai el compte personal de qui l'ha pujat. Amagar un botó no és cap control: els serveis ho tornen a comprovar. La vista prèvia al navegador (RN-M09-25) espera el component del sistema de disseny. #}
+{% load i18n static %}
+{# T-M09-04b, T-M09-05 i T-M09-15 (RN-M09-23, 25 i 27; 051; CA-M09-24): els documents d'una despesa. Sense wireframe propi; només components existents. Seguretat: MG1 o MG2 amb l'abast «tot» al servidor (sense, «no trobat»); pujar la factura demana MG1 i el comprovant MG2; marcar-los il·legibles i la còpia emmascarada, MG2 i C5. Obrir un document és la vista `private_file`: C5 (tresorer i junta), desxifrat i amb registre; mai el compte personal de qui l'ha pujat. Amagar un botó no és cap control: els serveis ho tornen a comprovar. La vista prèvia (RN-M09-25, T-DX-116) passa només al navegador: zona-magnetica amb data-vista-previa; el fitxer no surt fins a «Desa». #}
 {% block title %}{% translate "Documents de la despesa" %} · C.R.I.S.{% endblock %}
+{% block estils %}<script src="{% static 'js/zona-magnetica.js' %}" defer></script>{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Despeses" %}</p>
@@ -33,11 +34,11 @@
           {% csrf_token %}
           <input type="hidden" name="document" value="{{ row.code }}">
           <input type="hidden" name="action" value="attach">
-          <div class="camp">
+          <div class="zona-magnetica" data-zona-magnetica data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
             <label for="fitxer-{{ row.code }}">{% if row.illegible %}{% translate "Puja'l de nou (PDF, JPG o PNG)" %}{% else %}{% translate "Fitxer (PDF, JPG o PNG)" %}{% endif %}</label>
             <input type="file" id="fitxer-{{ row.code }}" name="fitxer" accept="{{ accept }}" required aria-describedby="ajuda-{{ row.code }}">
             <p class="ajuda" id="ajuda-{{ row.code }}">{% translate "Si fas la foto amb la càmera, queda a la galeria del telèfon i es pot copiar a un núvol fora de la UE. Esborra-la de la galeria (i de la paperera) després de pujar-la." %}</p>
-          </div>
+          </div></div>
           <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa el document" %}</button></div>
         </form>
       {% endif %}
@@ -47,11 +48,11 @@
             {% csrf_token %}
             <input type="hidden" name="document" value="{{ row.code }}">
             <input type="hidden" name="action" value="masked">
-            <div class="camp">
+            <div class="zona-magnetica" data-zona-magnetica data-vista-previa data-vista-titol="{% translate 'Vista prèvia del fitxer triat' %}" data-error-tipus="{% translate 'Aquest fitxer no és un PDF ni una imatge. Tria un PDF, un JPG o un PNG.' %}"><div class="camp">
               <label for="emmascarada-{{ row.code }}">{% translate "Còpia amb l'IBAN tapat" %}</label>
               <input type="file" id="emmascarada-{{ row.code }}" name="fitxer" accept="{{ accept }}" required aria-describedby="ajuda-emmascarada-{{ row.code }}">
               <p class="ajuda" id="ajuda-emmascarada-{{ row.code }}">{% translate "La plataforma encara no troba l'IBAN sola: puja una còpia on no es vegi. És la que es podrà compartir." %}</p>
-            </div>
+            </div></div>
             <div class="accions"><button class="boto" type="submit">{% translate "Desa la còpia" %}</button></div>
           </form>
         {% endif %}
