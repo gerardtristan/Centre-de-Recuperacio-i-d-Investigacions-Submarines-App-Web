@@ -266,6 +266,11 @@ MAP = {
         "apps/margins/period_closing.py",
         "templates/margins/periods.html",
     ),
+    "test_primera_estrella.py": (
+        "apps/activities/views/admin_filings.py",
+        "apps/activities/filings.py",
+        "templates/activities/course_filings.html",
+    ),
     "test_homologacions.py": (
         "apps/activities/views/admin_filings.py",
         "apps/activities/filings.py",
