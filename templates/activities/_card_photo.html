@@ -1,5 +1,5 @@
 {% load i18n %}
-{# T-M02-42b (RN-M02-47): cos comú de la pujada de la foto del carnet (àrea personal i administració), amb el recurs Expositor (regles a la vista, una cel·la per cara pujada i el recompte; pla dels recursos externs). Les regles diuen per a què serveix, quant temps es conserva (VC-57) i que no s'hi pugi cap document de salut. Cada cara pujada enllaça a la vista que la desxifra amb permís i registre (T-M02-43); la pàgina no la mostra. Sense JavaScript ni vista prèvia. El servidor ho torna a comprovar tot (titular o AC25, agència, una per cara, VC-56). #}
+{# T-M02-42b (RN-M02-47): cos comú de la pujada de la foto del carnet (àrea personal i administració), amb el recurs Expositor (regles a la vista, una cel·la per cara pujada i el recompte; pla dels recursos externs). Les regles diuen per a què serveix, quant temps es conserva (VC-57) i que no s'hi pugi cap document de salut. Cada cara pujada enllaça a la vista que la desxifra amb permís i registre (T-M02-43); la pàgina no la mostra. Sense vista prèvia; la zona per arrossegar-hi la foto és una millora (T-DX-117) i sense JavaScript queda el camp de sempre. El servidor ho torna a comprovar tot (titular o AC25, agència, una per cara, VC-56). #}
 <dl class="dades-soci">
   <div><dt>{% translate "Titulació" %}</dt><dd>{{ cert.level|default:cert.speciality }}{% if cert.number %} ({{ cert.number }}){% endif %}</dd></div>
   <div><dt>{% translate "Agència" %}</dt><dd>{{ cert.agency|default:"—" }}</dd></div>
@@ -29,7 +29,10 @@
   <form class="formulari expositor-cos" method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% include "_errata.html" %}
-    {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+    {% for field in form %}{% if field.field.widget.input_type == "file" %}
+      {# T-DX-117: el camp dins de la zona per arrossegar-hi la foto (zona-magnetica.js); sense JavaScript, el camp de sempre #}
+      <div class="zona-magnetica expositor-zona" data-zona-magnetica data-error-tipus="{% translate 'Aquest fitxer no és una foto ni un PDF. Tria un JPG, un PNG o un PDF.' %}">{% include "accounts/_camp.html" %}</div>
+    {% else %}{% include "accounts/_camp.html" %}{% endif %}{% endfor %}
     <div class="expositor-accions">
       <p class="expositor-estat">{% blocktranslate count n=sides|length %}{{ n }} cara amb foto{% plural %}{{ n }} cares amb foto{% endblocktranslate %}</p>
       <button class="boto boto-principal" type="submit">{% translate "Desa la foto" %}</button>

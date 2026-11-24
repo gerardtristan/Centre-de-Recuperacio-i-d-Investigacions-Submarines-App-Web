@@ -322,7 +322,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 | Interruptor | `interruptor` amb `role="switch"` i `aria-checked` | Estat amb posició, icona i text «Sí» o «No», mai només color. Nom amb `aria-labelledby` |
 | Pestanyes | `pestanyes`, `pestanya`, `panells`; `CRIS.pestanyes(llista)` | Patró ARIA de pestanyes: fletxes, Inici i Fi; subratllat elàstic daurat. Una pestanya que el rol no pot veure no surt |
 | Control segmentat | `segmentat` | Botons de ràdio dins d'un `fieldset` amb llegenda; l'opció triada porta ✓, negreta i relleu |
-| Zona per pujar fitxers | `zona-magnetica`, `CRIS.zonaMagnetica(zona)` | També amb clic o Intro. Comprova el tipus i la mida i mostra l'error en text. Amb `data-csv`, resumeix el fitxer com un extracte bancari (per això la importació de Cluber no el fa servir) |
+| Zona per pujar fitxers | `zona-magnetica` amb `data-zona-magnetica` i `static/js/zona-magnetica.js` (T-DX-117); als wireframes, `CRIS.zonaMagnetica(zona)` | El camp de fitxer de sempre va a dins (amb la seva etiqueta, i sense JavaScript funciona igual). Amb JavaScript: s'hi pot deixar el fitxer arrossegant-lo (`a-sobre`), diu el nom i la mida (`te-fitxer`, `zm-resum`) i, si no compleix l'`accept` del camp, el buida i ho diu en text (`te-error`, `zm-error`, missatge a `data-error-tipus`). Un fitxer per camp i sense animació. El servidor ho torna a comprovar tot. On: la foto del carnet d'una titulació (Expositor). Als wireframes, també `data-csv` (resum com un extracte bancari) |
 | Regió viva | `anunci`, `CRIS.anuncia(text)` | Anuncia els canvis d'estat al lector de pantalla |
 
 `boto-tactil`, `impressora` i el subratllat de la navegació encara no tenen fila: no els fa servir cap pantalla nova [A completar].
