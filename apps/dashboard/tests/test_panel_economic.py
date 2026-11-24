@@ -61,15 +61,15 @@ def test_ca_m08_04_economic_panel_reads_each_service(services):
         "activity_margin", "department_income", "department_expenses", "grants_granted",
         "expenses_without_invoice", "expenses_without_invoice_amount", "treasury_balances",
     ]  # fmt: skip
-    assert blocks["activity_margin"].value == 30000 - 5000 + 1000  # suma dels marges del 09
+    assert blocks["activity_margin"].value.value == 30000 - 5000 + 1000  # suma dels marges del 09
     (income,) = blocks["department_income"].breakdowns
     assert cents(income) == {"Escola": 655, "General": 12345}
     (expenses,) = blocks["department_expenses"].breakdowns
     assert cents(expenses) == {"General": 4000}
     (granted,) = blocks["grants_granted"].breakdowns
     assert cents(granted) == {"General": 100000, "Escola": 2}  # imports: no s'amaga res
-    assert blocks["expenses_without_invoice"].value == 3
-    assert blocks["expenses_without_invoice_amount"].value == 4500
+    assert blocks["expenses_without_invoice"].value.value == 3
+    assert blocks["expenses_without_invoice_amount"].value.value == 4500
     (balances,) = blocks["treasury_balances"].breakdowns
     assert cents(balances) == {"Banc": 250000, "Caixa": 0, "Trànsit": -120}  # «Antic» no surt
     assert balances.total.value == 249880
@@ -84,7 +84,7 @@ def test_hu_m08_02_department_figures_add_up_to_the_09_report(services):
         assert (
             report.margins_total_cents + cents(income).get(name, 0) - cents(expenses).get(name, 0)
         ) == report.total_cents
-    assert blocks["activity_margin"].value + income.total.value - expenses.total.value == sum(
+    assert blocks["activity_margin"].value.value + income.total.value - expenses.total.value == sum(
         report.total_cents for report in REPORTS.values()
     )
 
@@ -118,12 +118,12 @@ def test_ca_m08_09_a_failing_module_only_breaks_its_block(services, monkeypatch)
     monkeypatch.setattr(panels.treasury, "balances", broken)
     blocks = panels.panel("economic", *Q1, now=NOW)
     assert blocks["treasury_balances"].error
-    assert blocks["activity_margin"].value == 26000
+    assert blocks["activity_margin"].value.value == 26000
 
 
 def test_rn_m08_01_real_services_on_an_empty_database_only_return_numbers():
     for block in panels.panel("economic", *Q1, now=NOW).values():
         assert not block.error, block.code
-        assert block.value is None or isinstance(block.value, int)
+        assert block.value is None or isinstance(block.value.value, int)
         for breakdown in block.breakdowns:
             assert all(isinstance(c.value, int) for c in breakdown.cells.values())

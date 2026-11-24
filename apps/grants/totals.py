@@ -2,7 +2,9 @@
 
 Només lectura i només imports: el concedit de les sol·licituds resoltes dins del període (dates
 incloses), per departament. Una denegada no hi compta; una de justificada o tancada, sí, si té
-import concedit. El cobrat ja surt a l'informe per departament (`margins.department_report`)."""
+import concedit. El cobrat ja surt a l'informe per departament (`margins.department_report`).
+
+Consulta agregada sense permís: el permís DB1 el comprova la vista del dashboard (T-M08-09)."""
 
 from django.db.models import Sum
 

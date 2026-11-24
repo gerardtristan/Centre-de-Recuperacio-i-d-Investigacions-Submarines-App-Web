@@ -245,7 +245,8 @@ def without_invoice():
 
 def without_invoice_totals(starts_on, ends_on) -> tuple[int, int]:
     """Per al dashboard (08; T-M08-06): quantes despeses «sense factura» tenen la data de la
-    factura dins del període (dates incloses) i quant sumen, en cèntims. Només el recompte."""
+    factura dins del període (dates incloses) i quant sumen, en cèntims. Consulta agregada sense
+    permís: el permís DB1 el comprova la vista del dashboard (T-M08-09)."""
     totals = (
         without_invoice()
         .filter(invoice_date__range=(starts_on, ends_on))
