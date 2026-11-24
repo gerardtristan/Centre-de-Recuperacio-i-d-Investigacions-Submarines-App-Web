@@ -38,6 +38,7 @@ def test_rn_m02_32_the_secretary_loads_and_verifies_from_the_screen(person, leve
     assert (loaded.source, loaded.number, loaded.is_verified) == (S.IMPORTED, "B-77", False)
     page = client.get(url(person)).content.decode()
     assert "Nivell inventat" in page and "sense verificar" in page and "Verifica" in page
+    assert "Tria…" in page and "---------" not in page  # T-M02-49: desplegables en català
     response = client.post(url(person), {"accio": "verifica", "titulacio": loaded.pk})
     assert response.status_code == 303
     loaded.refresh_from_db()

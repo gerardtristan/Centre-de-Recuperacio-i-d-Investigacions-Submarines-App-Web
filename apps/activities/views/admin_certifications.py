@@ -35,17 +35,22 @@ class LoadForm(forms.Form):
         choices=[(S.DECLARED, _("Declarada per la persona")), (S.IMPORTED, _("Importada"))],
     )
     level = forms.ModelChoiceField(
-        label=_("Nivell"), queryset=CertificationLevel.objects.order_by("rank"), required=False
+        label=_("Nivell"),
+        queryset=CertificationLevel.objects.order_by("rank"),
+        required=False,
+        empty_label=_("Tria…"),
     )
     speciality = forms.ModelChoiceField(
         label=_("O bé una especialitat"),
         queryset=TrainingCatalogueEntry.objects.filter(kind="speciality").order_by("name"),
         required=False,
+        empty_label=_("Tria…"),
     )
     agency = forms.ModelChoiceField(
         label=_("Agència de l'especialitat"),
         queryset=CertificationAgency.objects.filter(active=True).order_by("name"),
         required=False,
+        empty_label=_("Tria…"),
         help_text=_("La d'un nivell és la del nivell."),
     )
     number = forms.CharField(label=_("Número de la titulació"), max_length=40, required=False)
