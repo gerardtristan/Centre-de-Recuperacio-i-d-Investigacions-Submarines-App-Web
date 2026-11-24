@@ -143,3 +143,62 @@ class MediaAsset(models.Model):
             and self.licence_note.strip()
             and (self.people_consent or not self.shows_people)
         )
+
+
+class ContactReason(models.Model):
+    """Motiu de contacte (M07-6; RN-M07-07). És una dada (WP8): el nom, si surt al formulari i
+    els rols que reben els seus missatges, que fan l'abast per motiu de WP5. D'inici, tots a la
+    Secretaria (P-486, provisional)."""
+
+    name = models.CharField(_("nom"), max_length=100, unique=True)
+    active = models.BooleanField(_("actiu"), default=True)
+    order = models.PositiveSmallIntegerField(_("ordre"), default=0)
+    roles = models.ManyToManyField(
+        "core.Role", blank=True, related_name="+", verbose_name=_("rols que el reben")
+    )
+
+    class Meta:
+        verbose_name = _("motiu de contacte")
+        verbose_name_plural = _("motius de contacte")
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class ContactMessage(models.Model):
+    """Missatge del formulari de contacte (M07-6). Sense IP (M07-12). `finished_at` és quan es
+    respon o es tanca: d'allà compta la conservació (RN-M07-07, P-620)."""
+
+    class Status(models.TextChoices):
+        NEW = "new", _("Nou")
+        ANSWERED = "answered", _("Respost")
+        CLOSED = "closed", _("Tancat")
+
+    reason = models.ForeignKey(
+        ContactReason, on_delete=models.PROTECT, related_name="messages", verbose_name=_("motiu")
+    )
+    name = models.CharField(_("nom"), max_length=150)
+    email = models.EmailField(_("correu electrònic"), max_length=254)
+    body = models.TextField(_("missatge"), max_length=5000)
+    privacy_text = models.ForeignKey(
+        "core.LegalText", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("text de privacitat acceptat"),
+    )  # fmt: skip
+    status = models.CharField(_("estat"), max_length=20, choices=Status.choices, default=Status.NEW)
+    answered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("respost per"),
+    )  # fmt: skip
+    answer = models.TextField(_("resposta"), blank=True)
+    closed_reason = models.CharField(_("motiu del tancament"), max_length=300, blank=True)
+    created_at = models.DateTimeField(_("rebut el"), auto_now_add=True)
+    finished_at = models.DateTimeField(_("respost o tancat el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("missatge de contacte")
+        verbose_name_plural = _("missatges de contacte")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.reason} · {self.created_at:%d/%m/%Y}"

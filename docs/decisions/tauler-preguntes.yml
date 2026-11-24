@@ -1291,6 +1291,17 @@ opcions:
       el contingut ja és al mateix emmagatzematge privat i amb la mateixa validació, sense tocar el nucli.
     data: 2026-11-24
 
+  P-620:
+    opcions:
+      A: "Respost o tancat compten igual: el termini corre des del dia que es respon o es tanca; un missatge nou no s'esborra sol."
+      B: "Només els tancats sense resposta s'esborren; els resposts es guarden fins que algú els tanqui."
+      C: "El termini corre des del dia que arriba el missatge, sigui quin sigui l'estat."
+    recomanada: A
+    perque: >-
+      Un missatge respost ja no cal per a res i guardar-lo més temps és més dada personal sense motiu (mínim de dades, M07-12);
+      comptar des de l'arribada podria esborrar un missatge que encara no ha llegit ningú.
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:

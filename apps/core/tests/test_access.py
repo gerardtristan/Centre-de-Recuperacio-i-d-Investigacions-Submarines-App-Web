@@ -51,6 +51,8 @@ PUBLIC_ROUTES = {
     # Llistat i detall públics de les activitats (T-M02-08b): cap dada personal.
     "activities:public_list",
     "activities:public_detail",
+    # Contacte del 07 (T-M07-11; RN-M07-01): «no trobat» amb `website.contact_enabled` apagat.
+    "website:contact",
     # Enllaços de convidat (T-M00-02; RN-40, decisió 021): el testimoni és la credencial.
     "core:guest",
     "core:guest_link",
