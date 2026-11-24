@@ -375,3 +375,36 @@ def test_treasurer_changes_the_transfer_reminder_days(page, live_server, review)
     expect(page.get_by_text("Valor desat.")).to_be_visible()
     review("pagaments-recordatori-transferencia")
     assert business_settings.get("payments.transfer_reminder_days") == 20
+
+
+def test_president_edits_the_home_news_and_admin_a_dashboard_help_text(page, live_server, review):
+    """T-M07-02 (M07-4, M07-6): el President, amb WP1, canvia les notícies de la portada però no
+    l'interruptor del butlletí. P-488 (M08-6): l'administrador escriu el text d'ajuda d'un
+    indicador del dashboard, que la fila anomena pel nom de l'indicador."""
+    president = make_admin("presidencia.web", "president")
+    login_admin(page, live_server.url, president.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos de la web pública").click()
+    expect(page.get_by_role("cell", name="Notícies a la portada")).to_be_visible()
+    expect(page.get_by_role("link", name="Canvia: Butlletí actiu")).to_have_count(0)
+    review("web-ajustos-apartat")
+    page.get_by_role("link", name="Canvia: Notícies a la portada").click()
+    page.get_by_label("Valor nou").fill("5")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    assert business_settings.get("website.news_on_home") == 5
+
+    page.context.clear_cookies()
+    admin = make_admin("admin.dashboard", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    menu_entry(page, "Ajustos").click()
+    page.get_by_role("link", name="Ajustos del dashboard").click()
+    label = "Text d'ajuda d'un indicador: Socis actius"
+    expect(page.get_by_role("link", name=f"Canvia: {label}", exact=True)).to_be_visible()
+    review("dashboard-ajustos-apartat")
+    page.get_by_role("link", name=f"Canvia: {label}", exact=True).click()
+    page.get_by_label("Valor nou").fill("Inclou els socis d'honor (inventat).")
+    page.get_by_role("button", name="Desa el valor").click()
+    expect(page.get_by_text("Valor desat.")).to_be_visible()
+    review("dashboard-ajustos-text-ajuda")
+    assert business_settings.get("dashboard.help_text.active_members").startswith("Inclou")
