@@ -210,16 +210,17 @@ def _start(licence_type: LicenceType, starts_on, today) -> datetime.date:
 
 
 def _renewal_of(person, licence_type: LicenceType, today):
-    """La llicència vigent que renova (CA-M06-25; P-442): la del mateix tipus que caduca més
-    tard i encara no ha caducat."""
+    """La llicència vigent que renova (CA-M06-25; P-442, 105): la de qualsevol tipus que caduca
+    més tard i encara no ha caducat, perquè passar d'aficionat a tècnic també atura els avisos de
+    l'anterior. Les d'un dia no renoven ni es renoven: no s'avisen (RN-M06-12)."""
+    if licence_type.validity_rule == ValidityRule.SINGLE_DAY:
+        return None
     return (
-        Licence.objects.filter(
-            person=person, licence_type=licence_type, status=Licence.Status.ACTIVE,
-            expires_on__gte=today,
-        )
+        Licence.objects.filter(person=person, status=Licence.Status.ACTIVE, expires_on__gte=today)
+        .exclude(validity_rule=ValidityRule.SINGLE_DAY)
         .order_by("-expires_on", "-pk")
         .first()
-    )  # fmt: skip
+    )
 
 
 def request(person, licence_type: LicenceType, starts_on=None, *, actor, today=None) -> Licence:
