@@ -679,7 +679,8 @@ class CertificationLevel(models.Model):
 class DiverCertification(models.Model):
     """Titulació de busseig d'una persona: un nivell o una especialitat (T-M02-23; M02-6 i
     addenda de la 058; RN-M02-10, RN-M02-30 i RN-M02-32). És una dada personal: només la veu qui
-    té permís i surt a l'exportació RGPD de la persona. Cap foto ni escaneig del carnet.
+    té permís i surt a l'exportació RGPD de la persona. La foto del carnet d'una altra agència és
+    `CertificationCardPhoto` (addenda de la 104).
 
     - `source`: `club_course` (un curs del club), `declared` (ho diu la persona) o `imported`.
     - Verificada: `verified_by` i `verified_at` informats. En mode de bloqueig només compten les
@@ -1295,6 +1296,48 @@ class CourseOutcome(models.Model):
 
     def __str__(self):
         return f"{self.enrolment_id} · {self.get_result_display()}"
+
+
+class CertificationCardPhoto(models.Model):
+    """Foto d'una cara del carnet d'una titulació d'una altra agència (addenda de la 104,
+    RN-M02-47 a 49 i 54; T-M02-42). `file` és un fitxer privat xifrat a l'aplicació (051,
+    `core.files`): mai té cap adreça pública i només el desxifra la vista de fitxers amb permís
+    (el titular o AC24) i registre. `delete_after` el posa la cua de conservació (T-M02-47)."""
+
+    class Side(models.TextChoices):
+        FRONT = "front", _("Anvers")
+        BACK = "back", _("Revers")
+
+    certification = models.ForeignKey(
+        DiverCertification, on_delete=models.PROTECT, related_name="card_photos",
+        verbose_name=_("titulació"),
+    )  # fmt: skip
+    side = models.CharField(_("cara"), max_length=5, choices=Side.choices)
+    file = models.OneToOneField(
+        "core.PrivateFile", on_delete=models.PROTECT, related_name="+", verbose_name=_("fitxer")
+    )
+    content_type = models.CharField(_("tipus de contingut"), max_length=100)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("pujada per"),
+    )  # fmt: skip
+    uploaded_at = models.DateTimeField(_("pujada"), auto_now_add=True)
+    delete_after = models.DateField(_("s'esborra a partir de"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("foto del carnet d'una titulació")
+        verbose_name_plural = _("fotos dels carnets de titulació")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["certification", "side"], name="card_photo_one_per_side"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(side__in=["front", "back"]), name="card_photo_side_valid"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_side_display()} {self.certification_id}"
 
 
 class CertificationFiling(models.Model):

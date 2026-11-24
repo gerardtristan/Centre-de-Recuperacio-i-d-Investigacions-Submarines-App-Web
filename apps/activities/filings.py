@@ -3,8 +3,8 @@ RN-M02-50, 51, 53 i 55; CA-M02-53 i 54).
 
 - **Demanar** (`request_homologation`): el titular (compte personal propi) o qui té AC25 en nom
   seu. Només per a una titulació d'una agència diferent de la de destinació (VC-55) i sense cap
-  homologació oberta. Amb VC-56 encès cal la foto de l'anvers: mentre no hi hagi fotos (T-M02-42,
-  espera el sí del propietari), es rebutja; apagat, la secretaria comprova el carnet en persona.
+  homologació oberta. Amb VC-56 encès cal la foto de l'anvers (`card_photos`, T-M02-42); apagat,
+  la secretaria comprova el carnet en persona.
 - **Tramitar** (AC26): `requested → filed → done`; `requested` o `filed → rejected` amb motiu.
   `done` demana el nivell de destinació, el número i la data i, en una transacció, crea la
   titulació de destinació (`source = federation`, verificada per qui la marca) i verifica la
@@ -82,7 +82,10 @@ def request_homologation(certification, *, by, now=None, request=None) -> Certif
         raise ValidationError(
             _("Només es pot homologar una titulació d'una agència diferent de la de destinació.")
         )
-    if business_settings.get(PHOTOS_KEY):
+    if (
+        business_settings.get(PHOTOS_KEY)
+        and not certification.card_photos.filter(side="front").exists()
+    ):
         raise ValidationError(_("Cal la foto de l'anvers del carnet per demanar l'homologació."))
     if business_settings.get(FEES_KEY) and business_settings.get(FEE_KEYS[F.Kind.HOMOLOGATION]):
         raise ValidationError(_("Ara mateix no es poden demanar homologacions de pagament."))
