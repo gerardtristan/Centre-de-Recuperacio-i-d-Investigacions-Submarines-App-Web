@@ -165,10 +165,10 @@ def _snapshot(reason) -> dict:
 def reason_edit_view(request, pk=None):
     require_perm(request, REASONS, write=True)
     reason = get_object_or_404(ContactReason, pk=pk) if pk else ContactReason()
+    before = _snapshot(reason)  # abans del formulari: `is_valid` ja copia els valors nous
     form = ReasonForm(request.POST or None, instance=reason)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-            before = _snapshot(reason)
             reason = form.save()
             audit.record(
                 ACTION_REASON, actor=request.user, target=reason, request=request,

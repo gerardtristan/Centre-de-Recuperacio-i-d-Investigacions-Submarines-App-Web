@@ -101,14 +101,17 @@ def test_a_reason_is_created_reassigned_and_deactivated_with_a_trace(make_admin)
     reason = ContactReason.objects.get(name="Botiga inventada")
     assert list(reason.roles.all()) == [treasurer] and reason.active
     response = admin.post(
-        _url("reason_edit", reason.pk), {**data, "roles": [], "active": ""}
+        _url("reason_edit", reason.pk), {**data, "name": "Botiga", "roles": [], "active": ""}
     )  # desactivar: no surt al formulari públic, però no s'esborra
     assert response.status_code == 302
     reason.refresh_from_db()
     assert not reason.active and not reason.roles.exists()
     entries = AuditEntry.objects.filter(action=admin_views.ACTION_REASON).order_by("pk")
     assert entries.count() == 2
-    assert entries[1].details["before"]["roles"] == [R.TREASURER]
+    assert entries[0].details["before"] == {}
+    assert entries[1].details["before"] == {
+        "name": "Botiga inventada", "order": 7, "active": True, "roles": [R.TREASURER],
+    }  # fmt: skip
     assert entries[1].details["after"] == {
-        "name": "Botiga inventada", "order": 7, "active": False, "roles": [],
+        "name": "Botiga", "order": 7, "active": False, "roles": [],
     }  # fmt: skip
