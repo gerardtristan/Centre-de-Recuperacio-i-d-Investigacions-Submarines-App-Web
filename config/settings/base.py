@@ -231,6 +231,9 @@ EMAIL_ALERT_TO = env.list("EMAIL_ALERT_TO", default=[])
 # Avisos de venciment de llicències que la cua posa al correu en cada tasca (RN-M06-12, VC-43):
 # així cap tasca no en genera centenars de cop. És tècnic, no de negoci [A validar: informàtica].
 LICENCE_REMINDER_BATCH_SIZE = env.int("LICENCE_REMINDER_BATCH_SIZE", default=50)
+# Segons que el dashboard guarda les xifres d'un panell, compartides per a tots els comptes
+# (RN-M08-09; M08-6: tècnic, entorn). Només xifres, mai dades personals.
+DASHBOARD_CACHE_SECONDS = env.int("DASHBOARD_CACHE_SECONDS", default=300)
 
 # Fitxers privats (annex B de la spec 00; decisió 005; V-08). Fora de producció, un
 # emmagatzematge local que imita Scaleway; producció hi posa Scaleway (prod.py).

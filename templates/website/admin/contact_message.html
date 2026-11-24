@@ -1,0 +1,51 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-D (WP5; RN-M07-07 i 14): la fitxa d'un missatge de contacte, dins de l'abast per motiu (el servidor dona «no trobat» fora). Respondre surt per correu des de l'adreça del club; tancar demana un motiu sense dades del visitant, perquè queda al registre després de la purga. Els formularis només surten amb permís d'escriptura i si el missatge és nou; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Missatge de contacte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_contact' %}">{% translate "Missatges de contacte" %}</a></p>
+    <h1>{% blocktranslate with reason=message.reason.name %}Missatge: {{ reason }}{% endblocktranslate %}</h1>
+  </header>
+  {% for notice in messages %}<div class="avis avis-error" role="alert">{{ notice }}</div>{% endfor %}
+
+  <section class="targeta" aria-labelledby="titol-missatge">
+    <h2 id="titol-missatge">{% translate "Què ens han escrit" %}</h2>
+    <dl class="dades-soci">
+      <div><dt>{% translate "Rebut el" %}</dt><dd><time datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"d/m/Y H:i" }}</time></dd></div>
+      <div><dt>{% translate "Nom" %}</dt><dd>{{ message.name }}</dd></div>
+      <div><dt>{% translate "Correu electrònic" %}</dt><dd>{{ message.email }}</dd></div>
+      <div><dt>{% translate "Estat" %}</dt><dd>{% include "website/admin/_contact_status.html" with status=message.status label=message.get_status_display %}</dd></div>
+    </dl>
+    {{ message.body|linebreaks }}
+    {% if message.answer %}
+      <h3>{% translate "Resposta enviada" %}</h3>
+      {{ message.answer|linebreaks }}
+    {% endif %}
+    {% if message.closed_reason %}
+      <h3>{% translate "Motiu del tancament" %}</h3>
+      <p>{{ message.closed_reason }}</p>
+    {% endif %}
+  </section>
+
+  {% if reply_form %}
+    <section class="targeta" aria-labelledby="titol-respon">
+      <h2 id="titol-respon">{% translate "Respondre" %}</h2>
+      <form class="formulari" method="post" action="{% url 'administration:website_contact_reply' message.pk %}" novalidate>
+        {% csrf_token %}
+        {% with form=reply_form %}{% include "_errata.html" %}{% endwith %}
+        {% for field in reply_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Envia la resposta" %}</button></div>
+      </form>
+    </section>
+    <section class="targeta" aria-labelledby="titol-tanca">
+      <h2 id="titol-tanca">{% translate "Tancar sense resposta" %}</h2>
+      <form class="formulari" method="post" action="{% url 'administration:website_contact_close' message.pk %}" novalidate>
+        {% csrf_token %}
+        {% with form=close_form %}{% include "_errata.html" %}{% endwith %}
+        {% for field in close_form %}{% include "accounts/_camp.html" %}{% endfor %}
+        <div class="accions"><button class="boto" type="submit">{% translate "Tanca el missatge" %}</button></div>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

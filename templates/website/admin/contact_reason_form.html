@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# WP8: crear o canviar un motiu de contacte (nom, ordre, rols que el reben i si surt al formulari). Cap opció d'esborrar: els missatges hi apunten. El canvi queda al registre amb el valor anterior. #}
+{% block title %}{% if reason.pk %}{% translate "Motiu de contacte" %}{% else %}{% translate "Motiu nou" %}{% endif %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio"><a href="{% url 'administration:website_contact_reasons' %}">{% translate "Motius de contacte" %}</a></p>
+    <h1>{% if reason.pk %}{{ reason.name }}{% else %}{% translate "Motiu nou" %}{% endif %}</h1>
+  </header>
+  <section class="targeta">
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% for field in form %}
+        {% if field.name == "roles" %}
+          <fieldset>
+            <legend>{{ field.label|capfirst }}</legend>
+            {% for choice in field %}<label class="casella" for="{{ choice.id_for_label }}">{{ choice.tag }} <span>{{ choice.choice_label }}</span></label>{% endfor %}
+            {% if field.help_text %}<div class="ajuda">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+          </fieldset>
+        {% else %}{% include "accounts/_camp.html" %}{% endif %}
+      {% endfor %}
+      <div class="accions">
+        <button class="boto boto-principal" type="submit">{% translate "Desa" %}</button>
+        <a class="boto boto-text" href="{% url 'administration:website_contact_reasons' %}">{% translate "Cancel·la" %}</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

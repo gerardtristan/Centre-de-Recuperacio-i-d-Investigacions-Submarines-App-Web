@@ -1,0 +1,61 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-D (WP5; RN-M07-07): la safata del contacte. Només els missatges dels motius que té algun rol del compte; el servidor ho filtra (`contact.visible_to`), no aquesta plantilla. La llista mostra el nom del visitant i no el correu ni el text, que són a la fitxa. #}
+{% block title %}{% translate "Contacte" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Missatges de contacte" %}</h1>
+    <p class="text-2">{% translate "Els missatges dels motius que t'arriben. Els resposts i els tancats s'esborren passat el termini de conservació." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+  {% if can_manage_reasons %}
+    <div class="accions"><a class="boto boto-text" href="{% url 'administration:website_contact_reasons' %}">{% translate "Motius de contacte" %}</a></div>
+  {% endif %}
+
+  {% if reasons %}
+    <form class="formulari barra-filtres" method="get" action="{% url 'administration:website_contact' %}" novalidate>
+      <fieldset class="filtres">
+        <legend>{% translate "Filtres" %}</legend>
+        <div class="camp">
+          <label for="filtre-motiu">{% translate "Motiu" %}</label>
+          <select id="filtre-motiu" name="motiu">
+            <option value="">{% translate "Tots els motius" %}</option>
+            {% for reason in reasons %}<option value="{{ reason.pk }}"{% if reason == chosen %} selected{% endif %}>{{ reason.name }}</option>{% endfor %}
+          </select>
+        </div>
+      </fieldset>
+      <div class="accions">
+        <button class="boto" type="submit">{% translate "Filtra" %}</button>
+        {% if chosen %}<a class="boto boto-text" href="{% url 'administration:website_contact' %}">{% translate "Treu els filtres" %}</a>{% endif %}
+      </div>
+    </form>
+  {% endif %}
+
+  <table class="taula">
+    <caption>{% blocktranslate count total=messages_list|length %}{{ total }} missatge{% plural %}{{ total }} missatges{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Rebut el" %}</th>
+        <th scope="col">{% translate "Motiu" %}</th>
+        <th scope="col">{% translate "Nom" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in messages_list %}
+        <tr>
+          <th scope="row" class="cel-nom"><a href="{% url 'administration:website_contact_message' item.pk %}"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:"d/m/Y H:i" }}</time></a></th>
+          <td data-etiqueta="{% translate 'Motiu' %}">{{ item.reason.name }}</td>
+          <td data-etiqueta="{% translate 'Nom' %}">{{ item.name }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "website/admin/_contact_status.html" with status=item.status label=item.get_status_display %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">{% if reasons %}{% translate "No hi ha cap missatge." %}{% else %}{% translate "Encara no t'arriba cap motiu de contacte: l'administració els reparteix als rols." %}{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

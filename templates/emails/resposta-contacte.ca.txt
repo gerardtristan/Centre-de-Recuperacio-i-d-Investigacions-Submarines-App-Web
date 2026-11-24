@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M07-13b (P-M07-D): resposta al visitant, des de cris@cris.es (085). TEXT PROVISIONAL [A validar: secretaria]. Només el motiu i la resposta: el missatge del visitant no es repeteix. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}Gràcies per escriure'ns («{{ reason }}»). Aquesta és la nostra resposta:{% endblocktranslate %}
+
+{{ answer }}
+
+{% translate "Si tens cap altre dubte, respon aquest correu." %}
+{% endautoescape %}

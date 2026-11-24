@@ -258,3 +258,68 @@ class NewsletterEvent(AppendOnlyModel):
         verbose_name = _("esdeveniment del butlletí")
         verbose_name_plural = _("esdeveniments del butlletí")
         ordering = ["subscription", "at", "pk"]
+
+
+class Newsletter(models.Model):
+    """Butlletí (M07-6; P-M07-F, RN-M07-06). Text pla (RN-M07-10). D'esborrany a enviat una sola
+    vegada; enviat, ja no es canvia. Els recomptes surten dels enviaments (`newsletter.counts`)."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Esborrany")
+        SENT = "sent", _("Enviat")
+
+    number = models.PositiveIntegerField(_("número"), unique=True)
+    subject = models.CharField(_("assumpte"), max_length=200)
+    body = models.TextField(_("cos"), max_length=20000)
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("redactat per"),
+    )  # fmt: skip
+    created_at = models.DateTimeField(_("redactat el"), auto_now_add=True)
+    sent_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("enviat per"),
+    )  # fmt: skip
+    sent_at = models.DateTimeField(_("enviat el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("butlletí")
+        verbose_name_plural = _("butlletins")
+        ordering = ["-number"]
+
+    def __str__(self):
+        return f"{self.number} · {self.subject}"
+
+
+class NewsletterDelivery(models.Model):
+    """Un enviament d'un butlletí a una subscripció confirmada (CA-M07-08). Una sola fila per
+    subscripció i butlletí: el mateix butlletí no arriba dues vegades."""
+
+    newsletter = models.ForeignKey(
+        Newsletter, on_delete=models.PROTECT, related_name="deliveries", verbose_name=_("butlletí")
+    )
+    subscription = models.ForeignKey(
+        NewsletterSubscription, on_delete=models.PROTECT, related_name="deliveries",
+        verbose_name=_("subscripció"),
+    )  # fmt: skip
+    email = models.ForeignKey(
+        "core.OutgoingEmail", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("correu"),
+    )  # fmt: skip
+    # Es dona de baixa abans que surti el seu lot: no se li envia (RN-M07-06).
+    skipped = models.BooleanField(_("no enviat per baixa"), default=False)
+
+    class Meta:
+        verbose_name = _("enviament del butlletí")
+        verbose_name_plural = _("enviaments del butlletí")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["newsletter", "subscription"], name="website_delivery_unique"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.newsletter} · {self.pk}"

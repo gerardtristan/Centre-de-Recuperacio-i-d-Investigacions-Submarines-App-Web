@@ -73,7 +73,10 @@ class Module:
     entrades del registre se substitueixen); `describe(persona)` torna frases sense dades
     personals per al resum de qui aprova; `blockers(persona)`, per què no es pot executar;
     `notes(persona)`, els textos lliures que l'administració ha escrit sobre la persona (amb
-    `note`), per a l'exportació amb les notes revisades (085, A-1)."""
+    `note`), per a l'exportació amb les notes revisades (085, A-1). Amb `addresses`, `anonymise`
+    rep també `known_addresses` (el correu de contacte i els dels comptes) i `contact_email` (només
+    el de contacte, que no pot ser una bústia de rol), presos abans de buidar la persona, per a les
+    files del mòdul lligades només a una adreça (el butlletí del 07)."""
 
     export: Callable
     anonymise: Callable
@@ -81,6 +84,7 @@ class Module:
     describe: Callable = _nothing
     blockers: Callable = _nothing
     notes: Callable = _nothing
+    addresses: bool = False
 
 
 _MODULES: dict[str, Module] = {}
@@ -386,7 +390,8 @@ def anonymise_person(person, *, by, request=None) -> Person:
         if locked.status != Person.Status.ACTIVE:
             raise ValidationError(_("Aquesta persona ja està anonimitzada."))
         before = audit.last_entry_id()
-        known_addresses = {locked.contact_email, *accounts_privacy.addresses(locked)} - {""}
+        contact_email = locked.contact_email
+        known_addresses = {contact_email, *accounts_privacy.addresses(locked)} - {""}
 
         # 0. La identitat que surt als registres econòmics es bloqueja, xifrada, abans de buidar-la
         # (028, punt 2; 058, punt 7; CA-19.3; T-M00-04). Només si en té.
@@ -407,7 +412,12 @@ def anonymise_person(person, *, by, request=None) -> Person:
         # 2. Els mòduls, amb la persona ja anonimitzada (els seus disparadors ho exigeixen).
         targets = {"core.person": [locked.pk]}
         for module in _MODULES.values():
-            module.anonymise(locked, by=by, request=request)
+            extra = (
+                {"known_addresses": frozenset(known_addresses), "contact_email": contact_email}
+                if module.addresses
+                else {}
+            )
+            module.anonymise(locked, by=by, request=request, **extra)
             for label, ids in module.audit_targets(locked).items():
                 targets.setdefault(label, []).extend(ids)
 

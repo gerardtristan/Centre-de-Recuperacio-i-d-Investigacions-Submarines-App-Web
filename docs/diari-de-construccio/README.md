@@ -615,3 +615,10 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M08-04-05-07](T-M08-04-05-07.md) | Dashboard: recomptes d'activitat del 02 i dades dels panells general, de socis i d'activitat (carril B) | 24/11/2026 20:35 | de706669 | 21 noves | [A comprovar] |
 | [T-M08-06](T-M08-06.md) | Dashboard: dades del panell econòmic (carril B) | 24/11/2026 20:40 | (vegeu la PR) | 9 noves | [A comprovar] |
 | [T-M02-49](T-M02-49.md) | E2e amb captures de fotos, homologació i primera estrella (carril C) | 24/11/2026 20:55 | (vegeu la PR) | 4 e2e i 1 comprovació | [A comprovar] |
+| [T-M07-15](T-M07-15.md) | RGPD del 07: exportació i esborrat dels missatges de contacte i del butlletí, i baixa amb només la traça (carril A) | 24/11/2026 21:09 | (vegeu la PR) | 5 noves | [A comprovar] |
+| [T-M08-08-10-12](T-M08-08-10-12.md) | Dashboard: panell de comunicació, ajustos del 08 i ordre per compte (carril B) | 24/11/2026 21:20 | 78a07245 | 13 noves | [A comprovar] |
+| [T-M07-14](T-M07-14.md) | Butlletí: redactar, enviar per la cua i recomptes (en part: plantilla del correu i pantalles, torn del nucli; carril A) | 24/11/2026 23:03 | (vegeu la PR) | 12 noves i 1 xfail | [A comprovar] |
+| [T-M07-13b](T-M07-13b.md) | Correus del 07 (confirmació del butlletí, avís de contacte i resposta), permisos dels ajustos del dashboard (P-645) i adreces a l'RGPD (torn del nucli) | 24/11/2026 21:45 | (vegeu la PR) | 10 noves i 2 permisos a la matriu | [A comprovar] |
+| [T-M07-11b](T-M07-11b.md) | Safata del contacte i motius (WP5 i WP8; torn del nucli) | 24/11/2026 22:15 | (vegeu la PR) | 8 noves i 2 e2e | [A comprovar] |
+| [T-M08-09](T-M08-09.md) | Vista del dashboard: DB1, enllaços amb el permís del mòdul, període i memòria cau (torn del nucli) | 24/11/2026 22:20 | (vegeu la PR) | 22 noves i 1 e2e | [A comprovar] |
+| [T-M07-14c](T-M07-14c.md) | Pantalles del butlletí: redactar, vista prèvia, enviar amb confirmació i recomptes (WP6; torn del nucli) | 24/11/2026 23:20 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |

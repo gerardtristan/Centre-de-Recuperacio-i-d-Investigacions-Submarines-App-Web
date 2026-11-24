@@ -1,5 +1,5 @@
 """Dades dels panells del dashboard (T-M08-05 general i socis; T-M08-06 econòmic; T-M08-07
-activitat; M08-6).
+activitat; T-M08-08 comunicació; M08-6).
 
 Cada panell és un diccionari {codi de l'indicador: `Block`}, en l'ordre del catàleg. Cada xifra
 és la que torna el servei de lectura del mòdul (RN-M08-04): aquí només es tria la data, se sumen
@@ -43,12 +43,14 @@ from apps.members import services as members
 from apps.members.models import Member
 from apps.payments import campaigns
 from apps.treasury import balances as treasury
+from apps.website import counts as website
 
 from . import privacy
 from .indicators import CATALOG
 
 logger = logging.getLogger(__name__)
 M = Member.Status
+LOW_OCCUPANCY = "dashboard.low_occupancy_pct"  # RN-M08-07
 NOT_AVAILABLE = object()  # el servei no hi és: el bloc no surt (RN-M08-11)
 
 
@@ -128,6 +130,9 @@ class Reads:
             lambda: expenses.without_invoice_totals(self.starts_on, self.ends_on),
         )
 
+    def website(self):
+        return self._once("website", website.counts)
+
     def breakdown(self, code, counts, label=""):
         if CATALOG[code].kind == "people":
             cells, total = privacy.suppress(counts, self.min_size)
@@ -170,6 +175,11 @@ def unpaid_members(r):
 
 def free_places(r):
     return r.activities().free_places
+
+
+def low_occupancy(r):
+    percent = business_settings.get(LOW_OCCUPANCY, r.today)
+    return activity_stats.low_occupancy_count(percent, today=r.today)
 
 
 def licences_to_renew(r):
@@ -277,11 +287,20 @@ def treasury_balances(r):
     return (r.breakdown("treasury_balances", cents),)
 
 
+def confirmed_subscribers(r):
+    return r.website()["confirmed_subscribers"]
+
+
+def pending_contact_messages(r):
+    return r.website()["pending_contact_messages"]
+
+
 READS = {
     "active_members": active_members,
     "new_members": new_members,
     "unpaid_members": unpaid_members,
     "free_places": free_places,
+    "low_occupancy": low_occupancy,
     "licences_to_renew": licences_to_renew,
     "equipment_to_review": equipment_to_review,
     "grants_closing": grants_closing,
@@ -300,6 +319,8 @@ READS = {
     "expenses_without_invoice": expenses_without_invoice,
     "expenses_without_invoice_amount": expenses_without_invoice_amount,
     "treasury_balances": treasury_balances,
+    "confirmed_subscribers": confirmed_subscribers,
+    "pending_contact_messages": pending_contact_messages,
 }
 
 

@@ -62,7 +62,12 @@ def test_ca_m07_06_the_screen_says_the_same_for_new_confirmed_and_unsubscribed(
         assert email.lower() not in page
         pages.add(page)
     assert len(pages) == 1 and "Revisa el correu" in pages.pop()
-    states = dict(NewsletterSubscription.objects.values_list("email", "status"))
+    # La baixa d'abans en deixa només la traça (T-M07-15): la fila nova és la del correu.
+    states = dict(
+        NewsletterSubscription.objects.filter(email__endswith="@example.com").values_list(
+            "email", "status"
+        )
+    )
     assert states == {
         "nou@example.com": S.PENDING,
         "confirmat@example.com": S.CONFIRMED,
@@ -83,15 +88,42 @@ def test_ca_m07_06_only_the_new_and_the_unsubscribed_need_a_confirmation(text):
     assert needs is True and again.token != gone.token
 
 
-@pytest.mark.xfail(
-    reason="Plantilla del correu de confirmació al nucli: T-M07-13b (docs/estat/M07.md)",
-    strict=True,
-)
-def test_ca_m07_06_the_confirmation_email_is_queued(client, enabled, text):
+def test_ca_m07_06_the_confirmation_email_is_queued_with_the_link_only(client, enabled, text):
     from apps.core.models import OutgoingEmail
 
-    _subscribe(client, "nou@example.com")
-    assert OutgoingEmail.objects.filter(to_address="nou@example.com").exists()
+    _subscribe(client, "Nou@example.com")
+    email = OutgoingEmail.objects.get()
+    sub = NewsletterSubscription.objects.get()
+    assert (email.to_address, email.template, email.status) == (
+        "nou@example.com", newsletter.CONFIRMATION_TEMPLATE, OutgoingEmail.Status.QUEUED,
+    )  # fmt: skip
+    assert reverse("website:newsletter_confirm", args=[sub.token]) in email.body_text
+    assert reverse("website:newsletter_unsubscribe", args=[sub.token]) not in email.body_text
+
+
+def test_ca_m07_06_the_confirmed_gets_nothing_and_the_unsubscribed_gets_it_again(
+    client, enabled, text
+):
+    from apps.core.models import OutgoingEmail
+
+    confirmed, _ = newsletter.subscribe("confirmat@example.com", legal_text=text)
+    newsletter.confirm(confirmed.token)
+    gone, _ = newsletter.subscribe("baixa@example.com", legal_text=text)
+    newsletter.unsubscribe(gone.token)
+    for email in ("confirmat@example.com", "baixa@example.com"):
+        _subscribe(client, email)
+    assert list(OutgoingEmail.objects.values_list("to_address", flat=True)) == ["baixa@example.com"]
+
+
+def test_rn_m07_08_the_same_address_gets_a_limited_number_of_confirmations(
+    client, enabled, text, settings
+):
+    from apps.core.models import OutgoingEmail
+
+    settings.JOIN_FORM_RECIPIENT_MAX_PER_DAY = 1
+    for _ in range(3):
+        _subscribe(client, "nou@example.com")
+    assert OutgoingEmail.objects.count() == 1
 
 
 def test_ca_m07_06_a_late_confirmation_does_not_subscribe(text):
@@ -175,3 +207,14 @@ def test_only_confirmed_subscriptions_are_recipients(text):
 def test_ca_m07_10_switched_off_any_method_is_not_found(client, method, url):
     """Revisió de la #582: l'interruptor es mira abans del mètode."""
     assert getattr(client, method)(url).status_code == 404
+
+
+def test_a_new_request_keeps_the_pending_link_until_it_expires(text):
+    # Un tercer que torna a subscriure l'adreça no invalida l'enllaç que el visitant ja té.
+    sub, _ = newsletter.subscribe("nou@example.com", legal_text=text)
+    again, needs = newsletter.subscribe("nou@example.com", legal_text=text)
+    assert needs is True and again.token == sub.token
+    hours = business_settings.get(newsletter.CONFIRM_HOURS)
+    late = sub.requested_at + timedelta(hours=hours + 1)
+    renewed, _ = newsletter.subscribe("nou@example.com", legal_text=text, now=late)
+    assert renewed.token != sub.token and renewed.requested_at == late
