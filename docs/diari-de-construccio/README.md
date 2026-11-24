@@ -607,3 +607,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 17:55 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M02-17c](T-M02-17c.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
+| [T-M02-49](T-M02-49.md) | E2e amb captures de fotos, homologació i primera estrella (carril C) | 24/11/2026 20:55 | (vegeu la PR) | 4 e2e i 1 comprovació | [A comprovar] |
