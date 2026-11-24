@@ -1,0 +1,57 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-45b (AC26; RN-M02-52 i 58; CA-M02-55): les tramitacions de la primera estrella obertes. Per a cada persona, la llicència vigent o «Cal llicència» (RN-M06-28) i, si el curs no la inclou, «Demana la primera llicència» amb el càrrec habitual (LC5). Un curs que la inclou no té mai el camí amb càrrec. Nom i nivell, només per a qui té AC26. El servidor torna a comprovar els permisos i les regles. #}
+{% block title %}{% translate "Titulacions i llicències per tramitar" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% translate "Titulacions i llicències per tramitar" %}</h1>
+    <p class="text-2">{% translate "Els alumnes aptes d'un curs amb nivell oficial, per tramitar-ne la titulació a la federació. Si algú no té llicència vigent, hi surt «Cal llicència»." %}</p>
+  </header>
+  {% include "activities/_missatges.html" %}
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} titulació per tramitar{% plural %}{{ total }} titulacions per tramitar{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Persona" %}</th>
+        <th scope="col">{% translate "Nivell" %}</th>
+        <th scope="col">{% translate "Curs" %}</th>
+        <th scope="col">{% translate "Estat" %}</th>
+        <th scope="col">{% translate "Llicència" %}</th>
+        <th scope="col"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        {% with filing=row.filing %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ filing.person.last_name }}, {{ filing.person.first_name }}</th>
+          <td data-etiqueta="{% translate 'Nivell' %}">{{ filing.target_level|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Curs' %}">{{ filing.course_outcome.enrolment.activity.title|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% include "activities/_filing_status.html" %}</td>
+          <td data-etiqueta="{% translate 'Llicència' %}">
+            {% if not row.needs_licence %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% translate "Té llicència" %}</span>
+            {% elif row.licence %}<span class="estat estat-info"><span aria-hidden="true">→</span> {{ row.licence.get_status_display }}</span>{% if row.included %} <span class="text-2">{% translate "Inclosa al curs" %}</span>{% endif %}
+            {% else %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {% translate "Cal llicència" %}</span>{% if row.type_missing %} <span class="text-2">{% translate "Inclosa al curs: falta triar a Ajustos el tipus de la primera llicència." %}</span>{% endif %}{% endif %}
+            {% if row.cost_not_planned %}<p class="text-2">{% translate "El cost de la llicència inclosa no s'ha pogut sumar al previst: el tresorer n'ha de registrar la despesa." %}</p>{% endif %}
+            {% if row.can_request and can_request %}
+              <form method="post" class="accions">
+                {% csrf_token %}
+                <input type="hidden" name="filing" value="{{ filing.pk }}">
+                <label class="visualment-amagat" for="tipus-{{ filing.pk }}">{% translate "Tipus de llicència" %}</label>
+                <select id="tipus-{{ filing.pk }}" name="licence_type">{% for value, label in form.fields.licence_type.choices %}<option value="{{ value }}"{% if value|stringformat:"s" == form.fields.licence_type.initial.pk|stringformat:"s" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                <button class="boto boto-petit" type="submit">{% translate "Demana la primera llicència" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></button>
+              </form>
+            {% endif %}
+          </td>
+          <td class="cel-accions"><a class="boto boto-petit enllac-fila" href="{% url 'administration:filing_detail' filing.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></a></td>
+        </tr>
+        {% endwith %}
+      {% empty %}
+        <tr><td colspan="6">{% translate "Cap titulació per tramitar." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'administration:filings' %}">{% translate "Homologacions pendents" %}</a></p>
+{% endblock %}

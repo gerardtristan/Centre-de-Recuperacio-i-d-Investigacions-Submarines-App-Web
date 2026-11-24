@@ -27,6 +27,8 @@ urlpatterns = [
     path("homologacions/", filings.filings_view, name="filings"),
     path("homologacions/csv/", filings.filings_csv_view, name="filings_csv"),
     path("homologacions/demana/", filings.filing_request_view, name="filing_request"),
+    # T-M02-45b: «Titulacions i llicències per tramitar» (primera estrella; AC26).
+    path("homologacions/curs/", filings.course_filings_view, name="course_filings"),
     path("homologacions/<int:pk>/", filings.filing_detail_view, name="filing_detail"),
     path("homologacions/<int:pk>/tramitada/", filings.filing_filed_view, name="filing_filed"),
     path("homologacions/<int:pk>/feta/", filings.filing_done_view, name="filing_done"),
