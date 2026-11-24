@@ -240,6 +240,10 @@ MAP = {
         "apps/activities/views/reinforcement.py",
         "templates/activities/reinforcement_*",
     ),
+    "test_missatge_activitat.py": (
+        "apps/activities/views/message.py",
+        "templates/activities/activity_message.html",
+    ),
     "test_despeses.py": (
         "apps/expenses/views.py",
         "apps/expenses/admin_urls.py",

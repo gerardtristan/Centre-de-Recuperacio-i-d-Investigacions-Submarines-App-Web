@@ -45,6 +45,7 @@ from ..permissions import (
     MANAGE,
     MATERIAL_COST,
     MATERIAL_COST_FIELD,
+    MESSAGE,
     PLACES_VIEW,
     REPORTS,
     require,
@@ -344,6 +345,8 @@ def _detail(
         # T-M02-20b: resultats d'una sortida de medi ambient (AC14)
         "environment_link": environment.is_environmental(activity)
         and has_perm(request.user, ENVIRONMENT),
+        # T-M02-21c: el missatge als inscrits (AC15)
+        "can_message": has_perm(request.user, MESSAGE, activity, write=True),
         "material": _material_cost(request, activity, material_form),
         "desk_form": desk_form or _desk_form(request, activity),
         "state_actions": _state_actions(request, activity),

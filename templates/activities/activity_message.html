@@ -1,0 +1,26 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-21c (AC15; RN-M02-19): missatge de l'organitzador a tots els inscrits vius de l'activitat. No es mostra cap nom ni adreça dels inscrits, només quants en són. El servidor comprova AC15 i deixa el missatge al registre sense el text. #}
+{% block title %}{% translate "Missatge als inscrits" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Missatge als inscrits" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2">{% blocktranslate count count=recipients %}Arribarà a {{ count }} persona (inscrita o a la llista d'espera).{% plural %}Arribarà a {{ count }} persones (inscrites o a la llista d'espera).{% endblocktranslate %}</p>
+  </header>
+  {% if error %}<div class="avis avis-error" role="alert">{{ error }}</div>{% endif %}
+  <form class="formulari" method="post" novalidate>
+    {% csrf_token %}
+    <div class="camp">
+      <label for="missatge-assumpte">{% translate "Assumpte" %}</label>
+      <input id="missatge-assumpte" type="text" name="assumpte" maxlength="{{ max_subject }}" value="{{ data.assumpte|default:'' }}">
+    </div>
+    <div class="camp">
+      <label for="missatge-text">{% translate "Text" %}</label>
+      <textarea id="missatge-text" name="text" rows="8" maxlength="{{ max_body }}" aria-describedby="missatge-ajuda">{{ data.text|default:"" }}</textarea>
+      <p class="ajuda" id="missatge-ajuda">{{ help }}</p>
+    </div>
+    <div class="accions"><button class="boto boto-principal" type="submit"{% if not recipients %} aria-disabled="true" disabled{% endif %}>{% translate "Envia el missatge" %}</button></div>
+  </form>
+  <p class="enllacos"><a href="{% url 'administration:activity_detail' activity.pk %}">{% translate "Torna a la fitxa de l'activitat" %}</a></p>
+{% endblock %}
