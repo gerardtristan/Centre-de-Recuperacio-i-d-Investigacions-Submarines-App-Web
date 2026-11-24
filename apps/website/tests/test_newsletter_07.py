@@ -207,3 +207,14 @@ def test_only_confirmed_subscriptions_are_recipients(text):
 def test_ca_m07_10_switched_off_any_method_is_not_found(client, method, url):
     """Revisió de la #582: l'interruptor es mira abans del mètode."""
     assert getattr(client, method)(url).status_code == 404
+
+
+def test_a_new_request_keeps_the_pending_link_until_it_expires(text):
+    # Un tercer que torna a subscriure l'adreça no invalida l'enllaç que el visitant ja té.
+    sub, _ = newsletter.subscribe("nou@example.com", legal_text=text)
+    again, needs = newsletter.subscribe("nou@example.com", legal_text=text)
+    assert needs is True and again.token == sub.token
+    hours = business_settings.get(newsletter.CONFIRM_HOURS)
+    late = sub.requested_at + timedelta(hours=hours + 1)
+    renewed, _ = newsletter.subscribe("nou@example.com", legal_text=text, now=late)
+    assert renewed.token != sub.token and renewed.requested_at == late

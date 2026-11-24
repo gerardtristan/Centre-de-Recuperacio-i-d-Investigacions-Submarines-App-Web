@@ -135,3 +135,26 @@ def test_p645_the_courses_manager_sees_the_dashboard_section_but_not_the_help_te
     key = "dashboard.help_text.retention"
     response = client.post(detail_url("dashboard", key), {"value": "x", "note": "Prova"})
     assert response.status_code == 404 and business_settings.get(key) == ""
+
+
+def test_p645_undoing_core_0080_only_removes_the_cells_it_created():
+    import importlib
+
+    from django.apps import apps as django_apps
+
+    from apps.core.models import RolePermission
+
+    migration = importlib.import_module("apps.core.migrations.0080_dashboard_settings_permissions")
+    section = RolePermission.objects.filter(permission_code="settings.section.dashboard")
+    migration.unload(django_apps, None)
+    assert list(section.values_list("role__code", flat=True)) == [R.ADMINISTRATOR]  # la de 0078
+    assert not RolePermission.objects.filter(permission_code__in=list(migration.CELLS)[1:]).exists()
+    # Una cel·la que ja hi era abans de 0080 no la crea ni la treu.
+    RolePermission.objects.create(
+        role=Role.objects.get(code=R.COURSES_MANAGER),
+        permission_code="settings.section.dashboard",
+        scope="all",
+    )
+    migration.load(django_apps, None)
+    migration.unload(django_apps, None)
+    assert section.get(role__code=R.COURSES_MANAGER).scope == "all"

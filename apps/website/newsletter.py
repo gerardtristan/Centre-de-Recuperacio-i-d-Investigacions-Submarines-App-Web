@@ -3,8 +3,9 @@ RN-M07-06 i 08; CA-M07-06, 07, 09 i 10). Tot darrere de `website.newsletter_enab
 no s'encén a producció sense la P-42).
 
 - `subscribe`: la mateixa resposta per a tothom (ho fa la vista). Un correu ja confirmat no canvia
-  ni rep res; un de pendent torna a quedar pendent amb un enllaç nou, i un de nou (també el d'una
-  baixa anterior, que ja no guarda el correu: `forget`) és una fila nova pendent.
+  ni rep res; un de pendent amb l'enllaç vigent el conserva, i amb l'enllaç caducat en rep un de
+  nou; un de nou (també el d'una baixa anterior, que ja no guarda el correu: `forget`) és una fila
+  nova pendent.
 - `confirm`: d'un sol ús en efecte (obrir-lo dues vegades deixa una sola subscripció confirmada);
   passades `website.newsletter_confirm_hours`, no subscriu.
 - `unsubscribe`: immediata, sense sessió, i tornar-la a obrir no canvia res. En queda només la
@@ -55,9 +56,17 @@ def subscribe(email: str, *, legal_text, now=None) -> tuple[NewsletterSubscripti
     # el temps de resposta no ha de dir si el correu ja hi era (RN-M07-08).
     if subscription is not None and subscription.status == Status.CONFIRMED:
         return subscription, False
+    # Una petició nova no invalida l'enllaç pendent que encara val: si no, un tercer el podria
+    # anul·lar a cada petició encara que el límit per destinatari no deixi enviar-ne cap altre.
+    keep = (
+        subscription is not None
+        and subscription.status == Status.PENDING
+        and now <= subscription.requested_at + timedelta(hours=business_settings.get(CONFIRM_HOURS))
+    )
     subscription = subscription or NewsletterSubscription(email=normalise(email))
     subscription.status, subscription.legal_text = Status.PENDING, legal_text
-    subscription.token, subscription.requested_at = secrets.token_urlsafe(32), now
+    if not keep:
+        subscription.token, subscription.requested_at = secrets.token_urlsafe(32), now
     subscription.save()
     NewsletterEvent.objects.create(subscription=subscription, kind=Kind.REQUESTED)
     return subscription, True
