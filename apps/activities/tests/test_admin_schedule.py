@@ -128,3 +128,18 @@ def test_a_wrong_change_or_instructor_changes_nothing(login_as, make_admin, mana
     session.refresh_from_db()
     assert timezone.localtime(session.ends_at).hour == 11 and not session.instructors.exists()
     assert client.post(detail(course), {**late, "edita_sessio": 999999}).status_code == 404
+
+
+def test_an_incomplete_change_shows_the_form_and_a_cancelled_session_cannot_be_changed(
+    login_as, manager
+):
+    course = an_open_course(manager)
+    client = login_as(manager, AREA_ADMIN)
+    place = a_place(manager)
+    session = a_session(client, course, place)
+    response = client.post(detail(course), edit_post(session, place, starts_at=""))
+    assert response.status_code == 200 and response.context["session_rows"][0]["form"].errors
+    session.refresh_from_db()
+    assert timezone.localtime(session.starts_at).hour == 9
+    client.post(detail(course), {"cancel_sessio": session.pk, "motiu": "Piscina tancada."})
+    assert "form" not in client.get(detail(course)).context["session_rows"][0]
