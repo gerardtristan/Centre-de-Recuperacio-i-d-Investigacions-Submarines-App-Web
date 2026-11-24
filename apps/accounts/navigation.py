@@ -169,6 +169,7 @@ ENTRIES = (
             "administration:filing_done",
             "administration:filing_reject",
             "administration:filing_request",
+            "administration:certification_photo",  # T-M02-42b (AC25)
             "administration:filings_csv",
         ),
     ),  # T-M02-44b; text i lloc per revisar amb DISSENY
