@@ -71,3 +71,26 @@ def test_the_courses_manager_cannot_record_without_an_activity(as_role):
     # MG1 amb l'abast «les seves activitats»: sense repartiment, el servei respon «no trobat».
     response = as_role(R.COURSES_MANAGER).post(reverse("administration:expense_new"), data())
     assert response.status_code == 404 and not Expense.objects.exists()
+
+
+def test_dx107_ring_by_department_filter_and_total(as_role):
+    # Gastos (T-DX-107): l'anell per departament és de tota la llista; el filtre tria les files i
+    # el total és el de les files que es veuen.
+    client = as_role(R.TREASURER)
+    other = Department.objects.create(name="Departament inventat")
+    client.post(reverse("administration:expense_new"), data())
+    client.post(
+        reverse("administration:expense_new"),
+        data(
+            invoice_number="F-2027-2", description="Compressor", amount="100", department=other.pk
+        ),
+    )
+    url = reverse("administration:expenses_without_invoice")
+    html = main_of(client.get(url).content.decode())
+    assert "gastos-anell" in html and "350,50" in html  # total de les dues
+    assert "Registra una despesa" in html
+    html = main_of(client.get(url, {"departament": other.pk}).content.decode())
+    assert "Compressor" in html and "Sortida a les Medes" not in html
+    assert "Total del departament" in html and "100,00" in html
+    html = main_of(client.get(url, {"departament": "x"}).content.decode())  # valor fora de llista
+    assert "Compressor" in html and "Sortida a les Medes" in html

@@ -100,20 +100,50 @@ def new_view(request):
     return render(request, "expenses/new.html", {"form": form})
 
 
+class DepartmentFilterForm(forms.Form):
+    """Filtre per departament de «Despeses sense factura» (T-DX-107): només els que hi surten."""
+
+    departament = forms.ChoiceField(label=gettext_lazy("Departament"), required=False)
+
+    def __init__(self, data, departments):
+        super().__init__(data)
+        self.fields["departament"].choices = [("", _("Tots"))] + [
+            (str(d.pk), str(d)) for d in departments
+        ]
+
+
 @never_cache
 @require_http_methods(["GET"])
 def without_invoice_view(request):
     require_perm(request, services.PAY)
-    rows = services.without_invoice().select_related("supplier", "department")
+    expenses = list(
+        services.without_invoice()
+        .select_related("supplier", "department")
+        .order_by("invoice_date", "pk")
+    )
+    totals = {}  # departament → cèntims (Gastos, T-DX-107): l'anell mostra tota la llista
+    for expense in expenses:
+        totals[expense.department] = totals.get(expense.department, 0) + expense.amount_cents
+    form = DepartmentFilterForm(request.GET, sorted(totals, key=str))
+    chosen = form.cleaned_data["departament"] if form.is_valid() else ""
+    shown = [e for e in expenses if not chosen or str(e.department_id) == chosen]
     rows = [
         {
             "expense": row,
             "amount": euros(row.amount_cents),
             "illegible": row.invoice_file_id is not None,  # sense factura amb fitxer: il·legible
         }
-        for row in rows.order_by("invoice_date", "pk")
+        for row in shown
     ]
-    return render(request, "expenses/without_invoice.html", {"rows": rows})
+    context = {
+        "rows": rows,
+        "form": form,
+        "filtered": bool(chosen),
+        "total": euros(sum(e.amount_cents for e in shown)),
+        "segments": [(str(d), cents) for d, cents in totals.items()],
+        "can_record": has_perm(request.user, services.RECORD, write=True),
+    }
+    return render(request, "expenses/without_invoice.html", context)
 
 
 Document = DocumentIllegibleMark.Document
