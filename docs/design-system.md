@@ -333,7 +333,7 @@ Tots són a `tokens.css` (components compartits) o a l'estil de cada pàgina (es
 - Element actiu: `aria-current="page"`, barra groga, negreta i fons (§2.5).
 
 **Navegació a la plataforma (1.6, T-M01-46).** És la del wireframe `admin.html`, amb aquestes precisions:
-- **Entrades.** Una per pantalla que existeix, no per mòdul: Inici, Llistat de socis, Altes pendents, Alta presencial, Sol·licituds de socis, Llicències pendents de confirmar, Quotes i impagats, Importació de Cluber, Comptes d'administrador i Registre d'activitat. Quan hi hagi més mòduls, s'agruparan com al wireframe.
+- **Entrades.** Una per pantalla que existeix, no per mòdul: Inici, Llistat de socis, Altes pendents, Alta presencial, Sol·licituds de socis, Llicències de la fitxa per confirmar (abans «Llicències pendents de confirmar», T-DX-100), Quotes i impagats, Importació de Cluber, Comptes d'administrador i Registre d'activitat. Quan hi hagi més mòduls, s'agruparan com al wireframe.
 - **Filtrada al servidor.** Una entrada només arriba a l'HTML si el compte té el permís que la ruta declara (`apps/members/permissions.py` i `apps/accounts/navigation.py`); no s'amaga amb CSS. No és cap control: cada vista torna a comprovar el permís.
 - **Compte.** Sota les entrades: el nom d'usuari del compte actiu (`codi`), «Compte d'administrador · TOTP actiu» i «Surt» (formulari POST amb CSRF). Cap altra dada.
 - **Escriptori (1024 px o més).** Columna fixa de `--lateral-ample`, sota la capçalera. El botó «Menú» no hi és.

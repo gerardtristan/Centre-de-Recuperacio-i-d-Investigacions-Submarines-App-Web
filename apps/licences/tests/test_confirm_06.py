@@ -13,7 +13,7 @@ from apps.accounts.models import Account
 from apps.accounts.security import AREA_ADMIN, AREA_PERSONAL
 from apps.core import events
 from apps.core.models import AuditEntry, Event, Role
-from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
+from apps.core.tests.conftest import main_of, make_admin  # noqa: F401 (fixture)
 from apps.licences import imports, reminders, services
 from apps.licences.models import Licence, ValidityRule
 from apps.members import licence_copy
@@ -171,7 +171,9 @@ def test_secretary_screens(login_as, secretary, pending):
     declared.refresh_from_db()
     assert declared.expiry_confirmed
     assert client.get(confirm).status_code == 404  # ja no és pendent
-    assert "per confirmar" not in client.get(reverse("administration:licences")).content.decode()
+    # Al contingut de la pàgina, no al menú: «Llicències de la fitxa per confirmar» (01, T-DX-100).
+    listing = main_of(client.get(reverse("administration:licences")).content.decode())
+    assert "per confirmar" not in listing
 
 
 def test_screens_without_lc5_are_not_found(login_as, make_admin, pending):  # noqa: F811

@@ -116,7 +116,12 @@ ENTRIES = (
         _("Sol·licituds de socis"),
         ("administration:member_request_detail",),
     ),
-    ("administration:licence_bulk_confirm", _("Llicències pendents de confirmar"), ()),
+    # T-DX-100: un nom que no es confongui amb «Llicències per confirmar» del 06.
+    (
+        "administration:licence_bulk_confirm",
+        _("Llicències de la fitxa per confirmar"),
+        (),
+    ),
     (
         "administration:licences",
         _("Llicències"),

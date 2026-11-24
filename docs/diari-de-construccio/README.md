@@ -562,3 +562,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-20b](T-M02-20b.md) | Resultats ambientals d'una sortida i fitxa de projecte, sense fotos (amb les filles de menú, nucli; apilada sobre la T-M02-24b; carril B4) | 24/11/2026 02:34 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-21c](T-M02-21c.md) | Pantalla del missatge de l'organitzador als inscrits (carril C7) | 24/11/2026 03:13 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |
 | [T-DX-99](T-DX-99.md) | Fitxa d'una activitat: «Cancel·la l'activitat…» plegat i els canvis d'estat en una fila | 24/11/2026 04:06 | ab300d66 | 1 nova | [A comprovar] |
+| [T-DX-100](T-DX-100.md) | «Llicències de la fitxa per confirmar»: nom propi per a la confirmació en bloc del 01 | 24/11/2026 05:26 | 2e55fa6e | 1 nova | [A comprovar] |
