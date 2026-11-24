@@ -12,23 +12,23 @@
     <li>{% translate "No hi pugis cap document de salut." %}</li>
     <li>{% translate "Una foto per cara: l'anvers i, si cal, el revers." %}</li>
   </ol>
+  {% if sides %}
+  <ul class="expositor-graella">
+    {% for photo in sides %}
+    <li class="expositor-cel">
+      <p class="expositor-peu">
+        <span class="expositor-nom">{{ photo.get_side_display }}</span>
+        <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</span>
+      </p>
+      <a href="{% url file_route photo.file_id %}">{% translate "Veure-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></a>
+      <form method="post">{% csrf_token %}<button class="boto boto-text boto-petit" type="submit" name="esborra" value="{{ photo.pk }}">{% translate "Esborra-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></button></form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
   <form class="formulari expositor-cos" method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% include "_errata.html" %}
-    {% if sides %}
-    <ul class="expositor-graella">
-      {% for photo in sides %}
-      <li class="expositor-cel">
-        <p class="expositor-peu">
-          <span class="expositor-nom">{{ photo.get_side_display }}</span>
-          <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</span>
-        </p>
-        <a href="{% url file_route photo.file_id %}">{% translate "Veure-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></a>
-        <button class="boto boto-text boto-petit" type="submit" name="esborra" value="{{ photo.pk }}" formnovalidate>{% translate "Esborra-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></button>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
     {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
     <div class="expositor-accions">
       <p class="expositor-estat">{% blocktranslate count n=sides|length %}{{ n }} cara amb foto{% plural %}{{ n }} cares amb foto{% endblocktranslate %}</p>
