@@ -70,3 +70,17 @@ def test_without_ac7_nothing_changes(login_as, make_admin, manager):  # noqa: F8
     data = {"bloc-starts_at": "09:00", "bloc-label": "Briefing", "bloc_nou": "1"}
     assert client.post(detail(outing), data).status_code == 404
     assert not ProgrammeBlock.objects.exists()
+
+
+def test_a_block_without_label_or_out_of_range_changes_nothing(login_as, manager):
+    outing = an_outing(manager)
+    client = login_as(manager, AREA_ADMIN)
+    response = client.post(detail(outing), {"bloc-starts_at": "09:00", "bloc_nou": "1"})
+    assert response.status_code == 200 and not ProgrammeBlock.objects.exists()
+    assert client.post(detail(outing), {"treu_bloc": "3"}).status_code == 404
+
+
+def test_the_instructors_are_offered_by_name(login_as, make_admin, manager):  # noqa: F811
+    teacher = make_admin(Role.Code.INSTRUCTOR)
+    page = login_as(manager, AREA_ADMIN).get(detail(an_open_course(manager))).content.decode()
+    assert f">{teacher.person.first_name}" in page

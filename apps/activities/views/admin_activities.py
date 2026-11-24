@@ -212,9 +212,8 @@ def _duplicate(request, activity):
 
 def _state_actions(request, activity) -> list[tuple[str, str]]:
     """Els passos d'estat que el responsable pot fer ara (RN-M02-02). El servei torna a
-    comprovar el permís i les condicions; aquí només es decideix quins botons surten."""
-    if not has_perm(request.user, MANAGE, write=True):
-        return []
+    comprovar el permís i les condicions; aquí només es decideix quins botons surten. AC7 només
+    té l'abast «tot»: qui veu la fitxa també pot canviar l'estat."""
     targets, actions = states.allowed_targets(activity), []
     if activity.status == S.DRAFT:
         actions.append(("publica", _("Publica")))

@@ -1,15 +1,17 @@
 """Duplicar des de la fitxa d'administració (T-M02-06c3; decisió 026; RN-M02-21 i 44; AC7). El
 servei té les seves proves a `test_duplicate.py`. Només dades inventades."""
 
+import html
+
 import pytest
 from django.urls import reverse
 
 from apps.accounts.security import AREA_ADMIN
-from apps.activities.models import Activity
+from apps.activities.models import Activity, TrainingCatalogueEntry
 from apps.core.models import Role
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 
-from .helpers import an_open_outing
+from .helpers import an_open_course, an_open_outing
 
 pytestmark = pytest.mark.django_db
 
@@ -51,3 +53,12 @@ def test_without_ac7_nothing_is_copied(login_as, make_admin, manager):  # noqa: 
         client.post(detail(outing), {"duplica": "1", "nou_inici": "2027-09-14"}).status_code == 404
     )
     assert Activity.objects.count() == 1
+
+
+def test_a_rule_of_the_service_is_shown_and_nothing_is_created(login_as, manager):
+    course = an_open_course(manager)
+    TrainingCatalogueEntry.objects.filter(pk=course.catalogue_entry_id).update(active=False)
+    client = login_as(manager, AREA_ADMIN)
+    response = client.post(detail(course), {"duplica": "1", "nou_inici": "2027-09-14"})
+    assert response.status_code == 303 and Activity.objects.count() == 1
+    assert "desactivada" in html.unescape(client.get(response["Location"]).content.decode())
