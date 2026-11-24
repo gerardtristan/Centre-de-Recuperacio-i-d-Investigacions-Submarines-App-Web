@@ -211,6 +211,12 @@ class GrantApplication(models.Model):
     resolved_on = models.DateField(_("data de la resolució"), null=True, blank=True)
     resolution_file = _file(_("resolució"))
     justified_on = models.DateField(_("data d'enviament de la justificació"), null=True, blank=True)
+    # RN-M09A-18: el primer paquet enviat (versió 1), congelat. Les altres versions, a
+    # `PackageSubmission` (T-M09A-10b).
+    submitted_package = models.ForeignKey(
+        "grants.JustificationPackage", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="+", verbose_name=_("paquet enviat"),
+    )  # fmt: skip
     justification_extended_to = models.DateField(
         _("pròrroga de la justificació"), null=True, blank=True
     )
@@ -565,3 +571,45 @@ class JustificationPackage(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.application_id}: {self.generated_at:%d/%m/%Y %H:%M}"
+
+
+class PackageSubmission(AppendOnlyModel):
+    """Enviament d'una versió del paquet (RN-M09A-18 i 21; T-M09A-10b). Només INSERT. La versió 1
+    es crea en passar a «justificada» i no porta requeriment; les següents, sempre amb un
+    requeriment obert, que en queda respost. La vigent és la més alta."""
+
+    application = models.ForeignKey(
+        GrantApplication, on_delete=models.PROTECT, related_name="submissions",
+        verbose_name=_("sol·licitud"),
+    )  # fmt: skip
+    package = models.OneToOneField(
+        JustificationPackage, on_delete=models.PROTECT, related_name="submission",
+        verbose_name=_("paquet"),
+    )  # fmt: skip
+    version = models.PositiveSmallIntegerField(_("versió"))
+    requirement = models.ForeignKey(
+        GrantRequirement, on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("requeriment"),
+    )  # fmt: skip
+    sent_on = models.DateField(_("data d'enviament"))
+    sent_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+", verbose_name=_("enviat per")
+    )
+
+    class Meta:
+        verbose_name = _("versió enviada del paquet")
+        verbose_name_plural = _("versions enviades del paquet")
+        ordering = ["application", "version"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "version"], name="grant_submission_version_unique"
+            ),
+            models.CheckConstraint(
+                condition=Q(version=1, requirement__isnull=True)
+                | Q(version__gt=1, requirement__isnull=False),
+                name="grant_submission_requirement_after_v1",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.application_id} v{self.version}"

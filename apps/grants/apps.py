@@ -13,3 +13,12 @@ class GrantsConfig(AppConfig):
             "own_applications",
             lambda account, obj: getattr(obj, "responsible_id", None) == account.person_id,
         )
+
+        # T-M09A-10b (RN-M09A-18): avisos si canvia una despesa d'una versió enviada.
+        from apps.expenses import documents
+        from apps.expenses import services as expenses
+
+        from . import package
+
+        expenses.expense_annulled.connect(package.on_expense_annulled)
+        documents.document_marked_illegible.connect(package.on_document_marked_illegible)

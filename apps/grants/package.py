@@ -6,8 +6,13 @@ entren les que tenen factura i comprovant del banc llegibles (RN-M09-25); la res
 diu que no les accepta (`accepts_masked_proofs = no`): llavors, els originals (051). Una despesa
 sense la còpia emmascarada que cal també queda exclosa: cap IBAN no surt sense que la convocatòria
 ho demani (P-593). El ZIP es desa xifrat (GRANT_PACKAGE) i cada document llegit queda al registre
-(`files.opened`). Enviar-lo i les versions (`PackageSubmission`) són de la T-M09A-10b; l'avís al
-tresorer de les excloses espera la plantilla del nucli."""
+(`files.opened`); si n'hi ha d'excloses, el responsable i el tresorer en reben l'avís.
+
+`submit_package_version` (T-M09A-10b; RN-M09A-18 i 21; CA-M09A-16 i 20): la versió 1 passa la
+sol·licitud a «justificada» i en queda el paquet congelat (`submitted_package`); les següents,
+només amb un requeriment obert, que en queda respost. Si s'anul·la una despesa d'una versió
+enviada o se'n marca il·legible un document, el responsable i el tresorer en reben l'avís i cap
+paquet no canvia (CA-M09A-16 i 24)."""
 
 import csv
 import hashlib
@@ -15,18 +20,23 @@ import io
 import zipfile
 
 from django.db import transaction
+from django.db.models import Max
 from django.utils.translation import gettext as _
 
-from apps.core import audit, files
+from apps.core import audit, files, mail
 from apps.core.models import PrivateFile
 from apps.expenses import documents
 from apps.expenses.models import Expense
 
+from . import reminders
 from .justification import JUSTIFY, _check_status
-from .models import GrantApplication, GrantCall, JustificationPackage
-from .services import require
+from .models import GrantApplication, GrantCall, JustificationPackage, PackageSubmission
+from .requirements import RequirementNotOpen, answer_requirement, is_open
+from .services import GrantError, S, _move, require
 
 PACKAGE_BUILT = "grants.package_built"
+PACKAGE_SENT = "grants.package_sent"
+NOTICE_TEMPLATE = "avis-ajut-paquet"
 OPEN_DOCUMENTS = "grants.documents.open"  # AJ12: el paquet només l'obren el tresorer i la junta
 Document = documents.Document
 _NAMES = {Document.INVOICE: "factura", Document.PAYMENT_PROOF: "comprovant"}
@@ -117,4 +127,73 @@ def build_package(application, actor, requirement=None) -> JustificationPackage:
     )  # fmt: skip
     audit.record(PACKAGE_BUILT, actor=actor, target=application,
                  details={"package": package.pk, "masked": masked, **totals})  # fmt: skip
+    if excluded:
+        _notify(application, "excluded", count=len(excluded))
     return package
+
+
+class PackageAlreadySent(GrantError):
+    """Aquest paquet ja és una versió enviada (`PackageSubmission.package` és únic)."""
+
+
+def _notify(application, kind, **context) -> None:
+    """Avís al responsable i al tresorer (RN-M09A-11 i 18): només la sol·licitud, la convocatòria i
+    els números; cap document ni dada personal. `kind`: excluded, annulled o illegible."""
+    context = {"kind": kind, "application_id": application.pk, "call": application.call.name,
+               "body": application.call.body, **context}  # fmt: skip
+    for address, person in reminders.addresses(application.responsible).items():
+        mail.queue_email(NOTICE_TEMPLATE, to=address, person=person, context=context)
+
+
+@transaction.atomic
+def submit_package_version(application, package, *, sent_on, by, requirement=None):
+    require(by, JUSTIFY)
+    application = (
+        GrantApplication.objects.select_for_update().select_related("call").get(pk=application.pk)
+    )
+    if package.application_id != application.pk:
+        raise GrantError(_("Aquest paquet no és d'aquesta sol·licitud."))
+    if PackageSubmission.objects.filter(package=package).exists():
+        raise PackageAlreadySent(_("Aquest paquet ja s'ha enviat: genera'n un de nou."))
+    if application.status == S.GRANTED and requirement is None:
+        version = 1
+    elif application.status == S.JUSTIFIED and is_open(requirement, application):
+        latest = application.submissions.aggregate(v=Max("version"))["v"]
+        version = latest + 1
+    elif application.status == S.JUSTIFIED:
+        raise RequirementNotOpen(_("Una versió nova demana un requeriment obert."))
+    else:
+        raise GrantError(_("Només es justifica un ajut concedit."))
+    submission = PackageSubmission.objects.create(
+        application=application, package=package, version=version, requirement=requirement,
+        sent_on=sent_on, sent_by=by,
+    )  # fmt: skip
+    if version == 1:
+        application.submitted_package, application.justified_on = package, sent_on
+        _move(application, S.JUSTIFIED, reason="", by=by)
+    else:
+        answer_requirement(requirement, answered_on=sent_on, by=by)
+    audit.record(PACKAGE_SENT, actor=by, target=application,
+                 details={"package": package.pk, "version": version})  # fmt: skip
+    return submission
+
+
+def _sent_versions_with(expense_id):
+    """Les versions enviades que porten la despesa (JSON `items` del paquet)."""
+    return PackageSubmission.objects.filter(
+        package__items__contains=[{"expense": expense_id}]
+    ).select_related("application__call", "application__responsible")
+
+
+def on_expense_annulled(sender, expense, **kwargs) -> None:
+    """Subscriptor del senyal del 09 (RN-M09A-18; CA-M09A-16): avís; cap paquet no canvia."""
+    for submission in _sent_versions_with(expense.pk):
+        _notify(submission.application, "annulled", version=submission.version,
+                expense_id=expense.pk)  # fmt: skip
+
+
+def on_document_marked_illegible(sender, expense, document, **kwargs) -> None:
+    """Subscriptor de `documents.document_marked_illegible` (RN-M09A-18; CA-M09A-24)."""
+    for submission in _sent_versions_with(expense.pk):
+        _notify(submission.application, "illegible", version=submission.version,
+                expense_id=expense.pk, document=str(Document(document).label))  # fmt: skip
