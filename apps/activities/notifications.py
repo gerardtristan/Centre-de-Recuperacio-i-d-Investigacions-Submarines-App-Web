@@ -203,8 +203,8 @@ def notify_change(session) -> int:
 
 
 def send_message(activity, *, by, subject, body, request=None) -> int:
-    """AC15: un missatge de l'organitzador a tots els inscrits vius de l'activitat (les seves,
-    per a l'instructor). Queda al registre sense el text."""
+    """AC15: un missatge de l'organitzador a tots els inscrits vius de l'activitat. Queda al
+    registre sense el text."""
     permissions.require(by, permissions.MESSAGE, activity, request=request)
     subject, body = (subject or "").strip(), (body or "").strip()
     if not subject or not body:
