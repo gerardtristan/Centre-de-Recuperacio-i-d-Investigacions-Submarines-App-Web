@@ -277,6 +277,12 @@ MAP = {
         "apps/grants/package.py",
         "templates/grants/*",
     ),
+    "test_butlleti_admin.py": (
+        "apps/website/admin_views.py",
+        "apps/website/admin_urls.py",
+        "apps/website/newsletter.py",
+        "templates/website/admin/newsletter*.html",
+    ),
     "test_contacte_admin.py": (
         "apps/website/admin_views.py",
         "apps/website/admin_urls.py",
