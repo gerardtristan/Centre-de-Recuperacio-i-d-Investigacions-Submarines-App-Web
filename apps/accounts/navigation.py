@@ -137,6 +137,7 @@ ENTRIES = (
             "administration:activity_outing_add",
             "administration:activity_detail",
             "administration:activity_edit",
+            "administration:activity_environment",  # T-M02-20b: s'obre des de la fitxa
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
     (
@@ -147,7 +148,11 @@ ENTRIES = (
     (
         "administration:catalogue",
         _("Catàleg de cursos"),
-        ("administration:catalogue_entry_add", "administration:catalogue_entry"),
+        (
+            "administration:catalogue_entry_add",
+            "administration:catalogue_entry",
+            "administration:environmental_project",  # T-M02-20b: s'obre des del catàleg
+        ),
     ),  # T-M02-05b; text i lloc per revisar amb DISSENY
     (
         "administration:filings",
