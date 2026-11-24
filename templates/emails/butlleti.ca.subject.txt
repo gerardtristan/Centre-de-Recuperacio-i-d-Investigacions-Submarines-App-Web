@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M07-14b: l'assumpte el posa WP6. #}{{ subject }}

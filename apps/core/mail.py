@@ -134,6 +134,8 @@ TEMPLATE_PRIORITIES = {
     "avis-ajut-justificacio": _Priority.REMINDER,  # RN-M09A-04 i 20, S-M09A-04 (T-M09A-06)
     "avis-ajut-requeriment": _Priority.REMINDER,  # RN-M09A-19, CA-M09A-17 i 18 (T-M09A-15)
     "prova": _Priority.REMINDER,  # correu de prova de l'ordre `send_test_email`
+    # Butlletí: la prioritat més baixa, dins del comptador i sense la reserva dels transaccionals.
+    "butlleti": _Priority.NEWSLETTER,  # RN-M07-06, CA-M07-08 (T-M07-14b)
 }
 
 

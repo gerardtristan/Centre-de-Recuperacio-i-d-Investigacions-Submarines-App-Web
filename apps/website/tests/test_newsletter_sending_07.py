@@ -117,7 +117,6 @@ def test_the_batches_go_to_the_queue(three, president, monkeypatch):
     assert calls == [{"delivery_ids": [NewsletterDelivery.objects.get().pk]}]
 
 
-@pytest.mark.xfail(reason="plantilla al nucli, T-M07-14b", strict=True)
 def test_ca_m07_08_each_email_has_the_unsubscribe_link_and_low_priority(three, president):
     newsletter.send(_draft(president), actor=president)
     newsletter.send_batch(list(NewsletterDelivery.objects.values_list("pk", flat=True)))

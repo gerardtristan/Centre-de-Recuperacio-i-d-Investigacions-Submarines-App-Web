@@ -137,7 +137,7 @@ def recipients():
 # darrere de `website.newsletter_enabled`: apagat, «no trobat».
 
 PERMISSION = "website.newsletter"  # WP6
-TEMPLATE = "butlleti"  # es declara a `core.mail.TEMPLATE_PRIORITIES` (T-M07-14b, torn del nucli)
+TEMPLATE = "butlleti"  # `core.mail.TEMPLATE_PRIORITIES`, prioritat de butlletí (T-M07-14b)
 ACTION_SENT = "website.newsletter_sent"
 # Tècnic, no de negoci: quants correus posa a la cua cada tasca. La cua i el límit diari (T-M00-06)
 # decideixen quan surten.
