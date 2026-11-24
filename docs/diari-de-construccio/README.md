@@ -558,3 +558,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-98](T-DX-98.md) | «Llicències per confirmar»: «Confirma…» a la cel·la d'accions | 24/11/2026 03:05 | aa350611 | 1 nova | [A comprovar] |
 | [T-M02-21b](T-M02-21b.md) | Avisos de la inscripció, del canvi de programa i del missatge de l'organitzador (activities/0024; carril C7) | 24/11/2026 02:19 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-22c](T-M02-22c.md) | El certificat de l'alumne a «Les meves activitats», per imprimir o desar com a PDF (carril B4) | 24/11/2026 00:53 | (vegeu la PR) | 1 nova i 1 e2e | [A comprovar] |
+| [T-M02-24b](T-M02-24b.md) | Informes d'activitats: ocupació, participants i horari per imprimir, i descàrregues en CSV (amb l'entrada de menú, nucli; carril B4) | 24/11/2026 02:03 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
