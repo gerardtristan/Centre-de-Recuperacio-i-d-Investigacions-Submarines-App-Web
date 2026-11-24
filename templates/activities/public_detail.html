@@ -1,19 +1,26 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# T-M02-08b (RN-M02-24, 25 i 45; CA-M02-05 i 48): detall públic d'una activitat. Només dades de `public.py`: el nom del lloc, mai les notes, el centre habitual, la còpia estàndard ni el cost de material; cap nom de participant. Els enllaços «Inscriu-te» porten a la inscripció del soci (àrea personal) o del convidat, que ho tornen a comprovar tot. #}
 {% block title %}{{ activity.title }} · C.R.I.S.{% endblock %}
 {% block titol_zona %}{% translate "Activitats" %}{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/convite.css' %}">{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{{ activity.kind_label }} · {{ activity.type_label }}</p>
-  <h1>{{ activity.title }}</h1>
-  {% if activity.description %}<p>{{ activity.description|linebreaksbr }}</p>{% endif %}
+  {# T-DX-109 Convite (P-99 A; design-system §6.24): la capçalera de la fitxa. El full de calendari és decoratiu (la data hi és en text); les places lliures hi aniran quan `public.py` les doni (T-M02-12). Sense «Afegeix al calendari»: el calendari només és de qui ja s'ha inscrit (RN-M02-25). #}
+  <article class="convite convite-targeta" aria-labelledby="convite-titol">
+    {% translate "Preu de soci" as price_label %}{% if activity.open_to_non_members %}{% blocktranslate asvar price_note with price=activity.price_non_member %}{{ price }} sense ser soci{% endblocktranslate %}{% endif %}
+    {% include "activities/_convite_cap.html" with price=activity.price_member with_type=True with_description=True %}
+    {% if activity.registration_open %}
+      <div class="convite-accions">
+        <a class="boto boto-principal boto-gran" href="{% url 'activities:member_enrol' activity.pk %}">{% translate "Inscriu-te com a soci" %}</a>
+        {% if activity.open_to_non_members %}<a class="boto" href="{% url 'activities:guest_enrol' activity.pk %}">{% translate "Inscriu-te sense ser soci" %}</a>{% endif %}
+      </div>
+    {% else %}
+      <div class="avis avis-avis" role="status">{% translate "Les inscripcions d'aquesta activitat no són obertes." %}</div>
+    {% endif %}
+  </article>
+  <h2>{% translate "Detalls" %}</h2>
   <dl class="dades-soci">
-    <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
-    {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place }}</dd></div>{% endif %}
-    {% if activity.meeting_point %}<div><dt>{% translate "Punt de trobada" %}</dt><dd>{{ activity.meeting_point }}</dd></div>{% endif %}
     <div><dt>{% translate "Places" %}</dt><dd>{{ activity.max_places }}</dd></div>
-    <div><dt>{% translate "Preu de soci" %}</dt><dd><span class="import">{{ activity.price_member }}</span></dd></div>
-    {% if activity.open_to_non_members %}<div><dt>{% translate "Preu de no soci" %}</dt><dd><span class="import">{{ activity.price_non_member }}</span></dd></div>{% endif %}
     <div><dt>{% translate "Inscripcions fins al" %}</dt><dd><time datetime="{{ activity.registration_closes_at|date:'c' }}">{{ activity.registration_closes_at|date:"d/m/Y H:i" }}</time></dd></div>
     {% if activity.min_level or activity.required_level %}<div><dt>{% translate "Nivell mínim" %}</dt><dd>{{ activity.min_level|default:activity.required_level }}</dd></div>{% endif %}
     {% if activity.specialities %}<div><dt>{% if activity.any_speciality %}{% translate "Cal alguna d'aquestes especialitats" %}{% else %}{% translate "Especialitats exigides" %}{% endif %}</dt><dd>{{ activity.specialities|join:", " }}</dd></div>{% endif %}
@@ -21,14 +28,6 @@
     {% if activity.licence_required %}<div><dt>{% translate "Llicència" %}</dt><dd>{% translate "Cal una llicència federativa vigent" %}</dd></div>{% endif %}
     {% if activity.forecast_url %}<div><dt>{% translate "Previsió marítima" %}</dt><dd><a href="{{ activity.forecast_url }}" rel="noopener noreferrer">{% translate "Obre la previsió" %}</a></dd></div>{% endif %}
   </dl>
-  {% if activity.registration_open %}
-    <div class="accions">
-      <a class="boto boto-principal" href="{% url 'activities:member_enrol' activity.pk %}">{% translate "Inscriu-te com a soci" %}</a>
-      {% if activity.open_to_non_members %}<a class="boto" href="{% url 'activities:guest_enrol' activity.pk %}">{% translate "Inscriu-te sense ser soci" %}</a>{% endif %}
-    </div>
-  {% else %}
-    <div class="avis avis-avis" role="status">{% translate "Les inscripcions d'aquesta activitat no són obertes." %}</div>
-  {% endif %}
   {% if activity.sessions %}
     <h2>{% translate "Sessions" %}</h2>
     <table class="taula">
