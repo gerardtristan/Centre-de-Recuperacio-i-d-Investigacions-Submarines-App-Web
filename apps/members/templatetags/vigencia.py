@@ -4,10 +4,13 @@ servidor amb la data local (mai el rellotge del navegador) a partir de la data q
 servidor: «Pagada fins al» (070, P-71) o la caducitat de la llicència.
 
 Els dies d'avís de la quota són els dels recordatoris (VC-02, l'ajust de la T-M01-32, els que van
-abans del venciment o el mateix dia): no hi ha cap valor nou al codi. La llicència no en té cap de
-definit, i la regla no n'hi posa."""
+abans del venciment o el mateix dia): no hi ha cap valor nou al codi. Els de la llicència, l'ajust
+«Per renovar» (VC-41, `licences.to_renew_days`): la barra passa a avís quan el 06 diu «Per renovar»
+(T-DX-105)."""
 
 from django import template
+
+from apps.core import business_settings
 
 from .. import settings as member_settings
 from ..fee_rules import local_today
@@ -24,6 +27,11 @@ def fee_warning_days() -> list[int]:
     return sorted({-offset for offset in offsets if offset <= 0}, reverse=True)
 
 
+def licence_warning_days() -> list[int]:
+    days = business_settings.get("licences.to_renew_days", local_today())
+    return [days] if days and days > 0 else []
+
+
 def in_fee_warning_window(until) -> bool:
     """A l'inici (T-DX-60), el compte enrere de la quota només surt des del primer dia d'avís
     (VC-02): el mateix llindar que posa la regla en avís. Sense dies d'avís, mai."""
@@ -36,7 +44,7 @@ def vigencia(until, kind="quota"):
     if until is None:
         return {"show": False}
     days = (until - local_today()).days
-    marks = fee_warning_days() if kind == "quota" else []
+    marks = fee_warning_days() if kind == "quota" else licence_warning_days()
     window = max([WINDOW_DAYS, *marks])
     if days < 0:
         level = "error"

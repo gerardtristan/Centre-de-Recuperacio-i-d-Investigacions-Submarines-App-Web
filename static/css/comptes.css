@@ -62,6 +62,8 @@ figure { margin: 0; }
 /* T-DX-78: la fila buida (una cel·la amb colspan i sense etiqueta) va a l'esquerra (V13), i un
    formulari dins d'una cel·la passa sota l'etiqueta, a tota l'amplada (V14) */
 .taula td[colspan]:not([data-etiqueta])::before { content: none; }
+/* T-DX-103: una cel·la sense valor (`cel-buida`) no surt a la taula apilada; a la taula, sí («—»). */
+.taula td.cel-buida { display: none; }
 .taula td > form { flex-basis: 100%; }
 .taula caption { text-align: left; font-size: var(--t-s); color: var(--c-text-2); margin-bottom: var(--e-2); }
 @media (min-width: 600px) {
@@ -70,6 +72,7 @@ figure { margin: 0; }
   .taula tbody { display: table-row-group; }
   .taula tr { display: table-row; padding: 0; }
   .taula th { text-align: left; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid var(--c-linia-forta); }
+  .taula td.cel-buida { display: table-cell; }
   .taula th[scope="row"], .taula td { display: table-cell; padding: var(--e-2) var(--e-3); border-bottom: var(--v-fina) solid color-mix(in oklab, var(--c-superficie), var(--c-text) 16%); vertical-align: middle; }
   .taula td::before { content: none; }
   .taula .cel-nom { font-size: var(--t-s); }

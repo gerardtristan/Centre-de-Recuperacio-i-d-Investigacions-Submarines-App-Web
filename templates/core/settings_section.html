@@ -1,5 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
+{# T-DX-103: a la taula apilada (mòbil), les cel·les sense valor (`cel-buida`: res programat, sense valor inicial) no surten, i l'enllaç diu «Canvia» amb el nom només per al lector de pantalla: un apartat amb molts textos d'ajuda (el del dashboard en té 25) ja no és una pàgina molt llarga. #}
 {# T-DX-80 (V18): la clau es parteix només després de «_» o «.» (<wbr>), i no lletra a lletra quan una llista llarga s'endú l'amplada. #}
 {# T-AJ-02: valors d'un apartat d'ajustos (055, RN-AJ-05; RN-RP-22). Seguretat i privacitat: el servidor exigeix `settings.section.<apartat>` (sense permís, «no trobat»); «Canvia» només surt a qui pot editar el valor («Sí» de l'apartat o `settings.edit.<clau>`), però amagar-lo no és el control: el servei rebutja l'edició sense permís amb «no trobat» i la deixa al registre. Cap dada personal. #}
 {% block title %}{{ title }} · C.R.I.S.{% endblock %}
@@ -23,11 +24,11 @@
         {% for row in rows %}
           <tr>
             <th scope="row" class="cel-nom">{{ row.label }}<br><span class="codi clau-partible">{% for char in row.setting.key %}{{ char }}{% if char == "_" or char == "." %}<wbr>{% endif %}{% endfor %}</span></th>
-            <td data-etiqueta="{% translate 'Vigent' %}"><strong>{{ row.current }}</strong></td>
-            <td data-etiqueta="{% translate 'Programat' %}">{% if row.scheduled %}{% blocktranslate with value=row.scheduled date=row.scheduled_from|date:"d/m/Y" %}{{ value }} des del {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</td>
-            <td data-etiqueta="{% translate 'Inicial' %}">{{ row.initial }}</td>
+            <td data-etiqueta="{% translate 'Vigent' %}"><strong>{{ row.current|default:"—" }}</strong></td>
+            <td data-etiqueta="{% translate 'Programat' %}"{% if not row.scheduled %} class="cel-buida"{% endif %}>{% if row.scheduled %}{% blocktranslate with value=row.scheduled date=row.scheduled_from|date:"d/m/Y" %}{{ value }} des del {{ date }}{% endblocktranslate %}{% else %}—{% endif %}</td>
+            <td data-etiqueta="{% translate 'Inicial' %}"{% if not row.initial %} class="cel-buida"{% endif %}>{{ row.initial|default:"—" }}</td>
             <td data-etiqueta="{% translate 'Rang' %}">{{ row.range }}</td>
-            <td class="cel-accions"><a href="{% url 'administration:setting_detail' section row.setting.key %}">{% if row.editable %}{% blocktranslate with label=row.label %}Canvia: {{ label }}{% endblocktranslate %}{% else %}{% blocktranslate with label=row.label %}Historial: {{ label }}{% endblocktranslate %}{% endif %}</a></td>
+            <td class="cel-accions"><a href="{% url 'administration:setting_detail' section row.setting.key %}">{% if row.editable %}<span class="visualment-amagat">{% blocktranslate with label=row.label %}Canvia: {{ label }}{% endblocktranslate %}</span><span aria-hidden="true">{% translate "Canvia" %}</span>{% else %}<span class="visualment-amagat">{% blocktranslate with label=row.label %}Historial: {{ label }}{% endblocktranslate %}</span><span aria-hidden="true">{% translate "Historial" %}</span>{% endif %}</a></td>
           </tr>
         {% endfor %}
       </tbody>

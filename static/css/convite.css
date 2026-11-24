@@ -6,6 +6,9 @@
 .convite-targeta { display: grid; gap: var(--e-4); }
 .convite-cap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4); align-items: start; }
 .convite-cap h2 { margin: var(--e-2) 0 0; font-size: var(--t-2xl); text-wrap: balance; }
+/* A la fitxa real (T-DX-109) el títol és l'h1 de la pàgina: la mida de títol de pàgina, i l'avantítol a sobre. */
+.convite-cap h1 { margin: var(--e-1) 0 0; text-wrap: balance; }
+.convite-cap .etiqueta-seccio { margin: 0; }
 .convite-entrada { margin: var(--e-2) 0 0; color: var(--c-text-2); text-wrap: pretty; }
 /* El full de calendari: la franja de dalt amb el mes i el dia gran (entra una sola vegada) */
 .convite-full {
@@ -32,5 +35,5 @@
 .convite-barra li { block-size: var(--e-3); border-radius: var(--r-s); border: var(--v-fina) solid var(--c-linia-forta); }
 .convite-barra li.es-ocupada { background: var(--c-text-2); border-color: transparent; }
 .convite-accions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); margin: 0; padding: 0; border: 0; }
-.convite-accions .boto-principal { flex: 1 1 100%; }
+.convite-accions .boto-principal { flex: 1 1 100%; justify-content: center; text-align: center; }
 @media (min-width: 600px) { .convite-accions .boto-principal { flex: 0 1 auto; } }

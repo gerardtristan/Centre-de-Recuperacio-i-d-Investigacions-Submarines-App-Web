@@ -1,16 +1,14 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {# T-M02-11 (M02-8; CA-M02-06, 12, 13, 28 i 29): inscripció des de l'àrea personal. La persona és sempre la del compte. Abans d'enviar veu el preu que li toca i els requisits: un que bloqueja no deixa inscriure's; un avís queda a la inscripció perquè el revisi el responsable. Amb càrrec, porta a pagar (05b). Cap dada d'altres persones. #}
 {% block title %}{% translate "Inscripció" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/convite.css' %}">{% endblock %}
 {% block content %}
-  <p class="etiqueta-seccio">{{ activity.kind_label }}</p>
-  <h1>{{ activity.title }}</h1>
+  <article class="convite convite-targeta" aria-labelledby="convite-titol">
+    {% if member %}{% translate "Preu de soci" as price_label %}{% else %}{% translate "Preu de no soci" as price_label %}{% endif %}
+    {% include "activities/_convite_cap.html" %}
+  </article>
   {% include "activities/_missatges.html" %}
-  <dl class="dades-soci">
-    <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
-    {% if activity.place %}<div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place }}</dd></div>{% endif %}
-    <div><dt>{% if member %}{% translate "Preu de soci" %}{% else %}{% translate "Preu de no soci" %}{% endif %}</dt><dd><span class="import">{{ price }}</span></dd></div>
-  </dl>
   {% if current %}
     <div class="avis avis-ok" role="status">
       <strong>{% blocktranslate with status=current.get_status_display %}La teva inscripció: {{ status }}.{% endblocktranslate %}</strong>
