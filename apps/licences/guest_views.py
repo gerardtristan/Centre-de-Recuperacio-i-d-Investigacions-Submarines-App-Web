@@ -69,9 +69,8 @@ def guest_request_view(request):
         data = form.cleaned_data
         try:
             with transaction.atomic():
-                # shortcut: comparteix el límit per origen i per destinatari del «Fer-se soci»
-                # (P-450); quan el nucli tingui una finalitat pròpia, fer-la servir aquí.
-                accepted = limits.start_join(client_ip(request))
+                # P-450: el límit propi, no el del «Fer-se soci».
+                accepted = limits.start_join(client_ip(request), limits.GUEST_LICENCE)
                 if accepted is None:
                     form.add_error(
                         None,
