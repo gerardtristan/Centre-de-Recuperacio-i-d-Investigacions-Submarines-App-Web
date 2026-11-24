@@ -282,3 +282,48 @@ T-DX-23 Calendari general (Horario, després Solape). T-DX-24 Activitats i inscr
 - **P-99** Convite: **A**, la capçalera de la fitxa d'una activitat i de les conferències.
 
 No queda cap dubte obert d'aquest pla.
+
+## 9. Inventari d'ús
+
+Fet el 24/11/2026 amb `master` a `ef4c05b4`, per encàrrec del propietari del mateix dia: per a cada recurs, on es fa servir avui i quina pantalla de la fase 2 li toca segons el mapa (§4 i §6). «Funcional» vol dir una pantalla que treballa amb dades; «En construcció», només a `templates/previews/`; «Enlloc», cap plantilla. Les tasques noves són a [`docs/estat/DX.md`](../estat/DX.md), per l'ordre de les llesques (06, 09, 02 i, més endavant, 07 i 08). Una peça que encara no existeix va primer al sistema de disseny (document i CSS) i després a la plantilla. La part d'un recurs que demana una funció que el pla no té queda «En construcció». Un recurs es pot reutilitzar a totes les pantalles on encaixi, no només a la que diu el mapa: abans de fer un component nou, es mira si algun dels 38 ja ho resol (propietari, 24/11/2026).
+
+| Recurs | Avui | Pantalla de la fase 2 que li toca | Tasca |
+|---|---|---|---|
+| Solapas | Funcional (pestanyes de l'administració, `base.html`) | — (ja cobreix les fitxes de la fase 2) | — |
+| Reasigna | En construcció (`reassignar`) | Sessions d'un instructor que falta (02). El pla no té reassignar: es queda en construcció | — |
+| Autentico | Funcional (verificació del carnet) | — | — |
+| Cartola | En construcció (`pendents_antiguitat`) | Cap a la fase 2 (és de la 05b, proposta sense pantalla al pla) | — |
+| Averia | En construcció (`avaries_material`, `publicar_activitat`) | Avaries del material (03). El pla del 03 encara no en té la pantalla: es queda en construcció | — |
+| Antefirma | En construcció (`signatures`) | Fora de mòdul | — |
+| Vigencia | Funcional (inici, quotes, registres de llicència de la fitxa, «La meva llicència») | Llicències de l'administració (06): dies que queden a «Per renovar» | T-DX-105 |
+| Horario | En construcció (`calendari`) | «Les meves activitats» (02, C16: «horari»): l'horari de les sessions pròpies. L'avís d'encavalcament en apuntar-se no és al pla: en construcció | T-DX-112 |
+| Ramillete | Funcional (navegació del soci) | — (ja porta les entrades de la fase 2) | — |
+| Emisor | Funcional (segell del rebut) i en construcció (`factures`) | «Les meves factures» (09): el full de cada factura. Emetre-la segueix bloquejat (PDF xifrat, T-M09-04b): en construcció | T-DX-108 |
+| Deposito | Funcional (transferència, a revisar, altes) | — | — |
+| Tramite | Funcional (pagament i rebut) | Pagament d'una inscripció (02), que ja fa servir `payments/charge.html` | — |
+| Marcador | En construcció (`guardades`, targetes d'activitat) | Guardar activitats (02, 07). El pla no té «guardar»: en construcció | — |
+| Oleaje | Funcional (portada del soci) i en construcció (`portada_publica`) | Portada de la web pública (07), amb el carril del 07 | encàrrec del 07 |
+| Eclipse | Funcional (selector de tema) | — | — |
+| Duermevela | Funcional (motor de tema) | — | — |
+| Vistazo | En construcció (`projectes`) | Departament d'Història (11), més endavant | — |
+| Recoveco | Funcional (textos d'ajuda de la fitxa, el perfil i els ajustos) i en construcció (`ajuda`) | Ajuda de la web pública (07), amb el carril del 07 | encàrrec del 07 |
+| Apoderado | En construcció (`avisos_junta`) | Avisos de la junta (01). Fora de la fase 2 | — |
+| Gastos | En construcció (`finances_ambit`) | Marge d'una activitat i despeses (09). Finances per àmbit: el servei de l'informe per departament existeix (T-M09-14), però no té pantalla; en construcció fins que el pilot la faci | T-DX-106, T-DX-107 |
+| Comanda | Enlloc (només `comanda.css`) | Opcions d'una inscripció (02). La inscripció no té opcions: en construcció | — |
+| Avisador | Funcional (matriu de permisos) | — | — |
+| Asueto | En construcció (`calendari_dia`) | Programa del dia d'una sortida (02): la línia del dia amb els blocs. El dia tancat i «Moure» no són al pla: en construcció | T-DX-111 |
+| Camilla | Enlloc (només `camilla.css`) | Inscripció a una activitat, soci i convidat (02; P-94 A) | T-DX-110 |
+| Errata | Funcional (tots els formularis) | — (ja cobreix els de la fase 2) | — |
+| Pregon | En construcció (`editor_web`, `publicar_activitat`) | Editor de la web (07), amb el carril del 07 | encàrrec del 07 |
+| Convite | En construcció (targeta d'activitat) | Capçalera de la fitxa pública d'una activitat i de la inscripció del soci (02; P-99 A) | T-DX-109 |
+| Teletipo | Funcional (drecera de la conciliació) i en construcció (`xats`) | Xats (10), després | — |
+| Amanuense | En construcció (`xats`) | Xats (10), després | — |
+| Solape | Enlloc (cap CSS) | Xocs del calendari de l'administració (02). El pla no té encavalcaments: primer al sistema de disseny i a la pantalla en construcció del calendari | T-DX-113 |
+| Baliza | Funcional (pista del carnet) i en construcció (`novetats`) | — | — |
+| Parrilla | Funcional (reixa de l'inici de l'administració) i en construcció (`dashboard`) | Dashboard (08), quan el pilot en faci la pantalla | T-DX-115 |
+| Probador | En construcció (`editor_web`) | Editor de la web (07), amb el carril del 07 | T-DX-114 (encàrrec del 07) |
+| Fototeca | En construcció (`fotos`) | Biblioteca de fotos de la web (07), amb el carril del 07 | encàrrec del 07 |
+| Expositor | En construcció (`fotos`) | Fotos d'una activitat o d'un projecte (07), amb el carril del 07 | encàrrec del 07 |
+| Monograma | Funcional (avatar del soci) | — | — |
+| Seguir | En construcció (`social`, comprovant) | Part social (12), després | — |
+| Desfile | En construcció (`portada_publica`, «Activitats per a tu») | Web pública (07), amb el carril del 07 | encàrrec del 07 |
