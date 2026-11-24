@@ -271,6 +271,12 @@ MAP = {
         "apps/grants/calendar.py",
         "templates/grants/*",
     ),
+    "test_justificacio_ajut.py": (
+        "apps/grants/views.py",
+        "apps/grants/admin_urls.py",
+        "apps/grants/package.py",
+        "templates/grants/*",
+    ),
     "test_periodes.py": (
         "apps/margins/views.py",
         "apps/margins/admin_urls.py",
