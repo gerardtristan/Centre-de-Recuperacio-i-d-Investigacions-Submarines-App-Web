@@ -40,7 +40,7 @@ from apps.core import audit, charges, events
 from apps.core.models import Charge
 from apps.payments import refunds
 
-from . import deadlines, permissions, states
+from . import deadlines, notifications, permissions, states
 from . import enrolment as enrolments
 from .models import Enrolment, RefundProposal
 
@@ -156,6 +156,7 @@ def cancel_enrolment(enrolment, *, by, reason, now=None, request=None) -> Refund
             )
         _emit_enrolment(row, by="participant")
         proposal = _cancel_row(row, by=by, reason=reason, now=now, request=request)
+        notifications.notify_cancelled(row, by_club=False)  # T-M02-21b
         deadlines.renumber(activity)
         deadlines.offer_free_places(activity, now=now)
     return proposal
@@ -175,6 +176,8 @@ def cancel_activity(activity, *, by, reason, now=None, request=None) -> list[Ref
         proposals = [
             _cancel_row(row, by=by, reason=reason, now=now, request=request) for row in rows
         ]
+        for row in rows:  # T-M02-21b: amb el motiu del club
+            notifications.notify_cancelled(row, by_club=True, reason=reason)
     return [proposal for proposal in proposals if proposal is not None]
 
 

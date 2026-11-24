@@ -49,7 +49,7 @@ from apps.core import audit, charges
 from apps.core.models import Charge, Person
 from apps.members import services as members
 
-from . import extensions, permissions, requirements
+from . import extensions, notifications, permissions, requirements
 from .charges import CHARGE_ORIGIN
 from .models import Activity, Enrolment
 
@@ -234,6 +234,8 @@ def enrol(activity, person, *, channel, actor, answers=None, now=None, request=N
     )
     if enrolment.status == S.CONFIRMED:
         extensions.enrolment_confirmed.send(sender=Enrolment, enrolment=enrolment)
+    elif enrolment.status == S.PENDING_PAYMENT:
+        notifications.notify_payment(enrolment)  # T-M02-21b
     return enrolment
 
 
