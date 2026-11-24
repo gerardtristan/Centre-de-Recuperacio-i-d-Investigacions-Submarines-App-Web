@@ -20,7 +20,11 @@ models del 02.
   l'hagi marcada com a feta.
 - Les sessions cancel·lades no surten.
 
-**Fora d'aquesta peça:** les places lliures (cal comptar inscripcions: T-M02-12), el preu «que
+- **Places lliures** (P-M02-A pas 1, HU-M02-06): només el nombre, amb el mateix criteri que la
+  inscripció (`enrolment.free_places`: places menys les inscripcions que ocupen plaça). Mai qui hi
+  és inscrit.
+
+**Fora d'aquesta peça:** el preu «que
 et correspon» segons si ets soci i el botó d'inscriure's (T-M02-11 i T-M02-14) i l'enllaç al
 butlletí quan no hi ha cap activitat (mòdul 07). Una sortida sense enllaç propi a la previsió fa
 servir el de l'ajust `activities.marine_forecast_url` (VC-25, RN-M02-24; T-M02-28b).
@@ -34,6 +38,7 @@ from django.utils import timezone
 from apps.core import business_settings
 from apps.core.charges import euros
 
+from . import enrolment
 from .models import Activity
 
 S = Activity.Status
@@ -77,6 +82,7 @@ class PublicActivity:
     place: str
     meeting_point: str
     max_places: int
+    free_places: int
     price_member: str
     price_non_member: str
     open_to_non_members: bool
@@ -130,6 +136,7 @@ def _data(activity, *, detail: bool) -> PublicActivity:
         place=_name(activity.place),
         meeting_point=activity.meeting_point,
         max_places=activity.max_places,
+        free_places=enrolment.free_places(activity),
         price_member=euros(activity.price_member_cents),
         price_non_member=euros(activity.price_non_member_cents),
         open_to_non_members=activity.open_to_non_members,

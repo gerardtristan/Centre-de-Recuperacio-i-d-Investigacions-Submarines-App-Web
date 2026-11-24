@@ -3,10 +3,22 @@ dins de l'espai de noms `administration` (sessió d'administració i TOTP). Cap 
 
 from django.urls import path
 
-from . import entry_views, views
+from . import entry_views, structure_views, views
 
 urlpatterns = [
     path("tresoreria/", views.accounts_view, name="treasury_accounts"),
+    # T-M04-22: departaments, centres de cost i comptes (P-410, P-411).
+    path("tresoreria/estructura/", structure_views.structure_view, name="treasury_structure"),
+    path(
+        "tresoreria/estructura/<str:kind>/nou/",
+        structure_views.create_view,
+        name="treasury_structure_create",
+    ),
+    path(
+        "tresoreria/estructura/<str:kind>/<int:pk>/",
+        structure_views.edit_view,
+        name="treasury_structure_edit",
+    ),
     path("tresoreria/moviments/", views.movements_view, name="treasury_movements"),
     path("tresoreria/moviments/exporta/", views.export_view, name="treasury_export"),
     path("tresoreria/conciliacio/", views.reconciliation_view, name="treasury_reconciliation"),

@@ -53,3 +53,32 @@ def test_the_secretary_files_a_homologation(page, live_server, transactional_db,
         page.get_by_text("Homologació feta: la titulació nova ja és a la fitxa.")
     ).to_be_visible()
     expect(page.get_by_text("Cap homologació oberta.")).to_be_visible()
+
+
+def test_the_secretary_loads_and_verifies_a_certification_from_the_record(
+    page, live_server, transactional_db, review
+):
+    """T-M02-52b (AC29; RN-M02-32; P-572): des de la fitxa de la sòcia, «Més» → «Titulacions…»,
+    la secretaria en carrega una d'importada (queda sense verificar) i la verifica."""
+    manager = make_admin("cursos.carrega", "courses_manager")
+    padi = CertificationAgency.objects.get(name="PADI")
+    catalogue.create_level(by=manager, name="Open Water (inventat)", rank=10, agency=padi)
+    member = a_member("Núria").person.member
+    secretary = make_admin("secretaria.carrega", "secretary")
+    login_admin(page, live_server.url, secretary.login)
+    page.goto(f"{live_server.url}{reverse('administration:member_detail', args=[member.pk])}")
+    page.get_by_text("Més").click()
+    page.get_by_role("link", name="Titulacions…").click()
+    expect(page.get_by_role("heading", name="Titulacions de Núria Prova")).to_be_visible()
+    page.get_by_label("Origen").select_option("imported")
+    page.get_by_label("Nivell").select_option(label="Open Water (inventat)")
+    page.get_by_label("Número de la titulació").fill("PADI-0002")
+    review("titulacions-carrega")
+    page.get_by_role("button", name="Carrega la titulació").click()
+    expect(page.get_by_role("status")).to_contain_text("queda sense verificar")
+    expect(page.get_by_role("table")).to_contain_text("sense verificar")
+    review("titulacions-sense-verificar")
+    page.get_by_role("button", name=re.compile("^Verifica")).click()
+    expect(page.get_by_role("status")).to_contain_text("Titulació verificada")
+    expect(page.get_by_role("table")).to_contain_text("verificada")
+    review("titulacions-verificada")

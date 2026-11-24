@@ -7,4 +7,5 @@ from . import views
 
 urlpatterns = [
     path("ajuts/calendari/", views.calendar_view, name="grants_calendar"),
+    path("ajuts/<int:pk>/justificacio/", views.justification_view, name="grant_justification"),
 ]

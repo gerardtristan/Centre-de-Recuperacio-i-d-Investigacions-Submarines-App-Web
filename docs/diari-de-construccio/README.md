@@ -591,5 +591,21 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-04b](T-M09-04b.md) | Documents d'una despesa: factura, comprovant i il·legible (amb la T-M09-05 i la T-M09-15) | 24/11/2026 14:25 | 2a145c44 | 9 noves i 1 e2e | [A comprovar] |
 | [T-M02-52](T-M02-52.md) | Titulacions: permís AC29 i serveis per carregar-les i verificar-les (torn del nucli; core/0079; carril Y) | 24/11/2026 14:09 | 80d9633c | 9 cel·les i 14 noves | [A comprovar] |
 | [T-M00-10-13](T-M00-10-13.md) | Quatre arranjaments del nucli de la 105: marques de pendent als textos legals, `mark_undone`, límit propi de la llicència de convidat i docstring del termini (torn del nucli; accounts/0012; carril Y) | 24/11/2026 15:17 | de50b634, 8cebe6ed, a6a80da3, 346d0d6c | 10 noves | [A comprovar] |
+| [T-M09-19c](T-M09-19c.md) | El PDF de la factura emesa, desat xifrat | 24/11/2026 15:36 | d2cf8482 | 5 noves | [A comprovar] |
+| [T-M09-21b](T-M09-21b.md) | Descarregar el PDF a «Les meves factures» | 24/11/2026 16:00 | ecdde67d | 1 nova i 1 e2e ampliada | [A comprovar] |
+| [T-M09-19c](T-M09-19c.md) | El PDF de la factura emesa, desat xifrat | 24/11/2026 15:36 | d8fd8cc3 | 5 noves | [A comprovar] |
+| [T-M09-21b](T-M09-21b.md) | Descarregar el PDF a «Les meves factures» | 24/11/2026 16:00 | 1fa10d6a | 1 nova i 1 e2e ampliada | [A comprovar] |
+| [T-M02-08c](T-M02-08c.md) | Places lliures a les dades públiques d'una activitat, sense cap nom (carril X) | 24/11/2026 17:19 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09A-10a](T-M09A-10a.md) | Paquet de justificació d'un ajut: ZIP xifrat, excloses amb el motiu i còpies emmascarades | 24/11/2026 17:20 | 850c30f1 | 10 noves | [A comprovar] |
+| [T-M09A-10b](T-M09A-10b.md) | Enviar el paquet de justificació, versions amb requeriment i avisos | 24/11/2026 17:32 | aa38f4dd | 11 noves | [A comprovar] |
+| [T-M04-22](T-M04-22.md) | Departaments, centres de cost i comptes de tresoreria, amb les entrades del sistema protegides (torn del nucli; carril Y) | 24/11/2026 17:26 | 4df839ec | 30 noves i 1 e2e | [A comprovar] |
+| [T-M09-26c](T-M09-26c.md) | La durada dels períodes (CA-M09-35), provada des de la pantalla d'ajustos i «Períodes» (carril X) | 24/11/2026 16:20 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09-26c](T-M09-26c.md) | La durada dels períodes (CA-M09-35), provada des de la pantalla d'ajustos i «Períodes» (carril X) | 24/11/2026 16:09 | (vegeu la PR) | 1 nova | [A comprovar] |
+| [T-M09A-10c](T-M09A-10c.md) | Pantalla «Justificació de l'ajut»: generar, descarregar i enviar el paquet | 24/11/2026 17:54 | 97427b29 | 8 noves i 1 e2e | [A comprovar] |
+| [T-M02-52b](T-M02-52b.md) | Titulacions: carregar-les i verificar-les des de la fitxa del soci (AC29; P-572; carril Y) | 24/11/2026 17:46 | 81ed8984 | 8 noves i 1 e2e | [A comprovar] |
+| [T-M02-45b](T-M02-45b.md) | «Titulacions i llicències per tramitar»: primera estrella, «Cal llicència» i «Demana la primera llicència» (carril X) | 24/11/2026 17:32 | (vegeu la PR) | 3 noves i 1 e2e | [A comprovar] |
+| [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 17:55 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
+| [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
+| [T-M02-17c](T-M02-17c.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M08-04-05-07](T-M08-04-05-07.md) | Dashboard: recomptes d'activitat del 02 i dades dels panells general, de socis i d'activitat (carril B) | 24/11/2026 20:35 | de706669 | 21 noves | [A comprovar] |
 | [T-M08-06](T-M08-06.md) | Dashboard: dades del panell econòmic (carril B) | 24/11/2026 20:40 | (vegeu la PR) | 9 noves | [A comprovar] |

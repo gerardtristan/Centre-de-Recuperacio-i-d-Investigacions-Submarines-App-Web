@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# T-M02-52b (RN-M02-32; AC29, P-459): les titulacions d'una persona, des de la fitxa del soci (P-572). Són dades personals: AC29 al servidor (sense, «no trobat»); la Junta només les consulta. Carregar i verificar demanen AC29 amb «Sí» i mai sobre les pròpies; els serveis ho tornen a comprovar. Cap foto ni document: les fotos dels carnets són de la T-M02-42. Components existents: taula, estat, formulari i Errata. #}
+{% block title %}{% translate "Titulacions" %} · {{ person.first_name }} {{ person.last_name }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% blocktranslate with name=person.first_name surname=person.last_name %}Titulacions de {{ name }} {{ surname }}{% endblocktranslate %}</h1>
+    <p>{% translate "Les carregades a mà queden «sense verificar» fins que algú comprova el carnet. En mode de bloqueig, només compten les verificades i les dels cursos del club." %}</p>
+  </header>
+  {% for message in messages %}
+    {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
+    {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
+  {% endfor %}
+
+  <table class="taula">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Titulació" %}</th>
+        <th scope="col">{% translate "Agència" %}</th>
+        <th scope="col">{% translate "Número" %}</th>
+        <th scope="col">{% translate "Data" %}</th>
+        <th scope="col">{% translate "Origen" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% with c=row.certification %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ c }}</th>
+          <td data-etiqueta="{% translate 'Agència' %}">{{ c.agency|default:"—" }}</td>
+          <td data-etiqueta="{% translate 'Número' %}">{% if c.number %}<span class="codi">{{ c.number }}</span>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Data' %}">{% if c.issued_on %}<time datetime="{{ c.issued_on|date:'Y-m-d' }}">{{ c.issued_on|date:"d/m/Y" }}</time>{% else %}—{% endif %}</td>
+          <td data-etiqueta="{% translate 'Origen' %}">
+            {% if c.is_verified %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.origin }}</span>
+            {% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ row.origin }}</span>{% endif %}
+            {% if row.can_verify %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="accio" value="verifica">
+                <input type="hidden" name="titulacio" value="{{ c.pk }}">
+                <button class="boto boto-petit" type="submit">{% translate "Verifica" %}<span class="visualment-amagat"> {{ c }}</span></button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="5">{% translate "Encara no té cap titulació." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if form %}
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      <h2>{% translate "Carrega una titulació" %}</h2>
+      <p class="text-2">{% translate "Un nivell o una especialitat. Queda sense verificar." %}</p>
+      <input type="hidden" name="accio" value="carrega">
+      {% include "_errata.html" %}
+      {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Carrega la titulació" %}</button></div>
+    </form>
+  {% endif %}
+{% endblock %}

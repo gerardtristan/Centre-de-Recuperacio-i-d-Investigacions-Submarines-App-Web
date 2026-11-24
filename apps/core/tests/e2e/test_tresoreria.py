@@ -332,3 +332,31 @@ def test_treasurer_chooses_between_two_settlements(page, live_server, transactio
     page.get_by_role("button", name="Sí, confirma-la").click()
     expect(page.get_by_role("status")).to_contain_text("Liquidació conciliada")
     expect(row).to_contain_text("LIQ-002")
+
+
+def test_administrator_maintains_cost_centres_and_accounts(page, live_server, review):
+    """T-M04-22 (P-410, P-411): l'administrador crea un centre de cost, el reanomena i el
+    desactiva, i crea un compte de caixa; les entrades del sistema no tenen cap acció."""
+    admin = make_admin("admin.estructura", "administrator")
+    login_admin(page, live_server.url, admin.login)
+    page.goto(f"{live_server.url}{reverse('administration:treasury_structure')}")
+    expect(
+        page.get_by_role("heading", name="Departaments, centres de cost i comptes")
+    ).to_be_visible()
+    expect(page.get_by_text("Entrada del sistema")).to_be_visible()
+    review("estructura")
+    page.get_by_label("Departament", exact=True).select_option(label="General")
+    page.locator("#id_centre-name").fill("Excursions (inventat)")
+    page.get_by_role("button", name="Crea el centre de cost").click()
+    expect(page.get_by_role("status")).to_contain_text("Desat")
+    page.get_by_role("link", name="Canvia… General / Excursions (inventat)").click()
+    page.get_by_label("Nom").fill("Sortides (inventat)")
+    review("estructura-canvia")
+    page.get_by_role("button", name="Desa el nom").click()
+    page.get_by_role("link", name="Canvia… General / Sortides (inventat)").click()
+    page.get_by_role("button", name="Desactiva").click()
+    page.locator("#id_compte-name").fill("Caixa de l'estand (inventat)")
+    page.get_by_label("Tipus").select_option("cash")
+    page.get_by_role("button", name="Crea el compte").click()
+    expect(page.get_by_role("cell", name="Caixa").first).to_be_visible()
+    review("estructura-despres")

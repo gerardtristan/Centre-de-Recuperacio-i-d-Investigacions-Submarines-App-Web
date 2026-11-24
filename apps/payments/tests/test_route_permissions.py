@@ -25,7 +25,7 @@ from apps.core.permission_catalog import CATALOG
 from apps.core.tests.conftest import make_admin  # noqa: F401 (fixture)
 from apps.core.tests.test_access import PUBLIC_ROUTES, _routes
 from apps.payments import mandates, refunds, remittances, returns, reviews, sepa_xml
-from apps.treasury import reconciliation, services, settlements
+from apps.treasury import reconciliation, services, settlements, structure, structure_views
 from apps.treasury.tests.test_views import client_for
 
 R = Role.Code
@@ -114,6 +114,15 @@ PUBLIC_MONEY_ROUTES = {
     "payments:guest_receipt",
 }
 
+# T-M04-22: s'obren amb qualsevol d'aquests permisos d'escriptura (una secció per permís, i el
+# servei el torna a comprovar; proves de cada secció a apps/treasury/tests/test_structure.py).
+STRUCTURE = {w(structure_views.DEPARTMENTS), w(structure.COST_CENTRES), w(structure.ACCOUNTS)}
+ANY_OF_ROUTES = {  # ruta → mètodes que accepta → permisos (n'hi ha prou amb un)
+    "administration:treasury_structure": {"GET": STRUCTURE},
+    "administration:treasury_structure_create": {"POST": STRUCTURE},
+    "administration:treasury_structure_edit": {"GET": STRUCTURE, "POST": STRUCTURE},
+}
+
 MONEY_ROUTES = {
     name: kwargs
     for name, view, kwargs in _routes()
@@ -122,9 +131,10 @@ MONEY_ROUTES = {
 
 
 def test_every_money_route_is_declared():
-    assert set(MONEY_ROUTES) == set(ADMIN_ROUTES) | set(OWN_ROUTES) | PUBLIC_MONEY_ROUTES
+    declared = set(ADMIN_ROUTES) | set(OWN_ROUTES) | PUBLIC_MONEY_ROUTES | set(ANY_OF_ROUTES)
+    assert set(MONEY_ROUTES) == declared
     assert PUBLIC_MONEY_ROUTES <= PUBLIC_ROUTES
-    assert not (set(ADMIN_ROUTES) | set(OWN_ROUTES)) & PUBLIC_ROUTES
+    assert not (set(ADMIN_ROUTES) | set(OWN_ROUTES) | set(ANY_OF_ROUTES)) & PUBLIC_ROUTES
 
 
 @pytest.fixture
@@ -180,6 +190,24 @@ def test_admin_route_cell(make_admin, name, role):  # noqa: F811
             assert status == 404, method
         elif method == "GET" and not MONEY_ROUTES[name]:
             assert status != 404
+
+
+ANY_OF_CELLS = [(name, role) for name in ANY_OF_ROUTES for role in MANAGEMENT_ROLES]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("name", "role"), ANY_OF_CELLS, ids=[f"{n}-{r}" for n, r in ANY_OF_CELLS])
+def test_any_of_route_cell(make_admin, name, role):  # noqa: F811
+    # Sense cap dels permisos, «no trobat» a cada mètode; amb algun, la pàgina s'obre.
+    account = make_admin(role)
+    client = client_for(account)
+    for method, enough in ANY_OF_ROUTES[name].items():
+        allowed = any(permissions.has_perm(account, c, write=wr) for c, wr in enough)
+        status = _call(client, name, method).status_code
+        if not allowed:
+            assert status == 404, method
+        elif name == "administration:treasury_structure":
+            assert status == 200
 
 
 # --- Serveis -----------------------------------------------------------------------------
