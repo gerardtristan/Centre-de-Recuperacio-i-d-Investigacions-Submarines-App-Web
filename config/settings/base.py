@@ -129,6 +129,9 @@ PUBLIC_SITE_URL = env("PUBLIC_SITE_URL", default="http://localhost:8000").rstrip
 
 # Claus de xifratge dels camps sensibles (Fernet). La primera xifra; totes desxifren.
 FIELD_ENCRYPTION_KEYS = env.list("FIELD_ENCRYPTION_KEYS")
+# Claus dels fitxers privats xifrats (051 i 104; `apps/core/crypto.py`), pròpies i amb la mateixa
+# rotació. Sense cap clau, aquests fitxers no es desen (no hi ha clau per defecte).
+FILE_ENCRYPTION_KEYS = env.list("FILE_ENCRYPTION_KEYS", default=[])
 
 # Claus del QR del carnet (079, RN-M01-85; `apps/members/card_keys.py`): «identificador:clau»
 # separades per comes, i l'identificador de la que es fa servir per emetre. Sense cap, en local

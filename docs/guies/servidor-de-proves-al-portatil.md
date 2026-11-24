@@ -93,6 +93,7 @@ Cal un compte gratuït de Cloudflare **i un domini gestionat per Cloudflare**. F
 | «No he rebut l'adreça del túnel» | Comprova la connexió i torna a arrencar. Mentrestant, funciona a `http://localhost:8080` |
 | «L'aplicació no respon» | A PowerShell, dins la carpeta: `docker compose logs web`. Envia'n les últimes línies |
 | El navegador demana usuari i contrasenya | És la contrasenya del davant: usuari `proves` i la contrasenya que mostra `arrenca.cmd` (també és a `local\secrets.env`, línia `ACCES_CONTRASENYA`) |
+| En desar una factura, un comprovant o una foto de titulació surt un error de «FILE_ENCRYPTION_KEYS» | El portàtil va generar els secrets abans que existís aquesta clau. Genera'n una a PowerShell, dins la carpeta: `docker compose run --rm web python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`, afegeix a `local\secrets.env` la línia `FILE_ENCRYPTION_KEYS=` amb el valor i torna a arrencar. No la canviïs després: els fitxers ja desats només es llegeixen amb aquesta clau |
 | «Hi ha fitxers del repositori modificats» en actualitzar | A PowerShell, a `C:\cris`: `git checkout -- .` i torna a actualitzar |
 
 ## Què hi ha al repositori

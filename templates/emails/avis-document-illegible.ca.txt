@@ -1,0 +1,8 @@
+{% load i18n %}{# T-M09-25b (RN-M09-25, CA-M09-28): avís a qui havia pujat la factura o el comprovant quan el tresorer el marca il·legible. TEXT PROVISIONAL [A validar: tresorer]. Sense el document ni cap enllaç per obrir-lo (051): només la referència de la despesa, quin document és i el motiu. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}El document «{{ document }}» de la despesa {{ expense_id }} s'ha marcat com a il·legible. Motiu: {{ reason }}{% endblocktranslate %}
+
+{% translate "Torna'l a pujar des de la plataforma quan puguis. Mentre no arribi el nou, la despesa compta com si no el tingués." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

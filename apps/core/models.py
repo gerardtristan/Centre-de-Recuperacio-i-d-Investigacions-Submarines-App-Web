@@ -1093,6 +1093,14 @@ class PrivateFile(models.Model):
     class Kind(models.TextChoices):
         GDPR_EXPORT = "gdpr_export", _("Exportació de dades (RGPD)")
         PAYMENT_PROOF = "payment_proof", _("Comprovant d'un pagament a mà")  # P-12b
+        # T-M09-25a: xifrats a l'aplicació (`files.ENCRYPTED_KINDS`). Documents de justificació del
+        # 09 (051): la foto d'una factura o d'un comprovant és d'aquests mateixos tipus.
+        EXPENSE_INVOICE = "expense_invoice", _("Factura d'una despesa")
+        EXPENSE_BANK_PROOF = "expense_bank_proof", _("Comprovant del banc d'una despesa")
+        EXPENSE_MASKED_COPY = "expense_masked_copy", _("Còpia amb l'IBAN emmascarat")
+        ISSUED_INVOICE = "issued_invoice", _("PDF d'una factura emesa")
+        GRANT_PACKAGE = "grant_package", _("Paquet de justificació d'un ajut")
+        CERTIFICATION_PHOTO = "certification_photo", _("Foto del carnet d'una titulació")  # 104
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     storage_key = models.CharField(_("clau a l'emmagatzematge"), max_length=100, unique=True)
@@ -1114,7 +1122,18 @@ class PrivateFile(models.Model):
         verbose_name_plural = _("fitxers privats")
         constraints = [
             models.CheckConstraint(
-                condition=Q(kind__in=["gdpr_export", "payment_proof"]),
+                condition=Q(
+                    kind__in=[
+                        "gdpr_export",
+                        "payment_proof",
+                        "expense_invoice",
+                        "expense_bank_proof",
+                        "expense_masked_copy",
+                        "issued_invoice",
+                        "grant_package",
+                        "certification_photo",
+                    ]
+                ),
                 name="private_file_kind_valid",
             ),
         ]

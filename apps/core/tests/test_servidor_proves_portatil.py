@@ -50,6 +50,8 @@ def test_generated_secrets_are_valid_and_compose_safe():
         assert value and "$" not in value and '"' not in value and "\n" not in value, name
         assert value != second[name] or name == "CARD_QR_ACTIVE_KEY", name
     Fernet(first["FIELD_ENCRYPTION_KEYS"])
+    Fernet(first["FILE_ENCRYPTION_KEYS"])
+    assert first["FILE_ENCRYPTION_KEYS"] != first["FIELD_ENCRYPTION_KEYS"]
     version, key = first["MANDATE_ENCRYPTION_KEYS"].split(":")
     assert version == "1"
     Fernet(key)
