@@ -6,12 +6,18 @@
 - Només s'hi arriba amb una URL signada de curta durada (`PRIVATE_FILES_SIGNED_URL_TTL`,
   5 minuts), que es genera després de comprovar el compte i l'objecte (`can_access`). Sense
   permís, «no trobat».
+- Els tipus d'`ENCRYPTED_KINDS` (documents de justificació de la 051, factures emeses i fotos de
+  titulacions de la 104; T-M09-25a) es xifren a l'aplicació abans de desar-los, amb la clau
+  pròpia `FILE_ENCRYPTION_KEYS`. No tenen mai URL signada: només surten desxifrats per la vista
+  `private_file`, amb `open_decrypted`, que comprova `can_access` i deixa cada obertura al
+  registre d'activitat. Els documents de justificació no els torna a obrir qui els ha pujat:
+  només els comptes d'administrador amb el permís (RN-M09-23).
 - Clau i identificador aleatoris: cap nom previsible, cap dada personal a la ruta.
 - Els fitxers pujats es comproven pel contingut i per la mida (`validate_upload`; checklist C10).
 - L'exportació RGPD caduca als `GDPR_EXPORT_RETENTION_DAYS` dies i la tasca diària l'esborra.
 - En un esborrat RGPD, els fitxers de la persona sense obligació legal s'esborren (RN-B8):
-  `expire_owner_files`. Avui l'únic tipus és l'exportació RGPD; un tipus amb obligació legal
-  (factures, justificants) no ha d'entrar a `ERASABLE_KINDS`: es bloqueja amb el seu mòdul.
+  `expire_owner_files`: l'exportació RGPD i les fotos de titulacions. Un tipus amb obligació
+  legal (factures, justificants) no ha d'entrar a `ERASABLE_KINDS`: es bloqueja amb el seu mòdul.
 
 Fora d'abast ara: els fitxers de cada mòdul (carnet en PDF a la T-M01-19) i les còpies (RN-B6).
 """
@@ -32,7 +38,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 
-from . import audit
+from . import audit, crypto
 from .models import PrivateFile
 from .permissions import has_perm
 
@@ -60,7 +66,35 @@ _HEIC_BRANDS = {b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b
 _KIND_PERMISSION = {
     PrivateFile.Kind.GDPR_EXPORT: "core.gdpr.handle",
     PrivateFile.Kind.PAYMENT_PROOF: "core.charges.record_manual",  # M14 (P-12b; P-405)
+    # 051 (RN-M09-23): només el tresorer i la junta, permisos protegits.
+    PrivateFile.Kind.EXPENSE_INVOICE: "expenses.documents.open",  # C5
+    PrivateFile.Kind.EXPENSE_BANK_PROOF: "expenses.documents.open",
+    PrivateFile.Kind.EXPENSE_MASKED_COPY: "expenses.documents.open",
+    PrivateFile.Kind.GRANT_PACKAGE: "grants.documents.open",  # AJ12
+    PrivateFile.Kind.ISSUED_INVOICE: "expenses.invoices.issue",  # MG9; el client, amb el personal
+    PrivateFile.Kind.CERTIFICATION_PHOTO: "activities.card_photos.view",  # AC24 (RN-M02-48)
 }
+
+# Xifrats a l'aplicació abans de desar-los (051 i 104): mai URL signada.
+ENCRYPTED_KINDS = frozenset(
+    {
+        PrivateFile.Kind.EXPENSE_INVOICE,
+        PrivateFile.Kind.EXPENSE_BANK_PROOF,
+        PrivateFile.Kind.EXPENSE_MASKED_COPY,
+        PrivateFile.Kind.ISSUED_INVOICE,
+        PrivateFile.Kind.GRANT_PACKAGE,
+        PrivateFile.Kind.CERTIFICATION_PHOTO,
+    }
+)
+# El titular (qui l'ha pujat) no el torna a obrir amb el compte personal (RN-M09-23).
+_ADMIN_ONLY_KINDS = frozenset(
+    {
+        PrivateFile.Kind.EXPENSE_INVOICE,
+        PrivateFile.Kind.EXPENSE_BANK_PROOF,
+        PrivateFile.Kind.EXPENSE_MASKED_COPY,
+        PrivateFile.Kind.GRANT_PACKAGE,
+    }
+)
 
 _LOCAL_SALT = "apps.core.files.local"
 
@@ -133,13 +167,15 @@ def validate_upload(uploaded, *, allowed=UPLOAD_TYPES) -> str:
 def store(
     content: bytes, *, owner, kind: str, content_type: str, download_name: str
 ) -> PrivateFile:
-    """Desa un fitxer generat per la plataforma (p. ex. una exportació) i el registra."""
+    """Desa un fitxer (generat per la plataforma o ja validat amb `validate_upload`) i el
+    registra. Els tipus d'`ENCRYPTED_KINDS` es xifren abans d'arribar a l'emmagatzematge."""
     key = uuid.uuid4().hex
     expires_at = None
     if kind == PrivateFile.Kind.GDPR_EXPORT:
         expires_at = timezone.now() + datetime.timedelta(days=settings.GDPR_EXPORT_RETENTION_DAYS)
     storage = storages["private"]
-    saved = storage.save(key, ContentFile(content))
+    stored = crypto.encrypt_bytes(content) if kind in ENCRYPTED_KINDS else content
+    saved = storage.save(key, ContentFile(stored))
     try:
         return PrivateFile.objects.create(
             storage_key=saved,
@@ -165,7 +201,7 @@ def can_access(account, file: PrivateFile) -> bool:
     if not isinstance(account, Account) or not account.is_active:
         return False
     if account.kind == Account.Kind.PERSONAL:
-        return account.person_id == file.owner_id
+        return account.person_id == file.owner_id and file.kind not in _ADMIN_ONLY_KINDS
     return has_perm(account, _KIND_PERMISSION[file.kind], file.owner)
 
 
@@ -173,7 +209,10 @@ def signed_url(account, file: PrivateFile, *, request=None) -> str:
     """URL signada de curta durada, només si el compte hi té accés; si no, «no trobat».
 
     El registre d'activitat guarda qui l'ha demanada i de quin fitxer; mai la URL (RN-52).
+    Els fitxers xifrats no en tenen mai: es llegeixen amb `open_decrypted`.
     """
+    if file.kind in ENCRYPTED_KINDS:
+        raise ValueError("Un fitxer xifrat no té URL signada: open_decrypted (T-M09-25a).")
     if not can_access(account, file):
         raise Http404
     audit.record(
@@ -191,6 +230,25 @@ def signed_url(account, file: PrivateFile, *, request=None) -> str:
         },
         expire=settings.PRIVATE_FILES_SIGNED_URL_TTL,
     )
+
+
+def open_decrypted(account, file: PrivateFile, *, request=None) -> bytes:
+    """Contingut desxifrat d'un fitxer d'`ENCRYPTED_KINDS`, només si el compte hi té accés (si
+    no, «no trobat» i no es desxifra res). Cada obertura queda al registre d'activitat (051;
+    RN-M02-48)."""
+    if file.kind not in ENCRYPTED_KINDS:
+        raise ValueError("Només per a fitxers xifrats; els altres, signed_url.")
+    if not can_access(account, file):
+        raise Http404
+    audit.record(
+        audit.Action.FILE_OPENED,
+        actor=account,
+        target=file,
+        details={"kind": file.kind},
+        request=request,
+    )
+    with storages["private"].open(file.storage_key, "rb") as handle:
+        return crypto.decrypt_bytes(handle.read())
 
 
 def purge_expired() -> int:
@@ -213,8 +271,9 @@ def purge_expired() -> int:
     return count
 
 
-# Tipus de fitxer sense obligació legal de conservació (RN-B8).
-ERASABLE_KINDS = frozenset({PrivateFile.Kind.GDPR_EXPORT})
+# Tipus de fitxer sense obligació legal de conservació (RN-B8). Les fotos de titulacions
+# s'esborren al moment en un esborrat RGPD (RN-M02-54).
+ERASABLE_KINDS = frozenset({PrivateFile.Kind.GDPR_EXPORT, PrivateFile.Kind.CERTIFICATION_PHOTO})
 
 
 def expire_owner_files(owner, *, kinds=ERASABLE_KINDS) -> int:

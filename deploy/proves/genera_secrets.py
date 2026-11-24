@@ -15,6 +15,7 @@ def genera() -> dict[str, str]:
     return {
         "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
         "FIELD_ENCRYPTION_KEYS": Fernet.generate_key().decode(),
+        "FILE_ENCRYPTION_KEYS": Fernet.generate_key().decode(),  # T-M09-25a
         "MANDATE_ENCRYPTION_KEYS": "1:" + Fernet.generate_key().decode(),
         "CARD_QR_KEYS": "k1:" + secrets.token_urlsafe(48),
         "CARD_QR_ACTIVE_KEY": "k1",

@@ -25,3 +25,14 @@ def test_period_reopened_notice():
     )  # fmt: skip
     assert "2027" in email.subject
     assert "Un moviment del banc arribat tard (inventat)." in email.body_text
+
+
+def test_illegible_document_notice_has_no_link():
+    """CA-M09-28: l'avís a qui l'havia pujat no porta ni el document ni cap enllaç (051)."""
+    email = mail.queue_email(
+        "avis-document-illegible", to="responsable@example.org",
+        context={"expense_id": 42, "document": "Factura", "reason": "Foto borrosa (inventat)."},
+    )  # fmt: skip
+    assert "42" in email.body_text and "Factura" in email.body_text
+    assert "Foto borrosa (inventat)." in email.body_text
+    assert "http" not in email.body_text and "/fitxers/" not in email.body_text

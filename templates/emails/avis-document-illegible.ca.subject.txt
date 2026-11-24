@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M09-25b (CA-M09-28): TEXT PROVISIONAL [A validar: tresorer]. #}{% translate "Cal tornar a pujar un document d'una despesa" %}

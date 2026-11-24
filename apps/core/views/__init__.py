@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_not_required
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.http import content_disposition_header
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
@@ -55,11 +56,21 @@ def queue_health(request):
 
 @require_GET
 def private_file(request, file_id):
-    """Comprova el compte i l'objecte i redirigeix a la URL signada (annex B, RN-B2)."""
+    """Comprova el compte i l'objecte i redirigeix a la URL signada (annex B, RN-B2). Un fitxer
+    xifrat no surt mai per URL signada: es desxifra aquí, amb el registre (T-M09-25a)."""
     file = PrivateFile.objects.filter(pk=file_id).first()
     if file is None:
         raise Http404
-    response = redirect(files.signed_url(request.user, file, request=request))
+    if file.kind in files.ENCRYPTED_KINDS:
+        content = files.open_decrypted(request.user, file, request=request)
+        response = HttpResponse(content, content_type=file.content_type)
+        # Les imatges, en línia (per a un <img>); la resta, com a descàrrega.
+        response["Content-Disposition"] = content_disposition_header(
+            not file.content_type.startswith("image/"), file.download_name
+        )
+        response["X-Content-Type-Options"] = "nosniff"
+    else:
+        response = redirect(files.signed_url(request.user, file, request=request))
     response["Cache-Control"] = "no-store"
     response["Referrer-Policy"] = "no-referrer"
     return response

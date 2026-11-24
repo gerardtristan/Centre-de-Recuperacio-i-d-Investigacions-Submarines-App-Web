@@ -9,6 +9,7 @@ from cryptography.fernet import Fernet
 os.environ.setdefault("DJANGO_SECRET_KEY", "nomes-per-a-proves")
 # Clau nova a cada execució: les proves no depenen de cap clau guardada.
 os.environ.setdefault("FIELD_ENCRYPTION_KEYS", Fernet.generate_key().decode())
+os.environ.setdefault("FILE_ENCRYPTION_KEYS", Fernet.generate_key().decode())
 os.environ.setdefault("MANDATE_ENCRYPTION_KEYS", "1:" + Fernet.generate_key().decode())
 
 from .base import *  # noqa: E402, F403
