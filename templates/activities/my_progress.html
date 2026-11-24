@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M02-17b (HU-M02-14; RN-M02-17): «El meu progrés» d'una inscripció de la persona del compte. Les pràctiques del curs amb el resultat i l'observació de qui hi fa classe; cap dada d'altres alumnes ni de salut. El servidor comprova que la inscripció és seva. #}
+{% block title %}{% translate "El meu progrés" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Les meves activitats" %}</p>
+    <h1>{% blocktranslate with title=activity.title %}El meu progrés a «{{ title }}»{% endblocktranslate %}</h1>
+    <p class="text-2">{% translate "El resultat de cada pràctica, quan qui hi fa classe l'ha avaluada." %}</p>
+  </header>
+  <table class="taula">
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} pràctica{% plural %}{{ total }} pràctiques{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Pràctica" %}</th>
+        <th scope="col">{% translate "Resultat" %}</th>
+        <th scope="col">{% translate "Observació" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row"><time datetime="{{ row.session.starts_at|date:'c' }}">{{ row.session.starts_at|date:"d/m/Y H:i" }}</time></th>
+          <td data-etiqueta="{% translate 'Resultat' %}">{% if row.result == "achieved" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {{ row.result_label }}</span>{% elif row.result == "needs_reinforcement" %}<span class="estat estat-avis"><span aria-hidden="true">!</span> {{ row.result_label }}</span>{% elif row.result %}<span class="estat estat-error"><span aria-hidden="true">✕</span> {{ row.result_label }}</span>{% else %}<span class="text-2">{% translate "Encara sense avaluar" %}</span>{% endif %}</td>
+          <td data-etiqueta="{% translate 'Observació' %}">{{ row.notes|default:"—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos"><a href="{% url 'activities:mine' %}">{% translate "Tornar a les meves activitats" %}</a></p>
+{% endblock %}

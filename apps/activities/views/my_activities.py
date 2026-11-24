@@ -5,6 +5,8 @@
 El certificat (T-M02-22c) és la mateixa pàgina per imprimir que la de l'administració (T-M02-19b),
 només d'una inscripció seva amb el certificat emès (si no, «no trobat»).
 Els blocs d'altres mòduls (el material del 03) surten amb `extensions.detail_sections`.
+«El meu progrés» (T-M02-17b; HU-M02-14) és d'una inscripció seva a un curs amb pràctiques:
+només el resultat i l'observació de les seves pràctiques (`assessment.progress`).
 """
 
 from itertools import groupby
@@ -17,8 +19,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
-from .. import attendance, certificates, extensions, ics
-from ..models import Enrolment, Session
+from .. import assessment, attendance, certificates, extensions, ics
+from ..models import Activity, Enrolment, Session
 
 
 def _person(request):
@@ -75,6 +77,7 @@ def my_activities_view(request):
                 "enrolment": row,
                 "live": row.status in Enrolment.LIVE,
                 "certificate": certificates.certificate(row),
+                "progress": _has_practices(row),
                 "sections": sections,
             }
         )
@@ -84,6 +87,29 @@ def my_activities_view(request):
         "agenda": _agenda(person),
     }
     return render(request, "activities/my_activities.html", context)
+
+
+def _has_practices(row) -> bool:
+    return (
+        row.activity.kind == Activity.Kind.COURSE
+        and row.status in Enrolment.LIVE
+        and Session.objects.filter(
+            activity_id=row.activity_id, is_practice=True, cancelled=False
+        ).exists()
+    )
+
+
+@never_cache
+@require_GET
+def enrolment_progress_view(request, pk):
+    """«El meu progrés» d'una inscripció seva (si no, «no trobat»); cap dada d'altres alumnes."""
+    row = get_object_or_404(
+        Enrolment.objects.select_related("activity"), pk=pk, person=_person(request)
+    )
+    if not _has_practices(row):
+        raise Http404
+    context = {"activity": row.activity, "rows": assessment.progress(row)}
+    return render(request, "activities/my_progress.html", context)
 
 
 @never_cache
