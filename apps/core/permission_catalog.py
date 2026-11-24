@@ -1364,6 +1364,20 @@ PERMISSIONS: tuple[Permission, ...] = (
         initial=dict.fromkeys(_ACTIVITY_MANAGERS, _ALL),
         touches_money=True,
     ),
+    # P-459 (105; RN-M02-32): carregar a mà les titulacions inicials i verificar-les.
+    _perm(
+        "activities.certifications.manage",
+        "AC29",
+        _("Titulacions: carregar a mà i verificar"),
+        allowed_scopes=(SCOPE_ALL, SCOPE_READ),
+        initial={
+            R.SECRETARY: _ALL,
+            R.COURSES_MANAGER: _ALL,
+            R.ADMINISTRATOR: _ALL,
+            R.BOARD: SCOPE_READ,
+        },
+        touches_personal_data=True,
+    ),
     _perm(
         "activities.field.material_cost",
         "C7",

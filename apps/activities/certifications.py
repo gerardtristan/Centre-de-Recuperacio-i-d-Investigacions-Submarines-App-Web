@@ -15,10 +15,10 @@ el responsable veu de quin origen és cadascuna (RN-M02-30).
 una titulació ha de comprovar abans el permís que toqui (per a l'instructor, C3 i només dels
 alumnes de les seves sessions).
 
-**Fora d'aquesta peça:** carregar titulacions a mà, verificar-les i importar-les (T-M02-31; cap
-permís de la matriu ho cobreix encara), crear la del club en emetre el certificat (T-M02-19 i
-T-M02-31), el lligam amb el resultat del curs (`course_outcome`, quan existeixi) i fer-les servir
-per als requisits d'una activitat (`requirements`, T-M02-29).
+**Fora d'aquesta peça:** carregar titulacions a mà i verificar-les (`certification_records`,
+AC29), importar-les (T-M02-31, espera la mostra Q-23), crear la del club en emetre el certificat
+(T-M02-19 i T-M02-31), el lligam amb el resultat del curs (`course_outcome`, quan existeixi) i
+fer-les servir per als requisits d'una activitat (`requirements`, T-M02-29).
 """
 
 from dataclasses import dataclass
