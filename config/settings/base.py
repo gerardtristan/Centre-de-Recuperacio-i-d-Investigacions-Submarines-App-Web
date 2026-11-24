@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "apps.equipment",
     "apps.previews",
     "apps.expenses",
+    "apps.website",
+    "apps.dashboard",  # 08: dashboard (T-M08-02)
 ]
 
 MIDDLEWARE = [
