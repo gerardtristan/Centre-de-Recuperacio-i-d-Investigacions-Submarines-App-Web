@@ -9,6 +9,8 @@
     {% translate "Preu per a no socis" as price_label %}
     {% include "activities/_convite_cap.html" with price=activity.price_non_member %}
   </article>
+  {% translate "Les teves dades" as data_label %}
+  {% if sent_to %}{% include "activities/_passos_inscripcio.html" with step=3 %}{% else %}{% include "activities/_passos_inscripcio.html" with step=2 %}{% endif %}
   {% if sent_to %}
     <div class="avis avis-ok" role="status">
       <strong>{% translate "Inscripció enviada" %}</strong>

@@ -647,6 +647,12 @@ Del recurs Convite (P-99, A): la peça de la pantalla en construcció de la T-DX
 - **Dades:** les de `public.py`, sense cap canvi: mai cap nom de participant, ni les notes del lloc ni el cost de material (RN-M02-45). Els detalls que no són a la capçalera (places, termini, nivell, especialitats, edat, llicència, previsió) van a sota, a «Detalls».
 - **Encara no:** la barra de places de Convite (`convite-places`), fins que `public.py` doni les places lliures (T-M02-12; demanat al pilot); «Afegeix al calendari» i el recordatori, perquè el calendari només és de qui ja s'ha inscrit (RN-M02-25).
 
+### 6.26 Camilla: els passos d'apuntar-se (T-DX-110)
+Del recurs Camilla (P-94, A): el flux d'inscripció per passos, amb la línia de passos de Tramite (§6.13) i sense cap peça nova.
+- **Peça:** `templates/activities/_passos_inscripcio.html` amb la `tramite` de tres passos: «Activitat» (fet), el pas de dades i «Confirmació». `step` diu quin és l'actual (`aria-current="step"`): el 2 abans d'inscriure's, el 3 amb el pagament pendent (o el correu del convidat enviat) i tots fets amb la inscripció confirmada. `data_label`: «Requisits» (soci) o «Les teves dades» (convidat).
+- **On:** sota la capçalera de Convite (§6.24) a la inscripció del soci i a la del convidat.
+- **Del recurs no s'hi fa:** triar sessió i opcions (Comanda), que el pla no té; els passos només indiquen on és, i la inscripció i el pagament els fa el servidor.
+
 ## 7. Temes clar i fosc
 - Per defecte, la pàgina segueix `prefers-color-scheme`, la preferència de color del sistema operatiu.
 - El **selector de tema** és un control segmentat de tres opcions, **Sistema / Clar / Fosc** (◐ ○ ●), fet amb botons de ràdio dins d'un `fieldset` amb la llegenda «Tema». Funciona amb el teclat (Tab i fletxes). Cada opció es veu de 32 px d'alt, però té una àrea tàctil de 44 × 44 px (§4). Als prototips, al mòbil només es veuen les icones (el text continua disponible per al lector de pantalla) i a partir de tauleta, la icona i el text. **A la plataforma (T-M01-45), la capçalera de comptes, socis i administració mostra la icona i el text a totes les mides**, com demana la revisió de pantalles; a 320 px el selector passa a la seva fila (`comptes.css`).

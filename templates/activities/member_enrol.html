@@ -8,6 +8,8 @@
     {% if member %}{% translate "Preu de soci" as price_label %}{% else %}{% translate "Preu de no soci" as price_label %}{% endif %}
     {% include "activities/_convite_cap.html" %}
   </article>
+  {% translate "Requisits" as data_label %}
+  {% if current.status == "confirmed" %}{% include "activities/_passos_inscripcio.html" with step=4 %}{% elif current %}{% include "activities/_passos_inscripcio.html" with step=3 %}{% else %}{% include "activities/_passos_inscripcio.html" with step=2 %}{% endif %}
   {% include "activities/_missatges.html" %}
   {% if current %}
     <div class="avis avis-ok" role="status">
