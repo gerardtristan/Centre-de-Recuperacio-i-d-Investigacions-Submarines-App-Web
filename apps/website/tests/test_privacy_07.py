@@ -155,3 +155,28 @@ def test_p624_a_role_mailbox_of_an_administrator_is_not_theirs(texts, make_admin
     privacy.anonymise_person(person, by=make_admin(Role.Code.ADMINISTRATOR))
     mailbox.refresh_from_db()
     assert mailbox.email == "secretaria@example.org" and mailbox.status == "new"
+
+
+def test_a_contact_email_equal_to_the_admin_notification_email_is_still_theirs(
+    texts,
+    make_admin,  # noqa: F811
+):
+    """Revisió de la PR 1: el correu de contacte és de la persona encara que el compte
+    d'administrador el faci servir per a les notificacions."""
+    from apps.accounts.models import Account
+    from conftest import PASSWORD
+
+    person = Person.objects.create(
+        first_name="Laia", contact_email="Laia.Inventada@example.org", origin="in_person"
+    )
+    Account.objects.create_admin(
+        person, "laia.prova", PASSWORD, notification_email="laia.inventada@example.org"
+    )
+    own = _message("laia.inventada@example.org", texts)
+    newsletter.subscribe("laia.inventada@example.org", legal_text=texts["newsletter"])
+    data = privacy.export_person(person)["web"]
+    assert len(data["missatges_de_contacte"]) == 1 and len(data["butlleti"]) == 1
+    privacy.anonymise_person(person, by=make_admin(Role.Code.ADMINISTRATOR))
+    own.refresh_from_db()
+    assert own.email != "laia.inventada@example.org" and own.status == "closed"
+    assert not NewsletterSubscription.objects.filter(email="laia.inventada@example.org").exists()

@@ -18,8 +18,8 @@ def test_a_module_with_addresses_gets_the_contact_and_account_emails(make_admin,
     Account.objects.create_personal(person, "pau.compte@example.org")
     calls = {}
 
-    def with_addresses(person, *, by, request=None, known_addresses):
-        calls["with"] = (person.contact_email, known_addresses)
+    def with_addresses(person, *, by, request=None, known_addresses, contact_email):
+        calls["with"] = (person.contact_email, known_addresses, contact_email)
 
     def without(person, *, by, request=None):  # un mòdul d'abans: sense el paràmetre
         calls["without"] = True
@@ -34,5 +34,6 @@ def test_a_module_with_addresses_gets_the_contact_and_account_emails(make_admin,
 
     privacy.anonymise_person(person, by=make_admin("administrator"))
 
-    assert calls["with"] == ("", {"pau.contacte@example.org", "pau.compte@example.org"})
+    known = {"pau.contacte@example.org", "pau.compte@example.org"}
+    assert calls["with"] == ("", known, "pau.contacte@example.org")
     assert calls["without"] is True

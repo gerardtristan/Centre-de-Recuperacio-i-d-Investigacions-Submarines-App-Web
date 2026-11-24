@@ -15,8 +15,9 @@ bústia de rol no s'exporta ni s'esborra, i el resum de qui aprova diu quantes c
   baixa i en queda només la traça (M07-12): l'estat, la versió del text i els esborrats.
 
 La 00 buida el correu de contacte de la persona abans de cridar els mòduls: `anonymise` el rep a
-`known_addresses` (el mòdul es registra amb `addresses=True`), on també hi ha els correus dels
-comptes; el de notificació d'un compte d'administrador no hi compta.
+`contact_email` i, amb els dels comptes, a `known_addresses` (el mòdul es registra amb
+`addresses=True`). El correu de contacte sempre compta; el de notificació d'un compte
+d'administrador, només si també és el de contacte.
 """
 
 from django.db.models import Q
@@ -32,16 +33,20 @@ from . import newsletter
 from .models import ContactMessage, NewsletterSubscription
 
 
-def _own_addresses(person, known=()) -> set[str]:
+def _own_addresses(person, known=(), contact_email="") -> set[str]:
     """El correu de contacte i el d'entrada dels comptes personals (únic), i les adreces que la 00
-    ha pres abans de buidar la persona. Mai el de notificació d'un compte d'administrador, que pot
-    ser una bústia de rol (P-624)."""
-    found = {person.contact_email, *known}
-    found -= set(
+    ha pres abans de buidar la persona. D'aquestes últimes, mai el de notificació d'un compte
+    d'administrador, que pot ser una bústia de rol (P-624); el correu de contacte, sempre."""
+
+    def clean(addresses):
+        return {a.strip().lower() for a in addresses} - {""}
+
+    notifications = clean(
         person.accounts.filter(kind=Account.Kind.ADMIN).values_list("notification_email", flat=True)
     )
-    found |= set(person.accounts.filter(kind=Account.Kind.PERSONAL).values_list("login", flat=True))
-    return {a.strip().lower() for a in found} - {""}
+    logins = person.accounts.filter(kind=Account.Kind.PERSONAL).values_list("login", flat=True)
+    own = clean([person.contact_email, contact_email, *logins])
+    return own | (clean(known) - notifications)
 
 
 def _shared(addresses: set[str], person) -> set[str]:
@@ -55,8 +60,8 @@ def _shared(addresses: set[str], person) -> set[str]:
     return shared
 
 
-def _addresses(person, known=()) -> set[str]:
-    own = _own_addresses(person, known)
+def _addresses(person, known=(), contact_email="") -> set[str]:
+    own = _own_addresses(person, known, contact_email)
     return own - _shared(own, person)
 
 
@@ -150,9 +155,9 @@ def _shared_line(messages: int, subscriptions: int) -> str:
     ) % {"what": _(" i ").join(parts)}
 
 
-def anonymise(person, *, by, request=None, known_addresses=()) -> None:
+def anonymise(person, *, by, request=None, known_addresses=(), contact_email="") -> None:
     ref = person.anonymous_ref
-    addresses = _addresses(person, known_addresses)
+    addresses = _addresses(person, known_addresses, contact_email)
     for message in _messages(person, addresses):
         message.name, message.email = ref, anonymous_email(ref)
         message.body = message.answer = ""
