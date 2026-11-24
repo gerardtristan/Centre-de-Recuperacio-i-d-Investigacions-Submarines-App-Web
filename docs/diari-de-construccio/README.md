@@ -569,6 +569,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-104](T-DX-104.md) | Inventari dels 38 recursos externs i tasques T-DX-105 a T-DX-115 | 24/11/2026 14:42 | cb274d4c | cap | [A comprovar] |
 | [T-M07-03](T-M07-03.md) | App `website` i ajustos del 07, amb el butlletí i el contacte apagats | 24/11/2026 10:57 | 90f1821e | 25 noves | [A comprovar] |
 | [T-M07-04](T-M07-04.md) | Pàgines, versions i blocs; publicar i tornar a una versió | 24/11/2026 11:42 | 6cbb8859 | 17 noves | [A comprovar] |
+| [T-M07-07](T-M07-07.md) | Fotos de la web: models i servei, sense rutes | 24/11/2026 12:39 | 66704ddb | 15 noves | [A comprovar] |
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M09-25a](T-M09-25a.md) | Fitxers privats xifrats a l'aplicació: clau pròpia, sis tipus nous (core/0077) i vista que desxifra amb permís i registre (carril X, nucli) | 24/11/2026 10:27 | (vegeu la PR) | 21 noves | [A comprovar] |
 | [T-M02-42a](T-M02-42a.md) | Fotos dels carnets de titulació: pujada xifrada i sense metadades, sense reduir (activities/0025; carril X) | 24/11/2026 12:07 | (vegeu la PR) | 9 noves | [A comprovar] |
