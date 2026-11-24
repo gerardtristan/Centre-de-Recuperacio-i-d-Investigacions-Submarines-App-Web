@@ -28,8 +28,6 @@ from ..permissions import CARD_PHOTOS_MANAGE
 from . import see_other
 from .member_certifications import _person
 
-RETENTION_KEY = "activities.card_photo_retention_months"  # VC-57
-
 
 class PhotoForm(forms.Form):
     side = forms.ChoiceField(
@@ -71,7 +69,7 @@ def _page(request, cert, *, template, done, file_route):
         "cert": cert,
         "form": form,
         "sides": cert.card_photos.order_by("-side"),  # l'anvers primer
-        "months": business_settings.get(RETENTION_KEY),
+        "months": business_settings.get(card_photos.RETENTION_KEY),
         "file_route": file_route,  # la vista que desxifra amb permís i registre (T-M02-43)
     }
     return render(request, template, context)
