@@ -222,6 +222,7 @@ ENTRIES = (
             "administration:activity_margin",
             "administration:activity_margin_planned",
             "administration:activity_margin_close",
+            "administration:expense_documents",  # T-M09-04b: documents d'una despesa
         ),
     ),  # T-M09-15; text i lloc per revisar amb DISSENY
     (
