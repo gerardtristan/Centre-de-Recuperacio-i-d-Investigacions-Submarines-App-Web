@@ -10,7 +10,8 @@
 - **Com es desa:** xifrada a l'aplicació (`core.files`, tipus `certification_photo`), amb el
   titular com a propietari: només l'obren ell i qui té AC24, per la vista amb registre.
 
-Veure-les i esborrar-les: T-M02-43. Conservació (VC-57): T-M02-47. Les pantalles: T-M02-42b.
+Veure-les (la vista de fitxers privats, només amb VC-56 encès: `photos_enabled`, registrada
+al nucli) i esborrar-les (`delete`): T-M02-43. Conservació (VC-57): T-M02-47.
 """
 
 import struct
@@ -27,6 +28,7 @@ from .filings import PHOTOS_KEY, _own_or_ac25
 from .models import CertificationCardPhoto
 
 UPLOADED = "activities.card_photo.uploaded"
+DELETED = "activities.card_photo.deleted"
 PHOTO_TYPES = frozenset({"image/jpeg", "image/png", "application/pdf"})
 _EXTENSION = {"image/jpeg": "jpg", "image/png": "png", "application/pdf": "pdf"}
 
@@ -116,3 +118,23 @@ def upload(certification, side: str, uploaded, *, by, request=None) -> Certifica
         details={"certification": certification.pk, "side": side}, request=request,
     )  # fmt: skip
     return photo
+
+
+def photos_enabled(file=None) -> bool:
+    """RN-M02-56: amb VC-56 apagat, cap foto no s'obre, tampoc per l'adreça directa (el nucli la
+    pregunta a `files.can_access`)."""
+    return bool(business_settings.get(PHOTOS_KEY))
+
+
+@transaction.atomic
+def delete(photo: CertificationCardPhoto, *, by, request=None) -> None:
+    """RN-M02-49: el titular o qui té AC25 l'esborra en qualsevol moment (també amb VC-56
+    apagat): la fila i el fitxer, i queda al registre."""
+    _own_or_ac25(photo.certification, by)
+    file = photo.file
+    audit.record(
+        DELETED, actor=by, target=photo,
+        details={"certification": photo.certification_id, "side": photo.side}, request=request,
+    )  # fmt: skip
+    photo.delete()
+    files.delete_now(file, actor=by, request=request)

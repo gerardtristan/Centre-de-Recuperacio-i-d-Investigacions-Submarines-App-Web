@@ -1,6 +1,8 @@
-"""Foto del carnet d'una titulació al navegador (T-M02-42b; RN-M02-47): amb VC-56 encès, una sòcia
-puja l'anvers des de «Les meves titulacions» i la secretaria el revers en nom seu. Pantalles a
-1280, 390 i 320 px. Només dades inventades."""
+"""Foto del carnet d'una titulació al navegador (T-M02-42b i T-M02-43; RN-M02-47 i 49): amb
+VC-56 encès, una sòcia puja l'anvers des de «Les meves titulacions» i la secretaria el revers en
+nom seu, el veu i l'esborra. Pantalles a 1280, 390 i 320 px. Només dades inventades."""
+
+import re
 
 import pytest
 from django.urls import reverse
@@ -59,3 +61,8 @@ def test_member_and_secretary_upload_the_card_photos(
     expect(page.get_by_text("Foto desada, xifrada")).to_be_visible()
     review("foto-carnet-secretaria")
     assert CertificationCardPhoto.objects.filter(certification=cert).count() == 2
+    # T-M02-43: cada cara es pot veure (vista amb registre) i esborrar.
+    expect(page.get_by_role("link", name=re.compile(r"^Veure-la")).first).to_be_visible()
+    page.get_by_role("button", name=re.compile(r"^Esborra-la")).last.click()
+    expect(page.get_by_text("Foto esborrada.")).to_be_visible()
+    assert CertificationCardPhoto.objects.filter(certification=cert).count() == 1

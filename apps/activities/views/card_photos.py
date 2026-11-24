@@ -49,6 +49,12 @@ def enabled() -> bool:
 def _page(request, cert, *, template, done, file_route):
     if not enabled():
         raise Http404
+    if request.method == "POST" and "esborra" in request.POST:  # T-M02-43 (RN-M02-49)
+        pk = request.POST["esborra"]
+        photo = get_object_or_404(cert.card_photos, pk=pk if pk.isdigit() else None)
+        card_photos.delete(photo, by=request.user, request=request)
+        messages.success(request, _("Foto esborrada."))
+        return see_other(*done)
     form = PhotoForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data

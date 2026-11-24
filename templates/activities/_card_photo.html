@@ -24,6 +24,7 @@
           <span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=photo.uploaded_at|date:"d/m/Y" %}Foto pujada el {{ day }}{% endblocktranslate %}</span>
         </p>
         <a href="{% url file_route photo.file_id %}">{% translate "Veure-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></a>
+        <button class="boto boto-text boto-petit" type="submit" name="esborra" value="{{ photo.pk }}" formnovalidate>{% translate "Esborra-la" %}<span class="visualment-amagat">: {{ photo.get_side_display }}</span></button>
       </li>
       {% endfor %}
     </ul>
