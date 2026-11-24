@@ -4,7 +4,7 @@
 {% block title %}{% translate "Homologació" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
-    <p class="etiqueta-seccio"><a href="{% url 'administration:filings' %}">{% translate "Homologacions pendents" %}</a></p>
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
     <h1>{{ filing.person.last_name }}, {{ filing.person.first_name }}</h1>
     <p class="text-2">{% include "activities/_filing_status.html" %}</p>
   </header>
@@ -52,4 +52,5 @@
       </form>
     </section>
   {% endif %}
+  <p class="enllacos"><a href="{% url 'administration:filings' %}">{% translate "Tornar a les homologacions" %}</a></p>
 {% endblock %}

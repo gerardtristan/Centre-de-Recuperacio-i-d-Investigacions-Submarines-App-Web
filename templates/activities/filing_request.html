@@ -4,7 +4,7 @@
 {% block title %}{% translate "Demana una homologació" %} · C.R.I.S.{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
-    <p class="etiqueta-seccio"><a href="{% url 'administration:filings' %}">{% translate "Homologacions pendents" %}</a></p>
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
     <h1>{% translate "Demana una homologació" %}</h1>
     <p class="text-2">{% translate "En nom de la persona, amb el carnet comprovat en persona. Només hi surten les titulacions d'una altra agència que encara no tenen cap homologació oberta." %}</p>
   </header>
@@ -17,4 +17,5 @@
       <a class="boto boto-text" href="{% url 'administration:filings' %}">{% translate "Cancel·la" %}</a>
     </div>
   </form>
+  <p class="enllacos"><a href="{% url 'administration:filings' %}">{% translate "Tornar a les homologacions" %}</a></p>
 {% endblock %}

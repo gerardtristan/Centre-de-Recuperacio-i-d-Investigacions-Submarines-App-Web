@@ -33,7 +33,7 @@
             <textarea id="observacio-{{ row.enrolment_id }}" name="observacio" rows="2" maxlength="{{ max_notes }}" aria-describedby="ajuda-{{ row.enrolment_id }}">{{ row.notes }}</textarea>
             <p class="ajuda" id="ajuda-{{ row.enrolment_id }}">{{ notes_help }}</p>
           </div>
-          <div class="accions"><button class="boto" type="submit">{% translate "Desa l'avaluació" %}</button></div>
+          <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Desa l'avaluació" %}</button></div>
         </form>
       {% elif row.notes %}
         <p>{{ row.notes }}</p>
