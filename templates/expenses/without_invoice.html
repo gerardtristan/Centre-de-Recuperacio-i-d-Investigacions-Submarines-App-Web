@@ -1,20 +1,38 @@
 {% extends "base_admin.html" %}
-{% load i18n %}
+{% load i18n static gastos %}
 {# T-M09-15 (RN-M09-09 i 25; CA-M09-01): la descripció obre els documents de la despesa (T-M09-04b) i una factura marcada il·legible ho diu. les despeses vives sense factura (MG2, també de consulta). Bloquegen el tancament del període. Només dades de la despesa: el proveïdor pot ser un autònom, però és la factura del club. #}
 {% block title %}{% translate "Despeses sense factura" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
+{% block estils %}<link rel="stylesheet" href="{% static 'css/gastos.css' %}">{% endblock %}
 {% block content %}
   <header class="capcalera-pagina">
     <p class="etiqueta-seccio">{% translate "Despeses" %}</p>
     <h1>{% translate "Despeses sense factura" %}</h1>
     <p class="text-2">{% translate "Mentre no tinguin la factura adjunta, no es pot tancar el període." %}</p>
+    {% if can_record %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:expense_new' %}">{% translate "Registra una despesa" %}</a></div>{% endif %}
   </header>
   {% for message in messages %}
     {% if message.level_tag == "error" %}<div class="avis avis-error" role="alert">{{ message }}</div>
     {% else %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endif %}
   {% endfor %}
+  {# Gastos (T-DX-107, design-system §6.23): per departament, de tota la llista; el filtre només tria les files. #}
+  {% if segments %}
+  <section class="targeta gastos-cols" aria-label="{% translate 'Per departament' %}">
+    {% translate "Sense factura" as label %}{% anell_gastos segments label %}
+    <form class="formulari" method="get" action="{% url 'administration:expenses_without_invoice' %}" novalidate>
+      <fieldset class="filtres">
+        <legend>{% translate "Filtres" %}</legend>
+        {% for field in form %}{% include "accounts/_camp.html" %}{% endfor %}
+      </fieldset>
+      <div class="accions">
+        <button class="boto" type="submit">{% translate "Filtra" %}</button>
+        {% if filtered %}<a class="boto boto-text" href="{% url 'administration:expenses_without_invoice' %}">{% translate "Treu els filtres" %}</a>{% endif %}
+      </div>
+    </form>
+  </section>
+  {% endif %}
   <table class="taula">
-    <caption>{% blocktranslate count total=rows|length %}{{ total }} despesa sense factura, la més antiga primer{% plural %}{{ total }} despeses sense factura, la més antiga primer{% endblocktranslate %}</caption>
+    <caption>{% blocktranslate count total=rows|length %}{{ total }} despesa sense factura, la més antiga primer{% plural %}{{ total }} despeses sense factura, la més antiga primer{% endblocktranslate %}{% if rows %} · {% if filtered %}{% translate "Total del departament" %}{% else %}{% translate "Total" %}{% endif %}: <span class="import">{{ total }}</span>{% endif %}</caption>
     <thead>
       <tr>
         <th scope="col">{% translate "Descripció" %}</th>
