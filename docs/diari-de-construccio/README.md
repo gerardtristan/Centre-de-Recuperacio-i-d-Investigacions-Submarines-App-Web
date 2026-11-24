@@ -591,3 +591,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-04b](T-M09-04b.md) | Documents d'una despesa: factura, comprovant i il·legible (amb la T-M09-05 i la T-M09-15) | 24/11/2026 14:25 | 2a145c44 | 9 noves i 1 e2e | [A comprovar] |
 | [T-M02-52](T-M02-52.md) | Titulacions: permís AC29 i serveis per carregar-les i verificar-les (torn del nucli; core/0079; carril Y) | 24/11/2026 14:09 | 80d9633c | 9 cel·les i 14 noves | [A comprovar] |
 | [T-M00-10-13](T-M00-10-13.md) | Quatre arranjaments del nucli de la 105: marques de pendent als textos legals, `mark_undone`, límit propi de la llicència de convidat i docstring del termini (torn del nucli; accounts/0012; carril Y) | 24/11/2026 15:17 | de50b634, 8cebe6ed, a6a80da3, 346d0d6c | 10 noves | [A comprovar] |
+| [T-M09-19c](T-M09-19c.md) | El PDF de la factura emesa, desat xifrat | 24/11/2026 15:36 | d2cf8482 | 5 noves | [A comprovar] |
