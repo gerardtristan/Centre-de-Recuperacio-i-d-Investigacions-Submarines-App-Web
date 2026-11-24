@@ -1,8 +1,9 @@
 """Supressió de grups petits (T-M08-03; RN-M08-02; CA-M08-03; P-487, decisió 105).
 
 En un desglossament de persones (per tipus, per estat, per activitat...), una cel·la amb menys
-de `dashboard.min_group_size` persones es mostra «menys de N». Si només n'hi ha una d'amagada,
-també s'amaga la següent més petita, perquè no es pugui deduir restant del total. El total es
+de `dashboard.min_group_size` persones es mostra «menys de N». Si les cel·les petites sumen més
+de 0 i menys de N, també s'amaga la visible més petita, perquè restant del total no se'n pugui
+saber la suma (P-649); una cel·la a zero surt «menys de N» però no obliga a amagar res. El total es
 mostra sempre, tret que ell mateix sigui per sota del mínim (P-648; també quan el desglossament
 té una sola cel·la petita, perquè llavors el total és la cel·la).
 No s'aplica als imports: només als indicadors de tipus «persones» (`indicators.KINDS`).
@@ -36,11 +37,11 @@ def suppress(counts: dict, min_size: int) -> tuple[dict, Cell]:
     """{clau: recompte} → ({clau: Cell}, total), en el mateix ordre. Funció pura."""
     below = {key for key, value in counts.items() if value < min_size}
     hidden = set()
-    if len(below) == 1:
-        # La següent més petita de les visibles; amb empat, la primera del desglossament.
-        rest = [key for key in counts if key not in below]
-        if rest:
-            hidden.add(min(rest, key=lambda key: counts[key]))
+    rest = [key for key in counts if key not in below]
+    # P-649: n'hi ha prou amb una: una cel·la visible ja té N o més, i la suma amagada hi arriba.
+    if 0 < sum(counts[key] for key in below) < min_size and rest:
+        # La visible més petita; amb empat, la primera del desglossament.
+        hidden.add(min(rest, key=lambda key: counts[key]))
     cells = {
         key: Cell(value, BELOW if key in below else HIDDEN if key in hidden else SHOWN)
         for key, value in counts.items()

@@ -51,7 +51,8 @@ def _personal_values(viewer) -> set[str]:
     values = set()
     for person in Person.objects.exclude(pk=viewer.person_id).exclude(pk__in=role_people):
         values |= {person.first_name, person.last_name, person.contact_email,
-                   person.id_document_number, person.phone}  # fmt: skip
+                   person.id_document_number, person.phone,
+                   person.birth_date and person.birth_date.strftime("%d/%m/%Y")}  # fmt: skip
     values |= {account.login for account in Account.objects.exclude(pk=viewer.pk)}
     return {value for value in values if value and len(value) >= 3}
 
@@ -78,11 +79,12 @@ def test_ca_m08_02_no_personal_data_of_the_seed_in_any_panel_or_period(seeded):
 
 
 def test_ca_m08_04_the_seed_figures_are_the_module_figures(seeded):
-    today = timezone.localdate()
+    now = timezone.now()  # el mateix moment per al panell i per als serveis (també a mitjanit)
+    today = timezone.localdate(now)
     starts_on, ends_on = views.bounds("year", today)
-    general = panels.panel("general", starts_on, ends_on)
-    economic = panels.panel("economic", starts_on, ends_on)
-    activity = panels.panel("activity", starts_on, ends_on)
+    general = panels.panel("general", starts_on, ends_on, now=now)
+    economic = panels.panel("economic", starts_on, ends_on, now=now)
+    activity = panels.panel("activity", starts_on, ends_on, now=now)
     by_state = members.stats(today).by_type_and_status
     assert general["active_members"].value.value == sum(
         n for (_, state), n in by_state.items() if state == Member.Status.ACTIVE
@@ -90,7 +92,7 @@ def test_ca_m08_04_the_seed_figures_are_the_module_figures(seeded):
     assert general["unpaid_members"].value.value == sum(
         n for (_, state), n in by_state.items() if state == Member.Status.UNPAID
     )
-    module = activity_stats.stats(starts_on, ends_on)
+    module = activity_stats.stats(starts_on, ends_on, now=now)
     assert general["free_places"].value.value == module.free_places
     assert activity["occupancy"].value.value == module.occupancy_percent
     assert activity["equipment_in_use"].value.value == stock.in_use_count(today)

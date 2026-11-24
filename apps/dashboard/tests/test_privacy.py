@@ -42,9 +42,29 @@ def test_a_tie_for_the_next_smallest_hides_the_first_in_order():
     assert states(cells) == {"A": (5, HIDDEN), "B": (1, BELOW), "C": (5, SHOWN)}
 
 
-def test_zero_is_also_less_than_n():
-    cells, _ = suppress({"A": 0, "B": 9, "C": 4}, 3)
-    assert states(cells) == {"A": (0, BELOW), "B": (9, SHOWN), "C": (4, HIDDEN)}
+def test_zero_is_also_less_than_n_but_hides_nobody():
+    """P-649: el zero surt «menys de N», però no obliga a amagar res més (no és cap persona)."""
+    cells, total = suppress({"A": 0, "B": 9, "C": 4}, 3)
+    assert states(cells) == {"A": (0, BELOW), "B": (9, SHOWN), "C": (4, SHOWN)}
+    assert labels(cells) == ["menys de 3", "9", "4"] and total.label(3) == "13"
+
+
+def test_p649_two_small_cells_adding_less_than_n_also_hide_the_next_smallest():
+    """{gen: 0, feb: 1, mar: 4}: sense amagar el 4, total − 4 = 1 deia que al febrer n'hi havia
+    una (la regla anterior només mirava si hi havia una sola cel·la petita)."""
+    cells, total = suppress({"gen": 0, "feb": 1, "mar": 4}, 3)
+    assert labels(cells) == ["menys de 3", "menys de 3", "amagat"]
+    assert total.label(3) == "5"
+
+
+def test_p649_small_cells_adding_n_or_more_hide_nothing_else():
+    cells, _ = suppress({"A": 1, "B": 2, "C": 8, "D": 30}, 3)
+    assert labels(cells) == ["menys de 3", "menys de 3", "8", "30"]
+
+
+def test_p649_only_zeros_below_hide_nothing_else():
+    cells, total = suppress({"A": 0, "B": 0, "C": 5}, 3)
+    assert labels(cells) == ["menys de 3", "menys de 3", "5"] and total.label(3) == "5"
 
 
 def test_two_cells_one_small_hides_both_and_keeps_the_total():
