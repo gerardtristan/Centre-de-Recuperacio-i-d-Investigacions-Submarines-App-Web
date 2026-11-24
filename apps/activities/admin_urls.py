@@ -7,7 +7,7 @@ from .views import admin_activities as activities
 from .views import admin_catalogue as entries
 from .views import admin_filings as filings
 from .views import admin_places as places
-from .views import assessment, attendance, outcomes, reinforcement
+from .views import assessment, attendance, message, outcomes, reinforcement
 
 urlpatterns = [
     path("activitats/", activities.activities_view, name="activities"),
@@ -59,4 +59,6 @@ urlpatterns = [
         reinforcement.propose_view,
         name="reinforcement_propose",
     ),
+    # T-M02-21c: missatge de l'organitzador als inscrits (AC15)
+    path("activitats/<int:pk>/missatge/", message.message_view, name="activity_message"),
 ]
