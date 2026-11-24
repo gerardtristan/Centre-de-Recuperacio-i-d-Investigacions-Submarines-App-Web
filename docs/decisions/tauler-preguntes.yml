@@ -1358,6 +1358,27 @@ opcions:
       hi és.
     data: 2026-11-21
 
+  P-501:
+    opcions:
+      A: "Només el nombre de llicències per data i categoria, i on és el llistat; cap nom ni enllaç a l'administració."
+      B: "Els noms dels titulars per data i categoria, sense enllaç a l'administració."
+      C: "Els noms i l'enllaç al llistat filtrat, com diu RN-M06-12."
+    recomanada: A
+    perque: >-
+      La secretaria ja té els noms al llistat, amb la sessió i el doble factor; un correu amb noms o amb la ruta de
+      l'administració pot acabar en una bústia que no és del club.
+    data: 2026-11-23
+  P-502:
+    opcions:
+      A: "Amb compte personal, «La meva llicència»; sense, la pàgina pública de llicències."
+      B: "Sempre «La meva llicència»; qui no té compte el crea en entrar."
+      C: "Sense compte, cap enllaç: només la data i que pot respondre el correu."
+    recomanada: A
+    perque: >-
+      Cada persona arriba on pot renovar-la sense passos de més; B obliga un convidat a fer-se un compte i C el deixa
+      sense saber com fer-ho.
+    data: 2026-11-23
+
 noves:
   P-410:
     opcions:
