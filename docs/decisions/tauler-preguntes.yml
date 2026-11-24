@@ -1210,6 +1210,29 @@ opcions:
       sense saber com fer-ho.
     data: 2026-11-23
 
+  P-43:
+    punt: "qui edita i publica cada tipus de contingut de la web (permisos WP1 a WP6 del 07)"
+    opcions:
+      A: "Només l'administrador i el President (la matriu inicial de M07-4)."
+      B: "El Responsable de comunicació (una persona que nomeni la junta) edita i publica tot el contingut de la web, l'ajuda i el butlletí; l'administrador i el President també."
+      C: "Cada responsable la seva part: RCS els textos de cursos i sortides, el Departament d'Història la Història, la secretaria l'ajuda, i el Responsable de comunicació la resta."
+      D: "El Responsable de comunicació escriu i el President aprova abans de publicar."
+    recomanada: B
+    perque: >-
+      Una sola persona responsable evita que la web quedi antiga perquè ningú se'n sent responsable; és una cel·la de la
+      matriu, i si més endavant es vol repartir (C) només cal canviar permisos des de l'app.
+    data: 2026-11-21
+  P-486:
+    opcions:
+      A: "Tots els motius a la Secretaria; els missatges tancats s'esborren 6 mesos després."
+      B: "Tots a la Secretaria; s'esborren 12 mesos després de tancar-los (una temporada sencera)."
+      C: "Cada motiu al seu responsable (cursos i sortides a RCS, quotes al tresorer, llicències a la secretaria); 6 mesos."
+      D: "El termini que digui la gestoria, i els destinataris que decideixi la junta."
+    recomanada: A
+    perque: >-
+      És el termini més curt que encara deixa respondre i fer seguiment; tots dos valors són ajustos i una llista que
+      l'administrador pot canviar sense tocar codi quan la junta reparteixi els motius.
+    data: 2026-11-21
 noves:
   P-412:
     opcions:
