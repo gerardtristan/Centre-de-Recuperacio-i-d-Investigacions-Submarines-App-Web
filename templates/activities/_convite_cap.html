@@ -1,0 +1,21 @@
+{% load i18n %}{% comment %}Convite (T-DX-109; design-system §6.24): la capçalera d'una activitat a la fitxa pública i a les
+inscripcions. El full de calendari és decoratiu (la data ja hi és en text). Paràmetres: `price_label` i
+`price` (el preu que toca a qui mira), `price_note` (opcional), `with_type` i `with_description`.
+Només dades de `public.py`: cap nom de participant ni cap nota del lloc.{% endcomment %}
+<header class="convite-cap">
+  <div class="convite-full" aria-hidden="true">
+    <span class="convite-mes">{{ activity.starts_on|date:"M" }}</span>
+    <b class="convite-dia">{{ activity.starts_on|date:"j" }}</b>
+    <span class="convite-setmana">{{ activity.starts_on|date:"D" }}</span>
+  </div>
+  <div>
+    <p class="etiqueta-seccio">{{ activity.kind_label }}{% if with_type %} · {{ activity.type_label }}{% endif %}</p>
+    <h1 id="convite-titol">{{ activity.title }}</h1>
+    {% if with_description and activity.description %}<p class="convite-entrada">{{ activity.description|linebreaksbr }}</p>{% endif %}
+  </div>
+</header>
+<dl class="convite-dades">
+  <div><dt>{% translate "Dates" %}</dt><dd><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time>{% if activity.ends_on != activity.starts_on %} – <time datetime="{{ activity.ends_on|date:'Y-m-d' }}">{{ activity.ends_on|date:"d/m/Y" }}</time>{% endif %}</dd></div>
+  <div><dt>{% translate "Lloc" %}</dt><dd>{{ activity.place|default:"—" }}{% if activity.meeting_point %}<small>{{ activity.meeting_point }}</small>{% endif %}</dd></div>
+  <div><dt>{{ price_label }}</dt><dd><span class="import">{{ price }}</span>{% if price_note %}<small>{{ price_note }}</small>{% endif %}</dd></div>
+</dl>
