@@ -39,7 +39,7 @@ urlpatterns = [
         my_activities.enrolment_certificate_view,
         name="enrolment_certificate",
     ),
-    # T-M02-17b: «El meu progrés» d'una inscripció seva a un curs (HU-M02-14).
+    # T-M02-17c: «El meu progrés» d'una inscripció seva a un curs (HU-M02-14).
     path(
         "socis/activitats/inscripcions/<int:pk>/progres/",
         my_activities.enrolment_progress_view,

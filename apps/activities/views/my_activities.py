@@ -5,7 +5,7 @@
 El certificat (T-M02-22c) és la mateixa pàgina per imprimir que la de l'administració (T-M02-19b),
 només d'una inscripció seva amb el certificat emès (si no, «no trobat»).
 Els blocs d'altres mòduls (el material del 03) surten amb `extensions.detail_sections`.
-«El meu progrés» (T-M02-17b; HU-M02-14) és d'una inscripció seva a un curs amb pràctiques:
+«El meu progrés» (T-M02-17c; HU-M02-14) és d'una inscripció seva a un curs amb pràctiques:
 només el resultat i l'observació de les seves pràctiques (`assessment.progress`).
 """
 

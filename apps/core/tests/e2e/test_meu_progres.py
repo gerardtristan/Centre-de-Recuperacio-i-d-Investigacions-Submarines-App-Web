@@ -1,4 +1,4 @@
-"""«El meu progrés» al navegador (T-M02-17b; HU-M02-14): una alumna entra a «Les meves activitats»
+"""«El meu progrés» al navegador (T-M02-17c; HU-M02-14): una alumna entra a «Les meves activitats»
 i obre el progrés del seu curs amb el resultat de la pràctica. Pantalles a 1280, 390 i 320 px.
 Només dades inventades."""
 
