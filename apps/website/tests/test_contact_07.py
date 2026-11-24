@@ -179,3 +179,19 @@ def test_ca_m07_12_the_term_is_the_setting():
 def test_the_purge_runs_every_day():
     periodic = tasks.app.periodic_registry.periodic_tasks[("website.purge_contact_messages", "")]
     assert periodic.cron == "35 3 * * *"
+
+
+def test_a_visitor_who_fixes_an_error_quickly_is_not_taken_for_a_robot(client, enabled, privacy):
+    """Revisió de la #580: el formulari amb errors torna amb la mateixa hora d'obertura, i
+    corregir-lo en menys de 3 segons no perd el missatge."""
+    import re
+
+    page = client.post(URL, _data(body="")).content.decode()
+    started = re.search(r'name="started" value="([^"]+)"', page).group(1)
+    client.post(URL, _data(started=started))
+    assert ContactMessage.objects.count() == 1
+
+
+@pytest.mark.parametrize("method", ["head", "put"])
+def test_switched_off_any_method_is_not_found(client, method):
+    assert getattr(client, method)(URL).status_code == 404

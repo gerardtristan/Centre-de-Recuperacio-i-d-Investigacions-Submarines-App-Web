@@ -9,6 +9,8 @@ Butlletí (T-M07-13; P-M07-E, CA-M07-06, 07, 09 i 10): «no trobat» mentre
 confirmar i donar-se de baixa funcionen sense sessió amb l'enllaç del correu.
 """
 
+from functools import wraps
+
 from django import forms
 from django.contrib.auth.decorators import login_not_required
 from django.db import transaction
@@ -45,12 +47,26 @@ class ContactForm(forms.Form):
     )
 
 
+def switched_on(key):
+    """«No trobat» amb l'interruptor apagat, abans de mirar el mètode (revisió de la #580)."""
+
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            if not business_settings.get(key):
+                raise Http404
+            return view(request, *args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
 @login_not_required
 @never_cache
+@switched_on(contact.ENABLED)
 @require_http_methods(["GET", "POST"])
 def contact_view(request):
-    if not business_settings.get(contact.ENABLED):
-        raise Http404
     text = consents.current_text(PRIVACY)
     context = {"text": text, "club_contact": business_settings.get("website.club_contact")}
     if request.method == "GET" and request.session.pop(SENT_KEY, False):
@@ -66,7 +82,7 @@ def contact_view(request):
         response = redirect("website:contact")
         response.status_code = 303
         return response
-    context.update(form=form, started=contact.started_token())
+    context.update(form=form, started=contact.keep_started(request.POST.get("started", "")))
     return render(request, "website/contact.html", context)
 
 
