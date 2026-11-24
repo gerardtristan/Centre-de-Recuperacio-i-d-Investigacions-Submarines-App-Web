@@ -17,6 +17,7 @@
       </dl>
       <div class="accions">
         {% if enrolment.status == "pending_payment" and enrolment.charge_id %}<a class="boto boto-principal" href="{% url 'payments:charge' enrolment.charge_id %}">{% translate "Paga-la" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
+        {% if row.progress %}<a class="boto" href="{% url 'activities:enrolment_progress' enrolment.pk %}">{% translate "El meu progrés" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
         {% if row.certificate %}<a class="boto" href="{% url 'activities:enrolment_certificate' enrolment.pk %}">{% translate "Mira el certificat" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
         {% if row.live %}<a class="boto" href="{% url 'activities:enrolment_calendar' enrolment.pk %}">{% translate "Afegeix-la al calendari" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>{% endif %}
       </div>
