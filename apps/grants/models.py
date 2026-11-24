@@ -532,3 +532,36 @@ class GrantReminder(AppendOnlyModel):
 
     def __str__(self):
         return f"{self.application_id}: {self.kind} {self.due_on}"
+
+
+class JustificationPackage(AppendOnlyModel):
+    """Paquet de justificació generat (M09-ajuts-6, RN-M09A-11; T-M09A-10a). Només INSERT: el ZIP
+    xifrat (GRANT_PACKAGE, 051), si porta les còpies emmascarades, el `sha256` del ZIP, els
+    totals, les despeses excloses amb el motiu i les incloses amb el `sha256` de cada document.
+    Enviar-lo (versions, `PackageSubmission`) és de la T-M09A-10b."""
+
+    application = models.ForeignKey(
+        GrantApplication, on_delete=models.PROTECT, related_name="packages",
+        verbose_name=_("sol·licitud"),
+    )  # fmt: skip
+    generated_by = models.ForeignKey(
+        "accounts.Account", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("generat per"),
+    )  # fmt: skip
+    generated_at = models.DateTimeField(_("generat el"), auto_now_add=True)
+    file = models.ForeignKey(
+        "core.PrivateFile", on_delete=models.PROTECT, related_name="+", verbose_name=_("ZIP")
+    )
+    masked = models.BooleanField(_("amb les còpies emmascarades"))
+    sha256 = models.CharField(_("sha256 del ZIP"), max_length=64)
+    totals = models.JSONField(_("totals"))
+    excluded = models.JSONField(_("excloses"), default=list)
+    items = models.JSONField(_("incloses"), default=list)
+
+    class Meta:
+        verbose_name = _("paquet de justificació")
+        verbose_name_plural = _("paquets de justificació")
+        ordering = ["application", "pk"]
+
+    def __str__(self):
+        return f"{self.application_id}: {self.generated_at:%d/%m/%Y %H:%M}"

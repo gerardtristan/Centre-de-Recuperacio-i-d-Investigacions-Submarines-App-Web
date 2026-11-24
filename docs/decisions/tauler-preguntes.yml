@@ -1268,6 +1268,16 @@ opcions:
       Una pàgina de text no és una portada, i duplicar com a pàgina de blocs les que ja tenen pantalla pròpia
       faria dues adreces per a la mateixa cosa; tot és reversible (pàgines sense contingut ni publicar).
     data: 2026-11-24
+  P-593:
+    opcions:
+      A: "Excloure-la amb el motiu «sense còpia emmascarada» fins que el tresorer pugi la còpia."
+      B: "Posar-hi l'original i avisar el tresorer."
+      C: "No deixar generar el paquet fins que totes les despeses tinguin la còpia."
+    recomanada: A
+    perque: >-
+      Cap IBAN no surt sense que la convocatòria ho demani (051); a diferència de C, el tresorer veu el paquet i què li falta,
+      i en pot generar un de nou en pujar les còpies.
+    data: 2026-11-24
 
 noves:
   P-412:
