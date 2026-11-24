@@ -145,3 +145,62 @@ def test_with_photos_on_the_front_photo_lets_the_holder_request_the_homologation
         filings.request_homologation(cert, by=holder)
     upload(cert, holder)
     assert filings.request_homologation(cert, by=holder).status == "requested"
+
+
+# --- Fitxers trencats i casos límit del servei (cobertura de card_photos.py) ------------------
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"\xff\xd8" + b"\x00" * 6,  # no comença amb un marcador
+        b"\xff\xd8\xff\xe0\x00\x01" + b"\x00" * 4,  # mida més petita que 2
+        b"\xff\xd8" + JFIF[:6],  # el segment passa del final
+        b"\xff\xd8" + JFIF,  # sense SOS
+    ],
+    ids=["sense-marcador", "mida-curta", "segment-tallat", "sense-sos"],
+)
+def test_a_broken_jpeg_is_rejected(data):
+    with pytest.raises(ValidationError):
+        card_photos.strip_jpeg(data)
+
+
+def test_jpeg_fill_bytes_are_skipped_and_the_rest_is_kept():
+    assert card_photos.strip_jpeg(b"\xff\xd8\xff" + JFIF + SCAN) == b"\xff\xd8" + JFIF + SCAN
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"\x89PNG\r\n\x1a\n" + (100).to_bytes(4, "big") + b"IDAT" + b"\x00" * 8,  # tallat
+        b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", b"\x00" * 13),  # sense IEND
+    ],
+    ids=["fragment-tallat", "sense-iend"],
+)
+def test_a_broken_png_is_rejected(data):
+    with pytest.raises(ValidationError):
+        card_photos.strip_png(data)
+
+
+def test_an_unknown_side_is_a_programming_error(photos_on, cert, holder):
+    with pytest.raises(ValueError):
+        upload(cert, holder, side="lateral")
+
+
+def test_two_uploads_at_once_keep_one_photo(photos_on, cert, holder, monkeypatch):
+    """Si una altra petició desa la mateixa cara entre la comprovació i l'alta, la base de dades
+    ho rebutja i la segona rep el missatge."""
+    store = files.store
+
+    def store_and_race(content, **kwargs):
+        other = store(content, **kwargs)
+        CertificationCardPhoto.objects.create(
+            certification=cert, side="front", file=other, content_type="image/jpeg",
+            uploaded_by=holder,
+        )  # fmt: skip
+        return store(content, **kwargs)
+
+    monkeypatch.setattr(files, "store", store_and_race)
+    with pytest.raises(ValidationError, match="ja té una foto"):
+        upload(cert, holder)
+    assert not CertificationCardPhoto.objects.exists()  # la petició sencera es desfà
