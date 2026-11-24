@@ -11,6 +11,6 @@
     <p class="text-2">{% translate "Foto del carnet de la titulació, en nom de la persona i amb el seu permís." %}</p>
   </header>
   {% include "activities/_missatges.html" %}
-  {% include "activities/_card_photo.html" %}
+  {% include "activities/_card_photo.html" with secretaria=True %}
   <p class="enllacos"><a href="{% url 'administration:filings' %}">{% translate "Tornar a les homologacions" %}</a></p>
 {% endblock %}

@@ -13,7 +13,7 @@
   padding: 0 var(--e-2) env(safe-area-inset-bottom); background: var(--c-superficie-flotant);
   border-top: var(--v-fina) solid var(--c-linia);
 }
-.ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + env(safe-area-inset-bottom)); }
+.ramillete-actiu body { padding-bottom: calc(var(--dock-alcada) + var(--e-5) + env(safe-area-inset-bottom)); } /* + el botó central, que sobresurt --e-5 (T-DX-120) */
 /* Tauleta: la mateixa barra, flotant i centrada */
 @media (min-width: 600px) {
   .ramillete-actiu .ramillete {
