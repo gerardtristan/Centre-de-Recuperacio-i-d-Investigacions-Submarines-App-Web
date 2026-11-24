@@ -65,4 +65,3 @@ def test_the_administrator_assigns_a_reason(page, live_server, transactional_db,
     page.get_by_role("button", name="Desa").click()
     expect(page.get_by_text("Motiu desat.")).to_be_visible()
     expect(page.get_by_role("row", name="Llicències")).to_contain_text("Tresorer")
-
