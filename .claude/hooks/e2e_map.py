@@ -325,6 +325,13 @@ MAP = {
         "apps/website/newsletter.py",
         "templates/website/newsletter*.html",
     ),
+    "test_web_fluxos_07.py": (
+        "apps/website/views.py",
+        "apps/website/admin_views.py",
+        "apps/website/contact.py",
+        "apps/website/newsletter.py",
+        "templates/website/*",
+    ),
     "test_homologacions.py": (
         "apps/activities/views/admin_filings.py",
         "apps/activities/filings.py",

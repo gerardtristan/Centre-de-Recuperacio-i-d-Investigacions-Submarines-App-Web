@@ -70,7 +70,11 @@ def test_ca_m07_11_a_message_is_saved_without_ip_and_the_answer_is_generic(
     assert message.reason.name == "Quotes" and message.privacy_text == privacy
     assert not any("ip" in field.name for field in ContactMessage._meta.fields)
     page = client.get(URL).content.decode()
-    assert "Missatge enviat" in page and "inventat@example.com" not in page
+    assert (
+        "Missatge enviat" in page
+        and "Torna a la portada" in page
+        and "inventat@example.com" not in page
+    )
 
 
 @pytest.mark.parametrize(
