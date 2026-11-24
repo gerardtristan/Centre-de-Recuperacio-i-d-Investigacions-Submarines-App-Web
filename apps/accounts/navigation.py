@@ -169,6 +169,7 @@ ENTRIES = (
             "administration:filing_done",
             "administration:filing_reject",
             "administration:filing_request",
+            "administration:course_filings",  # T-M02-45b: provisional, DISSENY hi posarà l'entrada
             "administration:filings_csv",
         ),
     ),  # T-M02-44b; text i lloc per revisar amb DISSENY
