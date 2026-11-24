@@ -202,3 +202,59 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.reason} · {self.created_at:%d/%m/%Y}"
+
+
+class NewsletterSubscription(models.Model):
+    """Subscripció al butlletí (M07-6; RN-M07-06 i 08; P-492: fila pròpia del 07, no una persona
+    de la 00). Només el correu i la versió del text acceptada (M07-12). `token` és l'enllaç de
+    confirmació i de baixa: es renova en cada petició nova i no surt mai al registre."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pendent de confirmar")
+        CONFIRMED = "confirmed", _("Confirmada")
+        UNSUBSCRIBED = "unsubscribed", _("De baixa")
+
+    email = models.EmailField(_("correu electrònic"), max_length=254, unique=True)
+    status = models.CharField(
+        _("estat"), max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    legal_text = models.ForeignKey(
+        "core.LegalText", on_delete=models.PROTECT, related_name="+",
+        verbose_name=_("text del butlletí acceptat"),
+    )  # fmt: skip
+    token = models.CharField(_("enllaç"), max_length=64, unique=True)
+    requested_at = models.DateTimeField(_("demanada el"))
+    confirmed_at = models.DateTimeField(_("confirmada el"), null=True, blank=True)
+    unsubscribed_at = models.DateTimeField(_("de baixa el"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("subscripció al butlletí")
+        verbose_name_plural = _("subscripcions al butlletí")
+
+    def __str__(self):
+        return self.get_status_display()
+
+
+class NewsletterEvent(AppendOnlyModel):
+    """Esdeveniments d'una subscripció (M07-6): només s'hi afegeixen files."""
+
+    class Kind(models.TextChoices):
+        REQUESTED = "requested", _("Demanada")
+        CONFIRMED = "confirmed", _("Confirmada")
+        UNSUBSCRIBED = "unsubscribed", _("Baixa")
+
+    subscription = models.ForeignKey(
+        NewsletterSubscription, on_delete=models.PROTECT, related_name="events",
+        verbose_name=_("subscripció"),
+    )  # fmt: skip
+    kind = models.CharField(_("tipus"), max_length=20, choices=Kind.choices)
+    legal_text = models.ForeignKey(
+        "core.LegalText", on_delete=models.PROTECT, null=True, blank=True, related_name="+",
+        verbose_name=_("text acceptat"),
+    )  # fmt: skip
+    at = models.DateTimeField(_("data"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("esdeveniment del butlletí")
+        verbose_name_plural = _("esdeveniments del butlletí")
+        ordering = ["subscription", "at", "pk"]

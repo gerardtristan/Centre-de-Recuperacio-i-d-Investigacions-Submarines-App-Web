@@ -1302,6 +1302,17 @@ opcions:
       comptar des de l'arribada podria esborrar un missatge que encara no ha llegit ningú.
     data: 2026-11-24
 
+  P-621:
+    opcions:
+      A: "L'enllaç obre una pàgina amb el botó «Confirma la subscripció»; la baixa, immediata en obrir l'enllaç."
+      B: "Obrir l'enllaç ja confirma, com la baixa."
+      C: "Botó per confirmar i també per donar-se de baixa."
+    recomanada: A
+    perque: >-
+      Els servidors de correu que obren els enllaços per revisar-los confirmarien subscripcions sense la persona (el consentiment ha de ser
+      seu); una baixa per error només deixa de rebre el butlletí, i la regla la vol d'un sol clic.
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:
