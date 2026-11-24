@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M02-21 (RN-M02-19, VC-23): TEXT PROVISIONAL [A validar: secretaria]. #}{% blocktranslate %}Recordatori: {{ title }}{% endblocktranslate %}

@@ -37,7 +37,7 @@ from django.utils.translation import gettext as _
 from apps.core import audit, charges
 from apps.core.models import Charge
 
-from . import assessment, permissions, sessions
+from . import assessment, notifications, permissions, sessions
 from . import enrolment as enrolments
 from .charges import CHARGE_ORIGIN
 from .models import Activity, Enrolment, ReinforcementRequest, Session
@@ -209,6 +209,7 @@ def confirm(proposal, *, by, sessions_data, request=None) -> ReinforcementReques
         },
         request=request,
     )
+    notifications.notify_reinforcement(locked, created)  # T-M02-21: dates i preu a l'alumne
     return locked
 
 

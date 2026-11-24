@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M02-21 (RN-M02-19, VC-23): recordatori a cada inscrit confirmat uns dies abans de cada sessió o sortida. TEXT PROVISIONAL [A validar: secretaria]. Només l'activitat, el dia, l'hora i el lloc: cap dada d'altres persones. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate with day=day|date:"d/m/Y" %}Et recordem que el {{ day }} tens «{{ title }}».{% endblocktranslate %}
+{% if time %}{% blocktranslate %}Hora: {{ time }}{% endblocktranslate %}
+{% endif %}{% if place %}{% blocktranslate %}Lloc: {{ place }}{% endblocktranslate %}
+{% endif %}
+{% translate "Si no hi pots anar, avisa el club tan aviat com puguis." %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}

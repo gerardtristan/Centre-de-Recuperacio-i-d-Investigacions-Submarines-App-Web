@@ -92,6 +92,9 @@ TEMPLATE_PRIORITIES = {
     "avis-salt-serie-factures": _Priority.CONFIRMATION,  # CA-M09-17, al tresorer (T-M09-19)
     "avis-marge-baix": _Priority.CONFIRMATION,  # CA-M09-12, al responsable i al tresorer (T-M09-13)
     "avis-reobertura-periode": _Priority.CONFIRMATION,  # S-M09-13, al tresorer i a la junta
+    "resultat-curs": _Priority.CONFIRMATION,  # P-M02-F pas 5, a l'alumne (T-M02-21)
+    "certificat-emes": _Priority.CONFIRMATION,  # P-M02-F pas 6, RN-M02-16 (T-M02-21)
+    "reforc-confirmat": _Priority.CONFIRMATION,  # P-M02-F pas 4, dates i preu (T-M02-21)
     "avis-llicencia-pagada": _Priority.CONFIRMATION,  # CA-M06-07, a la secretaria (T-M06-05)
     "avis-devolucio-llicencia": _Priority.CONFIRMATION,  # CA-M06-13, al tresorer (T-M06-12)
     "avis-llicencia-no-tramitada": _Priority.CONFIRMATION,  # CA-M06-23, a qui tramita (T-M06-19)
@@ -111,6 +114,7 @@ TEMPLATE_PRIORITIES = {
     "campanya-mandats-recordatori": _Priority.REMINDER,  # RN-M05a-14 (T-M05a-13)
     "campanya-mandats-darrer-recordatori": _Priority.REMINDER,  # RN-M05a-14 (T-M05a-13c)
     "recordatori-transferencia": _Priority.REMINDER,  # RN-M05b-09 (T-M05b-22c)
+    "recordatori-activitat": _Priority.REMINDER,  # RN-M02-19, VC-23 (T-M02-21)
     "avis-revisio-material": _Priority.REMINDER,  # RN-M03-15, CA-M03-11 (T-M03-14)
     "avis-venciment-llicencia": _Priority.REMINDER,  # RN-M06-12, al titular (T-M06-11)
     "resum-venciments-llicencies": _Priority.REMINDER,  # RN-M06-12, a qui tramita (T-M06-11)

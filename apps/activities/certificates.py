@@ -29,7 +29,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import audit
 
-from . import assessment, filings, permissions
+from . import assessment, filings, notifications, permissions
 from .models import (
     Activity,
     CertificationLevel,
@@ -92,6 +92,7 @@ def record_outcome(enrolment, *, result, by, reason="", request=None) -> CourseO
             OUTCOME_RECORDED, actor=by, target=outcome, field="result", old=old, new=result,
             reason=reason, details={"enrolment": row.pk}, request=request,
         )  # fmt: skip
+        notifications.notify_outcome(outcome)  # T-M02-21
         return outcome
 
 
@@ -163,6 +164,7 @@ def issue(enrolment, *, by, level=None, today=None, request=None) -> CourseOutco
                  "certification": certification.pk},
         request=request,
     )  # fmt: skip
+    notifications.notify_certificate(outcome)  # T-M02-21
     return outcome
 
 

@@ -1,0 +1,1 @@
+{% load i18n %}{# T-M02-21 (P-M02-F pas 5): TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. #}{% blocktranslate %}Resultat del curs: {{ title }}{% endblocktranslate %}

@@ -1,0 +1,10 @@
+{% load i18n %}{# T-M02-21 (P-M02-F pas 4): avís a l'alumne amb les dates i el preu de les classes de reforç confirmades. TEXT PROVISIONAL [A validar: responsable de cursos i sortides]. Sense el motiu del reforç. #}{% autoescape off %}{% translate "Hola," %}
+
+{% blocktranslate %}S'han confirmat les teves classes de reforç del curs «{{ title }}»:{% endblocktranslate %}
+{% for item in sessions %}
+- {{ item.day|date:"d/m/Y" }} {{ item.time }}{% if item.place %} · {{ item.place }}{% endif %}{% endfor %}
+
+{% if amount %}{% blocktranslate %}Preu: {{ amount }}. El pots pagar a la plataforma del club.{% endblocktranslate %}{% else %}{% translate "No tenen cap cost." %}{% endif %}
+
+{% translate "Aquest correu només és un avís de la plataforma del club." %}
+{% endautoescape %}
