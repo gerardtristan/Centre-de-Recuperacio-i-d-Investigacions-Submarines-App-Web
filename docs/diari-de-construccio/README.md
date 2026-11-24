@@ -568,3 +568,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-102](T-DX-102.md) | Revisió del 02 (informes, resultats, reforç, certificat) i del 03 i el calendari d'ajuts | 24/11/2026 10:27 | 74b45d07 | 3 noves | [A comprovar] |
 | [spec-07-08](spec-07-08.md) | Especificació d'una pàgina del 07 (web pública i ajuda) i del 08 (dashboard) (carril C3) | 21/11/2026 10:18 | (vegeu la PR) | cap (document) | [A comprovar] |
 | [T-M09-25a](T-M09-25a.md) | Fitxers privats xifrats a l'aplicació: clau pròpia, sis tipus nous (core/0077) i vista que desxifra amb permís i registre (carril X, nucli) | 24/11/2026 10:27 | (vegeu la PR) | 21 noves | [A comprovar] |
+| [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
