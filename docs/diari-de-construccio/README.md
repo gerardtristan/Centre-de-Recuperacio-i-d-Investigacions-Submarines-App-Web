@@ -592,3 +592,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-52](T-M02-52.md) | Titulacions: permís AC29 i serveis per carregar-les i verificar-les (torn del nucli; core/0079; carril Y) | 24/11/2026 14:09 | 80d9633c | 9 cel·les i 14 noves | [A comprovar] |
 | [T-M00-10-13](T-M00-10-13.md) | Quatre arranjaments del nucli de la 105: marques de pendent als textos legals, `mark_undone`, límit propi de la llicència de convidat i docstring del termini (torn del nucli; accounts/0012; carril Y) | 24/11/2026 15:17 | de50b634, 8cebe6ed, a6a80da3, 346d0d6c | 10 noves | [A comprovar] |
 | [T-M08-04-05-07](T-M08-04-05-07.md) | Dashboard: recomptes d'activitat del 02 i dades dels panells general, de socis i d'activitat (carril B) | 24/11/2026 20:35 | de706669 | 21 noves | [A comprovar] |
+| [T-M08-06](T-M08-06.md) | Dashboard: dades del panell econòmic (carril B) | 24/11/2026 20:40 | (vegeu la PR) | 9 noves | [A comprovar] |
