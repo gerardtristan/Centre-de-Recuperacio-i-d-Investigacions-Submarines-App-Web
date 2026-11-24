@@ -109,3 +109,49 @@ def test_the_erasure_works_without_any_account(texts, make_admin):  # noqa: F811
     _message("pere.inventat@example.org", texts)
     privacy.anonymise_person(person, by=make_admin(Role.Code.ADMINISTRATOR))
     assert not ContactMessage.objects.filter(email="pere.inventat@example.org").exists()
+
+
+def test_p624_an_address_shared_with_another_person_is_neither_exported_nor_erased(
+    texts,
+    make_admin,  # noqa: F811
+):
+    """Revisió de la #587: un correu de contacte de família (dues persones actives)."""
+    first = Person.objects.create(
+        first_name="Pare", contact_email="familia@example.org", origin="in_person"
+    )
+    Person.objects.create(
+        first_name="Filla", contact_email="Familia@example.org", origin="in_person"
+    )
+    shared = _message("familia@example.org", texts)
+    newsletter.subscribe("familia@example.org", legal_text=texts["newsletter"])
+
+    data = privacy.export_person(first)["web"]
+    assert data == {"missatges_de_contacte": [], "butlleti": []}
+    assert privacy._MODULES["web"].describe(first) == [
+        "1 missatge de contacte i 1 subscripció al butlletí són d'una adreça que també té una "
+        "altra persona: no es tocaran; cal revisar-los a mà."
+    ]
+    privacy.anonymise_person(first, by=make_admin(Role.Code.ADMINISTRATOR))
+    shared.refresh_from_db()
+    assert (shared.name, shared.email, shared.status) == (
+        "Mar Inventada",
+        "familia@example.org",
+        "new",
+    )
+    assert NewsletterSubscription.objects.get().status == S.PENDING
+
+
+def test_p624_a_role_mailbox_of_an_administrator_is_not_theirs(texts, make_admin):  # noqa: F811
+    """Revisió de la #587: el correu de notificació d'un compte d'administrador no és únic."""
+    from apps.accounts.models import Account
+    from conftest import PASSWORD
+
+    person = Person.objects.create(first_name="Joan", origin="in_person")
+    Account.objects.create_admin(
+        person, "joan.prova", PASSWORD, notification_email="secretaria@example.org"
+    )
+    mailbox = _message("secretaria@example.org", texts)
+    assert privacy.export_person(person)["web"]["missatges_de_contacte"] == []
+    privacy.anonymise_person(person, by=make_admin(Role.Code.ADMINISTRATOR))
+    mailbox.refresh_from_db()
+    assert mailbox.email == "secretaria@example.org" and mailbox.status == "new"
