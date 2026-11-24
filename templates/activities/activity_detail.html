@@ -14,6 +14,8 @@
   <div class="accions">
     {% if editable %}<a class="boto boto-principal" href="{% url 'administration:activity_edit' activity.pk %}">{% translate "Edita" %}</a>{% endif %}
     {% if margin_link %}<a class="boto" href="{% url 'administration:activity_margin' activity.pk %}">{% translate "Marge de l'activitat" %}</a>{% endif %}
+    {% if reports_link %}<a class="boto" href="{% url 'administration:activity_participants' activity.pk %}">{% translate "Participants" %}</a>
+    <a class="boto" href="{% url 'administration:activity_schedule' activity.pk %}">{% translate "Horari per imprimir" %}</a>{% endif %}
   </div>
 
   {% if state_actions or can_cancel %}

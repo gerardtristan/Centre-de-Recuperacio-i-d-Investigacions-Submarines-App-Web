@@ -1,0 +1,37 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M02-24b (AC20 amb objecte): l'horari per imprimir, sense cap nom de persona: les sessions d'un curs o el programa del dia d'una sortida, amb l'hora i el lloc. #}
+{% block title %}{% translate "Horari" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Horari" %}</p>
+    <h1>{{ schedule.activity }}</h1>
+    <p class="text-2">{% blocktranslate with day=schedule.generated_on|date:"d/m/Y" %}Imprès el {{ day }}.{% endblocktranslate %}</p>
+  </header>
+  <div class="accions no-imprimeix"><button class="boto" type="button" data-imprimeix hidden>{% translate "Imprimeix" %}</button></div>
+  {% if schedule.sessions %}
+    <table class="taula">
+      <caption>{% translate "Sessions" %}</caption>
+      <thead><tr><th scope="col">{% translate "Dia i hora" %}</th><th scope="col">{% translate "Classe" %}</th><th scope="col">{% translate "Lloc" %}</th></tr></thead>
+      <tbody>
+        {% for s in schedule.sessions %}
+          <tr><th scope="row" class="cel-nom"><time datetime="{{ s.starts_at|date:'c' }}">{{ s.starts_at|date:"d/m/Y H:i" }}</time>–{{ s.ends_at|time:"H:i" }}</th><td data-etiqueta="{% translate "Classe" %}">{{ s.kind }}</td><td data-etiqueta="{% translate "Lloc" %}">{{ s.place }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif schedule.blocks %}
+    <table class="taula">
+      <caption>{% translate "Programa del dia" %}</caption>
+      <thead><tr><th scope="col">{% translate "Hora" %}</th><th scope="col">{% translate "Què" %}</th><th scope="col">{% translate "Lloc" %}</th><th scope="col">{% translate "Qui se n'encarrega" %}</th></tr></thead>
+      <tbody>
+        {% for b in schedule.blocks %}
+          <tr><th scope="row" class="cel-nom">{{ b.starts_at|time:"H:i" }}{% if b.ends_at %}–{{ b.ends_at|time:"H:i" }}{% endif %}</th><td data-etiqueta="{% translate "Què" %}">{{ b.label }}</td><td data-etiqueta="{% translate "Lloc" %}">{{ b.place }}</td><td data-etiqueta="{% translate "Qui se n'encarrega" %}">{{ b.responsible }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "Aquesta activitat encara no té horari." %}</p>
+  {% endif %}
+  <p class="enllacos no-imprimeix"><a href="{% url 'administration:activity_reports' %}">{% translate "Torna als informes" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}

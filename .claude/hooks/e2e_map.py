@@ -180,6 +180,11 @@ MAP = {
         "templates/activities/my_activities.html",
         "templates/activities/certificate.html",
     ),
+    "test_activitats_informes.py": (
+        "apps/activities/views/reports.py",
+        "apps/activities/reports.py",
+        "templates/activities/report*.html",
+    ),
     "test_activitats_cataleg.py": (
         "apps/activities/views/admin_catalogue.py",
         "apps/activities/forms.py",

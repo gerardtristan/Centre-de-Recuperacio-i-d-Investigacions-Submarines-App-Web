@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M02-24b (AC20): ocupació de les activitats publicades. Només recomptes: cap dada de cap persona. L'instructor només hi veu les activitats on fa classe (servei). Des d'aquí s'obren els participants i l'horari de cada activitat. #}
+{% block title %}{% translate "Informes d'activitats" %} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Activitats" %}</p>
+    <h1>{% translate "Informes d'activitats" %}</h1>
+    <p class="text-2">{% translate "Ocupació de les activitats publicades. Cada activitat té la llista de participants i l'horari per imprimir." %}</p>
+  </header>
+  <div class="accions no-imprimeix">
+    <button class="boto" type="button" data-imprimeix hidden>{% translate "Imprimeix" %}</button>
+    <a class="boto boto-text" href="?format=csv">{% translate "Descarrega el CSV" %}</a>
+  </div>
+  <table class="taula">
+    <caption>{% translate "Ocupació per activitat" %}</caption>
+    <thead><tr>
+      <th scope="col">{% translate "Activitat" %}</th>
+      <th scope="col">{% translate "Inici" %}</th>
+      <th scope="col">{% translate "Estat" %}</th>
+      <th scope="col" class="cel-import">{% translate "Ocupades" %}</th>
+      <th scope="col" class="cel-import">{% translate "Lliures" %}</th>
+      <th scope="col" class="cel-import">{% translate "En llista d'espera" %}</th>
+      <th scope="col" class="cel-import">{% translate "Ocupació" %}</th>
+      <th scope="col" class="no-imprimeix"><span class="visualment-amagat">{% translate "Accions" %}</span></th>
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}{% with activity=row.activity %}
+        <tr>
+          <th scope="row" class="cel-nom">{{ activity.title }}</th>
+          <td data-etiqueta="{% translate "Inici" %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
+          <td data-etiqueta="{% translate "Estat" %}">{{ activity.get_status_display }}</td>
+          <td data-etiqueta="{% translate "Ocupades" %}" class="cel-import">{{ row.occupied }} / {{ activity.max_places }}</td>
+          <td data-etiqueta="{% translate "Lliures" %}" class="cel-import">{{ row.free }}</td>
+          <td data-etiqueta="{% translate "En llista d'espera" %}" class="cel-import">{{ row.waiting }}</td>
+          <td data-etiqueta="{% translate "Ocupació" %}" class="cel-import">{{ row.percent }} %</td>
+          <td class="cel-accions no-imprimeix">
+            <a class="boto boto-petit" href="{% url 'administration:activity_participants' activity.pk %}">{% translate "Participants" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>
+            <a class="boto boto-petit" href="{% url 'administration:activity_schedule' activity.pk %}">{% translate "Horari" %}<span class="visualment-amagat">: {{ activity.title }}</span></a>
+          </td>
+        </tr>
+      {% endwith %}{% empty %}
+        <tr><td colspan="8">{% translate "No hi ha cap activitat publicada." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}
