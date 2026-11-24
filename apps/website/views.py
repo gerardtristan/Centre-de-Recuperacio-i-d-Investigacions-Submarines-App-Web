@@ -94,16 +94,11 @@ class NewsletterForm(forms.Form):
     )
 
 
-def _newsletter_on():
-    if not business_settings.get(newsletter.ENABLED):
-        raise Http404
-
-
 @login_not_required
 @never_cache
+@switched_on(newsletter.ENABLED)
 @require_http_methods(["GET", "POST"])
 def newsletter_view(request):
-    _newsletter_on()
     text = consents.current_text(newsletter.TEXT_KIND)
     if request.method == "GET" and request.session.pop(SUBSCRIBED_KEY, False):
         return render(request, "website/newsletter.html", {"text": text, "sent": True})
@@ -122,11 +117,11 @@ def newsletter_view(request):
 
 @login_not_required
 @never_cache
+@switched_on(newsletter.ENABLED)
 @require_http_methods(["GET", "POST"])
 def newsletter_confirm_view(request, token):
     """Confirmar demana prémer el botó (POST): un programa que obre els enllaços del correu
     per revisar-los no subscriu ningú."""
-    _newsletter_on()
     if request.method == "GET":
         return render(request, "website/newsletter_link.html", {"ask": True})
     confirmed = newsletter.confirm(token) is not None
@@ -135,8 +130,8 @@ def newsletter_confirm_view(request, token):
 
 @login_not_required
 @never_cache
+@switched_on(newsletter.ENABLED)
 @require_http_methods(["GET"])
 def newsletter_unsubscribe_view(request, token):
-    _newsletter_on()
     newsletter.unsubscribe(token)
     return render(request, "website/newsletter_link.html", {"unsubscribed": True})

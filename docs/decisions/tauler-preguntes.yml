@@ -1313,6 +1313,18 @@ opcions:
       seu); una baixa per error només deixa de rebre el butlletí, i la regla la vol d'un sol clic.
     data: 2026-11-24
 
+  P-622:
+    opcions:
+      A: "Com diu la regla: obrir l'enllaç de baixa dona de baixa a l'instant."
+      B: "L'enllaç mostra el botó «Dona'm de baixa» i la baixa es fa en prémer-lo (POST), més la baixa d'un clic dels programes de correu (RFC 8058, List-Unsubscribe-Post)."
+      C: "Botó a la pàgina, sense la baixa d'un clic dels programes de correu."
+      D: "Obrir l'enllaç dona de baixa i la pàgina ofereix «Desfés-ho» durant uns minuts."
+    recomanada: B
+    perque: >-
+      Els programes que revisen els enllaços del correu no donarien de baixa ningú, i la baixa continua sent d'un sol clic, també des
+      del botó del programa de correu (el que demanen avui Gmail i Yahoo per als enviaments en massa).
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:

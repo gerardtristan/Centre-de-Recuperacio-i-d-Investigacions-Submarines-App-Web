@@ -84,7 +84,7 @@ def test_ca_m07_06_only_the_new_and_the_unsubscribed_need_a_confirmation(text):
 
 
 @pytest.mark.xfail(
-    reason="Correu de confirmació: la plantilla es declara a core.mail (torn del nucli; M07.md)",
+    reason="Plantilla del correu de confirmació al nucli: T-M07-13b (docs/estat/M07.md)",
     strict=True,
 )
 def test_ca_m07_06_the_confirmation_email_is_queued(client, enabled, text):

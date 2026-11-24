@@ -40,6 +40,8 @@ def subscribe(email: str, *, legal_text, now=None) -> tuple[NewsletterSubscripti
     subscription = (
         NewsletterSubscription.objects.select_for_update().filter(email=normalise(email)).first()
     )
+    # El correu de confirmació (T-M07-13b) va sempre a la cua (`mail.queue_email`), mai en línia:
+    # el temps de resposta no ha de dir si el correu ja hi era (RN-M07-08).
     if subscription is not None and subscription.status == Status.CONFIRMED:
         return subscription, False
     subscription = subscription or NewsletterSubscription(email=normalise(email))
