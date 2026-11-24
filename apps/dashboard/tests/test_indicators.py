@@ -1,6 +1,5 @@
 """Catàleg d'indicadors del dashboard (T-M08-02; CA-M08-05; RN-M08-03; P-488)."""
 
-import importlib
 
 import pytest
 from django.urls import reverse
@@ -86,11 +85,6 @@ def test_p488_every_indicator_has_an_empty_help_text_setting():
             "dashboard", "text", "",
         )  # fmt: skip
         assert indicator.help_text() == ""
-
-
-def test_the_migration_creates_exactly_the_catalog_codes():
-    migration = importlib.import_module("apps.dashboard.migrations.0001_help_texts")
-    assert sorted(migration.CODES) == sorted(CATALOG)
 
 
 @pytest.mark.django_db

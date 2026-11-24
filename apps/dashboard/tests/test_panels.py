@@ -233,3 +233,15 @@ def test_equipment_in_use_only_for_the_current_period(services):
     past = (datetime.date(2026, 10, 1), datetime.date(2026, 12, 31))
     assert "equipment_in_use" not in panels.panel("activity", *past, now=NOW)
     assert num(panels.panel("activity", *Q1, now=NOW)["equipment_in_use"]) == 11
+
+
+def test_ca_m08_04_communication_panel_reads_the_website_service(services, monkeypatch):
+    """T-M08-08: subscriptors confirmats (persones: grups petits) i missatges pendents."""
+    monkeypatch.setattr(
+        panels.website, "counts",
+        lambda: {"confirmed_subscribers": 2, "pending_contact_messages": 1},
+    )  # fmt: skip
+    blocks = panels.panel("communication", *Q1, now=NOW)
+    assert list(blocks) == ["confirmed_subscribers", "pending_contact_messages"]
+    assert blocks["confirmed_subscribers"].value.label(3) == "menys de 3"
+    assert blocks["pending_contact_messages"].value.label(3) == "1"  # no són persones

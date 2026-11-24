@@ -120,6 +120,10 @@ CATALOG = _catalog(
          "i amb la plaça oferta, RN-M02-07) de les activitats obertes que comencen després "
          "d'avui."),
        "activities.stats", "count", "other", ACTIVITY_REPORTS),
+    _i("low_occupancy", ("general",), _("Activitats obertes amb poca ocupació"),
+       _("Activitats obertes amb l'ocupació (inscripcions confirmades / places) per sota de "
+         "l'ajust d'ocupació baixa del dashboard (RN-M08-07)."),
+       "activities.low_occupancy_count", "count", "other", ACTIVITY_REPORTS),
     _i("licences_to_renew", ("general", "members"), _("Llicències per renovar"),
        _("Llicències vigents que caduquen dins dels dies de «per renovar» de les "
          "llicències (VC-41)."),
