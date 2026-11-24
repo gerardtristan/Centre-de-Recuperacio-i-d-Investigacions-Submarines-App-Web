@@ -191,12 +191,26 @@ def store(
         raise
 
 
+# Condicions que un mòdul afegeix a un tipus de fitxer (p. ex. un interruptor de configuració):
+# si en torna fals, ningú no l'obre. El nucli no importa cap mòdul (T-M02-43).
+_ACCESS_GUARDS: dict[str, object] = {}
+
+
+def register_access_guard(kind: str, guard) -> None:
+    """El crida un mòdul al seu `AppConfig.ready`: `guard(file)` decideix si el tipus s'obre."""
+    _ACCESS_GUARDS[kind] = guard
+
+
 def can_access(account, file: PrivateFile) -> bool:
     """El compte pot obrir el fitxer? El titular, amb el seu compte personal; un compte
-    d'administrador, només amb el permís del tipus de fitxer (rol i objecte)."""
+    d'administrador, només amb el permís del tipus de fitxer (rol i objecte). Abans de tot, la
+    condició que el mòdul hagi registrat per al tipus (`register_access_guard`)."""
     from apps.accounts.models import Account
 
     if file.deleted_at is not None or (file.expires_at and file.expires_at <= timezone.now()):
+        return False
+    guard = _ACCESS_GUARDS.get(file.kind)
+    if guard is not None and not guard(file):
         return False
     if not isinstance(account, Account) or not account.is_active:
         return False
@@ -269,6 +283,24 @@ def purge_expired() -> int:
         )
         count += 1
     return count
+
+
+def delete_now(file: PrivateFile, *, actor, request=None) -> None:
+    """Esborra un fitxer quan algú ho demana (p. ex. el titular d'una foto, RN-M02-49): des d'ara
+    ningú no l'obre (`deleted_at`) i el contingut s'esborra en confirmar-se la transacció. Queda al
+    registre d'activitat amb qui l'ha esborrat. No s'ha de fer servir per a documents amb
+    obligació legal de conservació."""
+    file.deleted_at = timezone.now()
+    file.save(update_fields=["deleted_at"])
+    key = file.storage_key
+    transaction.on_commit(lambda: storages["private"].delete(key), robust=True)
+    audit.record(
+        audit.Action.FILE_DELETED,
+        actor=actor,
+        target=file,
+        details={"kind": file.kind},
+        request=request,
+    )
 
 
 # Tipus de fitxer sense obligació legal de conservació (RN-B8). Les fotos de titulacions
