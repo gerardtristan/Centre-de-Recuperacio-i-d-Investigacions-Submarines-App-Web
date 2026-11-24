@@ -1095,6 +1095,18 @@ opcions:
       el carnet surt quan el soci torna a estar al corrent, com qualsevol altre soci.
     data: 2026-11-19
 
+  P-550:
+    opcions:
+      A: "Com s'ha construït: el tresorer puja a mà la còpia emmascarada de cada document (tots queden «not_detected»)."
+      B: "Afegir una biblioteca de PDF (sense imatges): emmascarar sol l'IBAN dels PDF amb text; les fotos, a mà."
+      C: "B i, a més, reconeixement de text per a les fotos (una dependència més gran, que s'executa al servidor de la UE)."
+      D: "No fer cap còpia: el paquet porta sempre els originals i la junta ho accepta."
+    recomanada: A
+    perque: >-
+      Compleix la 051 sense cap dependència nova i el tresorer ja revisa cada document; si el volum ho
+      demana, B és el pas següent més petit, amb una PR risc:alt i el sí del propietari.
+    data: 2026-11-24
+
   P-400:
     opcions:
       A: "Com s'ha construït: el rebut retornat el proposa el mateix dia; el pendent, als dies de l'ajust; un sol ajust de dies per a la quota i els terminis."

@@ -5,6 +5,7 @@ Cada servei que escriu comprova el permís del rol (T-M09-30) i, sense, respon �
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
+from django.db.models import Exists, OuterRef, Q
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
@@ -15,7 +16,7 @@ from apps.treasury import services as treasury
 from apps.treasury.models import CostCentre
 from apps.treasury.services import InvalidDepartment
 
-from .models import Expense, ExpenseAnnulment
+from .models import DocumentIllegibleMark, Expense, ExpenseAnnulment
 
 RECORD = "expenses.record"  # MG1
 PAY = "expenses.pay"  # MG2
@@ -227,7 +228,16 @@ def annul(expense: Expense, *, reason: str, by, value_date=None) -> ExpenseAnnul
     return annulment
 
 
+def open_marks(document):
+    """Marques d'il·legible obertes d'un document de la despesa de la consulta exterior."""
+    return DocumentIllegibleMark.objects.filter(
+        expense=OuterRef("pk"), document=document, replaced_at__isnull=True
+    )
+
+
 def without_invoice():
-    """«Sense factura» (RN-M09-09): les despeses vives sense factura adjunta. La marca
-    «il·legible» de la T-M09-25 també hi portarà les que la tenen il·legible."""
-    return Expense.objects.exclude(status=Expense.Status.ANNULLED).filter(invoice_file__isnull=True)
+    """«Sense factura» (RN-M09-09 i 25): les despeses vives sense factura adjunta o amb la
+    factura il·legible (una `DocumentIllegibleMark` oberta; T-M09-25b)."""
+    return Expense.objects.exclude(status=Expense.Status.ANNULLED).filter(
+        Q(invoice_file__isnull=True) | Exists(open_marks(DocumentIllegibleMark.Document.INVOICE))
+    )
