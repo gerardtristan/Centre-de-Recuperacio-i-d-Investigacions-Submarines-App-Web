@@ -1280,6 +1280,16 @@ opcions:
       Una pàgina de text no és una portada, i duplicar com a pàgina de blocs les que ja tenen pantalla pròpia
       faria dues adreces per a la mateixa cosa; tot és reversible (pàgines sense contingut ni publicar).
     data: 2026-11-24
+  P-591:
+    opcions:
+      A: "Fila pròpia del 07 amb una clau aleatòria a l'emmagatzematge privat de la 00 i la validació de la 00, sense fila a PrivateFile."
+      B: "Un tipus nou «foto de la web» a PrivateFile, amb el propietari opcional (torn del nucli)."
+      C: "Un tipus nou a PrivateFile amb la persona que la puja com a propietària."
+    recomanada: A
+    perque: >-
+      Una foto de la web no és de cap persona i el seu accés el decideix el 07 (publicada o no), no el propietari;
+      el contingut ja és al mateix emmagatzematge privat i amb la mateixa validació, sense tocar el nucli.
+    data: 2026-11-24
 
 noves:
   P-412:

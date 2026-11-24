@@ -18,6 +18,7 @@ from django.utils.translation import gettext as _
 from apps.core import audit
 from apps.core.permissions import has_perm
 
+from . import media
 from .models import Page, PageVersion
 
 PERMISSION = "website.pages"  # WP1
@@ -92,6 +93,7 @@ def validate_blocks(blocks) -> None:
         # RN-M07-10: text sense format propi; s'escapa en mostrar-lo.
         if any(not isinstance(block.get(f, ""), str) for f in ("title", "text")):
             raise ValidationError(_("El text d'un bloc ha de ser text."))
+    media.check_publishable(media.block_media_keys(blocks))  # RN-M07-05
 
 
 def current_version(page: Page) -> PageVersion | None:
