@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{# T-M07-13 (P-M07-E; RN-M07-06 i 08; CA-M07-06 i 10): subscriure's al butlletí. Només amb `website.newsletter_enabled` encès; si no, «no trobat». Només el correu i el text del butlletí vigent; la resposta és la mateixa si el correu ja hi era, si no hi era o si s'havia donat de baixa. Recurs del mapa (§6.5): Marcador és per a «avisa'm quan s'obri» d'una activitat; aquí, `formulari` i `avis`. #}
+{% block title %}{% translate "Butlletí" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Butlletí" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Rep el butlletí del club" %}</h1>
+  {% if sent %}
+    <div class="avis avis-ok" role="status">
+      <strong>{% translate "Revisa el correu" %}</strong>
+      {% translate "Si cal, t'hem enviat un correu amb l'enllaç per confirmar la subscripció. Fins que no la confirmis, no rebràs cap butlletí." %}
+    </div>
+  {% elif not text %}
+    <div class="avis avis-avis" role="status">{% translate "Ara mateix no et pots subscriure des d'aquí. Torna-ho a provar més tard." %}</div>
+  {% else %}
+    <p>{% translate "Escriu el teu correu. Et demanarem que confirmis la subscripció i podràs donar-te de baixa des de qualsevol butlletí." %}</p>
+    <form class="formulari" method="post" novalidate>
+      {% csrf_token %}
+      {% include "_errata.html" %}
+      {% include "accounts/_camp.html" with field=form.email %}
+      <fieldset>
+        <legend>{% translate "Textos legals" %}</legend>
+        {% translate "Accepto el text del" as intro %}{% translate "Butlletí del club" as label %}
+        {% include "members/_acceptacio.html" with field=form.accept_newsletter kind="newsletter" label=label text=text intro=intro %}
+      </fieldset>
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Subscriu-me" %}</button></div>
+    </form>
+    <section class="textos-legals" aria-labelledby="textos-legals-titol" data-textos-legals data-tanca="{% translate 'Tanca' %}">
+      <h2 id="textos-legals-titol">{% translate "Textos legals" %}</h2>
+      <article id="text-newsletter" aria-labelledby="text-newsletter-titol">
+        <h3 id="text-newsletter-titol">{% translate "Butlletí del club" %} <span class="text-2">{% blocktranslate with version=text.version %}(versió {{ version }}){% endblocktranslate %}</span></h3>
+        <div class="text-legal-cos">{{ text.content|linebreaks }}</div>
+      </article>
+    </section>
+    <script src="{% static 'js/textos-legals.js' %}" defer></script>
+  {% endif %}
+{% endblock %}
