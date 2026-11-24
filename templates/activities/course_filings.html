@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 {% load i18n %}
-{# T-M02-45b (AC26; RN-M02-52 i 58; CA-M02-55): les tramitacions de la primera estrella obertes. Per a cada persona, la llicència vigent o «Cal llicència» (RN-M06-28) i, si el curs no la inclou, «Demana la primera llicència» amb el càrrec habitual (LC5). Un curs que la inclou no té mai el camí amb càrrec. Nom i nivell, només per a qui té AC26. El servidor torna a comprovar els permisos i les regles. #}
+{# T-M02-45b (AC26; sense `enllac-fila`: la fila té una acció, design-system; RN-M02-52 i 58; CA-M02-55): les tramitacions de la primera estrella obertes. Per a cada persona, la llicència vigent o «Cal llicència» (RN-M06-28) i, si el curs no la inclou, «Demana la primera llicència» amb el càrrec habitual (LC5). Un curs que la inclou no té mai el camí amb càrrec. Nom i nivell, només per a qui té AC26. El servidor torna a comprovar els permisos i les regles. #}
 {% block title %}{% translate "Titulacions i llicències per tramitar" %} · C.R.I.S.{% endblock %}
 {% block cos_classe %}cos-ample{% endblock %}
 {% block content %}
@@ -39,13 +39,13 @@
               <form method="post" class="accions">
                 {% csrf_token %}
                 <input type="hidden" name="filing" value="{{ filing.pk }}">
-                <label class="visualment-amagat" for="tipus-{{ filing.pk }}">{% translate "Tipus de llicència" %}</label>
-                <select id="tipus-{{ filing.pk }}" name="licence_type">{% for value, label in form.fields.licence_type.choices %}<option value="{{ value }}"{% if value|stringformat:"s" == form.fields.licence_type.initial.pk|stringformat:"s" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                <div class="camp"><label class="visualment-amagat" for="tipus-{{ filing.pk }}">{% translate "Tipus de llicència" %}</label>
+                <select id="tipus-{{ filing.pk }}" name="licence_type">{% for value, label in form.fields.licence_type.choices %}<option value="{{ value }}"{% if value|stringformat:"s" == form.fields.licence_type.initial.pk|stringformat:"s" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
                 <button class="boto boto-petit" type="submit">{% translate "Demana la primera llicència" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></button>
               </form>
             {% endif %}
           </td>
-          <td class="cel-accions"><a class="boto boto-petit enllac-fila" href="{% url 'administration:filing_detail' filing.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></a></td>
+          <td class="cel-accions"><a class="boto boto-petit" href="{% url 'administration:filing_detail' filing.pk %}">{% translate "Fitxa" %}<span class="visualment-amagat">: {{ filing.person.last_name }}, {{ filing.person.first_name }}</span></a></td>
         </tr>
         {% endwith %}
       {% empty %}
