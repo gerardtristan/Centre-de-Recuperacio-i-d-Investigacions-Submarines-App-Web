@@ -620,3 +620,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-13b](T-M07-13b.md) | Correus del 07 (confirmació del butlletí, avís de contacte i resposta), permisos dels ajustos del dashboard (P-645) i adreces a l'RGPD (torn del nucli) | 24/11/2026 21:45 | (vegeu la PR) | 10 noves i 2 permisos a la matriu | [A comprovar] |
 | [T-M07-11b](T-M07-11b.md) | Safata del contacte i motius (WP5 i WP8; torn del nucli) | 24/11/2026 22:15 | (vegeu la PR) | 8 noves i 2 e2e | [A comprovar] |
 | [T-M08-09](T-M08-09.md) | Vista del dashboard: DB1, enllaços amb el permís del mòdul, període i memòria cau (torn del nucli) | 24/11/2026 22:20 | (vegeu la PR) | 22 noves i 1 e2e | [A comprovar] |
+| [T-M07-14c](T-M07-14c.md) | Pantalles del butlletí: redactar, vista prèvia, enviar amb confirmació i recomptes (WP6; torn del nucli) | 24/11/2026 23:20 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
