@@ -34,7 +34,7 @@
                   <div class="camp"><label for="instructor-{{ proposal.pk }}-{{ n }}">{% translate "Instructor" %}</label><select id="instructor-{{ proposal.pk }}-{{ n }}" name="instructor-{{ n }}"><option value="">{% translate "Tria…" %}</option>{% for teacher in teachers %}<option value="{{ teacher.pk }}">{{ teacher }}</option>{% endfor %}</select></div>
                 </fieldset>
             {% endfor %}
-          <div class="accions"><button class="boto boto-principal" type="submit" name="confirma" value="1">{% translate "Confirma el reforç" %}</button></div>
+          <div class="accions"><button class="boto" type="submit" name="confirma" value="1">{% translate "Confirma el reforç" %}</button></div>
         </form>
         <form class="formulari" method="post" novalidate>
           {% csrf_token %}

@@ -45,7 +45,8 @@ def test_occupancy_page_and_csv_without_names(login_as, world):  # noqa: F811
 def test_c3_each_role_sees_its_columns(login_as, world):  # noqa: F811
     participants, _schedule = urls(world.course)
     manager = page(login_as(world.manager, AREA_ADMIN), participants)
-    assert "Espera Prova" in manager and "Preu (cèntims)" in manager
+    assert "Espera Prova" in manager and "Preu (cèntims)" not in manager
+    assert '<th scope="col">Preu</th>' in manager and "45,00 €" in manager  # T-DX-102 (B18)
     teacher = page(login_as(world.teacher, AREA_ADMIN), participants)
     assert "Alumna Prova" in teacher and "Espera Prova" not in teacher
     assert "alumna@example.org" not in manager + teacher

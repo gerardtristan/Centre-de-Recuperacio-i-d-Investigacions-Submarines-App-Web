@@ -30,7 +30,7 @@
         <tr>
           <th scope="row" class="cel-nom">{{ activity.title }}</th>
           <td data-etiqueta="{% translate "Inici" %}"><time datetime="{{ activity.starts_on|date:'Y-m-d' }}">{{ activity.starts_on|date:"d/m/Y" }}</time></td>
-          <td data-etiqueta="{% translate "Estat" %}">{{ activity.get_status_display }}</td>
+          <td data-etiqueta="{% translate "Estat" %}">{% include "activities/_activity_status.html" %}</td>
           <td data-etiqueta="{% translate "Ocupades" %}" class="cel-import">{{ row.occupied }} / {{ activity.max_places }}</td>
           <td data-etiqueta="{% translate "Lliures" %}" class="cel-import">{{ row.free }}</td>
           <td data-etiqueta="{% translate "En llista d'espera" %}" class="cel-import">{{ row.waiting }}</td>
