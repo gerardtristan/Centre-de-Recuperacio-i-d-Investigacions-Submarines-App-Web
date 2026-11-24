@@ -64,10 +64,6 @@ class Block:
     breakdowns: tuple = ()  # desglossaments (Breakdown)
     error: bool = False  # RN-M08-11: «No s'ha pogut calcular»
 
-    @property
-    def indicator(self):
-        return CATALOG[self.code]
-
 
 def _months(starts_on, ends_on):
     """El darrer dia de cada mes del període (o `ends_on`, si és abans)."""
