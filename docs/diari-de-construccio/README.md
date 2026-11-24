@@ -614,3 +614,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M08-04-05-07](T-M08-04-05-07.md) | Dashboard: recomptes d'activitat del 02 i dades dels panells general, de socis i d'activitat (carril B) | 24/11/2026 20:35 | de706669 | 21 noves | [A comprovar] |
 | [T-M08-06](T-M08-06.md) | Dashboard: dades del panell econòmic (carril B) | 24/11/2026 20:40 | (vegeu la PR) | 9 noves | [A comprovar] |
 | [T-M02-49](T-M02-49.md) | E2e amb captures de fotos, homologació i primera estrella (carril C) | 24/11/2026 20:55 | (vegeu la PR) | 4 e2e i 1 comprovació | [A comprovar] |
+| [T-M07-15](T-M07-15.md) | RGPD del 07: exportació i esborrat dels missatges de contacte i del butlletí, i baixa amb només la traça (carril A) | 24/11/2026 21:09 | (vegeu la PR) | 5 noves | [A comprovar] |
