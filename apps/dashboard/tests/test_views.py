@@ -131,3 +131,26 @@ def test_ca_m08_14_opening_every_panel_writes_nothing(make_admin):  # noqa: F811
         and "django_session" not in q["sql"]
     ]
     assert writes == []
+
+
+def test_rn_m08_08_the_default_period_comes_from_the_setting(make_admin, monkeypatch):  # noqa: F811
+    from apps.core.models import Setting
+
+    Setting.objects.filter(key=views.DEFAULT_PERIOD).update(initial_value="month")
+    seen = []
+    monkeypatch.setattr(panels, "panel", lambda name, s, e, now=None: seen.append((s, e)) or {})
+    admin_client(make_admin(R.ADMINISTRATOR)).get(URL, {"periode": "no-val"})
+    assert seen == [views.bounds("month", timezone.localdate())]
+
+
+def test_ca_m08_13_each_account_sees_its_own_order_and_hidden_blocks(make_admin):  # noqa: F811
+    from apps.dashboard import layout
+
+    secretary, treasurer = make_admin(R.SECRETARY), make_admin(R.TREASURER)
+    layout.save(secretary, ["unpaid_members", "active_members"], ["new_members"])
+    page = main_of(admin_client(secretary).get(URL).content.decode())
+    assert page.index("Socis impagats") < page.index("Socis actius")
+    assert "Altes del període" not in page
+    other = main_of(admin_client(treasurer).get(URL).content.decode())
+    assert other.index("Socis actius") < other.index("Socis impagats")
+    assert "Altes del període" in other

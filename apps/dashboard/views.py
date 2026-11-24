@@ -9,6 +9,7 @@ i 14).
   comptes durant `DASHBOARD_CACHE_SECONDS` (tècnic, entorn; M08-6). Només xifres, mai dades
   personals. Els enllaços es calculen per a cada compte: un bloc enllaça al detall només si el
   compte té el permís del mòdul, que el torna a comprovar (RN-M08-05, CA-M08-06).
+- **Ordre i blocs amagats** del compte (T-M08-12, `layout.arrange`), sobre les xifres compartides.
 - Sense gràfics (T-M08-11, sessió de DISSENY): xifres i taules.
 """
 
@@ -26,11 +27,10 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
 from apps.core import business_settings
-from apps.core.models import Setting
 from apps.core.permissions import has_perm, request_permissions, require_perm
 from apps.members.models import MembershipType
 
-from . import panels, privacy
+from . import layout, panels, privacy
 from .indicators import CATALOG, PANELS
 
 VIEW = "dashboard.view"  # DB1
@@ -64,11 +64,8 @@ def bounds(period: str, today: datetime.date) -> tuple[datetime.date, datetime.d
 
 
 def default_period() -> str:
-    try:
-        value = business_settings.get(DEFAULT_PERIOD)
-    except Setting.DoesNotExist:
-        # shortcut: l'ajust arriba amb la T-M08-10; fins llavors, l'any natural de M08-6.
-        return "year"
+    """`dashboard.default_period` (T-M08-10); un valor fora de la llista no hauria de passar."""
+    value = business_settings.get(DEFAULT_PERIOD)
     return value if value in PERIODS else "year"
 
 
@@ -147,6 +144,9 @@ def dashboard_view(request, panel="general"):
         "starts_on": starts_on,
         "ends_on": ends_on,
         "computed_at": computed_at,
-        "blocks": [_row(request, perms, block, min_size, type_names) for block in blocks.values()],
+        "blocks": [
+            _row(request, perms, block, min_size, type_names)
+            for block in layout.arrange(request.user, blocks).values()
+        ],
     }
     return render(request, "dashboard/dashboard.html", context)
