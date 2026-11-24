@@ -7,24 +7,28 @@
 - Motius (WP8, `website.contact_reasons`): crear, canviar el nom, l'ordre i els rols que el reben,
   i activar-lo o desactivar-lo. No s'esborra: els missatges hi apunten (PROTECT). Cada canvi
   queda al registre amb el valor anterior.
+- Butlletí (WP6, `website.newsletter`; P-M07-F, CA-M07-08 i 10): la llista, redactar un esborrany
+  amb vista prèvia i el nombre de destinataris, enviar-lo amb confirmació i els recomptes. Mai cap
+  correu de subscriptor (WP7). Amb `website.newsletter_enabled` apagat, «no trobat».
 """
 
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.core import audit
+from apps.core import audit, business_settings
 from apps.core.models import Role
 from apps.core.permissions import active_role_codes, has_perm, request_permissions, require_perm
 
-from . import contact
-from .models import ContactMessage, ContactReason
+from . import contact, newsletter
+from .models import ContactMessage, ContactReason, Newsletter
 
 REASONS = "website.contact_reasons"  # WP8
 ACTION_REASON = "website.contact_reason_changed"
@@ -179,3 +183,91 @@ def reason_edit_view(request, pk=None):
     return render(
         request, "website/admin/contact_reason_form.html", {"form": form, "reason": reason}
     )
+
+
+# --- Butlletí (WP6) ---------------------------------------------------------------------------
+
+NEWSLETTERS = "administration:website_newsletters"
+
+
+class NewsletterForm(forms.Form):
+    subject = forms.CharField(label=gettext_lazy("Assumpte"), max_length=200)
+    body = forms.CharField(
+        label=gettext_lazy("Text"), max_length=20000, widget=forms.Textarea(attrs={"rows": 12}),
+        help_text=gettext_lazy("Text pla: cada línia en blanc separa un paràgraf. L'enllaç de "
+                               "baixa s'hi afegeix sol."),
+    )  # fmt: skip
+
+
+class SendForm(forms.Form):
+    confirm = forms.BooleanField(
+        label=gettext_lazy("Confirmo que l'envio ara: un butlletí enviat no es pot desfer."),
+        error_messages={"required": gettext_lazy("Cal confirmar l'enviament.")},
+    )
+
+
+def _newsletter_access(request, *, write=False):
+    if not business_settings.get(newsletter.ENABLED):
+        raise Http404
+    require_perm(request, newsletter.PERMISSION, write=write)
+
+
+@never_cache
+@require_GET
+def newsletters_view(request):
+    _newsletter_access(request)
+    context = {
+        "newsletters": Newsletter.objects.all(),
+        "can_write": has_perm(request.user, newsletter.PERMISSION, write=True),
+    }
+    return render(request, "website/admin/newsletters.html", context)
+
+
+def _newsletter_page(request, item, form, send_form=None):
+    context = {"item": item, "form": form, "send_form": send_form}
+    if item is not None and item.status == Newsletter.Status.SENT:
+        context["counts"] = newsletter.counts(item, actor=request.user)
+    elif item is not None:
+        context["recipients"] = newsletter.recipients_count(request.user)
+        context["send_form"] = send_form or SendForm()
+    return render(request, "website/admin/newsletter_form.html", context)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def newsletter_edit_view(request, pk=None):
+    _newsletter_access(request, write=True)
+    item = get_object_or_404(Newsletter, pk=pk) if pk else None
+    if item is not None and item.status == Newsletter.Status.SENT:
+        if request.method == "POST":
+            raise Http404
+        return _newsletter_page(request, item, None)
+    initial = {"subject": item.subject, "body": item.body} if item else None
+    form = NewsletterForm(request.POST or None, initial=initial)
+    if request.method == "POST" and form.is_valid():
+        try:
+            item = newsletter.save_draft(actor=request.user, newsletter=item, **form.cleaned_data)
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, _("Esborrany desat."))
+            return redirect("administration:website_newsletter_edit", item.pk)
+    return _newsletter_page(request, item, form)
+
+
+@never_cache
+@require_POST
+def newsletter_send_view(request, pk):
+    _newsletter_access(request, write=True)
+    item = get_object_or_404(Newsletter, pk=pk)
+    form = SendForm(request.POST)
+    if not form.is_valid():
+        initial = {"subject": item.subject, "body": item.body}
+        return _newsletter_page(request, item, NewsletterForm(initial=initial), form)
+    try:
+        total = newsletter.send(item, actor=request.user, request=request)
+    except ValidationError as error:
+        messages.error(request, " ".join(error.messages))
+        return redirect("administration:website_newsletter_edit", item.pk)
+    messages.success(request, _("Butlletí a la cua per a %(n)s destinataris.") % {"n": total})
+    return redirect(NEWSLETTERS)

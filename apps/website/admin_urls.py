@@ -17,4 +17,10 @@ urlpatterns = [
         views.reason_edit_view,
         name="website_contact_reason_edit",
     ),
+    path("web/butlleti/", views.newsletters_view, name="website_newsletters"),
+    path("web/butlleti/nou/", views.newsletter_edit_view, name="website_newsletter_add"),
+    path("web/butlleti/<int:pk>/", views.newsletter_edit_view, name="website_newsletter_edit"),
+    path(
+        "web/butlleti/<int:pk>/envia/", views.newsletter_send_view, name="website_newsletter_send"
+    ),
 ]

@@ -1,0 +1,28 @@
+{% extends "base_admin.html" %}
+{% load i18n %}
+{# P-M07-F (WP6; RN-M07-06): els butlletins, esborranys i enviats. Cap correu de subscriptor (WP7): els recomptes són a la fitxa de cada butlletí. L'enllaç de redactar només surt amb permís d'escriptura; el servidor ho torna a comprovar. #}
+{% block title %}{% translate "Butlletí" %} · C.R.I.S.{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Web pública" %}</p>
+    <h1>{% translate "Butlletí" %}</h1>
+    <p class="text-2">{% translate "Només el reben les subscripcions confirmades, i cada correu porta l'enllaç de baixa." %}</p>
+  </header>
+  {% for message in messages %}<div class="avis avis-ok" role="status">{{ message }}</div>{% endfor %}
+  {% if can_write %}<div class="accions"><a class="boto boto-principal" href="{% url 'administration:website_newsletter_add' %}">{% translate "Butlletí nou" %}</a></div>{% endif %}
+  <table class="taula">
+    <caption>{% translate "Del més recent al més antic." %}</caption>
+    <thead><tr><th scope="col">{% translate "Assumpte" %}</th><th scope="col">{% translate "Número" %}</th><th scope="col">{% translate "Estat" %}</th></tr></thead>
+    <tbody>
+      {% for item in newsletters %}
+        <tr>
+          <th scope="row" class="cel-nom">{% if can_write %}<a href="{% url 'administration:website_newsletter_edit' item.pk %}">{{ item.subject }}</a>{% else %}{{ item.subject }}{% endif %}</th>
+          <td data-etiqueta="{% translate 'Número' %}" class="xifra-viva">{{ item.number }}</td>
+          <td data-etiqueta="{% translate 'Estat' %}">{% if item.status == "sent" %}<span class="estat estat-ok"><span aria-hidden="true">✓</span> {% blocktranslate with day=item.sent_at|date:"d/m/Y" %}Enviat el {{ day }}{% endblocktranslate %}</span>{% else %}<span class="estat estat-avis"><span aria-hidden="true">◷</span> {{ item.get_status_display }}</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Encara no hi ha cap butlletí." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
