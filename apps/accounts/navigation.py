@@ -135,6 +135,7 @@ ENTRIES = (
             "administration:activity_outing_add",
             "administration:activity_detail",
             "administration:activity_edit",
+            "administration:activity_message",  # T-M02-21c: s'obre des de la fitxa
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
     (
