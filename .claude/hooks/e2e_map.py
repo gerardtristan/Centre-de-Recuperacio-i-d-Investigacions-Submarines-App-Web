@@ -288,6 +288,18 @@ MAP = {
         "apps/activities/filings.py",
         "templates/activities/course_filings.html",
     ),
+    "test_web_contacte.py": (
+        "apps/website/views.py",
+        "apps/website/urls.py",
+        "apps/website/contact.py",
+        "templates/website/contact.html",
+    ),
+    "test_web_butlleti.py": (
+        "apps/website/views.py",
+        "apps/website/urls.py",
+        "apps/website/newsletter.py",
+        "templates/website/newsletter*.html",
+    ),
     "test_homologacions.py": (
         "apps/activities/views/admin_filings.py",
         "apps/activities/filings.py",

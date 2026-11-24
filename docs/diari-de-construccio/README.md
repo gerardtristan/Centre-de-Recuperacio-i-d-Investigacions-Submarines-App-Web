@@ -609,3 +609,8 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 17:55 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M02-17b](T-M02-17b.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
 | [T-M02-17c](T-M02-17c.md) | «El meu progrés» a l'àrea personal, des de «Les meves activitats» (carril X) | 24/11/2026 18:01 | (vegeu la PR) | 2 noves i 1 e2e | [A comprovar] |
+| [T-M07-11](T-M07-11.md) | Contacte amb motius, protecció contra robots i abast per motiu, i conservació dels missatges (T-M07-12; en part: avisos, resposta i safata, torn del nucli; carril A) | 24/11/2026 20:34 | (vegeu la PR) | 15 noves i 1 e2e | [A comprovar] |
+| [T-M07-13](T-M07-13.md) | Butlletí: subscripció amb doble confirmació, consentiment i baixa (en part: el correu de confirmació, torn del nucli; carril A) | 24/11/2026 20:45 | (vegeu la PR) | 11 noves, 1 xfail i 1 e2e | [A comprovar] |
+| [T-M08-04-05-07](T-M08-04-05-07.md) | Dashboard: recomptes d'activitat del 02 i dades dels panells general, de socis i d'activitat (carril B) | 24/11/2026 20:35 | de706669 | 21 noves | [A comprovar] |
+| [T-M08-06](T-M08-06.md) | Dashboard: dades del panell econòmic (carril B) | 24/11/2026 20:40 | (vegeu la PR) | 9 noves | [A comprovar] |
+| [T-M02-49](T-M02-49.md) | E2e amb captures de fotos, homologació i primera estrella (carril C) | 24/11/2026 20:55 | (vegeu la PR) | 4 e2e i 1 comprovació | [A comprovar] |

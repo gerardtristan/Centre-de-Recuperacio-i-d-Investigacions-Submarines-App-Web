@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# T-M07-13 (CA-M07-07 i 09): les pàgines dels enllaços del correu del butlletí, sense sessió. Confirmar demana prémer el botó (POST, amb CSRF); la baixa és immediata i diu sempre el mateix, també si l'enllaç no existeix (RN-M07-08). #}
+{% block title %}{% translate "Butlletí" %} · C.R.I.S.{% endblock %}
+{% block titol_zona %}{% translate "Butlletí" %}{% endblock %}
+{% block content %}
+  <h1>{% translate "Butlletí del club" %}</h1>
+  {% if ask %}
+    <p>{% translate "Prem el botó per confirmar que vols rebre el butlletí del club." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="accions"><button class="boto boto-principal" type="submit">{% translate "Confirma la subscripció" %}</button></div>
+    </form>
+  {% elif confirmed %}
+    <div class="avis avis-ok" role="status"><strong>{% translate "Subscripció confirmada" %}</strong> {% translate "Rebràs el butlletí del club. Cada butlletí porta l'enllaç per donar-te de baixa." %}</div>
+  {% elif unsubscribed %}
+    <div class="avis avis-ok" role="status"><strong>{% translate "T'has donat de baixa" %}</strong> {% translate "No rebràs cap més butlletí." %}</div>
+  {% else %}
+    <div class="avis avis-avis" role="status">{% translate "Aquest enllaç ja no és vàlid o ha caducat. Torna't a subscriure des de la web del club." %}</div>
+  {% endif %}
+{% endblock %}

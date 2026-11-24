@@ -30,6 +30,7 @@ def test_ca_m03_15_every_piece_in_exactly_one_state(manager, keeper):  # noqa: F
     medium = lines["M"]
     assert (medium.available, medium.assigned, medium.in_use, medium.in_review) == (2, 1, 1, 1)
     assert lines["L"].available == 1
+    assert stock.in_use_count(JUNE) == 2  # per al dashboard (T-M08-07): en ús + assignades
     assert (
         sum(line.total for line in lines.values())
         == EquipmentItem.objects.exclude(status=EquipmentItem.Status.RETIRED).count()

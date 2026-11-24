@@ -42,6 +42,18 @@ def stock(on, *, viewer, equipment_type=None) -> list[StockLine]:
     """`equipment.stock(on, filters)` (M03-8). Sense MT4 (ni de consulta), «no trobat»."""
     if not has_perm(viewer, VIEW, write=False):
         raise Http404
+    return _lines(on, equipment_type)
+
+
+def in_use_count(on) -> int:
+    """Per al dashboard (08): peces en ús o assignades en una data. Consulta agregada sense
+    permís: el permís DB1 el comprova la vista del dashboard (T-M08-09). Com `stock`, llegeix
+    l'estat d'avui de les peces (en revisió, de baixa) i de les assignacions: només és fiable per
+    a avui o una data futura; el dashboard només el fa servir per al període en curs (P-644)."""
+    return sum(line.in_use + line.assigned for line in _lines(on))
+
+
+def _lines(on, equipment_type=None) -> list[StockLine]:
     items = EquipmentItem.objects.exclude(status=ITEM.RETIRED).select_related("type")
     if equipment_type is not None:
         items = items.filter(type=equipment_type)

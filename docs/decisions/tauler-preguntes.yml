@@ -1309,6 +1309,40 @@ opcions:
       i en pot generar un de nou en pujar les còpies.
     data: 2026-11-24
 
+  P-620:
+    opcions:
+      A: "Respost o tancat compten igual: el termini corre des del dia que es respon o es tanca; un missatge nou no s'esborra sol."
+      B: "Només els tancats sense resposta s'esborren; els resposts es guarden fins que algú els tanqui."
+      C: "El termini corre des del dia que arriba el missatge, sigui quin sigui l'estat."
+    recomanada: A
+    perque: >-
+      Un missatge respost ja no cal per a res i guardar-lo més temps és més dada personal sense motiu (mínim de dades, M07-12);
+      comptar des de l'arribada podria esborrar un missatge que encara no ha llegit ningú.
+    data: 2026-11-24
+
+  P-621:
+    opcions:
+      A: "L'enllaç obre una pàgina amb el botó «Confirma la subscripció»; la baixa, immediata en obrir l'enllaç."
+      B: "Obrir l'enllaç ja confirma, com la baixa."
+      C: "Botó per confirmar i també per donar-se de baixa."
+    recomanada: A
+    perque: >-
+      Els servidors de correu que obren els enllaços per revisar-los confirmarien subscripcions sense la persona (el consentiment ha de ser
+      seu); una baixa per error només deixa de rebre el butlletí, i la regla la vol d'un sol clic.
+    data: 2026-11-24
+
+  P-622:
+    opcions:
+      A: "Com diu la regla: obrir l'enllaç de baixa dona de baixa a l'instant."
+      B: "L'enllaç mostra el botó «Dona'm de baixa» i la baixa es fa en prémer-lo (POST), més la baixa d'un clic dels programes de correu (RFC 8058, List-Unsubscribe-Post)."
+      C: "Botó a la pàgina, sense la baixa d'un clic dels programes de correu."
+      D: "Obrir l'enllaç dona de baixa i la pàgina ofereix «Desfés-ho» durant uns minuts."
+    recomanada: B
+    perque: >-
+      Els programes que revisen els enllaços del correu no donarien de baixa ningú, i la baixa continua sent d'un sol clic, també des
+      del botó del programa de correu (el que demanen avui Gmail i Yahoo per als enviaments en massa).
+    data: 2026-11-24
+
 noves:
   P-412:
     opcions:
@@ -1489,4 +1523,56 @@ noves:
     perque: >-
       Les titulacions inicials que es carreguen a mà són sobretot les dels socis que venen de Cluber; un
       cercador de persones exposaria noms a qui no els necessita, i B depèn de quina fitxa tindran els alumnes.
+  P-640:
+    opcions:
+      A: "La definició diu el que compta el servei del mòdul (places ocupades de RN-M02-07, revisions dins dels dies d'avís, totes les dates del calendari dels ajuts)."
+      B: "Es manté la definició del catàleg i es demana a cada mòdul un servei nou que compti exactament això."
+      C: "Places lliures amb només les confirmades; la resta com A."
+      D: "Treure aquests tres indicadors fins que la junta en fixi la definició."
+    recomanada: A
+    perque: >-
+      RN-M08-04 vol la mateixa xifra que el mòdul: si el dashboard comptés les places d'una altra manera que
+      la pantalla d'inscripcions, mostraria places lliures que ja estan reservades per a qui ha de pagar.
+    data: 2026-11-24
+  P-641:
+    opcions:
+      A: "Els 12 mesos sencers acabats amb el mes en curs."
+      B: "D'avui fa un any fins avui, amb un servei de socis per dates."
+      C: "Els 12 mesos sencers anteriors al mes en curs."
+    recomanada: A
+    perque: >-
+      Les altes i les baixes del 01 es compten per mes natural; amb mesos sencers les xifres quadren amb
+      les del mòdul sense cap servei nou, i el mes en curs hi és.
+    data: 2026-11-24
+  P-642:
+    opcions:
+      A: "activities.stats com està fet: activitats que comencen dins del període, assistència sense reforços, inscripcions per setmana pel dia que es van fer."
+      B: "Com A, però les sessions de reforç també compten a l'assistència."
+      C: "Com A, però les inscripcions per setmana pel dia que es van confirmar (cal un camp nou al model)."
+      D: "Activitats del període = les que hi acaben."
+    recomanada: A
+    perque: >-
+      És de només lectura i no demana cap camp nou; un reforç només és d'alguns inscrits i barrejar-lo
+      faria baixar l'assistència sense motiu. Es pot canviar més endavant sense tocar dades.
+    data: 2026-11-24
+  P-643:
+    opcions:
+      A: "Tot de l'informe per departament del 09: marge de les activitats tancades, ingressos i despeses sense activitat; la suma dona el total de l'informe."
+      B: "Ingressos i despeses bruts dels moviments de tresoreria per departament (entrades i sortides), encara que no quadrin amb l'informe del 09."
+      C: "Només el total de cada departament (el de l'informe), sense separar ingressos i despeses."
+      D: "Com A, però el marge per departament en lloc d'una sola suma."
+    recomanada: A
+    perque: >-
+      HU-M08-02 vol que el tresorer vegi el mateix import que a l'informe del 09; amb els moviments bruts,
+      una anul·lació (contramoviment) sortiria com a despesa i la xifra no quadraria amb cap pantalla.
+  P-644:
+    opcions:
+      A: "Xifra sola de persones per sota de N: «menys de N»; percentatge amb el numerador per sota de N (també 0): «amagat»; material en ús només per al període en curs."
+      B: "Com A, però un percentatge amb numerador 0 es veu (no identifica ningú)."
+      C: "Només s'amaguen els desglossaments (lletra de RN-M08-02); les xifres soles i els percentatges es veuen."
+      D: "Com A, i el material en ús d'un període passat amb un historial nou al 03 (lliurada i retornada, revisions)."
+    recomanada: A
+    perque: >-
+      És l'opció conservadora: amb el període d'un mes, la xifra sola i el percentatge repeteixen el grup
+      petit que el desglossament amaga. B es pot activar després sense tocar dades si la junta ho vol.
     data: 2026-11-24
