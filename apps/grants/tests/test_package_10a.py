@@ -32,13 +32,14 @@ def pdf(text):
     return SimpleUploadedFile("document.pdf", f"%PDF-1.7\n%{text}\n".encode())
 
 
-def linked(application, by, amount, number, *, docs=(INVOICE, PROOF), masked=True, **extra):
+def linked(application, by, amount, number, *, docs=(INVOICE, PROOF), masked=True,
+           requirement=None, **extra):  # fmt: skip
     item = expense(by, amount=amount, number=number, **extra)
     for document in docs:
         documents.attach(item, document, pdf(f"{document} {number}"), by=by)
         if masked:
             documents.attach_masked_copy(item, document, pdf(f"tapada {document} {number}"), by=by)
-    j.link_expense(application, item, amount, by=by)
+    j.link_expense(application, item, amount, by=by, requirement=requirement)
     return item
 
 
