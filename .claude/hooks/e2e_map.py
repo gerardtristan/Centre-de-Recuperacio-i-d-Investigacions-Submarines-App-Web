@@ -178,6 +178,17 @@ MAP = {
     "test_activitats_meves.py": (
         "apps/activities/views/my_activities.py",
         "templates/activities/my_activities.html",
+        "templates/activities/certificate.html",
+    ),
+    "test_activitats_informes.py": (
+        "apps/activities/views/reports.py",
+        "apps/activities/reports.py",
+        "templates/activities/report*.html",
+    ),
+    "test_activitats_medi_ambient.py": (
+        "apps/activities/views/environment.py",
+        "templates/activities/environment_results.html",
+        "templates/activities/project_detail.html",
     ),
     "test_activitats_cataleg.py": (
         "apps/activities/views/admin_catalogue.py",
@@ -228,6 +239,10 @@ MAP = {
         "templates/activities/certificate.html",
         "apps/activities/views/reinforcement.py",
         "templates/activities/reinforcement_*",
+    ),
+    "test_missatge_activitat.py": (
+        "apps/activities/views/message.py",
+        "templates/activities/activity_message.html",
     ),
     "test_despeses.py": (
         "apps/expenses/views.py",

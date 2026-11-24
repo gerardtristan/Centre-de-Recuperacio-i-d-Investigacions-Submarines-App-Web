@@ -12,14 +12,19 @@ plataforma (`members.roster.to_csv`: UTF-8 amb BOM, «;» i cap cel·la que semb
   (sortida), amb l'hora i el lloc.
 - **Ocupació:** només recomptes.
 
-**Fora d'aquesta peça:** les pàgines d'impressió i les descàrregues (vistes).
+- **El CSV dels participants** porta noms: cada descàrrega queda al registre (qui, quina
+  activitat, quantes files i l'empremta del fitxer; cap nom).
+
+Les pàgines d'impressió i les descàrregues són a `views/reports.py` (T-M02-24b).
 """
 
+import hashlib
 from dataclasses import dataclass
 
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.core import audit
 from apps.core.permission_catalog import SCOPE_OWN_SESSIONS
 from apps.core.permissions import scope_for
 from apps.licences import services as licences
@@ -31,6 +36,7 @@ from .models import Activity, Enrolment
 
 A = Activity.Status
 S = Enrolment.Status
+PARTICIPANTS_EXPORTED = "activities.participants.exported"
 
 
 def _yes_no(value) -> str:
@@ -81,7 +87,13 @@ def participants_report(activity, *, viewer, request=None) -> tuple[list[str], l
 
 def participants_csv(activity, *, viewer, request=None) -> bytes:
     headers, rows = participants_report(activity, viewer=viewer, request=request)
-    return to_csv(headers, rows)
+    content = to_csv(headers, rows)
+    audit.record(
+        PARTICIPANTS_EXPORTED, actor=viewer, target=activity,
+        details={"rows": len(rows), "sha256": hashlib.sha256(content).hexdigest()},
+        request=request,
+    )  # fmt: skip
+    return content
 
 
 @dataclass(frozen=True)

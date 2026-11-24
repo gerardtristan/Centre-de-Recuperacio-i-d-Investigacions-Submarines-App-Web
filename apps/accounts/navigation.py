@@ -69,6 +69,8 @@ BASE_ROUTES = {
     "administration:equipment_usage_rates": ((("settings.section.equipment", READ),),),  # VC-28
     # T-M02-16b: AC9; l'instructor només hi veu les seves sessions (ho filtra la vista).
     "administration:attendance_sessions": ((("activities.attendance.record", READ),),),
+    # T-M02-24b: AC20; l'instructor només hi veu les activitats on fa classe (ho filtra el servei).
+    "administration:activity_reports": ((("activities.reports.view", READ),),),
     # Només amb el permís (DX1), encara que SHOW_UNDER_CONSTRUCTION ensenyi les pantalles a tothom.
     "administration:previews:index": (((UNDER_CONSTRUCTION, READ),),),  # T-DX-50
     # T-AJ-02: n'hi ha prou amb veure un apartat d'ajustos (RN-RP-22).
@@ -135,6 +137,8 @@ ENTRIES = (
             "administration:activity_outing_add",
             "administration:activity_detail",
             "administration:activity_edit",
+            "administration:activity_environment",  # T-M02-20b: s'obre des de la fitxa
+            "administration:activity_message",  # T-M02-21c: s'obre des de la fitxa
         ),
     ),  # T-M02-06; revisat amb DISSENY (23/11): fitxa, alta i edició són filles del llistat
     (
@@ -145,7 +149,11 @@ ENTRIES = (
     (
         "administration:catalogue",
         _("Catàleg de cursos"),
-        ("administration:catalogue_entry_add", "administration:catalogue_entry"),
+        (
+            "administration:catalogue_entry_add",
+            "administration:catalogue_entry",
+            "administration:environmental_project",  # T-M02-20b: s'obre des del catàleg
+        ),
     ),  # T-M02-05b; text i lloc per revisar amb DISSENY
     (
         "administration:filings",
@@ -172,6 +180,11 @@ ENTRIES = (
             "administration:reinforcement_propose",
         ),
     ),  # T-M02-16b; text i lloc provisionals per a DISSENY
+    (
+        "administration:activity_reports",
+        _("Informes d'activitats"),
+        ("administration:activity_participants", "administration:activity_schedule"),
+    ),  # T-M02-24b; text i lloc provisionals per a DISSENY
     (
         "administration:membership_types",
         _("Tipus de soci"),
@@ -351,6 +364,7 @@ GROUPS = (
             "administration:filings",
             "administration:places",
             "administration:catalogue",
+            "administration:activity_reports",  # T-M02-24b: DISSENY
             "administration:equipment_reports",  # 03: DISSENY
         ),
     ),

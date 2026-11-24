@@ -1,0 +1,29 @@
+{% extends "base_admin.html" %}
+{% load i18n static %}
+{# T-M02-24b (AC20 amb objecte; C3): participants d'una activitat. Les columnes les decideix el servei: l'instructor, només els confirmats amb nom, titulacions i llicència vigent; la resta, també l'estat, la llista d'espera, el canal i els requisits; el preu, només amb AC19. Cap dada de contacte. El CSV porta noms: es baixa amb un POST i queda al registre. #}
+{% block title %}{% translate "Participants" %} · {{ activity.title }} · C.R.I.S.{% endblock %}
+{% block cos_classe %}cos-ample{% endblock %}
+{% block content %}
+  <header class="capcalera-pagina">
+    <p class="etiqueta-seccio">{% translate "Participants" %}</p>
+    <h1>{{ activity.title }}</h1>
+    <p class="text-2">{% blocktranslate with start=activity.starts_on|date:"d/m/Y" %}Comença el {{ start }}.{% endblocktranslate %}</p>
+  </header>
+  <div class="accions no-imprimeix">
+    <button class="boto" type="button" data-imprimeix hidden>{% translate "Imprimeix" %}</button>
+    <form method="post">{% csrf_token %}<button class="boto boto-text" type="submit">{% translate "Descarrega el CSV" %}</button></form>
+  </div>
+  <table class="taula">
+    <caption class="visualment-amagat">{% translate "Participants de l'activitat" %}</caption>
+    <thead><tr>{% for header in headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for cells in rows %}
+        <tr>{% for header, cell in cells %}{% if forloop.first %}<th scope="row" class="cel-nom">{{ cell }}</th>{% else %}<td data-etiqueta="{{ header }}">{{ cell }}</td>{% endif %}{% endfor %}</tr>
+      {% empty %}
+        <tr><td colspan="{{ headers|length }}">{% translate "Encara no hi ha cap participant." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="enllacos no-imprimeix"><a href="{% url 'administration:activity_reports' %}">{% translate "Torna als informes" %}</a></p>
+  <script src="{% static 'js/imprimeix.js' %}" defer></script>
+{% endblock %}
