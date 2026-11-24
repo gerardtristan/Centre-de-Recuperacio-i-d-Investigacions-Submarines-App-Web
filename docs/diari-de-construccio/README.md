@@ -515,7 +515,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-16c](T-M09-16c.md) | Pantalla dels períodes i creació del període següent (margins/0006; apilada sobre la T-M09-13; carril A6) | 23/11/2026 14:45 | (vegeu la PR) | 11 noves; 1 e2e | [A comprovar] |
 | [T-M09A-06-nucli](T-M09A-06-nucli.md) | Ajuts (nucli): plantilles dels avisos de tancament, resposta, justificació i requeriment (carril A6) | 23/11/2026 13:56 | (vegeu la PR) | 5 noves | [A comprovar] |
 | [T-M02-50-nucli](T-M02-50-nucli.md) | Activitats (nucli): AC27, AC28 i permisos dels ajustos VC-60 i VC-61 (core/0073; carril B4) | 23/11/2026 16:40 | ff3c2273 | — | [A comprovar] |
-| [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-14](T-M02-14.md) | Inscripció de convidat des del web i presencial, amb «Soc major d'edat» (i T-M02-34; carril B4) | 23/11/2026 16:14 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M02-11](T-M02-11.md) | Inscripció del soci des de l'àrea personal (apilada sobre la T-M02-14; carril B4) | 23/11/2026 16:27 | (vegeu la PR) | 4 noves i 1 e2e | [A comprovar] |
 | [T-DX-93](T-DX-93.md) | «Tancament de períodes»: el títol de la pàgina diu el mateix que el menú | 23/11/2026 17:56 | 39a94839 | 1 nova | [A comprovar] |
 | [T-M02-45](T-M02-45.md) | Primera estrella: tramitació course en emetre el certificat i «Cal llicència» (activities/0020; carril B4) | 23/11/2026 15:04 | (vegeu la PR) | 3 noves | [A comprovar] |
@@ -546,7 +546,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M02-51b](T-M02-51b.md) | Cost previst de la primera llicència inclosa al marge del curs (servei nou del 09; carril B4) | 23/11/2026 20:06 | (vegeu la PR) | 2 noves | [A comprovar] |
 | [T-M02-28b](T-M02-28b.md) | Enllaç per defecte a la previsió marítima (VC-25) i l'apartat «Activitats» a la pantalla d'ajustos (carril A6) | 23/11/2026 21:20 | (vegeu la PR) | 5 noves, 1 ampliada | [A comprovar] |
 | [T-M02-18b](T-M02-18b.md) | Pantalles de les classes de reforç (carril C7) | 23/11/2026 22:24 | (vegeu la PR) | 4 noves; 1 e2e | [A comprovar] |
-| [T-M02-06c1](T-M02-06c1.md) | Estat d'una activitat des de la fitxa: publicar, tancar, reobrir, marcar feta i cancel·lar (carril B4) | 23/11/2026 23:15 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-06c1](T-M02-06c1.md) | Estat d'una activitat des de la fitxa: publicar, tancar, reobrir, marcar feta i cancel·lar (carril B4) | 23/11/2026 23:15 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M02-21a](T-M02-21a.md) | Avisos per correu a l'alumne: recordatori, resultat, certificat i reforç (activities/0022, core/0075; carril C7) | 23/11/2026 23:41 | (vegeu la PR) | 7 noves (+1 al nucli) | [A comprovar] |
 | [T-M02-21a](T-M02-21a.md) | Avisos per correu a l'alumne: recordatori, resultat, certificat i reforç (activities/0023, core/0076; carril C7) | 23/11/2026 23:41 | (vegeu la PR) | 8 noves (+1 al nucli) | [A comprovar] |
 | [T-DX-97](T-DX-97.md) | Avaluació amb el botó principal i homologacions amb l'avantítol en text | 24/11/2026 01:34 | f423a5dd | 2 noves | [A comprovar] |
@@ -558,7 +558,7 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-DX-98](T-DX-98.md) | «Llicències per confirmar»: «Confirma…» a la cel·la d'accions | 24/11/2026 03:05 | aa350611 | 1 nova | [A comprovar] |
 | [T-M02-21b](T-M02-21b.md) | Avisos de la inscripció, del canvi de programa i del missatge de l'organitzador (activities/0024; carril C7) | 24/11/2026 02:19 | (vegeu la PR) | 6 noves | [A comprovar] |
 | [T-M02-22c](T-M02-22c.md) | El certificat de l'alumne a «Les meves activitats», per imprimir o desar com a PDF (carril B4) | 24/11/2026 00:53 | (vegeu la PR) | 1 nova i 1 e2e | [A comprovar] |
-| [T-M02-24b](T-M02-24b.md) | Informes d'activitats: ocupació, participants i horari per imprimir, i descàrregues en CSV (amb l'entrada de menú, nucli; carril B4) | 24/11/2026 02:03 | (vegeu la PR) | 6 noves i 1 e2e | [A comprovar] |
+| [T-M02-24b](T-M02-24b.md) | Informes d'activitats: ocupació, participants i horari per imprimir, i descàrregues en CSV (amb l'entrada de menú, nucli; carril B4) | 24/11/2026 02:03 | (vegeu la PR) | 9 noves i 1 e2e | [A comprovar] |
 | [T-M02-20b](T-M02-20b.md) | Resultats ambientals d'una sortida i fitxa de projecte, sense fotos (amb les filles de menú, nucli; apilada sobre la T-M02-24b; carril B4) | 24/11/2026 02:34 | (vegeu la PR) | 5 noves i 1 e2e | [A comprovar] |
 | [T-M02-21c](T-M02-21c.md) | Pantalla del missatge de l'organitzador als inscrits (carril C7) | 24/11/2026 03:13 | (vegeu la PR) | 2 noves; 1 e2e | [A comprovar] |
 | [T-DX-99](T-DX-99.md) | Fitxa d'una activitat: «Cancel·la l'activitat…» plegat i els canvis d'estat en una fila | 24/11/2026 04:06 | ab300d66 | 1 nova | [A comprovar] |
@@ -576,3 +576,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M09-25b](T-M09-25b.md) | Documents de justificació d'una despesa xifrats, còpia emmascarada a mà i marca «il·legible» amb activador (expenses/0009; carril X) | 24/11/2026 11:15 | (vegeu la PR) | 15 noves | [A comprovar] |
 | [T-M08-03](T-M08-03.md) | Dashboard: supressió de grups petits i ajust de la mida mínima (carril Y) | 24/11/2026 12:04 | cbc9f950 | 12 noves | [A comprovar] |
 | [T-M07-02](T-M07-02.md) | Permisos WP1 a WP8, DB1 i DB2 i els dels ajustos del 07 i del 08 (torn del nucli; core/0078; carril Y) | 24/11/2026 13:07 | 2e74c587, c2ca8445 | 200 noves i 1 e2e | [A comprovar] |
+| [T-M09-04b](T-M09-04b.md) | Documents d'una despesa: factura, comprovant i il·legible (amb la T-M09-05 i la T-M09-15) | 24/11/2026 14:25 | 77468e2b | 9 noves i 1 e2e | [A comprovar] |
