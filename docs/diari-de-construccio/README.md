@@ -583,3 +583,4 @@ Peces que no són tasques del pla però que fan servir les entrades (per exemple
 | [T-M07-02](T-M07-02.md) | Permisos WP1 a WP8, DB1 i DB2 i els dels ajustos del 07 i del 08 (torn del nucli; core/0078; carril Y) | 24/11/2026 13:07 | 2e74c587, c2ca8445 | 200 noves i 1 e2e | [A comprovar] |
 | [T-M09A-10a](T-M09A-10a.md) | Paquet de justificació d'un ajut: ZIP xifrat, excloses amb el motiu i còpies emmascarades | 24/11/2026 17:20 | 850c30f1 | 10 noves | [A comprovar] |
 | [T-M09A-10b](T-M09A-10b.md) | Enviar el paquet de justificació, versions amb requeriment i avisos | 24/11/2026 17:32 | aa38f4dd | 11 noves | [A comprovar] |
+| [T-M09A-10c](T-M09A-10c.md) | Pantalla «Justificació de l'ajut»: generar, descarregar i enviar el paquet | 24/11/2026 17:54 | 97427b29 | 8 noves i 1 e2e | [A comprovar] |
